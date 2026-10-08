@@ -186,7 +186,7 @@ export class PlanDoc extends PlanReader {
     const framed = values.symptom !== undefined || values.changes !== undefined
     const fields = PHASE_FIELDS.filter((name) =>
       framed ? name !== "goal" || values.goal !== undefined : name !== "symptom" && name !== "changes"
-    ).map((name) => this.make("epic-field", { name }, values[name] ?? "TBD"))
+    ).map((name) => this.make("epic-field", { name }, this.incoming(values[name] ?? "TBD")))
     const phase = this.make("epic-phase", { id: `p${n}`, title: name, status: "todo", estimate }, fields)
     if (before === undefined) section.append(phase)
     else this.phase(n + 1).before(phase)
@@ -306,11 +306,13 @@ export class PlanDoc extends PlanReader {
    * - `at`:  now, `YYYY-MM-DD HH:MM`;  `phase`:  the phase active when it was written, if any
    * - it STAYS when a phase is done (unlike the UPDATE markers);  while its phase is to do, the Phases section lists
    *   it in its Plan changes box (drawn)
+   * - old prose shapes in `html` (a Net effect paragraph, a code accordion ...) become elements (`IncomingHtml`)
    * - SIDE EFFECT:  logs it
    */
   addPhaseUpdate(n: number, html: string): void {
     const phase = this.phase(n)
-    Markup.place(phase, this.make("epic-updated", { at: PlanTime.clockTime(this.now), phase: this.activePhase }, html))
+    const data = { at: PlanTime.clockTime(this.now), phase: this.activePhase }
+    Markup.place(phase, this.make("epic-updated", data, this.incoming(html)))
     this.log(`P${n} plan updated`)
   }
 
@@ -425,7 +427,8 @@ export class PlanDoc extends PlanReader {
   /**
    * Add a `kind` item titled `title`;  returns its id (`c3`).
    * - `details`:  HTML, its children (its text, and cards:  `<epic-choices>` ...);  old shapes are turned into
-   *   elements on the way in (`IncomingHtml`)
+   *   elements on the way in (`IncomingHtml`);  a question's lead, the question as asked, goes in an
+   *   `<epic-question>` (P14) unless the HTML has one
    * - `titleHTML`:  `title` is HTML;  with markup, it's a `slot="title"` child
    * - a question goes after the open questions at the top of its section;  a decision is a question born answered
    *   (D13):  the next `q` id, `decided`, `answered`, `title` its answer, among the answered ones;  everything else
@@ -453,7 +456,7 @@ export class PlanDoc extends PlanReader {
       ...(calm && { calm: true })
     }
     const item = this.make("epic-item", data, heading.slot ? [heading.slot] : [])
-    for (const node of this.incoming(details)) Markup.place(item, node)
+    for (const node of this.incoming(details, { question: kind === "question" })) Markup.place(item, node)
     section.append(item)
     if (spec.prefix === KINDS.question.prefix) this.placeQuestion(item)
     this.stamp(item)
@@ -476,7 +479,7 @@ export class PlanDoc extends PlanReader {
     const question = this.item(questionId)
     if (!QUESTION_ID.test(question.id)) throw new PlanDocError(`${questionId} isn't a question`)
     const old = question.querySelector(":scope > epic-answer")
-    const card = this.make("epic-answer", { title: answer }, this.incoming(details, { cards: false }))
+    const card = this.make("epic-answer", { title: answer }, this.incoming(details))
     if (old) {
       const id = old.getAttribute("id") ?? undefined
       old.replaceWith(card)
@@ -673,7 +676,7 @@ export class PlanDoc extends PlanReader {
     const current = PlanItem.currentText(item)
     const original = item.querySelector(":scope > epic-original")
     const prose = this.document.createElement("div")
-    for (const node of Array.from(current.cloneNode(true).childNodes)) prose.append(PlanItem.asProse(node))
+    for (const node of Array.from(current.cloneNode(true).childNodes)) prose.append(PlanItem.asProse(node, PLAIN))
     return {
       details: PlanMarkup.squeeze(this.shownText(current)),
       detailsHtml: prose.innerHTML.trim(),
@@ -795,12 +798,15 @@ export class PlanDoc extends PlanReader {
    *   replies) move into the item's Original Discussion (`keepOriginal()`);  appending moves nothing
    * - replacing an ANSWERED question's text:  the option chosen before stays chosen when the new options still have
    *   its letter
-   * - old shapes in `html` (an option grid, a `div.plan-reply`) become elements (`IncomingHtml`)
+   * - old shapes in `html` (an option grid, a `div.plan-reply`, a Net effect paragraph, a code accordion ...) become
+   *   elements (`IncomingHtml`)
+   * - a question's new text:  its lead, the question as now asked, in an `<epic-question>` (P14);  the one it replaces
+   *   goes into the Original Discussion with the rest of the old text
    * - stamped (`changed`) and flagged UPDATE
    */
   setDetails(id: string, html: string, { append = false }: { append?: boolean } = {}): string {
     const item = this.item(id)
-    const nodes = this.incoming(html)
+    const nodes = this.incoming(html, { question: !append && QUESTION_ID.test(item.id) })
     if (!append) {
       const answered = item.querySelector(":scope > epic-answer")
       const chosen = answered ? PlanItem.choicesOf(item)?.getAttribute("chosen") : null
@@ -834,7 +840,7 @@ export class PlanDoc extends PlanReader {
       old.remove()
       this.keepOriginal(item, Array.from(old.childNodes))
     }
-    Markup.place(item, this.make("epic-more", {}, this.incoming(html, { cards: false })))
+    Markup.place(item, this.make("epic-more", {}, this.incoming(html)))
     this.stamp(item)
     this.markUpdate(item)
     return PlanItem.titleOf(item)
@@ -1005,7 +1011,7 @@ export class PlanDoc extends PlanReader {
   private statusBlocks(html: string): Element[] {
     const blocks: Element[] = []
     let paragraph: Element | undefined
-    for (const node of this.incoming(html, { cards: false })) {
+    for (const node of this.incoming(html)) {
       if (PlanMarkup.isElement(node) && STATUS_BLOCKS.test(node.localName)) {
         blocks.push(node)
         paragraph = undefined
@@ -1200,28 +1206,21 @@ export class PlanDoc extends PlanReader {
   ////////////////
 
   /**
-   * Set the prompt that started the plan:  `<blockquote slot="prompt">` in the Overview (drawn folded, "Kickoff
-   * prompt"), one `<p>` per paragraph (blank lines split them, single newlines become `<br>`).  Replaces any earlier
-   * one;  `""` removes it.
+   * Set the prompt that started the plan:  `<epic-prompt>` in the Overview (drawn folded, "Kickoff prompt", P14),
+   * after its summary, one `<p>` per paragraph (blank lines split them, single newlines become `<br>`).  Replaces any
+   * earlier one, an older doc's `<blockquote slot="prompt">` too;  `""` removes it.
    */
   setPrompt(prompt: string | null | undefined): void {
     const overview = this.overview
-    const quote = overview.querySelector(':scope > [slot="prompt"]')
+    const old = overview.querySelector(`:scope > epic-prompt, :scope > [slot="prompt"]`)
     const html = promptHTML(prompt)
     if (!html) {
-      quote?.remove()
+      old?.remove()
       return
     }
-    if (quote) {
-      quote.innerHTML = html
-      return
-    }
-    const made = this.document.createElement("blockquote")
-    made.setAttribute("slot", "prompt")
-    made.innerHTML = html
-    const summary = overview.querySelector(':scope > [slot="summary"]')
-    if (summary) summary.after(made)
-    else overview.prepend(made)
+    const made = this.make("epic-prompt", {}, html)
+    if (old) old.replaceWith(made)
+    else Markup.place(overview, made)
   }
 
   ////////////////
@@ -1271,16 +1270,20 @@ export class PlanDoc extends PlanReader {
     }
     if (old) {
       old.replaceChildren()
-      Markup.append(old, html)
+      Markup.append(old, this.incoming(html))
       return
     }
-    Markup.place(phase, this.make("epic-field", { name }, html))
+    Markup.place(phase, this.make("epic-field", { name }, this.incoming(html)))
   }
 
-  /** `html` (a command's) as nodes of this doc, old shapes turned into elements (`IncomingHtml`). */
-  private incoming(html: string | undefined, { cards = true }: { cards?: boolean } = {}): Node[] {
+  /**
+   * `html` (a command's) as nodes of this doc, old shapes turned into elements (`IncomingHtml`).
+   * - `question`:  it's a question's text:  its lead, the question as asked, goes in an `<epic-question>`
+   */
+  private incoming(html: string | undefined, { question = false }: { question?: boolean } = {}): Node[] {
     if (!html?.trim()) return []
-    return IncomingHtml.nodes(this.document, html, { cards })
+    const nodes = IncomingHtml.nodes(this.document, html)
+    return question ? IncomingHtml.asQuestion(this.document, nodes) : nodes
   }
 
   /** `html` parsed into a `<div>` of this doc, out of it. */
@@ -1323,11 +1326,14 @@ export class PlanDoc extends PlanReader {
     Markup.set(host, {})
   }
 
-  /** `element`'s text as a reader sees it:  its own text, a card's drawn heading too (cards as prose). */
+  /**
+   * `element`'s text as a reader sees it:  its own text, the headings its elements draw too (a card's, a Net effect's
+   * label ...:  `PlanItem.asProse()`, plain).
+   */
   private shownText(element: Element): string {
     const copy = element.cloneNode(true) as Element
     const prose = this.document.createElement("div")
-    for (const node of Array.from(copy.childNodes)) prose.append(PlanItem.asProse(node))
+    for (const node of Array.from(copy.childNodes)) prose.append(PlanItem.asProse(node, PLAIN))
     return prose.textContent ?? ""
   }
 
@@ -1395,6 +1401,9 @@ export class PlanDoc extends PlanReader {
     if (!same) Markup.append(part, line)
   }
 }
+
+/** `PlanItem.asProse()`'s option for text as a reader sees it:  every element's heading, at any depth. */
+const PLAIN = { plain: true }
 
 /** What a rewrite of an item's details (`PlanDoc.setDetails()`) leaves where it is, slotted children aside. */
 const KEPT_ON_REWRITE = ["epic-answer", "epic-original", "epic-commit"]

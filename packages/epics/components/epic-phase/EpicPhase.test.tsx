@@ -89,6 +89,14 @@ describe("<epic-field>", () => {
     await expectAccessible(goal)
   })
 
+  test("a labelled block in prose (`label`, P14):  `Where:` before its prose, no icon", async () => {
+    const field = await render(`<epic-field label="Where"><p>The inbox file.</p></epic-field>`)
+    expect(field.shadowRoot!.querySelector('[part~="label"]')!.textContent).toBe("Where:")
+    expect(field.shadowRoot!.querySelector('[part~="icon"]')).toBeNull()
+    expect(field.querySelector("p")!.assignedSlot).not.toBeNull()
+    await expectAccessible(field)
+  })
+
   test("To review:  each link marked with its item's state, which colours its chip", async () => {
     const field = await render(
       `<div><epic-field name="to-review"><a href="#j9">J9</a>, <a href="#q9">Q9</a></epic-field>` +

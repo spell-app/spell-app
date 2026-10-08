@@ -173,22 +173,35 @@ export class PlanItem {
    * - a `<div>`:  a bold line saying what the element would draw (`Answer · Named palette`, `A · Inbox file
    *   (recommended), chosen`, `Owen · 2026-10-06 10:42 · re:  revisit soon`), then its children, MOVED
    * - nested cards too (an answer inside a version being kept)
+   * - `plain`:  for a page with no `<epic-*>` elements at all (a details page), the prose elements too, at any depth
+   *   (P14):  a Net effect as its bold label over its list, code as its title over its `<pre>`, an aside, a note, a
+   *   labelled block, the question as asked (its text alone).  Without it they stay:  a version may hold them.
    */
-  static asProse(node: Node): Node {
-    if (!PlanMarkup.isElement(node) || !CARD_HEADINGS[node.localName]) return node
+  static asProse(node: Node, { plain = false }: { plain?: boolean } = {}): Node {
+    if (!PlanMarkup.isElement(node)) return node
+    const heading = CARD_HEADINGS[node.localName] ?? (plain ? FLOW_HEADINGS[node.localName] : undefined)
+    if (!heading) {
+      if (!plain) return node
+      for (const child of Array.from(node.childNodes)) {
+        const prose = PlanItem.asProse(child, { plain })
+        if (prose !== child) child.replaceWith(prose)
+      }
+      return node
+    }
     const document = node.ownerDocument
-    const box = document.createElement("div")
-    const heading = CARD_HEADINGS[node.localName]!(node)
-    if (heading) {
+    const text = heading(node)
+    // no heading (the question as asked):  its text alone, unwrapped
+    const box = text ? document.createElement("div") : document.createDocumentFragment()
+    if (text) {
       const line = document.createElement("p")
       const bold = document.createElement("b")
-      bold.textContent = heading
+      bold.textContent = text
       line.append(bold)
       box.append(line)
     }
     for (const child of Array.from(node.childNodes)) {
       if (PlanMarkup.isElement(child) && child.getAttribute("slot") === "title") continue
-      box.append(PlanItem.asProse(child))
+      box.append(PlanItem.asProse(child, { plain }))
     }
     return box
   }
@@ -218,4 +231,31 @@ const CARD_HEADINGS: Record<string, (element: Element) => string | undefined> = 
     return [from, at, re ? `re:  ${re}` : undefined].filter(Boolean).join(" · ") || "Reply"
   },
   "epic-commit": (commit) => (commit.getAttribute("sha") ?? "").slice(0, 7)
+}
+
+/**
+ * The prose elements' headings as prose (`PlanItem.asProse({ plain })`, P14):  what each draws over its children.
+ * - `undefined`:  no heading (the question as asked:  its text alone)
+ */
+const FLOW_HEADINGS: Record<string, (element: Element) => string | undefined> = {
+  "epic-question": () => undefined,
+  "epic-net-effect": (element) => {
+    const { option, recommended } = Markup.read<"epic-net-effect">(element)
+    const marks = [option, recommended ? "recommended" : undefined].filter(Boolean).join(", ")
+    return marks ? `Net effect (${marks}):` : "Net effect:"
+  },
+  "epic-code": (element) => element.getAttribute("title") ?? "Code",
+  "epic-aside": (element) => {
+    const title = element.getAttribute("title")
+    return title ? `Aside:  ${title}` : "Aside"
+  },
+  "epic-note": (element) => {
+    const { state, title } = Markup.read<"epic-note">(element)
+    const label = state === "done" ? "DONE" : "UPDATE"
+    return title ? `${label} · ${title}` : label
+  },
+  "epic-field": (element) => {
+    const { name, label } = Markup.read<"epic-field">(element)
+    return label ? `${label}:` : name ? `${name.charAt(0).toUpperCase()}${name.slice(1).replace("-", " ")}:` : undefined
+  }
 }

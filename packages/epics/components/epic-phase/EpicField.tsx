@@ -1,4 +1,4 @@
-import { createEffect } from "solid-js"
+import { Show, createEffect } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -15,6 +15,7 @@ import fieldCSS from "./EpicField.css?inline"
  * ### `EpicField`
  * The component behind `<epic-field>`:  one named field of a phase (Symptom, Changes, Goal ...) -- its icon in a
  * column, centred on the first line, then its bold label (`Symptom:`) and its prose, wrapping beside the icon.
+ * - A labelled block in prose (`label`, no `name`:  `Where:`, P14):  the bold label and its prose, no icon column.
  * - Files and Verify are hidden until the Phases title's toggles show them (`--epic-files-display` /
  *   `--epic-verify-display`, inherited from the Phases section).
  * - To review:  each `#link` shows as a chip in its item's state colour.  SIDE EFFECT:  writes `data-spell-state` on
@@ -54,15 +55,24 @@ export class EpicField extends E.UIComponent<typeof epicFieldVocabulary> {
     return super.onMount()
   }
 
+  /** A labelled block in prose (`label`, no `name`):  its label alone, no icon (P14). */
+  get isLabelled(): boolean {
+    return !this.name && !!this.label
+  }
+
   render(): JSX.Element {
     return (
-      <div class={[this.rootClasses, FIELD]} part={this.partForName("base")}>
-        <span class={ICON} part={this.partForName("icon")} aria-hidden="true">
-          {this.glyph.svg}
-        </span>
+      <div class={[this.rootClasses, FIELD, this.isLabelled && LABELLED]} part={this.partForName("base")}>
+        <Show when={!this.isLabelled}>
+          <span class={ICON} part={this.partForName("icon")} aria-hidden="true">
+            {this.glyph.svg}
+          </span>
+        </Show>
         <div class={TEXT}>
           <b class={LABEL} part={this.partForName("label")}>
-            {this.translationForKey(this.look.label)}
+            {this.isLabelled
+              ? this.translationForKey("labelled", { label: this.label ?? "" })
+              : this.translationForKey(this.look.label)}
           </b>{" "}
           <slot />
         </div>
@@ -116,3 +126,6 @@ const CLOSED_STATUSES = ["decided", "done", "canceled"]
 
 /** Class word of its box. */
 const FIELD = "field"
+
+/** Class word of a labelled block's box:  no icon column. */
+const LABELLED = "labelled"

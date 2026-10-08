@@ -428,7 +428,7 @@ describe("PlanDoc questions and decisions", () => {
     const question = el(plan, "q1")
     expect([question.getAttribute("title"), question.hasAttribute("answered")]).toEqual(["which browser?", true])
     expect(question.innerHTML).toBe(
-      '<p>the options</p><epic-answer title="Chrome first"><p>most readers</p></epic-answer>'
+      '<epic-question><p>the options</p></epic-question><epic-answer title="Chrome first"><p>most readers</p></epic-answer>'
     )
     plan.decide("q2", "not now")
     expect(el(plan, "q2").innerHTML).toBe('<epic-answer title="not now"></epic-answer>')
@@ -449,7 +449,8 @@ describe("PlanDoc questions and decisions", () => {
   test("an agent's old option grid comes in as <epic-choices>;  decide --option marks the chosen one", () => {
     const plan = freshPlan()
     plan.addItem("question", "which way?", { details: `<p>why</p>${GRID}` })
-    expect(kids(el(plan, "q1"))).toEqual(["p", "epic-choices"])
+    // the question as asked in an <epic-question> (P14)
+    expect(kids(el(plan, "q1"))).toEqual(["epic-question", "epic-choices"])
     const options = Array.from(el(plan, "q1").querySelectorAll("epic-option"), (option) => Markup.read(option))
     expect(options).toEqual([
       { letter: "A", title: "Keep folds" },
@@ -464,11 +465,65 @@ describe("PlanDoc questions and decisions", () => {
     ])
     plan.decide("q1", "way B", { option: "b" })
     expect(el(plan, "q1").querySelector("epic-choices")!.getAttribute("chosen")).toBe("B")
-    expect(kids(el(plan, "q1"))).toEqual(["p", "epic-choices", "epic-answer"])
+    expect(kids(el(plan, "q1"))).toEqual(["epic-question", "epic-choices", "epic-answer"])
     plan.decide("q1", "way A", { option: "A" })
     expect(el(plan, "q1").querySelector("epic-choices")!.getAttribute("chosen")).toBe("A")
     expect(() => plan.decide("q1", "way C", { option: "C" })).toThrow(PlanDocError)
     expect(problems(plan)).toEqual([])
+  })
+
+  test("P14:  an agent's old prose shapes come in as elements, option grids on ANY item kind and inside a reply", () => {
+    const plan = freshPlan()
+    const code =
+      '<ui-accordion class="spell-code" styled open="0"><ui-title>a.ts · 1 line</ui-title>' +
+      '<ui-content><pre><code class="language-ts">const a = 1</code></pre></ui-content></ui-accordion>'
+    plan.addItem("judgement", "which way?", {
+      details:
+        `<p>The call.</p><p><b>The options:</b></p>${GRID}<p><b>Net effect (A):</b></p><ul><li>n</li></ul>${code}` +
+        '<ui-message class="plan-update" state="warning" header="UPDATE"><p>changed</p></ui-message>'
+    })
+    expect(kids(el(plan, "j1"))).toEqual(["p", "p", "epic-choices", "epic-net-effect", "epic-code", "epic-note"])
+    expect(Markup.read(el(plan, "j1").querySelector("epic-code")!)).toEqual({
+      title: "a.ts · 1 line",
+      language: "ts",
+      open: true
+    })
+    // a reply holding an option grid (Owen's "visual bobbles" on J8):  its cards are <epic-choices> too
+    plan.setDetails(
+      "j1",
+      '<div class="plan-reply"><div class="plan-reply-title"><b>Claude</b> · <time>2026-10-07 10:50</time> · re:  "J8"</div>' +
+        `<p>Two ways.</p>${GRID}</div>`,
+      { append: true }
+    )
+    expect(kids(el(plan, "j1").querySelector("epic-reply")!)).toEqual(["p", "epic-choices"])
+    // a details page has no elements:  each as the prose it draws
+    const html = plan.textOf(plan.item("j1")).detailsHtml
+    expect(html).not.toMatch(/<epic-/)
+    expect(html).toContain("<p><b>Net effect (A):</b></p><ul><li>n</li></ul>")
+    expect(html).toContain("<p><b>a.ts · 1 line</b></p><pre>const a = 1</pre>")
+    // a phase's Updated line and its fields take them too
+    plan.addPhase("One", { goal: "<p><b>Net effect:</b></p><ul><li>g</li></ul>" })
+    plan.addPhaseUpdate(1, '<ui-message class="plan-update" header="DONE · J1"><p>moved</p></ui-message>')
+    expect(kids(el(plan, "p1").querySelector('epic-field[name="goal"]')!)).toEqual(["epic-net-effect"])
+    expect(kids(el(plan, "p1").querySelector("epic-updated")!)).toEqual(["epic-note"])
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("P14:  a question's lead, the question as asked, goes in an <epic-question>;  up to a label line or an element", () => {
+    const plan = freshPlan()
+    plan.addItem("question", "which?", {
+      details: `<p>Which way?</p><ul><li>context</li></ul><p><b>The options:</b></p>${GRID}`
+    })
+    expect(kids(el(plan, "q1"))).toEqual(["epic-question", "p", "epic-choices"])
+    expect(kids(el(plan, "q1").querySelector("epic-question")!)).toEqual(["p", "ul"])
+    // written in the new markup:  as it comes
+    plan.addItem("question", "and?", { details: "<p>lead</p><epic-question><p>asked</p></epic-question>" })
+    expect(kids(el(plan, "q2"))).toEqual(["epic-question", "p"])
+    // only a question's:  a todo's text stays prose
+    plan.addItem("todo", "do it", { details: "<p>the work</p>" })
+    expect(kids(el(plan, "t1"))).toEqual(["p"])
+    // its text as a reader reads it:  the question first, no label of its own
+    expect(plan.textOf(plan.item("q1")).details).toMatch(/^Which way\?/)
   })
 
   test("closing an answered question supersedes it;  reopening puts it back in force;  an unanswered one reopens open", () => {
@@ -881,16 +936,31 @@ describe("PlanDoc commits", () => {
 ////////////////
 
 describe("PlanDoc prompt", () => {
-  test("the Overview's prompt slot:  paragraphs, line breaks, escaped;  after the summary;  '' removes it", () => {
+  test("the Overview's <epic-prompt> (P14):  paragraphs, line breaks, escaped;  after the summary;  '' removes it", () => {
     const plan = freshPlan()
     plan.setPrompt("Update the template\n- make <h1> sticky\n\nAlso & more")
-    const quote = () => plan.overview.querySelector(':scope > blockquote[slot="prompt"]')
-    expect(quote()!.innerHTML).toBe("<p>Update the template<br>- make &lt;h1&gt; sticky</p><p>Also &amp; more</p>")
-    expect(quote()!.previousElementSibling!.getAttribute("slot")).toBe("summary")
+    const prompt = () => plan.overview.querySelector(":scope > epic-prompt")
+    expect(prompt()!.innerHTML).toBe("<p>Update the template<br>- make &lt;h1&gt; sticky</p><p>Also &amp; more</p>")
+    expect(prompt()!.previousElementSibling!.localName).toBe("epic-summary")
     plan.setPrompt("")
-    expect(quote()).toBeNull()
+    expect(prompt()).toBeNull()
     plan.setPrompt("again")
-    expect(quote()!.textContent).toBe("again")
+    expect(prompt()!.textContent).toBe("again")
+    expect(plan.overview.querySelectorAll(":scope > epic-prompt")).toHaveLength(1)
+    expect(problems(plan)).toEqual([])
+  })
+
+  test('an older doc\'s `<blockquote slot="prompt">` becomes an <epic-prompt> where it stood', () => {
+    const plan = freshPlan()
+    plan.overview.querySelector(":scope > epic-summary")!.outerHTML = '<p slot="summary">S</p>'
+    plan.overview
+      .querySelector(':scope > [slot="summary"]')!
+      .insertAdjacentHTML("afterend", '<blockquote slot="prompt"><p>old</p></blockquote>')
+    plan.setPrompt("new")
+    expect(plan.overview.querySelector('[slot="prompt"]')).toBeNull()
+    expect(plan.overview.querySelector(":scope > epic-prompt")!.previousElementSibling!.getAttribute("slot")).toBe(
+      "summary"
+    )
     expect(problems(plan)).toEqual([])
   })
 })
@@ -1061,11 +1131,19 @@ describe("PlanDoc review inbox", () => {
     plan.decide("q1", "B", { option: "B" })
     plan.addCommit({ item: "q1" }, "abc1234", "did it")
     plan.setDetails("q1", `<p>new</p>${OPTIONS}`)
-    expect(kids(el(plan, "q1"))).toEqual(["p", "epic-choices", "epic-answer", "epic-original", "epic-commit"])
+    expect(kids(el(plan, "q1"))).toEqual([
+      "epic-question",
+      "epic-choices",
+      "epic-answer",
+      "epic-original",
+      "epic-commit"
+    ])
+    expect(el(plan, "q1").querySelector(":scope > epic-question")!.innerHTML).toBe("<p>new</p>")
     // the chosen letter stays chosen when the new options have it
     expect(el(plan, "q1").querySelector(":scope > epic-choices")!.getAttribute("chosen")).toBe("B")
     expect(el(plan, "q1").querySelector("epic-version")!.textContent).toContain("B · Unfold it (recommended), chosen")
-    // an agent's old reply markup comes in as <epic-reply>, after the answer;  prose goes with the text
+    // an agent's old reply markup comes in as <epic-reply>, after the answer;  prose goes at the end of the text,
+    // after its option cards (prose themselves since P14);  appended, never in an <epic-question>
     plan.setDetails(
       "q1",
       '<div class="plan-reply"><div class="plan-reply-title"><b>Claude</b> · <time>2026-10-01 09:20</time> · re:  "why?"</div><p>because</p></div>',
@@ -1073,9 +1151,9 @@ describe("PlanDoc review inbox", () => {
     )
     plan.setDetails("q1", "<p>one more paragraph</p>", { append: true })
     expect(kids(el(plan, "q1"))).toEqual([
-      "p",
-      "p",
+      "epic-question",
       "epic-choices",
+      "p",
       "epic-answer",
       "epic-reply",
       "epic-original",
@@ -1119,7 +1197,7 @@ describe("PlanDoc review inbox", () => {
     plan.addItem("question", "which?", { details: `<p>why</p>${OPTIONS}` })
     plan.addMore("q1", "<p>more</p>")
     plan.decide("q1", "Unfold", { option: "B" })
-    expect(kids(el(plan, "q1"))).toEqual(["p", "epic-choices", "epic-answer", "epic-more"])
+    expect(kids(el(plan, "q1"))).toEqual(["epic-question", "epic-choices", "epic-answer", "epic-more"])
     expect(problems(plan)).toEqual([])
   })
 })
@@ -1292,8 +1370,10 @@ describe("PlanDoc original discussion (I7)", () => {
   test("first replace:  the text and its cards into an <epic-original>, as prose;  ids renamed", () => {
     const doc = plan()
     doc.setDetails("q1", '<p id="why">rewritten</p>')
-    expect(kids(el(doc, "q1"))).toEqual(["p", "epic-original"])
+    // the new question as asked, in its <epic-question>;  the one it replaced kept as it was, in the version (P14)
+    expect(kids(el(doc, "q1"))).toEqual(["epic-question", "epic-original"])
     expect(versions(doc, "q1")).toEqual([[null, "why it mattersChoicesA · KeepaB · Drop (recommended)b"]])
+    expect(el(doc, "q1").querySelector("epic-version > epic-question")!.textContent).toBe("why it matters")
     expect(doc.document.querySelectorAll("#why").length).toBe(1)
     expect(el(doc, "q1").querySelector("epic-version [data-original-id='why']")!.textContent).toBe("why it matters")
     // its options are history:  never read, never chosen

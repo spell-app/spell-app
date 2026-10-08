@@ -1,44 +1,50 @@
 /**
- * Check the `<epic-*>` review controls (epic `epic-components` P9) in a real browser, as `packages/docs/tools/
- * check-review.js` checks the old runtime's:  clicks through every flow, then reads the inbox back.
+ * Check the `<epic-*>` review controls in a real browser, as Owen uses them (epic `epic-components` P9, the colour
+ * scheme and fill rule of P14, decision Q20):  clicks through every flow, has the plan-doc tool do Claude's side on
+ * the same copy, and reads the inbox back.
  * Usage (from the repo root):
- *   node packages/epics/demo/check-review-epics.mjs [--stub] [--doc <name>] [outDir]
- * - the doc:  a COPY, never a shared doc:  `review-sample.html` (default), or `--doc <name>`, a preview copy from
- *   `preview-epics/<name>/` (with its parts).  Copied to `demo/shots/epics/<name>/<name>.plan.html` (git-ignored):
- *   the review routes take plan docs only (`epics/<name>/<name>.plan.html`), and its inbox file lands beside it
+ *   node packages/epics/demo/check-review-epics.mjs [--doc <name> [--from <folder>]] [outDir]
+ * - the doc:  a SCRATCH COPY, never a real one:  `review-sample.html` (default), or `--doc <name>`, a copy of
+ *   `epics/<name>/` (its skeleton and parts:  a doc in `<epic-page>` markup;  never its inbox or details), or of
+ *   `--from <folder>` (a converted copy:  `spell dev plan-doc convert <name> --out <folder>`).  Copied to
+ *   `demo/shots/epics/<name>/<name>.plan.html` (git-ignored):  the review routes take plan docs only
+ *   (`epics/<name>/<name>.plan.html`), its inbox file lands beside it, and the tool finds it there
+ *   (`PlanDocFiles({ root: demo/shots })`)
  * - the server:  a page server of its OWN on this checkout (`PageServer`, no pid file, a free port), so the routes are
  *   this branch's code as it is now;  stopped at the end
- * - `--stub`:  the review routes answered in the browser (Playwright `route()`) by a `ReviewInbox` in this process,
- *   as `reviewRoutes.ts` does but WITHOUT its item check:  for while `ReviewInbox.itemIds()` doesn't know
- *   `<epic-item>` / `<epic-section>` ids yet.  Without it, the real routes
- * - clicks through what Owen would:
- *   - every item and Overview sub-section has its controls;  Overview ones without Approve;  `<epic-page reviewing>`
- *   - Approve, again (cleared);  the line's Make Todo, again (cleared)
- *   - Revisit on an item with details:  it opens, its docked box focused;  ten lines typed grow the box;  the box's
- *     Make Todo saves the todo WITH its note, and empties the box
- *   - Revisit on an item without details:  a box under its line;  a note typed, then Tab:  saved as a draft at once
- *     (the floppy's tooltip);  after a reload the box is back with it;  Later:  a revisit soon, shown under the line
- *     ("You · revisit soon"), and Edit puts it back in the box
- *   - an Overview sub-section's Revisit and Do Now:  queued, nobody listening:  the dashed ring;  clicked again:
- *     called off, the note back in its box as a draft
- *   - Add Details Now, its request held:  the spinner (`loading`) while it's on its way
- *   - a session listening (the inbox file's `listening`, written through `ReviewInbox.update()`):  no dashed ring
- *   - the page header (P10):  Send blue with unsent marks (its tooltip:  nobody listening), a click sends them
- *     (`inbox.sent`), then outlined;  listening:  no "nobody" in its tooltip;  Review Now asks each revisit now
+ * - Owen's side, clicked:
+ *   - every item's buttons:  ONE group, Approve, Revisit, Make Todo, then Do Now apart (the paper plane);  an
+ *     Overview sub-section's without Approve;  the note box's:  Later, Make Todo (no "now":  Do Now is the line's)
+ *   - the fill:  Approve pressed dashed green, again none;  Make Todo the same
+ *   - Revisit on an item with details:  it opens, its box focused;  ten lines grow it;  the box's Make Todo saves
+ *     the todo WITH its note
+ *   - Revisit on an item without details:  a box under its line;  a draft saved on Tab, back after a reload;  Later:
+ *     a revisit soon, shown under the line, and Edit puts it back in the box
+ *   - Do Now WITH a note (an Overview sub-section):  a revisit now, dashed while nobody listens, the tooltip saying
+ *     so;  clicked again:  called off, the note back in its box
+ *   - Send:  the header's button unsent -> sent;  the marks outlined
+ * - Claude's side, by the plan-doc tool on the copy (`PlanDocCommands`), the page reloaded after each:
+ *   - Do Now without a note on an item:  `inbox listen`, `inbox wait` takes it:  its button outlined, its icon
+ *     turning (`data-busy`);  `status underway`:  a blue Underway card, the item `progress`;  `status done`:  the
+ *     card green;  `inbox done`:  Do Now SOLID (`review-as="now"`)
+ *   - `inbox apply`:  the sent Approve SOLID (`review-as="approve"`)
+ *   - Review Now:  the revisit waiting asked now
  * - fails (exit 1) unless each shows on the page AND lands in the inbox (read back through `GET /api/review/inbox`);
  *   at 280px and 900px, light and dark, no review control runs past the window, none sits over its line's title, and
  *   every button's glyph is centred in it (within 1px);  the header's round buttons too
- * - screenshots (outDir, default `demo/shots/`):  `review-<width>-<scheme>.png`, `review-marked.png`
+ * - screenshots (outDir, default `demo/shots/`):  `review-<width>-<scheme>.png`, `review-marked.png`,
+ *   `review-done.png`
  * - REFUSES to run while the copy's inbox file exists (a run killed half way:  delete it);  deletes it afterwards
- * - re-runs itself under `tsx` (the page server and `ReviewInbox` are TypeScript)
+ * - re-runs itself under `tsx` (the page server, `ReviewInbox` and the tool are TypeScript)
  */
 import { spawnSync } from "node:child_process"
-import { cpSync, existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { dirname, join, resolve } from "node:path"
 import { fileURLToPath } from "node:url"
 
 const HERE = dirname(fileURLToPath(import.meta.url))
 const ROOT = resolve(HERE, "../../..")
+const SHOTS = join(HERE, "shots")
 const SERVER_TSCONFIG = join(ROOT, "packages/server/tsconfig.json")
 
 if (!process.env.CHECK_REVIEW_UNDER_TSX) {
@@ -56,30 +62,33 @@ if (!process.env.CHECK_REVIEW_UNDER_TSX) {
 
 const { chromium } = await import("playwright")
 const { PageServer } = await import("../../server/src/page/PageServer.ts")
-const { ReviewInbox } = await import("../src/tool/ReviewInbox.ts")
+const { PlanDocCommands } = await import("../src/tool/PlanDocCommands.ts")
+const { PlanDocFiles } = await import("../src/tool/PlanDocFiles.ts")
 
 ////////////////
 // ## Settings
 ////////////////
 
 const args = process.argv.slice(2)
-const stub = args.includes("--stub")
-const docAt = args.indexOf("--doc")
-const docName = docAt >= 0 ? args[docAt + 1] : "review-sample"
-const out = args.find((arg, index) => !arg.startsWith("--") && index !== docAt + 1) ?? join(HERE, "shots")
+const flagValue = (name) => (args.includes(name) ? args[args.indexOf(name) + 1] : undefined)
+const docName = flagValue("--doc") ?? "review-sample"
+const fromFolder = flagValue("--from")
+const flagged = new Set(["--doc", "--from"].flatMap((name) => (args.includes(name) ? [args.indexOf(name) + 1] : [])))
+const out = args.find((arg, index) => !arg.startsWith("--") && !flagged.has(index)) ?? SHOTS
 const NOBODY = /No Claude session/
 const NOTE = "check-review-epics:  why not reuse the details route?"
 const TODO_NOTE = "check-review-epics:  follow up once the routes settle"
 const SECTION_NOTE = "check-review-epics:  is the Overview part clear?"
+const SESSION = "check-review-epics"
 const HOLD_MS = 900
 const problems = []
-const summary = { doc: docName, stub }
+const summary = { doc: docName }
 
 ////////////////
 // ## The copy
 ////////////////
 
-const folder = join(HERE, "shots/epics", docName)
+const folder = join(SHOTS, "epics", docName)
 const file = join(folder, `${docName}.plan.html`)
 const inboxFile = join(folder, `${docName}.inbox.json`)
 if (existsSync(inboxFile)) {
@@ -87,6 +96,15 @@ if (existsSync(inboxFile)) {
   process.exit(2)
 }
 copyDoc()
+
+// the tool links a doc's bare file names (`AS.Linker`) through its checkout's `packages/`:  shots/ has none
+mkdirSync(join(SHOTS, "packages"), { recursive: true })
+
+/** The plan-doc tool, on the copy:  what Claude runs, its output kept for the summary. */
+const tool = new PlanDocCommands({ files: new PlanDocFiles({ root: SHOTS }) })
+const said = []
+tool.print = (text) => void said.push(text)
+tool.warn = (text) => void said.push(`! ${text}`)
 
 const server = await new PageServer({ root: ROOT }).start({
   port: 47_600 + Math.floor(Math.random() * 300),
@@ -96,7 +114,6 @@ const base = `http://127.0.0.1:${server.info.port}`
 const pagePath = `/${file.slice(ROOT.length + 1)}`
 const url = `${base}${pagePath}`
 summary.url = url
-const memory = new ReviewInbox()
 
 const browser = await chromium.launch()
 try {
@@ -108,6 +125,7 @@ try {
   await server.stop()
   rmSync(inboxFile, { force: true })
 }
+summary.tool = said
 console.log(JSON.stringify(summary, null, 2))
 if (problems.length) {
   console.error(problems.map((problem) => `- ${problem}`).join("\n"))
@@ -126,10 +144,9 @@ async function run() {
   const logs = []
   page.on("pageerror", (error) => logs.push(`pageerror:  ${error.message}`))
   page.on("console", (message) => message.type() === "error" && logs.push(`console:  ${message.text()}`))
-  if (stub) await stubRoutes(context)
   await open(page)
 
-  // every item and Overview part has its controls;  the Overview's without Approve
+  // every item and Overview part:  the group (Approve, Revisit, Make Todo), then Do Now apart
   const ids = await page.evaluate(() =>
     Array.from(document.querySelectorAll("epic-item, epic-section[kind='overview-part']"), (element) => element.id)
   )
@@ -138,12 +155,21 @@ async function run() {
   summary.items = items.length
   summary.sections = sections.length
   for (const id of ids) {
-    const actions = await page.evaluate(
-      (id) => Array.from(rootOf(id).querySelectorAll("ui-button[data-action]"), (button) => button.dataset.action),
+    const layout = await page.evaluate(
+      (id) => ({
+        group: Array.from(
+          rootOf(id).querySelectorAll(".review-group ui-button[data-action]"),
+          (button) => button.dataset.action
+        ),
+        apart: Array.from(
+          rootOf(id).querySelectorAll(".review-controls > ui-button.review-do-now"),
+          (button) => button.dataset.action
+        )
+      }),
       id
     )
-    const want = /^o\d+$/.test(id) ? ["todo", "revisit", "details"] : ["approve", "todo", "revisit", "details"]
-    expect(`${id}'s buttons`, actions, want)
+    const group = /^o\d+$/.test(id) ? ["revisit", "todo"] : ["approve", "revisit", "todo"]
+    expect(`${id}'s buttons`, layout, { group, apart: ["details"] })
   }
   expect(
     "<epic-page reviewing>",
@@ -151,21 +177,42 @@ async function run() {
     true
   )
 
-  const [question, withDetails, bare] = pickItems(items)
+  const { question, approved, withDetails, bare } = pickItems(
+    await page.evaluate(() =>
+      Array.from(document.querySelectorAll("epic-item"), (item) => ({
+        id: item.id,
+        open: item.getAttribute("status") === "open",
+        details: item.hasAttribute("source") || Array.from(item.children).some((child) => !child.hasAttribute("slot"))
+      }))
+    )
+  )
   const section = sections[0]
+  summary.picked = { question, approved, withDetails, bare, section }
 
-  // Approve, again (cleared);  Make Todo, again (cleared)
+  // the fill:  pressed dashed in its colour;  pressed again, none
   await press(page, question, "approve")
   await expectMark(page, question, { action: "approve" }, "Approve")
-  expect("Approve chosen, green", await buttonState(page, question, "approve"), { chosen: true, color: "green" })
+  expect("Approve pressed:  dashed green", await buttonState(page, question, "approve"), {
+    fill: "dashed",
+    color: "green"
+  })
   await press(page, question, "approve")
   await expectMark(page, question, undefined, "Approve again (cleared)")
+  expect("Approve again:  none", (await buttonState(page, question, "approve")).fill, "none")
   await press(page, question, "todo")
   await expectMark(page, question, { action: "todo" }, "the line's Make Todo")
+  expect("Make Todo pressed:  dashed green", await buttonState(page, question, "todo"), {
+    fill: "dashed",
+    color: "green"
+  })
   await press(page, question, "todo")
   await expectMark(page, question, undefined, "Make Todo again (cleared)")
 
-  // Revisit on an item with details:  opens, docked box focused, grows, Make Todo with the note
+  // an Approve to see through:  sent, then applied (solid)
+  await press(page, approved, "approve")
+  await expectMark(page, approved, { action: "approve" }, `Approve on ${approved}`)
+
+  // Revisit on an item with details:  opens, docked box focused, grows, the box's Make Todo with the note
   await press(page, withDetails, "revisit")
   await page
     .waitForFunction(
@@ -174,6 +221,14 @@ async function run() {
       { timeout: 4000 }
     )
     .catch(() => problems.push(`${withDetails}:  Revisit didn't open it with its note box focused`))
+  expect(
+    `${withDetails}'s note box buttons (Do Now is the line's)`,
+    await page.evaluate(
+      (id) => Array.from(rootOf(id).querySelectorAll(".note-actions button"), (button) => button.dataset.how),
+      withDetails
+    ),
+    ["soon", "todo"]
+  )
   const before = await boxHeight(page, withDetails)
   await page.keyboard.type(Array.from({ length: 10 }, (_, line) => `line ${line + 1}`).join("\n"))
   const after = await boxHeight(page, withDetails)
@@ -183,6 +238,7 @@ async function run() {
   await noteButton(page, withDetails, "todo")
   await expectMark(page, withDetails, { action: "todo", note: TODO_NOTE }, "the box's Make Todo")
   expect(`${withDetails}'s box emptied`, await noteValue(page, withDetails), "")
+  expect(`${withDetails}'s Make Todo, unsent:  dashed`, (await buttonState(page, withDetails, "todo")).fill, "dashed")
 
   // an item without details:  a box under its line, a draft saved on Tab, back after a reload, Later, Edit
   await press(page, bare, "revisit")
@@ -193,7 +249,6 @@ async function run() {
   const floppy = await page.evaluate((id) => rootOf(id).querySelector(".note-saved")?.getAttribute("title") ?? "", bare)
   if (!/^Saved/.test(floppy)) problems.push(`${bare}:  the floppy says "${floppy}", not Saved`)
   await open(page)
-  // an item with details keeps its box docked in them, folded:  the line's bubble shows the draft;  opened, the box
   const bubble = await page.evaluate((id) => !!rootOf(id).querySelector(".review-noted"), bare)
   if (!bubble) problems.push(`${bare}:  no note bubble for its draft after a reload`)
   await page.evaluate((id) => (document.getElementById(id).open = true), bare)
@@ -202,34 +257,46 @@ async function run() {
   await page.evaluate((id) => rootOf(id).querySelector("textarea").focus(), bare)
   await noteButton(page, bare, "soon")
   await expectMark(page, bare, { action: "revisit", when: "soon", note: NOTE }, "Later")
-  const said = await page.evaluate((id) => rootOf(id).querySelector(".said")?.textContent ?? "", bare)
-  if (!said.includes("revisit soon") || !said.includes(NOTE)) problems.push(`${bare}:  the said note reads "${said}"`)
+  const saidNote = await page.evaluate((id) => rootOf(id).querySelector(".said")?.textContent ?? "", bare)
+  if (!saidNote.includes("revisit soon") || !saidNote.includes(NOTE))
+    problems.push(`${bare}:  the said note reads "${saidNote}"`)
+  expect(`${bare}'s Revisit, unsent:  dashed blue`, await buttonState(page, bare, "revisit"), {
+    fill: "dashed",
+    color: "blue"
+  })
   await page.locator(`#${bare} .said-edit`).click()
   await page.waitForTimeout(300)
   expect(`${bare}:  Edit puts the note back`, await noteValue(page, bare), NOTE)
+  // left in the box, not changed:  the mark stays as it was
+  await page.keyboard.press("Escape")
 
-  // an Overview part:  Revisit, Do Now -> queued with nobody listening (dashed);  again -> called off, note kept
+  // Do Now WITH a note (an Overview part):  a revisit now;  queued with nobody listening:  dashed;  again:  called off
   if (section) {
     await press(page, section, "revisit")
     await page
       .waitForFunction((id) => rootOf(id).activeElement?.matches("textarea"), section, { timeout: 4000 })
       .catch(() => problems.push(`${section}:  Revisit didn't focus its note box`))
     await page.keyboard.type(SECTION_NOTE)
-    await noteButton(page, section, "now")
-    await waitInbox(page, (inbox) => inbox.now.some((each) => each.id === section), `${section}:  Do Now queued`)
+    await press(page, section, "details")
+    await waitInbox(
+      page,
+      (inbox) =>
+        inbox.now.some((each) => each.id === section && each.action === "revisit" && each.note === SECTION_NOTE),
+      `${section}:  Do Now with its note, a revisit now`
+    )
     await page.waitForTimeout(200)
-    expect(`${section}'s Revisit, queued`, await buttonState(page, section, "revisit"), {
-      chosen: true,
-      color: "orange",
-      waiting: true
+    expect(`${section}'s Do Now, queued:  dashed blue`, await buttonState(page, section, "details"), {
+      fill: "dashed",
+      color: "blue",
+      busy: false
     })
     const tip = await page.evaluate(
-      (id) => rootOf(id).querySelector('ui-button[data-action="revisit"]').getAttribute("aria-label"),
+      (id) => rootOf(id).querySelector('ui-button[data-action="details"]').getAttribute("aria-label"),
       section
     )
     if (!NOBODY.test(tip)) problems.push(`${section}:  a queued request doesn't say nobody is listening:  "${tip}"`)
     await page.screenshot({ path: join(out, "review-marked.png") })
-    await press(page, section, "revisit")
+    await press(page, section, "details")
     await waitInbox(
       page,
       (inbox) => !inbox.now.length && inbox.drafts[section]?.note === SECTION_NOTE,
@@ -239,35 +306,73 @@ async function run() {
     expect(`${section}'s box after calling off`, await noteValue(page, section), SECTION_NOTE)
   }
 
-  // the header (P10):  Send blue with unsent marks, its tooltip saying nobody listens;  a click sends, then outlined
+  // the header:  Send with unsent marks, its tooltip saying nobody listens;  a click sends;  the marks outlined
   expect("the header's buttons, marks unsent", await headerState(page), { send: "unsent", now: "ready", nobody: true })
   await page.locator("epic-page button.send").click()
   await waitInbox(page, (inbox) => !!inbox.sent, "Send:  the marks sent")
   await page.waitForTimeout(200)
   expect("the header's buttons, marks sent", await headerState(page), { send: "sent", now: "ready", nobody: true })
+  expect(`${approved}'s Approve, sent:  outlined`, (await buttonState(page, approved, "approve")).fill, "outline")
+  expect(`${bare}'s Revisit, sent:  outlined`, (await buttonState(page, bare, "revisit")).fill, "outline")
 
-  // Add Details Now, held on its way:  the spinner
+  // Do Now without a note, held on its way:  asked;  queued, nobody listening:  dashed
   await holdNext(page, "now")
   await press(page, question, "details")
-  await page.waitForTimeout(150)
-  expect("Add Details Now spinning while asked", (await buttonState(page, question, "details")).loading, true)
-  await waitInbox(page, (inbox) => inbox.now.some((each) => each.id === question), "Add Details Now queued")
+  await waitInbox(page, (inbox) => inbox.now.some((each) => each.id === question), "Do Now queued")
+  await page.waitForTimeout(200)
+  expect("Do Now, queued:  dashed, not turning", await buttonState(page, question, "details"), {
+    fill: "dashed",
+    color: "blue",
+    busy: false
+  })
 
-  // a session listening:  no dashed ring
-  await listen()
-  await page.evaluate(() => window.dispatchEvent(new Event("visibilitychange")))
-  await page.evaluate(() => document.dispatchEvent(new Event("visibilitychange")))
-  await page.waitForTimeout(500)
-  expect("listening:  no dashed ring", (await buttonState(page, question, "details")).waiting, false)
+  // Claude listens and takes it:  outlined, its icon turning
+  await tool.run(["inbox", docName, "listen", "--session", SESSION])
+  await tool.run(["inbox", docName, "wait", "--timeout", "5", "--json"])
+  await open(page)
   expect("listening:  the header's tooltips", (await headerState(page)).nobody, false)
+  expect("Do Now, taken:  outlined and turning", await buttonState(page, question, "details"), {
+    fill: "outline",
+    color: "blue",
+    busy: true
+  })
 
-  // Review Now (P10):  every mark sent, each revisit waiting asked now
+  // its status card:  Underway (blue, the item `progress`), then Done (green);  `inbox done`:  Do Now solid
+  await tool.run(["status", docName, question, "underway", "<p>Write what the question's text leaves out.</p>"])
+  await open(page)
+  expect(`${question}:  an Underway card, the item in progress`, await statusOf(page, question), {
+    cards: ["underway"],
+    state: "progress"
+  })
+  await tool.run(["status", docName, question, "done", "<p>Added the cost of each option.</p>"])
+  await tool.run(["inbox", docName, "done", question])
+  await open(page)
+  const done = await statusOf(page, question)
+  expect(`${question}:  the card Done`, done.cards, ["done"])
+  expect("Do Now, done:  solid, not turning", await buttonState(page, question, "details"), {
+    fill: "solid",
+    color: "blue",
+    busy: false
+  })
+  expect(`${question}'s review-as`, await attribute(page, question, "review-as"), "now")
+
+  // `inbox apply`:  the sent Approve applied, solid;  the todo filed with its Done card
+  await tool.run(["inbox", docName, "apply"])
+  await open(page)
+  expect(`${approved}'s review-as`, await attribute(page, approved, "review-as"), "approve")
+  expect(`${approved}'s Approve, applied:  solid`, (await buttonState(page, approved, "approve")).fill, "solid")
+  expect(`${withDetails}:  the todo filed, a Done card`, (await statusOf(page, withDetails)).cards.at(-1), "done")
+  await page.locator(`#${question}`).scrollIntoViewIfNeeded()
+  await page.screenshot({ path: join(out, "review-done.png") })
+
+  // Review Now:  the revisit waiting (sent, to talk over) asked now
   await page.locator("epic-page button.review-now").click()
   await waitInbox(
     page,
     (inbox) => inbox.now.some((each) => each.id === bare),
     `Review Now:  ${bare}'s revisit asked now`
   )
+  await tool.run(["inbox", docName, "unlisten"])
 
   await layouts(context)
   summary.inbox = await readInbox(page)
@@ -330,6 +435,8 @@ function measure(width) {
       }
     }
     for (const button of controls.querySelectorAll("ui-button")) {
+      // a turning icon is mid-turn:  its box isn't centred while it turns
+      if (button.hasAttribute("data-busy")) continue
       const inner = button.shadowRoot?.querySelector("button")
       const glyph = button.shadowRoot?.querySelector("svg, ui-icon")
       if (!inner || !glyph) continue
@@ -341,7 +448,7 @@ function measure(width) {
         found.push(`${host.id}'s ${button.dataset.action} glyph off centre by ${dx.toFixed(1)}, ${dy.toFixed(1)}`)
     }
   }
-  // the page header's round buttons (P10):  in the window, each glyph centred
+  // the page header's round buttons:  in the window, each glyph centred
   const head = document.querySelector("epic-page")?.shadowRoot
   for (const button of head?.querySelectorAll("button.send, button.review-now, button.git") ?? []) {
     const outer = button.getBoundingClientRect()
@@ -360,22 +467,36 @@ function measure(width) {
 // ## Helpers
 ////////////////
 
-/** Copy the doc (and its parts) to `folder`, its relative links moved three folders deeper. */
+/**
+ * Copy the doc (and its parts) to `folder`, its relative links moved deeper:  the sample sits in `demo/` (two
+ * folders under the package), a real doc in `epics/<name>/`;  the copy six folders under the root.
+ */
 function copyDoc() {
   rmSync(folder, { recursive: true, force: true })
   mkdirSync(folder, { recursive: true })
-  if (docName === "review-sample") {
+  if (docName === "review-sample" && !fromFolder) {
     const html = readFileSync(join(HERE, "review-sample.html"), "utf8")
       .replaceAll('"../../', '"../../../../../')
       .replaceAll('"../pack/', '"../../../../pack/')
     writeFileSync(file, html)
     return
   }
-  const from = join(ROOT, "preview-epics", docName)
-  cpSync(from, folder, { recursive: true })
-  // a preview copy sits two folders under the root;  this one, six
-  const html = readFileSync(join(from, `${docName}.plan.html`), "utf8").replaceAll('"../../', '"../../../../../../')
-  writeFileSync(file, html)
+  const from = resolve(fromFolder ?? join(ROOT, "epics", docName))
+  const skeleton = join(from, `${docName}.plan.html`)
+  if (!existsSync(skeleton)) {
+    console.error(`check-review-epics:  no ${skeleton}`)
+    process.exit(2)
+  }
+  // two folders under the root -> six;  a part one deeper
+  writeFileSync(file, readFileSync(skeleton, "utf8").replaceAll('"../../', '"../../../../../../'))
+  const parts = join(from, "parts")
+  if (!existsSync(parts)) return
+  mkdirSync(join(folder, "parts"))
+  for (const name of readdirSync(parts)) {
+    const text = readFileSync(join(parts, name), "utf8").replaceAll('"../../../', '"../../../../../../../')
+    writeFileSync(join(folder, "parts", name), text)
+  }
+  // never the real doc's inbox, agents or details:  the copy starts clean
 }
 
 /** Load the page, wait for the controls. */
@@ -391,10 +512,37 @@ async function open(page) {
   await page.waitForTimeout(600)
 }
 
-/** The items to click:  a question, one with details, one without (else the last). */
+/**
+ * The items to click, four different ones (`items`:  `{ id, open, details }` each, in page order):  a question (Do
+ * Now's lifecycle on it);  an open item with details;  an open one without;  an open item Approve closes or reviews,
+ * not a question (approving one needs a recommended option).
+ */
 function pickItems(items) {
-  const question = items.find((id) => id.startsWith("q")) ?? items[0]
-  return [question, items.find((id) => id.startsWith("j")) ?? items[1], items.find((id) => id === "j2") ?? items.at(-1)]
+  const taken = new Set()
+  const take = (...tests) => {
+    for (const test of tests) {
+      const found = items.find((item) => !taken.has(item.id) && test(item))
+      if (found) return taken.add(found.id) && found.id
+    }
+    throw new Error(`check-review-epics:  the doc hasn't the items the check needs (${JSON.stringify(items)})`)
+  }
+  const question = take(
+    (item) => item.open && item.id.startsWith("q"),
+    (item) => item.open
+  )
+  const bare = take(
+    (item) => item.open && !item.details,
+    () => true
+  )
+  const withDetails = take(
+    (item) => item.open && item.details && item.id.startsWith("j"),
+    (item) => item.details
+  )
+  const approved = take(
+    (item) => item.open && !item.id.startsWith("q"),
+    (item) => item.open
+  )
+  return { question, approved, withDetails, bare }
 }
 
 /** Click `id`'s `action` button, with the mouse (Playwright's CSS reaches into open shadow roots). */
@@ -409,29 +557,37 @@ async function noteButton(page, id, how) {
   await page.waitForTimeout(250)
 }
 
-/** `id`'s `action` button, as drawn. */
+/** `id`'s `action` button, as drawn:  its fill, its colour;  Do Now's turning icon too. */
 function buttonState(page, id, action) {
-  return page
-    .evaluate(
-      ({ id, action }) => {
-        const button = rootOf(id).querySelector(`ui-button[data-action="${action}"]`)
-        return {
-          chosen: button.hasAttribute("data-chosen"),
-          color: button.dataset.color,
-          waiting: button.hasAttribute("data-waiting"),
-          loading: button.hasAttribute("loading")
-        }
-      },
-      { id, action }
-    )
-    .then((state) =>
-      action === "details"
-        ? state
-        : { chosen: state.chosen, color: state.color, ...(state.waiting && { waiting: true }) }
-    )
+  return page.evaluate(
+    ({ id, action }) => {
+      const button = rootOf(id).querySelector(`ui-button[data-action="${action}"]`)
+      const state = { fill: button.dataset.fill, color: button.dataset.color }
+      return action === "details" ? { ...state, busy: button.hasAttribute("data-busy") } : state
+    },
+    { id, action }
+  )
 }
 
-/** The page header's Send and Review Now (P10), as drawn:  their states, and whether Send says nobody listens. */
+/** `id`'s status cards (their `state`, in order) and its chip's state. */
+function statusOf(page, id) {
+  return page.evaluate((id) => {
+    const item = document.getElementById(id)
+    return {
+      cards: Array.from(item.querySelectorAll(':scope > epic-status[slot="status"]'), (card) =>
+        card.getAttribute("state")
+      ),
+      state: item.getAttribute("state")
+    }
+  }, id)
+}
+
+/** `id`'s attribute `name`, as the doc has it. */
+function attribute(page, id, name) {
+  return page.evaluate(({ id, name }) => document.getElementById(id).getAttribute(name), { id, name })
+}
+
+/** The page header's Send and Review Now, as drawn:  their states, and whether Send says nobody listens. */
 function headerState(page) {
   return page.evaluate((nobody) => {
     const root = document.querySelector("epic-page").shadowRoot
@@ -497,32 +653,5 @@ async function holdNext(page, route) {
       await new Promise((resolve) => setTimeout(resolve, HOLD_MS))
     }
     await request.fallback()
-  })
-}
-
-/** A Claude session listening on the inbox. */
-async function listen() {
-  if (stub) memory.setListening("check-review-epics")
-  else await ReviewInbox.updateAsync(inboxFile, (inbox) => inbox.setListening("check-review-epics"))
-}
-
-/** `--stub`:  the review routes, answered here by `memory`, as `reviewRoutes.ts` would (no item check). */
-async function stubRoutes(context) {
-  await context.route("**/api/review/**", async (route) => {
-    const request = route.request()
-    const path = new URL(request.url()).pathname.replace("/api/review/", "")
-    if (path === "inbox") return route.fulfill({ json: memory.forPage() })
-    const body = request.postDataJSON()
-    try {
-      if (path === "mark") memory.setMark(body.id, body.mark)
-      if (path === "now") memory.requestNow(body.id, body.action, body.note ?? "")
-      if (path === "cancel") memory.cancelNow(body.id)
-      if (path === "draft") memory.setDraft(body.id, body.action, body.note ?? null)
-      if (path === "send" && body.now === true) memory.reviewNow()
-      else if (path === "send") memory.markSent()
-    } catch (error) {
-      return route.fulfill({ status: 400, json: { error: error.message } })
-    }
-    return route.fulfill({ json: memory.forPage() })
   })
 }
