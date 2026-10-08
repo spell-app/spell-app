@@ -2,16 +2,19 @@
  * Details pages:  turns the questions Claude wrote into a form Owen answers ON the page, and sends the answer back
  * through the page server, which wakes the waiting session (`spell dev details wait`).
  * - A classic script, loaded BEFORE `spell-ui.js`:  it only builds markup, so every `ui-*` it makes is upgraded
- *   with the rest of the page, and the contents sidebar sees the Send section.
+ *   with the rest of the page.
  * - Builds, from `ui-section.spell-question` > `.spell-option[data-option][data-title]`:
  *   - one `ui-segment` card per option:  a `ui-radio` (or `ui-checkbox` under `data-multiple`) labelled
  *     `A · title`, ticked to start with under `data-checked`, a Recommended label (`data-recommended`), the
  *     one-line summary, and its
  *     `.spell-option-details` folded in a `ui-accordion`
- *   - an "Other" box per question
- *   - a Send section:  notes, Send, the answer once sent, Change answer
- * - Answer:  `POST /api/details/answer` (`scripts/detailsRoutes.ts`) writes `<slug>.answer.json` beside the page;
- *   on load, `GET` reads it back:  the page shows the answer and locks.
+ *   - an "Other" box per question;  a comment box under every other section with no sections inside it
+ *   - Send in the sticky page header, with where the answer stands ("Not sent", "Sent 10/8/26 14:34 · 5 of 17
+ *     decided", "Changes not sent");  a notes box at the page's end
+ * - Answer:  `POST /api/details/answer` (`tools/detailsRoutes.ts`) writes `<slug>.answer.json` beside the page;
+ *   on load, `GET` reads it back into the page.
+ * - NEVER locks (Owen, 2026-10-08):  a partial answer is fine, everything stays editable, and every Send sends the
+ *   whole page again (the route marks what changed since the send before).
  * - Opened from disk, or a server without the route:  Send says to answer in chat instead.
  */
 ;(function details() {
@@ -29,9 +32,17 @@
   void Promise.all(["ui-radio", "ui-checkbox"].map((tag) => customElements.whenDefined(tag))).then(() =>
     requestAnimationFrame(() => questions.forEach(markState))
   )
+  buildComments()
   const send = buildSend()
   void clampCards()
   const status = document.querySelector("[data-details-status]")
+  /** The page as last sent (`snapshot()`), to tell "Changes not sent";  `null` before the first send. */
+  let sentSnapshot = null
+  /** The answer as last sent, for the header's line. */
+  let sentAnswer = null
+  for (const type of ["click", "ui-change", "input", "keyup"])
+    document.addEventListener(type, () => queueMicrotask(refresh))
+  refresh()
   void loadAnswer()
 
   ////////////////
@@ -248,18 +259,32 @@
   }
 
   /**
-   * The Send bar, after the last question, pinned to the window's bottom (`details.css`):  notes with a round blue
-   * Send button to their right, no title;  then what was sent, and Change answer.
+   * A comment box at the end of every section that isn't a question and holds no section itself (`1.2 What exists
+   * today`, not `1. Context`, whose sub-sections each have one).  Sent as `comments`, by section id.
+   */
+  function buildComments() {
+    for (const section of document.querySelectorAll("ui-section[id]:not(.spell-question)")) {
+      if (section.querySelector("ui-section") || section.closest(".spell-question")) continue
+      section.append(
+        el("ui-textarea", {
+          class: "spell-comment",
+          name: `comment-${section.id}`,
+          "data-section": section.id,
+          rows: "1",
+          placeholder: "Comment on this section",
+          fluid: ""
+        })
+      )
+    }
+  }
+
+  /**
+   * Send, in the sticky page header (`.spell-page-head`, right of the title):  where the answer stands, then a round
+   * blue Send;  an error, when there is one, on its own line under them.  The notes box goes after the last question.
    */
   function buildSend() {
-    const section = el("div", { id: "send", class: "spell-send-bar" })
-    const notes = el("ui-textarea", {
-      class: "spell-notes",
-      name: "notes",
-      rows: "2",
-      placeholder: "Notes for Claude",
-      fluid: ""
-    })
+    const head = document.querySelector(".spell-page-head") ?? document.querySelector("h1").parentElement
+    const state = el("span", { class: "spell-send-state" })
     const button = el("ui-button", {
       class: "spell-send",
       primary: "",
@@ -267,33 +292,35 @@
       icon: "paper plane",
       "aria-label": "Send"
     })
-    const tip = el("ui-popup", { inverted: "", size: "mini", content: "Send your answer" })
+    const tip = el("ui-popup", {
+      inverted: "",
+      size: "mini",
+      content: "Send what's on the page:  a partial answer is fine, send again any time"
+    })
     const error = el("ui-message", { class: "spell-send-error", state: "negative", size: "small", hidden: "" })
-    const sent = el("ui-message", { class: "spell-sent", state: "positive", header: "Sent", hidden: "" })
-    const summary = el("div", { class: "spell-sent-summary" })
-    const change = el(
-      "ui-button",
-      { class: "spell-change", basic: "", circular: "", icon: "pen to square" },
-      "Change answer"
-    )
-    sent.append(summary, change)
-    section.append(el("div", { class: "spell-send-row" }, notes, button, tip), error, sent)
-    questions.at(-1).after(section)
+    head.append(el("div", { class: "spell-send-head" }, state, button, tip), error)
+    const notes = el("ui-textarea", {
+      class: "spell-notes",
+      name: "notes",
+      rows: "2",
+      placeholder: "Notes for Claude:  anything, any time",
+      fluid: ""
+    })
+    questions.at(-1).after(el("div", { id: "notes", class: "spell-notes-block" }, notes))
     button.addEventListener("click", () => void submit())
-    change.addEventListener("click", () => lock(false))
-    return { section, notes, button, error, sent, summary }
+    return { button, state, error, notes }
   }
 
   ////////////////
   // ## Answering
   ////////////////
 
-  /** Send the answer;  on success, show it and lock the page. */
+  /** Send the whole page;  it stays as it is, editable. */
   async function submit() {
-    const answers = collect()
-    const notes = String(send.notes.value ?? "").trim()
+    const { answers, comments, notes } = gather()
     const empty = Object.values(answers).every((each) => !each.picked.length && !each.other)
-    if (empty && !notes) return fail("Pick an option (or write in Other, or a note) first.")
+    if (!sentAnswer && empty && !notes && !Object.keys(comments).length)
+      return fail("Pick an option, or write something (Other, a comment, a note) first.")
     const server = window.SPELL_SERVER
     if (!server?.token) return fail("This page isn't on the page server, so it can't send:  answer in chat instead.")
     send.button.setAttribute("loading", "")
@@ -301,7 +328,7 @@
       const response = await fetch(API, {
         method: "POST",
         headers: { "content-type": "application/json", "x-server-token": server.token },
-        body: JSON.stringify({ page: location.pathname, answers, notes })
+        body: JSON.stringify({ page: location.pathname, answers, comments, notes })
       })
       const body = await response.json().catch(() => ({}))
       if (response.status === 403 && /token/.test(body.error ?? ""))
@@ -309,12 +336,30 @@
       if (response.status === 404 && !body.error)
         return fail("This page server can't take answers yet:  answer in chat.")
       if (!response.ok) return fail(body.error ?? `Send failed (${response.status}):  answer in chat instead.`)
-      show(body.answer)
+      sentAnswer = body.answer
+      sentSnapshot = snapshot()
+      send.error.setAttribute("hidden", "")
+      refresh()
     } catch (error) {
       fail(`Send failed (${error.message}):  answer in chat instead.`)
     } finally {
       send.button.removeAttribute("loading")
     }
+  }
+
+  /** What the page holds now:  `{ answers, comments, notes }`, as the route takes them. */
+  function gather() {
+    const comments = {}
+    for (const box of document.querySelectorAll(".spell-comment")) {
+      const text = String(box.value ?? "").trim()
+      if (text) comments[box.dataset.section] = text
+    }
+    return { answers: collect(), comments, notes: String(send.notes.value ?? "").trim() }
+  }
+
+  /** `gather()` as one string, to compare with what was sent. */
+  function snapshot() {
+    return JSON.stringify(gather())
   }
 
   /** What's picked, by question id:  `{ picked: ["B"], other?: "..." }`. */
@@ -335,7 +380,7 @@
     return answers
   }
 
-  /** The answer already sent, if any (`<slug>.answer.json`, through the route):  shown, page locked. */
+  /** The answer already sent, if any (`<slug>.answer.json`, through the route):  put back into the page. */
   async function loadAnswer() {
     if (!window.SPELL_SERVER) return
     try {
@@ -348,12 +393,17 @@
         ["ui-radio", "ui-checkbox", "ui-input", "ui-textarea"].map((tag) => customElements.whenDefined(tag))
       )
       show(answer)
+      // the controls report what they were set to a frame later
+      await new Promise((done) => requestAnimationFrame(done))
+      sentAnswer = answer
+      sentSnapshot = snapshot()
+      refresh()
     } catch {
       // opened from disk, or no answer yet:  nothing to show
     }
   }
 
-  /** Show `answer` on the page:  controls set, summary written, locked. */
+  /** Put `answer` into the page:  picks, Other, "more details", comments, notes. */
   function show(answer) {
     for (const question of questions) {
       const got = answer.answers?.[question.id] ?? { picked: [] }
@@ -368,57 +418,42 @@
         card.querySelector(".spell-more-details")?.toggleAttribute("active", on)
       }
     }
+    for (const box of document.querySelectorAll(".spell-comment"))
+      box.value = answer.comments?.[box.dataset.section] ?? ""
     send.notes.value = answer.notes ?? ""
     for (const question of questions) markState(question)
-    send.summary.replaceChildren(...summarize(answer))
-    lock(true)
   }
 
-  /** Lines saying what `answer` holds, per question, then the notes, folded under a count;  then when. */
-  function summarize(answer) {
-    const list = el("ul")
-    let answered = 0
-    for (const question of questions) {
-      const got = answer.answers?.[question.id] ?? { picked: [] }
-      const titles = got.picked.map((letter) => {
-        const card = question.querySelector(`.spell-option-card[data-option="${CSS.escape(letter)}"]`)
-        return `${letter} · ${card?.dataset.title ?? ""}`
-      })
-      if (got.other) titles.push(`Other:  ${got.other}`)
-      if (titles.length) answered++
-      const label = question.getAttribute("header")?.split(" · ")[0] ?? question.id
-      list.append(el("li", {}, el("b", {}, `${label}:`), `  ${titles.join(";  ") || "(no answer)"}`))
-    }
-    if (answer.notes) list.append(el("li", {}, el("b", {}, "Notes:"), `  ${answer.notes}`))
-    // folded:  a page of many questions would otherwise end in a list as long as itself
-    const counted = `${answered} of ${questions.length} answered${answer.notes ? ", and notes" : ""}`
-    const folded = el(
-      "ui-accordion",
-      { class: "spell-aside", styled: "" },
-      el("ui-title", {}, `What was sent · ${counted}`),
-      el("ui-content", {}, list)
-    )
-    const when = el("p", { class: "meta" }, `Sent ${new Date(answer.answered).toLocaleString()}.`)
-    return [folded, when]
-  }
-
-  /** Lock (or unlock, to change the answer) every control;  the Send row and the "Sent" message trade places. */
-  function lock(locked) {
-    for (const control of document.querySelectorAll(
-      ".spell-question ui-radio, .spell-question ui-checkbox, .spell-other, .spell-notes, .spell-more-details"
-    ))
-      control.toggleAttribute("disabled", locked)
-    document.body.classList.toggle("spell-details-answered", locked)
-    send.button.toggleAttribute("hidden", locked)
-    send.sent.toggleAttribute("hidden", !locked)
-    send.error.setAttribute("hidden", "")
+  /**
+   * The header's line, and the meta list's status label, from where the answer stands:
+   * - never sent:  "Not sent"
+   * - sent, and the page as sent:  "Sent 10/8/26 14:34 · 5 of 17 decided"
+   * - edited since:  "Changes not sent"
+   */
+  function refresh() {
+    const changed = sentSnapshot !== null && snapshot() !== sentSnapshot
+    const decided = questions.filter((question) => question.dataset.state !== "attention").length
+    const [text, color, label] = !sentAnswer
+      ? ["Not sent", "grey", "waiting for your answer"]
+      : changed
+        ? ["Changes not sent", "orange", "changes not sent"]
+        : [`Sent ${when(sentAnswer.answered)} · ${decided} of ${questions.length} decided`, "green", "answered"]
+    send.state.textContent = text
+    send.state.dataset.color = color
     if (status) {
-      status.textContent = locked ? "answered" : "changing your answer"
-      status.setAttribute("color", locked ? "green" : "orange")
+      status.textContent = label
+      status.setAttribute("color", color)
     }
   }
 
-  /** Show `message` under Send. */
+  /** `iso` as the plan docs write dates:  `10/8/26 14:34`, local time. */
+  function when(iso) {
+    const date = new Date(iso)
+    const time = `${date.getHours()}:${String(date.getMinutes()).padStart(2, "0")}`
+    return `${date.getMonth() + 1}/${date.getDate()}/${String(date.getFullYear()).slice(2)} ${time}`
+  }
+
+  /** Show `message` under the header's Send. */
   function fail(message) {
     send.error.replaceChildren(el("p", {}, message))
     send.error.removeAttribute("hidden")

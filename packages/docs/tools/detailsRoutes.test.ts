@@ -21,7 +21,8 @@ const PAGES = [
   "pages/details/pick.html",
   "epics/big/details/shape.html",
   ".claude/worktrees/w/pages/details/far.html",
-  "guides/other.html"
+  "guides/other.html",
+  "epics/big/details/comments.html"
 ]
 
 beforeAll(async () => {
@@ -85,6 +86,24 @@ test("writes the answer beside the page, and counts changes", async () => {
   })
   await answer("/pages/details/pick.html", { q1: { picked: [], other: " neither " } })
   expect(written(PAGES[0]!)).toMatchObject({ changes: 1, answers: { q1: { picked: [], other: "neither" } } })
+})
+
+test("comments by section, and what changed since the send before", async () => {
+  const path = "/epics/big/details/comments.html"
+  const send = (answers: unknown, comments: unknown, notes = "") =>
+    ask(port, "POST", "/api/details/answer", {
+      body: JSON.stringify({ page: path, answers, comments, notes }),
+      headers: page()
+    })
+  expect(
+    (await send({ q1: { picked: [] }, q2: { picked: ["A"] } }, { context: " too long ", gone: "  " })).status
+  ).toBe(200)
+  // the first send:  everything with something in it
+  expect(written(PAGES[4]!)).toMatchObject({ comments: { context: "too long" }, changed: ["q2", "comment:context"] })
+  await send({ q1: { picked: ["B"] }, q2: { picked: ["A"] } }, { context: "too long", today: "fine" }, "more later")
+  expect(written(PAGES[4]!).changed).toEqual(["q1", "comment:today", "notes"])
+  expect((await send({}, "nope")).status).toBe(400)
+  expect((await send({}, { context: 3 })).status).toBe(400)
 })
 
 test("the page reads its answer back:  null before one is sent", async () => {
