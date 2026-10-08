@@ -34,8 +34,11 @@ const PACKAGES = fileURLToPath(new URL("..", import.meta.url))
  */
 const NOT_SOLID_SOURCE = /\/node_modules\/(?!@solidjs\/router\/)/
 
-/** The fork's source entry:  `@spell-app/solid-element` resolves here in dev, tests AND build (no `dist/` needed). */
-const SOLID_ELEMENT = fileURLToPath(new URL("../solid-element/src/index.ts", import.meta.url))
+/**
+ * The custom-element layer `<spell-app>` and `<spell-editor>` are defined with, `$/ui/elements/solid-element`:  `ui`'s
+ * since epic `spell-element`, shared through `spell-solid.js` (`SHARED_SOLID`).
+ */
+export const SOLID_ELEMENT = fileURLToPath(new URL("../ui/src/elements/solid-element/index.ts", import.meta.url))
 
 /**
  * Plugins, aliases, dedupe and CSS for one config.
@@ -61,12 +64,7 @@ export function appConfig({ iconPacks }: { iconPacks?: boolean } = {}) {
     plugins,
     resolve: {
       tsconfigPaths: true,
-      dedupe: SOLID_DEDUPE,
-      alias: [{ find: /^@spell-app\/solid-element$/, replacement: SOLID_ELEMENT }]
-    },
-    optimizeDeps: {
-      // linked TypeScript source, compiled by the Solid plugin like our own files
-      exclude: ["@spell-app/solid-element"]
+      dedupe: SOLID_DEDUPE
     },
     css: {
       transformer: "lightningcss",
@@ -110,7 +108,8 @@ function exactPath(file: string): RegExp {
 /**
  * Files of the shared Solid build, `vite.solid.config.ts`:  every other bundle of ours imports Solid and
  * `@spell-app/ui` from these, beside it, so a page with `<spell-app>`s AND a `<spell-editor>` loads ONE copy of each.
- * - `solid`:  `solid-js`, `@solidjs/web` (`@solidjs/signals` under them) and `@spell-app/solid-element`, whole
+ * - `solid`:  `solid-js`, `@solidjs/web` (`@solidjs/signals` under them) and `ui`'s custom-element layer
+ *   (`SOLID_ELEMENT`), whole
  * - `ui`:  `@spell-app/ui`'s barrel, `$/ui`, which the app imports LAZILY (`loadUI.ts`);  its own lazy chunks are in `ui/`
  * - Why:  two Solids on one page fail SILENTLY (`solid-2.md`, "One Solid per page").  Pinned by `element.build.test.ts`.
  */
@@ -123,19 +122,18 @@ const SHARED_ID = "spell-shared-solid:"
  * Specifiers another bundle takes from `SHARED_SOLID`'s files.
  * - Only those our code imports:  `solid-js/internal` (from `@solidjs/web`) and `@solidjs/signals` (from `solid-js`)
  *   stay INSIDE `spell-solid.js`.
- * - The fork by its source path too:  `resolve.alias` (`appConfig()`) rewrites `@spell-app/solid-element` before any
- *   plugin sees it.
+ * - `$/ui/elements/solid-element` (`SOLID_ELEMENT`) is in `spell-solid.js`, not `spell-ui.js`:  `<spell-app>` and
+ *   `<spell-editor>` define themselves before `ui` loads.
  */
 const FROM_SHARED_SOLID = new Map<string, string>([
   ["solid-js", SHARED_SOLID.solid],
   ["@solidjs/web", SHARED_SOLID.solid],
-  ["@spell-app/solid-element", SHARED_SOLID.solid],
-  [SOLID_ELEMENT, SHARED_SOLID.solid],
+  ["$/ui/elements/solid-element", SHARED_SOLID.solid],
   ["$/ui", SHARED_SOLID.ui]
 ])
 
 /** Any other import from Solid's or `ui`'s packages:  `sharedSolid()` refuses it, as the shared files may lack it. */
-const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/(solid-element|ui))(\/|$)|^\$\/ui\//
+const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/ui)(\/|$)|^\$\/ui\//
 
 /**
  * For a build that takes Solid and `@spell-app/ui` from `SHARED_SOLID`'s files beside it, instead of bundling its own:

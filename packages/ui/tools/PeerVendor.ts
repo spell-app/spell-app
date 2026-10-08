@@ -11,13 +11,13 @@ import { Terminal } from "./Terminal.ts"
 
 /****************
  * ### `PeerVendor`
- * Vendors the peer set for import-map pages:  ONE ES module per peer specifier (`solid-js`, `@solidjs/web`,
- * `@spell-app/solid-element`), so a page maps each specifier to a local file and runs offline and deterministically.
+ * Vendors the peer set for import-map pages:  ONE ES module per peer specifier (`solid-js`, `@solidjs/web`), so a
+ * page maps each specifier to a local file and runs offline and deterministically.
  * - One Vite build with every specifier as its own entry:  modules they share (`@solidjs/signals`) land in shared
  *   chunks, so each module exists ONCE and identities hold across specifiers.
  * - Production conditions and `process.env.NODE_ENV`, minified:  what an app would ship.
- * - `resolve.dedupe` on every peer package:  a LINKED peer (`@spell-app/solid-element` -> `packages/solid-element`)
- *   otherwise resolves its own imports (`solid-js`) from its own `node_modules`, bundling a second runtime.
+ * - `resolve.dedupe` on every peer package:  a LINKED peer otherwise resolves its own imports (`solid-js`) from its
+ *   own `node_modules`, bundling a second runtime.
  * - Tree-shaken to what is USED:  each specifier's file re-exports only the bindings the `usedBy` builds import
  *   from it (`BundleMeasure.importedBindings()`) -- `dist/` and the compiled Solid host app -- so an import-map page
  *   downloads about the "library (as used)" size, not every export.  A namespace import (`import * as`), a
@@ -127,7 +127,7 @@ export class PeerVendor {
 
   /**
    * Source of the virtual entry for `specifier`:  `names` only, or every export without them (or with `"*"`).
-   * - NOTE: `export *` skips `default`;  none of today's peers (`solid-js`, `@solidjs/web`, the fork) has one.
+   * - NOTE: `export *` skips `default`;  none of today's peers (`solid-js`, `@solidjs/web`) has one.
    */
   private static reexport(specifier: string, names?: string[]): string {
     const from = JSON.stringify(specifier)

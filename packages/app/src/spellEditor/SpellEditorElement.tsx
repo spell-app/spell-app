@@ -4,7 +4,7 @@ import {
   type ComponentOptions,
   type SolidElement,
   type SolidElementClass
-} from "@spell-app/solid-element"
+} from "$/ui/elements/solid-element"
 
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
@@ -28,7 +28,7 @@ import "$/app/solid/cellsBridge"
  *     Or an app can name US, with its `editor` attribute.  Either will do.
  *   - `width` / `height`:  a CSS length, e.g. `50%`, `30em` -- each sets our inline style, so page CSS works too.
  *   - `assets`:  where `spell-editor.css` and Lato are -- default, beside this script.  Read as we join the page.
- * - Each attribute is a property too (`editor.project = ...`), via `@spell-app/solid-element`'s `customElement()`.
+ * - Each attribute is a property too (`editor.project = ...`), via `customElement()` (`$/ui/elements/solid-element`).
  * - Compiles when it opens the project, 2 seconds after typing stops, and at once on Cmd+Enter.
  *   After each compile with no parse errors:
  *   - `compiled` holds what it made -- a `SpellCompiled`

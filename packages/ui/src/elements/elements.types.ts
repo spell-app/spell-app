@@ -9,7 +9,7 @@
  *   of its constants imports it directly (`LoadableComponent`).
  */
 
-import type { PropDefinition } from "@spell-app/solid-element"
+import type { PropDefinition } from "./solid-element"
 
 import type { E } from "$/ui/core"
 

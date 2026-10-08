@@ -1,4 +1,4 @@
-import { onFormReset } from "@spell-app/solid-element"
+import { onFormReset } from "./solid-element"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"

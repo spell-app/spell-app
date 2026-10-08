@@ -2,7 +2,7 @@
 
 /**
  * The package tooling's command line:  `tsx tools/cli.ts <command>` (the root `yarn vendor`, `yarn measure` ...).
- * - `vendor` -- `PeerVendor`:  one ES module per peer specifier (`solid-js`, `@solidjs/web`, `@spell-app/solid-element`)
+ * - `vendor` -- `PeerVendor`:  one ES module per peer specifier (`solid-js`, `@solidjs/web`)
  *   in `vendor/` + `vendor/importmap.json`, tree-shaken to what `dist/` and the smoke pages import
  * - `measure` -- `BundleMeasure`:  `tools/results/measure-results.json` (library / core / forms / own per family /
  *   scenarios / checks)
@@ -19,8 +19,7 @@
  *   - `--sanitize`:  first strip unsafe attributes from the SVGs, rewriting those files
  *   - `--skip-unsafe`:  leave files that still fail out of the index, instead of refusing the pack
  *   - `--allow-unsafe`:  index unsafe files anyway (a broken one still refuses the pack)
- * - `smoke` expects a fresh `vite build` and `yarn vendor`;  `measure` builds in memory.  Both `vendor` and
- *   `measure` bundle the fork's BUILT output:  `ForkBuild.ensure()` builds it first when stale.
+ * - `smoke` expects a fresh `vite build` and `yarn vendor`;  `measure` builds in memory.
  * - Output goes to stdout / stderr through `Terminal`;  a failed check sets exit code 1, bad arguments exit 1.
  */
 
@@ -31,7 +30,6 @@ import { parseArgs } from "node:util"
 import {
   BundleMeasure,
   DeclarationCheck,
-  ForkBuild,
   HostApp,
   IconPackBuilder,
   IconPackError,
@@ -58,7 +56,6 @@ const ICONS_PACK_USAGE =
 const [command, ...args] = process.argv.slice(2)
 switch (command) {
   case "vendor":
-    ForkBuild.ensure()
     await HostApp.ensure()
     await new PeerVendor({
       root: PACKAGE.root,
@@ -69,7 +66,6 @@ switch (command) {
     }).build()
     break
   case "measure":
-    ForkBuild.ensure()
     await new BundleMeasure(PACKAGE).write()
     break
   case "smoke":

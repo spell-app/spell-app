@@ -1,5 +1,5 @@
-import type { SolidElement } from "@spell-app/solid-element"
-import { ServerElement } from "@spell-app/solid-element/server"
+import type { SolidElement } from "$/ui/elements/solid-element"
+import { ServerElement } from "$/ui/elements/solid-element/server"
 
 import type { E } from "$/ui/core"
 import type { SSR } from "$/ui/static"

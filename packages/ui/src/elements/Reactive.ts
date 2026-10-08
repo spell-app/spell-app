@@ -9,7 +9,7 @@ import {
   type Signal
 } from "solid-js"
 import { isServer } from "@solidjs/web"
-import { STATE } from "@spell-app/solid-element"
+import { STATE } from "./solid-element"
 
 import type { E } from "$/ui/core"
 

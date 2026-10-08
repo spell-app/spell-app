@@ -11,7 +11,7 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  *   - `spell-runtime.js`:  what ONE app runs on, loaded afresh per element -- see `spellRuntime.ts`
  * - What both use goes in shared chunks, e.g. React:  so every app's copy of the runtime shares ONE React.
  *   `spellCore` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
- * - Solid, `@spell-app/solid-element` and `@spell-app/ui` are NOT bundled:  they come from `spell-solid.js` /
+ * - Solid, `ui`'s custom-element layer and `@spell-app/ui` are NOT bundled:  they come from `spell-solid.js` /
  *   `spell-ui.js` beside it (`sharedSolid()`), which `<spell-editor>` imports too -- one Solid per page.
  *   `spell-runtime.js` never imports them:  compiled spell runs on React.
  * - Fixed names, no hashes:  the element finds the runtime, styles and scope packs beside itself.

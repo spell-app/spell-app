@@ -26,7 +26,7 @@ export const DOCS_ENTRY = `${ROOT}src/brand-docs.ts`
  * - An ES module, so a page loads it from the page server, not `file://` (judgement J4:  a classic script would
  *   inline every theme, engine and emoji chunk).
  * - Aliases set here as well, as the site's config does:  files outside a `tsconfig.json`'s `include` may not get
- *   `tsconfigPaths`.  `@spell-app/solid-element` from SOURCE:  a fresh checkout has no `dist/`.
+ *   `tsconfigPaths`.
  * - Also `vp lint` / `vp fmt`:  the repo root's `vite.lint.ts`;  the built bundle and the design build are not
  *   ours to lint.
  */
@@ -52,8 +52,7 @@ export default defineConfig(() => {
         { find: /^\$\/util$/, replacement: `${ROOT}../util/src/index.ts` },
         { find: /^\$\/util\//, replacement: `${ROOT}../util/src/` },
         { find: /^\$\/server$/, replacement: `${ROOT}../server/src/index.ts` },
-        { find: /^\$\/server\//, replacement: `${ROOT}../server/src/` },
-        { find: /^@spell-app\/solid-element$/, replacement: `${ROOT}../solid-element/src/index.ts` }
+        { find: /^\$\/server\//, replacement: `${ROOT}../server/src/` }
       ]
     },
     build: {

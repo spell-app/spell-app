@@ -1,5 +1,5 @@
 import { onSettled, untrack } from "solid-js"
-import { onConnect } from "@spell-app/solid-element"
+import { onConnect } from "./solid-element"
 
 import { E } from "$/ui/core"
 // Import directly to avoid circular import

@@ -1,7 +1,7 @@
 import { createComponent, createRoot, untrack } from "solid-js"
 import { NoHydration, renderToString } from "@solidjs/web"
-import { createProps, type SolidElement } from "@spell-app/solid-element"
-import { ServerElement } from "@spell-app/solid-element/server"
+import { createProps, type SolidElement } from "$/ui/elements/solid-element"
+import { ServerElement } from "$/ui/elements/solid-element/server"
 import { parseHTML } from "linkedom"
 
 import { E } from "$/ui/core"

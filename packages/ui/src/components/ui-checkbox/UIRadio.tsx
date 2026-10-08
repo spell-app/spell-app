@@ -1,5 +1,4 @@
 import { onCleanup, untrack } from "solid-js"
-import { onConnect, onDisconnect, onFormAssociated } from "@spell-app/solid-element"
 
 import { E, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
@@ -42,9 +41,9 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
     super(...args)
     untrack(() => this.group)?.join(this)
     const join = () => this.joinGroup()
-    onConnect(join)
-    onDisconnect(join)
-    onFormAssociated(join)
+    E.onConnect(join)
+    E.onDisconnect(join)
+    E.onFormAssociated(join)
     // `name` reads fresh here:  the DOM element's record has the new value before its callbacks run
     this.domElement.addPropertyChangedCallback((key: string) => {
       if (key === NAME) this.joinGroup()

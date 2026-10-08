@@ -1587,7 +1587,6 @@ __metadata:
     "@spell-app/markdown": "workspace:*"
     "@spell-app/parser": "workspace:*"
     "@spell-app/server": "workspace:*"
-    "@spell-app/solid-element": "workspace:*"
     "@spell-app/spell": "workspace:*"
     "@spell-app/ui": "workspace:*"
     "@spell-app/util": "workspace:*"
@@ -1798,7 +1797,7 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@spell-app/solid-element@workspace:*, @spell-app/solid-element@workspace:packages/solid-element":
+"@spell-app/solid-element@workspace:packages/solid-element":
   version: 0.0.0-use.local
   resolution: "@spell-app/solid-element@workspace:packages/solid-element"
   dependencies:
@@ -1859,7 +1858,6 @@ __metadata:
     "@solidjs/vite-plugin": "npm:3.0.0-next.47"
     "@solidjs/web": "npm:2.0.0-rc.13"
     "@spell-app/server": "workspace:*"
-    "@spell-app/solid-element": "workspace:*"
     "@types/lodash-es": "npm:^4.17.12"
     "@types/node": "npm:^22.20.4"
     "@typescript/typescript6": "npm:^6.0.2"
