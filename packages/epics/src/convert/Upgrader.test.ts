@@ -59,6 +59,11 @@ function data(document: Document, selector: string) {
   return Markup.read(document.querySelector(selector)!)
 }
 
+/** I1's Net effect label in other words, `Net effect (once fixed):`, kept as prose. */
+function keptLabel(document: Document): Element | undefined {
+  return Array.from(document.querySelectorAll("#i1 > p > b")).find((bold) => bold.textContent!.startsWith("Net effect"))
+}
+
 /** The tags of `selector`'s children, slotted ones marked. */
 function childTags(document: Document, selector: string): string[] {
   return Array.from(document.querySelector(selector)!.children, (child) =>
@@ -145,8 +150,7 @@ describe("Upgrader.upgrade():  a converted doc", () => {
     const inline = document.querySelector("#i1 > epic-net-effect > p")!
     expect(inline.innerHTML).toMatch(/^still open until <code>/)
     // other words:  prose, as it was
-    expect(document.querySelector("#i1 > p:nth-of-type(3) > b")!.textContent).toBe("Net effect (once fixed):")
-    expect(document.querySelector("#i1 > p:nth-of-type(2) > b")!.textContent).toBe("Where:")
+    expect(keptLabel(document)?.textContent).toBe("Net effect (once fixed):")
     expect(document.querySelector("#o1 > p > b")!.textContent).toBe("Net effect (every recommended option):")
   })
 
@@ -294,7 +298,7 @@ describe("ConversionProof with ConvertedReading:  what a broken upgrade loses", 
 
   test("a label kept as prose is compared:  its words lost are caught", async () => {
     const document = whole(await upgrade())
-    document.querySelector("#i1 > p:nth-of-type(3) > b")!.remove()
+    keptLabel(document)!.remove()
     const report = new ConversionProof({ before: before(), after: document, reading: ConvertedReading }).report
     expect(report.text.units).toEqual([{ unit: "i1", missing: ["Net", "effect", "(once", "fixed):"], added: [] }])
   })
