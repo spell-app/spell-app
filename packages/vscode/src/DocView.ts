@@ -14,6 +14,8 @@
  * - Showing the page ALREADY in view (same path, whatever its `?t=` stamp) doesn't reload it:  the page updates
  *   itself on file changes.  A `hash` asks it to scroll there instead (`{ spell: "go", hash }`).  The reload button
  *   and a server restart do reload.
+ * - A window reload keeps each view's page:  the page last in view is remembered per window (the workspace's state),
+ *   and shown again when VS Code re-makes the view, if its page server still answers (`remembered()`).
  * - Opened by hand, before anything was shown:  "Spell Docs" shows the docs index of the window's first folder (the
  *   repo root);  "Review" a line saying how to fill it.
  * - Title-bar buttons:  back, forward, reload, restart the page server, open in the browser.  Home:  the page's own
@@ -70,6 +72,9 @@ export class DocView implements vscode.WebviewViewProvider {
   /** The docs index's URL, for the "Spell Docs" view's home and its empty state;  set by `DocPreview`. */
   static home: (() => Promise<string | undefined>) | undefined
 
+  /** This window's saved state:  each view's page last in view, so a reload shows it again;  set by `register()`. */
+  static memory: vscode.Memento | undefined
+
   /** Which view:  `docs` or `review`. */
   declare readonly name: DocViewName
 
@@ -95,6 +100,7 @@ export class DocView implements vscode.WebviewViewProvider {
    * - `retainContextWhenHidden`:  switching tabs keeps each view's page as it was, scroll and all
    */
   static register(context: vscode.ExtensionContext): void {
+    DocView.memory = context.workspaceState
     for (const name of Object.keys(VIEWS) as DocViewName[]) {
       const docView = new DocView(name)
       DocView.all.set(name, docView)
@@ -260,11 +266,24 @@ export class DocView implements vscode.WebviewViewProvider {
       if (message?.spell === "clipboard") return void vscode.env.clipboard.writeText(message.text ?? "")
       if (message?.spell !== "place") return
       this.current = message.url
+      void DocView.memory?.update(`${this.id}.page`, message.url)
       void vscode.commands.executeCommand("setContext", `${this.id}.canGoBack`, !!message.canGoBack)
       void vscode.commands.executeCommand("setContext", `${this.id}.canGoForward`, !!message.canGoForward)
     })
+    this.url ??= await this.remembered()
     if (this.name === "docs") this.url ??= await DocView.home?.()
     view.webview.html = this.html(this.url)
+  }
+
+  /**
+   * The page this view last showed in this window, if its page server still answers;  else `undefined`.
+   * - why check:  a worktree's page server comes back on another port after a restart, and a dead URL shows an error
+   *   page in the frame, where the empty view would at least say how to fill it
+   */
+  async remembered(): Promise<string | undefined> {
+    const url = DocView.memory?.get<string>(`${this.id}.page`)
+    if (!url) return undefined
+    return (await serverRoot(new URL(url).origin)) ? url : undefined
   }
 
   /**
