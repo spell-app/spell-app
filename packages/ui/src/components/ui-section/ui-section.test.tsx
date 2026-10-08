@@ -793,6 +793,20 @@ describe("<ui-section source>", () => {
     expect(host.matches(":state(loaded)")).toBe(true)
   })
 
+  it("`reload()` keeps the open body shown until the new one replaces it:  no blink (the live update)", async () => {
+    const { host, content } = await sourced(`<ui-section source="${DIR}/body.html"></ui-section>`)
+    await host.load()
+    await ElementFixture.tick()
+    const reloading = host.reload()
+    await ElementFixture.tick()
+    expect(content.hasAttribute("hidden")).toBe(false)
+    expect(host.querySelector("p.body")).not.toBeNull()
+    await reloading
+    await ElementFixture.tick()
+    expect(content.hasAttribute("hidden")).toBe(false)
+    expect(host.querySelectorAll("p.body")).toHaveLength(1)
+  })
+
   it("a missing file:  a cancelable ui-error, :state(error) and an error line;  a cancelled one shows none", async () => {
     const errors: string[] = []
     const host = Fixture.render<SourceSection>(`<ui-section source="${DIR}/missing.html">Wait</ui-section>`)

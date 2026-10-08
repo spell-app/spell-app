@@ -134,6 +134,31 @@ describe("RunningEpics", () => {
     }
   })
 
+  // epic `epic-components` P8:  converted docs say it in attributes;  until the switch (P12) both markups are read
+  it("reads a plan doc in <epic-*> markup:  phases, the active one's label, the page's updated date", () => {
+    const fresh = mkdtempSync(join(tmpdir(), "srv-epics-new-"))
+    try {
+      put(
+        fresh,
+        ".claude/worktrees/neat/epics/neat/neat.plan.html",
+        `<!doctype html><html><head><title>Epic: Neat &amp; Tidy</title></head><body class="spell-doc-page plan-doc">` +
+          `<epic-page\n  epic="neat"\n  title="Neat &amp; Tidy"\n  updated="2026-10-06"\n>` +
+          `<epic-section id="phases" kind="phases"><epic-phase id="p1" title="One" status="done"></epic-phase>` +
+          `<epic-phase\n  id="p2"\n  title="Two &amp; Three"\n  status="active"\n  source="parts/p2.html"\n></epic-phase>` +
+          `<epic-phase id="p3" title="Four" status="todo"></epic-phase></epic-section></epic-page></body></html>\n`
+      )
+      expect(new RunningEpics(fresh).list()[0]).toMatchObject({
+        title: "Neat & Tidy",
+        done: 1,
+        total: 3,
+        active: "P2 · Two & Three",
+        updated: "2026-10-06"
+      })
+    } finally {
+      rmSync(fresh, { recursive: true, force: true })
+    }
+  })
+
   it("renders nothing with no running epic, or no marker", () => {
     const empty = mkdtempSync(join(tmpdir(), "srv-epics-none-"))
     try {

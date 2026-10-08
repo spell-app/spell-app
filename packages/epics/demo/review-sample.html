@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Epic: Review Sample</title>
+    <meta name="description" content="P9 demo:  the review controls on items and Overview sub-sections." />
+    <link rel="stylesheet" href="../../docs/tools/_assets/spell-doc.css" />
+  </head>
+  <!--
+    P9 demo (Review Buttons In):  items of every kind, one without details, an answered question Claude applied an
+    approve to (`review-as`), and Overview sub-sections, which take the same controls (Q14).
+    - The controls show ONLY while the page is reviewed:  served by the page server with a token, AND its inbox
+      answering.  The review routes take plan docs only (`epics/<name>/<name>.plan.html`), so this page itself never
+      shows them:  `check-review-epics.mjs` copies it to `shots/epics/review-sample/review-sample.plan.html`
+      (git-ignored), its inbox file landing beside it, and clicks through that copy.
+  -->
+  <body class="spell-doc-page plan-doc">
+    <div class="spell-doc">
+      <main class="spell-doc-main" style="padding-inline: 0">
+        <ui-root>
+          <ui-components source="../pack/epics.pack.js"></ui-components>
+          <epic-page epic="review-sample" title="Review Sample" branch="epic-components" started="2026-10-07">
+            <epic-overview id="overview" estimate="1h in all">
+              <p slot="summary">Every review control, on items and on the Overview's own parts.</p>
+              <epic-section id="o1" kind="overview-part" title="What changes">
+                <p>Each item draws its own review buttons; so does every part of the Overview.</p>
+                <ul>
+                  <li>Approve, Make Todo, Revisit, Add Details Now at the line's end</li>
+                  <li>the note box at the end of what's open</li>
+                </ul>
+              </epic-section>
+              <epic-section id="o2" kind="overview-part" title="Why the inbox">
+                <p>Marks wait in the doc's inbox file until "Send to Claude" hands them over.</p>
+              </epic-section>
+            </epic-overview>
+            <epic-section id="phases" kind="phases">
+              <epic-phase id="p1" title="Review Buttons In" status="active" estimate="3h"></epic-phase>
+            </epic-section>
+            <epic-section id="decisions" kind="questions">
+              <epic-item id="q1" title="Which colour for a chosen button?" status="open" state="attention" phase="9">
+                <p>A chosen button fills in its colour; once sent, it's outlined in it.</p>
+                <epic-choices>
+                  <epic-option letter="A" title="Green and orange" recommended>
+                    <p>Green decided, orange pending.</p>
+                  </epic-option>
+                  <epic-option letter="B" title="One blue">
+                    <p>Every chosen button blue.</p>
+                  </epic-option>
+                </epic-choices>
+              </epic-item>
+              <epic-item
+                id="q2"
+                title="Where does the note box go?"
+                status="decided"
+                state="old"
+                answered
+                reviewed="2026-10-06"
+                review-as="approve"
+              >
+                <p>At the end of the item's details, where you are when you've read it.</p>
+                <epic-answer>
+                  <p>At the end of its details.</p>
+                </epic-answer>
+              </epic-item>
+            </epic-section>
+            <epic-section id="judgements" kind="judgements">
+              <epic-item
+                id="j1"
+                title="The controls are drawn in the item's shadow root, so a part reloaded keeps a half-typed note"
+                status="open"
+                state="attention"
+                phase="9"
+              >
+                <p>The part file replaces the item's light children only; the note box lives in its shadow root.</p>
+              </epic-item>
+              <epic-item id="j2" title="An item without details gets its note box under its line" status="open" state="open">
+              </epic-item>
+            </epic-section>
+            <epic-section id="todos" kind="todos">
+              <epic-item id="t1" title="Declare reviewing on epic-page" status="open" state="open" queued="2026-10-07">
+                <p>Its vocabulary names the attribute the review client sets.</p>
+              </epic-item>
+            </epic-section>
+          </epic-page>
+        </ui-root>
+      </main>
+    </div>
+    <script src="../../docs/tools/_assets/spell-ui.js"></script>
+  </body>
+</html>

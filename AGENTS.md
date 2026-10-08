@@ -56,6 +56,9 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - `packages/server/` (`@spell-app/server`, `$/server`, `SRV`) -- serving pages locally:  static folders, an
     Express-shaped router, live reload, ports, openers, a file lock, and the ONE page server per checkout
     (`spell dev server`) that serves docs, epics, goals and Spell UI docs.  See `packages/server/AGENTS.md`.
+  - `packages/assembler/` (`@spell-app/assembler`, `$/assembler`, `AS`) -- assembling pages, for every tool that
+    writes them:  link targets (`Linker`), in-memory formatting (`formatHTML()`) and the bundles built on demand
+    (`Bundle`);  later, the page server's assembly code.  See `packages/assembler/AGENTS.md`.
   - `packages/brand/` (`@spell-app/brand`, `$/brand`) -- Spell's brand:  Claude Design's pages and tokens (never edited), their
     Spell UI copies (`*.spell.html`), and the `<ui-brand-*>` elements those need.  The site header's Brand tab.
     See `packages/brand/AGENTS.md`.
@@ -66,6 +69,8 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   `ui` -> `solid-element` / `util`.  NEVER make `ui` or `solid-element` import `spell` or any package above it:
   `@spell-app/ui` lives on its own.
   - `server` is a LEAF (node built-ins only, imports no package):  ANY package may import it, `ui`'s tools too.
+  - `assembler` is node-only and imports no package (linkedom, oxfmt):  `docs` / `epics` -> `assembler`, and any
+    other node-side package or tool may import it too.
   - The ONE exception:  `ui` ships spell's highlighter PRE-COMPILED, `packages/ui/src/languages/spell.<lang>.js`, a
     committed bundle `yarn gen:spell` (in `packages/ui`) builds from `packages/spell/src/highlight/browser.ts`.  `ui`'s
     source never imports `$/spell`;  regenerate after changing spell's grammar.
@@ -134,11 +139,16 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   included) or `code -r` (restarts the session).  `code <file>.code-workspace` only through `spell dev window open`.
 - Leave with `ExitWorktree` `keep`;  the hook's `remove` never deletes uncommitted or unmerged work.
 - Merge `main` into a branch with `spell dev worktree merge-main`, never a bare `git merge main`:  it REGENERATES
-  each generated file both sides changed (bundles, site and brand assets, snapshots, `yarn.lock`) from the merged
+  each generated file both sides changed (bundles, site and brand data, snapshots, `yarn.lock`) from the merged
   source, and stops on any other conflict (`--continue` once they're resolved and added).
   - Those files are `merge=binary` in the root `.gitattributes` (never line-merged), `-diff` when minified, and
     `linguist-generated` (collapsed in GitHub's PR diffs).  A new committed generated file:  add it there AND to
     `GENERATORS` in `packages/cli/src/dev/mergeMain.ts`.
+  - NOT committed at all (since 2026-10-07):  the bundles only the page server serves, Spell UI's docs site
+    (`packages/ui/site/_assets/`) and the brand pages' (`packages/brand/_assets/ui/`), whose hashed chunk names
+    churned every diff.  Git-ignored;  the page server builds the stale ones when it starts, and a page waits for
+    them (`spell dev bundles build [--stale]` / `check`;  `$/assembler` `Bundle`).  A merge untracks any `main` still
+    commits.
   - It reports snapshot entries with a value NEITHER side had:  new behaviour nobody reviewed;  show them to Owen.
   - NOT `merge=ours`:  it drops the other side's changes silently, and GitHub ignores merge drivers anyway.
 - Shelve a session's work while another session changes what it depends on:  `/park` (a WIP commit in its own
@@ -156,7 +166,8 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - `templates/` -- one starting point per kind of page
   - `pages/` -- the docs home, `pages/index.html`, and the scratch details pages, `pages/details/`
   - `ui/` -- Spell UI's hand-written docs pages (claude-design P6), served at `/ui/` with each branch's built
-    `packages/ui/site/_assets/` and `_data/` laid over them (`packages/ui/AGENTS.md`, `site/`)
+    `packages/ui/site/_assets/` (built by the page server, not committed) and `_data/` laid over them
+    (`packages/ui/AGENTS.md`, `site/`)
   - `goals/` -- the goal sets (their tooling:  `packages/docs/tools/goals/`, tracked)
   - `agents/` -- the three logs (`agents/PAPERCUTS.md`, `agents/SUSPECTED-BUGS.md`, `agents/CODE-DEBT.md`), and
     WWOD, the house style (`agents/wwod/`):  one copy of the rules for every branch
@@ -179,8 +190,10 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
     paths:  `spell dev shared commit` (every turn) runs the reorg's repair first, and `spell dev shared repair`
     does it by hand (`packages/docs/tools/relocate.js` `reorgShared()`).
 - Commits:  the shared repo is committed by itself after every Claude turn (`Stop` hook
-  `.claude/hooks/shared-commit.mjs` -> `spell dev shared commit`), as `auto: <checkout>` with `Session:` /
-  `Checkout:` trailers.  Nobody commits those files by hand.
+  `.claude/hooks/shared-commit.mjs` -> `spell dev shared commit`), one commit per place the files live:
+  `auto: epic <name>`, `auto: guides/<folder or file>`, `auto: goals/<set>`, `auto: agents` (`pages`, `templates`,
+  `ui`, `brand` likewise), else `auto: other`;  trailers `Turn-end: <checkout>` (whose turn swept them up, NOT their
+  author:  any turn commits every session's pending edits) and `Session:`.  Nobody commits those files by hand.
   - NEVER `git add` / `git checkout --` / `git restore` the shared paths in spell-app.
   - NEVER run git inside a shared folder (`epics/`, `guides/` ...:  it's the shared repo there):  run it in the
     spell-app checkout.

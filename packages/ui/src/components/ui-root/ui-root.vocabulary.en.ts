@@ -102,20 +102,29 @@ export const rootVocabulary = {
   events: [
     {
       name: "ui-ready",
-      detail: "{ failed: { tag: string, reason: 'unknown' | 'failed' | 'timeout', error?: unknown }[] }",
+      detail:
+        "{ failed: { tag: string, reason: 'unknown' | 'failed' | 'timeout', error?: unknown, source?: string }[] }",
       description:
         "Everything inside is ready (or the timeout passed):  the content shows.  `failed` lists what didn't load."
     },
     {
       name: "ui-error",
-      detail: "{ tag: string, reason: 'unknown' | 'failed' | 'timeout', error?: unknown }",
+      detail: "{ tag: string, reason: 'unknown' | 'failed' | 'timeout', error?: unknown, source?: string }",
       cancelable: true,
       description:
         "A tag inside couldn't load:  no such component (`unknown`), its family didn't load (`failed`), or it " +
-        "wasn't ready in time (`timeout`).  Cancel it to skip the console warning."
+        "wasn't ready in time (`timeout`);  or a component pack didn't load (`tag` `ui-components`, with its " +
+        "`source`).  Cancel it to skip the console warning."
     }
   ],
-  slots: [{ name: "", description: "The page or app:  any markup, with `ui-*` elements anywhere inside." }],
+  slots: [
+    {
+      name: "",
+      description:
+        "The page or app:  any markup, with `ui-*` elements anywhere inside, and the tags of the component packs its " +
+        "`<ui-components>` name."
+    }
+  ],
   parts: [
     { name: "loading", description: "The `<ui-loader>` shown with `loading`." },
     { name: "skeleton", description: 'The box of `<ui-placeholder>`s shown with `display="skeleton"`.' },

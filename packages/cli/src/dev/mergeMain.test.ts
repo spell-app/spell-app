@@ -70,6 +70,29 @@ describe("mergeMain()", () => {
     expect(git(repo, "status", "--porcelain")).toBe("")
   })
 
+  test("files the merged `.gitignore` ignores that `main` changed or added leave the index, kept on disk", () => {
+    const repo = makeRepo("untracked")
+    change(repo, "main", { "built/x.js": "main's build\n", "my.local": "tracked, though ignored\n" })
+    git(repo, "merge", "-q", "main")
+    // wip stops committing `built/`;  main changes x.js (a modify / delete conflict) and adds y.js
+    put(repo, { ".gitignore": "built/\n*.local\n" })
+    git(repo, "rm", "-q", "-r", "--cached", "built")
+    git(repo, "add", ".gitignore")
+    git(repo, "commit", "-q", "-m", "untrack built/")
+    change(repo, "main", {
+      "built/x.js": "main's newer build\n",
+      "built/y.js": "a new chunk\n",
+      "my.local": "changed\n"
+    })
+    put(repo, { "built/x.js": "wip's own build\n" })
+
+    const report = CLI.mergeMain(repo, OPTIONS)
+    expect(report).toMatchObject({ result: "merged", conflicts: [], untracked: ["built/x.js", "built/y.js"] })
+    expect(git(repo, "ls-files", "built", "my.local")).toBe("my.local")
+    expect(existsSync(join(repo, "built/x.js"))).toBe(true)
+    expect(git(repo, "status", "--porcelain")).toBe("")
+  })
+
   test("up to date, fast-forward, and refusals", () => {
     const repo = makeRepo("simple")
     expect(CLI.mergeMain(repo, OPTIONS).result).toBe("up-to-date")

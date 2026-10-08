@@ -1,0 +1,53 @@
+/*
+ * `<epic-event>` (EpicEvent.tsx):  one log line -- icon, time, text.
+ * - The icon in its own column, centred on the first line;  the time in mono, muted;  a hairline between lines.
+ * - Public tokens (`--epic-event-*`) are never declared here:  read through private aliases.
+ */
+
+@layer ui.components.epic-event.types, ui.components.epic-event.content;
+
+@layer ui.components.epic-event.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+}
+
+@layer ui.components.epic-event.content {
+  [part~="base"] {
+    display: grid;
+    grid-template-columns: 1.25em minmax(0, 1fr);
+    column-gap: 8px;
+    padding: 3px 0;
+    line-height: 1.5;
+  }
+  :host(:not(:last-of-type)) [part~="base"] {
+    border-bottom: 1px solid color-mix(in srgb, var(--epic-rule, var(--ui-border-color)) 60%, transparent);
+  }
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 1lh;
+    color: var(--epic-muted, var(--ui-text-muted));
+  }
+  .icon svg {
+    display: block;
+    width: auto;
+    height: 0.9em;
+    fill: currentColor;
+  }
+  .text {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .time {
+    margin-right: 6px;
+    color: var(--epic-muted, var(--ui-text-muted));
+    font: 0.92em var(--epic-mono, var(--ui-font-family-mono));
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+  }
+}

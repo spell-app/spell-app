@@ -6,6 +6,11 @@
  *   - SECTIONS (every page but the goals pages):  `<ui-section id header sticky collapsible dividing>` in `main`,
  *     nested for sub-sections, `collapsed` to start folded.  The element draws the title, the fold button, the rule
  *     and the stack of stuck titles;  this runtime sets the top-level `offset`s, remembers folds, writes counts.
+ *     - a PLAN DOC is `<epic-page>` markup (the `epics` pack, `packages/epics`):  its folding blocks
+ *       (`<epic-overview>`, `<epic-section>`, `<epic-phase>`, `EPIC_FOLDS`) are its sections.  They draw and stick
+ *       themselves, count their items, filter them, and draw the page header, the review line, the commits and
+ *       every review control;  this runtime only lists them (each host's `contentsEntry`:  label, icon, count),
+ *       remembers their folds, and lands links inside them
  *   - HEADINGS (the goals pages):  `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`;
  *     this runtime adds the fold chevrons and every sticky's `offset`
  * - contents sidebar:  built from the outline when the page has no `#spell-toc` (`buildContents()`)
@@ -18,15 +23,9 @@
  *   `siteHeaderHeight()`):  the page header, the titles, the contents column, the rail, the drawer
  * - folding:  every section folds from a chevron on its title;  folds are remembered per page, and `collapsed`
  *   (`data-fold="closed"` on HEADINGS pages) starts one folded
- * - counts:  a top-level section holding `[data-status]` items (plan docs' phases, questions, issues ...) shows
- *   open / all on its title, and the open count as a badge in the contents and the rail;  plan item sections also
- *   get a round filter button stepping through the items' states (`wireItemFilters()`)
- * - plan docs' commits:  a git button in the page header shows or hides them all, a git icon on an item's line
- *   shows its own (`wireCommits()`)
- * - plan docs' review actions, served by the page server:  an ellipsis menu on every item, Revisit notes, "Choose"
- *   on option cards, and the header's "Send to Claude", all saved in the doc's inbox file (`wireReview()`)
- * - plan docs' running agents, served by the page server:  a panel above the first section while any runs, each
- *   with a note box that redirects it (`wireAgents()`)
+ * - counts:  a top-level section holding `[data-status]` items (the Epics index's epic cards, the goals pages'
+ *   items) shows open / all on its title, and the open count as a badge in the contents and the rail;  an epic card
+ *   section also gets a round filter button stepping through the items' states (`wireItemFilters()`)
  * - scroll-follow:  the current section's (heading's) contents link is highlighted and its panels open;  panels the
  *   scroll opened close again, panels the USER opened stay open
  * - links to any id in `main` (a section, a heading, a plan item) land below the stuck titles, unfolding what
@@ -85,6 +84,27 @@ const UNFOLD_FRAMES = 2
  */
 const SETTLE_MS = 450
 
+/**
+ * A plan doc's folding blocks (`packages/epics`):  its sections, in the outline, the folds and the landing.  Each
+ * host has `open` (page state) and `contentsEntry` (`EpicFoldHost`).
+ */
+const EPIC_FOLDS = "epic-overview, epic-section, epic-phase"
+
+/** What a link into a plan doc opens on its way:  the folding blocks, and the items (which fold too). */
+const EPIC_OPENERS = `${EPIC_FOLDS}, epic-item`
+
+/** Every element the outline takes for a section:  `<ui-section>`s and a plan doc's folding blocks. */
+const SECTIONS = `ui-section, ${EPIC_FOLDS}`
+
+/**
+ * How long `start()` waits for a plan doc's elements (the `epics` pack, loaded by `<ui-root>`) to define and draw,
+ * before listing the page without them:  a pack that never loads must not hold up the rest.
+ */
+const EPIC_WAIT_MS = 5000
+
+/** Space between the stuck titles and an element a link lands on inside a plan doc, px (`EpicFold`'s `LAND_GAP`). */
+const EPIC_LAND_GAP = 8
+
 /** Contents links further than this from the contents column's edges get scrolled into view. */
 const TOC_MARGIN = 60
 
@@ -132,6 +152,12 @@ async function start() {
   // listening at once:  an edit that comes in while this is still wiring waits for `live.ready()`
   const live = wireLiveUpdate(main)
   highlight()
+  // a plan doc:  its saved folds before its blocks first draw (so nothing animates), then the blocks, which the
+  // outline reads (their labels, icons and counts)
+  if (main.querySelector("epic-page")) {
+    restoreEpicFolds(main)
+    await epicsDrawn(main)
+  }
   const outline = outlineOf(main)
   const counts = countItems(outline)
   if (outline.sections) wireItemFilters(main)
@@ -162,8 +188,8 @@ async function start() {
  * - else the URL's `#hash`:
  *   - a section or heading WITHOUT unfolding the target itself:  the address follows the section being read
  *     (`followScroll()`), so a reload (or VS Code restarting) lands on it, folded or not, as the reader left it
- *   - a plan item OPENS:  the address never follows items, so an item's `#q16` is a link someone followed
- *     (`spell dev docs link --hash q16 --show`), and a folded item shows nothing of what it pointed at
+ *   - a plan item (`<epic-item>`) OPENS:  the address never follows items, so an item's `#q16` is a link someone
+ *     followed (`spell dev docs link --hash q16 --show`), and a folded item shows nothing of what it pointed at
  * - else nowhere:  the top
  * - then the address starts following the scroll;  after a `#hash`, only once the jump has landed:  a target in a
  *   body not loaded yet (a split plan doc's part) lands a moment later, and following before that saw the top of
@@ -178,7 +204,7 @@ function land({ hash, scroll }, jump, follow) {
     }, SETTLE_MS)
     follow?.update()
   } else if (hash) {
-    const landed = jump(hash, { unfoldTarget: isPlanItem(hash) })
+    const landed = jump(hash, { unfoldTarget: document.getElementById(hash)?.localName === "epic-item" })
     // the browser's own jump to the `#hash` can come AFTER ours and land the target under the stuck titles (an
     // item has no box of its own:  `display: contents`), so land once more when the page has settled, unless the
     // reader has moved meanwhile
@@ -190,11 +216,18 @@ function land({ hash, scroll }, jump, follow) {
     return
   } else follow?.update()
   follow?.followAddress()
+}
 
-  /** Is `id` a plan item (its own panel, `ui-accordion.plan-item`), rather than a section or heading? */
-  function isPlanItem(id) {
-    return Boolean(document.getElementById(id)?.querySelector(":scope > ui-accordion.plan-item"))
-  }
+/**
+ * Resolves once a plan doc's elements are defined and have drawn (their hosts' `ready`), so their
+ * `contentsEntry` can be read;  after `EPIC_WAIT_MS` at most (a pack that won't load:  the page goes on without).
+ */
+async function epicsDrawn(main) {
+  const tags = ["epic-page", ...EPIC_FOLDS.split(", ")]
+  const drawn = Promise.all(tags.map((tag) => customElements.whenDefined(tag))).then(() =>
+    Promise.all(Array.from(main.querySelectorAll(EPIC_FOLDS), (host) => host.ready))
+  )
+  await Promise.race([drawn, new Promise((done) => setTimeout(done, EPIC_WAIT_MS))])
 }
 
 /**
@@ -224,24 +257,33 @@ function highlight() {
  * - NOTE: anything else the runtime (or a page script) adds in `main` should carry `data-spell-added`;  an
  *   unknown extra is stepped around too when its tag doesn't collide with its source siblings' (`liveKids()`)
  */
-const ADDED = ".spell-item-filter, .spell-hidden-note, .plan-review, [data-spell-added]"
+const ADDED = ".spell-item-filter, .spell-hidden-note, [data-spell-added]"
 
 /**
- * Attributes the reader's state lives in (folds, open panels, counts, the item filter, the phases' Files / Verify
- * toggles):  a patch keeps them (`isKept()`).
+ * The page state of an `<epic-*>` element (epic `epic-components`, P10):  folded or open (items, sections, phases,
+ * the Overview), and the page being reviewed (`<epic-page reviewing>`);  never in the file, so a patch keeps them
+ * (`KEPT_ATTRIBUTES`), and a replaced subtree carries them over (`carryEpicState()`).
+ * - NOTE: their review controls and note boxes are in their shadow roots (P9):  a patch never sees them
  */
-const KEPT_ATTRIBUTES = new Set(["collapsed", "open", "badge", "data-show", "data-show-files", "data-show-verify"])
+const EPIC_PAGE_STATE = ["open", "reviewing"]
 
-/** Does a patch keep attribute `name` of `element` (the reader's)?  Not a phase's `badge`:  its estimate, from the source. */
-function isKept(name, element) {
-  return KEPT_ATTRIBUTES.has(name) && !(name === "badge" && element.hasAttribute("data-phase"))
-}
+/**
+ * Attributes the reader's state lives in (folds, counts, the item filter, `EPIC_PAGE_STATE`):  a patch keeps them
+ * (`planAttributes()`).
+ */
+const KEPT_ATTRIBUTES = new Set(["collapsed", "badge", "data-show", ...EPIC_PAGE_STATE])
 
 /**
  * Elements that manage their children (panels and tabs by index, options):  a change inside replaces the whole
  * element, its open panels carried over (`carryState()`).
  */
 const MANAGERS = "ui-accordion, ui-tabs, ui-select, ui-dropdown"
+
+/**
+ * A tag of the `epics` pack's elements (`<epic-page>`, `<epic-item>` ...):  NEVER replaced by a patch while its tag
+ * stays (`planMorph()`):  each keeps its fold, its loaded part and what's typed in it.
+ */
+const EPIC_TAG = /^epic-/
 
 /** `squash()`ed `outerHTML` of source nodes, computed once per patch. */
 const squashed = new WeakMap()
@@ -266,6 +308,9 @@ const squashed = new WeakMap()
  * - BODIES from files (`<ui-section source>`, `<ui-accordion source>`:  a split plan doc's parts) live their own
  *   life (`wireSourceBodies()`):  the patch leaves what a host loaded alone (`planHost()`), a changed body file
  *   re-fetches its open host in place, and each body that loads re-wires the page (`refresh()`)
+ * - a plan doc in `<epic-*>` markup (epic `epic-components`):  its elements are patched, never replaced
+ *   (`planMorph()`), their page state kept (`EPIC_PAGE_STATE`);  their parts (`<epic-item source>` ...) live the
+ *   bodies' life above
  * - returns `{ ready(page), refresh(changed) }`:  `start()` hands over what it wired;  a change waits for it.
  *   `refresh()` re-wires after `changed` elements changed under the runtime (a body loaded), in turn with updates
  */
@@ -312,16 +357,18 @@ function wireLiveUpdate(main) {
 }
 
 /**
- * Can this page be patched in place?  `<ui-section>` markup, no CHEATSHEET filter, and no script but the bundle,
- * highlight.js, what the page server injects, and inert data blocks (`isInert()`).
+ * Can this page be patched in place?  `<ui-section>` markup (or a plan doc in `<epic-*>` markup:  its
+ * `<epic-page>`), no CHEATSHEET filter, and no script but the bundle, highlight.js, what the page server injects,
+ * component packs (`<ui-components source="x.pack.js">`'s script, which only defines elements) and inert data
+ * blocks (`isInert()`).
  */
 function canPatch(main) {
-  if (!main.querySelector(":scope > ui-section")) return false
+  if (!main.querySelector(":scope > :is(ui-section, epic-page)")) return false
   if (document.querySelector("[data-spell-filter], [data-spell-filter-badge]")) return false
   return Array.from(document.scripts).every((script) => {
     const src = script.getAttribute("src")
     if (!src) return isInert(script) || script.textContent.includes("SPELL_SERVER")
-    return /^\/_server\//.test(src) || /(^|\/)(spell-ui|highlight(\.min)?)\.js$/.test(src)
+    return /^\/_server\//.test(src) || /(^|\/)(spell-ui|highlight(\.min)?|[\w-]+\.pack)\.js$/.test(src)
   })
 }
 
@@ -339,10 +386,11 @@ function isInert(script) {
 ////////////////
 
 /**
- * Hosts whose body comes from a file (`<ui-section source>`, `<ui-accordion source>`:  a split plan doc's parts,
- * `epics/<name>/parts/<id>.htm`, epic `claude-design` P3) in step with the files and the page:
+ * Hosts whose body comes from a file (`<ui-section source>`, `<ui-accordion source>`;  a plan doc's parts,
+ * `epics/<name>/parts/<id>.html`, epic `claude-design` P3, on its `<epic-*>` blocks and items) in step with the files
+ * and the page:
  * - a body loads (`ui-load`, the first open or a re-fetch):  the page is re-wired around it (`live.refresh()`):  the
- *   outline (headings inside), contents, counts, item filters, code colors, review buttons, "Choose" pills
+ *   outline (headings inside), contents, counts, item filters, code colors
  * - a body's FILE changed (the page server's `spell-server:file`, `liveClient.ts`):  a host that has loaded it
  *   re-fetches it in place (`reload()`), the reading position kept (`readingAnchor()`);  one that hasn't drops the
  *   cached copy, so its first open fetches the new one
@@ -367,12 +415,13 @@ function wireSourceBodies(main, live, enqueue) {
 
   /**
    * Re-fetch `host`'s body, keeping the line being read where it is.
-   * - what had the focus inside it, a note box being typed in (`dock()`, which puts the same box back):  focused
-   *   again, its caret where it was
+   * - what had the focus inside it, a note box being typed in (`dock()`, which puts the same box back;  an
+   *   `<epic-item>`'s, in its shadow root, which the reload may hide for a moment):  focused again, its caret where
+   *   it was
    */
   async function reloadBody(host) {
     const anchor = readingAnchor(main)
-    const active = host.contains(document.activeElement) ? document.activeElement : null
+    const active = host.contains(document.activeElement) ? deepActiveElement() : null
     const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null
     // the body goes in on the host's `ui-load`, which can come after `reload()` resolves;  the runtime's pieces go
     // back on it (`live.refresh()`):  wait for it (2s at most), then for them
@@ -387,10 +436,19 @@ function wireSourceBodies(main, live, enqueue) {
     if (!active) return
     await loaded
     for (let frame = 0; frame < 60 && !active.isConnected; frame++) await nextFrames(1)
-    if (!active.isConnected || document.activeElement === active) return
+    // the host draws what it hid while loading (a frame):  hidden, the box can't take the focus
+    await nextFrames(1)
+    if (!active.isConnected || deepActiveElement() === active) return
     active.focus({ preventScroll: true })
     if (caret) active.setSelectionRange(...caret)
   }
+}
+
+/** The element with the focus, inside shadow roots too (`document.activeElement` stops at their hosts). */
+function deepActiveElement() {
+  let active = document.activeElement
+  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement
+  return active
 }
 
 /** Absolute URL of `host`'s `source`, when it's on this page's origin;  else null. */
@@ -423,13 +481,14 @@ function forgetSource(url) {
 
 /**
  * The host whose unloaded body holds element `id`:  its `data-part-ids` (the ids inside, written by
- * `plan-parts.js`), when the element isn't in the page yet;  else null.
+ * `plan-parts.js`;  a plan doc's `<epic-*>`:  `part-ids`), when the element isn't in the page yet;  else null.
  */
 function hostHolding(main, id) {
   if (!id || document.getElementById(id)) return null
+  const ids = (host) => (host.getAttribute("data-part-ids") ?? host.getAttribute("part-ids") ?? "").split(/\s+/)
   return (
-    Array.from(main.querySelectorAll("[source][data-part-ids]")).find((host) =>
-      host.getAttribute("data-part-ids").split(/\s+/).includes(id)
+    Array.from(main.querySelectorAll("[source]:is([data-part-ids], [part-ids])")).find((host) =>
+      ids(host).includes(id)
     ) ?? null
   )
 }
@@ -518,21 +577,22 @@ function planBodyAttributes(before, after, plan) {
  * - REPLACED, its reader's state carried over (`carryState()`):  a tag change, text of its own (a paragraph, a
  *   title:  the smallest thing that holds the changed text), a `MANAGERS` element, or children the live page
  *   doesn't line up with
+ * - an `<epic-*>` element (`EPIC_TAG`) is NEVER replaced while its tag stays (P10 of `epic-components`):  it keeps
+ *   its fold, its loaded part and its controller.  Its attributes are patched in place (its page state kept:
+ *   `EPIC_PAGE_STATE`), its children morphed as above;  only where they can't be (text of its own changed, children
+ *   that don't line up) are its CHILDREN replaced (`planContent()`), never the element
  * - SIDE EFFECT:  pushes the live changes onto `plan.ops`, and what's new onto `plan.changed`
  */
 function planMorph(before, after, live, plan) {
   if (sameNode(before, after)) return live
   if (isHost(before, after, live)) return planHost(before, after, live, plan)
-  if (
-    live.localName !== after.localName ||
-    before.localName !== after.localName ||
-    live.matches(MANAGERS) ||
-    hasText(before) ||
-    hasText(after)
-  )
+  const sameTag = live.localName === after.localName && before.localName === after.localName
+  const epic = sameTag && EPIC_TAG.test(after.localName)
+  if (!sameTag || (!epic && (live.matches(MANAGERS) || hasText(before) || hasText(after))))
     return planReplace(after, live, plan)
   const was = Array.from(before.children)
   const kids = liveKids(was, live)
+  if (epic && (!kids || hasText(before) || hasText(after))) return planContent(before, after, live, plan)
   if (!kids) return planReplace(after, live, plan)
   planAttributes(before, after, live, plan)
   const now = Array.from(after.children)
@@ -572,7 +632,7 @@ function planMorph(before, after, live, plan) {
 /**
  * Is `live` a section whose body comes from a file (`source`), the same file before and after?  Its body is the
  * file's (`wireSourceBodies()`), not the page source's:  `planHost()`.
- * - not an accordion host (a plan item's panel):  a `MANAGERS` element, replaced whole as ever, its open panel
+ * - not an accordion host (`<ui-accordion source>`):  a `MANAGERS` element, replaced whole as ever, its open panel
  *   carried over, so it loads its body again
  */
 function isHost(before, after, live) {
@@ -635,7 +695,7 @@ function planAttributes(before, after, live, plan) {
   const changes = []
   for (const name of new Set([...before.getAttributeNames(), ...after.getAttributeNames()])) {
     const value = after.getAttribute(name)
-    if (!isKept(name, before) && value !== before.getAttribute(name)) changes.push([name, value])
+    if (!KEPT_ATTRIBUTES.has(name) && value !== before.getAttribute(name)) changes.push([name, value])
   }
   if (!changes.length) return
   plan.changed.push(live)
@@ -644,6 +704,27 @@ function planAttributes(before, after, live, plan) {
       if (value === null) live.removeAttribute(name)
       else live.setAttribute(name, value)
   })
+}
+
+/**
+ * Plan giving `<epic-*>` element `live` the children of `after`, the element itself kept (`planMorph()`):  its source
+ * attributes patched, then its children replaced by copies of `after`'s, the reader's state carried over
+ * (`carryState()`);  what the runtime or the page's review controls added (`ADDED`) stays.  Returns `live`.
+ */
+function planContent(before, after, live, plan) {
+  planAttributes(before, after, live, plan)
+  const nodes = Array.from(after.childNodes, (node) => {
+    const copy = node.cloneNode(true)
+    if (copy.nodeType === Node.ELEMENT_NODE) carryState(live, copy)
+    return document.importNode(copy, true)
+  })
+  plan.weight += after.innerHTML.length
+  plan.changed.push(...nodes.filter((node) => node.nodeType === Node.ELEMENT_NODE))
+  plan.ops.push(() => {
+    const kept = Array.from(live.children).filter((kid) => kid.matches(ADDED))
+    live.replaceChildren(...nodes, ...kept)
+  })
+  return live
 }
 
 /** Plan replacing `live` with a copy of `after`, the reader's state carried over;  returns the copy. */
@@ -699,10 +780,12 @@ function placeChildren(parent, kids, slots) {
  * Carry the reader's state from `live` to `copy`, its replacement (not yet imported):
  * - folds:  every section keeps its fold, new ones fold as `carryFolds()` says
  * - open panels:  each accordion's, matched by its nearest ancestor with an `id` and its order under it
+ * - `<epic-*>` page state:  `carryEpicState()`
  * - typed text:  fields with an `id`
  */
 function carryState(live, copy) {
   carryFolds(copy)
+  carryEpicState(copy)
   const panels = accordionsOf(live)
   for (const [key, accordion] of accordionsOf(copy)) {
     const old = panels.get(key)
@@ -731,6 +814,23 @@ function carryFolds(copy) {
     if (old?.localName === "ui-section") section.toggleAttribute("collapsed", isCollapsed(old))
     else if (section.id && section.id in saved) section.toggleAttribute("collapsed", !!saved[section.id])
     else if (planDoc) section.setAttribute("collapsed", "")
+  }
+}
+
+/**
+ * Give every `<epic-*>` element with an `id` in `copy` the page state (`EPIC_PAGE_STATE`:  `open` ...) of the live one
+ * with that `id` and tag;  a new one starts as its markup says (folded:  `open` is never in the file).
+ */
+function carryEpicState(copy) {
+  for (const element of withSelf(copy, "[id]")) {
+    if (!EPIC_TAG.test(element.localName)) continue
+    const old = document.getElementById(element.id)
+    if (old?.localName !== element.localName) continue
+    for (const name of EPIC_PAGE_STATE) {
+      const value = old.getAttribute(name)
+      if (value === null) element.removeAttribute(name)
+      else element.setAttribute(name, value)
+    }
   }
 }
 
@@ -801,6 +901,8 @@ function keepAnchor(anchor) {
  */
 async function rewire(page, changed) {
   const { main } = page
+  // a plan doc's blocks take the change in a microtask (Solid batches):  their contents entries read it after
+  if (main.querySelector("epic-page")) await nextFrames(1)
   const outline = outlineOf(main)
   const counts = countItems(outline)
   wireItemFilters(main)
@@ -852,9 +954,10 @@ function highlightIn(elements) {
 /**
  * The page's outline, from either markup (see the header):  what the contents, the rail, the counts, scroll-follow
  * and the anchors work from.
- * - SECTIONS markup (`main > ui-section` exists):  top-level `<ui-section>`s are the groups;  nested sections, and
- *   the h3s / h4s in a section's own content (CHEATSHEET cards, sub-sub-items), are their entries, at any depth.
- *   An h4 right after an h3 of the same section goes under it.
+ * - SECTIONS markup (`main > ui-section`, or a plan doc's `<epic-page>`):  top-level sections are the groups;
+ *   nested sections, and the h3s / h4s in a section's own content (CHEATSHEET cards, sub-sub-items), are their
+ *   entries, at any depth.  An h4 right after an h3 of the same section goes under it.  A plan doc's sections are
+ *   its folding blocks (`EPIC_FOLDS`:  the Overview and its parts, the sections, the phases).
  * - HEADINGS markup:  h2s are the groups, h3s their entries, h4s under the h3 before them
  * - a node:  `{ element, id, label, icons, glyph, children }` -- `icons` the HTML of its `<ui-icon>`s, `glyph` the
  *   first one's name
@@ -867,7 +970,7 @@ function highlightIn(elements) {
  * - SIDE EFFECT:  gives an entry with no `id` a slug of its label (`-2`, `-3` ... when taken)
  */
 function outlineOf(main) {
-  const sections = !!main.querySelector(":scope > ui-section")
+  const sections = !!main.querySelector(":scope > :is(ui-section, epic-page)")
   const groups = []
   const orphans = []
   if (sections) readSections()
@@ -876,23 +979,26 @@ function outlineOf(main) {
     sections,
     groups,
     orphans,
-    targets: sections ? "ui-section[id], h3[id], h4[id]" : "h2[id], h3[id], h4[id]",
+    targets: sections ? `:is(${SECTIONS}, h3, h4)[id]` : "h2[id], h3[id], h4[id]",
     entryOf,
     groupOf,
     folded
   }
 
   /**
-   * SECTIONS:  every `<ui-section>`, h3 and h4 in `main`, under the section it's in.
-   * - not the headings in a plan item's Original Discussion (`outsideOriginal()`):  earlier text, not the page's
+   * SECTIONS:  every section, h3 and h4 in `main`, under the section it's in.
+   * - not the headings in a plan item's earlier versions (`<epic-original>`):  earlier text, not the page's
    */
   function readSections() {
     const nodes = new Map()
-    for (const element of outsideOriginal(main.querySelectorAll("ui-section, h3, h4"))) {
+    const elements = Array.from(main.querySelectorAll(`${SECTIONS}, h3, h4`)).filter(
+      (element) => !element.closest("epic-original")
+    )
+    for (const element of elements) {
       const node = nodeOf(element)
       nodes.set(element, node)
-      const owner = element.parentElement?.closest("ui-section")
-      const list = owner ? nodes.get(owner).children : element.localName === "ui-section" ? groups : orphans
+      const owner = element.parentElement?.closest(SECTIONS)
+      const list = owner ? nodes.get(owner).children : element.matches(SECTIONS) ? groups : orphans
       const last = list.at(-1)
       if (element.localName === "h4" && last?.element.localName === "h3") last.children.push(node)
       else list.push(node)
@@ -916,7 +1022,7 @@ function outlineOf(main) {
 
   /** The entry a jump to `element` makes current:  itself, else its section's (heading's) entry. */
   function entryOf(element) {
-    if (sections) return element.closest("ui-section, h3, h4")
+    if (sections) return element.closest(`${SECTIONS}, h3, h4`)
     if (/^H[234]$/.test(element.tagName)) return element
     return element.closest("section")?.querySelector(":scope > ui-sticky > :is(h2, h3)") ?? null
   }
@@ -925,24 +1031,34 @@ function outlineOf(main) {
   function groupOf(entry) {
     if (!sections) return entry.localName === "h2" ? entry : entry.closest("section.s2")?.querySelector("h2")
     let top = null
-    for (let section = entry.closest("ui-section"); section; section = section.parentElement?.closest("ui-section"))
+    for (let section = entry.closest(SECTIONS); section; section = section.parentElement?.closest(SECTIONS))
       top = section
     return top
   }
 
-  /** Is `element` inside a folded `<ui-section>` (not counting itself)? */
+  /** Is `element` inside a folded section (not counting itself)? */
   function folded(element) {
     if (!sections) return false
-    for (let section = element.parentElement?.closest("ui-section"); section;) {
+    for (let section = element.parentElement?.closest(SECTIONS); section;) {
       if (isCollapsed(section)) return true
-      section = section.parentElement?.closest("ui-section")
+      section = section.parentElement?.closest(SECTIONS)
     }
     return false
   }
 }
 
-/** An outline node for a heading or a `<ui-section>`;  gives it an id if it has none. */
+/**
+ * An outline node for a heading, a `<ui-section>` or a plan doc's block;  gives it an id if it has none.
+ * - a block:  what its host says (`contentsEntry`), its id before it has drawn
+ */
 function nodeOf(element) {
+  if (element.matches(EPIC_FOLDS)) {
+    const entry = element.contentsEntry
+    const glyph = entry?.icon
+    const color = entry?.color ? ` color="${attr(entry.color)}"` : ""
+    const icons = glyph ? `<ui-icon name="${attr(glyph)}"${color}></ui-icon>` : ""
+    return { element, id: element.id, label: entry?.label ?? element.id, icons, glyph, children: [] }
+  }
   const section = element.localName === "ui-section"
   const label = section ? sectionLabel(element) : labelOf(element)
   if (!element.id) element.id = uniqueId(slug(label) || "section")
@@ -986,19 +1102,32 @@ function uniqueId(id) {
   return candidate
 }
 
-/** Is `section` (a `<ui-section>`) folded?  Its `collapsed` property, else (not upgraded yet) the attribute. */
+/**
+ * Is `section` folded?  A `<ui-section>`:  its `collapsed` property, else (not upgraded yet) the attribute;  a plan
+ * doc's block (or item):  not `open`, by the property, else the attribute.
+ */
 function isCollapsed(section) {
+  if (section.matches(EPIC_OPENERS))
+    return !(typeof section.open === "boolean" ? section.open : section.hasAttribute("open"))
   return typeof section.collapsed === "boolean" ? section.collapsed : section.hasAttribute("collapsed")
 }
 
-/** Fold or unfold a `<ui-section>` without an event:  `collapsed` is controlled, so writing it announces nothing. */
+/**
+ * Fold or unfold a section without an event:  `collapsed` (`<ui-section>`) and `open` (a plan doc's blocks and
+ * items) are controlled, so writing them announces nothing.
+ */
 function setCollapsed(section, collapsed) {
-  section.toggleAttribute("collapsed", collapsed)
+  if (section.matches(EPIC_OPENERS)) section.toggleAttribute("open", !collapsed)
+  else section.toggleAttribute("collapsed", collapsed)
 }
 
-/** The shadow title bar of a `<ui-section>` (its public `title` part), once it has rendered. */
+/**
+ * The shadow title bar of a `<ui-section>` (its public `title` part), once it has rendered;  a plan doc's block's:
+ * the one of the `<ui-section>` it draws in its own shadow root.
+ */
 function titleOf(section) {
-  return section.shadowRoot?.querySelector('[part~="title"]') ?? null
+  const inner = section.matches(EPIC_FOLDS) ? section.shadowRoot?.querySelector("ui-section") : section
+  return inner?.shadowRoot?.querySelector('[part~="title"]') ?? null
 }
 
 ////////////////
@@ -1141,13 +1270,20 @@ const CLOSED = new Set(["done", "decided", "canceled"])
  * Each top-level section's items -- `[data-status]` elements, not counting ones inside another -- as
  * `{ open, total }`, by the group's element (the `<ui-section>`, or the h2);  "open" is any status but `CLOSED`'s.
  * Sections without items are left out;  nested sections get no count of their own.
- * - plan docs:  phases (`ui-section[data-phase]`), questions, decisions, caveats, todos, issues
+ * - the Epics index's epic cards, the goals pages' items
+ * - a plan doc's sections count themselves (`<epic-section>`, on their titles):  their count is read from their
+ *   hosts' `contentsEntry`, never written
  * - SIDE EFFECT:  writes `open/total` on the section's title:  its `badge` (SECTIONS), or a `ui-label.spell-count`
  *   at the right of the h2 (HEADINGS);  callable again (it replaces both)
  */
 function countItems(outline) {
   const counts = new Map()
   for (const { element } of outline.groups) {
+    if (element.matches(EPIC_FOLDS)) {
+      const count = element.contentsEntry?.count
+      if (count) counts.set(element, count)
+      continue
+    }
     const section = outline.sections ? element : headingSection(element)
     if (!section) continue
     const items = Array.from(section.querySelectorAll("[data-status]")).filter((item) => outermost(item, section))
@@ -1189,8 +1325,9 @@ function outermost(item, section) {
 /**
  * Where an item stands, in the colors Owen reads at a glance (plan doc `review-review`, 1.4 "Item status colors"):
  * `[state, button color, tooltip words]`, in the item filter's order after "all".
- * - `plan-doc.js` writes `data-state` on every plan item;  docs from before P3 have none (`stateOf()`)
- * - `plan-doc.css` colors an item's id chip by it, and the "To review" line's links
+ * - for the Epics index's epic cards (`.spell-epics`) and the goals pages' items (`.plan-items`, colored by
+ *   `goals.css`);  a plan doc's items color and filter themselves (`<epic-item>`, `<epic-section>`)
+ * - `data-state` when the page writes one;  else from the status (`stateOf()`)
  */
 const ITEM_STATES = [
   ["progress", "orange", "in progress"],
@@ -1203,12 +1340,12 @@ const ITEM_STATES = [
 /** The state names, for checking a `data-state`. */
 const STATE_NAMES = new Set(ITEM_STATES.map(([state]) => state))
 
-/** Plan items, and the index's epic cards:  what states and the filter apply to. */
+/** The goals pages' items, and the index's epic cards:  what states and the filter apply to. */
 const STATE_ITEMS = ":is(.plan-items, .spell-epics) > [data-status]"
 
 /**
- * An item's state:  its `data-state`, else (docs from before P3, the index's epic cards) from its status:  `done`
- * / `decided` are `old`, anything else `open`.
+ * An item's state:  its `data-state`, else (the index's epic cards, the goals pages' items) from its status:
+ * `done` / `decided` are `old`, anything else `open`.
  */
 function stateOf(item) {
   const state = item.dataset.state
@@ -1232,8 +1369,8 @@ function stateTip(item) {
 }
 
 /**
- * Mark every item's state as `data-spell-state` (`stateOf()`), and every "To review" link
- * (`.plan-to-review a[href^="#"]`) with its item's, so CSS has ONE attribute to color by, old docs included.
+ * Mark every item's state as `data-spell-state` (`stateOf()`), so CSS has ONE attribute to color by;  an item's id
+ * chip (`.plan-id`, the goals pages') says it in words.
  * - SIDE EFFECT:  sets `data-spell-state`;  callable again (a page updated in place:  a replaced item comes back
  *   without it)
  */
@@ -1243,17 +1380,11 @@ function markItemStates(main) {
     const chip = item.querySelector(".plan-id")
     if (chip) chip.title = stateTip(item)
   }
-  for (const link of main.querySelectorAll('.plan-to-review a[href^="#"]')) {
-    const target = document.getElementById(decodeURIComponent(link.getAttribute("href").slice(1)))
-    const item = target?.closest("[data-spell-state]")
-    if (item) link.dataset.spellState = item.dataset.spellState
-    else delete link.dataset.spellState
-  }
 }
 
 /**
- * The status filter on every top-level `<ui-section>` with a filterable list (a plan doc's `.plan-items`, the
- * index's `.spell-epics`, each holding `[data-status]` children):  ONE round button per state the section has items
+ * The status filter on every top-level `<ui-section>` with a filterable list (the index's `.spell-epics`, a
+ * `.plan-items` list, each holding `[data-status]` children):  ONE round button per state the section has items
  * in, used like checkboxes -- filled in its color while its items show, outlined while hidden -- and first a grey
  * filter button that flips between "show all" and "show only what needs you" (red), rather than a useless "none"
  * (Owen, 2026-10-04).
@@ -1447,13 +1578,15 @@ function restRail(rail) {
  *   `collapsed` stands) and saves the reader's toggles (`ui-open` / `ui-close`)
  *   - a PLAN DOC (`body.plan-doc`):  every section and sub-section not in the saved folds starts FOLDED, whatever
  *     its markup says:  Owen opens what he wants to read (2026-10-03).  A link to an id inside still lands
- *     (`reveal()` unfolds around it)
+ *     (`reveal()` unfolds around it).  Its `<epic-*>` blocks start folded by themselves;  the ones the reader left
+ *     open open again (`restoreEpicFolds()`, before they draw), and their toggles are saved as a section's
  * - HEADINGS:  a chevron button starts each h2 / h3, and a click anywhere on the heading (not on a link or button
  *   in it) toggles it too;  folded:  `section.spell-folded`, all but the heading hidden by CSS.  Starts folded as
  *   saved, else when the section says `data-fold="closed"`.
  * - `reveal()` unfolding for a link is never saved
- * - returns `{ reveal(element) }`:  unfold every section hiding `element`, and open its own panel if it is a
- *   folded item (a plan item's details);  true when it unfolded a `<ui-section>` (it draws a little later)
+ * - returns `{ reveal(element) }`:  unfold every section hiding `element` (a plan doc's blocks and items too), and
+ *   open its own panel, or itself if it's a folded plan item;  true when it unfolded something (it draws a little
+ *   later)
  *   - a `<ui-section>` unfolds WITHOUT its height animation (`--ui-section-duration: 0s` on `main` for a few
  *     frames):  the jump measures the target once it has drawn, and a growing box would move it (scroll
  *     anchoring) after the page has landed
@@ -1487,7 +1620,7 @@ function wireFolds(main, outline) {
    */
   function onToggle(event) {
     const section = event.target
-    if (event.defaultPrevented || !event.cancelable || section.localName !== "ui-section" || !section.id) return
+    if (event.defaultPrevented || !event.cancelable || !section.matches?.(SECTIONS) || !section.id) return
     saved[section.id] = !event.detail?.open
     writeJSON(key, saved)
     if (!event.detail?.open) keepTitlePut(section)
@@ -1500,7 +1633,7 @@ function wireFolds(main, outline) {
    *   shrinking content (Owen's "bounce", 2026-10-04)
    */
   function keepTitlePut(section) {
-    const title = section.shadowRoot?.querySelector("[part~=title]")
+    const title = titleOf(section)
     if (!title) return
     const stuckAt = title.getBoundingClientRect().top
     const top = section.getBoundingClientRect().top
@@ -1547,10 +1680,11 @@ function wireFolds(main, outline) {
   function reveal(element, { self = true } = {}) {
     let unfolded = false
     if (outline.sections) {
+      const folds = `ui-section, ${EPIC_OPENERS}`
       for (
-        let section = self ? element.closest("ui-section") : element.parentElement?.closest("ui-section");
+        let section = self ? element.closest(folds) : element.parentElement?.closest(folds);
         section;
-        section = section.parentElement?.closest("ui-section")
+        section = section.parentElement?.closest(folds)
       ) {
         if (!isCollapsed(section)) continue
         if (!unfolded) main.style.setProperty("--ui-section-duration", "0s")
@@ -1584,6 +1718,16 @@ function wireFolds(main, outline) {
     }
     return unfolded
   }
+}
+
+/**
+ * A plan doc's blocks the reader left open on this page (saved folds, `spell-folds:<path>`):  open again, before
+ * they first draw (their `open` attribute), so nothing animates;  the rest start folded, as the blocks do.
+ */
+function restoreEpicFolds(main) {
+  const saved = readJSON(`${FOLD_KEY_PREFIX}${location.pathname}`)
+  for (const block of main.querySelectorAll(EPIC_FOLDS))
+    if (block.id && saved[block.id] === false) block.setAttribute("open", "")
 }
 
 /**
@@ -1688,17 +1832,28 @@ function trackStickyHeights(main, outline) {
     }
   }
 
-  /**
-   * How far below the viewport top a target lands:  the site header, then its own `scroll-margin-top` (CSS
-   * derives it from the sections);  inside a plan item's details, below its line too, which sticks there
-   * (`wireItemFolds()`)
-   */
+  /** How far below the viewport top a target lands (`landingLine()`). */
   function offsetFor(target) {
-    const margin = parseFloat(getComputedStyle(target).scrollMarginTop) || 0
-    const item = target.closest("ui-accordion.plan-item > ui-content")?.parentElement
-    const line = item?.shadowRoot?.querySelector('[part~="title"]')
-    return siteHeaderHeight() + margin + (line ? line.getBoundingClientRect().height : 0)
+    return landingLine(target)
   }
+}
+
+/**
+ * How far below the viewport top `target` lands, px:
+ * - inside a plan doc (`<epic-page>`):  where the titles stuck over it end, the `--epic-stack` it inherits (a block's
+ *   own title sticks there;  anything else lands `EPIC_LAND_GAP` below), and below its item's line when it's in an
+ *   item's details (the line sticks there too)
+ * - else:  the site header, then its own `scroll-margin-top` (CSS derives it from the sections)
+ */
+function landingLine(target) {
+  const stack = target.closest("epic-page")
+    ? parseFloat(getComputedStyle(target).getPropertyValue("--epic-stack"))
+    : NaN
+  if (Number.isNaN(stack)) return siteHeaderHeight() + (parseFloat(getComputedStyle(target).scrollMarginTop) || 0)
+  if (target.matches(EPIC_OPENERS)) return stack
+  const item = target.parentElement?.closest("epic-item")
+  const line = item?.shadowRoot?.querySelector('[part~="line"]')
+  return stack + EPIC_LAND_GAP + (line ? line.getBoundingClientRect().height : 0)
 }
 
 /**
@@ -1963,10 +2118,10 @@ function stuckBottom(main) {
   // a `<ui-sticky>` host is `display: contents`:  the box that sticks is its shadow `sticky` part
   for (const sticky of main.querySelectorAll("ui-sticky"))
     boxes.push(sticky.shadowRoot?.querySelector('[part~="sticky"]'))
-  for (const section of main.querySelectorAll("ui-section[sticky]")) boxes.push(titleOf(section))
-  // an OPEN plan item's line sticks below them (`wireItemFolds()`);  a closed one has nothing to stick over
-  for (const item of main.querySelectorAll("ui-accordion.plan-item"))
-    boxes.push(item.shadowRoot?.querySelector('details[open] > [part~="title"]'))
+  for (const section of main.querySelectorAll(`ui-section[sticky], ${EPIC_FOLDS}`)) boxes.push(titleOf(section))
+  // a plan doc's page header;  an OPEN item's line sticks below the titles (a closed one's isn't sticky:  skipped)
+  for (const page of main.querySelectorAll("epic-page")) boxes.push(page.shadowRoot?.querySelector('[part~="header"]'))
+  for (const item of main.querySelectorAll("epic-item")) boxes.push(item.shadowRoot?.querySelector('[part~="line"]'))
   for (const box of boxes) {
     if (!box) continue
     const style = getComputedStyle(box)
@@ -2076,12 +2231,11 @@ function followScroll(main, outline, toc, rail) {
     pinned = null
     let current = headings[0]
     let reached = null
-    const header = siteHeaderHeight()
     for (const heading of headings) {
       if (!heading.isConnected) continue // replaced by an in-place update, until `rescan()`
       if (heading.offsetParent === null && !heading.getClientRects().length) continue // hidden by the filter
       if (outline.folded(heading)) continue // laid out in a folded box, but not shown
-      const line = header + (parseFloat(getComputedStyle(heading).scrollMarginTop) || 0) + 4
+      const line = landingLine(heading) + 4
       if (heading.getBoundingClientRect().top > line) break // document order:  the first below its line ends it
       current = reached = heading
     }
@@ -2483,1536 +2637,8 @@ function filterContents(toc) {
 }
 
 ////////////////
-// ## Page chrome
-////////////////
-
-/** How long the review line's background flashes after a copy:  `plan-doc.css`'s animation is as long. */
-const FLASH_MS = 900
-
-if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", buildChrome, { once: true })
-else buildChrome()
-
-/**
- * Chrome the runtime adds to a page whatever its markup's age, so no doc needs migrating for it.
- * - its own start, apart from `start()`:  plain DOM, nothing to wait for
- */
-function buildChrome() {
-  const main = document.querySelector("main.spell-doc-main") ?? document.querySelector("main")
-  if (!main) return
-  buildReviewLine(main)
-  wireOptions(main)
-  wireItemFolds(main)
-  wireFollowUps(main)
-  wirePhaseToggles(main)
-  wireCommits(main)
-  void wireTips(main)
-  // after the git button:  the send button goes left of it
-  void wireReview(main)
-  void wireAgents(main)
-  addEventListener("spell-doc:updated", () => {
-    wireItemFolds(main)
-    wireFollowUps(main)
-    wirePhaseToggles(main)
-    wireCommits(main)
-    void wireTips(main)
-  })
-}
-
-/** localStorage key prefix of a plan doc's "show commits":  `spell-commits:<path>`, `"1"` while shown. */
-const COMMITS_KEY_PREFIX = "spell-commits:"
-
-/**
- * A plan doc's commits (`.plan-commits`:  a phase body's `ui-item`, or a `div` ending an item's details), hidden
- * until asked for (plan doc `review-review`, P3):
- * - a round git button in the page header (`.spell-page-head`, before the step label) shows or hides them all;
- *   pressed = colored;  remembered per page (`localStorage`);  only on a doc that has commits
- * - a small git icon on the line of each item whose details hold commits (`button.plan-git-hint`, in its title's
- *   right-hand extras):  a click opens the item and shows its commits, a second hides them again
- * - the choice:  `data-show-commits` on `main` (all), or on the item (`plan-doc.css` hides the rest)
- * - a split plan doc's bodies not loaded yet:  a host's `data-commits` says its body lists commits (`plan-parts.js`)
- * - SIDE EFFECT:  adds the button and the icons (`data-spell-added`);  callable again (a page updated in place):
- *   replaces the ones it added
- */
-function wireCommits(main) {
-  if (!document.body.classList.contains("plan-doc")) return
-  for (const old of main.querySelectorAll(".plan-git-toggle, .plan-git-hint")) old.remove()
-  const head = main.querySelector(".spell-page-head")
-  if (!head || !main.querySelector(".plan-commits, [source][data-commits]")) return
-  const key = `${COMMITS_KEY_PREFIX}${location.pathname}`
-  const group = document.createElement("span")
-  group.className = "plan-git-toggle"
-  group.dataset.spellAdded = ""
-  // icon only, as tall as the step label beside it (Owen, 2026-10-04)
-  group.innerHTML = `<button type="button" class="plan-git-button"><ui-icon name="git"></ui-icon></button>`
-  const button = group.firstElementChild
-  button.addEventListener("click", () => show(!main.hasAttribute("data-show-commits")))
-  const step = head.querySelector(":scope > .plan-step")
-  if (step) step.before(group)
-  else head.append(group)
-  show(readSaved(key) === "1", false)
-  for (const item of main.querySelectorAll(".plan-items > [data-status]")) {
-    const title = item.querySelector(":scope > ui-accordion.plan-item > ui-title")
-    if (
-      !title ||
-      !item.querySelector(":scope > ui-accordion > ui-content .plan-commits, :scope > ui-accordion[data-commits]")
-    )
-      continue
-    const hint = document.createElement("button")
-    hint.type = "button"
-    hint.className = "plan-git-hint"
-    hint.dataset.spellAdded = ""
-    hint.title = "Show this item's commits"
-    hint.setAttribute("aria-label", hint.title)
-    hint.innerHTML = `<ui-icon name="git"></ui-icon>`
-    hint.addEventListener("click", (event) => {
-      // the line's own click would toggle the panel
-      event.preventDefault()
-      event.stopPropagation()
-      const showing = item.hasAttribute("data-show-commits") && isPanelOpen(title)
-      item.toggleAttribute("data-show-commits", !showing)
-      if (!showing) setPanel(title, true)
-    })
-    title.append(hint)
-  }
-
-  /** Show (or hide) every commit, press the button to match;  remember it unless `save` is false. */
-  function show(on, save = true) {
-    main.toggleAttribute("data-show-commits", on)
-    button.setAttribute("aria-pressed", String(on))
-    const label = on ? "Hide the commits" : "Show the commits"
-    button.setAttribute("aria-label", label)
-    button.title = label
-    if (!save) return
-    try {
-      localStorage.setItem(key, on ? "1" : "")
-    } catch {
-      // private mode:  the choice lasts the visit
-    }
-  }
-}
-
-/** The option cards' labels inside plan items:  a click folds or unfolds the card (`wireOptions()`). */
-const OPTION_LABEL = ".plan-items ui-grid.spell-pros-cons > ui-column ui-label[attached]"
-
-/**
- * A plan item's option cards (`ui-grid.spell-pros-cons`, A / B / C) fold to their labels;  a click on a label
- * opens or closes that card.  The CHOSEN one (`data-chosen` on its `ui-column`, `plan-doc.js decide --option`)
- * shows open, framed green (Owen, 2026-10-04).
- * - open:  `data-open`;  a chosen card closed by the reader:  `data-shut` (`plan-doc.css` reads both)
- * - one listener on `main`, so cards an in-place update brings in fold too;  wired once
- */
-function wireOptions(main) {
-  if (main.dataset.spellOptions) return
-  main.dataset.spellOptions = ""
-  main.addEventListener("click", (event) => {
-    const label = event.target.closest?.(OPTION_LABEL)
-    if (!label) return
-    const column = label.closest("ui-column")
-    const open = column.hasAttribute("data-chosen")
-      ? !column.hasAttribute("data-shut")
-      : column.hasAttribute("data-open")
-    if (column.hasAttribute("data-chosen")) column.toggleAttribute("data-shut", open)
-    else column.toggleAttribute("data-open", !open)
-  })
-}
-
-/**
- * The item kinds a plan doc follows up on, by id letter:  everything open but caveats (limits accepted, open for
- * good).  The same as `tools/index.js` `FOLLOW_UPS` and `packages/cli/src/dev/worktrees.ts` `planFollowUps()`.
- */
-const FOLLOW_UPS = { q: "question", j: "judgement call", i: "issue", t: "todo", v: "test" }
-
-/**
- * A SLEEPING plan doc says so in its page header (Owen, 2026-10-07:  "so I can see what I need to follow up on"):
- * no phase under way, but open follow-ups (`FOLLOW_UPS`):  a 😴 before the step label (`span.plan-sleeping`,
- * what's open on its tooltip).  Not on a future epic's (`data-future`), nor one still planning (no phases).
- * - from the doc's own item lines, so every plan doc shows it, whatever its age, with no rewrite;  the Epics index
- *   marks the same docs (`index.js` `epicState()`)
- * - callable again (a page updated in place, an item closed):  redraws or removes it
- */
-function wireFollowUps(main) {
-  if (!document.body.classList.contains("plan-doc")) return
-  const head = main.querySelector(".spell-page-head")
-  const old = head?.querySelector(":scope > .plan-sleeping")
-  const phases = main.querySelectorAll("ui-section[data-phase]")
-  const active = main.querySelector('ui-section[data-phase][data-status="active"]')
-  const open = Array.from(
-    main.querySelectorAll('.plan-items > [id][data-status="open"]'),
-    (item) => FOLLOW_UPS[item.id[0]]
-  ).filter(Boolean)
-  if (!head || !phases.length || active || !open.length || document.body.hasAttribute("data-future"))
-    return void old?.remove()
-  const counts = new Map()
-  for (const kind of open) counts.set(kind, (counts.get(kind) ?? 0) + 1)
-  const words = [...counts].map(([kind, n]) => `${n} ${kind}${n === 1 ? "" : "s"}`).join(", ")
-  const mark = old ?? document.createElement("span")
-  mark.className = "plan-sleeping"
-  mark.dataset.spellAdded = ""
-  mark.textContent = "😴"
-  mark.title = `Sleeping:  nothing under way, ${words} to follow up`
-  mark.setAttribute("aria-label", mark.title)
-  if (!old) {
-    const step = head.querySelector(":scope > .plan-step")
-    if (step) step.before(mark)
-    else head.append(mark)
-  }
-}
-
-/** An open plan item's details, which end in its fold button (`wireItemFolds()`). */
-const ITEM_DETAILS = ".plan-items > [data-status] > ui-accordion.plan-item > ui-content"
-
-/**
- * A plan doc's OPEN items fold from where you're reading them (epic `windows-and-review` Q6, P3):  in a long item,
- * Owen had to scroll back up to its line to fold it.
- * - a small round button ends every item's details (`ui-button.plan-fold`, chevron up, a plain browser tooltip as
- *   the line's review buttons):  `plan-doc.css` sticks it to the window's bottom while any of the details is on
- *   screen, in a gutter at their right that neither their text nor the note box docked before it reaches
- * - the item's line sticks below the section titles stuck above it (`plan-doc.css` alone, from its section's
- *   `--spell-stack`), so you always see which item you're reading;  it leaves with the details' end, the note box
- *   included (`wireReview()` docks it inside them, C3)
- * - folding an item you're INSIDE (its line stuck, its top scrolled past), from the button or the line:  the page
- *   scrolls at once so the line stays where it's stuck, and the details fold away below it (`keepItemPut()`, as
- *   `wireFolds()`' `keepTitlePut()` for a section);  else nothing moves
- * - SIDE EFFECT:  adds the buttons (`data-spell-added`);  callable again (a page updated in place, a body loaded
- *   from its part file, which replaces the details):  adds what's missing;  the `ui-close` listener once
- */
-function wireItemFolds(main) {
-  if (!document.body.classList.contains("plan-doc")) return
-  if (!main.dataset.spellItemFolds) {
-    main.dataset.spellItemFolds = ""
-    // the reader folding an item from its line (the accordion's own click):  before it folds
-    main.addEventListener("ui-close", (event) => {
-      if (!event.defaultPrevented && event.target.matches?.("ui-accordion.plan-item")) keepItemPut(event.target)
-    })
-  }
-  for (const details of main.querySelectorAll(ITEM_DETAILS)) {
-    if (details.querySelector(":scope > .plan-fold")) continue
-    const accordion = details.parentElement
-    const id = accordion.parentElement.id
-    const button = document.createElement("ui-button")
-    button.className = "plan-fold"
-    button.dataset.spellAdded = ""
-    const label = id ? `Fold ${id.toUpperCase()}` : "Fold this item"
-    for (const [name, value] of Object.entries({ circular: "", basic: "", size: "mini", icon: "chevron up" }))
-      button.setAttribute(name, value)
-    button.title = label
-    button.setAttribute("aria-label", label)
-    button.addEventListener("click", (event) => {
-      event.preventDefault()
-      const title = accordion.querySelector(":scope > ui-title")
-      if (!title) return
-      keepItemPut(accordion)
-      setPanel(title, false)
-      // the button folds away with the details:  focus the line, where a second Enter opens it again
-      accordion.shadowRoot?.querySelector("summary")?.focus({ preventScroll: true })
-    })
-    details.append(button)
-  }
-}
-
-/**
- * Folding an item whose line is stuck (its top scrolled past):  scroll at once so its top sits where the line is
- * stuck now.  An item whose line is where it belongs doesn't move.
- */
-function keepItemPut(accordion) {
-  const line = accordion.shadowRoot?.querySelector("[part~=title]")
-  if (!line) return
-  const stuckAt = line.getBoundingClientRect().top
-  const top = accordion.getBoundingClientRect().top
-  if (top >= stuckAt - 1) return
-  scrollTo({ top: scrollY + top - stuckAt, behavior: "instant" })
-}
-
-/** localStorage key prefix of a plan doc's Files / Verify toggles:  `spell-phase-fields:<path>`. */
-const PHASE_FIELDS_KEY_PREFIX = "spell-phase-fields:"
-
-/** The phases' fields a toggle shows:  the field, its icon (the body item's too), and the button's tooltip. */
-const PHASE_TOGGLES = [
-  ["files", "folder", "Show each phase's files"],
-  ["verify", "flask", "Show how each phase is checked"]
-]
-
-/**
- * A plan doc's Phases section (`#phases`):  a bare folder and flask button on its title, showing or hiding every
- * phase's Files and Verify lines, hidden by default (Owen, 2026-10-04).
- * - the choice:  `data-show-files` / `data-show-verify` on `#phases` (`plan-doc.css` hides the lines without
- *   them);  a pressed button is colored;  remembered per page (`localStorage`)
- * - in the title's `actions` slot;  callable again (a page updated in place):  replaces the buttons it added
- */
-function wirePhaseToggles(main) {
-  const phases = main.querySelector(":scope > ui-section#phases")
-  phases?.querySelector(":scope > .plan-phase-toggles")?.remove()
-  if (!phases?.querySelector(".plan-phase-body, ui-section[data-phase][source]")) return
-  const key = `${PHASE_FIELDS_KEY_PREFIX}${location.pathname}`
-  const saved = readJSON(key)
-  const group = document.createElement("span")
-  group.className = "plan-phase-toggles"
-  group.slot = "actions"
-  group.dataset.spellAdded = ""
-  for (const [field, glyph, tip] of PHASE_TOGGLES) {
-    const button = document.createElement("button")
-    button.type = "button"
-    button.className = "plan-phase-toggle"
-    button.title = tip
-    button.setAttribute("aria-label", tip)
-    button.innerHTML = `<ui-icon name="${glyph}"></ui-icon>`
-    button.addEventListener("click", () => show(field, button, !phases.hasAttribute(`data-show-${field}`)))
-    group.append(button)
-    show(field, button, !!saved[field], false)
-  }
-  phases.append(group)
-
-  /** Show (or hide) `field`'s lines, press `button` to match;  remember it unless `save` is false. */
-  function show(field, button, on, save = true) {
-    phases.toggleAttribute(`data-show-${field}`, on)
-    button.setAttribute("aria-pressed", String(on))
-    if (!save) return
-    saved[field] = on
-    writeJSON(key, saved)
-  }
-}
-
-/**
- * A section's `data-tip` (its intro, moved there by `plan-doc.js` `introsToTips()`) as the tooltip of its title's
- * text:  the `title` of the shadow `[part~=header]`, so hovering the section's body shows nothing.
- * - waits for `<ui-section>` to define and draw;  callable again (a page updated in place)
- */
-async function wireTips(main) {
-  const sections = main.querySelectorAll("ui-section[data-tip]")
-  if (!sections.length) return
-  await customElements.whenDefined("ui-section")
-  await new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done)))
-  for (const section of sections) {
-    const header = section.shadowRoot?.querySelector("[part~=header]")
-    if (header) header.title = section.dataset.tip
-  }
-}
-
-/**
- * A plan doc's (`body.plan-doc`) review line, under its page header:  "To review this doc, type `/epic review
- * <name>`".  A click copies the command and flashes the line (`.plan-review-cmd.flash`, `plan-doc.css`).
- * - the epic's name:  the body's `data-plan` (the template sets it), else the doc's folder (`epics/<name>/`)
- * - callable again (a page updated in place):  replaces the line it added
- * - SIDE EFFECT:  inserts the line after the page header (`ui-sticky.spell-h1`), else after the h1
- */
-function buildReviewLine(main) {
-  if (!document.body.classList.contains("plan-doc")) return
-  main.querySelector(":scope > .plan-review-cmd")?.remove()
-  const name = document.body.dataset.plan || /\/epics\/([^/]+)\/[^/]+$/.exec(decodeURIComponent(location.pathname))?.[1]
-  const anchor = main.querySelector(":scope > ui-sticky.spell-h1") ?? main.querySelector(":scope > h1")
-  if (!name || !anchor) return
-  const command = `/epic review ${name}`
-  const line = document.createElement("button")
-  line.type = "button"
-  line.className = "plan-review-cmd"
-  // added by the runtime, not in the source:  the in-place update leaves it alone ("Live update")
-  line.dataset.spellAdded = ""
-  line.title = "Copy the command"
-  line.innerHTML =
-    `<ui-icon name="copy"></ui-icon><span>To review this doc, type <code>${text(command)}</code></span>` +
-    `<span class="plan-review-cmd-done" aria-live="polite"></span>`
-  line.addEventListener("click", () => void copy())
-  anchor.after(line)
-
-  /** Copy the command, then flash the line and say so. */
-  async function copy() {
-    if (!(await copyText(command))) return
-    const done = line.querySelector(".plan-review-cmd-done")
-    line.classList.remove("flash")
-    void line.offsetWidth // restart the animation on a second click
-    line.classList.add("flash")
-    done.textContent = "copied"
-    setTimeout(() => {
-      line.classList.remove("flash")
-      done.textContent = ""
-    }, FLASH_MS + 600)
-  }
-}
-
-/**
- * Put `value` on the clipboard;  true when it got there.
- * - the async Clipboard API first;  where it's refused (a webview without the permission), the old
- *   `execCommand("copy")` from a hidden textarea
- */
-async function copyText(value) {
-  try {
-    await navigator.clipboard.writeText(value)
-    return true
-  } catch {
-    const area = document.createElement("textarea")
-    area.value = value
-    area.setAttribute("readonly", "")
-    area.style.cssText = "position: fixed; opacity: 0; pointer-events: none"
-    document.body.append(area)
-    area.select()
-    const copied = document.execCommand("copy")
-    area.remove()
-    return copied
-  }
-}
-
-////////////////
-// ## Review actions
-////////////////
-
-/** The review store's routes (`tools/reviewRoutes.ts`):  every reply is the page's whole inbox. */
-const REVIEW_API = "/api/review"
-
-/** How often a VISIBLE plan doc re-reads its inbox, so what Claude does to it (P6 of `review-review`) shows. */
-const REVIEW_POLL_MS = 4000
-
-/** How long a note box opened for the reader keeps taking the focus while its item's body loads (`focusBox()`). */
-const FOCUS_HOLD_MS = 3000
-
-/**
- * localStorage key prefix of a plan doc's note-box backups:  `spell-revisit:<path>`, `{ [item id]: text }`.
- * - only a BACKUP since epic `windows-and-review` P1:  notes are kept in the inbox as drafts (`POST draft`), which
- *   every address reads;  localStorage is per address (port included), which is how notes got lost
- * - a backup the inbox lacks (an older page's, or one whose save failed) is handed to the inbox on load
- */
-const REVISIT_KEY_PREFIX = "spell-revisit:"
-
-/** How long a note box waits after the last keystroke before saving its draft. */
-const DRAFT_SAVE_MS = 10_000
-
-/** How long a review notice (`notify()`) stays up. */
-const NOTICE_MS = 6000
-
-/**
- * What the page says when no Claude session waits on the inbox (plan doc `review-review`, D6):  `listening` null,
- * which the routes also answer once a session's heartbeat stops (`tools/inbox.js` `forPage()`).
- */
-const NOBODY_LISTENING = "No Claude session is reviewing this doc:  this waits for the next /epic review"
-
-/**
- * An item's four review buttons, in their order:  `[action, color, icon, label, what it does]`.
- * - colors (Owen, 2026-10-06, epic `windows-and-review` Q4):  green = decided (Approve, Make Todo), orange = pending
- *   (Revisit Now, Add Details Now);  unchosen, all four a grey outline
- * - a chosen button clicked again clears it;  a running Revisit Now / Add Details Now clicked again calls it off
- */
-const REVIEW_ACTIONS = [
-  ["approve", "green", "check", "Approve", "Fine as it is"],
-  ["todo", "green", "list check", "Make Todo", "Follow it up later, as a todo"],
-  ["revisit", "orange", "history", "Revisit", "Talk it over:  write in the box at the item's end"],
-  ["details", "orange", "magic", "Add Details Now", "Claude writes a fuller explanation into the item, at once"]
-]
-
-/**
- * The actions in the line's GROUP:  states an item can be in (Owen, 2026-10-06, Q8).  Add Details Now is an action,
- * not a state:  its own button after the group.
- */
-const REVIEW_STATES = ["approve", "todo", "revisit"]
-
-/** Every plan item a review mark can go on:  the items of every list, open or closed (not the phases). */
-const REVIEW_ITEMS = ".plan-items > [data-status][id]"
-
-/**
- * An item's option labels (`A · ...`), from the item down:  an open question's option cards' labels (as
- * `wireOptions()` folds them), and an answered one's Choices panels' titles (`ui-accordion.plan-options`,
- * `plan-doc.js` `QUESTION`).
- * - also matches the ones in its Original Discussion:  `outsideOriginal()` drops those
- */
-const ITEM_OPTION_LABELS =
-  ":scope ui-grid.spell-pros-cons > ui-column ui-label[attached], :scope ui-accordion.plan-options > ui-title"
-
-/**
- * The element an option label's pick marks (`data-picked`):  an option card's `ui-column`, or a Choices panel's
- * `ui-title` itself.
- */
-function optionHolder(label) {
-  return label.closest("ui-column") ?? label.closest("ui-accordion.plan-options > ui-title")
-}
-
-/**
- * `elements` (a node list) outside every Original Discussion (`ui-accordion.plan-original`, `plan-doc.js`
- * `ORIGINAL`):  an item's earlier text, kept folded;  nothing in it is chosen, counted or listed.
- */
-function outsideOriginal(elements) {
-  return Array.from(elements).filter((element) => !element.closest(".plan-original"))
-}
-
-/**
- * Review a plan doc ON the page (plan doc `review-review`, P5):  marks wait in the doc's INBOX FILE
- * (`<name>.inbox.json`, through the page server's `tools/reviewRoutes.ts`) until "Send to Claude" hands them over.
- * - only a plan doc (`body.plan-doc`) served by the page server (`SPELL_SERVER.token`), and only once its inbox
- *   answers:  from `file://`, or a server without the review routes, nothing is added
- * - every item's line ends in four icon buttons in a `<ui-buttons>` group (`span.plan-act` > `ui-buttons.plan-act-group`,
- *   at the far right, `plan-doc.css`;  epic `windows-and-review` P2):  Approve, Make Todo, Revisit Now, Add Details
- *   Now (`REVIEW_ACTIONS`), grey outlines until chosen, then filled in their color (green:  decided;  orange:
- *   pending), outlined in it once sent;  each label a tooltip.  The chosen one clicked again clears the mark
- * - Add Details Now and Revisit Now's "now" go in the inbox's `now` queue:  that button spins while the request waits
- *   or Claude works on the item (`working[id]`);  queued with nobody listening, a still dashed ring.  Clicked while
- *   it spins:  "nevermind", the request is called off (`POST cancel`)
- * - Revisit Now and Make Todo open a note box under the item's line (`div.plan-revisit`):  Revisit's grey check saves
- *   it for the next batch ("revisit soon"), its blue send asks for it now;  Make Todo's check saves the todo with its
- *   note.  The note is saved as typed (a draft in the inbox), and the box grows with it
- * - an OPEN item's option cards get a "Choose" pill on their label (`button.plan-choose`):  a click marks that
- *   letter picked (`data-picked` on its `ui-column`, framed orange), a second click clears it
- *   - an ANSWERED question's options are its Choices panels:  pills on their titles (not the chosen one) only while
- *     it's being revisited (its Revisit box open, or a revisit or pick mark):  "pick B instead, because ..."
- *     (`pills()`);  the picked panel's title turns orange
- *   - a pick and a revisit live together ("pick B, but ..."):  the revisit mark carries `pick` (`markWith()`);
- *     choosing keeps the note, writing a revisit keeps the pick, a second click on the chosen pill drops just the
- *     pick, Revisit Now clicked again drops the revisit and keeps the pick;  the line shows the letter
- *     (`.plan-act-pick`) beside the buttons
- * - the page header's round paper plane (`button.plan-send`, left of the git button):  grey with nothing to send,
- *   blue with unsent marks, outlined blue once sent while marks wait for Claude
- * - beside it, Review Now (`button.plan-review-now`, the wand;  epic `windows-and-review` P4, Q2):  sends every
- *   mark AND has the listening session work through them at once:  each revisit waiting becomes a request for now,
- *   answered into its item (`POST send { now: true }`, `inbox.js` `reviewNow()`);  blue while there's anything
- *   for Claude to work through
- * - nobody listening (`listening` null:  none, or its heartbeat stopped, as the routes answer it):  the send
- *   button's tooltip and the "now" actions say so (`NOBODY_LISTENING`, decision D6)
- * - re-reads the inbox when the page server says its file changed (the live client's `spell-server:file`), and every
- *   `REVIEW_POLL_MS` while visible, as a fallback
- * - NOTE: nothing here scrolls the page:  the notices are fixed, focus moves with `preventScroll`
- * - SIDE EFFECT:  adds the controls (`data-spell-added` inside `main`), re-adds what an in-place update dropped
- *   (`spell-doc:updated`)
- */
-async function wireReview(main) {
-  const server = window.SPELL_SERVER
-  if (!document.body.classList.contains("plan-doc") || !server?.token) return
-  const page = location.pathname
-  const draftsKey = `${REVISIT_KEY_PREFIX}${page}`
-  // the inbox as last read or written;  "now" requests in flight, id -> their write;  ids being called off;  open
-  // note boxes, id -> their action
-  let inbox = null
-  const asking = new Map()
-  const calling = new Set()
-  const boxes = new Set()
-  // docked note boxes, id -> the box:  kept across a body's reload (`dock()`);  the item whose box is to take the
-  // focus, until when (`openBox()`:  its body may still be on its way)
-  const docks = new Map()
-  let focusing = null
-  // writes in flight:  a poll's answer can't overwrite what they're about to
-  let writing = 0
-  // the notice's timer, why the last write failed (`write()`)
-  let noticeTimer = 0
-  let lastWriteError = ""
-  if (!(await load())) return
-  document.body.classList.add("plan-reviewing")
-  const notice = buildNotice()
-  await adoptBackups()
-  // a note being written reopens where it was, from any address
-  for (const id of Object.keys(inbox.drafts)) boxes.add(id)
-  decorate()
-  addEventListener("spell-doc:updated", decorate)
-  // a body just in from its part file:  its docked note box back at once (`dock()`), before the page's own refresh,
-  // so a box being typed in keeps its focus (`wireSourceBodies()` `reloadBody()`)
-  main.addEventListener("ui-load", () => decorate())
-  setInterval(() => {
-    if (document.visibilityState === "visible" && !writing) void load().then((read) => read && render())
-  }, REVIEW_POLL_MS)
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") void load().then((read) => read && render())
-  })
-  // every inbox write is also a file change the page server announces:  re-read at once (the poll is the fallback).
-  // Through the page's live client (`spell-server:file`), never a connection of our own:  each one used to hold one
-  // of Chrome's 6 per host (`packages/server/src/webSocket.ts`)
-  const inboxFile = (server.file ?? page).replace(/(?:\.plan)?\.html$/, ".inbox.json")
-  addEventListener("spell-server:file", (event) => {
-    if (!writing && event.detail?.path === inboxFile) void load().then((read) => read && render())
-  })
-
-  /** Read the inbox;  true when it answered (a write in flight wins:  its answer is newer). */
-  async function load() {
-    try {
-      const response = await fetch(`${REVIEW_API}/inbox?page=${encodeURIComponent(page)}`, { cache: "no-store" })
-      if (!response.ok) return false
-      const read = inboxOf(await response.json())
-      if (!writing) inbox = read
-      return true
-    } catch {
-      return false
-    }
-  }
-
-  /**
-   * Add what's missing (an in-place update may have replaced an item's line, a label, the page header), then
-   * `render()`.  Callable again.
-   */
-  function decorate() {
-    for (const item of main.querySelectorAll(REVIEW_ITEMS)) {
-      const line = item.querySelector(":scope > ui-accordion.plan-item > ui-title") ?? item
-      if (!line.querySelector(":scope > .plan-act")) line.append(actOf(item))
-      // an item with details:  its note box docked at the END of its details, shown while it's open (Q8);  else only
-      // when opened, under its line
-      const details = item.querySelector(":scope > ui-accordion.plan-item > ui-content")
-      if (details) dock(item, details)
-      else if (boxes.has(item.id) && !item.querySelector(":scope > .plan-revisit")) item.append(boxOf(item))
-    }
-    const head = main.querySelector(".spell-page-head")
-    if (head && !head.querySelector(":scope > .plan-send")) {
-      const before = head.querySelector(":scope > :is(.plan-git-toggle, .plan-step)")
-      if (before) before.before(sendOf(), reviewNowOf())
-      else head.append(sendOf(), reviewNowOf())
-    }
-    render()
-  }
-
-  /** Show the inbox:  every item's buttons, the picked cards, the send button. */
-  function render() {
-    const { marks, sent, listening } = inbox
-    for (const item of main.querySelectorAll(REVIEW_ITEMS)) {
-      const act = item.querySelector(".plan-act")
-      if (!act) continue
-      const mark = marks[item.id]
-      const done = !!mark && isSent(mark, sent)
-      const running = runningOf(item.id)
-      // how Claude handled an earlier mark (`data-review-as`, kept in the doc):  that button stays outlined
-      const applied = mark ? null : item.dataset.reviewAs
-      // the note box's button for the item's mark, filled in its color (`plan-doc.css`)
-      const box = boxIn(item)
-      if (box) box.dataset.mark = markButton(mark)
-      for (const [action, color, , label, tip] of REVIEW_ACTIONS) {
-        const button = act.querySelector(`ui-button[data-action="${action}"]`)
-        const chosen = mark?.action === action || (action === "revisit" && mark?.action === "revisit")
-        const spinning = running?.action === action
-        button.toggleAttribute("data-chosen", chosen || applied === action)
-        button.toggleAttribute("data-sent", (chosen && done) || applied === action)
-        button.dataset.color = color
-        button.toggleAttribute("loading", spinning && !running.queued)
-        button.toggleAttribute("data-waiting", spinning && running.queued)
-        // the plain browser tooltip, just the name (Owen, Q8);  the screen reader hears the state too
-        const state = spinning
-          ? running.queued
-            ? `waiting:  ${NOBODY_LISTENING}`
-            : `${action === "revisit" ? "Claude is looking into this" : "Claude is adding details"} · click to call it off`
-          : chosen
-            ? `${done ? "sent" : "not sent yet"} · click to clear`
-            : applied === action
-              ? "done before"
-              : action === "details" && !listening
-                ? `${tip}.  ${NOBODY_LISTENING}`
-                : tip
-        button.title = spinning && !running.queued ? `${label}:  click to call it off` : label
-        button.setAttribute("aria-label", `${label} · ${state}`)
-      }
-      // the note box at an opened item's end:  every item that isn't approved (Q8)
-      item.toggleAttribute("data-approved", (mark?.action ?? applied) === "approve")
-      // a pick shows its letter beside the buttons:  a plain pick (decided, green), or a revisit carrying one (orange)
-      const pick = act.querySelector(".plan-act-pick")
-      pick.textContent = mark?.pick ?? ""
-      pick.hidden = !mark?.pick
-      pick.dataset.color = mark?.action === "revisit" ? "orange" : "green"
-      pick.toggleAttribute("data-sent", done)
-      pick.title = mark?.pick ? `Picked ${mark.pick}${done ? " · sent" : " · not sent yet"}` : ""
-      act.toggleAttribute("data-picked", !!mark?.pick)
-      renderNote(item, act, mark, sent)
-      pills(item)
-      for (const pill of item.querySelectorAll(".plan-choose")) {
-        const picked = !!mark?.pick && mark.pick === pill.dataset.letter
-        optionHolder(pill)?.toggleAttribute("data-picked", picked)
-        pill.setAttribute("aria-pressed", String(picked))
-        pill.textContent = picked ? "Chosen" : "Choose"
-        pill.title = picked ? `${pill.dataset.letter} is picked:  click to un-pick` : `Pick ${pill.dataset.letter}`
-      }
-    }
-    const send = main.querySelector(".plan-send")
-    if (!send) return
-    const all = Object.values(marks)
-    const unsent = all.filter((mark) => !isSent(mark, sent)).length
-    send.dataset.state = unsent ? "unsent" : all.length ? "sent" : "idle"
-    const tip = unsent
-      ? `Send ${unsent} mark${unsent === 1 ? "" : "s"} to Claude`
-      : send.dataset.state === "sent"
-        ? "Sent:  waiting for Claude"
-        : "Nothing to send:  mark an item first (its buttons)"
-    send.title = listening || !all.length ? tip : `${tip}.  ${NOBODY_LISTENING}`
-    send.setAttribute("aria-label", tip)
-    const now = main.querySelector(".plan-review-now")
-    if (!now) return
-    // what Claude would work through:  every mark but the requests already on their way
-    const waiting = all.filter((mark) => !isImmediate(mark)).length
-    now.dataset.state = waiting ? "ready" : "idle"
-    const nowTip = waiting
-      ? `Review Now:  Claude works through ${waiting} mark${waiting === 1 ? "" : "s"} at once, answers in their items`
-      : "Review Now:  nothing to work through yet"
-    now.title = listening || !waiting ? nowTip : `${nowTip}.  ${NOBODY_LISTENING}`
-    now.setAttribute("aria-label", nowTip)
-  }
-
-  /**
-   * Show what Owen wrote on `item` (epic `windows-and-review` P1:  a note must never seem lost):
-   * - the line's speech bubble (`.plan-act-noted`, beside the button):  outline while it's a draft (`drafts[id]`),
-   *   solid once it's a mark's note, in the mark's color once sent;  the note itself as its tooltip
-   * - a marked note, its box closed:  shown under the line (`div.plan-said`), "You · revisit soon · sent 10:42", with
-   *   Edit, which reopens the box on it;  a changed note is unsent again until the next send
-   */
-  function renderNote(item, act, mark, sent) {
-    const draft = inbox.drafts[item.id]
-    const noted = mark?.note ? mark : null
-    const text = draft?.note ?? noted?.note ?? ""
-    const bubble = act.querySelector(".plan-act-noted")
-    bubble.hidden = !text
-    act.toggleAttribute("data-noted", !!text)
-    const done = !!noted && !draft && isSent(noted, sent)
-    bubble.querySelector("ui-icon").setAttribute("name", draft ? "comment outline" : "comment")
-    bubble.toggleAttribute("data-sent", done)
-    bubble.title = text
-      ? `${draft ? "Your note, not sent yet (saved)" : done ? "Your note, sent" : "Your note, not sent yet"}:  ${text}`
-      : ""
-    let said = item.querySelector(":scope > .plan-said")
-    if (!noted || draft || boxes.has(item.id)) return void said?.remove()
-    if (!said) {
-      said = saidOf(item)
-      const box = item.querySelector(":scope > .plan-revisit")
-      if (box) box.before(said)
-      else item.append(said)
-    }
-    const how = noted.action === "revisit" ? `revisit ${noted.when === "now" ? "now" : "soon"}` : noted.action
-    const state = done ? `sent ${clockOf(isImmediate(noted) ? noted.at : sent)}` : "not sent yet"
-    said.querySelector(".plan-said-what").textContent = `${how} · ${state}`
-    said.querySelector(".plan-said-note").textContent = noted.note
-  }
-
-  /**
-   * Dock `item`'s note box at the end of its `details` (its `ui-content`), before the fold button:  INSIDE the
-   * `<details>`, so the item's sticky line and its fold button stay in view down to the box's end (epic
-   * `windows-and-review` P3, C3).
-   * - the SAME element every time (`docks`):  a body re-fetched from its part file (`wireSourceBodies()`) empties the
-   *   details, and the box comes back as it was, what's typed in it and all
-   */
-  function dock(item, details) {
-    let box = docks.get(item.id)
-    if (!box) docks.set(item.id, (box = boxOf(item, { docked: true })))
-    if (box.parentElement === details) return
-    const fold = details.querySelector(":scope > .plan-fold")
-    if (fold) fold.before(box)
-    else details.append(box)
-    if (focusing?.id === item.id && performance.now() < focusing.until) requestAnimationFrame(() => focusBox(item))
-  }
-
-  /**
-   * Focus `item`'s note box (`openBox()`).  An item opened for it may still be loading its body from its part file,
-   * which takes the docked box out and puts it back (`dock()`):  `focusing` holds it a few seconds, so the box
-   * takes the focus again when it's back.  Details just opened may not be drawn yet, and a box in them can't take
-   * the focus:  tried again each frame while `focusing` holds.
-   */
-  function focusBox(item) {
-    const note = boxIn(item)?.querySelector("textarea")
-    note?.focus({ preventScroll: true })
-    if (document.activeElement !== note && focusing?.id === item.id && performance.now() < focusing.until)
-      requestAnimationFrame(() => focusBox(item))
-  }
-
-  /** The block showing a sent (or saved) note under an item's line:  `div.plan-said`, with Edit. */
-  function saidOf(item) {
-    const said = document.createElement("div")
-    said.className = "plan-said"
-    said.dataset.spellAdded = ""
-    said.innerHTML =
-      `<div class="plan-said-title"><ui-icon name="comment"></ui-icon><b>You</b> · <span class="plan-said-what"></span>` +
-      `<button type="button" class="plan-said-edit"><ui-icon name="edit"></ui-icon>Edit</button></div>` +
-      `<p class="plan-said-note"></p>`
-    said.querySelector("button").addEventListener("click", () => {
-      // the note back in the box, to change and mark again
-      const note = inbox.marks[item.id]?.note ?? ""
-      openBox(item)
-      const box = boxIn(item)?.querySelector("textarea")
-      if (box && !box.value) box.value = note
-    })
-    return said
-  }
-
-  /**
-   * Hand the inbox every note-box backup it lacks (`REVISIT_KEY_PREFIX`:  an older page's drafts, or a save that
-   * failed), then drop the backups it took:  nothing typed before this page is lost in the switch.
-   * - an item gone from the doc, or already holding a note:  its backup goes, quietly
-   */
-  async function adoptBackups() {
-    const backups = readJSON(draftsKey)
-    for (const [id, text] of Object.entries(backups)) {
-      const known =
-        inbox.drafts[id] || inbox.marks[id]?.note === text.trim() || !main.querySelector(`#${CSS.escape(id)}`)
-      if (known || !text.trim() || (await write("draft", { id, action: "revisit", note: text }, { quiet: true })))
-        delete backups[id]
-    }
-    writeJSON(draftsKey, backups)
-  }
-
-  /**
-   * Add or remove `item`'s "Choose" pills, as its state wants them:  on an open question's option cards;  on an
-   * ANSWERED question's Choices panels, but its chosen one, only while it's being revisited (its Revisit box open,
-   * or a revisit or pick mark).  Gone, a pill takes its `data-picked` with it.
-   * - never an option in the item's Original Discussion:  that's history, not a choice (`plan-doc.js` `ORIGINAL`)
-   */
-  function pills(item) {
-    const mark = inbox.marks[item.id]
-    const open = !CLOSED.has(item.dataset.status)
-    const revisiting =
-      item.hasAttribute("data-answered") &&
-      (boxes.has(item.id) || !!inbox.drafts[item.id] || mark?.action === "revisit" || !!mark?.pick)
-    for (const label of outsideOriginal(item.querySelectorAll(ITEM_OPTION_LABELS))) {
-      const pill = label.querySelector(":scope > .plan-choose")
-      const wanted = open || (revisiting && !label.hasAttribute("data-chosen"))
-      if (!wanted) {
-        pill?.remove()
-        optionHolder(label)?.removeAttribute("data-picked")
-      } else if (!pill) {
-        const letter = /^\s*([A-Z])\b/.exec(label.textContent)?.[1]
-        if (letter) label.append(chooseOf(item, letter))
-      }
-    }
-  }
-
-  ////////////////
-  // ## Controls
-  ////////////////
-
-  /**
-   * An item's controls at its line's end:  `span.plan-act` holding the note bubble, the pick's letter, the state
-   * buttons (`ui-buttons.plan-act-group`:  Approve, Make Todo, Revisit), and Add Details Now on its own after them
-   * (`ui-button.plan-act-details`:  an action, not a state).  Tooltips:  the plain browser ones (`title`, Q8).
-   */
-  function actOf(item) {
-    const act = document.createElement("span")
-    act.className = "plan-act"
-    act.dataset.spellAdded = ""
-    const button = ([action, , glyph, label]) =>
-      `<ui-button data-action="${action}" icon="${glyph}" title="${text(label)}" aria-label="${text(label)}"></ui-button>`
-    const states = REVIEW_ACTIONS.filter(([action]) => REVIEW_STATES.includes(action))
-    const [details] = REVIEW_ACTIONS.filter(([action]) => !REVIEW_STATES.includes(action))
-    act.innerHTML =
-      `<span class="plan-act-noted" hidden><ui-icon name="comment"></ui-icon></span>` +
-      `<span class="plan-act-pick" hidden></span>` +
-      `<ui-buttons class="plan-act-group" basic icon size="mini">${states.map(button).join("")}</ui-buttons>` +
-      button(details).replace("<ui-button ", '<ui-button class="plan-act-details" basic size="mini" ')
-    for (const button of act.querySelectorAll("ui-button")) {
-      button.addEventListener("click", (event) => {
-        // the line's own click would fold the item
-        event.preventDefault()
-        event.stopPropagation()
-        press(item, button.dataset.action)
-      })
-    }
-    return act
-  }
-
-  /** An option card's "Choose" pill, for `letter`, on its label (the label's own click still folds the card). */
-  function chooseOf(item, letter) {
-    const pill = document.createElement("button")
-    pill.type = "button"
-    pill.className = "plan-choose"
-    pill.dataset.spellAdded = ""
-    pill.dataset.letter = letter
-    pill.textContent = "Choose"
-    pill.addEventListener("click", (event) => {
-      event.preventDefault()
-      event.stopPropagation()
-      const mark = inbox.marks[item.id]
-      void save(item.id, markWith(mark, mark?.pick === letter ? null : letter))
-    })
-    return pill
-  }
-
-  /**
-   * `mark` with its pick set to `letter` (`null`:  dropped), as a "Choose" pill click saves it.
-   * - a revisit keeps its note:  "pick B, but ...";  one asked NOW turns `soon`, so the pick waits for the send
-   *   with it (an immediate mark counts as sent:  Claude would never see the new pick)
-   * - anything else (no mark, a plain pick, approve ...) becomes a plain pick, or none
-   */
-  function markWith(mark, letter) {
-    if (mark?.action !== "revisit") return letter ? { action: "pick", pick: letter } : null
-    return { action: "revisit", when: "soon", note: mark.note ?? "", ...(letter && { pick: letter }) }
-  }
-
-  /**
-   * An item's note box (Owen, 2026-10-06, Q8):  `div.plan-revisit`, a note that grows as it's typed in, a small Saved
-   * mark in its corner, and three round buttons stacked at its right:  Make Todo (green), Do Now (orange:  revisit
-   * now), Later (orange clock:  revisit soon).
-   * - `docked`:  an item WITH details gets one always, at the end of its details (`dock()`), shown while it's open and not
-   *   approved (`plan-doc.css`):  where you are when you've read it.  An item without details gets one under its line
-   *   when Revisit opens it (`boxes`), closed again once used
-   * - the note is SAVED as typed:  to the inbox as a draft (`POST draft`), `DRAFT_SAVE_MS` after the last key, and at
-   *   once when the box loses focus or the page goes away;  the floppy mark says Saved (its tooltip:  when), or turns
-   *   red with why not;  a localStorage backup too (`draftsKey`), for a save that fails
-   * - a button saves the mark (the draft goes with it), then empties the box (docked) or closes it;  Escape leaves
-   *   the box, the draft kept
-   */
-  function boxOf(item, { docked = false } = {}) {
-    const id = item.id
-    const box = document.createElement("div")
-    box.className = "plan-revisit"
-    box.dataset.spellAdded = ""
-    box.toggleAttribute("data-docked", docked)
-    box.innerHTML =
-      `<span class="plan-revisit-text">` +
-      `<textarea class="plan-revisit-note" rows="2" placeholder="Your note:  a question, instructions, why"></textarea>` +
-      `<ui-icon class="plan-revisit-saved" name="floppy disk outline" hidden></ui-icon></span>` +
-      `<span class="plan-revisit-buttons">` +
-      `<button type="button" class="plan-revisit-todo"><ui-icon name="list check"></ui-icon></button>` +
-      `<button type="button" class="plan-revisit-soon"><ui-icon name="comment dots"></ui-icon></button>` +
-      `<button type="button" class="plan-revisit-now"><ui-icon name="wand magic sparkles"></ui-icon></button>` +
-      `</span>`
-    const note = box.querySelector("textarea")
-    const saved = box.querySelector(".plan-revisit-saved")
-    note.setAttribute("aria-label", `${id.toUpperCase()}:  your note`)
-    const draft = inbox.drafts[id]
-    note.value = draft?.note ?? ""
-    if (draft) showSaved(true, draft.at)
-    const [todo, soon, now] = box.querySelectorAll("button")
-    label(todo, "Make Todo", "Make Todo:  follow it up later, with this note")
-    label(now, "Do Now", `Do Now:  Claude looks into it at once${inbox.listening ? "" : `.  ${NOBODY_LISTENING}`}`)
-    label(soon, "Later", "Later:  talk it over in the next batch")
-    let timer = 0
-    note.addEventListener("input", () => {
-      backup(id, note.value)
-      saved.hidden = true
-      clearTimeout(timer)
-      timer = setTimeout(() => void saveDraft(), DRAFT_SAVE_MS)
-    })
-    // leaving the box (or the page) saves at once:  a reload or a click elsewhere never loses what was typed
-    note.addEventListener("blur", () => flush())
-    addEventListener("pagehide", () => flush({ keepalive: true }))
-    note.addEventListener("keydown", (event) => {
-      if (event.key !== "Escape") return
-      event.stopPropagation()
-      flush()
-      if (docked) return note.blur()
-      closeBox(item, false)
-      item.querySelector('.plan-act ui-button[data-action="revisit"]')?.focus({ preventScroll: true })
-    })
-    todo.addEventListener("click", () => used(() => save(id, { action: "todo", note: note.value.trim() })))
-    now.addEventListener("click", () => used(() => askNow(id, "revisit", note.value.trim())))
-    soon.addEventListener("click", () => {
-      // a picked question keeps its pick:  "pick B, but ..."
-      const pick = inbox.marks[id]?.pick
-      used(() => save(id, { action: "revisit", when: "soon", note: note.value.trim(), ...(pick && { pick }) }))
-    })
-    return box
-
-    /** A button made the note a mark:  `mark()` saves it;  the box empties (docked) or closes, its draft dropped. */
-    function used(mark) {
-      clearTimeout(timer)
-      timer = 0
-      void mark()
-      note.value = ""
-      saved.hidden = true
-      if (docked) {
-        // a draft at load counted the item as being written in (`boxes`):  that would hide the note just marked
-        boxes.delete(id)
-        delete inbox.drafts[id]
-        backup(id, "")
-        render()
-      } else closeBox(item, true)
-    }
-
-    /** Save a pending draft now (`keepalive`:  the page is going away). */
-    function flush({ keepalive = false } = {}) {
-      if (!timer) return
-      clearTimeout(timer)
-      timer = 0
-      void saveDraft({ keepalive })
-    }
-
-    /** Save the note as the item's draft;  the floppy mark says how it went. */
-    async function saveDraft({ keepalive = false } = {}) {
-      timer = 0
-      // a button already made it a mark
-      if (!box.isConnected) return
-      const text = note.value
-      const ok = await write("draft", { id, action: "revisit", note: text }, { quiet: true, keepalive })
-      if (note.value !== text) return
-      if (!ok) return showSaved(false)
-      backup(id, "")
-      if (text.trim()) showSaved(true, new Date().toISOString())
-      render()
-    }
-
-    /** The corner mark:  a floppy, "Saved 10:42" as its tooltip;  red, with why, when the save failed. */
-    function showSaved(ok, at) {
-      saved.hidden = false
-      saved.toggleAttribute("data-failed", !ok)
-      saved.title = ok ? `Saved ${clockOf(at)}` : `Not saved:  ${lastWriteError} (kept in this browser)`
-    }
-
-    /** Give icon-only `button` its plain tooltip (`name`) and a fuller spoken label (`words`). */
-    function label(button, name, words) {
-      button.title = name
-      button.setAttribute("aria-label", words)
-    }
-  }
-
-  /** The page header's "Send to Claude" button:  `button.plan-send`, a round paper plane. */
-  function sendOf() {
-    const send = document.createElement("button")
-    send.type = "button"
-    send.className = "plan-send"
-    send.dataset.spellAdded = ""
-    send.innerHTML = `<ui-icon name="paper plane"></ui-icon>`
-    send.addEventListener("click", () => void sendMarks())
-    return send
-  }
-
-  /** The page header's "Review Now" button:  `button.plan-review-now`, a round wand, right of Send. */
-  function reviewNowOf() {
-    const now = document.createElement("button")
-    now.type = "button"
-    now.className = "plan-review-now"
-    now.dataset.spellAdded = ""
-    now.innerHTML = `<ui-icon name="wand magic sparkles"></ui-icon>`
-    now.addEventListener("click", () => void reviewMarksNow())
-    return now
-  }
-
-  /** The notice line at the bottom of the window:  what can't be said on the item (D6, a failed write). */
-  function buildNotice() {
-    const element = document.createElement("div")
-    element.className = "plan-review-notice"
-    element.setAttribute("role", "status")
-    element.hidden = true
-    document.body.append(element)
-    return element
-  }
-
-  ////////////////
-  // ## Buttons
-  ////////////////
-
-  /**
-   * Item `id`'s immediate request, if one is on its way or being worked on:  `{ action, queued }` (`queued`:  waiting,
-   * nobody listening);  else `null`.
-   */
-  function runningOf(id) {
-    if (calling.has(id)) return null
-    const work = inbox.working[id]
-    if (work) return { action: work.action === "revisit" ? "revisit" : "details", queued: false }
-    const entry = inbox.now.find((each) => each.id === id)
-    if (asking.has(id) || entry) {
-      const action = entry?.action ?? (inbox.marks[id]?.action === "revisit" ? "revisit" : "details")
-      return { action, queued: !asking.has(id) && !inbox.listening }
-    }
-    return null
-  }
-
-  /**
-   * The reader clicked `item`'s `action` button in its line.
-   * - running (it spins):  "nevermind", called off (`cancel()`)
-   * - chosen already:  cleared, back to no action;  a revisit carrying a pick keeps the pick ("pick B, but ..."
-   *   without the "but")
-   * - else:  Approve and Make Todo mark it;  Revisit takes you to the note box (the item opened, its box at the
-   *   end;  an item without details gets one under its line);  Add Details Now asks at once
-   */
-  function press(item, action) {
-    const id = item.id
-    const mark = inbox.marks[id]
-    if (runningOf(id)?.action === action) return void cancel(id)
-    if (mark?.action === action) {
-      const pick = action === "revisit" ? mark.pick : undefined
-      return void save(id, pick ? { action: "pick", pick } : null)
-    }
-    if (action === "details") return void askNow(id, "details")
-    if (action === "revisit") return openBox(item)
-    void save(id, { action })
-  }
-
-  ////////////////
-  // ## Note box
-  ////////////////
-
-  /**
-   * Take the reader to `item`'s note box and focus it:  an item with details is opened, its docked box at the end;
-   * one without gets a box under its line (`boxes`).
-   */
-  function openBox(item) {
-    const accordion = item.querySelector(":scope > ui-accordion.plan-item")
-    let box = boxIn(item)
-    if (accordion) accordion.open = "0"
-    else {
-      boxes.add(item.id)
-      if (!box) item.append((box = boxOf(item)))
-    }
-    // an answered question's Choices take their pills while it's revisited (`pills()`)
-    render()
-    focusing = { id: item.id, until: performance.now() + FOCUS_HOLD_MS }
-    requestAnimationFrame(() => focusBox(item))
-  }
-
-  /** The note box button `mark` stands for:  `todo`, `soon` (Later), `now` (Do Now);  else "". */
-  function markButton(mark) {
-    if (mark?.action === "todo") return "todo"
-    if (mark?.action === "revisit") return mark.when === "now" ? "now" : "soon"
-    return ""
-  }
-
-  /** `item`'s note box:  under its line, or docked in its details (`dock()`);  none yet:  null. */
-  function boxIn(item) {
-    return item.querySelector(":scope > .plan-revisit") ?? docks.get(item.id) ?? null
-  }
-
-  /**
-   * Close `item`'s note box (an item without details;  a docked one stays);  `saved`:  its note became a mark, so its
-   * draft goes too (the route drops the inbox's:  `inbox.js` `setMark()`).
-   */
-  function closeBox(item, saved) {
-    boxes.delete(item.id)
-    item.querySelector(":scope > .plan-revisit:not([data-docked])")?.remove()
-    if (saved) {
-      delete inbox.drafts[item.id]
-      backup(item.id, "")
-    }
-    render()
-  }
-
-  /** Keep `text` as item `id`'s note backup in this browser (`draftsKey`);  empty drops it. */
-  function backup(id, text) {
-    const backups = readJSON(draftsKey)
-    if (text) backups[id] = text
-    else delete backups[id]
-    writeJSON(draftsKey, backups)
-  }
-
-  ////////////////
-  // ## Writes
-  ////////////////
-
-  /** Mark item `id` (`mark`:  `{ action, ... }`, or null to clear), shown at once, then saved. */
-  async function save(id, mark) {
-    if (mark) inbox.marks[id] = { ...mark, at: new Date().toISOString() }
-    else delete inbox.marks[id]
-    render()
-    await write("mark", { id, mark })
-  }
-
-  /**
-   * Ask Claude to act on item `id` NOW (`action`:  `details` | `revisit`):  queued in the inbox's `now`.
-   * - a revisit keeps the item's pick (the route does too:  `inbox.js` `requestNow()`)
-   */
-  async function askNow(id, action, note) {
-    const pick = inbox.marks[id]?.pick
-    inbox.marks[id] =
-      action === "revisit"
-        ? { action, when: "now", note: note ?? "", ...(pick && { pick }), at: new Date().toISOString() }
-        : { action, at: new Date().toISOString() }
-    const request = write("now", note === undefined ? { id, action } : { id, action, note })
-    asking.set(id, request)
-    render()
-    const written = await request
-    asking.delete(id)
-    // called off on its way:  `cancel()` takes it from here
-    if (calling.has(id)) return
-    render()
-    if (written && !inbox.listening) notify(NOBODY_LISTENING)
-  }
-
-  /**
-   * "Nevermind":  call off item `id`'s immediate request (Add Details Now, revisit now), queued or being worked on
-   * (`POST cancel`, `inbox.js` `cancelNow()`);  shown at once.  A revisit's note stays on the page as a draft, its box
-   * open, so nothing typed is lost.
-   * - a request still on its way waits to land first:  a cancel that reached the server before it found nothing to
-   *   call off, and the request was queued after it
-   */
-  async function cancel(id) {
-    const mark = inbox.marks[id]
-    const note = mark?.action === "revisit" ? mark.note : ""
-    calling.add(id)
-    forget()
-    if (asking.has(id)) {
-      await asking.get(id)
-      // its answer put the request back on the page
-      forget()
-    }
-    const written = await write("cancel", { id })
-    calling.delete(id)
-    render()
-    if (!written) return
-    notify("Called off:  Claude stops working on it.")
-    if (!note) return
-    const item = main.querySelector(`#${CSS.escape(id)}`)
-    if (!item) return
-    await write("draft", { id, action: "revisit", note }, { quiet: true })
-    openBox(item)
-
-    /** Take the immediate request off the page (its `now` entry, its work, its mark), and show it. */
-    function forget() {
-      inbox.now = inbox.now.filter((each) => each.id !== id)
-      delete inbox.working[id]
-      const asked = inbox.marks[id]
-      if (asked && isImmediate(asked)) delete inbox.marks[id]
-      render()
-    }
-  }
-
-  /**
-   * Review Now:  send every mark, each revisit asked now (`POST send { now: true }`);  says what went, or why
-   * nothing did.
-   */
-  async function reviewMarksNow() {
-    const waiting = Object.values(inbox.marks).filter((mark) => !isImmediate(mark))
-    if (!waiting.length) return notify("Nothing to work through:  mark an item first")
-    if (!(await write("send", { now: true }))) return
-    render()
-    notify(
-      inbox.listening
-        ? `Claude is working through ${waiting.length} now:  answers land in the items`
-        : `Saved.  ${NOBODY_LISTENING}`
-    )
-  }
-
-  /** "Send to Claude":  every unsent mark goes. */
-  async function sendMarks() {
-    const unsent = Object.values(inbox.marks).filter((mark) => !isSent(mark, inbox.sent))
-    if (!unsent.length)
-      return notify(
-        Object.keys(inbox.marks).length ? "Sent already:  waiting for Claude" : "Nothing to send:  mark an item first"
-      )
-    if (!(await write("send", {}))) return
-    render()
-    notify(inbox.listening ? `Sent ${unsent.length} to Claude` : `Saved.  ${NOBODY_LISTENING}`)
-  }
-
-  /**
-   * POST `body` (plus `page`) to `route` (`postToServer()`);  the reply is the new inbox.  True when written;  else
-   * says why (`notify()`, unless `quiet`:  the caller says it, from `lastWriteError`) and re-reads the inbox, undoing
-   * what was shown early.
-   */
-  async function write(route, body, { quiet = false, keepalive = false } = {}) {
-    writing++
-    let error = ""
-    try {
-      inbox = inboxOf(await postToServer(server, `${REVIEW_API}/${route}`, { page, ...body }, { keepalive }))
-      return true
-    } catch (failure) {
-      error = failure.message
-    } finally {
-      writing--
-    }
-    lastWriteError = error
-    if (!quiet) notify(sentence(error))
-    await load()
-    render()
-    return false
-  }
-
-  /** Say `message` at the bottom of the window for a few seconds. */
-  function notify(message) {
-    notice.textContent = message
-    notice.hidden = false
-    clearTimeout(noticeTimer)
-    noticeTimer = setTimeout(() => (notice.hidden = true), NOTICE_MS)
-  }
-}
-
-/** A route's reply as an inbox, every field there (`tools/inbox.js` has the file's shape). */
-function inboxOf(reply) {
-  const inbox = reply?.inbox ?? reply ?? {}
-  return {
-    marks: inbox.marks && typeof inbox.marks === "object" ? inbox.marks : {},
-    drafts: inbox.drafts && typeof inbox.drafts === "object" ? inbox.drafts : {},
-    sent: inbox.sent ?? null,
-    now: Array.isArray(inbox.now) ? inbox.now : [],
-    working: inbox.working && typeof inbox.working === "object" ? inbox.working : {},
-    listening: inbox.listening ?? null
-  }
-}
-
-/**
- * Has `mark` gone to Claude?  Made before the last "Send to Claude" (`sent`, ISO time or null), or an immediate one
- * (Add Details, revisit now:  handed over when made), as `tools/inbox.js` `unsentMarks()` counts.
- */
-function isSent(mark, sent) {
-  if (isImmediate(mark)) return true
-  return !!sent && Date.parse(mark.at) <= Date.parse(sent)
-}
-
-/** Is `mark` an immediate request (Add Details, revisit now), handed over when made?  As `tools/inbox.js`'s. */
-function isImmediate(mark) {
-  return mark.action === "details" || (mark.action === "revisit" && mark.when === "now")
-}
-
-/** ISO time `iso` as the reader's clock time, `10:42`;  `""` for none. */
-function clockOf(iso) {
-  const date = iso ? new Date(iso) : null
-  return date && !isNaN(date) ? date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""
-}
-
-////////////////
-// ## Running agents
-////////////////
-
-/** The running-agents routes (`tools/agentRoutes.ts`):  every reply is the epic's whole list, `{ agents }`. */
-const AGENTS_API = "/api/agents"
-
-/** The list's file, beside the plan doc (`tools/AgentList.ts`):  the page server announces its changes. */
-const AGENTS_FILE = "agents.json"
-
-/**
- * The epic's RUNNING AGENTS at the top of its plan doc (epic `skillz`, P3), each with a note box that redirects it:
- * `div.plan-agents`, "Agents running", right before the first section.
- * - only a plan doc (`body.plan-doc`) served by the page server (`SPELL_SERVER.token`), once the list answers
- *   (`GET /api/agents?page=`):  from `file://`, or a server without the route, nothing is added
- * - shown only while an agent runs;  NOT a `<ui-section>`:  it isn't the record, and the contents, rail and counts
- *   never see it
- * - one row per agent, KEYED by name and updated in place (`rows`):  a poll or an in-place update never touches what's
- *   typed in its box, nor its focus
- *   - its name, status (`active` blue;  `blocked on <name>` orange), age (`2h 5m`, `ageOf()`, re-read each poll), task
- *   - its redirects so far:  "You · 10:42 · told 10:43", or "waiting for the session" until it's been `told`
- *   - a note box that grows as it's typed in, and Send (`POST redirect { page, name, note }`):  the box empties once
- *     sent, or the error shows under it;  Cmd / Ctrl + Enter sends too
- * - re-reads the list when the page server says its file changed (`agents.json`, the live client's
- *   `spell-server:file`), and every `REVIEW_POLL_MS` while visible, as the review inbox does
- * - NOTE: nothing here scrolls what's being read:  the panel growing or going while the reader is below it keeps
- *   their place (`keepAnchor()`)
- * - SIDE EFFECT:  adds the panel (`data-spell-added` inside `main`);  puts it back if an in-place update dropped it
- *   (`spell-doc:updated`)
- */
-async function wireAgents(main) {
-  const server = window.SPELL_SERVER
-  if (!document.body.classList.contains("plan-doc") || !server?.token) return
-  const page = location.pathname
-  // the list as last read or written;  each agent's row, by name;  writes in flight:  a poll can't undo them
-  let agents = []
-  const rows = new Map()
-  let writing = 0
-  if (!(await load())) return
-  const panel = panelOf()
-  render()
-  addEventListener("spell-doc:updated", () => render())
-  setInterval(() => {
-    if (document.visibilityState === "visible" && !writing) void load().then((read) => read && render())
-  }, REVIEW_POLL_MS)
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState === "visible") void load().then((read) => read && render())
-  })
-  const listFile = (server.file ?? page).replace(/[^/]*$/, AGENTS_FILE)
-  addEventListener("spell-server:file", (event) => {
-    if (!writing && event.detail?.path === listFile) void load().then((read) => read && render())
-  })
-
-  /** Read the list;  true when it answered (a write in flight wins:  its answer is newer). */
-  async function load() {
-    try {
-      const response = await fetch(`${AGENTS_API}?page=${encodeURIComponent(page)}`, { cache: "no-store" })
-      if (!response.ok) return false
-      const read = agentsOf(await response.json())
-      if (!writing) agents = read
-      return true
-    } catch {
-      return false
-    }
-  }
-
-  /** Show the list:  the panel while any agent runs, a row per agent in the list's order, rows of agents gone gone. */
-  function render() {
-    // the reader below the panel keeps their place as it comes, grows or goes
-    const next = main.querySelector(":scope > ui-section")
-    const was = next?.getBoundingClientRect().top
-    if (!agents.length) panel.remove()
-    else if (!panel.isConnected) {
-      if (next) next.before(panel)
-      else main.append(panel)
-    }
-    const names = new Set(agents.map((agent) => agent.name))
-    for (const [name, row] of rows) {
-      if (names.has(name)) continue
-      row.remove()
-      rows.delete(name)
-    }
-    const list = panel.querySelector(".plan-agents-list")
-    const now = Date.now()
-    agents.forEach((agent, at) => {
-      let row = rows.get(agent.name)
-      if (!row) rows.set(agent.name, (row = rowOf(agent.name)))
-      // moved only when out of place:  moving a row would take the focus from its box
-      if (list.children[at] !== row) list.insertBefore(row, list.children[at] ?? null)
-      fill(row, agent, now)
-    })
-    panel.querySelector(".plan-agents-count").textContent = agents.length > 1 ? String(agents.length) : ""
-    if (next && was < siteHeaderHeight()) keepAnchor({ element: next, top: was })
-  }
-
-  /** The panel:  its title ("Agents running", a robot) over the rows' list. */
-  function panelOf() {
-    const element = document.createElement("div")
-    element.className = "plan-agents"
-    element.dataset.spellAdded = ""
-    element.setAttribute("role", "region")
-    element.setAttribute("aria-label", "Agents running")
-    element.innerHTML =
-      `<div class="plan-agents-title"><ui-icon name="robot"></ui-icon><b>Agents running</b>` +
-      `<span class="plan-agents-count"></span></div>` +
-      `<div class="plan-agents-list"></div>`
-    return element
-  }
-
-  /**
-   * Agent `name`'s row, made once:  its line (name, status, age), task, redirects, and the note box with Send, which
-   * `fill()` never rebuilds.
-   */
-  function rowOf(name) {
-    const row = document.createElement("div")
-    row.className = "plan-agent"
-    row.dataset.name = name
-    row.innerHTML =
-      `<div class="plan-agent-line"><b><code class="plan-agent-name">${text(name)}</code></b>` +
-      `<ui-label class="plan-agent-status" size="mini" basic></ui-label>` +
-      `<span class="plan-agent-age"></span></div>` +
-      `<p class="plan-agent-task"></p>` +
-      `<ul class="plan-agent-redirects" hidden></ul>` +
-      `<div class="plan-agent-redirect">` +
-      `<textarea class="plan-agent-note" rows="1" placeholder="Redirect ${attr(name)} ..."></textarea>` +
-      `<ui-button class="plan-agent-send" circular primary icon="paper plane" size="mini" disabled>Send</ui-button>` +
-      `</div>` +
-      `<p class="plan-agent-error" role="alert" hidden></p>`
-    const note = row.querySelector("textarea")
-    const button = row.querySelector("ui-button")
-    note.setAttribute("aria-label", `Redirect ${name}:  your note`)
-    note.addEventListener("input", () => button.toggleAttribute("disabled", !note.value.trim()))
-    note.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
-        event.preventDefault()
-        void send(row)
-      }
-    })
-    button.addEventListener("click", () => void send(row))
-    return row
-  }
-
-  /** Bring `row` up to date with `agent`:  everything but its note box.  `now`:  the time ages count to. */
-  function fill(row, agent, now) {
-    const status = row.querySelector(".plan-agent-status")
-    status.textContent = agent.status
-    status.setAttribute(
-      "color",
-      agent.status === "active" ? "blue" : /^blocked\b/.test(agent.status) ? "orange" : "grey"
-    )
-    const age = row.querySelector(".plan-agent-age")
-    age.textContent = ageOf(agent.started, now)
-    age.title = agent.started ? `Started ${clockOf(agent.started)}` : ""
-    row.querySelector(".plan-agent-task").textContent = agent.task
-    // redrawn only when they changed:  nothing in them is typed in
-    const redirects = row.querySelector(".plan-agent-redirects")
-    const key = JSON.stringify(agent.redirects)
-    if (redirects.dataset.key === key) return
-    redirects.dataset.key = key
-    redirects.hidden = !agent.redirects.length
-    redirects.innerHTML = agent.redirects
-      .map(
-        ({ note, at, told }) =>
-          `<li><span class="plan-agent-said"><ui-icon name="comment"></ui-icon><b>You</b> · ${clockOf(at)} · ` +
-          `${told ? `told ${clockOf(told)}` : "waiting for the session"}</span>` +
-          `<span class="plan-agent-said-note">${text(note)}</span></li>`
-      )
-      .join("")
-  }
-
-  /**
-   * Send `row`'s note to its agent (`POST redirect`):  the box empties once it's in the list (unless typed on
-   * meanwhile), else the error shows under it.  Nothing for an empty box, or one already sending.
-   */
-  async function send(row) {
-    const note = row.querySelector("textarea")
-    const button = row.querySelector("ui-button")
-    const error = row.querySelector(".plan-agent-error")
-    const typed = note.value.trim()
-    if (!typed || button.hasAttribute("loading")) return
-    button.setAttribute("loading", "")
-    error.hidden = true
-    writing++
-    try {
-      const body = { page, name: row.dataset.name, note: typed }
-      agents = agentsOf(await postToServer(server, `${AGENTS_API}/redirect`, body))
-      if (note.value.trim() === typed) note.value = ""
-    } catch (failure) {
-      error.textContent = sentence(failure.message)
-      error.hidden = false
-    } finally {
-      writing--
-      button.removeAttribute("loading")
-      button.toggleAttribute("disabled", !note.value.trim())
-    }
-    render()
-  }
-}
-
-/** A route's reply as the running agents, every field there (`tools/AgentList.ts` has their shape). */
-function agentsOf(reply) {
-  const agents = Array.isArray(reply?.agents) ? reply.agents : []
-  return agents
-    .filter((agent) => typeof agent?.name === "string")
-    .map((agent) => ({
-      name: agent.name,
-      task: String(agent.task ?? ""),
-      status: String(agent.status ?? "active"),
-      started: agent.started ?? "",
-      redirects: (Array.isArray(agent.redirects) ? agent.redirects : []).map((redirect) => ({
-        note: String(redirect?.note ?? ""),
-        at: redirect?.at ?? "",
-        told: redirect?.told ?? ""
-      }))
-    }))
-}
-
-/** How long ago ISO time `iso` was, to `now` (ms):  `<1m`, `3m`, `2h 5m`, `1d 4h`;  `""` for none. */
-function ageOf(iso, now) {
-  const minutes = Math.floor((now - Date.parse(iso)) / 60_000)
-  if (Number.isNaN(minutes)) return ""
-  if (minutes < 1) return "<1m"
-  if (minutes < 60) return `${minutes}m`
-  const hours = Math.floor(minutes / 60)
-  if (hours < 24) return minutes % 60 ? `${hours}h ${minutes % 60}m` : `${hours}h`
-  return hours % 24 ? `${Math.floor(hours / 24)}d ${hours % 24}h` : `${Math.floor(hours / 24)}d`
-}
-
-////////////////
 // ## Helpers
 ////////////////
-
-/**
- * POST `body` as JSON to page-server route `url`, with its write token (`SRV.Guard`:  the review and agents routes);
- * returns the reply.
- * - the page server restarted since this page loaded (a 403 on the token):  takes its new token (`refreshToken()`)
- *   and tries once more, so nothing typed is refused for it
- * - throws an `Error` saying why, for people:  the route's `error`, a stale token, no server
- */
-async function postToServer(server, url, body, { keepalive = false } = {}) {
-  for (let attempt = 0; ; attempt++) {
-    let response
-    try {
-      response = await fetch(url, {
-        method: "POST",
-        headers: { "content-type": "application/json", "x-server-token": server.token },
-        body: JSON.stringify(body),
-        keepalive
-      })
-    } catch (failure) {
-      throw new Error(`couldn't reach the page server (${failure.message})`)
-    }
-    const reply = await response.json().catch(() => ({}))
-    if (response.ok) return reply
-    const stale = response.status === 403 && /token/i.test(reply.error ?? "")
-    if (stale && attempt === 0 && (await refreshToken(server))) continue
-    throw new Error(
-      stale
-        ? "the page server restarted since this page loaded:  reload the page"
-        : (reply.error ?? `couldn't save (${response.status})`)
-    )
-  }
-}
-
-/**
- * Take the page server's CURRENT write token into `server` from the page as it serves it now (its
- * `window.SPELL_SERVER`):  a restarted server has a new one.  True when it changed.
- * - NEVER throws
- */
-async function refreshToken(server) {
-  try {
-    const html = await (await fetch(location.pathname + location.search, { cache: "no-store" })).text()
-    const fresh = JSON.parse(/window\.SPELL_SERVER = (\{.*?\})<\/script>/.exec(html)?.[1] ?? "null")?.token
-    if (!fresh || fresh === server.token) return false
-    server.token = fresh
-    return true
-  } catch {
-    return false
-  }
-}
-
-/** `message` as a sentence:  a capital first, a full stop last (unless it ends in one already). */
-function sentence(message) {
-  if (!message) return ""
-  return `${message[0].toUpperCase()}${message.slice(1)}${/[.!?]$/.test(message) ? "" : "."}`
-}
 
 /** Resolves after `count` animation frames:  long enough for UI's first render after its definitions. */
 async function nextFrames(count) {

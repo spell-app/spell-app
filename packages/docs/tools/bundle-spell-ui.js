@@ -113,6 +113,9 @@ const ICONS = {
   // spell-ui-site.html sections
   "solid/table-columns": ["table columns"],
   "solid/sun": ["sun"],
+  "solid/moon": ["moon"], // dark mode
+  // a plan doc's bedtime label (`<epic-page bedtime>`):  a /bedtime run is on
+  "solid/bed": ["bed"],
   // status:  not done / in progress / done (plan docs)
   "regular/circle": ["circle outline"],
   "solid/circle-half-stroke": ["circle half stroke", "adjust"],

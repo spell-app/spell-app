@@ -13,6 +13,8 @@
   //   `$/ui/tools/SiteDataBuilder` (node-only:  the docs data builder, for `brand`'s `yarn site:data`),
   //   `$/ui/tools/StaticRenderer` + `$/ui/tools/tools.types` (node-only:  `spell static`'s Vite server for `ui`'s
   //   static render, and its types),
+  //   `$/ui/tools/RootCatalog` (node-only:  a `<ui-root>` catalog from vocabularies, for `spell dev pack build`),
+  //   `$/epics/tool/...` (node-only:  the plan-doc tool, for the `spell` CLI;  never in the `$/epics` barrel),
   //   and `$/util/class` etc. (`util`'s GENERIC files, imported one by one by `ui`'s `src/util/index.ts` only:  the
   //   `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:
@@ -20,6 +22,8 @@
   //   `ui` -> `solid-element` / `util`.  e.g. `ui` MUST NOT import `$/spell`.
   //   `server` is a LEAF (node built-ins only):  anything may import it.  Its opt-in entry points:  `$/server/page/...`
   //   (the page server) and `$/server/site/...` (the site header);  `$/server/test/...` are its test helpers.
+  //   `assembler` (assembling pages:  link targets, formatting) is node-only and imports no package:  `docs` and
+  //   `epics` import it.
   "compilerOptions": {
     "paths": {
       // ## Shared packages:  from another package, import the barrel only
@@ -42,6 +46,8 @@
       "$/server": ["./packages/server/src/index.ts"],
       "$/server/*": ["./packages/server/src/*"],
       "$/server/test/*": ["./packages/server/test/*"],
+      "$/assembler": ["./packages/assembler/src/index.ts"],
+      "$/assembler/*": ["./packages/assembler/src/*"],
 
       // ## `ui`:  barrel, files, test helpers and node tools;  `$/ui/test/*` / `$/ui/tools/*` are longer than
       // `$/ui/*`, so they win
@@ -55,7 +61,14 @@
       "$/brand": ["./packages/brand/src/index.ts"],
       "$/brand/*": ["./packages/brand/src/*"],
       "$/brand/components": ["./packages/brand/components/index.ts"],
-      "$/brand/components/*": ["./packages/brand/components/*"]
+      "$/brand/components/*": ["./packages/brand/components/*"],
+
+      // ## `epics`:  a component pack (`spell dev pack`);  its elements live in `packages/epics/components/`,
+      // outside `src/`, so `$/epics/components` is longer than `$/epics/*` and wins
+      "$/epics": ["./packages/epics/src/index.ts"],
+      "$/epics/*": ["./packages/epics/src/*"],
+      "$/epics/components": ["./packages/epics/components/index.ts"],
+      "$/epics/components/*": ["./packages/epics/components/*"]
     }
   }
 }

@@ -424,10 +424,19 @@ export class UISection extends UIElement<SectionVocabulary> {
     )
   }
 
-  /** The fold chevron, `aria-hidden` (the button is the control):  in the button, or at the bar's end with `onClick`. */
+  /**
+   * The fold chevron, `aria-hidden` (the button is the control):  in the button, or at the bar's end with `onClick`,
+   * where it takes the button's tooltip too.
+   */
   private renderFoldIcon(onClick?: (event: MouseEvent) => void): JSX.Element {
     return (
-      <span class={FOLD_ICON_CLASS} part={this.part("fold-icon")} aria-hidden={UIT.TRUE} onClick={onClick}>
+      <span
+        class={FOLD_ICON_CLASS}
+        part={this.part("fold-icon")}
+        aria-hidden={UIT.TRUE}
+        title={onClick ? this.text(this.folded() ? "unfold" : "fold") : undefined}
+        onClick={onClick}
+      >
         {this.foldGlyph.svg()}
       </span>
     )

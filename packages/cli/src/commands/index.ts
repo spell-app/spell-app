@@ -4,7 +4,7 @@
  *   `spell dev`.
  * - NOTE: the pass-throughs (`planDoc`, `goals`, `docs`, `details`, `server`, `window`, `vscode`) are
  *   `(args) => Promise<exitCode>`, and import no barrel:  the lean `spell dev` entry, `devMain.ts`, loads them
- *   without spell.
+ *   without spell.  So do `pack` and `bundles`, `(args, options) => Promise<exitCode>`.
  */
 export * from "./compileCommand"
 export * from "./checkCommand"
@@ -39,3 +39,5 @@ export * from "./staticCommand"
 export * from "./ponyCommand"
 export * from "./wwodCommand"
 export * from "./agentsCommand"
+export * from "./packCommand"
+export * from "./bundlesCommand"

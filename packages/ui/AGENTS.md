@@ -125,10 +125,12 @@ house style every package shares.  Only what's local is below;  a section named 
     - `SITE_BUILD`, the BUILT half:  `site/`, tracked per branch (`site/README.md`:  its files);  the page server
       lays its `_assets/` and `_data/` over the pages at `/ui/`, so every page's relative `_assets/...` /
       `_data/...` links resolve unchanged:
-    - `site/_assets/` -- GENERATED, committed:  the site bundle (`yarn site:bundle`):  `site.js` + `site.css` (what
-      every page loads:  `<link rel="stylesheet" href="_assets/site.css">` + `<script type="module"
-      src="_assets/site.js">`, `../_assets/` from `components/`), each family a lazy chunk, `icon-packs` a symlink
-      to `src/icons/icon-packs`.  NEVER edit
+    - `site/_assets/` -- GENERATED, NOT committed (git-ignored since 2026-10-07:  its hashed chunk names churned every
+      diff and merge):  the site bundle (`yarn site:bundle`):  `site.js` + `site.css` (what every page loads:
+      `<link rel="stylesheet" href="_assets/site.css">` + `<script type="module" src="_assets/site.js">`,
+      `../_assets/` from `components/`), each family a lazy chunk, `icon-packs` a symlink to `src/icons/icon-packs`.
+      The page server builds it when it starts, if stale (`spell dev bundles build --stale`;  `$/assembler`
+      `Bundle`, `.bundle.json` records the sources' hash), and a page waits for that.  NEVER edit
     - `site/_src/` -- the bundle's entry (`site.ts`:  what's in it and why) and the site's layout-glue CSS
       (`site.css`);  config `vite.site.config.ts`
     - `site/_data/` -- `components.json` and `icons.json` (the icon browser's search terms), GENERATED, committed
@@ -179,12 +181,13 @@ house style every package shares.  Only what's local is below;  a section named 
     `ui/_data/search.json`) + `yarn site:index` (the component index's cards, `ui/components/index.html`;  `--check`)
     + `yarn site:kitchen` (the kitchen sink's examples, `ui/kitchen-sink.html`, from every family's
     `examples/elements/types.html`;  `--check`) + `yarn site:bundle` (`site/_assets/`, sizes printed):  rerun after
-    changing a vocabulary, a family sheet, an example or any source the site shows, and commit the output in `site/`
-    (`ui/` commits itself)
+    changing a vocabulary, a family sheet, an example or any source the site shows, and commit `site/_data/`
+    (`ui/` commits itself;  `site/_assets/` is git-ignored, and `spell dev bundles build ui-site` records its
+    sources' hash, so the page server doesn't build it again)
   - `yarn site:dev` -- `scripts/site-dev.ts`:  `yarn site:bundle`, then the page server (started if needed) serves
     `/ui/` while a Vite WATCH build rebuilds `site/_assets/` on every `src/` / `site/_src/` edit, and live reload
     reloads the open pages.  Not watched:  `site:data` / `site:index` / `site:kitchen`.  A watch rebuild leaves stale
-    hashed chunks:  `yarn site:build` before committing
+    hashed chunks (harmless:  not committed);  the page server's next start rebuilds the bundle clean
   - `yarn site:new <tag|page> [--title ...] [--summary ...] [--force]` -- a site page from the template
     (`templates/spell-ui-docs.html`, `scripts/site-new.ts`):  `ui/components/<main tag>.html` for a
     tag (`<tag>.html` for a sub-tag its family's `pages` lists:  `ui-radio`), else `ui/<page>.html`;  title /
@@ -314,6 +317,36 @@ As WWOD §18, plus:
     (node has no such globals):  `nodeType`, `localName`.
   - An effect whose APPLY writes the host (`internals.role`, ARIA, states) is `this.hostEffect(compute, apply)`:  the
     server build never runs an apply, so a plain `createEffect` leaves the static output without it.
+
+## Component packs
+
+- A COMPONENT PACK is another package's custom elements (any tag prefix:  `epic-`, `x-`), loaded on demand by
+  `<ui-root>` like Spell UI's own (epic `epic-components`, P1):
+  `<ui-root><ui-components source="epics.pack.js"></ui-components><epic-page>...</epic-page></ui-root>`.
+- The pack is ONE classic script (works from `file://`), built by `spell dev pack build` (P2), that calls
+  `SpellUI.registerPack({ name, prefix, catalog, define })` as it runs.  `catalog` has `ROOT_CATALOG`'s shape
+  (`RootCatalogEntry`:  folder, skeleton);  `prefix` ends in `-`, is never `ui-`, and starts every catalog tag.
+- The `ui-components` family holds the runtime side:
+  - `<ui-components source>`:  invisible, no logic;  the root reads its `source`.  The root's barrel imports the
+    family, so it's always defined with the root
+  - `ComponentPacks` (static, one per page):  `load(source)` adds a `<script>` once per resolved URL (an already
+    registered name resolves at once);  `register()` finds its load by `document.currentScript`, else by the name the
+    file implies (`epics.pack.js` => `epics`), calls `define()`, then adds the catalog and prefix;  `entryOf()`,
+    `owns()` for the root
+  - `registerPack()`:  exported from `$/ui` (`@spell-app/ui`) and the family's barrel;  the docs bundle puts it on
+    `window.SpellUI`
+- The root (`UIRoot`, `RootLoader`):  its first settle round also waits for its packs;  `undefinedTags()` /
+  `entryOf()` know registered prefixes and catalogs;  skeletons are found again when a pack registers (its catalog
+  arrives WITH it:  nothing to draw before);  a pack that fails or times out is a `RootFailure`
+  `{ tag: "ui-components", reason, source }` (`ui-error`, `ui-ready`'s `failed`) and a `console.error` naming the
+  `source`, and the root still gets ready.
+- Modules a pack shares with the page:  `SpellUI.packModules`, the EXACT specifier its build leaves external =>
+  the page's module (`solid-js`, `@solidjs/web`, `$/ui/core`, `$/ui/forms`).  Built in the docs bundle's entry
+  (`packages/docs/tools/_assets/spell-ui.entry.js`), NOT in `ui`:  the one place a Solid package is `import * as`'d,
+  on purpose ("One Solid per page" above:  a pack may use any export, so they must all stay).  A new specifier goes
+  there AND in the pack build's externals.
+- Tests:  `src/components/ui-components/ComponentPacks.test.ts`, on the classic fixtures in
+  `test/fixtures/component-packs/` (served by Vitest's dev server).
 
 ## Decorators
 

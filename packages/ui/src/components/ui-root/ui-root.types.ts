@@ -9,9 +9,15 @@ import type { rootVocabulary } from "./ui-root.vocabulary.en"
 /** `rootVocabulary`'s type. */
 export type RootVocabulary = typeof rootVocabulary
 
-/** What `<ui-root>` knows about a tag before its family loads (`ui-root.catalog.ts`, generated). */
+/**
+ * What `<ui-root>` knows about a tag before its family loads (`ui-root.catalog.ts`, generated);  a component pack's
+ * catalog has the same shape (`ComponentPack.catalog`).
+ */
 export type RootCatalogEntry = {
-  /** Its folder under `src/components/` (or `src/docs-components/`):  its family, imported to define it. */
+  /**
+   * Its folder under `src/components/` (or `src/docs-components/`):  its family, imported to define it.  A pack's:
+   * the folder of its component in the pack's package.
+   */
   readonly folder: string
   /** What `display="skeleton"` draws in its place;  none:  hidden until ready (or covered by its owner's). */
   readonly skeleton?: SkeletonSpec
@@ -31,6 +37,8 @@ export type RootFailure = {
   readonly tag: string
   readonly reason: RootFailureReason
   readonly error?: unknown
+  /** A component pack's `source` (`tag` is `ui-components`):  the pack that didn't load. */
+  readonly source?: string
 }
 
 /** `display` values. */
@@ -63,7 +71,10 @@ export const DEFAULT_TIMEOUT = 5000
 /** Rounds of "load what's undefined, wait for what's defined":  content that keeps adding new tags stops here. */
 export const MAX_ROUNDS = 10
 
-/** Prefix of the tags a root loads:  anything else undefined (an app's own element) is not ours. */
+/**
+ * Prefix of Spell UI's own tags, which a root loads;  registered component packs add theirs
+ * (`ComponentPacks.owns()`).  Anything else undefined (an app's own element) is not ours.
+ */
 export const TAG_PREFIX = "ui-"
 
 /****************

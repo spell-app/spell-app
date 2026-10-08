@@ -53,6 +53,7 @@
     "./dist/ui-step.js",
     "./dist/ui-rail.js",
     "./dist/ui-root.js",
+    "./dist/ui-components.js",
     "./dist/ui-reveal.js",
     "./dist/ui-ad.js",
     "./dist/ui-emoji.js",
@@ -248,6 +249,10 @@
     "./ui-root": {
       "types": "./dist/components/ui-root/index.d.ts",
       "import": "./dist/ui-root.js"
+    },
+    "./ui-components": {
+      "types": "./dist/components/ui-components/index.d.ts",
+      "import": "./dist/ui-components.js"
     },
     "./ui-reveal": {
       "types": "./dist/components/ui-reveal/index.d.ts",

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Epic: Planning</title>
+  </head>
+  <body class="spell-doc-page plan-doc" data-plan="planning" data-bedtime="P3-P6">
+    <spell-site-header root="../.."></spell-site-header>
+    <div class="spell-doc">
+      <main class="spell-doc-main">
+        <ui-sticky class="spell-h1"
+          ><header class="spell-page-head">
+            <h1>Epic: Planning</h1>
+            <span class="plan-step" hidden></span></header
+        ></ui-sticky>
+        <ui-list class="plan-meta">
+          <ui-item icon="code branch">Plan doc for <code>/epic planning</code>, branch <code>planning</code></ui-item>
+          <ui-item icon="folder">Worktree: <code>/tmp/planning</code></ui-item>
+          <ui-item icon="calendar"
+            >Started <time id="plan-started">2026-10-07</time>, updated
+            <time id="plan-updated">2026-10-07</time></ui-item
+          >
+        </ui-list>
+        <ui-accordion class="plan-hung spell-aside" styled
+          ><ui-title>Plan hung?</ui-title
+          ><ui-content
+            ><p>Close its Claude tab, then run <code>/epic planning</code> and pick "Reuse".</p>
+            <ui-code class="plan-hung-prompt" language="text" wrap copy
+              ><script type="text/plain">
+                Plan the thing.
+              </script></ui-code
+            ></ui-content
+          ></ui-accordion
+        >
+        <ui-section id="overview" header="1. Overview" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="lightbulb"></ui-icon>
+          <p class="plan-summary lede">Two sentences: what this plan does, and why.</p>
+          <ui-accordion class="plan-prompt-panel spell-aside" styled>
+            <ui-title>Kickoff prompt</ui-title>
+            <ui-content
+              ><blockquote class="plan-prompt"><p>Plan the thing.</p></blockquote></ui-content
+            >
+          </ui-accordion>
+          <ui-section id="o1" header="1.1 Structure" sticky collapsible dividing collapsed>
+            <p>What goes where.</p>
+          </ui-section>
+        </ui-section>
+        <ui-section id="phases" header="2. Phases" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="layer group"></ui-icon>
+          <ui-progress class="plan-progress" value="0" total="0" bar-text="ratio" size="small" color="green" hidden
+            >phases done</ui-progress
+          >
+        </ui-section>
+        <ui-section id="log" header="9. Log" sticky collapsible dividing collapsed>
+          <ui-icon slot="icon" name="clock rotate left"></ui-icon>
+          <ui-feed class="plan-log" size="small">
+            <ui-event icon="pen to square">
+              <ui-content>
+                <ui-summary><ui-date>2026-10-07 09:00</ui-date> plan doc created</ui-summary>
+              </ui-content>
+            </ui-event>
+          </ui-feed>
+        </ui-section>
+      </main>
+    </div>
+    <script src="../../packages/docs/tools/_assets/spell-ui.js"></script>
+  </body>
+</html>
