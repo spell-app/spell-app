@@ -287,7 +287,7 @@ export function reorgShared(dir, checkout, { dryRun = false, allMentions = false
     if (!existsSync(full)) continue
     const mentions = allMentions || before !== file
     const fix = (text) => rewrite(text, before, file, { guides, exists, mentions })
-    // a plan doc, or one of its parts (`parts/<id>.htm`, plan fragments):  under the doc's lock
+    // a plan doc, or one of its parts (`parts/<id>.html`, plan fragments):  under the doc's lock
     const doc = planDocOf(file)
     const changed = doc && !dryRun ? withLocks([join(dir, doc)], () => apply(full, fix)) : apply(full, fix, dryRun)
     if (changed) report.rewritten.push(file)
@@ -329,14 +329,15 @@ function rewrite(text, before, file, { guides, exists, mentions }) {
   // links into Spell UI's pages, which left `packages/ui/site/` for `ui/` (claude-design P6)
   out = relocateLinks(out, file, file, UI_SITE_MOVE)
   if (mentions) out = reorgMentions(out, guides)
+  // a plan doc's part (`parts/<id>.html`, `.htm` before Q12 of `epic-components`):  never a page, so only the tab
+  // names of the links the moves changed
+  if (isPart(file)) return retarget(out, file, /^src-packages-(docs-content|ui-site)-/)
   if (file.endsWith(".html")) {
     // a file that moved just now was relocated whole;  one already in place may hold links older code wrote
     if (before === file && reorgOldPlace(file)) out = repairLinks(out, file, exists, reorgOldPlace, REORG_MOVE)
     if (reorgOldPlace(file)) out = headerRoot(out, file)
     out = reorgOldPlace(file) ? retarget(out, file) : retarget(out, file, /^src-packages-(docs-content|ui-site)-/)
   }
-  // a plan doc's part (`parts/<id>.htm`):  the tab names of the links the moves changed
-  if (file.endsWith(".htm")) out = retarget(out, file, /^src-packages-(docs-content|ui-site)-/)
   return out
 }
 
@@ -415,11 +416,19 @@ function textFiles(dir, prefix = "") {
   return found.sort((a, b) => a.localeCompare(b))
 }
 
-/** The plan doc `file` (repo-relative) is, or is a part of (`epics/<n>/parts/<id>.htm`);  else `undefined`. */
+/** The plan doc `file` (repo-relative) is, or is a part of (`epics/<n>/parts/<id>.html`, or `.htm`);  else `undefined`. */
 function planDocOf(file) {
   if (/\.plan\.html$/.test(file)) return file
-  const part = /^((?:.*\/)?epics\/([^/]+))\/parts\/[^/]+\.htm$/.exec(file)
+  const part = /^((?:.*\/)?epics\/([^/]+))\/parts\/[^/]+\.html?$/.exec(file)
   return part ? `${part[1]}/${part[2]}.plan.html` : undefined
+}
+
+/**
+ * Is `file` (repo-relative) a plan doc's part:  a `.html` / `.htm` in a `parts/` folder?  Never a page, whatever its
+ * extension (`pages.js` `SKIP_DIRS` skips the folder too).
+ */
+function isPart(file) {
+  return /(?:^|\/)parts\/[^/]+\.html?$/.test(file)
 }
 
 /** Every plan doc in shared repo `dir`, old place or new:  `epics/<name>/<name>.plan.html`. */
@@ -526,7 +535,10 @@ export function repairCheckout(root, { dryRun = false } = {}) {
   // a LINKED content folder is the shared repo:  never merged, so nothing in it was written for the old layout
   const content = join(root, "packages", "docs", "content")
   const linked = lstatSync(content, { throwIfNoEntry: false })?.isSymbolicLink()
-  const pages = linked ? [] : filesUnder(root, "packages/docs/content").filter((path) => path.endsWith(".html"))
+  // pages only:  a plan doc's part (`parts/<id>.html`) is a fragment
+  const pages = linked
+    ? []
+    : filesUnder(root, "packages/docs/content").filter((path) => path.endsWith(".html") && !isPart(path))
   for (const file of pages) {
     const text = readFileSync(join(root, file), "utf8")
     const fixed = retarget(

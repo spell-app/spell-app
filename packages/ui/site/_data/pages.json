@@ -65,6 +65,11 @@
         ]
       }
     },
+    "ui-components": {
+      "title": "Components",
+      "summary": "Components name a pack of another package's elements, which the root around them loads on demand, once per page.",
+      "status": "done"
+    },
     "ui-container": {
       "title": "Container",
       "summary": "A container limits content to a maximum width.",

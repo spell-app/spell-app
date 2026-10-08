@@ -20,6 +20,15 @@ export class Warnings {
   }
 
   /**
+   * Report an ERROR, in every build:  something that leaves a whole part of the page missing (a component pack that
+   * didn't load), where a warning would be easy to miss.  Same format as `warn()`.
+   * - NEVER throws.
+   */
+  static error(source: string, message: string, ...data: unknown[]) {
+    console.error(`${PREFIX} ${source}:  ${message}`, ...data)
+  }
+
+  /**
    * Warn in development builds only (`import.meta.env.DEV`):  advice a production page shouldn't print, e.g. an
    * unknown attribute value with a "did you mean" suggestion.
    * - `import.meta.env?.DEV` is statically replaced by Vite, so a production build drops the call.

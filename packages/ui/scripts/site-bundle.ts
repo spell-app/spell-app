@@ -1,36 +1,22 @@
 /**
- * `yarn site:bundle`:  build the Spell UI site's bundle, `site/_assets/` (COMMITTED), from `site/_src/site.ts`
+ * `yarn site:bundle`:  build the Spell UI site's bundle, `site/_assets/` (git-ignored), from `site/_src/site.ts`
  * with `vite.site.config.ts`, then report its sizes.
- * - Clears `site/_assets/` first (everything but `icon-packs`), so a removed chunk doesn't linger in git.
+ * - Run by `spell dev bundles build ui-site` (`$/assembler` `Bundle`), which the page server runs when it starts and
+ *   the sources changed;  it then records their hash in `site/_assets/.bundle.json`.
+ * - Clears `site/_assets/` first (everything but `icon-packs`, the record too), so a removed chunk doesn't linger.
  * - Icon packs:  `site/_assets/icon-packs` is a SYMLINK to `../../src/icons/icon-packs` (~8.7 MB, ~2,200 SVGs), made
  *   here if missing, NOT a copy:  committing the packs twice would double them in every clone.  The page server
  *   follows it;  a static deploy must copy through it (`cp -RL`).
  * - Sizes:  every file but the packs, raw and gzipped;  EAGER is `site.css` + `site.js` and the chunks it imports
  *   statically (what a page loads before any `import()`).
- * - The docs' COMPONENT PACK, `_assets/docs.components.json` (`DOCS_PACK`):  every `<ui-docs-*>` tag, its family's
- *   chunk (`ui-docs-example.js`) and its vocabulary's skeleton, for the layout's `<ui-components>`
- *   (`ui/_parts/layout.html`).  `DocsFamilies.add()` in `site.ts` stays, for a page that has no layout.
  */
-import {
-  existsSync,
-  lstatSync,
-  mkdirSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  statSync,
-  symlinkSync,
-  writeFileSync
-} from "node:fs"
+import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, symlinkSync } from "node:fs"
 import path from "node:path"
-import { fileURLToPath } from "node:url"
 import { gzipSync } from "node:zlib"
 import { build } from "vite"
 
-import type { ComponentPackEntry } from "../src/components/ui-root/UIRoot.types.ts"
 import { SITE_ASSETS } from "../vite.site.config.ts"
 import { Terminal } from "../tools/Terminal.ts"
-import { VocabularyFiles } from "../tools/VocabularyFiles.ts"
 
 /** The packs link's name inside `_assets/`:  the one entry a rebuild keeps. */
 const PACKS_NAME = "icon-packs"
@@ -44,12 +30,6 @@ const PACKS_TARGET = "../../src/icons/icon-packs"
 /** A static `import ... from "./x.js"` / `import "./x.js"` in minified output (never `import("./x.js")`). */
 const STATIC_IMPORT = /(?:^|[;}\n])\s*(?:import|export)(?:[^"'();]*?from)?\s*["'](\.\.?\/[^"']+)["']/g
 
-/** The docs' component pack, beside the chunks it names. */
-const DOCS_PACK = path.join(SITE_ASSETS, "docs.components.json")
-
-/** `src/docs-components/`:  the `<ui-docs-*>` families. */
-const DOCS_COMPONENTS = fileURLToPath(new URL("../src/docs-components/", import.meta.url))
-
 mkdirSync(SITE_ASSETS, { recursive: true })
 for (const entry of readdirSync(SITE_ASSETS)) {
   if (entry !== PACKS_NAME) rmSync(path.join(SITE_ASSETS, entry), { recursive: true, force: true })
@@ -60,28 +40,7 @@ if (!existsSync(PACKS) && !isLink(PACKS)) symlinkSync(PACKS_TARGET, PACKS, "dir"
 if (!statSync(PACKS).isDirectory()) {
   throw new Error(`site:bundle:  ${PACKS} doesn't lead to the icon packs;  delete it, and rerun to link it again`)
 }
-await writeDocsPack()
 report((performance.now() - started) / 1000)
-
-/**
- * Write `DOCS_PACK`:  each `<ui-docs-*>` tag with its family's chunk (named `<family>.js`, `vite.site.config.ts`) and
- * its vocabulary's skeleton text, sorted by tag.
- * - Throws when a family has no chunk:  the pack would name a file that isn't there.
- */
-async function writeDocsPack(): Promise<void> {
-  const entries: ComponentPackEntry[] = []
-  for (const { folder, vocabulary } of await VocabularyFiles.read(DOCS_COMPONENTS)) {
-    const source = `${folder}.js`
-    if (!existsSync(path.join(SITE_ASSETS, source))) {
-      throw new Error(
-        `site:bundle:  no ${source} for <${vocabulary.tag}>;  check siteChunkName() in vite.site.config.ts`
-      )
-    }
-    entries.push({ tag: vocabulary.tag, source, ...(vocabulary.skeleton && { skeleton: vocabulary.skeleton }) })
-  }
-  entries.sort((a, b) => a.tag.localeCompare(b.tag))
-  writeFileSync(DOCS_PACK, `${JSON.stringify(entries, undefined, 2)}\n`)
-}
 
 /** Is `file` a symlink (even a broken one)? */
 function isLink(file: string): boolean {

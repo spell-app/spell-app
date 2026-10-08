@@ -1,1 +1,0 @@
-var e={100:`💯`,1234:`🔢`,"8ball":`🎱`};export{e as default};

@@ -2875,62 +2875,37 @@
     {
       "tag": "ui-components",
       "name": "Components",
-      "folder": "ui-root",
+      "folder": "ui-components",
       "topics": [
         "loading",
         "modules"
       ],
       "aka": [
         "component pack",
-        "component manifest",
-        "component registry",
-        "import map",
         "plugin",
-        "lazy loading"
+        "extension",
+        "custom elements",
+        "web components",
+        "element library"
       ],
-      "description": "Components loads a component pack, so every root on the page can load the custom elements it lists on demand.",
+      "description": "Components name a pack of another package's elements, which the root around them loads on demand, once per page.",
       "noun": "components",
       "attributes": [
         {
           "name": "source",
           "kind": "string",
-          "description": "The pack:  a JSON array of `{ \"tag\", \"source\", \"load\"?, \"skeleton\"? }`, same origin.  Each `source` (the module that defines the tag) is relative to the pack;  `load` is `on-demand` (default:  when a root meets the tag) or `eager` (as soon as the pack is read);  `skeleton` is skeleton text (`inline 6 x 2.5`, `2 tall`, `18 wide: header, 3 line paragraph`;  left out:  none).  Any tag, not only `ui-*`."
+          "description": "URL of the pack's script (`epics.pack.js`), relative to the page.  The root loads it once per page as a classic script (so it works from `file://`) and waits for it before showing its content."
         }
       ],
       "slots": [],
-      "events": [
-        {
-          "name": "ui-load",
-          "detail": "{ source: string, tags: string[] }",
-          "description": "The pack is read:  every root on the page knows `tags` now."
-        },
-        {
-          "name": "ui-error",
-          "detail": "{ kind: 'load' | 'cross-origin' | 'file-protocol' | 'render', source: string, error: unknown }",
-          "cancelable": true,
-          "description": "The pack didn't load (`load`, `cross-origin`, `file-protocol`), or isn't a pack (`render`).  Roots then call its tags unknown.  Cancel it to skip the console warning."
-        }
-      ],
+      "events": [],
       "parts": [],
-      "states": [
-        {
-          "name": "loading",
-          "description": "Fetching the pack."
-        },
-        {
-          "name": "loaded",
-          "description": "The pack is read;  its tags are known."
-        },
-        {
-          "name": "error",
-          "description": "The pack didn't load, or isn't a pack."
-        }
-      ],
+      "states": [],
       "texts": [],
-      "mainTag": "ui-root",
-      "main": false,
-      "page": false,
-      "href": "components/ui-root.html#ui-components"
+      "mainTag": "ui-components",
+      "main": true,
+      "page": true,
+      "href": "components/ui-components.html"
     },
     {
       "tag": "ui-container",
@@ -10644,20 +10619,20 @@
       "slots": [
         {
           "name": "",
-          "description": "The page or app:  any markup, with `ui-*` elements anywhere inside."
+          "description": "The page or app:  any markup, with `ui-*` elements anywhere inside, and the tags of the component packs its `<ui-components>` name."
         }
       ],
       "events": [
         {
           "name": "ui-ready",
-          "detail": "{ failed: { tag: string, reason: 'unknown' | 'failed' | 'timeout', error?: unknown }[] }",
+          "detail": "{ failed: { tag: string, reason: 'unknown' | 'failed' | 'timeout', error?: unknown, source?: string }[] }",
           "description": "Everything inside is ready (or the timeout passed):  the content shows.  `failed` lists what didn't load."
         },
         {
           "name": "ui-error",
-          "detail": "{ tag: string, reason: 'unknown' | 'failed' | 'timeout', error?: unknown }",
+          "detail": "{ tag: string, reason: 'unknown' | 'failed' | 'timeout', error?: unknown, source?: string }",
           "cancelable": true,
-          "description": "A tag inside couldn't load:  no such component (`unknown`), its family didn't load (`failed`), or it wasn't ready in time (`timeout`).  Cancel it to skip the console warning."
+          "description": "A tag inside couldn't load:  no such component (`unknown`), its family didn't load (`failed`), or it wasn't ready in time (`timeout`);  or a component pack didn't load (`tag` `ui-components`, with its `source`).  Cancel it to skip the console warning."
         }
       ],
       "parts": [
@@ -17768,6 +17743,18 @@
         }
       ]
     },
+    "ui-components": {
+      "folder": "ui-components",
+      "mainTag": "ui-components",
+      "title": "Components",
+      "summary": "Components name a pack of another package's elements, which the root around them loads on demand, once per page.",
+      "status": "done",
+      "docs": false,
+      "tags": [
+        "ui-components"
+      ],
+      "tokens": []
+    },
     "ui-container": {
       "folder": "ui-container",
       "mainTag": "ui-container",
@@ -22649,8 +22636,7 @@
       "status": "done",
       "docs": false,
       "tags": [
-        "ui-root",
-        "ui-components"
+        "ui-root"
       ],
       "tokens": []
     },

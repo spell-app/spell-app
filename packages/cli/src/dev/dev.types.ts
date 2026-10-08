@@ -313,6 +313,8 @@ export type SnapshotReview = { file: string; keys: string[] }
  *   - `fast-forward`:  the branch had nothing of its own, so it moved to `main`
  *   - `merged`:  a merge commit, generated files regenerated
  *   - `conflicts`:  stopped mid-merge on `conflicts`;  resolve them, `git add` them, then `--continue`
+ * - `untracked`:  conflicted files the merged `.gitignore` ignores (generated output no longer committed), taken out
+ *   of the index and left on disk
  * - `regenerated`:  each generator that ran, and the files it staged
  * - `review`:  snapshot entries to show Owen (`SnapshotReview`)
  * - `unstaged`:  files a generator changed outside its `outputs`, left for a person to look at
@@ -321,6 +323,7 @@ export type MergeMainReport = {
   branch: string
   result: "up-to-date" | "fast-forward" | "merged" | "conflicts"
   conflicts: string[]
+  untracked: string[]
   regenerated: { name: string; files: string[] }[]
   review: SnapshotReview[]
   unstaged: string[]
@@ -363,3 +366,39 @@ export type AgentRulesProblem = { file: string; line: number; cite: string; prob
 
 /** `spell dev wwod check`'s answer:  WWOD's size, how many files were read, and what's broken. */
 export type AgentRulesReport = { sections: number; rules: number; files: number; problems: AgentRulesProblem[] }
+
+////////////////
+// ## Component packs
+////////////////
+
+/**
+ * A component pack:  a package `packages/<name>/` whose `package.json` has a `spellPack` (`readPack()`).
+ * - `prefix`:  every tag's, e.g. `epic-`;  `dir`:  the package, absolute
+ */
+export type PackInfo = { name: string; prefix: string; dir: string }
+
+/**
+ * What `spell dev pack new` / `element` did, paths relative to the checkout.
+ * - `created`:  files written;  `skipped`:  files already there, left as they were
+ * - `updated`:  files it added to, with what in parens:  `package.json (workspaces)`, a barrel's export ...
+ * - `built`:  the pack's build, when it ran (`--no-build` skips it)
+ */
+export type PackScaffoldReport = {
+  pack: string
+  created: string[]
+  updated: string[]
+  skipped: string[]
+  built?: PackBuildReport
+}
+
+/**
+ * `spell dev pack build`'s answer.
+ * - `files`:  what it wrote, relative to the checkout;  `tags`:  the catalog's;  `hash`:  the sources'
+ */
+export type PackBuildReport = { pack: string; files: string[]; tags: string[]; hash: string }
+
+/**
+ * `spell dev pack check`'s answer for one pack.
+ * - `hash`:  the sources' now;  `stale`:  each generated file that's out of date, and why (none:  current)
+ */
+export type PackCheckReport = { pack: string; hash: string; stale: string[] }

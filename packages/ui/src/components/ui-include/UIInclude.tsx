@@ -218,8 +218,8 @@ export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
   ////////////////
 
   /**
-   * Load what defines every undefined tag under `root` (its family, or a component pack's module),
-   * as `<ui-root>` would.
+   * Load the family of every undefined tag under `root`, as `<ui-root>` would
+   * (a component pack's tags are defined by its pack, as it registers).
    * - STATIC:  needs nothing of the include, only `root`.
    * - NEVER throws:  a tag that fails to load is a warning.
    */

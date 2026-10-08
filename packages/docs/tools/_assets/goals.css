@@ -1,5 +1,7 @@
 /*
- * Goals pages (`goals/**`, `templates/goals/**`), on top of `spell-doc.css` and `plan-doc.css`.
+ * Goals pages (`goals/**`, `templates/goals/**`), on top of `spell-doc.css`;  NOT `plan-doc.css` (epic
+ * `epic-components` Q8:  the item lists' rules are here now).  Pages made before still link it too, until
+ * regenerated (`GoalsPage.restyle()`).
  * - Markup and conventions:  `goals/AGENTS.md`.  Tools:  `goals/_tools/`;  live buttons:  `goals-live.js` here.
  * - Colors only from UI's tokens (`--ui-<hue>`, `--ui-<hue>-background` ...), so dark mode keeps working.
  * - A page's accent:  `<body data-accent="violet">`, one of UI's hues.  Drives the hero wash, the eyebrow, the
@@ -246,8 +248,58 @@
 *******************************/
 
 /*
- * Item lists reuse `plan-doc.css`'s `ol.plan-items` (id chip, title, folded details, struck through when done).
- * Here:  the chip takes a color per kind, from the item id's letter.
+ * Item lists:  `<ol class="plan-items" data-kind>` of `<li id="q3" data-status="open|done">`, each an id chip
+ * (`a.plan-id`), a title (`.plan-title`) and folded details (`ui-accordion.spell-aside`);  `page.js` writes them.
+ * - the markup plan docs had before their `<epic-*>` elements;  these rules were `plan-doc.css`'s, copied here
+ *   unchanged (epic `epic-components` Q8), so goals no longer need that sheet
+ * - done items stay, unstruck;  the runtime's item filter (`spell-doc.css`) hides them on request
+ */
+ol.plan-items {
+  list-style: none;
+  padding-left: 0;
+}
+ol.plan-items > li {
+  margin: 6px 0;
+}
+/* empty lists say so, until the tool adds the first item */
+ol.plan-items:empty::before {
+  content: "none yet";
+  color: var(--spell-muted);
+  font-style: italic;
+}
+.plan-id {
+  display: inline-block;
+  flex: none;
+  min-width: 2.6em;
+  margin-right: 6px;
+  padding: 0 7px;
+  border-radius: 999px;
+  background: var(--plan-state-background, var(--spell-doc-accent-soft));
+  font: 600 0.8rem/1.6 var(--spell-mono);
+  text-align: center;
+  text-decoration: none;
+}
+.spell-doc-main a.plan-id {
+  color: var(--plan-state-color, var(--spell-doc-accent));
+}
+/*
+ * a done item's title reads quieter, once the runtime has marked the items' states (`markItemStates()`:  it does
+ * on a live update, `rewire()`)
+ */
+.plan-items > [data-spell-state="old"] .plan-title {
+  color: var(--spell-muted);
+}
+ol.plan-items > li > ui-accordion.spell-aside {
+  margin: 4px 0 0 calc(2.6em + 18px);
+}
+/* the item filter:  the first item still shown (none shown above it) drops its divider line, as a list's first does */
+.spell-doc-main .plan-items > :not([data-spell-hidden]):not(:not([data-spell-hidden]) ~ *) {
+  --_ui-list-item-border-width: 0;
+  --ui-list-item-border-width: 0;
+}
+
+/*
+ * The chip takes a color per kind, from the item id's letter.
  * - G goal (accent) · Q question (orange) · D decision (green) · R risk (red) · W work (blue) · I idea (teal)
  */
 ol.plan-items > li[id^="g"] > .plan-id {
@@ -321,6 +373,10 @@ ol.plan-items ui-label {
 .spell-doc-main :is(h2, h3) > ui-icon {
   margin-right: 6px;
   color: var(--goals-accent);
+}
+/* an h3's sits a little closer (`plan-doc.css`'s phase-heading rule had it so, before Q8) */
+.spell-doc-main h3 > ui-icon {
+  margin-right: 4px;
 }
 
 /*******************************

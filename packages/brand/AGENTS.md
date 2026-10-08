@@ -36,8 +36,10 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 - `_assets/` -- the brand pages' own assets:
   - `brand-pages.js` / `.css` -- the index and Compare (classic script, on the docs bundle).  Its `PAGES` list is
     THE list of pages;  flip a page's `built` to `true` in the change that adds its `.spell.html`.
-  - `ui/` -- GENERATED, committed:  the copies' bundle, `brand-ui.js` + `brand-ui.css` + lazy chunks (`yarn build`);
-    `icon-packs` a symlink to Spell UI's.  NEVER edit.
+  - `ui/` -- GENERATED, NOT committed (git-ignored since 2026-10-07:  its hashed chunk names churned every diff):  the
+    copies' bundle, `brand-ui.js` + `brand-ui.css` + lazy chunks (`yarn build`);  `icon-packs` a symlink to Spell
+    UI's.  The page server builds it when it starts, if stale (`spell dev bundles build --stale`;  `$/assembler`
+    `Bundle`, `.bundle.json` records the sources' hash).  NEVER edit.
 - `_data/` -- GENERATED, committed (`yarn site:data`):  `components.json` (the docs pages' API and tokens, and the
   design system's Brand cards), `pages.json` (hand-kept), `custom-elements.json` and `html-custom-data.json` (VS Code
   autocomplete for `<ui-brand-*>`, loaded by the repo's `.vscode/settings.json`).
@@ -69,8 +71,9 @@ Types / Exports and Imports sections all apply here.  Only what DIFFERS is below
 
 ## Commands
 
-- `yarn build` -- the copies' bundle, `_assets/ui/` (commit it);  rerun after changing `components/`, `src/`, or
-  Spell UI source the pages use.
+- `yarn build` -- the copies' bundle, `_assets/ui/` (git-ignored);  `spell dev bundles build brand` runs it and
+  records the sources' hash.  The page server rebuilds it when it starts if `components/`, `src/` or the Spell UI
+  source it reads changed;  rerun by hand (or restart the page server) while it runs.
 - `yarn site:data` -- the elements' docs data, `_data/components.json` (+ hand-kept `pages.json`), by Spell UI's
   `SiteDataBuilder` reading `components/`, and the editor manifests (`ElementManifests`);  rerun after a vocabulary or
   a sheet's tokens change, and commit all four.  Then `spell dev design build` picks the change up for claude.ai.

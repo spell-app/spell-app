@@ -11,7 +11,8 @@ description: Start the spell web servers of this checkout that aren't running --
    - waits for the editor (up to 90s:  vite may be building its dependency cache), then checks Spell UI's docs:
      static pages the page server serves at `/ui/` (the shared pages, `ui/`, with this branch's built
      `packages/ui/site/_assets/` and `_data/` laid over them), by asking for their bundle,
-     `/ui/_assets/site.js` (missing:  `yarn site:build` in `packages/ui`)
+     `/ui/_assets/site.js`:  NOT committed;  the page server builds it (and the brand pages' bundle) when it starts,
+     if stale, and the request waits for that (failed:  `.spell-server.log`, `spell dev bundles build ui-site`)
    - prints one row per server:  name, port, URL, what it serves, and `started` / `running` / why not;  exit code 1
      if any didn't come up
 2. Reply with the rows as a small table:  server, port, URL (linked).  For a failed row, the last lines of the log it

@@ -1,0 +1,28 @@
+import type { JSX } from "@solidjs/web"
+
+import { E } from "$/ui/core"
+
+import { __vocab__Vocabulary } from "./__Class__.en"
+
+import __nounCamel__CSS from "./__Class__.css?inline"
+
+/****************
+ * ### `__Class__`
+ * The component behind `<__tag__>`:  DOCME, one line of what it is.
+ * - DOCME:  its responsibilities, one bullet each
+ ****************/
+export class __Class__ extends E.UIComponent<typeof __vocab__Vocabulary> {
+  @E.proto static vocabulary = __vocab__Vocabulary
+  @E.proto static styleSheets = { __nounCamel__: __nounCamel__CSS }
+
+  render(): JSX.Element {
+    return (
+      <div class={this.rootClasses} part={this.partForName("base")}>
+        <slot />
+      </div>
+    )
+  }
+}
+
+/** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
+export interface __Class__ extends E.AttributeValues<typeof __vocab__Vocabulary> {}

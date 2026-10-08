@@ -189,25 +189,55 @@ function describe(path) {
   const full = document.querySelector("title")?.textContent.trim() || path
   const title = path.startsWith("epics/") ? full.replace(/^Epic:\s*/, "") : full
   const description = document.querySelector('meta[name="description"]')?.getAttribute("content")?.trim() ?? ""
-  // a plan's phases:  its phase sections in `#phases` (every plan doc has them):  `<ui-section data-phase>`, or
-  // `section[data-phase]` in a doc not yet migrated (`plan-doc.js` reads them the same way).  Epics only:  the
-  // runtime's test page (`spell-docs/ui-section-test.html`) has phases too
-  const sections = path.startsWith("epics/")
-    ? document.querySelectorAll("ui-section#phases ui-section[data-phase], #phases-section section[data-phase]")
-    : []
+  // Epics only:  the runtime's test page (`spell-docs/ui-section-test.html`) has phases too
+  const plan = path.startsWith("epics/")
+    ? planOf(document)
+    : { phases: [], updated: null, future: false, followUps: [] }
+  return { path, title, description, ...plan }
+}
+
+/**
+ * What a plan doc's card shows, from its skeleton:  `{ phases, updated, future, followUps }`, either markup.
+ * - `<epic-*>` markup:  each `<epic-phase status title>` (its label `P2 · <title>`), `<epic-page updated future>`
+ * - the old markup:  each `<ui-section data-phase>` in `#phases` (or `section[data-phase]` in a doc not yet
+ *   migrated), the `#plan-updated` stamp, `<body data-future>`.  REFACTOR: drop old markup after the switch (P12)
+ * - `updated`:  the plan-doc tool's "updated" stamp (`touch()`):  how long since anyone worked on it
+ * - `future`:  an epic written down with `/epic future`, not planned yet
+ */
+export function planOf(document) {
+  const page = document.querySelector("epic-page")
+  if (page) {
+    const phases = Array.from(
+      document.querySelectorAll('epic-page > epic-section[kind="phases"] > epic-phase'),
+      (phase) => ({
+        status: phase.getAttribute("status"),
+        label: `${phase.id.toUpperCase()} · ${(phase.getAttribute("title") ?? phase.querySelector(':scope > [slot="title"]')?.textContent ?? "").replace(/\s+/g, " ").trim()}`
+      })
+    )
+    return {
+      phases,
+      updated: page.getAttribute("updated") || null,
+      future: page.hasAttribute("future"),
+      followUps: followUpsIn(document)
+    }
+  }
+  const sections = document.querySelectorAll(
+    "ui-section#phases ui-section[data-phase], #phases-section section[data-phase]"
+  )
   const phases = Array.from(sections, (section) => ({
     status: section.getAttribute("data-status"),
     label: phaseLabel(section)
   }))
-  // a plan doc's "updated" stamp (`plan-doc.js` `touch()`):  how long since anyone worked on it
   const updated = document.getElementById("plan-updated")?.textContent.trim() || null
-  // a future epic (`/epic future`, `plan-doc.js` `future`):  written down, not planned yet
-  const future = path.startsWith("epics/") && document.body?.hasAttribute("data-future")
-  const followUps = path.startsWith("epics/") ? followUpsIn(document) : []
-  return { path, title, description, phases, updated, future, followUps }
+  return {
+    phases,
+    updated,
+    future: Boolean(document.body?.hasAttribute("data-future")),
+    followUps: followUpsIn(document)
+  }
 }
 
-/** A phase section's title, whitespace collapsed:  its `header` (else `slot="header"`), or an old one's h3. */
+/** An old-markup phase section's title, whitespace collapsed:  its `header` (else `slot="header"`), or an h3. */
 function phaseLabel(section) {
   const source =
     section.localName === "ui-section"
@@ -224,10 +254,12 @@ function phaseLabel(section) {
  * What an epic still asks of Owen, from its plan doc's item lines (the skeleton has them all):  each OPEN question,
  * judgement call, issue, todo and hand test, as its kind's name.  Caveats don't count:  limits accepted, open for good.
  * - the same as `spell-doc-runtime.js` `FOLLOW_UPS` and `packages/cli/src/dev/worktrees.ts` `planFollowUps()`
+ * - either markup:  `<epic-item status="open">`, or the old `.plan-items > [data-status="open"]` (REFACTOR: drop old
+ *   markup after the switch, P12)
  */
 function followUpsIn(document) {
   return Array.from(
-    document.querySelectorAll('.plan-items > [id][data-status="open"]'),
+    document.querySelectorAll('epic-section > epic-item[id][status="open"], .plan-items > [id][data-status="open"]'),
     (item) => FOLLOW_UPS[item.id[0]]
   ).filter(Boolean)
 }

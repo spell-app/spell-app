@@ -13,6 +13,12 @@ __pycache__/
 .spell-server.*.json
 
 
+# bundles the page server builds when it starts, if stale (`spell dev bundles build --stale`;  `$/assembler` `BUNDLES`):
+# never committed, since their chunk names carry content hashes:  every Spell UI change deleted and re-added most of
+# their files in every diff and merge (epic epic-components, 2026-10-07)
+/packages/ui/site/_assets/
+/packages/brand/_assets/ui/
+
 # `/park`'s note on where parked work stopped:  never committed
 PARKED-*.md
 # a checkout's running agents when it has no epic (`spell dev agents`;  an epic's:  `epics/<epic>/agents.json`)
@@ -34,6 +40,10 @@ PARKED-*.md
 # the old content link, in checkouts cut before 2026-10-05:  remove with the old-path links (claude-design T1)
 /packages/docs/content
 # shared:end
+
+# preview copies of the shared plan docs in <epic-*> markup (`spell dev plan-doc convert --all --out preview-epics`,
+# epic epic-components):  at the root so a copy's `../../packages/...` and `../../guides/...` links resolve
+/preview-epics/
 # the MAIN checkout's marker:  worktree windows hide its folder's files (scripts/window.mjs `filesExclude()`)
 /.spell-main
 *.code-workspace

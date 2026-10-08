@@ -216,8 +216,8 @@ export type ComponentVocabulary = {
    * (`SkeletonText`):  `"inline 6 x 2.5"`, `"18 wide: square image, header, 3 line paragraph"`.
    * - Left OUT for none of its own:  a part covered by its owner's skeleton (`ui-column` in a grid, `ui-item` in a
    *   list), or a tag with nothing to show (`ui-popup`).
-   * - Text, not a `SkeletonSpec`:  one form for vocabularies and component packs (`<ui-components>`).  `yarn gen:root`
-   *   parses it into `<ui-root>`'s catalog;  `test/vocabularies.test.ts` parses every one.
+   * - Text, not a `SkeletonSpec`:  one form for Spell UI's vocabularies and a component pack's.  `yarn gen:root`
+   *   (and `spell dev pack build`) parse it into a catalog;  `test/vocabularies.test.ts` parses every one.
    * - NEVER translated:  drawing data, like `states`.
    */
   skeleton?: string

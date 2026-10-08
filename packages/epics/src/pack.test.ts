@@ -1,0 +1,17 @@
+import { spawnSync } from "node:child_process"
+import { fileURLToPath } from "node:url"
+import { expect, test } from "vite-plus/test"
+
+/** The `spell` command line, from this checkout's source. */
+const SPELL = fileURLToPath(new URL("../../cli/bin/spell.mjs", import.meta.url))
+
+/** This package's folder. */
+const PACKAGE = fileURLToPath(new URL("../", import.meta.url))
+
+test("`pack/` is CURRENT:  built from the vocabularies and sources as they are -- `yarn pack:build` if not", () => {
+  const check = spawnSync(process.execPath, [SPELL, "dev", "pack", "check", "epics"], {
+    cwd: PACKAGE,
+    encoding: "utf8"
+  })
+  expect(check.status, check.stdout + check.stderr).toBe(0)
+}, 30_000)
