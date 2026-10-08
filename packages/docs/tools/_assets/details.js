@@ -5,7 +5,7 @@
  *   with the rest of the page.
  * - Builds, from `ui-section.spell-question` > `.spell-option[data-option][data-title]`:
  *   - one `ui-segment` card per option:  a `ui-radio` (or `ui-checkbox` under `data-multiple`) labelled
- *     `A · title`, ticked to start with under `data-checked`, a grey "(recommended)" (`data-recommended`), the
+ *     `A · title`, ticked to start with under `data-checked`, a violet thumbs-up, no word (`data-recommended`;  Owen, Q20), the
  *     one-line summary, and its `.spell-option-details` folded in a `ui-accordion`;  the chosen card green
  *   - an "Other" box per question, and a comment box under each option;  a comment box under every other section
  *     with no sections inside it
@@ -239,7 +239,14 @@
     // quiet grey text, as plan docs show it:  no colour that means something else (Q20 of epic `epic-components`)
     if (option.hasAttribute("data-recommended")) {
       card.setAttribute("data-recommended", "")
-      heading.append(el("span", { class: "spell-recommended" }, "(recommended)"))
+      heading.append(
+        el("ui-icon", {
+          class: "spell-recommended",
+          name: "thumbs up",
+          "aria-label": "recommended",
+          title: "Recommended"
+        })
+      )
     }
     if (option.dataset.badge) {
       const color = option.dataset.badgeColor ?? "grey"

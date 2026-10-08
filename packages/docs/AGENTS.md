@@ -327,7 +327,7 @@ In `tools/`:
   `<slug>.answer.json` beside the page;  `spell dev details wait`, run in the background, exits with it and so wakes the
   session.
 - `findPages()` skips every `details/` folder:  not in the index, not checked by `docs update`.
-- Colours (the scheme:  "Colours" above):  "(recommended)" grey text after an option's title;  the chosen card
+- Colours (the scheme:  "Colours" above):  recommended:  a violet thumbs-up after an option's title, no word;  the chosen card
   green;  Send blue, by the fill rule (grey outline:  nothing to send;  dashed:  changes not sent;  outline:  sent);
   each question's rail badge red (nothing yet), green (picked) or blue (Claude has more to do:  more details asked,
   or only Other written);  the status label red (waiting for your answer), blue (changes not sent), green
