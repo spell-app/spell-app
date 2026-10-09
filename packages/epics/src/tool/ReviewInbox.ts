@@ -19,6 +19,11 @@ import { SRV } from "$/server"
  * - Shape (`version: 1`):
  *   - `marks`:  `{ [id]: { action, at, when?, note?, pick?, choices? } }`, one per item id (lower-case), the latest
  *     wins
+ *     - what takes a mark (`itemIds()`):  an item, an Overview sub-section (`o3`), a phase (`p3`), and the summary,
+ *       keyed `summary` (it has no id of its own;  epic `airplane` P2)
+ *     - a NEW item Owen asks for from the page (epic `airplane` P2):  `{ action: "new", kind, title, note?, near? }`,
+ *       under a key of its own, `new1`, `new2` ... (`setNew()`), so several wait at once.  `kind`:  `todo` or
+ *       `question`;  `near`:  the id of what it's about.  Sent with the rest;  `plan-doc inbox apply` makes the item
  *     - a plain pick:  `{ action: "pick", pick: "B", choices: 1 }`, applied by `plan-doc inbox apply`, on any item
  *       kind (I8).  `choices`:  WHICH of the item's option card sets, by position, 0 the first
  *       (`PlanItem.choiceSets()`):  one item may hold several (its text's, a reply's).  None (an older mark):  the
@@ -260,12 +265,46 @@ export class ReviewInbox {
   setMark(id: unknown, mark: unknown, at = isoTime()): InboxMark | null {
     const key = ReviewInbox.toItemId(id)
     const checked = mark === null ? null : { ...ReviewInbox.toMark(mark), at }
+    if (checked && (checked.action === "new") !== NEW_ID.test(key))
+      throw new InboxError(`a new item is asked for under its own key (new1 ...), never on an item:  ${key}`)
     if (!checked || !ReviewInbox.isImmediate(checked)) this.now = this.now.filter((each) => each.id !== key)
     if (checked) this.marks[key] = checked
     else delete this.marks[key]
     // the note box's text is in the mark now;  a mark removed (Clear) takes its unsent text with it
     if (!checked || checked.note !== undefined) delete this.drafts[key]
     return checked
+  }
+
+  /**
+   * A NEW item Owen asks for from the page (epic `airplane` P2):  `entry` (`{ kind, title, note?, near? }`, checked:
+   * `toMark()`) under key `id`, or (none) the next free key, `new1`, `new2` ...;  `entry` `null` removes it.
+   * - a mark like any other, `{ action: "new", ... }`:  sent with the rest (`unsentMarks`), made into an item by
+   *   `plan-doc inbox apply` (`PlanDoc.applyMark()`), editable or removable until then
+   * - the key is chosen here, under the inbox's lock:  two pages adding at once never take the same one
+   * - returns the key, or `null` once removed
+   * - throws an `InboxError` for a bad entry, a key that isn't a new item's, or a removal without a key
+   */
+  setNew(id: unknown, entry: unknown, at = isoTime()): string | null {
+    const given = id !== undefined && id !== null
+    if (given && (typeof id !== "string" || !NEW_ID.test(id.toLowerCase())))
+      throw new InboxError(`not a new item's key:  ${JSON.stringify(id)}`)
+    if (entry === null) {
+      if (!given) throw new InboxError("remove which new item?  its key (new1 ...)")
+      this.setMark(id, null, at)
+      return null
+    }
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) throw new InboxError("a new item is an object")
+    const key = given ? ReviewInbox.toItemId(id) : this.nextNewId()
+    this.setMark(key, { ...entry, action: "new" }, at)
+    return key
+  }
+
+  /** The next free new item key:  `new<N>`, one past the highest waiting. */
+  private nextNewId(): string {
+    const numbers = Object.keys(this.marks)
+      .filter((key) => NEW_ID.test(key))
+      .map((key) => Number(key.slice(NEW_PREFIX.length)))
+    return `${NEW_PREFIX}${Math.max(0, ...numbers) + 1}`
   }
 
   /**
@@ -551,12 +590,16 @@ export class ReviewInbox {
    * - with a pick:  `choices` too, when given:  which of the item's option card sets it's from, by position (`0`,
    *   `1` ...:  I8);  none, the item's own
    * - `todo`:  `note` trimmed, kept only when there is one
+   * - `new` (a new item, `setNew()`):  `kind` one of `NEW_KINDS`;  `title` trimmed, never empty, at most
+   *   `MAX_TITLE` characters;  `note` trimmed, kept only when there is one;  `near` an id (`toItemId()`, lower-case),
+   *   kept only when given.  Whether the doc HAS that id is the route's to check (it reads the doc)
    * - throws an `InboxError` for anything else;  `at` is never taken from it (the writer stamps it)
    * - STATIC, as every check here:  pure, on a request before any inbox is read
    */
   static toMark(mark: unknown): CheckedMark {
     if (!mark || typeof mark !== "object" || Array.isArray(mark)) throw new InboxError("a mark is an object, or null")
     const { action, when = "soon", note = "", pick, choices } = mark as Record<string, unknown>
+    if (action === "new") return toNewItem(mark as Record<string, unknown>)
     if (!isAction(action)) throw new InboxError(`no such action:  ${action} (${ACTIONS.join(" | ")})`)
     if (action === "revisit") {
       if (!REVISIT_WHEN.includes(when as RevisitWhen))
@@ -574,11 +617,19 @@ export class ReviewInbox {
     return { action }
   }
 
-  /** `id` as the inbox keys it:  lower-case, as the item's element id;  an `InboxError` when it isn't an item id. */
+  /**
+   * `id` as the inbox keys it:  lower-case, as the item's element id;  an `InboxError` when it isn't an item id.
+   * - also the summary's key, `summary`, and a new item's, `new1` (epic `airplane` P2)
+   */
   static toItemId(this: void, id: unknown): string {
     const key = typeof id === "string" ? id.toLowerCase() : ""
-    if (!ITEM_ID.test(key)) throw new InboxError(`not an item id:  ${id}`)
+    if (!ITEM_ID.test(key) && key !== SUMMARY_ID && !NEW_ID.test(key)) throw new InboxError(`not an item id:  ${id}`)
     return key
+  }
+
+  /** Is `id` a new item's key (`new1`:  `setNew()`), not something the doc has? */
+  static isNewId(this: void, id: string): boolean {
+    return NEW_ID.test(id.toLowerCase())
   }
 
   /**
@@ -599,17 +650,24 @@ export class ReviewInbox {
    * The ids a review mark may name in plan doc `html` (a skeleton:  every item's line is in it):
    * - every `<epic-item id>`, and every Overview sub-section, `<epic-section kind="overview-part" id>` (Q14:  they
    *   take review notes too)
+   * - every phase, `<epic-phase id>`, and the summary, `summary` while the doc has an `<epic-summary>` (epic
+   *   `airplane` P2:  notes on them too)
    * - in the OLD markup, every `<ui-item>` carrying both an `id` and a `data-status` (an item, not a phase step or a
    *   plain list entry).  REFACTOR: drop old markup after the switch (P12)
    * - text, not a DOM:  cheap enough to run on every request;  attributes in any order, across lines
    */
   static itemIds(html: string): Set<string> {
     const ids = new Set<string>()
-    for (const [tag, name] of html.matchAll(/<(ui-item|epic-item|epic-section)\b[^>]*>/g)) {
+    for (const [tag, name] of html.matchAll(/<(ui-item|epic-item|epic-section|epic-phase|epic-summary)\b[^>]*>/g)) {
+      if (name === "epic-summary") {
+        ids.add(SUMMARY_ID)
+        continue
+      }
       const id = /\sid="([^"]+)"/.exec(tag)?.[1]
       if (!id) continue
       const markable =
         name === "epic-item" ||
+        name === "epic-phase" ||
         (name === "epic-section" && /\skind="overview-part"/.test(tag)) ||
         (name === "ui-item" && /\sdata-status="/.test(tag))
       if (markable) ids.add(id.toLowerCase())
@@ -645,10 +703,18 @@ export type InboxMark = CheckedMark & { at: string }
 
 /**
  * A mark as `ReviewInbox.toMark()` checks it, before it's stamped.
- * - `when`, `note`:  a revisit's (`note` a todo's too);  `pick`:  a pick's letter, or a revisit's "pick B, but ..."
+ * - `when`, `note`:  a revisit's (`note` a todo's and a new item's too);  `pick`:  a pick's letter, or a revisit's
+ *   "pick B, but ..."
  * - `choices`:  with a pick, which of the item's option card sets it's from, by position (I8);  none:  its own
+ * - `kind`, `title`, `near`:  a new item's (`action: "new"`, epic `airplane` P2)
  */
-export type CheckedMark = { action: MarkAction; when?: RevisitWhen; note?: string } & PickFields
+export type CheckedMark = { action: MarkAction; when?: RevisitWhen; note?: string } & PickFields & NewItemFields
+
+/**
+ * A new item's fields (`action: "new"`, `ReviewInbox.setNew()`):  `kind` `todo` or `question`, `title`, and `near`,
+ * the id of what it's about (an item, a phase, an Overview sub-section, `summary`).
+ */
+export type NewItemFields = { kind?: NewKind; title?: string; near?: string }
 
 /**
  * A pick's fields, on a mark or a `now` request:  `pick`, the option's letter;  `choices`, which of the item's
@@ -701,10 +767,19 @@ export const INBOX_VERSION = 1
  * - `details`:  write more details into it (an immediate request:  `requestNow()`)
  * - `revisit`:  talk it through again;  `when` `soon` (with the next batch) or `now` (immediate), `note` Owen's text
  * - `pick`:  an option card, by letter (`pick: "B"`), on any item (I8):  `choices` says which card set
+ * - `new`:  a new todo or question Owen asks for from the page (`setNew()`, epic `airplane` P2), under its own key
  */
-export const ACTIONS = ["approve", "todo", "details", "revisit", "pick"] as const
+export const ACTIONS = ["approve", "todo", "details", "revisit", "pick", "new"] as const
 /** One of `ACTIONS`. */
 export type MarkAction = (typeof ACTIONS)[number]
+
+/** What a new item from the page may be (`setNew()`):  `plan-doc add`'s kinds Owen asks for. */
+export const NEW_KINDS = ["todo", "question"] as const
+/** One of `NEW_KINDS`. */
+export type NewKind = (typeof NEW_KINDS)[number]
+
+/** The summary's key in the inbox:  `<epic-summary>` has no id of its own (epic `airplane` P2). */
+export const SUMMARY_ID = "summary"
 
 /** Actions an immediate request (`now`) may carry. */
 export const NOW_ACTIONS = ["details", "revisit"] as const
@@ -736,8 +811,15 @@ const OPTION_LETTER = /^[A-Z]$/
 /** The highest card set position a pick may name:  a sanity bound, far above any item's count. */
 const MAX_CHOICES = 99
 
-/** An item id:  a letter or two and a number (`q7`, `j12`). */
+/** An item id:  a letter or two and a number (`q7`, `j12`;  a phase's `p3`, an Overview sub-section's `o3`). */
 const ITEM_ID = /^[a-z]{1,2}\d+$/
+
+/** A new item's key (`setNew()`):  `new1`, `new2` ... */
+const NEW_PREFIX = "new"
+const NEW_ID = /^new\d+$/
+
+/** The longest title a new item may have:  a line, not a page. */
+const MAX_TITLE = 300
 
 /**
  * The items Owen may call urgent or not (`setUrgency()`):  judgement calls and issues, the kinds red while open and
@@ -768,6 +850,27 @@ function isNoteAction(action: unknown): action is NoteAction {
 function toLetter(pick: unknown): string {
   if (typeof pick !== "string" || !OPTION_LETTER.test(pick)) throw new InboxError(`pick which option?  ${pick}`)
   return pick
+}
+
+/**
+ * A new item's mark (`action: "new"`) from a request, checked (`ReviewInbox.toMark()`):  `{ action, kind, title,
+ * note?, near? }`, in that order;  an `InboxError` for a bad kind, a missing or long title, a note that isn't text, or
+ * a `near` that isn't an id.
+ */
+function toNewItem({ kind, title, note = "", near }: Record<string, unknown>): CheckedMark {
+  if (!NEW_KINDS.includes(kind as NewKind)) throw new InboxError(`a new what?  ${kind} (${NEW_KINDS.join(" | ")})`)
+  if (typeof title !== "string" || !title.trim()) throw new InboxError("a new item needs a title")
+  if (title.trim().length > MAX_TITLE) throw new InboxError(`a title is a line:  ${MAX_TITLE} characters at most`)
+  if (typeof note !== "string") throw new InboxError("a new item's note is text")
+  const about = near === undefined || near === null || near === "" ? undefined : ReviewInbox.toItemId(near)
+  if (about && NEW_ID.test(about)) throw new InboxError(`a new item can't be about another one:  ${near}`)
+  return {
+    action: "new",
+    kind: kind as NewKind,
+    title: title.trim(),
+    ...(note.trim() ? { note: note.trim() } : {}),
+    ...(about ? { near: about } : {})
+  }
 }
 
 /**

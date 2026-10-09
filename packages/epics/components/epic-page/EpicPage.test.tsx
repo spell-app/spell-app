@@ -274,6 +274,10 @@ class FakeRoutes {
       const body = JSON.parse(init!.body as string) as Record<string, unknown>
       this.posts.push([route, body])
       if (route === "send") this.inbox.sent = new Date(Date.now() + 1000).toISOString()
+      if (route === "new") {
+        const at = new Date().toISOString()
+        this.inbox.marks.new1 = { ...(body.entry as object), action: "new", at } as Inbox["marks"][string]
+      }
     }
     return new Response(JSON.stringify(this.inbox), { headers: { "content-type": "application/json" } })
   })
@@ -345,6 +349,33 @@ describe("<epic-page> Send and Review Now", () => {
     await vi.waitFor(() =>
       expect(routes.posts.at(-1)).toEqual(["send", { page: "/epics/demo/demo.plan.html", now: true }])
     )
+    await expectAccessible(host)
+  })
+
+  // epic `airplane` P2
+  test("the `+` before Send opens the new item form in the header;  Add saves a todo, counted for Send", async () => {
+    const routes = new FakeRoutes()
+    // listening:  the orange nobody-listening line has a contrast issue of its own (axe), not this test's
+    const at = new Date().toISOString()
+    routes.inbox.listening = { session: "s1", since: at, seen: at }
+    await adoptClient(routes)
+    const host = await render(page("", ["todo"]))
+    await vi.waitFor(() => expect(headerButtons(host).send).not.toBeNull())
+    const plus = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="new-button"]')!
+    expect([plus.title, plus.nextElementSibling!.getAttribute("part")]).toEqual(["New todo or question", "send"])
+    plus.click()
+    await ElementFixture.tick()
+    const form = host.shadowRoot!.querySelector<HTMLFormElement>('header [part~="new-form"]')!
+    form.querySelector<HTMLInputElement>('[data-field="title"]')!.value = "check the wifi"
+    form.requestSubmit()
+    await vi.waitFor(() =>
+      expect(routes.posts.at(-1)).toEqual([
+        "new",
+        { page: "/epics/demo/demo.plan.html", entry: { kind: "todo", title: "check the wifi" } }
+      ])
+    )
+    await vi.waitFor(() => expect(headerButtons(host).send?.[0]).toBe("unsent"))
+    expect(host.shadowRoot!.querySelector('[part~="new-form"]')).toBeNull()
     await expectAccessible(host)
   })
 

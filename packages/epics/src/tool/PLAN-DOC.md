@@ -177,6 +177,19 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
 - Owen's note, once Claude clears its mark:  `<epic-reply from="Owen" at="..." re="revisit soon">`.
 - An Overview sub-section takes review marks too (Q14):  approve is logged, todo makes a todo linking `#o3`, a
   kept note is a paragraph at its end.
+- So do a phase and the summary (epic `airplane` P2:  Revisit, Make Todo, Do Now on the page;  no Approve):
+  - a phase (`p3`):  todo makes `Follow up:  P3 · <title>` linking `#p3`, a Done status card on the phase;  a kept
+    note is Owen's `<epic-reply>` in the phase, under its `<epic-updated>` lines
+  - the summary, keyed `summary` in the inbox (it has no id):  todo makes `Follow up:  the summary` linking
+    `#overview`, a Done status card under the lede;  a kept note is `<epic-reply slot="notes">` in `<epic-summary>`
+- NEW items from the page (epic `airplane` P2):  a `+` in the page header, and a New todo / New question button at
+  the end of the Todos and Questions sections, ask for one with a small form (todo or question, title, note, what
+  it's about).  It waits in the inbox as a mark under a key of its own, `new1`, `new2` ...:
+  `{ action: "new", kind, title, note?, near? }`, drawn at the end of its section (dashed until sent, then
+  outlined), editable and removable until Claude makes it.  `inbox apply` makes each sent one as `add` does:  the
+  note its details (a question's lead), `About <a href="#p3">P3</a>.` for `near`, a Done status card `Made from the
+  page:  Owen's new todo, written <time>.`, one log line.  `inbox clear new1` drops one;  its note is never kept as a
+  reply.
 
 ## Prose elements
 
@@ -201,8 +214,8 @@ it goes wherever prose goes (an item's text, a reply, an option card, a phase fi
 
 ## Status cards
 
-What Claude took each of Owen's review marks to mean, and that it's done (P13):  a card per mark, on the item (or
-the Overview sub-section) it's on.
+What Claude took each of Owen's review marks to mean, and that it's done (P13):  a card per mark, on the item (the
+Overview sub-section, the phase, the summary) it's on.
 
 ```html
 <epic-status slot="status" state="underway" at="2026-10-08 14:20">
@@ -230,7 +243,8 @@ the Overview sub-section) it's on.
     spinner off;  refused with no underway card
   - `status <name> <id> done --filed "<what>"`:  a card born done (`at` alone)
   - `inbox apply`:  a card born done for each pick (`Chose B · <option>`) and todo (`Made todo T23 to follow this
-    up.`) it files (Q19);  none for an approval
+    up.`) it files (Q19), and each new item it makes (`Made from the page:  Owen's new todo, ...`);  none for an
+    approval
   - the reading and summary are HTML, as `updated` takes:  inline runs go in a `<p>`, blocks stay;  plain text works
     as it is (`&lt;` for a `<`)
 - A rewrite of the item's text (`details --file`) leaves its cards where they are;  they never reach its Original

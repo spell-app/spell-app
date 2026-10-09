@@ -287,8 +287,11 @@ In `tools/`:
     for a waiting session
   - `canceled`:  requests Owen called off ("nevermind", `cancelNow()`):  `wait` hands them over once (stop that
     item's agent), `plan-doc details` refuses a write for one, `inbox done | clear` or a new request ends it
-  - one mark per item;  a question's pick with a remark is ONE revisit mark carrying `pick`
-    (`{ action: "revisit", when, note, pick }`):  talked over, never applied by itself
+  - one mark per item (or phase, Overview sub-section, the summary:  `summary`);  a question's pick with a remark is
+    ONE revisit mark carrying `pick` (`{ action: "revisit", when, note, pick }`):  talked over, never applied by
+    itself
+  - a new todo or question asked for from the page (epic `airplane` P2):  a mark under its own key, `new1` ...
+    (`setNew()`:  `{ action: "new", kind, title, note?, near? }`), made by `plan-doc inbox apply`
   - `listening.seen`:  the session's heartbeat (`LISTEN_HEARTBEAT_MS`, 30s, from `wait`);  older than
     `LISTEN_STALE_MS` (90s), the session is gone (`liveListener()` `null`)
 - The page reads and writes through ONE `ReviewClient` (`packages/epics/src/review`), on the page server's route
@@ -296,7 +299,8 @@ In `tools/`:
   `/api/review/...`:  `GET inbox?page=`, `POST mark { page, id, mark | null }`, `POST draft { page, id, action,
   note }` (a note box's text as typed), `POST now { page, id, action, note? }` (Add Details, revisit now, which
   keeps the item's pick:  queued on `now`), `POST cancel { page, id }` ("nevermind"), `POST send { page, now? }`
-  (`now: true`:  Review Now, every revisit waiting asked now too, `reviewNow()`).
+  (`now: true`:  Review Now, every revisit waiting asked now too, `reviewNow()`),
+  `POST new { page, id?, entry | null }` (a new item from the page;  no `id`:  the next free key).
   - a page whose token is stale (its server restarted) takes the new one from the page as served now and retries
     once (`ReviewClient`):  nothing typed is refused for a restart
   - `page`:  the doc's URL path (`/worktrees/<w>/...` too);  only `<name>.plan.html` (else 403), only ids of its
