@@ -1,10 +1,15 @@
-import { onSettled } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 import { revealVocabulary } from "./UIReveal.en"
 
 import revealCSS from "./UIReveal.css?inline"
+
+/**
+ * Attributes that change what's focusable.
+ * - Above the class:  `@fromContent` reads it while the class is defined.
+ */
+const WATCHED = ["href", "disabled", "tabindex", "contenteditable", "type"]
 
 /****************
  * ### `UIReveal`
@@ -27,28 +32,14 @@ export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
   @E.proto static vocabulary = revealVocabulary
   @E.protoMerged static elementSetup = { styleSheets: { reveal: revealCSS } } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    if (isServer) return
-    // SIDE EFFECT:  watches the light DOM for focusable content, from the first settle on
-    onSettled(() => {
-      const observer = new MutationObserver(() => this.scanFocusable())
-      observer.observe(this.domElement, { childList: true, subtree: true, attributeFilter: WATCHED })
-      this.scanFocusable()
-      return () => observer.disconnect()
-    })
-  }
-
   ////////////////
   // ## The tab stop
   ////////////////
 
-  /** The content (light DOM) has a natively focusable element of its own. */
-  @E.state accessor contentHasFocusable = false
-
-  /** Read the light DOM for focusable content now. */
-  private scanFocusable() {
-    this.contentHasFocusable = !!this.domElement.querySelector(FOCUSABLE)
+  /** The content (light DOM) has a natively focusable element of its own;  follows it.  Never on a server. */
+  @E.fromContent({ childList: true, subtree: true, attributeFilter: WATCHED })
+  get contentHasFocusable(): boolean {
+    return !isServer && !!this.domElement.querySelector(FOCUSABLE)
   }
 
   /** Is the root the tab stop?  Not when the content can take focus itself, nor when disabled.  Tracked. */
@@ -100,6 +91,3 @@ const HIDDEN_CONTENT = "hidden content"
 const FOCUSABLE =
   "a[href], area[href], button:not([disabled]), input:not([disabled], [type=hidden]), select:not([disabled]), " +
   "textarea:not([disabled]), summary, [contenteditable]:not([contenteditable=false]), [tabindex]:not([tabindex='-1'])"
-
-/** Attributes that change what's focusable. */
-const WATCHED = ["href", "disabled", "tabindex", "contenteditable", "type"]

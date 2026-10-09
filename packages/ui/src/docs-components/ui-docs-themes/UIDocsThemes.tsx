@@ -117,9 +117,8 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
    * Follow `ThemePreference` while connected:  catch up on connect (another picker, or the OS, may have changed the
    * look meanwhile), unsubscribe on disconnect.
    */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (!isConnected) return undefined
+  @E.whileConnected
+  protected followPreference() {
     this.follow(ThemePreference.look)
     return ThemePreference.subscribe((look) => this.follow(look))
   }

@@ -102,8 +102,14 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   /** `open`:  the DOM element's (a boolean is always the DOM element's, see `@controlled`). */
   @E.controlled("open") accessor isMarkedOpen = false
 
-  /** What its light children start with, and whether a More Details card is among them:  for its label. */
-  @E.state accessor childScan: ChildScan = this.scanChildren()
+  /**
+   * What its light children start with, and whether a More Details card is among them:  for its label.
+   * - Follows them as they change.
+   */
+  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  get childScan(): ChildScan {
+    return this.scanChildren()
+  }
 
   /** Its view of the page's review inbox. */
   readonly reviewState = new ReviewState(() => this.id)
@@ -273,7 +279,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   ////////////////
 
   /**
-   * Load the `source` part whenever it's open and connected;  follow links to it and its children's changes.
+   * Load the `source` part whenever it's open and connected;  follow links to it.
    * - In `onMount()`, not `render()`:  effects outside the drawing.
    */
   onMount(): JSX.Element {
@@ -284,24 +290,19 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
           if (source && open && connected) this.body.load().catch(() => undefined)
         }
       )
-      // the inbox's changes, while connected (kept alive, a removed item must stop listening)
-      createEffect(
-        () => this.isConnected,
-        (connected) => (connected ? this.reviewState.connect() : undefined)
-      )
       onSettled(() => {
-        const observer = new MutationObserver(() => (this.childScan = this.scanChildren()))
-        observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
-        this.childScan = this.scanChildren()
         window.addEventListener("hashchange", this.followHash)
         this.followHash()
-        return () => {
-          observer.disconnect()
-          window.removeEventListener("hashchange", this.followHash)
-        }
+        return () => window.removeEventListener("hashchange", this.followHash)
       })
     }
     return super.onMount()
+  }
+
+  /** The inbox's changes, while connected (kept alive:  a removed item must stop listening). */
+  @E.whileConnected
+  protected followReviews() {
+    return this.reviewState.connect()
   }
 
   render(): JSX.Element {

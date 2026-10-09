@@ -1,4 +1,4 @@
-import { onSettled, untrack } from "solid-js"
+import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 // Import directly to avoid circular import
@@ -7,7 +7,7 @@ import { E, UI, type UIT } from "$/ui/core"
 // Import directly to avoid circular import
 import { UIComponent } from "./UIComponent"
 import { DOMLoadableElement } from "./DOMLoadableElement"
-import { cssState, onChange, state } from "./Reactive"
+import { cssState, fromContent, onChange, state } from "./Reactive"
 import { SOURCE_LOADER_TAG, SOURCE_MESSAGE_TAG } from "./elements.types"
 
 /****************
@@ -20,7 +20,7 @@ import { SOURCE_LOADER_TAG, SOURCE_MESSAGE_TAG } from "./elements.types"
  *   1. `domElement.content = "..."` (`wasEdited`), until `source` changes or `reload()`
  *   2. `source`:  fetched through `UI.sources` (same origin only), when `load` says (`eager`, `visible`, `idle`)
  *   3. the DOM element's own content (`wantsInlineContent`):  a `<script type="text/...">` child (exact text), else a
- *      `<template>` child (its markup), else the DOM element's text;  dedented;  followed by a `MutationObserver`
+ *      `<template>` child (its markup), else the DOM element's text;  dedented;  followed as it changes (`@fromContent`)
  * - States:  `:state(loading)` (a `<ui-loader>` shows), `:state(error)` (a `<ui-message>` says why, unless the
  *   cancelable `ui-error` was cancelled), `:state(saving)`, `:state(dirty)`.
  * - Saving (`save()`):  the cancelable `ui-save` first, then `UI.sources.save()` through the page's saver;
@@ -68,12 +68,13 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
   ////////////////
 
   /**
-   * The DOM element's own content as text, dedented (`wantsInlineContent`);  followed from `onMount()`.
-   * - `(this as LoadableComponent)`:  TS calls `wantsInlineContent` "used before its initialization" in an initializer,
-   *   though it's on the prototype (`@proto static`) before any instance exists.
+   * The DOM element's own content as text, dedented (`wantsInlineContent`);  follows it as the page changes it.
+   * - `""` on a server, and for a class that doesn't want inline content.
    */
-  @state accessor inlineText =
-    isServer || !(this as LoadableComponent).wantsInlineContent ? "" : LoadableComponent.inlineTextOf(this.domElement)
+  @fromContent({ childList: true, characterData: true, subtree: true })
+  get inlineText(): string {
+    return isServer || !this.wantsInlineContent ? "" : LoadableComponent.inlineTextOf(this.domElement)
+  }
 
   /** Last text fetched from `source`. */
   @state accessor fetchedText: string | undefined = undefined
@@ -342,20 +343,6 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
         {this.renderContent()}
       </>
     )
-  }
-
-  /**
-   * Follows the DOM element's own content (`wantsInlineContent`), then renders;  loading follows `onSourceChanged()`.
-   */
-  onMount(): JSX.Element {
-    if (!isServer && this.wantsInlineContent) {
-      onSettled(() => {
-        const observer = new MutationObserver(() => (this.inlineText = LoadableComponent.inlineTextOf(this.domElement)))
-        observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
-        return () => observer.disconnect()
-      })
-    }
-    return super.onMount()
   }
 
   /**

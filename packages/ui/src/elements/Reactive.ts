@@ -38,6 +38,11 @@ import type { E } from "$/ui/core"
  * - `@onChange("a", "b") onXChanged(a, b)`:  an effect reading the named members, calling the method with their
  *   values;  a function it returns is the cleanup.  Created by `Reactive.startEffects()`, after every field exists;
  *   the method runs only when a member's value changed.
+ * - `@whileConnected watchX()`:  runs each time the element connects;  a function it returns is the cleanup, run
+ *   when it disconnects.  Sugar over `@onChange("isConnected")`.
+ * - `@fromContent({ childList: true, subtree: true }) get slotted()`:  a member read from the DOM element's light DOM,
+ *   recomputed when that changes (ONE `MutationObserver` per instance, from the member's first read in a browser).
+ *   On a method instead:  the method is called on each change, from `startEffects()` on.
  * - `Reactive.accessorsOf(instance)` (a component's `$`):  `$.isOpen` is an `Accessor` of `this.isOpen`, for
  *   Solid APIs that take one.
  * - Vocabulary getters (`installAttributeGetters()`;  their setters write the DOM element's property) and raw
@@ -145,12 +150,13 @@ export class Reactive {
   ////////////////
 
   /**
-   * Create `instance`'s `@onChange` effects, most-derived class first (as `onMount()` overrides ran before),
-   * then ONE effect for all its `@aria` members.
+   * Create `instance`'s `@onChange` / `@whileConnected` effects, most-derived class first (as `onMount()` overrides
+   * ran before), then ONE effect for all its `@aria` members;  start watching the light DOM for its `@fromContent`
+   * methods.
    * - MUST run under the instance's owner, once every field exists:  `UIComponent.onMount()`, or a helper class's
    *   constructor (`PartContext`).
    * - Server:  an effect marked `writesDOMElement`, and the `@aria` one, apply once, now
-   *   (the server build never runs an effect's apply);  the rest aren't created.
+   *   (the server build never runs an effect's apply);  the rest aren't created, and nothing watches the light DOM.
    * - The method runs only when a member's VALUE changed (`===`, member by member):  a memo with `equals` sits
    *   between the reads and the effect.  Why:  Solid 2 (rc.13) runs an effect's apply on EVERY re-run of its
    *   compute, equal value or not, and a getter or `@derived` member tracks the sources UNDER it, so its effect
@@ -159,10 +165,13 @@ export class Reactive {
    */
   static startEffects(instance: object) {
     const self = instance as Record<PropertyKey, unknown>
-    for (const { method, members, writesDOMElement } of Reactive.listFor<OnChangeEntry>(instance, ON_CHANGE)) {
+    for (const entry of Reactive.listFor<OnChangeEntry>(instance, ON_CHANGE)) {
+      const { method, members, writesDOMElement, whileConnected } = entry
       const compute = () => members.map((member) => self[member])
       const apply = (values: unknown[]) => {
-        const cleanup = (self[method] as (...values: unknown[]) => unknown)(...values)
+        // `@whileConnected`:  only while connected, and the method takes no values
+        if (whileConnected && !values[0]) return undefined
+        const cleanup = (self[method] as (...values: unknown[]) => unknown)(...(whileConnected ? [] : values))
         return typeof cleanup === "function" ? (cleanup as () => void) : undefined
       }
       if (isServer) {
@@ -170,6 +179,11 @@ export class Reactive {
       } else createEffect(createMemo(compute, { equals: isSameList }), apply)
     }
     Reactive.startAriaEffect(instance as ComponentShape, self)
+    if (isServer) return
+    for (const { method, options } of Reactive.listFor<ContentMethodEntry>(instance, CONTENT_METHODS)) {
+      const call = (mutations: MutationRecord[]) => (self[method] as (mutations: MutationRecord[]) => void)(mutations)
+      watchContent(instance as ContentShape, options, call)
+    }
   }
 
   /**
@@ -467,6 +481,76 @@ export function onChange(...members: (string | OnChangeOptions)[]) {
   }
 }
 
+/**
+ * `@whileConnected watchX()`:  called each time the element connects;  a function it returns is the cleanup, run when
+ * it disconnects (and when the element is released).
+ * - For a listener or an observer on something outside the element (`window`, the document) that must stop while the
+ *   element is out of the page.
+ * - Sugar over `@onChange("isConnected")`, without the `if (!isConnected) return` line:  created by
+ *   `Reactive.startEffects()` in the same list, so it keeps its place among a class's `@onChange` methods.
+ * - Never on a server:  nothing connects there.
+ */
+export function whileConnected<This extends object>(
+  _method: (this: This) => (() => void) | void,
+  context: ClassMethodDecoratorContext<This>
+) {
+  ownList<OnChangeEntry>(context.metadata, ON_CHANGE).push({
+    method: context.name,
+    members: ["isConnected"],
+    writesDOMElement: false,
+    whileConnected: true
+  })
+}
+
+/**
+ * `@fromContent({ childList: true, subtree: true }) get slotted()`:  a member read from the DOM element's light DOM,
+ * recomputed when that changes.
+ * - Options:  what to watch, as a `MutationObserver` takes it (`childList`, `subtree`, `characterData`,
+ *   `attributes`, `attributeFilter`);  `equals(old, next)` true keeps the old value, as `@derived({ equals })`.
+ * - A getter:  a `@derived` whose sources include the light DOM.  A change it watches recomputes it at once;
+ *   readers (JSX, an effect, an outer `@derived`) hear of it only when the VALUE changed.
+ *   - It may read record members too (`this.kind`):  a change to one recomputes it, as `@derived`.
+ *   - Watching starts on its first read in a browser, so a value read once is never stale;  on a server it's
+ *     computed once.
+ * - A method:  called with the `MutationRecord`s on each change it watches (not at the start);
+ *   from `Reactive.startEffects()` (`UIComponent.onMount()`) on.  For a change that writes other members.
+ * - ONE `MutationObserver` per instance for all of them, on `this.domElement`, disconnected when the DOM element is
+ *   released (NOT on disconnect:  a moved element keeps up to date).
+ * - Needs `this.domElement` (`ContentShape`):  components, not helper classes with their own element.
+ */
+export function fromContent(options: FromContentOptions) {
+  function decorate<This extends ContentShape, T>(
+    getter: (this: This) => T,
+    context: ClassGetterDecoratorContext<This, T>
+  ): (this: This) => T
+  function decorate<This extends ContentShape>(
+    method: (this: This, mutations: MutationRecord[]) => void,
+    context: ClassMethodDecoratorContext<This>
+  ): void
+  function decorate<This extends ContentShape, T>(
+    member: (this: This, ...args: any[]) => T,
+    context: ClassGetterDecoratorContext<This, T> | ClassMethodDecoratorContext<This>
+  ): ((this: This) => T) | void {
+    if (context.kind === "method") {
+      ownList<ContentMethodEntry>(context.metadata, CONTENT_METHODS).push({ method: context.name, options })
+      return
+    }
+    const name = context.name
+    const { equals = isSame } = options
+    return function (this: This): T {
+      const record = Reactive.recordOf(this)
+      let cache = record.caches.get(name) as ContentCache | undefined
+      if (!cache) {
+        const created = (cache = new ContentCache(() => member.call(this), equals))
+        record.caches.set(name, created)
+        if (!isServer) watchContent(this, options, () => created.contentChanged())
+      }
+      return cache.read() as T
+    }
+  }
+  return decorate
+}
+
 /****************
  * ### Sources and caches
  ****************/
@@ -661,6 +745,42 @@ class DerivedCache implements Source {
   }
 }
 
+/**
+ * A `@fromContent` getter's cache:  a `DerivedCache` with one more source, the light DOM.
+ * - The light DOM's source has a version and no Solid signal:  `contentChanged()` recomputes at once instead, and
+ *   tells Solid only when the value moved.  Why:  a rescan finding the same thing (a chip's `selected` written
+ *   back, text re-set) must not re-run every reader, or a reader writing the light DOM would loop.
+ */
+class ContentCache extends DerivedCache {
+  /** The light DOM's source:  bumped on each change the observer reports. */
+  private readonly content: Source
+
+  /** Tells Solid's listeners the value moved. */
+  private readonly changes = new Notifier(false)
+
+  constructor(compute: () => unknown, equals: (a: unknown, b: unknown) => boolean) {
+    const content: Source = { version: 0, track: () => undefined }
+    super(() => {
+      reading(content)
+      return compute()
+    }, equals)
+    this.content = content
+  }
+
+  track() {
+    super.track()
+    this.changes.track()
+  }
+
+  /** The observer saw a change it watches:  recompute now;  tell Solid if the value moved. */
+  contentChanged() {
+    this.content.version++
+    const before = this.version
+    this.refresh()
+    if (this.version !== before) this.changes.changed()
+  }
+}
+
 /** The dependencies the `@derived` computing right now collects, if any. */
 let collecting: Map<Source, number> | undefined
 
@@ -757,6 +877,59 @@ function watchAttributeValues(record: ReactiveRecord, component: ComponentShape)
   })
 }
 
+/**
+ * Call `changed` on each change to `owner.domElement`'s light DOM that `options` watches (`@fromContent`).  Browser only.
+ * - ONE `MutationObserver` per owner:  each new watch widens what it observes to the union of every watch's options,
+ *   and each mutation batch goes to the watches it matches.
+ * - Disconnected when the DOM element is released.
+ */
+function watchContent(
+  owner: ContentShape,
+  options: FromContentOptions,
+  changed: (mutations: MutationRecord[]) => void
+) {
+  const record = Reactive.recordOf(owner)
+  const { domElement } = owner
+  let content = record.content
+  if (!content) {
+    const watches: ContentWatch[] = []
+    const observer = new MutationObserver((mutations) => {
+      for (const watch of watches) {
+        const matched = mutations.filter((mutation) => isWatched(watch.options, mutation, domElement))
+        if (matched.length) watch.changed(matched)
+      }
+    })
+    content = record.content = { observer, watches }
+    domElement.addReleaseCallback?.(() => observer.disconnect())
+  }
+  content.watches.push({ options, changed })
+  content.observer.observe(domElement, observedUnion(content.watches))
+}
+
+/** Does `mutation` (under `root`) concern a watch with `options`? */
+function isWatched(options: FromContentOptions, mutation: MutationRecord, root: Node): boolean {
+  if (!options.subtree && mutation.target !== root) return false
+  if (mutation.type === "childList") return !!options.childList
+  if (mutation.type === "characterData") return !!options.characterData
+  const { attributeFilter } = options
+  if (attributeFilter) return attributeFilter.includes(mutation.attributeName!)
+  return !!options.attributes
+}
+
+/** One `MutationObserverInit` covering every watch:  an attribute filter only when every attribute watch has one. */
+function observedUnion(watches: readonly ContentWatch[]): MutationObserverInit {
+  const all = watches.map((watch) => watch.options)
+  const init: MutationObserverInit = {
+    childList: all.some((options) => options.childList),
+    subtree: all.some((options) => options.subtree),
+    characterData: all.some((options) => options.characterData)
+  }
+  const onAttributes = all.filter((options) => options.attributes || options.attributeFilter)
+  if (!onAttributes.length) return init
+  if (onAttributes.some((options) => !options.attributeFilter)) return { ...init, attributes: true }
+  return { ...init, attributeFilter: [...new Set(onAttributes.flatMap((options) => options.attributeFilter!))] }
+}
+
 /** Converted value of attribute `key`:  the DOM element's `attributeValues`, always fresh. */
 function attributeValueNow(component: ComponentShape, key: string): unknown {
   return component.domElement.attributeValues[key]
@@ -815,6 +988,28 @@ export type OnChangeOptions = {
   writesDOMElement?: boolean
 }
 
+/** Options of `@fromContent`:  what to watch, as `MutationObserver.observe()` takes it, and `equals`. */
+export type FromContentOptions = {
+  /** children added or removed */
+  childList?: boolean
+  /** anywhere below, not only the DOM element's own children / attributes */
+  subtree?: boolean
+  /** text changed */
+  characterData?: boolean
+  /** any attribute changed */
+  attributes?: boolean
+  /** only these attributes changed (implies `attributes`) */
+  attributeFilter?: readonly string[]
+  /** a getter's:  `equals(old, next)` true keeps the old value.  Default `===`. */
+  equals?: (a: any, b: any) => boolean
+}
+
+/** What `@fromContent` asks of its class:  the element whose light DOM it watches. */
+export type ContentShape = {
+  /** the element;  `addReleaseCallback` when it's a `DOMElement`, to stop watching */
+  readonly domElement: Node & { addReleaseCallback?(callback: () => void): void }
+}
+
 /** `$`:  an `Accessor` per member, same name and type. */
 export type Accessors<T> = { readonly [K in keyof T]: Accessor<T[K]> }
 
@@ -860,6 +1055,8 @@ export type ReactiveRecord = {
   attributeObserver?: MutationObserver
   /** the DOM element's change callback for the attribute sources is in (`watchAttributeValues()`) */
   isWatchingValues?: boolean
+  /** the light DOM's observer and its watches, for `@fromContent` (`watchContent()`) */
+  content?: { readonly observer: MutationObserver; readonly watches: ContentWatch[] }
 }
 
 /** One `@cssState` member. */
@@ -889,6 +1086,24 @@ type OnChangeEntry = {
   members: string[]
   /** apply once on a server */
   writesDOMElement: boolean
+  /** `@whileConnected`:  called (without values) only while `isConnected` */
+  whileConnected?: boolean
+}
+
+/** One `@fromContent` method. */
+type ContentMethodEntry = {
+  /** the method called on each change */
+  method: PropertyKey
+  /** what it watches */
+  options: FromContentOptions
+}
+
+/** One `@fromContent` member's watch on the light DOM. */
+type ContentWatch = {
+  /** what it watches */
+  options: FromContentOptions
+  /** called with the mutations it watches */
+  changed(mutations: MutationRecord[]): void
 }
 
 /** Decorator metadata, as we use it. */
@@ -906,8 +1121,11 @@ const CSS_STATES = Symbol("cssStates")
 /** Metadata key of the `@aria` list. */
 const ARIA = Symbol("aria")
 
-/** Metadata key of the `@onChange` list. */
+/** Metadata key of the `@onChange` (and `@whileConnected`) list. */
 const ON_CHANGE = Symbol("onChange")
+
+/** Metadata key of the `@fromContent` methods' list. */
+const CONTENT_METHODS = Symbol("contentMethods")
 
 /**
  * Where lowered decorators keep a class's metadata:  `Symbol.metadata`, or esbuild's fallback when the engine has

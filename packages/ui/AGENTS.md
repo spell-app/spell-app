@@ -389,6 +389,20 @@ As WWOD §18, plus:
     in between.  An effect that used to live in `render()` names `isReady` too and returns early until it's true,
     keeping that timing (`UIShape`, `UISidebar`).
     Conditional, per-item or object-building effects stay explicit `createEffect`s in `onMount()`.
+  - `@E.whileConnected watchX()` -- runs each time the element connects;  a function it returns is the cleanup, run
+    when it disconnects.  Sugar over `@E.onChange("isConnected")` for a listener or observer on `window`, the
+    document or the light DOM that must stop while the element is out of the page.  Never on a server.
+  - `@E.fromContent({ childList: true, subtree: true }) get slotted()` -- a member read from the DOM element's light
+    DOM, recomputed when what the options name changes (`MutationObserver`'s `childList`, `subtree`,
+    `characterData`, `attributes`, `attributeFilter`;  `equals` as `@E.derived`'s).  Readers hear of it only when
+    the VALUE moved, so a reader writing the light DOM can't loop.  Watching starts on its first read in a browser;
+    on a server it's computed once.  On a METHOD:  the method is called with the mutations on each change (not at
+    the start), from `onMount()` on, for a change that writes other members (`UIAccordion`'s panels).  ONE
+    `MutationObserver` per instance, stopped when the DOM element is released (NOT on disconnect).  Replaces an
+    `onSettled()` + `MutationObserver` + `this.x = this.scan()` block.  Its options are read while the class is
+    defined:  a module constant they name goes ABOVE the class.  Stays hand-written:  a watch on another element (a
+    parent, a changing table), one only while connected (`UIForm`) or only while a setting holds (`UIVisibility`'s
+    images), and helper classes with their own element (`SlotContent`, `SlottedItems`).
   - `this.$.isOpen` -- an `Accessor` of any member, for Solid APIs that take one;  everyday code reads `this.isOpen`.
   - `this.on("command", this.onCommand)` -- a listener on the DOM element (or `{ target }`) for the element's
     whole life, removed when the DOM element is released.  So no vocabulary may name an attribute `on` (Fomantic's `on`
