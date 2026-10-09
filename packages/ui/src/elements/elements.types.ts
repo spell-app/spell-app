@@ -229,6 +229,13 @@ export type ValidationResult = {
   message: string
 }
 
+/**
+ * When a form control shows `:state(invalid)` (`FormComponent.invalidShows`):
+ * - `"at once"`:  whenever it's invalid, as `:invalid` does
+ * - `"once touched"`:  only after someone has interacted with it (`isTouched`), as `:user-invalid` does
+ */
+export type InvalidTiming = "at once" | "once touched"
+
 /** What `Validator.range()` tests:  the value itself, or its length (`minLength`, `size` ...). */
 export const RangeMeasures = ["value", "length"] as const
 /** One of `RangeMeasures`. */

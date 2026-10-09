@@ -29,12 +29,20 @@ import { type CommonAttributes } from "./UIInput.types"
  ****************/
 @E.cssStates("fluid", "loading")
 export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends F.FormComponent<V> {
+  /** Shows `:state(invalid)` only after interaction (see the class doc). */
+  @E.proto static invalidShows: E.InvalidTiming = "once touched"
+
   /** The native control. */
   protected control?: HTMLInputElement | HTMLTextAreaElement
 
   /** Focus the native control. */
   focus(options?: FocusOptions) {
     this.control?.focus(options)
+  }
+
+  /** A click aimed at the DOM element itself (its `<label for>`, its `click()`) focuses the control. */
+  protected activateControl() {
+    this.control?.focus()
   }
 
   ////////////////
@@ -51,14 +59,9 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
     return this.value
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
-  /** Back to the `value` ATTRIBUTE (native `defaultValue`);  forgets the interaction. */
+  /** Back to the `value` ATTRIBUTE (native `defaultValue`). */
   onFormReset() {
     this.value = this.attributes.value ?? ""
-    this.isTouched = false
   }
 
   /**
@@ -116,9 +119,6 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   // ## Validity
   ////////////////
 
-  /** The person has interacted (see the class doc). */
-  @E.state accessor isTouched = false
-
   /** The native control's own constraint validation, re-read after updates. */
   @E.state accessor nativeValidity: E.ValidationResult = VALID
 
@@ -152,10 +152,6 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
 
   protected get validationAnchor(): HTMLElement | undefined {
     return this.control
-  }
-
-  protected shouldShowInvalid(result: E.ValidationResult): boolean {
-    return !result.valid && this.isTouched
   }
 
   /**
@@ -195,31 +191,15 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
     this.nativeValidity = { valid: false, errors, flags, message }
   }
 
-  /** A submit or `reportValidity()` found it invalid:  show it. */
-  @E.on("invalid")
-  protected onInvalid() {
-    this.isTouched = true
-  }
-
   ////////////////
   // ## Name and ARIA
   ////////////////
 
-  /** The DOM element's `<label>`s and `aria-label`, as the control's name. */
-  readonly labels = new F.ControlLabels(this.domElement)
-
-  /** Connected:  the DOM element's `<label>`s may be others now. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (isConnected) this.labels.refresh()
-  }
-
-  /** The control's ARIA:  its name, and invalid (the DOM element's `aria-invalid`, or shown invalid). */
+  /** The control's ARIA:  its name (`labels`), and invalid (the DOM element's `aria-invalid`, or shown invalid). */
   protected get controlAria() {
     return {
       "aria-label": this.labels.accessibleName,
-      "aria-invalid":
-        this.attributes["aria-invalid"] === "true" || (this.isTouched && !this.validation.valid) ? "true" : undefined
+      "aria-invalid": this.attributes["aria-invalid"] === "true" || this.isShownInvalid ? "true" : undefined
     } as const
   }
 
@@ -232,31 +212,6 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   protected get staticControl(): Record<string, unknown> {
     if (!isServer) return {}
     return { [UIT.STATIC_CONTROL]: "", name: this.name, value: this.value || undefined }
-  }
-
-  ////////////////
-  // ## Look and use
-  ////////////////
-
-  /** Disabled by its attribute, or by a disabled fieldset;  `:state(disabled)`. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
-  protected classValue(name: E.AttributeName<V>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
-  }
-
-  /**
-   * A click aimed at the DOM element itself (its `<label for>`, its `click()`) focuses the control.
-   * - Clicks from inside the shadow root arrive retargeted, and are left alone.
-   */
-  @E.on("click")
-  protected onDOMElementClick(event: MouseEvent) {
-    if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
-    this.control?.focus()
   }
 }
 

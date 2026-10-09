@@ -51,9 +51,6 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
     Fallback: SliderFallback
   } satisfies Partial<E.ElementSetup>
 
-  /** The DOM element's `<label>`s and `aria-label`, as the thumb's (or range group's) name. */
-  readonly labels = new F.ControlLabels(this.domElement)
-
   /** The inner box:  track, fill, thumbs. */
   private inner?: HTMLElement
 
@@ -142,20 +139,9 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   // ## Disabled
   ////////////////
 
-  /** Disabled by its attribute, or by a disabled fieldset. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
   /** Can a person change it? */
   get isInteractive(): boolean {
     return !this.isDisabled && !this.readonly
-  }
-
-  protected classValue(name: E.AttributeName<typeof sliderVocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
   }
 
   ////////////////
@@ -164,10 +150,6 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   get formValue(): E.FieldValue {
     return this.range ? [String(this.snappedValue), String(this.snappedEnd)] : String(this.snappedValue)
-  }
-
-  protected get formName(): string | undefined {
-    return this.name
   }
 
   /** Back to the `value` / `end` ATTRIBUTES. */
@@ -203,12 +185,6 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
       }
     )
     return super.onMount()
-  }
-
-  /** Connected:  read the name from the DOM element's labels again. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (isConnected) this.labels.refresh()
   }
 
   /**
@@ -504,9 +480,7 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   }
 
   /** A click aimed at the DOM element itself (its `<label for>`) focuses the first thumb. */
-  @E.on("click")
-  protected onDOMElementClick(event: MouseEvent) {
-    if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
+  protected activateControl() {
     this.inner?.querySelector<HTMLElement>(THUMB_SELECTOR)?.focus()
   }
 }
