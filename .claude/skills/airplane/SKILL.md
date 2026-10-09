@@ -46,9 +46,10 @@ adds todos and questions.  Every page saves to this laptop's page server, and no
 
 Owen is back online.  Gather everything, work through it in the background, then hand him the review.
 
-1. `spell dev airplane off`.
-2. `spell dev airplane inbox --json`:  everything waiting, by place (each epic's marks sent or not, drafts, Do Now
-   requests, new items;  page notes;  details answers;  goals thoughts).  Nothing:  say so in one line, and stop.
+1. `spell dev airplane inbox --json`:  everything waiting, by place (each epic's marks sent or not, drafts, Do Now
+   requests, new items from the page's `+`;  page notes;  details answers since the flight;  goals thoughts).  FIRST,
+   while the switch is on:  its `since` is when the flight began, which picks the details answers.
+2. `spell dev airplane off`.  Nothing waiting:  say so in one line, and stop.
 3. Reply at once, short:  the counts by place, and that the work runs in the background now.
 4. Per epic, in the session itself (quick):  `spell dev plan-doc inbox <name> apply --all`:  approvals, picks, todos
    and new items land in the doc, sent or not (Owen's decision Q3 of `airplane`).
