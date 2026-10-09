@@ -24,7 +24,7 @@ import imageCSS from "./UIImage.css?inline"
  ****************/
 export class UIImage extends E.UIComponent<typeof imageVocabulary> {
   @E.proto static vocabulary = imageVocabulary
-  @E.proto static styleSheets = { image: imageCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { image: imageCSS } } satisfies Partial<E.ElementSetup>
 
   /** Disabled by its attribute;  `:state(disabled)`. */
   @E.cssState("disabled")

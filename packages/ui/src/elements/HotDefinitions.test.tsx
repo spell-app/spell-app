@@ -79,7 +79,12 @@ function makeVersion(
     }
   }
   Object.defineProperty(XHot.prototype, "vocabulary", { value: vocabulary })
-  if (elementSetup) Object.defineProperty(XHot.prototype, "elementSetup", { value: elementSetup })
+  // merged over the base's, as `@protoMerged static elementSetup` would
+  if (elementSetup) {
+    Object.defineProperty(XHot.prototype, "elementSetup", {
+      value: { ...UIComponent.prototype.elementSetup, ...elementSetup }
+    })
+  }
   return XHot as unknown as HotClass
 }
 

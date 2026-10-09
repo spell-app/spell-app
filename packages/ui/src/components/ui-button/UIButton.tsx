@@ -43,8 +43,11 @@ import buttonCSS from "./UIButton.css?inline"
  ****************/
 export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
   @E.proto static vocabulary = buttonVocabulary
-  @E.proto static styleSheets = { button: buttonCSS }
-  @E.proto static elementSetup = { Fallback: ButtonFallback, isAFormControl: true } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { button: buttonCSS },
+    Fallback: ButtonFallback,
+    isAFormControl: true
+  } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)

@@ -16,8 +16,10 @@ import railCSS from "./UIRail.css?inline"
  ****************/
 export class UIRail extends E.UIComponent<typeof railVocabulary> {
   @E.proto static vocabulary = railVocabulary
-  @E.proto static styleSheets = { rail: railCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { rail: railCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (

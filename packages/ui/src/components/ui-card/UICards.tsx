@@ -25,8 +25,10 @@ import cardCSS from "./UICard.css?inline"
  ****************/
 export class UICards extends E.UIComponent<typeof cardsVocabulary> {
   @E.proto static vocabulary = cardsVocabulary
-  @E.proto static styleSheets = { card: cardCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { card: cardCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** The group's value of variation `name`, which its cards take when they don't set it.  Tracked. */
   variationFor(name: UIT.CardSharedVariation): unknown {

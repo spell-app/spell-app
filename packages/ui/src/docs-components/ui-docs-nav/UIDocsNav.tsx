@@ -113,8 +113,8 @@ export class DOMDocsNavElement extends E.DOMElement {
  ****************/
 export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
   @E.proto static vocabulary = docsNavVocabulary
-  @E.proto static styleSheets = { "docs-nav": navCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "docs-nav": navCSS },
     DOMElement: DOMDocsNavElement,
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

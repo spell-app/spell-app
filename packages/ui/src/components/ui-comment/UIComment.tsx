@@ -24,8 +24,10 @@ import commentCSS from "./UIComment.css?inline"
  ****************/
 export class UIComment extends E.UIComponent<typeof commentVocabulary> {
   @E.proto static vocabulary = commentVocabulary
-  @E.proto static styleSheets = { comment: commentCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { comment: commentCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Its comment list, if any. */
   readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })

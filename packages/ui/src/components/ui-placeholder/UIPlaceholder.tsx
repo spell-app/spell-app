@@ -17,8 +17,10 @@ import placeholderCSS from "./UIPlaceholder.css?inline"
  ****************/
 export class UIPlaceholder extends E.UIComponent<typeof placeholderVocabulary> {
   @E.proto static vocabulary = placeholderVocabulary
-  @E.proto static styleSheets = { placeholder: placeholderCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { placeholder: placeholderCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)

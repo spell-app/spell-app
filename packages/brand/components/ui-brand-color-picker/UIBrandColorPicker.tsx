@@ -1,7 +1,16 @@
 import { For, Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValue, type ElementSetup } from "$/ui/core"
+import {
+  Cell,
+  IconGlyph,
+  proto,
+  protoMerged,
+  SlotContent,
+  type AttributeName,
+  type FieldValue,
+  type ElementSetup
+} from "$/ui/core"
 import { ControlLabels, FormComponent } from "$/ui/forms"
 import { Palette, type Hsl, type Oklch } from "$/brand"
 
@@ -61,8 +70,10 @@ import pickerCSS from "./UIBrandColorPicker.css?inline"
  ****************/
 export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary> {
   @proto static vocabulary = brandColorPickerVocabulary
-  @proto static styleSheets = { picker: pickerCSS }
-  @proto static elementSetup = { Fallback: BrandColorPickerFallback } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { picker: pickerCSS },
+    Fallback: BrandColorPickerFallback
+  } satisfies Partial<ElementSetup>
 
   ////////////////
   // ## State

@@ -49,8 +49,11 @@ import rootCSS from "./UIRoot.css?inline"
  ****************/
 export class UIRoot extends E.UIComponent<RootVocabulary> {
   @E.proto static vocabulary = rootVocabulary
-  @E.proto static styleSheets = { root: rootCSS }
-  @E.proto static elementSetup = { delegatesFocus: false, canRenderUnstyled: true } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { root: rootCSS },
+    delegatesFocus: false,
+    canRenderUnstyled: true
+  } satisfies Partial<E.ElementSetup>
 
   /** What shows with `loading`:  swap it for another look (`UIRoot.Loading = MyLoading`). */
   @E.proto static Loading: RootLoading = LoaderMessage

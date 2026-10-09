@@ -67,8 +67,8 @@ import sectionCSS from "./UISection.css?inline"
  ****************/
 export class UISection extends E.UIComponent<SectionVocabulary> {
   @E.proto static vocabulary = sectionVocabulary
-  @E.proto static styleSheets = { section: sectionCSS }
-  @E.proto static elementSetup: Partial<E.ElementSetup> = {
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
+    styleSheets: { section: sectionCSS },
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false

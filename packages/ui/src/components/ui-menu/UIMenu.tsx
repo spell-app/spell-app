@@ -42,7 +42,7 @@ function isSameContext(a: UIT.ItemContext, b: UIT.ItemContext): boolean {
  *   and hands its items the TOP menu's `ItemContext`.
  *
  * - It owns its items (`ItemOwner`):  they draw themselves as `itemContext()` says,
- *   and adopt this component's `styleSheets` (the item rules live in `UIMenu.css`).
+ *   and adopt this component's `elementSetup.styleSheets` (the item rules live in `UIMenu.css`).
  *   Items ASK for their context, which is also how the menu learns its items' DOM elements (the roving set),
  *   after they upgrade in any order.
  *
@@ -53,8 +53,8 @@ function isSameContext(a: UIT.ItemContext, b: UIT.ItemContext): boolean {
  ****************/
 export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.ItemOwner {
   @E.proto static vocabulary = menuVocabulary
-  @E.proto static styleSheets = { menu: menuCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { menu: menuCSS },
     // a sub-menu is a part of its menu:  an item's header looks past it to the menu
     isAPart: true,
     // nothing to delegate to:  the items are the focus targets

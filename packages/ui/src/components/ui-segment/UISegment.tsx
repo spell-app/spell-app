@@ -26,7 +26,7 @@ import segmentCSS from "./UISegment.css?inline"
  ****************/
 export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   @E.proto static vocabulary = segmentVocabulary
-  @E.proto static styleSheets = { segment: segmentCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { segment: segmentCSS } } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## States

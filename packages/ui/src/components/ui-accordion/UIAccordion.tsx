@@ -48,8 +48,8 @@ import accordionCSS from "./UIAccordion.css?inline"
  ****************/
 export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   @E.proto static vocabulary = accordionVocabulary
-  @E.proto static styleSheets = { accordion: accordionCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { accordion: accordionCSS },
     DOMElement: E.DOMLoadableBodyElement,
     slotAssignment: "manual" as const
   } satisfies Partial<E.ElementSetup>

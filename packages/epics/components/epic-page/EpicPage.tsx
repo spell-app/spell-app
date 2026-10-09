@@ -86,7 +86,9 @@ import agentsCSS from "./AgentsPanel.css?inline"
  ****************/
 export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.proto static vocabulary = epicPageVocabulary
-  @E.proto static styleSheets = { "epic-page": pageCSS, "epic-agents": agentsCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-page": pageCSS, "epic-agents": agentsCSS }
+  } satisfies Partial<E.ElementSetup>
 
   /** Its tag:  what its blocks look for around them. */
   static readonly TAG = epicPageVocabulary.tag

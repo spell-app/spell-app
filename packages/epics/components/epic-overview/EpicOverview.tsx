@@ -21,7 +21,9 @@ import overviewCSS from "./EpicOverview.css?inline"
  ****************/
 export class EpicOverview extends EpicFold<typeof epicOverviewVocabulary> {
   @E.proto static vocabulary = epicOverviewVocabulary
-  @E.proto static styleSheets = { "epic-fold": foldCSS, "epic-overview": overviewCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-fold": foldCSS, "epic-overview": overviewCSS }
+  } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  is there a kickoff prompt? */
   readonly slots = new E.SlotContent(this.domElement)

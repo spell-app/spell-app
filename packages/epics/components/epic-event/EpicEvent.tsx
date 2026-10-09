@@ -15,7 +15,7 @@ import eventCSS from "./EpicEvent.css?inline"
  ****************/
 export class EpicEvent extends E.UIComponent<typeof epicEventVocabulary> {
   @E.proto static vocabulary = epicEventVocabulary
-  @E.proto static styleSheets = { "epic-event": eventCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { "epic-event": eventCSS } } satisfies Partial<E.ElementSetup>
 
   /** Its icon. */
   readonly glyph = new E.IconGlyph({ owner: this, name: () => this.icon || DEFAULT_ICON })

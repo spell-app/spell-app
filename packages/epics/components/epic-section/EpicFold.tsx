@@ -63,7 +63,7 @@ export class DOMEpicFoldElement extends E.DOMLoadableBodyElement {
  *   families import THIS file directly, never the `epic-section` barrel.
  ****************/
 export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComponent<V> {
-  @E.proto static elementSetup: Partial<E.ElementSetup> = {
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     DOMElement: DOMEpicFoldElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false

@@ -69,7 +69,9 @@ function testTag(name: string, attributes: readonly AttributeSpec[], { Component
     texts: []
   }
   Object.defineProperty(Class.prototype, "vocabulary", { value: vocabulary })
-  if (setup) Object.defineProperty(Class.prototype, "elementSetup", { value: setup })
+  // merged over the base's, as `@protoMerged static elementSetup` would
+  if (setup)
+    Object.defineProperty(Class.prototype, "elementSetup", { value: { ...Component.prototype.elementSetup, ...setup } })
   const define = (translatedTag?: string, dictionary?: Dictionary) =>
     UIComponent.define.call(Class as never, translatedTag, dictionary) as DOMElementClass
   return { tag, define }

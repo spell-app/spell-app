@@ -17,8 +17,10 @@ import componentsCSS from "./UIComponents.css?inline"
  ****************/
 export class UIComponents extends E.UIComponent<ComponentsVocabulary> {
   @E.proto static vocabulary = componentsVocabulary
-  @E.proto static styleSheets = { components: componentsCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { components: componentsCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return undefined

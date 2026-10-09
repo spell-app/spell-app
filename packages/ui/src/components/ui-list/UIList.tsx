@@ -16,7 +16,7 @@ import listCSS from "./UIList.css?inline"
  *   - a DOM element with `role=listitem`;
  *   - in a `selection` list, an interactive box:  a link with `href`, a `<button>` with the item's own `link`,
  *     a `<div>` otherwise.
- *   - Items adopt THIS class's `styleSheets`, so `UIList.css` holds the item rules too,
+ *   - Items adopt THIS class's `elementSetup.styleSheets`, so `UIList.css` holds the item rules too,
  *     and the list's variations reach them as inherited tokens.
  *
  * - A part too (`elementSetup.isAPart`, noun `list`):  a `<ui-list>` inside a list is Fomantic's sub-list.
@@ -34,8 +34,11 @@ import listCSS from "./UIList.css?inline"
  ****************/
 export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.ItemOwner {
   @E.proto static vocabulary = listVocabulary
-  @E.proto static styleSheets = { list: listCSS }
-  @E.proto static elementSetup = { isAPart: true, delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { list: listCSS },
+    isAPart: true,
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)

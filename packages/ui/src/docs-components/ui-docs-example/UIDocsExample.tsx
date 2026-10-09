@@ -29,8 +29,10 @@ import exampleCSS from "./UIDocsExample.css?inline"
  ****************/
 export class UIDocsExample extends E.UIComponent<typeof docsExampleVocabulary> {
   @E.proto static vocabulary = docsExampleVocabulary
-  @E.proto static styleSheets = { "docs-example": exampleCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "docs-example": exampleCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** The markup to show, read once before anything here touches the light DOM. */
   readonly sourceMarkup: string = isServer ? "" : ExampleSource.of(this.domElement)

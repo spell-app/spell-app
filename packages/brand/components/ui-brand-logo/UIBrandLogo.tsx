@@ -1,7 +1,7 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIComponent, type ElementSetup } from "$/ui/core"
+import { Cell, proto, protoMerged, UIComponent, type ElementSetup } from "$/ui/core"
 
 import { brandLogoVocabulary } from "./UIBrandLogo.en"
 
@@ -20,8 +20,10 @@ import logoCSS from "./UIBrandLogo.css?inline"
  ****************/
 export class UIBrandLogo extends UIComponent<typeof brandLogoVocabulary> {
   @proto static vocabulary = brandLogoVocabulary
-  @proto static styleSheets = { logo: logoCSS }
-  @proto static elementSetup = { delegatesFocus: false } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { logo: logoCSS },
+    delegatesFocus: false
+  } satisfies Partial<ElementSetup>
 
   /** The outlines, once loaded:  `undefined` until then. */
   readonly paths = new Cell<typeof import("./logoPaths") | undefined>(undefined)

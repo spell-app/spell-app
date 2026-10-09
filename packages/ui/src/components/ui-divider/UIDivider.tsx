@@ -27,7 +27,7 @@ import dividerCSS from "./UIDivider.css?inline"
  ****************/
 export class UIDivider extends E.UIComponent<typeof dividerVocabulary> {
   @E.proto static vocabulary = dividerVocabulary
-  @E.proto static styleSheets = { divider: dividerCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { divider: dividerCSS } } satisfies Partial<E.ElementSetup>
 
   /** The glyph of the `icon` shorthand. */
   readonly iconGlyph = new E.IconGlyph({ owner: this, name: () => this.icon })

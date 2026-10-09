@@ -17,8 +17,10 @@ import originalCSS from "./EpicOriginal.css?inline"
  ****************/
 export class EpicOriginal extends E.UIComponent<typeof epicOriginalVocabulary> {
   @E.proto static vocabulary = epicOriginalVocabulary
-  @E.proto static styleSheets = { original: originalCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { original: originalCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Folded until the reader opens it:  history, not the current text. */
   readonly fold = new Fold(() => false)

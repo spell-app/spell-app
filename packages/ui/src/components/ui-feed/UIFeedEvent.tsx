@@ -30,8 +30,11 @@ import feedCSS from "./UIFeed.css?inline"
  ****************/
 export class UIFeedEvent extends E.UIComponent<typeof eventVocabulary> {
   @E.proto static vocabulary = eventVocabulary
-  @E.proto static styleSheets = { feed: feedCSS }
-  @E.proto static elementSetup = { isAPart: true, delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { feed: feedCSS },
+    isAPart: true,
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Feed, if any. */
   readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })

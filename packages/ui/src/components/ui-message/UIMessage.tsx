@@ -30,7 +30,7 @@ import messageCSS from "./UIMessage.css?inline"
  ****************/
 export class UIMessage extends E.UIComponent<typeof messageVocabulary> {
   @E.proto static vocabulary = messageVocabulary
-  @E.proto static styleSheets = { message: messageCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { message: messageCSS } } satisfies Partial<E.ElementSetup>
 
   /** Which of its slots have content in the light DOM:  a slotted icon. */
   readonly slots = new E.SlotContent(this.domElement)

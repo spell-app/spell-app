@@ -26,8 +26,8 @@ import tabCSS from "./UITab.css?inline"
  ****************/
 export class UITab extends E.UIComponent<typeof tabVocabulary> {
   @E.proto static vocabulary = tabVocabulary
-  @E.proto static styleSheets = { segment: segmentCSS, tab: tabCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { segment: segmentCSS, tab: tabCSS },
     // the DOM element is the tabpanel and its focus stop;  nothing inside to delegate to
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

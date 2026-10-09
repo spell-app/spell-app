@@ -16,7 +16,7 @@ import buttonCSS from "./UIButton.css?inline"
  ****************/
 export class UIButtons extends E.UIComponent<typeof buttonsVocabulary> {
   @E.proto static vocabulary = buttonsVocabulary
-  @E.proto static styleSheets = { button: buttonCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { button: buttonCSS } } satisfies Partial<E.ElementSetup>
 
   /** Full width:  `fluid`, a `width` (equal-width buttons), or attached as a whole row. */
   @E.cssState("fluid")
