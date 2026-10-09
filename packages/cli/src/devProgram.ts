@@ -74,7 +74,9 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
 
   dev
     .command("docs")
-    .description("the docs tools:  update, index, new, open, link a page, fuss over writing (packages/docs/tools)")
+    .description(
+      "the docs tools:  update, index, new, open, link a page, fuss over writing, offline check (packages/docs/tools)"
+    )
     .argument("[verb]", DOCS_VERBS.join(" | "))
     .argument("[args...]", "the tool's arguments, e.g. open solid/solid-2 --vs")
     .allowUnknownOption()

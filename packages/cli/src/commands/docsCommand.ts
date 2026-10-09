@@ -7,9 +7,10 @@ import { DOCS_VERBS, runTool, type ToolName } from "$/cli/dev/passThrough"
  * - `update`, `index`, `new`, `open`, `link`:  root `yarn docs:<verb>` aliases each;  the tools' usage is in their
  *   headers, e.g. `spell dev docs open solid/solid-2 --vs`, `spell dev docs link <page> --hash <id> --show`
  * - `fuss`:  the writing checker, `spell dev docs fuss <paths...> | --branch [--json]`
+ * - `offline`:  what docs pages load from the internet, `spell dev docs offline [paths...] [--fix] [--json]`
  * - Runs each as `packages/docs/package.json`'s script did (`TOOLS` in `dev/passThrough.ts`):
  *   in `packages/docs`, under `node`, `link` under `tsx`
- * - `fuss` runs under `tsx` in the caller's folder, so its paths are from there.
+ * - `fuss` and `offline` run under `tsx` in the caller's folder, so their paths are from there.
  * - Throws `CliError` for no verb, or another one.
  * - Returns the tool's exit code.
  */

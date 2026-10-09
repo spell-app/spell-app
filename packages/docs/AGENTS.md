@@ -161,7 +161,8 @@ In `tools/`:
     file (the live client's `spell-server:file`) re-fetches its open host in place;  each body that loads re-runs
     the outline, the rail, counts, item filters and code colors;  a link to an id inside an unloaded body (its
     host's `data-part-ids`, an `<epic-*>` host's `part-ids`) loads it first
-  - code colors (highlight.js from cdnjs)
+  - code colors (highlight.js, `_assets/highlight.min.js`:  committed, so pages load offline;  older pages still name
+    cdnjs, and the page server swaps that tag for the local copy, `localHighlight()`)
 - Headings:
   - one `h1`;  a numbered top-level `<ui-section>` per major section (`header="2. Read-after-write"`), each with a
     stable `id` -- other docs link to them, so NEVER change an existing `id`

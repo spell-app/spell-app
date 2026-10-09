@@ -6,6 +6,7 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 import { SRV, type ServerInfo } from "$/server"
 import {
   BundleBuild,
+  HIGHLIGHT_JS,
   PageEditor,
   RunningEpics,
   UI_SITE,
@@ -70,6 +71,7 @@ export class PageServer {
       live: true,
       // `/ui/` too:  the root's `ui` link (`UI_SITE.pages`), with the build laid over it (`uiBuildPath()`, below)
       mounts: [{ prefix: "/", dir: this.root }],
+      html: [localHighlight],
       configure: (served) => ({
         root: this.root,
         branch: this.info.branch,
@@ -198,6 +200,11 @@ function settingsOf(root: string): PageServerSettings {
   const file = join(root, "package.json")
   if (!existsSync(file)) return {}
   return (JSON.parse(readFileSync(file, "utf8")) as { pageServer?: PageServerSettings }).pageServer ?? {}
+}
+
+/** `html`, its cdnjs highlight.js tag (`HIGHLIGHT_JS.cdn`) pointing at the repo's copy:  pages load offline. */
+export function localHighlight(html: string): string {
+  return html.replaceAll(HIGHLIGHT_JS.cdn, HIGHLIGHT_JS.local)
 }
 
 /** `page/cli.ts`:  `spell dev server`. */
