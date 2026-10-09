@@ -11,8 +11,11 @@
  * - `GET /api/review/inbox?page=<path>` -- the inbox;  the page polls it
  * - `POST /api/review/mark` `{ page, id, mark }` -- set item `id`'s mark (`{ action, when?, note?, pick?, choices? }`,
  *   `at` stamped here;  a revisit may carry a `pick` letter too;  `choices`, the pick's card set by position:  I8),
- *   or remove it (`mark: null`);  `id` must be an item of
- *   that doc (400 otherwise)
+ *   or remove it (`mark: null`);  `id` must be an item, phase, Overview sub-section or the summary (`summary`) of
+ *   that doc (400 otherwise:  `ReviewInbox.itemIds()`)
+ * - `POST /api/review/new` `{ page, id?, entry }` -- a NEW todo or question asked for from the page (epic `airplane`
+ *   P2):  `entry` `{ kind, title, note?, near? }` under key `id` (`new1` ...), or, without one, the next free key;
+ *   `entry: null` removes it (`ReviewInbox.setNew()`).  `near`, when given, must be an id of that doc
  * - `POST /api/review/now` `{ page, id, action, note? }` -- an immediate request (`details`, or `revisit`, which
  *   keeps the item's pick):  queued on `now`, and the item's mark set
  * - `POST /api/review/cancel` `{ page, id }` -- "nevermind":  call off item `id`'s immediate request, queued or
@@ -86,6 +89,14 @@ const reviewRoutes: RouteModule = {
       const id = itemOf(file, body.id)
       reply.json(await update(file, (inbox) => inbox.setUrgency(id, body.calm ?? null)))
     })
+    api.post("/new", async (request, reply) => {
+      const body = request.body as { page?: unknown; id?: unknown; entry?: unknown }
+      const file = planDoc(web.files, body.page)
+      if (body.entry === undefined) throw new SRV.HttpError(400, "no entry (null removes one)")
+      const near = (body.entry as { near?: unknown } | null)?.near
+      if (near !== undefined && near !== null && near !== "") itemOf(file, near)
+      reply.json(await update(file, (inbox) => inbox.setNew(body.id, body.entry)))
+    })
     api.post("/send", async (request, reply) => {
       const body = request.body as { page?: unknown; now?: unknown }
       const file = planDoc(web.files, body.page)
@@ -112,8 +123,9 @@ export function planDoc(files: SRV.StaticHandler, page: unknown): string {
 }
 
 /**
- * `id` from a request, as the inbox keys it (lower-case);  400 unless plan doc `file` has it:  an item, or an Overview
- * sub-section (`o3`, Q14);  either markup until the switch (`ReviewInbox.itemIds()`).
+ * `id` from a request, as the inbox keys it (lower-case);  400 unless plan doc `file` has it:  an item, an Overview
+ * sub-section (`o3`, Q14), a phase (`p3`) or the summary (`summary`:  epic `airplane` P2);  either markup until the
+ * switch (`ReviewInbox.itemIds()`).
  * - reads the doc each time:  an item added a moment ago (Claude, `plan-doc add`) is markable at once
  */
 function itemOf(file: string, id: unknown): string {

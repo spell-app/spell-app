@@ -173,3 +173,58 @@ test("status:  underway writes the card AND turns the page's spinner on;  done t
   expect(printed).toEqual(["J1 underway:  a real choice", "J1 done:  a real choice", "J2 done:  follows WWOD"])
   expect(await owner.run(["status", "x", "j1", "maybe"])).toBe(1)
 })
+
+// epic `airplane` P2:  notes on the phases and the summary, and new items from the page
+
+/** The scratch doc, with a phase:  `P1 · Offline Pages`. */
+function withPhase() {
+  const plan = PlanDoc.parse(readFileSync(file, "utf8"))
+  plan.addPhase("Offline Pages")
+  writeFileSync(file, plan.toString())
+}
+
+test("apply:  sent new items are made, a phase's and the summary's todos filed;  all leave the inbox;  unsent waits", async () => {
+  withPhase()
+  ReviewInbox.update(inboxFile, (inbox) => {
+    inbox.setNew(undefined, { kind: "question", title: "window or aisle?", note: "long flight", near: "p1" }, T1)
+    inbox.setMark("p1", { action: "todo", note: "after the flight" }, T1)
+    inbox.setMark("summary", { action: "todo" }, T1)
+    inbox.markSent(T2)
+    inbox.setNew(undefined, { kind: "todo", title: "not sent yet" }, T3)
+  })
+  await commands().inbox.run("x", file, ["apply"], {})
+  expect(printed.join("\n")).toBe(
+    ["NEW1  made question Q1:  window or aisle?", "P1  to todo T1", "SUMMARY  to todo T2"].join("\n")
+  )
+  const after = PlanDoc.parse(readFileSync(file, "utf8"))
+  expect(after.findItem("q1")!.querySelector('a[href="#p1"]')).not.toBeNull()
+  expect(after.findItem("q1")!.querySelector('epic-status[state="done"]')).not.toBeNull()
+  expect(after.findItem("t1")!.getAttribute("title")).toBe("Follow up:  P1 · Offline Pages")
+  expect(after.findItem("t2")!.getAttribute("title")).toBe("Follow up:  the summary")
+  expect(Object.keys(ReviewInbox.read(inboxFile).marks)).toEqual(["new2"])
+})
+
+test("print:  a new item by its kind and title, with its note and what it's about;  a phase's mark by its title", async () => {
+  withPhase()
+  ReviewInbox.update(inboxFile, (inbox) => {
+    inbox.setNew(undefined, { kind: "todo", title: "pack", note: "chargers", near: "j1" }, T1)
+    inbox.setMark("p1", { action: "revisit", note: "too big?" }, T1)
+  })
+  await commands().inbox.run("x", file, [], {})
+  const text = printed.join("\n")
+  expect(text).toContain('new (1):\n  - NEW1  todo:  pack  · "chargers" · about J1 · unsent')
+  expect(text).toContain('revisit (1):\n  - P1  Offline Pages  · soon · "too big?" · unsent')
+})
+
+test("clear:  a phase's note is kept as Owen's reply in the phase;  a new item's note is never a reply", async () => {
+  withPhase()
+  ReviewInbox.update(inboxFile, (inbox) => {
+    inbox.setMark("p1", { action: "revisit", note: "too big?" }, T1)
+    inbox.setNew(undefined, { kind: "todo", title: "pack", note: "chargers" }, T1)
+  })
+  await commands().inbox.run("x", file, ["clear", "p1", "new1"], {})
+  const after = PlanDoc.parse(readFileSync(file, "utf8"))
+  const replies = after.document.querySelectorAll("epic-reply")
+  expect(Array.from(replies, (reply) => [reply.parentElement!.id, reply.textContent])).toEqual([["p1", "too big?"]])
+  expect(ReviewInbox.read(inboxFile).isEmpty).toBe(true)
+})

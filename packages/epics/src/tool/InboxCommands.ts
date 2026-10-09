@@ -2,7 +2,7 @@ import { existsSync } from "node:fs"
 import { relative } from "node:path"
 import { setTimeout as sleep } from "node:timers/promises"
 
-import { PlanDocError, type KeptNote, type MarkResult, type OptionCard } from "./planDoc.types"
+import { PlanDocError, type ItemDescription, type KeptNote, type MarkResult, type OptionCard } from "./planDoc.types"
 
 import type { PlanDoc } from "./PlanDoc"
 import type { PlanReader } from "./PlanReader"
@@ -101,6 +101,7 @@ export class InboxCommands {
    *   (`sent: false`:  newer than the last "send to Claude";  an immediate one, `details` or revisit `now`, counts
    *   as sent:  `unsentMarks`)
    * - an item gone from the doc since it was marked:  title `null`, "(no such item)"
+   * - a new item (`new1`, epic `airplane` P2):  `new todo:  <its title>`, its note and what it's about after it
    */
   private print(plan: PlanReader, file: string, json: boolean): void {
     const path = ReviewInbox.pathFor(file)
@@ -108,10 +109,8 @@ export class InboxCommands {
     const unsent = new Set(inbox.unsentMarks.map((mark) => mark.id))
     const unsentUrgency = new Set(inbox.unsentUrgency.map((entry) => entry.id))
     const marks = Object.fromEntries(ACTIONS.map((action) => [action, [] as PrintedMark[]]))
-    for (const mark of inbox.markList) {
-      const item = plan.findItem(mark.id)
-      marks[mark.action]?.push({ ...mark, title: item ? PlanItem.titleOf(item) : null, sent: !unsent.has(mark.id) })
-    }
+    for (const mark of inbox.markList)
+      marks[mark.action]?.push({ ...mark, title: markTitle(plan, mark), sent: !unsent.has(mark.id) })
     const report = {
       file: path,
       sent: inbox.sent,
@@ -139,7 +138,9 @@ export class InboxCommands {
       if (!marks[action].length) continue
       lines.push(`${action} (${marks[action].length}):`)
       for (const mark of marks[action])
-        lines.push(`  - ${mark.id.toUpperCase()}  ${mark.title ?? "(no such item)"}${extra(mark)}`)
+        lines.push(
+          `  - ${mark.id.toUpperCase()}  ${mark.kind ? `${mark.kind}:  ` : ""}${mark.title ?? "(no such item)"}${extra(mark)}`
+        )
     }
     const urgency = inbox.urgencyList
     if (urgency.length) lines.push(`urgency, from the id chips (${urgency.length}):`)
@@ -168,6 +169,7 @@ export class InboxCommands {
       if (mark.pick) parts.push(`picks ${mark.pick}${mark.choices ? ` (card set ${mark.choices + 1})` : ""}`)
       if (mark.when) parts.push(mark.when)
       if (mark.note) parts.push(`"${mark.note}"`)
+      if (mark.near) parts.push(`about ${mark.near.toUpperCase()}`)
       if (!mark.sent) parts.push("unsent")
       else if (ReviewInbox.isImmediate(mark)) parts.push("requested now")
       return parts.length ? `  · ${parts.join(" · ")}` : ""
@@ -288,7 +290,7 @@ export class InboxCommands {
       if (sent.urgency.length) lines.push(`  urgency, from the id chips (${sent.urgency.length}):`)
       for (const entry of sent.urgency) lines.push(`    - ${line(entry)}  · ${calmWords(entry.calm)}`)
       const talk = sent.marks.filter((mark) => mark.action === "revisit")
-      lines.push(`next:  \`yarn plan-doc inbox ${name} apply\` (approve, pick, todo, urgency)`)
+      lines.push(`next:  \`yarn plan-doc inbox ${name} apply\` (approve, pick, todo, new, urgency)`)
       if (talk.length)
         lines.push(
           `then talk over ${talk.map((mark) => mark.id).join(", ")} in the chat;  \`yarn plan-doc inbox ${name} clear <id>\` after each`
@@ -297,8 +299,8 @@ export class InboxCommands {
     this.owner.print(lines.join("\n"))
 
     /** `mark` (or a `now` request) with its item, upper-case id, and a pick's option card. */
-    function withItem<M extends { id: string; pick?: string; choices?: number }>(mark: M) {
-      const item = plan.describeItem(mark.id)
+    function withItem<M extends { id: string; action?: string; pick?: string; choices?: number }>(mark: M) {
+      const item = mark.action === "new" ? newItemOf(mark as M & ListedMark) : plan.describeItem(mark.id)
       const element = item && plan.findItem(mark.id)
       const option: OptionCard | null | undefined =
         mark.pick && element
@@ -322,7 +324,7 @@ export class InboxCommands {
   ////////////////
 
   /**
-   * `inbox <name> apply [ids...]`:  apply the SENT mechanical marks (`PlanDoc.applyMark()`:  approve, pick, todo),
+   * `inbox <name> apply [ids...]`:  apply the SENT mechanical marks (`PlanDoc.applyMark()`:  approve, pick, todo, new),
    * and the sent urgency (an id chip clicked:  `PlanDoc.setCalm()`), all or those of `ids`, then clear them;  prints
    * a line per item, and what it left.
    * - a dry run on a parsed copy first:  the doc is written (`edit()`, its lock) only when something applies
@@ -389,7 +391,10 @@ export class InboxCommands {
       const before = { ...box.marks }
       if (what === "done") ({ had, kept } = box.finishMarks(keys))
       else had = box.clearMarks(keys)
-      notes = had.filter((id) => before[id]?.note).map((id) => ({ id, mark: before[id] as KeptNote }))
+      // a new item's note is its text, not a note on anything in the doc:  never kept as a reply
+      notes = had
+        .filter((id) => before[id]?.note && before[id]?.action !== "new")
+        .map((id) => ({ id, mark: before[id] as KeptNote }))
       handled = had.flatMap((id): { id: string; as: "now" | "revisit" }[] => {
         const mark = before[id]
         if (mark && ReviewInbox.isImmediate(mark)) return [{ id, as: "now" }]
@@ -418,7 +423,7 @@ export class InboxCommands {
 }
 
 /** A mark as `inbox` prints it:  with its item's title (`null` when the item's gone), and whether it's sent. */
-type PrintedMark = ListedMark & { title: string | null; sent: boolean }
+type PrintedMark = Omit<ListedMark, "title"> & { title: string | null; sent: boolean }
 
 /** A sent mark and what `PlanDoc.applyMark()` did with it. */
 type Applied = { mark: ListedMark } & MarkResult
@@ -436,6 +441,21 @@ function urgencyOn(plan: PlanDoc, entry: ListedUrgency): UrgencyApplied {
   if (!did) return { entry, did: `${calmWords(entry.calm)} already`, changed: false }
   plan.log(`${entry.id.toUpperCase()} ${did} (Owen, from its id chip)`)
   return { entry, did: `marked ${did}`, changed: true }
+}
+
+/**
+ * A mark's title, as `inbox` prints it:  its item's (or phase's, Overview sub-section's, summary's:
+ * `describeItem()`);  a new item's `new todo:  <title>`;  `null` when the item's gone.
+ */
+function markTitle(plan: PlanReader, mark: ListedMark): string | null {
+  if (mark.action === "new") return mark.title ?? null
+  const item = plan.findItem(mark.id)
+  return item ? PlanItem.titleOf(item) : (plan.describeItem(mark.id)?.title ?? null)
+}
+
+/** A new item's mark (`new1`), described as an item is (`describeItem()`):  kind `new todo`, not made yet. */
+function newItemOf(mark: ListedMark): ItemDescription {
+  return { id: mark.id.toUpperCase(), kind: `new ${mark.kind}`, status: "not made yet", title: mark.title ?? "" }
 }
 
 /** `not urgent` (calm) / `urgent`. */

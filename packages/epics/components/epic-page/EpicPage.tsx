@@ -7,6 +7,8 @@ import { PlanDates } from "$/epics/dates"
 import { AgentsClient, NOBODY_LISTENING, isImmediate } from "$/epics/review"
 // the page's view of the review inbox, as an item's:  its file, not `epic-item`'s barrel (which would define it here)
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
+import { NewItemButton, NewItemForm } from "$/epics/components/epic-item/NewItems"
+import type { NewTextKey } from "$/epics/components/epic-item/EpicItem.types"
 
 import { epicPageVocabulary } from "./EpicPage.en"
 import { AgentsPanel } from "./AgentsPanel"
@@ -50,6 +52,7 @@ import {
   type StepLabel
 } from "./EpicPage.types"
 
+import reviewCSS from "$/epics/components/epic-item/ReviewControls.css?inline"
 import pageCSS from "./EpicPage.css?inline"
 import crumbsCSS from "./Crumbs.css?inline"
 import agentsCSS from "./AgentsPanel.css?inline"
@@ -78,6 +81,9 @@ import agentsCSS from "./AgentsPanel.css?inline"
  *   with nothing to send, dashed blue with marks not sent, outlined blue once sent) and Review Now (wand:  every mark
  *   sent and each revisit asked now;  outlined blue while there's anything to work through).  Nobody listening:  their tooltips say so (`NOBODY_LISTENING`);  what a click did
  *   goes to the notice line at the window's bottom (`ReviewState`'s).
+ * - NEW TODO OR QUESTION (epic `airplane` P2;  `NewItems.tsx`), while reviewed:  a round `+` before Send opens the form
+ *   on a row of its own in the sticky header;  what's asked for waits in the inbox, drawn at the end of its section
+ *   (Todos, Questions) until Claude makes it.
  * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<AgentsPanel>`), only
  *   while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs;  each row a
  *   note box that redirects that agent.  In the shadow root:  not a section, so the rail and counts never see it.
@@ -94,7 +100,12 @@ import agentsCSS from "./AgentsPanel.css?inline"
  ****************/
 export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.proto static vocabulary = epicPageVocabulary
-  @E.proto static styleSheets = { "epic-page": pageCSS, "epic-crumbs": crumbsCSS, "epic-agents": agentsCSS }
+  @E.proto static styleSheets = {
+    "epic-page": pageCSS,
+    "epic-crumbs": crumbsCSS,
+    "epic-agents": agentsCSS,
+    review: reviewCSS
+  }
 
   /** Its tag:  what its blocks look for around them. */
   static readonly TAG = epicPageVocabulary.tag
@@ -131,6 +142,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
   /** The heading, just copied:  it says so. */
   @E.state accessor isHeadingCopied = false
+
+  /** The header's new item form is open (its `+` clicked;  epic `airplane` P2). */
+  @E.state accessor isAdding = false
 
   /** The meta lines', the header buttons' and the review line's icons. */
   readonly icons = {
@@ -377,6 +391,14 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
               )}
             </Show>
           </span>
+          <Show when={this.isAdding && this.marks()}>
+            <NewItemForm
+              review={this.review}
+              text={this.newText}
+              part={this.partForName("new-form")}
+              onDone={() => (this.isAdding = false)}
+            />
+          </Show>
         </header>
         {this.reviewLine()}
         {this.metaLines()}
@@ -469,10 +491,16 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     )
   }
 
-  /** Send and Review Now:  round icon buttons, coloured by what waits (`marks`). */
+  /** New todo or question, Send and Review Now:  round icon buttons;  Send and Review Now coloured by what waits (`marks`). */
   private reviewButtons(marks: () => HeaderMarks): JSX.Element {
     return (
       <span class={ACTIONS} part={this.partForName("actions")}>
+        <NewItemButton
+          label={this.translationForKey("newButton")}
+          open={this.isAdding}
+          part={this.partForName("new-button")}
+          onClick={() => (this.isAdding = !this.isAdding)}
+        />
         <button
           type="button"
           class={SEND}
@@ -671,6 +699,10 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
   /** `translationForKey()`, as a plain function:  for the pieces drawn as their own components (`<AgentsPanel>`). */
   private readonly pageText: PageText = (key, params) => this.translationForKey(key, params)
+
+  /** Its texts, as the new-item controls ask for them (`<NewItemForm>`). */
+  private readonly newText = (key: NewTextKey, params?: Record<string, string | number>) =>
+    this.translationForKey(key, params)
 
   /** Measure where top-level titles stick:  the site header's height plus this header's. */
   private readonly measure = () => {

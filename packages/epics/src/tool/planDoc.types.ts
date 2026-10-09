@@ -205,7 +205,10 @@ export type ItemFacts = {
 export type ItemDescription = {
   /** its id, upper case:  `C3` */
   id: string
-  /** `PlanItem.kindOf()`'s:  `judgement`, `overview` (an Overview sub-section, Q14), `item` (an id of no kind) */
+  /**
+   * `PlanItem.kindOf()`'s:  `judgement`, `overview` (an Overview sub-section, Q14), `item` (an id of no kind);  `phase`
+   * and `summary` (epic `airplane` P2)
+   */
   kind: string
   /** its status, `open` when missing */
   status: string
@@ -404,10 +407,13 @@ export type ReviewStatus = {
 
 /**
  * A mark Owen left on the page, as `PlanDoc.applyMark()` reads it (the inbox's shape:  `ReviewInbox`).
- * - `action`:  `approve`, `pick`, `todo`, `revisit`, `details`
+ * - `action`:  `approve`, `pick`, `todo`, `revisit`, `details`, `new` (a new item:  epic `airplane` P2)
  */
 export type PlanMark = {
-  /** the item's id (any case);  an Overview sub-section's (`o3`, Q14) too */
+  /**
+   * the item's id (any case);  an Overview sub-section's (`o3`, Q14), a phase's (`p3`), the summary's (`summary`) too;
+   * a new item's key (`new1`)
+   */
   id: string
   /** what Owen asked for */
   action: string
@@ -422,6 +428,14 @@ export type PlanMark = {
   when?: string
   /** Owen's note */
   note?: string
+  /** a new item's kind:  `todo` or `question` */
+  kind?: string
+  /** a new item's title */
+  title?: string
+  /** a new item's:  the id of what it's about */
+  near?: string
+  /** when Owen made the mark (ISO) */
+  at?: string
 }
 
 /** What `PlanDoc.applyMark()` did with a mark:  applied (and how), or left for Claude (and why). */

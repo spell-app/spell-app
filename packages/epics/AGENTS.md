@@ -35,8 +35,10 @@ house style every package shares.  Only what's local is below;  a section named 
     the doc holds;  NOT the log's (`<epic-event>`).  A time alone (`saved 14:42`):  `PlanDates.clock()`
   - `review/` -- `ReviewClient`, one per page:  the review inbox's reads and writes (`/api/review/*`), token
     refresh, polling, note-draft backups (the old runtime's localStorage keys).  Touches no browser global until
-    `forPage()` / `watch()`.  `<epic-item>`'s and `<epic-section>`'s `ReviewControls` and `<epic-option>`'s Choose
-    pill use it;  the controls show while `<epic-page reviewing>` is set
+    `forPage()` / `watch()`.  The `ReviewControls` of `<epic-item>`, `<epic-section>` (Overview parts),
+    `<epic-phase>` and `<epic-summary>`, the new-item controls (`NewItems.tsx`:  `<epic-page>`'s `+`, the Todos and
+    Questions sections) and `<epic-option>`'s Choose pill use it;  the controls show while `<epic-page reviewing>`
+    is set
     - `AgentsClient`, one per page:  the epic's running agents (`/api/agents`, `packages/docs/tools/agentRoutes.ts`)
       and Owen's redirects;  `<epic-page>` draws them as its "Agents running" panel (`AgentsPanel.tsx`, in its shadow
       root before its blocks:  not a section).  Both clients POST and watch through the same code, a `ServerLink` each

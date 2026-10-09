@@ -1047,6 +1047,110 @@ describe("PlanDoc review inbox", () => {
     expect(plan.describeItem("z9")).toBeNull()
   })
 
+  // epic `airplane` P2:  notes on the phases and the summary
+  test("describeItem:  a phase (its status) and the summary (its text) too;  a phase that isn't there:  null", () => {
+    const plan = inboxPlan()
+    plan.addPhase("Offline Pages")
+    expect(plan.describeItem("P1")).toEqual({ id: "P1", kind: "phase", status: "todo", title: "Offline Pages" })
+    expect(plan.describeItem("summary")).toEqual({
+      id: "SUMMARY",
+      kind: "summary",
+      status: "open",
+      title: "Two sentences: what this plan does, and why."
+    })
+    expect(plan.describeItem("p2")).toBeNull()
+  })
+
+  test("a phase's marks:  approve noted, todo made with a Done card on the phase;  a kept note a reply in it", () => {
+    const plan = inboxPlan()
+    plan.addPhase("Offline Pages", { symptom: "pages stall", changes: "served locally" })
+    plan.addPhaseUpdate(1, "<p>split the check out</p>")
+    expect(plan.applyMark({ id: "p1", action: "approve" })).toEqual({ applied: true, did: "approved" })
+    expect(plan.applyMark({ id: "P1", action: "todo", note: "after the flight" }).did).toBe("to todo T1")
+    const todo = el(plan, "t1")
+    expect(todo.getAttribute("title")).toBe("Follow up:  P1 · Offline Pages")
+    expect(todo.querySelector('a[href="#p1"]')!.textContent).toBe("P1")
+    expect(todo.textContent).toContain("Owen:  after the flight")
+    const phase = el(plan, "p1")
+    expect(phase.querySelector(':scope > epic-status[slot="status"][state="done"] a[href="#t1"]')).not.toBeNull()
+    expect(plan.applyMark({ id: "p1", action: "pick", pick: "A" })).toEqual({
+      applied: false,
+      left: "P1 (phase):  can't pick A"
+    })
+    expect(plan.applyMark({ id: "p1", action: "revisit", when: "soon", note: "too big?" })).toMatchObject({
+      applied: false,
+      left: 'to talk over:  "too big?"'
+    })
+    plan.keepNote("p1", { note: "too big?", action: "revisit", when: "soon", at: "2026-10-01T09:10:00" })
+    plan.keepNote("p1", { note: "too big?", action: "revisit", when: "soon", at: "2026-10-01T09:10:00" })
+    expect(kids(phase).slice(0, 4)).toEqual(["field:symptom", "field:changes", "epic-updated", "epic-reply"])
+    const reply = phase.querySelector(":scope > epic-reply")!
+    expect([reply.getAttribute("from"), reply.getAttribute("re"), reply.textContent]).toEqual([
+      "Owen",
+      "revisit soon",
+      "too big?"
+    ])
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("the summary's marks:  todo made, linking the Overview, a Done card under the lede;  a kept note under it", () => {
+    const plan = inboxPlan()
+    expect(plan.applyMark({ id: "summary", action: "todo" }).did).toBe("to todo T1")
+    const todo = el(plan, "t1")
+    expect(todo.getAttribute("title")).toBe("Follow up:  the summary")
+    expect(todo.querySelector('a[href="#overview"]')!.textContent).toBe("the summary")
+    const summary = plan.overview.querySelector(":scope > epic-summary")!
+    expect(summary.querySelector(':scope > epic-status[slot="status"][state="done"]')).not.toBeNull()
+    plan.keepNote("summary", { note: "say who it's for", action: "todo", at: "2026-10-01T09:10:00" })
+    expect(plan.describeItem("summary")!.title).toBe("Two sentences: what this plan does, and why.")
+    const reply = summary.querySelector(':scope > epic-reply[slot="notes"]')!
+    expect([reply.getAttribute("from"), reply.getAttribute("re"), reply.textContent]).toEqual([
+      "Owen",
+      "todo",
+      "say who it's for"
+    ])
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("a new item from the page:  made as `add` makes one, the note its details, linked to what it's about", () => {
+    const plan = inboxPlan()
+    plan.addPhase("Offline Pages")
+    const mark = {
+      id: "new1",
+      action: "new",
+      kind: "question",
+      title: "window or aisle?",
+      note: "a long flight\n\nand a short one",
+      near: "p1",
+      at: "2026-10-01T09:00:00"
+    }
+    expect(plan.applyMark(mark)).toEqual({ applied: true, did: "made question Q3:  window or aisle?" })
+    const made = el(plan, "q3")
+    expect([made.getAttribute("title"), made.getAttribute("status")]).toEqual(["window or aisle?", "open"])
+    expect(Array.from(made.querySelectorAll("epic-question p"), (p) => p.textContent)).toEqual([
+      "a long flight",
+      "and a short one",
+      "About P1."
+    ])
+    expect(made.querySelector('a[href="#p1"]')!.textContent).toBe("P1")
+    const card = made.querySelector(':scope > epic-status[slot="status"]')!
+    expect([card.getAttribute("state"), card.textContent]).toEqual([
+      "done",
+      "Made from the page:  Owen's new question, written 2026-10-01 09:00."
+    ])
+    expect(plan.applyMark({ id: "new2", action: "new", kind: "todo", title: "pack", near: "summary" }).did).toBe(
+      "made todo T1:  pack"
+    )
+    expect(el(plan, "t1").querySelector('a[href="#overview"]')!.textContent).toBe("the summary")
+    expect(plan.applyMark({ id: "new3", action: "new", kind: "todo" })).toMatchObject({ applied: false, gone: true })
+    const log = Array.from(plan.findSection("log")!.querySelectorAll("epic-event"), (event) => event.textContent)
+    expect(log.slice(-2)).toEqual([
+      "Q3 made from the page:  Owen's new question (NEW1)",
+      "T1 made from the page:  Owen's new todo (NEW2)"
+    ])
+    expect(problems(plan)).toEqual([])
+  })
+
   test("approve:  a question takes its recommended option;  none recommended:  left", () => {
     const plan = inboxPlan()
     expect(plan.applyMark({ id: "q1", action: "approve" })).toEqual({
