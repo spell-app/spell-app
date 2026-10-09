@@ -19,7 +19,7 @@ import originalCSS from "./EpicOriginal.css?inline"
  ****************/
 export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
   @E.proto static vocabulary = epicVersionVocabulary
-  @E.proto static styleSheets = { original: originalCSS }
+  @E.proto static styleSheets = { "epic-original": originalCSS }
   @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Versions beside it, itself included:  followed as its parent's children change. */

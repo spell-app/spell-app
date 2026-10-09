@@ -24,7 +24,7 @@ import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
  ****************/
 export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
   @E.proto static vocabulary = epicUpdateVocabulary
-  @E.proto static styleSheets = { fold: foldCSS, "epic-update": updateCSS }
+  @E.proto static styleSheets = { "epic-fold-button": foldCSS, "epic-update": updateCSS }
 
   /** A note's open or folded state:  open to start with. */
   readonly fold = new Fold(() => true)
