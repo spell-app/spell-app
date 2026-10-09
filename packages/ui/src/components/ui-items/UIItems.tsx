@@ -20,8 +20,9 @@ import itemsCSS from "./UIItems.css?inline"
  * - Items adopt THIS class's `elementSetup.styleSheets`, so `UIItems.css` holds the item rules too;
  *   the group's variations reach them as inherited tokens.
  *
- * - Stacking answers to THIS DOM element's width:  it's a block and the size container `ui-items`
- *   (`:state(items)`, always on).  With `stack-with="page"` (a private class), it answers to the screen's.
+ * - Stacking answers to THIS DOM element's width:
+ *   it's a block and the size container `ui-items` (`:state(items)`, always on).
+ *   With `stack-with="page"` (a private class), it answers to the screen's.
  *
  * - Not interactive:  `link` is Fomantic's hover look;  an item that goes somewhere takes `href` (one link).
  ****************/

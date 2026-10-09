@@ -14,6 +14,7 @@ const WATCHED = ["href", "disabled", "tabindex", "contenteditable", "type"]
 /****************
  * ### `UIReveal`
  * The component behind `<ui-reveal>`:  content that gives way to other content on hover or focus.
+ * Its shadow DOM:
  * `<div class="ui … reveal" part="reveal">` holding `<div class="visible content" part="visible">`
  * (`slot=visible`, then the default slot) over `<div class="hidden content" part="hidden">` (`slot=hidden`).
  *
@@ -23,8 +24,9 @@ const WATCHED = ["href", "disabled", "tabindex", "contenteditable", "type"]
  *     whose own focus reveals it:  no second stop.
  *   - NOTE: a focusable CUSTOM element in the content (`<ui-button>`) isn't detected
  *     (its control draws later, in its own shadow root):  the reveal keeps its stop then.
- * - Both contents stay in the accessibility tree:  "hidden" is visual only (the hidden content is under the
- *   visible one), so assistive tech reads both, in order, at any time.
+ * - Both contents stay in the accessibility tree:
+ *   "hidden" is visual only (the hidden content is under the visible one),
+ *   so assistive tech reads both, in order, at any time.
  * - `prefers-reduced-motion`:  the swap is instant (`UIReveal.css`).
  ****************/
 @E.cssStates("active")
@@ -46,7 +48,10 @@ export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
     return !isServer && !!this.domElement.querySelector(FOCUSABLE)
   }
 
-  /** Is the root the tab stop?  Not when the content can take focus itself, nor when disabled.  Tracked. */
+  /**
+   * Is the root the tab stop?  Not when the content can take focus itself, nor when disabled.
+   * - Tracked.
+   */
   private get isTabStop(): boolean {
     return !this.contentHasFocusable && !this.disabled
   }

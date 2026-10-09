@@ -14,8 +14,8 @@ import overviewCSS from "./EpicOverview.css?inline"
 
 /****************
  * ### `EpicOverview`
- * The component behind `<epic-overview>`:  a plan doc's Overview -- `1. Overview`, a fold (`EpicFold`), its
- * lightbulb icon.
+ * The component behind `<epic-overview>`:  a plan doc's Overview --
+ * `1. Overview`, a fold (`EpicFold`), its lightbulb icon.
  * - Inside, in order:  the summary (`<epic-summary>`, a lede), the Kickoff prompt (`<epic-prompt>`, folded), the
  *   estimate line (`estimate`), then its sub-sections (`<epic-section kind="overview-part">`).
  * - Summary and prompt are its light children, in the default slot with the sub-sections, so the estimate drawn

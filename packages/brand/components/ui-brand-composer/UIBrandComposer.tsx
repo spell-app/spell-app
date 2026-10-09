@@ -66,10 +66,11 @@ export class DOMBrandComposerElement extends DOMFormControl<UIBrandComposer> {
  *   no reflection.  Leaving the box edited sends `ui-change`.
  *
  * - Cast:  the button, Cmd / Ctrl+Enter in the box (either key, on any platform), or the DOM element's `cast()`.
- *   Plain Enter types a new line.
- *   Nothing happens with blank text, while `casting`, or `disabled`:  the button stays focusable then, `aria-disabled`.
- *   `ui-cast` is CANCELABLE:  unless cancelled, a composer inside a `<form>` submits it (`requestSubmit()`),
- *   so `name` / `value` reach the form's `submit` handler.
+ *   - Plain Enter types a new line.
+ *   - Nothing happens with blank text, while `casting`, or `disabled`:
+ *     the button stays focusable then, `aria-disabled`.
+ *   - `ui-cast` is CANCELABLE:  unless cancelled, a composer inside a `<form>` submits it (`requestSubmit()`),
+ *     so `name` / `value` reach the form's `submit` handler.
  * - `casting`:  the PAGE sets it while it builds and clears it;  the button spins (still, with reduced motion),
  *   the card is `aria-busy`, and "Casting your spell…" is announced.  The text stays editable.
  * - Grows with its text (`field-sizing: content`, where the browser has it) from `rows` lines,
@@ -256,8 +257,8 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   ////////////////
 
   /**
-   * Cast the current text (the button, Cmd / Ctrl+Enter, the DOM element's `cast()`):  send `ui-cast`,
-   * then, unless cancelled, submit the form.
+   * Cast the current text (the button, Cmd / Ctrl+Enter, the DOM element's `cast()`):
+   * send `ui-cast`, then, unless cancelled, submit the form.
    * - Reads the DOM element's PROPERTIES, not the signals:
    *   a page may set `value` (or `casting`) and cast in one go, before the signals' writes land.
    * - Returns false when nothing was cast (see the class doc), or `ui-cast` was cancelled.

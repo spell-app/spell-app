@@ -10,8 +10,8 @@ import eventCSS from "./EpicEvent.css?inline"
  * ### `EpicEvent`
  * The component behind `<epic-event>`:  one line of the log -- its icon (`icon`, default `pen to square`), its time
  * to the minute (`at`), then what happened (its children).
- * - A row:  the icon centred on the first line, the time in mono, the text wrapping beside them;  too narrow, the
- *   text wraps under the time.
+ * - A row:  the icon centred on the first line, the time in mono, the text wrapping beside them;
+ *   too narrow, the text wraps under the time.
  ****************/
 export class EpicEvent extends E.UIComponent<typeof epicEventVocabulary> {
   @E.proto static vocabulary = epicEventVocabulary

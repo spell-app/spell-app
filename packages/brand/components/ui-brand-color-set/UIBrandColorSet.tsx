@@ -55,8 +55,8 @@ function isSameChips(a: readonly SetChip[], b: readonly SetChip[]): boolean {
  * - Layout:  one row, each chip at its own size, all shrinking alike when the row is too narrow.
  *   `columns`:  a grid of equal cells, each chip filling its cell (`--_ui-brand-color-fit` on the chip).
  *
- * - `value`:  the chosen chip's `name`,
- *   else its colour (a colour matches whatever way it's written:  `#8e96b5` finds `142 150 181`).
+ * - `value`:  the chosen chip's `name`, else its colour
+ *   (a colour matches whatever way it's written:  `#8e96b5` finds `142 150 181`).
  *   Controlled (`Controlled`):  setting it marks the matching chip `selected`, and every other one not;
  *   unset, the chips' own `selected` stand, and the first of them is the chosen one.
  *

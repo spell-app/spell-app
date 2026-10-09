@@ -380,9 +380,9 @@ async function group(attributes: string) {
 ////////////////
 
 /**
- * Public `--ui-button-*` tokens set from OUTSIDE the shadow root reach the box:  the sheet declares only private
- * aliases (`--_ui-button-radius: var(--ui-button-radius, ...)`), never the public names (`docs/theming.md`
- * "Component tokens").
+ * Public `--ui-button-*` tokens set from OUTSIDE the shadow root reach the box:
+ * the sheet declares only private aliases (`--_ui-button-radius: var(--ui-button-radius, ...)`),
+ * never the public names (`docs/theming.md` "Component tokens").
  */
 describe("<ui-button> tokens from outside", () => {
   /** The inner control's top-left radius. */

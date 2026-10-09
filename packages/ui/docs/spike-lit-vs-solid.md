@@ -1,8 +1,10 @@
 # Lit vs Solid: the two spikes side by side
 
-> NOTE (2026-09-29):  the Solid spike is now the package (`src/`, `packages/solid-element/`, `tools/`;  status in
-> `docs/report.md`).  `spike/` is gone;  the paths below refer to git tag `archive/spikes`.
-> Since 2026-10-09 `packages/solid-element/` is gone too, folded into `src/elements/` (epic `spell-element`).
+> NOTE (2026-09-29):  the Solid spike is now the package
+> (`src/`, `packages/solid-element/`, `tools/`;  status in `docs/report.md`).
+> `spike/` is gone;  the paths below refer to git tag `archive/spikes`.
+>
+> NOTE (2026-10-09):  `packages/solid-element/` is gone too, folded into `src/elements/` (epic `spell-element`).
 
 **Decision (Owen, 2026-09-30):  Solid 2.**  The Lit spike is archived at git tag `archive/lit-spike` (`git checkout archive/lit-spike -- spike/lit` restores it);  `spike/lit/REPORT.md` there is the full Lit report.
 

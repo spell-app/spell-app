@@ -48,7 +48,8 @@ export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
 
   /**
    * Marked disabled (`disabled`):  `aria-disabled` (`:state(disabled)` is `UIComponent`'s).
-   * - Only a look (`elementSetup.disabled` is `"its own"`), so the element still takes clicks (its content's links).
+   * - Only a look (`elementSetup.disabled` is `"its own"`),
+   *   so the element still takes clicks (its content's links).
    */
   @E.aria("ariaDisabled")
   get looksDisabled(): boolean {

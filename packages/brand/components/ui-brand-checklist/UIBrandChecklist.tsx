@@ -31,7 +31,7 @@ import checklistCSS from "./UIBrandChecklist.css?inline"
  * ### `UIBrandChecklist`
  * The component behind `<ui-brand-checklist>`:  a list of `<ui-brand-check>`s, its light-DOM children.
  *
- * - Its shadow DOM:  `<div class="checklist" part="list" role="list"><slot>`,
+ * - Its shadow DOM, a `<div class="checklist" part="list" role="list"><slot>`
  *   then a visually hidden live region (`part="status"`).
  * - `step` (progress, the build card):  checks before index `step` are done, the one at `step` active,
  *   the rest pending;  at or past the end, all done.  Each check asks `checkState()` (it finds this list through

@@ -4,8 +4,8 @@ import { GridPart } from "./GridPart"
 
 /****************
  * ### `UIGrid`
- * The component behind `<ui-grid>`:  a 16-column flex grid of rows and columns,
- * `<div class="ui … grid" part="grid"><slot></slot></div>`.
+ * The component behind `<ui-grid>`:
+ * a 16-column flex grid of rows and columns, `<div class="ui … grid" part="grid"><slot></slot></div>`.
  *
  * - `columns="3"` => `three column`;  `columns="equal"` or `equal-width` => `equal width`.
  * - Its DOM element is a block and the `ui-grid` size container,
@@ -23,8 +23,9 @@ export class UIGrid extends GridPart<typeof gridVocabulary> {
 
   /**
    * Celled with its outer box (`celled`, not `celled="internally"`):  `:state(celled)`.
-   * - Why:  the DOM element is a size container (its own formatting context), so that box's outer margin sits on the
-   *   DOM ELEMENT, to collapse with the content above as class grammar's does (`UIGrid.css`).
+   * - Why:  the DOM element is a size container (its own formatting context),
+   *   so that box's outer margin sits on the DOM ELEMENT,
+   *   to collapse with the content above as class grammar's does (`UIGrid.css`).
    */
   @E.cssState("celled")
   get hasOuterCells(): boolean {

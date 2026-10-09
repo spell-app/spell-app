@@ -7,8 +7,8 @@ import feedCSS from "./UIFeed.css?inline"
 
 /****************
  * ### `UIFeed`
- * The component behind `<ui-feed>`:  an activity feed of `<ui-event>`s,
- * `<ul class="ui ... feed" part="feed" role="list"><slot></slot></ul>`,
+ * The component behind `<ui-feed>`:
+ * an activity feed of `<ui-event>`s, `<ul class="ui ... feed" part="feed" role="list"><slot></slot></ul>`,
  * an `<ol>` when `ordered` (the numbers mean something).
  *
  * - It owns its events and their content parts (`ownsParts`):

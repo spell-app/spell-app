@@ -55,12 +55,12 @@ export class DOMCheckElement extends F.DOMFormControl<CheckControl> {
  *
  * - `selected` is controlled (`isSelected`):  the input's `change` sends `ui-change` first;
  *   a handler that sets `el.selected` again wins (the input shows that state).
- *   `checked` is another name for it:  the DOM element's property (`DOMCheckElement`),
- *   and the `checked` ATTRIBUTE, which selects it as markup selects a native checkbox.
+ *   - `checked` is another name for it:  the DOM element's property (`DOMCheckElement`),
+ *     and the `checked` ATTRIBUTE, which selects it as markup selects a native checkbox.
  *
  * - The form value:  `chosenValue` while chosen (`value`, else the class's `defaultChosenValue`, `on`),
  *   and `unchosenValue` otherwise (`<ui-checkbox>`'s `off-value`;  none:  nothing).
- *   A form reset restores the starting state.
+ *   - A form reset restores the starting state.
  *   - A subclass changes both for every element it defines:
  *     `@E.proto static defaultChosenValue = "open"` (`defaultUnchosenValue` on `UICheckbox`).
  *   - `required` reads the chosen state only:  an off-value never counts as chosen.
@@ -142,8 +142,8 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   }
 
   /**
-   * Someone chose or unchose it (a click, a key):  send `ui-change`, then set the DOM element's property,
-   * unless a handler set it first.
+   * Someone chose or unchose it (a click, a key):
+   * send `ui-change`, then set the DOM element's property, unless a handler set it first.
    * - `detail.value`:  what it stands for after the change:
    *   `chosenValue`, or once unchosen, `unchosenValue` when there is one.
    * - Returns true when applied.
@@ -255,8 +255,8 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
    * - What it needs to submit without script:  `name`, `value`, `checked`;  and the `STATIC_CONTROL` mark.
    * - `{}` in a browser, where the DOM element submits (`ElementInternals`) and an effect sets `checked`.
    * - `value` left out when it's the native default.
-   * - No off-value:  a native box can't submit one, and a hidden input of the same name would send both while
-   *   chosen (epic `wwod-spell-ui`, J44).
+   * - No off-value:  a native box can't submit one,
+   *   and a hidden input of the same name would send both while chosen (epic `wwod-spell-ui`, J44).
    */
   protected get staticControl(): Record<string, unknown> {
     if (!isServer) return {}

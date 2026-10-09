@@ -1,6 +1,6 @@
 /**
- * The Solid 2 host page's identity probe (`SolidIdentityHook` in `tools.types.ts`):  sets
- * `globalThis.__uiSolidIdentity`, so the host app (`app.tsx`) can PROVE it shares one `solid-js` / `@solidjs/web`
+ * The Solid 2 host page's identity probe (`SolidIdentityHook` in `tools.types.ts`):
+ * sets `globalThis.__uiSolidIdentity`, so the host app (`app.tsx`) can PROVE it shares one `solid-js` / `@solidjs/web`
  * with the components, and that its context reaches them.
  * - A PAGE module, never shipped code:  `solid-js`, `@solidjs/web` and `@spell-app/ui/core` resolve through the page's
  *   import map, i.e. the same vendored files the components load.

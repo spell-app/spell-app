@@ -11,8 +11,9 @@ import formCSS from "./UIForm.css?inline"
 
 /****************
  * ### `DOMFormElement`
- * The DOM element of `<ui-form>`, as `HTMLFormElement` is `<form>`'s:  it adds the form's script API
- * (`validate()`, `isValid()`, `reset()`, `clear()`, `values`, `nativeForm`), each handed to the component.
+ * The DOM element of `<ui-form>`, as `HTMLFormElement` is `<form>`'s:
+ * it adds the form's script API (`validate()`, `isValid()`, `reset()`, `clear()`, `values`, `nativeForm`),
+ * each handed to the component.
  *
  * - Before the component exists, it answers as an empty form:  valid, no values, no native form.
  * - `DOMElement` checks its members against the attributes' property names;  none of these is one.
@@ -52,10 +53,11 @@ export class DOMFormElement extends E.DOMElement<UIForm> {
 
 /****************
  * ### `UIForm`
- * The component behind `<ui-form>`:  a form's look, `<div class="ui … form" part="form"><slot></slot></div>`,
- * and its VALIDATION, over a NATIVE form.
+ * The component behind `<ui-form>`:
+ * a form's look, `<div class="ui … form" part="form"><slot></slot></div>`, and its VALIDATION, over a NATIVE form.
  *
- * - Why not a form of its own:  a form-associated control belongs to the nearest `<form>` ANCESTOR in its own tree,
+ * - Why not a form of its own:
+ *   a form-associated control belongs to the nearest `<form>` ANCESTOR in its own tree,
  *   so a `<form>` in this shadow root would never own the slotted controls, and a custom element can't BE a form.
  *   - So `<ui-form>` works with a light-DOM `<form>`:  one slotted INSIDE it (`<ui-form><form>…`, preferred),
  *     else the one AROUND it (`<form><ui-form>…`).
@@ -67,9 +69,9 @@ export class DOMFormElement extends E.DOMElement<UIForm> {
  *   constraint validation still counts (see `FormFields.errors()`).
  *
  * - Submit (in the capture phase, on the form):  every field validates.
- *   - Invalid:  `preventDefault()` and `stopImmediatePropagation()` (the page's own submit handlers never see
- *     an invalid form, as natively), the prompts, the `error` state, `ui-failure`,
- *     and focus on the first invalid field (`error-focus`).
+ *   - Invalid:  the prompts, the `error` state, `ui-failure`, and focus on the first invalid field (`error-focus`);
+ *     plus `preventDefault()` and `stopImmediatePropagation()`,
+ *     so the page's own submit handlers never see an invalid form, as natively.
  *   - Valid:  the cancelable `ui-success` (cancelled => no native submission).
  *
  * - Prompts:  each field's first control's `<ui-field>` (`:state(field)`) gets `showErrors()`;
@@ -83,8 +85,9 @@ export class DOMFormElement extends E.DOMElement<UIForm> {
  *
  * - Static server render (`$/ui/static`):  a `<form>` slotted inside it MERGES into the root,
  *   which becomes `<form class="ui … form">` with the author's attributes (`mergedForm`).
- *   That's Fomantic's own markup, so the form's rules reach its fields and messages,
- *   and the page still submits natively.  A form around it stays as it is.
+ *   - That's Fomantic's own markup, so the form's rules reach its fields and messages,
+ *     and the page still submits natively.
+ *   - A form around it stays as it is.
  ****************/
 export class UIForm extends E.UIComponent<typeof formVocabulary> {
   @E.proto static vocabulary = formVocabulary
@@ -210,8 +213,8 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   @E.state accessor nativeForm: HTMLFormElement | undefined = undefined
 
   /**
-   * While connected:  find the native form (and again as the subtree changes), and the DOM element's own listeners;
-   * returns their undo.
+   * While connected:  find the native form (and again as the subtree changes),
+   * and the DOM element's own listeners;  returns their undo.
    * - Its own `MutationObserver`, not `@fromContent`:  it watches only while connected.
    */
   @E.whileConnected

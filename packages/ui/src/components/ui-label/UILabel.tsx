@@ -18,7 +18,7 @@ import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
  * - `image` is a string attribute:
  *   - bare (or `""`):  the `image` class, around a slotted `<img>`
  *   - a URL:  the `src` of the label's own `<img class="image" part="image" alt="">`
- *   `ClassBuilder` writes no class for a string attribute, so the `image` class is added by hand.
+ *   - `ClassBuilder` writes no class for a string attribute, so the `image` class is added by hand.
  *
  * - `removable`:  a real `<button class="delete icon">`, named by the `remove` text.
  *   A click sends the cancelable `ui-remove`:  the label never removes itself, the page does.

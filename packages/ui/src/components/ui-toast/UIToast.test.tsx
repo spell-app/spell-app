@@ -55,8 +55,9 @@ function fakeClock() {
 }
 
 /**
- * Let the box's entry / exit animation (1ms here) end, and its handlers run:  by then, a close that started has
- * hidden the toast.  For checks that something did NOT happen.
+ * Let the box's entry / exit animation (1ms here) end, and its handlers run:
+ * by then, a close that started has hidden the toast.
+ * - For checks that something did NOT happen.
  */
 async function animationsDone(host: Element) {
   await UI.transitions.whenTransitionEnds(host.shadowRoot!.querySelector("[part~=box]")!)
@@ -173,8 +174,9 @@ describe("<ui-toast> tokens from outside", () => {
   })
 
   it("`compact` (the default) follows the width token (off phones)", async () => {
-    // Render first, THEN resize:  WebKit keeps a shared adopted sheet's media results stale when no element using it
-    // is alive at the resize (see PAPERCUTS), so the toast must already be in the page
+    // Render first, THEN resize:
+    // WebKit keeps a shared adopted sheet's media results stale when no element using it is alive at the resize
+    // (see PAPERCUTS), so the toast must already be in the page
     const { root } = await toast(`<ui-toast style="--ui-toast-width: 200px" message="Hi"></ui-toast>`)
     const [previousWidth, previousHeight] = [window.innerWidth, window.innerHeight]
     await page.viewport(1000, 800)
@@ -325,8 +327,9 @@ describe("<ui-toast> actions bar", () => {
 ////////////////
 
 describe("<ui-toast> life", () => {
-  // `pause-on-hover="false"` on the timer tests:  on CI (Linux) they never time out, perhaps because the test
-  // pointer rests where toasts appear -- see `agents/SUSPECTED-BUGS.md`.  Hover pausing has its own tests, below.
+  // `pause-on-hover="false"` on the timer tests:  on CI (Linux) they never time out,
+  // perhaps because the test pointer rests where toasts appear -- see `agents/SUSPECTED-BUGS.md`.
+  // Hover pausing has its own tests, below.
   it("fires ui-show, then closes itself after display-time:  ui-close (timeout), hidden, ui-hide", async () => {
     const host = Fixture.render<Toast>(`<ui-toast display-time="80" pause-on-hover="false" message="Bye"></ui-toast>`)
     const shown = next<ToastShowDetail>(host, "ui-show")

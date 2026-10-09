@@ -16,9 +16,10 @@ import shapeCSS from "./UIShape.css?inline"
  *   Its shape sets its states (`active`, `inactive`, `animating`, `leaving`)
  *   and, while flipping, its inline `transform` / `top` / `left`;  `UIShape.css` does the rest.
  * - Outside a working shape (no `inactive` state) every side shows, stacked:  content is never lost.
- * - A server render (`$/ui/static`):  in a `text` shape the root is a `<span>` (`UIShape.rendersInlineOnServer`).
- *   Which side shows goes by its states (`data-state`), not the class grammar's `active` class:
- *   that one's rule (states layer) would beat a cube face's `display: flex`.
+ * - A server render (`$/ui/static`):
+ *   - in a `text` shape the root is a `<span>` (`UIShape.rendersInlineOnServer`)
+ *   - which side shows goes by its states (`data-state`), not the class grammar's `active` class:
+ *     that one's rule (states layer) would beat a cube face's `display: flex`
  ****************/
 export class UISide extends E.UIComponent<typeof sideVocabulary> {
   @E.proto static vocabulary = sideVocabulary

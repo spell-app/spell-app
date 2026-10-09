@@ -14,8 +14,9 @@ import { AppStylesheet } from "./AppStylesheet"
  *   4. utilities (`setUtilities()`, default `["utilities"]`)
  *   5. `shadow: true` sheets (themes), in registration order
  *   6. the app stylesheet (`#ui-app-stylesheet`) -- ALWAYS last, see `AppStylesheet`
- * - Unregistered names are skipped, not errors:  foundation / utilities may be registered after components
- *   connect, and every adopted root is re-pushed when they are.
+ * - Unregistered names are skipped, not errors:
+ *   foundation / utilities may be registered after components connect,
+ *   and every adopted root is re-pushed when they are.
  * - Roots are held WEAKLY, so a disconnected component's shadow root can be collected.
  ****************/
 export class Styles {
@@ -48,15 +49,18 @@ export class Styles {
 
   /**
    * Register `css` as `name`.  Idempotent.
-   * - Text:  built with `replaceSync`;  re-registering different text REPLACES the existing sheet's rules in place,
+   * - Text:  built with `replaceSync`.
+   *   Re-registering different text REPLACES the existing sheet's rules in place,
    *   so every root already using it updates with no re-push.
    * - A `CSSStyleSheet`:  used as-is;  a different object for an existing name is swapped into every root.
-   * - `page: true`:  also pushed onto `document.adoptedStyleSheets`, once;  with `linked: true` too, only while
-   *   the page doesn't link `ui.css` (see `StyleRegisterOptions`) -- also when `linked` comes on a later call.
+   * - `page: true`:  also pushed onto `document.adoptedStyleSheets`, once.
+   *   With `linked: true` too, only while the page doesn't link `ui.css` (see `StyleRegisterOptions`),
+   *   also when `linked` comes on a later call.
    * - `shadow: true`:  also adopted into EVERY shadow root `adoptInto()` knows, now and later, after utilities
    *   (themes:  their class-grammar overrides must reach component markup).
-   * - `""` UNREGISTERS `name`:  dropped from the page, every shadow root and the registry (`has()` turns false),
-   *   whatever options it was registered with;  returns an empty, detached sheet.
+   * - `""` UNREGISTERS `name`, whatever options it was registered with:
+   *   dropped from the page, every shadow root and the registry (`has()` turns false).
+   *   Returns an empty, detached sheet.
    * - NOTE: `page` / `shadow` / `linked` only ever ADD:  a later call without them keeps what an earlier one set.
    * - NOTE: `replaceSync` drops `@import` -- registered text MUST be self-contained.
    */
@@ -71,8 +75,8 @@ export class Styles {
     if (typeof css === "string") {
       if (!sheet) sheet = new CSSStyleSheet()
       if (this.texts.get(name) !== css) {
-        // WebKit: a second `replaceSync` before anything read `cssRules` APPENDS to the old rules (old ones stay
-        // live, and `cssRules` reads stale):  reading a rule first makes it replace
+        // WebKit:  a second `replaceSync` before anything read `cssRules` APPENDS to the old rules
+        // (old ones stay live, and `cssRules` reads stale):  reading a rule first makes it replace
         if (this.texts.has(name)) void sheet.cssRules[0]
         sheet.replaceSync(css)
         this.texts.set(name, css)
@@ -152,8 +156,8 @@ export class Styles {
   /**
    * Set `root.adoptedStyleSheets` to foundation + `names` + utilities + app sheet (see class docs for order),
    * and remember `root` so later registrations reach it.
-   * - Call from the component's constructor or `connectedCallback`;  calling again with other names
-   *   replaces that root's component sheets.
+   * - Called as the component is set up (`UIComponent.onMount()`), and again when its `styleSheetNames` change.
+   * - Calling again with other names replaces that root's component sheets.
    * - SIDE EFFECT:  first call starts watching `#ui-app-stylesheet`.
    */
   adoptInto(root: ShadowRoot, names: string[]) {
@@ -235,8 +239,8 @@ export class Styles {
   private refreshPage() {
     if (typeof document === "undefined") return
     const foreign = document.adoptedStyleSheets.filter((sheet) => !this.owned.has(sheet))
-    // a page that links `ui.css` already has ITS sheets -- adopting them again just doubles the CSS;  component
-    // page sheets (`table`, `scroll-lock`) aren't in it
+    // a page that links `ui.css` already has ITS sheets:  adopting them again just doubles the CSS;
+    // component page sheets (`table`, `scroll-lock`) aren't in it
     const isLinked = this.isPageLinked
     const ours = this.lookup([...this.pageNames].filter((name) => !isLinked || !this.linkedNames.has(name)))
     document.adoptedStyleSheets = [...foreign, ...ours]

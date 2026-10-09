@@ -26,8 +26,7 @@ import "$/app/solid/loadUI"
 /****************
  * ### `DOMSpellAppElement`
  * The DOM element of `<spell-app>`:  it adds the app's script API, `run(compiled)` and `restart()`.
- * - Its attributes are properties too (`app.project = ...`);  `pushed`, the code pushed to it last, is a
- *   property only.
+ * - Its attributes are properties too (`app.project = ...`);  `pushed`, the code pushed to it last, is a property only.
  * - `run()` works before the element joins the page:  it runs the code once it does, and keeps it across leaving
  *   and rejoining the page.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
@@ -75,9 +74,9 @@ export interface DOMSpellAppElement extends Omit<E.AttributeValues<typeof spellA
  *   `editor` changes (`pushedKey()`).
  * - Each runs on its own copy of the spell runtime (`spell-runtime.js` beside its script), so many can run on a
  *   page at once.
- * - Draws the runner's UI on `@spell-app/ui`, inside a `<ui-root icons="fomantic">`:  the runner's icon names are
- *   Fomantic's.  The PROGRAM draws with React;  Semantic UI's CSS is adopted into the shadow root
- *   (`adoptShadowStyles()`).
+ * - Draws the runner's UI on `@spell-app/ui`, inside a `<ui-root icons="fomantic">`:
+ *   the runner's icon names are Fomantic's.  The PROGRAM draws with React;
+ *   Semantic UI's CSS is adopted into the shadow root (`adoptShadowStyles()`).
  * - `width` / `height` set our inline style, so page CSS works too.
  * - Leaving the page stops the app and lets go of its runtime, a microtask later:  a move in one go keeps it.
  ****************/

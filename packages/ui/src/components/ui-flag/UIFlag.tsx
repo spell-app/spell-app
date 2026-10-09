@@ -36,8 +36,8 @@ export class UIFlag extends E.UIComponent<typeof flagVocabulary> {
 
   /**
    * Accessible name, `undefined` when unknown.
-   * - Computed on first read:  reads `UI.i18n`, which exists only once the runtime has loaded -- i.e.
-   *   by first render.
+   * - Computed on first read:
+   *   reads `UI.i18n`, which exists only once the runtime has loaded, i.e. by first render.
    */
   @E.derived
   get accessibleName(): string | undefined {

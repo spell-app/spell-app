@@ -33,8 +33,8 @@ function isSameContext(a: UIT.ItemContext, b: UIT.ItemContext): boolean {
  *   - Items are `role="menuitem"` (their DOM elements `role="none"`),
  *     with ONE Tab stop, and arrow keys, Home and End between them.
  *   - That's a roving tabindex (`UI.focus.roving`) over the items' BOXES (`UIItem.focusTarget`),
- *     never their DOM elements:  a focusable DOM element without a visible role breaks the menubar's
- *     required-children pattern.
+ *     never their DOM elements:
+ *     a focusable DOM element without a visible role breaks the menubar's required-children pattern.
  *   - Disabled items are skipped.
  *
  * - SUB-MENU:  a `<ui-menu>` owned by a menu (`PartContext`:  directly, or inside an item)
@@ -114,8 +114,8 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
 
   /**
    * `ItemOwner`:  what `item` renders as -- the TOP menu's published context.  Tracked.
-   * - SIDE EFFECT:  records the item for the roving set, and re-applies the roving tabindexes once the item has
-   *   (re-)rendered its box.
+   * - SIDE EFFECT:  records the item for the roving set,
+   *   and re-applies the roving tabindexes once the item has (re-)rendered its box.
    */
   itemContext(item: Element): UIT.ItemContext {
     const top = untrack(() => this.topMenu)
@@ -125,8 +125,9 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
   }
 
   /**
-   * A click inside the menu:  `ui-select` when it activated a link / button item (Enter / Space on one click it
-   * too).  Only the top menu dispatches;  a sub-menu's clicks bubble to it.
+   * A click inside the menu:  `ui-select` when it activated a link / button item
+   * (Enter / Space on one click it too).
+   * - Only the top menu dispatches;  a sub-menu's clicks bubble to it.
    */
   @E.on("click")
   protected onClick(event: MouseEvent) {

@@ -31,17 +31,18 @@ import { ShadowEvents } from "./ShadowEvents"
  * - **DOMElement**: `component.domElement` (`DOMElement.ts`) is a subclass of the *browser's* `HTMLElement`,
  *   and is the object that the browser and all frameworks actually interact with.
  *
- *   For the most part this will be the base `DOMElement` class -- subclasses of `UIComponent`
- *   which need extra functionality in the DOM will have a custom `DOMElement` subclass.
+ *   For the most part this will be the base `DOMElement` class --
+ *   subclasses of `UIComponent` which need extra functionality in the DOM will have a custom `DOMElement` subclass.
  *
  *   The custom element mechanism in the browser "upgrades" `<ui-button>`
  *   from *its* `HTMLElement` to *our* `DOMElement` automatically when we `define()` a component.
  *
- *   `DomElement.component` is the link from the DOM back to this class.
+ *   `domElement.component` is the link from the DOM back to this class.
  *
- * - **Custom element**:  the DOM element is the browser's side (DOM API `connectedCallback()`, the attributes, the
- *   shadow root);  this class is Solid's side:  it builds the component, renders it inside its own Solid root, and
- *   catches what it throws (see "Mounting" and "Errors and fallback").
+ * - **Custom element**:
+ *   - the DOM element is the browser's side:  DOM API `connectedCallback()`, the attributes, the shadow root
+ *   - this class is Solid's side:  it builds the component, renders it inside its own Solid root,
+ *     and catches what it throws (see "Mounting" and "Errors and fallback")
  *
  * - **Lifecycle events** reach the component as methods (`onConnect()`, `onFormReset()` ...):  see "Lifecycle".
  *
@@ -175,13 +176,15 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   // 2. `onMount()`, right after it, which calls `render()`
   // 3. `onConnect()`:  every time the element is added to a page, the first time included
   // 4. `onRuntimeLoaded()`, once, if the runtime (`UI`) wasn't loaded yet:  the content shows then
-  // 5. form controls only, as the browser reports them:  `onFormAssociated()`, `onFormDisabled()`, `onFormReset()`,
-  //    `onFormStateRestore()`
+  // 5. form controls only, as the browser reports them:
+  //    `onFormAssociated()`, `onFormDisabled()`, `onFormReset()`, `onFormStateRestore()`
   // 6. `onDisconnect()`:  every time it's removed;  the component stays for the next connect
   //
-  // The DOM element calls 3, 5 and 6 as the browser reports each event (DOM API `connectedCallback()`, the form
-  // callbacks ...).  Each is a hook:  override the ones you need.  The base class's own work is in `onMount()`,
-  // `onConnect()`, `onDisconnect()` and `onFormDisabled()`:  an override of those calls `super`.
+  // - The DOM element calls 3, 5 and 6 as the browser reports each event
+  //   (DOM API `connectedCallback()`, the form callbacks ...).
+  // - Each is a hook:  override the ones you need.
+  // - The base class's own work is in `onMount()`, `onConnect()`, `onDisconnect()` and `onFormDisabled()`:
+  //   an override of those calls `super`.
   ////////////////
 
   /**
@@ -189,10 +192,10 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Called once, by `mount()`, right after the constructor.
    * - SIDE EFFECTS:
    *   - adopts the class's style sheets into the shadow root (if the runtime has loaded)
-   *   - keeps the element's `:state()`s in step with its `@cssState` members, its `@cssStates` attributes and
-   *     `cssStates()`;  for a state two classes of the chain name, the subclass's member wins
-   *   - starts the `@onChange` and `@whileConnected` methods, the `@aria` members' effect, and the `@fromContent`
-   *     methods' watch
+   *   - keeps the element's `:state()`s in step with its `@cssState` members, its `@cssStates` attributes
+   *     and `cssStates()`;  for a state two classes of the chain name, the subclass's member wins
+   *   - starts the `@onChange` and `@whileConnected` methods, the `@aria` members' effect,
+   *     and the `@fromContent` methods' watch
    *   - re-adopts the style sheets when `styleSheetNames` changes
    * - Not in the constructor, because a subclass's fields don't exist yet while the base constructor runs.
    * - Hook:  an override starts its own effects, then returns `super.onMount()`.
@@ -231,8 +234,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * Hook:  the element was added to a page;  the first time right after `onMount()`.
-   * - Keeps `isConnected` in step, a microtask later:  the element may be connected while the app's Solid is
-   *   drawing, when state can't change yet.  A part re-checks which element it belongs to (`PartContext`).
+   * - Keeps `isConnected` in step, a microtask later:
+   *   the element may be connected while the app's Solid is drawing, when state can't change yet.
+   * - A part re-checks which element it belongs to (`PartContext`).
    * - It may run while Solid is drawing:
    *   defer a state change (`E.afterSolidUpdate()`), or write an `ownedWrite` member.
    */
@@ -316,12 +320,12 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   ////////////////
 
   /**
-   * The value an app handed its `ui-*` elements:  the `appContext` property of the nearest `<ui-root>` around this
-   * element (crossing shadow roots);  `null` when none.
+   * The value an app handed its `ui-*` elements;  `null` when none:
+   * the `appContext` property of the nearest `<ui-root>` around this element (crossing shadow roots).
    * - `<ui-root prop:appContext={value}>` in a Solid app, `root.appContext = value` anywhere else.
    * - Read once, when this object is built.
-   * - Why not a Solid context:  each element draws in a Solid root of its own, with no parent, so a Solid app's
-   *   providers don't reach inside `ui-*` tags (epic `spell-element`, Q9).
+   * - Why not a Solid context:  each element draws in a Solid root of its own, with no parent,
+   *   so a Solid app's providers don't reach inside `ui-*` tags (epic `spell-element`, Q9).
    * - `tools/frameworks/solid/identity.js` uses it to prove an app's value reaches inside custom elements.
    */
   readonly appContext: unknown
@@ -430,7 +434,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * Hook:  the names of the `elementSetup.styleSheets` to adopt right now, in order.
    * - Default:  all of them.
    * - Override it when the sheets depend on where the element sits:
-   *   a `<ui-label>` inside a `<ui-statistic>` adds `UIParts.css`.  The shadow root re-adopts when it changes.
+   *   a `<ui-label>` inside a `<ui-statistic>` adds `UIParts.css`.
+   * - The shadow root re-adopts when it changes.
    * - The server render reads it too, to scope each sheet to the elements that use it.
    */
   get styleSheetNames(): string[] {
@@ -489,7 +494,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   @state accessor formIsDisabled = false
 
   /**
-   * Is `loading` set?  `:state(loading)` follows it, whatever loading means for the family.
+   * Is `loading` set?
+   * - `:state(loading)` follows it, whatever loading means for the family.
    * - `true` only:  `<ui-root loading="Fetching…">` is a message, and its own (`elementSetup.loading`).
    */
   @cssState("loading")
@@ -499,7 +505,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * Is the base class drawing its loader over the element (`elementSetup.loading` is `"loader"`)?
-   * `:state(busy)`, which `reset.css` draws a spinner for.
+   * - `:state(busy)`, which `reset.css` draws a spinner for.
    */
   @cssState("busy")
   get showsLoader(): boolean {
@@ -507,7 +513,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /**
-   * Is everything inside the element inert right now, the base class's way?  `:state(dimmed)`, which `reset.css` dims.
+   * Is everything inside the element inert right now, the base class's way?
+   * - `:state(dimmed)`, which `reset.css` dims.
    * - Disabled where `elementSetup.disabled` is `"unusable"`, or loading where `elementSetup.loading` is `"loader"`.
    * - Inert:  its shadow content (and so what's slotted into it) can't be clicked, focused or typed in,
    *   and leaves the accessibility tree.
@@ -519,9 +526,10 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * A shared state changed (ONE effect for all of them, as every element has it):
-   * - disabled or loading:  ARIA on the DOM element, its content inert or not, and focus inside moves on to the
-   *   next focusable element.  ARIA only where the base class owns that state:  a family with a disabled or loading
-   *   of its own sets its own.
+   * - disabled or loading:  ARIA on the DOM element, its content inert or not,
+   *   and focus inside moves on to the next focusable element.
+   *   - ARIA only where the base class owns that state:
+   *     a family with a disabled or loading of its own sets its own.
    * - `visible`:  animate the element out (then `:state(hidden)`) or back in.
    *   At once, with no animation, before the element first draws:  `<ui-message visible="false">` starts hidden.
    * - On a server:  the ARIA only, once.
@@ -560,8 +568,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /**
-   * Hidden by `visible="false"`, once its animation has run:  `:state(hidden)`, which `reset.css` hides
-   * (`display: none`, as the platform's `hidden`).
+   * Hidden by `visible="false"`, once its animation has run.
+   * - `:state(hidden)`, which `reset.css` hides (`display: none`, as the platform's `hidden`).
    */
   @cssState("hidden")
   get isHiddenByVisible(): boolean {
@@ -572,8 +580,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   @state private accessor isHiding = false
 
   /**
-   * Run `elementSetup.visibleAnimation` in or out (`UI.transitions`), on the boxes in the shadow root:
-   * most `ui-*` DOM elements are `display: contents`, with no box of their own to animate.
+   * Run `elementSetup.visibleAnimation` in or out (`UI.transitions`), on the boxes in the shadow root.
+   * - Why not the element:  most `ui-*` DOM elements are `display: contents`, with no box of their own to animate.
    * - `isHiding` while it runs out;  a later run (back in, or out again) takes over.
    * - NEVER throws:  an animation that can't run just ends.
    */
@@ -664,8 +672,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   /**
    * The user wants to change the `@controlled` accessor named `memberName` to `next`:
    * `this.requestChange("isOpen", true, () => this.send("ui-open", { open: true }))`.
-   * - `memberName`:  the name of an accessor ON THIS COMPONENT (`isOpen`, declared
-   *   `@controlled("open") accessor isOpen`), not the DOM element's property (`open`), which it follows.
+   * - `memberName`:  the name of an accessor ON THIS COMPONENT
+   *   (`isOpen`, declared `@controlled("open") accessor isOpen`),
+   *   not the DOM element's property (`open`), which it follows.
    * - First `announce()` sends the event;  it returns false if the page cancelled it.
    * - Then `next` is written to the element's property, unless the event was cancelled,
    *   or the page set the property itself while handling it (the page's value wins).
@@ -676,8 +685,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /**
-   * Is the `@controlled` accessor named `memberName` (`"value"`) reading the PAGE's value right now, rather than the
-   * element's own?
+   * Is the `@controlled` accessor named `memberName` (`"value"`) reading the PAGE's value right now,
+   * rather than the element's own?
    * - A `@controlled` accessor reads its attribute's value when the page gave it one, else its own starting value.
    *   Take a dropdown's `value`:
    *   - `<ui-dropdown>`, `value` never set:  `this.value` is the element's own;  `isControlledByPage("value")` is false
@@ -785,8 +794,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   ////////////////
 
   /**
-   * Build `Class`'s component for `domElement` and draw it into its shadow root:  what the DOM element's first
-   * connect does (`DOMElement.mountComponent`).
+   * Build `Class`'s component for `domElement` and draw it into its shadow root:
+   * what the DOM element's first connect does (`TagSetup.mountComponent`).
    * - In a Solid root of its OWN, with no parent:  it lives until `domElement.dispose()`, whatever happens around it.
    *   So a Solid app's context doesn't reach inside (`appContext` does that).
    * - Inside an error net (Solid's `<Errored>`), always:  see "Errors and fallback".
@@ -830,9 +839,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   // - the element shows a plain-DOM stand-in (a native `<button>`, `<select>` ...):  `elementSetup.Fallback`
   // - the rest of the page keeps working
   //
-  // Every element has its own net, always:  without one, an error halts Solid for the whole page
-  // (`[REACTIVITY_HALTED]`).  A container's net can't catch it instead:  each element's Solid root has no parent
-  // (epic `spell-element`, Q8).
+  // Every element has its own net, always:
+  // - without one, an error halts Solid for the whole page (`[REACTIVITY_HALTED]`)
+  // - a container's net can't catch it instead:  each element's Solid root has no parent (epic `spell-element`, Q8)
   ////////////////
 
   /**

@@ -7,24 +7,29 @@ import stepCSS from "./UIStep.css?inline"
 
 /****************
  * ### `UISteps`
- * The component behind `<ui-steps>`:  a group of steps,
- * `<ol class="ui … steps" part="steps" role="list"><slot></slot></ol>`.
+ * The component behind `<ui-steps>`:
+ * a group of steps, `<ol class="ui … steps" part="steps" role="list"><slot></slot></ol>`.
  * Steps are a sequence, and each `<ui-step>`'s DOM element is a `listitem`.
  *
  * - `role="list"` is explicit:  `list-style: none` drops the list semantics in Safari.
  *
  * - The root resolves every variation into inherited `--_ui-steps-*` tokens the steps read (`UIStep.css`).
- *   That includes stacking:  the DOM element is a block and the size container `ui-steps` (`:state(steps)`),
- *   and the root turns `stacked` below 768px of it unless `unstackable`;
- *   with `stack-with="page"` (a private class before the noun), below 768px of the screen.
+ *   That includes stacking:
+ *   - the DOM element is a block and the size container `ui-steps` (`:state(steps)`)
+ *   - the root turns `stacked` below 768px of it unless `unstackable`
+ *   - with `stack-with="page"` (a private class before the noun), below 768px of the screen
  *
- * - Numbering (`ordered`) is a CSS counter, reset here and incremented by each step, across the shadow boundaries.
+ * - Numbering (`ordered`) is a CSS counter, reset here and incremented by each step,
+ *   across the shadow boundaries.
  *
- * - The DOM element's states:  `steps` always;  `block` while the root is block-level
- *   (`fluid`, or `circular` and not `vertical`);  `circular` while circular.
+ * - The DOM element's states:
+ *   - `steps` always
+ *   - `block` while the root is block-level (`fluid`, or `circular` and not `vertical`)
+ *   - `circular` while circular
  *   - Why `block`:  the DOM element is a size container (its own formatting context),
- *     so a block-level root's outer margin sits on the DOM ELEMENT, to collapse with the content above
- *     as class grammar's does.  An inline-flex root's never collapses, so it stays on the root (`UIStep.css`).
+ *     so a block-level root's outer margin sits on the DOM ELEMENT,
+ *     to collapse with the content above as class grammar's does.
+ *     An inline-flex root's never collapses, so it stays on the root (`UIStep.css`).
  ****************/
 export class UISteps extends E.UIComponent<typeof stepsVocabulary> {
   @E.proto static vocabulary = stepsVocabulary

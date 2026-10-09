@@ -3,28 +3,33 @@ import { E, UI } from "$/ui/core"
 
 /****************
  * ### `HotDefinitions`
- * Hot module replacement for `ui`'s elements in `yarn dev`:  an edited component re-renders every live element in
- * place, keeping the element objects, their attributes and their property values.  Dev-only;  NEVER in a build.
+ * Hot module replacement for `ui`'s elements in `yarn dev`:
+ * an edited component re-renders every live element in place,
+ * keeping the element objects, their attributes and their property values.
+ * - Dev-only;  NEVER in a build.
  * - Loaded by the Vite plugin (`tools/HotElements.ts`) into every component barrel, before its `define()` calls run.
  *   SIDE EFFECT:  `install()` wraps `UIComponent.define`, and hooks into every DOM element made (`DOMElement.hotReloadHooks`).
- * - Why:  `define()` is idempotent per tag, so a barrel re-run by HMR would return the OLD element class.  The
- *   wrapper records every tag's class and dictionary;  when a DIFFERENT class of the SAME name defines a known tag
- *   -- its module was re-evaluated -- that class takes over EVERY tag the old one had, the translated aliases
- *   (`ie-boton`) included.
- * - The platform can't define a tag twice, so each tag's DOM element class STAYS, and what it reads is swapped in
- *   place (`redefine()`):  its definition, its properties, how it builds its component.  Only when nothing the
- *   platform read once at definition changed (observed attributes, DOM API `formAssociated`, the base class, shadow
- *   root options);  else `update()` reloads the page.
- * - Then the barrel's `import.meta.hot.accept()` calls `update()`, which re-renders every live element of the swapped
- *   classes.  Their component-internal state (a query, an open menu) resets;  their attributes and properties don't.
- * - Also:  English texts the edit changed reach `UI.i18n` (`define()` never overwrites a registered text), and
- *   `updateStyle()` re-registers a component sheet whose `?inline` CSS changed.
+ * - Why:  `define()` is idempotent per tag, so a barrel re-run by HMR would return the OLD element class.
+ *   - The wrapper records every tag's class and dictionary.
+ *   - When a DIFFERENT class of the SAME name defines a known tag (its module was re-evaluated),
+ *     that class takes over EVERY tag the old one had, the translated aliases (`ie-boton`) included.
+ * - The platform can't define a tag twice, so each tag's DOM element class STAYS,
+ *   and what it reads is swapped in place (`redefine()`):  its definition, its properties, how it builds its component.
+ *   - Only when nothing the platform read once at definition changed
+ *     (observed attributes, DOM API `formAssociated`, the base class, shadow root options);
+ *     else `update()` reloads the page.
+ * - Then the barrel's `import.meta.hot.accept()` calls `update()`,
+ *   which re-renders every live element of the swapped classes.
+ *   - Their component-internal state (a query, an open menu) resets;  their attributes and properties don't.
+ * - Also:
+ *   - English texts the edit changed reach `UI.i18n` (`define()` never overwrites a registered text)
+ *   - `updateStyle()` re-registers a component sheet whose `?inline` CSS changed
  * - NOTE: a vocabulary whose tag was renamed defines the NEW tag;  instances of the old one keep the old class.
  * - `UI.vocabulary.replace()` swaps a changed vocabulary in, and re-resolves the runtime's translated names from it.
- * - Imports the core through `$/ui/core`, as a component file does:  it's loaded into component barrels, and NOTHING
- *   in the core imports it (it's not in the `$/ui/elements` barrel).
+ * - Imports the core through `$/ui/core`, as a component file does:  it's loaded into component barrels,
+ *   and NOTHING in the core imports it (it's not in the `$/ui/elements` barrel).
  * - STATIC and instance-free on purpose:  ONE record of definitions per page, as `customElements` is.
- * - From solid-element's hot reload, merged into its one user (epic `spell-element`, Q11).
+ * - Began as solid-element's hot reload, merged into its one user (epic `spell-element`, Q11).
  ****************/
 export class HotDefinitions {
   /** Wrap `UIComponent.define`, and hook into every DOM element made;  idempotent. */
@@ -66,8 +71,8 @@ export class HotDefinitions {
     const after = Next.prototype.vocabulary
     if (before !== after) {
       HotDefinitions.whenRuntime(() => {
-        // `register()` refuses a second vocabulary object for a tag:  swap the new version in, so the registration
-        // below is a no-op and localized names re-resolve
+        // `register()` refuses a second vocabulary object for a tag:
+        // swap the new version in, so the registration below is a no-op and localized names re-resolve
         UI.vocabulary.replace(after)
         HotDefinitions.updateTexts(before, after)
       })
@@ -82,12 +87,12 @@ export class HotDefinitions {
   }
 
   /**
-   * Swap `TagClass`'s definition, properties and component (`Next`) in place, or record why the platform can't take
-   * the change (`update()` then reloads the page).
+   * Swap `TagClass`'s definition, properties and component (`Next`) in place,
+   * or record why the platform can't take the change (`update()` then reloads the page).
    * - Each live element's values are carried over (`migrate()`).
    * - NEVER re-renders:  `update()` does, once the whole barrel has re-run.
-   * - Throws, changing nothing, when a new attribute property would hide a member of the element (as a first
-   *   definition would).
+   * - Throws, changing nothing, when a new attribute property would hide a member of the element
+   *   (as a first definition would).
    */
   static redefine(TagClass: E.DOMElementClass, Next: E.UIComponentClass, definition: E.ElementDefinition) {
     E.UIComponent.register.call(Next, definition)
@@ -114,8 +119,8 @@ export class HotDefinitions {
 
   /**
    * Why `TagClass` can't take `next`, or `undefined` if it can.
-   * - All of these are read ONCE, by DOM API `customElements.define()` or by the constructor of elements that
-   *   already exist.
+   * - All of these are read ONCE,
+   *   by DOM API `customElements.define()` or by the constructor of elements that already exist.
    */
   static changeOf(TagClass: E.DOMElementClass, Base: E.DOMElementBaseClass, next: E.TagSetup): string | undefined {
     const before = TagClass.observedAttributes
@@ -136,8 +141,8 @@ export class HotDefinitions {
   }
 
   /**
-   * Finish a hot update:  re-render the live elements of every class swapped since the last call;  or, if a
-   * re-definition was refused, log it and `hot.invalidate()` (Vite then reloads the page).
+   * Finish a hot update:  re-render the live elements of every class swapped since the last call;
+   * or, if a re-definition was refused, log it and `hot.invalidate()` (Vite then reloads the page).
    * - The Vite plugin calls it from each barrel's `import.meta.hot.accept()`.
    */
   static update(hot?: HotContext): HotUpdateResult {
@@ -163,8 +168,8 @@ export class HotDefinitions {
    * - A second sheet (`UIDimmer.page.css`) or a sheet registered under another name isn't matched:
    *   an edit to it shows after a page reload.
    * - `Styles.register()` replaces the rules of the sheet every shadow root already adopted:  no re-render.
-   * - Registered even if no element used it yet, so a later `adoptStyles()` finds the new text (it only
-   *   registers names that are missing).
+   * - Registered even if no element used it yet, so a later `adoptStyleSheets()` finds the new text
+   *   (`UI.styles.registerOnce()` only registers names that are missing).
    */
   static updateStyle(this: void, id: string, css: string) {
     const stem = /(?:^|\/)UI([A-Za-z0-9]+)\.css(?:\?|$)/.exec(id)?.[1]
@@ -200,7 +205,7 @@ export class HotDefinitions {
   /**
    * Dispose `domElement`'s component and, if connected, build and render its class's CURRENT component.
    * - Kept:  the element, its attributes, its property values (`attributeValues`), its shadow root and adopted sheets.
-   *   Lost:  state inside the component.
+   * - Lost:  state inside the component.
    * - Clears DOM API `:state(errored)`, so an element whose render failed recovers with the next good component.
    * - A detached element is only disposed:  it renders the current component on its next connect.
    */
@@ -215,7 +220,8 @@ export class HotDefinitions {
    * Carry `domElement`'s values over to the `next` definition.
    * - Last written as a PROPERTY:  kept as is (a framework's rich data, a controlled value).
    * - Last written by its ATTRIBUTE:  converted again (a vocabulary that learned a value).
-   * - Never written:  the new starting value.  Attributes the new definition dropped are dropped.
+   * - Never written:  the new starting value.
+   * - Attributes the new definition dropped are dropped.
    */
   private static migrate(domElement: E.DOMElement, previous: E.ElementDefinition, next: E.ElementDefinition) {
     const sources = HotDefinitions.sources.get(domElement) ?? {}

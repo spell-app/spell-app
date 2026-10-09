@@ -19,12 +19,13 @@ import messageCSS from "./UIMessage.css?inline"
  *
  * - It OWNS the `header` and `content` parts (`ownsParts`):
  *   a slotted `<ui-header>` or `<ui-content>` finds it through `PartContext`,
- *   sets `:state(in-message)` and styles itself from `UIParts.css`, reading the owner tokens `UIMessage.css` declares
- *   on the inner box. `define()` registers it as their owner;  nothing to do here.
+ *   sets `:state(in-message)` and styles itself from `UIParts.css`,
+ *   reading the owner tokens `UIMessage.css` declares on the inner box.
+ *   `define()` registers it as their owner;  nothing to do here.
  *
  * - Dismissing:  the close button sends the cancelable `ui-dismiss`.
- *   Unless it's cancelled, the element sets `hidden` on ITSELF.
- *   It never removes itself:  a framework that drew the node still owns it.
+ *   - Unless it's cancelled, the element sets `hidden` on ITSELF.
+ *   - It never removes itself:  a framework that drew the node still owns it.
  *
  * - No role:  a message inserted to announce something gets `role="status"` or `alert` from the page.
  ****************/

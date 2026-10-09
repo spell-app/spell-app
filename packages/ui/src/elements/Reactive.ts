@@ -15,48 +15,57 @@ import type { E } from "$/ui/core"
 
 /****************
  * ### `Reactive`
- * The reactive members of a component (or of any class):  decorators over ONE record per instance, so a member reads
- * and writes like a plain property, fresh at once, and Solid still follows it.
+ * The reactive members of a component (or of any class):  decorators over ONE record per instance,
+ * so a member reads and writes like a plain property, fresh at once, and Solid still follows it.
  * - `@state accessor isOpen = false`:  the value lives in the instance's record, read and written synchronously
- *   (`this.isOpen = true;  this.isOpen` is `true`, no flush).  A Solid listener reading it (JSX, an effect, a memo)
- *   also reads a NOTIFIER signal, made on the first tracked read, which every real change sets.
- * - `@controlled("open") accessor isOpen = false`:  the DOM element's property when set, else the starting value;
- *   writes go to the DOM element's property (and reflect).  A user change is `requestChange("isOpen", next, announce)`.
- * - `@derived get rows()`:  a self-tracking cache, NOT a Solid memo (a memo hears of a change through a staged
- *   signal, so a read right after a write would give the OLD value).  While it computes, every record member it
- *   reads registers with the version it saw;  a read checks those versions and recomputes only when one moved.
- *   - It MUST read only record members:  `@state`, `@controlled`, vocabulary getters, `this.attributes`, other
- *     `@derived`.  Anything else (a `Cell`, a Solid signal, `UI.browser`, a module global) can't be seen changing
- *     outside Solid:  move it into the record, or make the member a plain getter.
+ *   (`this.isOpen = true;  this.isOpen` is `true`, no flush).
+ *   - A Solid listener reading it (JSX, an effect, a memo) also reads a NOTIFIER signal,
+ *     made on the first tracked read, which every real change sets.
+ * - `@controlled("open") accessor isOpen = false`:  the DOM element's property when set, else the starting value.
+ *   - Writes go to the DOM element's property (and reflect).
+ *   - A user change is `requestChange("isOpen", next, announce)`.
+ * - `@derived get rows()`:  a self-tracking cache, NOT a Solid memo
+ *   (a memo hears of a change through a staged signal, so a read right after a write would give the OLD value).
+ *   - While it computes, every record member it reads registers with the version it saw;
+ *     a read checks those versions and recomputes only when one moved.
+ *   - It MUST read only record members:
+ *     `@state`, `@controlled`, vocabulary getters, `this.attributes`, other `@derived`.
+ *     Anything else (a `Cell`, a Solid signal, `UI.browser`, a module global) can't be seen changing outside Solid:
+ *     move it into the record, or make the member a plain getter.
  *   - `@derived({ equals })`:  an equal result keeps the old value (`isSameList` for a filtered list).
  * - `@cssState("open")` on a getter or accessor:  `UIComponent` keeps `:state(open)` in step with it.
- *   - `@cssStates("disabled", "loading")` on the CLASS:  `:state(x)` follows attribute `x`,
- *     for states that only mirror their attribute (no getter to write).
+ *   - `@cssStates("disabled", "loading")` on the CLASS:
+ *     `:state(x)` follows attribute `x`, for states that only mirror their attribute (no getter to write).
  * - `@aria("ariaBusy")` on a getter or accessor:  the DOM element's `internals.ariaBusy` follows it
- *   (`true` => `"true"`;  `false`, `undefined` => removed).  Stacks with `@cssState`.
- *   A value that never changes is `elementSetup.aria` instead.
- * - `@onChange("a", "b") onXChanged(a, b)`:  an effect reading the named members, calling the method with their
- *   values;  a function it returns is the cleanup.  Created by `Reactive.startEffects()`, after every field exists;
- *   the method runs only when a member's value changed.
- * - `@whileConnected watchX()`:  runs each time the element connects;  a function it returns is the cleanup, run
- *   when it disconnects.  Sugar over `@onChange("isConnected")`.
- * - `@fromContent({ childList: true, subtree: true }) get slotted()`:  a member read from the DOM element's light DOM,
- *   recomputed when that changes (ONE `MutationObserver` per instance, from the member's first read in a browser).
- *   On a method instead:  the method is called on each change, from `startEffects()` on.
- * - `@on("command") onCommand(event)`:  a listener on the DOM element for the element's whole life, added by
- *   `UIComponent`'s constructor (`Reactive.listenersOf()`);  the method runs untracked.
- * - `@untracked select(option)`:  the method's body runs inside `untrack()`, so an action or a handler reads members
- *   without `untrack(() => this.x)` around each read.
- * - `Reactive.accessorsOf(instance)` (a component's `$`):  `$.isOpen` is an `Accessor` of `this.isOpen`, for
- *   Solid APIs that take one.
- * - Vocabulary getters (`installAttributeGetters()`;  their setters write the DOM element's property) and raw
- *   attributes (`attributesOf()`) are record members too:  versions bumped when the DOM element's `attributeValues`
- *   or the DOM attribute changes;  notified by the DOM element's change callbacks and a `MutationObserver`.
- * - Writes never throw:  a notifier set inside an owned scope (a render, a memo), which Solid 2 forbids, is
- *   deferred to a microtask;  the record is written at once either way.
- * - A leaf of the element core:  imports only Solid and `$/ui/util`, so element-core classes import its decorators
- *   directly (their class definitions read them) without entering the `E` cycle.  Knows components only by shape
- *   (`ComponentShape`).
+ *   (`true` => `"true"`;  `false`, `undefined` => removed).
+ *   - Stacks with `@cssState`.
+ *   - A value that never changes is `elementSetup.aria` instead.
+ * - `@onChange("a", "b") onXChanged(a, b)`:
+ *   an effect reading the named members, calling the method with their values;  a function it returns is the cleanup.
+ *   - Created by `Reactive.startEffects()`, after every field exists.
+ *   - The method runs only when a member's value changed.
+ * - `@whileConnected watchX()`:  runs each time the element connects;
+ *   a function it returns is the cleanup, run when it disconnects.  Sugar over `@onChange("isConnected")`.
+ * - `@fromContent({ childList: true, subtree: true }) get slotted()`:
+ *   a member read from the DOM element's light DOM, recomputed when that changes
+ *   (ONE `MutationObserver` per instance, from the member's first read in a browser).
+ *   - On a method instead:  the method is called on each change, from `startEffects()` on.
+ * - `@on("command") onCommand(event)`:  a listener on the DOM element for the element's whole life,
+ *   added by `UIComponent`'s constructor (`Reactive.listenersOf()`);  the method runs untracked.
+ * - `@untracked select(option)`:  the method's body runs inside `untrack()`,
+ *   so an action or a handler reads members without `untrack(() => this.x)` around each read.
+ * - `Reactive.accessorsOf(instance)` (a component's `$`):
+ *   `$.isOpen` is an `Accessor` of `this.isOpen`, for Solid APIs that take one.
+ * - Vocabulary getters (`installAttributeGetters()`;  their setters write the DOM element's property)
+ *   and raw attributes (`attributesOf()`) are record members too:
+ *   - their versions are bumped when the DOM element's `attributeValues` or the DOM attribute changes
+ *   - they're notified by the DOM element's change callbacks and a `MutationObserver`
+ * - Writes never throw:  a notifier set inside an owned scope (a render, a memo), which Solid 2 forbids,
+ *   is deferred to a microtask;  the record is written at once either way.
+ * - A leaf of the element core:  imports only Solid and `$/ui/util`,
+ *   so element-core classes import its decorators directly (their class definitions read them)
+ *   without entering the `E` cycle.
+ * - Knows components only by shape (`ComponentShape`).
  ****************/
 export class Reactive {
   ////////////////
@@ -86,10 +95,11 @@ export class Reactive {
   /**
    * Give `prototype` a getter and a setter per attribute (keyed by its camelCase canonical `key`):
    * - the getter reads the CONVERTED value fresh from the DOM element's `attributeValues`
-   * - the setter writes the DOM ELEMENT's PROPERTY under this tag's name for it (`el.indeterminate`, a translated tag's own
-   *   property), which reflects and converts like any property write;  `undefined` clears it
+   * - the setter writes the DOM ELEMENT's PROPERTY under this tag's name for it
+   *   (`el.indeterminate`, a translated tag's own property),
+   *   which reflects and converts like any property write;  `undefined` clears it
    * - Skips a name the prototype chain already has (a method, a getter, `isOpen` ...):  the class's own member wins.
-   *   An instance field of that name shadows both instead.
+   *   - An instance field of that name shadows both instead.
    * - Idempotent per prototype.
    */
   static installAttributeGetters(prototype: object, attributes: readonly AttributeNames[]) {
@@ -125,9 +135,9 @@ export class Reactive {
   }
 
   /**
-   * The DOM element's attributes as the DOM has them:  raw strings, `null` when absent (a platform boundary);
-   * tracked as record members (a `MutationObserver` watches the DOM element,
-   * made on the first tracked read in a browser).
+   * The DOM element's attributes as the DOM has them:  raw strings, `null` when absent (a platform boundary).
+   * - Tracked as record members:
+   *   a `MutationObserver` watches the DOM element, made on the first tracked read in a browser.
    * - Internal:  for attributes outside the vocabulary (`aria-label`, `title`);  vocabulary attributes have getters.
    * - `rename(name)`:  the attribute to read for `name`, e.g. a translated tag's own name for a canonical one
    *   (`attributes.value` reads `valor`);  default `name` itself.
@@ -154,20 +164,22 @@ export class Reactive {
   ////////////////
 
   /**
-   * Create `instance`'s `@onChange` / `@whileConnected` effects, most-derived class first (as `onMount()` overrides
-   * ran before), then ONE effect for all its `@aria` members;  start watching the light DOM for its `@fromContent`
-   * methods.
-   * - MUST run under the instance's owner, once every field exists:  `UIComponent.onMount()`, or a helper class's
-   *   constructor (`PartContext`).
+   * Start `instance`'s effects:
+   * 1. its `@onChange` / `@whileConnected` effects, most-derived class first (as `onMount()` overrides ran before)
+   * 2. ONE effect for all its `@aria` members
+   * 3. the light DOM watch for its `@fromContent` methods
+   * - MUST run under the instance's owner, once every field exists:
+   *   `UIComponent.onMount()`, or a helper class's constructor (`PartContext`).
    * - Server:  an effect marked `writesDOMElement`, and the `@aria` one, apply once, now
    *   (the server build never runs an effect's apply);  the rest aren't created, and nothing watches the light DOM.
-   * - The method runs untracked (inside `untrack()`):  it reacts to the members it names, never to what else it
-   *   reads.
-   * - The method runs only when a member's VALUE changed (`===`, member by member):  a memo with `equals` sits
-   *   between the reads and the effect.  Why:  Solid 2 (rc.13) runs an effect's apply on EVERY re-run of its
-   *   compute, equal value or not, and a getter or `@derived` member tracks the sources UNDER it, so its effect
-   *   re-runs whenever any of them moves.  Skipping inside the apply would be too late:  Solid has run the
-   *   previous cleanup by then.
+   * - The method runs untracked (inside `untrack()`):
+   *   it reacts to the members it names, never to what else it reads.
+   * - The method runs only when a member's VALUE changed (`===`, member by member):
+   *   a memo with `equals` sits between the reads and the effect.
+   *   - Why:  Solid 2 (rc.13) runs an effect's apply on EVERY re-run of its compute, equal value or not,
+   *     and a getter or `@derived` member tracks the sources UNDER it,
+   *     so its effect re-runs whenever any of them moves.
+   *   - Skipping inside the apply would be too late:  Solid has run the previous cleanup by then.
    */
   static startEffects(instance: object) {
     const self = instance as Record<PropertyKey, unknown>
@@ -211,8 +223,9 @@ export class Reactive {
   }
 
   /**
-   * `@cssState` members and `@cssStates` attributes of `instance`'s class chain:  `{ member, state }`,
-   * most-derived first;  for a state two classes of the chain name, only the subclass's.
+   * `@cssState` members and `@cssStates` attributes of `instance`'s class chain, most-derived first:
+   * `{ member, state }`.
+   * - For a state two classes of the chain name, only the subclass's.
    */
   static cssStatesOf(instance: object): readonly CssStateEntry[] {
     return Reactive.listFor<CssStateEntry>(instance, CSS_STATES, { claims: (entry) => entry.state })
@@ -223,8 +236,8 @@ export class Reactive {
   ////////////////
 
   /**
-   * `@on` methods of `instance`'s class chain:  `{ method, type, options }`, BASE class first, each class's in
-   * declaration order (the order the listeners are added, as when each constructor added its own).
+   * `@on` methods of `instance`'s class chain (`{ method, type, options }`), BASE class first.
+   * - Each class's in declaration order:  the order the listeners are added, as when each constructor added its own.
    * - A method decorated again in a subclass (an override) is listed once, where the base class listed it.
    * - `UIComponent`'s constructor adds them;  a helper class may too, under its own `on()`.
    */
@@ -276,8 +289,8 @@ export class Reactive {
    * Entries under `key` in `instance`'s class metadata, own class first, then each base class.
    * - `combine(lists)`:  joins the classes' own lists (own class first) into one;  default end to end.
    * - Walked once per class and key (`lists`):  each class's metadata object inherits its base class's.
-   * - `claims(entry)`:  what an entry is FOR (a state, an ARIA property);  a later entry claiming the same is dropped,
-   *   so a subclass's entry wins over its base class's.
+   * - `claims(entry)`:  what an entry is FOR (a state, an ARIA property);
+   *   a later entry claiming the same is dropped, so a subclass's entry wins over its base class's.
    */
   private static listFor<T>(
     instance: object,
@@ -328,9 +341,10 @@ export class Reactive {
 
 /**
  * `@state accessor x = v`:  reactive state, in the instance's record -- see `Reactive`.
- * - `@state({ equals, ownedWrite })`:  `equals(old, next)` true skips the write (default `===`;  `false`:  every
- *   write notifies);  `ownedWrite` lets a write inside an owned scope notify at once instead of a microtask later
- *   (Solid's option, for state written by design while a render runs).
+ * - `@state({ equals, ownedWrite })`:
+ *   - `equals(old, next)` true skips the write (default `===`;  `false`:  every write notifies)
+ *   - `ownedWrite` lets a write inside an owned scope notify at once instead of a microtask later
+ *     (Solid's option, for state written by design while a render runs)
  * - Works on `static accessor` too (`RootSettings.generation`):  the record is the class's.
  */
 export function state<This extends object, T>(
@@ -353,8 +367,8 @@ export function state<This extends object, T>(
 /**
  * `@controlled("open") accessor isOpen = false`:  auto-controlled state for attribute `open` --
  * the DOM element's property when set (its converted value isn't `undefined`), else the starting value.
- * - A write goes to the DOM element's PROPERTY (and reflects), so `el.open` is always current, like a native control;
- *   `undefined` hands control back to the starting value.  A silent write, e.g. a form reset.
+ * - A write goes to the DOM element's PROPERTY (and reflects), so `el.open` is always current, like a native control.
+ * - A write of `undefined` hands control back to the starting value:  a silent write, e.g. a form reset.
  * - A user change:  `this.requestChange("isOpen", next, () => this.send(...))` (`UIComponent`).
  * - Why watch the property instead of comparing values:  a DOM element re-setting the SAME value is still a decision.
  * - Components only (`ComponentShape`):  it reads the definition and the DOM element.
@@ -392,11 +406,12 @@ export function controlled(attribute: string) {
 }
 
 /**
- * `@derived get x()`:  a self-tracking cache -- see `Reactive`.  For a getter doing real work (loops, parsing, new
- * DOM);  a cheap one stays a plain getter, already fresh.
+ * `@derived get x()`:  a self-tracking cache -- see `Reactive`.
+ * - For a getter doing real work (loops, parsing, new DOM);  a cheap one stays a plain getter, already fresh.
  * - Recomputes on read when a record member it read last time changed;  else returns the same value (`===`).
- * - `@derived({ equals })`:  `equals(old, next)` true keeps the OLD value (same identity, and readers -- an outer
- *   `@derived`, an `@onChange` -- see no change), e.g. `{ equals: E.isSameList }` for a filtered list.
+ * - `@derived({ equals })`:  `equals(old, next)` true keeps the OLD value,
+ *   e.g. `{ equals: E.isSameList }` for a filtered list.
+ *   Same identity, so readers (an outer `@derived`, an `@onChange`) see no change.
  */
 export function derived<This extends object, T>(
   getter: (this: This) => T,
@@ -442,12 +457,12 @@ export function cssState(stateName: string) {
 }
 
 /**
- * `@cssStates("disabled", "loading")` on a CLASS:  `:state(disabled)` follows attribute `disabled` (truthy),
- * and so on.
+ * `@cssStates("disabled", "loading")` on a CLASS:
+ * `:state(disabled)` follows attribute `disabled` (truthy), and so on.
  * - For a state that only mirrors its attribute, under the attribute's name:
  *   it saves a getter whose whole body would be `return !!this.disabled`.
- * - Reads the class's member of that name (camelCase:  `"read-only"` reads `this.readOnly`),
- *   i.e. the attribute's getter, unless the class has its own member by that name.
+ * - Reads the class's member of that name, camelCase (`"read-only"` reads `this.readOnly`):
+ *   the attribute's getter, unless the class has its own member by that name.
  * - Each name MUST be a member of the class (an attribute):  TypeScript flags a typo.
  * - A state with logic, or a member something else reads (`isDisabled`), stays a getter with `@cssState`.
  */
@@ -464,12 +479,13 @@ export function cssStates<const N extends string>(...attributes: N[]) {
 /**
  * `@aria("ariaBusy")` on a getter or an accessor:  the DOM element's `internals.ariaBusy` follows it.
  * - The value, as ARIA text:  `true` => `"true"`;  `false`, `undefined`, `null` => `null` (removed);
- *   a string as is;  a number as text.  A state whose "off" is spoken (`aria-checked="false"`) returns the string.
+ *   a string as is;  a number as text.
+ *   - A state whose "off" is spoken (`aria-checked="false"`) returns the string.
  * - Any text property of `ElementInternals`:  `@aria("role")`, `@aria("ariaLabel")`, `@aria("ariaCurrent")` ...
  * - Stacks with `@cssState` on the same getter:
  *   `@cssState("loading") @aria("ariaBusy") get isLoading()` (one decorator a line).
- * - ONE effect per element writes them all (`Reactive.startEffects()`);  a server render applies it once,
- *   as `@onChange(..., { writesDOMElement: true })` does.
+ * - ONE effect per element writes them all (`Reactive.startEffects()`);
+ *   a server render applies it once, as `@onChange(..., { writesDOMElement: true })` does.
  * - A value that never changes:  `elementSetup.aria` (`{ role: "listitem" }`), set once, with no effect.
  */
 export function aria(property: E.AriaProperty) {
@@ -489,12 +505,13 @@ function ariaText(value: AriaValue): string | null {
 }
 
 /**
- * `@onChange("a", "b") onXChanged(a, b)`:  an effect reading members `a` and `b`, calling the method with their
- * values on start and on every change;  a function it returns is the cleanup, run before the next call and on
- * disposal.
+ * `@onChange("a", "b") onXChanged(a, b)`:  an effect reading members `a` and `b`,
+ * calling the method with their values on start and on every change.
+ * - A function it returns is the cleanup, run before the next call and on disposal.
  * - The method runs untracked:  only the named members re-run it, so other reads need no `untrack()`.
  * - A trailing `{ writesDOMElement: true }`:  the method writes the DOM element (`:state()`, `tabindex`, ARIA),
- *   so a server render applies it once, now (the server never runs an effect).  ARIA alone is `@aria`.
+ *   so a server render applies it once, now (the server never runs an effect).
+ *   ARIA alone is `@aria`.
  * - Created by `Reactive.startEffects()` (`UIComponent.onMount()`), after every subclass field exists.
  */
 export function onChange(...members: (string | OnChangeOptions)[]) {
@@ -510,12 +527,12 @@ export function onChange(...members: (string | OnChangeOptions)[]) {
 }
 
 /**
- * `@whileConnected watchX()`:  called each time the element connects;  a function it returns is the cleanup, run when
- * it disconnects (and when the element is released).
- * - For a listener or an observer on something outside the element (`window`, the document) that must stop while the
- *   element is out of the page.
- * - Sugar over `@onChange("isConnected")`, without the `if (!isConnected) return` line:  created by
- *   `Reactive.startEffects()` in the same list, so it keeps its place among a class's `@onChange` methods.
+ * `@whileConnected watchX()`:  called each time the element connects;
+ * a function it returns is the cleanup, run when it disconnects (and when the element is released).
+ * - For a listener or an observer on something outside the element (`window`, the document)
+ *   that must stop while the element is out of the page.
+ * - Sugar over `@onChange("isConnected")`, without the `if (!isConnected) return` line:
+ *   created by `Reactive.startEffects()` in the same list, so it keeps its place among a class's `@onChange` methods.
  * - Never on a server:  nothing connects there.
  */
 export function whileConnected<This extends object>(
@@ -531,19 +548,23 @@ export function whileConnected<This extends object>(
 }
 
 /**
- * `@fromContent({ childList: true, subtree: true }) get slotted()`:  a member read from the DOM element's light DOM,
- * recomputed when that changes.
- * - Options:  what to watch, as a `MutationObserver` takes it (`childList`, `subtree`, `characterData`,
- *   `attributes`, `attributeFilter`);  `equals(old, next)` true keeps the old value, as `@derived({ equals })`.
- * - A getter:  a `@derived` whose sources include the light DOM.  A change it watches recomputes it at once;
- *   readers (JSX, an effect, an outer `@derived`) hear of it only when the VALUE changed.
+ * `@fromContent({ childList: true, subtree: true }) get slotted()`:
+ * a member read from the DOM element's light DOM, recomputed when that changes.
+ * - Options:
+ *   - what to watch, as a `MutationObserver` takes it:
+ *     `childList`, `subtree`, `characterData`, `attributes`, `attributeFilter`
+ *   - `equals(old, next)` true keeps the old value, as `@derived({ equals })`
+ * - A getter:  a `@derived` whose sources include the light DOM.
+ *   - A change it watches recomputes it at once;
+ *     readers (JSX, an effect, an outer `@derived`) hear of it only when the VALUE changed.
  *   - It may read record members too (`this.kind`):  a change to one recomputes it, as `@derived`.
- *   - Watching starts on its first read in a browser, so a value read once is never stale;  on a server it's
- *     computed once.
- * - A method:  called with the `MutationRecord`s on each change it watches (not at the start);
- *   from `Reactive.startEffects()` (`UIComponent.onMount()`) on.  For a change that writes other members.
- * - ONE `MutationObserver` per instance for all of them, on `this.domElement`, disconnected when the DOM element is
- *   released (NOT on disconnect:  a moved element keeps up to date).
+ *   - Watching starts on its first read in a browser, so a value read once is never stale;
+ *     on a server it's computed once.
+ * - A method:  called with the `MutationRecord`s on each change it watches (not at the start),
+ *   from `Reactive.startEffects()` (`UIComponent.onMount()`) on.
+ *   For a change that writes other members.
+ * - ONE `MutationObserver` per instance for all of them, on `this.domElement`,
+ *   disconnected when the DOM element is released (NOT on disconnect:  a moved element keeps up to date).
  * - Needs `this.domElement` (`ContentShape`):  components, not helper classes with their own element.
  */
 export function fromContent(options: FromContentOptions) {
@@ -580,18 +601,19 @@ export function fromContent(options: FromContentOptions) {
 }
 
 /**
- * `@on("command") onCommand(event)`:  listen for event `type` on the DOM element, for the element's whole life, as
- * `UIComponent.on()` does.
- * - The method runs UNTRACKED (inside `untrack()`):  a handler reads members to decide what to do, never to be
- *   followed, even when the event was sent from inside a Solid computation.
+ * `@on("command") onCommand(event)`:
+ * listen for event `type` on the DOM element, for the element's whole life, as `UIComponent.on()` does.
+ * - The method runs UNTRACKED (inside `untrack()`):  a handler reads members to decide what to do,
+ *   never to be followed, even when the event was sent from inside a Solid computation.
  * - A plain method, not an arrow-function field:  the listener calls it on its instance.
- *   `protected`, not `private`:  TypeScript can't see the listener call it, and reports a `private` one unused.
+ * - `protected`, not `private`:  TypeScript can't see the listener call it, and reports a `private` one unused.
  * - `@on("slotchange", { target: "renderRoot" })`:  listen on the shadow root instead.
  *   The other options are `addEventListener()`'s:  `{ capture, passive, once }`.
- * - Added by `UIComponent`'s constructor (`Reactive.listenersOf()`), in a browser only:  a server render sends no events.
- *   Removed when the DOM element is released, NOT when it's moved or disconnected.
- * - A subclass overriding the method keeps the listener (it calls the override);  decorating the override too adds no
- *   second one.
+ * - Added by `UIComponent`'s constructor (`Reactive.listenersOf()`), in a browser only:
+ *   a server render sends no events.
+ * - Removed when the DOM element is released, NOT when it's moved or disconnected.
+ * - A subclass overriding the method keeps the listener (it calls the override);
+ *   decorating the override too adds no second one.
  * - A listener that starts later or stops sooner (an effect's) stays a `this.on()` call with its own `AbortController`.
  */
 export function on<K extends keyof HTMLElementEventMap>(
@@ -620,8 +642,9 @@ export function on(type: string, options: ListenerOptions = {}) {
  * - On an arrow-function field too, for a handler passed around (`onClick={this.onDimmerClick}`):
  *   `@E.untracked private readonly onDimmerClick = (event: MouseEvent) => { ... }`.
  * - Writes are the same either way:  `untrack()` changes reads only.
- * - NEVER on a method a computation calls so it updates (a helper of a getter, of JSX or of an effect's first
- *   function):  the computation would stop following those reads.
+ * - NEVER on a method a computation calls so it updates
+ *   (a helper of a getter, of JSX or of an effect's first function):
+ *   the computation would stop following those reads.
  * - An `@on` method needs none:  its listener already runs it untracked.
  * - An override in a subclass is untracked only when it's decorated too.
  */
@@ -706,8 +729,8 @@ class Notifier implements Source {
 /**
  * A vocabulary attribute's source:  its version follows the converted value in the DOM element's `attributeValues`,
  * and the DOM element's change callbacks tell Solid (`watchAttributeValues()`).
- * - `ownedWrite`:  the DOM element's property setters write it, and anyone may call those from anywhere, inside a
- *   Solid computation included.
+ * - `ownedWrite`:  the DOM element's property setters write it,
+ *   and anyone may call those from anywhere, inside a Solid computation included.
  */
 class AttributeSource extends Notifier {
   /** The component whose DOM element has the attribute. */
@@ -853,9 +876,10 @@ class DerivedCache implements Source {
 
 /**
  * A `@fromContent` getter's cache:  a `DerivedCache` with one more source, the light DOM.
- * - The light DOM's source has a version and no Solid signal:  `contentChanged()` recomputes at once instead, and
- *   tells Solid only when the value moved.  Why:  a rescan finding the same thing (a chip's `selected` written
- *   back, text re-set) must not re-run every reader, or a reader writing the light DOM would loop.
+ * - The light DOM's source has a version and no Solid signal:
+ *   `contentChanged()` recomputes at once instead, and tells Solid only when the value moved.
+ * - Why:  a rescan finding the same thing (a chip's `selected` written back, text re-set)
+ *   must not re-run every reader, or a reader writing the light DOM would loop.
  */
 class ContentCache extends DerivedCache {
   /** The light DOM's source:  bumped on each change the observer reports. */
@@ -898,8 +922,8 @@ function reading(source: Source) {
 }
 
 /**
- * Run a Solid signal write;  inside an owned scope, where Solid 2 throws (`REACTIVE_WRITE_IN_OWNED_SCOPE`), a
- * microtask later.
+ * Run a Solid signal write now;
+ * inside an owned scope, where Solid 2 throws (`REACTIVE_WRITE_IN_OWNED_SCOPE`), a microtask later.
  * - NEVER throws:  the record is already written, only the notification waits.
  */
 function notify(write: () => void) {
@@ -972,8 +996,9 @@ function watchAttributes(record: ReactiveRecord, domElement: AttributeElement) {
 }
 
 /**
- * Hear every write to `component`'s DOM element's attribute values, once per record, so its attribute sources tell
- * Solid (`AttributeSource.written()`).  Released with the DOM element.
+ * Hear every write to `component`'s DOM element's attribute values, once per record,
+ * so its attribute sources tell Solid (`AttributeSource.written()`).
+ * - Released with the DOM element.
  */
 function watchAttributeValues(record: ReactiveRecord, component: ComponentShape) {
   if (record.isWatchingValues) return
@@ -985,7 +1010,8 @@ function watchAttributeValues(record: ReactiveRecord, component: ComponentShape)
 
 /**
  * Call `changed` on each change to `owner.domElement`'s light DOM that `options` watches (`@fromContent`).  Browser only.
- * - ONE `MutationObserver` per owner:  each new watch widens what it observes to the union of every watch's options,
+ * - ONE `MutationObserver` per owner:
+ *   each new watch widens what it observes to the union of every watch's options,
  *   and each mutation batch goes to the watches it matches.
  * - Disconnected when the DOM element is released.
  */
@@ -1281,8 +1307,9 @@ const CONTENT_METHODS = Symbol("contentMethods")
 const LISTENERS = Symbol("listeners")
 
 /**
- * Where lowered decorators keep a class's metadata:  `Symbol.metadata`, or esbuild's fallback when the engine has
- * none (`$/util`'s `Schema.ts` polyfills it with the same symbol).
+ * Where lowered decorators keep a class's metadata:
+ * `Symbol.metadata`, or esbuild's fallback when the engine has none
+ * (`$/util`'s `Schema.ts` polyfills it with the same symbol).
  */
 const METADATA: symbol = (Symbol as { metadata?: symbol }).metadata ?? Symbol.for("Symbol.metadata")
 

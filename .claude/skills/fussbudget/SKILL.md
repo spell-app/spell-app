@@ -37,8 +37,9 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
     `/Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts/<id>.html`.
   - Never its structure:  no ids, no sections, no item lines, nothing `spell dev plan-doc` writes.
 - `branch`:  every file this branch changed or added since `main`, WHOLE.
-  - The files:  `git diff --name-only main...HEAD`, `git diff --name-only HEAD`,
-    and `git ls-files --others --exclude-standard` (new, untracked).
+  - The files:
+    - `git diff --name-only main...HEAD` and `git diff --name-only HEAD`
+    - `git ls-files --others --exclude-standard` (new, untracked)
   - Whole files, not just the changed lines:  Owen can always undo a hunk (J14 of `skillz`).
   - On `main` with nothing changed:  say so and stop.
 - Nothing after it:  AskUserQuestion, "What should /fussbudget cover?", options:

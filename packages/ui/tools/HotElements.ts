@@ -2,9 +2,10 @@
 import type { EnvironmentModuleNode, Plugin } from "vite"
 
 /**
- * `hotElements(hotDefinitions)`:  the Vite plugin for hot module replacement of `ui`'s elements in `yarn dev`,
- * without reloading the page.  `vite.config.ts` adds it after the Solid plugin;  `hotDefinitions` is the absolute
- * path of `src/elements/HotDefinitions.ts`.
+ * `hotElements(hotDefinitions)`:
+ * the Vite plugin for hot module replacement of `ui`'s elements in `yarn dev`, without reloading the page.
+ * `vite.config.ts` adds it after the Solid plugin;
+ * `hotDefinitions` is the absolute path of `src/elements/HotDefinitions.ts`.
  * - Component barrels (`src/components/ui-<name>/index.ts`, the modules that call `define()`) become HMR boundaries:
  *   the plugin imports `HotDefinitions` into each, and appends `import.meta.hot.accept(() => HotDefinitions.update())`.
  *   Vite re-runs the barrel, whose `define()` of a new version of a class re-defines its tags in place
@@ -16,8 +17,8 @@ import type { EnvironmentModuleNode, Plugin } from "vite"
  *   page, instead of re-running every barrel against a fresh copy of the base class their live instances don't
  *   extend.  One barrel (its vocabulary, a helper) stays hot.
  * - `apply: "serve"`:  builds are untouched.  Code is only APPENDED, so existing source maps stay valid.
- * - NOTE: `@solidjs/vite-plugin`'s own refresh transform wraps exported FUNCTION components;  class components get
- *   no refresh boundary, so the two don't meet.
+ * - NOTE: `@solidjs/vite-plugin`'s own refresh transform wraps exported FUNCTION components;
+ *   class components get no refresh boundary, so the two don't meet.
  * - From solid-element's Vite plugin, its options made `ui`'s fixed ones (epic `spell-element`, Q11).
  */
 export function hotElements(hotDefinitions: string): Plugin {
@@ -54,9 +55,9 @@ export function hotElements(hotDefinitions: string): Plugin {
       if (this.environment.name !== "client") return undefined
       for (const mod of modules) {
         if (sheetIds.has(mod.id ?? "")) {
-          // HACK: Vite's CSS analysis marks `?inline` CSS NOT self-accepting on every transform, and its import
-          // analysis skips CSS requests, so the graph never learns about the appended accept:  without this the
-          // update climbs to the importers and re-renders them
+          // HACK: Vite's CSS analysis marks `?inline` CSS NOT self-accepting on every transform,
+          // and its import analysis skips CSS requests, so the graph never learns about the appended accept:
+          // without this the update climbs to the importers and re-renders them
           mod.isSelfAccepting = true
           continue
         }

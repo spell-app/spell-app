@@ -8,15 +8,19 @@ import { itemVocabulary } from "$/ui/components/ui-item/UIItem.en"
  * ### `SlottedItems`
  * The options a dropdown's light-DOM `<ui-item>` children describe, as reactive `MenuEntry`s:
  * shared by `<ui-dropdown>` and `<ui-select>`.
- * - Read on connect, and on every change to the DOM element's subtree (a `MutationObserver`:  children,
- *   attributes, text).  That covers what `slotchange` would, and the attribute and text edits it wouldn't.
- * - Plain items become `MenuOption`s:  `value` (default `text`), `text` (default the text content), `description`,
+ * - Read on connect, and on every change to the DOM element's subtree
+ *   (a `MutationObserver`:  children, attributes, text).
+ *   That covers what `slotchange` would, and the attribute and text edits it wouldn't.
+ * - Plain items become `MenuOption`s:
+ *   `value` (default `text`), `text` (default the text content), `description`,
  *   `icon`, `image`, `flag`, `disabled`, `selected` (or its alias `active`, as `UIItem` reads it).
- *   The dropdown renders them in ITS shadow root, because the listbox must share a tree with the combobox for
- *   `aria-activedescendant`.
- * - RICH items (element children) keep their markup:  the item gets a generated `slot` name and the dropdown
- *   projects it into its menu row, so the content stays live (listeners, framework-rendered children).
- *   NOTE: that writes a `slot` attribute onto the author's element.  Text for search / labels is its text content.
+ *   - The dropdown renders them in ITS shadow root,
+ *     because the listbox must share a tree with the combobox for `aria-activedescendant`.
+ * - RICH items (element children) keep their markup:
+ *   the item gets a generated `slot` name and the dropdown projects it into its menu row,
+ *   so the content stays live (listeners, framework-rendered children).
+ *   - NOTE: that writes a `slot` attribute onto the author's element.
+ *   - Text for search / labels is its text content.
  * - Option objects are cached per element and reused while unchanged, so keyed `<For>` keeps their rows.
  ****************/
 export class SlottedItems {
@@ -94,8 +98,8 @@ export class SlottedItems {
   /**
    * Converted value of item attribute `name`:  the (already converted) property once the item has upgraded,
    * else its attribute, converted here.
-   * - On a server, always the attribute:  linkedom has no `:defined`,
-   *   and the items' stand-in DOM elements are built after the dropdown's.
+   * - On a server, always the attribute:
+   *   linkedom has no `:defined`, and the items' stand-in DOM elements are built after the dropdown's.
    * - Static:  pure, it needs no instance.
    */
   private static valueFor(element: Element, definition: E.ElementDefinition | undefined, name: string): unknown {

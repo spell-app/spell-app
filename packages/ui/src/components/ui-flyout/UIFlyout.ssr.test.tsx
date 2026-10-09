@@ -9,8 +9,9 @@ import { UIHeader } from "$/ui/components/ui-parts/UIHeader"
 import { UIFlyout } from "$/ui/components/ui-flyout/UIFlyout"
 
 /**
- * `<ui-flyout>` rendered statically (`$/ui/static`):  `UIFlyout` loads WITHOUT the modal family's barrel (no
- * `customElements` in node), and renders `DialogComponent`'s closed `<dialog>` with the flyout's classes.
+ * `<ui-flyout>` rendered statically (`$/ui/static`):
+ * `UIFlyout` loads WITHOUT the modal family's barrel (no `customElements` in node),
+ * and renders `DialogComponent`'s closed `<dialog>` with the flyout's classes.
  */
 describe("<ui-flyout> static render", () => {
   beforeAll(() => {

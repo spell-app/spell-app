@@ -22,20 +22,22 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  * The ONE Solid and `@spell-app/ui` every other bundle of ours imports, so a page with `<spell-app>`s and a
  * `<spell-editor>` loads one copy of each (two Solids on a page fail silently -- `solid-2.md`):
  * `yarn build:element` (FIRST, it empties `dist-element/`) and `yarn build:runner` (`--outDir dist-runner`).
- * - `spell-solid.js`:  `solid-js` and `@solidjs/web` (and `@solidjs/signals` under them), and `ui`'s element core,
- *   `$/ui/core` (`UIComponent`, `DOMElement` ...), which `<spell-app>` and `<spell-editor>` are defined on:  each
- *   re-exported WHOLE -- the other builds can't tell this one which names they use.  None of their names clash.
+ * - `spell-solid.js`:  `solid-js` and `@solidjs/web` (and `@solidjs/signals` under them),
+ *   and `ui`'s element core, `$/ui/core` (`UIComponent`, `DOMElement` ...),
+ *   which `<spell-app>` and `<spell-editor>` are defined on:  each re-exported WHOLE --
+ *   the other builds can't tell this one which names they use.  None of their names clash.
  *   - Rolldown keeps the modules `spell-ui.js` shares with them in a chunk of `ui/` (`ui/UIComponent.js`), which
  *     `spell-solid.js` imports:  still ONE copy, loaded with it.
  *   - The core in a file of its own (a second entry, or a lazy chunk) moved Solid, or the core, into a shared chunk
  *     all the same.
- * - `spell-ui.js`:  `ui`'s barrel, which defines every `<ui-*>`;  the app imports it lazily (`loadUI.ts`), and a page
- *   may load it itself, to have `<ui-root>`.  It also puts `registerPack` on `globalThis.SpellUI`, as the docs bundle
- *   does, so a `<ui-components source>` can load a component pack:  `spell.pack.js`, `<spell-app>` and
- *   `<spell-editor>`'s (`vite.element.config.ts`).  Its lazy chunks (the `UI` runtime, emoji data, `<ui-root>`'s
- *   families) go in `ui/`.
- * - The other builds mark those packages external and import these files instead -- `sharedSolid()` in
- *   `vite.shared.ts`, which also lists what they may import.
+ * - `spell-ui.js`:  `ui`'s barrel, which defines every `<ui-*>`;
+ *   the app imports it lazily (`loadUI.ts`), and a page may load it itself, to have `<ui-root>`.
+ *   - It also puts `registerPack` on `globalThis.SpellUI`, as the docs bundle does,
+ *     so a `<ui-components source>` can load a component pack:
+ *     `spell.pack.js`, `<spell-app>` and `<spell-editor>`'s (`vite.element.config.ts`).
+ *   - Its lazy chunks (the `UI` runtime, emoji data, `<ui-root>`'s families) go in `ui/`.
+ * - The other builds mark those packages external and import these files instead --
+ *   `sharedSolid()` in `vite.shared.ts`, which also lists what they may import.
  * - Icon packs (`appConfig({ iconPacks })`):  beside the chunk holding `BuiltInPacks`, wherever it lands.
  * - Fixed entry names, no hashes:  the other bundles name them.  `keepNames` MUST stay on:  `ui` reads custom element
  *   class names (`packages/ui/vite.config.ts`).
@@ -75,8 +77,8 @@ export default defineConfig({
 })
 
 /**
- * The virtual modules `SHARED_SOLID`'s files are built from:  `SOLID_ENTRY` (`spell-solid.js`) and `UI_ENTRY`
- * (`spell-ui.js`, its dynamic import).
+ * The virtual modules `SHARED_SOLID`'s files are built from:
+ * `SOLID_ENTRY` (`spell-solid.js`) and `UI_ENTRY` (`spell-ui.js`, its dynamic import).
  */
 function sharedEntries(): Plugin {
   const sources: Record<string, string> = {

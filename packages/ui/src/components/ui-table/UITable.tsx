@@ -11,8 +11,8 @@ import tableCSS from "./UITable.css?inline"
 
 /****************
  * ### `UITable`
- * The component behind `<ui-table>`:  a native `<table>` in Fomantic's table look,
- * `<ui-table celled striped><table>...</table></ui-table>`.
+ * The component behind `<ui-table>`:
+ * a native `<table>` in Fomantic's table look, `<ui-table celled striped><table>...</table></ui-table>`.
  *
  * - The table stays NATIVE and in the LIGHT DOM (table semantics, find-in-page, copy, the page's CSS);
  *   the shadow root is only `<div class="... scroller" part="scroller"><slot></slot></div>`.
@@ -22,33 +22,36 @@ import tableCSS from "./UITable.css?inline"
  *   whose class-grammar rules then style it.
  *   - The mirror writes only its own words and keeps the author's classes,
  *     and writes them again when a framework rewrites `className`.
- *   - Why classes, not attribute selectors on the DOM element:  one mechanical port of `table.less`
- *     serves the element and static markup (a server writes `class="ui celled table"` and paints before any JS),
+ *   - Why classes, not attribute selectors on the DOM element:
+ *     one mechanical port of `table.less` serves the element and static markup
+ *     (a server writes `class="ui celled table"` and paints before any JS),
  *     and translated names, `yes` / `no` and `medium` resolve through the vocabulary like every other component's.
  *
  * - Row and cell looks are the author's classes on native `tr` / `td` / `th`
  *   (`positive`, `red marked left`, `collapsing` ...):  no JS.
  *
- * - Scrolling:  `scrolling` and `overflowing` cap the scroller's height;  it then scrolls,
- *   and is a focusable, named region (the DOM element's `aria-label`, else the `<caption>`,
- *   else the translated `label`).
+ * - Scrolling:  `scrolling` and `overflowing` cap the scroller's height.
+ *   It then scrolls, and is a focusable, named region
+ *   (the DOM element's `aria-label`, else the `<caption>`, else the translated `label`).
  *
  * - Sorting (`sortable`):  every `thead` header sorts, except `th[data-sortable="false"]` and `th.disabled`.
  *   - A header's `<button>` is its control (APG's sortable table:  authors SHOULD put one in each sortable header);
  *     a header without one is made focusable (`tabindex="0"`) and answers Enter and Space.
  *     The component never moves or wraps the author's nodes.
  *   - The sorted header gets `aria-sort` (removed from the others);  `UITable.css` draws the caret from it.
- *   - `sort-column` and `sort-direction` are auto-controlled.  Each activation first sends the cancelable `ui-sort`
- *     (`TableSortDetail`):  the sorted column flips, another starts `ascending`.
- *   - Reordering:  data mode shows its rows sorted.  A slotted table reorders its `tbody` rows by cell text
- *     only with `client-sort` (simple static tables);  otherwise the app sorts:  frameworks own their rows.
+ *   - `sort-column` and `sort-direction` are auto-controlled.
+ *     Each activation first sends the cancelable `ui-sort` (`TableSortDetail`):
+ *     the sorted column flips, another starts `ascending`.
+ *   - Reordering:  data mode shows its rows sorted.
+ *     A slotted table reorders its `tbody` rows by cell text only with `client-sort` (simple static tables);
+ *     otherwise the app sorts:  frameworks own their rows.
  *
  * - Data mode:  `rows` (and optional `columnDefs`), with NO slotted `<table>`, draws one into the LIGHT DOM:
  *   header cells `scope="col"`, a sort `<button>` each when sortable, keyed rows, text only (never HTML).
  *   It's removed when `rows` is unset or an author table appears:  the author's table always wins.
  *   - Why the light DOM:  the same page sheet and class grammar as a slotted table,
- *     native semantics in the document, and a server draws the same `<table>` itself (first paint never needs the
- *     property).
+ *     native semantics in the document,
+ *     and a server draws the same `<table>` itself (first paint never needs the property).
  *   - NOTE: no virtualization (the plan's ~200-row threshold):  every row is drawn.
  *
  * - NOTE: `sort-column` counts `colspan`s but not `rowspan`s (see `TableSort`).
@@ -70,9 +73,10 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   ////////////////
 
   /**
-   * Base `onMount()`, plus the light-DOM work:  the render effect that mirrors classes onto the managed table
-   * (undone when the DOM element is released:  it survives moves);  the `@onChange` methods watch the table,
-   * decorate headers and (with `client-sort`) reorder rows.
+   * Base `onMount()`, plus the light-DOM work:
+   * - the render effect that mirrors classes onto the managed table
+   *   (undone when the DOM element is released:  it survives moves)
+   * - the `@onChange` methods watch the table, decorate headers and (with `client-sort`) reorder rows
    */
   override onMount(): JSX.Element {
     const content = super.onMount()
@@ -81,8 +85,9 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
       return content
     }
     this.domElement.addReleaseCallback(() => this.classMirror.detach())
-    // stays explicit, a RENDER effect:  the class mirror is the element's main DOM binding, and a throw in its
-    // compute (the classes) must reach the element's error net -- a plain effect's error is only logged
+    // stays explicit, a RENDER effect:  the class mirror is the element's main DOM binding,
+    // and a throw in its compute (the classes) must reach the element's error net --
+    // a plain effect's error is only logged
     createRenderEffect(
       () => [this.managedTable, this.rootClass] as const,
       ([table, classes]) => this.classMirror.apply(table, classes)
@@ -124,10 +129,10 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   }
 
   /**
-   * `stack-by` as a class on the table before the noun (`ui stackable stack-by-container table`):  a private word the
-   * sheet keys on, from the CANONICAL value, so a translated attribute still works.  A class,
-   * not a state of the DOM element:  `:state()` rules in the page sheet left WebKit with stale viewport media queries
-   * on a later table.
+   * `stack-by` as a class on the table before the noun (`ui stackable stack-by-container table`):
+   * a private word the sheet keys on, from the CANONICAL value, so a translated attribute still works.
+   * - A class, not a state of the DOM element:
+   *   `:state()` rules in the page sheet left WebKit with stale viewport media queries on a later table.
    */
   protected get extraClass(): string | undefined {
     return this.stackBy ? `${STACK_BY_CLASS}${this.stackBy}` : undefined
@@ -183,8 +188,8 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   /**
    * The author table in a static server render, once:  what the browser's effects keep up to date.
    * - its classes mirrored in (`TableClassMirror.mirrored()`)
-   * - `data-ui="table"`:  a root of the static stylesheet's `@scope` too, so the table sheet reaches its cells --
-   *   a slotted element's insides are out of its owner's scope, but this sheet is a PAGE sheet in the browser
+   * - `data-ui="table"`:  a root of the static stylesheet's `@scope` too, so the table sheet reaches its cells
+   *   (a slotted element's insides are out of its owner's scope, but this sheet is a PAGE sheet in the browser)
    * - `aria-sort` on the sorted header, while `sortable` (the caret)
    * - SIDE EFFECT:  writes the page's (linkedom) table;  no focusable headers:  nothing on a static page sorts.
    */
@@ -253,8 +258,8 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
 
   /**
    * The data-mode table's head and body.
-   * - `direction`:  the static render's `aria-sort` for the sorted column's header (the browser's comes from
-   *   `decorateHeaders()`).
+   * - `direction`:  the static render's `aria-sort` for the sorted column's header
+   *   (the browser's comes from `decorateHeaders()`).
    */
   private headAndBody(direction?: UIT.TableSortDirection): JSX.Element {
     const sorted = direction && this.sortable ? this.sortColumn : undefined
@@ -459,9 +464,9 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
     return this.attributes["aria-label"] ?? (caption || this.translationForKey("label"))
   }
 
-  // `attached` (any edge), `attached-top`, `attached-bottom`:  the DOM element carries the table's outer margin
-  // (`UITable.css`:  inside a size container a margin never collapses with the content above), so it mirrors the
-  // attached scroller's.
+  // `attached` (any edge), `attached-top`, `attached-bottom`:
+  // the DOM element carries the table's outer margin, so it mirrors the attached scroller's
+  // (`UITable.css`:  inside a size container a margin never collapses with the content above).
 
   /** Attached on any edge:  `:state(attached)`. */
   @E.cssState("attached")

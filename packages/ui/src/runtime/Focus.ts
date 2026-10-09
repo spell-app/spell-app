@@ -7,10 +7,11 @@ import { RovingTabindex, type RovingTabindexProps } from "./RovingTabindex"
  * ### `Focus`
  * Focus helpers that see through shadow roots, as `UI.focus`.
  * - In the runtime's lazy chunk (`UIRuntime` builds it);  `Overlays` uses it for focus restore.
- * - Why:  `document.activeElement` stops at the first shadow host, and `querySelectorAll` can't see
- *   into shadow roots or follow slots -- every component with a shadow root breaks naive focus code.
- * - `<dialog>.showModal()` traps focus natively;  `trap()` is only for the non-dialog cases
- *   (a flyout inside a popover, a menu that must keep focus).
+ * - Why:  `document.activeElement` stops at the first shadow host,
+ *   and `querySelectorAll` can't see into shadow roots or follow slots:
+ *   every component with a shadow root breaks naive focus code.
+ * - `<dialog>.showModal()` traps focus natively;
+ *   `trap()` is only for the non-dialog cases (a flyout inside a popover, a menu that must keep focus).
  ****************/
 export class Focus {
   /**
@@ -53,12 +54,15 @@ export class Focus {
   }
 
   /**
-   * The dialog focusing steps, through slots:  after `show()` / `showModal()` of a dialog whose content is SLOTTED
-   * (so the focus targets sit in the flat tree, not the dialog's own subtree), focus its `autofocus` element, else its
-   * first tabbable.
-   * - Chromium does this itself;  Firefox only looks at the dialog's own descendants, and leaves focus on the dialog
-   *   (or nowhere);  WebKit focuses the first tabbable of the dialog's OWN subtree (the shadow root's close icon),
-   *   not of the flat tree.  So this always focuses the flat-tree target, even when focus is already inside.
+   * The dialog focusing steps, through slots:
+   * after `show()` / `showModal()` of a dialog whose content is SLOTTED
+   * (so the focus targets sit in the flat tree, not the dialog's own subtree),
+   * focus its `autofocus` element, else its first tabbable.
+   * - Chromium does this itself.
+   * - Firefox only looks at the dialog's own descendants, and leaves focus on the dialog (or nowhere).
+   * - WebKit focuses the first tabbable of the dialog's OWN subtree (the shadow root's close icon),
+   *   not of the flat tree.
+   * - So this always focuses the flat-tree target, even when focus is already inside.
    */
   enter(dialog: HTMLElement): void {
     const items = this.focusables(dialog)
@@ -69,8 +73,8 @@ export class Focus {
   /**
    * If focus is inside `container` (or on it), move it to the next tabbable element after it, as Tab would;
    * none after it:  just take focus away (`blur()`).
-   * - For an element that is about to become unusable (`disabled`, `loading`):  call it BEFORE making it inert,
-   *   while its own tabbables still count.
+   * - For an element that is about to become unusable (`disabled`, `loading`):
+   *   call it BEFORE making it inert, while its own tabbables still count.
    * - Next after the last tabbable inside;  with none inside, the first one after `container` in the light DOM.
    */
   moveOutOf(container: Element): void {
@@ -108,8 +112,8 @@ export class Focus {
 
   /**
    * Keep Tab / Shift+Tab cycling inside `root` until the disposer is called.
-   * - Tab past the last tabbable wraps to the first, and vice versa;  focus escaping any other way
-   *   (a click, a script) is pulled back to the first tabbable.
+   * - Tab past the last tabbable wraps to the first, and vice versa.
+   * - Focus escaping any other way (a click, a script) is pulled back to the first tabbable.
    * - SIDE EFFECT:  capture listeners on `root`'s document while active.
    */
   trap(root: Element | ShadowRoot): Disposer {
@@ -184,8 +188,8 @@ export class Focus {
 
   /**
    * Would Tab stop on `element`?  Already known to be rendered.
-   * - `tabIndex` is `0` for natively focusable elements and `-1` otherwise, unless `tabindex` says different --
-   *   except shadow hosts with `delegatesFocus`, whose shadow content is what's tabbable.
+   * - `tabIndex` is `0` for natively focusable elements and `-1` otherwise, unless `tabindex` says different.
+   * - Except shadow hosts with `delegatesFocus`, whose shadow content is what's tabbable.
    */
   private isTabbable(element: HTMLElement): boolean {
     if (element.tabIndex < 0) return false

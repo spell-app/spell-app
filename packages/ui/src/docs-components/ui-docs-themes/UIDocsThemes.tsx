@@ -27,32 +27,33 @@ import themesCSS from "./UIDocsThemes.css?inline"
  *
  * - Its shadow DOM:  `<div class="ui [size] [inverted] themes" part="controls">`, holding by `show`:
  *   - `both` (the default):  two round icon buttons, compact enough for a side column or a phone's top bar
- *     - `<button part="palette">` opens `<ui-popup part="overlay" open-on="click">`,
- *       a small panel with the theme list (`role=menu` of `menuitemradio`s:  Spell, Plain, Classic, then Fomantic's;
- *       the chosen one checked) and a "Match system" switch (`role=switch`:  on while the scheme follows the OS)
+ *     - `<button part="palette">` opens `<ui-popup part="overlay" open-on="click">`, a small panel with
+ *       - the theme list (`role=menu` of `menuitemradio`s:  Spell, Plain, Classic, then Fomantic's;
+ *         the chosen one checked)
+ *       - a "Match system" switch (`role=switch`:  on while the scheme follows the OS)
  *     - `<button part="scheme">`:  a sun on a light page, a moon on a dark one
  *       (the scheme the page SHOWS:  the OS's, while following it).
- *       A click flips it and stores it (no longer following the OS).
- *       The icons cross-fade:  the new one grows from a quarter, un-blurring;  the old one the reverse.
+ *       - A click flips it and stores it (no longer following the OS).
+ *       - The icons cross-fade:  the new one grows from a quarter, un-blurring;  the old one the reverse.
  *     - each with a tooltip,
  *       `<ui-popup part="tip" inverted size="mini">` (the palette's hides while its overlay is open)
  *   - `scheme`:  the sun / moon button alone
  *   - `theme`:  a theme `<ui-dropdown part="theme" floating scrolling button>`, for a component page's masthead.
- *     With `for="ui-x"`, it lists only the themes touching that family,
- *     and says `N themes` (Fomantic's per-page dropdown).  Its rows are `<ui-item>` children;  its text goes in its
- *     `trigger` slot.
- * - The look itself is `ThemePreference`'s (one per page, remembered per viewer,
- *   the scheme shared with every doc site's header).
- *   Picking calls `ThemePreference.setTheme()` / `setScheme()` / `flipScheme()`,
- *   then fires ONE `ui-change` (the dropdown's own is stopped).
- *   Every picker on the page follows any picker's change, and the OS's while following it
- *   (`subscribe()`, while connected).
+ *     - With `for="ui-x"`, it lists only the themes touching that family,
+ *       and says `N themes` (Fomantic's per-page dropdown).
+ *     - Its rows are `<ui-item>` children;  its text goes in its `trigger` slot.
+ * - The look itself is `ThemePreference`'s
+ *   (one per page, remembered per viewer, the scheme shared with every doc site's header).
+ *   - Picking calls `ThemePreference.setTheme()` / `setScheme()` / `flipScheme()`,
+ *     then fires ONE `ui-change` (the dropdown's own is stopped).
+ *   - Every picker on the page follows any picker's change, and the OS's while following it
+ *     (`subscribe()`, while connected).
  * - Keyboard, in the overlay:  focus moves to the chosen theme as it opens.
  *   - Arrows / Home / End move through the list (one tab stop, a roving `tabindex`)
  *   - Enter / Space / a click pick (the overlay stays open, to compare)
  *   - Tab reaches the switch;  Escape closes the overlay, and focus goes back to the palette button (`UI.overlays`).
- * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of `<ui-popup>`, `<ui-icon>`,
- *   `<ui-dropdown>` and `<ui-item>`, which its barrel imports.
+ * - A doc-only element (`src/docs-components/`):
+ *   its shadow DOM is built of `<ui-popup>`, `<ui-icon>`, `<ui-dropdown>` and `<ui-item>`, which its barrel imports.
  ****************/
 export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
   @E.proto static vocabulary = docsThemesVocabulary
@@ -81,7 +82,7 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
    */
   @E.state accessor look: DocsLook = isServer ? SERVER_LOOK : untrack(() => ThemePreference.look)
 
-  /** The scheme the OS asks for:  what the page shows while following it.  A copy, as `look`. */
+  /** The scheme the OS asks for:  what the page shows while following it;  a copy, as `look`. */
   @E.state accessor osScheme: DocsShownScheme = isServer ? "light" : untrack(() => ThemePreference.osScheme())
 
   /** The scheme the page shows:  the chosen one, or the OS's while following it. */
@@ -114,8 +115,9 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
   }
 
   /**
-   * Follow `ThemePreference` while connected:  catch up on connect (another picker, or the OS, may have changed the
-   * look meanwhile), unsubscribe on disconnect.
+   * Follow `ThemePreference` while connected:
+   * catch up on connect (another picker, or the OS, may have changed the look meanwhile),
+   * unsubscribe on disconnect.
    */
   @E.whileConnected
   protected followPreference() {
@@ -147,8 +149,9 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
   }
 
   /**
-   * Follow the OS's scheme (`system`), or keep the one showing now as a choice of its own (`shown`:
-   * nothing changes on screen), as the viewer did with `event`.
+   * Follow the OS's scheme (`system`), or keep the one showing now as a choice of its own (`shown`),
+   * as the viewer did with `event`.
+   * - `shown`:  nothing changes on screen.
    */
   chooseScheme(choice: SchemeChoice, event?: Event): void {
     ThemePreference.setScheme(choice === "system" ? "system" : ThemePreference.shownScheme())
@@ -400,8 +403,8 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
 
   /**
    * A theme row's click (or Enter / Space):  choose it, keep the tab stop on it;  the overlay stays open.
-   * - Compared with `ThemePreference.look`, never `chosenTheme`:  a click right after another reads that one's value
-   *   before the write lands.
+   * - Compared with `ThemePreference.look`, never `chosenTheme`:
+   *   a click right after another reads that one's value before the write lands.
    */
   private onOptionClick(value: string, event: Event): void {
     this.tabStopTheme = value
@@ -434,8 +437,8 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
   }
 
   /**
-   * Follow the overlay:  `isOpen` from its `ui-open` / `ui-close`, and focus the chosen theme once it shows
-   * (`toggle`), its tab stop reset to it.
+   * Follow the overlay:  `isOpen` from its `ui-open` / `ui-close`,
+   * and focus the chosen theme once it shows (`toggle`), its tab stop reset to it.
    */
   private wireOverlay(popup: HTMLElement): void {
     popup.addEventListener("ui-open", (event) => {

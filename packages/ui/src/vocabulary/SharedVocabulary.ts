@@ -4,12 +4,13 @@ import type { AttributeSpec, ComponentVocabulary, StateSpec } from "./vocabulary
  * ### `SharedVocabulary`
  * The attributes and states EVERY component has, without its vocabulary declaring them:
  * `disabled`, `loading` and `visible` (epic `spell-element`, P8).
- * - `UIComponent` reads them ("Shared states"):  so `<ui-menu disabled>`, `<ui-table loading>` and
- *   `<ui-message visible="false">` work, though those vocabularies never name them.
+ * - `UIComponent` reads them ("Shared states"):
+ *   so `<ui-menu disabled>`, `<ui-table loading>` and `<ui-message visible="false">` work,
+ *   though those vocabularies never name them.
  * - What each means for a family is a key of its `elementSetup` (`disabled`, `loading`, `visibleAnimation`).
  * - A vocabulary that declares one of them itself keeps its own spec, and its own meaning:
  *   `<ui-sidebar visible>` starts hidden, `<ui-button disabled>` has Fomantic's look.
- *   The shared spec is added only where the vocabulary has none of that name.
+ *   - The shared spec is added only where the vocabulary has none of that name.
  * - The platform's own `hidden` and `inert` need nothing here:  every element has them already.
  * - Pure data and lookups, no DOM, no element layer:
  *   node reads it with the vocabularies (`yarn site:data` lists them on every tag).
@@ -30,8 +31,9 @@ export class SharedVocabulary {
   }
 
   /**
-   * Does `vocabulary` take the SHARED attribute `name`?  False when it declares its own of that name
-   * (`<ui-sidebar>`'s `visible`), or when `name` isn't a shared attribute.
+   * Does `vocabulary` take the SHARED attribute `name`?
+   * - False when it declares its own of that name (`<ui-sidebar>`'s `visible`),
+   *   or when `name` isn't a shared attribute.
    */
   static takesShared(vocabulary: ComponentVocabulary, name: string): boolean {
     return SharedVocabulary.withShared(vocabulary).shared.has(name)
@@ -61,7 +63,10 @@ export class SharedVocabulary {
     return found
   }
 
-  /** `withShared()`'s, by vocabulary.  Static:  page-wide. */
+  /**
+   * `withShared()`'s results, by vocabulary.
+   * - Static:  page-wide.
+   */
   private static readonly cache = new WeakMap<ComponentVocabulary, WithShared>()
 }
 

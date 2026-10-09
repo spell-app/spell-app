@@ -28,15 +28,17 @@ import searchCSS from "./UISearch.css?inline"
  *
  * - The results:  the `source` PROPERTY, searched here (`SearchMatcher`, Fomantic's matching),
  *   or the `url` template, asked through `UI.api` (`{query}`).
- *   - `search-delay` waits for a pause in typing;  a newer query cancels an older one;  answers are kept per query.
- *   - `category` groups them.
+ *   - `search-delay` waits for a pause in typing
+ *   - a newer query cancels an older one
+ *   - answers are kept per query
+ *   - `category` groups them
  *
  * - `value` (the input's text) and `open` are controlled (`@controlled`):
  *   the events go first, and a handler may cancel or override.
  *   Choosing a result puts its title in the input and follows its `url`.
  * - The rows render only while shown;  `aria-activedescendant` points at the highlighted one.
- *   A polite live region announces the result count and messages.
- *   Escape and outside clicks come from `UI.overlays`.
+ *   - A polite live region announces the result count and messages.
+ *   - Escape and outside clicks come from `UI.overlays`.
  * - A form control (decided 2026-09-30):  Fomantic's search wraps a REAL `<input class="prompt">`,
  *   which submits its text under its `name`;  so does this one, with `required` => `valueMissing`.
  ****************/
@@ -182,9 +184,9 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * Ask the `url` for `query`'s results through `UI.api`:  debounced by `search-delay`,
-   * the previous query aborted, the answer cached per query.  An aborted query is ignored;
-   * a failed one shows `searchServerError`.
+   * Ask the `url` for `query`'s results through `UI.api`:
+   * debounced by `search-delay`, the previous query aborted, the answer cached per query.
+   * - An aborted query is ignored;  a failed one shows `searchServerError`.
    */
   private fetch(query: string) {
     const url = this.url!
@@ -208,8 +210,8 @@ export class UISearch extends F.FormComponent<Vocabulary> {
       .then((response) => {
         const groups = SearchMatcher.groupsFor(response, max)
         this.answersByQuery.set(query, groups)
-        // superseded while the answer was on its way (a transport that ignores the signal still delivers it):  cached,
-        // not shown
+        // superseded while the answer was on its way (a transport that ignores the signal still delivers it):
+        // cached, not shown
         if (running.signal.aborted) return
         this.remoteAnswer = { query, groups, status: RemoteStatus.done }
         this.send("ui-results", { query, results: groups.flatMap((group) => group.results) })
@@ -308,10 +310,11 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * Choose `result`, as someone did with `originalEvent`:  the cancelable `ui-select` first, then its title in the
-   * input (`ui-change`), the results hidden, and its `url` followed.
-   * - A click on a result LINK follows it natively (new tabs work);  other ways follow it with `location.assign()`,
-   *   the DOM element's own document's.
+   * Choose `result`, as someone did with `originalEvent`:
+   * the cancelable `ui-select` first, then its title in the input (`ui-change`), the results hidden,
+   * and its `url` followed.
+   * - A click on a result LINK follows it natively (new tabs work);
+   *   other ways follow it with `location.assign()`, the DOM element's own document's.
    */
   select(result: UIT.SearchResult, originalEvent?: Event) {
     if (!this.send("ui-select", { result, originalEvent })) {
@@ -366,8 +369,10 @@ export class UISearch extends F.FormComponent<Vocabulary> {
 
   /**
    * The label in validation messages.
-   * - Only once `isReady`:  `label` may fall back to a translated text, and validation can run before the runtime
-   *   arrives (seen on the docs kitchen sink:  `UI.i18n ... isn't loaded yet`).  Tracked, so it recomputes.
+   * - Only once `isReady`:  `label` may fall back to a translated text,
+   *   and validation can run before the runtime arrives
+   *   (seen on the docs kitchen sink:  `UI.i18n ... isn't loaded yet`).
+   * - Tracked, so it recomputes.
    */
   protected get validationLabel(): string | undefined {
     return this.isReady ? this.label : undefined
@@ -455,8 +460,9 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * Server render only (`$/ui/static`):  the input's `name` (it holds the query, the value) and the `STATIC_CONTROL`
-   * mark, so a static form submits it;  `{}` in a browser, where the DOM element submits (`ElementInternals`).
+   * Server render only (`$/ui/static`):  the input's `name` (it holds the query, the value)
+   * and the `STATIC_CONTROL` mark, so a static form submits it.
+   * - `{}` in a browser, where the DOM element submits (`ElementInternals`).
    */
   private get staticControl(): Record<string, unknown> {
     return isServer ? { [UIT.STATIC_CONTROL]: "", name: this.name } : {}
@@ -511,8 +517,8 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * One result:  a link when it has a `url` (Fomantic's `<a class="result">`, `tabindex=-1`:  focus stays in the
-   * input), else a `<div>`.
+   * One result:  a link when it has a `url`, else a `<div>`.
+   * - The link:  Fomantic's `<a class="result">`, `tabindex=-1`, so focus stays in the input.
    */
   private row(result: UIT.SearchResult): JSX.Element {
     const url = typeof result.url === "string" && result.url ? result.url : undefined
@@ -739,8 +745,8 @@ const CATEGORY_ID_INFIX = "-category-"
 const SEARCH_ICON = "magnifying-glass"
 
 /**
- * Class word of the input box while busy.  Class words are the markup contract (`UISearch.css`) -- grammar,
- * not attributes, so not in the vocabulary.
+ * Class word of the input box while busy.
+ * - Class words are the markup contract (`UISearch.css`) -- grammar, not attributes, so not in the vocabulary.
  * - NOTE: `active` (`UIT.ACTIVE`) === the HIGHLIGHTED result (and its category):  Fomantic's meaning.
  */
 const LOADING = "loading"

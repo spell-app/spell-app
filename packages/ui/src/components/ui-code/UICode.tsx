@@ -17,8 +17,8 @@ import codeCSS from "./UICode.css?inline"
  ****************/
 export class DOMCodeElement extends E.DOMLoadableElement<UICode> {
   /**
-   * What auto-detection picked (when no `language` is given);  `undefined` otherwise,
-   * or before the colours arrive (`ui-highlight` says when).
+   * What auto-detection picked (when no `language` is given);
+   * `undefined` otherwise, or before the colours arrive (`ui-highlight` says when).
    * - Untracked:  it's for scripts.
    */
   get detectedLanguage(): string | undefined {
@@ -31,16 +31,16 @@ export class DOMCodeElement extends E.DOMLoadableElement<UICode> {
  * The component behind `<ui-code>`:  a block of code, coloured by language.
  *
  * - Its shadow DOM:
- *   `<div class="ui [numbered] [wrapping] code" part="box">` around an optional copy `<button>` and
- *   `<pre><code class="hljs language-x">`, one `<span class="line">` per line.
+ *   `<div class="ui [numbered] [wrapping] code" part="box">`
+ *   around an optional copy `<button>` and `<pre><code class="hljs language-x">`, one `<span class="line">` per line.
  * - The text:  the element's own (`<script type="text/plain">` keeps `<` and `&` exact),
  *   or a `source` file (see `LoadableComponent`).
  * - The colours come from highlight.js, loaded with the first highlight
  *   (`CodeHighlighter` -> `CodeEngine`, the lazy chunk):
  *   - no `language`:  guessed among the detect set
  *   - `text`:  none
- *   - a language `UI.code` knows (spell):  its own highlighter.
- *   The code shows plain until the colours arrive.
+ *   - a language `UI.code` knows (spell):  its own highlighter
+ * - The code shows plain until the colours arrive.
  *   An unknown language stays plain, with a `render` `ui-error` (no message:  the code is still there).
  * - `line-numbers` (from `start`) and `wrap` are CSS:  counters, and a hanging indent per `.line`.
  * - The `<pre>` is a tab stop, named "`<language>` code", so a keyboard can scroll it.

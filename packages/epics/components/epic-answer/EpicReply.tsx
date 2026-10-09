@@ -15,8 +15,8 @@ import answerCSS from "./EpicAnswer.css?inline"
  * The component behind `<epic-reply>`:  a reply on an item, after its answer -- a card, its heading band
  * `<from> · re: <re>` with the date (`at`) at its right, `10/7/26 10:50` (each part only when set), then the reply
  * (its light children).
- * - The band is a flex row (`.header.dated`):  who and what about on the left, free to wrap;  the date pinned to
- *   the right of the TOP line, never wrapping under them, at any width (Owen, 2026-10-08, P13).
+ * - The band is a flex row (`.header.dated`):  who and what about on the left, free to wrap;
+ *   the date pinned to the right of the TOP line, never wrapping under them, at any width (Owen, 2026-10-08, P13).
  * - Claude's (or anyone's but Owen's):  violet, the brand's action colour, apart from the warm answer card.
  * - Owen's (`from="Owen"`):  his ivory, as his note box and answer card (decision Q20).
  ****************/

@@ -4,31 +4,37 @@ import { DelegatedEvents, getDelegatedRoot, registerDelegatedContainer, unregist
 /****************
  * ### `ShadowEvents`
  * Keeps Solid's event delegation from leaking out of an element's shadow root.
- * - What Solid does:  each element's render root is a delegation container.  ONE listener per event type on the
- *   shadow root runs the component's `onClick` / `onInput` ... handlers by walking the event's composed path.  That
- *   walk (dom-expressions `eventHandler`) leaves its state ON THE EVENT OBJECT:
- *   - `target`:  redefined as an own property while walking and "restored" to the value it read on entry -- the
- *     INNER node (`<input>`), frozen.  Every listener outside the shadow root that runs later sees it instead of the
- *     retargeted host, e.g. a page `input` listener on `<ui-input>` gets `<input>`.
- *   - `currentTarget`:  an own getter returning wherever the walk stopped (the inner node), for every later
- *     listener.
- *   - `_$SOLID_EVENT_OWNER` (the "already walked up to here" marker):  set to the shadow root.  Every OUTER
- *     container (a Solid app's root, an enclosing element's shadow root) checks `container.contains(marker)`, which
- *     does not cross shadow boundaries, and DROPS the event:  a Solid app's `<ui-button onClick>`, or any handler
- *     above a nested element, never runs for events from inside that element.
+ * - What Solid does:  each element's render root is a delegation container.
+ *   - ONE listener per event type on the shadow root runs the component's `onClick` / `onInput` ... handlers,
+ *     by walking the event's composed path.
+ *   - That walk (dom-expressions `eventHandler`) leaves its state ON THE EVENT OBJECT:
+ *   - `target`:  redefined as an own property while walking,
+ *     and "restored" to the value it read on entry -- the INNER node (`<input>`), frozen.
+ *     - Every listener outside the shadow root that runs later sees it instead of the retargeted host,
+ *       e.g. a page `input` listener on `<ui-input>` gets `<input>`.
+ *   - `currentTarget`:  an own getter returning wherever the walk stopped (the inner node), for every later listener.
+ *   - `_$SOLID_EVENT_OWNER` (the "already walked up to here" marker):  set to the shadow root.
+ *     - Every OUTER container (a Solid app's root, an enclosing element's shadow root)
+ *       checks `container.contains(marker)`, which does not cross shadow boundaries, and DROPS the event.
+ *     - So a Solid app's `<ui-button onClick>`, or any handler above a nested element,
+ *       never runs for events from inside that element.
  * - What this class does:  it wraps the render root's delegated listener (`bridge()`):
- *   - after it:  own `target` / `currentTarget` deleted (the platform's retargeting getters are back);  the host's
- *     own delegated handler run when the next walker would skip it;  the marker moved to the host
- *   - before it:  when an inner element's root already walked part of the path, Solid resumes right after that part
- *     (a one-shot `composedPath()` slice) instead of dropping the event or walking it twice
- * - Cost:  one wrapper call per delegated event per render root on its path;  a `composedPath()` only for nested
- *   roots, or when the host itself has a delegated handler.  No extra listeners.
+ *   - after it:
+ *     - own `target` / `currentTarget` deleted (the platform's retargeting getters are back)
+ *     - the host's own delegated handler run when the next walker would skip it
+ *     - the marker moved to the host
+ *   - before it:  when an inner element's root already walked part of the path,
+ *     Solid resumes right after that part (a one-shot `composedPath()` slice),
+ *     instead of dropping the event or walking it twice
+ * - Cost:  one wrapper call per delegated event per render root on its path;  no extra listeners.
+ *   - A `composedPath()` only for nested roots, or when the host itself has a delegated handler.
  * - HACK:  reads dom-expressions internals, as of `@solidjs/web` rc.13 (`ShadowEvents.test.tsx` fails when they move):
- *   - `registerDelegatedContainer()` returns the container's state (typed `void`):  its `handlers` map tells Solid's
- *     listener apart from a component's own
+ *   - `registerDelegatedContainer()` returns the container's state (typed `void`):
+ *     its `handlers` map tells Solid's listener apart from a component's own
  *   - `_$SOLID_EVENT_OWNER` (the marker) and `_$$<type>` / `_$$<type>Data` (a node's delegated handler)
- * - From solid-element (its fix 10), moved as is (epic `spell-element`, Q10).
  * - STATIC and instance-free:  one set of bridged roots per page.
+ * - Began as solid-element's fix 10 (numbered in its old `UPSTREAM.md`),
+ *   moved here as is (epic `spell-element`, Q10).
  ****************/
 export class ShadowEvents {
   /** Register `root` as a delegation root, as `registerDelegatedRoot` does, with the shadow-safe bridge. */
@@ -49,20 +55,22 @@ export class ShadowEvents {
   }
 
   /**
-   * Wrap Solid's delegated listeners on `root`:  every `addEventListener()` of a function for a type Solid may
-   * delegate (`DelegatedEvents`) goes through a wrapper that, at call time, recognises Solid's own listener (`states`)
-   * and runs `before()` / `after()` around it.
-   * - SIDE EFFECT:  own `addEventListener` / `removeEventListener` on the root instance.  Other listeners (a
-   *   component's `renderRoot.addEventListener(...)`) pass straight through.
-   * - Why not a listener of our own:  Solid attaches per event type LAZILY (the first `onPointerMove` anywhere on the
-   *   page adds one to every container), so nothing of ours could be ordered after it.
+   * Wrap Solid's delegated listeners on `root`.
+   * - Every `addEventListener()` of a function for a type Solid may delegate (`DelegatedEvents`)
+   *   goes through a wrapper.
+   * - At call time, the wrapper recognises Solid's own listener (`states`) and runs `before()` / `after()` around it.
+   * - SIDE EFFECT:  own `addEventListener` / `removeEventListener` on the root instance.
+   *   Other listeners (a component's `renderRoot.addEventListener(...)`) pass straight through.
+   * - Why not a listener of our own:  Solid attaches per event type LAZILY
+   *   (the first `onPointerMove` anywhere on the page adds one to every container),
+   *   so nothing of ours could be ordered after it.
    */
   private static bridge(root: HTMLElement | ShadowRoot) {
     bridged.add(root)
     const add = root.addEventListener
     const remove = root.removeEventListener
-    // one wrapper per listener, whatever the type (it checks `event.type` when called);  weak, so the listeners
-    // Solid drops on every re-render go with their wrappers
+    // one wrapper per listener, whatever the type (it checks `event.type` when called);
+    // weak, so the listeners Solid drops on every re-render go with their wrappers
     const wrappers = new WeakMap<EventListener, EventListener>()
     const shadow = root instanceof ShadowRoot
     Object.defineProperties(root, {
@@ -101,12 +109,14 @@ export class ShadowEvents {
   }
 
   /**
-   * Before Solid walks `root`'s part of the path:  when an inner root already walked part of it, resume right after
-   * that part.
-   * - Solid's own resume can't:  it drops a marker the container doesn't `contains()` (every node inside an inner
-   *   shadow root, and a slotted host), and resumes at the marker's PARENT when the marker is the target.
-   * - So:  clear the marker (a fresh walk) and hand Solid's single `composedPath()` call the unwalked rest.  The
-   *   override removes itself on that call, so handlers see the real path.
+   * Before Solid walks `root`'s part of the path:
+   * when an inner root already walked part of it, resume right after that part.
+   * - Solid's own resume can't:
+   *   - it drops a marker the container doesn't `contains()`:
+   *     every node inside an inner shadow root, and a slotted host
+   *   - it resumes at the marker's PARENT when the marker is the target
+   * - So:  clear the marker (a fresh walk) and hand Solid's single `composedPath()` call the unwalked rest.
+   *   The override removes itself on that call, so handlers see the real path.
    */
   private static before(event: Walked, root: ShadowRoot) {
     const marker = event[OWNER]
@@ -131,14 +141,15 @@ export class ShadowEvents {
   }
 
   /**
-   * After Solid walked `root`'s part of the path:  put the event back the way the platform had it, and hand the walk
-   * on at the host.
+   * After Solid walked `root`'s part of the path:
+   * put the event back the way the platform had it, and hand the walk on at the host.
    * - `delete` removes only OWN properties, so the prototype's retargeting `target` / `currentTarget` return.
-   * - The host's own delegated handler (`<ui-button onClick>` from the enclosing Solid code) runs HERE when the next
-   *   walker is a plain Solid container:  that one would resume at the host's PARENT.  An enclosing element's root
-   *   walks it itself (`before()` resumes at the host).
-   * - The marker becomes the host (or, when the host ran here and the event came from slotted light content, the
-   *   host's parent):  a node the enclosing containers DO contain, so they resume instead of dropping.
+   * - The host's own delegated handler (`<ui-button onClick>` from the enclosing Solid code)
+   *   runs HERE when the next walker is a plain Solid container:  that one would resume at the host's PARENT.
+   *   - An enclosing element's root walks it itself (`before()` resumes at the host).
+   * - The marker becomes the host
+   *   (or, when the host ran here and the event came from slotted light content, the host's parent):
+   *   a node the enclosing containers DO contain, so they resume instead of dropping.
    */
   private static after(event: Walked, root: HTMLElement | ShadowRoot) {
     ShadowEvents.unwalk(event, "target", "currentTarget", "composedPath")

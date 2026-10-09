@@ -28,7 +28,8 @@ import treeDiagramCSS from "./UITreeDiagram.css?inline"
  *   - The property wins.
  *   - Invalid JSON draws nothing, and warns once.
  *   - It redraws when `tree` is set again:  set a NEW tree (one changed in place isn't seen).
- * - Layout:  `TreeLayout` (pure).  Drawn at its natural size in em (`--_ui-tree-diagram-natural-width`),
+ * - Layout:  `TreeLayout` (pure).
+ *   Drawn at its natural size in em (`--_ui-tree-diagram-natural-width`),
  *   shrinking to fit its container down to `--ui-tree-diagram-min-scale`, and scrolling sideways below that.
  * - Nothing to draw:  the `<svg>` is `ui empty tree diagram`, hidden;  the DOM element has no height.
  * - Accessibility:  the `<svg>` is `role="img"`, named by a summary ("Tree:  If, with 3 children");

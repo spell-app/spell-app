@@ -6,9 +6,10 @@ import type { ComponentPack } from "./UIComponents.types"
  * ### `ComponentPacks`
  * The page's component packs:  their catalogs and tag prefixes, and the loads of their scripts, once per page.
  * - Static:  one registry per page, shared by every `<ui-root>`, like `RootLoader`'s family loads.
- * - A pack is a CLASSIC script (`<script src>`, so it works from `file://`):  `load()` adds one, and the script
- *   calls `registerPack()` as it runs, which finds the load by `document.currentScript` (else by the name its file
- *   implies), defines the pack's tags and resolves it.
+ * - A pack is a CLASSIC script (`<script src>`, so it works from `file://`):
+ *   `load()` adds one, and the script calls `registerPack()` as it runs.
+ *   That finds the load by `document.currentScript` (else by the name its file implies),
+ *   defines the pack's tags and resolves it.
  * - Plain DOM, no Solid:  `<ui-root>` asks it what a tag is (`entryOf()`, `owns()`), and it knows nothing of roots.
  ****************/
 export class ComponentPacks {
@@ -32,10 +33,10 @@ export class ComponentPacks {
   ////////////////
 
   /**
-   * Register `pack`:  define its tags (`pack.define()`), add its catalog and prefix, and resolve the load of the
-   * script calling this (if `load()` started it).
-   * - A `define()` that returns a promise (it loads its families first) resolves the load once that settles, or
-   *   fails it;  without a load to fail, a console error says why.
+   * Register `pack`:  define its tags (`pack.define()`), add its catalog and prefix,
+   * and resolve the load of the script calling this (if `load()` started it).
+   * - A `define()` that returns a promise (it loads its families first) resolves the load once that settles,
+   *   or fails it;  without a load to fail, a console error says why.
    * - A second pack with a registered name is ignored, with a console warning:  its tags are defined already.
    * - Throws a `TypeError` on a malformed pack;  rethrows what `define()` throws, after failing the load.
    */
@@ -73,8 +74,8 @@ export class ComponentPacks {
   }
 
   /**
-   * Load the pack at `source` (relative to the page) as a classic script, ONCE per page;  resolves with the pack once
-   * its script registered it.
+   * Load the pack at `source` (relative to the page) as a classic script, ONCE per page;
+   * resolves with the pack once its script registered it.
    * - A pack already registered under the name its file implies (a page's own `<script src>`, an ES import)
    *   resolves at once, with no second script.
    * - Rejects when the script can't load, ran without registering a pack, or its `define()` failed.  NEVER throws.
@@ -125,8 +126,8 @@ export class ComponentPacks {
     return new Promise((resolve, reject) => {
       const script = document.createElement("script")
       const pending: PendingPack = { script, name: ComponentPacks.nameFor(url), resolve, reject }
-      // registering takes the load out of `pending` (the script runs before `load` fires), so these only fail a
-      // script that never registered:  NOT one whose `define()` is still loading its families
+      // registering takes the load out of `pending` (the script runs before `load` fires),
+      // so these only fail a script that never registered:  NOT one whose `define()` is still loading its families
       const fail = (message: string) => {
         if (!ComponentPacks.pending.delete(pending)) return
         reject(new Error(`ComponentPacks.load():  ${message}`))

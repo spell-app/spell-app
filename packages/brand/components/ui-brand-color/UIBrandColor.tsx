@@ -36,8 +36,8 @@ import colorCSS from "./UIBrandColor.css?inline"
 
 /****************
  * ### `DOMBrandColorElement`
- * The DOM element of `<ui-brand-color>`:  it adds `choice`,
- * which a selectable `<ui-brand-color-set>` sets on the chips it holds.
+ * The DOM element of `<ui-brand-color>`:
+ * it adds `choice`, which a selectable `<ui-brand-color-set>` sets on the chips it holds.
  *
  * - A choice is a RADIO, and the DOM element is that radio:
  *   it takes the role, the checked state and the name (through `internals`),
@@ -67,16 +67,16 @@ export class DOMBrandColorElement extends DOMElement<UIBrandColor> {
  *   The text inside is white or the brand's ink, whichever contrasts more (`Palette.ink()`).
  *
  * - `copy`:  a click copies the colour (`navigator.clipboard`) and sends `ui-copy`.
- *   A check shows for `COPIED_MS`, and a status line announces "Copied …".
- *   If the browser refuses the write (no permission), nothing happens.
+ *   - A check shows for `COPIED_MS`, and a status line announces "Copied …".
+ *   - If the browser refuses the write (no permission), nothing happens.
  *
  * - `details`:  a tip under the chip on hover and keyboard focus,
  *   describing the colour (CSS only:  anchor-positioned, flipping at the window's edges).
  *   A chip without `copy` becomes focusable for it.
  *
  * - A CHOICE of a selectable `<ui-brand-color-set>` (`DOMBrandColorElement.choice`):
- *   the DOM element is the radio (its role, checked state and name, through `internals`;  the set moves focus),
- *   and the chip inside is plain:  no button, no `copy`.
+ *   the DOM element is the radio (its role, checked state and name, through `internals`;
+ *   the set moves focus), and the chip inside is plain:  no button, no `copy`.
  *
  * - Tokens (`--ui-brand-color-*`, read through private aliases on `:host`):
  *   the size, radius, border, ring colour and gap, and the tip's background, colour and width.

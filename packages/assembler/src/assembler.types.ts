@@ -94,10 +94,10 @@ const SPELL_UI_SOURCES = ["packages/ui/src", "packages/ui/vite.config.ts", "pack
 /**
  * Every bundle built on demand.
  * - the page server builds the stale ones when it starts (`spell dev bundles build --stale`)
- * - `sources`:  generous, so a change never leaves one stale unnoticed;  `Bundle.sourceFiles()` skips tests,
- *   snapshots, dot files and the icon packs
- * - their `output` folders are in the root `.gitignore`;  the page server's copy of the list:  `BUNDLE_FOLDERS`
- *   (`packages/server/src/page/page.types.ts`)
+ * - `sources`:  generous, so a change never leaves one stale unnoticed;
+ *   `Bundle.sourceFiles()` skips tests, snapshots, dot files and the icon packs
+ * - their `output` folders are in the root `.gitignore`;  the page server's copy of the list:
+ *   `BUNDLE_FOLDERS` (`packages/server/src/page/page.types.ts`)
  */
 export const BUNDLES: BundleSpec[] = [
   {

@@ -4,24 +4,25 @@ import { E } from "$/ui/core"
 
 /****************
  * ### `NativeFallback`
- * The base class of the form controls' fallbacks:  plain native DOM a DOM element shows when its component's render
- * throws, so its form keeps working (`docs/fallback.md`:  only form controls have one).
- * - Library-neutral:  of the core (`E`), it uses only the foundation and `E.ClassBuilder`, NEVER Solid or the runtime
- *   (`UI`), and builds with `createElement` + `setAttribute` (NEVER `innerHTML` with user text), so the fallback
- *   works whatever broke the Solid render.
- * - Same class grammar, `part`s and `<slot>` as the real element, so the component's adopted sheet still
- *   styles it and light-DOM children still show.
- * - Subclasses set `@proto static vocabulary` (or `vocabularies`, one class for several tags) and implement
- *   `build()`;  callers only use `render()`.
- * - Reads the DOM ELEMENT'S ATTRIBUTES (reflected primitives), never its properties, except where a subclass says so
- *   (`dropdown`:  `value`, `options`).
+ * The base class of the form controls' fallbacks:
+ * plain native DOM a DOM element shows when its component's render throws, so its form keeps working
+ * (`docs/fallback.md`:  only form controls have one).
+ * - No Solid, so the fallback works whatever broke the Solid render:
+ *   - of the core (`E`), it uses only the foundation and `E.ClassBuilder`, NEVER Solid or the runtime (`UI`)
+ *   - it builds with `createElement` + `setAttribute` (NEVER `innerHTML` with user text)
+ * - Same class grammar, `part`s and `<slot>` as the real element,
+ *   so the component's adopted sheet still styles it and light-DOM children still show.
+ * - Subclasses set `@proto static vocabulary` (or `vocabularies`, one class for several tags) and implement `build()`;
+ *   callers only use `render()`.
+ * - Reads the DOM ELEMENT'S ATTRIBUTES (reflected primitives), never its properties,
+ *   except where a subclass says so (`dropdown`:  `value`, `options`).
  * - NOTE:  attribute names are canonical English;  a translated DOM element must map its attributes back first.
  ****************/
 export abstract class NativeFallback<V extends E.ComponentVocabulary = E.ComponentVocabulary> {
   /**
    * Names the fallback reads and renders, read from the prototype (`@proto`).
-   * - STATIC:  one per family, shared by every instance, so no per-instance copy;  a subclass overrides it with
-   *   its own `@proto static vocabulary` line, which needs no docstring.
+   * - STATIC:  one per family, shared by every instance, so no per-instance copy.
+   * - A subclass overrides it with its own `@proto static vocabulary` line, which needs no docstring.
    * - The base's is an empty placeholder.
    */
   @proto static vocabulary: E.ComponentVocabulary = {
@@ -113,8 +114,8 @@ export abstract class NativeFallback<V extends E.ComponentVocabulary = E.Compone
 
   /**
    * Nodes to put in `root`:  the subclass's whole fallback, built from the DOM element's attributes.
-   * - Called once, by `render()`, before the nodes are attached:  work that needs them in the document goes in
-   *   `attached()`.
+   * - Called once, by `render()`, before the nodes are attached:
+   *   work that needs them in the document goes in `attached()`.
    * - An override that only builds needs no docstring.
    */
   protected abstract build(): Node[]
@@ -150,8 +151,8 @@ export abstract class NativeFallback<V extends E.ComponentVocabulary = E.Compone
 
   /**
    * Fomantic class string the real element would render, e.g. `ui small primary button`.
-   * - Every class-emitting vocabulary attribute is read from the DOM element;  an absent one takes its vocabulary
-   *   `default`, as the element's props do (`<ui-sidebar>` => `ui left sidebar`).
+   * - Every class-emitting vocabulary attribute is read from the DOM element.
+   * - An absent one takes its vocabulary `default`, as the element's props do (`<ui-sidebar>` => `ui left sidebar`).
    */
   protected classes(extra?: string): string {
     const input: Record<string, unknown> = {}
@@ -200,12 +201,13 @@ export abstract class NativeFallback<V extends E.ComponentVocabulary = E.Compone
 
   /**
    * Give `target` its `part` and the DOM element's accessibility attributes.
-   * - `name` is one of the vocabulary's parts (typed;  a dev warning for a vocabulary TypeScript can't see, a
-   *   class serving several tags);  `extra` parts are added unchecked.
-   * - Copies every `aria-*` from the DOM element.  NOTE:  idref ones (`aria-labelledby`) can't cross the shadow
-   *   boundary, so they dangle.
-   * - A boolean `loading` becomes `aria-busy`;  a vocabulary where it isn't boolean (`<ui-image loading="lazy">`,
-   *   the native `<img loading>`) is left alone.
+   * - `name` is one of the vocabulary's parts, typed.
+   *   A vocabulary TypeScript can't see (a class serving several tags) gets a dev warning instead.
+   * - `extra` parts are added unchecked.
+   * - Copies every `aria-*` from the DOM element.
+   *   NOTE:  idref ones (`aria-labelledby`) can't cross the shadow boundary, so they dangle.
+   * - A boolean `loading` becomes `aria-busy`;
+   *   a vocabulary where it isn't boolean (`<ui-image loading="lazy">`, the native `<img loading>`) is left alone.
    */
   protected decorate<T extends Element>(target: T, name: PartNameOf<V>, ...extra: string[]): T {
     if (!this.vocabulary.parts.some((part) => part.name === name)) {

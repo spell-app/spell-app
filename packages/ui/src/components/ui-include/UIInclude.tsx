@@ -15,8 +15,8 @@ import includeCSS from "./UIInclude.css?inline"
  ****************/
 export class DOMIncludeElement extends E.DOMLoadableElement<UIInclude> {
   /**
-   * Where the included markup lives:  the shadow box (`[part~=content]`), or the DOM element itself with
-   * `page-styles`;  `undefined` before it loads.
+   * Where the included markup lives:
+   * the shadow box (`[part~=content]`), or the DOM element itself with `page-styles`;  `undefined` before it loads.
    * - For editors:  edit there, then `save()`.
    */
   get contentRoot(): HTMLElement | undefined {
@@ -92,8 +92,9 @@ export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
   }
 
   /**
-   * Words before the noun, hooks for page CSS:  a deferred `load` mode (`ui visible include`:  e.g. reserve room for a
-   * lazy island), and `loading` while `source` loads.
+   * Words before the noun, hooks for page CSS:
+   * - a deferred `load` mode (`ui visible include`:  e.g. reserve room for a lazy island)
+   * - `loading` while `source` loads
    */
   protected get extraClass(): string | undefined {
     const mode = this.load && this.load !== EAGER ? this.load : undefined
@@ -175,8 +176,9 @@ export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
   ////////////////
 
   /**
-   * The FILE as it should be saved:  the text as loaded while the markup is untouched (or not yet rebuilt from a new
-   * `content`);  else the live markup -- the `select`ed element alone, or spliced into the file's `<body>`.
+   * The FILE as it should be saved:
+   * - the text as loaded, while the markup is untouched (or not yet rebuilt from a new `content`)
+   * - else the live markup:  the `select`ed element alone, or spliced into the file's `<body>`
    */
   get content(): string {
     const text = super.content

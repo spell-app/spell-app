@@ -19,10 +19,12 @@ import transitionCSS from "./UITransition.css?inline"
  * (`show()`, `hide()`, `toggle()`, `transition()`),
  * since an attention animation (`shake`) has no state an attribute could carry.
  *
- * - Each resolves once its animation has run:  `true` when it finished,
- *   `false` when a later one interrupted it (`interrupt`), or when the element hasn't drawn yet.
+ * - Each resolves once its animation has run:
+ *   - `true` when it finished
+ *   - `false` when a later one interrupted it (`interrupt`), or when the element hasn't drawn yet
  * - `show()` / `hide()` / `toggle()` write `visible` (so it reflects, and frameworks see it),
- *   which queues the animation;  `transition()` is Fomantic's `$(el).transition(name)`.
+ *   which queues the animation.
+ * - `transition()` is Fomantic's `$(el).transition(name)`.
  * - NOTE: `transition`, not `animate`:  `Element.animate()` is the Web Animations API.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
@@ -44,7 +46,8 @@ export class DOMTransitionElement extends E.DOMElement<UITransition> {
 
   /**
    * Run `animation` (Fomantic's name, `fade up`, or the runtime's, `fade-up`;  default the `animation` attribute's):
-   * an attention one in place, an appear / disappear one toggling visibility.  Queued like every other.
+   * an attention one in place, an appear / disappear one toggling visibility.
+   * - Queued like every other.
    */
   transition(animation?: string): Promise<boolean> {
     return this.component?.transition(animation) ?? Promise.resolve(false)
@@ -55,7 +58,7 @@ export class DOMTransitionElement extends E.DOMElement<UITransition> {
  * ### `UITransition`
  * The component behind `<ui-transition>`:  shows, hides or shakes its content
  * with the animation catalogue (`animations.css`), through `UI.transitions`.
- * `<div class="ui … transition [visible] [animating]" part="transition"><slot>`.
+ * Its shadow DOM:  `<div class="ui … transition [visible] [animating]" part="transition"><slot>`.
  *
  * - The BOX animates, not the content:  its `hidden` attribute is what hides it
  *   (`UI.transitions` sets it after an `out`, removes it before an `in`),
@@ -68,8 +71,8 @@ export class DOMTransitionElement extends E.DOMElement<UITransition> {
  *   - First paint never animates.
  *
  * - A queue, as Fomantic's `queue: true`:  each animation waits for the one before it.
- *   The same animation twice in a row is dropped unless `allow-repeats`;
- *   `interrupt` makes a new one stop the running one instead.
+ *   - The same animation twice in a row is dropped unless `allow-repeats`.
+ *   - `interrupt` makes a new one stop the running one instead.
  *
  * - `ui-show` / `ui-hide` once an `in` / `out` has run;  `ui-complete` after every animation.
  * - Reduced motion:  `UI.transitions` skips the motion (the end state at once), so the events still follow.
@@ -89,7 +92,7 @@ export class UITransition extends E.UIComponent<Vocabulary> {
   // ## Visibility
   ////////////////
 
-  /** Shown, or on its way in;  follows the queue, not the `visible` attribute.  `:state(visible)`. */
+  /** Shown, or on its way in;  follows the queue, not the `visible` attribute;  `:state(visible)`. */
   @E.cssState("visible")
   @E.state
   accessor isShowing = untrack(() => !!this.visible)

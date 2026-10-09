@@ -4,10 +4,10 @@ import { tableVocabulary } from "./UITable.en"
 /****************
  * ### `TableGrammar`
  * Class strings a table needs besides its own root's:  the shadow `.scroller`'s, and a data-mode cell's.
- * - Scroller:  `ClassBuilder` over the table vocabulary's scroller-shaped attributes (`resizable`,
- *   `attached`, `scrolling`, `overflowing`) with the noun `scroller` and no `ui`, e.g.
- *   `resizable top attached short scrolling scroller`.  Same grammar as the table, so `UITable.css` keys the
- *   scroller on the same phrases (`[class*="very short"]`).
+ * - Scroller:  `ClassBuilder` over the table vocabulary's scroller-shaped attributes
+ *   (`resizable`, `attached`, `scrolling`, `overflowing`) with the noun `scroller` and no `ui`,
+ *   e.g. `resizable top attached short scrolling scroller`.
+ *   Same grammar as the table, so `UITable.css` keys the scroller on the same phrases (`[class*="very short"]`).
  * - Cell:  a `TableColumn`'s `textAlign` / `width` as Fomantic's cell classes (`right aligned four wide`).
  * - Plain functions of their input, no DOM.
  * - STATIC and instance-free on purpose:  nothing to hold but the one cached builder.

@@ -1,6 +1,7 @@
 /**
- * Every name `<ui-shape>` and `<ui-side>` use:  tags, attributes (kind + allowed values), events, slots, parts,
- * states, texts.  Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
+ * Every name `<ui-shape>` and `<ui-side>` use:
+ * tags, attributes (kind + allowed values), events, slots, parts, states, texts.
+ * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-shape cube>` => `ui cube shape`;
  *   the element adds `animating` before the noun while it flips.
  * - A side has no `ui` (Fomantic's `.side`);

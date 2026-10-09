@@ -26,13 +26,15 @@ import calendarCSS from "./UICalendar.css?inline"
  *
  * - Its shadow DOM:  a text field (`ui left icon input`) whose icon button opens a popover dialog with the picker;
  *   or, with `inline`, the picker itself.
- *   The picker is a header (previous / title / next) over a `<table role=grid>` in Fomantic's class grammar
- *   (`ui celled center aligned unstackable seven column table day`), then an optional Today / Now button.
+ *   The picker is a header (previous / title / next) over a `<table role=grid>`,
+ *   in Fomantic's class grammar (`ui celled center aligned unstackable seven column table day`),
+ *   then an optional Today / Now button.
  *
- * - Views (Fomantic's modes):  years => months => days => hours => minutes, as far as `type` goes
- *   (`CalendarDates.modes()`).
- *   Choosing a cell in a coarser view opens the next finer one;  the finest sets the value.
- *   The title button goes back up.  Pages, cells and bounds are `CalendarView`'s.
+ * - Views (Fomantic's modes):  years => months => days => hours => minutes,
+ *   as far as `type` goes (`CalendarDates.modes()`).
+ *   - Choosing a cell in a coarser view opens the next finer one;  the finest sets the value.
+ *   - The title button goes back up.
+ *   - Pages, cells and bounds are `CalendarView`'s.
  *
  * - Dates are `Temporal` (`UI.i18n.temporal`):  the browser's own, else `temporal-polyfill`, loaded lazily;
  *   the picker renders once it's here.
@@ -48,8 +50,9 @@ import calendarCSS from "./UICalendar.css?inline"
  *
  * - Typing:  the field's text is read on `change` / Enter (`CalendarText.read()`);
  *   unreadable or out-of-range text goes back to the value's.
- * - `value` and `open` are controlled (`@controlled`):  `ui-change` / `ui-open` / `ui-close` go first,
- *   and are cancelable.  The `value` ATTRIBUTE is the starting (and form-reset) value.
+ * - `value` and `open` are controlled (`@controlled`):
+ *   `ui-change` / `ui-open` / `ui-close` go first, and are cancelable.
+ *   The `value` ATTRIBUTE is the starting (and form-reset) value.
  * - Ranges (Fomantic's `startCalendar` / `endCalendar`):
  *   `start-calendar="id"` makes this the END (the partner's value is its minimum),
  *   and `end-calendar="id"` the START;  the span between them is highlighted.
@@ -384,8 +387,10 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * A cell was chosen:  the finest view sets the value (and closes the popup);  a coarser one opens the next view
-   * on that cell, keeping the finer fields of the focus (a month chosen keeps the day, clamped).
+   * A cell was chosen:
+   * - the finest view sets the value (and closes the popup)
+   * - a coarser one opens the next view on that cell,
+   *   keeping the finer fields of the focus (a month chosen keeps the day, clamped)
    */
   @E.untracked
   choose(cell: CalendarCell, originalEvent?: Event) {
@@ -551,8 +556,8 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * Server render only:  the ISO value as a hidden input, so a static form submits it as the DOM element would
-   * (`ElementInternals`) -- the field shows it formatted.
+   * Server render only:  the ISO value as a hidden input,
+   * so a static form submits it as the DOM element would (`ElementInternals`);  the field shows it formatted.
    */
   private staticValue(): JSX.Element {
     const name = this.name
@@ -782,8 +787,8 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   /**
    * Load `Temporal` before a static server render, so its pickers render in full (header, grid, cells):
    * the render is synchronous, and node has no `Temporal`, so `UI.i18n` loads `temporal-polyfill` (`loadTemporal()`).
-   * - Called by `StaticRender.prepare(html)` (`$/ui/static`) for a page with this tag;  NEVER in a browser,
-   *   where the constructor loads it after first paint, as before.
+   * - Called by `StaticRender.prepare(html)` (`$/ui/static`) for a page with this tag.
+   *   NEVER in a browser, where the constructor loads it after first paint.
    * - STATIC:  it runs before any calendar exists (`SSR.StaticPreload`).
    * - NOTE: "today" (highlight, starting page) is then the RENDER's day.
    */
@@ -850,8 +855,9 @@ export interface UICalendar extends E.AttributeValues<Vocabulary> {}
 ////////////////
 // ## Markup
 // Class words of the markup contract (`UICalendar.css`) -- grammar, not attributes, so not in the vocabulary.
-// Fomantic's cell classes:  `active` === chosen, `focus` === the keyboard's cell, `adjacent` === another month's
-// day, `range` === inside a range.
+// Fomantic's cell classes:
+// - `active` === chosen, `focus` === the keyboard's cell
+// - `adjacent` === another month's day, `range` === inside a range
 ////////////////
 
 /** The field's box (`UIInput.css`'s grammar). */

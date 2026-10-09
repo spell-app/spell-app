@@ -19,8 +19,10 @@ import popupRaw from "./UIPopup.css?raw"
 import anchoredRaw from "./UIPopup.anchored.css?raw"
 
 /**
- * `UIPopup.css` on its own, before any element exists:  the sheet's source rules and the computed styles of the
- * light-DOM examples (the class grammar the shadow root uses), plus the CSS-only tooltip (`native.css`).
+ * `UIPopup.css` on its own, before any element exists:
+ * - the sheet's source rules
+ * - the computed styles of the light-DOM examples (the class grammar the shadow root uses)
+ * - the CSS-only tooltip (`native.css`)
  * - Sheets are adopted into the document per test and removed again.
  */
 

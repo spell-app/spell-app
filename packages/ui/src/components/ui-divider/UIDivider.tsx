@@ -22,8 +22,8 @@ import dividerCSS from "./UIDivider.css?inline"
  * - `hidden` is Fomantic's word for "the spacing without the line",
  *   so the attribute keeps its name, but its DOM property is `dividerHidden`:
  *   `hidden` is already every element's own boolean.
- *   `UIDivider.css` turns the browser's `[hidden] { display: none }` back into `display: contents`,
- *   so a hidden divider still takes up its space.
+ *   - `UIDivider.css` turns the browser's `[hidden] { display: none }` back into `display: contents`,
+ *     so a hidden divider still takes up its space.
  ****************/
 export class UIDivider extends E.UIComponent<typeof dividerVocabulary> {
   @E.proto static vocabulary = dividerVocabulary

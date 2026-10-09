@@ -23,13 +23,15 @@ export class DOMToastElement extends E.DOMElement<UIToast> {
 
 /****************
  * ### `UIToast`
- * The component behind `<ui-toast>`:  a toast, a short message that shows for a while,
+ * The component behind `<ui-toast>`:  a toast, a short message that shows for a while.
+ * Its shadow DOM:
  * `<div class="floating toast-box" part="box">` around `<div class="ui … toast" part="toast">`
  * (icon, content block, close icon, actions), with an optional progress bar above or below and `attached` actions.
  *
  * - Where it shows:  where it is.
- *   `UI.toast({…})` (`ToastStack`) puts the ones it builds in a container per position, a popover in the top layer;
- *   a `<ui-toast>` written in the page is an ordinary block.
+ *   - `UI.toast({…})` (`ToastStack`) puts the ones it builds in a container per position,
+ *     a popover in the top layer.
+ *   - A `<ui-toast>` written in the page is an ordinary block.
  *
  * - Its life:  once connected it animates in (Fomantic's `scale`), fires `ui-show`,
  *   and starts counting down `display-time` (absent or `0`:  it stays).
@@ -43,14 +45,15 @@ export class DOMToastElement extends E.DOMElement<UIToast> {
  *
  * - Accessibility:  the toast is `role=status` (polite), `alert` for `type="error"`;  it never takes focus.
  *   - The close icon is a real `<button>`.
- *   - Escape closes it while focus is inside:  no page-wide Escape (kind `toast` in `UI.overlays`,
- *     which also lets `UI.overlays.closeAll("toast")` close every one).
+ *   - Escape closes it while focus is inside, with no page-wide Escape
+ *     (kind `toast` in `UI.overlays`, which also lets `UI.overlays.closeAll("toast")` close every one).
  *   - Motion follows `UI.transitions` (reduced motion:  none);
  *     the progress bar is `data-ui-motion="essential"`:  it IS the time left.
  *
- * - Invoker commands (`<button commandfor="id" command="--close">`):  `--close` closes it, reason `close`,
- *   as its close icon does.  Nothing shows it again (a closed toast stays closed, `hidden`:  the app inserts a new
- *   one), so `--show` and `--toggle` are not answered.
+ * - Invoker commands (`<button commandfor="id" command="--close">`):
+ *   `--close` closes it, reason `close`, as its close icon does.
+ *   - Nothing shows it again (a closed toast stays closed, `hidden`:  the app inserts a new one),
+ *     so `--show` and `--toggle` are not answered.
  *
  * - Actions:  a slotted button closes the toast unless its click was `preventDefault()`ed;
  *   approve / deny ones (`UIT.ModalActionSelectors`) fire the cancelable `ui-approve` / `ui-deny` first.
@@ -329,7 +332,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   // ## Closing
   ////////////////
 
-  /** Closing (or closed):  no further closes, no restarts.  `:state(closing)`. */
+  /** Closing (or closed):  no further closes, no restarts;  `:state(closing)`. */
   @E.cssState("closing")
   @E.state
   accessor isClosing = false
@@ -465,8 +468,9 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   private focusIsInside = false
 
   /**
-   * Pointer entered it:  only noted.  A toast appearing under a RESTING pointer gets a `pointerenter` (the browser's
-   * synthetic move) with no real move;  pausing on that alone could hold it forever, so `onPointerMove` pauses.
+   * Pointer entered it:  only noted.
+   * - A toast appearing under a RESTING pointer gets a `pointerenter` (the browser's synthetic move) with no real move;
+   *   pausing on that alone could hold it forever, so `onPointerMove` pauses.
    */
   @E.on("pointerenter")
   protected onPointerEnter() {
@@ -529,8 +533,9 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   }
 
   /**
-   * A click inside:  an action closes (approve / deny ask first);  elsewhere a click closes a `close-on-click`
-   * toast unless it landed on something interactive or the toast holds form controls.
+   * A click inside:  an action closes (approve / deny ask first);
+   * elsewhere a click closes a `close-on-click` toast,
+   * unless it landed on something interactive or the toast holds form controls.
    */
   private readonly onClick = (event: MouseEvent) => {
     if (this.isClosing) return

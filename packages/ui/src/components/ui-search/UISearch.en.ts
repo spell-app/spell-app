@@ -6,8 +6,8 @@
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-search category fluid aligned="right">` => `ui category fluid right aligned search`.
  *   `UISearch.css` keys on those words.
- * - Rich data is a PROPERTY (`source`, `kind: "json"`);  first paint never needs it -- the input and its `value`
- *   are all SSR must show.
+ * - Rich data is a PROPERTY (`source`, `kind: "json"`);
+ *   first paint never needs it -- the input and its `value` are all SSR must show.
  */
 
 import type { E } from "$/ui/core"
@@ -15,8 +15,8 @@ import * as UIT from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-search>`
- * A combobox + listbox:  a text `<input>` and an anchor-positioned popover of results, from a local `source` or a
- * remote `url`.
+ * A combobox + listbox:  a text `<input>` and an anchor-positioned popover of results,
+ * from a local `source` or a remote `url`.
  ****************/
 export const searchVocabulary = {
   tag: "ui-search",

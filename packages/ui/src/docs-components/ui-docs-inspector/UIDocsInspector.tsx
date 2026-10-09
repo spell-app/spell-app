@@ -10,15 +10,18 @@ import inspectorCSS from "./UIDocsInspector.css?inline"
 /****************
  * ### `UIDocsInspector`
  * The component behind `<ui-docs-inspector for="save">`:  a live view of the element whose id `for` names --
- * its attributes, its properties and the `:state()`s it's in -- for docs pages that teach how elements work.
+ * its attributes, its properties and the `:state()`s it's in --
+ * for docs pages that teach how elements work.
  * Click the element, and watch its rows change.
  *
- * - Its shadow DOM:  `<div class="ui inspector" part="inspector">` holding a title line (`<ui-button id="save">`)
+ * - Its shadow DOM:
+ *   `<div class="ui inspector" part="inspector">` holding a title line (`<ui-button id="save">`)
  *   and three groups (`part="group"`):  attributes, properties, states.
  *   - each group a `<dl>` of rows (`part="row"`:  `name`, `value`);  states a `<ul>` of `:state(x)` names
  *   - a row that changes draws again, and flashes once (none under `prefers-reduced-motion`)
- * - What it reads:  `ElementSnapshot` (attributes as written;  a Spell UI element's vocabulary properties;  its
- *   custom states).  `all` shows unset properties too.
+ * - What it reads, through `ElementSnapshot`:
+ *   attributes as written, a Spell UI element's vocabulary properties, its custom states.
+ *   `all` shows unset properties too.
  * - How it stays live:  while connected, it reads the element again every `REFRESH_SECONDS`.
  *   - Why a timer:  custom states have no change event, and a property can change without any attribute.
  *   - A read that finds nothing new writes nothing:  the view only redraws for a real change.
@@ -149,9 +152,9 @@ export class UIDocsInspector extends E.UIComponent<typeof docsInspectorVocabular
 
   /**
    * A group of name / value rows, under `caption`.
-   * - `rows` is an accessor (`this.$.attributeRows`), read inside the JSX:  a new list then updates the `<For>`,
-   *   which keeps each unchanged row's DOM.  A plain list would be read once by the caller, and the whole group
-   *   would draw again on every change.
+   * - `rows` is an accessor (`this.$.attributeRows`), read inside the JSX:
+   *   a new list then updates the `<For>`, which keeps each unchanged row's DOM.
+   * - A plain list would be read once by the caller, and the whole group would draw again on every change.
    */
   private group(caption: string, rows: () => readonly SnapshotRow[]): JSX.Element {
     return (

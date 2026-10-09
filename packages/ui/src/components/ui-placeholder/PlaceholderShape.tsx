@@ -6,8 +6,9 @@ import placeholderCSS from "./UIPlaceholder.css?inline"
 
 /****************
  * ### `PlaceholderShape`
- * The base of the placeholder's skeleton shapes:  `<div class="[keyOnly ...] <noun>" part="<noun>">`,
- * with a `<slot>` for the shapes that hold lines (header, paragraph), and none for the solid ones (line, image).
+ * The base of the placeholder's skeleton shapes:
+ * `<div class="[keyOnly ...] <noun>" part="<noun>">`, with a `<slot>` for the shapes that hold lines
+ * (header, paragraph), and none for the solid ones (line, image).
  * - `ui: false` vocabularies:  Fomantic styles the shapes only inside a placeholder, which they MUST sit in.
  * - No text, no focus:  the `<ui-placeholder>` is `aria-hidden`, and the shapes are its drawing.
  ****************/

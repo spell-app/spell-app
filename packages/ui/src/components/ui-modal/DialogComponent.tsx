@@ -6,8 +6,8 @@ import { type DialogAttributes, type DialogEventName } from "./UIModal.types"
 
 /****************
  * ### `DialogComponent`
- * The base of the components behind `<ui-modal>` and `<ui-flyout>`:  everything they do,
- * on a shadow `<dialog class="ui … <noun>" part="<rootPart>">` shown with `showModal()`.
+ * The base of the components behind `<ui-modal>` and `<ui-flyout>`:
+ * everything they do, on a shadow `<dialog class="ui … <noun>" part="<rootPart>">` shown with `showModal()`.
  * The browser gives it the focus trap, the `inert` page, the top layer and the `::backdrop` (the dimmer).
  *
  * - A subclass adds only its names and looks:  `vocabulary`, `elementSetup.styleSheets`, `rootPart`, `overlayKind`.
@@ -34,13 +34,15 @@ import { type DialogAttributes, type DialogEventName } from "./UIModal.types"
  *   - A close the browser forces anyway (a repeated Escape it won't let a page veto) is followed:
  *     a `ui-close` that can't veto, then `open` off.
  *
- * - Opening as a PERSON'S action, so `ui-open` fires:  an invoker command,
- *   `<button commandfor="id" command="--show">` (`ToggleCommands`;  `--close` closes, `--toggle` flips).
+ * - Opening as a PERSON'S action, so `ui-open` fires:
+ *   an invoker command, `<button commandfor="id" command="--show">`
+ *   (`ToggleCommands`;  `--close` closes, `--toggle` flips).
  *   Writing `open` is the app's own decision, and fires nothing.
  *
- * - Buttons:  a click on an approve / deny element (`ModalActionSelectors`:  Fomantic's `.approve` / `.deny`
- *   classes, `<ui-button positive / negative>`) fires the cancelable `ui-approve` / `ui-deny`, then closes.
- *   The `closable` icon closes (reason `close`).
+ * - Buttons:  a click on an approve / deny element fires the cancelable `ui-approve` / `ui-deny`, then closes.
+ *   - Those elements (`ModalActionSelectors`):
+ *     Fomantic's `.approve` / `.deny` classes, `<ui-button positive / negative>`.
+ *   - The `closable` icon closes (reason `close`).
  *
  * - `closable="false"` is Fomantic's `closable: false` AND `closeIcon: false`:
  *   no icon, and (unless `closedby` is set) `closedby="none"`, so Escape and the dimmer do nothing.
@@ -57,8 +59,8 @@ export abstract class DialogComponent<
   /** `UI.overlays` kind:  `modal` or `flyout`. */
   declare overlayKind: E.OverlayKind
 
-  // The dialog attributes this base reads (see the class docs):  each vocabulary's getters, declared here since `V`
-  // is unknown to this class.
+  // The dialog attributes this base reads (see the class docs):
+  // each vocabulary's getters, declared here since `V` is unknown to this class.
 
   /** `closable`:  the close icon;  `false` (written) is also Fomantic's `closable: false`. */
   declare closable: boolean
@@ -343,9 +345,10 @@ export abstract class DialogComponent<
   }
 
   /**
-   * The dialog's `aria-labelledby` in a server render (`$/ui/static`), where no effect applies and no element
-   * reflects:  the `header` shorthand's id, else the slotted heading's,
+   * The dialog's `aria-labelledby` in a server render (`$/ui/static`):
+   * the `header` shorthand's id, else the slotted heading's,
    * unless the DOM element has an `aria-label` (which the static output moves onto the dialog).
+   * - Why:  on a server no effect applies and no element reflects.
    * - SIDE EFFECT:  gives the slotted heading (the render's parsed copy) an id if it has none.
    */
   private serverLabelledBy(): string | undefined {

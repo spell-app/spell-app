@@ -39,8 +39,8 @@ export class DOMMarkdownElement extends E.DOMLoadableElement<UIMarkdown> {
  * ### `UIMarkdown`
  * The component behind `<ui-markdown>`:  GitHub-flavoured markdown, rendered.
  *
- * - Its shadow DOM:  `<article class="ui [size] markdown" part="body">`,
- *   in a `<section>` (the preview panel, when `editable`).
+ * - Its shadow DOM:
+ *   `<article class="ui [size] markdown" part="body">` in a `<section>` (the preview panel, when `editable`).
  * - The text:  the element's own (`<script type="text/markdown">` keeps it exact),
  *   or a `source` file (see `LoadableComponent`).
  * - Rendering:  marked, loaded with the first render (`MarkdownRenderer` -> `MarkdownEngine`, the lazy chunk).
@@ -255,8 +255,8 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
   }
 
   /**
-   * Scroll to the heading the address's `#id` names, if it's one of ours:  on `hashchange`, and once after the first
-   * render.
+   * Scroll to the heading the address's `#id` names, if it's one of ours:
+   * on `hashchange`, and once after the first render.
    * - Not when the PAGE has that id:  the browser went there itself.
    */
   private onHashChange() {
@@ -357,8 +357,8 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
   /**
    * Put `fragment`'s top-level nodes in `body`, keeping the ones already there whose markup is the same:
    * the unchanged lead and tail stay, only the middle is swapped.
-   * - Why:  an edit changes a block or two;  re-creating every `ui-*` element would re-highlight every code block and
-   *   lose each one's state (a scrolled table, a copied-code tick).
+   * - Why:  an edit changes a block or two;  re-creating every `ui-*` element would re-highlight every code block
+   *   and lose each one's state (a scrolled table, a copied-code tick).
    * - A node not put here (marked's render, before `editable`) has no markup recorded, so it's always swapped.
    */
   private patchBody(body: HTMLElement, fragment: DocumentFragment) {
@@ -458,8 +458,8 @@ const TAB_ROLES = { list: "tablist", tab: "tab", panel: "tabpanel" } as const
 const TABLE_SHEET = "table"
 
 /**
- * A leading `#` title (`skip-title`):  blank lines, then an ATX `# Title` (one `#`) or a setext title (a line
- * underlined with `=`), with its line end.
+ * A leading `#` title (`skip-title`), with its line end:
+ * blank lines, then an ATX `# Title` (one `#`) or a setext title (a line underlined with `=`).
  */
 const LEADING_TITLE = /^(?:[ \t]*\n)*[ ]{0,3}(?:#(?=[ \t\n]|$)[^\n]*|[^\s][^\n]*\n[ ]{0,3}=+[ \t]*)(?:\n|$)/
 

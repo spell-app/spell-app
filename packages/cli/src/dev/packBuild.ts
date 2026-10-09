@@ -10,15 +10,15 @@ import { RootCatalog } from "$/ui/tools/RootCatalog"
 
 /**
  * `spell dev pack build <pack>`:  a component pack's generated files, in `packages/<pack>/pack/`, from its sources.
- * - `<pack>.catalog.ts`:  tag => family folder + skeleton, read from every vocabulary (`<Name>.en.ts`) in
- *   `components/` by Spell UI's own `RootCatalog` (as `yarn gen:root` builds `UIRoot.catalog.ts`);  its second line
- *   records the sources' hash (`packHash()`), which `checkPack()` compares
+ * - `<pack>.catalog.ts`:  tag => family folder + skeleton, read from every vocabulary (`<Name>.en.ts`) in `components/`
+ *   by Spell UI's own `RootCatalog` (as `yarn gen:root` builds `UIRoot.catalog.ts`);
+ *   its second line records the sources' hash (`packHash()`), which `checkPack()` compares
  * - `<pack>.entry.ts`:  `SpellUI.registerPack({ name, prefix, catalog, define })`, `define()` importing every family
  *   barrel (`import()`:  inlined in the script, but run only when called;  it returns that promise)
- * - `<pack>.pack.js`:  the entry built by Vite as ONE classic script (an IIFE), minified, on Spell UI's `baseConfig()`
- *   (decorators BEFORE Solid, Solid's JSX, Lightning CSS), with every `PACK_MODULES` specifier left external and read
- *   from `globalThis.SpellUI.packModules[<specifier>]`:  the page's one Solid and one Spell UI core.  Its banner
- *   records the same hash.
+ * - `<pack>.pack.js`:  the entry built by Vite as ONE classic script (an IIFE), minified,
+ *   on Spell UI's `baseConfig()` (decorators BEFORE Solid, Solid's JSX, Lightning CSS),
+ *   with every `PACK_MODULES` specifier left external and read from `globalThis.SpellUI.packModules[<specifier>]`:
+ *   the page's one Solid and one Spell UI core.  Its banner records the same hash.
  * - Node built-ins, `RootCatalog` and (only while building) Vite:  no spell, so it runs on the lean `spell dev` entry.
  * - Throws `CliError` for a package that isn't a pack, a tag without the pack's prefix, or an import of Spell UI or
  *   Solid the page can't share.
@@ -106,8 +106,8 @@ export function packPrefix(dir: string): string | undefined {
 }
 
 /**
- * The hash of everything a pack's generated files are built from:  `packSources()`, each with its path;  the pack's
- * name and prefix;  `PACK_FORMAT`.  16 hex digits of sha-256.
+ * The hash of everything a pack's generated files are built from:  `packSources()`, each with its path;
+ * the pack's name and prefix;  `PACK_FORMAT`.  16 hex digits of sha-256.
  */
 export function packHash(pack: PackInfo): string {
   const hash = createHash("sha256").update(`${PACK_FORMAT}\n${pack.name}\n${pack.prefix}\n`)
@@ -118,8 +118,8 @@ export function packHash(pack: PackInfo): string {
 /**
  * The files a pack's script is built from, absolute, sorted:  every file under `components/`, plus every file of the
  * pack's own `components/` or `src/` they import, transitively.
- * - Not the rest of `src/`:  node-only code there (a tool, its tests) never reaches the script, so editing it leaves
- *   the pack current.
+ * - Not the rest of `src/`:  node-only code there (a tool, its tests) never reaches the script,
+ *   so editing it leaves the pack current.
  * - Imports are found by `IMPORT` (text, not a parse) and resolved as the build does:  relative, or the pack's own
  *   `$/<pack>` aliases (`packAliases()`);  `?inline` and other queries dropped, extensions and `index` tried.
  * - Tests and snapshots never count.
@@ -268,8 +268,8 @@ SpellUI.registerPack({
 
 /**
  * Build the entry into `<pack>.pack.js`;  returns the files written.
- * - In this process, through Vite's API, on checkout `root`'s Spell UI `baseConfig()`;  `configFile: false`:  the
- *   pack's own `vite.config.ts` holds only lint / format settings.
+ * - In this process, through Vite's API, on checkout `root`'s Spell UI `baseConfig()`;  `configFile: false`:
+ *   the pack's own `vite.config.ts` holds only lint / format settings.
  */
 async function bundle(root: string, pack: PackInfo, hash: string): Promise<string[]> {
   const { build } = await import("vite-plus")

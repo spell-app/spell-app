@@ -4,12 +4,12 @@ import { SITE_SEARCH_PATH, type SiteSearchFile } from "$/ui/docs-components/docs
 
 /****************
  * ### `SearchData`
- * The site's search file, `site/_data/search.json` (`yarn site:data`):  every page's sections, fetched once per page,
- * on the first search (~170 KB, ~25 KB compressed:  never on load).
+ * The site's search file, `_data/search.json` (the shared `ui/_data/search.json`, `yarn site:data`):
+ * every page's sections, fetched once per page, on the first search (~170 KB, ~25 KB compressed:  never on load).
  * - `SiteData`'s twin, the same surface:  `url`, `load()`, `reset(url?)`;  fetched through `SiteData.request()`.
  * - Where it is:  `SearchData.url`, else beside the data file:  `_data/search.json` under `SiteData.root()`.
- * - Fails loudly, like `SiteData`:  `load()` rejects (until `reset()`);  the search then finds the other pages' TITLES
- *   only through their components, never their sections.
+ * - Fails loudly, like `SiteData`:  `load()` rejects (until `reset()`);
+ *   the search then finds the other pages' TITLES only through their components, never their sections.
  * - Plain fetch, no Solid.
  * - Static only:  the file is one per page.
  ****************/

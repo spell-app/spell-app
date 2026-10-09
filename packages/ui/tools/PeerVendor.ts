@@ -18,12 +18,12 @@ import { Terminal } from "./Terminal.ts"
  * - Production conditions and `process.env.NODE_ENV`, minified:  what an app would ship.
  * - `resolve.dedupe` on every peer package:  a LINKED peer otherwise resolves its own imports (`solid-js`) from its
  *   own `node_modules`, bundling a second runtime.
- * - Tree-shaken to what is USED:  each specifier's file re-exports only the bindings the `usedBy` builds import
- *   from it (`BundleMeasure.importedBindings()`) -- `dist/` and the compiled Solid host app -- so an import-map page
- *   downloads about the "library (as used)" size, not every export.  A namespace import (`import * as`), a
- *   specifier nothing imports, or no build at all => the whole specifier.
- * - NOTE: run it AFTER `yarn build`, and again when `dist/` starts importing a new binding:  a page importing a
- *   binding the vendored file lacks fails to load ("does not provide an export named ...").
+ * - Tree-shaken to what is USED:  each specifier's file re-exports only the bindings the `usedBy` builds import from it
+ *   (`BundleMeasure.importedBindings()`) -- `dist/` and the compiled Solid host app --
+ *   so an import-map page downloads about the "library (as used)" size, not every export.
+ *   A namespace import (`import * as`), a specifier nothing imports, or no build at all => the whole specifier.
+ * - NOTE: run it AFTER `yarn build`, and again when `dist/` starts importing a new binding:
+ *   a page importing a binding the vendored file lacks fails to load ("does not provide an export named ...").
  * - Writes `<outDir>/<specifier>.js` (+ `chunks/`), and `<outDir>/importmap.json` mapping each specifier to
  *   `<urlPrefix><file>`.
  * - Node only;  reuses `BundleMeasure`'s static helpers (specifiers, bindings, virtual entries).

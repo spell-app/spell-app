@@ -13,10 +13,10 @@ const COUNT = 1000
 const RUNS = 9
 
 /**
- * The element-core benchmark (epic `spell-element`, Q13):  1,000 `<ui-button>`s put in the page at once, timed until
- * every one is ready and Solid has flushed.
+ * The element-core benchmark (epic `spell-element`, Q13):  1,000 `<ui-button>`s put in the page at once,
+ * timed until every one is ready and Solid has flushed.
  * - It times the custom-element layer (upgrade, attributes, component, first render) more than the button itself,
- *   so the "before" and "after" numbers of the solid-element fold compare like for like.
+ *   so the numbers from before and after epic `spell-element` folded solid-element into `ui` compare like for like.
  * - One warm-up run (styles registered, chunks loaded), then `RUNS` timed ones;  the median is the number to quote.
  * - SIDE EFFECT:  writes `tools/results/build-perf.json` (browser-mode `console.log` doesn't reach the terminal).
  */

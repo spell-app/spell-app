@@ -15,8 +15,9 @@ import type { Highlighted } from "./UICode.types"
  ****************/
 export class CodeHighlighter {
   /**
-   * Imports the engine module;  replaceable, e.g. by a bundle that can't keep `import()`s (the docs' classic
-   * script loads it as a script of its own).  Read once, on the first highlight.
+   * Imports the engine module;  replaceable, e.g. by a bundle that can't keep `import()`s
+   * (the docs' classic script loads it as a script of its own).
+   * - Read once, on the first highlight.
    */
   static engineLoader: () => Promise<{ CodeEngine: { instance: CodeEngine } }> = () => import("./CodeEngine")
 

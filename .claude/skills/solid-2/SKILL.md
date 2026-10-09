@@ -7,8 +7,9 @@ description: Solid 2 (rc.13) rules for this repo. Use BEFORE writing, reviewing 
 
 Solid 2 is neither React nor Solid 1.  Distrust patterns from both.
 
-- FIRST, unless you already read it this session:  Read `guides/solid/solid-2.md` IN FULL
-  (Read tool, no offset or limit).  Those are this repo's rules (every package) and spell's design decisions;
+- FIRST, unless you already read it this session:
+  Read `guides/solid/solid-2.md` IN FULL (Read tool, no offset or limit).
+  Those are this repo's rules (every package) and spell's design decisions;
   follow them over anything you remember.
 - Writing app components:  ALSO read WWOD §17, `agents/wwod/solid.md` -- the house style on top of those
   mechanics (props, spell state vs signals, load states, error boundaries, dialogs).
@@ -17,9 +18,9 @@ Solid 2 is neither React nor Solid 1.  Distrust patterns from both.
 
 - Why spell is built this way, the measurements and the rejected designs:
   `guides/solid/solid-2.html`, especially §2 "Read-after-write" and §3 "Gotchas".
-- Every new API with an example:  `guides/solid/cheatsheet.html` (or Solid's own
-  `node_modules/solid-js/CHEATSHEET.md`, hoisted to the repo root;  identical in rc.11 and rc.13).
+- Every new API with an example:  `guides/solid/cheatsheet.html` (or Solid's own `node_modules/solid-js/CHEATSHEET.md`,
+  hoisted to the repo root;  identical in rc.11 and rc.13).
 - A dev diagnostic code:  `node_modules/solid-js/skills/reactivity-diagnostics/SKILL.md` (repo root).
-- Unsure how Solid behaves?  Test it, don't guess:  copy a script in `guides/solid/experiments/` and run
-  `node solid/experiments/<file> dev` from `packages/docs`.
+- Unsure how Solid behaves?  Test it, don't guess:
+  copy a script in `guides/solid/experiments/` and run `node solid/experiments/<file> dev` from `packages/docs`.
 - `@spell-app/ui` elements:  `packages/ui/AGENTS.md` ("Solid authoring").
