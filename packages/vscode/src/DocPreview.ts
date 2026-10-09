@@ -52,6 +52,7 @@ export class DocPreview {
       const index = docsIndex()
       return index && (await DocPreview.urlOf(index))
     }
+    DocView.showFile = (file, view) => DocPreview.show(file, undefined, view)
     context.subscriptions.push(
       vscode.window.registerUriHandler({
         handleUri: (uri) => {

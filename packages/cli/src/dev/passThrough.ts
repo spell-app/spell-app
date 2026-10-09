@@ -19,11 +19,13 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * - `design bundle` / `design check`:  `packages/docs`' `design:bundle` (`bundle-spell-ui.js --design`) / `design:check`
  * - `design sync`:  `packages/docs/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
  * - `agents`:  the running-agents list (`packages/docs/tools/AgentList.ts`), in the caller's folder
+ * - `airplane`:  airplane mode and its pre-flight check (`packages/docs/tools/airplane.ts`), in the caller's folder
  * - NOTE: `goals` has its own lookup (`goalsCommand()`);  `vscode` runs yarn itself (`vscodeSteps()`);  `plan-doc`
  *   runs in this process (`planDocCommand()`, epic `epic-components` P7)
  */
 export const TOOLS = {
   agents: { tool: "packages/docs/tools/agents.ts", tsx: "packages/docs/tsconfig.json" },
+  airplane: { tool: "packages/docs/tools/airplane.ts", tsx: "packages/docs/tsconfig.json" },
   "docs update": { tool: "packages/docs/tools/update.js", cwd: "packages/docs" },
   "docs index": { tool: "packages/docs/tools/index.js", cwd: "packages/docs" },
   "docs new": { tool: "packages/docs/tools/new-page.js", cwd: "packages/docs" },

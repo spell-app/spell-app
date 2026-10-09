@@ -5,6 +5,7 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { SRV, type ServerInfo } from "$/server"
 import {
+  AirplaneMode,
   BundleBuild,
   HIGHLIGHT_JS,
   PageEditor,
@@ -79,7 +80,9 @@ export class PageServer {
         // a worktree's page served from here (`/worktrees/<w>/`):  ITS branch and name, for the header's badge
         ...worktreeOf(served.file, this.root),
         edit: "/_server/page",
-        etag: SRV.StaticHandler.etagOf(statSync(served.file))
+        etag: SRV.StaticHandler.etagOf(statSync(served.file)),
+        // Owen is offline, no Claude:  pages say "queued for when you land" (epic `airplane`)
+        ...(AirplaneMode.isOn && { airplane: true })
       })
     })
     this.web.files.overlays.push(uiBuildPath)
