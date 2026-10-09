@@ -202,6 +202,11 @@ export const epicPageVocabulary = {
       text: "No Claude session is reviewing this doc.  To start one, type",
       description: "The review line while the page is reviewed and nobody listens."
     },
+    {
+      key: "reviewLineAirplane",
+      text: "Airplane mode:  what you mark here waits for",
+      description: "The review line in airplane mode (no Claude), before `/airplane land`."
+    },
     { key: "copyCommand", text: "Copy the command", description: "The review line's tooltip." },
     { key: "copied", text: "copied", description: "The review line, just copied." },
     {

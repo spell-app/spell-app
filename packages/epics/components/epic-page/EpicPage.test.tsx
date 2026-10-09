@@ -229,6 +229,22 @@ describe("<epic-page>", () => {
     writeText.mockRestore()
   })
 
+  test("airplane mode:  the review line names `/airplane land`, never a warning", async () => {
+    const server = window as { SPELL_SERVER?: { airplane?: boolean } }
+    const before = server.SPELL_SERVER
+    server.SPELL_SERVER = { ...before, airplane: true }
+    try {
+      const host = await render(page("", ["todo"]))
+      const line = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="review-line"]')!
+      expect(line.textContent!.replace(/\s+/g, " ")).toContain(
+        "Airplane mode: what you mark here waits for /airplane land"
+      )
+      expect(line.classList.contains("nobody")).toBe(false)
+    } finally {
+      server.SPELL_SERVER = before
+    }
+  })
+
   test("the heading:  a click copies `/epic <name>` and says so", async () => {
     const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue()
     const host = await render(page("", ["todo"]))
