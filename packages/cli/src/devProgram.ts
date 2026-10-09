@@ -4,8 +4,8 @@
  * - The plan for them, and every command the repo has:  `guides/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Two kinds:
- *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `choices`, `design`, `server`, `window`,
- *     `vscode`):  a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them
+ *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `choices`, `notes`, `design`, `server`,
+ *     `window`, `vscode`):  a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them
  *     directly, so they load no spell
  *   - lean commands of our own (`pack`, `bundles`):  `(args, options) => Promise<exitCode>`, imported directly the
  *     same way
@@ -28,6 +28,7 @@ import { choicesCommand } from "$/cli/commands/choicesCommand"
 import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
 import { goalsCommand } from "$/cli/commands/goalsCommand"
+import { notesCommand } from "$/cli/commands/notesCommand"
 import { PACK_VERBS, packCommand } from "$/cli/commands/packCommand"
 import { planDocCommand } from "$/cli/commands/planDocCommand"
 import { serverCommand } from "$/cli/commands/serverCommand"
@@ -101,6 +102,15 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(choicesCommand, rawArgs("choices")))
+
+  dev
+    .command("notes")
+    .description("page notes Owen leaves on docs pages, for Claude:  list the new ones, answer one, mark it done")
+    .argument("[verb]", "list (default) [--all] [--json] | answer <page> <id> --file <html> | done <page> <id>")
+    .argument("[args...]", "the verb's arguments, e.g. answer guides/x.html n3 --file reply.html")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(notesCommand, rawArgs("notes")))
 
   dev
     .command("design")

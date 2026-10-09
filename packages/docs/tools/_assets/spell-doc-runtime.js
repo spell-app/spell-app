@@ -32,6 +32,8 @@
  *   hides it
  * - the CHEATSHEET card filters
  * - highlight.js, when the page loaded it
+ * - PAGE NOTES (`wireNotes()`):  each `<spell-note>` as a folded card;  served by the page server, a note bubble on
+ *   every section's title and a Note pill in the page header, which write notes into the page
  * LANDING -- where a jump puts its target, ONE model for every kind of jump:
  * - the line:  just below the lowest title that will be stuck over the target:  site header + `--spell-top` (page
  *   header, filter bar) + the stack of the target's sections' titles
@@ -166,6 +168,7 @@ async function start() {
   sticky.measure()
   land(landing, jump, follow)
   live.ready({ main, rail, sticky, follow, entries: railKey(outline, counts) })
+  void wireNotes(main)
 }
 
 /**
@@ -2277,6 +2280,296 @@ function readSaved(key) {
   } catch {
     return ""
   }
+}
+
+////////////////
+// ## Page notes
+////////////////
+
+/** The page server's notes routes (`packages/docs/tools/notesRoutes.ts`). */
+const NOTES_API = "/api/notes"
+
+/** `localStorage` key prefix of a page's unsaved notes (`{ [section id | "page" | note id]: text }`), per page. */
+const NOTE_DRAFT_KEY_PREFIX = "spell-note-draft:"
+
+/**
+ * PAGE NOTES (epic `airplane`, P3):  notes Owen leaves on a page for Claude, written INTO the page by the page
+ * server (`notesRoutes.ts`;  the markup and its rules:  `packages/docs/tools/PageNotes.js`).
+ * - every page, `file://` too:  each `<spell-note>` is a folded card (`drawNoteCards()`):  a head line ("Owen ·
+ *   10/10 14:02", the first line of the note while folded, its status, how many replies) that unfolds it, then the
+ *   text and Claude's replies under it
+ * - served by the page server with a token, on a page that takes notes (the `GET` answers):  WRITABLE, so also
+ *   - a note bubble in every section's title (`addNoteBubbles()`):  shown while the reader is in that section, and
+ *     always, with a count, once the section has notes
+ *   - a Note pill in the page header, with "N new" linking to the first new note (`addNotePill()`)
+ *   - Edit on a new note's card;  every one of them opens the note box (`openNoteBox()`)
+ * - a write changes the page's file:  the page server's live update patches it in place (scroll and folds kept),
+ *   and this draws again on `spell-doc:updated`.  What it adds in `main` carries `data-spell-added`.
+ * - NEVER throws:  a page with no server, or a server without the routes, keeps the cards
+ */
+async function wireNotes(main) {
+  let writable = false
+  drawNotes(main, writable)
+  addEventListener("spell-doc:updated", () => drawNotes(main, writable))
+  const server = window.SPELL_SERVER
+  if (!server?.token || location.protocol === "file:") return
+  try {
+    const response = await fetch(`${NOTES_API}?page=${encodeURIComponent(location.pathname)}`, { cache: "no-store" })
+    writable = response.ok
+  } catch {
+    // no routes, no bubbles
+  }
+  if (writable) drawNotes(main, true)
+}
+
+/** Draw the page's notes:  the cards;  `writable`, the bubbles, the pill and the cards' Edit too. */
+function drawNotes(main, writable) {
+  drawNoteCards(main, writable)
+  if (!writable) return
+  addNoteBubbles(main)
+  addNotePill(main)
+}
+
+/**
+ * Give each `<spell-note>` its head line, again after every update (the status or replies may have changed).
+ * - the head is a button that folds and unfolds the card (the note's `open`, which a live patch keeps)
+ * - `writable` and the note `new`:  an Edit circle after it
+ */
+function drawNoteCards(main, writable) {
+  for (const note of main.querySelectorAll("spell-note")) {
+    note.querySelector(":scope > .spell-note-head")?.remove()
+    const status = note.getAttribute("status") || "new"
+    const replies = note.querySelectorAll(":scope > spell-note-reply").length
+    const head = document.createElement("div")
+    head.className = "spell-note-head"
+    head.dataset.spellAdded = ""
+    head.innerHTML =
+      `<button type="button" class="spell-note-fold" aria-expanded="${note.hasAttribute("open")}">` +
+      `<ui-icon name="comment"></ui-icon><b>Owen</b> · ${text(shortStamp(note.getAttribute("at")))}` +
+      `<span class="spell-note-preview">${text(noteText(note).split("\n")[0])}</span>` +
+      `<span class="spell-note-status" data-note-status="${attr(status)}">${text(status)}` +
+      `${replies ? ` · ${replies} ${replies === 1 ? "reply" : "replies"}` : ""}</span></button>` +
+      (writable && status === "new"
+        ? `<ui-button class="spell-note-edit" circular basic size="mini" icon="pen to square" aria-label="Edit this note"></ui-button>` +
+          `<ui-popup inverted size="mini" content="Edit or delete this note:  until Claude has seen it"></ui-popup>`
+        : "")
+    head.querySelector(".spell-note-fold").addEventListener("click", () => {
+      note.toggleAttribute("open")
+      head.querySelector(".spell-note-fold").setAttribute("aria-expanded", String(note.hasAttribute("open")))
+    })
+    head
+      .querySelector(".spell-note-edit")
+      ?.addEventListener("click", () => openNoteBox({ id: note.id, label: noteLabel(note), text: noteText(note) }))
+    note.prepend(head)
+  }
+}
+
+/**
+ * A note bubble in the title of every `<ui-section id>` (its `actions` slot):  a round button, or a pill with the
+ * count once the section has notes (`data-count`:  always shown;  CSS shows the others while the reader is in the
+ * section).
+ */
+function addNoteBubbles(main) {
+  for (const section of main.querySelectorAll("ui-section[id]")) {
+    section.querySelector(":scope > .spell-note-bubble")?.remove()
+    const count = section.querySelectorAll(`:scope > spell-notes[for="${CSS.escape(section.id)}"] > spell-note`).length
+    const label = sectionLabel(section) || section.id
+    const bubble = document.createElement("span")
+    bubble.className = "spell-note-bubble"
+    bubble.slot = "actions"
+    bubble.dataset.spellAdded = ""
+    if (count) bubble.dataset.count = String(count)
+    bubble.innerHTML =
+      `<ui-button circular basic size="mini" icon="comment" aria-label="Add a note on ${attr(label)}">${count || ""}</ui-button>` +
+      `<ui-popup inverted size="mini" content="${attr(`Add a note on ${label}, for Claude`)}"></ui-popup>`
+    bubble.addEventListener("click", (event) => {
+      event.stopPropagation()
+      if (event.target.closest("ui-button")) openNoteBox({ anchor: section.id, label })
+    })
+    section.append(bubble)
+  }
+}
+
+/** The page header's Note pill, for a note on the whole page, and "N new" linking to the first new note. */
+function addNotePill(main) {
+  const head = main.querySelector(".spell-page-head")
+  if (!head) return
+  head.querySelector(":scope > .spell-page-notes")?.remove()
+  const fresh = main.querySelectorAll('spell-note[status="new"]')
+  const pill = document.createElement("span")
+  pill.className = "spell-page-notes"
+  pill.dataset.spellAdded = ""
+  pill.innerHTML =
+    (fresh.length ? `<a class="spell-notes-count" href="#${attr(fresh[0].id)}">${fresh.length} new</a>` : "") +
+    `<ui-button circular basic size="tiny" icon="comment">Note</ui-button>` +
+    `<ui-popup inverted size="mini" position="bottom center" content="A note on this page, for Claude"></ui-popup>`
+  pill.querySelector("ui-button").addEventListener("click", () => openNoteBox({ anchor: "page", label: "this page" }))
+  head.append(pill)
+}
+
+/**
+ * The note box:  a `<ui-modal>` with a textarea that grows with its text;  ⌘ / Ctrl Enter saves.
+ * - `{ anchor, label }`:  a new note on that section (`page`:  the whole page);  `{ id, label, text }`:  editing a
+ *   new note, with Delete
+ * - what's typed and not saved is kept per page and note (`NOTE_DRAFT_KEY_PREFIX`) until it's saved
+ */
+function openNoteBox({ anchor, id, label, text: current = "" }) {
+  const box = noteBox()
+  const key = id ?? anchor
+  const drafts = readJSON(`${NOTE_DRAFT_KEY_PREFIX}${location.pathname}`)
+  box.dataset.anchor = anchor ?? ""
+  box.dataset.id = id ?? ""
+  box.querySelector(".spell-note-about").innerHTML = `${id ? `Note ${text(id)}, on` : "On"} <b>${text(label)}</b>`
+  box.querySelector(".spell-note-delete").hidden = !id
+  const field = box.querySelector("textarea")
+  field.value = typeof drafts[key] === "string" ? drafts[key] : current
+  box.setAttribute("open", "")
+  requestAnimationFrame(() => {
+    growField(field)
+    field.focus()
+  })
+}
+
+/** The note box, made once (outside `main`:  a live patch never sees it). */
+function noteBox() {
+  let box = document.getElementById("spell-note-box")
+  if (box) return box
+  const template = document.createElement("template")
+  template.innerHTML = `<ui-modal id="spell-note-box" class="spell-note-box" size="small" closable>
+  <ui-header><ui-icon name="comment"></ui-icon> A note for Claude</ui-header>
+  <ui-content>
+    <p class="spell-note-about"></p>
+    <textarea class="spell-note-field" rows="3" aria-label="Your note"
+      placeholder="Anything:  a question, a correction, an idea.  Claude picks these up with spell dev notes."></textarea>
+    <p class="spell-note-hint">⌘ Enter saves.  It's written into the page, marked new, until Claude answers it.</p>
+  </ui-content>
+  <ui-actions>
+    <ui-button class="spell-note-delete" circular basic icon="xmark">Delete</ui-button>
+    <ui-button class="spell-note-cancel" circular basic>Cancel</ui-button>
+    <ui-button class="spell-note-save" circular primary icon="paper plane">Save note</ui-button>
+  </ui-actions>
+</ui-modal>`
+  box = template.content.firstElementChild
+  const field = box.querySelector("textarea")
+  const save = box.querySelector(".spell-note-save")
+  const draftKey = `${NOTE_DRAFT_KEY_PREFIX}${location.pathname}`
+  const keyOf = () => box.dataset.id || box.dataset.anchor
+  const close = () => box.removeAttribute("open")
+  /** Send `change` (`add`, `edit` or `delete`);  close and forget the draft once it's written. */
+  const send = async (change, saying) => {
+    save.setAttribute("loading", "")
+    try {
+      await postNote({ page: location.pathname, ...change })
+      const drafts = readJSON(draftKey)
+      delete drafts[keyOf()]
+      writeJSON(draftKey, drafts)
+      close()
+      noteToast(saying, "success")
+    } catch (error) {
+      noteToast(`Couldn't save the note:  ${error.message}`, "error")
+    } finally {
+      save.removeAttribute("loading")
+    }
+  }
+  const submit = () => {
+    const words = field.value.trim()
+    if (!words) return field.focus()
+    const { id, anchor } = box.dataset
+    void send(id ? { action: "edit", id, text: words } : { action: "add", for: anchor, text: words }, "Note saved")
+  }
+  field.addEventListener("input", () => {
+    growField(field)
+    const drafts = readJSON(draftKey)
+    drafts[keyOf()] = field.value
+    writeJSON(draftKey, drafts)
+  })
+  field.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) submit()
+  })
+  save.addEventListener("click", submit)
+  box.querySelector(".spell-note-cancel").addEventListener("click", close)
+  box
+    .querySelector(".spell-note-delete")
+    .addEventListener("click", () => void send({ action: "delete", id: box.dataset.id }, "Note deleted"))
+  document.body.append(box)
+  return box
+}
+
+/**
+ * POST `change` to the notes route, with the page server's token;  returns its answer.
+ * - a 403 on the token (the server restarted since the page loaded):  takes the new token from the page as served
+ *   now, and tries once more
+ * - throws an `Error` saying why (the route's `error`)
+ */
+async function postNote(change, retried = false) {
+  const server = window.SPELL_SERVER
+  const response = await fetch(NOTES_API, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-server-token": server.token },
+    body: JSON.stringify(change)
+  })
+  const answer = await response.json().catch(() => ({}))
+  if (response.ok) return answer
+  if (response.status === 403 && /token/i.test(answer.error ?? "") && !retried && server.readPage) {
+    const { html } = await server.readPage()
+    const fresh = /window\.SPELL_SERVER = (\{.*?\})<\/script>/.exec(html)
+    if (fresh) {
+      server.token = JSON.parse(fresh[1]).token
+      return postNote(change, true)
+    }
+  }
+  throw new Error(answer.error ?? `${response.status} ${response.statusText}`)
+}
+
+/** `field` as tall as its text (between its CSS `min-height` and `max-height`). */
+function growField(field) {
+  field.style.height = "auto"
+  field.style.height = `${field.scrollHeight + 2}px`
+}
+
+/** A toast through `UI.toast()`;  the console when toasts aren't there. */
+function noteToast(message, type) {
+  try {
+    window.SpellUI.UI.toast({ message, type, position: "bottom right", displayTime: 3000, showIcon: true })
+  } catch {
+    console.info(message)
+  }
+}
+
+/**
+ * A note's text as typed:  paragraphs split by blank lines, `<br>` a newline, `<code>` in backticks;  its head and
+ * replies left out.  `PageNotes.js` `textOf()` is the same, on the server.
+ */
+function noteText(note) {
+  const blocks = []
+  for (const child of note.childNodes) {
+    if (child.nodeType === Node.ELEMENT_NODE && child.matches(".spell-note-head, spell-note-reply")) continue
+    const words = child.nodeType === Node.ELEMENT_NODE ? inlineText(child) : child.textContent
+    if (words.trim()) blocks.push(words.trim())
+  }
+  return blocks.join("\n\n")
+
+  /** `node`'s text:  `<br>` a newline, `<code>` in backticks, white space as one space. */
+  function inlineText(node) {
+    if (node.nodeType === Node.TEXT_NODE) return node.textContent.replace(/\s+/g, " ")
+    if (node.nodeType !== Node.ELEMENT_NODE) return ""
+    if (node.localName === "br") return "\n"
+    const inner = Array.from(node.childNodes, inlineText).join("")
+    return node.localName === "code" ? `\`${inner}\`` : inner
+  }
+}
+
+/** What a note is about, for the note box:  its section's title, or "this page". */
+function noteLabel(note) {
+  const anchor = note.closest("spell-notes")?.getAttribute("for")
+  const section = anchor && anchor !== "page" ? document.getElementById(anchor) : null
+  return section ? sectionLabel(section) || anchor : "this page"
+}
+
+/** A note's `at` (`2026-10-10 14:02`) as its card shows it:  `10/10 14:02`. */
+function shortStamp(at) {
+  const parts = /^\d{4}-(\d\d)-(\d\d)[ T](\d\d:\d\d)/.exec(at ?? "")
+  return parts ? `${Number(parts[1])}/${Number(parts[2])} ${parts[3]}` : (at ?? "")
 }
 
 ////////////////
