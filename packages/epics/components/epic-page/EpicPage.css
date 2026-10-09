@@ -186,6 +186,13 @@
     align-items: center;
     gap: 6px;
   }
+  /* the `+`'s form (epic `airplane` P2):  a row of its own across the sticky header, so it shows wherever Owen is */
+  .head > .new-form {
+    flex: 1 0 100%;
+    max-height: 60vh;
+    margin: 0;
+    overflow: auto;
+  }
   .send,
   .review-now {
     --_tint: var(--ui-blue, #2185d0);

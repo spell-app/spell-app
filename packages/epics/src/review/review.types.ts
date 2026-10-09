@@ -12,6 +12,7 @@ import type {
   InboxMark,
   InboxRecord,
   InboxUrgency,
+  NewKind,
   NowAction,
   NowRequest,
   PickFields,
@@ -68,6 +69,18 @@ export const REVIEW_ACTIONS = ["approve", "revisit", "todo", "details"] as const
 /** One of `REVIEW_ACTIONS`. */
 export type ReviewAction = (typeof REVIEW_ACTIONS)[number]
 
+/**
+ * The summary's key in the inbox:  `<epic-summary>` has no id of its own (epic `airplane` P2).  As `ReviewInbox`'s
+ * `SUMMARY_ID`:  a copy, since that module is node-only.
+ */
+export const SUMMARY_ID = "summary"
+
+/** What a new item from the page may be:  as `ReviewInbox`'s `NEW_KINDS` (a copy:  that module is node-only). */
+export const NEW_KINDS = ["todo", "question"] as const
+
+/** The longest title a new item may have:  as `ReviewInbox`'s `MAX_TITLE` (a copy:  that module is node-only). */
+export const NEW_TITLE_MAX = 300
+
 /** The page's own reload of its HTML:  the server's current token, as it serves the page now. */
 export const SERVER_INFO = /window\.SPELL_SERVER = (\{.*?\})<\/script>/
 
@@ -86,6 +99,12 @@ export type Inbox = Pick<InboxRecord, "marks" | "drafts" | "urgency" | "sent" | 
 
 /** A mark to set, before the route stamps it. */
 export type MarkInput = Omit<InboxMark, "at">
+
+/** A new item to ask for from the page (`POST new`, epic `airplane` P2):  `near`, the id of what it's about. */
+export type NewItemInput = { kind: NewKind; title: string; note?: string; near?: string }
+
+/** A new item waiting in the inbox (`ReviewClient.newItems()`):  its key (`new1`) and its mark. */
+export type NewItem = { id: string } & InboxMark & { kind: NewKind; title: string }
 
 /** An item's immediate request on its way or being worked on:  `queued` while it waits with nobody listening. */
 export type Running = { action: NowAction; queued: boolean }
@@ -153,7 +172,17 @@ export type AgentRedirect = {
   told: string
 }
 
-export type { InboxDraft, InboxListener, InboxMark, InboxUrgency, NowAction, NowRequest, PickFields, WorkingEntry }
+export type {
+  InboxDraft,
+  InboxListener,
+  InboxMark,
+  InboxUrgency,
+  NewKind,
+  NowAction,
+  NowRequest,
+  PickFields,
+  WorkingEntry
+}
 
 ////////////////
 // ## Errors

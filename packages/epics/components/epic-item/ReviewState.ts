@@ -10,6 +10,8 @@ import {
   isSent,
   type InboxDraft,
   type InboxMark,
+  type NewItem,
+  type NewKind,
   type ReviewAction,
   type Running
 } from "$/epics/review"
@@ -18,8 +20,9 @@ import { PAGE_TAG, REVIEWING, type ReviewFill } from "./EpicItem.types"
 
 /****************
  * ### `ReviewState`
- * One element's view of the page's review inbox (`ReviewClient.forPage()`):  `<epic-item>`'s, or an Overview
- * `<epic-section>`'s.  Its reads are TRACKED:  a counter `Cell` bumped on every change the client reports, so the
+ * One element's view of the page's review inbox (`ReviewClient.forPage()`):  `<epic-item>`'s, an Overview
+ * `<epic-section>`'s, an `<epic-phase>`'s, `<epic-summary>`'s;  the page's own (`<epic-page>`, the Todos and
+ * Questions sections:  their new items, epic `airplane` P2).  Its reads are TRACKED:  a counter `Cell` bumped on every change the client reports, so the
  * element's controls redraw.
  * - `connect()` while the element is connected (it returns the undo):  the client is plain code, and a kept-alive
  *   element that's gone must stop listening
@@ -51,8 +54,14 @@ export class ReviewState {
   // ## Reads (tracked)
   ////////////////
 
-  /** The page is being reviewed:  the controls show. */
-  readonly reviewing = (): boolean => this.read((client) => client.reviewing) ?? false
+  /** The page is being reviewed:  the controls show.  The page's, so read with or without an id. */
+  readonly reviewing = (): boolean => this.readPage((client) => client.reviewing) ?? false
+
+  /**
+   * The new items Owen asked for from the page, waiting to be made (epic `airplane` P2);  `kind`:  only those.  The
+   * page's, so read with or without an id.
+   */
+  readonly newItems = (kind?: NewKind): NewItem[] => this.readPage((client) => client.newItems(kind)) ?? []
 
   /** Its mark, if any. */
   readonly mark = (): InboxMark | undefined => this.read((client, id) => client.markOf(id))
@@ -73,8 +82,8 @@ export class ReviewState {
   readonly isSent = (): boolean =>
     this.read((client, id) => !!client.markOf(id) && client.isSent(client.markOf(id)!)) ?? false
 
-  /** Is a Claude session listening? */
-  readonly listening = (): boolean => this.read((client) => client.listening) ?? false
+  /** Is a Claude session listening?  The page's, so read with or without an id. */
+  readonly listening = (): boolean => this.readPage((client) => client.listening) ?? false
 
   /** Its note box open by itself, or being written in. */
   readonly boxOpen = (): boolean => this.read((client, id) => client.isBoxOpen(id)) ?? false
@@ -133,6 +142,12 @@ export class ReviewState {
     this.version.get()
     const id = this.id()
     return this.client && id ? fn(this.client, id) : undefined
+  }
+
+  /** `fn(client)`, for what's the page's, not an element's:  tracking the version;  `undefined` without a client. */
+  private readPage<T>(fn: (client: ReviewClient) => T): T | undefined {
+    this.version.get()
+    return this.client ? fn(this.client) : undefined
   }
 
   ////////////////

@@ -3,6 +3,8 @@
  * - Data only:  nothing here runs.
  */
 
+import type { NewKind } from "$/epics/review"
+
 import type { epicItemVocabulary } from "./EpicItem.en"
 import type { UIJSXAttributes } from "$/epics/components/epic-page/EpicPage.types"
 
@@ -266,6 +268,84 @@ export type ReviewTextKey = (typeof REVIEW_TEXTS)[number]["key"]
 
 /** How a review control asks its element for a text:  `UIComponent.translationForKey()`, narrowed to the review keys. */
 export type ReviewText = (key: ReviewTextKey, params?: Record<string, string | number>) => string
+
+////////////////
+// ## New items from the page (epic `airplane` P2)
+////////////////
+
+/**
+ * Each kind of new item Owen may ask for from the page (`NewItems.tsx`):  its icon, its words' keys (`label` on its
+ * pending card, `add` on its section's button), and the section it lands in.
+ */
+export const NEW_KIND_LOOKS = {
+  todo: { icon: "list check", label: "newTodo", add: "addTodo", section: "todos" },
+  question: { icon: "circle question", label: "newQuestion", add: "addQuestion", section: "questions" }
+} as const satisfies Record<NewKind, { icon: string; label: NewTextKey; add: NewTextKey; section: string }>
+
+/** Class names of the new-item controls, inside the shadow root (`ReviewControls.css`). */
+export const NEW_BUTTON = "new-button"
+export const NEW_FORM = "new-form"
+export const NEW_KINDS_GROUP = "new-kinds"
+export const NEW_INPUT = "new-input"
+export const NEW_ACTIONS = "new-actions"
+export const NEW_LIST = "new-list"
+export const NEW_CARD = "new-card"
+
+/** The new-item controls' parts:  in every vocabulary that draws them (`<epic-page>`, `<epic-section>`). */
+export const NEW_PARTS = [
+  {
+    name: "new-button",
+    description:
+      "The New todo / question button (epic `airplane` P2):  the page header's `+`, a Todos or Questions section's at " +
+      "its end.  Only while the page is reviewed."
+  },
+  { name: "new-form", description: "The new item's form:  todo or question, its title, a note, what it's about." },
+  {
+    name: "new-list",
+    description: "A Todos or Questions section's new items waiting to be made:  dashed until sent, then outlined."
+  }
+] as const
+
+/** The new-item controls' texts:  in every vocabulary that draws them. */
+export const NEW_TEXTS = [
+  { key: "newButton", text: "New todo or question", description: "The page header's `+`:  its name." },
+  { key: "addTodo", text: "New todo", description: "The Todos section's button, at its end." },
+  { key: "addQuestion", text: "New question", description: "The Questions section's button, at its end." },
+  { key: "newForm", text: "A new todo or question, for Claude to add", description: "The form, for a screen reader." },
+  { key: "newKind", text: "What it is", description: "The form's kind buttons, for a screen reader." },
+  { key: "newTodo", text: "Todo", description: "Kind:  a todo." },
+  { key: "newQuestion", text: "Question", description: "Kind:  a question." },
+  { key: "newTitle", text: "Title:  what to do, or what to ask", description: "The title field's placeholder." },
+  {
+    key: "newNote",
+    text: "More, if it helps:  why, what you know, what to check",
+    description: "The note field's placeholder."
+  },
+  {
+    key: "newNear",
+    text: "About (an id, if any):  P3, Q7, O1, summary",
+    description: "The about field's placeholder."
+  },
+  { key: "newAdd", text: "Add", description: "The form's button:  a new one." },
+  { key: "newSave", text: "Save", description: "The form's button:  one being changed." },
+  { key: "newCancel", text: "Cancel", description: "The form's button:  closes it, nothing saved." },
+  { key: "newNeedsTitle", text: "Give it a title first", description: "Add pressed with no title." },
+  { key: "newUnsent", text: "not sent yet:  Send hands it to Claude", description: "A pending new item, not sent." },
+  {
+    key: "newSent",
+    text: "sent:  Claude adds it at the next review",
+    description: "A pending new item, sent, not made yet."
+  },
+  { key: "newAbout", text: "About {id}", description: "A pending new item's link to what it's about." },
+  { key: "newEdit", text: "Edit", description: "A pending new item's button:  back into the form." },
+  { key: "newRemove", text: "Remove", description: "A pending new item's button:  gone, never made." }
+] as const
+
+/** A new-item control's text key. */
+export type NewTextKey = (typeof NEW_TEXTS)[number]["key"]
+
+/** How a new-item control asks its element for a text. */
+export type NewText = (key: NewTextKey, params?: Record<string, string | number>) => string
 
 // the Spell UI tags the review controls draw (`ReviewControls.tsx`)
 declare module "@solidjs/web/types/jsx.js" {

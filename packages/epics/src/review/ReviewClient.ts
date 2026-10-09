@@ -3,6 +3,7 @@ import {
   REVIEW_API,
   REVISIT_KEY_PREFIX,
   NOBODY_LISTENING,
+  SUMMARY_ID,
   emptyInbox,
   inboxOf,
   isImmediate,
@@ -13,6 +14,9 @@ import {
   type InboxMark,
   type InboxUrgency,
   type MarkInput,
+  type NewItem,
+  type NewItemInput,
+  type NewKind,
   type NowAction,
   type ReviewAction,
   type ReviewClientOptions,
@@ -122,7 +126,8 @@ export class ReviewClient {
     return {
       ...ServerLink.pageOptions(),
       storage: ReviewClient.storageOf(window),
-      hasItem: (id) => !!document.getElementById(id)
+      // the summary has no id of its own:  it's there when the page has one
+      hasItem: (id) => !!document.getElementById(id) || (id === SUMMARY_ID && !!document.querySelector(SUMMARY_TAG))
     }
   }
 
@@ -262,6 +267,17 @@ export class ReviewClient {
     return this.inbox.urgency[id]?.calm
   }
 
+  /**
+   * The new items Owen asked for from the page, waiting in the inbox (`{ action: "new" }` marks, epic `airplane` P2),
+   * in the order he added them;  `kind`:  only those.
+   */
+  newItems(kind?: NewKind): NewItem[] {
+    return Object.entries(this.inbox.marks)
+      .filter(([, mark]) => mark.action === "new" && (!kind || mark.kind === kind))
+      .map(([id, mark]) => ({ id, ...mark }) as NewItem)
+      .sort((a, b) => newNumber(a.id) - newNumber(b.id))
+  }
+
   /** How many marks and urgencies wait for "Send to Claude". */
   get unsentCount(): number {
     return this.unsentMarks().length + this.unsentUrgency().length
@@ -377,6 +393,32 @@ export class ReviewClient {
     else delete this.inbox.marks[id]
     this.changed()
     return this.write("mark", { id, mark })
+  }
+
+  /**
+   * Ask for a new todo or question (`entry`) from the page, or (`id`, `new1`) change one still waiting (epic
+   * `airplane` P2):  saved to the inbox (`POST new`), which keys it;  true when saved.
+   * - waits for the server's answer before it shows:  the key is the server's to choose
+   * - says it's saved, and that it waits for Send (and for a review, with nobody listening)
+   */
+  async saveNew(entry: NewItemInput, id?: string): Promise<boolean> {
+    if (id) {
+      const mark = this.inbox.marks[id]
+      if (mark) this.inbox.marks[id] = { ...mark, ...entry, action: "new" }
+      this.changed()
+    }
+    const written = await this.write("new", id ? { id, entry } : { entry })
+    if (!written) return false
+    const what = `${id ? "Changed" : "Saved"}:  a new ${entry.kind}`
+    this.notify(this.inbox.listening ? `${what}, sent with your next Send` : `${what}.  ${NOBODY_LISTENING}`)
+    return true
+  }
+
+  /** Remove new item `id` (`new1`) before Claude makes it:  shown at once, then saved. */
+  removeNew(id: string): Promise<boolean> {
+    delete this.inbox.marks[id]
+    this.changed()
+    return this.write("new", { id, entry: null })
   }
 
   /**
@@ -601,4 +643,12 @@ export class ReviewClient {
     this.changed()
     return false
   }
+}
+
+/** The summary's tag:  how the page finds it, having no id. */
+const SUMMARY_TAG = "epic-summary"
+
+/** A new item key's number:  `new12` -> 12, for their order. */
+function newNumber(id: string): number {
+  return Number(id.replace(/^\D+/, "")) || 0
 }
