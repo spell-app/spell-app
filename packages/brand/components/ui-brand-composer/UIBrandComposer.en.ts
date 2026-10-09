@@ -2,8 +2,8 @@
  * Every name `<ui-brand-composer>` uses:  tag, attributes, events, slots, parts, states, texts.  Schema:
  * `ComponentVocabulary`.
  * - Pure data:  `import type` only.
- * - Class words:  `casting` and `disabled` emit their names.  The element adds `brand` after the noun,
- *   and `large` for `size="large"` (`composer brand large`).
+ * - Class words:  `casting` and `disabled` emit their names.  The element adds `brand` before the noun,
+ *   and `large` for `size="large"` (`brand large composer`).
  * - `value` does NOT reflect, as `<ui-textarea>`'s:  the ATTRIBUTE is the starting (and reset) value,
  *   the PROPERTY the live one.
  */

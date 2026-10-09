@@ -4,7 +4,7 @@
  *   - the source parts (`<ui-loader part="loader">` while loading, `<ui-message part="error">` on failure)
  *   - then the placeholder `<slot>` (until loaded;  always, with `page-styles`)
  *   - then `<div class="ui include" part="content">` holding the included markup (`hidden` with `page-styles`).
- * - Words after the noun, hooks for page CSS:  the `load` mode when deferred (`ui include visible`, `idle`),
+ * - Words before the noun, hooks for page CSS:  the `load` mode when deferred (`ui visible include`, `idle`),
  *   and `loading` while `source` loads (the box is empty until then anyway).
  * - The DOM element is a block:  an include stands for a part of a page.
  *   The box adds nothing of its own:  the included markup brings its look,

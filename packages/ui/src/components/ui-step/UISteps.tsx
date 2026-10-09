@@ -16,7 +16,7 @@ import stepCSS from "./UIStep.css?inline"
  * - The root resolves every variation into inherited `--_ui-steps-*` tokens the steps read (`UIStep.css`).
  *   That includes stacking:  the DOM element is a block and the size container `ui-steps` (`:state(steps)`),
  *   and the root turns `stacked` below 768px of it unless `unstackable`;
- *   with `stack-with="page"` (a private class after the noun), below 768px of the screen.
+ *   with `stack-with="page"` (a private class before the noun), below 768px of the screen.
  *
  * - Numbering (`ordered`) is a CSS counter, reset here and incremented by each step, across the shadow boundaries.
  *

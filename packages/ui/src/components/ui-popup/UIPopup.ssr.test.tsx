@@ -26,7 +26,7 @@ describe("<ui-popup> static render", () => {
     const [button, popup] = [...paragraph.children]
     expect(button!.localName).toBe("button")
     expect(popup!.localName).toBe("span")
-    expect(popup!.getAttribute("class")).toBe("ui popup top left")
+    expect(popup!.getAttribute("class")).toBe("ui top left popup")
     expect(popup!.getAttribute("popover")).toBe("manual")
     expect(popup!.getAttribute("role")).toBe("tooltip")
     expect(popup!.id).toMatch(/^ui-popup-\d+$/)

@@ -38,7 +38,7 @@ describe("<epic-status>", () => {
       date: "10/8/26 14:20",
       datetime: "2026-10-08 14:20",
       tip: "",
-      base: "status underway",
+      base: "underway status",
       summaryShown: false,
       states: [true, false]
     })
@@ -61,7 +61,7 @@ describe("<epic-status>", () => {
       who: "Claude • Done",
       date: "10/8/26 14:34",
       tip: "taken 10/8/26 14:20",
-      base: "status done",
+      base: "done status",
       summarySlot: "summary",
       summaryShown: true,
       done: true

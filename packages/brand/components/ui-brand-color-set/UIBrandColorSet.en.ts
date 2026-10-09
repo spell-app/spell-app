@@ -1,7 +1,7 @@
 /**
  * Every name `<ui-brand-color-set>` uses:  tag, attributes, events, slots, parts.  Schema:  `ComponentVocabulary`.
  * - Pure data:  `import type` only.
- * - Class words:  `selectable` its name.  The component adds `color brand` after the noun (`set color brand`).
+ * - Class words:  `selectable` its name.  The component adds `color brand` before the noun (`color brand set`).
  */
 
 import type { ComponentVocabulary } from "$/ui/core"

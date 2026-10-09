@@ -193,7 +193,7 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
     return this.transition ?? (VERTICAL.has(this.position ?? UIT.LEFT) ? OVERLAY : UNCOVER)
   }
 
-  /** A word width (`thin`) goes after the noun (`UIT.WordWidthClasses`). */
+  /** A word width (`thin`) goes before the noun (`UIT.WordWidthClasses`). */
   protected get extraClass(): string | undefined {
     return UIT.WordWidthClasses.classFor(this.width)
   }

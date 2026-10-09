@@ -299,7 +299,7 @@ describe("<ui-items> responsive (container queries)", () => {
     )
     await ElementFixture.settle(wrapper)
     const groups = [...wrapper.querySelectorAll("ui-items")]
-    expect(rootOf(groups[0]!).className).toBe("ui items stack-with-page")
+    expect(rootOf(groups[0]!).className).toBe("ui stack-with-page items")
     /** `group`'s first item's flex direction:  `column` when stacked. */
     const direction = (group: Element) => style(boxOf(itemsOf(group)[0]!)).flexDirection
     await Viewport.resize(1200)

@@ -13,7 +13,7 @@ import statisticCSS from "./UIStatistic.css?inline"
  * - `UIStatistic.css` hands the group's size, colour, layout, count and stacking to its statistics
  *   through inherited private tokens.
  * - The DOM element is a block and the size container `stackable` answers to (`:state(statistics)`);
- *   with `stack-with="page"` (a private class after the noun), the screen is.
+ *   with `stack-with="page"` (a private class before the noun), the screen is.
  ****************/
 export class UIStatistics extends E.UIComponent<typeof statisticsVocabulary> {
   @E.proto static vocabulary = statisticsVocabulary

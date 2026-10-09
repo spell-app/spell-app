@@ -293,7 +293,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
 
 export interface UIBrandColorSet extends AttributeValues<BrandColorSetVocabulary> {}
 
-/** The class words the component adds after the noun:  `set color brand`. */
+/** The class words the component adds before the noun:  `color brand set`. */
 const BRAND_COLOR = "color brand"
 
 /** The class word of a set with `columns`:  a grid of equal cells. */

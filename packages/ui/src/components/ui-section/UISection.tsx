@@ -403,7 +403,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   }
 
   /**
-   * Words after the noun:  `scrolling` for `height` without it (`height` implies it);  `loading` while a `source`
+   * Words before the noun:  `scrolling` for `height` without it (`height` implies it);  `loading` while a `source`
    * body is slow to arrive (the `loading` look, over the placeholder).
    */
   protected get extraClass(): string | undefined {
@@ -551,7 +551,7 @@ const DEPTH_PROPERTY = "--_ui-section-depth"
 /** Class words of the line saying a `source` body failed (`part="error"`, inside the content box). */
 const SOURCE_ERROR = "source error"
 
-/** Class word after the noun while a `source` body is slow to arrive:  the `loading` look. */
+/** Class word before the noun while a `source` body is slow to arrive:  the `loading` look. */
 const LOADING = "loading"
 
 /** Heading level of a top-level section:  under the page's `h1`. */
@@ -581,7 +581,7 @@ const SUBHEAD = "subhead"
 /** Class word and part of the info tip. */
 const TIP = "tip"
 
-/** Class word `height` adds after the noun when `scrolling` isn't set:  `height` implies scrolling. */
+/** Class word `height` adds before the noun when `scrolling` isn't set:  `height` implies scrolling. */
 const SCROLLING = "scrolling"
 
 /** `id` of the info tip, which the fold button (else the heading) is described by. */

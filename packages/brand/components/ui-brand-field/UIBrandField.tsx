@@ -255,7 +255,7 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
 
 export interface UIBrandField extends AttributeValues<typeof brandFieldVocabulary> {}
 
-/** Class word the component adds after the noun:  `field brand`. */
+/** Class word the component adds before the noun:  `brand field`. */
 const BRAND = "brand"
 
 /** The `error` state, shown while there's an error message. */

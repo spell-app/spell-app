@@ -18,7 +18,7 @@ describe("<ui-embed> static render", () => {
     // the play glyph is the icon packs' business:  only its box counts here
     expect(sorted(html.replace(/<svg.*?<\/svg>/gs, ""))).toBe(
       sorted(
-        `<div data-ui="embed" class="ui embed 4:3" part="embed"><button type="button" class="play" part="play" ` +
+        `<div data-ui="embed" class="ui 4:3 embed" part="embed"><button type="button" class="play" part="play" ` +
           `aria-label="Play Intro"><img class="placeholder" part="placeholder" src="p.png" alt="">` +
           `<span class="icon" part="icon"></span></button></div>`
       )

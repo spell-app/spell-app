@@ -124,7 +124,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   }
 
   /**
-   * `stack-by` as a class on the table after the noun (`ui stackable table stack-by-container`):  a private word the
+   * `stack-by` as a class on the table before the noun (`ui stackable stack-by-container table`):  a private word the
    * sheet keys on, from the CANONICAL value, so a translated attribute still works.  A class,
    * not a state of the DOM element:  `:state()` rules in the page sheet left WebKit with stale viewport media queries
    * on a later table.
