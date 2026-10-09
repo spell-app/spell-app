@@ -122,6 +122,8 @@ export const rootLintIgnore = [
   "**/docs/tools/_assets/spell-ui.js",
   "**/docs/tools/_assets/lazy",
   "**/docs/tools/_assets/emoji",
+  // vendored as cdnjs serves it (epic `airplane` P1)
+  "**/docs/tools/_assets/highlight.min.js",
   // packages' own, from their `packageLint()`:  the editor and `vp check` read only this root block
   "packages/app/dist-runner",
   "packages/app/dist-element",
@@ -230,6 +232,8 @@ export const fmtConfig = {
     "**/docs/tools/_assets/lazy/**",
     // the emoji chunks `bundle-spell-ui.js` writes:  formatting them would make every build a diff
     "**/docs/tools/_assets/emoji/**",
+    // highlight.js, vendored as cdnjs serves it (epic `airplane` P1)
+    "**/docs/tools/_assets/highlight.min.js",
     "**/src/test/fixtures/**",
     "**/src/graphify-out/**",
     "**/coverage/**",

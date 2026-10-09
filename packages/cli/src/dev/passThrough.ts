@@ -12,6 +12,7 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * The repo tools `spell dev` passes straight through to, by command:  each as its yarn script ran it.
  * - `docs <verb>`:  `packages/docs/package.json`'s `docs:<verb>`, in `packages/docs` as `yarn workspace` ran them
  * - `docs fuss`:  the writing checker, under `tsx`, in the caller's folder (its paths are from there)
+ * - `docs offline`:  what docs pages load from the internet, likewise
  * - `server`:  `packages/server`'s `server` script;  `serve`:  root `yarn serve`, `spell dev server start --all`
  * - `window`:  root `yarn window`;  plain `node`, so it runs in a worktree before its `yarn install`
  * - `design build`:  `packages/ui`'s `design:build`, under `tsx`, in the caller's folder (so `--out` is relative to it)
@@ -29,6 +30,7 @@ export const TOOLS = {
   "docs open": { tool: "packages/docs/tools/open.js", cwd: "packages/docs" },
   "docs link": { tool: "packages/docs/tools/link.ts", tsx: "packages/docs/tsconfig.json", cwd: "packages/docs" },
   "docs fuss": { tool: "packages/docs/tools/fuss.ts", tsx: "packages/docs/tsconfig.json" },
+  "docs offline": { tool: "packages/docs/tools/offline.ts", tsx: "packages/docs/tsconfig.json" },
   details: { tool: "packages/docs/tools/details.js", cwd: "packages/docs" },
   choices: { tool: "packages/docs/tools/choices.js", cwd: "packages/docs" },
   "design build": { tool: "packages/ui/scripts/design-build.ts", tsx: "packages/ui/scripts/tsconfig.json" },
@@ -44,7 +46,7 @@ export const TOOLS = {
 export type ToolName = keyof typeof TOOLS
 
 /** `docs`' verbs, in the order help lists them. */
-export const DOCS_VERBS = ["update", "index", "new", "open", "link", "fuss"] as const
+export const DOCS_VERBS = ["update", "index", "new", "open", "link", "fuss", "offline"] as const
 
 /**
  * `design`'s verbs (epic `claude-design`), in the order help lists them.

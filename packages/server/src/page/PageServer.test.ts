@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
 import {
+  HIGHLIGHT_JS,
   PageServer,
   findById,
   movedDocsPage,
@@ -115,6 +116,14 @@ describe("PageServer", () => {
     const served = await config()
     expect(served).toMatchObject({ port, file: "/docs/page.html", token: server.web.guard.token })
     expect(served.etag).toBe(answer.headers.etag)
+  })
+
+  it("serves highlight.js from the repo, not cdnjs, so pages load offline", async () => {
+    const offline = join(root, "docs", "offline.html")
+    writeFileSync(offline, `<!doctype html><head></head><script src="${HIGHLIGHT_JS.cdn}"></script>\n`)
+    const answer = await ask(port, "GET", "/docs/offline.html")
+    expect(answer.text).toContain(`<script src="${HIGHLIGHT_JS.local}"></script>`)
+    expect(answer.text).not.toContain("cdnjs")
   })
 
   it("sends / to the docs home", async () => {
