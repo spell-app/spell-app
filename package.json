@@ -71,6 +71,7 @@
       "packages/docs/tools/choicesRoutes.ts",
       "packages/docs/tools/notesRoutes.ts",
       "packages/epics/src/tool/reviewRoutes.ts",
+      "packages/epics/src/tool/epicRoutes.ts",
       "packages/docs/tools/agentRoutes.ts",
       "packages/docs/tools/showRoutes.ts",
       "packages/app/src/server/appRoutes.ts"

@@ -1,6 +1,6 @@
 ---
 name: airplane
-description: Get the laptop ready for Owen to work on the epics and docs with NO Claude (on a plane, or bad wifi) -- check and fix what pages need offline, turn airplane mode on, say how it works;  `/airplane land` afterwards gathers everything he left (marks, notes, new items, Do Now requests) across every epic and page, and works through it in the background.  Use for `/airplane`, `/airplane land`, `/airplane status`, or when Owen says "I'm going offline", "I'm getting on a plane", "I'm back, go through what I left".
+description: Get the laptop ready for Owen to work on the epics and docs with NO Claude (on a plane, or bad wifi) -- check and fix what pages need offline, turn airplane mode on, say how it works;  `/airplane land` afterwards gathers everything he left (marks, notes, new items, Do Now requests, new epics) across every epic and page, works through it in the background, and asks which new epics to start.  Use for `/airplane`, `/airplane land`, `/airplane status`, or when Owen says "I'm going offline", "I'm getting on a plane", "I'm back, go through what I left".
 argument-hint: '[land | status]'
 ---
 
@@ -40,6 +40,8 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
      - "+" on a plan doc's header (or its Todos / Questions):  a new todo or question;
        the bubble on a phase or the summary:  a note
      - any other page:  the bubble on a section's title, or the header's Note pill
+     - a new epic:  the Epics page's New epic pill (its seedling):  a title and what it's for;  it's written down
+       as a future epic at once, and the landing asks whether to start it
      - Do Now still works:  it waits, dashed, for landing
      - the page server stopped (laptop asleep, restarted):  the Review tab's "Restart Page Server" button
      - turn Wi-Fi fully off while reading:  a "pay first" wifi page makes requests hang
@@ -51,6 +53,7 @@ Owen is back online.  Gather everything, work through it in the background, then
 
 1. `spell dev airplane inbox --json`:  everything waiting, by place:
    - each epic's marks, sent or not, its drafts, Do Now requests, and new items from the page's `+`
+   - new epics made from the Epics page, not started (`newEpics`)
    - page notes;  details answers since the flight;  goals thoughts
    - Run it FIRST, while the switch is on:  its `since` is when the flight began, which picks the details answers.
 2. `spell dev airplane off`.  Nothing waiting:  say so in one line, and stop.
@@ -64,6 +67,14 @@ Owen is back online.  Gather everything, work through it in the background, then
      a note asking for work in an epic:  `plan-doc add <epic> todo` too, linked from the answer
    - details answers and goals thoughts:  as `/details` and `/goals-update` take them
    - nothing is decided for Owen:  an answer that needs him ends in option cards, and the item stays red
+5b. New epics (`newEpics`, made with the Epics page's New epic):  ask which to start, with CHECKBOXES (Owen,
+   2026-10-09):  AskUserQuestion, `multiSelect`, "Start which new epics?", one option per epic (label its title,
+   description `<name>` and the prompt's first line), 4 per question, up to 4 questions;  more than 16:  a
+   details page with a `multiple` question instead.
+   - each picked:  `spell dev window launch <name>`:  its own worktree and window, a NEW session there with
+     `/epic <name>` typed in (it plans the future epic where it is:  prompt kept).  One line per window.
+   - not picked:  they stay future epics, seedlings on the Epics page;  `/epic <name>` any time
+   - asked while the agents of step 5 run:  the modal doesn't wait for them
 6. Drafts (text he typed and never submitted):  never acted on.
    List them for Owen as a question each, in the reply (or a details page when there are more than 4).
 7. When every agent is back:  the summary (what landed where, in words, ids after;  what needs Owen, in bold),

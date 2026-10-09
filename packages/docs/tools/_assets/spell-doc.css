@@ -700,8 +700,8 @@ pre code {
   ) {
   opacity: 1;
 }
-/* the page header's Note pill, and "N new" before it */
-.spell-doc-main .spell-page-notes {
+/* the page header's Note pill, and "N new" before it;  the Epics page's New epic pill */
+.spell-doc-main :is(.spell-page-notes, .spell-new-epic) {
   display: inline-flex;
   flex: none;
   align-items: center;
@@ -729,6 +729,18 @@ pre code {
   font: inherit;
   line-height: 1.4;
   resize: vertical;
+}
+/* the New epic box's title:  one line, above its prompt */
+.spell-note-box input.spell-note-field {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 6px;
+  background: var(--spell-bg);
+  color: var(--spell-ink);
+  font: inherit;
 }
 .spell-note-box .spell-note-hint {
   margin: 6px 0 0;
