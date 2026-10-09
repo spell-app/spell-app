@@ -21,7 +21,7 @@ house style every package shares.  Only what's local is below;  a section named 
     (upgrade, forms, lifecycle, error boundary, HMR fixes;  `UPSTREAM.md` maps each to a PR).  A workspace of
     the monorepo (`workspace:*`), with its own tests (its dependencies are hoisted to the root `node_modules`, like every package's);  run its scripts with
     `yarn fork <script>`.  NEVER import its files from `src/`:  use the package name.
-  - `../util/` -- `@spell-app/util` (`$/util`), shared with `spell`:  `@proto` (`decorators.ts`), `class.ts`, `string.ts`
+  - `../util/` -- `@spell-app/util` (`$/util`), shared with `spell`:  `@proto` / `@protoMerged` (`decorators.ts`), `class.ts`, `string.ts`
     (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`.  `src/util/index.ts`
     (`$/ui/util`) re-exports it, so source keeps saying `from "$/ui/util"`;  its declarations ship in `dist/_util/`.
     `src/util/index.ts` imports util's GENERIC files one by one (`$/util/class` ...), never `$/util`'s barrel, which
@@ -331,8 +331,9 @@ As WWOD §18, plus:
 - Solid's own rules (no writes in an owned scope, staged writes, two-function effects, eager memos):  SEE:
   `guides/solid/solid-2.md`.  Below:  only what's `ui`'s own.
 - A tag's COMPONENT is a class `UI<Name> extends UIComponent<typeof nameVocabulary>` (or `FormComponent`,
-  `PartComponent`):  `@proto static vocabulary` / `styleSheets` / `elementSetup` (what differs from its base:
-  `{ DOMElement: DOMNagElement }`, `delegatesFocus: false`, a form control's `Fallback` ...), reactive members
+  `PartComponent`):  `@proto static vocabulary`, `@protoMerged static elementSetup` (what differs from its base:
+  `styleSheets: { nag: nagCSS }`, `DOMElement: DOMNagElement`, `delegatesFocus: false`, a form control's
+  `Fallback` ...), reactive members
   (below), `render()` returning JSX.  solid-element creates one per element on first connect and keeps it
   (`keepAlive`) until `domElement.dispose()`.  `UI<Name>.define()` in the family's `index.ts` registers it.
 - **Reactive members** (`src/elements/Reactive.ts`;  WWOD §12 › "Reactive members"):  decorators over ONE record per
@@ -544,8 +545,8 @@ As WWOD §6, plus:
 - An override that only FILLS a hook its base class documents (`render()`, `cssStates()`, a fallback's `build()`)
   needs no docstring;  one that adds to the base's contract says what it adds:  `/** Disabled by its attribute, or by
   a disabled fieldset. */`.  The base class documents each hook once (epic `wwod-spell-ui`, Q3).
-- Likewise `@proto static vocabulary` / `vocabularies` / `styleSheets` / `elementSetup` / `degraded`:  documented
-  once, with why they're static, on `UIComponent` / `NativeFallback`.
+- Likewise `@proto static vocabulary` / `vocabularies` / `degraded` and `@protoMerged static elementSetup` (its
+  keys on `ElementSetup`):  documented once, with why they're static, on `UIComponent` / `NativeFallback`.
 
 ## Functions & types
 
@@ -577,21 +578,24 @@ As WWOD §9, plus:
 As WWOD §12, plus:
 
 - A class setting lives WITH ITS PROPERTY GROUP:  its `declare` and its `@proto static` default side by side, in the
-  `////` section of the code that uses it (`UIComponent`:  `elementSetup` under "Element setup", `styleSheets` under
-  "StyleSheets").  Owen's "locate code near its siblings" (epic `wwod-spell-ui`, Q11), superseding "`@proto static`
+  `////` section of the code that uses it (`UIComponent`:  `elementSetup` under "Element setup", `vocabulary` under
+  "Vocabulary").  Owen's "locate code near its siblings" (epic `wwod-spell-ui`, Q11), superseding "`@proto static`
   defaults at the TOP".  A subclass that only SETS settings (`@proto static vocabulary = ...`) still lists them
   first, before its members.
-  - Per-class settings of the custom element itself (form control, focus, slots, part, DOM element class, fallback,
-    unstyled first paint) are keys of ONE setting, `elementSetup` (type `ElementSetup`), MERGED down the class
-    chain, base class first.  A subclass states only the keys it changes:
-    `@E.proto static elementSetup = { DOMElement: DOMNagElement } satisfies Partial<E.ElementSetup>`.
-    Read the merged result through `setup` (or `UIComponent.setupFor(Class)`), never `elementSetup` itself.
+  - Per-class settings of the custom element itself (style sheets, form control, focus, slots, part, DOM element
+    class, fallback, unstyled first paint) are keys of ONE setting, `elementSetup` (type `ElementSetup`), MERGED
+    down the class chain, base class first, by `@protoMerged` (`$/util`, as `E.protoMerged`).  A subclass states only
+    the keys it changes:
+    `@E.protoMerged static elementSetup = { styleSheets: { nag: nagCSS }, DOMElement: DOMNagElement } satisfies Partial<E.ElementSetup>`.
+    - `this.elementSetup` (`Class.prototype.elementSetup` from outside) is the merged result;  the static
+      `Class.elementSetup` only what that class stated.
     - A base class that others extend types its own as `Partial<E.ElementSetup>`:
       otherwise a subclass stating other keys fails TypeScript's check of the class's static side.
     - Every other class ends its literal with `satisfies Partial<E.ElementSetup>` (brand:  `Partial<ElementSetup>`):
       a misspelt key fails TypeScript, where an untyped literal would take it silently.
-  - `vocabulary` and `styleSheets` stay settings of their own:  a subclass's `styleSheets` REPLACE its base's
-    (spread them to add:  `{ ...UISection.styleSheets, panel: panelCSS }`), they don't merge.
+    - Keys merge one level deep:  a subclass's `styleSheets` REPLACE its base's whole;  spread the base's to add
+      to them:  `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
+  - `vocabulary` stays a setting of its own.
   - Developer / debug switches (ALL-CAPS statics:  `UIComponent.ISOLATE_ERRORS`) stay at the top.
   - Other statics go after the main methods;  constants go below the class (next bullet).
 - Constants (epic `wwod-spell-ui`, Q18:  bundle size over WWOD §12's `static` constants):

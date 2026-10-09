@@ -16,8 +16,10 @@ import sidebarCSS from "./UISidebar.css?inline"
  ****************/
 export class UIPusher extends E.UIComponent<typeof pusherVocabulary> {
   @E.proto static vocabulary = pusherVocabulary
-  @E.proto static styleSheets = { sidebar: sidebarCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { sidebar: sidebarCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Always:  `:state(pusher)`. */
   @E.cssState("pusher")

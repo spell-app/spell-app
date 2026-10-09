@@ -53,8 +53,8 @@ export class DOMFieldElement extends E.DOMElement {
  ****************/
 export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   @E.proto static vocabulary = fieldVocabulary
-  @E.proto static styleSheets = { label: labelCSS, form: formCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { label: labelCSS, form: formCSS },
     DOMElement: DOMFieldElement,
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

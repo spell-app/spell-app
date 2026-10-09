@@ -17,8 +17,10 @@ import statisticCSS from "./UIStatistic.css?inline"
  ****************/
 export class UIStatistics extends E.UIComponent<typeof statisticsVocabulary> {
   @E.proto static vocabulary = statisticsVocabulary
-  @E.proto static styleSheets = { statistic: statisticCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { statistic: statisticCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Always `:state(statistics)`:  the size container `stackable` answers to. */
   @E.cssState("statistics")

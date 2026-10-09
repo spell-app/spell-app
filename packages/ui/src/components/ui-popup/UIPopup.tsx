@@ -47,8 +47,8 @@ import anchoredCSS from "./UIPopup.anchored.css?raw"
  ****************/
 export class UIPopup extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = popupVocabulary
-  @E.proto static styleSheets = { popup: popupCSS, "popup-anchored": anchoredCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { popup: popupCSS, "popup-anchored": anchoredCSS },
     // nothing inside needs focus delegated:  a click on a tooltip's text must not jump to a link in it
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

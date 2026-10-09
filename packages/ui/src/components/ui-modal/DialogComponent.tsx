@@ -10,7 +10,7 @@ import { type DialogAttributes, type DialogEventName } from "./UIModal.types"
  * on a shadow `<dialog class="ui … <noun>" part="<rootPart>">` shown with `showModal()`.
  * The browser gives it the focus trap, the `inert` page, the top layer and the `::backdrop` (the dimmer).
  *
- * - A subclass adds only its names and looks:  `vocabulary`, `styleSheets`, `rootPart`, `overlayKind`.
+ * - A subclass adds only its names and looks:  `vocabulary`, `elementSetup.styleSheets`, `rootPart`, `overlayKind`.
  *
  * - In the modal family, not `src/elements/`:  a flyout IS Fomantic's side modal
  *   (the same parts, buttons, events and dismissal), and nothing else shares it yet.

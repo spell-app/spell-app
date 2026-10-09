@@ -75,8 +75,8 @@ export class DOMMarkdownElement extends E.DOMLoadableElement {
  ****************/
 export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
   @E.proto static vocabulary = markdownVocabulary
-  @E.proto static styleSheets = { markdown: markdownCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { markdown: markdownCSS },
     DOMElement: DOMMarkdownElement,
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

@@ -36,8 +36,8 @@ import sidebarCSS from "./UISidebar.css?inline"
  ****************/
 export class UISidebar extends E.UIComponent<SidebarVocabulary> {
   @E.proto static vocabulary = sidebarVocabulary
-  @E.proto static styleSheets = { sidebar: sidebarCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { sidebar: sidebarCSS },
     // a click on the panel's padding must not jump focus to its first link
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

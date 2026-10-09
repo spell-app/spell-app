@@ -36,8 +36,10 @@ import treeDiagramCSS from "./UITreeDiagram.css?inline"
  ****************/
 export class UITreeDiagram extends E.UIComponent<typeof treeDiagramVocabulary> {
   @E.proto static vocabulary = treeDiagramVocabulary
-  @E.proto static styleSheets = { "tree-diagram": treeDiagramCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "tree-diagram": treeDiagramCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** JSON text of the `<script type="application/json">` child;  `undefined` without one.  Followed in `onMount()`. */
   @E.state accessor scriptText: string | undefined = isServer

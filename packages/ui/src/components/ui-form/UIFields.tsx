@@ -17,8 +17,10 @@ import formCSS from "./UIForm.css?inline"
  ****************/
 export class UIFields extends E.UIComponent<typeof fieldsVocabulary> {
   @E.proto static vocabulary = fieldsVocabulary
-  @E.proto static styleSheets = { form: formCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { form: formCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** `:state(error)`:  `state="error"`. */
   @E.cssState("error")

@@ -68,8 +68,10 @@ export class DOMNagElement extends E.DOMElement {
  ****************/
 export class UINag extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = nagVocabulary
-  @E.proto static styleSheets = { nag: nagCSS }
-  @E.proto static elementSetup = { DOMElement: DOMNagElement } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { nag: nagCSS },
+    DOMElement: DOMNagElement
+  } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)

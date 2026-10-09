@@ -38,8 +38,8 @@ import stickyCSS from "./UISticky.css?inline"
  ****************/
 export class UISticky extends E.UIComponent<StickyVocabulary> {
   @E.proto static vocabulary = stickyVocabulary
-  @E.proto static styleSheets = { sticky: stickyCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { sticky: stickyCSS },
     // a wrapper:  a click on its text must not jump to a link inside
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

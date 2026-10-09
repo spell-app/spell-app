@@ -25,8 +25,8 @@ import itemCSS from "./UIItem.css?inline"
  *   - inside the box:  the `image` shorthand's `<img class="ui avatar image" part="image" alt="">`,
  *     the icon box (the `icon` shorthand or the `icon` slot), then the default slot.
  *
- * - Styles:  `UIItem.css` (the DOM element and generic resets), then the OWNER's sheets (its `styleSheets`),
- *   which hold the item rules keyed on `:host(:state(in-list)) > .item`, beside the static `.ui.list > .item`.
+ * - Styles:  `UIItem.css` (the DOM element and generic resets),
+ *   then the OWNER's sheets (its `elementSetup.styleSheets`), which hold the item rules keyed on `:host(:state(in-list)) > .item`, beside the static `.ui.list > .item`.
  *   The item registers them if the owner hasn't yet, and adopts them again when the owner changes.
  *
  * - Semantics:
@@ -45,8 +45,10 @@ import itemCSS from "./UIItem.css?inline"
  ****************/
 export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.ConditionalOwner {
   @E.proto static vocabulary = itemVocabulary
-  @E.proto static styleSheets = { item: itemCSS }
-  @E.proto static elementSetup = { isAPart: true } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { item: itemCSS },
+    isAPart: true
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Owner
@@ -90,8 +92,8 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
 
   /** `UIItem.css`, then the owner's sheets (registered here if the owner hasn't yet). */
   get styleSheetNames(): string[] {
-    const names = Object.keys(this.styleSheets)
-    const styles = this.owner?.styleSheets ?? {}
+    const names = Object.keys(this.elementSetup.styleSheets)
+    const styles = this.owner?.elementSetup.styleSheets ?? {}
     const isLoaded = !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]
     for (const [name, css] of Object.entries(styles)) {
       if (isLoaded && !UI.styles.has(name)) UI.styles.register(name, css)

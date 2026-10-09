@@ -24,8 +24,10 @@ import loaderCSS from "./UILoader.css?inline"
  ****************/
 export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   @E.proto static vocabulary = loaderVocabulary
-  @E.proto static styleSheets = { loader: loaderCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { loader: loaderCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)

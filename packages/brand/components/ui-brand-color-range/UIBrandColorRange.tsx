@@ -1,7 +1,7 @@
 import { For, Show, createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { DOMElement, proto, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
+import { DOMElement, proto, protoMerged, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
 import { STEPS, type Scale, type Step } from "$/brand"
 
 import { brandColorRangeVocabulary } from "./UIBrandColorRange.en"
@@ -66,8 +66,8 @@ export class DOMBrandColorRangeElement extends DOMElement {
  ****************/
 export class UIBrandColorRange extends UIComponent<BrandColorRangeVocabulary> {
   @proto static vocabulary = brandColorRangeVocabulary
-  @proto static styleSheets = { range: rangeCSS }
-  @proto static elementSetup = {
+  @protoMerged static elementSetup = {
+    styleSheets: { range: rangeCSS },
     DOMElement: DOMBrandColorRangeElement,
     delegatesFocus: false
   } satisfies Partial<ElementSetup>

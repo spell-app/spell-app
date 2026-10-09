@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { proto } from "./decorators"
+import { proto, protoMerged } from "./decorators"
 
 /**
- * Proves standard decorators are lowered (`vite.decorators.ts`) and `@proto` works in the browser.
+ * Proves standard decorators are lowered (`vite.decorators.ts`) and `@proto` / `@protoMerged` work in the browser.
  * - If lowering breaks, this FILE fails to load with a bare `SyntaxError`, rather than a test failing.
  */
 
@@ -81,5 +81,61 @@ describe("@proto static", () => {
       }
       return new Wrong()
     }).toThrow(/only works on 'static' fields/)
+  })
+})
+
+/** Settings for `@protoMerged`:  keys that add up down the class chain. */
+type Setup = { color: string; shape: string; parts: Record<string, string> }
+
+/** Base class declaring the merged field. */
+class Setting {
+  declare setup: Setup
+  @protoMerged static setup: Partial<Setup> = { color: "red", shape: "round", parts: { a: "A" } }
+}
+
+class Blue extends Setting {
+  @protoMerged static setup: Partial<Setup> = { color: "blue" }
+}
+
+class Plain extends Blue {}
+
+class BlueSquare extends Plain {
+  @protoMerged static setup = { shape: "square", parts: { b: "B" } } satisfies Partial<Setup>
+}
+
+describe("@protoMerged static", () => {
+  it("puts the parent's value merged with this class's on the prototype", () => {
+    expect(new Blue().setup).toEqual({ color: "blue", shape: "round", parts: { a: "A" } })
+    expect(Object.hasOwn(Blue.prototype, "setup")).toBe(true)
+  })
+
+  it("inherits the parent's merged value when a class states none", () => {
+    expect(new Plain().setup).toBe(new Blue().setup)
+  })
+
+  it("merges shallowly:  a stated key replaces the parent's whole", () => {
+    expect(new BlueSquare().setup).toEqual({ color: "blue", shape: "square", parts: { b: "B" } })
+  })
+
+  it("leaves the parent's value alone", () => {
+    expect(new Setting().setup).toEqual({ color: "red", shape: "round", parts: { a: "A" } })
+  })
+
+  it("keeps only what the class stated on the static", () => {
+    expect(Blue.setup).toEqual({ color: "blue" })
+  })
+
+  it("is non-enumerable on the prototype", () => {
+    expect(Object.keys(Blue.prototype)).toEqual([])
+  })
+
+  it("throws on a non-static field", () => {
+    expect(() => {
+      class Wrong extends Setting {
+        // @ts-expect-error -- `@protoMerged` is typed for static fields only
+        @protoMerged setup = { color: "green" }
+      }
+      return new Wrong()
+    }).toThrow(/@protoMerged setup: only works on 'static' fields/)
   })
 })

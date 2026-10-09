@@ -55,8 +55,8 @@ export class DOMIncludeElement extends E.DOMLoadableElement {
  ****************/
 export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
   @E.proto static vocabulary = includeVocabulary
-  @E.proto static styleSheets = { include: includeCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { include: includeCSS },
     DOMElement: DOMIncludeElement,
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

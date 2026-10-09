@@ -1,7 +1,7 @@
 import { Show, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, DOMElement, IconGlyph, proto, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
+import { Cell, DOMElement, IconGlyph, proto, protoMerged, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
 import { Palette } from "$/brand"
 
 import { brandColorVocabulary } from "./UIBrandColor.en"
@@ -72,8 +72,8 @@ export class DOMBrandColorElement extends DOMElement {
  ****************/
 export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
   @proto static vocabulary = brandColorVocabulary
-  @proto static styleSheets = { color: colorCSS }
-  @proto static elementSetup = {
+  @protoMerged static elementSetup = {
+    styleSheets: { color: colorCSS },
     DOMElement: DOMBrandColorElement,
     delegatesFocus: false
   } satisfies Partial<ElementSetup>

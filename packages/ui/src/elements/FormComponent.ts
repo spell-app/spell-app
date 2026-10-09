@@ -23,7 +23,7 @@ import { Validator } from "./Validator"
  *   them (WWOD §4 › "Circular imports").
  ****************/
 export abstract class FormComponent<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends E.UIComponent<V> {
-  @E.proto static elementSetup: Partial<E.ElementSetup> = {
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     // with the form-control API
     DOMElement: DOMFormControl,
     isAFormControl: true

@@ -59,8 +59,10 @@ export class DOMEmbedElement extends E.DOMElement {
  ****************/
 export class UIEmbed extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = embedVocabulary
-  @E.proto static styleSheets = { embed: embedCSS }
-  @E.proto static elementSetup = { DOMElement: DOMEmbedElement } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { embed: embedCSS },
+    DOMElement: DOMEmbedElement
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Active

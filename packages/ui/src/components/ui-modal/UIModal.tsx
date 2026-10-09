@@ -19,7 +19,7 @@ import modalCSS from "./UIModal.css?inline"
  ****************/
 export class UIModal extends DialogComponent<Vocabulary> {
   @E.proto static vocabulary = modalVocabulary
-  @E.proto static styleSheets = { modal: modalCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { modal: modalCSS } } satisfies Partial<E.ElementSetup>
   @E.proto static rootPart = "modal"
   @E.proto static overlayKind = "modal" as const
 }

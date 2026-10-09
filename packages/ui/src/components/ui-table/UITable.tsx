@@ -59,8 +59,8 @@ import tableCSS from "./UITable.css?inline"
  ****************/
 export class UITable extends E.UIComponent<typeof tableVocabulary> {
   @E.proto static vocabulary = tableVocabulary
-  @E.proto static styleSheets = { table: tableCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { table: tableCSS },
     // the scroller and the light-DOM headers take focus themselves
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -119,7 +119,8 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
    */
   private registerPageSheets() {
     if (isServer) return
-    for (const [name, css] of Object.entries(this.styleSheets)) UI.styles.register(name, css, { page: true })
+    for (const [name, css] of Object.entries(this.elementSetup.styleSheets))
+      UI.styles.register(name, css, { page: true })
   }
 
   /**

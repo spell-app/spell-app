@@ -22,7 +22,7 @@ import iconCSS from "./UIIcon.css?inline"
  ****************/
 export class UIIcon extends E.UIComponent<typeof iconVocabulary> {
   @E.proto static vocabulary = iconVocabulary
-  @E.proto static styleSheets = { icon: iconCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { icon: iconCSS } } satisfies Partial<E.ElementSetup>
 
   /** Its `<ui-icons>` parent, if any. */
   readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun, isDirect: true })

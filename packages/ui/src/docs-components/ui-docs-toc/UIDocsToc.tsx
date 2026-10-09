@@ -43,8 +43,10 @@ import tocCSS from "./UIDocsToc.css?inline"
  ****************/
 export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   @E.proto static vocabulary = docsTocVocabulary
-  @E.proto static styleSheets = { "docs-toc": tocCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "docs-toc": tocCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The sections

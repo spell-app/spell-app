@@ -9,7 +9,8 @@ house style every package shares.  Only what's local is below;  a section named 
 ## Overview
 
 - `@spell-app/util` (`$/util`) holds the small GENERIC helpers more than one package uses:
-  - `decorators.ts` -- `@proto`, the standard-decorator for class defaults
+  - `decorators.ts` -- `@proto`, the standard-decorator for class defaults;  `@protoMerged`, for a settings object
+    whose keys merge down the class chain
   - `class.ts` -- `hasOwnProp` ...
   - `string.ts` -- case conversion, `numberToWord`, `suggest`
   - `dom.ts` -- shadow-aware traversal, `NodeType`, `byDocumentOrder`, `isBrowser`, `nextFrame`

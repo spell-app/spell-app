@@ -14,8 +14,10 @@ import placeholderCSS from "./UIPlaceholder.css?inline"
 export abstract class PlaceholderShape<
   V extends E.ComponentVocabulary = E.ComponentVocabulary
 > extends E.UIComponent<V> {
-  @E.proto static styleSheets = { placeholder: placeholderCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { placeholder: placeholderCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (

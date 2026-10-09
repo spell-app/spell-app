@@ -17,8 +17,10 @@ import adCSS from "./UIAd.css?inline"
  ****************/
 export class UIAd extends E.UIComponent<typeof adVocabulary> {
   @E.proto static vocabulary = adVocabulary
-  @E.proto static styleSheets = { ad: adCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { ad: adCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   protected get extraClass(): string | undefined {
     return this.isTest ? TEST : undefined

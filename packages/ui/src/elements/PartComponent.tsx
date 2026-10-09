@@ -1,7 +1,7 @@
 import { Dynamic, type JSX } from "@solidjs/web"
 
 // Import directly to avoid circular import
-import { proto } from "$/ui/util"
+import { protoMerged } from "$/ui/util"
 import { E } from "$/ui/core"
 // Import directly to avoid circular import
 import { UIComponent } from "./UIComponent"
@@ -25,8 +25,7 @@ import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
  *   lands in `core`.  It imports nothing else of `$/ui/components`.
  ****************/
 export abstract class PartComponent<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends UIComponent<V> {
-  @proto static styleSheets = { parts: partsCSS }
-  @proto static elementSetup: Partial<E.ElementSetup> = { isAPart: true }
+  @protoMerged static elementSetup: Partial<E.ElementSetup> = { styleSheets: { parts: partsCSS }, isAPart: true }
 
   /** Owner context for this part's noun. */
   readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })
