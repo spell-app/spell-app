@@ -70,7 +70,7 @@ async function composer(html: string): Promise<ComposerDOMElement> {
 describe("<ui-brand-composer> card", () => {
   it("renders the card:  text box (3 rows, the placeholder), the platform's hint, a named Cast button", async () => {
     const host = await composer(`<ui-brand-composer></ui-brand-composer>`)
-    expect([...part(host, "composer").classList]).toEqual(["composer", "brand"])
+    expect([...part(host, "composer").classList]).toEqual(["brand", "composer"])
     expect({
       rows: box(host).rows,
       placeholder: box(host).placeholder,
@@ -104,7 +104,7 @@ describe("<ui-brand-composer> card", () => {
 
   it('`size="large"` is the hero\'s box:  19px text, 20px radius, a 38px button', async () => {
     const host = await composer(`<ui-brand-composer size="large" style="--ui-radius-l: 16px"></ui-brand-composer>`)
-    expect([...part(host, "composer").classList]).toEqual(["composer", "brand", "large"])
+    expect([...part(host, "composer").classList]).toEqual(["brand", "large", "composer"])
     expect(getComputedStyle(box(host)).fontSize).toBe("19px")
     expect(getComputedStyle(part(host, "composer")).borderTopLeftRadius).toBe("20px")
     expect(button(host).getBoundingClientRect().width).toBe(38)

@@ -5,7 +5,7 @@
  *   `UIT` by value straight from `components.types`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-popup size="small" inverted wide="very">` => `ui small inverted very wide popup`;  the element adds the
- *   `position` words after the noun (`ui inverted popup bottom left`), as Fomantic's script added them.
+ *   `position` words before the noun (`ui inverted bottom left popup`), the words Fomantic's script added.
  * - `open` emits `visible`, Fomantic's shown-popup class, so static markup and the element share one sheet.
  * - A popup OWNS the `header` and `content` parts:  slotted `<ui-header>` / `<ui-content>` get `:state(in-popup)`
  *   and style themselves from `UIParts.css`.

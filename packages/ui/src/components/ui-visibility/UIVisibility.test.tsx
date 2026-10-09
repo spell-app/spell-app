@@ -179,7 +179,7 @@ describe("UI.observeVisibility() on a `display: contents` host", () => {
 describe("<ui-visibility type=image>", () => {
   it("marks the box `image`", async () => {
     const host = await below(`type="image"`)
-    expect(host.shadowRoot!.querySelector("[part~=visibility]")!.className).toBe("ui visibility image")
+    expect(host.shadowRoot!.querySelector("[part~=visibility]")!.className).toBe("ui image visibility")
   })
 
   it("loads each <img data-src> once on screen, then fires ui-load", async () => {

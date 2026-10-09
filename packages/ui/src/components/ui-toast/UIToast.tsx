@@ -114,7 +114,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   // ## Classes
   ////////////////
 
-  /** Layout words after the noun, as Fomantic's JS added them:  `vertical`, `actions`, `attached top`, `compact`. */
+  /** Layout words before the noun, the ones Fomantic's JS added:  `vertical`, `actions`, `attached top`, `compact`. */
   protected get extraClass(): string | undefined {
     const words: string[] = []
     const actions = this.actionWords

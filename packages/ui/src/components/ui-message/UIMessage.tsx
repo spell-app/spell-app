@@ -14,7 +14,7 @@ import messageCSS from "./UIMessage.css?inline"
  * - Its shadow DOM is one box, `<div class="ui … message" part="message">`, holding, in order:
  *   the icon box, ALWAYS a `<div class="content" part="content">` (the `header` shorthand, then the default slot),
  *   and the `dismissible` close button.
- *   - It adds the `icon` class (after the noun) while there's an icon (the `icon` shorthand or a slotted
+ *   - It adds the `icon` class (before the noun) while there's an icon (the `icon` shorthand or a slotted
  *     `slot="icon"`):  `UIMessage.css` switches to the icon layout (`--_ui-message-layout: icon`) by it.
  *
  * - It OWNS the `header` and `content` parts (`ownsParts`):
@@ -49,7 +49,7 @@ export class UIMessage extends E.UIComponent<typeof messageVocabulary> {
     return !!this.icon || this.slots.hasContent(this.slotForName(UIT.ICON))
   }
 
-  /** The `icon` class after the noun while it shows an icon:  the sheet's icon layout. */
+  /** The `icon` class before the noun while it shows an icon:  the sheet's icon layout. */
   protected get extraClass(): string | undefined {
     return this.hasIcon ? UIT.ICON_CLASS : undefined
   }

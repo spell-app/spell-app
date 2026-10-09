@@ -69,8 +69,8 @@ describe("<ui-embed> definition", () => {
 describe("<ui-embed> classes", () => {
   it.each([
     ["", "ui embed"],
-    ['aspect-ratio="4:3"', "ui embed 4:3"],
-    ['aspect-ratio="square"', "ui embed square"],
+    ['aspect-ratio="4:3"', "ui 4:3 embed"],
+    ['aspect-ratio="square"', "ui square embed"],
     [`active url="${LOCAL}"`, "ui active embed"]
   ])("<ui-embed %s>", async (attributes, classes) => {
     const { root } = await embed(`<ui-embed ${attributes}></ui-embed>`)

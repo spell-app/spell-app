@@ -517,15 +517,15 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * The `class` of the top box in the element's shadow DOM, in Fomantic's class names:  `ui small primary button`.
-   * - Built from the attributes (through `classValue()`), then `extraClass`.
+   * - Built from the attributes (through `classValue()`), then `extraClass`, then the noun.
    */
   get rootClass(): string {
     return this.elementDefinition.builder.build(this.internalState.classInput, { extra: this.extraClass })
   }
 
   /**
-   * Hook:  classes to add after the noun;  default none.
-   * - `UIButton`'s adds `icon` to a button that shows only an icon (`ui primary button` => `ui primary button icon`):
+   * Hook:  classes to add just before the noun;  default none.
+   * - `UIButton`'s adds `icon` to a button that shows only an icon (`ui primary button` => `ui primary icon button`):
    *   ```ts
    *   protected get extraClass(): string | undefined {
    *     if (!this.hasIcon || this.animated) return undefined

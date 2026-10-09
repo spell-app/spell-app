@@ -13,7 +13,7 @@ import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
  *
  * - Its shadow DOM is one box, `<span class="ui … label" part="label">` (an `<a>` with `href`), holding, in order:
  *   the `image` `<img>`, the icon box, the default slot, the `detail` shorthand and the `removable` delete button.
- *   - It adds the `icon` class (after the noun) when there's an icon and no text:  the icon centres.
+ *   - It adds the `icon` class (before the noun) when there's an icon and no text:  the icon centres.
  *
  * - `image` is a string attribute:
  *   - bare (or `""`):  the `image` class, around a slotted `<img>`

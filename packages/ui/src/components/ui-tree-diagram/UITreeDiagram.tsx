@@ -30,7 +30,7 @@ import treeDiagramCSS from "./UITreeDiagram.css?inline"
  *   - It redraws when `tree` is set again:  set a NEW tree (one changed in place isn't seen).
  * - Layout:  `TreeLayout` (pure).  Drawn at its natural size in em (`--_ui-tree-diagram-natural-width`),
  *   shrinking to fit its container down to `--ui-tree-diagram-min-scale`, and scrolling sideways below that.
- * - Nothing to draw:  the `<svg>` is `ui tree diagram empty`, hidden;  the DOM element has no height.
+ * - Nothing to draw:  the `<svg>` is `ui empty tree diagram`, hidden;  the DOM element has no height.
  * - Accessibility:  the `<svg>` is `role="img"`, named by a summary ("Tree:  If, with 3 children");
  *   each node's `title` is its box's `<title>` (hover text).
  ****************/
@@ -215,7 +215,7 @@ export class UITreeDiagram extends E.UIComponent<typeof treeDiagramVocabulary> {
 /** The vocabulary getters, typed (`UIComponent`'s doc). */
 export interface UITreeDiagram extends E.AttributeValues<typeof treeDiagramVocabulary> {}
 
-/** Class word after the noun when there's nothing to draw (`ui tree diagram empty`):  the `<svg>` hides. */
+/** Class word before the noun when there's nothing to draw (`ui empty tree diagram`):  the `<svg>` hides. */
 const EMPTY = "empty"
 
 /** Class of each node's `<g>`, its box, its texts;  each edge;  each slot label. */

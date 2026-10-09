@@ -21,7 +21,7 @@ describe("InputFallback", () => {
       `<x-fb-input size="small" label="http://" type="email" required placeholder="Site" value="a@b.co"></x-fb-input>`
     )
     const root = FallbackStub.shadow(host).firstElementChild!
-    expect(root.className).toBe("ui small input labeled")
+    expect(root.className).toBe("ui small labeled input")
     expect(root.getAttribute("part")).toBe("input")
     const input = root.querySelector<HTMLInputElement>("input[part=control]")!
     expect([input.type, input.required, input.value]).toEqual(["email", true, "a@b.co"])

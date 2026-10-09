@@ -136,7 +136,7 @@ describe("<ui-brand-color-picker> display", () => {
     ])
     expect(all(host, '[part~="row"] > .row-label').map((label) => label.textContent)).toEqual(["HSL", "RGB", "OKLCH"])
     expect(getComputedStyle(part(host, "chip")).backgroundColor).toBe("rgb(101, 80, 202)")
-    expect([...part(host, "picker").classList]).toEqual(["picker", "brand", "color"])
+    expect([...part(host, "picker").classList]).toEqual(["brand", "color", "picker"])
 
     const short = await picker(`<ui-brand-color-picker value="#abc"></ui-brand-color-picker>`)
     expect(part(short, "hex").textContent).toBe("#AABBCC")

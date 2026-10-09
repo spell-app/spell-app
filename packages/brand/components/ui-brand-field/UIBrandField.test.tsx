@@ -34,7 +34,7 @@ describe("<ui-brand-field> layout", () => {
     ])
     expect(["actions", "info", "error"].map((name) => part(host, name))).toEqual([null, null, null])
     expect(host.matches(":state(field)")).toBe(true)
-    expect([...part(host, "field")!.classList]).toEqual(["field", "brand"])
+    expect([...part(host, "field")!.classList]).toEqual(["brand", "field"])
     await expectAccessible(host)
   })
 

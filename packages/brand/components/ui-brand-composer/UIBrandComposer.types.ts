@@ -8,7 +8,7 @@ import type { brandComposerVocabulary } from "./UIBrandComposer.en"
 /** `brandComposerVocabulary`'s type. */
 export type BrandComposerVocabulary = typeof brandComposerVocabulary
 
-/** The class word the component adds after the noun:  `composer brand`. */
+/** The class word the component adds before the noun:  `brand composer`. */
 export const BRAND = "brand"
 
 /** Class word for `size="large"`. */

@@ -101,10 +101,10 @@ describe("<ui-toast> definition", () => {
 
 describe("<ui-toast> classes", () => {
   it.each([
-    ["", "ui toast compact"],
-    ['type="success"', "ui success toast compact"],
-    ['type="neutral"', "ui neutral toast compact"],
-    ['color="teal" inverted', "ui teal inverted toast compact"],
+    ["", "ui compact toast"],
+    ['type="success"', "ui success compact toast"],
+    ['type="neutral"', "ui neutral compact toast"],
+    ['color="teal" inverted', "ui teal inverted compact toast"],
     ['compact="false"', "ui toast"],
     ['type="error" compact="no"', "ui error toast"]
   ])("<ui-toast %s>", async (attributes, classes) => {
@@ -115,13 +115,13 @@ describe("<ui-toast> classes", () => {
   })
 
   it.each([
-    ["", "ui toast actions compact"],
-    ['actions="basic"', "ui toast compact"],
-    ['actions="basic left"', "ui toast actions compact"],
-    ['actions="vertical"', "ui toast vertical actions compact"],
-    ['actions="attached"', "ui toast attached top compact"],
-    ['actions="attached top"', "ui toast attached bottom compact"],
-    ['actions="vertical attached"', "ui toast vertical attached compact"]
+    ["", "ui actions compact toast"],
+    ['actions="basic"', "ui compact toast"],
+    ['actions="basic left"', "ui actions compact toast"],
+    ['actions="vertical"', "ui vertical actions compact toast"],
+    ['actions="attached"', "ui attached top compact toast"],
+    ['actions="attached top"', "ui attached bottom compact toast"],
+    ['actions="vertical attached"', "ui vertical attached compact toast"]
   ])("adds Fomantic's layout words for slotted actions:  %s", async (attributes, classes) => {
     const { root } = await toast(
       `<ui-toast ${attributes} message="Hi"><ui-button slot="actions">Ok</ui-button></ui-toast>`
@@ -131,7 +131,7 @@ describe("<ui-toast> classes", () => {
 
   it("ignores action words with no actions slotted, and unknown words", async () => {
     const { root } = await toast(`<ui-toast actions="vertical sideways" message="Hi"></ui-toast>`)
-    expect(root.className).toBe("ui toast compact")
+    expect(root.className).toBe("ui compact toast")
   })
 })
 

@@ -19,7 +19,7 @@ import panelCSS from "./UIPanel.css?inline"
  *   - Its vocabulary is built on the section's (`UIPanel.en.ts`),
  *     so an attribute the section gains reaches the panel too.
  *   - Only the look differs:  `UIPanel.css`, adopted after the section's sheet.
- * - Classes:  `ui … section panel`, plus `sub` when the section around it is a panel too.
+ * - Classes:  `ui … panel section`, plus `sub` (before the noun too) when the section around it is a panel.
  * - The chevron sits at the far end of each band, after any actions:
  *   the section's `fold-icon="end"` is the panel's default (`defaultFoldIcon`).
  *   `info` puts the section's tip under a band.
@@ -46,7 +46,7 @@ export class UIPanel extends UISection {
   }
 }
 
-/** Class word added after the section's:  `ui ... section panel`. */
+/** Class word added before the section's noun:  `ui ... panel section`. */
 const PANEL = "panel"
 
 /** Class word of a panel inside a panel:  drawn as a sub-head band. */
