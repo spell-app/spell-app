@@ -18,7 +18,7 @@ import answerCSS from "./EpicAnswer.css?inline"
  ****************/
 export class EpicMore extends E.UIComponent<typeof epicMoreVocabulary> {
   @E.proto static vocabulary = epicMoreVocabulary
-  @E.proto static styleSheets = { answer: answerCSS }
+  @E.proto static styleSheets = { "epic-answer": answerCSS }
   @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Open to start with:  it's what was just added. */

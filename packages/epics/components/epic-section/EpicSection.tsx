@@ -79,7 +79,7 @@ import sectionCSS from "./EpicSection.css?inline"
  ****************/
 export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   @E.proto static vocabulary = epicSectionVocabulary
-  @E.proto static styleSheets = { "epic-fold": foldCSS, "epic-section": sectionCSS, review: reviewCSS }
+  @E.proto static styleSheets = { "epic-fold": foldCSS, "epic-section": sectionCSS, "epic-review": reviewCSS }
 
   ////////////////
   // ## State

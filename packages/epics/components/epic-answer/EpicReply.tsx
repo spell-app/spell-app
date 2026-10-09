@@ -28,7 +28,7 @@ import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
  ****************/
 export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
   @E.proto static vocabulary = epicReplyVocabulary
-  @E.proto static styleSheets = { fold: foldCSS, answer: answerCSS }
+  @E.proto static styleSheets = { "epic-fold-button": foldCSS, "epic-answer": answerCSS }
   @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a body? */

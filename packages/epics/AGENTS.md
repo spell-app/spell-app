@@ -71,6 +71,10 @@ house style every package shares.  Only what's local is below;  a section named 
   share.  Another shared module:  add it to Spell UI's `packModules` AND `PACK_MODULES` in
   `packages/cli/src/dev/packBuild.ts`.
 - Every tag starts `epic-`:  `<ui-root>` knows the pack's tags by that prefix.
+- Every sheet NAME starts `epic-` too (`styleSheets = { "epic-item": itemCSS }`):  Spell UI keeps ONE sheet per
+  name for the whole page, and the first class to register a name wins, so a bare `item` drew `<epic-item>` with
+  `<ui-item>`'s sheet on any page that had both (I9).  `components/index.test.tsx` checks every class the barrel
+  exports.
 - A pack drawn by pages EVERY checkout shows (the shared `epics/`, `guides/` ...):  those pages load `main`'s
   `pack/`, through the main checkout's page server.  So:
   - small fixes straight on `main`
