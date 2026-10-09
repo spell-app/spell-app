@@ -80,24 +80,19 @@ export function nameStatus(name: string, ids?: string[], main = CLI.mainRoot()):
  * followUps }`, `followUps` its OPEN questions, judgement calls, issues, todos and tests (caveats are limits
  * accepted, open for good).  The same as `packages/docs/tools/index.js` `followUpsIn()` and the page runtime's
  * `wireFollowUps()`:  a SLEEPING epic has follow-ups and no phase under way.
- * - either markup:  `<epic-phase status>`, `<epic-item status>`, `<epic-page future>`;  or the old
- *   `<ui-section data-phase data-status>`, `<ui-item data-status>`, `<body data-future>`.  REFACTOR: drop old markup
- *   after the switch (P12)
+ * - `<epic-phase status>`, `<epic-item status>`, `<epic-page future>`;  a doc still in the old markup (one restored
+ *   from an old backup) reads as empty:  the plan-doc tool refuses it until it's converted (epic `epic-components` P15)
  */
 export function planFollowUps(file: string): { future: boolean; active: boolean; phases: number; followUps: number } {
   const html = readFileSync(file, "utf8")
   const tags = (name: string) => [...html.matchAll(new RegExp(`<${name}\\b[^>]*>`, "g"))].map((match) => match[0])
-  const epic = /<epic-page\b/.test(html)
-  const status = epic ? "status" : "data-status"
-  const phases = epic ? tags("epic-phase") : tags("ui-section").filter((tag) => /\sdata-phase="/.test(tag))
-  const followUps = tags(epic ? "epic-item" : "ui-item").filter(
-    (tag) => /\sid="[qjitv]\d+"/.test(tag) && new RegExp(`\\s${status}="open"`).test(tag)
-  ).length
+  const phases = tags("epic-phase")
+  const followUps = tags("epic-item").filter((tag) => /\sid="[qjitv]\d+"/.test(tag) && /\sstatus="open"/.test(tag))
   return {
-    future: epic ? tags("epic-page").some((tag) => /\sfuture\b/.test(tag)) : /<body\b[^>]*\sdata-future\b/.test(html),
-    active: phases.some((tag) => new RegExp(`\\s${status}="active"`).test(tag)),
+    future: tags("epic-page").some((tag) => /\sfuture\b/.test(tag)),
+    active: phases.some((tag) => /\sstatus="active"/.test(tag)),
     phases: phases.length,
-    followUps
+    followUps: followUps.length
   }
 }
 
@@ -150,8 +145,8 @@ export function epicsDir(root: string): string {
  * a file it can't read is left out.
  * - runs the plan-doc tool of THIS checkout when it's installed, else the main checkout's:  a worktree's copy
  *   needn't be installed, and the tool reads by path from any checkout
- * - either markup:  `summaries` only reads, so a tool on `<epic-*>` markup reads an old doc too (its
- *   `OldPlanReader`, until the switch, P12);  an older tool reads old docs only
+ * - `<epic-*>` docs only:  the tool refuses a doc in the old markup, which comes back `{ error }` and is left out,
+ *   as is any other doc it can't read
  * - SIDE EFFECT:  cached in `PLAN_SUMMARIES` for the rest of the run;  pass every file up front to read them in
  *   one go (the tool takes ~0.5s to start)
  */
@@ -170,9 +165,8 @@ export function planSummaries(files: string[], main = CLI.mainRoot()): Map<strin
       }
     )
     try {
-      for (const [file, summary] of Object.entries(JSON.parse(run.stdout) as Record<string, CLI.PlanSummary>)) {
-        PLAN_SUMMARIES.set(file, summary)
-      }
+      const found = JSON.parse(run.stdout) as Record<string, CLI.PlanSummary | { error: string }>
+      for (const [file, summary] of Object.entries(found)) if (!("error" in summary)) PLAN_SUMMARIES.set(file, summary)
     } catch {
       // the tool failed:  every plan reads as not done
     }

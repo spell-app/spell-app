@@ -1,10 +1,10 @@
 import { Formats } from "$/epics/definitions"
+import { ProseShapes } from "$/epics/tool/ProseShapes"
 
 import { Chrome, Drawn, PLAN_DOC_CSS, Prose, replyTitleParts } from "./convert.types"
 
 import type { ElementReading } from "./DocReading"
 import { NewReading } from "./NewReading"
-import { ProseShapes } from "./ProseShapes"
 
 /****************
  * ### `ConvertedReading`

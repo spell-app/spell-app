@@ -1,7 +1,7 @@
 import { parseHTML } from "linkedom"
 
 import { SectionIds, type ItemSectionKind } from "$/epics/definitions"
-import { PART_EXT, PlanParts, type PartReader } from "$/epics/tool/PlanParts"
+import { PART_EXT, type PartReader } from "$/epics/tool/PlanParts"
 import { PlanMarkup } from "$/epics/tool/PlanMarkup"
 
 import { OLD_LAYOUTS, type Conversion } from "./convert.types"
@@ -11,15 +11,16 @@ import { ConversionProof } from "./ConversionProof"
 import { DocPass } from "./DocPass"
 import { ItemConverter } from "./ItemConverter"
 import { LogConverter } from "./LogConverter"
+import { OldParts } from "./OldParts"
 import { PageConverter } from "./PageConverter"
 import { PhaseConverter } from "./PhaseConverter"
 
 /****************
  * ### `Converter`
- * The FIRST pass:  converts ONE plan doc from today's markup (`ui-section`s, `ui-item[data-status]`, any generation
+ * The FIRST pass:  converts ONE plan doc from the old markup (`ui-section`s, `ui-item[data-status]`, any generation
  * still in use) to `<epic-*>` markup, and proves it lost nothing.
- * - in:  the doc as it is on disk, split (a skeleton plus `parts/<id>.htm`, or `.html`) or one file;  assembled first
- *   (`PlanParts.assemble()`)
+ * - in:  the doc as it is on disk, split (a skeleton plus `parts/<id>.html`) or one file;  assembled first
+ *   (`OldParts`)
  * - out:  the same doc in `<epic-*>` markup, split again (`EpicParts`), each file formatted as `vp fmt` would;  its
  *   `Markup.validate()` problems (none allowed) and its `ConversionProof` (`DocPass`)
  * - by concern, one helper class each:  the page and Overview (`PageConverter`), phases (`PhaseConverter`), items
@@ -106,10 +107,10 @@ export class Converter extends DocPass {
   // ## Helpers
   ////////////////
 
-  /** `skeleton` parsed, its parts put back (`PlanParts.assemble()`). */
+  /** `skeleton` parsed, its parts put back (`OldParts`). */
   private static assembled(skeleton: string, readPart: PartReader) {
     const document = parseHTML(skeleton).document as unknown as Document
-    const { split, missing } = new PlanParts(document).assemble(readPart)
+    const { split, missing } = new OldParts(document).assemble(readPart)
     return { document, split, missing }
   }
 }
