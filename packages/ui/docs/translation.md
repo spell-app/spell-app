@@ -50,6 +50,8 @@ vocabulary.localize("ie-tarjeta", "size", "big")           // { attribute: "tama
 ```
 
 - The prefix applies to tags AND events: `ie-tarjeta`, `ie-cambio`.  Defaults: `ui` + English identity.
+  - Only Spell UI's own events (`ui-*`) take the prefix untranslated:  another package's tag (a component pack's
+    `<spell-app>`) keeps its own (`spell-open`), unless the dictionary translates it.
 - `define()` throws on collisions (two attributes / values / components landing on one localized name),
   since one of them would become unreachable in that language.
 - Canonical attribute aliases (`checked` for `selected`) stay accepted, untranslated.

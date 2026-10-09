@@ -41,6 +41,9 @@
       "$/lsp/*": ["./packages/lsp/src/*"],
       "$/app": ["./packages/app/src/index.tsx"],
       "$/app/*": ["./packages/app/src/*"],
+      // `<spell-app>` / `<spell-editor>` live in `packages/app/components/`, outside `src/`, as a component pack's
+      // families do (`epics` below):  `$/app/components/*` is longer than `$/app/*`, so it wins
+      "$/app/components/*": ["./packages/app/components/*"],
       "$/cli": ["./packages/cli/src/index.ts"],
       "$/cli/*": ["./packages/cli/src/*"],
       "$/server": ["./packages/server/src/index.ts"],
