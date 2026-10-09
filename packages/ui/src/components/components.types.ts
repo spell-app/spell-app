@@ -316,7 +316,7 @@ export type StackWith = (typeof StackWithValues)[number]
 export const STACK_WITH_TOKEN = "--ui-stack-with"
 
 /**
- * Prefix of the private class an element's `stack-with` adds after the noun:  `ui stackable grid stack-with-page`.
+ * Prefix of the private class an element's `stack-with` adds before the noun:  `ui stackable stack-with-page grid`.
  * - A class, not a `:state()` of the DOM element:
  *   `:state()` rules left WebKit with stale viewport media queries (`UITable.css`'s `stack-by`, the same mechanism)
  * - From the CANONICAL value, so a translated attribute still works
@@ -1042,7 +1042,7 @@ export type WordWidth = (typeof WordWidths)[number]
 
 /****************
  * ### `WordWidthClasses`
- * The word a `width` adds after the noun (`ui left sidebar thin`), shared by `<ui-sidebar>`,
+ * The word a `width` adds before the noun (`ui left thin sidebar`), shared by `<ui-sidebar>`,
  * `<ui-flyout>` and their fallbacks:  `ClassBuilder`'s `width` kind only knows columns.
  ****************/
 export class WordWidthClasses {

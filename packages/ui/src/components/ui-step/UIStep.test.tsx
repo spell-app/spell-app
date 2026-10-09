@@ -87,9 +87,9 @@ describe("<ui-step>", () => {
   it.each([
     ["", "div", "step"],
     ["selected", "div", "active step"],
-    ["active", "div", "step active"],
+    ["active", "div", "active step"],
     ["completed disabled", "div", "completed disabled step"],
-    ['color="red"', "div", "red step ui-red"],
+    ['color="red"', "div", "red ui-red step"],
     ['href="#a"', "a", "step"],
     ["link", "button", "link step"]
   ])("<ui-step %s> => <%s class=%s>", async (attributes, tag, classes) => {
@@ -208,7 +208,7 @@ describe("<ui-steps> layouts", () => {
         `${three('stack-with="container"')}</div></div>`
     )
     const groups = [...holder.querySelectorAll("ui-steps")]
-    expect(groups[0]!.shadowRoot!.firstElementChild!.className).toBe("ui steps stack-with-page")
+    expect(groups[0]!.shadowRoot!.firstElementChild!.className).toBe("ui stack-with-page steps")
     /** Whether `group`'s steps are stacked. */
     const stacked = (group: Element) => token(stepRoots(group)[0]!, "--_ui-step-layout") === "stacked"
     await Viewport.resize(1200)

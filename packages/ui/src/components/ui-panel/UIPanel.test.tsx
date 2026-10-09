@@ -47,13 +47,13 @@ function part(host: Element, name: string): HTMLElement {
 ////////////////
 
 describe("<ui-panel> structure", () => {
-  it("is a section under its own tag:  `section panel`, and `sub` inside another panel", async () => {
+  it("is a section under its own tag:  `panel section`, and `sub` inside another panel", async () => {
     const host = await ElementFixture.render(`<ui-panel header="Color Set">
       <ui-panel header="Tweak"><p>Vibrancy</p></ui-panel>
     </ui-panel>`)
     const inner = host.querySelector("ui-panel")!
     await ElementFixture.settle()
-    expect(root(host).className).toMatch(/\bsection panel\b/)
+    expect(root(host).className).toMatch(/\bpanel section$/)
     expect(root(host).classList.contains("sub")).toBe(false)
     expect(root(inner).classList.contains("sub")).toBe(true)
     expect(part(host, "header").textContent).toBe("Color Set")

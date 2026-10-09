@@ -28,11 +28,11 @@ async function flag(html: string) {
 
 describe("<ui-flag> classes", () => {
   it.each([
-    ['country="fr"', "ui flag fr"],
-    ['country="fr" size="large"', "ui large flag fr"],
-    ['country="fr" size="medium"', "ui flag fr"],
-    ['country="fr" size="massive"', "ui massive flag fr"],
-    ['country="england"', "ui flag gb-eng"]
+    ['country="fr"', "ui fr flag"],
+    ['country="fr" size="large"', "ui large fr flag"],
+    ['country="fr" size="medium"', "ui fr flag"],
+    ['country="fr" size="massive"', "ui massive fr flag"],
+    ['country="england"', "ui gb-eng flag"]
   ])("<ui-flag %s>", async (attributes, classes) => {
     const { root } = await flag(`<ui-flag ${attributes}></ui-flag>`)
     expect(root.localName).toBe("span")

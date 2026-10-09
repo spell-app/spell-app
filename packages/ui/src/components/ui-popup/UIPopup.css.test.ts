@@ -88,7 +88,7 @@ describe("UIPopup.css source", () => {
       expect(Sheets.covers(css, phrase), `${popupVocabulary.tag}: ${phrase}`).toBe(true)
   })
 
-  it("covers every position word the element adds after the noun", () => {
+  it("covers every position word the element adds before the noun", () => {
     for (const position of ["top left", "top center", "top right", "bottom left", "bottom center", "bottom right"]) {
       expect(Sheets.covers(popupRaw, position), position).toBe(true)
     }

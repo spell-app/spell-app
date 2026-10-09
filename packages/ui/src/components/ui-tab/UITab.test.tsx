@@ -130,10 +130,10 @@ describe("<ui-tabs> classes", () => {
   })
 
   it.each([
-    ["", "ui active tab segment"],
-    ["tabular attached", "ui active bottom attached tab segment"],
-    ['attached="bottom"', "ui active top attached tab segment"],
-    ["basic inverted", "ui basic inverted active tab segment"]
+    ["", "ui active segment tab"],
+    ["tabular attached", "ui active bottom attached segment tab"],
+    ['attached="bottom"', "ui active top attached segment tab"],
+    ["basic inverted", "ui basic inverted active segment tab"]
   ])("panes of <ui-tabs %s>", async (attributes, classes) => {
     const { panes } = await tabs(attributes)
     expect(boxOf(panes[0]!).className).toBe(classes)
@@ -424,7 +424,7 @@ describe("<ui-tab>", () => {
   it("stands alone:  shown while `selected`, no tabpanel role", async () => {
     const pane = await ElementFixture.render<DOMElement>(`<ui-tab selected>Alone</ui-tab>`)
     expect(pane.matches(":state(selected)")).toBe(true)
-    expect(boxOf(pane).className).toBe("ui active tab segment")
+    expect(boxOf(pane).className).toBe("ui active segment tab")
     expect(pane.internals.role).toBeNull()
     expect(pane.hasAttribute("tabindex")).toBe(false)
     pane.removeAttribute("selected")
@@ -434,7 +434,7 @@ describe("<ui-tab>", () => {
   it("shows a loading pane busy, its content hidden", async () => {
     const { panes } = await tabs("", `<ui-tab label="A" loading><p>Content</p></ui-tab>`)
     expect(boxOf(panes[0]!).getAttribute("aria-busy")).toBe("true")
-    expect(boxOf(panes[0]!).className).toBe("ui loading active tab segment")
+    expect(boxOf(panes[0]!).className).toBe("ui loading active segment tab")
     expect(getComputedStyle(panes[0]!.querySelector("p")!).visibility).toBe("hidden")
   })
 })

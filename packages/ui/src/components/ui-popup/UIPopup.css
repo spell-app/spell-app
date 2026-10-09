@@ -5,7 +5,7 @@
  *   `<div class="ui [size] [color] [keyOnly ...] [very] [wide] popup [position]" part="popup">` holding, in order,
  *   `<div class="header" part="header">` (the `header` shorthand),
  *   `<div class="content" part="content">` (the `content` shorthand) and the default `<slot>`.
- *   The position words (`top left` ... `right center`) come after the noun, as Fomantic's script added them;
+ *   The position words (`top left` ... `right center`) come before the noun (the words Fomantic's script added);
  *   `visible` while open.
  * - The DOM element is the positioned box:  a popover (`popover="hint"` for hover / focus popups where supported,
  *   else `manual`) in the top layer, anchored to its target.  The element sets on it, inline:

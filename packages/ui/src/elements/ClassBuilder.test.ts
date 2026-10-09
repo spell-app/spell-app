@@ -105,7 +105,7 @@ describe("ClassBuilder.build() per kind", () => {
 })
 
 describe("ClassBuilder.build() order", () => {
-  it("is ui, size, color, keyOnly (alphabetical), keyOrValue (vocabulary order), multiple, width, aligns, noun, extra", () => {
+  it("is ui, size, color, keyOnly (alphabetical), keyOrValue (vocabulary order), multiple, width, aligns, extra, noun", () => {
     const everything: ClassInput = {
       "vertical-align": "top",
       "text-align": "center",
@@ -123,7 +123,7 @@ describe("ClassBuilder.build() order", () => {
     }
     expect(widgets.build(everything, { extra: "active" })).toBe(
       "ui large blue basic fluid labeled icon very basic left pointing right floated attached " +
-        "mobile only eight wide center aligned top aligned widget active"
+        "mobile only eight wide center aligned top aligned active widget"
     )
   })
 

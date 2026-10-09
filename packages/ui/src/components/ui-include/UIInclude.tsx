@@ -97,7 +97,7 @@ export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
   }
 
   /**
-   * Words after the noun, hooks for page CSS:  a deferred `load` mode (`ui include visible`:  e.g. reserve room for a
+   * Words before the noun, hooks for page CSS:  a deferred `load` mode (`ui visible include`:  e.g. reserve room for a
    * lazy island), and `loading` while `source` loads.
    */
   protected get extraClass(): string | undefined {
@@ -249,7 +249,7 @@ export interface UIInclude extends E.AttributeValues<typeof includeVocabulary> {
 /** The default `load` mode:  no class word. */
 const EAGER: UIT.SourceLoadMode = "eager"
 
-/** Class word after the noun while `source` loads. */
+/** Class word before the noun while `source` loads. */
 const LOADING_CLASS = "loading"
 
 /** The `<body ...>` opening tag of a page, for splicing a saved body back into its file. */

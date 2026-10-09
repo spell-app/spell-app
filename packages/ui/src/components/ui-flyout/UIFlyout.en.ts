@@ -3,7 +3,7 @@
  * Schema:  `E.ComponentVocabulary`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-flyout position="right" inverted width="4" open>` => `ui right inverted visible four wide flyout`;
- *   a word width (`thin`, `very wide`) is added after the noun by the element (`ui left flyout very wide`).
+ *   a word width (`thin`, `very wide`) is added before the noun by the element (`ui left very wide flyout`).
  * - `open` emits `visible`, Fomantic's shown-flyout class.
  * - The SAME dialog vocabulary as `<ui-modal>` (`open`, `closable`, `closedby`, `header`, `content`, the six events,
  *   the `close` text):  both run on `DialogComponent`.

@@ -375,7 +375,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     return super.classValue(name)
   }
 
-  /** The position words, after the noun:  `ui popup top left`. */
+  /** The position words, before the noun:  `ui top left popup`. */
   protected get extraClass(): string | undefined {
     return this.position ?? DEFAULT_POSITION
   }
@@ -591,7 +591,7 @@ type AriaRelationProps = {
 // ## Constants
 ////////////////
 
-/** Fomantic's default position:  the popup's class words after its noun, `ui popup top left`. */
+/** Fomantic's default position:  the popup's class words before its noun, `ui top left popup`. */
 const DEFAULT_POSITION = "top left"
 
 /** Fomantic's default trigger. */

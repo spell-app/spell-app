@@ -7,7 +7,7 @@
  *   its side (`uncover` left / right, `overlay` top / bottom).
  * - `position` and `transition` are `kind: "valueOnly"`:  each emits its value alone.
  * - `width` (`kind: "width"`, as `<ui-flyout>`'s) takes Fomantic's sidebar words (`very thin` ... `very wide`),
- *   which the element adds after the noun (`ui left sidebar thin`),
+ *   which the element adds before the noun (`ui left thin sidebar`),
  *   AND columns of the viewport (`4`, `1/4`, `25%` => `four wide`).
  * - `pushable` / `pusher` have no `ui` (Fomantic's `.pushable`, `.pusher`).
  */

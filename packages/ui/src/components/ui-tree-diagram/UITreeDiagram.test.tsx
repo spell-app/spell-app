@@ -120,7 +120,7 @@ describe("<ui-tree-diagram> data", () => {
 
   test("with no tree, draws nothing:  a hidden, unnamed `<svg>`, an element with no height", async () => {
     const { host, svg } = await diagram(markup())
-    expect(svg.getAttribute("class")).toBe("ui tree diagram empty")
+    expect(svg.getAttribute("class")).toBe("ui empty tree diagram")
     expect(svg.hasAttribute("role")).toBe(false)
     expect(svg.hasAttribute("aria-label")).toBe(false)
     expect(getComputedStyle(svg).display).toBe("none")
@@ -131,7 +131,7 @@ describe("<ui-tree-diagram> data", () => {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
     onTestFinished(() => warn.mockRestore())
     const { host, svg } = await diagram(markup("{label: If}"))
-    expect(svg.getAttribute("class")).toBe("ui tree diagram empty")
+    expect(svg.getAttribute("class")).toBe("ui empty tree diagram")
     host.tree = { label: "Other" }
     await ElementFixture.tick()
     host.tree = undefined

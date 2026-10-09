@@ -65,8 +65,8 @@ afterEach(() => {
 describe("<ui-transition> classes and first paint", () => {
   it.each([
     ["", "ui transition"],
-    ["visible", "ui transition visible"],
-    ['color="red" pulsating looping inline visible', "ui red inline looping pulsating transition visible"],
+    ["visible", "ui visible transition"],
+    ['color="red" pulsating looping inline visible', "ui red inline looping pulsating visible transition"],
     ["inverted disabled", "ui disabled inverted transition"]
   ])("<ui-transition %s>", async (attributes, classes) => {
     const { box } = await transition(`<ui-transition ${attributes}>x</ui-transition>`)

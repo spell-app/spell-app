@@ -119,7 +119,7 @@ export class UITransition extends E.UIComponent<Vocabulary> {
     if (isReady && visible !== this.willBeVisible) void this.queueVisibility(visible, this.animationName)
   }
 
-  /** Its state after the noun, as Fomantic's script added it:  `visible`, `animating`. */
+  /** Its state before the noun, the words Fomantic's script added:  `visible`, `animating`. */
   protected get extraClass(): string | undefined {
     const words = [this.isShowing ? UIT.VISIBLE : undefined, this.isAnimating ? UIT.ANIMATING : undefined]
     return words.filter(Boolean).join(" ") || undefined

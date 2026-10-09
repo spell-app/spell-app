@@ -136,7 +136,7 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
     return super.classValue(name)
   }
 
-  /** The aspect-ratio word after the noun (`ui embed 4:3`). */
+  /** The aspect-ratio word before the noun (`ui 4:3 embed`). */
   protected get extraClass(): string | undefined {
     return this.aspectRatio ?? undefined
   }

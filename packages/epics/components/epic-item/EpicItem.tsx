@@ -247,7 +247,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   ////////////////
 
   /**
-   * Words after the noun:  its state (`item attention`), `canceled`, `has-details`, `unfolded`.
+   * Words before the noun:  its state (`attention item`), `canceled`, `has-details`, `unfolded`.
    * - NOTE: `unfolded`, not `open`:  `open` is a state (blue) already;  of the statuses only `canceled` looks
    *   different (struck through), so only it is a word here.
    */

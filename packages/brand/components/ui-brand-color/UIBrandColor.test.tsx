@@ -49,7 +49,7 @@ describe("<ui-brand-color> chip", () => {
     expect(style.color).toBe(rgb(Palette.ink("#8E96B5")))
     const box = chip.getBoundingClientRect()
     expect([box.width, box.height]).toEqual([48, 48])
-    expect([...chip.classList]).toEqual(["color", "brand"])
+    expect([...chip.classList]).toEqual(["brand", "color"])
     await expectAccessible(host)
   })
 

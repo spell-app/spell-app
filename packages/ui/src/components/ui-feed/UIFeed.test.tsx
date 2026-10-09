@@ -77,7 +77,7 @@ describe("<ui-feed> classes and markup", () => {
 
   it.each([
     ["", "event"],
-    ['color="red"', "red event ui-red"],
+    ['color="red"', "red ui-red event"],
     ["basic disabled", "basic disabled event"]
   ])("<ui-event %s>", async (attributes, classes) => {
     const { events } = await feed("", `<ui-event ${attributes}>${CONTENT}</ui-event>`)

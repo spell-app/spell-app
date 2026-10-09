@@ -18,7 +18,7 @@ import cardCSS from "./UICard.css?inline"
  * - Count, spacing and width reach the cards as private inherited tokens (`--_cards-*`, `UICard.css`).
  *   - `doubling` and `stackable` answer to THIS DOM element's width:
  *     it's a block and the size container `ui-cards` (`:state(cards)`, always on).
- *   - With `stack-with="page"` (a private class after the noun), they answer to the screen's.
+ *   - With `stack-with="page"` (a private class before the noun), they answer to the screen's.
  *
  * - A list:  a group of cards reads as "list, 3 items";  each card is still its own `<article>` or link.
  * - It shares the card's sheet, `UICard.css`.

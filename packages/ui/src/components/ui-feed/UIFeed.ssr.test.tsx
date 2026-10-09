@@ -27,7 +27,7 @@ describe("<ui-feed> static render", () => {
     expect(sorted(html)).toBe(
       sorted(
         `<ol class="ui blue ordered feed" part="feed" role="list" data-ui="feed">` +
-          `<li class="red event ui-red in-feed" part="event" data-ui="event" data-state="in-feed" data-ui-slotted="">` +
+          `<li class="red ui-red event in-feed" part="event" data-ui="event" data-state="in-feed" data-ui-slotted="">` +
           `<div class="label" part="label" data-text="A"></div>` +
           `<div class="content in-feed" part="content" data-ui="content" data-state="in-feed" data-ui-slotted="">` +
           `<div class="summary in-feed" part="summary" data-ui="summary" data-state="in-feed" data-ui-slotted="">` +
