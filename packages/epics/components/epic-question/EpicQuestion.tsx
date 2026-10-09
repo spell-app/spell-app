@@ -17,11 +17,13 @@ import questionCSS from "./EpicQuestion.css?inline"
  ****************/
 export class EpicQuestion extends E.UIComponent<typeof epicQuestionVocabulary> {
   @E.proto static vocabulary = epicQuestionVocabulary
-  @E.proto static styleSheets = { "epic-question": questionCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-question": questionCSS }
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <div class={LABEL} part={this.partForName("label")}>
           {this.translationForKey("label")}
         </div>

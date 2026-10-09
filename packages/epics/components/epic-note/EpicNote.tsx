@@ -19,8 +19,10 @@ import noteCSS from "./EpicNote.css?inline"
  ****************/
 export class EpicNote extends E.UIComponent<typeof epicNoteVocabulary> {
   @E.proto static vocabulary = epicNoteVocabulary
-  @E.proto static styleSheets = { "epic-note": noteCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-note": noteCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a body? */
   readonly slots = new E.SlotContent(this.domElement)
@@ -30,13 +32,13 @@ export class EpicNote extends E.UIComponent<typeof epicNoteVocabulary> {
     return this.state === DONE
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.isDone ? DONE : UPDATE
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")} title="">
+      <div class={this.rootClass} part={this.partForName("base")} title="">
         <div class={HEADER} part={this.partForName("header")}>
           <span class={LABEL} part={this.partForName("label")}>
             {this.translationForKey(this.isDone ? "done" : "update")}

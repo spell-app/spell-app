@@ -25,8 +25,8 @@ describe("<epic-note>", () => {
         empty: part(host, "body").classList.contains("empty")
       }))
     ).toEqual([
-      { heading: "UPDATE · partly fixed by J9, 2026-10-06", look: "note update", empty: false },
-      { heading: "DONE · option A, 2026-10-06", look: "note done", empty: true }
+      { heading: "UPDATE · partly fixed by J9, 2026-10-06", look: "update note", empty: false },
+      { heading: "DONE · option A, 2026-10-06", look: "done note", empty: true }
     ])
     expect(update.querySelector("p")!.assignedSlot).not.toBeNull()
     expect(getComputedStyle(part(done, "body")).display).toBe("none")
