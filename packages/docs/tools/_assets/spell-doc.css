@@ -585,6 +585,172 @@ pre code {
   vertical-align: 0.1em;
 }
 
+/*
+ * ## Page notes (epic `airplane`, P3):  `<spell-notes>` groups of `<spell-note>` cards, written into the page
+ * (`tools/PageNotes.js`), drawn by the runtime's "Page notes" (`wireNotes()`).
+ * - a note is Owen's:  an ivory card (`--spell-warm`);  Claude's replies under it, violet (Claude's voice)
+ * - FOLDED until opened (`spell-note[open]`):  only the head line shows, with the note's first line
+ * - its status, by the colour scheme:  new yellow (open), answered violet, done grey
+ * - the bubble in a section's title (`.spell-note-bubble`, slotted in its `actions`):  shown while the reader is
+ *   in that section (its innermost hovered one), when focused, and always once it has notes (`data-count`)
+ */
+.spell-doc-main spell-notes {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+}
+.spell-doc-main spell-note {
+  display: block;
+  padding: 4px 10px;
+  border: 1px solid var(--spell-rule);
+  border-left: 3px solid var(--spell-state-open);
+  border-radius: 6px;
+  background: var(--spell-warm);
+  font-size: 0.95rem;
+}
+.spell-doc-main spell-note[status="answered"] {
+  border-left-color: var(--ui-violet, #6435c9);
+}
+.spell-doc-main spell-note[status="done"] {
+  border-left-color: var(--spell-rule);
+  color: var(--spell-muted);
+}
+.spell-doc-main spell-note > p {
+  margin: 6px 0;
+}
+/* folded:  the head line only (before the runtime draws one:  the text, so a `file://` page without it reads) */
+.spell-doc-main spell-note:has(> .spell-note-head):not([open]) > :not(.spell-note-head) {
+  display: none;
+}
+.spell-doc-main spell-note-reply {
+  display: block;
+  margin: 6px 0 4px 8px;
+  padding: 2px 10px;
+  border-left: 3px solid var(--ui-violet, #6435c9);
+  background: color-mix(in srgb, var(--ui-violet, #6435c9) 7%, var(--spell-bg));
+  border-radius: 0 6px 6px 0;
+}
+.spell-doc-main spell-note-reply::before {
+  content: "Claude · " attr(at);
+  display: block;
+  margin-top: 4px;
+  color: var(--ui-violet, #6435c9);
+  font: var(--spell-eyebrow-font);
+  letter-spacing: var(--spell-eyebrow-tracking);
+}
+.spell-doc-main .spell-note-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+.spell-doc-main button.spell-note-fold {
+  display: flex;
+  flex: 1 1 auto;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+  padding: 2px 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.spell-doc-main button.spell-note-fold > ui-icon {
+  align-self: center;
+  color: var(--spell-muted);
+}
+.spell-doc-main .spell-note-preview {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  color: var(--spell-muted);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.spell-doc-main spell-note[open] .spell-note-preview {
+  visibility: hidden;
+}
+.spell-doc-main .spell-note-status {
+  flex: none;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--spell-state-open);
+  color: var(--spell-state-open-on);
+  font-size: 0.75rem;
+}
+.spell-doc-main .spell-note-status[data-note-status="answered"] {
+  background: var(--ui-violet, #6435c9);
+  color: var(--ui-violet-on, #fff);
+}
+.spell-doc-main .spell-note-status[data-note-status="done"] {
+  background: var(--spell-state-old);
+  color: var(--spell-state-old-on);
+}
+.spell-doc-main .spell-note-bubble {
+  display: inline-flex;
+  align-items: center;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+.spell-doc-main
+  :is(
+    ui-section:hover:not(:has(ui-section:hover)) > .spell-note-bubble,
+    .spell-note-bubble[data-count],
+    .spell-note-bubble:focus-within
+  ) {
+  opacity: 1;
+}
+/* the page header's Note pill, and "N new" before it;  the Epics page's New epic pill */
+.spell-doc-main :is(.spell-page-notes, .spell-new-epic) {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 8px;
+}
+.spell-doc-main a.spell-notes-count {
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--spell-state-open);
+  color: var(--spell-state-open-on);
+  font-size: 0.8rem;
+  text-decoration: none;
+}
+/* the note box (outside `main`):  a textarea that grows with its text (`growField()`) */
+.spell-note-box textarea.spell-note-field {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 5lh;
+  max-height: 50vh;
+  padding: 8px 10px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 6px;
+  background: var(--spell-bg);
+  color: var(--spell-ink);
+  font: inherit;
+  line-height: 1.4;
+  resize: vertical;
+}
+/* the New epic box's title:  one line, above its prompt */
+.spell-note-box input.spell-note-field {
+  box-sizing: border-box;
+  width: 100%;
+  margin-bottom: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--spell-rule);
+  border-radius: 6px;
+  background: var(--spell-bg);
+  color: var(--spell-ink);
+  font: inherit;
+}
+.spell-note-box .spell-note-hint {
+  margin: 6px 0 0;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+}
+
 /* ## Messages, tables, cards:  page spacing;  tables scroll inside their box at phone width */
 .spell-doc-main :is(ui-message, ui-cards, ui-accordion, ui-statistics, ui-steps, ui-tabs, ui-grid, ui-feed, ui-items) {
   margin: 16px 0;
@@ -1119,8 +1285,10 @@ ui-labels.spell-legend {
  * - `visibility`, not `display`:  the page keeps its layout, and so its scroll position
  * - never forever:  `spell-uncloak` shows it anyway after 2s, e.g. a page opened from `file://` whose bundle failed
  *   to load (`check-spell.js` still reports an element that never defines)
+ * - NOT the page notes' plain markup (`<spell-notes>` ...):  no element is ever defined for it, so it would only
+ *   ever show 2s late
  */
-:not(:defined) {
+:not(:defined, spell-notes, spell-note, spell-note-reply) {
   visibility: hidden;
   animation: spell-uncloak 0s 2s forwards;
 }

@@ -86,3 +86,15 @@ export const BUNDLE_FOLDERS = ["packages/ui/site/_assets", "packages/brand/_asse
  * - each build takes a few seconds (2 s for both on an M-series Mac, 2026-10-07);  a cold `tsx` and vite add some
  */
 export const BUNDLE_WAIT_MS = 120_000
+
+/**
+ * Code colours (highlight.js) for every docs page, from the repo instead of cdnjs (epic `airplane` P1).
+ * - `cdn`:  the tag older pages still carry;  a plain, blocking `<script>`, so a hanging network (plane wifi asking
+ *   to pay first) held up `spell-ui.js` behind it, and the page showed raw markup for tens of seconds
+ * - `local`:  the same file (11.9.0), committed;  the page server serves pages with `cdn` swapped for it
+ *   (`localHighlight()`), so they load with no network at all
+ */
+export const HIGHLIGHT_JS = {
+  cdn: "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js",
+  local: "/packages/docs/tools/_assets/highlight.min.js"
+} as const

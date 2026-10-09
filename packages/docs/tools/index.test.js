@@ -1,7 +1,7 @@
 import { parseHTML } from "linkedom"
 import { describe, expect, it } from "vite-plus/test"
 
-import { END, LISTS, START, areaCards, epicOrder, listSection, planOf, skeleton } from "./index.js"
+import { END, LISTS, START, areaCards, epicOrder, listSection, planOf, replaceBetween, skeleton } from "./index.js"
 
 /** A described epic page (`describe()`'s shape) with `phases`, each a status. */
 function epic(name, statuses, updated = new Date().toISOString().slice(0, 10)) {
@@ -90,9 +90,27 @@ describe("the list pages", () => {
     expect(html.indexOf(START)).toBeLessThan(html.indexOf(END))
     expect(skeleton(LISTS.find((list) => list.id === "templates"))).toContain(`id="writing-docs"`)
   })
+
+  it("carry the page notes Owen left in the list over when it's written again (epic airplane P3)", () => {
+    const written = `${START}\n${listSection(guides, [page("guides/a.html")])}\n${END}`.replace(
+      "</ui-section>",
+      `<spell-notes for="guides"><spell-note id="n1" status="new" at="2026-10-10 14:02"><p>Group these?</p></spell-note></spell-notes>\n</ui-section>`
+    )
+    const again = replaceBetween(
+      written,
+      START,
+      END,
+      listSection(guides, [page("guides/a.html"), page("guides/b.html")])
+    )
+    expect(again).toContain(`<a href="b.html">`)
+    expect(again).toMatch(
+      /<a href="b.html">[\s\S]*<spell-note id="n1"[\s\S]*<\/spell-notes>\n<\/ui-section>\n<!-- index:end -->$/
+    )
+    expect(replaceBetween("no markers", START, END, "")).toBeUndefined()
+  })
 })
 
-describe("planOf():  a plan doc's card data, either markup (epic-components P8)", () => {
+describe("planOf():  a plan doc's card data (epic-components P8)", () => {
   const expected = {
     phases: [
       { status: "done", label: "P1 · First Go" },
@@ -115,12 +133,10 @@ describe("planOf():  a plan doc's card data, either markup (epic-components P8)"
     expect(planOf(document)).toEqual(expected)
   })
 
-  it("reads the old markup until the switch", () => {
+  it("reads a doc in the old markup as an empty plan (read no more since P15)", () => {
     const { document } = parseHTML(`<html><body><time id="plan-updated">2026-10-06</time>
-<ui-section id="phases"><ui-section data-phase="1" data-status="done" header="P1 · First Go"></ui-section>
-<ui-section data-phase="2" data-status="active" header="P2 · Second"></ui-section></ui-section>
-<ui-list class="plan-items"><ui-item id="q1" data-status="open"></ui-item><ui-item id="c1" data-status="open"></ui-item>
-<ui-item id="i1" data-status="open"></ui-item></ui-list></body></html>`)
-    expect(planOf(document)).toEqual(expected)
+<ui-section id="phases"><ui-section data-phase="1" data-status="done" header="P1 · First Go"></ui-section></ui-section>
+<ui-list class="plan-items"><ui-item id="q1" data-status="open"></ui-item></ui-list></body></html>`)
+    expect(planOf(document)).toEqual({ phases: [], updated: null, future: false, followUps: [] })
   })
 })

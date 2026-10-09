@@ -12,25 +12,31 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * The repo tools `spell dev` passes straight through to, by command:  each as its yarn script ran it.
  * - `docs <verb>`:  `packages/docs/package.json`'s `docs:<verb>`, in `packages/docs` as `yarn workspace` ran them
  * - `docs fuss`:  the writing checker, under `tsx`, in the caller's folder (its paths are from there)
+ * - `docs offline`:  what docs pages load from the internet, likewise
  * - `server`:  `packages/server`'s `server` script;  `serve`:  root `yarn serve`, `spell dev server start --all`
  * - `window`:  root `yarn window`;  plain `node`, so it runs in a worktree before its `yarn install`
  * - `design build`:  `packages/ui`'s `design:build`, under `tsx`, in the caller's folder (so `--out` is relative to it)
  * - `design bundle` / `design check`:  `packages/docs`' `design:bundle` (`bundle-spell-ui.js --design`) / `design:check`
  * - `design sync`:  `packages/docs/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
  * - `agents`:  the running-agents list (`packages/docs/tools/AgentList.ts`), in the caller's folder
- * - NOTE: `goals` has its own lookup (`goalsCommand()`);  `vscode` runs yarn itself (`vscodeSteps()`);  `plan-doc`
- *   runs in this process (`planDocCommand()`, epic `epic-components` P7)
+ * - `airplane`:  airplane mode and its pre-flight check (`packages/docs/tools/airplane.ts`), in the caller's folder
+ * - `notes`:  page notes (`packages/docs/tools/notes.ts`), in the caller's folder (`answer --file` is from there)
+ * - NOTE: `goals` has its own lookup (`goalsCommand()`);  `vscode` runs yarn itself (`vscodeSteps()`);
+ *   `plan-doc` runs in this process (`planDocCommand()`, epic `epic-components` P7)
  */
 export const TOOLS = {
   agents: { tool: "packages/docs/tools/agents.ts", tsx: "packages/docs/tsconfig.json" },
+  airplane: { tool: "packages/docs/tools/airplane.ts", tsx: "packages/docs/tsconfig.json" },
   "docs update": { tool: "packages/docs/tools/update.js", cwd: "packages/docs" },
   "docs index": { tool: "packages/docs/tools/index.js", cwd: "packages/docs" },
   "docs new": { tool: "packages/docs/tools/new-page.js", cwd: "packages/docs" },
   "docs open": { tool: "packages/docs/tools/open.js", cwd: "packages/docs" },
   "docs link": { tool: "packages/docs/tools/link.ts", tsx: "packages/docs/tsconfig.json", cwd: "packages/docs" },
   "docs fuss": { tool: "packages/docs/tools/fuss.ts", tsx: "packages/docs/tsconfig.json" },
+  "docs offline": { tool: "packages/docs/tools/offline.ts", tsx: "packages/docs/tsconfig.json" },
   details: { tool: "packages/docs/tools/details.js", cwd: "packages/docs" },
   choices: { tool: "packages/docs/tools/choices.js", cwd: "packages/docs" },
+  notes: { tool: "packages/docs/tools/notes.ts", tsx: "packages/docs/tsconfig.json" },
   "design build": { tool: "packages/ui/scripts/design-build.ts", tsx: "packages/ui/scripts/tsconfig.json" },
   "design bundle": { tool: "packages/docs/tools/bundle-spell-ui.js", cwd: "packages/docs" },
   "design check": { tool: "packages/docs/tools/check-design-bundle.js", cwd: "packages/docs" },
@@ -44,7 +50,7 @@ export const TOOLS = {
 export type ToolName = keyof typeof TOOLS
 
 /** `docs`' verbs, in the order help lists them. */
-export const DOCS_VERBS = ["update", "index", "new", "open", "link", "fuss"] as const
+export const DOCS_VERBS = ["update", "index", "new", "open", "link", "fuss", "offline"] as const
 
 /**
  * `design`'s verbs (epic `claude-design`), in the order help lists them.
@@ -79,8 +85,8 @@ export const TSX_LOADER = pathToFileURL(join(REPO_ROOT, "node_modules", "tsx", "
 
 /**
  * Run `command` with `args` as a child, with this terminal attached, and resolve to its exit code.
- * - `Ctrl-C` reaches the child from the terminal itself, so this process ignores it until the child is done:  a
- *   foreground server (`server serve`, `goals serve`) gets to stop cleanly, and we exit with its code
+ * - `Ctrl-C` reaches the child from the terminal itself, so this process ignores it until the child is done:
+ *   a foreground server (`server serve`, `goals serve`) gets to stop cleanly, and we exit with its code
  * - `SIGTERM` / `SIGHUP` sent to us alone are passed on
  * - killed by a signal:  `128 +` its number, as a shell reports it;  failed to start:  `EXIT.ERRORS`, saying why
  */

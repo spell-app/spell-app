@@ -32,7 +32,7 @@ import choicesCSS from "./EpicChoices.css?inline"
 export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   @E.proto static vocabulary = epicChoicesVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { choices: choicesCSS },
+    styleSheets: { "epic-choices": choicesCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 

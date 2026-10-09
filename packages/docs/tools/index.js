@@ -2,22 +2,25 @@
  * `spell dev docs index`:  write the docs home's area cards and each area's list page, from every page's `<title>`
  * and description (claude-design P5).
  * Usage (from `packages/docs`):  node tools/index.js
- * - The home, `pages/index.html`:  a routing page, one card per area in the top bar's order (`areaCards()`;  the
- *   site header's `PROPERTIES`), each with its count, written between `<!-- areas:start -->` and `<!-- areas:end -->`
+ * - The home, `pages/index.html`:  a routing page, one card per area in the top bar's order
+ *   (`areaCards()`;  the site header's `PROPERTIES`), each with its count,
+ *   written between `<!-- areas:start -->` and `<!-- areas:end -->`
  *   - NOT `index:start` / `index:end`:  the home is shared, so an older checkout's `index.js` (which wrote three lists
  *     into the home) runs against it too;  finding no markers, it stops instead of writing its lists back
  * - The list pages (`LISTS`), each `<area>/index.html`, written between `<!-- index:start -->` and
  *   `<!-- index:end -->`;  a missing one is made from `skeleton()` first, so the rest of it is hand-authored after:
  *   - Epics:  `epics/<name>/<name>.plan.html`, open ones first, each card's title after its state (`epicState()`:
- *     planning, [3/6], done, stalled), read from its phase sections (`#phases`) and "updated" date;  the page server
- *     adds the running epics' cards (`RUNNING`)
+ *     planning, [3/6], done, stalled), read from its phase sections (`#phases`) and "updated" date;
+ *     the page server adds the running epics' cards (`RUNNING`)
  *   - Guides:  `guides/**`
  *   - Templates:  `templates/**`, and the "Writing docs" notes (`WRITING_DOCS`, in its skeleton)
  *   - Brand:  `brand/**` but the rich Brand index's own (`BRAND_OWN`:  Claude Design's export and its copies, the
  *     element pages, Compare), in its section 6 (`section`:  the index's own sections hold an id `brand` already)
  * - Paths are from the checkout's root;  links from the page's own folder.
- * - Then tidies the pages like any other (`pages.js` `tidy()`:  link targets, oxfmt), so a re-run with nothing new
- *   changes nothing.
+ * - Page notes Owen left in a written part (`<spell-notes>`, `PageNotes.js`) go back into the new one
+ *   (`replaceBetween()`).
+ * - Then tidies the pages like any other (`pages.js` `tidy()`, link targets and oxfmt),
+ *   so a re-run with nothing new changes nothing.
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join, relative } from "node:path"
@@ -25,6 +28,7 @@ import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
+import { PageNotes } from "./PageNotes.js"
 import { BRAND, EPICS, GOALS, GUIDES, HOME, LIST_PAGES, ROOT, TEMPLATES, UI_PAGES, findPages, tidy } from "./pages.js"
 
 /** The docs home, from the checkout's root. */
@@ -48,8 +52,8 @@ const RUNNING = "<!-- running-epics -->"
 const STALLED_DAYS = 3
 
 /**
- * The item kinds an epic follows up on, by id letter:  everything open but caveats (`followUpsIn()`).  Up here:  this
- * file runs as it loads (`main()`, below), and needs it then.
+ * The item kinds an epic follows up on, by id letter:  everything open but caveats (`followUpsIn()`).
+ * Up here:  this file runs as it loads (`main()`, below), and needs it then.
  */
 const FOLLOW_UPS = { q: "question", j: "judgement call", i: "issue", t: "todo", v: "test" }
 
@@ -164,25 +168,36 @@ function main() {
 }
 
 /**
- * Replace what's between `start` and `end` in `file` with `body`;  `false` (and why, on stderr) when the markers are
- * missing.
+ * Replace what's between `start` and `end` in `file` with `body` (`replaceBetween()`);  `false` (and why, on stderr)
+ * when the markers are missing.
  */
 function writeBetween(file, start, end, body) {
-  const html = readFileSync(file, "utf8")
-  const from = html.indexOf(start)
-  const to = html.indexOf(end)
-  if (from < 0 || to < from) {
+  const html = replaceBetween(readFileSync(file, "utf8"), start, end, body)
+  if (html === undefined) {
     console.error(`${relative(ROOT, file)}:  missing ${start} ... ${end}`)
     return false
   }
-  writeFileSync(file, `${html.slice(0, from)}${start}\n${body}\n${end}${html.slice(to + end.length)}`)
+  writeFileSync(file, html)
   return true
+}
+
+/**
+ * `html` with what's between `start` and `end` replaced by `body`;  `undefined` when the markers are missing.
+ * - the page notes Owen left in the old part (`<spell-notes>`) go back into their sections in the new one
+ *   (`PageNotes.carryOver()`):  regenerating never loses a note
+ */
+export function replaceBetween(html, start, end, body) {
+  const from = html.indexOf(start)
+  const to = html.indexOf(end)
+  if (from < 0 || to < from) return undefined
+  const kept = PageNotes.carryOver(html.slice(from + start.length, to), body)
+  return `${html.slice(0, from)}${start}\n${kept}\n${end}${html.slice(to + end.length)}`
 }
 
 /**
  * What the lists show for page `path`:  title, description, and a plan's status.
  * - title falls back to the file name, so a page without one still shows up (and looks wrong enough to fix)
- * - a plan doc's title without its `Epic: ` (`plan-doc.js` `TITLE_PREFIX`):  its card is in Epics already
+ * - a plan doc's title without its `Epic: ` (`planDoc.types` `TITLE_PREFIX`):  its card is in Epics already
  */
 function describe(path) {
   const { document } = parseHTML(readFileSync(`${ROOT}/${path}`, "utf8"))
@@ -197,53 +212,29 @@ function describe(path) {
 }
 
 /**
- * What a plan doc's card shows, from its skeleton:  `{ phases, updated, future, followUps }`, either markup.
- * - `<epic-*>` markup:  each `<epic-phase status title>` (its label `P2 · <title>`), `<epic-page updated future>`
- * - the old markup:  each `<ui-section data-phase>` in `#phases` (or `section[data-phase]` in a doc not yet
- *   migrated), the `#plan-updated` stamp, `<body data-future>`.  REFACTOR: drop old markup after the switch (P12)
+ * What a plan doc's card shows, from its skeleton:  `{ phases, updated, future, followUps }`.
+ * - each `<epic-phase status title>` (its label `P2 · <title>`), `<epic-page updated future>`
+ * - a doc still in the old markup (no `<epic-page>`:  one restored from an old backup) shows as an empty plan:  the
+ *   plan-doc tool refuses it until it's converted (epic `epic-components` P15)
  * - `updated`:  the plan-doc tool's "updated" stamp (`touch()`):  how long since anyone worked on it
  * - `future`:  an epic written down with `/epic future`, not planned yet
  */
 export function planOf(document) {
   const page = document.querySelector("epic-page")
-  if (page) {
-    const phases = Array.from(
-      document.querySelectorAll('epic-page > epic-section[kind="phases"] > epic-phase'),
-      (phase) => ({
-        status: phase.getAttribute("status"),
-        label: `${phase.id.toUpperCase()} · ${(phase.getAttribute("title") ?? phase.querySelector(':scope > [slot="title"]')?.textContent ?? "").replace(/\s+/g, " ").trim()}`
-      })
-    )
-    return {
-      phases,
-      updated: page.getAttribute("updated") || null,
-      future: page.hasAttribute("future"),
-      followUps: followUpsIn(document)
-    }
-  }
-  const sections = document.querySelectorAll(
-    "ui-section#phases ui-section[data-phase], #phases-section section[data-phase]"
+  if (!page) return { phases: [], updated: null, future: false, followUps: [] }
+  const phases = Array.from(
+    document.querySelectorAll('epic-page > epic-section[kind="phases"] > epic-phase'),
+    (phase) => ({
+      status: phase.getAttribute("status"),
+      label: `${phase.id.toUpperCase()} · ${(phase.getAttribute("title") ?? phase.querySelector(':scope > [slot="title"]')?.textContent ?? "").replace(/\s+/g, " ").trim()}`
+    })
   )
-  const phases = Array.from(sections, (section) => ({
-    status: section.getAttribute("data-status"),
-    label: phaseLabel(section)
-  }))
-  const updated = document.getElementById("plan-updated")?.textContent.trim() || null
   return {
     phases,
-    updated,
-    future: Boolean(document.body?.hasAttribute("data-future")),
+    updated: page.getAttribute("updated") || null,
+    future: page.hasAttribute("future"),
     followUps: followUpsIn(document)
   }
-}
-
-/** An old-markup phase section's title, whitespace collapsed:  its `header` (else `slot="header"`), or an h3. */
-function phaseLabel(section) {
-  const source =
-    section.localName === "ui-section"
-      ? (section.getAttribute("header") ?? section.querySelector(':scope > [slot="header"]')?.textContent)
-      : section.querySelector("h3")?.textContent
-  return (source ?? "").replace(/\s+/g, " ").trim()
 }
 
 ////////////////
@@ -251,15 +242,15 @@ function phaseLabel(section) {
 ////////////////
 
 /**
- * What an epic still asks of Owen, from its plan doc's item lines (the skeleton has them all):  each OPEN question,
- * judgement call, issue, todo and hand test, as its kind's name.  Caveats don't count:  limits accepted, open for good.
+ * What an epic still asks of Owen, from its plan doc's item lines (the skeleton has them all):
+ * each OPEN question, judgement call, issue, todo and hand test, as its kind's name.
+ * - caveats don't count:  limits accepted, open for good
  * - the same as `spell-doc-runtime.js` `FOLLOW_UPS` and `packages/cli/src/dev/worktrees.ts` `planFollowUps()`
- * - either markup:  `<epic-item status="open">`, or the old `.plan-items > [data-status="open"]` (REFACTOR: drop old
- *   markup after the switch, P12)
+ * - each `<epic-item status="open">`
  */
 function followUpsIn(document) {
   return Array.from(
-    document.querySelectorAll('epic-section > epic-item[id][status="open"], .plan-items > [id][data-status="open"]'),
+    document.querySelectorAll('epic-section > epic-item[id][status="open"]'),
     (item) => FOLLOW_UPS[item.id[0]]
   ).filter(Boolean)
 }
@@ -272,13 +263,14 @@ function followUpWords(kinds) {
 }
 
 /**
- * The home's cards, in the top bar's order (Owen, 2026-10-05, Q6 of `claude-design`):  Epics, Guides, Brand,
- * Spell UI, Templates, Goals, App.  Each `{ id, title, icon, href?, count?, description, meta? }`.
+ * The home's cards, in the top bar's order (Owen, 2026-10-05, Q6 of `claude-design`):
+ * Epics, Guides, Brand, Spell UI, Templates, Goals, App.
+ * Each `{ id, title, icon, href?, count?, description, meta? }`.
  * - `id`:  the card's id, so the old `pages/index.html#epics` / `#guides` / `#templates` links land on its card
- * - `href`:  from the home's folder;  none for the App, which only the page server has (`/editor/`):  a link there
- *   would break from `file://`, and `doc-links.js --check` can't resolve it
- * - Spell UI:  its site's own page (`ui/index.html`, shared;  its bundle needs the page server);  the top bar's tab
- *   opens it at `/ui/`
+ * - `href`:  from the home's folder;  none for the App, which only the page server has (`/editor/`):
+ *   a link there would break from `file://`, and `doc-links.js --check` can't resolve it
+ * - Spell UI:  its site's own page (`ui/index.html`, shared;  its bundle needs the page server);
+ *   the top bar's tab opens it at `/ui/`
  * - `pages`:  every page `describe()`d, so the counts come from the same data as the list pages
  */
 export function areaCards(pages) {
@@ -437,7 +429,7 @@ ${END}
 ${list.extra ?? ""}
 </main>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+<script src="../packages/docs/tools/_assets/highlight.min.js"></script>
 <script src="../packages/docs/tools/_assets/spell-ui.js"></script>
 </body>
 </html>
@@ -494,8 +486,8 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
 }
 
 /**
- * An epic's card:  its state mark before the title (`epicState()`), then as `card()`, the active phase in the
- * meta line.
+ * An epic's card:  its state mark before the title (`epicState()`),
+ * then as `card()`, the active phase in the meta line.
  * - `data-epic`:  its name, so the page server drops this card when the epic is running in a worktree too
  * - `data-status`:  `done` or `open`, so the section counts it, and its filter steps through them (`open` yellow,
  *   `done` grey:  `spell-doc-runtime.js`)
@@ -512,15 +504,15 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
 }
 
 /**
- * An epic's state, from its phases and its "updated" date:  `{ done, mark }`, `mark` the HTML before its title.  Its
- * colours are the colour scheme's (Q20 of epic `epic-components`;  `templates/epics/plan-doc.md`, "Colours").
+ * An epic's state, from its phases and its "updated" date:  `{ done, mark }`, `mark` the HTML before its title.
+ * Its colours are the colour scheme's (Q20 of epic `epic-components`;  `templates/epics/plan-doc.md`, "Colours").
  * - future:  written down with `/epic future`, not planned yet (a grey seedling:  not started;  epic `epic-future`)
  * - sleeping:  open follow-ups (`followUps`:  questions, judgement calls, issues, todos, tests) and no phase under
  *   way:  😴, what's open on hover (Owen, 2026-10-07:  "so I can see what I need to follow up on")
  * - planning:  no phases yet (a yellow thought bubble:  open, still undecided)
  * - done:  every phase done (a green check)
- * - stalled:  phases left, and no update for more than `STALLED_DAYS` (an orange pause, a warning;  the date on
- *   hover)
+ * - stalled:  phases left, and no update for more than `STALLED_DAYS` (an orange pause, a warning;
+ *   the date on hover)
  * - in progress:  `[3/6]`, phases done of all, outlined in blue (under way)
  * - SAME as `$/server/page` `RunningEpics`' `stateMark()`:  change both
  */

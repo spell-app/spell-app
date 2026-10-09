@@ -295,8 +295,9 @@
 @layer ui.components.epic-item.states {
   /*
    * Where it stands, as its chip's colour (decision Q20, Owen, 2026-10-08):  red needs Owen, blue Claude is working on
-   * it, yellow open and still undecided (dark text), green decided or reviewed lately, grey earlier -- a quiet tint,
-   * as most of a long doc is history.  Red keeps its light hue in dark mode:  dark's lighter red reads as orange.
+   * it, yellow open and still undecided (dark text), green decided or done (however long ago:  Owen, 2026-10-08),
+   * grey no longer relevant (canceled) -- a quiet tint.  Red keeps its light hue in dark mode:  dark's lighter red
+   * reads as orange.
    * Orange (dark text):  Claude answered with options, Owen's turn to pick (`replied`, Owen, 2026-10-09).
    */
   .item.attention {
@@ -340,7 +341,7 @@
     border-style: dashed;
   }
 
-  /* still wants a look:  a bolder title;  decided or reviewed earlier:  a quieter one */
+  /* still wants a look:  a bolder title;  no longer relevant:  a quieter one */
   .item:is(.attention, .replied, .progress, .open) .title {
     font-weight: 600;
   }

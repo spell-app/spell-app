@@ -1,53 +1,24 @@
 /**
- * Tests of `PlanParts`:  assembling an OLD-markup split doc (the converter's and `OldPlanReader`'s input until the
- * switch, P12), and rebasing a part's URLs.  Splitting and writing:  `PlanDocFiles.test.ts` (`EpicParts`).
+ * Tests of `PlanParts`:  reading a part file, and rebasing a part's URLs.  Splitting and writing:
+ * `PlanDocFiles.test.ts` (`EpicParts`);  an old-markup doc's parts:  `$/epics/convert` `OldParts.test.ts`.
  */
 import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 
-import { parseHTML } from "linkedom"
 import { describe, expect, test } from "vite-plus/test"
 
 import { PlanParts } from "./PlanParts"
 
-/**
- * An old-markup skeleton:  a phase, an item panel and the log, each loading a part;  one host holding text of its own.
- * Both extensions:  `.htm` (the docs today) and `.html` (since Q12).
- */
-const SKELETON = `<!doctype html><html><body data-spell-needs-server><main>
-<ui-section id="phases"><ui-section id="p1" data-phase="1" data-status="todo" source="parts/p1.htm" data-commits><p class="plan-part-note">Loads from parts/p1.htm</p></ui-section></ui-section>
-<ui-list class="plan-items" data-kind="caveat"><ui-item id="c1" data-status="open"><ui-accordion class="plan-item" source="parts/c1.html" data-part-ids="c1-x"><ui-title>C1</ui-title><ui-content><p class="plan-part-note">x</p><p>own</p></ui-content></ui-accordion></ui-item></ui-list>
-<ui-section id="log" source="parts/log.htm"></ui-section>
-</main></body></html>`
-
-/** The parts:  the log's is missing. */
-const PARTS: Record<string, string> = {
-  p1: '<!-- plan-doc part:  #p1\'s body -->\n<ui-list class="plan-phase-body"><a href="../../../guides/x.html">x</a></ui-list>',
-  c1: '<p id="c1-x">details</p>'
-}
-
-describe("PlanParts.assemble() (old markup)", () => {
-  test("each part into its host, URLs rebased to the page;  own content kept after;  a missing part said", () => {
-    const { document } = parseHTML(SKELETON)
-    const result = new PlanParts(document as unknown as Document).assemble((id) => PARTS[id])
-    expect(result).toEqual({ split: true, hosts: ["p1", "c1", "log"], missing: ["log"], inline: ["c1"] })
-    expect(document.querySelector("#p1 > ui-list a")!.getAttribute("href")).toBe("../../guides/x.html")
-    expect(document.querySelector("#c1 ui-content")!.innerHTML).toBe('<p id="c1-x">details</p><p>own</p>')
-    expect(document.querySelector("[source], [data-commits], [data-part-ids], .plan-part-note")).toBeNull()
-    expect(document.body.hasAttribute("data-spell-needs-server")).toBe(false)
-  })
-
-  test("reader():  `parts/<id>.html`, else the old `.htm` (until the switch, P12);  `undefined` for neither", () => {
+describe("PlanParts", () => {
+  test("reader():  `parts/<id>.html`;  `undefined` for none, or an old `.htm` (read no more since P15)", () => {
     const dir = mkdtempSync(join(tmpdir(), "plan-parts-"))
     try {
       mkdirSync(join(dir, "parts"))
       writeFileSync(join(dir, "parts", "p1.html"), "new")
       writeFileSync(join(dir, "parts", "c1.htm"), "old")
-      writeFileSync(join(dir, "parts", "q1.htm"), "older")
-      writeFileSync(join(dir, "parts", "q1.html"), "newer")
       const read = PlanParts.reader(join(dir, "x.plan.html"))
-      expect(["p1", "c1", "q1", "log"].map(read)).toEqual(["new", "old", "newer", undefined])
+      expect(["p1", "c1", "log"].map(read)).toEqual(["new", undefined, undefined])
       expect(PlanParts.partFile(join(dir, "x.plan.html"), "p1")).toBe(join(dir, "parts", "p1.html"))
     } finally {
       rmSync(dir, { recursive: true, force: true })

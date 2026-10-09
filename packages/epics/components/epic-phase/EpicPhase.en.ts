@@ -1,11 +1,14 @@
 /**
  * Every name `<epic-phase>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from `epic-section`'s types file, data too.
+ * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from `epic-section`'s types file, data too, and the
+ *   review controls' parts and texts (`REVIEW_*`) from `epic-item`'s:  a phase takes review notes (epic `airplane` P2).
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
+// the review controls a phase draws, as `<epic-item>` does
+import { REVIEW_PARTS, REVIEW_TEXTS } from "$/epics/components/epic-item/EpicItem.types"
 // the fold pieces every folding block shares
 import {
   FOLD_EVENTS,
@@ -27,7 +30,8 @@ export const epicPhaseVocabulary = {
   ui: false,
   description:
     "One phase of the plan:  its status icon and estimate in its title line;  its fields (Symptom, Changes, Goal, " +
-    "Done, Files, Verify, To review), plan updates and commits as children, in that order.",
+    "Done, Files, Verify, To review), plan updates, Owen's kept notes and commits as children, in that order.  " +
+    "While the page is reviewed, it takes review notes as an Overview sub-section does:  Revisit, Make Todo, Do Now.",
   attributes: [
     {
       name: "id",
@@ -73,16 +77,29 @@ export const epicPhaseVocabulary = {
   ],
   events: [...FOLD_EVENTS],
   slots: [
-    { name: "", description: "Its fields, plan updates and commits." },
-    { name: "title", description: "A title with markup, in place of `title`." }
+    { name: "", description: "Its fields, plan updates, Owen's kept notes and commits." },
+    { name: "title", description: "A title with markup, in place of `title`." },
+    {
+      name: "status",
+      description:
+        "Claude's status cards on Owen's marks (`<epic-status slot=\"status\">`, P13):  at the end of its body, " +
+        "above the note box."
+    }
   ],
-  parts: [...FOLD_PARTS, { name: "status", description: "Its status icon, in its status's colour." }],
+  parts: [
+    ...FOLD_PARTS,
+    { name: "status", description: "Its status icon, in its status's colour." },
+    { name: "tools", description: "At the title's end:  its review buttons, while the page is reviewed." },
+    ...REVIEW_PARTS
+  ],
   states: [...FOLD_STATES],
   texts: [
     ...FOLD_TEXTS,
-    { key: "todo", text: "To do", description: "The status icon's name:  `todo`." },
-    { key: "active", text: "Under way", description: "The status icon's name:  `active`." },
-    { key: "done", text: "Done", description: "The status icon's name:  `done`." }
+    // `status*`:  the review controls' `todo` is Make Todo
+    { key: "statusTodo", text: "To do", description: "The status icon's name:  `todo`." },
+    { key: "statusActive", text: "Under way", description: "The status icon's name:  `active`." },
+    { key: "statusDone", text: "Done", description: "The status icon's name:  `done`." },
+    ...REVIEW_TEXTS
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
@@ -99,6 +116,16 @@ export const epicPhaseVocabulary = {
       description: "Changes:  what changes, two or three lines."
     },
     { tag: "epic-updated", description: "Changes to the phase's plan, one dated line each, oldest first." },
+    {
+      tag: "epic-reply",
+      description:
+        "Owen's notes on the phase from the page, kept once Claude took them (`inbox done | clear`), oldest first."
+    },
+    {
+      tag: "epic-status",
+      slot: "status",
+      description: "Claude's status cards on Owen's marks, oldest first (`plan-doc status`;  a todo filed:  born done)."
+    },
     {
       tag: "epic-field",
       where: { attribute: "name", values: ["goal"] },

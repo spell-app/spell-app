@@ -20,7 +20,7 @@ import originalCSS from "./EpicOriginal.css?inline"
 export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
   @E.proto static vocabulary = epicVersionVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { original: originalCSS },
+    styleSheets: { "epic-original": originalCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 

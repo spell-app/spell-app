@@ -143,6 +143,7 @@ process.exit(3)
       "packages/docs/tools/fuss.ts",
       "packages/docs/tools/details.js",
       "packages/docs/tools/choices.js",
+      "packages/docs/tools/notes.ts",
       "packages/server/src/page/cli.ts"
     ]) {
       mkdirSync(resolve(CHECKOUT, tool, ".."), { recursive: true })
@@ -192,6 +193,17 @@ process.exit(3)
       args: ["new", "x", "--rows", "r.json"]
     })
     expect(realpathSync(choices.cwd)).toBe(resolve(CHECKOUT, "packages/docs"))
+  })
+
+  test("notes:  under tsx, in THIS folder, so `answer --file` is from here", () => {
+    const notes = passThrough(["notes", "answer", "guides/x.html", "n3", "--file", "reply.html"])
+    expect(notes).toMatchObject({
+      status: 3,
+      tool: "packages/docs/tools/notes.ts",
+      args: ["answer", "guides/x.html", "n3", "--file", "reply.html"]
+    })
+    expect(realpathSync(notes.cwd)).toBe(INSIDE)
+    expect(notes.tsconfig).toBe(resolve(CHECKOUT, "packages/docs/tsconfig.json"))
   })
 
   test("server <verb>:  the page server's cli, under tsx;  start --all:  serve.mjs", () => {

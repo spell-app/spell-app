@@ -91,6 +91,21 @@ describe("<epic-status>", () => {
     await expectAccessible(done)
   })
 
+  test("folds by its band (Owen, 2026-10-08):  the reading and the summary together, the band alone left", async () => {
+    const host = await ElementFixture.render(DONE)
+    const band = part(host, "header")!.getBoundingClientRect().height
+    part(host, "toggle")!.click()
+    await ElementFixture.tick()
+    // one box holds both:  folded, it's `until-found`
+    const folded = part(host, "body")!.parentElement!
+    expect([
+      folded.contains(part(host, "summary")),
+      folded.getAttribute("hidden"),
+      Math.round(part(host, "base")!.getBoundingClientRect().height - band) <= 2,
+      host.matches(":state(open)")
+    ]).toEqual([true, "until-found", true, false])
+  })
+
   test("the date stays at the RIGHT of the TOP line in the side bar's ~320px", async () => {
     const sideBar = await ElementFixture.render(`<div style="width: 320px">${DONE}</div>`)
     const host = sideBar.querySelector("epic-status")!

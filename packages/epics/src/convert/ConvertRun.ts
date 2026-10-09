@@ -2,7 +2,7 @@ import { existsSync, lstatSync, readdirSync, readFileSync, realpathSync, rmSync 
 import { basename, dirname, join, relative, resolve, sep } from "node:path"
 import { fileURLToPath } from "node:url"
 
-import { PART_EXT, PART_FILE, PARTS_DIR, PlanParts } from "$/epics/tool/PlanParts"
+import { PART_FILE, PARTS_DIR, PlanParts } from "$/epics/tool/PlanParts"
 
 import { ConvertError, EXCLUSIONS, KEPT, UPGRADE_EXCLUSIONS, type Conversion } from "./convert.types"
 
@@ -48,7 +48,7 @@ export class ConvertRun {
   /**
    * Convert each of `names` and, unless it's a dry run (no `out`), write each that converted CLEANLY under `out`:
    * `<out>/<name>/<name>.plan.html` and `<out>/<name>/parts/<id>.html`.
-   * - a doc in today's markup:  the first pass (`Converter`);  a doc already in `<epic-page>` markup:  the second
+   * - a doc in the old markup:  the first pass (`Converter`);  a doc already in `<epic-page>` markup:  the second
    *   (`Upgrader`, P14's elements).  One command for both, so `--all` takes every doc as far as it goes.
    * - a converted doc the second pass has nothing to do for is SKIPPED, nothing written
    * - a doc that throws (`ConvertError`) is reported, and the rest go on
@@ -114,9 +114,9 @@ export class ConvertRun {
     const partsDir = join(folder, PARTS_DIR)
     if (existsSync(partsDir)) {
       for (const file of readdirSync(partsDir)) {
-        // a part it no longer has, or one in the old `.htm` (every part is written `.html` now)
+        // a part it no longer has
         const id = PART_FILE.exec(file)?.[1]
-        if (id !== undefined && !(file.endsWith(PART_EXT) && conversion.parts.has(id))) rmSync(join(partsDir, file))
+        if (id !== undefined && !conversion.parts.has(id)) rmSync(join(partsDir, file))
       }
     }
     return PlanParts.writeChanged([...outputs, [skeleton, conversion.skeleton]])

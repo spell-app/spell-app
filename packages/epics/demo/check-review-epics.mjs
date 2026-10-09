@@ -28,9 +28,10 @@
  * - Claude's side, by the plan-doc tool on the copy (`PlanDocCommands`), the page reloaded after each:
  *   - Do Now without a note on an item:  `inbox listen`, `inbox wait` takes it:  its button outlined, its icon
  *     turning (`data-busy`);  `status underway`:  a blue Underway card, the item `progress`;  `status done`:  the
- *     card green;  `inbox done`:  Do Now SOLID (`review-as="now"`)
- *   - `inbox apply`:  the sent Approve SOLID (`review-as="approve"`);  the pick approves its call (closed, the
- *     reply's set `chosen`, a Done card `Chose C · ...`), its pill SOLID
+ *     card green;  `inbox done`:  Do Now CLEARED (`review-as="now"`:  the buttons are Owen's input, the chip carries
+ *     the result)
+ *   - `inbox apply`:  the sent Approve CLEARED (`review-as="approve"`), the chip solid green;  the pick approves its
+ *     call (closed, the reply's set `chosen`, a Done card `Chose C · ...`), its pill SOLID
  *   - Review Now:  the revisit waiting asked now
  * - fails (exit 1) unless each shows on the page AND lands in the inbox (read back through `GET /api/review/inbox`);
  *   at 280px and 900px, light and dark, no review control runs past the window, none sits over its line's title, and
@@ -216,7 +217,7 @@ async function run() {
   await press(page, question, "todo")
   await expectMark(page, question, undefined, "Make Todo again (cleared)")
 
-  // an Approve to see through:  sent, then applied (solid)
+  // an Approve to see through:  sent, then applied (cleared, the chip green)
   await press(page, approved, "approve")
   await expectMark(page, approved, { action: "approve" }, `Approve on ${approved}`)
 
@@ -372,18 +373,23 @@ async function run() {
   await open(page)
   const done = await statusOf(page, question)
   expect(`${question}:  the card Done`, done.cards, ["done"])
-  expect("Do Now, done:  solid, not turning", await buttonState(page, question, "details"), {
-    fill: "solid",
+  // handled:  the buttons CLEAR (Owen's input, taken), the chip carries the result (Owen, 2026-10-08)
+  expect("Do Now, done:  cleared, not turning", await buttonState(page, question, "details"), {
+    fill: "none",
     color: "blue",
     busy: false
   })
   expect(`${question}'s review-as`, await attribute(page, question, "review-as"), "now")
 
-  // `inbox apply`:  the sent Approve applied, solid;  the todo filed with its Done card
+  // `inbox apply`:  the sent Approve applied, its button cleared, the chip green;  the todo filed with its Done card
   await tool.run(["inbox", docName, "apply"])
   await open(page)
   expect(`${approved}'s review-as`, await attribute(page, approved, "review-as"), "approve")
-  expect(`${approved}'s Approve, applied:  solid`, (await buttonState(page, approved, "approve")).fill, "solid")
+  expect(`${approved}'s Approve, applied:  cleared`, (await buttonState(page, approved, "approve")).fill, "none")
+  expect(`${approved}'s chip, applied:  its state's, solid`, await chipState(page, approved), {
+    fill: null,
+    state: "recent"
+  })
   expect(`${withDetails}:  the todo filed, a Done card`, (await statusOf(page, withDetails)).cards.at(-1), "done")
   // the pick:  the call approved with the reply's C (closed), that set chosen, a Done card, the pill solid
   expect(
@@ -620,6 +626,20 @@ function buttonState(page, id, action) {
     },
     { id, action }
   )
+}
+
+/**
+ * Item `id`'s id chip, as drawn:  its fill (`null`:  no live mark, so its state's colour, solid) and its state (the
+ * item box's class word:  `recent`, `open` ...).
+ */
+function chipState(page, id) {
+  return page.evaluate((id) => {
+    const root = document.getElementById(id).shadowRoot
+    const chip = root.querySelector("[part~='id']")
+    const box = root.querySelector("[part~='base']")
+    const state = ["attention", "progress", "open", "recent", "old"].find((name) => box.classList.contains(name))
+    return { fill: chip.dataset.fill ?? null, state }
+  }, id)
 }
 
 /**

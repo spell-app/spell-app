@@ -8,8 +8,8 @@
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
-// the review controls an Overview sub-section draws, as `<epic-item>` does
-import { REVIEW_PARTS, REVIEW_TEXTS } from "$/epics/components/epic-item/EpicItem.types"
+// the review controls an Overview sub-section draws, as `<epic-item>` does;  the new-item controls of Todos and Questions
+import { NEW_PARTS, NEW_TEXTS, REVIEW_PARTS, REVIEW_TEXTS } from "$/epics/components/epic-item/EpicItem.types"
 
 import { FOLD_EVENTS, FOLD_OPEN_ATTRIBUTE, FOLD_PARTS, FOLD_STATES, FOLD_TEXTS } from "./EpicSection.types"
 
@@ -115,7 +115,8 @@ export const epicSectionVocabulary = {
     { name: "hidden-note", description: 'Under a filtered list:  "3 hidden · show all".' },
     { name: "changes", description: "The Phases section's Plan changes box, above its phases." },
     { name: "empty", description: 'An item section with no items:  "None yet".' },
-    ...REVIEW_PARTS
+    ...REVIEW_PARTS,
+    ...NEW_PARTS
   ],
   states: [
     ...FOLD_STATES,
@@ -158,11 +159,12 @@ export const epicSectionVocabulary = {
       description: "A state chip's words:  `replied` (orange)."
     },
     { key: "stateOpen", text: "open, still undecided", description: "A state chip's words:  `open` (yellow)." },
-    { key: "stateRecent", text: "decided or reviewed recently", description: "A state chip's words:  `recent`." },
-    { key: "stateOld", text: "decided or reviewed earlier", description: "A state chip's words:  `old` (grey)." },
+    { key: "stateRecent", text: "decided or done", description: "A state chip's words:  `recent` (green)." },
+    { key: "stateOld", text: "no longer relevant", description: "A state chip's words:  `old` (grey)." },
     { key: "hiddenNote", text: "{count} hidden · show all", description: "Under a filtered list;  a click shows all." },
     { key: "changesTitle", text: "Plan changes", description: "The Phases section's box of changes to phases to do." },
-    ...REVIEW_TEXTS
+    ...REVIEW_TEXTS,
+    ...NEW_TEXTS
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },

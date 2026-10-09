@@ -1,12 +1,15 @@
 /**
- * Types, tables and the error class of the plan-doc tool:  `PlanReader` (reading a doc, either markup), `PlanDoc`
- * (editing one in `<epic-*>` markup) and the command line.  Rules, ids and what's data:  `PLAN-DOC.md` beside this.
+ * Types, tables and the error class of the plan-doc tool:
+ * `PlanReader` (reading a doc), `PlanDoc` (editing one in `<epic-*>` markup) and the command line.
+ * Rules, ids and what's data:  `PLAN-DOC.md` beside this.
  * - At the BOTTOM of the tool folder's import graph:  `import type` only, apart from `$/epics`' definitions (data),
- *   so nothing here loads a class module (WWOD §8).  `PlanReader` <- `PlanDoc` / `OldPlanReader` <- `PlanDocFiles`
- *   <- `PlanDocCommands`.
- * - The ELEMENTS (tags, attributes, which children go where) are `$/epics/definitions`':  this file holds only what
- *   the tool adds on top -- item kinds as the command line names them, review filters, result shapes.
- * - NOTE:  plain `&`, no `Prettify<>`:  `epics`' `tsconfig.json` doesn't include the repo root's `types/` (yet).
+ *   so nothing here loads a class module (WWOD §8).
+ *   The graph:  `PlanReader` <- `PlanDoc` <- `PlanDocFiles` <- `PlanDocCommands`.
+ * - The ELEMENTS (tags, attributes, which children go where) are `$/epics/definitions`':
+ *   this file holds only what the tool adds on top --
+ *   item kinds as the command line names them, review filters, result shapes.
+ * - `Prettify<>` (the repo root's `types/app.d.ts`, which `epics`' `tsconfig.json` includes)
+ *   wraps the combined types.
  */
 
 import type { ItemSectionKind } from "$/epics/definitions"
@@ -25,12 +28,6 @@ PlanDocError.prototype.name = "PlanDocError"
 
 /** What a plan doc's `<title>` starts with, before its title:  `Epic: Review Review`;  `<epic-page>` draws the h1. */
 export const TITLE_PREFIX = "Epic: "
-
-/** Which markup a doc is in:  `<epic-*>` elements, or the `ui-*` markup before the switch (P12). */
-export const DOC_MARKUPS = ["epic", "old"] as const
-
-/** One of `DOC_MARKUPS`. */
-export type DocMarkup = (typeof DOC_MARKUPS)[number]
 
 ////////////////
 // ## Phases
@@ -72,12 +69,14 @@ export type Phase = {
 export type PhaseFieldValues = Partial<Record<PhaseField, string>>
 
 /** `PlanDoc.addPhase()`'s options:  the fields, the estimate, and where it goes. */
-export type AddPhaseOptions = PhaseFieldValues & {
-  /** wall-clock estimate (`1-2h`):  `<epic-phase estimate>` */
-  estimate?: string
-  /** inserted as this phase, the to-do phases from it on moving down one (`add-phase --before N`);  default last */
-  before?: number
-}
+export type AddPhaseOptions = Prettify<
+  PhaseFieldValues & {
+    /** wall-clock estimate (`1-2h`):  `<epic-phase estimate>` */
+    estimate?: string
+    /** inserted as this phase, the to-do phases from it on moving down one (`add-phase --before N`);  default last */
+    before?: number
+  }
+>
 
 /** An estimate in minutes:  `PlanTime.parseDuration()`'s, `{ min: 60, max: 120 }` for `1-2h`. */
 export type Duration = {
@@ -126,19 +125,23 @@ export const OLD_DECISION = /^d\d+$/
 export const QUESTION_ID = /^q\d+$/
 
 /**
- * The items red while open and not reviewed (`PlanReader.itemState()`), so the ones `calm` makes blue:  judgement
- * calls and issues (`i3`, `j7`).  `ReviewInbox`'s and `<epic-item>`'s `CALM_ID`, the same rule.
+ * The items red while open and not reviewed (`PlanReader.itemState()`), so the ones `calm` makes blue:
+ * judgement calls and issues (`i3`, `j7`).  `ReviewInbox`'s and `<epic-item>`'s `CALM_ID`, the same rule.
  */
 export const CALM_ID = /^[ij]\d+$/
 
 /**
- * Item statuses that are closed:  not counted open, not on a "To review" line, coloured `recent` / `old`.
+ * Item statuses that are closed:  not counted open, not on a "To review" line, coloured `recent` (green, decided or
+ * done) but `canceled`, `old` (grey, no longer relevant).
  * - `done`:  finished (fixed, passed, accepted)
  * - `decided`:  an answered question, in force
- * - `canceled`:  made moot by another decision (J16 of `review-review`):  the ONE status struck through;  `cancel`
- *   sets it, `reopen` undoes it
+ * - `canceled`:  made moot by another decision (J16 of `review-review`):  the ONE status struck through;
+ *   `cancel` sets it, `reopen` undoes it
  */
 export const CLOSED = new Set(["done", "decided", "canceled"])
+
+/** The status that makes an item moot:  struck through, and its chip `old` (grey:  no longer relevant). */
+export const CANCELED = "canceled"
 
 /** The statuses `PlanDoc.setItem()` sets:  "open" means the kind's live status. */
 export const ITEM_STATUSES = ["open", "done", "canceled"] as const
@@ -148,8 +151,8 @@ export type ItemStatus = (typeof ITEM_STATUSES)[number]
 
 /**
  * Kinds `summary` reports while open, in the order a reader should act on them.
- * - `judgement`:  a choice Claude made without Owen (a `/bedtime` run, an agent mid-phase);  open until he reviews
- *   it, then `close`d (accepted), or turned into a question.
+ * - `judgement`:  a choice Claude made without Owen (a `/bedtime` run, an agent mid-phase);
+ *   open until he reviews it, then `close`d (accepted), or turned into a question.
  */
 export const OPEN_KINDS = ["question", "judgement", "issue", "caveat", "todo", "test"] as const
 
@@ -201,13 +204,18 @@ export type ItemFacts = {
   calm: boolean
   /** Claude answered it last, with options nothing is picked in yet (`PlanItem.awaitsPick()`) */
   awaitsPick: boolean
+  /** how Claude handled Owen's last review mark (`<epic-item review-as>`, `REVIEW_AS`), or `undefined` */
+  reviewAs: string | undefined
 }
 
 /** One item (or an Overview sub-section), as `PlanReader.describeItem()` says it for `plan-doc inbox`. */
 export type ItemDescription = {
   /** its id, upper case:  `C3` */
   id: string
-  /** `PlanItem.kindOf()`'s:  `judgement`, `overview` (an Overview sub-section, Q14), `item` (an id of no kind) */
+  /**
+   * `PlanItem.kindOf()`'s:  `judgement`, `overview` (an Overview sub-section, Q14), `item` (an id of no kind);
+   * `phase` and `summary` (epic `airplane` P2)
+   */
   kind: string
   /** its status, `open` when missing */
   status: string
@@ -267,15 +275,17 @@ export type OptionCard = {
 
 /**
  * An item's `state` (`PlanReader.itemState()`) -> its colour, as UI's `color` attribute:  what the page paints its
- * id chip with, and the review picker its state icon (`ItemPicker`).  One meaning per colour (decision Q20 of epic
- * `epic-components`, Owen, 2026-10-08):
+ * id chip with, and the review picker its state icon (`ItemPicker`).
+ * One meaning per colour (decision Q20 of epic `epic-components`, Owen, 2026-10-08):
  * - `attention` (red):  needs Owen (an open question;  an open judgement call or issue not reviewed)
  * - `replied` (orange):  Claude answered it with options, and it waits for Owen's pick (Owen, 2026-10-09)
  * - `progress` (blue):  Claude is working on it (an underway status card, or `working`)
- * - `open` (yellow):  open, still undecided, not urgent (todos, caveats, tests;  reviewed issues and judgement
- *   calls;  work a review queued, not started)
- * - `recent` (green):  decided, reviewed or closed since the page's `recent-since`, or during a `/bedtime` run
- * - `old` (grey):  decided, reviewed or closed before that
+ * - `open` (yellow):  open, still undecided, not urgent
+ *   (todos, caveats, tests;  reviewed issues and judgement calls;  work a review queued, not started;
+ *   a revisit or Do Now Claude answered, the item still open)
+ * - `recent` (green):  decided or done, however long ago (Owen, 2026-10-08:  "green across the board is good"):
+ *   closed, or open and settled by a review (`SETTLED_AS`)
+ * - `old` (grey):  no longer relevant:  canceled (made moot, struck through)
  */
 export const STATE_COLORS = {
   attention: "red",
@@ -287,13 +297,23 @@ export const STATE_COLORS = {
 } as const
 
 /**
- * How Claude handled Owen's review mark (`<epic-item review-as>`, `PlanDoc.reviewedAs()`):  the page draws that
- * button solid.  `now`:  an immediate request (Do Now:  Add Details, revisit now) done.
+ * How Claude handled Owen's review mark (`<epic-item review-as>`, `PlanDoc.reviewedAs()`):
+ * the record (the log, `review` outcomes, `SETTLED_AS`).
+ * The page no longer draws it on the buttons:  once handled they clear, and the id chip shows the result
+ * (Owen, 2026-10-08).
+ * `now`:  an immediate request (Do Now:  Add Details, revisit now) done.
  */
 export const REVIEW_AS = ["approve", "todo", "revisit", "now"] as const
 
 /** One of `REVIEW_AS`. */
 export type ReviewAs = (typeof REVIEW_AS)[number]
+
+/**
+ * The `review-as` that SETTLE an item still open:  approved as it stands, or followed up by a todo.  Green
+ * (`recent`) for good, as a closed item (`PlanReader.itemState()`);  a revisit or a Do Now answered leaves it open,
+ * yellow (Owen, 2026-10-08:  J10).
+ */
+export const SETTLED_AS: ReadonlySet<string> = new Set<ReviewAs>(["approve", "todo"])
 
 /** A status card Claude is still on (`<epic-status state="underway">`), among an item's children:  `progress`. */
 export const UNDERWAY_CARD = ':scope > epic-status[state="underway"]'
@@ -408,24 +428,35 @@ export type ReviewStatus = {
 
 /**
  * A mark Owen left on the page, as `PlanDoc.applyMark()` reads it (the inbox's shape:  `ReviewInbox`).
- * - `action`:  `approve`, `pick`, `todo`, `revisit`, `details`
+ * - `action`:  `approve`, `pick`, `todo`, `revisit`, `details`, `new` (a new item:  epic `airplane` P2)
  */
 export type PlanMark = {
-  /** the item's id (any case);  an Overview sub-section's (`o3`, Q14) too */
+  /**
+   * the item's id (any case);  an Overview sub-section's (`o3`, Q14), a phase's (`p3`), the summary's (`summary`) too;
+   * a new item's key (`new1`)
+   */
   id: string
   /** what Owen asked for */
   action: string
   /** a pick's (or a revisit's pick's) option letter:  `B` */
   pick?: string
   /**
-   * which of the item's card sets the pick is from, by position (`PlanItem.choiceSets()`, I8);  none (a mark from
-   * before):  the item's own
+   * which of the item's card sets the pick is from, by position (`PlanItem.choiceSets()`, I8);
+   * none (a mark from before):  the item's own
    */
   choices?: number
   /** a revisit's:  `soon` or `now` */
   when?: string
   /** Owen's note */
   note?: string
+  /** a new item's kind:  `todo` or `question` */
+  kind?: string
+  /** a new item's title */
+  title?: string
+  /** a new item's:  the id of what it's about */
+  near?: string
+  /** when Owen made the mark (ISO) */
+  at?: string
 }
 
 /** What `PlanDoc.applyMark()` did with a mark:  applied (and how), or left for Claude (and why). */
@@ -480,7 +511,7 @@ export type CommitLogEntry = {
 }
 
 /** A commit `PlanDoc.backfillCommits()` listed:  its sha, and where. */
-export type BackfilledCommit = CommitTarget & { sha: string }
+export type BackfilledCommit = Prettify<CommitTarget & { sha: string }>
 
 /** `PlanDoc.addCommit()`'s options. */
 export type CommitOptions = {
@@ -537,7 +568,7 @@ export type PlanDocOptions = {
 
 /**
  * How a doc was stored, set by the command line's `read()`:  `PlanDoc` itself never reads it.
- * - for an old-markup doc:  what `PlanParts.assemble()` found;  for an `<epic-*>` doc, `EpicParts`'
+ * - what assembling its parts found (`EpicParts`;  the converter's `OldParts` for an old-markup doc)
  */
 export type PlanDocParts = {
   /** whether it had part files at all */
@@ -556,11 +587,13 @@ export type PlanDocParts = {
 
 /**
  * Text and markup the OLD markup wrote that the `<epic-*>` elements now DRAW, from their attributes or position:
- * the converter (`$/epics/convert`) drops it, the proof leaves it out of the comparison -- narrowly, by these
- * patterns -- and `IncomingHtml` reads an old option card or reply by them.
+ * the converter (`$/epics/convert`) drops it, the proof leaves it out of the comparison --
+ * narrowly, by these patterns -- and the tool's way in (`IncomingHtml`, `ProseRewrite`) reads an old option card or
+ * reply by them.
  * - each is checked against the element's own data where it can be (a chip's text is its item's id)
  * - here, not in `convert.types` (which re-exports it):  the tool loads the converter only for `convert` (I5)
- * - REFACTOR: drop with the converter and `IncomingHtml` after the switch (P12)
+ * - kept after every doc was converted (P12):  the converter still converts a doc restored from an old backup, and
+ *   agents taught by old docs still hand the tool these shapes
  */
 export const Chrome = {
   /** The h1's `Epic: ` (`<epic-page title>` holds the rest). */
@@ -590,8 +623,9 @@ export const Chrome = {
 } as const
 
 /**
- * A reply's title (`div.plan-reply-title`) as `<epic-reply>`'s data:  `<b>Owen</b> · <time>2026-10-06 17:27</time> ·
- * re: "..."` => `{ from, at, re }`, `re: ` dropped.  `undefined` when it isn't in that shape:  then it stays prose.
+ * A reply's title (`div.plan-reply-title`) as `<epic-reply>`'s data:
+ * `<b>Owen</b> · <time>2026-10-06 17:27</time> · re: "..."` => `{ from, at, re }`, `re: ` dropped.
+ * `undefined` when it isn't in that shape:  then it stays prose.
  * - shared by the converter, the proof's `OldReading` and `IncomingHtml`:  the one rule for what of it is chrome
  * - flat text:  markup in what it's about (`<code>`) is read as its text
  */
@@ -603,3 +637,71 @@ export function replyTitleParts(title: Element): { from: string; at: string; re:
   const re = pieces.slice(2).join(Chrome.separator).replace(/\s+/g, " ").trim().replace(Chrome.replyRe, "")
   return { from, at, re }
 }
+
+////////////////
+// ## The old prose shapes
+////////////////
+
+/**
+ * The hand-written prose blocks older docs (and agents taught by them) wrote, which P14's elements now draw:  their
+ * ONE set of rules is `ProseShapes`, shared by the tool's way in (`IncomingHtml`) and the converter's second pass
+ * (`$/epics/convert` `Upgrader`, which re-exports these in `convert.types`).
+ */
+export const ProseBlocks = {
+  code: "ui-accordion.spell-code",
+  aside: "ui-accordion.spell-aside",
+  note: "ui-message.plan-update",
+  grid: "ui-grid.spell-pros-cons",
+  answer: "div.plan-answer-block",
+  answerTitle: "div.plan-answer-title",
+  reply: "div.plan-reply",
+  replyTitle: "div.plan-reply-title"
+} as const
+
+/** What P14's elements draw around that prose, as patterns:  the converter's proof leaves exactly that out. */
+export const Drawn = {
+  /**
+   * A Net effect paragraph's whole text (`Net effect:`, `Net effect (A):`, `Net effect (A, recommended):`,
+   * `Net effect (recommended):`, `Net effect: (A)`):  `option` is $1, `recommended` $2 (with a letter) or $3
+   * (without).  Other words (`(once fixed)`, `(to decide)`) don't match:  they stay prose.
+   */
+  netEffect: /^Net effect:?(?: \((?:([A-Z])(?:, (recommended))?|(recommended))\))?:?$/,
+  /** The label a Net effect paragraph starts with, whose own text is `Net effect:`:  the inline kind follows it. */
+  netEffectLabel: /^Net effect:$/,
+  /** Any bold `Net effect` lead, matched or not:  where a question's text ends. */
+  netEffectLead: /^Net effect\b/,
+  /** An aside's `Aside: ` before its title. */
+  asidePrefix: /^\s*Aside:\s*/i,
+  /** An option card's ` (recommended)` or ` (chosen)` after its title. */
+  optionSuffix: /\s*\((recommended|chosen)\)\s*$/i,
+  /** A hand-written note's header:  `UPDATE` or `DONE`, then ` · <title>`. */
+  noteHeader: /^(UPDATE|DONE)(?:\s*·\s*(.+))?$/
+} as const
+
+/** A labelled block in an item's prose:  `<b>Where:</b>`, `What should happen:`, `Step:` / `Step 2:`. */
+export const LABELLED_BLOCK = /^(Where|What should happen|Step\b[^:]*):$/
+
+/**
+ * What `ProseRewrite` tells its owner it did with each block (the converter counts them:  `convert.types`
+ * `Counted`);  `kept: ...`, what it left as prose, and why.
+ */
+export const ProseCounted = {
+  netEffect: "net effect",
+  optionNetEffect: "net effect, an option's",
+  inlineNetEffect: "net effect, a sentence",
+  code: "code",
+  aside: "aside",
+  note: "note",
+  update: "phase's UPDATE marker",
+  field: "labelled block",
+  choices: "choices",
+  answer: "answer",
+  reply: "reply",
+  keptNetEffect: "kept: net effect in other words",
+  keptCode: "kept: code in another shape",
+  keptAside: "kept: aside in another shape",
+  keptNote: "kept: note in other words",
+  keptGrid: "kept: option grid in another shape",
+  keptCard: "kept: hand-written card where its element can't go",
+  keptLabel: "kept: labelled block (no <epic-field label> yet)"
+} as const

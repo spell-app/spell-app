@@ -1,8 +1,9 @@
 /**
- * Loose types, constants, errors and small pure helpers of the page's server clients:  the review inbox's
- * (`ReviewClient`), the running agents' (`AgentsClient`) and the link both write through (`ServerLink`).
- * - The inbox's shapes are the route's own (`$/epics/tool/ReviewInbox`), imported as TYPES only:  erased, so the
- *   node-only inbox never reaches the pack, and a reply can't drift from what the server writes.
+ * Loose types, constants, errors and small pure helpers of the page's server clients:
+ * the review inbox's (`ReviewClient`), the running agents' (`AgentsClient`),
+ * and the link both write through (`ServerLink`).
+ * - The inbox's shapes are the route's own (`$/epics/tool/ReviewInbox`), imported as TYPES only:
+ *   erased, so the node-only inbox never reaches the pack, and a reply can't drift from what the server writes.
  */
 
 import { PlanDates } from "$/epics/dates"
@@ -12,6 +13,7 @@ import type {
   InboxMark,
   InboxRecord,
   InboxUrgency,
+  NewKind,
   NowAction,
   NowRequest,
   PickFields,
@@ -27,8 +29,8 @@ export const REVIEW_API = "/api/review"
 
 /**
  * The pages the routes review:  a plan doc's own path, `.../epics/<name>/<name>.plan.html` (`reviewRoutes.ts`
- * `PLAN_DOC`, the same rule:  any other page gets a 403).  A copy anywhere else (`preview-epics/`) isn't reviewed,
- * and doesn't ask.
+ * `PLAN_DOC`, the same rule:  any other page gets a 403).
+ * A copy anywhere else (`preview-epics/`) isn't reviewed, and doesn't ask.
  */
 export const PLAN_DOC_PAGE = /\/(?:packages\/docs\/content\/)?epics\/([^/]+)\/\1\.plan\.html$/
 
@@ -48,16 +50,28 @@ export const FOCUS_HOLD_MS = 3000
  * localStorage key prefix of a page's note-box backups:  `spell-revisit:<path>`, `{ [item id]: text }`.
  * - the SAME key as the old runtime's (`spell-doc-runtime.js` `REVISIT_KEY_PREFIX`):  a note half-typed on a page
  *   the old runtime drew is handed to the inbox here (`ReviewClient.adoptBackups()`)
- * - only a BACKUP:  notes are kept in the inbox as drafts (`POST draft`), which every address reads;  localStorage
- *   is per address (port included), which is how notes got lost (epic `windows-and-review` P1)
+ * - only a BACKUP:  notes are kept in the inbox as drafts (`POST draft`), which every address reads;
+ *   localStorage is per address (port included), which is how notes got lost (epic `windows-and-review` P1)
  */
 export const REVISIT_KEY_PREFIX = "spell-revisit:"
 
 /**
- * What the page says when no Claude session waits on the inbox (plan doc `review-review`, D6):  `listening` null,
- * which the routes also answer once a session's heartbeat stops (`ReviewInbox.forPage()`).
+ * What the page says when no Claude session waits on the inbox (plan doc `review-review`, D6):
+ * `listening` null, which the routes also answer once a session's heartbeat stops (`ReviewInbox.forPage()`).
  */
-export const NOBODY_LISTENING = "No Claude session is reviewing this doc:  this waits for the next /epic review"
+export const NOBODY_LISTENING = isAirplane()
+  ? "Airplane mode:  queued for when you land (/airplane land)"
+  : "No Claude session is reviewing this doc:  this waits for the next /epic review"
+
+/**
+ * Airplane mode is on (epic `airplane`):  Owen works with no Claude, and everything waits for `/airplane land`.
+ * - the page server says so in `window.SPELL_SERVER.airplane`, as it serves the page (`AirplaneMode`):
+ *   a page loaded before `spell dev airplane on` learns it on its next load
+ * - `false` outside a browser
+ */
+export function isAirplane(): boolean {
+  return typeof window !== "undefined" && !!(window as { SPELL_SERVER?: { airplane?: boolean } }).SPELL_SERVER?.airplane
+}
 
 /**
  * The four review actions of an item's line, in their order:  Approve, Revisit, Make Todo, then Do Now (`details`:
@@ -67,6 +81,18 @@ export const REVIEW_ACTIONS = ["approve", "revisit", "todo", "details"] as const
 
 /** One of `REVIEW_ACTIONS`. */
 export type ReviewAction = (typeof REVIEW_ACTIONS)[number]
+
+/**
+ * The summary's key in the inbox:  `<epic-summary>` has no id of its own (epic `airplane` P2).
+ * As `ReviewInbox`'s `SUMMARY_ID`:  a copy, since that module is node-only.
+ */
+export const SUMMARY_ID = "summary"
+
+/** What a new item from the page may be:  as `ReviewInbox`'s `NEW_KINDS` (a copy:  that module is node-only). */
+export const NEW_KINDS = ["todo", "question"] as const
+
+/** The longest title a new item may have:  as `ReviewInbox`'s `MAX_TITLE` (a copy:  that module is node-only). */
+export const NEW_TITLE_MAX = 300
 
 /** The page's own reload of its HTML:  the server's current token, as it serves the page now. */
 export const SERVER_INFO = /window\.SPELL_SERVER = (\{.*?\})<\/script>/
@@ -86,6 +112,12 @@ export type Inbox = Pick<InboxRecord, "marks" | "drafts" | "urgency" | "sent" | 
 
 /** A mark to set, before the route stamps it. */
 export type MarkInput = Omit<InboxMark, "at">
+
+/** A new item to ask for from the page (`POST new`, epic `airplane` P2):  `near`, the id of what it's about. */
+export type NewItemInput = { kind: NewKind; title: string; note?: string; near?: string }
+
+/** A new item waiting in the inbox (`ReviewClient.newItems()`):  its key (`new1`) and its mark. */
+export type NewItem = { id: string } & InboxMark & { kind: NewKind; title: string }
 
 /** An item's immediate request on its way or being worked on:  `queued` while it waits with nobody listening. */
 export type Running = { action: NowAction; queued: boolean }
@@ -114,7 +146,11 @@ export type ServerLinkOptions = {
 export type ReviewClientOptions = ServerLinkOptions & {
   /** `localStorage`, for the note backups;  `null`:  none (blocked, private window) */
   storage?: Storage | null
-  /** Is `id` an item or section of this page?  A backup for one that's gone is dropped.  Default:  always. */
+  /**
+   * Is `id` an item or section of this page?
+   * - a backup for one that's gone is dropped
+   * - default:  always
+   */
   hasItem?: (id: string) => boolean
 }
 
@@ -153,7 +189,17 @@ export type AgentRedirect = {
   told: string
 }
 
-export type { InboxDraft, InboxListener, InboxMark, InboxUrgency, NowAction, NowRequest, PickFields, WorkingEntry }
+export type {
+  InboxDraft,
+  InboxListener,
+  InboxMark,
+  InboxUrgency,
+  NewKind,
+  NowAction,
+  NowRequest,
+  PickFields,
+  WorkingEntry
+}
 
 ////////////////
 // ## Errors
@@ -204,8 +250,8 @@ export function isImmediate(mark: { action: string; when?: string }): boolean {
 }
 
 /**
- * `mark`'s pick, to carry into another mark (a revisit's "pick B, but ..."):  `{ pick, choices? }`, or `{}`.  As
- * `ReviewInbox.pickOf()`.
+ * `mark`'s pick, to carry into another mark (a revisit's "pick B, but ..."):  `{ pick, choices? }`, or `{}`.
+ * As `ReviewInbox.pickOf()`.
  */
 export function pickOf(mark: PickFields | null | undefined): PickFields {
   if (!mark?.pick) return {}
@@ -213,8 +259,8 @@ export function pickOf(mark: PickFields | null | undefined): PickFields {
 }
 
 /**
- * Is `mark`'s pick option `letter` of card set `choices` (its position among the item's sets, I8)?  A mark without
- * `choices` (from before I8) picks from the item's OWN set:  `own` says whether set `choices` is it.
+ * Is `mark`'s pick option `letter` of card set `choices` (its position among the item's sets, I8)?
+ * A mark without `choices` (from before I8) picks from the item's OWN set:  `own` says whether set `choices` is it.
  */
 export function picks(mark: PickFields | null | undefined, letter: string, choices: number, own: boolean): boolean {
   if (mark?.pick !== letter) return false
@@ -223,8 +269,8 @@ export function picks(mark: PickFields | null | undefined, letter: string, choic
 
 /**
  * ISO time `iso` as the reader's clock time, 24-hour, `14:42`;  `""` for none.
- * - a time shown alone (`saved 14:42`, a redirect's `told 14:43`):  `PlanDates`' time half, never the locale's
- *   `2:42 PM`
+ * - a time shown alone (`saved 14:42`, a redirect's `told 14:43`):
+ *   `PlanDates`' time half, never the locale's `2:42 PM`
  */
 export function clockOf(iso: string | null | undefined): string {
   const date = iso ? new Date(iso) : null

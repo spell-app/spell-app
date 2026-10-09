@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process"
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
-import { basename, dirname, join, relative, resolve, sep } from "node:path"
+import { dirname, join, relative, resolve, sep } from "node:path"
 
 import { OPEN_KINDS, PlanDocError, REVIEW_SECTIONS, TITLE_PREFIX, type Phase, type PlanSummary } from "./planDoc.types"
 
@@ -10,7 +10,7 @@ import { ItemPicker } from "./ItemPicker"
 import { PlanDoc } from "./PlanDoc"
 import { EPIC_STATUSES, PlanDocFiles, type EpicListing } from "./PlanDocFiles"
 import { PlanMarkup } from "./PlanMarkup"
-import { OLD_PART_EXT, PART_EXT, PARTS_DIR } from "./PlanParts"
+import { PART_EXT, PART_FILE, PARTS_DIR } from "./PlanParts"
 import type { PlanReader } from "./PlanReader"
 import { PlanTime } from "./PlanTime"
 import { ReviewBackfill } from "./ReviewBackfill"
@@ -18,27 +18,28 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
 
 /****************
  * ### `PlanDocCommands`
- * `spell dev plan-doc <command> <name> ...`:  edit the structured parts of a plan doc,
- * `epics/<name>/<name>.plan.html`.  What's data:  `PLAN-DOC.md` beside this;  the elements:  `$/epics/definitions`.
+ * `spell dev plan-doc <command> <name> ...`:
+ * edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
  * Used by the `/epic` skill and its agents.
+ * - what's data:  `PLAN-DOC.md` beside this;  the elements:  `$/epics/definitions`
  * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
  *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `check`, `open`, `convert`, `split`, `join`,
  *   `inbox`, `details`, `status`, `original` (`spell dev plan-doc` with no command lists them:  `USAGE`).
- * - TWO markups until the switch (P12):  the commands that only READ (`summary`, `summaries`, `list`, `items`,
- *   `check`, `open`, `inbox` listings) read either (`PlanDocFiles.readAny()`);  every command that EDITS takes the
- *   `<epic-*>` markup only, and refuses an old doc before it writes anything:  `convert` it first
+ * - the `<epic-*>` markup only:  every command refuses a doc still in the old markup
+ *   (one restored from an old backup) before it writes anything:  `convert` it first (`PlanDocFiles.read()`)
  * - `migrate` and `relayout` are gone:  the converter (`convert`, `$/epics/convert`) replaced them
  * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`ReviewInbox`):
  *   printed, waited on (`wait`, a background command that wakes the `/epic review` session), applied (`apply`),
  *   cleared (`InboxCommands`);  `details` writes an agent's details or reply into one item
- * - an item's text is never dropped:  a rewrite moves it into the item's folded Original Discussion;  `original`
- *   puts text recovered from git there
- * - the docs, their files and git:  `PlanDocFiles`, for ONE checkout (the caller's:  `spell dev plan-doc` finds
- *   it);  the doc itself:  `PlanDoc`, pure
+ * - an item's text is never dropped:  a rewrite moves it into the item's folded Original Discussion;
+ *   `original` puts text recovered from git there
+ * - the docs, their files and git:  `PlanDocFiles`, for ONE checkout (the caller's:  `spell dev plan-doc` finds it)
+ * - the doc itself:  `PlanDoc`, pure
  * - output goes straight to `process.stdout` / `stderr`, never `console.*`, which the `spell` CLI silences
  *   (`packages/cli/src/consoleGuard.ts`);  `run()` resolves to the exit code instead of exiting
- * - Node only:  NOT in the `$/epics` barrel, imported by path (`$/epics/tool/PlanDocCommands`).  Runs `docs`' tools
- *   as children (the docs index, `check-spell.js`, `open.js`), never imports them:  `epics` may not import `docs`.
+ * - Node only:  NOT in the `$/epics` barrel, imported by path (`$/epics/tool/PlanDocCommands`).
+ *   Runs `docs`' tools as children (the docs index, `check-spell.js`, `open.js`), never imports them:
+ *   `epics` may not import `docs`.
  * - From `packages/docs/tools/plan-doc.js`'s command line (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class PlanDocCommands {
@@ -107,9 +108,10 @@ export class PlanDocCommands {
           })
         )
         this.files.reindex()
-        // a new stage:  bring the doc forward, unless told not to.  No reload, nor a second one:  the edit reaches
-        // the page by the live client (it updates itself in place, `spell-doc-runtime.js` `wireLiveUpdate()`), and
-        // showing the page the view already has only reveals it (`packages/vscode/src/DocView.ts`)
+        // a new stage:  bring the doc forward, unless told not to.
+        // No reload, nor a second one:  the edit reaches the page by the live client
+        // (it updates itself in place, `spell-doc-runtime.js` `wireLiveUpdate()`),
+        // and showing the page the view already has only reveals it (`packages/vscode/src/DocView.ts`)
         return flags.noOpen ? undefined : this.openInVSCode(file)
       case "phase-body":
         return this.edit(file, (plan) => {
@@ -186,7 +188,7 @@ export class PlanDocCommands {
           plan.log(`${id.toUpperCase()} off the to-do list:  ${plan.unqueue(id)}`)
         })
       case "items":
-        return this.printItems(this.readAny(file), file, flags)
+        return this.printItems(this.read(file), file, flags)
       case "log":
         return this.edit(file, (plan) => plan.log(need(rest[0], "the text")))
       case "bedtime":
@@ -202,7 +204,7 @@ export class PlanDocCommands {
       case "join":
         return this.joinDoc(file)
       case "summary":
-        return this.printSummary(this.readAny(file).summary(), Boolean(flags.json))
+        return this.printSummary(this.read(file).summary(), Boolean(flags.json))
       case "check":
         return this.check(file, flags)
       case "open":
@@ -249,14 +251,9 @@ export class PlanDocCommands {
   // ## Reading and editing
   ////////////////
 
-  /** The plan doc at `file`, whole, to edit:  `PlanDocFiles.read()`;  refuses an old-markup doc. */
+  /** The plan doc at `file`, whole:  `PlanDocFiles.read()`;  refuses an old-markup doc. */
   read(file: string): PlanDoc {
     return this.files.read(file)
-  }
-
-  /** The plan doc at `file`, whole, to read only, either markup:  `PlanDocFiles.readAny()`. */
-  readAny(file: string): PlanReader {
-    return this.files.readAny(file)
   }
 
   /** Change the doc at `file` under its lock, and write it:  `PlanDocFiles.edit()`. */
@@ -350,10 +347,10 @@ export class PlanDocCommands {
   }
 
   /**
-   * `details <name> <id> --file <html> [--append | --more]`:  an agent's details or reply into one item, under
-   * the doc's lock.
-   * - refused while Owen called the request off on the page ("nevermind", epic `windows-and-review` P2):  nothing
-   *   lands
+   * `details <name> <id> --file <html> [--append | --more]`:
+   * an agent's details or reply into one item, under the doc's lock.
+   * - refused while Owen called the request off on the page ("nevermind", epic `windows-and-review` P2):
+   *   nothing lands
    */
   private async details(name: string, file: string, rest: string[], flags: Flags): Promise<void> {
     const id = need(rest[0], "an item id")
@@ -374,8 +371,8 @@ export class PlanDocCommands {
   }
 
   /**
-   * `status <name> <id> underway "<reading>"` / `done ["<summary>"]` / `done --filed "<what>"`:  Claude's status card
-   * on an item or an Overview sub-section (P13), and the page's spinner on it.
+   * `status <name> <id> underway "<reading>"` / `done ["<summary>"]` / `done --filed "<what>"`:
+   * Claude's status card on an item or an Overview sub-section (P13), and the page's spinner on it.
    * - `underway`:  a new blue card (`PlanDoc.addStatus()`), stamped now;  the spinner on (`inbox working`), so
    *   one call does both
    * - `done`:  its latest underway card turns green (`PlanDoc.finishStatus()`), the summary under its reading when
@@ -428,7 +425,7 @@ export class PlanDocCommands {
     const sessionFinder = new ReviewBackfill()
     let total = 0
     for (const epic of epics) {
-      const plan = this.readAny(epic.file)
+      const plan = this.read(epic.file)
       const ids = plan.reviewSections().flatMap((section) => section.items.map((item) => item.id))
       if (!ids.length) continue
       const sessions = sessionFinder.sessionsOf(epic.name, main)
@@ -459,9 +456,10 @@ export class PlanDocCommands {
 
   /**
    * `convert <name> ... | --all [--dry-run] [--out <folder>] [--verbose]`:  rewrite docs from the old markup into
-   * `<epic-*>` markup, and prove nothing was lost (`$/epics/convert` `ConvertRun`);  prints its report;  exit code 1
-   * when any doc fails.
-   * - writes ONLY under `--out` (preview copies):  the real docs change at the switch (P12), with Owen
+   * `<epic-*>` markup, and prove nothing was lost (`$/epics/convert` `ConvertRun`);  prints its report;
+   * exit code 1 when any doc fails.
+   * - writes ONLY under `--out` (copies):  every live doc was converted at P12;
+   *   a doc restored from an old backup is converted to `--out`, then copied back by hand
    * - loaded on first use:  the converter is big, and no other command needs it
    */
   private async convert(names: string[], { all, dryRun, out, verbose }: Flags): Promise<number | void> {
@@ -511,8 +509,8 @@ export class PlanDocCommands {
 
   /**
    * `split --done [--dry-run]`:  split every FINISHED epic's doc (Q12 of `claude-design`):  every phase done, and no
-   * worktree of its own (`list`'s `checkout` is `main`:  a worktree may still edit it with older code);  prints what
-   * it split and what it skipped, and why.
+   * worktree of its own (`list`'s `checkout` is `main`:  a worktree may still edit it with older code);
+   * prints what it split and what it skipped, and why.
    */
   private async splitDone({ dryRun }: Flags): Promise<void> {
     for (const epic of this.files.listEpics()) {
@@ -534,15 +532,15 @@ export class PlanDocCommands {
    * `check`:  structural problems, then the browser check;  exit code 1 on any.
    * - a split doc is checked WHOLE (`read()` assembles it):  ids and `#id` links across skeleton and parts
    * - links:  `AS.Linker.check()` on the whole doc, at the page's folder (a part's links are written relative to
-   *   `parts/`, and rebased when assembled), so the parts' links are checked too;  printed (`LINK:`), failing only
-   *   with `--links`
+   *   `parts/`, and rebased when assembled), so the parts' links are checked too;
+   *   printed (`LINK:`), failing only with `--links`
    * - a split doc's parts:  a missing one is a problem;  a host with content of its own besides its part (moved
    *   into the part on the next edit), or a part file nothing loads, is a note
    * - the browser check:  `packages/docs/tools/check-spell.js`, a child `node` (its stderr passed on)
    */
   private check(file: string, { noBrowser, links: strictLinks }: Flags): number | void {
     const { files } = this
-    const plan = this.readAny(file)
+    const plan = this.read(file)
     const parts = plan.parts!
     const problems = plan.check()
     const links = files.linker.check(plan.toString(), dirname(file)).problems.map((problem) => `link:  ${problem}`)
@@ -556,9 +554,8 @@ export class PlanDocCommands {
     const dir = join(dirname(file), PARTS_DIR)
     const orphans = existsSync(dir)
       ? readdirSync(dir).filter((each) => {
-          // a part split before Q12 is still `.htm`
-          const ext = [PART_EXT, OLD_PART_EXT].find((it) => each.endsWith(it))
-          return !!ext && !parts.hosts.includes(basename(each, ext))
+          const id = PART_FILE.exec(each)?.[1]
+          return id !== undefined && !parts.hosts.includes(id)
         })
       : []
     for (const orphan of orphans) this.print(`NOTE:  ${PARTS_DIR}/${orphan}:  nothing loads it`)
@@ -580,7 +577,7 @@ export class PlanDocCommands {
 
   /** `open`:  show the doc in VS Code's Review tab (Owen's rule, 2026-10-07), reusing it (`openInVSCode()`). */
   private open(file: string): void {
-    this.readAny(file)
+    this.read(file)
     this.openInVSCode(file)
   }
 
@@ -690,7 +687,7 @@ export class PlanDocCommands {
     const found: Record<string, PlanSummary | { error: string }> = {}
     for (const file of files) {
       try {
-        found[file] = this.readAny(resolve(file)).summary()
+        found[file] = this.read(resolve(file)).summary()
       } catch (error) {
         if (!(error instanceof PlanDocError)) throw error
         found[file] = { error: error.message }
@@ -780,10 +777,10 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    requests for now (taken;  their items marked working) and a
                                                    send not yet handed over (its marks by action);  timeout:  exit 2;
                                                    stamps the session's heartbeat every ${LISTEN_HEARTBEAT_MS / 1000}s (silent ${LISTEN_STALE_MS / 1000}s:  gone)
-  inbox <name> apply [ids...]                      apply the sent approve / pick / todo marks, and the sent
+  inbox <name> apply [ids...] [--all]              apply the sent approve / pick / todo marks, and the sent
                                                    urgency (an id chip clicked:  calm or not), to the doc, clear
                                                    them;  prints each, and what it left (revisits, a pick with a
-                                                   revisit:  to talk over)
+                                                   revisit:  to talk over);  --all:  sent or not (/airplane land)
   inbox <name> working <id> on|off                 the page's spinner on an item
   inbox <name> done <id>...                        an agent finished an item:  its mark and spinner go (a mark
                                                    Owen changed meanwhile stays)
@@ -807,8 +804,8 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    Discussion:  as first written, or dated --as-of (when it was
                                                    replaced);  prints added / unchanged / empty
 Every checkout shares ONE copy of each doc (the epics link):  any checkout edits the same file.
-Until the switch (P12):  summary, summaries, list, items, check, open and the inbox's listings read a doc in the old
-markup too;  every other command refuses one:  convert it first.
+Every command reads <epic-*> markup only, and refuses a doc in the old markup (one restored from an old backup):
+convert it first (convert <name> --out <folder>, then copy the converted doc back).
 --here is no longer needed:  accepted and ignored.`
 
 /** What `migrate` and `relayout` say now:  the converter replaced them. */
