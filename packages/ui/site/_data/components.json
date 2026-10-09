@@ -15476,6 +15476,116 @@
       "page": false
     },
     {
+      "tag": "ui-docs-inspector",
+      "name": "Docs inspector",
+      "folder": "ui-docs-inspector",
+      "topics": [
+        "documentation",
+        "data display",
+        "status"
+      ],
+      "aka": [
+        "inspector",
+        "element inspector",
+        "devtools",
+        "live properties",
+        "state viewer",
+        "debug panel"
+      ],
+      "description": "An inspector shows another element's attributes, properties and custom states, live:  click the element, and watch them change.",
+      "noun": "inspector",
+      "attributes": [
+        {
+          "name": "for",
+          "kind": "string",
+          "property": "htmlFor",
+          "description": "Id of the element to show, in the inspector's own document (or shadow root)."
+        },
+        {
+          "name": "all",
+          "kind": "boolean",
+          "description": "Show every property of the element's vocabulary, even unset ones.  Default:  only properties with a value (not `undefined`, `null` or `false`)."
+        }
+      ],
+      "slots": [],
+      "events": [],
+      "parts": [
+        {
+          "name": "inspector",
+          "description": "The whole box (`<div class=\"ui inspector\">`)."
+        },
+        {
+          "name": "title",
+          "description": "The line naming the element shown:  `<ui-button id=\"save\">`."
+        },
+        {
+          "name": "group",
+          "description": "One group of rows:  attributes, properties or states."
+        },
+        {
+          "name": "caption",
+          "description": "A group's title."
+        },
+        {
+          "name": "row",
+          "description": "One row:  a name, and its value (none for a state)."
+        },
+        {
+          "name": "name",
+          "description": "A row's name."
+        },
+        {
+          "name": "value",
+          "description": "A row's value, as text (strings quoted)."
+        },
+        {
+          "name": "missing",
+          "description": "The message shown while no element has the `for` id."
+        }
+      ],
+      "states": [
+        {
+          "name": "missing",
+          "description": "No element has the `for` id (yet)."
+        }
+      ],
+      "texts": [
+        {
+          "key": "label",
+          "text": "Live view of {target}",
+          "description": "Accessible name of the inspector."
+        },
+        {
+          "key": "attributes",
+          "text": "Attributes",
+          "description": "Title of the attributes group."
+        },
+        {
+          "key": "properties",
+          "text": "Properties",
+          "description": "Title of the properties group."
+        },
+        {
+          "key": "states",
+          "text": "States",
+          "description": "Title of the custom states group."
+        },
+        {
+          "key": "none",
+          "text": "none",
+          "description": "Shown in a group with no rows."
+        },
+        {
+          "key": "missing",
+          "text": "No element with id “{id}”",
+          "description": "Shown while the `for` id names nothing."
+        }
+      ],
+      "mainTag": "ui-docs-inspector",
+      "main": true,
+      "page": false
+    },
+    {
       "tag": "ui-docs-nav",
       "name": "Docs nav",
       "folder": "ui-docs-nav",
@@ -18053,6 +18163,43 @@
           "name": "--ui-docs-example-gap",
           "default": "1em",
           "description": "Space between the header, description and example.",
+          "type": "length"
+        }
+      ]
+    },
+    "ui-docs-inspector": {
+      "folder": "ui-docs-inspector",
+      "mainTag": "ui-docs-inspector",
+      "title": "Docs inspector",
+      "summary": "An inspector shows another element's attributes, properties and custom states, live:  click the element, and watch them change.",
+      "status": "done",
+      "docs": true,
+      "tags": [
+        "ui-docs-inspector"
+      ],
+      "tokens": [
+        {
+          "name": "--ui-docs-inspector-background",
+          "default": "var(--ui-surface-muted)",
+          "description": "The panel's background.",
+          "type": "color"
+        },
+        {
+          "name": "--ui-docs-inspector-border",
+          "default": "var(--ui-border)",
+          "description": "Its border.",
+          "type": "other"
+        },
+        {
+          "name": "--ui-docs-inspector-flash",
+          "default": "var(--ui-yellow-background)",
+          "description": "The colour a changed row flashes in.",
+          "type": "color"
+        },
+        {
+          "name": "--ui-docs-inspector-font-size",
+          "default": "0.8125em",
+          "description": "Text size of the rows, against the page's.",
           "type": "length"
         }
       ]
