@@ -2,8 +2,8 @@ import { createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import {
-  Cell,
   Converters,
+  fromContent,
   proto,
   protoMerged,
   UIComponent,
@@ -26,6 +26,23 @@ import {
 
 import setCSS from "./UIBrandColorSet.css?inline"
 
+/**
+ * Same chips, same keys, same `selected`?  A rescan finding them again changes nothing (`UIBrandColorSet.chips`).
+ * - Above the class:  `@fromContent({ equals })` reads it while the class is defined.
+ */
+function isSameChips(a: readonly SetChip[], b: readonly SetChip[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every(
+      (chip, index) =>
+        chip.chip === b[index]!.chip &&
+        chip.name === b[index]!.name &&
+        chip.color === b[index]!.color &&
+        chip.selected === b[index]!.selected
+    )
+  )
+}
+
 /****************
  * ### `UIBrandColorSet`
  * The component behind `<ui-brand-color-set>`:  a group of `<ui-brand-color>` chips, its light-DOM children.
@@ -47,7 +64,7 @@ import setCSS from "./UIBrandColorSet.css?inline"
  *   - Click, Enter or Space chooses;  the arrows move and choose (wrapping;  left / right swap right-to-left);
  *     Home / End go to the ends.
  *   - A choice sends `ui-change`, then sets `value`, unless a handler set it first.
- * - Watches its children and their `name` / `value` / `selected` (a `MutationObserver`), so chips added,
+ * - Watches its children and their `name` / `value` / `selected` (`@fromContent`), so chips added,
  *   removed or recoloured later just work.
  * - SIDE EFFECT:  writes its chips' `selected` (while `value` is set), `choice` and `tabindex` (while
  *   `selectable`);  a chip that leaves the set gets its `choice` and `tabindex` back.
@@ -66,8 +83,14 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   /** `value`:  set by the page, or chosen;  none until either. */
   readonly valueState = this.controlled("value", undefined)
 
-  /** The chips, as read from the light DOM;  tracked, and changed only when one of them changes. */
-  readonly chips = new Cell<readonly SetChip[]>(this.scan(), { equals: UIBrandColorSet.sameChips })
+  /**
+   * The chips, as read from the light DOM:  its children and their `name` / `value` / `selected`;
+   * changed only when one of them changes.
+   */
+  @fromContent({ childList: true, subtree: true, attributeFilter: CHIP_ATTRIBUTES, equals: isSameChips })
+  get chips(): readonly SetChip[] {
+    return this.scan()
+  }
 
   /** Chips this set has made choices of, or given a `tabindex`:  handed back when they leave. */
   private readonly members = new Set<HTMLElement>()
@@ -78,7 +101,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
 
   /** Index of the chosen chip, `-1` for none:  the one `value` names, else the first `selected` one. */
   readonly chosen = createMemo(() => {
-    const chips = this.chips.get()
+    const chips = this.chips
     const value = this.valueState.get()
     if (value) return chips.findIndex((chip) => UIBrandColorSet.matches(chip, value))
     return chips.findIndex((chip) => chip.selected)
@@ -94,9 +117,6 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
       }
     )
     if (isServer) return
-    const observer = new MutationObserver(() => this.chips.set(this.scan()))
-    observer.observe(this.domElement, { childList: true, subtree: true, attributeFilter: [...CHIP_ATTRIBUTES] })
-    this.domElement.addReleaseCallback(() => observer.disconnect())
     this.domElement.addEventListener("click", this.onClick)
     this.domElement.addEventListener("keydown", this.onKeyDown)
   }
@@ -118,7 +138,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   onMount(): JSX.Element {
     createEffect(
       () => ({
-        chips: this.chips.get(),
+        chips: this.chips,
         chosen: this.chosen(),
         selectable: this.selectable,
         valued: !!this.valueState.get()
@@ -209,7 +229,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
    * - Returns true when `value` changed.
    */
   choose(index: number, originalEvent?: Event): boolean {
-    const chip = untrack(() => this.chips.get())[index]
+    const chip = untrack(() => this.chips)[index]
     if (!chip) return false
     chip.chip.focus()
     if (index === untrack(this.chosen) && untrack(() => this.valueState.get())) return false
@@ -229,7 +249,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
     if (!untrack(() => this.selectable) || event.altKey || event.ctrlKey || event.metaKey) return
     const index = this.indexOf(event)
     if (index < 0) return
-    const count = untrack(() => this.chips.get()).length
+    const count = untrack(() => this.chips).length
     const target = this.keyTarget(event, index, count)
     if (target === undefined) return
     event.preventDefault()
@@ -239,7 +259,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   /** Index of the chip `event` happened in, else `-1`. */
   private indexOf(event: Event): number {
     const path = event.composedPath()
-    return untrack(() => this.chips.get()).findIndex(({ chip }) => path.includes(chip))
+    return untrack(() => this.chips).findIndex(({ chip }) => path.includes(chip))
   }
 
   /** Where key `event` goes from chip `index` of `count`, or `undefined` for a key the group doesn't take. */
@@ -268,20 +288,6 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   private static matches(chip: SetChip, value: string): boolean {
     if (chip.name && chip.name === value) return true
     return !!chip.color && chip.color === (Palette.parse(value) ?? value)
-  }
-
-  /** Same chips, same keys, same `selected`? */
-  private static sameChips(a: readonly SetChip[], b: readonly SetChip[]): boolean {
-    return (
-      a.length === b.length &&
-      a.every(
-        (chip, index) =>
-          chip.chip === b[index]!.chip &&
-          chip.name === b[index]!.name &&
-          chip.color === b[index]!.color &&
-          chip.selected === b[index]!.selected
-      )
-    )
   }
 
   /** Hand a chip back:  no longer a choice, no `tabindex` of ours. */

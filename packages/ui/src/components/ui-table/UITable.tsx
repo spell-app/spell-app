@@ -70,7 +70,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   ////////////////
 
   /**
-   * Base `onMount()`, plus the light-DOM work:  the DOM element's listeners, the author-table watch,
+   * Base `onMount()`, plus the light-DOM work:  the DOM element's listeners
    * and the render effect that mirrors classes onto the managed table;  the `@onChange` methods watch the table,
    * decorate headers and (with `client-sort`) reorder rows.
    */
@@ -138,7 +138,10 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   ////////////////
 
   /** First author `<table>` child (never the generated one);  follows the DOM element's children. */
-  @E.state accessor authorTable: HTMLTableElement | undefined = untrack(() => this.scanAuthorTable())
+  @E.fromContent({ childList: true })
+  get authorTable(): HTMLTableElement | undefined {
+    return this.scanAuthorTable()
+  }
 
   /** The generated data-mode table, once rendered (set a microtask after its `ref`). */
   @E.state accessor dataTable: HTMLTableElement | undefined = undefined
@@ -155,21 +158,16 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   private readonly classMirror = new TableClassMirror()
 
   /**
-   * Listen on the DOM element for header clicks / keys, and watch its children for an author table.
+   * Listen on the DOM element for header clicks / keys.
    * - SIDE EFFECT:  undone when the DOM element is released;  scoped to the DOM element, so it survives moves
    *   (`keepAlive`).
    * - Not `listen()`:  the base's, which it uses.
    */
   private watchDOMElement() {
     const domElement = this.domElement
-    const observer = new MutationObserver(() => (this.authorTable = this.scanAuthorTable()))
-    observer.observe(domElement, { childList: true })
     this.on("click", this.onClick)
     this.on("keydown", this.onKeyDown)
-    domElement.addReleaseCallback(() => {
-      observer.disconnect()
-      this.classMirror.detach()
-    })
+    domElement.addReleaseCallback(() => this.classMirror.detach())
   }
 
   /**

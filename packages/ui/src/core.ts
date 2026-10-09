@@ -9,7 +9,7 @@
  *     `ClassBuilder`, `Shorthand`, `OwnerContext`, `NativeFallback` (the fallbacks' base), `StickyWatch`
  *     (`<ui-sticky>` and `<ui-section sticky>`)
  *   - from `$/ui/elements`, the Solid layer:  `Reactive` (the decorators:  `state`, `controlled`, `derived`,
- *     `cssState`, `onChange`), `Cell`, `ElementDefinition`, `DOMElement`, `PartContext` + `PartComponent`
+ *     `cssState`, `onChange`, `whileConnected`, `fromContent`), `Cell`, `ElementDefinition`, `DOMElement`, `PartContext` + `PartComponent`
  *     (owner context), `Controlled` (compatibility, for `brand`), `UIComponent`, `SlotContent`, `RootSettings`
  *     (what each `<ui-root>` sets for its subtree:  icon packs, emoji), `IconGlyph`, and the source layer:
  *     `DOMLoadableElement` + `LoadableComponent` (the elements that show a text file), `SourceMarkup`, `LoadableBody`,

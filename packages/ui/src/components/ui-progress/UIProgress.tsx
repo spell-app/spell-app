@@ -1,5 +1,5 @@
-import { Repeat, Show, createEffect, onSettled, untrack } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { Repeat, Show, createEffect, untrack } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { ProgressValues } from "./ProgressValues"
@@ -47,12 +47,6 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     this.domElement.internals.role = "progressbar"
-    if (isServer) return
-    onSettled(() => {
-      const observer = new MutationObserver(() => (this.elementText = (this.domElement.textContent ?? "").trim()))
-      observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
-      return () => observer.disconnect()
-    })
   }
 
   /** Adds the change events. */
@@ -141,7 +135,10 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   ////////////////
 
   /** The element's text (its slotted label), read again when it changes. */
-  @E.state accessor elementText = (this.domElement.textContent ?? "").trim()
+  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  get elementText(): string {
+    return (this.domElement.textContent ?? "").trim()
+  }
 
   /** `value` in the page's number format, to `precision` decimals. */
   private readonly format = (value: number): string =>

@@ -247,9 +247,8 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
   }
 
   /** While connected, listen to `window`'s `hashchange`;  returns the listener's abort. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (!isConnected) return
+  @E.whileConnected
+  protected followHash() {
     const listeners = new AbortController()
     window.addEventListener("hashchange", () => this.onHashChange(), { signal: listeners.signal })
     return () => listeners.abort()

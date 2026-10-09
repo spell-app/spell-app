@@ -1,4 +1,4 @@
-import { For, Show, onSettled, untrack, type Accessor } from "solid-js"
+import { For, Show, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -41,21 +41,13 @@ export class UITreeDiagram extends E.UIComponent<typeof treeDiagramVocabulary> {
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
-  /** JSON text of the `<script type="application/json">` child;  `undefined` without one.  Followed in `onMount()`. */
-  @E.state accessor scriptText: string | undefined = isServer
-    ? undefined
-    : untrack(() => TreeData.scriptText(this.domElement))
-
-  /** Follow the script child as the page changes it. */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      onSettled(() => {
-        const observer = new MutationObserver(() => (this.scriptText = TreeData.scriptText(this.domElement)))
-        observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
-        return () => observer.disconnect()
-      })
-    }
-    return super.onMount()
+  /**
+   * JSON text of the `<script type="application/json">` child;  `undefined` without one.
+   * - Follows the script child as the page changes it.
+   */
+  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  get scriptText(): string | undefined {
+    return isServer ? undefined : TreeData.scriptText(this.domElement)
   }
 
   /**

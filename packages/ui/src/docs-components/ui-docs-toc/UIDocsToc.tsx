@@ -165,14 +165,12 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   /** What the scheduled frame does:  a rescan wins over a follow. */
   private queuedUpdate: TocUpdate | undefined
 
-  /** SIDE EFFECT:  page listeners and the observers, while connected. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    return isConnected ? this.watch() : undefined
-  }
-
-  /** Start following:  the first scan, the hash, listeners and the observers;  returns their cleanup. */
-  private watch(): () => void {
+  /**
+   * While connected, follow the page:  the first scan, the hash, listeners and the observers;  returns their cleanup.
+   * - SIDE EFFECT:  page listeners and the observers.
+   */
+  @E.whileConnected
+  protected watch(): () => void {
     const document = this.domElement.ownerDocument
     const view = document.defaultView!
     const observer = new MutationObserver(() => this.schedule("rescan"))
