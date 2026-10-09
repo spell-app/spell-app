@@ -1,4 +1,3 @@
-import { onSettled } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -20,23 +19,11 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
   @E.proto static vocabulary = epicUpdateVocabulary
   @E.protoMerged static elementSetup = { styleSheets: { "epic-update": updateCSS } } satisfies Partial<E.ElementSetup>
 
-  /** Has it children:  a note, not a bare label? */
+  /** Has it children:  a note, not a bare label?  Follows its children;  never on a server. */
   @E.cssState("note")
-  @E.state
-  accessor isNote = false
-
-  /** Follow its children:  a note while it has any. */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      onSettled(() => {
-        const update = () => (this.isNote = EpicUpdate.hasContent(this.domElement))
-        const observer = new MutationObserver(update)
-        observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
-        update()
-        return () => observer.disconnect()
-      })
-    }
-    return super.onMount()
+  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  get isNote(): boolean {
+    return !isServer && EpicUpdate.hasContent(this.domElement)
   }
 
   render(): JSX.Element {

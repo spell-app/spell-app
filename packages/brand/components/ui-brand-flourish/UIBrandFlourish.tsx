@@ -1,7 +1,15 @@
-import { createEffect, createMemo } from "solid-js"
+import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, protoMerged, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
+import {
+  Cell,
+  proto,
+  protoMerged,
+  UIComponent,
+  whileConnected,
+  type ElementSetup,
+  type AttributeValues
+} from "$/ui/core"
 
 import { brandFlourishVocabulary } from "./UIBrandFlourish.en"
 import { Flourish } from "./Flourish"
@@ -54,7 +62,6 @@ export class UIBrandFlourish extends UIComponent<BrandFlourishVocabulary> {
   })
 
   render(): JSX.Element {
-    this.effects()
     return (
       <svg
         class="art"
@@ -67,19 +74,14 @@ export class UIBrandFlourish extends UIComponent<BrandFlourishVocabulary> {
   }
 
   /** While connected:  measure the element, and again on every resize. */
-  private effects() {
-    createEffect(
-      () => this.isConnected,
-      (connected) => {
-        if (!connected) return undefined
-        const resizes = new ResizeObserver(() => {
-          const { width, height } = this.domElement.getBoundingClientRect()
-          if (width && height) this.size.set({ width, height })
-        })
-        resizes.observe(this.domElement)
-        return () => resizes.disconnect()
-      }
-    )
+  @whileConnected
+  protected measure() {
+    const resizes = new ResizeObserver(() => {
+      const { width, height } = this.domElement.getBoundingClientRect()
+      if (width && height) this.size.set({ width, height })
+    })
+    resizes.observe(this.domElement)
+    return () => resizes.disconnect()
   }
 }
 

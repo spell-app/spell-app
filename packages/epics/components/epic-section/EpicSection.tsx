@@ -1,4 +1,4 @@
-import { For, Show, createEffect, createMemo, onSettled, untrack } from "solid-js"
+import { For, Show, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -48,7 +48,7 @@ import sectionCSS from "./EpicSection.css?inline"
  *   then its children:  phases, items, log events or prose.
  * - Its COUNT (P10), on the title's badge:  `open/all` of its items (or phases), open being any status but `done`,
  *   `decided` or `canceled`;  none without any.  Counted again whenever a child comes, goes, or changes its `status`
- *   or `state` (its own `MutationObserver`:  the live update, a part loading).
+ *   or `state` (`@fromContent`:  the live update, a part loading).
  * - An item section's STATE FILTER (P10), at the title's end:  a grey filter chip, then one round chip per state
  *   its items are in, in the state's colour:  filled while that state's items show.  The grey chip flips between
  *   everything and only what needs Owen (red).  A filtered list says `3 hidden · show all` under it.  Hidden items
@@ -62,7 +62,7 @@ import sectionCSS from "./EpicSection.css?inline"
  *   Add Details Now in `tools` (no Approve:  Q14 asks for notes, not sign-off), its note box at the end of its body, a
  *   marked note at its top;  only while the page is reviewed.  Claude's status cards (`slot="status"`, P13) just
  *   above the note box.
- * - SIDE EFFECT:  observes its own children while connected (counted kinds only).
+ * - SIDE EFFECT:  observes its own children, from the first count on (`@fromContent`).
  ****************/
 export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   @E.proto static vocabulary = epicSectionVocabulary
@@ -79,9 +79,6 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
 
   /** The Phases section's toggles:  which fields show. */
   @E.state accessor shown: Record<string, boolean> = EpicSection.savedToggles()
-
-  /** Bumped when a counted child comes, goes or changes its status or state:  the count and filter follow. */
-  @E.state accessor childChanges = 0
 
   /** The states the reader chose to show, as last left on this page;  `undefined`:  every state. */
   @E.state accessor chosen: readonly string[] | undefined = EpicSection.savedFilters()[untrack(() => this.id) ?? ""]
@@ -119,21 +116,25 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   /** An item section with nothing in it, and no part on its way. */
   readonly empty = createMemo(() => this.holdsItems() && !this.slots.hasContent("") && !this.source)
 
-  /** Its counted children (items, or phases), read again on every change to them. */
-  readonly counted = createMemo((): Element[] => {
-    void this.childChanges
+  /**
+   * Its counted children (items, or phases), read again whenever a child comes, goes or changes its status or state:
+   * the count and filter follow.
+   * - A NEW list on every change, so the count reads the children's `status` again.
+   */
+  @E.fromContent({ childList: true, subtree: true, attributeFilter: COUNT_ATTRIBUTES })
+  get counted(): readonly Element[] {
     void this.slots.filledSlots
-    if (!this.counts() || isServer) return []
+    if (!this.counts() || isServer) return NOTHING_COUNTED
     return Array.from(this.domElement.querySelectorAll(COUNTED))
-  })
+  }
 
   /** Its count:  `{ open, total }`;  `undefined` for a kind that isn't counted, or with nothing to count. */
-  readonly count = createMemo((): SectionCount | undefined => EpicSection.countOf(this.counted()))
+  readonly count = createMemo((): SectionCount | undefined => EpicSection.countOf(this.counted))
 
   /** Each item's state, in page order (items only:  phases aren't filtered). */
   readonly itemStates = createMemo((): { item: Element; state: ItemStateName }[] =>
     this.holdsItems()
-      ? this.counted()
+      ? this.counted
           .filter((child) => child.localName === "epic-item")
           .map((item) => ({ item, state: EpicSection.stateOf(item) }))
       : []
@@ -175,27 +176,10 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   // ## Rendering
   ////////////////
 
-  /**
-   * Count its children again as they change (counted kinds);  an Overview sub-section follows the review inbox while
-   * connected (kept alive:  a removed one stops).
-   */
-  onMount(): JSX.Element {
-    if (!isServer && untrack(() => this.counts())) {
-      onSettled(() => {
-        const bump = () => this.childChanges++
-        const observer = new MutationObserver(bump)
-        observer.observe(this.domElement, { childList: true, subtree: true, attributeFilter: COUNT_ATTRIBUTES })
-        bump()
-        return () => observer.disconnect()
-      })
-    }
-    if (!isServer && untrack(() => this.kind) === "overview-part") {
-      createEffect(
-        () => this.isConnected,
-        (connected) => (connected ? this.reviewState.connect() : undefined)
-      )
-    }
-    return super.onMount()
+  /** An Overview sub-section follows the review inbox while connected (kept alive:  a removed one stops). */
+  @E.whileConnected
+  protected followReviews() {
+    return untrack(() => this.kind) === "overview-part" ? this.reviewState.connect() : undefined
   }
 
   render(): JSX.Element {
@@ -599,3 +583,6 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface EpicSection extends E.AttributeValues<EpicSectionVocabulary> {}
+
+/** No counted children:  a kind that isn't counted, or a server render.  One list, so a recount keeps it. */
+const NOTHING_COUNTED: readonly Element[] = []
