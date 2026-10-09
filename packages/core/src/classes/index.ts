@@ -14,18 +14,12 @@ import { Thing } from "./Thing"
 import { App } from "./App"
 import { List } from "./List"
 
-/** Anything with a `.Component` to render, e.g. a `Thing`. */
-export type Drawable = {
-  /** React component that renders this thing -- optional so a non-`Drawable` can still be checked safely. */
-  Component?: ReactComponentType
-}
-
-/** Base-type registry plus safer `draw*` wrappers for `Thing`/`List`/`App`. */
+/** Base-type registry, and where an app mounts.  Drawing is `../drawing.ts`. */
 export const classesMethods = defineSpellCoreModule({
   /** Base types known to the `spell` language/parser -- see `SPELL_BASE_TYPES`. */
   BASE_TYPES: [...SPELL_BASE_TYPES] as string[],
 
-  /** DOM `id` for the react root element for `App` components. */
+  /** DOM `id` of the element an `App` mounts into when the host set no `appRoot`. */
   REACT_APP_ROOT_ID: "spell-app-root",
 
   /**
@@ -47,27 +41,6 @@ export const classesMethods = defineSpellCoreModule({
   domRoot(): Document | ShadowRoot {
     const root = spellCore.appRoot?.getRootNode()
     return typeof ShadowRoot !== "undefined" && root instanceof ShadowRoot ? root : document
-  },
-
-  /**
-   * Safer `drawThing()` routine -- returns `null` instead of throwing when `drawable` doesn't
-   * implement `.Component` (e.g. wasn't a `Thing`/`Drawable`), unlike calling `.Component` directly.
-   * - Compiles from `draw the card` -- see `draw.ts`.
-   * - Takes ANYTHING, as it checks:  compiled spell draws what TypeScript can't type, e.g. the last card of a pile.
-   */
-  drawThing(drawable?: unknown): ReactElement | null {
-    const thing = drawable as Drawable | undefined
-    if (!thing?.Component) return null
-    return spellCore.element({ tag: thing.Component })
-  },
-
-  /**
-   * Safer `drawItems()` routine, which won't barf if not called on a list.
-   * - Compiles from `draw each card in the deck` / `draw cards of the deck` -- see `draw.ts`.
-   */
-  drawItems(list: List): ReactNode | null {
-    if (!list.drawItems) return null
-    return list.drawItems()
   }
 })
 Object.assign(spellCore, classesMethods)

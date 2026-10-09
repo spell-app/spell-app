@@ -55,7 +55,8 @@ import "$/app/solid/loadUI"
  *   link is clicked, e.g. `spell:/@system:examples:Solitaire/Card.spell#L12`.
  * - Each runs on its own copy of the spell runtime, so many can run on a page at once -- see `loadRuntime()`.
  * - Draws in Solid, the runner's UI on `@spell-app/ui`, inside a `<ui-root icons="fomantic">`:  the runner's icon
- *   names are Fomantic's.  The PROGRAM draws with React, Semantic UI's CSS adopted here (`shadowStyles()`).
+ *   names are Fomantic's.  The PROGRAM draws with Solid too (`spellCore.element()`), Semantic UI's CSS adopted
+ *   here (`shadowStyles()`).
  * - Leaving the page stops the app and lets go of its runtime, a microtask later:  a move in one go keeps it.
  * - NOTE: NOT in the `$/app/runner` barrel:  defining an element fails where there's no DOM, e.g. tests.
  ****************/

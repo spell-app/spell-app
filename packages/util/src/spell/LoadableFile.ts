@@ -1,4 +1,4 @@
-import { extend } from "./extend"
+import { extend } from "$/util/reactive"
 import { KnownFormat, type KnownFormatMimeType } from "./constants"
 import { $fetch, merge$fetchParms, type $FetchParams, type $FetchRequestParams } from "./$fetch"
 import { Loadable, LoadableProps } from "./Loadable"

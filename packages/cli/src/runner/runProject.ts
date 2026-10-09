@@ -11,6 +11,7 @@
 import chalk from "chalk"
 import { format } from "util"
 
+import { bridgeSolid } from "$/util"
 import { App, spellCore } from "$/core"
 import type { CLI } from "$/cli"
 
@@ -183,9 +184,11 @@ async function fakeDom() {
     })
   }
   spellCore.installStyles = () => {}
-  // `tsx` compiles `core`'s `App.tsx` with classic JSX here, which reads a global `React`
-  Object.assign(globalThis, { React: await import("react") })
+  // Solid follows spell's values, as a runner's page does (`cellsBridge.ts`):  the hooks give us its browser build
+  const { enableExternalSource, flush } = await import("solid-js")
+  bridgeSolid({ enableExternalSource, flush })
   process.once("beforeExit", () => {
+    spellCore.flush()
     const drawn = page.document.body.innerHTML
     if (drawn) process.stdout.write(`\n${drawn}\n`)
   })

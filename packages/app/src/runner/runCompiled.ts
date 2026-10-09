@@ -6,7 +6,6 @@
  * - Part of `spell-runtime.js`, NOT the runners themselves:  it runs on the `spellCore` of the runtime copy it's
  *   in -- see `spellRuntime.ts`'s `runApp()`.
  */
-import type { Root } from "react-dom/client"
 
 import { spellCore, SPELL_CORE_MODULE } from "$/core"
 
@@ -84,16 +83,15 @@ export type RunCompiledOptions = {
 /** Take down the app the last run started, if any -- e.g. before showing another project. */
 export function unmountApp() {
   const element = spellCore.appElement() as AppElement | null
-  element?.REACT_ROOT?.unmount()
-  if (element) delete element.REACT_ROOT
+  element?.spellRoot?.unmount()
 }
 
 /**
- * Did the last run start an app?  `App.start()` leaves its React root on the mount point.
+ * Did the last run start an app?  `App.start()` leaves it on the mount point (`spellCore.mountApp()`).
  * - An app started later, e.g. from a timer, isn't there yet -- a runner should watch for it drawing.
  */
 export function appIsMounted(): boolean {
-  return !!(spellCore.appElement() as AppElement | null)?.REACT_ROOT
+  return !!(spellCore.appElement() as AppElement | null)?.spellRoot
 }
 
 /**
@@ -126,5 +124,5 @@ const SPELL_IMPORT = /(\bfrom\s*)"(@spell\/[^"]+)"/g
  */
 const PROJECT_MODULE = "@spell/project/"
 
-/** The app's mount point, with the React root `App.start()` leaves on it. */
-type AppElement = HTMLElement & { REACT_ROOT?: Root }
+/** The app's mount point, with the mounted app `App.start()` leaves on it. */
+type AppElement = HTMLElement & { spellRoot?: { unmount(): void } }

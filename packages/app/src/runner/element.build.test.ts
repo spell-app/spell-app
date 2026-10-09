@@ -16,7 +16,8 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  *   `spellCore` of its own.  In a shared chunk, every app on a page would share one -- one runtime, one console
  *   -- and a runner would show a `spellCore` its program doesn't run on.  So nothing a runner itself imports may
  *   import `spellCore`.
- * - And `spell-runtime.js` never loads Solid or `ui`:  compiled spell runs on React (decision D9).
+ * - And `spell-runtime.js` draws with the page's one Solid:  it imports `spell-solid.js`, bundles none of its own, and
+ *   never loads `ui` (epic `output-targets` P10).
  * - Monaco only in `<spell-editor>`'s lazy chunks:  the parser compiles, and apps run, before it loads.
  * - Icon packs beside the chunk holding `BuiltInPacks`, where it looks -- complete enough for every Fomantic name.
  * - Every bundle MUST parse:  a build can succeed and still write javascript no browser runs -- e.g. vite's
@@ -59,10 +60,13 @@ describe("runner builds", () => {
       ).toEqual([])
       // imported, NOT bundled:  each element's static imports reach the one `spell-solid.js`
       for (const entry of entries) expect(staticImports(dir, entry), `${dir} ${entry}`).toContain("spell-solid.js")
-      // compiled spell runs on React:  the runtime never loads Solid or `ui`, statically OR lazily
-      for (const file of staticImports(dir, "spell-runtime.js")) {
+      // compiled spell draws with the page's one Solid:  the runtime imports `spell-solid.js`, bundles no Solid of its
+      // own, and never loads `ui`, statically OR lazily
+      const runtimeFiles = staticImports(dir, "spell-runtime.js")
+      expect(runtimeFiles, dir).toContain("spell-solid.js")
+      for (const file of runtimeFiles.filter((file) => file !== "spell-solid.js")) {
         expect(holds(dir, file, "solid") || holds(dir, file, "ui"), `${dir} ${file}`).toBe(false)
-        expect(readFileSync(join(dir, file), "utf8"), `${dir} ${file}`).not.toMatch(/spell-(solid|ui)\.js/)
+        expect(readFileSync(join(dir, file), "utf8"), `${dir} ${file}`).not.toMatch(/spell-ui\.js/)
       }
     }
   })

@@ -3,6 +3,7 @@ import type { collectionCoreMethods } from "./collection-core"
 import type { collectionOtherMethods } from "./collection-other"
 import type { stringMethods } from "./string"
 import type { uiMethods } from "./ui"
+import type { drawingMethods } from "./drawing"
 import type { pathMethods } from "./paths"
 import type { testMethods } from "./tests"
 import type { consoleMethods } from "./console"
@@ -50,6 +51,7 @@ export type SpellCore = typeof coreMethods &
   typeof collectionOtherMethods &
   typeof stringMethods &
   typeof uiMethods &
+  typeof drawingMethods &
   typeof pathMethods &
   typeof testMethods &
   typeof consoleMethods &

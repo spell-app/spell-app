@@ -15,7 +15,8 @@ import { defineSpellApp, type SpellAppElement } from "./SpellAppElement"
  * - The runtime:  `spellRuntime.ts` as vite serves it, imported by its URL -- ALSO the program's `@spell/core`,
  *   so the program and the runner share its `spellCore`, as with a real `spell-runtime.js` copy.  `loadRuntime()`'s
  *   `blob:` copy can't load in dev:  vite's imports are root-relative, which a `blob:` URL can't resolve.
- * - The program draws with React, into the runner's app root.
+ * - The program draws with Solid (`spellCore.element()`), into the runner's app root:  as compiled spell writes it,
+ *   a value that can change is a function (`() => this.count`).
  * - `shadowStyles()` is stubbed:  the test server doesn't serve `static/` (Semantic UI, Lato).
  */
 vi.mock("./loadRuntime", async (importOriginal) => {
@@ -37,7 +38,7 @@ export class Counter extends App {
     return spellCore.element({
       tag: "button",
       props: { className: "count", onClick: (event) => { this.count = this.count + 1 } },
-      children: ["Count: ", this.count]
+      children: ["Count: ", () => this.count]
     })
   }
 }
@@ -62,6 +63,54 @@ export class Late extends App {
 export let late = new Late()
 setTimeout(() => late.start(), 50)
 `
+
+/**
+ * A card game, as compiled spell draws it:  a card's `draw()` chooses its face by an `if` (read OUTSIDE its live
+ * values), its rank is a live value, the pile draws its cards with `drawItems()`, and one card can't draw.
+ * - React spellings (`className`, `colSpan`), as spell programs write them.
+ */
+const CARDS = `
+import { spellCore, Thing, List, App } from "@spell/core"
+export class Card extends Thing {
+  get rank() { return this.getProp('rank') }
+  set rank(value) { this.setProp('rank', value) }
+  get is_face_down() { return this.getProp('is_face_down') }
+  set is_face_down(value) { this.setProp('is_face_down', value) }
+  draw() {
+    if (this.is_face_down) return spellCore.element({ tag: "div", props: { className: "card back" } })
+    return spellCore.element({ tag: "div", props: { className: () => "card " + this.rank }, children: [() => this.rank] })
+  }
+}
+export class Joker extends Card {
+  draw() { throw new Error("no face") }
+}
+export class Pile extends List {}
+export class Game extends App {
+  draw() {
+    return spellCore.element({ tag: "table", children: [
+      spellCore.element({ tag: "tr", children: [
+        spellCore.element({ tag: "td", props: { colSpan: "2", className: "pile" }, children: [() => spellCore.drawThing(this.pile)] })
+      ] })
+    ] })
+  }
+}
+export let ace = new Card({ rank: "A" })
+export let king = new Card({ rank: "K", is_face_down: true })
+export let joker = new Joker({ rank: "J" })
+export let game = new Game()
+game.pile = new Pile()
+game.pile.add(ace, king, joker)
+game.start()
+globalThis.cardGame = { ace, king, game, Card }
+`
+
+/** What `CARDS` leaves on `globalThis`, for a test to play with. */
+type CardGame = {
+  ace: { rank: string; is_face_down: boolean }
+  king: { rank: string; is_face_down: boolean }
+  game: { pile: { add(...cards: unknown[]): void; removeItem(oneIndex: number): void } }
+  Card: new (props: Record<string, unknown>) => { rank: string }
+}
 
 /** Undo for each test:  unmount, remove. */
 const cleanups: (() => void)[] = []
@@ -151,6 +200,79 @@ describe("<SpellAppRunner>", () => {
       host.querySelector(".RunnerSplitTop > .RunnerPane .RunnerConsole")?.textContent?.includes("hello")
     )
     expect(host.querySelector(".SpellAppToolbar ui-item[type=header]")!.textContent).toBe("Printer")
+  })
+})
+
+describe("compiled spell draws with Solid", () => {
+  /** The cards on the page, in order, by class name. */
+  const cardsIn = (host: HTMLElement) => [...host.querySelectorAll<HTMLElement>(".pile .card, .pile .spell-draw-error")]
+
+  test("a live value updates its own node;  an `if` in `draw()` re-draws that card alone", async () => {
+    const host = await mount(source(CARDS, "Game"))
+    await waitFor(() => cardsIn(host).length === 3)
+    const { ace, king } = (globalThis as unknown as { cardGame: CardGame }).cardGame
+    const [aceNode, kingNode] = cardsIn(host)
+    expect(aceNode!.className).toBe("card A")
+    expect(kingNode!.className).toBe("card back")
+
+    ace.rank = "2"
+    await waitFor(() => aceNode!.textContent === "2")
+    expect(cardsIn(host)[0]).toBe(aceNode)
+    expect(aceNode!.className).toBe("card 2")
+
+    king.is_face_down = false
+    await waitFor(() => cardsIn(host)[1]!.textContent === "K")
+    expect(cardsIn(host)[0]).toBe(aceNode)
+    expect(cardsIn(host)[1]).not.toBe(kingNode)
+  })
+
+  test("a list keeps each item's node:  one added or removed changes only its own", async () => {
+    const host = await mount(source(CARDS, "Game"))
+    await waitFor(() => cardsIn(host).length === 3)
+    const { game, Card } = (globalThis as unknown as { cardGame: CardGame }).cardGame
+    const [aceNode, , jokerNode] = cardsIn(host)
+
+    game.pile.add(new Card({ rank: "Q" }))
+    await waitFor(() => cardsIn(host).length === 4)
+    expect(cardsIn(host)[0]).toBe(aceNode)
+    expect(cardsIn(host)[3]!.textContent).toBe("Q")
+
+    game.pile.removeItem(1) // the ace
+    await waitFor(() => cardsIn(host).length === 3)
+    expect(cardsIn(host)[1]).toBe(jokerNode)
+  })
+
+  test("a thing that can't draw shows a stand-in, says so once, and sends `ui-error`;  the rest draws", async () => {
+    const errors: unknown[] = []
+    const onError = (event: Event) => errors.push((event as CustomEvent<{ error: unknown }>).detail.error)
+    document.addEventListener("ui-error", onError)
+    cleanups.push(() => document.removeEventListener("ui-error", onError))
+    const quiet = vi.spyOn(console, "error").mockImplementation(() => {})
+    cleanups.push(() => quiet.mockRestore())
+
+    const host = await mount(source(CARDS, "Game"))
+    await waitFor(() => cardsIn(host).length === 3)
+    const standIn = cardsIn(host)[2]!
+    expect(standIn.classList.contains("spell-draw-error")).toBe(true)
+    expect(standIn.textContent).toBe("⚠ Joker can't draw")
+    expect(standIn.title).toBe("no face")
+    expect((errors[0] as Error).message).toBe("no face")
+    expect(cardsIn(host)[0]!.textContent).toBe("A")
+  })
+
+  test("`notify` shows a toast, on the page's Spell UI", async () => {
+    await mount(source(`import { spellCore } from "@spell/core"\nspellCore.notify("hello from spell")`, "Notifier"))
+    const toast = await waitFor(() =>
+      [...document.querySelectorAll("ui-toast")].find((it) => it.getAttribute("message") === "hello from spell")
+    )
+    cleanups.push(() => toast.remove())
+  })
+
+  test("React's spellings become the page's:  `className` => `class`, `colSpan` => `colspan`", async () => {
+    const host = await mount(source(CARDS, "Game"))
+    const cell = await waitFor(() => host.querySelector<HTMLTableCellElement>("td.pile"))
+    expect(cell.getAttribute("colspan")).toBe("2")
+    expect(cell.hasAttribute("classname")).toBe(false)
   })
 })
 

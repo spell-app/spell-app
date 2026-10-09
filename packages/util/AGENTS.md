@@ -41,13 +41,27 @@ house style every package shares.  Only what's local is below;  a section named 
 - Files in `src/spell/` import the generic helpers by deep path (`$/util/class`), NEVER the `$/util` barrel (it re-exports
   this folder:  a cycle).
 - NOTE: `ResponseErrors.ts` is deliberately NOT in `src/spell/index.ts` -- see its header.
-- Reactivity here is spell CELLS (P11):  `cells.ts` (the page-wide context, tracking, `flushCells()`), `Cell`,
-  `Derived`, `Reaction`, `Schema` (per-class prop types), `extend.ts` (records + `getProp` / `setProp` /
-  `getState`...), `Observable`, `spellDecorators.ts` (`@prop` / `@derived` / `@thing`), `bridges.ts` (`bridgeSolid()`,
-  which the HOST calls -- this package never imports Solid;  `observe()`), `view.ts` (the React bridge).  It's Solid
-  work:  READ the root's Solid 2 pointer first.
-- Tests: the generic ones run in a real browser (`util:browser`), `src/spell/**` in node (`util:spell`);
-  `vitest.config.ts` exports `utilProjects()` for the root run.
+- Spell's layer of reactivity:  `Observable`, `spellDecorators.ts` (`@thing`), `view.ts` (the React bridge).  The
+  engine under it is `src/reactive/` (below).
+- Tests: the generic ones run in a real browser (`util:browser`), `src/spell/**` and `src/reactive/**` in node
+  (`util:spell`);  `vitest.config.ts` exports `utilProjects()` for the root run.
+
+## The reactive engine (`src/reactive/`)
+
+- `$/util/reactive`:  the ONE reactive engine every reactive class shares (epic `output-targets` P10, Q20), flattened
+  into the `$/util` barrel too:
+  - spell CELLS:  `cells.ts` (the page-wide context, tracking, `flushCells()`), `Cell`, `Derived`, `Reaction`
+  - the records, `extend.ts`:  `getProp` / `setProp`, `getState` / `setState`, `derive()`
+  - `Schema`:  per-class prop types
+  - the decorators, `decorators.ts`:  `@prop`, `@state`, `@derived` (`{ equals }` on the last two), with the same
+    names and options as Spell UI's `Reactive.ts`
+  - `bridges.ts`:  `bridgeSolid()`, which the HOST calls with its Solid (this package never imports Solid), and
+    `observe()`
+- GENERIC, like the files beside `index.ts`:  no lodash, no Solid, nothing spell-specific, so Spell UI may import
+  it file by file once it moves onto spell cells (after epic `spell-element` merges:  caveat C12 of
+  `output-targets`).
+- Its files import each other as peers;  `src/spell/` imports it as `$/util/reactive`, never through `$/util`.
+- It's Solid work:  READ the root's Solid 2 pointer first.
 
 ## Decorators
 

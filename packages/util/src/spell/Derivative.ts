@@ -1,4 +1,4 @@
-import * as extend from "./extend"
+import { extend } from "$/util/reactive"
 
 /**
  * Base class to add `@derived`, `@derivedFrom`, `@override` functionality to class instances.

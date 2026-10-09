@@ -564,6 +564,12 @@ export class JSWriter extends Writer {
     return this.write(node.output)
   }
 
+  /** A function the drawing calls for the value:  `() => this.short_suit`;  an object literal in parens. */
+  ASTJSXLiveValue(node: P.ASTJSXLiveValue): string {
+    const value = this.write(node.expression)
+    return node.expression instanceof P.ASTObjectLiteral ? `() => (${value})` : `() => ${value}`
+  }
+
   ////////////////
   // ## Settings
   ////////////////

@@ -27,6 +27,7 @@
     "test:ui": "vp test --ui"
   },
   "dependencies": {
+    "@solidjs/h": "2.0.0-rc.13",
     "@solidjs/router": "2.0.0-next.35",
     "@solidjs/web": "2.0.0-rc.13",
     "@spell-app/core": "workspace:*",

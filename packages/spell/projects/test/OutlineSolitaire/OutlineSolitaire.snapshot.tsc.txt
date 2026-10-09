@@ -15,5 +15,5 @@
 309:53 TS2339 Property 'name' does not exist on type '{}'.
 310:52 TS2339 Property 'short_name' does not exist on type '{}'.
 315:52 TS2339 Property 'is_the_$rank_of_$suits' does not exist on type '{}'.
-574:16 TS2339 Property 'symbol' does not exist on type 'Foundation'.
+574:22 TS2339 Property 'symbol' does not exist on type 'Foundation'.
 759:71 TS2339 Property 'is_face_down' does not exist on type '{}'.

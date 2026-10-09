@@ -70,7 +70,7 @@ function browserConfig() {
       // - `spellRuntime.ts` too:  tests import it by URL (`editor.loadRuntime()`), which the crawl can't follow, so
       //   ITS deps (`semantic-ui-react`, `lodash/cloneDeep` ...) were found mid-run on a fresh cache (C6)
       entries: [...BROWSER_TESTS, "src/runner/spellRuntime.ts"],
-      include: ["react", "react-dom", "react-dom/client", "solid-js", "@solidjs/web"]
+      include: ["react", "react-dom", "react-dom/client", "solid-js", "@solidjs/web", "@solidjs/h"]
     }
   }
 }

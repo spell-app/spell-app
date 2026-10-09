@@ -21,7 +21,7 @@ import "$/app/solid/cellsBridge"
  * - `spell-cells.ts` (strategy A) and `decorators.ts` (strategy D):  cells read-after-write, the bridge, keys,
  *   the equality cutoff
  * - `cells-vs-notifiers.mjs` (X):  a cell write is immune to Solid's held writes
- * The cells core alone (no Solid) is `packages/util`'s `src/spell/cells.test.ts`.
+ * The cells core alone (no Solid) is `packages/util`'s `src/reactive/cells.test.ts`.
  */
 
 /** A card, as compiled spell declares one:  `declareProp()` + accessor pairs. */
@@ -301,7 +301,7 @@ describe("the bridge", () => {
   test("follows the cells of ANOTHER copy of the cells module -- e.g. a `<spell-app>`'s `spell-runtime.js`", async () => {
     // `?copy`:  a separate instance of the module, as each runtime bundle has its own `$/util`
     // @ts-expect-error -- a query on purpose:  Vite loads the file again, a second module
-    const copy = (await import("../../../util/src/spell/cells.ts?copy")) as typeof import("$/util")
+    const copy = (await import("../../../util/src/reactive/cells.ts?copy")) as typeof import("$/util")
     const source = { subs: new Set<any>(), version: 0 }
     let runs = 0
     inRoot(() => {

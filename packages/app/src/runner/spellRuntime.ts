@@ -5,7 +5,8 @@
  *   so each has its own `spellCore`:  its own `RUNTIME`, console, event listeners and mount point.
  * - It IS a program's `@spell/core`:  it exports `spellCore`, `Thing`, `List` and `App`, and compiled spell's
  *   `import ... from "@spell/core"` is pointed at this module's URL -- see `runApp()`.
- * - Registers the `UI` / `SUI` tags spell programs draw with.
+ * - Registers the `UI` / `SUI` tags spell programs once drew with:  React kits, which can't draw with Solid, so a
+ *   program naming one shows a stand-in until epic `output-targets` P11 moves it onto Spell UI's `<ui-*>` elements.
  * - MUST be the only module in a bundle that imports `spellCore`'s code, so it's all HERE, not in a shared
  *   chunk -- see `element.build.test.ts`, `parser/build.test.ts`.
  * - NOTE: `UI` is NOT the `$/app/ui` barrel, which would pull in the editor:  it's the forms plus the

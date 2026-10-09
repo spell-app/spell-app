@@ -23,7 +23,7 @@ import "./SpellAppRunner.css"
  * - Runs `source` when the runtime's loaded, again when `source` changes -- a NEW object -- and on Restart.
  *   Restart fetches the program afresh, so a recompiled one shows -- or runs `source.compiled` again, if set.
  * - The program draws with REACT (`App.start()` makes its own root):  we only hand it `appRoot`, a `<div>` drawn
- *   once and never touched again.  Its React root is unmounted with us.
+ *   once and never touched again.  The app it mounted is unmounted with us.
  * - A program with NO app shows its console on top instead, and the explorers below.  One that starts its app
  *   AFTER the run finished, e.g. from a timer, shows it once it draws.
  * - The Type Explorer is read-only, and shows only if there's a scope pack -- see `ScopesSource`.
@@ -63,7 +63,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
       )
       return () => {
         gone = true
-        ;(appRoot as AppElement).REACT_ROOT?.unmount()
+        ;(appRoot as AppElement).spellRoot?.unmount()
         copy?.release()
       }
     }
@@ -479,8 +479,8 @@ function messageOf(problem: unknown): string {
   return problem instanceof Error ? problem.message : String(problem)
 }
 
-/** The app's mount point, with the React root `App.start()` leaves on it. */
-type AppElement = HTMLElement & { REACT_ROOT?: { unmount(): void } }
+/** The app's mount point, with the mounted app `App.start()` leaves on it (`spellCore.mountApp()`). */
+type AppElement = HTMLElement & { spellRoot?: { unmount(): void } }
 
 /** Compiled javascript the last run loaded, by project id -- a box, so the Type Explorer reads the latest. */
 type CompiledRef = { current: Map<string, string> }

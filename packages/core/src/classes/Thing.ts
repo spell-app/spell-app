@@ -1,16 +1,15 @@
 /**
  * Base classes for spell.
  */
-import React from "react"
-
-import { Observable, runsCreate, view, type PropInfo } from "$/util"
+import { Observable, runsCreate, type PropInfo } from "$/util"
 import { spellCore } from "$/core/core"
+import type { Drawing } from "$/core/drawing"
 import { Eventful } from "$/core/SpellEvent"
 import type { PropCheck } from "$/core/spellCore.types"
 
 /**
  * `Thing`: base for all object-like things in spell -- what `a task is a thing` extends.
- * All things can be drawn as React components, e.g.:
+ * All things can be drawn, with Solid (`drawing.ts`), e.g.:
  *  ```spell
  *    a task is a thing
  *    a task has a name as text
@@ -69,28 +68,11 @@ export class Thing extends Eventful(Observable) {
   }
 
   /**
-   * Subclasses (or a spell-compiled `to draw` method) implement this to render themselves.
-   * - Compiles from `draw the card` -- see `draw.ts` (`spellCore.drawThing()` calls this via `.Component`).
+   * Subclasses (or a spell-compiled `to draw` method) implement this to draw themselves.
+   * - `draw the card` calls it through `spellCore.drawThing()`, in the card's own error net (`drawing.ts`).
+   * - throws:  a thing with no `to draw` can't be drawn.  Its net shows a stand-in.
    */
-  draw(): ReactNode {
+  draw(): Drawing {
     throw new Error(`${this.type} does not implement draw()`)
-  }
-
-  /**
-   * Return a React.Component which renders an instance, memoized so the same component identity
-   * is reused across renders (a fresh class each render would remount instead of updating).
-   * - `view()` (`$/util`, the React bridge):  it re-renders when a spell cell its `draw()` read changes.
-   * - NOTE: a class component, not a function component:  `draw()` may be any program code, and a class keeps
-   *   hooks out of it.
-   */
-  /*@memoize*/
-  get Component(): ReactComponentType {
-    return this.derived("Component", () => {
-      const render = () => this.draw()
-      class ThingComponent extends React.Component {
-        render = render
-      }
-      return view(ThingComponent)
-    })
   }
 }
