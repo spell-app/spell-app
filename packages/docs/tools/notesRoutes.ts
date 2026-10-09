@@ -50,11 +50,19 @@ const ANSWERED_ON_PAGE = /<epic-page\b|class="spell-question\b/
 const notesRoutes: RouteModule = {
   name: "notes",
   setup({ router, guard, web }) {
+    // every docs page asks, so a page that takes no notes is an answer (`takesNotes: false`), not a 403:
+    // the browser logs every 4xx in the console, which `check-spell.js` fails on
     router.get(API, (request, reply) => {
       const page = one(request.query.page)
-      const file = notesPage(web.files, page)
+      let file: string
+      try {
+        file = notesPage(web.files, page)
+      } catch (error) {
+        if (!(error instanceof SRV.HttpError) || error.status !== 403) throw error
+        return reply.set("Cache-Control", "no-store").json({ page, takesNotes: false, notes: [] })
+      }
       const notes = new PageNotes(readFileSync(file, "utf8")).notes({ all: true })
-      reply.set("Cache-Control", "no-store").json({ page, notes })
+      reply.set("Cache-Control", "no-store").json({ page, takesNotes: true, notes })
     })
     router.post(API, guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }), async (request, reply) => {
       const change = toChange(request.body)

@@ -2317,7 +2317,8 @@ const NOTE_DRAFT_KEY_PREFIX = "spell-note-draft:"
  * - every page, `file://` too:  each `<spell-note>` is a folded card (`drawNoteCards()`):  a head line ("Owen ·
  *   10/10 14:02", the first line of the note while folded, its status, how many replies) that unfolds it, then the
  *   text and Claude's replies under it
- * - served by the page server with a token, on a page that takes notes (the `GET` answers):  WRITABLE, so also
+ * - served by the page server with a token, on a page that takes notes (the `GET` says `takesNotes`):  WRITABLE,
+ *   so also
  *   - a note bubble in every section's title (`addNoteBubbles()`):  shown while the reader is in that section, and
  *     always, with a count, once the section has notes
  *   - a Note pill in the page header, with "N new" linking to the first new note (`addNotePill()`)
@@ -2334,7 +2335,7 @@ async function wireNotes(main) {
   if (!server?.token || location.protocol === "file:") return
   try {
     const response = await fetch(`${NOTES_API}?page=${encodeURIComponent(location.pathname)}`, { cache: "no-store" })
-    writable = response.ok
+    writable = response.ok && (await response.json()).takesNotes === true
   } catch {
     // no routes, no bubbles
   }
