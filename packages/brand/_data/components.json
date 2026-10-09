@@ -204,6 +204,25 @@
           ],
           "default": "blob",
           "description": "Colour:  `blob` (lavender), `blob-2` (paler, grey-blue), `lilac`, `violet` (between the two), `current` (`currentColor`)."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [],
@@ -214,7 +233,28 @@
           "description": "The shape."
         }
       ],
-      "states": [],
+      "states": [
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
+        }
+      ],
       "texts": [],
       "mainTag": "ui-brand-blob",
       "main": true,
@@ -272,6 +312,25 @@
             "serif"
           ],
           "description": "Text:  `sans` (14px) or `serif` (15px);  default the checklist's, else `sans`."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [
@@ -317,6 +376,26 @@
         {
           "name": "checkable",
           "description": "A checkbox the user ticks."
+        },
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
         }
       ],
       "texts": [
@@ -377,6 +456,25 @@
           ],
           "default": "sans",
           "description": "Text:  `sans` (14px, 20px marks, the build progress) or `serif` (15px, 19px marks, the phone's habits)."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [
@@ -396,7 +494,28 @@
           "description": "The visually hidden live region announcing progress."
         }
       ],
-      "states": [],
+      "states": [
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
+        }
+      ],
       "texts": [
         {
           "key": "stepDone",
@@ -497,6 +616,25 @@
           ],
           "valueSet": "sizes",
           "description": "Chip size;  `medium` is the default (3em)."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [],
@@ -537,6 +675,26 @@
         {
           "name": "choice",
           "description": "One choice of a `selectable` `<ui-brand-color-set>`:  the host is a radio."
+        },
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
         }
       ],
       "texts": [
@@ -652,6 +810,19 @@
           "name": "disabled",
           "kind": "keyOnly",
           "description": "Faded;  nothing in it can be used (copying neither)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [
@@ -751,6 +922,22 @@
         {
           "name": "copied",
           "description": "Just copied:  for about 1.4 seconds after a copy button."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
         }
       ],
       "texts": [
@@ -981,6 +1168,25 @@
           "name": "strip",
           "kind": "keyOnly",
           "description": "A small strip of 17 dots instead of chips (the Chooser's folded Variants header)."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [],
@@ -1013,7 +1219,28 @@
           "description": "A step's dot (`strip`)."
         }
       ],
-      "states": [],
+      "states": [
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
+        }
+      ],
       "texts": [
         {
           "key": "ladder",
@@ -1059,6 +1286,25 @@
           "name": "selectable",
           "kind": "keyOnly",
           "description": "A radio group:  click, Enter or Space chooses a chip, the arrow keys move and choose, Home / End go to the ends."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [
@@ -1080,7 +1326,28 @@
           "description": "The box laying the chips out."
         }
       ],
-      "states": [],
+      "states": [
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
+        }
+      ],
       "texts": [],
       "mainTag": "ui-brand-color-set",
       "main": true,
@@ -1164,6 +1431,19 @@
           "name": "disabled",
           "kind": "keyOnly",
           "description": "Faded;  can't be typed in or cast, left out of the form."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [
@@ -1236,6 +1516,22 @@
         {
           "name": "disabled",
           "description": "Can't be used."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
         }
       ],
       "texts": [
@@ -1343,6 +1639,19 @@
           "name": "disabled",
           "kind": "keyOnly",
           "description": "Dimmed and not usable (`inert`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [
@@ -1426,6 +1735,22 @@
         {
           "name": "disabled",
           "description": "Can't be used."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
         }
       ],
       "texts": [
@@ -1498,6 +1823,25 @@
           "kind": "number",
           "default": 1.6,
           "description": "Line weight, px."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [],
@@ -1508,7 +1852,28 @@
           "description": "The `<svg>`."
         }
       ],
-      "states": [],
+      "states": [
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
+        }
+      ],
       "texts": [],
       "mainTag": "ui-brand-flourish",
       "main": true,
@@ -1563,6 +1928,25 @@
           "name": "label",
           "kind": "string",
           "description": "Accessible name;  default `Spell` (`Spell App`).  `\"\"`:  decorative, hidden from screen readers."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [],
@@ -1573,7 +1957,28 @@
           "description": "The `<svg>`."
         }
       ],
-      "states": [],
+      "states": [
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
+        }
+      ],
       "texts": [
         {
           "key": "spell",
@@ -1625,6 +2030,25 @@
           "name": "label",
           "kind": "string",
           "description": "Accessible name of the region around the app;  default `App preview`.  `\"\"`:  no region, just a frame."
+        },
+        {
+          "name": "disabled",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`)."
+        },
+        {
+          "name": "loading",
+          "kind": "boolean",
+          "shared": true,
+          "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`)."
+        },
+        {
+          "name": "visible",
+          "kind": "boolean",
+          "default": true,
+          "shared": true,
+          "description": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
         }
       ],
       "slots": [
@@ -1652,7 +2076,28 @@
           "description": "The status bar's signal, wifi and battery icons."
         }
       ],
-      "states": [],
+      "states": [
+        {
+          "name": "disabled",
+          "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+        },
+        {
+          "name": "loading",
+          "description": "`loading` is set."
+        },
+        {
+          "name": "busy",
+          "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+        },
+        {
+          "name": "dimmed",
+          "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+        },
+        {
+          "name": "hidden",
+          "description": "`visible=\"false\"`:  hidden, once its animation has run."
+        }
+      ],
       "texts": [
         {
           "key": "appPreview",
