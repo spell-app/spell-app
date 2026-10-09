@@ -9,6 +9,7 @@ import {
   protoMerged,
   UIComponent,
   UIT,
+  untracked,
   type ElementSetup,
   type AttributeValues
 } from "$/ui/core"
@@ -246,8 +247,9 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
   /**
    * A click (or Space / Enter on the button):  send `ui-change`, then set `selected`, unless a handler set it first.
    */
+  @untracked
   private readonly onToggle = (event: MouseEvent) => {
-    const selected = !untrack(this.selectedState.get)
+    const selected = !this.selectedState.get()
     const detail: BrandCheckChangeDetail = { selected, checked: selected, originalEvent: event }
     this.selectedState.request(selected, () => this.send("ui-change", detail))
   }

@@ -49,12 +49,6 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
     isAFormControl: true
   } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    if (isServer) return
-    this.on("click", this.onDOMElementClick)
-  }
-
   ////////////////
   // ## Pressed (`active`)
   ////////////////
@@ -378,7 +372,8 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
    *   A listener that ran first and called `preventDefault()` cancels the press.
    * - No connected control (the render threw):  left to the native fallback's own listener.
    */
-  private readonly onDOMElementClick = (event: MouseEvent) => {
+  @E.on("click")
+  protected onDOMElementClick(event: MouseEvent) {
     const control = this.innerControl
     if (event.composedPath()[0] !== this.domElement || !control?.isConnected) return
     if (this.isDisabled || event.defaultPrevented) return

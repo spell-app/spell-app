@@ -620,8 +620,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   }
 
   /** The review line, clicked:  copy the command, then flash and say so. */
+  @E.untracked
   private async copyCommand() {
-    if (!(await EpicPage.copyText(untrack(() => this.command())))) return
+    if (!(await EpicPage.copyText(this.command()))) return
     // off first, so a second click flashes again
     this.isCopied = false
     this.flashTimer?.cancel()
@@ -630,8 +631,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   }
 
   /** The heading, clicked:  copy `/epic <name>`, then say so for a moment. */
+  @E.untracked
   private async copyHeading() {
-    if (!(await EpicPage.copyText(untrack(() => this.headingCommand())))) return
+    if (!(await EpicPage.copyText(this.headingCommand()))) return
     this.isHeadingCopied = true
     this.headingTimer?.cancel()
     this.headingTimer = E.after((FLASH_MS + 600) / 1000, () => (this.isHeadingCopied = false))
@@ -641,11 +643,12 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   private readonly pageText: PageText = (key, params) => this.translationForKey(key, params)
 
   /** Measure where top-level titles stick:  the site header's height plus this header's. */
+  @E.untracked
   private readonly measure = () => {
     const site = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spell-site-header-height"))
     const head = this.header?.getBoundingClientRect().height ?? 0
     const top = Math.round((Number.isNaN(site) ? 0 : site) + head)
-    if (untrack(() => this.signals.top.get()) !== top) this.signals.top.set(top)
+    if (this.signals.top.get() !== top) this.signals.top.set(top)
   }
 
   /** A phase's step label:  `P4`, its name in the tooltip, a link to it. */

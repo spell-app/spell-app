@@ -33,6 +33,10 @@ import type { E } from "$/ui/core"
  * - `@onChange("a", "b") onXChanged(a, b)`:  an effect reading the named members, calling the method with their
  *   values;  a function it returns is the cleanup.  Created by `Reactive.startEffects()`, after every field exists;
  *   the method runs only when a member's value changed.
+ * - `@on("command") onCommand(event)`:  a listener on the DOM element for the element's whole life, added by
+ *   `UIComponent`'s constructor (`Reactive.listenersOf()`);  the method runs untracked.
+ * - `@untracked select(option)`:  the method's body runs inside `untrack()`, so an action or a handler reads members
+ *   without `untrack(() => this.x)` around each read.
  * - `Reactive.accessorsOf(instance)` (a component's `$`):  `$.isOpen` is an `Accessor` of `this.isOpen`, for
  *   Solid APIs that take one.
  * - Vocabulary getters (`installAttributeGetters()`;  their setters write the DOM element's property) and raw
@@ -145,6 +149,8 @@ export class Reactive {
    *   constructor (`PartContext`).
    * - Server:  an effect marked `writesDOMElement` applies once, now (the server build never runs an effect's apply);
    *   the rest aren't created.
+   * - The method runs untracked (inside `untrack()`):  it reacts to the members it names, never to what else it
+   *   reads.
    * - The method runs only when a member's VALUE changed (`===`, member by member):  a memo with `equals` sits
    *   between the reads and the effect.  Why:  Solid 2 (rc.13) runs an effect's apply on EVERY re-run of its
    *   compute, equal value or not, and a getter or `@derived` member tracks the sources UNDER it, so its effect
@@ -156,7 +162,7 @@ export class Reactive {
       const self = instance as Record<PropertyKey, unknown>
       const compute = () => members.map((member) => self[member])
       const apply = (values: unknown[]) => {
-        const cleanup = (self[method] as (...values: unknown[]) => unknown)(...values)
+        const cleanup = untrack(() => (self[method] as (...values: unknown[]) => unknown)(...values))
         return typeof cleanup === "function" ? (cleanup as () => void) : undefined
       }
       if (isServer) {
@@ -168,6 +174,20 @@ export class Reactive {
   /** `@cssState` members of `instance`'s class chain:  `{ member, state }`, most-derived first. */
   static cssStatesOf(instance: object): readonly CssStateEntry[] {
     return Reactive.listFor<CssStateEntry>(instance, CSS_STATES)
+  }
+
+  ////////////////
+  // ## Listeners
+  ////////////////
+
+  /**
+   * `@on` methods of `instance`'s class chain:  `{ method, type, options }`, BASE class first, each class's in
+   * declaration order (the order the listeners are added, as when each constructor added its own).
+   * - A method decorated again in a subclass (an override) is listed once, where the base class listed it.
+   * - `UIComponent`'s constructor adds them;  a helper class may too, under its own `on()`.
+   */
+  static listenersOf(instance: object): readonly ListenerEntry[] {
+    return Reactive.listFor<ListenerEntry>(instance, LISTENERS, baseFirstOnce)
   }
 
   ////////////////
@@ -212,20 +232,21 @@ export class Reactive {
 
   /**
    * Entries under `key` in `instance`'s class metadata, own class first, then each base class.
+   * - `combine(lists)`:  joins the classes' own lists (own class first) into one;  default end to end.
    * - Walked once per class and key (`lists`):  each class's metadata object inherits its base class's.
    */
-  private static listFor<T>(instance: object, key: symbol): readonly T[] {
+  private static listFor<T>(instance: object, key: symbol, combine: (lists: T[][]) => T[] = ownFirst): readonly T[] {
     const metadata = (instance.constructor as unknown as Record<symbol, Metadata | undefined>)[METADATA]
     if (!metadata) return []
     let byKey = Reactive.lists.get(metadata)
     if (!byKey) Reactive.lists.set(metadata, (byKey = new Map()))
     let list = byKey.get(key)
     if (!list) {
-      list = []
+      const lists: T[][] = []
       for (let current: Metadata | null = metadata; current; current = Object.getPrototypeOf(current)) {
-        if (Object.hasOwn(current, key)) list.push(...(current[key] as unknown[]))
+        if (Object.hasOwn(current, key)) lists.push(current[key] as T[])
       }
-      byKey.set(key, list)
+      byKey.set(key, (list = combine(lists)))
     }
     return list as T[]
   }
@@ -365,6 +386,7 @@ export function cssState(stateName: string) {
  * `@onChange("a", "b") onXChanged(a, b)`:  an effect reading members `a` and `b`, calling the method with their
  * values on start and on every change;  a function it returns is the cleanup, run before the next call and on
  * disposal.
+ * - The method runs untracked:  only the named members re-run it, so other reads need no `untrack()`.
  * - A trailing `{ writesDOMElement: true }`:  the method writes the DOM element (ARIA, `:state()`),
  *   so a server render applies it once, as `UIComponent.addElementEffect()` does.
  * - Created by `Reactive.startEffects()` (`UIComponent.onMount()`), after every subclass field exists.
@@ -378,6 +400,84 @@ export function onChange(...members: (string | OnChangeOptions)[]) {
       members: members as string[],
       writesDOMElement: !!options.writesDOMElement
     })
+  }
+}
+
+/**
+ * `@on("command") onCommand(event)`:  listen for event `type` on the DOM element, for the element's whole life, as
+ * `UIComponent.on()` does.
+ * - The method runs UNTRACKED (inside `untrack()`):  a handler reads members to decide what to do, never to be
+ *   followed, even when the event was sent from inside a Solid computation.
+ * - A plain method, not an arrow-function field:  the listener calls it on its instance.
+ *   `protected`, not `private`:  TypeScript can't see the listener call it, and reports a `private` one unused.
+ * - `@on("slotchange", { target: "renderRoot" })`:  listen on the shadow root instead.
+ *   The other options are `addEventListener()`'s:  `{ capture, passive, once }`.
+ * - Added by `UIComponent`'s constructor (`Reactive.listenersOf()`), in a browser only:  a server render sends no events.
+ *   Removed when the DOM element is released, NOT when it's moved or disconnected.
+ * - A subclass overriding the method keeps the listener (it calls the override);  decorating the override too adds no
+ *   second one.
+ * - A listener that starts later or stops sooner (an effect's) stays a `this.on()` call with its own `AbortController`.
+ */
+export function on<K extends keyof HTMLElementEventMap>(
+  type: K,
+  options?: ListenerOptions
+): <This>(method: (this: This, event: HTMLElementEventMap[K]) => unknown, context: ClassMethodDecoratorContext) => void
+export function on(
+  type: string,
+  options?: ListenerOptions
+): <This>(method: (this: This, event: never) => unknown, context: ClassMethodDecoratorContext) => void
+export function on(type: string, options: ListenerOptions = {}) {
+  return function (_method: unknown, context: ClassMethodDecoratorContext) {
+    if (context.kind !== "method" || context.static) {
+      throw new TypeError(`@on ${String(context.name)}:  only works on instance methods;  make it a method`)
+    }
+    ownList<ListenerEntry>(context.metadata, LISTENERS).push({ method: context.name, type, options })
+  }
+}
+
+/**
+ * `@untracked` on a method:  its body runs inside `untrack()`, so what it reads is never followed by the Solid
+ * computation that called it.
+ * - For actions and handlers, which read members to decide what to do:
+ *   `@E.untracked select(option) { if (!this.hasRoomForMore) return ... }`,
+ *   with no `untrack(() => this.hasRoomForMore)` around each read.
+ * - On an arrow-function field too, for a handler passed around (`onClick={this.onDimmerClick}`):
+ *   `@E.untracked private readonly onDimmerClick = (event: MouseEvent) => { ... }`.
+ * - Writes are the same either way:  `untrack()` changes reads only.
+ * - NEVER on a method a computation calls so it updates (a helper of a getter, of JSX or of an effect's first
+ *   function):  the computation would stop following those reads.
+ * - An `@on` method needs none:  its listener already runs it untracked.
+ * - An override in a subclass is untracked only when it's decorated too.
+ */
+export function untracked<This, Args extends unknown[], Result>(
+  method: (this: This, ...args: Args) => Result,
+  context: ClassMethodDecoratorContext<This, (this: This, ...args: Args) => Result>
+): (this: This, ...args: Args) => Result
+export function untracked<This, Handler extends (...args: any[]) => unknown>(
+  field: undefined,
+  context: ClassFieldDecoratorContext<This, Handler>
+): (handler: Handler) => Handler
+export function untracked(
+  method: AnyFunction | undefined,
+  context: ClassMethodDecoratorContext | ClassFieldDecoratorContext
+): AnyFunction {
+  const name = String(context.name)
+  if (context.kind === "method") return untrackedCall(method!)
+  if (context.kind !== "field" || context.static) {
+    throw new TypeError(`@untracked ${name}:  only works on methods and arrow-function fields;  untrack() its reads`)
+  }
+  return (handler: unknown) => {
+    if (typeof handler !== "function") {
+      throw new TypeError(`@untracked ${name}:  the field holds no function;  untrack() its reads instead`)
+    }
+    return untrackedCall(handler as AnyFunction)
+  }
+}
+
+/** `fn`, called inside `untrack()`, with the same `this` and arguments. */
+function untrackedCall(fn: AnyFunction): AnyFunction {
+  return function (this: unknown, ...args: unknown[]) {
+    return untrack(() => fn.apply(this, args))
   }
 }
 
@@ -685,6 +785,28 @@ function ownList<T>(metadata: DecoratorMetadataObject | undefined, key: symbol):
   return own[key] as T[]
 }
 
+/** `listFor()`'s default join:  own class's entries first, then each base class's. */
+function ownFirst<T>(lists: T[][]): T[] {
+  return lists.flat()
+}
+
+/**
+ * `listenersOf()`'s join:  base class's entries first;  a method's listener for a type once, at its first place.
+ * - Why once:  the listener calls the most-derived method, so an override decorated again would run twice.
+ */
+function baseFirstOnce(lists: ListenerEntry[][]): ListenerEntry[] {
+  const seen = new Set<string>()
+  return lists
+    .toReversed()
+    .flat()
+    .filter(({ method, type, options }) => {
+      const key = `${String(method)} ${type} ${options.target ?? ""}`
+      if (seen.has(key)) return false
+      seen.add(key)
+      return true
+    })
+}
+
 /** Default `equals`. */
 function isSame(a: unknown, b: unknown): boolean {
   return a === b
@@ -727,6 +849,25 @@ export type DerivedOptions = {
 export type OnChangeOptions = {
   /** The method writes the DOM element:  a server render applies it once. */
   writesDOMElement?: boolean
+}
+
+/** Options of `@on`:  `addEventListener()`'s, plus where to listen. */
+export type ListenerOptions = Omit<AddEventListenerOptions, "signal"> & {
+  /** what to listen on, a part of the DOM element;  default the DOM element itself */
+  target?: ListenerTarget
+}
+
+/** What an `@on` listener may listen on, other than the DOM element:  its shadow root (`DOMElement.renderRoot`). */
+export type ListenerTarget = "renderRoot"
+
+/** One `@on` method. */
+export type ListenerEntry = {
+  /** the method called */
+  method: PropertyKey
+  /** the event type */
+  type: string
+  /** `addEventListener()`'s options, and the target */
+  options: ListenerOptions
 }
 
 /** `$`:  an `Accessor` per member, same name and type. */
@@ -794,6 +935,9 @@ type OnChangeEntry = {
   writesDOMElement: boolean
 }
 
+/** Any function, for `@untracked`'s wrapper. */
+type AnyFunction = (this: unknown, ...args: unknown[]) => unknown
+
 /** Decorator metadata, as we use it. */
 type Metadata = Record<PropertyKey, unknown>
 
@@ -808,6 +952,9 @@ const CSS_STATES = Symbol("cssStates")
 
 /** Metadata key of the `@onChange` list. */
 const ON_CHANGE = Symbol("onChange")
+
+/** Metadata key of the `@on` list. */
+const LISTENERS = Symbol("listeners")
 
 /**
  * Where lowered decorators keep a class's metadata:  `Symbol.metadata`, or esbuild's fallback when the engine has

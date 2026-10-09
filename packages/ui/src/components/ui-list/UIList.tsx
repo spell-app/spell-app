@@ -40,13 +40,6 @@ export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    // SIDE EFFECT:  one listener for every item's activation
-    this.domElement.addEventListener("click", this.onClick)
-    this.domElement.addReleaseCallback(() => this.domElement.removeEventListener("click", this.onClick))
-  }
-
   ////////////////
   // ## Nesting
   ////////////////
@@ -114,7 +107,8 @@ export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.
   ////////////////
 
   /** A click (or Enter / Space) on an interactive item of THIS list:  `ui-select`. */
-  private readonly onClick = (event: MouseEvent) => {
+  @E.on("click")
+  protected onClick(event: MouseEvent) {
     const item = this.activatedItem(event)
     if (!item) return
     const detail: UIT.ListSelectDetail = { value: UIList.valueFor(item), item, originalEvent: event }

@@ -70,7 +70,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   ////////////////
 
   /**
-   * Base `onMount()`, plus the light-DOM work:  the DOM element's listeners, the author-table watch,
+   * Base `onMount()`, plus the light-DOM work:  the author-table watch,
    * and the render effect that mirrors classes onto the managed table;  the `@onChange` methods watch the table,
    * decorate headers and (with `client-sort`) reorder rows.
    */
@@ -155,17 +155,14 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   private readonly classMirror = new TableClassMirror()
 
   /**
-   * Listen on the DOM element for header clicks / keys, and watch its children for an author table.
+   * Watch the DOM element's children for an author table.
    * - SIDE EFFECT:  undone when the DOM element is released;  scoped to the DOM element, so it survives moves
    *   (`keepAlive`).
-   * - Not `listen()`:  the base's, which it uses.
    */
   private watchDOMElement() {
     const domElement = this.domElement
     const observer = new MutationObserver(() => (this.authorTable = this.scanAuthorTable()))
     observer.observe(domElement, { childList: true })
-    this.on("click", this.onClick)
-    this.on("keydown", this.onKeyDown)
     domElement.addReleaseCallback(() => {
       observer.disconnect()
       this.classMirror.detach()
@@ -203,17 +200,16 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
    * - `aria-sort` on the sorted header, while `sortable` (the caret)
    * - SIDE EFFECT:  writes the page's (linkedom) table;  no focusable headers:  nothing on a static page sorts.
    */
+  @E.untracked
   private decorateStatic() {
-    untrack(() => {
-      const table = this.authorTable
-      if (!table) return
-      table.setAttribute("class", TableClassMirror.mirrored(table.getAttribute("class"), this.rootClass))
-      table.setAttribute(UIT.STATIC_ROOT, this.vocabulary.noun)
-      const column = this.sortColumn
-      const direction = this.effectiveSortDirection
-      if (!this.sortable || column === undefined || !direction) return
-      TableSort.staticHeaderAt(table, column)?.setAttribute("aria-sort", direction)
-    })
+    const table = this.authorTable
+    if (!table) return
+    table.setAttribute("class", TableClassMirror.mirrored(table.getAttribute("class"), this.rootClass))
+    table.setAttribute(UIT.STATIC_ROOT, this.vocabulary.noun)
+    const column = this.sortColumn
+    const direction = this.effectiveSortDirection
+    if (!this.sortable || column === undefined || !direction) return
+    TableSort.staticHeaderAt(table, column)?.setAttribute("aria-sort", direction)
   }
 
   ////////////////
@@ -407,13 +403,15 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   }
 
   /** A click on (or inside) a sortable header sorts by it. */
-  private readonly onClick = (event: MouseEvent) => {
+  @E.on("click")
+  protected onClick(event: MouseEvent) {
     const header = this.sortableHeader(event)
     if (header) this.requestSort(header, event)
   }
 
   /** Enter / Space on a focusable header (not its button:  that one clicks). */
-  private readonly onKeyDown = (event: KeyboardEvent) => {
+  @E.on("keydown")
+  protected onKeyDown(event: KeyboardEvent) {
     if (event.key !== UIT.Key.enter && event.key !== UIT.Key.space) return
     const header = this.sortableHeader(event)
     if (!header || event.target !== header) return
@@ -422,9 +420,10 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   }
 
   /** The sortable header `event` happened in, while the table is `sortable`. */
+  @E.untracked
   private sortableHeader(event: Event): HTMLTableCellElement | undefined {
-    const table = untrack(() => this.managedTable)
-    if (!table || !untrack(() => this.sortable)) return undefined
+    const table = this.managedTable
+    if (!table || !this.sortable) return undefined
     const header = TableSort.header(table, event.target)
     return header && TableSort.isSortable(header) ? header : undefined
   }
@@ -434,11 +433,12 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
    * - The sorted column flips direction;  another column starts `ascending`.
    * - Nothing changes when the event is cancelled, or when a handler set either property itself.
    */
+  @E.untracked
   private requestSort(header: HTMLTableCellElement, originalEvent: Event) {
     const column = TableSort.column(header)
-    const current = untrack(() => this.sortColumn)
+    const current = this.sortColumn
     const direction: UIT.TableSortDirection =
-      column === current && untrack(() => this.effectiveSortDirection) === "ascending" ? "descending" : "ascending"
+      column === current && this.effectiveSortDirection === "ascending" ? "descending" : "ascending"
     const detail: UIT.TableSortDetail = { column, key: TableSort.key(header), direction, originalEvent }
     this.requestChange("sortDirection", direction, () =>
       this.requestChange("sortColumn", column, () => this.send("ui-sort", detail))

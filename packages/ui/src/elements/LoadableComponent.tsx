@@ -7,7 +7,7 @@ import { E, UI, type UIT } from "$/ui/core"
 // Import directly to avoid circular import
 import { UIComponent } from "./UIComponent"
 import { DOMLoadableElement } from "./DOMLoadableElement"
-import { cssState, onChange, state } from "./Reactive"
+import { cssState, onChange, state, untracked } from "./Reactive"
 import { SOURCE_LOADER_TAG, SOURCE_MESSAGE_TAG } from "./elements.types"
 
 /****************
@@ -158,7 +158,7 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
     if (!source) {
       this.loadStatus = E.SourceStatus.loaded
       this.loadError = undefined
-      E.afterSolidUpdate(() => this.onLoaded(untrack(() => this.textToShow)))
+      E.afterSolidUpdate(() => this.onLoaded(this.textToShow))
       return undefined
     }
     if (source === this.fetchedSource && !this.isFresh) return undefined
@@ -210,16 +210,18 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
   }
 
   /** Content arrived:  settle `domElement.loaded`, then `ui-load` (an edit, when there is one, wins as the content). */
+  @untracked
   private onLoaded(text: string) {
     const content = this.wasEdited ?? text
     ;(this.domElement as DOMLoadableElement).endLoad(content)
-    this.sendSourceEvent(E.SourceEvent.load, { source: untrack(() => this.source || undefined), content })
+    this.sendSourceEvent(E.SourceEvent.load, { source: this.source || undefined, content })
   }
 
   /** Fetch `source` again past the cache, dropping edits;  resolves with the new content. */
+  @untracked
   reload(): Promise<string> {
     const domElement = this.domElement as DOMLoadableElement
-    const source = untrack(() => this.source || undefined)
+    const source = this.source || undefined
     this.dropEdits()
     if (!source) return domElement.loaded
     this.stopLoading?.()
@@ -258,11 +260,12 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
    * Loading or showing failed:  `ui-error`, then the message unless it was cancelled.
    * - Subclasses call it for `render` failures (bad markup, an unknown language ...).
    */
+  @untracked
   protected onLoadError(error: unknown, kind: E.SourceErrorKind = "load") {
     const reason = E.SourceError.kindFor(error, kind)
     this.loadStatus = E.SourceStatus.error
     ;(this.domElement as DOMLoadableElement).failLoad(error)
-    const source = untrack(() => this.source || undefined)
+    const source = this.source || undefined
     const isShown = this.sendSourceEvent(E.SourceEvent.error, { kind: reason, source, error })
     if (isShown) this.loadError = { kind: reason, error }
   }
@@ -292,10 +295,11 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
    * - Else `UI.sources.save()` (`fragment`:  `saveFragment()`);  `ui-saved` with the new `etag`, or `ui-error`
    *   (`save`, `conflict`, `no-saver` ...) and `false`.  The content stays either way.
    */
+  @untracked
   async save(text?: string): Promise<boolean> {
     if (text !== undefined) this.content = text
     const { content, lastETag: etag } = this
-    const source = untrack(() => this.source || undefined)
+    const source = this.source || undefined
     if (!this.sendSourceEvent(E.SourceEvent.save, { source, content, etag })) return false
     if (!source) {
       this.isDirty = false

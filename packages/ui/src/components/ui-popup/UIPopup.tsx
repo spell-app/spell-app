@@ -1,4 +1,4 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -53,16 +53,6 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
-  /** Listens to its own DOM element:  pointer and focus leaving it, the popover's `toggle`, invoker commands. */
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    this.on("pointerenter", this.onPopupEnter)
-    this.on("pointerleave", this.onPopupLeave)
-    this.on("focusout", this.onPopupFocusOut)
-    this.on("toggle", this.onToggle)
-    this.on("command", this.onCommand)
-  }
-
   ////////////////
   // ## Open
   ////////////////
@@ -83,9 +73,10 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   }
 
   /** Show or hide, dispatching the cancelable `ui-open` / `ui-close` first;  true when applied. */
+  @E.untracked
   requestOpen(open: boolean, originalEvent?: Event): boolean {
     this.delayTimer?.cancel()
-    if (open === untrack(() => this.isOpen)) return false
+    if (open === this.isOpen) return false
     const detail: UIT.PopupOpenDetail = { open, originalEvent }
     return this.requestChange("isOpen", open, () => this.send(open ? "ui-open" : "ui-close", detail))
   }
@@ -103,7 +94,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     if (!isReady || !isConnected || !isOpen) return undefined
     // a `ui-*` target renders async:  its box (or `display: contents`) is only known once it's ready
     let isCancelled = false
-    const target = untrack(() => this.targetElement) as { ready?: Promise<void> } | undefined
+    const target = this.targetElement as { ready?: Promise<void> } | undefined
     void (target?.ready ?? Promise.resolve()).then(() => isCancelled || this.show())
     return () => {
       isCancelled = true
@@ -116,9 +107,10 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
    * - Anchor:  the target's `anchor-name` when it has a box, else the implicit anchor of `source` (see
    *   `UIPopup.css`).  `source` also makes the target the popover's invoker, so Tab from it continues inside.
    */
+  @E.untracked
   private show() {
     const { domElement } = this
-    const target = untrack(() => this.targetElement)
+    const target = this.targetElement
     const anchor = target ? UIPopup.anchorBoxFor(target) : undefined
     domElement.popover ||= this.popoverMode
     domElement.style.setProperty("position-anchor", anchor === target ? this.anchorName : anchor ? "auto" : "none")
@@ -126,7 +118,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
       domElement.showPopover(anchor ? ({ source: anchor } as ShowPopoverOptions) : undefined)
     }
     this.overlay.anchor = target
-    this.overlay.restoreFocus = untrack(() => this.isInteractive)
+    this.overlay.restoreFocus = this.isInteractive
     UI.overlays.open(this.overlay)
   }
 
@@ -141,20 +133,18 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
    * The popover's `toggle`:  the browser closed it (a `hint` popover's light dismiss) while the element thinks it's
    * open -- follow, announcing a `ui-close` that can't veto any more.
    */
-  private readonly onToggle = (event: Event) => {
-    if ((event as ToggleEvent).newState !== CLOSED || !this.domElement.isConnected || !untrack(() => this.isOpen))
-      return
+  @E.on("toggle")
+  protected onToggle(event: Event) {
+    if ((event as ToggleEvent).newState !== CLOSED || !this.domElement.isConnected || !this.isOpen) return
     const detail: UIT.PopupOpenDetail = { open: false, originalEvent: event }
     this.send("ui-close", detail)
     this.isOpen = false
   }
 
   /** An invoker command aimed at the DOM element (`ToggleCommands`). */
-  private readonly onCommand = (event: Event) => {
-    const action = UIT.ToggleCommands.action(
-      event,
-      untrack(() => this.isOpen)
-    )
+  @E.on("command")
+  protected onCommand(event: Event) {
+    const action = UIT.ToggleCommands.action(event, this.isOpen)
     if (action) this.requestOpen(action === "show", event)
   }
 
@@ -282,8 +272,9 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   }
 
   /** Click on the target (`click`):  toggle. */
+  @E.untracked
   private readonly onTargetClick = (event: MouseEvent) => {
-    this.requestOpen(!untrack(() => this.isOpen), event)
+    this.requestOpen(!this.isOpen, event)
   }
 
   ////////////////
@@ -291,21 +282,24 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   ////////////////
 
   /** Pointer onto the popup:  keep a hovered popup open, unless `hoverable` is off (Fomantic's default). */
-  private readonly onPopupEnter = () => {
-    if (untrack(() => this.trigger) !== UIT.PopupTrigger.hover) return
-    if (untrack(() => this.hoverable) !== false) this.delayTimer?.cancel()
+  @E.on("pointerenter")
+  protected onPopupEnter() {
+    if (this.trigger !== UIT.PopupTrigger.hover) return
+    if (this.hoverable !== false) this.delayTimer?.cancel()
   }
 
   /** Pointer off the popup:  hide a hovered popup after `hide-delay`. */
-  private readonly onPopupLeave = (event: PointerEvent) => {
-    if (untrack(() => this.trigger) === UIT.PopupTrigger.hover) this.schedule(false, this.hideDelay ?? 0, event)
+  @E.on("pointerleave")
+  protected onPopupLeave(event: PointerEvent) {
+    if (this.trigger === UIT.PopupTrigger.hover) this.schedule(false, this.hideDelay ?? 0, event)
   }
 
   /** Focus off the popup (`focus`):  hide, unless it went back to the target. */
-  private readonly onPopupFocusOut = (event: FocusEvent) => {
-    if (untrack(() => this.trigger) !== UIT.PopupTrigger.focus) return
+  @E.on("focusout")
+  protected onPopupFocusOut(event: FocusEvent) {
+    if (this.trigger !== UIT.PopupTrigger.focus) return
     const next = event.relatedTarget as Node | null
-    const target = untrack(() => this.targetElement)
+    const target = this.targetElement
     if (UI.focus.containsDeep(this.domElement, next) || (target && next && UI.focus.containsDeep(target, next))) return
     this.schedule(false, 0, event)
   }

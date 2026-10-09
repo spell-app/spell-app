@@ -1,4 +1,4 @@
-import { For, Show, createEffect, untrack } from "solid-js"
+import { For, Show, createEffect } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -200,8 +200,9 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
   }
 
   /** The reset button:  remove every token the playground set. */
+  @E.untracked
   reset(event?: Event): void {
-    const tokens = [...untrack(() => this.overrides).keys()]
+    const tokens = [...this.overrides.keys()]
     if (!tokens.length) return
     this.overrides = new Map()
     this.send("ui-reset", { tokens, originalEvent: event })
@@ -217,6 +218,7 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
   }
 
   /** An inner `<ui-input>` changed. */
+  @E.untracked
   private onInput(event: CustomEvent<{ value: string }>): void {
     event.stopPropagation()
     const input = event.target as HTMLElement
@@ -226,7 +228,7 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
       this.filterText = value
       return
     }
-    const next = new Map(untrack(() => this.overrides))
+    const next = new Map(this.overrides)
     if (value.trim()) next.set(token, value.trim())
     else next.delete(token)
     this.overrides = next
@@ -257,10 +259,11 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
    * Probe every colour row's current value (`ColorProbe`), in this shadow root:  where the preview resolves it,
    * minus what the playground set on the preview's box.
    */
+  @E.untracked
   private probe(tables: readonly TokenTable[]): void {
     const context = this.domElement.shadowRoot
     if (!context) return
-    const isGlobal = untrack(() => !!this.global)
+    const isGlobal = !!this.global
     const values = new Map<string, string>()
     for (const table of tables) {
       for (const row of table.rows) {

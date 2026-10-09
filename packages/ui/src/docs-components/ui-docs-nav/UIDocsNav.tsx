@@ -351,10 +351,11 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
    * - Re-set during the event, so the button's own flip doesn't stand (`requestChange()`):
    *   clicking the pressed button would otherwise un-press it while the view stays.
    */
+  @E.untracked
   private onToggle(event: Event) {
     const button = event.target as HTMLElement & { active?: boolean }
     const view = button.getAttribute(DATA.view)
-    if (view) button.active = view === untrack(() => this.view)
+    if (view) button.active = view === this.view
   }
 
   ////////////////

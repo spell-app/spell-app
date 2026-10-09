@@ -1,4 +1,3 @@
-import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -51,8 +50,9 @@ export class UIPushable extends E.UIComponent<PushableVocabulary> {
    * A sidebar's layout while it's visible, `undefined` once hidden (or gone).
    * - Called from the sidebar's effects and handlers, never from an owned scope.
    */
+  @E.untracked
   report(sidebar: Element, layout: UIT.SidebarLayout | undefined) {
-    const next = new Map(untrack(() => this.sidebarLayouts))
+    const next = new Map(this.sidebarLayouts)
     if (layout) next.set(sidebar, layout)
     else if (!next.delete(sidebar)) return
     this.sidebarLayouts = next

@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -250,9 +250,10 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   }
 
   /** Mark the entry in view;  `ui-change` when it moved. */
-  private followScroll(sections = untrack(() => this.sections)): void {
+  @E.untracked
+  private followScroll(sections = this.sections): void {
     const id = TocIndex.current(sections, this.domElement.ownerDocument)
-    if (id === untrack(() => this.idInView)) return
+    if (id === this.idInView) return
     this.idInView = id
     if (id) this.send("ui-change", { value: id })
   }

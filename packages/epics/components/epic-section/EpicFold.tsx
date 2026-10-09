@@ -311,10 +311,11 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
    * The page's `#hash` names this element, an element inside it, or an id in its `part-ids`:  open it, loading its
    * part, then land there -- unless a deeper folding element holds the target (it lands it).
    */
+  @E.untracked
   private readonly followHash = () => {
     const id = decodeURIComponent(location.hash.slice(1))
     if (!id) return
-    const partIds = (untrack(() => this.foldAttrs.partIds) ?? "").split(/\s+/)
+    const partIds = (this.foldAttrs.partIds ?? "").split(/\s+/)
     const element = document.getElementById(id)
     const inside = !!element && element !== this.domElement && this.domElement.contains(element)
     if (element !== this.domElement && !inside && !partIds.includes(id)) return

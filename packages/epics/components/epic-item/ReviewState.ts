@@ -1,4 +1,3 @@
-import { untrack } from "solid-js"
 import { isServer } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -90,13 +89,15 @@ export class ReviewState {
   ////////////////
 
   /** Its `action` button clicked:  `"open-box"` when the caller should take the reader to the note box. */
+  @E.untracked
   press(action: ReviewAction): "open-box" | undefined {
-    return this.client?.press(untrack(this.id), action)
+    return this.client?.press(this.id(), action)
   }
 
   /** Its id chip clicked:  urgent <-> not urgent (`docCalm`:  what the doc says). */
+  @E.untracked
   toggleCalm(docCalm: boolean) {
-    void this.client?.toggleCalm(untrack(this.id), docCalm)
+    void this.client?.toggleCalm(this.id(), docCalm)
   }
 
   /** A failed save's words:  the client's last write error. */

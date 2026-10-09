@@ -88,9 +88,6 @@ export abstract class DialogComponent<
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     this.overlayEntry.kind = this.overlayKind
-    if (isServer) return
-    this.on("slotchange", this.onSlotChange, { target: this.domElement.renderRoot })
-    this.on("command", this.onCommand)
   }
 
   ////////////////
@@ -111,15 +108,17 @@ export abstract class DialogComponent<
   }
 
   /** Show, dispatching the cancelable `ui-open` first;  true when applied. */
+  @E.untracked
   requestOpen(originalEvent?: Event): boolean {
-    if (untrack(() => this.isOpen)) return false
+    if (this.isOpen) return false
     const detail: UIT.ModalOpenDetail = { open: true, originalEvent }
     return this.requestChange("isOpen", true, () => this.fire("ui-open", detail))
   }
 
   /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
+  @E.untracked
   requestClose(reason: UIT.ModalCloseReason, originalEvent?: Event): boolean {
-    if (!untrack(() => this.isOpen)) return false
+    if (!this.isOpen) return false
     this.isDismissing = true
     E.soon(() => (this.isDismissing = false))
     const detail: UIT.ModalCloseDetail = { open: false, reason, originalEvent }
@@ -158,7 +157,7 @@ export abstract class DialogComponent<
     UI.overlays.open(this.overlayEntry)
     this.after(() => {
       const detail: UIT.ModalOpenDetail = { open: true }
-      if (untrack(() => this.isOpen)) this.fire("ui-show", detail)
+      if (this.isOpen) this.fire("ui-show", detail)
     })
   }
 
@@ -172,7 +171,7 @@ export abstract class DialogComponent<
     UI.overlays.close(this.overlayEntry)
     this.after(() => {
       const detail: UIT.ModalOpenDetail = { open: false }
-      if (!untrack(() => this.isOpen) && this.domElement.isConnected) this.fire("ui-hide", detail)
+      if (!this.isOpen && this.domElement.isConnected) this.fire("ui-hide", detail)
     })
   }
 
@@ -191,11 +190,9 @@ export abstract class DialogComponent<
   }
 
   /** An invoker command aimed at the DOM element (`UIT.ToggleCommands`). */
-  private readonly onCommand = (event: Event) => {
-    const action = UIT.ToggleCommands.action(
-      event,
-      untrack(() => this.isOpen)
-    )
+  @E.on("command")
+  protected onCommand(event: Event) {
+    const action = UIT.ToggleCommands.action(event, this.isOpen)
     if (action === "show") this.requestOpen(event)
     else if (action === "close") this.requestClose("close", event)
   }
@@ -250,8 +247,9 @@ export abstract class DialogComponent<
    * - `close` is queued as a task:
    *   one from an earlier close can arrive after a quick re-open, when the dialog is open again -- ignored.
    */
+  @E.untracked
   private readonly onClose = (event: Event) => {
-    if (this.dialog?.open || !this.domElement.isConnected || !untrack(() => this.isOpen)) return
+    if (this.dialog?.open || !this.domElement.isConnected || !this.isOpen) return
     const detail: UIT.ModalCloseDetail = { open: false, reason: "escape", originalEvent: event }
     this.fire("ui-close", detail)
     this.isOpen = false
@@ -311,7 +309,10 @@ export abstract class DialogComponent<
   private headerId = ""
 
   /** The light DOM's slotted children changed:  look for the heading again. */
-  private readonly onSlotChange = () => (this.heading = this.findHeading())
+  @E.on("slotchange", { target: "renderRoot" })
+  protected onSlotChange() {
+    this.heading = this.findHeading()
+  }
 
   /** First child element whose definition's noun is `header` (a `<ui-header>`, or a translated one). */
   private findHeading(): Element | undefined {
