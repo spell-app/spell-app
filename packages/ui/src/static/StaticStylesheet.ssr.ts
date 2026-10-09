@@ -286,8 +286,11 @@ const LIST_OWNERS = new Set(["cards", "list", "feed", "steps", "items"])
 /** The list item wrapper lays out as its item:  the item's root stays the group's flex / grid child. */
 const LIST_ITEMS = `@layer ui.base {\n  ${LIST_ITEM} {\n    display: contents;\n  }\n}`
 
-/** Hidden means hidden, whatever a component's `display` says;  unlayered, so it beats every layer. */
-const HIDDEN = `[hidden]:not([hidden="until-found"]) {\n  display: none;\n}`
+/**
+ * Hidden means hidden, whatever a component's `display` says;  unlayered, so it beats every layer.
+ * - The platform's `hidden`, and `visible="false"` (`:state(hidden)`, as `data-state` here:  `UIComponent`)
+ */
+const HIDDEN = `[hidden]:not([hidden="until-found"]),\n${ROOT}[data-state~="hidden"] {\n  display: none;\n}`
 
 /** Selectors that only ever match inside a shadow tree. */
 const SHADOW_ONLY = /:host|::slotted|:state\(/

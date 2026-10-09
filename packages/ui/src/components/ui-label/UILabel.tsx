@@ -33,7 +33,9 @@ import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
 export class UILabel extends E.UIComponent<typeof labelVocabulary> {
   @E.proto static vocabulary = labelVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { label: labelCSS, parts: partsCSS }
+    styleSheets: { label: labelCSS, parts: partsCSS },
+    // `disabled`:  only a look
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** The owner, when it's a statistic's label. */

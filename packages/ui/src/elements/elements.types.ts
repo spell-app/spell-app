@@ -659,7 +659,46 @@ export type ElementSetup = {
    * - A server render (`$/ui/static`) gets it too:  a `listitem` becomes an `<li>`.
    */
   aria: Readonly<Partial<Record<AriaProperty, string>>>
+
+  /**
+   * What `disabled` means for this family (every element takes it:  `SharedVocabulary`).
+   * - `"unusable"` (the default):  the base class does it all, as `<fieldset disabled>` does to its controls:
+   *   - `isDisabled`, so the DOM element swallows clicks
+   *   - everything inside is inert (its shadow content, and the children slotted into it):
+   *     nothing there can be clicked, focused or typed in, and it's dimmed
+   *   - `aria-disabled="true"`;  if focus was inside, it moves on to the next focusable element
+   *   - e.g. `<ui-card disabled>`:  its buttons can't be used either
+   * - `"its own"`:  the base class only sets `:state(disabled)`;  the family's code and sheet say what it means:
+   *   - unusable its own way:  a form control disables its native control (`FormComponent`), a button its `<button>`
+   *   - only a look:  `<ui-icon>`, `<ui-segment>` dim, and clicks still go through
+   *   - something else:  `<ui-transition>` pauses, `<ui-dimmer>` never shows
+   */
+  disabled: DisabledMeaning
+
+  /**
+   * What `loading` does for this family (every element takes it:  `SharedVocabulary`).
+   * - `"loader"` (the default):  the base class dims everything inside, makes it inert, draws a spinner over it, and
+   *   sets `aria-busy="true"`.
+   * - `"its own"`:  the base class only sets `:state(loading)`;  the family draws its own loader
+   *   (`<ui-button>`'s spinner, `<ui-segment>`'s veil), or `loading` means something else (`<ui-root>`'s message).
+   */
+  loading: LoadingMeaning
+
+  /**
+   * The `<ui-transition>` animation `visible="false"` hides the element with, and `visible` shows it again:
+   * a name from `animations.css` (`"fade"`, `"scale"`, `"fade-down"` ...:  `AnimationNames`).
+   * - Default `"fade"`.
+   * - Not read where the family's vocabulary has a `visible` of its own (`<ui-sidebar>`, `<ui-transition>`,
+   *   `<ui-reveal>`):  `SharedVocabulary`.
+   */
+  visibleAnimation: E.AnimationName
 }
+
+/** `elementSetup.disabled`:  what `disabled` means for a family. */
+export type DisabledMeaning = "unusable" | "its own"
+
+/** `elementSetup.loading`:  what `loading` does for a family. */
+export type LoadingMeaning = "loader" | "its own"
 
 /**
  * A text property of `ElementInternals`' ARIA (DOM API `ARIAMixin`):  `role`, `ariaBusy`, `ariaLabel` ...

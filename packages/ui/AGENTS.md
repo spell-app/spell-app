@@ -33,7 +33,8 @@ below are its short form.
     Where a helper goes:  SEE:  WWOD §8 › "Promotion path".  Everything in `$/ui/util` lands in the `core` bundle
     (`core.ts` re-exports it), so keep it small
   - `src/vocabulary/` (`V` through the `api` entry) -- the naming layer:  vocabulary schema, value sets, `Vocabulary`
-    (registry, translated names, `replace()` for hot reload), `Converters`;  `SkeletonText` (skeleton text <=>
+    (registry, translated names, `replace()` for hot reload), `Converters`, `SharedVocabulary` (the attributes and
+    states every component takes:  `disabled`, `loading`, `visible`);  `SkeletonText` (skeleton text <=>
     `SkeletonSpec`) too, but reached by path, NOT through the barrel:  `core` re-exports the barrel, and no page
     parses skeleton text (node tools do:  `tools/RootCatalog.ts`)
   - `src/runtime/` (`UI`) -- the shared `UI` runtime, ONE instance per page (`globalThis.UI ??= new UIRuntime()`).
@@ -344,11 +345,35 @@ As WWOD §18, plus:
   (below), `render()` returning JSX.  The DOM element creates one on its first connect and keeps it
   (`keepAlive`) until `domElement.dispose()`.  `UI<Name>.define()` in the family's `index.ts` registers it.
 - A FORM CONTROL (`F.FormComponent`) inherits what every control needs:  `isDisabled` (`disabled` or a disabled
-  fieldset, with its `:state()` and class), `labels` (`ControlLabels`, refreshed on connect), `isTouched` (set by
+  fieldset, with its class;  `elementSetup.disabled` is `"its own"`:  each control disables its native control),
+  `isReadOnly` (`readonly`, `:state(readonly)`;  every form vocabulary declares `readonly`, each control refuses
+  changes its own way), `labels` (`ControlLabels`, refreshed on connect), `isTouched` (set by
   `invalid`, cleared by a reset), `formName` (`name`), the `required` rule, and a click on the DOM element itself
   calling `activateControl()`.  NEVER copy one of them into a control;  override a hook instead
   (`activateControl()`, `validationRules`), or set `@E.proto static invalidShows = "once touched"`
   (`FormComponent`'s header).
+- SHARED STATES (`UIComponent`, "Shared states";  epic `spell-element` P8):  every element takes `disabled`,
+  `loading` and `visible`, though its vocabulary never names them (`SharedVocabulary` adds them to its
+  `ElementDefinition`, its docs data and its manifests), and the platform's `hidden` and `inert`.  NEVER declare
+  them in a vocabulary just to get them;  a vocabulary that declares one keeps its own spec and meaning
+  (`<ui-sidebar visible>` starts hidden, `<ui-reveal visible>` stops clipping).
+  - `disabled`:  `:state(disabled)` always (`isMarkedDisabled`:  the attribute, or a disabled fieldset);  the rest is
+    `elementSetup.disabled`:  `"unusable"` (the default:  `isDisabled`, so clicks are swallowed, `aria-disabled`,
+    everything inside inert and dimmed, focus inside moves on, `UI.focus.moveOutOf()`) or `"its own"` (the
+    family's code says what it means:  a form control, `<ui-button>`, `<ui-step>` disable their own control and
+    override `isDisabled`;  `<ui-icon>`, `<ui-segment>` only dim;  `<ui-transition>` pauses)
+  - `loading`:  `:state(loading)` always (`isMarkedLoading`, `true` only);  `elementSetup.loading`:  `"loader"` (the
+    default:  `aria-busy`, everything inside inert and dimmed, a spinner over it, `:state(busy)`) or `"its own"`
+    (`<ui-button>`'s spinner, `<ui-segment>`'s veil, `<ui-root>`'s message)
+  - `visible="false"`:  animates the element out (`elementSetup.visibleAnimation`, default `"fade"`, through
+    `UI.transitions` on the shadow root's boxes), then `:state(hidden)`;  `visible` / `="true"` animates it back.
+    At once before it first draws.  `el.visible = false` reflects as `visible="false"` (a `true` default)
+  - `hidden`:  instant, before scripts and in the static render;  `reset.css` makes it beat a family's own
+    `:host { display }` (unlayered);  both set, `hidden` wins.  `<ui-divider hidden>` keeps Fomantic's meaning
+  - `inert`:  the platform's;  `reset.css` dims the element's boxes
+  - the base class's look is in `reset.css` (every shadow root adopts it):  the dim keys on `inert`, the spinner
+    on `:state(busy)`, the hiding on `[hidden]` / `:state(hidden)`;  the static render maps them through `data-state`
+    and ARIA (`StaticStylesheet`'s unlayered `HIDDEN`)
 - **Reactive members** (`src/elements/Reactive.ts`;  WWOD §12 › "Reactive members"):  decorators over ONE record per
   instance, so `this.x` reads fresh right after `this.x = v` (no flush), and Solid follows the reads in JSX and
   effects.  The decorator says how the member works:
@@ -423,8 +448,9 @@ As WWOD §18, plus:
     (`@E.untracked private readonly onKeyDown = (event: KeyboardEvent) => { ... }`).  NEVER on a method a
     computation calls to follow its reads (a getter's helper, JSX, an effect's first function):  e.g.
     `UIMenu.itemContext()` stays half-tracked on purpose.  `@E.on` and `@E.onChange` methods need none.
-  - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `@E.cssStates("disabled")` on the class
-    (or `@E.cssState("disabled") get looksDisabled()` when it does more, e.g. `@E.aria("ariaDisabled")`), never an
+  - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `elementSetup.disabled = "its own"`;
+    `:state(disabled)` comes from `UIComponent` ("Shared states" above), so no `@E.cssStates("disabled")`;  ARIA
+    of its own, if any, on a getter (`<ui-segment>`'s `@E.aria("ariaDisabled") get looksDisabled()`).  Never an
     `isDisabled` override (the DOM element swallows clicks while `isDisabled`).
   - Element-core files import the decorators directly (`import { state } from "./Reactive"`:  their class
     definitions read them);  component files use `@E.state` (and `@E.proto`).
@@ -647,7 +673,8 @@ As WWOD §12, plus:
   defaults at the TOP".  A subclass that only SETS settings (`@proto static vocabulary = ...`) still lists them
   first, before its members.
   - Per-class settings of the custom element itself (style sheets, form control, focus, slots, part, DOM element
-    class, fallback, unstyled first paint) are keys of ONE setting, `elementSetup` (type `ElementSetup`), MERGED
+    class, fallback, unstyled first paint, constant ARIA, and what the shared `disabled`, `loading` and `visible` do
+    for it) are keys of ONE setting, `elementSetup` (type `ElementSetup`), MERGED
     down the class chain, base class first, by `@protoMerged` (`$/util`, as `E.protoMerged`).  A subclass states only
     the keys it changes:
     `@E.protoMerged static elementSetup = { styleSheets: { nag: nagCSS }, DOMElement: DOMNagElement } satisfies Partial<E.ElementSetup>`.

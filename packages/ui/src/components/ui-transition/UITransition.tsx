@@ -80,7 +80,9 @@ export class UITransition extends E.UIComponent<Vocabulary> {
     styleSheets: { transition: transitionCSS },
     DOMElement: DOMTransitionElement,
     // a click on animated text must not jump focus to a link inside it
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  it pauses the running animation
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   ////////////////

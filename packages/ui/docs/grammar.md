@@ -97,10 +97,28 @@ Attribute value => boolean, via `Converters.boolean()`:
 - `""`, `"true"`, `"yes"`, or the attribute's own name (`disabled="disabled"`) => true
 - `"false"`, `"no"`, `"0"` => false -- Vue sends `open="false"` when it can't find a property
 - any other present value => true (HTML presence semantics)
-- reflection: true => `""`, false => attribute removed; NEVER `"false"`
+- reflection: true => `""`, false => attribute removed;  `"false"` only for an attribute whose default is `true`
+  (`visible`, `closable`):  removing it would bring the default back
 
 keyOrValueAndKey attributes use `Converters.keyOrValue()`: bare / `"true"` / `"yes"` => `true`,
 `"false"` / `"no"` => `false`, otherwise the (validated) value.
+
+## Shared attributes:  `disabled`, `loading`, `visible`
+
+Every element takes these, though its vocabulary may not name them (`SharedVocabulary`;  epic `spell-element` P8):
+
+- `disabled`:  `:state(disabled)`.  By default unusable:  clicks swallowed, `aria-disabled`, everything inside
+  inert and dimmed (`:state(dimmed)`), focus inside moves on.  A family with a disabled of its own keeps it
+  (`elementSetup.disabled = "its own"`):  a form control disables its native control, `<ui-icon>` only dims,
+  `<ui-transition>` pauses.
+- `loading`:  `:state(loading)`.  By default a spinner over it, everything inside inert and dimmed, `aria-busy`
+  (`:state(busy)`);  a family with its own loader keeps it (`<ui-button>`, `<ui-segment>`).
+- `visible="false"`:  fades out (`elementSetup.visibleAnimation`), then `:state(hidden)`;  `visible` fades it back.
+  Hidden at once when set before the element draws.  `<ui-sidebar>`, `<ui-transition>` and `<ui-reveal>` keep
+  their own `visible`.
+- the platform's `hidden` hides any element at once, whatever its own `display` (`reset.css`);  `<ui-divider
+  hidden>` keeps Fomantic's meaning, the spacing without the line.  The platform's `inert` works, unstyled.
+- `readonly`:  every form control's vocabulary declares it;  `:state(readonly)`.
 
 ## `medium`
 

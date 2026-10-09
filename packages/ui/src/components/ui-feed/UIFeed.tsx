@@ -25,7 +25,9 @@ export class UIFeed extends E.UIComponent<typeof feedVocabulary> {
   @E.proto static vocabulary = feedVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { feed: feedCSS },
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  only a look
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {

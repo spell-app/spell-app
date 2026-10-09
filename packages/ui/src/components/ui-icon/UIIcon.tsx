@@ -20,11 +20,15 @@ import iconCSS from "./UIIcon.css?inline"
  *   `outline` appends ` outline` (Fomantic's `bell outline icon` spelling),
  *   so `<ui-icon name="bell" outline>` ~== `name="bell outline"`.
  ****************/
-// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
-@E.cssStates("disabled", "loading")
 export class UIIcon extends E.UIComponent<typeof iconVocabulary> {
   @E.proto static vocabulary = iconVocabulary
-  @E.protoMerged static elementSetup = { styleSheets: { icon: iconCSS } } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { icon: iconCSS },
+    // `disabled`:  only a look
+    disabled: "its own",
+    // `loading`:  it spins
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** Its `<ui-icons>` parent, if any. */
   readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun, isDirect: true })

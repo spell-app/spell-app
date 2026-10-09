@@ -13,13 +13,13 @@ import textCSS from "./UIText.css?inline"
  *   The element is `display: contents`:  the span IS the inline box, flowing with the text around it.
  * - `:state(disabled)` is for the page's styles;  `UIText.css` keys on the `disabled` class.
  ****************/
-// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
-@E.cssStates("disabled")
 export class UIText extends E.UIComponent<typeof textVocabulary> {
   @E.proto static vocabulary = textVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { text: textCSS },
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  only a look
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
