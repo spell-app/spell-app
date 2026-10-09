@@ -64,9 +64,6 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
     Fallback: CalendarFallback
   } satisfies Partial<E.ElementSetup>
 
-  /** The DOM element's `<label>`s and `aria-label`, as the field's name. */
-  readonly labels = new F.ControlLabels(this.domElement)
-
   /** The popup button's glyph:  `icon`, else `calendar` (`clock` for `time`). */
   readonly iconGlyph = new E.IconGlyph({
     owner: this,
@@ -489,19 +486,12 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   ////////////////
-  // ## Disabled and classes
+  // ## Classes
   ////////////////
 
-  /** Disabled by its attribute, or by a disabled fieldset. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
-  /** `open` and `disabled` follow the state, not the attribute. */
+  /** `open` follows the state, not the attribute. */
   protected classValue(name: E.AttributeName<Vocabulary>): unknown {
     if (name === "open") return this.popupIsOpen
-    if (name === "disabled") return this.isDisabled
     return super.classValue(name)
   }
 
@@ -517,19 +507,11 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
     return String(this.value ?? "") || null
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
   /** Back to the `value` attribute;  drops typed text. */
   onFormReset() {
     this.value = this.initialValue ?? ""
     this.typedText = undefined
     this.explicitFocus = undefined
-  }
-
-  protected get validationRules(): E.ValidationRule[] {
-    return this.required ? [UIT.REQUIRED_RULE] : []
   }
 
   protected get validationLabel(): string | undefined {
