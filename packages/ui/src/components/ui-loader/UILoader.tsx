@@ -22,19 +22,15 @@ import loaderCSS from "./UILoader.css?inline"
  * - It shows only while `active` (Fomantic's rule, in `UILoader.css`);
  *   `:state(active)` and `:state(disabled)` are for the page's styles.
  ****************/
+// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
+@E.cssStates("active", "disabled")
 export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   @E.proto static vocabulary = loaderVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { loader: loaderCSS },
-    delegatesFocus: false
+    delegatesFocus: false,
+    aria: { role: "status", ariaLive: "polite" }
   } satisfies Partial<E.ElementSetup>
-
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    const { internals } = this.domElement
-    internals.role = "status"
-    internals.ariaLive = "polite"
-  }
 
   ////////////////
   // ## The name
@@ -51,33 +47,11 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   /**
    * The element's accessible name:  the `loading` text while nothing is slotted.
    * - Waits for `isReady`:  the text reads `UI.i18n` (via `translationForKey()`), which exists once the runtime
-   *   loads;  `writesDOMElement`:  a server render (`$/ui/static`) applies it too.
+   *   loads.  A server render (`$/ui/static`) applies it too.
    */
-  @E.onChange("isReady", "hasText", { writesDOMElement: true })
-  protected onNameChanged(isReady: boolean, hasText: boolean) {
-    const label = isReady && !hasText ? this.translationForKey("loading") : undefined
-    // `null`:  `ariaLabel` is the platform's, and `null` removes it
-    this.domElement.internals.ariaLabel = label ?? null
-  }
-
-  ////////////////
-  // ## States
-  ////////////////
-
-  /** Shown (`active`).  `:state(active)`. */
-  @E.cssState("active")
-  get isActive(): boolean {
-    return !!this.active
-  }
-
-  /**
-   * Marked disabled (`disabled`, which hides it again):  only a look, not `isDisabled`,
-   * so the element's clicks aren't swallowed.
-   * `:state(disabled)`.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return !!this.disabled
+  @E.aria("ariaLabel")
+  protected get accessibleName(): string | undefined {
+    return this.isReady && !this.hasText ? this.translationForKey("loading") : undefined
   }
 
   ////////////////

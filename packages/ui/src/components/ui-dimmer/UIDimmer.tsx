@@ -38,6 +38,7 @@ import dimmablePageCSS from "./UIDimmer.page.css?inline"
  *   so a `<ui-header>` in it turns light by itself;  `inverted` is the light one.
  *   `blurring` blurs what's behind (`backdrop-filter`), instead of Fomantic's filter on the siblings.
  ****************/
+@E.cssStates("page")
 export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
   @E.proto static vocabulary = dimmerVocabulary
   @E.protoMerged static elementSetup = {
@@ -104,12 +105,6 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
   @E.cssState("dimmer")
   get isDimmer(): boolean {
     return true
-  }
-
-  /** A page dimmer (`page`):  a modal `<dialog>` over the whole page. */
-  @E.cssState("page")
-  get isPageDimmer(): boolean {
-    return !!this.page
   }
 
   /** Shows while the pointer or focus is in its parent (`show-on="hover"`). */

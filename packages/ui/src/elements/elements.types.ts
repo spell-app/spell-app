@@ -558,7 +558,7 @@ export type FallbackClass = {
 /**
  * How a class's custom element is set up:  `UIComponent.elementSetup`, merged down the class chain (`@protoMerged`).
  * - Read once, when the tag is defined,
- *   except `styleSheets`, `isAFormControl` and `canRenderUnstyled`, which each element reads as it's built.
+ *   except `styleSheets`, `isAFormControl`, `canRenderUnstyled` and `aria`, which each element reads as it's built.
  */
 export type ElementSetup = {
   /**
@@ -642,7 +642,25 @@ export type ElementSetup = {
    *   Its `render()` MUST look right unstyled (inline styles only) until `isReady`.
    */
   canRenderUnstyled: boolean
+
+  /**
+   * ARIA the DOM element ALWAYS has, set once on its `internals` when the component is built:
+   * `{ role: "listitem" }`, `{ role: "status", ariaLive: "polite" }`.
+   * - Default none.
+   * - For a value that never changes;  one that follows state is an `@aria` getter, which wins once its effect runs
+   *   (`<ui-card>`'s role follows its group).
+   * - A server render (`$/ui/static`) gets it too:  a `listitem` becomes an `<li>`.
+   */
+  aria: Readonly<Partial<Record<AriaProperty, string>>>
 }
+
+/**
+ * A text property of `ElementInternals`' ARIA (DOM API `ARIAMixin`):  `role`, `ariaBusy`, `ariaLabel` ...
+ * - NOT the element-reference ones (`ariaLabelledByElements` ...):  `@aria` and `elementSetup.aria` write text.
+ */
+export type AriaProperty = {
+  [K in keyof ARIAMixin]-?: ARIAMixin[K] extends string | null ? K : never
+}[keyof ARIAMixin]
 
 ////////////////
 // ## Element definition

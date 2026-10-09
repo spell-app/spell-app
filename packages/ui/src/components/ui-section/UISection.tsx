@@ -65,6 +65,7 @@ import sectionCSS from "./UISection.css?inline"
  *     and `StickyWatch` writes the scroll container's inline `scroll-padding-top` while stuck
  *   - with `source`:  replaces its own light children (the placeholder) with the file's body.
  ****************/
+@E.cssStates("inverted")
 export class UISection extends E.UIComponent<SectionVocabulary> {
   @E.proto static vocabulary = sectionVocabulary
   @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
@@ -388,12 +389,6 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   @E.cssState("animated")
   get isAnimated(): boolean {
     return this.isReady && UI.browser.supports.interpolateSize
-  }
-
-  /** `inverted`, as a state. */
-  @E.cssState("inverted")
-  get isInverted(): boolean {
-    return !!this.inverted
   }
 
   /** Disabled by its attribute. */

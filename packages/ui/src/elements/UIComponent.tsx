@@ -55,7 +55,8 @@ import { ShadowEvents } from "./ShadowEvents"
  *   @state accessor isOpen = false     // this.isOpen = true;  if (this.isOpen) ...
  *   ```
  *   A read is always up to date, even right after a write;  JSX will update the view as the value changes.
- *   The decorators (`@state`, `@controlled`, `@derived`, `@cssState`, `@onChange`) are in `Reactive.ts`.
+ *   The decorators (`@state`, `@controlled`, `@derived`, `@cssState`, `@cssStates`, `@aria`, `@onChange`) are in
+ *   `Reactive.ts`.
  *
  * - **Attributes**:  every DOM element attribute has a getter/setter on the component,
  *   under its name in camelCase:  `this.size`, `this.closeIcon`.
@@ -157,6 +158,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     this.appContext = isServer ? null : UIComponent.appContextFor(domElement)
     this.internalState = { classInput: definition.classInput((name) => this.classValue(name as E.AttributeName<V>)) }
     this.isConnected = isServer || domElement.isConnected
+    // the class's constant ARIA, on the server too
+    Object.assign(domElement.internals, this.elementSetup.aria)
     // on the server there are no style sheets to wait for:  draw at once
     this.isReady = isServer || (E.RUNTIME_KEY in globalThis && !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY])
     if (isServer) return
@@ -188,8 +191,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Called once, by `mount()`, right after the constructor.
    * - SIDE EFFECTS:
    *   - adopts the class's style sheets into the shadow root (if the runtime has loaded)
-   *   - keeps the element's `:state()`s in step with its `@cssState` members and `cssStates()`
-   *   - starts the `@onChange` methods
+   *   - keeps the element's `:state()`s in step with its `@cssState` members, its `@cssStates` attributes and
+   *     `cssStates()`;  for a state two classes of the chain name, the subclass's member wins
+   *   - starts the `@onChange` methods, and the `@aria` members' effect
    *   - re-adopts the style sheets when `styleSheetNames` changes
    * - Not in the constructor, because a subclass's fields don't exist yet while the base constructor runs.
    * - Hook:  an override starts its own effects, then returns `super.onMount()`.
@@ -300,7 +304,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     isAPart: false,
     DOMElement: DOMElement,
     Fallback: undefined,
-    canRenderUnstyled: false
+    canRenderUnstyled: false,
+    aria: {}
   }
 
   ////////////////
@@ -449,7 +454,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Elements with a `disabled` attribute override it:  `<ui-card>`, `<ui-step>`,
    *   and the form controls, which also check `formIsDisabled`.
    * - An element whose `disabled` only changes how it LOOKS (`<ui-icon>`, `<ui-segment>`, `<ui-form>` ...)
-   *   leaves this alone, and puts `@cssState("disabled")` on its own `get looksDisabled()`:
+   *   leaves this alone, and puts `@cssStates("disabled")` on its class (`<ui-segment>`:  `@cssState("disabled")` on
+   *   its own `get looksDisabled()`, which is `@aria("ariaDisabled")` too):
    *   it gets `:state(disabled)`, and clicks still go through.
    */
   get isDisabled(): boolean {
@@ -584,23 +590,6 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
       value: () => E.Reactive.attributeValue(this, key) as Value | undefined,
       initial
     })
-  }
-
-  ////////////////
-  // ## Effects
-  ////////////////
-
-  /**
-   * An effect that writes to the element itself (its ARIA attributes, `internals.role`, `:state()`s).
-   * - In a browser:  `createEffect(compute, apply)`.
-   * - On the server:  `apply` runs once, right away, so the server-rendered HTML has the element's ARIA.
-   *   (The server never runs an effect's `apply` by itself.)
-   * - A decorated method gets the same with `@onChange(..., { writesDOMElement: true })`.
-   * - MUST be called from the constructor, a field initializer or `onMount()`, like `createEffect`.
-   */
-  protected addElementEffect<T>(compute: () => T, apply: (value: T) => void) {
-    if (isServer) apply(untrack(compute))
-    else createEffect(compute, apply)
   }
 
   ////////////////

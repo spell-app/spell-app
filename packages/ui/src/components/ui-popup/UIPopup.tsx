@@ -45,6 +45,7 @@ import anchoredCSS from "./UIPopup.anchored.css?raw"
  *   - the target's inline `anchor-name` (a per-instance name ADDED to its list) and its ARIA attributes
  *   - the DOM element's `popover`, `id`, and inline `position-anchor` / `position-area`.
  ****************/
+@E.cssStates("fluid")
 export class UIPopup extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = popupVocabulary
   @E.protoMerged static elementSetup = {
@@ -314,17 +315,16 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   // ## The DOM element's role, name, position and popover
   ////////////////
 
-  /** SIDE EFFECT:  the DOM element is a dialog for a click popup, else a tooltip. */
-  @E.onChange("isInteractive", { writesDOMElement: true })
-  protected onInteractiveChanged(isInteractive: boolean) {
-    this.domElement.internals.role = isInteractive ? "dialog" : "tooltip"
+  /** The DOM element is a dialog for a click popup, else a tooltip. */
+  @E.aria("role")
+  protected get ariaRole(): string {
+    return this.isInteractive ? "dialog" : "tooltip"
   }
 
-  /** SIDE EFFECT:  a click popup's dialog is named by `header`. */
-  @E.onChange("isInteractive", "header", { writesDOMElement: true })
-  protected onDialogNameChanged(isInteractive: boolean, header: string | undefined) {
-    // `null`, not `undefined`:  `ElementInternals.ariaLabel` is a platform property, cleared by `null`
-    this.domElement.internals.ariaLabel = isInteractive ? (header ?? null) : null
+  /** A click popup's dialog is named by `header`. */
+  @E.aria("ariaLabel")
+  protected get accessibleName(): string | undefined {
+    return this.isInteractive ? this.header : undefined
   }
 
   /** SIDE EFFECT:  the DOM element's `position-area` follows `position`. */
@@ -380,19 +380,13 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     return this.position ?? DEFAULT_POSITION
   }
 
-  /** As wide as its target (`fluid`):  `:state(fluid)`. */
-  @E.cssState("fluid")
-  get isFluid(): boolean {
-    return this.fluid
-  }
-
   ////////////////
   // ## Rendering
   ////////////////
 
   /**
-   * Adds the server render's target binding (`serverBind()`) to `UIComponent.onMount()`;  the role,
-   * name and position effects write the DOM element there too (`writesDOMElement`).
+   * Adds the server render's target binding (`serverBind()`) to `UIComponent.onMount()`;  the role and name
+   * (`@aria`) and the position effect (`writesDOMElement`) write the DOM element there too.
    */
   onMount(): JSX.Element {
     if (isServer) this.serverBind()

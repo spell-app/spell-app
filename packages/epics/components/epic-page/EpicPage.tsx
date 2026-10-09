@@ -84,6 +84,7 @@ import agentsCSS from "./AgentsPanel.css?inline"
  * - SIDE EFFECT:  observes its subtree and the site header while connected;  follows the page's review and agents
  *   clients.
  ****************/
+@E.cssStates("future")
 export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.proto static vocabulary = epicPageVocabulary
   @E.protoMerged static elementSetup = {
@@ -239,16 +240,6 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       listening: client.listening
     }
   })
-
-  ////////////////
-  // ## Element hooks
-  ////////////////
-
-  /** A future epic:  not planned yet. */
-  @E.cssState("future")
-  get isFuture(): boolean {
-    return !!this.future
-  }
 
   ////////////////
   // ## Rendering

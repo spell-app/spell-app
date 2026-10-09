@@ -24,6 +24,8 @@ import emojiCSS from "./UIEmoji.css?inline"
  * - `link` is only a LOOK:  the emoji takes no focus and sends nothing of its own;
  *   wrap it in a `<button>` or `<a>`.
  ****************/
+// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
+@E.cssStates("disabled", "loading")
 export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
   @E.proto static vocabulary = emojiVocabulary
   @E.protoMerged static elementSetup = {
@@ -73,22 +75,6 @@ export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
       if (name) names.push(name)
     }
     return EmojiData.preload(names)
-  }
-
-  /**
-   * Looks disabled?  `:state(disabled)`.
-   * - A look only, NOT the base's `isDisabled`:
-   *   the element would swallow clicks meant for the `<button>` or `<a>` around it.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return this.disabled
-  }
-
-  /** Busy?  `:state(loading)`. */
-  @E.cssState("loading")
-  get isLoading(): boolean {
-    return this.loading
   }
 
   render(): JSX.Element {
