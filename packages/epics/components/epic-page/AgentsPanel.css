@@ -21,14 +21,47 @@
     background: var(--epic-band-row, var(--ui-background));
     font: 14px/1.4 var(--epic-sans, var(--ui-font-family));
   }
+  /* the title folds the rows (every titled box folds:  Owen, 2026-10-08):  a plain button, chevron first */
   .agents-title {
     display: flex;
     align-items: center;
     gap: 6px;
+    box-sizing: border-box;
+    width: 100%;
     padding: 4px 10px;
+    border: none;
     background: var(--epic-accent-soft, var(--ui-primary-background));
     color: var(--epic-heading-ink, var(--ui-text-color));
+    font: inherit;
     font-size: 13px;
+    text-align: start;
+    cursor: pointer;
+  }
+  .agents-title:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent, Highlight));
+    outline-offset: -2px;
+  }
+  .agents-title .chevron {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: rotate 0.12s;
+  }
+  .agents-title[aria-expanded="true"] .chevron {
+    rotate: 90deg;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .agents-title .chevron {
+      transition: none;
+    }
+  }
+  .agents-list[hidden] {
+    display: none;
   }
   .agents-count {
     color: var(--epic-muted, var(--ui-text-muted));

@@ -3,7 +3,8 @@
  * to `<epic-*>` markup, and the proof that it lost nothing.
  * - Bottom of the folder's import graph:  `import type` only, apart from these constants.
  *   `convert.types` <- `DocReading` <- `OldReading` / `NewReading` <- `ConversionProof`;
- *   `convert.types` <- `CardConverter` <- `ItemConverter` / `PhaseConverter` <- `Converter` <- `ConvertRun`.
+ *   `convert.types` <- `CardConverter` <- `ItemConverter` / `PhaseConverter` <- `Converter` <- `ConvertRun`;
+ *   the second pass:  `convert.types` <- `ProseShapes` <- `ConvertedReading` / `ProseUpgrader` <- `Upgrader`.
  * - The OLD markup's selectors live here, once:  the converter reads them, and the proof's `OldReading` knows which
  *   of their text is chrome (`Chrome`:  the tool's, `$/epics/tool/planDoc.types`, re-exported here).  Rules for that
  *   markup:  `templates/epics/plan-doc.md`, "Markup the script writes".
@@ -51,6 +52,16 @@ export type Conversion = {
   proof: ProofReport
   /** Was the input split (a skeleton plus parts)? */
   wasSplit: boolean
+  /**
+   * Which pass made it:  `1`, today's markup => `<epic-*>` (`Converter`);  `2`, a converted doc => the P14 shapes
+   * (`Upgrader`).
+   */
+  pass: 1 | 2
+  /**
+   * The second pass's counts, by what it did (`question`, `net effect` ...) and, `kept:` first, by what it left as
+   * prose (`kept: net effect in other words`).  Empty for the first pass.
+   */
+  counts: Record<string, number>
 }
 
 /**
@@ -215,12 +226,113 @@ export const EXCLUSIONS = [
   "item chips (`Q7`, linking `#q7`), review labels (`reviewed 10-06`), `UPDATE` on a marker (drawn from the item's data)",
   "an option's `A · ` and ` (recommended)`, an answer's `Answer · ` / `D7 · `, a reply's title line's ` · ` and `re: ` (drawn from `letter`, `recommended`, the answer's id, `from` / `at` / `re`)",
   "the `Plan hung?` and future-epic notices (drawn by <epic-page> while it has no phases / is `future`)",
+  "the `plan-doc.css` link in the head:  dropped (P14:  the elements style themselves)",
   "an older doc's Overnight report (`#overnight`, before 2026-10-05), its ids and links:  dropped (Owen, I3:  what it said is in the items and phases now);  the items it linked are `overnight`"
+] as const
+
+////////////////
+// ## The second pass
+////////////////
+
+/**
+ * The shapes the SECOND pass reads (`Upgrader`, P14):  prose blocks in a converted doc that no element owned until
+ * P14, by what they are.  The proof's `ConvertedReading` knows which of their text the new elements draw.
+ */
+export const Prose = {
+  crumbs: "ui-breadcrumb.spell-crumbs",
+  report: "ui-section#overnight",
+  summary: "p[slot='summary']",
+  prompt: "blockquote[slot='prompt']",
+  code: "ui-accordion.spell-code",
+  aside: "ui-accordion.spell-aside",
+  note: "ui-message.plan-update",
+  grid: "ui-grid.spell-pros-cons",
+  answer: "div.plan-answer-block",
+  answerTitle: "div.plan-answer-title",
+  reply: "div.plan-reply",
+  replyTitle: "div.plan-reply-title"
+} as const
+
+/** What the second pass's elements draw around prose, as patterns;  the proof leaves exactly that out. */
+export const Drawn = {
+  /**
+   * A Net effect paragraph's whole text (`Net effect:`, `Net effect (A):`, `Net effect (A, recommended):`,
+   * `Net effect (recommended):`, `Net effect: (A)`):  `option` is $1, `recommended` $2 (with a letter) or $3
+   * (without).  Other words (`(once fixed)`, `(to decide)`) don't match:  they stay prose.
+   */
+  netEffect: /^Net effect:?(?: \((?:([A-Z])(?:, (recommended))?|(recommended))\))?:?$/,
+  /** The label a Net effect paragraph starts with, whose own text is `Net effect:`:  the inline kind follows it. */
+  netEffectLabel: /^Net effect:$/,
+  /** Any bold `Net effect` lead, matched or not:  where a question's text ends. */
+  netEffectLead: /^Net effect\b/,
+  /** An aside's `Aside: ` before its title. */
+  asidePrefix: /^\s*Aside:\s*/i,
+  /** An option card's ` (recommended)` or ` (chosen)` after its title. */
+  optionSuffix: /\s*\((recommended|chosen)\)\s*$/i,
+  /** A hand-written note's header:  `UPDATE` or `DONE`, then ` · <title>`. */
+  noteHeader: /^(UPDATE|DONE)(?:\s*·\s*(.+))?$/
+} as const
+
+/**
+ * What the second pass counts (`Conversion.counts`), by what it did;  `kept: ...`, what it left as prose, and why.
+ * - a doc whose counts are all `kept: ...` has nothing to upgrade (`Upgrader.changed()`)
+ */
+export const Counted = {
+  crumbs: "crumbs",
+  css: "plan-doc.css link",
+  report: "report section",
+  summary: "summary",
+  prompt: "prompt",
+  question: "question",
+  versionQuestion: "question, in a version",
+  netEffect: "net effect",
+  optionNetEffect: "net effect, an option's",
+  inlineNetEffect: "net effect, a sentence",
+  code: "code",
+  aside: "aside",
+  note: "note",
+  update: "phase's UPDATE marker",
+  field: "labelled block",
+  choices: "choices",
+  answer: "answer",
+  reply: "reply",
+  keptNetEffect: "kept: net effect in other words",
+  keptCode: "kept: code in another shape",
+  keptAside: "kept: aside in another shape",
+  keptNote: "kept: note in other words",
+  keptGrid: "kept: option grid in another shape",
+  keptCard: "kept: hand-written card where its element can't go",
+  keptLabel: "kept: labelled block (no <epic-field label> yet)",
+  keptOutside: "kept: outside <epic-page>"
+} as const
+
+/** A `Counted` key's text before what was kept as prose. */
+export const KEPT = "kept: "
+
+/** A labelled block in an item's prose:  `<b>Where:</b>`, `What should happen:`, `Step:` / `Step 2:`. */
+export const LABELLED_BLOCK = /^(Where|What should happen|Step\b[^:]*):$/
+
+/**
+ * The second pass's exclusions, as the proof report lists them:  what of a converted doc isn't compared, and why.
+ * - one line each, for a reader;  the code is `ConvertedReading`'s
+ */
+export const UPGRADE_EXCLUSIONS = [
+  "the old crumbs before <epic-page> (`Docs › Epics › <title>`) and their links (drawn by <epic-page>)",
+  "the `plan-doc.css` link in the head:  dropped (P14:  the elements style themselves)",
+  "a Net effect paragraph's label, `Net effect (A, recommended):` (drawn by <epic-net-effect> from `option` and `recommended`)",
+  "an aside's `Aside: ` (drawn by <epic-aside>)",
+  "a hand-written note's `UPDATE` / `DONE` and its ` · ` (drawn by <epic-note> from `state`);  a phase's bare `UPDATE` (drawn by <epic-update>)",
+  "a labelled block's `Where:` (drawn by <epic-field> from `label`)",
+  "an option card's `A · `, ` (recommended)` and ` (chosen)` (drawn from `letter`, `recommended` and <epic-choices chosen>)",
+  "a hand-written answer's `Answer` / `D7` and a reply's title line (drawn from the element's data)"
 ] as const
 
 ////////////////
 // ## The new page
 ////////////////
+
+/** The old plan-doc sheet's link, which a converted page drops (P14:  the elements style themselves). */
+export const PLAN_DOC_CSS = 'head > link[href$="/plan-doc.css"]'
 
 /** The pack a converted page loads, from `epics/<name>/`:  `<ui-components source>`. */
 export const PACK_SOURCE = "../../packages/epics/pack/epics.pack.js"

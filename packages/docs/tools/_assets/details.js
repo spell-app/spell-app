@@ -5,13 +5,12 @@
  *   with the rest of the page.
  * - Builds, from `ui-section.spell-question` > `.spell-option[data-option][data-title]`:
  *   - one `ui-segment` card per option:  a `ui-radio` (or `ui-checkbox` under `data-multiple`) labelled
- *     `A · title`, ticked to start with under `data-checked`, a Recommended label (`data-recommended`), the
- *     one-line summary, and its
- *     `.spell-option-details` folded in a `ui-accordion`
+ *     `A · title`, ticked to start with under `data-checked`, a violet thumbs-up, no word (`data-recommended`;  Owen, Q20), the
+ *     one-line summary, and its `.spell-option-details` folded in a `ui-accordion`;  the chosen card green
  *   - an "Other" box per question, and a comment box under each option;  a comment box under every other section
  *     with no sections inside it
  *   - Send in the sticky page header, with where the answer stands ("Not sent", "Sent 10/8/26 14:34 · 5 of 17
- *     decided", "Changes not sent");  a notes box at the page's end
+ *     decided", "Changes not sent"), drawn by the fill rule (`refresh()`);  a notes box at the page's end
  * - Answer:  `POST /api/details/answer` (`tools/detailsRoutes.ts`) writes `<slug>.answer.json` beside the page;
  *   on load, `GET` reads it back into the page.
  * - NEVER locks (Owen, 2026-10-08):  a partial answer is fine, everything stays editable, and every Send sends the
@@ -82,10 +81,12 @@
   }
 
   /**
-   * `question`'s state, as `data-state` on it and on its rail entry (the runtime copies it when it builds the rail):
-   * - `working` (orange):  Claude has more to do:  "Provide more details" asked on a card, or only Other written
-   * - `done` (green):  a card picked
-   * - `attention` (red):  nothing yet
+   * `question`'s state, as `data-state` on it and on its rail entry (the runtime copies it when it builds the rail),
+   * its badge's colour there (`spell-doc.css`, the colour scheme:  `templates/epics/plan-doc.md`, "Colours"):
+   * - `working` (blue, Claude's to do):  Claude has more to do:  "Provide more details" asked on a card, or only
+   *   Other written
+   * - `done` (green, decided):  a card picked
+   * - `attention` (red, needs you):  nothing yet
    */
   function markState(question) {
     const picked = [...question.querySelectorAll("ui-radio, ui-checkbox")].some((control) => control.selected)
@@ -235,9 +236,17 @@
       control.selected = multiple ? !control.selected : true
     })
     const heading = el("div", { class: "spell-option-heading" }, name)
+    // quiet grey text, as plan docs show it:  no colour that means something else (Q20 of epic `epic-components`)
     if (option.hasAttribute("data-recommended")) {
       card.setAttribute("data-recommended", "")
-      heading.append(el("ui-label", { size: "mini", color: "green", icon: "thumbs up" }, "Recommended"))
+      heading.append(
+        el("ui-icon", {
+          class: "spell-recommended",
+          name: "thumbs up",
+          "aria-label": "recommended",
+          title: "Recommended"
+        })
+      )
     }
     if (option.dataset.badge) {
       const color = option.dataset.badgeColor ?? "grey"
@@ -294,14 +303,15 @@
 
   /**
    * Send, in the sticky page header (`.spell-page-head`, right of the title):  where the answer stands, then a round
-   * blue Send;  an error, when there is one, on its own line under them.  The notes box goes after the last question.
+   * Send, blue as Send is everywhere (its fill:  `refresh()`);  an error, when there is one, on its own line under
+   * them.  The notes box goes after the last question.
    */
   function buildSend() {
     const head = document.querySelector(".spell-page-head") ?? document.querySelector("h1").parentElement
     const state = el("span", { class: "spell-send-state" })
     const button = el("ui-button", {
       class: "spell-send",
-      primary: "",
+      basic: "",
       circular: "",
       icon: "paper plane",
       "aria-label": "Send"
@@ -331,9 +341,9 @@
 
   /** Send the whole page;  it stays as it is, editable. */
   async function submit() {
-    const { answers, comments, notes } = gather()
-    const empty = Object.values(answers).every((each) => !each.picked.length && !each.other)
-    if (!sentAnswer && empty && !notes && !Object.keys(comments).length)
+    const page = gather()
+    const { answers, comments, notes } = page
+    if (!sentAnswer && isEmpty(page))
       return fail("Pick an option, or write something (Other, a comment, a note) first.")
     const server = window.SPELL_SERVER
     if (!server?.token) return fail("This page isn't on the page server, so it can't send:  answer in chat instead.")
@@ -439,25 +449,44 @@
   }
 
   /**
-   * The header's line, and the meta list's status label, from where the answer stands:
-   * - never sent:  "Not sent"
-   * - sent, and the page as sent:  "Sent 10/8/26 14:34 · 5 of 17 decided"
-   * - edited since:  "Changes not sent"
+   * The header's line, Send's fill and the meta list's status label, from where the answer stands (the colour
+   * scheme's fill rule:  `templates/epics/plan-doc.md`, "Colours"):
+   * - never sent, nothing on the page:  "Not sent", Send a grey outline (available), "waiting for your answer" red
+   * - never sent, something on the page;  or edited since the send:  "Not sent" / "Changes not sent" in blue, Send
+   *   DASHED blue (Owen's, not sent yet), "changes not sent" blue
+   * - sent, and the page as sent:  "Sent 10/8/26 14:34 · 5 of 17 decided" in green, Send a blue OUTLINE (recorded,
+   *   Claude's to act on), "answered" green.  Never solid:  the page can't tell when Claude is done with it
    */
   function refresh() {
-    const changed = sentSnapshot !== null && snapshot() !== sentSnapshot
+    const pending = sentSnapshot === null ? !isEmpty(gather()) : snapshot() !== sentSnapshot
     const decided = questions.filter((question) => question.dataset.state !== "attention").length
-    const [text, color, label] = !sentAnswer
-      ? ["Not sent", "grey", "waiting for your answer"]
-      : changed
-        ? ["Changes not sent", "orange", "changes not sent"]
-        : [`Sent ${when(sentAnswer.answered)} · ${decided} of ${questions.length} decided`, "green", "answered"]
+    // [the header's line, its colour, the status label, the label's colour]
+    const [text, color, label, labelColor] = pending
+      ? [sentAnswer ? "Changes not sent" : "Not sent", "blue", "changes not sent", "blue"]
+      : sentAnswer
+        ? [
+            `Sent ${when(sentAnswer.answered)} · ${decided} of ${questions.length} decided`,
+            "green",
+            "answered",
+            "green"
+          ]
+        : ["Not sent", "grey", "waiting for your answer", "red"]
     send.state.textContent = text
     send.state.dataset.color = color
+    const fill = pending ? "pending" : sentAnswer ? "sent" : "rest"
+    send.button.dataset.fill = fill
+    if (fill === "rest") send.button.removeAttribute("color")
+    else send.button.setAttribute("color", "blue")
     if (status) {
       status.textContent = label
-      status.setAttribute("color", color)
+      status.setAttribute("color", labelColor)
     }
+  }
+
+  /** Nothing on the page to send:  no pick, Other, comment or note. */
+  function isEmpty({ answers, comments, notes }) {
+    const picked = Object.values(answers).some((each) => each.picked.length || each.other)
+    return !picked && !notes && !Object.keys(comments).length
   }
 
   /** `iso` as the plan docs write dates:  `10/8/26 14:34`, local time. */

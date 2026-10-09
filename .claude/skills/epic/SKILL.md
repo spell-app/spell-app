@@ -33,8 +33,8 @@ the whole time.  The plan doc is the user's view of the work:  they read it in t
   doc review):  `spell dev plan-doc open <name>` reloads it in the side bar's Review tab.  `spell dev plan-doc phase` does it for you.
 - Style, in the plan doc:  written for Owen coming back cold (`plan-doc.md`, "Rules"):  a plain lead sentence, then
   bullets (never a list run together in a sentence), full words, a concrete example for anything tricky, ids
-  explained, and a **Net effect** list closing every question, issue, judgement call and decision.  NOT caveman
-  (Owen, 2026-10-04).  Replies:  short, the same plain words.
+  explained, and a **Net effect** list (`<epic-net-effect>`) closing every question, issue, judgement call and
+  decision.  NOT caveman (Owen, 2026-10-04).  Replies:  short, the same plain words.
 - Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  paste what
   `spell dev docs link <ABSOLUTE path> --hash <id> [--text "..."]`, run in the checkout the doc is in:  it prints
   the side bar link, then `(_browser_)` (`.claude/skills/details/SKILL.md`, "Links to pages").
@@ -194,14 +194,17 @@ pruning.
   "..." --verify "..." --estimate "1-2h"` per phase, in order (Owen, 2026-10-06:  "Symptom, Changes, then the
   details"):  the symptom ONE line (what's wrong today), the changes two or three (what changes), the goal the details,
   one bullet per outcome, in Owen's terms;  the estimate becomes the title's badge, and the Overview's total
-  (`p.plan-estimate`) follows by itself
+  (`<epic-overview estimate>`) follows by itself
 - `spell dev plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
 - Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`
-- Hand-write `p.plan-summary`;  bring the Overview (written in "3. Plan") in line with the approved plan, nested in
-  `#overview`:
-  `<ui-section id="o1" header="1.1 ..." sticky collapsible dividing collapsed>`, `#o2` ... (a title with markup:  a
-  `<span slot="header">` first inside instead of `header`;  sub-sub-items:  `<h4 id>`).  Code in folded
-  `ui-accordion.spell-code`, digressions in collapsed `ui-accordion.spell-aside`, links to items and phases
+- Hand-write the summary, `<epic-summary>` (two sentences);  bring the Overview (written in "3. Plan") in line with
+  the approved plan, nested in `<epic-overview id="overview">`:
+  `<epic-section id="o1" kind="overview-part" title="...">`, `#o2` ... (a title with markup:  a `<span slot="title">`
+  first inside instead of `title`;  sub-sub-items:  `<h4 id>`;  a split doc:  the prose goes in `parts/o1.html`).
+  The prose blocks are ELEMENTS (`PLAN-DOC.md`, "Prose elements";  P14 of `epic-components`), never hand-shaped:
+  code in a folded `<epic-code title="file.ts · N lines" language="ts"><pre>...</pre></epic-code>`, digressions in a
+  folded `<epic-aside title="...">`, the Net effect in `<epic-net-effect [option="A" recommended]>`, options on any
+  item in `<epic-choices>`, labelled blocks in `<epic-field label="Where">`;  links to items and phases
   (`<a href="#d2">D2</a>`).  NEVER change an existing `id`.
 - `spell dev plan-doc check <name>`, then `spell dev plan-doc open <name>` (new stage:  reload)
 
@@ -212,7 +215,7 @@ pruning.
 2. Do the work.  Record as you go, not at the end:
    - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision` (a
      question born answered);  a choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement`
-     (ids `J1` ...;  see `/bedtime`);  one that simply follows WWOD gets `--calm` (last):  blue, not urgent, rather
+     (ids `J1` ...;  see `/bedtime`);  one that simply follows WWOD gets `--calm` (last):  yellow (open), rather
      than red (Owen flips it from its id chip while reviewing)
    - items added while the phase is active carry it:  the phase's "To review" line (written by the script on every
      edit) lists the ones Owen hasn't reviewed.  Never hand-write a "Judgement calls:" line
@@ -225,9 +228,9 @@ pruning.
    - changed a phase's PLAN (Owen's feedback, or something found while building):  `updated <name> <N> "<p>what
      changed, and why</p>"`, a dated line in its fenced Updated block under Symptom / Changes (never an "Updated" word
      in the text);  then `phase-body <name> <N> --changes ...` (or `--goal` ...) to make the fields say the new plan
-   - changed a prose block:  put
-     `<ui-message class="plan-update" state="warning" size="tiny" header="UPDATE" data-phase="N"><p>what changed</p></ui-message>`
-     just before it (the script marks items itself)
+   - changed a prose block:  put `<epic-update phase="N"><p>what changed</p></epic-update>` just before it (the
+     script marks items itself;  `phase <name> N done` drops it);  a note that should stay:  `<epic-note
+     state="update" title="...">` (`plan-doc.md`, "UPDATE markers")
 3. Subagents:  named and listed (`spell dev agents add` / `done`, the root `CLAUDE.md`'s "Delegated work");  paste
    the cheat sheet below into their prompts, with "record caveats, issues and decisions in the plan doc as you find
    them".
@@ -288,10 +291,11 @@ pruning.
 
 ## 7. Review:  `/epic review [<name>]`
 
-Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he marks items (each item's four
-buttons:  Approve, Make Todo, Revisit Now, Add Details Now;  Choose on option cards) and sends them with the page
-header's paper plane, or with Review Now beside it (the wand:  every revisit waiting is asked now too, epic
-`windows-and-review` P4).  A running Add Details Now / Revisit Now clicked again is "nevermind" (`canceled`, 7.3).
+Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he marks items (each item's buttons:
+one group, Approve, Revisit, Make Todo, then Do Now apart, the paper plane, for Add Details or a revisit now;  Choose
+on option cards;  their colours and fills:  `plan-doc.md`, "Colours") and sends them with the page header's paper
+plane, or with Review Now beside it (the wand:  every revisit waiting is asked now too, epic `windows-and-review`
+P4).  A running Do Now clicked again is "nevermind" (`canceled`, 7.3).
 This session LISTENS:  it waits on the doc's review inbox and acts on what arrives -- mechanical marks at once, Add
 Details and "revisit now" by background agents, "revisit soon" answered one at a time.  EVERY answer goes INTO its
 item, on the page;  the chat only links them (Q3 of `windows-and-review`).  No modal walk through items any more
@@ -313,8 +317,8 @@ spell dev plan-doc inbox <name> listen  /  unlisten      this session is (no lon
 spell dev plan-doc inbox <name> wait                     Bash run_in_background:  exits with work (or 2:  timeout)
 spell dev plan-doc inbox <name> apply [ids]              approve / pick / todo marks into the doc;  prints what's left
 spell dev plan-doc inbox <name> working <id> on|off      the page's spinner on an item
-spell dev plan-doc status <name> <id> underway "<reading>"   Claude's orange status card on an item, spinner on
-spell dev plan-doc status <name> <id> done ["<summary>"]    that card violet (Done), the summary under it;  spinner off
+spell dev plan-doc status <name> <id> underway "<reading>"   Claude's blue status card on an item, spinner on
+spell dev plan-doc status <name> <id> done ["<summary>"]    that card green (Done), the summary under it;  spinner off
 spell dev plan-doc details <name> <id> --file f --more | --append   a More Details card (Add Details) / a reply appended
 spell dev plan-doc inbox <name> done <id>  /  clear <ids>    an item's request finished  /  marks dropped after a talk
 spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or not
@@ -336,43 +340,47 @@ spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or
 2. In chat, three lines at most, for someone who remembers nothing:  what the epic is, what's waiting on him (e.g.
    "4 judgement calls not reviewed, 2 open questions"), and when he last reviewed it.
 3. The FIRST thing worth his time:  the first item, in page order, whose state is `attention` (red:  an open
-   question, an unreviewed judgement call or issue);  none:  the first `open` (blue) one;  none:  the top.
+   question, an unreviewed judgement call or issue);  none:  the first `open` (yellow) one;  none:  the top.
    `spell dev docs link <ABS doc> --hash <that id> --review --show`:  the doc opens in the Review tab, at it.
 4. `spell dev plan-doc inbox <name> listen`, then `spell dev plan-doc inbox <name> wait` with Bash `run_in_background: true`.
-5. END THE TURN, short:  "Mark items in the Review tab:  each item's buttons;  Add Details Now and Revisit Now start
-   at once (click again to call one off);  the paper plane sends the rest.  I'm listening."  Then the doc's link
+5. END THE TURN, short:  "Mark items in the Review tab:  each item's buttons;  Do Now (an item's paper plane) starts
+   at once (click again to call one off);  the header's paper plane sends the rest.  I'm listening."  Then the doc's link
    pair.
 
 ### 7.3 Woken:  the `wait` command finished
 
 Read what it printed.  Then, in this order:
 1. Exit 2 (timeout, nothing happened):  arm `wait` again, end the turn with one line ("still listening").
-1b. CANCELED (Owen said "nevermind" on a running Add Details Now / Revisit Now, epic `windows-and-review` P2):  stop
+1b. CANCELED (Owen said "nevermind" on a running Do Now, epic `windows-and-review` P2):  stop
    that item's background agent (`TaskStop`), then `spell dev plan-doc status <name> <id> done "Called off on the
    page:  nothing written."` and `spell dev plan-doc inbox <name> done <id>`.  An agent that
    finishes anyway is refused (`plan-doc details` errors:  "Owen called this request off"):  nothing lands.
 2. NOW requests (Add Details, revisit now;  after Review Now, every revisit Owen had marked) -- `wait` already
    marked them `working` (the page spins):  per item, FIRST its status card, `spell dev plan-doc status <name> <id>
    underway "<reading>"`:  what you take the task to be, one or two sentences, plain words, no file names (P13 of
-   `epic-components`:  Owen sees it at once, orange, under his note);  THEN a BACKGROUND `Agent`
+   `epic-components`:  Owen sees it at once, blue, under his note);  THEN a BACKGROUND `Agent`
    (`run_in_background: true`), each prompt:
    - which doc, which item (id, title), and the rules:  `plan-doc.md` "Rules" (cold reader, bullets, examples, Net
-     effect)
+     effect) and "Prose" (the blocks are ELEMENTS:  `<epic-code>`, `<epic-aside>`, `<epic-net-effect>`,
+     `<epic-choices>`, `<epic-field label>`;  never `ui-accordion.spell-code` or a `<p><b>Net effect:</b></p>` by
+     hand)
    - Add Details:  read the item, the code and docs it names, then write what its text leaves out, as MORE
      details:  `spell dev plan-doc details <name> <id> --more --file <html>`.  The item's text stays on top
      ("Original Reply");  yours goes under it in a white "More Details" card (P3 of `windows-and-review`), so don't
      repeat the text:  build on it
-   - revisit now:  answer Owen's note (quote it), in the reply block markup (`plan-doc.md`, "Reply"):  what he asked,
-     the answer with evidence (real code, the command and its output), option cards when he must choose (he picks
-     on the page), a Net effect;  `spell dev plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
+   - revisit now:  answer Owen's note (quote it), in an `<epic-reply from="Claude" at re>` (`plan-doc.md`, "Review
+     inbox", its example):  what he asked, the answer with evidence (real code in an `<epic-code>`, the command and
+     its output), option cards when he must choose (an `<epic-choices>` inside the reply:  he picks on the page), an
+     `<epic-net-effect>`;  `spell dev plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
      · ..., asks:  ..."):  answer about THAT option;  never decide the question (he confirms with a plain pick)
-   - last:  `spell dev plan-doc status <name> <id> done ["<summary>"]` (the card turns violet;  a summary only when
+   - last:  `spell dev plan-doc status <name> <id> done ["<summary>"]` (the card turns green;  a summary only when
      there's something worth saying:  a surprise, a choice made, something left undone), then
      `spell dev plan-doc inbox <name> done <id>`
    Up to 5 agents at once (root rules);  more:  the rest after.
 3. SENT marks:  `spell dev plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each);
-   each pick and todo gets its violet Done card from `apply` itself ("Chose B · ...", "Made todo T23 ...":  Q19),
-   an approval none.  Then each "to talk over" (revisit soon), one at a time:  `status ... underway "<reading>"` as you
+   a pick works on ANY item's cards, a reply's too (I8 of `epic-components`):  a question answered with it, any other
+   item approved with it;  each pick and todo gets its green Done card from `apply` itself ("Chose B · ...", "Made
+   todo T23 ...":  Q19), an approval none.  Then each "to talk over" (revisit soon), one at a time:  `status ... underway "<reading>"` as you
    take it up, answer his note INTO the item, as a reply
    (`details --append`, the reply markup of "revisit now" above:  his note quoted, the answer with evidence, option
    cards when he must choose, so he picks ON THE PAGE), then `status ... done ["<summary>"]`, `inbox clear <id>` and
@@ -383,7 +391,7 @@ Read what it printed.  Then, in this order:
      `spell dev choices new <slug> --epic <name> --rows <rows.json>` then `show <slug> --wait` in the background
      (`guides/syntax-choices.html`)
    - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  `status ...
-     underway`, then answer the note about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself, then `status ... done`
+     underway`, then answer the note about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself (a question;  any other item:  he confirms with a plain pick), then `status ... done`
    - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do
      `inbox apply`, `done`, `clear`, `working` and `status`;  a long talk without them shows "nobody is reviewing" until `wait`
      runs again
@@ -449,8 +457,8 @@ plan, worktree, window or phases.  `/epic <name>` plans it later, from what this
 1. Name, collisions, kickoff prompt:  as "1. Name" (the rest of the text is the idea, kept verbatim in
    `~/.spell/prompts/<name>.md` until the doc holds it).  An existing epic of that name:  say so and stop.
 2. The stub:  `spell dev plan-doc new <name> --future --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md`,
-   then delete the prompt file, and hand-write its `p.plan-summary`:  the idea in two sentences, what changes for
-   Owen.  It's a plan doc with `<body data-future>`:  a violet FUTURE label, a "Future epic"
+   then delete the prompt file, and hand-write its `<epic-summary>`:  the idea in two sentences, what changes for
+   Owen.  It's a plan doc with `<epic-page future>`:  a FUTURE label, a "Future epic"
    notice in place of "Plan hung?", no branch or worktree;  `plan-doc list` says `future`, the Epics index gives
    it a seedling, between the open epics and the done ones.
 3. Explore, read-only (agents allowed, root rules):  just enough to see the problem, the options and the hard parts.

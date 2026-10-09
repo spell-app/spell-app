@@ -5,6 +5,7 @@ import { E } from "$/ui/core"
 import {
   NOTICE_MS,
   ReviewClient,
+  isImmediate,
   isSent,
   type InboxDraft,
   type InboxMark,
@@ -12,7 +13,7 @@ import {
   type Running
 } from "$/epics/review"
 
-import { PAGE_TAG, REVIEWING } from "./EpicItem.types"
+import { PAGE_TAG, REVIEWING, type ReviewFill } from "./EpicItem.types"
 
 /****************
  * ### `ReviewState`
@@ -61,6 +62,12 @@ export class ReviewState {
   /** Its immediate request at work, if any. */
   readonly running = (): Running | null => this.read((client, id) => client.runningOf(id)) ?? null
 
+  /** The review button whose work is on its way or under way (it spins), if any. */
+  readonly busyButton = (): ReviewAction | null => this.read((client, id) => client.busyButtonOf(id)) ?? null
+
+  /** Has Claude taken its request (an agent at work on it), rather than it waiting to be taken? */
+  readonly workedOn = (): boolean => this.read((client, id) => client.isWorkedOn(id)) ?? false
+
   /** Has its mark gone to Claude? */
   readonly isSent = (): boolean =>
     this.read((client, id) => !!client.markOf(id) && client.isSent(client.markOf(id)!)) ?? false
@@ -80,6 +87,23 @@ export class ReviewState {
       const entry = client.inbox.urgency[id]
       return entry && { calm: entry.calm, sent: isSent({ action: "urgency", at: entry.at }, client.inbox.sent) }
     })
+
+  /**
+   * How far `action`'s mark has got:  its review button's FILL (decision Q20).
+   * - Do Now (`details`):  dashed while its request waits to be taken, outlined while Claude is on it, solid once
+   *   done (`appliedAs` `now`)
+   * - the rest:  their mark dashed until sent, then outlined;  solid once Claude handled it (`appliedAs`:  the
+   *   element's `review-as`), until a new mark
+   */
+  readonly fillOf = (action: ReviewAction, appliedAs?: string): ReviewFill => {
+    const mark = this.mark()
+    if (action === "details") {
+      if (this.busyButton() === action) return this.workedOn() ? "outline" : "dashed"
+      return !mark && appliedAs === "now" ? "solid" : "none"
+    }
+    if (mark?.action === action && !isImmediate(mark)) return this.isSent() ? "outline" : "dashed"
+    return !mark && appliedAs === action ? "solid" : "none"
+  }
 
   /** Its id, as the inbox keys it. */
   readonly id = (): string => (this.idOf() ?? "").toLowerCase()

@@ -110,7 +110,7 @@ export type FoldToggleDetail = {
 }
 
 /**
- * What the page's contents list and rail show for a folding element (its DOM element's `contentsEntry`, read by
+ * What the page's rail shows for a folding element (its DOM element's `contentsEntry`, read by
  * `spell-doc-runtime.js`):  read fresh each time, never tracked.
  */
 export type ContentsEntry = {
@@ -118,7 +118,11 @@ export type ContentsEntry = {
   label: string
   /** its icon's name (Spell UI's):  a section's kind icon, a phase's status icon */
   icon?: string
-  /** the icon's colour (Spell UI's `color`):  a phase's status */
+  /**
+   * the icon's colour (Spell UI's `color`):  a phase's status.
+   * - REFACTOR: drawn by nothing since the contents list went (the rail shows only top-level sections, never a
+   *   phase):  drop it, and rename `contentsEntry` to `railEntry`
+   */
   color?: string
   /** a section's count of its items or phases;  none for a kind that isn't counted, or with nothing in it */
   count?: SectionCount
@@ -153,6 +157,15 @@ export const SECTION_LOOKS = {
 
 /** A page section's look:  `SECTION_LOOKS`' values. */
 export type SectionLook = (typeof SECTION_LOOKS)[keyof typeof SECTION_LOOKS]
+
+/**
+ * A report's kind (an overnight `/bedtime` report, P14):  titled its own, unnumbered.  `$/epics/definitions`' `REPORT`,
+ * restated:  the components never value-import the definitions.
+ */
+export const REPORT = "report"
+
+/** The page's NUMBERED blocks, as siblings:  the Overview and the sections, but a report. */
+export const NUMBERED_BLOCKS = `:scope > epic-overview, :scope > epic-section:not([kind="${REPORT}"])`
 
 /** The kinds that hold items:  an empty one says "none yet". */
 export const ITEM_KINDS = ["questions", "judgements", "caveats", "todos", "issues", "tests"] as const
@@ -197,9 +210,9 @@ export const COUNT_ATTRIBUTES = ["status", "state"]
  * - the same five as `<epic-item state>` (`EpicItem.types.ts` `ITEM_STATES`), in the old runtime's filter order
  */
 export const FILTER_STATES = [
-  { state: "progress", color: "orange", words: "stateProgress" },
+  { state: "progress", color: "blue", words: "stateProgress" },
   { state: "attention", color: "red", words: "stateAttention" },
-  { state: "open", color: "blue", words: "stateOpen" },
+  { state: "open", color: "yellow", words: "stateOpen" },
   { state: "recent", color: "green", words: "stateRecent" },
   { state: "old", color: "grey", words: "stateOld" }
 ] as const
@@ -217,12 +230,17 @@ export type ItemStateName = FilterState["state"]
  */
 export const FILTER_KEY = "spell-item-state:"
 
-/** A section's count:  its counted children, and how many of them are open. */
+/** A section's count:  its counted children, how many of them are open, and how many need Owen. */
 export type SectionCount = {
   /** not closed (`CLOSED_STATUSES`) */
   open: number
   /** every one */
   total: number
+  /**
+   * the items that need Owen (`state="attention"`, red):  what the rail counts (decision Q20:  red,
+   * only what needs him;  no pill for none)
+   */
+  attention: number
 }
 
 /** Classes of the filter's chips and its "hidden" line;  the Plan changes box and its heading. */

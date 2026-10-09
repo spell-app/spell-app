@@ -111,10 +111,16 @@
   margin-bottom: 0;
 }
 
-/* the chosen card stands out */
+/* recommended:  a violet thumbs-up after the title, no word (Owen, Q20:  violet is Claude's suggestion;  green means decided) */
+.spell-recommended {
+  color: var(--ui-violet, #6435c9);
+  font-size: 0.9em;
+}
+
+/* the chosen card stands out, in green:  a pick is a decision (the colour scheme, Q20 of epic `epic-components`) */
 .spell-option-card:has(.spell-option-side > [selected]) {
-  border-color: var(--spell-doc-accent);
-  box-shadow: 0 0 0 1px var(--spell-doc-accent);
+  border-color: var(--ui-green, #21ba45);
+  box-shadow: 0 0 0 1px var(--ui-green, #21ba45);
 }
 
 .spell-other {
@@ -162,10 +168,20 @@
   white-space: nowrap;
 }
 .spell-send-state[data-color="green"] {
-  color: var(--ui-green, #21ba45);
+  color: var(--ui-green-text, #1a7f37);
 }
-.spell-send-state[data-color="orange"] {
-  color: var(--ui-orange, #f2711c);
+.spell-send-state[data-color="blue"] {
+  color: var(--ui-blue-text, #1a69a4);
+}
+/*
+ * Send's fill (`details.js` `refresh()`, the colour scheme's fill rule):  `rest` a grey outline (`basic`, nothing to
+ * send);  `sent` a blue outline (`basic color="blue"`);  `pending` DASHED blue:  Owen's changes, not sent yet.  A
+ * `basic` button draws its edge as an inset shadow, which can't dash:  a dashed outline replaces it.
+ */
+ui-button.spell-send[data-fill="pending"]::part(button) {
+  box-shadow: none;
+  outline: 1.5px dashed var(--ui-blue, #2185d0);
+  outline-offset: -1.5px;
 }
 /* an error:  its own line under the title and Send */
 .spell-page-head > .spell-send-error {

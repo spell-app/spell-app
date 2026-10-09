@@ -37,7 +37,7 @@ export const STATE_TIP_KEYS = {
   old: "stateOld"
 } as const satisfies Record<ItemState, string>
 
-/** The review label's look (`PlanItem.reviewLabelColor()`'s):  `todo` orange, `deferred` grey, `reviewed` by state. */
+/** The review label's look:  `todo` yellow (open:  work still to do), `deferred` grey, `reviewed` by state. */
 export type ReviewLook = "todo" | "deferred" | "recent" | "old"
 
 /** The review label on an item's line:  its words, look and tooltip. */
@@ -90,8 +90,8 @@ export const STATUS_SLOT = "status"
 /** Children that aren't prose:  the item's parts, drawn by their own elements. */
 export const EPIC_TAG = /^epic-/
 
-/** `<epic-*>` tags that are prose (`flow`), not parts:  the UPDATE marker. */
-export const FLOW_TAGS: readonly string[] = ["epic-update"]
+/** `<epic-*>` tags that are prose (`flow`), not parts:  the UPDATE marker, a Net effect list. */
+export const FLOW_TAGS: readonly string[] = ["epic-update", "epic-net-effect"]
 
 /** The More Details card's tag:  an item with one labels its own text "Original reply". */
 export const MORE_TAG = "epic-more"
@@ -112,47 +112,73 @@ export const COMMITS_PROPERTY = "--epic-commits-display"
 // ## Review controls (P9:  `ReviewControls.tsx`, shared with `<epic-section>`'s Overview parts)
 ////////////////
 
-/** One review button:  its action, colour once chosen, icon, and its name and tooltip texts. */
+/**
+ * The colours of the review controls (decision Q20 of epic `epic-components`, Owen, 2026-10-08):  green decided or
+ * done (Approve, Make Todo, a pick), blue do it now or Claude is on it (Revisit, Do Now).
+ */
+export type ReviewColor = "green" | "blue"
+
+/**
+ * How far a review button's mark has got:  its FILL (decision Q20), on every button, pill and chip with a lifecycle.
+ * - `none`:  a grey outline, available
+ * - `dashed`:  dashed in its colour:  Owen pressed it, not committed (not sent;  a Do Now not taken yet)
+ * - `outline`:  outlined in its colour:  recorded (sent;  a Do Now taken), not done yet, or in progress
+ * - `solid`:  filled in its colour:  done (applied, answered, filed:  the item's `review-as`)
+ */
+export type ReviewFill = "none" | "dashed" | "outline" | "solid"
+
+/**
+ * Owen's mark on an item, as its id chip wears it (Owen, 2026-10-08:  the chip matches the chosen button):  the
+ * chosen button's colour and fill, and its name for the chip's tooltip.  Only a LIVE mark:  dashed or outlined.
+ */
+export type ChipMark = {
+  color: ReviewColor
+  fill: Exclude<ReviewFill, "none" | "solid">
+  /** the chosen button's name (`approve`), or a pick's letter */
+  label: ReviewButtonSpec["label"] | { pick: string }
+}
+
+/** One review button:  its action, colour, icon, and its name and tooltip texts. */
 export type ReviewButtonSpec = {
-  /** what it does (`ReviewClient.press()`) */
+  /** what it does (`ReviewClient.press()`;  `details` is Do Now, the inbox's name for an immediate request) */
   action: "approve" | "todo" | "revisit" | "details"
-  /** chosen:  green decided, orange pending (Owen, 2026-10-06, epic `windows-and-review` Q4) */
-  color: "green" | "orange"
+  /** its colour once pressed:  green decided, blue an ask of Claude (Q20) */
+  color: ReviewColor
   /** its `ui-icon` */
   icon: string
   /** its name:  the plain tooltip */
-  label: "approve" | "todo" | "revisit" | "details"
+  label: "approve" | "todo" | "revisit" | "doNow"
   /** what it does, for a screen reader */
-  tip: "approveTip" | "todoTip" | "revisitTip" | "detailsTip"
+  tip: "approveTip" | "todoTip" | "revisitTip" | "doNowTip"
 }
 
 /**
- * The line's four review buttons, in their order:  Approve, Make Todo, Revisit (the GROUP:  states an item can be in),
- * then Add Details Now on its own (an action, not a state;  Owen, 2026-10-06, Q8).  Unchosen, all a grey outline.
+ * The line's four review buttons, in their order (decision Q20):  Approve, Revisit, Make Todo (the GROUP:  what Owen
+ * makes of it), then Do Now apart, with a paper plane (an action, not a state:  it replaces Add Details Now and the
+ * note box's Do Now).  Every one shows at every step:  a mark done can still be followed by another.
  */
 export const REVIEW_BUTTONS: readonly ReviewButtonSpec[] = [
   { action: "approve", color: "green", icon: "check", label: "approve", tip: "approveTip" },
+  { action: "revisit", color: "blue", icon: "history", label: "revisit", tip: "revisitTip" },
   { action: "todo", color: "green", icon: "list check", label: "todo", tip: "todoTip" },
-  { action: "revisit", color: "orange", icon: "history", label: "revisit", tip: "revisitTip" },
-  { action: "details", color: "orange", icon: "magic", label: "details", tip: "detailsTip" }
+  { action: "details", color: "blue", icon: "paper plane", label: "doNow", tip: "doNowTip" }
 ]
 
 /**
- * An Overview sub-section's review buttons (decision Q14):  Make Todo, Revisit, Add Details Now -- notes on the plan's
- * parts, not sign-off, so no Approve.
+ * An Overview sub-section's review buttons (decision Q14):  Revisit, Make Todo, Do Now -- notes on the plan's parts,
+ * not sign-off, so no Approve.
  */
 export const OVERVIEW_BUTTONS: readonly ReviewButtonSpec[] = REVIEW_BUTTONS.filter((spec) => spec.action !== "approve")
 
 /**
- * The note box's three buttons, in Owen's order (2026-10-07, J4):  Revisit Later (queued for the next send), Do Now
- * (revisit now), Make Todo.
+ * The note box's buttons, in the line's order:  Revisit Later (queued for the next send), Make Todo.
  * - Revisit Later wears the line's Revisit icon:  both end in the same mark, a revisit
+ * - no Do Now here any more (Q20):  the line's Do Now takes the note in the box with it
  */
 export const NOTE_BUTTONS = [
-  { how: "soon", icon: "history", label: "boxSoon", tip: "boxSoonTip" },
-  { how: "now", icon: "wand magic sparkles", label: "boxNow", tip: "boxNowTip" },
-  { how: "todo", icon: "list check", label: "boxTodo", tip: "boxTodoTip" }
-] as const
+  { how: "soon", color: "blue", icon: "history", label: "boxSoon", tip: "boxSoonTip" },
+  { how: "todo", color: "green", icon: "list check", label: "boxTodo", tip: "boxTodoTip" }
+] as const satisfies readonly { how: string; color: ReviewColor; icon: string; label: string; tip: string }[]
 
 /** A note box button's `how`. */
 export type NoteHow = (typeof NOTE_BUTTONS)[number]["how"]
@@ -160,7 +186,7 @@ export type NoteHow = (typeof NOTE_BUTTONS)[number]["how"]
 /** Class names of the review controls, inside the shadow root (`ReviewControls.css`). */
 export const REVIEW_CONTROLS = "review-controls"
 export const REVIEW_GROUP = "review-group"
-export const REVIEW_DETAILS = "review-details"
+export const REVIEW_DO_NOW = "review-do-now"
 export const REVIEW_NOTED = "review-noted"
 export const REVIEW_PICK = "review-pick"
 export const NOTE_BOX = "note-box"
@@ -184,10 +210,10 @@ export const REVIEW_PARTS = [
   {
     name: "review-buttons",
     description:
-      "The review buttons (P9):  the note bubble, a pick's letter, Approve / Make Todo / Revisit, Add Details Now.  " +
+      "The review buttons (P9):  the note bubble, a pick's letter, Approve / Revisit / Make Todo, then Do Now.  " +
       "Only while the page is reviewed (served by the page server, its inbox answering)."
   },
-  { name: "note-box", description: "The note box:  the note, then Revisit Later, Do Now and Make Todo." },
+  { name: "note-box", description: "The note box:  the note, then Revisit Later and Make Todo." },
   { name: "said", description: "A note marked and closed:  `You · revisit soon · sent 10:42`, the note, Edit." }
 ] as const
 
@@ -200,19 +226,19 @@ export const REVIEW_TEXTS = [
   { key: "todoTip", text: "Follow it up later, as a todo", description: "Review button:  what Make Todo does." },
   { key: "revisit", text: "Revisit", description: "Review button:  its name." },
   { key: "revisitTip", text: "Talk it over:  write in the box at its end", description: "Review button:  Revisit." },
-  { key: "details", text: "Add Details Now", description: "Review button:  its name." },
+  { key: "doNow", text: "Do Now", description: "Review button:  its name." },
   {
-    key: "detailsTip",
-    text: "Claude writes a fuller explanation into it, at once",
-    description: "Review button:  what Add Details Now does."
+    key: "doNowTip",
+    text: "Claude takes it at once:  answers the note in its box, or adds details",
+    description: "Review button:  what Do Now does."
   },
   { key: "waiting", text: "waiting:  {why}", description: "A request queued with nobody listening." },
-  { key: "revisiting", text: "Claude is looking into this · click to call it off", description: "Revisit at work." },
-  { key: "detailing", text: "Claude is adding details · click to call it off", description: "Add Details at work." },
+  { key: "asked", text: "asked · waiting for Claude to take it", description: "A Do Now not taken yet." },
+  { key: "working", text: "Claude is on it · click to call it off", description: "A button whose work is under way." },
   { key: "callOff", text: "{label}:  click to call it off", description: "A spinning button's tooltip." },
   { key: "chosenSent", text: "sent · click to clear", description: "A chosen button, its mark sent." },
   { key: "chosenUnsent", text: "not sent yet · click to clear", description: "A chosen button, its mark not sent." },
-  { key: "doneBefore", text: "done before", description: "How Claude applied an earlier mark (`review-as`)." },
+  { key: "doneBefore", text: "done", description: "How Claude handled an earlier mark (`review-as`):  done." },
   { key: "pickedSent", text: "Picked {letter} · sent", description: "The pick's letter, sent." },
   { key: "pickedUnsent", text: "Picked {letter} · not sent yet", description: "The pick's letter, not sent." },
   { key: "noteDraft", text: "Your note, not sent yet (saved):  {note}", description: "The note bubble:  a draft." },
@@ -224,8 +250,6 @@ export const REVIEW_TEXTS = [
   { key: "boxTodoTip", text: "Make Todo:  follow it up later, with this note", description: "Note box:  Make Todo." },
   { key: "boxSoon", text: "Revisit Later", description: "Note box button:  its name." },
   { key: "boxSoonTip", text: "Revisit Later:  talk it over in the next batch", description: "Note box:  Later." },
-  { key: "boxNow", text: "Do Now", description: "Note box button:  its name." },
-  { key: "boxNowTip", text: "Do Now:  Claude looks into it at once", description: "Note box:  Do Now." },
   { key: "saved", text: "Saved {time}", description: "The note box's floppy:  its draft is saved." },
   { key: "notSaved", text: "Not saved:  {why} (kept in this browser)", description: "The floppy, red:  not saved." },
   { key: "you", text: "You", description: "Who wrote a marked note." },

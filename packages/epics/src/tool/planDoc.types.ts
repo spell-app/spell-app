@@ -191,8 +191,10 @@ export type ItemFacts = {
   queued: string | undefined
   /** the queued work */
   work: string | undefined
-  /** work on it is under way */
+  /** work on it is under way (`<epic-item working>`) */
   working: boolean
+  /** Claude is on it:  it holds a status card not done yet (`<epic-status state="underway">`, P13) */
+  underway: boolean
   /** changed during a `/bedtime` run */
   bedtime: boolean
   /** not urgent:  blue while open and not reviewed, not red (`<epic-item calm>`) */
@@ -227,6 +229,8 @@ export type DecideOptions = {
   details?: string
   /** the letter of the option chosen (`B`) */
   option?: string
+  /** which card set `option` is in, by position (`PlanItem.choiceSets()`, I8);  none:  the question's own */
+  choices?: number
 }
 
 /**
@@ -261,20 +265,34 @@ export type OptionCard = {
 
 /**
  * An item's `state` (`PlanReader.itemState()`) -> its colour, as UI's `color` attribute:  what the page paints its
- * id chip with, and the review picker its state icon (`ItemPicker`).
- * - `attention`:  open and needs Owen (an open question;  an open judgement call or issue not reviewed)
- * - `progress`:  work under way (`queued`, `working`)
- * - `open`:  open, not urgent (todos, caveats, tests;  reviewed issues and judgement calls)
- * - `recent`:  decided, reviewed or closed since the page's `recent-since`, or during a `/bedtime` run
- * - `old`:  decided, reviewed or closed before that
+ * id chip with, and the review picker its state icon (`ItemPicker`).  One meaning per colour (decision Q20 of epic
+ * `epic-components`, Owen, 2026-10-08):
+ * - `attention` (red):  needs Owen (an open question;  an open judgement call or issue not reviewed)
+ * - `progress` (blue):  Claude is working on it (an underway status card, or `working`)
+ * - `open` (yellow):  open, still undecided, not urgent (todos, caveats, tests;  reviewed issues and judgement
+ *   calls;  work a review queued, not started)
+ * - `recent` (green):  decided, reviewed or closed since the page's `recent-since`, or during a `/bedtime` run
+ * - `old` (grey):  decided, reviewed or closed before that
  */
 export const STATE_COLORS = {
   attention: "red",
-  progress: "orange",
-  open: "blue",
+  progress: "blue",
+  open: "yellow",
   recent: "green",
   old: "grey"
 } as const
+
+/**
+ * How Claude handled Owen's review mark (`<epic-item review-as>`, `PlanDoc.reviewedAs()`):  the page draws that
+ * button solid.  `now`:  an immediate request (Do Now:  Add Details, revisit now) done.
+ */
+export const REVIEW_AS = ["approve", "todo", "revisit", "now"] as const
+
+/** One of `REVIEW_AS`. */
+export type ReviewAs = (typeof REVIEW_AS)[number]
+
+/** A status card Claude is still on (`<epic-status state="underway">`), among an item's children:  `progress`. */
+export const UNDERWAY_CARD = ':scope > epic-status[state="underway"]'
 
 /** An item's standing on the page, `STATE_COLORS`':  `attention`, `progress` ... */
 export type ItemState = keyof typeof STATE_COLORS
@@ -395,6 +413,11 @@ export type PlanMark = {
   action: string
   /** a pick's (or a revisit's pick's) option letter:  `B` */
   pick?: string
+  /**
+   * which of the item's card sets the pick is from, by position (`PlanItem.choiceSets()`, I8);  none (a mark from
+   * before):  the item's own
+   */
+  choices?: number
   /** a revisit's:  `soon` or `now` */
   when?: string
   /** Owen's note */

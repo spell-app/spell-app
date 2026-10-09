@@ -14,12 +14,14 @@
     P5 demo (Drawing Elements):  a whole plan doc in <epic-*> markup -- page header, Overview with sub-sections, 13
     phases in every status, every section kind, a log.  Items are plain <epic-item>s (another family).  Open it from the
     page server (parts load) or from disk (the "Loads from ..." notes).  The shell is a plan doc's:  spell-doc.css, the
-    site header, `main.spell-doc-main` (its inline padding off, as plan-doc.css had it, so the bands reach edge to edge).
+    site header, `main.spell-doc-main`;  <epic-page> breaks out of its inline padding by itself (P14), and draws the
+    crumbs.  P14's prose elements (<epic-note>, <epic-aside>, <epic-code>) are in the Overview's first part, a report
+    section after the Overview.
   -->
   <body class="spell-doc-page plan-doc" data-plan="epic-components">
     <spell-site-header root="../../.."></spell-site-header>
     <div class="spell-doc">
-      <main class="spell-doc-main" style="padding-inline: 0">
+      <main class="spell-doc-main">
         <ui-root>
           <ui-components source="../pack/epics.pack.js"></ui-components>
           <epic-page
@@ -36,23 +38,45 @@
             <a slot="durable" href="../../../guides/solid/solid-2.html">Plan docs as elements</a>
 
             <epic-overview id="overview" estimate="20h-26h in all, 12h-15h left (P13 not estimated)">
-              <p slot="summary">
+              <epic-summary>
                 Plan docs drawn by <code>&lt;epic-*&gt;</code> elements: the markup says WHAT is there, the elements
                 draw HOW it looks. The prose stays plain HTML in the page, so find-in-page and <code>#links</code> work.
-              </p>
-              <blockquote slot="prompt">
+              </epic-summary>
+              <epic-prompt>
                 <p>Owen's request of 2026-10-06: turn plan docs into a component pack.</p>
                 <p>
                   Every element draws its own chrome in its shadow DOM; the prose stays in the page. Tidy the look a
                   lot, centre the icons and text, and give a folded section no gap below it and a grey rule.
                 </p>
-              </blockquote>
+              </epic-prompt>
               <epic-section id="o1" kind="overview-part" title="What changes">
                 <p>Docs say what is there; the elements draw it. Nothing a doc says today is lost.</p>
                 <ul>
                   <li>data in attributes: <code>status="decided"</code>, <code>state="old"</code>, dates</li>
                   <li>prose in children: paragraphs, lists, code, as today</li>
                 </ul>
+                <epic-net-effect>
+                  <ul>
+                    <li>every doc reads as before, drawn by the elements</li>
+                  </ul>
+                </epic-net-effect>
+                <epic-note state="update" title="partly fixed by J9, 2026-10-06">
+                  <p>Rewritten in plain words; the choice is on the details page.</p>
+                </epic-note>
+                <epic-note state="done" title="option A, 2026-10-06"></epic-note>
+                <epic-aside title="where it stood at kickoff, 2026-10-03">
+                  <p>Plan docs were plain markup, styled by a sheet of their own.</p>
+                </epic-aside>
+                <epic-code title="design.ts · 4 lines" language="ts">
+                  <pre>
+export function design(name: string): string {
+  // a comment, &lt;tags&gt; and all
+  return `design ${name}`
+}</pre>
+                </epic-code>
+                <epic-code title="open from the start" language="html" open>
+                  <pre>&lt;epic-code title="x" language="ts"&gt;&lt;pre&gt;...&lt;/pre&gt;&lt;/epic-code&gt;</pre>
+                </epic-code>
               </epic-section>
               <epic-section id="o2" kind="overview-part">
                 <span slot="title">The <code>&lt;epic-*&gt;</code> elements</span>
@@ -66,6 +90,10 @@
                 part-ids="o3-shadow"
               ></epic-section>
             </epic-overview>
+
+            <epic-section id="overnight" kind="report" title="Overnight · 2026-10-04">
+              <p>What a <code>/bedtime</code> run did while you slept: P5 and P6 built, two questions for you.</p>
+            </epic-section>
 
             <epic-section id="phases" kind="phases">
               <epic-phase

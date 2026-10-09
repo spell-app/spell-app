@@ -7,6 +7,9 @@ import { E } from "$/ui/core"
 import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "$/epics/components/epic-item/ReviewControls"
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
 import { OVERVIEW_BUTTONS, STATUS_SLOT, type ReviewTextKey } from "$/epics/components/epic-item/EpicItem.types"
+// the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel
+import { Chevron } from "$/epics/components/epic-item/Chevron"
+import { Fold } from "$/epics/components/epic-item/Fold"
 
 import { epicSectionVocabulary } from "./EpicSection.en"
 import { EpicFold } from "./EpicFold"
@@ -23,8 +26,10 @@ import {
   FILTER_STATES,
   HIDDEN_NOTE,
   ITEM_KINDS,
+  NUMBERED_BLOCKS,
   PHASE_TOGGLES,
   PHASE_TOGGLES_KEY,
+  REPORT,
   SECTION_LOOKS,
   TOGGLE,
   type ContentsEntry,
@@ -58,6 +63,9 @@ import sectionCSS from "./EpicSection.css?inline"
  *   through `--epic-files-display` / `--epic-verify-display`, which the fields read;  remembered per page.  Its
  *   Plan changes box (T14):  the `slot="changes"` copies the tool writes, above the phases;  nothing without one.
  * - An item section with no items says "None yet".
+ * - A REPORT (`kind="report"`, P14):  prose a run wrote for Owen to read (an overnight `/bedtime` report), right after
+ *   the Overview, on the page's section band;  titled its own (`title`), never numbered, so the sections after it
+ *   keep theirs.
  * - An Overview sub-section is reviewed as an item is (decision Q14;  `ReviewControls.tsx`):  Make Todo, Revisit,
  *   Add Details Now in `tools` (no Approve:  Q14 asks for notes, not sign-off), its note box at the end of its body, a
  *   marked note at its top;  only while the page is reviewed.  Claude's status cards (`slot="status"`, P13) just
@@ -94,20 +102,26 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   readonly filterGlyph = new E.IconGlyph({ owner: this, name: () => "filter" })
   readonly changesGlyph = new E.IconGlyph({ owner: this, name: () => "pen to square" })
 
+  /** The Plan changes box's fold:  every titled box folds (Owen, 2026-10-08);  folded to start, as every section. */
+  readonly changesFold = new Fold(() => false)
+
   ////////////////
   // ## Derived state
   ////////////////
 
-  /** The kind's look:  icon and title key;  `undefined` for an Overview sub-section. */
+  /** The kind's look:  icon and title key;  `undefined` for an Overview sub-section or a report (titled their own). */
   readonly look = createMemo((): SectionLook | undefined => {
     const kind = this.kind
-    return kind && kind !== "overview-part" ? SECTION_LOOKS[kind] : undefined
+    return kind && kind in SECTION_LOOKS ? SECTION_LOOKS[kind as keyof typeof SECTION_LOOKS] : undefined
   })
 
   /** Its icon (after `look`, which it reads:  memos compute as they're made). */
   readonly glyph = new E.IconGlyph({ owner: this, name: () => this.look()?.icon })
 
-  /** Its number, by its place:  `3` for the third block of the page;  `1.2` for the Overview's second part. */
+  /**
+   * Its number, by its place:  `3` for the third block of the page;  `1.2` for the Overview's second part;  "" for a
+   * report, which isn't numbered.
+   */
   readonly number = createMemo(() => {
     void this.layout
     return this.isConnected ? this.place(this.kind) : ""
@@ -241,13 +255,16 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     }
   }
 
-  /** The title:  `3. Questions`, or an Overview sub-section's `1.2 <its title>`. */
+  /** The title:  `3. Questions`, an Overview sub-section's `1.2 <its title>`, or a report's own. */
   private heading(): JSX.Element {
     const look = this.look()
     if (look) return `${this.number()}. ${this.translationForKey(look.title)}`
     return (
       <>
-        <span class="number">{this.number()}</span> <slot name={this.slotForName("title")}>{this.title}</slot>
+        <Show when={this.number()}>
+          <span class="number">{this.number()}</span>{" "}
+        </Show>
+        <slot name={this.slotForName("title")}>{this.title}</slot>
       </>
     )
   }
@@ -358,18 +375,35 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     )
   }
 
-  /** The Plan changes box (T14):  the tool's copies of each change to a phase still to do;  nothing without one. */
+  /**
+   * The Plan changes box (T14):  the tool's copies of each change to a phase still to do;  nothing without one.
+   * - it FOLDS, like every titled box (Owen, 2026-10-08):  its heading is a button with the chevron and how many
+   *   changes it holds;  folded, the changes are hidden `until-found` (find-in-page still reaches them)
+   */
   private planChanges(): JSX.Element {
+    const slot = this.slotForName("changes")
+    const count = () =>
+      this.slots.hasContent(slot) ? this.domElement.querySelectorAll(`:scope > [slot="${slot}"]`).length : 0
     return (
-      <Show when={this.slots.hasContent(this.slotForName("changes"))}>
+      <Show when={this.slots.hasContent(slot)}>
         <div class={CHANGES} part={this.partForName("changes")}>
-          <p class={CHANGES_HEAD}>
+          <button
+            type="button"
+            class={CHANGES_HEAD}
+            aria-expanded={this.changesFold.isOpen() ? "true" : "false"}
+            aria-controls={CHANGES_BODY}
+            onClick={this.changesFold.toggle}
+          >
+            <Chevron />
             <span class="icon" aria-hidden="true">
               {this.changesGlyph.svg}
             </span>
             {this.translationForKey("changesTitle")}
-          </p>
-          <slot name={this.slotForName("changes")} />
+            <span class="count">{count()}</span>
+          </button>
+          <div ref={this.changesFold.watch} id={CHANGES_BODY} class="changes-body" hidden={this.changesFold.hidden()}>
+            <slot name={slot} />
+          </div>
         </div>
       </Show>
     )
@@ -511,16 +545,16 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     return (ITEM_KINDS as readonly string[]).includes(this.kind ?? "")
   }
 
-  /** Its number by its place now, as `kind`:  `3`, or an Overview sub-section's `1.2`;  "" unplaced. */
+  /** Its number by its place now, as `kind`:  `3`, or an Overview sub-section's `1.2`;  "" unplaced, or a report. */
   private place(kind: string | undefined): string {
     const parent = this.domElement.parentElement
-    if (!parent) return ""
+    if (!parent || kind === REPORT) return ""
     if (kind === "overview-part") {
       const own = EpicSection.placeOf(this.domElement, ":scope > epic-section")
-      const overview = EpicSection.placeOf(parent, ":scope > epic-overview, :scope > epic-section") || 1
+      const overview = EpicSection.placeOf(parent, NUMBERED_BLOCKS) || 1
       return `${overview}.${own}`
     }
-    return String(EpicSection.placeOf(this.domElement, ":scope > epic-overview, :scope > epic-section"))
+    return String(EpicSection.placeOf(this.domElement, NUMBERED_BLOCKS))
   }
 
   /** A kind that's counted:  items, or phases.  A method:  memos above call it as they're made. */
@@ -528,13 +562,17 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     return this.kind === "phases" || this.holdsItems()
   }
 
-  /** The count of `children` (items, or phases):  open being any status but `CLOSED_STATUSES`';  none without any. */
+  /**
+   * The count of `children` (items, or phases):  open being any status but `CLOSED_STATUSES`',  `attention` the items
+   * that need Owen;  none without any.
+   */
   private static countOf(children: readonly Element[]): SectionCount | undefined {
     if (!children.length) return undefined
     const open = children.filter(
       (child) => !(CLOSED_STATUSES as readonly string[]).includes(child.getAttribute("status") ?? "")
     ).length
-    return { open, total: children.length }
+    const attention = children.filter((child) => child.getAttribute("state") === "attention").length
+    return { open, total: children.length, attention }
   }
 
   /** `element`'s place, from 1, among its parent's children matching `selector`;  0 when it isn't one. */
@@ -592,3 +630,6 @@ export interface EpicSection extends E.AttributeValues<EpicSectionVocabulary> {}
 
 /** No counted children:  a kind that isn't counted, or a server render.  One list, so a recount keeps it. */
 const NOTHING_COUNTED: readonly Element[] = []
+
+/** `id` of the Plan changes box's body, which its heading controls. */
+const CHANGES_BODY = "changes-body"

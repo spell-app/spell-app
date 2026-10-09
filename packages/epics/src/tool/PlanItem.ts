@@ -50,14 +50,42 @@ export class PlanItem {
   // ## Options
   ////////////////
 
-  /** Question `item`'s `<epic-choices>`, or `null`:  its own, never one in its Original Discussion. */
+  /**
+   * `item`'s OWN `<epic-choices>` (a question's options), or `null`:  the first that's its child, never one in a
+   * reply, More Details or its Original Discussion.  What a pick names when it doesn't say which card set (a mark
+   * from before I8).
+   */
   static choicesOf(item: Element): Element | null {
     return item.querySelector(":scope > epic-choices")
   }
 
+  /**
+   * EVERY card set of `item` a pick may name, in page order:  its text's, a reply's, More Details' (`flow`, P14),
+   * never one in its Original Discussion (history).  A pick names one by its position here (`choices`, I8);  the
+   * page counts the same way (`<epic-option>`'s `choicesIndex`).
+   */
+  static choiceSets(item: Element): Element[] {
+    return Array.from(item.querySelectorAll(CHOICES_TAG)).filter(
+      (choices) => choices.parentElement?.closest(`${ORIGINAL_TAG}, ${ITEM_TAG}`) === item
+    )
+  }
+
+  /**
+   * The card set a pick names:  `choiceSets()`' `index`;  none given, `item`'s own (`choicesOf()`), else its first.
+   * `null` when there's no such set.
+   */
+  static choiceSet(item: Element, index?: number): Element | null {
+    if (index !== undefined) return PlanItem.choiceSets(item)[index] ?? null
+    return PlanItem.choicesOf(item) ?? PlanItem.choiceSets(item)[0] ?? null
+  }
+
   /** Question `item`'s options, in order:  each `<epic-option>` with its letter, title and whether it's recommended. */
   static optionsOf(item: Element): (OptionCard & { option: Element })[] {
-    const choices = PlanItem.choicesOf(item)
+    return PlanItem.optionsIn(PlanItem.choicesOf(item))
+  }
+
+  /** The options of card set `choices` (an `<epic-choices>`), in order;  none for `null`. */
+  static optionsIn(choices: Element | null): (OptionCard & { option: Element })[] {
     return Array.from(choices?.querySelectorAll(":scope > epic-option") ?? [], (option) => {
       const data = Markup.read<"epic-option">(option)
       return {
@@ -173,22 +201,35 @@ export class PlanItem {
    * - a `<div>`:  a bold line saying what the element would draw (`Answer · Named palette`, `A · Inbox file
    *   (recommended), chosen`, `Owen · 2026-10-06 10:42 · re:  revisit soon`), then its children, MOVED
    * - nested cards too (an answer inside a version being kept)
+   * - `plain`:  for a page with no `<epic-*>` elements at all (a details page), the prose elements too, at any depth
+   *   (P14):  a Net effect as its bold label over its list, code as its title over its `<pre>`, an aside, a note, a
+   *   labelled block, the question as asked (its text alone).  Without it they stay:  a version may hold them.
    */
-  static asProse(node: Node): Node {
-    if (!PlanMarkup.isElement(node) || !CARD_HEADINGS[node.localName]) return node
+  static asProse(node: Node, { plain = false }: { plain?: boolean } = {}): Node {
+    if (!PlanMarkup.isElement(node)) return node
+    const heading = CARD_HEADINGS[node.localName] ?? (plain ? FLOW_HEADINGS[node.localName] : undefined)
+    if (!heading) {
+      if (!plain) return node
+      for (const child of Array.from(node.childNodes)) {
+        const prose = PlanItem.asProse(child, { plain })
+        if (prose !== child) child.replaceWith(prose)
+      }
+      return node
+    }
     const document = node.ownerDocument
-    const box = document.createElement("div")
-    const heading = CARD_HEADINGS[node.localName]!(node)
-    if (heading) {
+    const text = heading(node)
+    // no heading (the question as asked):  its text alone, unwrapped
+    const box = text ? document.createElement("div") : document.createDocumentFragment()
+    if (text) {
       const line = document.createElement("p")
       const bold = document.createElement("b")
-      bold.textContent = heading
+      bold.textContent = text
       line.append(bold)
       box.append(line)
     }
     for (const child of Array.from(node.childNodes)) {
       if (PlanMarkup.isElement(child) && child.getAttribute("slot") === "title") continue
-      box.append(PlanItem.asProse(child))
+      box.append(PlanItem.asProse(child, { plain }))
     }
     return box
   }
@@ -196,6 +237,11 @@ export class PlanItem {
 
 /** The mark an option's title (or a prose option's label) carries. */
 const RECOMMENDED = /\(recommended\)/i
+
+/** The tags `choiceSets()` reads:  card sets, and what they may sit in. */
+const CHOICES_TAG = "epic-choices"
+const ITEM_TAG = "epic-item"
+const ORIGINAL_TAG = "epic-original"
 
 /** Each card's heading as prose (`PlanItem.asProse()`):  what its element draws from its data. */
 const CARD_HEADINGS: Record<string, (element: Element) => string | undefined> = {
@@ -218,4 +264,31 @@ const CARD_HEADINGS: Record<string, (element: Element) => string | undefined> = 
     return [from, at, re ? `re:  ${re}` : undefined].filter(Boolean).join(" · ") || "Reply"
   },
   "epic-commit": (commit) => (commit.getAttribute("sha") ?? "").slice(0, 7)
+}
+
+/**
+ * The prose elements' headings as prose (`PlanItem.asProse({ plain })`, P14):  what each draws over its children.
+ * - `undefined`:  no heading (the question as asked:  its text alone)
+ */
+const FLOW_HEADINGS: Record<string, (element: Element) => string | undefined> = {
+  "epic-question": () => undefined,
+  "epic-net-effect": (element) => {
+    const { option, recommended } = Markup.read<"epic-net-effect">(element)
+    const marks = [option, recommended ? "recommended" : undefined].filter(Boolean).join(", ")
+    return marks ? `Net effect (${marks}):` : "Net effect:"
+  },
+  "epic-code": (element) => element.getAttribute("title") ?? "Code",
+  "epic-aside": (element) => {
+    const title = element.getAttribute("title")
+    return title ? `Aside:  ${title}` : "Aside"
+  },
+  "epic-note": (element) => {
+    const { state, title } = Markup.read<"epic-note">(element)
+    const label = state === "done" ? "DONE" : "UPDATE"
+    return title ? `${label} · ${title}` : label
+  },
+  "epic-field": (element) => {
+    const { name, label } = Markup.read<"epic-field">(element)
+    return label ? `${label}:` : name ? `${name.charAt(0).toUpperCase()}${name.slice(1).replace("-", " ")}:` : undefined
+  }
 }

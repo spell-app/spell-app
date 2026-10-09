@@ -41,7 +41,7 @@ describe("<epic-answer>", () => {
 })
 
 describe("<epic-reply>", () => {
-  test("headed `<from> · re: <re>`, the date `10/6/26 23:55` at the right;  Owen's orange, anyone else's violet;  passes axe", async () => {
+  test("headed `<from> · re: <re>`, the date `10/6/26 23:55` at the right;  Owen's ivory (his voice, Q20), anyone else's violet;  both pass axe", async () => {
     const claude = await ElementFixture.render(
       `<epic-reply from="Claude" at="2026-10-06 23:55" re="as built"><p>Done</p></epic-reply>`
     )
@@ -53,6 +53,7 @@ describe("<epic-reply>", () => {
     expect(part(claude, "date")!.getAttribute("datetime")).toBe("2026-10-06 23:55")
     expect([part(claude, "base")!.className, part(owen, "base")!.className]).toEqual(["reply", "owen reply"])
     await expectAccessible(claude)
+    await expectAccessible(owen)
   })
 
   test("no `at`:  no date;  nothing to head it:  no band", async () => {

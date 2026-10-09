@@ -18,7 +18,7 @@ import answerCSS from "./EpicAnswer.css?inline"
  * - The band is a flex row (`.header.dated`):  who and what about on the left, free to wrap;  the date pinned to
  *   the right of the TOP line, never wrapping under them, at any width (Owen, 2026-10-08, P13).
  * - Claude's (or anyone's but Owen's):  violet, the brand's action colour, apart from the warm answer card.
- * - Owen's (`from="Owen"`):  Revisit's orange, as his note on the page.
+ * - Owen's (`from="Owen"`):  his ivory, as his note box and answer card (decision Q20).
  ****************/
 export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
   @E.proto static vocabulary = epicReplyVocabulary
@@ -69,7 +69,7 @@ export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface EpicReply extends E.AttributeValues<typeof epicReplyVocabulary> {}
 
-/** A reply Owen wrote (`from="Owen"`):  his note's orange, not Claude's violet. */
+/** A reply Owen wrote (`from="Owen"`):  his ivory, not Claude's violet. */
 const FROM_OWEN = /^owen$/i
 
 /** Class word on a reply box:  Owen's. */
