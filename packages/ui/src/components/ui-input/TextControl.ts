@@ -1,4 +1,3 @@
-import { untrack } from "solid-js"
 import { isServer } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -31,12 +30,6 @@ import { type CommonAttributes } from "./UIInput.types"
 export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends F.FormComponent<V> {
   /** The native control. */
   protected control?: HTMLInputElement | HTMLTextAreaElement
-
-  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
-    super(...args)
-    this.domElement.addEventListener("invalid", this.onInvalid)
-    this.domElement.addEventListener("click", this.onDOMElementClick)
-  }
 
   /** Focus the native control. */
   focus(options?: FocusOptions) {
@@ -78,9 +71,10 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /** The control shows `value` again, e.g. after a cancelled `ui-input`. */
+  @E.untracked
   protected syncControl() {
     const { control } = this
-    const value = untrack(() => this.value)
+    const value = this.value
     // a file input's value can only be cleared from script
     if (!control || control.value === value || (control.type === "file" && value !== "")) return
     control.value = value
@@ -98,19 +92,22 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /** Commit:  `ui-change`;  the person has now interacted. */
+  @E.untracked
   protected readonly onChange = (event: Event) => {
     this.isTouched = true
-    this.send("ui-change" as never, { value: untrack(() => this.value), originalEvent: event })
+    this.send("ui-change" as never, { value: this.value, originalEvent: event })
   }
 
   /** Focus:  remember the value, to tell an edit on the way out. */
+  @E.untracked
   protected readonly onFocus = () => {
-    this.valueAtFocus = untrack(() => this.value)
+    this.valueAtFocus = this.value
   }
 
   /** Leaving an edited field counts as interaction. */
+  @E.untracked
   protected readonly onBlur = () => {
-    if (this.valueAtFocus !== undefined && this.valueAtFocus !== untrack(() => this.value)) this.isTouched = true
+    if (this.valueAtFocus !== undefined && this.valueAtFocus !== this.value) this.isTouched = true
     this.valueAtFocus = undefined
   }
 
@@ -176,6 +173,7 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /** Copy the control's validity into `nativeValidity`. */
+  @E.untracked
   protected readNativeValidity() {
     const control = this.control
     if (!control) return
@@ -183,7 +181,7 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
     const flags: ValidityStateFlags = {}
     for (const flag of NATIVE_FLAGS) if (validity[flag]) flags[flag] = true
     if (validity.valid) {
-      if (!untrack(() => this.nativeValidity).valid) this.nativeValidity = VALID
+      if (!this.nativeValidity.valid) this.nativeValidity = VALID
       return
     }
     const message = control.validationMessage
@@ -197,7 +195,8 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /** A submit or `reportValidity()` found it invalid:  show it. */
-  private readonly onInvalid = () => {
+  @E.on("invalid")
+  protected onInvalid() {
     this.isTouched = true
   }
 
@@ -265,7 +264,8 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
    * A click aimed at the DOM element itself (its `<label for>`, its `click()`) focuses the control.
    * - Clicks from inside the shadow root arrive retargeted, and are left alone.
    */
-  private readonly onDOMElementClick = (event: MouseEvent) => {
+  @E.on("click")
+  protected onDOMElementClick(event: MouseEvent) {
     if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
     this.control?.focus()
   }

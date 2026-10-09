@@ -489,11 +489,12 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   }
 
   /** Done with the note box:  closed under the line;  a docked one stays, but stops counting as written in. */
+  @E.untracked
   private leaveNote() {
     const client = this.reviewState.client
     if (!client) return
-    const docked = untrack(this.hasDetails)
-    if (!docked || !this.noteInput?.value.trim()) client.closeBox(untrack(this.reviewState.id), false)
+    const docked = this.hasDetails()
+    if (!docked || !this.noteInput?.value.trim()) client.closeBox(this.reviewState.id(), false)
   }
 
   ////////////////
@@ -518,16 +519,18 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
    * Fold or unfold as the user would:  the cancelable `ui-open` / `ui-close` first, then `open`.  True when applied.
    * - Does nothing without details.
    */
+  @E.untracked
   toggle(originalEvent?: Event): boolean {
-    if (!untrack(this.hasDetails)) return false
-    const opening = !untrack(this.isOpen)
+    if (!this.hasDetails()) return false
+    const opening = !this.isOpen()
     const detail = { open: opening, item: this.domElement, originalEvent }
     return this.requestChange("isMarkedOpen", opening, () => this.send(opening ? "ui-open" : "ui-close", detail))
   }
 
   /** Unfold for a link or find-in-page:  `ui-open` after the fact (not cancelable). */
+  @E.untracked
   private reveal() {
-    if (untrack(this.isOpen) || !untrack(this.hasDetails)) return
+    if (this.isOpen() || !this.hasDetails()) return
     const detail = { open: true, item: this.domElement }
     const init = { bubbles: true, composed: true, cancelable: false, detail }
     this.domElement.dispatchEvent(new CustomEvent(this.elementDefinition.event("ui-open"), init))
@@ -542,10 +545,11 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   }
 
   /** The id chip clicked while it toggles:  urgent <-> not urgent;  the line doesn't fold. */
+  @E.untracked
   private readonly flipUrgency = (event: MouseEvent) => {
     event.preventDefault()
     event.stopPropagation()
-    this.reviewState.toggleCalm(!!untrack(() => this.calm))
+    this.reviewState.toggleCalm(!!this.calm)
   }
 
   /** A click on the line:  folds, unless it landed on a link or control (the id chip, P9's buttons). */
@@ -569,10 +573,11 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
    * The page's `#hash` names this item, an id in its `part-ids`, or an element inside it:  open it;  a part id lands
    * once the part is in.
    */
+  @E.untracked
   private readonly followHash = () => {
     const target = decodeURIComponent(location.hash.slice(1))
     if (!target) return
-    const partIds = (untrack(() => this.partIds) ?? "").split(/\s+/)
+    const partIds = (this.partIds ?? "").split(/\s+/)
     if (partIds.includes(target)) {
       this.reveal()
       this.body

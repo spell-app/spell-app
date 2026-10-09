@@ -100,7 +100,6 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
           this.temporal = temporal
         })
     }
-    this.domElement.addEventListener("focusout", this.onFocusOut)
   }
 
   onFormStateRestore(state: File | string | FormData | null) {
@@ -168,8 +167,9 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
    * Set the value to `moment` (`undefined` clears), dispatching the cancelable `ui-change` first;  true when applied.
    * - SIDE EFFECT:  drops typed text either way (a vetoed value shows the old one again).
    */
+  @E.untracked
   commit(moment: Moment | undefined, originalEvent?: Event): boolean {
-    const dates = untrack(() => this.dates)
+    const dates = this.dates
     if (!dates) return false
     const value = moment ? dates.format(moment) : ""
     const detail: UIT.CalendarChangeDetail = { value, originalEvent }
@@ -188,14 +188,15 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   /** Commit typed text to the value;  empty clears, unreadable or out-of-range reverts. */
+  @E.untracked
   private commitTypedText(event: Event) {
-    const text = untrack(() => this.typedText)
+    const text = this.typedText
     if (text === undefined) return
-    const dates = untrack(() => this.dates)
+    const dates = this.dates
     if (!dates) return
     if (!text.trim()) return void this.commit(undefined, event)
-    const moment = untrack(() => this.words).read(text, dates)
-    const [earliest, latest] = untrack(() => [this.earliest, this.latest])
+    const moment = this.words.read(text, dates)
+    const [earliest, latest] = [this.earliest, this.latest]
     if (
       !moment ||
       (earliest && dates.compare(moment, earliest, "minute") < 0) ||
@@ -231,8 +232,9 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
    * Open or close the popup, dispatching the cancelable `ui-open` / `ui-close` first;  true when applied.
    * - Opening starts over in the type's first view, on the value (or `initial-date`, or today).
    */
+  @E.untracked
   requestOpen(open: boolean, originalEvent?: Event): boolean {
-    if (this.inline || open === untrack(() => this.popupIsOpen)) return false
+    if (this.inline || open === this.popupIsOpen) return false
     if (open && (this.isDisabled || this.readonly)) return false
     const detail: UIT.CalendarOpenDetail = { open, originalEvent }
     const isApplied = this.requestChange("isOpen", open, () => this.send(open ? "ui-open" : "ui-close", detail))
@@ -275,14 +277,16 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   /** The icon button:  toggles;  opening puts focus in the grid (APG). */
+  @E.untracked
   private readonly onTriggerClick = (event: MouseEvent) => {
-    const popupIsOpen = untrack(() => this.popupIsOpen)
+    const popupIsOpen = this.popupIsOpen
     this.shouldMoveFocus = !popupIsOpen
     this.requestOpen(!popupIsOpen, event)
   }
 
   /** Focus leaving the DOM element (to something else that takes focus) closes the popup. */
-  private readonly onFocusOut = (event: FocusEvent) => {
+  @E.on("focusout")
+  protected onFocusOut(event: FocusEvent) {
     const next = event.relatedTarget as Node | null
     if (!next || this.domElement.contains(next) || this.domElement.renderRoot.contains(next)) return
     this.requestOpen(false, event)
@@ -385,12 +389,13 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
    * A cell was chosen:  the finest view sets the value (and closes the popup);  a coarser one opens the next view
    * on that cell, keeping the finer fields of the focus (a month chosen keeps the day, clamped).
    */
+  @E.untracked
   choose(cell: CalendarCell, originalEvent?: Event) {
-    const dates = untrack(() => this.dates)
-    const focus = untrack(() => this.focusedMoment)
+    const dates = this.dates
+    const focus = this.focusedMoment
     if (!dates || !focus || cell.disabled || this.readonly || this.isDisabled) return
-    const modes = untrack(() => this.modes)
-    const mode = untrack(() => this.mode)
+    const modes = this.modes
+    const mode = this.mode
     const next = modes[modes.indexOf(mode) + 1]
     if (!next) {
       this.explicitFocus = cell.moment
@@ -410,29 +415,30 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   /** The title:  up to the coarser view. */
+  @E.untracked
   private readonly onTitleClick = () => {
-    const up = untrack(() => this.page)?.up
+    const up = this.page?.up
     if (up) this.explicitMode = up
   }
 
   /** Today / Now:  the value becomes today (to the type's unit), and the popup closes. */
+  @E.untracked
   private readonly onToday = (event: MouseEvent) => {
-    const dates = untrack(() => this.dates)
+    const dates = this.dates
     if (!dates || this.readonly || this.isDisabled) return
-    const final = untrack(() => this.modes).at(-1)!
+    const final = this.modes.at(-1)!
     if (this.commit(dates.floor(dates.now(), final), event)) this.requestOpen(false, event)
   }
 
   /** Grid keys (APG):  move the focus moment, choose, or pass on. */
+  @E.untracked
   private readonly onGridKeyDown = (event: KeyboardEvent) => {
     if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return
-    const input = untrack(() => this.viewInput)
+    const input = this.viewInput
     if (!input) return
     if (event.key === UIT.Key.enter || event.key === UIT.Key.space) {
       event.preventDefault()
-      const cell = untrack(() => this.page)
-        ?.rows.flat()
-        .find((each) => each.focus)
+      const cell = this.page?.rows.flat().find((each) => each.focus)
       if (cell) this.choose(cell, event)
       return
     }

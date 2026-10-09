@@ -1,13 +1,15 @@
-import { createEffect, createMemo, untrack } from "solid-js"
+import { createEffect, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import {
   Cell,
   Converters,
+  on,
   proto,
   protoMerged,
   UIComponent,
   UIT,
+  untracked,
   type ElementSetup,
   type AttributeValues
 } from "$/ui/core"
@@ -97,8 +99,6 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
     const observer = new MutationObserver(() => this.chips.set(this.scan()))
     observer.observe(this.domElement, { childList: true, subtree: true, attributeFilter: [...CHIP_ATTRIBUTES] })
     this.domElement.addReleaseCallback(() => observer.disconnect())
-    this.domElement.addEventListener("click", this.onClick)
-    this.domElement.addEventListener("keydown", this.onKeyDown)
   }
 
   ////////////////
@@ -208,28 +208,31 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
    * A user choice of chip `index`:  focus it, then (unless it's the chosen one already) `ui-change` and `value`.
    * - Returns true when `value` changed.
    */
+  @untracked
   choose(index: number, originalEvent?: Event): boolean {
-    const chip = untrack(() => this.chips.get())[index]
+    const chip = this.chips.get()[index]
     if (!chip) return false
     chip.chip.focus()
-    if (index === untrack(this.chosen) && untrack(() => this.valueState.get())) return false
+    if (index === this.chosen() && this.valueState.get()) return false
     const value = UIBrandColorSet.keyOf(chip)
     return this.valueState.request(value, () => this.send("ui-change", { value, originalEvent }))
   }
 
   /** A click on a chip chooses it (`selectable`). */
-  private readonly onClick = (event: MouseEvent) => {
-    if (!untrack(() => this.selectable)) return
+  @on("click")
+  protected onClick(event: MouseEvent) {
+    if (!this.selectable) return
     const index = this.indexOf(event)
     if (index >= 0) this.choose(index, event)
   }
 
   /** The radio group's keys (`selectable`):  arrows, Home / End, Enter / Space. */
-  private readonly onKeyDown = (event: KeyboardEvent) => {
-    if (!untrack(() => this.selectable) || event.altKey || event.ctrlKey || event.metaKey) return
+  @on("keydown")
+  protected onKeyDown(event: KeyboardEvent) {
+    if (!this.selectable || event.altKey || event.ctrlKey || event.metaKey) return
     const index = this.indexOf(event)
     if (index < 0) return
-    const count = untrack(() => this.chips.get()).length
+    const count = this.chips.get().length
     const target = this.keyTarget(event, index, count)
     if (target === undefined) return
     event.preventDefault()
@@ -237,9 +240,10 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   }
 
   /** Index of the chip `event` happened in, else `-1`. */
+  @untracked
   private indexOf(event: Event): number {
     const path = event.composedPath()
-    return untrack(() => this.chips.get()).findIndex(({ chip }) => path.includes(chip))
+    return this.chips.get().findIndex(({ chip }) => path.includes(chip))
   }
 
   /** Where key `event` goes from chip `index` of `count`, or `undefined` for a key the group doesn't take. */

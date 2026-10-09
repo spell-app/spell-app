@@ -121,6 +121,7 @@ export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
   }
 
   /** Colour `code` as `language`;  `ui-highlight` when done, a `render` `ui-error` (code left plain) when not. */
+  @E.untracked
   private async highlight(code: string, language: string | undefined) {
     const ticket = ++this.ticket
     try {
@@ -133,7 +134,7 @@ export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
       if (ticket !== this.ticket) return
       this.highlighted = undefined
       const kind = E.SourceError.kindFor(error, "render")
-      this.sendSourceEvent("ui-error", { kind, source: untrack(() => this.source || undefined), error })
+      this.sendSourceEvent("ui-error", { kind, source: this.source || undefined, error })
     }
   }
 

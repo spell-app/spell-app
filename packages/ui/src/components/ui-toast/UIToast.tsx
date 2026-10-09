@@ -71,12 +71,6 @@ export class UIToast extends E.UIComponent<Vocabulary> {
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    this.on("pointerenter", this.onPointerEnter)
-    this.on("pointermove", this.onPointerMove)
-    this.on("pointerleave", this.onPointerLeave)
-    this.on("focusin", this.onFocusIn)
-    this.on("focusout", this.onFocusOut)
-    this.on("command", this.onCommand)
     this.domElement.addReleaseCallback(() => this.countdownTimer?.cancel())
   }
 
@@ -479,12 +473,14 @@ export class UIToast extends E.UIComponent<Vocabulary> {
    * Pointer entered it:  only noted.  A toast appearing under a RESTING pointer gets a `pointerenter` (the browser's
    * synthetic move) with no real move;  pausing on that alone could hold it forever, so `onPointerMove` pauses.
    */
-  private readonly onPointerEnter = () => {
+  @E.on("pointerenter")
+  protected onPointerEnter() {
     this.hasPointerEntered = true
   }
 
   /** A real pointer move over it (`movementX/Y` nonzero:  synthetic ones have none):  pause (with `pause-on-hover`). */
-  private readonly onPointerMove = (event: PointerEvent) => {
+  @E.on("pointermove")
+  protected onPointerMove(event: PointerEvent) {
     if (!this.hasPointerEntered || this.isHovered || (!event.movementX && !event.movementY)) return
     if (!this.pauseOnHover) return
     this.isHovered = true
@@ -492,20 +488,23 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   }
 
   /** Pointer off it:  resume. */
-  private readonly onPointerLeave = () => {
+  @E.on("pointerleave")
+  protected onPointerLeave() {
     this.hasPointerEntered = false
     this.isHovered = false
     this.updatePause()
   }
 
   /** Focus came in:  pause. */
-  private readonly onFocusIn = () => {
+  @E.on("focusin")
+  protected onFocusIn() {
     this.focusIsInside = true
     this.updatePause()
   }
 
   /** Focus moved:  resume once it has really left (a move inside refocuses before the microtask). */
-  private readonly onFocusOut = () => {
+  @E.on("focusout")
+  protected onFocusOut() {
     E.afterSolidUpdate(() => {
       this.focusIsInside = this.domElement.matches(":focus-within")
       this.updatePause()
@@ -517,7 +516,8 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   ////////////////
 
   /** An invoker command aimed at the DOM element:  only `ToggleCommands.close`. */
-  private readonly onCommand = (event: Event) => {
+  @E.on("command")
+  protected onCommand(event: Event) {
     if ((event as Event & { command?: string }).command === UIT.ToggleCommands.close) this.close("close", event)
   }
 

@@ -9,6 +9,7 @@ import {
   SlotContent,
   state,
   UIComponent,
+  untracked,
   type AttributeName,
   type ElementSetup,
   type AttributeValues
@@ -123,8 +124,9 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   ////////////////
 
   /** Show `messages` (see `DOMBrandFieldElement`). */
+  @untracked
   showErrors(messages: readonly string[]) {
-    const current = untrack(() => this.formErrors)
+    const current = this.formErrors
     if (current.length !== messages.length || current.some((message, index) => message !== messages[index])) {
       this.formErrors = [...messages]
     }
@@ -224,8 +226,9 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   ////////////////
 
   /** The slotted controls changed:  name the new ones. */
+  @untracked
   private readonly onControlChange = () => {
-    this.nameControls(untrack(() => this.label))
+    this.nameControls(this.label)
   }
 
   /**

@@ -98,8 +98,6 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
 
   constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
-    this.domElement.addEventListener("click", this.onDOMElementClick)
-    this.domElement.addEventListener("invalid", this.onInvalid)
     // `checked` in markup selects, a microtask later:
     // outside the component's body, where the write to the DOM element may notify
     if (this.wasInitiallySelected && !untrack(() => this.selectedProperty)) {
@@ -159,7 +157,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     const applied = E.Reactive.requestChange(this, "selectedProperty", selected, () =>
       this.send("ui-change" as never, { selected, value, originalEvent })
     )
-    if (!applied) E.afterSolidUpdate(() => this.control && (this.control.checked = untrack(() => this.isSelected)))
+    if (!applied) E.afterSolidUpdate(() => this.control && (this.control.checked = this.isSelected))
     this.onChosen(applied)
     return applied
   }
@@ -268,7 +266,8 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   }
 
   /** A submit or `reportValidity()` found it invalid:  show it. */
-  private readonly onInvalid = () => {
+  @E.on("invalid")
+  protected onInvalid() {
     this.isTouched = true
   }
 
@@ -358,7 +357,8 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   protected onKeyDown(_event: KeyboardEvent) {}
 
   /** A click aimed at the DOM element itself clicks the input;  retargeted clicks from inside are left alone. */
-  private readonly onDOMElementClick = (event: MouseEvent) => {
+  @E.on("click")
+  protected onDOMElementClick(event: MouseEvent) {
     if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
     this.control?.click()
   }

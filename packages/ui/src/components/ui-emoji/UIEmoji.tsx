@@ -111,10 +111,11 @@ export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
   }
 
   /** Resolve `name` in the set this element sees;  writes only if it is still the latest request. */
+  @E.untracked
   private async load(name: string | undefined) {
     const request = ++this.latestRequest
     const emoji = await EmojiData.get(name, EmojiData.setFor(this.domElement))
-    if (this.latestRequest === request && untrack(() => this.emoji) !== emoji) this.emoji = emoji
+    if (this.latestRequest === request && this.emoji !== emoji) this.emoji = emoji
   }
 }
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */

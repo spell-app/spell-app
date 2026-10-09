@@ -69,9 +69,10 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
    * - Reads the platform synchronously (`isConnected`, `internals.form`), and its own members untracked:
    *   it may run inside someone else's Solid computation.
    */
+  @E.untracked
   private joinGroup() {
     const next = this.findGroup()
-    const current = untrack(() => this.group)
+    const current = this.group
     if (next === current) return
     current?.leave(this)
     next?.join(this)
@@ -79,9 +80,10 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
   }
 
   /** The group its name, connection and form owner call for now. */
+  @E.untracked
   private findGroup(): RadioGroup | undefined {
     const { domElement } = this
-    const groupName = untrack(() => this.name)
+    const groupName = this.name
     if (!groupName || !domElement.isConnected) return undefined
     return RadioGroup.of(domElement.internals.form ?? domElement.getRootNode(), groupName)
   }
@@ -90,19 +92,20 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
   @E.onChange("isSelected", "group")
   protected onGroupChoiceChanged(isSelected: boolean, group: RadioGroup | undefined) {
     if (!isSelected || !group) return
-    for (const other of group.others(this)) if (untrack(() => other.isSelected)) other.isSelected = false
+    for (const other of group.others(this)) if (other.isSelected) other.isSelected = false
   }
 
   /** Arrow keys move the choice through the group, focus following. */
+  @E.untracked
   protected onKeyDown(event: KeyboardEvent) {
     const delta = NEXT.has(event.key) ? 1 : PREVIOUS.has(event.key) ? -1 : 0
-    const group = untrack(() => this.group)
+    const group = this.group
     if (!delta || !group) return
     event.preventDefault()
     // `readonly` never changes the choice, from either end of the move
-    if (untrack(() => this.readonly)) return
+    if (this.readonly) return
     const target = group.step(this, delta) as UIRadio | undefined
-    if (!target || untrack(() => target.readonly)) return
+    if (!target || target.readonly) return
     target.focus()
     target.choose(true, event)
   }
