@@ -1,7 +1,7 @@
 import { parseHTML } from "linkedom"
 import { describe, expect, it } from "vite-plus/test"
 
-import { END, LISTS, START, areaCards, epicOrder, listSection, planOf, skeleton } from "./index.js"
+import { END, LISTS, START, areaCards, epicOrder, listSection, planOf, replaceBetween, skeleton } from "./index.js"
 
 /** A described epic page (`describe()`'s shape) with `phases`, each a status. */
 function epic(name, statuses, updated = new Date().toISOString().slice(0, 10)) {
@@ -89,6 +89,24 @@ describe("the list pages", () => {
     expect(html).toContain(`<h1>Guides</h1>`)
     expect(html.indexOf(START)).toBeLessThan(html.indexOf(END))
     expect(skeleton(LISTS.find((list) => list.id === "templates"))).toContain(`id="writing-docs"`)
+  })
+
+  it("carry the page notes Owen left in the list over when it's written again (epic airplane P3)", () => {
+    const written = `${START}\n${listSection(guides, [page("guides/a.html")])}\n${END}`.replace(
+      "</ui-section>",
+      `<spell-notes for="guides"><spell-note id="n1" status="new" at="2026-10-10 14:02"><p>Group these?</p></spell-note></spell-notes>\n</ui-section>`
+    )
+    const again = replaceBetween(
+      written,
+      START,
+      END,
+      listSection(guides, [page("guides/a.html"), page("guides/b.html")])
+    )
+    expect(again).toContain(`<a href="b.html">`)
+    expect(again).toMatch(
+      /<a href="b.html">[\s\S]*<spell-note id="n1"[\s\S]*<\/spell-notes>\n<\/ui-section>\n<!-- index:end -->$/
+    )
+    expect(replaceBetween("no markers", START, END, "")).toBeUndefined()
   })
 })
 

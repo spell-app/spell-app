@@ -2,7 +2,7 @@
  * Barrel for the `spell` command-line tool's commands, one per file -- flattened into `$/cli`.
  * - Each is `(session, args, options) => Promise<exitCode>`, wired up in `main.ts`, or `devProgram.ts` for
  *   `spell dev`.
- * - NOTE: the pass-throughs (`planDoc`, `goals`, `docs`, `details`, `choices`, `server`, `window`, `vscode`) are
+ * - NOTE: the pass-throughs (`planDoc`, `goals`, `docs`, `details`, `choices`, `notes`, `server`, `window`, `vscode`) are
  *   `(args) => Promise<exitCode>`, and import no barrel:  the lean `spell dev` entry, `devMain.ts`, loads them
  *   without spell.  So do `pack` and `bundles`, `(args, options) => Promise<exitCode>`.
  */
@@ -40,5 +40,6 @@ export * from "./staticCommand"
 export * from "./ponyCommand"
 export * from "./wwodCommand"
 export * from "./agentsCommand"
+export * from "./notesCommand"
 export * from "./packCommand"
 export * from "./bundlesCommand"
