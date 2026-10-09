@@ -1,6 +1,7 @@
 /*
  * `<epic-choices>` (EpicChoices.tsx), `<epic-option>` (EpicOption.tsx):  a question's options -- cards side by side
- * while it's open;  answered, folded under a `Choices` aside, a panel each, the chosen one green and open.
+ * while it's open, each folding by its header (open to start with);  answered, folded under a `Choices` aside, a
+ * panel each, the chosen one green and open.
  * - ONE sheet for both tags:  `:host(epic-choices)` / `:host(epic-option)` where the hosts differ.
  * - Shared look from `<epic-page>`'s `:host`, each with a private fallback:  `--epic-part-gap` (between an item's
  *   parts), `--epic-aside` (the asides' warm fill), `--epic-rule`, `--epic-band-row`.
@@ -77,6 +78,21 @@
     padding: 5px 10px;
     border-bottom: 1px solid var(--_epic-choices-rule);
     background: var(--_epic-choices-band);
+  }
+  /* a card folds by its header too (Owen, 2026-10-08):  folded, its header alone, as tall as itself in the grid */
+  .card button.toggle {
+    cursor: pointer;
+  }
+  .card:has(> .body[hidden]) {
+    height: auto;
+  }
+  .card > .header:has(+ .body[hidden]) {
+    border-bottom: none;
+  }
+  .card > .body[hidden] {
+    display: block;
+    content-visibility: hidden;
+    padding: 0;
   }
   /* the chevron and check centre on the title's FIRST line (`1lh`), however many lines it wraps to */
   .toggle {
@@ -222,7 +238,7 @@
 
 @layer ui.components.epic-choices.states {
   .choices.answered:has(> .panels:not([hidden])) > .toggle .chevron,
-  .panel:has(> .body:not([hidden])) .chevron {
+  :is(.panel, .card):has(> .body:not([hidden])) .chevron {
     rotate: 90deg;
   }
   /* the chosen option:  a check in front, its header in green text, not a frame */

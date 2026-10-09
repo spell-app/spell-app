@@ -72,11 +72,6 @@ export class OldPlanReader extends PlanReader {
       .trim()
   }
 
-  /** `<body data-recent-since>`. */
-  get recentSinceMark(): string | undefined {
-    return this.document.body?.getAttribute("data-recent-since") ?? undefined
-  }
-
   ////////////////
   // ## Phases
   ////////////////
@@ -129,8 +124,9 @@ export class OldPlanReader extends PlanReader {
       // the old markup has no status cards
       underway: false,
       bedtime: item.hasAttribute("data-bedtime"),
-      // the old markup has no urgency:  every open call is urgent
-      calm: false
+      // the old markup has no urgency:  every open call is urgent;  nor `review-as`
+      calm: false,
+      reviewAs: undefined
     }
   }
 

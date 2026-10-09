@@ -6,7 +6,12 @@ import { E } from "$/ui/core"
 // the review controls, shared with `<epic-item>`:  its files, not its barrel (which would define `<epic-item>` here)
 import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "$/epics/components/epic-item/ReviewControls"
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
-import { OVERVIEW_BUTTONS, STATUS_SLOT, type ReviewTextKey } from "$/epics/components/epic-item/EpicItem.types"
+import {
+  OVERVIEW_BUTTONS,
+  STATUS_SLOT,
+  STATUS_STATES,
+  type ReviewTextKey
+} from "$/epics/components/epic-item/EpicItem.types"
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel
 import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
@@ -590,14 +595,14 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   }
 
   /**
-   * An item's state, as its id chip reads it (`<epic-item>`'s `itemState`):  `state` when it's one of ours, else
-   * `old` once closed, `open` before.
+   * An item's state, as its id chip reads it (`<epic-item>`'s `itemState`):  `state` when it's one of ours, else by
+   * its status (`STATUS_STATES`:  decided or done `recent`, canceled `old`, else `open`).
    */
   private static stateOf(item: Element): ItemStateName {
     const state = item.getAttribute("state")
     const known = FILTER_STATES.find((it) => it.state === state)
     if (known) return known.state
-    return (CLOSED_STATUSES as readonly string[]).includes(item.getAttribute("status") ?? "") ? "old" : "open"
+    return STATUS_STATES[item.getAttribute("status") ?? ""] ?? "open"
   }
 
   /** The Phases toggles as last left on this page;  none without storage. */

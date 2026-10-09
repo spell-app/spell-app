@@ -4,29 +4,49 @@ import type { JSX } from "@solidjs/web"
 import { E } from "$/ui/core"
 
 import { PlanDates } from "$/epics/dates"
+// the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
+import { FOLDS, Fold } from "$/epics/components/epic-item/Fold"
+import { FoldButton } from "$/epics/components/epic-item/FoldButton"
 
 import { epicReplyVocabulary } from "./EpicReply.en"
-import { BODY, DATE, DATED, EMPTY, HEADER, HEADING_SEPARATOR, WHO } from "./EpicAnswer.types"
+import { BODY, BODY_ID, DATE, DATED, EMPTY, HEADER, HEADING_SEPARATOR, WHO, WHO_ID } from "./EpicAnswer.types"
 
 import answerCSS from "./EpicAnswer.css?inline"
+import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
 
 /****************
  * ### `EpicReply`
  * The component behind `<epic-reply>`:  a reply on an item, after its answer -- a card, its heading band
  * `<from> · re: <re>` with the date (`at`) at its right, `10/7/26 10:50` (each part only when set), then the reply
  * (its light children).
- * - The band is a flex row (`.header.dated`):  who and what about on the left, free to wrap;  the date pinned to
- *   the right of the TOP line, never wrapping under them, at any width (Owen, 2026-10-08, P13).
+ * - The band is a flex row (`.header.dated`):  the fold chevron, then who and what about on the left, free to wrap;
+ *   the date pinned to the right of the TOP line, never wrapping under them, at any width (Owen, 2026-10-08, P13).
+ * - Folds by its band (Owen, 2026-10-08:  "Owen/Claude entries in the text should be collapsible"):  open to start
+ *   with, as it's what's being read;  page state, never written;  folded, the reply is `hidden="until-found"`.
  * - Claude's (or anyone's but Owen's):  violet, the brand's action colour, apart from the warm answer card.
  * - Owen's (`from="Owen"`):  his ivory, as his note box and answer card (decision Q20).
  ****************/
 export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
   @E.proto static vocabulary = epicReplyVocabulary
-  @E.proto static styleSheets = { answer: answerCSS }
+  @E.proto static styleSheets = { fold: foldCSS, answer: answerCSS }
   @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a body? */
   readonly slots = new E.SlotContent(this.domElement)
+
+  /** Open or folded:  open to start with. */
+  readonly fold = new Fold(() => true)
+
+  /** Unfolded. */
+  @E.cssState("open")
+  get isOpen(): boolean {
+    return this.fold.isOpen()
+  }
+
+  /** Has it a reply to fold? */
+  get hasBody(): boolean {
+    return this.slots.hasContent("")
+  }
 
   /** Its heading's left:  who, about what. */
   get who(): string {
@@ -46,8 +66,16 @@ export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
   render(): JSX.Element {
     return (
       <div class={this.rootClasses} part={this.partForName("base")}>
-        <div class={[HEADER, DATED]} part={this.partForName("header")} hidden={!this.who && !this.date}>
-          <span class={WHO} part={this.partForName("who")}>
+        <div
+          ref={this.fold.heading}
+          class={[HEADER, DATED, { [FOLDS]: this.hasBody }]}
+          part={this.partForName("header")}
+          hidden={!this.who && !this.date}
+        >
+          <Show when={this.hasBody}>
+            <FoldButton fold={this.fold} controls={BODY_ID} labelledBy={WHO_ID} part={this.partForName("toggle")} />
+          </Show>
+          <span id={WHO_ID} class={WHO} part={this.partForName("who")}>
             {this.who}
           </span>
           <Show when={this.date}>
@@ -56,7 +84,13 @@ export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
             </time>
           </Show>
         </div>
-        <div class={[BODY, { [EMPTY]: !this.slots.hasContent("") }]} part={this.partForName("body")}>
+        <div
+          ref={this.fold.watch}
+          id={BODY_ID}
+          class={[BODY, { [EMPTY]: !this.hasBody }]}
+          part={this.partForName("body")}
+          hidden={this.fold.hidden()}
+        >
           <slot />
         </div>
       </div>

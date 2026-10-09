@@ -113,11 +113,6 @@ export class PlanDoc extends PlanReader {
     return this.document.querySelector("epic-page > epic-overview")?.getAttribute("estimate") ?? undefined
   }
 
-  /** `<epic-page recent-since>`. */
-  get recentSinceMark(): string | undefined {
-    return this.document.querySelector("epic-page")?.getAttribute("recent-since") ?? undefined
-  }
-
   /** Stamp "updated" with today:  `<epic-page updated>`. */
   touch(): void {
     Markup.set(this.page, { updated: this.today })
@@ -401,7 +396,8 @@ export class PlanDoc extends PlanReader {
       working: Boolean(data.working),
       underway: !!item.querySelector(UNDERWAY_CARD),
       bedtime: Boolean(data.bedtime),
-      calm: Boolean(data.calm)
+      calm: Boolean(data.calm),
+      reviewAs: data.reviewAs
     }
   }
 

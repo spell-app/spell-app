@@ -5,6 +5,7 @@ import { E } from "$/ui/core"
 
 // Import directly:  the page's signals, not its family's barrel (which would define `<epic-page>` here)
 import { EpicPage } from "$/epics/components/epic-page/EpicPage"
+import { STATUS_STATES } from "$/epics/components/epic-item/EpicItem.types"
 
 import { epicFieldVocabulary } from "./EpicField.en"
 import { ICON, LABEL, TEXT } from "./EpicPhase.types"
@@ -80,13 +81,12 @@ export class EpicField extends E.UIComponent<typeof epicFieldVocabulary> {
     )
   }
 
-  /** Mark each To review link with its item's state:  `state`, else `old` once closed, `open` before. */
+  /** Mark each To review link with its item's state:  `state`, else by its status (`STATUS_STATES`). */
   private colourLinks() {
     for (const link of this.domElement.querySelectorAll(':scope > a[href^="#"]')) {
       const item = document.getElementById(decodeURIComponent(link.getAttribute("href")!.slice(1)))
       if (!item) continue
-      const status = item.getAttribute("status") ?? ""
-      const state = item.getAttribute("state") ?? (CLOSED_STATUSES.includes(status) ? "old" : "open")
+      const state = item.getAttribute("state") ?? STATUS_STATES[item.getAttribute("status") ?? ""] ?? "open"
       if (link.getAttribute(LINK_STATE) !== state) link.setAttribute(LINK_STATE, state)
     }
   }
@@ -120,9 +120,6 @@ const TO_REVIEW = "to-review"
  * gave it, which the field's sheet colours by.
  */
 const LINK_STATE = "data-spell-state"
-
-/** An item status that's closed:  its item, without a `state`, reads `old`. */
-const CLOSED_STATUSES = ["decided", "done", "canceled"]
 
 /** Class word of its box. */
 const FIELD = "field"

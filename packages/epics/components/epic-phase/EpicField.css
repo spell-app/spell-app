@@ -4,7 +4,9 @@
  *   prose wrapping beside it.  A field's prose starting with a `<p>` runs on after its label;  lists drop below.
  * - Files and Verify hide until the Phases title's toggles show them:  `--epic-files-display` /
  *   `--epic-verify-display`, inherited from the Phases section (`block`), else `none`.
- * - `<epic-updated>`:  fenced, a dashed orange box (Owen, 2026-10-06:  never an "Updated" word buried in the text).
+ * - `<epic-updated>`:  fenced, a dashed orange box (Owen, 2026-10-06:  never an "Updated" word buried in the text);
+ *   a fold column before the icon (`<FoldButton>`, Owen, 2026-10-08), and what changed BELOW its heading, folded
+ *   `until-found`.
  * - Public tokens (`--epic-field-*`) are never declared here:  read through private aliases.
  */
 
@@ -114,13 +116,43 @@
     --_epic-chip-color: var(--epic-state-old-on);
   }
 
-  /* ## `<epic-updated>`:  the fence */
+  /* ## `<epic-updated>`:  the fence -- the fold chevron, the icon, its heading;  what changed under the heading */
   .updated {
+    grid-template-columns: auto 1.25em minmax(0, 1fr);
     margin: 0;
     padding: 6px 10px;
     border: 1px dashed color-mix(in srgb, var(--ui-orange) 60%, transparent);
     border-radius: 6px;
     background: color-mix(in srgb, var(--ui-orange) 6%, var(--epic-bg, var(--ui-background)));
+  }
+  .updated > .head {
+    display: contents;
+  }
+  .fold-cell {
+    display: inline-flex;
+    height: 1lh;
+  }
+  .fold-cell .fold-button {
+    margin: 0;
+  }
+  /* nothing to fold:  no fold column */
+  .updated:not(:has(.fold-button)) {
+    grid-template-columns: 1.25em minmax(0, 1fr);
+  }
+  .updated:not(:has(.fold-button)) .fold-cell {
+    display: none;
+  }
+  .updated > .body {
+    grid-column: -2;
+  }
+  .updated > .body[hidden="until-found"] {
+    display: block;
+    content-visibility: hidden;
+  }
+  /* what changed starts on its own line, under the heading:  no run-on paragraph */
+  :host(epic-updated) ::slotted(p:first-child) {
+    display: block;
+    margin: 2px 0 0;
   }
   .updated .icon {
     color: var(--ui-orange-text, var(--ui-orange));

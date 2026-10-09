@@ -372,8 +372,8 @@ export class InboxCommands {
    * `finishMarks()`;  `clear` drops it), and their `working` too.
    * - a mark leaving with Owen's note in it:  the note is kept IN the item first, as his own reply card
    *   (`PlanDoc.keepNote()`, epic `windows-and-review` P1):  what he wrote is never lost from the page
-   * - a request taken care of stays marked as handled that way on the page (`review-as`, its button solid):  an
-   *   immediate one (Do Now:  Add Details, revisit now) as `now`, a revisit talked over as `revisit`
+   * - a request taken care of is recorded as handled that way (`review-as`;  the page's buttons clear, the chip shows
+   *   the result):  an immediate one (Do Now:  Add Details, revisit now) as `now`, a revisit talked over as `revisit`
    */
   private async finish(file: string, what: "done" | "clear", ids: string[]): Promise<void> {
     if (!ids.length) throw new PlanDocError(`${what} which items?  ids`)

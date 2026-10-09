@@ -44,12 +44,13 @@ export const epicAnswerVocabulary = {
   ],
   parts: [
     { name: "base", description: "The card." },
-    { name: "header", description: "Its heading band:  `Answer · <title>`." },
+    { name: "header", description: "Its heading band:  the fold chevron, `Answer · <title>`;  a click folds it." },
+    { name: "toggle", description: "The fold chevron, a `<button>`, first in the band;  only with a body." },
     { name: "label", description: "`Answer`, or the old decision's id (`D7`)." },
     { name: "title", description: "The title." },
-    { name: "body", description: "The answer, and why;  not drawn when empty." }
+    { name: "body", description: "The answer, and why;  not drawn when empty;  hidden (`until-found`) while folded." }
   ],
-  states: [],
+  states: [{ name: "open", description: "Unfolded:  it starts so (page state, never written)." }],
   texts: [{ key: "answer", text: "Answer", description: "The card's label, without an old decision's id." }],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },

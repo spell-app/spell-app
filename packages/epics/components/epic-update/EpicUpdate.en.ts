@@ -31,9 +31,14 @@ export const epicUpdateVocabulary = {
   slots: [{ name: "", description: "What changed;  none for a bare label." }],
   parts: [
     { name: "base", description: "The label or note." },
-    { name: "label", description: "The orange `UPDATE` label:  alone when empty, the note's heading otherwise." }
+    { name: "toggle", description: "A note's fold chevron, a `<button>`, before its label:  a click folds the note." },
+    { name: "label", description: "The orange `UPDATE` label:  alone when empty, the note's heading otherwise." },
+    { name: "body", description: "A note's text;  hidden (`until-found`) while folded." }
   ],
-  states: [{ name: "note", description: "It has children:  drawn as a note, not a bare label." }],
+  states: [
+    { name: "note", description: "It has children:  drawn as a note, not a bare label." },
+    { name: "open", description: "A note, unfolded:  it starts so (page state, never written)." }
+  ],
   texts: [
     { key: "label", text: "UPDATE", description: "The label." },
     { key: "tip", text: "Changed during P{phase}", description: "The label's tooltip." }
