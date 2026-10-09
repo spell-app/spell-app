@@ -4,7 +4,10 @@ import { isServer, type JSX } from "@solidjs/web"
 import { E } from "$/ui/core"
 
 import { PlanDates } from "$/epics/dates"
-import { AgentsClient, NOBODY_LISTENING, isImmediate } from "$/epics/review"
+import { AgentsClient, NOBODY_LISTENING, isAirplane, isImmediate } from "$/epics/review"
+
+/** What takes Owen's marks after a flight (epic `airplane`):  the review line's command in airplane mode. */
+const AIRPLANE_LAND = "/airplane land"
 // the page's view of the review inbox, as an item's:  its file, not `epic-item`'s barrel (which would define it here)
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
 import { NewItemButton, NewItemForm } from "$/epics/components/epic-item/NewItems"
@@ -555,7 +558,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
    * nobody listening, it says so first.
    */
   private reviewLine(): JSX.Element {
-    const nobody = () => !!this.marks() && !this.marks()!.listening
+    // airplane mode:  nobody CAN listen, so no warning;  the line names what takes the marks when Owen lands
+    const nobody = () => !isAirplane() && !!this.marks() && !this.marks()!.listening
     return (
       <button
         type="button"
@@ -566,7 +570,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       >
         {this.icon(this.icons.copy)}
         <span>
-          {this.translationForKey(nobody() ? "reviewLineNobody" : "reviewLine")} <code>{this.command()}</code>
+          {this.translationForKey(isAirplane() ? "reviewLineAirplane" : nobody() ? "reviewLineNobody" : "reviewLine")}{" "}
+          <code>{this.command()}</code>
         </span>
         <span class="done" aria-live="polite">
           {this.isCopied ? this.translationForKey("copied") : ""}
@@ -582,7 +587,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
   /** `/epic review <name>`:  what the review line copies. */
   private command(): string {
-    return `/epic review ${this.epic ?? ""}`
+    return isAirplane() ? AIRPLANE_LAND : `/epic review ${this.epic ?? ""}`
   }
 
   /** The git toggle:  a round icon button, pressed while every commit shows. */

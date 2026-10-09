@@ -58,7 +58,19 @@ export const REVISIT_KEY_PREFIX = "spell-revisit:"
  * What the page says when no Claude session waits on the inbox (plan doc `review-review`, D6):  `listening` null,
  * which the routes also answer once a session's heartbeat stops (`ReviewInbox.forPage()`).
  */
-export const NOBODY_LISTENING = "No Claude session is reviewing this doc:  this waits for the next /epic review"
+export const NOBODY_LISTENING = isAirplane()
+  ? "Airplane mode:  queued for when you land (/airplane land)"
+  : "No Claude session is reviewing this doc:  this waits for the next /epic review"
+
+/**
+ * Airplane mode is on (epic `airplane`):  Owen works with no Claude, and everything waits for `/airplane land`.
+ * - the page server says so in `window.SPELL_SERVER.airplane`, as it serves the page (`AirplaneMode`):  a page
+ *   loaded before `spell dev airplane on` learns it on its next load
+ * - `false` outside a browser
+ */
+export function isAirplane(): boolean {
+  return typeof window !== "undefined" && !!(window as { SPELL_SERVER?: { airplane?: boolean } }).SPELL_SERVER?.airplane
+}
 
 /**
  * The four review actions of an item's line, in their order:  Approve, Revisit, Make Todo, then Do Now (`details`:
