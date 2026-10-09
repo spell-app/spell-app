@@ -149,30 +149,10 @@ export class UISelect extends F.FormComponent<Vocabulary> {
     return this.multiple ? values : (values[0] ?? null)
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
   /** Back to the starting value;  the `<select>` shows it again. */
   onFormReset() {
     this.value = this.initialValue
     this.selectRevision++
-  }
-
-  ////////////////
-  // ## Disabled
-  ////////////////
-
-  /** Can't be used now:  `disabled`, or a disabled fieldset / form. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
-  /** The `disabled` class:  also by a disabled fieldset. */
-  protected classValue(name: E.AttributeName<Vocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
   }
 
   ////////////////
@@ -189,27 +169,14 @@ export class UISelect extends F.FormComponent<Vocabulary> {
   // ## Label
   ////////////////
 
-  /** The DOM element's `<label>`s and `aria-label`, as the select's name. */
-  readonly labels = new F.ControlLabels(this.domElement)
-
-  /** Name for the select:  its `<label>`s / `aria-label`, else `placeholder`, else `name`. */
+  /** Name for the select:  its `<label>`s / `aria-label` (`labels`), else `placeholder`, else `name`. */
   private get label(): string | undefined {
     return this.labels.accessibleName ?? this.placeholder ?? this.name
-  }
-
-  /** Connected:  read the DOM element's `<label>`s again. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (isConnected) this.labels.refresh()
   }
 
   ////////////////
   // ## Validity
   ////////////////
-
-  protected get validationRules(): E.ValidationRule[] {
-    return this.required ? [UIT.REQUIRED_RULE] : []
-  }
 
   protected get validationLabel(): string | undefined {
     return this.label

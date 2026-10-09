@@ -27,6 +27,7 @@ import dropdownCSS from "./UIDropdown.css?inline"
  * - The menu's rows render only while it's open (`<For>`, keyed by option);
  *   `aria-activedescendant` points at the highlighted row.  Escape and outside clicks come from `UI.overlays`.
  * - A form control:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
+ *   Named by `label`, else by the DOM element's `<label for>` / `aria-label` (`ControlLabels`).
  * - An option's `flag` draws through `UIT.Flags`, the rule `<ui-flag>` draws with.
  *   Fomantic's country names (`france`) are `<ui-flag>`'s alone, so a flag that isn't a code shows as its text.
  *
@@ -193,22 +194,14 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
     return this.multiple ? values : (values[0] ?? null)
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
   /** Back to the starting value;  clears the query. */
   onFormReset() {
     this.value = this.initialValue
     this.query = ""
   }
 
-  protected get validationRules(): E.ValidationRule[] {
-    return this.required ? [UIT.REQUIRED_RULE] : []
-  }
-
   protected get validationLabel(): string | undefined {
-    return this.label || undefined
+    return this.accessibleName
   }
 
   protected get validationAnchor(): HTMLElement | undefined {
@@ -372,18 +365,19 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   ////////////////
-  // ## Disabled, classes and states
+  // ## Name and classes
   ////////////////
 
-  /** Disabled by its attribute, or by a disabled fieldset;  `:state(disabled)`. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
+  /**
+   * Name of the combobox and its listbox:  `label`, else what names the DOM element (`labels`:
+   * `<label for>`, `aria-label` ...).
+   */
+  private get accessibleName(): string | undefined {
+    return this.label || this.labels.accessibleName
   }
 
   protected classValue(name: E.AttributeName<typeof dropdownVocabulary>): unknown {
     if (name === "open") return this.isOpen
-    if (name === "disabled") return this.isDisabled
     return super.classValue(name)
   }
 
@@ -473,7 +467,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
       "aria-controls": this.ids.menu,
       "aria-haspopup": "listbox",
       "aria-activedescendant": this.isOpen && highlighted ? this.idFor(highlighted) : undefined,
-      "aria-label": this.label || undefined,
+      "aria-label": this.accessibleName,
       "aria-describedby": this.ids.text,
       "aria-busy": this.loading ? "true" : undefined,
       "aria-readonly": this.readonly ? "true" : undefined,
@@ -577,7 +571,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
         // a server render can't show a popover:  an open menu is a plain one, shown by the root's `active`
         popover={this.simple || (isServer && this.isOpen) ? undefined : "manual"}
         part={this.partForName("menu")}
-        aria-label={this.label || undefined}
+        aria-label={this.accessibleName}
         aria-multiselectable={this.multiple ? "true" : undefined}
         onMouseDown={UIDropdown.preventDefault}
       >

@@ -58,6 +58,9 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
     DOMElement: DOMRatingElement
   } satisfies Partial<E.ElementSetup>
 
+  /** Shows as invalid only once a person has interacted. */
+  @E.proto static invalidShows: E.InvalidTiming = "once touched"
+
   onFormStateRestore(state: File | string | FormData | null) {
     this.value = Number(state) || 0
   }
@@ -152,39 +155,8 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   ////////////////
-  // ## Disabled
-  ////////////////
-
-  /** Disabled by its attribute, or by a disabled fieldset. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
-  protected classValue(name: E.AttributeName<typeof ratingVocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
-  }
-
-  ////////////////
-  // ## Name
-  ////////////////
-
-  /** The DOM element's `<label>`s and `aria-label`, as the group's name. */
-  readonly labels = new F.ControlLabels(this.domElement)
-
-  /** Connected:  read the labels again (they may have changed while it was away). */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (isConnected) this.labels.refresh()
-  }
-
-  ////////////////
   // ## Form
   ////////////////
-
-  /** A person has interacted:  only then does it show as invalid. */
-  @E.state accessor isTouched = false
 
   /** The rating while above `0`;  `null` (`setFormValue()`'s "no value") at `0`. */
   get formValue(): E.FieldValue {
@@ -192,18 +164,9 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
     return rating > 0 ? String(rating) : null
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
-  /** Back to the `value` ATTRIBUTE;  forgets the interaction. */
+  /** Back to the `value` ATTRIBUTE. */
   onFormReset() {
     this.value = E.Converters.number(this.attributes.value)
-    this.isTouched = false
-  }
-
-  protected get validationRules(): E.ValidationRule[] {
-    return this.required ? [UIT.REQUIRED_RULE] : []
   }
 
   protected get validationLabel(): string | undefined {
@@ -212,16 +175,6 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
 
   protected get validationAnchor(): HTMLElement | undefined {
     return this.radios()[0]
-  }
-
-  protected shouldShowInvalid(result: E.ValidationResult): boolean {
-    return !result.valid && this.isTouched
-  }
-
-  /** A submit or `reportValidity()` found it invalid:  show it. */
-  @E.on("invalid")
-  protected onInvalid() {
-    this.isTouched = true
   }
 
   ////////////////
@@ -249,7 +202,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
         aria-label={this.labels.accessibleName}
         aria-readonly={this.readonly ? "true" : undefined}
         aria-required={this.required ? "true" : undefined}
-        aria-invalid={this.isTouched && !this.validation.valid ? "true" : undefined}
+        aria-invalid={this.isShownInvalid ? "true" : undefined}
         aria-description={this.fractionDescription}
         onPointerLeave={this.onPointerLeave}
         onKeyDown={this.onKeyDown}
@@ -398,9 +351,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /** A click aimed at the DOM element itself (its `<label for>`) focuses the group's tab stop. */
-  @E.on("click")
-  protected onDOMElementClick(event: MouseEvent) {
-    if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
+  protected activateControl() {
     this.focus()
   }
 

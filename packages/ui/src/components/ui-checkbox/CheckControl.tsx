@@ -88,6 +88,9 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   /** Default:  `on`, as a native checkbox. */
   @E.proto static defaultChosenValue = "on"
 
+  /** Shows `:state(invalid)` only after interaction, as in `TextControl`. */
+  @E.proto static invalidShows: E.InvalidTiming = "once touched"
+
   /** How a form reads it. */
   abstract readonly checkable: "checkbox" | "radio"
 
@@ -187,39 +190,15 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   }
 
   ////////////////
-  // ## Disabled
-  ////////////////
-
-  /** Can't be used now:  `disabled`, or a disabled fieldset / form;  tracked. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
-  protected classValue(name: E.AttributeName<V>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
-  }
-
-  ////////////////
   // ## Label
   ////////////////
 
   /** Which slots have light-DOM children:  the label text. */
   readonly slots = new E.SlotContent(this.domElement)
 
-  /** The DOM element's `<label>`s and `aria-label`, as the input's name when there's no text. */
-  readonly labels = new F.ControlLabels(this.domElement)
-
-  /** Has label text (slot or shorthand)? */
+  /** Has label text (slot or shorthand)?  Else `labels` names the input. */
   protected get hasLabelText(): boolean {
     return this.slots.hasContent("") || !!this.label
-  }
-
-  /** Connected:  read the DOM element's `<label>`s again. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (isConnected) this.labels.refresh()
   }
 
   ////////////////
@@ -236,13 +215,8 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     return this.isSelected ? this.chosenValue : undefined
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
   onFormReset() {
     this.isSelected = this.wasInitiallySelected
-    this.isTouched = false
   }
 
   protected get validationLabel(): string | undefined {
@@ -251,19 +225,6 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
 
   protected get validationAnchor(): HTMLElement | undefined {
     return this.control
-  }
-
-  /** Someone has interacted with it:  only then does it show `:state(invalid)`. */
-  @E.state accessor isTouched = false
-
-  protected shouldShowInvalid(result: E.ValidationResult): boolean {
-    return !result.valid && this.isTouched
-  }
-
-  /** A submit or `reportValidity()` found it invalid:  show it. */
-  @E.on("invalid")
-  protected onInvalid() {
-    this.isTouched = true
   }
 
   ////////////////
@@ -324,7 +285,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
           required={this.required}
           aria-readonly={this.readonly && this.inputType === "checkbox" ? "true" : undefined}
           aria-label={this.hasLabelText ? undefined : this.labels.accessibleName}
-          aria-invalid={this.isTouched && !this.validation.valid ? "true" : undefined}
+          aria-invalid={this.isShownInvalid ? "true" : undefined}
           {...this.staticControl}
           onClick={this.onClick}
           onChange={this.onChange}
@@ -351,10 +312,8 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   /** A key on the input:  arrow keys, for radios;  nothing for a checkbox. */
   protected onKeyDown(_event: KeyboardEvent) {}
 
-  /** A click aimed at the DOM element itself clicks the input;  retargeted clicks from inside are left alone. */
-  @E.on("click")
-  protected onDOMElementClick(event: MouseEvent) {
-    if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
+  /** A click aimed at the DOM element itself clicks the input. */
+  protected activateControl() {
     this.control?.click()
   }
 

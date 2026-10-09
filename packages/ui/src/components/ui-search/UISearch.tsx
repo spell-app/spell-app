@@ -323,14 +323,8 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   ////////////////
-  // ## Disabled, busy, fluid
+  // ## Busy
   ////////////////
-
-  /** Disabled by its attribute, or by a disabled fieldset. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
 
   /** Busy:  the `loading` attribute, or a remote query running. */
   @E.cssState("loading")
@@ -338,9 +332,8 @@ export class UISearch extends F.FormComponent<Vocabulary> {
     return this.loading || this.isFetching
   }
 
-  /** `disabled` / `loading` classes:  also by a disabled fieldset / a running remote query. */
+  /** The `loading` class:  also by a running remote query. */
   protected classValue(name: E.AttributeName<Vocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled
     if (name === "loading") return this.isLoading
     return super.classValue(name)
   }
@@ -349,18 +342,9 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   // ## Name
   ////////////////
 
-  /** The DOM element's `<label>`s and `aria-label`, as the input's name. */
-  readonly labels = new F.ControlLabels(this.domElement)
-
-  /** Name for the input:  its `<label>`s / `aria-label`, else `placeholder`, else the translated `label`. */
+  /** Name for the input:  its `<label>`s / `aria-label` (`labels`), else `placeholder`, else the translated `label`. */
   private get label(): string {
     return this.labels.accessibleName ?? this.placeholder ?? this.translationForKey("searchLabel")
-  }
-
-  /** Connected:  read the labels again (they may have changed while it was away). */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (isConnected) this.labels.refresh()
   }
 
   ////////////////
@@ -371,19 +355,11 @@ export class UISearch extends F.FormComponent<Vocabulary> {
     return this.query
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
   /** Back to the `value` attribute;  the input shows it, nothing is highlighted. */
   onFormReset() {
     this.value = this.initialValue
     this.inputRevision++
     this.highlightedIndex = -1
-  }
-
-  protected get validationRules(): E.ValidationRule[] {
-    return this.required ? [UIT.REQUIRED_RULE] : []
   }
 
   /**
