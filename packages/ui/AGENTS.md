@@ -344,6 +344,12 @@ As WWOD §18, plus:
   `Fallback` ...), reactive members
   (below), `render()` returning JSX.  solid-element creates one per element on first connect and keeps it
   (`keepAlive`) until `domElement.dispose()`.  `UI<Name>.define()` in the family's `index.ts` registers it.
+- A FORM CONTROL (`F.FormComponent`) inherits what every control needs:  `isDisabled` (`disabled` or a disabled
+  fieldset, with its `:state()` and class), `labels` (`ControlLabels`, refreshed on connect), `isTouched` (set by
+  `invalid`, cleared by a reset), `formName` (`name`), the `required` rule, and a click on the DOM element itself
+  calling `activateControl()`.  NEVER copy one of them into a control;  override a hook instead
+  (`activateControl()`, `validationRules`), or set `@E.proto static invalidShows = "once touched"`
+  (`FormComponent`'s header).
 - **Reactive members** (`src/elements/Reactive.ts`;  WWOD §12 › "Reactive members"):  decorators over ONE record per
   instance, so `this.x` reads fresh right after `this.x = v` (no flush), and Solid follows the reads in JSX and
   effects.  The decorator says how the member works:

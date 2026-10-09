@@ -9,13 +9,12 @@ import {
   protoMerged,
   SlotContent,
   untracked,
-  type AttributeName,
   type CancelablePromise,
   type FieldValue,
   type ElementSetup,
   type AttributeValues
 } from "$/ui/core"
-import { ControlLabels, FormComponent } from "$/ui/forms"
+import { FormComponent } from "$/ui/forms"
 import { Palette, type Hsl, type Oklch } from "$/brand"
 
 import { brandColorPickerVocabulary } from "./UIBrandColorPicker.en"
@@ -101,9 +100,6 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   /** Light-DOM slot occupancy:  header, actions, the default slot. */
   readonly slots = new SlotContent(this.domElement)
 
-  /** The DOM element's `<label>`s and `aria-label` (a `<ui-brand-field>` names it so), as the group's name. */
-  readonly labels = new ControlLabels(this.domElement)
-
   /** Each row's copy icon and check, loaded up front so the check shows at once. */
   readonly glyphs = {
     hsl: this.copyGlyphs(),
@@ -151,21 +147,12 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     return (typeof value === "string" ? Palette.parse(value) : undefined) ?? DEFAULT_VALUE
   }
 
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
-  protected classValue(name: AttributeName<BrandColorPickerVocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
-  }
-
   protected get extraClass(): string | undefined {
     return BRAND_COLOR
   }
 
   protected cssStates() {
-    return { disabled: this.isDisabled, dragging: this.dragging.get(), copied: !!this.copied.get() }
+    return { dragging: this.dragging.get(), copied: !!this.copied.get() }
   }
 
   ////////////////
@@ -174,10 +161,6 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
 
   get formValue(): FieldValue {
     return this.hex()
-  }
-
-  protected get formName(): string | undefined {
-    return this.name
   }
 
   /** Back to the first `value`. */
@@ -189,14 +172,8 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   // ## Wiring
   ////////////////
 
-  /** Adds following outside `value` changes, and the labels' refresh. */
+  /** Adds following outside `value` changes. */
   onMount(): JSX.Element {
-    createEffect(
-      () => this.isConnected,
-      (connected) => {
-        if (connected) this.labels.refresh()
-      }
-    )
     createEffect(
       () => this.hex(),
       (hex) => {

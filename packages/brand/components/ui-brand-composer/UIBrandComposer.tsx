@@ -14,7 +14,7 @@ import {
   type ElementSetup,
   type AttributeValues
 } from "$/ui/core"
-import { ControlLabels, DOMFormControl, FormComponent } from "$/ui/forms"
+import { DOMFormControl, FormComponent } from "$/ui/forms"
 
 import { brandComposerVocabulary } from "./UIBrandComposer.en"
 import { BrandComposerFallback } from "./UIBrandComposer.fallback"
@@ -96,9 +96,6 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   /** Which slots have light-DOM children:  `eyebrow`, `tools`. */
   readonly slots = new SlotContent(this.domElement)
 
-  /** The DOM element's `<label>`s and `aria-label`, as the text box's name. */
-  readonly labels = new ControlLabels(this.domElement)
-
   /** The Cast button's arrow, and the spinner it shows while `casting`;  loaded up front, so neither flashes in. */
   readonly glyphs = {
     cast: new IconGlyph({ owner: this, name: () => CAST_ICON }),
@@ -122,18 +119,9 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
     return !this.text().trim()
   }
 
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
   /** Can't cast now:  blank, `casting` or disabled;  tracked. */
   isBlocked(): boolean {
     return this.isBlank() || this.casting || this.isDisabled
-  }
-
-  protected classValue(name: AttributeName<BrandComposerVocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
   }
 
   protected get extraClass(): string | undefined {
@@ -141,7 +129,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   }
 
   protected cssStates() {
-    return { empty: this.isBlank(), casting: this.casting, disabled: this.isDisabled }
+    return { empty: this.isBlank(), casting: this.casting }
   }
 
   ////////////////
@@ -150,10 +138,6 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
 
   get formValue(): FieldValue {
     return this.text()
-  }
-
-  protected get formName(): string | undefined {
-    return this.name
   }
 
   /** Back to the `value` ATTRIBUTE (native `defaultValue`). */
@@ -166,18 +150,12 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   // ## Wiring
   ////////////////
 
-  /** Adds the value sync (`value` => the text box, after DOM updates) and the labels' refresh. */
+  /** Adds the value sync (`value` => the text box, after DOM updates). */
   onMount(): JSX.Element {
     createEffect(
       () => [this.text(), this.isReady],
       () => {
         this.syncControl()
-      }
-    )
-    createEffect(
-      () => this.isConnected,
-      (connected) => {
-        if (connected) this.labels.refresh()
       }
     )
     return super.onMount()
