@@ -19,8 +19,9 @@ import { Validator } from "./Validator"
  *   the anchor for the browser's bubble is `validationAnchor`.
  *
  * - What every control gets from here, so it writes none of it:
- *   - `isDisabled`:  its `disabled` attribute, or a disabled fieldset;  `:state(disabled)` and the `disabled` class
- *     follow it
+ *   - `isDisabled`:  its `disabled` attribute, or a disabled fieldset (`isMarkedDisabled`);  the `disabled` class
+ *     follows it, and `:state(disabled)` (`UIComponent`)
+ *   - `isReadOnly`:  `readonly`, with `:state(readonly)`
  *   - `labels` (`ControlLabels`):  what names the DOM element (`<label for>`, `aria-label` ...), as `accessibleName`
  *     for its inner control;  read again each time it connects
  *   - `isTouched`:  someone has interacted;  an `invalid` event (a submit, `reportValidity()`) sets it,
@@ -39,7 +40,9 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
   @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     // with the form-control API
     DOMElement: DOMFormControl,
-    isAFormControl: true
+    isAFormControl: true,
+    // each control disables its native control:  still in the accessibility tree, as a disabled control
+    disabled: "its own"
   }
 
   /**
@@ -201,16 +204,35 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
   // ## Disabled
   ////////////////
 
-  /** Disabled by its `disabled` attribute, or by a disabled fieldset / form. */
-  @E.cssState("disabled")
+  /**
+   * Disabled by its `disabled` attribute, or by a disabled fieldset / form (`isMarkedDisabled`).
+   * - Unusable its own way (`elementSetup.disabled` is `"its own"`):  each control disables its native control, so it
+   *   stays in the accessibility tree as a disabled control, where the base class would make it inert.
+   */
   get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
+    return this.isMarkedDisabled
   }
 
   /** The `disabled` class follows `isDisabled`:  a disabled fieldset adds it too. */
   protected classValue(name: E.AttributeName<V>): unknown {
     if (name === "disabled") return this.isDisabled
     return super.classValue(name)
+  }
+
+  ////////////////
+  // ## Read-only
+  ////////////////
+
+  /**
+   * Is `readonly` set?  `:state(readonly)`.
+   * - It shows its value, can be focused, and is submitted, but people can't change it (unlike `disabled`).
+   * - Every form control's vocabulary declares it (`property: "readOnly"`, as the platform's), each saying what it
+   *   does there;  `false` where one doesn't.
+   * - Each control refuses changes its own way (its native control's `readonly`, a click it ignores ...).
+   */
+  @E.cssState("readonly")
+  get isReadOnly(): boolean {
+    return E.Reactive.attributeValue(this, "readonly") === true
   }
 
   ////////////////

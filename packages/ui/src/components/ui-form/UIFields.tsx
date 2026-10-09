@@ -15,13 +15,13 @@ import formCSS from "./UIForm.css?inline"
  *   its share of the width (`widths`), the gutter and its state as inherited tokens (`UIForm.css`).
  * - `disabled` makes the root `inert`.
  ****************/
-// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
-@E.cssStates("disabled")
 export class UIFields extends E.UIComponent<typeof fieldsVocabulary> {
   @E.proto static vocabulary = fieldsVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { form: formCSS },
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  its content inert, a look;  the element still takes clicks
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** `:state(error)`:  `state="error"`. */

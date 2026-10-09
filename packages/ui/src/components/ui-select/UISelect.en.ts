@@ -39,6 +39,12 @@ export const selectVocabulary = {
     { name: "inverted", kind: "keyOnly", description: "For dark backgrounds:  the dark scheme's colours." },
     { name: "disabled", kind: "keyOnly", description: "Can't be used;  dimmed, and left out of the form." },
     {
+      name: "readonly",
+      kind: "boolean",
+      property: "readOnly",
+      description: "Shows its value but can't be changed (a change is undone);  still focusable and submitted."
+    },
+    {
       name: "multiple",
       kind: "keyOnly",
       description: "Chooses several values:  a native list box (never the customizable picker)."
@@ -85,6 +91,7 @@ export const selectVocabulary = {
   ],
   states: [
     { name: "disabled", description: "Can't be used." },
+    { name: "readonly", description: "`readonly`:  can't be changed." },
     { name: "invalid", description: "Fails validation (`required`)." },
     { name: "fluid", description: "The host is block-level (`fluid`)." },
     { name: "customizable", description: "The browser draws the customizable select (`appearance: base-select`)." }

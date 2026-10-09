@@ -72,7 +72,11 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
     styleSheets: { section: sectionCSS },
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  Fomantic's look
+    disabled: "its own",
+    // `loading`:  Fomantic's veil
+    loading: "its own"
   }
   @E.proto static defaultFoldIcon: FoldIconPlace = FoldIconPlace.start
 

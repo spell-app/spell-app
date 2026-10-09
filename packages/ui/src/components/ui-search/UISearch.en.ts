@@ -49,6 +49,12 @@ export const searchVocabulary = {
     { name: "loading", kind: "keyOnly", description: "Busy:  the icon spins.  Also shown while a remote query runs." },
     { name: "disabled", kind: "keyOnly", description: "Can't be used;  dimmed, and left out of the form." },
     {
+      name: "readonly",
+      kind: "boolean",
+      property: "readOnly",
+      description: "Shows its value but can't be typed in, and the results never open;  still focusable and submitted."
+    },
+    {
       name: "open",
       kind: "boolean",
       description:
@@ -167,6 +173,7 @@ export const searchVocabulary = {
   states: [
     { name: "open", description: "The results are showing." },
     { name: "disabled", description: "Can't be used." },
+    { name: "readonly", description: "`readonly`:  can't be changed." },
     { name: "loading", description: "Busy (`loading`, or a remote query running)." },
     { name: "invalid", description: "Fails validation (`required`)." },
     { name: "fluid", description: "The host is block-level (`fluid`)." }

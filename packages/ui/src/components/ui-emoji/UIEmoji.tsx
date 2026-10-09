@@ -24,13 +24,15 @@ import emojiCSS from "./UIEmoji.css?inline"
  * - `link` is only a LOOK:  the emoji takes no focus and sends nothing of its own;
  *   wrap it in a `<button>` or `<a>`.
  ****************/
-// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
-@E.cssStates("disabled", "loading")
 export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
   @E.proto static vocabulary = emojiVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { emoji: emojiCSS },
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  only a look
+    disabled: "its own",
+    // `loading`:  it spins
+    loading: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** The glyph, `undefined` while loading or for an unknown name. */

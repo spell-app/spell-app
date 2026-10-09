@@ -44,7 +44,9 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { dimmer: dimmerCSS },
     // a click on the dimmer must not jump focus into its content
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  it never shows
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   ////////////////

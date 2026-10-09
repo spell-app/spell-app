@@ -27,7 +27,9 @@ export class UIComment extends E.UIComponent<typeof commentVocabulary> {
   @E.proto static vocabulary = commentVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { comment: commentCSS },
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  `aria-disabled` on its box, and a look
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** Its comment list, if any. */

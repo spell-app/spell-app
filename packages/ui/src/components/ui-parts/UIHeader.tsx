@@ -19,6 +19,10 @@ import { headerVocabulary } from "./UIHeader.en"
  ****************/
 export class UIHeader extends E.PartComponent<typeof headerVocabulary> {
   @E.proto static vocabulary = headerVocabulary
+  @E.protoMerged static elementSetup = {
+    // `disabled`:  only a look
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (

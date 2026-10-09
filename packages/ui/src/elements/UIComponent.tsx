@@ -14,10 +14,10 @@ import { insert, isServer, type JSX } from "@solidjs/web"
 
 // Import directly to avoid circular import
 import { protoMerged } from "$/ui/util"
-import { E, UI } from "$/ui/core"
+import { E, UI, UIT } from "$/ui/core"
 // Import directly to avoid circular import
 import { DOMElement, type TagSetup } from "./DOMElement"
-import { on, onChange, state, untracked } from "./Reactive"
+import { cssState, on, onChange, state, untracked } from "./Reactive"
 // a leaf of its own (Solid only, no `ui` imports), not part of `E`
 import { ShadowEvents } from "./ShadowEvents"
 
@@ -281,7 +281,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * Class setting:  how the class's custom element is set up, as ONE object (`ElementSetup` documents each key):
-   * its style sheets, form control, focus, slots, part, DOM element class, fallback, unstyled first paint.
+   * its style sheets, form control, focus, slots, part, DOM element class, fallback, unstyled first paint, ARIA,
+   * and what the shared `disabled`, `loading` and `visible` do for it.
    * - A subclass states only the keys it changes:
    *   `@E.protoMerged static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>`
    *   (`satisfies`, so a misspelt key fails TypeScript).
@@ -304,7 +305,10 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     DOMElement: DOMElement,
     Fallback: undefined,
     canRenderUnstyled: false,
-    aria: {}
+    aria: {},
+    disabled: "unusable",
+    loading: "loader",
+    visibleAnimation: "fade"
   }
 
   ////////////////
@@ -441,22 +445,36 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   ////////////////
-  // ## Disabled
+  // ## Shared states:  disabled, loading, visible
+  //
+  // Every element takes `disabled`, `loading` and `visible`, though its vocabulary may not name them
+  // (`SharedVocabulary`), and the platform's own `hidden` and `inert`:
+  // - `disabled`:  `:state(disabled)` always;  the rest per family (`elementSetup.disabled`):
+  //   by default unusable, with everything inside inert
+  // - `loading`:  `:state(loading)` always;  by default a loader over it (`elementSetup.loading`)
+  // - `visible="false"`:  hides it with an animation (`elementSetup.visibleAnimation`), then `:state(hidden)`
+  // - `hidden` hides at once (`reset.css`, which every shadow root adopts);  `inert` is the platform's, unstyled
   ////////////////
 
   /**
+   * Is `disabled` set:  its attribute, or (a form control) a `<fieldset disabled>` around it?
+   * - `:state(disabled)` follows it, whatever disabled means for the family.
+   * - Not `isDisabled`:  an element whose disabled is only a look (`<ui-icon>`) is marked disabled, yet usable.
+   */
+  @cssState("disabled")
+  get isMarkedDisabled(): boolean {
+    return E.Reactive.attributeValue(this, "disabled") === true || this.formIsDisabled
+  }
+
+  /**
    * Hook:  is the element unusable right now?
-   * - Default is that we are NOT disabled, e.g. can be used.
-   * - While it's true, the element ignores clicks (`DOMElement`).
-   * - Elements with a `disabled` attribute override it:  `<ui-card>`, `<ui-step>`,
-   *   and the form controls, which also check `formIsDisabled`.
-   * - An element whose `disabled` only changes how it LOOKS (`<ui-icon>`, `<ui-segment>`, `<ui-form>` ...)
-   *   leaves this alone, and puts `@cssStates("disabled")` on its class (`<ui-segment>`:  `@cssState("disabled")` on
-   *   its own `get looksDisabled()`, which is `@aria("ariaDisabled")` too):
-   *   it gets `:state(disabled)`, and clicks still go through.
+   * - Default:  `isMarkedDisabled`, where `elementSetup.disabled` is `"unusable"`;  never where it's `"its own"`.
+   * - While it's true, the DOM element swallows clicks (`DOMElement`).
+   * - A family whose disabled is unusable ITS own way says so here:
+   *   the form controls (`FormComponent`), `<ui-button>`, `<ui-step>`, `<ui-item>` ...
    */
   get isDisabled(): boolean {
-    return false
+    return this.elementSetup.disabled === "unusable" && this.isMarkedDisabled
   }
 
   /** Can the element be used right now?  The opposite of `isDisabled`. */
@@ -469,6 +487,108 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Form controls only (`elementSetup.isAFormControl`).
    */
   @state accessor formIsDisabled = false
+
+  /**
+   * Is `loading` set?  `:state(loading)` follows it, whatever loading means for the family.
+   * - `true` only:  `<ui-root loading="Fetching…">` is a message, and its own (`elementSetup.loading`).
+   */
+  @cssState("loading")
+  get isMarkedLoading(): boolean {
+    return E.Reactive.attributeValue(this, "loading") === true
+  }
+
+  /**
+   * Is the base class drawing its loader over the element (`elementSetup.loading` is `"loader"`)?
+   * `:state(busy)`, which `reset.css` draws a spinner for.
+   */
+  @cssState("busy")
+  get showsLoader(): boolean {
+    return this.elementSetup.loading === "loader" && this.isMarkedLoading
+  }
+
+  /**
+   * Is everything inside the element inert right now, the base class's way?  `:state(dimmed)`, which `reset.css` dims.
+   * - Disabled where `elementSetup.disabled` is `"unusable"`, or loading where `elementSetup.loading` is `"loader"`.
+   * - Inert:  its shadow content (and so what's slotted into it) can't be clicked, focused or typed in,
+   *   and leaves the accessibility tree.
+   */
+  @cssState("dimmed")
+  get hasInertContent(): boolean {
+    return (this.elementSetup.disabled === "unusable" && this.isMarkedDisabled) || this.showsLoader
+  }
+
+  /**
+   * A shared state changed (ONE effect for all of them, as every element has it):
+   * - disabled or loading:  ARIA on the DOM element, its content inert or not, and focus inside moves on to the
+   *   next focusable element.  ARIA only where the base class owns that state:  a family with a disabled or loading
+   *   of its own sets its own.
+   * - `visible`:  animate the element out (then `:state(hidden)`) or back in.
+   *   At once, with no animation, before the element first draws:  `<ui-message visible="false">` starts hidden.
+   * - On a server:  the ARIA only, once.
+   */
+  @onChange("hasInertContent", "isDisabled", "showsLoader", "wantsVisible", "isReady", { writesDOMElement: true })
+  protected onSharedStatesChanged(
+    hasInertContent: boolean,
+    isDisabled: boolean,
+    showsLoader: boolean,
+    wantsVisible: boolean,
+    isReady: boolean
+  ) {
+    const { domElement, elementSetup, internalState } = this
+    if (elementSetup.disabled === "unusable") domElement.internals.ariaDisabled = isDisabled ? "true" : null
+    if (elementSetup.loading === "loader") domElement.internals.ariaBusy = showsLoader ? "true" : null
+    if (isServer) return
+    const wasVisible = internalState.wasVisible
+    internalState.wasVisible = wantsVisible
+    if (!isReady) return
+    if (wasVisible !== undefined && wasVisible !== wantsVisible) void this.animateVisible(wantsVisible)
+    // never touch the content of an element that was never inert:  most never are
+    if (!hasInertContent && !internalState.hadInertContent) return
+    internalState.hadInertContent = hasInertContent
+    if (hasInertContent) UI.focus.moveOutOf(domElement)
+    for (const child of domElement.renderRoot.children) (child as HTMLElement).inert = hasInertContent
+  }
+
+  /**
+   * Is `visible` asking for the element to show?
+   * - `visible="false"` says no;  absent, bare or `"true"` say yes.
+   * - Always yes where the family's vocabulary has a `visible` of its own (`<ui-sidebar>` starts hidden):
+   *   it handles that itself.
+   */
+  get wantsVisible(): boolean {
+    return !this.elementDefinition.takesShared("visible") || E.Reactive.attributeValue(this, "visible") !== false
+  }
+
+  /**
+   * Hidden by `visible="false"`, once its animation has run:  `:state(hidden)`, which `reset.css` hides
+   * (`display: none`, as the platform's `hidden`).
+   */
+  @cssState("hidden")
+  get isHiddenByVisible(): boolean {
+    return !this.wantsVisible && !this.isHiding
+  }
+
+  /** Is `visible="false"`'s animation running right now?  The element stays in the page until it ends. */
+  @state private accessor isHiding = false
+
+  /**
+   * Run `elementSetup.visibleAnimation` in or out (`UI.transitions`), on the boxes in the shadow root:
+   * most `ui-*` DOM elements are `display: contents`, with no box of their own to animate.
+   * - `isHiding` while it runs out;  a later run (back in, or out again) takes over.
+   * - NEVER throws:  an animation that can't run just ends.
+   */
+  private async animateVisible(show: boolean) {
+    const { internalState } = this
+    const run = (internalState.visibleRun = (internalState.visibleRun ?? 0) + 1)
+    const boxes = [...this.domElement.renderRoot.children].filter((child) => child.localName !== "slot")
+    this.isHiding = !show
+    const name = this.elementSetup.visibleAnimation
+    const direction = show ? UIT.IN : UIT.OUT
+    await Promise.all(
+      boxes.map((element) => UI.transitions.animate({ element: element as HTMLElement, name, direction }))
+    ).catch(() => undefined)
+    if (internalState.visibleRun === run) this.isHiding = false
+  }
 
   ////////////////
   // ## Classes
@@ -883,4 +1003,10 @@ type InternalState = {
   readonly classInput: E.ClassInput
   /** aborted when the element is disposed, removing every listener `on()` added;  made by the first `on()` */
   listeners?: AbortController
+  /** its content has been inert (disabled or loading) since it drew:  only then is it touched again */
+  hadInertContent?: boolean
+  /** `wantsVisible` as the shared states' effect last saw it;  `undefined` before its first run */
+  wasVisible?: boolean
+  /** counts `animateVisible()` runs, so only the latest ends the hiding */
+  visibleRun?: number
 }

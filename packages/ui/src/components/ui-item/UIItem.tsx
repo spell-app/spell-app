@@ -47,7 +47,9 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
   @E.proto static vocabulary = itemVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { item: itemCSS },
-    isAPart: true
+    isAPart: true,
+    // `disabled`:  its link, button or option is disabled
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   ////////////////

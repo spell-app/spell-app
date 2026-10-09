@@ -86,14 +86,16 @@ export class DOMFormElement extends E.DOMElement<UIForm> {
  *   That's Fomantic's own markup, so the form's rules reach its fields and messages,
  *   and the page still submits natively.  A form around it stays as it is.
  ****************/
-// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
-@E.cssStates("loading", "disabled")
 export class UIForm extends E.UIComponent<typeof formVocabulary> {
   @E.proto static vocabulary = formVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { form: formCSS },
     DOMElement: DOMFormElement,
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  its content inert, a look;  the element still takes clicks
+    disabled: "its own",
+    // `loading`:  Fomantic's veil, its content inert
+    loading: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** Controls, values, labels, errors. */

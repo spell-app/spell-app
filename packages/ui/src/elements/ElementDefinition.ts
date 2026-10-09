@@ -6,6 +6,8 @@ import { E } from "$/ui/core"
  * so a component never spells an attribute, event, slot or part name.
  * - `attributes`:  one `ResolvedAttribute` per vocabulary attribute, with its camelCase CANONICAL key (what the
  *   component reads, `this.allowAdditions`) and its (localized) attribute and property names.
+ *   Then the shared attributes the vocabulary doesn't declare (`SharedVocabulary`:  `disabled`, `loading`,
+ *   `visible`), under their English names on a translated tag too.
  *   The DOM element (`DOMElement`) does the rest:  a property per attribute, the upgrade step, reflection.
  * - ONE conversion per kind of value, each way:  `convert()` (attribute text or property value => value) and
  *   `attributeText()` (value => attribute text).
@@ -51,7 +53,8 @@ export class ElementDefinition {
     // no tag and no dictionary is the vocabulary's OWN tag, whatever its prefix (`x-item-owner` in tests)
     this.tag = tag ?? (dictionary ? localized.tag : vocabulary.tag)
     this.builder = new E.ClassBuilder(vocabulary)
-    this.attributes = vocabulary.attributes.map((spec) => {
+    // the vocabulary's own, then the shared ones it doesn't declare (`disabled`, `loading`, `visible`)
+    this.attributes = E.SharedVocabulary.attributesFor(vocabulary).map((spec) => {
       const attribute = localized.names.attributes.get(spec.name) ?? spec.name
       const key = E.camelCase(spec.name)
       const property = attribute === spec.name ? (spec.property ?? key) : E.camelCase(attribute)
@@ -85,6 +88,14 @@ export class ElementDefinition {
       )
     }
     return attribute
+  }
+
+  /**
+   * Does this tag take the SHARED attribute `name` (`SharedVocabulary`)?
+   * False when its vocabulary declares its own of that name:  `<ui-sidebar>`'s `visible` starts hidden.
+   */
+  takesShared(name: string): boolean {
+    return E.SharedVocabulary.takesShared(this.vocabulary, name)
   }
 
   /**
@@ -201,14 +212,17 @@ export class ElementDefinition {
 
   /**
    * Attribute text for a canonical `value`, or `null` to remove it.
-   * - Booleans:  `""` or removed (NEVER `"true"` / `"false"`);  `keyOrValueAndKey`:  `""` for bare, else the
-   *   value;  arrays:  comma-joined.
+   * - Booleans:  `""` or removed (NEVER `"true"`);  `"false"` only for off over a `true` default (`visible`);
+   *   `keyOrValueAndKey`:  `""` for bare, else the value;  arrays:  comma-joined.
    * - Canonical values are written LOCALIZED (`red` => `rojo` on `<ie-boton>`).
    */
   attributeText(attribute: E.ResolvedAttribute, value: unknown): string | null {
     const { spec } = attribute
     if (spec.kind === "keyOnly" || spec.kind === "boolean") {
-      return E.Converters.booleanToAttribute(E.Converters.boolean(value as string | boolean | null | undefined))
+      const isOn = E.Converters.boolean(value as string | boolean | null | undefined)
+      // off over a TRUE default (`visible`, `closable`) reflects as `"false"`:  removed, it would be the default again
+      if (!isOn && spec.default === true) return "false"
+      return E.Converters.booleanToAttribute(isOn)
     }
     // an `icon` turned off over its default reflects as `"false"`:  removing it would bring the default back
     if (spec.kind === "icon" && value == null && typeof spec.default === "string") return "false"

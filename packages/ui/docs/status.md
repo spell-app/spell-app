@@ -1,9 +1,21 @@
 # Status
 
 Checklist of every component in [`docs/plan.md`](plan.md), with what's done, in progress, deferred.  Kept up to date
-as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-10-08.
+as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-10-09.
 
 ## Working on now
+
+- **Shared states** (2026-10-09, epic `spell-element` P8):  every element takes `disabled`, `loading` and `visible`
+  (`SharedVocabulary`), and the platform's `hidden` and `inert`, though its vocabulary never names them;  the docs
+  data lists them on every tag (`shared: true`).  What `disabled` / `loading` mean per family:  `elementSetup`
+  (`"unusable"` / `"loader"` by default;  `"its own"` where a component had its own:  29 of them, and every form
+  control);  `visible="false"` fades out, then `:state(hidden)`;  `hidden` now beats a family's own `display`;
+  `readonly` on every form control (`<ui-select>`, `<ui-search>` new).
+  [`AGENTS.md`](../AGENTS.md) "Solid authoring", "Shared states".
+  - Built:  base class, `reset.css`, static render (`data-state`, ARIA), tests (`test/sharedStates.test.tsx`).
+  - Deferred:  brand's two form controls (`<ui-brand-composer>`, `<ui-brand-color-picker>`) take no `readonly` yet;
+    the native fallbacks ignore `readonly` on `<ui-select>` / `<ui-search>`;  translated tags keep the shared
+    attributes' English names.
 
 - **Component names** (2026-10-08, epic `wwod-spell-ui` P15):  the class behind a tag is its COMPONENT
   (`UIComponent`, `FormComponent`, `LoadableComponent`, `PartComponent`), the tag in the page its DOM ELEMENT

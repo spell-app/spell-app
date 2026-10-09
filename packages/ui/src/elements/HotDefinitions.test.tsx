@@ -31,6 +31,9 @@ type HotElement = DOMElement & Record<string, any> & { shadowRoot: ShadowRoot }
 /** The attribute every test tag has, unless a test says otherwise. */
 const LABEL = { name: "label", kind: "string", description: "A label." } as const
 
+/** What every element starts with for the shared attributes (`SharedVocabulary`), never written in these tests. */
+const SHARED_STARTING_VALUES = { disabled: false, loading: false, visible: true } as const
+
 /** The Spanish names of a test tag:  `<x-hot-1-es etiqueta="...">`. */
 const SPANISH = { lang: "es", attributes: { label: "etiqueta" } } as const satisfies Dictionary
 
@@ -291,12 +294,12 @@ describe("HotDefinitions.migrate()", () => {
     const element = await mount(`<${tag} count="5"></${tag}>`)
     element.size = "7"
     await ElementFixture.tick()
-    expect(element.attributeValues).toEqual({ count: "5", size: "7", tone: "warm" })
+    expect(element.attributeValues).toEqual({ ...SHARED_STARTING_VALUES, count: "5", size: "7", tone: "warm" })
 
     // the new version reads `count` and `size` as numbers, and starts `tone` cool
     makeVersion("two", vocabularyFor(tag, attributes("number", "cool"))).define()
     await update()
-    expect(element.attributeValues).toEqual({ count: 5, size: "7", tone: "cool" })
+    expect(element.attributeValues).toEqual({ ...SHARED_STARTING_VALUES, count: 5, size: "7", tone: "cool" })
     expect(textOf(element)).toBe("two 5 7 cool")
   })
 })

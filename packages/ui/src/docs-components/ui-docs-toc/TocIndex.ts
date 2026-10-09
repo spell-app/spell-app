@@ -1,4 +1,5 @@
-import { E } from "$/ui/core"
+// `$/ui/util` by name, never the `$/ui/core` entry:  node scripts load this file (see the class docs)
+import { beforeNextPaint } from "$/ui/util"
 import {
   EXAMPLE_TAG,
   HEADING_SELECTOR,
@@ -141,8 +142,8 @@ export class TocIndex {
    */
   static whenReady(element: Element, then: () => void): void {
     const root = element.closest("ui-root")
-    if (!root || TocIndex.hasState(root, "ready")) E.beforeNextPaint(then)
-    else root.addEventListener("ui-ready", () => E.beforeNextPaint(then), { once: true })
+    if (!root || TocIndex.hasState(root, "ready")) beforeNextPaint(then)
+    else root.addEventListener("ui-ready", () => beforeNextPaint(then), { once: true })
   }
 
   /** `text` as an id:  lowercase words joined by `-`, e.g. `Labeled Icon` => `labeled-icon`. */
