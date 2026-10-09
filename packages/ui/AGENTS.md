@@ -11,16 +11,14 @@ house style every package shares.  Only what's local is below;  a section named 
 - `@spell-app/ui` is Fomantic UI reborn as `ui-*` custom elements on a modern CSS foundation:  Fomantic's
   vocabulary (`ui small primary basic icon button`), shadow DOM, `@layer`s, OKLCH tokens, accessibility built in.
   Usable from any framework or plain HTML.  Built on **Solid 2** (`solid-js` / `@solidjs/web` `2.0.0-rc.13`,
-  pinned exactly) through our fork of its custom-element layer, `@spell-app/solid-element`.
+  pinned exactly).  The custom-element layer is `ui`'s own code (`DOMElement`, `UIComponent`, `ShadowEvents`,
+  `HotDefinitions`, in `src/elements/`):  `@solidjs/element` and `component-register`, folded in and fixed (epic
+  `spell-element`, 2026-10-09;  each such file carries their MIT notice).
 - The approved design is `docs/plan.md`.  Read "Decisions" and "Architecture" there BEFORE adding a component
   or runtime service.  `docs/report.md` is the generated status report (bundle, perf, hosts, HMR, fallbacks).
 - `docs/status.md` is the per-component checklist (status, tests, size, keyboard, docs page, deferred items).
   MUST be updated in the same change that builds, finishes or defers anything in it.
 - Layout:
-  - `../solid-element/` -- `@spell-app/solid-element`, the fork of `@solidjs/element` + `component-register`
-    (upgrade, forms, lifecycle, error boundary, HMR fixes;  `UPSTREAM.md` maps each to a PR).  A workspace of
-    the monorepo (`workspace:*`), with its own tests (its dependencies are hoisted to the root `node_modules`, like every package's);  run its scripts with
-    `yarn fork <script>`.  NEVER import its files from `src/`:  use the package name.
   - `../util/` -- `@spell-app/util` (`$/util`), shared with `spell`:  `@proto` / `@protoMerged` / `@lazy` / `@once`
     (`decorators.ts`;  component files say `@E.lazy`, `@E.once`, `E.forget()`), `class.ts`, `string.ts`
     (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`.  `src/util/index.ts`
@@ -52,7 +50,7 @@ house style every package shares.  Only what's local is below;  a section named 
   - `src/elements/` (`E`) -- the element core:
     - library-neutral:  `ClassBuilder`, `Validator`, `MenuOptions`, `OwnerContext`, `Shorthand`, `NativeFallback`
     - the Solid layer:  `UIComponent` (the COMPONENT base:  one instance per element, `render()` returns JSX) and
-      `DOMElement` (the DOM element base);  `ElementDefinition` (vocabulary => solid-element's props), `Reactive`
+      `DOMElement` (the DOM element base);  `ElementDefinition` (vocabulary => the DOM element's attributes), `Reactive`
       (the reactive members' decorators:  `@state`, `@controlled`, `@derived`, `@cssState`, `@onChange`),
       `FormComponent` + `DOMFormControl` (form controls), `Cell`, `SlotContent`, `PartContext` + `PartComponent`
       (the generic content parts, styled by their owner), `Controlled` (compatibility:  brand's components still use
@@ -210,12 +208,12 @@ house style every package shares.  Only what's local is below;  a section named 
     pre-compiled markdown engine (`@spell-app/markdown`, `yarn gen:markdown`).  NEVER edit;  lint and format skip it
   - `reference/Fomantic-UI/` -- READ-ONLY, git-ignored clone of Fomantic for porting.  NEVER edit or import it.
 - Commands:
-  - `yarn review` -- tsc (root, node configs, the fork) + oxlint `--fix` + oxfmt + every test (`ssr`, `browser`,
-    the fork's);  MUST pass before you hand work back
+  - `yarn review` -- tsc (root, node configs) + oxlint `--fix` + oxfmt + every test (`ssr`, `browser`);  MUST pass
+    before you hand work back
   - `yarn build` -- tsc + vite library build into `dist/` (entries `core`, `forms`, one per family, `styles`,
     `index`;  `dist/icon-packs/`;  `.d.ts` beside the `exports` paths, from `declarations()` in `vite.config.ts`)
   - `yarn test` -- `ssr` project first (it writes `.cache/ssr-button.html`, which `test/dsd.test.ts` reads), then
-    `browser`, then `yarn test:fork`
+    `browser`
   - `yarn test:all` -- chromium + firefox + webkit (`yarn test:browsers` once first)
   - `yarn test:visual [--os local|linux|both] [--browsers all|chrome|webkit|firefox] [--update] [--grep <family>]
     [--parity]` -- screenshot tests of every element example, light + dark, against the baselines in
@@ -234,9 +232,6 @@ house style every package shares.  Only what's local is below;  a section named 
     refuse the pack, unless skipped or allowed
   - `yarn vendor`, `yarn measure`, `yarn smoke`, `yarn report`, `yarn test:hmr` -- see `tools/README.md`;
     `yarn report` rewrites `docs/report.md`'s tables (run it twice:  no diff)
-  - `yarn fork <script>`, `yarn fork:install`, `yarn fork:build` -- the fork's own scripts.  Its `dist/` is only
-    needed by `yarn vendor` / `yarn measure`, which build it when stale (`tools/ForkBuild.ts`);  dev, tests,
-    the site and the library build use its source
   - `yarn site:build` ~== `yarn site:data` (`site/_data/components.json`, `icons.json`;  the shared
     `ui/_data/search.json`) + `yarn site:index` (the component index's cards, `ui/components/index.html`;  `--check`)
     + `yarn site:kitchen` (the kitchen sink's examples, `ui/kitchen-sink.html`, from every family's
@@ -342,7 +337,7 @@ As WWOD §18, plus:
   `PartComponent`):  `@proto static vocabulary`, `@protoMerged static elementSetup` (what differs from its base:
   `styleSheets: { nag: nagCSS }`, `DOMElement: DOMNagElement`, `delegatesFocus: false`, a form control's
   `Fallback` ...), reactive members
-  (below), `render()` returning JSX.  solid-element creates one per element on first connect and keeps it
+  (below), `render()` returning JSX.  The DOM element creates one on its first connect and keeps it
   (`keepAlive`) until `domElement.dispose()`.  `UI<Name>.define()` in the family's `index.ts` registers it.
 - **Reactive members** (`src/elements/Reactive.ts`;  WWOD §12 › "Reactive members"):  decorators over ONE record per
   instance, so `this.x` reads fresh right after `this.x = v` (no flush), and Solid follows the reads in JSX and
@@ -453,12 +448,12 @@ As WWOD §18, plus:
   body.  Declare state ABOVE what reads it in an initializer;  compute a starting value into the initializer
   (`@E.state accessor isDirty = this.wasEdited !== undefined`).
 - **Where writes go:**  `render()` is an owned scope:  no writes there.  Write from event handlers, `onSettled`,
-  promise callbacks, `@onChange` methods (an effect's APPLY) or the fork's hooks;  hooks that can run inside a
+  promise callbacks, `@onChange` methods (an effect's APPLY) or the lifecycle methods;  those that can run inside a
   Solid render (`onConnect`, the `onFormDisabled` replay) defer with `E.afterSolidUpdate()`.  Element PROPERTY writes
   are always legal.  A reactive member's write never throws:  inside an owned scope its notification waits a microtask.
-  - A reactive member reads fresh right after a write;  a `Cell` (or a fork prop, `attrs.x`) still reads the OLD
-    value until the flush:  keep the new value in a local.  Tests `await ElementFixture.settle()` / `tick()` (which
-    `flush()`) before checking the DOM, never sleep.
+  - A reactive member reads fresh right after a write;  a `Cell` still reads the OLD value until the flush:  keep
+    the new value in a local.  Tests `await ElementFixture.settle()` / `tick()` (which `flush()`) before checking
+    the DOM, never sleep.
 - **Running something later:**  through `$/ui/util`'s timing helpers (`src/util/timing.ts`), never the platform's
   calls, so the code says WHEN:
   - `E.afterSolidUpdate(fn)` -- as soon as the current code finishes (a microtask:  `queueMicrotask()`)
@@ -468,7 +463,7 @@ As WWOD §18, plus:
   - `E.every(seconds, fn)` -- until stopped (`setInterval()`)
   - Each but `afterSolidUpdate()` can be canceled:
     keep what it returns in a field, to cancel a pending one (`this.copiedTimer?.cancel()`).
-  - Raw calls stay only in the helpers themselves, tests, and solid-element's own copy.
+  - Raw calls stay only in the helpers themselves and tests.
 - **Events:**  dispatch through `this.send("ui-change", detail)` (vocabulary-checked, localized on translated
   tags);  listen on the DOM element (or its shadow root) with `@E.on("command") protected onCommand(event)`, for the
   element's whole life, untracked ("Reactive members");  `this.on()` for one added later or under a condition.
@@ -477,13 +472,13 @@ As WWOD §18, plus:
   - A THIRD-PARTY Solid app listening for `ui-*` events uses a `ref` callback + `addEventListener`
     (`tools/frameworks/solid/app.tsx`);  our app:  WWOD §17 › "Events:  `onClick`, or `on()` for `ui-*`".
   - Listeners OUTSIDE a component see `event.target === domElement` (`composedPath()[0]` is the inner element), and an
-    app's delegated `onClick` on a `ui-*` tag runs once.  The fork's `events.ts` guarantees it by undoing what
+    app's delegated `onClick` on a `ui-*` tag runs once.  `ShadowEvents` guarantees it by undoing what
     Solid's shadow-root delegation leaves on the event (`target`, `currentTarget`, its handled marker);  NEVER
-    work around a wrong `target` in a component -- fix it there (`packages/solid-element/UPSTREAM.md`, PR 10).
+    work around a wrong `target` in a component -- fix it there.
 - **`keepAlive`:**  a removed element keeps its reactive root (until `dispose()` or garbage collection), so
   anything page-wide (overlay entries, document listeners) follows `isConnected`, never disposal.
 - **Slots carry no Solid context:**  an element's root is owned by whoever CREATED it, never by the `<slot>` it's
-  assigned to (fork PR 11), so a `<slot>` may live in any `<Show>` / `<Dynamic>` branch, but context provided
+  assigned to (epic `spell-element`, Q8), so a `<slot>` may live in any `<Show>` / `<Dynamic>` branch, but context provided
   around it never reaches slotted elements.  Owner data goes through `PartContext` / `OwnerContext`.
 - **Native fallback:**  when a render throws, the element logs once, dispatches a cancelable `ui-error`, gets
   `:state(errored)` and shows its fallback;  siblings keep working (`docs/fallback.md`).
@@ -497,7 +492,7 @@ As WWOD §18, plus:
   update live instances in place;  internal state (a query, an open menu) resets.  Changes the platform reads
   once (observed attributes, `formAssociated`, the DOM element's class, shadow options) and edits to shared code
   (`core`, `forms`, `src/elements/`, the runtime) reload the page.  `yarn test:hmr` MUST pass after touching
-  `HotDefinitions`, `UIComponent.define()` or the fork's HMR.
+  `HotDefinitions`, `UIComponent.define()` or `tools/HotElements.ts` (the Vite plugin).
 - **One Solid per page:**  every Vite config dedupes `solid-js` / `@solidjs/web` (`SOLID_DEDUPE`);  NEVER
   `import * as` a Solid package in shipped code (it pins every export into bundles and vendored copies).
 - SSR:  anything that reads the DOM in a constructor needs an `isServer` guard (`test/ssr.ssr.test.tsx`).
@@ -629,7 +624,7 @@ As WWOD §9, plus:
     singletons).  (Epic `wwod-spell-ui`, J12, undoing J50's churn-only keep.)
 - Values are English where they're only ours (`"file protocol"`);  values a page or CSS reads (an event's `detail`,
   `data-ui-animation`, a vocabulary's attribute values) keep their published spelling.
-- `null` only at platform boundaries:  `getAttribute()`, `setFormValue()`, the fork's `toAttribute`, `useContext`'s
+- `null` only at platform boundaries:  `getAttribute()`, `setFormValue()`, `useContext`'s
   default.  Everything of ours is `undefined` (epic `wwod-spell-ui`, Q9).
 
 ## Classes
@@ -705,6 +700,5 @@ As WWOD §20, plus:
 
 ## Out of scope for WWOD
 
-- `packages/solid-element/`:  a fork whose modules map 1:1 to upstream PRs (`UPSTREAM.md`);  keeps upstream's shape.
 - Generated files (`src/languages/`, `md.bundle.js`, `site/_assets/`, `site/_data/`, `UIRoot.catalog.ts`):  never
   edited, only regenerated.

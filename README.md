@@ -32,7 +32,6 @@ components, a command line, and `@spell-app/ui`, a web component library that st
 | [`packages/app`](packages/app/AGENTS.md)         | `@spell-app/app`     | The web app and its server, the runner, and the `<spell-app>` / `<spell-editor>` web components                  |
 | [`packages/vscode`](packages/vscode)                         | `spell-language`       | The VS Code extension that runs the language server:  its own yarn project, not a workspace                      |
 | [`packages/ui`](packages/ui/README.md)                       | `@spell-app/ui`            | Fomantic UI's vocabulary as modern-CSS web components on Solid 2, for any framework or plain HTML                |
-| [`packages/solid-element`](packages/solid-element/README.md) | `@spell-app/solid-element` | Custom elements for Solid 2:  our fork of `@solidjs/element` + `component-register`                              |
 | [`packages/cli`](packages/cli/README.md)                     | `@spell-app/cli`           | The `spell` command line:  compile, check, explore, watch, run and test spell projects                           |
 | [`packages/util`](packages/util/README.md)                   | `@spell-app/util`          | Small generic helpers shared by the others (`@proto`, class, string and DOM utilities);  imported as `$/util`    |
 | [`packages/docs`](packages/docs/README.md)                   | `@spell-app/docs`          | Every package's docs as @spell-app/ui pages, their templates and plan docs;  start at `index.html`            |
@@ -40,7 +39,7 @@ components, a command line, and `@spell-app/ui`, a web component library that st
 Each package has its own README or `AGENTS.md` (how it's built).  Imports use one alias per package, `$/parser`,
 `$/core` ... -- the table is [`tsconfig.base.json`](tsconfig.base.json).  Dependencies flow one way:
 `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, and
-`ui` -> `solid-element` / `util`.
+`ui` -> `util`.
 
 ## Getting started
 
@@ -66,7 +65,7 @@ can change files.
 
 `yarn test` is ONE vitest run over every package (the root `vitest.config.ts` lists them as `projects`):
 - `yarn test --project spell` runs one project, named for its folder:  `spell`, `parser`, `core`,
-  `lsp`, `app`, `cli`, `solid-element`, plus `util:browser`, `util:spell`, `ui:ssr` and `ui:browser`.
+  `lsp`, `app`, `cli`, plus `util:browser`, `util:spell`, `ui:ssr` and `ui:browser`.
 - `yarn test:watch` is the watch mode, and the VS Code vitest extension reads the same config.
 - `yarn test:packages` runs each package's own `yarn test` one after another, as before.
 

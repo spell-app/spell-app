@@ -3,7 +3,6 @@ node_modules
 .DS_Store
 .claude/worktrees/
 workspaces/ongoing/
-packages/solid-element/dist/
 __pycache__/
 
 # the page server's pid file and log (`spell dev server`)

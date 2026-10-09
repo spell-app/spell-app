@@ -369,7 +369,7 @@ In this order, from `packages/docs`:
 
 - `spell dev docs update` (`tools/update.js`) -- rebuild the bundle from the LATEST UI, `docs index`, then
   `doc-links.js --check` and `check-spell.js` on every page.  `--skip-ui-build` reuses `../ui/dist`;  `--no-check` skips the browser.
-- `tools/bundle-spell-ui.js` -- builds UI (fork + `yarn build`), bundles `_assets/spell-ui.js`.
+- `tools/bundle-spell-ui.js` -- builds UI (`yarn build`), bundles `_assets/spell-ui.js`.
   - `--design [--out <dir>]` (`yarn design:bundle`):  the claude.ai design system's `components/bundle.js` instead
     (epic `claude-design`, P8), from `_assets/spell-ui.design.entry.js`:  no page runtime, site header or saver;
     the engines and every Font Awesome Free icon inlined;  `<!--` / `</script` escaped;  fails over 6 MB.  Default

@@ -130,7 +130,6 @@ const CORE_PACKAGES = [
   "markdown",
   "parser",
   "server",
-  "solid-element",
   "spell",
   "ui",
   "util",
