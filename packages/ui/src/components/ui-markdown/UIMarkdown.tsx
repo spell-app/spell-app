@@ -18,10 +18,10 @@ import markdownCSS from "./UIMarkdown.css?inline"
  * - `reveal(id)`:  scroll to one of them from outside.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMMarkdownElement extends E.DOMLoadableElement {
+export class DOMMarkdownElement extends E.DOMLoadableElement<UIMarkdown> {
   /** Each heading of the last render;  `[]` before the first.  Untracked:  it's for scripts. */
   get headings(): MarkdownHeading[] {
-    return untrack(() => this.markdown?.headings) ?? []
+    return untrack(() => this.component?.headings) ?? []
   }
 
   /**
@@ -31,12 +31,7 @@ export class DOMMarkdownElement extends E.DOMLoadableElement {
    *   e.g. from a table of contents outside the element.
    */
   reveal(id: string): boolean {
-    return this.markdown?.reveal(id) ?? false
-  }
-
-  /** This element's component, once it has one. */
-  private get markdown(): UIMarkdown | undefined {
-    return this.component as UIMarkdown | undefined
+    return this.component?.reveal(id) ?? false
   }
 }
 

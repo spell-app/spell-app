@@ -22,7 +22,7 @@ import rangeCSS from "./UIBrandColorRange.css?inline"
  * - `DOMElement` refuses a member named like an attribute's property:  none of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMBrandColorRangeElement extends DOMElement {
+export class DOMBrandColorRangeElement extends DOMElement<UIBrandColorRange> {
   /** Step => `#RRGGBB` (a copy), or `undefined` without a base colour. */
   get scale(): Scale | undefined {
     const ladder = this.ladder()

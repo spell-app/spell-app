@@ -21,7 +21,7 @@ import checkboxCSS from "./UICheckbox.css?inline"
  * - `DOMElement` refuses a member named like an attribute's property:  none of these names is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMCheckElement extends F.DOMFormControl {
+export class DOMCheckElement extends F.DOMFormControl<CheckControl> {
   /** Another name for `selected`. */
   get checked(): boolean {
     return !!(this as unknown as { selected?: boolean }).selected
@@ -33,22 +33,17 @@ export class DOMCheckElement extends F.DOMFormControl {
 
   /** How a form reads it:  `"radio"` for `<ui-radio>`, else `"checkbox"`. */
   get checkable(): CheckControl["checkable"] {
-    return this.check?.checkable ?? "checkbox"
+    return this.component?.checkable ?? "checkbox"
   }
 
   /** Submitted while chosen:  `value`, else its class's `defaultChosenValue`;  none before its component exists. */
   get chosenValue(): string | undefined {
-    return this.check?.chosenValue
+    return this.component?.chosenValue
   }
 
   /** Submitted while unchosen:  `off-value`, else its class's `defaultUnchosenValue`;  none ~== nothing. */
   get unchosenValue(): string | undefined {
-    return this.check?.unchosenValue
-  }
-
-  /** The component, once it exists. */
-  private get check(): CheckControl | undefined {
-    return this.component as CheckControl | undefined
+    return this.component?.unchosenValue
   }
 }
 
@@ -216,7 +211,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   readonly slots = new E.SlotContent(this.domElement)
 
   /** The DOM element's `<label>`s and `aria-label`, as the input's name when there's no text. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
+  readonly labels = new F.ControlLabels(this.domElement)
 
   /** Has label text (slot or shorthand)? */
   protected get hasLabelText(): boolean {

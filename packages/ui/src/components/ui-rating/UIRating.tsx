@@ -18,15 +18,10 @@ import ratingCSS from "./UIRating.css?inline"
  * - `DOMElement` refuses a member named like an attribute's property:  `focus` is not one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMRatingElement extends F.DOMFormControl {
+export class DOMRatingElement extends F.DOMFormControl<UIRating> {
   /** Focus the chosen radio, else the first. */
   override focus(options?: FocusOptions) {
-    if (!this.rating?.focus(options)) super.focus(options)
-  }
-
-  /** The component, once it exists. */
-  private get rating(): UIRating | undefined {
-    return this.component as UIRating | undefined
+    if (!this.component?.focus(options)) super.focus(options)
   }
 }
 
@@ -180,7 +175,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   ////////////////
 
   /** The DOM element's `<label>`s and `aria-label`, as the group's name. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
+  readonly labels = new F.ControlLabels(this.domElement)
 
   /** Connected:  read the labels again (they may have changed while it was away). */
   @E.onChange("isConnected")

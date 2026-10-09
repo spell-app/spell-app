@@ -13,19 +13,14 @@ import includeCSS from "./UIInclude.css?inline"
  * to the source API it inherits from `DOMLoadableElement` (`content`, `save()` ...).
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMIncludeElement extends E.DOMLoadableElement {
+export class DOMIncludeElement extends E.DOMLoadableElement<UIInclude> {
   /**
    * Where the included markup lives:  the shadow box (`[part~=content]`), or the DOM element itself with
    * `page-styles`;  `undefined` before it loads.
    * - For editors:  edit there, then `save()`.
    */
   get contentRoot(): HTMLElement | undefined {
-    return this.include?.contentRoot
-  }
-
-  /** This element's component, once it has one. */
-  private get include(): UIInclude | undefined {
-    return this.component as UIInclude | undefined
+    return this.component?.contentRoot
   }
 }
 

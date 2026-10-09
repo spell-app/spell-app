@@ -26,20 +26,20 @@ import transitionCSS from "./UITransition.css?inline"
  * - NOTE: `transition`, not `animate`:  `Element.animate()` is the Web Animations API.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMTransitionElement extends E.DOMElement {
+export class DOMTransitionElement extends E.DOMElement<UITransition> {
   /** Animate in (the `animation` attribute's), then `ui-show`. */
   show(): Promise<boolean> {
-    return this.uiTransition?.animateTo(true) ?? Promise.resolve(false)
+    return this.component?.animateTo(true) ?? Promise.resolve(false)
   }
 
   /** Animate out, then `ui-hide`. */
   hide(): Promise<boolean> {
-    return this.uiTransition?.animateTo(false) ?? Promise.resolve(false)
+    return this.component?.animateTo(false) ?? Promise.resolve(false)
   }
 
   /** `show()` when hidden, else `hide()`. */
   toggle(): Promise<boolean> {
-    return this.uiTransition?.toggle() ?? Promise.resolve(false)
+    return this.component?.toggle() ?? Promise.resolve(false)
   }
 
   /**
@@ -47,12 +47,7 @@ export class DOMTransitionElement extends E.DOMElement {
    * an attention one in place, an appear / disappear one toggling visibility.  Queued like every other.
    */
   transition(animation?: string): Promise<boolean> {
-    return this.uiTransition?.transition(animation) ?? Promise.resolve(false)
-  }
-
-  /** Its component, once drawn (`transition` is taken:  the method above). */
-  private get uiTransition(): UITransition | undefined {
-    return this.component as UITransition | undefined
+    return this.component?.transition(animation) ?? Promise.resolve(false)
   }
 }
 

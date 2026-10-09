@@ -18,20 +18,15 @@ import formCSS from "./UIForm.css?inline"
  * - `DOMElement` checks its members against the attributes' property names;  neither of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMFieldElement extends E.DOMElement {
+export class DOMFieldElement extends E.DOMElement<UIField> {
   /** Show `messages` as the field's prompt (and `error` state);  `[]` clears. */
   showErrors(messages: readonly string[]) {
-    this.field?.showErrors(messages)
+    this.component?.showErrors(messages)
   }
 
   /** Prompts shown now. */
   get errors(): readonly string[] {
-    return untrack(() => this.field?.errors) ?? []
-  }
-
-  /** The field's component, once it exists. */
-  private get field(): UIField | undefined {
-    return this.component as UIField | undefined
+    return untrack(() => this.component?.errors) ?? []
   }
 }
 

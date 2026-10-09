@@ -18,10 +18,10 @@ import shapeCSS from "./UIShape.css?inline"
  *   writing `activeIndex` yourself flips too, the `direction` attribute's way.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMShapeElement extends E.DOMElement {
+export class DOMShapeElement extends E.DOMElement<UIShape> {
   /** Turn `direction` (default the `direction` attribute) to side `index` (default the next one, wrapping). */
   flip(direction?: UIT.ShapeFlip, index?: number): Promise<boolean> {
-    return this.shape?.flipTo(direction, index) ?? Promise.resolve(false)
+    return this.component?.flipTo(direction, index) ?? Promise.resolve(false)
   }
 
   /** Turn to the next side (wrapping), the `direction` attribute's way. */
@@ -31,12 +31,7 @@ export class DOMShapeElement extends E.DOMElement {
 
   /** Turn to the previous side (wrapping), the `direction` attribute's way. */
   previous(): Promise<boolean> {
-    return this.shape?.flipBy(-1) ?? Promise.resolve(false)
-  }
-
-  /** Its component, once drawn. */
-  private get shape(): UIShape | undefined {
-    return this.component as UIShape | undefined
+    return this.component?.flipBy(-1) ?? Promise.resolve(false)
   }
 }
 

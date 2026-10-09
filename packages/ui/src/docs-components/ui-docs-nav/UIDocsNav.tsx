@@ -37,13 +37,13 @@ import navCSS from "./UIDocsNav.css?inline"
  * - None of these members is named like an attribute:  `DOMElement` refuses a member that is.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMDocsNavElement extends E.DOMElement {
+export class DOMDocsNavElement extends E.DOMElement<UIDocsNav> {
   /**
    * Focus the search field (`<ui-docs-search>`'s `summon()`:  what `/` and Cmd / Ctrl+K do),
    * opening the drawer the nav is in first, if it's closed.
    */
   focusSearch() {
-    this.nav?.focusSearch()
+    this.component?.focusSearch()
   }
 
   /**
@@ -51,22 +51,17 @@ export class DOMDocsNavElement extends E.DOMElement {
    * - A flyout calls it once open:  a hidden nav can't measure.
    */
   revealCurrent() {
-    this.nav?.revealCurrent()
+    this.component?.revealCurrent()
   }
 
   /** The starred tags, A-Z;  `[]` before the component exists. */
   get favorites(): string[] {
-    return this.nav?.favoriteTags ?? []
+    return this.component?.favoriteTags ?? []
   }
 
   /** Resolves once the component list has loaded and rendered;  also on a load error, which it then shows. */
   get listed(): Promise<void> {
-    return this.nav?.listed ?? this.ready.then(() => this.nav?.listed)
-  }
-
-  /** This element's component, once it has one. */
-  private get nav(): UIDocsNav | undefined {
-    return this.component as UIDocsNav | undefined
+    return this.component?.listed ?? this.ready.then(() => this.component?.listed)
   }
 }
 

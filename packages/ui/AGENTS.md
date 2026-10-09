@@ -70,6 +70,13 @@ house style every package shares.  Only what's local is below;  a section named 
         `DOM<Name>Element` as the platform's `HTMLAnchorElement`;  NO one-liner files (Owen:  "try to avoid
         one-liner files, e.g. BrandColorHost").  A big one (dozens of members) may keep its own file,
         `DOM<Name>Element.ts`;  none does today
+        - it names its component class, `class DOMNagElement extends E.DOMElement<UINag>`, so `this.component` is a
+          `UINag | undefined` and its script API forwards with no cast:  `close() { return this.component?.close()
+          ?? false }`.  A type only:  `elementSetup.DOMElement` is what pairs them at run time
+        - the other way round, a component whose code reads its DOM element's own members says so with a
+          `declare readonly domElement: DOM<Name>Element` (`FormComponent`, `UIBrandColor`), not a cast.  Except
+          where the same class reads it in a field initializer:  TypeScript calls that "used before its
+          initialization" (TS2729), so `LoadableComponent` keeps its `as DOMLoadableElement` casts
     - `index.ts` -- the family barrel:  calls `define()` for every tag (SIDE EFFECT), re-exports the classes.
       Also the family's lib entry (`@spell-app/ui/ui-button`) and its hot-reload boundary
     - `UI<Name>.css` -- port of Fomantic's `.less` + `.variables`;  a second sheet keeps its suffix

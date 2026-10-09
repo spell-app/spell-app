@@ -101,7 +101,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   readonly slots = new SlotContent(this.domElement)
 
   /** The DOM element's `<label>`s and `aria-label` (a `<ui-brand-field>` names it so), as the group's name. */
-  readonly labels = new ControlLabels(this.domFormElement)
+  readonly labels = new ControlLabels(this.domElement)
 
   /** Each row's copy icon and check, loaded up front so the check shows at once. */
   readonly glyphs = {

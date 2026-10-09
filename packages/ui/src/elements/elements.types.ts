@@ -625,7 +625,7 @@ export type ElementSetup = {
    * - A family with a script API of its own names its `DOM<Name>Element` here (`DOMNagElement`).
    * - Read once, when the tag is defined.
    */
-  DOMElement: typeof E.DOMElement
+  DOMElement: E.DOMElementBaseClass
 
   /**
    * The plain-DOM stand-in this element shows when it breaks (`UI<Name>.fallback.ts`).

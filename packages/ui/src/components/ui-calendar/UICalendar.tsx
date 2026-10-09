@@ -64,7 +64,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   } satisfies Partial<E.ElementSetup>
 
   /** The DOM element's `<label>`s and `aria-label`, as the field's name. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
+  readonly labels = new F.ControlLabels(this.domElement)
 
   /** The popup button's glyph:  `icon`, else `calendar` (`clock` for `time`). */
   readonly iconGlyph = new E.IconGlyph({

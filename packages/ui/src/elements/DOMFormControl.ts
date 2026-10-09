@@ -5,6 +5,8 @@ import { E } from "$/ui/core"
  * The DOM element of a form control (`<ui-dropdown>`, `<ui-input>`, `<ui-checkbox>` ...):
  * it adds the platform's form-control API (`form`, `validity`, `checkValidity()` ...), read from `internals`.
  * - Its component is a `FormComponent`, whose `elementSetup.DOMElement` names this class.
+ *   A control's own subclass names its component class (`DOMCheckElement extends F.DOMFormControl<CheckControl>`);
+ *   this class reads only `internals`, so it asks nothing of `C`.
  * - Form association itself is `elementSetup.isAFormControl` (DOM API `static formAssociated`, set per tag by
  *   `UIComponent.define()`);  the browser's form callbacks reach the component as its methods (`onFormReset()`,
  *   `onFormDisabled()` ...), through `DOMElement`.
@@ -13,7 +15,7 @@ import { E } from "$/ui/core"
  *   module evaluates, since the core never imports `forms` (see `FormComponent`).
  * - `null` where the platform says it (`form`):  the same API as a native control.
  ****************/
-export class DOMFormControl extends E.DOMElement {
+export class DOMFormControl<C extends E.UIComponent<any> = E.UIComponent<any>> extends E.DOMElement<C> {
   /** Form owner;  `null` outside a form, as a native control's. */
   get form(): HTMLFormElement | null {
     return this.internals.form

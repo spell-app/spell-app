@@ -35,14 +35,14 @@ import searchCSS from "./UIDocsSearch.css?inline"
  * - None of these members is named like an attribute:  `DOMElement` refuses a member that is.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMDocsSearchElement extends E.DOMElement {
+export class DOMDocsSearchElement extends E.DOMElement<UIDocsSearch> {
   /**
    * Show the field and focus it, its text selected:  what `/` and Cmd / Ctrl+K do.
    * - A field that isn't on screen opens the drawer it's in first (a closed `<ui-flyout>` / `<ui-sidebar>`),
    *   e.g. a narrow top bar's search button.
    */
   summon(): Promise<void> {
-    return this.search?.summon() ?? this.ready.then(() => this.search?.summon())
+    return this.component?.summon() ?? this.ready.then(() => this.component?.summon())
   }
 
   /**
@@ -50,12 +50,7 @@ export class DOMDocsSearchElement extends E.DOMElement {
    * - Untracked:  a page's Solid effect reading it doesn't re-run on every keystroke.
    */
   get query(): string {
-    return untrack(() => this.search?.query) ?? ""
-  }
-
-  /** This element's component, once it has one. */
-  private get search(): UIDocsSearch | undefined {
-    return this.component as UIDocsSearch | undefined
+    return untrack(() => this.component?.query) ?? ""
   }
 }
 

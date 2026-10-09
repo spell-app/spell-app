@@ -206,7 +206,7 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   ////////////////
 
   /** The DOM element's `<label>`s and `aria-label`, as the control's name. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
+  readonly labels = new F.ControlLabels(this.domElement)
 
   /** Connected:  the DOM element's `<label>`s may be others now. */
   @E.onChange("isConnected")

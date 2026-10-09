@@ -36,18 +36,22 @@ const HTMLElementOrShim = (globalThis.HTMLElement ?? class {}) as typeof HTMLEle
  *
  * - A family adds its own script API in a subclass, `DOM<Name>Element` (`DOMNagElement`):
  *   `elementSetup.DOMElement` names it.
+ *   - It names its component's class too, `extends E.DOMElement<UINag>`:  so `this.component` is a `UINag`,
+ *     and its script API calls it with no cast (`this.component?.close() ?? false`).
+ *   - `C` is a type only:  nothing checks at run time that the component really is one
+ *     (`elementSetup.DOMElement` pairs them).
  * - NOTE: a member named like a property an attribute gets is refused when the tag is defined
  *   (one error naming each clash):  never add one a vocabulary attribute could be called.
  * - Knows its component only by type:  `UIComponent` imports this file, never the other way round.
  * - From solid-element's element class (its fixes 2, 4, 5, 6 and 9), folded in (epic `spell-element`, P2).
  ****************/
-export class DOMElement extends HTMLElementOrShim {
+export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> extends HTMLElementOrShim {
   ////////////////
   // ## The element
   ////////////////
 
   /** This element's component;  `undefined` until it first connects, and again once it broke. */
-  component?: E.UIComponent<any>
+  component?: C
 
   /** DOM API:  `attachInternals()`, attached in the constructor:  custom states, ARIA defaults, forms. */
   readonly internals: ElementInternals
@@ -358,7 +362,7 @@ export class DOMElement extends HTMLElementOrShim {
    * DOM API `static formAssociated`.  It's not defined yet:  `UIComponent.define()` does that.
    * - Throws a `TypeError` naming EVERY attribute property that would hide a member of the element (Q6).
    */
-  static subclassForTag(Base: typeof DOMElement, tag: TagSetup): DOMElementClass {
+  static subclassForTag(Base: DOMElementBaseClass, tag: TagSetup): DOMElementClass {
     const name = className(tag.elementDefinition.tag)
     const Class = { [name]: class extends Base {} }[name] as unknown as DOMElementClass
     Class.tagSetup = tag
@@ -438,7 +442,15 @@ const INSTANCE_FIELDS: readonly string[] = ["internals", "attributeValues", "com
 ////////////////
 
 /** The class `subclassForTag()` makes for one tag. */
-export type DOMElementClass = typeof DOMElement & { new (): DOMElement }
+export type DOMElementClass = DOMElementBaseClass & { new (): DOMElement }
+
+/**
+ * The class a tag's own class is made from (`subclassForTag()`'s `Base`, `elementSetup.DOMElement`):
+ * `DOMElement`, or a family's subclass of it, whatever its component class.
+ * - Why not plain `typeof DOMElement`:  that keeps `C` open, and a subclass that names its component
+ *   (`DOMNagElement`, `component: UINag`) doesn't fit "any `C`".
+ */
+export type DOMElementBaseClass = typeof DOMElement<E.UIComponent<any>>
 
 /** What one tag's class carries:  `subclassForTag()`'s input (hot reload swaps it in place). */
 export type TagSetup = {

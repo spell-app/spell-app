@@ -15,19 +15,14 @@ import codeCSS from "./UICode.css?inline"
  * it adds `detectedLanguage` to the source API it inherits from `DOMLoadableElement` (`content`, `save()` ...).
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMCodeElement extends E.DOMLoadableElement {
+export class DOMCodeElement extends E.DOMLoadableElement<UICode> {
   /**
    * What auto-detection picked (when no `language` is given);  `undefined` otherwise,
    * or before the colours arrive (`ui-highlight` says when).
    * - Untracked:  it's for scripts.
    */
   get detectedLanguage(): string | undefined {
-    return untrack(() => this.code?.detectedLanguage)
-  }
-
-  /** This element's component, once it has one. */
-  private get code(): UICode | undefined {
-    return this.component as UICode | undefined
+    return untrack(() => this.component?.detectedLanguage)
   }
 }
 
