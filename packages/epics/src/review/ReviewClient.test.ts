@@ -48,6 +48,7 @@ class FakeServer {
     if (route === "cancel") this.inbox.cancelNow(id)
     if (route === "draft") this.inbox.setDraft(id, body.action, body.note ?? null)
     if (route === "urgency") this.inbox.setUrgency(id, body.calm ?? null)
+    if (route === "new") this.inbox.setNew(id, body.entry)
     if (route === "send" && body.now === true) this.inbox.reviewNow()
     else if (route === "send") this.inbox.markSent()
     return json(this.inbox.forPage())
@@ -281,6 +282,47 @@ describe("ReviewClient writes", () => {
     expect(client.unsentCount).toBe(0)
     expect(await client.send()).toBe(false)
     expect(notices).toEqual([`Saved.  ${NOBODY_LISTENING}`, "Sent already:  waiting for Claude"])
+  })
+})
+
+// epic `airplane` P2:  new todos and questions from the page
+describe("ReviewClient new items", () => {
+  test("saveNew:  keyed by the server, listed by kind in the order added;  counted for Send;  says where it waits", async () => {
+    const { client, server } = await started()
+    const notices: string[] = []
+    client.onNotice((message) => notices.push(message))
+    expect(await client.saveNew({ kind: "todo", title: "pack", note: "chargers", near: "q1" })).toBe(true)
+    expect(await client.saveNew({ kind: "question", title: "aisle?" })).toBe(true)
+    expect(await client.saveNew({ kind: "todo", title: "check in" })).toBe(true)
+    expect(server.posts[0]).toEqual([
+      "new",
+      { page: PAGE, entry: { kind: "todo", title: "pack", note: "chargers", near: "q1" } }
+    ])
+    expect(client.newItems("todo").map((item) => [item.id, item.title])).toEqual([
+      ["new1", "pack"],
+      ["new3", "check in"]
+    ])
+    expect(client.newItems().map((item) => item.id)).toEqual(["new1", "new2", "new3"])
+    expect(client.unsentCount).toBe(3)
+    expect(notices[0]).toBe(`Saved:  a new todo.  ${NOBODY_LISTENING}`)
+  })
+
+  test("saveNew with a key changes it, shown at once;  removeNew drops it at once;  a refused one says why", async () => {
+    const { client, server } = await started()
+    await client.saveNew({ kind: "todo", title: "pack" })
+    const write = client.saveNew({ kind: "question", title: "pack what?" }, "new1")
+    expect(client.newItems("question").map((item) => item.title)).toEqual(["pack what?"])
+    await write
+    expect(server.inbox.marks.new1).toMatchObject({ action: "new", kind: "question", title: "pack what?" })
+    const removed = client.removeNew("new1")
+    expect(client.newItems()).toEqual([])
+    await removed
+    expect(server.inbox.isEmpty).toBe(true)
+    server.failures.set("new", { status: 400, error: "a new item needs a title" })
+    const notices: string[] = []
+    client.onNotice((message) => notices.push(message))
+    expect(await client.saveNew({ kind: "todo", title: "" })).toBe(false)
+    expect(notices).toEqual(["A new item needs a title."])
   })
 })
 

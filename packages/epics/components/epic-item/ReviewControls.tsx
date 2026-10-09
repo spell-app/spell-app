@@ -27,8 +27,9 @@ import {
 import type { ReviewState } from "./ReviewState"
 
 /*
- * The review controls (P9), drawn by `<epic-item>` in its line and details, and by an Overview `<epic-section>` in
- * its title and body (decision Q14):  the same pieces, the same look (`ReviewControls.css`, adopted by both).
+ * The review controls (P9), drawn by `<epic-item>` in its line and details;  by an Overview `<epic-section>` (decision
+ * Q14) and an `<epic-phase>` (epic `airplane` P2) in their title and body;  by `<epic-summary>` under its lede.
+ * - the same pieces, the same look (`ReviewControls.css`, adopted by each)
  * - Plain Solid components, no element of their own:  each takes its element's `ReviewState` and `text()`.
  * - Shown only while the page is reviewed:  the CALLER wraps them in `<Show when={review.reviewing()}>`.
  */

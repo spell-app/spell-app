@@ -1,10 +1,14 @@
 /**
  * Every name `<epic-page>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type` only.
+ * - Pure data:  `import type`, plus the new-item controls' parts and texts (`NEW_*`) from `epic-item`'s types file,
+ *   data too:  its header's `+` (epic `airplane` P2).
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
+
+// the new-item controls its header draws, as a Todos section does
+import { NEW_PARTS, NEW_TEXTS } from "$/epics/components/epic-item/EpicItem.types"
 
 /****************
  * ### `<epic-page>`
@@ -127,7 +131,8 @@ export const epicPageVocabulary = {
       name: "hung",
       description:
         "A doc still planning (no phases, not future):  the folded `Plan hung?` aside, with the prompt to copy."
-    }
+    },
+    ...NEW_PARTS
   ],
   states: [
     { name: "future", description: "A future epic." },
@@ -214,7 +219,8 @@ export const epicPageVocabulary = {
     { key: "agentWaiting", text: "waiting for the session", description: "A redirect no session passed on yet." },
     { key: "agentNote", text: "Redirect {name} ...", description: "An agent's empty note box." },
     { key: "agentNoteLabel", text: "Redirect {name}:  your note", description: "An agent's note box, spoken." },
-    { key: "agentSend", text: "Send", description: "An agent's Send button:  the note redirects it." }
+    { key: "agentSend", text: "Send", description: "An agent's Send button:  the note redirects it." },
+    ...NEW_TEXTS
   ],
   children: [
     { tag: "flow", slot: "durable", max: 1, description: "The durable doc's link." },
