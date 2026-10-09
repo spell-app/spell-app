@@ -16,7 +16,8 @@ describe("AirplaneInbox.gather()", () => {
       version: 1,
       marks: {
         q1: { action: "approve", at: "2026-10-10T09:00:00.000Z" },
-        i2: { action: "revisit", when: "soon", note: "why?", at: "2026-10-10T11:00:00.000Z" }
+        i2: { action: "revisit", when: "soon", note: "why?", at: "2026-10-10T11:00:00.000Z" },
+        new1: { action: "new", kind: "todo", title: "Try it on the phone", at: "2026-10-10T11:10:00.000Z" }
       },
       drafts: { t3: { action: "todo", note: "half a tho", at: "2026-10-10T11:30:00.000Z" } },
       now: [{ id: "q4", action: "details", at: "2026-10-10T10:00:00.000Z" }],
@@ -54,7 +55,11 @@ describe("AirplaneInbox.gather()", () => {
   it("takes every mark, sent or not, with the drafts and the requests for now", () => {
     const [epic, ...others] = AirplaneInbox.gather(root, { since: flight }).epics
     expect(others).toEqual([])
-    expect(epic!.marks.map(({ id, sent }) => `${id} ${sent ? "sent" : "not sent"}`)).toEqual(["q1 sent", "i2 not sent"])
+    expect(epic!.marks.map(({ id, sent }) => `${id} ${sent ? "sent" : "not sent"}`)).toEqual([
+      "q1 sent",
+      "i2 not sent",
+      "new1 not sent"
+    ])
     expect(epic!.drafts).toMatchObject([{ id: "t3", note: "half a tho" }])
     expect(epic!.now).toMatchObject([{ id: "q4", action: "details" }])
   })
@@ -68,7 +73,7 @@ describe("AirplaneInbox.gather()", () => {
 
   it("says it in a line per place", () => {
     expect(AirplaneInbox.gather(root, { since: flight }).lines).toEqual([
-      "epic demo:  2 marks (1 not sent), 1 draft, 1 for now",
+      "epic demo:  2 marks (1 not sent), 1 new item, 1 draft, 1 for now",
       expect.stringMatching(/^note guides\/guide\.html n1 \(.*\):  Is this still true\?$/),
       expect.stringMatching(/^details epics\/demo\/details\/onboard\.html:  answered /)
     ])

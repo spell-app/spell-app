@@ -64,9 +64,13 @@ export class AirplaneInbox {
     const count = (n: number, what: string) => `${n} ${what}${n === 1 ? "" : "s"}`
     return [
       ...this.epics.map((epic) => {
-        const unsent = epic.marks.filter((mark) => !mark.sent).length
+        // a new item from the page (`+`, P2) is a mark of its own kind:  `{ action: "new", kind, title }`
+        const marks = epic.marks.filter((mark) => mark.action !== "new")
+        const created = epic.marks.length - marks.length
+        const unsent = marks.filter((mark) => !mark.sent).length
         const parts = [
-          epic.marks.length && `${count(epic.marks.length, "mark")}${unsent ? ` (${unsent} not sent)` : ""}`,
+          marks.length && `${count(marks.length, "mark")}${unsent ? ` (${unsent} not sent)` : ""}`,
+          created && count(created, "new item"),
           epic.drafts.length && count(epic.drafts.length, "draft"),
           epic.now.length && `${epic.now.length} for now`
         ].filter(Boolean)
