@@ -13,7 +13,7 @@ import __nounCamel__CSS from "./__Class__.css?inline"
  ****************/
 export class __Class__ extends E.UIComponent<typeof __vocab__Vocabulary> {
   @E.proto static vocabulary = __vocab__Vocabulary
-  @E.proto static styleSheets = { __nounCamel__: __nounCamel__CSS }
+  @E.proto static styleSheets = { "__tag__": __nounCamel__CSS }
 
   render(): JSX.Element {
     return (

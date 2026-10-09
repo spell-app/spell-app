@@ -659,13 +659,11 @@ export class ReviewInbox {
    *   (Q14:  they take review notes too)
    * - every phase, `<epic-phase id>`, and the summary, `summary` while the doc has an `<epic-summary>` (epic
    *   `airplane` P2:  notes on them too)
-   * - in the OLD markup, every `<ui-item>` carrying both an `id` and a `data-status` (an item, not a phase step or a
-   *   plain list entry).  REFACTOR: drop old markup after the switch (P12)
    * - text, not a DOM:  cheap enough to run on every request;  attributes in any order, across lines
    */
   static itemIds(html: string): Set<string> {
     const ids = new Set<string>()
-    for (const [tag, name] of html.matchAll(/<(ui-item|epic-item|epic-section|epic-phase|epic-summary)\b[^>]*>/g)) {
+    for (const [tag, name] of html.matchAll(/<(epic-item|epic-section|epic-phase|epic-summary)\b[^>]*>/g)) {
       if (name === "epic-summary") {
         ids.add(SUMMARY_ID)
         continue
@@ -673,10 +671,7 @@ export class ReviewInbox {
       const id = /\sid="([^"]+)"/.exec(tag)?.[1]
       if (!id) continue
       const markable =
-        name === "epic-item" ||
-        name === "epic-phase" ||
-        (name === "epic-section" && /\skind="overview-part"/.test(tag)) ||
-        (name === "ui-item" && /\sdata-status="/.test(tag))
+        name === "epic-item" || name === "epic-phase" || (name === "epic-section" && /\skind="overview-part"/.test(tag))
       if (markable) ids.add(id.toLowerCase())
     }
     return ids

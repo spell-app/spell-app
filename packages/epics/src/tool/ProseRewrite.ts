@@ -1,45 +1,87 @@
-import { Formats, type EpicData } from "$/epics/definitions"
-import { PlanMarkup } from "$/epics/tool/PlanMarkup"
+import { Formats, type EpicData, type EpicTag } from "$/epics/definitions"
+import { Markup, type MarkupContent } from "$/epics/markup"
 
-import { Chrome, Counted, Drawn, LABELLED_BLOCK, Prose, replyTitleParts } from "./convert.types"
+import { Chrome, Drawn, LABELLED_BLOCK, ProseBlocks, ProseCounted, replyTitleParts } from "./planDoc.types"
 
+import { PlanMarkup } from "./PlanMarkup"
 import { ProseShapes } from "./ProseShapes"
-import type { Upgrader } from "./Upgrader"
 
 /****************
- * ### `ProseUpgrader`
- * The prose blocks of a converted doc, for `Upgrader`:  each in the shape its P14 element takes (`ProseShapes`)
- * becomes that element, wherever it sits (an item, a reply, an option card, an Overview sub-section, a phase field):
+ * ### `ProseRewrite`
+ * The hand-written prose blocks of the old docs (and of agents taught by them), each in the shape its P14 element
+ * takes (`ProseShapes`, the ONE set of rules), made that element, IN PLACE, wherever it sits (an item, a reply, an
+ * option card, an Overview sub-section, a phase field):
  * - `<p><b>Net effect (A):</b></p><ul>` => `<epic-net-effect option="A"><ul>`;  `<b>Net effect:</b> a sentence` =>
  *   `<epic-net-effect><p>a sentence</p>`
  * - `ui-accordion.spell-code` => `<epic-code title language [open]><pre>`;  `ui-accordion.spell-aside` =>
  *   `<epic-aside title>`
  * - a hand-written `ui-message.plan-update` => `<epic-note state title>`;  a phase's bare `UPDATE` (`data-phase`)
- *   => `<epic-update phase>`, as the tool's way in does (`ProseRewrite`, J74)
+ *   => `<epic-update phase>`, the phase's marker, which `phase 2 done` removes (J74)
  * - `<p><b>Where:</b> ...` (`What should happen:`, `Step:`) => `<epic-field label="Where">`, once `<epic-field>` takes
  *   a `label` (p14-writers);  until then kept
- * - an option grid (`ui-grid.spell-pros-cons`, lettered cards) => `<epic-choices>` of `<epic-option>`s, on any item
+ * - an option grid (`ui-grid.spell-pros-cons`, lettered cards) => `<epic-choices>` of `<epic-option>`s
  * - a hand-written `div.plan-answer-block` / `div.plan-reply` => `<epic-answer>` / `<epic-reply>`, where its parent
  *   takes that element
- * - a block in another shape stays prose, counted `kept: ...` (and noted, but for the labelled blocks)
- * - Works on its owner's document, IN PLACE:  the prose inside MOVES into the new elements, never re-made.
+ * - a block in another shape stays prose, as it is, and its owner is told (`keep()`)
+ * - Two owners:  the plan-doc tool's way in (`IncomingHtml`, through `plain()`:  the elements made through `Markup`,
+ *   nothing counted) and the converter's second pass (`$/epics/convert` `Upgrader`, which counts and notes each).
+ *   One class, so both turn every shape the same way (epic `epic-components` T23).
+ * - Works on its owner's document:  the prose inside MOVES into the new elements, never re-made.
  ****************/
-export class ProseUpgrader {
-  /** The pass it works for:  STATIC for its life. */
-  readonly owner: Upgrader
+export class ProseRewrite {
+  /** Who it works for:  makes the elements, hears what was done.  STATIC for its life. */
+  readonly owner: ProseOwner
 
-  constructor(owner: Upgrader) {
+  constructor(owner: ProseOwner) {
     this.owner = owner
   }
 
-  /** Upgrade every block under `root`. */
-  upgrade(root: Element): void {
-    for (const grid of root.querySelectorAll(Prose.grid)) this.choices(grid)
-    for (const accordion of root.querySelectorAll(Prose.code)) this.code(accordion)
-    for (const accordion of root.querySelectorAll(Prose.aside)) this.aside(accordion)
-    for (const message of root.querySelectorAll(Prose.note)) this.note(message)
-    for (const card of root.querySelectorAll(`${Prose.answer}, ${Prose.reply}`)) this.card(card)
-    for (const paragraph of root.querySelectorAll("p")) this.netEffect(paragraph)
+  /** A rewrite of `document`'s blocks that makes the elements through `Markup` and keeps no record:  the tool's. */
+  static plain(document: Document): ProseRewrite {
+    return new ProseRewrite({
+      document,
+      element: (tag, data, children) => Markup.element(document, tag, data, children),
+      count: () => undefined,
+      keep: () => undefined,
+      note: () => undefined,
+      where: () => ""
+    })
+  }
+
+  /**
+   * Rewrite every block under `root` (not `root` itself).
+   * - never inside code (`<pre>`, `<code>`, `<epic-code>`)
+   * - `history`:  inside an Original Discussion (`<epic-original>`) too;  default `true`, as the converter upgrades a
+   *   doc whole.  The tool's way in passes `false`:  history stays as it was written.
+   */
+  rewrite(root: Element, { history = true }: { history?: boolean } = {}): void {
+    const skip = history ? KEEP_INSIDE : `${KEEP_INSIDE}, ${HISTORY}`
+    const blocks = (selector: string) =>
+      Array.from(root.querySelectorAll(selector)).filter((block) => {
+        const keeper = block.parentElement?.closest(skip)
+        return !keeper || !root.contains(keeper)
+      })
+    for (const grid of blocks(ProseBlocks.grid)) this.choices(grid)
+    for (const accordion of blocks(ProseBlocks.code)) this.code(accordion)
+    for (const accordion of blocks(ProseBlocks.aside)) this.aside(accordion)
+    for (const message of blocks(ProseBlocks.note)) this.note(message)
+    for (const card of blocks(`${ProseBlocks.answer}, ${ProseBlocks.reply}`)) this.card(card)
+    for (const paragraph of blocks("p")) this.netEffect(paragraph)
+  }
+
+  /**
+   * `<epic-reply from at re>` from `div.plan-reply`:  its title line into attributes, when it's in the usual shape;
+   * not put in its place.
+   * - public for the tool's way in, which takes a reply at the top of what it's handed wherever it goes
+   */
+  reply(reply: Element): Element {
+    const titleBox = reply.querySelector(`:scope > ${ProseBlocks.replyTitle}`)
+    const parts = titleBox ? replyTitleParts(titleBox) : undefined
+    const usable = parts && Formats.time.test(parts.at)
+    if (usable) titleBox!.remove()
+    else if (titleBox)
+      this.owner.note(`${this.owner.where(reply)}:  a reply's title line in another shape:  kept as its text`)
+    return this.owner.element("epic-reply", usable ? parts : {}, PlanMarkup.takeChildren(reply), reply)
   }
 
   ////////////////
@@ -54,11 +96,11 @@ export class ProseUpgrader {
       const text = PlanMarkup.squeeze(lead?.textContent ?? "")
       if (ProseShapes.netEffectLead(paragraph)) {
         this.owner.keep(
-          Counted.keptNetEffect,
+          ProseCounted.keptNetEffect,
           paragraph,
           `"${PlanMarkup.squeeze(paragraph.textContent ?? "").slice(0, 40)}"`
         )
-      } else if (LABELLED_BLOCK.test(text) && !this.field(paragraph)) this.owner.count(Counted.keptLabel)
+      } else if (LABELLED_BLOCK.test(text) && !this.field(paragraph)) this.owner.count(ProseCounted.keptLabel)
       return
     }
     const { form, label, list, option, recommended } = shape
@@ -68,32 +110,32 @@ export class ProseUpgrader {
       // the white space between the label and its list goes too:  else a blank line stays where the list was
       while (made.nextSibling !== list && PlanMarkup.isBlank(made.nextSibling)) made.nextSibling!.remove()
       made.append(list!)
-      this.owner.count(option || recommended ? Counted.optionNetEffect : Counted.netEffect)
+      this.owner.count(option || recommended ? ProseCounted.optionNetEffect : ProseCounted.netEffect)
     } else {
       label.remove()
       PlanMarkup.stripEdges(paragraph, { first: /^\s+/ })
       made.append(paragraph)
-      this.owner.count(Counted.inlineNetEffect)
+      this.owner.count(ProseCounted.inlineNetEffect)
     }
   }
 
   /** `<epic-code title language [open]>` holding ONE `<pre>` of the code's text. */
   private code(accordion: Element) {
     const shape = ProseShapes.code(accordion)
-    if (!shape) return this.owner.keep(Counted.keptCode, accordion)
+    if (!shape) return this.owner.keep(ProseCounted.keptCode, accordion)
     const pre = this.owner.document.createElement("pre")
     pre.append(...Array.from(shape.text.childNodes))
     const { title, language, open } = shape
     accordion.replaceWith(
       this.owner.element("epic-code", { title, language, open: open || undefined }, [pre], accordion)
     )
-    this.owner.count(Counted.code)
+    this.owner.count(ProseCounted.code)
   }
 
   /** `<epic-aside title>` holding the aside's content. */
   private aside(accordion: Element) {
     const shape = ProseShapes.aside(accordion)
-    if (!shape) return this.owner.keep(Counted.keptAside, accordion)
+    if (!shape) return this.owner.keep(ProseCounted.keptAside, accordion)
     const made = this.owner.element(
       "epic-aside",
       { title: shape.title },
@@ -101,18 +143,18 @@ export class ProseUpgrader {
       accordion
     )
     accordion.replaceWith(made)
-    this.owner.count(Counted.aside)
+    this.owner.count(ProseCounted.aside)
   }
 
-  /** `<epic-note state title>` from a hand-written UPDATE / DONE note. */
+  /** `<epic-note state title>` from a hand-written UPDATE / DONE note;  a phase's bare UPDATE:  `<epic-update>`. */
   private note(message: Element) {
     const shape = ProseShapes.note(message)
-    if (!shape) return this.owner.keep(Counted.keptNote, message, `"${message.getAttribute("header")}"`)
+    if (!shape) return this.owner.keep(ProseCounted.keptNote, message, `"${message.getAttribute("header")}"`)
     const { state, title, phase } = shape
     const children = PlanMarkup.takeChildren(message)
     if (phase) {
       message.replaceWith(this.owner.element("epic-update", { phase }, children, message))
-      return this.owner.count(Counted.update)
+      return this.owner.count(ProseCounted.update)
     }
     if (message.hasAttribute("data-phase")) {
       this.owner.note(
@@ -120,7 +162,7 @@ export class ProseUpgrader {
       )
     }
     message.replaceWith(this.owner.element("epic-note", { state, title }, children, message))
-    this.owner.count(Counted.note)
+    this.owner.count(ProseCounted.note)
   }
 
   /**
@@ -143,7 +185,7 @@ export class ProseUpgrader {
       PlanMarkup.stripEdges(paragraph, { first: /^\s+/ })
       made.append(paragraph)
     }
-    this.owner.count(Counted.field)
+    this.owner.count(ProseCounted.field)
     return true
   }
 
@@ -153,7 +195,7 @@ export class ProseUpgrader {
    */
   private choices(grid: Element) {
     const cards = ProseShapes.options(grid)
-    if (!cards) return this.owner.keep(Counted.keptGrid, grid)
+    if (!cards) return this.owner.keep(ProseCounted.keptGrid, grid)
     let chosen: string | undefined
     const options = cards.map(({ segment, label, letter, recommended, chosen: isChosen }) => {
       label.remove()
@@ -165,21 +207,21 @@ export class ProseUpgrader {
       return this.owner.element("epic-option", data, slot ? [slot, ...body] : body, label)
     })
     grid.replaceWith(this.owner.element("epic-choices", { chosen }, options, grid))
-    this.owner.count(Counted.choices)
+    this.owner.count(ProseCounted.choices)
   }
 
   /** `<epic-answer>` / `<epic-reply>` from a hand-written card, where its parent takes that element. */
   private card(card: Element) {
     const tag = ProseShapes.handCard(card)
-    if (!tag) return this.owner.keep(Counted.keptCard, card)
+    if (!tag) return this.owner.keep(ProseCounted.keptCard, card)
     const made = tag === "epic-answer" ? this.answer(card) : this.reply(card)
     card.replaceWith(made)
-    this.owner.count(tag === "epic-answer" ? Counted.answer : Counted.reply)
+    this.owner.count(tag === "epic-answer" ? ProseCounted.answer : ProseCounted.reply)
   }
 
   /** `<epic-answer id title>` from `div.plan-answer-block`:  its title without `Answer` / `D7` and the `·`. */
   private answer(block: Element): Element {
-    const titleBox = block.querySelector(`:scope > ${Prose.answerTitle}`)
+    const titleBox = block.querySelector(`:scope > ${ProseBlocks.answerTitle}`)
     let title: { title?: string; slot?: Element } = {}
     if (titleBox) {
       titleBox.remove()
@@ -197,15 +239,29 @@ export class ProseUpgrader {
     const data = { id: block.id || undefined, title: title.title }
     return this.owner.element("epic-answer", data, title.slot ? [title.slot, ...body] : body, block)
   }
-
-  /** `<epic-reply from at re>` from `div.plan-reply`:  its title line into attributes, when it's in the usual shape. */
-  private reply(reply: Element): Element {
-    const titleBox = reply.querySelector(`:scope > ${Prose.replyTitle}`)
-    const parts = titleBox ? replyTitleParts(titleBox) : undefined
-    const usable = parts && Formats.time.test(parts.at)
-    if (usable) titleBox!.remove()
-    else if (titleBox)
-      this.owner.note(`${this.owner.where(reply)}:  a reply's title line in another shape:  kept as its text`)
-    return this.owner.element("epic-reply", usable ? parts : {}, PlanMarkup.takeChildren(reply), reply)
-  }
 }
+
+/**
+ * What `ProseRewrite` works for:  the document, how to make an element, and what to tell of each block.
+ * - the converter's `Upgrader` is one as it is;  the tool's way in:  `ProseRewrite.plain()`
+ */
+export type ProseOwner = {
+  /** The document the blocks are in. */
+  readonly document: Document
+  /** A new `<tag>` from `data` and `children`;  `source`, the block it's made from (for an error). */
+  element<T extends EpicTag>(tag: T, data: EpicData<T>, children: MarkupContent, source?: Element): Element
+  /** One more of `ProseCounted`'s. */
+  count(key: string): void
+  /** `element` left as prose, for `key`'s reason (a `kept: ...` of `ProseCounted`);  `what`:  it, in a few words. */
+  keep(key: string, element: Element, what?: string): void
+  /** Something a reader should know (text kept, an attribute dropped). */
+  note(message: string): void
+  /** Where `element` is, for a note:  `#q7`. */
+  where(element: Element): string
+}
+
+/** Where blocks stay as they are:  code. */
+const KEEP_INSIDE = "pre, code, epic-code"
+
+/** An Original Discussion:  history, left as it was written by the tool's way in. */
+const HISTORY = "epic-original"

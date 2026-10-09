@@ -40,10 +40,12 @@ export const epicUpdatedVocabulary = {
   slots: [{ name: "", description: "What changed in the plan, and why." }],
   parts: [
     { name: "base", description: "The fence:  a dashed orange box." },
+    { name: "toggle", description: "The fold chevron, a `<button>`, first:  its heading row folds what changed." },
     { name: "icon", description: "Its icon, centred on its first line." },
-    { name: "label", description: "`Updated`, then its time." }
+    { name: "label", description: "`Updated`, then its time." },
+    { name: "body", description: "What changed, under the heading;  hidden (`until-found`) while folded." }
   ],
-  states: [],
+  states: [{ name: "open", description: "Unfolded:  it starts so (page state, never written)." }],
   texts: [
     { key: "updated", text: "Updated", description: "Its label." },
     { key: "during", text: "during P{phase}", description: "After its time:  the phase under way then." },

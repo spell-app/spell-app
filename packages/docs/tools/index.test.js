@@ -110,7 +110,7 @@ describe("the list pages", () => {
   })
 })
 
-describe("planOf():  a plan doc's card data, either markup (epic-components P8)", () => {
+describe("planOf():  a plan doc's card data (epic-components P8)", () => {
   const expected = {
     phases: [
       { status: "done", label: "P1 · First Go" },
@@ -133,12 +133,10 @@ describe("planOf():  a plan doc's card data, either markup (epic-components P8)"
     expect(planOf(document)).toEqual(expected)
   })
 
-  it("reads the old markup until the switch", () => {
+  it("reads a doc in the old markup as an empty plan (read no more since P15)", () => {
     const { document } = parseHTML(`<html><body><time id="plan-updated">2026-10-06</time>
-<ui-section id="phases"><ui-section data-phase="1" data-status="done" header="P1 · First Go"></ui-section>
-<ui-section data-phase="2" data-status="active" header="P2 · Second"></ui-section></ui-section>
-<ui-list class="plan-items"><ui-item id="q1" data-status="open"></ui-item><ui-item id="c1" data-status="open"></ui-item>
-<ui-item id="i1" data-status="open"></ui-item></ui-list></body></html>`)
-    expect(planOf(document)).toEqual(expected)
+<ui-section id="phases"><ui-section data-phase="1" data-status="done" header="P1 · First Go"></ui-section></ui-section>
+<ui-list class="plan-items"><ui-item id="q1" data-status="open"></ui-item></ui-list></body></html>`)
+    expect(planOf(document)).toEqual({ phases: [], updated: null, future: false, followUps: [] })
   })
 })

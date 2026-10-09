@@ -10,7 +10,7 @@ import { SRV } from "$/server"
  * - a lock older than `stale` ms (default 60s) is a crashed holder's, and is taken over
  * - writers that don't lock (VS Code, an agent's edit tool) aren't stopped:
  *   the page server's `If-Match` check catches those
- * - From goals' `withLock()` (also copied into `plan-doc.js`).
+ * - From goals' `withLock()` (also copied into the old `plan-doc.js`).
  */
 export class FileLock {
   /** file being guarded */

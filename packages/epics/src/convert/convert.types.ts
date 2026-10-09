@@ -1,14 +1,17 @@
 /**
- * Types of `$/epics/convert`:  the converter from today's plan-doc markup (`ui-section`, `ui-item[data-status]` ...)
+ * Types of `$/epics/convert`:  the converter from the old plan-doc markup (`ui-section`, `ui-item[data-status]` ...)
  * to `<epic-*>` markup, and the proof that it lost nothing.
- * - Bottom of the folder's import graph:  `import type` only, apart from these constants.
+ * - Bottom of the folder's import graph:  `import type` only, apart from these constants and the tool's types file.
  *   `convert.types` <- `DocReading` <- `OldReading` / `NewReading` <- `ConversionProof`;
  *   `convert.types` <- `CardConverter` <- `ItemConverter` / `PhaseConverter` <- `Converter` <- `ConvertRun`;
- *   the second pass:  `convert.types` <- `ProseShapes` <- `ConvertedReading` / `ProseUpgrader` <- `Upgrader`.
+ *   the second pass:  `convert.types` <- `ConvertedReading` / `Upgrader`, on the tool's `ProseShapes` and
+ *   `ProseRewrite` (`$/epics/tool`).
  * - The OLD markup's selectors live here, once:  the converter reads them, and the proof's `OldReading` knows which
  *   of their text is chrome (`Chrome`:  the tool's, `$/epics/tool/planDoc.types`, re-exported here).  Rules for that
  *   markup:  `templates/epics/plan-doc.md`, "Markup the script writes".
  */
+
+import { ProseBlocks, ProseCounted } from "$/epics/tool/planDoc.types"
 
 ////////////////
 // ## Errors
@@ -53,7 +56,7 @@ export type Conversion = {
   /** Was the input split (a skeleton plus parts)? */
   wasSplit: boolean
   /**
-   * Which pass made it:  `1`, today's markup => `<epic-*>` (`Converter`);  `2`, a converted doc => the P14 shapes
+   * Which pass made it:  `1`, the old markup => `<epic-*>` (`Converter`);  `2`, a converted doc => the P14 shapes
    * (`Upgrader`).
    */
   pass: 1 | 2
@@ -234,47 +237,26 @@ export const EXCLUSIONS = [
 // ## The second pass
 ////////////////
 
+// The old prose blocks' selectors and what the elements draw around them (`Drawn`):  the tool's too (`ProseShapes`,
+// its way in's and this pass's ONE set of rules), so its types file holds them
+export { Drawn, LABELLED_BLOCK } from "$/epics/tool/planDoc.types"
+
 /**
- * The shapes the SECOND pass reads (`Upgrader`, P14):  prose blocks in a converted doc that no element owned until
- * P14, by what they are.  The proof's `ConvertedReading` knows which of their text the new elements draw.
+ * The shapes the SECOND pass reads (`Upgrader`, P14):  blocks in a converted doc that no element owned until P14, by
+ * what they are -- the page's own, and the prose blocks (`ProseBlocks`, the tool's).  The proof's `ConvertedReading`
+ * knows which of their text the new elements draw.
  */
 export const Prose = {
   crumbs: "ui-breadcrumb.spell-crumbs",
   report: "ui-section#overnight",
   summary: "p[slot='summary']",
   prompt: "blockquote[slot='prompt']",
-  code: "ui-accordion.spell-code",
-  aside: "ui-accordion.spell-aside",
-  note: "ui-message.plan-update",
-  grid: "ui-grid.spell-pros-cons",
-  answer: "div.plan-answer-block",
-  answerTitle: "div.plan-answer-title",
-  reply: "div.plan-reply",
-  replyTitle: "div.plan-reply-title"
-} as const
-
-/** What the second pass's elements draw around prose, as patterns;  the proof leaves exactly that out. */
-export const Drawn = {
-  /**
-   * A Net effect paragraph's whole text (`Net effect:`, `Net effect (A):`, `Net effect (A, recommended):`,
-   * `Net effect (recommended):`, `Net effect: (A)`):  `option` is $1, `recommended` $2 (with a letter) or $3
-   * (without).  Other words (`(once fixed)`, `(to decide)`) don't match:  they stay prose.
-   */
-  netEffect: /^Net effect:?(?: \((?:([A-Z])(?:, (recommended))?|(recommended))\))?:?$/,
-  /** The label a Net effect paragraph starts with, whose own text is `Net effect:`:  the inline kind follows it. */
-  netEffectLabel: /^Net effect:$/,
-  /** Any bold `Net effect` lead, matched or not:  where a question's text ends. */
-  netEffectLead: /^Net effect\b/,
-  /** An aside's `Aside: ` before its title. */
-  asidePrefix: /^\s*Aside:\s*/i,
-  /** An option card's ` (recommended)` or ` (chosen)` after its title. */
-  optionSuffix: /\s*\((recommended|chosen)\)\s*$/i,
-  /** A hand-written note's header:  `UPDATE` or `DONE`, then ` · <title>`. */
-  noteHeader: /^(UPDATE|DONE)(?:\s*·\s*(.+))?$/
+  ...ProseBlocks
 } as const
 
 /**
  * What the second pass counts (`Conversion.counts`), by what it did;  `kept: ...`, what it left as prose, and why.
+ * - the prose blocks' are `ProseRewrite`'s (`ProseCounted`, the tool's)
  * - a doc whose counts are all `kept: ...` has nothing to upgrade (`Upgrader.changed()`)
  */
 export const Counted = {
@@ -285,32 +267,12 @@ export const Counted = {
   prompt: "prompt",
   question: "question",
   versionQuestion: "question, in a version",
-  netEffect: "net effect",
-  optionNetEffect: "net effect, an option's",
-  inlineNetEffect: "net effect, a sentence",
-  code: "code",
-  aside: "aside",
-  note: "note",
-  update: "phase's UPDATE marker",
-  field: "labelled block",
-  choices: "choices",
-  answer: "answer",
-  reply: "reply",
-  keptNetEffect: "kept: net effect in other words",
-  keptCode: "kept: code in another shape",
-  keptAside: "kept: aside in another shape",
-  keptNote: "kept: note in other words",
-  keptGrid: "kept: option grid in another shape",
-  keptCard: "kept: hand-written card where its element can't go",
-  keptLabel: "kept: labelled block (no <epic-field label> yet)",
+  ...ProseCounted,
   keptOutside: "kept: outside <epic-page>"
 } as const
 
 /** A `Counted` key's text before what was kept as prose. */
 export const KEPT = "kept: "
-
-/** A labelled block in an item's prose:  `<b>Where:</b>`, `What should happen:`, `Step:` / `Step 2:`. */
-export const LABELLED_BLOCK = /^(Where|What should happen|Step\b[^:]*):$/
 
 /**
  * The second pass's exclusions, as the proof report lists them:  what of a converted doc isn't compared, and why.

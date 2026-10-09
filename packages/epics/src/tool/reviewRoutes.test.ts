@@ -28,10 +28,12 @@ const PAGES = {
 }
 
 /** the scratch plan doc's items */
-const PLAN = `<!doctype html><title>x</title><body class="plan-doc">
-<ui-section id="p1" data-phase="1" data-status="active" header="P1 · Go"></ui-section>
-<ui-list class="plan-items"><ui-item data-state="open" id="j3" data-status="open"></ui-item>
-<ui-item id="q8" data-status="open"></ui-item><ui-item id="i2" data-status="open"></ui-item></ui-list>`
+const PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-page epic="big" title="Big">
+<epic-section id="phases" kind="phases"><epic-phase id="p1" title="Go" status="active"></epic-phase></epic-section>
+<epic-section id="judgements" kind="judgements"><epic-item id="j3" title="a" status="open"></epic-item></epic-section>
+<epic-section id="decisions" kind="questions"><epic-item id="q8" title="b" status="open"></epic-item></epic-section>
+<epic-section id="issues" kind="issues"><epic-item id="i2" title="c" status="open"></epic-item></epic-section>
+</epic-page>`
 
 /** a plan doc in `<epic-*>` markup:  the summary, an Overview sub-section, a phase, an item */
 const EPIC_PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-page epic="neat" title="Neat">
@@ -234,7 +236,8 @@ test("only plan docs:  403;  missing:  404;  not a path:  400", async () => {
 
 test("unknown items and bad marks:  400, nothing written", async () => {
   expect((await post("mark", { page: PLAN_URL, id: "t99", mark: { action: "approve" } })).status).toBe(400)
-  expect((await post("mark", { page: PLAN_URL, id: "p1", mark: { action: "approve" } })).status).toBe(400)
+  // a section is no item (a phase is, since epic `airplane` P2)
+  expect((await post("mark", { page: PLAN_URL, id: "phases", mark: { action: "approve" } })).status).toBe(400)
   expect((await post("mark", { page: PLAN_URL, id: "j3", mark: { action: "nope" } })).status).toBe(400)
   expect((await post("mark", { page: PLAN_URL, id: "q8", mark: { action: "pick", pick: "b" } })).status).toBe(400)
   expect((await post("mark", { page: PLAN_URL, id: "j3" })).status).toBe(400)

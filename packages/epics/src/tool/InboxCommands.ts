@@ -49,7 +49,7 @@ export class InboxCommands {
     const path = ReviewInbox.pathFor(file)
     switch (what) {
       case undefined:
-        return this.print(this.owner.readAny(file), file, Boolean(flags.json))
+        return this.print(this.owner.read(file), file, Boolean(flags.json))
       case "listen": {
         const session = typeof flags.session === "string" ? flags.session : process.env.CLAUDE_CODE_SESSION_ID
         if (!session) throw new PlanDocError("listen as which session?  --session <id> (no $CLAUDE_CODE_SESSION_ID)")
@@ -199,7 +199,7 @@ export class InboxCommands {
     for (;;) {
       let work = null as TakenWork | null
       if (peek(path).hasWork) ReviewInbox.update(path, (box) => (work = box.takeWork()))
-      if (work) return this.printWork(name, this.owner.readAny(file), work, Boolean(json))
+      if (work) return this.printWork(name, this.owner.read(file), work, Boolean(json))
       if (Date.now() >= end) break
       if (Date.now() - beat >= LISTEN_HEARTBEAT_MS) {
         beat = Date.now()
@@ -379,8 +379,9 @@ export class InboxCommands {
    * `finishMarks()`;  `clear` drops it), and their `working` too.
    * - a mark leaving with Owen's note in it:  the note is kept IN the item first, as his own reply card
    *   (`PlanDoc.keepNote()`, epic `windows-and-review` P1):  what he wrote is never lost from the page
-   * - a request taken care of stays marked as handled that way on the page (`review-as`, its button solid):
-   *   an immediate one (Do Now:  Add Details, revisit now) as `now`, a revisit talked over as `revisit`
+   * - a request taken care of is recorded as handled that way (`review-as`;  the page's buttons clear, the chip
+   *   shows the result):  an immediate one (Do Now:  Add Details, revisit now) as `now`, a revisit talked over as
+   *   `revisit`
    */
   private async finish(file: string, what: "done" | "clear", ids: string[]): Promise<void> {
     if (!ids.length) throw new PlanDocError(`${what} which items?  ids`)

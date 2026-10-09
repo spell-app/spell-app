@@ -119,7 +119,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     "epic-page": pageCSS,
     "epic-crumbs": crumbsCSS,
     "epic-agents": agentsCSS,
-    review: reviewCSS
+    "epic-review": reviewCSS
   }
 
   /** Its tag:  what its blocks look for around them. */

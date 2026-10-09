@@ -50,14 +50,18 @@ house style every package shares.  Only what's local is below;  a section named 
         (`AgentsPanel.tsx`, in its shadow root before its blocks:  not a section)
       - both clients POST and watch through the same code, a `ServerLink` each
         (the token, its one refresh on a 403, the poll and `spell-server:file`)
-  - `convert/` -- the one-time converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`),
+  - `convert/` -- the converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`),
     with a `ConversionProof` per doc:  every id, link target and word kept.
-    Never writes into `epics/` or `spell-app-dev` unless it's the switch (P12 of epic `epic-components`)
+    Every live doc was converted at the switch (P12 of epic `epic-components`);
+    it stays for a doc restored from an old backup, and writes only under `--out`
   - `tool/` -- the plan-doc tool (`spell dev plan-doc`), node only, never bundled into the pack.
-    - It writes `<epic-*>` markup through `Markup`, refuses to edit a doc still in the old markup
-      ("convert it first"), and reads both until the switch (`OldPlanReader`).
+    - It reads and writes `<epic-*>` markup only (through `Markup`), and refuses a doc still in the old markup
+      ("convert it first").
     - Its rules for a doc's DATA (ids, statuses, review marks, prose):  `tool/PLAN-DOC.md`
     - its template:  `tool/templates/plan.html`
+    - the old hand-written prose shapes (a `Net effect` paragraph, a code accordion, an option grid ...) have ONE
+      set of rules, `ProseShapes`;  `ProseRewrite` turns them into elements, for the tool's way in
+      (`IncomingHtml`) and the converter's second pass alike
 - `pack/` -- GENERATED, committed (`spell dev pack build epics`, `yarn pack:build`).  NEVER edit:
   - `epics.catalog.ts` -- tag => family folder + skeleton, read from the vocabularies;
     its second line records the hash of the sources it was built from
@@ -80,6 +84,10 @@ house style every package shares.  Only what's local is below;  a section named 
   - Another shared module:
     add it to Spell UI's `packModules` AND `PACK_MODULES` in `packages/cli/src/dev/packBuild.ts`.
 - Every tag starts `epic-`:  `<ui-root>` knows the pack's tags by that prefix.
+- Every sheet NAME starts `epic-` too (`styleSheets = { "epic-item": itemCSS }`):
+  Spell UI keeps ONE sheet per name for the whole page, and the first class to register a name wins,
+  so a bare `item` drew `<epic-item>` with `<ui-item>`'s sheet on any page that had both (I9).
+  `components/index.test.tsx` checks every class the barrel exports.
 - A pack drawn by pages EVERY checkout shows (the shared `epics/`, `guides/` ...):
   those pages load `main`'s `pack/`, through the main checkout's page server.  So:
   - small fixes straight on `main`

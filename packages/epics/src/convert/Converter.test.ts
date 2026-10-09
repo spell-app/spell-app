@@ -1,5 +1,5 @@
 /**
- * Tests of `Converter`:  each generation of today's plan-doc markup still in use, converted to `<epic-*>` markup,
+ * Tests of `Converter`:  each generation of the old plan-doc markup still in use, converted to `<epic-*>` markup,
  * valid and proved (`ConversionProof`), on small fixtures (`fixtures/`).
  */
 import { readFileSync } from "node:fs"
