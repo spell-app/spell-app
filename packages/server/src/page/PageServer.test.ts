@@ -5,6 +5,7 @@ import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
 import {
+  AirplaneMode,
   HIGHLIGHT_JS,
   PageServer,
   findById,
@@ -124,6 +125,20 @@ describe("PageServer", () => {
     const answer = await ask(port, "GET", "/docs/offline.html")
     expect(answer.text).toContain(`<script src="${HIGHLIGHT_JS.local}"></script>`)
     expect(answer.text).not.toContain("cdnjs")
+  })
+
+  it("tells pages when airplane mode is on", async () => {
+    const before = process.env.SPELL_AIRPLANE_FILE
+    process.env.SPELL_AIRPLANE_FILE = join(root, "airplane.json")
+    try {
+      expect((await config()).airplane).toBeUndefined()
+      AirplaneMode.turn(true)
+      expect((await config()).airplane).toBe(true)
+    } finally {
+      AirplaneMode.turn(false)
+      if (before === undefined) delete process.env.SPELL_AIRPLANE_FILE
+      else process.env.SPELL_AIRPLANE_FILE = before
+    }
   })
 
   it("sends / to the docs home", async () => {

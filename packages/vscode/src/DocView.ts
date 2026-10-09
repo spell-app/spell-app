@@ -20,7 +20,9 @@
  *   repo root);  "Review" a line saying how to fill it.
  * - Title-bar buttons:  back, forward, reload, restart the page server, open in the browser.  Home:  the page's own
  *   site header (its logo, or "Docs");  VS Code has no clickable view titles.  `spell.docView.home` stays a palette
- *   command.
+ *   command, as does "Review:  Docs Index" (`spell.reviewView.home`).
+ * - "Review" has a list button too, "Review:  Open Epic..." (`spell.reviewView.openEpic`):  pick an epic, its plan
+ *   doc shows there.  No terminal, no Claude:  how Owen gets around the plan docs offline (epic `airplane` P4).
  * - Links in the page:  docs pages open here;  other files on the page server in the editor;  other sites in the
  *   browser (`open()`, and the page's `followInFrame()`).  Why:  the sandbox blocks the tabs docs links ask for.
  * - The iframe is cross-origin, so the view can't read or move its history:  the page's live client
@@ -32,7 +34,7 @@
  */
 import { spawn } from "child_process"
 import { randomBytes } from "crypto"
-import { existsSync } from "fs"
+import { existsSync, readFileSync, readdirSync, statSync } from "fs"
 import { join } from "path"
 import * as vscode from "vscode"
 
@@ -51,7 +53,7 @@ const VIEWS: Record<DocViewName, { id: string; empty: string }> = {
   review: {
     id: "spell.reviewView",
     empty:
-      "Nothing to review yet:  <code>/epic review &lt;name&gt;</code>, or <code>spell dev docs open &lt;page&gt; --review</code>."
+      "Nothing to review yet:  the list button above (<b>Review:  Open Epic...</b>), <code>/epic review &lt;name&gt;</code>, or <code>spell dev docs open &lt;page&gt; --review</code>."
   }
 }
 
@@ -113,8 +115,37 @@ export class DocView implements vscode.WebviewViewProvider {
         )
       )
     }
-    context.subscriptions.push(vscode.commands.registerCommand("spell.docView.home", () => DocView.goHome()))
+    context.subscriptions.push(
+      vscode.commands.registerCommand("spell.docView.home", () => DocView.goHome()),
+      vscode.commands.registerCommand("spell.reviewView.home", () => DocView.goHome("review")),
+      vscode.commands.registerCommand("spell.reviewView.openEpic", () => DocView.pickEpic())
+    )
   }
+
+  /**
+   * Pick an epic from a list, and show its plan doc in the "Review" tab:  no terminal needed (epic `airplane` P4,
+   * for reviewing with no Claude, on a plane).
+   * - the epics:  every `epics/<name>/<name>.plan.html` in the window's first folder (the repo root), most recently
+   *   changed first, each by its title
+   */
+  static async pickEpic(): Promise<void> {
+    const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+    const docs = root ? planDocsIn(root) : []
+    if (!docs.length) return void vscode.window.showWarningMessage("Spell:  no plan docs in this window's first folder.")
+    const picked = await vscode.window.showQuickPick(
+      docs.map((doc) => ({
+        label: doc.title,
+        description: doc.name,
+        detail: `changed ${doc.changed.toLocaleString()}`,
+        doc
+      })),
+      { title: "Review an epic", placeHolder: "Which epic's plan doc?", matchOnDescription: true }
+    )
+    if (picked) await DocView.showFile?.(picked.doc.file, "review")
+  }
+
+  /** Show a docs file in a doc view, from its page server;  set by `DocPreview` (which imports this file). */
+  static showFile: ((file: string, view: DocViewName) => Promise<void>) | undefined
 
   /**
    * An edit command, done IN the page (epic `windows-and-review` I2).  Why:  VS Code's own Copy, Paste, Select All,
@@ -138,10 +169,10 @@ export class DocView implements vscode.WebviewViewProvider {
     return DocView.all.get(name as DocViewName) ?? DocView.all.get("docs")!
   }
 
-  /** Show the docs index, in the "Spell Docs" view. */
-  static async goHome(): Promise<void> {
+  /** Show the docs index, in the "Spell Docs" view, or in `view`. */
+  static async goHome(view: DocViewName = "docs"): Promise<void> {
     const url = await DocView.home?.()
-    if (url) await DocView.of("docs").show(url)
+    if (url) await DocView.of(view).show(url)
   }
 
   /** The page in view:  as last reported, else as last shown. */
@@ -390,6 +421,23 @@ export function docsIndex(): string | undefined {
     existsSync(file)
   )
 }
+
+/** Every plan doc under `root`'s `epics/`, most recently changed first;  the title without its `Epic: `. */
+export function planDocsIn(root: string): PlanDocEntry[] {
+  const epics = join(root, "epics")
+  if (!existsSync(epics)) return []
+  return readdirSync(epics, { withFileTypes: true })
+    .flatMap((entry) => {
+      const file = join(epics, entry.name, `${entry.name}.plan.html`)
+      if (!existsSync(file)) return []
+      const title = /<title>(?:Epic:\s*)?([^<]*)<\/title>/.exec(readFileSync(file, "utf8"))?.[1]?.trim()
+      return [{ name: entry.name, file, title: title || entry.name, changed: statSync(file).mtime }]
+    })
+    .sort((a, b) => b.changed.getTime() - a.changed.getTime())
+}
+
+/** A plan doc, as `planDocsIn()` lists it. */
+export type PlanDocEntry = { name: string; file: string; title: string; changed: Date }
 
 /** `url` with a fresh `?t=` stamp:  a URL no frame or browser has cached, so loading it is a reload. */
 export function stamped(url: string): string {

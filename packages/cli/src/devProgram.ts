@@ -21,6 +21,7 @@ import { Command } from "commander"
 import { CliError, EXIT, type BundlesOptions, type GlobalOptions, type PackOptions } from "$/cli/cli.types"
 import { DESIGN_VERBS, DOCS_VERBS } from "$/cli/dev/passThrough"
 import { agentsCommand } from "$/cli/commands/agentsCommand"
+import { airplaneCommand } from "$/cli/commands/airplaneCommand"
 import { BUNDLES_VERBS, bundlesCommand } from "$/cli/commands/bundlesCommand"
 import { designCommand } from "$/cli/commands/designCommand"
 import { choicesCommand } from "$/cli/commands/choicesCommand"
@@ -164,6 +165,15 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(agentsCommand, rawArgs("agents")))
+
+  dev
+    .command("airplane")
+    .description("airplane mode:  working on the docs with no Claude, everything queued for /airplane land")
+    .argument("[verb]", "status (default) [--json] | on | off | check [--fix] [--json]")
+    .argument("[args...]", "the verb's flags")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(airplaneCommand, rawArgs("airplane")))
 
   dev
     .command("vscode")
