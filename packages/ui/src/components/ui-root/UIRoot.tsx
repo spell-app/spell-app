@@ -1,4 +1,4 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
@@ -287,9 +287,10 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   }
 
   /** Load, wait (or time out), then show the content and say so. */
+  @E.untracked
   private async start() {
-    if (untrack(() => this.displayMode) === DISPLAY.skeleton) this.skeletons = this.findSkeletons()
-    const timeout = E.after(RootTimeout.parse(untrack(() => this.timeout)) / 1000, () => "timeout" as const)
+    if (this.displayMode === DISPLAY.skeleton) this.skeletons = this.findSkeletons()
+    const timeout = E.after(RootTimeout.parse(this.timeout) / 1000, () => "timeout" as const)
     const outcome = await Promise.race([this.settle(), timeout])
     timeout.cancel()
     if (outcome === "timeout") this.timedOut()
@@ -363,8 +364,9 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   }
 
   /** A pack registered:  while the skeletons still show, draw its tags' too (its catalog is known now). */
+  @E.untracked
   private onPackLoaded() {
-    if (untrack(() => this.contentIsReady) || untrack(() => this.displayMode) !== DISPLAY.skeleton) return
+    if (this.contentIsReady || this.displayMode !== DISPLAY.skeleton) return
     this.skeletons = this.findSkeletons()
   }
 

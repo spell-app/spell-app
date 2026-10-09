@@ -8,6 +8,7 @@ import {
   proto,
   protoMerged,
   SlotContent,
+  untracked,
   type AttributeName,
   type CancelablePromise,
   type FieldValue,
@@ -519,8 +520,9 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
    * A copy button:  write the clipboard, then `ui-copy`, the check and the announcement.
    * - SIDE EFFECT:  writes the clipboard;  a refused write (no permission) does nothing.
    */
+  @untracked
   private async copy(format: CopyFormat, originalEvent: MouseEvent) {
-    if (untrack(() => this.isDisabled)) return
+    if (this.isDisabled) return
     const value = this.copyText(format)
     try {
       await navigator.clipboard.writeText(value)
@@ -538,8 +540,9 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   ////////////////
 
   /** Press on the square:  the marker jumps there and is dragged;  the square takes focus. */
+  @untracked
   private readonly onPointerDown = (event: PointerEvent) => {
-    if (event.button !== 0 || untrack(() => this.isDisabled) || !this.plane) return
+    if (event.button !== 0 || this.isDisabled || !this.plane) return
     event.preventDefault()
     this.dragPointer = event.pointerId
     try {
@@ -575,11 +578,12 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   }
 
   /** A key on the square's sliders (see the class doc):  `ui-input`, then `ui-change`. */
+  @untracked
   private readonly onPlaneKeyDown = (event: KeyboardEvent) => {
     const next = this.keyMove(event)
     if (!next) return
     event.preventDefault()
-    if (untrack(() => this.isDisabled)) return
+    if (this.isDisabled) return
     this.move(next, event)
     this.commit(event)
   }

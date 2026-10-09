@@ -1,4 +1,4 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -74,9 +74,10 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
   private shouldFocusFrame = false
 
   /** Load the frame as an action of the page's reader:  the cancelable `ui-activate` first.  True when it loads. */
+  @E.untracked
   activate(originalEvent?: Event): boolean {
-    if (untrack(() => this.isActive)) return false
-    const url = untrack(() => this.frameUrl)
+    if (this.isActive) return false
+    const url = this.frameUrl
     if (!url) return false
     const detail: UIT.EmbedActivateDetail = { url, originalEvent }
     const isApplied = this.requestChange("isActive", true, () => this.send("ui-activate", detail))
@@ -85,8 +86,9 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
   }
 
   /** Back to the placeholder (Fomantic's `reset`), with `ui-reset`. */
+  @E.untracked
   reset() {
-    if (!untrack(() => this.isActive)) return
+    if (!this.isActive) return
     this.isActive = false
     this.send("ui-reset", {})
   }

@@ -453,8 +453,9 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   }
 
   /** Done with the note box:  it stays, but stops counting as written in once it's empty. */
+  @E.untracked
   private leaveNote() {
-    if (!this.noteInput?.value.trim()) this.reviewState.client?.closeBox(untrack(this.reviewState.id), false)
+    if (!this.noteInput?.value.trim()) this.reviewState.client?.closeBox(this.reviewState.id(), false)
   }
 
   ////////////////
@@ -462,36 +463,41 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   ////////////////
 
   /** A toggle, clicked:  show or hide its field in every phase, and remember it. */
+  @E.untracked
   private flip(toggle: PhaseToggle) {
-    const shown = { ...untrack(() => this.shown) }
+    const shown = { ...this.shown }
     shown[toggle.field] = !shown[toggle.field]
     this.shown = shown
     EpicSection.save(PHASE_TOGGLES_KEY, shown)
   }
 
   /** A state chip, clicked:  its items shown or hidden, the others as they were. */
+  @E.untracked
   private flipState(state: string) {
-    const showing = new Set(untrack(this.showing))
+    const showing = new Set(this.showing())
     if (showing.has(state)) showing.delete(state)
     else showing.add(state)
     this.choose([...showing])
   }
 
   /** The grey chip, clicked:  everything showing and some item needs Owen:  only those;  else everything. */
+  @E.untracked
   private readonly toggleAll = () => {
-    const all = untrack(this.present).map((it) => it.state as string)
-    this.choose(untrack(this.showingAll) && untrack(() => this.needsYou()) ? ["attention"] : all)
+    const all = this.present().map((it) => it.state as string)
+    this.choose(this.showingAll() && this.needsYou() ? ["attention"] : all)
   }
 
   /** "Show all", under a filtered list. */
+  @E.untracked
   private readonly showAll = () => {
-    this.choose(untrack(this.present).map((it) => it.state))
+    this.choose(this.present().map((it) => it.state))
   }
 
   /** The reader chose to show `states`:  shown, and remembered for this page. */
+  @E.untracked
   private choose(states: string[]) {
     this.chosen = states
-    const id = untrack(() => this.id)
+    const id = this.id
     if (!id) return
     EpicSection.save(FILTER_KEY, { ...EpicSection.savedFilters(), [id]: states })
   }

@@ -1,4 +1,3 @@
-import { untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -145,16 +144,17 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
   }
 
   /** Became the shown pane:  stamp lazy content the first time, then `ui-show`. */
+  @E.untracked
   private onShown() {
     const first = !this.wasShownBefore
     this.wasShownBefore = true
-    if (first && untrack(() => this.lazy)) {
+    if (first && this.lazy) {
       for (const template of this.domElement.querySelectorAll<HTMLTemplateElement>(TEMPLATES)) {
         this.domElement.append(template.content.cloneNode(true))
       }
     }
-    const owner = untrack(() => this.owner)
-    const value = owner ? owner.valueFor(this.domElement) : (untrack(() => this.value) ?? "")
+    const owner = this.owner
+    const value = owner ? owner.valueFor(this.domElement) : (this.value ?? "")
     const detail: UIT.TabShowDetail = { value, first }
     this.send("ui-show", detail)
   }

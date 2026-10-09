@@ -232,9 +232,10 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   }
 
   /** The native form:  one inside, else the one around. */
+  @E.untracked
   private findForm() {
     const form = this.domElement.querySelector("form") ?? this.domElement.parentElement?.closest("form") ?? undefined
-    if (form !== untrack(() => this.nativeForm)) this.nativeForm = form
+    if (form !== this.nativeForm) this.nativeForm = form
   }
 
   /** A native form to work with:  `noValidate` on, its submit and reset listened to;  all undone when it goes. */
@@ -274,8 +275,9 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   }
 
   /** The native reset, then prompts and states cleared. */
+  @E.untracked
   reset() {
-    const form = untrack(() => this.nativeForm)
+    const form = this.nativeForm
     if (form) form.reset()
     else for (const control of this.fields.controls()) UIForm.resetControl(control)
     this.clearErrors()
@@ -385,6 +387,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   ////////////////
 
   /** Submit:  validate everything first, see the class doc. */
+  @E.untracked
   private readonly onSubmit = (event: Event) => {
     const errors = this.validateAll()
     if (Object.keys(errors).length) {
@@ -392,7 +395,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
       event.stopImmediatePropagation()
       const detail: UIT.FormFailureDetail = { values: this.values, errors, originalEvent: event }
       this.send("ui-failure", detail)
-      if (untrack(() => this.errorFocus)) this.focusFirst(Object.keys(errors))
+      if (this.errorFocus) this.focusFirst(Object.keys(errors))
       return
     }
     const detail: UIT.FormSuccessDetail = { values: this.values, originalEvent: event }
@@ -406,23 +409,25 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   }
 
   /** A control changed:  validate it for `validate-on="change"`, or while it shows an error. */
+  @E.untracked
   private readonly onChange = (event: Event) => {
     const identifier = this.identifierFor(event)
     if (!identifier) return
-    if (this.fieldsShowingErrors.has(identifier) || untrack(() => this.validateOn) === "change")
-      this.checkFieldSoon(identifier)
+    if (this.fieldsShowingErrors.has(identifier) || this.validateOn === "change") this.checkFieldSoon(identifier)
   }
 
   /** A control lost focus:  validate it for `validate-on="blur"`. */
+  @E.untracked
   private readonly onFocusOut = (event: FocusEvent) => {
-    if (untrack(() => this.validateOn) !== "blur") return
+    if (this.validateOn !== "blur") return
     const identifier = this.identifierFor(event)
     if (identifier) this.checkFieldSoon(identifier)
   }
 
   /** `prevent-leaving`:  ask while the values changed. */
+  @E.untracked
   private readonly onBeforeUnload = (event: BeforeUnloadEvent) => {
-    if (!untrack(() => this.preventLeaving)) return
+    if (!this.preventLeaving) return
     if (JSON.stringify(this.values) === this.savedValues) return
     event.preventDefault()
   }

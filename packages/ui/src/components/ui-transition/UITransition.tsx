@@ -83,11 +83,6 @@ export class UITransition extends E.UIComponent<Vocabulary> {
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    this.on("command", this.onCommand)
-  }
-
   ////////////////
   // ## Visibility
   ////////////////
@@ -184,7 +179,8 @@ export class UITransition extends E.UIComponent<Vocabulary> {
   }
 
   /** An invoker command aimed at the DOM element (`TransitionCommands`). */
-  private readonly onCommand = (event: Event) => {
+  @E.on("command")
+  protected onCommand(event: Event) {
     const { command } = event as Event & { command: string }
     if (command === UIT.TransitionCommands.show) void this.animateTo(true)
     else if (command === UIT.TransitionCommands.close) void this.animateTo(false)
@@ -213,11 +209,12 @@ export class UITransition extends E.UIComponent<Vocabulary> {
    * - The same animation the same way as the last queued (or running) step is dropped
    *   unless `allow-repeats`:  its promise is returned instead.
    */
+  @E.untracked
   private enqueue(direction: E.AnimationDirection, animation: string): Promise<boolean> {
     const last = this.queue.at(-1) ?? this.runningStep
     const isRepeat = last?.animation === animation && last.direction === direction
-    if (isRepeat && !untrack(() => this.allowRepeats)) return last.done
-    const isInterrupting = untrack(() => !!this.interrupt)
+    if (isRepeat && !this.allowRepeats) return last.done
+    const isInterrupting = !!this.interrupt
     if (isInterrupting) for (const dropped of this.queue.splice(0)) dropped.resolve(false)
     let resolve!: (isCompleted: boolean) => void
     const done = new Promise<boolean>((settle) => (resolve = settle))

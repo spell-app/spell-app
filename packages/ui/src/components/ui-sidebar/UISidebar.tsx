@@ -1,4 +1,4 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -48,11 +48,6 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
     return true
   }
 
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    this.on("command", this.onCommand)
-  }
-
   ////////////////
   // ## Visible
   ////////////////
@@ -68,25 +63,25 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
   }
 
   /** Show for a person's action, dispatching the cancelable `ui-open` first;  true when applied. */
+  @E.untracked
   requestOpen(originalEvent?: Event): boolean {
-    if (untrack(() => this.isVisible)) return false
+    if (this.isVisible) return false
     const detail: UIT.SidebarOpenDetail = { visible: true, originalEvent }
     return this.requestChange("isVisible", true, () => this.send("ui-open", detail))
   }
 
   /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
+  @E.untracked
   requestClose(reason: UIT.SidebarCloseReason, originalEvent?: Event): boolean {
-    if (!untrack(() => this.isVisible)) return false
+    if (!this.isVisible) return false
     const detail: UIT.SidebarCloseDetail = { visible: false, reason, originalEvent }
     return this.requestChange("isVisible", false, () => this.send("ui-close", detail))
   }
 
   /** An invoker command aimed at the DOM element (`ToggleCommands`). */
-  private readonly onCommand = (event: Event) => {
-    const action = UIT.ToggleCommands.action(
-      event,
-      untrack(() => this.isVisible)
-    )
+  @E.on("command")
+  protected onCommand(event: Event) {
+    const action = UIT.ToggleCommands.action(event, this.isVisible)
     if (action === "show") this.requestOpen(event)
     else if (action === "close") this.requestClose(UIT.CLOSE, event)
   }
@@ -127,11 +122,12 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
    * A modal sidebar:  `show()` (focus moves in), the focus trap, `UI.overlays`;
    * then `ui-show` once its transition ends.
    */
+  @E.untracked
   private show(modal: boolean) {
     const box = this.box
     this.reportLayout()
     if (modal && box instanceof HTMLDialogElement) {
-      const closedBy = untrack(() => this.closedby) ?? "any"
+      const closedBy = this.closedby ?? "any"
       this.overlay.closeOnEscape = closedBy !== "none"
       this.overlay.closeOnOutsideClick = closedBy === "any"
       // MUST `show()` BEFORE `UI.overlays.open()`:  `show()` gives the dialog its own close watcher,
@@ -147,7 +143,7 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
     }
     this.after(() => {
       const detail: UIT.SidebarOpenDetail = { visible: true }
-      if (untrack(() => this.isVisible)) this.send("ui-show", detail)
+      if (this.isVisible) this.send("ui-show", detail)
     })
   }
 
@@ -166,7 +162,7 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
     }
     this.after(() => {
       const detail: UIT.SidebarOpenDetail = { visible: false }
-      if (!untrack(() => this.isVisible) && this.domElement.isConnected) this.send("ui-hide", detail)
+      if (!this.isVisible && this.domElement.isConnected) this.send("ui-hide", detail)
     })
   }
 
@@ -212,10 +208,11 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
   }
 
   /** Tell the pushable (if any) what this sidebar needs now;  called by it too, once it renders. */
+  @E.untracked
   reportLayout() {
     const pushable = this.pushable
     if (!pushable) return
-    const visible = untrack(() => this.isConnected && this.isVisible)
+    const visible = this.isConnected && this.isVisible
     pushable.report(this.domElement, visible ? this.layout() : undefined)
   }
 
@@ -233,11 +230,12 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
    *   bottom), as Fomantic's script measured it
    * - A method, not a getter:  it MEASURES the panel.
    */
+  @E.untracked
   private layout(): UIT.SidebarLayout {
-    const position = untrack(() => this.position) ?? UIT.LEFT
-    const transition = untrack(() => this.transitionName)
-    const modal = untrack(() => this.isModal)
-    const blurring = untrack(() => !!this.blurring)
+    const position = this.position ?? UIT.LEFT
+    const transition = this.transitionName
+    const modal = this.isModal
+    const blurring = !!this.blurring
     if (transition === OVERLAY) return { transform: "none", origin: CENTER, modal, blurring }
     if (transition === SCALE_DOWN) return { transform: SCALE, origin: SCALE_ORIGINS[position]!, modal, blurring }
     const box = this.box

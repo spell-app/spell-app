@@ -123,11 +123,12 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
    * - A `collapsible="no"` accordion never closes its open panel this way.
    * - Returns true when applied.
    */
+  @E.untracked
   toggle(index: number, originalEvent?: Event): boolean {
-    const current = untrack(() => this.openIndexes)
-    const exclusive = untrack(() => this.exclusive)
+    const current = this.openIndexes
+    const exclusive = this.exclusive
     const opening = !current.includes(index)
-    if (!opening && !untrack(() => this.collapsible)) return false
+    if (!opening && !this.collapsible) return false
     const closing = opening ? (exclusive ? current : []) : [index]
     const next = opening ? (exclusive ? [index] : [...current, index]) : current.filter((open) => open !== index)
     return this.requestChange("openText", AccordionPanels.format(next.sort((a, b) => a - b)), () => {
@@ -139,8 +140,9 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   }
 
   /** `detail` of `ui-open` / `ui-close` for panel `index`:  its title and content added. */
+  @E.untracked
   private detail({ index, open, originalEvent }: AccordionDetailParams): UIT.AccordionToggleDetail {
-    const panel = untrack(() => this.panels)[index]
+    const panel = this.panels[index]
     return { index, open, title: panel?.title as Element, content: panel?.content, originalEvent }
   }
 
@@ -160,15 +162,16 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
    * A `<details>` toggled:  when the browser did it (find-in-page opening a closed panel, the `name` group closing
    * one), announce and adopt the DOM's open set;  our own writes already match it.
    */
+  @E.untracked
   private onToggle(event: Event) {
     const root = (event.currentTarget as Element).parentElement
     if (!root) return
     const panels = [...root.children].filter(
       (child): child is HTMLDetailsElement => child instanceof HTMLDetailsElement
     )
-    const before = untrack(() => this.openIndexes)
+    const before = this.openIndexes
     // the `source` panel held closed for its body (`isVeiled`) is open all the same
-    const held = (index: number) => index === SOURCE_PANEL && before.includes(index) && untrack(() => this.isVeiled)
+    const held = (index: number) => index === SOURCE_PANEL && before.includes(index) && this.isVeiled
     const now = panels.flatMap((details, index) => (details.open || held(index) ? [index] : []))
     if (AccordionPanels.format(now) === AccordionPanels.format(before)) return
     for (const index of now) {

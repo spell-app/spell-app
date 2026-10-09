@@ -73,6 +73,25 @@ class Basket {
     this.groceryCounts++
     return this.groceries.length
   }
+
+  /** The price after the discount, read untracked;  writes `lastPrice`. */
+  @E.untracked
+  priceNow(price: number): number {
+    this.lastPrice = price * (1 - this.discount / 100)
+    return this.lastPrice
+  }
+
+  /** The same, tracked. */
+  priceTracked(price: number): number {
+    return price * (1 - this.discount / 100)
+  }
+
+  /** `priceNow()`'s last result. */
+  @E.state accessor lastPrice = 0
+
+  /** `priceNow()` as an arrow-function field, as a handler passed around. */
+  @E.untracked
+  readonly priceHandler = (price: number): number => price * (1 - this.discount / 100)
 }
 
 describe("Reactive:  @state", () => {
@@ -263,6 +282,57 @@ describe("Reactive:  @onChange", () => {
   })
 })
 
+describe("Reactive:  @untracked", () => {
+  it("a computation calling the method doesn't follow what it reads;  the same method undecorated does", () => {
+    const basket = new Basket()
+    const runs = { untracked: 0, field: 0, tracked: 0 }
+    const dispose = createRoot((dispose) => {
+      createEffect(
+        () => {
+          runs.untracked++
+          return basket.priceNow(10)
+        },
+        () => {}
+      )
+      createEffect(
+        () => {
+          runs.field++
+          return basket.priceHandler(10)
+        },
+        () => {}
+      )
+      createEffect(
+        () => {
+          runs.tracked++
+          return basket.priceTracked(10)
+        },
+        () => {}
+      )
+      return dispose
+    })
+    basket.discount = 50
+    flush()
+    expect(runs).toEqual({ untracked: 1, field: 1, tracked: 2 })
+    dispose()
+  })
+
+  it("passes `this` and the arguments, returns the result, and writes as usual", () => {
+    const basket = new Basket()
+    basket.discount = 20
+    expect(basket.priceNow(50)).toBe(40)
+    expect(basket.lastPrice).toBe(40)
+    expect(basket.priceHandler(50)).toBe(40)
+  })
+
+  it("on anything but a method (or a function field), throws a TypeError naming the member", () => {
+    const getter = { kind: "getter", name: "total", static: false, metadata: {} }
+    expect(() => E.untracked(() => 1, getter as never)).toThrow(/@untracked total/)
+    expect(() => E.on("ping")(() => {}, getter as never)).toThrow(/@on total/)
+    const field = { kind: "field", name: "count", static: false, metadata: {} }
+    expect(() => (E.untracked(undefined, field as never) as (value: unknown) => unknown)(0)).toThrow(/@untracked count/)
+  })
+})
+
 ////////////////
 // ## Components
 ////////////////
@@ -308,12 +378,28 @@ class ReactiveTest extends E.UIComponent<typeof VOCABULARY> {
     return this.attributes.label
   }
 
-  /** `ping` events heard through `on()`. */
+  /** `ping` events heard through `@on`. */
   pings = 0
 
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    this.on("ping", () => this.pings++)
+  /** Which `@on` methods ran, in order. */
+  readonly heard: string[] = []
+
+  @E.on("ping")
+  protected onPing() {
+    this.pings++
+    this.heard.push("base")
+  }
+
+  /** `peek`:  reads `label`, untracked. */
+  @E.on("peek")
+  protected onPeek() {
+    this.heard.push(`peek ${this.label}`)
+  }
+
+  /** `pong` on the shadow root. */
+  @E.on("pong", { target: "renderRoot" })
+  protected onPong() {
+    this.heard.push("pong")
   }
 
   /** `onOpenChanged()` calls. */
@@ -346,6 +432,22 @@ Object.defineProperty(ReactiveTest.prototype, "vocabulary", { value: VOCABULARY 
 /** The stand-in in Spanish:  `<x-reactivo etiqueta="..." abierto>`. */
 const SPANISH = { lang: "es", attributes: { label: "etiqueta", open: "abierto" } } as const satisfies Dictionary
 ;(ReactiveTest as unknown as UIComponentClass & typeof E.UIComponent).define("x-reactivo", SPANISH)
+
+/** A subclass:  overrides an `@on` method, decorated again, and adds its own. */
+class ReactiveSubclass extends ReactiveTest {
+  @E.on("ping")
+  protected override onPing() {
+    super.onPing()
+    this.heard.push("override")
+  }
+
+  @E.on("ping")
+  protected onSubclassPing() {
+    this.heard.push("subclass")
+  }
+}
+Object.defineProperty(ReactiveSubclass.prototype, "vocabulary", { value: { ...VOCABULARY, tag: "x-reactive-sub" } })
+;(ReactiveSubclass as unknown as UIComponentClass & typeof E.UIComponent).define()
 
 /** Render one stand-in element;  returns its host, component and box. */
 async function reactive(html: string) {
@@ -436,7 +538,7 @@ describe("Reactive:  components", () => {
     expect(component.rawLabel).toBe("D")
   })
 
-  it("on():  hears the host until it's released, across a move", async () => {
+  it("@on:  hears the host until it's released, across a move", async () => {
     const { host, component } = await reactive(`<x-reactive></x-reactive>`)
     host.dispatchEvent(new Event("ping"))
     host.remove()
@@ -446,6 +548,41 @@ describe("Reactive:  components", () => {
     host.dispose()
     host.dispatchEvent(new Event("ping"))
     expect(component.pings).toBe(2)
+  })
+
+  it("@on:  the method runs untracked, even when the event is sent from inside a computation", async () => {
+    const { host, component } = await reactive(`<x-reactive label="A"></x-reactive>`)
+    let runs = 0
+    const dispose = createRoot((dispose) => {
+      createEffect(
+        () => {
+          runs++
+          host.dispatchEvent(new Event("peek"))
+        },
+        () => {}
+      )
+      return dispose
+    })
+    host.label = "B"
+    flush()
+    expect(component.heard).toEqual(["peek A"])
+    expect(runs).toBe(1)
+    dispose()
+  })
+
+  it("@on({ target: 'renderRoot' }):  listens on the shadow root", async () => {
+    const { host, component } = await reactive(`<x-reactive></x-reactive>`)
+    host.dispatchEvent(new Event("pong"))
+    host.shadowRoot!.dispatchEvent(new Event("pong"))
+    expect(component.heard).toEqual(["pong"])
+  })
+
+  it("@on in a subclass:  base class's listeners first;  an override decorated again listens once", async () => {
+    const { host, component } = await reactive(`<x-reactive-sub></x-reactive-sub>`)
+    expect(component).toBeInstanceOf(ReactiveSubclass)
+    host.dispatchEvent(new Event("ping"))
+    expect(component.heard).toEqual(["base", "override", "subclass"])
+    expect(component.pings).toBe(1)
   })
 
   it("$:  an Accessor per member", async () => {
@@ -609,7 +746,7 @@ describe("Reactive:  vocabulary getters vs base members", () => {
 
   it("no attribute is named like a member of UIComponent or FormComponent (the base would hide its getter)", async () => {
     const { component } = await reactive(`<x-reactive></x-reactive>`)
-    const standIn = new Set(["computes", "opens", "pings"])
+    const standIn = new Set(["computes", "opens", "pings", "heard"])
     const fields = Object.keys(component).filter((key) => !standIn.has(key))
     const taken = new Set([...fields, ...namesOf(E.UIComponent.prototype), ...namesOf(F.FormComponent.prototype)])
     const clashes = vocabularies.flatMap(({ tag, attributes }) =>

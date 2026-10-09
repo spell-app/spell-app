@@ -174,11 +174,9 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /** Run the query already in the input, as `originalEvent` asked (a click, ArrowDown). */
+  @E.untracked
   private rerunQuery(originalEvent: Event) {
-    this.runQuery(
-      untrack(() => this.query),
-      originalEvent
-    )
+    this.runQuery(this.query, originalEvent)
   }
 
   /**
@@ -243,16 +241,18 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /** Highlight `result` if it's shown. */
+  @E.untracked
   private highlight(result: UIT.SearchResult) {
-    const index = untrack(() => this.shownResults).indexOf(result)
-    if (index >= 0 && index !== untrack(() => this.highlightedIndex)) this.highlightedIndex = index
+    const index = this.shownResults.indexOf(result)
+    if (index >= 0 && index !== this.highlightedIndex) this.highlightedIndex = index
   }
 
   /** Move the highlight by `delta`, stopping at the ends (Fomantic's arrows). */
+  @E.untracked
   private move(delta: number) {
-    const count = untrack(() => this.shownResults).length
+    const count = this.shownResults.length
     if (!count) return
-    const from = untrack(() => this.highlightedIndex)
+    const from = this.highlightedIndex
     this.highlightedIndex = from < 0 ? (delta > 0 ? 0 : count - 1) : Math.max(0, Math.min(count - 1, from + delta))
   }
 
@@ -294,8 +294,9 @@ export class UISearch extends F.FormComponent<Vocabulary> {
    * Show or hide the results, dispatching the cancelable `ui-open` / `ui-close` first.
    * - Not `open()` / `close()`:  `open` is the attribute's.
    */
+  @E.untracked
   requestOpen(open: boolean, originalEvent?: Event): boolean {
-    if (open === untrack(() => this.isOpen)) return false
+    if (open === this.isOpen) return false
     if (open && this.isDisabled) return false
     const isDone = this.requestChange("isOpen", open, () =>
       this.send(open ? "ui-open" : "ui-close", { open, originalEvent })
@@ -668,16 +669,18 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /** A click in the input reopens results someone closed. */
+  @E.untracked
   private readonly onClick = (event: MouseEvent) => {
-    if (!untrack(() => this.isOpen)) this.rerunQuery(event)
+    if (!this.isOpen) this.rerunQuery(event)
   }
 
   /** Leaving:  close (unless focus stays inside);  an edited text commits with `ui-change`. */
+  @E.untracked
   private readonly onBlur = (event: FocusEvent) => {
     const next = event.relatedTarget as Node | null
     if (next && (this.domElement.contains(next) || this.domElement.renderRoot.contains(next))) return
     this.requestOpen(false, event)
-    const value = untrack(() => this.query)
+    const value = this.query
     if (this.valueAtFocus !== undefined && value !== this.valueAtFocus) {
       this.send("ui-change", { value, originalEvent: event })
     }
@@ -685,9 +688,10 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /** Combobox keys:  arrows move, Enter chooses, Escape clears a closed search (an open one closes, overlays). */
+  @E.untracked
   private readonly onKeyDown = (event: KeyboardEvent) => {
     if (this.isDisabled || event.defaultPrevented || event.isComposing) return
-    const isShowing = untrack(() => this.resultsAreShowing)
+    const isShowing = this.resultsAreShowing
     switch (event.key) {
       case UIT.Key.arrowDown:
         event.preventDefault()
@@ -700,7 +704,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
         this.move(-1)
         return
       case UIT.Key.enter: {
-        const result = isShowing ? untrack(() => this.highlightedResult) : undefined
+        const result = isShowing ? this.highlightedResult : undefined
         if (result) {
           event.preventDefault()
           this.select(result, event)
@@ -709,13 +713,13 @@ export class UISearch extends F.FormComponent<Vocabulary> {
       }
       case UIT.Key.escape:
         // showing:  `UI.overlays` closes it;  else Escape clears (APG)
-        if (isShowing || !untrack(() => this.query)) return
+        if (isShowing || !this.query) return
         event.preventDefault()
         this.requestOpen(false, event)
         this.commit("", event)
         return
       case UIT.Key.tab:
-        if (untrack(() => this.isOpen)) this.requestOpen(false, event)
+        if (this.isOpen) this.requestOpen(false, event)
         return
     }
   }

@@ -1,4 +1,4 @@
-import { Repeat, Show, untrack } from "solid-js"
+import { Repeat, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -58,12 +58,6 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
     DOMElement: DOMRatingElement
   } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
-    super(...args)
-    this.domElement.addEventListener("invalid", this.onInvalid)
-    this.domElement.addEventListener("click", this.onDOMElementClick)
-  }
-
   onFormStateRestore(state: File | string | FormData | null) {
     this.value = Number(state) || 0
   }
@@ -106,8 +100,9 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /** Check exactly the radio of the current rating (none for 0 or a fraction). */
+  @E.untracked
   private syncRadios() {
-    const rating = untrack(() => this.rating)
+    const rating = this.rating
     for (const radio of this.radios()) radio.checked = Number(radio.value) === rating
   }
 
@@ -146,8 +141,9 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /** Preview choice `point` while pointing at it. */
+  @E.untracked
   private hover(point: number) {
-    if (untrack(() => this.isInteractive)) this.hoveredPoint = point
+    if (this.isInteractive) this.hoveredPoint = point
   }
 
   /** The pointer left the group:  no preview. */
@@ -223,7 +219,8 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /** A submit or `reportValidity()` found it invalid:  show it. */
-  private readonly onInvalid = () => {
+  @E.on("invalid")
+  protected onInvalid() {
     this.isTouched = true
   }
 
@@ -335,13 +332,14 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   ////////////////
 
   /** `readonly`:  cancel the click (the radio reverts);  the current rating clicked again clears a clearable one. */
+  @E.untracked
   private readonly onClick = (event: MouseEvent) => {
-    if (untrack(() => this.readonly)) {
+    if (this.readonly) {
       event.preventDefault()
       return
     }
     const point = Number((event.currentTarget as HTMLInputElement).value)
-    if (point === untrack(() => this.rating) && untrack(() => this.isClearable)) this.choose(0, event)
+    if (point === this.rating && this.isClearable) this.choose(0, event)
   }
 
   /** A radio was chosen (click, arrows, Space). */
@@ -350,13 +348,14 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /** `readonly` blocks the native keys;  Home / End jump;  Backspace / Delete clear a clearable rating. */
+  @E.untracked
   private readonly onKeyDown = (event: KeyboardEvent) => {
     const { key } = event
-    if (untrack(() => this.readonly)) {
+    if (this.readonly) {
       if (CHOICE_KEYS.has(key)) event.preventDefault()
       return
     }
-    if (!untrack(() => this.isInteractive)) return
+    if (!this.isInteractive) return
     if (key === UIT.Key.home || key === UIT.Key.end) {
       event.preventDefault()
       const radios = this.radios()
@@ -375,7 +374,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
       if (target && !target.checked) this.choose(Number(target.value), event)
       return
     }
-    if (CLEAR_KEYS.has(key) && untrack(() => this.isClearable)) {
+    if (CLEAR_KEYS.has(key) && this.isClearable) {
       event.preventDefault()
       this.choose(0, event)
     }
@@ -399,7 +398,8 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /** A click aimed at the DOM element itself (its `<label for>`) focuses the group's tab stop. */
-  private readonly onDOMElementClick = (event: MouseEvent) => {
+  @E.on("click")
+  protected onDOMElementClick(event: MouseEvent) {
     if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
     this.focus()
   }

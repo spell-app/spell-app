@@ -62,12 +62,9 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
-  /** Listens for clicks on the DOM element (`ui-select`), and re-applies the roving tabindexes once settled. */
+  /** Re-applies the roving tabindexes once settled. */
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    const onClick = (event: MouseEvent) => this.onClick(event)
-    this.domElement.addEventListener("click", onClick)
-    this.domElement.addReleaseCallback(() => this.domElement.removeEventListener("click", onClick))
     onSettled(() => this.queueRefresh())
   }
 
@@ -131,7 +128,8 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
    * A click inside the menu:  `ui-select` when it activated a link / button item (Enter / Space on one click it
    * too).  Only the top menu dispatches;  a sub-menu's clicks bubble to it.
    */
-  private onClick(event: MouseEvent) {
+  @E.on("click")
+  protected onClick(event: MouseEvent) {
     if (this.parentMenu) return
     const item = UIMenu.activatedItem(event)
     if (!item || item.matches(UIT.DISABLED_STATE)) return
@@ -222,7 +220,7 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
       this.refreshIsQueued = false
       if (!this.rovingTabindex) return
       if (this.domElement.matches(":focus-within")) this.rovingTabindex.refresh()
-      else this.startRoving(untrack(() => this.orientation))
+      else this.startRoving(this.orientation)
     })
   }
 
@@ -230,17 +228,16 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
    * The roving set, in document order:  the item BOXES (`UIItem.focusTarget`) of items owned by this menu tree,
    * `type="item"`, not hidden.  Untracked:  called from handlers and effect cleanups.
    */
+  @E.untracked
   private menuItems(): HTMLElement[] {
-    return untrack(() => {
-      const boxes: HTMLElement[] = []
-      for (const element of this.domElement.querySelectorAll<HTMLElement>("*")) {
-        if (!this.itemsThatAsked.has(element) || element.hidden) continue
-        const item = (element as E.DOMElement).component as ItemComponent | undefined
-        const box = item?.focusTarget
-        if (box && item.type === UIT.ITEM) boxes.push(box)
-      }
-      return boxes
-    })
+    const boxes: HTMLElement[] = []
+    for (const element of this.domElement.querySelectorAll<HTMLElement>("*")) {
+      if (!this.itemsThatAsked.has(element) || element.hidden) continue
+      const item = (element as E.DOMElement).component as ItemComponent | undefined
+      const box = item?.focusTarget
+      if (box && item.type === UIT.ITEM) boxes.push(box)
+    }
+    return boxes
   }
 
   ////////////////

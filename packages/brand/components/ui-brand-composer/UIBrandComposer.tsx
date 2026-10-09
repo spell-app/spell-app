@@ -1,4 +1,4 @@
-import { Show, createEffect, untrack } from "solid-js"
+import { Show, createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import {
@@ -8,6 +8,7 @@ import {
   protoMerged,
   SlotContent,
   UI,
+  untracked,
   type AttributeName,
   type FieldValue,
   type ElementSetup,
@@ -284,9 +285,10 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
    * - Returns false when nothing was cast (see the class doc), or `ui-cast` was cancelled.
    * - SIDE EFFECT:  `requestSubmit()` on the DOM element's form.
    */
+  @untracked
   cast(originalEvent?: Event): boolean {
     const value = this.current()
-    if (!value.trim() || this.flagNow("casting") || this.flagNow("disabled") || untrack(() => this.formIsDisabled)) {
+    if (!value.trim() || this.flagNow("casting") || this.flagNow("disabled") || this.formIsDisabled) {
       return false
     }
     if (!this.send("ui-cast", { value, originalEvent })) return false

@@ -64,12 +64,6 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    this.on("slotchange", this.onSlotChange, { target: this.domElement.renderRoot })
-    this.on("command", this.onCommand)
-  }
-
   ////////////////
   // ## Sides
   ////////////////
@@ -84,7 +78,10 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   private hasHadSides = untrack(() => this.sides.length > 0)
 
   /** The default slot's content changed:  find the sides again. */
-  private readonly onSlotChange = () => (this.sides = this.findSides())
+  @E.on("slotchange", { target: "renderRoot" })
+  protected onSlotChange() {
+    this.sides = this.findSides()
+  }
 
   /**
    * The sides changed:  start at `activeIndex` the first time, then show the current side, hide the rest.
@@ -99,13 +96,11 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   }
 
   /** The first sides found after none (upgrade order, or content added later):  start at `activeIndex`, not 0. */
+  @E.untracked
   private firstSides(sides: readonly E.DOMElement[]) {
     if (this.hasHadSides || !sides.length) return
     this.hasHadSides = true
-    this.shownIndex = this.queuedIndex = this.normalize(
-      untrack(() => this.activeSideIndex),
-      sides.length
-    )
+    this.shownIndex = this.queuedIndex = this.normalize(this.activeSideIndex, sides.length)
   }
 
   /** Show the current side;  hide the rest. */
@@ -152,13 +147,14 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   @E.onChange("isReady", "activeSideIndex")
   protected onActiveSideIndexChanged(isReady: boolean, index: number) {
     if (!isReady) return
-    const next = this.normalize(index, untrack(() => this.sides).length)
+    const next = this.normalize(index, this.sides.length)
     if (next !== this.queuedIndex) void this.enqueue(this.defaultFlip, next)
   }
 
   /** Turn `direction` to side `index` (default the next one after where the queue is heading, wrapping). */
+  @E.untracked
   flipTo(direction?: UIT.ShapeFlip, index?: number): Promise<boolean> {
-    const count = untrack(() => this.sides).length
+    const count = this.sides.length
     if (!count) return Promise.resolve(false)
     const to = this.normalize(index ?? this.queuedIndex + 1, count)
     const done = to === this.queuedIndex ? Promise.resolve(false) : this.enqueue(direction ?? this.defaultFlip, to)
@@ -174,7 +170,8 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   /**
    * An invoker command aimed at the DOM element (`UIT.ShapeCommands`):  `--next`, `--previous`, `--flip-<direction>`.
    */
-  private readonly onCommand = (event: Event) => {
+  @E.on("command")
+  protected onCommand(event: Event) {
     const { command } = event as Event & { command: string }
     if (command === UIT.ShapeCommands.next) void this.flipBy(1)
     else if (command === UIT.ShapeCommands.previous) void this.flipBy(-1)
@@ -221,8 +218,9 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
    * One flip, Fomantic's `animate()`:  stage the next side, turn the box, wait for its transition, reset.
    * - Reduced motion, a hidden or disconnected shape:  swap at once.
    */
+  @E.untracked
   private async flip(direction: UIT.ShapeFlip, index: number): Promise<boolean> {
-    const sides = untrack(() => this.sides)
+    const sides = this.sides
     const active = sides[this.shownIndex]
     const next = sides[index]
     if (!next || index === this.shownIndex) return false

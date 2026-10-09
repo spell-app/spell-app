@@ -60,12 +60,6 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   /** Default:  500 ms. */
   @E.proto static typeAheadDelay = 500
 
-  /** Listens for invoker commands aimed at the DOM element, until it's released. */
-  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
-    super(...args)
-    this.on("command", this.onCommand)
-  }
-
   ////////////////
   // ## Options
   ////////////////
@@ -138,22 +132,24 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /** Values of slotted items marked `selected`, the uncontrolled starting value. */
+  @E.untracked
   private selectedItemValues(): string | string[] | undefined {
-    const values = untrack(() => this.items.entries)
+    const values = this.items.entries
       .filter(UIDropdown.isOption)
       .filter((option) => option.selected)
       .map((option) => option.value)
     if (!values.length) return undefined
-    return untrack(() => this.multiple) ? values : values[0]
+    return this.multiple ? values : values[0]
   }
 
   /** Choose `option` (or add the addition), as the person did with `originalEvent`. */
+  @E.untracked
   select(option: E.MenuOption, originalEvent?: Event) {
     if (option.disabled || this.readonly) return
-    const values = untrack(() => this.chosenValues)
+    const values = this.chosenValues
     const isAddition = "addition" in option
     if (this.multiple) {
-      if (!untrack(() => this.hasRoomForMore)) return
+      if (!this.hasRoomForMore) return
       const next = [...values, option.value]
       this.commit(next, originalEvent, () => this.send("ui-add", { value: option.value, originalEvent }))
       this.query = ""
@@ -168,9 +164,10 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /** Remove one chosen value (multiple). */
+  @E.untracked
   remove(value: string, originalEvent?: Event) {
     if (this.readonly || this.isDisabled) return
-    const next = untrack(() => this.chosenValues).filter((item) => item !== value)
+    const next = this.chosenValues.filter((item) => item !== value)
     this.commit(next, originalEvent, () => this.send("ui-remove", { value, originalEvent }))
   }
 
@@ -237,16 +234,14 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   private typeAheadTimer?: E.CancelablePromise<unknown>
 
   /** Type-ahead:  extend the buffer, highlight the next match (opening first if needed). */
+  @E.untracked
   private typeAhead(key: string, event: KeyboardEvent) {
     this.typeAheadTimer?.cancel()
     this.typedSoFar += key
     this.typeAheadTimer = E.after(this.typeAheadDelay / 1000, () => (this.typedSoFar = ""))
-    if (!untrack(() => this.isOpen)) this.requestOpen(true, event)
-    const options = untrack(() => this.visibleOptions)
-    const index = options.selectionForKey(
-      this.typedSoFar,
-      untrack(() => this.highlightedIndex)
-    )
+    if (!this.isOpen) this.requestOpen(true, event)
+    const options = this.visibleOptions
+    const index = options.selectionForKey(this.typedSoFar, this.highlightedIndex)
     if (index >= 0) this.highlightedIndex = index
   }
 
@@ -289,18 +284,17 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /** Highlight `option` if it's visible. */
+  @E.untracked
   private highlight(option: E.MenuOption) {
-    const index = untrack(() => this.visibleOptions).options.indexOf(option)
-    if (index >= 0 && index !== untrack(() => this.highlightedIndex)) this.highlightedIndex = index
+    const index = this.visibleOptions.options.indexOf(option)
+    if (index >= 0 && index !== this.highlightedIndex) this.highlightedIndex = index
   }
 
   /** Move the highlight by `delta` enabled options. */
+  @E.untracked
   private move(delta: number) {
-    const options = untrack(() => this.visibleOptions)
-    this.highlightedIndex = options.nextEnabledIndex(
-      untrack(() => this.highlightedIndex),
-      delta
-    )
+    const options = this.visibleOptions
+    this.highlightedIndex = options.nextEnabledIndex(this.highlightedIndex, delta)
   }
 
   /** Open:  keep the highlighted row in view. */
@@ -343,15 +337,16 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
    * - Opening highlights the chosen option, else the first enabled one.
    * - Returns true when it changed.
    */
+  @E.untracked
   requestOpen(open: boolean, originalEvent?: Event): boolean {
-    if (open === untrack(() => this.isOpen)) return false
+    if (open === this.isOpen) return false
     if (open && (this.isDisabled || this.readonly)) return false
     const done = this.requestChange("isOpen", open, () =>
       this.send(open ? "ui-open" : "ui-close", { open, originalEvent })
     )
     if (done && open) {
-      const options = untrack(() => this.visibleOptions)
-      const chosen = options.options.findIndex((option) => untrack(() => this.chosenValueSet).has(option.value))
+      const options = this.visibleOptions
+      const chosen = options.options.findIndex((option) => this.chosenValueSet.has(option.value))
       this.highlightedIndex = chosen >= 0 ? chosen : options.nextEnabledIndex(-1, 1)
     }
     if (done && !open) this.query = ""
@@ -708,12 +703,10 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
    * ignored when disabled or read-only.
    * - Opening focuses the combobox, as opening it by keyboard leaves it (the keys need it).
    */
-  private readonly onCommand = (event: Event) => {
-    if (untrack(() => this.isDisabled || this.readonly)) return
-    const action = UIT.ToggleCommands.action(
-      event,
-      untrack(() => this.isOpen)
-    )
+  @E.on("command")
+  protected onCommand(event: Event) {
+    if (this.isDisabled || this.readonly) return
+    const action = UIT.ToggleCommands.action(event, this.isOpen)
     if (action === "show") {
       this.combobox?.focus({ preventScroll: true })
       this.requestOpen(true, event)
@@ -721,21 +714,23 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /** Trigger / input click:  toggle (the input only opens). */
+  @E.untracked
   private readonly onTriggerClick = (event: MouseEvent) => {
     // Safari doesn't focus a <button> on a mouse click, and the keys (arrows, Enter, Escape) need focus here
     // (`detail` is 0 for a keyboard or scripted click, which has the focus it needs, or none to give)
     if (event.detail > 0) this.combobox?.focus({ preventScroll: true })
-    if (this.search && untrack(() => this.isOpen)) return
-    this.requestOpen(!untrack(() => this.isOpen), event)
+    if (this.search && this.isOpen) return
+    this.requestOpen(!this.isOpen, event)
   }
 
   /** Click on the root outside the combobox (caret, text of a search dropdown):  focus + toggle. */
+  @E.untracked
   private readonly onRootClick = (event: MouseEvent) => {
     const target = event.composedPath()[0]
     if (!this.search || target === this.combobox || this.menu?.contains(target as Node)) return
     if ((target as Element).closest?.("button")) return
     this.combobox?.focus()
-    this.requestOpen(!untrack(() => this.isOpen), event)
+    this.requestOpen(!this.isOpen, event)
   }
 
   /** Clear button. */
@@ -768,9 +763,10 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /** Combobox keyboard pattern (APG), plus type-ahead and Backspace-removes-last. */
+  @E.untracked
   private readonly onKeyDown = (event: KeyboardEvent) => {
     if (this.isDisabled || event.defaultPrevented) return
-    const isOpen = untrack(() => this.isOpen)
+    const isOpen = this.isOpen
     const { key } = event
     switch (key) {
       case UIT.Key.arrowDown:
@@ -783,7 +779,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
       case UIT.Key.end:
         if (!isOpen) return
         event.preventDefault()
-        this.highlightedIndex = untrack(() => this.visibleOptions).nextEnabledIndex(-1, key === UIT.Key.home ? 1 : -1)
+        this.highlightedIndex = this.visibleOptions.nextEnabledIndex(-1, key === UIT.Key.home ? 1 : -1)
         return
       case UIT.Key.pageDown:
       case UIT.Key.pageUp:
@@ -797,15 +793,15 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
           return
         }
         event.preventDefault()
-        const visible = untrack(() => this.visibleOptions)
-        const option = untrack(() => this.highlightedOption) ?? visible.addition
+        const visible = this.visibleOptions
+        const option = this.highlightedOption ?? visible.addition
         if (option) this.select(option, event)
         return
       }
       case UIT.Key.space: {
         if (this.search || !isOpen) return
         event.preventDefault()
-        const option = untrack(() => this.highlightedOption)
+        const option = this.highlightedOption
         if (option) this.select(option, event)
         return
       }
@@ -813,8 +809,8 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
         if (isOpen) this.requestOpen(false, event)
         return
       case UIT.Key.backspace: {
-        const values = untrack(() => this.chosenValues)
-        if (this.search && this.multiple && !untrack(() => this.query) && values.length) {
+        const values = this.chosenValues
+        if (this.search && this.multiple && !this.query && values.length) {
           this.remove(values.at(-1)!, event)
         }
         return

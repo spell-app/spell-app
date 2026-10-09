@@ -9,6 +9,7 @@ import {
   UIComponent,
   type DOMElement,
   UIT,
+  untracked,
   type ElementSetup,
   type AttributeValues
 } from "$/ui/core"
@@ -138,8 +139,9 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
   }
 
   /** What to say on reaching `step`:  "All done" at the end, else "<text> done" for the check before it. */
+  @untracked
   private announce(step: number): string {
-    const checks = untrack(this.checks.get)
+    const checks = this.checks.get()
     if (step >= checks.length) return this.translationForKey("allDone")
     const label = checks[step - 1]?.textContent?.trim() ?? ""
     return label ? this.translationForKey("stepDone", { label }) : ""

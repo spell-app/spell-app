@@ -447,7 +447,7 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
     popup.addEventListener("toggle", (event) => {
       if ((event as ToggleEvent).newState !== "open") return
       this.tabStopTheme = undefined
-      const row = this.rows().find((each) => each.value === untrack(() => this.chosenTheme)) ?? this.rows()[0]
+      const row = this.rows().find((each) => each.value === this.chosenTheme) ?? this.rows()[0]
       row?.focus()
     })
   }
