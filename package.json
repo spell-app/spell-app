@@ -12,7 +12,6 @@
     "packages/lsp",
     "packages/markdown",
     "packages/parser",
-    "packages/solid-element",
     "packages/spell",
     "packages/app",
     "packages/core",
@@ -53,7 +52,6 @@
     "vitest": "catalog:"
   },
   "resolutions": {
-    "@solidjs/element": "2.0.0-rc.13",
     "@solidjs/signals": "2.0.0-rc.13",
     "@solidjs/web": "2.0.0-rc.13",
     "solid-js": "2.0.0-rc.13",

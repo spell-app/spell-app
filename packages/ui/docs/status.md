@@ -115,8 +115,8 @@ links open in an editor tab;  `.md` links do too because `.vscode/settings.json`
 
 | Piece | Status | Notes |
 |---|:-:|---|
-| `@spell-app/solid-element` fork | ✅ | 145 tests;  upgrade, forms, lifecycle, error boundary, HMR, event-target and slot-owner fixes |
-| upstream PRs for the fork | 💤 | outlined in [`packages/solid-element/UPSTREAM.md`](../packages/solid-element/UPSTREAM.md);  nothing filed without Owen's go-ahead |
+| custom-element layer (`DOMElement`, `UIComponent`, `ShadowEvents`, `HotDefinitions`) | ✅ | `@solidjs/element` + `component-register` folded into `src/elements/` (epic `spell-element`, 2026-10-09):  upgrade, forms, lifecycle, error net, HMR, event-target and slot-owner fixes;  `packages/solid-element/` gone |
+| upstream PRs for those fixes | — | dropped with the package (epic `spell-element`, Q12):  the outline (`UPSTREAM.md`) is in git history only |
 | element core (`core`, `forms` entries) | ✅ | 16.2 kB + 7.5 kB |
 | `UI` runtime (lazy) | ✅ | 30.9 kB (with `UI.icons`), budget < 50 kB;  [`docs/runtime.md`](runtime.md) |
 | icons | ✅ | SVG packs + `UI.icons` (2026-09-30):  default pack index 14.2 kB, loaded on first icon;  `yarn icons:pack`;  [`docs/icons.md`](icons.md) |
@@ -156,7 +156,6 @@ Decided or knowingly left for later;  each should be picked up where noted.
 - **Custom-elements manifest:**  the plan's API tables were to come from one;  the site builds them from the
   vocabulary files instead (`<ui-docs-api>`, from `site/_data/components.json`).  Revisit in
   Phase D if a manifest is wanted for editors.
-- **Upstream PRs** for the fork -- outlined only, filed only on Owen's go-ahead.
 - **Translated tag sets** (`<ie-tarjeta>`) -- designed ([`docs/translation.md`](translation.md)), not built.
 - **Hydration** of server-rendered elements -- SSR renders; the client re-renders.
 - **List / menu:**  other components inside items (labels, buttons, inputs), Fomantic's fixed-menu examples.

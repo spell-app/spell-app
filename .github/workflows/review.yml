@@ -48,8 +48,8 @@ jobs:
       - run: yarn install --immutable
         working-directory: .
 
-      # browser tests (ui's, the fork's, util's) run in a real chromium
-      - if: contains(fromJSON('["ui", "solid-element", "util"]'), matrix.package)
+      # browser tests (ui's, util's) run in a real chromium
+      - if: contains(fromJSON('["ui", "util"]'), matrix.package)
         run: yarn playwright install --with-deps chromium
 
       - name: type check

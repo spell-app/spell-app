@@ -44,9 +44,6 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
     workspace:  `spell dev vscode` (or its two steps, `spell dev vscode build` / `install`) builds and installs it.
   - `packages/ui/` (`@spell-app/ui`, `$/ui`) -- Fomantic UI reborn as `ui-*` custom elements, on Solid 2.
     See `packages/ui/AGENTS.md`.
-  - `packages/solid-element/` (`@spell-app/solid-element`) -- our fork of Solid's custom-element layer
-    (`@solidjs/element` + `component-register`), which `@spell-app/ui` is built on.  No `AGENTS.md`:  see its
-    `README.md`, and `UPSTREAM.md` for the upstream PR each fix maps to.
   - `packages/cli/` (`@spell-app/cli`, `$/cli`, `CLI`) -- the `spell` command-line tool, running the spell-family
     packages' SOURCE through `tsx`.  See `packages/cli/AGENTS.md` and its `README.md`.
   - `packages/docs/` (`@spell-app/docs`) -- every package's docs:  its `tools/`, the tooling and `_assets`
@@ -66,8 +63,7 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   `docs` -> anything (its experiments import any package;  nothing imports `docs`),
   `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, `app` / `lsp` -> `markdown` -> `parser`,
   `brand` -> `ui` / `server`, and
-  `ui` -> `solid-element` / `util`.  NEVER make `ui` or `solid-element` import `spell` or any package above it:
-  `@spell-app/ui` lives on its own.
+  `ui` -> `util`.  NEVER make `ui` import `spell` or any package above it:  `@spell-app/ui` lives on its own.
   - `server` is a LEAF (node built-ins only, imports no package):  ANY package may import it, `ui`'s tools too.
   - `assembler` is node-only and imports no package (linkedom, oxfmt):  `docs` / `epics` -> `assembler`, and any
     other node-side package or tool may import it too.
