@@ -3,24 +3,24 @@
  * (`DocView`), or in VS Code's Simple Browser beside the editor -- setting `spell.docPreview.location`.
  * - Which view:  `docs` (the "Spell Docs" tab, the default) or `review` (the "Review" tab:  `/epic review`).
  *   `review` is ALWAYS the side bar's "Review" tab:  the setting moves only `docs`.
- * - Opened by URI:  `vscode://spell-app.spell-language/doc-preview?file=<absolute path>[&view=review]` -- what
- *   `packages/docs/tools/pages.js` `openInVSCode()` opens (`spell dev plan-doc open`, `spell dev plan-doc phase`).
- * - Or `?url=<http://127.0.0.1:port/...>`:  a page some local server already serves, shown as is -- the page
- *   server's live pages (`/goals-open-vs`).  Loopback URLs only;  with a `file` too, the file is the fallback when
- *   the URL isn't loopback.
- * - Simple Browser loads only http(s).  For a `file`, the doc's checkout (git root:  the repo, or the worktree it's
- *   in) is served by:
- *   - its PAGE SERVER (`spell dev server`), when one runs:  found by its pid file, `<root>/.spell-server.json`.  Live
- *     reload, page edits, goals' buttons, `/ui/`.
- *   - else a server of our own, in-process, on `127.0.0.1`, one per root, for as long as the extension runs:  the
- *     same `$/server` `WebServer`, with live reload, but no route modules (no goals buttons, no `/ui/`).
- *   NEVER starts the page server itself:  a GUI VS Code may have no `node` / `yarn` on its PATH.  The scripts that
- *   open docs start it first (`pages.js` `ensurePageServer()`).
+ * - Opened by URI:  `vscode://spell-app.spell-language/doc-preview?file=<absolute path>[&view=review]` --
+ *   what `packages/docs/tools/pages.js` `openInVSCode()` opens (`spell dev plan-doc open`, `spell dev plan-doc phase`).
+ * - Or `?url=<http://127.0.0.1:port/...>`:  a page some local server already serves, shown as is --
+ *   the page server's live pages (`/goals-open-vs`).  Loopback URLs only;
+ *   with a `file` too, the file is the fallback when the URL isn't loopback.
+ * - Simple Browser loads only http(s).
+ *   For a `file`, the doc's checkout (git root:  the repo, or the worktree it's in) is served by:
+ *   - its PAGE SERVER (`spell dev server`), when one runs:  found by its pid file, `<root>/.spell-server.json`.
+ *     Live reload, page edits, goals' buttons, `/ui/`.
+ *   - else a server of our own, in-process, on `127.0.0.1`, one per root, for as long as the extension runs:
+ *     the same `$/server` `WebServer`, with live reload, but no route modules (no goals buttons, no `/ui/`)
+ *   - NEVER starts the page server itself:  a GUI VS Code may have no `node` / `yarn` on its PATH.
+ *     The scripts that open docs start it first (`pages.js` `ensurePageServer()`).
  * - Served from the ROOT, not the doc's folder:  docs link to source files all over the repo.
  * - Or by `WindowBridge`'s `show-doc`:  a session asks ITS window (not the focused one) to show the doc.
- * - ONE place per view (its side bar tab, or Simple Browser's one tab).  Simple Browser loads the doc afresh on
- *   each open (a `?t=` stamp);  a side bar view loads only ANOTHER page, the same one isn't reloaded
- *   (`DocView.show()`).
+ * - ONE place per view (its side bar tab, or Simple Browser's one tab).
+ *   Simple Browser loads the doc afresh on each open (a `?t=` stamp);
+ *   a side bar view loads only ANOTHER page, the same one isn't reloaded (`DocView.show()`).
  */
 import { existsSync } from "fs"
 import { dirname, join, resolve, sep } from "path"
@@ -42,8 +42,8 @@ export class DocPreview {
   static readonly servers = new Map<string, Promise<SRV.WebServer>>()
 
   /**
-   * Set up the URI handler -- call once, first thing in `activate()`, so it works even when the language server
-   * can't start.
+   * Set up the URI handler --
+   * call once, first thing in `activate()`, so it works even when the language server can't start.
    * - SIDE EFFECT:  servers close when the extension deactivates.
    */
   static register(context: vscode.ExtensionContext): void {
@@ -52,6 +52,7 @@ export class DocPreview {
       const index = docsIndex()
       return index && (await DocPreview.urlOf(index))
     }
+    DocView.showFile = (file, view) => DocPreview.show(file, undefined, view)
     context.subscriptions.push(
       vscode.window.registerUriHandler({
         handleUri: (uri) => {
@@ -108,9 +109,9 @@ export class DocPreview {
   }
 
   /**
-   * Show `url`, stamped (`?t=`):  in the right side bar's doc view `view` (where the page already in view isn't
-   * reloaded:  `DocView.show()`), or, for `docs`, in Simple Browser beside the editor (`spell.docPreview.location`),
-   * afresh.
+   * Show `url`, stamped (`?t=`):
+   * - in the right side bar's doc view `view`, where the page already in view isn't reloaded (`DocView.show()`)
+   * - or, for `docs`, in Simple Browser beside the editor (`spell.docPreview.location`), afresh
    */
   static async showUrl(url: string, view: DocViewName = "docs"): Promise<void> {
     const fresh = stamped(url)

@@ -1,37 +1,42 @@
 /*
  * Page behaviour for the `.html` docs.
- * Bundled into `spell-ui.js` (a classic IIFE, beside @spell-app/ui) by `scripts/bundle-spell-ui.js`;  side
- * effects only.  The page's markup is hand-authored;  this only DRIVES it.
+ * Bundled into `spell-ui.js` (a classic IIFE, beside @spell-app/ui) by `scripts/bundle-spell-ui.js`;
+ * side effects only.  The page's markup is hand-authored;  this only DRIVES it.
  * - Two page markups, read into ONE outline (`outlineOf()`) that everything below works from:
- *   - SECTIONS (every page but the goals pages):  `<ui-section id header sticky collapsible dividing>` in `main`,
- *     nested for sub-sections, `collapsed` to start folded.  The element draws the title, the fold button, the rule
- *     and the stack of stuck titles;  this runtime sets the top-level `offset`s, remembers folds, writes counts.
- *     - a PLAN DOC is `<epic-page>` markup (the `epics` pack, `packages/epics`):  its folding blocks
- *       (`<epic-overview>`, `<epic-section>`, `<epic-phase>`, `EPIC_FOLDS`) are its sections.  They draw and stick
- *       themselves, count their items, filter them, and draw the page header, the review line, the commits and
- *       every review control;  this runtime only lists them (each host's `contentsEntry`:  label, icon, count),
+ *   - SECTIONS (every page but the goals pages):
+ *     `<ui-section id header sticky collapsible dividing>` in `main`, nested for sub-sections,
+ *     `collapsed` to start folded.
+ *     - the element draws the title, the fold button, the rule and the stack of stuck titles
+ *     - this runtime sets the top-level `offset`s, remembers folds, writes counts
+ *     - a PLAN DOC is `<epic-page>` markup (the `epics` pack, `packages/epics`):
+ *       its folding blocks (`<epic-overview>`, `<epic-section>`, `<epic-phase>`, `EPIC_FOLDS`) are its sections.
+ *       They draw and stick themselves, count their items, filter them,
+ *       and draw the page header, the review line, the commits and every review control;
+ *       this runtime only lists them (each host's `contentsEntry`, with label, icon and count),
  *       remembers their folds, and lands links inside them
  *   - HEADINGS (the goals pages):  `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`;
  *     this runtime adds the fold chevrons and every sticky's `offset`
  * - the RAIL, the page's one navigation:  a strip of the top-level sections' icons FLOATING over the right edge
- *   (`buildRail()`), every width;  no column is kept for it, the page runs to the window's edge.  No contents
- *   list:  Owen, 2026-10-08 ("remove the Contents thing entirely ... it is useless")
+ *   (`buildRail()`), every width;  no column is kept for it, the page runs to the window's edge.
+ *   No contents list:  Owen, 2026-10-08 ("remove the Contents thing entirely ... it is useless")
  * - sticky headers:  the page header (`ui-sticky.spell-h1`) sticks at the top, each top-level title below it,
- *   nested ones below their parents' (re-measured on resize);  CSS variables on the sections let anchors land below
- *   them all
+ *   nested ones below their parents' (re-measured on resize);
+ *   CSS variables on the sections let anchors land below them all
  * - everything that sticks or lands at the top starts BELOW the fixed site header (`<spell-site-header>`,
  *   `siteHeaderHeight()`):  the page header, the titles, the rail
  * - folding:  every section folds from a chevron on its title;  folds are remembered per page, and `collapsed`
  *   (`data-fold="closed"` on HEADINGS pages) starts one folded
- * - counts:  a top-level section holding `[data-status]` items (the Epics index's epic cards, the goals pages'
- *   items) shows open / all on its title;  the rail shows, with a red bar and pill, how many NEED OWEN (none:
- *   no pill;  `countItems()`);  an epic card section also gets a round filter button stepping through the items'
- *   states (`wireItemFilters()`)
+ * - counts:  a top-level section holding `[data-status]` items (the Epics index's epic cards, the goals pages' items)
+ *   shows open / all on its title;
+ *   the rail shows, with a red bar and pill, how many NEED OWEN (none:  no pill;  `countItems()`);
+ *   an epic card section also gets a round filter button stepping through the items' states (`wireItemFilters()`)
  * - scroll-follow:  the rail's entry of the section being read is highlighted, and the address follows it
  * - links to any id in `main` (a section, a heading, a plan item) land below the stuck titles, unfolding what
  *   hides it
  * - the CHEATSHEET card filters
  * - highlight.js, when the page loaded it
+ * - PAGE NOTES (`wireNotes()`):  each `<spell-note>` as a folded card;  served by the page server, a note bubble on
+ *   every section's title and a Note pill in the page header, which write notes into the page
  * LANDING -- where a jump puts its target, ONE model for every kind of jump:
  * - the line:  just below the lowest title that will be stuck over the target:  site header + `--spell-top` (page
  *   header, filter bar) + the stack of the target's sections' titles
@@ -39,19 +44,21 @@
  *   whoever does the scrolling, once:
  *   - our jumps (link clicks, a `#hash` load, `hashchange` / `popstate`, so also `location.hash = id`):
  *     `scrollTo()` with a computed top, which `scroll-padding` never touches:  `offsetFor()` adds the site header
- *   - the browser's own (a `#hash` before this runs, `scrollIntoView()`, focus):  `:root`'s `scroll-padding-top`,
- *     the site header's height (`<spell-site-header>` installs it)
- *   - paging (Page Down / Up, Space):  ours (`wirePaging()`), measured at the destination:  the old bottom lands
- *     just below the titles stuck THERE.  The browser's own paging (where ours stands aside) goes by
- *     `scroll-padding-top`:  while titles are stuck, `<ui-section>` / `<ui-sticky>` (`StickyWatch`) write the
- *     lowest stuck edge as an INLINE `scroll-padding-top` on `<html>` (it includes the site header:  titles stick
- *     below it), overriding `:root`'s;  removed once none is stuck.  That's where it STARTS, so a title that sticks
- *     on the way can cover the old bottom.
- * - NOTE: a browser jump made WHILE titles are stuck adds that inline padding to the margin, landing one stack
- *   lower:  every such jump that changes the hash (`hashchange`) lands again through ours;  `scrollIntoView()` from
- *   code doesn't -- call `jump`'s path (a click on a `#id` link, or set `location.hash`) instead
- * NOTE: panels open and close through the accordion's `open` PROPERTY (panel indexes as text):  that's
- * `<ui-accordion>`'s controlled state, and writing it announces nothing (`ui-open` / `ui-close` mean the user).
+ *   - the browser's own (a `#hash` before this runs, `scrollIntoView()`, focus):
+ *     `:root`'s `scroll-padding-top`, the site header's height (`<spell-site-header>` installs it)
+ *   - paging (Page Down / Up, Space):  ours (`wirePaging()`), measured at the destination:
+ *     the old bottom lands just below the titles stuck THERE
+ *   - the browser's own paging (where ours stands aside) goes by `scroll-padding-top`:
+ *     while titles are stuck, `<ui-section>` / `<ui-sticky>` (`StickyWatch`) write the lowest stuck edge
+ *     as an INLINE `scroll-padding-top` on `<html>`, overriding `:root`'s;  removed once none is stuck
+ *     - it includes the site header:  titles stick below it
+ *     - that's where it STARTS, so a title that sticks on the way can cover the old bottom
+ * - NOTE: a browser jump made WHILE titles are stuck adds that inline padding to the margin, landing one stack lower:
+ *   every such jump that changes the hash (`hashchange`) lands again through ours;
+ *   `scrollIntoView()` from code doesn't --
+ *   call `jump`'s path (a click on a `#id` link, or set `location.hash`) instead
+ * NOTE: panels open and close through the accordion's `open` PROPERTY (panel indexes as text):
+ * that's `<ui-accordion>`'s controlled state, and writing it announces nothing (`ui-open` / `ui-close` mean the user).
  */
 
 /** Custom elements this runtime drives:  wait for their definitions before wiring. */
@@ -78,15 +85,15 @@ const TAGS = [
 const UNFOLD_FRAMES = 2
 
 /**
- * When a jump on a `<ui-section>` page lands once more, unless the reader scrolled since:  a fold the BROWSER
- * opened (a `#hash` load reveals `hidden="until-found"` content itself) grows with its transition
+ * When a jump on a `<ui-section>` page lands once more, unless the reader scrolled since:
+ * a fold the BROWSER opened (a `#hash` load reveals `hidden="until-found"` content itself) grows with its transition
  * (`--ui-section-duration`, 300ms) and moves the target a few pixels after the first landing.
  */
 const SETTLE_MS = 450
 
 /**
- * A plan doc's folding blocks (`packages/epics`):  its sections, in the outline, the folds and the landing.  Each
- * host has `open` (page state) and `contentsEntry` (`EpicFoldHost`).
+ * A plan doc's folding blocks (`packages/epics`):  its sections, in the outline, the folds and the landing.
+ * Each host has `open` (page state) and `contentsEntry` (`EpicFoldHost`).
  */
 const EPIC_FOLDS = "epic-overview, epic-section, epic-phase"
 
@@ -166,6 +173,7 @@ async function start() {
   sticky.measure()
   land(landing, jump, follow)
   live.ready({ main, rail, sticky, follow, entries: railKey(outline, counts) })
+  void wireNotes(main)
 }
 
 /**
@@ -178,9 +186,9 @@ async function start() {
  *   - a plan item (`<epic-item>`) OPENS:  the address never follows items, so an item's `#q16` is a link someone
  *     followed (`spell dev docs link --hash q16 --show`), and a folded item shows nothing of what it pointed at
  * - else nowhere:  the top
- * - then the address starts following the scroll;  after a `#hash`, only once the jump has landed:  a target in a
- *   body not loaded yet (a split plan doc's part) lands a moment later, and following before that saw the top of
- *   the page, and wrote the hash away (I3 of `windows-and-review`)
+ * - then the address starts following the scroll;  after a `#hash`, only once the jump has landed:
+ *   a target in a body not loaded yet (a split plan doc's part) lands a moment later, and following before that saw
+ *   the top of the page, and wrote the hash away (I3 of `windows-and-review`)
  */
 function land({ hash, scroll }, jump, follow) {
   if (scroll !== undefined) {
@@ -218,8 +226,9 @@ async function epicsDrawn(main) {
 }
 
 /**
- * A plan doc (`epics/<name>/<name>.plan.html`;  before 2026-10-04 `<name>.html`) names its tab `<name>`:  every
- * link to it has `target="<name>"` (`doc-links.js`), so they reuse this tab, as `spell dev plan-doc open <name>` does.
+ * A plan doc (`epics/<name>/<name>.plan.html`;  before 2026-10-04 `<name>.html`) names its tab `<name>`:
+ * every link to it has `target="<name>"` (`doc-links.js`),
+ * so they reuse this tab, as `spell dev plan-doc open <name>` does.
  */
 function nameTab() {
   const plan = /\/epics\/([^/]+)\/\1(?:\.plan)?\.html$/.exec(decodeURIComponent(location.pathname))
@@ -241,8 +250,8 @@ function highlight() {
 
 /**
  * Elements the runtime adds INSIDE `main`, so not in the page's source:  the patch steps around them.
- * - NOTE: anything else the runtime (or a page script) adds in `main` should carry `data-spell-added`;  an
- *   unknown extra is stepped around too when its tag doesn't collide with its source siblings' (`liveKids()`)
+ * - NOTE: anything else the runtime (or a page script) adds in `main` should carry `data-spell-added`;
+ *   an unknown extra is stepped around too when its tag doesn't collide with its source siblings' (`liveKids()`)
  */
 const ADDED = ".spell-item-filter, .spell-hidden-note, [data-spell-added]"
 
@@ -255,8 +264,8 @@ const ADDED = ".spell-item-filter, .spell-hidden-note, [data-spell-added]"
 const EPIC_PAGE_STATE = ["open", "reviewing"]
 
 /**
- * Attributes the reader's state lives in (folds, counts, the item filter, `EPIC_PAGE_STATE`):  a patch keeps them
- * (`planAttributes()`).
+ * Attributes the reader's state lives in (folds, counts, the item filter, `EPIC_PAGE_STATE`):
+ * a patch keeps them (`planAttributes()`).
  */
 const KEPT_ATTRIBUTES = new Set(["collapsed", "badge", "data-show", ...EPIC_PAGE_STATE])
 
@@ -278,8 +287,8 @@ const squashed = new WeakMap()
 /**
  * An edit to this page's file updates it IN PLACE, instead of reloading it (plan doc `review-review`, D10).
  * - `liveClient()` (`$/server`, `packages/server/src/liveClient.ts`) fetches the new version when the file changes,
- *   and fires a cancelable `spell-server:change` on `window`, `detail` `{ path, html, etag, reload() }`:  taking it
- *   (`preventDefault()`) stops its reload
+ *   and fires a cancelable `spell-server:change` on `window`, `detail` `{ path, html, etag, reload() }`:
+ *   taking it (`preventDefault()`) stops its reload
  * - the patch compares the page's source as it LOADED (fetched once, `SPELL_SERVER.readPage()`, trusted only when
  *   its `ETag` is the one served) with the new source, and changes only what differs in the live page
  *   (`patchPage()`):  everything else keeps its scroll, folds, open panels, focus and typed text
@@ -296,8 +305,8 @@ const squashed = new WeakMap()
  *   life (`wireSourceBodies()`):  the patch leaves what a host loaded alone (`planHost()`), a changed body file
  *   re-fetches its open host in place, and each body that loads re-wires the page (`refresh()`)
  * - a plan doc in `<epic-*>` markup (epic `epic-components`):  its elements are patched, never replaced
- *   (`planMorph()`), their page state kept (`EPIC_PAGE_STATE`);  their parts (`<epic-item source>` ...) live the
- *   bodies' life above
+ *   (`planMorph()`), their page state kept (`EPIC_PAGE_STATE`);
+ *   their parts (`<epic-item source>` ...) live the bodies' life above
  * - returns `{ ready(page), refresh(changed) }`:  `start()` hands over what it wired;  a change waits for it.
  *   `refresh()` re-wires after `changed` elements changed under the runtime (a body loaded), in turn with updates
  */
@@ -344,10 +353,12 @@ function wireLiveUpdate(main) {
 }
 
 /**
- * Can this page be patched in place?  `<ui-section>` markup (or a plan doc in `<epic-*>` markup:  its
- * `<epic-page>`), no CHEATSHEET filter, and no script but the bundle, highlight.js, what the page server injects,
- * component packs (`<ui-components source="x.pack.js">`'s script, which only defines elements) and inert data
- * blocks (`isInert()`).
+ * Can this page be patched in place?
+ * - `<ui-section>` markup (or a plan doc in `<epic-*>` markup:  its `<epic-page>`)
+ * - no CHEATSHEET filter
+ * - no script but the bundle, highlight.js, what the page server injects,
+ *   component packs (`<ui-components source="x.pack.js">`'s script, which only defines elements)
+ *   and inert data blocks (`isInert()`)
  */
 function canPatch(main) {
   if (!main.querySelector(":scope > :is(ui-section, epic-page)")) return false
@@ -373,11 +384,11 @@ function isInert(script) {
 ////////////////
 
 /**
- * Hosts whose body comes from a file (`<ui-section source>`, `<ui-accordion source>`;  a plan doc's parts,
- * `epics/<name>/parts/<id>.html`, epic `claude-design` P3, on its `<epic-*>` blocks and items) in step with the files
- * and the page:
- * - a body loads (`ui-load`, the first open or a re-fetch):  the page is re-wired around it (`live.refresh()`):  the
- *   outline (headings inside), contents, counts, item filters, code colors
+ * Hosts whose body comes from a file, in step with the files and the page:
+ * `<ui-section source>`, `<ui-accordion source>`, and a plan doc's parts
+ * (`epics/<name>/parts/<id>.html`, epic `claude-design` P3, on its `<epic-*>` blocks and items).
+ * - a body loads (`ui-load`, the first open or a re-fetch):  the page is re-wired around it (`live.refresh()`):
+ *   the outline (headings inside), contents, counts, item filters, code colors
  * - a body's FILE changed (the page server's `spell-server:file`, `liveClient.ts`):  a host that has loaded it
  *   re-fetches it in place (`reload()`), the reading position kept (`readingAnchor()`);  one that hasn't drops the
  *   cached copy, so its first open fetches the new one
@@ -402,16 +413,16 @@ function wireSourceBodies(main, live, enqueue) {
 
   /**
    * Re-fetch `host`'s body, keeping the line being read where it is.
-   * - what had the focus inside it, a note box being typed in (`dock()`, which puts the same box back;  an
-   *   `<epic-item>`'s, in its shadow root, which the reload may hide for a moment):  focused again, its caret where
-   *   it was
+   * - what had the focus inside it, a note box being typed in:  focused again, its caret where it was
+   *   - `dock()` puts the same box back;
+   *     an `<epic-item>`'s is in its shadow root, which the reload may hide for a moment
    */
   async function reloadBody(host) {
     const anchor = readingAnchor(main)
     const active = host.contains(document.activeElement) ? deepActiveElement() : null
     const caret = active && "selectionStart" in active ? [active.selectionStart, active.selectionEnd] : null
-    // the body goes in on the host's `ui-load`, which can come after `reload()` resolves;  the runtime's pieces go
-    // back on it (`live.refresh()`):  wait for it (2s at most), then for them
+    // the body goes in on the host's `ui-load`, which can come after `reload()` resolves;
+    // the runtime's pieces go back on it (`live.refresh()`):  wait for it (2s at most), then for them
     const loaded =
       active &&
       new Promise((done) => {
@@ -564,10 +575,11 @@ function planBodyAttributes(before, after, plan) {
  * - REPLACED, its reader's state carried over (`carryState()`):  a tag change, text of its own (a paragraph, a
  *   title:  the smallest thing that holds the changed text), a `MANAGERS` element, or children the live page
  *   doesn't line up with
- * - an `<epic-*>` element (`EPIC_TAG`) is NEVER replaced while its tag stays (P10 of `epic-components`):  it keeps
- *   its fold, its loaded part and its controller.  Its attributes are patched in place (its page state kept:
- *   `EPIC_PAGE_STATE`), its children morphed as above;  only where they can't be (text of its own changed, children
- *   that don't line up) are its CHILDREN replaced (`planContent()`), never the element
+ * - an `<epic-*>` element (`EPIC_TAG`) is NEVER replaced while its tag stays (P10 of `epic-components`):
+ *   it keeps its fold, its loaded part and its controller.
+ *   Its attributes are patched in place (its page state kept:  `EPIC_PAGE_STATE`), its children morphed as above;
+ *   only where they can't be (text of its own changed, children that don't line up)
+ *   are its CHILDREN replaced (`planContent()`), never the element
  * - SIDE EFFECT:  pushes the live changes onto `plan.ops`, and what's new onto `plan.changed`
  */
 function planMorph(before, after, live, plan) {
@@ -617,8 +629,8 @@ function planMorph(before, after, live, plan) {
 }
 
 /**
- * Is `live` a section whose body comes from a file (`source`), the same file before and after?  Its body is the
- * file's (`wireSourceBodies()`), not the page source's:  `planHost()`.
+ * Is `live` a section whose body comes from a file (`source`), the same file before and after?
+ * Its body is the file's (`wireSourceBodies()`), not the page source's:  `planHost()`.
  * - not an accordion host (`<ui-accordion source>`):  a `MANAGERS` element, replaced whole as ever, its open panel
  *   carried over, so it loads its body again
  */
@@ -694,8 +706,8 @@ function planAttributes(before, after, live, plan) {
 }
 
 /**
- * Plan giving `<epic-*>` element `live` the children of `after`, the element itself kept (`planMorph()`):  its source
- * attributes patched, then its children replaced by copies of `after`'s, the reader's state carried over
+ * Plan giving `<epic-*>` element `live` the children of `after`, the element itself kept (`planMorph()`):
+ * its source attributes patched, then its children replaced by copies of `after`'s, the reader's state carried over
  * (`carryState()`);  what the runtime or the page's review controls added (`ADDED`) stays.  Returns `live`.
  */
 function planContent(before, after, live, plan) {
@@ -935,10 +947,12 @@ function highlightIn(elements) {
 /**
  * The page's outline, from either markup (see the header):  what the rail, the counts, scroll-follow
  * and the anchors work from.
- * - SECTIONS markup (`main > ui-section`, or a plan doc's `<epic-page>`):  top-level sections are the groups;
- *   nested sections, and the h3s / h4s in a section's own content (CHEATSHEET cards, sub-sub-items), are their
- *   entries, at any depth.  An h4 right after an h3 of the same section goes under it.  A plan doc's sections are
- *   its folding blocks (`EPIC_FOLDS`:  the Overview and its parts, the sections, the phases).
+ * - SECTIONS markup (`main > ui-section`, or a plan doc's `<epic-page>`):  top-level sections are the groups
+ *   - their entries, at any depth:
+ *     nested sections, and the h3s / h4s in a section's own content (CHEATSHEET cards, sub-sub-items)
+ *   - an h4 right after an h3 of the same section goes under it
+ *   - a plan doc's sections are its folding blocks
+ *     (`EPIC_FOLDS`:  the Overview and its parts, the sections, the phases)
  * - HEADINGS markup:  h2s are the groups, h3s their entries, h4s under the h3 before them
  * - a node:  `{ element, id, label, glyph, children }` -- `glyph` the name of its (first) `<ui-icon>`, for the rail
  * - returns `{ sections, groups, orphans, targets, entryOf, groupOf, folded }`:
@@ -1061,8 +1075,8 @@ function uniqueId(id) {
 }
 
 /**
- * Is `section` folded?  A `<ui-section>`:  its `collapsed` property, else (not upgraded yet) the attribute;  a plan
- * doc's block (or item):  not `open`, by the property, else the attribute.
+ * Is `section` folded?  A `<ui-section>`:  its `collapsed` property, else (not upgraded yet) the attribute;
+ * a plan doc's block (or item):  not `open`, by the property, else the attribute.
  */
 function isCollapsed(section) {
   if (section.matches(EPIC_OPENERS))
@@ -1130,8 +1144,8 @@ function attr(value) {
 const CLOSED = new Set(["done", "decided", "canceled"])
 
 /**
- * A plan doc's block's items that need Owen, when its `contentsEntry` count doesn't say:  its own items (`COUNTED`
- * in `packages/epics`' `EpicSection.types.ts`) the plan-doc tool marked `attention`.
+ * A plan doc's block's items that need Owen, when its `contentsEntry` count doesn't say:
+ * its own items (`COUNTED` in `packages/epics`' `EpicSection.types.ts`) the plan-doc tool marked `attention`.
  */
 const EPIC_ATTENTION = ':scope > epic-item[state="attention"], :scope > epic-phase[state="attention"]'
 
@@ -1141,14 +1155,15 @@ function needYou({ attention }) {
 }
 
 /**
- * Each top-level section's items -- `[data-status]` elements, not counting ones inside another -- as
- * `{ open, total, attention }`, by the group's element (the `<ui-section>`, or the h2);  "open" is any status but
- * `CLOSED`'s, "attention" the items that need Owen (`stateOf()`:  the rail's red bar and pill, Q20 of epic
- * `epic-components`).  Sections without items are left out;  nested sections get no count of their own.
+ * Each top-level section's items -- `[data-status]` elements, not counting ones inside another --
+ * as `{ open, total, attention }`, by the group's element (the `<ui-section>`, or the h2).
+ * - "open":  any status but `CLOSED`'s
+ * - "attention":  the items that need Owen (`stateOf()`:  the rail's red bar and pill, Q20 of epic `epic-components`)
+ * - sections without items are left out;  nested sections get no count of their own
  * - the Epics index's epic cards, the goals pages' items
  * - a plan doc's sections count themselves (`<epic-section>`, on their titles):  their count is read from their
- *   hosts' `contentsEntry`, never written;  its `attention` too, else the items' `state="attention"`
- *   (`EPIC_ATTENTION`)
+ *   hosts' `contentsEntry`, never written;
+ *   its `attention` too, else the items' `state="attention"` (`EPIC_ATTENTION`)
  * - SIDE EFFECT:  writes `open/total` on the section's title:  its `badge` (SECTIONS), or a `ui-label.spell-count`
  *   at the right of the h2 (HEADINGS);  callable again (it replaces both)
  */
@@ -1206,8 +1221,8 @@ function outermost(item, section) {
  * Where an item stands, in the colours Owen reads at a glance:  `[state, tooltip words]`, in the item filter's order
  * after "all" (the plan docs' order, `<epic-section>`'s `FILTER_STATES`).
  * - the colour scheme (Q20 of epic `epic-components`, 2026-10-08;  `templates/epics/plan-doc.md`, "Colours"):
- *   attention red, progress blue (Claude is working on it), open yellow, recent green, old grey;  `spell-doc.css`'s
- *   `--spell-state-*` tokens
+ *   attention red, progress blue (Claude is working on it), open yellow, recent green, old grey;
+ *   `spell-doc.css`'s `--spell-state-*` tokens
  * - for the Epics index's epic cards (`.spell-epics`) and the goals pages' items (`.plan-items`, coloured by
  *   `goals.css`);  a plan doc's items colour and filter themselves (`<epic-item>`, `<epic-section>`)
  * - `data-state` when the page writes one;  else from the status (`stateOf()`)
@@ -1263,10 +1278,10 @@ function stateTip(item) {
 }
 
 /**
- * Mark every item's state as `data-spell-state` (`stateOf()`), so CSS has ONE attribute to color by;  an item's id
- * chip (`.plan-id`, the goals pages') says it in words.
- * - SIDE EFFECT:  sets `data-spell-state`;  callable again (a page updated in place:  a replaced item comes back
- *   without it)
+ * Mark every item's state as `data-spell-state` (`stateOf()`), so CSS has ONE attribute to color by;
+ * an item's id chip (`.plan-id`, the goals pages') says it in words.
+ * - SIDE EFFECT:  sets `data-spell-state`;
+ *   callable again (a page updated in place:  a replaced item comes back without it)
  */
 function markItemStates(main) {
   for (const item of main.querySelectorAll(STATE_ITEMS)) {
@@ -1277,17 +1292,18 @@ function markItemStates(main) {
 }
 
 /**
- * The status filter on every top-level `<ui-section>` with a filterable list (the index's `.spell-epics`, a
- * `.plan-items` list, each holding `[data-status]` children):  ONE round button per state the section has items
- * in, used like checkboxes -- filled in its color while its items show, outlined while hidden -- and first a grey
- * filter button that flips between "show all" and "show only what needs you" (red), rather than a useless "none"
- * (Owen, 2026-10-04).
+ * The status filter on every top-level `<ui-section>` with a filterable list
+ * (the index's `.spell-epics`, a `.plan-items` list, each holding `[data-status]` children):
+ * - ONE round button per state the section has items in, used like checkboxes --
+ *   filled in its color while its items show, outlined while hidden
+ * - first, a grey filter button that flips between "show all" and "show only what needs you" (red),
+ *   rather than a useless "none" (Owen, 2026-10-04)
  * - in the title's `actions` slot (`span.spell-item-filter`);  `spell-doc.css` puts it left of the count badge
  * - a filtered list shows "3 hidden · show all" under it (`.spell-hidden-note`):  a click there shows all
  * - the choice:  `data-show="<states shown>"` on the section (none for all), `data-spell-hidden` on the items it
  *   hides (CSS hides them);  remembered per page (`localStorage`, `{ [section id]: [states] }`);  all by default
- * - SIDE EFFECT:  marks the items' states (`markItemStates()`), adds the buttons and notes to the page;  callable
- *   again (it replaces the ones it added)
+ * - SIDE EFFECT:  marks the items' states (`markItemStates()`), adds the buttons and notes to the page;
+ *   callable again (it replaces the ones it added)
  */
 function wireItemFilters(main) {
   const key = `${ITEM_FILTER_KEY_PREFIX}${location.pathname}`
@@ -1414,8 +1430,8 @@ function itemsOf(list) {
  *   else its own `<ui-icon>` (or `icon`), else its number (`2.`), else its first letter
  * - how many of the section's items need Owen (`counts`, `attention`):  a red bar on the entry, and a red pill once the
  *   strip widens;  none:  neither
- * - every entry carries its section's label, shown when the rail widens (hover, keyboard focus:  CSS), so no
- *   tooltips
+ * - every entry carries its section's label, shown when the rail widens
+ *   (hover, keyboard focus:  CSS), so no tooltips
  * - plain elements (`<button>`, `<a>`), not `ui-*`:  the strip is the page's own chrome, every box styled here
  * - CSS places it (`spell-doc.css`, "Rail");  scroll-follow marks the current section's entry `selected`, by
  *   `data-rail`;  the CHEATSHEET filter hides the entries of the sections it hid
@@ -1475,24 +1491,28 @@ function restRail(rail) {
 
 /**
  * Every section folds, and the reader's folds are remembered per page (`localStorage`, `{ [id]: folded }`).
- * - SECTIONS:  `<ui-section collapsible>` folds itself;  this restores the saved folds (else the markup's
- *   `collapsed` stands) and saves the reader's toggles (`ui-open` / `ui-close`)
- *   - a PLAN DOC (`body.plan-doc`):  every section and sub-section not in the saved folds starts FOLDED, whatever
- *     its markup says:  Owen opens what he wants to read (2026-10-03).  A link to an id inside still lands
- *     (`reveal()` unfolds around it).  Its `<epic-*>` blocks start folded by themselves;  the ones the reader left
- *     open open again (`restoreEpicFolds()`, before they draw), and their toggles are saved as a section's
- * - HEADINGS:  a chevron button starts each h2 / h3, and a click anywhere on the heading (not on a link or button
- *   in it) toggles it too;  folded:  `section.spell-folded`, all but the heading hidden by CSS.  Starts folded as
- *   saved, else when the section says `data-fold="closed"`.
+ * - SECTIONS:  `<ui-section collapsible>` folds itself;
+ *   this restores the saved folds (else the markup's `collapsed` stands)
+ *   and saves the reader's toggles (`ui-open` / `ui-close`)
+ *   - a PLAN DOC (`body.plan-doc`):  every section and sub-section not in the saved folds starts FOLDED,
+ *     whatever its markup says:  Owen opens what he wants to read (2026-10-03)
+ *     - a link to an id inside still lands (`reveal()` unfolds around it)
+ *     - its `<epic-*>` blocks start folded by themselves;
+ *       the ones the reader left open open again (`restoreEpicFolds()`, before they draw),
+ *       and their toggles are saved as a section's
+ * - HEADINGS:  a chevron button starts each h2 / h3,
+ *   and a click anywhere on the heading (not on a link or button in it) toggles it too;
+ *   folded:  `section.spell-folded`, all but the heading hidden by CSS.
+ *   Starts folded as saved, else when the section says `data-fold="closed"`.
  * - `reveal()` unfolding for a link is never saved
- * - returns `{ reveal(element) }`:  unfold every section hiding `element` (a plan doc's blocks and items too), and
- *   open its own panel, or itself if it's a folded plan item;  true when it unfolded something (it draws a little
- *   later)
- *   - a `<ui-section>` unfolds WITHOUT its height animation (`--ui-section-duration: 0s` on `main` for a few
- *     frames):  the jump measures the target once it has drawn, and a growing box would move it (scroll
- *     anchoring) after the page has landed
- * - callable again (a page updated in place):  drops the listeners of the call before (`foldWiring`);  a heading
- *   that has its chevron keeps it
+ * - returns `{ reveal(element) }`:  unfold every section hiding `element` (a plan doc's blocks and items too),
+ *   and open its own panel, or itself if it's a folded plan item;
+ *   true when it unfolded something (it draws a little later)
+ *   - a `<ui-section>` unfolds WITHOUT its height animation (`--ui-section-duration: 0s` on `main` for a few frames):
+ *     the jump measures the target once it has drawn,
+ *     and a growing box would move it (scroll anchoring) after the page has landed
+ * - callable again (a page updated in place):  drops the listeners of the call before (`foldWiring`);
+ *   a heading that has its chevron keeps it
  */
 function wireFolds(main, outline) {
   foldWiring?.abort()
@@ -1516,8 +1536,8 @@ function wireFolds(main, outline) {
 
   /**
    * The reader folded or unfolded a section (accordions' `ui-open` / `ui-close` bubble here too:  not ours).
-   * - a `ui-open` that can't be cancelled is the BROWSER's reveal (find-in-page, a `#hash` load):  not saved,
-   *   as a link's unfold isn't
+   * - a `ui-open` that can't be cancelled is the BROWSER's reveal (find-in-page, a `#hash` load):
+   *   not saved, as a link's unfold isn't
    */
   function onToggle(event) {
     const section = event.target
@@ -1603,8 +1623,8 @@ function wireFolds(main, outline) {
     }
     const panel = self ? element.querySelector(":scope > ui-accordion > ui-title") : null
     if (panel && !isPanelOpen(panel)) setPanel(panel, true)
-    // an id INSIDE a closed panel (an old decision's `#d7`, now the answer card in its question):  open the panels
-    // around it, or the jump lands on nothing
+    // an id INSIDE a closed panel (an old decision's `#d7`, now the answer card in its question):
+    // open the panels around it, or the jump lands on nothing
     for (
       let content = element.closest("ui-accordion > ui-content");
       content;
@@ -1622,8 +1642,9 @@ function wireFolds(main, outline) {
 }
 
 /**
- * A plan doc's blocks the reader left open on this page (saved folds, `spell-folds:<path>`):  open again, before
- * they first draw (their `open` attribute), so nothing animates;  the rest start folded, as the blocks do.
+ * A plan doc's blocks the reader left open on this page (saved folds, `spell-folds:<path>`):
+ * open again, before they first draw (their `open` attribute), so nothing animates;
+ * the rest start folded, as the blocks do.
  */
 function restoreEpicFolds(main) {
   const saved = readJSON(`${FOLD_KEY_PREFIX}${location.pathname}`)
@@ -1632,8 +1653,8 @@ function restoreEpicFolds(main) {
 }
 
 /**
- * HEADINGS:  fold or unfold `section`:  its class, its chevron (down / right) and the chevron's state for screen
- * readers.
+ * HEADINGS:  fold or unfold `section`:
+ * its class, its chevron (down / right) and the chevron's state for screen readers.
  */
 function setFolded(section, folded) {
   section.classList.toggle("spell-folded", folded)
@@ -1771,8 +1792,8 @@ function setPixels(element, name, pixels) {
 }
 
 /**
- * A sticky's (top-level section's) `offset`, in whole pixels;  re-setting the same value would restart its
- * observer for nothing.
+ * A sticky's (top-level section's) `offset`, in whole pixels;
+ * re-setting the same value would restart its observer for nothing.
  */
 function setOffset(sticky, offset) {
   const text = String(Math.round(offset))
@@ -1848,10 +1869,10 @@ function wireAnchors(main, outline, sticky, follow, folds) {
   }
 
   /**
-   * Scroll to `id` and make its entry the current one;  once what it unfolded has drawn.  Returns a promise that
-   * settles once it has landed (or found nothing to land on).
-   * - `id` inside a body not loaded yet (a split plan doc's part:  an Overview `h4`, an old `#d7` answer card):  its
-   *   host loads the body first (`hostHolding()`, `load()`), then the jump goes on (caveat C8 of `claude-design`)
+   * Scroll to `id` and make its entry the current one;  once what it unfolded has drawn.
+   * Returns a promise that settles once it has landed (or found nothing to land on).
+   * - `id` inside a body not loaded yet (a split plan doc's part:  an Overview `h4`, an old `#d7` answer card):
+   *   its host loads the body first (`hostHolding()`, `load()`), then the jump goes on (caveat C8 of `claude-design`)
    */
   function jump(id, { unfoldTarget = true } = {}) {
     const target = targetIn(id)
@@ -1916,8 +1937,8 @@ function scrollToId(id, sticky) {
 }
 
 /**
- * Viewport top of `element`'s box;  for a host with no box of its own (`display: contents`, e.g. `<ui-item>`), of
- * what it holds.
+ * Viewport top of `element`'s box;
+ * for a host with no box of its own (`display: contents`, e.g. `<ui-item>`), of what it holds.
  */
 function topOf(element) {
   if (element.getClientRects().length) return element.getBoundingClientRect().top
@@ -1940,8 +1961,8 @@ function topOf(element) {
  *   up:  the old first line below the stuck titles lands at the viewport bottom
  * - measured with instant scrolls, then put back and scrolled there for real (smooth, unless reduced motion):
  *   nothing paints in between
- * - left to the browser:  modifier keys, a key in a field, button, link or a scrolling box of its own (a wide `pre`),
- *   an open dialog
+ * - left to the browser:
+ *   modifier keys, a key in a field, button, link or a scrolling box of its own (a wide `pre`), an open dialog
  */
 function wirePaging(main) {
   const keys = { PageDown: 1, PageUp: -1, " ": 1 }
@@ -1986,8 +2007,8 @@ function wirePaging(main) {
 }
 
 /**
- * Whether a paging key belongs to the page:  not to a field or a box that scrolls on its own;  Space not to a
- * control either (it presses a button, follows a link).
+ * Whether a paging key belongs to the page:  not to a field or a box that scrolls on its own;
+ * Space not to a control either (it presses a button, follows a link).
  */
 function pageOwnsKey(event, space) {
   for (const node of event.composedPath()) {
@@ -2054,9 +2075,9 @@ function decodeHash(hash) {
  * - "Current":  the last entry (section, heading) whose top has reached its landing line (the site header and its
  *   `scroll-margin-top`, plus a little);  entries hidden by the filter or inside a folded section don't count
  * - the rail's entry of the current entry's top-level section is `selected`
- * - the ADDRESS follows too, once `followAddress()` has been called (`land()`, after the page has landed):  the
- *   current entry's `#id` replaces the URL's hash (`history.replaceState()`:  no history entry, no jump);  not
- *   while a followed link is pinned (its click set the hash), and no hash above the first entry
+ * - the ADDRESS follows too, once `followAddress()` has been called (`land()`, after the page has landed):
+ *   the current entry's `#id` replaces the URL's hash (`history.replaceState()`:  no history entry, no jump);
+ *   not while a followed link is pinned (its click set the hash), and no hash above the first entry
  *   - so a reload, or VS Code restarting the view, lands on the section being read
  *   - `replaceState()` fires no `hashchange`:  `spell-doc:place` on `window` tells the live client, which tells
  *     VS Code's view (`liveClient.ts` `reportPlace()`)
@@ -2226,8 +2247,9 @@ function wireFilter(main) {
 
   /**
    * Hide what doesn't match.
-   * - while a filter is set, a folded section holding a match unfolds (not saved:  sections start folded, so
-   *   matches would hide in them);  clearing the filter folds back the ones it opened
+   * - while a filter is set, a folded section holding a match unfolds
+   *   (not saved:  sections start folded, so matches would hide in them);
+   *   clearing the filter folds back the ones it opened
    */
   function apply() {
     const words = typed.toLowerCase().split(/\s+/).filter(Boolean)
@@ -2284,6 +2306,297 @@ function readSaved(key) {
   } catch {
     return ""
   }
+}
+
+////////////////
+// ## Page notes
+////////////////
+
+/** The page server's notes routes (`packages/docs/tools/notesRoutes.ts`). */
+const NOTES_API = "/api/notes"
+
+/** `localStorage` key prefix of a page's unsaved notes (`{ [section id | "page" | note id]: text }`), per page. */
+const NOTE_DRAFT_KEY_PREFIX = "spell-note-draft:"
+
+/**
+ * PAGE NOTES (epic `airplane`, P3):  notes Owen leaves on a page for Claude, written INTO the page by the page
+ * server (`notesRoutes.ts`;  the markup and its rules:  `packages/docs/tools/PageNotes.js`).
+ * - every page, `file://` too:  each `<spell-note>` is a folded card (`drawNoteCards()`):  a head line ("Owen ·
+ *   10/10 14:02", the first line of the note while folded, its status, how many replies) that unfolds it, then the
+ *   text and Claude's replies under it
+ * - served by the page server with a token, on a page that takes notes (the `GET` says `takesNotes`):  WRITABLE,
+ *   so also
+ *   - a note bubble in every section's title (`addNoteBubbles()`):  shown while the reader is in that section, and
+ *     always, with a count, once the section has notes
+ *   - a Note pill in the page header, with "N new" linking to the first new note (`addNotePill()`)
+ *   - Edit on a new note's card;  every one of them opens the note box (`openNoteBox()`)
+ * - a write changes the page's file:  the page server's live update patches it in place (scroll and folds kept),
+ *   and this draws again on `spell-doc:updated`.  What it adds in `main` carries `data-spell-added`.
+ * - NEVER throws:  a page with no server, or a server without the routes, keeps the cards
+ */
+async function wireNotes(main) {
+  let writable = false
+  drawNotes(main, writable)
+  addEventListener("spell-doc:updated", () => drawNotes(main, writable))
+  const server = window.SPELL_SERVER
+  if (!server?.token || location.protocol === "file:") return
+  try {
+    const response = await fetch(`${NOTES_API}?page=${encodeURIComponent(location.pathname)}`, { cache: "no-store" })
+    writable = response.ok && (await response.json()).takesNotes === true
+  } catch {
+    // no routes, no bubbles
+  }
+  if (writable) drawNotes(main, true)
+}
+
+/** Draw the page's notes:  the cards;  `writable`, the bubbles, the pill and the cards' Edit too. */
+function drawNotes(main, writable) {
+  drawNoteCards(main, writable)
+  if (!writable) return
+  addNoteBubbles(main)
+  addNotePill(main)
+}
+
+/**
+ * Give each `<spell-note>` its head line, again after every update (the status or replies may have changed).
+ * - the head is a button that folds and unfolds the card (the note's `open`, which a live patch keeps)
+ * - `writable` and the note `new`:  an Edit circle after it
+ */
+function drawNoteCards(main, writable) {
+  for (const note of main.querySelectorAll("spell-note")) {
+    note.querySelector(":scope > .spell-note-head")?.remove()
+    const status = note.getAttribute("status") || "new"
+    const replies = note.querySelectorAll(":scope > spell-note-reply").length
+    const head = document.createElement("div")
+    head.className = "spell-note-head"
+    head.dataset.spellAdded = ""
+    head.innerHTML =
+      `<button type="button" class="spell-note-fold" aria-expanded="${note.hasAttribute("open")}">` +
+      `<ui-icon name="comment"></ui-icon><b>Owen</b> · ${text(shortStamp(note.getAttribute("at")))}` +
+      `<span class="spell-note-preview">${text(noteText(note).split("\n")[0])}</span>` +
+      `<span class="spell-note-status" data-note-status="${attr(status)}">${text(status)}` +
+      `${replies ? ` · ${replies} ${replies === 1 ? "reply" : "replies"}` : ""}</span></button>` +
+      (writable && status === "new"
+        ? `<ui-button class="spell-note-edit" circular basic size="mini" icon="pen to square" aria-label="Edit this note"></ui-button>` +
+          `<ui-popup inverted size="mini" content="Edit or delete this note:  until Claude has seen it"></ui-popup>`
+        : "")
+    head.querySelector(".spell-note-fold").addEventListener("click", () => {
+      note.toggleAttribute("open")
+      head.querySelector(".spell-note-fold").setAttribute("aria-expanded", String(note.hasAttribute("open")))
+    })
+    head
+      .querySelector(".spell-note-edit")
+      ?.addEventListener("click", () => openNoteBox({ id: note.id, label: noteLabel(note), text: noteText(note) }))
+    note.prepend(head)
+  }
+}
+
+/**
+ * A note bubble in the title of every `<ui-section id>` (its `actions` slot):
+ * a round button, or a pill with the count once the section has notes
+ * (`data-count`:  always shown;  CSS shows the others while the reader is in the section).
+ */
+function addNoteBubbles(main) {
+  for (const section of main.querySelectorAll("ui-section[id]")) {
+    section.querySelector(":scope > .spell-note-bubble")?.remove()
+    const count = section.querySelectorAll(`:scope > spell-notes[for="${CSS.escape(section.id)}"] > spell-note`).length
+    const label = sectionLabel(section) || section.id
+    const bubble = document.createElement("span")
+    bubble.className = "spell-note-bubble"
+    bubble.slot = "actions"
+    bubble.dataset.spellAdded = ""
+    if (count) bubble.dataset.count = String(count)
+    bubble.innerHTML =
+      `<ui-button circular basic size="mini" icon="comment" aria-label="Add a note on ${attr(label)}">${count || ""}</ui-button>` +
+      `<ui-popup inverted size="mini" content="${attr(`Add a note on ${label}, for Claude`)}"></ui-popup>`
+    bubble.addEventListener("click", (event) => {
+      event.stopPropagation()
+      if (event.target.closest("ui-button")) openNoteBox({ anchor: section.id, label })
+    })
+    section.append(bubble)
+  }
+}
+
+/** The page header's Note pill, for a note on the whole page, and "N new" linking to the first new note. */
+function addNotePill(main) {
+  const head = main.querySelector(".spell-page-head")
+  if (!head) return
+  head.querySelector(":scope > .spell-page-notes")?.remove()
+  const fresh = main.querySelectorAll('spell-note[status="new"]')
+  const pill = document.createElement("span")
+  pill.className = "spell-page-notes"
+  pill.dataset.spellAdded = ""
+  pill.innerHTML =
+    (fresh.length ? `<a class="spell-notes-count" href="#${attr(fresh[0].id)}">${fresh.length} new</a>` : "") +
+    `<ui-button circular basic size="tiny" icon="comment">Note</ui-button>` +
+    `<ui-popup inverted size="mini" position="bottom center" content="A note on this page, for Claude"></ui-popup>`
+  pill.querySelector("ui-button").addEventListener("click", () => openNoteBox({ anchor: "page", label: "this page" }))
+  head.append(pill)
+}
+
+/**
+ * The note box:  a `<ui-modal>` with a textarea that grows with its text;  ⌘ / Ctrl Enter saves.
+ * - `{ anchor, label }`:  a new note on that section (`page`:  the whole page)
+ * - `{ id, label, text }`:  editing a new note, with Delete
+ * - what's typed and not saved is kept per page and note (`NOTE_DRAFT_KEY_PREFIX`) until it's saved
+ */
+function openNoteBox({ anchor, id, label, text: current = "" }) {
+  const box = noteBox()
+  const key = id ?? anchor
+  const drafts = readJSON(`${NOTE_DRAFT_KEY_PREFIX}${location.pathname}`)
+  box.dataset.anchor = anchor ?? ""
+  box.dataset.id = id ?? ""
+  box.querySelector(".spell-note-about").innerHTML = `${id ? `Note ${text(id)}, on` : "On"} <b>${text(label)}</b>`
+  box.querySelector(".spell-note-delete").hidden = !id
+  const field = box.querySelector("textarea")
+  field.value = typeof drafts[key] === "string" ? drafts[key] : current
+  box.setAttribute("open", "")
+  requestAnimationFrame(() => {
+    growField(field)
+    field.focus()
+  })
+}
+
+/** The note box, made once (outside `main`:  a live patch never sees it). */
+function noteBox() {
+  let box = document.getElementById("spell-note-box")
+  if (box) return box
+  const template = document.createElement("template")
+  template.innerHTML = `<ui-modal id="spell-note-box" class="spell-note-box" size="small" closable>
+  <ui-header><ui-icon name="comment"></ui-icon> A note for Claude</ui-header>
+  <ui-content>
+    <p class="spell-note-about"></p>
+    <textarea class="spell-note-field" rows="3" aria-label="Your note"
+      placeholder="Anything:  a question, a correction, an idea.  Claude picks these up with spell dev notes."></textarea>
+    <p class="spell-note-hint">⌘ Enter saves.  It's written into the page, marked new, until Claude answers it.</p>
+  </ui-content>
+  <ui-actions>
+    <ui-button class="spell-note-delete" circular basic icon="xmark">Delete</ui-button>
+    <ui-button class="spell-note-cancel" circular basic>Cancel</ui-button>
+    <ui-button class="spell-note-save" circular primary icon="paper plane">Save note</ui-button>
+  </ui-actions>
+</ui-modal>`
+  box = template.content.firstElementChild
+  const field = box.querySelector("textarea")
+  const save = box.querySelector(".spell-note-save")
+  const draftKey = `${NOTE_DRAFT_KEY_PREFIX}${location.pathname}`
+  const keyOf = () => box.dataset.id || box.dataset.anchor
+  const close = () => box.removeAttribute("open")
+  /** Send `change` (`add`, `edit` or `delete`);  close and forget the draft once it's written. */
+  const send = async (change, saying) => {
+    save.setAttribute("loading", "")
+    try {
+      await postNote({ page: location.pathname, ...change })
+      const drafts = readJSON(draftKey)
+      delete drafts[keyOf()]
+      writeJSON(draftKey, drafts)
+      close()
+      noteToast(saying, "success")
+    } catch (error) {
+      noteToast(`Couldn't save the note:  ${error.message}`, "error")
+    } finally {
+      save.removeAttribute("loading")
+    }
+  }
+  const submit = () => {
+    const words = field.value.trim()
+    if (!words) return field.focus()
+    const { id, anchor } = box.dataset
+    void send(id ? { action: "edit", id, text: words } : { action: "add", for: anchor, text: words }, "Note saved")
+  }
+  field.addEventListener("input", () => {
+    growField(field)
+    const drafts = readJSON(draftKey)
+    drafts[keyOf()] = field.value
+    writeJSON(draftKey, drafts)
+  })
+  field.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) submit()
+  })
+  save.addEventListener("click", submit)
+  box.querySelector(".spell-note-cancel").addEventListener("click", close)
+  box
+    .querySelector(".spell-note-delete")
+    .addEventListener("click", () => void send({ action: "delete", id: box.dataset.id }, "Note deleted"))
+  document.body.append(box)
+  return box
+}
+
+/**
+ * POST `change` to the notes route, with the page server's token;  returns its answer.
+ * - a 403 on the token (the server restarted since the page loaded):  takes the new token from the page as served
+ *   now, and tries once more
+ * - throws an `Error` saying why (the route's `error`)
+ */
+async function postNote(change, retried = false) {
+  const server = window.SPELL_SERVER
+  const response = await fetch(NOTES_API, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-server-token": server.token },
+    body: JSON.stringify(change)
+  })
+  const answer = await response.json().catch(() => ({}))
+  if (response.ok) return answer
+  if (response.status === 403 && /token/i.test(answer.error ?? "") && !retried && server.readPage) {
+    const { html } = await server.readPage()
+    const fresh = /window\.SPELL_SERVER = (\{.*?\})<\/script>/.exec(html)
+    if (fresh) {
+      server.token = JSON.parse(fresh[1]).token
+      return postNote(change, true)
+    }
+  }
+  throw new Error(answer.error ?? `${response.status} ${response.statusText}`)
+}
+
+/** `field` as tall as its text (between its CSS `min-height` and `max-height`). */
+function growField(field) {
+  field.style.height = "auto"
+  field.style.height = `${field.scrollHeight + 2}px`
+}
+
+/** A toast through `UI.toast()`;  the console when toasts aren't there. */
+function noteToast(message, type) {
+  try {
+    window.SpellUI.UI.toast({ message, type, position: "bottom right", displayTime: 3000, showIcon: true })
+  } catch {
+    console.info(message)
+  }
+}
+
+/**
+ * A note's text as typed:  paragraphs split by blank lines, `<br>` a newline, `<code>` in backticks;
+ * its head and replies left out.  `PageNotes.js` `textOf()` is the same, on the server.
+ */
+function noteText(note) {
+  const blocks = []
+  for (const child of note.childNodes) {
+    if (child.nodeType === Node.ELEMENT_NODE && child.matches(".spell-note-head, spell-note-reply")) continue
+    const words = child.nodeType === Node.ELEMENT_NODE ? inlineText(child) : child.textContent
+    if (words.trim()) blocks.push(words.trim())
+  }
+  return blocks.join("\n\n")
+
+  /** `node`'s text:  `<br>` a newline, `<code>` in backticks, white space as one space. */
+  function inlineText(node) {
+    if (node.nodeType === Node.TEXT_NODE) return node.textContent.replace(/\s+/g, " ")
+    if (node.nodeType !== Node.ELEMENT_NODE) return ""
+    if (node.localName === "br") return "\n"
+    const inner = Array.from(node.childNodes, inlineText).join("")
+    return node.localName === "code" ? `\`${inner}\`` : inner
+  }
+}
+
+/** What a note is about, for the note box:  its section's title, or "this page". */
+function noteLabel(note) {
+  const anchor = note.closest("spell-notes")?.getAttribute("for")
+  const section = anchor && anchor !== "page" ? document.getElementById(anchor) : null
+  return section ? sectionLabel(section) || anchor : "this page"
+}
+
+/** A note's `at` (`2026-10-10 14:02`) as its card shows it:  `10/10 14:02`. */
+function shortStamp(at) {
+  const parts = /^\d{4}-(\d\d)-(\d\d)[ T](\d\d:\d\d)/.exec(at ?? "")
+  return parts ? `${Number(parts[1])}/${Number(parts[2])} ${parts[3]}` : (at ?? "")
 }
 
 ////////////////

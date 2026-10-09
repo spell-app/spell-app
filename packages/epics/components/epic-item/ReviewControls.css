@@ -1,7 +1,9 @@
 /*
- * The review controls (ReviewControls.tsx), adopted by `<epic-item>` and `<epic-section>` (its Overview parts):  the
- * line's buttons, the note box and a marked note.  From `plan-doc.css`'s "Review actions" (the old runtime's), the
- * same look, centred:
+ * The review controls (ReviewControls.tsx):  the line's buttons, the note box and a marked note;  and the new-item
+ * controls (NewItems.tsx, epic `airplane` P2).
+ * - adopted by `<epic-item>`, `<epic-section>` (Overview parts;  Todos, Questions), `<epic-phase>`, `<epic-summary>`
+ *   and `<epic-page>` (its header's `+`)
+ * - from `plan-doc.css`'s "Review actions" (the old runtime's), the same look, centred:
  * - every round or square control is a grid with its glyph `place-items: center`, and `ui-icon`'s own box (a width
  *   and a right margin, for an icon before text) is undone through `::part(icon)`
  * - the controls box is one line tall and centres its children, so it sits on the title's first line
@@ -296,5 +298,207 @@
   .said-edit:focus-visible {
     outline: 2px solid var(--_epic-act-focus);
     outline-offset: 1px;
+  }
+
+  /*
+   * ## New items from the page (NewItems.tsx, epic `airplane` P2):  the `+` button, the form, the waiting cards.
+   * Owen's own words:  his ivory, as the note box;  a waiting card wears the fill (dashed until sent, outlined once
+   * sent), green:  a decision, filed when Claude next reviews
+   */
+  .new-button {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    box-sizing: border-box;
+    min-width: var(--epic-control-size, 28px);
+    height: var(--epic-control-size, 28px);
+    padding: 0;
+    border: 1px solid var(--_epic-act-rule);
+    border-radius: 999px;
+    background: none;
+    color: var(--_epic-act-muted);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  /* a section's:  the `+` and its words, at the end of the list */
+  .new-button[data-words] {
+    margin: 8px 0 2px;
+    padding: 0 12px 0 10px;
+  }
+  .new-button:is(:hover, [aria-expanded="true"]) {
+    border-color: var(--_epic-act-green);
+    color: var(--_epic-act-green);
+  }
+  .new-button:focus-visible,
+  .new-form button:focus-visible {
+    outline: 2px solid var(--_epic-act-focus);
+    outline-offset: 1px;
+  }
+  .new-button ui-icon::part(icon),
+  .new-form ui-icon::part(icon),
+  .new-card ui-icon::part(icon) {
+    width: auto;
+    margin: 0;
+  }
+
+  /* the form:  what it is, the title, the note (it grows), then About, Add and Cancel on one line */
+  .new-form {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    box-sizing: border-box;
+    width: 100%;
+    margin: 8px 0 2px;
+    padding: 8px;
+    border: 1px solid color-mix(in oklab, var(--_epic-act-ivory-ink) 30%, transparent);
+    border-radius: 12px;
+    background: var(--_epic-act-ivory);
+    font-size: 15px;
+  }
+  .new-kinds {
+    display: inline-flex;
+    gap: 4px;
+  }
+  .new-form button {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 10px;
+    border: 0;
+    border-radius: 999px;
+    background: var(--_epic-act-paper);
+    box-shadow: inset 0 0 0 1px var(--_epic-act-rule);
+    color: var(--_epic-act-ink);
+    font: inherit;
+    font-size: 13px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .new-kinds button[aria-pressed="true"] {
+    box-shadow: inset 0 0 0 1.5px var(--_epic-act-green);
+    color: var(--_epic-act-green);
+  }
+  .new-form button[type="submit"] {
+    background: var(--_epic-act-green);
+    box-shadow: none;
+    color: var(--_epic-act-green-on);
+  }
+  .new-form button:disabled {
+    opacity: 0.6;
+    cursor: progress;
+  }
+  .new-input {
+    box-sizing: border-box;
+    min-width: 0;
+    padding: 4px 6px;
+    border: 1px solid var(--_epic-act-rule);
+    border-radius: 6px;
+    background: var(--_epic-act-paper);
+    color: var(--_epic-act-ink);
+    font: inherit;
+    line-height: 1.4;
+  }
+  /* grows with its text (Owen, 2026-10-06:  every "tell me more" box), from two lines to half the window */
+  textarea.new-input {
+    min-height: 3.2em;
+    max-height: 50vh;
+    field-sizing: content;
+    resize: vertical;
+  }
+  .new-input:focus-visible {
+    outline: 2px solid var(--_epic-act-focus);
+    outline-offset: 0;
+  }
+  .new-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  .new-actions > .new-input {
+    flex: 1 1 12em;
+  }
+
+  /* the waiting cards:  one line (icon, kind, title, Edit and Remove at its right), then the note and the link */
+  .new-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 8px 0 2px;
+    padding: 0;
+    list-style: none;
+  }
+  .new-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 8px;
+    padding: 4px 4px 4px 10px;
+    border-radius: 8px;
+    background: var(--_epic-act-ivory);
+    font-size: 15px;
+  }
+  .new-card[data-fill="dashed"] {
+    outline: 1.5px dashed var(--_epic-act-green);
+    outline-offset: -2px;
+  }
+  .new-card[data-fill="outline"] {
+    box-shadow: inset 0 0 0 1.5px var(--_epic-act-green);
+  }
+  .new-card > ui-icon,
+  .new-card > .what {
+    flex: none;
+    color: var(--_epic-act-ivory-ink);
+  }
+  .new-card > .what {
+    font-size: 12px;
+  }
+  .new-card > .title {
+    flex: 1 1 10em;
+    min-width: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .new-card > .tools {
+    display: inline-flex;
+    flex: none;
+    margin-inline-start: auto;
+  }
+  .new-card > .tools > button {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--_epic-act-ink);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .new-card > .tools > button:hover {
+    background: color-mix(in oklab, var(--_epic-act-ivory-ink) 14%, transparent);
+  }
+  .new-card > .tools > button:focus-visible {
+    outline: 2px solid var(--_epic-act-focus);
+    outline-offset: 1px;
+  }
+  .new-card > .note {
+    flex: 1 0 100%;
+    margin: 0;
+    line-height: 1.4;
+    white-space: pre-wrap;
+  }
+  .new-card > .about {
+    flex: none;
+    color: var(--ui-link, LinkText);
+    font-size: 12px;
   }
 }
