@@ -145,12 +145,12 @@ export class Card extends Thing {
         onClick: (event) => {
           return spellCore.RUNTIME.trigger('card-click', { card: this })
         },
-        className: `Card face-up ${this.rank} ${this.suit} ui button compact fluid ${this.color}`
+        className: () => `Card face-up ${this.rank} ${this.suit} ui button compact fluid ${this.color}`
       },
       children: [
-        (this.short_rank + " "),
+        () => (this.short_rank + " "),
         spellCore.element({ tag: "span", props: { className: "suit" }, children: [
-          this.short_suit
+          () => this.short_suit
         ] })
       ]
     })
@@ -163,7 +163,7 @@ export class Card extends Thing {
         onClick: (event) => {
           return spellCore.RUNTIME.trigger('card-click', { card: this })
         },
-        className: `Card face-down ${this.rank} ${this.suit} ui button compact fluid`
+        className: () => `Card face-down ${this.rank} ${this.suit} ui button compact fluid`
       },
       children: [
         spellCore.element({ tag: "i", props: { className: "fitted bicycle icon" } })
@@ -386,7 +386,7 @@ export class Game extends App {
                 "Klondike Solitaire"
               ] }),
               spellCore.element({ tag: "th", props: { className: "right aligned" }, children: [
-                ("Score: " + this.score)
+                () => ("Score: " + this.score)
               ] }),
               spellCore.element({ tag: "th", children: [
                 spellCore.element({
@@ -449,46 +449,46 @@ export class Game extends App {
           spellCore.element({ tag: "tbody", children: [
             spellCore.element({ tag: "tr", children: [
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(stock)
+                () => spellCore.drawThing(stock)
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(discards)
+                () => spellCore.drawThing(discards)
               ] }),
               spellCore.element({ tag: "td" }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(foundations, 1))
+                () => spellCore.drawThing(spellCore.getItemOf(foundations, 1))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(foundations, 2))
+                () => spellCore.drawThing(spellCore.getItemOf(foundations, 2))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(foundations, 3))
+                () => spellCore.drawThing(spellCore.getItemOf(foundations, 3))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(foundations, 4))
+                () => spellCore.drawThing(spellCore.getItemOf(foundations, 4))
               ] })
             ] }),
             spellCore.element({ tag: "tr", children: [
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 1))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 1))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 2))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 2))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 3))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 3))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 4))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 4))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 5))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 5))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 6))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 6))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 7))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 7))
               ] })
             ] })
           ] })
@@ -524,7 +524,7 @@ export class Stock_Pile extends Pile {
           }
         }
       }),
-      spellCore.drawThing(spellCore.getItemOf(this, -1))
+      () => spellCore.drawThing(spellCore.getItemOf(this, -1))
     ] })
   }
 }
@@ -539,7 +539,7 @@ export class Discard_Pile extends Pile {
 
   draw() {
     return spellCore.element({ tag: "div", props: { className: "Pile Discards stacked" }, children: [
-      spellCore.drawThing(spellCore.getItemOf(this, -1))
+      () => spellCore.drawThing(spellCore.getItemOf(this, -1))
     ] })
   }
 }
@@ -566,12 +566,12 @@ export class Foundation extends Pile {
   draw() {
     let color = (((this.name == 'diamonds') || (this.name == 'hearts')) ? "red" : "black")
     return spellCore.element({ tag: "div", props: { className: "Pile Foundation stacked" }, children: [
-      spellCore.element({ tag: "div", props: { className: ((("Placeholder ui button basic compact fluid " + color) + " ") + this.name) }, children: [
-        spellCore.element({ tag: "div", props: { className: ("suit " + this.name) }, children: [
-          this.symbol
+      spellCore.element({ tag: "div", props: { className: () => ((("Placeholder ui button basic compact fluid " + color) + " ") + this.name) }, children: [
+        spellCore.element({ tag: "div", props: { className: () => ("suit " + this.name) }, children: [
+          () => this.symbol
         ] })
       ] }),
-      spellCore.drawThing(spellCore.getItemOf(this, -1))
+      () => spellCore.drawThing(spellCore.getItemOf(this, -1))
     ] })
   }
 }
@@ -616,7 +616,7 @@ export class Tableau extends Pile {
 
   draw() {
     return spellCore.element({ tag: "div", props: { className: "Pile Tableau staggered" }, children: [
-      spellCore.drawItems(this)
+      () => spellCore.drawItems(this)
     ] })
   }
 }

@@ -33,10 +33,12 @@ export class Derived<T = unknown> implements CellSource, CellReader {
   /**
    * - `fn` computes it, called with `this` ~== `self`.
    * - `self` is the object it's a property of.
+   * - `equals(old, next)` true keeps the OLD value:  `version` stays, so readers don't re-run.  Default `===`.
    */
   constructor(
     private fn: (this: any) => T,
-    private self: unknown
+    private self: unknown,
+    private equals: (old: T, next: T) => boolean = isIdentical
   ) {}
 
   /**
@@ -56,7 +58,7 @@ export class Derived<T = unknown> implements CellSource, CellReader {
     if (this.state !== CELL_DIRTY) return
     const next = trackCells(this, () => this.fn.call(this.self))
     this.state = CELL_CLEAN
-    if (this.version === 0 || next !== this.value) {
+    if (this.version === 0 || !this.equals(this.value, next)) {
       this.value = next
       this.version++
     }
@@ -68,4 +70,9 @@ export class Derived<T = unknown> implements CellSource, CellReader {
     linkCell(this)
     return this.value
   }
+}
+
+/** `Derived`'s default equality:  `===`. */
+function isIdentical(old: unknown, next: unknown): boolean {
+  return old === next
 }

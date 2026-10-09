@@ -1,8 +1,3 @@
-import _get from "lodash/get"
-import _has from "lodash/has"
-import _set from "lodash/set"
-import _unset from "lodash/unset"
-
 import { hasOwnProp } from "$/util/class"
 
 import { isTrackingCells } from "./cells"
@@ -238,15 +233,24 @@ export function setState<T>(target: any, property: string, value: T): T {
   const path = property.slice(dot + 1)
   let holder = record.get(top) as object | undefined
   if (value === undefined) {
-    if (!holder || !_has(holder, path)) return value
-    _unset(holder, path)
+    if (!holder || !unsetPath(holder, path)) return value
   } else {
-    if (holder && _get(holder, path) === value) return value
+    if (holder && getPath(holder, path) === value) return value
     if (!holder) record.set(top, (holder = {}))
-    _set(holder, path, value)
+    setPath(holder, path, value)
   }
   extended[STATE_CELLS]?.get(top)?.changed()
   return value
+}
+
+/** Does `target` have state `property`?  Untracked:  a reader doesn't re-run when it comes or goes. */
+export function hasState(target: any, property: string): boolean {
+  return extendedFor(target)[STATE]?.has(property) ?? false
+}
+
+/** State `property` of `target`, UNTRACKED:  for a write that compares with the value it replaces (`@state`'s `equals`). */
+export function peekState<T>(target: any, property: string): T | undefined {
+  return extendedFor(target)[STATE]?.get(property) as T | undefined
 }
 
 /**
@@ -270,12 +274,14 @@ export function resetState(target: any, ...properties: string[]) {
  * re-run only when its value REALLY changes (`===`).  See `Derived`.
  * - `fn` is called with `this` ~== `target`.  It MUST be pure:  read cells, write nothing.
  * - The `fn` of the FIRST call is kept:  pass the same one every time, e.g. from a getter.
+ * - `equals(old, next)` true keeps the OLD value, and its readers don't re-run (default `===`), e.g. a filtered list
+ *   with the same items.  Kept from the first call, like `fn`.
  */
-export function derive<T>(target: any, name: string, fn: (this: any) => T): T {
+export function derive<T>(target: any, name: string, fn: (this: any) => T, equals?: (old: T, next: T) => boolean): T {
   const extended = extendedFor(target)
   const derived = (extended[DERIVED] ??= new Map())
   let value = derived.get(name)
-  if (!value) derived.set(name, (value = new Derived(fn, target)))
+  if (!value) derived.set(name, (value = new Derived(fn, target, equals)))
   return value.get() as T
 }
 
@@ -407,6 +413,40 @@ function cellOf(extended: Extended, which: typeof PROP_CELLS | typeof STATE_CELL
 function declared(target: any, property: string): PropInfo | undefined {
   const Class = target.constructor
   return Class?.[HAS_SCHEMA] ? schemaOf(Class).info(property) : undefined
+}
+
+/**
+ * Value at dotted `path` (`a.b.c`) in `holder` -- `undefined` if any step is missing.
+ * - Dots only:  no `[0]` brackets.  `setState()`'s dotted state names are all this needs.
+ * - Here, not lodash's `get`:  this folder stays free of lodash, so `ui` can import it.
+ */
+function getPath(holder: any, path: string): unknown {
+  for (const key of path.split(".")) {
+    if (holder == null) return undefined
+    holder = holder[key]
+  }
+  return holder
+}
+
+/** Set dotted `path` in `holder` to `value`, making plain objects for missing steps. */
+function setPath(holder: any, path: string, value: unknown) {
+  const keys = path.split(".")
+  const last = keys.pop()!
+  for (const key of keys) {
+    if (holder[key] == null || typeof holder[key] !== "object") holder[key] = {}
+    holder = holder[key]
+  }
+  holder[last] = value
+}
+
+/** Delete dotted `path` from `holder` -- `true` if it was there. */
+function unsetPath(holder: any, path: string): boolean {
+  const keys = path.split(".")
+  const last = keys.pop()!
+  const parent = keys.length ? getPath(holder, keys.join(".")) : holder
+  if (parent == null || typeof parent !== "object" || !Object.hasOwn(parent, last)) return false
+  delete (parent as Record<string, unknown>)[last]
+  return true
 }
 
 /**

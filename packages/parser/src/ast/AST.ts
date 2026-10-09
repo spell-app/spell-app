@@ -1882,7 +1882,11 @@ export class ASTJSXElement extends ASTExpression {
           })
         )
       }
-      const items = this.children?.length && this.children.map((child) => child?.output).filter(Boolean)
+      const items =
+        this.children?.length &&
+        this.children
+          .map((child) => (child instanceof ASTJSXExpression ? liveValueOf(child.output) : child?.output))
+          .filter(Boolean)
       if (items && items.length) {
         properties.push(
           new ASTObjectLiteralProperty(this.match, {
@@ -1940,7 +1944,8 @@ export class ASTJSXAttribute extends ASTExpression {
       }
       return new ASTObjectLiteralProperty(this.match, {
         property: this.name,
-        value,
+        // an event handler is a function already:  never a live value
+        value: this.name.startsWith("on") ? value : liveValueOf(value)!,
         error: this.error
       })
     })
@@ -2018,6 +2023,44 @@ export class ASTJSXExpression extends ASTExpression {
       return this.expression
     })
   }
+}
+
+/** JSXLiveValue -- a JSX prop or child that can change, written as a function:  `() => this.short_suit`.
+ * - Why:  the drawing calls it to read the value, and again when what it read changes, updating only its own node
+ *   (Solid, through `spellCore.element()`).  A literal (`"suit"`, `1`) never changes, so it stays a plain value:  see
+ *   `liveValueOf()`.
+ * - `expression` is the value's expression.
+ */
+export type ASTJSXLiveValueProps = Prettify<{ expression: ASTExpression }>
+
+export class ASTJSXLiveValue extends ASTExpression {
+  declare expression: ASTExpression
+  constructor(match: P.AnyMatch, props: ASTJSXLiveValueProps) {
+    super(match, props)
+    this.assertType("expression", ASTExpression)
+  }
+}
+
+/**
+ * `expression` as a JSX prop or child's value:  wrapped in an `ASTJSXLiveValue` when it can change, as is when it
+ * can't (a literal, an element, an inline function).
+ * - `undefined` stays `undefined`:  a broken `{}` with no expression.
+ */
+function liveValueOf<T extends ASTExpression | undefined>(expression: T): T | ASTJSXLiveValue {
+  if (!expression || isFixedJSXValue(expression)) return expression
+  return new ASTJSXLiveValue(expression.match, { expression })
+}
+
+/** Can't JSX value `expression` change?  A literal (not a list, which holds expressions), an element, a function. */
+function isFixedJSXValue(expression: ASTExpression): boolean {
+  if (expression instanceof ASTArrayLiteral) return false
+  if (expression instanceof ASTExpressionWithComment) return isFixedJSXValue(expression.expression)
+  return (
+    expression instanceof ASTLiteral ||
+    expression instanceof ASTMethodDefinition ||
+    expression instanceof ASTJSXElement ||
+    (expression instanceof ASTCoreMethodInvocation && expression.methodName === "element")
+  )
 }
 
 /**

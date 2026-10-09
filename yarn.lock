@@ -1516,6 +1516,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@solidjs/h@npm:2.0.0-rc.13":
+  version: 2.0.0-rc.13
+  resolution: "@solidjs/h@npm:2.0.0-rc.13"
+  peerDependencies:
+    "@solidjs/web": ^2.0.0-rc.13
+  checksum: 10c0/78842b001274be32b9c35ac825e65c1d296b0d949bd43e2082a34d3dae0ead4556abb4a1dde48ad8817cfe5f79fc65d65ce99657e356dfbe37fd5a85d43cf5d9
+  languageName: node
+  linkType: hard
+
 "@solidjs/router@npm:2.0.0-next.35":
   version: 2.0.0-next.35
   resolution: "@solidjs/router@npm:2.0.0-next.35"
@@ -1579,6 +1588,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@spell-app/app@workspace:packages/app"
   dependencies:
+    "@solidjs/h": "npm:2.0.0-rc.13"
     "@solidjs/router": "npm:2.0.0-next.35"
     "@solidjs/vite-plugin": "npm:3.0.0-next.47"
     "@solidjs/web": "npm:2.0.0-rc.13"
@@ -1678,6 +1688,8 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@spell-app/core@workspace:packages/core"
   dependencies:
+    "@solidjs/h": "npm:2.0.0-rc.13"
+    "@solidjs/web": "npm:2.0.0-rc.13"
     "@spell-app/util": "workspace:*"
     "@types/lodash": "npm:^4.17.17"
     "@types/node": "npm:^22.20.4"
@@ -1688,6 +1700,7 @@ __metadata:
     lodash: "npm:^4.17.21"
     react: "npm:^18.2.0"
     react-dom: "npm:^18.2.0"
+    solid-js: "npm:2.0.0-rc.13"
     typescript: "npm:^7.0.2"
     vite: "catalog:"
     vite-plus: "catalog:"

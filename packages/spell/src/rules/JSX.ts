@@ -160,7 +160,7 @@ JSX.addRule(SpellJSX, {
             `    text: "text",`,
             `    number: 1,`,
             `    boolean: true,`,
-            `    expression: (1 + 1),`,
+            `    expression: () => (1 + 1),`,
             `    onClick: (event) => {`,
             `      return spellCore.console.log(event.target.value)`,
             `    }`,
@@ -180,7 +180,7 @@ JSX.addRule(SpellJSX, {
         [`<div foo/>`, `spellCore.element({ tag: "div", props: { foo: true } })`],
         [
           `<div rank={the rank of the card} value={1 + 2 + 3}/>`,
-          `spellCore.element({ tag: "div", props: { rank: card.rank, value: ((1 + 2) + 3) } })`
+          `spellCore.element({ tag: "div", props: { rank: () => card.rank, value: () => ((1 + 2) + 3) } })`
         ],
         [
           `<div rank={unknown expression} value={another unknown expression}/>`,
@@ -209,7 +209,7 @@ JSX.addRule(SpellJSX, {
         // NOTE: this was previously a comma expression `(a, b)` instead of a `[a, b]` tuple, which JS
         // silently evaluated to a single-element array (the comma operator discards `a`) -- a latent
         // bug surfaced by `RuleTest`'s tuple typing. Fixed to the evidently-intended 2-tuple.
-        ["<div foo={\n1 + \n\t2\n\t}/>", `spellCore.element({ tag: "div", props: { foo: (1 + 2) } })`]
+        ["<div foo={\n1 + \n\t2\n\t}/>", `spellCore.element({ tag: "div", props: { foo: () => (1 + 2) } })`]
       ]
     },
     {
@@ -232,14 +232,17 @@ JSX.addRule(SpellJSX, {
           ]
         ],
         // compound expression
-        [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "  ((1 + 2) + 3)", "] })"]],
+        [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "  () => ((1 + 2) + 3)", "] })"]],
         // multi-line expression is fine
         [
           "<div>{\n\t1 + \n2 + 3\t\n}</div>",
-          ['spellCore.element({ tag: "div", children: [', "  ((1 + 2) + 3)", "] })"]
+          ['spellCore.element({ tag: "div", children: [', "  () => ((1 + 2) + 3)", "] })"]
         ],
         //
-        [`<div>{the rank of the card}</div>`, ['spellCore.element({ tag: "div", children: [', "  card.rank", "] })"]],
+        [
+          `<div>{the rank of the card}</div>`,
+          ['spellCore.element({ tag: "div", children: [', "  () => card.rank", "] })"]
+        ],
         // fail if we don't eat entire expression
         [
           `<div>{true true}</div>`,

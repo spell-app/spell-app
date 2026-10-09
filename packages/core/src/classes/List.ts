@@ -1,12 +1,11 @@
-/** @jsxImportSource react */
 /**
  * Base classes for spell.
  */
-import React from "react"
 import _ from "lodash"
 
-import { Cell, isTrackingCells, Observable, runsCreate, view, type PropInfo } from "$/util"
+import { Cell, isTrackingCells, Observable, runsCreate, type PropInfo } from "$/util"
 import { spellCore } from "$/core/core"
+import type { Drawing } from "$/core/drawing"
 import type { PropCheck } from "$/core/spellCore.types"
 
 /**
@@ -105,51 +104,22 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * React component which renders this list, memoized so the same component identity is reused
-   * across renders (a fresh class each render would remount instead of updating).
-   * - `view()` (`$/util`, the React bridge):  it re-renders when a spell cell its `draw()` read changes, e.g. `items`.
-   * - NOTE: a class component, as `Thing.Component`.
+   * `list.draw()` draws its items, each in its own error net.
+   * - Override in a subclass to draw a wrapper element, etc.,
+   *   and use `draw items of {list}` or `draw each of {list}` to draw the items inside it.
+   * - `draw the deck` calls it through `spellCore.drawThing()` (`drawing.ts`).
    */
-  /*@memoize*/
-  get Component(): ReactComponentType {
-    return this.derived("Component", () => {
-      const render = () => this.draw()
-      class ListC extends React.Component {
-        render = render
-      }
-      return view(ListC)
-    })
-  }
-
-  // @memoize
-  // get Component() {
-  //   return view(() => {
-  //     const elements = this.draw()
-  //     console.info({ list: this, elements })
-  //     return elements
-  //   })
-  // }
-
-  /**
-   * `list.draw()` returns list items as react components.
-   * - You can override in a subclass to render a wrapper element, etc.
-   *   and use `draw items of {list}` or `draw each of {list}` to render items if desired.
-   * - Compiles from `draw the deck` -- see `draw.ts` (`spellCore.drawThing()` calls this via `.Component`).
-   */
-  draw(): ReactNode {
+  draw(): Drawing {
     return this.drawItems()
   }
 
   /**
-   * Draw items in the list items as react components.
+   * Its items, each drawn in its own error net, kept by identity -- see `spellCore.drawItems()`.
    * - Compiles from `draw each card in the deck` / `draw cards of the deck` => `spellCore.drawItems(deck)`
    *   -- see `draw.ts`.
    */
-  drawItems(): ReactNode {
-    return this.map((item, oneIndex) => {
-      const { Component } = item as { Component: ReactComponentType }
-      return <Component key={oneIndex} />
-    })
+  drawItems(): Drawing {
+    return spellCore.drawItems(this)
   }
 
   /** Syntactic sugar for `itemCount()`. */

@@ -12,7 +12,7 @@
 
 import React from "react"
 
-import { Reaction } from "./Reaction"
+import { Reaction } from "$/util/reactive"
 
 /**
  * `Component`, re-rendering when a cell its render read changes.

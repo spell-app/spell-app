@@ -134,6 +134,12 @@ const FROM_SHARED_SOLID = new Map<string, string>([
   ["$/ui", SHARED_SOLID.ui]
 ])
 
+/** Solid's hyperscript, which `core` draws compiled spell with (`spellCore.element()`):  in `spell-solid.js` as `h`. */
+const H_PACKAGE = "@solidjs/h"
+
+/** Virtual module `sharedSolid()` resolves `H_PACKAGE` to:  `spell-solid.js`'s `h`, as a default export. */
+const SHARED_H = "\0spell-shared-h"
+
 /** Any other import from Solid's or `ui`'s packages:  `sharedSolid()` refuses it, as the shared files may lack it. */
 const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/(solid-element|ui))(\/|$)|^\$\/ui\//
 
@@ -157,11 +163,15 @@ export function sharedSolid(): Plugin {
     resolveId(source) {
       const file = FROM_SHARED_SOLID.get(source)
       if (file) return { id: `${SHARED_ID}${file}`, external: true }
+      if (source.startsWith(SHARED_ID)) return { id: source, external: true }
+      if (source === H_PACKAGE) return SHARED_H
       if (SOLID_FAMILY.test(source)) {
         this.error(`"${source}" can't come from ${SHARED_SOLID.solid} / ${SHARED_SOLID.ui}:  see sharedSolid()`)
       }
       return null
     },
+    // `@solidjs/h` has only a DEFAULT export, which `spell-solid.js` re-exports as `h`
+    load: (id) => (id === SHARED_H ? `export { h as default } from "${SHARED_ID}${SHARED_SOLID.solid}"` : null),
     outputOptions(options) {
       return { ...options, paths: (id: string) => (id.startsWith(SHARED_ID) ? `./${id.slice(SHARED_ID.length)}` : id) }
     }

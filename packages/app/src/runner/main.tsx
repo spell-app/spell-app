@@ -3,7 +3,7 @@
  * "Run Project" webview -- see `RunnerPanel` there.
  * - Draws `<VSCodeRunner>` (Solid), which runs programs on its own copy of the spell runtime, `spell-runtime.js`
  *   beside this -- see `spellRuntime.ts`.  That's where `UI` / `SUI` are registered, `spellCore` lives, and
- *   programs draw with React.
+ *   programs draw, with Solid.
  * - NEVER imports `$/core`:  it'd be bundled here, a second copy, NOT the one programs run on.
  *   Devtools get the runtime's as global `spellCore` -- see `<VSCodeRunner>`.
  * - SIDE EFFECT:  `loadUI` defines every `<ui-*>` the runner draws;  the webview's HTML wraps `#runner-root` in

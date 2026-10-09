@@ -28,6 +28,7 @@ import "./console"
 import "./runtime"
 import "./things"
 import "./ui"
+import "./drawing"
 
 export { spellCore, assert, SpellEvent, Eventful }
 export { SPELL_CORE_MODULE, SPELL_CORE_NAMES, type SpellCore, type PropCheck } from "./spellCore.types"

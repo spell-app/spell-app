@@ -16,8 +16,8 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  * The ONE Solid and `@spell-app/ui` every other bundle of ours imports, so a page with `<spell-app>`s and a
  * `<spell-editor>` loads one copy of each (two Solids on a page fail silently -- `solid-2.md`):
  * `yarn build:element` (FIRST, it empties `dist-element/`) and `yarn build:runner` (`--outDir dist-runner`).
- * - `spell-solid.js`:  `solid-js`, `@solidjs/web` (and `@solidjs/signals` under them) and `@spell-app/solid-element`,
- *   re-exported WHOLE -- the other builds can't tell this one which names they use.
+ * - `spell-solid.js`:  `solid-js`, `@solidjs/web` (and `@solidjs/signals` under them), `@spell-app/solid-element` and
+ *   `@solidjs/h` (as `h`), re-exported WHOLE -- the other builds can't tell this one which names they use.
  * - `spell-ui.js`:  `ui`'s barrel, which defines every `<ui-*>`;  the app imports it lazily (`loadUI.ts`).  Its lazy
  *   chunks (the `UI` runtime, emoji data, `<ui-root>`'s families) go in `ui/`.
  * - The other builds mark those packages external and import these files instead -- `sharedSolid()` in
@@ -71,6 +71,8 @@ function solidEntry(): Plugin {
             `export * from "solid-js"`,
             `export * from "@solidjs/web"`,
             `export * from "@spell-app/solid-element"`,
+            // what `core` draws compiled spell with:  `sharedSolid()` hands it to `spell-runtime.js`
+            `export { default as h } from "@solidjs/h"`,
             `export const loadSpellUI = () => import(${JSON.stringify(UI_BARREL)})`
           ].join("\n")
         : null
