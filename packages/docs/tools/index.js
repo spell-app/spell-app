@@ -16,6 +16,8 @@
  *   - Brand:  `brand/**` but the rich Brand index's own (`BRAND_OWN`:  Claude Design's export and its copies, the
  *     element pages, Compare), in its section 6 (`section`:  the index's own sections hold an id `brand` already)
  * - Paths are from the checkout's root;  links from the page's own folder.
+ * - Page notes Owen left in a written part (`<spell-notes>`, `PageNotes.js`) go back into the new one
+ *   (`replaceBetween()`).
  * - Then tidies the pages like any other (`pages.js` `tidy()`:  link targets, oxfmt), so a re-run with nothing new
  *   changes nothing.
  */
@@ -25,6 +27,7 @@ import { pathToFileURL } from "node:url"
 
 import { parseHTML } from "linkedom"
 
+import { PageNotes } from "./PageNotes.js"
 import { BRAND, EPICS, GOALS, GUIDES, HOME, LIST_PAGES, ROOT, TEMPLATES, UI_PAGES, findPages, tidy } from "./pages.js"
 
 /** The docs home, from the checkout's root. */
@@ -164,19 +167,30 @@ function main() {
 }
 
 /**
- * Replace what's between `start` and `end` in `file` with `body`;  `false` (and why, on stderr) when the markers are
- * missing.
+ * Replace what's between `start` and `end` in `file` with `body` (`replaceBetween()`);  `false` (and why, on stderr)
+ * when the markers are missing.
  */
 function writeBetween(file, start, end, body) {
-  const html = readFileSync(file, "utf8")
-  const from = html.indexOf(start)
-  const to = html.indexOf(end)
-  if (from < 0 || to < from) {
+  const html = replaceBetween(readFileSync(file, "utf8"), start, end, body)
+  if (html === undefined) {
     console.error(`${relative(ROOT, file)}:  missing ${start} ... ${end}`)
     return false
   }
-  writeFileSync(file, `${html.slice(0, from)}${start}\n${body}\n${end}${html.slice(to + end.length)}`)
+  writeFileSync(file, html)
   return true
+}
+
+/**
+ * `html` with what's between `start` and `end` replaced by `body`;  `undefined` when the markers are missing.
+ * - the page notes Owen left in the old part (`<spell-notes>`) go back into their sections in the new one
+ *   (`PageNotes.carryOver()`):  regenerating never loses a note
+ */
+export function replaceBetween(html, start, end, body) {
+  const from = html.indexOf(start)
+  const to = html.indexOf(end)
+  if (from < 0 || to < from) return undefined
+  const kept = PageNotes.carryOver(html.slice(from + start.length, to), body)
+  return `${html.slice(0, from)}${start}\n${kept}\n${end}${html.slice(to + end.length)}`
 }
 
 /**
