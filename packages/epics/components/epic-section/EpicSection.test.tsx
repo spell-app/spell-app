@@ -244,6 +244,9 @@ describe("<epic-section> counts and state filter", () => {
     host.querySelector("#q1")!.setAttribute("status", "decided")
     host.querySelector("#q1")!.setAttribute("state", "recent")
     expect(entry()).toMatchObject({ count: { open: 0, total: 3, attention: 0 } })
+    // `replied` (orange:  Claude answered with options, Owen's turn to pick) needs him too (Owen, 2026-10-09)
+    host.querySelector("#q2")!.setAttribute("state", "replied")
+    expect(entry()).toMatchObject({ count: { attention: 1 } })
     const part = await render(`<epic-section id="o2" kind="overview-part" title="Why"><p>Prose.</p></epic-section>`)
     expect((part as FoldHost & { contentsEntry?: unknown }).contentsEntry).toEqual({ label: "1.1 Why" })
   })
@@ -299,6 +302,18 @@ describe("<epic-section> counts and state filter", () => {
     again.shadowRoot!.querySelector<HTMLButtonElement>('[data-state="all"]')!.click()
     await ElementFixture.tick()
     expect(shownIds(again)).toEqual(["q1", "q2"])
+  })
+
+  test("`replied` (orange, Owen's turn to pick) is part of what needs you:  its own chip, and the grey chip keeps it", async () => {
+    localStorage.clear()
+    const host = await render(questions(["open:replied", "open:open", "open:attention"]))
+    expect(chips(host)).toEqual({ all: true, attention: true, replied: true, open: true })
+    expect(host.shadowRoot!.querySelector('[data-state="replied"]')!.getAttribute("data-color")).toBe("orange")
+    const all = host.shadowRoot!.querySelector<HTMLButtonElement>('[data-state="all"]')!
+    expect(all.title).toBe("Show only what needs you")
+    all.click()
+    await ElementFixture.tick()
+    expect(shownIds(host)).toEqual(["q1", "q3"])
   })
 
   test("the Phases section draws its Plan changes box from the `changes` slot;  none without", async () => {

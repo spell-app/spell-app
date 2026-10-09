@@ -151,6 +151,10 @@
   .chip[data-color="red"] {
     --_chip: var(--epic-state-attention, var(--ui-red));
   }
+  /* Claude answered with options, Owen's turn to pick (`replied`, Owen, 2026-10-09) */
+  .chip[data-color="orange"] {
+    --_chip: var(--epic-state-replied, var(--ui-orange));
+  }
   .chip[data-color="yellow"] {
     --_chip: var(--epic-state-open, var(--ui-yellow));
   }

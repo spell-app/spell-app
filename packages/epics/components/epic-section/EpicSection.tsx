@@ -6,7 +6,12 @@ import { E } from "$/ui/core"
 // the review controls, shared with `<epic-item>`:  its files, not its barrel (which would define `<epic-item>` here)
 import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "$/epics/components/epic-item/ReviewControls"
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
-import { OVERVIEW_BUTTONS, STATUS_SLOT, type ReviewTextKey } from "$/epics/components/epic-item/EpicItem.types"
+import {
+  NEEDS_OWEN,
+  OVERVIEW_BUTTONS,
+  STATUS_SLOT,
+  type ReviewTextKey
+} from "$/epics/components/epic-item/EpicItem.types"
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel
 import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
@@ -336,9 +341,9 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     return this.translationForKey(this.showingAll() && this.needsYou() ? "showNeeds" : "showAll")
   }
 
-  /** Some item needs Owen (red):  the grey chip can show only those. */
+  /** Some item needs Owen (`NEEDS_OWEN`:  red, or orange, his turn to pick):  the grey chip can show only those. */
   private needsYou(): boolean {
-    return this.present().some((it) => it.state === "attention")
+    return this.present().some((it) => NEEDS_OWEN.has(it.state))
   }
 
   /** The rule hiding the filtered-out items:  `::slotted(#q3, ...)`;  `""` with none. */
@@ -520,7 +525,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   @E.untracked
   private readonly toggleAll = () => {
     const all = this.present().map((it) => it.state as string)
-    this.choose(this.showingAll() && this.needsYou() ? ["attention"] : all)
+    this.choose(this.showingAll() && this.needsYou() ? all.filter((state) => NEEDS_OWEN.has(state)) : all)
   }
 
   /** "Show all", under a filtered list. */
@@ -566,14 +571,14 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
 
   /**
    * The count of `children` (items, or phases):  open being any status but `CLOSED_STATUSES`',  `attention` the items
-   * that need Owen;  none without any.
+   * that need Owen (`NEEDS_OWEN`:  red, or orange, his turn to pick);  none without any.
    */
   private static countOf(children: readonly Element[]): SectionCount | undefined {
     if (!children.length) return undefined
     const open = children.filter(
       (child) => !(CLOSED_STATUSES as readonly string[]).includes(child.getAttribute("status") ?? "")
     ).length
-    const attention = children.filter((child) => child.getAttribute("state") === "attention").length
+    const attention = children.filter((child) => NEEDS_OWEN.has(child.getAttribute("state") ?? "")).length
     return { open, total: children.length, attention }
   }
 

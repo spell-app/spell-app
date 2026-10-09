@@ -651,6 +651,39 @@ describe("PlanDoc states", () => {
     expect(problems(plan)).toEqual([])
   })
 
+  test("replied (Owen, 2026-10-09):  orange while Claude's last reply holds options nothing is picked in", () => {
+    const plan = freshPlan()
+    const reply = (at: string, cards = true) =>
+      `<epic-reply from="Claude" at="${at}"><p>Which?</p>` +
+      (cards
+        ? '<epic-choices><epic-option letter="A" title="One"></epic-option>' +
+          '<epic-option letter="B" title="Two"></epic-option></epic-choices>'
+        : "") +
+      "</epic-reply>"
+    for (const title of ["answered, reviewed", "asked in prose", "picked", "Owen wrote back", "closed", "queued"])
+      plan.addItem("judgement", title)
+    plan.addItem("question", "open?")
+    Markup.set(plan.page, { recentSince: PlanTime.isoTime(new Date(2026, 8, 30)) })
+    for (const id of ["j1", "j2", "j3", "j4", "j5", "j6"]) plan.review(id)
+    // J17 of epic `spell-element`:  reviewed lately, so green ...
+    expect(stateOf(plan, "j1")).toEqual(["recent"])
+    for (const id of ["j1", "j3", "j4", "j5", "j6", "q1"])
+      plan.setDetails(id, reply("2026-10-01 09:20"), { append: true })
+    plan.setDetails("j2", reply("2026-10-01 09:20", false), { append: true })
+    // ... until Claude answers with cards:  orange, ahead of a question's red;  asked in prose:  as before
+    expect(stateOf(plan, "j1", "j2", "q1")).toEqual(["replied", "recent", "replied"])
+    // a pick, a newer reply from Owen, closing it, or work queued:  no longer waiting on his pick
+    plan.chooseOption(el(plan, "j3"), "B", 0)
+    plan.keepNote("j4", { note: "neither", action: "revisit", when: "soon", at: "2026-10-01T09:30:00" })
+    plan.setItem("j5", "done")
+    plan.queue("j6", "do A")
+    expect(stateOf(plan, "j3", "j4", "j5", "j6")).toEqual(["recent", "recent", "recent", "open"])
+    // Claude answers Owen again, with cards:  orange again
+    plan.setDetails("j4", reply("2026-10-01 09:40"), { append: true })
+    expect(stateOf(plan, "j4")).toEqual(["replied"])
+    expect(problems(plan)).toEqual([])
+  })
+
   test("overnight:  every item added in bedtime mode, for good (I3);  none before", () => {
     const plan = freshPlan()
     plan.addItem("todo", "by day")
