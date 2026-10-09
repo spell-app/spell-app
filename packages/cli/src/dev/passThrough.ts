@@ -18,6 +18,7 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * - `design bundle` / `design check`:  `packages/docs`' `design:bundle` (`bundle-spell-ui.js --design`) / `design:check`
  * - `design sync`:  `packages/docs/tools/design.js`, its verb first (`pull`, `changed` ...), in the caller's folder
  * - `agents`:  the running-agents list (`packages/docs/tools/AgentList.ts`), in the caller's folder
+ * - `notes`:  page notes (`packages/docs/tools/notes.ts`), in the caller's folder (`answer --file` is from there)
  * - NOTE: `goals` has its own lookup (`goalsCommand()`);  `vscode` runs yarn itself (`vscodeSteps()`);  `plan-doc`
  *   runs in this process (`planDocCommand()`, epic `epic-components` P7)
  */
@@ -31,6 +32,7 @@ export const TOOLS = {
   "docs fuss": { tool: "packages/docs/tools/fuss.ts", tsx: "packages/docs/tsconfig.json" },
   details: { tool: "packages/docs/tools/details.js", cwd: "packages/docs" },
   choices: { tool: "packages/docs/tools/choices.js", cwd: "packages/docs" },
+  notes: { tool: "packages/docs/tools/notes.ts", tsx: "packages/docs/tsconfig.json" },
   "design build": { tool: "packages/ui/scripts/design-build.ts", tsx: "packages/ui/scripts/tsconfig.json" },
   "design bundle": { tool: "packages/docs/tools/bundle-spell-ui.js", cwd: "packages/docs" },
   "design check": { tool: "packages/docs/tools/check-design-bundle.js", cwd: "packages/docs" },
