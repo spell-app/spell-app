@@ -53,7 +53,11 @@ export const epicStatusVocabulary = {
   ],
   parts: [
     { name: "base", description: "The card:  blue underway, green done." },
-    { name: "header", description: "Its heading band, a flex row:  `who` left, `date` right." },
+    {
+      name: "header",
+      description: "Its heading band, a flex row:  the fold chevron, `who` left, `date` right;  a click folds it."
+    },
+    { name: "toggle", description: "The fold chevron, a `<button>`, first in the band:  folds reading and summary." },
     { name: "who", description: "The heading's left:  `Claude • Underway` / `Claude • Done`." },
     { name: "date", description: "The heading's right:  `done-at`, else `at`, as `10/8/26 14:34`;  never wraps." },
     { name: "body", description: "The reading." },
@@ -61,7 +65,8 @@ export const epicStatusVocabulary = {
   ],
   states: [
     { name: "underway", description: "`state=underway`." },
-    { name: "done", description: "`state=done`." }
+    { name: "done", description: "`state=done`." },
+    { name: "open", description: "Unfolded:  it starts so (page state, never written)." }
   ],
   texts: [
     { key: "underway", text: "Claude • Underway", description: "The heading while Claude is on it." },

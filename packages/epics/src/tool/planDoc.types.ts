@@ -132,13 +132,17 @@ export const QUESTION_ID = /^q\d+$/
 export const CALM_ID = /^[ij]\d+$/
 
 /**
- * Item statuses that are closed:  not counted open, not on a "To review" line, coloured `recent` / `old`.
+ * Item statuses that are closed:  not counted open, not on a "To review" line, coloured `recent` (green, decided or
+ * done) but `canceled`, `old` (grey, no longer relevant).
  * - `done`:  finished (fixed, passed, accepted)
  * - `decided`:  an answered question, in force
  * - `canceled`:  made moot by another decision (J16 of `review-review`):  the ONE status struck through;  `cancel`
  *   sets it, `reopen` undoes it
  */
 export const CLOSED = new Set(["done", "decided", "canceled"])
+
+/** The status that makes an item moot:  struck through, and its chip `old` (grey:  no longer relevant). */
+export const CANCELED = "canceled"
 
 /** The statuses `PlanDoc.setItem()` sets:  "open" means the kind's live status. */
 export const ITEM_STATUSES = ["open", "done", "canceled"] as const
@@ -199,6 +203,8 @@ export type ItemFacts = {
   bedtime: boolean
   /** not urgent:  blue while open and not reviewed, not red (`<epic-item calm>`) */
   calm: boolean
+  /** how Claude handled Owen's last review mark (`<epic-item review-as>`, `REVIEW_AS`), or `undefined` */
+  reviewAs: string | undefined
 }
 
 /** One item (or an Overview sub-section), as `PlanReader.describeItem()` says it for `plan-doc inbox`. */
@@ -270,9 +276,10 @@ export type OptionCard = {
  * - `attention` (red):  needs Owen (an open question;  an open judgement call or issue not reviewed)
  * - `progress` (blue):  Claude is working on it (an underway status card, or `working`)
  * - `open` (yellow):  open, still undecided, not urgent (todos, caveats, tests;  reviewed issues and judgement
- *   calls;  work a review queued, not started)
- * - `recent` (green):  decided, reviewed or closed since the page's `recent-since`, or during a `/bedtime` run
- * - `old` (grey):  decided, reviewed or closed before that
+ *   calls;  work a review queued, not started;  a revisit or Do Now Claude answered, the item still open)
+ * - `recent` (green):  decided or done, however long ago (Owen, 2026-10-08:  "green across the board is good"):
+ *   closed, or open and settled by a review (`SETTLED_AS`)
+ * - `old` (grey):  no longer relevant:  canceled (made moot, struck through)
  */
 export const STATE_COLORS = {
   attention: "red",
@@ -283,13 +290,22 @@ export const STATE_COLORS = {
 } as const
 
 /**
- * How Claude handled Owen's review mark (`<epic-item review-as>`, `PlanDoc.reviewedAs()`):  the page draws that
- * button solid.  `now`:  an immediate request (Do Now:  Add Details, revisit now) done.
+ * How Claude handled Owen's review mark (`<epic-item review-as>`, `PlanDoc.reviewedAs()`):  the record (the log,
+ * `review` outcomes, `SETTLED_AS`).  The page no longer draws it on the buttons:  once handled they clear, and the
+ * id chip shows the result (Owen, 2026-10-08).  `now`:  an immediate request (Do Now:  Add Details, revisit now)
+ * done.
  */
 export const REVIEW_AS = ["approve", "todo", "revisit", "now"] as const
 
 /** One of `REVIEW_AS`. */
 export type ReviewAs = (typeof REVIEW_AS)[number]
+
+/**
+ * The `review-as` that SETTLE an item still open:  approved as it stands, or followed up by a todo.  Green
+ * (`recent`) for good, as a closed item (`PlanReader.itemState()`);  a revisit or a Do Now answered leaves it open,
+ * yellow (Owen, 2026-10-08:  J10).
+ */
+export const SETTLED_AS: ReadonlySet<string> = new Set<ReviewAs>(["approve", "todo"])
 
 /** A status card Claude is still on (`<epic-status state="underway">`), among an item's children:  `progress`. */
 export const UNDERWAY_CARD = ':scope > epic-status[state="underway"]'

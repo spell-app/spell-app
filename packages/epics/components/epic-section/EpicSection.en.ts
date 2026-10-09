@@ -153,8 +153,8 @@ export const epicSectionVocabulary = {
     },
     { key: "stateAttention", text: "needs attention", description: "A state chip's words:  `attention` (red)." },
     { key: "stateOpen", text: "open, still undecided", description: "A state chip's words:  `open` (yellow)." },
-    { key: "stateRecent", text: "decided or reviewed recently", description: "A state chip's words:  `recent`." },
-    { key: "stateOld", text: "decided or reviewed earlier", description: "A state chip's words:  `old` (grey)." },
+    { key: "stateRecent", text: "decided or done", description: "A state chip's words:  `recent` (green)." },
+    { key: "stateOld", text: "no longer relevant", description: "A state chip's words:  `old` (grey)." },
     { key: "hiddenNote", text: "{count} hidden · show all", description: "Under a filtered list;  a click shows all." },
     { key: "changesTitle", text: "Plan changes", description: "The Phases section's box of changes to phases to do." },
     ...REVIEW_TEXTS

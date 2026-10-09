@@ -38,9 +38,9 @@ import type { ReviewState } from "./ReviewState"
  * The controls at the end of a line:  the note bubble (what Owen wrote, its words as the tooltip), a pick's letter,
  * the group (Approve, Revisit, Make Todo), then Do Now apart (decision Q20).
  * - every button shows at every step, its FILL saying how far its mark has got (`ReviewFill`, `fillOf()`):  a grey
- *   outline available;  dashed in its colour pressed, not sent;  outlined sent (a Do Now:  taken);  solid done (the
- *   item's `review-as`, `appliedAs`).  Colours:  green decided (Approve, Make Todo), blue an ask of Claude (Revisit,
- *   Do Now)
+ *   outline available;  dashed in its colour pressed, not sent;  outlined sent (a Do Now:  taken);  then CLEARED,
+ *   a grey outline again, once Claude has handled it (they're Owen's input:  the id chip carries the result, Owen,
+ *   2026-10-08).  Colours:  green decided (Approve, Make Todo), blue an ask of Claude (Revisit, Do Now)
  * - work on its way or under way (`ReviewState.busyButton()`):  that button's icon turns while Claude is on it
  *   (`data-busy`);  queued with nobody listening, it stays dashed.  Clicked then:  "nevermind"
  * - Revisit asks the element to take the reader to the note box (`onOpenBox`);  Do Now takes the note in it along
@@ -109,7 +109,7 @@ export function ReviewButtons(props: ReviewButtonsProps) {
 
   /** How far `spec`'s mark has got:  its fill (`ReviewState.fillOf()`, which the id chip reads too). */
   function fillOf(spec: ReviewButtonSpec): ReviewFill {
-    return props.review.fillOf(spec.action, props.appliedAs)
+    return props.review.fillOf(spec.action)
   }
 
   /** A button's plain tooltip:  its name, then the element's review label (`Approve · reviewed 10/7/26`). */
@@ -128,7 +128,6 @@ export function ReviewButtons(props: ReviewButtonsProps) {
     const fill = fillOf(spec)
     if (fill === "dashed") return props.text("chosenUnsent")
     if (fill === "outline") return props.text("chosenSent")
-    if (fill === "solid") return props.text("doneBefore")
     const tip = props.text(spec.tip)
     return spec.action === "details" && !review.listening() ? `${tip}.  ${NOBODY_LISTENING}` : tip
   }
@@ -161,8 +160,6 @@ export type ReviewButtonsProps = {
   label: string
   /** which buttons, in their order:  an item's four;  an Overview section's, without Approve */
   buttons: readonly ReviewButtonSpec[]
-  /** how Claude handled an earlier mark (`review-as`;  `now`:  Do Now):  that button is solid, done */
-  appliedAs?: string
   /** the element's review label in words (`reviewed 10/7/26`), after every button's name in its tooltip */
   reviewTip?: string
   /** the `part` of the controls' box */

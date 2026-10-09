@@ -5,6 +5,8 @@
  * - reply:  violet (Claude's), or ivory (Owen's, `.owen`:  his voice, as the answer);  its band a flex row, the date
  *   at its right (`.dated`)
  * - More Details:  plain, its heading a small muted eyebrow that folds it
+ * - every card folds:  the answer, a reply and a status card by their band, the chevron first (`<FoldButton>`,
+ *   `FoldButton.css`;  Owen, 2026-10-08), More Details by its eyebrow;  the folded box `hidden="until-found"`
  * - also `<epic-status>`'s card (`.status`, P13), which adopts this sheet:  its fills in `EpicStatus.css`
  * - Shared look from `<epic-page>`'s `:host`, each with a private fallback:  `--epic-part-gap` (between an item's
  *   parts), `--epic-rule`.
@@ -74,6 +76,12 @@
   }
   .body {
     padding: 6px 10px 8px;
+  }
+  /* folded by its band (`<FoldButton>`, `FoldButton.css`):  `until-found` keeps it findable, so drawn as nothing */
+  [hidden="until-found"] {
+    display: block;
+    content-visibility: hidden;
+    padding: 0;
   }
   .body.empty {
     display: none;

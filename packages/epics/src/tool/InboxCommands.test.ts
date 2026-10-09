@@ -130,7 +130,7 @@ test("apply:  a sent todo gets a status card born done, saying what was filed (Q
   expect(plan.findItem("j2")!.querySelector("epic-status")).toBeNull()
 })
 
-test("done:  a Do Now request done is `review-as=now` (its button solid);  a revisit talked over, `revisit`", async () => {
+test("done:  a Do Now request done is `review-as=now`;  a revisit talked over, `revisit`:  neither settles it (J10)", async () => {
   ReviewInbox.update(inboxFile, (inbox) => {
     inbox.requestNow("j1", "details", "", T1)
     inbox.setMark("j2", { action: "revisit", when: "soon", note: "why?" }, T1)
@@ -142,6 +142,8 @@ test("done:  a Do Now request done is `review-as=now` (its button solid);  a rev
     "now",
     "revisit"
   ])
+  // answered, not settled:  neither turns green (only an approval or a todo does)
+  expect(["j1", "j2"].map((id) => plan.findItem(id)!.getAttribute("state"))).not.toContain("recent")
 })
 
 test("status:  underway writes the card AND turns the page's spinner on;  done turns both;  done again is refused", async () => {
