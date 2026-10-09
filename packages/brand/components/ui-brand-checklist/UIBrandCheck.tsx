@@ -38,7 +38,7 @@ import checkCSS from "./UIBrandCheck.css?inline"
  * - `DOMElement` refuses a member named like an attribute's property:  `checked` is no prop.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMBrandCheckElement extends DOMElement {
+export class DOMBrandCheckElement extends DOMElement<UIBrandCheck> {
   /** Another name for `selected`. */
   get checked(): boolean {
     return !!(this as unknown as { selected?: boolean }).selected

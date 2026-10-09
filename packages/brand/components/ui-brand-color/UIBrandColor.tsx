@@ -47,7 +47,7 @@ import colorCSS from "./UIBrandColor.css?inline"
  * - `choice` is not an attribute:  `DOMElement` refuses a member named like one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMBrandColorElement extends DOMElement {
+export class DOMBrandColorElement extends DOMElement<UIBrandColor> {
   /** Is this chip one choice of a selectable set?  Written by the set;  reading it in JSX follows it. */
   readonly choice = new Cell(false)
 }
@@ -89,6 +89,9 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
     delegatesFocus: false
   } satisfies Partial<ElementSetup>
 
+  /** The DOM element, with the `choice` the set writes (`DOMBrandColorElement`);  `declare`, a type only. */
+  declare readonly domElement: DOMBrandColorElement
+
   /** The brand's ink, the dark text colour `Palette.ink()` picks:  what it picks for white. */
   private static readonly INK = Palette.ink(WHITE)
 
@@ -110,7 +113,7 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
   readonly hex = createMemo(() => Palette.parse(this.value ?? ""))
 
   /** Is it one choice of a selectable set?  (The set writes `choice` on the DOM element.) */
-  readonly isChoice = createMemo(() => (this.domElement as DOMBrandColorElement).choice?.get() ?? false)
+  readonly isChoice = createMemo(() => this.domElement.choice?.get() ?? false)
 
   /** What a click copies, or `undefined`:  not copyable, or a choice (the set takes the click). */
   readonly copyFormat = createMemo((): CopyFormat | undefined => {

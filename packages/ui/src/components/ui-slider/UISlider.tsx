@@ -52,7 +52,7 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   } satisfies Partial<E.ElementSetup>
 
   /** The DOM element's `<label>`s and `aria-label`, as the thumb's (or range group's) name. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
+  readonly labels = new F.ControlLabels(this.domElement)
 
   /** The inner box:  track, fill, thumbs. */
   private inner?: HTMLElement

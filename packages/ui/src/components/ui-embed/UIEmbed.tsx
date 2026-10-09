@@ -17,23 +17,18 @@ import embedCSS from "./UIEmbed.css?inline"
  *   neither `activate` nor `reset` is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMEmbedElement extends E.DOMElement {
+export class DOMEmbedElement extends E.DOMElement<UIEmbed> {
   /**
    * Load the frame as the play button would (the cancelable `ui-activate` first);
    * true when it loads (Fomantic's `show`).
    */
   activate(): boolean {
-    return this.embed?.activate() ?? false
+    return this.component?.activate() ?? false
   }
 
   /** Back to the placeholder, with `ui-reset` (Fomantic's `reset`). */
   reset() {
-    this.embed?.reset()
-  }
-
-  /** Its component. */
-  private get embed(): UIEmbed | undefined {
-    return this.component as UIEmbed | undefined
+    this.component?.reset()
   }
 }
 

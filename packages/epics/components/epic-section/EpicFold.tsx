@@ -25,9 +25,9 @@ import {
  * - Before its first render (no component yet):  `undefined`;  the runtime falls back on its attributes.
  * - Above `EpicFold`:  its `elementSetup` reads it while the class is defined.
  ****************/
-export class DOMEpicFoldElement extends E.DOMLoadableBodyElement {
+export class DOMEpicFoldElement extends E.DOMLoadableBodyElement<EpicFold<any>> {
   get contentsEntry(): ContentsEntry | undefined {
-    return untrack(() => (this.component as unknown as { contentsEntry?(): ContentsEntry })?.contentsEntry?.())
+    return untrack(() => this.component?.contentsEntry())
   }
 }
 

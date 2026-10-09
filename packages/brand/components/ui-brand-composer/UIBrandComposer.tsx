@@ -41,18 +41,13 @@ import composerCSS from "./UIBrandComposer.css?inline"
  * - `DOMElement` refuses a member named like an attribute's property:  `cast` is no attribute (`casting` is).
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMBrandComposerElement extends DOMFormControl {
+export class DOMBrandComposerElement extends DOMFormControl<UIBrandComposer> {
   /**
    * Cast the current text, as the Cast button does:  `ui-cast`, then the form's submit.
    * - Returns false when nothing was cast:  empty text, `casting`, `disabled`, not rendered yet, or cancelled.
    */
   cast(): boolean {
-    return this.composer?.cast() ?? false
-  }
-
-  /** The component, once it exists. */
-  private get composer(): UIBrandComposer | undefined {
-    return this.component as UIBrandComposer | undefined
+    return this.component?.cast() ?? false
   }
 }
 
@@ -101,7 +96,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   readonly slots = new SlotContent(this.domElement)
 
   /** The DOM element's `<label>`s and `aria-label`, as the text box's name. */
-  readonly labels = new ControlLabels(this.domFormElement)
+  readonly labels = new ControlLabels(this.domElement)
 
   /** The Cast button's arrow, and the spinner it shows while `casting`;  loaded up front, so neither flashes in. */
   readonly glyphs = {
@@ -295,7 +290,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
       return false
     }
     if (!this.send("ui-cast", { value, originalEvent })) return false
-    this.domFormElement.internals.form?.requestSubmit()
+    this.domElement.internals.form?.requestSubmit()
     return true
   }
 

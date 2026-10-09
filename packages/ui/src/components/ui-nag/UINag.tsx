@@ -15,32 +15,27 @@ import nagCSS from "./UINag.css?inline"
  * - NOTE: `DOMElement` checks its members against the attributes' property names;  none of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMNagElement extends E.DOMElement {
+export class DOMNagElement extends E.DOMElement<UINag> {
   /**
    * Dismiss it now, reason `dismiss` (the cancelable `ui-close` first), storing the dismissal;  true when it closes.
    */
   close(): boolean {
-    return this.nag?.close() ?? false
+    return this.component?.close() ?? false
   }
 
   /** Show it again, unless a dismissal is stored (and it doesn't `persist`);  true when it shows. */
   show(): boolean {
-    return this.nag?.show() ?? false
+    return this.component?.show() ?? false
   }
 
   /** Forget a stored dismissal (Fomantic's `clear`). */
   clear() {
-    this.nag?.clearDismissal()
+    this.component?.clearDismissal()
   }
 
   /** A dismissal is stored (and not expired);  `false` without a `key`. */
   get dismissed(): boolean {
-    return this.nag?.isDismissed ?? false
-  }
-
-  /** Its component. */
-  private get nag(): UINag | undefined {
-    return this.component as UINag | undefined
+    return this.component?.isDismissed ?? false
   }
 }
 

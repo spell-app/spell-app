@@ -14,15 +14,10 @@ import toastCSS from "./UIToast.css?inline"
  * - NOTE: `DOMElement` checks its members against the attributes' property names;  `close` isn't one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMToastElement extends E.DOMElement {
+export class DOMToastElement extends E.DOMElement<UIToast> {
   /** Close it now, reason `dismiss` (the cancelable `ui-close` first);  true when it closes. */
   close(): boolean {
-    return this.toast?.close() ?? false
-  }
-
-  /** Its component. */
-  private get toast(): UIToast | undefined {
-    return this.component as UIToast | undefined
+    return this.component?.close() ?? false
   }
 }
 

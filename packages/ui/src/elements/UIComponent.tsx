@@ -140,6 +140,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * The DOM element itself, the `<ui-button>` in the page:
    * a `DOMElement`, or the subclass `elementSetup.DOMElement` names.
    * - `domElement.component` points back to this object.
+   * - A subclass that uses its DOM element class's own members says which class it is, as a type only:
+   *   `declare readonly domElement: DOMFormControl` (`FormComponent`).
    */
   readonly domElement: DOMElement
 

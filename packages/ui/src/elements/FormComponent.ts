@@ -29,10 +29,11 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
     isAFormControl: true
   }
 
-  /** The DOM element, as the form control it is. */
-  get domFormElement(): DOMFormControl {
-    return this.domElement as DOMFormControl
-  }
+  /**
+   * The DOM element, as the form control it is (`elementSetup.DOMElement`):  `form`, `validity`, `internals` ...
+   * - `declare`, a type only:  the constructor (`UIComponent`) sets it.
+   */
+  declare readonly domElement: DOMFormControl
 
   ////////////////
   // ## Value
@@ -55,7 +56,7 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
   /** The value (or its name) changed:  hand the submission to the form. */
   @E.onChange("formValue", "formName")
   protected onFormValueChanged(value: E.FieldValue, name: string | undefined) {
-    this.domFormElement.internals.setFormValue(this.formSubmission(value, name))
+    this.domElement.internals.setFormValue(this.formSubmission(value, name))
   }
 
   /** Hook:  restore the starting value (DOM API `formResetCallback()`);  every form control has one. */
@@ -126,7 +127,7 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
    */
   @E.onChange("validation", "isShownInvalid")
   protected onValidationChanged(result: E.ValidationResult, isShownInvalid: boolean) {
-    const { internals } = this.domFormElement
+    const { internals } = this.domElement
     if (result.valid) internals.setValidity({})
     else internals.setValidity(result.flags, result.message, this.validationAnchor)
     this.domElement.setState(INVALID_STATE, isShownInvalid)

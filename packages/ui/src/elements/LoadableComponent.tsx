@@ -42,6 +42,8 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
    */
   declare wantsInlineContent: boolean
 
+  // NOTE: `this.domElement as DOMLoadableElement` below, not a `declare readonly domElement: DOMLoadableElement`:
+  // two field initializers here read it, and TypeScript refuses those as "used before its initialization" (TS2729)
   @protoMerged static elementSetup: Partial<E.ElementSetup> = {
     // with the script API (`content`, `save()`, `loaded` ...)
     DOMElement: DOMLoadableElement

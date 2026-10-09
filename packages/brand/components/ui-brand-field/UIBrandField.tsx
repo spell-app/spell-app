@@ -27,20 +27,15 @@ import fieldCSS from "./UIBrandField.css?inline"
  * - `DOMElement` checks its members against the attributes' property names;  neither of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMBrandFieldElement extends DOMElement {
+export class DOMBrandFieldElement extends DOMElement<UIBrandField> {
   /** Show `messages` under the control (and the `error` state);  `[]` clears. */
   showErrors(messages: readonly string[]) {
-    this.field?.showErrors(messages)
+    this.component?.showErrors(messages)
   }
 
   /** Messages `<ui-form>` asked to show;  untracked. */
   get errors(): readonly string[] {
-    return untrack(() => this.field?.formErrors) ?? []
-  }
-
-  /** The field's component, once it exists. */
-  private get field(): UIBrandField | undefined {
-    return this.component as UIBrandField | undefined
+    return untrack(() => this.component?.formErrors) ?? []
   }
 }
 

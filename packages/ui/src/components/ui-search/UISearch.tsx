@@ -354,7 +354,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   ////////////////
 
   /** The DOM element's `<label>`s and `aria-label`, as the input's name. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
+  readonly labels = new F.ControlLabels(this.domElement)
 
   /** Name for the input:  its `<label>`s / `aria-label`, else `placeholder`, else the translated `label`. */
   private get label(): string {
@@ -709,7 +709,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
         if (result) {
           event.preventDefault()
           this.select(result, event)
-        } else this.domFormElement.form?.requestSubmit()
+        } else this.domElement.form?.requestSubmit()
         return
       }
       case UIT.Key.escape:

@@ -213,7 +213,7 @@ export class UIInput extends TextControl<Vocabulary> {
   /** Enter submits the form, as a native field would. */
   private readonly onKeyDown = (event: KeyboardEvent) => {
     if (event.key !== UIT.Key.enter || event.isComposing || event.defaultPrevented) return
-    const form = this.domFormElement.form
+    const form = this.domElement.form
     if (!form) return
     event.preventDefault()
     this.isTouched = true

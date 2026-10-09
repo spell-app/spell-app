@@ -193,7 +193,7 @@ export class UISelect extends F.FormComponent<Vocabulary> {
   ////////////////
 
   /** The DOM element's `<label>`s and `aria-label`, as the select's name. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
+  readonly labels = new F.ControlLabels(this.domElement)
 
   /** Name for the select:  its `<label>`s / `aria-label`, else `placeholder`, else `name`. */
   private get label(): string | undefined {

@@ -18,40 +18,35 @@ import formCSS from "./UIForm.css?inline"
  * - `DOMElement` checks its members against the attributes' property names;  none of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMFormElement extends E.DOMElement {
+export class DOMFormElement extends E.DOMElement<UIForm> {
   /** Validate every field, show prompts and states;  true when valid. */
   validate(): boolean {
-    return this.form?.validate() ?? true
+    return this.component?.validate() ?? true
   }
 
   /** The same verdict as `validate()`, showing nothing. */
   isValid(): boolean {
-    return this.form?.isValid() ?? true
+    return this.component?.isValid() ?? true
   }
 
   /** The native form's reset (controls back to their starting values), then prompts cleared. */
   reset() {
-    this.form?.reset()
+    this.component?.reset()
   }
 
   /** Every control emptied (text `""`, checkboxes unchosen), then prompts cleared. */
   clear() {
-    this.form?.clear()
+    this.component?.clear()
   }
 
   /** Every field's value, by name (Fomantic's `get values`). */
   get values(): UIT.FormValues {
-    return this.form?.values ?? {}
+    return this.component?.values ?? {}
   }
 
   /** The `<form>` it works with, if any. */
   get nativeForm(): HTMLFormElement | undefined {
-    return untrack(() => this.form?.nativeForm)
-  }
-
-  /** The form's component, once it exists. */
-  private get form(): UIForm | undefined {
-    return this.component as UIForm | undefined
+    return untrack(() => this.component?.nativeForm)
   }
 }
 
