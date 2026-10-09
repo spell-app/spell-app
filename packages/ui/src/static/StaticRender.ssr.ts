@@ -145,8 +145,8 @@ export class StaticRender {
     const family = StaticRender.families.get(element.localName)!
     const { Class, definition } = family
     const domElement = SSR.ServerDOMElement.attach(element, definition)
-    const attrs = E.UIComponent.attributeSignals({ ...domElement.attributeValues })
-    untrack(() => new Class(domElement, definition, attrs))
+
+    untrack(() => new Class(domElement, definition))
     return { domElement, family }
   }
 

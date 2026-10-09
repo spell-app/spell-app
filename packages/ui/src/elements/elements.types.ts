@@ -491,7 +491,7 @@ export type TextKey<V extends E.ComponentVocabulary> = V["texts"][number]["key"]
  * - keyOnly / boolean => `boolean`  (`"no"` / `"false"` ~== false)
  * - keyOrValueAndKey => `true` (bare), `false`, or the validated value
  * - enumerated kinds => the validated value, `undefined` when absent or unknown;  an INLINE value list
- *   narrows to its literal union, so `attrs.type === "submit"` is checked against the vocabulary
+ *   narrows to its literal union, so `this.type === "submit"` is checked against the vocabulary
  * - json => `unknown`:  the component casts to its own shape
  */
 export type SpecValue<S extends E.AttributeSpec> = S["kind"] extends "keyOnly" | "boolean"
@@ -515,7 +515,6 @@ export type InlineValues<S extends E.AttributeSpec> = S["values"] extends readon
  * Every attribute of `V` as a converted property, keyed by camelCase canonical name:  `allowAdditions`, `size`.
  * - A component's vocabulary members (`export interface UIButton extends E.AttributeValues<...> {}`):  reading
  *   one is fresh and tracked;  writing one writes the DOM element's PROPERTY (`Reactive.installAttributeGetters()`).
- * - `Readonly<>`, `UIComponent.attrs`:  one Solid signal each, converted on the way in.
  */
 export type AttributeValues<V extends E.ComponentVocabulary> = {
   [S in V["attributes"][number] as CamelCase<S["name"]>]: SpecValue<S>
@@ -527,7 +526,7 @@ export type AttributeValues<V extends E.ComponentVocabulary> = {
 
 /** A concrete `UIComponent` subclass, as `define()` sees it. */
 export type UIComponentClass = {
-  new (domElement: E.DOMElement, definition: E.ElementDefinition, attrs: any): E.UIComponent<any>
+  new (domElement: E.DOMElement, definition: E.ElementDefinition): E.UIComponent<any>
   prototype: E.UIComponent<any>
 }
 

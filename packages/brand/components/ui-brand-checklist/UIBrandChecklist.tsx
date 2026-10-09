@@ -1,7 +1,7 @@
 import { createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIComponent, type DOMElement, UIT, type ElementSetup } from "$/ui/core"
+import { Cell, proto, UIComponent, type DOMElement, UIT, type ElementSetup, type AttributeValues } from "$/ui/core"
 
 import { brandChecklistVocabulary } from "./UIBrandChecklist.en"
 import {
@@ -61,8 +61,8 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
   ////////////////
 
   /** `step` as a whole number, or `undefined`. */
-  readonly step = createMemo(() => {
-    const step = this.attrs.step
+  readonly currentStep = createMemo(() => {
+    const step = this.step
     return step === undefined ? undefined : Math.max(0, Math.floor(step))
   })
 
@@ -77,9 +77,9 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
   checkState(check: Element): ChecklistCheckState {
     const index = this.checks.get().indexOf(check as DOMElement)
     if (index < 0) this.queueRefresh()
-    const step = this.step()
-    const checkable = !!this.attrs.checkable
-    const font = this.attrs.font
+    const step = this.currentStep()
+    const checkable = !!this.checkable
+    const font = this.font
     if (step === undefined || index < 0 || checkable) return { state: undefined, checkable, font }
     return { state: index < step ? DONE : index === step ? ACTIVE : PENDING, checkable, font }
   }
@@ -112,9 +112,9 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
    * - The APPLY writes the live region's text (a signal write is allowed there).
    */
   private effects() {
-    let before: number | undefined = untrack(this.step)
+    let before: number | undefined = untrack(this.currentStep)
     createEffect(
-      () => (this.attrs.checkable ? undefined : this.step()),
+      () => (this.checkable ? undefined : this.currentStep()),
       (step) => {
         const previous = before
         before = step
@@ -162,3 +162,5 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
     return UIComponent.registry.definitions.get(element.localName)?.vocabulary.noun === CHECK_NOUN
   }
 }
+
+export interface UIBrandChecklist extends AttributeValues<BrandChecklistVocabulary> {}
