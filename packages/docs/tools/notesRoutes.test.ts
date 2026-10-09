@@ -118,7 +118,11 @@ test("edits and deletes a new note;  the last one out takes its group", async ()
 test("the page reads its notes back, every status", async () => {
   const got = await ask(port, "GET", "/api/notes?page=%2Fguides%2Fsolid%2Fsolid-2.html")
   expect(got.status).toBe(200)
-  expect(JSON.parse(got.text)).toMatchObject({ page: "/guides/solid/solid-2.html", notes: [{ id: "n1" }] })
+  expect(JSON.parse(got.text)).toMatchObject({
+    page: "/guides/solid/solid-2.html",
+    takesNotes: true,
+    notes: [{ id: "n1" }]
+  })
 })
 
 test("a worktree's page through /worktrees/, an epic's own page, a details page without questions", async () => {
@@ -140,7 +144,9 @@ test("no notes on plan docs, details pages with questions, templates, goals, or 
     expect([page, (await add(page)).status]).toEqual([page, 403])
   expect((await add("/guides/missing.html")).status).toBe(404)
   expect((await add("nope")).status).toBe(400)
-  expect((await ask(port, "GET", "/api/notes?page=%2Fepics%2Fbig%2Fbig.plan.html")).status).toBe(403)
+  // reading is an answer, not a 403:  every docs page asks
+  const read = await ask(port, "GET", "/api/notes?page=%2Fepics%2Fbig%2Fbig.plan.html")
+  expect([read.status, JSON.parse(read.text)]).toMatchObject([200, { takesNotes: false, notes: [] }])
 })
 
 test("bad changes are refused", async () => {
