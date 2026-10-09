@@ -253,9 +253,8 @@ export class UIDocsApi extends E.UIComponent<DocsApiVocabulary> {
   ////////////////
 
   /** While connected:  follow `hashchange`. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (!isConnected) return undefined
+  @E.whileConnected
+  protected followHash() {
     window.addEventListener("hashchange", this.onHashChange)
     return () => window.removeEventListener("hashchange", this.onHashChange)
   }

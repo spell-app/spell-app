@@ -1,4 +1,4 @@
-import { createEffect, untrack } from "solid-js"
+import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -221,32 +221,27 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   @E.state accessor nativeForm: HTMLFormElement | undefined = undefined
 
   /**
-   * Adds the form discovery, and the DOM element's own listeners, while connected.
-   * - Stays an explicit effect:  it watches the DOM (a `MutationObserver`) while connected.
+   * While connected:  find the native form (and again as the subtree changes), and the DOM element's own listeners;
+   * returns their undo.
+   * - Its own `MutationObserver`, not `@fromContent`:  it watches only while connected.
    */
-  onMount() {
-    createEffect(
-      () => this.isConnected,
-      (connected) => {
-        if (!connected || isServer) return
-        const observer = new MutationObserver(() => this.findForm())
-        observer.observe(this.domElement, { childList: true, subtree: true })
-        this.findForm()
-        const { domElement } = this
-        for (const type of CHANGE_EVENTS) domElement.addEventListener(type, this.onChange)
-        domElement.addEventListener("focusout", this.onFocusOut)
-        window.addEventListener("beforeunload", this.onBeforeUnload)
-        E.afterSolidUpdate(() => this.saveValues())
-        return () => {
-          this.nativeForm = undefined
-          observer.disconnect()
-          for (const type of CHANGE_EVENTS) domElement.removeEventListener(type, this.onChange)
-          domElement.removeEventListener("focusout", this.onFocusOut)
-          window.removeEventListener("beforeunload", this.onBeforeUnload)
-        }
-      }
-    )
-    return super.onMount()
+  @E.whileConnected
+  protected watchForm() {
+    const observer = new MutationObserver(() => this.findForm())
+    observer.observe(this.domElement, { childList: true, subtree: true })
+    this.findForm()
+    const { domElement } = this
+    for (const type of CHANGE_EVENTS) domElement.addEventListener(type, this.onChange)
+    domElement.addEventListener("focusout", this.onFocusOut)
+    window.addEventListener("beforeunload", this.onBeforeUnload)
+    E.afterSolidUpdate(() => this.saveValues())
+    return () => {
+      this.nativeForm = undefined
+      observer.disconnect()
+      for (const type of CHANGE_EVENTS) domElement.removeEventListener(type, this.onChange)
+      domElement.removeEventListener("focusout", this.onFocusOut)
+      window.removeEventListener("beforeunload", this.onBeforeUnload)
+    }
   }
 
   /** The native form:  one inside, else the one around. */

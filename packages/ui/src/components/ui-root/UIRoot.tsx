@@ -270,16 +270,12 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   private hasStarted = false
 
   /**
-   * Watch the content while connected;  returns `watch()`'s undo.
+   * While connected, load what's inside now (first connect:  and wait for it), and whatever is added later;
+   * returns the undo.
    * - Declared before `onSettingsChanged()`:  loading starts before the settings are handed out, as it always has.
    */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    return isConnected ? this.watch() : undefined
-  }
-
-  /** Load what's inside now (first connect:  and wait for it), and whatever is added later;  returns the undo. */
-  private watch(): E.Disposer {
+  @E.whileConnected
+  protected watch(): E.Disposer {
     const observer = new MutationObserver(() => void this.loadUndefined())
     observer.observe(this.domElement, { childList: true, subtree: true })
     if (this.hasStarted) void this.loadUndefined()

@@ -631,9 +631,8 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
   }
 
   /** SIDE EFFECT:  `/` and Cmd / Ctrl+K, while connected;  the cleanup stops listening. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (!isConnected) return undefined
+  @E.whileConnected
+  protected listenForShortcuts() {
     UIDocsSearch.listen(this)
     return () => UIDocsSearch.unlisten(this)
   }

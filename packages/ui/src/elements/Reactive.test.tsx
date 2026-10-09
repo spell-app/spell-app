@@ -1,4 +1,4 @@
-import { createRoot, flush } from "solid-js"
+import { createEffect, createRoot, flush } from "solid-js"
 import { render, type JSX } from "@solidjs/web"
 import { describe, expect, it } from "vite-plus/test"
 
@@ -492,4 +492,163 @@ describe("Reactive:  vocabulary getters vs base members", () => {
       names.push(...Object.getOwnPropertyNames(current))
     return names
   }
+})
+
+/** The `@fromContent` / `@whileConnected` stand-in's vocabulary:  nothing of its own. */
+const CONTENT_VOCABULARY = {
+  tag: "x-content",
+  noun: "content",
+  attributes: [],
+  events: [],
+  slots: [],
+  parts: [{ name: "box", description: "The box." }],
+  states: [],
+  texts: []
+} as const satisfies ComponentVocabulary
+
+/** A component reading its light DOM (`@fromContent`), and following its connection (`@whileConnected`). */
+class ContentTest extends E.UIComponent<typeof CONTENT_VOCABULARY> {
+  /** How many times `childCount` computed. */
+  computes = 0
+
+  /** Its children, counted. */
+  @E.fromContent({ childList: true })
+  get childCount(): number {
+    this.computes++
+    return this.domElement.children.length
+  }
+
+  /** Ids of the elements marked `data-mark`, anywhere inside;  the same list while their number is. */
+  @E.fromContent({
+    subtree: true,
+    attributeFilter: ["data-mark"],
+    equals: (a: string[], b: string[]) => a.length === b.length
+  })
+  get marked(): string[] {
+    return Array.from(this.domElement.querySelectorAll("[data-mark]"), (element) => element.id)
+  }
+
+  /** How many mutations each `onTitleChanged()` call had. */
+  readonly titleChanges: number[] = []
+
+  @E.fromContent({ attributeFilter: ["title"] })
+  protected onTitleChanged(mutations: MutationRecord[]) {
+    this.titleChanges.push(mutations.length)
+  }
+
+  /** `connect` / `disconnect`, in order. */
+  readonly connections: string[] = []
+
+  @E.whileConnected
+  protected followConnection() {
+    this.connections.push("connect")
+    return () => {
+      this.connections.push("disconnect")
+    }
+  }
+
+  render(): JSX.Element {
+    return <span part={this.partForName("box")}>{this.childCount}</span>
+  }
+}
+Object.defineProperty(ContentTest.prototype, "vocabulary", { value: CONTENT_VOCABULARY })
+;(ContentTest as unknown as UIComponentClass & typeof E.UIComponent).define()
+
+/** Render one `<x-content>` with `inner` inside;  returns its host, component and box. */
+async function content(inner = "") {
+  const host = await ElementFixture.render<DOMElement>(`<x-content>${inner}</x-content>`)
+  const component = host.component as unknown as ContentTest
+  const box = () => host.shadowRoot!.querySelector<HTMLElement>("[part=box]")!
+  return { host, component, box }
+}
+
+describe("Reactive:  @fromContent", () => {
+  it("a getter follows the light DOM, and the view with it", async () => {
+    const { host, component, box } = await content(`<b></b>`)
+    expect(component.childCount).toBe(1)
+    expect(box().textContent).toBe("1")
+    host.append(document.createElement("i"))
+    await ElementFixture.tick()
+    expect(component.childCount).toBe(2)
+    await ElementFixture.tick()
+    expect(box().textContent).toBe("2")
+  })
+
+  it("recomputes only on a change it watches", async () => {
+    const { host, component } = await content(`<b></b>`)
+    void component.childCount
+    const before = component.computes
+    host.setAttribute("data-other", "")
+    host.firstElementChild!.append(document.createElement("i"))
+    await ElementFixture.tick()
+    void component.childCount
+    expect(component.computes).toBe(before)
+  })
+
+  it("with `equals`:  an equal rescan keeps the old value, and tells nobody", async () => {
+    const { component } = await content(`<b id="a" data-mark></b><b id="b"></b>`)
+    const first = component.marked
+    expect(first).toEqual(["a"])
+    const heard: string[][] = []
+    const dispose = createRoot((dispose) => {
+      createEffect(
+        () => component.marked,
+        (marked) => {
+          heard.push(marked)
+        }
+      )
+      return dispose
+    })
+    flush()
+    expect(heard).toEqual([["a"]])
+    const [a, b] = Array.from(component.domElement.children)
+    a!.removeAttribute("data-mark")
+    b!.setAttribute("data-mark", "")
+    await ElementFixture.tick()
+    expect(component.marked).toBe(first)
+    b!.setAttribute("data-mark", "")
+    a!.setAttribute("data-mark", "")
+    await ElementFixture.tick()
+    expect(component.marked).toEqual(["a", "b"])
+    expect(heard).toEqual([["a"], ["a", "b"]])
+    dispose()
+  })
+
+  it("a method is called on each change it watches, with its mutations;  not at the start", async () => {
+    const { host, component } = await content()
+    expect(component.titleChanges).toEqual([])
+    host.title = "One"
+    host.title = "Two"
+    host.setAttribute("data-other", "")
+    await ElementFixture.tick()
+    expect(component.titleChanges).toEqual([2])
+  })
+
+  it("keeps watching across a move;  stops when the host is released", async () => {
+    const { host, component } = await content()
+    void component.childCount
+    host.remove()
+    document.body.append(host)
+    host.append(document.createElement("b"))
+    await ElementFixture.tick()
+    expect(component.childCount).toBe(1)
+    host.dispose()
+    const before = component.computes
+    host.append(document.createElement("b"))
+    await ElementFixture.tick()
+    expect(component.computes).toBe(before)
+  })
+})
+
+describe("Reactive:  @whileConnected", () => {
+  it("runs on each connect;  its cleanup on each disconnect", async () => {
+    const { host, component } = await content()
+    expect(component.connections).toEqual(["connect"])
+    host.remove()
+    await ElementFixture.tick()
+    expect(component.connections).toEqual(["connect", "disconnect"])
+    document.body.append(host)
+    await ElementFixture.tick()
+    expect(component.connections).toEqual(["connect", "disconnect", "connect"])
+  })
 })

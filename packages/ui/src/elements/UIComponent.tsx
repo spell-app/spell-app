@@ -189,7 +189,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - SIDE EFFECTS:
    *   - adopts the class's style sheets into the shadow root (if the runtime has loaded)
    *   - keeps the element's `:state()`s in step with its `@cssState` members and `cssStates()`
-   *   - starts the `@onChange` methods
+   *   - starts the `@onChange` and `@whileConnected` methods, and the `@fromContent` methods' watch
    *   - re-adopts the style sheets when `styleSheetNames` changes
    * - Not in the constructor, because a subclass's fields don't exist yet while the base constructor runs.
    * - Hook:  an override starts its own effects, then returns `super.onMount()`.

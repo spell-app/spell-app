@@ -1,4 +1,4 @@
-import { Show, onSettled } from "solid-js"
+import { Show } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -9,7 +9,7 @@ import cardCSS from "./UICard.css?inline"
 
 /**
  * Same nouns:  a rescan finding them again changes nothing (`UICard.slottedNouns`'s `equals`).
- * - Above the class:  `@state({ equals })` reads it while the class is defined.
+ * - Above the class:  `@fromContent({ equals })` reads it while the class is defined.
  */
 function isSameNouns(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
   return a.size === b.size && [...a].every((noun) => b.has(noun))
@@ -46,19 +46,6 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { card: cardCSS, ...E.PartComponent.prototype.elementSetup.styleSheets }
   } satisfies Partial<E.ElementSetup>
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    if (isServer) return
-    const { domElement } = this
-    // SIDE EFFECT:  shorthands follow what's slotted, at any depth
-    onSettled(() => {
-      const observer = new MutationObserver(() => (this.slottedNouns = this.scan()))
-      observer.observe(domElement, { childList: true, subtree: true })
-      this.slottedNouns = this.scan()
-      return () => observer.disconnect()
-    })
-  }
-
   ////////////////
   // ## Group
   ////////////////
@@ -106,10 +93,14 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
   // ## Shorthands
   ////////////////
 
-  /** Nouns the slotted content already has (`header`, `extra` ...;  `image` for an `<img>`). */
-  @E.state({ equals: isSameNouns }) accessor slottedNouns: ReadonlySet<string> = isServer
-    ? NOTHING_SLOTTED
-    : this.scan()
+  /**
+   * Nouns the slotted content already has (`header`, `extra` ...;  `image` for an `<img>`).
+   * - Follows what's slotted, at any depth:  shorthands yield to it.
+   */
+  @E.fromContent({ childList: true, subtree: true, equals: isSameNouns })
+  get slottedNouns(): ReadonlySet<string> {
+    return isServer ? NOTHING_SLOTTED : this.scan()
+  }
 
   /** Does shorthand `noun` render:  set, and no slotted part of that noun? */
   rendersShorthand(noun: Shorthand): boolean {

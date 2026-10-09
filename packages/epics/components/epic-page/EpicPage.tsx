@@ -1,4 +1,4 @@
-import { Show, createEffect, createMemo, onSettled, untrack } from "solid-js"
+import { Show, createMemo, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -255,15 +255,11 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   ////////////////
 
   /**
-   * Watch the subtree (numbers, step label) and the headers' heights (`top`) while connected;  follow the review
-   * inbox while connected (kept alive:  a removed page stops).
+   * Watch the subtree (numbers, step label) and the headers' heights (`top`).
+   * - Its own `MutationObserver`, not `@fromContent`:  it bumps `layout`, which the page's blocks read too.
    */
   onMount(): JSX.Element {
     if (!isServer) {
-      createEffect(
-        () => this.isConnected,
-        (connected) => (connected ? this.review.connect() : undefined)
-      )
       onSettled(() => {
         let queued = false
         const bump = () => {
@@ -295,6 +291,12 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       })
     }
     return super.onMount()
+  }
+
+  /** Follow the review inbox while connected (kept alive:  a removed page stops). */
+  @E.whileConnected
+  protected followReviews() {
+    return this.review.connect()
   }
 
   render(): JSX.Element {
