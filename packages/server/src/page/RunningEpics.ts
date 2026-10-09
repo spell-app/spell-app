@@ -224,11 +224,10 @@ function folders(dir: string): string[] {
 /**
  * Title, phases and follow-ups of the plan doc at `file`, by pattern:  the server is a leaf, so no HTML parser or
  * plan-doc tool.
- * - either markup (attributes in any order, across lines):
- *   - `<epic-*>`:  each `<epic-phase id="pN" title="..." status="S">` (the label `PN · <title>`), `<epic-page
- *     updated future>`, each `<epic-item id="q3" status="open">`
- *   - the old:  each `<ui-section ... data-phase="N" ... data-status="S" ... header="...">`, `#plan-updated`,
- *     `<body data-future>`, each item `id="q3" data-status="open"`.  REFACTOR: drop old markup after the switch (P12)
+ * - attributes in any order, across lines:  each `<epic-phase id="pN" title="..." status="S">` (the label
+ *   `PN · <title>`), `<epic-page updated future>`, each `<epic-item id="q3" status="open">`
+ * - a doc still in the old markup (no `<epic-page>`:  one restored from an old backup) reads as an empty plan:  the
+ *   plan-doc tool refuses it until it's converted (epic `epic-components` P15)
  * - follow-ups as `packages/docs/tools/index.js` `followUpsIn()` and `packages/cli/src/dev/worktrees.ts`
  *   `planFollowUps()` find them:  change all three
  */
@@ -239,25 +238,17 @@ function read(
   // drop the `Epic: ` plan docs' titles start with (since 2026-10-04):  the card is in the Epics list already
   const title = (/<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? "").replace(/^Epic:\s*/, "")
   const attribute = (tag: string, name: string) => new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1]
-  const page = /<epic-page\b[^>]*>/.exec(html)?.[0]
-  const phases = page
-    ? [...html.matchAll(/<epic-phase\b[^>]*>/g)].map(([tag]) => ({
-        status: attribute(tag, "status") ?? "todo",
-        header: `${(attribute(tag, "id") ?? "").toUpperCase()} · ${attribute(tag, "title") ?? ""}`
-      }))
-    : [...html.matchAll(/<ui-section\b[^>]*\bdata-phase="\d+"[^>]*>/g)].map(([tag]) => ({
-        status: attribute(tag, "data-status") ?? "todo",
-        header: attribute(tag, "header") ?? ""
-      }))
+  const page = /<epic-page\b[^>]*>/.exec(html)?.[0] ?? ""
+  const tags = (pattern: RegExp) => (page ? [...html.matchAll(pattern)].map(([tag]) => tag) : [])
+  const phases = tags(/<epic-phase\b[^>]*>/g).map((tag) => ({
+    status: attribute(tag, "status") ?? "todo",
+    header: `${(attribute(tag, "id") ?? "").toUpperCase()} · ${attribute(tag, "title") ?? ""}`
+  }))
   const active = phases.find((phase) => phase.status === "active")?.header
-  const updated = page
-    ? /^\d{4}-\d\d-\d\d$/.exec(attribute(page, "updated") ?? "")?.[0]
-    : /\bid="plan-updated"[^>]*>\s*(\d{4}-\d\d-\d\d)/.exec(html)?.[1]
-  const future = page ? /\sfuture(?=[\s=>])/.test(page) : /<body\b[^>]*\sdata-future\b/.test(html)
-  const status = page ? "status" : "data-status"
-  const followUps = [...html.matchAll(page ? /<epic-item\b[^>]*>/g : /<[a-z][\w-]*\b[^>]*\sid="[qjitv]\d+"[^>]*>/g)]
-    .map(([tag]) => tag)
-    .filter((tag) => attribute(tag, status) === "open")
+  const updated = /^\d{4}-\d\d-\d\d$/.exec(attribute(page, "updated") ?? "")?.[0]
+  const future = /\sfuture(?=[\s=>])/.test(page)
+  const followUps = tags(/<epic-item\b[^>]*>/g)
+    .filter((tag) => attribute(tag, "status") === "open")
     .map((tag) => FOLLOW_UPS[attribute(tag, "id")?.match(/^([qjitv])\d+$/)?.[1] ?? ""])
     .filter((kind): kind is string => Boolean(kind))
   return {

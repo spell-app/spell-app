@@ -507,16 +507,9 @@ describe("ReviewInbox files", () => {
   })
 })
 
-test("itemIds:  ui-items with an id and a status, not phases", () => {
-  const html = `<ui-section id="p5" data-phase="5" data-status="active">
-    <ui-item
-      data-state="open"
-      id="T1"
-      data-status="open"></ui-item>
-    <ui-item id="q2" data-answered data-status="decided"></ui-item>
-    <ui-item icon="bullseye">Goal</ui-item>
-    <ui-item data-id="x9" data-status="open"></ui-item>`
-  expect([...ReviewInbox.itemIds(html)]).toEqual(["t1", "q2"])
+test("itemIds:  none in the old markup (read no more since P15)", () => {
+  const html = `<ui-item id="T1" data-status="open"></ui-item><ui-item id="q2" data-status="decided"></ui-item>`
+  expect([...ReviewInbox.itemIds(html)]).toEqual([])
 })
 
 test("itemIds:  <epic-item>s and the Overview's sub-sections (Q14), not phases or the page's sections", () => {

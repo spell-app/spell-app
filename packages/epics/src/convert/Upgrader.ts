@@ -4,6 +4,8 @@ import { REPORT, SectionIds } from "$/epics/definitions"
 import { EpicParts } from "$/epics/tool/EpicParts"
 import { PART_EXT, type PartReader } from "$/epics/tool/PlanParts"
 import { PlanMarkup } from "$/epics/tool/PlanMarkup"
+import { ProseRewrite } from "$/epics/tool/ProseRewrite"
+import { ProseShapes } from "$/epics/tool/ProseShapes"
 
 import { Counted, Drawn, KEPT, PLAN_DOC_CSS, Prose, type Conversion } from "./convert.types"
 
@@ -11,8 +13,6 @@ import { ConversionProof } from "./ConversionProof"
 import { ConvertedReading } from "./ConvertedReading"
 import type { ConverterProps } from "./Converter"
 import { DocPass } from "./DocPass"
-import { ProseShapes } from "./ProseShapes"
-import { ProseUpgrader } from "./ProseUpgrader"
 
 /****************
  * ### `Upgrader`
@@ -24,7 +24,7 @@ import { ProseUpgrader } from "./ProseUpgrader"
  * - the Overview:  `<p slot="summary">` => `<epic-summary>`, `<blockquote slot="prompt">` => `<epic-prompt>`
  * - a question's text as asked, its leading prose (`questions()`) => `<epic-question>`, first in its item, and in
  *   each version of its Original Discussion
- * - the prose blocks, anywhere:  `ProseUpgrader`
+ * - the prose blocks, anywhere:  `ProseRewrite` (the tool's way in turns them the same way)
  * - counts what it did, and what it left as prose (`counts`, `Counted`);  a doc with nothing to do has no counts but
  *   `kept: ...` (`changed()`), and a second run over its output does nothing
  ****************/
@@ -33,7 +33,7 @@ export class Upgrader extends DocPass {
   readonly counts: Record<string, number> = {}
 
   /** The prose blocks' helper. */
-  readonly prose = new ProseUpgrader(this)
+  readonly prose = new ProseRewrite(this)
 
   constructor({ name, skeleton, readPart = () => undefined }: ConverterProps) {
     const before = Upgrader.assembled(skeleton, readPart)
@@ -108,7 +108,7 @@ export class Upgrader extends DocPass {
     for (const report of main.querySelectorAll(`:scope > ${Prose.report}`)) this.report(report, page)
     for (const child of main.children) if (child !== page) this.keep(Counted.keptOutside, child)
     this.overview(page)
-    this.prose.upgrade(page)
+    this.prose.rewrite(page)
     this.questions(page)
   }
 

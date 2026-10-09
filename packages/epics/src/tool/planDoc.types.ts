@@ -1,8 +1,8 @@
 /**
- * Types, tables and the error class of the plan-doc tool:  `PlanReader` (reading a doc, either markup), `PlanDoc`
- * (editing one in `<epic-*>` markup) and the command line.  Rules, ids and what's data:  `PLAN-DOC.md` beside this.
+ * Types, tables and the error class of the plan-doc tool:  `PlanReader` (reading a doc), `PlanDoc` (editing one in
+ * `<epic-*>` markup) and the command line.  Rules, ids and what's data:  `PLAN-DOC.md` beside this.
  * - At the BOTTOM of the tool folder's import graph:  `import type` only, apart from `$/epics`' definitions (data),
- *   so nothing here loads a class module (WWOD §8).  `PlanReader` <- `PlanDoc` / `OldPlanReader` <- `PlanDocFiles`
+ *   so nothing here loads a class module (WWOD §8).  `PlanReader` <- `PlanDoc` <- `PlanDocFiles`
  *   <- `PlanDocCommands`.
  * - The ELEMENTS (tags, attributes, which children go where) are `$/epics/definitions`':  this file holds only what
  *   the tool adds on top -- item kinds as the command line names them, review filters, result shapes.
@@ -25,12 +25,6 @@ PlanDocError.prototype.name = "PlanDocError"
 
 /** What a plan doc's `<title>` starts with, before its title:  `Epic: Review Review`;  `<epic-page>` draws the h1. */
 export const TITLE_PREFIX = "Epic: "
-
-/** Which markup a doc is in:  `<epic-*>` elements, or the `ui-*` markup before the switch (P12). */
-export const DOC_MARKUPS = ["epic", "old"] as const
-
-/** One of `DOC_MARKUPS`. */
-export type DocMarkup = (typeof DOC_MARKUPS)[number]
 
 ////////////////
 // ## Phases
@@ -551,7 +545,7 @@ export type PlanDocOptions = {
 
 /**
  * How a doc was stored, set by the command line's `read()`:  `PlanDoc` itself never reads it.
- * - for an old-markup doc:  what `PlanParts.assemble()` found;  for an `<epic-*>` doc, `EpicParts`'
+ * - what assembling its parts found (`EpicParts`;  the converter's `OldParts` for an old-markup doc)
  */
 export type PlanDocParts = {
   /** whether it had part files at all */
@@ -571,10 +565,11 @@ export type PlanDocParts = {
 /**
  * Text and markup the OLD markup wrote that the `<epic-*>` elements now DRAW, from their attributes or position:
  * the converter (`$/epics/convert`) drops it, the proof leaves it out of the comparison -- narrowly, by these
- * patterns -- and `IncomingHtml` reads an old option card or reply by them.
+ * patterns -- and the tool's way in (`IncomingHtml`, `ProseRewrite`) reads an old option card or reply by them.
  * - each is checked against the element's own data where it can be (a chip's text is its item's id)
  * - here, not in `convert.types` (which re-exports it):  the tool loads the converter only for `convert` (I5)
- * - REFACTOR: drop with the converter and `IncomingHtml` after the switch (P12)
+ * - kept after every doc was converted (P12):  the converter still converts a doc restored from an old backup, and
+ *   agents taught by old docs still hand the tool these shapes
  */
 export const Chrome = {
   /** The h1's `Epic: ` (`<epic-page title>` holds the rest). */
@@ -617,3 +612,71 @@ export function replyTitleParts(title: Element): { from: string; at: string; re:
   const re = pieces.slice(2).join(Chrome.separator).replace(/\s+/g, " ").trim().replace(Chrome.replyRe, "")
   return { from, at, re }
 }
+
+////////////////
+// ## The old prose shapes
+////////////////
+
+/**
+ * The hand-written prose blocks older docs (and agents taught by them) wrote, which P14's elements now draw:  their
+ * ONE set of rules is `ProseShapes`, shared by the tool's way in (`IncomingHtml`) and the converter's second pass
+ * (`$/epics/convert` `Upgrader`, which re-exports these in `convert.types`).
+ */
+export const ProseBlocks = {
+  code: "ui-accordion.spell-code",
+  aside: "ui-accordion.spell-aside",
+  note: "ui-message.plan-update",
+  grid: "ui-grid.spell-pros-cons",
+  answer: "div.plan-answer-block",
+  answerTitle: "div.plan-answer-title",
+  reply: "div.plan-reply",
+  replyTitle: "div.plan-reply-title"
+} as const
+
+/** What P14's elements draw around that prose, as patterns:  the converter's proof leaves exactly that out. */
+export const Drawn = {
+  /**
+   * A Net effect paragraph's whole text (`Net effect:`, `Net effect (A):`, `Net effect (A, recommended):`,
+   * `Net effect (recommended):`, `Net effect: (A)`):  `option` is $1, `recommended` $2 (with a letter) or $3
+   * (without).  Other words (`(once fixed)`, `(to decide)`) don't match:  they stay prose.
+   */
+  netEffect: /^Net effect:?(?: \((?:([A-Z])(?:, (recommended))?|(recommended))\))?:?$/,
+  /** The label a Net effect paragraph starts with, whose own text is `Net effect:`:  the inline kind follows it. */
+  netEffectLabel: /^Net effect:$/,
+  /** Any bold `Net effect` lead, matched or not:  where a question's text ends. */
+  netEffectLead: /^Net effect\b/,
+  /** An aside's `Aside: ` before its title. */
+  asidePrefix: /^\s*Aside:\s*/i,
+  /** An option card's ` (recommended)` or ` (chosen)` after its title. */
+  optionSuffix: /\s*\((recommended|chosen)\)\s*$/i,
+  /** A hand-written note's header:  `UPDATE` or `DONE`, then ` · <title>`. */
+  noteHeader: /^(UPDATE|DONE)(?:\s*·\s*(.+))?$/
+} as const
+
+/** A labelled block in an item's prose:  `<b>Where:</b>`, `What should happen:`, `Step:` / `Step 2:`. */
+export const LABELLED_BLOCK = /^(Where|What should happen|Step\b[^:]*):$/
+
+/**
+ * What `ProseRewrite` tells its owner it did with each block (the converter counts them:  `convert.types`
+ * `Counted`);  `kept: ...`, what it left as prose, and why.
+ */
+export const ProseCounted = {
+  netEffect: "net effect",
+  optionNetEffect: "net effect, an option's",
+  inlineNetEffect: "net effect, a sentence",
+  code: "code",
+  aside: "aside",
+  note: "note",
+  update: "phase's UPDATE marker",
+  field: "labelled block",
+  choices: "choices",
+  answer: "answer",
+  reply: "reply",
+  keptNetEffect: "kept: net effect in other words",
+  keptCode: "kept: code in another shape",
+  keptAside: "kept: aside in another shape",
+  keptNote: "kept: note in other words",
+  keptGrid: "kept: option grid in another shape",
+  keptCard: "kept: hand-written card where its element can't go",
+  keptLabel: "kept: labelled block (no <epic-field label> yet)"
+} as const

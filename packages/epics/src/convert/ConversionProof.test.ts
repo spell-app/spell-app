@@ -13,6 +13,7 @@ import { PlanParts } from "$/epics/tool/PlanParts"
 
 import { ConversionProof } from "./ConversionProof"
 import { Converter } from "./Converter"
+import { OldParts } from "./OldParts"
 
 /** The split fixture's skeleton. */
 const FIXTURE = fileURLToPath(new URL("fixtures/split/split.plan.html", import.meta.url))
@@ -20,7 +21,7 @@ const FIXTURE = fileURLToPath(new URL("fixtures/split/split.plan.html", import.m
 /** The fixture as it is, assembled:  the proof's `before`. */
 function before(): Document {
   const document = parseHTML(readFileSync(FIXTURE, "utf8")).document as unknown as Document
-  new PlanParts(document).assemble(PlanParts.reader(FIXTURE))
+  new OldParts(document).assemble(PlanParts.reader(FIXTURE))
   return document
 }
 

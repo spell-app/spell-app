@@ -168,8 +168,10 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
   `decide --details`, `details --file`, `updated`, a phase's fields) turns them into elements on the way in, so a doc
   never holds them:  an option grid (`ui-grid.spell-pros-cons`, labels `A · Title (recommended)`, wherever it sits)
   -> `<epic-choices>`;  a `div.plan-reply` -> `<epic-reply>`;  a `Net effect` paragraph and its list, a
-  `ui-accordion.spell-code` / `.spell-aside`, a `ui-message.plan-update` -> the prose elements below
-  (`$/epics/markup` `ProseRewrite`).  Never inside code or an Original Discussion.
+  `ui-accordion.spell-code` / `.spell-aside`, a `ui-message.plan-update`, a labelled block (`<b>Where:</b>`) -> the
+  prose elements below (`ProseRewrite`, by the converter's own rules, `ProseShapes`).  Never inside code or an
+  Original Discussion.  A shape those rules can't read for sure stays prose:  a Net effect worded otherwise, a code
+  accordion holding a `<ui-code>` or two blocks, a note headed `DEFERRED`.
 - A rewrite (`details --file`, `decide` again, `details --more` again) never drops text:  what it replaces moves into
   `<epic-original>`, one `<epic-version>` per version (the first undated, the rest `as-of` when replaced), cards as
   the prose they said (`Answer · Chrome`, `B · Chrome (recommended), chosen`;  the prose elements stay, an
@@ -296,8 +298,8 @@ phase, an item with details, the log.  A host's body is every child but its slot
 skeleton);  in the skeleton it carries `source="parts/<id>.html"`, `part-ids` and `commits`.  No placeholder line:
 the element loads its own body.
 - `.html`, not `.htm` (Q12):  a part is told from a page by its folder, and every page walker skips `parts/`.  The
-  tool still READS an old doc's `.htm` parts (`PlanParts` `OLD_PART_EXT`, to be dropped now the docs are converted);
-  it writes `.html` only.
+  tool reads and writes `.html` only (an old doc's `.htm` parts, read until every doc was converted, no more since
+  P15).
 
 ## Checking
 
