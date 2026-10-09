@@ -375,7 +375,7 @@ describe("<ui-brand-check> broken", () => {
 /** Make `check`'s next class update throw, as a bug in an update would. */
 function breakOnUpdate(check: Element) {
   const component = (check as unknown as { component: object }).component
-  Object.defineProperty(component, "extraClasses", {
+  Object.defineProperty(component, "extraClass", {
     get: () => {
       throw new Error("forced render failure")
     }

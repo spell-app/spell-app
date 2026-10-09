@@ -32,7 +32,7 @@ export class EpicMore extends E.UIComponent<typeof epicMoreVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <button
           type="button"
           class={TOGGLE}

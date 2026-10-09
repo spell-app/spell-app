@@ -39,7 +39,7 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
     return this.questionIsAnswered && this.fold.isOpen()
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.questionIsAnswered ? ANSWERED : undefined
   }
 
@@ -54,7 +54,7 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <Show when={this.questionIsAnswered} fallback={<slot />}>
           <button
             type="button"

@@ -264,7 +264,7 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
         <Match when={this.interactive}>
           <div
             ref={(element: HTMLElement) => (this.bar = element)}
-            class={this.rootClasses}
+            class={this.rootClass}
             part={this.partForName("menu")}
             role="menubar"
             aria-orientation={this.vertical ? "vertical" : undefined}
@@ -275,7 +275,7 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
         </Match>
         <Match when={true}>
           <nav
-            class={this.rootClasses}
+            class={this.rootClass}
             part={this.partForName("menu")}
             aria-label={this.attributes["aria-label"] ?? undefined}
           >

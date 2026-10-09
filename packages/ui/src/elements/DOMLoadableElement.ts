@@ -14,7 +14,7 @@ import { DOMElement } from "./DOMElement"
  * - Works before the first render:  a `content` set early is kept and shown once the component exists.
  * - Knows its component only as a `LoadableComponentShape` (`elements.types`):  NEVER imports `LoadableComponent`,
  *   which imports it.
- * - NOTE: solid-element checks DOM element prototype members against prop names;  none of these is an attribute.
+ * - NOTE: `DOMElement` checks its members against the attributes' property names;  none of these is an attribute.
  *   Private members too:  NEVER call one `source` or `load` (instance fields would hide the attributes' accessors).
  ****************/
 export class DOMLoadableElement extends DOMElement {
@@ -115,7 +115,7 @@ export class DOMLoadableElement extends DOMElement {
     this.currentLoad.reject(error)
   }
 
-  /** The component, typed;  `undefined` until solid-element creates it. */
+  /** The component, typed;  `undefined` until the first connect builds it. */
   private get loadable(): E.LoadableComponentShape | undefined {
     return this.component as unknown as E.LoadableComponentShape | undefined
   }

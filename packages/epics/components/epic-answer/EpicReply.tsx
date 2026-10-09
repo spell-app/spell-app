@@ -39,13 +39,13 @@ export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
     return PlanDates.format(this.at)
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return FROM_OWEN.test(this.from ?? "") ? OWEN : undefined
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <div class={[HEADER, DATED]} part={this.partForName("header")} hidden={!this.who && !this.date}>
           <span class={WHO} part={this.partForName("who")}>
             {this.who}

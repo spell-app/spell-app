@@ -243,7 +243,7 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
   protected renderFold(pieces: FoldPieces): JSX.Element {
     return (
       // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over all of it (T8)
-      <div class={this.rootClasses} part={this.partForName("base" as never)} title="" style={this.foldStyle()}>
+      <div class={this.rootClass} part={this.partForName("base" as never)} title="" style={this.foldStyle()}>
         <ui-section
           ref={this.watchInner}
           part={this.partForName("section" as never)}

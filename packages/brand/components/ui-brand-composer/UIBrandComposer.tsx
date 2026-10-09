@@ -27,7 +27,7 @@ import composerCSS from "./UIBrandComposer.css?inline"
  * The DOM element of `<ui-brand-composer>`:  a form control's DOM element (`DOMFormControl`), plus `cast()`,
  * so a page can cast what it just put in `value` (the marketing hero's idea chips fill the box and cast at once).
  *
- * - solid-element refuses a DOM element member named like a prop:  `cast` is no attribute (`casting` is).
+ * - `DOMElement` refuses a member named like an attribute's property:  `cast` is no attribute (`casting` is).
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMBrandComposerElement extends DOMFormControl {
@@ -129,7 +129,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
     return super.classValue(name)
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.attrs.size === LARGE ? `${BRAND} ${LARGE}` : BRAND
   }
 
@@ -183,7 +183,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   render(): JSX.Element {
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("composer")}
         aria-busy={this.attrs.casting ? "true" : undefined}
       >
@@ -303,7 +303,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
     return !!this.propertyNow(name)
   }
 
-  /** Attribute `name`'s DOM element property, read synchronously (solid-element's stored value, not the signal). */
+  /** Attribute `name`'s DOM element property, read synchronously (the DOM element's `attributeValues`, not the signal). */
   private propertyNow(name: AttributeName<BrandComposerVocabulary>): unknown {
     const { property } = this.elementDefinition.attribute(name)
     return (this.domElement as unknown as Record<string, unknown>)[property]

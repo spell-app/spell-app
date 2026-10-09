@@ -3,9 +3,9 @@
  * - Library-neutral:  `ClassBuilder`, `Validator`, `MenuOptions`, `OwnerContext`, `Shorthand`, `NativeFallback`
  *   (the base of the per-component `*.fallback.ts`, plain DOM when a render throws), `StickyWatch` (reports and
  *   reserves room for a `position: sticky` box).
- * - The Solid layer, on `@spell-app/solid-element`:  `DOMElement` / `DOMFormControl` (DOM element bases),
+ * - The Solid layer:  `DOMElement` / `DOMFormControl` (DOM element bases),
  *   `UIComponent` (the component base), `Reactive` (its reactive members' decorators), `ElementDefinition`
- *   (vocabulary => solid-element's props), `FormComponent`, `Controlled` (compatibility, for `brand`), `Cell`,
+ *   (vocabulary => attribute names and conversions), `FormComponent`, `Controlled` (compatibility, for `brand`), `Cell`,
  *   `SlotContent`, `PartContext` + `PartComponent` (owner context), `RootSettings`
  *   (what a `<ui-root>` sets for its subtree), `IconGlyph`, `ControlLabels`,
  *   `LoadableComponent` + `DOMLoadableElement` (elements showing a text file), `SourceMarkup`
@@ -14,7 +14,9 @@
  * - NOTE: components never import this barrel:  they import the `$/ui/core` / `$/ui/forms` ENTRIES (`src/core.ts`,
  *   `src/forms.ts`), which split the same files into the two shared chunks of the build.
  * - NOTE: `HotDefinitions` is left out:  dev-only, and a SIDE EFFECT on import (it wraps `UIComponent.define`);
- *   the HMR plugin loads it into each component barrel (`vite.config.ts`).
+ *   the HMR plugin loads it into each component barrel (`tools/HotElements.ts`).
+ * - NOTE: `ShadowEvents` (Solid's events kept from leaking out of shadow roots) is left out too:  only
+ *   `UIComponent` uses it, directly.
  * - NOTE: only `OwnerContext.find()`, `StickyWatch` and the Solid layer touch the DOM, and only when called.
  */
 

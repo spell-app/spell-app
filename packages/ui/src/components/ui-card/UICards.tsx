@@ -40,13 +40,13 @@ export class UICards extends E.UIComponent<typeof cardsVocabulary> {
   }
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return UIT.StackClasses.classFor(this.stackWith)
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("group")} role="list">
+      <div class={this.rootClass} part={this.partForName("group")} role="list">
         <slot />
       </div>
     )

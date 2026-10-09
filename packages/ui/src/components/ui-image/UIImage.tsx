@@ -36,7 +36,7 @@ export class UIImage extends E.UIComponent<typeof imageVocabulary> {
     return (
       <Show when={this.href} fallback={this.image("image")}>
         <a
-          class={this.rootClasses}
+          class={this.rootClass}
           part={this.partForName("image")}
           href={this.disabled ? undefined : this.href}
           aria-disabled={this.disabled ? "true" : undefined}
@@ -51,7 +51,7 @@ export class UIImage extends E.UIComponent<typeof imageVocabulary> {
   private image(part: "image" | "img"): JSX.Element {
     return (
       <img
-        class={part === "image" ? this.rootClasses : undefined}
+        class={part === "image" ? this.rootClass : undefined}
         part={this.partForName(part)}
         src={this.src}
         alt={this.alt}

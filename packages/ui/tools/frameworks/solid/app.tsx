@@ -1,5 +1,5 @@
-import { createContext, createSignal, Show, useContext, type Context } from "solid-js"
-import { render, type JSX } from "@solidjs/web"
+import { createContext, createSignal, Show, useContext } from "solid-js"
+import { render } from "@solidjs/web"
 
 import type { SolidIdentityHook } from "../../tools.types.ts"
 
@@ -13,15 +13,15 @@ import type { SolidIdentityHook } from "../../tools.types.ts"
  * - The page's identity probe (`identity.js`) sets `globalThis.__uiSolidIdentity` (`SolidIdentityHook`), and then:
  *   - `solidIdentity` / `webIdentity` -- the app's `createSignal` / `render` ARE the functions the components' copy
  *     exports (one module instance on the page)
- *   - `contextReachesComponent` -- the app provides `hook.context` around the dropdown, and `hook.read(el)`
- *     sees the app's value inside the component (owner adoption across the custom-element boundary)
+ *   - `contextReachesComponent` -- the app sets `appContext` on the `<ui-root>` around the dropdown, and
+ *     `hook.read(el)` sees the app's value inside the component (`UIComponent.appContext`:  a Solid context can't
+ *     cross the custom-element boundary, epic `spell-element` Q9)
  *   - without the hook these report `n/a`
  * - Solid 2 notes:  no `on:` namespace any more, so `ui-*` listeners go on through a `ref` callback;  signal
  *   writes happen only in event handlers (never in an owned scope).
  */
 export function mount(root: HTMLElement, options: readonly Option[]): MountedApp {
   const hook = (globalThis as { __uiSolidIdentity?: SolidIdentityHook }).__uiSolidIdentity
-  const Provided = (hook?.context ?? Passthrough) as Context<unknown>
   const [value, setValue] = createSignal("b")
   const [open, setOpen] = createSignal(true)
   const [mounted, setMounted] = createSignal(true)
@@ -29,7 +29,7 @@ export function mount(root: HTMLElement, options: readonly Option[]): MountedApp
   render(
     () => (
       <Theme value={THEME}>
-        <Provided value={APP_CONTEXT_VALUE}>
+        <ui-root prop:appContext={APP_CONTEXT_VALUE}>
           <Show when={mounted()}>
             <ui-dropdown
               selection
@@ -40,7 +40,7 @@ export function mount(root: HTMLElement, options: readonly Option[]): MountedApp
               ref={listen}
             />
           </Show>
-        </Provided>
+        </ui-root>
         <p>
           Solid state: <output id="value">{value()}</output>
         </p>
@@ -75,7 +75,7 @@ export function mount(root: HTMLElement, options: readonly Option[]): MountedApp
     checks.appContext = document.querySelector("#theme")?.textContent === THEME
     checks.solidIdentity = hook ? hook.solidJs.createSignal === createSignal : NO_HOOK
     checks.webIdentity = hook?.web ? hook.web.render === render : NO_HOOK
-    checks.contextReachesComponent = hook?.context && hook.read ? hook.read(dropdown) === APP_CONTEXT_VALUE : NO_HOOK
+    checks.contextReachesComponent = hook?.read ? hook.read(dropdown) === APP_CONTEXT_VALUE : NO_HOOK
     document.querySelector<HTMLButtonElement>("#unmount")!.click()
     checks.unmount = await eventually(() => !document.querySelector("ui-dropdown"))
     const runtime = (globalThis as Record<symbol, { overlays?: { entries?: unknown[] } }>)[RUNTIME_KEY]
@@ -97,7 +97,7 @@ const Theme = createContext("light")
 /** Value the app provides for `Theme`. */
 const THEME = "dark"
 
-/** Value the app provides for `hook.context`. */
+/** Value the app sets as its `<ui-root>`'s `appContext`. */
 const APP_CONTEXT_VALUE = "from-the-app"
 
 /** Reported for identity checks when the page sets no hook. */
@@ -114,11 +114,6 @@ const SOLID_VERSION = __SOLID_VERSION__
 function ThemeName() {
   const theme = useContext(Theme)
   return <span id="theme">{theme}</span>
-}
-
-/** Stand-in provider when the page sets no identity hook:  renders its children. */
-function Passthrough(props: { value?: unknown; children?: JSX.Element }) {
-  return <>{props.children}</>
 }
 
 /** `true` once `test()` holds, `false` after 3 s. */
@@ -148,6 +143,8 @@ declare module "@solidjs/web/types/jsx.js" {
         "prop:open"?: boolean
         [attribute: string]: unknown
       }
+      /** the app's value for the elements inside it (`UIComponent.appContext`) */
+      "ui-root": JSX.HTMLAttributes<HTMLElement> & { "prop:appContext"?: unknown }
     }
   }
 }

@@ -15,7 +15,7 @@ import formCSS from "./UIForm.css?inline"
  *
  * - No attribute is written, so the author's `state` stays theirs.
  * - `errors`:  the prompts shown now.
- * - solid-element checks a DOM element's prototype members against prop names;  neither of these is one.
+ * - `DOMElement` checks its members against the attributes' property names;  neither of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMFieldElement extends E.DOMElement {
@@ -133,7 +133,7 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("field")} inert={this.disabled}>
+      <div class={this.rootClass} part={this.partForName("field")} inert={this.disabled}>
         <slot />
         <Show when={this.errors.length}>
           <span class={this.inline ? INLINE_PROMPT : PROMPT} part={this.partForName("prompt")} role="alert">

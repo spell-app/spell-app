@@ -13,7 +13,7 @@ import embedCSS from "./UIEmbed.css?inline"
  * The DOM element of `<ui-embed>`:
  * it adds the embed's script API, `activate()` and `reset()`, which its component does.
  *
- * - NOTE: solid-element checks the DOM element's prototype members against the prop names;
+ * - NOTE: `DOMElement` checks its members against the attributes' property names;
  *   neither `activate` nor `reset` is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
@@ -137,7 +137,7 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
   }
 
   /** The aspect-ratio word after the noun (`ui embed 4:3`). */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.aspectRatio ?? undefined
   }
 
@@ -147,7 +147,7 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("embed")}>
+      <div class={this.rootClass} part={this.partForName("embed")}>
         <Show when={this.isActive && this.frameUrl} fallback={this.playButton()}>
           <div class={FRAME_CLASS} part={this.partForName("frame")}>
             <iframe

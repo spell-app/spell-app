@@ -84,7 +84,7 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("loader")}>
+      <div class={this.rootClass} part={this.partForName("loader")}>
         <slot />
       </div>
     )

@@ -342,7 +342,7 @@ As WWOD §18, plus:
     Replaces a `Cell` field and its `.get()` / `.set()`.
   - `@E.controlled("open") accessor isOpen = false` -- the DOM element's property when set, else the starting value;
     a write goes to the DOM element's property.  A user change:  `this.requestChange("isOpen", next, () => this.send(...))`;
-    `isPageControlled("isOpen")`.  Replaces `this.controlled()` and `Controlled.request()`.
+    `isControlledByPage("isOpen")`.  Replaces `this.controlled()` and `Controlled.request()`.
   - attributes:  a getter per vocabulary attribute, `this.size` (converted, fresh), made by `register()`;  the class
     declares them for TypeScript, below the class:  `export interface UIButton extends
     E.AttributeValues<typeof buttonVocabulary> {}`.  A write (`this.indeterminate = false`) sets the DOM ELEMENT's
@@ -364,7 +364,7 @@ As WWOD §18, plus:
     set.  Replaces the old `hostStates()`.
   - `@E.onChange("a", "b") onXChanged(a, b)` -- an effect reading the members, calling the method with their values;
     a function it returns is the cleanup;  `{ writesDOMElement: true }` applies once on a server
-    (as `domElementEffect()`).  Created in `onMount()`, after every field exists.
+    (as `addElementEffect()`).  Created in `onMount()`, after every field exists.
     Runs only when a member's VALUE changed (`===`, member by member):  a getter member tracks the sources under it,
     and Solid 2 applies an effect on every re-run of its compute, so `startEffects()` puts a memo with `equals`
     in between.  An effect that used to live in `render()` names `isReady` too and returns early until it's true,
@@ -450,7 +450,7 @@ As WWOD §18, plus:
     elements are linkedom elements, so NEVER `instanceof Element` / `Node` / `ShadowRoot` / `HTMLSlotElement` in shared code
     (node has no such globals):  `nodeType`, `localName`.
   - An effect whose APPLY writes the DOM element (`internals.role`, ARIA, states) is
-    `@E.onChange(..., { writesDOMElement: true })` or `this.domElementEffect(compute, apply)`:  the server build
+    `@E.onChange(..., { writesDOMElement: true })` or `this.addElementEffect(compute, apply)`:  the server build
     never runs an apply, so a plain `createEffect` leaves the static output without it.
 
 ## Component packs

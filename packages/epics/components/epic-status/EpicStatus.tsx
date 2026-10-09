@@ -60,13 +60,13 @@ export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
     return this.isDone && doneAt && at ? this.translationForKey("started", { date: PlanDates.format(at) }) : undefined
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.isDone ? DONE : UNDERWAY
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <div class={[HEADER, DATED]} part={this.partForName("header")}>
           <span class={WHO} part={this.partForName("who")}>
             {this.translationForKey(this.isDone ? "done" : "underway")}

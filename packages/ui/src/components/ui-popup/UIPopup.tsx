@@ -376,7 +376,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   }
 
   /** The position words, after the noun:  `ui popup top left`. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.position ?? DEFAULT_POSITION
   }
 
@@ -402,7 +402,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   render(): JSX.Element {
     if (isServer) return this.serverMarkup()
     return (
-      <div class={this.rootClasses} part={this.partForName("popup")}>
+      <div class={this.rootClass} part={this.partForName("popup")}>
         <Show when={this.header}>
           <div class={UIT.HEADER} part={this.partForName("header")}>
             {this.header}
@@ -426,7 +426,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
    */
   private serverMarkup(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("popup")} popover={this.serverPopover}>
+      <span class={this.rootClass} part={this.partForName("popup")} popover={this.serverPopover}>
         <Show when={this.header}>
           <span class={UIT.HEADER} part={this.partForName("header")}>
             {this.header}

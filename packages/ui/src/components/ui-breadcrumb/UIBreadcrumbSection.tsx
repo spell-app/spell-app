@@ -42,7 +42,7 @@ export class UIBreadcrumbSection extends E.UIComponent<typeof breadcrumbSectionV
       <>
         <span class={DIVIDER} part={this.partForName("divider")} aria-hidden="true" />
         <Show when={this.href && !this.active} fallback={this.plainSection()}>
-          <a class={this.rootClasses} part={this.partForName("section")} href={this.href} target={this.target}>
+          <a class={this.rootClass} part={this.partForName("section")} href={this.href} target={this.target}>
             <slot />
           </a>
         </Show>
@@ -56,7 +56,7 @@ export class UIBreadcrumbSection extends E.UIComponent<typeof breadcrumbSectionV
   /** The section as text:  the current page (`aria-current`), or a level without a link. */
   private plainSection(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("section")} aria-current={this.active ? "page" : undefined}>
+      <span class={this.rootClass} part={this.partForName("section")} aria-current={this.active ? "page" : undefined}>
         <slot />
       </span>
     )

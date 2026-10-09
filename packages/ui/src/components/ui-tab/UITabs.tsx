@@ -407,7 +407,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
     )
     const panes = <slot onSlotChange={() => this.refreshPanes()} />
     return (
-      <div class={this.rootClasses} part={this.partForName("tabs")}>
+      <div class={this.rootClass} part={this.partForName("tabs")}>
         {this.menuEdge === UIT.BOTTOM ? [panes, menu] : [menu, panes]}
       </div>
     )
@@ -456,7 +456,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
 
   /** A pane child:  an element DEFINED with the pane's noun (`<ui-tab>`, or its translated tag). */
   private static isPane(this: void, element: Element): boolean {
-    return E.UIComponent.definitions.get(element.localName)?.vocabulary.noun === tabVocabulary.noun
+    return E.UIComponent.registry.definitions.get(element.localName)?.vocabulary.noun === tabVocabulary.noun
   }
 
   /** The `UITab` component of an (upgraded) pane. */

@@ -41,7 +41,7 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
 
   render(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("base")}>
+      <span class={this.rootClass} part={this.partForName("base")}>
         <span
           class={LABEL}
           part={this.partForName("label")}

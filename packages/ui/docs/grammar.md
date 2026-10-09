@@ -902,7 +902,7 @@ first paint never needs the property.  No virtualization yet:  every row renders
   after it (usually a `<ui-content>`, any element works) is its content.  No panel element.
 - The shadow root wraps each pair in `<details part="panel">` > `<summary class="[active] title">` (an arrow, then the
   title's slot) + `<div class="[active] content">`, handing the two children to their `<slot>`s BY HAND
-  (`slotAssignment: "manual"`, `UIComponent`'s `elementSetup.assignSlots`).  So the platform does the disclosure:
+  (`slotAssignment: "manual"`, `UIComponent`'s `elementSetup.slotAssignment`).  So the platform does the disclosure:
   `<summary>` is a focusable button exposing its expanded state, Enter / Space toggle, find-in-page opens a panel,
   and `exclusive` (the default) is one shared `<details name>` group.  ArrowDown / ArrowUp / Home / End move between
   titles.

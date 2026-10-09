@@ -162,7 +162,7 @@ export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
 
   protected renderContent(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("box")}>
+      <div class={this.rootClass} part={this.partForName("box")}>
         <Show when={this.copy}>
           <button type="button" class={COPY_CLASS} part={this.partForName("copy")} onClick={this.onCopy}>
             {this.wasJustCopied ? this.translationForKey("codeCopied") : this.translationForKey("codeCopy")}

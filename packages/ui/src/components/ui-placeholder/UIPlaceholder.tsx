@@ -33,7 +33,7 @@ export class UIPlaceholder extends E.UIComponent<typeof placeholderVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("placeholder")}>
+      <div class={this.rootClass} part={this.partForName("placeholder")}>
         <slot />
       </div>
     )

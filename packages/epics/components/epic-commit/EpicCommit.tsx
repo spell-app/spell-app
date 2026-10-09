@@ -37,7 +37,7 @@ export class EpicCommit extends E.UIComponent<typeof epicCommitVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <div class={HEADING} part={this.partForName("heading")}>
           <span class={ICON} aria-hidden="true">
             {this.glyph.svg}

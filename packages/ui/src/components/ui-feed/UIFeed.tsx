@@ -30,7 +30,7 @@ export class UIFeed extends E.UIComponent<typeof feedVocabulary> {
     return (
       <Dynamic
         component={this.ordered ? "ol" : "ul"}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("feed")}
         role="list"
       >

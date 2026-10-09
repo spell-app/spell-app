@@ -78,7 +78,7 @@ export class UISelect extends F.FormComponent<Vocabulary> {
   @E.controlled("value") accessor value: UIT.SelectValue | undefined = this.selectedItemValues()
 
   /** The page's value to restore on a form reset (`undefined`:  back to the `selected` items). */
-  private readonly initialValue = this.isPageControlled("value") ? untrack(() => this.value) : undefined
+  private readonly initialValue = this.isControlledByPage("value") ? untrack(() => this.value) : undefined
 
   /** Chosen values, always as an array;  the same list while equal. */
   @E.derived({ equals: E.isSameList })
@@ -231,7 +231,7 @@ export class UISelect extends F.FormComponent<Vocabulary> {
     return (
       <select
         ref={(element) => (this.select = element)}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("select")}
         multiple={this.multiple}
         disabled={this.isDisabled}

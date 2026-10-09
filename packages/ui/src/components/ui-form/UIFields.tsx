@@ -55,7 +55,7 @@ export class UIFields extends E.UIComponent<typeof fieldsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("fields")} inert={this.disabled}>
+      <div class={this.rootClass} part={this.partForName("fields")} inert={this.disabled}>
         <slot />
       </div>
     )

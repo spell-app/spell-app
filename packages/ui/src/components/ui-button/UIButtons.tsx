@@ -39,7 +39,7 @@ export class UIButtons extends E.UIComponent<typeof buttonsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} role="group" part={this.partForName("group")}>
+      <div class={this.rootClass} role="group" part={this.partForName("group")}>
         <slot />
       </div>
     )

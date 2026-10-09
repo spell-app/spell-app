@@ -50,7 +50,7 @@ class ItemTestOwner extends UIComponent<typeof OWNER_VOCABULARY> implements Item
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses}>
+      <div class={this.rootClass}>
         <slot />
       </div>
     )

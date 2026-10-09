@@ -15,7 +15,7 @@ import formCSS from "./UIForm.css?inline"
  * (`validate()`, `isValid()`, `reset()`, `clear()`, `values`, `nativeForm`), each handed to the component.
  *
  * - Before the component exists, it answers as an empty form:  valid, no values, no native form.
- * - solid-element checks a DOM element's prototype members against prop names;  none of these is one.
+ * - `DOMElement` checks its members against the attributes' property names;  none of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMFormElement extends E.DOMElement {
@@ -177,7 +177,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   }
 
   /** `stack-with`'s class (`UIT.StackClasses`):  sets the switch its rows stack by. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return UIT.StackClasses.classFor(this.stackWith)
   }
 
@@ -189,7 +189,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     if (this.mergedForm) return this.formRoot(this.mergedForm)
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("form")}
         inert={this.disabled || this.loading}
         aria-busy={this.loading ? "true" : undefined}
@@ -205,7 +205,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     return (
       <form
         {...rest}
-        class={[this.rootClasses, authorClass]}
+        class={[this.rootClass, authorClass]}
         part={this.partForName("form")}
         inert={this.disabled || this.loading}
         aria-busy={this.loading ? "true" : undefined}

@@ -94,7 +94,7 @@ export class UIDocsExample extends E.UIComponent<typeof docsExampleVocabulary> {
 
   render(): JSX.Element {
     return (
-      <section class={this.rootClasses} part={this.partForName("example")}>
+      <section class={this.rootClass} part={this.partForName("example")}>
         <div class={HEADING_CLASS}>
           <Show when={this.header}>
             <ui-header

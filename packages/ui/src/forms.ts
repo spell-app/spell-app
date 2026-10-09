@@ -5,8 +5,8 @@
  *   rules), `MenuOptions` (search, additions, keyboard navigation of an option list) and `ControlLabels` (the
  *   DOM element's `<label>`s as the inner control's name).
  * - Imported by the families with a value:  `checkbox`, `dropdown`, `form`, `input`, `select`, `search`, `calendar`,
- *   `rating` and `slider`.  `ui-button` is form-associated too (submit / reset), but through solid-element's
- *   `formAssociated` option alone:  it needs no value, validity or form API, so it stays on `core`.
+ *   `rating` and `slider`.  `ui-button` is form-associated too (submit / reset), but through `elementSetup.isAFormControl`
+ *   alone:  it needs no value, validity or form API, so it stays on `core`.
  * - NOTE: `$/ui/elements` leaves directly, for the reason given in `core.ts`;  and every `forms` file imports the
  *   element core through the `$/ui/core` ENTRY (`E`), never its leaves, or Rolldown hoists what `core` and `forms`
  *   share into a third, hashed chunk.  They reach each other through `F`, except what a class definition reads

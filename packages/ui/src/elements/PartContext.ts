@@ -1,5 +1,4 @@
 import { onSettled, untrack } from "solid-js"
-import { onConnect } from "./solid-element"
 
 import { E } from "$/ui/core"
 // Import directly to avoid circular import
@@ -26,9 +25,9 @@ function isSameOwner(a: E.OwnerMatch | undefined, b: E.OwnerMatch | undefined) {
  * - SIDE EFFECT:  keeps `:state(in-<owner>)` on the DOM element in step with `owner` (`onOwnerChanged()`);  NEVER the
  *   static `in-<owner>` class.
  * - Re-resolves on:
- *   - every connect after the first (`keepAlive` keeps the component across moves, so a part re-parented into
- *     another owner hears it through solid-element's `onConnect`), a microtask late:  the hook may run inside a
- *     Solid render, where the signal write would throw
+ *   - every connect after the first (the component lives across moves, so a part re-parented into another owner
+ *     hears it through `PartContext.connected()`, from `UIComponent.onConnect()`), a microtask late:  a connect may
+ *     arrive while Solid is drawing, where the signal write would throw
  *   - `slotchange` in any `UIComponent`'s shadow root, for the elements entering AND leaving that slot
  *     (`UIComponent` calls `PartContext.slotChanged()`), cascading to part descendants
  *   - once after the first settle, for owners whose shadow rendered after this part connected
@@ -68,12 +67,10 @@ export class PartContext {
         if (PartContext.contexts.get(domElement) === this) PartContext.contexts.delete(domElement)
       }
     })
-    let isFirstConnect = true
-    onConnect(() => {
-      if (isFirstConnect) isFirstConnect = false
-      else queueMicrotask(() => this.refresh())
-    })
   }
+
+  /** Has the element connected since this context was made?  The first connect is the one it was resolved for. */
+  private hasConnected = false
 
   /** Owner noun (`card`), or `undefined`;  tracked. */
   get ownerNoun(): string | undefined {
@@ -209,6 +206,18 @@ export class PartContext {
       if (context) context.refresh()
       else for (const inner of element.querySelectorAll("*")) PartContext.contexts.get(inner)?.refresh()
     }
+  }
+
+  /**
+   * `domElement` connected (`UIComponent.onConnect()`):  re-resolve its context, if it has one, a microtask later.
+   * - Not on its first connect:  the context was resolved for that one.
+   * - Static:  `UIComponent` calls it for every element, whether it's a part or not.
+   */
+  static connected(domElement: E.DOMElement) {
+    const context = PartContext.contexts.get(domElement)
+    if (!context) return
+    if (!context.hasConnected) context.hasConnected = true
+    else queueMicrotask(() => context.refresh())
   }
 
   /** Forget every defined tag and live context, for tests. */

@@ -29,7 +29,7 @@ export class EpicEvent extends E.UIComponent<typeof epicEventVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <span class={ICON} part={this.partForName("icon")} aria-hidden="true">
           {this.glyph.svg}
         </span>

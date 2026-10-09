@@ -14,10 +14,10 @@ import buttonCSS from "$/ui/components/ui-button/UIButton.css?inline"
 
 /**
  * SSR probe:  can `<ui-button primary>Save</ui-button>` be rendered to a Declarative Shadow DOM string?
- * - `@spell-app/solid-element` (like `@solidjs/element`) has no server render yet (it needs a live `HTMLElement`), so
+ * - The element class needs a live `HTMLElement`, so
  *   this drives the COMPONENT directly under `@solidjs/web`'s server `renderToString`,
  *   with a stub DOM element standing in for the element (no internals, no observers)
- *   and converted attributes as solid-element would hand them over,
+ *   and converted attributes as the DOM element would hand them over,
  *   then wraps the result in `<template shadowrootmode>`.
  * - SIDE EFFECT:  writes the string to `.cache/ssr-button.html` for the browser check (`dsd.test.ts`).
  */

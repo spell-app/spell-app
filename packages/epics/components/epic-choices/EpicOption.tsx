@@ -114,7 +114,7 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
     return !!this.pill?.picked
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const classes = [this.questionIsAnswered ? PANEL : CARD, this.isChosen && CHOSEN_CLASS, this.isPicked && PICKED]
     return classes.filter(Boolean).join(" ")
   }
@@ -139,7 +139,7 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <div class={HEADER} part={this.partForName("header")}>
           <Dynamic
             component={this.questionIsAnswered ? "button" : "span"}

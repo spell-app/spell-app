@@ -123,9 +123,9 @@ describe("<ui-tabs> classes", () => {
       "ui segmented equal fluid aligned menu"
     ],
     ['vertical alignment="center"', "ui vertical tabs", "ui vertical menu"]
-  ])("<ui-tabs %s>", async (attributes, rootClasses, menuClasses) => {
+  ])("<ui-tabs %s>", async (attributes, rootClass, menuClasses) => {
     const { root, menu } = await tabs(attributes)
-    expect(root.className).toBe(rootClasses)
+    expect(root.className).toBe(rootClass)
     expect(menu.className).toBe(menuClasses)
   })
 

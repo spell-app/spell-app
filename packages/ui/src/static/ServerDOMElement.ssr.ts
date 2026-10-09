@@ -1,21 +1,23 @@
-import type { SolidElement } from "$/ui/elements/solid-element"
-import { ServerElement } from "$/ui/elements/solid-element/server"
-
+/*! Derived from `@solidjs/element` and `component-register`:  MIT licence, (c) Ryan Carniato. */
 import type { E } from "$/ui/core"
 import type { SSR } from "$/ui/static"
 
 /****************
  * ### `ServerDOMElement`
- * Turns a parsed (linkedom) element into a stand-in `DOMElement` a component can render against in node.
+ * Turns a parsed (linkedom) element into a stand-in `DOMElement` a component can render against in node, where no
+ * `HTMLElement` exists.
  * - The element keeps its DOM side:  attributes, `children`, `parentElement`, `getRootNode()`, so owner climbs
  *   (`PartContext`) and slot scans (`SlotContent`) read the real page.
- * - Adds the DOM element side:  solid-element's instance API (`ServerElement.attach()`), `component`, `setState()`,
- *   `ready` / `markReady()`, and recording stand-ins for `internals` and `renderRoot`.
+ * - Adds the DOM element side a component may use while it renders:  `attributeValues` (converted from its
+ *   attributes, as the browser element would on first connect), `addReleaseCallback()`,
+ *   `addPropertyChangedCallback()`, `dispose()`, `component`, `setState()`, `ready` / `markReady()`, and recording
+ *   stand-ins for `internals` and `renderRoot`.
+ * - Lifecycle methods (`onConnect()` ...) never run:  nothing connects, resets or restores on a server.
  * - What a render left on the DOM element -- custom states, internals ARIA -- is kept for the flattener
  *   (`ServerDOMElement.stateFor()`), which writes it out as classes and attributes.
- * - Node only (`$/ui/static`):  imports solid-element's server half, and types only from `$/ui/core`;
- *   NEVER imported by a component or `$/ui`.
+ * - Node only (`$/ui/static`):  types only from `$/ui/core`;  NEVER imported by a component or `$/ui`.
  * - STATIC and instance-free:  the DOM element IS the element;  what it adds lives on the element and in `states`.
+ * - From solid-element's `/server` entry, merged into its one user (epic `spell-element`, Q11).
  ****************/
 export class ServerDOMElement {
   /**
@@ -29,9 +31,10 @@ export class ServerDOMElement {
    * Make `element` a stand-in DOM element for `definition`;  returns it typed as one.
    * - SIDE EFFECT:  defines the DOM element API on `element` itself.  Idempotent.
    */
-  static attach(element: Element, definition: E.ElementDefinition): E.DOMElement & SolidElement {
-    const domElement = ServerElement.attach(element, definition.props) as unknown as E.DOMElement & SolidElement
+  static attach(element: Element, definition: E.ElementDefinition): E.DOMElement {
+    const domElement = element as unknown as E.DOMElement
     if (ServerDOMElement.states.has(element)) return domElement
+    const releaseCallbacks: (() => void)[] = []
     const state: SSR.ServerDOMElementState = { states: new Set(), internals: {} }
     ServerDOMElement.states.set(element, state)
     const internals = new Proxy(state.internals, {
@@ -44,6 +47,13 @@ export class ServerDOMElement {
       }
     })
     const api: Record<string, unknown> = {
+      attributeValues: ServerDOMElement.attributeValuesOf(element, definition),
+      addReleaseCallback: (callback: () => void) => void releaseCallbacks.push(callback),
+      // nothing writes a property on a server
+      addPropertyChangedCallback: () => undefined,
+      dispose: () => {
+        for (const callback of releaseCallbacks.splice(0).reverse()) callback()
+      },
       component: undefined,
       internals,
       renderRoot: RENDER_ROOT,
@@ -55,6 +65,19 @@ export class ServerDOMElement {
       Object.defineProperty(element, key, { value, configurable: true, writable: true })
     }
     return domElement
+  }
+
+  /**
+   * `element`'s attribute values as the browser element would hold them on first connect:  each attribute's text
+   * converted, else its starting value.
+   */
+  static attributeValuesOf(element: Element, definition: E.ElementDefinition): Record<string, unknown> {
+    const values: Record<string, unknown> = {}
+    for (const attribute of definition.attributes) {
+      const text = element.getAttribute(attribute.attribute)
+      values[attribute.key] = text === null ? definition.startingValue(attribute) : definition.convert(attribute, text)
+    }
+    return values
   }
 
   /**

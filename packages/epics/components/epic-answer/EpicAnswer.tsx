@@ -37,7 +37,7 @@ export class EpicAnswer extends E.UIComponent<typeof epicAnswerVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <div class={HEADER} part={this.partForName("header")}>
           <b class={LABEL} part={this.partForName("label")}>
             {this.label}

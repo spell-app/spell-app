@@ -9,8 +9,6 @@
  *   of its constants imports it directly (`LoadableComponent`).
  */
 
-import type { PropDefinition } from "./solid-element"
-
 import type { E } from "$/ui/core"
 
 ////////////////
@@ -517,10 +515,121 @@ export type InlineValues<S extends E.AttributeSpec> = S["values"] extends readon
  * Every attribute of `V` as a converted property, keyed by camelCase canonical name:  `allowAdditions`, `size`.
  * - A component's vocabulary members (`export interface UIButton extends E.AttributeValues<...> {}`):  reading
  *   one is fresh and tracked;  writing one writes the DOM element's PROPERTY (`Reactive.installAttributeGetters()`).
- * - `Readonly<>`, solid-element's props (`UIComponent.attrs`):  one signal each, converted on the way in.
+ * - `Readonly<>`, `UIComponent.attrs`:  one Solid signal each, converted on the way in.
  */
 export type AttributeValues<V extends E.ComponentVocabulary> = {
   [S in V["attributes"][number] as CamelCase<S["name"]>]: SpecValue<S>
+}
+
+////////////////
+// ## Components
+////////////////
+
+/** A concrete `UIComponent` subclass, as `define()` sees it. */
+export type UIComponentClass = {
+  new (domElement: E.DOMElement, definition: E.ElementDefinition, attrs: any): E.UIComponent<any>
+  prototype: E.UIComponent<any>
+}
+
+/** `UIComponent.registry`:  what the whole page has defined. */
+export type ComponentRegistry = {
+  /**
+   * The `ElementDefinition` of every defined tag, English and translated, by tag.
+   * - A component uses it to tell what kind of element a child is:
+   *   `UIComponent.registry.definitions.get(child.localName)?.vocabulary.noun`.
+   */
+  readonly definitions: Map<string, E.ElementDefinition>
+  /** The vocabularies already handed to the runtime (`UIComponent.register()`), so each is handed over once. */
+  readonly vocabularies: WeakSet<E.ComponentVocabulary>
+}
+
+/** The options of `UIComponent.on()`:  `addEventListener()`'s, plus where to listen. */
+export type OnOptions = Omit<AddEventListenerOptions, "signal"> & {
+  /** what to listen on;  default the element itself.  E.g. its shadow root, for `slotchange` */
+  target?: EventTarget
+  /** remove the listener after it runs once (DOM API `addEventListener()`'s own `once`) */
+  once?: boolean
+}
+
+/** A form control's plain-DOM fallback class (`ButtonFallback` ...), as `renderFallback()` calls it. */
+export type FallbackClass = {
+  render(props: E.NativeFallbackProps): E.NativeFallbackHandle
+}
+
+/**
+ * How a class's custom element is set up:  `UIComponent.elementSetup`, merged down the class chain.
+ * - Read once, when the tag is defined,
+ *   except `isAFormControl` and `canRenderUnstyled`, which each element reads as it's built.
+ */
+export type ElementSetup = {
+  /**
+   * Does this element act as a control in an HTML `<form>`?
+   * - If so, browser treats the element like an `<input>`:
+   *    - its value is sent with the form,
+   *    - it takes part in the form's validation and reset, and
+   *    - a `<fieldset disabled>` around it disables it (`formIsDisabled`).
+   *
+   * - `false` by default
+   * - `true` for `FormComponent` (inputs, checkboxes, dropdowns ...) and `UIButton`s for submit / reset.
+   * - It's the platform's "form-associated custom element" (`static formAssociated`),
+   *   which the browser reads once, when the tag is defined.
+   */
+  isAFormControl: boolean
+
+  /**
+   * Does clicking the element move focus to the first focusable thing in its shadow DOM?
+   * - Default yes.
+   * - An element with nothing focusable inside (`<ui-flag>`) says no.
+   * - The platform's `delegatesFocus`, read once, when the tag is defined.
+   */
+  delegatesFocus: boolean
+
+  /**
+   * How the element's children land in the `<slot>`s of its shadow DOM (DOM API `slotAssignment`).
+   * - `"named"` (the default):  each child goes to the slot its `slot` attribute names.
+   * - `"manual"`:  the element itself hands chosen children to chosen slots (`slot.assign()`).
+   *   `<ui-accordion>` does, to wrap each title + content pair in its own `<details>`.
+   *   A slot it hasn't assigned stays empty.
+   * - Read once, when the tag is defined.
+   */
+  slotAssignment: SlotAssignmentMode
+
+  /**
+   * Is this one of the generic parts other elements are built from?  (`<ui-header>`, `<ui-content>` ...)
+   * - A part looks for the element it belongs to by walking up past other parts:
+   *   a `<ui-header>` inside a `<ui-content>` inside a `<ui-card>` belongs to the card (`PartContext`).
+   * - Default no.
+   * - `true` for `PartComponent` (every tag of `ui-parts`),
+   *   and for `<ui-item>`, `<ui-list>`, `<ui-menu>` and a feed's `<ui-event>`.
+   * - Said, not worked out from `ownsParts`:  `<ui-label>` is owned by a statistic, but isn't a part.
+   */
+  isAPart: boolean
+
+  /**
+   * The class the DOM element itself is made from.
+   * - Default `DOMElement`.
+   * - `FormComponent` uses `DOMFormControl`, which adds what a form control needs:
+   *   `value`, `form`, `checkValidity()` ...
+   * - A family with a script API of its own names its `DOM<Name>Element` here (`DOMNagElement`).
+   * - Read once, when the tag is defined.
+   */
+  DOMElement: typeof E.DOMElement
+
+  /**
+   * The plain-DOM stand-in this element shows when it breaks (`UI<Name>.fallback.ts`).
+   * - Default none:  a broken element shows a bare `<slot>`, so its children stay visible.
+   * - Only form controls have one, so a broken control still submits, validates and resets (`docs/fallback.md`).
+   * - It can't use the component:  it runs after the component is gone.
+   */
+  Fallback: FallbackClass | undefined
+
+  /**
+   * Show the content at once, without waiting for the runtime and the style sheets.
+   * - Default `false`:  wait until `isReady`, so nothing shows unstyled.
+   * - For an element whose content must never wait:  `<ui-root>`, which holds the whole page.
+   *   Its `render()` MUST look right unstyled (inline styles only) until `isReady`.
+   */
+  canRenderUnstyled: boolean
 }
 
 ////////////////
@@ -533,16 +642,16 @@ export type ResolvedAttribute = {
   spec: E.AttributeSpec
   /** attribute name authors write, e.g. `primario` */
   attribute: string
-  /** camelCase CANONICAL name:  the key in `AttributeValues` and in solid-element's props (`props.allowAdditions`) */
+  /** camelCase CANONICAL name:  the key in `AttributeValues` and `DOMElement.attributeValues` (`allowAdditions`) */
   key: string
   /** element property, e.g. `allowAdditions`, `permitirAdiciones`, or a vocabulary rename (`dividerHidden`) */
   property: string
-  /** reflect property changes to the attribute */
+  /**
+   * write a property change back to the attribute;  never for `json` kinds (`options`), which still observe their
+   * attribute (first paint MUST NOT need the property)
+   */
   reflect: boolean
 }
-
-/** solid-element's prop definitions for one tag, by `ResolvedAttribute.key`. */
-export type PropDefinitions = Record<string, PropDefinition>
 
 ////////////////
 // ## Errors
@@ -556,7 +665,7 @@ export type PropDefinitions = Record<string, PropDefinition>
  */
 export const ERROR_EVENT = "ui-error"
 
-/** Custom state of a failed element (`:state(errored)`), set by solid-element's boundary and by the fallback. */
+/** Custom state of a failed element (`:state(errored)`), set by the error net (`UIComponent.onError()`) and by the fallback. */
 export const ERRORED_STATE = "errored"
 
 ////////////////

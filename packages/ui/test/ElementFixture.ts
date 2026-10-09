@@ -35,23 +35,23 @@ export class ElementFixture {
   /**
    * Make `domElement`'s render throw NOW, as a bug in an update would, and wait for its fallback
    *   (a form control's native one, else a bare `<slot>`).
-   * - How:  its component's `extraClasses` starts throwing, then an attribute (`keyOnly` first, else the next that
-   *   changes) is changed and changed back -- `rootClasses` reads every class-emitting attribute, so the root's
-   *   `class` binding re-reads it inside the render effect, and solid-element's error boundary catches the throw.
+   * - How:  its component's `extraClass` starts throwing, then an attribute (`keyOnly` first, else the next that
+   *   changes) is changed and changed back -- `rootClass` reads every class-emitting attribute, so the root's
+   *   `class` binding re-reads it inside the render effect, and the element's error net catches the throw.
    *   The DOM element's attributes end as they were.
    * - The fallback is built a microtask after the error (`UIComponent.renderFallback()`), hence two ticks.
    */
   static async breakRender(domElement: DOMElement) {
     const { component } = domElement
     if (!component) throw new Error(`<${domElement.localName}> has not rendered`)
-    Object.defineProperty(component, "extraClasses", {
+    Object.defineProperty(component, "extraClass", {
       get: () => {
         throw new Error(`forced render failure in <${domElement.localName}>`)
       }
     })
     const { attributes } = component.elementDefinition
     const self = domElement as unknown as Record<string, unknown>
-    // a `keyOnly` attribute emits a class, so `rootClasses` surely reads it;  the rest are tried in turn
+    // a `keyOnly` attribute emits a class, so `rootClass` surely reads it;  the rest are tried in turn
     // (a write that converts to the SAME value recomputes nothing), until the error boundary has caught the throw
     const candidates = [...attributes].sort(
       (a, b) => Number(b.spec.kind === "keyOnly") - Number(a.spec.kind === "keyOnly")

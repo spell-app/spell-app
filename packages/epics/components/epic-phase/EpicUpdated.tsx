@@ -32,7 +32,7 @@ export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={[this.rootClasses, UPDATED]} part={this.partForName("base")}>
+      <div class={[this.rootClass, UPDATED]} part={this.partForName("base")}>
         <span class={ICON} part={this.partForName("icon")} aria-hidden="true">
           {this.glyph.svg}
         </span>

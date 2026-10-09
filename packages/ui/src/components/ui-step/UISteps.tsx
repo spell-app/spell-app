@@ -53,13 +53,13 @@ export class UISteps extends E.UIComponent<typeof stepsVocabulary> {
   }
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return UIT.StackClasses.classFor(this.stackWith)
   }
 
   render(): JSX.Element {
     return (
-      <ol class={this.rootClasses} part={this.partForName("steps")} role="list">
+      <ol class={this.rootClass} part={this.partForName("steps")} role="list">
         <slot />
       </ol>
     )

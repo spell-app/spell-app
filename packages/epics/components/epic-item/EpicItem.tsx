@@ -251,7 +251,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
    * - NOTE: `unfolded`, not `open`:  `open` is a state (blue) already;  of the statuses only `canceled` looks
    *   different (struck through), so only it is a word here.
    */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const canceled = this.status === CANCELED
     return [this.itemState(), canceled && CANCELED, this.hasDetails() && HAS_DETAILS, this.isOpen() && UNFOLDED]
       .filter(Boolean)
@@ -307,7 +307,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   render(): JSX.Element {
     return (
       // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over all of it (T8)
-      <div class={this.rootClasses} part={this.partForName("base")} title="">
+      <div class={this.rootClass} part={this.partForName("base")} title="">
         {this.renderLine()}
         <Show when={this.reviewState.reviewing() && !this.hasDetails()}>
           <div class={UNDER_LINE}>

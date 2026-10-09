@@ -27,7 +27,7 @@ export class UIIcons extends E.UIComponent<typeof iconsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("icons")}>
+      <span class={this.rootClass} part={this.partForName("icons")}>
         <slot />
       </span>
     )

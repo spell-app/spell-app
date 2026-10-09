@@ -32,7 +32,7 @@ import searchCSS from "./UIDocsSearch.css?inline"
  * The DOM element of `<ui-docs-search>`:  it adds the script API, `summon()` and `query`,
  * which its component (`UIDocsSearch`) carries out.
  * - `focus()` is the DOM element's own:  `delegatesFocus` puts it in the field.
- * - None of these members is named like an attribute:  solid-element refuses a member that is.
+ * - None of these members is named like an attribute:  `DOMElement` refuses a member that is.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMDocsSearchElement extends E.DOMElement {
@@ -468,11 +468,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div
-        class={this.rootClasses}
-        part={this.partForName("search")}
-        ref={(element: HTMLElement) => this.wire(element)}
-      >
+      <div class={this.rootClass} part={this.partForName("search")} ref={(element: HTMLElement) => this.wire(element)}>
         <div class={FIELD} part={this.partForName("field")}>
           <span class={GLYPH} aria-hidden="true">
             <ui-icon name={SEARCH_ICON} />

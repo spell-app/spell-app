@@ -15,7 +15,7 @@ import ratingCSS from "./UIRating.css?inline"
  *
  * - Why:  `delegatesFocus` hands a plain `focus()` to the shadow root's FIRST focusable element (radio 1),
  *   even when radio 3 is chosen.  Tab and `<label for>` already reach the chosen one.
- * - solid-element refuses a DOM element member named like a prop:  `focus` is not one.
+ * - `DOMElement` refuses a member named like an attribute's property:  `focus` is not one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMRatingElement extends F.DOMFormControl {
@@ -67,9 +67,10 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
     super(...args)
     this.domElement.addEventListener("invalid", this.onInvalid)
     this.domElement.addEventListener("click", this.onDOMElementClick)
-    E.onFormStateRestore((state) => {
-      this.value = Number(state) || 0
-    })
+  }
+
+  onFormStateRestore(state: File | string | FormData | null) {
+    this.value = Number(state) || 0
   }
 
   ////////////////
@@ -145,7 +146,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /** `selected` while the pointer previews a choice. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.hoveredPoint ? UIT.SELECTED : undefined
   }
 
@@ -249,7 +250,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
     return (
       <fieldset
         ref={(element) => (this.group = element)}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("rating")}
         role="radiogroup"
         disabled={this.isDisabled}

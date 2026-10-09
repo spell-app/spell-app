@@ -34,7 +34,7 @@ import navCSS from "./UIDocsNav.css?inline"
  * The DOM element of `<ui-docs-nav>`:  it adds the script API (`focusSearch()`, `revealCurrent()`, `favorites`,
  * `listed`), for the page template that puts the nav in a `<ui-sidebar>` / `<ui-flyout>`.
  * Its component (`UIDocsNav`) carries it out.
- * - None of these members is named like an attribute:  solid-element refuses a member that is.
+ * - None of these members is named like an attribute:  `DOMElement` refuses a member that is.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMDocsNavElement extends E.DOMElement {
@@ -483,7 +483,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("nav")} ref={(element: HTMLElement) => this.wire(element)}>
+      <div class={this.rootClass} part={this.partForName("nav")} ref={(element: HTMLElement) => this.wire(element)}>
         {this.masthead()}
         <nav
           part={this.partForName("menu")}

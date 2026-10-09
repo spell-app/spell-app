@@ -24,7 +24,7 @@ export class UIHeader extends E.PartComponent<typeof headerVocabulary> {
     return (
       <Dynamic
         component={this.rootTag}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("header")}
         href={this.href}
         role={this.href && this.level ? "heading" : undefined}
@@ -43,8 +43,8 @@ export class UIHeader extends E.PartComponent<typeof headerVocabulary> {
   }
 
   /** Standalone:  the class grammar;  owned:  the bare noun. */
-  get rootClasses(): string {
-    return this.context.ownerNoun ? this.vocabulary.noun : super.rootClasses
+  get rootClass(): string {
+    return this.context.ownerNoun ? this.vocabulary.noun : super.rootClass
   }
 }
 

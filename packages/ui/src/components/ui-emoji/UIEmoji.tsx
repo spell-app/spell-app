@@ -92,7 +92,7 @@ export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
   render(): JSX.Element {
     return (
       <span
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("emoji")}
         role={this.isLabelled ? "img" : undefined}
         aria-label={this.isLabelled ? this.label : undefined}

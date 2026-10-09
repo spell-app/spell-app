@@ -17,7 +17,7 @@ export class UIGrid extends GridPart<typeof gridVocabulary> {
   @E.proto static vocabulary = gridVocabulary
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return UIT.StackClasses.classFor(this.stackWith)
   }
 

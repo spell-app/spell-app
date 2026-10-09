@@ -13,7 +13,7 @@ import type { E } from "$/ui/core"
  *   - otherwise the new value is written to the DOM element's PROPERTY (and reflects), so `el.value` is always current,
  *     like a native `<input>`
  * - Why watch the property instead of comparing values:  a DOM element re-setting the SAME value it already had is
- *   still a decision.  solid-element calls change callbacks on every write, equal or not.
+ *   still a decision.  The DOM element calls change callbacks on every write, equal or not.
  * - "Set" ~== the converted value isn't `undefined`:  a boolean (`open`, `active`) is always the DOM element's (its
  *   default is the same `false` the internal value would be);  `el.value = undefined` hands a dropdown back to
  *   its `selected` items.
@@ -81,7 +81,7 @@ export class Controlled<T> {
 export type ControlledProps<T> = {
   /** The element whose property this is. */
   domElement: E.DOMElement
-  /** Definition key solid-element's change callbacks name (camelCase canonical). */
+  /** Definition key the DOM element's change callbacks name (camelCase canonical). */
   key: string
   /** Property on the DOM element. */
   property: string

@@ -96,7 +96,7 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
   render(): JSX.Element {
     return (
       <>
-        <div class={this.rootClasses} part={this.partForName("list")} role="list" aria-label={this.ariaLabel}>
+        <div class={this.rootClass} part={this.partForName("list")} role="list" aria-label={this.ariaLabel}>
           <slot onSlotChange={() => this.refreshChecks()} />
         </div>
         <span class={UIT.VISUALLY_HIDDEN} part={this.partForName("status")} role="status">
@@ -159,6 +159,6 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
 
   /** A check child:  an element DEFINED with the check's noun (`<ui-brand-check>`, or its translated tag). */
   private static isCheck(this: void, element: Element): boolean {
-    return UIComponent.definitions.get(element.localName)?.vocabulary.noun === CHECK_NOUN
+    return UIComponent.registry.definitions.get(element.localName)?.vocabulary.noun === CHECK_NOUN
   }
 }

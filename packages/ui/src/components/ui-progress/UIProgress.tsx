@@ -200,7 +200,7 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   render(): JSX.Element {
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("progress")}
         data-percent={this.isIndeterminate ? undefined : String(Math.round(this.numbers.percent))}
       >

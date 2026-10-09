@@ -40,9 +40,9 @@ export class UIPanel extends UISection {
   @E.proto static defaultFoldIcon = FoldIconPlace.end
 
   /** `panel`, and `sub` inside another panel. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const sub = this.parent instanceof UIPanel ? SUB_PANEL : undefined
-    return [super.extraClasses, PANEL, sub].filter(Boolean).join(" ")
+    return [super.extraClass, PANEL, sub].filter(Boolean).join(" ")
   }
 }
 

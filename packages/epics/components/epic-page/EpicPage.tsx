@@ -298,7 +298,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   render(): JSX.Element {
     return (
       // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over the whole page (T8)
-      <div class={this.rootClasses} part={this.partForName("base")} title="" style={this.pageStyle()}>
+      <div class={this.rootClass} part={this.partForName("base")} title="" style={this.pageStyle()}>
         <header ref={(element) => (this.header = element)} class={HEAD} part={this.partForName("header")}>
           <div class={TITLES}>
             <h1 class={HEADING} part={this.partForName("heading")}>

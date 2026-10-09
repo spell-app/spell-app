@@ -1,6 +1,3 @@
-import { onFormReset } from "./solid-element"
-import type { JSX } from "@solidjs/web"
-
 import { E } from "$/ui/core"
 // Import directly to avoid circular import
 import { DOMFormControl } from "./DOMFormControl"
@@ -10,10 +7,10 @@ import { Validator } from "./Validator"
  * ### `FormComponent`
  * The base class of the form controls' components (`UIInput`, `UIDropdown`, `UICheckbox` ...):
  * the form value, validity, reset, and a `<fieldset disabled>` around it.
- * - solid-element's `formAssociated` option (`elementSetup.isAFormControl`) makes the DOM element a form control;
+ * - `elementSetup.isAFormControl` makes the DOM element a form control (DOM API `static formAssociated`);
  *   its DOM element class is a `DOMFormControl` (the form-control API).
- * - Form callbacks arrive as solid-element's hooks:
- *   `onFormReset` => `onFormReset()`, `onFormDisabled` => `formIsDisabled` (in `UIComponent`).
+ * - The browser's form callbacks arrive as methods (`UIComponent`, "Lifecycle"):
+ *   a reset as `onFormReset()`, a `<fieldset disabled>` as `formIsDisabled`.
  * - Pushes `formValue` into `ElementInternals.setFormValue()` -- a `string[]` becomes a `FormData` with one
  *   entry per value, so `new FormData(form).getAll(name)` returns them all -- and `rules` through `Validator`
  *   into `setValidity()`.
@@ -61,7 +58,7 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
     this.domFormElement.internals.setFormValue(this.formSubmission(value, name))
   }
 
-  /** Hook:  restore the starting value (the platform's `formResetCallback`). */
+  /** Hook:  restore the starting value (DOM API `formResetCallback()`);  every form control has one. */
   abstract onFormReset(): void
 
   ////////////////
@@ -133,16 +130,6 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
     if (result.valid) internals.setValidity({})
     else internals.setValidity(result.flags, result.message, this.validationAnchor)
     this.domElement.setState(INVALID_STATE, isShownInvalid)
-  }
-
-  ////////////////
-  // ## Wiring
-  ////////////////
-
-  /** Adds the reset hook to `UIComponent.onMount()`. */
-  onMount(): JSX.Element {
-    onFormReset(() => this.onFormReset())
-    return super.onMount()
   }
 
   ////////////////

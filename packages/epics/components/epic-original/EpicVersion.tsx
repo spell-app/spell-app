@@ -48,7 +48,7 @@ export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <Show when={this.heading}>
           <div class={HEADING} part={this.partForName("heading")}>
             {this.heading}

@@ -17,7 +17,7 @@ import accordionCSS from "./UIAccordion.css?inline"
  *   - The shadow DOM wraps each pair in `<details part="panel">`:
  *     `<summary class="title">` + `<div class="content">`, each with a `<slot>` for its child.
  *   - The component hands each child to its slot by hand
- *     (`elementSetup.assignSlots` `manually`:  the platform's `slotAssignment: "manual"`).
+ *     (`elementSetup.slotAssignment` `"manual"`, the platform's).
  * - Why `<details>`:  the browser does the disclosure.
  *   - `<summary>` is a focusable button that announces its expanded state;  Enter / Space toggle it.
  *   - Find-in-page opens a closed panel.
@@ -51,7 +51,7 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   @E.proto static styleSheets = { accordion: accordionCSS }
   @E.proto static elementSetup = {
     DOMElement: E.DOMLoadableBodyElement,
-    assignSlots: "manually" as const
+    slotAssignment: "manual" as const
   } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
@@ -75,10 +75,10 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
     return !!this.context.owner
   }
 
-  /** Root classes:  the class grammar;  nested, without `ui` (Fomantic's `.ui.accordion .accordion`). */
-  private get rootClass(): string {
-    const classes = this.rootClasses
-    return this.isNested ? classes.replace(UI_WORD, "") : classes
+  /** Nested, without `ui` (Fomantic's `.ui.accordion .accordion`). */
+  get rootClass(): string {
+    const value = super.rootClass
+    return this.isNested ? value.replace(UI_WORD, "") : value
   }
 
   ////////////////
@@ -367,7 +367,7 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
    * - STATIC:  pure, and handed to `AccordionPanels.read()` as a plain callback, no `this`.
    */
   private static isTitle(element: Element): boolean {
-    return E.UIComponent.definitions.get(element.localName)?.vocabulary.noun === TITLE_NOUN
+    return E.UIComponent.registry.definitions.get(element.localName)?.vocabulary.noun === TITLE_NOUN
   }
 }
 
