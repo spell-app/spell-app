@@ -1,6 +1,6 @@
 // Import directly to avoid circular import
 import { proto } from "$/ui/util"
-import { type Prettify } from "$/ui/util"
+import { after, type Prettify } from "$/ui/util"
 import * as UIT from "$/ui/components/components.types"
 
 import { CssDisplay, type AnimateOptions, type AnimationDirection, type AnimationName } from "./runtime.types"
@@ -79,11 +79,11 @@ export class Transitions {
       const onEnd = (event: AnimationEvent) => {
         if (event.target === element) finish(true)
       }
-      const timer = setTimeout(() => finish(true), wait + this.failSafeDelay)
+      const timer = after((wait + this.failSafeDelay) / 1000, () => finish(true))
       const finish = (completed: boolean) => {
         if (this.running.get(element) !== run) return
         this.running.delete(element)
-        clearTimeout(timer)
+        timer.cancel()
         listeners.abort()
         // an interrupted run leaves the element to its successor
         if (completed) this.cleanup(element, direction, options)

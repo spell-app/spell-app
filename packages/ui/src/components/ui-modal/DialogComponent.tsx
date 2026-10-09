@@ -121,7 +121,7 @@ export abstract class DialogComponent<
   requestClose(reason: UIT.ModalCloseReason, originalEvent?: Event): boolean {
     if (!untrack(() => this.isOpen)) return false
     this.isDismissing = true
-    setTimeout(() => (this.isDismissing = false))
+    E.soon(() => (this.isDismissing = false))
     const detail: UIT.ModalCloseDetail = { open: false, reason, originalEvent }
     return this.requestChange("isOpen", false, () => this.fire("ui-close", detail))
   }

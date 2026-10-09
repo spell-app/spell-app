@@ -410,11 +410,21 @@ As WWOD §18, plus:
   (`@E.state accessor isDirty = this.wasEdited !== undefined`).
 - **Where writes go:**  `render()` is an owned scope:  no writes there.  Write from event handlers, `onSettled`,
   promise callbacks, `@onChange` methods (an effect's APPLY) or the fork's hooks;  hooks that can run inside a
-  Solid render (`onConnect`, the `onFormDisabled` replay) defer with `queueMicrotask`.  Element PROPERTY writes are
-  always legal.  A reactive member's write never throws:  inside an owned scope its notification waits a microtask.
+  Solid render (`onConnect`, the `onFormDisabled` replay) defer with `E.afterSolidUpdate()`.  Element PROPERTY writes
+  are always legal.  A reactive member's write never throws:  inside an owned scope its notification waits a microtask.
   - A reactive member reads fresh right after a write;  a `Cell` (or a fork prop, `attrs.x`) still reads the OLD
     value until the flush:  keep the new value in a local.  Tests `await ElementFixture.settle()` / `tick()` (which
     `flush()`) before checking the DOM, never sleep.
+- **Running something later:**  through `$/ui/util`'s timing helpers (`src/util/timing.ts`), never the platform's
+  calls, so the code says WHEN:
+  - `E.afterSolidUpdate(fn)` -- as soon as the current code finishes (a microtask:  `queueMicrotask()`)
+  - `E.beforeNextPaint(fn)` -- just before the next paint (`requestAnimationFrame()`)
+  - `E.soon(fn)` -- the next task (`setTimeout(fn, 0)`)
+  - `E.after(seconds, fn)` -- once, in SECONDS:  a promise of `fn`'s result, with `cancel()` (`setTimeout()`)
+  - `E.every(seconds, fn)` -- until stopped (`setInterval()`)
+  - Each but `afterSolidUpdate()` can be canceled:
+    keep what it returns in a field, to cancel a pending one (`this.copiedTimer?.cancel()`).
+  - Raw calls stay only in the helpers themselves, tests, and solid-element's own copy.
 - **Events:**  dispatch through `this.send("ui-change", detail)` (vocabulary-checked, localized on translated
   tags);  listen on the DOM element (or its shadow root) through `this.on("command", this.onCommand)`, for the element's
   whole life ("Reactive members").  Inside a component, `onClick={...}` for native events (no `on:` namespace;  rich data as

@@ -85,7 +85,7 @@ export class UIDocsExample extends E.UIComponent<typeof docsExampleVocabulary> {
    */
   private stamp() {
     const template = ExampleSource.template(this.domElement)
-    if (template) queueMicrotask(() => template.after(template.content.cloneNode(true)))
+    if (template) E.afterSolidUpdate(() => template.after(template.content.cloneNode(true)))
   }
 
   ////////////////

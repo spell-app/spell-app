@@ -231,11 +231,12 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * Hook:  the element was added to a page;  the first time right after `onMount()`.
    * - Keeps `isConnected` in step, a microtask later:  the element may be connected while the app's Solid is
    *   drawing, when state can't change yet.  A part re-checks which element it belongs to (`PartContext`).
-   * - It may run while Solid is drawing:  defer a state change (`queueMicrotask`), or write an `ownedWrite` member.
+   * - It may run while Solid is drawing:
+   *   defer a state change (`E.afterSolidUpdate()`), or write an `ownedWrite` member.
    */
   onConnect() {
     const { domElement } = this
-    queueMicrotask(() => (this.isConnected = domElement.isConnected))
+    E.afterSolidUpdate(() => (this.isConnected = domElement.isConnected))
     E.PartContext.connected(domElement)
   }
 
@@ -253,7 +254,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Keeps `formIsDisabled` in step;  a microtask later when it arrives while Solid is drawing.
    */
   onFormDisabled(disabled: boolean) {
-    if (getOwner()) queueMicrotask(() => (this.formIsDisabled = disabled))
+    if (getOwner()) E.afterSolidUpdate(() => (this.formIsDisabled = disabled))
     else this.formIsDisabled = disabled
   }
 
@@ -269,7 +270,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   /** Hook:  the element was removed from its page.  The component stays, for the next connect. */
   onDisconnect() {
     const { domElement } = this
-    queueMicrotask(() => (this.isConnected = domElement.isConnected))
+    E.afterSolidUpdate(() => (this.isConnected = domElement.isConnected))
   }
 
   ////////////////
@@ -443,7 +444,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   /** Once ready:  resolve `domElement.ready`, a microtask later, after the content has drawn with its styles. */
   @onChange("isReady")
   protected onReadyChanged(isReady: boolean) {
-    if (isReady) queueMicrotask(() => this.domElement.markReady())
+    if (isReady) E.afterSolidUpdate(() => this.domElement.markReady())
   }
 
   ////////////////
@@ -811,7 +812,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     error: unknown,
     Fallback: E.FallbackClass | undefined
   ): undefined {
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       const root = domElement.renderRoot
       const handle = Fallback
         ? Fallback.render({ domElement, root, error, internals: domElement.internals })

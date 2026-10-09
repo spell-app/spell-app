@@ -1,7 +1,16 @@
 import { Show, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, DOMElement, IconGlyph, proto, UIComponent, type ElementSetup } from "$/ui/core"
+import {
+  after,
+  Cell,
+  DOMElement,
+  IconGlyph,
+  proto,
+  UIComponent,
+  type CancelablePromise,
+  type ElementSetup
+} from "$/ui/core"
 import { Palette } from "$/brand"
 
 import { brandColorVocabulary } from "./UIBrandColor.en"
@@ -89,7 +98,7 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
   readonly copied = new Cell("")
 
   /** Timer clearing `copied`. */
-  private copiedTimer: ReturnType<typeof setTimeout> | undefined
+  private copiedTimer: CancelablePromise<unknown> | undefined
 
   ////////////////
   // ## Derived state
@@ -333,8 +342,8 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
     }
     this.copied.set(value)
     this.send("ui-copy", { value, originalEvent: event })
-    clearTimeout(this.copiedTimer)
-    this.copiedTimer = setTimeout(() => this.copied.set(""), COPIED_MS)
+    this.copiedTimer?.cancel()
+    this.copiedTimer = after(COPIED_MS / 1000, () => this.copied.set(""))
   }
 
   ////////////////

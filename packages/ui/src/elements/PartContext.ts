@@ -217,7 +217,7 @@ export class PartContext {
     const context = PartContext.contexts.get(domElement)
     if (!context) return
     if (!context.hasConnected) context.hasConnected = true
-    else queueMicrotask(() => context.refresh())
+    else E.afterSolidUpdate(() => context.refresh())
   }
 
   /** Forget every defined tag and live context, for tests. */

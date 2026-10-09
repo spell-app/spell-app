@@ -100,7 +100,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     // `checked` in markup selects, a microtask later:
     // outside the component's body, where the write to the DOM element may notify
     if (this.wasInitiallySelected && !untrack(() => this.selectedProperty)) {
-      queueMicrotask(() => (this.isSelected = true))
+      E.afterSolidUpdate(() => (this.isSelected = true))
     }
   }
 
@@ -156,7 +156,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     const applied = E.Reactive.requestChange(this, "selectedProperty", selected, () =>
       this.send("ui-change" as never, { selected, value, originalEvent })
     )
-    if (!applied) queueMicrotask(() => this.control && (this.control.checked = untrack(() => this.isSelected)))
+    if (!applied) E.afterSolidUpdate(() => this.control && (this.control.checked = untrack(() => this.isSelected)))
     this.onChosen(applied)
     return applied
   }

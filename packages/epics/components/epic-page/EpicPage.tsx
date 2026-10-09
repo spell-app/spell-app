@@ -138,10 +138,10 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   }
 
   /** The review line's flash timer. */
-  private flashTimer = 0
+  private flashTimer?: E.CancelablePromise<unknown>
 
   /** Clears the heading's "copied". */
-  private headingTimer = 0
+  private headingTimer?: E.CancelablePromise<unknown>
 
   /** The sticky header, as drawn. */
   private header?: HTMLElement
@@ -267,7 +267,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         const bump = () => {
           if (queued) return
           queued = true
-          queueMicrotask(() => {
+          E.afterSolidUpdate(() => {
             queued = false
             this.signals.layout.set(untrack(() => this.signals.layout.get()) + 1)
           })
@@ -622,17 +622,17 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     if (!(await EpicPage.copyText(untrack(() => this.command())))) return
     // off first, so a second click flashes again
     this.isCopied = false
-    clearTimeout(this.flashTimer)
-    requestAnimationFrame(() => (this.isCopied = true))
-    this.flashTimer = window.setTimeout(() => (this.isCopied = false), FLASH_MS + 600)
+    this.flashTimer?.cancel()
+    E.beforeNextPaint(() => (this.isCopied = true))
+    this.flashTimer = E.after((FLASH_MS + 600) / 1000, () => (this.isCopied = false))
   }
 
   /** The heading, clicked:  copy `/epic <name>`, then say so for a moment. */
   private async copyHeading() {
     if (!(await EpicPage.copyText(untrack(() => this.headingCommand())))) return
     this.isHeadingCopied = true
-    clearTimeout(this.headingTimer)
-    this.headingTimer = window.setTimeout(() => (this.isHeadingCopied = false), FLASH_MS + 600)
+    this.headingTimer?.cancel()
+    this.headingTimer = E.after((FLASH_MS + 600) / 1000, () => (this.isHeadingCopied = false))
   }
 
   /** `translationForKey()`, as a plain function:  for the pieces drawn as their own components (`<AgentsPanel>`). */
