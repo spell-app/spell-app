@@ -141,9 +141,15 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
     | `recent`    | green  | closed, and changed since `recent-since` or during a `/bedtime` run                |
     | `old`       | grey   | closed earlier                                                                     |
     | `open`      | yellow | work a review queued (`queued`), not started                                       |
+    | `replied`   | orange | open, and Claude's LAST reply holds options nothing is picked in yet:  Owen's turn |
     | `attention` | red    | an open question;  an open judgement call or issue not reviewed, unless `calm`     |
     | `recent`    | green  | open, reviewed lately or touched by a `/bedtime` run                               |
     | `open`      | yellow | anything else open:  still undecided, not urgent                                   |
+
+    - `replied` (Owen, 2026-10-09):  the reply is the item's last `<epic-reply>`, `from="Claude"`, holding an
+      `<epic-choices>` without `chosen`.  A pick, a newer reply from Owen, or closing the item ends it;  a reply that
+      asks without cards (a yes / no in prose) doesn't make it.  It counts as needing Owen, as `attention` does:  the
+      rail's count, the "only what needs you" filter
 
   - `changed`:  ISO local time with offset, every command that changes its status or review marks;  `bedtime`
     while a `/bedtime` run is on, until reviewed
@@ -246,7 +252,7 @@ Drawn, never written:  one meaning per colour on every element (decision Q20, Ow
 | yellow | open, still undecided (DARK text on it)  | `open` chips;  a `to do` review label                                  |
 | blue   | do it now, or Claude is working on it    | `progress` chips;  Revisit, Do Now, Send, Review Now;  Underway cards;  the active phase |
 | green  | decided or done                          | Approve, Make Todo, a pick, the chosen option;  Done cards;  DONE      |
-| orange | changed since Owen looked, or a warning  | UPDATE, the Updated fence, Plan changes;  "nobody is listening";  a blocked agent |
+| orange | changed since Owen looked, or a warning;  an item Claude answered with options, waiting for Owen's pick (Owen, 2026-10-09) | UPDATE, the Updated fence, Plan changes;  "nobody is listening";  a blocked agent;  `replied` chips (DARK text on them), counted on the rail as needing Owen |
 | violet | Claude's voice                           | his reply cards;  the bedtime label                                    |
 | ivory  | Owen's voice                             | his note box, marked note, reply cards, the answer card                |
 | grey   | older, inactive, not chosen              | `old` chips;  a phase to do;  FUTURE;  "(recommended)" (text only)     |

@@ -207,11 +207,13 @@ export const COUNT_ATTRIBUTES = ["status", "state"]
 
 /**
  * Where an item stands, in the filter's order:  its state, its chip's colour, its texts' keys (the tooltip's words).
- * - the same five as `<epic-item state>` (`EpicItem.types.ts` `ITEM_STATES`), in the old runtime's filter order
+ * - the same six as `<epic-item state>` (`EpicItem.types.ts` `ITEM_STATES`), in the old runtime's filter order,
+ *   `replied` (Owen's turn to pick, 2026-10-09) beside `attention`:  both wait on Owen
  */
 export const FILTER_STATES = [
   { state: "progress", color: "blue", words: "stateProgress" },
   { state: "attention", color: "red", words: "stateAttention" },
+  { state: "replied", color: "orange", words: "stateReplied" },
   { state: "open", color: "yellow", words: "stateOpen" },
   { state: "recent", color: "green", words: "stateRecent" },
   { state: "old", color: "grey", words: "stateOld" }
@@ -237,8 +239,8 @@ export type SectionCount = {
   /** every one */
   total: number
   /**
-   * the items that need Owen (`state="attention"`, red):  what the rail counts (decision Q20:  red,
-   * only what needs him;  no pill for none)
+   * the items that need Owen (`NEEDS_OWEN`:  `state="attention"`, red, or `replied`, orange:  his turn to pick):
+   * what the rail counts (decision Q20:  red, only what needs him;  no pill for none)
    */
   attention: number
 }

@@ -14,10 +14,16 @@ export type EpicItemVocabulary = typeof epicItemVocabulary
 ////////////////
 
 /** An item's id-chip colours, by where it stands (the script's `state`):  see `EpicItem.css`. */
-export const ITEM_STATES = ["attention", "progress", "open", "recent", "old"] as const
+export const ITEM_STATES = ["attention", "replied", "progress", "open", "recent", "old"] as const
 
 /** One of `ITEM_STATES`. */
 export type ItemState = (typeof ITEM_STATES)[number]
+
+/**
+ * The states that wait on Owen:  `attention` (red), and `replied` (orange:  Claude answered with options, his turn
+ * to pick).  What a section's count and its "only what needs you" filter take (`<epic-section>`).
+ */
+export const NEEDS_OWEN: ReadonlySet<string> = new Set(["attention", "replied"] satisfies ItemState[])
 
 /**
  * The items Owen may call urgent or not (`calm`, its id chip):  judgement calls and issues, the kinds red while open
@@ -31,6 +37,7 @@ export const CLOSED_STATUSES = ["decided", "done", "canceled"] as const
 /** `state`'s text key, for the id chip's tooltip. */
 export const STATE_TIP_KEYS = {
   attention: "stateAttention",
+  replied: "stateReplied",
   progress: "stateProgress",
   open: "stateOpen",
   recent: "stateRecent",

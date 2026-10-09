@@ -152,6 +152,11 @@ export const epicSectionVocabulary = {
       description: "A state chip's words:  `progress` (blue)."
     },
     { key: "stateAttention", text: "needs attention", description: "A state chip's words:  `attention` (red)." },
+    {
+      key: "stateReplied",
+      text: "Claude answered:  your turn to pick",
+      description: "A state chip's words:  `replied` (orange)."
+    },
     { key: "stateOpen", text: "open, still undecided", description: "A state chip's words:  `open` (yellow)." },
     { key: "stateRecent", text: "decided or reviewed recently", description: "A state chip's words:  `recent`." },
     { key: "stateOld", text: "decided or reviewed earlier", description: "A state chip's words:  `old` (grey)." },
