@@ -182,7 +182,7 @@ function writeBetween(file, start, end, body) {
 /**
  * What the lists show for page `path`:  title, description, and a plan's status.
  * - title falls back to the file name, so a page without one still shows up (and looks wrong enough to fix)
- * - a plan doc's title without its `Epic: ` (`plan-doc.js` `TITLE_PREFIX`):  its card is in Epics already
+ * - a plan doc's title without its `Epic: ` (`planDoc.types` `TITLE_PREFIX`):  its card is in Epics already
  */
 function describe(path) {
   const { document } = parseHTML(readFileSync(`${ROOT}/${path}`, "utf8"))

@@ -6,7 +6,7 @@
  *   <- `PlanDocCommands`.
  * - The ELEMENTS (tags, attributes, which children go where) are `$/epics/definitions`':  this file holds only what
  *   the tool adds on top -- item kinds as the command line names them, review filters, result shapes.
- * - NOTE:  plain `&`, no `Prettify<>`:  `epics`' `tsconfig.json` doesn't include the repo root's `types/` (yet).
+ * - `Prettify<>` (the repo root's `types/app.d.ts`, which `epics`' `tsconfig.json` includes) wraps the combined types.
  */
 
 import type { ItemSectionKind } from "$/epics/definitions"
@@ -72,12 +72,14 @@ export type Phase = {
 export type PhaseFieldValues = Partial<Record<PhaseField, string>>
 
 /** `PlanDoc.addPhase()`'s options:  the fields, the estimate, and where it goes. */
-export type AddPhaseOptions = PhaseFieldValues & {
-  /** wall-clock estimate (`1-2h`):  `<epic-phase estimate>` */
-  estimate?: string
-  /** inserted as this phase, the to-do phases from it on moving down one (`add-phase --before N`);  default last */
-  before?: number
-}
+export type AddPhaseOptions = Prettify<
+  PhaseFieldValues & {
+    /** wall-clock estimate (`1-2h`):  `<epic-phase estimate>` */
+    estimate?: string
+    /** inserted as this phase, the to-do phases from it on moving down one (`add-phase --before N`);  default last */
+    before?: number
+  }
+>
 
 /** An estimate in minutes:  `PlanTime.parseDuration()`'s, `{ min: 60, max: 120 }` for `1-2h`. */
 export type Duration = {
@@ -492,7 +494,7 @@ export type CommitLogEntry = {
 }
 
 /** A commit `PlanDoc.backfillCommits()` listed:  its sha, and where. */
-export type BackfilledCommit = CommitTarget & { sha: string }
+export type BackfilledCommit = Prettify<CommitTarget & { sha: string }>
 
 /** `PlanDoc.addCommit()`'s options. */
 export type CommitOptions = {

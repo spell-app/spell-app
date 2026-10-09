@@ -468,7 +468,7 @@ function forgetSource(url) {
 
 /**
  * The host whose unloaded body holds element `id`:  its `data-part-ids` (the ids inside, written by
- * `plan-parts.js`;  a plan doc's `<epic-*>`:  `part-ids`), when the element isn't in the page yet;  else null.
+ * `PlanParts`;  a plan doc's `<epic-*>`:  `part-ids`), when the element isn't in the page yet;  else null.
  */
 function hostHolding(main, id) {
   if (!id || document.getElementById(id)) return null
@@ -1125,7 +1125,7 @@ function attr(value) {
 /**
  * Item statuses that DON'T count as open:  finished (`done`), made moot (`canceled`), and a plan's answered
  * questions (`decided`) -- in "Questions" only the questions waiting on the reader are open.
- * - `plan-doc.js` `CLOSED` is the same set
+ * - `$/epics/tool/planDoc.types` `CLOSED` is the same set
  */
 const CLOSED = new Set(["done", "decided", "canceled"])
 

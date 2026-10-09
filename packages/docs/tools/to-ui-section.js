@@ -4,7 +4,7 @@
  * - old:  `<section class="s2|s3">` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>` (icons, title), then the
  *   content
  * - new:  `<ui-section id header sticky collapsible dividing>` (`spell-docs/ui-section-test.html` shows every piece)
- * - `convertSections()` is the conversion, on a parsed document:  `plan-doc.js` `migrate` runs it too
+ * - `convertSections()` is the conversion, on a parsed document
  * - then tidies each page (`pages.js` `tidy()`:  link targets, oxfmt), as every script that writes one does
  * - NEVER run it on the goals pages (`templates/goals/`, the repo root's `goals/`):  they keep the old markup
  */
