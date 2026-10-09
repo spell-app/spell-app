@@ -36,7 +36,20 @@ describe("AirplaneInbox.gather()", () => {
     utimesSync(page.replace(/\.html$/, ".answer.json"), new Date(when), new Date(when))
   }
 
+  // a guide with a note on its whole page, not yet answered
+  mkdirSync(join(root, "guides"))
+  writeFileSync(
+    join(root, "guides", "guide.html"),
+    `<main><spell-notes for="page"><spell-note id="n1" status="new" at="2026-10-10 10:00"><p>Is this still true?</p></spell-note></spell-notes></main>\n`
+  )
+
   afterAll(() => rmSync(root, { recursive: true, force: true }))
+
+  it("takes the page notes not yet answered", () => {
+    expect(AirplaneInbox.gather(root).notes).toMatchObject([
+      { page: "guides/guide.html", id: "n1", text: "Is this still true?" }
+    ])
+  })
 
   it("takes every mark, sent or not, with the drafts and the requests for now", () => {
     const [epic, ...others] = AirplaneInbox.gather(root, { since: flight }).epics
@@ -56,6 +69,7 @@ describe("AirplaneInbox.gather()", () => {
   it("says it in a line per place", () => {
     expect(AirplaneInbox.gather(root, { since: flight }).lines).toEqual([
       "epic demo:  2 marks (1 not sent), 1 draft, 1 for now",
+      expect.stringMatching(/^note guides\/guide\.html n1 \(.*\):  Is this still true\?$/),
       expect.stringMatching(/^details epics\/demo\/details\/onboard\.html:  answered /)
     ])
   })

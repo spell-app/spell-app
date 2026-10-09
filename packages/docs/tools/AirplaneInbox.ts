@@ -3,6 +3,10 @@ import { join, relative } from "node:path"
 
 import { readAnswer, listPages } from "./details.js"
 import { GoalsPage } from "./goals/page.js"
+import { notesIn, type PageNote } from "./notesOnDisk"
+
+/** Where page notes can be (`notesRoutes.ts` takes them on pages there), from the checkout's root. */
+const NOTE_FOLDERS = ["pages", "guides", "epics"]
 
 /****************
  * ### `AirplaneInbox`
@@ -11,6 +15,7 @@ import { GoalsPage } from "./goals/page.js"
  * - each epic's review inbox (`epics/<name>/<name>.inbox.json`, `ReviewInbox`):  marks SENT OR NOT (Owen's
  *   decision Q3 of `airplane`:  on the plane, nobody was there to send them to), drafts (typed, never submitted:
  *   asked about, never acted on), and the requests for now (Do Now, revisit now)
+ * - page notes not yet answered (`<spell-note status="new">` in guides and other pages:  `notesOnDisk.ts`)
  * - details pages answered since the flight began (`<slug>.answer.json`, newer than `since`)
  * - goals thoughts not yet digested (`li.goals-thought[data-status="new"]` in the goals pages)
  * - read only:  taking the work is each place's own command (`plan-doc inbox apply`, `details answer`, `/goals-update`)
@@ -25,10 +30,17 @@ export class AirplaneInbox {
     return Object.assign(new AirplaneInbox(), {
       since: since ?? null,
       epics: epicsWaiting(root),
+      notes: notesIn(
+        NOTE_FOLDERS.map((folder) => join(root, folder)),
+        root
+      ),
       details: since ? detailsAnswered(root, Date.parse(since)) : [],
       thoughts: thoughtsWaiting(root)
     })
   }
+
+  /** the page notes not yet answered (`status="new"`) */
+  notes: PageNote[] = []
 
   /** when the flight began, else `null` */
   since: string | null = null
@@ -44,7 +56,7 @@ export class AirplaneInbox {
 
   /** Nothing waiting anywhere. */
   get isEmpty(): boolean {
-    return !this.epics.length && !this.details.length && !this.thoughts.length
+    return !this.epics.length && !this.notes.length && !this.details.length && !this.thoughts.length
   }
 
   /** One line per place, for a person:  `epic airplane:  3 marks (1 not sent), 1 draft, 2 for now`. */
@@ -60,6 +72,7 @@ export class AirplaneInbox {
         ].filter(Boolean)
         return `epic ${epic.name}:  ${parts.join(", ")}`
       }),
+      ...this.notes.map((note) => `note ${note.page} ${note.id} (${note.label}):  ${note.text.slice(0, 80)}`),
       ...this.details.map((page) => `details ${page.page}:  answered ${page.answered}`),
       ...this.thoughts.map((thought) => `goals ${thought.page} ${thought.id}:  ${thought.text.slice(0, 80)}`)
     ]
