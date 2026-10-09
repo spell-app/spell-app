@@ -1,4 +1,4 @@
-import { UI } from "$/ui/core"
+import { E, UI } from "$/ui/core"
 import {
   DOCS_DARK_QUERY,
   DOCS_DEFAULT_THEME,
@@ -176,7 +176,7 @@ export class ThemePreference {
   private static withoutTransitions(root: Element): void {
     if (typeof requestAnimationFrame !== "function") return
     root.classList.add(DOCS_SCHEME_SWITCHING)
-    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove(DOCS_SCHEME_SWITCHING)))
+    E.beforeNextPaint(() => E.beforeNextPaint(() => root.classList.remove(DOCS_SCHEME_SWITCHING)))
   }
 
   /** Set the look in memory and tell subscribers, if it changed. */

@@ -1,4 +1,4 @@
-import { Warnings } from "$/ui/util"
+import { after, Warnings, type CancelablePromise } from "$/ui/util"
 
 import { APP_STYLESHEET_ID, LAYER_ORDER } from "./runtime.types"
 
@@ -39,7 +39,7 @@ export class AppStylesheet {
   /** bumped per sync;  a sync whose number is stale by the time its fetches finish is dropped */
   private generation = 0
   /** `syncSoon()`'s timer */
-  private timer?: ReturnType<typeof setTimeout>
+  private timer?: CancelablePromise<void>
   /** watches `<head>` / `<body>` / `<html>` children */
   private treeObserver?: MutationObserver
   /** watches the element's text or `href` */
@@ -85,7 +85,7 @@ export class AppStylesheet {
     this.treeObserver = this.elementObserver = undefined
     this.elementListeners?.abort()
     this.element = this.elementListeners = undefined
-    clearTimeout(this.timer)
+    this.timer?.cancel()
   }
 
   ////////////////
@@ -102,9 +102,9 @@ export class AppStylesheet {
    * - Hand-rolled, not a `debounce()`:  `ready` must be a promise of the sync to come (epic `wwod-spell-ui`).
    */
   private syncSoon() {
-    clearTimeout(this.timer)
+    this.timer?.cancel()
     this.latest = new Promise((resolve) => {
-      this.timer = setTimeout(() => resolve(this.sync()), this.syncDelay)
+      this.timer = after(this.syncDelay / 1000, () => resolve(this.sync()))
     })
   }
 

@@ -159,10 +159,10 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   // ## Following the page
   ////////////////
 
-  /** Scheduled frame of a pending scan / follow, if any. */
-  private scheduledFrame = 0
+  /** Cancels the frame scheduled for a pending scan / follow, if any. */
+  private cancelScheduledFrame?: () => void
 
-  /** What the `scheduledFrame` does:  a rescan wins over a follow. */
+  /** What the scheduled frame does:  a rescan wins over a follow. */
   private queuedUpdate: TocUpdate | undefined
 
   /** SIDE EFFECT:  page listeners and the observers, while connected. */
@@ -188,7 +188,7 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
     view.addEventListener("hashchange", onHash)
     // the toc may come before what it follows:  look again once the page is parsed
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true })
-    else queueMicrotask(start)
+    else E.afterSolidUpdate(start)
     return () => {
       observer.disconnect()
       resized.disconnect()
@@ -197,8 +197,8 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
       view.removeEventListener("scroll", onScroll)
       view.removeEventListener("resize", onScroll)
       view.removeEventListener("hashchange", onHash)
-      cancelAnimationFrame(this.scheduledFrame)
-      this.scheduledFrame = 0
+      this.cancelScheduledFrame?.()
+      this.cancelScheduledFrame = undefined
     }
   }
 
@@ -226,13 +226,13 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   private schedule(update: TocUpdate): void {
     if (update === "rescan") this.queuedUpdate = update
     else this.queuedUpdate ??= update
-    if (this.scheduledFrame) return
-    this.scheduledFrame = requestAnimationFrame(() => this.onFrame())
+    if (this.cancelScheduledFrame) return
+    this.cancelScheduledFrame = E.beforeNextPaint(() => this.onFrame())
   }
 
   /** The scheduled frame:  do what's queued. */
   private onFrame(): void {
-    this.scheduledFrame = 0
+    this.cancelScheduledFrame = undefined
     const update = this.queuedUpdate
     this.queuedUpdate = undefined
     if (update === "rescan") this.rescan()
@@ -274,8 +274,8 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
     const isPageLoad = moment === "page load"
     if (tabs && pane && TocIndex.shownPane(tabs) !== pane) {
       ;(tabs as HTMLElement & { value?: string }).value = TocIndex.paneValue(tabs, pane)
-      requestAnimationFrame(() => requestAnimationFrame(scroll))
-    } else if (isPageLoad || !target.getClientRects().length) requestAnimationFrame(scroll)
+      E.beforeNextPaint(() => E.beforeNextPaint(scroll))
+    } else if (isPageLoad || !target.getClientRects().length) E.beforeNextPaint(scroll)
     if (isPageLoad) TocIndex.whenReady(this.domElement, scroll)
   }
 

@@ -1,7 +1,17 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { DOMElement, PartContext, proto, protoMerged, UIComponent, UIT, type ElementSetup, type AttributeValues } from "$/ui/core"
+import {
+  afterSolidUpdate,
+  DOMElement,
+  PartContext,
+  proto,
+  protoMerged,
+  UIComponent,
+  UIT,
+  type ElementSetup,
+  type AttributeValues
+} from "$/ui/core"
 
 import { brandCheckVocabulary } from "./UIBrandCheck.en"
 import {
@@ -124,7 +134,7 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
     super(...args)
     // a `checked` attribute in markup ticks it, as a native checkbox's does
     if (this.domElement.hasAttribute("checked") && !untrack(() => this.selected)) {
-      queueMicrotask(() => this.selectedState.set(true))
+      afterSolidUpdate(() => this.selectedState.set(true))
     }
     // SIDE EFFECT:  owned, the DOM element is one item of the list;  the active step is the current one
     this.addElementEffect(

@@ -2,12 +2,14 @@ import { For, Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import {
+  after,
   Cell,
   IconGlyph,
   proto,
   protoMerged,
   SlotContent,
   type AttributeName,
+  type CancelablePromise,
   type FieldValue,
   type ElementSetup,
   type AttributeValues
@@ -136,7 +138,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   private dragPointer?: number
 
   /** Timer clearing `copied`. */
-  private copiedTimer: ReturnType<typeof setTimeout> | undefined
+  private copiedTimer: CancelablePromise<unknown> | undefined
 
   ////////////////
   // ## Values
@@ -527,8 +529,8 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     }
     this.copied.set({ format, value })
     this.send("ui-copy", { value, format, originalEvent })
-    clearTimeout(this.copiedTimer)
-    this.copiedTimer = setTimeout(() => this.copied.set(undefined), COPIED_MS)
+    this.copiedTimer?.cancel()
+    this.copiedTimer = after(COPIED_MS / 1000, () => this.copied.set(undefined))
   }
 
   ////////////////

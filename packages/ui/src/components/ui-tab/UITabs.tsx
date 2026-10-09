@@ -93,7 +93,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
     // a server render reads every pane before it renders, and writes nothing after
     if (isServer || this.refreshIsQueued) return
     this.refreshIsQueued = true
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       this.refreshIsQueued = false
       this.refreshPanes()
     })
@@ -302,7 +302,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   @E.onChange("isReady", "isConnected", "isVertical", "tabs", "selectedIndex")
   protected onRovingChanged(isReady: boolean, isConnected: boolean) {
     if (!isReady || !isConnected) return
-    queueMicrotask(() => this.startRoving())
+    E.afterSolidUpdate(() => this.startRoving())
     return () => this.stopRoving()
   }
 
@@ -368,7 +368,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
     const listeners = new AbortController()
     const onNavigate = (event: Event) => this.onHashChange(event)
     for (const type of HISTORY_EVENTS) this.view.addEventListener(type, onNavigate, { signal: listeners.signal })
-    queueMicrotask(() => this.onHashChange())
+    E.afterSolidUpdate(() => this.onHashChange())
     return () => listeners.abort()
   }
 

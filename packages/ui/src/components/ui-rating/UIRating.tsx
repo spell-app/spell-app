@@ -124,7 +124,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   choose(value: number, originalEvent?: Event): boolean {
     this.isTouched = true
     const applied = this.requestChange("value", value, () => this.send("ui-change", { value, originalEvent }))
-    if (!applied) queueMicrotask(() => this.syncRadios())
+    if (!applied) E.afterSolidUpdate(() => this.syncRadios())
     return applied
   }
 

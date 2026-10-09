@@ -293,12 +293,9 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   /** Load, wait (or time out), then show the content and say so. */
   private async start() {
     if (untrack(() => this.displayMode) === DISPLAY.skeleton) this.skeletons = this.findSkeletons()
-    let timer: ReturnType<typeof setTimeout> | undefined
-    const timeout = new Promise<"timeout">((resolve) => {
-      timer = setTimeout(() => resolve("timeout"), RootTimeout.parse(untrack(() => this.timeout)))
-    })
+    const timeout = E.after(RootTimeout.parse(untrack(() => this.timeout)) / 1000, () => "timeout" as const)
     const outcome = await Promise.race([this.settle(), timeout])
-    clearTimeout(timer)
+    timeout.cancel()
     if (outcome === "timeout") this.timedOut()
     this.contentIsReady = true
     this.send("ui-ready", { failed: [...this.failures] })

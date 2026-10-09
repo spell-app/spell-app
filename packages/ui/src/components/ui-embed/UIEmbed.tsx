@@ -202,7 +202,7 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
   private readonly onFrame = (frame: HTMLIFrameElement) => {
     if (!this.shouldFocusFrame) return
     this.shouldFocusFrame = false
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       if (frame.isConnected) frame.focus()
     })
   }

@@ -73,7 +73,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   accessor isOpen = false
 
   /** Pending delayed show / hide. */
-  private delayTimer?: ReturnType<typeof setTimeout>
+  private delayTimer?: E.CancelablePromise<unknown>
 
   /** This element's `UI.overlays` entry;  `anchor` follows the target. */
   private readonly overlay: E.OverlayEntry = {
@@ -84,7 +84,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
 
   /** Show or hide, dispatching the cancelable `ui-open` / `ui-close` first;  true when applied. */
   requestOpen(open: boolean, originalEvent?: Event): boolean {
-    clearTimeout(this.delayTimer)
+    this.delayTimer?.cancel()
     if (open === untrack(() => this.isOpen)) return false
     const detail: UIT.PopupOpenDetail = { open, originalEvent }
     return this.requestChange("isOpen", open, () => this.send(open ? "ui-open" : "ui-close", detail))
@@ -92,9 +92,9 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
 
   /** `requestOpen()` after `delay` ms (at once for `0`);  a newer call replaces a pending one. */
   private schedule(open: boolean, delay: number, originalEvent?: Event) {
-    clearTimeout(this.delayTimer)
+    this.delayTimer?.cancel()
     if (delay <= 0) return void this.requestOpen(open, originalEvent)
-    this.delayTimer = setTimeout(() => this.requestOpen(open, originalEvent), delay)
+    this.delayTimer = E.after(delay / 1000, () => this.requestOpen(open, originalEvent))
   }
 
   /** Ready, connected and open:  show (once a `ui-*` target is ready);  the cleanup hides. */
@@ -132,7 +132,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
 
   /** Hide the popover and leave `UI.overlays`. */
   private hide() {
-    clearTimeout(this.delayTimer)
+    this.delayTimer?.cancel()
     if (this.domElement.matches(":popover-open")) this.domElement.hidePopover()
     UI.overlays.close(this.overlay)
   }
@@ -227,7 +227,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     this.ariaElement = element
     return () => {
       listeners.abort()
-      clearTimeout(this.delayTimer)
+      this.delayTimer?.cancel()
       UIPopup.removeAnchorName(target, this.anchorName)
       unrelate()
       if (isClick) {
@@ -293,7 +293,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   /** Pointer onto the popup:  keep a hovered popup open, unless `hoverable` is off (Fomantic's default). */
   private readonly onPopupEnter = () => {
     if (untrack(() => this.trigger) !== UIT.PopupTrigger.hover) return
-    if (untrack(() => this.hoverable) !== false) clearTimeout(this.delayTimer)
+    if (untrack(() => this.hoverable) !== false) this.delayTimer?.cancel()
   }
 
   /** Pointer off the popup:  hide a hovered popup after `hide-delay`. */

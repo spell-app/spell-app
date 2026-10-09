@@ -1,3 +1,5 @@
+import { after } from "$/ui/util"
+
 import { ApiError, type ApiRequest, type ApiResponseType, type ApiUrlData } from "./runtime.types"
 
 /****************
@@ -89,11 +91,11 @@ export class Api {
   private delay(ms: number, signal: AbortSignal): Promise<void> {
     return new Promise((resolve, reject) => {
       if (signal.aborted) return reject(signal.reason)
-      const timer = setTimeout(resolve, ms)
+      const timer = after(ms / 1000, () => resolve())
       signal.addEventListener(
         "abort",
         () => {
-          clearTimeout(timer)
+          timer.cancel()
           reject(signal.reason)
         },
         { once: true }

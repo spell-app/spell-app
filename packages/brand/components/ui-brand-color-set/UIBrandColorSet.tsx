@@ -1,7 +1,16 @@
 import { createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, Converters, proto, protoMerged, UIComponent, UIT, type ElementSetup, type AttributeValues } from "$/ui/core"
+import {
+  Cell,
+  Converters,
+  proto,
+  protoMerged,
+  UIComponent,
+  UIT,
+  type ElementSetup,
+  type AttributeValues
+} from "$/ui/core"
 import { Palette } from "$/brand"
 import { DOMBrandColorElement } from "$/brand/components/ui-brand-color"
 

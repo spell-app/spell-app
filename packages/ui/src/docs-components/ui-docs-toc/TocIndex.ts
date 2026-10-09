@@ -1,3 +1,4 @@
+import { E } from "$/ui/core"
 import {
   EXAMPLE_TAG,
   HEADING_SELECTOR,
@@ -140,8 +141,8 @@ export class TocIndex {
    */
   static whenReady(element: Element, then: () => void): void {
     const root = element.closest("ui-root")
-    if (!root || TocIndex.hasState(root, "ready")) requestAnimationFrame(then)
-    else root.addEventListener("ui-ready", () => requestAnimationFrame(then), { once: true })
+    if (!root || TocIndex.hasState(root, "ready")) E.beforeNextPaint(then)
+    else root.addEventListener("ui-ready", () => E.beforeNextPaint(then), { once: true })
   }
 
   /** `text` as an id:  lowercase words joined by `-`, e.g. `Labeled Icon` => `labeled-icon`. */

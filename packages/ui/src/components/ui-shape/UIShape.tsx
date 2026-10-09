@@ -277,12 +277,12 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
       const onEnd = (event: TransitionEvent) => {
         if (event.target === box) done()
       }
-      const timer = setTimeout(done, wait + FAIL_SAFE)
+      const timer = E.after((wait + FAIL_SAFE) / 1000, done)
       box.addEventListener("transitionend", onEnd)
 
       /** Stop waiting:  the timer and the listener go, and the flip goes on. */
       function done() {
-        clearTimeout(timer)
+        timer.cancel()
         box.removeEventListener("transitionend", onEnd)
         resolve()
       }

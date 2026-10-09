@@ -276,7 +276,7 @@ export class UIDocsApi extends E.UIComponent<DocsApiVocabulary> {
     if (!header) return
     const elements = [...root.querySelectorAll("*")].filter((element) => "ready" in element)
     await Promise.all(elements.map((element) => (element as Element & { ready: Promise<void> }).ready))
-    requestAnimationFrame(() => (header.getClientRects().length ? header : header.parentElement)?.scrollIntoView())
+    E.beforeNextPaint(() => (header.getClientRects().length ? header : header.parentElement)?.scrollIntoView())
   }
 
   /**

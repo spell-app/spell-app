@@ -241,7 +241,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
         for (const type of CHANGE_EVENTS) domElement.addEventListener(type, this.onChange)
         domElement.addEventListener("focusout", this.onFocusOut)
         window.addEventListener("beforeunload", this.onBeforeUnload)
-        queueMicrotask(() => this.saveValues())
+        E.afterSolidUpdate(() => this.saveValues())
         return () => {
           this.nativeForm = undefined
           observer.disconnect()
@@ -379,7 +379,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     }
     this.fieldsShowingErrors.clear()
     this.lastCheckFailed = false
-    queueMicrotask(() => this.saveValues())
+    E.afterSolidUpdate(() => this.saveValues())
   }
 
   /** The `rules` property, as an object;  fresh, so a `validate()` right after `el.rules = …` sees the new rules. */
@@ -392,7 +392,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   private checkFieldSoon(identifier: string) {
     if (this.fieldsAwaitingCheck.has(identifier)) return
     this.fieldsAwaitingCheck.add(identifier)
-    setTimeout(() => {
+    E.soon(() => {
       this.fieldsAwaitingCheck.delete(identifier)
       this.checkField(identifier)
     })
@@ -425,7 +425,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
 
   /** Native reset:  prompts go once the controls have reset. */
   private readonly onReset = () => {
-    queueMicrotask(() => this.clearErrors())
+    E.afterSolidUpdate(() => this.clearErrors())
   }
 
   /** A control changed:  validate it for `validate-on="change"`, or while it shows an error. */

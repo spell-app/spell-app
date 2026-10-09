@@ -11,7 +11,10 @@
  * - NOTE: no namespace of its own:  `core.ts` re-exports it, so component files and the element core use it as
  *   `E.proto`, `E.Warnings` ... (`AGENTS.md`, "Solid authoring").  Only what sits BELOW `core` -- `$/ui/vocabulary`,
  *   `$/ui/icons`, the runtime, types files -- imports it by name, e.g. `import { proto, suggest } from "$/ui/util"`.
- * - Package-specific:  `Warnings` (`ui`'s console warnings).
+ * - Package-specific:
+ *   - `timing.ts` -- run a function later:
+ *     `afterSolidUpdate()`, `beforeNextPaint()`, `soon()`, `after()`, `every()`
+ *   - `Warnings` -- `ui`'s console warnings
  */
 
 export * from "$/util/class"
@@ -20,4 +23,5 @@ export * from "$/util/dom"
 export * from "$/util/string"
 export * from "$/util/util.types"
 
+export * from "./timing"
 export * from "./Warnings"
