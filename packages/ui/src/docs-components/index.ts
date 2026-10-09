@@ -10,6 +10,8 @@
  *     `site/_data/components.json` (`SiteData`;  its shape is `docs-components.types.ts`)
  *   - `<ui-docs-search>` -- the site search (in the nav's header band):  the page shown's sections, components,
  *     attributes and every page's sections (`site/_data/search.json`, its own `SearchData`)
+ *   - `<ui-docs-inspector for>` -- a live view of another element's attributes, properties and `:state()`s
+ *     (the custom elements guide, `guides/custom-elements/`, loads it in its own script)
  * - NOT components:  `ComponentDefinitions.all`, the component list and the lib build's entries leave them out
  *   (`ComponentDefinitions.docs` lists them);  every vocabulary's topics include `documentation`.
  * - `<ui-root>` KNOWS them:  `yarn gen:root` puts their tags in its catalog, and `RootLoader` imports a family from

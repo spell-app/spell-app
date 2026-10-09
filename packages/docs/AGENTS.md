@@ -339,6 +339,15 @@ In `tools/`:
   `../spell-app-dev`, where there's no `node_modules` and no `$/` aliases.  To re-measure, copy one into the repo
   (under `packages/docs`, whose `tsconfig.json` extends `tsconfig.base.json`) and run it there.
 - Tables quote medians of several runs, never a single run.  Keep the scripts:  they re-measure on upgrades.
+- A guide's own LIVE elements (the custom elements guide's `<ui-counter>`):  their TypeScript source in its
+  `experiments/`, with an entry file, built by `tools/bundle-experiment.ts` into ONE classic script beside it, which
+  the page loads right after `spell-ui.js`.
+  - Built as a component pack is (Vite on Spell UI's `baseConfig()`, Solid and `$/ui/core` from the page's
+    `SpellUI.packModules`), so the elements extend the page's own Spell UI.
+  - It may import Spell UI's doc-only families (`$/ui/docs-components/<family>`), from the checkout's source:
+    `spell-ui.js` is built from `ui`'s `dist/`, which has none.
+  - Rebuild it after editing the elements, or when a doc-only family it imports changes;  the script is shared
+    content too, so the last checkout to build it wins.
 
 ## Links
 
@@ -374,6 +383,8 @@ In this order, from `packages/docs`:
     (epic `claude-design`, P8), from `_assets/spell-ui.design.entry.js`:  no page runtime, site header or saver;
     the engines and every Font Awesome Free icon inlined;  `<!--` / `</script` escaped;  fails over 6 MB.  Default
     out:  `packages/ui/build/design-system/project/components/`.
+- `yarn tsx tools/bundle-experiment.ts <entry.ts> [<out.js>]` -- a guide's live elements as one classic script
+  (see "Experiments");  default out:  `<name>.bundle.js` beside `<name>.entry.ts`.
 - `tools/check-design-bundle.js [bundle.js] [outDir]` (`yarn design:check`) -- Playwright:  the design bundle
   inlined into an `about:srcdoc` frame (icons, code colours, markdown, no errors), then a board under Claude
   Design's own runtime (`tools/vendor/claude-design/dc-runtime.js`, copied from claude.ai) whose `<ui-button
