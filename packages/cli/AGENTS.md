@@ -44,10 +44,12 @@ house style every package shares.  Only what's local is below;  a section named 
   - `spell dev` starts LEAN:  `bin/spell.mjs` runs `src/devMain.ts`, which loads commander and `devProgram.ts` (the
     `dev` tree), never the `$/cli` barrel, which loads spell (~0.5s).  A `dev` command that needs the barrel
     (`session`, `stock` ...) hands over to `main.ts`.
-  - A pass-through (`plan-doc`, `goals`, `docs`, `details`, `server`, `window`, `vscode`) is `(args) =>
+  - A pass-through (`goals`, `docs`, `details`, `server`, `window`, `vscode`) is `(args) =>
     Promise<exitCode>`, importing what it needs DIRECTLY (`$/cli/dev/passThrough`, `$/cli/cli.types`,
     `$/cli/findCheckout`):  importing `$/cli` there would load spell into every `spell dev` call.
     `TOOLS` in `src/dev/passThrough.ts` says how each tool runs:  a child `node`, under `tsx` when it needs aliases.
+  - `plan-doc` is lean, but no pass-through:  it runs the plan-doc tool IN this process
+    (`src/commands/planDocCommand.ts`, loading `$/epics/tool/PlanDocCommands` on first use;  epic `epic-components`).
   - `pack` is lean too, though it's ours, not a pass-through:  `(args, options) => Promise<exitCode>`
     (`src/commands/packCommand.ts`), on `src/dev/packNew.ts` / `packBuild.ts`, which import no barrel.
 - `templates/` -- files commands write from, `*.template` with `__token__`s:  `templates/pack/` (`spell dev pack new`

@@ -227,7 +227,8 @@ Every command takes one or more projects (a lone spell file counts as a one-file
   A half-finished change there breaks `spell`, and `yarn ts` here reports their type errors too.
 - **Startup takes about half a second:**  `tsx` compiles their source on each run, and caches it.
   `spell dev ...` starts in about a fifth of that:  `bin/spell.mjs` runs `src/devMain.ts`, which loads no spell, then
-  the tool as a child `node` (`spell dev plan-doc summary` ~0.35s, `spell dev window which` ~0.17s).  Its commands
+  the tool as a child `node` (`spell dev window which` ~0.17s), or `plan-doc`'s in the same process
+  (`spell dev plan-doc summary` ~0.3s).  Its commands
   that need spell (`session`, `stock` ...) take the usual half second.
 - **Ink is pinned at 5,** from when this lived in the parser, whose app is on React 18:  6+ needs React 19.
   This repo has its own React, so it's free to move.
