@@ -45,7 +45,7 @@ The shared folders (constants in `tools/pages.js`:  `PAGES`, `GUIDES`, `EPICS`, 
   - `<name>.html` before 2026-10-04:  the tools find either (`tools/pages.js` `planDocIn()`),
     a worktree cut before keeps the old name until it merges `main`, and the page server redirects the old URL;
     `tools/plan-rename.js` did the rename.
-  - a SPLIT doc's bodies:  `epics/<name>/parts/<id>.html` (`.htm` before the switch, P12 of `epic-components`),
+  - a SPLIT doc's bodies:  `epics/<name>/parts/<id>.html` (`.htm` before Q12 of `epic-components`, read no more),
     loaded by the page when opened (see "Plan docs");  every page walker skips `parts/` folders (`findPages()`,
     `relocate.js`, `spell static`), so a part is never taken for a page
 - `pages/details/<slug>.html` -- DETAILS PAGES:  a question Claude explains and Owen answers on the page

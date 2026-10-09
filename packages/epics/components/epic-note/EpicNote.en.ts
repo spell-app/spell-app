@@ -40,11 +40,12 @@ export const epicNoteVocabulary = {
   slots: [{ name: "", description: "The note." }],
   parts: [
     { name: "base", description: "The card:  orange (`update`) or green (`done`)." },
-    { name: "header", description: "Its heading:  the label, then the title." },
+    { name: "header", description: "Its heading:  the fold chevron, the label, then the title;  a click folds it." },
+    { name: "toggle", description: "The fold chevron, a `<button>`, first in the heading;  only with a body." },
     { name: "label", description: "`UPDATE` or `DONE`." },
-    { name: "body", description: "The note;  not drawn when empty." }
+    { name: "body", description: "The note;  not drawn when empty;  hidden (`until-found`) while folded." }
   ],
-  states: [],
+  states: [{ name: "open", description: "Unfolded:  it starts so (page state, never written)." }],
   texts: [
     { key: "update", text: "UPDATE", description: "The label of an `update` note." },
     { key: "done", text: "DONE", description: "The label of a `done` note." }

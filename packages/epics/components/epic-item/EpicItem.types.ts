@@ -27,8 +27,15 @@ export type ItemState = (typeof ITEM_STATES)[number]
  */
 export const CALM_ID = /^[ij]\d+$/
 
-/** Statuses that close an item:  without a `state`, its chip is `old` (grey), as the old runtime's `stateOf()`. */
+/** Statuses that close an item:  a closed one's Choose pills show only while it's revisited (`<epic-option>`). */
 export const CLOSED_STATUSES = ["decided", "done", "canceled"] as const
+
+/**
+ * An item's state when it has no `state` (the tool writes one on every edit), by its status:  decided or done
+ * `recent` (green, however old), canceled `old` (grey:  no longer relevant), anything else `open`
+ * (`PlanReader.itemState()`, Owen, 2026-10-08):  `STATUS_STATES[status] ?? "open"`.
+ */
+export const STATUS_STATES: Readonly<Record<string, ItemState>> = { decided: "recent", done: "recent", canceled: "old" }
 
 /** `state`'s text key, for the id chip's tooltip. */
 export const STATE_TIP_KEYS = {
@@ -121,13 +128,15 @@ export const COMMITS_PROPERTY = "--epic-commits-display"
 export type ReviewColor = "green" | "blue"
 
 /**
- * How far a review button's mark has got:  its FILL (decision Q20), on every button, pill and chip with a lifecycle.
- * - `none`:  a grey outline, available
+ * How far a review button's mark has got:  its FILL (decision Q20), the review buttons being Owen's INPUT (Owen,
+ * 2026-10-08).
+ * - `none`:  a grey outline, available;  also once Claude has handled the mark:  the buttons CLEAR, and the id chip
+ *   shows the result (green decided, yellow open, red needs Owen)
  * - `dashed`:  dashed in its colour:  Owen pressed it, not committed (not sent;  a Do Now not taken yet)
  * - `outline`:  outlined in its colour:  recorded (sent;  a Do Now taken), not done yet, or in progress
- * - `solid`:  filled in its colour:  done (applied, answered, filed:  the item's `review-as`)
+ * - never solid:  solid is the chips' (and the Choose pill's, once applied)
  */
-export type ReviewFill = "none" | "dashed" | "outline" | "solid"
+export type ReviewFill = "none" | "dashed" | "outline"
 
 /**
  * Owen's mark on an item, as its id chip wears it (Owen, 2026-10-08:  the chip matches the chosen button):
@@ -135,7 +144,7 @@ export type ReviewFill = "none" | "dashed" | "outline" | "solid"
  */
 export type ChipMark = {
   color: ReviewColor
-  fill: Exclude<ReviewFill, "none" | "solid">
+  fill: Exclude<ReviewFill, "none">
   /** the chosen button's name (`approve`), or a pick's letter */
   label: ReviewButtonSpec["label"] | { pick: string }
 }
@@ -242,7 +251,6 @@ export const REVIEW_TEXTS = [
   { key: "callOff", text: "{label}:  click to call it off", description: "A spinning button's tooltip." },
   { key: "chosenSent", text: "sent · click to clear", description: "A chosen button, its mark sent." },
   { key: "chosenUnsent", text: "not sent yet · click to clear", description: "A chosen button, its mark not sent." },
-  { key: "doneBefore", text: "done", description: "How Claude handled an earlier mark (`review-as`):  done." },
   { key: "pickedSent", text: "Picked {letter} · sent", description: "The pick's letter, sent." },
   { key: "pickedUnsent", text: "Picked {letter} · not sent yet", description: "The pick's letter, not sent." },
   { key: "noteDraft", text: "Your note, not sent yet (saved):  {note}", description: "The note bubble:  a draft." },

@@ -12,6 +12,7 @@ import {
   NEW_KIND_LOOKS,
   OVERVIEW_BUTTONS,
   STATUS_SLOT,
+  STATUS_STATES,
   type NewTextKey,
   type ReviewTextKey
 } from "$/epics/components/epic-item/EpicItem.types"
@@ -92,7 +93,7 @@ import sectionCSS from "./EpicSection.css?inline"
  ****************/
 export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   @E.proto static vocabulary = epicSectionVocabulary
-  @E.proto static styleSheets = { "epic-fold": foldCSS, "epic-section": sectionCSS, review: reviewCSS }
+  @E.proto static styleSheets = { "epic-fold": foldCSS, "epic-section": sectionCSS, "epic-review": reviewCSS }
 
   ////////////////
   // ## State
@@ -675,14 +676,14 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   }
 
   /**
-   * An item's state, as its id chip reads it (`<epic-item>`'s `itemState`):  `state` when it's one of ours, else
-   * `old` once closed, `open` before.
+   * An item's state, as its id chip reads it (`<epic-item>`'s `itemState`):  `state` when it's one of ours, else by
+   * its status (`STATUS_STATES`:  decided or done `recent`, canceled `old`, else `open`).
    */
   private static stateOf(item: Element): ItemStateName {
     const state = item.getAttribute("state")
     const known = FILTER_STATES.find((it) => it.state === state)
     if (known) return known.state
-    return (CLOSED_STATUSES as readonly string[]).includes(item.getAttribute("status") ?? "") ? "old" : "open"
+    return STATUS_STATES[item.getAttribute("status") ?? ""] ?? "open"
   }
 
   /** The Phases toggles as last left on this page;  none without storage. */

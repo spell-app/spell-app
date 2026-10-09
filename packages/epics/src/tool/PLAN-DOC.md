@@ -53,7 +53,8 @@ this file holds the rest.
   - `branch`, `worktree`:  none for a future epic (`new --future`);
     `new` on a future epic's doc, or its first phase, plans it (`future` goes)
   - `started`, `updated`:  `YYYY-MM-DD`;  every edit stamps `updated`
-  - `recent-since`:  the commit time of `HEAD~2` in the doc's checkout (D2):  items changed since are `recent`
+  - `recent-since`:  the commit time of `HEAD~2` in the doc's checkout (D2);  since 2026-10-08 it colours nothing
+    (a decided item stays green however old), kept until it's dropped (`PlanReader.recentSince`)
   - `bedtime="P3-P6"`:  a `/bedtime` run is on (`bedtime <name> start | done`)
   - `repo`:  the GitHub page every `<epic-commit sha>` links through (`commit`, `commits --backfill`)
 - Sections are fixed:  each `kind` once, in that order, with its id (`questions` keeps `#decisions`).
@@ -154,19 +155,24 @@ As `plan-doc.md`, "Ids":
     | `state`     | colour | when                                                                               |
     | ----------- | ------ | ---------------------------------------------------------------------------------- |
     | `progress`  | blue   | Claude is working on it:  an underway status card, or `working`                    |
-    | `recent`    | green  | closed, and changed since `recent-since` or during a `/bedtime` run                |
-    | `old`       | grey   | closed earlier                                                                     |
+    | `old`       | grey   | canceled:  no longer relevant (made moot, struck through)                          |
+    | `recent`    | green  | decided or done (`decided`, `done`, an old `d7`), however long ago                 |
     | `open`      | yellow | work a review queued (`queued`), not started                                       |
     | `attention` | red    | an open question;  an open judgement call or issue not reviewed, unless `calm`     |
-    | `recent`    | green  | open, reviewed lately or touched by a `/bedtime` run                               |
-    | `open`      | yellow | anything else open:  still undecided, not urgent                                   |
+    | `recent`    | green  | open, settled by a review:  `review-as` `approve` or `todo` (`SETTLED_AS`)         |
+    | `open`      | yellow | anything else open:  still undecided, not urgent;  a revisit or Do Now answered    |
+
+    Green across the board for what's decided, grey only for what no longer matters (Owen, 2026-10-08);  a
+    `/bedtime` run and `recent-since` no longer colour anything.
 
   - `changed`:  ISO local time with offset, every command that changes its status or review marks;
     `bedtime` while a `/bedtime` run is on, until reviewed
   - `phase`:  the phase active when it was added
   - review marks:  `reviewed`, `deferred`, `queued` (`YYYY-MM-DD`), `work`, `working`, and `review-as`:
-    how Owen's mark was handled, its button drawn solid
+    how Owen's mark was handled
     (`approve`, `todo`, `revisit`, `now` -- a Do Now request done, written by `inbox done`)
+    - `review-as` is the record (the log, `review` outcomes, the state above), never drawn on the buttons:
+      once Claude has handled a mark they clear, and the chip shows the result
 - Options:  `<epic-choices>` of `<epic-option letter title recommended>`, the same open or answered.
   - `chosen` once answered (`decide --option B`, a pick);  mark ONE `recommended`
   - on ANY item kind (P14):  a question's own after its text,
@@ -183,9 +189,12 @@ As `plan-doc.md`, "Ids":
   turns them into elements on the way in, so a doc never holds them:
   - an option grid (`ui-grid.spell-pros-cons`, labels `A · Title (recommended)`, wherever it sits) -> `<epic-choices>`
   - a `div.plan-reply` -> `<epic-reply>`
-  - a `Net effect` paragraph and its list, a `ui-accordion.spell-code` / `.spell-aside`, a `ui-message.plan-update`
-    -> the prose elements below (`$/epics/markup` `ProseRewrite`)
+  - a `Net effect` paragraph and its list, a `ui-accordion.spell-code` / `.spell-aside`, a `ui-message.plan-update`,
+    a labelled block (`<b>Where:</b>`) -> the prose elements below
+    (`ProseRewrite`, by the converter's own rules, `ProseShapes`)
   - never inside code or an Original Discussion
+  - a shape those rules can't read for sure stays prose:  a Net effect worded otherwise,
+    a code accordion holding a `<ui-code>` or two blocks, a note headed `DEFERRED`
 - A rewrite (`details --file`, `decide` again, `details --more` again) never drops text:
   what it replaces moves into `<epic-original>`, one `<epic-version>` per version
   (the first undated, the rest `as-of` when replaced).
@@ -233,7 +242,7 @@ it goes wherever prose goes (an item's text, a reply, an option card, a phase fi
 | `<epic-prompt>`               | `<epic-prompt><p>the prompt, as typed</p></epic-prompt>`:  folded under `Kickoff prompt`, once in the Overview |
 | `<epic-code>`                 | `<epic-code title="design.ts · 12 lines" language="ts"><pre>...</pre></epic-code>`:  folded, highlighted, ONE `<pre>` of text (`&lt;` for a `<`);  `open` to start open |
 | `<epic-aside>`                | `<epic-aside title="why not now"><p>...</p></epic-aside>`:  folded, headed `Aside:  why not now` |
-| `<epic-note>`                 | `<epic-note state="update" title="partly fixed by J9"><p>...</p></epic-note>`:  a small orange `UPDATE` (or green `DONE`, `state="done"`) note that stays;  not `<epic-update>`, a phase's marker |
+| `<epic-note>`                 | `<epic-note state="update" title="partly fixed by J9"><p>...</p></epic-note>`:  a small orange `UPDATE` (or green `DONE`, `state="done"`) note that stays, folding by its heading;  not `<epic-update>`, a phase's marker |
 | `<epic-choices>`              | as in "Items":  option cards, on any item kind                                            |
 | `<epic-field label>`          | `<epic-field label="Where"><p>the inbox file</p></epic-field>`:  a labelled block, `Where:` before its prose (`What should happen`, `Step`);  a phase's fields have `name` instead |
 | `<epic-section kind="report">` | `<epic-section id="overnight" kind="report" title="Overnight · 2026-10-04">...</epic-section>`:  a run's report, after the Overview (`The page`) |
@@ -286,24 +295,38 @@ Drawn, never written:  one meaning per colour on every element (decision Q20, Ow
 | red    | needs Owen                               | `attention` chips;  the rail's count (only what needs him)             |
 | yellow | open, still undecided (DARK text on it)  | `open` chips;  a `to do` review label                                  |
 | blue   | do it now, or Claude is working on it    | `progress` chips;  Revisit, Do Now, Send, Review Now;  Underway cards;  the active phase |
-| green  | decided or done                          | Approve, Make Todo, a pick, the chosen option;  Done cards;  DONE      |
+| green  | decided or done (however long ago)       | `recent` chips;  Approve, Make Todo, a pick, the chosen option;  Done cards;  DONE |
 | orange | changed since Owen looked, or a warning  | UPDATE, the Updated fence, Plan changes;  "nobody is listening";  a blocked agent |
 | violet | Claude's voice                           | his reply cards;  the bedtime label                                    |
 | ivory  | Owen's voice                             | his note box, marked note, reply cards, the answer card                |
-| grey   | older, inactive, not chosen              | `old` chips;  a phase to do;  FUTURE;  "(recommended)" (text only)     |
+| grey   | no longer relevant, inactive, not chosen | `old` chips (canceled);  a phase to do;  FUTURE;  buttons at rest      |
 
 The FILL, on every button, pill and chip with a lifecycle (review buttons, the note box's, the pick's letter, the
-Choose pill and its card, Send):
+Choose pill and its card, Send).  The review buttons are Owen's INPUT (Owen, 2026-10-08):
 
 - a grey outline:  available
 - DASHED in its colour:  Owen pressed it, not committed (not sent;  a Do Now not taken yet)
-- OUTLINED in its colour:  recorded (sent;  a Do Now taken, its icon turning while Claude is on it), not done yet
-- SOLID:  done (applied, answered, filed:  `review-as`;  the step label's DONE;  a Choose pill on its set's `chosen`
-  option, wherever the cards are)
+- OUTLINED in its colour:  recorded (sent), or in progress (a Do Now taken, its icon turning while Claude is on it)
+- then CLEARED:  once Claude has handled the mark (`inbox apply` / `done`, the inbox's mark gone), every review
+  button is a grey outline again;  the id chip carries the result (green decided, yellow still open, red needs Owen)
+- SOLID only on chips (an item's state), the step label's DONE, and a Choose pill on its set's `chosen` option
+  (applied, wherever the cards are)
 
 An item's id chip MATCHES the chosen review button while Owen's mark is live (Owen, 2026-10-08):
 that button's colour and fill (an Approve pressed, not sent:  a dashed green chip;  a revisit sent:
-an outlined blue one;  a pick:  green).  No mark, or one Claude handled (`review-as`):  its state's colour, solid.
+an outlined blue one;  a pick:  green).
+No mark, or one Claude handled:  its state's colour, solid -- the result
+(an approved J9 green, a revisited J10 still open, yellow).
+
+## Folding
+
+EVERYTHING boxed in a section folds (Owen, 2026-10-08):  every card with a heading band folds from it, the chevron
+first -- a reply (Owen's and Claude's), the answer, a status card, an `<epic-note>`, an `<epic-update>` note, an
+`<epic-updated>` fence, an open question's option card -- as More Details, Choices, an aside, a code block, Original
+Discussion, Plan changes and Agents running already did.
+- Open to start with (the text being read;  an item and an aside start folded);  page state, never written
+- folded content is `hidden="until-found"`, so find-in-page reveals it
+- a click anywhere on the band folds, but on a link or a control in it (`Fold.heading`, `<FoldButton>`)
 
 The review buttons, at every step:  Approve, Revisit, Make Todo in one group, then Do Now apart
 (paper plane:  the inbox's `details` request, or a revisit now when the note box holds a note).
@@ -321,8 +344,8 @@ an Overview sub-section, a phase, an item with details, the log.
   in the skeleton it carries `source="parts/<id>.html"`, `part-ids` and `commits`.
 - No placeholder line:  the element loads its own body.
 - `.html`, not `.htm` (Q12):  a part is told from a page by its folder, and every page walker skips `parts/`.
-  The tool still READS an old doc's `.htm` parts (`PlanParts` `OLD_PART_EXT`, to be dropped now the docs are
-  converted);  it writes `.html` only.
+  The tool reads and writes `.html` only
+  (an old doc's `.htm` parts, read until every doc was converted, no more since P15).
 
 ## Checking
 

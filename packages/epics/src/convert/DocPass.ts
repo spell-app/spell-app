@@ -10,7 +10,7 @@ import { ConvertError } from "./convert.types"
 
 /****************
  * ### `DocPass`
- * One pass over ONE plan doc, IN PLACE:  what both passes share -- the first (`Converter`, today's markup =>
+ * One pass over ONE plan doc, IN PLACE:  what both passes share -- the first (`Converter`, the old markup =>
  * `<epic-*>`) and the second (`Upgrader`, a converted doc => P14's elements).
  * - holds the doc twice, assembled:  `before`, as it was (the proof's), and `document`, the working copy made over
  * - makes every `<epic-*>` element through `Markup` (`element()`):  the definitions check each attribute

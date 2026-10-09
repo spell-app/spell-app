@@ -35,7 +35,7 @@ import phaseCSS from "./EpicPhase.css?inline"
  ****************/
 export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
   @E.proto static vocabulary = epicPhaseVocabulary
-  @E.proto static styleSheets = { "epic-fold": foldCSS, "epic-phase": phaseCSS, review: reviewCSS }
+  @E.proto static styleSheets = { "epic-fold": foldCSS, "epic-phase": phaseCSS, "epic-review": reviewCSS }
 
   /** Its status, as drawn:  `todo` for anything unknown. */
   get shownStatus(): PhaseStatus {

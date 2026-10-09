@@ -130,8 +130,8 @@ export function planDoc(files: SRV.StaticHandler, page: unknown): string {
 
 /**
  * `id` from a request, as the inbox keys it (lower-case);  400 unless plan doc `file` has it:
- * an item, an Overview sub-section (`o3`, Q14), a phase (`p3`) or the summary (`summary`:  epic `airplane` P2);
- * either markup until the switch (`ReviewInbox.itemIds()`).
+ * an item, an Overview sub-section (`o3`, Q14), a phase (`p3`) or the summary (`summary`:  epic `airplane` P2)
+ * (`ReviewInbox.itemIds()`).
  * - reads the doc each time:  an item added a moment ago (Claude, `plan-doc add`) is markable at once
  */
 function itemOf(file: string, id: unknown): string {

@@ -57,7 +57,7 @@ export const epicItemVocabulary = {
       description:
         "Its id chip's colour, written by the script on every edit:  `attention` (red:  needs Owen), `progress` " +
         "(blue:  Claude is working on it), `open` (yellow:  still undecided, or queued work), `recent` (green:  " +
-        "closed or reviewed lately), `old` (grey)."
+        "decided or done, however long ago), `old` (grey:  no longer relevant, canceled)."
     },
     {
       name: "changed",
@@ -77,7 +77,8 @@ export const epicItemVocabulary = {
       kind: "enum",
       values: ["approve", "todo", "revisit", "now"],
       description:
-        "How Owen's review mark was handled (`now`:  a Do Now request, done):  that button is drawn solid, done."
+        "How Owen's review mark was handled (`now`:  a Do Now request, done):  the record, not drawn on the " +
+        "buttons (they clear once handled);  `approve` or `todo` on an open item make it `recent` (green)."
     },
     {
       name: "deferred",
@@ -96,7 +97,7 @@ export const epicItemVocabulary = {
     {
       name: "bedtime",
       kind: "boolean",
-      description: "Changed during a `/bedtime` run:  `recent` until reviewed."
+      description: "Changed during a `/bedtime` run, until reviewed (it no longer colours the chip)."
     },
     {
       name: "overnight",
@@ -230,8 +231,8 @@ export const epicItemVocabulary = {
     { key: "stateAttention", text: "Needs attention", description: "Id chip tooltip, `state=attention`." },
     { key: "stateProgress", text: "Claude is working on it", description: "Id chip tooltip, `state=progress`." },
     { key: "stateOpen", text: "Open, still undecided", description: "Id chip tooltip, `state=open`." },
-    { key: "stateRecent", text: "Decided or reviewed recently", description: "Id chip tooltip, `state=recent`." },
-    { key: "stateOld", text: "Decided or reviewed earlier", description: "Id chip tooltip, `state=old`." },
+    { key: "stateRecent", text: "Decided or done", description: "Id chip tooltip, `state=recent`." },
+    { key: "stateOld", text: "No longer relevant", description: "Id chip tooltip, `state=old`." },
     { key: "tipTodo", text: "to do:  {work}", description: "Id chip and review label tooltip:  the queued work." },
     { key: "tipReviewed", text: "reviewed {date}", description: "Id chip tooltip:  reviewed." },
     { key: "tipDeferred", text: "deferred {date}", description: "Id chip and review label tooltip:  deferred." },

@@ -42,7 +42,12 @@ export const epicOptionVocabulary = {
   parts: [
     { name: "base", description: "The card;  answered, a panel." },
     { name: "header", description: "Its header:  letter, title, the recommended thumbs-up, the Choose pill." },
-    { name: "toggle", description: "Answered:  the `<button>` that folds the panel (its header's text)." },
+    {
+      name: "toggle",
+      description:
+        "The `<button>` that folds the card or panel (its header's text, the chevron first);  a card with no pros " +
+        "and cons:  a plain span."
+    },
     { name: "check", description: "Answered and chosen:  the check before its letter." },
     { name: "title", description: "`A · A named palette`." },
     {
@@ -56,12 +61,15 @@ export const epicOptionVocabulary = {
         "The Choose pill (`<button aria-pressed>`):  marks its letter as the item's pick in the page's review inbox;  " +
         "on the chosen option, solid and `aria-disabled`:  the pick applied."
     },
-    { name: "body", description: "Its pros and cons;  answered, hidden while folded." }
+    { name: "body", description: "Its pros and cons;  hidden (`until-found`) while folded." }
   ],
   states: [
     { name: "answered", description: "Its question is answered:  a panel under Choices." },
     { name: "chosen", description: "Its `letter` is its `<epic-choices chosen>`." },
-    { name: "open", description: "Answered, and unfolded (the chosen one starts so)." },
+    {
+      name: "open",
+      description: "Unfolded:  a card starts so;  an answered panel only when it's the chosen one (page state)."
+    },
     {
       name: "picked",
       description:

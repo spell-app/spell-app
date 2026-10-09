@@ -101,19 +101,20 @@ export class ReviewState {
 
   /**
    * How far `action`'s mark has got:  its review button's FILL (decision Q20).
-   * - Do Now (`details`):  dashed while its request waits to be taken, outlined while Claude is on it,
-   *   solid once done (`appliedAs` `now`)
-   * - the rest:  their mark dashed until sent, then outlined;
-   *   solid once Claude handled it (`appliedAs`:  the element's `review-as`), until a new mark
+   * The buttons are Owen's INPUT (Owen, 2026-10-08):  once Claude has handled a mark, it's gone from the inbox and
+   * every button CLEARS (`none`);  the id chip shows the result.
+   * The element's `review-as` stays as the record, never drawn here.
+   * - Do Now (`details`):  dashed while its request waits to be taken, outlined while Claude is on it
+   * - the rest:  their mark dashed until sent, then outlined
    */
-  readonly fillOf = (action: ReviewAction, appliedAs?: string): ReviewFill => {
-    const mark = this.mark()
+  readonly fillOf = (action: ReviewAction): ReviewFill => {
     if (action === "details") {
-      if (this.busyButton() === action) return this.workedOn() ? "outline" : "dashed"
-      return !mark && appliedAs === "now" ? "solid" : "none"
+      if (this.busyButton() !== action) return "none"
+      return this.workedOn() ? "outline" : "dashed"
     }
-    if (mark?.action === action && !isImmediate(mark)) return this.isSent() ? "outline" : "dashed"
-    return !mark && appliedAs === action ? "solid" : "none"
+    const mark = this.mark()
+    if (mark?.action !== action || isImmediate(mark)) return "none"
+    return this.isSent() ? "outline" : "dashed"
   }
 
   /** Its id, as the inbox keys it. */

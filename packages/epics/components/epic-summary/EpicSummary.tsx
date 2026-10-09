@@ -27,7 +27,7 @@ import summaryCSS from "./EpicSummary.css?inline"
  ****************/
 export class EpicSummary extends E.UIComponent<typeof epicSummaryVocabulary> {
   @E.proto static vocabulary = epicSummaryVocabulary
-  @E.proto static styleSheets = { "epic-summary": summaryCSS, review: reviewCSS }
+  @E.proto static styleSheets = { "epic-summary": summaryCSS, "epic-review": reviewCSS }
 
   /** Its view of the review inbox, keyed `summary`. */
   readonly reviewState = new ReviewState(() => SUMMARY_ID)
