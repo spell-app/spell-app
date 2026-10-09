@@ -20,6 +20,8 @@
  *   - `extension`:  the installed VS Code extension has "Review:  Open Epic..." (built from a `main` with this
  *     epic);  else run `spell dev vscode` from `main`
  *   - `waiting`:  marks already waiting in the epics' inboxes, from before the flight:  a note, never a failure
+ * - `inbox [--since <iso>] [--json]`:  everything Owen left, by place (`AirplaneInbox`):  what `/airplane land`
+ *   works through.  `--since`:  when the flight began;  default the switch's `since`, while it's on
  * - Which checkout:  the one this file is in, which `spell dev` picks from the current folder (`runTool()`)
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"
@@ -31,6 +33,7 @@ import { SRV } from "$/server"
 import { AirplaneMode } from "$/server/page/AirplaneMode"
 import { PageServer } from "$/server/page/PageServer"
 
+import { AirplaneInbox } from "./AirplaneInbox.ts"
 import { DOCS_FOLDERS, HIGHLIGHT, Offline } from "./offline.ts"
 import { ROOT, parseArgs } from "./pages.js"
 
@@ -164,8 +167,18 @@ export async function run([verb = "status"]: string[], flags: Record<string, str
       else for (const check of checks) console.log(`${check.status.padEnd(6)}${check.name.padEnd(16)}${check.detail}`)
       return checks.some((check) => check.status === "fail") ? 1 : 0
     }
+    case "inbox": {
+      const since = typeof flags.since === "string" ? flags.since : AirplaneMode.read()?.since
+      const inbox = AirplaneInbox.gather(ROOT, { since })
+      if (json) console.log(JSON.stringify(inbox, null, 2))
+      else if (inbox.isEmpty) console.log("nothing waiting")
+      else for (const line of inbox.lines) console.log(line)
+      return 0
+    }
     default:
-      console.error("usage:  spell dev airplane on | off | status [--json] | check [--fix] [--json]")
+      console.error(
+        "usage:  spell dev airplane on | off | status [--json] | check [--fix] [--json] | inbox [--since <iso>] [--json]"
+      )
       return 2
   }
 }
