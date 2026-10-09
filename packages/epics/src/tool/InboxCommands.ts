@@ -62,6 +62,8 @@ export class InboxCommands {
       case "wait":
         return this.waitForWork(name, file, flags)
       case "apply":
+        // `--all`:  sent or not, as if Owen had pressed Send first (`/airplane land`:  nobody to send to, on a plane)
+        if (flags.all) ReviewInbox.update(path, (box) => box.markSent())
         return this.apply(name, file, args)
       case "working": {
         const id = ReviewInbox.toItemId(this.owner.need(args[0], "an item id"))
@@ -331,6 +333,8 @@ export class InboxCommands {
    * - marks cleared under the inbox's lock, only while still the ones applied (`clearApplied()`, `clearUrgency()`);
    *   marks of items gone from the doc are dropped too
    * - `ids` without a sent mark:  named, left alone (unsent marks wait for Owen's send)
+   * - `--all` (`run()`):  every mark sent first, as Send does, then applied (epic `airplane`, Q3:  the landing takes
+   *   what Owen marked on the plane, sent or not)
    */
   private async apply(name: string, file: string, ids: string[]): Promise<void> {
     const path = ReviewInbox.pathFor(file)

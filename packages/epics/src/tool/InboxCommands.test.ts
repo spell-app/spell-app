@@ -130,6 +130,15 @@ test("apply:  a sent todo gets a status card born done, saying what was filed (Q
   expect(plan.findItem("j2")!.querySelector("epic-status")).toBeNull()
 })
 
+test("apply --all:  marks never sent are applied too, as if sent (`/airplane land`)", async () => {
+  ReviewInbox.update(inboxFile, (inbox) => inbox.setMark("j1", { action: "todo" }, T1))
+  await commands().inbox.run("x", file, ["apply"], {})
+  expect(ReviewInbox.read(inboxFile).marks.j1).toBeDefined()
+  await commands().inbox.run("x", file, ["apply"], { all: true })
+  expect(ReviewInbox.read(inboxFile).marks.j1).toBeUndefined()
+  expect(PlanDoc.parse(readFileSync(file, "utf8")).findItem("j1")!.querySelector("epic-status")).not.toBeNull()
+})
+
 test("done:  a Do Now request done is `review-as=now` (its button solid);  a revisit talked over, `revisit`", async () => {
   ReviewInbox.update(inboxFile, (inbox) => {
     inbox.requestNow("j1", "details", "", T1)

@@ -780,10 +780,10 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    requests for now (taken;  their items marked working) and a
                                                    send not yet handed over (its marks by action);  timeout:  exit 2;
                                                    stamps the session's heartbeat every ${LISTEN_HEARTBEAT_MS / 1000}s (silent ${LISTEN_STALE_MS / 1000}s:  gone)
-  inbox <name> apply [ids...]                      apply the sent approve / pick / todo marks, and the sent
+  inbox <name> apply [ids...] [--all]              apply the sent approve / pick / todo marks, and the sent
                                                    urgency (an id chip clicked:  calm or not), to the doc, clear
                                                    them;  prints each, and what it left (revisits, a pick with a
-                                                   revisit:  to talk over)
+                                                   revisit:  to talk over);  --all:  sent or not (/airplane land)
   inbox <name> working <id> on|off                 the page's spinner on an item
   inbox <name> done <id>...                        an agent finished an item:  its mark and spinner go (a mark
                                                    Owen changed meanwhile stays)
