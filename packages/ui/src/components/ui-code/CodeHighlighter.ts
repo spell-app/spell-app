@@ -20,15 +20,12 @@ export class CodeHighlighter {
    */
   static engineLoader: () => Promise<{ CodeEngine: { instance: CodeEngine } }> = () => import("./CodeEngine")
 
-  /** The engine's import, started once per page. */
-  private static engine?: Promise<CodeEngine>
-
   /** `load()`ed `UI.code` languages, by `name/variant`:  page-wide, so each loads once. */
   private static readonly loaded = new Map<string, Promise<Omit<E.CodeLanguage, "load">>>()
 
-  /** highlight.js, loaded on first use. */
-  static load(): Promise<CodeEngine> {
-    return (CodeHighlighter.engine ??= CodeHighlighter.engineLoader().then((module) => module.CodeEngine.instance))
+  /** highlight.js, loaded on first use;  the import starts once per page. */
+  @E.once static load(): Promise<CodeEngine> {
+    return CodeHighlighter.engineLoader().then((module) => module.CodeEngine.instance)
   }
 
   /** `code` as HTML, coloured as `language`, or as its best guess when `language` is absent. */

@@ -1,4 +1,4 @@
-import type { E, UIT } from "$/ui/core"
+import { E, type UIT } from "$/ui/core"
 import { CalendarDates } from "./CalendarDates"
 import type { DatePart, Moment, MomentFields, MomentLike } from "./UICalendar.types"
 
@@ -19,9 +19,6 @@ export class CalendarText {
 
   /** BCP 47 locale. */
   readonly locale: string
-
-  /** Lowercased month names, long then short, index % 12 === month - 1;  built on first `read()`. */
-  private monthNames?: string[]
 
   constructor({ i18n, locale }: CalendarTextProps) {
     this.i18n = i18n
@@ -148,16 +145,20 @@ export class CalendarText {
 
   /** Month (1-12) named in `text`:  a full name or a 3+ letter prefix of one, long or short. */
   private monthByName(text: string): number | undefined {
-    const names = (this.monthNames ??= [
-      ...this.i18n.months("long", this.locale),
-      ...this.i18n.months("short", this.locale)
-    ].map((name) => name.toLocaleLowerCase(this.locale).replace(/\./g, "")))
+    const names = this.monthNames
     for (const word of text.match(WORDS) ?? []) {
       if (word.length < 3) continue
       const index = names.findIndex((name) => name === word || name.startsWith(word))
       if (index >= 0) return (index % 12) + 1
     }
     return undefined
+  }
+
+  /** Lowercased month names, long then short, index % 12 === month - 1;  built on first `read()`. */
+  @E.lazy private get monthNames(): string[] {
+    return [...this.i18n.months("long", this.locale), ...this.i18n.months("short", this.locale)].map((name) =>
+      name.toLocaleLowerCase(this.locale).replace(/\./g, "")
+    )
   }
 
   /** The locale's order of year / month / day in a numeric date, e.g. `month, day, year` for `en-US`. */

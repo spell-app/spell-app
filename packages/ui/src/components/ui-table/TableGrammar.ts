@@ -17,12 +17,6 @@ export class TableGrammar {
   static scroller(value: (name: string) => unknown): string {
     const input: Record<string, unknown> = {}
     for (const name of SCROLLER_ATTRIBUTES) input[name] = value(name)
-    TableGrammar.builder ??= new E.ClassBuilder({
-      ...tableVocabulary,
-      noun: SCROLLER_NOUN,
-      ui: false,
-      attributes: tableVocabulary.attributes.filter(({ name }) => SCROLLER_ATTRIBUTES.includes(name))
-    })
     return TableGrammar.builder.build(input)
   }
 
@@ -52,7 +46,14 @@ export class TableGrammar {
    * Builds scroller classes:  the table vocabulary narrowed to `SCROLLER_ATTRIBUTES`, noun `scroller`, no `ui`.
    * - Static:  one per page, made on first use.
    */
-  private static builder: E.ClassBuilder | undefined
+  @E.lazy private static get builder(): E.ClassBuilder {
+    return new E.ClassBuilder({
+      ...tableVocabulary,
+      noun: SCROLLER_NOUN,
+      ui: false,
+      attributes: tableVocabulary.attributes.filter(({ name }) => SCROLLER_ATTRIBUTES.includes(name))
+    })
+  }
 }
 
 /** Scroller attribute that caps the height and scrolls, head and foot stuck. */
