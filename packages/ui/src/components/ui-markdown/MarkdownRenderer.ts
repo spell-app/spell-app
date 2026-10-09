@@ -1,3 +1,4 @@
+import { E } from "$/ui/core"
 import type { MarkdownEngine } from "./MarkdownEngine"
 import type { MarkdownSanitizer } from "./MarkdownSanitizer"
 import type { MDEngine } from "./MDEngine"
@@ -34,34 +35,24 @@ export class MarkdownRenderer {
   static sanitizerLoader: () => Promise<{ MarkdownSanitizer: { instance: MarkdownSanitizer } }> = () =>
     import("./MarkdownSanitizer")
 
-  /** marked's import (`load()`), started once. */
-  private static engine?: Promise<MarkdownEngine>
-
-  /** Spell's engine's import (`loadMD()`), started once. */
-  private static md?: Promise<MDEngine>
-
-  /** DOMPurify's import (`loadSanitizer()`), started once. */
-  private static sanitizer?: Promise<MarkdownSanitizer>
-
-  /** marked, loaded on first use. */
-  static load(): Promise<MarkdownEngine> {
-    return (MarkdownRenderer.engine ??= MarkdownRenderer.engineLoader().then(
-      (module) => module.MarkdownEngine.instance
-    ))
+  /** marked, loaded on first use;  the import starts once. */
+  @E.once static load(): Promise<MarkdownEngine> {
+    return MarkdownRenderer.engineLoader().then((module) => module.MarkdownEngine.instance)
   }
 
-  /** Spell's engine, loaded on first use, with the families its markup draws with (`mdFamilies()`). */
-  static loadMD(): Promise<MDEngine> {
-    return (MarkdownRenderer.md ??= Promise.all([MarkdownRenderer.mdLoader(), MarkdownRenderer.mdFamilies()]).then(
+  /**
+   * Spell's engine, loaded on first use, with the families its markup draws with (`mdFamilies()`);
+   * the import starts once.
+   */
+  @E.once static loadMD(): Promise<MDEngine> {
+    return Promise.all([MarkdownRenderer.mdLoader(), MarkdownRenderer.mdFamilies()]).then(
       ([module]) => module.MDEngine.instance
-    ))
+    )
   }
 
-  /** DOMPurify, loaded on first use. */
-  static loadSanitizer(): Promise<MarkdownSanitizer> {
-    return (MarkdownRenderer.sanitizer ??= MarkdownRenderer.sanitizerLoader().then(
-      (module) => module.MarkdownSanitizer.instance
-    ))
+  /** DOMPurify, loaded on first use;  the import starts once. */
+  @E.once static loadSanitizer(): Promise<MarkdownSanitizer> {
+    return MarkdownRenderer.sanitizerLoader().then((module) => module.MarkdownSanitizer.instance)
   }
 
   /**

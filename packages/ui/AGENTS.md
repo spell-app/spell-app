@@ -21,7 +21,8 @@ house style every package shares.  Only what's local is below;  a section named 
     (upgrade, forms, lifecycle, error boundary, HMR fixes;  `UPSTREAM.md` maps each to a PR).  A workspace of
     the monorepo (`workspace:*`), with its own tests (its dependencies are hoisted to the root `node_modules`, like every package's);  run its scripts with
     `yarn fork <script>`.  NEVER import its files from `src/`:  use the package name.
-  - `../util/` -- `@spell-app/util` (`$/util`), shared with `spell`:  `@proto` / `@protoMerged` (`decorators.ts`), `class.ts`, `string.ts`
+  - `../util/` -- `@spell-app/util` (`$/util`), shared with `spell`:  `@proto` / `@protoMerged` / `@lazy` / `@once`
+    (`decorators.ts`;  component files say `@E.lazy`, `@E.once`, `E.forget()`), `class.ts`, `string.ts`
     (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`.  `src/util/index.ts`
     (`$/ui/util`) re-exports it, so source keeps saying `from "$/ui/util"`;  its declarations ship in `dist/_util/`.
     `src/util/index.ts` imports util's GENERIC files one by one (`$/util/class` ...), never `$/util`'s barrel, which

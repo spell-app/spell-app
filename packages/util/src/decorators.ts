@@ -1,5 +1,7 @@
 /**
- * Standard (TC39 2023-11) decorators.
+ * Standard (TC39 2023-11) decorators:
+ * - `@proto` / `@protoMerged` -- class defaults on the prototype
+ * - `@lazy` / `@once` -- a getter / method whose result is made once and kept, with `forget()` to drop it
  * - NOTE: lowered by esbuild via `vite.decorators.ts` -- vite 8's own transformer doesn't do it yet.
  * - Decorator MUST be first thing on its line (`@proto static x = 1` is fine), or that plugin won't notice the file.
  */
@@ -62,6 +64,76 @@ export function protoMerged<This extends AbstractClass<object>, Value extends ob
     return value
   }
 }
+
+/**
+ * A getter whose value is made on first read, then kept:
+ * `@lazy get supports() { return this.detect() }`.
+ * - Kept per object it's read on:  each instance its own;  a `static` one, per class it's read on (`X.supports`).
+ * - Replaces a backing field plus `return (this.field ??= make())`.
+ * - A getter that throws keeps nothing:  the next read tries again.  `undefined` IS kept.
+ * - `forget(object, "name")` drops the kept value, e.g. in a `static reset()` for tests:  the next read makes it anew.
+ * - NOT reactive:  the value is made once, whatever it read.  A reactive cached value is `@derived` (`ui`).
+ * - throws a `TypeError` on anything but a getter
+ */
+export function lazy<This extends object, Value>(
+  getter: (this: This) => Value,
+  context: ClassGetterDecoratorContext<This, Value>
+) {
+  if (context.kind !== "getter") {
+    throw new TypeError(`@lazy ${String(context.name)}: only works on getters;  make it a 'get'.`)
+  }
+  return function (this: This): Value {
+    return remembered(this, context.name, () => getter.call(this))
+  }
+}
+
+/**
+ * A method that runs ONCE, then returns the same result to every later call, e.g. a loader's promise:
+ * `@once static load() { return import("./Engine").then(...) }`.
+ * - Takes no arguments:  one result per object would ignore them.
+ * - Kept per object it's called on, as `@lazy`'s value is:  each instance, or for a `static`, the class it's called on.
+ *   Call it on its object (`X.load()`), never detached (`const load = X.load`).
+ * - A rejected promise is kept too:  every later call gets the same rejection, until `forget(object, "name")`.
+ *   A method that THROWS keeps nothing:  the next call runs it again.
+ * - throws a `TypeError` on anything but a method
+ */
+export function once<This extends object, Value>(
+  method: (this: This) => Value,
+  context: ClassMethodDecoratorContext<This, (this: This) => Value>
+) {
+  if (context.kind !== "method") {
+    throw new TypeError(`@once ${String(context.name)}: only works on methods.`)
+  }
+  return function (this: This): Value {
+    return remembered(this, context.name, () => method.call(this))
+  }
+}
+
+/**
+ * Drop what `@lazy` getter or `@once` method `name` kept for `owner`:  the next read or call makes it anew.
+ * - `owner` is the object it was kept for:  an instance, or the class for a `static` one.
+ * - e.g. `static reset() { forget(SiteData, "load") }`
+ * - Nothing kept:  does nothing.
+ */
+export function forget<Owner extends object>(owner: Owner, name: keyof Owner): void {
+  REMEMBERED.get(owner)?.delete(name)
+}
+
+/** `owner`'s kept value for `name`, made by `make()` the first time. */
+function remembered<Value>(owner: object, name: PropertyKey, make: () => Value): Value {
+  let values = REMEMBERED.get(owner)
+  if (values?.has(name)) return values.get(name) as Value
+  const value = make()
+  if (!values) REMEMBERED.set(owner, (values = new Map()))
+  values.set(name, value)
+  return value
+}
+
+/**
+ * What `@lazy` / `@once` kept:  object => member name => value.
+ * - A `WeakMap`, so an object's values go with it;  outside the object, so a frozen object can have them too.
+ */
+const REMEMBERED = new WeakMap<object, Map<PropertyKey, unknown>>()
 
 /** A class which wants to hear about each `@proto static` defined on it or a subclass -- see `proto()`. */
 type ProtoAware = {

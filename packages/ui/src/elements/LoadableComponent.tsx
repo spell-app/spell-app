@@ -2,7 +2,7 @@ import { onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 // Import directly to avoid circular import
-import { proto, protoMerged } from "$/ui/util"
+import { lazy, proto, protoMerged } from "$/ui/util"
 import { E, UI, type UIT } from "$/ui/core"
 // Import directly to avoid circular import
 import { UIComponent } from "./UIComponent"
@@ -362,7 +362,7 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
    *   `aria-label` says what's loading ("Loading <source>").
    */
   private loader(): HTMLElement {
-    const loader = (this.loaderElement ??= this.statusElement(SOURCE_LOADER_TAG, "loader"))
+    const loader = this.loaderElement
     loader.setAttribute(
       "aria-label",
       this.translationForKey("sourceLoading" as E.TextKey<V>, { source: this.source ?? "" })
@@ -370,18 +370,22 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
     return loader
   }
 
-  /** The loader, once built. */
-  private loaderElement?: HTMLElement
+  /** The loader, built on first use. */
+  @lazy private get loaderElement(): HTMLElement {
+    return this.statusElement(SOURCE_LOADER_TAG, "loader")
+  }
 
   /** The `<ui-message>` shown on failure, built once as the loader is;  its text follows `errorText`. */
   private errorMessage(): HTMLElement {
-    const message = (this.errorElement ??= this.statusElement(SOURCE_MESSAGE_TAG, "error"))
+    const message = this.errorElement
     message.textContent = this.errorText ?? ""
     return message
   }
 
-  /** The error message, once built. */
-  private errorElement?: HTMLElement
+  /** The error message, built on first use. */
+  @lazy private get errorElement(): HTMLElement {
+    return this.statusElement(SOURCE_MESSAGE_TAG, "error")
+  }
 
   /** A `<ui-loader>` or `<ui-message>` with part `part`, and the attributes `STATUS_ATTRIBUTES` gives its tag. */
   private statusElement(tag: keyof typeof STATUS_ATTRIBUTES, part: string): HTMLElement {

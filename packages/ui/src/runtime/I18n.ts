@@ -1,3 +1,5 @@
+import { once } from "$/ui/util"
+
 import {
   EN_STRINGS,
   type I18nKey,
@@ -42,8 +44,6 @@ export class I18n {
   private readonly browser: Browser | undefined
   /** `temporal-polyfill`'s `Temporal`, once loaded */
   private polyfill: TemporalAPI | undefined
-  /** the polyfill's pending import, shared by every caller */
-  private polyfilling: Promise<TemporalAPI> | undefined
   /** formatter cache, keyed by kind + locale + options */
   private readonly formatters = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat>()
 
@@ -161,13 +161,14 @@ export class I18n {
 
   /**
    * `Temporal`, loading `temporal-polyfill` the first time a browser without it asks.
+   * - Runs once:  every caller shares the first call's promise.
    * - SIDE EFFECT:  one dynamic `import()` per page, a lazy chunk;  the polyfill is kept here, never put on
    *   `globalThis`.
    */
-  loadTemporal(): Promise<TemporalAPI> {
+  @once loadTemporal(): Promise<TemporalAPI> {
     const now = this.temporal
     if (now) return Promise.resolve(now)
-    return (this.polyfilling ??= import("./TemporalPolyfill").then(({ Temporal }) => (this.polyfill = Temporal)))
+    return import("./TemporalPolyfill").then(({ Temporal }) => (this.polyfill = Temporal))
   }
 
   /** Localized name of a language / region / currency code via `Intl.DisplayNames`, e.g. `("region", "DE")`. */
