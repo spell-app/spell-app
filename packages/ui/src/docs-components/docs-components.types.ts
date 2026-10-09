@@ -169,6 +169,8 @@ export type SiteAttribute = {
   readonly property?: string
   /** `false`:  not reflected to the attribute (rich data) */
   readonly reflect?: boolean
+  /** `true`:  one of the attributes every element takes (`SharedVocabulary`:  `disabled`, `loading`, `visible`) */
+  readonly shared?: boolean
   readonly description: string
 }
 

@@ -27,7 +27,9 @@ export class UIInput extends TextControl<Vocabulary> {
   @E.proto static vocabulary = inputVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { label: labelCSS, input: inputCSS },
-    Fallback: InputFallback
+    Fallback: InputFallback,
+    // `loading`:  a spinner in place of its icon
+    loading: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** Which slots have light-DOM children (`label`, `action`, `icon`). */

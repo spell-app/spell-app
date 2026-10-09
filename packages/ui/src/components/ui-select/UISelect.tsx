@@ -121,8 +121,15 @@ export class UISelect extends F.FormComponent<Vocabulary> {
     }
   }
 
-  /** Someone changed the selection:  `ui-change` through `requestChange()`, then re-sync. */
+  /**
+   * Someone changed the selection:  `ui-change` through `requestChange()`, then re-sync.
+   * - `readonly`:  the change is undone (a native `<select>` has no `readonly` of its own).
+   */
   private readonly onChange = (event: Event) => {
+    if (this.isReadOnly) {
+      this.selectRevision++
+      return
+    }
     const select = event.currentTarget as HTMLSelectElement
     const chosen = [...select.selectedOptions].map((option) => option.value).filter((value) => value !== "")
     const value = this.multiple ? chosen : (chosen[0] ?? "")
@@ -202,6 +209,7 @@ export class UISelect extends F.FormComponent<Vocabulary> {
         multiple={this.multiple}
         disabled={this.isDisabled}
         required={this.required}
+        aria-readonly={this.isReadOnly ? "true" : undefined}
         aria-label={this.label}
         aria-invalid={this.validation.valid ? undefined : "true"}
         {...this.staticSelect}

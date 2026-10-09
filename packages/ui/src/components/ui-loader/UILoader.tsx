@@ -22,14 +22,15 @@ import loaderCSS from "./UILoader.css?inline"
  * - It shows only while `active` (Fomantic's rule, in `UILoader.css`);
  *   `:state(active)` and `:state(disabled)` are for the page's styles.
  ****************/
-// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
-@E.cssStates("active", "disabled")
+@E.cssStates("active")
 export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   @E.proto static vocabulary = loaderVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { loader: loaderCSS },
     delegatesFocus: false,
-    aria: { role: "status", ariaLive: "polite" }
+    aria: { role: "status", ariaLive: "polite" },
+    // `disabled`:  only a look
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   ////////////////

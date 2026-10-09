@@ -51,7 +51,9 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { popup: popupCSS, "popup-anchored": anchoredCSS },
     // nothing inside needs focus delegated:  a click on a tooltip's text must not jump to a link in it
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `loading`:  Fomantic's loader inside the popup
+    loading: "its own"
   } satisfies Partial<E.ElementSetup>
 
   ////////////////

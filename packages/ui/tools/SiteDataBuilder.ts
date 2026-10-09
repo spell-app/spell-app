@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { SharedVocabulary } from "../src/vocabulary/SharedVocabulary.ts"
 import { ValueSets } from "../src/vocabulary/ValueSets.ts"
 import {
   SITE_DATA_VERSION,
@@ -214,7 +215,10 @@ export class SiteDataBuilder {
       aka: [...(vocabulary.aka ?? [])],
       ...(vocabulary.description && { description: vocabulary.description }),
       noun: vocabulary.noun,
-      attributes: vocabulary.attributes.map((spec) => SiteDataBuilder.attributeFor(spec)),
+      // its own, then the shared ones it doesn't declare (`disabled`, `loading`, `visible`), marked `shared`
+      attributes: SharedVocabulary.attributesFor(vocabulary).map((spec) =>
+        SiteDataBuilder.attributeFor(spec, SharedVocabulary.takesShared(vocabulary, spec.name))
+      ),
       slots: vocabulary.slots.map(({ name, description }) => ({ name, description })),
       events: vocabulary.events.map(({ name, detail, cancelable, description }) => ({
         name,
@@ -223,13 +227,16 @@ export class SiteDataBuilder {
         description
       })),
       parts: vocabulary.parts.map(({ name, description }) => ({ name, description })),
-      states: vocabulary.states.map(({ name, description }) => ({ name, description })),
+      states: SharedVocabulary.statesFor(vocabulary).map(({ name, description }) => ({ name, description })),
       texts: vocabulary.texts.map(({ key, text, description }) => ({ key, text, ...(description && { description }) }))
     }
   }
 
-  /** One attribute, its values resolved (`valueSetFor()`):  a shared set's name kept as `valueSet`. */
-  private static attributeFor(spec: AttributeSpec): SiteAttribute {
+  /**
+   * One attribute, its values resolved (`valueSetFor()`):  a shared set's name kept as `valueSet`.
+   * - `isShared`:  one of the attributes every element takes, not the vocabulary's own (`shared: true`).
+   */
+  private static attributeFor(spec: AttributeSpec, isShared: boolean): SiteAttribute {
     const set = SiteDataBuilder.valueSetFor(spec)
     const shared = typeof set === "string" ? set : undefined
     const values = set === undefined ? undefined : [...ValueSets.get(set)]
@@ -242,6 +249,7 @@ export class SiteDataBuilder {
       ...(spec.aliases?.length && { aliases: [...spec.aliases] }),
       ...(spec.property && { property: spec.property }),
       ...(spec.reflect === false && { reflect: false }),
+      ...(isShared && { shared: true }),
       description: spec.description
     }
   }

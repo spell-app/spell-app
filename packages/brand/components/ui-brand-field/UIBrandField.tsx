@@ -70,7 +70,9 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   @protoMerged static elementSetup = {
     styleSheets: { field: fieldCSS },
     DOMElement: DOMBrandFieldElement,
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  its box is inert, a look;  the element still takes clicks
+    disabled: "its own"
   } satisfies Partial<ElementSetup>
 
   ////////////////
@@ -141,7 +143,8 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   }
 
   protected cssStates() {
-    return { field: true, error: this.shownState() === ERROR, disabled: this.disabled }
+    // `:state(disabled)` is `UIComponent`'s
+    return { field: true, error: this.shownState() === ERROR }
   }
 
   ////////////////

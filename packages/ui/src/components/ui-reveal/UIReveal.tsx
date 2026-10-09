@@ -30,7 +30,11 @@ const WATCHED = ["href", "disabled", "tabindex", "contenteditable", "type"]
 @E.cssStates("active")
 export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
   @E.proto static vocabulary = revealVocabulary
-  @E.protoMerged static elementSetup = { styleSheets: { reveal: revealCSS } } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { reveal: revealCSS },
+    // `disabled`:  it never reveals
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The tab stop

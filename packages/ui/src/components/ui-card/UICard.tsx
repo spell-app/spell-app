@@ -39,12 +39,15 @@ function isSameNouns(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
  *   `:state(in-cards)`, and every shared variation the card doesn't set comes from the group (`classValue()`).
  *
  * - `loading`:  `aria-busy` (through `internals`) and a visually hidden `role=status` "Loading…".
- * - `disabled`:  `aria-disabled`, and a link card loses its `href`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  `aria-disabled`, everything inside inert;
+ *   and a link card loses its `href`.
  ****************/
 export class UICard extends E.UIComponent<typeof cardVocabulary> {
   @E.proto static vocabulary = cardVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { card: cardCSS, ...E.PartComponent.prototype.elementSetup.styleSheets }
+    styleSheets: { card: cardCSS, ...E.PartComponent.prototype.elementSetup.styleSheets },
+    // `loading`:  Fomantic's veil
+    loading: "its own"
   } satisfies Partial<E.ElementSetup>
   ////////////////
   // ## Group
@@ -66,15 +69,8 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
   }
 
   ////////////////
-  // ## Disabled and loading
+  // ## Loading
   ////////////////
-
-  /** `disabled`, as `:state(disabled)` and `aria-disabled`. */
-  @E.cssState("disabled")
-  @E.aria("ariaDisabled")
-  get isDisabled(): boolean {
-    return this.disabled
-  }
 
   /** `loading`, as `:state(loading)` and `aria-busy`. */
   @E.cssState("loading")

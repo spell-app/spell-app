@@ -52,7 +52,9 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { root: rootCSS },
     delegatesFocus: false,
-    canRenderUnstyled: true
+    canRenderUnstyled: true,
+    // `loading`:  a message while its components load
+    loading: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** What shows with `loading`:  swap it for another look (`UIRoot.Loading = MyLoading`). */

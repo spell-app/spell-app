@@ -45,7 +45,9 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = searchVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { input: inputCSS, search: searchCSS },
-    Fallback: SearchFallback
+    Fallback: SearchFallback,
+    // `loading`:  a spinner in its input
+    loading: "its own"
   } satisfies Partial<E.ElementSetup>
 
   ////////////////
@@ -297,7 +299,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   @E.untracked
   requestOpen(open: boolean, originalEvent?: Event): boolean {
     if (open === this.isOpen) return false
-    if (open && this.isDisabled) return false
+    if (open && (this.isDisabled || this.isReadOnly)) return false
     const isDone = this.requestChange("isOpen", open, () =>
       this.send(open ? "ui-open" : "ui-close", { open, originalEvent })
     )
@@ -421,6 +423,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
             value={untrack(() => this.query)}
             placeholder={this.placeholder}
             disabled={this.isDisabled}
+            readonly={this.isReadOnly}
             aria-autocomplete="list"
             aria-haspopup="listbox"
             aria-expanded={this.resultsAreShowing && this.shownResults.length ? "true" : "false"}

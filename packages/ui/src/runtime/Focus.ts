@@ -67,6 +67,28 @@ export class Focus {
   }
 
   /**
+   * If focus is inside `container` (or on it), move it to the next tabbable element after it, as Tab would;
+   * none after it:  just take focus away (`blur()`).
+   * - For an element that is about to become unusable (`disabled`, `loading`):  call it BEFORE making it inert,
+   *   while its own tabbables still count.
+   * - Next after the last tabbable inside;  with none inside, the first one after `container` in the light DOM.
+   */
+  moveOutOf(container: Element): void {
+    const page = container.ownerDocument
+    const active = this.activeElementDeep(page)
+    if (!active || !this.containsDeep(container, active)) return
+    const all = this.focusables(page)
+    const lastInside = all.findLastIndex((element) => this.containsDeep(container, element))
+    const after =
+      lastInside >= 0
+        ? all.slice(lastInside + 1)
+        : all.filter((element) => container.compareDocumentPosition(element) & Node.DOCUMENT_POSITION_FOLLOWING)
+    const next = after.find((element) => !this.containsDeep(container, element))
+    if (next) next.focus()
+    else (active as HTMLElement).blur()
+  }
+
+  /**
    * Is `element` inside `container`, following the composed tree (slots, shadow hosts)?
    * - Takes the platform's `null` too (`event.relatedTarget`):  never inside.
    */

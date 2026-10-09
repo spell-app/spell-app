@@ -28,7 +28,11 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { segment: segmentCSS, tab: tabCSS },
     // the DOM element is the tabpanel and its focus stop;  nothing inside to delegate to
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  Fomantic's look
+    disabled: "its own",
+    // `loading`:  Fomantic's veil
+    loading: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** Always:  `UITab.css` tells a pane's DOM element from a tab set's by `:state(pane)`. */

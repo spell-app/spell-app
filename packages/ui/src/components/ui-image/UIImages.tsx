@@ -17,7 +17,9 @@ export class UIImages extends E.UIComponent<typeof imagesVocabulary> {
   @E.proto static vocabulary = imagesVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { image: imageCSS },
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  only a look
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
