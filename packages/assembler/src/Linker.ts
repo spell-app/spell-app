@@ -53,8 +53,7 @@ export class Linker {
       ["solidjs/solid", "https://github.com/solidjs/solid/tree/next"],
       ["solidjs/solid-docs", "https://github.com/solidjs/solid-docs/tree/v2-rebuild"],
       ["documentation/solid-2.0/", "https://github.com/solidjs/solid/tree/next/documentation/solid-2.0"],
-      ["@spell-app/ui", join(this.ui, "README.md")],
-      ["@spell-app/solid-element", join(this.packages, "solid-element/README.md")]
+      ["@spell-app/ui", join(this.ui, "README.md")]
     ])
   }
 

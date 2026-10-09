@@ -1,5 +1,7 @@
 # Plan: promote the Solid spike into the package
 
+> NOTE (2026-10-09):  `packages/solid-element/` below is gone, folded into `src/elements/` (epic `spell-element`).
+
 Owen chose Solid 2 (2026-09-30).  Everything built so far lives in two places:  the library-neutral foundation in `src/`, and the Solid layer in `spike/`.  This step merges them so new components are built in one place.
 
 ## Target layout

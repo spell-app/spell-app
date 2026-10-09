@@ -111,7 +111,7 @@ export const ENTRIES: Record<string, string> = {
  * Solid's packages, subpaths included (`solid-js/web`, `@solidjs/web`, `@solidjs/signals`):  PEER dependencies,
  * never bundled.  The app (or an import map, see `yarn vendor`) supplies ONE copy, so the app's owners, context and
  * signals reach the components.
- * - The custom-element layer (`src/elements/solid-element/`) is `ui`'s own code since epic `spell-element`:  bundled.
+ * - The custom-element layer (`DOMElement`, `UIComponent`) is `ui`'s own code, bundled (epic `spell-element`).
  */
 export const SOLID_EXTERNAL = /^solid-js(\/|$)|^@solidjs\//
 

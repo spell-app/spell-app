@@ -9,7 +9,7 @@ argument-hint: "[<path...> | epic <name> | branch]"
 Rewrites the words around the code, so future-Owen can read them cold (epic `skillz`, P7).
 - What it fixes:  text written from inside the builder's head.
   - dense paragraphs, lines broken at the column instead of at phrases
-  - implementation words ("the fork") where the plain name ("solid-element") belongs
+  - implementation words ("the fork") where the plain name ("the element layer") belongs
   - why a squirrely choice was made, before what the thing IS
 - The rules are WWOD §6, "Comments & docs" (`agents/wwod/WWOD.md`),
   and its long before / afters, `agents/wwod/writing.md`.

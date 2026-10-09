@@ -331,7 +331,7 @@ describe("<ui-label> tokens from outside", () => {
 describe("<ui-label> statistic / standalone swap", () => {
   it("keeps elements slotted into it live when its root switches branch", async () => {
     // loaded first:  the label renders its slot synchronously, BEFORE the detail connects (the old owner bug's
-    // trigger, solid-element's fix 11;  each element's Solid root has no owner now)
+    // trigger;  each element's Solid root has no owner now, epic `spell-element` Q8)
     await UI.load()
     const holder = await ElementFixture.render(
       `<div><ui-statistic><ui-label>Dogs<ui-detail>214</ui-detail></ui-label></ui-statistic><p></p></div>`
