@@ -152,14 +152,12 @@ export function findPages(dir = AREAS) {
 }
 
 /**
- * The file holding the plan doc at `file`'s log:  its part, `parts/log.html` (`parts/log.htm` before Q12 of
- * `epic-components`), when the doc is split (`PlanParts`), else the doc itself.  For the browser checks, which
- * add a log line and take it out again by hand.
- * - either markup:  the log's host says `source="parts/log.html"` in both (`<ui-section id="log">`, `<epic-section
- *   kind="log">`)
+ * The file holding the plan doc at `file`'s log:  its part, `parts/log.html`, when the doc is split
+ * (`PlanParts`), else the doc itself.  For the browser checks, which add a log line and take it out again by hand.
+ * - the log's host says `source="parts/log.html"` (`<epic-section kind="log">`)
  */
 export function planLogFile(file) {
-  const source = /\bsource="(parts\/log\.html?)"/.exec(readFileSync(file, "utf8"))?.[1]
+  const source = /\bsource="(parts\/log\.html)"/.exec(readFileSync(file, "utf8"))?.[1]
   const part = source && join(dirname(file), source)
   return part && existsSync(part) ? part : file
 }

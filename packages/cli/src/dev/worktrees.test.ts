@@ -148,17 +148,16 @@ describe("planFollowUps()", () => {
     return file
   }
 
-  test("the old markup:  phases, the active one, open follow-ups (no caveats), future", () => {
+  test("the old markup (read no more since epic-components P15):  an empty plan", () => {
     const file = doc(
       "old",
       `<body class="plan-doc" data-future><ui-section id="p1" data-phase="1" data-status="active"></ui-section>
-<ui-item id="q1" data-status="open"></ui-item><ui-item id="c1" data-status="open"></ui-item>
-<ui-item id="i2" data-status="done"></ui-item><ui-item id="t3" data-status="open"></ui-item></body>`
+<ui-item id="q1" data-status="open"></ui-item><ui-item id="t3" data-status="open"></ui-item></body>`
     )
-    expect(CLI.planFollowUps(file)).toEqual({ future: true, active: true, phases: 1, followUps: 2 })
+    expect(CLI.planFollowUps(file)).toEqual({ future: false, active: false, phases: 0, followUps: 0 })
   })
 
-  test("the <epic-*> markup (epic-components P8):  the same, from its elements' attributes", () => {
+  test("the <epic-*> markup:  phases, the active one, open follow-ups (no caveats), future", () => {
     const file = doc(
       "new",
       `<body class="plan-doc"><epic-page epic="new" title="New"

@@ -49,7 +49,7 @@ export class InboxCommands {
     const path = ReviewInbox.pathFor(file)
     switch (what) {
       case undefined:
-        return this.print(this.owner.readAny(file), file, Boolean(flags.json))
+        return this.print(this.owner.read(file), file, Boolean(flags.json))
       case "listen": {
         const session = typeof flags.session === "string" ? flags.session : process.env.CLAUDE_CODE_SESSION_ID
         if (!session) throw new PlanDocError("listen as which session?  --session <id> (no $CLAUDE_CODE_SESSION_ID)")
@@ -195,7 +195,7 @@ export class InboxCommands {
     for (;;) {
       let work = null as TakenWork | null
       if (peek(path).hasWork) ReviewInbox.update(path, (box) => (work = box.takeWork()))
-      if (work) return this.printWork(name, this.owner.readAny(file), work, Boolean(json))
+      if (work) return this.printWork(name, this.owner.read(file), work, Boolean(json))
       if (Date.now() >= end) break
       if (Date.now() - beat >= LISTEN_HEARTBEAT_MS) {
         beat = Date.now()

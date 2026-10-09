@@ -11,12 +11,10 @@ import { SRV } from "$/server"
 import { PlanDocError, type CommitLogEntry, type PlanDocOptions, type PlanDocParts } from "./planDoc.types"
 
 import { EpicParts } from "./EpicParts"
-import { OldPlanReader } from "./OldPlanReader"
 import { PlanCommits } from "./PlanCommits"
 import { PlanDoc } from "./PlanDoc"
 import { PlanMarkup } from "./PlanMarkup"
 import { PART_SOURCE, PARTS_DIR, PlanParts } from "./PlanParts"
-import type { PlanReader } from "./PlanReader"
 
 /****************
  * ### `PlanDocFiles`
@@ -25,9 +23,9 @@ import type { PlanReader } from "./PlanReader"
  * - the doc is the checkout's `epics/<name>/`:  a link to the one shared copy every checkout edits (`findDoc()`)
  * - a doc is FOUND under either name (`planDocIn()`):  `<name>.plan.html` since 2026-10-04, else the old
  *   `<name>.html`, which worktrees cut before then still have
- * - TWO markups until the switch (P12):  `<epic-*>` (a `PlanDoc`, read and edited) and the old `ui-*` (an
- *   `OldPlanReader`, read only).  `readAny()` reads either;  `read()` and `edit()` take the new markup only, and
- *   REFUSE an old doc, writing nothing:  "convert it first"
+ * - the `<epic-*>` markup only (a `PlanDoc`):  a doc still in the old `ui-*` markup (one restored from an old backup)
+ *   is REFUSED by every command, reading or editing, writing nothing:  "convert it first".  The tool read such a doc
+ *   until every doc was converted (epic `epic-components`, P12);  no more since P15.
  * - every edit (`edit()`):  takes the doc's lock (parallel agents queue instead of clobbering each other), parses
  *   it, changes it through `PlanDoc`, recolours every item (`updateStates()`), stamps "updated", checks it against the
  *   definitions (an edit that breaks the markup is refused), tidies it in memory (link targets, oxfmt) and writes
@@ -125,7 +123,7 @@ export class PlanDocFiles {
    * - `status`:  `in progress` while any phase isn't done (or there are none yet), `future` for an epic not planned
    *   yet, else `done`
    * - `checkout`:  `main`, or `.claude/worktrees/<name>`:  where it runs (`epicCheckout()`)
-   * - either markup (`readAny()`)
+   * - SIDE EFFECT:  a doc that won't read (in the old markup:  `read()`) is left out, and named on stderr
    */
   listEpics(): EpicListing[] {
     const main = this.mainRoot()
@@ -135,24 +133,33 @@ export class PlanDocFiles {
           .filter((entry) => entry.isDirectory() && PlanDocFiles.planDocIn(join(dir, entry.name), entry.name))
           .map((entry) => entry.name)
       : []
-    const epics = names.map((name): EpicListing => {
+    const epics = names.flatMap((name): EpicListing[] => {
       const file = this.findDoc(name)
-      const plan = this.readAny(file)
+      let plan: PlanDoc
+      try {
+        plan = this.read(file)
+      } catch (error) {
+        if (!(error instanceof PlanDocError)) throw error
+        process.stderr.write(`plan-doc:  ${name} left out:  ${error.message}\n`)
+        return []
+      }
       const sections = plan.reviewSections()
       const phases = plan.phases
-      return {
-        name,
-        title: plan.title || name,
-        status: plan.future
-          ? "future"
-          : phases.length && phases.every((phase) => phase.status === "done")
-            ? "done"
-            : "in progress",
-        checkout: this.epicCheckout(name, main),
-        notReviewed: sections.reduce((sum, section) => sum + section.notReviewed, 0),
-        total: sections.reduce((sum, section) => sum + section.total, 0),
-        file
-      }
+      return [
+        {
+          name,
+          title: plan.title || name,
+          status: plan.future
+            ? "future"
+            : phases.length && phases.every((phase) => phase.status === "done")
+              ? "done"
+              : "in progress",
+          checkout: this.epicCheckout(name, main),
+          notReviewed: sections.reduce((sum, section) => sum + section.notReviewed, 0),
+          total: sections.reduce((sum, section) => sum + section.total, 0),
+          file
+        }
+      ]
     })
     // in progress, then future, then done
     const rank = { "in progress": 0, future: 1, done: 2 }
@@ -166,33 +173,22 @@ export class PlanDocFiles {
   ////////////////
 
   /**
-   * The plan doc at `file`, parsed, whichever markup:  a `PlanDoc` (`<epic-*>`), else an `OldPlanReader`.  For the
-   * commands that only read (`summary`, `list`, `items`, `check`, the inbox's listings).
+   * The plan doc at `file`, parsed:  a `PlanDoc`.  `options` as its constructor's.
    * - a SPLIT doc comes back WHOLE:  every part read into its host;  `plan.parts` says how it was stored
+   * - throws a `PlanDocError` for a doc in the old markup:  "convert it first"
    * - SIDE EFFECT:  names each missing part on stderr
    */
-  readAny(file: string, options?: PlanDocOptions): PlanReader {
+  read(file: string, options?: PlanDocOptions): PlanDoc {
     if (!existsSync(file))
       throw new PlanDocError(`no plan doc ${relative(this.root, file)}:  \`spell dev plan-doc new\` first`)
-    const plan = PlanDocFiles.readerOf(readFileSync(file, "utf8"), options)
-    plan.parts =
-      plan instanceof PlanDoc
-        ? assembleEpic(plan.document, file)
-        : new PlanParts(plan.document).assemble(PlanParts.reader(file))
+    const html = readFileSync(file, "utf8")
+    if (!isEpicMarkup(html)) throw this.oldMarkup(file)
+    const plan = PlanDoc.parse(html, undefined, options)
+    plan.parts = assembleEpic(plan.document, file)
     for (const id of plan.parts.missing)
       process.stderr.write(
         `plan-doc:  ${relative(this.root, PlanParts.partFile(file, id))} is missing:  #${id} has no body\n`
       )
-    return plan
-  }
-
-  /**
-   * The plan doc at `file`, parsed, to EDIT:  a `PlanDoc`.  `options` as its constructor's.
-   * - throws a `PlanDocError` for a doc in the old markup, before anything is written:  "convert it first"
-   */
-  read(file: string, options?: PlanDocOptions): PlanDoc {
-    const plan = this.readAny(file, options)
-    if (!(plan instanceof PlanDoc)) throw this.oldMarkup(file)
     return plan
   }
 
@@ -263,14 +259,6 @@ export class PlanDocFiles {
   }
 
   /**
-   * A parsed doc of HTML text, as the reader for its markup:  `PlanDoc` for `<epic-*>`, `OldPlanReader` before.
-   * - STATIC:  any text, any checkout's
-   */
-  static readerOf(html: string, options?: PlanDocOptions): PlanReader {
-    return isEpicMarkup(html) ? PlanDoc.parse(html, undefined, options) : OldPlanReader.parse(html, undefined, options)
-  }
-
-  /**
    * Rewrite the docs index:  a plan's status badge follows its phases.
    * - by running `packages/docs/tools/index.js`, a child `node`:  `epics` may not import `docs`
    * - shared content (`pages` a link):  ONE `pages/index.html` for every checkout, not tracked by spell-app, so a
@@ -287,10 +275,15 @@ export class PlanDocFiles {
     if (run.status !== 0) process.stderr.write(`plan-doc:  docs index not updated\n${run.stdout}${run.stderr}`)
   }
 
-  /** The error an editing command gives for a doc in the old markup. */
+  /**
+   * The error every command gives for a doc in the old markup (one restored from an old backup):  how to convert it.
+   * - `convert` writes copies only (`--out`):  the converted doc is copied back by hand
+   */
   private oldMarkup(file: string): PlanDocError {
+    const name = basename(file).replace(/(\.plan)?\.html$/, "")
     return new PlanDocError(
-      `${relative(this.root, file)} is in the old markup:  convert it first (spell dev plan-doc convert)`
+      `${relative(this.root, file)} is in the old markup, which the tool no longer reads:  convert it first ` +
+        `(spell dev plan-doc convert ${name} --out <folder>, then copy the converted doc back)`
     )
   }
 
@@ -376,18 +369,17 @@ export class PlanDocFiles {
   /**
    * A shared doc's commits:  `checkout`'s commits since the doc was started whose subject names THIS epic's work,
    * newest first.
-   * - the start:  `<epic-page started>`, or an old doc's `#plan-started` date
+   * - the start:  `<epic-page started>`
    * - `<epic> ...` (`shared-content P3:`, `shared-content I3:`)
    * - `P3:  <P3's name> -- ...`:  the phase name must match, since other epics have a P3 too
    * - a bare `Fix I3:` could be any epic's:  left out (write `<epic> I3:` instead)
-   * - STATIC:  any checkout's, for any doc
+   * - STATIC:  any checkout's, for any doc in `<epic-*>` markup
    */
   static sharedDocLog(file: string, checkout: string): CommitLogEntry[] {
     const html = readFileSync(file, "utf8")
     const name = basename(file).replace(/(\.plan)?\.html$/, "")
-    const since = (/<epic-page\b[^>]*\bstarted="(\d{4}-\d\d-\d\d)"/.exec(html) ??
-      /\bid="plan-started"[^>]*>\s*(\d{4}-\d\d-\d\d)/.exec(html))?.[1]
-    const phases = PlanDocFiles.readerOf(html).phases
+    const since = /<epic-page\b[^>]*\bstarted="(\d{4}-\d\d-\d\d)"/.exec(html)?.[1]
+    const phases = PlanDoc.parse(html).phases
     // a bare date means that day at the CURRENT time to git:  midnight, so the start day's commits count
     const raw = PlanDocFiles.gitIn(checkout, "log", "--format=%H%x09%s", ...(since ? [`--since=${since} 00:00`] : []))
     return PlanDocFiles.parseLog(raw).filter(({ subject }) => {
@@ -451,7 +443,7 @@ function isEpicMarkup(html: string): boolean {
 
 /**
  * Put a split `<epic-*>` doc's parts back (`EpicParts.assemble()`), reading them beside `file`;  what was there:
- * `{ split, hosts, missing, inline }`, as `PlanParts.assemble()` reports an old doc's.
+ * `{ split, hosts, missing, inline }`.
  * - `inline`:  a host holding a body of its own beside its `source` (a hand edit in the skeleton):  kept, the part's
  *   after it;  the next write moves both into the part
  */

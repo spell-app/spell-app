@@ -57,14 +57,11 @@ import { PlanTime } from "./PlanTime"
  *   item's text before its Choices, answer, replies, Original Discussion and commits.
  * - Pure:  a parsed document in, changes on it;  no files, no git, no clock unless passed one.  The command line
  *   reads and writes the doc (its lock, its parts, links and formatting) and hands this the document.
- * - Reading (the summary, the review lists, item states) is `PlanReader`'s, shared with the old-markup reader.
+ * - Reading (the summary, the review lists, item states) is `PlanReader`'s.
  * - The item STATE logic (stamps, colours, review marks, what a mark does) is the old tool's, unchanged (P7 ported
  *   it 1:1;  P8 switched its markup).
  ****************/
 export class PlanDoc extends PlanReader {
-  /** Which markup the doc is in:  `<epic-*>`. */
-  readonly markup = "epic" as const
-
   /** `PlanDoc` of HTML text;  `options` as the constructor's. */
   static parse(html: string, now?: Date, options?: ConstructorParameters<typeof PlanDoc>[2]): PlanDoc {
     return new PlanDoc(parseHTML(html).document as unknown as Document, now, options)

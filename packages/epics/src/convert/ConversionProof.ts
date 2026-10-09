@@ -56,11 +56,11 @@ export class ConversionProof {
 
 /** `ConversionProof`'s props:  the two documents, assembled. */
 export type ConversionProofProps = {
-  /** The doc in today's markup. */
+  /** The doc in the old markup. */
   before: Document
   /** The doc in `<epic-*>` markup. */
   after: Document
-  /** How to read `before`:  `OldReading` (today's markup, the default), or `ConvertedReading` (the second pass). */
+  /** How to read `before`:  `OldReading` (the old markup, the default), or `ConvertedReading` (the second pass). */
   reading?: new (document: Document) => DocReading
 }
 

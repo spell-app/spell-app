@@ -1,18 +1,24 @@
 import { Definitions, type EpicTag } from "$/epics/definitions"
 import { MarkupCheck, TEXT_NODE } from "$/epics/markup"
-import { PlanMarkup } from "$/epics/tool/PlanMarkup"
 
-import { Chrome, Drawn, LABELLED_BLOCK, Prose } from "./convert.types"
+import { Chrome, Drawn, LABELLED_BLOCK, ProseBlocks } from "./planDoc.types"
+
+import { PlanMarkup } from "./PlanMarkup"
 
 /****************
  * ### `ProseShapes`
- * The second pass's ONE rule for which prose blocks of a converted doc become P14 elements:  a Net effect paragraph,
- * a code or aside accordion, a hand-written note, an option grid, a hand-written answer or reply.  Each reader
+ * The ONE set of rules for which hand-written prose blocks of the old docs become P14 elements:  a Net effect
+ * paragraph, a code or aside accordion, a note, a labelled block, an option grid, an answer or reply card.  Each reader
  * returns the block's parts when it's in the shape the element takes, `undefined` when it isn't (it stays prose).
- * - shared by the converter (`ProseUpgrader`) and the proof (`ConvertedReading`), so the proof leaves out exactly
- *   the chrome the converter turned into data, and nothing else
- * - reads, never changes:  both call it on documents in the same state (the converter before it moves a block)
- * - STATIC and instance-free
+ * - shared by every reader of those shapes:  `ProseRewrite` (the tool's way in, `IncomingHtml`, and the converter's
+ *   second pass, `Upgrader`) and the converter's proof (`ConvertedReading`), so the proof leaves out exactly the
+ *   chrome the converter turned into data, and nothing else
+ * - the PROOF's rules (epic `epic-components` T23):  strict, so every word of a block is accounted for.  So a code
+ *   accordion holding a `<ui-code>` (its text in a `<script>`, which the proof doesn't read) stays prose, and an
+ *   aside's title is kept whatever it says, less a leading `Aside: `
+ * - reads, never changes:  the proof and the converter call it on documents in the same state (the converter before
+ *   it moves a block)
+ * - STATIC and instance-free;  plain DOM (linkedom or the browser's)
  ****************/
 export class ProseShapes {
   /**
@@ -65,7 +71,7 @@ export class ProseShapes {
    * - two `<pre>`s, a `<ui-code>`, markup in the code or the title:  `undefined`
    */
   static code(accordion: Element): CodeShape | undefined {
-    if (!accordion.matches(Prose.code) || !hasOnly(accordion, ["class", "styled", "open"])) return undefined
+    if (!accordion.matches(ProseBlocks.code) || !hasOnly(accordion, ["class", "styled", "open"])) return undefined
     const panel = panelOf(accordion)
     const [pre, ...more] = panel ? significantChildren(panel.content) : []
     if (!panel || more.length || !PlanMarkup.isElement(pre) || pre.localName !== "pre" || pre.attributes.length)
@@ -84,7 +90,7 @@ export class ProseShapes {
 
   /** Aside accordion `accordion` (`ui-accordion.spell-aside`) as `<epic-aside>`:  its title without `Aside: `. */
   static aside(accordion: Element): AsideShape | undefined {
-    if (!accordion.matches(Prose.aside) || !hasOnly(accordion, ["class", "styled"])) return undefined
+    if (!accordion.matches(ProseBlocks.aside) || !hasOnly(accordion, ["class", "styled"])) return undefined
     const panel = panelOf(accordion)
     if (!panel) return undefined
     return {
@@ -98,11 +104,11 @@ export class ProseShapes {
    * Note `message` (`ui-message.plan-update`) as `<epic-note>`:  `UPDATE` / `DONE` its state, what follows ` · ` its
    * title.
    * - a bare `UPDATE` the script wrote for a phase (`data-phase="7"`, no title):  `phase`, for `<epic-update>`, the
-   *   phase's marker (as the first pass, `isScriptUpdate()`, and the tool's way in, `ProseRewrite`, map it)
+   *   phase's marker (as the first pass maps it:  `isScriptUpdate()`)
    * - other headers (`DEFERRED`, `DECIDED`):  `undefined`
    */
   static note(message: Element): NoteShape | undefined {
-    if (!message.matches(Prose.note) || !hasOnly(message, ["class", "state", "size", "header", "data-phase"]))
+    if (!message.matches(ProseBlocks.note) || !hasOnly(message, ["class", "state", "size", "header", "data-phase"]))
       return undefined
     if (Array.from(message.children).some((child) => child.hasAttribute("slot"))) return undefined
     const match = Drawn.noteHeader.exec(PlanMarkup.squeeze(message.getAttribute("header") ?? ""))
@@ -135,9 +141,9 @@ export class ProseShapes {
    * ui-segment`, or a bare `ui-segment`), each starting with its label, lettered (`A · Title (recommended)`).
    * - a card without a letter (a pros / cons grid), letters twice, two `(chosen)`:  `undefined`
    */
-  static options(grid: Element): OptionCard[] | undefined {
-    if (!grid.matches(Prose.grid)) return undefined
-    const cards: OptionCard[] = []
+  static options(grid: Element): OptionCardShape[] | undefined {
+    if (!grid.matches(ProseBlocks.grid)) return undefined
+    const cards: OptionCardShape[] = []
     for (const column of significantChildren(grid)) {
       if (!PlanMarkup.isElement(column)) return undefined
       const [segment, ...more] = column.localName === "ui-segment" ? [column] : significantChildren(column)
@@ -157,12 +163,12 @@ export class ProseShapes {
   }
 
   /** The card of `grid` (`options()`) whose label is `label`, if `label` is one. */
-  static optionLabel(label: Element): OptionCard | undefined {
+  static optionLabel(label: Element): OptionCardShape | undefined {
     const segment = label.parentElement
-    const grid = segment?.parentElement?.matches(Prose.grid)
+    const grid = segment?.parentElement?.matches(ProseBlocks.grid)
       ? segment.parentElement
       : segment?.parentElement?.parentElement
-    if (!grid?.matches(Prose.grid)) return undefined
+    if (!grid?.matches(ProseBlocks.grid)) return undefined
     return ProseShapes.options(grid)?.find((card) => card.label === label)
   }
 
@@ -171,7 +177,11 @@ export class ProseShapes {
    * content model takes that element (`allows()`);  `undefined` where it doesn't (an `<epic-version>`).
    */
   static handCard(card: Element): "epic-answer" | "epic-reply" | undefined {
-    const tag = card.matches(Prose.answer) ? "epic-answer" : card.matches(Prose.reply) ? "epic-reply" : undefined
+    const tag = card.matches(ProseBlocks.answer)
+      ? "epic-answer"
+      : card.matches(ProseBlocks.reply)
+        ? "epic-reply"
+        : undefined
     return tag && card.parentElement && ProseShapes.allows(card.parentElement, tag) ? tag : undefined
   }
 
@@ -226,7 +236,7 @@ export type LabelledShape = {
 }
 
 /** One card of an option grid, read (`ProseShapes.options()`). */
-export type OptionCard = {
+export type OptionCardShape = {
   /** The card:  its label, then its body. */
   segment: Element
   /** Its top label:  `A · Title (recommended)`. */
