@@ -52,8 +52,11 @@ export class DOMCodeElement extends E.DOMLoadableElement {
  ****************/
 export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
   @E.proto static vocabulary = codeVocabulary
-  @E.proto static styleSheets = { code: codeCSS }
-  @E.proto static elementSetup = { DOMElement: DOMCodeElement, delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { code: codeCSS },
+    DOMElement: DOMCodeElement,
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Colouring

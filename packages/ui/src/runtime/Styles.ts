@@ -115,7 +115,8 @@ export class Styles {
 
   /**
    * Register each of `sheets` (`name => CSS text`) that isn't registered yet;  a name already registered is left as is.
-   * - What a component's `styleSheets` go through:  every element of the class calls it, only the first registers.
+   * - What a component's `elementSetup.styleSheets` go through:
+   *   every element of the class calls it, only the first registers.
    * - `register()` is the one that REPLACES a sheet's text:  hot reload and themes rely on it.
    */
   registerOnce(sheets: Readonly<Record<string, string>>) {

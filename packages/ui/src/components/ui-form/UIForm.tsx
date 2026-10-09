@@ -93,8 +93,11 @@ export class DOMFormElement extends E.DOMElement {
  ****************/
 export class UIForm extends E.UIComponent<typeof formVocabulary> {
   @E.proto static vocabulary = formVocabulary
-  @E.proto static styleSheets = { form: formCSS }
-  @E.proto static elementSetup = { DOMElement: DOMFormElement, delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { form: formCSS },
+    DOMElement: DOMFormElement,
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Controls, values, labels, errors. */
   readonly fields = new FormFields({ domElement: this.domElement, form: () => this.nativeForm })

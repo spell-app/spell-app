@@ -48,8 +48,8 @@ import tabCSS from "./UITab.css?inline"
  ****************/
 export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabOwner {
   @E.proto static vocabulary = tabsVocabulary
-  @E.proto static styleSheets = { menu: menuCSS, tab: tabCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { menu: menuCSS, tab: tabCSS },
     // the tabs are the focus targets;  a click on a pane must not jump to one
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

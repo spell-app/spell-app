@@ -18,7 +18,7 @@ import updateCSS from "./EpicUpdate.css?inline"
  ****************/
 export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
   @E.proto static vocabulary = epicUpdateVocabulary
-  @E.proto static styleSheets = { "epic-update": updateCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { "epic-update": updateCSS } } satisfies Partial<E.ElementSetup>
 
   /** Has it children:  a note, not a bare label? */
   @E.cssState("note")

@@ -22,7 +22,7 @@ import fieldCSS from "./EpicField.css?inline"
  ****************/
 export class EpicField extends E.UIComponent<typeof epicFieldVocabulary> {
   @E.proto static vocabulary = epicFieldVocabulary
-  @E.proto static styleSheets = { "epic-field": fieldCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { "epic-field": fieldCSS } } satisfies Partial<E.ElementSetup>
 
   /** Its look:  icon and label key;  Symptom's for an unknown name. */
   get look(): FieldLook {

@@ -26,8 +26,10 @@ import emojiCSS from "./UIEmoji.css?inline"
  ****************/
 export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
   @E.proto static vocabulary = emojiVocabulary
-  @E.proto static styleSheets = { emoji: emojiCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { emoji: emojiCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** The glyph, `undefined` while loading or for an unknown name. */
   @E.state accessor emoji: string | undefined = untrack(() =>

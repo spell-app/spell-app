@@ -48,8 +48,10 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   declare typeAheadDelay: number
 
   @E.proto static vocabulary = dropdownVocabulary
-  @E.proto static styleSheets = { button: buttonCSS, dropdown: dropdownCSS }
-  @E.proto static elementSetup = { Fallback: DropdownFallback } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { button: buttonCSS, dropdown: dropdownCSS },
+    Fallback: DropdownFallback
+  } satisfies Partial<E.ElementSetup>
 
   /** Default:  10 rows. */
   @E.proto static pageSize = 10

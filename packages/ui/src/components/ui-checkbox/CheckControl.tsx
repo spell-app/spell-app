@@ -84,8 +84,11 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
    */
   declare readonly defaultChosenValue: string
 
-  @E.proto static elementSetup: Partial<E.ElementSetup> = { Fallback: CheckboxFallback, DOMElement: DOMCheckElement }
-  @E.proto static styleSheets = { checkbox: checkboxCSS }
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
+    styleSheets: { checkbox: checkboxCSS },
+    Fallback: CheckboxFallback,
+    DOMElement: DOMCheckElement
+  }
 
   /** Default:  `on`, as a native checkbox. */
   @E.proto static defaultChosenValue = "on"

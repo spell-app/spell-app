@@ -35,7 +35,9 @@ import stepCSS from "./UIStep.css?inline"
  ****************/
 export class UIStep extends E.UIComponent<typeof stepVocabulary> {
   @E.proto static vocabulary = stepVocabulary
-  @E.proto static styleSheets = { step: stepCSS, parts: partsCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { step: stepCSS, parts: partsCSS }
+  } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)

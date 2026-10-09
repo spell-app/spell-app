@@ -62,8 +62,8 @@ export class DOMToastElement extends E.DOMElement {
  ****************/
 export class UIToast extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = toastVocabulary
-  @E.proto static styleSheets = { toast: toastCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { toast: toastCSS },
     DOMElement: DOMToastElement,
     // nothing to delegate to:  a click on the text must not jump to an action button
     delegatesFocus: false

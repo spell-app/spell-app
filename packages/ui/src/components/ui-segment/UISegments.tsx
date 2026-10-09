@@ -14,7 +14,7 @@ import segmentCSS from "./UISegment.css?inline"
  ****************/
 export class UISegments extends E.UIComponent<typeof segmentsVocabulary> {
   @E.proto static vocabulary = segmentsVocabulary
-  @E.proto static styleSheets = { segment: segmentCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { segment: segmentCSS } } satisfies Partial<E.ElementSetup>
 
   /** Piled sheets (`piled`).  `:state(piled)`. */
   @E.cssState("piled")

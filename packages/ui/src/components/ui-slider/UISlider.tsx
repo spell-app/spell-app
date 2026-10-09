@@ -46,8 +46,10 @@ import sliderCSS from "./UISlider.css?inline"
  ****************/
 export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   @E.proto static vocabulary = sliderVocabulary
-  @E.proto static styleSheets = { slider: sliderCSS }
-  @E.proto static elementSetup = { Fallback: SliderFallback } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { slider: sliderCSS },
+    Fallback: SliderFallback
+  } satisfies Partial<E.ElementSetup>
 
   /** The DOM element's `<label>`s and `aria-label`, as the thumb's (or range group's) name. */
   readonly labels = new F.ControlLabels(this.domFormElement)

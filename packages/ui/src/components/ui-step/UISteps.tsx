@@ -28,8 +28,8 @@ import stepCSS from "./UIStep.css?inline"
  ****************/
 export class UISteps extends E.UIComponent<typeof stepsVocabulary> {
   @E.proto static vocabulary = stepsVocabulary
-  @E.proto static styleSheets = { step: stepCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { step: stepCSS },
     // the steps are the focus targets, each its own DOM element
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

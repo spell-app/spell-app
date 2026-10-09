@@ -59,7 +59,9 @@ class ItemTestOwner extends UIComponent<typeof OWNER_VOCABULARY> implements Item
 /** The vocabulary getters, typed (`UIComponent`'s doc). */
 interface ItemTestOwner extends AttributeValues<typeof OWNER_VOCABULARY> {}
 Object.defineProperty(ItemTestOwner.prototype, "vocabulary", { value: OWNER_VOCABULARY })
-Object.defineProperty(ItemTestOwner.prototype, "styleSheets", { value: { "x-item-owner": OWNER_CSS } })
+Object.defineProperty(ItemTestOwner.prototype, "elementSetup", {
+  value: { ...UIComponent.prototype.elementSetup, styleSheets: { "x-item-owner": OWNER_CSS } }
+})
 ;(ItemTestOwner as unknown as UIComponentClass & typeof UIComponent).define(OWNER_VOCABULARY.tag)
 
 /** Render items inside a stand-in owner;  returns the owner and the item DOM elements. */

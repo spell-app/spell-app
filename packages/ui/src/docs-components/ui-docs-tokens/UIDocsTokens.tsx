@@ -47,8 +47,10 @@ import tokensCSS from "./UIDocsTokens.css?inline"
  ****************/
 export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
   @E.proto static vocabulary = docsTokensVocabulary
-  @E.proto static styleSheets = { table: tableCSS, "docs-tokens": tokensCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { table: tableCSS, "docs-tokens": tokensCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** The preview's box, around the default slot:  where `target="preview"` sets tokens (from its `ref`). */
   private previewBox: HTMLElement | undefined

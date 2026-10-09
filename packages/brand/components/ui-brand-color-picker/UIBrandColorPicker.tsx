@@ -5,6 +5,7 @@ import {
   Cell,
   IconGlyph,
   proto,
+  protoMerged,
   SlotContent,
   type AttributeName,
   type FieldValue,
@@ -70,8 +71,10 @@ import pickerCSS from "./UIBrandColorPicker.css?inline"
  ****************/
 export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary> {
   @proto static vocabulary = brandColorPickerVocabulary
-  @proto static styleSheets = { picker: pickerCSS }
-  @proto static elementSetup = { Fallback: BrandColorPickerFallback } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { picker: pickerCSS },
+    Fallback: BrandColorPickerFallback
+  } satisfies Partial<ElementSetup>
 
   ////////////////
   // ## State

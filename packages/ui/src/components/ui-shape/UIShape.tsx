@@ -63,8 +63,8 @@ export class DOMShapeElement extends E.DOMElement {
  ****************/
 export class UIShape extends E.UIComponent<ShapeVocabulary> {
   @E.proto static vocabulary = shapeVocabulary
-  @E.proto static styleSheets = { shape: shapeCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { shape: shapeCSS },
     DOMElement: DOMShapeElement,
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

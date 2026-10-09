@@ -23,8 +23,10 @@ import feedCSS from "./UIFeed.css?inline"
  ****************/
 export class UIFeed extends E.UIComponent<typeof feedVocabulary> {
   @E.proto static vocabulary = feedVocabulary
-  @E.proto static styleSheets = { feed: feedCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { feed: feedCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (

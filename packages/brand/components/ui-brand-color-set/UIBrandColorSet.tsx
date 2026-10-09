@@ -1,7 +1,7 @@
 import { createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, Converters, proto, UIComponent, UIT, type ElementSetup, type AttributeValues } from "$/ui/core"
+import { Cell, Converters, proto, protoMerged, UIComponent, UIT, type ElementSetup, type AttributeValues } from "$/ui/core"
 import { Palette } from "$/brand"
 import { DOMBrandColorElement } from "$/brand/components/ui-brand-color"
 
@@ -45,8 +45,10 @@ import setCSS from "./UIBrandColorSet.css?inline"
  ****************/
 export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   @proto static vocabulary = brandColorSetVocabulary
-  @proto static styleSheets = { set: setCSS }
-  @proto static elementSetup = { delegatesFocus: false } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { set: setCSS },
+    delegatesFocus: false
+  } satisfies Partial<ElementSetup>
 
   ////////////////
   // ## State

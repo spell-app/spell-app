@@ -22,8 +22,10 @@ import shapeCSS from "./UIShape.css?inline"
  ****************/
 export class UISide extends E.UIComponent<typeof sideVocabulary> {
   @E.proto static vocabulary = sideVocabulary
-  @E.proto static styleSheets = { shape: shapeCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { shape: shapeCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Always a side:  `:state(side)`. */
   @E.cssState("side")

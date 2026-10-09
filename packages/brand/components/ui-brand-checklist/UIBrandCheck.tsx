@@ -1,7 +1,7 @@
 import { Show, createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { DOMElement, PartContext, proto, UIComponent, UIT, type ElementSetup, type AttributeValues } from "$/ui/core"
+import { DOMElement, PartContext, proto, protoMerged, UIComponent, UIT, type ElementSetup, type AttributeValues } from "$/ui/core"
 
 import { brandCheckVocabulary } from "./UIBrandCheck.en"
 import {
@@ -67,8 +67,10 @@ export class DOMBrandCheckElement extends DOMElement {
  ****************/
 export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
   @proto static vocabulary = brandCheckVocabulary
-  @proto static styleSheets = { brandCheck: checkCSS }
-  @proto static elementSetup = { DOMElement: DOMBrandCheckElement } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { brandCheck: checkCSS },
+    DOMElement: DOMBrandCheckElement
+  } satisfies Partial<ElementSetup>
 
   ////////////////
   // ## State

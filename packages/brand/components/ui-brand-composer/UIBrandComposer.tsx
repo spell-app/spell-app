@@ -4,6 +4,7 @@ import type { JSX } from "@solidjs/web"
 import {
   IconGlyph,
   proto,
+  protoMerged,
   SlotContent,
   UI,
   type AttributeName,
@@ -82,8 +83,8 @@ export class DOMBrandComposerElement extends DOMFormControl {
  ****************/
 export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   @proto static vocabulary = brandComposerVocabulary
-  @proto static styleSheets = { composer: composerCSS }
-  @proto static elementSetup = {
+  @protoMerged static elementSetup = {
+    styleSheets: { composer: composerCSS },
     Fallback: BrandComposerFallback,
     DOMElement: DOMBrandComposerElement
   } satisfies Partial<ElementSetup>

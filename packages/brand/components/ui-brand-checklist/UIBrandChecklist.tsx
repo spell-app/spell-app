@@ -1,7 +1,7 @@
 import { createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIComponent, type DOMElement, UIT, type ElementSetup, type AttributeValues } from "$/ui/core"
+import { Cell, proto, protoMerged, UIComponent, type DOMElement, UIT, type ElementSetup, type AttributeValues } from "$/ui/core"
 
 import { brandChecklistVocabulary } from "./UIBrandChecklist.en"
 import {
@@ -34,9 +34,11 @@ import checklistCSS from "./UIBrandChecklist.css?inline"
  ****************/
 export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> implements ChecklistOwner {
   @proto static vocabulary = brandChecklistVocabulary
-  @proto static styleSheets = { brandChecklist: checklistCSS }
   // the checks are the focus targets
-  @proto static elementSetup = { delegatesFocus: false } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { brandChecklist: checklistCSS },
+    delegatesFocus: false
+  } satisfies Partial<ElementSetup>
 
   ////////////////
   // ## State

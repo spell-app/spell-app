@@ -42,8 +42,10 @@ import searchCSS from "./UISearch.css?inline"
  ****************/
 export class UISearch extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = searchVocabulary
-  @E.proto static styleSheets = { input: inputCSS, search: searchCSS }
-  @E.proto static elementSetup = { Fallback: SearchFallback } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { input: inputCSS, search: searchCSS },
+    Fallback: SearchFallback
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The text

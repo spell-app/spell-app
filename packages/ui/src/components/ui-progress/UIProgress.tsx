@@ -39,8 +39,10 @@ import progressCSS from "./UIProgress.css?inline"
  ****************/
 export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   @E.proto static vocabulary = progressVocabulary
-  @E.proto static styleSheets = { progress: progressCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { progress: progressCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)

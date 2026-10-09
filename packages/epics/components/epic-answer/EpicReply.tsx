@@ -22,8 +22,10 @@ import answerCSS from "./EpicAnswer.css?inline"
  ****************/
 export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
   @E.proto static vocabulary = epicReplyVocabulary
-  @E.proto static styleSheets = { answer: answerCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { answer: answerCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a body? */
   readonly slots = new E.SlotContent(this.domElement)

@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
+import { IconGlyph, proto, protoMerged, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
 
 import { brandPhoneVocabulary } from "./UIBrandPhone.en"
 
@@ -22,8 +22,10 @@ import phoneCSS from "./UIBrandPhone.css?inline"
  ****************/
 export class UIBrandPhone extends UIComponent<typeof brandPhoneVocabulary> {
   @proto static vocabulary = brandPhoneVocabulary
-  @proto static styleSheets = { phone: phoneCSS }
-  @proto static elementSetup = { delegatesFocus: false } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { phone: phoneCSS },
+    delegatesFocus: false
+  } satisfies Partial<ElementSetup>
 
   /** The status bar's icons. */
   readonly signal = new IconGlyph({ owner: this, name: () => STATUS_ICONS.signal })

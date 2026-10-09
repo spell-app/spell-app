@@ -96,8 +96,10 @@ export class DOMDocsSearchElement extends E.DOMElement {
  ****************/
 export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
   @E.proto static vocabulary = docsSearchVocabulary
-  @E.proto static styleSheets = { "docs-search": searchCSS }
-  @E.proto static elementSetup = { DOMElement: DOMDocsSearchElement } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "docs-search": searchCSS },
+    DOMElement: DOMDocsSearchElement
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The text typed

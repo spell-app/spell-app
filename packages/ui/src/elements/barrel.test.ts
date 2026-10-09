@@ -47,9 +47,9 @@ describe("$/ui/core and $/ui/forms load order", () => {
   it("static initializers ran:  their values exist", () => {
     expect(core.RootSettings.generation).toBeTypeOf("number")
     expect(forms.FormComponent.validator).toBeInstanceOf(forms.Validator)
-    expect(core.UIComponent.setupFor(core.UIComponent).DOMElement).toBe(core.DOMElement)
-    expect(core.UIComponent.setupFor(forms.FormComponent).DOMElement).toBe(forms.DOMFormControl)
-    expect(core.UIComponent.setupFor(core.LoadableComponent).DOMElement).toBe(core.DOMLoadableElement)
+    expect(core.UIComponent.prototype.elementSetup.DOMElement).toBe(core.DOMElement)
+    expect(forms.FormComponent.prototype.elementSetup.DOMElement).toBe(forms.DOMFormControl)
+    expect(core.LoadableComponent.prototype.elementSetup.DOMElement).toBe(core.DOMLoadableElement)
   })
 
   it("$/ui/elements hands out the same objects as the entries", () => {

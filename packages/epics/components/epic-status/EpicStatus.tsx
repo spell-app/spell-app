@@ -26,8 +26,10 @@ import statusCSS from "./EpicStatus.css?inline"
  ****************/
 export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
   @E.proto static vocabulary = epicStatusVocabulary
-  @E.proto static styleSheets = { answer: answerCSS, status: statusCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { answer: answerCSS, status: statusCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a reading, a summary? */
   readonly slots = new E.SlotContent(this.domElement)

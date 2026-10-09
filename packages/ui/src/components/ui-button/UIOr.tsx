@@ -14,7 +14,7 @@ import buttonCSS from "./UIButton.css?inline"
  ****************/
 export class UIOr extends E.UIComponent<typeof orVocabulary> {
   @E.proto static vocabulary = orVocabulary
-  @E.proto static styleSheets = { button: buttonCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { button: buttonCSS } } satisfies Partial<E.ElementSetup>
 
   /** Always `:state(or)`. */
   @E.cssState("or")

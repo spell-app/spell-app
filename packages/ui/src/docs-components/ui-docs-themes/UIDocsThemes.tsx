@@ -56,8 +56,10 @@ import themesCSS from "./UIDocsThemes.css?inline"
  ****************/
 export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
   @E.proto static vocabulary = docsThemesVocabulary
-  @E.proto static styleSheets = { "docs-themes": themesCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "docs-themes": themesCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)

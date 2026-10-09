@@ -23,8 +23,10 @@ import flagCSS from "./UIFlag.css?inline"
  ****************/
 export class UIFlag extends E.UIComponent<typeof flagVocabulary> {
   @E.proto static vocabulary = flagVocabulary
-  @E.proto static styleSheets = { flag: flagCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { flag: flagCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** `country`, resolved. */
   @E.derived
