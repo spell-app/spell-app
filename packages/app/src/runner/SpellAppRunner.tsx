@@ -318,11 +318,11 @@ type SpellAppToolbarProps = {
 ////////////////
 
 /**
- * Run `source`'s program afresh in runtime copy `copy`, drawing into `appRoot`:  fetched again, with each project
- * it imports.
+ * Run `source`'s program afresh in runtime copy `copy`, drawing into `appRoot`:
+ * fetched again, with each project it imports.
  * - NOTE: its own javascript is NOT fetched if it's in memory, `source.compiled` -- its imports still are.
- * - Answers how it went, and the compiled javascript it loaded, by project id -- the program's own under
- *   `MAIN_PROJECT` -- for the Type Explorer's "Compiled Output".
+ * - Answers how it went, and the compiled javascript it loaded, by project id --
+ *   the program's own under `MAIN_PROJECT` -- for the Type Explorer's "Compiled Output".
  */
 async function runProgram(copy: LoadedRuntime, source: SpellAppSource, appRoot: HTMLElement): Promise<Ran> {
   const compiled = new Map<string, string>()
@@ -357,8 +357,8 @@ type Ran = {
 /**
  * The Type Explorer's data for `source`:  the built-ins' scope pack, then its own -- `undefined` if it has none.
  * - Its own is `source.scopes` if that's set, else loaded from `source.scopesUrl`.
- * - Its `spell` from the sources, if `source` says where they are;  its `compiled` from what the last run
- *   loaded, in `compiledRef`.
+ * - Its `spell` from the sources, if `source` says where they are;
+ *   its `compiled` from what the last run loaded, in `compiledRef`.
  */
 async function loadScopes(
   source: SpellAppSource,
@@ -383,8 +383,8 @@ async function loadScopes(
 
 ////////////////
 // ## Fed by an editor
-//  what a `<spell-app editor="<selector>">` decides -- here, NOT in its component (`SpellApp`), so it's testable
-//  with no DOM.
+//  what a `<spell-app editor="<selector>">` decides --
+//  here, NOT in its component (`SpellApp`), so it's testable with no DOM.
 ////////////////
 
 /**
@@ -406,8 +406,8 @@ export function pushedSource(base: SpellAppSource, pushed: SpellCompiled, name?:
 /**
  * What code pushed to a `<spell-app>` was pushed FOR:  the app's `project`, `src`, `scopes`, `name` and `editor` then
  * (`PUSHED_FOR`), as one string.
- * - Pushed code counts only while the app's are the same:  a change of what it runs, or of which editor feeds it,
- *   drops it.
+ * - Pushed code counts only while the app's are the same:
+ *   a change of what it runs, or of which editor feeds it, drops it.
  * - NOT `toolbar`, `debug`, `width`, `height`, `assets`:  they change how it looks, and NEVER re-run it.
  * - `undefined` and `null` are the same:  no such attribute.
  */

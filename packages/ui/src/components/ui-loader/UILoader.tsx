@@ -14,8 +14,8 @@ import loaderCSS from "./UILoader.css?inline"
  * - The element is `display: contents`:  a centred loader is positioned against the nearest positioned ancestor
  *   in the flat tree, as Fomantic's `<div class="ui loader">` was.
  *
- * - The ELEMENT is the live region, through `internals`:  `role=status`, `aria-live=polite`,
- *   so it's announced wherever it's put, with nothing in the shadow root to find.
+ * - The ELEMENT is the live region, through `internals`:
+ *   `role=status`, `aria-live=polite`, so it's announced wherever it's put, with nothing in the shadow root to find.
  *   - With no slotted text, it's named by the `loading` text ("Loading…");
  *     slotted text names it otherwise (a status takes its name from its content).
  *
@@ -47,8 +47,9 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
 
   /**
    * The element's accessible name:  the `loading` text while nothing is slotted.
-   * - Waits for `isReady`:  the text reads `UI.i18n` (via `translationForKey()`), which exists once the runtime
-   *   loads.  A server render (`$/ui/static`) applies it too.
+   * - Waits for `isReady`:
+   *   the text reads `UI.i18n` (via `translationForKey()`), which exists once the runtime loads.
+   * - A server render (`$/ui/static`) applies it too.
    */
   @E.aria("ariaLabel")
   protected get accessibleName(): string | undefined {

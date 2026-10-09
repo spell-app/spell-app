@@ -26,8 +26,8 @@ import choicesCSS from "./EpicChoices.css?inline"
  * - Open question:  the option cards side by side (as many as fit, at least 14em each;  one column when narrow).
  * - Answered (`chosen`, or `answered` on its `<epic-item>`):  folded away under a `Choices` aside, its options
  *   panels in one box, the chosen one marked and open.  Find-in-page unfolds it.
- * - Reads its item's `answered` and its own `chosen` as they change (`EpicChoices.watch()`);  `<epic-option>` reads
- *   the same, through the same two statics.
+ * - Reads its item's `answered` and its own `chosen` as they change (`EpicChoices.watch()`);
+ *   `<epic-option>` reads the same, through the same two statics.
  ****************/
 export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   @E.proto static vocabulary = epicChoicesVocabulary
@@ -131,8 +131,8 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   }
 
   /**
-   * Call `changed` whenever what `isAnswered()` / `chosenFor()` / `itemStatusFor()` read changes:  `chosen`, the
-   * item's `answered` and `status`.  Returns how to stop.
+   * Call `changed` whenever what `isAnswered()` / `chosenFor()` / `itemStatusFor()` read changes:
+   * `chosen`, the item's `answered` and `status`.  Returns how to stop.
    */
   static watch(element: Element, changed: () => void): () => void {
     const observer = new MutationObserver(changed)

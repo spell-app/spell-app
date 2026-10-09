@@ -4,19 +4,22 @@ import type { E } from "$/ui/core"
 
 /****************
  * ### `Controlled`
- * One auto-controlled property (`value`, `open`, `active`):  the DOM element's property / attribute is authoritative
- * when set;  until then an internal starting value stands in (e.g. a dropdown's `selected` items).
+ * One auto-controlled property (`value`, `open`, `active`):
+ * the DOM element's property / attribute is authoritative when set;
+ * until then an internal starting value stands in (e.g. a dropdown's `selected` items).
  * - `request(next, announce)` is every USER transition:  it dispatches the event first (`announce()`), then
  *   - a vetoed (cancelable) event changes nothing
  *   - if the DOM element set the property DURING the event -- e.g. re-set the old value in a `ui-change` handler --
  *     the DOM element's value stands and the UI "reverts" (it never showed the new one:  Solid batches to a microtask)
- *   - otherwise the new value is written to the DOM element's PROPERTY (and reflects), so `el.value` is always current,
- *     like a native `<input>`
- * - Why watch the property instead of comparing values:  a DOM element re-setting the SAME value it already had is
- *   still a decision.  The DOM element calls change callbacks on every write, equal or not.
- * - "Set" ~== the converted value isn't `undefined`:  a boolean (`open`, `active`) is always the DOM element's (its
- *   default is the same `false` the internal value would be);  `el.value = undefined` hands a dropdown back to
- *   its `selected` items.
+ *   - otherwise the new value is written to the DOM element's PROPERTY (and reflects),
+ *     so `el.value` is always current, like a native `<input>`
+ * - Why watch the property instead of comparing values:
+ *   a DOM element re-setting the SAME value it already had is still a decision.
+ *   The DOM element calls change callbacks on every write, equal or not.
+ * - "Set" ~== the converted value isn't `undefined`:
+ *   - a boolean (`open`, `active`) is always the DOM element's
+ *     (its default is the same `false` the internal value would be)
+ *   - `el.value = undefined` hands a dropdown back to its `selected` items
  * - DEPRECATED (goes with `UIComponent.controlled()`, until brand's components move to the decorators):
  *   `@controlled("open") accessor isOpen` is the same machinery on the record (`Reactive`).
  * - Made by `UIComponent.controlled()`;  knows the DOM element only by type,

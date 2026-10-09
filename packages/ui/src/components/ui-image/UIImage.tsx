@@ -15,9 +15,11 @@ import imageCSS from "./UIImage.css?inline"
  *   the link carrying the classes.
  *   The element is `display: contents`:  the inner box IS the image, so it floats and sits in text as Fomantic's did.
  *
- * - `alt` passes straight through:  `alt=""` is a decorative image (assistive tech skips it),
- *   and a MISSING `alt` stays missing:  a bug to fix in the page, which axe reports,
- *   not one to hide with an empty default.  A linked image's `alt` names the link.
+ * - `alt` passes straight through:
+ *   - `alt=""` is a decorative image (assistive tech skips it)
+ *   - a MISSING `alt` stays missing:  a bug to fix in the page, which axe reports,
+ *     not one to hide with an empty default
+ *   - a linked image's `alt` names the link
  * - `width` / `height` are the native intrinsic size (they reserve space before it loads);
  *   `size` sets the drawn width.
  * - `disabled`:  a link loses its `href` and gets `aria-disabled`;  `:state(disabled)` is for the page's styles.

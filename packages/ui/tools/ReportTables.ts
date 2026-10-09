@@ -20,11 +20,12 @@ import { Terminal } from "./Terminal.ts"
 /****************
  * ### `ReportTables`
  * Rewrites the GENERATED tables of `docs/report.md` from the result files, with fixed headers, units and rounding.
- * - A table lives between `<!-- generated:<name> -->` and `<!-- /generated:<name> -->`;  ONLY that content
- *   is replaced, prose around it is left alone.  Names are the keys of `TABLES` (`TableName`).
- * - Inputs, all in `tools/results/`:  `measure-results.json` (`BundleMeasure`), `perf-results.json` (`PerfRun`,
- *   written by the dropdown perf test), `smoke-results.json` (`SmokeRunner`), `loc-results.json` (`LocCount`).  A
- *   missing file renders a one-line "not measured" note instead of the table.
+ * - A table lives between `<!-- generated:<name> -->` and `<!-- /generated:<name> -->`;
+ *   ONLY that content is replaced, prose around it is left alone.  Names are the keys of `TABLES` (`TableName`).
+ * - Inputs, all in `tools/results/`:
+ *   `measure-results.json` (`BundleMeasure`), `perf-results.json` (`PerfRun`, written by the dropdown perf test),
+ *   `smoke-results.json` (`SmokeRunner`), `loc-results.json` (`LocCount`).
+ *   A missing file renders a one-line "not measured" note instead of the table.
  * - Idempotent:  running it twice changes nothing.
  ****************/
 export class ReportTables {

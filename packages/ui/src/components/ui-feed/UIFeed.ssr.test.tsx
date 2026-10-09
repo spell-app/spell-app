@@ -10,8 +10,9 @@ import { UIDate } from "$/ui/components/ui-parts/UIDate"
 import { UISummary } from "$/ui/components/ui-parts/UISummary"
 
 /**
- * `<ui-feed>` in the static server render (`$/ui/static`):  a `<ul>` (`<ol>` when `ordered`) whose events' `<div>`
- * roots become the `<li>`s -- the events' `listitem` role is an `@aria` getter, applied once on the server.
+ * `<ui-feed>` in the static server render (`$/ui/static`):
+ * a `<ul>` (`<ol>` when `ordered`) whose events' `<div>` roots become the `<li>`s.
+ * - The events' `listitem` role is an `@aria` getter, applied once on the server.
  */
 describe("<ui-feed> static render", () => {
   beforeAll(() => {

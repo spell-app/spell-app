@@ -17,23 +17,27 @@ import dropdownCSS from "./UIDropdown.css?inline"
  * - Its shadow DOM:  a `<button>` combobox (with `search`, an `<input>`),
  *   and an anchor-positioned popover menu.
  *
- * - Its options:  the slotted `<ui-item>`s (`SlottedItems`), then the `options` property, then additions,
- *   as `MenuOptions`.  `@derived` members work out the visible list on each key
+ * - Its options (`MenuOptions`):
+ *   the slotted `<ui-item>`s (`SlottedItems`), then the `options` property, then additions.
+ *   `@derived` members work out the visible list on each key
  *   (leaving out chosen ones, filtering, adding the addition).
  *
  * - `value` and `open` are controlled (`@controlled`):  the events go first, and a handler may cancel or override.
  * - Invoker commands (`<button commandfor="id" command="--toggle">`, `ToggleCommands`) open and close the menu,
  *   as a person's action;  a disabled or read-only dropdown ignores them.
  * - The menu's rows render only while it's open (`<For>`, keyed by option);
- *   `aria-activedescendant` points at the highlighted row.  Escape and outside clicks come from `UI.overlays`.
+ *   `aria-activedescendant` points at the highlighted row.
+ * - Escape and outside clicks come from `UI.overlays`.
  * - A form control:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
  *   Named by `label`, else by the DOM element's `<label for>` / `aria-label` (`ControlLabels`).
  * - An option's `flag` draws through `UIT.Flags`, the rule `<ui-flag>` draws with.
  *   Fomantic's country names (`france`) are `<ui-flag>`'s alone, so a flag that isn't a code shows as its text.
  *
- * - In a static server render (`$/ui/static`):  the menu is closed, with its rows rendered (their text is in the
- *   page), the `<ui-item>`s are dropped, and the value goes in hidden inputs, so a static form submits it.
- *   Choosing needs script.
+ * - In a static server render (`$/ui/static`):
+ *   - the menu is closed, with its rows rendered (their text is in the page)
+ *   - the `<ui-item>`s are dropped
+ *   - the value goes in hidden inputs, so a static form submits it
+ *   - choosing needs script
  ****************/
 @E.cssStates("loading", "fluid")
 export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
@@ -350,8 +354,9 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
 
   /**
    * Popover + overlay registration while open AND connected, once rendered.
-   * - `isConnected`:  `keepAlive` keeps an open dropdown's state when it's removed, but the page must not keep its
-   *   overlay entry (Escape / outside clicks) for an element that isn't there;  reconnecting re-registers.
+   * - `isConnected`:  `keepAlive` keeps an open dropdown's state when it's removed,
+   *   but the page must not keep its overlay entry (Escape / outside clicks) for an element that isn't there;
+   *   reconnecting re-registers.
    * - `isReady`:  the menu renders only then;  an element opened before shows it as it arrives.
    */
   @E.onChange("isOpen", "isConnected", "isReady")
@@ -371,8 +376,8 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   ////////////////
 
   /**
-   * Name of the combobox and its listbox:  `label`, else what names the DOM element (`labels`:
-   * `<label for>`, `aria-label` ...).
+   * Name of the combobox and its listbox:
+   * `label`, else what names the DOM element (`labels`:  `<label for>`, `aria-label` ...).
    */
   private get accessibleName(): string | undefined {
     return this.label || this.labels.accessibleName
@@ -695,8 +700,8 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   ////////////////
 
   /**
-   * An invoker command aimed at the DOM element (`ToggleCommands`):  a person's action,
-   * ignored when disabled or read-only.
+   * An invoker command aimed at the DOM element (`ToggleCommands`):
+   * a person's action, ignored when disabled or read-only.
    * - Opening focuses the combobox, as opening it by keyboard leaves it (the keys need it).
    */
   @E.on("command")
@@ -745,9 +750,10 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /**
-   * Leaving the combobox closes the menu, unless focus stays inside, or moves to (or is lost by a press on) one of
-   * this dropdown's invoker buttons:  that button's `command` decides, so `--toggle` closes an open menu instead of
-   * closing it here and reopening it.
+   * Leaving the combobox closes the menu, unless focus stays inside,
+   * or moves to (or is lost by a press on) one of this dropdown's invoker buttons.
+   * - That button's `command` decides,
+   *   so `--toggle` closes an open menu instead of closing it here and reopening it.
    */
   private readonly onBlur = (event: FocusEvent) => {
     const next = event.relatedTarget as Node | null
@@ -847,8 +853,8 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   /**
    * Draw icon `name` from the packs `element` sees (its `<ui-root icons>`, else `UI.icons`) into it, once loaded.
    * - Plain DOM, no signal:  rows are many and their icons never change.
-   * - NEVER rejects (fire-and-forget):  a runtime chunk or icon that won't load draws no icon, not a page error,
-   *   as `IconGlyph` does.
+   * - NEVER rejects (fire-and-forget), as `IconGlyph` does:
+   *   a runtime chunk or icon that won't load draws no icon, not a page error.
    * - STATIC:  needs no instance, only the element.
    */
   private static async fillIcon(element: HTMLElement, name: string | undefined) {

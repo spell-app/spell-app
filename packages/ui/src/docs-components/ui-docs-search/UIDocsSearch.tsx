@@ -62,12 +62,14 @@ export class DOMDocsSearchElement extends E.DOMElement<UIDocsSearch> {
  * grouped, best first, with the matched text marked;  pick one to jump there.
  *
  * - Its shadow DOM:  `<div class="ui [size] finder" part="search">` holding
- *   - `<div class="field" part="field">` (the pill, the results' anchor):  an icon,
- *     `<input role="combobox" part="input">`, a clear `<button>` while there's text,
+ *   - `<div class="field" part="field">` (the pill, the results' anchor):
+ *     an icon, `<input role="combobox" part="input">`, a clear `<button>` while there's text,
  *     and the shortcut hint `<span part="keys">` of `<kbd>`s
  *   - `<div class="results" part="results" popover="manual">` (in the top layer, so no panel or drawer clips it):
- *     a `<div role="listbox">` of `<div role="group" part="group">`s, each a mono eyebrow (`part="label"`)
- *     over `<a role="option" part="option" href>`s;  a note (no matches, loading);  the keys line (`part="hints"`)
+ *     - a `<div role="listbox">` of `<div role="group" part="group">`s,
+ *       each a mono eyebrow (`part="label"`) over `<a role="option" part="option" href>`s
+ *     - a note (no matches, loading)
+ *     - the keys line (`part="hints"`)
  *   - a visually hidden `role=status`:  how many results.
  * - An ARIA combobox, with list autocomplete:  focus stays in the field,
  *   and `aria-activedescendant` names the highlighted option (the first by default:  Enter takes the best match).
@@ -77,15 +79,18 @@ export class DOMDocsSearchElement extends E.DOMElement<UIDocsSearch> {
  * - Results are LINKS (`<a href>`), so a router that takes the page's link clicks takes them too.
  *   Picking one fires a cancelable `ui-navigate`:
  *   - vetoed:  a router took it
- *   - else a result on the page shown sets the hash (closing the drawer the field is in:  the site's landing scrolls),
- *     and any other loads its page.
+ *   - else a result on the page shown sets the hash,
+ *     closing the drawer the field is in (the site's landing scrolls)
+ *   - and any other loads its page
  *   The field then empties.
  * - Data:  the page shown's sections are read live from its DOM on every focus (`PageOutline`, `page`);
- *   the rest come from the site's data, fetched on the FIRST focus or keystroke (`SiteData` + `SearchData`,
- *   `SearchIndex`).  Until it's in, or if it fails, only the page shown is searched.
+ *   the rest come from the site's data, fetched on the FIRST focus or keystroke
+ *   (`SiteData` + `SearchData`, `SearchIndex`).
+ *   Until it's in, or if it fails, only the page shown is searched.
  * - Every keystroke fires `ui-input` (`{ value }`):  `<ui-docs-nav>` filters its list by it.
- * - Shortcuts (`shortcuts`, on by default):  `/` (not while typing in a field) and Cmd / Ctrl+K summon the field
- *   (`summon()`):  of several, the visible one, else one in a closed drawer, which opens.
+ * - Shortcuts (`shortcuts`, on by default):
+ *   `/` (not while typing in a field) and Cmd / Ctrl+K summon the field (`summon()`):
+ *   of several, the visible one, else one in a closed drawer, which opens.
  *   One document listener serves every field, while any is connected.
  * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of `<ui-icon>`s, which its barrel imports.
  ****************/
@@ -396,8 +401,8 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
 
   /**
    * Go to the result at `index`, as `event` (Enter, a click) asked:  see the class.
-   * - The card closes and the text clears on the NEXT task:  a click's link must still be in the page when the
-   *   browser follows it.
+   * - The card closes and the text clears on the NEXT task:
+   *   a click's link must still be in the page when the browser follows it.
    */
   private choose(index: number, event: KeyboardEvent | MouseEvent) {
     const hit = this.rows[index]
@@ -424,7 +429,8 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
 
   /**
    * Land on `hash` on the page shown:  close the drawer the field is in (the landing measures the page),
-   * then set the hash;  the same hash again re-announces it (`hashchange`), so the page lands once more.
+   * then set the hash.
+   * - The same hash again re-announces it (`hashchange`), so the page lands once more.
    */
   private jumpHere(hash: string) {
     const drawer = E.closestAcrossShadow(this.domElement, DRAWERS)
@@ -731,8 +737,9 @@ const GROUP_ID = "docs-search-group-"
 
 /**
  * Attribute holding an option's index among all rows:  what hover and click find it by.
- * - NOTE: the JSX writes it literally (`data-index={...}`):  a spread to use this key there would make each option's
- *   attributes one object Solid sets as a whole.  Keep the two in step.
+ * - NOTE: the JSX writes it literally (`data-index={...}`):
+ *   a spread to use this key there would make each option's attributes one object Solid sets as a whole.
+ *   Keep the two in step.
  */
 const INDEX_ATTRIBUTE = "data-index"
 

@@ -7,8 +7,8 @@ import statisticCSS from "./UIStatistic.css?inline"
 
 /****************
  * ### `UIStatistics`
- * The component behind `<ui-statistics>`:  a group of statistics sharing one look,
- * `<div class="ui … statistics" part="group"><slot></slot></div>`.
+ * The component behind `<ui-statistics>`:
+ * a group of statistics sharing one look, `<div class="ui … statistics" part="group"><slot></slot></div>`.
  *
  * - `UIStatistic.css` hands the group's size, colour, layout, count and stacking to its statistics
  *   through inherited private tokens.

@@ -30,9 +30,9 @@ import accordionCSS from "./UIAccordion.css?inline"
  *   - a change the browser makes itself (find-in-page) is announced after the fact, and adopted.
  * - Keyboard:  Tab between titles;  Enter / Space toggle (native);
  *   ArrowDown / ArrowUp / Home / End move between this accordion's titles (APG's optional keys).
- * - Nested:  a `<ui-accordion>` inside another (`PartContext`,
- *   `:state(in-accordion)`) draws Fomantic's `accordion` without `ui`, and inherits its parent's look through the
- *   `--_ui-accordion-*` aliases.
+ * - Nested:  a `<ui-accordion>` inside another (`PartContext`, `:state(in-accordion)`)
+ *   draws Fomantic's `accordion` without `ui`,
+ *   and inherits its parent's look through the `--_ui-accordion-*` aliases.
  * - Animated when `UI.browser.supports.interpolateSize` (`:state(animated)`):
  *   `::details-content` grows to `auto` height;  under `prefers-reduced-motion` the CSS drops the transition.
  * - *Source* (`source`, `select`):  the FIRST panel's content comes from a file
@@ -147,10 +147,10 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   }
 
   /**
-   * A click on a title (Enter / Space on the focused `<summary>` click it too):  stop the native toggle and go
-   * through `toggle()`.
-   * - A click on something interactive INSIDE the title (a link, a button) is left alone, as the native `<summary>`
-   *   would.
+   * A click on a title (Enter / Space on the focused `<summary>` click it too):
+   * stop the native toggle and go through `toggle()`.
+   * - A click on something interactive INSIDE the title (a link, a button) is left alone,
+   *   as the native `<summary>` would.
    */
   private onTitleClick(index: number, event: MouseEvent) {
     if (UIT.TitleControls.isClicked(event, "summary")) return
@@ -159,8 +159,9 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   }
 
   /**
-   * A `<details>` toggled:  when the browser did it (find-in-page opening a closed panel, the `name` group closing
-   * one), announce and adopt the DOM's open set;  our own writes already match it.
+   * A `<details>` toggled:  when the browser did it, announce and adopt the DOM's open set
+   * (find-in-page opening a closed panel, the `name` group closing one).
+   * - Our own writes already match it.
    */
   @E.untracked
   private onToggle(event: Event) {
@@ -267,8 +268,8 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   }
 
   /**
-   * Where the `source` body goes:  the first title's content child, made (a `<ui-content>` right after the title)
-   * when there's none.
+   * Where the `source` body goes:  the first title's content child,
+   * made when there's none (a `<ui-content>` right after the title).
    * - Read from the DOM, not `panels`:  the `MutationObserver` re-pairs on a microtask.
    * - Made only now, when the body arrives:  on first connect the parser may not have added the children yet.
    * - No title at all:  the DOM element itself (nothing shows it:  only pairs are shown).
@@ -399,8 +400,8 @@ const SOURCE_ERROR = "source error"
 
 /**
  * The shared `name` of an exclusive accordion's `<details>`, so the browser closes the others.
- * - Scoped to the accordion's own shadow root, so one constant serves every accordion;  a server render,
- *   with no shadow root, makes it page-unique (`UIAccordion.group`).
+ * - Scoped to the accordion's own shadow root, so one constant serves every accordion;
+ *   a server render, with no shadow root, makes it page-unique (`UIAccordion.group`).
  */
 const DETAILS_GROUP = "panels"
 

@@ -29,8 +29,9 @@ export class DOMRatingElement extends F.DOMFormControl<UIRating> {
  * ### `UIRating`
  * The component behind `<ui-rating>`:  a rating of one to `max-rating` icons, as an APG radio group.
  *
- * - Its shadow DOM:  `<fieldset class="ui … rating" part="rating" role="radiogroup">` holding one
- *   `<label class="[active] [partial] [selected] icon" part="icon">` per point,
+ * - Its shadow DOM:
+ *   `<fieldset class="ui … rating" part="rating" role="radiogroup">`
+ *   holding one `<label class="[active] [partial] [selected] icon" part="icon">` per point,
  *   each around a native radio (`part="control"`, invisible, over the glyph) and the icon's `<svg>`.
  *
  * - Why native radios in one shadow root:  they ARE a radio group, and each carries its own name ("3 of 5").
@@ -41,8 +42,9 @@ export class DOMRatingElement extends F.DOMFormControl<UIRating> {
  * - `value` is controlled (`@controlled`):  a choice sends `ui-change` first;
  *   a handler that sets `el.value` again wins, and the radios show that value.
  *   The ATTRIBUTE is the starting (and reset) value.
- * - Fractions (`value="3.5"`) fill part of the next icon (Fomantic's `partial`, `--full`).  Only a display:
- *   no radio is chosen, and the group's `aria-description` says "Rated 3.5 of 5".  A person's choice is always whole.
+ * - Fractions (`value="3.5"`) fill part of the next icon (Fomantic's `partial`, `--full`).
+ *   - Only a display:  no radio is chosen, and the group's `aria-description` says "Rated 3.5 of 5".
+ *   - A person's choice is always whole.
  * - `clearable`:  choosing the current rating again clears it (Fomantic's `clearable`;  `auto` ~== one icon).
  * - Hover previews a choice (`selected` icons, `selected` root), as Fomantic's script did.
  * - `readonly` (Fomantic's `interactive: false`):  focusable, announced read-only, and nothing changes it.
@@ -334,7 +336,8 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /**
-   * Which way an arrow key would run off the end of the group:  -1 before the first radio, 1 past the last,
+   * Which way an arrow key would run off the end of the group:
+   * -1 before the first radio, 1 past the last,
    * 0 when it is not that (the browser moves, or wraps, on its own).
    */
   private wrapStep(event: KeyboardEvent): -1 | 0 | 1 {

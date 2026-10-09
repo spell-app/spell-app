@@ -17,10 +17,11 @@
  *   - no `<ui-root>` catalog, no `registerPack()`:  the entry defines its tags itself, as the script runs
  *   - it may import Spell UI's DOC-ONLY families (`$/ui/docs-components/<family>`, e.g. `<ui-docs-inspector>`),
  *     bundled from this checkout's source;  any other `$/ui/...` module, Solid or `@spell-app/...` import fails
- * - Why not in `spell-ui.js`:  that bundle is built from `ui`'s `dist/`, which has no docs families;  and only the
- *   page that needs these pays for them.
- * - The entry lives in SHARED content, which has no `node_modules`:  `$/ui/docs-components/...` resolves to THIS
- *   checkout's `packages/ui/src/` by alias, so the script is built from the branch that runs this.
+ * - Why not in `spell-ui.js`:  that bundle is built from `ui`'s `dist/`, which has no docs families;
+ *   and only the page that needs these pays for them.
+ * - The entry lives in SHARED content, which has no `node_modules`:
+ *   `$/ui/docs-components/...` resolves to THIS checkout's `packages/ui/src/` by alias, so the script is built from the
+ *   branch that runs this.
  */
 import { existsSync, readFileSync, writeFileSync } from "node:fs"
 import { basename, dirname, join, relative, resolve } from "node:path"
@@ -35,8 +36,8 @@ const DOCS = resolve(dirname(fileURLToPath(import.meta.url)), "..")
 const UI_DIR = join(DOCS, "../ui")
 
 /**
- * The modules a script SHARES with the page instead of bundling:  each read from
- * `globalThis.SpellUI.packModules[<specifier>]` (the docs bundle's, `spell-ui.entry.js`).
+ * The modules a script SHARES with the page instead of bundling:
+ * each read from `globalThis.SpellUI.packModules[<specifier>]` (the docs bundle's, `spell-ui.entry.js`).
  * - The same list as the pack build's `PACK_MODULES` (`packages/cli/src/dev/packBuild.ts`):  keep them in step.
  *   Not imported from there:  `packBuild.ts` reaches `$/util`'s barrel, which this package's `tsc` can't check.
  */

@@ -22,12 +22,13 @@ import choicesCSS from "./EpicChoices.css?inline"
  * - Open question:  a CARD, its header a band at the top.
  * - Answered (`EpicChoices.isAnswered()`):  a PANEL in the Choices box, folded to its header, which is a button;
  *   the chosen one (`<epic-choices chosen>`) marked with a green check and green text, and open to start with.
- * - Reviewed (the page's `ReviewClient` is `reviewing`:  served by the page server, its inbox answering):  a
- *   "Choose" pill at the header's end (`pill()`) marks its letter as the item's pick through the client
- *   (`ReviewClient.choose()`);  again, un-picks it.  A pick is a decision, so green, wearing the fill rule (decision
- *   Q20):  the pill a grey outline, available;  picked, `Chosen`, the pill and the card's frame DASHED green (an
- *   answered panel:  its title green);  once sent, outlined green;  applied (its set's `chosen`), the pill SOLID
- *   green:  a question answered with it, any other item approved with it (`plan-doc inbox apply`)
+ * - Reviewed (the page's `ReviewClient` is `reviewing`:  served by the page server, its inbox answering):
+ *   a "Choose" pill at the header's end (`pill()`) marks its letter as the item's pick through the client
+ *   (`ReviewClient.choose()`);  again, un-picks it.
+ *   A pick is a decision, so green, wearing the fill rule (decision Q20):  the pill a grey outline, available;
+ *   picked, `Chosen`, the pill and the card's frame DASHED green (an answered panel:  its title green);
+ *   once sent, outlined green;  applied (its set's `chosen`), the pill SOLID green:
+ *   a question answered with it, any other item approved with it (`plan-doc inbox apply`)
  *   - WHEREVER its cards are (I8):  an item's text, a reply, More Details;  the pick names its card set by position
  *     (`EpicChoices.setOf()`), as an item may hold several
  *   - on an OPEN item's cards;  on a CLOSED one's (an answered question, an accepted call), but the chosen one,
@@ -121,8 +122,8 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   }
 
   /**
-   * Which card set of its item it's in (`EpicChoices.setOf()`):  what its pick names (I8);  `undefined` in an
-   * Original Discussion (history:  never a pill), or outside an item.
+   * Which card set of its item it's in (`EpicChoices.setOf()`):  what its pick names (I8);
+   * `undefined` in an Original Discussion (history:  never a pill), or outside an item.
    */
   private cardSet(): CardSet | undefined {
     return this.inOriginal ? undefined : EpicChoices.setOf(this.domElement)
@@ -219,11 +220,11 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   }
 
   /**
-   * The Choose pill, at the header's end:  `Choose`, a grey outline;  picked, `Chosen`, dashed green;  sent,
-   * outlined green;  applied (its set's `chosen`), solid green, and a click does nothing.  Its tooltip says what a
-   * click does, and whether the pick has gone to Claude.
-   * - `pill`:  `<Show>`'s accessor, read in each binding:  the callback's body runs once, so a value read there
-   *   would never change
+   * The Choose pill, at the header's end:  `Choose`, a grey outline;  picked, `Chosen`, dashed green;
+   * sent, outlined green;  applied (its set's `chosen`), solid green, and a click does nothing.
+   * Its tooltip says what a click does, and whether the pick has gone to Claude.
+   * - `pill`:  `<Show>`'s accessor, read in each binding:
+   *   the callback's body runs once, so a value read there would never change
    */
   private pillButton(pill: Accessor<PillState>): JSX.Element {
     return (
@@ -244,8 +245,8 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   }
 
   /**
-   * The pill's tooltip:  `Pick B`;  picked, `B is picked:  click to un-pick · sent` (or `not sent yet`);  applied,
-   * `B is the chosen option`.
+   * The pill's tooltip:  `Pick B`;  picked, `B is picked:  click to un-pick · sent` (or `not sent yet`);
+   * applied, `B is the chosen option`.
    */
   private pillTip(pill: PillState): string {
     const letter = this.letter ?? ""

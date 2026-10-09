@@ -9,10 +9,10 @@ import { type CommonAttributes } from "./UIInput.types"
  * The base component of `<ui-input>` and `<ui-textarea>`:  a native `<input>` / `<textarea>` in the shadow root,
  * whose value, validity and name belong to the DOM ELEMENT.
  *
- * - `value` is controlled (`@controlled`).
- *   Typing sends `ui-input` first;  a handler that sets `el.value` again wins (the control shows that value).
- *   The ATTRIBUTE is the starting value, which a form reset restores (as a native `defaultValue`);
- *   the property doesn't reflect.
+ * - `value` is controlled (`@controlled`):
+ *   typing sends `ui-input` first;  a handler that sets `el.value` again wins (the control shows that value).
+ *   - The ATTRIBUTE is the starting value, which a form reset restores (as a native `defaultValue`);
+ *     the property doesn't reflect.
  *
  * - Validity:  the NATIVE control's constraint validation (`required`, `pattern`, `type="email"` ...)
  *   merged with Fomantic `rules` (through `Validator`), into the DOM element's `setValidity()`:
@@ -21,10 +21,11 @@ import { type CommonAttributes } from "./UIInput.types"
  *
  * - `:state(invalid)` shows only once the person has interacted (`isTouched`), as `:user-invalid` does:
  *   a committed change, leaving an edited field,
- *   or a submit / `reportValidity()` that found it invalid (the `invalid` event).  A reset clears it.
+ *   or a submit / `reportValidity()` that found it invalid (the `invalid` event).
+ *   A reset clears it.
  *
- * - Its name:  `ControlLabels` hands the DOM element's `<label for>` / `aria-label` to the control
- *   as its `aria-label`.
+ * - Its name:
+ *   `ControlLabels` hands the DOM element's `<label for>` / `aria-label` to the control as its `aria-label`.
  * - The DOM element's `aria-invalid` (a `<ui-form>` marks failing fields) is passed on to the control.
  ****************/
 @E.cssStates("fluid", "loading")

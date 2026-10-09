@@ -18,8 +18,8 @@ import progressCSS from "./UIProgress.css?inline"
  *   - and `<div class="label" part="label">` around the slot.
  *
  * - The numbers:  `value` (a share of `total`, else a percentage) or `percent`.
- *   A comma list makes several bars (`ProgressValues`).
- *   The widths and `data-percent` are written as Fomantic's JS wrote them.
+ *   - A comma list makes several bars (`ProgressValues`).
+ *   - The widths and `data-percent` are written as Fomantic's JS wrote them.
  *
  * - Accessibility:  the DOM ELEMENT is the `progressbar`, through `internals`.
  *   A native `<progress>` can't hold Fomantic's bars, their texts, several values or the indeterminate looks,
@@ -222,8 +222,10 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   }
 
   /**
-   * Width, and corners of several bars (Fomantic's `set.barWidth()`):  a zero bar among several is hidden;
-   * only the first and last shown bars keep their outer corners.  None while indeterminate (the CSS fills the track).
+   * Width, and corners of several bars (Fomantic's `set.barWidth()`):
+   * - a zero bar among several is hidden
+   * - only the first and last shown bars keep their outer corners
+   * - none while indeterminate (the CSS fills the track)
    */
   private barStyle(index: number): JSX.CSSProperties {
     if (this.isIndeterminate) return {}

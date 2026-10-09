@@ -11,9 +11,10 @@ import type { AbstractClass } from "./util.types"
 /**
  * Put value of a `static` field on the class's PROTOTYPE, so every instance sees it as a default:
  * `@proto static alias = "statement"` => `instance.alias === "statement"`.
- * - Why not an instance field?  Those initialize per instance AFTER `super()` returns, so a base class
- *   constructor can't see them -- and a standard field decorator never gets to touch the prototype.
- *   `static` initializers run once, at class definition, with `this` ~== the class.
+ * - Why not an instance field?
+ *   - Those initialize per instance AFTER `super()` returns, so a base class constructor can't see them --
+ *     and a standard field decorator never gets to touch the prototype.
+ *   - `static` initializers run once, at class definition, with `this` ~== the class.
  * - Inherited through prototype chain;  instances may shadow with their own value, e.g. `Object.assign(this, props)`.
  * - Non-enumerable, so it stays out of `Object.keys()` / spreads -- instances only show what's theirs.
  * - NOTE: static keeps its value too, harmless.

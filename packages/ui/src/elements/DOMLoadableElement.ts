@@ -12,11 +12,11 @@ import { DOMElement } from "./DOMElement"
  *   rejects when it fails
  * - `save(text?)` / `reload()` -- see `LoadableComponent`
  * - Works before the first render:  a `content` set early is kept and shown once the component exists.
- * - Knows its component only as a `LoadableComponentShape` (`elements.types`):  NEVER imports `LoadableComponent`,
- *   which imports it.
- *   A family's subclass names its component class (`DOMCodeElement extends E.DOMLoadableElement<UICode>`).
+ * - Knows its component only as a `LoadableComponentShape` (`elements.types`):
+ *   NEVER imports `LoadableComponent`, which imports it.
+ *   - A family's subclass names its component class (`DOMCodeElement extends E.DOMLoadableElement<UICode>`).
  * - NOTE: `DOMElement` checks its members against the attributes' property names;  none of these is an attribute.
- *   Private members too:  NEVER call one `source` or `load` (instance fields would hide the attributes' accessors).
+ *   - Private members too:  NEVER call one `source` or `load` (instance fields would hide the attributes' accessors).
  ****************/
 export class DOMLoadableElement<C extends LoadableComponentType = LoadableComponentType> extends DOMElement<C> {
   /** `content` set before the component existed;  the component takes it */
@@ -41,7 +41,8 @@ export class DOMLoadableElement<C extends LoadableComponentType = LoadableCompon
   }
 
   /**
-   * Show `text` instead of the source's, until `source` changes or `reload()`;  `dirty` until saved, `ui-change`.
+   * Show `text` instead of the source's, until `source` changes or `reload()`.
+   * - `dirty` until saved;  sends `ui-change`.
    * - Before the component exists:  kept, and shown once it does.
    */
   set content(text: string) {
@@ -118,8 +119,8 @@ export class DOMLoadableElement<C extends LoadableComponentType = LoadableCompon
 
   /**
    * A promise with its settle functions.
-   * - Its rejection is pre-handled:  nobody awaiting `loaded` must not be an "unhandled rejection";  an awaiting
-   *   caller still sees it.
+   * - Its rejection is pre-handled:  a failure nobody awaits must not be an "unhandled rejection".
+   *   A caller awaiting `loaded` still sees it.
    * - Static:  needs no DOM element.
    */
   private static deferred() {

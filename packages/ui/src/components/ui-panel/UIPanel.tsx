@@ -1,5 +1,6 @@
 import { E } from "$/ui/core"
-// the family barrel, not the leaf:  the lib build then imports `ui-section.js` instead of splitting a shared chunk
+// the family barrel, not the leaf:
+// the lib build then imports `ui-section.js` instead of splitting a shared chunk
 // (SIDE EFFECT:  defines `<ui-section>` / `<ui-sections>`, which panels nest in and hold)
 import { UISection } from "$/ui/components/ui-section"
 import { FoldIconPlace, type SectionVocabulary } from "$/ui/components/ui-section/UISection.types"
@@ -13,7 +14,8 @@ import panelCSS from "./UIPanel.css?inline"
  * (the Color Set Chooser's left column).
  *
  * - A tinted box whose title is a full-width HEADER BAND, over its fields.
- *   A panel inside a panel is a SUB-HEAD BAND (small capitals) over its own fields.  Every band can fold.
+ *   - A panel inside a panel is a SUB-HEAD BAND (small capitals) over its own fields.
+ *   - Every band can fold.
  * - It IS a `<ui-section>` (it extends `UISection`):  the same attributes, slots, parts,
  *   events and folding (`collapsible`, `collapsed`, `ui-open` / `ui-close`, find-in-page, `source`).
  *   - Its vocabulary is built on the section's (`UIPanel.en.ts`),
@@ -23,11 +25,11 @@ import panelCSS from "./UIPanel.css?inline"
  * - The chevron sits at the far end of each band, after any actions:
  *   the section's `fold-icon="end"` is the panel's default (`defaultFoldIcon`).
  *   `info` puts the section's tip under a band.
- * - `color`:  any hue, a theme's too (`spell-brand`'s `accent`).
+ * - `color`:  any hue, a theme's too (`spell-brand`'s `accent`);  no `color`:  `primary`.
  *   The sheet paints the box, bands, border and text from it,
- *   and hands it to the sub-panels that have no `color` of their own.  No `color`:  `primary`.
- * - Tokens (`--ui-panel-*`, read through private aliases):  background, border colour, header and sub-head bands,
- *   radius, padding, gap, band space, shadow.
+ *   and hands it to the sub-panels that have no `color` of their own.
+ * - Tokens (`--ui-panel-*`, read through private aliases):
+ *   background, border colour, header and sub-head bands, radius, padding, gap, band space, shadow.
  *   Their defaults come from the panel's hue, with a plain `--ui-*` value under every `spell-brand` role,
  *   so it needs no brand theme.
  * - A folded LAST sub-panel closes the outer box:  its band reaches the bottom edge (`:host(:last-child)`).

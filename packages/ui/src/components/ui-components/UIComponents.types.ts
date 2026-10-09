@@ -1,6 +1,9 @@
 /**
- * The types and constants the `ui-components` family's files share:  its component (`UIComponents`), its
- * vocabulary, `ComponentPacks` (the page's registry of component packs), and `<ui-root>`, which reads `source`.
+ * The types and constants the `ui-components` family's files share:
+ * - its component (`UIComponents`) and its vocabulary
+ * - `ComponentPacks` (the page's registry of component packs)
+ * - `<ui-root>`, which reads `source`
+ *
  * - Pure data:  `import type` only (a pack's catalog has the shape of `<ui-root>`'s own), so node can load it.
  */
 
@@ -29,8 +32,8 @@ export type ComponentPack = {
   readonly catalog: Readonly<Record<string, RootCatalogEntry>>
   /**
    * Define every tag of the pack;  called once, by `registerPack()`.
-   * - It may return a promise, when it loads its families first (`import()`):  the pack counts as loaded once that
-   *   settles, so a `<ui-root>` waits for its tags.
+   * - It may return a promise, when it loads its families first (`import()`):
+   *   the pack counts as loaded once that settles, so a `<ui-root>` waits for its tags.
    */
   define(): void | Promise<unknown>
 }

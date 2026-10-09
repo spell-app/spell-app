@@ -35,8 +35,9 @@ function isSameNouns(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
  *   - A slotted part of the same noun anywhere inside (or a slotted `<img>`, for `image`) wins:
  *     that shorthand isn't drawn.
  *
- * - In a `<ui-cards>` group (`PartContext`, noun `card`):  the DOM element is a `role=listitem` with
- *   `:state(in-cards)`, and every shared variation the card doesn't set comes from the group (`classValue()`).
+ * - In a `<ui-cards>` group (`PartContext`, noun `card`):
+ *   the DOM element is a `role=listitem` with `:state(in-cards)`,
+ *   and every shared variation the card doesn't set comes from the group (`classValue()`).
  *
  * - `loading`:  `aria-busy` (through `internals`) and a visually hidden `role=status` "Loading…".
  * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  `aria-disabled`, everything inside inert;

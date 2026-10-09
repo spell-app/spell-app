@@ -14,20 +14,24 @@ import type { Browser } from "./Browser"
  * ### `I18n`
  * Text strings and locale-aware formatting, as `UI.i18n`.
  * - In the runtime's lazy chunk;  `temporal-polyfill` is a lazy chunk of its own (`./TemporalPolyfill`).
- * - Strings:  packs per locale (`register("de", {...})`);  `t(key)` looks up the exact locale (`pt-BR`),
- *   then its language (`pt`), then `en`, then the English DEFAULTS, then returns the key itself -- a missing
- *   string is visible, not blank.
- * - SCOPED strings:  `t(key, params, scope)` with a component's canonical tag (`ui-table`), as `UIComponent.text()`
- *   calls it.  Per locale it tries that component's strings (`register("es", {...}, "ui-table")`), then the
- *   shared ones (`register("es", {...})`):  a shared translation covers every component using the key, a scoped
- *   one overrides it for one component.  Why:  two families may share a key (`label`) with different text.
- * - DEFAULTS are the English source texts, below every registered string:  `EN_STRINGS` and each component's
- *   vocabulary texts (`registerDefaults()`, by `UIComponent.define()`).  A component's own default beats another
- *   family's;  an unscoped `t(key)` gets the FIRST default registered for the key.
+ * - Strings:  packs per locale (`register("de", {...})`).
+ *   `t(key)` looks up the exact locale (`pt-BR`), then its language (`pt`), then `en`, then the English DEFAULTS,
+ *   then returns the key itself:  a missing string is visible, not blank.
+ * - SCOPED strings:  `t(key, params, scope)` with a component's canonical tag (`ui-table`),
+ *   as `UIComponent.translationForKey()` calls it.
+ *   - Per locale it tries that component's strings (`register("es", {...}, "ui-table")`),
+ *     then the shared ones (`register("es", {...})`).
+ *   - So a shared translation covers every component using the key, and a scoped one overrides it for one component.
+ *   - Why:  two families may share a key (`label`) with different text.
+ * - DEFAULTS are the English source texts, below every registered string:
+ *   `EN_STRINGS` and each component's vocabulary texts (`registerDefaults()`, by `UIComponent.register()`).
+ *   - A component's own default beats another family's.
+ *   - An unscoped `t(key)` gets the FIRST default registered for the key.
  * - Formatting via `Intl`, with formatters cached per locale + options (they're costly to build).
- * - Temporal:  `temporal` is the browser's own when `UI.browser.supports.temporal`, else `temporal-polyfill`'s
- *   once `loadTemporal()` has loaded it -- a dynamic import, so a lazy chunk only browsers without Temporal
- *   fetch, and NEVER installed on `globalThis`.
+ * - Temporal:  `temporal` is the browser's own when `UI.browser.supports.temporal`,
+ *   else `temporal-polyfill`'s once `loadTemporal()` has loaded it.
+ *   - A dynamic import, so a lazy chunk only browsers without Temporal fetch.
+ *   - NEVER installed on `globalThis`.
  ****************/
 export class I18n {
   /** BCP 47 locale for lookups and formatting;  default the browser's */
@@ -70,8 +74,8 @@ export class I18n {
 
   /**
    * English SOURCE texts of component `scope` (its canonical tag), below every registered string.
-   * - Replaces that scope's earlier defaults per key (a hot-reloaded vocabulary);  fills the shared defaults
-   *   only where empty, so an unscoped `t(key)` keeps the first family's text.
+   * - Replaces that scope's earlier defaults per key (a hot-reloaded vocabulary).
+   * - Fills the shared defaults only where empty, so an unscoped `t(key)` keeps the first family's text.
    */
   registerDefaults(pack: StringPack, scope: string) {
     this.scopedDefaults.set(scope, { ...this.scopedDefaults.get(scope), ...pack })
@@ -79,8 +83,8 @@ export class I18n {
   }
 
   /**
-   * String for `key` in the current locale (see class docs for fallback), with `{name}` placeholders
-   * filled from `params`.
+   * String for `key` in the current locale (see class docs for fallback),
+   * with `{name}` placeholders filled from `params`.
    * - `scope`:  a component's canonical tag;  its own strings first, per locale (see class docs).
    * - A placeholder without a param stays as-is (`{value}`), so the gap is visible.
    */
@@ -150,8 +154,8 @@ export class I18n {
   ////////////////
 
   /**
-   * `Temporal` if it's here NOW:  the browser's own (`supports.temporal`), else the polyfill once
-   * `loadTemporal()` has resolved, else `undefined`.
+   * `Temporal` if it's here NOW, else `undefined`:
+   * the browser's own (`supports.temporal`), else the polyfill once `loadTemporal()` has resolved.
    * - For code that must run synchronously (a render), after awaiting `loadTemporal()` once.
    */
   get temporal(): TemporalAPI | undefined {
@@ -162,8 +166,8 @@ export class I18n {
   /**
    * `Temporal`, loading `temporal-polyfill` the first time a browser without it asks.
    * - Runs once:  every caller shares the first call's promise.
-   * - SIDE EFFECT:  one dynamic `import()` per page, a lazy chunk;  the polyfill is kept here, never put on
-   *   `globalThis`.
+   * - SIDE EFFECT:  one dynamic `import()` per page, a lazy chunk.
+   * - The polyfill is kept here, never put on `globalThis`.
    */
   @once loadTemporal(): Promise<TemporalAPI> {
     const now = this.temporal
@@ -185,8 +189,8 @@ export class I18n {
   ////////////////
 
   /**
-   * Walk the locale chain for `key`:  per locale, `scope`'s string, then the shared one;  then `scope`'s
-   * English default, then the shared default.
+   * Walk the locale chain for `key`:  per locale, `scope`'s string, then the shared one;
+   * then `scope`'s English default, then the shared default.
    */
   private lookup(key: I18nKey, scope?: string): string | undefined {
     for (const locale of this.chain()) {

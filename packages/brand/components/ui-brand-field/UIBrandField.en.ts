@@ -3,8 +3,8 @@
  * - Its tag, attributes (each with its kind and allowed values), slots, parts, states and texts.
  *   The shape is `ComponentVocabulary` (`$/ui/vocabulary`).
  * - Pure data:  `import type` only.
- * - Class words:  `state` emits its value alone (`error`), as `<ui-field>`'s;  `inline`,
- *   `required` and `disabled` their names.  The component adds `brand` before the noun (`brand field`).
+ * - Class words:  `state` emits its value alone (`error`), as `<ui-field>`'s;
+ *   `inline`, `required` and `disabled` their names.  The component adds `brand` before the noun (`brand field`).
  */
 
 import type { ComponentVocabulary } from "$/ui/core"

@@ -7,8 +7,8 @@ import cardCSS from "./UICard.css?inline"
 
 /****************
  * ### `UICards`
- * The component behind `<ui-cards>`:  a group of cards in a wrapping row,
- * `<div class="ui ... cards" part="group" role="list"><slot></slot></div>`.
+ * The component behind `<ui-cards>`:
+ * a group of cards in a wrapping row, `<div class="ui ... cards" part="group" role="list"><slot></slot></div>`.
  *
  * - It owns its cards (`ownsParts:  card`):  each `<ui-card>` finds this group (`PartContext`),
  *   its DOM element becomes a `role=listitem` with `:state(in-cards)`,

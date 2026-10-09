@@ -3,22 +3,23 @@
  * - Its tag, attributes (each with its kind and allowed values), parts and texts.
  *   The shape is `ComponentVocabulary` (`$/ui/vocabulary`).
  * - The attributes become Fomantic's class words, in Fomantic's order (`ClassBuilder`):
- *   `<ui-flag country="fr" size="large">` => `ui large flag fr`.  The country is CONTENT:  the Unicode flag emoji
- *   (`🇫🇷`), which is what Fomantic 2.9's default theme draws too (Twemoji SVGs named by the same code points).
- *   Its resolved code is ALSO a class word before the noun, as in Fomantic's `fr flag`:  no rule here reads it,
- *   a page's own CSS may.
+ *   `<ui-flag country="fr" size="large">` => `ui large flag fr`.
+ *   - The country is CONTENT:  the Unicode flag emoji (`🇫🇷`),
+ *     which is what Fomantic 2.9's default theme draws too (Twemoji SVGs named by the same code points).
+ *   - Its resolved code is ALSO a class word before the noun, as in Fomantic's `fr flag`:
+ *     no rule here reads it, a page's own CSS may.
  * - Resolving `country` (`FlagCountry`):
  *   - normalize:  trim, lowercase, `_` => space, collapse whitespace (`United_States` ~== `united states`)
- *   - `FLAG_ALIASES[name] ?? name` (`UIFlag.types.ts`) => a code:  an ISO 3166-1 alpha-2 code, or a key of
- *     `UIT.SpecialFlags`
- *   - the code => its emoji (`UIT.Flags.emojiFor()`, which menu options' flags use too):  `SpecialFlags[code]`,
- *     else a two-letter code's regional-indicator pair (`U+1F1E6 + letter - "a"` per letter:  `fr` => `🇫🇷`);
- *     anything else draws an empty flag box
+ *   - `FLAG_ALIASES[name] ?? name` (`UIFlag.types.ts`) => a code:
+ *     an ISO 3166-1 alpha-2 code, or a key of `UIT.SpecialFlags`
+ *   - the code => its emoji (`UIT.Flags.emojiFor()`, which menu options' flags use too):
+ *     `SpecialFlags[code]`, else a two-letter code's regional-indicator pair
+ *     (`U+1F1E6 + letter - "a"` per letter:  `fr` => `🇫🇷`);  anything else draws an empty flag box
  *   - `aria-label`:  `texts` for the `SpecialFlags` codes,
  *     else `Intl.DisplayNames(lang, { type: "region" })` of the upper-cased code (`FR` => `France`),
  *     which also follows the page language for free
- * - The aliases are Fomantic's English names;  a translation adds its own names next to them (they're data,
- *   not vocabulary names).
+ * - The aliases are Fomantic's English names;
+ *   a translation adds its own names next to them (they're data, not vocabulary names).
  */
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"

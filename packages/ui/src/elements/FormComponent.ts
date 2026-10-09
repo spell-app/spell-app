@@ -12,29 +12,32 @@ import { Validator } from "./Validator"
  *   its DOM element class is a `DOMFormControl` (the form-control API).
  * - The browser's form callbacks arrive as methods (`UIComponent`, "Lifecycle"):
  *   a reset as `onFormReset()`, a `<fieldset disabled>` as `formIsDisabled`.
- * - Pushes `formValue` into `ElementInternals.setFormValue()` -- a `string[]` becomes a `FormData` with one
- *   entry per value, so `new FormData(form).getAll(name)` returns them all -- and `validationRules` through
- *   `Validator` into `setValidity()`.
- * - `:state(invalid)` follows `isShownInvalid`:  at once, or only once someone has interacted (`invalidShows`);
- *   the anchor for the browser's bubble is `validationAnchor`.
+ * - Pushes `formValue` into `ElementInternals.setFormValue()`:
+ *   a `string[]` becomes a `FormData` with one entry per value, so `new FormData(form).getAll(name)` returns them all.
+ * - Pushes `validationRules`, through `Validator`, into `setValidity()`.
+ * - `:state(invalid)` follows `isShownInvalid`:  at once, or only once someone has interacted (`invalidShows`).
+ *   The anchor for the browser's bubble is `validationAnchor`.
  *
  * - What every control gets from here, so it writes none of it:
- *   - `isDisabled`:  its `disabled` attribute, or a disabled fieldset (`isMarkedDisabled`);  the `disabled` class
- *     follows it, and `:state(disabled)` (`UIComponent`)
+ *   - `isDisabled`:  its `disabled` attribute, or a disabled fieldset (`isMarkedDisabled`);
+ *     the `disabled` class follows it, and `:state(disabled)` (`UIComponent`)
  *   - `isReadOnly`:  `readonly`, with `:state(readonly)`
- *   - `labels` (`ControlLabels`):  what names the DOM element (`<label for>`, `aria-label` ...), as `accessibleName`
- *     for its inner control;  read again each time it connects
+ *   - `labels` (`ControlLabels`):  what names the DOM element (`<label for>`, `aria-label` ...),
+ *     as `accessibleName` for its inner control;  read again each time it connects
  *   - `isTouched`:  someone has interacted;  an `invalid` event (a submit, `reportValidity()`) sets it,
  *     a form reset clears it (`DOMFormControl`)
- *   - `formName`:  `name`;  `validationRules`:  `required` => Fomantic's `notEmpty`
+ *   - `formName`:  `name`
+ *   - `validationRules`:  `required` => Fomantic's `notEmpty`
  *   - a click aimed at the DOM element itself (its `<label for>`, its `click()`) calls `activateControl()`
  * - Every form vocabulary has `disabled` and `name`:  their getters are typed here once (`FormAttributes`).
  *
- * - Part of the `forms` entry:  reaches the element core through the `$/ui/core` ENTRY (`E`), never its leaves, or the
- *   build splits what `core` and `forms` share into a third chunk.  `E.UIComponent` and the decorators (`@E.proto`,
- *   `@E.onChange` ...) are safe while this module evaluates:  the core never imports `forms`, so it has always
- *   finished loading first.  Its `forms` peers `DOMFormControl` / `Validator` come directly:  static initializers read
- *   them (WWOD §4 › "Circular imports");  `ControlLabels` through `F`, as only an instance field reads it.
+ * - Part of the `forms` entry:  reaches the element core through the `$/ui/core` ENTRY (`E`), never its leaves,
+ *   or the build splits what `core` and `forms` share into a third chunk.
+ *   - `E.UIComponent` and the decorators (`@E.proto`, `@E.onChange` ...) are safe while this module evaluates:
+ *     the core never imports `forms`, so it has always finished loading first.
+ *   - Its `forms` peers `DOMFormControl` / `Validator` come directly:
+ *     static initializers read them (WWOD §4 › "Circular imports").
+ *   - `ControlLabels` comes through `F`, as only an instance field reads it.
  ****************/
 export abstract class FormComponent<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends E.UIComponent<V> {
   @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
@@ -61,7 +64,10 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
   // ## Value
   ////////////////
 
-  /** Hook:  value to submit;  tracked.  `null` / `undefined` submits nothing. */
+  /**
+   * Hook:  value to submit;  tracked.
+   * - `null` / `undefined` submits nothing.
+   */
   abstract get formValue(): E.FieldValue
 
   /** Hook:  field name for `FormData` entries of a multi-value control;  default `name`. */
@@ -95,8 +101,8 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
 
   /**
    * `validationRules` checked against `validationValue`.
-   * - A plain getter for now:  `brand`'s hooks still read `Cell`s and memos, which a `@derived` cache can't see
-   *   change (`@derived` once they read record members;  `TextControl`'s override is one already).
+   * - A plain getter for now:  `brand`'s hooks still read `Cell`s and memos, which a `@derived` cache can't see change.
+   *   It becomes `@derived` once they read record members (`TextControl`'s override is one already).
    */
   get validation(): E.ValidationResult {
     return FormComponent.validator.validate(this.validationValue, this.validationRules, { label: this.validationLabel })
@@ -105,8 +111,8 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
   /**
    * Hook:  validation rules;  default:  `required` => Fomantic's `notEmpty`, else none.
    * - `required` only where the vocabulary has it (not a slider's, nor brand's controls').
-   * - Not `rules`:  the attribute of `<ui-input>`, `<ui-textarea>` and `<ui-form>`, whose getter a base member of
-   *   that name would hide (`UIComponent`'s doc).
+   * - Not `rules`:  the attribute of `<ui-input>`, `<ui-textarea>` and `<ui-form>`,
+   *   whose getter a base member of that name would hide (`UIComponent`'s doc).
    */
   protected get validationRules(): E.ValidationRule[] {
     return this.required ? [UIT.REQUIRED_RULE] : []
@@ -114,8 +120,8 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
 
   /**
    * Hook:  value `validationRules` check;  tracked.
-   * - Default:  `formValue`.  A checkbox checks its chosen state alone:  its `off-value` is submitted, yet never
-   *   "checked".
+   * - Default:  `formValue`.
+   * - A checkbox checks its chosen state alone:  its `off-value` is submitted, yet never "checked".
    */
   protected get validationValue(): E.FieldValue {
     return this.formValue
@@ -133,13 +139,14 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
 
   /**
    * When `:state(invalid)` shows:  `"at once"` (as `:invalid` does), or `"once touched"` (as `:user-invalid` does).
-   * See `@proto static invalidShows`.
+   * - See `@proto static invalidShows`.
    */
   declare readonly invalidShows: E.InvalidTiming
 
   /**
    * Class setting:  when `:state(invalid)` shows.
-   * - Default `"at once"`.  Text and check controls and the rating wait for the person:  `"once touched"`.
+   * - Default `"at once"`.
+   * - Text and check controls and the rating wait for the person:  `"once touched"`.
    */
   @E.proto static invalidShows: E.InvalidTiming = "at once"
 
@@ -147,9 +154,11 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
    * Shown as invalid?  Invalid, and (`invalidShows: "once touched"`) touched;  tracked.
    * - `:state(invalid)`, which every form vocabulary names.
    *   Text and check controls and the rating hand it to their inner control as `aria-invalid`.
-   * - Set by `onValidationChanged()`, NOT `@cssState`:  the one `:state()` render effect also reads a radio's own
-   *   `selected`, and a group's validation reads every member's, so it would draw a frame against a stale membership
-   *   while the group unchooses the others (`EFFECT_RELAY_TEAR`, `UICheckbox.test.tsx`).
+   * - Set by `onValidationChanged()`, NOT `@cssState`:
+   *   - the one `:state()` render effect also reads a radio's own `selected`,
+   *     and a group's validation reads every member's
+   *   - so it would draw a frame against a stale membership while the group unchooses the others
+   *     (`EFFECT_RELAY_TEAR`, `UICheckbox.test.tsx`)
    */
   get isShownInvalid(): boolean {
     return !this.validation.valid && (this.invalidShows === "at once" || this.isTouched)
@@ -171,7 +180,8 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
   ////////////////
 
   /**
-   * Has someone interacted with it?  Only then does an `"once touched"` control show `:state(invalid)`.
+   * Has someone interacted with it?
+   * - Only then does a `"once touched"` control show `:state(invalid)`.
    * - Set here by an `invalid` event;  a control sets it on its own interactions too (a choice, a committed edit).
    * - Cleared by a form reset, before `onFormReset()` (`DOMFormControl`).
    */
@@ -206,8 +216,8 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
 
   /**
    * Disabled by its `disabled` attribute, or by a disabled fieldset / form (`isMarkedDisabled`).
-   * - Unusable its own way (`elementSetup.disabled` is `"its own"`):  each control disables its native control, so it
-   *   stays in the accessibility tree as a disabled control, where the base class would make it inert.
+   * - Unusable its own way (`elementSetup.disabled` is `"its own"`):  each control disables its native control,
+   *   so it stays in the accessibility tree as a disabled control, where the base class would make it inert.
    */
   get isDisabled(): boolean {
     return this.isMarkedDisabled
@@ -226,8 +236,8 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
   /**
    * Is `readonly` set?  `:state(readonly)`.
    * - It shows its value, can be focused, and is submitted, but people can't change it (unlike `disabled`).
-   * - Every form control's vocabulary declares it (`property: "readOnly"`, as the platform's), each saying what it
-   *   does there;  `false` where one doesn't.
+   * - Every form control's vocabulary declares it (`property: "readOnly"`, as the platform's),
+   *   each saying what it does there;  `false` where one doesn't.
    * - Each control refuses changes its own way (its native control's `readonly`, a click it ignores ...).
    */
   @E.cssState("readonly")
@@ -240,8 +250,8 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
   ////////////////
 
   /**
-   * A click aimed at the DOM element itself (its `<label for>`, its `click()`):  `activateControl()`,
-   * unless disabled.
+   * A click aimed at the DOM element itself (its `<label for>`, its `click()`):
+   * `activateControl()`, unless disabled.
    * - Clicks from inside the shadow root arrive retargeted, and are left alone.
    */
   @E.on("click")
@@ -252,8 +262,8 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
 
   /**
    * Hook:  what a click aimed at the DOM element itself does;  default nothing.
-   * - A text control focuses its `<input>`, a rating its tab stop, a slider its first thumb;  a checkbox clicks its
-   *   input, as a native `<label>` does.
+   * - A text control focuses its `<input>`, a rating its tab stop, a slider its first thumb.
+   * - A checkbox clicks its input, as a native `<label>` does.
    */
   protected activateControl() {}
 
@@ -284,8 +294,8 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
 }
 
 /**
- * The vocabulary getters every form control's vocabulary has, typed once for this base (see "Attributes" in
- * `UIComponent`).
+ * The vocabulary getters every form control's vocabulary has, typed once for this base
+ * (see "Attributes" in `UIComponent`).
  */
 export interface FormComponent<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends FormAttributes {}
 
@@ -298,7 +308,7 @@ type FormAttributes = {
   /**
    * a value is needed
    * - NOTE: `undefined` at run time where the vocabulary has no `required` (a slider, brand's controls):  never needed.
-   *   Typed `boolean` all the same:  a subclass's vocabulary getter must have the very same type.
+   * - Typed `boolean` all the same:  a subclass's vocabulary getter must have the very same type.
    */
   required: boolean
 }

@@ -10,9 +10,9 @@ import answerCSS from "./EpicAnswer.css?inline"
 
 /****************
  * ### `EpicAnswer`
- * The component behind `<epic-answer>`:  an answered question's answer card, after its question and Choices -- a
- * warm card, its heading band `Answer · <title>` (`D7 · <title>` when it keeps an old decision's id, so old `#d7`
- * links land on it:  the id is the DOM element's own), then the answer and why (its light children).
+ * The component behind `<epic-answer>`:  an answered question's answer card, after its question and Choices --
+ * a warm card, its heading band `Answer · <title>` (`D7 · <title>` when it keeps an old decision's id,
+ * so old `#d7` links land on it:  the id is the DOM element's own), then the answer and why (its light children).
  * - A title with markup:  a `slot="title"` child, in place of `title` (T12).
  * - No children:  the heading alone, a card one band tall.
  ****************/

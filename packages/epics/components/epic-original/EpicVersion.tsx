@@ -11,11 +11,11 @@ import originalCSS from "./EpicOriginal.css?inline"
 
 /****************
  * ### `EpicVersion`
- * The component behind `<epic-version>`:  one earlier version of an item's text, in its Original Discussion -- a
- * small heading, then the text as it was.
- * - Heading:  `As of <as-of>` (when it was replaced, `10/4/26 20:49`:  `PlanDates`);  the first version, undated,
- *   `As first written` -- but only once there's a second:  a lone version needs no heading (plan-doc.md, "Markup
- *   the script writes").
+ * The component behind `<epic-version>`:  one earlier version of an item's text, in its Original Discussion --
+ * a small heading, then the text as it was.
+ * - Heading:  `As of <as-of>` (when it was replaced, `10/4/26 20:49`:  `PlanDates`);
+ *   the first version, undated, `As first written` -- but only once there's a second:
+ *   a lone version needs no heading (plan-doc.md, "Markup the script writes").
  ****************/
 export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
   @E.proto static vocabulary = epicVersionVocabulary

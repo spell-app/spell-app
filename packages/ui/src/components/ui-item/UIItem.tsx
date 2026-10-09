@@ -22,11 +22,13 @@ import itemCSS from "./UIItem.css?inline"
  *   - `<a class="[color] [position] [keyOnly ...] item" part="item" href>` with `href`,
  *     a `<button type="button">` with `link` (or when the owner says its items are interactive), else a `<div>`;
  *   - a `type="header"` item is a `<div class="item header">`, a `divider` a `<div class="divider" role="separator">`;
- *   - inside the box:  the `image` shorthand's `<img class="ui avatar image" part="image" alt="">`,
+ *   - inside the box:
+ *     the `image` shorthand's `<img class="ui avatar image" part="image" alt="">`,
  *     the icon box (the `icon` shorthand or the `icon` slot), then the default slot.
  *
  * - Styles:  `UIItem.css` (the DOM element and generic resets),
- *   then the OWNER's sheets (its `elementSetup.styleSheets`), which hold the item rules keyed on `:host(:state(in-list)) > .item`, beside the static `.ui.list > .item`.
+ *   then the OWNER's sheets (its `elementSetup.styleSheets`),
+ *   which hold the item rules keyed on `:host(:state(in-list)) > .item`, beside the static `.ui.list > .item`.
  *   The item registers them if the owner hasn't yet, and adopts them again when the owner changes.
  *
  * - Semantics:
@@ -39,9 +41,11 @@ import itemCSS from "./UIItem.css?inline"
  *
  * - A part (`elementSetup.isAPart`):  transparent to other parts' climbs,
  *   so a `<ui-header>` inside an item in a list is the LIST's header (`.ui.list > .item > .content > .header`).
- *   - Except in the Items view (`<ui-items>`):  there the owner's `ItemContext.ownsParts` makes the item OWN its
- *     content parts (`ConditionalOwner`, `isOwnerOf()`), so they get `:state(in-item)`,
- *     as Fomantic's `.ui.items > .item > .content > .header`.  Its `image` shorthand takes the owner's `imageClass`.
+ *   - Except in the Items view (`<ui-items>`):
+ *     there the owner's `ItemContext.ownsParts` makes the item OWN its content parts
+ *     (`ConditionalOwner`, `isOwnerOf()`), so they get `:state(in-item)`,
+ *     as Fomantic's `.ui.items > .item > .content > .header`.
+ *     Its `image` shorthand takes the owner's `imageClass`.
  ****************/
 export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.ConditionalOwner {
   @E.proto static vocabulary = itemVocabulary
@@ -82,8 +86,8 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
   }
 
   /**
-   * `ConditionalOwner`:  does this item own its content parts (any noun) now?  Only when its owner's `ItemContext`
-   * says so (the Items view).
+   * `ConditionalOwner`:  does this item own its content parts (any noun) now?
+   * Only when its owner's `ItemContext` says so (the Items view).
    * - Reads the DOM (`PartContext.resolve()`), untracked:  other parts ask during their climbs, right after moves,
    *   before this item's own `owner` has landed.
    */
@@ -145,17 +149,18 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
   private boxElement: HTMLElement | undefined
 
   /**
-   * The item box (`<a>` / `<button>` / `<div>` in the shadow root), or `undefined` while unowned --
-   * what an owner moves focus between (a menubar's roving tabindex:  the DOM element stays untabbable,
-   * so assistive tech and axe see the owner's role pattern through it).
+   * The item box (`<a>` / `<button>` / `<div>` in the shadow root), or `undefined` while unowned:
+   * what an owner moves focus between.
+   * - A menubar's roving tabindex:  the DOM element stays untabbable,
+   *   so assistive tech and axe see the owner's role pattern through it.
    */
   get focusTarget(): HTMLElement | undefined {
     return this.boxElement?.isConnected ? this.boxElement : undefined
   }
 
   /**
-   * `header` for a header item;  `ui-<color>` for a coloured one -- the generic colour remap (`colors.css`) keys on
-   * `.ui.red` / `.ui-red`, and an item has no `ui`.
+   * `header` for a header item;  `ui-<color>` for a coloured one.
+   * - Why:  the generic colour remap (`colors.css`) keys on `.ui.red` / `.ui-red`, and an item has no `ui`.
    */
   protected get extraClass(): string | undefined {
     const color = this.color
@@ -203,10 +208,11 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
 
   /**
    * An unowned item's render:  just its content, the bare `<slot>`.
-   * - Server render (`$/ui/static`):  wrapped in a `<span>`, the DOM element's stand-in (`:host`'s `display: contents`
-   *   reaches it as the root).  Why:  the flattener hands a DOM element's `slot` to its render's FIRST element only,
-   *   so a rich dropdown item (`<b>Bold</b> one`, assigned to its row's named slot) would lose the text beside its
-   *   element (seo plan, I20).
+   * - Server render (`$/ui/static`):  wrapped in a `<span>`, the DOM element's stand-in
+   *   (`:host`'s `display: contents` reaches it as the root).
+   * - Why:  the flattener hands a DOM element's `slot` to its render's FIRST element only,
+   *   so a rich dropdown item (`<b>Bold</b> one`, assigned to its row's named slot)
+   *   would lose the text beside its element (seo plan, I20).
    */
   private unowned(): JSX.Element {
     return isServer ? (

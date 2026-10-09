@@ -12,9 +12,9 @@ import answerCSS from "./EpicAnswer.css?inline"
 
 /****************
  * ### `EpicMore`
- * The component behind `<epic-more>`:  More Details (Add Details Now) on an item -- a plain card under its text and
- * answer, open to start with, folded by its `More Details` heading.  The item labels its own text above it
- * `Original reply` (`<epic-item>`).
+ * The component behind `<epic-more>`:  More Details (Add Details Now) on an item --
+ * a plain card under its text and answer, open to start with, folded by its `More Details` heading.
+ * The item labels its own text above it `Original reply` (`<epic-item>`).
  ****************/
 export class EpicMore extends E.UIComponent<typeof epicMoreVocabulary> {
   @E.proto static vocabulary = epicMoreVocabulary

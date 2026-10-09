@@ -10,7 +10,8 @@ import sidebarCSS from "./UISidebar.css?inline"
  * The component behind `<ui-pusher>`:
  * the page content beside a sidebar (Fomantic's `.pusher`), `<div class="pusher" part="pusher"><slot>`.
  *
- * - Passive:  `UISidebar.css` moves and dims it from the tokens its `<ui-pushable>` sets (`UIT.PusherTokens`),
+ * - Passive:
+ *   `UISidebar.css` moves and dims it from the tokens its `<ui-pushable>` sets (`UIT.PusherTokens`),
  *   and the pushable makes the DOM element `inert` beside a modal sidebar.
  * - Its `::after` is the dimmer.
  ****************/

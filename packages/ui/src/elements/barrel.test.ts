@@ -6,13 +6,16 @@ import * as elements from "$/ui/elements"
 
 /**
  * Load-order smoke test for the two shared lib entries (WWOD §8 › "Barrels").
- * - The element-core files import `$/ui/core` back as `E` (and the `forms` files `$/ui/forms` as `F`):  a cycle, on
- *   purpose.  A binding the cycle leaves `undefined` slips past `tsc` and the bundler alike;  this catches it.
- * - Entered through `$/ui/core`, as every component file does;  the folder's other tests enter through the
- *   `$/ui/elements` barrel (whose first class file is `ClassBuilder`), so both routes run.
- * - NOTE: entering at a leaf the core reads while it evaluates -- `$/ui/elements/UIComponent`, which `PartComponent`
- *   extends -- would throw:  that leaf is still mid-load when the core reaches its reader.  Nothing imports one by
- *   path but `core.ts` / `forms.ts`, and nothing may.
+ * - The element-core files import `$/ui/core` back as `E` (and the `forms` files `$/ui/forms` as `F`):
+ *   a cycle, on purpose.
+ *   A binding the cycle leaves `undefined` slips past `tsc` and the bundler alike;  this catches it.
+ * - Entered through `$/ui/core`, as every component file does.
+ *   The folder's other tests enter through the `$/ui/elements` barrel (whose first class file is `ClassBuilder`),
+ *   so both routes run.
+ * - NOTE: entering at a leaf the core reads while it evaluates would throw:
+ *   e.g. `$/ui/elements/UIComponent`, which `PartComponent` extends,
+ *   is still mid-load when the core reaches its reader.
+ *   Nothing imports one by path but `core.ts` / `forms.ts`, and nothing may.
  */
 describe("$/ui/core and $/ui/forms load order", () => {
   it("every export of $/ui/core is live", () => {

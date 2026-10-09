@@ -180,8 +180,9 @@ describe("<ui-popup> tokens from outside", () => {
   })
 
   it("variations:  `wide` swaps the max width (off phones);  the gap derives from the arrow size", async () => {
-    // Render first, THEN resize:  WebKit keeps a shared adopted sheet's media results stale when no element using it
-    // is alive at the resize, so an OPEN popup must already be in the page
+    // Render first, THEN resize:
+    // WebKit keeps a shared adopted sheet's media results stale when no element using it is alive at the resize,
+    // so an OPEN popup must already be in the page
     const { root } = await popup(
       `<button>t</button><ui-popup wide open-on="manual" open style="--ui-popup-max-width: 100px">x</ui-popup>`
     )

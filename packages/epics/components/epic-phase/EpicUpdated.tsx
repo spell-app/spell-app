@@ -12,9 +12,9 @@ import fieldCSS from "./EpicField.css?inline"
 
 /****************
  * ### `EpicUpdated`
- * The component behind `<epic-updated>`:  one dated change to a phase's plan, FENCED under its Symptom / Changes (a
- * dashed orange box) -- its icon, `Updated` and the time (`at`, to the minute), the phase under way then, then what
- * changed (its children).
+ * The component behind `<epic-updated>`:
+ * one dated change to a phase's plan, FENCED under its Symptom / Changes (a dashed orange box) --
+ * its icon, `Updated` and the time (`at`, to the minute), the phase under way then, then what changed (its children).
  * - Kept once the phase is done:  the record of how the plan moved.
  * - A copy in the Phases section's Plan changes box (`of`, the phase it changes) leads with a `P5` link to it.
  ****************/

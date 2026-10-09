@@ -3,8 +3,9 @@ import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
-// REFACTOR: `SlottedItems` reads `<ui-item>`s as data for the dropdown AND the select;  it belongs to the `item`
-// family (next to `itemVocabulary`), which would also spare the bundle a shared dropdown / select chunk
+// REFACTOR: `SlottedItems` reads `<ui-item>`s as data for the dropdown AND the select;
+// it belongs to the `item` family (next to `itemVocabulary`),
+// which would also spare the bundle a shared dropdown / select chunk
 import { SlottedItems } from "$/ui/components/ui-dropdown/SlottedItems"
 import { selectVocabulary } from "./UISelect.en"
 import { SelectFallback } from "./UISelect.fallback"
@@ -18,17 +19,18 @@ import selectCSS from "./UISelect.css?inline"
  * in the closed look of Fomantic's `selection dropdown`.
  *
  * - The customizable select:  where the browser has `appearance: base-select` (`UI.browser.supports.baseSelect`),
- *   the select gets a `<button><selectedcontent>`, and `UISelect.css` styles the picker (`::picker(select)`)
- *   and its rich options (icon, image, flag, description).
- *   Elsewhere (Safari before 27, Firefox) the same markup is a plain native select:
- *   every option keeps its text, so nothing shows blank, and the closed box looks the same.
+ *   the select gets a `<button><selectedcontent>`,
+ *   and `UISelect.css` styles the picker (`::picker(select)`) and its rich options (icon, image, flag, description).
+ *   - Elsewhere (Safari before 27, Firefox) the same markup is a plain native select:
+ *     every option keeps its text, so nothing shows blank, and the closed box looks the same.
  *
  * - Its options:  the slotted `<ui-item>`s (`SlottedItems`, shared with the dropdown), then the `options` property.
  *   A `header` item opens an `<optgroup>`;  a `divider` item is an `<hr>`.
  * - `value` is controlled (`@controlled`):  a person's change sends `ui-change` first;
  *   a handler that sets `el.value` again wins, and the select shows that value.
  * - A single select shows an empty first option (the `placeholder`) while nothing is chosen,
- *   so the browser never silently chooses the first option.  `required` disables it (it can't be chosen back).
+ *   so the browser never silently chooses the first option.
+ *   `required` disables it (it can't be chosen back).
  * - An option's `flag` draws through `UIT.Flags`, the rule `<ui-flag>` draws with;
  *   a flag that isn't a code shows as its text.
  * - Keyboard, picker, type-ahead and screen-reader behaviour are the browser's.
@@ -108,8 +110,8 @@ export class UISelect extends F.FormComponent<Vocabulary> {
 
   /**
    * Show the chosen values in the `<select>`.
-   * - Runs after every DOM update that could move the browser's selection (options added,
-   *   the placeholder removed) and after each change a person makes, so the select always shows the element's value.
+   * - Runs after every DOM update that could move the browser's selection (options added, the placeholder removed)
+   *   and after each change a person makes, so the select always shows the element's value.
    */
   @E.untracked
   private syncSelect() {
@@ -251,8 +253,9 @@ export class UISelect extends F.FormComponent<Vocabulary> {
 
   /**
    * One `<option>`:  icon, image, flag, text, description.
-   * - Only the TEXT parts (flag emoji, text, description) count in a plain select:  it shows the option's text
-   *   content.  A space keeps the description apart from the text there.
+   * - Only the TEXT parts (flag emoji, text, description) count in a plain select:
+   *   it shows the option's text content.
+   *   A space keeps the description apart from the text there.
    */
   private option(option: E.MenuOption): JSX.Element {
     const glyph = new E.IconGlyph({
@@ -296,10 +299,11 @@ export class UISelect extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * Server render only:  `selected` on the option of `value` while it's chosen (`""`:  the placeholder,
-   * while nothing is);  `{}` in a browser, where `syncSelect()` sets it.
-   * - The placeholder is also `disabled` while chosen:  a disabled option isn't submitted, so a static form sends
-   *   no `name=` for it, as the component sends nothing without a value.  NOTE: a no-JS reader can't go back to it.
+   * Server render only:  `selected` on the option of `value` while it's chosen
+   * (`""`:  the placeholder, while nothing is);  `{}` in a browser, where `syncSelect()` sets it.
+   * - The placeholder is also `disabled` while chosen:  a disabled option isn't submitted,
+   *   so a static form sends no `name=` for it, as the component sends nothing without a value.
+   * - NOTE: a no-JS reader can't go back to it.
    */
   private staticOption(value: string): Record<string, unknown> {
     if (!isServer) return {}

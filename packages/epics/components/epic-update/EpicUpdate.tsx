@@ -8,11 +8,11 @@ import updateCSS from "./EpicUpdate.css?inline"
 
 /****************
  * ### `EpicUpdate`
- * The component behind `<epic-update>`:  an UPDATE marker, while a phase is active (`phase <N> done` removes its
- * phase's):
+ * The component behind `<epic-update>`:
+ * an UPDATE marker, while a phase is active (`phase <N> done` removes its phase's):
  * - empty:  an orange `UPDATE` label, inline (on a new or changed item's line, in prose)
- * - with children:  a NOTE -- a warning-tinted box headed by the label, its children inside -- just before the
- *   prose it's about (`:state(note)`)
+ * - with children:  a NOTE -- a warning-tinted box headed by the label, its children inside --
+ *   just before the prose it's about (`:state(note)`)
  * - Its tooltip names the phase:  `Changed during P3`.
  ****************/
 export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {

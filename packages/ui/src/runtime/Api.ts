@@ -9,16 +9,17 @@ import { ApiError, type ApiRequest, type ApiResponseType, type ApiUrlData } from
  * - URL templates (`url()`):
  *   - `{name}` is REQUIRED -- a missing value throws, so a half-built URL never goes out
  *   - `{/name}` is an OPTIONAL path segment (RFC 6570 style):  `/value` when present, nothing when missing.
- *     A `/` just before it is absorbed, so Fomantic's `/users/{/id}` and RFC-style `/users{/id}` both give
- *     `/users/5` or `/users`
+ *     A `/` just before it is absorbed,
+ *     so Fomantic's `/users/{/id}` and RFC-style `/users{/id}` both give `/users/5` or `/users`
  *   - values are URI-encoded
- * - Throttling (`throttle` ms, Fomantic's search-as-you-type debounce):  the request waits;  a newer request
- *   with the same `key` supersedes it -- still waiting, or already in flight -- and the older one rejects with
- *   an `AbortError`.  Callers typically ignore `AbortError`s.
+ * - Throttling (`throttle` ms, Fomantic's search-as-you-type debounce):  the request waits.
+ *   - A newer request with the same `key` supersedes it, still waiting or already in flight:
+ *     the older one rejects with an `AbortError`.
+ *   - Callers typically ignore `AbortError`s.
  * - Abort:  the caller's `signal`, the throttle's and `timeout` are combined with `AbortSignal.any`.
  * - Errors:  a non-2xx response rejects with `ApiError` (`cause.response`, body unread).
- * - TODO: loading / error state on a context element (Fomantic's `stateContext`) lands with the first
- *   component that needs it.
+ * - TODO: loading / error state on a context element (Fomantic's `stateContext`)
+ *   lands with the first component that needs it.
  ****************/
 export class Api {
   /** throttle key -> newest request's controller;  aborting it supersedes that request */

@@ -16,14 +16,18 @@ import anchoredCSS from "./UIPopup.anchored.css?raw"
  * - Its target:  the `target` property, else the element `for` names (in the popup's own tree),
  *   else the previous element sibling (Fomantic's `inline` markup:  a popup right after what opens it).
  *
- * - `open-on`:  `hover` (with `show-delay` / `hide-delay`, and on keyboard focus too), `focus`,
- *   `click` (toggles), `manual` (only `open`).
+ * - `open-on`:
+ *   - `hover` (with `show-delay` / `hide-delay`, and on keyboard focus too)
+ *   - `focus`
+ *   - `click` (toggles)
+ *   - `manual` (only `open`)
  *   - A hovered popup stays open while the pointer is over it (WCAG 1.4.13),
- *     unlike Fomantic's default `hoverable: false`.  `hoverable="false"` gives Fomantic's behaviour back:
+ *     unlike Fomantic's default `hoverable: false`.
+ *     `hoverable="false"` gives Fomantic's behaviour back:
  *     it hides as the pointer leaves the target, after `hide-delay`.
  *
- * - Invoker commands (`<button commandfor="id" command="--toggle">`, `UIT.ToggleCommands`) are a person's actions
- *   too:  the popup opens at ITS target, whichever button sent the command.
+ * - Invoker commands (`<button commandfor="id" command="--toggle">`, `UIT.ToggleCommands`)
+ *   are a person's actions too:  the popup opens at ITS target, whichever button sent the command.
  *
  * - `open` is controlled:  the cancelable `ui-open` / `ui-close` come first.
  *   Escape and outside clicks come from `UI.overlays` (kind `popover`;  the target counts as inside).
@@ -107,8 +111,9 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
 
   /**
    * Show the popover against the target and register with `UI.overlays`.
-   * - Anchor:  the target's `anchor-name` when it has a box, else the implicit anchor of `source` (see
-   *   `UIPopup.css`).  `source` also makes the target the popover's invoker, so Tab from it continues inside.
+   * - Anchor:  the target's `anchor-name` when it has a box,
+   *   else the implicit anchor of `source` (see `UIPopup.css`).
+   * - `source` also makes the target the popover's invoker, so Tab from it continues inside.
    */
   @E.untracked
   private show() {
@@ -133,8 +138,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   }
 
   /**
-   * The popover's `toggle`:  the browser closed it (a `hint` popover's light dismiss) while the element thinks it's
-   * open -- follow, announcing a `ui-close` that can't veto any more.
+   * The popover's `toggle`:  the browser closed it (a `hint` popover's light dismiss)
+   * while the element thinks it's open -- follow, announcing a `ui-close` that can't veto any more.
    */
   @E.on("toggle")
   protected onToggle(event: Event) {
@@ -234,8 +239,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   /**
    * A server render's binding:  the target's ARIA, as `bind()` adds it, without listeners.
    * - SIDE EFFECTS:  gives the DOM element (the render's parsed copy) an id, which its root keeps,
-   *   and sets the target's `aria-describedby` / `aria-controls` and `aria-haspopup`.  No `aria-expanded`:
-   *   a native invoker reports its popover's state itself.
+   *   and sets the target's `aria-describedby` / `aria-controls` and `aria-haspopup`.
+   * - No `aria-expanded`:  a native invoker reports its popover's state itself.
    */
   private serverBind() {
     const target = this.targetElement
@@ -381,8 +386,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   ////////////////
 
   /**
-   * Adds the server render's target binding (`serverBind()`) to `UIComponent.onMount()`;  the role and name
-   * (`@aria`) and the position effect (`writesDOMElement`) write the DOM element there too.
+   * Adds the server render's target binding (`serverBind()`) to `UIComponent.onMount()`;
+   * the role and name (`@aria`) and the position effect (`writesDOMElement`) write the DOM element there too.
    */
   onMount(): JSX.Element {
     if (isServer) this.serverBind()
@@ -445,8 +450,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   }
 
   /**
-   * The box to anchor to:  `target`, or -- when it has none (`display: contents`) -- the first element of its
-   * shadow root, else its first child element.
+   * The box to anchor to:  `target`, or -- when it has none (`display: contents`) --
+   * the first element of its shadow root, else its first child element.
    * - STATIC:  needs no instance, only the target.
    */
   private static anchorBoxFor(target: Element): Element {
@@ -503,10 +508,11 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   /**
    * Point `element`'s idref `relation` (`aria-describedby`, `aria-controls`) at `domElement` too,
    * ADDED to what's there;  returns the undo.
-   * - The attribute's token list when both share a tree, else element reflection (`ariaDescribedByElements`),
-   *   since an idref can't cross a shadow boundary.
-   * - The undo keeps the way it was added:  by the time it runs the DOM element may be detached (its root is then
-   *   itself), which must not switch an attribute token list over to reflection.
+   * - The attribute's token list when both share a tree,
+   *   else element reflection (`ariaDescribedByElements`), since an idref can't cross a shadow boundary.
+   * - The undo keeps the way it was added:
+   *   by the time it runs the DOM element may be detached (its root is then itself),
+   *   which must not switch an attribute token list over to reflection.
    * - STATIC:  needs no instance;  a server render (`serverBind()`) and a live binding (`bind()`) share it.
    */
   private static addAriaRelation({ element, relation, domElement }: AriaRelationProps): () => void {
@@ -603,8 +609,8 @@ const CLOSED = "closed"
 const CONTENTS = "contents"
 
 /**
- * `position` => `position-area`:  the popup on that side, its edge lined up with the target's (`span-*` grows
- * away from the named corner), or centred on it.
+ * `position` => `position-area`:  the popup on that side,
+ * its edge lined up with the target's (`span-*` grows away from the named corner), or centred on it.
  */
 const POSITION_AREAS: Readonly<Record<string, string>> = {
   "top left": "top span-right",

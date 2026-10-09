@@ -36,10 +36,10 @@ import sectionCSS from "./UISection.css?inline"
  *     `beforematch` unfolds it, and announces `ui-open` after the fact (not cancelable).
  *   - Not collapsible:  `collapsed` is ignored.
  * - `fold-icon="end"` moves the chevron out of the button, to the far end of the title bar.
- *   It stays `aria-hidden` (the button is still the control), and a click on it folds as the button does.
- *   A subclass moves the default with `defaultFoldIcon` (`<ui-panel>`:  `end`).
- * - *Groups*:  without its own `collapsible` attribute, a section folds when its nearest `<ui-sections>`
- *   (around it, or around an enclosing section) is `collapsing`.
+ *   - It stays `aria-hidden` (the button is still the control), and a click on it folds as the button does.
+ *   - A subclass moves the default with `defaultFoldIcon` (`<ui-panel>`:  `end`).
+ * - *Groups*:  without its own `collapsible` attribute,
+ *   a section folds when its nearest `<ui-sections>` (around it, or around an enclosing section) is `collapsing`.
  *   The group owns `section` parts too, so `parent` climbs through it.
  *
  * - `info` / `slot="info"`:  a CSS tooltip under the title bar (`role="tooltip"`),
@@ -51,8 +51,8 @@ import sectionCSS from "./UISection.css?inline"
  *   - A `scrolling` / `height` section's content is its own scroll box:  a fresh stack starts there.
  *   - `StickyWatch` sets `:state(stuck)`, and reserves the title's room for Page Down, as `<ui-sticky>` does.
  *
- * - *Source* (`source`, `select`):  the content comes from a file the first time the section unfolds,
- *   by any route:  a click, the page removing `collapsed` (a `#id` link), or starting unfolded (then at once).
+ * - *Source* (`source`, `select`):  the content comes from a file the first time the section unfolds, by any route:
+ *   a click, the page removing `collapsed` (a `#id` link), or starting unfolded (then at once).
  *   - `LoadableBody` fetches it (`UI.sources`),
  *     and puts its `<body>` in the LIGHT DOM, in place of the placeholder (the children without a `slot`).
  *   - While it's on its way, the content box stays hidden (`isVeiled`) for at most `SOURCE_BODY_HOLD_MS`,
@@ -96,8 +96,8 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
 
   /**
    * Enclosing section's component, or `undefined` at the top (or before it has one).
-   * - Climbs through `<ui-sections>` groups (owners of `section` parts too):  a section in a group in a section is
-   *   still nested.
+   * - Climbs through `<ui-sections>` groups (owners of `section` parts too):
+   *   a section in a group in a section is still nested.
    */
   @E.derived
   get parent(): UISection | undefined {
@@ -167,7 +167,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
 
   /**
    * Fold or unfold as a person would:  the cancelable `ui-open` / `ui-close` first, then `collapsed`.
-   * True when applied.
+   * - True when applied.
    * - Does nothing unless `collapsible`, or while `disabled`.
    */
   @E.untracked
@@ -251,8 +251,9 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
 
   /**
    * The title's inline tokens:  stick offset and nesting depth.
-   * - A getter, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
-   *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
+   * - A getter, not an inline object:
+   *   Solid's server compile (rc.11) drops the `;` between an inline style object's COMPUTED keys
+   *   (`--a:1px--b:2`), and the browser then ignores both.
    */
   private get titleStyle(): Record<string, string> {
     return { [STICK_TOP_PROPERTY]: `${this.stickTop}px`, [DEPTH_PROPERTY]: String(this.depth) }
@@ -363,8 +364,8 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   }
 
   /**
-   * Load the `source` body whenever the section is unfolded, connected and has one (`LoadableBody.load()` is once per
-   * `source` + `select`).
+   * Load the `source` body whenever the section is unfolded, connected and has one
+   * (`LoadableBody.load()` is once per `source` + `select`).
    * - An effect, not in `render()`:  a subclass drawing its own markup still loads its body.
    */
   @E.onChange("source", "select", "isFolded", "isConnected")
@@ -404,8 +405,9 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   }
 
   /**
-   * Words before the noun:  `scrolling` for `height` without it (`height` implies it);  `loading` while a `source`
-   * body is slow to arrive (the `loading` look, over the placeholder).
+   * Words before the noun:
+   * - `scrolling` for `height` without it (`height` implies it)
+   * - `loading` while a `source` body is slow to arrive (the `loading` look, over the placeholder)
    */
   protected get extraClass(): string | undefined {
     const scrolling = this.height && !this.scrolling ? SCROLLING : undefined
@@ -516,8 +518,8 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   }
 
   /**
-   * The fold chevron, `aria-hidden` (the button is the control):  in the button, or at the bar's end with `onClick`,
-   * where it takes the button's tooltip too.
+   * The fold chevron, `aria-hidden` (the button is the control):
+   * in the button, or at the bar's end with `onClick`, where it takes the button's tooltip too.
    */
   private foldChevron(onClick?: (event: MouseEvent) => void): JSX.Element {
     return (
@@ -592,13 +594,13 @@ const TIP_ID = "tip"
 const CONTENT_ID = "content"
 
 /**
- * Private custom property the content box reads for `height`:  inline, so the attribute wins over the page's
- * `--ui-section-scrolling-height`.
+ * Private custom property the content box reads for `height`:
+ * inline, so the attribute wins over the page's `--ui-section-scrolling-height`.
  */
 const HEIGHT_PROPERTY = "--_ui-section-height"
 
 /**
- * Private custom property the sticky title reads for its `top`, inline:  the top-level `offset`, or the stack of
- * enclosing sticky titles above it, in pixels.
+ * Private custom property the sticky title reads for its `top`, inline:
+ * the top-level `offset`, or the stack of enclosing sticky titles above it, in pixels.
  */
 const STICK_TOP_PROPERTY = "--_ui-section-top"

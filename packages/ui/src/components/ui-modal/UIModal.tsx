@@ -7,8 +7,8 @@ import modalCSS from "./UIModal.css?inline"
 
 /****************
  * ### `UIModal`
- * The component behind `<ui-modal>`:  a modal dialog,
- * a shadow `<dialog class="ui … modal" part="modal">` shown with `showModal()`.
+ * The component behind `<ui-modal>`:
+ * a modal dialog, a shadow `<dialog class="ui … modal" part="modal">` shown with `showModal()`.
  *
  * - The browser gives it the focus trap, the `inert` page, the top layer and the `::backdrop`:
  *   the dimmer, themed by the shared `--ui-dimmer-*` tokens.  No `<ui-dimmer>` element.

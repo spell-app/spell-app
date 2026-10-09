@@ -16,11 +16,12 @@ import breadcrumbCSS from "./UIBreadcrumb.css?inline"
  * - Dividers:  each section draws its OWN leading divider,
  *   from inherited tokens this component publishes INLINE on its box (`UIT.BreadcrumbDividerTokens`),
  *   so no JS reaches into the sections:
- *   - `divider="›"` => `--ui-breadcrumb-divider: "›"`, serialized as a CSS string;  only when the attribute is
- *     set, so a page theming the token on a wrapper isn't overridden (the sheet's own fallback is `/`)
+ *   - `divider="›"` => `--ui-breadcrumb-divider: "›"`, serialized as a CSS string;
+ *     only when the attribute is set, so a page theming the token on a wrapper isn't overridden
+ *     (the sheet's own fallback is `/`)
  *   - `divider-icon="chevron right"` => `--ui-breadcrumb-divider-icon: url("data:image/svg+xml,…")` of the glyph
- *     (painted as a mask in `currentColor`) + `--_ui-breadcrumb-divider-layout: icon`, once the glyph has loaded;
- *     it wins over `divider`
+ *     (painted as a mask in `currentColor`) + `--_ui-breadcrumb-divider-layout: icon`,
+ *     once the glyph has loaded;  it wins over `divider`
  *
  * - `aria-label`:  the element's, moved to the `<nav>` (two trails on one page need distinct landmark names),
  *   else the translated `label` text ("Breadcrumb").
@@ -68,8 +69,8 @@ export class UIBreadcrumb extends E.UIComponent<typeof breadcrumbVocabulary> {
 
   /**
    * `divider-icon`'s glyph as a CSS `url()`, once loaded;  tracked.
-   * - A server render (`$/ui/static`) has no `<svg>` template (`svgTemplate` stays empty):  the url comes from
-   *   the icon's markup, read at once.
+   * - A server render (`$/ui/static`) has no `<svg>` template (`svgTemplate` stays empty):
+   *   the url comes from the icon's markup, read at once.
    */
   private get dividerIconUrl(): string | undefined {
     if (isServer) {

@@ -225,10 +225,10 @@ export class UIInput extends TextControl<Vocabulary> {
   }
 
   /**
-   * A form's default button:  a native submit button, or a `<ui-button type="submit">` (form-associated,
-   * so in `form.elements`).
-   * - STATIC:  pure, a `find()` predicate.  `instanceof` is safe here:  a key handler, which the static render never
-   *   reaches.
+   * A form's default button:
+   * a native submit button, or a `<ui-button type="submit">` (form-associated, so in `form.elements`).
+   * - STATIC:  pure, a `find()` predicate.
+   * - `instanceof` is safe here:  a key handler, which the static render never reaches.
    */
   private static isSubmitter(element: Element): boolean {
     if (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) {

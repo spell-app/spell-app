@@ -38,12 +38,13 @@ const HTMLElementOrShim = (globalThis.HTMLElement ?? class {}) as typeof HTMLEle
  *   `elementSetup.DOMElement` names it.
  *   - It names its component's class too, `extends E.DOMElement<UINag>`:  so `this.component` is a `UINag`,
  *     and its script API calls it with no cast (`this.component?.close() ?? false`).
- *   - `C` is a type only:  nothing checks at run time that the component really is one
- *     (`elementSetup.DOMElement` pairs them).
+ *   - `C` is a type only:
+ *     nothing checks at run time that the component really is one (`elementSetup.DOMElement` pairs them).
  * - NOTE: a member named like a property an attribute gets is refused when the tag is defined
  *   (one error naming each clash):  never add one a vocabulary attribute could be called.
  * - Knows its component only by type:  `UIComponent` imports this file, never the other way round.
- * - From solid-element's element class (its fixes 2, 4, 5, 6 and 9), folded in (epic `spell-element`, P2).
+ * - Began as solid-element's element class, with its fixes 2, 4, 5, 6 and 9 (numbered in its old `UPSTREAM.md`):
+ *   folded in by epic `spell-element`, P2.
  ****************/
 export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> extends HTMLElementOrShim {
   ////////////////
@@ -117,8 +118,9 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
 
   /**
    * DOM API:  the element was removed from its page.
-   * - The component stays, ready for the next connect:  moving an element (re-parenting, sorting a list) keeps its
-   *   state.  Only `dispose()` ends it.
+   * - The component stays, ready for the next connect:
+   *   moving an element (re-parenting, sorting a list) keeps its state.
+   * - Only `dispose()` ends it.
    */
   disconnectedCallback() {
     this.component?.onDisconnect()
@@ -149,8 +151,9 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
   /**
    * DOM API:  attribute `name` changed to `text` (`null`:  removed).
    * - Converts and stores it;  never writes it back (`primary="yes"` stays `"yes"`).
-   * - Ignored while the element writes the attribute itself (reflection), and for an attribute whose property a page
-   *   set before the upgrade:  that value wins over the attributes the browser replays during it.
+   * - Ignored while the element writes the attribute itself (reflection).
+   * - Ignored too for an attribute whose property a page set before the upgrade:
+   *   that value wins over the attributes the browser replays during it.
    */
   attributeChangedCallback(name: string, _old: string | null, text: string | null) {
     const definition = this.tagSetup?.elementDefinition
@@ -171,8 +174,8 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
   }
 
   /**
-   * Store `value` for `attribute`, write it back to the attribute when it came from a property, then call the
-   * change callbacks.
+   * Store `value` for `attribute`, write it back to the attribute when it came from a property,
+   * then call the change callbacks.
    * - Callbacks run on every write, equal or not:  setting the same value again is still a decision.
    */
   private setValue(attribute: E.ResolvedAttribute, value: unknown, source: ValueSource) {
@@ -237,8 +240,8 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
 
   /**
    * Where the component draws:  the shadow root, made on first use with the tag's `shadowRootInit`.
-   * - A shadow root the server rendered (a declarative `<template shadowrootmode>`) is used as is, and emptied
-   *   right before the first render (`clearServerContent()`):  no hydration, its content is replaced.
+   * - A shadow root the server rendered (a declarative `<template shadowrootmode>`) is used as is,
+   *   and emptied right before the first render (`clearServerContent()`):  no hydration, its content is replaced.
    */
   get renderRoot(): ShadowRoot {
     const { connectedState } = this
@@ -341,8 +344,8 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
   ////////////////
 
   /**
-   * What this tag's class carries:  its definition, shadow root options, whether it's a form control, how to build
-   * its component (`TagSetup`).
+   * What this tag's class carries (`TagSetup`):
+   * its definition, shadow root options, whether it's a form control, how to build its component.
    * - Set on each tag's own class by `subclassForTag()`;  `undefined` on `DOMElement` and the family bases.
    */
   declare static tagSetup: TagSetup
@@ -358,9 +361,11 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
   }
 
   /**
-   * Make the class for one tag:  a subclass of `Base` carrying `tag`, a property per attribute and
-   * DOM API `static formAssociated`.  It's not defined yet:  `UIComponent.define()` does that.
-   * - Throws a `TypeError` naming EVERY attribute property that would hide a member of the element (Q6).
+   * Make the class for one tag:
+   * a subclass of `Base` carrying `tag`, a property per attribute and DOM API `static formAssociated`.
+   * - Not defined yet:  `UIComponent.define()` does that.
+   * - Throws a `TypeError` naming EVERY attribute property that would hide a member of the element
+   *   (epic `spell-element`, Q6).
    */
   static subclassForTag(Base: DOMElementBaseClass, tag: TagSetup): DOMElementClass {
     const name = className(tag.elementDefinition.tag)
@@ -376,8 +381,8 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
    * - Reading one gives the converted value;  writing one converts, stores, and writes the attribute back.
    * - On the PROTOTYPE, so `"size" in button` is true before the element connects (frameworks check it).
    * - Throws first, changing nothing, when any would hide a member of the element by accident.
-   *   A property the vocabulary NAMES itself (`property: "inputMode"`, not its attribute name camelCased) takes
-   *   over the member on purpose:  `<ui-input>`'s `inputMode` mirrors the browser's own.
+   * - A property the vocabulary NAMES itself (`property: "inputMode"`, not its attribute name camelCased)
+   *   takes over the member on purpose:  `<ui-input>`'s `inputMode` mirrors the browser's own.
    */
   static defineProperties(Class: DOMElementClass) {
     const { elementDefinition } = Class.tagSetup
@@ -419,8 +424,8 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
   ////////////////
 
   /**
-   * Development only:  what every DOM element tells hot reload (`HotDefinitions` installs it):  that it was made, and
-   * where each attribute value came from.
+   * Development only:  what every DOM element tells hot reload (`HotDefinitions` installs it):
+   * that it was made, and where each attribute value came from.
    * - Every call is under `import.meta.hot`, so a build drops them.
    */
   static hotReloadHooks?: DOMElementHotHooks
@@ -478,7 +483,10 @@ export type DOMElementHotHooks = {
   valueSet(domElement: DOMElement, key: string, source: ValueSource): void
 }
 
-/** `DOMElement`'s private connectedState, ONE field (so attribute names can't clash with many). */
+/**
+ * What `DOMElement`'s custom-element callbacks share, kept in ONE private field, `connectedState`:
+ * one name an attribute property could clash with, not one per member below.
+ */
 type ConnectedState = {
   /** the component has been built (and not disposed since) */
   isMounted: boolean

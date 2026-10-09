@@ -67,8 +67,8 @@ export type SharedEntry = {
 }
 
 /**
- * The kinds of a family's own modules, in report order:  its classes, sheet, vocabulary and native fallback
- * (`UI<Name>.fallback.ts`).
+ * The kinds of a family's own modules, in report order:
+ * its classes, sheet, vocabulary and native fallback (`UI<Name>.fallback.ts`).
  */
 export const OwnKinds = ["classes", "css", "vocabulary", "fallback"] as const
 /** One of `OwnKinds`. */
@@ -445,8 +445,8 @@ export type StaticDocumentOptions = {
    */
   href?: string
   /**
-   * One stylesheet for several pages, built once they've all rendered (`StaticDocument.stylesheet()`):  no `css` in
-   * the result, and what pages adopt adds up from page to page.
+   * One stylesheet for several pages, built once they've all rendered (`StaticDocument.stylesheet()`):
+   * no `css` in the result, and what pages adopt adds up from page to page.
    * - MUST come with `href`.
    */
   shared?: boolean
@@ -479,8 +479,8 @@ export type StaticDocumentResult = {
 
 /**
  * What `server.ssrLoadModule(StaticRenderer.DOCUMENT)` resolves to:  `StaticDocument`'s API.
- * - Why a type of its own:  `packages/cli` can't type-check `StaticDocument.ts` itself, which reaches every family's
- *   Solid JSX.
+ * - Why a type of its own:  `packages/cli` can't type-check `StaticDocument.ts` itself,
+ *   which reaches every family's Solid JSX.
  */
 export type StaticDocumentModule = {
   /** the class's static API */

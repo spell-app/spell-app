@@ -5,8 +5,8 @@
  *   so it can't drift from what the component does,
  *   and an attribute the section gains reaches the panel with no change here.
  * - Only `color` and `fold-icon` are described again, as the panel uses them.
- *   `color` keeps the section's value set (`hues`), so a hue a theme adds is accepted
- *   (`spell-brand`'s `accent`, named by `packages/brand/src/hues.ts`).
+ *   - `color` keeps the section's value set (`hues`), so a hue a theme adds is accepted
+ *     (`spell-brand`'s `accent`, named by `packages/brand/src/hues.ts`).
  * - The same noun (`section`) and `ownsParts`:  a panel nests in a section, and a section in a panel.
  * - The class words are the section's, then `panel` (and `sub` inside another panel):
  *   `<ui-panel color="violet">` => `ui violet panel section`.

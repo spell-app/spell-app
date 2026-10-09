@@ -14,8 +14,8 @@ import listCSS from "./UIList.css?inline"
  * - It owns its items (`ItemOwner`):  every `<ui-item>` inside finds this list (`PartContext`)
  *   and asks `itemContext()` how to draw itself:
  *   - a DOM element with `role=listitem`;
- *   - in a `selection` list, an interactive box:  a link with `href`, a `<button>` with the item's own `link`,
- *     a `<div>` otherwise.
+ *   - in a `selection` list, an interactive box:
+ *     a link with `href`, a `<button>` with the item's own `link`, a `<div>` otherwise.
  *   - Items adopt THIS class's `elementSetup.styleSheets`, so `UIList.css` holds the item rules too,
  *     and the list's variations reach them as inherited tokens.
  *
@@ -117,8 +117,8 @@ export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.
 
   /**
    * The item of this list whose link / button `event` went through, or `undefined`.
-   * - Walks `composedPath()` inward-out:  the first ITEM on it decides;  an item of a sub-list means the sub-list
-   *   handles it.
+   * - Walks `composedPath()` inward-out:  the first ITEM on it decides;
+   *   an item of a sub-list means the sub-list handles it.
    * - Only through the item's own root (`<a>` / `<button>` in its shadow):  a click on a plain `<div>` item,
    *   or on a link inside its content, doesn't select it.
    */

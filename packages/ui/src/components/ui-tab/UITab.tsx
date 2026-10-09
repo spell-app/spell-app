@@ -16,7 +16,8 @@ import tabCSS from "./UITab.css?inline"
  * - Owned (`PartContext`, `:state(in-tabs)`):  the tab set decides how it shows (`TabOwner.paneState()`):
  *   selected or not, attached to which edge, basic.
  *   - The DOM element is the `role="tabpanel"` (through `internals`), named by `label`,
- *     and a Tab stop (`tabindex="0"`, unless the page set one), so keyboard users reach content with no control in it.
+ *     and a Tab stop (`tabindex="0"`, unless the page set one),
+ *     so keyboard users reach content with no control in it.
  * - Alone (no `<ui-tabs>`):  shown while its own `selected` (or `active`) is set.
  * - Hidden panes are DOM elements with `display: none`:  out of the layout and the accessibility tree.
  * - `lazy`:  its `<template>` children are stamped into it (light DOM, after them) the first time it shows;
@@ -94,8 +95,9 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
 
   /**
    * How to show:  the owner's say, else its own attributes.
-   * - `@derived`:  the owner's answer looks the pane up among the tabs, and four readers share it.  Lazy by nature,
-   *   so a static render (`$/ui/static`), which builds this pane before its later siblings, asks at render time.
+   * - `@derived`:  the owner's answer looks the pane up among the tabs, and four readers share it.
+   * - Lazy by nature, so a static render (`$/ui/static`),
+   *   which builds this pane before its later siblings, asks at render time.
    */
   @E.derived
   get paneState(): TabPaneState {

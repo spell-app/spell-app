@@ -11,8 +11,8 @@ import { headerVocabulary } from "./UIHeader.en"
  *   - on a `<div>`;
  *   - on `<h1>` ... `<h6>` with `level` (a page header, sized by its level unless `size` is set);
  *   - on `<a>` with `href`.
- * - OWNED (in a card, a modal ... or another header, whose sub header it then is):  a bare `.header`, never `ui`,
- *   as Fomantic's `.ui.card > .content > .header`.
+ * - OWNED (in a card, a modal ... or another header, whose sub header it then is):
+ *   a bare `.header`, never `ui`, as Fomantic's `.ui.card > .content > .header`.
  * - `level` makes a real heading.  A linked heading is `<a role="heading" aria-level>`,
  *   since the link carries the class grammar.
  * - It is an OWNER too (`ownsParts:  header, content`):  a `<ui-header>` or `<ui-content>` inside it belongs to it.

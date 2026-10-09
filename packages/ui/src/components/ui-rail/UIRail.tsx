@@ -11,7 +11,7 @@ import railCSS from "./UIRail.css?inline"
  * `<div class="ui … rail" part="rail"><slot></slot></div>`,
  * absolutely positioned against the nearest positioned box around it (a `<ui-segment>`'s root).
  *
- * - No role:  a `<div>`, not an `<aside>` (see `UIRail.css`).  The content decides the semantics.
+ * - No role:  a `<div>`, not an `<aside>` (see `UIRail.css`);  the content decides the semantics.
  * - `delegatesFocus` off:  the rail itself takes no focus;  its content keeps its own tab stops.
  ****************/
 export class UIRail extends E.UIComponent<typeof railVocabulary> {

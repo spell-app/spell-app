@@ -93,12 +93,13 @@
   /*
    * Shared states (`UIComponent`, "Shared states"):  every element's, whatever its family.
    * - `:state(dimmed)`:  `disabled` or `loading` the base class's way, everything inside inert, is dimmed.
-   * - On the shadow root's top-level boxes, not the element:  most DOM elements are `display: contents`, with no box
-   *   to dim.
-   * - NOT keyed on `inert` itself:  families set it on boxes with a look of their own (`<ui-form loading>`'s veil),
-   *   and overlays on what they cover (`<ui-pushable>` on its pusher, which has its own dimmer).
-   * - NOTE: a top-level `<slot>` has no box either, so an element whose shadow root is only a slot isn't dimmed;
-   *   a `::slotted()` rule for it would dim every component's root in the static render (`StaticSelectors`).
+   * - On the shadow root's top-level boxes, not the element:
+   *   most DOM elements are `display: contents`, with no box to dim.
+   * - NOT keyed on `inert` itself:
+   *   - families set it on boxes with a look of their own (`<ui-form loading>`'s veil)
+   *   - overlays set it on what they cover (`<ui-pushable>` on its pusher, which has its own dimmer)
+   * - NOTE: a top-level `<slot>` has no box either, so an element whose shadow root is only a slot isn't dimmed.
+   *   A `::slotted()` rule for it would dim every component's root in the static render (`StaticSelectors`).
    */
   :host(:state(dimmed)) > :not(slot) {
     opacity: var(--ui-disabled-opacity, 0.45);
@@ -136,8 +137,10 @@
 }
 
 /*
- * Hiding:  UNLAYERED on purpose.  Unlayered CSS beats every layer, so a component's own `:host { display: ... }`
- * (in `ui.components`) can't keep a hidden element showing.  A page's own rules still win (the outer tree).
+ * Hiding:  UNLAYERED on purpose.
+ * - Unlayered CSS beats every layer,
+ *   so a component's own `:host { display: ... }` (in `ui.components`) can't keep a hidden element showing.
+ * - A page's own rules still win (the outer tree).
  * - `hidden`:  the platform's;  the browser's `[hidden] { display: none }` loses to any `:host` rule
  * - `:state(hidden)`:  `visible="false"`, once its animation has run (`UIComponent`)
  * - `<ui-divider hidden>` is Fomantic's own word ("the spacing without the line"):  `UIDivider.css` keeps it showing,

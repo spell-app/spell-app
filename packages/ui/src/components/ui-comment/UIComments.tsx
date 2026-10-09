@@ -8,8 +8,8 @@ import commentCSS from "./UIComment.css?inline"
 
 /****************
  * ### `UIComments`
- * The component behind `<ui-comments>`:  a list of comments,
- * `<div class="ui [size] [keyOnly ...] comments" part="comments"><slot></slot></div>`,
+ * The component behind `<ui-comments>`:
+ * a list of comments, `<div class="ui [size] [keyOnly ...] comments" part="comments"><slot></slot></div>`,
  * then the `reply` slot's box (`<div class="reply" part="reply">`) when a reply form is slotted.
  *
  * - It owns its comments (`ownsParts:  comment`):  each `<ui-comment>` gets `:state(in-comments)`.

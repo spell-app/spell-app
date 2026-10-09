@@ -4,20 +4,21 @@ import type { SSR } from "$/ui/static"
 
 /****************
  * ### `ServerDOMElement`
- * Turns a parsed (linkedom) element into a stand-in `DOMElement` a component can render against in node, where no
- * `HTMLElement` exists.
- * - The element keeps its DOM side:  attributes, `children`, `parentElement`, `getRootNode()`, so owner climbs
- *   (`PartContext`) and slot scans (`SlotContent`) read the real page.
- * - Adds the DOM element side a component may use while it renders:  `attributeValues` (converted from its
- *   attributes, as the browser element would on first connect), `addReleaseCallback()`,
- *   `addPropertyChangedCallback()`, `dispose()`, `component`, `setState()`, `ready` / `markReady()`, and recording
- *   stand-ins for `internals` and `renderRoot`.
+ * Turns a parsed (linkedom) element into a stand-in `DOMElement` a component can render against in node,
+ * where no `HTMLElement` exists.
+ * - The element keeps its DOM side (attributes, `children`, `parentElement`, `getRootNode()`),
+ *   so owner climbs (`PartContext`) and slot scans (`SlotContent`) read the real page.
+ * - Adds the DOM element side a component may use while it renders:
+ *   - `attributeValues`, converted from its attributes, as the browser element would on first connect
+ *   - `addReleaseCallback()`, `addPropertyChangedCallback()`, `dispose()`
+ *   - `component`, `setState()`, `ready` / `markReady()`
+ *   - recording stand-ins for `internals` and `renderRoot`
  * - Lifecycle methods (`onConnect()` ...) never run:  nothing connects, resets or restores on a server.
  * - What a render left on the DOM element -- custom states, internals ARIA -- is kept for the flattener
  *   (`ServerDOMElement.stateFor()`), which writes it out as classes and attributes.
  * - Node only (`$/ui/static`):  types only from `$/ui/core`;  NEVER imported by a component or `$/ui`.
  * - STATIC and instance-free:  the DOM element IS the element;  what it adds lives on the element and in `states`.
- * - From solid-element's `/server` entry, merged into its one user (epic `spell-element`, Q11).
+ * - Began as solid-element's `/server` entry, merged into its one user (epic `spell-element`, Q11).
  ****************/
 export class ServerDOMElement {
   /**
@@ -68,8 +69,8 @@ export class ServerDOMElement {
   }
 
   /**
-   * `element`'s attribute values as the browser element would hold them on first connect:  each attribute's text
-   * converted, else its starting value.
+   * `element`'s attribute values as the browser element would hold them on first connect:
+   * each attribute's text converted, else its starting value.
    */
   static attributeValuesOf(element: Element, definition: E.ElementDefinition): Record<string, unknown> {
     const values: Record<string, unknown> = {}

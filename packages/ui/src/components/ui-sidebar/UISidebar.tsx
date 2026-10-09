@@ -15,24 +15,25 @@ import sidebarCSS from "./UISidebar.css?inline"
  * Its pushable moves and dims the `<ui-pusher>` beside it.
  *
  * - Two kinds, as the APG has them:
- *   - MODAL (the default):  a drawer, `<dialog class="ui … sidebar" aria-modal="true">` opened with `show()`.
- *     NOT `showModal()`:
- *     the top layer would lift it out of its pushable (a sidebar in a segment would cover the page).  Instead:
+ *   - MODAL (the default):  a drawer, `<dialog class="ui … sidebar" aria-modal="true">` opened with `show()`,
+ *     NOT `showModal()`:  the top layer would lift it out of its pushable
+ *     (a sidebar in a segment would cover the page).  Instead:
  *     - focus moves inside (the dialog's own focusing steps), and Tab stays inside (`UI.focus.trap`)
  *     - the pushable makes the pusher `inert` and dims it
- *     - Escape and a click beside it close it (`UI.overlays`, kind `sidebar`:  keyboard scope and focus restore,
- *       no scroll lock, as Fomantic's `scrollLock: false`)
+ *     - Escape and a click beside it close it (`UI.overlays`, kind `sidebar`):
+ *       keyboard scope and focus restore, no scroll lock, as Fomantic's `scrollLock: false`
  *     - named by the DOM element's `aria-label`, else "Sidebar".
- *   - `persistent`:  part of the page, an `<aside>` (a complementary landmark;  a `<ui-menu>` inside is the
- *     `<nav>`).  Nothing is dimmed, inert or trapped, and focus stays put.
+ *   - `persistent`:  part of the page, an `<aside>`
+ *     (a complementary landmark;  a `<ui-menu>` inside is the `<nav>`).
+ *     Nothing is dimmed, inert or trapped, and focus stays put.
  *
  * - A hidden sidebar is `visibility: hidden` (out of the tab order and the accessibility tree),
  *   but laid out, so its pushable can measure it.
  *
  * - `visible` is controlled:  the cancelable `ui-open` / `ui-close` come first for a person's actions
  *   (invoker commands, `UIT.ToggleCommands`;  Escape;  a click beside it).
- *   `ui-show` / `ui-hide` follow once the transition has ended.
- *   Writing `visible` fires no `ui-open` / `ui-close`.
+ *   - `ui-show` / `ui-hide` follow once the transition has ended.
+ *   - Writing `visible` fires no `ui-open` / `ui-close`.
  ****************/
 export class UISidebar extends E.UIComponent<SidebarVocabulary> {
   @E.proto static vocabulary = sidebarVocabulary
@@ -130,10 +131,11 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
       const closedBy = this.closedby ?? "any"
       this.overlay.closeOnEscape = closedBy !== "none"
       this.overlay.closeOnOutsideClick = closedBy === "any"
-      // MUST `show()` BEFORE `UI.overlays.open()`:  `show()` gives the dialog its own close watcher,
-      // disabled (`closedby` computes to `none`).  Opened by a click, it's the newest close-watcher group,
-      // and Chromium processes only that group, so a watcher made before it never hears Escape.  Focus still returns:
-      // `close()` refocuses what had focus before `show()`.
+      // MUST `show()` BEFORE `UI.overlays.open()`:
+      // - `show()` gives the dialog its own close watcher, disabled (`closedby` computes to `none`)
+      // - opened by a click, it's the newest close-watcher group, and Chromium processes only that group,
+      //   so a watcher made before it never hears Escape
+      // - focus still returns:  `close()` refocuses what had focus before `show()`
       if (!box.open) {
         box.show()
         UI.focus.enter(box)
@@ -226,8 +228,8 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
   /**
    * What the pusher does beside this sidebar (Fomantic's `sidebar.less` "Animations"):
    * - `overlay`:  stays;  `scale down`:  shrinks to 0.75 towards the far side
-   * - `push`, `uncover`, `slide along`, `slide out`:  moves by the panel's measured width (height at the top /
-   *   bottom), as Fomantic's script measured it
+   * - `push`, `uncover`, `slide along`, `slide out`:
+   *   moves by the panel's measured width (height at the top / bottom), as Fomantic's script measured it
    * - A method, not a getter:  it MEASURES the panel.
    */
   @E.untracked

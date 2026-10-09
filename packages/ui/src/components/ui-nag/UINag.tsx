@@ -43,20 +43,23 @@ export class DOMNagElement extends E.DOMElement<UINag> {
  * ### `UINag`
  * The component behind `<ui-nag>`:  a bar at the top (or `bottom`) of the page or its container
  * that stays until dismissed, and can remember the dismissal.
- * `<div class="ui … nag" part="nag">` around the slot, with a close icon.
+ * Its shadow DOM:  `<div class="ui … nag" part="nag">` around the slot, with a close icon.
  *
- * - Remembering (opt-in, with `key`):  closing it from its icon (or `domElement.close()`) stores `value` under
- *   `key` in `storage` (`DismissalStore`:  local / session / cookie, `expires` days).
+ * - Remembering (opt-in, with `key`):  closing it from its icon (or `domElement.close()`)
+ *   stores `value` under `key` in `storage` (`DismissalStore`:  local / session / cookie, `expires` days).
  *   - A nag whose dismissal is stored is `hidden` from the start (set on the DOM element as it first connects,
  *     before anything paints), unless it `persist`s.
  *   - Storage that is blocked or missing just doesn't remember:  the nag still shows and closes.
  *
- * - Closing:  the cancelable `ui-close` (with a `reason`) first, then the exit animation (Fomantic's `slide`),
- *   `hidden` on the DOM element, and `ui-hide`.  It never removes itself.
- *   `display-time` hides it without storing anything.
+ * - Closing:  the cancelable `ui-close` (with a `reason`) first,
+ *   then the exit animation (Fomantic's `slide`), `hidden` on the DOM element, and `ui-hide`.
+ *   - It never removes itself.
+ *   - `display-time` hides it without storing anything.
  *
- * - Invoker commands (`UIT.ToggleCommands`):  a `<button commandfor command="--show">` shows it (`show()`),
- *   `--close` closes it (`close()`, so a `key` remembers it), `--toggle` picks by `hidden`.
+ * - Invoker commands (`UIT.ToggleCommands`):
+ *   - a `<button commandfor command="--show">` shows it (`show()`)
+ *   - `--close` closes it (`close()`, so a `key` remembers it)
+ *   - `--toggle` picks by `hidden`
  *
  * - No role:  a banner that must be announced gets `role` / `aria-live` from the page.
  *   The close icon is a real `<button>` with a translated label.
@@ -137,7 +140,8 @@ export class UINag extends E.UIComponent<Vocabulary> {
 
   /**
    * Appear once connected (and not hidden), waiting for the runtime (`isReady`) too, as the render does:
-   * appearing animates the rendered bar.  The cleanup drops a pending `display-time`.
+   * appearing animates the rendered bar.
+   * - The cleanup drops a pending `display-time`.
    */
   @E.onChange("isConnected", "isReady")
   protected onConnectedChanged(isConnected: boolean, isReady: boolean) {

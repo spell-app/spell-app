@@ -21,26 +21,28 @@ import tokensCSS from "./UIDocsTokens.css?inline"
 
 /****************
  * ### `UIDocsTokens`
- * The component behind `<ui-docs-tokens>`:  a family's CSS custom properties as `<ui-table>`s
- * (`family="ui-button"`, or `tag="ui-or"` for its family), or the foundation's (`global`, one table per group),
+ * The component behind `<ui-docs-tokens>`:
+ * a family's CSS custom properties as `<ui-table>`s (`family="ui-button"`, or `tag="ui-or"` for its family),
+ * or the foundation's (`global`, one table per group),
  * with their name, default, description, and a LIVE swatch for colours.
  *
  * - Data:  `components.json` through `SiteData` (`families[folder].tokens`, `foundation`);
  *   NEVER the sheets or the vocabularies.  The rows come from `TokenRows`.
  * - Swatches are `<ui-label circular empty>` painted with `--ui-label-background: var(<token>, <default>)`:
  *   they resolve where they're drawn, so they follow the theme, the scheme (dark mode) and anything the page sets.
- *   A family token's default is given as the `var()`'s fallback, since no sheet declares the public name.
+ *   - A family token's default is given as the `var()`'s fallback, since no sheet declares the public name.
  * - `playground`:  the children are a live preview, in a `<ui-segment>` with a reset `<ui-button>`,
  *   and each row gets a `<ui-input>` (a native colour picker for colours, `ColorProbe` giving it the current value).
  *   - An input sets its token INLINE on the preview's box (the children inherit it through the slot),
  *     or on `:root` with `target="page"`.  The swatches follow.
  *   - An empty input removes the token.
- * - Events:  the inner `<ui-input>`s' `ui-input` / `ui-change` stop here;  the element's own `ui-input`
- *   (`{ token, value }`) and `ui-reset` (`{ tokens }`) say what the playground did.
- * - Phone width:  every table is `stackable` by its OWN width (the sheet sets `--ui-table-stack-by: container`
- *   on the DOM element), or by the screen's when the page-wide `--ui-stack-with` says `page`
- *   (`<ui-root stack-with="page">`).
- * - Sheets:  `UITable.css` is adopted HERE too:  `<ui-table>` styles its light-DOM `<table>` with a PAGE sheet,
+ * - Events:  the inner `<ui-input>`s' `ui-input` / `ui-change` stop here;
+ *   the element's own `ui-input` (`{ token, value }`) and `ui-reset` (`{ tokens }`) say what the playground did.
+ * - Phone width:  every table is `stackable` by its OWN width
+ *   (the sheet sets `--ui-table-stack-by: container` on the DOM element),
+ *   or by the screen's when the page-wide `--ui-stack-with` says `page` (`<ui-root stack-with="page">`).
+ * - Sheets:  `UITable.css` is adopted HERE too:
+ *   `<ui-table>` styles its light-DOM `<table>` with a PAGE sheet,
  *   which never reaches a table inside this shadow root (as in `<ui-docs-api>`).
  * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of other families' widgets,
  *   which its barrel imports.
@@ -156,8 +158,8 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
   @E.state accessor overrides: ReadonlyMap<string, string> = new Map()
 
   /**
-   * Each colour row's current value as `#rrggbb` (`ColorProbe`), for the colour inputs:  probed once drawn,
-   * and again after a reset or a new filter.
+   * Each colour row's current value as `#rrggbb` (`ColorProbe`), for the colour inputs:
+   * probed once drawn, and again after a reset or a new filter.
    */
   @E.state accessor probedColors: ReadonlyMap<string, string> = new Map()
 
@@ -185,8 +187,8 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
   override onMount(): JSX.Element {
     const content = super.onMount()
     if (isServer) return content
-    // after the apply (`onOverridesChanged()`, same flush, created first), so a reset re-probes with the tokens
-    // already removed
+    // after the apply (`onOverridesChanged()`, same flush, created first),
+    // so a reset re-probes with the tokens already removed
     createEffect(
       () => ({
         view: this.isReady && this.playground ? this.tokenView : undefined,
@@ -236,8 +238,8 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
   }
 
   /**
-   * Set `tokens` inline on `target`'s element (the preview's box, or `:root` for `page`), and remove what an earlier
-   * apply set that's no longer wanted (or set on another element).
+   * Set `tokens` inline on `target`'s element (the preview's box, or `:root` for `page`),
+   * and remove what an earlier apply set that's no longer wanted (or set on another element).
    */
   private apply(tokens: ReadonlyMap<string, string>, target: string | undefined): void {
     const element = target === PAGE_TARGET ? document.documentElement : this.previewBox
@@ -256,8 +258,8 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
   }
 
   /**
-   * Probe every colour row's current value (`ColorProbe`), in this shadow root:  where the preview resolves it,
-   * minus what the playground set on the preview's box.
+   * Probe every colour row's current value (`ColorProbe`), in this shadow root:
+   * where the preview resolves it, minus what the playground set on the preview's box.
    */
   @E.untracked
   private probe(tables: readonly TokenTable[]): void {
@@ -333,7 +335,7 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
   }
 
   ////////////////
-  // ## Rendering
+  // ## Tables and rows
   ////////////////
 
   /**
@@ -432,8 +434,8 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
   }
 
   /**
-   * What a row's swatch paints:  the preview's value while the playground set one there, else the token itself,
-   * resolved here (`TokenRows.cssValueFor()`).
+   * What a row's swatch paints:  the preview's value while the playground set one there,
+   * else the token itself, resolved here (`TokenRows.cssValueFor()`).
    */
   private swatch(row: SiteToken): string {
     const set = this.target === PAGE_TARGET ? undefined : this.overrides.get(row.name)

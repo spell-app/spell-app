@@ -23,11 +23,12 @@ const EXTRA_ENTRIES = { api: ENTRIES.api!, styles: ENTRIES.styles! }
  *   - `solid-js`, `@solidjs/*` => `library`
  *   - `forms.ts`, `FormComponent`, `DOMFormControl`, `Validator`, `MenuOptions`, `ControlLabels` (+ `LabelWatch`) =>
  *     `shared:forms`
- *   - a family folder => its own classes / sheet / vocabulary / fallback;  `vocabulary/SkeletonText.ts` too, as
- *     `ui-root`'s:  its only runtime importer, and NOT in `core` (left out of `$/ui/vocabulary`'s barrel)
+ *   - a family folder => its own classes / sheet / vocabulary / fallback;
+ *     `vocabulary/SkeletonText.ts` too, as `ui-root`'s:
+ *     its only runtime importer, and NOT in `core` (left out of `$/ui/vocabulary`'s barrel)
  *   - `api.ts` and the two barrels it namespaces (`E`, `V`) => `extra:api`:  only `api.js` holds them
- *   - `src/styles/` (the foundation sheets as text, the style vocabulary) => `extra:styles`:  only `styles.js`
- *     holds them
+ *   - `src/styles/` (the foundation sheets as text, the style vocabulary) => `extra:styles`:
+ *     only `styles.js` holds them
  *   - lazy tiers:  runtime services + the theme sheets (`styles/themes/`, loaded by `UI.themes`) => `runtime`;
  *     icon name / alias maps => `icons`;  a family's lazily imported data (`components/ui-<family>/data/`, the emoji
  *     chunks) and the Temporal polyfill (`temporal-polyfill`, loaded only where the browser lacks `Temporal`) =>
@@ -54,8 +55,8 @@ export const PACKAGE: PackageConfig = {
 
 /**
  * Import map entries for `dist/` (the vendored Solid ones come from `vendor/importmap.json`).
- * - `@spell-app/ui` ~== every family (`dist/index.js`);  `@spell-app/ui/ui-<family>` one family;  `@spell-app/ui/core`,
- *   `@spell-app/ui/forms`;  `@spell-app/ui/api` the `E` / `V` namespaces.
+ * - `@spell-app/ui` ~== every family (`dist/index.js`);  `@spell-app/ui/ui-<family>` one family;
+ *   `@spell-app/ui/core`, `@spell-app/ui/forms`;  `@spell-app/ui/api` the `E` / `V` namespaces.
  */
 export const DIST_IMPORTS: ImportMap["imports"] = {
   "@spell-app/ui": "/dist/index.js",

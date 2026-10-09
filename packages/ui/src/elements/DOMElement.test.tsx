@@ -9,10 +9,10 @@ import { ElementFixture } from "$/ui/test/ElementFixture"
 import { Fixture } from "$/ui/test/Fixture"
 
 /**
- * The DOM element (`DOMElement`):  attributes and properties, the upgrade step, lifecycle, shadow root, internals
- * and forms, each on a test tag of its own.
- * - Ported from solid-element's tests (`solid-element/*.test.tsx`), each keeping its fix's intent:  the layer
- *   they tested is folded into `DOMElement` and `UIComponent` (epic `spell-element`, P2).
+ * The DOM element (`DOMElement`):  attributes and properties, the upgrade step, lifecycle, shadow root,
+ * internals and forms, each on a test tag of its own.
+ * - Ported from solid-element's tests (`solid-element/*.test.tsx`), each keeping its fix's intent:
+ *   the layer they tested is folded into `DOMElement` and `UIComponent` (epic `spell-element`, P2).
  */
 
 ////////////////
@@ -52,8 +52,8 @@ type TagOptions = {
 
 /**
  * A new test tag (`x-dom-<name>-<n>`) with `attributes`, on a fresh subclass of `Component`:  NOT defined yet.
- * - `define()` defines it (DOM API `customElements.define()`, through `UIComponent.define()`);  with a `tag` and
- *   a `dictionary`, a translated tag of it instead.
+ * - `define()` defines it (DOM API `customElements.define()`, through `UIComponent.define()`).
+ * - With a `tag` and a `dictionary`, it defines a translated tag of it instead.
  */
 function testTag(name: string, attributes: readonly AttributeSpec[], { Component = Shows, setup }: TagOptions = {}) {
   const tag = `x-dom-${name}-${++tagCount}`

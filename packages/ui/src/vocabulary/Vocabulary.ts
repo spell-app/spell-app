@@ -14,12 +14,13 @@ import { ValueSets } from "./ValueSets"
  * ### `Vocabulary`
  * Registry of every component's vocabulary, and the resolver that turns canonical names into localized ones.
  * - `register()` collects each `UI<Name>.en.ts` by canonical tag.
- * - `define(prefix, dictionary)` resolves, for every registered component, the names an author types in that
- *   language (`ie-tarjeta`, `color="rojo"`, `ie-cambio`) -- the contract a future translated
- *   `customElements.define()` builds on.  The English identity dictionary is the default.
+ * - `define(prefix, dictionary)` resolves, for every registered component,
+ *   the names an author types in that language (`ie-tarjeta`, `color="rojo"`, `ie-cambio`).
+ *   - What a translated tag's `ElementDefinition` is built from (`UIButton.define("ie-boton", es)`).
+ *   - The English identity dictionary is the default.
  * - `canonicalize()` / `localize()` convert single names both ways, for attribute parsing and rendering.
- * - Pure data, NO DOM:  the runtime's `UI.vocabulary` service wraps one of these.  Imports only `$/ui/util` and
- *   its folder's peers, so node can load it too.
+ * - Pure data, NO DOM:  the runtime's `UI.vocabulary` service wraps one of these.
+ *   Imports only `$/ui/util` and its folder's peers, so node can load it too.
  * - See `docs/translation.md`.
  ****************/
 export class Vocabulary {
@@ -69,11 +70,11 @@ export class Vocabulary {
   }
 
   /**
-   * Swap in a NEW version of a registered component's vocabulary (hot module replacement:  its module re-ran and
-   * made a new object);  returns it.
+   * Swap in a NEW version of a registered component's vocabulary;  returns it.
+   * - For hot module replacement:  its module re-ran and made a new object.
    * - Keyed by `vocabulary.tag`;  an unknown tag is simply registered.
-   * - Every localized vocabulary resolved from the old version is resolved again from the new one, under the same
-   *   prefix and dictionary, so `canonicalize()` / `localize()` see the new names at once.
+   * - Every localized vocabulary resolved from the old version is resolved again from the new one,
+   *   under the same prefix and dictionary, so `canonicalize()` / `localize()` see the new names at once.
    * - NOTE: a vocabulary whose tag changed is a NEW component:  the old tag stays registered.
    */
   replace<V extends ComponentVocabulary>(vocabulary: V): V {
@@ -99,7 +100,7 @@ export class Vocabulary {
 
   /**
    * Resolve every registered vocabulary under `prefix` + `dictionary`;  returns them by CANONICAL tag.
-   * - SIDE EFFECT: remembers each result under its localized tag, for `canonicalize()` / `localize()`.
+   * - SIDE EFFECT:  remembers each result under its localized tag, for `canonicalize()` / `localize()`.
    * - Throws when two components resolve to the same localized tag -- a dictionary bug.
    * - NOTE: vocabularies registered later need another `define()` call.
    */
@@ -122,10 +123,11 @@ export class Vocabulary {
   }
 
   /**
-   * Localized names of one `vocabulary` under `prefix` + `dictionary`.  Pure:  doesn't touch the registry.
+   * Localized names of one `vocabulary` under `prefix` + `dictionary`.
+   * - Pure:  doesn't touch the registry.
    * - Lookup order per name:  `dictionary.components[tag]` > dictionary-wide map > canonical.
-   * - Canonical attribute aliases (`checked` for `selected`) are kept untranslated, unless a localized
-   *   name already uses the word.
+   * - Canonical attribute aliases (`checked` for `selected`) are kept untranslated,
+   *   unless a localized name already uses the word.
    * - Throws on a collision within the component, e.g. two attributes translated to the same word.
    */
   resolve(vocabulary: ComponentVocabulary, prefix = this.prefix, dictionary = this.dictionary): LocalizedVocabulary {
@@ -280,8 +282,8 @@ export class Vocabulary {
   }
 
   /**
-   * Map `value` through `values`;  `multiple` attributes token by token, longest phrase first,
-   * so `large screen` stays one token.
+   * Map `value` through `values`.
+   * - `multiple` attributes go token by token, longest phrase first, so `large screen` stays one token.
    */
   private static mapValue(spec: AttributeSpec, values: Map<string, string> | undefined, value: string | undefined) {
     if (value === undefined || !values) return value
@@ -310,8 +312,8 @@ export class Vocabulary {
   /**
    * Event `name`'s name under `prefix`, `translated` when the dictionary names it.
    * - One of Spell UI's own (`ui-change`) takes the prefix:  `ie-change`, or `ie-cambio` translated.
-   * - Another package's (`spell-open`, of the `<spell-app>` component pack) keeps its name, unless translated:  a
-   *   tag outside Spell UI names its events as it likes, and the page listens for them by that name.
+   * - Another package's (`spell-open`, of the `<spell-app>` component pack) keeps its name, unless translated:
+   *   a tag outside Spell UI names its events as it likes, and the page listens for them by that name.
    */
   private static eventName(name: string, prefix: string, translated: string | undefined): string {
     if (translated !== undefined) return `${prefix}-${translated}`

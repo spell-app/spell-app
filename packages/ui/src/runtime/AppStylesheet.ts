@@ -7,8 +7,9 @@ import { APP_STYLESHEET_ID, LAYER_ORDER } from "./runtime.types"
  * The page's ONE app stylesheet (`id="ui-app-stylesheet"`), mirrored into a constructable sheet
  * that `Styles` appends LAST in every component's shadow root.
  * - In the runtime's lazy chunk;  only `Styles` makes one, on the first `adoptInto()` / `appSheetReady`.
- * - Why:  page CSS can't reach into shadow roots.  Convention over configuration -- the app marks one
- *   `<link>` or `<style>` and every component picks it up, no per-component wiring.
+ * - Why:  page CSS can't reach into shadow roots.
+ * - Convention over configuration:  the app marks one `<link>` or `<style>`,
+ *   and every component picks it up, no per-component wiring.
  * - Sources:
  *   - `<style>`:  its text
  *   - same-origin `<link rel="stylesheet">`:  its `cssRules`, once loaded
@@ -19,8 +20,9 @@ import { APP_STYLESHEET_ID, LAYER_ORDER } from "./runtime.types"
  *     an `@import` inside an imported file is dropped (warns)
  *   - `layer()`, `supports()` and media on the `@import` become wrapping `@layer` / `@supports` / `@media` blocks
  *   - relative `url()`s in inlined files are made absolute, since the combined sheet has one base URL
- * - Kept in sync:  a `MutationObserver` watches the element (text / `href`) and `<head>` / `<body>` children
- *   (late insertion, removal, replacement);  changes are coalesced (`syncSoon()`).
+ * - Kept in sync:  a `MutationObserver` watches the element (text / `href`)
+ *   and `<head>` / `<body>` children (late insertion, removal, replacement).
+ *   Changes are coalesced (`syncSoon()`).
  * - NOTE: an element that GAINS the id later via `setAttribute("id")` is not noticed -- insert it instead.
  ****************/
 export class AppStylesheet {

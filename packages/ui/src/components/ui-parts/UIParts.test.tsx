@@ -199,8 +199,9 @@ describe("<ui-header> standalone", () => {
   })
 
   it("keeps elements slotted into it live when `href` swaps its root tag", async () => {
-    // loaded first:  the header renders its slot synchronously, BEFORE the label connects (the old owner bug's
-    // trigger;  each element's Solid root has no owner now, epic `spell-element` Q8)
+    // loaded first:  the header renders its slot synchronously, BEFORE the label connects
+    // (what once tied the label's Solid root to the header's;
+    // each element's root has no owner now, epic `spell-element` Q8)
     await UI.load()
     const host = await ElementFixture.render(`<ui-header>Dogs <ui-label>214</ui-label></ui-header>`)
     const label = host.querySelector<DOMElement>("ui-label")!
@@ -429,8 +430,8 @@ describe("<ui-{part}> owner tokens", () => {
   })
 
   it("an owner look token reaches the part through the owner's alias", async () => {
-    // `UIParts.css` reads `var(--_ui-statistic-value-size, ...)`;  a `large` statistic's size (80px) only arrives
-    // through the owner's alias, which its size variation writes
+    // `UIParts.css` reads `var(--_ui-statistic-value-size, ...)`;
+    // a `large` statistic's size (80px) only arrives through the owner's alias, which its size variation writes
     const owner = await ElementFixture.render(`<ui-statistic size="large"><ui-value>5</ui-value></ui-statistic>`)
     expect(getComputedStyle(root(owner.querySelector("ui-value")!)).fontSize).toBe("80px")
   })

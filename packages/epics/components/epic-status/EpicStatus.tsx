@@ -19,8 +19,8 @@ import statusCSS from "./EpicStatus.css?inline"
  * - Its band:  `Claude • Underway` (blue) or `Claude • Done` (green) on the left, the date at the right of the
  *   top line (`.header.dated`, as `EpicReply`'s):  `done-at` once done, else `at`;  once done, the date's tooltip
  *   says when it was taken
- * - Its body:  the reading (its children), kept as it was when it turns done;  then the summary (`slot="summary"`),
- *   only when there is one
+ * - Its body:  the reading (its children), kept as it was when it turns done;
+ *   then the summary (`slot="summary"`), only when there is one
  * - Written by the plan-doc tool (`plan-doc status`, `inbox apply`), never by hand;  a later mark on the same item
  *   adds a new card, the old ones stay
  ****************/

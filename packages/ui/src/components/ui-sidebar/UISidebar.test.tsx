@@ -29,8 +29,8 @@ type Sidebar = DOMElement & { visible: boolean; closedBy: string }
 const LINKS = `<a href="#one">One</a> <a href="#two">Two</a>`
 
 /**
- * Render a pushable holding `sidebars` and a pusher with a toggle button;  returns the first sidebar, its panel,
- * the pusher (DOM element and box) and the toggle.
+ * Render a pushable holding `sidebars` and a pusher with a toggle button;
+ * returns the first sidebar, its panel, the pusher (DOM element and box) and the toggle.
  */
 async function pushable(sidebars: string) {
   const wrapper = await ElementFixture.render(

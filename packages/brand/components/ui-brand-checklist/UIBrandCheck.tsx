@@ -65,8 +65,8 @@ export class DOMBrandCheckElement extends DOMElement<UIBrandCheck> {
  *
  * - Ticking (the phone's habits):  `checkable` makes the line a checkbox (click, Space, Enter);
  *   done ~== `selected`, the text then subtle and struck through.
- *   A tick sends `ui-change` first, then sets `selected` (reflected), unless a handler set it first.
- *   `checked` is another name for `selected` (`DOMBrandCheckElement`;  the attribute ticks it).
+ *   - A tick sends `ui-change` first, then sets `selected` (reflected), unless a handler set it first.
+ *   - `checked` is another name for `selected` (`DOMBrandCheckElement`;  the attribute ticks it).
  *
  * - Owned (`PartContext`, `:state(in-checklist)`):  the `<ui-brand-checklist>` around it decides its state
  *   from its `step`, and makes it `checkable`;  the DOM element is then a `listitem` (internals).

@@ -14,10 +14,10 @@ import codeCSS from "./EpicCode.css?inline"
  * ### `EpicCode`
  * The component behind `<epic-code>`:  a folded code block in prose (an `EpicPanel`) -- the brand's code well, its
  * heading the `title` in mono, the code inside on a card, highlighted.
- * - The code is the element's OWN text:  its `<pre>` child's (else its whole text), which stays in the doc as
- *   written.  Spell UI's `<ui-code>` in the shadow root draws it:  the colours (`language`, else guessed), the copy
- *   button;  the `<pre>` itself isn't slotted, so the code shows once.  Followed:  a live update or a part loading
- *   changes what's drawn.
+ * - The code is the element's OWN text:  its `<pre>` child's (else its whole text), which stays in the doc as written.
+ *   Spell UI's `<ui-code>` in the shadow root draws it:  the colours (`language`, else guessed), the copy button;
+ *   the `<pre>` itself isn't slotted, so the code shows once.
+ *   Followed:  a live update or a part loading changes what's drawn.
  * - Folded to start with, unless `open`;  find-in-page and a click unfold it.
  * - Before the pack loads (or without it), the `<pre>` shows as the page's own code block.
  * - SIDE EFFECT:  observes its own children, from its first read of them on (`@fromContent`).

@@ -8,11 +8,12 @@ import formCSS from "./UIForm.css?inline"
 
 /****************
  * ### `UIFields`
- * The component behind `<ui-fields>`:  a row (or a `grouped` stack) of fields,
- * `<div class="… fields" part="fields"><slot></slot></div>`.
+ * The component behind `<ui-fields>`:
+ * a row (or a `grouped` stack) of fields, `<div class="… fields" part="fields"><slot></slot></div>`.
  *
- * - The DOM element is `display: contents`;  the root is the flex row, and hands each `<ui-field>`
- *   its share of the width (`widths`), the gutter and its state as inherited tokens (`UIForm.css`).
+ * - The DOM element is `display: contents`;  the root is the flex row,
+ *   and hands each `<ui-field>` its share of the width (`widths`), the gutter and its state
+ *   as inherited tokens (`UIForm.css`).
  * - `disabled` makes the root `inert`.
  ****************/
 export class UIFields extends E.UIComponent<typeof fieldsVocabulary> {

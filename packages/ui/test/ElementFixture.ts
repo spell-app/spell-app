@@ -4,8 +4,8 @@ import { Fixture } from "$/ui/test/Fixture"
 import type { DOMElement } from "$/ui/elements"
 
 /**
- * `Fixture.render()` plus "wait until every element in it has rendered":  awaits each `DOMElement.ready`, then
- * `flush()`es Solid's queue.
+ * `Fixture.render()` plus "wait until every element in it has rendered":
+ * awaits each `DOMElement.ready`, then `flush()`es Solid's queue.
  * - Why:  Solid 2 applies signal writes on a microtask, and first render waits for `UI.load()`, so tests
  *   assert after `await ElementFixture.settle()` rather than after a guessed number of ticks.
  */

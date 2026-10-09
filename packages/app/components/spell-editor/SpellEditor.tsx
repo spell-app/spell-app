@@ -17,8 +17,8 @@ import "$/app/solid/cellsBridge"
 
 /****************
  * ### `DOMSpellEditorElement`
- * The DOM element of `<spell-editor>`:  it adds the editor's script API, `compile()`, `save()` and `compiled`, which
- * its component does.
+ * The DOM element of `<spell-editor>`:
+ * it adds the editor's script API, `compile()`, `save()` and `compiled`, which its component does.
  * - Before the element first joins the page there's nothing to compile or save:  `compile()` resolves `undefined`.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
@@ -32,8 +32,8 @@ export class DOMSpellEditorElement extends E.DOMElement {
   }
 
   /**
-   * Compile its project now (first saving the files edited since) and, with no parse errors, hand it on:  see
-   * `SpellEditor.compile()`.  Resolves with what it compiled, or `undefined` if there were errors.
+   * Compile its project now (first saving the files edited since) and, with no parse errors, hand it on:
+   * see `SpellEditor.compile()`.  Resolves with what it compiled, or `undefined` if there were errors.
    */
   compile(): Promise<SpellCompiled | undefined> {
     return this.editor?.compile() ?? Promise.resolve(undefined)
@@ -127,8 +127,8 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
   compiled: SpellCompiled | undefined
 
   /**
-   * Compile our project now (first saving the files edited since) and, with no parse errors, hand it on:  see
-   * `compiled`.  Returns it, or `undefined` if there were errors.
+   * Compile our project now (first saving the files edited since) and, with no parse errors, hand it on:
+   * see `compiled`.  Returns it, or `undefined` if there were errors.
    * - One at a time, in order:  a compile asked for during another waits for it.
    */
   compile(): Promise<SpellCompiled | undefined> {
@@ -211,8 +211,8 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
 
   /**
    * `project`'s scope pack, fresh from its parse:  for an app's Type Explorer, as the server's may be stale.
-   * - Only once Monaco's loaded:  its language service works out docs and locations.  Till then, `undefined`, and
-   *   apps show the server's.
+   * - Only once Monaco's loaded:  its language service works out docs and locations.
+   *   Till then, `undefined`, and apps show the server's.
    * - Parses the projects it imports compiled first, once each, to show their sources:  see `LSP.ScopeExplorer`.
    */
   private async scopesOf(project: SP.SpellProject): Promise<LSP.ScopePack | undefined> {
@@ -268,8 +268,8 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
   }
 
   /**
-   * Open project `attribute` (our `project`) if it's another than we have open, and compile it.  Then load Monaco,
-   * to show it.
+   * Open project `attribute` (our `project`) if it's another than we have open, and compile it.
+   * Then load Monaco, to show it.
    */
   private async openProject(attribute: string | undefined) {
     if (attribute === this.projectAttribute) return

@@ -9,24 +9,26 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  * Production builds of the runners:  `<spell-app>` and `<spell-editor>` (`yarn build:element` => `dist-element/`) and
  * the VS Code runner (`yarn build:runner` => `dist-runner/`).  Each folder is built as its script builds it, into a
  * temp folder:  `vite.solid.config.ts` first, then the rest beside it.
- * - ONE Solid per page:  two copies fail SILENTLY (`solid-2.md`).  So Solid (`solid-js`, `@solidjs/web`,
- *   `@solidjs/signals`) is in `spell-solid.js` ALONE, with `@spell-app/ui`'s element core (which `<spell-app>` and
- *   `<spell-editor>` are defined on), and the rest of `@spell-app/ui` in `spell-ui.js` and its lazy chunks (`ui/`)
- *   alone;  `spell-app.js`, `spell-editor.js` and `runner.js` import them.  See `sharedSolid()` in `vite.shared.ts`.
+ * - ONE Solid per page:  two copies fail SILENTLY (`solid-2.md`).
+ *   So Solid (`solid-js`, `@solidjs/web`, `@solidjs/signals`) is in `spell-solid.js` ALONE,
+ *   with `@spell-app/ui`'s element core (which `<spell-app>` and `<spell-editor>` are defined on),
+ *   and the rest of `@spell-app/ui` in `spell-ui.js` and its lazy chunks (`ui/`) alone;
+ *   `spell-app.js`, `spell-editor.js` and `runner.js` import them.  See `sharedSolid()` in `vite.shared.ts`.
  * - The component pack, `spell.pack.js`:  a classic script registering both tags, whose `define()` imports their
  *   modules;  `spell-ui.js` gives it `SpellUI.registerPack`.
- * - `spellCore` MUST be in `spell-runtime.js` ALONE:  each runner loads its own copy of that file, for a
- *   `spellCore` of its own.  In a shared chunk, every app on a page would share one -- one runtime, one console
- *   -- and a runner would show a `spellCore` its program doesn't run on.  So nothing a runner itself imports may
- *   import `spellCore`.
+ * - `spellCore` MUST be in `spell-runtime.js` ALONE:
+ *   each runner loads its own copy of that file, for a `spellCore` of its own.
+ *   - In a shared chunk, every app on a page would share one -- one runtime, one console --
+ *     and a runner would show a `spellCore` its program doesn't run on.
+ *   - So nothing a runner itself imports may import `spellCore`.
  * - And `spell-runtime.js` never loads Solid or `ui`:  compiled spell runs on React (decision D9).
  * - Monaco only in `<spell-editor>`'s lazy chunks:  the parser compiles, and apps run, before it loads.
  * - Icon packs beside the chunk holding `BuiltInPacks`, where it looks -- complete enough for every Fomantic name.
- * - Every bundle MUST parse:  a build can succeed and still write javascript no browser runs -- e.g. vite's
- *   module preloading once moved an `await` into a non-`async` arrow.  See `agents/PAPERCUTS.md`.
- * - What a chunk holds comes from its sourcemap's `sources` (every build here writes maps), not from guessing at
- *   minified text;  `spellCore` is the exception, by `resetRuntime` -- `spell-editor.js` holds a few of `core`'s
- *   runtime-light modules.
+ * - Every bundle MUST parse:  a build can succeed and still write javascript no browser runs --
+ *   e.g. vite's module preloading once moved an `await` into a non-`async` arrow.  See `agents/PAPERCUTS.md`.
+ * - What a chunk holds comes from its sourcemap's `sources` (every build here writes maps),
+ *   not from guessing at minified text;  `spellCore` is the exception, by `resetRuntime` --
+ *   `spell-editor.js` holds a few of `core`'s runtime-light modules.
  */
 describe("runner builds", () => {
   /** `dist-element/` and `dist-runner/`, built once in `beforeAll()`. */
@@ -244,8 +246,9 @@ function expectParses(dir: string, files: string[]) {
 }
 
 /**
- * Fail unless `icon-packs/` holds the built-in packs, and every icon of the `fomantic` pack -- the app's icon names,
- * whose keys point into the Font Awesome folders beside it (`../fa7-free/solid/gear`) -- has its SVG.
+ * Fail unless `icon-packs/` holds the built-in packs, and every icon of the `fomantic` pack --
+ * the app's icon names, whose keys point into the Font Awesome folders beside it (`../fa7-free/solid/gear`) --
+ * has its SVG.
  */
 function expectIconPacks(packs: string) {
   for (const pack of ["fa7-free", "fa7-brands", "fomantic"])

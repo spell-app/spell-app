@@ -9,22 +9,23 @@ import feedCSS from "./UIFeed.css?inline"
 
 /****************
  * ### `UIFeedEvent`
- * The component behind `<ui-event>`:  one event of a feed,
- * `<div class="[color] [keyOnly ...] event" part="event">` holding the label box,
+ * The component behind `<ui-event>`:
+ * one event of a feed, `<div class="[color] [keyOnly ...] event" part="event">` holding the label box,
  * then the default `<slot>` (a `<ui-content>`).
  *
  * - Named `UIFeedEvent`, not `UIEvent`:  that's the DOM's own `UIEvent` interface.
  *
- * - The label box, `<div class="label" part="label" [data-text]>`:  the `image` shorthand's `<img alt="">`,
- *   the `icon` shorthand's icon box, and the `label` slot;  a `label` text is Fomantic's `data-text` circle.
+ * - The label box, `<div class="label" part="label" [data-text]>`:
+ *   the `image` shorthand's `<img alt="">`, the `icon` shorthand's icon box, and the `label` slot;
+ *   a `label` text is Fomantic's `data-text` circle.
  *   It's drawn when any of those is set, or when the feed is `ordered` (the number goes there).
  *
- * - A part (`elementSetup.isAPart`, noun `event`, owned by the feed):  transparent to other parts' climbs,
- *   so the content parts inside find the FEED (`:state(in-feed)`).
+ * - A part (`elementSetup.isAPart`, noun `event`, owned by the feed):
+ *   transparent to other parts' climbs, so the content parts inside find the FEED (`:state(in-feed)`).
  *   Its own DOM element is a `role=listitem` with `:state(in-feed)`.
  *
- * - Colour:  an event has no `ui`, so a coloured one adds `ui-<color>` (the utility remap class) for `colors.css`,
- *   as `<ui-item>` does.
+ * - Colour:  an event has no `ui`,
+ *   so a coloured one adds `ui-<color>` (the utility remap class) for `colors.css`, as `<ui-item>` does.
  *
  * - `disabled`:  `aria-disabled` on the root, which assistive tech (and axe) apply to the content inside.
  ****************/

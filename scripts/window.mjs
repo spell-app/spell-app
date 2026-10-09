@@ -4,9 +4,10 @@
  *
  * ## Window files
  * - `workspaces/<pkg>.code-workspace`:  open a package's window from it (`code workspaces/ui.code-workspace`).
- * - Its FIRST folder is the repo root, the whole branch;  then the shared content repo.  Why the root first:  the
- *   Claude Code panel lists only the sessions saved under a window's first folder, so every window lists every
- *   session.  No package folder since 2026-10-06 (Owen:  "just check out the full branch").
+ * - Its FIRST folder is the repo root, the whole branch;  then the shared content repo.
+ *   - Why the root first:  the Claude Code panel lists only the sessions saved under a window's first folder,
+ *     so every window lists every session.
+ *   - No package folder since 2026-10-06 (Owen:  "just check out the full branch").
  * - Its own colour theme, so windows are told apart at a glance (instead of VS Code profiles).
  * - Each file shows ONCE in Explorer and Quick Open (`filesExclude()`):  `.claude/worktrees/` hidden, and the shared
  *   links shown only under the `spell-app-dev` folder.  Generated files, icons and screenshots stay out of Quick
@@ -46,45 +47,48 @@
  *     would load it half-written.  The repo's `Stop` hook (`.claude/hooks/handoff.mjs`) starts `resume`, detached,
  *     since closing the old tab kills the hook's own `claude`.
  *   - The old tab is found by its label, the session's title:  its `/rename` title (the prompt hook,
- *     `.claude/hooks/prompt-gate.mjs`, sets it on `/isolate <name>`), else Claude's own.  No single match (two
- *     sessions with one title):  it stays open, idle;  close it by hand.
+ *     `.claude/hooks/prompt-gate.mjs`, sets it on `/isolate <name>`), else Claude's own.
+ *     No single match (two sessions with one title):  it stays open, idle;  close it by hand.
  *   - Log:  `<registry>/handoffs/<session id>.log`.
  * - Docs shown while the move is pending (`show`, `spell dev plan-doc open`) wait for it, then show in the window the
  *   session moved to:  the window it's leaving is about to close its tab.
  * - Its file:  `workspaces/ongoing/<name>.code-workspace` in the main checkout, beside the package windows' files;
  *   git ignores `workspaces/ongoing/`.
- * - Folders:  the MAIN repo root first, as in every window, so its Claude panel lists every session;  then the
- *   worktree's root, `⎇ <name>`.  No package folder:  Owen (2026-10-03).
- *   - the main root's files are hidden (`files.exclude` `*` beside its `.spell-main` marker):  the worktree's
- *     folder has the same ones.  The main root stays first for the Claude panel, and keeps its Source Control.
+ * - Folders:  the MAIN repo root first, as in every window, so its Claude panel lists every session;
+ *   then the worktree's root, `⎇ <name>`.  No package folder:  Owen (2026-10-03).
+ *   - the main root's files are hidden (`files.exclude` `*` beside its `.spell-main` marker):
+ *     the worktree's folder has the same ones.
+ *     The main root stays first for the Claude panel, and keeps its Source Control.
  *   - the package it's for (theme, `handoff --back`'s target) is kept in the file's own `spell.package`
- * - Its look (epic `windows-and-review` P5):  `open <name> --color <look>` (`/epic <name> -<look>`), else the look of
- *   the window it's opened from;  a window file from before (or a window without one):  the package window's theme,
- *   the title bar tinted the worktree's own colour (`tint()`).
+ * - Its look (epic `windows-and-review` P5):
+ *   `open <name> --color <look>` (`/epic <name> -<look>`), else the look of the window it's opened from;
+ *   a window file from before (or a window without one):
+ *   the package window's theme, the title bar tinted the worktree's own colour (`tint()`).
  *
  * ## Looks
- * - A LOOK is the whole window in Tomorrow Night Blue's colours, its blues turned to another hue (`LOOKS`:  red,
- *   orange, amber, green, teal, cyan, blue, indigo, purple, pink, brown, grey):  `workbench.colorTheme` set to it,
- *   the re-hued colours scoped to it in `workbench.colorCustomizations`;  the rest of Owen's own colours stay.
- * - `color <look>` (`/epic color <look>`) gives the window this session runs in a look:  written into its window
- *   file, which VS Code applies at once, with no reload and its extensions (the Claude panel) untouched (tested on a
+ * - A LOOK is the whole window in Tomorrow Night Blue's colours, its blues turned to another hue
+ *   (`LOOKS`:  red, orange, amber, green, teal, cyan, blue, indigo, purple, pink, brown, grey):
+ *   `workbench.colorTheme` set to it, the re-hued colours scoped to it in `workbench.colorCustomizations`;
+ *   the rest of Owen's own colours stay.
+ * - `color <look>` (`/epic color <look>`) gives the window this session runs in a look:  written into its window file,
+ *   which VS Code applies at once, with no reload and its extensions (the Claude panel) untouched (tested on a
  *   throwaway window:  Q11 of `windows-and-review`).  Only a window opened from a `.code-workspace` file.
  *
  * ## Staying put
- * - Instead of moving, a session may STAY in its window:  same tab, only its folder is the worktree.  Owen picks,
- *   each time, in `/isolate`'s, `/epic`'s or `/unpark`'s modal;  `stay-check` recommends one and says why.
+ * - Instead of moving, a session may STAY in its window:  same tab, only its folder is the worktree.
+ *   Owen picks, each time, in `/isolate`'s, `/epic`'s or `/unpark`'s modal;  `stay-check` recommends one and says why.
  * - Its changes show in Source Control (`git.detectWorktrees`), not in Explorer.
- * - The window says so at once (`stay <name>`, epic `windows-and-review` P5):  titled `⎇ <name>`, its title bar
- *   tinted the worktree's colour;  what that replaced is kept in the file's `spell.stay`, and `stay --end`
- *   (`/isolate done`) puts it back.  Before, the window kept its old title (`docs-sidebar` while the session worked
- *   in `quick-open`).
+ * - The window says so at once (`stay <name>`, epic `windows-and-review` P5):
+ *   titled `⎇ <name>`, its title bar tinted the worktree's colour;
+ *   what that replaced is kept in the file's `spell.stay`, and `stay --end` (`/isolate done`) puts it back.
+ *   Before, the window kept its old title (`docs-sidebar` while the session worked in `quick-open`).
  * - Fine when it's the window's ONLY session.  Else the others share its doc preview (one doc at a time) and its
  *   Source Control, and a second worktree there is easy to mix up with the first.
  * - Later, it can still move:  `open <name>`, `handoff <name>`.
  *
  * ## Commands
- * - `init`:  write the window file of every package that lacks one, and bring the others up to date:  folders and
- *   `files.exclude` (a worktree's window:  `files.exclude`);  themes and other settings are Owen's, kept
+ * - `init`:  write the window file of every package that lacks one, and bring the others up to date:
+ *   folders and `files.exclude` (a worktree's window:  `files.exclude`);  themes and other settings are Owen's, kept
  * - `which`:  this session's window:  pid, workspace file, folders
  * - `add <path> [--name <name>]`:  add a folder (a worktree) to the window;  needs a window opened from its
  *   `.code-workspace` (else the change would restart its extensions, Claude panel included)
@@ -103,12 +107,13 @@
  * - `handoff <name> [--back] [--prompt <text>]`:  move this session to worktree `<name>`'s window when its turn
  *   ends;  `--back`:  from it to its package's window, closing it after;  `--prompt`:  typed into the new tab.
  *   Needs `$CLAUDE_CODE_SESSION_ID` (Claude sets it in a session's commands).
- * - `resume <record> [--title <title>]...`:  the move itself, run by the `Stop` hook:  `<record>` the handoff's
- *   file (deleted once read), each `<title>` a label the session's tab may show, tried in order
+ * - `resume <record> [--title <title>]...`:  the move itself, run by the `Stop` hook:
+ *   `<record>` the handoff's file (deleted once read), each `<title>` a label the session's tab may show,
+ *   tried in order
  * - `color [<look>]`:  give this session's window a look (`LOOKS`);  no look:  list them
  * - `stay <name>` / `stay --end`:  title and tint this session's window for worktree `<name>` it stays in / put back
- * - `stay-check [--epic] [--json]`:  should this session stay in its window when it isolates, or move?  Prints
- *   `recommend stay|window`, then a `- <reason>` line each
+ * - `stay-check [--epic] [--json]`:  should this session stay in its window when it isolates, or move?
+ *   Prints `recommend stay|window`, then a `- <reason>` line each
  * - No window (the extension isn't installed, or the window wasn't reloaded since):  exits 1, saying so.
  */
 import { spawnSync } from "node:child_process"
@@ -179,8 +184,8 @@ export class Window {
 
   /**
    * The window file's contents for `pkg`:  the WHOLE branch (the repo root), then the shared content repo.
-   * - one file per package still, each with its own theme;  no package folder any more (Owen, 2026-10-06:  "just
-   *   check out the full branch")
+   * - one file per package still, each with its own theme;
+   *   no package folder any more (Owen, 2026-10-06:  "just check out the full branch")
    */
   static workspace(pkg) {
     return {
@@ -202,8 +207,9 @@ export class Window {
    * A window's `files.exclude`, so Explorer and Quick Open show each file ONCE.  It applies to every folder of the
    * window, each pattern relative to the folder;  a `when` hides an entry only beside a sibling of that name.
    * - `.claude/worktrees`:  a worktree is its own folder (a worktree window), or its own repo in Source Control
-   * - the shared links (`epics`, `guides` ...) in a CHECKOUT (beside its `package.json`):  their files show once,
-   *   under the `spell-app-dev` folder, at the real path edits need (root `AGENTS.md`, "Shared content")
+   * - the shared links (`epics`, `guides` ...) in a CHECKOUT (beside its `package.json`):
+   *   their files show once, under the `spell-app-dev` folder, at the real path edits need
+   *   (root `AGENTS.md`, "Shared content")
    * - `worktree`:  also everything in the MAIN checkout's folder (beside its `.spell-main` marker,
    *   `ensureMainMarker()`):  the worktree's folder has the same files.  The main root stays the first folder, for
    *   the Claude panel, and keeps its Source Control.
@@ -229,8 +235,8 @@ export class Window {
 
   /**
    * `init`:  write the missing window files, and bring existing ones up to date;  returns the paths written.
-   * - a package window:  its folders (`packageFolders()`) and `files.exclude`;  its theme and every other setting
-   *   are Owen's, kept
+   * - a package window:  its folders (`packageFolders()`) and `files.exclude`;
+   *   its theme and every other setting are Owen's, kept
    * - a worktree's window (`workspaces/ongoing/`):  its `files.exclude`
    * - an existing file VS Code can't read as JSON (comments) is left alone
    * - NOTE:  a package window that changes folders while open re-reads its workspace;  its Claude panel may reload
@@ -295,9 +301,9 @@ export class Window {
    * - folder paths are relative to `workspaces/ongoing/`
    * - `spell.package`:  `pkg`, for `handoff --back`;  VS Code ignores a top-level key it doesn't know
    * - hides the main root's files (`filesExclude({ worktree: true })`):  the worktree's folder has the same ones
-   * - its look (epic `windows-and-review` P5, Q1):  `color`, a look's name (`LOOKS`);  else `from`'s, the window
-   *   file of the window it's opened from (its theme and colours, a staying session's tint left out);  else `pkg`'s
-   *   theme, the title bar tinted the worktree's own colour (`tint()`)
+   * - its look (epic `windows-and-review` P5, Q1):  `color`, a look's name (`LOOKS`);  else `from`'s,
+   *   the window file of the window it's opened from (its theme and colours, a staying session's tint left out);
+   *   else `pkg`'s theme, the title bar tinted the worktree's own colour (`tint()`)
    */
   static worktreeWorkspace(pkg, name, { color = null, from = null } = {}) {
     const settings = {
@@ -325,8 +331,9 @@ export class Window {
 
   /**
    * Change the window file of the window this session runs in:  `change(workspace)` edits it in place (`refresh()`).
-   * VS Code takes a settings change at once:  no reload, its extensions (the Claude panel) untouched (Q11 of
-   * `windows-and-review`, tested on a throwaway window).  Returns `{ file, written }`;  throws without a window file.
+   * - VS Code takes a settings change at once:  no reload, its extensions (the Claude panel) untouched
+   *   (Q11 of `windows-and-review`, tested on a throwaway window).
+   * - Returns `{ file, written }`;  throws without a window file.
    */
   static editCurrent(change) {
     const file = Window.current()?.workspaceFile
@@ -366,8 +373,8 @@ export class Window {
    * - already open:  VS Code focuses that window
    * - its colours (`workbench.colorCustomizations`) are NOT in the file yet:  a window starting up draws the theme's
    *   colours VS Code cached from the last window that had them, and only a CHANGE to the setting makes it read them
-   *   (P5 of `windows-and-review`:  a probe opened green came up in an older probe's purple).  `colors` go in once
-   *   the window is up (`applyColors()`), a live change
+   *   (P5 of `windows-and-review`:  a probe opened green came up in an older probe's purple).
+   *   `colors` go in once the window is up (`applyColors()`), a live change
    */
   static open(name, pkg, { color = null, fromCurrent = true } = {}) {
     if (!existsSync(join(MAIN_ROOT, ".claude", "worktrees", name))) throw new Error(`no worktree ${name}`)
@@ -389,9 +396,10 @@ export class Window {
   }
 
   /**
-   * Write `colors` into window file `file` once its window is up (its registry entry, `WINDOW_START_TIMEOUT` at
-   * most, then a moment for its settings to load):  a live change, which the window applies (`open()`).  Resolves
-   * to whether the window was seen;  the colours are written either way.
+   * Write `colors` into window file `file` once its window is up (its registry entry,
+   * `WINDOW_START_TIMEOUT` at most, then a moment for its settings to load):
+   * a live change, which the window applies (`open()`).  Resolves to whether the window was seen;
+   * the colours are written either way.
    */
   static async applyColors(file, colors, { wait = 1500 } = {}) {
     const deadline = Date.now() + WINDOW_START_TIMEOUT
@@ -431,8 +439,8 @@ export class Window {
    * `launch`:  make worktree `name` if needed (the `WorktreeCreate` hook's own `create`, from the MAIN checkout), open
    * its window, and start a NEW Claude Code session there, `prompt` typed in (not sent);  resolves to `{ file }`.
    * - for `/epic <name>` typed in ANOTHER epic's session (Owen, 2026-10-07):  that session stays where it is
-   * - its look:  `color`, else `pkg`'s window's theme, the title bar tinted `name`'s own colour;  never the look of
-   *   the window it's launched from, another epic's
+   * - its look:  `color`, else `pkg`'s window's theme, the title bar tinted `name`'s own colour;
+   *   never the look of the window it's launched from, another epic's
    */
   static async launch(name, pkg, { color = null, prompt = null } = {}) {
     const hook = join(MAIN_ROOT, ".claude", "hooks", "worktree.mjs")
@@ -487,8 +495,8 @@ export class Window {
   }
 
   /**
-   * `handoff`:  record that session `sessionId` moves to another window when its turn ends;  returns the record,
-   * or `null` when it can't move back (see below).
+   * `handoff`:  record that session `sessionId` moves to another window when its turn ends;
+   * returns the record, or `null` when it can't move back (see below).
    * - to worktree `name`'s window;  then this window closes the session's TAB
    * - `back`:  from worktree `name`'s window to its package's window;  then the worktree's window CLOSES and its
    *   file goes.  Not in that window (an older session, or the move there failed):  `null`, nothing to move.
@@ -550,10 +558,10 @@ export class Window {
   }
 
   /**
-   * Show `file` (an `.html` doc) in this session's window's doc preview, at id `hash` if given;  resolves to
-   * `{ window }` (the registry entry it showed in) or `{ later }` (the window file it will show in).
-   * - `view`:  the side bar tab, `"docs"` ("Spell Docs", the default) or `"review"` ("Review");  sent only when
-   *   given, so an extension from before the tabs still shows the doc
+   * Show `file` (an `.html` doc) in this session's window's doc preview, at id `hash` if given;
+   * resolves to `{ window }` (the registry entry it showed in) or `{ later }` (the window file it will show in).
+   * - `view`:  the side bar tab, `"docs"` ("Spell Docs", the default) or `"review"` ("Review");
+   *   sent only when given, so an extension from before the tabs still shows the doc
    * - a `handoff` pending for `sessionId`:  NOT here, where the session's tab is about to close, but in the window
    *   it moves to, once it has (`resume`).  The handoff keeps ONE doc, so the last asked for wins, whichever tab.
    * - throws as `request()` does:  no window, or it failed
@@ -572,8 +580,8 @@ export class Window {
   }
 
   /**
-   * Whether this process runs in VS Code:  a session in the Claude Code extension, or anything in VS Code's
-   * integrated terminal.
+   * Whether this process runs in VS Code:
+   * a session in the Claude Code extension, or anything in VS Code's integrated terminal.
    * - NOT whether a VS Code window is open:  a CLI session in another terminal is "not in VS Code", even with the
    *   repo open in a window, so its docs go to the browser
    */
@@ -969,9 +977,10 @@ export function tint(name) {
 }
 
 /**
- * The named LOOKS a window can take (epic `windows-and-review` P5, Q1:  Owen, 2026-10-06):  the WHOLE window in
- * Tomorrow Night Blue's look, its blues turned to the look's hue.  `hue` in degrees;  `saturation`:  how much of the
- * theme's colour it keeps (1, all).  `blue` is the theme itself.
+ * The named LOOKS a window can take (epic `windows-and-review` P5, Q1:  Owen, 2026-10-06):
+ * the WHOLE window in Tomorrow Night Blue's look, its blues turned to the look's hue.
+ * - `hue` in degrees;  `saturation`:  how much of the theme's colour it keeps (1, all).
+ * - `blue` is the theme itself.
  */
 export const LOOKS = {
   red: { hue: 356 },
@@ -993,8 +1002,8 @@ const LOOK_THEME = "Tomorrow Night Blue"
 
 /**
  * Tomorrow Night Blue's own window colours that carry its blue (VS Code's built-in
- * `extensions/theme-tomorrow-night-blue/themes/tomorrow-night-blue-color-theme.json`):  a look re-hues each.  Its
- * greys, whites and the terminal's colours stay as they are.
+ * `extensions/theme-tomorrow-night-blue/themes/tomorrow-night-blue-color-theme.json`):  a look re-hues each.
+ * Its greys, whites and the terminal's colours stay as they are.
  */
 const LOOK_COLORS = {
   focusBorder: "#bbdaff",
@@ -1048,8 +1057,9 @@ export function look(name) {
 }
 
 /**
- * Give window settings `settings` look `name` (in place):  the theme, and the look's colours scoped to it;  a global
- * colour the look sets goes (it would fight the look), the rest of Owen's own colours stay.  Returns `settings`.
+ * Give window settings `settings` look `name` (in place):  the theme, and the look's colours scoped to it;
+ * a global colour the look sets goes (it would fight the look), the rest of Owen's own colours stay.
+ * Returns `settings`.
  */
 export function withLook(settings, name) {
   const { theme, colors } = look(name)
@@ -1062,10 +1072,11 @@ export function withLook(settings, name) {
 }
 
 /**
- * A session STAYS in window file `workspace` (parsed) while it works in worktree `name` (in place;  epic
- * `windows-and-review` P5):  the window's title reads `⎇ <name>`, its title bar tinted the worktree's colour
- * (`tint()`), scoped to its theme so it shows over a look.  What it replaces is kept in `spell.stay`, for
- * `withoutStay()`;  staying again (another worktree) keeps the first one's.  Returns `workspace`.
+ * A session STAYS in window file `workspace` (parsed) while it works in worktree `name`
+ * (in place;  epic `windows-and-review` P5):  the window's title reads `⎇ <name>`,
+ * its title bar tinted the worktree's colour (`tint()`), scoped to its theme so it shows over a look.
+ * What it replaces is kept in `spell.stay`, for `withoutStay()`;
+ * staying again (another worktree) keeps the first one's.  Returns `workspace`.
  */
 export function withStay(workspace, name) {
   const settings = (workspace.settings ??= {})
@@ -1108,8 +1119,8 @@ export function withoutStay(workspace) {
 }
 
 /**
- * `#rrggbb` or `#rrggbbaa` with its hue set to `hue` and its saturation scaled by `saturation`;  lightness and
- * alpha kept.
+ * `#rrggbb` or `#rrggbbaa` with its hue set to `hue` and its saturation scaled by `saturation`;
+ * lightness and alpha kept.
  */
 function rehue(hex, hue, saturation) {
   const [r, g, b] = [1, 3, 5].map((at) => parseInt(hex.slice(at, at + 2), 16) / 255)
@@ -1150,8 +1161,8 @@ function parentPids() {
 }
 
 /**
- * Every process, by pid:  `{ ppid, command }`, from ONE `ps` call, or from `text` (its output, for tests);  empty
- * if `ps` fails.
+ * Every process, by pid:  `{ ppid, command }`, from ONE `ps` call, or from `text` (its output, for tests);
+ * empty if `ps` fails.
  * - `command`:  the executable's path, spaces and all
  */
 export function processTable(text) {
@@ -1170,8 +1181,8 @@ export function processTable(text) {
 
 /**
  * The pids of the Claude Code sessions in the window whose extension host is `hostPid`:  its `claude` children.
- * - one per session, in a tab or the side bar.  NOT a `claude` in the window's terminal:  that's a child of the
- *   pty host.
+ * - one per session, in a tab or the side bar.  NOT a `claude` in the window's terminal:
+ *   that's a child of the pty host.
  */
 export function claudeSessions(processes, hostPid) {
   return [...processes]
@@ -1222,8 +1233,8 @@ export function worktreeOf(cwd) {
  * - `window`:  its registry entry (`null`:  no bridge here)
  * - `others`:  the window's OTHER sessions, `{ pid, cwd }` each (`cwd` `null` when unknown)
  * - `epic`:  for `/epic`:  its plan doc takes the window's doc preview
- * - returns `{ recommend, others, reasons }`:  `recommend` `"stay"` or `"window"`;  `others` `{ pid, worktree }`
- *   each (`worktree` `null`:  in the main checkout);  `reasons` sentences for the modal
+ * - returns `{ recommend, others, reasons }`:  `recommend` `"stay"` or `"window"`;
+ *   `others` `{ pid, worktree }` each (`worktree` `null`:  in the main checkout);  `reasons` sentences for the modal
  */
 export function stayAdvice({ window, others = [], epic = false }) {
   const listed = others.map(({ pid, cwd }) => ({ pid, worktree: worktreeOf(cwd) }))

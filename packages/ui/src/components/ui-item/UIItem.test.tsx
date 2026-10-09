@@ -13,8 +13,9 @@ import "$/ui/components/ui-item"
 import "$/ui/components/ui-parts"
 
 /**
- * `<ui-item>` on its own:  unowned (the dropdown's data item), and owned by a stand-in OWNER implementing
- * `ItemOwner` -- the list and menu test their own looks and roles.
+ * `<ui-item>` on its own:
+ * unowned (the dropdown's data item), and owned by a stand-in OWNER implementing `ItemOwner`.
+ * - The list and menu test their own looks and roles.
  */
 
 /** The stand-in owner's vocabulary:  it owns items and headers. */

@@ -2,8 +2,8 @@
 
 (The approved master plan now lives in `docs/plan.md`; this file is the plan for this step only.)
 
-> NOTE (2026-10-09):  the fork this plan made, `@spell-app/solid-element`, is gone:  epic `spell-element` folded it
-> into `src/elements/`.
+> NOTE (2026-10-09):  `@spell-app/solid-element`, the forked element layer this plan made ("the fork" below), is gone:
+> epic `spell-element` folded it into `src/elements/`.
 
 ## Context
 

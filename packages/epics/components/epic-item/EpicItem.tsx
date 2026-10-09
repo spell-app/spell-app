@@ -53,10 +53,11 @@ import reviewCSS from "./ReviewControls.css?inline"
 /****************
  * ### `EpicItem`
  * The component behind `<epic-item>`:  one item -- question, judgement call, caveat, todo, issue or test -- its kind its id's letter (Q11).
- * - Its LINE, in the shadow root:  the fold chevron (only with details), the id chip (`Q7`, a link to `#q7`) in its
- *   state's colour, the title (`title`, or `slot="title"`), the bed icon (`overnight`:  made overnight), the git icon
- *   (with commits), the review label (`reviewed 10/6/26`, `deferred`, `to do`) and the review buttons.  Sticky while
- *   open, under the section titles stuck above it.
+ * - Its LINE, in the shadow root:  the fold chevron (only with details),
+ *   the id chip (`Q7`, a link to `#q7`) in its state's colour, the title (`title`, or `slot="title"`),
+ *   the bed icon (`overnight`:  made overnight), the git icon (with commits),
+ *   the review label (`reviewed 10/6/26`, `deferred`, `to do`) and the review buttons.
+ *   Sticky while open, under the section titles stuck above it.
  * - `calm`:  an open judgement call or issue not reviewed yet is yellow (`open`), not red (`attention`).
  * - Its COMMITS (`<epic-commit>` children, or `commits` while its part isn't in):  hidden until the page's git toggle
  *   shows every commit;  its git icon shows just its own (T17, the old runtime's `plan-git-hint`), opening it first,
@@ -66,25 +67,28 @@ import reviewCSS from "./ReviewControls.css?inline"
  *   see them (Q12);  hidden `until-found` while folded.  Over its own text, `Original question` (answered) or
  *   `Original reply` (with a More Details card);  under them Claude's status cards (`<epic-status slot="status">`,
  *   P13), then the note box.
- * - Review (P9, `ReviewControls.tsx`):  only while the page is reviewed (served with a token, its inbox answering:
- *   `ReviewState`).  Approve, Revisit, Make Todo, then Do Now at the line's end, the review label in their
- *   tooltips (not beside them:  Owen, 2026-10-07);  the note box LAST in its details, whatever its state, sticky at
- *   the window's bottom while it's open and taller than the window, or, without details, under its line once
- *   Revisit opens it;  a marked note just above the box, with Edit, and Claude's status cards between the two.
- *   While it carries a mark (a button dashed or outlined, or a pick), its id chip MATCHES the chosen button:  that
- *   button's colour and fill (`chipMark`, Owen, 2026-10-08);  without one, its state's colour, solid.
- *   The id chip of an item Owen may call urgent or not (`canCalm`) is a button:  urgent <-> not urgent, through the
- *   inbox (`ReviewClient.toggleCalm()`).  All in the shadow root:  a part reloaded keeps a half-typed note.
+ * - Review (P9, `ReviewControls.tsx`):
+ *   only while the page is reviewed (served with a token, its inbox answering:  `ReviewState`).
+ *   Approve, Revisit, Make Todo, then Do Now at the line's end,
+ *   the review label in their tooltips (not beside them:  Owen, 2026-10-07);
+ *   the note box LAST in its details, whatever its state, sticky at the window's bottom
+ *   while it's open and taller than the window, or, without details, under its line once Revisit opens it;
+ *   a marked note just above the box, with Edit, and Claude's status cards between the two.
+ *   - While it carries a mark (a button dashed or outlined, or a pick), its id chip MATCHES the chosen button:
+ *     that button's colour and fill (`chipMark`, Owen, 2026-10-08);  without one, its state's colour, solid.
+ *   - The id chip of an item Owen may call urgent or not (`canCalm`) is a button:
+ *     urgent <-> not urgent, through the inbox (`ReviewClient.toggleCalm()`).
+ *   - All in the shadow root:  a part reloaded keeps a half-typed note.
  * - Folding:  `open` (page state, never in the file);  a click on the line (not on a link or control in it) or
  *   Enter / Space on the chevron go through the cancelable `ui-open` / `ui-close`.  A link to the item, to an id
  *   in `part-ids`, or to an element inside it opens it, as does find-in-page.
- * - Source:  `source="parts/q7.html"` is fetched the first time it opens (`LoadableBody`, as `<ui-section source>`),
- *   into its LIGHT children, replacing the placeholder;  `ui-load` then.  From `file://` it can't load:  the
- *   `Loads from ... (needs the page server)` note, as today.
- * - The DOM element's own `title` would show as a tooltip over everything in it, prose included:  the shadow wrapper's
- *   EMPTY `title` stops it there (T8).
- * - SIDE EFFECT:  with `source`, replaces its own light children (the placeholder) with the part;  listens for
- *   `hashchange` while connected.
+ * - Source:  `source="parts/q7.html"` is fetched the first time it opens (`LoadableBody`,
+ *   as `<ui-section source>`), into its LIGHT children, replacing the placeholder;  `ui-load` then.
+ *   From `file://` it can't load:  the `Loads from ... (needs the page server)` note, as today.
+ * - The DOM element's own `title` would show as a tooltip over everything in it, prose included:
+ *   the shadow wrapper's EMPTY `title` stops it there (T8).
+ * - SIDE EFFECT:  with `source`, replaces its own light children (the placeholder) with the part;
+ *   listens for `hashchange` while connected.
  ****************/
 export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   @E.proto static vocabulary = epicItemVocabulary
@@ -153,10 +157,10 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
 
   /**
    * Where it stands:  `state` as the script wrote it, else `old` once closed, `open` before.
-   * - Claude's agent at work on it (the review inbox's `working`, the page's live view of it):  `progress` (blue), at
-   *   once, before the script rewrites `state`
-   * - Owen's urgency, not applied yet (its id chip clicked):  `open` (yellow) when not urgent, `attention` (red) when
-   *   urgent, at once
+   * - Claude's agent at work on it (the review inbox's `working`, the page's live view of it):
+   *   `progress` (blue), at once, before the script rewrites `state`
+   * - Owen's urgency, not applied yet (its id chip clicked):
+   *   `open` (yellow) when not urgent, `attention` (red) when urgent, at once
    */
   readonly itemState = createMemo((): ItemState => {
     if (this.reviewState.workedOn()) return "progress"
@@ -170,8 +174,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   /**
    * Owen's live mark, as its id chip wears it:  the chosen review button's colour and fill (dashed until sent, then
    * outlined), or a pick's (green);  `undefined` without one, so the chip shows its state.
-   * - NOTE: a mark Claude handled (`review-as`, its button solid) is history, not a choice still in play:  the chip
-   *   shows the state then, so long-reviewed items stay grey and a reply that needs Owen stays red.
+   * - NOTE: a mark Claude handled (`review-as`, its button solid) is history, not a choice still in play:
+   *   the chip shows the state then, so long-reviewed items stay grey and a reply that needs Owen stays red.
    */
   readonly chipMark = createMemo((): ChipMark | undefined => {
     for (const spec of REVIEW_BUTTONS) {
@@ -219,8 +223,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   readonly hasCommits = createMemo(() => !!this.commits || this.childScan.hasCommits)
 
   /**
-   * The review label, in words, for the review buttons' tooltips (`Approve · reviewed 10/7/26`):  while the page is
-   * reviewed, the buttons say it, not a label beside them (Owen, 2026-10-07).
+   * The review label, in words, for the review buttons' tooltips (`Approve · reviewed 10/7/26`):
+   * while the page is reviewed, the buttons say it, not a label beside them (Owen, 2026-10-07).
    */
   readonly reviewTip = createMemo((): string | undefined => {
     const { queued, work, deferred, reviewed } = this
@@ -236,8 +240,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   )
 
   /**
-   * The id chip's tooltip:  where it stands, then its review marks (`Needs attention · not reviewed yet`);  while it
-   * toggles, what a click does (and an urgency not sent yet).
+   * The id chip's tooltip:  where it stands, then its review marks (`Needs attention · not reviewed yet`);
+   * while it toggles, what a click does (and an urgency not sent yet).
    */
   readonly chipTip = createMemo(() => {
     const { queued, work, reviewed, deferred, status } = this
@@ -611,8 +615,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   }
 
   /**
-   * The page's `#hash` names this item, an id in its `part-ids`, or an element inside it:  open it;  a part id lands
-   * once the part is in.
+   * The page's `#hash` names this item, an id in its `part-ids`, or an element inside it:  open it;
+   * a part id lands once the part is in.
    */
   @E.untracked
   private readonly followHash = () => {

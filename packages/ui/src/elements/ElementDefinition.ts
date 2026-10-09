@@ -4,19 +4,21 @@ import { E } from "$/ui/core"
  * ### `ElementDefinition`
  * Everything ONE registered tag needs from its `ComponentVocabulary` (+ an optional translation `Dictionary`),
  * so a component never spells an attribute, event, slot or part name.
- * - `attributes`:  one `ResolvedAttribute` per vocabulary attribute, with its camelCase CANONICAL key (what the
- *   component reads, `this.allowAdditions`) and its (localized) attribute and property names.
- *   Then the shared attributes the vocabulary doesn't declare (`SharedVocabulary`:  `disabled`, `loading`,
- *   `visible`), under their English names on a translated tag too.
- *   The DOM element (`DOMElement`) does the rest:  a property per attribute, the upgrade step, reflection.
- * - ONE conversion per kind of value, each way:  `convert()` (attribute text or property value => value) and
- *   `attributeText()` (value => attribute text).
- * - Values:  localized values (`rojo`) are canonicalized on the way IN, from attributes and property writes
- *   alike (`fromProperty`), so `ClassBuilder` and the component only ever see canonical English (`red`);
+ * - `attributes`:  one `ResolvedAttribute` per vocabulary attribute, with
+ *   - its camelCase CANONICAL key (what the component reads, `this.allowAdditions`)
+ *   - its (localized) attribute and property names
+ *   - then the shared attributes the vocabulary doesn't declare, under their English names on a translated tag too
+ *     (`SharedVocabulary`:  `disabled`, `loading`, `visible`)
+ * - The DOM element (`DOMElement`) does the rest:  a property per attribute, the upgrade step, reflection.
+ * - ONE conversion per kind of value, each way:
+ *   - `convert()`:  attribute text or property value => value
+ *   - `attributeText()`:  value => attribute text
+ * - Values:  localized values (`rojo`) are canonicalized on the way IN, from attributes and property writes alike,
+ *   so `ClassBuilder` and the component only ever see canonical English (`red`);
  *   reflection writes them localized again.
  * - One instance per tag;  the canonical tag and each translated alias get their own.
- * - No Solid, no DOM:  of the core (`E`), it uses only the vocabulary layer and `E.ClassBuilder`, so the server render
- *   (`$/ui/static`) builds one in node.
+ * - No Solid, no DOM:  of the core (`E`), it uses only the vocabulary layer and `E.ClassBuilder`,
+ *   so the server render (`$/ui/static`) builds one in node.
  ****************/
 export class ElementDefinition {
   /** Canonical vocabulary. */
@@ -92,24 +94,24 @@ export class ElementDefinition {
 
   /**
    * Does this tag take the SHARED attribute `name` (`SharedVocabulary`)?
-   * False when its vocabulary declares its own of that name:  `<ui-sidebar>`'s `visible` starts hidden.
+   * - False when its vocabulary declares its own of that name:  `<ui-sidebar>`'s `visible` starts hidden.
    */
   takesShared(name: string): boolean {
     return E.SharedVocabulary.takesShared(this.vocabulary, name)
   }
 
   /**
-   * Attribute resolved from the name authors write (`permitir-adiciones` on `<ie-desplegable>`);  `undefined` for one
-   * outside the vocabulary.
-   * - The name DOM API:  `attributeChangedCallback()` hands the DOM element.
+   * Attribute resolved from the name authors write (`permitir-adiciones` on `<ie-desplegable>`);
+   * `undefined` for one outside the vocabulary.
+   * - The name DOM API `attributeChangedCallback()` hands the DOM element.
    */
   attributeNamed(attributeName: string): E.ResolvedAttribute | undefined {
     return this.byAttribute.get(attributeName)
   }
 
   /**
-   * The attribute authors write for `name`:  a vocabulary attribute's localized name (`value` => `valor`), else
-   * `name` itself (`aria-label`, an alias, an already-localized name).
+   * The attribute authors write for `name`:  a vocabulary attribute's localized name (`value` => `valor`),
+   * else `name` itself (`aria-label`, an alias, an already-localized name).
    */
   localAttribute(name: string): string {
     return this.byName.get(name)?.attribute ?? name
@@ -136,8 +138,8 @@ export class ElementDefinition {
   ////////////////
 
   /**
-   * What `builder` builds a component's class string from:  one getter per attribute (by canonical name), each
-   * calling `read(name)`.
+   * What `builder` builds a component's class string from:
+   * one getter per attribute (by canonical name), each calling `read(name)`.
    * - Getters, so a class string reacts only to the attributes its class words actually read.
    * - `read` is the component's `classValue()`:  usually the attribute's value, sometimes state (`isActive`).
    */
@@ -212,8 +214,9 @@ export class ElementDefinition {
 
   /**
    * Attribute text for a canonical `value`, or `null` to remove it.
-   * - Booleans:  `""` or removed (NEVER `"true"`);  `"false"` only for off over a `true` default (`visible`);
-   *   `keyOrValueAndKey`:  `""` for bare, else the value;  arrays:  comma-joined.
+   * - Booleans:  `""` or removed (NEVER `"true"`);  `"false"` only for off over a `true` default (`visible`).
+   * - `keyOrValueAndKey`:  `""` for bare, else the value.
+   * - Arrays:  comma-joined.
    * - Canonical values are written LOCALIZED (`red` => `rojo` on `<ie-boton>`).
    */
   attributeText(attribute: E.ResolvedAttribute, value: unknown): string | null {

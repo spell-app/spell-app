@@ -10,7 +10,7 @@ import textCSS from "./UIText.css?inline"
  * The component behind `<ui-text>`:  inline text in a hue, a status colour or a size.
  *
  * - Its shadow DOM is one span, `<span class="ui … text" part="text">`, around a slot for the text.
- *   The element is `display: contents`:  the span IS the inline box, flowing with the text around it.
+ * - The element is `display: contents`:  the span IS the inline box, flowing with the text around it.
  * - `:state(disabled)` is for the page's styles;  `UIText.css` keys on the `disabled` class.
  ****************/
 export class UIText extends E.UIComponent<typeof textVocabulary> {

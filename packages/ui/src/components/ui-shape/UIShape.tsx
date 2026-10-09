@@ -13,7 +13,8 @@ import shapeCSS from "./UIShape.css?inline"
  * it adds Fomantic's `.shape('flip up')` / `'set next side'` as METHODS, `flip()`, `next()` and `previous()`.
  *
  * - Each resolves once its flip has run:  `true` when it showed another side,
- *   `false` when there was none to show (or the element hasn't drawn yet).  Flips queue, as Fomantic's do.
+ *   `false` when there was none to show (or the element hasn't drawn yet).
+ * - Flips queue, as Fomantic's do.
  * - Each writes `activeIndex` (so it reflects, and frameworks see it);
  *   writing `activeIndex` yourself flips too, the `direction` attribute's way.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
@@ -38,20 +39,23 @@ export class DOMShapeElement extends E.DOMElement<UIShape> {
 /****************
  * ### `UIShape`
  * The component behind `<ui-shape>`:  Fomantic's shape, one of its `<ui-side>`s at a time, turning in 3D to another.
- * `<div class="ui … shape [animating]" part="shape"><div class="sides" part="sides"><slot>`.
+ * Its shadow DOM:  `<div class="ui … shape [animating]" part="shape"><div class="sides" part="sides"><slot>`.
  *
- * - `activeIndex` is the side shown.  Changing it turns the `direction` way
- *   (`up`, `down`, `left`, `right`, `over`, `back`), then fires `ui-change`;
+ * - `activeIndex` is the side shown.
+ *   Changing it turns the `direction` way (`up`, `down`, `left`, `right`, `over`, `back`), then fires `ui-change`;
  *   so do the DOM element's `flip()` / `next()` / `previous()` (`DOMShapeElement`)
  *   and invoker commands (`UIT.ShapeCommands`).
- *   Flips queue;  a flip to the side already shown does nothing.
+ *   - Flips queue;  a flip to the side already shown does nothing.
  *
- * - The flip is Fomantic's own geometry (`shape.js`):  the stage keeps its size,
- *   the next side is staged at 90° (or 180°) around the current one, and the sides box turns with a CSS transition.
- *   The inline styles are cleared after.
+ * - The flip is Fomantic's own geometry (`shape.js`):
+ *   - the stage keeps its size
+ *   - the next side is staged at 90° (or 180°) around the current one
+ *   - the sides box turns with a CSS transition
+ *   - the inline styles are cleared after
  *
- * - SIDE EFFECTS on the sides (this family's own DOM elements):  custom states (`active`, `inactive`, `animating`,
- *   `leaving`) and, during a flip, inline `transform` / `top` / `left`.
+ * - SIDE EFFECTS on the sides (this family's own DOM elements):
+ *   custom states (`active`, `inactive`, `animating`, `leaving`)
+ *   and, during a flip, inline `transform` / `top` / `left`.
  * - Reduced motion:  an instant swap, `ui-change` all the same.
  * - Accessibility:  hidden sides are `display: none`;
  *   the sides box is a polite live region, so the new side is read out after a flip (Fomantic's had no ARIA).
@@ -139,10 +143,10 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   private flipQueue: Promise<unknown> = Promise.resolve()
 
   /**
-   * `activeIndex` changed (the DOM element's own write, or `flipTo()`'s):  flip there,
-   * unless the queue is heading there.
-   * - Once `isReady`, as when this lived in `render()`:  a change before the sheets load flips (animated) once the
-   *   stage is drawn, instead of swapping at once.
+   * `activeIndex` changed (the DOM element's own write, or `flipTo()`'s):
+   * flip there, unless the queue is heading there.
+   * - Once `isReady`, as when this lived in `render()`:
+   *   a change before the sheets load flips (animated) once the stage is drawn, instead of swapping at once.
    */
   @E.onChange("isReady", "activeSideIndex")
   protected onActiveSideIndexChanged(isReady: boolean, index: number) {
@@ -324,9 +328,11 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   }
 
   /**
-   * A `text` shape in a server render (`$/ui/static`):  its static output is PHRASING content (`<span>`s,
-   * as the class grammar's), since the DOM element it replaces sits in running text --
-   * a `<div>` would close an open `<p>` when a browser parses the page.  Its sides follow (`UISide`).
+   * A `text` shape in a server render (`$/ui/static`):
+   * its static output is PHRASING content (`<span>`s, as the class grammar's),
+   * since the DOM element it replaces sits in running text --
+   * a `<div>` would close an open `<p>` when a browser parses the page.
+   * - Its sides follow (`UISide`).
    */
   get rendersInlineOnServer(): boolean {
     return isServer && untrack(() => !!this.text)

@@ -14,22 +14,29 @@ import type { Transitions } from "./Transitions"
 
 /****************
  * ### `Visibility`
- * Scroll position callbacks for elements, as `UI.visibility` (and the `UI.observeVisibility()` shortcut):  Fomantic's
- * visibility behaviour on `IntersectionObserver` -- no scroll listener.
+ * Scroll position callbacks for elements, as `UI.visibility` (and the `UI.observeVisibility()` shortcut):
+ * Fomantic's visibility behaviour on `IntersectionObserver` -- no scroll listener.
  * - In the runtime's lazy chunk (`UIRuntime` builds it);  fades lazy images through `Transitions`.
  * - `observe(element, { onTopVisible, onBottomPassed, onOnScreen ..., once, continuous, offset, context })`
- *   returns the undo.  See `VisibilityCallbacks` for the names;  the calculations are Fomantic's.
- * - Checks happen when something CROSSES:  the element entering / leaving the screen, and its top or bottom edge
- *   crossing the screen top or bottom (two 1px "line" observers).  So `continuous` fires at each crossing, not on
- *   every scrolled pixel, and `onUpdate` likewise.
- * - Measures the element's first BOX:  a `display: contents` element (`<ui-segment>`, `<ui-sticky>` ...) has
- *   none, so it measures the first rendered descendant with one -- its shadow root's root element, else its first
- *   boxed child.  NOTE:  only that one box, not the union of every child's.  Nothing to measure warns once in dev.
- * - `once` (default, as Fomantic's):  each callback fires at most once;  `once: false`:  again each time its condition
- *   turns true.  `...Reverse` callbacks fire when their condition turns false after being true.
- * - `lazyImage(img)`:  Fomantic's `type: 'image'` -- an `<img data-src>` (and `data-srcset`) gets its source once on
- *   screen, preloaded then faded in (`UI.transitions`).  Native `loading="lazy"` needs none of this;  this is for the
- *   fade and the callback.
+ *   returns the undo.
+ *   See `VisibilityCallbacks` for the names;  the calculations are Fomantic's.
+ * - Checks happen when something CROSSES (two 1px "line" observers):
+ *   - the element entering / leaving the screen
+ *   - its top or bottom edge crossing the screen top or bottom
+ *   - so `continuous` fires at each crossing, not on every scrolled pixel, and `onUpdate` likewise
+ * - Measures the element's first BOX.
+ *   - A `display: contents` element (`<ui-segment>`, `<ui-sticky>` ...) has none,
+ *     so it measures the first rendered descendant with one:
+ *     its shadow root's root element, else its first boxed child.
+ *   - NOTE:  only that one box, not the union of every child's.
+ *   - Nothing to measure warns once in dev.
+ * - `once` (default, as Fomantic's):  each callback fires at most once;
+ *   `once: false`:  again each time its condition turns true.
+ *   `...Reverse` callbacks fire when their condition turns false after being true.
+ * - `lazyImage(img)`:  Fomantic's `type: 'image'`.
+ *   - An `<img data-src>` (and `data-srcset`) gets its source once on screen,
+ *     preloaded then faded in (`UI.transitions`).
+ *   - Native `loading="lazy"` needs none of this;  this is for the fade and the callback.
  ****************/
 export class Visibility {
   /** runs the fade of `lazyImage()` */
@@ -94,11 +101,12 @@ export type VisibilityProps = {
 
 /****************
  * ### `VisibilityWatch`
- * One `observe()` call:  three observers on the element (the screen, a 1px line at the screen top, one at the
- * bottom), a check when any fires, and the callbacks the check calls.
+ * One `observe()` call:
+ * - three observers on the element:  the screen, a 1px line at the screen top, one at the bottom
+ * - a check when any fires, and the callbacks the check calls
  * - Checks are coalesced to one per task:  the three observers report the same crossing together.
- * - The line observers' margins are px (a root margin can't say "all but 1px"), so they're rebuilt when the
- *   screen resizes.
+ * - The line observers' margins are px (a root margin can't say "all but 1px"),
+ *   so they're rebuilt when the screen resizes.
  * - Observes `target`, the element's first box (see `Visibility`), re-found when it's gone or boxless at a check:
  *   a DOM element observed before it renders gets its box after its `ready` promise.
  ****************/
@@ -293,8 +301,11 @@ class VisibilityWatch {
 
   /**
    * First element with a box at or inside `element`, in rendered order;  `undefined` for none.
-   * - `display: contents`:  a shadow host's shadow root children, a `<slot>`'s assigned (else fallback) elements,
-   *   else its children.  `display: none` has no box and none inside.
+   * - `display: contents` looks inside:
+   *   - a shadow host:  its shadow root's children
+   *   - a `<slot>`:  its assigned (else fallback) elements
+   *   - anything else:  its children
+   * - `display: none` has no box and none inside.
    * - STATIC:  pure, recursive over the tree, and the constructor needs it before `target` is set.
    */
   private static boxOf(element: Element): Element | undefined {

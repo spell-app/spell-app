@@ -1,8 +1,10 @@
 # `@spell-app/ui` status report
 
-> NOTE (2026-10-09):  "the fork" below, `@spell-app/solid-element`, is gone.  Epic `spell-element` folded it into
-> `src/elements/` (`DOMElement`, `UIComponent`, `ShadowEvents`, `HotDefinitions`, `tools/HotElements.ts`):  `ui`'s own
-> code now, bundled into `core.js`, no longer a peer.  The prose about it is history;  the generated tables are current.
+> NOTE (2026-10-09):  "the fork" below means `@spell-app/solid-element`, which is gone:
+> epic `spell-element` folded it into `src/elements/`
+> (`DOMElement`, `UIComponent`, `ShadowEvents`, `HotDefinitions`, `tools/HotElements.ts`),
+> `ui`'s own code now, bundled into `core.js`, no longer a peer.
+> The prose about it is history;  the generated tables are current.
 
 Eight component families -- `ui-button` (+ `ui-buttons`, `ui-or`), `ui-dropdown` (+ `ui-item`), `ui-icon` /
 `ui-icons`, `ui-label` / `ui-labels`, the 13 generic content parts, `ui-divider`, `ui-segment` / `ui-segments`,

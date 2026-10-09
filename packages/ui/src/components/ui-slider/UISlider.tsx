@@ -16,14 +16,15 @@ import sliderCSS from "./UISlider.css?inline"
  *
  * - Its shadow DOM, in Fomantic's markup:
  *   `<div class="ui … slider" part="slider">` around `<div class="inner">` (the track, its fill, one or two `thumb`s)
- *   and, when `labeled` or `ticked`, `<ul class="auto labels">` (empty labels when only `ticked`:
- *   the sheet draws their ticks).  Labels come every `tick-step` (default `step`).
+ *   and, when `labeled` or `ticked`, `<ul class="auto labels">`
+ *   (empty labels when only `ticked`:  the sheet draws their ticks).
+ *   - Labels come every `tick-step` (default `step`).
  *
  * - The thumbs are APG sliders (`role=slider`, `aria-value*`, `aria-orientation`):
  *   no native element has two thumbs, or Fomantic's parts.
- *   A `range`'s thumbs are "Minimum" / "Maximum", inside a `group` named for the DOM element,
- *   and each bounds the other (`preventCrossover`).
- *   The labels are `aria-hidden`:  the thumbs speak their values.
+ *   - A `range`'s thumbs are "Minimum" / "Maximum", inside a `group` named for the DOM element,
+ *     and each bounds the other (`preventCrossover`).
+ *   - The labels are `aria-hidden`:  the thumbs speak their values.
  *
  * - Keys (on a thumb):
  *   - arrows step in the direction they point,
@@ -31,17 +32,19 @@ import sliderCSS from "./UISlider.css?inline"
  *   - PageUp / PageDown take 2 steps (Fomantic's `pageMultiplier`)
  *   - Home / End go to the thumb's lowest / highest value
  *   - each key sends `ui-input`, then `ui-change`.
- * - Pointer:  pressing the track moves the nearest thumb there, and dragging follows (pointer capture);
- *   `ui-input` for each new value, `ui-change` once when the drag ends somewhere new.
- *   `smooth` lets the thumb glide between steps.
+ * - Pointer:  pressing the track moves the nearest thumb there, and dragging follows (pointer capture).
+ *   - `ui-input` for each new value, `ui-change` once when the drag ends somewhere new.
+ *   - `smooth` lets the thumb glide between steps.
  *
  * - `value` / `end` are controlled (`@controlled`):  a `ui-input` handler that sets them again wins.
  *   The ATTRIBUTES are the starting (and reset) values.
- * - Positions are CSS:  the component writes ratios (`--_slider-at` per thumb and label,
- *   `--_slider-from` / `--_slider-to` on the inner box), and `UISlider.css` places everything,
- *   `reversed` / `vertical` included.
- * - A form control:  it submits `value`;  a `range` submits TWO entries under `name`
- *   (`FormData.getAll(name)` ~== `[value, end]`), per `FormComponent`'s multi-value convention.
+ * - Positions are CSS:
+ *   - the component writes ratios:
+ *     `--_slider-at` per thumb and label, `--_slider-from` / `--_slider-to` on the inner box
+ *   - `UISlider.css` places everything, `reversed` / `vertical` included
+ * - A form control:  it submits `value`;
+ *   a `range` submits TWO entries under `name` (`FormData.getAll(name)` ~== `[value, end]`),
+ *   per `FormComponent`'s multi-value convention.
  *   It restores a saved state (back / forward cache, autofill).
  ****************/
 export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
@@ -112,8 +115,8 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   }
 
   /**
-   * Move `thumb` to `value` (within its bounds) as a person would:  send `ui-input`,
-   * then set the DOM element's property, unless a handler set it first.
+   * Move `thumb` to `value` (within its bounds) as a person would:
+   * send `ui-input`, then set the DOM element's property, unless a handler set it first.
    * - Returns true when the value changed.
    */
   @E.untracked
@@ -211,8 +214,9 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   /**
    * The inner box's inline tokens:  the selected range's two ends, as ratios.
-   * - A getter, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
-   *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
+   * - A getter, not an inline object:
+   *   Solid's server compile (rc.11) drops the `;` between an inline style object's COMPUTED keys
+   *   (`--a:1px--b:2`), and the browser then ignores both.
    */
   private get innerStyle(): Record<string, string> {
     return { [FROM]: String(this.ratio(FIRST, { isFill: true })), [TO]: String(this.ratio(SECOND, { isFill: true })) }
@@ -285,7 +289,8 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   /**
    * Server render only (`$/ui/static`):  the `STATIC_CONTROL` mark on `target`,
-   * when the DOM element's name belongs to it (a single slider's thumb, a range's group);  `{}` in a browser.
+   * when the DOM element's name belongs to it (a single slider's thumb, a range's group).
+   * - `{}` in a browser.
    */
   private staticMark(target: Thumb | "group"): Record<string, unknown> {
     if (!isServer) return {}
@@ -295,7 +300,8 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   /**
    * Server render only (`$/ui/static`):  the value as hidden inputs (two for a `range`),
-   * so a static form submits it without script;  in a browser the DOM element submits (`ElementInternals`).
+   * so a static form submits it without script.
+   * - In a browser the DOM element submits (`ElementInternals`).
    */
   private staticValues(): JSX.Element {
     const name = this.name
@@ -397,7 +403,8 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   /**
    * Route pointer `id`'s moves to the inner box until release.
-   * - A pointer with no pressed button (a synthetic event) can't be captured:  moves then only arrive while over it.
+   * - A pointer with no pressed button (a synthetic event) can't be captured:
+   *   moves then only arrive while over it.
    */
   private capture(id: number) {
     try {

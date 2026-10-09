@@ -50,25 +50,31 @@ import pickerCSS from "./UIBrandColorPicker.css?inline"
  *   (chip, `header` slot, hex, `actions` slot), the hue slider, the HSL SQUARE for that hue,
  *   the HSL / RGB / OKLCH rows (each with a copy button), then the default slot (e.g. family chips).
  *
- * - The square:  saturation 0 -> 100% across, lightness 100% (top) -> 0% down, for the current hue;  every point is a
- *   real sRGB colour.  Drawn by CSS (`UIBrandColorPicker.css`):  two gradients over the hue, exact,
- *   since HSL is linear in sRGB along both axes;  a hue change repaints, nothing is computed per pixel.
+ * - The square:  saturation 0 -> 100% across, lightness 100% (top) -> 0% down, for the current hue;
+ *   every point is a real sRGB colour.  Drawn by CSS (`UIBrandColorPicker.css`):
+ *   two gradients over the hue, exact, since HSL is linear in sRGB along both axes;
+ *   a hue change repaints, nothing is computed per pixel.
  * - The colour being edited (`working`) is HSL, apart from `value` (`#RRGGBB`), so a grey keeps its hue (and black
  *   or white their saturation too):  the square and the hue slider don't jump when the colour passes through them.
  * - Keyboard (see the docs page):  the square is two visually hidden native range inputs,
- *   Saturation and Lightness (one tab stop:  the Lightness one is `tabindex=-1`);  on either, Left / Right move S and
- *   Up / Down move L by 1% (Shift:  10%), PageUp / PageDown L by 10%, Home / End S to 0 / 100%.
- *   Each key is `ui-input` then `ui-change`. An assistive technology's own increment arrives as their `input`.
- * - Pointer:  press on the square jumps the marker there and drags it (pointer capture);  `ui-input` per new colour,
- *   `ui-change` on release.  The hue slider:  `ui-input` per step, `ui-change` on its native `change`.
- * - Typing:  the hex field takes anything `Palette.parse()` reads;  the HSL and OKLCH fields numbers (H in degrees,
- *   S / L in %, C plain).  An OKLCH colour a screen can't show is mapped in (`Palette.oklchToHex()`:  same L and H,
- *   less C).  A valid keystroke is `ui-input`;  unreadable text shows the field's `error` look and changes nothing.
- *   Enter or leaving the field commits (`ui-change`) and shows the value again;  Escape drops the draft.
+ *   Saturation and Lightness (one tab stop:  the Lightness one is `tabindex=-1`);
+ *   on either, Left / Right move S and Up / Down move L by 1% (10% with Shift),
+ *   PageUp / PageDown L by 10%, Home / End S to 0 / 100%.
+ *   - Each key is `ui-input` then `ui-change`.
+ *   - An assistive technology's own increment arrives as their `input`.
+ * - Pointer:  press on the square jumps the marker there and drags it (pointer capture);
+ *   `ui-input` per new colour, `ui-change` on release.
+ *   The hue slider:  `ui-input` per step, `ui-change` on its native `change`.
+ * - Typing:  the hex field takes anything `Palette.parse()` reads;
+ *   the HSL and OKLCH fields numbers (H in degrees, S / L in %, C plain).
+ *   - An OKLCH colour a screen can't show is mapped in (`Palette.oklchToHex()`:  same L and H, less C).
+ *   - A valid keystroke is `ui-input`;  unreadable text shows the field's `error` look and changes nothing.
+ *   - Enter or leaving the field commits (`ui-change`) and shows the value again;  Escape drops the draft.
  * - Copy buttons:  `hsl(250 54% 55%)` (the HSL row as shown), `#RRGGBB`, `oklch(52.0% 0.181 286)` to the clipboard,
  *   then `ui-copy`, a check for `COPIED_MS`, and "Copied ..." announced.  A refused clipboard write does nothing.
  * - `value` is controlled (`Controlled`) and reflects;  a `ui-input` handler that sets it again wins.
- *   Its FIRST attribute value is the form's reset value.  Changes from outside redraw without events.
+ *   - Its FIRST attribute value is the form's reset value.
+ *   - Changes from outside redraw without events.
  * - A form control:  it submits `value` under `name`.
  ****************/
 export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary> {

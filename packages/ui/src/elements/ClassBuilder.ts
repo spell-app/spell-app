@@ -5,18 +5,20 @@ import { E } from "$/ui/core"
 /****************
  * ### `ClassBuilder`
  * Turns a component's property values into its canonical Fomantic class string, e.g. `ui small red basic button`.
- * - Why:  shadow markup keeps Fomantic's class grammar (`<button class="ui small primary button">`) so the
- *   CSS is a mechanical port of the `.less`, and multi-word phrases (`[class*="four wide"]`) need a fixed order.
- * - Semantics are SUI React's `classNameBuilders.js` exactly:  `useKeyOnly`, `useValueAndKey`,
- *   `useKeyOrValueAndKey`, `useMultipleProp`, `useWidthProp`, `useTextAlignProp`, `useVerticalAlignProp`.
- * - Fixed order:  `ui`, size, color, keyOnly (alphabetical), valueAndKey / keyOrValueAndKey (vocabulary order),
- *   multiple, width, textAlign, verticalAlign, `extra`, noun:  `ui primary icon button`, as Fomantic writes it.
- *   See `docs/grammar.md`.
+ * - Why:  shadow markup keeps Fomantic's class grammar (`<button class="ui small primary button">`),
+ *   so the CSS is a mechanical port of the `.less`,
+ *   and multi-word phrases (`[class*="four wide"]`) need a fixed order.
+ * - Semantics are SUI React's `classNameBuilders.js` exactly:
+ *   `useKeyOnly`, `useValueAndKey`, `useKeyOrValueAndKey`, `useMultipleProp`, `useWidthProp`, `useTextAlignProp`,
+ *   `useVerticalAlignProp`.
+ * - Fixed order, as Fomantic writes it (`ui primary icon button`;  see `docs/grammar.md`):
+ *   `ui`, size, color, keyOnly (alphabetical), valueAndKey / keyOrValueAndKey (vocabulary order),
+ *   multiple, width, textAlign, verticalAlign, `extra`, noun.
  * - The constructor sorts the vocabulary ONCE;  `build()` only walks that list and fills one array.
- * - Reads attribute names and CSS keys from the vocabulary, never literals;  the grammar's own
- *   connective words (`aligned`, `wide` ...) are `@proto static grammar`.
- * - Library-neutral:  no DOM, no Solid.  Of the core (`E`), it uses only the foundation (`E.ValueSets`,
- *   `E.Warnings`), NEVER an element class.
+ * - Reads attribute names and CSS keys from the vocabulary, never literals.
+ *   The grammar's own connective words (`aligned`, `wide` ...) are `@proto static grammar`.
+ * - No DOM, no Solid:  of the core (`E`), it uses only the foundation (`E.ValueSets`, `E.Warnings`),
+ *   NEVER an element class.
  ****************/
 export class ClassBuilder {
   /** Fomantic's connective words -- grammar, not vocabulary, so they never translate. */
@@ -69,7 +71,7 @@ export class ClassBuilder {
   /**
    * Class string for `values` (canonical attribute name => property value).
    * - Missing / falsy values emit nothing;  `size: "medium"` emits nothing.
-   * - SIDE EFFECT (dev only): warns on unusable widths, and on widths that aren't whole columns.
+   * - SIDE EFFECT (dev only):  warns on unusable widths, and on widths that aren't whole columns.
    */
   build(values: E.ClassInput, options: E.ClassBuildOptions = {}): string {
     const { grammar, specs, keys } = this

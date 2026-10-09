@@ -18,8 +18,9 @@
  *
  * - The public tokens (`--ui-divider-*`) are NEVER declared here.
  *   The token block gives each a private alias, `--_ui-divider-margin: var(--ui-divider-margin, 1em)`,
- *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the element,
- *   `::part(divider)` or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ *   and every rule reads the alias.
+ *   So a value set on `:root`, an ancestor, the element, `::part(divider)` or in the app's style sheet
+ *   reaches the box (`docs/theming.md`, "Component tokens").
  *
  * - No `:state()`s:  the rules key on the inner box's classes.
  *

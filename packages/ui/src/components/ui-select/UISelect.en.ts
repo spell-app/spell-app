@@ -5,9 +5,11 @@
  * - Class words come out through `ClassBuilder`:
  *   `<ui-select size="small" fluid state="error">` => `ui small error fluid select`, on the shadow `<select>`.
  *   `UISelect.css` keys on those words.
- * - NOTE: the noun is `select`, not Fomantic's `selection dropdown`:  the element IS a native `<select>` with its
- *   own sheet, and a `.ui.selection.dropdown` class would pull in `UIDropdown.css` wherever both sheets are on one
- *   page (the demo, an app that links both).  The LOOK is the closed `selection dropdown`'s.
+ * - NOTE: the noun is `select`, not Fomantic's `selection dropdown`:
+ *   the element IS a native `<select>` with its own sheet,
+ *   and a `.ui.selection.dropdown` class would pull in `UIDropdown.css`
+ *   wherever both sheets are on one page (the demo, an app that links both).
+ *   The LOOK is the closed `selection dropdown`'s.
  * - Rich data is a PROPERTY (`options`, `kind: "json"`);  first paint never needs it --
  *   slotted `<ui-item>`s or the `value` / `placeholder` attributes carry what SSR must show.
  */

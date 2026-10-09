@@ -13,12 +13,12 @@ import type { SolidIdentityHook } from "../../tools.types.ts"
  * - The page's identity probe (`identity.js`) sets `globalThis.__uiSolidIdentity` (`SolidIdentityHook`), and then:
  *   - `solidIdentity` / `webIdentity` -- the app's `createSignal` / `render` ARE the functions the components' copy
  *     exports (one module instance on the page)
- *   - `contextReachesComponent` -- the app sets `appContext` on the `<ui-root>` around the dropdown, and
- *     `hook.read(el)` sees the app's value inside the component (`UIComponent.appContext`:  a Solid context can't
- *     cross the custom-element boundary, epic `spell-element` Q9)
+ *   - `contextReachesComponent` -- the app sets `appContext` on the `<ui-root>` around the dropdown,
+ *     and `hook.read(el)` sees the app's value inside the component (`UIComponent.appContext`:
+ *     a Solid context can't cross the custom-element boundary, epic `spell-element` Q9)
  *   - without the hook these report `n/a`
- * - Solid 2 notes:  no `on:` namespace any more, so `ui-*` listeners go on through a `ref` callback;  signal
- *   writes happen only in event handlers (never in an owned scope).
+ * - Solid 2 notes:  no `on:` namespace any more, so `ui-*` listeners go on through a `ref` callback;
+ *   signal writes happen only in event handlers (never in an owned scope).
  */
 export function mount(root: HTMLElement, options: readonly Option[]): MountedApp {
   const hook = (globalThis as { __uiSolidIdentity?: SolidIdentityHook }).__uiSolidIdentity

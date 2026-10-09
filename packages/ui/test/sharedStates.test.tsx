@@ -11,8 +11,8 @@ import "$/ui/index"
 /**
  * The shared states every element takes, though its vocabulary may not name them (`UIComponent`, "Shared states";
  * `SharedVocabulary`):  `disabled`, `loading`, `visible`, and the platform's `hidden` and `inert`.
- * - A family with no `disabled` of its own (`<ui-menu>`) is unusable the base class's way;  one with its own keeps
- *   it (`elementSetup.disabled`).
+ * - A family with no `disabled` of its own (`<ui-menu>`) is unusable the base class's way;
+ *   one with its own keeps it (`elementSetup.disabled`).
  */
 
 /** Render `html` and wait for it;  returns its first element. */

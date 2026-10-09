@@ -10,8 +10,8 @@ import { buildPack, packPrefix, readPack } from "$/cli/dev/packBuild"
 import { REPO_ROOT } from "$/cli/findCheckout"
 
 /**
- * `spell dev pack new <name> [--prefix x-]`:  make `packages/<name>/` a component pack, and wire it into checkout
- * `root`.
+ * `spell dev pack new <name> [--prefix x-]`:
+ * make `packages/<name>/` a component pack, and wire it into checkout `root`.
  * - The package:  `templates/pack/package/` (this CLI's), each `__token__` filled in (`PackTokens`).
  *   - A file already there is LEFT ALONE and listed in `skipped`, so it works on a folder that has some files.
  *   - `package.json` is MERGED:  the template's keys it lacks (`scripts`, `spellPack` ...) are added, its own kept.
@@ -51,10 +51,12 @@ export async function newPack(root: string, name: string, options: NewPackOption
 }
 
 /**
- * `spell dev pack element <pack> <tag>`:  one element family, `packages/<pack>/components/<tag>/`, from
- * `templates/pack/element/` -- `<Name>.tsx` (the component), `<Name>.en.ts` (its vocabulary:  topics + aka, skeleton
- * text), `<Name>.css`, `<Name>.test.tsx`, `index.ts` -- every file named for its component, as Spell UI's families
- * are written (no native fallback:  only form controls have one);  then its line in `components/index.ts`.
+ * `spell dev pack element <pack> <tag>`:
+ * one element family, `packages/<pack>/components/<tag>/`, from `templates/pack/element/` --
+ * `<Name>.tsx` (the component), `<Name>.en.ts` (its vocabulary:  topics + aka, skeleton text),
+ * `<Name>.css`, `<Name>.test.tsx`, `index.ts` -- every file named for its component,
+ * as Spell UI's families are written (no native fallback:  only form controls have one);
+ * then its line in `components/index.ts`.
  * - Files already there are left alone (`skipped`);  idempotent.
  * - Then builds the pack, unless `build: false`.
  * - Throws `CliError` when `pack` isn't a pack, or `tag` isn't a custom element name starting with its prefix.
@@ -170,8 +172,8 @@ function fillTokens(text: string, tokens: PackTokens): string {
 }
 
 /**
- * Write every template under `from` into `to`, `.template` dropped and tokens filled in (in paths too;  `gitignore`
- * becomes `.gitignore`), skipping files already there.
+ * Write every template under `from` into `to`, `.template` dropped and tokens filled in (in paths too;
+ * `gitignore` becomes `.gitignore`), skipping files already there.
  */
 function writeTemplates(root: string, from: string, to: string, tokens: PackTokens, report: PackScaffoldReport) {
   for (const template of templateFiles(from)) {
@@ -204,8 +206,8 @@ function readTemplate(path: string): string {
 }
 
 /**
- * Write `file` from the `template` JSON;  when it's there already, add only the keys it lacks -- top-level, and
- * inside `scripts`, `devDependencies` and `spellPack` -- keeping its own values.
+ * Write `file` from the `template` JSON;  when it's there already, add only the keys it lacks --
+ * top-level, and inside `scripts`, `devDependencies` and `spellPack` -- keeping its own values.
  */
 function mergePackageJson(root: string, file: string, template: string, report: PackScaffoldReport) {
   const wanted = JSON.parse(template) as Record<string, unknown>
@@ -458,8 +460,8 @@ function formatJson(file: string) {
 ////////////////
 
 /**
- * `text` with `lines` added at the END of a list (array or object literal, in TS, JSON or JSONC):  the one each of
- * `openers` leads to in turn, the last ending with its `[` / `{`.
+ * `text` with `lines` added at the END of a list (array or object literal, in TS, JSON or JSONC):
+ * the one each of `openers` leads to in turn, the last ending with its `[` / `{`.
  * - A comma goes after the list's last item;  `lines` are indented as that item is, after a blank line when `blank`
  * - Throws `CliError` when an opener isn't found.
  */

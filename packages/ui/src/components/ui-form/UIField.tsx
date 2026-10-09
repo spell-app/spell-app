@@ -10,8 +10,8 @@ import formCSS from "./UIForm.css?inline"
 
 /****************
  * ### `DOMFieldElement`
- * The DOM element of `<ui-field>`:  it adds `showErrors()`, which `<ui-form>` calls to show
- * (or, with `[]`, clear) the field's inline prompt and error state.
+ * The DOM element of `<ui-field>`:  it adds `showErrors()`, which `<ui-form>` calls
+ * to show (or, with `[]`, clear) the field's inline prompt and error state.
  *
  * - No attribute is written, so the author's `state` stays theirs.
  * - `errors`:  the prompts shown now.

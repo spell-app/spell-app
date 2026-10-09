@@ -8,7 +8,8 @@ import { UITab } from "$/ui/components/ui-tab/UITab"
 import { UITabs } from "$/ui/components/ui-tab/UITabs"
 
 /**
- * `<ui-tabs>` rendered statically (`$/ui/static`):  the tab list built from the panes, the selected pane shown,
+ * `<ui-tabs>` rendered statically (`$/ui/static`):
+ * the tab list built from the panes, the selected pane shown,
  * the others in the HTML but hidden (no `active`), tabs and panes related by ids.
  */
 describe("<ui-tabs> static render", () => {

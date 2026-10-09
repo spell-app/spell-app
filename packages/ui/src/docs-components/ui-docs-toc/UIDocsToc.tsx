@@ -19,7 +19,8 @@ import tocCSS from "./UIDocsToc.css?inline"
  * The component behind `<ui-docs-toc>`:  Fomantic's docs "On this page" menu
  * (`ui vertical following fluid accordion text menu`, in the right rail).
  *
- * - Its shadow DOM:  `<div class="ui [size] toc" part="toc">` holding an optional `<ui-header part="header">`
+ * - Its shadow DOM:
+ *   `<div class="ui [size] toc" part="toc">` holding an optional `<ui-header part="header">`
  *   and ONE `<ui-menu vertical text fluid part="menu">` (the landmark) of section links.
  *   Under the section in view, an item holds a `<ui-menu part="entries">` of its entries' links.
  * - It lists the FOLLOWED content (`for`;  of a `<ui-tabs>`, its shown pane) by `TocIndex.scan()`:
@@ -31,12 +32,12 @@ import tocCSS from "./UIDocsToc.css?inline"
  * - It follows the scroll:  the entry whose top passed the reading line (`TocIndex.current()`) is `selected`,
  *   and its section opens;  `ui-change { value }` when that changes.
  * - Links are plain `#id` links:  the browser scrolls (below the document's `scroll-padding-top`).
- *   A hash naming an element in a HIDDEN pane of the followed tabs (a link from elsewhere, or a page opened on it)
- *   shows that pane first, then scrolls to it:  `<ui-tabs history>` ignores hashes that aren't pane values.
+ *   - A hash naming an element in a HIDDEN pane of the followed tabs (a link from elsewhere, or a page opened on it)
+ *     shows that pane first, then scrolls to it:  `<ui-tabs history>` ignores hashes that aren't pane values.
  * - It scans again when the tabs show another pane (`ui-show`),
  *   and when the followed content changes (a `MutationObserver`:  children, `header` / `level` / `id`).
- *   It re-follows when that content resizes (a `ResizeObserver`:  components drawing late move the headings
- *   without any scroll).
+ * - It re-follows when that content resizes
+ *   (a `ResizeObserver`:  components drawing late move the headings without any scroll).
  * - SIDE EFFECTS:
  *   - gives each listed heading / example without an `id` one (a slug of its text), so its link works
  *   - while connected:  `window` `scroll` / `resize` / `hashchange` listeners, and the two observers.
@@ -121,8 +122,8 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   }
 
   /**
-   * `parent`'s entries, while it's open (`expanded`, or on the way to the entry in view):  a menu of their links,
-   * each followed by its own entries the same way (nested `<ui-section>`s).
+   * `parent`'s entries, while it's open (`expanded`, or on the way to the entry in view):
+   * a menu of their links, each followed by its own entries the same way (nested `<ui-section>`s).
    */
   private entries(parent: TocEntry): JSX.Element {
     const isOpen = () => !!parent.entries.length && (!!this.expanded || this.pathInView.includes(parent.id))
@@ -202,7 +203,7 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
 
   /**
    * Follow what `for` names, once it exists:  observe it, hear its tabs show a pane, scan it, land on the hash.
-   * Returns what it follows (`watch()` undoes the tabs' listener), or `undefined` while it doesn't exist.
+   * - Returns what it follows (`watch()` undoes the tabs' listener), or `undefined` while it doesn't exist.
    */
   private observe({ observer, resized, onShow }: Observers): FollowedContent | undefined {
     const followed = this.followedContent()
@@ -258,8 +259,8 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
 
   /**
    * Show what `location.hash` names:  its pane first when it's in a hidden pane of the followed tabs,
-   * then scroll to it.  On `"page load"`, scroll again once the page's root is ready (components arriving move the
-   * target down).
+   * then scroll to it.
+   * - On `"page load"`, scroll again once the page's root is ready (components arriving move the target down).
    */
   private reveal(moment: RevealMoment): void {
     const document = this.domElement.ownerDocument

@@ -7,8 +7,8 @@ import { UIInput } from "$/ui/components/ui-input/UIInput"
 import { UITextarea } from "$/ui/components/ui-input/UITextarea"
 
 /**
- * `<ui-input>` / `<ui-textarea>` in a static server render (`$/ui/static`):  Fomantic's `div.ui.input` around the
- * native control, which carries what a no-JS form submits.
+ * `<ui-input>` / `<ui-textarea>` in a static server render (`$/ui/static`):
+ * Fomantic's `div.ui.input` around the native control, which carries what a no-JS form submits.
  */
 describe("<ui-input> static render", () => {
   beforeAll(() => {

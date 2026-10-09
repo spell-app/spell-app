@@ -5,10 +5,11 @@ import type { E } from "$/ui/core"
  * What `<ui-docs-inspector>` shows of one element at one moment:  its attributes, properties and `:state()`s,
  * each as rows of text.
  * - Attributes:  every attribute the element has, in the DOM's order, as written.
- * - Properties:  for a Spell UI element (a `DOMElement`), the property of each attribute in its vocabulary
- *   (`button.active`), converted.
- *   - By default only the ones with a value:  not `undefined`, `null` or `false`, nor a boolean at its `true` default
- *     (every tag's `visible`, until hidden).  `{ all: true }`:  every one.
+ * - Properties:  for a Spell UI element (a `DOMElement`),
+ *   the property of each attribute in its vocabulary (`button.active`), converted.
+ *   - By default only the ones with a value:  not `undefined`, `null` or `false`,
+ *     nor a boolean at its `true` default (every tag's `visible`, until hidden).
+ *   - `{ all: true }`:  every one.
  *   - Any other element has none.
  * - States:  the custom states the element is in now (`:state(active)`), from its `internals.states`, A-Z.
  * - Pure reads:  no Solid, no listeners, so a test can take one of any element.
@@ -52,8 +53,11 @@ export class ElementSnapshot {
   }
 
   /**
-   * A value as the inspector shows it:  strings quoted, `undefined` / `null` by name, lists and objects as JSON
-   * (cut to `MAX_VALUE_LENGTH`), a function as `ƒ`.
+   * A value as the inspector shows it:
+   * - strings quoted
+   * - `undefined` / `null` by name
+   * - lists and objects as JSON (cut to `MAX_VALUE_LENGTH`)
+   * - a function as `ƒ`
    */
   static valueText(value: unknown): string {
     if (value === undefined) return "undefined"

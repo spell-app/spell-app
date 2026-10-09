@@ -16,8 +16,9 @@ import { UISection } from "$/ui/components/ui-section/UISection"
 import { UISegment } from "$/ui/components/ui-segment/UISegment"
 
 /**
- * `StaticRender` on the P1 families (button, segment, card + parts, list + items, section):  real page markup in,
- * flattened light-DOM HTML out, compared with the class grammar of each family's `examples/*.html`.
+ * `StaticRender` on the first families it rendered (epic `seo`, P1:  button, segment, card + parts, list + items,
+ * section):  real page markup in, flattened light-DOM HTML out,
+ * compared with the class grammar of each family's `examples/*.html`.
  */
 describe("StaticRender.fragment()", () => {
   beforeAll(() => {

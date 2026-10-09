@@ -10,12 +10,14 @@ import { DOMElement, UIComponent, type DOMElementClass, type ElementSetup, type 
 import { HotDefinitions } from "$/ui/elements/HotDefinitions"
 
 /**
- * Hot reload of `ui`'s elements (`HotDefinitions`):  a NEW version of a component class -- a second class of the
- * same name, as re-running its module makes -- defined for a known tag swaps in place;  `update()` re-renders.
- * - Importing `HotDefinitions` wraps `UIComponent.define` for this file's page only:  vitest's browser mode runs
- *   each test file in its own iframe, with its own module graph.
- * - Vitest serves the source through Vite's dev server, so `import.meta.hot` exists here:  every DOM element made
- *   calls the hooks `HotDefinitions` installs (`DOMElement.hotReloadHooks`), as in `yarn dev`.  No test tracks one by hand.
+ * Hot reload of `ui`'s elements (`HotDefinitions`):
+ * a NEW version of a component class defined for a known tag swaps in place;  `update()` re-renders.
+ * - A new version:  a second class of the same name, as re-running its module makes.
+ * - Importing `HotDefinitions` wraps `UIComponent.define` for this file's page only:
+ *   vitest's browser mode runs each test file in its own iframe, with its own module graph.
+ * - Vitest serves the source through Vite's dev server, so `import.meta.hot` exists here:
+ *   every DOM element made calls the hooks `HotDefinitions` installs (`DOMElement.hotReloadHooks`), as in `yarn dev`.
+ *   No test tracks one by hand.
  */
 
 ////////////////
