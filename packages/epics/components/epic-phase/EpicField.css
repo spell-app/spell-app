@@ -97,6 +97,10 @@
     --_epic-chip-background: var(--epic-state-attention);
     --_epic-chip-color: var(--epic-state-attention-on);
   }
+  ::slotted(a[data-spell-state="replied"]) {
+    --_epic-chip-background: var(--epic-state-replied);
+    --_epic-chip-color: var(--epic-state-replied-on);
+  }
   ::slotted(a[data-spell-state="open"]) {
     --_epic-chip-background: var(--epic-state-open);
     --_epic-chip-color: var(--epic-state-open-on);
