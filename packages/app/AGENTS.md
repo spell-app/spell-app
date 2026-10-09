@@ -39,11 +39,13 @@ house style every package shares.  Only what's local is below;  a section named 
     `yarn stop` stops vite (an orphan, or the page server's:  then restart the page server).
     `yarn start:server` / `start:server:prod` still run the API alone, on port 3001 (`src/server/index.ts`).
   - `yarn build` -- the app.  `yarn build:runner` -- `dist-runner/` (VS Code's "Run Project" webview).
-    `yarn build:element` -- `dist-element/` (`<spell-app>` and `<spell-editor>`).
+    `yarn build:element` -- `dist-element/` (`<spell-app>` and `<spell-editor>`, and their component pack,
+    `spell.pack.js`).
   - ONE Solid per page across those bundles:  `vite.solid.config.ts` builds FIRST into each folder `spell-solid.js`
-    (Solid + `@spell-app/solid-element`) and `spell-ui.js` (`$/ui`, lazy;  its chunks in `ui/`, icon packs beside
-    it);  the element / editor / runner builds import them through `sharedSolid()` (`vite.shared.ts`), never
-    bundling their own.  `spell-runtime.js` never loads them.  Pinned by `element.build.test.ts`.
+    (Solid + `ui`'s element core, `$/ui/core`) and `spell-ui.js` (`$/ui`, lazy;  its chunks in `ui/`, icon packs
+    beside it;  it also puts `registerPack` on `globalThis.SpellUI`);  the element / editor / runner builds import
+    them through `sharedSolid()` (`vite.shared.ts`), never bundling their own.  `spell-runtime.js` never loads them.
+    Pinned by `element.build.test.ts`.
   - `spell dev vscode` is NOT here:  it's the repo root's.  `yarn start:lsp` and `yarn scopes` are in `../lsp`.
 - `src/ui/monaco/` is the app's Monaco plumbing (no UI), whose language features call the SAME
   `LSP.SpellLanguageService` in-process (so `$/lsp` stays browser-safe:  `../lsp/AGENTS.md`).  The editors on it
@@ -63,10 +65,10 @@ house style every package shares.  Only what's local is below;  a section named 
   (`src/solid/loadUI.ts`).  It still links `semantic.min.css`:  running programs draw with Semantic UI's React kit.
 - `src/runner/` runs compiled spell:  the pieces every runner shares -- the web app's editor, VS Code's
   "Run Project" webview (`VSCodeRunner`, `yarn build:runner`) and the `<spell-app>` web component
-  (`SpellAppElement`, `yarn build:element` => `dist-element/`, demo at `/demo/spell-app.html` on the dev server).
+  (`components/spell-app/`, `yarn build:element` => `dist-element/`, demo at `/demo/spell-app.html` on the dev
+  server).
   - Solid (P7), on `@spell-app/ui`:  the runners import the Solid panes' FILES (`$/app/solid/ThingExplorer`,
-    `.../ConsoleLines`, `.../loadUI`), never the `$/app/solid` barrel (it pulls in the editor).  `<spell-app>` and
-    `<spell-editor>` are `customElement()`s (`@spell-app/solid-element`) on a base class holding their methods;
+    `.../ConsoleLines`, `.../loadUI`), never the `$/app/solid` barrel (it pulls in the editor).
     `<spell-app>` wraps its shadow root in `<ui-root icons="fomantic">`, VS Code's webview HTML its `#runner-root`.
   - The PROGRAM still draws with React (`App.start()` makes its own root):  a runner hands it `appRoot`, a `<div>`
     drawn once and never touched again;  Semantic UI's CSS stays wherever programs draw.
@@ -81,7 +83,18 @@ house style every package shares.  Only what's local is below;  a section named 
     instance of a `List` sub-class, registers itself as it's made;  the program's exports are its top-level things.
     `yarn scopes [--compile] <projectId...>` (in `../lsp`) writes them;  so does the language server, after each
     clean compile.
-- `src/spellEditor/` is `<spell-editor>` (`SpellEditorElement`, `yarn build:element` => `spell-editor.js`, demo at
+- `components/` -- `<spell-app>` and `<spell-editor>` (epic `spell-element`, P4), Spell UI components written as a
+  component pack's families are (`packages/epics/AGENTS.md`):  `components/<tag>/` holds `<Name>.en.ts` (the
+  vocabulary), `<Name>.tsx` (the DOM element class with its script API, `DOMSpellAppElement`, then the component on
+  `E.UIComponent`), `index.ts` (defines the tag;  also the bundle's entry).  `$/app/components/<tag>` imports one.
+  - A page loads them either way:  `<script type="module" src="/element/spell-app.js">` (or `spell-editor.js`) by
+    itself, or, under a `<ui-root>` (`spell-ui.js` loaded), `<ui-components source="/element/spell.pack.js">`.
+  - The pack is NOT `spell dev pack build`'s one classic script:  `vite.element.config.ts` (`componentPack()`) writes
+    a classic `spell.pack.js` whose `define()` imports the two ES modules beside it, which need lazy chunks (Monaco,
+    the parser) and `spell-runtime.js` per app.  So it works only where Solid and Spell UI are `dist-element/`'s own,
+    never on a docs page (its bundle brings another Solid).
+  - Leaving the page releases each (`domElement.dispose()`) a microtask later;  a move in one go keeps it.
+- `src/spellEditor/` is `<spell-editor>`'s pane (`yarn build:element` => `spell-editor.js`, demo at
   `/demo/spell-editor.html`):  the app's Monaco editor as a web component, editing a server project and feeding
   `<spell-app>`s what it compiles (`SPELL_COMPILED_EVENT`, `SpellCompiled` in `runner.types.ts`).
   - Its OWN build, `vite.editor.config.ts`, so Monaco's CSS stays out of `spell-app.css`.  Monaco is a lazy chunk:

@@ -27,6 +27,10 @@ export type ComponentPack = {
   readonly prefix: string
   /** Every tag it defines => what `<ui-root>` needs before it's ready (a skeleton);  each tag starts with `prefix`. */
   readonly catalog: Readonly<Record<string, RootCatalogEntry>>
-  /** Define every tag of the pack;  called once, by `registerPack()`. */
-  define(): void
+  /**
+   * Define every tag of the pack;  called once, by `registerPack()`.
+   * - It may return a promise, when it loads its families first (`import()`):  the pack counts as loaded once that
+   *   settles, so a `<ui-root>` waits for its tags.
+   */
+  define(): void | Promise<unknown>
 }

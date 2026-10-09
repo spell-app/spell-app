@@ -5,11 +5,11 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
 /**
  * Build the `<spell-editor>` web component into `dist-element/`, beside `<spell-app>` -- `yarn build:element` builds
  * `vite.solid.config.ts` first (it empties the folder), then `<spell-app>`, then this.
- * - `spell-editor.js`:  the element and the parser, for pages to load -- see `src/spellEditor/element.ts`.
+ * - `spell-editor.js`:  the element and the parser, for pages to load -- see `components/spell-editor/index.ts`.
  *   Monaco is a chunk of its own, `spell-editor-monaco.js`, loaded once there's a project to show.
  * - Its own build, NOT an entry of `vite.element.config.ts`, so Monaco's CSS stays out of `spell-app.css`:  every
  *   `<spell-app>` adopts that.  So they share no chunk -- the editor has its own React.
- * - But NOT its own Solid:  Solid, `ui`'s custom-element layer and `@spell-app/ui` come from `spell-solid.js` /
+ * - But NOT its own Solid:  Solid, `ui`'s element core and `@spell-app/ui` come from `spell-solid.js` /
  *   `spell-ui.js` beside it (`sharedSolid()`), as `<spell-app>`'s do -- one Solid per page.
  * - One `spell-editor.css` -- Monaco's and ours -- which the element puts in its shadow root.  See `shadowStyles.ts`.
  * - Monaco's worker is `spell-editor-editor.worker.js`.
@@ -33,7 +33,7 @@ export default defineConfig({
     cssCodeSplit: false,
     rolldownOptions: {
       input: {
-        "spell-editor": "src/spellEditor/element.ts"
+        "spell-editor": "components/spell-editor/index.ts"
       },
       output: {
         entryFileNames: "[name].js",

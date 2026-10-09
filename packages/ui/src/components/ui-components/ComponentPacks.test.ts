@@ -16,6 +16,9 @@ import "$/ui/components/ui-root"
 /** The test pack:  `<x-card>` (ready when the test says) and `<x-note>`, a classic script (`test/fixtures/`). */
 const X_PACK = "/test/fixtures/component-packs/x.pack.js"
 
+/** A pack whose `define()` loads its families first:  `<later-card>`, defined a while after the script ran. */
+const LATER_PACK = "/test/fixtures/component-packs/later.pack.js"
+
 /** A pack script that runs but registers nothing. */
 const SILENT_PACK = "/test/fixtures/component-packs/silent.pack.js"
 
@@ -85,6 +88,17 @@ describe("ComponentPacks.register()", () => {
     expect(ComponentPacks.owns("boom-card")).toBe(false)
     expect(ComponentPacks.entryOf("boom-card")).toBeUndefined()
   })
+
+  it("a define() whose promise fails, with no load to fail:  says so in the console", async () => {
+    const consoleError = vi.spyOn(console, "error").mockImplementation(() => {})
+    try {
+      registerPack({ name: "sad", prefix: "sad-", catalog: {}, define: () => Promise.reject(new Error("sad")) })
+      await expect.poll(() => consoleError.mock.calls.length).toBe(1)
+      expect(consoleError).toHaveBeenCalledWith(expect.stringContaining('"sad"'), expect.any(Error))
+    } finally {
+      consoleError.mockRestore()
+    }
+  })
 })
 
 describe("ComponentPacks.nameFor()", () => {
@@ -130,6 +144,18 @@ describe("<ui-root> with <ui-components source>", () => {
     expect(await only!.component.settled).toEqual([{ tag: "x-nope", reason: "unknown" }])
     expect(scriptsFor(X_PACK)).toHaveLength(1)
     expect(xPack().runs).toBe(1)
+  })
+
+  it("a pack whose define() loads its families first:  the root waits for its tags", async () => {
+    const [only] = await roots(
+      `<ui-root timeout="10s"><ui-components source="${LATER_PACK}"></ui-components><later-card></later-card></ui-root>`
+    )
+    expect(await only!.component.settled).toEqual([])
+    // defined BEFORE the root settled, not after:  the load waited for `define()`'s promise
+    const LaterCard = customElements.get("later-card")
+    expect(LaterCard).toBeDefined()
+    expect(only!.domElement.querySelector("later-card")).toBeInstanceOf(LaterCard!)
+    expect(only!.errors).toEqual([])
   })
 
   it("a pack already registered loads from any URL naming it at once, with no second script", async () => {

@@ -4,18 +4,19 @@ import { render } from "@solidjs/web"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { SP } from "$/spell"
+import { SPELL_COMPILED_EVENT } from "$/app/runner/runner.types"
 import { SpellEditorPane, type SpellEditorStatus } from "./SpellEditorPane"
-import { defineSpellEditor, type SpellEditorElement } from "./SpellEditorElement"
+import type { DOMSpellEditorElement } from "$/app/components/spell-editor"
 
 /**
  * `<spell-editor>` on Solid, in the browser:  its pane as the element draws it, and the element's own contract --
  * attributes, size, status line.
  * - No spell server here, so no project ever loads:  the pane is driven directly, with stand-in files.
- * - `shadowStyles()` is stubbed:  the test server doesn't serve the editor's CSS.
+ * - `adoptShadowStyles()` is stubbed:  the test server doesn't serve the editor's CSS.
  */
 vi.mock("$/app/runner/shadowStyles", async (importOriginal) => {
   const original = await importOriginal<typeof import("$/app/runner/shadowStyles")>()
-  return { ...original, shadowStyles: async () => [] }
+  return { ...original, adoptShadowStyles: async () => {} }
 })
 
 /** Undo for each test:  unmount, remove. */
@@ -103,8 +104,13 @@ describe("<spell-editor>", () => {
     expect(await editor.compile()).toBeUndefined()
   })
 
-  test("`COMPILE_DELAY` is on the class", () => {
-    if (!customElements.get("spell-editor")) defineSpellEditor()
+  test("its compiles go out under the name apps listen for, `SPELL_COMPILED_EVENT`", async () => {
+    const editor = await mountEditor(`<spell-editor></spell-editor>`)
+    expect(editor.component!.elementDefinition.event("spell-compiled")).toBe(SPELL_COMPILED_EVENT)
+  })
+
+  test("`COMPILE_DELAY` is on the class", async () => {
+    await import("$/app/components/spell-editor")
     const Class = customElements.get("spell-editor") as unknown as { COMPILE_DELAY: number }
     expect(Class.COMPILE_DELAY).toBe(2000)
   })
@@ -162,11 +168,11 @@ function mountPane({
 }
 
 /** Add `<spell-editor>` markup `html` to the page;  removed after the test. */
-async function mountEditor(html: string): Promise<SpellEditorElement> {
-  if (!customElements.get("spell-editor")) defineSpellEditor()
+async function mountEditor(html: string): Promise<DOMSpellEditorElement> {
+  await import("$/app/components/spell-editor")
   const holder = document.createElement("div")
   holder.innerHTML = html
-  const editor = holder.firstElementChild as SpellEditorElement
+  const editor = holder.firstElementChild as DOMSpellEditorElement
   document.body.append(editor)
   cleanups.push(() => editor.remove())
   flush()

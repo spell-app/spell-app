@@ -1,7 +1,5 @@
 /**
- * Barrel for `<spell-editor>`:  edits a spell project in any page, and feeds `<spell-app>`s what it compiles.
- * - NOTE: left out:
- *   - `element.ts`:  the bundle entry, which defines the element the moment it's imported
- *   - `SpellEditorElement`:  `extends HTMLElement`, and `customElement()`, fail where there's no DOM, e.g. in tests
+ * Barrel for `<spell-editor>`'s pane:  its tabs, Monaco and status line.
+ * - The element itself is a family of its own, `$/app/components/spell-editor`:  importing it defines the tag.
  */
 export * from "./SpellEditorPane"

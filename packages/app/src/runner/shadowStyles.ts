@@ -19,6 +19,20 @@ export function shadowStyles(assets: string, files = SPELL_APP_CSS): Promise<CSS
   return sheets
 }
 
+/**
+ * Adopt `shadowStyles(assets, files)` into `root`, once they're built:  before the sheets already there (Spell UI's,
+ * which keeps ours where they are when it re-adopts its own).
+ * - NEVER throws:  a sheet that can't load is logged, and the element draws without it.
+ */
+export async function adoptShadowStyles(root: ShadowRoot, assets: string, files?: string[]): Promise<void> {
+  try {
+    const sheets = await shadowStyles(assets, files)
+    root.adoptedStyleSheets = [...sheets, ...root.adoptedStyleSheets.filter((sheet) => !sheets.includes(sheet))]
+  } catch (error) {
+    console.error(`<${(root.host as Element).localName}> couldn't load its styles from ${assets}:`, error)
+  }
+}
+
 /** `<spell-app>`'s CSS files -- see `shadowStyles()`. */
 const SPELL_APP_CSS = ["semantic-ui-css/semantic.min.css", "spell-app.css"]
 

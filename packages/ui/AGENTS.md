@@ -526,6 +526,11 @@ As WWOD §18, plus:
     registered name resolves at once);  `register()` finds its load by `document.currentScript`, else by the name the
     file implies (`epics.pack.js` => `epics`), calls `define()`, then adds the catalog and prefix;  `entryOf()`,
     `owns()` for the root
+  - a `define()` may return a promise (it imports its families first):  the load resolves once that settles, so the
+    root waits for the tags.  `packages/app`'s `spell.pack.js` (`<spell-app>`, `<spell-editor>`) imports two ES
+    modules that way, built by Vite, not `spell dev pack build` (`packages/app/AGENTS.md`, `components/`)
+  - a pack's events keep their own names (`spell-open`):  only Spell UI's `ui-*` ones take a translated tag's prefix
+    (`Vocabulary`, `docs/translation.md`)
   - `registerPack()`:  exported from `$/ui` (`@spell-app/ui`) and the family's barrel;  the docs bundle puts it on
     `window.SpellUI`
 - The root (`UIRoot`, `RootLoader`):  its first settle round also waits for its packs;  `RootLoader.undefinedTags()` /
