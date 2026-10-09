@@ -27,7 +27,13 @@ import segmentCSS from "./UISegment.css?inline"
 @E.cssStates("piled", "inverted")
 export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   @E.proto static vocabulary = segmentVocabulary
-  @E.protoMerged static elementSetup = { styleSheets: { segment: segmentCSS } } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { segment: segmentCSS },
+    // `disabled`:  only a look, with `aria-disabled`
+    disabled: "its own",
+    // `loading`:  Fomantic's veil
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## States
@@ -41,13 +47,12 @@ export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   }
 
   /**
-   * Marked disabled (`disabled`):  `:state(disabled)` and `aria-disabled`.
-   * - Only a look, not `isDisabled`, so the element still takes clicks (its content's links).
+   * Marked disabled (`disabled`):  `aria-disabled` (`:state(disabled)` is `UIComponent`'s).
+   * - Only a look (`elementSetup.disabled` is `"its own"`), so the element still takes clicks (its content's links).
    */
-  @E.cssState("disabled")
   @E.aria("ariaDisabled")
   get looksDisabled(): boolean {
-    return !!this.disabled
+    return this.isMarkedDisabled
   }
 
   ////////////////

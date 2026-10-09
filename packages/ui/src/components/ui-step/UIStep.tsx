@@ -39,7 +39,9 @@ export class UIStep extends E.UIComponent<typeof stepVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { step: stepCSS, parts: partsCSS },
     // one item of the group's ordered list;  a server render (`$/ui/static`) makes the root an `<li>`
-    aria: { role: "listitem" }
+    aria: { role: "listitem" },
+    // `disabled`:  its link or button is disabled
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   ////////////////

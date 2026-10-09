@@ -29,7 +29,9 @@ export class UIItems extends E.UIComponent<typeof itemsVocabulary> implements UI
   @E.proto static vocabulary = itemsVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { items: itemsCSS },
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  only a look
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** Always:  the size container `ui-items` (`:state(items)`). */

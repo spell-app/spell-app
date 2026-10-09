@@ -52,7 +52,9 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   @E.proto static vocabulary = dropdownVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { button: buttonCSS, dropdown: dropdownCSS },
-    Fallback: DropdownFallback
+    Fallback: DropdownFallback,
+    // `loading`:  a spinner in place of its dropdown icon
+    loading: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** Default:  10 rows. */

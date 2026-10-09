@@ -33,7 +33,9 @@ export class UIFeedEvent extends E.UIComponent<typeof eventVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { feed: feedCSS },
     isAPart: true,
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  `aria-disabled` on its box, and a look
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** Feed, if any. */

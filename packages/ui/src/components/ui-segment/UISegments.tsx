@@ -15,7 +15,13 @@ import segmentCSS from "./UISegment.css?inline"
 @E.cssStates("piled")
 export class UISegments extends E.UIComponent<typeof segmentsVocabulary> {
   @E.proto static vocabulary = segmentsVocabulary
-  @E.protoMerged static elementSetup = { styleSheets: { segment: segmentCSS } } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { segment: segmentCSS },
+    // `disabled`:  only a look
+    disabled: "its own",
+    // `loading`:  Fomantic's veil
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (
