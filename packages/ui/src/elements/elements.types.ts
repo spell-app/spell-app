@@ -583,6 +583,10 @@ export type ElementSetup = {
    *   spread the base's to add to them:
    *   `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
    * - Which of them apply right now:  `UIComponent.styleSheetNames`.
+   * - NOTE: a name is PAGE-WIDE:  one sheet per name, and the first class to register it wins,
+   *   so a second class with the same name and other CSS silently draws with the first one's.
+   *   A component pack's sheets carry its prefix (`{ "epic-item": itemCSS }`),
+   *   never a bare noun one of ours may have (`item`).
    */
   styleSheets: Readonly<Record<string, string>>
 

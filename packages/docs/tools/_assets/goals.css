@@ -283,8 +283,8 @@ ol.plan-items:empty::before {
   color: var(--plan-state-color, var(--spell-doc-accent));
 }
 /*
- * a done item's title reads quieter, once the runtime has marked the items' states (`markItemStates()`, at load and
- * on a live update)
+ * a canceled item's title (no longer relevant) reads quieter, once the runtime has marked the items' states
+ * (`markItemStates()`, at load and on a live update)
  */
 .plan-items > [data-spell-state="old"] .plan-title {
   color: var(--spell-muted);

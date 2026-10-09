@@ -3,6 +3,8 @@
  * - Data only:  nothing here runs.
  */
 
+import type { NewKind } from "$/epics/review"
+
 import type { epicItemVocabulary } from "./EpicItem.en"
 import type { UIJSXAttributes } from "$/epics/components/epic-page/EpicPage.types"
 
@@ -31,8 +33,15 @@ export const NEEDS_OWEN: ReadonlySet<string> = new Set(["attention", "replied"] 
  */
 export const CALM_ID = /^[ij]\d+$/
 
-/** Statuses that close an item:  without a `state`, its chip is `old` (grey), as the old runtime's `stateOf()`. */
+/** Statuses that close an item:  a closed one's Choose pills show only while it's revisited (`<epic-option>`). */
 export const CLOSED_STATUSES = ["decided", "done", "canceled"] as const
+
+/**
+ * An item's state when it has no `state` (the tool writes one on every edit), by its status:  decided or done
+ * `recent` (green, however old), canceled `old` (grey:  no longer relevant), anything else `open`
+ * (`PlanReader.itemState()`, Owen, 2026-10-08):  `STATUS_STATES[status] ?? "open"`.
+ */
+export const STATUS_STATES: Readonly<Record<string, ItemState>> = { decided: "recent", done: "recent", canceled: "old" }
 
 /** `state`'s text key, for the id chip's tooltip. */
 export const STATE_TIP_KEYS = {
@@ -120,27 +129,29 @@ export const COMMITS_PROPERTY = "--epic-commits-display"
 ////////////////
 
 /**
- * The colours of the review controls (decision Q20 of epic `epic-components`, Owen, 2026-10-08):  green decided or
- * done (Approve, Make Todo, a pick), blue do it now or Claude is on it (Revisit, Do Now).
+ * The colours of the review controls (decision Q20 of epic `epic-components`, Owen, 2026-10-08):
+ * green decided or done (Approve, Make Todo, a pick), blue do it now or Claude is on it (Revisit, Do Now).
  */
 export type ReviewColor = "green" | "blue"
 
 /**
- * How far a review button's mark has got:  its FILL (decision Q20), on every button, pill and chip with a lifecycle.
- * - `none`:  a grey outline, available
+ * How far a review button's mark has got:  its FILL (decision Q20), the review buttons being Owen's INPUT (Owen,
+ * 2026-10-08).
+ * - `none`:  a grey outline, available;  also once Claude has handled the mark:  the buttons CLEAR, and the id chip
+ *   shows the result (green decided, yellow open, red needs Owen)
  * - `dashed`:  dashed in its colour:  Owen pressed it, not committed (not sent;  a Do Now not taken yet)
  * - `outline`:  outlined in its colour:  recorded (sent;  a Do Now taken), not done yet, or in progress
- * - `solid`:  filled in its colour:  done (applied, answered, filed:  the item's `review-as`)
+ * - never solid:  solid is the chips' (and the Choose pill's, once applied)
  */
-export type ReviewFill = "none" | "dashed" | "outline" | "solid"
+export type ReviewFill = "none" | "dashed" | "outline"
 
 /**
- * Owen's mark on an item, as its id chip wears it (Owen, 2026-10-08:  the chip matches the chosen button):  the
- * chosen button's colour and fill, and its name for the chip's tooltip.  Only a LIVE mark:  dashed or outlined.
+ * Owen's mark on an item, as its id chip wears it (Owen, 2026-10-08:  the chip matches the chosen button):
+ * the chosen button's colour and fill, and its name for the chip's tooltip.  Only a LIVE mark:  dashed or outlined.
  */
 export type ChipMark = {
   color: ReviewColor
-  fill: Exclude<ReviewFill, "none" | "solid">
+  fill: Exclude<ReviewFill, "none">
   /** the chosen button's name (`approve`), or a pick's letter */
   label: ReviewButtonSpec["label"] | { pick: string }
 }
@@ -160,9 +171,11 @@ export type ReviewButtonSpec = {
 }
 
 /**
- * The line's four review buttons, in their order (decision Q20):  Approve, Revisit, Make Todo (the GROUP:  what Owen
- * makes of it), then Do Now apart, with a paper plane (an action, not a state:  it replaces Add Details Now and the
- * note box's Do Now).  Every one shows at every step:  a mark done can still be followed by another.
+ * The line's four review buttons, in their order (decision Q20):
+ * - Approve, Revisit, Make Todo (the GROUP:  what Owen makes of it)
+ * - then Do Now apart, with a paper plane
+ *   (an action, not a state:  it replaces Add Details Now and the note box's Do Now)
+ * - Every one shows at every step:  a mark done can still be followed by another.
  */
 export const REVIEW_BUTTONS: readonly ReviewButtonSpec[] = [
   { action: "approve", color: "green", icon: "check", label: "approve", tip: "approveTip" },
@@ -245,7 +258,6 @@ export const REVIEW_TEXTS = [
   { key: "callOff", text: "{label}:  click to call it off", description: "A spinning button's tooltip." },
   { key: "chosenSent", text: "sent · click to clear", description: "A chosen button, its mark sent." },
   { key: "chosenUnsent", text: "not sent yet · click to clear", description: "A chosen button, its mark not sent." },
-  { key: "doneBefore", text: "done", description: "How Claude handled an earlier mark (`review-as`):  done." },
   { key: "pickedSent", text: "Picked {letter} · sent", description: "The pick's letter, sent." },
   { key: "pickedUnsent", text: "Picked {letter} · not sent yet", description: "The pick's letter, not sent." },
   { key: "noteDraft", text: "Your note, not sent yet (saved):  {note}", description: "The note bubble:  a draft." },
@@ -273,6 +285,84 @@ export type ReviewTextKey = (typeof REVIEW_TEXTS)[number]["key"]
 
 /** How a review control asks its element for a text:  `UIComponent.translationForKey()`, narrowed to the review keys. */
 export type ReviewText = (key: ReviewTextKey, params?: Record<string, string | number>) => string
+
+////////////////
+// ## New items from the page (epic `airplane` P2)
+////////////////
+
+/**
+ * Each kind of new item Owen may ask for from the page (`NewItems.tsx`):  its icon, its words' keys (`label` on its
+ * pending card, `add` on its section's button), and the section it lands in.
+ */
+export const NEW_KIND_LOOKS = {
+  todo: { icon: "list check", label: "newTodo", add: "addTodo", section: "todos" },
+  question: { icon: "circle question", label: "newQuestion", add: "addQuestion", section: "questions" }
+} as const satisfies Record<NewKind, { icon: string; label: NewTextKey; add: NewTextKey; section: string }>
+
+/** Class names of the new-item controls, inside the shadow root (`ReviewControls.css`). */
+export const NEW_BUTTON = "new-button"
+export const NEW_FORM = "new-form"
+export const NEW_KINDS_GROUP = "new-kinds"
+export const NEW_INPUT = "new-input"
+export const NEW_ACTIONS = "new-actions"
+export const NEW_LIST = "new-list"
+export const NEW_CARD = "new-card"
+
+/** The new-item controls' parts:  in every vocabulary that draws them (`<epic-page>`, `<epic-section>`). */
+export const NEW_PARTS = [
+  {
+    name: "new-button",
+    description:
+      "The New todo / question button (epic `airplane` P2):  the page header's `+`, a Todos or Questions section's at " +
+      "its end.  Only while the page is reviewed."
+  },
+  { name: "new-form", description: "The new item's form:  todo or question, its title, a note, what it's about." },
+  {
+    name: "new-list",
+    description: "A Todos or Questions section's new items waiting to be made:  dashed until sent, then outlined."
+  }
+] as const
+
+/** The new-item controls' texts:  in every vocabulary that draws them. */
+export const NEW_TEXTS = [
+  { key: "newButton", text: "New todo or question", description: "The page header's `+`:  its name." },
+  { key: "addTodo", text: "New todo", description: "The Todos section's button, at its end." },
+  { key: "addQuestion", text: "New question", description: "The Questions section's button, at its end." },
+  { key: "newForm", text: "A new todo or question, for Claude to add", description: "The form, for a screen reader." },
+  { key: "newKind", text: "What it is", description: "The form's kind buttons, for a screen reader." },
+  { key: "newTodo", text: "Todo", description: "Kind:  a todo." },
+  { key: "newQuestion", text: "Question", description: "Kind:  a question." },
+  { key: "newTitle", text: "Title:  what to do, or what to ask", description: "The title field's placeholder." },
+  {
+    key: "newNote",
+    text: "More, if it helps:  why, what you know, what to check",
+    description: "The note field's placeholder."
+  },
+  {
+    key: "newNear",
+    text: "About (an id, if any):  P3, Q7, O1, summary",
+    description: "The about field's placeholder."
+  },
+  { key: "newAdd", text: "Add", description: "The form's button:  a new one." },
+  { key: "newSave", text: "Save", description: "The form's button:  one being changed." },
+  { key: "newCancel", text: "Cancel", description: "The form's button:  closes it, nothing saved." },
+  { key: "newNeedsTitle", text: "Give it a title first", description: "Add pressed with no title." },
+  { key: "newUnsent", text: "not sent yet:  Send hands it to Claude", description: "A pending new item, not sent." },
+  {
+    key: "newSent",
+    text: "sent:  Claude adds it at the next review",
+    description: "A pending new item, sent, not made yet."
+  },
+  { key: "newAbout", text: "About {id}", description: "A pending new item's link to what it's about." },
+  { key: "newEdit", text: "Edit", description: "A pending new item's button:  back into the form." },
+  { key: "newRemove", text: "Remove", description: "A pending new item's button:  gone, never made." }
+] as const
+
+/** A new-item control's text key. */
+export type NewTextKey = (typeof NEW_TEXTS)[number]["key"]
+
+/** How a new-item control asks its element for a text. */
+export type NewText = (key: NewTextKey, params?: Record<string, string | number>) => string
 
 // the Spell UI tags the review controls draw (`ReviewControls.tsx`)
 declare module "@solidjs/web/types/jsx.js" {

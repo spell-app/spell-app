@@ -222,7 +222,7 @@ export class Linker {
         continue
       }
       // `_self`:  a page that reads like a site (the master plan) navigates in place, on purpose.
-      // `github`:  a plan doc's commit links (`plan-doc.js` `commitEntry()`) share ONE GitHub tab,
+      // `github`:  a plan doc's commit links (`<epic-commit>`) share ONE GitHub tab,
       // on purpose (P3 of `review-review`)
       if (target === "_self" || target === SHARED_TAB) continue
       if (!byDest.has(dest)) byDest.set(dest, new Set())

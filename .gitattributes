@@ -27,6 +27,8 @@ packages/ui/site/_data/html-custom-data.json                  linguist-generated
 packages/docs/tools/_assets/spell-ui.js                       linguist-generated merge=binary -diff
 packages/docs/tools/_assets/emoji/**                          linguist-generated merge=binary -diff
 packages/docs/tools/_assets/lazy/**                           linguist-generated merge=binary -diff
+# docs:  highlight.js 11.9.0, vendored as cdnjs serves it, so pages load offline (epic `airplane` P1)
+packages/docs/tools/_assets/highlight.min.js                  linguist-vendored -diff
 
 # brand:  its pages' data (`yarn site:data`);  `pages.json` is hand-kept.  Its bundle, `_assets/ui/`, isn't
 # committed:  the page server builds it (root `.gitignore`)

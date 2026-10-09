@@ -5,44 +5,54 @@ import { SRV } from "$/server"
 /****************
  * ### `ReviewInbox`
  * A plan doc's REVIEW INBOX:  the marks Owen leaves on its items from the page, waiting for Claude.
- * - the file:  `epics/<name>/<name>.inbox.json`, beside `<name>.plan.html` (decision D1 of `review-review`);  absent
- *   until the first mark, and deleted again once nothing is in it (`isEmpty`)
- * - per machine, NOT committed (`.gitignore`):  pending notes and session state, not the record;  what Claude makes
- *   of a mark lands in the plan doc itself
- * - writers:  the page server's route module (`reviewRoutes.ts`, the page's clicks) and `spell dev plan-doc inbox
- *   ...` (Claude taking the marks:  `listen`, `wait`, `apply`, `done`, `clear`).  Both go through
- *   `ReviewInbox.update()` / `updateAsync()`:  under the file's lock (`SRV.FileLock`), written atomically (a temp
- *   file renamed over it), so neither clobbers the other and a reader never sees half a file
- * - an instance IS the file's JSON:  its own fields are exactly the file's keys, in the file's order (so
- *   `JSON.stringify()` writes it, and a route answers with it), plus any key a hand edit added;  its methods change
- *   only it, so `ReviewInbox.test.ts` drives them directly
+ * - the file:  `epics/<name>/<name>.inbox.json`, beside `<name>.plan.html` (decision D1 of `review-review`);
+ *   absent until the first mark, and deleted again once nothing is in it (`isEmpty`)
+ * - per machine, NOT committed (`.gitignore`):  pending notes and session state, not the record;
+ *   what Claude makes of a mark lands in the plan doc itself
+ * - writers:  the page server's route module (`reviewRoutes.ts`, the page's clicks)
+ *   and `spell dev plan-doc inbox ...` (Claude taking the marks:  `listen`, `wait`, `apply`, `done`, `clear`).
+ *   Both go through `ReviewInbox.update()` / `updateAsync()`:
+ *   under the file's lock (`SRV.FileLock`), written atomically (a temp file renamed over it),
+ *   so neither clobbers the other and a reader never sees half a file
+ * - an instance IS the file's JSON:  its own fields are exactly the file's keys, in the file's order
+ *   (so `JSON.stringify()` writes it, and a route answers with it), plus any key a hand edit added;
+ *   its methods change only it, so `ReviewInbox.test.ts` drives them directly
  * - Shape (`version: 1`):
- *   - `marks`:  `{ [id]: { action, at, when?, note?, pick?, choices? } }`, one per item id (lower-case), the latest
- *     wins
- *     - a plain pick:  `{ action: "pick", pick: "B", choices: 1 }`, applied by `plan-doc inbox apply`, on any item
- *       kind (I8).  `choices`:  WHICH of the item's option card sets, by position, 0 the first
- *       (`PlanItem.choiceSets()`):  one item may hold several (its text's, a reply's).  None (an older mark):  the
- *       item's own (`PlanItem.choicesOf()`)
- *     - "pick B, but ...":  a revisit carrying the pick, `{ action: "revisit", when, note, pick: "B" }`;  never
- *       applied:  Claude talks it over (`toMark()`)
- *   - `drafts`:  `{ [id]: { action, note, at } }`, a note box's text as Owen types it (`setDraft()`), until the mark
- *     that uses it;  never sent or counted
+ *   - `marks`:
+ *     `{ [id]: { action, at, when?, note?, pick?, choices? } }`, one per item id (lower-case), the latest wins
+ *     - what takes a mark (`itemIds()`):  an item, an Overview sub-section (`o3`), a phase (`p3`), and the summary,
+ *       keyed `summary` (it has no id of its own;  epic `airplane` P2)
+ *     - a NEW item Owen asks for from the page (epic `airplane` P2), `{ action: "new", kind, title, note?, near? }`
+ *       - under a key of its own, `new1`, `new2` ... (`setNew()`), so several wait at once
+ *       - `kind`:  `todo` or `question`;  `near`:  the id of what it's about
+ *       - sent with the rest;  `plan-doc inbox apply` makes the item
+ *     - a plain pick, `{ action: "pick", pick: "B", choices: 1 }`, on any item kind (I8):
+ *       applied by `plan-doc inbox apply`
+ *       - `choices`:  WHICH of the item's option card sets, by position, 0 the first (`PlanItem.choiceSets()`):
+ *         one item may hold several (its text's, a reply's)
+ *       - none (an older mark):  the item's own (`PlanItem.choicesOf()`)
+ *     - "pick B, but ...":  a revisit carrying the pick, `{ action: "revisit", when, note, pick: "B" }`;
+ *       never applied:  Claude talks it over (`toMark()`)
+ *   - `drafts`:  `{ [id]: { action, note, at } }`, a note box's text as Owen types it (`setDraft()`),
+ *     until the mark that uses it;  never sent or counted
  *   - `urgency`:  `{ [id]: { calm, at } }`, Owen's click on an open judgement call's or issue's id chip
- *     (`setUrgency()`):  `calm` true, not urgent (blue);  false, urgent (red) again.  Beside its mark, never one:
+ *     (`setUrgency()`):  `calm` true, not urgent (blue);  false, urgent (red) again.
+ *     Beside its mark, never one:
  *     sent with the marks, written into the doc by `plan-doc inbox apply` (`<epic-item calm>`)
  *   - `sent`:  ISO time of the last "send to Claude", else `null`;  marks newer than it are unsent (`unsentMarks`)
- *   - `now`:  `[{ id, action, at, note?, pick?, choices? }]`, immediate requests (Add Details, revisit now) for Claude to take
+ *   - `now`, `[{ id, action, at, note?, pick?, choices? }]`:
+ *     immediate requests (Add Details, revisit now) for Claude to take
  *   - `working`:  `{ [id]: { action, since } }`, Claude's agents at work on an item (the page shows a spinner)
- *   - `canceled`:  `{ [id]: { action, at, told } }`, a request Owen called off ("nevermind", `cancelNow()`):  the
- *     waiting session stops its agent (`told` once handed over), and a late write into the item is refused
+ *   - `canceled`:  `{ [id]: { action, at, told } }`, a request Owen called off ("nevermind", `cancelNow()`):
+ *     the waiting session stops its agent (`told` once handed over), and a late write into the item is refused
  *   - `listening`:  `{ session, since, seen }` while a Claude session waits on this inbox, else `null`
- *     - `seen`:  its last heartbeat (`plan-doc inbox wait` stamps it every `LISTEN_HEARTBEAT_MS`);  older than
- *       `LISTEN_STALE_MS` (an old file without one:  `since` that old), the session is gone:  `liveListener()` is
- *       `null`, and the routes answer `listening: null` (`forPage()`)
- *   - `handedOver`:  the `sent` time a waiting session last took (`takeWork()`), else `null`:  so a second
- *     `plan-doc inbox wait` doesn't hand the same send over again
- * - Node only (`node:fs`, `$/server`'s lock):  NOT in the `$/epics` barrel, imported by path.  Imports no other file
- *   of the tool.
+ *     - `seen`:  its last heartbeat (`plan-doc inbox wait` stamps it every `LISTEN_HEARTBEAT_MS`);
+ *       older than `LISTEN_STALE_MS` (an old file without one:  `since` that old), the session is gone:
+ *       `liveListener()` is `null`, and the routes answer `listening: null` (`forPage()`)
+ *   - `handedOver`:  the `sent` time a waiting session last took (`takeWork()`), else `null`:
+ *     so a second `plan-doc inbox wait` doesn't hand the same send over again
+ * - Node only (`node:fs`, `$/server`'s lock):  NOT in the `$/epics` barrel, imported by path.
+ *   Imports no other file of the tool.
  * - From `packages/docs/tools/inbox.js` (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class ReviewInbox {
@@ -145,8 +155,8 @@ export class ReviewInbox {
   }
 
   /**
-   * Is there nothing in this inbox worth a file?  No marks, no drafts, no urgency, no requests, no agents at work,
-   * nobody listening.
+   * Is there nothing in this inbox worth a file?
+   * No marks, no drafts, no urgency, no requests, no agents at work, nobody listening.
    * - `sent` and `handedOver` alone don't count:  they only date marks, and there are none
    */
   get isEmpty(): boolean {
@@ -167,10 +177,10 @@ export class ReviewInbox {
 
   /**
    * Item `id`'s note box text, as Owen types it (epic `windows-and-review` P1):  kept here, on the server, so a
-   * reload from ANY address finds it (the page's `localStorage` is per address, and lost notes that way);  `note`
-   * empty or `null` drops it.
-   * - not a mark:  never sent, never counted, never wakes a waiting session;  the mark that uses it drops it
-   *   (`setMark()`, `requestNow()`)
+   * reload from ANY address finds it (the page's `localStorage` is per address, and lost notes that way);
+   * `note` empty or `null` drops it.
+   * - not a mark:  never sent, never counted, never wakes a waiting session;
+   *   the mark that uses it drops it (`setMark()`, `requestNow()`)
    * - `note` kept as typed (not trimmed:  the box shows it back as it was)
    * - returns the draft set, or `null`
    */
@@ -195,8 +205,8 @@ export class ReviewInbox {
    * false, urgent (red);  `null` drops it (clicked back to what the doc says).
    * - not a mark:  an item may hold both (approve it AND say it's not urgent);  sent with the marks, as they are
    *   (`sentUrgency`), and written into the doc by `plan-doc inbox apply` (`PlanDoc.setCalm()`)
-   * - only an open judgement call or issue is ever red for want of a review (`PlanReader.itemState()`):  only their
-   *   ids (`CALM_ID`);  an `InboxError` for any other
+   * - only an open judgement call or issue is ever red for want of a review (`PlanReader.itemState()`):
+   *   only their ids (`CALM_ID`);  an `InboxError` for any other
    * - returns the entry set, or `null`
    */
   setUrgency(id: unknown, calm: unknown, at = isoTime()): InboxUrgency | null {
@@ -253,13 +263,15 @@ export class ReviewInbox {
   /**
    * Set item `id`'s mark to `mark` (checked:  `toMark()`), stamped `at`;  `null` removes it.
    * - the latest mark wins:  a new one replaces the old, whatever its action
-   * - removing it, or replacing it with one that waits for a send, drops the item's queued `now` request:  Owen
-   *   changed his mind before Claude took it
+   * - removing it, or replacing it with one that waits for a send, drops the item's queued `now` request:
+   *   Owen changed his mind before Claude took it
    * - returns the mark set, or `null`
    */
   setMark(id: unknown, mark: unknown, at = isoTime()): InboxMark | null {
     const key = ReviewInbox.toItemId(id)
     const checked = mark === null ? null : { ...ReviewInbox.toMark(mark), at }
+    if (checked && (checked.action === "new") !== NEW_ID.test(key))
+      throw new InboxError(`a new item is asked for under its own key (new1 ...), never on an item:  ${key}`)
     if (!checked || !ReviewInbox.isImmediate(checked)) this.now = this.now.filter((each) => each.id !== key)
     if (checked) this.marks[key] = checked
     else delete this.marks[key]
@@ -269,10 +281,42 @@ export class ReviewInbox {
   }
 
   /**
+   * A NEW item Owen asks for from the page (epic `airplane` P2):  `entry` (`{ kind, title, note?, near? }`, checked:
+   * `toMark()`) under key `id`, or (none) the next free key, `new1`, `new2` ...;  `entry` `null` removes it.
+   * - a mark like any other, `{ action: "new", ... }`:  sent with the rest (`unsentMarks`), made into an item by
+   *   `plan-doc inbox apply` (`PlanDoc.applyMark()`), editable or removable until then
+   * - the key is chosen here, under the inbox's lock:  two pages adding at once never take the same one
+   * - returns the key, or `null` once removed
+   * - throws an `InboxError` for a bad entry, a key that isn't a new item's, or a removal without a key
+   */
+  setNew(id: unknown, entry: unknown, at = isoTime()): string | null {
+    const given = id !== undefined && id !== null
+    if (given && (typeof id !== "string" || !NEW_ID.test(id.toLowerCase())))
+      throw new InboxError(`not a new item's key:  ${JSON.stringify(id)}`)
+    if (entry === null) {
+      if (!given) throw new InboxError("remove which new item?  its key (new1 ...)")
+      this.setMark(id, null, at)
+      return null
+    }
+    if (!entry || typeof entry !== "object" || Array.isArray(entry)) throw new InboxError("a new item is an object")
+    const key = given ? ReviewInbox.toItemId(id) : this.nextNewId()
+    this.setMark(key, { ...entry, action: "new" }, at)
+    return key
+  }
+
+  /** The next free new item key:  `new<N>`, one past the highest waiting. */
+  private nextNewId(): string {
+    const numbers = Object.keys(this.marks)
+      .filter((key) => NEW_ID.test(key))
+      .map((key) => Number(key.slice(NEW_PREFIX.length)))
+    return `${NEW_PREFIX}${Math.max(0, ...numbers) + 1}`
+  }
+
+  /**
    * Item `id`'s IMMEDIATE request:  queue `{ id, action, at, note?, pick?, choices? }` on `now` and set its mark.
    * - `details`:  the mark is `details`;  `revisit`:  `revisit` with `when: "now"` and the note
-   * - a revisit keeps the item's pick (a `pick` mark's, or a revisit's, with its card set):  "pick B, but ..." asked
-   *   now
+   * - a revisit keeps the item's pick (a `pick` mark's, or a revisit's, with its card set):
+   *   "pick B, but ..." asked now
    * - a request already queued for the same item is replaced, not doubled:  two clicks are one request
    * - returns the queued entry
    */
@@ -394,8 +438,9 @@ export class ReviewInbox {
   /**
    * Claude's agent finished items `ids` (`plan-doc inbox done`):  their IMMEDIATE marks go (`clearMarks()`).
    * Returns `{ had, kept }`:  the ids whose mark went, and those whose mark stayed.
-   * - a mark Owen changed meanwhile to one waiting for a send stays, for the next send:  e.g. he asked "revisit
-   *   now", then chose card B while the agent worked (now a revisit `soon` with the note and the `pick`)
+   * - a mark Owen changed meanwhile to one waiting for a send stays, for the next send:
+   *   e.g. he asked "revisit now", then chose card B while the agent worked
+   *   (now a revisit `soon` with the note and the `pick`)
    */
   finishMarks(ids: string[]): { had: string[]; kept: string[] } {
     const keys = ids.map(ReviewInbox.toItemId)
@@ -441,8 +486,8 @@ export class ReviewInbox {
   }
 
   /**
-   * The listening session's heartbeat:  `listening.seen` is `at`.  Nobody listening:  nothing (a heartbeat never
-   * starts one:  that's `listen`'s).
+   * The listening session's heartbeat:  `listening.seen` is `at`.
+   * Nobody listening:  nothing (a heartbeat never starts one:  that's `listen`'s).
    * - `plan-doc inbox wait` calls it every `LISTEN_HEARTBEAT_MS`;  the session's other inbox commands, each time
    */
   touchListening(at = isoTime()): InboxListener | null {
@@ -480,8 +525,8 @@ export class ReviewInbox {
   }
 
   /**
-   * Is there work for a waiting session (`plan-doc inbox wait`)?  A queued immediate request, or a send it hasn't
-   * taken yet (`hasNewSend`).
+   * Is there work for a waiting session (`plan-doc inbox wait`)?
+   * A queued immediate request, or a send it hasn't taken yet (`hasNewSend`).
    * - cheap, and read without the lock:  `takeWork()` checks again under it
    */
   get hasWork(): boolean {
@@ -498,9 +543,10 @@ export class ReviewInbox {
    * TAKE the work waiting for a session:  `{ now, sent, canceled }`, or `null` when there's none.
    * - `now`:  the queued immediate requests (`takeNow()`), each item marked `working` (the page's spinner) until
    *   Claude's agent is done (`plan-doc inbox done`);  their marks stay till then
-   * - `sent`:  `{ at, marks, urgency }` for a send not handed over yet (`hasNewSend`), else `null`:  every sent mark
-   *   (`sentMarks`), each `again: true` when an earlier send already handed it over (a revisit still being talked
-   *   over), and the sent urgency (`sentUrgency`);  `handedOver` becomes `sent`, so a send is taken once
+   * - `sent`:  `{ at, marks, urgency }` for a send not handed over yet (`hasNewSend`), else `null`:
+   *   every sent mark (`sentMarks`), each `again: true` when an earlier send already handed it over
+   *   (a revisit still being talked over), and the sent urgency (`sentUrgency`);
+   *   `handedOver` becomes `sent`, so a send is taken once
    *   - a send with nothing left (all applied) is taken quietly:  nothing to wake for
    * - `canceled`:  "nevermind"s for work a session took:  stop those agents (`cancelNow()`)
    * - call it under the lock (`update()`)
@@ -524,8 +570,8 @@ export class ReviewInbox {
   }
 
   /**
-   * Remove the marks Claude applied, `[{ id, at }]`, but only while each is still the one applied:  a mark Owen
-   * changed meanwhile (a newer `at`) stays, for the next round.  Returns the ids cleared.
+   * Remove the marks Claude applied, `[{ id, at }]`, but only while each is still the one applied:
+   * a mark Owen changed meanwhile (a newer `at`) stays, for the next round.  Returns the ids cleared.
    */
   clearApplied(marks: { id: string; at: string }[]): string[] {
     const cleared: string[] = []
@@ -551,12 +597,16 @@ export class ReviewInbox {
    * - with a pick:  `choices` too, when given:  which of the item's option card sets it's from, by position (`0`,
    *   `1` ...:  I8);  none, the item's own
    * - `todo`:  `note` trimmed, kept only when there is one
+   * - `new` (a new item, `setNew()`):  `kind` one of `NEW_KINDS`;  `title` trimmed, never empty, at most
+   *   `MAX_TITLE` characters;  `note` trimmed, kept only when there is one;  `near` an id (`toItemId()`, lower-case),
+   *   kept only when given.  Whether the doc HAS that id is the route's to check (it reads the doc)
    * - throws an `InboxError` for anything else;  `at` is never taken from it (the writer stamps it)
    * - STATIC, as every check here:  pure, on a request before any inbox is read
    */
   static toMark(mark: unknown): CheckedMark {
     if (!mark || typeof mark !== "object" || Array.isArray(mark)) throw new InboxError("a mark is an object, or null")
     const { action, when = "soon", note = "", pick, choices } = mark as Record<string, unknown>
+    if (action === "new") return toNewItem(mark as Record<string, unknown>)
     if (!isAction(action)) throw new InboxError(`no such action:  ${action} (${ACTIONS.join(" | ")})`)
     if (action === "revisit") {
       if (!REVISIT_WHEN.includes(when as RevisitWhen))
@@ -574,11 +624,19 @@ export class ReviewInbox {
     return { action }
   }
 
-  /** `id` as the inbox keys it:  lower-case, as the item's element id;  an `InboxError` when it isn't an item id. */
+  /**
+   * `id` as the inbox keys it:  lower-case, as the item's element id;  an `InboxError` when it isn't an item id.
+   * - also the summary's key, `summary`, and a new item's, `new1` (epic `airplane` P2)
+   */
   static toItemId(this: void, id: unknown): string {
     const key = typeof id === "string" ? id.toLowerCase() : ""
-    if (!ITEM_ID.test(key)) throw new InboxError(`not an item id:  ${id}`)
+    if (!ITEM_ID.test(key) && key !== SUMMARY_ID && !NEW_ID.test(key)) throw new InboxError(`not an item id:  ${id}`)
     return key
+  }
+
+  /** Is `id` a new item's key (`new1`:  `setNew()`), not something the doc has? */
+  static isNewId(this: void, id: string): boolean {
+    return NEW_ID.test(id.toLowerCase())
   }
 
   /**
@@ -597,21 +655,23 @@ export class ReviewInbox {
 
   /**
    * The ids a review mark may name in plan doc `html` (a skeleton:  every item's line is in it):
-   * - every `<epic-item id>`, and every Overview sub-section, `<epic-section kind="overview-part" id>` (Q14:  they
-   *   take review notes too)
-   * - in the OLD markup, every `<ui-item>` carrying both an `id` and a `data-status` (an item, not a phase step or a
-   *   plain list entry).  REFACTOR: drop old markup after the switch (P12)
+   * - every `<epic-item id>`, and every Overview sub-section, `<epic-section kind="overview-part" id>`
+   *   (Q14:  they take review notes too)
+   * - every phase, `<epic-phase id>`, and the summary, `summary` while the doc has an `<epic-summary>` (epic
+   *   `airplane` P2:  notes on them too)
    * - text, not a DOM:  cheap enough to run on every request;  attributes in any order, across lines
    */
   static itemIds(html: string): Set<string> {
     const ids = new Set<string>()
-    for (const [tag, name] of html.matchAll(/<(ui-item|epic-item|epic-section)\b[^>]*>/g)) {
+    for (const [tag, name] of html.matchAll(/<(epic-item|epic-section|epic-phase|epic-summary)\b[^>]*>/g)) {
+      if (name === "epic-summary") {
+        ids.add(SUMMARY_ID)
+        continue
+      }
       const id = /\sid="([^"]+)"/.exec(tag)?.[1]
       if (!id) continue
       const markable =
-        name === "epic-item" ||
-        (name === "epic-section" && /\skind="overview-part"/.test(tag)) ||
-        (name === "ui-item" && /\sdata-status="/.test(tag))
+        name === "epic-item" || name === "epic-phase" || (name === "epic-section" && /\skind="overview-part"/.test(tag))
       if (markable) ids.add(id.toLowerCase())
     }
     return ids
@@ -645,10 +705,18 @@ export type InboxMark = CheckedMark & { at: string }
 
 /**
  * A mark as `ReviewInbox.toMark()` checks it, before it's stamped.
- * - `when`, `note`:  a revisit's (`note` a todo's too);  `pick`:  a pick's letter, or a revisit's "pick B, but ..."
+ * - `when`, `note`:  a revisit's (`note` a todo's and a new item's too);  `pick`:  a pick's letter, or a revisit's
+ *   "pick B, but ..."
  * - `choices`:  with a pick, which of the item's option card sets it's from, by position (I8);  none:  its own
+ * - `kind`, `title`, `near`:  a new item's (`action: "new"`, epic `airplane` P2)
  */
-export type CheckedMark = { action: MarkAction; when?: RevisitWhen; note?: string } & PickFields
+export type CheckedMark = { action: MarkAction; when?: RevisitWhen; note?: string } & PickFields & NewItemFields
+
+/**
+ * A new item's fields (`action: "new"`, `ReviewInbox.setNew()`):  `kind` `todo` or `question`, `title`, and `near`,
+ * the id of what it's about (an item, a phase, an Overview sub-section, `summary`).
+ */
+export type NewItemFields = { kind?: NewKind; title?: string; near?: string }
 
 /**
  * A pick's fields, on a mark or a `now` request:  `pick`, the option's letter;  `choices`, which of the item's
@@ -701,10 +769,19 @@ export const INBOX_VERSION = 1
  * - `details`:  write more details into it (an immediate request:  `requestNow()`)
  * - `revisit`:  talk it through again;  `when` `soon` (with the next batch) or `now` (immediate), `note` Owen's text
  * - `pick`:  an option card, by letter (`pick: "B"`), on any item (I8):  `choices` says which card set
+ * - `new`:  a new todo or question Owen asks for from the page (`setNew()`, epic `airplane` P2), under its own key
  */
-export const ACTIONS = ["approve", "todo", "details", "revisit", "pick"] as const
+export const ACTIONS = ["approve", "todo", "details", "revisit", "pick", "new"] as const
 /** One of `ACTIONS`. */
 export type MarkAction = (typeof ACTIONS)[number]
+
+/** What a new item from the page may be (`setNew()`):  `plan-doc add`'s kinds Owen asks for. */
+export const NEW_KINDS = ["todo", "question"] as const
+/** One of `NEW_KINDS`. */
+export type NewKind = (typeof NEW_KINDS)[number]
+
+/** The summary's key in the inbox:  `<epic-summary>` has no id of its own (epic `airplane` P2). */
+export const SUMMARY_ID = "summary"
 
 /** Actions an immediate request (`now`) may carry. */
 export const NOW_ACTIONS = ["details", "revisit"] as const
@@ -736,8 +813,15 @@ const OPTION_LETTER = /^[A-Z]$/
 /** The highest card set position a pick may name:  a sanity bound, far above any item's count. */
 const MAX_CHOICES = 99
 
-/** An item id:  a letter or two and a number (`q7`, `j12`). */
+/** An item id:  a letter or two and a number (`q7`, `j12`;  a phase's `p3`, an Overview sub-section's `o3`). */
 const ITEM_ID = /^[a-z]{1,2}\d+$/
+
+/** A new item's key (`setNew()`):  `new1`, `new2` ... */
+const NEW_PREFIX = "new"
+const NEW_ID = /^new\d+$/
+
+/** The longest title a new item may have:  a line, not a page. */
+const MAX_TITLE = 300
 
 /**
  * The items Owen may call urgent or not (`setUrgency()`):  judgement calls and issues, the kinds red while open and
@@ -771,8 +855,29 @@ function toLetter(pick: unknown): string {
 }
 
 /**
- * `choices`, a pick's card set by position, as a mark's field:  `{ choices }`, or `{}` when not given;  an
- * `InboxError` when it isn't a whole number from 0 to `MAX_CHOICES`.
+ * A new item's mark (`action: "new"`) from a request, checked (`ReviewInbox.toMark()`):
+ * `{ action, kind, title, note?, near? }`, in that order.
+ * - an `InboxError` for a bad kind, a missing or long title, a note that isn't text, or a `near` that isn't an id
+ */
+function toNewItem({ kind, title, note = "", near }: Record<string, unknown>): CheckedMark {
+  if (!NEW_KINDS.includes(kind as NewKind)) throw new InboxError(`a new what?  ${kind} (${NEW_KINDS.join(" | ")})`)
+  if (typeof title !== "string" || !title.trim()) throw new InboxError("a new item needs a title")
+  if (title.trim().length > MAX_TITLE) throw new InboxError(`a title is a line:  ${MAX_TITLE} characters at most`)
+  if (typeof note !== "string") throw new InboxError("a new item's note is text")
+  const about = near === undefined || near === null || near === "" ? undefined : ReviewInbox.toItemId(near)
+  if (about && NEW_ID.test(about)) throw new InboxError(`a new item can't be about another one:  ${near}`)
+  return {
+    action: "new",
+    kind: kind as NewKind,
+    title: title.trim(),
+    ...(note.trim() ? { note: note.trim() } : {}),
+    ...(about ? { near: about } : {})
+  }
+}
+
+/**
+ * `choices`, a pick's card set by position, as a mark's field:  `{ choices }`, or `{}` when not given;
+ * an `InboxError` when it isn't a whole number from 0 to `MAX_CHOICES`.
  */
 function toChoices(choices: unknown): { choices?: number } {
   if (choices === undefined || choices === null) return {}

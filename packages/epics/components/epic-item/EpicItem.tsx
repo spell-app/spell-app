@@ -7,6 +7,7 @@ import { PlanDates } from "$/epics/dates"
 
 import { epicItemVocabulary } from "./EpicItem.en"
 import { Chevron } from "./Chevron"
+import { CONTROLS } from "./Fold"
 import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "./ReviewControls"
 import { ReviewState } from "./ReviewState"
 import {
@@ -15,7 +16,6 @@ import {
   CANCELED,
   CELL,
   CHIP,
-  CLOSED_STATUSES,
   COMMIT_TAG,
   COMMITS_PROPERTY,
   DETAILS,
@@ -36,6 +36,7 @@ import {
   REVIEW_BUTTONS,
   STATE_TIP_KEYS,
   STATUS_SLOT,
+  STATUS_STATES,
   TITLE,
   TOGGLE,
   UNDER_LINE,
@@ -76,6 +77,7 @@ import reviewCSS from "./ReviewControls.css?inline"
  *   a marked note just above the box, with Edit, and Claude's status cards between the two.
  *   - While it carries a mark (a button dashed or outlined, or a pick), its id chip MATCHES the chosen button:
  *     that button's colour and fill (`chipMark`, Owen, 2026-10-08);  without one, its state's colour, solid.
+ *   - Once Claude has handled the mark the buttons CLEAR (Owen's input, taken):  the chip carries the result.
  *   - The id chip of an item Owen may call urgent or not (`canCalm`) is a button:
  *     urgent <-> not urgent, through the inbox (`ReviewClient.toggleCalm()`).
  *   - All in the shadow root:  a part reloaded keeps a half-typed note.
@@ -93,7 +95,7 @@ import reviewCSS from "./ReviewControls.css?inline"
 export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   @E.proto static vocabulary = epicItemVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { item: itemCSS, review: reviewCSS },
+    styleSheets: { "epic-item": itemCSS, "epic-review": reviewCSS },
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false
@@ -156,7 +158,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   })
 
   /**
-   * Where it stands:  `state` as the script wrote it, else `old` once closed, `open` before.
+   * Where it stands:  `state` as the script wrote it,
+   * else by its status (`STATUS_STATES`:  decided or done `recent`, canceled `old`, else `open`).
    * - Claude's agent at work on it (the review inbox's `working`, the page's live view of it):
    *   `progress` (blue), at once, before the script rewrites `state`
    * - Owen's urgency, not applied yet (its id chip clicked):
@@ -168,14 +171,15 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
     if (urgency && this.canCalm()) return urgency.calm ? "open" : "attention"
     const state = this.state
     if (state && (ITEM_STATES as readonly string[]).includes(state)) return state
-    return (CLOSED_STATUSES as readonly string[]).includes(this.status ?? "") ? "old" : "open"
+    return STATUS_STATES[this.status ?? ""] ?? "open"
   })
 
   /**
    * Owen's live mark, as its id chip wears it:  the chosen review button's colour and fill (dashed until sent, then
    * outlined), or a pick's (green);  `undefined` without one, so the chip shows its state.
-   * - NOTE: a mark Claude handled (`review-as`, its button solid) is history, not a choice still in play:
-   *   the chip shows the state then, so long-reviewed items stay grey and a reply that needs Owen stays red.
+   * - a mark Claude handled is gone from the inbox:  the buttons clear,
+   *   and the chip shows the RESULT, solid in its state's colour
+   *   (green decided, yellow still open, red needs Owen:  Owen, 2026-10-08;  orange Owen's turn to pick)
    */
   readonly chipMark = createMemo((): ChipMark | undefined => {
     for (const spec of REVIEW_BUTTONS) {
@@ -459,7 +463,6 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
               text={this.reviewText}
               label={this.label()}
               buttons={REVIEW_BUTTONS}
-              appliedAs={this.reviewAs}
               reviewTip={this.reviewTip()}
               part={this.partForName("review-buttons")}
               onOpenBox={() => this.takeToNote()}
@@ -671,6 +674,3 @@ type ChildScan = {
   /** a commit is among its children */
   hasCommits: boolean
 }
-
-/** What, on the line, acts by itself:  a click there doesn't fold. */
-const CONTROLS = "a[href], button, input, select, textarea, label, summary, [role='button'], [contenteditable]"

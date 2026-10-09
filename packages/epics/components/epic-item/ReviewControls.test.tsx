@@ -11,6 +11,8 @@ import "$/ui/components/ui-icon"
 import "$/ui/components/ui-section"
 import "$/epics/components/epic-item"
 import "$/epics/components/epic-section"
+import "$/epics/components/epic-phase"
+import "$/epics/components/epic-summary"
 
 ////////////////
 // ## Fakes
@@ -48,6 +50,11 @@ class FakeRoutes {
     if (route === "draft") {
       if (body.note) this.inbox.drafts[id] = { action: "revisit", note: body.note as string, at }
       else delete this.inbox.drafts[id]
+    }
+    if (route === "new") {
+      const key = (body.id as string | undefined) ?? `new${Object.keys(this.inbox.marks).length + 1}`
+      if (body.entry) this.inbox.marks[key] = { ...(body.entry as object), action: "new", at } as Inbox["marks"][string]
+      else delete this.inbox.marks[key]
     }
     if (route === "now") {
       const action = body.action as "details" | "revisit"
@@ -144,7 +151,7 @@ describe("<epic-item> review controls", () => {
     expect([button(host, "approve").dataset.fill, button(host, "approve").dataset.color]).toEqual(["dashed", "green"])
   })
 
-  test("the fill:  a mark dashed until sent, then outlined;  Claude on it, its icon turns;  done (`review-as`) solid", async () => {
+  test("the fill:  a mark dashed until sent, then outlined;  Claude on it, its icon turns;  handled, they CLEAR", async () => {
     const before = new Date(Date.now() - 60_000).toISOString()
     routes.inbox.marks.j3 = { action: "revisit", when: "soon", note: "why?", at: before }
     routes.inbox.sent = new Date().toISOString()
@@ -160,8 +167,9 @@ describe("<epic-item> review controls", () => {
     ])
     // Claude's agent at work:  the chip is blue at once, before the script rewrites `state`
     expect(host.shadowRoot!.querySelector("[part~='base']")!.classList.contains("progress")).toBe(true)
+    // a Do Now Claude did (`inbox done`):  its mark gone, every button a grey outline again;  the chip says the rest
     const done = await render(`<epic-item id="j4" title="Done" status="open" review-as="now"></epic-item>`)
-    expect([button(done, "details").dataset.fill, button(done, "approve").dataset.fill]).toEqual(["solid", "none"])
+    expect(actions(done).map((action) => button(done, action).dataset.fill)).toEqual(["none", "none", "none", "none"])
   })
 
   test("the id chip matches the chosen button:  its colour and fill;  no mark, its state's;  light and dark", async () => {
@@ -193,11 +201,11 @@ describe("<epic-item> review controls", () => {
       "green",
       expect.stringMatching(/you chose pick B · sent/)
     ])
-    // no mark, or one Claude handled (`review-as`, its button solid):  the state's colour, solid, as before
+    // no mark, or one Claude handled (`review-as`, its buttons cleared):  the state's colour, solid -- the result
     const plain = await look(
-      `<epic-item id="q10" title="Seen" status="decided" state="old" review-as="approve"></epic-item>`
+      `<epic-item id="q10" title="Seen" status="decided" state="recent" review-as="approve"></epic-item>`
     )
-    expect([plain.fill, plain.color, plain.border]).toEqual([undefined, undefined, "none"])
+    expect([plain.fill, plain.color, plain.border, plain.button]).toEqual([undefined, undefined, "none", null])
     for (const scheme of ["color-scheme: light", "color-scheme: dark; background: #1b1c1d; color: CanvasText"]) {
       const { box } = await look(`<div style="${scheme}; padding: 4px">
         <epic-item id="v2" title="Picked" status="open" state="open"></epic-item>
@@ -270,13 +278,30 @@ describe("<epic-item> review controls", () => {
     expect(getComputedStyle(details.lastElementChild!).position).toBe("sticky")
   })
 
-  test("an answered item Claude approved (`review-as`):  Approve solid, done;  every button and the note box stay", async () => {
+  test("Owen's input, once handled, CLEARS (Owen, 2026-10-08):  every button grey, the chip carries the result", async () => {
     await adoptClient()
-    const host = await render(
-      `<epic-item id="q2" title="Done" status="decided" answered review-as="approve" open><p>Text</p></epic-item>`
+    // J9:  approved, closed;  J10:  revisited and answered, still open
+    const approved = await render(
+      `<epic-item id="j9" title="Done" status="done" state="recent" review-as="approve" open><p>Text</p></epic-item>`
     )
-    expect(actions(host).map((action) => button(host, action).dataset.fill)).toEqual(["solid", "none", "none", "none"])
-    expect(host.shadowRoot!.querySelector("[part~='details'] textarea")).not.toBeNull()
+    const answered = await render(
+      `<epic-item id="j10" title="Talked over" status="open" state="open" review-as="revisit"></epic-item>`
+    )
+    for (const host of [approved, answered]) {
+      expect(actions(host).map((action) => button(host, action).dataset.fill)).toEqual(["none", "none", "none", "none"])
+      for (const action of actions(host)) expect(button(host, action).getAttribute("aria-label")).not.toMatch(/done/)
+    }
+    const look = (host: Element) => {
+      const chip = host.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!
+      const box = host.shadowRoot!.querySelector("[part~='base']")!
+      return [chip.dataset.fill, box.classList.contains("recent"), box.classList.contains("open")]
+    }
+    expect([look(approved), look(answered)]).toEqual([
+      [undefined, true, false],
+      [undefined, false, true]
+    ])
+    // every button and the note box stay:  a new mark can follow
+    expect(approved.shadowRoot!.querySelector("[part~='details'] textarea")).not.toBeNull()
   })
 
   test("a marked note shows ABOVE the note box, last in the details;  Claude's status cards between them (P13)", async () => {
@@ -345,5 +370,114 @@ describe("<epic-section kind=overview-part> review controls (Q14)", () => {
     await adoptClient()
     const host = await render(`<epic-section id="todos" kind="todos" open></epic-section>`)
     expect(actions(host)).toEqual([])
+  })
+})
+
+// epic `airplane` P2:  notes on the phases and the summary
+describe("<epic-phase> and <epic-summary> review controls", () => {
+  test("a phase:  Revisit, Make Todo, Do Now in its title;  a note box at its body's end;  Make Todo marks it", async () => {
+    await adoptClient()
+    const host = await render(`<epic-phase id="p2" title="Plan-Doc Notes" status="todo" open></epic-phase>`)
+    expect(actions(host)).toEqual(["revisit", "todo", "details"])
+    expect(host.shadowRoot!.querySelector("[part~='note-box'] textarea")).not.toBeNull()
+    button(host, "todo").click()
+    await settle()
+    expect(routes.inbox.marks.p2?.action).toBe("todo")
+    expect(button(host, "todo").dataset.fill).toBe("dashed")
+  })
+
+  test("the summary:  keyed `summary`;  its buttons and note box under the lede;  nothing unless reviewed", async () => {
+    await adoptClient({ served: false })
+    const quiet = await render(`<epic-summary>Two sentences.</epic-summary>`)
+    expect(actions(quiet)).toEqual([])
+    ReviewClient.adopt(undefined)
+    await adoptClient()
+    const host = await render(`<epic-summary>Two sentences.</epic-summary>`)
+    expect(actions(host)).toEqual(["revisit", "todo", "details"])
+    expect(host.shadowRoot!.querySelector("[part~='note-box'] textarea")!.getAttribute("aria-label")).toBe(
+      "the summary:  your note"
+    )
+    button(host, "details").click()
+    await settle()
+    expect(routes.posts.at(-1)).toEqual(["now", { page: PAGE, id: "summary", action: "details" }])
+    await expectAccessible(host)
+  })
+})
+
+// epic `airplane` P2:  new todos and questions from the page
+describe("<epic-section kind=todos | questions> new items", () => {
+  /** `host`'s waiting cards:  `[title, fill]` each. */
+  function cards(host: Element) {
+    return Array.from(host.shadowRoot!.querySelectorAll<HTMLElement>("[part~='new-list'] li"), (card) => [
+      card.querySelector(".title")!.textContent,
+      card.dataset.fill
+    ])
+  }
+
+  test("its button opens the form at its end, on its own kind;  Add saves it, and it waits there, dashed", async () => {
+    await adoptClient()
+    const host = await render(`<epic-section id="decisions" kind="questions" open></epic-section>`)
+    const open = host.shadowRoot!.querySelector<HTMLButtonElement>("[part~='new-button']")!
+    expect(open.textContent).toBe("New question")
+    open.click()
+    await ElementFixture.tick()
+    const form = host.shadowRoot!.querySelector<HTMLFormElement>("[part~='new-form']")!
+    expect(form.querySelector("[aria-pressed='true']")!.textContent).toBe("Question")
+    form.querySelector<HTMLInputElement>("[data-field='title']")!.value = "window or aisle?"
+    form.querySelector<HTMLTextAreaElement>("[data-field='note']")!.value = "  long flight "
+    form.querySelector<HTMLInputElement>("[data-field='near']")!.value = "P2"
+    form.requestSubmit()
+    await settle()
+    expect(routes.posts.at(-1)).toEqual([
+      "new",
+      { page: PAGE, entry: { kind: "question", title: "window or aisle?", note: "long flight", near: "p2" } }
+    ])
+    await vi.waitFor(() => expect(cards(host)).toEqual([["window or aisle?", "dashed"]]))
+    expect(host.shadowRoot!.querySelector("[part~='new-form']")).toBeNull()
+    expect(host.shadowRoot!.querySelector("[part~='new-list'] a")!.getAttribute("href")).toBe("#p2")
+    await expectAccessible(host)
+  })
+
+  test("no title:  nothing saved, the title takes the focus;  Escape cancels", async () => {
+    await adoptClient()
+    const host = await render(`<epic-section id="todos" kind="todos" open></epic-section>`)
+    host.shadowRoot!.querySelector<HTMLButtonElement>("[part~='new-button']")!.click()
+    await ElementFixture.tick()
+    const form = host.shadowRoot!.querySelector<HTMLFormElement>("[part~='new-form']")!
+    form.requestSubmit()
+    await ElementFixture.tick()
+    expect(routes.posts).toEqual([])
+    expect(host.shadowRoot!.activeElement?.getAttribute("data-field")).toBe("title")
+    form.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }))
+    await ElementFixture.tick()
+    expect(host.shadowRoot!.querySelector("[part~='new-form']")).toBeNull()
+  })
+
+  test("a waiting item:  Edit opens the form on it and saves under its key;  Remove drops it;  only its kind listed", async () => {
+    const at = new Date().toISOString()
+    routes.inbox.marks = {
+      new1: { action: "new", kind: "todo", title: "pack", at },
+      new2: { action: "new", kind: "question", title: "aisle?", at }
+    }
+    await adoptClient()
+    const host = await render(`<epic-section id="todos" kind="todos" open></epic-section>`)
+    expect(cards(host)).toEqual([["pack", "dashed"]])
+    host.shadowRoot!.querySelector<HTMLButtonElement>("[part~='new-list'] button[title='Edit']")!.click()
+    await ElementFixture.tick()
+    const form = host.shadowRoot!.querySelector<HTMLFormElement>("[part~='new-form']")!
+    const title = form.querySelector<HTMLInputElement>("[data-field='title']")!
+    expect(title.value).toBe("pack")
+    title.value = "pack chargers"
+    form.requestSubmit()
+    await settle()
+    expect(routes.posts.at(-1)).toEqual([
+      "new",
+      { page: PAGE, id: "new1", entry: { kind: "todo", title: "pack chargers" } }
+    ])
+    await vi.waitFor(() => expect(cards(host)).toEqual([["pack chargers", "dashed"]]))
+    host.shadowRoot!.querySelector<HTMLButtonElement>("[part~='new-list'] button[title='Remove']")!.click()
+    await settle()
+    expect(routes.posts.at(-1)).toEqual(["new", { page: PAGE, id: "new1", entry: null }])
+    expect(cards(host)).toEqual([])
   })
 })

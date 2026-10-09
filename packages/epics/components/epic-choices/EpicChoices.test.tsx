@@ -123,6 +123,32 @@ describe("<epic-choices>", () => {
     await expectAccessible(host)
   })
 
+  test("an open question's card folds by its header (Owen, 2026-10-08), open to start;  one with no pros and cons doesn't", async () => {
+    const { host, options } = await choices(
+      `<epic-choices>${OPTIONS}<epic-option letter="C" title="Nothing said"></epic-option></epic-choices>`
+    )
+    const [a, b, c] = options
+    const toggle = part(a!, "toggle")!
+    expect([toggle.localName, toggle.getAttribute("aria-expanded"), a!.matches(":state(open)")]).toEqual([
+      "button",
+      "true",
+      true
+    ])
+    toggle.click()
+    await ElementFixture.tick()
+    expect([part(a!, "body")!.getAttribute("hidden"), a!.matches(":state(open)"), part(b!, "body")!.hidden]).toEqual([
+      "until-found",
+      false,
+      false
+    ])
+    // folded, its header alone:  shorter than its open neighbour in the row
+    expect(part(a!, "base")!.getBoundingClientRect().height).toBeLessThan(
+      part(b!, "base")!.getBoundingClientRect().height
+    )
+    expect([part(c!, "toggle")!.localName, part(c!, "toggle")!.hasAttribute("aria-expanded")]).toEqual(["span", false])
+    await expectAccessible(host)
+  })
+
   test("answered:  folded under `Choices`;  the chosen option a panel marked with a check, and open;  passes axe", async () => {
     const { host, options } = await choices(`<epic-choices chosen="B">${OPTIONS}</epic-choices>`)
     const [a, b] = options

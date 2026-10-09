@@ -19,9 +19,11 @@ import choicesCSS from "./EpicChoices.css?inline"
  * The component behind `<epic-option>`:  one option of a question -- its header (`A · A named palette`, a violet
  * thumbs-up after the recommended one's title, no word:  Owen, 2026-10-08), then its pros and cons (its light
  * children, through the default slot).
- * - Open question:  a CARD, its header a band at the top.
+ * - Open question:  a CARD, its header a band at the top, a button that folds its pros and cons (Owen, 2026-10-08:
+ *   everything in a section box folds);  open to start with.
  * - Answered (`EpicChoices.isAnswered()`):  a PANEL in the Choices box, folded to its header, which is a button;
  *   the chosen one (`<epic-choices chosen>`) marked with a green check and green text, and open to start with.
+ * - Either way the fold is page state;  folded, the pros and cons are `hidden="until-found"`.
  * - Reviewed (the page's `ReviewClient` is `reviewing`:  served by the page server, its inbox answering):
  *   a "Choose" pill at the header's end (`pill()`) marks its letter as the item's pick through the client
  *   (`ReviewClient.choose()`);  again, un-picks it.
@@ -39,7 +41,7 @@ import choicesCSS from "./EpicChoices.css?inline"
 export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   @E.proto static vocabulary = epicOptionVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { choices: choicesCSS },
+    styleSheets: { "epic-choices": choicesCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -77,17 +79,25 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   // ## Folding
   ////////////////
 
-  /** Answered:  its panel, open while it's the chosen one, until the reader says otherwise. */
-  readonly fold = new Fold(() => this.isChosen)
-
-  /** A panel, open. */
-  @E.cssState("open")
-  get isOpen(): boolean {
-    return this.questionIsAnswered && this.fold.isOpen()
-  }
+  /**
+   * Open or folded, until the reader says otherwise:  a card (open question) open;  an answered panel open while it's
+   * the chosen one.
+   */
+  readonly fold = new Fold(() => !this.questionIsAnswered || this.isChosen)
 
   /** Light-DOM slot occupancy:  has it pros and cons? */
   readonly slots = new E.SlotContent(this.domElement)
+
+  /** Does its header fold it?  An answered panel always;  a card with pros and cons. */
+  get canFold(): boolean {
+    return this.questionIsAnswered || this.slots.hasContent("")
+  }
+
+  /** Unfolded (a card or panel that folds). */
+  @E.cssState("open")
+  get isOpen(): boolean {
+    return this.canFold && this.fold.isOpen()
+  }
 
   /** The recommended one's mark:  a violet thumbs-up, no word (Owen, 2026-10-08, decision Q20's Q6). */
   readonly thumbsUp = new E.IconGlyph({ owner: this, name: () => (this.recommended ? RECOMMENDED_ICON : undefined) })
@@ -170,15 +180,15 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
       <div class={this.rootClass} part={this.partForName("base")}>
         <div class={HEADER} part={this.partForName("header")}>
           <Dynamic
-            component={this.questionIsAnswered ? "button" : "span"}
-            type={this.questionIsAnswered ? "button" : undefined}
+            component={this.canFold ? "button" : "span"}
+            type={this.canFold ? "button" : undefined}
             class={TOGGLE}
             part={this.partForName("toggle")}
-            aria-expanded={this.questionIsAnswered ? (this.isOpen ? "true" : "false") : undefined}
-            aria-controls={this.questionIsAnswered ? BODY_ID : undefined}
+            aria-expanded={this.canFold ? (this.isOpen ? "true" : "false") : undefined}
+            aria-controls={this.canFold ? BODY_ID : undefined}
             onClick={this.onHeaderClick}
           >
-            <Show when={this.questionIsAnswered}>
+            <Show when={this.canFold}>
               <Chevron />
             </Show>
             <Show when={this.isChosen && this.questionIsAnswered}>
@@ -211,7 +221,7 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
           id={BODY_ID}
           class={[BODY, { [EMPTY]: !this.slots.hasContent("") }]}
           part={this.partForName("body")}
-          hidden={this.questionIsAnswered ? this.fold.hidden() : undefined}
+          hidden={this.canFold ? this.fold.hidden() : undefined}
         >
           <slot />
         </div>
@@ -261,9 +271,9 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   // ## Events
   ////////////////
 
-  /** A click on its header:  folds its panel, once answered. */
+  /** A click on its header:  folds its card or panel (a card with no pros and cons has nothing to fold). */
   private readonly onHeaderClick = () => {
-    if (this.questionIsAnswered) this.fold.toggle()
+    if (this.canFold) this.fold.toggle()
   }
 
   /**

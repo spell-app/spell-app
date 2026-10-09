@@ -13,7 +13,6 @@ import { Markup } from "$/epics/markup"
 
 import { PlanDocError } from "./planDoc.types"
 
-import { OldPlanReader } from "./OldPlanReader"
 import { PlanDoc } from "./PlanDoc"
 import { PlanDocFiles } from "./PlanDocFiles"
 
@@ -119,14 +118,13 @@ describe("PlanDocFiles", () => {
     expect(readFileSync(file, "utf8")).toMatch(/<epic-item\s+id="t1"[^>]*source="parts\/t1.html"/)
   })
 
-  test("an old-markup doc:  read (readAny), never edited:  every editing path refuses it, writing nothing", async () => {
+  test("an old-markup doc (restored from an old backup):  refused, read or edited, writing nothing", async () => {
     const file = join(folder(), "old.plan.html")
     const html = readFileSync(join(FIXTURES, "plan.html"), "utf8").replaceAll("{{title}}", "Old")
     writeFileSync(file, html)
-    const plan = FILES.readAny(file)
-    expect(plan).toBeInstanceOf(OldPlanReader)
-    expect(plan.title).toBe("Old")
-    expect(() => FILES.read(file)).toThrow(/is in the old markup:  convert it first \(spell dev plan-doc convert\)/)
+    expect(() => FILES.read(file)).toThrow(
+      /is in the old markup, which the tool no longer reads:  convert it first \(spell dev plan-doc convert old --out <folder>/
+    )
     expect(() => FILES.requireNewMarkup(file)).toThrow(PlanDocError)
     await expect(FILES.edit(file, (doc) => doc.log("x"))).rejects.toThrow(/old markup/)
     expect(readFileSync(file, "utf8")).toBe(html)

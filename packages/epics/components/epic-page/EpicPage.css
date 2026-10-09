@@ -157,11 +157,14 @@
   .actions:empty {
     display: none;
   }
+  /* the step label and its kin, at the row's far right, after every button (Owen, 2026-10-08) -- on the narrow row
+     the buttons wrap to, too */
   .status {
     display: inline-flex;
     flex: none;
     align-items: center;
     gap: 6px;
+    margin-inline-start: auto;
   }
   .status:empty {
     display: none;
@@ -187,6 +190,13 @@
     flex: none;
     align-items: center;
     gap: 6px;
+  }
+  /* the `+`'s form (epic `airplane` P2):  a row of its own across the sticky header, so it shows wherever Owen is */
+  .head > .new-form {
+    flex: 1 0 100%;
+    max-height: 60vh;
+    margin: 0;
+    overflow: auto;
   }
   .send,
   .review-now {
@@ -252,8 +262,9 @@
     width: var(--epic-control-size);
     height: var(--epic-control-size);
     padding: 0;
-    border: 1px solid var(--epic-rule);
-    border-radius: 50%;
+    /* the icon alone, no circle (Owen, 2026-10-08) */
+    border: none;
+    border-radius: 4px;
     background: none;
     color: var(--epic-muted);
     cursor: pointer;
@@ -266,8 +277,6 @@
     color: var(--epic-accent);
   }
   .git[aria-pressed="true"] {
-    border-color: var(--epic-accent);
-    background: var(--epic-accent-soft);
     color: var(--epic-accent);
   }
   .git:focus-visible {

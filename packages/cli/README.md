@@ -6,8 +6,8 @@ checkout, through `tsx`, so there's no build step, and it sees projects exactly 
 Code:  `src/` (namespace `CLI`, imported as `$/cli`), started by `bin/spell.mjs`.  See the header of `src/main.ts`.
 
 This package holds ONLY the command line.  Spell itself -- the parser, the language, the language server, the
-runtime, and the projects in `spell/projects/` -- is the spell-family packages beside this one in the monorepo,
-along with `ui`:
+runtime, and the projects in `spell/projects/` --
+is the spell-family packages beside this one in the monorepo, along with `ui`:
 
 ```
 packages/
@@ -20,8 +20,8 @@ packages/
 ```
 
 - `package.json` depends on `spell` and `ui` as workspaces (`workspace:*`), and the aliases reach the rest;  one `yarn` at the monorepo root installs everything.
-- `$/cli` is this package's `src/`;  `$/spell`, `$/parser`, `$/lsp` ... are the others'.  One alias table for the whole
-  monorepo:  `tsconfig.base.json`.
+- `$/cli` is this package's `src/`;  `$/spell`, `$/parser`, `$/lsp` ... are the others'.
+  One alias table for the whole monorepo:  `tsconfig.base.json`.
 - Moved here from the parser's `CLI` branch (`26830ef1`) on 2026-09-30.
 
 
@@ -68,6 +68,7 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 | `spell dev docs <verb> ...` | The docs tools:  `update`, `index`, `new`, `open`, `link` -- each as root `yarn docs:<verb>` ran it, in `packages/docs`, arguments passed as they are, e.g. `spell dev docs open solid/solid-2 --vs`. |
 | `spell dev details <command> ...` | The `/details` skill's tool, `packages/docs/tools/details.js`.  Root `yarn details`. |
 | `spell dev choices <command> ...` | Syntax-choices pages, `packages/docs/tools/choices.js`:  `new <slug> --rows <rows.json>`, `show`, `wait`, `answer`, `list` -- a table of names Claude recommends, one row per use site, which Owen goes through one by one and sends with "Do it" (`guides/syntax-choices.html`). |
+| `spell dev notes <verb> ...` | Page notes, `packages/docs/tools/notes.ts`:  the notes Owen leaves on docs pages from their bubbles, written into the pages (epic `airplane`).  `list [--all] [--json]` (the default:  every `new` note in the shared folders), `answer <page> <id> --file <html>` (Claude's reply under the note, which is then `answered`), `done <page> <id>`.  Runs in the caller's folder. |
 | `spell dev server <verb> ...` | This checkout's page server, its own verbs as they are:  `serve`, `start` / `ensure`, `stop`, `status`, `url <file>`.  `start --all`:  every web server of the checkout (page server, editor, Spell UI) and where each is, `scripts/serve.mjs`.  Root `yarn server`, `yarn serve`. |
 | `spell dev worktree merge-main [--continue]` | Merges `main` into this checkout's branch, regenerating every generated file both sides changed (bundles, site and brand assets, snapshots, `yarn.lock`;  the table:  `GENERATORS` in `src/dev/mergeMain.ts`), then commits "Merge main into `<branch>`".  Another file in conflict stops it mid-merge:  resolve, `git add`, then `--continue`.  Lists snapshot entries neither side had, to review.  `--json`.  `/isolate done` and park Resume use it. |
 | `spell dev pack <verb> ...` | Component packs:  another package's custom elements (`<epic-*>` ...), which a page loads on demand through `<ui-root>`.  `new <name> [--prefix x-]` makes `packages/<name>/` from `templates/pack/package/` (only the files it lacks;  `package.json` merged) and wires it into the checkout;  `element <pack> <tag>` adds one family from `templates/pack/element/`;  `build <pack>` writes `pack/`:  the catalog (from the vocabularies, by Spell UI's `tools/RootCatalog.ts`), the entry, and ONE classic script, `<pack>.pack.js`;  `check [<pack>]` exits 1 when `pack/` is stale (no pack:  every pack).  `new` / `element` build too, unless `--no-build`.  `--json`.  Each pack's `yarn pack:build` / `pack:check`. |
@@ -90,9 +91,11 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 | `spell explain <word>` | Rules `word` names or starts (`print`, `repeat`):  syntax and an example.  `--in <project>`:  also what that project declares by that name, as the editor's hover.  `--json`. |
 | `spell new <name>` | Makes `<name>/project.json` and a starter `<name>.spell` that prints a hello.  In `@user`'s folder, or `--in <folder>`.  Refuses a folder with anything in it. |
 
-- No project named:  the project here, for every command.  Outside a project, in a terminal, `spell` asks -- completing as
-  you type, like a shell:  `Tab` completes a root (`@examples/`), then a project, then "entire project" or one of
-  its files;  your last 3 picks come first (kept in `.recent-projects.json`, gitignored).  Piped, it says to name one.
+- No project named:  the project here, for every command.
+  - Outside a project, in a terminal, `spell` asks, completing as you type, like a shell:
+    `Tab` completes a root (`@examples/`), then a project, then "entire project" or one of its files.
+  - Your last 3 picks come first (kept in `.recent-projects.json`, gitignored).
+  - Piped, it says to name one.
 - Names in `describe` ignore case, and spaces ~== `-` ~== `_`:  `stock pile` finds `Stock_Pile`.
 - Everywhere:  `--verbose` lets spell's own logging through, on stderr.  `NO_COLOR=1` turns colour off.
 - `o` in `explore` runs `$SPELL_EDITOR -g path:line`, `code` by default.  Cursor works too.
@@ -104,18 +107,20 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 
 ### What can write files
 
-- `compile` writes `<Project>.compiled.js`, as the app does.  With no errors, also `<Project>.scopes.js`, as the
-  language server does.  `--stdout` writes neither.  `watch` the same after each rebuild, unless `--check-only`.
-- `static` writes `<page>.static.html` beside each page and `ui.static.css` in each output folder, or where `-o` /
-  `--css` say.
-- `check`, `describe`, `explore`, `run` and `test` write nothing of their own.  But if a project imports one that
-  has NEVER been compiled, it's compiled first, which writes that project's `.compiled.js`.  Parsing fails without it.
+- `compile` writes `<Project>.compiled.js`, as the app does.
+  - With no errors, also `<Project>.scopes.js`, as the language server does.
+  - `--stdout` writes neither.  `watch` the same after each rebuild, unless `--check-only`.
+- `static` writes `<page>.static.html` beside each page and `ui.static.css` in each output folder,
+  or where `-o` / `--css` say.
+- `check`, `describe`, `explore`, `run` and `test` write nothing of their own.
+  - But if a project imports one that has NEVER been compiled, it's compiled first,
+    which writes that project's `.compiled.js`.  Parsing fails without it.
 - An imported project's existing `.compiled.js` is used as is, even if its sources changed since.  Compile it first.
 - `run` / `test` compile to a temp file, never into the project.
-- A folder, or a loose `.spell` file, with no `project.json` at or above it is REFUSED:  loading it would write
-  a `project.json` there (`projectUtils.getIndex()`).
-- Loading any project may still rewrite its `project.json` if its imports are out of step with its files.  That's
-  `getIndex()`, the same as in the app.
+- A folder, or a loose `.spell` file, with no `project.json` at or above it is REFUSED:
+  loading it would write a `project.json` there (`projectUtils.getIndex()`).
+- Loading any project may still rewrite its `project.json` if its imports are out of step with its files.
+  That's `getIndex()`, the same as in the app.
 
 - `dev pack new` / `element` write a pack's files (never over one that's there) and edit the checkout's root files:
   `package.json`, `tsconfig.base.json`, `vitest.config.ts`, `vite.lint.ts`, `.gitattributes`, `src/dev/mergeMain.ts`
@@ -124,18 +129,19 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 ### `dev pack`
 
 - Templates:  `templates/pack/`, every file `*.template` (so no tool reads one as code), with `__token__`s filled in
-  (`__pack__`, `__prefix__`, `__tag__`, `__Class__` ...:  `PackTokens` in `src/dev/packNew.ts`).  A file named
-  `gitignore.template` becomes `.gitignore`.  How they're filled, and how to add one:  `templates/README.md`.
+  (`__pack__`, `__prefix__`, `__tag__`, `__Class__` ...:  `PackTokens` in `src/dev/packNew.ts`).
+  - A file named `gitignore.template` becomes `.gitignore`.
+  - How they're filled, and how to add one:  `templates/README.md`.
 - A pack is a package whose `package.json` has `"spellPack": { "prefix": "epic-" }`.
-- The build runs Vite in-process (`configFile: false`) on the checkout's Spell UI `baseConfig()`;  only `solid-js`,
-  `@solidjs/web`, `$/ui/core` and `$/ui/forms` stay external (`PACK_MODULES`), read from
+- The build runs Vite in-process (`configFile: false`) on the checkout's Spell UI `baseConfig()`;
+  only `solid-js`, `@solidjs/web`, `$/ui/core` and `$/ui/forms` stay external (`PACK_MODULES`), read from
   `globalThis.SpellUI.packModules`;  any other Spell UI or Solid import fails the build.
-- `define()`, in the generated entry, imports every family barrel:  inlined in the one script, run when called;  it
-  returns that promise.
+- `define()`, in the generated entry, imports every family barrel:  inlined in the one script, run when called;
+  it returns that promise.
 - Staleness:  a hash of `components/` and `src/` (tests left out), recorded in the catalog's second line and the
   script's banner;  the catalog's text is compared too.  Doesn't build, so each pack's test runs it.
-- `pack new` adds the pack's scripts to the commands page beside `brand`'s:  main's `spell dev commands check` names
-  them as missing until the branch merges.
+- `pack new` adds the pack's scripts to the commands page beside `brand`'s:
+  main's `spell dev commands check` names them as missing until the branch merges.
 
 ### `run` / `test`
 
@@ -159,21 +165,21 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 
 - Starts this checkout's PAGE SERVER if it isn't running (`packages/server`;  port 4747, else any free one), whose
   route modules serve the app's `/api` (`app`'s `appRoutes.ts`), goals' buttons, docs, epics and `/ui/`.
-- Runs `app`'s own `yarn start:dev` (vite) in its own process group, passing `/api` on to the page server;  records
-  it in `.spell-server.editor.json`, so the site header's "Editor" (`/editor` on the page server) reaches it.
+- Runs `app`'s own `yarn start:dev` (vite) in its own process group, passing `/api` on to the page server;
+  records it in `.spell-server.editor.json`, so the site header's "Editor" (`/editor` on the page server) reaches it.
 - `Ctrl-C`, or vite stopping:  stops vite, and the page server if it started it (one that already ran, stays).
   It stops no other servers and runs no `yarn install`.
-- Refuses an editor port in use, rather than drifting to another:  `spell serve --port 3100`, or `yarn stop` in
-  `packages/app`.
+- Refuses an editor port in use, rather than drifting to another:
+  `spell serve --port 3100`, or `yarn stop` in `packages/app`.
 - Opens only projects in the app's roots (`spell projects`):  a project in some other folder opens the chooser.
 - Their output is hidden unless `--verbose`, or one fails.
 
 ### `static`
 
 - Renders through `@spell-app/ui`'s static server render (`$/ui/static`, plan doc `epics/seo/seo.plan.html`)
-  in a child process, `src/runner/renderStatic.ts`, on an SSR-only Vite server (`ui/tools/StaticRenderer.ts`):  `ui`'s
-  Solid JSX must compile for the server, which `tsx` can't.  Each run starts Vite and compiles every family, so a page
-  takes about 3 seconds;  several pages share one run.
+  in a child process, `src/runner/renderStatic.ts`, on an SSR-only Vite server (`ui/tools/StaticRenderer.ts`):
+  `ui`'s Solid JSX must compile for the server, which `tsx` can't.
+  Each run starts Vite and compiles every family, so a page takes about 3 seconds;  several pages share one run.
 - Renders the families in `StaticCatalog` (`ui/src/static/`);  any other `ui-*` tag (`ui-code`, `ui-markdown` ...)
   stays as it is, and is listed on stderr.
 - Removes a `<script>` (or `<link rel="modulepreload">`) whose `src` or text names `@spell-app/ui`, `$/ui`, `ui`'s
@@ -185,10 +191,12 @@ Every command takes one or more projects (a lone spell file counts as a one-file
   its `<style>`s, and each LOCAL linked stylesheet the rewrite changes, inlined in its place as a
   `<style data-static-from="...">` (relative `url()`s rebased).  Remote sheets, `@import`s and sheets that don't
   parse stay as they are:  their `ui-*` / `::part()` rules don't apply to the static page.
-- ONE stylesheet per output folder, `ui.static.css` (or `--css <file>`), linked from every page there, so the
-  browser fetches it once.  It holds the families its pages use AND whatever it held before:  its first line,
-  `/*! spell-static {...} */`, records what it covers (tags, and which sheets they adopt), and a later run builds the
-  union, so re-rendering one page never drops another page's styles.  To start a folder's sheet afresh, delete it.
+- ONE stylesheet per output folder, `ui.static.css` (or `--css <file>`), linked from every page there,
+  so the browser fetches it once.
+  - It holds the families its pages use AND whatever it held before:
+    its first line, `/*! spell-static {...} */`, records what it covers (tags, and which sheets they adopt),
+    and a later run builds the union, so re-rendering one page never drops another page's styles.
+  - To start a folder's sheet afresh, delete it.
 - `--inline-css`:  each page gets its own stylesheet, holding only its families, in a `<style>`;  no file.
 - Minified by Lightning CSS, which keeps `@scope`, `@layer`, `:where()` and `light-dark()` (nothing is lowered),
   sheet by sheet:  a family sheet it can't parse (`ui-popup`'s `@container anchored()`) only has its comments and
@@ -201,8 +209,8 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 - A side's runs combine as:  the mean of their averages, the lowest min, the highest max.  With 3 or more runs, ONE
   fluke -- an average 25% over the median -- is dropped.
 - `--against <ref>`:
-  - makes a temp `git worktree` of the ref, links our `node_modules` into it, and copies the runner in -- a ref
-    with different dependencies may not run
+  - makes a temp `git worktree` of the ref, links our `node_modules` into it, and copies the runner in --
+    a ref with different dependencies may not run
   - the ref must have `packages/spell` and the `$/` aliases:  from the monorepo on
   - the two sides take turns, run by run;  the worktree is removed afterwards, even on failure
 
@@ -217,8 +225,8 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 ### `explore`
 
 - It needs a real terminal.  Otherwise it says to use `describe`, which prints the same text.
-- `o` needs an editor that opens in its own window and takes `-g`.  A terminal editor like vim can't run inside
-  the full-screen view.
+- `o` needs an editor that opens in its own window and takes `-g`.
+  A terminal editor like vim can't run inside the full-screen view.
 - It reads the project once:  quit and restart to see edits.
 
 ### General
@@ -226,20 +234,21 @@ Every command takes one or more projects (a lone spell file counts as a one-file
 - **It runs the other packages' working copies:**  whatever is in `../spell`, `../parser`, `../lsp` ... right now.
   A half-finished change there breaks `spell`, and `yarn ts` here reports their type errors too.
 - **Startup takes about half a second:**  `tsx` compiles their source on each run, and caches it.
-  `spell dev ...` starts in about a fifth of that:  `bin/spell.mjs` runs `src/devMain.ts`, which loads no spell, then
-  the tool as a child `node` (`spell dev plan-doc summary` ~0.35s, `spell dev window which` ~0.17s).  Its commands
-  that need spell (`session`, `stock` ...) take the usual half second.
+  - `spell dev ...` starts in about a fifth of that:  `bin/spell.mjs` runs `src/devMain.ts`, which loads no spell,
+    then the tool as a child `node` (`spell dev window which` ~0.17s), or `plan-doc`'s in the same process
+    (`spell dev plan-doc summary` ~0.3s).
+  - Its commands that need spell (`session`, `stock` ...) take the usual half second.
 - **Ink is pinned at 5,** from when this lived in the parser, whose app is on React 18:  6+ needs React 19.
   This repo has its own React, so it's free to move.
 - **`yarn` warns `YN0072 ... --preserve-symlinks`,** about the two links.  Ignore it:  node follows each link to
   the real folder, so those packages' imports find their own dependencies -- which is what we want.
-- **`console.*` is silenced in the CLI** (`src/consoleGuard.ts`):  spell logs a lot, e.g. every `serverPath`
-  lookup.  Write output with `session.out()` / `session.err()`.  An Ink screen MUST render with
-  `patchConsole: false`.
-- **Property names show as `short_suit`, not `short-suit`:**  that's what the Type Explorer gives.  See the
-  parser's `agents/SUSPECTED-BUGS.md`.
-- **Name clashes:**  a shell alias or function named `spell` hides the command.  Check `type -a spell` in a login
-  shell.
+- **`console.*` is silenced in the CLI** (`src/consoleGuard.ts`):  spell logs a lot, e.g. every `serverPath` lookup.
+  - Write output with `session.out()` / `session.err()`.
+  - An Ink screen MUST render with `patchConsole: false`.
+- **Property names show as `short_suit`, not `short-suit`:**  that's what the Type Explorer gives.
+  See the parser's `agents/SUSPECTED-BUGS.md`.
+- **Name clashes:**  a shell alias or function named `spell` hides the command.
+  Check `type -a spell` in a login shell.
 - **Test projects:**  running a `projects/test/` project from VS Code's ▶ Run Project writes `<Project>.compiled.js`
   and `settings.json5` into it.  Test projects should stay frozen, so delete those.
 
@@ -257,22 +266,22 @@ Every command takes one or more projects (a lone spell file counts as a one-file
   - the `~` alias
   - `__PACKAGE_VERSION__`
   - `environment.ts` to stop finding `projects/` next to `src/`
-- `run`:  optionally run UI projects in a real browser (e.g. playwright, already a dev dependency), or under a fake
-  DOM.
+- `run`:
+  optionally run UI projects in a real browser (e.g. playwright, already a dev dependency), or under a fake DOM.
 
 ### Review items
 
-- Not yet reviewed by a person.  Tests:  `src/**/*.test.ts(x)`, 54 in all, including end-to-end runs of
-  `bin/spell.mjs`.
-- The one thing it needs IN spell:  `SpellProject.compile(parentScope, { save })` in
-  `../spell/src/SpellProject.ts`.  `save: false` skips writing `<Project>.compiled.js`.
-  Without it `--stdout`, `run` and `test` would write into the project.
+- Not yet reviewed by a person.  Tests:
+  `src/**/*.test.ts(x)`, 54 in all, including end-to-end runs of `bin/spell.mjs`.
+- The one thing it needs IN spell:  `SpellProject.compile(parentScope, { save })` in `../spell/src/SpellProject.ts`.
+  - `save: false` skips writing `<Project>.compiled.js`.
+  - Without it `--stdout`, `run` and `test` would write into the project.
 - Brought up to date with the parser's scope-tree rework when it moved here:
   - things in the Type Explorer's tree are named by `path`, not `id`
-  - where something is comes from its details' `line` and the file it's in -- see `CLI.declaredAt()` -- so
-    `o` in `explore` opens at a line, no longer a column
-  - the first line of `describe <name>` is worked out here -- see `summary()` in `describeText.ts` -- as details
-    no longer carry one
+  - where something is comes from its details' `line` and the file it's in -- see `CLI.declaredAt()` --
+    so `o` in `explore` opens at a line, no longer a column
+  - the first line of `describe <name>` is worked out here -- see `summary()` in `describeText.ts` --
+    as details no longer carry one
   - members list in the order they're declared, as the Type Explorer now shows them
 - Two suspected bugs found along the way, in the parser's `agents/SUSPECTED-BUGS.md`:
   - `SpellDiskWorkspace.diskChanged(uri, "created")` keeps a loaded file's old text

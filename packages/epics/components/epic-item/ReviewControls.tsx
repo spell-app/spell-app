@@ -29,8 +29,11 @@ import {
 import type { ReviewState } from "./ReviewState"
 
 /*
- * The review controls (P9), drawn by `<epic-item>` in its line and details, and by an Overview `<epic-section>` in
- * its title and body (decision Q14):  the same pieces, the same look (`ReviewControls.css`, adopted by both).
+ * The review controls (P9), drawn by:
+ * - `<epic-item>`, in its line and details
+ * - an Overview `<epic-section>` (decision Q14) and an `<epic-phase>` (epic `airplane` P2), in their title and body
+ * - `<epic-summary>`, under its lede
+ * - the same pieces, the same look (`ReviewControls.css`, adopted by each)
  * - Plain Solid components, no element of their own:  each takes its element's `ReviewState` and `text()`.
  * - Shown only while the page is reviewed:  the CALLER wraps them in `<Show when={review.reviewing()}>`.
  */
@@ -41,8 +44,9 @@ import type { ReviewState } from "./ReviewState"
  * the group (Approve, Revisit, Make Todo), then Do Now apart (decision Q20).
  * - every button shows at every step, its FILL saying how far its mark has got (`ReviewFill`, `fillOf()`):
  *   a grey outline available;  dashed in its colour pressed, not sent;  outlined sent (a Do Now:  taken);
- *   solid done (the item's `review-as`, `appliedAs`).
- *   Colours:  green decided (Approve, Make Todo), blue an ask of Claude (Revisit, Do Now)
+ *   then CLEARED, a grey outline again, once Claude has handled it (they're Owen's input:  the id chip carries
+ *   the result, Owen, 2026-10-08)
+ * - colours:  green decided (Approve, Make Todo), blue an ask of Claude (Revisit, Do Now)
  * - work on its way or under way (`ReviewState.busyButton()`):  that button's icon turns while Claude is on it
  *   (`data-busy`);  queued with nobody listening, it stays dashed.  Clicked then:  "nevermind"
  * - Revisit asks the element to take the reader to the note box (`onOpenBox`);
@@ -111,7 +115,7 @@ export function ReviewButtons(props: ReviewButtonsProps) {
 
   /** How far `spec`'s mark has got:  its fill (`ReviewState.fillOf()`, which the id chip reads too). */
   function fillOf(spec: ReviewButtonSpec): ReviewFill {
-    return props.review.fillOf(spec.action, props.appliedAs)
+    return props.review.fillOf(spec.action)
   }
 
   /** A button's plain tooltip:  its name, then the element's review label (`Approve · reviewed 10/7/26`). */
@@ -130,7 +134,6 @@ export function ReviewButtons(props: ReviewButtonsProps) {
     const fill = fillOf(spec)
     if (fill === "dashed") return props.text("chosenUnsent")
     if (fill === "outline") return props.text("chosenSent")
-    if (fill === "solid") return props.text("doneBefore")
     const tip = props.text(spec.tip)
     return spec.action === "details" && !review.listening() ? `${tip}.  ${NOBODY_LISTENING}` : tip
   }
@@ -163,8 +166,6 @@ export type ReviewButtonsProps = {
   label: string
   /** which buttons, in their order:  an item's four;  an Overview section's, without Approve */
   buttons: readonly ReviewButtonSpec[]
-  /** how Claude handled an earlier mark (`review-as`;  `now`:  Do Now):  that button is solid, done */
-  appliedAs?: string
   /** the element's review label in words (`reviewed 10/7/26`), after every button's name in its tooltip */
   reviewTip?: string
   /** the `part` of the controls' box */
@@ -176,12 +177,14 @@ export type ReviewButtonsProps = {
 /****************
  * ### `<NoteBox>`
  * The note box (Owen, 2026-10-06, Q8):  Owen's voice, on ivory --
- * a note that grows as it's typed in, a small Saved mark in its corner, and two round buttons stacked at its right:
+ * a note that grows as it's typed in, a small Saved mark in its corner,
+ * and two round buttons stacked at its right:
  * Revisit Later (blue:  revisit soon, the line's Revisit icon), Make Todo (green).
  * Do Now is the line's (decision Q20):  it takes the note along.
- * - SAVED as typed:  to the inbox as a draft, `DRAFT_SAVE_MS` after the last key, and at once when the box loses focus
- *   or the page goes away;  the floppy says Saved (its tooltip:  when), or turns red with why not;
- *   a localStorage backup too, for a save that fails (`ReviewClient.type()`)
+ * - SAVED as typed:  to the inbox as a draft, `DRAFT_SAVE_MS` after the last key,
+ *   and at once when the box loses focus or the page goes away
+ *   - the floppy says Saved (its tooltip:  when), or turns red with why not
+ *   - a localStorage backup too, for a save that fails (`ReviewClient.type()`)
  * - a button makes the note a mark, then empties the box;  Escape leaves it, the draft kept (`onEscape`)
  * - the button for the element's mark wears the fill rule (`data-mark`, `data-sent`):
  *   dashed until sent, outlined once sent;  the rest a grey outline
@@ -336,10 +339,11 @@ export type NoteBoxProps = {
 
 /****************
  * ### `<SaidNote>`
- * A marked note, its box closed (epic `windows-and-review` P1:  a note must never seem lost):  ONE line, the note,
- * then "revisit soon · sent 10:42" small at its end, then Edit (an icon), which puts it back in the box;
- * a changed note is unsent again until the next send.
- * Draws nothing while there's no marked note, a draft, or the box is being written in.
+ * A marked note, its box closed (epic `windows-and-review` P1:  a note must never seem lost):
+ * ONE line, the note, then "revisit soon · sent 10:42" small at its end,
+ * then Edit (an icon), which puts it back in the box.
+ * - a changed note is unsent again until the next send
+ * - draws nothing while there's no marked note, a draft, or the box is being written in
  ****************/
 export function SaidNote(props: SaidNoteProps) {
   const review = props.review

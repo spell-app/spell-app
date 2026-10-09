@@ -85,16 +85,25 @@ describe("<epic-item>", () => {
     expect(host.shadowRoot!.querySelector("[part~='base']")!.getAttribute("title")).toBe("")
   })
 
-  test("the chip's colour follows `state`;  without one, a closed item is `old` (grey), an open one `open`", async () => {
+  test("the chip's colour follows `state`;  without one, decided or done is `recent` (green), canceled `old`, open `open`", async () => {
     const states = await Promise.all(
       [
         `<epic-item id="q1" title="A" status="open" state="attention"></epic-item>`,
         `<epic-item id="q2" title="B" status="decided"></epic-item>`,
         `<epic-item id="q3" title="C" status="open"></epic-item>`,
-        `<epic-item id="q4" title="D" status="canceled" state="old"></epic-item>`
+        `<epic-item id="q4" title="D" status="canceled" state="old"></epic-item>`,
+        `<epic-item id="j5" title="E" status="done"></epic-item>`,
+        `<epic-item id="j6" title="F" status="canceled"></epic-item>`
       ].map(async (html) => (await item(html)).host.shadowRoot!.querySelector("[part~='base']")!.className)
     )
-    expect(states).toEqual(["attention item", "old item", "open item", "old canceled item"])
+    expect(states).toEqual([
+      "attention item",
+      "recent item",
+      "open item",
+      "old canceled item",
+      "recent item",
+      "old canceled item"
+    ])
   })
 
   test("`replied` (Owen, 2026-10-09):  an orange chip with dark text, Owen's turn to pick, in its tooltip", async () => {

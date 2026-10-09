@@ -2,19 +2,19 @@ import { Definitions, type EpicTag } from "$/epics/definitions"
 import { Markup } from "$/epics/markup"
 
 import { PlanMarkup } from "./PlanMarkup"
-import { PART_EXT, PART_SOURCE, PARTS_DIR, PlanParts, type PartReader } from "./PlanParts"
+import { PART_COMMENT, PART_EXT, PART_SOURCE, PARTS_DIR, PlanParts, type PartReader } from "./PlanParts"
 
 /****************
  * ### `EpicParts`
  * A plan doc in `<epic-*>` markup, in PARTS:  the skeleton, `<name>.plan.html`, plus one body file per bulky host,
- * `parts/<id>.html` -- as `PlanParts` does for today's markup (`templates/epics/plan-doc.md`, "Parts"), with the
- * elements as hosts.
+ * `parts/<id>.html`, with the elements as hosts (`templates/epics/plan-doc.md`, "Parts";  the files and URLs:
+ * `PlanParts`).
  * - hosts (`HOSTS`):  an Overview sub-section, a phase, an item with details, the log.  A host's body is every child
  *   but its slotted ones (`slot="title"`):  the title stays in the skeleton, so the line shows without the body
  * - in the skeleton a host carries `source="parts/<id>.html"`, `part-ids` (the ids inside, so a link to one loads the
  *   body first) and `commits` (its body lists commits):  set through `Markup`, never by hand.  No placeholder line:
  *   a `<p>` isn't allowed in a phase or the log, and the element loads its own body (Q12).
- * - a part file:  `PlanParts`' one-line comment, then the body;  relative URLs rebased to `parts/`
+ * - a part file:  a one-line comment (`PART_COMMENT`), then the body;  relative URLs rebased to `parts/`
  *   (`PlanParts.rebase()`), as the page's `source` loader reads them back
  * - an instance works on ONE parsed document, IN PLACE.  Reuses `PlanParts`' statics for files and URLs.
  * - used by every write of the tool (`PlanDocFiles.writeDoc()`) and by the one-time converter, which imports it from
@@ -95,9 +95,6 @@ const HOSTS = [
   "epic-page > epic-section[kind='log'][id]"
 ].join(", ")
 
-/** The comment a part file starts with (`PlanParts`' too):  stripped when assembling. */
-const PART_COMMENT = /^\s*plan-doc part\b/
-
 /**
  * Set a host's part marks through `Markup.set()`, each only where its tag has it:  a phase and an item list commits,
  * a section doesn't.
@@ -118,7 +115,7 @@ function hasContent(node: Node): boolean {
   return node.nodeType === 1 || (node.nodeType === 3 && Boolean(node.textContent?.trim()))
 }
 
-/** The comment a part starts with, as `PlanParts` writes it:  whose body it is, and where the rules are. */
+/** The comment a part starts with (`PART_COMMENT`):  whose body it is, and where the rules are. */
 function partComment(id: string, tag: string, docName: string): string {
   const what = tag === "epic-item" ? "details" : "body"
   return `<!-- plan-doc part:  #${id}'s ${what}${docName ? ` in ${docName}` : ""}, loaded when it opens (templates/epics/plan-doc.md, "Parts") -->`

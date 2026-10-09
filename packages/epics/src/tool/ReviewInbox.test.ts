@@ -466,6 +466,61 @@ describe("ReviewInbox urgency (an id chip clicked)", () => {
   })
 })
 
+// epic `airplane` P2:  notes on the summary and the phases, and new items from the page
+describe("ReviewInbox phases, the summary, new items", () => {
+  test("a phase and the summary take marks as an Overview sub-section does", () => {
+    const inbox = new ReviewInbox()
+    inbox.setMark("P3", { action: "todo", note: "split it" }, T1)
+    inbox.setMark("summary", { action: "revisit", note: "too long?" }, T2)
+    expect(inbox.marks).toEqual({
+      p3: { action: "todo", note: "split it", at: T1 },
+      summary: { action: "revisit", when: "soon", note: "too long?", at: T2 }
+    })
+    expect(() => inbox.setMark("summaries", { action: "todo" })).toThrow(InboxError)
+  })
+
+  test("setNew:  the next free key each time, so several wait at once;  edited in place;  removed", () => {
+    const inbox = new ReviewInbox()
+    expect(
+      inbox.setNew(undefined, { kind: "todo", title: " check wifi ", note: " before boarding ", near: "P2" }, T1)
+    ).toBe("new1")
+    expect(inbox.setNew(null, { kind: "question", title: "which seat?" }, T2)).toBe("new2")
+    expect(inbox.marks).toEqual({
+      new1: { action: "new", kind: "todo", title: "check wifi", note: "before boarding", near: "p2", at: T1 },
+      new2: { action: "new", kind: "question", title: "which seat?", at: T2 }
+    })
+    expect(inbox.setNew("NEW1", { kind: "todo", title: "check the wifi" }, T3)).toBe("new1")
+    expect(inbox.marks.new1).toEqual({ action: "new", kind: "todo", title: "check the wifi", at: T3 })
+    expect(inbox.setNew("new1", null)).toBeNull()
+    expect(inbox.setNew(undefined, { kind: "todo", title: "again" }, T3)).toBe("new3")
+  })
+
+  test("a new item is a mark like any other:  unsent until the send, then sent and handed over", () => {
+    const inbox = new ReviewInbox()
+    inbox.setNew(undefined, { kind: "todo", title: "pack" }, T1)
+    expect(inbox.unsentMarks.map((mark) => mark.id)).toEqual(["new1"])
+    inbox.markSent(T2)
+    expect(inbox.takeWork(T3)!.sent!.marks).toMatchObject([{ id: "new1", action: "new", title: "pack", again: false }])
+  })
+
+  test("bad new items throw;  `new` only under a new key;  a new key never takes another action", () => {
+    const inbox = new ReviewInbox()
+    expect(() => inbox.setNew(undefined, { kind: "issue", title: "x" })).toThrow(/a new what/)
+    expect(() => inbox.setNew(undefined, { kind: "todo", title: "  " })).toThrow(/needs a title/)
+    expect(() => inbox.setNew(undefined, { kind: "todo", title: "x".repeat(301) })).toThrow(/a title is a line/)
+    expect(() => inbox.setNew(undefined, { kind: "todo", title: "x", note: 3 })).toThrow(/note is text/)
+    expect(() => inbox.setNew(undefined, { kind: "todo", title: "x", near: "new2" })).toThrow(/another one/)
+    expect(() => inbox.setNew(undefined, { kind: "todo", title: "x", near: "not an id" })).toThrow(/not an item id/)
+    expect(() => inbox.setNew("q7", { kind: "todo", title: "x" })).toThrow(/not a new item's key/)
+    expect(() => inbox.setNew(undefined, null)).toThrow(/remove which/)
+    expect(() => inbox.setNew(undefined, "x")).toThrow(/an object/)
+    expect(() => inbox.setMark("q7", { action: "new", kind: "todo", title: "x" })).toThrow(/its own key/)
+    expect(() => inbox.setMark("new1", { action: "approve" })).toThrow(/its own key/)
+    expect(() => inbox.requestNow("new1", "details")).toThrow(InboxError)
+    expect(inbox.isEmpty).toBe(true)
+  })
+})
+
 describe("ReviewInbox files", () => {
   const dir = mkdtempSync(join(tmpdir(), "inbox-"))
   const file = join(dir, "x.inbox.json")
@@ -507,27 +562,21 @@ describe("ReviewInbox files", () => {
   })
 })
 
-test("itemIds:  ui-items with an id and a status, not phases", () => {
-  const html = `<ui-section id="p5" data-phase="5" data-status="active">
-    <ui-item
-      data-state="open"
-      id="T1"
-      data-status="open"></ui-item>
-    <ui-item id="q2" data-answered data-status="decided"></ui-item>
-    <ui-item icon="bullseye">Goal</ui-item>
-    <ui-item data-id="x9" data-status="open"></ui-item>`
-  expect([...ReviewInbox.itemIds(html)]).toEqual(["t1", "q2"])
+test("itemIds:  none in the old markup (read no more since P15)", () => {
+  const html = `<ui-item id="T1" data-status="open"></ui-item><ui-item id="q2" data-status="decided"></ui-item>`
+  expect([...ReviewInbox.itemIds(html)]).toEqual([])
 })
 
-test("itemIds:  <epic-item>s and the Overview's sub-sections (Q14), not phases or the page's sections", () => {
-  const html = `<epic-overview id="overview"><epic-section
+test("itemIds:  <epic-item>s, the Overview's sub-sections (Q14), the summary and phases (airplane P2);  not the page's sections", () => {
+  const html = `<epic-overview id="overview"><epic-summary>Two sentences.</epic-summary><epic-section
       id="o2" title="Structure"
       kind="overview-part" source="parts/o2.html"></epic-section></epic-overview>
     <epic-section id="phases" kind="phases"><epic-phase id="p1" title="One" status="done"></epic-phase></epic-section>
     <epic-section id="decisions" kind="questions"><epic-item
       id="Q7" title="which?"
       status="open"></epic-item><epic-item id="q8" status="decided"><span slot="title">a <code>x</code></span></epic-item></epic-section>`
-  expect([...ReviewInbox.itemIds(html)]).toEqual(["o2", "q7", "q8"])
+  expect([...ReviewInbox.itemIds(html)]).toEqual(["summary", "o2", "p1", "q7", "q8"])
+  expect(ReviewInbox.itemIds(html.replace(/<epic-summary>.*?<\/epic-summary>/, "")).has("summary")).toBe(false)
 })
 
 test("isoTime:  local time with its offset, to the millisecond", () => {

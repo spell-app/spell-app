@@ -4,7 +4,7 @@ import { ELEMENT_NODE, TEXT_NODE } from "$/epics/markup"
  * ### `DocReading`
  * What a reader of a plan doc gets from it, for `ConversionProof`:  its ids, its link targets, and its visible text,
  * word by word, in UNITS (an item, a phase, a section, the Overview, the page).
- * - A subclass knows one markup:  `OldReading` today's (and which of its text is chrome the elements now draw),
+ * - A subclass knows one markup:  `OldReading` the old one (and which of its text is chrome the elements now draw),
  *   `NewReading` the `<epic-*>` markup (and which attributes the elements draw as text).
  * - The walk is shared, so both sides split words the SAME way:  adjacent text nodes join, an element's edge splits,
  *   whitespace is one space.

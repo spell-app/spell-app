@@ -4,9 +4,11 @@ import { isServer, type JSX } from "@solidjs/web"
 import { E } from "$/ui/core"
 
 import { PlanDates } from "$/epics/dates"
-import { AgentsClient, NOBODY_LISTENING, isImmediate } from "$/epics/review"
+import { AgentsClient, NOBODY_LISTENING, isAirplane, isImmediate } from "$/epics/review"
 // the page's view of the review inbox, as an item's:  its file, not `epic-item`'s barrel (which would define it here)
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
+import { NewItemButton, NewItemForm } from "$/epics/components/epic-item/NewItems"
+import type { NewTextKey } from "$/epics/components/epic-item/EpicItem.types"
 
 import { epicPageVocabulary } from "./EpicPage.en"
 import { AgentsPanel } from "./AgentsPanel"
@@ -50,6 +52,7 @@ import {
   type StepLabel
 } from "./EpicPage.types"
 
+import reviewCSS from "$/epics/components/epic-item/ReviewControls.css?inline"
 import pageCSS from "./EpicPage.css?inline"
 import crumbsCSS from "./Crumbs.css?inline"
 import agentsCSS from "./AgentsPanel.css?inline"
@@ -58,23 +61,27 @@ import agentsCSS from "./AgentsPanel.css?inline"
  * ### `EpicPage`
  * The component behind `<epic-page>`:  a plan doc --
  * one epic's page, its data in attributes, its Overview and sections as children.
- * - Draws the crumbs (`Docs › Epics › <title>`, P14:  none while the doc still holds its old `.spell-crumbs` before the
- *   page), the sticky page header (the h1 `/epic <name>`, copied on click, over the epic's title;
- *   at its right Send and Review Now while it's reviewed, the git toggle, the sleeping mark,
- *   the bedtime label and the step label), the review line, the meta lines (branch, worktree, dates,
- *   the durable doc's link from `slot="durable"`), a future epic's notice, then its children.
+ * - Draws, top to bottom:
+ *   - the crumbs (`Docs › Epics › <title>`, P14:
+ *     none while the doc still holds its old `.spell-crumbs` before the page)
+ *   - the sticky page header:  the h1 `/epic <name>`, copied on click, over the epic's title;
+ *     at its right Send and Review Now while it's reviewed, the git toggle, the sleeping mark,
+ *     the bedtime label and the step label
+ *   - the review line, the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`)
+ *   - a future epic's notice, then its children
  * - The step label follows the phases, in the colours of decision Q20:
- *   the active one (outlined blue:  Claude is on it;  links to it);  else DONE (solid green) once every phase is done;
- *   else the next one (grey);  none without phases, FUTURE (grey:  not started) for a future epic.
- *   Read from the `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`.
+ *   - the active one (outlined blue:  Claude is on it;  links to it)
+ *   - else DONE (solid green) once every phase is done;  else the next one (grey)
+ *   - none without phases;  FUTURE (grey:  not started) for a future epic
+ *   - read from the `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`
  * - The sleeping mark (😴, Owen 2026-10-07:  "so I can see what I need to follow up on"):
- *   phases, none under way, but open follow-ups (`FOLLOW_UPS`:  questions, calls, issues, todos, tests);
- *   what's open in its tooltip.
- *   - Not on a future epic, nor one still planning.
- *   - From the items below, so it follows the live update too.
- * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it
- *   flashes);  on every plan doc, as today:  it's how a review starts.  While the page is reviewed with no session
- *   listening, it says so first, in solid orange (a warning).
+ *   phases, none under way, but open follow-ups (`FOLLOW_UPS`:  questions, calls, issues, todos, tests)
+ *   - what's open in its tooltip
+ *   - not on a future epic, nor one still planning
+ *   - from the items below, so it follows the live update too
+ * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it flashes)
+ *   - on every plan doc, as today:  it's how a review starts
+ *   - while the page is reviewed with no session listening, it says so first, in solid orange (a warning)
  * - REVIEW (P10), only while the page is reviewed
  *   (served with a token, its inbox answering:  `ReviewClient`, through a `ReviewState` of its own),
  *   blue and wearing the fill rule (Q20):
@@ -82,20 +89,24 @@ import agentsCSS from "./AgentsPanel.css?inline"
  *     a grey outline with nothing to send, dashed blue with marks not sent, outlined blue once sent
  *   - Review Now (wand):  every mark sent and each revisit asked now;
  *     outlined blue while there's anything to work through
- *   - Nobody listening:  their tooltips say so (`NOBODY_LISTENING`);
- *     what a click did goes to the notice line at the window's bottom (`ReviewState`'s).
+ *   - nobody listening:  their tooltips say so (`NOBODY_LISTENING`)
+ *   - what a click did goes to the notice line at the window's bottom (`ReviewState`'s)
+ * - NEW TODO OR QUESTION (epic `airplane` P2;  `NewItems.tsx`), while reviewed:
+ *   a round `+` before Send opens the form on a row of its own in the sticky header;
+ *   what's asked for waits in the inbox, drawn at the end of its section (Todos, Questions) until Claude makes it.
  * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<AgentsPanel>`),
- *   only while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs;
- *   each row a note box that redirects that agent.
- *   In the shadow root:  not a section, so the rail and counts never see it.
- * - The git toggle (only when the doc lists commits) shows or hides every `<epic-commit>` below, through
- *   `--epic-commits-display`;  remembered per page (`localStorage`), as today's.
- * - The page-wide signals its blocks read (`signalsOf()`):  `top`, where top-level titles stick (the site header's
- *   `--spell-site-header-height` plus this header's height, re-measured as either changes size), and `layout`.
- * - EDGE TO EDGE (P14):  its `:host` breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`,
- *   `spell-doc.css`), so the bands reach across;  everything inside insets itself by `--epic-inset`.
- * - SHARED LOOK:  `EpicPage.css` declares the pack's tokens (`--epic-*`:  colours, bands, the inset, item state
- *   colours, the chip) on its `:host`;  every `<epic-*>` below inherits them.
+ *   only while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs
+ *   - each row a note box that redirects that agent
+ *   - in the shadow root:  not a section, so the rail and counts never see it
+ * - The git toggle (only when the doc lists commits) shows or hides every `<epic-commit>` below,
+ *   through `--epic-commits-display`;  remembered per page (`localStorage`), as today's.
+ * - The page-wide signals its blocks read (`signalsOf()`):  `layout`, and `top`, where top-level titles stick
+ *   (the site header's `--spell-site-header-height` plus this header's height, re-measured as either changes size).
+ * - EDGE TO EDGE (P14):  its `:host` breaks out of the docs' `<main>` padding
+ *   (`--spell-doc-pad-inline`, `spell-doc.css`), so the bands reach across;
+ *   everything inside insets itself by `--epic-inset`.
+ * - SHARED LOOK:  `EpicPage.css` declares the pack's tokens on its `:host`
+ *   (`--epic-*`:  colours, bands, the inset, item state colours, the chip);  every `<epic-*>` below inherits them.
  * - SIDE EFFECT:  observes its subtree and the site header while connected;
  *   follows the page's review and agents clients.
  ****************/
@@ -103,7 +114,12 @@ import agentsCSS from "./AgentsPanel.css?inline"
 export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.proto static vocabulary = epicPageVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-page": pageCSS, "epic-crumbs": crumbsCSS, "epic-agents": agentsCSS }
+    styleSheets: {
+      "epic-page": pageCSS,
+      "epic-crumbs": crumbsCSS,
+      "epic-agents": agentsCSS,
+      "epic-review": reviewCSS
+    }
   } satisfies Partial<E.ElementSetup>
 
   /** Its tag:  what its blocks look for around them. */
@@ -141,6 +157,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
   /** The heading, just copied:  it says so. */
   @E.state accessor isHeadingCopied = false
+
+  /** The header's new item form is open (its `+` clicked;  epic `airplane` P2). */
+  @E.state accessor isAdding = false
 
   /** The meta lines', the header buttons' and the review line's icons. */
   readonly icons = {
@@ -379,6 +398,14 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
               )}
             </Show>
           </span>
+          <Show when={this.isAdding && this.marks()}>
+            <NewItemForm
+              review={this.review}
+              text={this.newText}
+              part={this.partForName("new-form")}
+              onDone={() => (this.isAdding = false)}
+            />
+          </Show>
         </header>
         {this.reviewLine()}
         {this.metaLines()}
@@ -471,10 +498,16 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     )
   }
 
-  /** Send and Review Now:  round icon buttons, coloured by what waits (`marks`). */
+  /** New todo or question, Send and Review Now:  round icon buttons;  Send and Review Now coloured by what waits (`marks`). */
   private reviewButtons(marks: () => HeaderMarks): JSX.Element {
     return (
       <span class={ACTIONS} part={this.partForName("actions")}>
+        <NewItemButton
+          label={this.translationForKey("newButton")}
+          open={this.isAdding}
+          part={this.partForName("new-button")}
+          onClick={() => (this.isAdding = !this.isAdding)}
+        />
         <button
           type="button"
           class={SEND}
@@ -529,7 +562,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
    * reviewed with nobody listening, it says so first.
    */
   private reviewLine(): JSX.Element {
-    const nobody = () => !!this.marks() && !this.marks()!.listening
+    // airplane mode:  nobody CAN listen, so no warning;  the line names what takes the marks when Owen lands
+    const nobody = () => !isAirplane() && !!this.marks() && !this.marks()!.listening
     return (
       <button
         type="button"
@@ -540,7 +574,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       >
         {this.icon(this.icons.copy)}
         <span>
-          {this.translationForKey(nobody() ? "reviewLineNobody" : "reviewLine")} <code>{this.command()}</code>
+          {this.translationForKey(isAirplane() ? "reviewLineAirplane" : nobody() ? "reviewLineNobody" : "reviewLine")}{" "}
+          <code>{this.command()}</code>
         </span>
         <span class="done" aria-live="polite">
           {this.isCopied ? this.translationForKey("copied") : ""}
@@ -556,7 +591,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
   /** `/epic review <name>`:  what the review line copies. */
   private command(): string {
-    return `/epic review ${this.epic ?? ""}`
+    return isAirplane() ? AIRPLANE_LAND : `/epic review ${this.epic ?? ""}`
   }
 
   /** The git toggle:  a round icon button, pressed while every commit shows. */
@@ -676,6 +711,10 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   /** `translationForKey()`, as a plain function:  for the pieces drawn as their own components (`<AgentsPanel>`). */
   private readonly pageText: PageText = (key, params) => this.translationForKey(key, params)
 
+  /** Its texts, as the new-item controls ask for them (`<NewItemForm>`). */
+  private readonly newText = (key: NewTextKey, params?: Record<string, string | number>) =>
+    this.translationForKey(key, params)
+
   /** Measure where top-level titles stick:  the site header's height plus this header's. */
   @E.untracked
   private readonly measure = () => {
@@ -755,3 +794,6 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface EpicPage extends E.AttributeValues<EpicPageVocabulary> {}
+
+/** What takes Owen's marks after a flight (epic `airplane`):  the review line's command in airplane mode. */
+const AIRPLANE_LAND = "/airplane land"

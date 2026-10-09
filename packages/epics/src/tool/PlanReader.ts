@@ -1,5 +1,6 @@
 import {
   CALM_ID,
+  CANCELED,
   CLOSED,
   KINDS,
   OLD_DECISION,
@@ -8,8 +9,8 @@ import {
   QUESTION_ID,
   REVIEW_FILTERS,
   REVIEW_SECTIONS,
+  SETTLED_AS,
   isReviewFilter,
-  type DocMarkup,
   type ItemDescription,
   type ItemFacts,
   type ItemKind,
@@ -33,13 +34,14 @@ import { PlanTime } from "./PlanTime"
 
 /****************
  * ### `PlanReader`
- * A parsed plan doc, READ:  its phases, its items and where their reviews stand, a summary of what's open --
- * whichever markup it's in.  What `summary`, `list`, `items`, `check` and the inbox's listings need.
- * - ABSTRACT:  the markup is its subclasses' -- `PlanDoc` (`<epic-*>`, which also edits) and `OldPlanReader` (the
- *   `ui-*` markup before the switch, read only).  Each says what an item is (`facts()`, `textOf()` ...);  the
- *   reckoning on top -- an item's state, its review state, the review lists, the summary -- is here, ONCE.
+ * A parsed plan doc, READ:  its phases, its items and where their reviews stand, a summary of what's open.
+ * What `summary`, `list`, `items`, `check` and the inbox's listings need.
+ * - ABSTRACT:  the markup is its subclass's, `PlanDoc` (`<epic-*>`, which also edits):  it says what an item is
+ *   (`facts()`, `textOf()` ...);  the reckoning on top -- an item's state, its review state, the review lists, the
+ *   summary -- is here.
+ * - REFACTOR: one subclass since the old markup's reader went (epic `epic-components` P15):  fold this into `PlanDoc`
  * - Pure:  a parsed document in;  no files, no git, no clock unless passed one.
- * - Imports the tool's types and its markup-free helpers only:  never a subclass (`PlanDocFiles` picks one).
+ * - Imports the tool's types and its markup-free helpers only:  never `PlanDoc`.
  ****************/
 export abstract class PlanReader {
   /** linkedom (or browser) document of the plan doc */
@@ -53,9 +55,10 @@ export abstract class PlanReader {
 
   /**
    * the commit time (ISO) of `HEAD~2` in the doc's checkout, which `PlanDoc.updateStates()` writes to the page's
-   * `recent-since`:  an item changed since then is "recent" (D2).  `null`:  no git history, so it goes;  `undefined`
-   * (default):  left as the doc has it
+   * `recent-since` (D2).  `null`:  no git history, so it goes;  `undefined` (default):  left as the doc has it
    * - passed in, so the reader stays pure:  the command line asks git
+   * - NOTE: no colour reads it since 2026-10-08 (a decided item stays green, however old:  `itemState()`);
+   *   REFACTOR:  drop it, the git call and the attribute (the converter and its fixtures write it too)
    */
   recentSince: string | null | undefined
 
@@ -67,9 +70,6 @@ export abstract class PlanReader {
     this.now = now
     this.recentSince = recentSince
   }
-
-  /** Which markup the doc is in. */
-  abstract readonly markup: DocMarkup
 
   /** `now`'s date, `YYYY-MM-DD`. */
   get today(): string {
@@ -94,9 +94,6 @@ export abstract class PlanReader {
 
   /** The Overview's total estimate (`4h-5h in all, 2h left`), as the doc has it. */
   abstract get estimate(): string | undefined
-
-  /** The doc's own "recent since" time (ISO), as it has it. */
-  abstract get recentSinceMark(): string | undefined
 
   /** The elements in `kind`'s section (none without one):  `itemsOf()` keeps the items of that kind. */
   protected abstract sectionChildren(kind: ItemKind): Element[]
@@ -201,27 +198,27 @@ export abstract class PlanReader {
    * Item `item`'s standing, the `state` the page colours it by (`STATE_COLORS`):
    * - Claude is working on it (an underway status card, or `working`):  `progress`, closed or not (a revisit of a
    *   decided question is work too)
-   * - closed (`CLOSED`, an old doc's `d7`):  `recent` when changed since the doc's "recent since", or during a
-   *   `/bedtime` run, else `old`
+   * - canceled (made moot, struck through):  `old`, grey -- the ONE "no longer relevant"
+   * - closed otherwise (done, decided, an old doc's `d7`):  `recent`, green, however long ago (Owen, 2026-10-08:
+   *   "green across the board is good")
    * - work a review queued, not started (`queued`):  `open`, still to do (Q20:  no longer `progress`)
    * - Claude answered it last, with options nothing is picked in yet (`PlanItem.awaitsPick()`):  `replied`, Owen's
    *   turn to pick (Owen, 2026-10-09);  a pick, a newer reply from Owen, or closing it ends that
    * - waiting on Owen:  `attention`:  an open question;  an open judgement call or issue not reviewed, unless it's
    *   `calm` (not urgent:  it simply follows WWOD, or Owen said so from its id chip):  then `open`
-   * - else `recent` when reviewed recently or touched by a `/bedtime` run;  else `open`
+   * - settled by a review, though still open (`SETTLED_AS`:  approved, made a todo):  `recent`
+   * - else `open`:  a revisit or Do Now Claude answered leaves it open, yellow (J10)
    */
   itemState(item: Element): ItemState {
     const facts = this.facts(item)
-    const since = Date.parse(this.recentSinceMark ?? "")
-    const changed = Date.parse(facts.changed ?? "")
-    const recent = facts.bedtime || (changed >= since && !Number.isNaN(since))
     if (facts.underway || facts.working) return "progress"
-    if (CLOSED.has(facts.status) || OLD_DECISION.test(facts.id)) return recent ? "recent" : "old"
+    if (facts.status === CANCELED) return "old"
+    if (CLOSED.has(facts.status) || OLD_DECISION.test(facts.id)) return "recent"
     if (facts.queued !== undefined) return "open"
     if (facts.awaitsPick) return "replied"
     if (QUESTION_ID.test(facts.id)) return "attention"
     if (CALM_ID.test(facts.id) && facts.reviewed === undefined) return facts.calm ? "open" : "attention"
-    if (recent && (facts.bedtime || facts.reviewed !== undefined)) return "recent"
+    if (SETTLED_AS.has(facts.reviewAs ?? "")) return "recent"
     return "open"
   }
 
