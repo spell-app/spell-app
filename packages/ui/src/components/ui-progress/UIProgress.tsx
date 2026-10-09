@@ -37,16 +37,18 @@ import progressCSS from "./UIProgress.css?inline"
  * - Events:  `ui-change` when the percentage changes, `ui-complete` when it reaches 100.
  *   Both only after the first render, whatever wrote the numbers (there is no user input).
  ****************/
+// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
+@E.cssStates("active", "disabled")
 export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   @E.proto static vocabulary = progressVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { progress: progressCSS },
-    delegatesFocus: false
+    delegatesFocus: false,
+    aria: { role: "progressbar", ariaValueMin: "0" }
   } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
-    this.domElement.internals.role = "progressbar"
     if (isServer) return
     onSettled(() => {
       const observer = new MutationObserver(() => (this.elementText = (this.domElement.textContent ?? "").trim()))
@@ -97,12 +99,6 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   // ## States
   ////////////////
 
-  /** Shows activity (`active`).  `:state(active)`. */
-  @E.cssState("active")
-  get isActive(): boolean {
-    return !!this.active
-  }
-
   /** Unknown progress?  `:state(indeterminate)`. */
   @E.cssState("indeterminate")
   get isIndeterminate(): boolean {
@@ -113,16 +109,6 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   @E.cssState("complete")
   get isComplete(): boolean {
     return !this.isIndeterminate && this.numbers.percent >= 100
-  }
-
-  /**
-   * Marked disabled (`disabled`, dimmed):  only a look, not `isDisabled`,
-   * so the element's clicks aren't swallowed.
-   * `:state(disabled)`.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return !!this.disabled
   }
 
   /** `state`, else `success` for a single complete bar (Fomantic's `autoSuccess`). */
@@ -188,7 +174,6 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   protected onAriaValuesChanged(aria: UIProgress["ariaValues"]) {
     if (!aria) return
     const { internals } = this.domElement
-    internals.ariaValueMin = "0"
     internals.ariaValueMax = aria.max
     internals.ariaValueNow = aria.now
     internals.ariaValueText = aria.text

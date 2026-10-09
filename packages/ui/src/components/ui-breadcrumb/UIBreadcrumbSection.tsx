@@ -22,20 +22,13 @@ import breadcrumbCSS from "./UIBreadcrumb.css?inline"
  * - The ELEMENT is `role=listitem` (through `internals`), so the breadcrumb's `<ol>` owns real list items
  *   through its slot.
  ****************/
+@E.cssStates("active")
 export class UIBreadcrumbSection extends E.UIComponent<typeof breadcrumbSectionVocabulary> {
   @E.proto static vocabulary = breadcrumbSectionVocabulary
-  @E.protoMerged static elementSetup = { styleSheets: { breadcrumb: breadcrumbCSS } } satisfies Partial<E.ElementSetup>
-
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    this.domElement.internals.role = "listitem"
-  }
-
-  /** The current page (`active`)? */
-  @E.cssState("active")
-  get isActive(): boolean {
-    return this.active
-  }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { breadcrumb: breadcrumbCSS },
+    aria: { role: "listitem" }
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     const content = (

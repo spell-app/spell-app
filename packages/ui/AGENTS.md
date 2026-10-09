@@ -363,9 +363,19 @@ As WWOD §18, plus:
     its identity).
   - `@E.cssState("open")` on a getter or accessor -- `:state(open)` follows it;  `cssStates()` only for a computed
     set.  Replaces the old `hostStates()`.
+    - A state that only mirrors its attribute, under the same name:  `@E.cssStates("loading", "fluid")` on the
+      CLASS, no getter (TypeScript flags a name the class has no member for).  Keep a getter (with `@E.cssState`)
+      when something else reads it:  `isDisabled`, a base class's hook (`CheckControl.isIndeterminate`), an effect.
+    - For a state two classes of the chain name, the subclass's member wins.
+  - `@E.aria("ariaBusy")` on a getter or accessor -- the DOM element's `internals.ariaBusy` follows it:  `true` =>
+    `"true"`, `false` / `undefined` => removed, text as is.  `@E.aria("role")`, `@E.aria("ariaLabel")` ...;  stacks
+    with `@E.cssState` (`@E.cssState("loading")`, `@E.aria("ariaBusy")`, `get isLoading()`, a decorator a line).
+    One effect per element writes them all;  a server render applies it once.  The subclass's member wins here too.
+    - ARIA that never changes:  `elementSetup.aria` (`{ role: "listitem" }`, `{ role: "status", ariaLive: "polite" }`),
+      set once as the component is built, no effect.  An `@E.aria` member for the same property wins once it runs.
   - `@E.onChange("a", "b") onXChanged(a, b)` -- an effect reading the members, calling the method with their values;
-    a function it returns is the cleanup;  `{ writesDOMElement: true }` applies once on a server
-    (as `addElementEffect()`).  Created in `onMount()`, after every field exists.
+    a function it returns is the cleanup;  `{ writesDOMElement: true }` applies once on a server, for a method that
+    writes the DOM element beyond ARIA (`:state()`, `tabindex`).  Created in `onMount()`, after every field exists.
     Runs only when a member's VALUE changed (`===`, member by member):  a getter member tracks the sources under it,
     and Solid 2 applies an effect on every re-run of its compute, so `startEffects()` puts a memo with `equals`
     in between.  An effect that used to live in `render()` names `isReady` too and returns early until it's true,
@@ -376,8 +386,9 @@ As WWOD §18, plus:
     whole life, removed when the DOM element is released.  So no vocabulary may name an attribute `on` (Fomantic's `on`
     setting is `<ui-form validate-on>`, `<ui-dimmer show-on>`, `<ui-popup open-on>`).  One stopped by an effect
     keeps its own `AbortController`, aborted in the cleanup.
-  - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `@E.cssState("disabled") get
-    looksDisabled()`, never an `isDisabled` override (the DOM element swallows clicks while `isDisabled`).
+  - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `@E.cssStates("disabled")` on the class
+    (or `@E.cssState("disabled") get looksDisabled()` when it does more, e.g. `@E.aria("ariaDisabled")`), never an
+    `isDisabled` override (the DOM element swallows clicks while `isDisabled`).
   - Element-core files import the decorators directly (`import { state } from "./Reactive"`:  their class
     definitions read them);  component files use `@E.state` (and `@E.proto`).
   - Measured (P14 step 1):  1,000 `<ui-divider>`s build in 33 ms (32 before), 1,000 `<ui-button>`s in 100 ms (130).
@@ -460,9 +471,9 @@ As WWOD §18, plus:
   - Static render (`$/ui/static`):  as WWOD §12 › "Brand checks only where `instanceof` can't work", plus:  DOM
     elements are linkedom elements, so NEVER `instanceof Element` / `Node` / `ShadowRoot` / `HTMLSlotElement` in shared code
     (node has no such globals):  `nodeType`, `localName`.
-  - An effect whose APPLY writes the DOM element (`internals.role`, ARIA, states) is
-    `@E.onChange(..., { writesDOMElement: true })` or `this.addElementEffect(compute, apply)`:  the server build
-    never runs an apply, so a plain `createEffect` leaves the static output without it.
+  - An effect whose APPLY writes the DOM element is an `@E.aria` member (`internals.role`, ARIA) or
+    `@E.onChange(..., { writesDOMElement: true })` (states, `tabindex` ...):  the server build never runs an apply,
+    so a plain `createEffect` leaves the static output without it.  Constant ARIA:  `elementSetup.aria`.
 
 ## Component packs
 

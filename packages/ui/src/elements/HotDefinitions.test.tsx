@@ -75,7 +75,9 @@ function makeVersion(
     render(): JSX.Element {
       if (render) return render()
       const values = () =>
-        vocabulary.attributes.map(({ name }) => String((this as unknown as Record<string, unknown>)[name] ?? "-"))
+        vocabulary.attributes.map(({ name }) =>
+          String((this as unknown as Record<string, string | number | boolean | undefined>)[name] ?? "-")
+        )
       return <b part="text">{[text, ...values()].join(" ")}</b>
     }
   }

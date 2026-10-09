@@ -33,17 +33,14 @@ import stepCSS from "./UIStep.css?inline"
  * - Group variations (vertical, ordered, stacked, circular ...) arrive as inherited `--_ui-steps-*` tokens
  *   from the `<ui-steps>` root;  `UIStep.css` reads them (see its header).
  ****************/
+@E.cssStates("completed")
 export class UIStep extends E.UIComponent<typeof stepVocabulary> {
   @E.proto static vocabulary = stepVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { step: stepCSS, parts: partsCSS }
+    styleSheets: { step: stepCSS, parts: partsCSS },
+    // one item of the group's ordered list;  a server render (`$/ui/static`) makes the root an `<li>`
+    aria: { role: "listitem" }
   } satisfies Partial<E.ElementSetup>
-
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    // SIDE EFFECT:  one item of the group's ordered list;  a server render (`$/ui/static`) makes the root an `<li>`
-    this.domElement.internals.role = "listitem"
-  }
 
   ////////////////
   // ## State
@@ -53,12 +50,6 @@ export class UIStep extends E.UIComponent<typeof stepVocabulary> {
   @E.cssState("selected")
   get isSelected(): boolean {
     return this.selected || E.Converters.boolean(this.attributes[UIT.ACTIVE], UIT.ACTIVE)
-  }
-
-  /** `completed`:  `:state(completed)`. */
-  @E.cssState("completed")
-  get isCompleted(): boolean {
-    return !!this.completed
   }
 
   /** Disabled by its attribute;  `:state(disabled)`. */

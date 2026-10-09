@@ -91,6 +91,8 @@ export class DOMFormElement extends E.DOMElement {
  *   That's Fomantic's own markup, so the form's rules reach its fields and messages,
  *   and the page still submits natively.  A form around it stays as it is.
  ****************/
+// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
+@E.cssStates("loading", "disabled")
 export class UIForm extends E.UIComponent<typeof formVocabulary> {
   @E.proto static vocabulary = formVocabulary
   @E.protoMerged static elementSetup = {
@@ -151,21 +153,6 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   @E.cssState("warning")
   get isWarning(): boolean {
     return this.shownState === WARNING
-  }
-
-  /** Waiting (`loading`):  the root is `inert` and `aria-busy`. */
-  @E.cssState("loading")
-  get isLoading(): boolean {
-    return this.loading
-  }
-
-  /**
-   * `:state(disabled)` while `disabled`:  the root is `inert`.
-   * - Not an `isDisabled` override:  that would make the DOM element swallow clicks too.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return this.disabled
   }
 
   /** Always `:state(root)`. */

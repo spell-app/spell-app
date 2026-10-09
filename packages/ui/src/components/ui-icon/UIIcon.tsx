@@ -20,6 +20,8 @@ import iconCSS from "./UIIcon.css?inline"
  *   `outline` appends ` outline` (Fomantic's `bell outline icon` spelling),
  *   so `<ui-icon name="bell" outline>` ~== `name="bell outline"`.
  ****************/
+// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
+@E.cssStates("disabled", "loading")
 export class UIIcon extends E.UIComponent<typeof iconVocabulary> {
   @E.proto static vocabulary = iconVocabulary
   @E.protoMerged static elementSetup = { styleSheets: { icon: iconCSS } } satisfies Partial<E.ElementSetup>
@@ -48,25 +50,6 @@ export class UIIcon extends E.UIComponent<typeof iconVocabulary> {
   @E.onChange("label", { writesDOMElement: true })
   protected onLabelChanged(label: string | undefined) {
     IconLabels.applyTo(this.domElement.internals, label)
-  }
-
-  ////////////////
-  // ## States
-  ////////////////
-
-  /**
-   * Dimmed (`disabled`):  `:state(disabled)`.
-   * - Not `isDisabled`:  that would make the element swallow clicks, which an icon never did.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return this.disabled
-  }
-
-  /** Spinning (`loading`):  `:state(loading)`. */
-  @E.cssState("loading")
-  get isLoading(): boolean {
-    return this.loading
   }
 
   render(): JSX.Element {

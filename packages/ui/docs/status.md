@@ -9,7 +9,7 @@ as work lands ([AGENTS.md](../AGENTS.md)).  Last updated 2026-10-08.
   (`UIComponent`, `FormComponent`, `LoadableComponent`, `PartComponent`), the tag in the page its DOM ELEMENT
   (`DOMElement`, `DOMFormControl`, `DOMLoadableElement`, a family's `DOM<Name>Element`, in its component's
   file);  every family file named for its component (`UIDivider.css`);  native fallbacks for form controls only.
-  The API says "DOM element" too:  `addElementEffect()`, `@onChange(..., { writesDOMElement: true })`,
+  The API says "DOM element" too:  `@onChange(..., { writesDOMElement: true })`,
   `isControlledByPage()`.  Built, every family (steps 1-3).
 - **Resumed 2026-10-01** in the monorepo (`packages/ui`), branch `worktree-ui-component-creation`;  plan doc
   [`epics/ui-component-creation/`](../../../epics/ui-component-creation/ui-component-creation.plan.html):

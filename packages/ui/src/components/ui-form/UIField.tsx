@@ -51,6 +51,8 @@ export class DOMFieldElement extends E.DOMElement {
  * - `disabled` makes the root `inert`, so the slotted controls can't be used.
  * - Always carries `:state(field)`, which is how `<ui-form>` finds a control's field.
  ****************/
+// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
+@E.cssStates("disabled")
 export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   @E.proto static vocabulary = fieldVocabulary
   @E.protoMerged static elementSetup = {
@@ -105,15 +107,6 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   @E.cssState("warning")
   get isWarning(): boolean {
     return this.shownState === WARNING
-  }
-
-  /**
-   * `:state(disabled)` while `disabled`:  the root is `inert`.
-   * - Not an `isDisabled` override:  that would make the DOM element swallow clicks too.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return this.disabled
   }
 
   /** Always `:state(field)`:  how `<ui-form>` finds a control's field. */
