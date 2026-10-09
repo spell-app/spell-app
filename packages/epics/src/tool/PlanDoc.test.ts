@@ -9,7 +9,6 @@ import { Markup } from "$/epics/markup"
 import { PlanDocError } from "./planDoc.types"
 
 import { ItemPicker } from "./ItemPicker"
-import { OldPlanReader } from "./OldPlanReader"
 import { PlanCommits } from "./PlanCommits"
 import { PlanDoc } from "./PlanDoc"
 import { PlanItem } from "./PlanItem"
@@ -17,7 +16,7 @@ import { PlanTime } from "./PlanTime"
 
 /**
  * The plan docs these tests read, tracked beside them (`fixtures/`):  `epic-plan.html`, a new doc in `<epic-*>` markup
- * (the tool's template, filled in), and `plan.html`, a doc in the OLD markup for `OldPlanReader`.
+ * (the tool's template, filled in).
  */
 const FIXTURES = fileURLToPath(new URL("fixtures", import.meta.url))
 
@@ -53,13 +52,7 @@ function problems(plan: PlanDoc) {
 describe("PlanDoc page", () => {
   test("reads the page's data:  title, phases, future, bedtime;  the template is valid markup", () => {
     const plan = freshPlan()
-    expect([plan.markup, plan.title, plan.phases, plan.future, plan.bedtimeRun]).toEqual([
-      "epic",
-      "Demo Plan",
-      [],
-      false,
-      null
-    ])
+    expect([plan.title, plan.phases, plan.future, plan.bedtimeRun]).toEqual(["Demo Plan", [], false, null])
     expect(Array.from(plan.page.children, (child) => child.getAttribute("kind") ?? child.localName)).toEqual([
       "epic-overview",
       "phases",
@@ -1593,62 +1586,5 @@ describe("PlanDoc summary and check", () => {
       'link to missing #i7 ("I7")',
       'bad value:  <epic-item id="c1"> `status="maybe"` isn\'t one of its values (`open`, `decided`, `done`, `canceled`)'
     ])
-  })
-})
-
-////////////////
-// ## The old markup, read only
-////////////////
-
-describe("OldPlanReader (until the switch, P12)", () => {
-  /** The old fixture with a phase, items of each kind, an answered question, review marks. */
-  function oldPlan() {
-    const html = readFileSync(join(FIXTURES, "plan.html"), "utf8")
-      .replaceAll("{{title}}", "Old Plan")
-      .replace(
-        /(<ui-section id="phases"[^>]*>[\s\S]*?<\/ui-progress\s*>)/,
-        '$1<ui-section id="p1" data-phase="1" data-status="active" header="P1 · First Go" badge="2h"></ui-section>'
-      )
-      .replace(
-        '<ui-list class="plan-items" data-kind="decision" divided relaxed></ui-list>',
-        '<ui-list class="plan-items" data-kind="decision" divided relaxed>' +
-          '<ui-item id="q1" data-status="open"><ui-accordion class="plan-item"><ui-title><a class="plan-id" href="#q1">Q1</a> ' +
-          '<span class="plan-title">which?</span></ui-title><ui-content><p>why</p><ui-grid class="spell-pros-cons">' +
-          '<ui-column><ui-segment><ui-label attached="top">A · Keep (recommended)</ui-label></ui-segment></ui-column>' +
-          "</ui-grid></ui-content></ui-accordion></ui-item>" +
-          '<ui-item id="q2" data-status="decided" data-answered><ui-accordion class="plan-item"><ui-title>' +
-          '<a class="plan-id" href="#q2">Q2</a> <span class="plan-title">done?</span></ui-title><ui-content>' +
-          '<p>see <a href="#c1">C1</a></p></ui-content></ui-accordion></ui-item></ui-list>'
-      )
-      .replace(
-        '<ui-list class="plan-items" data-kind="caveat" divided relaxed></ui-list>',
-        '<ui-list class="plan-items" data-kind="caveat" divided relaxed>' +
-          '<ui-item id="c1" data-status="open"><a class="plan-id" href="#c1">C1</a> <span class="plan-title">linked</span></ui-item>' +
-          '<ui-item id="c2" data-status="open" data-deferred="2026-09-30" data-phase="1"><a class="plan-id" href="#c2">C2</a> ' +
-          '<span class="plan-title">later</span></ui-item></ui-list>'
-      )
-    return OldPlanReader.parse(html, NOW)
-  }
-
-  test("reads phases, items, review states and the summary, without changing a thing", () => {
-    const plan = oldPlan()
-    const before = plan.toString()
-    expect(plan.markup).toBe("old")
-    expect(plan.title).toBe("Old Plan")
-    expect(plan.phases).toEqual([{ n: 1, name: "First Go", status: "active", estimate: "2h" }])
-    const summary = plan.summary()
-    expect(summary.open.question.map((item) => item.id)).toEqual(["q1"])
-    expect(summary.open.caveat.map((item) => item.title)).toEqual(["linked", "later"])
-    const sections = plan.reviewSections({ filter: "all" })
-    expect(sections.find((s) => s.kind === "caveat")!.items.map((item) => [item.id, item.state])).toEqual([
-      ["C1", "reviewed"],
-      ["C2", "deferred"]
-    ])
-    expect(sections[0]!.items[0]!.recommendation).toBe("A · Keep")
-    expect(plan.optionCards(plan.findItem("q1")!)).toEqual([{ letter: "A", title: "Keep", recommended: true }])
-    expect(plan.describeItem("c2")).toEqual({ id: "C2", kind: "caveat", status: "open", title: "later" })
-    expect(plan.reviewStatus().deferred).toBe(1)
-    expect(plan.check()).toEqual([])
-    expect(plan.toString()).toBe(before)
   })
 })

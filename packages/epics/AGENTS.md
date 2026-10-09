@@ -41,13 +41,16 @@ house style every package shares.  Only what's local is below;  a section named 
       and Owen's redirects;  `<epic-page>` draws them as its "Agents running" panel (`AgentsPanel.tsx`, in its shadow
       root before its blocks:  not a section).  Both clients POST and watch through the same code, a `ServerLink` each
       (the token, its one refresh on a 403, the poll and `spell-server:file`)
-  - `convert/` -- the one-time converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`), with a
-    `ConversionProof` per doc:  every id, link target and word kept.  Never writes into `epics/` or `spell-app-dev`
-    unless it's the switch (P12 of epic `epic-components`)
-  - `tool/` -- the plan-doc tool (`spell dev plan-doc`), node only, never bundled into the pack.  It writes
-    `<epic-*>` markup through `Markup`, refuses to edit a doc still in the old markup ("convert it first"), and reads
-    both until the switch (`OldPlanReader`).  Its rules for a doc's DATA (ids, statuses, review marks, prose):
-    `tool/PLAN-DOC.md`;  its template:  `tool/templates/plan.html`
+  - `convert/` -- the converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`), with a `ConversionProof` per
+    doc:  every id, link target and word kept.  Every live doc was converted at the switch (P12 of epic
+    `epic-components`);  it stays for a doc restored from an old backup, and writes only under `--out`
+  - `tool/` -- the plan-doc tool (`spell dev plan-doc`), node only, never bundled into the pack.  It reads and writes
+    `<epic-*>` markup only (through `Markup`), and refuses a doc still in the old markup ("convert it first").  Its
+    rules for a doc's DATA (ids, statuses, review marks, prose):  `tool/PLAN-DOC.md`;  its template:
+    `tool/templates/plan.html`
+    - the old hand-written prose shapes (a `Net effect` paragraph, a code accordion, an option grid ...) have ONE set
+      of rules, `ProseShapes`;  `ProseRewrite` turns them into elements, for the tool's way in (`IncomingHtml`) and
+      the converter's second pass alike
 - `pack/` -- GENERATED, committed (`spell dev pack build epics`, `yarn pack:build`).  NEVER edit:
   - `epics.catalog.ts` -- tag => family folder + skeleton, read from the vocabularies;  its second line records
     the hash of the sources it was built from

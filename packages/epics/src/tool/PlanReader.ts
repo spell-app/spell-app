@@ -9,7 +9,6 @@ import {
   REVIEW_FILTERS,
   REVIEW_SECTIONS,
   isReviewFilter,
-  type DocMarkup,
   type ItemDescription,
   type ItemFacts,
   type ItemKind,
@@ -33,13 +32,14 @@ import { PlanTime } from "./PlanTime"
 
 /****************
  * ### `PlanReader`
- * A parsed plan doc, READ:  its phases, its items and where their reviews stand, a summary of what's open --
- * whichever markup it's in.  What `summary`, `list`, `items`, `check` and the inbox's listings need.
- * - ABSTRACT:  the markup is its subclasses' -- `PlanDoc` (`<epic-*>`, which also edits) and `OldPlanReader` (the
- *   `ui-*` markup before the switch, read only).  Each says what an item is (`facts()`, `textOf()` ...);  the
- *   reckoning on top -- an item's state, its review state, the review lists, the summary -- is here, ONCE.
+ * A parsed plan doc, READ:  its phases, its items and where their reviews stand, a summary of what's open.
+ * What `summary`, `list`, `items`, `check` and the inbox's listings need.
+ * - ABSTRACT:  the markup is its subclass's, `PlanDoc` (`<epic-*>`, which also edits):  it says what an item is
+ *   (`facts()`, `textOf()` ...);  the reckoning on top -- an item's state, its review state, the review lists, the
+ *   summary -- is here.
+ * - REFACTOR: one subclass since the old markup's reader went (epic `epic-components` P15):  fold this into `PlanDoc`
  * - Pure:  a parsed document in;  no files, no git, no clock unless passed one.
- * - Imports the tool's types and its markup-free helpers only:  never a subclass (`PlanDocFiles` picks one).
+ * - Imports the tool's types and its markup-free helpers only:  never `PlanDoc`.
  ****************/
 export abstract class PlanReader {
   /** linkedom (or browser) document of the plan doc */
@@ -67,9 +67,6 @@ export abstract class PlanReader {
     this.now = now
     this.recentSince = recentSince
   }
-
-  /** Which markup the doc is in. */
-  abstract readonly markup: DocMarkup
 
   /** `now`'s date, `YYYY-MM-DD`. */
   get today(): string {

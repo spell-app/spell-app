@@ -6,13 +6,20 @@ import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 import { MARKER, PageServer, RunningEpics, type RunningEpic } from "$/server/page"
 import { ask } from "$/server/test/serve"
 
-/** A plan doc with `phases`, each `[status, header]`;  its phase tags spread over lines, as oxfmt writes them. */
-function planDoc(title: string, phases: [string, string][] = []): string {
-  const sections = phases.map(
+/**
+ * A plan doc in `<epic-*>` markup with `phases`, each `[status, header]` (`P2 · Title`), `updated` that day;  its
+ * phase tags spread over lines, as oxfmt writes them.
+ */
+function planDoc(title: string, phases: [string, string][] = [], updated?: string): string {
+  const tags = phases.map(
     ([status, header], i) =>
-      `<ui-section\n  id="p${i + 1}"\n  data-phase="${i + 1}"\n  data-status="${status}"\n  header="${header}"\n  sticky\n></ui-section>`
+      `<epic-phase\n  id="p${i + 1}"\n  title="${header.replace(/^P\d+ · /, "")}"\n  status="${status}"\n></epic-phase>`
   )
-  return `<!doctype html><html><head><title>${title}</title></head><body class="spell-doc-page plan-doc">${sections.join("\n")}</body></html>\n`
+  const page = `<epic-page epic="x"${updated ? `\n  updated="${updated}"` : ""}\n>`
+  return (
+    `<!doctype html><html><head><title>${title}</title></head><body class="spell-doc-page plan-doc">${page}` +
+    `<epic-section id="phases" kind="phases">${tags.join("\n")}</epic-section></epic-page></body></html>\n`
+  )
 }
 
 /** Write `html` at `path` under `root`, making folders. */
@@ -120,10 +127,14 @@ describe("RunningEpics", () => {
       put(
         stale,
         ".claude/worktrees/slow/packages/docs/epics/slow/slow.html",
-        planDoc("Slow", [
-          ["done", "P1 · One"],
-          ["todo", "P2 · Two"]
-        ]).replace('plan-doc">', 'plan-doc">updated <time id="plan-updated">2026-01-01</time>')
+        planDoc(
+          "Slow",
+          [
+            ["done", "P1 · One"],
+            ["todo", "P2 · Two"]
+          ],
+          "2026-01-01"
+        )
       )
       expect(new RunningEpics(stale).list()[0]?.updated).toBe("2026-01-01")
       expect(new RunningEpics(stale).render(MARKER)).toContain(
@@ -134,7 +145,7 @@ describe("RunningEpics", () => {
     }
   })
 
-  // epic `epic-components` P8:  converted docs say it in attributes;  until the switch (P12) both markups are read
+  // epic `epic-components` P8:  converted docs say it in attributes (the old markup read no more since P15)
   it("reads a plan doc in <epic-*> markup:  phases, the active one's label, the page's updated date", () => {
     const fresh = mkdtempSync(join(tmpdir(), "srv-epics-new-"))
     try {
