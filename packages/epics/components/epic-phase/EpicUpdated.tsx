@@ -26,7 +26,7 @@ import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
  ****************/
 export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
   @E.proto static vocabulary = epicUpdatedVocabulary
-  @E.proto static styleSheets = { fold: foldCSS, "epic-field": fieldCSS }
+  @E.proto static styleSheets = { "epic-fold-button": foldCSS, "epic-field": fieldCSS }
   @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a change to fold? */

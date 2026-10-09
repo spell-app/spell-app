@@ -39,7 +39,7 @@ import choicesCSS from "./EpicChoices.css?inline"
  ****************/
 export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   @E.proto static vocabulary = epicOptionVocabulary
-  @E.proto static styleSheets = { choices: choicesCSS }
+  @E.proto static styleSheets = { "epic-choices": choicesCSS }
   @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** The page's review inbox (`ReviewClient.forPage()`), once connected;  never on the server. */

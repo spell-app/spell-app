@@ -377,6 +377,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *   registered with the runtime (`UI.styles`) once per class,
    *   then adopted into each element's shadow root, after the shared foundation sheets.
    * - Which of them apply right now:  `styleSheetNames`.
+   * - NOTE: a name is PAGE-WIDE:  one sheet per name, and the first class to register it wins, so a second class
+   *   with the same name and other CSS silently draws with the first one's.  A component pack's sheets carry its
+   *   prefix (`{ "epic-item": itemCSS }`), never a bare noun one of ours may have (`item`).
    */
   declare styleSheets: Readonly<Record<string, string>>
   @proto static styleSheets: Readonly<Record<string, string>> = {}
