@@ -31,7 +31,7 @@ import choicesCSS from "./EpicChoices.css?inline"
  ****************/
 export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   @E.proto static vocabulary = epicChoicesVocabulary
-  @E.proto static styleSheets = { choices: choicesCSS }
+  @E.proto static styleSheets = { "epic-choices": choicesCSS }
   @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Its question is answered:  folded under Choices. */

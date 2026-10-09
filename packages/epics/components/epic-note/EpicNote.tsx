@@ -26,7 +26,7 @@ import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
  ****************/
 export class EpicNote extends E.UIComponent<typeof epicNoteVocabulary> {
   @E.proto static vocabulary = epicNoteVocabulary
-  @E.proto static styleSheets = { fold: foldCSS, "epic-note": noteCSS }
+  @E.proto static styleSheets = { "epic-fold-button": foldCSS, "epic-note": noteCSS }
   @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a body? */
