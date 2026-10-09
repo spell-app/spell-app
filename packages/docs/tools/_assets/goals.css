@@ -283,8 +283,8 @@ ol.plan-items:empty::before {
   color: var(--plan-state-color, var(--spell-doc-accent));
 }
 /*
- * a done item's title reads quieter, once the runtime has marked the items' states (`markItemStates()`:  it does
- * on a live update, `rewire()`)
+ * a done item's title reads quieter, once the runtime has marked the items' states (`markItemStates()`, at load and
+ * on a live update)
  */
 .plan-items > [data-spell-state="old"] .plan-title {
   color: var(--spell-muted);
@@ -299,44 +299,31 @@ ol.plan-items > li > ui-accordion.spell-aside {
 }
 
 /*
- * The chip takes a color per kind, from the item id's letter.
- * - G goal (accent) · Q question (orange) · D decision (green) · R risk (red) · W work (blue) · I idea (teal)
+ * The chip takes its colour from the item's STATE, as a plan doc's (the colour scheme, Q20 of epic `epic-components`,
+ * 2026-10-08;  `templates/epics/plan-doc.md`, "Colours"):  the kind shows only in the id's letter (G, Q, D, R, W, I).
+ * - the runtime marks the state (`spell-doc-runtime.js` `markItemStates()`, `data-spell-state`):  an open question
+ *   needs you (red), any other open item is open (yellow, dark ink), a done one older (grey)
+ * - the colours:  `spell-doc.css`'s `--spell-state-*`
  */
-ol.plan-items > li[id^="g"] > .plan-id {
-  background: var(--goals-accent-soft);
+.plan-items > [data-spell-state="attention"] {
+  --plan-state-background: var(--spell-state-attention);
+  --plan-state-color: var(--spell-state-attention-on);
 }
-.spell-doc-main ol.plan-items > li[id^="g"] > a.plan-id {
-  color: var(--goals-accent-ink);
+.plan-items > [data-spell-state="progress"] {
+  --plan-state-background: var(--spell-state-progress);
+  --plan-state-color: var(--spell-state-progress-on);
 }
-ol.plan-items > li[id^="q"] > .plan-id {
-  background: var(--ui-orange-background);
+.plan-items > [data-spell-state="open"] {
+  --plan-state-background: var(--spell-state-open);
+  --plan-state-color: var(--spell-state-open-on);
 }
-.spell-doc-main ol.plan-items > li[id^="q"] > a.plan-id {
-  color: var(--ui-orange-text);
+.plan-items > [data-spell-state="recent"] {
+  --plan-state-background: var(--spell-state-recent);
+  --plan-state-color: var(--spell-state-recent-on);
 }
-ol.plan-items > li[id^="d"] > .plan-id {
-  background: var(--ui-green-background);
-}
-.spell-doc-main ol.plan-items > li[id^="d"] > a.plan-id {
-  color: var(--ui-green-text);
-}
-ol.plan-items > li[id^="r"] > .plan-id {
-  background: var(--ui-red-background);
-}
-.spell-doc-main ol.plan-items > li[id^="r"] > a.plan-id {
-  color: var(--ui-red-text);
-}
-ol.plan-items > li[id^="w"] > .plan-id {
-  background: var(--ui-blue-background);
-}
-.spell-doc-main ol.plan-items > li[id^="w"] > a.plan-id {
-  color: var(--ui-blue-text);
-}
-ol.plan-items > li[id^="i"] > .plan-id {
-  background: var(--ui-teal-background);
-}
-.spell-doc-main ol.plan-items > li[id^="i"] > a.plan-id {
-  color: var(--ui-teal-text);
+.plan-items > [data-spell-state="old"] {
+  --plan-state-background: var(--spell-state-old);
+  --plan-state-color: var(--spell-state-old-on);
 }
 /*
  * Topic pages:  a hanging indent, so a wrapped title lines up with its first line, not under the id chip.
@@ -506,15 +493,13 @@ body[data-topic] ol.plan-items ui-accordion.spell-aside :is(p, ul) {
         Live:  buttons
 *******************************/
 
-/* the contents sidebar's goals buttons (`goals-live.js` `addSidebarTools()`), under its head */
-.goals-toc-tools {
+/* the page's goals buttons (`goals-live.js` `addPageTools()`):  a row at the end of the hero */
+.goals-page-tools {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
   align-items: center;
-  padding: 2px 0 12px;
-  margin-bottom: 8px;
-  border-bottom: 1px solid var(--spell-rule);
+  margin-top: 12px;
 }
 /* the waiting-thoughts count inside Update */
 .goals-count {
@@ -555,7 +540,7 @@ body[data-topic] ol.plan-items ui-accordion.spell-aside :is(p, ul) {
     margin: 0;
   }
 }
-/* the space between the docs' round tools and the goals' own */
+/* the space between the pills and the round VS Code button */
 .goals-tool-gap {
   width: 1px;
   height: 18px;

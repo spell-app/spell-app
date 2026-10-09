@@ -20,15 +20,15 @@ What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in t
   <ui-components source="../../packages/epics/pack/epics.pack.js"></ui-components>
   <spell-site-header root="../.."></spell-site-header>
   <div class="spell-doc"><main class="spell-doc-main">
-    <ui-breadcrumb class="spell-crumbs">...</ui-breadcrumb>
     <epic-page epic="seo" title="SEO" branch="seo" worktree="/.../seo" started="2026-10-01" updated="2026-10-07"
       repo="https://github.com/spell-app/spell-app">
       <a slot="durable" href="../../guides/seo.html">SEO</a>
       <epic-overview id="overview" estimate="4h-5h in all, 2h left">
-        <p slot="summary">Two sentences.</p>
-        <blockquote slot="prompt"><p>the kickoff prompt</p></blockquote>
+        <epic-summary>Two sentences.</epic-summary>
+        <epic-prompt><p>the kickoff prompt</p></epic-prompt>
         <epic-section id="o1" kind="overview-part" title="Structure">...prose...</epic-section>
       </epic-overview>
+      <epic-section id="overnight" kind="report" title="Overnight · 2026-10-04">...prose...</epic-section>
       <epic-section id="phases" kind="phases">...<epic-phase>s...</epic-section>
       <epic-section id="decisions" kind="questions">...<epic-item>s...</epic-section>
       ... judgements, caveats, todos, issues, tests ...
@@ -38,9 +38,10 @@ What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in t
 </ui-root>
 ```
 
-- `<title>` reads `Epic: <title>`;  `<epic-page title>` holds the title alone and draws the h1, the meta lines, the
-  step label (active phase, DONE, next, FUTURE), the bedtime label, the "Plan hung?" notice (while there's no phase)
-  and a future epic's notice.  None of it is written.
+- `<title>` reads `Epic: <title>`;  `<epic-page title>` holds the title alone and draws the crumbs (`Docs › Epics ›
+  <title>`), the h1, the meta lines, the step label (active phase, DONE, next, FUTURE), the bedtime label, the "Plan
+  hung?" notice (while there's no phase) and a future epic's notice.  None of it is written.  The page runs edge to
+  edge by itself, and links `spell-doc.css` alone (no `plan-doc.css`:  P14).
 - Dates are WRITTEN as below (`2026-10-08 14:34`, `2026-10-08`, ISO with an offset) and DRAWN `10/8/26 14:34` /
   `10/8/26` by every element (`$/epics/dates` `PlanDates`) but the log's `<epic-event>`:  never write the drawn form.
 - The page's data, on `<epic-page>`:
@@ -52,6 +53,12 @@ What `spell dev plan-doc` writes, and what's still DATA, once a plan doc is in t
   - `repo`:  the GitHub page every `<epic-commit sha>` links through (`commit`, `commits --backfill`)
 - Sections are fixed:  each `kind` once, in that order, with its id (`questions` keeps `#decisions`).  Their titles,
   icons, notes, counts, the progress bar and the Plan changes box are drawn.
+  - A REPORT (`kind="report"`, P14) is the one section that isn't:  what a run wrote for Owen to read (an overnight
+    `/bedtime` report), its own `id` and `title`, right after the Overview, unnumbered, with the page's bands.
+- The Overview:  `<epic-summary>` (two sentences, drawn as a lede), then `<epic-prompt>` (the kickoff prompt, folded
+  under "Kickoff prompt";  `new --prompt` and `prompt <name>` write it), then its sub-sections.  An older doc's
+  `<p slot="summary">` / `<blockquote slot="prompt">` still read the same until the second conversion pass;
+  `prompt <name>` turns the old quote into an `<epic-prompt>` where it stood.
 
 ## Ids
 
@@ -96,7 +103,8 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
 ```html
 <epic-item id="q3" title="Which browser first?" status="decided" answered state="recent" phase="3"
   changed="2026-10-04T12:46:05-04:00" reviewed="2026-10-06" review-as="approve">
-  <p>the question as asked ...</p><p><b>Net effect:</b></p><ul><li>...</li></ul>
+  <epic-question><p>the question as asked ...</p></epic-question>
+  <epic-net-effect option="B" recommended><ul><li>...</li></ul></epic-net-effect>
   <epic-choices chosen="B">
     <epic-option letter="A" title="Firefox"><ul><li>pros, cons</li></ul></epic-option>
     <epic-option letter="B" title="Chrome" recommended><ul><li>...</li></ul></epic-option>
@@ -110,36 +118,86 @@ inside its question:  old `#d7` links land, `close d7` finds the question.
 </epic-item>
 ```
 
-- The order is fixed:  the item's text (prose), Choices, the answer, More Details, replies, Original Discussion,
+- The order is fixed:  a question's `<epic-question>` first, then the item's text (prose, the prose elements and
+  its option cards among it:  "Prose elements" below), the answer, More Details, replies, Original Discussion,
   commits;  Claude's status cards (`<epic-status slot="status">`, "Status cards" below) are slotted, so at the end,
-  out of the order.  The element draws the chip (`Q3`, in its state's colour), the review label, "Original question" /
-  "Original reply" over the text, and every card's heading.
+  out of the order.  The element draws the chip (`Q3`, in its state's colour), the review label, `Question` over the
+  question as asked, "Original reply" over the text, and every card's heading.
+- A question's text as first asked is its `<epic-question>`, found by its tag, not its place:  `add question`, and a
+  rewrite of a question's text (`details --file`), put the lead of the HTML they're given in one (the prose up to the
+  first element or bold label line, `<p><b>The options:</b></p>`), unless the HTML has one;  a rewrite moves the old
+  one into the Original Discussion with the rest of the old text.  `--append` never makes one.
 - `title`:  WITHOUT its id;  with markup, a `<span slot="title">` child instead.  An UPDATE marker rides in the title:
   `<span slot="title">Title <epic-update phase="2"></epic-update></span>`;  `phase 2 done` removes it, and a title
   left plain goes back to `title`.
 - Data, all attributes (the definitions check each value):
   - `status`:  `open`;  `decided` (an answered question:  `decide`, or `add ... decision`, born answered with
     `answered`);  `done` (closed:  fixed, passed, accepted);  `canceled` (made moot:  struck through)
-  - `state`, from the rest (the tool rewrites it on every edit):  `attention` (red:  an open question;  an open
-    judgement call or issue not reviewed), `progress` (orange:  `queued` or `working`), `open` (blue), `recent`
-    (green:  closed or reviewed since `recent-since`, or `bedtime`), `old` (grey)
+  - `state`, from the rest (the tool rewrites it on every edit;  colours:  "Colours" below), first that applies:
+
+    | `state`     | colour | when                                                                               |
+    | ----------- | ------ | ---------------------------------------------------------------------------------- |
+    | `progress`  | blue   | Claude is working on it:  an underway status card, or `working`                    |
+    | `recent`    | green  | closed, and changed since `recent-since` or during a `/bedtime` run                |
+    | `old`       | grey   | closed earlier                                                                     |
+    | `open`      | yellow | work a review queued (`queued`), not started                                       |
+    | `attention` | red    | an open question;  an open judgement call or issue not reviewed, unless `calm`     |
+    | `recent`    | green  | open, reviewed lately or touched by a `/bedtime` run                               |
+    | `open`      | yellow | anything else open:  still undecided, not urgent                                   |
+
   - `changed`:  ISO local time with offset, every command that changes its status or review marks;  `bedtime`
     while a `/bedtime` run is on, until reviewed
   - `phase`:  the phase active when it was added
   - review marks:  `reviewed`, `deferred`, `queued` (`YYYY-MM-DD`), `work`, `working`, `review-as` (how Owen's mark
-    was applied:  `approve`, `todo`, `revisit`)
+    was handled, its button drawn solid:  `approve`, `todo`, `revisit`, `now` -- a Do Now request done, written by
+    `inbox done`)
 - Options:  `<epic-choices>` of `<epic-option letter title recommended>`, the same open or answered;  `chosen` once
-  answered (`decide --option B`, a pick).  Mark ONE `recommended`.  An agent may still write the old option grid
-  (`ui-grid.spell-pros-cons`, labels `A · Title (recommended)`):  the tool turns it into `<epic-choices>` on the way
-  in, as it turns an old `div.plan-reply` into an `<epic-reply>` (REFACTOR:  until the skills write the new shapes).
+  answered (`decide --option B`, a pick).  Mark ONE `recommended`.  On ANY item kind (P14):  a question's own after
+  its text, or the options a judgement call, a reply or More Details weighs;  an item may hold several.
+- Picks work on ANY of them (I8):  the mark names the set by position, `{ pick: "B", choices: 1 }` (the item's sets
+  in page order, its Original Discussion's never counted:  `PlanItem.choiceSets()`;  no `choices`, an older mark:
+  the item's own).  `inbox apply` sets THAT set's `chosen`;  a question is answered with the option (no other set
+  stays chosen), any other item APPROVED with it (an open judgement call closed, accepted;  reviewed);  either way a
+  Done card `Chose B · <title>`, and the option in the log line.
+- The way in (`IncomingHtml`):  agents may still write the OLD shapes;  every command taking HTML (`add --details`,
+  `decide --details`, `details --file`, `updated`, a phase's fields) turns them into elements on the way in, so a doc
+  never holds them:  an option grid (`ui-grid.spell-pros-cons`, labels `A · Title (recommended)`, wherever it sits)
+  -> `<epic-choices>`;  a `div.plan-reply` -> `<epic-reply>`;  a `Net effect` paragraph and its list, a
+  `ui-accordion.spell-code` / `.spell-aside`, a `ui-message.plan-update` -> the prose elements below
+  (`$/epics/markup` `ProseRewrite`).  Never inside code or an Original Discussion.
 - A rewrite (`details --file`, `decide` again, `details --more` again) never drops text:  what it replaces moves into
   `<epic-original>`, one `<epic-version>` per version (the first undated, the rest `as-of` when replaced), cards as
-  the prose they said (`Answer · Chrome`, `B · Chrome (recommended), chosen`);  ids inside become
-  `data-original-id`.  `original <name> <id> --file` puts text recovered from git there (old markup welcome).
-- `--append`:  an `<epic-reply>` goes after the replies;  other prose after the item's text.
+  the prose they said (`Answer · Chrome`, `B · Chrome (recommended), chosen`;  the prose elements stay, an
+  `<epic-question>` too);  ids inside become `data-original-id`.  `original <name> <id> --file` puts text recovered
+  from git there (old markup welcome).
+- `--append`:  an `<epic-reply>` goes after the replies;  other prose at the end of the item's text (after its option
+  cards:  they're prose too).
+- A details page has no `<epic-*>` elements:  an item's text goes there as the prose each element draws (`Net effect
+  (A):` over its list, a code block's title over its `<pre>` ...:  `PlanItem.asProse({ plain })`).
 - Owen's note, once Claude clears its mark:  `<epic-reply from="Owen" at="..." re="revisit soon">`.
 - An Overview sub-section takes review marks too (Q14):  approve is logged, todo makes a todo linking `#o3`, a
   kept note is a paragraph at its end.
+
+## Prose elements
+
+The blocks prose used to shape by hand, each an element that draws its chrome around prose that stays the page's own
+children (find-in-page, `#id` links and the live update keep working;  epic `epic-components` P14).  Each is `flow`:
+it goes wherever prose goes (an item's text, a reply, an option card, a phase field, an Overview sub-section), but
+`<epic-question>`, `<epic-summary>` and `<epic-prompt>`, which have one place each.
+
+| element                       | example                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| `<epic-net-effect>`           | `<epic-net-effect option="A" recommended><ul><li>...</li></ul></epic-net-effect>`:  `Net effect (A, recommended):` over its list (or a `<p>`);  no `option`:  `Net effect:` |
+| `<epic-question>`             | `<epic-question><p>Which browser first?</p></epic-question>`:  a question's text as first asked, under `Question`;  FIRST in its item (or a version) |
+| `<epic-summary>`              | `<epic-summary>Two sentences.</epic-summary>`:  the Overview's lede, once                 |
+| `<epic-prompt>`               | `<epic-prompt><p>the prompt, as typed</p></epic-prompt>`:  folded under `Kickoff prompt`, once in the Overview |
+| `<epic-code>`                 | `<epic-code title="design.ts · 12 lines" language="ts"><pre>...</pre></epic-code>`:  folded, highlighted, ONE `<pre>` of text (`&lt;` for a `<`);  `open` to start open |
+| `<epic-aside>`                | `<epic-aside title="why not now"><p>...</p></epic-aside>`:  folded, headed `Aside:  why not now` |
+| `<epic-note>`                 | `<epic-note state="update" title="partly fixed by J9"><p>...</p></epic-note>`:  a small orange `UPDATE` (or green `DONE`, `state="done"`) note that stays;  not `<epic-update>`, a phase's marker |
+| `<epic-choices>`              | as in "Items":  option cards, on any item kind                                            |
+| `<epic-field label>`          | `<epic-field label="Where"><p>the inbox file</p></epic-field>`:  a labelled block, `Where:` before its prose (`What should happen`, `Step`);  a phase's fields have `name` instead |
+| `<epic-section kind="report">` | `<epic-section id="overnight" kind="report" title="Overnight · 2026-10-04">...</epic-section>`:  a run's report, after the Overview (`The page`) |
+| the crumbs                    | none written:  `<epic-page>` draws `Docs › Epics › <title>` from its `title` (an older doc's `.spell-crumbs` before it:  it draws none) |
 
 ## Status cards
 
@@ -157,8 +215,9 @@ the Overview sub-section) it's on.
 <epic-status slot="status" state="done" at="2026-10-08 15:02"><p>Chose B · Keep one file per template</p></epic-status>
 ```
 
-- Drawn:  `Claude • Underway` (orange) / `Claude • Done` (violet) on the left of the band, the date at its right
+- Drawn:  `Claude • Underway` (blue) / `Claude • Done` (green) on the left of the band, the date at its right
   (`done-at` once done, else `at`);  then the reading;  then the summary, if any.
+- An underway card makes its item `progress` (blue:  Claude is working on it) until it's done.
 - `slot="status"`:  never ordered (written last in the item, or the section);  drawn last in the details, UNDER Owen's
   marked note and above the note box ("under my input", Owen, 2026-10-08).  A part file never holds them:  they stay
   in the skeleton with the title.
@@ -176,6 +235,37 @@ the Overview sub-section) it's on.
     as it is (`&lt;` for a `<`)
 - A rewrite of the item's text (`details --file`) leaves its cards where they are;  they never reach its Original
   Discussion.
+
+## Colours
+
+Drawn, never written:  one meaning per colour on every element (decision Q20, Owen, 2026-10-08).
+
+| colour | means                                    | where                                                                  |
+| ------ | ---------------------------------------- | ---------------------------------------------------------------------- |
+| red    | needs Owen                               | `attention` chips;  the rail's count (only what needs him)             |
+| yellow | open, still undecided (DARK text on it)  | `open` chips;  a `to do` review label                                  |
+| blue   | do it now, or Claude is working on it    | `progress` chips;  Revisit, Do Now, Send, Review Now;  Underway cards;  the active phase |
+| green  | decided or done                          | Approve, Make Todo, a pick, the chosen option;  Done cards;  DONE      |
+| orange | changed since Owen looked, or a warning  | UPDATE, the Updated fence, Plan changes;  "nobody is listening";  a blocked agent |
+| violet | Claude's voice                           | his reply cards;  the bedtime label                                    |
+| ivory  | Owen's voice                             | his note box, marked note, reply cards, the answer card                |
+| grey   | older, inactive, not chosen              | `old` chips;  a phase to do;  FUTURE;  "(recommended)" (text only)     |
+
+The FILL, on every button, pill and chip with a lifecycle (review buttons, the note box's, the pick's letter, the
+Choose pill and its card, Send):
+
+- a grey outline:  available
+- DASHED in its colour:  Owen pressed it, not committed (not sent;  a Do Now not taken yet)
+- OUTLINED in its colour:  recorded (sent;  a Do Now taken, its icon turning while Claude is on it), not done yet
+- SOLID:  done (applied, answered, filed:  `review-as`;  the step label's DONE;  a Choose pill on its set's `chosen`
+  option, wherever the cards are)
+
+An item's id chip MATCHES the chosen review button while Owen's mark is live (Owen, 2026-10-08):  that button's
+colour and fill (an Approve pressed, not sent:  a dashed green chip;  a revisit sent:  an outlined blue one;  a pick:
+green).  No mark, or one Claude handled (`review-as`):  its state's colour, solid.
+
+The review buttons, at every step:  Approve, Revisit, Make Todo in one group, then Do Now apart (paper plane:  the
+inbox's `details` request, or a revisit now when the note box holds a note).
 
 ## Log
 

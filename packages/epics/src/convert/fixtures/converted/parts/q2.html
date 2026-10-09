@@ -1,0 +1,56 @@
+<!-- plan-doc part:  #q2's details in converted.plan.html, loaded when it opens (templates/epics/plan-doc.md, "Parts") -->
+<p>Keep the pack templates as files, or put them in one JSON file?</p>
+<epic-choices chosen="A"
+  ><epic-option letter="A" title="Keep one file per template" recommended
+    ><ul>
+      <li>as today</li>
+    </ul></epic-option
+  ><epic-option letter="B" title="One JSON file"
+    ><ul>
+      <li>one file to find</li>
+    </ul></epic-option
+  ></epic-choices
+><epic-answer id="d2" title="Keep one file per template"><p>Owen picked A (2026-10-07).</p></epic-answer
+><epic-reply from="Claude" at="2026-10-07 10:50" re='"Hmm, can&apos;t we put this in JSON?"'
+  ><p>
+    We can, but I'd keep the templates as files. Today <code>spell dev pack new</code> copies 18 small template files.
+  </p>
+  <ui-accordion class="spell-code" styled open="0"
+    ><ui-title>packages/cli/src/dev/packNew.ts · how a template is filled (excerpts)</ui-title
+    ><ui-content>
+      <pre><code class="language-ts">/** The tokens of element `tag` in pack `pack`. */
+function elementTokens(pack: string, tag: string): Record&lt;string, string&gt; {
+  return { tag, Class: pascalCase(tag) }
+}</code></pre>
+    </ui-content></ui-accordion
+  >
+  <ui-grid class="spell-pros-cons" columns="2" stackable>
+    <ui-segment>
+      <ui-label attached="top">A · Keep one file per template (recommended)</ui-label>
+      <ul>
+        <li>an editor highlights it, and you edit it like the file it becomes</li>
+        <li>
+          cost: none; the token list stays in
+          <a href="../../../packages/cli/src/dev/packNew.ts" target="src-packages-cli-src-dev-packnew-ts"
+            ><code>packNew.ts</code></a
+          >
+        </li>
+      </ul>
+      <p><b>Net effect:</b></p>
+      <ul>
+        <li>no change</li>
+      </ul>
+    </ui-segment>
+    <ui-segment>
+      <ui-label attached="top">B · One JSON file holding every <code>.tmpl</code></ui-label>
+      <ul>
+        <li>cost: every quote and newline escaped</li>
+      </ul>
+      <pre><code class="language-json">{ "element/__Class__.tsx": "..." }</code></pre>
+    </ui-segment>
+  </ui-grid>
+  <p><b>Net effect (A, recommended):</b></p>
+  <ul>
+    <li>the templates stay 18 <code>.tmpl</code> files; J8 stands as chosen</li>
+  </ul></epic-reply
+>

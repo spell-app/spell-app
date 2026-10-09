@@ -16,7 +16,7 @@ import statusCSS from "./EpicStatus.css?inline"
  * ### `EpicStatus`
  * The component behind `<epic-status>`:  Claude's status card on an item (or an Overview sub-section), under Owen's
  * note (P13) -- what Claude took his review mark to mean, then that it's done.
- * - Its band:  `Claude • Underway` (orange) or `Claude • Done` (violet) on the left, the date at the right of the
+ * - Its band:  `Claude • Underway` (blue) or `Claude • Done` (green) on the left, the date at the right of the
  *   top line (`.header.dated`, as `EpicReply`'s):  `done-at` once done, else `at`;  once done, the date's tooltip
  *   says when it was taken
  * - Its body:  the reading (its children), kept as it was when it turns done;  then the summary (`slot="summary"`),
@@ -34,13 +34,13 @@ export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
   /** Light-DOM slot occupancy:  has it a reading, a summary? */
   readonly slots = new E.SlotContent(this.domElement)
 
-  /** Done (violet). */
+  /** Done (green). */
   @E.cssState("done")
   get isDone(): boolean {
     return this.state === DONE
   }
 
-  /** Underway (orange):  any `state` but `done`, none too. */
+  /** Underway (blue):  any `state` but `done`, none too. */
   @E.cssState("underway")
   get isUnderway(): boolean {
     return !this.isDone
@@ -96,10 +96,10 @@ export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface EpicStatus extends E.AttributeValues<typeof epicStatusVocabulary> {}
 
-/** `state` of a finished card, and its class word:  violet, its date `done-at`. */
+/** `state` of a finished card, and its class word:  green, its date `done-at`. */
 const DONE = "done"
 
-/** Class word of a card Claude is still on:  orange. */
+/** Class word of a card Claude is still on:  blue. */
 const UNDERWAY = "underway"
 
 /** The summary's slot (`<p slot="summary">`), under the reading. */

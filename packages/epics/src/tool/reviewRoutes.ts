@@ -9,8 +9,9 @@
  * - every answer is the whole inbox, as `ReviewInbox` keeps it (an empty one when there's no file), except a
  *   `listening` whose heartbeat stopped:  `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing
  * - `GET /api/review/inbox?page=<path>` -- the inbox;  the page polls it
- * - `POST /api/review/mark` `{ page, id, mark }` -- set item `id`'s mark (`{ action, when?, note?, pick? }`, `at`
- *   stamped here;  a revisit may carry a `pick` letter too), or remove it (`mark: null`);  `id` must be an item of
+ * - `POST /api/review/mark` `{ page, id, mark }` -- set item `id`'s mark (`{ action, when?, note?, pick?, choices? }`,
+ *   `at` stamped here;  a revisit may carry a `pick` letter too;  `choices`, the pick's card set by position:  I8),
+ *   or remove it (`mark: null`);  `id` must be an item of
  *   that doc (400 otherwise)
  * - `POST /api/review/now` `{ page, id, action, note? }` -- an immediate request (`details`, or `revisit`, which
  *   keeps the item's pick):  queued on `now`, and the item's mark set

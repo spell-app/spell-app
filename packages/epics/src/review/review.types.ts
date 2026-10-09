@@ -14,6 +14,7 @@ import type {
   InboxUrgency,
   NowAction,
   NowRequest,
+  PickFields,
   WorkingEntry
 } from "$/epics/tool/ReviewInbox"
 
@@ -58,8 +59,11 @@ export const REVISIT_KEY_PREFIX = "spell-revisit:"
  */
 export const NOBODY_LISTENING = "No Claude session is reviewing this doc:  this waits for the next /epic review"
 
-/** The four review actions of an item's line, in their order. */
-export const REVIEW_ACTIONS = ["approve", "todo", "revisit", "details"] as const
+/**
+ * The four review actions of an item's line, in their order:  Approve, Revisit, Make Todo, then Do Now (`details`:
+ * the inbox's name for an immediate request, kept from Add Details Now;  decision Q20).
+ */
+export const REVIEW_ACTIONS = ["approve", "revisit", "todo", "details"] as const
 
 /** One of `REVIEW_ACTIONS`. */
 export type ReviewAction = (typeof REVIEW_ACTIONS)[number]
@@ -149,7 +153,7 @@ export type AgentRedirect = {
   told: string
 }
 
-export type { InboxDraft, InboxListener, InboxMark, InboxUrgency, NowAction, NowRequest, WorkingEntry }
+export type { InboxDraft, InboxListener, InboxMark, InboxUrgency, NowAction, NowRequest, PickFields, WorkingEntry }
 
 ////////////////
 // ## Errors
@@ -197,6 +201,24 @@ export function isSent(mark: { action: string; when?: string; at: string }, sent
 /** Is `mark` an immediate request (Add Details, revisit now), handed over when made?  As `ReviewInbox`'s. */
 export function isImmediate(mark: { action: string; when?: string }): boolean {
   return mark.action === "details" || (mark.action === "revisit" && mark.when === "now")
+}
+
+/**
+ * `mark`'s pick, to carry into another mark (a revisit's "pick B, but ..."):  `{ pick, choices? }`, or `{}`.  As
+ * `ReviewInbox.pickOf()`.
+ */
+export function pickOf(mark: PickFields | null | undefined): PickFields {
+  if (!mark?.pick) return {}
+  return { pick: mark.pick, ...(mark.choices !== undefined && { choices: mark.choices }) }
+}
+
+/**
+ * Is `mark`'s pick option `letter` of card set `choices` (its position among the item's sets, I8)?  A mark without
+ * `choices` (from before I8) picks from the item's OWN set:  `own` says whether set `choices` is it.
+ */
+export function picks(mark: PickFields | null | undefined, letter: string, choices: number, own: boolean): boolean {
+  if (mark?.pick !== letter) return false
+  return mark.choices === undefined ? own : mark.choices === choices
 }
 
 /**

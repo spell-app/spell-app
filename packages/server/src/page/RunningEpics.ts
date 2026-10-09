@@ -150,8 +150,10 @@ export class RunningEpics {
  * - `name`:  the epic;  `worktree`:  the worktree it's in;  `url`:  its plan doc on the main page server
  * - `title`:  the doc's `<title>`
  * - `done` / `total`:  phases;  `active`:  the active phase's header (`P2 · Name`), if any
- * - `updated`:  the doc's "updated" date (`YYYY-MM-DD`), if any
- *   - an epic with phases left and no update for a few days shows as stalled
+ * - `updated`:  the doc's "updated" date (`YYYY-MM-DD`), if any:  an epic with phases left and no update for a
+ *   few days shows as stalled
+ * - `future`:  written down with `/epic future`, not planned yet;  `followUps`:  what it still asks of Owen, one kind
+ *   name per open question, judgement call, issue, todo and test (`FOLLOW_UPS`):  with no phase under way, it sleeps
  */
 export type RunningEpic = {
   name: string
@@ -162,6 +164,8 @@ export type RunningEpic = {
   total: number
   active?: string
   updated?: string
+  future?: boolean
+  followUps?: string[]
 }
 
 /** The marker on the Epics list page that becomes the running epics' cards. */
@@ -218,15 +222,19 @@ function folders(dir: string): string[] {
 }
 
 /**
- * Title and phases of the plan doc at `file`, by pattern:  the server is a leaf, so no HTML parser or plan-doc tool.
+ * Title, phases and follow-ups of the plan doc at `file`, by pattern:  the server is a leaf, so no HTML parser or
+ * plan-doc tool.
  * - either markup (attributes in any order, across lines):
- *   - `<epic-*>`:
- *     - each `<epic-phase id="pN" title="..." status="S">` (the label `PN · <title>`)
- *     - `<epic-page updated>`
- *   - the old:  each `<ui-section ... data-phase="N" ... data-status="S" ... header="...">`, `#plan-updated`.
- *     REFACTOR: drop old markup after the switch (P12)
+ *   - `<epic-*>`:  each `<epic-phase id="pN" title="..." status="S">` (the label `PN · <title>`), `<epic-page
+ *     updated future>`, each `<epic-item id="q3" status="open">`
+ *   - the old:  each `<ui-section ... data-phase="N" ... data-status="S" ... header="...">`, `#plan-updated`,
+ *     `<body data-future>`, each item `id="q3" data-status="open"`.  REFACTOR: drop old markup after the switch (P12)
+ * - follow-ups as `packages/docs/tools/index.js` `followUpsIn()` and `packages/cli/src/dev/worktrees.ts`
+ *   `planFollowUps()` find them:  change all three
  */
-function read(file: string): Pick<RunningEpic, "title" | "done" | "total" | "active" | "updated"> {
+function read(
+  file: string
+): Pick<RunningEpic, "title" | "done" | "total" | "active" | "updated" | "future" | "followUps"> {
   const html = readFileSync(file, "utf8")
   // drop the `Epic: ` plan docs' titles start with (since 2026-10-04):  the card is in the Epics list already
   const title = (/<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? "").replace(/^Epic:\s*/, "")
@@ -245,32 +253,60 @@ function read(file: string): Pick<RunningEpic, "title" | "done" | "total" | "act
   const updated = page
     ? /^\d{4}-\d\d-\d\d$/.exec(attribute(page, "updated") ?? "")?.[0]
     : /\bid="plan-updated"[^>]*>\s*(\d{4}-\d\d-\d\d)/.exec(html)?.[1]
+  const future = page ? /\sfuture(?=[\s=>])/.test(page) : /<body\b[^>]*\sdata-future\b/.test(html)
+  const status = page ? "status" : "data-status"
+  const followUps = [...html.matchAll(page ? /<epic-item\b[^>]*>/g : /<[a-z][\w-]*\b[^>]*\sid="[qjitv]\d+"[^>]*>/g)]
+    .map(([tag]) => tag)
+    .filter((tag) => attribute(tag, status) === "open")
+    .map((tag) => FOLLOW_UPS[attribute(tag, "id")?.match(/^([qjitv])\d+$/)?.[1] ?? ""])
+    .filter((kind): kind is string => Boolean(kind))
   return {
     title: decode(title),
     done: phases.filter((phase) => phase.status === "done").length,
     total: phases.length,
     ...(active && { active: decode(active) }),
-    ...(updated && { updated })
+    ...(updated && { updated }),
+    ...(future && { future }),
+    ...(followUps.length > 0 && { followUps })
   }
 }
 
+/** An open item's kind, by its id's letter:  what an epic still asks of Owen (`index.js` has the same). */
+const FOLLOW_UPS: Record<string, string> = { q: "question", j: "judgement call", i: "issue", t: "todo", v: "test" }
+
 /**
- * `epic`'s state:  `{ done, mark }`, `mark` the HTML before its card's title.
- * - planning:  no phases yet (a blue thought bubble)
+ * `epic`'s state:  `{ done, mark }`, `mark` the HTML before its card's title.  Its colours are the colour scheme's
+ * (Q20 of epic `epic-components`;  `templates/epics/plan-doc.md`, "Colours").
+ * - future:  written down with `/epic future`, not planned yet (a grey seedling:  not started)
+ * - sleeping:  open follow-ups (`followUps`) and no phase under way:  😴, what's open on hover
+ * - planning:  no phases yet (a yellow thought bubble:  open, still undecided)
  * - done:  every phase done (a green check)
- * - stalled:  phases left, no update for more than `STALLED_DAYS` (a yellow pause;  the date on hover)
- * - in progress:  `[3/6]`, phases done of all
+ * - stalled:  phases left, no update for more than `STALLED_DAYS` (an orange pause, a warning;  the date on hover)
+ * - in progress:  `[3/6]`, phases done of all, outlined in blue (under way)
  * - SAME as `packages/docs/tools/index.js` `epicState()`:  change both
  */
 function stateMark(epic: RunningEpic, now = Date.now()): { done: boolean; mark: string } {
-  if (!epic.total) return { done: false, mark: stateIcon("comment dots", "blue", "planning") }
+  if (epic.future && !epic.total)
+    return { done: false, mark: stateIcon("seedling", "grey", "future:  not planned yet") }
+  if (epic.total && epic.followUps?.length && !epic.active) {
+    const tip = `sleeping:  ${followUpWords(epic.followUps)} to follow up`
+    return { done: false, mark: `<span class="spell-epic-state" title="${attr(tip)}">😴</span>` }
+  }
+  if (!epic.total) return { done: false, mark: stateIcon("comment dots", "yellow", "planning") }
   if (epic.done === epic.total) return { done: true, mark: stateIcon("circle check", "green", "done") }
   const idle = epic.updated ? (now - new Date(`${epic.updated}T00:00`).getTime()) / 86_400_000 : 0
   if (idle > STALLED_DAYS) {
-    return { done: false, mark: stateIcon("circle pause", "yellow", `stalled:  no update since ${epic.updated}`) }
+    return { done: false, mark: stateIcon("circle pause", "orange", `stalled:  no update since ${epic.updated}`) }
   }
   const count = `${epic.done}/${epic.total}`
-  return { done: false, mark: `<ui-label class="spell-epic-state" size="mini" basic>${count}</ui-label>` }
+  return { done: false, mark: `<ui-label class="spell-epic-state" size="mini" color="blue" basic>${count}</ui-label>` }
+}
+
+/** `kinds` (`RunningEpic.followUps`) as words:  `2 issues, 1 test` (`index.js` has the same). */
+function followUpWords(kinds: string[]): string {
+  const counts = new Map<string, number>()
+  for (const kind of kinds) counts.set(kind, (counts.get(kind) ?? 0) + 1)
+  return [...counts].map(([kind, n]) => `${n} ${kind}${n === 1 ? "" : "s"}`).join(", ")
 }
 
 /** An epic state's icon:  `name` (in the docs bundle's `ICONS`), `color`, `title` on hover. */

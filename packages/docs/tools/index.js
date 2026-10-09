@@ -497,7 +497,7 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
  * An epic's card:  its state mark before the title (`epicState()`), then as `card()`, the active phase in the
  * meta line.
  * - `data-epic`:  its name, so the page server drops this card when the epic is running in a worktree too
- * - `data-status`:  `done` or `open`, so the section counts it, and its filter steps through them (`open` blue,
+ * - `data-status`:  `done` or `open`, so the section counts it, and its filter steps through them (`open` yellow,
  *   `done` grey:  `spell-doc-runtime.js`)
  * - SAME markup as `$/server/page` `RunningEpics`' cards:  change both
  */
@@ -512,32 +512,36 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
 }
 
 /**
- * An epic's state, from its phases and its "updated" date:  `{ done, mark }`, `mark` the HTML before its title.
- * - future:  written down with `/epic future`, not planned yet (a violet seedling;  epic `epic-future`)
+ * An epic's state, from its phases and its "updated" date:  `{ done, mark }`, `mark` the HTML before its title.  Its
+ * colours are the colour scheme's (Q20 of epic `epic-components`;  `templates/epics/plan-doc.md`, "Colours").
+ * - future:  written down with `/epic future`, not planned yet (a grey seedling:  not started;  epic `epic-future`)
  * - sleeping:  open follow-ups (`followUps`:  questions, judgement calls, issues, todos, tests) and no phase under
  *   way:  😴, what's open on hover (Owen, 2026-10-07:  "so I can see what I need to follow up on")
- * - planning:  no phases yet (a blue thought bubble)
+ * - planning:  no phases yet (a yellow thought bubble:  open, still undecided)
  * - done:  every phase done (a green check)
- * - stalled:  phases left, and no update for more than `STALLED_DAYS` (a yellow pause;  the date on hover)
- * - in progress:  `[3/6]`, phases done of all
+ * - stalled:  phases left, and no update for more than `STALLED_DAYS` (an orange pause, a warning;  the date on
+ *   hover)
+ * - in progress:  `[3/6]`, phases done of all, outlined in blue (under way)
  * - SAME as `$/server/page` `RunningEpics`' `stateMark()`:  change both
  */
 function epicState(phases, updated, future = false, followUps = []) {
   const done = phases.filter((phase) => phase.status === "done").length
-  if (future && !phases.length)
-    return { done: false, mark: stateIcon("seedling", "violet", "future:  not planned yet") }
+  if (future && !phases.length) return { done: false, mark: stateIcon("seedling", "grey", "future:  not planned yet") }
   if (phases.length && followUps.length && !phases.some((phase) => phase.status === "active")) {
     const tip = `sleeping:  ${followUpWords(followUps)} to follow up`
     return { done: false, sleeping: true, mark: `<span class="spell-epic-state" title="${attr(tip)}">😴</span>` }
   }
-  if (!phases.length) return { done: false, mark: stateIcon("comment dots", "blue", "planning") }
+  if (!phases.length) return { done: false, mark: stateIcon("comment dots", "yellow", "planning") }
   if (done === phases.length) return { done: true, mark: stateIcon("circle check", "green", "done") }
   const idle = updated ? (Date.now() - new Date(`${updated}T00:00`).getTime()) / 86_400_000 : 0
   if (idle > STALLED_DAYS) {
-    return { done: false, mark: stateIcon("circle pause", "yellow", `stalled:  no update since ${updated}`) }
+    return { done: false, mark: stateIcon("circle pause", "orange", `stalled:  no update since ${updated}`) }
   }
   const count = `${done}/${phases.length}`
-  return { done: false, mark: `<ui-label class="spell-epic-state" size="mini" basic>${count}</ui-label>` }
+  return {
+    done: false,
+    mark: `<ui-label class="spell-epic-state" size="mini" color="blue" basic>${count}</ui-label>`
+  }
 }
 
 /** An epic state's icon:  `name` (in `ICONS`), `color`, `title` on hover. */

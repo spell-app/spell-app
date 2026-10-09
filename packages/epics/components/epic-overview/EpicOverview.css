@@ -12,7 +12,23 @@
     --_epic-fold-gap: var(--epic-overview-gap, 28px);
   }
 
-  /* the summary:  a lede, a paragraph in the body face (`spell-doc.css`'s lede inside a section) */
+  /*
+   * ## The order:  summary, prompt, estimate, the rest.  `<epic-summary>` and `<epic-prompt>` come through the
+   * default slot with the sub-sections, so a column of flex items puts the estimate (drawn before the slot) after
+   * them.  No margins collapse in it:  every block here keeps its space below it, none above.
+   */
+  .body {
+    display: flex;
+    flex-direction: column;
+  }
+  .estimate {
+    order: 1;
+  }
+  ::slotted(:not([slot], epic-summary, epic-prompt)) {
+    order: 2;
+  }
+
+  /* an older doc's summary (`<epic-summary>` draws its own):  a lede, a paragraph in the body face */
   ::slotted([slot="summary"]) {
     max-width: 72ch;
     margin: 0 0 14px;
@@ -21,7 +37,7 @@
     text-wrap: pretty;
   }
 
-  /* ## The Kickoff prompt:  folded on the brand's ivory;  the prompt a card on it */
+  /* ## An older doc's Kickoff prompt (`<epic-prompt>` draws its own):  folded on the brand's ivory;  a card on it */
   .prompt {
     margin: 0 0 14px;
     border-radius: 10px;

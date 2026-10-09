@@ -70,7 +70,14 @@ const SAMPLES: { [T in EpicTag]: EpicData<T> } = {
   "epic-version": { asOf: "2026-10-04 20:49" },
   "epic-commit": { sha: "82d5106c165cbebf3922fd97793798e41f1b2760" },
   "epic-event": { at: "2026-10-06T08:12-04:00", icon: "pen to square" },
-  "epic-update": { phase: 2 }
+  "epic-update": { phase: 2 },
+  "epic-net-effect": { option: "A", recommended: true },
+  "epic-question": {},
+  "epic-summary": {},
+  "epic-prompt": {},
+  "epic-note": { state: "done", title: "option A, 2026-10-06" },
+  "epic-aside": { title: "where it stood at kickoff" },
+  "epic-code": { title: "design.ts · 12 lines", language: "ts", open: true }
 }
 
 /** A fresh linkedom document. */
@@ -90,14 +97,16 @@ function planDoc(document: Document): Element {
   const page = make("epic-page", { epic: "demo", title: "Demo", repo: "https://github.com/spell-app/spell-app" }, [
     '<a slot="durable" href="../../guides/demo.html">Demo</a>',
     make("epic-overview", { id: "overview" }, [
-      '<p slot="summary">Two sentences.</p>',
-      '<blockquote slot="prompt"><p>Build it.</p></blockquote>',
+      make("epic-summary", {}, "Two sentences."),
+      make("epic-prompt", {}, "<p>Build it.</p>"),
       make("epic-section", { id: "o1", kind: "overview-part" }, [
         '<span slot="title">The <code>x</code> API</span>',
         "<p>The substance.</p>",
+        make("epic-net-effect", {}, "<ul><li>one API</li></ul>"),
         '<h4 id="o1-detail">Detail</h4>'
       ])
     ]),
+    make("epic-section", { id: "overnight", kind: "report", title: "Overnight · 2026-10-04" }, "<p>The night.</p>"),
     make("epic-section", { id: "phases", kind: "phases" }, [
       make("epic-phase", { id: "p1", title: "Saved Replies", status: "done", estimate: "2h" }, [
         make("epic-field", { name: "symptom" }, "notes get lost"),
@@ -113,22 +122,38 @@ function planDoc(document: Document): Element {
     ]),
     make("epic-section", { id: "decisions", kind: "questions" }, [
       make("epic-item", { id: "q1", title: "Which colour names?", status: "decided", answered: true }, [
-        "<p>Which colour names should windows take?</p>",
+        make("epic-question", {}, "<p>Which colour names should windows take?</p>"),
         make("epic-update", { phase: 1 }),
+        make("epic-net-effect", { option: "A", recommended: true }, "<ul><li>names, not hex</li></ul>"),
         make("epic-choices", { chosen: "A" }, [
-          make("epic-option", { letter: "A", title: "A named palette", recommended: true }, "<ul><li>short</li></ul>"),
+          make("epic-option", { letter: "A", title: "A named palette", recommended: true }, [
+            "<ul><li>short</li></ul>",
+            make("epic-net-effect", {}, "<ul><li>twelve names</li></ul>")
+          ]),
           make("epic-option", { letter: "B", title: "Any CSS colour" }, "<ul><li>free</li></ul>")
         ]),
-        make("epic-answer", { id: "d1", title: "Named palette" }, "<p>Named.</p>"),
+        make("epic-answer", { id: "d1", title: "Named palette" }, [
+          "<p>Named.</p>",
+          make("epic-net-effect", {}, "<ul><li>named</li></ul>")
+        ]),
         make("epic-more", {}, "<p>More.</p>"),
-        make("epic-reply", { from: "Owen", at: "2026-10-06 10:42" }, "<p>Agreed.</p>"),
-        make("epic-original", {}, [make("epic-version", {}, "<p>As first asked.</p>")]),
+        make("epic-reply", { from: "Owen", at: "2026-10-06 10:42" }, [
+          "<p>Agreed.</p>",
+          '<div><epic-net-effect option="B"><ul><li>inside prose</li></ul></epic-net-effect></div>'
+        ]),
+        make("epic-original", {}, [
+          make("epic-version", {}, [make("epic-question", {}, "<p>As first asked.</p>"), "<p>Why it matters.</p>"])
+        ]),
         make("epic-commit", { sha: "08683b6" }, "names the palette")
       ])
     ]),
     make("epic-section", { id: "judgements", kind: "judgements" }, [
       make("epic-item", { id: "j1", title: "Kept the old ids", status: "open", phase: 1 }, [
-        '<p>Chose X. <epic-update phase="1"></epic-update></p>'
+        '<p>Chose X. <epic-update phase="1"></epic-update></p>',
+        make("epic-note", { state: "update", title: "partly fixed by J9" }, "<p>Reworded.</p>"),
+        make("epic-aside", { title: "where it stood" }, "<p>Before.</p>"),
+        make("epic-code", { title: "x.ts", language: "ts" }, "<pre>let x = 1</pre>"),
+        '<ul><li>in a list:  <epic-code title="y.ts"><pre>let y = 2</pre></epic-code></li></ul>'
       ])
     ]),
     make("epic-section", { id: "log", kind: "log" }, [
@@ -316,6 +341,80 @@ describe("Markup.validate()", () => {
     expect(summary(Markup.validate(document))).toEqual(["not allowed here:  <epic-reply>"])
   })
 
+  test("the prose elements (P14):  Net effect wherever prose goes, the question FIRST in its item, summary and prompt ONCE in the Overview", () => {
+    const document = documentOf(`
+      <epic-page epic="demo" title="Demo">
+        <epic-overview id="overview">
+          <epic-summary>One.</epic-summary><epic-summary>Two.</epic-summary>
+          <epic-prompt><p>Go.</p></epic-prompt>
+          <epic-section id="o1" kind="overview-part" title="Parts">
+            <epic-net-effect option="A"><ul><li>ok</li></ul></epic-net-effect>
+            <epic-summary>not here</epic-summary>
+          </epic-section>
+        </epic-overview>
+        <epic-section id="decisions" kind="questions">
+          <epic-item id="q1" title="x" status="open">
+            <p>Lead.</p><epic-question><p>Late.</p></epic-question>
+            <epic-choices><epic-option letter="A" title="a"><epic-question>no</epic-question></epic-option></epic-choices>
+          </epic-item>
+          <epic-item id="q2" title="y" status="open">
+            <epic-question><p>Asked.</p></epic-question>
+            <epic-net-effect option="a"><ul><li>bad letter</li></ul></epic-net-effect>
+          </epic-item>
+        </epic-section>
+      </epic-page>`)
+    expect(summary(Markup.validate(document))).toEqual([
+      "too many:  <epic-summary>",
+      "not allowed here:  <epic-summary>",
+      "out of order:  <epic-question>",
+      "not allowed here:  <epic-question>",
+      "bad value:  <epic-net-effect>"
+    ])
+  })
+
+  test("option cards on ANY item kind and labelled blocks in prose (P14):  among the text, in a reply, never in a phase", () => {
+    const document = documentOf(`
+      <epic-page epic="demo" title="Demo">
+        <epic-overview id="overview"></epic-overview>
+        <epic-section id="phases" kind="phases">
+          <epic-phase id="p1" title="One" status="todo">
+            <epic-field name="goal">g</epic-field>
+            <epic-field label="Where">not in a phase</epic-field>
+          </epic-phase>
+        </epic-section>
+        <epic-section id="judgements" kind="judgements">
+          <epic-item id="j1" title="x" status="open">
+            <p>The call.</p>
+            <epic-choices><epic-option letter="A" title="a"></epic-option></epic-choices>
+            <epic-net-effect option="A"><ul><li>ok</li></ul></epic-net-effect>
+            <epic-field label="Where"><p>the inbox</p></epic-field>
+            <p>More prose after the cards.</p>
+            <epic-reply from="Claude" at="2026-10-07 10:50">
+              <div><epic-choices><epic-option letter="B" title="b"></epic-option></epic-choices></div>
+              <epic-field label="Step">one</epic-field>
+            </epic-reply>
+          </epic-item>
+        </epic-section>
+        <epic-section id="issues" kind="issues">
+          <epic-item id="i1" title="y" status="open"><epic-field>neither</epic-field></epic-item>
+        </epic-section>
+      </epic-page>`)
+    expect(summary(Markup.validate(document))).toEqual([
+      "not allowed here:  <epic-field>",
+      "missing attribute:  <epic-field>"
+    ])
+  })
+
+  test('an older doc\'s Overview, `<p slot="summary">` and `<blockquote slot="prompt">`, still checks clean', () => {
+    const document = documentOf(`
+      <epic-page epic="demo" title="Demo">
+        <epic-overview id="overview">
+          <p slot="summary">Two sentences.</p><blockquote slot="prompt"><p>Build it.</p></blockquote>
+        </epic-overview>
+      </epic-page>`)
+    expect(summary(Markup.validate(document))).toEqual([])
+  })
+
   test("reports fixed section ids, item letters in the wrong section, a `chosen` no option has, duplicate ids", () => {
     const document = documentOf(`
       <epic-page epic="demo" title="Demo">
@@ -348,6 +447,20 @@ describe("Markup.validate()", () => {
     expect(summary(Markup.validate(log.body, { as: host }))).toEqual(['not allowed here:  <epic-item id="q1">'])
   })
 
+  test('a report (`<epic-section kind="report">`):  after the Overview, any id, titled;  never before the Overview', () => {
+    const document = documentOf(`
+      <epic-page epic="demo" title="Demo">
+        <epic-section id="early" kind="report" title="Too early"></epic-section>
+        <epic-overview id="overview"></epic-overview>
+        <epic-section id="overnight" kind="report"><p>untitled</p></epic-section>
+        <epic-section id="night-2" kind="report"><span slot="title">Night <code>2</code></span></epic-section>
+      </epic-page>`)
+    expect(summary(Markup.validate(document))).toEqual([
+      'out of order:  <epic-overview id="overview">',
+      'missing attribute:  <epic-section id="overnight">'
+    ])
+  })
+
   test("checks a single element as itself", () => {
     const item = documentOf(`<epic-item id="q1" title="x" status="open"><p>ok</p></epic-item>`).body.firstElementChild!
     expect(Markup.validate(item)).toEqual([])
@@ -355,5 +468,20 @@ describe("Markup.validate()", () => {
     expect(Markup.validate(item)).toMatchObject([
       { kind: "bad value", where: '<epic-item id="q1">', message: expect.stringMatching(/`state="red"` isn't one/) }
     ])
+  })
+})
+
+describe("Markup.place()", () => {
+  test("`<epic-choices>` is prose in an item (J72):  it stays where it was put, prose added after it follows it", () => {
+    const document = documentOf(`<epic-item id="q1" title="x"><epic-answer></epic-answer></epic-item>`)
+    const item = document.querySelector("epic-item")!
+    const option = Markup.element(document, "epic-option", { letter: "A", title: "a" })
+    Markup.place(item, Markup.element(document, "epic-choices", {}, [option]))
+    Markup.place(item, document.createElement("p"))
+    expect(Array.from(item.children, (child) => child.localName)).toEqual(["epic-choices", "p", "epic-answer"])
+    // in prose, the same choices go anywhere:  a reply's, a judgement call's text (epic `epic-components` P14)
+    const reply = Markup.element(document, "epic-reply", {}, [document.createElement("p")])
+    reply.append(item.querySelector("epic-choices")!, document.createElement("p"))
+    expect(Markup.validate(reply)).toEqual([])
   })
 })

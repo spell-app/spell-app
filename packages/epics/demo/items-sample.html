@@ -38,18 +38,21 @@
               state="attention"
               phase="2"
             >
-              <p>
-                Which colour names <code>/epic &lt;name&gt; -&lt;color&gt;</code> accepts. The colour is the title
-                bar's; the theme stays the window's own.
-              </p>
-              <ul>
-                <li>Today a worktree's window gets a hue made from its name: every window different, none chosen.</li>
-                <li>The title bar needs a DARK shade, so its white text reads.</li>
-              </ul>
-              <p><b>Net effect:</b></p>
-              <ul>
-                <li><code>/epic new-thing -purple</code> opens a window with a dark purple title bar</li>
-              </ul>
+              <epic-question>
+                <p>
+                  Which colour names <code>/epic &lt;name&gt; -&lt;color&gt;</code> accepts. The colour is the title
+                  bar's; the theme stays the window's own.
+                </p>
+                <ul>
+                  <li>Today a worktree's window gets a hue made from its name: every window different, none chosen.</li>
+                  <li>The title bar needs a DARK shade, so its white text reads.</li>
+                </ul>
+              </epic-question>
+              <epic-net-effect option="A" recommended>
+                <ul>
+                  <li><code>/epic new-thing -purple</code> opens a window with a dark purple title bar</li>
+                </ul>
+              </epic-net-effect>
               <epic-choices>
                 <epic-option letter="A" title="A named palette" recommended>
                   <ul>
@@ -57,6 +60,11 @@
                     <li>an unknown name lists the 12</li>
                   </ul>
                   <p>Why: short to type, always readable.</p>
+                  <epic-net-effect>
+                    <ul>
+                      <li>twelve names to learn, all readable</li>
+                    </ul>
+                  </epic-net-effect>
                 </epic-option>
                 <epic-option letter="B" title="Any CSS colour">
                   <ul>
@@ -83,10 +91,12 @@
               reviewed="2026-10-06"
               part-ids="d2"
             >
-              <p>The four action colours. Today's "don't feel right"; a proposal, to be shown as real buttons.</p>
-              <ul>
-                <li>Unchosen: all four a dark grey outline, as asked.</li>
-              </ul>
+              <epic-question>
+                <p>The four action colours. Today's "don't feel right"; a proposal, to be shown as real buttons.</p>
+                <ul>
+                  <li>Unchosen: all four a dark grey outline, as asked.</li>
+                </ul>
+              </epic-question>
               <epic-update phase="2"></epic-update>
               <epic-choices chosen="B">
                 <epic-option letter="A" title="Fomantic's own: green, violet, blue, orange">
@@ -113,6 +123,11 @@
               </epic-reply>
               <epic-reply from="Claude" at="2026-10-06 23:55" re="as built (Doc Review)">
                 <p>Checked dark: both read, the orange a little lighter.</p>
+                <epic-net-effect>
+                  <ul>
+                    <li>the same four colours in both schemes</li>
+                  </ul>
+                </epic-net-effect>
               </epic-reply>
               <epic-original>
                 <epic-version><p>Which colours for the review buttons?</p></epic-version>
@@ -185,10 +200,11 @@
               <ul>
                 <li>over: a redirect table</li>
               </ul>
-              <p><b>Net effect:</b></p>
-              <ul>
-                <li>old links land on the answer, unfolding its item</li>
-              </ul>
+              <epic-net-effect>
+                <ul>
+                  <li>old links land on the answer, unfolding its item</li>
+                </ul>
+              </epic-net-effect>
             </epic-item>
             <epic-item
               id="j2"

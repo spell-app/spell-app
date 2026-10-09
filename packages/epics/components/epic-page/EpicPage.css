@@ -15,6 +15,11 @@
 @layer ui.components.epic-page.types {
   :host {
     display: block;
+    /*
+     * ## Edge to edge (P14):  out of `<main>`'s inline padding, the docs' token (`spell-doc.css`), so the bands reach
+     * across;  everything inside insets itself by `--epic-inset`.  A page without the token:  no breakout
+     */
+    margin-inline: calc(-1 * var(--spell-doc-pad-inline, 0px));
 
     /* ## Colours */
     --epic-ink: var(--spell-ink, var(--ui-text-color));
@@ -42,16 +47,19 @@
     --epic-control-size: 28px;
 
     /*
-     * ## Item states:  an item's id chip colours (and a To review link's), by `state`.
-     * - red keeps its light-mode hue in dark mode too:  dark's lighter red reads as the orange beside it
+     * ## Item states:  an item's id chip colours (and a To review link's), by `state` -- one meaning per colour
+     *   (decision Q20, Owen, 2026-10-08):  red needs Owen, blue Claude is on it, yellow open, green done lately, grey
+     *   older.
+     * - red keeps its light-mode hue in dark mode too:  dark's lighter red reads as orange
      *   (the raw per-scheme base on purpose, as `plan-doc.css` had it)
+     * - yellow takes DARK ink (`--ui-yellow-on`):  white on yellow can't be read
      */
     --epic-state-attention: light-dark(var(--ui-red), var(--ui-red-on-light));
     --epic-state-attention-on: light-dark(var(--ui-red-on), var(--ui-ink-on-dark));
-    --epic-state-open: var(--ui-blue);
-    --epic-state-open-on: var(--ui-blue-on);
-    --epic-state-progress: var(--ui-orange);
-    --epic-state-progress-on: var(--ui-orange-on);
+    --epic-state-open: var(--ui-yellow);
+    --epic-state-open-on: var(--ui-yellow-on);
+    --epic-state-progress: var(--ui-blue);
+    --epic-state-progress-on: var(--ui-blue-on);
     --epic-state-recent: var(--ui-green);
     --epic-state-recent-on: var(--ui-green-on);
     --epic-state-old: var(--ui-grey-background);
@@ -167,9 +175,10 @@
   }
 
   /*
-   * ## Send and Review Now (while reviewed):  round, icon only, as tall as the git toggle beside them.  Send:  grey
-   * with nothing to send, blue with unsent marks, outlined blue once sent.  Review Now:  blue while there's anything
-   * for Claude to work through
+   * ## Send and Review Now (while reviewed):  round, icon only, as tall as the git toggle beside them;  blue, an ask
+   * of Claude, wearing the fill (decision Q20).  Send:  a grey outline with nothing to send, DASHED blue with marks
+   * not sent, outlined blue once sent (recorded, not done).  Review Now:  outlined blue while there's anything for
+   * Claude to work through, solid when pointed at
    */
   .actions {
     display: inline-flex;
@@ -198,19 +207,18 @@
     color: inherit;
   }
   :is(.send, .review-now):hover {
-    color: var(--epic-accent);
+    color: var(--_tint);
   }
   .send[data-state="unsent"] {
-    border-color: var(--_tint);
-    background: var(--_tint);
-    color: var(--ui-blue-on, #fff);
+    border: 2px dashed var(--_tint);
+    color: var(--_tint);
   }
   .send[data-state="sent"] {
     border: 2px solid var(--_tint);
     color: var(--_tint);
   }
   .review-now[data-state="ready"] {
-    border-color: var(--_tint);
+    border: 2px solid var(--_tint);
     color: var(--_tint);
   }
   .review-now[data-state="ready"]:hover {
@@ -267,7 +275,8 @@
 
   /*
    * ## The review line, under the header:  a quiet line of text, the icon centred on its first row;  a click copies
-   * the command and flashes it yellow (`.flash`, `FLASH_MS`).  Nobody reviewing:  it says so, in the ink
+   * the command and flashes it yellow (`.flash`, `FLASH_MS`).  Nobody reviewing:  it says so, a warning in solid
+   * orange, its ink reversed, so it stands out (Owen, 2026-10-08, the colour page's example E)
    */
   .review-line {
     display: grid;
@@ -294,11 +303,25 @@
     outline: 2px solid var(--ui-focus-color, var(--epic-accent));
     outline-offset: 1px;
   }
+  /*
+   * inverse, white on orange (Owen):  light mode's orange a step deeper in BOTH schemes (the raw per-scheme base on
+   * purpose, as the red chips:  dark's lighter orange can't carry white), and the words bold, so white reads on it
+   */
   .review-line.nobody {
-    color: var(--epic-ink);
+    --_nobody: oklch(from var(--ui-orange-on-light, #f2711c) calc(l - 0.12) c h);
+    background: var(--_nobody);
+    color: var(--ui-ink-on-dark, #fff);
+    font-weight: 600;
   }
-  .review-line.nobody .icon {
-    color: var(--ui-orange-text, var(--ui-orange));
+  .review-line.nobody :is(.icon, code) {
+    color: inherit;
+  }
+  .review-line.nobody code {
+    background: color-mix(in oklab, var(--ui-ink-on-dark, #fff) 18%, transparent);
+  }
+  .review-line.nobody:hover {
+    background: oklch(from var(--_nobody) calc(l - 0.05) c h);
+    color: var(--ui-ink-on-dark, #fff);
   }
   .review-line .done {
     color: var(--epic-ink);

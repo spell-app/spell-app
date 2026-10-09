@@ -13,6 +13,8 @@ import {
   PHASE_STATUSES,
   PlanDocError,
   QUESTION_ID,
+  REVIEW_AS,
+  UNDERWAY_CARD,
   isItemKind,
   isPhaseStatus,
   type AddItemOptions,
@@ -33,7 +35,8 @@ import {
   type OriginalResult,
   type Phase,
   type PhaseFieldValues,
-  type PlanMark
+  type PlanMark,
+  type ReviewAs
 } from "./planDoc.types"
 
 import { IncomingHtml } from "./IncomingHtml"
@@ -183,7 +186,7 @@ export class PlanDoc extends PlanReader {
     const framed = values.symptom !== undefined || values.changes !== undefined
     const fields = PHASE_FIELDS.filter((name) =>
       framed ? name !== "goal" || values.goal !== undefined : name !== "symptom" && name !== "changes"
-    ).map((name) => this.make("epic-field", { name }, values[name] ?? "TBD"))
+    ).map((name) => this.make("epic-field", { name }, this.incoming(values[name] ?? "TBD")))
     const phase = this.make("epic-phase", { id: `p${n}`, title: name, status: "todo", estimate }, fields)
     if (before === undefined) section.append(phase)
     else this.phase(n + 1).before(phase)
@@ -303,11 +306,13 @@ export class PlanDoc extends PlanReader {
    * - `at`:  now, `YYYY-MM-DD HH:MM`;  `phase`:  the phase active when it was written, if any
    * - it STAYS when a phase is done (unlike the UPDATE markers);  while its phase is to do, the Phases section lists
    *   it in its Plan changes box (drawn)
+   * - old prose shapes in `html` (a Net effect paragraph, a code accordion ...) become elements (`IncomingHtml`)
    * - SIDE EFFECT:  logs it
    */
   addPhaseUpdate(n: number, html: string): void {
     const phase = this.phase(n)
-    Markup.place(phase, this.make("epic-updated", { at: PlanTime.clockTime(this.now), phase: this.activePhase }, html))
+    const data = { at: PlanTime.clockTime(this.now), phase: this.activePhase }
+    Markup.place(phase, this.make("epic-updated", data, this.incoming(html)))
     this.log(`P${n} plan updated`)
   }
 
@@ -394,6 +399,7 @@ export class PlanDoc extends PlanReader {
       queued: data.queued,
       work: data.work,
       working: Boolean(data.working),
+      underway: !!item.querySelector(UNDERWAY_CARD),
       bedtime: Boolean(data.bedtime),
       calm: Boolean(data.calm)
     }
@@ -421,7 +427,8 @@ export class PlanDoc extends PlanReader {
   /**
    * Add a `kind` item titled `title`;  returns its id (`c3`).
    * - `details`:  HTML, its children (its text, and cards:  `<epic-choices>` ...);  old shapes are turned into
-   *   elements on the way in (`IncomingHtml`)
+   *   elements on the way in (`IncomingHtml`);  a question's lead, the question as asked, goes in an
+   *   `<epic-question>` (P14) unless the HTML has one
    * - `titleHTML`:  `title` is HTML;  with markup, it's a `slot="title"` child
    * - a question goes after the open questions at the top of its section;  a decision is a question born answered
    *   (D13):  the next `q` id, `decided`, `answered`, `title` its answer, among the answered ones;  everything else
@@ -449,7 +456,7 @@ export class PlanDoc extends PlanReader {
       ...(calm && { calm: true })
     }
     const item = this.make("epic-item", data, heading.slot ? [heading.slot] : [])
-    for (const node of this.incoming(details)) Markup.place(item, node)
+    for (const node of this.incoming(details, { question: kind === "question" })) Markup.place(item, node)
     section.append(item)
     if (spec.prefix === KINDS.question.prefix) this.placeQuestion(item)
     this.stamp(item)
@@ -464,15 +471,16 @@ export class PlanDoc extends PlanReader {
    *   and Choices
    * - answering again replaces the answer in place:  the old one goes into the question's Original Discussion
    *   (`keepOriginal()`), never dropped;  an old decision's id (`d7`) stays on the new answer
-   * - `option` (`A`):  that option is the chosen one (`chooseOption()`)
+   * - `option` (`A`):  that option is the chosen one (`chooseOption()`), of the question's own options or (`choices`,
+   *   I8) of the card set at that position, a reply's say;  a question has ONE answer, so no other set stays chosen
    * - moves among the answered questions, in id order:  open ones stay on top
    * - throws when `questionId` isn't a question
    */
-  decide(questionId: string, answer: string, { details, option }: DecideOptions = {}): string {
+  decide(questionId: string, answer: string, { details, option, choices }: DecideOptions = {}): string {
     const question = this.item(questionId)
     if (!QUESTION_ID.test(question.id)) throw new PlanDocError(`${questionId} isn't a question`)
     const old = question.querySelector(":scope > epic-answer")
-    const card = this.make("epic-answer", { title: answer }, this.incoming(details, { cards: false }))
+    const card = this.make("epic-answer", { title: answer }, this.incoming(details))
     if (old) {
       const id = old.getAttribute("id") ?? undefined
       old.replaceWith(card)
@@ -482,7 +490,10 @@ export class PlanDoc extends PlanReader {
       if (!same) this.keepOriginal(question, [Markup.set(old, { id })])
       Markup.set(card, { id })
     } else Markup.place(question, card)
-    if (option) this.chooseOption(question, option)
+    if (option) {
+      const set = this.chooseOption(question, option, choices)
+      for (const other of PlanItem.choiceSets(question)) if (other !== set) Markup.set(other, { chosen: undefined })
+    }
     Markup.set(question, { status: "decided", answered: true })
     this.placeQuestion(question)
     this.stamp(question)
@@ -491,19 +502,29 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Mark option `letter` (`A`, `B` ...) of question `item` as the one chosen:  `<epic-choices chosen="B">`.
-   * - throws when no option has that letter;  never one in its Original Discussion (that's history)
+   * Mark option `letter` (`A`, `B` ...) of `item` as the one chosen:  `<epic-choices chosen="B">`, on its own card set
+   * or (`choices`) the one at that position (`PlanItem.choiceSet()`, I8);  returns that set.
+   * - throws when the set has no option with that letter;  never one in its Original Discussion (that's history)
    */
-  chooseOption(item: Element, letter: string): void {
+  chooseOption(item: Element, letter: string, choices?: number): Element {
     const want = String(letter).trim().toUpperCase()
-    if (!PlanItem.optionsOf(item).some((option) => option.letter === want))
-      throw new PlanDocError(`${item.id.toUpperCase()} has no option ${want}`)
-    Markup.set(PlanItem.choicesOf(item)!, { chosen: want })
+    const set = PlanItem.choiceSet(item, choices)
+    if (!set || !PlanItem.optionsIn(set).some((option) => option.letter === want))
+      throw new PlanDocError(`${item.id.toUpperCase()} has no option ${want}${cardSetWords(choices)}`)
+    Markup.set(set, { chosen: want })
+    return set
   }
 
-  /** Question `item`'s options:  `[{ letter, title, recommended }]`. */
-  optionCards(item: Element): OptionCard[] {
-    return PlanItem.optionsOf(item).map(({ letter, title, recommended }) => ({ letter, title, recommended }))
+  /**
+   * `item`'s options:  `[{ letter, title, recommended }]`;  its own card set's, or (`choices`) the one at that
+   * position (`PlanItem.choiceSet()`, I8).
+   */
+  optionCards(item: Element, choices?: number): OptionCard[] {
+    return PlanItem.optionsIn(PlanItem.choiceSet(item, choices)).map(({ letter, title, recommended }) => ({
+      letter,
+      title,
+      recommended
+    }))
   }
 
   /**
@@ -669,7 +690,7 @@ export class PlanDoc extends PlanReader {
     const current = PlanItem.currentText(item)
     const original = item.querySelector(":scope > epic-original")
     const prose = this.document.createElement("div")
-    for (const node of Array.from(current.cloneNode(true).childNodes)) prose.append(PlanItem.asProse(node))
+    for (const node of Array.from(current.cloneNode(true).childNodes)) prose.append(PlanItem.asProse(node, PLAIN))
     return {
       details: PlanMarkup.squeeze(this.shownText(current)),
       detailsHtml: prose.innerHTML.trim(),
@@ -698,7 +719,9 @@ export class PlanDoc extends PlanReader {
    *     recommended:  left, "needs talk"
    *   - an open judgement call:  closed (accepted);  an open test:  closed (it passed);  both reviewed
    *   - anything else (an open caveat, issue or todo;  a closed or answered item):  reviewed
-   * - `pick`:  the question answered with that option (its title the answer), and reviewed
+   * - `pick`, from any of the item's card sets (`choices`, by position;  none, its own:  I8):  that set's option
+   *   chosen;  a question answered with it (its title the answer), any other item APPROVED with it (as approve);
+   *   reviewed, a Done card `Chose B · <title>` (`pickOption()`)
    * - `todo`:  a new todo, "Follow up:  <title>", linking back;  the item reviewed
    * - `revisit` soon:  left, for Claude to talk over in the chat;  `details`, revisit `now`:  left, an agent's
    *   - a revisit carrying a `pick` ("pick B, but ..."):  left too, NOT answered:  the note may change the pick
@@ -724,17 +747,18 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Record on `item` how Owen's review mark was handled (`review-as`:  `approve`, `todo`, `revisit`), once Claude
-   * applied it or talked it over:  the inbox forgets the mark, the doc keeps it, and the page keeps that review
-   * button coloured after a reload (epic `windows-and-review` P2, Q8).  A pick counts as approve.
+   * Record on `item` how Owen's review mark was handled (`review-as`:  `approve`, `todo`, `revisit`, `now`), once
+   * Claude applied it, talked it over or did it:  the inbox forgets the mark, the doc keeps it, and the page keeps that
+   * review button SOLID after a reload (done:  epic `windows-and-review` P2, Q8;  the fill rule, Q20).  A pick counts
+   * as approve;  `now`:  an immediate request (Do Now) done.
    * - any other action:  nothing to record
    */
   reviewedAs(item: Element, action: string): void {
-    if (action === "approve" || action === "todo" || action === "revisit") Markup.set(item, { reviewAs: action })
+    if ((REVIEW_AS as readonly string[]).includes(action)) Markup.set(item, { reviewAs: action as ReviewAs })
   }
 
   /** `applyMark()`'s work on `item`, the log line aside. */
-  applyAction(item: Element, { action, pick, when, note }: PlanMark): MarkResult {
+  applyAction(item: Element, { action, pick, choices, when, note }: PlanMark): MarkResult {
     const kind = PlanItem.kindOf(item.id)
     const open = item.getAttribute("status") === "open"
     switch (action) {
@@ -745,22 +769,10 @@ export class PlanDoc extends PlanReader {
           this.answerWith(item, option)
           return { applied: true, did: `approved:  answered ${option.letter} · ${option.title} (recommended)` }
         }
-        if (open && (kind === "judgement" || kind === "test")) {
-          this.setItem(item.id, "done")
-          this.review(item.id)
-          return { applied: true, did: `approved:  closed (${kind === "test" ? "passed" : "accepted"})` }
-        }
-        this.review(item.id)
-        return { applied: true, did: "approved:  reviewed" }
+        return { applied: true, did: `approved:  ${this.approve(item, kind, open)}` }
       }
-      case "pick": {
-        if (kind !== "question") return { applied: false, left: `not a question:  can't pick ${pick}` }
-        const option = this.optionCards(item).find((card) => card.letter === pick)
-        if (!option) return { applied: false, left: `no option ${pick}` }
-        this.answerWith(item, option)
-        this.addStatus(item.id, `Chose ${option.letter} · ${PlanMarkup.text(option.title)}`, { done: true })
-        return { applied: true, did: `picked ${option.letter}:  ${option.title}` }
-      }
+      case "pick":
+        return this.pickOption(item, kind, open, pick, choices)
       case "todo": {
         const todo = this.followUp(item.id, kind, PlanItem.titleOf(item), note)
         this.review(item.id)
@@ -769,15 +781,66 @@ export class PlanDoc extends PlanReader {
       }
       default:
         return this.leftForClaude({ action, pick, when, note }, () =>
-          this.optionCards(item).find((card) => card.letter === pick)
+          this.optionCards(item, choices).find((card) => card.letter === pick)
         )
     }
   }
 
-  /** Answer question `item` with option `option` (`optionCards()`'s):  `decide()`, the option chosen;  reviewed. */
-  answerWith(item: Element, option: OptionCard): void {
-    this.decide(item.id, option.title, { option: option.letter })
+  /**
+   * Answer question `item` with option `option` (`optionCards()`'s):  `decide()`, the option chosen (in card set
+   * `choices`, by position:  none, the question's own);  reviewed.
+   */
+  answerWith(item: Element, option: OptionCard, choices?: number): void {
+    this.decide(item.id, option.title, { option: option.letter, choices })
     this.review(item.id)
+  }
+
+  /**
+   * Approve `item` (of `kind`, `open` or not) as it stands;  returns what it did, for the log line.
+   * - an open judgement call:  closed (accepted);  an open test:  closed (it passed);  both reviewed
+   * - anything else (an open caveat, issue or todo;  a closed item):  reviewed
+   */
+  private approve(item: Element, kind: string, open: boolean): string {
+    if (open && (kind === "judgement" || kind === "test")) {
+      this.setItem(item.id, "done")
+      this.review(item.id)
+      return `closed (${kind === "test" ? "passed" : "accepted"})`
+    }
+    this.review(item.id)
+    return "reviewed"
+  }
+
+  /**
+   * A pick (a Choose pill, I8):  option `pick` of `item`'s card set at position `choices` (none:  its own) is the
+   * chosen one, `<epic-choices chosen>`, wherever the set sits:  its text, a reply, More Details.
+   * - a question:  answered with it (`answerWith()`)
+   * - any other kind:  APPROVED with it (`approve()`:  an open judgement call closed, accepted;  reviewed)
+   * - either way, a Done status card, `Chose B · <title>` (Q19), and the option in the log line
+   * - left for Claude when the item has no such set, or the set no such option
+   */
+  private pickOption(
+    item: Element,
+    kind: string,
+    open: boolean,
+    pick: string | undefined,
+    choices: number | undefined
+  ): MarkResult {
+    const set = PlanItem.choiceSet(item, choices)
+    if (!set) return { applied: false, left: `no option cards${cardSetWords(choices)}:  can't pick ${pick}` }
+    const option = PlanItem.optionsIn(set).find((card) => card.letter === pick)
+    if (!option) return { applied: false, left: `no option ${pick}${cardSetWords(choices)}` }
+    const where = set.closest(REPLY_TAG) ? " (a reply's options)" : set.closest(MORE_TAG) ? " (More Details')" : ""
+    const picked = `picked ${option.letter}:  ${option.title}${where}`
+    let did: string
+    if (kind === "question") {
+      this.answerWith(item, option, choices)
+      did = picked
+    } else {
+      this.chooseOption(item, option.letter, choices)
+      did = `${picked};  approved:  ${this.approve(item, kind, open)}`
+    }
+    this.addStatus(item.id, `Chose ${option.letter} · ${PlanMarkup.text(option.title)}`, { done: true })
+    return { applied: true, did }
   }
 
   /**
@@ -790,12 +853,15 @@ export class PlanDoc extends PlanReader {
    *   replies) move into the item's Original Discussion (`keepOriginal()`);  appending moves nothing
    * - replacing an ANSWERED question's text:  the option chosen before stays chosen when the new options still have
    *   its letter
-   * - old shapes in `html` (an option grid, a `div.plan-reply`) become elements (`IncomingHtml`)
+   * - old shapes in `html` (an option grid, a `div.plan-reply`, a Net effect paragraph, a code accordion ...) become
+   *   elements (`IncomingHtml`)
+   * - a question's new text:  its lead, the question as now asked, in an `<epic-question>` (P14);  the one it replaces
+   *   goes into the Original Discussion with the rest of the old text
    * - stamped (`changed`) and flagged UPDATE
    */
   setDetails(id: string, html: string, { append = false }: { append?: boolean } = {}): string {
     const item = this.item(id)
-    const nodes = this.incoming(html)
+    const nodes = this.incoming(html, { question: !append && QUESTION_ID.test(item.id) })
     if (!append) {
       const answered = item.querySelector(":scope > epic-answer")
       const chosen = answered ? PlanItem.choicesOf(item)?.getAttribute("chosen") : null
@@ -829,7 +895,7 @@ export class PlanDoc extends PlanReader {
       old.remove()
       this.keepOriginal(item, Array.from(old.childNodes))
     }
-    Markup.place(item, this.make("epic-more", {}, this.incoming(html, { cards: false })))
+    Markup.place(item, this.make("epic-more", {}, this.incoming(html)))
     this.stamp(item)
     this.markUpdate(item)
     return PlanItem.titleOf(item)
@@ -973,7 +1039,7 @@ export class PlanDoc extends PlanReader {
    */
   finishStatus(id: string, summary?: string): string {
     const host = this.statusHost(id)
-    const card = Array.from(host.querySelectorAll(':scope > epic-status[state="underway"]')).at(-1)
+    const card = Array.from(host.querySelectorAll(UNDERWAY_CARD)).at(-1)
     if (!card)
       throw new PlanDocError(
         `${id.toUpperCase()} has no underway status card:  \`status <name> ${id} underway "<reading>"\` first ` +
@@ -1000,7 +1066,7 @@ export class PlanDoc extends PlanReader {
   private statusBlocks(html: string): Element[] {
     const blocks: Element[] = []
     let paragraph: Element | undefined
-    for (const node of this.incoming(html, { cards: false })) {
+    for (const node of this.incoming(html)) {
       if (PlanMarkup.isElement(node) && STATUS_BLOCKS.test(node.localName)) {
         blocks.push(node)
         paragraph = undefined
@@ -1036,7 +1102,7 @@ export class PlanDoc extends PlanReader {
     for (const item of this.allItems) {
       const state = this.itemState(item)
       if (item.getAttribute("state") === state) continue
-      Markup.set(item, { state })
+      Markup.set<"epic-item">(item, { state })
       changed++
     }
     for (const phase of this.phaseElements) if (this.updateToReview(phase)) changed++
@@ -1054,7 +1120,7 @@ export class PlanDoc extends PlanReader {
     const items = this.allItems.filter((item) => {
       const facts = this.facts(item)
       if (facts.phase !== n || CLOSED.has(facts.status) || OLD_DECISION.test(facts.id)) return false
-      return facts.reviewed === undefined && facts.queued === undefined && !facts.working
+      return facts.reviewed === undefined && facts.queued === undefined && !facts.working && !facts.underway
     })
     if (!items.length) {
       old?.remove()
@@ -1195,28 +1261,21 @@ export class PlanDoc extends PlanReader {
   ////////////////
 
   /**
-   * Set the prompt that started the plan:  `<blockquote slot="prompt">` in the Overview (drawn folded, "Kickoff
-   * prompt"), one `<p>` per paragraph (blank lines split them, single newlines become `<br>`).  Replaces any earlier
-   * one;  `""` removes it.
+   * Set the prompt that started the plan:  `<epic-prompt>` in the Overview (drawn folded, "Kickoff prompt", P14),
+   * after its summary, one `<p>` per paragraph (blank lines split them, single newlines become `<br>`).  Replaces any
+   * earlier one, an older doc's `<blockquote slot="prompt">` too;  `""` removes it.
    */
   setPrompt(prompt: string | null | undefined): void {
     const overview = this.overview
-    const quote = overview.querySelector(':scope > [slot="prompt"]')
+    const old = overview.querySelector(`:scope > epic-prompt, :scope > [slot="prompt"]`)
     const html = promptHTML(prompt)
     if (!html) {
-      quote?.remove()
+      old?.remove()
       return
     }
-    if (quote) {
-      quote.innerHTML = html
-      return
-    }
-    const made = this.document.createElement("blockquote")
-    made.setAttribute("slot", "prompt")
-    made.innerHTML = html
-    const summary = overview.querySelector(':scope > [slot="summary"]')
-    if (summary) summary.after(made)
-    else overview.prepend(made)
+    const made = this.make("epic-prompt", {}, html)
+    if (old) old.replaceWith(made)
+    else Markup.place(overview, made)
   }
 
   ////////////////
@@ -1266,16 +1325,20 @@ export class PlanDoc extends PlanReader {
     }
     if (old) {
       old.replaceChildren()
-      Markup.append(old, html)
+      Markup.append(old, this.incoming(html))
       return
     }
-    Markup.place(phase, this.make("epic-field", { name }, html))
+    Markup.place(phase, this.make("epic-field", { name }, this.incoming(html)))
   }
 
-  /** `html` (a command's) as nodes of this doc, old shapes turned into elements (`IncomingHtml`). */
-  private incoming(html: string | undefined, { cards = true }: { cards?: boolean } = {}): Node[] {
+  /**
+   * `html` (a command's) as nodes of this doc, old shapes turned into elements (`IncomingHtml`).
+   * - `question`:  it's a question's text:  its lead, the question as asked, goes in an `<epic-question>`
+   */
+  private incoming(html: string | undefined, { question = false }: { question?: boolean } = {}): Node[] {
     if (!html?.trim()) return []
-    return IncomingHtml.nodes(this.document, html, { cards })
+    const nodes = IncomingHtml.nodes(this.document, html)
+    return question ? IncomingHtml.asQuestion(this.document, nodes) : nodes
   }
 
   /** `html` parsed into a `<div>` of this doc, out of it. */
@@ -1318,11 +1381,14 @@ export class PlanDoc extends PlanReader {
     Markup.set(host, {})
   }
 
-  /** `element`'s text as a reader sees it:  its own text, a card's drawn heading too (cards as prose). */
+  /**
+   * `element`'s text as a reader sees it:  its own text, the headings its elements draw too (a card's, a Net effect's
+   * label ...:  `PlanItem.asProse()`, plain).
+   */
   private shownText(element: Element): string {
     const copy = element.cloneNode(true) as Element
     const prose = this.document.createElement("div")
-    for (const node of Array.from(copy.childNodes)) prose.append(PlanItem.asProse(node))
+    for (const node of Array.from(copy.childNodes)) prose.append(PlanItem.asProse(node, PLAIN))
     return prose.textContent ?? ""
   }
 
@@ -1391,6 +1457,9 @@ export class PlanDoc extends PlanReader {
   }
 }
 
+/** `PlanItem.asProse()`'s option for text as a reader sees it:  every element's heading, at any depth. */
+const PLAIN = { plain: true }
+
 /** What a rewrite of an item's details (`PlanDoc.setDetails()`) leaves where it is, slotted children aside. */
 const KEPT_ON_REWRITE = ["epic-answer", "epic-original", "epic-commit"]
 
@@ -1406,6 +1475,15 @@ const STATUS_BLOCKS = /^(p|ul|ol|dl|div|blockquote|pre|table)$/
 /** A Done card's reading for a todo `inbox apply` filed (Q19):  `Made todo T23 to follow this up.`, linked. */
 function filedTodo(todo: string): string {
   return `Made todo <a href="#${todo}">${todo.toUpperCase()}</a> to follow this up.`
+}
+
+/** The cards a pick's option set may sit in, for its log line (`PlanDoc.pickOption()`). */
+const REPLY_TAG = "epic-reply"
+const MORE_TAG = "epic-more"
+
+/** A pick's card set by position, for a message:  ` in card set 2`;  `""` for the item's own (none given). */
+function cardSetWords(choices: number | undefined): string {
+  return choices === undefined ? "" : ` in card set ${choices + 1}`
 }
 
 /** The Phases section's slot for its Plan changes copies (`PlanDoc.writePlanChanges()`). */

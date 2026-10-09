@@ -116,8 +116,11 @@ export abstract class PlanReader {
   /** Does a decision (an answered question, not `id` itself) link to `#id` in its current text? */
   abstract linkedFromDecision(id: string): boolean
 
-  /** Question `item`'s options, never one in its Original Discussion. */
-  abstract optionCards(item: Element): OptionCard[]
+  /**
+   * `item`'s options, never one in its Original Discussion:  its own card set's, or (`choices`) the one at that
+   * position among its sets (a reply's, More Details':  I8).
+   */
+  abstract optionCards(item: Element, choices?: number): OptionCard[]
 
   /** Structural problems, as text:  duplicate ids, `#id` links to nowhere, phases without a valid status ... */
   abstract check(): string[]
@@ -196,9 +199,11 @@ export abstract class PlanReader {
 
   /**
    * Item `item`'s standing, the `state` the page colours it by (`STATE_COLORS`):
+   * - Claude is working on it (an underway status card, or `working`):  `progress`, closed or not (a revisit of a
+   *   decided question is work too)
    * - closed (`CLOSED`, an old doc's `d7`):  `recent` when changed since the doc's "recent since", or during a
    *   `/bedtime` run, else `old`
-   * - work under way (queued, working):  `progress`
+   * - work a review queued, not started (`queued`):  `open`, still to do (Q20:  no longer `progress`)
    * - waiting on Owen:  `attention`:  an open question;  an open judgement call or issue not reviewed, unless it's
    *   `calm` (not urgent:  it simply follows WWOD, or Owen said so from its id chip):  then `open`
    * - else `recent` when reviewed recently or touched by a `/bedtime` run;  else `open`
@@ -208,8 +213,9 @@ export abstract class PlanReader {
     const since = Date.parse(this.recentSinceMark ?? "")
     const changed = Date.parse(facts.changed ?? "")
     const recent = facts.bedtime || (changed >= since && !Number.isNaN(since))
+    if (facts.underway || facts.working) return "progress"
     if (CLOSED.has(facts.status) || OLD_DECISION.test(facts.id)) return recent ? "recent" : "old"
-    if (facts.queued !== undefined || facts.working) return "progress"
+    if (facts.queued !== undefined) return "open"
     if (QUESTION_ID.test(facts.id)) return "attention"
     if (CALM_ID.test(facts.id) && facts.reviewed === undefined) return facts.calm ? "open" : "attention"
     if (recent && (facts.bedtime || facts.reviewed !== undefined)) return "recent"

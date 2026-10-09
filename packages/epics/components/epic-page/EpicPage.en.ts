@@ -18,7 +18,8 @@ export const epicPageVocabulary = {
   noun: "page",
   ui: false,
   description:
-    "A plan doc:  one epic's page -- its header and meta lines, the Overview, then its sections in a fixed order.",
+    "A plan doc:  one epic's page -- its crumbs, header and meta lines, the Overview, then its sections in a fixed " +
+    "order.  Runs edge to edge:  it breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`).",
   attributes: [
     {
       name: "epic",
@@ -32,7 +33,9 @@ export const epicPageVocabulary = {
       property: "epicTitle",
       kind: "string",
       required: true,
-      description: "The epic's title (`Windows and Review`):  the subhead under the h1, which reads `/epic <name>`."
+      description:
+        "The epic's title (`Windows and Review`):  the subhead under the h1, which reads `/epic <name>`;  the " +
+        "crumbs' last."
     },
     { name: "branch", kind: "string", description: "Its git branch;  absent for a future epic." },
     {
@@ -89,6 +92,12 @@ export const epicPageVocabulary = {
   ],
   parts: [
     { name: "base", description: "The page." },
+    {
+      name: "crumbs",
+      description:
+        "Above the header:  `Docs › Epics › <title>`, the docs' eyebrow.  None while the doc still holds its old " +
+        "`ui-breadcrumb.spell-crumbs` before the page."
+    },
     { name: "header", description: "The sticky page header:  the h1, then the tools and labels at its right." },
     { name: "heading", description: "The h1, `/epic <name>`:  a click copies it." },
     { name: "subhead", description: "Under the h1:  the epic's title." },
@@ -126,6 +135,9 @@ export const epicPageVocabulary = {
   ],
   texts: [
     { key: "copyHeading", text: "Copy {command}", description: "The h1's tooltip." },
+    { key: "crumbs", text: "Breadcrumb", description: "The crumbs, spoken." },
+    { key: "crumbDocs", text: "Docs", description: "The crumbs' first:  the docs home." },
+    { key: "crumbEpics", text: "Epics", description: "The crumbs' second:  the epics' index." },
     { key: "planDoc", text: "Plan doc for", description: "Meta line:  `Plan doc for /epic x, branch x`." },
     { key: "branch", text: "branch", description: "Meta line:  before the branch's name." },
     { key: "futureEpic", text: "Future epic:", description: "Meta line of a future epic." },
@@ -207,6 +219,11 @@ export const epicPageVocabulary = {
   children: [
     { tag: "flow", slot: "durable", max: 1, description: "The durable doc's link." },
     { tag: "epic-overview", min: 1, max: 1, description: "1. Overview." },
+    {
+      tag: "epic-section",
+      where: { attribute: "kind", values: ["report"] },
+      description: "Reports a run wrote (an overnight `/bedtime` report), after the Overview:  unnumbered."
+    },
     { tag: "epic-section", where: { attribute: "kind", values: ["phases"] }, max: 1, description: "2. Phases." },
     {
       tag: "epic-section",

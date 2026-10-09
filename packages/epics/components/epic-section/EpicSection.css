@@ -144,14 +144,15 @@
     height: 10px;
     fill: currentColor;
   }
-  .chip[data-color="orange"] {
-    --_chip: var(--epic-state-progress, var(--ui-orange));
+  /* the item states' colours (decision Q20):  blue Claude is on it, red needs Owen, yellow open, green done lately */
+  .chip[data-color="blue"] {
+    --_chip: var(--epic-state-progress, var(--ui-blue));
   }
   .chip[data-color="red"] {
     --_chip: var(--epic-state-attention, var(--ui-red));
   }
-  .chip[data-color="blue"] {
-    --_chip: var(--epic-state-open, var(--ui-blue));
+  .chip[data-color="yellow"] {
+    --_chip: var(--epic-state-open, var(--ui-yellow));
   }
   .chip[data-color="green"] {
     --_chip: var(--epic-state-recent, var(--ui-green));
@@ -201,13 +202,59 @@
     background: color-mix(in srgb, var(--ui-orange) 8%, var(--epic-bg, var(--ui-background)));
     box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ui-orange) 35%, transparent);
   }
+  /* its heading folds it (every titled box folds:  Owen, 2026-10-08):  a plain button, chevron first, a count last */
   .changes-head {
     display: flex;
     align-items: center;
     gap: 6px;
+    width: 100%;
     margin: 0;
+    padding: 0;
+    border: none;
+    background: none;
     color: var(--ui-orange-text, var(--ui-orange));
     font: 700 14px/1.3 var(--epic-sans, var(--ui-font-family));
+    text-align: start;
+    cursor: pointer;
+  }
+  .changes-head:focus-visible {
+    border-radius: 4px;
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent, Highlight));
+    outline-offset: 2px;
+  }
+  .changes-head .chevron {
+    flex: none;
+    width: 12px;
+    height: 12px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    transition: rotate 0.12s;
+  }
+  .changes-head[aria-expanded="true"] .chevron {
+    rotate: 90deg;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .changes-head .chevron {
+      transition: none;
+    }
+  }
+  .changes-head .count {
+    font-weight: 400;
+    font-variant-numeric: tabular-nums;
+    opacity: 0.8;
+  }
+  .changes-head .count::before {
+    content: "· ";
+  }
+  .changes-body {
+    display: grid;
+    gap: 6px;
+  }
+  .changes-body[hidden] {
+    display: none;
   }
   .changes-head svg {
     display: block;

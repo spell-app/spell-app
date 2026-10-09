@@ -40,6 +40,7 @@ import {
   TOGGLE,
   UNDER_LINE,
   UNFOLDED,
+  type ChipMark,
   type EpicItemVocabulary,
   type ItemState,
   type ReviewLabel,
@@ -56,7 +57,7 @@ import reviewCSS from "./ReviewControls.css?inline"
  *   state's colour, the title (`title`, or `slot="title"`), the bed icon (`overnight`:  made overnight), the git icon
  *   (with commits), the review label (`reviewed 10/6/26`, `deferred`, `to do`) and the review buttons.  Sticky while
  *   open, under the section titles stuck above it.
- * - `calm`:  an open judgement call or issue not reviewed yet is blue (`open`), not red (`attention`).
+ * - `calm`:  an open judgement call or issue not reviewed yet is yellow (`open`), not red (`attention`).
  * - Its COMMITS (`<epic-commit>` children, or `commits` while its part isn't in):  hidden until the page's git toggle
  *   shows every commit;  its git icon shows just its own (T17, the old runtime's `plan-git-hint`), opening it first,
  *   and hides them again.  Through the same custom property, set on its details:  off, it sets nothing, so the
@@ -66,10 +67,12 @@ import reviewCSS from "./ReviewControls.css?inline"
  *   `Original reply` (with a More Details card);  under them Claude's status cards (`<epic-status slot="status">`,
  *   P13), then the note box.
  * - Review (P9, `ReviewControls.tsx`):  only while the page is reviewed (served with a token, its inbox answering:
- *   `ReviewState`).  Approve, Make Todo, Revisit, Add Details Now at the line's end, the review label in their
+ *   `ReviewState`).  Approve, Revisit, Make Todo, then Do Now at the line's end, the review label in their
  *   tooltips (not beside them:  Owen, 2026-10-07);  the note box LAST in its details, whatever its state, sticky at
  *   the window's bottom while it's open and taller than the window, or, without details, under its line once
  *   Revisit opens it;  a marked note just above the box, with Edit, and Claude's status cards between the two.
+ *   While it carries a mark (a button dashed or outlined, or a pick), its id chip MATCHES the chosen button:  that
+ *   button's colour and fill (`chipMark`, Owen, 2026-10-08);  without one, its state's colour, solid.
  *   The id chip of an item Owen may call urgent or not (`canCalm`) is a button:  urgent <-> not urgent, through the
  *   inbox (`ReviewClient.toggleCalm()`).  All in the shadow root:  a part reloaded keeps a half-typed note.
  * - Folding:  `open` (page state, never in the file);  a click on the line (not on a link or control in it) or
@@ -150,15 +153,34 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
 
   /**
    * Where it stands:  `state` as the script wrote it, else `old` once closed, `open` before.
-   * - Owen's urgency, not applied yet (its id chip clicked):  `open` (blue) when not urgent, `attention` (red) when
+   * - Claude's agent at work on it (the review inbox's `working`, the page's live view of it):  `progress` (blue), at
+   *   once, before the script rewrites `state`
+   * - Owen's urgency, not applied yet (its id chip clicked):  `open` (yellow) when not urgent, `attention` (red) when
    *   urgent, at once
    */
   readonly itemState = createMemo((): ItemState => {
+    if (this.reviewState.workedOn()) return "progress"
     const urgency = this.reviewState.urgency()
     if (urgency && this.canCalm()) return urgency.calm ? "open" : "attention"
     const state = this.state
     if (state && (ITEM_STATES as readonly string[]).includes(state)) return state
     return (CLOSED_STATUSES as readonly string[]).includes(this.status ?? "") ? "old" : "open"
+  })
+
+  /**
+   * Owen's live mark, as its id chip wears it:  the chosen review button's colour and fill (dashed until sent, then
+   * outlined), or a pick's (green);  `undefined` without one, so the chip shows its state.
+   * - NOTE: a mark Claude handled (`review-as`, its button solid) is history, not a choice still in play:  the chip
+   *   shows the state then, so long-reviewed items stay grey and a reply that needs Owen stays red.
+   */
+  readonly chipMark = createMemo((): ChipMark | undefined => {
+    for (const spec of REVIEW_BUTTONS) {
+      const fill = this.reviewState.fillOf(spec.action)
+      if (fill === "dashed" || fill === "outline") return { color: spec.color, fill, label: spec.label }
+    }
+    const pick = this.reviewState.mark()?.pick
+    if (!pick) return undefined
+    return { color: "green", fill: this.reviewState.isSent() ? "outline" : "dashed", label: { pick } }
   })
 
   /** Is its id chip a button (urgent <-> not urgent) now?  Only while the page is reviewed. */
@@ -220,6 +242,15 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   readonly chipTip = createMemo(() => {
     const { queued, work, reviewed, deferred, status } = this
     const parts = [this.translationForKey(STATE_TIP_KEYS[this.itemState()])]
+    const mark = this.chipMark()
+    if (mark) {
+      const { label } = mark
+      const chosen =
+        typeof label === "string"
+          ? this.translationForKey(label)
+          : this.translationForKey("tipPick", { letter: label.pick })
+      parts.push(this.translationForKey(mark.fill === "dashed" ? "tipMarkUnsent" : "tipMarkSent", { chosen }))
+    }
     if (queued) parts.push(this.translationForKey("tipTodo", { work: work || queued }))
     if (reviewed) parts.push(this.translationForKey("tipReviewed", { date: PlanDates.format(reviewed) }))
     else if (deferred) parts.push(this.translationForKey("tipDeferred", { date: PlanDates.format(deferred) }))
@@ -254,7 +285,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
 
   /**
    * Words before the noun:  its state (`attention item`), `canceled`, `has-details`, `unfolded`.
-   * - NOTE: `unfolded`, not `open`:  `open` is a state (blue) already;  of the statuses only `canceled` looks
+   * - NOTE: `unfolded`, not `open`:  `open` is a state (yellow) already;  of the statuses only `canceled` looks
    *   different (struck through), so only it is a word here.
    */
   protected get extraClass(): string | undefined {
@@ -368,7 +399,14 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
           <Show
             when={this.chipToggles()}
             fallback={
-              <a class={CHIP} part={this.partForName("id")} href={`#${this.id ?? ""}`} title={this.chipTip()}>
+              <a
+                class={CHIP}
+                part={this.partForName("id")}
+                href={`#${this.id ?? ""}`}
+                data-color={this.chipMark()?.color}
+                data-fill={this.chipMark()?.fill}
+                title={this.chipTip()}
+              >
                 {this.label()}
               </a>
             }
@@ -377,6 +415,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
               type="button"
               class={CHIP}
               part={this.partForName("id")}
+              data-color={this.chipMark()?.color}
+              data-fill={this.chipMark()?.fill}
               aria-pressed={this.itemState() === "attention" ? "true" : "false"}
               data-unsent={this.reviewState.urgency()?.sent === false ? "" : undefined}
               title={this.chipTip()}

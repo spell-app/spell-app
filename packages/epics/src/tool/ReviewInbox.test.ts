@@ -45,6 +45,40 @@ describe("ReviewInbox marks", () => {
       expect(() => ReviewInbox.toMark({ action: "revisit", pick })).toThrow(InboxError)
   })
 
+  test("a pick names its card set by position (`choices`, I8);  none given, none kept (an old mark);  bad ones throw", () => {
+    expect(ReviewInbox.toMark({ action: "pick", pick: "B", choices: 1 })).toEqual({
+      action: "pick",
+      pick: "B",
+      choices: 1
+    })
+    expect(ReviewInbox.toMark({ action: "pick", pick: "B", choices: null })).toEqual({ action: "pick", pick: "B" })
+    expect(ReviewInbox.toMark({ action: "revisit", note: "but?", pick: "C", choices: 0 })).toEqual({
+      action: "revisit",
+      when: "soon",
+      note: "but?",
+      pick: "C",
+      choices: 0
+    })
+    // a revisit without a pick has no card set
+    expect(ReviewInbox.toMark({ action: "revisit", choices: 2 })).toEqual({ action: "revisit", when: "soon", note: "" })
+    for (const choices of [-1, 1.5, "1", 100])
+      expect(() => ReviewInbox.toMark({ action: "pick", pick: "B", choices })).toThrow(InboxError)
+  })
+
+  test("revisit now keeps a pick's card set too, on the mark and the request", () => {
+    const inbox = new ReviewInbox()
+    inbox.setMark("j2", { action: "pick", pick: "C", choices: 1 }, T1)
+    expect(inbox.requestNow("j2", "revisit", "but?", T2)).toEqual({
+      id: "j2",
+      action: "revisit",
+      at: T2,
+      note: "but?",
+      pick: "C",
+      choices: 1
+    })
+    expect(inbox.marks.j2).toEqual({ action: "revisit", when: "now", note: "but?", pick: "C", choices: 1, at: T2 })
+  })
+
   test("a pick with a revisit is unsent like any other, and sent with the send", () => {
     const inbox = new ReviewInbox()
     inbox.setMark("q7", { action: "revisit", note: "why?", pick: "B" }, T1)

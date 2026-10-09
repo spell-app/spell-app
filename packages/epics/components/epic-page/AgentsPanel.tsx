@@ -2,6 +2,9 @@ import { For, Show, createEffect, createSignal, untrack } from "solid-js"
 
 import { E } from "$/ui/core"
 
+// the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel
+import { Chevron } from "$/epics/components/epic-item/Chevron"
+import { Fold } from "$/epics/components/epic-item/Fold"
 import { ageOf, clockOf, sentence, type AgentsClient, type RunningAgent } from "$/epics/review"
 
 import {
@@ -28,6 +31,7 @@ import {
  * ### `<AgentsPanel>`
  * The epic's RUNNING AGENTS (epic `skillz` P3), drawn by `<epic-page>` right before its blocks:  "Agents running" (a
  * robot, the count when more than one), a row per agent, each with a note box that REDIRECTS it.
+ * - it FOLDS from its title, like every titled box (Owen, 2026-10-08);  open to start with:  it's live news
  * - shown ONLY while the page's `AgentsClient` is `listed` (a plan doc served with a token, the list answering) and
  *   an agent runs
  * - in the page's shadow root, NOT a section:  the contents, the rail and the counts never see it (they read the
@@ -44,6 +48,8 @@ export function AgentsPanel(props: AgentsPanelProps) {
   /** The client's `version`, as a signal:  `agents()` tracks it. */
   const [version, setVersion] = createSignal(0)
   let box: HTMLDivElement | undefined
+  /** Open or folded:  open, until the reader folds it. */
+  const fold = new Fold(() => true)
   // follow the client while connected:  a kept-alive page that's gone stops listening
   createEffect(
     () => props.connected,
@@ -58,7 +64,14 @@ export function AgentsPanel(props: AgentsPanelProps) {
     <div ref={(element) => (box = element)} class={AGENTS_BOX}>
       <Show when={agents().length}>
         <div class={AGENTS} role="region" aria-label={props.text("agents")}>
-          <div class={AGENTS_TITLE}>
+          <button
+            type="button"
+            class={AGENTS_TITLE}
+            aria-expanded={fold.isOpen() ? "true" : "false"}
+            aria-controls="agents-list"
+            onClick={fold.toggle}
+          >
+            <Chevron />
             {/* a span around the icon:  `ui-icon`'s host is `display: contents`, which can't be placed */}
             <span>
               <ui-icon name="robot" />
@@ -67,10 +80,12 @@ export function AgentsPanel(props: AgentsPanelProps) {
             <Show when={agents().length > 1}>
               <span class={AGENTS_COUNT}>{agents().length}</span>
             </Show>
+          </button>
+          <div ref={fold.watch} id="agents-list" class="agents-list" hidden={fold.hidden()}>
+            <For each={agents()} keyed={(agent) => agent.name}>
+              {(agent) => <AgentRow agent={agent()} client={client!} text={props.text} />}
+            </For>
           </div>
-          <For each={agents()} keyed={(agent) => agent.name}>
-            {(agent) => <AgentRow agent={agent()} client={client!} text={props.text} />}
-          </For>
         </div>
       </Show>
     </div>
@@ -177,7 +192,7 @@ function AgentRow(props: AgentRowProps) {
         <ui-button
           class={AGENT_SEND}
           circular=""
-          primary=""
+          color="blue"
           icon="paper plane"
           size="mini"
           disabled={canSend() ? undefined : ""}

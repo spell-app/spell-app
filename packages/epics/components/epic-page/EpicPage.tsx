@@ -15,6 +15,8 @@ import {
   ACTIVE,
   COMMITS_KEY,
   COMMITS_PROPERTY,
+  CRUMB_LINKS,
+  CRUMBS,
   DONE,
   FLASH_MS,
   FOLLOW_UPS,
@@ -28,6 +30,7 @@ import {
   LAYOUT_ATTRIBUTES,
   META,
   NOTICE,
+  OLD_CRUMBS,
   OPEN_ITEMS,
   PROMPT,
   REVIEW_LINE,
@@ -48,37 +51,42 @@ import {
 } from "./EpicPage.types"
 
 import pageCSS from "./EpicPage.css?inline"
+import crumbsCSS from "./Crumbs.css?inline"
 import agentsCSS from "./AgentsPanel.css?inline"
 
 /****************
  * ### `EpicPage`
  * The component behind `<epic-page>`:  a plan doc -- one epic's page, its data in attributes, its Overview and
  * sections as children.
- * - Draws the sticky page header (the h1 `/epic <name>`, copied on click, over the epic's title;  at its right Send
+ * - Draws the crumbs (`Docs › Epics › <title>`, P14:  none while the doc still holds its old `.spell-crumbs` before
+ *   the page), the sticky page header (the h1 `/epic <name>`, copied on click, over the epic's title;  at its right Send
  *   and Review Now while it's reviewed, the git toggle, the sleeping mark, the bedtime label and the step label), the
  *   review line, the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`), a future
  *   epic's notice, then its children.
- * - The step label follows the phases:  the active one (orange, links to it);  else DONE (green) once every phase
- *   is done;  else the next one (grey);  none without phases, FUTURE (violet) for a future epic.  Read from the
+ * - The step label follows the phases, in the colours of decision Q20:  the active one (outlined blue:  Claude is on
+ *   it;  links to it);  else DONE (solid green) once every phase is done;  else the next one (grey);  none without
+ *   phases, FUTURE (grey:  not started) for a future epic.  Read from the
  *   `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`.
  * - The sleeping mark (😴, Owen 2026-10-07:  "so I can see what I need to follow up on"):  phases, none under way,
  *   but open follow-ups (`FOLLOW_UPS`:  questions, calls, issues, todos, tests);  what's open in its tooltip.  Not on
  *   a future epic, nor one still planning.  From the items below, so it follows the live update too.
  * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it
  *   flashes);  on every plan doc, as today:  it's how a review starts.  While the page is reviewed with no session
- *   listening, it says so first.
+ *   listening, it says so first, in solid orange (a warning).
  * - REVIEW (P10), only while the page is reviewed (served with a token, its inbox answering:  `ReviewClient`,
- *   through a `ReviewState` of its own):  Send (paper plane:  grey with nothing to send, blue with unsent marks,
- *   outlined blue once sent) and Review Now (wand:  every mark sent and each revisit asked now;  blue while there's
- *   anything to work through).  Nobody listening:  their tooltips say so (`NOBODY_LISTENING`);  what a click did
+ *   through a `ReviewState` of its own), blue and wearing the fill rule (Q20):  Send (paper plane:  a grey outline
+ *   with nothing to send, dashed blue with marks not sent, outlined blue once sent) and Review Now (wand:  every mark
+ *   sent and each revisit asked now;  outlined blue while there's anything to work through).  Nobody listening:  their tooltips say so (`NOBODY_LISTENING`);  what a click did
  *   goes to the notice line at the window's bottom (`ReviewState`'s).
  * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<AgentsPanel>`), only
  *   while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs;  each row a
- *   note box that redirects that agent.  In the shadow root:  not a section, so the contents and counts never see it.
+ *   note box that redirects that agent.  In the shadow root:  not a section, so the rail and counts never see it.
  * - The git toggle (only when the doc lists commits) shows or hides every `<epic-commit>` below, through
  *   `--epic-commits-display`;  remembered per page (`localStorage`), as today's.
  * - The page-wide signals its blocks read (`signalsOf()`):  `top`, where top-level titles stick (the site header's
  *   `--spell-site-header-height` plus this header's height, re-measured as either changes size), and `layout`.
+ * - EDGE TO EDGE (P14):  its `:host` breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`,
+ *   `spell-doc.css`), so the bands reach across;  everything inside insets itself by `--epic-inset`.
  * - SHARED LOOK:  `EpicPage.css` declares the pack's tokens (`--epic-*`:  colours, bands, the inset, item state
  *   colours, the chip) on its `:host`;  every `<epic-*>` below inherits them.
  * - SIDE EFFECT:  observes its subtree and the site header while connected;  follows the page's review and agents
@@ -88,7 +96,7 @@ import agentsCSS from "./AgentsPanel.css?inline"
 export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.proto static vocabulary = epicPageVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-page": pageCSS, "epic-agents": agentsCSS }
+    styleSheets: { "epic-page": pageCSS, "epic-crumbs": crumbsCSS, "epic-agents": agentsCSS }
   } satisfies Partial<E.ElementSetup>
 
   /** Its tag:  what its blocks look for around them. */
@@ -167,14 +175,19 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   readonly step = createMemo((): StepLabel | undefined => {
     const phases = this.phases()
     if (!phases.length) {
-      return this.future ? { color: "violet", icon: "seedling", words: this.translationForKey("future") } : undefined
+      return this.future ? { color: "grey", icon: "seedling", words: this.translationForKey("future") } : undefined
     }
     const active = phases.find((phase) => phase.status === ACTIVE)
-    if (active) return this.phaseLabel(active, "orange", "circle half stroke", "")
+    if (active) return this.phaseLabel(active, "blue", "circle half stroke", "")
     const next = phases.find((phase) => phase.status !== DONE)
     if (!next) return { color: "green", icon: "check", words: this.translationForKey("done") }
     return this.phaseLabel(next, "grey", "circle right", this.translationForKey("next"))
   })
+
+  /** Does the doc still hold its old crumbs before the page (`OLD_CRUMBS`)?  Then it draws none of its own. */
+  readonly hasOldCrumbs = createMemo(
+    () => this.isConnected && !!this.domElement.parentElement?.querySelector(OLD_CRUMBS)
+  )
 
   /** Still planning:  no phases yet, and not a future epic.  The `Plan hung?` aside shows. */
   readonly planning = createMemo(() => !this.future && this.phases().length === 0)
@@ -294,6 +307,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     return (
       // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over the whole page (T8)
       <div class={this.rootClass} part={this.partForName("base")} title="" style={this.pageStyle()}>
+        <Show when={!this.hasOldCrumbs()}>{this.crumbs()}</Show>
         <header ref={(element) => (this.header = element)} class={HEAD} part={this.partForName("header")}>
           <div class={TITLES}>
             <h1 class={HEADING} part={this.partForName("heading")}>
@@ -347,7 +361,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
             <Show when={this.step()}>
               {(step) => (
                 <ui-label
-                  basic={step().color === "green" || step().color === "violet" ? undefined : ""}
+                  basic={step().color === "green" ? undefined : ""}
                   color={step().color}
                   icon={step().icon}
                   href={step().href}
@@ -371,6 +385,26 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         />
         <slot />
       </div>
+    )
+  }
+
+  /** The crumbs:  `Docs › Epics › <title>`, the docs' eyebrow over the header. */
+  private crumbs(): JSX.Element {
+    return (
+      <ui-breadcrumb
+        class={CRUMBS}
+        part={this.partForName("crumbs")}
+        size="small"
+        aria-label={this.translationForKey("crumbs")}
+      >
+        <ui-breadcrumb-section href={CRUMB_LINKS.docs.href} target={CRUMB_LINKS.docs.target}>
+          {this.translationForKey("crumbDocs")}
+        </ui-breadcrumb-section>
+        <ui-breadcrumb-section href={CRUMB_LINKS.epics.href} target={CRUMB_LINKS.epics.target}>
+          {this.translationForKey("crumbEpics")}
+        </ui-breadcrumb-section>
+        <ui-breadcrumb-section active="">{this.title || this.epic}</ui-breadcrumb-section>
+      </ui-breadcrumb>
     )
   }
 

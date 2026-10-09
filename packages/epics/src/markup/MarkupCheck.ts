@@ -4,6 +4,7 @@ import {
   ItemLetters,
   OVERVIEW_PART,
   OVERVIEW_PART_ID,
+  REPORT,
   SectionIds,
   type AttributeTest,
   type ChildSpec,
@@ -95,7 +96,7 @@ export class MarkupCheck {
 
   /**
    * What the content models can't say:  fixed section ids, item letters per section, an Overview sub-section's
-   * title, the chosen option.
+   * title, a field's name or label, the chosen option.
    */
   private checkSemantics(element: Element, parent: Element | undefined) {
     const id = element.getAttribute("id")
@@ -104,12 +105,11 @@ export class MarkupCheck {
       const fixed = SectionIds[kind as keyof typeof SectionIds]
       if (id !== null && fixed && id !== fixed)
         this.add("wrong id", element, `a \`${kind}\` section's id is \`${fixed}\``)
-      if (kind === OVERVIEW_PART) {
-        if (id !== null && !OVERVIEW_PART_ID.test(id))
-          this.add("wrong id", element, "an Overview sub-section's id is `o<N>`")
-        if (!element.hasAttribute("title") && !slotted(element, "title")) {
-          this.add("missing attribute", element, 'an Overview sub-section needs `title` (or a `slot="title"` child)')
-        }
+      if (kind === OVERVIEW_PART && id !== null && !OVERVIEW_PART_ID.test(id))
+        this.add("wrong id", element, "an Overview sub-section's id is `o<N>`")
+      const titled = TITLED_KINDS[kind]
+      if (titled && !element.hasAttribute("title") && !slotted(element, "title")) {
+        this.add("missing attribute", element, `${titled} needs \`title\` (or a \`slot="title"\` child)`)
       }
     }
     if (element.localName === "epic-item" && id !== null) {
@@ -118,6 +118,10 @@ export class MarkupCheck {
       if (section?.localName === "epic-section" && letter && !id.startsWith(letter)) {
         this.add("wrong id", element, `items in a \`${section.getAttribute("kind")}\` section are \`${letter}<N>\``)
       }
+    }
+    // a phase's field by its `name`, a labelled block in prose by its `label` (P14):  one or the other
+    if (element.localName === "epic-field" && !element.hasAttribute("name") && !element.hasAttribute("label")) {
+      this.add("missing attribute", element, "needs `name` (a phase's field) or `label` (a labelled block)")
     }
     const chosen = element.localName === "epic-choices" ? element.getAttribute("chosen") : null
     if (chosen !== null) {
@@ -332,6 +336,12 @@ function childName(spec: ChildSpec): string {
       ? "prose"
       : `<${spec.tag}${spec.where ? ` ${spec.where.attribute}="${spec.where.values.join("|")}"` : ""}>`
   return spec.slot ? `${name} in slot "${spec.slot}"` : name
+}
+
+/** The section kinds whose title is their own, never drawn => what to call one in a message. */
+const TITLED_KINDS: Record<string, string> = {
+  [OVERVIEW_PART]: "an Overview sub-section",
+  [REPORT]: "a report"
 }
 
 /** Whether attribute `name` is one any element may carry. */

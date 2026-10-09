@@ -3,7 +3,7 @@
  * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from its types file, which is data too, and the
  *   review controls' parts and texts (`REVIEW_*`) from `epic-item`'s:  an Overview sub-section draws them (Q14).
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
- * - `kind`'s values are `SectionIds`' keys plus `overview-part`:  `Definitions.test.ts` checks they agree.
+ * - `kind`'s values are `overview-part`, `SectionIds`' keys, then `report`:  `Definitions.test.ts` checks they agree.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
@@ -15,7 +15,7 @@ import { FOLD_EVENTS, FOLD_OPEN_ATTRIBUTE, FOLD_PARTS, FOLD_STATES, FOLD_TEXTS }
 
 /****************
  * ### `<epic-section>`
- * One section of a plan doc:  Phases, Questions ... Log, or one of the Overview's sub-sections.
+ * One section of a plan doc:  Phases, Questions ... Log, one of the Overview's sub-sections, or a report.
  ****************/
 export const epicSectionVocabulary = {
   tag: "epic-section",
@@ -25,7 +25,8 @@ export const epicSectionVocabulary = {
   ui: false,
   description:
     "One section of a plan doc, by `kind`:  its phases, its items or its log;  or, inside `<epic-overview>`, one " +
-    "of the Overview's sub-sections (`overview-part`), which gets review notes as items do.",
+    "of the Overview's sub-sections (`overview-part`), which gets review notes as items do;  or a report a run " +
+    "wrote (`report`:  an overnight `/bedtime` report), after the Overview, unnumbered.",
   attributes: [
     {
       name: "id",
@@ -35,24 +36,36 @@ export const epicSectionVocabulary = {
       format: "anchor",
       description:
         "Its id, which links use:  FIXED per kind (`phases`, `decisions` for Questions ...);  `o1`, `o2` ... for " +
-        "an Overview sub-section."
+        "an Overview sub-section;  a report's own (`overnight`)."
     },
     {
       name: "kind",
       kind: "enum",
-      values: ["overview-part", "phases", "questions", "judgements", "caveats", "todos", "issues", "tests", "log"],
+      values: [
+        "overview-part",
+        "phases",
+        "questions",
+        "judgements",
+        "caveats",
+        "todos",
+        "issues",
+        "tests",
+        "log",
+        "report"
+      ],
       required: true,
       description:
         "What it holds:  `phases` its `<epic-phase>`s;  `questions` ... `tests` its `<epic-item>`s;  `log` its " +
-        "`<epic-event>`s;  `overview-part` prose."
+        "`<epic-event>`s;  `overview-part` and `report` prose."
     },
     {
       name: "title",
       property: "epicTitle",
       kind: "string",
       description:
-        "An Overview sub-section's title, WITHOUT its number (`Structure`, drawn as `1.1 Structure`):  required " +
-        'there (or a `slot="title"` child, for a title with markup).  The page\'s sections draw their own.'
+        "An Overview sub-section's title, WITHOUT its number (`Structure`, drawn as `1.1 Structure`), or a " +
+        'report\'s (`Overnight · 2026-10-04`):  required there (or a `slot="title"` child, for a title with markup).  ' +
+        "The page's sections draw their own."
     },
     {
       name: "source",
@@ -133,9 +146,13 @@ export const epicSectionVocabulary = {
     },
     { key: "showing", text: "Showing:  {words}", description: "A state chip, pressed:  its items show." },
     { key: "hiding", text: "Hiding:  {words}", description: "A state chip, not pressed:  its items are hidden." },
-    { key: "stateProgress", text: "in progress", description: "A state chip's words:  `progress` (orange)." },
+    {
+      key: "stateProgress",
+      text: "Claude is working on it",
+      description: "A state chip's words:  `progress` (blue)."
+    },
     { key: "stateAttention", text: "needs attention", description: "A state chip's words:  `attention` (red)." },
-    { key: "stateOpen", text: "open, not urgent", description: "A state chip's words:  `open` (blue)." },
+    { key: "stateOpen", text: "open, still undecided", description: "A state chip's words:  `open` (yellow)." },
     { key: "stateRecent", text: "decided or reviewed recently", description: "A state chip's words:  `recent`." },
     { key: "stateOld", text: "decided or reviewed earlier", description: "A state chip's words:  `old` (grey)." },
     { key: "hiddenNote", text: "{count} hidden · show all", description: "Under a filtered list;  a click shows all." },
@@ -154,8 +171,8 @@ export const epicSectionVocabulary = {
     },
     {
       tag: "flow",
-      when: { attribute: "kind", values: ["overview-part"] },
-      description: "An Overview sub-section's prose."
+      when: { attribute: "kind", values: ["overview-part", "report"] },
+      description: "An Overview sub-section's prose, or a report's."
     },
     {
       tag: "epic-status",

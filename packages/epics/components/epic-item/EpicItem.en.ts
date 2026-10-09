@@ -56,7 +56,8 @@ export const epicItemVocabulary = {
       values: ["attention", "progress", "open", "recent", "old"],
       description:
         "Its id chip's colour, written by the script on every edit:  `attention` (red:  needs Owen), `progress` " +
-        "(orange:  queued or being worked), `open` (blue), `recent` (green:  closed or reviewed lately), `old` (grey)."
+        "(blue:  Claude is working on it), `open` (yellow:  still undecided, or queued work), `recent` (green:  " +
+        "closed or reviewed lately), `old` (grey)."
     },
     {
       name: "changed",
@@ -74,8 +75,9 @@ export const epicItemVocabulary = {
     {
       name: "review-as",
       kind: "enum",
-      values: ["approve", "todo", "revisit"],
-      description: "How Owen's review mark was applied:  its button stays outlined in that colour."
+      values: ["approve", "todo", "revisit", "now"],
+      description:
+        "How Owen's review mark was handled (`now`:  a Do Now request, done):  that button is drawn solid, done."
     },
     {
       name: "deferred",
@@ -107,7 +109,7 @@ export const epicItemVocabulary = {
       name: "calm",
       kind: "boolean",
       description:
-        "Not urgent:  an open judgement call or issue not reviewed yet is `open` (blue), not `attention` (red).  " +
+        "Not urgent:  an open judgement call or issue not reviewed yet is `open` (yellow), not `attention` (red).  " +
         "For a call that simply follows WWOD (`plan-doc add ... --calm`);  Owen flips it by clicking the id chip " +
         "while the page is reviewed (the inbox's `urgency`, applied by `plan-doc inbox apply`)."
     },
@@ -180,7 +182,7 @@ export const epicItemVocabulary = {
       name: "id",
       description:
         "The id chip (`Q7`), a link to the item, in its state's colour.  While the page is reviewed, an open " +
-        "judgement call's or issue's chip is a button instead:  urgent (red) <-> not urgent (blue)."
+        "judgement call's or issue's chip is a button instead:  urgent (red) <-> not urgent (yellow)."
     },
     { name: "title", description: "The title." },
     {
@@ -226,8 +228,8 @@ export const epicItemVocabulary = {
     { key: "reviewDeferred", text: "deferred", description: "Review label:  put off (`deferred`)." },
     { key: "reviewed", text: "reviewed {date}", description: "Review label:  `reviewed 10/6/26`." },
     { key: "stateAttention", text: "Needs attention", description: "Id chip tooltip, `state=attention`." },
-    { key: "stateProgress", text: "In progress", description: "Id chip tooltip, `state=progress`." },
-    { key: "stateOpen", text: "Open, not urgent", description: "Id chip tooltip, `state=open`." },
+    { key: "stateProgress", text: "Claude is working on it", description: "Id chip tooltip, `state=progress`." },
+    { key: "stateOpen", text: "Open, still undecided", description: "Id chip tooltip, `state=open`." },
     { key: "stateRecent", text: "Decided or reviewed recently", description: "Id chip tooltip, `state=recent`." },
     { key: "stateOld", text: "Decided or reviewed earlier", description: "Id chip tooltip, `state=old`." },
     { key: "tipTodo", text: "to do:  {work}", description: "Id chip and review label tooltip:  the queued work." },
@@ -249,6 +251,17 @@ export const epicItemVocabulary = {
       text: "not sent yet",
       description: "Id chip tooltip:  Owen changed its urgency, not sent yet."
     },
+    {
+      key: "tipMarkUnsent",
+      text: "you chose {chosen} · not sent yet",
+      description: "Id chip tooltip:  Owen's mark (the chosen button, `{chosen}`), not sent:  the chip dashed."
+    },
+    {
+      key: "tipMarkSent",
+      text: "you chose {chosen} · sent",
+      description: "Id chip tooltip:  Owen's mark (the chosen button, `{chosen}`), sent:  the chip outlined."
+    },
+    { key: "tipPick", text: "pick {letter}", description: "Id chip tooltip:  Owen's pick, as `{chosen}`." },
     { key: "madeOvernight", text: "made overnight", description: "The bed icon's tooltip (`overnight`)." },
     { key: "sourceLoadError", text: "Couldn't load {source}.", description: "The part's fetch failed." },
     {
@@ -270,8 +283,14 @@ export const epicItemVocabulary = {
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
-    { tag: "flow", description: "Its text:  the question as asked, the call and why, the details." },
-    { tag: "epic-choices", max: 1, description: "A question's option cards." },
+    { tag: "epic-question", max: 1, description: "A question's text as first asked, before the rest of its text." },
+    {
+      tag: "flow",
+      description:
+        "Its text:  the question as asked, the call and why, the details;  with the prose elements (`flow`) " +
+        "among it:  option cards (`<epic-choices>`, a question's own last, on any kind:  P14), labelled blocks " +
+        '(`<epic-field label="Where">`), Net effect, code, asides, notes.'
+    },
     { tag: "epic-answer", max: 1, description: "An answered question's answer." },
     { tag: "epic-more", max: 1, description: "More Details, added after its text." },
     { tag: "epic-reply", description: "Replies, oldest first." },

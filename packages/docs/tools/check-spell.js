@@ -1,22 +1,22 @@
 /**
  * Check a `.html` doc in a real browser.
  * Usage:  node scripts/check-spell.js <folder>/<doc>.html [outDir]
- * - screenshots:  desktop top, desktop mid-page, phone mid-page, phone contents drawer (outDir, default a temp folder);
- *   a plan doc also a phone-width open item, its line stuck (`phone-item.png`)
+ * - screenshots:  desktop top, desktop mid-page, phone mid-page (outDir, default a temp folder);  a plan doc also a
+ *   phone-width open item, its line stuck (`phone-item.png`)
  * - fails (exit 1) on:
  *   - console / page errors
  *   - a `ui-*` or `epic-*` element (the `epics` pack's, a plan doc's) that isn't defined, or never rendered (no
  *     shadow root)
- *   - a contents list that doesn't match the sections / headings (a plan doc's:  its `<epic-*>` blocks), or a
- *     `data-target` that points nowhere
+ *   - a rail (`nav.spell-rail`) that doesn't list every top-level section (a plan doc's:  its `<epic-*>` blocks;
+ *     the goals pages':  the h2s heading a sticky section), or an entry that points nowhere
  *   - horizontal scroll at phone width
  *   - a content column squeezed at phone width (a wide-screen grid rule leaking into the narrow layout)
  *   - a top-level section's title (`<ui-section>` pages, a plan doc's `<epic-*>` blocks) or h2 (`section.s2` pages)
  *     that doesn't stick when scrolled into its section, or sticks under the fixed site header.  A plan doc's start
  *     folded:  its largest item section is opened first (`openBiggestSection()`)
- *   - no active contents link after scrolling
+ *   - no rail entry marked current after scrolling
  *   - a `ui-accordion.spell-code` without a `<pre>`
- *   - a contents drawer that doesn't open at phone width
+ *   - a rail not shown at phone width (it floats there too:  no contents drawer since 2026-10-08)
  *   - a plan doc's open item (`<epic-item>`, epic `windows-and-review` Q6) whose line doesn't stick right under its
  *     section's stuck title while its details are read;  at desktop and phone width (`checkItemLine()`)
  * - loads the page from `file://`, or from the page server when its `<body>` says `data-spell-needs-server`
@@ -58,10 +58,9 @@ await desk.screenshot({ path: join(out, "desk-top.png") })
 const desktop = await desk.evaluate(inspectPage)
 if (desktop.undefinedTags.length) problem(`undefined elements:  ${desktop.undefinedTags.join(", ")}`)
 for (const [tag, count] of Object.entries(desktop.unrendered)) problem(`${count} <${tag}> without a shadow root`)
-if (desktop.headings !== desktop.tocLinks)
-  problem(`contents has ${desktop.tocLinks} links for ${desktop.headings} headings`)
-if (desktop.danglingTargets.length) problem(`data-target points nowhere:  ${desktop.danglingTargets.join(", ")}`)
-if (desktop.missingFromToc.length) problem(`headings missing from contents:  ${desktop.missingFromToc.join(", ")}`)
+if (desktop.missingFromRail.length)
+  problem(`top-level sections missing from the rail:  ${desktop.missingFromRail.join(", ")}`)
+if (desktop.danglingRail.length) problem(`rail entries pointing nowhere:  ${desktop.danglingRail.join(", ")}`)
 if (desktop.codeWithoutPre) problem(`${desktop.codeWithoutPre} ui-accordion.spell-code without a <pre>`)
 if (desktop.icons.blankCount) console.error(`NOTE: ${desktop.icons.blankCount} icon(s) with no <svg> drawn`)
 
@@ -75,7 +74,7 @@ if (middle.id && !stuck.stuck)
   problem(
     `${middle.tag} #${middle.id} not stuck at the top (its title's top at ${stuck.top}px, ${stuck.covering ?? "nothing"} showing at its middle)`
   )
-if (!stuck.active) problem("no active contents link after scrolling")
+if (desktop.topLevel && !stuck.active) problem("no rail entry marked current after scrolling")
 
 const fold = await checkFold(desk)
 if (fold.problem) problem(`fold:  ${fold.problem}`)
@@ -91,16 +90,8 @@ itemLine.phone = await checkItemLine(phone, join(out, "phone-item.png"))
 await phone.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2))
 const mainWidth = await phone.evaluate(() => Math.round(document.querySelector("main").getBoundingClientRect().width))
 if (mainWidth < 390 - 40) problem(`content column only ${mainWidth}px wide at phone width (390px)`)
-const drawer = { opened: false }
-try {
-  await phone.click(".spell-toc-open", { timeout: 3000 })
-  await phone.waitForTimeout(500)
-  Object.assign(drawer, await phone.evaluate(drawerOnScreen))
-} catch (error) {
-  drawer.error = String(error).split("\n")[0]
-}
-await phone.screenshot({ path: join(out, "phone-toc.png") })
-if (!drawer.opened) problem(`contents drawer didn't open at phone width${drawer.error ? `:  ${drawer.error}` : ""}`)
+const rail = await phone.evaluate(railOnScreen)
+if (desktop.topLevel && !rail.shown) problem("the rail isn't shown at phone width")
 
 await browser.close()
 const problems = [...seen].map(([text, count]) => (count > 1 ? `${text}  (x${count})` : text))
@@ -109,8 +100,8 @@ const summary = {
   ok: problems.length === 0,
   problems,
   elements: desktop.elements,
-  headings: desktop.headings,
-  tocLinks: desktop.tocLinks,
+  topLevel: desktop.topLevel,
+  railEntries: desktop.railEntries,
   codeBlocks: desktop.codeBlocks,
   icons: {
     total: desktop.icons.total,
@@ -125,7 +116,7 @@ const summary = {
   itemLine,
   overflow,
   mainWidth,
-  drawer,
+  rail,
   screenshots: out
 }
 for (const problem of problems) console.error("PROBLEM:", problem)
@@ -389,7 +380,8 @@ function foldState({ id, kind }) {
 }
 
 /**
- * Static checks, run in the page:  element definitions and rendering, contents vs headings, code blocks, icons.
+ * Static checks, run in the page:  element definitions and rendering, the rail vs the top-level sections, code
+ * blocks, icons.
  * - the packs' elements:  `ui-*` (Spell UI) and `epic-*` (the `epics` pack:  `PACK_TAG`, written out here, as this
  *   runs in the page)
  * - "rendered" means has a shadow root:  every @spell-app/ui element renders into one, and so does every pack's.
@@ -405,13 +397,13 @@ function inspectPage() {
       unrendered[el.localName] = (unrendered[el.localName] ?? 0) + 1
   }
   const undefinedTags = Object.keys(elements).filter((tag) => !customElements.get(tag))
-  // `<ui-section>` pages:  the sections are entries too (their headings are in their shadow roots);  a plan doc's
-  // blocks too, but not the headings in an item's earlier versions (`<epic-original>`)
-  const entries = "main :is(ui-section, epic-overview, epic-section, epic-phase, h2, h3, h4)[id]"
-  const headingIds = [...document.querySelectorAll(entries)]
-    .filter((heading) => !heading.closest("epic-original"))
-    .map((heading) => heading.id)
-  const targets = [...document.querySelectorAll("#spell-toc [data-target]")].map((a) => a.dataset.target)
+  // the rail's entries:  the top-level sections (a plan doc's top-level blocks), or the h2s heading a sticky section
+  const top = "main > ui-section[id], main epic-page > :is(epic-overview, epic-section, epic-phase)[id]"
+  const sections = [...document.querySelectorAll(top)]
+  const topLevel = (
+    sections.length ? sections : [...document.querySelectorAll("main section.s2 > ui-sticky > h2[id]")]
+  ).map((element) => element.id)
+  const railIds = [...document.querySelectorAll("nav.spell-rail [data-rail]")].map((entry) => entry.dataset.rail)
   const icons = all.filter(
     (el) => el.localName === "ui-icon" || (el.localName.startsWith("ui-") && el.hasAttribute("icon"))
   )
@@ -420,10 +412,10 @@ function inspectPage() {
     elements,
     unrendered,
     undefinedTags,
-    headings: headingIds.length,
-    tocLinks: targets.length,
-    danglingTargets: targets.filter((id) => !document.getElementById(id)),
-    missingFromToc: headingIds.filter((id) => !targets.includes(id)),
+    topLevel: topLevel.length,
+    railEntries: railIds.length,
+    danglingRail: railIds.filter((id) => !document.getElementById(id)),
+    missingFromRail: topLevel.filter((id) => !railIds.includes(id)),
     codeBlocks: document.querySelectorAll("ui-accordion.spell-code").length,
     // a `<ui-code>` draws its own `<pre>`, in its shadow root
     codeWithoutPre: [...document.querySelectorAll("ui-accordion.spell-code")].filter(
@@ -479,7 +471,7 @@ function scrollToMiddleSection() {
 }
 
 /**
- * Whether section / h2 `id`'s title sits at the top of the viewport, and which contents link is active.
+ * Whether section / h2 `id`'s title sits at the top of the viewport, and which rail entry is current.
  * - stuck:  its title's top is within 160px BELOW the fixed site header (`--spell-site-header-height`;  never under
  *   it) -- room for a sticky bar above it, e.g. a plan doc's page header, CHEATSHEET's filter -- AND it's what shows
  *   at its own middle.  Scrolled mid-section, a title that DIDN'T stick
@@ -489,7 +481,7 @@ function scrollToMiddleSection() {
  *   - a plan doc's block:  the same, of the `<ui-section>` it draws in its shadow root;  what shows there is the
  *     block's host
  *   - h2:  one its short section's end pushed out (`:state(bound)`) counts:  it stuck, then left with its section
- * - active:  a selected `ui-item`, or a title `<a class="active">`
+ * - active:  the rail's `selected` entry
  */
 function stuckAndActive(id) {
   const element = id && document.getElementById(id)
@@ -504,9 +496,7 @@ function stuckAndActive(id) {
   const rect = title?.getBoundingClientRect()
   const probe = rect ? Math.max(4, rect.top + rect.height / 2) : 16
   const shown = document.elementFromPoint(left, probe)
-  const active = document.querySelector(
-    "#spell-toc ui-item[selected]:not([selected=false]), #spell-toc ui-item.selected, #spell-toc a.active"
-  )
+  const active = document.querySelector("nav.spell-rail [data-rail][selected]")
   const covering = shown?.closest("h1, h2, h3, h4, [id]")
   const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spell-site-header-height"))
   const below = header || 0
@@ -529,16 +519,16 @@ function stuckAndActive(id) {
     stuck: section ? stuckState && atTop && ownTitle : bound || (atTop && ownTitle),
     top: rect && Math.round(rect.top),
     covering: covering && `${covering.localName}#${covering.id}`,
-    active: active?.textContent.trim()
+    active: (active?.querySelector(".spell-rail-label") ?? active)?.textContent.trim()
   }
 }
 
-/** Whether the contents aside is visible and mostly inside the phone viewport. */
-function drawerOnScreen() {
-  const toc = document.getElementById("spell-toc")
-  const rect = toc.getBoundingClientRect()
-  const style = getComputedStyle(toc)
-  const visible = style.visibility !== "hidden" && style.display !== "none" && rect.width > 0 && rect.height > 0
-  const onScreen = rect.left < innerWidth - 40 && rect.right > 40
-  return { opened: visible && onScreen, left: Math.round(rect.left), width: Math.round(rect.width) }
+/** Whether the rail is shown inside the phone viewport, at its right edge:  where it is, how big. */
+function railOnScreen() {
+  const rail = document.querySelector("nav.spell-rail")
+  if (!rail) return { shown: false }
+  const rect = rail.getBoundingClientRect()
+  const visible = getComputedStyle(rail).display !== "none" && rect.width > 0 && rect.height > 0
+  const atEdge = rect.right <= innerWidth + 1 && rect.right >= innerWidth - 2
+  return { shown: visible && atEdge, left: Math.round(rect.left), width: Math.round(rect.width) }
 }

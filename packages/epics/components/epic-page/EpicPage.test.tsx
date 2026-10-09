@@ -13,6 +13,7 @@ import "$/ui/components/ui-section"
 import "$/ui/components/ui-label"
 import "$/ui/components/ui-message"
 import "$/ui/components/ui-code"
+import "$/ui/components/ui-breadcrumb"
 import "$/epics/components/epic-page"
 import "$/epics/components/epic-overview"
 import "$/epics/components/epic-section"
@@ -78,9 +79,9 @@ describe("<epic-page>", () => {
     await expectAccessible(host)
   })
 
-  test("the step label follows the phases:  the active one, else the next, else DONE;  none without phases", async () => {
+  test("the step label follows the phases:  the active one (blue), else the next (grey), else DONE (green);  none without phases", async () => {
     const host = await render(page("", ["done", "active", "todo"]))
-    expect(step(host)).toEqual({ words: "P2", color: "orange", href: "#p2", tip: "P2 · Phase 2" })
+    expect(step(host)).toEqual({ words: "P2", color: "blue", href: "#p2", tip: "P2 · Phase 2" })
     host.querySelector("#p2")!.setAttribute("status", "done")
     await ElementFixture.tick()
     await ElementFixture.tick()
@@ -88,7 +89,7 @@ describe("<epic-page>", () => {
     host.querySelector("#p3")!.setAttribute("status", "done")
     await ElementFixture.tick()
     await ElementFixture.tick()
-    expect(step(host)?.words).toBe("DONE")
+    expect(step(host)).toMatchObject({ words: "DONE", color: "green" })
     for (const phase of host.querySelectorAll("epic-phase")) phase.remove()
     await ElementFixture.tick()
     await ElementFixture.tick()
@@ -97,7 +98,7 @@ describe("<epic-page>", () => {
 
   test("a future epic:  FUTURE, meta lines without a branch, and its notice;  bedtime:  its label", async () => {
     const future = await render(page("future", []))
-    expect(step(future)?.words).toBe("FUTURE")
+    expect(step(future)).toMatchObject({ words: "FUTURE", color: "grey" })
     expect(future.matches(":state(future)")).toBe(true)
     expect(future.shadowRoot!.querySelector('[part~="meta"] li')!.textContent!.replace(/\s+/g, " ")).toContain(
       "Future epic: /epic future demo, no branch yet"
@@ -157,6 +158,45 @@ describe("<epic-page>", () => {
     const header = host.shadowRoot!.querySelector('[part~="header"]')!
     const phases = host.querySelector("#phases")!.shadowRoot!.querySelector("ui-section")!
     expect(Number(phases.getAttribute("offset"))).toBe(Math.round(header.getBoundingClientRect().height))
+  })
+
+  test("draws its crumbs, `Docs › Epics › <title>`;  NONE while the doc still holds its old crumbs before it", async () => {
+    const host = await render(page("", ["todo"]))
+    const crumbs = host.shadowRoot!.querySelector('[part~="crumbs"]')!
+    expect(
+      Array.from(crumbs.querySelectorAll("ui-breadcrumb-section"), (crumb) => [
+        crumb.textContent,
+        crumb.getAttribute("href"),
+        crumb.hasAttribute("active")
+      ])
+    ).toEqual([
+      ["Docs", "../../pages/index.html", false],
+      ["Epics", "../../epics/index.html", false],
+      ["Demo", null, true]
+    ])
+    expect(crumbs.compareDocumentPosition(host.shadowRoot!.querySelector('[part~="header"]')!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
+
+    const old = await render(
+      `<main><ui-breadcrumb class="spell-crumbs"><ui-breadcrumb-section active>Demo</ui-breadcrumb-section></ui-breadcrumb>` +
+        `${page("", ["todo"])}</main>`
+    )
+    expect(old.querySelector("epic-page")!.shadowRoot!.querySelector('[part~="crumbs"]')).toBeNull()
+  })
+
+  test("runs EDGE TO EDGE:  out of `<main>`'s inline padding (`--spell-doc-pad-inline`), however wide", async () => {
+    for (const width of [900, 320]) {
+      const main = await render(
+        `<main style="--spell-doc-pad-inline: 16px; padding: 0 16px; width: ${width}px; box-sizing: border-box">` +
+          `${page("", ["todo"])}</main>`
+      )
+      const [outer, inside] = [main, main.querySelector("epic-page")!].map((box) => box.getBoundingClientRect())
+      expect([inside.left - outer.left, inside.width, main.scrollWidth]).toEqual([0, width, width])
+    }
+    // no token (a page without `spell-doc.css`):  no breakout
+    const plain = await render(`<main style="padding: 0 16px">${page("", ["todo"])}</main>`)
+    expect(getComputedStyle(plain.querySelector("epic-page")!).marginLeft).toBe("0px")
   })
 
   test("sleeping:  phases, none under way, open follow-ups:  😴 saying what's open;  gone once under way", async () => {
@@ -276,7 +316,7 @@ describe("<epic-page> Send and Review Now", () => {
     expect(headerButtons(host)).toEqual({ send: null, now: null })
   })
 
-  test("blue with unsent marks;  a click sends them, then outlined;  nobody listening:  the tooltips say so", async () => {
+  test("dashed blue with unsent marks;  a click sends them, then outlined;  nobody listening:  the tooltips say so, the review line in orange", async () => {
     const routes = new FakeRoutes()
     const at = new Date().toISOString()
     routes.inbox.marks = { q1: { action: "approve", at }, q2: { action: "revisit", when: "soon", note: "hm", at } }
@@ -287,10 +327,16 @@ describe("<epic-page> Send and Review Now", () => {
       send: ["unsent", `Send 2 marks to Claude${NOBODY}`],
       now: ["ready", `Review Now:  Claude works through 2 marks at once, answers in their items${NOBODY}`]
     })
-    expect(host.shadowRoot!.querySelector('[part~="review-line"]')!.textContent).toContain("No Claude session")
-    host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="send"]')!.click()
+    const send = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="send"]')!
+    // the fill rule (Q20):  pressed marks not sent, dashed;  sent, outlined
+    expect(getComputedStyle(send).borderTopStyle).toBe("dashed")
+    const line = host.shadowRoot!.querySelector<HTMLElement>('[part~="review-line"]')!
+    expect(line.textContent).toContain("No Claude session")
+    expect(getComputedStyle(line).backgroundColor).not.toMatch(/^rgba\(0, 0, 0, 0\)$|^transparent$/)
+    send.click()
     await vi.waitFor(() => expect(routes.posts.map(([route]) => route)).toEqual(["send"]))
     await vi.waitFor(() => expect(headerButtons(host).send?.[0]).toBe("sent"))
+    expect(getComputedStyle(send).borderTopStyle).toBe("solid")
     routes.inbox.listening = { session: "s1", since: at, seen: at }
     await client.refresh()
     await ElementFixture.tick()
@@ -426,7 +472,7 @@ describe("<epic-page> Agents running", () => {
       ]
     ])
     expect(noteBox(host, "demo-aaa").note.placeholder).toBe("Redirect demo-aaa ...")
-    // the contents and counts read the light DOM:  the panel isn't there
+    // the rail and counts read the light DOM:  the panel isn't there
     expect(host.querySelector(".agents")).toBeNull()
     await expectAccessible(host)
   })

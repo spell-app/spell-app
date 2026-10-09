@@ -45,5 +45,10 @@ export const epicVersionVocabulary = {
     },
     { key: "asOf", text: "As of {asOf}", description: "A later version's heading:  when it was replaced." }
   ],
-  children: [{ tag: "flow", description: "The text, as it was." }]
+  children: [
+    { tag: "epic-question", max: 1, description: "A question's text as first asked, moved here by a rewrite." },
+    { tag: "flow", description: "The text, as it was." },
+    { tag: "epic-answer", max: 1, description: "Its answer card, as it was (P14:  hand-written ones converted)." },
+    { tag: "epic-reply", description: "Its replies, as they were (P14:  hand-written ones converted)." }
+  ]
 } as const satisfies EpicVocabulary

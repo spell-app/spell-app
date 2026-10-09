@@ -55,6 +55,20 @@ afterEach(() => {
 })
 
 describe("<epic-section>", () => {
+  test("a REPORT:  titled its own, UNNUMBERED, on the section band;  the sections after it keep their numbers", async () => {
+    const host = await render(
+      `<div><epic-section id="overnight" kind="report" title="Overnight · 2026-10-04"><p>The night.</p></epic-section>` +
+        `<epic-section id="phases" kind="phases"></epic-section></div>`
+    )
+    const phases = host.parentElement!.querySelector<FoldHost>("#phases")!
+    expect([titleText(host), titleText(phases)]).toEqual(["Overnight · 2026-10-04", "1. Phases"])
+    expect((host as unknown as { contentsEntry: unknown }).contentsEntry).toEqual({ label: "Overnight · 2026-10-04" })
+    expect(getComputedStyle(host).getPropertyValue("--_epic-fold-band")).toBe(
+      getComputedStyle(phases).getPropertyValue("--_epic-fold-band")
+    )
+    await expectAccessible(host)
+  })
+
   test("draws its numbered title, no tooltip;  starts FOLDED, with a grey rule and no gap below", async () => {
     const host = await render(
       `<div><epic-section id="phases" kind="phases"></epic-section>` +
@@ -217,13 +231,19 @@ describe("<epic-section> counts and state filter", () => {
     expect(inner(host).getAttribute("badge")).toBe("2/5")
   })
 
-  test("its host's `contentsEntry` (the page's contents and rail):  label, kind icon and count, read as they are NOW", async () => {
-    const host = await render(questions(["open", "decided", "done"]))
+  test("its host's `contentsEntry` (the page's rail):  label, kind icon and count, read as they are NOW", async () => {
+    const host = await render(questions(["open:attention", "decided", "done"]))
     const entry = () => (host as FoldHost & { contentsEntry?: unknown }).contentsEntry
-    expect(entry()).toEqual({ label: "1. Questions", icon: "file circle question", count: { open: 1, total: 3 } })
+    // `attention`:  what needs Owen, the red count on the rail (Q20)
+    expect(entry()).toEqual({
+      label: "1. Questions",
+      icon: "file circle question",
+      count: { open: 1, total: 3, attention: 1 }
+    })
     // right after a change, before any memo or observer has caught up:  what the live update reads
     host.querySelector("#q1")!.setAttribute("status", "decided")
-    expect(entry()).toMatchObject({ count: { open: 0, total: 3 } })
+    host.querySelector("#q1")!.setAttribute("state", "recent")
+    expect(entry()).toMatchObject({ count: { open: 0, total: 3, attention: 0 } })
     const part = await render(`<epic-section id="o2" kind="overview-part" title="Why"><p>Prose.</p></epic-section>`)
     expect((part as FoldHost & { contentsEntry?: unknown }).contentsEntry).toEqual({ label: "1.1 Why" })
   })
