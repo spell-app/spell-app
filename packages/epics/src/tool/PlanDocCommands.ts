@@ -18,27 +18,31 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
 
 /****************
  * ### `PlanDocCommands`
- * `spell dev plan-doc <command> <name> ...`:  edit the structured parts of a plan doc,
- * `epics/<name>/<name>.plan.html`.  What's data:  `PLAN-DOC.md` beside this;  the elements:  `$/epics/definitions`.
+ * `spell dev plan-doc <command> <name> ...`:
+ * edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
  * Used by the `/epic` skill and its agents.
+ * - what's data:  `PLAN-DOC.md` beside this;  the elements:  `$/epics/definitions`
  * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
  *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `check`, `open`, `convert`, `split`, `join`,
  *   `inbox`, `details`, `status`, `original` (`spell dev plan-doc` with no command lists them:  `USAGE`).
- * - TWO markups until the switch (P12):  the commands that only READ (`summary`, `summaries`, `list`, `items`,
- *   `check`, `open`, `inbox` listings) read either (`PlanDocFiles.readAny()`);  every command that EDITS takes the
- *   `<epic-*>` markup only, and refuses an old doc before it writes anything:  `convert` it first
+ * - TWO markups until the switch (P12):
+ *   - the commands that only READ (`summary`, `summaries`, `list`, `items`, `check`, `open`, `inbox` listings)
+ *     read either (`PlanDocFiles.readAny()`)
+ *   - every command that EDITS takes the `<epic-*>` markup only,
+ *     and refuses an old doc before it writes anything:  `convert` it first
  * - `migrate` and `relayout` are gone:  the converter (`convert`, `$/epics/convert`) replaced them
  * - `inbox`:  the marks Owen left on the doc's page, waiting in `<name>.inbox.json` beside it (`ReviewInbox`):
  *   printed, waited on (`wait`, a background command that wakes the `/epic review` session), applied (`apply`),
  *   cleared (`InboxCommands`);  `details` writes an agent's details or reply into one item
- * - an item's text is never dropped:  a rewrite moves it into the item's folded Original Discussion;  `original`
- *   puts text recovered from git there
- * - the docs, their files and git:  `PlanDocFiles`, for ONE checkout (the caller's:  `spell dev plan-doc` finds
- *   it);  the doc itself:  `PlanDoc`, pure
+ * - an item's text is never dropped:  a rewrite moves it into the item's folded Original Discussion;
+ *   `original` puts text recovered from git there
+ * - the docs, their files and git:  `PlanDocFiles`, for ONE checkout (the caller's:  `spell dev plan-doc` finds it)
+ * - the doc itself:  `PlanDoc`, pure
  * - output goes straight to `process.stdout` / `stderr`, never `console.*`, which the `spell` CLI silences
  *   (`packages/cli/src/consoleGuard.ts`);  `run()` resolves to the exit code instead of exiting
- * - Node only:  NOT in the `$/epics` barrel, imported by path (`$/epics/tool/PlanDocCommands`).  Runs `docs`' tools
- *   as children (the docs index, `check-spell.js`, `open.js`), never imports them:  `epics` may not import `docs`.
+ * - Node only:  NOT in the `$/epics` barrel, imported by path (`$/epics/tool/PlanDocCommands`).
+ *   Runs `docs`' tools as children (the docs index, `check-spell.js`, `open.js`), never imports them:
+ *   `epics` may not import `docs`.
  * - From `packages/docs/tools/plan-doc.js`'s command line (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class PlanDocCommands {
@@ -107,9 +111,10 @@ export class PlanDocCommands {
           })
         )
         this.files.reindex()
-        // a new stage:  bring the doc forward, unless told not to.  No reload, nor a second one:  the edit reaches
-        // the page by the live client (it updates itself in place, `spell-doc-runtime.js` `wireLiveUpdate()`), and
-        // showing the page the view already has only reveals it (`packages/vscode/src/DocView.ts`)
+        // a new stage:  bring the doc forward, unless told not to.
+        // No reload, nor a second one:  the edit reaches the page by the live client
+        // (it updates itself in place, `spell-doc-runtime.js` `wireLiveUpdate()`),
+        // and showing the page the view already has only reveals it (`packages/vscode/src/DocView.ts`)
         return flags.noOpen ? undefined : this.openInVSCode(file)
       case "phase-body":
         return this.edit(file, (plan) => {
@@ -350,10 +355,10 @@ export class PlanDocCommands {
   }
 
   /**
-   * `details <name> <id> --file <html> [--append | --more]`:  an agent's details or reply into one item, under
-   * the doc's lock.
-   * - refused while Owen called the request off on the page ("nevermind", epic `windows-and-review` P2):  nothing
-   *   lands
+   * `details <name> <id> --file <html> [--append | --more]`:
+   * an agent's details or reply into one item, under the doc's lock.
+   * - refused while Owen called the request off on the page ("nevermind", epic `windows-and-review` P2):
+   *   nothing lands
    */
   private async details(name: string, file: string, rest: string[], flags: Flags): Promise<void> {
     const id = need(rest[0], "an item id")
@@ -374,8 +379,8 @@ export class PlanDocCommands {
   }
 
   /**
-   * `status <name> <id> underway "<reading>"` / `done ["<summary>"]` / `done --filed "<what>"`:  Claude's status card
-   * on an item or an Overview sub-section (P13), and the page's spinner on it.
+   * `status <name> <id> underway "<reading>"` / `done ["<summary>"]` / `done --filed "<what>"`:
+   * Claude's status card on an item or an Overview sub-section (P13), and the page's spinner on it.
    * - `underway`:  a new blue card (`PlanDoc.addStatus()`), stamped now;  the spinner on (`inbox working`), so
    *   one call does both
    * - `done`:  its latest underway card turns green (`PlanDoc.finishStatus()`), the summary under its reading when
@@ -459,8 +464,8 @@ export class PlanDocCommands {
 
   /**
    * `convert <name> ... | --all [--dry-run] [--out <folder>] [--verbose]`:  rewrite docs from the old markup into
-   * `<epic-*>` markup, and prove nothing was lost (`$/epics/convert` `ConvertRun`);  prints its report;  exit code 1
-   * when any doc fails.
+   * `<epic-*>` markup, and prove nothing was lost (`$/epics/convert` `ConvertRun`);  prints its report;
+   * exit code 1 when any doc fails.
    * - writes ONLY under `--out` (preview copies):  the real docs change at the switch (P12), with Owen
    * - loaded on first use:  the converter is big, and no other command needs it
    */
@@ -511,8 +516,8 @@ export class PlanDocCommands {
 
   /**
    * `split --done [--dry-run]`:  split every FINISHED epic's doc (Q12 of `claude-design`):  every phase done, and no
-   * worktree of its own (`list`'s `checkout` is `main`:  a worktree may still edit it with older code);  prints what
-   * it split and what it skipped, and why.
+   * worktree of its own (`list`'s `checkout` is `main`:  a worktree may still edit it with older code);
+   * prints what it split and what it skipped, and why.
    */
   private async splitDone({ dryRun }: Flags): Promise<void> {
     for (const epic of this.files.listEpics()) {
@@ -534,8 +539,8 @@ export class PlanDocCommands {
    * `check`:  structural problems, then the browser check;  exit code 1 on any.
    * - a split doc is checked WHOLE (`read()` assembles it):  ids and `#id` links across skeleton and parts
    * - links:  `AS.Linker.check()` on the whole doc, at the page's folder (a part's links are written relative to
-   *   `parts/`, and rebased when assembled), so the parts' links are checked too;  printed (`LINK:`), failing only
-   *   with `--links`
+   *   `parts/`, and rebased when assembled), so the parts' links are checked too;
+   *   printed (`LINK:`), failing only with `--links`
    * - a split doc's parts:  a missing one is a problem;  a host with content of its own besides its part (moved
    *   into the part on the next edit), or a part file nothing loads, is a note
    * - the browser check:  `packages/docs/tools/check-spell.js`, a child `node` (its stderr passed on)

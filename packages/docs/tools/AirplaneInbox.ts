@@ -10,11 +10,12 @@ const NOTE_FOLDERS = ["pages", "guides", "epics"]
 
 /****************
  * ### `AirplaneInbox`
- * Everything Owen left while he worked with no Claude (epic `airplane` P5):  what `/airplane land` works through,
- * gathered from every place it waits.
- * - each epic's review inbox (`epics/<name>/<name>.inbox.json`, `ReviewInbox`):  marks SENT OR NOT (Owen's
- *   decision Q3 of `airplane`:  on the plane, nobody was there to send them to), drafts (typed, never submitted:
- *   asked about, never acted on), and the requests for now (Do Now, revisit now)
+ * Everything Owen left while he worked with no Claude (epic `airplane` P5):
+ * what `/airplane land` works through, gathered from every place it waits.
+ * - each epic's review inbox (`epics/<name>/<name>.inbox.json`, `ReviewInbox`):
+ *   - marks SENT OR NOT (Owen's decision Q3 of `airplane`:  on the plane, nobody was there to send them to)
+ *   - drafts (typed, never submitted:  asked about, never acted on)
+ *   - the requests for now (Do Now, revisit now)
  * - page notes not yet answered (`<spell-note status="new">` in guides and other pages:  `notesOnDisk.ts`)
  * - details pages answered since the flight began (`<slug>.answer.json`, newer than `since`)
  * - goals thoughts not yet digested (`li.goals-thought[data-status="new"]` in the goals pages)
@@ -23,8 +24,9 @@ const NOTE_FOLDERS = ["pages", "guides", "epics"]
 export class AirplaneInbox {
   /**
    * What's waiting under checkout `root`.
-   * - `since`:  when the flight began (ISO time;  `AirplaneMode`'s `since`):  details answers older than it were
-   *   answered before, and are left out.  None:  every details answer is left out (no way to tell new from handled)
+   * - `since`:  when the flight began (ISO time;  `AirplaneMode`'s `since`):
+   *   details answers older than it were answered before, and are left out
+   *   - none:  every details answer is left out (no way to tell new from handled)
    */
   static gather(root: string, { since }: { since?: string } = {}): AirplaneInbox {
     return Object.assign(new AirplaneInbox(), {

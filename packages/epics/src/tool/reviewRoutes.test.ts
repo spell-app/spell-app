@@ -241,8 +241,8 @@ test("unknown items and bad marks:  400, nothing written", async () => {
   expect(existsSync(inboxFile(PAGES.plan))).toBe(false)
 })
 
-// epic `epic-components` P8:  the new markup's items, and the Overview's sub-sections (Q14);  epic `airplane` P2:  its
-// phases and its summary too
+// epic `epic-components` P8:  the new markup's items, and the Overview's sub-sections (Q14);
+// epic `airplane` P2:  its phases and its summary too
 test("a doc in <epic-*> markup:  its items, Overview sub-sections, phases and summary take marks", async () => {
   const page = `/${PAGES.epic}`
   expect((await post("mark", { page, id: "Q7", mark: { action: "approve" } })).status).toBe(200)

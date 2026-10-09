@@ -115,8 +115,8 @@ export const COMMITS_PROPERTY = "--epic-commits-display"
 ////////////////
 
 /**
- * The colours of the review controls (decision Q20 of epic `epic-components`, Owen, 2026-10-08):  green decided or
- * done (Approve, Make Todo, a pick), blue do it now or Claude is on it (Revisit, Do Now).
+ * The colours of the review controls (decision Q20 of epic `epic-components`, Owen, 2026-10-08):
+ * green decided or done (Approve, Make Todo, a pick), blue do it now or Claude is on it (Revisit, Do Now).
  */
 export type ReviewColor = "green" | "blue"
 
@@ -130,8 +130,8 @@ export type ReviewColor = "green" | "blue"
 export type ReviewFill = "none" | "dashed" | "outline" | "solid"
 
 /**
- * Owen's mark on an item, as its id chip wears it (Owen, 2026-10-08:  the chip matches the chosen button):  the
- * chosen button's colour and fill, and its name for the chip's tooltip.  Only a LIVE mark:  dashed or outlined.
+ * Owen's mark on an item, as its id chip wears it (Owen, 2026-10-08:  the chip matches the chosen button):
+ * the chosen button's colour and fill, and its name for the chip's tooltip.  Only a LIVE mark:  dashed or outlined.
  */
 export type ChipMark = {
   color: ReviewColor
@@ -155,9 +155,11 @@ export type ReviewButtonSpec = {
 }
 
 /**
- * The line's four review buttons, in their order (decision Q20):  Approve, Revisit, Make Todo (the GROUP:  what Owen
- * makes of it), then Do Now apart, with a paper plane (an action, not a state:  it replaces Add Details Now and the
- * note box's Do Now).  Every one shows at every step:  a mark done can still be followed by another.
+ * The line's four review buttons, in their order (decision Q20):
+ * - Approve, Revisit, Make Todo (the GROUP:  what Owen makes of it)
+ * - then Do Now apart, with a paper plane
+ *   (an action, not a state:  it replaces Add Details Now and the note box's Do Now)
+ * - Every one shows at every step:  a mark done can still be followed by another.
  */
 export const REVIEW_BUTTONS: readonly ReviewButtonSpec[] = [
   { action: "approve", color: "green", icon: "check", label: "approve", tip: "approveTip" },

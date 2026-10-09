@@ -6,13 +6,13 @@
  *   markup), so the shared content repo commits it like any other edit (epic `airplane`, P3).
  *   Claude finds them with `spell dev notes list`, and answers under them (`notes.ts`).
  * - `GET /api/notes?page=<path>` -- the page's notes, every status:  `{ page, notes }`
- *   - the runtime asks as the page loads, and draws the bubbles only when this answers:  a server without this
- *     module, `file://`, or a page that takes no notes shows none
+ *   - the runtime asks as the page loads, and draws the bubbles only when this answers:
+ *     a server without this module, `file://`, or a page that takes no notes shows none
  * - `POST /api/notes` `{ page, action, for?, id?, text? }` -- change one note;  answers `{ ok, id, notes }`
  *   - `add` `{ for, text }`:  `for` a section's `id`, or `page` for the whole page;  answers the new note's `id`
  *   - `edit` `{ id, text }`, `delete` `{ id }`:  only while the note is `new` (else 409)
- * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too).  Which pages take notes
- *   (`notesPage()`):
+ * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too).
+ *   Which pages take notes (`notesPage()`):
  *   - any `.html` under `guides/`, `pages/` (the docs home, details pages) and `epics/` (an epic's own pages)
  *   - NOT a plan doc (`*.plan.html`, `<epic-page>`, a split doc's `parts/`):  its items have the review inbox
  *   - NOT a details page with questions, or a syntax-choices page:  they're answered on the page
@@ -72,8 +72,8 @@ export default notesRoutes
 
 /**
  * The file of page `page` (a URL path) through the server's mounts, when it takes notes.
- * - 400:  not a path;  404:  no such page;  403:  outside a mount, or a page that takes no notes (this module's
- *   header says which)
+ * - 400:  not a path;  404:  no such page;
+ *   403:  outside a mount, or a page that takes no notes (this module's header says which)
  */
 export function notesPage(files: SRV.StaticHandler, page: unknown): string {
   if (typeof page !== "string" || !page.startsWith("/")) throw new SRV.HttpError(400, "no page")
@@ -88,10 +88,10 @@ export function notesPage(files: SRV.StaticHandler, page: unknown): string {
 }
 
 /**
- * Change the notes of the page at `file` with `change(notes)`, under the page's lock;  returns what `change`
- * returned.
- * - formats the page after (oxfmt, in memory:  `AS.formatHTML()`) only when it was formatted before:  a long note
- *   wraps as `vp fmt` would wrap it, and a page that wasn't keeps every other byte
+ * Change the notes of the page at `file` with `change(notes)`, under the page's lock;
+ * returns what `change` returned.
+ * - formats the page after (oxfmt, in memory:  `AS.formatHTML()`) only when it was formatted before:
+ *   a long note wraps as `vp fmt` would wrap it, and a page that wasn't keeps every other byte
  * - atomic:  a temp file renamed over the page, so the live reload never reads half a page
  * - throws what `change` throws (`NotesError` ...);  the page is left as it was
  * - SIDE EFFECT:  writes the page

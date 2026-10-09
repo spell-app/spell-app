@@ -1,6 +1,6 @@
 /**
- * PAGE NOTES:  notes Owen leaves on a docs page for Claude, written INTO the page's HTML, and Claude's replies under
- * them (epic `airplane`, P3).
+ * PAGE NOTES:  notes Owen leaves on a docs page for Claude, written INTO the page's HTML,
+ * and Claude's replies under them (epic `airplane`, P3).
  * - Pure:  a page's source in (`new PageNotes(html)`), edits on that text, the text out (`html`).
  *   No files, no clock unless passed one.
  * - Who uses it:
@@ -22,12 +22,12 @@
  *     </spell-notes>
  *
  * - `<spell-notes for>`:  the `<ui-section>`'s `id`, or `page` for the whole page;  one group per section
- * - `<spell-note>`:  `id` `n<N>`, unique on the page;  `status` `new` (Claude hasn't seen it), `answered` (a reply
- *   is under it), `done`;  `at`, local time
+ * - `<spell-note>`:  `id` `n<N>`, unique on the page;  `at`, local time;
+ *   `status` `new` (Claude hasn't seen it), `answered` (a reply is under it), `done`
  * - `<spell-note-reply>`:  Claude's, `by` and `at`;  several are fine
  * - Plain markup, no element behind it:  the docs runtime (`_assets/spell-doc-runtime.js`, "Page notes") draws it
- *   as a folded card and adds the bubbles;  `spell-doc.css` styles it.  From `file://` it reads the same, minus the
- *   bubbles.
+ *   as a folded card and adds the bubbles;  `spell-doc.css` styles it.
+ *   From `file://` it reads the same, minus the bubbles.
  */
 import { parseHTML } from "linkedom"
 
@@ -119,8 +119,8 @@ export class PageNotes {
 
   /**
    * Add a note `for` a section (its `id`) or the whole page (`page`);  returns its id (`n3`).
-   * - into the section's group, made at the end of the section on first use;  the page's right after the sticky
-   *   page header
+   * - into the section's group, made at the end of the section on first use;
+   *   the page's right after the sticky page header
    * - `text`:  plain text (`htmlOf()`);  blank:  throws
    * - `now`:  its `at`, local time
    */

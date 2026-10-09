@@ -23,8 +23,8 @@ import {
  * ### `InboxCommands`
  * `spell dev plan-doc inbox <name> [<what> ...]`:  the review inbox of an epic's doc (`ReviewInbox`), from Claude's
  * side;  `<what>` none prints it.
- * - every inbox write goes through `ReviewInbox.update()` (the inbox's lock);  doc edits through
- *   `PlanDocCommands.edit()` (the doc's)
+ * - every inbox write goes through `ReviewInbox.update()` (the inbox's lock);
+ *   doc edits through `PlanDocCommands.edit()` (the doc's)
  * - the session's commands (`wait`, `apply`, `working`, `done`, `clear`) stamp its heartbeat (`touchListening()`):
  *   a session busy between `wait`s still counts as listening
  * - the loop, step by step:  `templates/epics/plan-doc.md`, "Review inbox"
@@ -41,8 +41,8 @@ export class InboxCommands {
   }
 
   /**
-   * `inbox <name> [<what> ...]`:  the review inbox of epic `name`'s doc at `file`;  resolves to the exit code
-   * (`undefined` for 0).
+   * `inbox <name> [<what> ...]`:  the review inbox of epic `name`'s doc at `file`;
+   * resolves to the exit code (`undefined` for 0).
    * - throws a `PlanDocError` for an unknown `what`, or a missing argument
    */
   async run(name: string, file: string, [what, ...args]: string[], flags: Flags): Promise<number | void> {
@@ -81,8 +81,8 @@ export class InboxCommands {
   }
 
   /**
-   * The page's spinner on item `id` of the doc at `file`, on or off (`inbox working`;  `status` too):  the inbox's
-   * `working` entry, and the session's heartbeat.
+   * The page's spinner on item `id` of the doc at `file`, on or off (`inbox working`;  `status` too):
+   * the inbox's `working` entry, and the session's heartbeat.
    * - SIDE EFFECT:  writes the inbox, under its lock
    */
   setWorking(file: string, id: string, on: boolean): void {
@@ -100,8 +100,8 @@ export class InboxCommands {
   /**
    * The doc's review inbox, for a reply or (`json`) a script.
    * - marks grouped by action (`ACTIONS`' order), oldest first, each with its item's title and whether it's sent
-   *   (`sent: false`:  newer than the last "send to Claude";  an immediate one, `details` or revisit `now`, counts
-   *   as sent:  `unsentMarks`)
+   *   (`sent: false`:  newer than the last "send to Claude";
+   *   an immediate one, `details` or revisit `now`, counts as sent:  `unsentMarks`)
    * - an item gone from the doc since it was marked:  title `null`, "(no such item)"
    * - a new item (`new1`, epic `airplane` P2):  `new todo:  <its title>`, its note and what it's about after it
    */
@@ -238,8 +238,8 @@ export class InboxCommands {
   /**
    * Print the work `wait` took (`takeWork()`'s `{ now, sent, canceled }`), each mark with its item
    * (`describeItem()`):  id, kind, status, title, the mark, the note, a pick's option card.
-   * - plain lines for Claude to read, then what to run next;  `json`:  `{ now, sent, canceled }` with `item` (and
-   *   `option`) on each
+   * - plain lines for Claude to read, then what to run next
+   * - `json`:  `{ now, sent, canceled }` with `item` (and `option`) on each
    */
   private printWork(name: string, plan: PlanReader, work: TakenWork, json: boolean): void {
     const now = work.now.map((each) => withItem(each))
@@ -326,15 +326,16 @@ export class InboxCommands {
   ////////////////
 
   /**
-   * `inbox <name> apply [ids...]`:  apply the SENT mechanical marks (`PlanDoc.applyMark()`:  approve, pick, todo, new),
-   * and the sent urgency (an id chip clicked:  `PlanDoc.setCalm()`), all or those of `ids`, then clear them;  prints
-   * a line per item, and what it left.
+   * `inbox <name> apply [ids...]`:  apply the SENT mechanical marks, all or those of `ids`, then clear them;
+   * prints a line per item, and what it left.
+   * - the marks:  approve, pick, todo, new (`PlanDoc.applyMark()`),
+   *   and the sent urgency (an id chip clicked:  `PlanDoc.setCalm()`)
    * - a dry run on a parsed copy first:  the doc is written (`edit()`, its lock) only when something applies
    * - marks cleared under the inbox's lock, only while still the ones applied (`clearApplied()`, `clearUrgency()`);
    *   marks of items gone from the doc are dropped too
    * - `ids` without a sent mark:  named, left alone (unsent marks wait for Owen's send)
-   * - `--all` (`run()`):  every mark sent first, as Send does, then applied (epic `airplane`, Q3:  the landing takes
-   *   what Owen marked on the plane, sent or not)
+   * - `--all` (`run()`):  every mark sent first, as Send does, then applied
+   *   (epic `airplane`, Q3:  the landing takes what Owen marked on the plane, sent or not)
    */
   private async apply(name: string, file: string, ids: string[]): Promise<void> {
     const path = ReviewInbox.pathFor(file)
@@ -378,8 +379,8 @@ export class InboxCommands {
    * `finishMarks()`;  `clear` drops it), and their `working` too.
    * - a mark leaving with Owen's note in it:  the note is kept IN the item first, as his own reply card
    *   (`PlanDoc.keepNote()`, epic `windows-and-review` P1):  what he wrote is never lost from the page
-   * - a request taken care of stays marked as handled that way on the page (`review-as`, its button solid):  an
-   *   immediate one (Do Now:  Add Details, revisit now) as `now`, a revisit talked over as `revisit`
+   * - a request taken care of stays marked as handled that way on the page (`review-as`, its button solid):
+   *   an immediate one (Do Now:  Add Details, revisit now) as `now`, a revisit talked over as `revisit`
    */
   private async finish(file: string, what: "done" | "clear", ids: string[]): Promise<void> {
     if (!ids.length) throw new PlanDocError(`${what} which items?  ids`)

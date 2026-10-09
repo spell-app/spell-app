@@ -20,13 +20,13 @@ import phaseCSS from "./EpicPhase.css?inline"
 
 /****************
  * ### `EpicPhase`
- * The component behind `<epic-phase>`:  one phase of the plan, in the Phases section -- a fold (`EpicFold`) titled
- * `P3 · <title>`.
+ * The component behind `<epic-phase>`:  one phase of the plan, in the Phases section --
+ * a fold (`EpicFold`) titled `P3 · <title>`.
  * - Its title line:  the status icon in its colour (grey to do, blue under way, green done), `P3 · <title>`
  *   (`title`, or `slot="title"`), the estimate as a badge;  a done phase's title reads quieter.
  * - Its children, in order:  `<epic-field>`s (Symptom, Changes, Goal, Done, Files, Verify, To review),
- *   `<epic-updated>` lines under Changes, Owen's kept notes (`<epic-reply>`), `<epic-commit>`s.  Files and Verify show
- *   only while the Phases title's toggles say so;  commits while the page's git toggle does.
+ *   `<epic-updated>` lines under Changes, Owen's kept notes (`<epic-reply>`), `<epic-commit>`s.
+ *   Files and Verify show only while the Phases title's toggles say so;  commits while the page's git toggle does.
  * - Its body is usually a part (`source="parts/p3.html"`), loaded the first time it opens.
  * - REVIEWED as an Overview sub-section is (epic `airplane` P2;  `ReviewControls.tsx`):  Revisit, Make Todo, Do Now at
  *   its title's end (no Approve:  notes on the plan, not sign-off), a marked note at the top of its body, its note box
@@ -198,8 +198,8 @@ const STATUS_TEXTS = {
 } as const satisfies Record<PhaseStatus, string>
 
 /**
- * A phase's status => its icon's colour (Spell UI's `color`), as `EpicPhase.css`'s:  its `contentsEntry`'s, which only
- * the contents list drew (gone 2026-10-08).
+ * A phase's status => its icon's colour (Spell UI's `color`), as `EpicPhase.css`'s:
+ * its `contentsEntry`'s, which only the contents list drew (gone 2026-10-08).
  */
 const STATUS_COLORS = {
   todo: "grey",
