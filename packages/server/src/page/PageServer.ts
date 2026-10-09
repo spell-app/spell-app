@@ -5,7 +5,9 @@ import { fileURLToPath, pathToFileURL } from "node:url"
 
 import { SRV, type ServerInfo } from "$/server"
 import {
+  AirplaneMode,
   BundleBuild,
+  HIGHLIGHT_JS,
   PageEditor,
   RunningEpics,
   UI_SITE,
@@ -70,6 +72,7 @@ export class PageServer {
       live: true,
       // `/ui/` too:  the root's `ui` link (`UI_SITE.pages`), with the build laid over it (`uiBuildPath()`, below)
       mounts: [{ prefix: "/", dir: this.root }],
+      html: [localHighlight],
       configure: (served) => ({
         root: this.root,
         branch: this.info.branch,
@@ -77,7 +80,9 @@ export class PageServer {
         // a worktree's page served from here (`/worktrees/<w>/`):  ITS branch and name, for the header's badge
         ...worktreeOf(served.file, this.root),
         edit: "/_server/page",
-        etag: SRV.StaticHandler.etagOf(statSync(served.file))
+        etag: SRV.StaticHandler.etagOf(statSync(served.file)),
+        // Owen is offline, no Claude:  pages say "queued for when you land" (epic `airplane`)
+        ...(AirplaneMode.isOn && { airplane: true })
       })
     })
     this.web.files.overlays.push(uiBuildPath)
@@ -198,6 +203,11 @@ function settingsOf(root: string): PageServerSettings {
   const file = join(root, "package.json")
   if (!existsSync(file)) return {}
   return (JSON.parse(readFileSync(file, "utf8")) as { pageServer?: PageServerSettings }).pageServer ?? {}
+}
+
+/** `html`, its cdnjs highlight.js tag (`HIGHLIGHT_JS.cdn`) pointing at the repo's copy:  pages load offline. */
+export function localHighlight(html: string): string {
+  return html.replaceAll(HIGHLIGHT_JS.cdn, HIGHLIGHT_JS.local)
 }
 
 /** `page/cli.ts`:  `spell dev server`. */

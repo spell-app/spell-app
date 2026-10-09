@@ -4,13 +4,13 @@
  * - The plan for them, and every command the repo has:  `guides/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Two kinds:
- *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `choices`, `design`, `server`, `window`,
- *     `vscode`):  a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them
- *     directly, so they load no spell
- *   - lean commands of our own (`pack`, `bundles`):  `(args, options) => Promise<exitCode>`, imported directly the
- *     same way
- *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);  run through the
- *     `runBarrel` each entry passes in
+ *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `choices`, `notes`, `design`, `server`,
+ *     `window`, `vscode`):  a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;
+ *     this file imports them directly, so they load no spell
+ *   - lean commands of our own (`pack`, `bundles`):
+ *     `(args, options) => Promise<exitCode>`, imported directly the same way
+ *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);
+ *     run through the `runBarrel` each entry passes in
  * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
  * - NOT in the barrel:  it's how the entries start, and must stay importable without it.
  */
@@ -21,12 +21,14 @@ import { Command } from "commander"
 import { CliError, EXIT, type BundlesOptions, type GlobalOptions, type PackOptions } from "$/cli/cli.types"
 import { DESIGN_VERBS, DOCS_VERBS } from "$/cli/dev/passThrough"
 import { agentsCommand } from "$/cli/commands/agentsCommand"
+import { airplaneCommand } from "$/cli/commands/airplaneCommand"
 import { BUNDLES_VERBS, bundlesCommand } from "$/cli/commands/bundlesCommand"
 import { designCommand } from "$/cli/commands/designCommand"
 import { choicesCommand } from "$/cli/commands/choicesCommand"
 import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
 import { goalsCommand } from "$/cli/commands/goalsCommand"
+import { notesCommand } from "$/cli/commands/notesCommand"
 import { PACK_VERBS, packCommand } from "$/cli/commands/packCommand"
 import { planDocCommand } from "$/cli/commands/planDocCommand"
 import { serverCommand } from "$/cli/commands/serverCommand"
@@ -74,7 +76,9 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
 
   dev
     .command("docs")
-    .description("the docs tools:  update, index, new, open, link a page, fuss over writing (packages/docs/tools)")
+    .description(
+      "the docs tools:  update, index, new, open, link a page, fuss over writing, offline check (packages/docs/tools)"
+    )
     .argument("[verb]", DOCS_VERBS.join(" | "))
     .argument("[args...]", "the tool's arguments, e.g. open solid/solid-2 --vs")
     .allowUnknownOption()
@@ -98,6 +102,15 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(choicesCommand, rawArgs("choices")))
+
+  dev
+    .command("notes")
+    .description("page notes Owen leaves on docs pages, for Claude:  list the new ones, answer one, mark it done")
+    .argument("[verb]", "list (default) [--all] [--json] | answer <page> <id> --file <html> | done <page> <id>")
+    .argument("[args...]", "the verb's arguments, e.g. answer guides/x.html n3 --file reply.html")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(notesCommand, rawArgs("notes")))
 
   dev
     .command("design")
@@ -162,6 +175,15 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(agentsCommand, rawArgs("agents")))
+
+  dev
+    .command("airplane")
+    .description("airplane mode:  working on the docs with no Claude, everything queued for /airplane land")
+    .argument("[verb]", "status (default) [--json] | on | off | check [--fix] [--json]")
+    .argument("[args...]", "the verb's flags")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(airplaneCommand, rawArgs("airplane")))
 
   dev
     .command("vscode")

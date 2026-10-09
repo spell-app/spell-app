@@ -1,6 +1,13 @@
 import { parseHTML } from "linkedom"
 
-import { OVERVIEW_PART_ID, SectionIds, type EpicData, type EpicTag, type PageSectionKind } from "$/epics/definitions"
+import {
+  OVERVIEW_ID,
+  OVERVIEW_PART_ID,
+  SectionIds,
+  type EpicData,
+  type EpicTag,
+  type PageSectionKind
+} from "$/epics/definitions"
 import { Markup, type MarkupContent } from "$/epics/markup"
 
 import {
@@ -45,6 +52,7 @@ import { PlanItem } from "./PlanItem"
 import { PlanMarkup } from "./PlanMarkup"
 import { PlanReader } from "./PlanReader"
 import { PlanTime } from "./PlanTime"
+import { SUMMARY_ID } from "./ReviewInbox"
 
 /****************
  * ### `PlanDoc`
@@ -55,8 +63,8 @@ import { PlanTime } from "./PlanTime"
  *   step label, progress, the Plan changes box, the Plan hung? notice ...).
  * - Children go where their parent's content model lists them (`Markup.place()`):  a phase's Symptom before its Goal, an
  *   item's text before its Choices, answer, replies, Original Discussion and commits.
- * - Pure:  a parsed document in, changes on it;  no files, no git, no clock unless passed one.  The command line
- *   reads and writes the doc (its lock, its parts, links and formatting) and hands this the document.
+ * - Pure:  a parsed document in, changes on it;  no files, no git, no clock unless passed one.
+ *   The command line reads and writes the doc (its lock, its parts, links and formatting) and hands this the document.
  * - Reading (the summary, the review lists, item states) is `PlanReader`'s.
  * - The item STATE logic (stamps, colours, review marks, what a mark does) is the old tool's, unchanged (P7 ported
  *   it 1:1;  P8 switched its markup).
@@ -160,13 +168,13 @@ export class PlanDoc extends PlanReader {
 
   /**
    * Append phase `name` (2-4 words);  returns its number.
-   * - `symptom` / `changes` / `goal` / `files` / `verify`:  its `<epic-field>`s, as HTML:  the symptom one line,
-   *   the changes two or three, the goal a `<ul>` (the details);  omitted ones get `TBD` to fill in, but the goal:
-   *   optional once there's a symptom or changes;  neither of those:  the shape before P3 of `windows-and-review`,
-   *   Goal / Files / Verify
+   * - `symptom` / `changes` / `goal` / `files` / `verify`:  its `<epic-field>`s, as HTML:
+   *   the symptom one line, the changes two or three, the goal a `<ul>` (the details)
+   *   - omitted ones get `TBD` to fill in, but the goal:  optional once there's a symptom or changes
+   *   - neither of those:  the shape before P3 of `windows-and-review`, Goal / Files / Verify
    * - `estimate` (`1-2h`):  `<epic-phase estimate>`
-   * - `before` (`add-phase --before N`, epic `skillz`):  inserted as phase N, the to-do phases from N on moving
-   *   down one (`makeRoomForPhase()`)
+   * - `before` (`add-phase --before N`, epic `skillz`):
+   *   inserted as phase N, the to-do phases from N on moving down one (`makeRoomForPhase()`)
    * - a future epic with a phase is planned:  no longer future;  the "Plan hung?" notice (drawn while there's no
    *   phase) goes by itself
    */
@@ -187,15 +195,15 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Make room for a new phase `n`, before the one numbered `n` now (`add-phase --before n`):  it and every later
-   * phase move down one;  returns `n`.
-   * - each moved phase's id (`p5` -> `p6`:  its title has no number), and everything that points at it:  links
-   *   (`href="#p5"`, the `P5` in their text), and the `phase` / `of` of items, UPDATE markers and Updated lines
+   * Make room for a new phase `n`, before the one numbered `n` now (`add-phase --before n`):
+   * it and every later phase move down one;  returns `n`.
+   * - each moved phase's id (`p5` -> `p6`:  its title has no number), and everything that points at it:
+   *   links (`href="#p5"`, the `P5` in their text), and the `phase` / `of` of items, UPDATE markers and Updated lines
    * - prose naming a phase without a link ("P5 tries it") isn't changed:  link phases to keep them right
    * - a split doc's part files follow by themselves:  each is written back under its host's new id, and every old
    *   name is taken by the phase that moved onto it, the new phase taking N's
-   * - throws if there's no phase `n`, or a phase from `n` on has started (done or active:  its commits and log say
-   *   its number)
+   * - throws if there's no phase `n`, or a phase from `n` on has started
+   *   (done or active:  its commits and log say its number)
    */
   makeRoomForPhase(n: number): number {
     const phases = this.phases
@@ -254,8 +262,8 @@ export class PlanDoc extends PlanReader {
 
   /**
    * Set phase `n` to `status` (`todo` / `active` / `done`).
-   * - `done` removes the phase's UPDATE markers (`<epic-update phase="N">`):  once it's finished, its changes are
-   *   just the plan
+   * - `done` removes the phase's UPDATE markers (`<epic-update phase="N">`):
+   *   once it's finished, its changes are just the plan
    * - `done` with `{ done }` (HTML:  a `<ul>` of what was built, what Owen will ask about first):  its Done field
    * - throws on any other status
    * - SIDE EFFECT:  logs the change
@@ -310,8 +318,8 @@ export class PlanDoc extends PlanReader {
 
   /**
    * The Phases section's Plan changes (T14):  a COPY of each `<epic-updated>` of every phase still to do (not
-   * `done`), in phase order, as `<epic-updated slot="changes" of="N">` first in the section;  `<epic-section
-   * kind="phases">` draws them as a box above the phases.  Rewritten whole;  changed?
+   * `done`), in phase order, as `<epic-updated slot="changes" of="N">` first in the section;
+   * `<epic-section kind="phases">` draws them as a box above the phases.  Rewritten whole;  changed?
    * - copies, not links:  a phase's lines are in its part file, which the page loads only when it's opened
    * - a copy keeps the line's attributes (`at`, `phase`:  the phase under way then), adds `of` (whose plan it
    *   changes);  ids inside are renamed (`PlanItem.stripIds()`):  a copy is never a link's target
@@ -424,8 +432,8 @@ export class PlanDoc extends PlanReader {
    *   `<epic-question>` (P14) unless the HTML has one
    * - `titleHTML`:  `title` is HTML;  with markup, it's a `slot="title"` child
    * - a question goes after the open questions at the top of its section;  a decision is a question born answered
-   *   (D13):  the next `q` id, `decided`, `answered`, `title` its answer, among the answered ones;  everything else
-   *   at the end
+   *   (D13):  the next `q` id, `decided`, `answered`, `title` its answer, among the answered ones;
+   *   everything else at the end
    * - while a phase is active:  `phase` (its "To review" line lists it) and an UPDATE marker
    * - in bedtime mode (a `/bedtime` run):  `overnight`, for good (the bed icon on its line)
    * - `calm`:  not urgent (blue, not red, until reviewed):  a judgement call or issue that simply follows WWOD
@@ -509,8 +517,8 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * `item`'s options:  `[{ letter, title, recommended }]`;  its own card set's, or (`choices`) the one at that
-   * position (`PlanItem.choiceSet()`, I8).
+   * `item`'s options:  `[{ letter, title, recommended }]`;
+   * its own card set's, or (`choices`) the one at that position (`PlanItem.choiceSet()`, I8).
    */
   optionCards(item: Element, choices?: number): OptionCard[] {
     return PlanItem.optionsIn(PlanItem.choiceSet(item, choices)).map(({ letter, title, recommended }) => ({
@@ -521,8 +529,8 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Put question `item` where it belongs in its section:  an open one after the open questions on top;  an answered
-   * (or dropped) one among the answered, in id order.
+   * Put question `item` where it belongs in its section:  an open one after the open questions on top;
+   * an answered (or dropped) one among the answered, in id order.
    */
   placeQuestion(item: Element): void {
     const section = item.parentElement!
@@ -602,8 +610,8 @@ export class PlanDoc extends PlanReader {
   ////////////////
 
   /**
-   * Mark item `id` reviewed today (`/epic review`, or any session that talked it through with Owen);  returns its
-   * title.
+   * Mark item `id` reviewed today (`/epic review`, or any session that talked it through with Owen);
+   * returns its title.
    * - `reviewed="YYYY-MM-DD"`;  clears `deferred`:  it's been gone through now
    * - the outcome goes in the log, not on the item
    * - `date`:  when it was reviewed, if not today (`backfill`:  the day of the evidence);  the change stamp is that
@@ -696,20 +704,35 @@ export class PlanDoc extends PlanReader {
   // ## Review inbox
   ////////////////
 
-  /** Item `id` as the inbox shows it;  an Overview sub-section (`o3`, Q14) too:  kind `overview`. */
+  /**
+   * Item `id` as the inbox shows it;  what takes notes as an item does too (`reviewPart()`):
+   * an Overview sub-section (`o3`, Q14), kind `overview`;  a phase (`p3`), kind `phase`, its status;
+   * the summary (`summary`), kind `summary`, its own text the title (epic `airplane` P2).
+   */
   describeItem(id: string): ItemDescription | null {
-    const part = this.overviewPart(id)
-    if (part) return { id: part.id.toUpperCase(), kind: "overview", status: "open", title: PlanItem.titleOf(part) }
-    return super.describeItem(id)
+    const part = this.reviewPart(id)
+    if (!part) return super.describeItem(id)
+    const { element, kind } = part
+    const status = kind === "phase" ? (element.getAttribute("status") ?? "todo") : "open"
+    const title = kind === "summary" ? summaryText(element) : PlanItem.titleOf(element)
+    return { id: String(id).toUpperCase(), kind, status, title }
+
+    /** The summary's own text:  its slotted children (Owen's kept notes, status cards) left out. */
+    function summaryText(summary: Element): string {
+      const own = Array.from(summary.childNodes).filter(
+        (node) => !(PlanMarkup.isElement(node) && node.hasAttribute("slot"))
+      )
+      return PlanMarkup.squeeze(own.map((node) => node.textContent ?? "").join(""))
+    }
   }
 
   /**
-   * Apply one mark Owen SENT from the page, when it's mechanical:  returns `{ applied: true, did }`, or
-   * `{ applied: false, left }` (why it's left for Claude), plus `gone: true` for an item the doc no longer has (the
-   * caller drops its mark).
+   * Apply one mark Owen SENT from the page, when it's mechanical:
+   * returns `{ applied: true, did }`, or `{ applied: false, left }` (why it's left for Claude),
+   * plus `gone: true` for an item the doc no longer has (the caller drops its mark).
    * - `approve`:
-   *   - an open question:  answered with its recommended option (`decide()`, that option chosen), and reviewed;  none
-   *     recommended:  left, "needs talk"
+   *   - an open question:  answered with its recommended option (`decide()`, that option chosen), and reviewed;
+   *     none recommended:  left, "needs talk"
    *   - an open judgement call:  closed (accepted);  an open test:  closed (it passed);  both reviewed
    *   - anything else (an open caveat, issue or todo;  a closed or answered item):  reviewed
    * - `pick`, from any of the item's card sets (`choices`, by position;  none, its own:  I8):  that set's option
@@ -718,15 +741,18 @@ export class PlanDoc extends PlanReader {
    * - `todo`:  a new todo, "Follow up:  <title>", linking back;  the item reviewed
    * - `revisit` soon:  left, for Claude to talk over in the chat;  `details`, revisit `now`:  left, an agent's
    *   - a revisit carrying a `pick` ("pick B, but ..."):  left too, NOT answered:  the note may change the pick
-   * - an Overview sub-section (`o3`, Q14):  approve is noted, todo makes a todo;  the rest as for an item
-   *   (`applyToPart()`)
+   * - an Overview sub-section (`o3`, Q14), a phase (`p3`), the summary (`summary`, epic `airplane` P2):
+   *   approve is noted, todo makes a todo;  the rest as for an item (`applyToPart()`)
+   * - `new`, a new todo or question Owen asked for from the page (epic `airplane` P2):
+   *   made, as `plan-doc add` makes one (`addFromPage()`)
    * - an applied mark adds ONE log line (`J9 approved:  closed (accepted)`);  the methods it calls stamp the item
    */
   applyMark(mark: PlanMark): MarkResult {
-    const part = this.overviewPart(mark.id)
+    if (mark.action === "new") return this.addFromPage(mark)
+    const part = this.reviewPart(mark.id)
     if (part) {
       const result = this.applyToPart(part, mark)
-      if (result.applied) this.log(`${part.id.toUpperCase()} ${result.did}`)
+      if (result.applied) this.log(`${String(mark.id).toUpperCase()} ${result.did}`)
       return result
     }
     const item = this.findItem(mark.id)
@@ -742,8 +768,8 @@ export class PlanDoc extends PlanReader {
   /**
    * Record on `item` how Owen's review mark was handled (`review-as`:  `approve`, `todo`, `revisit`, `now`), once
    * Claude applied it, talked it over or did it:  the inbox forgets the mark, the doc keeps it, and the page keeps that
-   * review button SOLID after a reload (done:  epic `windows-and-review` P2, Q8;  the fill rule, Q20).  A pick counts
-   * as approve;  `now`:  an immediate request (Do Now) done.
+   * review button SOLID after a reload (done:  epic `windows-and-review` P2, Q8;  the fill rule, Q20).
+   * A pick counts as approve;  `now`:  an immediate request (Do Now) done.
    * - any other action:  nothing to record
    */
   reviewedAs(item: Element, action: string): void {
@@ -767,7 +793,8 @@ export class PlanDoc extends PlanReader {
       case "pick":
         return this.pickOption(item, kind, open, pick, choices)
       case "todo": {
-        const todo = this.followUp(item.id, kind, PlanItem.titleOf(item), note)
+        const from = { label: item.id.toUpperCase(), link: item.id, what: kind, title: PlanItem.titleOf(item) }
+        const todo = this.followUp(from, note)
         this.review(item.id)
         this.addStatus(item.id, filedTodo(todo), { done: true })
         return { applied: true, did: `to todo ${todo.toUpperCase()}` }
@@ -804,8 +831,9 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * A pick (a Choose pill, I8):  option `pick` of `item`'s card set at position `choices` (none:  its own) is the
-   * chosen one, `<epic-choices chosen>`, wherever the set sits:  its text, a reply, More Details.
+   * A pick (a Choose pill, I8):  option `pick` of `item`'s card set at position `choices`
+   * (none:  its own) is the chosen one, `<epic-choices chosen>`, wherever the set sits:
+   * its text, a reply, More Details.
    * - a question:  answered with it (`answerWith()`)
    * - any other kind:  APPROVED with it (`approve()`:  an open judgement call closed, accepted;  reviewed)
    * - either way, a Done status card, `Chose B · <title>` (Q19), and the option in the log line
@@ -844,12 +872,12 @@ export class PlanDoc extends PlanReader {
    *   appended prose at the end of its text (before its Choices and answer), a reply after the other replies
    * - replacing NEVER drops the text it replaces (Owen, 2026-10-04):  its text and cards (Choices, More Details,
    *   replies) move into the item's Original Discussion (`keepOriginal()`);  appending moves nothing
-   * - replacing an ANSWERED question's text:  the option chosen before stays chosen when the new options still have
-   *   its letter
+   * - replacing an ANSWERED question's text:
+   *   the option chosen before stays chosen when the new options still have its letter
    * - old shapes in `html` (an option grid, a `div.plan-reply`, a Net effect paragraph, a code accordion ...) become
    *   elements (`IncomingHtml`)
-   * - a question's new text:  its lead, the question as now asked, in an `<epic-question>` (P14);  the one it replaces
-   *   goes into the Original Discussion with the rest of the old text
+   * - a question's new text:  its lead, the question as now asked, in an `<epic-question>` (P14);
+   *   the one it replaces goes into the Original Discussion with the rest of the old text
    * - stamped (`changed`) and flagged UPDATE
    */
   setDetails(id: string, html: string, { append = false }: { append?: boolean } = {}): string {
@@ -900,21 +928,24 @@ export class PlanDoc extends PlanReader {
    * - placed before the first reply dated at or after the note (Claude's answer to it), else after the replies
    * - a reply from Owen with the same time and note already there:  nothing (`done` after `clear`, a retry)
    * - an Overview sub-section's (Q14):  the same words as a paragraph at its end (a section holds prose only)
-   * - stamped (`changed`);  no UPDATE flag:  nothing about the item changed but the record
+   * - a phase's (epic `airplane` P2):  the same reply, in the phase, under its Updated lines (its content model);
+   *   the summary's:  under the summary, `<epic-reply slot="notes">`
+   * - an item is stamped (`changed`);  no UPDATE flag:  nothing about the item changed but the record
    */
   keepNote(id: string, { note, action, when, at }: KeptNote): void {
     const stamp = PlanTime.clockTime(at ? new Date(at) : this.now)
     const how = action === "revisit" ? `revisit ${when === "now" ? "now" : "soon"}` : action
     const part = this.overviewPart(id)
     if (part) return this.keepNoteInPart(part, { note, stamp, how })
-    const item = this.item(id)
-    const replies = Array.from(item.querySelectorAll(":scope > epic-reply"))
+    const host = this.reviewPart(id)?.element ?? this.item(id)
+    const replies = Array.from(host.querySelectorAll(":scope > epic-reply"))
     if (replies.some(isSame)) return
     const reply = this.make("epic-reply", { from: "Owen", at: stamp, re: how }, `<p>${PlanMarkup.text(note)}</p>`)
+    if (host.localName === "epic-summary") reply.setAttribute("slot", NOTES_SLOT)
     const next = replies.find((each) => (each.getAttribute("at") ?? "") >= stamp)
     if (next) next.before(reply)
-    else Markup.place(item, reply)
-    this.stamp(item)
+    else Markup.place(host, reply)
+    if (host.localName === "epic-item") this.stamp(host)
 
     /** Is `reply` this note's already:  Owen's, at the same time, saying the same? */
     function isSame(reply: Element): boolean {
@@ -927,13 +958,14 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Keep `nodes` -- item `item`'s text being replaced, already out of the doc -- in its Original Discussion
-   * (`<epic-original>`), made when it has none;  returns `"added"`, `"unchanged"` (a version saying the same is
-   * there) or `"empty"` (nothing but whitespace:  no version).
-   * - a new `<epic-version>`:  undated while it's the first (as first written);  else `as-of` (default now,
-   *   `YYYY-MM-DD HH:MM`), in date order
-   * - a version holds prose only:  cards become the prose they say (`PlanItem.asProse()`);  ids inside are renamed
-   *   (`PlanItem.stripIds()`)
+   * Keep `nodes` -- item `item`'s text being replaced, already out of the doc --
+   * in its Original Discussion (`<epic-original>`), made when it has none.
+   * Returns `"added"`, `"unchanged"` (a version saying the same is there)
+   * or `"empty"` (nothing but whitespace:  no version).
+   * - a new `<epic-version>`:  undated while it's the first (as first written);
+   *   else `as-of` (default now, `YYYY-MM-DD HH:MM`), in date order
+   * - a version holds prose only:  cards become the prose they say (`PlanItem.asProse()`);
+   *   ids inside are renamed (`PlanItem.stripIds()`)
    */
   keepOriginal(item: Element, nodes: Node[], { asOf }: OriginalOptions = {}): OriginalResult {
     if (!nodes.some((node) => node.nodeType === 1 || node.textContent?.trim())) return "empty"
@@ -1001,13 +1033,13 @@ export class PlanDoc extends PlanReader {
   ////////////////
 
   /**
-   * Claude took Owen's mark on item `id` (or an Overview sub-section, `o3`):  a new status card saying what it took
+   * Claude took Owen's mark on item `id` (or an Overview sub-section, `o3`;  a phase, `p3`;  the summary):  a new status card saying what it took
    * the task to be (`reading`, HTML);  returns its title (P13).
    * - `<epic-status slot="status" state="underway" at="2026-10-08 14:20"><p>reading</p></epic-status>`, after its
    *   other status cards:  a later mark adds a new card, the old ones stay
    * - `done`:  a card born done (`state="done"`, `at` alone):  a pick or a todo `inbox apply` filed (Q19)
-   * - `reading`:  inline HTML (wrapped in a `<p>`) or blocks (`<p>`, `<ul>` ...);  plain text goes as it is (`&lt;`
-   *   for a `<`)
+   * - `reading`:  inline HTML (wrapped in a `<p>`) or blocks (`<p>`, `<ul>` ...);
+   *   plain text goes as it is (`&lt;` for a `<`)
    * - slotted, so never ordered (`Markup.place()`):  appended;  drawn under Owen's marked note, above the note box
    * - an item is stamped (`changed`), not flagged UPDATE:  a record of a mark, not a change to the item
    * - throws for an id the doc doesn't have, or a reading with no text
@@ -1047,9 +1079,12 @@ export class PlanDoc extends PlanReader {
     return PlanItem.titleOf(host)
   }
 
-  /** What takes status cards:  the Overview sub-section `id` names, else its item;  throws when there's neither. */
+  /**
+   * What takes status cards:  the Overview sub-section, phase or summary `id` names (`reviewPart()`), else its item;
+   * throws when there's neither.
+   */
   private statusHost(id: string): Element {
-    return this.overviewPart(id) ?? this.item(id)
+    return this.reviewPart(id)?.element ?? this.item(id)
   }
 
   /**
@@ -1131,8 +1166,8 @@ export class PlanDoc extends PlanReader {
   ////////////////
 
   /**
-   * List commit `sha` (full) under phase `phase` or item `item` (an id), with `sentence`:  an `<epic-commit sha>`,
-   * oldest first;  replaces the one already there for it.  Returns `"added"` or `"replaced"`.
+   * List commit `sha` (full) under phase `phase` or item `item` (an id), with `sentence`:
+   * an `<epic-commit sha>`, oldest first;  replaces the one already there for it.  Returns `"added"` or `"replaced"`.
    * - `base`:  the repo's GitHub page:  the page's `repo`, through which every commit links (`null`:  left as is)
    * - a phase's go after its Done (else Goal), before Files;  an item's at the end
    */
@@ -1160,10 +1195,10 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Fill in commits from the doc's git history:  `log` is `{ sha, subject }`s, newest first (`git log`);  returns
-   * what it added, `{ sha, phase }` / `{ sha, item }`, oldest first.
-   * - subjects `PlanCommits.parseCommitSubject()` reads:  phase commits (`P3:  Name -- summary`) and item fixes
-   *   (`Fix I3:  ...`)
+   * Fill in commits from the doc's git history:  `log` is `{ sha, subject }`s, newest first (`git log`);
+   * returns what it added, `{ sha, phase }` / `{ sha, item }`, oldest first.
+   * - subjects `PlanCommits.parseCommitSubject()` reads:
+   *   phase commits (`P3:  Name -- summary`) and item fixes (`Fix I3:  ...`)
    * - only phases and items the doc has;  a commit already listed there is skipped, so it can run again
    */
   backfillCommits(log: Iterable<CommitLogEntry>, { base = null }: CommitOptions = {}): BackfilledCommit[] {
@@ -1198,8 +1233,8 @@ export class PlanDoc extends PlanReader {
   ////////////////
 
   /**
-   * Make this new doc a future epic (`/epic future <name>`, epic `epic-future`):  `<epic-page future>`, no branch or
-   * worktree yet.  The element draws its notice and its FUTURE label.
+   * Make this new doc a future epic (`/epic future <name>`, epic `epic-future`):
+   * `<epic-page future>`, no branch or worktree yet.  The element draws its notice and its FUTURE label.
    */
   makeFuture(): void {
     Markup.set(this.page, { future: true, branch: undefined, worktree: undefined })
@@ -1240,8 +1275,9 @@ export class PlanDoc extends PlanReader {
 
   /**
    * Remove an older doc's `#overnight` section;  was there one?
-   * - `/bedtime` wrote a report section on top of the doc until 2026-10-05 (D5 of `review-review`);  the converter
-   *   keeps one it finds, outside `<epic-page>`, until Owen has read it and runs `overnight <name> remove`
+   * - `/bedtime` wrote a report section on top of the doc until 2026-10-05 (D5 of `review-review`);
+   *   the converter keeps one it finds, outside `<epic-page>`,
+   *   until Owen has read it and runs `overnight <name> remove`
    */
   removeOvernight(): boolean {
     const section = this.document.getElementById("overnight")
@@ -1255,8 +1291,8 @@ export class PlanDoc extends PlanReader {
 
   /**
    * Set the prompt that started the plan:  `<epic-prompt>` in the Overview (drawn folded, "Kickoff prompt", P14),
-   * after its summary, one `<p>` per paragraph (blank lines split them, single newlines become `<br>`).  Replaces any
-   * earlier one, an older doc's `<blockquote slot="prompt">` too;  `""` removes it.
+   * after its summary, one `<p>` per paragraph (blank lines split them, single newlines become `<br>`).
+   * Replaces any earlier one, an older doc's `<blockquote slot="prompt">` too;  `""` removes it.
    */
   setPrompt(prompt: string | null | undefined): void {
     const overview = this.overview
@@ -1342,8 +1378,8 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * A title given as HTML:  `{ title }` when it's plain text (entities decoded), else `{ slot }`, a
-   * `<span slot="title">` holding it.
+   * A title given as HTML:
+   * `{ title }` when it's plain text (entities decoded), else `{ slot }`, a `<span slot="title">` holding it.
    */
   private titleFromHTML(html: string): { title?: string; slot?: Element } {
     const box = this.fragment(html)
@@ -1394,31 +1430,99 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * A mark on an Overview sub-section (Q14):  approve is noted (a section has no review marks:  the log says it);
-   * todo makes a todo linking back;  pick isn't for a section;  revisit and details are Claude's, as for an item.
+   * What takes review notes as an item does, but isn't one, by its inbox id:  an Overview sub-section (`o3`, Q14), a
+   * phase (`p3`) or the summary (`summary`:  it has no id of its own;  epic `airplane` P2);  `null` for anything else.
+   * - with how a todo or a note names it:  `label` (`P3`, `the summary`), `what` it is in words, `title`,
+   *   and `link` (its `#id`;  the summary's is the Overview's)
    */
-  private applyToPart(part: Element, { action, pick, when, note }: PlanMark): MarkResult {
+  private reviewPart(id: string): ReviewPart | null {
+    const key = String(id).toLowerCase()
+    const part = this.overviewPart(key)
+    if (part) {
+      const title = PlanItem.titleOf(part)
+      return {
+        id: key,
+        element: part,
+        kind: "overview",
+        label: key.toUpperCase(),
+        link: key,
+        what: "overview section",
+        title
+      }
+    }
+    if (key === SUMMARY_ID) {
+      const summary = this.document.querySelector("epic-page > epic-overview > epic-summary")
+      if (!summary) return null
+      const label = "the summary"
+      return { id: key, element: summary, kind: "summary", label, link: OVERVIEW_ID, what: "Overview", title: label }
+    }
+    const phase = PHASE_ID.test(key) ? this.document.getElementById(key) : null
+    if (phase?.localName !== "epic-phase") return null
+    const label = key.toUpperCase()
+    const title = `${label} · ${PlanItem.titleOf(phase)}`
+    return { id: key, element: phase, kind: "phase", label, link: key, what: "phase", title }
+  }
+
+  /**
+   * A mark on what takes notes but isn't an item
+   * (`reviewPart()`:  an Overview sub-section, Q14;  a phase or the summary, epic `airplane` P2):
+   * - approve is noted (none of them has review marks:  the log says it)
+   * - todo makes a todo linking back, and a Done status card on it
+   * - pick isn't for them
+   * - revisit and details are Claude's, as for an item
+   */
+  private applyToPart(part: ReviewPart, { action, pick, when, note }: PlanMark): MarkResult {
     switch (action) {
       case "approve":
         return { applied: true, did: "approved" }
       case "todo": {
-        const todo = this.followUp(part.id, "overview section", PlanItem.titleOf(part), note)
+        const todo = this.followUp(part, note)
         this.addStatus(part.id, filedTodo(todo), { done: true })
         return { applied: true, did: `to todo ${todo.toUpperCase()}` }
       }
       case "pick":
-        return { applied: false, left: `an Overview section:  can't pick ${pick}` }
+        return { applied: false, left: `${part.label} (${part.what}):  can't pick ${pick}` }
       default:
         return this.leftForClaude({ action, pick, when, note }, () => undefined)
     }
   }
 
-  /** A new todo, "Follow up:  <title>", linking back to `id` (a `what`), Owen's note in his words;  its id. */
-  private followUp(id: string, what: string, title: string, note: string | undefined): string {
+  /**
+   * A new todo, "Follow up:  <title>", linking back to what it's from (`from`:  its label, link and what it is),
+   * Owen's note in his words;  its id.
+   */
+  private followUp(from: Pick<ReviewPart, "label" | "link" | "what" | "title">, note: string | undefined): string {
     // Owen's note (Make Todo's box, epic `windows-and-review` P2) goes in as his words
     const said = note ? `<p><b>Owen:</b>  ${PlanMarkup.text(note)}</p>` : ""
-    const details = `<p>From <a href="#${id}">${id.toUpperCase()}</a> (${what}), marked "Make Todo" on the page:  ${PlanMarkup.text(title)}</p>${said}`
-    return this.addItem("todo", `Follow up:  ${title}`, { details })
+    const link = `<a href="#${from.link}">${PlanMarkup.text(from.label)}</a>`
+    const details = `<p>From ${link} (${from.what}), marked "Make Todo" on the page:  ${PlanMarkup.text(from.title)}</p>${said}`
+    return this.addItem("todo", `Follow up:  ${from.title}`, { details })
+  }
+
+  /**
+   * A new todo or question Owen asked for from the page (`{ action: "new", kind, title, note?, near? }`, epic
+   * `airplane` P2), made as `plan-doc add` makes one (`addItem()`):  his note its details, a line linking what it's
+   * about (`near`), and a Done status card saying where it came from;  one log line.
+   * - a mark with no kind or title (a hand edit):  dropped (`gone`), nothing made
+   */
+  private addFromPage({ id: key, kind, title, note, near, at }: PlanMark): MarkResult {
+    if (!kind || !title) return { applied: false, gone: true, left: "a new item with no kind or title:  dropped" }
+    const about = near ? `<p>About ${this.aboutLink(near)}.</p>` : ""
+    const details = `${promptHTML(note)}${about}`
+    const id = this.addItem(kind, title, { details: details || undefined })
+    const written = at ? `, written ${PlanTime.clockTime(new Date(at))}` : ""
+    this.addStatus(id, `Made from the page:  Owen's new ${kind}${written}.`, { done: true })
+    this.log(`${id.toUpperCase()} made from the page:  Owen's new ${kind} (${String(key).toUpperCase()})`)
+    return { applied: true, did: `made ${kind} ${id.toUpperCase()}:  ${title}` }
+  }
+
+  /** A link to `id` (an item, a phase, an Overview sub-section, `summary`) as HTML;  its id alone when it's gone. */
+  private aboutLink(id: string): string {
+    const part = this.reviewPart(id)
+    const item = part ? null : this.findItem(id)
+    if (!part && !item) return PlanMarkup.text(id.toUpperCase())
+    const link = part?.link ?? item!.id
+    return `<a href="#${link}">${PlanMarkup.text(part?.label ?? item!.id.toUpperCase())}</a>`
   }
 
   /** What's left for Claude:  revisits (with or without a pick), Add Details, and actions there are none of. */
@@ -1461,6 +1565,27 @@ const STATUS_SLOT = "status"
 
 /** The slot of a status card's summary, under its reading (`<p slot="summary">`). */
 const SUMMARY_SLOT = "summary"
+
+/** The slot of Owen's kept notes on the summary (`<epic-reply slot="notes">`, `PlanDoc.keepNote()`). */
+const NOTES_SLOT = "notes"
+
+/** A phase's id:  `p3`. */
+const PHASE_ID = /^p\d+$/
+
+/**
+ * What takes review notes as an item does, but isn't one (`PlanDoc.reviewPart()`):
+ * its inbox `id`, `element`, `kind` (`overview`, `phase`, `summary`), and how a todo or a note names it:
+ * `label`, `link` (an `#id`), `what` it is in words, `title`.
+ */
+type ReviewPart = {
+  id: string
+  element: Element
+  kind: "overview" | "phase" | "summary"
+  label: string
+  link: string
+  what: string
+  title: string
+}
 
 /** Tags that stand as blocks in a status card's reading or summary;  anything else is inline, wrapped in a `<p>`. */
 const STATUS_BLOCKS = /^(p|ul|ol|dl|div|blockquote|pre|table)$/

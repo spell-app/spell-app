@@ -35,9 +35,9 @@ const PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-page e
 <epic-section id="issues" kind="issues"><epic-item id="i2" title="c" status="open"></epic-item></epic-section>
 </epic-page>`
 
-/** a plan doc in `<epic-*>` markup:  an Overview sub-section, a phase, an item */
+/** a plan doc in `<epic-*>` markup:  the summary, an Overview sub-section, a phase, an item */
 const EPIC_PLAN = `<!doctype html><title>x</title><body class="plan-doc"><epic-page epic="neat" title="Neat">
-<epic-overview id="overview"><epic-section id="o1" kind="overview-part" title="Structure"></epic-section></epic-overview>
+<epic-overview id="overview"><epic-summary>Neat.</epic-summary><epic-section id="o1" kind="overview-part" title="Structure"></epic-section></epic-overview>
 <epic-section id="phases" kind="phases"><epic-phase id="p1" title="Go" status="active"></epic-phase></epic-section>
 <epic-section id="decisions" kind="questions"><epic-item id="q7" title="which?" status="open"></epic-item></epic-section>
 <epic-section id="judgements" kind="judgements"><epic-item id="j4" title="a call" status="open"></epic-item></epic-section>
@@ -236,21 +236,51 @@ test("only plan docs:  403;  missing:  404;  not a path:  400", async () => {
 
 test("unknown items and bad marks:  400, nothing written", async () => {
   expect((await post("mark", { page: PLAN_URL, id: "t99", mark: { action: "approve" } })).status).toBe(400)
-  expect((await post("mark", { page: PLAN_URL, id: "p1", mark: { action: "approve" } })).status).toBe(400)
+  // a section is no item (a phase is, since epic `airplane` P2)
+  expect((await post("mark", { page: PLAN_URL, id: "phases", mark: { action: "approve" } })).status).toBe(400)
   expect((await post("mark", { page: PLAN_URL, id: "j3", mark: { action: "nope" } })).status).toBe(400)
   expect((await post("mark", { page: PLAN_URL, id: "q8", mark: { action: "pick", pick: "b" } })).status).toBe(400)
   expect((await post("mark", { page: PLAN_URL, id: "j3" })).status).toBe(400)
   expect(existsSync(inboxFile(PAGES.plan))).toBe(false)
 })
 
-// epic `epic-components` P8:  the new markup's items, and the Overview's sub-sections (Q14)
-test("a doc in <epic-*> markup:  its items and Overview sub-sections take marks;  its phases don't", async () => {
+// epic `epic-components` P8:  the new markup's items, and the Overview's sub-sections (Q14);
+// epic `airplane` P2:  its phases and its summary too
+test("a doc in <epic-*> markup:  its items, Overview sub-sections, phases and summary take marks", async () => {
   const page = `/${PAGES.epic}`
   expect((await post("mark", { page, id: "Q7", mark: { action: "approve" } })).status).toBe(200)
   expect((await post("mark", { page, id: "o1", mark: { action: "todo", note: "more" } })).status).toBe(200)
-  expect((await post("mark", { page, id: "p1", mark: { action: "approve" } })).status).toBe(400)
-  expect(Object.keys(written(PAGES.epic).marks)).toEqual(["q7", "o1"])
+  expect((await post("mark", { page, id: "P1", mark: { action: "revisit", note: "too big?" } })).status).toBe(200)
+  expect((await post("now", { page, id: "summary", action: "details" })).status).toBe(200)
+  expect((await post("mark", { page, id: "p9", mark: { action: "todo" } })).status).toBe(400)
+  expect(Object.keys(written(PAGES.epic).marks)).toEqual(["q7", "o1", "p1", "summary"])
   rmSync(inboxFile(PAGES.epic), { force: true })
+})
+
+// epic `airplane` P2:  a new todo or question from the page, under a key of its own
+test("new:  each under the next free key;  edited, removed;  `near` must be in the doc;  never through /mark", async () => {
+  const page = `/${PAGES.epic}`
+  const first = await post("new", { page, entry: { kind: "todo", title: "pack", near: "P1" } })
+  expect(first.status).toBe(200)
+  expect(first.body.marks.new1).toMatchObject({ action: "new", kind: "todo", title: "pack", near: "p1" })
+  const second = await post("new", {
+    page,
+    entry: { kind: "question", title: "window or aisle?", note: "long flight" }
+  })
+  expect(Object.keys(second.body.marks)).toEqual(["new1", "new2"])
+  const edited = await post("new", { page, id: "new2", entry: { kind: "question", title: "aisle?" } })
+  expect(edited.body.marks.new2).toMatchObject({ action: "new", kind: "question", title: "aisle?" })
+  expect(edited.body.marks.new2.note).toBeUndefined()
+  expect((await post("new", { page, entry: { kind: "todo", title: "x", near: "q99" } })).status).toBe(400)
+  expect((await post("new", { page, entry: { kind: "todo", title: "" } })).status).toBe(400)
+  expect((await post("new", { page })).status).toBe(400)
+  expect((await post("new", { page, entry: null })).status).toBe(400)
+  expect((await post("mark", { page, id: "new1", mark: null })).status).toBe(400)
+  expect((await post("mark", { page, id: "q7", mark: { action: "new", kind: "todo", title: "x" } })).status).toBe(400)
+  await post("new", { page, id: "new1", entry: null })
+  const last = await post("new", { page, id: "new2", entry: null })
+  expect(last.body.marks).toEqual({})
+  expect(existsSync(inboxFile(PAGES.epic))).toBe(false)
 })
 
 test("writes need the token, our origin and our host", async () => {

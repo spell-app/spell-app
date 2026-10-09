@@ -5,6 +5,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { SRV } from "$/server"
 import {
+  AirplaneMode,
+  HIGHLIGHT_JS,
   PageServer,
   findById,
   movedDocsPage,
@@ -115,6 +117,28 @@ describe("PageServer", () => {
     const served = await config()
     expect(served).toMatchObject({ port, file: "/docs/page.html", token: server.web.guard.token })
     expect(served.etag).toBe(answer.headers.etag)
+  })
+
+  it("serves highlight.js from the repo, not cdnjs, so pages load offline", async () => {
+    const offline = join(root, "docs", "offline.html")
+    writeFileSync(offline, `<!doctype html><head></head><script src="${HIGHLIGHT_JS.cdn}"></script>\n`)
+    const answer = await ask(port, "GET", "/docs/offline.html")
+    expect(answer.text).toContain(`<script src="${HIGHLIGHT_JS.local}"></script>`)
+    expect(answer.text).not.toContain("cdnjs")
+  })
+
+  it("tells pages when airplane mode is on", async () => {
+    const before = process.env.SPELL_AIRPLANE_FILE
+    process.env.SPELL_AIRPLANE_FILE = join(root, "airplane.json")
+    try {
+      expect((await config()).airplane).toBeUndefined()
+      AirplaneMode.turn(true)
+      expect((await config()).airplane).toBe(true)
+    } finally {
+      AirplaneMode.turn(false)
+      if (before === undefined) delete process.env.SPELL_AIRPLANE_FILE
+      else process.env.SPELL_AIRPLANE_FILE = before
+    }
   })
 
   it("sends / to the docs home", async () => {

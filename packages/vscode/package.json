@@ -110,6 +110,18 @@
         "title": "Review:  Open Doc in Browser",
         "category": "Spell",
         "icon": "$(link-external)"
+      },
+      {
+        "command": "spell.reviewView.openEpic",
+        "title": "Review:  Open Epic...",
+        "category": "Spell",
+        "icon": "$(checklist)"
+      },
+      {
+        "command": "spell.reviewView.home",
+        "title": "Review:  Docs Index",
+        "category": "Spell",
+        "icon": "$(home)"
       }
     ],
     "configuration": {
@@ -230,6 +242,11 @@
           "command": "spell.reviewView.openExternal",
           "when": "view == spell.reviewView",
           "group": "navigation@5"
+        },
+        {
+          "command": "spell.reviewView.openEpic",
+          "when": "view == spell.reviewView",
+          "group": "navigation@0"
         }
       ]
     },

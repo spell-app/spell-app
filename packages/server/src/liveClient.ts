@@ -28,6 +28,8 @@ export type ServerConfig = {
   branch?: string
   worktree?: string
   edit?: string
+  /** airplane mode is on:  Owen works with no Claude, everything waits for `/airplane land` (`AirplaneMode`) */
+  airplane?: boolean
   editPage?: (edit: PageEdit) => Promise<PageEditResult>
   saveFile?: (save: FileSave) => Promise<PageEditResult>
   readPage?: () => Promise<PageSource>
