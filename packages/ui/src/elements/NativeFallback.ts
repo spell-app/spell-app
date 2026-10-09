@@ -1,5 +1,5 @@
 // Import directly to avoid circular import
-import { proto } from "$/ui/util"
+import { lazy, proto } from "$/ui/util"
 import { E } from "$/ui/core"
 
 /****************
@@ -75,9 +75,6 @@ export abstract class NativeFallback<V extends E.ComponentVocabulary = E.Compone
 
   /** Undo functions for `listen()`. */
   private readonly disposers: (() => void)[] = []
-
-  /** Made on first `classes()`. */
-  private builder: E.ClassBuilder | undefined
 
   constructor({ domElement, root, error, internals }: NativeFallbackProps) {
     this.domElement = domElement
@@ -165,8 +162,12 @@ export abstract class NativeFallback<V extends E.ComponentVocabulary = E.Compone
       else if (spec.kind === "keyOrValueAndKey") input[spec.name] = E.Converters.keyOrValue(value, undefined)
       else input[spec.name] = value
     }
-    this.builder ??= new E.ClassBuilder(this.vocabulary)
     return this.builder.build(input, { extra })
+  }
+
+  /** Builds `classes()`;  made on first use, over the DOM element tag's `vocabulary`. */
+  @lazy private get builder(): E.ClassBuilder {
+    return new E.ClassBuilder(this.vocabulary)
   }
 
   /** The DOM element's form (`internals.form`, else an ancestor `<form>`), or `undefined`. */

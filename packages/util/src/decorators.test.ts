@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { proto, protoMerged } from "./decorators"
+import { forget, lazy, once, proto, protoMerged } from "./decorators"
 
 /**
- * Proves standard decorators are lowered (`vite.decorators.ts`) and `@proto` / `@protoMerged` work in the browser.
+ * Proves standard decorators are lowered (`vite.decorators.ts`) and `@proto` / `@protoMerged` / `@lazy` / `@once`
+ * work in the browser.
  * - If lowering breaks, this FILE fails to load with a bare `SyntaxError`, rather than a test failing.
  */
 
@@ -137,5 +138,131 @@ describe("@protoMerged static", () => {
       }
       return new Wrong()
     }).toThrow(/@protoMerged setup: only works on 'static' fields/)
+  })
+})
+
+/** Counts how often each `@lazy` / `@once` member really runs. */
+class Counted {
+  made = 0
+  ran = 0
+  static loads = 0
+
+  @lazy get parts() {
+    this.made++
+    return ["header", "content"]
+  }
+
+  @lazy get nothing() {
+    this.made++
+    return undefined
+  }
+
+  @once start() {
+    this.ran++
+    return { started: this.ran }
+  }
+
+  @once static load() {
+    Counted.loads++
+    return Promise.resolve(Counted.loads)
+  }
+}
+
+describe("@lazy get", () => {
+  it("makes the value on first read, then keeps it", () => {
+    const counted = new Counted()
+    expect(counted.made).toBe(0)
+    const parts = counted.parts
+    expect(counted.parts).toBe(parts)
+    expect(counted.made).toBe(1)
+  })
+
+  it("keeps one value PER INSTANCE", () => {
+    expect(new Counted().parts).not.toBe(new Counted().parts)
+  })
+
+  it("keeps `undefined` too", () => {
+    const counted = new Counted()
+    expect(counted.nothing).toBeUndefined()
+    expect(counted.nothing).toBeUndefined()
+    expect(counted.made).toBe(1)
+  })
+
+  it("keeps nothing when the getter throws:  the next read tries again", () => {
+    let fails = true
+    class Flaky {
+      @lazy get value() {
+        if (fails) throw new Error("not yet")
+        return "made"
+      }
+    }
+    const flaky = new Flaky()
+    expect(() => flaky.value).toThrow("not yet")
+    fails = false
+    expect(flaky.value).toBe("made")
+  })
+
+  it("makes it anew after `forget()`", () => {
+    const counted = new Counted()
+    const parts = counted.parts
+    forget(counted, "parts")
+    expect(counted.parts).not.toBe(parts)
+    expect(counted.made).toBe(2)
+  })
+
+  it("throws on a method", () => {
+    expect(() => {
+      class Wrong {
+        // @ts-expect-error -- `@lazy` is typed for getters only
+        @lazy value() {
+          return 1
+        }
+      }
+      return new Wrong()
+    }).toThrow(/@lazy value: only works on getters/)
+  })
+})
+
+describe("@once", () => {
+  it("runs the method once and returns the same result after", () => {
+    const counted = new Counted()
+    const first = counted.start()
+    expect(counted.start()).toBe(first)
+    expect(counted.ran).toBe(1)
+  })
+
+  it("runs once PER INSTANCE", () => {
+    const one = new Counted()
+    const two = new Counted()
+    one.start()
+    two.start()
+    expect([one.ran, two.ran]).toEqual([1, 1])
+  })
+
+  it("on a static, keeps ONE result for the class:  e.g. a loader's promise", async () => {
+    const loading = Counted.load()
+    expect(Counted.load()).toBe(loading)
+    expect(await loading).toBe(1)
+    expect(Counted.loads).toBe(1)
+  })
+
+  it("runs again after `forget()`", async () => {
+    const loading = Counted.load()
+    forget(Counted, "load")
+    const again = Counted.load()
+    expect(again).not.toBe(loading)
+    expect(await again).toBe(2)
+  })
+
+  it("throws on a getter", () => {
+    expect(() => {
+      class Wrong {
+        // @ts-expect-error -- `@once` is typed for methods only
+        @once get value() {
+          return 1
+        }
+      }
+      return new Wrong()
+    }).toThrow(/@once value: only works on methods/)
   })
 })

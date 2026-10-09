@@ -1,3 +1,4 @@
+import { E } from "$/ui/core"
 import { SiteData } from "$/ui/docs-components/SiteData"
 import { SITE_SEARCH_PATH, type SiteSearchFile } from "$/ui/docs-components/docs-components.types"
 
@@ -16,12 +17,9 @@ export class SearchData {
   /** URL of `search.json`, absolute or against the page;  unset:  beside the data file. */
   static url: string | undefined
 
-  /** The one fetch, once started. */
-  private static fetched: Promise<SiteSearchFile> | undefined
-
-  /** The search file, fetched once per page. */
-  static load(): Promise<SiteSearchFile> {
-    return (SearchData.fetched ??= SearchData.fetch())
+  /** The search file, fetched once per page (until `reset()`). */
+  @E.once static load(): Promise<SiteSearchFile> {
+    return SearchData.fetch()
   }
 
   /**
@@ -29,7 +27,7 @@ export class SearchData {
    * - No `url`:  back to the default, beside the data file, as `SiteData.reset()` is.
    */
   static reset(url?: string): void {
-    SearchData.fetched = undefined
+    E.forget(SearchData, "load")
     SearchData.url = url
   }
 
