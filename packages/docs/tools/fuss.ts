@@ -116,7 +116,7 @@ export class Fuss {
   /**
    * The words each package bans from its comments and docs, by folder from the repo's root.
    * - Implementation words a newcomer can't follow:  name the thing by what it is instead.
-   *   In `packages/ui`, "solid-element", never "the fork".
+   *   In `packages/ui`, never "the fork":  say what the code is ("the element layer", `DOMElement`).
    * - Matched whole, in any case;  never inside a code span.
    * - `static`, so a reader finds the table on the class it configures.
    */

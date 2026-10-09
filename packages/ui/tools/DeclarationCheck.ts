@@ -50,7 +50,8 @@ export class DeclarationCheck {
   private badSpecifiers(): string[] {
     const problems: string[] = []
     for (const file of DeclarationCheck.declarationFiles(this.dist)) {
-      const code = readFileSync(file, "utf8")
+      // block comments dropped first:  a docstring's example (`import("./Engine")`) is no statement
+      const code = readFileSync(file, "utf8").replace(/\/\*[\s\S]*?\*\//g, "")
       for (const [, specifier] of code.matchAll(/(?:from |import\(|^import )["']([^"']+)["']/gm)) {
         if (!specifier.startsWith(".")) {
           if (specifier.startsWith("#") || specifier.startsWith("$")) {

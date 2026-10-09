@@ -200,7 +200,7 @@ describe("<ui-header> standalone", () => {
 
   it("keeps elements slotted into it live when `href` swaps its root tag", async () => {
     // loaded first:  the header renders its slot synchronously, BEFORE the label connects (the old owner bug's
-    // trigger, solid-element's fix 11;  each element's Solid root has no owner now)
+    // trigger;  each element's Solid root has no owner now, epic `spell-element` Q8)
     await UI.load()
     const host = await ElementFixture.render(`<ui-header>Dogs <ui-label>214</ui-label></ui-header>`)
     const label = host.querySelector<DOMElement>("ui-label")!

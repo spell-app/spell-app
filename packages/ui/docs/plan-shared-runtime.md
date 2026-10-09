@@ -2,6 +2,9 @@
 
 (The approved master plan now lives in `docs/plan.md`; this file is the plan for this step only.)
 
+> NOTE (2026-10-09):  the fork this plan made, `@spell-app/solid-element`, is gone:  epic `spell-element` folded it
+> into `src/elements/`.
+
 ## Context
 
 - Owen will build the spell app on Solid 2.  If `@spell-app/ui` components share the app's copy of Solid, the Solid runtime costs nothing extra per page, and app signals / context can flow straight into components.

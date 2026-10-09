@@ -17,7 +17,6 @@ import type { OxlintConfig } from "vite-plus/lint"
 
 /**
  * Shared rules:  every package.  `packageLint({ react: true })` adds React's (`reactLint`).
- * - `solid-element` spreads this too, though it's a fork of upstream code:  only `ignorePatterns` differ.
  */
 export const lintBase = {
   // MUST be listed:  without it, oxlint adds its DEFAULT plugins (e.g. `unicorn`)

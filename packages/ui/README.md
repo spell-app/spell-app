@@ -3,17 +3,17 @@
 `@spell-app/ui`:  Fomantic UI reborn as `ui-*` custom elements on a modern CSS foundation.
 
 - Shadow DOM, `@layer`s, OKLCH tokens, anchor positioning, `<dialog>` / popover, accessibility built in.
-- Usable from any framework or plain HTML;  built on Solid 2 through our fork of its custom-element layer
-  (`../solid-element/`).
+- Usable from any framework or plain HTML;  built on Solid 2, with a custom-element layer of its own
+  (`src/elements/`:  `DOMElement`, `UIComponent`).
 - Every family, its status and what's deferred:  [`docs/status.md`](docs/status.md).  Measurements, framework hosts,
   HMR and fallbacks:  [`docs/report.md`](docs/report.md).
 - Design:  [`docs/plan.md`](docs/plan.md) (and [`docs/`](docs/README.md) for the rest).  Conventions for humans and
   agents:  [`AGENTS.md`](AGENTS.md).
 
 ```sh
-yarn            # install, anywhere in the monorepo (the fork, ../solid-element, is a workspace)
+yarn            # install, anywhere in the monorepo
 yarn dev        # tools/demo/:  every example, class grammar beside elements, hot-reloading
-yarn review     # tsc + oxlint + oxfmt + tests (Vitest browser mode + node SSR, and the fork's)
+yarn review     # tsc + oxlint + oxfmt + tests (Vitest browser mode + node SSR)
 yarn build      # library build into dist/
 ```
 

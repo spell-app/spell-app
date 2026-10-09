@@ -1504,18 +1504,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solidjs/element@npm:2.0.0-rc.13":
-  version: 2.0.0-rc.13
-  resolution: "@solidjs/element@npm:2.0.0-rc.13"
-  dependencies:
-    component-register: "npm:^0.8.7"
-  peerDependencies:
-    "@solidjs/web": ^2.0.0-rc.13
-    solid-js: ^2.0.0-rc.13
-  checksum: 10c0/b52cd5b241b09644c59b628ceff76577446944d51fe0984acf366b3658ba9db944d8e274afc7ee506d5b79e66a86f700958c46dee38826a218cefadb983982b5
-  languageName: node
-  linkType: hard
-
 "@solidjs/router@npm:2.0.0-next.35":
   version: 2.0.0-next.35
   resolution: "@solidjs/router@npm:2.0.0-next.35"
@@ -1797,29 +1785,6 @@ __metadata:
   languageName: unknown
   linkType: soft
 
-"@spell-app/solid-element@workspace:packages/solid-element":
-  version: 0.0.0-use.local
-  resolution: "@spell-app/solid-element@workspace:packages/solid-element"
-  dependencies:
-    "@solidjs/element": "npm:2.0.0-rc.13"
-    "@solidjs/vite-plugin": "npm:3.0.0-next.47"
-    "@solidjs/web": "npm:2.0.0-rc.13"
-    "@types/node": "npm:22.20.4"
-    "@vitest/browser-playwright": "catalog:"
-    component-register: "npm:0.8.8"
-    esbuild: "npm:0.28.2"
-    playwright: "npm:1.63.0"
-    solid-js: "npm:2.0.0-rc.13"
-    typescript: "npm:7.0.2"
-    vite: "catalog:"
-    vite-plus: "catalog:"
-    vitest: "catalog:"
-  peerDependencies:
-    "@solidjs/web": 2.0.0-rc.13
-    solid-js: 2.0.0-rc.13
-  languageName: unknown
-  linkType: soft
-
 "@spell-app/spell@workspace:*, @spell-app/spell@workspace:packages/spell":
   version: 0.0.0-use.local
   resolution: "@spell-app/spell@workspace:packages/spell"
@@ -2070,21 +2035,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/node@npm:22.20.4, @types/node@npm:^22.20.4":
-  version: 22.20.4
-  resolution: "@types/node@npm:22.20.4"
-  dependencies:
-    undici-types: "npm:~6.21.0"
-  checksum: 10c0/3a17e19f7b7b7a6d6c695ef8b0a34b70f84829a1539f57d338487bc3b51ddd4ca86ffbcbcc4f1307a41de83d02c1b7dfbb16e8cb6a9c3a8360b4306ccf9ead2d
-  languageName: node
-  linkType: hard
-
 "@types/node@npm:^22":
   version: 22.20.3
   resolution: "@types/node@npm:22.20.3"
   dependencies:
     undici-types: "npm:~6.21.0"
   checksum: 10c0/27034f3f66d7044494f0be7b20b17eecbb1f6deab9e2ea8b004d79e896f4a90cde954da9a433a145e800f3db3e5c5c4761a65366434997c77102ba364dcbedd0
+  languageName: node
+  linkType: hard
+
+"@types/node@npm:^22.20.4":
+  version: 22.20.4
+  resolution: "@types/node@npm:22.20.4"
+  dependencies:
+    undici-types: "npm:~6.21.0"
+  checksum: 10c0/3a17e19f7b7b7a6d6c695ef8b0a34b70f84829a1539f57d338487bc3b51ddd4ca86ffbcbcc4f1307a41de83d02c1b7dfbb16e8cb6a9c3a8360b4306ccf9ead2d
   languageName: node
   linkType: hard
 
@@ -3220,13 +3185,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"component-register@npm:0.8.8, component-register@npm:^0.8.7":
-  version: 0.8.8
-  resolution: "component-register@npm:0.8.8"
-  checksum: 10c0/ab1e83cbe155a95d3babde03255dfc8f41f7765ea32cb60fab7e9e463d4f1edec40eaaa44d56cdf62a832adb1712703c7ccd2f563149769b3875fe6d9596d305
-  languageName: node
-  linkType: hard
-
 "concurrently@npm:^8.2.2":
   version: 8.2.2
   resolution: "concurrently@npm:8.2.2"
@@ -3648,7 +3606,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"esbuild@npm:0.28.2, esbuild@npm:^0.28.2, esbuild@npm:~0.28.0":
+"esbuild@npm:^0.28.2, esbuild@npm:~0.28.0":
   version: 0.28.2
   resolution: "esbuild@npm:0.28.2"
   dependencies:
@@ -6189,7 +6147,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@npm:7.0.2, typescript@npm:^7.0.2":
+"typescript@npm:^7.0.2":
   version: 7.0.2
   resolution: "typescript@npm:7.0.2"
   dependencies:
@@ -6270,7 +6228,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"typescript@patch:typescript@npm%3A7.0.2#optional!builtin<compat/typescript>, typescript@patch:typescript@npm%3A^7.0.2#optional!builtin<compat/typescript>":
+"typescript@patch:typescript@npm%3A^7.0.2#optional!builtin<compat/typescript>":
   version: 7.0.2
   resolution: "typescript@patch:typescript@npm%3A7.0.2#optional!builtin<compat/typescript>::version=7.0.2&hash=3bafbf"
   dependencies:

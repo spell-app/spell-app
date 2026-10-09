@@ -131,7 +131,6 @@ const THEMES = {
   docs: "Monokai Dimmed",
   lsp: "Red",
   parser: "Solarized Dark",
-  "solid-element": "Solarized Light",
   spell: "Quiet Light",
   ui: "Tomorrow Night Blue",
   util: "Default Dark Modern",
@@ -707,7 +706,8 @@ export class Window {
       else console.log([`recommend ${advice.recommend}`, ...advice.reasons.map((reason) => `- ${reason}`)].join("\n"))
       return 0
     }
-    if (["open", "launch", "close", "handoff", "resume"].includes(command)) return Window.worktreeCommand(command, target, flags)
+    if (["open", "launch", "close", "handoff", "resume"].includes(command))
+      return Window.worktreeCommand(command, target, flags)
     const window = Window.current()
     if (!window) {
       console.error("no window:  the spell extension's bridge isn't running in this session's VS Code window")
