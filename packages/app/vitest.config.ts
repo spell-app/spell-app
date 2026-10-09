@@ -3,8 +3,11 @@ import { playwright } from "vite-plus/test/browser-playwright"
 
 import { appConfig } from "./vite.shared.ts"
 
-/** Tests that need a real browser, and Solid's CLIENT build:  `*.browser.test.ts(x)`, anywhere in `src/`. */
-const BROWSER_TESTS = ["src/**/*.browser.test.{ts,tsx}"]
+/**
+ * Tests that need a real browser, and Solid's CLIENT build:  `*.browser.test.ts(x)`, anywhere in `src/` or
+ * `components/` (`<spell-app>`, `<spell-editor>`).
+ */
+const BROWSER_TESTS = ["src/**/*.browser.test.{ts,tsx}", "components/**/*.browser.test.{ts,tsx}"]
 
 /**
  * Two projects, each with its OWN `appConfig()` (aliases from the repo root's `tsconfig.base.json`, decorator
