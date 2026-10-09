@@ -7,7 +7,8 @@ import type { E } from "$/ui/core"
  * - Attributes:  every attribute the element has, in the DOM's order, as written.
  * - Properties:  for a Spell UI element (a `DOMElement`), the property of each attribute in its vocabulary
  *   (`button.active`), converted.
- *   - By default only the ones with a value:  not `undefined`, `null` or `false`.  `{ all: true }`:  every one.
+ *   - By default only the ones with a value:  not `undefined`, `null` or `false`, nor a boolean at its `true` default
+ *     (every tag's `visible`, until hidden).  `{ all: true }`:  every one.
  *   - Any other element has none.
  * - States:  the custom states the element is in now (`:state(active)`), from its `internals.states`, A-Z.
  * - Pure reads:  no Solid, no listeners, so a test can take one of any element.
@@ -76,10 +77,13 @@ export class ElementSnapshot {
     if (!tagSetup) return []
     const self = element as unknown as Record<string, unknown>
     const rows: SnapshotRow[] = []
-    for (const { property } of tagSetup.elementDefinition.attributes) {
-      const value = self[property]
-      if (!all && (value === undefined || value === null || value === false)) continue
-      rows.push({ name: property, value: ElementSnapshot.valueText(value) })
+    const definition = tagSetup.elementDefinition
+    for (const attribute of definition.attributes) {
+      const value = self[attribute.property]
+      // a boolean at its TRUE default (`visible`, which every tag has) is no more "set" than a false one
+      const isAtTrueDefault = value === true && definition.convert(attribute, undefined) === true
+      if (!all && (value === undefined || value === null || value === false || isAtTrueDefault)) continue
+      rows.push({ name: attribute.property, value: ElementSnapshot.valueText(value) })
     }
     return rows
   }
