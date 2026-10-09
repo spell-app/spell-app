@@ -1,36 +1,43 @@
 /**
- * The doc views:  docs pages, live from their page server, docked in the RIGHT side bar (VS Code's secondary side
- * bar), beside the editor AND the Claude tab, instead of taking an editor column.  Two of them, each in its own
- * view container, so the side bar shows them as two tabs, each keeping its own page:
+ * The doc views:  docs pages, live from their page server, docked in the RIGHT side bar
+ * (VS Code's secondary side bar), beside the editor AND the Claude tab, instead of taking an editor column.
+ * Two of them, each in its own view container, so the side bar shows them as two tabs, each keeping its own page:
  * - "Spell Docs" (`spell.docView`, the spell hat):  where `DocPreview` shows pages by default
  *   (`spell.docPreview.location`:  `sidebar`):  `/spell-docs`, `spell dev plan-doc open`, `/goals-open-vs`
- * - "Review" (`spell.reviewView`, a circle-check):  the page being reviewed (`/epic review`,
- *   `spell dev docs open <page> --review`)
- * - Each is a webview holding ONE iframe of the page's loopback URL, as Simple Browser does.  The page's own live
- *   reload runs inside it.
- * - The webview's html is built ONCE, when VS Code resolves the view:  later shows NAVIGATE its iframe (a
- *   `navigate` message to the view's script), so the frame isn't rebuilt (a rebuilt frame flashes white).  The
- *   frame and body take the side bar's theme colour, so nothing white shows before a page paints.
- * - Showing the page ALREADY in view (same path, whatever its `?t=` stamp) doesn't reload it:  the page updates
- *   itself on file changes.  A `hash` asks it to scroll there instead (`{ spell: "go", hash }`).  The reload button
- *   and a server restart do reload.
+ * - "Review" (`spell.reviewView`, a circle-check):
+ *   the page being reviewed (`/epic review`, `spell dev docs open <page> --review`)
+ * - Each is a webview holding ONE iframe of the page's loopback URL, as Simple Browser does.
+ *   The page's own live reload runs inside it.
+ * - The webview's html is built ONCE, when VS Code resolves the view:
+ *   later shows NAVIGATE its iframe (a `navigate` message to the view's script),
+ *   so the frame isn't rebuilt (a rebuilt frame flashes white).
+ *   The frame and body take the side bar's theme colour, so nothing white shows before a page paints.
+ * - Showing the page ALREADY in view (same path, whatever its `?t=` stamp) doesn't reload it:
+ *   the page updates itself on file changes.
+ *   - A `hash` asks it to scroll there instead (`{ spell: "go", hash }`).
+ *   - The reload button and a server restart do reload.
  * - A window reload keeps each view's page:  the page last in view is remembered per window (the workspace's state),
  *   and shown again when VS Code re-makes the view, if its page server still answers (`remembered()`).
- * - Opened by hand, before anything was shown:  "Spell Docs" shows the docs index of the window's first folder (the
- *   repo root);  "Review" a line saying how to fill it.
- * - Title-bar buttons:  back, forward, reload, restart the page server, open in the browser.  Home:  the page's own
- *   site header (its logo, or "Docs");  VS Code has no clickable view titles.  `spell.docView.home` stays a palette
- *   command, as does "Review:  Docs Index" (`spell.reviewView.home`).
- * - "Review" has a list button too, "Review:  Open Epic..." (`spell.reviewView.openEpic`):  pick an epic, its plan
- *   doc shows there.  No terminal, no Claude:  how Owen gets around the plan docs offline (epic `airplane` P4).
- * - Links in the page:  docs pages open here;  other files on the page server in the editor;  other sites in the
- *   browser (`open()`, and the page's `followInFrame()`).  Why:  the sandbox blocks the tabs docs links ask for.
- * - The iframe is cross-origin, so the view can't read or move its history:  the page's live client
- *   (`packages/server/src/liveClient.ts`) posts its place (`{ spell: "place", url, canGoBack, canGoForward }`) and
- *   steps when asked (`{ spell: "history", go }`);  the view's own script relays both ways.  A page from no page
- *   server never reports:  back / forward stay off, reload and "open in browser" use the page last SHOWN.
- * - NOTE:  the FIRST show in a window opens the side bar with focus on the view:  VS Code has no way to open a view
- *   without focusing it.  Later shows keep focus where it is.
+ * - Opened by hand, before anything was shown:
+ *   "Spell Docs" shows the docs index of the window's first folder (the repo root);
+ *   "Review" a line saying how to fill it.
+ * - Title-bar buttons:  back, forward, reload, restart the page server, open in the browser.
+ *   - Home:  the page's own site header (its logo, or "Docs");  VS Code has no clickable view titles.
+ *   - `spell.docView.home` stays a palette command, as does "Review:  Docs Index" (`spell.reviewView.home`).
+ * - "Review" has a list button too, "Review:  Open Epic..." (`spell.reviewView.openEpic`):
+ *   pick an epic, its plan doc shows there.
+ *   No terminal, no Claude:  how Owen gets around the plan docs offline (epic `airplane` P4).
+ * - Links in the page:  docs pages open here;  other files on the page server in the editor;
+ *   other sites in the browser (`open()`, and the page's `followInFrame()`).
+ *   Why:  the sandbox blocks the tabs docs links ask for.
+ * - The iframe is cross-origin, so the view can't read or move its history:
+ *   the page's live client (`packages/server/src/liveClient.ts`) posts its place
+ *   (`{ spell: "place", url, canGoBack, canGoForward }`) and steps when asked (`{ spell: "history", go }`);
+ *   the view's own script relays both ways.
+ *   - A page from no page server never reports:
+ *     back / forward stay off, reload and "open in browser" use the page last SHOWN.
+ * - NOTE:  the FIRST show in a window opens the side bar with focus on the view:
+ *   VS Code has no way to open a view without focusing it.  Later shows keep focus where it is.
  */
 import { spawn } from "child_process"
 import { randomBytes } from "crypto"
@@ -155,8 +162,8 @@ export class DocView implements vscode.WebviewViewProvider {
    *   (the page can't:  copying needs a key press IN it);  cut then deletes it there
    * - paste:  the clipboard's text, sent in, typed where the caret is
    * - select all, undo, redo:  the page does them (`document.execCommand()`)
-   * - Not keybindings (P2 tried them):  `focusedView` is never set while focus is in a webview view's page, so they
-   *   never fired
+   * - Not keybindings (P2 tried them):
+   *   `focusedView` is never set while focus is in a webview view's page, so they never fired
    */
   async edit({ command }: EditCommand): Promise<void> {
     if (!this.view) return
@@ -205,8 +212,8 @@ export class DocView implements vscode.WebviewViewProvider {
   /**
    * Show `url` (a loopback page;  `DocPreview` stamps it with `?t=`) in this view, and reveal it.
    * - not resolved yet:  opens it, and `resolveWebviewView()` builds its html for `url`
-   * - the page already in view (`samePage()`), and not `reload`:  left as is (the page updates itself);  `url`'s
-   *   hash, if any, posted to the page to scroll to (`{ spell: "go", hash }`)
+   * - the page already in view (`samePage()`), and not `reload`:  left as is (the page updates itself);
+   *   `url`'s hash, if any, posted to the page to scroll to (`{ spell: "go", hash }`)
    * - else:  the view's iframe navigates to `url` (`{ spell: "navigate", url }`), never rebuilt
    */
   async show(url: string, { reload = false }: { reload?: boolean } = {}): Promise<void> {
@@ -228,12 +235,12 @@ export class DocView implements vscode.WebviewViewProvider {
   }
 
   /**
-   * Rebuild the view from scratch:  new html, so a new iframe, at the page in view (fresh `?t=` stamp);  resolves to
-   * that URL, `undefined` when the view hasn't been shown yet (nothing to rebuild).
+   * Rebuild the view from scratch:  new html, so a new iframe, at the page in view (fresh `?t=` stamp);
+   * resolves to that URL, `undefined` when the view hasn't been shown yet (nothing to rebuild).
    * - for a view gone wrong in a way a reload doesn't fix (clicks no longer reaching the page, PAPERCUTS `vscode`,
    *   2026-10-06):  `spell dev window reload-view`.  The reload button only navigates the SAME iframe.
-   * - NOT a fix for pages stuck on their placeholders (6 docs pages holding every connection to a host):  live reload
-   *   moved to websockets for that (`packages/server/src/webSocket.ts`)
+   * - NOT a fix for pages stuck on their placeholders (6 docs pages holding every connection to a host):
+   *   live reload moved to websockets for that (`packages/server/src/webSocket.ts`)
    */
   rebuild(): string | undefined {
     if (!this.view) return undefined
@@ -248,8 +255,8 @@ export class DocView implements vscode.WebviewViewProvider {
   /**
    * Restart the page server behind the page in view, then show the same page from it again.
    * - which checkout:  the server's own `/_server/ping` says (`root`)
-   * - runs `spell dev server stop`, then `spell dev server ensure`, in a LOGIN shell (`$SHELL -lc`):  a GUI VS Code's
-   *   own `PATH` may have no `node`
+   * - runs `spell dev server stop`, then `spell dev server ensure`, in a LOGIN shell (`$SHELL -lc`):
+   *   a GUI VS Code's own `PATH` may have no `node`
    * - that checkout's own CLI (`node packages/cli/bin/spell.mjs`), never the `spell` on `PATH`:  another checkout's
    * - its port may change (a worktree's server takes any free one):  the page comes back on the new `base`
    */
@@ -282,8 +289,8 @@ export class DocView implements vscode.WebviewViewProvider {
    * VS Code shows the view:  build its html, ONCE, for the page asked for;  else, in "Spell Docs", the docs index.
    * - MUST `enableScripts`:  without it the webview's frame is sandboxed WITHOUT `allow-scripts`, and the page's
    *   iframe inherits that, so no `ui-*` element ever defines itself
-   * - SIDE EFFECT:  the page's `place` reports set `<view id>.canGoBack` / `.canGoForward`, which enable the back /
-   *   forward buttons
+   * - SIDE EFFECT:  the page's `place` reports set `<view id>.canGoBack` / `.canGoForward`,
+   *   which enable the back / forward buttons
    */
   async resolveWebviewView(view: vscode.WebviewView): Promise<void> {
     this.view = view
@@ -319,8 +326,9 @@ export class DocView implements vscode.WebviewViewProvider {
 
   /**
    * The view's html:  the page in a full-size iframe, or a line saying there's nothing to show.
-   * - its script relays messages:  the page's `place` / `open` to the extension;  the extension's `history`,
-   *   `go` and `edit` to the page.  `navigate` points the iframe at a new URL, making it first if the view was empty.
+   * - its script relays messages:  the page's `place` / `open` to the extension;
+   *   the extension's `history`, `go` and `edit` to the page
+   * - `navigate` points the iframe at a new URL, making it first if the view was empty
    * - VS Code's edit commands (`document.execCommand()`, called on THIS document) go to the extension as `edit`
    *   (`edit()`), while there's a page to send them to
    * - background:  the side bar's theme colour, on the body AND the iframe, so a page loading shows no white
@@ -411,8 +419,8 @@ export type DocViewName = "docs" | "review"
 
 /**
  * The docs home of the window's first folder (the repo root), `undefined` when it has none.
- * - `pages/index.html`;  a checkout from before the reorg (claude-design P4, 2026-10-05):  its old
- *   `pages/index.html`
+ * - `pages/index.html`;  a checkout from before the reorg (claude-design P4, 2026-10-05):
+ *   its old `pages/index.html`
  */
 export function docsIndex(): string | undefined {
   const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath

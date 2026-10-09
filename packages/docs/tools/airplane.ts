@@ -1,7 +1,8 @@
 /**
- * `spell dev airplane <verb>`:  airplane mode (epic `airplane`) -- Owen works on the docs with no Claude, on a
- * plane;  every mark, note and request he leaves waits for `/airplane land`.  The `/airplane` skill
- * (`.claude/skills/airplane/SKILL.md`) runs these.
+ * `spell dev airplane <verb>`:  airplane mode (epic `airplane`) --
+ * Owen works on the docs with no Claude, on a plane;
+ * every mark, note and request he leaves waits for `/airplane land`.
+ * The `/airplane` skill (`.claude/skills/airplane/SKILL.md`) runs these.
  *
  *     spell dev airplane check --fix
  *     ok    page server     http://127.0.0.1:4747 (main)
@@ -15,13 +16,14 @@
  * - `check [--fix] [--json]`:  is this laptop ready to fly?  Exits 1 while anything isn't (`fixed` counts as ready)
  *   - `checkout`:  run from the MAIN checkout:  its page server is the one the side bar uses on the plane
  *   - `page server`:  running;  `--fix` starts it (`spell dev server ensure`)
- *   - `offline pages`:  no docs page loads anything from the internet (`offline.ts`);  `--fix` points the
- *     highlight.js tag at the repo's copy
- *   - `extension`:  the installed VS Code extension has "Review:  Open Epic..." (built from a `main` with this
- *     epic);  else run `spell dev vscode` from `main`
+ *   - `offline pages`:  no docs page loads anything from the internet (`offline.ts`);
+ *     `--fix` points the highlight.js tag at the repo's copy
+ *   - `extension`:  the installed VS Code extension has "Review:  Open Epic..." (built from a `main` with this epic);
+ *     else run `spell dev vscode` from `main`
  *   - `waiting`:  marks already waiting in the epics' inboxes, from before the flight:  a note, never a failure
- * - `inbox [--since <iso>] [--json]`:  everything Owen left, by place (`AirplaneInbox`):  what `/airplane land`
- *   works through.  `--since`:  when the flight began;  default the switch's `since`, while it's on
+ * - `inbox [--since <iso>] [--json]`:  everything Owen left, by place (`AirplaneInbox`):
+ *   what `/airplane land` works through
+ *   - `--since`:  when the flight began;  default the switch's `since`, while it's on
  * - Which checkout:  the one this file is in, which `spell dev` picks from the current folder (`runTool()`)
  */
 import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs"

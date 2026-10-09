@@ -1,6 +1,6 @@
 /**
- * `spell dev docs offline [paths...] [--fix] [--json]`:  lists what docs pages LOAD from the internet, by file and
- * line, so they still work with no network (epic `airplane` P1:  Owen reads and marks docs on a plane).
+ * `spell dev docs offline [paths...] [--fix] [--json]`:  lists what docs pages LOAD from the internet,
+ * by file and line, so they still work with no network (epic `airplane` P1:  Owen reads and marks docs on a plane).
  *
  *     spell dev docs offline
  *     guides/solid/solid-2.html:893  script  https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js

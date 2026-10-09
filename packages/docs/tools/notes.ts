@@ -8,10 +8,11 @@
  *     spell dev notes answer guides/solid/solid-2.html n3 --file /tmp/reply.html
  *     spell dev notes done guides/solid/solid-2.html n3
  *
- * - `list [--all] [--json]` (default):  every `new` note on every page in the shared folders (`--all`:  answered
- *   and done ones too), by page;  `--json`:  `[{ page, id, for, label, status, at, text, replies }]`
- * - `answer <page> <id> --file <html>`:  Claude's reply under the note (the file's markup, as is:  a `<p>` or
- *   more), and the note `answered`
+ * - `list [--all] [--json]` (default):  every `new` note on every page in the shared folders, by page
+ *   - `--all`:  answered and done ones too
+ *   - `--json`:  `[{ page, id, for, label, status, at, text, replies }]`
+ * - `answer <page> <id> --file <html>`:  Claude's reply under the note
+ *   (the file's markup, as is:  a `<p>` or more), and the note `answered`
  * - `done <page> <id>`:  the note `done`:  nothing more to do for it
  * - `<page>`:  from the checkout's root (`guides/x.html`), or from an area (`pages.js` `pageFile()`)
  * - Every write as the page's bubbles write:  under the page's lock, atomic, formatted (`editNotes()`).

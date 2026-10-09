@@ -26,9 +26,10 @@ export const lintBase = {
   // `correctness` ~== what `eslint:recommended` + `tseslint:recommended` used to give us.
   categories: { correctness: "error" },
 
-  // Type-aware rules, driven from the config so the CLI and the editor agree without anyone having to remember a
-  // flag.  Runs on `oxlint-tsgolint`, which `vite-plus` brings.
-  // NOTE: NOT `typeCheck`:  `yarn ts` already runs `tsc`, and a second type check reports every error twice.
+  // Type-aware rules, driven from the config,
+  // so the CLI and the editor agree without anyone having to remember a flag.
+  // - runs on `oxlint-tsgolint`, which `vite-plus` brings
+  // - NOTE: NOT `typeCheck`:  `yarn ts` already runs `tsc`, and a second type check reports every error twice.
   options: { typeAware: true },
 
   // `vite-plus/prefer-vite-plus-imports`:  `vite-plus/test`, not `vitest` (and so on), so every package gets its
@@ -50,17 +51,17 @@ export const lintBase = {
 
     "prefer-const": ["error", { destructuring: "all" }],
     // `ui`'s controllers type their vocabulary getters by merging an interface into the class
-    // (`export interface UIButton extends E.AttributeValues<typeof buttonVocabulary> {}`);  the getters are real,
-    // installed on the prototype by `UIElement.register()` (epic `wwod-spell-ui`, P14).
+    // (`export interface UIButton extends E.AttributeValues<typeof buttonVocabulary> {}`);
+    // the getters are real, installed on the prototype by `UIElement.register()` (epic `wwod-spell-ui`, P14).
     "typescript/no-unsafe-declaration-merging": "off",
 
     ////////////////
     // ## Type-aware
     ////////////////
 
-    // Passing a method reference is idiomatic throughout this codebase -- `store`/`spellCore` are singletons whose
-    // methods reach them by name rather than via `this`, and React components are handed prototype methods on
-    // purpose (see `ErrorHandler`).  ~37 hits, all intentional.
+    // Passing a method reference is idiomatic throughout this codebase --
+    // `store`/`spellCore` are singletons whose methods reach them by name rather than via `this`, and React components
+    // are handed prototype methods on purpose (see `ErrorHandler`).  ~37 hits, all intentional.
     "typescript/unbound-method": "off",
     // spellCore stringifies arbitrary values on purpose (`upperCase(thing)` etc), so this rule fires ~36 times on
     // intended behaviour.  Individual risky spots are suppressed inline.
@@ -89,8 +90,8 @@ export const reactLint = {
     "react-hooks/exhaustive-deps": "warn",
     // Automatic JSX runtime (`"jsx": "react-jsx"`), so `React` need not be in scope.
     "react/react-in-jsx-scope": "off",
-    // `@risingstack/react-easy-state` components read/write the external `store` during render.  The
-    // React-Compiler-era rules model components as pure, so they flag that by design.
+    // `@risingstack/react-easy-state` components read/write the external `store` during render.
+    // The React-Compiler-era rules model components as pure, so they flag that by design.
     "react/immutability": "off",
     "react/exhaustive-effect-dependencies": "off"
   }
@@ -222,8 +223,8 @@ export const fmtConfig = {
     "**/.vitest/**",
     "**/graphify-out/**",
     "**/thoughts/**",
-    // a package's built `static/` (`app`, `spell`):  from its own folder, and from the root.  NOT `**/static/**`,
-    // which also skipped `ui`'s source folder `src/static/` (the static server render)
+    // a package's built `static/` (`app`, `spell`):  from its own folder, and from the root.
+    // NOT `**/static/**`, which also skipped `ui`'s source folder `src/static/` (the static server render)
     "static/**",
     "**/packages/*/static/**",
     "**/projects/**",

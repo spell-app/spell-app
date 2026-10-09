@@ -19,8 +19,8 @@ import type { ReviewState } from "./ReviewState"
  * NEW ITEMS from the page (epic `airplane` P2):  Owen asks for a new todo or question while he reads, with no Claude
  * session needed.  `<epic-page>` draws the `+` in its header and the form under it;  a Todos or Questions section
  * draws its waiting items, its button and the form at its end.
- * - Plain Solid components, no element of their own, as the review controls (`ReviewControls.tsx`):  each takes its
- *   element's `ReviewState` and `text()`;  their look is `ReviewControls.css`'s.
+ * - Plain Solid components, no element of their own, as the review controls (`ReviewControls.tsx`):
+ *   each takes its element's `ReviewState` and `text()`;  their look is `ReviewControls.css`'s.
  * - What's asked for is a mark in the review inbox, `{ action: "new", kind, title, note?, near? }` under a key of its
  *   own (`new1` ...):  sent with the next Send, made into an item by `plan-doc inbox apply`.
  * - Shown only while the page is reviewed:  the CALLER wraps them in `<Show when={review.reviewing()}>`.
@@ -68,8 +68,8 @@ export type NewItemButtonProps = {
  * The form for a new todo or question:  what it is (Todo | Question), its title, a note that grows as it's typed in,
  * what it's about (an id, if any), then Add (Save, when changing one) and Cancel.
  * - Enter in the title, or Ctrl / Cmd + Enter anywhere, adds it;  Escape cancels
- * - saved to the inbox (`ReviewClient.saveNew()`):  the client says it's saved, and where it waits;  a refused one
- *   (a bad id in About) says why, and the form stays open with what was typed
+ * - saved to the inbox (`ReviewClient.saveNew()`):  the client says it's saved, and where it waits;
+ *   a refused one (a bad id in About) says why, and the form stays open with what was typed
  * - a title is needed:  without one, the title takes the focus and the notice line says so
  * - the title takes the focus as it opens
  ****************/

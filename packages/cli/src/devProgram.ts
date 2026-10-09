@@ -5,12 +5,12 @@
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Two kinds:
  *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `choices`, `notes`, `design`, `server`,
- *     `window`, `vscode`):  a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;  this file imports them
- *     directly, so they load no spell
- *   - lean commands of our own (`pack`, `bundles`):  `(args, options) => Promise<exitCode>`, imported directly the
- *     same way
- *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);  run through the
- *     `runBarrel` each entry passes in
+ *     `window`, `vscode`):  a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;
+ *     this file imports them directly, so they load no spell
+ *   - lean commands of our own (`pack`, `bundles`):
+ *     `(args, options) => Promise<exitCode>`, imported directly the same way
+ *   - the rest (`commands`, `session` ...):  `$/cli` commands, which load spell (`CliSession`);
+ *     run through the `runBarrel` each entry passes in
  * - NOTE: `commandsCommand` reads the `dev.command(...)` calls in this file's TEXT:  keep the receiver named `dev`
  * - NOT in the barrel:  it's how the entries start, and must stay importable without it.
  */

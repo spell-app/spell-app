@@ -27,12 +27,13 @@ import { ServerLink } from "./ServerLink"
 
 /****************
  * ### `ReviewClient`
- * A page's REVIEW INBOX, as the page sees it:  the marks Owen leaves on its items and Overview sections, read from
- * and written to the page server's review routes (`$/epics/tool/reviewRoutes.ts`), one client per page
- * (`forPage()`).  `<epic-item>` and `<epic-section>` draw their controls from it (`ReviewControls.tsx`);  P10's
- * Send, Review Now and Choose pills call it too (`send()`, `choose()`), and an item's id chip (`toggleCalm()`).
- * - reviewing ONLY when the page is served with a token (`window.SPELL_SERVER`) and its inbox answers:  never from
- *   `file://`, nor from a server without the routes (`reviewing` stays false, and nothing is drawn)
+ * A page's REVIEW INBOX, as the page sees it:  the marks Owen leaves on its items and Overview sections,
+ * read from and written to the page server's review routes (`$/epics/tool/reviewRoutes.ts`),
+ * one client per page (`forPage()`).
+ * - `<epic-item>` and `<epic-section>` draw their controls from it (`ReviewControls.tsx`);
+ *   P10's Send, Review Now and Choose pills call it too (`send()`, `choose()`), and an item's id chip (`toggleCalm()`)
+ * - reviewing ONLY when the page is served with a token (`window.SPELL_SERVER`) and its inbox answers:
+ *   never from `file://`, nor from a server without the routes (`reviewing` stays false, and nothing is drawn)
  * - every route's reply is the whole inbox:  a write's answer replaces what's shown;  a failed write re-reads it,
  *   undoing what was shown early
  * - writes through its `ServerLink`:  a 403 on the token (the page server restarted since the page loaded) takes
@@ -101,8 +102,8 @@ export class ReviewClient {
   private static current: ReviewClient | undefined
 
   /**
-   * The page's client, made and started on the first call (browser only):  `page` is `location.pathname`, the
-   * server's info `window.SPELL_SERVER`, and it `watch()`es the page.
+   * The page's client, made and started on the first call (browser only):
+   * `page` is `location.pathname`, the server's info `window.SPELL_SERVER`, and it `watch()`es the page.
    * - SIDE EFFECT:  the first call reads the inbox and starts polling
    */
   static forPage(): ReviewClient {
@@ -145,8 +146,9 @@ export class ReviewClient {
   ////////////////
 
   /**
-   * Read the inbox;  if it answers, the page is being reviewed:  backups handed over, drafts' boxes reopened.  True
-   * when reviewing.  Once per client.
+   * Read the inbox;  if it answers, the page is being reviewed:  backups handed over, drafts' boxes reopened.
+   * - true when reviewing
+   * - once per client
    * - only a page the routes review (`PLAN_DOC_PAGE`), served with a token:  else it never asks
    * - NEVER throws
    */
@@ -222,8 +224,8 @@ export class ReviewClient {
   }
 
   /**
-   * Item `id`'s immediate request, if one is on its way or being worked on:  `{ action, queued }` (`queued`:  waiting,
-   * nobody listening);  else `null`.
+   * Item `id`'s immediate request, if one is on its way or being worked on:
+   * `{ action, queued }` (`queued`:  waiting, nobody listening);  else `null`.
    */
   runningOf(id: string): Running | null {
     if (this.calling.has(id)) return null
@@ -236,9 +238,10 @@ export class ReviewClient {
   }
 
   /**
-   * The review button whose work on item `id` is on its way or under way (it spins;  a click calls it off);  else
-   * `null`.  The mark's own button (Approve, Make Todo, Revisit:  Claude took a sent mark), else Do Now (`details`:
-   * Add Details, a revisit now).
+   * The review button whose work on item `id` is on its way or under way
+   * (it spins;  a click calls it off);  else `null`.
+   * - the mark's own button (Approve, Make Todo, Revisit:  Claude took a sent mark)
+   * - else Do Now (`details`:  Add Details, a revisit now)
    */
   busyButtonOf(id: string): ReviewAction | null {
     if (!this.runningOf(id)) return null
@@ -291,11 +294,11 @@ export class ReviewClient {
    * The reader clicked `id`'s `action` button.  `"open-box"` when Revisit should take them to the note box (the
    * caller opens it);  else `undefined`, the click handled.
    * - running (it spins):  "nevermind", called off (`cancel()`)
-   * - chosen already:  cleared, back to no action;  a revisit carrying a pick keeps the pick ("pick B, but ..."
-   *   without the "but")
+   * - chosen already:  cleared, back to no action;
+   *   a revisit carrying a pick keeps the pick ("pick B, but ..." without the "but")
    * - else:  Approve and Make Todo mark it;  Revisit opens the note box;  Do Now (`details`, decision Q20) asks at
-   *   once:  with a note in the box, Claude answers it now (a revisit now, as the note box's Do Now was);  without,
-   *   Claude adds details
+   *   once:  with a note in the box, Claude answers it now (a revisit now, as the note box's Do Now was);
+   *   without, Claude adds details
    */
   press(id: string, action: ReviewAction): "open-box" | undefined {
     const mark = this.inbox.marks[id]
@@ -315,8 +318,8 @@ export class ReviewClient {
 
   /**
    * Pick option `letter` of card set `choices` on `id` (`null`:  drop the pick):  a "Choose" pill (P10).
-   * - `choices`:  which of the item's `<epic-choices>` the option is in, by position (I8:  its text's, a reply's
-   *   ...);  none, its own
+   * - `choices`:  which of the item's `<epic-choices>` the option is in, by position
+   *   (I8:  its text's, a reply's ...);  none, its own
    * - a revisit keeps its note:  "pick B, but ...";  one asked NOW turns `soon`, so the pick waits for the send with
    *   it (an immediate mark counts as sent:  Claude would never see the new pick)
    * - anything else becomes a plain pick, or none
@@ -364,8 +367,8 @@ export class ReviewClient {
   }
 
   /**
-   * Make `id`'s note a mark:  `how` is the note box button pressed (`todo`, `soon`:  Later, `now`:  Do Now);  what was
-   * typed is dropped from memory and the backup (the mark carries it).
+   * Make `id`'s note a mark:  `how` is the note box button pressed (`todo`, `soon`:  Later, `now`:  Do Now);
+   * what was typed is dropped from memory and the backup (the mark carries it).
    * - Later keeps the item's pick:  "pick B, but ..."
    */
   useNote(id: string, how: "todo" | "soon" | "now", note: string): Promise<boolean> {
@@ -472,8 +475,8 @@ export class ReviewClient {
   }
 
   /**
-   * "Send to Claude" (`now`:  Review Now, every revisit waiting asked now too);  says what went, or why nothing did
-   * (P10's header buttons).
+   * "Send to Claude" (`now`:  Review Now, every revisit waiting asked now too);
+   * says what went, or why nothing did (P10's header buttons).
    */
   async send({ now = false }: { now?: boolean } = {}): Promise<boolean> {
     const marks = Object.values(this.inbox.marks)

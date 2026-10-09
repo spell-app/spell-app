@@ -1,36 +1,42 @@
 /**
  * Plan docs' review marks, on the page server:  a ROUTE MODULE (`$/server/page`'s `RouteModule`), listed in the repo
  * root's `package.json` `"pageServer": { "routes": [...] }`.
- * - Owen marks a plan doc's items ON the page (the elements' review controls, `$/epics/review`:  approve, todo,
- *   details, revisit, pick an option card, an id chip's urgency);  the marks wait in the doc's INBOX FILE, `<name>.inbox.json` beside `<name>.plan.html`
- *   (`ReviewInbox`), until a Claude session takes them (P6 of `review-review`, `spell dev plan-doc inbox`)
- * - `page`:  the plan doc's URL path, as it was served:  `/epics/x/x.plan.html`, or a worktree's `/worktrees/<w>/...`
- *   on the main checkout's server.  ONLY a plan doc:  anything else is a 403
- * - every answer is the whole inbox, as `ReviewInbox` keeps it (an empty one when there's no file), except a
- *   `listening` whose heartbeat stopped:  `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing
+ * - Owen marks a plan doc's items ON the page (the elements' review controls, `$/epics/review`):
+ *   approve, todo, details, revisit, pick an option card, an id chip's urgency.
+ *   The marks wait in the doc's INBOX FILE, `<name>.inbox.json` beside `<name>.plan.html` (`ReviewInbox`),
+ *   until a Claude session takes them (P6 of `review-review`, `spell dev plan-doc inbox`)
+ * - `page`:  the plan doc's URL path, as it was served:
+ *   `/epics/x/x.plan.html`, or a worktree's `/worktrees/<w>/...` on the main checkout's server.
+ *   ONLY a plan doc:  anything else is a 403
+ * - every answer is the whole inbox, as `ReviewInbox` keeps it (an empty one when there's no file),
+ *   except a `listening` whose heartbeat stopped:
+ *   `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing
  * - `GET /api/review/inbox?page=<path>` -- the inbox;  the page polls it
- * - `POST /api/review/mark` `{ page, id, mark }` -- set item `id`'s mark (`{ action, when?, note?, pick?, choices? }`,
- *   `at` stamped here;  a revisit may carry a `pick` letter too;  `choices`, the pick's card set by position:  I8),
- *   or remove it (`mark: null`);  `id` must be an item, phase, Overview sub-section or the summary (`summary`) of
- *   that doc (400 otherwise:  `ReviewInbox.itemIds()`)
- * - `POST /api/review/new` `{ page, id?, entry }` -- a NEW todo or question asked for from the page (epic `airplane`
- *   P2):  `entry` `{ kind, title, note?, near? }` under key `id` (`new1` ...), or, without one, the next free key;
- *   `entry: null` removes it (`ReviewInbox.setNew()`).  `near`, when given, must be an id of that doc
- * - `POST /api/review/now` `{ page, id, action, note? }` -- an immediate request (`details`, or `revisit`, which
- *   keeps the item's pick):  queued on `now`, and the item's mark set
- * - `POST /api/review/cancel` `{ page, id }` -- "nevermind":  call off item `id`'s immediate request, queued or
- *   being worked on (`ReviewInbox.cancelNow()`)
- * - `POST /api/review/draft` `{ page, id, action, note }` -- a note box's text as Owen types it (`revisit` or
- *   `todo`;  empty or `null` drops it):  kept until the mark that uses it (`ReviewInbox.setDraft()`)
+ * - `POST /api/review/mark` `{ page, id, mark }` -- set item `id`'s mark, or remove it (`mark: null`)
+ *   - the mark:  `{ action, when?, note?, pick?, choices? }`, `at` stamped here;
+ *     a revisit may carry a `pick` letter too;  `choices`, the pick's card set by position (I8)
+ *   - `id` must be an item, phase, Overview sub-section or the summary (`summary`) of that doc
+ *     (400 otherwise:  `ReviewInbox.itemIds()`)
+ * - `POST /api/review/new` `{ page, id?, entry }` -- a NEW todo or question asked for from the page
+ *   (epic `airplane` P2):  `entry` `{ kind, title, note?, near? }` under key `id` (`new1` ...),
+ *   or, without one, the next free key
+ *   - `entry: null` removes it (`ReviewInbox.setNew()`)
+ *   - `near`, when given, must be an id of that doc
+ * - `POST /api/review/now` `{ page, id, action, note? }` -- an immediate request, queued on `now`,
+ *   and the item's mark set:  `details`, or `revisit`, which keeps the item's pick
+ * - `POST /api/review/cancel` `{ page, id }` -- "nevermind":
+ *   call off item `id`'s immediate request, queued or being worked on (`ReviewInbox.cancelNow()`)
+ * - `POST /api/review/draft` `{ page, id, action, note }` -- a note box's text as Owen types it
+ *   (`revisit` or `todo`;  empty or `null` drops it):  kept until the mark that uses it (`ReviewInbox.setDraft()`)
  * - `POST /api/review/urgency` `{ page, id, calm }` -- Owen clicked an open judgement call's or issue's id chip:
  *   `calm` true, not urgent;  false, urgent;  `null` drops it (`ReviewInbox.setUrgency()`)
- * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now;  `now: true` is "Review Now"
- *   (epic `windows-and-review` P4):  every revisit waiting becomes an immediate request too
- *   (`ReviewInbox.reviewNow()`)
- * - writes:  under the inbox's lock, atomic (`ReviewInbox.updateAsync()`);  each needs the page server's token
- *   (`x-server-token`) and its own origin (`SRV.Guard`)
- * - Loaded by the page server under `tsx` (`PageServer.loadRoutes()`), with `packages/server/tsconfig.json`'s
- *   aliases.  Imports `ReviewInbox` only, never `PlanDoc`:  a request reads the doc's TEXT (`ReviewInbox.itemIds()`).
+ * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now;
+ *   `now: true` is "Review Now" (epic `windows-and-review` P4):
+ *   every revisit waiting becomes an immediate request too (`ReviewInbox.reviewNow()`)
+ * - writes:  under the inbox's lock, atomic (`ReviewInbox.updateAsync()`);
+ *   each needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
+ * - Loaded by the page server under `tsx` (`PageServer.loadRoutes()`), with `packages/server/tsconfig.json`'s aliases.
+ *   Imports `ReviewInbox` only, never `PlanDoc`:  a request reads the doc's TEXT (`ReviewInbox.itemIds()`).
  * - From `packages/docs/tools/reviewRoutes.ts` (epic `epic-components`, P7).
  */
 import { readFileSync } from "node:fs"
@@ -123,9 +129,9 @@ export function planDoc(files: SRV.StaticHandler, page: unknown): string {
 }
 
 /**
- * `id` from a request, as the inbox keys it (lower-case);  400 unless plan doc `file` has it:  an item, an Overview
- * sub-section (`o3`, Q14), a phase (`p3`) or the summary (`summary`:  epic `airplane` P2);  either markup until the
- * switch (`ReviewInbox.itemIds()`).
+ * `id` from a request, as the inbox keys it (lower-case);  400 unless plan doc `file` has it:
+ * an item, an Overview sub-section (`o3`, Q14), a phase (`p3`) or the summary (`summary`:  epic `airplane` P2);
+ * either markup until the switch (`ReviewInbox.itemIds()`).
  * - reads the doc each time:  an item added a moment ago (Claude, `plan-doc add`) is markable at once
  */
 function itemOf(file: string, id: unknown): string {
@@ -136,8 +142,8 @@ function itemOf(file: string, id: unknown): string {
 }
 
 /**
- * Change plan doc `file`'s inbox with `change`, under its lock;  the inbox after, as the page reads it
- * (`ReviewInbox.forPage()`).
+ * Change plan doc `file`'s inbox with `change`, under its lock;
+ * the inbox after, as the page reads it (`ReviewInbox.forPage()`).
  * - an `InboxError` (a bad mark, a bad action) is a 400
  */
 async function update(file: string, change: (inbox: ReviewInbox) => unknown): Promise<InboxRecord> {

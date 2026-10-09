@@ -62,44 +62,56 @@ import agentsCSS from "./AgentsPanel.css?inline"
 
 /****************
  * ### `EpicPage`
- * The component behind `<epic-page>`:  a plan doc -- one epic's page, its data in attributes, its Overview and
- * sections as children.
- * - Draws the crumbs (`Docs › Epics › <title>`, P14:  none while the doc still holds its old `.spell-crumbs` before
- *   the page), the sticky page header (the h1 `/epic <name>`, copied on click, over the epic's title;  at its right Send
- *   and Review Now while it's reviewed, the git toggle, the sleeping mark, the bedtime label and the step label), the
- *   review line, the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`), a future
- *   epic's notice, then its children.
- * - The step label follows the phases, in the colours of decision Q20:  the active one (outlined blue:  Claude is on
- *   it;  links to it);  else DONE (solid green) once every phase is done;  else the next one (grey);  none without
- *   phases, FUTURE (grey:  not started) for a future epic.  Read from the
- *   `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`.
- * - The sleeping mark (😴, Owen 2026-10-07:  "so I can see what I need to follow up on"):  phases, none under way,
- *   but open follow-ups (`FOLLOW_UPS`:  questions, calls, issues, todos, tests);  what's open in its tooltip.  Not on
- *   a future epic, nor one still planning.  From the items below, so it follows the live update too.
- * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it
- *   flashes);  on every plan doc, as today:  it's how a review starts.  While the page is reviewed with no session
- *   listening, it says so first, in solid orange (a warning).
- * - REVIEW (P10), only while the page is reviewed (served with a token, its inbox answering:  `ReviewClient`,
- *   through a `ReviewState` of its own), blue and wearing the fill rule (Q20):  Send (paper plane:  a grey outline
- *   with nothing to send, dashed blue with marks not sent, outlined blue once sent) and Review Now (wand:  every mark
- *   sent and each revisit asked now;  outlined blue while there's anything to work through).  Nobody listening:  their tooltips say so (`NOBODY_LISTENING`);  what a click did
- *   goes to the notice line at the window's bottom (`ReviewState`'s).
- * - NEW TODO OR QUESTION (epic `airplane` P2;  `NewItems.tsx`), while reviewed:  a round `+` before Send opens the form
- *   on a row of its own in the sticky header;  what's asked for waits in the inbox, drawn at the end of its section
- *   (Todos, Questions) until Claude makes it.
- * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<AgentsPanel>`), only
- *   while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs;  each row a
- *   note box that redirects that agent.  In the shadow root:  not a section, so the rail and counts never see it.
- * - The git toggle (only when the doc lists commits) shows or hides every `<epic-commit>` below, through
- *   `--epic-commits-display`;  remembered per page (`localStorage`), as today's.
- * - The page-wide signals its blocks read (`signalsOf()`):  `top`, where top-level titles stick (the site header's
- *   `--spell-site-header-height` plus this header's height, re-measured as either changes size), and `layout`.
- * - EDGE TO EDGE (P14):  its `:host` breaks out of the docs' `<main>` padding (`--spell-doc-pad-inline`,
- *   `spell-doc.css`), so the bands reach across;  everything inside insets itself by `--epic-inset`.
- * - SHARED LOOK:  `EpicPage.css` declares the pack's tokens (`--epic-*`:  colours, bands, the inset, item state
- *   colours, the chip) on its `:host`;  every `<epic-*>` below inherits them.
- * - SIDE EFFECT:  observes its subtree and the site header while connected;  follows the page's review and agents
- *   clients.
+ * The component behind `<epic-page>`:  a plan doc --
+ * one epic's page, its data in attributes, its Overview and sections as children.
+ * - Draws, top to bottom:
+ *   - the crumbs (`Docs › Epics › <title>`, P14:
+ *     none while the doc still holds its old `.spell-crumbs` before the page)
+ *   - the sticky page header:  the h1 `/epic <name>`, copied on click, over the epic's title;
+ *     at its right Send and Review Now while it's reviewed, the git toggle, the sleeping mark,
+ *     the bedtime label and the step label
+ *   - the review line, the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`)
+ *   - a future epic's notice, then its children
+ * - The step label follows the phases, in the colours of decision Q20:
+ *   - the active one (outlined blue:  Claude is on it;  links to it)
+ *   - else DONE (solid green) once every phase is done;  else the next one (grey)
+ *   - none without phases;  FUTURE (grey:  not started) for a future epic
+ *   - read from the `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`
+ * - The sleeping mark (😴, Owen 2026-10-07:  "so I can see what I need to follow up on"):
+ *   phases, none under way, but open follow-ups (`FOLLOW_UPS`:  questions, calls, issues, todos, tests)
+ *   - what's open in its tooltip
+ *   - not on a future epic, nor one still planning
+ *   - from the items below, so it follows the live update too
+ * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it flashes)
+ *   - on every plan doc, as today:  it's how a review starts
+ *   - while the page is reviewed with no session listening, it says so first, in solid orange (a warning)
+ * - REVIEW (P10), only while the page is reviewed
+ *   (served with a token, its inbox answering:  `ReviewClient`, through a `ReviewState` of its own),
+ *   blue and wearing the fill rule (Q20):
+ *   - Send (paper plane):
+ *     a grey outline with nothing to send, dashed blue with marks not sent, outlined blue once sent
+ *   - Review Now (wand):  every mark sent and each revisit asked now;
+ *     outlined blue while there's anything to work through
+ *   - nobody listening:  their tooltips say so (`NOBODY_LISTENING`)
+ *   - what a click did goes to the notice line at the window's bottom (`ReviewState`'s)
+ * - NEW TODO OR QUESTION (epic `airplane` P2;  `NewItems.tsx`), while reviewed:
+ *   a round `+` before Send opens the form on a row of its own in the sticky header;
+ *   what's asked for waits in the inbox, drawn at the end of its section (Todos, Questions) until Claude makes it.
+ * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<AgentsPanel>`),
+ *   only while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs
+ *   - each row a note box that redirects that agent
+ *   - in the shadow root:  not a section, so the rail and counts never see it
+ * - The git toggle (only when the doc lists commits) shows or hides every `<epic-commit>` below,
+ *   through `--epic-commits-display`;  remembered per page (`localStorage`), as today's.
+ * - The page-wide signals its blocks read (`signalsOf()`):  `layout`, and `top`, where top-level titles stick
+ *   (the site header's `--spell-site-header-height` plus this header's height, re-measured as either changes size).
+ * - EDGE TO EDGE (P14):  its `:host` breaks out of the docs' `<main>` padding
+ *   (`--spell-doc-pad-inline`, `spell-doc.css`), so the bands reach across;
+ *   everything inside insets itself by `--epic-inset`.
+ * - SHARED LOOK:  `EpicPage.css` declares the pack's tokens on its `:host`
+ *   (`--epic-*`:  colours, bands, the inset, item state colours, the chip);  every `<epic-*>` below inherits them.
+ * - SIDE EFFECT:  observes its subtree and the site header while connected;
+ *   follows the page's review and agents clients.
  ****************/
 export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.proto static vocabulary = epicPageVocabulary
@@ -232,8 +244,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   })
 
   /**
-   * A SLEEPING doc's open follow-ups, in words (`2 questions, 1 todo`):  phases, none under way, items open;  `""`
-   * when it isn't sleeping (a future epic, one still planning, one under way, nothing open).
+   * A SLEEPING doc's open follow-ups, in words (`2 questions, 1 todo`):  phases, none under way, items open;
+   * `""` when it isn't sleeping (a future epic, one still planning, one under way, nothing open).
    */
   readonly sleeping = createMemo(() => {
     this.signals.layout.get()
@@ -283,8 +295,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   ////////////////
 
   /**
-   * Watch the subtree (numbers, step label) and the headers' heights (`top`) while connected;  follow the review
-   * inbox while connected (kept alive:  a removed page stops).
+   * Watch the subtree (numbers, step label) and the headers' heights (`top`) while connected;
+   * follow the review inbox while connected (kept alive:  a removed page stops).
    */
   onMount(): JSX.Element {
     if (!isServer) {
@@ -554,8 +566,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   }
 
   /**
-   * The review line:  `To review this doc, type /epic review <name>`, a click copies the command;  reviewed with
-   * nobody listening, it says so first.
+   * The review line:  `To review this doc, type /epic review <name>`, a click copies the command;
+   * reviewed with nobody listening, it says so first.
    */
   private reviewLine(): JSX.Element {
     // airplane mode:  nobody CAN listen, so no warning;  the line names what takes the marks when Owen lands
@@ -660,8 +672,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   }
 
   /**
-   * The wrapper's inline style, for everything below:  the sticky stack below this header (`--epic-stack`);  every
-   * commit shown while the toggle is on.
+   * The wrapper's inline style, for everything below:  the sticky stack below this header (`--epic-stack`);
+   * every commit shown while the toggle is on.
    */
   private pageStyle(): Record<string, string> {
     const style: Record<string, string> = { [STACK_PROPERTY]: `${this.signals.top.get()}px` }
@@ -728,8 +740,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   ////////////////
 
   /**
-   * The page-wide signals of page element `page`, made the first time anyone asks:  its blocks may connect before
-   * its component exists.
+   * The page-wide signals of page element `page`, made the first time anyone asks:
+   * its blocks may connect before its component exists.
    */
   static signalsOf(page: Element): PageSignals {
     let signals = EpicPage.pageSignals.get(page)

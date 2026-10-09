@@ -1,6 +1,6 @@
 /**
- * Tests of the notes route module on a real page server, over HTTP, in a scratch checkout:  notes added, edited and
- * deleted on a guide, the docs home and a worktree's page, and the pages that take none.
+ * Tests of the notes route module on a real page server, over HTTP, in a scratch checkout:
+ * notes added, edited and deleted on a guide, the docs home and a worktree's page, and the pages that take none.
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"

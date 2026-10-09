@@ -2,15 +2,16 @@
  * `spell dev docs index`:  write the docs home's area cards and each area's list page, from every page's `<title>`
  * and description (claude-design P5).
  * Usage (from `packages/docs`):  node tools/index.js
- * - The home, `pages/index.html`:  a routing page, one card per area in the top bar's order (`areaCards()`;  the
- *   site header's `PROPERTIES`), each with its count, written between `<!-- areas:start -->` and `<!-- areas:end -->`
+ * - The home, `pages/index.html`:  a routing page, one card per area in the top bar's order
+ *   (`areaCards()`;  the site header's `PROPERTIES`), each with its count,
+ *   written between `<!-- areas:start -->` and `<!-- areas:end -->`
  *   - NOT `index:start` / `index:end`:  the home is shared, so an older checkout's `index.js` (which wrote three lists
  *     into the home) runs against it too;  finding no markers, it stops instead of writing its lists back
  * - The list pages (`LISTS`), each `<area>/index.html`, written between `<!-- index:start -->` and
  *   `<!-- index:end -->`;  a missing one is made from `skeleton()` first, so the rest of it is hand-authored after:
  *   - Epics:  `epics/<name>/<name>.plan.html`, open ones first, each card's title after its state (`epicState()`:
- *     planning, [3/6], done, stalled), read from its phase sections (`#phases`) and "updated" date;  the page server
- *     adds the running epics' cards (`RUNNING`)
+ *     planning, [3/6], done, stalled), read from its phase sections (`#phases`) and "updated" date;
+ *     the page server adds the running epics' cards (`RUNNING`)
  *   - Guides:  `guides/**`
  *   - Templates:  `templates/**`, and the "Writing docs" notes (`WRITING_DOCS`, in its skeleton)
  *   - Brand:  `brand/**` but the rich Brand index's own (`BRAND_OWN`:  Claude Design's export and its copies, the
@@ -18,8 +19,8 @@
  * - Paths are from the checkout's root;  links from the page's own folder.
  * - Page notes Owen left in a written part (`<spell-notes>`, `PageNotes.js`) go back into the new one
  *   (`replaceBetween()`).
- * - Then tidies the pages like any other (`pages.js` `tidy()`:  link targets, oxfmt), so a re-run with nothing new
- *   changes nothing.
+ * - Then tidies the pages like any other (`pages.js` `tidy()`, link targets and oxfmt),
+ *   so a re-run with nothing new changes nothing.
  */
 import { existsSync, readdirSync, readFileSync, writeFileSync } from "node:fs"
 import { join, relative } from "node:path"
@@ -51,8 +52,8 @@ const RUNNING = "<!-- running-epics -->"
 const STALLED_DAYS = 3
 
 /**
- * The item kinds an epic follows up on, by id letter:  everything open but caveats (`followUpsIn()`).  Up here:  this
- * file runs as it loads (`main()`, below), and needs it then.
+ * The item kinds an epic follows up on, by id letter:  everything open but caveats (`followUpsIn()`).
+ * Up here:  this file runs as it loads (`main()`, below), and needs it then.
  */
 const FOLLOW_UPS = { q: "question", j: "judgement call", i: "issue", t: "todo", v: "test" }
 
@@ -265,11 +266,12 @@ function phaseLabel(section) {
 ////////////////
 
 /**
- * What an epic still asks of Owen, from its plan doc's item lines (the skeleton has them all):  each OPEN question,
- * judgement call, issue, todo and hand test, as its kind's name.  Caveats don't count:  limits accepted, open for good.
+ * What an epic still asks of Owen, from its plan doc's item lines (the skeleton has them all):
+ * each OPEN question, judgement call, issue, todo and hand test, as its kind's name.
+ * - caveats don't count:  limits accepted, open for good
  * - the same as `spell-doc-runtime.js` `FOLLOW_UPS` and `packages/cli/src/dev/worktrees.ts` `planFollowUps()`
- * - either markup:  `<epic-item status="open">`, or the old `.plan-items > [data-status="open"]` (REFACTOR: drop old
- *   markup after the switch, P12)
+ * - either markup:  `<epic-item status="open">`, or the old `.plan-items > [data-status="open"]`
+ *   (REFACTOR: drop old markup after the switch, P12)
  */
 function followUpsIn(document) {
   return Array.from(
@@ -286,13 +288,14 @@ function followUpWords(kinds) {
 }
 
 /**
- * The home's cards, in the top bar's order (Owen, 2026-10-05, Q6 of `claude-design`):  Epics, Guides, Brand,
- * Spell UI, Templates, Goals, App.  Each `{ id, title, icon, href?, count?, description, meta? }`.
+ * The home's cards, in the top bar's order (Owen, 2026-10-05, Q6 of `claude-design`):
+ * Epics, Guides, Brand, Spell UI, Templates, Goals, App.
+ * Each `{ id, title, icon, href?, count?, description, meta? }`.
  * - `id`:  the card's id, so the old `pages/index.html#epics` / `#guides` / `#templates` links land on its card
- * - `href`:  from the home's folder;  none for the App, which only the page server has (`/editor/`):  a link there
- *   would break from `file://`, and `doc-links.js --check` can't resolve it
- * - Spell UI:  its site's own page (`ui/index.html`, shared;  its bundle needs the page server);  the top bar's tab
- *   opens it at `/ui/`
+ * - `href`:  from the home's folder;  none for the App, which only the page server has (`/editor/`):
+ *   a link there would break from `file://`, and `doc-links.js --check` can't resolve it
+ * - Spell UI:  its site's own page (`ui/index.html`, shared;  its bundle needs the page server);
+ *   the top bar's tab opens it at `/ui/`
  * - `pages`:  every page `describe()`d, so the counts come from the same data as the list pages
  */
 export function areaCards(pages) {
@@ -508,8 +511,8 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
 }
 
 /**
- * An epic's card:  its state mark before the title (`epicState()`), then as `card()`, the active phase in the
- * meta line.
+ * An epic's card:  its state mark before the title (`epicState()`),
+ * then as `card()`, the active phase in the meta line.
  * - `data-epic`:  its name, so the page server drops this card when the epic is running in a worktree too
  * - `data-status`:  `done` or `open`, so the section counts it, and its filter steps through them (`open` yellow,
  *   `done` grey:  `spell-doc-runtime.js`)
@@ -526,15 +529,15 @@ ${page.description ? `<ui-description>${text(page.description)}</ui-description>
 }
 
 /**
- * An epic's state, from its phases and its "updated" date:  `{ done, mark }`, `mark` the HTML before its title.  Its
- * colours are the colour scheme's (Q20 of epic `epic-components`;  `templates/epics/plan-doc.md`, "Colours").
+ * An epic's state, from its phases and its "updated" date:  `{ done, mark }`, `mark` the HTML before its title.
+ * Its colours are the colour scheme's (Q20 of epic `epic-components`;  `templates/epics/plan-doc.md`, "Colours").
  * - future:  written down with `/epic future`, not planned yet (a grey seedling:  not started;  epic `epic-future`)
  * - sleeping:  open follow-ups (`followUps`:  questions, judgement calls, issues, todos, tests) and no phase under
  *   way:  😴, what's open on hover (Owen, 2026-10-07:  "so I can see what I need to follow up on")
  * - planning:  no phases yet (a yellow thought bubble:  open, still undecided)
  * - done:  every phase done (a green check)
- * - stalled:  phases left, and no update for more than `STALLED_DAYS` (an orange pause, a warning;  the date on
- *   hover)
+ * - stalled:  phases left, and no update for more than `STALLED_DAYS` (an orange pause, a warning;
+ *   the date on hover)
  * - in progress:  `[3/6]`, phases done of all, outlined in blue (under way)
  * - SAME as `$/server/page` `RunningEpics`' `stateMark()`:  change both
  */

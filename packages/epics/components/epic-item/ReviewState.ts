@@ -20,10 +20,11 @@ import { PAGE_TAG, REVIEWING, type ReviewFill } from "./EpicItem.types"
 
 /****************
  * ### `ReviewState`
- * One element's view of the page's review inbox (`ReviewClient.forPage()`):  `<epic-item>`'s, an Overview
- * `<epic-section>`'s, an `<epic-phase>`'s, `<epic-summary>`'s;  the page's own (`<epic-page>`, the Todos and
- * Questions sections:  their new items, epic `airplane` P2).  Its reads are TRACKED:  a counter `Cell` bumped on every change the client reports, so the
- * element's controls redraw.
+ * One element's view of the page's review inbox (`ReviewClient.forPage()`):
+ * `<epic-item>`'s, an Overview `<epic-section>`'s, an `<epic-phase>`'s, `<epic-summary>`'s;
+ * the page's own (`<epic-page>`, the Todos and Questions sections:  their new items, epic `airplane` P2).
+ * - its reads are TRACKED:
+ *   a counter `Cell` bumped on every change the client reports, so the element's controls redraw
  * - `connect()` while the element is connected (it returns the undo):  the client is plain code, and a kept-alive
  *   element that's gone must stop listening
  * - the page's side, once per page (`watchPage()`):  `<epic-page reviewing>` while reviewed, and the notice line at
@@ -58,8 +59,8 @@ export class ReviewState {
   readonly reviewing = (): boolean => this.readPage((client) => client.reviewing) ?? false
 
   /**
-   * The new items Owen asked for from the page, waiting to be made (epic `airplane` P2);  `kind`:  only those.  The
-   * page's, so read with or without an id.
+   * The new items Owen asked for from the page, waiting to be made (epic `airplane` P2);  `kind`:  only those.
+   * The page's, so read with or without an id.
    */
   readonly newItems = (kind?: NewKind): NewItem[] => this.readPage((client) => client.newItems(kind)) ?? []
 
@@ -100,10 +101,10 @@ export class ReviewState {
 
   /**
    * How far `action`'s mark has got:  its review button's FILL (decision Q20).
-   * - Do Now (`details`):  dashed while its request waits to be taken, outlined while Claude is on it, solid once
-   *   done (`appliedAs` `now`)
-   * - the rest:  their mark dashed until sent, then outlined;  solid once Claude handled it (`appliedAs`:  the
-   *   element's `review-as`), until a new mark
+   * - Do Now (`details`):  dashed while its request waits to be taken, outlined while Claude is on it,
+   *   solid once done (`appliedAs` `now`)
+   * - the rest:  their mark dashed until sent, then outlined;
+   *   solid once Claude handled it (`appliedAs`:  the element's `review-as`), until a new mark
    */
   readonly fillOf = (action: ReviewAction, appliedAs?: string): ReviewFill => {
     const mark = this.mark()
@@ -159,8 +160,8 @@ export class ReviewState {
 
   /**
    * The page's side of `client`, once:  `<epic-page reviewing>` while it's reviewed, and the notice line.
-   * - SIDE EFFECT:  sets the attribute on every `<epic-page>`;  adds the notice line to `document.body` on the first
-   *   notice
+   * - SIDE EFFECT:  sets the attribute on every `<epic-page>`;
+   *   adds the notice line to `document.body` on the first notice
    */
   private static watchPage(client: ReviewClient) {
     if (ReviewState.watched.has(client)) return
