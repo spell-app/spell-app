@@ -8,7 +8,7 @@
  *   `skillz-aaa`.  Every method takes the short name or the full one.
  * - writers:  `spell dev agents` (`agents.ts`;  sessions and their helpers, at the same time) and the page server's
  *   route (`agentRoutes.ts`:  Owen's redirect notes from the plan doc's Agents box).  Every write is under the
- *   file's lock (`SRV.FileLock`), and atomic (a temp file renamed over it), as the review inbox's (`inbox.js`).
+ *   file's lock (`SRV.FileLock`), and atomic (a temp file renamed over it), as the review inbox's (`ReviewInbox`).
  * - REDIRECTS:  a note Owen sends a running agent from the page waits in its entry, untold, until a session waiting
  *   on the list (`spell dev agents wait`) passes it on (`SendMessage`) and marks it `told()`
  * - an agent leaves the list when it finishes (`done()`):  the list is what's RUNNING;  empty, the file goes

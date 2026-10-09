@@ -1,6 +1,6 @@
 /**
  * Where the docs are, how scripts find, tidy and open pages -- shared by `update.js`, `index.js`, `open.js` and
- * `plan-doc.js`.
+ * the other docs tools (the plan-doc tool, `$/epics/tool`, has its own).
  */
 import { spawnSync } from "node:child_process"
 import { existsSync, readdirSync, readFileSync, statSync } from "node:fs"
@@ -108,7 +108,7 @@ function reorgEntry(name) {
  * - `details`:  details pages (`spell dev details`), questions for one session:  not in the index, not checked with the
  *   docs (scratch `details/`, and an epic's `epics/<name>/details/`);  NOT the `details` epic's own folder,
  *   `epics/details/` (`findPages()`)
- * - `parts`:  a split plan doc's bodies (`epics/<name>/parts/<id>.html`, `plan-parts.js`):  fragments its page loads,
+ * - `parts`:  a split plan doc's bodies (`epics/<name>/parts/<id>.html`, `PlanParts`):  fragments its page loads,
  *   told from pages by this folder alone since they're `.html` (Q12 of `epic-components`;  `.htm` before)
  */
 const SKIP_DIRS = new Set(["node_modules", "experiments", "examples", "details", "parts"])
@@ -153,7 +153,7 @@ export function findPages(dir = AREAS) {
 
 /**
  * The file holding the plan doc at `file`'s log:  its part, `parts/log.html` (`parts/log.htm` before Q12 of
- * `epic-components`), when the doc is split (`plan-parts.js`), else the doc itself.  For the browser checks, which
+ * `epic-components`), when the doc is split (`PlanParts`), else the doc itself.  For the browser checks, which
  * add a log line and take it out again by hand.
  * - either markup:  the log's host says `source="parts/log.html"` in both (`<ui-section id="log">`, `<epic-section
  *   kind="log">`)
@@ -366,7 +366,7 @@ export function serialize(document) {
 
 /**
  * Serialized `html` (a document's, or a fragment's `innerHTML`) with boolean attributes bare (`styled`, not
- * `styled=""`), as `serialize()` writes a page;  a plan doc's part files too (`plan-parts.js`).
+ * `styled=""`), as `serialize()` writes a page;  a plan doc's part files too (`PlanParts`).
  */
 export function serializeHTML(html) {
   for (let before; before !== html;) {
