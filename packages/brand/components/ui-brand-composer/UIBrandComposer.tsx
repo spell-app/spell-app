@@ -1,7 +1,16 @@
 import { Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, SlotContent, UI, type AttributeName, type FieldValue, type ElementSetup } from "$/ui/core"
+import {
+  IconGlyph,
+  proto,
+  SlotContent,
+  UI,
+  type AttributeName,
+  type FieldValue,
+  type ElementSetup,
+  type AttributeValues
+} from "$/ui/core"
 import { ControlLabels, DOMFormControl, FormComponent } from "$/ui/forms"
 
 import { brandComposerVocabulary } from "./UIBrandComposer.en"
@@ -106,22 +115,22 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   ////////////////
 
   /** The text;  tracked. */
-  value(): string {
+  text(): string {
     return String(this.valueState.get() ?? "")
   }
 
   /** Nothing to cast:  empty, or only blanks;  tracked. */
   isBlank(): boolean {
-    return !this.value().trim()
+    return !this.text().trim()
   }
 
   get isDisabled(): boolean {
-    return this.attrs.disabled || this.formIsDisabled
+    return this.disabled || this.formIsDisabled
   }
 
   /** Can't cast now:  blank, `casting` or disabled;  tracked. */
   isBlocked(): boolean {
-    return this.isBlank() || this.attrs.casting || this.isDisabled
+    return this.isBlank() || this.casting || this.isDisabled
   }
 
   protected classValue(name: AttributeName<BrandComposerVocabulary>): unknown {
@@ -130,11 +139,11 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   }
 
   protected get extraClass(): string | undefined {
-    return this.attrs.size === LARGE ? `${BRAND} ${LARGE}` : BRAND
+    return this.size === LARGE ? `${BRAND} ${LARGE}` : BRAND
   }
 
   protected cssStates() {
-    return { empty: this.isBlank(), casting: this.attrs.casting, disabled: this.isDisabled }
+    return { empty: this.isBlank(), casting: this.casting, disabled: this.isDisabled }
   }
 
   ////////////////
@@ -142,11 +151,11 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   ////////////////
 
   get formValue(): FieldValue {
-    return this.value()
+    return this.text()
   }
 
   protected get formName(): string | undefined {
-    return this.attrs.name
+    return this.name
   }
 
   /** Back to the `value` ATTRIBUTE (native `defaultValue`). */
@@ -162,7 +171,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   /** Adds the value sync (`value` => the text box, after DOM updates) and the labels' refresh. */
   onMount(): JSX.Element {
     createEffect(
-      () => [this.value(), this.isReady],
+      () => [this.text(), this.isReady],
       () => {
         this.syncControl()
       }
@@ -182,26 +191,22 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div
-        class={this.rootClass}
-        part={this.partForName("composer")}
-        aria-busy={this.attrs.casting ? "true" : undefined}
-      >
-        <Show when={this.attrs.eyebrow || this.slots.hasContent(this.slotForName("eyebrow"))}>
+      <div class={this.rootClass} part={this.partForName("composer")} aria-busy={this.casting ? "true" : undefined}>
+        <Show when={this.eyebrow || this.slots.hasContent(this.slotForName("eyebrow"))}>
           <div class={CLASSES.eyebrow} part={this.partForName("eyebrow")}>
-            <slot name={this.slotForName("eyebrow")}>{this.attrs.eyebrow}</slot>
+            <slot name={this.slotForName("eyebrow")}>{this.eyebrow}</slot>
           </div>
         </Show>
         <textarea
           ref={(element) => (this.control = element)}
           class={CLASSES.textarea}
           part={this.partForName("textarea")}
-          rows={this.rows()}
+          rows={this.rowCount()}
           style={this.rowsStyle()}
-          placeholder={this.attrs.placeholder ?? this.translationForKey("placeholder")}
+          placeholder={this.placeholder ?? this.translationForKey("placeholder")}
           spellcheck="true"
           aria-label={this.boxName()}
-          aria-describedby={this.hint() ? IDS.hint : undefined}
+          aria-describedby={this.shownHint() ? IDS.hint : undefined}
           aria-keyshortcuts={this.shortcut()}
           disabled={this.isDisabled}
           onInput={this.onInput}
@@ -214,9 +219,9 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
               <slot name={this.slotForName("tools")} />
             </div>
           </Show>
-          <Show when={this.hint()}>
+          <Show when={this.shownHint()}>
             <span id={IDS.hint} class={CLASSES.hint} part={this.partForName("hint")}>
-              {this.hint()}
+              {this.shownHint()}
             </span>
           </Show>
           <button
@@ -229,21 +234,21 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
             disabled={this.isDisabled}
             onClick={this.onCastClick}
           >
-            <Show when={this.attrs.casting} fallback={<span class={CLASSES.icon}>{this.glyphs.cast.svg}</span>}>
+            <Show when={this.casting} fallback={<span class={CLASSES.icon}>{this.glyphs.cast.svg}</span>}>
               <span class={[CLASSES.icon, CLASSES.spin]}>{this.glyphs.casting.svg}</span>
             </Show>
           </button>
         </div>
         <span class={CLASSES.status} role="status">
-          {this.attrs.casting ? this.translationForKey("casting") : ""}
+          {this.casting ? this.translationForKey("casting") : ""}
         </span>
       </div>
     )
   }
 
   /** `rows`, else `DEFAULT_ROWS`;  at least 1. */
-  private rows(): number {
-    const rows = this.attrs.rows
+  private rowCount(): number {
+    const rows = this.rows
     return typeof rows === "number" && Number.isFinite(rows) ? Math.max(1, Math.round(rows)) : DEFAULT_ROWS
   }
 
@@ -252,17 +257,17 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
    * - A method, not an inline object:  Solid's server compile drops the `;` between COMPUTED keys.
    */
   private rowsStyle(): Record<string, string> {
-    return { [ROWS_VAR]: String(this.rows()) }
+    return { [ROWS_VAR]: String(this.rowCount()) }
   }
 
   /** The text box's name (see the class doc);  tracked. */
   private boxName(): string {
-    return this.attrs.label || this.labels.accessibleName || this.attrs.eyebrow || this.translationForKey("label")
+    return this.label || this.labels.accessibleName || this.eyebrow || this.translationForKey("label")
   }
 
   /** The hint:  `hint`, else the platform's;  `""` hides it.  Tracked. */
-  private hint(): string {
-    return this.attrs.hint ?? this.translationForKey(UI.browser.isApple ? "hintApple" : "hintOther")
+  private shownHint(): string {
+    return this.hint ?? this.translationForKey(UI.browser.isApple ? "hintApple" : "hintOther")
   }
 
   /** `aria-keyshortcuts` of the cast shortcut, the platform's. */
@@ -344,3 +349,5 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
     this.cast(event)
   }
 }
+
+export interface UIBrandComposer extends AttributeValues<BrandComposerVocabulary> {}

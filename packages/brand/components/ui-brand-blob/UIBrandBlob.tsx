@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, UIComponent, type ElementSetup } from "$/ui/core"
+import { proto, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
 
 import { brandBlobVocabulary } from "./UIBrandBlob.en"
 
@@ -25,15 +25,12 @@ export class UIBrandBlob extends UIComponent<typeof brandBlobVocabulary> {
   render(): JSX.Element {
     return (
       <div
-        class={[
-          "blob",
-          this.attrs.shape ?? "organic",
-          this.attrs.corner ?? "bottom-right",
-          `tone-${this.attrs.tone ?? "blob"}`
-        ]}
+        class={["blob", this.shape ?? "organic", this.corner ?? "bottom-right", `tone-${this.tone ?? "blob"}`]}
         part={this.partForName("blob")}
         aria-hidden="true"
       />
     )
   }
 }
+
+export interface UIBrandBlob extends AttributeValues<typeof brandBlobVocabulary> {}

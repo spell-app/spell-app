@@ -104,7 +104,8 @@ export class DOMElement extends HTMLElementOrShim {
     const { connectedState } = this
     if (!connectedState.isMounted) {
       connectedState.isMounted = true
-      this.tagSetup.mountComponent(this)
+      // a bare subclass defined without `subclassForTag()` (a test's stand-in) has no component
+      this.tagSetup?.mountComponent(this)
       this.handOverEarlyFormState()
     }
     this.component?.onConnect()

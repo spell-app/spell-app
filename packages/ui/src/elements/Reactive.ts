@@ -36,7 +36,7 @@ import type { E } from "$/ui/core"
  *   Solid APIs that take one.
  * - Vocabulary getters (`installAttributeGetters()`;  their setters write the DOM element's property) and raw
  *   attributes (`attributesOf()`) are record members too:  versions bumped when the DOM element's `attributeValues`
- *   or the DOM attribute changes, notifiers the component's attribute signals (`attrs`) and a `MutationObserver`.
+ *   or the DOM attribute changes;  notified by the DOM element's change callbacks and a `MutationObserver`.
  * - Writes never throw:  a notifier set inside an owned scope (a render, a memo), which Solid 2 forbids, is
  *   deferred to a microtask;  the record is written at once either way.
  * - A leaf of the element core:  imports only Solid, so element-core classes import its decorators
@@ -71,7 +71,6 @@ export class Reactive {
   /**
    * Give `prototype` a getter and a setter per attribute (keyed by its camelCase canonical `key`):
    * - the getter reads the CONVERTED value fresh from the DOM element's `attributeValues`
-   *   (`component.attrs[key]` for a stand-in DOM element without one)
    * - the setter writes the DOM ELEMENT's PROPERTY under this tag's name for it (`el.indeterminate`, a translated tag's own
    *   property), which reflects and converts like any property write;  `undefined` clears it
    * - Skips a name the prototype chain already has (a method, a getter, `isOpen` ...):  the class's own member wins.
@@ -101,7 +100,10 @@ export class Reactive {
     if (collecting || getObserver()) {
       const record = Reactive.recordOf(component)
       let source = record.sources.get(ATTRIBUTE_PREFIX + key) as AttributeSource | undefined
-      if (!source) record.sources.set(ATTRIBUTE_PREFIX + key, (source = new AttributeSource(component, key)))
+      if (!source) {
+        record.sources.set(ATTRIBUTE_PREFIX + key, (source = new AttributeSource(component, key)))
+        watchAttributeValues(record, component)
+      }
       reading(source)
     }
     return attributeValueNow(component, key)
@@ -414,15 +416,23 @@ class Notifier implements Source {
   /** The value changed:  bump, and tell Solid. */
   changed() {
     this.version++
+    this.tell()
+  }
+
+  /** Tell Solid's listeners (if any) to read again. */
+  protected tell() {
     const signal = this.signal
     if (signal) notify(() => signal[1]())
   }
 }
 
-/** A vocabulary attribute's source:  its version follows the converted value in the DOM element's record. */
-class AttributeSource implements Source {
-  version = 0
-
+/**
+ * A vocabulary attribute's source:  its version follows the converted value in the DOM element's `attributeValues`,
+ * and the DOM element's change callbacks tell Solid (`watchAttributeValues()`).
+ * - `ownedWrite`:  the DOM element's property setters write it, and anyone may call those from anywhere, inside a
+ *   Solid computation included.
+ */
+class AttributeSource extends Notifier {
   /** The component whose DOM element has the attribute. */
   private readonly component: ComponentShape
 
@@ -433,21 +443,28 @@ class AttributeSource implements Source {
   private last: unknown
 
   constructor(component: ComponentShape, key: string) {
+    super(true)
     this.component = component
     this.key = key
     this.last = attributeValueNow(component, key)
   }
 
   refresh() {
-    const value = attributeValueNow(this.component, this.key)
-    if (value === this.last) return
-    this.last = value
-    this.version++
+    this.hasMoved()
   }
 
-  track() {
-    // the component's attribute signal:  reading it tracks
-    if (getObserver()) void (this.component.attrs as Record<string, unknown>)[this.key]
+  /** The DOM element wrote the value (equal or not):  if it moved, bump and tell Solid. */
+  written() {
+    if (this.hasMoved()) this.tell()
+  }
+
+  /** Bring `version` up to date;  true when the value moved since the last look. */
+  private hasMoved(): boolean {
+    const value = attributeValueNow(this.component, this.key)
+    if (value === this.last) return false
+    this.last = value
+    this.version++
+    return true
   }
 }
 
@@ -642,13 +659,20 @@ function watchAttributes(record: ReactiveRecord, domElement: AttributeElement) {
 }
 
 /**
- * Converted value of attribute `key`:  the DOM element's `attributeValues` (fresh),
- * else the component's signal (a stand-in DOM element without one).
+ * Hear every write to `component`'s DOM element's attribute values, once per record, so its attribute sources tell
+ * Solid (`AttributeSource.written()`).  Released with the DOM element.
  */
+function watchAttributeValues(record: ReactiveRecord, component: ComponentShape) {
+  if (record.isWatchingValues) return
+  record.isWatchingValues = true
+  component.domElement.addPropertyChangedCallback((key: string) => {
+    ;(record.sources.get(ATTRIBUTE_PREFIX + key) as AttributeSource | undefined)?.written()
+  })
+}
+
+/** Converted value of attribute `key`:  the DOM element's `attributeValues`, always fresh. */
 function attributeValueNow(component: ComponentShape, key: string): unknown {
-  const values = (component.domElement as { attributeValues?: Record<string, unknown> }).attributeValues
-  if (values && key in values) return values[key]
-  return untrack(() => (component.attrs as Record<string, unknown>)[key])
+  return component.domElement.attributeValues[key]
 }
 
 /**
@@ -713,8 +737,6 @@ export type ComponentShape = {
   readonly domElement: E.DOMElement
   /** its names:  `attribute(name)` resolves `@controlled`'s */
   readonly elementDefinition: E.ElementDefinition
-  /** the component's attribute signals (`attrs`):  a vocabulary getter's Solid signal */
-  readonly attrs: object
 }
 
 /** An attribute's two canonical names, for `installAttributeGetters()`. */
@@ -749,6 +771,8 @@ export type ReactiveRecord = {
   attributes?: Readonly<Record<string, string | null>>
   /** the DOM element's attribute observer, for `attributes` */
   attributeObserver?: MutationObserver
+  /** the DOM element's change callback for the attribute sources is in (`watchAttributeValues()`) */
+  isWatchingValues?: boolean
 }
 
 /** One `@cssState` member. */

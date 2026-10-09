@@ -462,11 +462,10 @@ describe("DOMElement lifecycle", () => {
     expect(component.cleanups).toBe(1)
     expect(released).toEqual(["second", "first"])
     expect(host.shadowRoot!.textContent).toBe("")
-    // the property still works;  the old component's signals (`attrs`) and view hear nothing of it
+    // the property still works;  the old component's view hears nothing of it
     host.label = "b"
     await ElementFixture.tick()
     expect(host.label).toBe("b")
-    expect(component.attrs.label).toBe("a")
     expect(host.shadowRoot!.textContent).toBe("")
   })
 

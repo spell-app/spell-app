@@ -1,7 +1,7 @@
 import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, UIComponent, type ElementSetup } from "$/ui/core"
+import { IconGlyph, proto, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
 
 import { brandPhoneVocabulary } from "./UIBrandPhone.en"
 
@@ -31,7 +31,7 @@ export class UIBrandPhone extends UIComponent<typeof brandPhoneVocabulary> {
   readonly battery = new IconGlyph({ owner: this, name: () => STATUS_ICONS.battery })
 
   /** The region's accessible name:  `label`, else `App preview`;  `""`:  none (no region). */
-  readonly name = createMemo(() => this.attrs.label ?? this.translationForKey("appPreview"))
+  readonly name = createMemo(() => this.label ?? this.translationForKey("appPreview"))
 
   render(): JSX.Element {
     return (
@@ -39,11 +39,11 @@ export class UIBrandPhone extends UIComponent<typeof brandPhoneVocabulary> {
         class={this.rootClass}
         part={this.partForName("phone")}
         aria-label={this.name() || undefined}
-        aria-busy={this.attrs.dimmed ? "true" : undefined}
+        aria-busy={this.dimmed ? "true" : undefined}
       >
         <div class={CLASSES.status} part={this.partForName("status")} aria-hidden="true">
           <span class={CLASSES.time} part={this.partForName("time")}>
-            {this.attrs.time ?? DEFAULT_TIME}
+            {this.time ?? DEFAULT_TIME}
           </span>
           <span class={CLASSES.icons} part={this.partForName("icons")}>
             {this.signal.svg}
@@ -56,6 +56,8 @@ export class UIBrandPhone extends UIComponent<typeof brandPhoneVocabulary> {
     )
   }
 }
+
+export interface UIBrandPhone extends AttributeValues<typeof brandPhoneVocabulary> {}
 
 /** The status bar's clock when `time` is absent:  Apple's keynote time. */
 const DEFAULT_TIME = "9:41"

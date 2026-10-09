@@ -1,7 +1,16 @@
 import { For, Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValue, type ElementSetup } from "$/ui/core"
+import {
+  Cell,
+  IconGlyph,
+  proto,
+  SlotContent,
+  type AttributeName,
+  type FieldValue,
+  type ElementSetup,
+  type AttributeValues
+} from "$/ui/core"
 import { ControlLabels, FormComponent } from "$/ui/forms"
 import { Palette, type Hsl, type Oklch } from "$/brand"
 
@@ -72,7 +81,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   readonly valueState = this.controlled("value", undefined)
 
   /** The colour being edited, HSL (see the class doc). */
-  readonly working = new Cell<Hsl>(untrack(() => Palette.hexToHsl(this.value())))
+  readonly working = new Cell<Hsl>(untrack(() => Palette.hexToHsl(this.hex())))
 
   /** Text typed in the fields and not committed yet. */
   readonly drafts = new Cell<Drafts>({})
@@ -97,7 +106,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   }
 
   /** `value` when the element was created:  the form's reset value. */
-  private readonly initialValue = untrack(() => this.attrs.value)
+  private readonly initialValue = untrack(() => this.value)
 
   // NOTE:  plain mirrors of the cells, for handlers:  a cell's write lands on a microtask, and two events can arrive
   // before it (a test, a fast drag)
@@ -106,7 +115,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   private latest: Hsl = untrack(() => this.working.get())
 
   /** `value`, now. */
-  private latestHex = untrack(() => this.value())
+  private latestHex = untrack(() => this.hex())
 
   /** `value` at the last `ui-change` (or outside set):  a commit fires only when it differs. */
   private committedHex = this.latestHex
@@ -131,13 +140,13 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   ////////////////
 
   /** The colour, `#RRGGBB`:  `value` read as `Palette.parse()` reads it, else `DEFAULT_VALUE`;  tracked. */
-  value(): string {
+  hex(): string {
     const value = this.valueState.get()
     return (typeof value === "string" ? Palette.parse(value) : undefined) ?? DEFAULT_VALUE
   }
 
   get isDisabled(): boolean {
-    return this.attrs.disabled || this.formIsDisabled
+    return this.disabled || this.formIsDisabled
   }
 
   protected classValue(name: AttributeName<BrandColorPickerVocabulary>): unknown {
@@ -158,11 +167,11 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   ////////////////
 
   get formValue(): FieldValue {
-    return this.value()
+    return this.hex()
   }
 
   protected get formName(): string | undefined {
-    return this.attrs.name
+    return this.name
   }
 
   /** Back to the first `value`. */
@@ -183,7 +192,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
       }
     )
     createEffect(
-      () => this.value(),
+      () => this.hex(),
       (hex) => {
         this.adopt(hex)
       }
@@ -231,7 +240,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
         <span class={CLASSES.readout}>
           <slot name={this.slotForName("header")} />
           <span class={CLASSES.hex} part={this.partForName("hex")}>
-            {this.value()}
+            {this.hex()}
           </span>
         </span>
         <Show when={this.slots.hasContent(this.slotForName("actions"))}>
@@ -402,13 +411,13 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
       [VARS.x]: String(s),
       [VARS.y]: String(1 - l),
       [VARS.hue]: String(h),
-      [VARS.color]: this.value()
+      [VARS.color]: this.hex()
     }
   }
 
   /** The group's name:  `label`, else what names the DOM element, else "Colour". */
   private groupName(): string {
-    return this.attrs.label ?? this.labels.accessibleName ?? this.translationForKey("group")
+    return this.label ?? this.labels.accessibleName ?? this.translationForKey("group")
   }
 
   /** What field `key` shows while not typed in:  HSL from `working`, the hex and OKLCH from `value`;  tracked. */
@@ -417,7 +426,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     if (key === "hslH") return String(Math.round(h) % 360)
     if (key === "hslS") return String(this.percent(s))
     if (key === "hslL") return String(this.percent(l))
-    const hex = this.value()
+    const hex = this.hex()
     if (key === "rgb") return hex
     const oklch = Palette.hexToOklch(hex)
     if (key === "oklchL") return (oklch.l * 100).toFixed(1)
@@ -696,3 +705,5 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     return trimmed && /^[-+]?(\d+\.?\d*|\.\d+)$/.test(trimmed) ? Number(trimmed) : Number.NaN
   }
 }
+
+export interface UIBrandColorPicker extends AttributeValues<BrandColorPickerVocabulary> {}

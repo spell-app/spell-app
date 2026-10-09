@@ -5,12 +5,10 @@ import {
   createEffect,
   createRenderEffect,
   createRoot,
-  createSignal,
   getOwner,
   runWithOwner,
   untrack,
-  type Accessor,
-  type Signal
+  type Accessor
 } from "solid-js"
 import { insert, isServer, type JSX } from "@solidjs/web"
 
@@ -147,13 +145,12 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * Built once per element, the first time the element is connected (`UIComponent.mount()`).
-   * - Three arguments in a row, not one object:  the server render (`$/ui/static`) builds components the same way.
+   * - Two arguments in a row, not one object:  the server render (`$/ui/static`) builds components the same way.
    * - It runs while Solid is drawing:  don't change state here (see the class docs).
    */
-  constructor(domElement: DOMElement, definition: E.ElementDefinition, attrs: Readonly<E.AttributeValues<V>>) {
+  constructor(domElement: DOMElement, definition: E.ElementDefinition) {
     this.domElement = domElement
     this.elementDefinition = definition
-    this.attrs = attrs
     domElement.component = this
     this.appContext = isServer ? null : UIComponent.appContextFor(domElement)
     this.internalState = { classInput: definition.classInput((name) => this.classValue(name as E.AttributeName<V>)) }
@@ -383,14 +380,6 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     const { elementDefinition } = this
     return E.Reactive.attributesOf(this, this.domElement, (name) => elementDefinition.localAttribute(name))
   }
-
-  /**
-   * The converted attribute values, one Solid signal each (`UIComponent.attributeSignals()`).
-   * - On the way out:  read an attribute through its getter (`this.size`) instead, which is always up to date.
-   *   A value here lags one tick behind a change.
-   * - Only `brand`'s components still read it;  it goes once they use the decorators.
-   */
-  readonly attrs: Readonly<E.AttributeValues<V>>
 
   ////////////////
   // ## Reactive members
@@ -625,7 +614,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
       domElement: this.domElement,
       key,
       property,
-      value: () => this.attrs[key as keyof E.AttributeValues<V>] as Value | undefined,
+      value: () => E.Reactive.attributeValue(this, key) as Value | undefined,
       initial
     })
   }
@@ -707,7 +696,6 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - In a Solid root of its OWN, with no parent:  it lives until `domElement.dispose()`, whatever happens around it.
    *   So a Solid app's context doesn't reach inside (`appContext` does that).
    * - Inside an error net (Solid's `<Errored>`), always:  see "Errors and fallback".
-   * - The attribute values arrive as signals (`attrs`), kept in step by the DOM element's change callbacks.
    * - Released with the DOM element:  the root is disposed, the shadow root emptied.
    */
   private static mount(
@@ -717,10 +705,6 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     Fallback: E.FallbackClass | undefined
   ) {
     createRoot((dispose) => {
-      const attrs = UIComponent.attributeSignals({ ...domElement.attributeValues })
-      domElement.addPropertyChangedCallback((key, value) => {
-        ;(attrs as Record<string, unknown>)[key] = value
-      })
       const root = domElement.renderRoot
       domElement.addReleaseCallback(() => {
         ShadowEvents.unregister(root)
@@ -730,7 +714,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
       // `<Errored>` called as a function;  `children` is a GETTER, so the component is built inside the net
       const view = Errored({
         get children() {
-          return untrack(() => new Class(domElement, definition, attrs).onMount())
+          return untrack(() => new Class(domElement, definition).onMount())
         },
         fallback: (error: Accessor<unknown>) => {
           const cause = error()
@@ -742,29 +726,6 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
       ShadowEvents.register(root)
       insert(root, view)
     })
-  }
-
-  /**
-   * One Solid signal per key of `values`, read and written as properties:  `attrs`.
-   * - A value is stored as is:  a function-valued attribute (a callback) is a value, not a computation.
-   * - `ownedWrite`:  the DOM element's property setters write them, and anyone may call those from anywhere,
-   *   including inside a Solid computation, where Solid 2 otherwise throws (`REACTIVE_WRITE_IN_OWNED_SCOPE`).
-   * - The server render (`$/ui/static`) makes them the same way.
-   */
-  static attributeSignals<T extends object>(values: T): T {
-    const signals = {} as T
-    for (const key of Object.keys(values)) {
-      const initial = (values as Record<string, unknown>)[key]
-      const [get, set] = createSignal(() => initial, { ownedWrite: true }) as Signal<unknown>
-      Object.defineProperty(signals, key, {
-        get,
-        set(value: unknown) {
-          set(() => value)
-        },
-        enumerable: true
-      })
-    }
-    return signals
   }
 
   ////////////////

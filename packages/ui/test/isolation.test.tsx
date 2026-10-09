@@ -5,7 +5,7 @@ import type { JSX } from "@solidjs/web"
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { UIComponent, type UIComponentClass, type DOMElement } from "$/ui/elements"
+import { UIComponent, type AttributeValues, type UIComponentClass, type DOMElement } from "$/ui/elements"
 
 import "$/ui/components/ui-label"
 import "$/ui/components/ui-segment"
@@ -14,9 +14,9 @@ import "$/ui/components/ui-segment"
 class Bomb extends UIComponent<typeof BOMB> {
   constructor(...args: ConstructorParameters<typeof UIComponent>) {
     super(...args)
-    if (this.attrs.crash) throw new Error("crash in the constructor")
+    if (this.crash) throw new Error("crash in the constructor")
     createEffect(
-      () => this.attrs.burst,
+      () => this.burst,
       (burst) => {
         if (burst) throw new Error("burst in an effect")
       }
@@ -29,10 +29,13 @@ class Bomb extends UIComponent<typeof BOMB> {
 
   /** Text, or a throw while `boom`. */
   private text_(): string {
-    if (this.attrs.boom) throw new Error("boom in render")
+    if (this.boom) throw new Error("boom in render")
     return "ok"
   }
 }
+
+// the vocabulary's getters (`this.boom` ...), for TypeScript
+interface Bomb extends AttributeValues<typeof BOMB> {}
 
 /** Vocabulary of `<x-bomb>`. */
 const BOMB = {

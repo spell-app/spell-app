@@ -24,9 +24,8 @@ import buttonCSS from "$/ui/components/ui-button/UIButton.css?inline"
 describe("<ui-button> server render to Declarative Shadow DOM", () => {
   it("renders <ui-button primary>Save</ui-button> to a DSD string", async () => {
     const definition = new ElementDefinition(buttonVocabulary)
-    const attrs = { primary: true } as unknown as ConstructorParameters<typeof UIButton>[2]
     const host = stubHost()
-    const html = renderToString(() => new UIButton(host, definition, attrs).onMount())
+    const html = renderToString(() => new UIButton(host, definition).onMount())
     const css = [...foundationCSS, buttonCSS].join("\n")
     const dsd =
       `<ui-button primary><template shadowrootmode="open" shadowrootdelegatesfocus>` +
@@ -44,6 +43,7 @@ describe("<ui-button> server render to Declarative Shadow DOM", () => {
 function stubHost(): DOMElement {
   return {
     childNodes: [],
+    attributeValues: { primary: true },
     shadowRoot: null,
     getAttribute: () => null,
     addPropertyChangedCallback() {},

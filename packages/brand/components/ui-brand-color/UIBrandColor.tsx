@@ -1,7 +1,7 @@
 import { Show, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, DOMElement, IconGlyph, proto, UIComponent, type ElementSetup } from "$/ui/core"
+import { Cell, DOMElement, IconGlyph, proto, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
 import { Palette } from "$/brand"
 
 import { brandColorVocabulary } from "./UIBrandColor.en"
@@ -96,14 +96,14 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
   ////////////////
 
   /** `value` as `#RRGGBB`, or `undefined` when it isn't a colour. */
-  readonly hex = createMemo(() => Palette.parse(this.attrs.value ?? ""))
+  readonly hex = createMemo(() => Palette.parse(this.value ?? ""))
 
   /** Is it one choice of a selectable set?  (The set writes `choice` on the DOM element.) */
   readonly isChoice = createMemo(() => (this.domElement as DOMBrandColorElement).choice?.get() ?? false)
 
   /** What a click copies, or `undefined`:  not copyable, or a choice (the set takes the click). */
   readonly copyFormat = createMemo((): CopyFormat | undefined => {
-    const copy = this.attrs.copy
+    const copy = this.copy
     if (!copy || this.isChoice()) return undefined
     return copy === true ? "hex" : copy
   })
@@ -130,27 +130,27 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
   readonly passes = createMemo(() => (this.facts()?.ratio ?? 0) >= AA_RATIO)
 
   /** What names the chip:  `name`, else the colour, else `value` as written. */
-  readonly displayName = createMemo(() => this.attrs.name || this.hex() || this.attrs.value || "")
+  readonly displayName = createMemo(() => this.name || this.hex() || this.value || "")
 
   /** The chip's accessible name:  name, colour and the AA mark when it shows. */
   readonly accessibleName = createMemo(() => {
-    const words = [this.attrs.name, this.hex() ?? this.attrs.value]
-    if (this.attrs.contrast && this.passes()) words.push(this.translationForKey("aa"))
+    const words = [this.name, this.hex() ?? this.value]
+    if (this.contrast && this.passes()) words.push(this.translationForKey("aa"))
     return words.filter(Boolean).join(" ")
   })
 
   /** Text inside the chip (`label`), or `undefined`. */
   readonly labelText = createMemo((): string | undefined => {
     const hex = this.hex()
-    switch (this.attrs.label) {
+    switch (this.label) {
       case "hex":
         return hex?.slice(1)
       case "oklch":
         return hex && UIBrandColor.shortOklch(hex)
       case "name":
-        return this.attrs.name || undefined
+        return this.name || undefined
       case "step":
-        return UIBrandColor.stepOf(this.attrs.name)
+        return UIBrandColor.stepOf(this.name)
       default:
         return undefined
     }
@@ -160,7 +160,7 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
     super(...args)
     // SIDE EFFECT:  a choice's DOM element is the radio:  its role, checked state and name, through internals
     this.addElementEffect(
-      () => (this.isChoice() ? { checked: this.attrs.selected, label: this.accessibleName() } : undefined),
+      () => (this.isChoice() ? { checked: this.selected, label: this.accessibleName() } : undefined),
       (choice) => {
         const { internals } = this.domElement
         internals.role = choice ? "radio" : null
@@ -196,7 +196,7 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
         <span class={CLASSES.status} role="status">
           {this.copied.get() ? this.translationForKey("copied", { value: this.copied.get() }) : ""}
         </span>
-        <Show when={this.attrs.details && this.facts()}>{this.renderTip()}</Show>
+        <Show when={this.details && this.facts()}>{this.renderTip()}</Show>
       </>
     )
   }
@@ -210,7 +210,7 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
         part={this.partForName("chip")}
         style={this.chipStyle()}
         aria-label={this.translationForKey("copy", { name: this.displayName() })}
-        aria-describedby={this.attrs.details ? TIP_ID : undefined}
+        aria-describedby={this.details ? TIP_ID : undefined}
         onClick={this.onCopy}
       >
         {this.renderInside()}
@@ -227,8 +227,8 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
         style={this.chipStyle()}
         role={this.isChoice() ? undefined : "img"}
         aria-label={this.isChoice() ? undefined : this.accessibleName() || undefined}
-        tabindex={this.attrs.details && !this.isChoice() ? "0" : undefined}
-        aria-describedby={this.attrs.details && !this.isChoice() ? TIP_ID : undefined}
+        tabindex={this.details && !this.isChoice() ? "0" : undefined}
+        aria-describedby={this.details && !this.isChoice() ? TIP_ID : undefined}
       >
         {this.renderInside()}
       </span>
@@ -244,7 +244,7 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
             {this.labelText()}
           </span>
         </Show>
-        <Show when={this.attrs.contrast && this.passes()}>
+        <Show when={this.contrast && this.passes()}>
           <span class={CLASSES.mark} part={this.partForName("mark")} aria-hidden="true">
             {this.translationForKey("aa")}
           </span>
@@ -310,8 +310,8 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
 
   /** What a click copies as `format`:  the hex, OKLCH, `var(--name)` or `--name: #hex;` (no `name`:  the hex). */
   private copyText(format: CopyFormat): string {
-    const hex = this.hex() ?? this.attrs.value ?? ""
-    const name = this.attrs.name
+    const hex = this.hex() ?? this.value ?? ""
+    const name = this.name
     if (format === "oklch" && this.hex()) return Palette.format(hex, "oklch")
     if (format === "token" && name) return `var(--${name})`
     if (format === "css" && name) return `--${name}: ${hex};`
@@ -352,3 +352,5 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
     return name?.match(/(\d+)$/)?.[1]
   }
 }
+
+export interface UIBrandColor extends AttributeValues<BrandColorVocabulary> {}

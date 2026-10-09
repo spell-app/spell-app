@@ -1,7 +1,7 @@
 import { createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
-import { Cell, Converters, proto, UIComponent, UIT, type ElementSetup } from "$/ui/core"
+import { Cell, Converters, proto, UIComponent, UIT, type ElementSetup, type AttributeValues } from "$/ui/core"
 import { Palette } from "$/brand"
 import { DOMBrandColorElement } from "$/brand/components/ui-brand-color"
 
@@ -77,7 +77,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
     super(...args)
     // SIDE EFFECT:  the DOM element is the radio group while `selectable`
     this.addElementEffect(
-      () => this.attrs.selectable,
+      () => this.selectable,
       (selectable) => {
         this.domElement.internals.role = selectable ? "radiogroup" : null
       }
@@ -96,7 +96,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
 
   /** `color brand`, and `grid` with `columns`. */
   protected get extraClass(): string | undefined {
-    return this.columns() ? `${GRID} ${BRAND_COLOR}` : BRAND_COLOR
+    return this.columnCount() ? `${GRID} ${BRAND_COLOR}` : BRAND_COLOR
   }
 
   ////////////////
@@ -109,7 +109,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
       () => ({
         chips: this.chips.get(),
         chosen: this.chosen(),
-        selectable: this.attrs.selectable,
+        selectable: this.selectable,
         valued: !!this.valueState.get()
       }),
       ({ chips, chosen, selectable, valued }) => {
@@ -128,14 +128,14 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   }
 
   /** Whole chips per row, or `undefined` for one row. */
-  private columns(): number | undefined {
-    const columns = Math.floor(this.attrs.columns ?? 0)
+  private columnCount(): number | undefined {
+    const columns = Math.floor(this.columns ?? 0)
     return columns > 0 ? columns : undefined
   }
 
   /** The grid's column count, as the private switch the sheet reads. */
   private layoutStyle(): JSX.CSSProperties | undefined {
-    const columns = this.columns()
+    const columns = this.columnCount()
     return columns ? { [COLUMNS_PROPERTY]: String(columns) } : undefined
   }
 
@@ -208,14 +208,14 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
 
   /** A click on a chip chooses it (`selectable`). */
   private readonly onClick = (event: MouseEvent) => {
-    if (!untrack(() => this.attrs.selectable)) return
+    if (!untrack(() => this.selectable)) return
     const index = this.indexOf(event)
     if (index >= 0) this.choose(index, event)
   }
 
   /** The radio group's keys (`selectable`):  arrows, Home / End, Enter / Space. */
   private readonly onKeyDown = (event: KeyboardEvent) => {
-    if (!untrack(() => this.attrs.selectable) || event.altKey || event.ctrlKey || event.metaKey) return
+    if (!untrack(() => this.selectable) || event.altKey || event.ctrlKey || event.metaKey) return
     const index = this.indexOf(event)
     if (index < 0) return
     const count = untrack(() => this.chips.get()).length
@@ -279,6 +279,8 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
     chip.removeAttribute("tabindex")
   }
 }
+
+export interface UIBrandColorSet extends AttributeValues<BrandColorSetVocabulary> {}
 
 /** The class words the component adds after the noun:  `set color brand`. */
 const BRAND_COLOR = "color brand"
