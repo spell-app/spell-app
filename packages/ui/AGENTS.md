@@ -6,6 +6,10 @@ when working with code in this package, `@spell-app/ui`.
 **READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
 house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
 
+**New to how a `<ui-*>` element works (the platform, the DOM element / component pair, the decorators, every
+hook):  READ the guide, `guides/custom-elements/custom-elements.html`,** with live elements to click.  The rules
+below are its short form.
+
 ## Overview
 
 - `@spell-app/ui` is Fomantic UI reborn as `ui-*` custom elements on a modern CSS foundation:  Fomantic's

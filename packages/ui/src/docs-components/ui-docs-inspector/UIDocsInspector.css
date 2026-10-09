@@ -1,0 +1,108 @@
+/*
+ * The style sheet of `<ui-docs-inspector>`:  a small panel of rows in a code font.
+ * - It styles the component's shadow DOM:
+ *   `<div class="ui inspector" part="inspector">` holding `<div class="title" part="title">`,
+ *   then `<div class="groups">` of three `<section class="group" part="group">`:
+ *   a `<div class="caption">`, then a `<dl>` of `<div class="row">` (`<dt>` name, `<dd>` value),
+ *   or, for states, a `<ul>` of `<li class="row">`.
+ * - A row that draws again (a new value) flashes once, in the highlight colour.
+ * - Public tokens (`--ui-docs-inspector-*`) are never declared:  each is read through a private alias
+ *   (`docs/theming.md` "Component tokens").
+ */
+
+@layer ui.components.docs-inspector.types, ui.components.docs-inspector.content, ui.components.docs-inspector.variations, ui.components.docs-inspector.states;
+
+/* A changed row's flash:  from the highlight colour to none. */
+@keyframes ui-docs-inspector-flash {
+  from {
+    background: var(--_ui-docs-inspector-flash);
+  }
+}
+
+@layer ui.components.docs-inspector.types {
+  :host {
+    display: block;
+  }
+  :host([hidden]) {
+    display: none;
+  }
+
+  .ui.inspector {
+    /* The panel's background. */
+    --_ui-docs-inspector-background: var(--ui-docs-inspector-background, var(--ui-surface-muted));
+    /* Its border. */
+    --_ui-docs-inspector-border: var(--ui-docs-inspector-border, var(--ui-border));
+    /* The colour a changed row flashes in. */
+    --_ui-docs-inspector-flash: var(--ui-docs-inspector-flash, var(--ui-yellow-background));
+    /* Text size of the rows, against the page's. */
+    --_ui-docs-inspector-font-size: var(--ui-docs-inspector-font-size, 0.8125em);
+
+    display: block;
+    padding: var(--ui-space-s) var(--ui-space-m);
+    border: var(--_ui-docs-inspector-border);
+    border-radius: var(--ui-radius);
+    background: var(--_ui-docs-inspector-background);
+    color: var(--ui-text-color);
+    font-size: var(--_ui-docs-inspector-font-size);
+    line-height: var(--ui-line-height-tight);
+  }
+}
+
+@layer ui.components.docs-inspector.content {
+  code,
+  dt,
+  dd {
+    font-family: var(--ui-font-family-mono);
+  }
+  .title {
+    margin-block-end: var(--ui-space-xs);
+    font-weight: var(--ui-font-weight-bold);
+    overflow-wrap: anywhere;
+  }
+  .groups {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(12em, 1fr));
+    gap: var(--ui-space-xs) var(--ui-space-m);
+  }
+  .caption {
+    margin-block-end: var(--ui-space-3xs);
+    color: var(--ui-text-muted);
+    font-size: 0.85em;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  dl,
+  ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.5em;
+    padding-inline: var(--ui-space-3xs);
+    border-radius: var(--ui-radius-s);
+    animation: ui-docs-inspector-flash var(--ui-duration-slowest) var(--ui-ease-out);
+  }
+  dt::after {
+    content: " =";
+    color: var(--ui-text-muted);
+  }
+  dd {
+    margin: 0;
+    overflow-wrap: anywhere;
+  }
+  .none,
+  .missing {
+    margin: 0;
+    color: var(--ui-text-muted);
+    font-style: italic;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .row {
+      animation: none;
+    }
+  }
+}
