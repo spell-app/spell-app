@@ -144,23 +144,23 @@ export class ReviewState {
  * - SIDE EFFECT:  adds its host to `document.body` on the first `show()`
  ****************/
 class ReviewNotice {
-  /** The host, once shown. */
-  private line: HTMLElement | undefined
-
   /** The timer hiding it. */
   private timer?: E.CancelablePromise<unknown>
 
   /** Say `message` for a few seconds (`NOTICE_MS`). */
   show(message: string) {
-    const line = (this.line ??= ReviewNotice.build())
+    const { line } = this
     line.shadowRoot!.querySelector("p")!.textContent = message
     line.hidden = false
     this.timer?.cancel()
     this.timer = E.after(NOTICE_MS / 1000, () => (line.hidden = true))
   }
 
-  /** The host:  fixed at the bottom of the window, ink on paper reversed. */
-  private static build(): HTMLElement {
+  /**
+   * The host:  fixed at the bottom of the window, ink on paper reversed.
+   * - SIDE EFFECT:  built and added to `document.body` on first read (the first `show()`).
+   */
+  @E.lazy private get line(): HTMLElement {
     const line = document.createElement("div")
     line.setAttribute("role", "status")
     line.hidden = true

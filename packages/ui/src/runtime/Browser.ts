@@ -1,4 +1,4 @@
-import { isBrowser } from "$/ui/util"
+import { isBrowser, lazy } from "$/ui/util"
 
 import type { BrowserSupports } from "./runtime.types"
 
@@ -13,11 +13,9 @@ import type { BrowserSupports } from "./runtime.types"
  ****************/
 export class Browser {
   /** Feature flags, detected once on first read -- see `BrowserSupports`. */
-  get supports(): BrowserSupports {
-    return (this.detected ??= this.detect())
+  @lazy get supports(): BrowserSupports {
+    return this.detect()
   }
-  /** cache for `supports`, filled on first read */
-  private detected?: BrowserSupports
 
   ////////////////
   // ## Engines and platforms

@@ -144,22 +144,21 @@ export class ThemePreference {
   // ## Internals
   ////////////////
 
-  /** The look in memory;  `undefined` until first read. */
+  /**
+   * The look in memory;  `undefined` until first read.
+   * - Not a `@lazy` `look`:  `update()` writes it too, so it's state, not a value made once.
+   */
   private static state: DocsLook | undefined
 
   /** `subscribe()`d listeners. */
   private static readonly listeners = new Set<(look: DocsLook) => void>()
 
-  /** `watch()` ran:  the page follows the OS and other tabs. */
-  private static watching = false
-
   /**
    * Once per page:  tell listeners when the OS switches scheme (the shown scheme changed while following it), and
    * take other tabs' scheme switches (`storage`):  applied here too.  Page-wide for the page's life:  nothing to undo.
    */
-  private static watch(): void {
-    if (ThemePreference.watching || typeof window === "undefined") return
-    ThemePreference.watching = true
+  @E.once private static watch(): void {
+    if (typeof window === "undefined") return
     matchMedia(DOCS_DARK_QUERY).addEventListener("change", () => ThemePreference.osChanged())
     window.addEventListener("storage", (event) => {
       if (event.key !== DOCS_LOOK_KEYS.scheme && event.key !== null) return
