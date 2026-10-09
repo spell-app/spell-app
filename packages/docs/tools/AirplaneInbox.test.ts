@@ -3,6 +3,8 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterAll, describe, expect, it } from "vite-plus/test"
 
+import { FROM_PAGE } from "$/epics/tool/epicRoutes"
+
 import { AirplaneInbox } from "./AirplaneInbox.ts"
 
 describe("AirplaneInbox.gather()", () => {
@@ -44,7 +46,26 @@ describe("AirplaneInbox.gather()", () => {
     `<main><spell-notes for="page"><spell-note id="n1" status="new" at="2026-10-10 10:00"><p>Is this still true?</p></spell-note></spell-notes></main>\n`
   )
 
+  // two future epics:  one made from the Epics page (its log says so), one by `/epic future`
+  for (const [name, log] of [
+    ["idea", FROM_PAGE],
+    ["later", "Future epic written down"]
+  ]) {
+    mkdirSync(join(root, "epics", name, "parts"), { recursive: true })
+    writeFileSync(
+      join(root, "epics", name, `${name}.plan.html`),
+      `<title>Epic: ${name} title</title><epic-page epic="${name}" future></epic-page>\n`
+    )
+    writeFileSync(join(root, "epics", name, "parts", "log.html"), `<p>${log}</p>\n`)
+  }
+
   afterAll(() => rmSync(root, { recursive: true, force: true }))
+
+  it("offers the new epics made from the Epics page, not the other future ones", () => {
+    expect(AirplaneInbox.gather(root).newEpics).toEqual([
+      { name: "idea", title: "idea title", doc: "epics/idea/idea.plan.html" }
+    ])
+  })
 
   it("takes the page notes not yet answered", () => {
     expect(AirplaneInbox.gather(root).notes).toMatchObject([
@@ -74,6 +95,7 @@ describe("AirplaneInbox.gather()", () => {
   it("says it in a line per place", () => {
     expect(AirplaneInbox.gather(root, { since: flight }).lines).toEqual([
       "epic demo:  2 marks (1 not sent), 1 new item, 1 draft, 1 for now",
+      "new epic idea:  idea title",
       expect.stringMatching(/^note guides\/guide\.html n1 \(.*\):  Is this still true\?$/),
       expect.stringMatching(/^details epics\/demo\/details\/onboard\.html:  answered /)
     ])
