@@ -134,7 +134,7 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
     return !!this.pill?.picked && !this.pill.applied
   }
 
-  /** Words after the noun:  card or panel, `chosen`, `picked` in review, and `sent` once that pick has gone. */
+  /** Words before the noun:  card or panel, `chosen`, `picked` in review, and `sent` once that pick has gone. */
   protected get extraClass(): string | undefined {
     const sent = this.isPicked && this.pill?.sent
     const classes = [

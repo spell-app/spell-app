@@ -19,7 +19,7 @@ import { Fold } from "$/epics/components/epic-item/Fold"
  * - Subclasses in other families import THIS file directly, never the `epic-aside` barrel.
  ****************/
 export abstract class EpicPanel<V extends E.ComponentVocabulary> extends E.UIComponent<V> {
-  @E.proto static elementSetup: Partial<E.ElementSetup> = {
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     // a container:  a click on its text must not jump to the fold button
     delegatesFocus: false
   }
@@ -48,7 +48,7 @@ export abstract class EpicPanel<V extends E.ComponentVocabulary> extends E.UICom
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base" as never)} title="">
+      <div class={this.rootClass} part={this.partForName("base" as never)} title="">
         <button
           type="button"
           class={TOGGLE}

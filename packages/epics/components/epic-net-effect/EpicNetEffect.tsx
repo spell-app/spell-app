@@ -19,7 +19,9 @@ import netEffectCSS from "./EpicNetEffect.css?inline"
  ****************/
 export class EpicNetEffect extends E.UIComponent<typeof epicNetEffectVocabulary> {
   @E.proto static vocabulary = epicNetEffectVocabulary
-  @E.proto static styleSheets = { "epic-net-effect": netEffectCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-net-effect": netEffectCSS }
+  } satisfies Partial<E.ElementSetup>
 
   /** Has it a `(A, recommended)` after `Net effect`?  The colon goes after that, else inside the bold label. */
   get hasQualifier(): boolean {
@@ -28,7 +30,7 @@ export class EpicNetEffect extends E.UIComponent<typeof epicNetEffectVocabulary>
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <div class={LABEL} part={this.partForName("label")}>
           <b>
             {this.translationForKey("label")}

@@ -16,7 +16,9 @@ import asideCSS from "./EpicAside.css?inline"
  ****************/
 export class EpicAside extends EpicPanel<typeof epicAsideVocabulary> {
   @E.proto static vocabulary = epicAsideVocabulary
-  @E.proto static styleSheets = { "epic-panel": panelCSS, "epic-aside": asideCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-panel": panelCSS, "epic-aside": asideCSS }
+  } satisfies Partial<E.ElementSetup>
 
   /** `Aside:  <title>`, or `Aside` without one. */
   protected heading(): JSX.Element {

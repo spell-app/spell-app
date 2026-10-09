@@ -17,8 +17,8 @@ import promptCSS from "./EpicPrompt.css?inline"
  ****************/
 export class EpicPrompt extends E.UIComponent<typeof epicPromptVocabulary> {
   @E.proto static vocabulary = epicPromptVocabulary
-  @E.proto static styleSheets = { "epic-prompt": promptCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-prompt": promptCSS },
     // a container:  a click on its text must not jump to the `<summary>`
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -28,7 +28,7 @@ export class EpicPrompt extends E.UIComponent<typeof epicPromptVocabulary> {
 
   render(): JSX.Element {
     return (
-      <details class={this.rootClasses} part={this.partForName("base")}>
+      <details class={this.rootClass} part={this.partForName("base")}>
         <summary class={TITLE} part={this.partForName("title")}>
           <span class={CHEVRON} aria-hidden="true">
             {this.chevron.svg}

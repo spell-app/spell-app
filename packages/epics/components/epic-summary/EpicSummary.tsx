@@ -14,11 +14,13 @@ import summaryCSS from "./EpicSummary.css?inline"
  ****************/
 export class EpicSummary extends E.UIComponent<typeof epicSummaryVocabulary> {
   @E.proto static vocabulary = epicSummaryVocabulary
-  @E.proto static styleSheets = { "epic-summary": summaryCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-summary": summaryCSS }
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <slot />
       </div>
     )

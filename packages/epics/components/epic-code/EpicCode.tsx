@@ -1,4 +1,3 @@
-import { onSettled } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -21,27 +20,18 @@ import codeCSS from "./EpicCode.css?inline"
  *   changes what's drawn.
  * - Folded to start with, unless `open`;  find-in-page and a click unfold it.
  * - Before the pack loads (or without it), the `<pre>` shows as the page's own code block.
- * - SIDE EFFECT:  observes its own children while connected.
+ * - SIDE EFFECT:  observes its own children, from its first read of them on (`@fromContent`).
  ****************/
 export class EpicCode extends EpicPanel<typeof epicCodeVocabulary> {
   @E.proto static vocabulary = epicCodeVocabulary
-  @E.proto static styleSheets = { "epic-panel": panelCSS, "epic-code": codeCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-panel": panelCSS, "epic-code": codeCSS }
+  } satisfies Partial<E.ElementSetup>
 
-  /** The code, as the doc holds it. */
-  @E.state accessor code = ""
-
-  /** Follow its children:  the code is their text. */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      onSettled(() => {
-        const update = () => (this.code = EpicCode.codeOf(this.domElement))
-        const observer = new MutationObserver(update)
-        observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
-        update()
-        return () => observer.disconnect()
-      })
-    }
-    return super.onMount()
+  /** The code, as the doc holds it:  its children's text, followed as they change;  none on a server. */
+  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  get code(): string {
+    return isServer ? "" : EpicCode.codeOf(this.domElement)
   }
 
   /** Open to start with when the doc says `open`. */
