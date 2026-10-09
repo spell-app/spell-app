@@ -1,4 +1,4 @@
-import { Show, createMemo, untrack } from "solid-js"
+import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import {
@@ -10,6 +10,7 @@ import {
   proto,
   protoMerged,
   UIComponent,
+  untracked,
   type CancelablePromise,
   type ElementSetup,
   type AttributeValues
@@ -347,10 +348,11 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
    * A click:  copy, then `ui-copy` and the check.
    * - SIDE EFFECT:  writes the clipboard.
    */
+  @untracked
   private readonly onCopy = async (event: MouseEvent) => {
-    const format = untrack(this.copyFormat)
+    const format = this.copyFormat()
     if (!format) return
-    const value = untrack(() => this.copyText(format))
+    const value = this.copyText(format)
     try {
       await navigator.clipboard.writeText(value)
     } catch {

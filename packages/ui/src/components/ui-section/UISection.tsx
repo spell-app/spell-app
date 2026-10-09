@@ -166,9 +166,10 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
    * True when applied.
    * - Does nothing unless `collapsible`, or while `disabled`.
    */
+  @E.untracked
   toggle(originalEvent?: Event): boolean {
-    if (!untrack(() => this.isCollapsible) || untrack(() => this.isDisabled)) return false
-    const opening = untrack(() => this.isFolded)
+    if (!this.isCollapsible || this.isDisabled) return false
+    const opening = this.isFolded
     const detail: UIT.SectionToggleDetail = { open: opening, section: this.domElement, originalEvent }
     return this.requestChange("isCollapsed", !opening, () => this.send(opening ? "ui-open" : "ui-close", detail))
   }
@@ -189,8 +190,9 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
    * Find-in-page matched inside the folded content:  the browser has already revealed it,
    * so announce `ui-open` after the fact (not cancelable) and adopt it.
    */
+  @E.untracked
   private readonly onBeforeMatch = () => {
-    if (!untrack(() => this.isFolded)) return
+    if (!this.isFolded) return
     const detail: UIT.SectionToggleDetail = { open: true, section: this.domElement }
     const init = { bubbles: true, composed: true, cancelable: false, detail }
     this.domElement.dispatchEvent(new CustomEvent(this.elementDefinition.event("ui-open"), init))

@@ -111,10 +111,11 @@ export class UISelect extends F.FormComponent<Vocabulary> {
    * - Runs after every DOM update that could move the browser's selection (options added,
    *   the placeholder removed) and after each change a person makes, so the select always shows the element's value.
    */
+  @E.untracked
   private syncSelect() {
     const { select } = this
     if (!select) return
-    const chosen = new Set(untrack(() => this.chosenValues))
+    const chosen = new Set(this.chosenValues)
     for (const option of select.options) {
       option.selected = option.classList.contains(PLACEHOLDER) ? !chosen.size : chosen.has(option.value)
     }
@@ -133,13 +134,14 @@ export class UISelect extends F.FormComponent<Vocabulary> {
   }
 
   /** Values of slotted items marked `selected`, the uncontrolled starting value. */
+  @E.untracked
   private selectedItemValues(): string | string[] | undefined {
-    const values = untrack(() => this.items.entries)
+    const values = this.items.entries
       .filter(UISelect.isOption)
       .filter((option) => option.selected)
       .map((option) => option.value)
     if (!values.length) return undefined
-    return untrack(() => this.multiple) ? values : values[0]
+    return this.multiple ? values : values[0]
   }
 
   get formValue(): E.FieldValue {

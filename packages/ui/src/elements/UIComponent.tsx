@@ -17,7 +17,7 @@ import { protoMerged } from "$/ui/util"
 import { E, UI } from "$/ui/core"
 // Import directly to avoid circular import
 import { DOMElement, type TagSetup } from "./DOMElement"
-import { onChange, state } from "./Reactive"
+import { on, onChange, state, untracked } from "./Reactive"
 // a leaf of its own (Solid only, no `ui` imports), not part of `E`
 import { ShadowEvents } from "./ShadowEvents"
 
@@ -55,8 +55,8 @@ import { ShadowEvents } from "./ShadowEvents"
  *   @state accessor isOpen = false     // this.isOpen = true;  if (this.isOpen) ...
  *   ```
  *   A read is always up to date, even right after a write;  JSX will update the view as the value changes.
- *   The decorators (`@state`, `@controlled`, `@derived`, `@cssState`, `@cssStates`, `@aria`, `@onChange`) are in
- *   `Reactive.ts`.
+ *   The decorators (`@state`, `@controlled`, `@derived`, `@cssState`, `@cssStates`, `@aria`, `@onChange`,
+ *   `@whileConnected`, `@fromContent`, `@on`, `@untracked`) are in `Reactive.ts`.
  *
  * - **Attributes**:  every DOM element attribute has a getter/setter on the component,
  *   under its name in camelCase:  `this.size`, `this.closeIcon`.
@@ -163,9 +163,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     // on the server there are no style sheets to wait for:  draw at once
     this.isReady = isServer || (E.RUNTIME_KEY in globalThis && !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY])
     if (isServer) return
-    this.on("slotchange", (event) => E.PartContext.slotChanged(event.target as HTMLSlotElement), {
-      target: domElement.renderRoot
-    })
+    this.startListeners()
     if (!this.isReady) void UI.load().then(() => this.onRuntimeLoaded())
   }
 
@@ -436,12 +434,10 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /** Register this class's sheets with the runtime (the ones it doesn't have yet), then adopt them into the shadow root. */
+  @untracked
   private adoptStyleSheets() {
     UI.styles.registerOnce(this.elementSetup.styleSheets)
-    UI.styles.adoptInto(
-      this.domElement.renderRoot,
-      untrack(() => this.styleSheetNames)
-    )
+    UI.styles.adoptInto(this.domElement.renderRoot, this.styleSheetNames)
   }
 
   ////////////////
@@ -601,6 +597,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * Listen for event `type` on the element (or on `options.target`), for the element's whole life.
    * - The listener is removed when the element is disposed (`domElement.dispose()`),
    *   NOT when it's moved or disconnected:  the element keeps working after a move.
+   * - A method listening from the start is `@E.on("command") onCommand(event)` instead:
+   *   the constructor adds it through `on()`, and it runs untracked.
+   *   Call `on()` itself for a listener added later, or under a condition.
    * - For a listener that should stop sooner, use your own `AbortController`;  for one call only, `{ once: true }`.
    */
   protected on<K extends keyof HTMLElementEventMap>(
@@ -624,6 +623,24 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     const listeners = new AbortController()
     domElement.addReleaseCallback(() => listeners.abort())
     return listeners
+  }
+
+  /**
+   * Add the class's `@on` methods as listeners, base class first, through `on()`:  constructor only, in a browser.
+   * - Each looks its method up when the event comes, and runs it inside `untrack()`.
+   */
+  private startListeners() {
+    const self = this as unknown as Record<PropertyKey, (event: Event) => unknown>
+    for (const { method, type, options } of E.Reactive.listenersOf(this)) {
+      const target = options.target && this.domElement[options.target]
+      this.on(type, (event) => untrack(() => self[method]!(event)), { ...options, target })
+    }
+  }
+
+  /** A slot's content changed:  the parts in it may belong to another element now (`PartContext`). */
+  @on("slotchange", { target: "renderRoot" })
+  protected onSlotChangeForParts(event: Event) {
+    E.PartContext.slotChanged(event.target as HTMLSlotElement)
   }
 
   /**

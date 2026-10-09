@@ -384,6 +384,7 @@ As WWOD §18, plus:
   - `@E.onChange("a", "b") onXChanged(a, b)` -- an effect reading the members, calling the method with their values;
     a function it returns is the cleanup;  `{ writesDOMElement: true }` applies once on a server, for a method that
     writes the DOM element beyond ARIA (`:state()`, `tabindex`).  Created in `onMount()`, after every field exists.
+    The method runs untracked:  only the members it names re-run it, so its other reads need no `untrack()`.
     Runs only when a member's VALUE changed (`===`, member by member):  a getter member tracks the sources under it,
     and Solid 2 applies an effect on every re-run of its compute, so `startEffects()` puts a memo with `equals`
     in between.  An effect that used to live in `render()` names `isReady` too and returns early until it's true,
@@ -404,10 +405,19 @@ As WWOD §18, plus:
     parent, a changing table), one only while connected (`UIForm`) or only while a setting holds (`UIVisibility`'s
     images), and helper classes with their own element (`SlotContent`, `SlottedItems`).
   - `this.$.isOpen` -- an `Accessor` of any member, for Solid APIs that take one;  everyday code reads `this.isOpen`.
-  - `this.on("command", this.onCommand)` -- a listener on the DOM element (or `{ target }`) for the element's
-    whole life, removed when the DOM element is released.  So no vocabulary may name an attribute `on` (Fomantic's `on`
-    setting is `<ui-form validate-on>`, `<ui-dimmer show-on>`, `<ui-popup open-on>`).  One stopped by an effect
-    keeps its own `AbortController`, aborted in the cleanup.
+  - `@E.on("command") protected onCommand(event)` -- a listener on the DOM element for the element's whole life:
+    `UIComponent`'s constructor adds each through `this.on()` (browser only), and it's removed when the DOM element is
+    released.  The method runs untracked.  `@E.on("slotchange", { target: "renderRoot" })` listens on the shadow root;
+    the other options are `addEventListener()`'s.  A plain method, not an arrow-function field, and `protected`:
+    TypeScript calls a `private` one unused.  Replaces a constructor calling `this.on(type, this.handler)`.
+    - `this.on(type, listener, { target })` itself for a listener added later or under a condition.  So no vocabulary
+      may name an attribute `on` (Fomantic's `on` setting is `<ui-form validate-on>`, `<ui-dimmer show-on>`,
+      `<ui-popup open-on>`).  One stopped by an effect keeps its own `AbortController`, aborted in the cleanup.
+  - `@E.untracked select(option)` -- an action or handler whose body runs inside `untrack()`:  it reads `this.x`
+    plainly where it used to read `untrack(() => this.x)`.  Also on an arrow-function field handed to JSX
+    (`@E.untracked private readonly onKeyDown = (event: KeyboardEvent) => { ... }`).  NEVER on a method a
+    computation calls to follow its reads (a getter's helper, JSX, an effect's first function):  e.g.
+    `UIMenu.itemContext()` stays half-tracked on purpose.  `@E.on` and `@E.onChange` methods need none.
   - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `@E.cssStates("disabled")` on the class
     (or `@E.cssState("disabled") get looksDisabled()` when it does more, e.g. `@E.aria("ariaDisabled")`), never an
     `isDisabled` override (the DOM element swallows clicks while `isDisabled`).
@@ -460,9 +470,10 @@ As WWOD §18, plus:
     keep what it returns in a field, to cancel a pending one (`this.copiedTimer?.cancel()`).
   - Raw calls stay only in the helpers themselves, tests, and solid-element's own copy.
 - **Events:**  dispatch through `this.send("ui-change", detail)` (vocabulary-checked, localized on translated
-  tags);  listen on the DOM element (or its shadow root) through `this.on("command", this.onCommand)`, for the element's
-  whole life ("Reactive members").  Inside a component, `onClick={...}` for native events (no `on:` namespace;  rich data as
-  `prop:options`:  `solid-2.md` "DOM and `@spell-app/ui` elements").
+  tags);  listen on the DOM element (or its shadow root) with `@E.on("command") protected onCommand(event)`, for the
+  element's whole life, untracked ("Reactive members");  `this.on()` for one added later or under a condition.
+  Inside a component, `onClick={...}` for native events (no `on:` namespace;  rich data as `prop:options`:
+  `solid-2.md` "DOM and `@spell-app/ui` elements").
   - A THIRD-PARTY Solid app listening for `ui-*` events uses a `ref` callback + `addEventListener`
     (`tools/frameworks/solid/app.tsx`);  our app:  WWOD §17 › "Events:  `onClick`, or `on()` for `ui-*`".
   - Listeners OUTSIDE a component see `event.target === domElement` (`composedPath()[0]` is the inner element), and an
@@ -665,7 +676,7 @@ As WWOD §12, plus:
   - booleans read as English (`isDirty`, `isSaving`, `delegatesFocus`, `isAFormControl`);  handlers and moment
     callbacks are `on...` (`onMount()`, `onLoaded()`, `onError()`, `onFormReset()`);  the two event verbs are short:
     `send()` an event, `on()` to listen
-- The constructor of `UIComponent` stays `(domElement, definition, attrs)`:  solid-element calls it.
+- The constructor of `UIComponent` stays `(domElement, definition)`:  `UIComponent.mount()` and the server render call it.
 
 ## Logging
 

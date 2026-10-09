@@ -125,8 +125,9 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   }
 
   /** `TabOwner`:  `pane`'s value.  Untracked. */
+  @E.untracked
   valueFor(pane: Element): string {
-    return untrack(() => this.values[this.tabs.indexOf(pane as E.DOMElement)]) ?? ""
+    return this.values[this.tabs.indexOf(pane as E.DOMElement)] ?? ""
   }
 
   ////////////////
@@ -158,14 +159,15 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
    * Select `pane` as a person would:  the cancelable `ui-change` first, then `value` (and, with `history`,
    * a new history entry).  True when applied;  false for a disabled or already selected pane, or a veto.
    */
+  @E.untracked
   select(pane: Element, originalEvent?: Event): boolean {
     const tab = (pane as E.DOMElement).component
-    if (!(tab instanceof UITab) || untrack(() => tab.disabled)) return false
+    if (!(tab instanceof UITab) || tab.disabled) return false
     const value = this.valueFor(pane)
-    if (value === untrack(() => this.selectedValue)) return false
+    if (value === this.selectedValue) return false
     const detail: UIT.TabChangeDetail = { value, tab: pane, originalEvent }
     const applied = this.requestChange("value", value, () => this.send("ui-change", detail))
-    if (applied && untrack(() => this.history)) UITabs.pushHash(value, this.view)
+    if (applied && this.history) UITabs.pushHash(value, this.view)
     return applied
   }
 
@@ -193,8 +195,9 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
    * - Runs in an effect's APPLY function (a write is allowed there);  the transition's callback runs later,
    *   outside any owner, and flushes so the new panes are in the DOM when it returns.
    */
+  @E.untracked
   private show(value: string | undefined) {
-    const before = untrack(() => this.shownValue)
+    const before = this.shownValue
     if (before === undefined || before === value || !this.canTransition) {
       this.shownValue = value
       return
@@ -307,6 +310,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   }
 
   /** (Re)start the roving tabindex on the tab list, the selected tab as the Tab stop. */
+  @E.untracked
   private startRoving() {
     this.stopRoving()
     const bar = this.bar
@@ -314,11 +318,8 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
     this.rovingTabindex = UI.focus.roving({
       container: bar,
       items: () => this.buttons(),
-      orientation: untrack(() => this.vertical) ? "vertical" : "horizontal",
-      activeIndex: Math.max(
-        0,
-        untrack(() => this.selectedIndex)
-      ),
+      orientation: this.vertical ? "vertical" : "horizontal",
+      activeIndex: Math.max(0, this.selectedIndex),
       onChange: (_item, index) => this.onRovingChange(index)
     })
   }
@@ -340,21 +341,23 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   }
 
   /** The roving focus moved to tab `index`:  select it when a key moved it and activation is `automatic`. */
+  @E.untracked
   private onRovingChange(index: number) {
     const key = this.focusMovingKey
     // a click's focus also moves the roving stop:  only a key still being dispatched counts
-    if (!key || key.eventPhase === Event.NONE || untrack(() => this.activation) === "manual") return
-    const pane = untrack(() => this.tabs)[index]
+    if (!key || key.eventPhase === Event.NONE || this.activation === "manual") return
+    const pane = this.tabs[index]
     if (pane) this.select(pane, key)
   }
 
   /** Focus left the tab list:  the Tab stop goes back to the selected tab (`manual` may have moved it). */
+  @E.untracked
   private readonly onFocusOut = (event: FocusEvent) => {
     // `relatedTarget`:  `null` when focus left the page
     const next = event.relatedTarget as Node | null
     if (next && this.bar?.contains(next)) return
     const roving = this.rovingTabindex
-    if (roving && roving.activeIndex !== untrack(() => this.selectedIndex)) this.startRoving()
+    if (roving && roving.activeIndex !== this.selectedIndex) this.startRoving()
   }
 
   ////////////////
@@ -373,11 +376,12 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   }
 
   /** The URL hash changed (or, `event`-less, the page opened on one):  select the pane it names. */
+  @E.untracked
   private onHashChange(event?: Event) {
     const value = UITabs.hashValue(this.view.location)
-    const index = untrack(() => this.values).indexOf(value ?? NO_VALUE)
-    const pane = untrack(() => this.tabs)[index]
-    if (!pane || value === untrack(() => this.selectedValue)) return
+    const index = this.values.indexOf(value ?? NO_VALUE)
+    const pane = this.tabs[index]
+    if (!pane || value === this.selectedValue) return
     if (event) this.select(pane, event)
     else this.value = value
   }

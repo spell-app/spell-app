@@ -64,8 +64,9 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   @E.state accessor errors: readonly string[] = []
 
   /** Show `messages` (see `DOMFieldElement`). */
+  @E.untracked
   showErrors(messages: readonly string[]) {
-    const current = untrack(() => this.errors)
+    const current = this.errors
     if (current.length !== messages.length || current.some((message, index) => message !== messages[index])) {
       this.errors = [...messages]
     }

@@ -72,7 +72,6 @@ export class UINag extends E.UIComponent<Vocabulary> {
     super(...args)
     // SIDE EFFECT:  a stored dismissal hides the DOM element before it first paints
     if (!isServer && untrack(() => this.isHiddenByDismissal)) this.domElement.hidden = true
-    this.on("command", this.onCommand)
     this.domElement.addReleaseCallback(() => this.displayTimer?.cancel())
   }
 
@@ -147,10 +146,11 @@ export class UINag extends E.UIComponent<Vocabulary> {
   }
 
   /** Entry animation, `ui-show` and the display time -- once per showing. */
+  @E.untracked
   private appear() {
     if (this.hasShown || this.domElement.hidden) return
     this.hasShown = true
-    const time = untrack(() => this.displayTime) ?? 0
+    const time = this.displayTime ?? 0
     if (time > 0) this.displayTimer = E.after(time / 1000, () => this.close("timeout"))
     const root = this.root
     const entered = root
@@ -206,7 +206,8 @@ export class UINag extends E.UIComponent<Vocabulary> {
   }
 
   /** An invoker command aimed at the DOM element (`UIT.ToggleCommands`):  open means not `hidden`. */
-  private readonly onCommand = (event: Event) => {
+  @E.on("command")
+  protected onCommand(event: Event) {
     const action = UIT.ToggleCommands.action(event, !this.domElement.hidden)
     if (action === "show") this.show()
     else if (action === "close") this.close("dismiss", event)
