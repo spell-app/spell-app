@@ -20,5 +20,5 @@
     "noFallthroughCasesInSwitch": true,
     "types": ["node", "vite/client"]
   },
-  "include": ["src", "../../types"]
+  "include": ["src", "components", "../../types"]
 }

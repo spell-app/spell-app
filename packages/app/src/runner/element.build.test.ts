@@ -2,6 +2,7 @@ import { execFileSync } from "node:child_process"
 import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join, posix } from "node:path"
+import { runInNewContext } from "node:vm"
 import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
 
 /**
@@ -9,9 +10,11 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  * the VS Code runner (`yarn build:runner` => `dist-runner/`).  Each folder is built as its script builds it, into a
  * temp folder:  `vite.solid.config.ts` first, then the rest beside it.
  * - ONE Solid per page:  two copies fail SILENTLY (`solid-2.md`).  So Solid (`solid-js`, `@solidjs/web`,
- *   `@solidjs/signals`) and `ui`'s custom-element layer are in `spell-solid.js` ALONE, and the rest of `@spell-app/ui` in
- *   `spell-ui.js` and its lazy chunks (`ui/`) alone;  `spell-app.js`, `spell-editor.js` and `runner.js` import them.
- *   See `sharedSolid()` in `vite.shared.ts`.
+ *   `@solidjs/signals`) is in `spell-solid.js` ALONE, with `@spell-app/ui`'s element core (which `<spell-app>` and
+ *   `<spell-editor>` are defined on), and the rest of `@spell-app/ui` in `spell-ui.js` and its lazy chunks (`ui/`)
+ *   alone;  `spell-app.js`, `spell-editor.js` and `runner.js` import them.  See `sharedSolid()` in `vite.shared.ts`.
+ * - The component pack, `spell.pack.js`:  a classic script registering both tags, whose `define()` imports their
+ *   modules;  `spell-ui.js` gives it `SpellUI.registerPack`.
  * - `spellCore` MUST be in `spell-runtime.js` ALONE:  each runner loads its own copy of that file, for a
  *   `spellCore` of its own.  In a shared chunk, every app on a page would share one -- one runtime, one console
  *   -- and a runner would show a `spellCore` its program doesn't run on.  So nothing a runner itself imports may
@@ -41,20 +44,25 @@ describe("runner builds", () => {
     for (const dir of [element, runner]) if (dir) rmSync(dir, { recursive: true, force: true })
   })
 
-  test("one Solid per page:  Solid only in `spell-solid.js`, `ui` only in `spell-ui.js` + `ui/`, both elements import them", () => {
+  test("one Solid per page:  Solid only in what `spell-solid.js` loads, `ui` only there + `spell-ui.js` + `ui/`, the elements import them", () => {
     for (const [dir, entries] of [
       [element, ["spell-app.js", "spell-editor.js"]],
       [runner, ["runner.js"]]
     ] as const) {
       const files = chunks(dir)
+      // `spell-solid.js` and the chunks it imports (Rolldown puts the Solid and `ui` core modules `spell-ui.js` shares
+      // in one of `ui/`), built ONCE, by `vite.solid.config.ts`
+      const shared = staticImports(dir, "spell-solid.js")
+      const withSolid = files.filter((file) => holds(dir, file, "solid"))
+      expect(withSolid, dir).not.toEqual([])
       expect(
-        files.filter((file) => holds(dir, file, "solid")),
+        withSolid.filter((file) => !shared.includes(file)),
         dir
-      ).toEqual(["spell-solid.js"])
+      ).toEqual([])
       const withUI = files.filter((file) => holds(dir, file, "ui"))
       expect(withUI, dir).toContain("spell-ui.js")
       expect(
-        withUI.filter((file) => file !== "spell-ui.js" && !file.startsWith("ui/")),
+        withUI.filter((file) => !shared.includes(file) && file !== "spell-ui.js" && !file.startsWith("ui/")),
         dir
       ).toEqual([])
       // imported, NOT bundled:  each element's static imports reach the one `spell-solid.js`
@@ -100,6 +108,39 @@ describe("runner builds", () => {
     expect(readFileSync(join(element, "spell-editor.css"), "utf8")).toContain(".monaco-editor")
   })
 
+  test("<spell-app> and <spell-editor> are Spell UI components:  on the core in `spell-solid.js`, the rest of `ui` lazily", () => {
+    const shared = staticImports(element, "spell-solid.js")
+    expect(shared.filter((file) => sources(element, file).some((source) => UI_COMPONENT.test(source)))).toHaveLength(1)
+    for (const entry of ["spell-app.js", "spell-editor.js"]) {
+      expect(staticImports(element, entry), entry).not.toContain("spell-ui.js")
+    }
+  })
+
+  test("the component pack:  a classic script registering both tags, its `define()` importing their modules", () => {
+    const pack = readFileSync(join(element, "spell.pack.js"), "utf8")
+    // run as `<ui-components source>` runs it:  a CLASSIC script, `SpellUI.registerPack()` on the page
+    const registered: { name: string; prefix: string; catalog: object }[] = []
+    runInNewContext(pack, {
+      document: { currentScript: { src: "https://example.com/element/spell.pack.js" } },
+      URL,
+      SpellUI: { registerPack: (it: (typeof registered)[number]) => registered.push(it) }
+    })
+    expect(registered).toEqual([
+      {
+        name: "spell",
+        prefix: "spell-",
+        catalog: { "spell-app": { folder: "spell-app" }, "spell-editor": { folder: "spell-editor" } },
+        define: expect.any(Function)
+      }
+    ])
+    for (const file of ["spell-app.js", "spell-editor.js"]) {
+      expect(pack).toContain(`import(at(${JSON.stringify(file)}))`)
+      expect(existsSync(join(element, file)), file).toBe(true)
+    }
+    // `spell-ui.js` gives a page `SpellUI.registerPack()`, as the docs bundle does
+    expect(readFileSync(join(element, "spell-ui.js"), "utf8")).toMatch(/SpellUI\b[^;]*registerPack/)
+  })
+
   test("VS Code runner:  its files and CSS", () => {
     expect(chunks(runner)).toEqual(
       expect.arrayContaining(["runner.js", "spell-runtime.js", "spell-shared.js", "spell-solid.js", "spell-ui.js"])
@@ -118,10 +159,13 @@ describe("runner builds", () => {
 
 /** Modules of each package a test asks about, as they appear in a sourcemap's `sources`. */
 const PACKAGES = {
-  solid: /\/node_modules\/(solid-js|@solidjs\/(web|signals))\/|\/packages\/ui\/src\/elements\/solid-element\//,
-  ui: /\/packages\/ui\/src\/(?!elements\/solid-element\/)/,
+  solid: /\/node_modules\/(solid-js|@solidjs\/(web|signals))\//,
+  ui: /\/packages\/ui\/src\//,
   monaco: /\/node_modules\/monaco-editor\//
 }
+
+/** `ui`'s component base class, in its element core. */
+const UI_COMPONENT = /\/packages\/ui\/src\/elements\/UIComponent\.tsx$/
 
 /** `ui`'s `BuiltInPacks`, which looks for the packs beside its own chunk. */
 const BUILT_IN_PACKS = /\/packages\/ui\/src\/icons\/BuiltInPacks\.ts$/

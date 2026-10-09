@@ -167,8 +167,8 @@ export class Vocabulary {
       }
     }
     for (const spec of vocabulary.events) {
-      const stem = component.events?.[spec.name] ?? dictionary.events?.[spec.name] ?? Vocabulary.stem(spec.name)
-      const name = `${prefix}-${stem}`
+      const translated = component.events?.[spec.name] ?? dictionary.events?.[spec.name]
+      const name = Vocabulary.eventName(spec.name, prefix, translated)
       Vocabulary.claim({ map: localized.events, name, value: spec, what: `${where} event` })
       names.events.set(spec.name, name)
     }
@@ -306,7 +306,21 @@ export class Vocabulary {
     const dash = name.indexOf("-")
     return dash < 0 ? name : name.slice(dash + 1)
   }
+
+  /**
+   * Event `name`'s name under `prefix`, `translated` when the dictionary names it.
+   * - One of Spell UI's own (`ui-change`) takes the prefix:  `ie-change`, or `ie-cambio` translated.
+   * - Another package's (`spell-open`, of the `<spell-app>` component pack) keeps its name, unless translated:  a
+   *   tag outside Spell UI names its events as it likes, and the page listens for them by that name.
+   */
+  private static eventName(name: string, prefix: string, translated: string | undefined): string {
+    if (translated !== undefined) return `${prefix}-${translated}`
+    return name.startsWith(UI_EVENT_PREFIX) ? `${prefix}-${Vocabulary.stem(name)}` : name
+  }
 }
+
+/** What Spell UI's own event names start with (`ui-change`):  they take a translated tag's prefix. */
+const UI_EVENT_PREFIX = "ui-"
 
 /** Longest multi-word value `mapValue()` looks for, e.g. `large screen` (2) with room to spare. */
 const MAX_PHRASE_WORDS = 3
