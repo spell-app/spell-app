@@ -143,12 +143,12 @@
 
       /**
        * Make `domElement`'s render throw, as `ElementFixture.breakRender()` does:
-       * its component's `extraClasses` starts throwing, then attributes are flipped and back (`keyOnly` first)
+       * its component's `extraClass` starts throwing, then attributes are flipped and back (`keyOnly` first)
        * until one makes the classes recompute inside the render effect.
        */
       async function breakRender(domElement) {
         const { component } = domElement
-        Object.defineProperty(component, "extraClasses", {
+        Object.defineProperty(component, "extraClass", {
           get: () => {
             throw new Error(`demo:  forced render failure in <${domElement.localName}>`)
           }
