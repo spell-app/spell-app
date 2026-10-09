@@ -71,7 +71,7 @@ export class UIIcon extends E.UIComponent<typeof iconVocabulary> {
 
   render(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("icon")}>
+      <span class={this.rootClass} part={this.partForName("icon")}>
         {this.iconGlyph.svg}
       </span>
     )

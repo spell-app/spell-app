@@ -122,7 +122,7 @@ export class UIInput extends TextControl<Vocabulary> {
     return super.classValue(name)
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const extra = [this.hasIconBox && this.iconPosition !== UIT.LEFT ? UIT.ICON : "", this.isFileInput ? "file" : ""]
     return extra.filter(Boolean).join(" ") || undefined
   }
@@ -147,7 +147,7 @@ export class UIInput extends TextControl<Vocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("input")}>
+      <div class={this.rootClass} part={this.partForName("input")}>
         <Show when={this.labelPlace === "start"}>{this.labelBox()}</Show>
         <Show when={this.actionPlace === "start"}>
           <slot name={this.slotForName("action")} />

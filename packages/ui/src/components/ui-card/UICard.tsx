@@ -124,7 +124,7 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
     const nouns = new Set<string>()
     for (const child of this.domElement.children) if (child.localName === "img" && !child.slot) nouns.add(UIT.IMAGE)
     for (const element of this.domElement.querySelectorAll("*")) {
-      const noun = E.UIComponent.definitions.get(element.localName)?.vocabulary.noun
+      const noun = E.UIComponent.registry.definitions.get(element.localName)?.vocabulary.noun
       if (noun && (Shorthands as readonly string[]).includes(noun)) nouns.add(noun)
     }
     return nouns
@@ -144,7 +144,7 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
     return (
       <Dynamic
         component={this.rootTag}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("card")}
         href={isLink() && !this.disabled ? this.href : undefined}
         target={isLink() ? this.target : undefined}

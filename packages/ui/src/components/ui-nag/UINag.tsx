@@ -12,7 +12,7 @@ import nagCSS from "./UINag.css?inline"
  * The DOM element of `<ui-nag>`:  it adds the nag's script API,
  * `close()`, `show()`, `clear()` and `dismissed`, which its component does.
  *
- * - NOTE: solid-element checks the DOM element's prototype members against the prop names;  none of these is one.
+ * - NOTE: `DOMElement` checks its members against the attributes' property names;  none of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMNagElement extends E.DOMElement {
@@ -230,7 +230,7 @@ export class UINag extends E.UIComponent<Vocabulary> {
 
   render(): JSX.Element {
     return (
-      <div ref={(element) => (this.root = element)} class={this.rootClasses} part={this.partForName("nag")}>
+      <div ref={(element) => (this.root = element)} class={this.rootClass} part={this.partForName("nag")}>
         <slot />
         <Show when={this.closable}>
           <button

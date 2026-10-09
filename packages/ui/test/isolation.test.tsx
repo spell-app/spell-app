@@ -1,6 +1,6 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "vite-plus/test"
-import { commands } from "vite-plus/test/browser"
-import { createEffect, flush, resetErrorHalt } from "solid-js"
+
+import { createEffect, resetErrorHalt } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import type { ComponentVocabulary } from "$/ui/vocabulary"
@@ -8,6 +8,7 @@ import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UIComponent, type UIComponentClass, type DOMElement } from "$/ui/elements"
 
 import "$/ui/components/ui-label"
+import "$/ui/components/ui-segment"
 
 /** Test-only element that throws on demand:  `boom` in render, `crash` in the constructor, `burst` in an effect. */
 class Bomb extends UIComponent<typeof BOMB> {
@@ -53,19 +54,6 @@ beforeAll(() => {
   Object.defineProperty(Bomb.prototype, "vocabulary", { value: BOMB })
   ;(Bomb as unknown as UIComponentClass & typeof UIComponent).define("x-bomb")
 })
-
-/**
- * Define `tag` for `Element` with solid-element's error boundary OFF:  `ISOLATE_ERRORS` is read at `define()`.
- * - Restores the switch afterwards.
- */
-function defineBare(Element: UIComponentClass & typeof UIComponent, tag: string) {
-  UIComponent.ISOLATE_ERRORS = false
-  try {
-    Element.define(tag)
-  } finally {
-    UIComponent.ISOLATE_ERRORS = true
-  }
-}
 
 afterEach(() => {
   resetErrorHalt()
@@ -128,56 +116,46 @@ describe("UIComponent.define() error boundary", () => {
     expect(await siblingStillUpdates(root.querySelector<DOMElement>("ui-label")!)).toBe("ui red label")
     error.mockRestore()
   })
-})
 
-////////////////
-// ## UIComponent.define() error boundary cost
-////////////////
-
-describe("UIComponent.define() error boundary cost", () => {
-  it("measures render time of 300 labels with and without boundaries", { timeout: 60_000 }, async () => {
-    const { UILabel } = await import("$/ui/components/ui-label")
-    defineBare(UILabel as unknown as UIComponentClass & typeof UIComponent, "bare-label")
-    const html = (tag: string) => `<div>${`<${tag} color='red' icon='check'>x</${tag}>`.repeat(300)}</div>`
-    const times: Record<string, number[]> = { isolated: [], bare: [] }
-    for (let run = 0; run < 6; run++) {
-      for (const mode of ["isolated", "bare"] as const) {
-        const start = performance.now()
-        const root = await ElementFixture.render(html(mode === "isolated" ? "ui-label" : "bare-label"))
-        times[mode]!.push(performance.now() - start)
-        root.remove()
-      }
-    }
-    const median = (values: number[]) => [...values].sort((a, b) => a - b)[Math.floor(values.length / 2)]!
-    const result = { isolatedMs: median(times.isolated!.slice(1)), bareMs: median(times.bare!.slice(1)), times }
-    await commands.writeFile(".cache/error-boundary.json", JSON.stringify(result, null, 2))
-    expect(result.isolatedMs).toBeGreaterThan(0)
-  })
-})
-
-////////////////
-// ## UIComponent.define() without the error boundary
-////////////////
-
-// LAST:  a halt poisons Solid's scheduler for the rest of the file (`resetErrorHalt()` only re-arms it)
-describe("UIComponent.define() without the error boundary", () => {
-  it("the same throw halts EVERY element (the failure mode it prevents)", async () => {
-    // a fresh tag defined with solid-element's `errorBoundary: false`
-    defineBare(Bomb as unknown as UIComponentClass & typeof UIComponent, "x-bare-bomb")
+  // Owen asked (epic `spell-element`, P2):  does a container's net catch it instead?  No:  each element draws in a
+  // Solid root with no parent, so only its OWN net can, and the container goes on as if nothing happened
+  it("catches the throw in the element's own net, never its container's", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {})
-    const report = vi.spyOn(globalThis, "reportError").mockImplementation(() => {})
-    const root = await ElementFixture.render(`<div><x-bare-bomb></x-bare-bomb><ui-label>Sibling</ui-label></div>`)
-    const bomb = root.querySelector<DOMElement>("x-bare-bomb")!
+    const root = await ElementFixture.render(`<ui-segment><x-bomb></x-bomb><ui-label>Sibling</ui-label></ui-segment>`)
+    const bomb = root.querySelector<DOMElement>("x-bomb")!
     bomb.setAttribute("boom", "")
-    // drain the queue HERE, so the escaping error lands in this `try` instead of an unhandled microtask
-    try {
-      flush()
-    } catch (thrown) {
-      expect(String(thrown)).toContain("boom in render")
-    }
-    expect(error.mock.calls.some(([message]) => String(message).includes("REACTIVITY_HALTED"))).toBe(true)
-    expect(await siblingStillUpdates(root.querySelector<DOMElement>("ui-label")!)).toBe("ui label")
-    report.mockRestore()
+    await ElementFixture.tick()
+    expect(bomb.matches(":state(errored)")).toBe(true)
+    expect(root.matches(":state(errored)")).toBe(false)
+    expect(root.shadowRoot!.querySelector("slot")).not.toBeNull()
+    expect(await siblingStillUpdates(root.querySelector<DOMElement>("ui-label")!)).toBe("ui red label")
+    error.mockRestore()
+  })
+
+  it("a broken FIRST render still resolves `ready`, and drops the broken component", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {})
+    // `ElementFixture.render()` awaits every element's `ready`:  it would time out if a failure never resolved it
+    const bomb = await ElementFixture.render<DOMElement>(`<x-bomb boom></x-bomb>`)
+    expect({ errored: bomb.matches(":state(errored)"), component: bomb.component }).toEqual({
+      errored: true,
+      component: undefined
+    })
+    error.mockRestore()
+  })
+
+  it("an app that cancels `ui-error` gets NO fallback;  the element is still marked and logged", async () => {
+    const error = vi.spyOn(console, "error").mockImplementation(() => {})
+    const root = await ElementFixture.render(`<div><x-bomb></x-bomb></div>`)
+    root.addEventListener("ui-error", (event) => event.preventDefault())
+    const bomb = root.querySelector<DOMElement>("x-bomb")!
+    bomb.setAttribute("boom", "")
+    await ElementFixture.tick()
+    await ElementFixture.tick()
+    expect({
+      errored: bomb.matches(":state(errored)"),
+      logged: error.mock.calls.length,
+      content: bomb.shadowRoot!.childNodes.length
+    }).toEqual({ errored: true, logged: 1, content: 0 })
     error.mockRestore()
   })
 })

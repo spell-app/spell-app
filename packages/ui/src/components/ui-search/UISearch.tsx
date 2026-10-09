@@ -71,7 +71,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   @E.state accessor inputRevision = 0
 
   /** The value to restore on a form reset:  the page's `value` (its attribute), `undefined` when it has none. */
-  private readonly initialValue = untrack(() => (this.isPageControlled("value") ? this.value : undefined))
+  private readonly initialValue = untrack(() => (this.isControlledByPage("value") ? this.value : undefined))
 
   /** The value when the input took focus, to tell whether leaving it is an edit. */
   private valueAtFocus?: string
@@ -427,7 +427,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
     this.ids = { results: UI.ids.next(ID_PREFIX), anchor: `--${UI.ids.next(ID_PREFIX)}` }
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("search")}
         style={{ [UIT.SEARCH_ANCHOR_PROPERTY]: this.ids.anchor }}
       >

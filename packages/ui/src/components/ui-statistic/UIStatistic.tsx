@@ -45,7 +45,7 @@ export class UIStatistic extends E.UIComponent<typeof statisticVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("statistic")}>
+      <div class={this.rootClass} part={this.partForName("statistic")}>
         <Show when={this.value}>
           <div class={this.valueClasses} part={this.partForName("value")}>
             {this.value}

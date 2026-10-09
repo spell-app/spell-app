@@ -83,7 +83,7 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("toc")}>
+      <div class={this.rootClass} part={this.partForName("toc")}>
         <Show when={this.header}>
           <ui-header part={this.partForName("header")}>{this.header}</ui-header>
         </Show>

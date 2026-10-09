@@ -22,7 +22,7 @@ export class StubOwner extends UIComponent {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.vocabulary.noun} style={{ display: "contents" }}>
+      <div class={this.rootClass} part={this.vocabulary.noun} style={{ display: "contents" }}>
         <slot />
       </div>
     )

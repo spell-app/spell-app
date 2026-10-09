@@ -27,7 +27,7 @@ export abstract class GridPart<V extends E.ComponentVocabulary = E.ComponentVoca
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName(this.vocabulary.noun as E.PartName<V>)}>
+      <div class={this.rootClass} part={this.partForName(this.vocabulary.noun as E.PartName<V>)}>
         <slot />
       </div>
     )

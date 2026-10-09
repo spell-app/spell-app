@@ -18,7 +18,7 @@ export class UILabels extends E.UIComponent<typeof labelsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("group")}>
+      <div class={this.rootClass} part={this.partForName("group")}>
         <slot />
       </div>
     )

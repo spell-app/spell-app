@@ -21,7 +21,7 @@ export class UIRail extends E.UIComponent<typeof railVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("rail")}>
+      <div class={this.rootClass} part={this.partForName("rail")}>
         <slot />
       </div>
     )

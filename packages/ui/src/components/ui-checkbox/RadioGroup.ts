@@ -24,7 +24,7 @@ export class RadioGroup {
 
   /**
    * Bumped on every join / leave:  tracked reads of the members go through it.
-   * - `ownedWrite`:  a member joins from its constructor and solid-element's hooks,
+   * - `ownedWrite`:  a member joins from its constructor and its lifecycle methods (`onConnect()` ...),
    *   which may run inside a Solid render.
    */
   @E.state({ ownedWrite: true }) private accessor version = 0

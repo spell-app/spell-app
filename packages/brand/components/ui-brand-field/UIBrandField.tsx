@@ -22,7 +22,7 @@ import fieldCSS from "./UIBrandField.css?inline"
  * through `:state(field)`, as on a `<ui-field>` (whose DOM element, `DOMFieldElement`, has the same two members).
  *
  * - `errors`:  the messages `<ui-form>` asked to show.
- * - solid-element checks a DOM element's prototype members against prop names;  neither of these is one.
+ * - `DOMElement` checks its members against the attributes' property names;  neither of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMBrandFieldElement extends DOMElement {
@@ -137,7 +137,7 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
     return super.classValue(name)
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return BRAND
   }
 
@@ -152,7 +152,7 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   render(): JSX.Element {
     this.effects()
     return (
-      <div class={this.rootClasses} part={this.partForName("field")} inert={this.attrs.disabled}>
+      <div class={this.rootClass} part={this.partForName("field")} inert={this.attrs.disabled}>
         <Show when={this.hasLabel() || this.hasActions() || this.hasValue() || this.hasInfo()}>{this.renderRow()}</Show>
         <div class={CLASSES.control} part={this.partForName("control")}>
           <slot ref={(element) => (this.controlSlot = element)} onSlotChange={this.onControlChange} />

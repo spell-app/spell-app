@@ -152,10 +152,10 @@ export class ToastStack implements E.ToastProvider {
 
   /**
    * The registered definition whose vocabulary noun is `noun` (`<ui-button>`, or a translated tag).
-   * - Static:  it reads the page-wide registry, `UIComponent.definitions`, nothing of this stack's.
+   * - Static:  it reads the page-wide registry, `UIComponent.registry.definitions`, nothing of this stack's.
    */
   private static definitionFor(noun: string) {
-    for (const definition of E.UIComponent.definitions.values()) {
+    for (const definition of E.UIComponent.registry.definitions.values()) {
       if (definition.vocabulary.noun === noun) return definition
     }
     return undefined

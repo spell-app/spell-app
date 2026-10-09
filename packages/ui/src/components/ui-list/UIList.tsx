@@ -97,7 +97,7 @@ export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.
     return (
       <Dynamic
         component={this.isOrdered ? "ol" : "ul"}
-        class={this.isNested ? this.vocabulary.noun : this.rootClasses}
+        class={this.isNested ? this.vocabulary.noun : this.rootClass}
         part={this.partForName("list")}
         role="list"
       >

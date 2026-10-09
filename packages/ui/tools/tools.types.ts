@@ -40,7 +40,7 @@ export type PackageConfig = {
    * - Their modules belong in `extra:<name>` buckets (`groups`);  each is sized under `MeasureResults.extra`.
    */
   extra?: Record<string, string>
-  /** true for module ids the library build leaves EXTERNAL (Solid and the fork, subpaths included) */
+  /** true for module ids the library build leaves EXTERNAL (Solid, subpaths included) */
   external: (id: string) => boolean
   /**
    * A module re-exporting every peer specifier `dist/` imports, one `export * as <name> from "<spec>"` line each.
@@ -76,7 +76,7 @@ export type OwnKind = (typeof OwnKinds)[number]
 
 /**
  * Bucket a module's bytes are counted in.
- * - `library` -- Solid and the fork (should never appear:  they're external;  a check flags it)
+ * - `library` -- Solid (should never appear:  they're external;  a check flags it)
  * - `core` -- element core + foundation JS, the `core.js` chunk;  ~== `shared:core`
  * - `shared:<name>` -- a module of shared entry `<name>` (`shared:forms` => `forms.js`)
  * - `runtime` / `icons` -- the lazy `UIRuntime` chunk and the icon name / alias maps
@@ -341,9 +341,7 @@ export type SolidIdentityHook = {
   solidJs: { createSignal: unknown }
   /** a `@solidjs/web` export, same (`render`) */
   web?: { render: unknown }
-  /** a context (`createContext()`) the components read;  the app provides a value around the dropdown */
-  context?: unknown
-  /** what `context` resolved to inside `element` (read in its render and stored) */
+  /** the `appContext` `element`'s component saw:  the value the app set on the `<ui-root>` around it */
   read?: (element: Element) => unknown
 }
 

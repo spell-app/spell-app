@@ -85,7 +85,7 @@ export class UILabel extends E.UIComponent<typeof labelVocabulary> {
   }
 
   /** `image` for an image label, `icon` for an icon without text:  words `ClassBuilder` can't emit. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const extra = [this.image === undefined ? "" : UIT.IMAGE, this.hasIcon && !this.hasText ? UIT.ICON : ""]
     return extra.filter(Boolean).join(" ") || undefined
   }
@@ -114,7 +114,7 @@ export class UILabel extends E.UIComponent<typeof labelVocabulary> {
     return (
       <Dynamic
         component={this.href ? "a" : "span"}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("label")}
         href={this.disabled ? undefined : this.href}
         target={this.href ? this.target : undefined}

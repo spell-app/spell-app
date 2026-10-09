@@ -204,7 +204,7 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("controls")}>
+      <div class={this.rootClass} part={this.partForName("controls")}>
         <Show when={this.shownControls === "theme"}>{this.dropdown()}</Show>
         <Show when={this.shownControls === "both"}>{this.palette()}</Show>
         <Show when={this.shownControls !== "theme"}>{this.schemeButton()}</Show>

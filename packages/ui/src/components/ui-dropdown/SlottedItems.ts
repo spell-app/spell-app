@@ -51,7 +51,7 @@ export class SlottedItems {
   private read(): E.MenuEntry[] {
     const entries: E.MenuEntry[] = []
     for (const element of this.domElement.children) {
-      const definition = E.UIComponent.definitions.get(element.localName)
+      const definition = E.UIComponent.registry.definitions.get(element.localName)
       if (element.localName !== itemVocabulary.tag && definition?.vocabulary !== itemVocabulary) continue
       entries.push(this.entry(element, definition))
     }

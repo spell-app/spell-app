@@ -58,7 +58,6 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
     this.domElement.addEventListener("click", this.onDOMElementClick)
-    E.onFormStateRestore((state) => this.onFormStateRestored(state))
   }
 
   ////////////////
@@ -178,8 +177,8 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
     this.end = E.Converters.number(this.attributes.end)
   }
 
-  /** A saved state:  one value, or a range's two entries.  `null`:  solid-element's callback, a platform boundary. */
-  private onFormStateRestored(state: File | string | FormData | null) {
+  /** A saved state:  one value, or a range's two entries.  `null`:  DOM API `formStateRestoreCallback()`'s. */
+  onFormStateRestore(state: File | string | FormData | null) {
     const values =
       state instanceof FormData ? [...state.values()].map(String) : typeof state === "string" ? [state] : []
     if (values[0] !== undefined) this.value = Number(values[0])
@@ -245,7 +244,7 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("slider")}>
+      <div class={this.rootClass} part={this.partForName("slider")}>
         <div
           ref={(element) => (this.inner = element)}
           class={INNER}

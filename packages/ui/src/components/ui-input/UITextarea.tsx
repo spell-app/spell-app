@@ -27,7 +27,7 @@ export class UITextarea extends TextControl<typeof textareaVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("input")}>
+      <div class={this.rootClass} part={this.partForName("input")}>
         <textarea
           ref={(element) => (this.control = element)}
           part={this.partForName("control")}

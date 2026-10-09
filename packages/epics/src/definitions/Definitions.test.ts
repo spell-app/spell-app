@@ -86,7 +86,7 @@ describe("Definitions.all", () => {
     }
   })
 
-  test("no attribute's JS property shadows the platform's own (the fork refuses it):  `id` is `epicId` ...", () => {
+  test("no attribute's JS property shadows the platform's own (`DOMElement` refuses it):  `id` is `epicId` ...", () => {
     for (const tag of Definitions.tags) {
       for (const spec of Definitions.of(tag)!.attributes) {
         expect(PLATFORM_PROPERTIES, `${tag} ${spec.name}`).not.toContain(spec.property ?? Definitions.keyOf(spec))

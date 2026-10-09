@@ -153,7 +153,7 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
    * `header` for a header item;  `ui-<color>` for a coloured one -- the generic colour remap (`colors.css`) keys on
    * `.ui.red` / `.ui-red`, and an item has no `ui`.
    */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const color = this.color
     const extra = [this.type === UIT.HEADER ? UIT.HEADER : "", color ? `${UIT.COLOR_CLASS_PREFIX}${color}` : ""]
     return extra.filter(Boolean).join(" ") || undefined
@@ -224,7 +224,7 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
       <Dynamic
         ref={(element: HTMLElement) => (this.boxElement = element)}
         component={this.rootTag}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("item")}
         href={this.rootTag === "a" && !this.disabled ? this.href : undefined}
         target={this.rootTag === "a" ? this.target : undefined}

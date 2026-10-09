@@ -9,7 +9,6 @@ import {
   type Signal
 } from "solid-js"
 import { isServer } from "@solidjs/web"
-import { STATE } from "./solid-element"
 
 import type { E } from "$/ui/core"
 
@@ -36,11 +35,11 @@ import type { E } from "$/ui/core"
  * - `Reactive.accessorsOf(instance)` (a component's `$`):  `$.isOpen` is an `Accessor` of `this.isOpen`, for
  *   Solid APIs that take one.
  * - Vocabulary getters (`installAttributeGetters()`;  their setters write the DOM element's property) and raw
- *   attributes (`attributesOf()`) are record members too:  versions bumped when solid-element's record or the DOM
- *   attribute changes, notifiers solid-element's prop signals and a `MutationObserver`.
+ *   attributes (`attributesOf()`) are record members too:  versions bumped when the DOM element's `attributeValues`
+ *   or the DOM attribute changes, notifiers the component's attribute signals (`attrs`) and a `MutationObserver`.
  * - Writes never throw:  a notifier set inside an owned scope (a render, a memo), which Solid 2 forbids, is
  *   deferred to a microtask;  the record is written at once either way.
- * - A leaf of the element core:  imports only Solid and solid-element, so element-core classes import its decorators
+ * - A leaf of the element core:  imports only Solid, so element-core classes import its decorators
  *   directly (their class definitions read them) without entering the `E` cycle.  Knows components only by shape
  *   (`ComponentShape`).
  ****************/
@@ -71,8 +70,8 @@ export class Reactive {
 
   /**
    * Give `prototype` a getter and a setter per attribute (keyed by its camelCase canonical `key`):
-   * - the getter reads the CONVERTED value fresh from the DOM element's record
-   *   (`component.attrs[key]` until solid-element has one, and on a server)
+   * - the getter reads the CONVERTED value fresh from the DOM element's `attributeValues`
+   *   (`component.attrs[key]` for a stand-in DOM element without one)
    * - the setter writes the DOM ELEMENT's PROPERTY under this tag's name for it (`el.indeterminate`, a translated tag's own
    *   property), which reflects and converts like any property write;  `undefined` clears it
    * - Skips a name the prototype chain already has (a method, a getter, `isOpen` ...):  the class's own member wins.
@@ -173,7 +172,7 @@ export class Reactive {
   ////////////////
 
   /** Is the DOM element controlling `@controlled` member `member` right now (its property set)?  Untracked. */
-  static isPageControlled(component: ComponentShape, member: string): boolean {
+  static isControlledByPage(component: ComponentShape, member: string): boolean {
     const { key } = Reactive.controlledAttribute(component, member)
     return untrack(() => attributeValueNow(component, key)) !== undefined
   }
@@ -364,7 +363,7 @@ export function cssState(stateName: string) {
  * values on start and on every change;  a function it returns is the cleanup, run before the next call and on
  * disposal.
  * - A trailing `{ writesDOMElement: true }`:  the method writes the DOM element (ARIA, `:state()`),
- *   so a server render applies it once, as `UIComponent.domElementEffect()` does.
+ *   so a server render applies it once, as `UIComponent.addElementEffect()` does.
  * - Created by `Reactive.startEffects()` (`UIComponent.onMount()`), after every subclass field exists.
  */
 export function onChange(...members: (string | OnChangeOptions)[]) {
@@ -447,7 +446,7 @@ class AttributeSource implements Source {
   }
 
   track() {
-    // solid-element's prop signal:  reading it tracks
+    // the component's attribute signal:  reading it tracks
     if (getObserver()) void (this.component.attrs as Record<string, unknown>)[this.key]
   }
 }
@@ -643,11 +642,11 @@ function watchAttributes(record: ReactiveRecord, domElement: AttributeElement) {
 }
 
 /**
- * Converted value of attribute `key`:  the DOM element's record (fresh),
- * else solid-element's prop (before one, and on a server).
+ * Converted value of attribute `key`:  the DOM element's `attributeValues` (fresh),
+ * else the component's signal (a stand-in DOM element without one).
  */
 function attributeValueNow(component: ComponentShape, key: string): unknown {
-  const values = (component.domElement as unknown as { [STATE]?: { values: Record<string, unknown> } })[STATE]?.values
+  const values = (component.domElement as { attributeValues?: Record<string, unknown> }).attributeValues
   if (values && key in values) return values[key]
   return untrack(() => (component.attrs as Record<string, unknown>)[key])
 }
@@ -714,7 +713,7 @@ export type ComponentShape = {
   readonly domElement: E.DOMElement
   /** its names:  `attribute(name)` resolves `@controlled`'s */
   readonly elementDefinition: E.ElementDefinition
-  /** solid-element's props:  a vocabulary getter's Solid signal */
+  /** the component's attribute signals (`attrs`):  a vocabulary getter's Solid signal */
   readonly attrs: object
 }
 

@@ -42,13 +42,13 @@ export class UIItems extends E.UIComponent<typeof itemsVocabulary> implements UI
   }
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return UIT.StackClasses.classFor(this.stackWith)
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("items")} role="list">
+      <div class={this.rootClass} part={this.partForName("items")} role="list">
         <slot />
       </div>
     )

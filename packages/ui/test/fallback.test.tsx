@@ -9,7 +9,7 @@ import "$/ui/index"
 
 /**
  * The native-fallback cases (`fallback.cases.ts`) on the Solid elements:
- * solid-element's `onError` + `fallback` options (`UIComponent.define()`), a form control's `<Name>Fallback`
+ * each element's error net (`UIComponent.onError()` + `renderFallback()`), a form control's `<Name>Fallback`
  * in the shadow root, any other element's bare `<slot>`.
  */
 const SOLID: FallbackAdapter = {

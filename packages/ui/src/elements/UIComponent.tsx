@@ -1,13 +1,27 @@
-import { Show, createContext, createEffect, createRenderEffect, getOwner, untrack, useContext } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
-import { customElement, onConnect, onDisconnect, onFormDisabled } from "./solid-element"
+/*! Derived from `@solidjs/element` and `component-register`:  MIT licence, (c) Ryan Carniato. */
+import {
+  Errored,
+  Show,
+  createEffect,
+  createRenderEffect,
+  createRoot,
+  createSignal,
+  getOwner,
+  runWithOwner,
+  untrack,
+  type Accessor,
+  type Signal
+} from "solid-js"
+import { insert, isServer, type JSX } from "@solidjs/web"
 
 // Import directly to avoid circular import
 import { proto } from "$/ui/util"
 import { E, UI } from "$/ui/core"
 // Import directly to avoid circular import
-import { DOMElement } from "./DOMElement"
+import { DOMElement, type TagSetup } from "./DOMElement"
 import { onChange, state } from "./Reactive"
+// a leaf of its own (Solid only, no `ui` imports), not part of `E`
+import { ShadowEvents } from "./ShadowEvents"
 
 /****************
  * ### `UIComponent`
@@ -27,9 +41,11 @@ import { onChange, state } from "./Reactive"
  *
  *   `DomElement.component` is the link from the DOM back to this class.
  *
- * - **Custom-element wrapper**:  `@spell-app/solid-element`, our fork of Solid's own custom-element library.
- *   It defines the tag, watches attributes, makes the shadow root, and calls `render()` inside Solid.  We forked it
- *   to fix bugs upstream hasn't taken yet (`packages/solid-element/UPSTREAM.md`).
+ * - **Custom element**:  the DOM element is the browser's side (DOM API `connectedCallback()`, the attributes, the
+ *   shadow root);  this class is Solid's side:  it builds the component, renders it inside its own Solid root, and
+ *   catches what it throws (see "Mounting" and "Errors and fallback").
+ *
+ * - **Lifecycle events** reach the component as methods (`onConnect()`, `onFormReset()` ...):  see "Lifecycle".
  *
  * - **Vocabulary**:  `UIButton.en.ts` (named for its language) names EVERYTHING the tag uses
  *   (attributes and their values, events, slots, parts, states, texts).
@@ -57,11 +73,11 @@ import { onChange, state } from "./Reactive"
  *
  * - **Lifecycle**:
  *   1. The HTML source includes the tag:  `UIButton.define()` (see "Defining the element")
- *   2. The first time the element is "connected", the custom-element layer builds its component,
- *      then calls `onMount()`, which calls `render()` to return content for the shadow root
+ *   2. The first time the element is "connected" (DOM API `connectedCallback()`), `mount()` builds its component,
+ *      then calls `onMount()`, which calls `render()` to return content for the shadow root;  then `onConnect()`
  *   3. The content shows once the runtime (`UI`) has loaded and the class's style sheets are in,
  *      so nothing flashes unstyled -- when the `component.isReady`.
- *   4. Moving the element keeps its component (`keepAlive`);  it ends only with `domElement.dispose()`
+ *   4. Moving the element keeps its component;  it ends only with `domElement.dispose()`
  *   5. If anything throws, a form control shows its plain-DOM fallback instead, any other element its children
  *      (see "Errors and fallback")
  *
@@ -130,8 +146,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   readonly domElement: DOMElement
 
   /**
-   * Called by solid-element once per element, the first time the element is connected.
-   * - Three arguments in a row, not one object:  that's how solid-element calls it.
+   * Built once per element, the first time the element is connected (`UIComponent.mount()`).
+   * - Three arguments in a row, not one object:  the server render (`$/ui/static`) builds components the same way.
    * - It runs while Solid is drawing:  don't change state here (see the class docs).
    */
   constructor(domElement: DOMElement, definition: E.ElementDefinition, attrs: Readonly<E.AttributeValues<V>>) {
@@ -139,8 +155,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     this.elementDefinition = definition
     this.attrs = attrs
     domElement.component = this
-    this.appContext = useContext(UIComponent.AppContext)
-    this.classInput = this.buildClassInput()
+    this.appContext = isServer ? null : UIComponent.appContextFor(domElement)
+    this.internalState = { classInput: definition.classInput((name) => this.classValue(name as E.AttributeName<V>)) }
     this.isConnected = isServer || domElement.isConnected
     // on the server there are no style sheets to wait for:  draw at once
     this.isReady = isServer || (E.RUNTIME_KEY in globalThis && !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY])
@@ -148,162 +164,29 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     this.on("slotchange", (event) => E.PartContext.slotChanged(event.target as HTMLSlotElement), {
       target: domElement.renderRoot
     })
-    // update `isConnected` a microtask later:
-    // the element may be connected while the app's Solid is drawing, when state can't change yet
-    const sync = () => queueMicrotask(() => (this.isConnected = domElement.isConnected))
-    onConnect(sync)
-    onDisconnect(sync)
-    // solid-element calls this right away with the current disabled state, while we're still drawing:
-    // wait a microtask then.  Later calls come from the browser, outside Solid, and can write at once.
-    if (this.setup.isAFormControl) {
-      onFormDisabled((disabled) => {
-        if (getOwner()) queueMicrotask(() => (this.formIsDisabled = disabled))
-        else this.formIsDisabled = disabled
-      })
-    }
     if (!this.isReady) void UI.load().then(() => this.onRuntimeLoaded())
   }
 
   ////////////////
-  // ## Element setup
-  ////////////////
-
-  /**
-   * Class setting:  how the class's custom element is set up, as ONE object (`ElementSetup` documents each key).
-   * - A subclass states only the keys it changes:
-   *   `@E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>`
-   *   (`satisfies`, so a misspelt key fails TypeScript).
-   * - The keys merge down the class chain, base class first:
-   *   `CheckControl`'s `{ DOMElement: DOMCheckElement }` keeps the `{ isAFormControl: true }` of `FormComponent`.
-   * - So `elementSetup` itself is only what ONE class states:
-   *   read the merged result through `setup` (or `UIComponent.setupFor(Class)`).
-   * - `vocabulary` and `styleSheets` stay settings of their own:
-   *   a subclass's `styleSheets` REPLACE its base's, they don't merge.
-   */
-  declare elementSetup: Partial<ElementSetup>
-  @proto static elementSetup: Partial<ElementSetup> = {
-    isAFormControl: false,
-    delegatesFocus: true,
-    assignSlots: "byName",
-    isAPart: false,
-    DOMElement: DOMElement,
-    Fallback: undefined,
-    canRenderUnstyled: false
-  }
-
-  /** This element's `elementSetup`, merged down its class chain (`UIComponent.setupFor()`). */
-  protected get setup(): ElementSetup {
-    return UIComponent.setupFor(this.constructor)
-  }
-
-  /**
-   * The `elementSetup` of `Class`, merged down its class chain.
-   * - Each class's own keys, base class first, so a subclass's keys win.
-   * - `@proto` puts a class's `elementSetup` on its PROTOTYPE:
-   *   a prototype's OWN `elementSetup` is what that class stated.
-   * - Worked out once per class, then kept (`setups`).
-   */
-  static setupFor(Class: { prototype: UIComponent<any> }): ElementSetup {
-    let setup = UIComponent.setups.get(Class)
-    if (setup) return setup
-    const stated: Partial<ElementSetup>[] = []
-    for (let prototype = Class.prototype; prototype; prototype = Object.getPrototypeOf(prototype)) {
-      if (Object.hasOwn(prototype, "elementSetup")) stated.unshift(prototype.elementSetup)
-    }
-    setup = Object.assign({}, ...stated) as ElementSetup
-    UIComponent.setups.set(Class, setup)
-    return setup
-  }
-
-  /**
-   * Each class's merged `elementSetup`, worked out once (`setupFor()`).
-   * - For the whole page, like `definitions`:  `resetRegistries()` leaves it alone.
-   */
-  private static readonly setups = new WeakMap<object, ElementSetup>()
-
-  ////////////////
-  // ## AppContext
-  ////////////////
-
-  /**
-   * The value an app put around this element with `<UIComponent.AppContext value={...}>`;  `null` when none.
-   * - Read once, when this object is built.
-   */
-  readonly appContext: unknown
-
-  /**
-   * A Solid context an app can wrap around any `ui-*` elements, to hand them a value of its own.
-   * - Every component reads it as `appContext`.
-   * - One for the whole page.
-   * - `null` by default, because Solid 2's `useContext` throws on a context with no default and no provider.
-   * - `tools/frameworks/solid/identity.js` uses it to prove context reaches inside custom elements.
-   */
-  static readonly AppContext = createContext<unknown>(null)
-
-  ////////////////
-  // ## Attributes
+  // ## Lifecycle
   //
-  // Every vocabulary attribute also has a getter/setter on the component,
-  // which may be reformulated to read as English.
+  // In the order they're called:
+  // 1. the constructor (above), on the element's first connect
+  // 2. `onMount()`, right after it, which calls `render()`
+  // 3. `onConnect()`:  every time the element is added to a page, the first time included
+  // 4. `onRuntimeLoaded()`, once, if the runtime (`UI`) wasn't loaded yet:  the content shows then
+  // 5. form controls only, as the browser reports them:  `onFormAssociated()`, `onFormDisabled()`, `onFormReset()`,
+  //    `onFormStateRestore()`
+  // 6. `onDisconnect()`:  every time it's removed;  the component stays for the next connect
   //
-  // `<button disabled>` => `isDisabled` = getter/setter pair
+  // The DOM element calls 3, 5 and 6 as the browser reports each event (DOM API `connectedCallback()`, the form
+  // callbacks ...).  Each is a hook:  override the ones you need.  The base class's own work is in `onMount()`,
+  // `onConnect()`, `onDisconnect()` and `onFormDisabled()`:  an override of those calls `super`.
   ////////////////
 
   /**
-   * The element's attributes exactly as the DOM has them:  raw text, `null` when absent.
-   * - Use it for attributes NOT in the vocabulary (`attributes["aria-label"]`),
-   *   or for a vocabulary attribute's raw text (`attributes.value`, to reset a form field).
-   * - For vocabulary attributes, prefer their getters (`this.size`):  converted and typed.
-   * - Pass the English name:  on a translated tag it reads that tag's spelling (`valor` for `value`).
-   * - Reading it in JSX or an effect follows changes.
-   * - Protected:  outside code reads the element's own attributes.
-   */
-  protected get attributes(): Readonly<Record<string, string | null>> {
-    const { elementDefinition } = this
-    return E.Reactive.attributesOf(this, this.domElement, (name) => elementDefinition.localAttribute(name))
-  }
-
-  /**
-   * The converted attribute values solid-element hands the constructor, one Solid signal each.
-   * - On the way out:  read an attribute through its getter (`this.size`) instead, which is always up to date.
-   *   A value here lags one tick behind a change.
-   * - Only `brand`'s components still read it;  it goes once they use the decorators.
-   */
-  // CLAUDE: this should be `$attrs`, to signal that it's reactive.  No?
-  readonly attrs: Readonly<E.AttributeValues<V>>
-
-  ////////////////
-  // ## Reactive members
-  ////////////////
-
-  /**
-   * One ACCESSOR per member, under the same name:  `this.$.isOpen` is a function that returns `this.isOpen`.
-   * - An accessor is how Solid hands around "a value that may change":
-   *   a function you call to read it.  Calling it inside JSX or an effect subscribes to it,
-   *   so they update when it changes.
-   * - Everyday code just reads `this.isOpen`, which is already reactive.
-   * - Use `$` only for a Solid API that wants the function itself:
-   *   `createMemo(this.$.isOpen)`, `<Show when={this.$.isOpen}>`.
-   */
-  get $(): E.Accessors<this> {
-    return E.Reactive.accessorsOf(this)
-  }
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  /**
-   * Hook:  what the element shows:  the content of its shadow DOM, as JSX.
-   * - Runs ONCE.  Later changes happen inside the JSX, as the members it reads change;
-   *   `render()` itself never runs again.
-   * - It runs while Solid is drawing, so it must NEVER change state:  no `this.isOpen = ...` here.
-   */
-  abstract render(): JSX.Element
-
-  /**
-   * Set the element up and return its content, which solid-element puts into the shadow root.
-   * - Called once, by solid-element, right after the constructor.
+   * Set the element up and return its content, which `mount()` puts into the shadow root.
+   * - Called once, by `mount()`, right after the constructor.
    * - SIDE EFFECTS:
    *   - adopts the class's style sheets into the shadow root (if the runtime has loaded)
    *   - keeps the element's `:state()`s in step with its `@cssState` members and `cssStates()`
@@ -339,12 +222,215 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
       { defer: true }
     )
     const { canRenderUnstyled } = this.setup
-    return <Show when={canRenderUnstyled || this.isReady}>{this.render()}</Show>
+    // `untrack`:  `<Show>` evaluates its children in a TRACKED computation, so a reactive read in `render()`'s body
+    // (outside its JSX) would run it again and rebuild the whole view;  it runs ONCE
+    return <Show when={canRenderUnstyled || this.isReady}>{untrack(() => this.render())}</Show>
   }
+
+  /**
+   * Hook:  the element was added to a page;  the first time right after `onMount()`.
+   * - Keeps `isConnected` in step, a microtask later:  the element may be connected while the app's Solid is
+   *   drawing, when state can't change yet.  A part re-checks which element it belongs to (`PartContext`).
+   * - It may run while Solid is drawing:  defer a state change (`queueMicrotask`), or write an `ownedWrite` member.
+   */
+  onConnect() {
+    const { domElement } = this
+    queueMicrotask(() => (this.isConnected = domElement.isConnected))
+    E.PartContext.connected(domElement)
+  }
+
+  /** The runtime has loaded:  adopt the style sheets, then show the content. */
+  private onRuntimeLoaded() {
+    this.adoptStyleSheets()
+    this.isReady = true
+  }
+
+  /** Hook (form controls only):  the element's form owner changed (`null`:  none);  default nothing. */
+  onFormAssociated(_form: HTMLFormElement | null) {}
+
+  /**
+   * Hook (form controls only):  a `<fieldset disabled>` around the element started or stopped disabling it.
+   * - Keeps `formIsDisabled` in step;  a microtask later when it arrives while Solid is drawing.
+   */
+  onFormDisabled(disabled: boolean) {
+    if (getOwner()) queueMicrotask(() => (this.formIsDisabled = disabled))
+    else this.formIsDisabled = disabled
+  }
+
+  /** Hook (form controls only):  the form was reset:  restore the starting value;  default nothing. */
+  onFormReset() {}
+
+  /**
+   * Hook (form controls only):  the browser restored a value (back / forward cache, autofill);  default nothing.
+   * - `mode`:  `"restore"` or `"autocomplete"`.
+   */
+  onFormStateRestore(_state: File | string | FormData | null, _mode: string) {}
+
+  /** Hook:  the element was removed from its page.  The component stays, for the next connect. */
+  onDisconnect() {
+    const { domElement } = this
+    queueMicrotask(() => (this.isConnected = domElement.isConnected))
+  }
+
+  ////////////////
+  // ## Element setup
+  ////////////////
+
+  /**
+   * Class setting:  how the class's custom element is set up, as ONE object (`ElementSetup` documents each key).
+   * - A subclass states only the keys it changes:
+   *   `@E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>`
+   *   (`satisfies`, so a misspelt key fails TypeScript).
+   * - The keys merge down the class chain, base class first:
+   *   `CheckControl`'s `{ DOMElement: DOMCheckElement }` keeps the `{ isAFormControl: true }` of `FormComponent`.
+   * - So `elementSetup` itself is only what ONE class states:
+   *   read the merged result through `setup` (or `UIComponent.setupFor(Class)`).
+   * - `vocabulary` and `styleSheets` stay settings of their own:
+   *   a subclass's `styleSheets` REPLACE its base's, they don't merge.
+   */
+  declare elementSetup: Partial<E.ElementSetup>
+  @proto static elementSetup: Partial<E.ElementSetup> = {
+    isAFormControl: false,
+    delegatesFocus: true,
+    slotAssignment: "named",
+    isAPart: false,
+    DOMElement: DOMElement,
+    Fallback: undefined,
+    canRenderUnstyled: false
+  }
+
+  /** This element's `elementSetup`, merged down its class chain (`UIComponent.setupFor()`). */
+  protected get setup(): E.ElementSetup {
+    return UIComponent.setupFor(this.constructor)
+  }
+
+  /**
+   * The `elementSetup` of `Class`, merged down its class chain.
+   * - Each class's own keys, base class first, so a subclass's keys win.
+   * - `@proto` puts a class's `elementSetup` on its PROTOTYPE:
+   *   a prototype's OWN `elementSetup` is what that class stated.
+   * - Worked out once per class, then kept (`setups`).
+   */
+  static setupFor(Class: { prototype: UIComponent<any> }): E.ElementSetup {
+    let setup = UIComponent.setups.get(Class)
+    if (setup) return setup
+    const stated: Partial<E.ElementSetup>[] = []
+    for (let prototype = Class.prototype; prototype; prototype = Object.getPrototypeOf(prototype)) {
+      if (Object.hasOwn(prototype, "elementSetup")) stated.unshift(prototype.elementSetup)
+    }
+    setup = Object.assign({}, ...stated) as E.ElementSetup
+    UIComponent.setups.set(Class, setup)
+    return setup
+  }
+
+  /**
+   * Each class's merged `elementSetup`, worked out once (`setupFor()`).
+   * - For the whole page, like `registry.definitions`.
+   */
+  private static readonly setups = new WeakMap<object, E.ElementSetup>()
+
+  ////////////////
+  // ## AppContext
+  ////////////////
+
+  /**
+   * The value an app handed its `ui-*` elements:  the `appContext` property of the nearest `<ui-root>` around this
+   * element (crossing shadow roots);  `null` when none.
+   * - `<ui-root prop:appContext={value}>` in a Solid app, `root.appContext = value` anywhere else.
+   * - Read once, when this object is built.
+   * - Why not a Solid context:  each element draws in a Solid root of its own, with no parent, so a Solid app's
+   *   providers don't reach inside `ui-*` tags (epic `spell-element`, Q9).
+   * - `tools/frameworks/solid/identity.js` uses it to prove an app's value reaches inside custom elements.
+   */
+  readonly appContext: unknown
+
+  /** The `appContext` of the nearest `<ui-root>` around `domElement` (a translated tag too), else `null`. */
+  private static appContextFor(domElement: DOMElement): unknown {
+    let node: Node | null = domElement.parentNode
+    while (node) {
+      const { localName } = node as Element
+      if (localName && UIComponent.isRootTag(localName)) return (node as AppContextHolder).appContext ?? null
+      // a shadow root (nodeType 11) continues at its host;  NEVER read `host` elsewhere (`<a>.host` is a URL part)
+      node = node.parentNode ?? (node.nodeType === 11 ? (node as ShadowRoot).host : null)
+    }
+    return null
+  }
+
+  /** Is `localName` `<ui-root>`, or a translated alias of it? */
+  private static isRootTag(localName: string): boolean {
+    return localName === ROOT_TAG || UIComponent.registry.definitions.get(localName)?.vocabulary.tag === ROOT_TAG
+  }
+
+  ////////////////
+  // ## Attributes
+  //
+  // Every vocabulary attribute also has a getter/setter on the component,
+  // which may be reformulated to read as English.
+  //
+  // `<button disabled>` => `isDisabled` = getter/setter pair
+  ////////////////
+
+  /**
+   * The element's attributes exactly as the DOM has them:  raw text, `null` when absent.
+   * - Use it for attributes NOT in the vocabulary (`attributes["aria-label"]`),
+   *   or for a vocabulary attribute's raw text (`attributes.value`, to reset a form field).
+   * - For vocabulary attributes, prefer their getters (`this.size`):  converted and typed.
+   * - Pass the English name:  on a translated tag it reads that tag's spelling (`valor` for `value`).
+   * - Tracked:  JSX or an effect that reads `attributes["aria-label"]` runs again when that attribute changes.
+   * - Protected:  outside code reads the element's own attributes.
+   */
+  protected get attributes(): Readonly<Record<string, string | null>> {
+    const { elementDefinition } = this
+    return E.Reactive.attributesOf(this, this.domElement, (name) => elementDefinition.localAttribute(name))
+  }
+
+  /**
+   * The converted attribute values, one Solid signal each (`UIComponent.attributeSignals()`).
+   * - On the way out:  read an attribute through its getter (`this.size`) instead, which is always up to date.
+   *   A value here lags one tick behind a change.
+   * - Only `brand`'s components still read it;  it goes once they use the decorators.
+   */
+  readonly attrs: Readonly<E.AttributeValues<V>>
+
+  ////////////////
+  // ## Reactive members
+  ////////////////
+
+  /**
+   * One ACCESSOR per member, under the same name:  `this.$.isOpen` is a function that returns `this.isOpen`.
+   * - An accessor is how Solid hands around "a value that may change":
+   *   a function you call to read it.  Calling it inside JSX or an effect subscribes to it,
+   *   so they update when it changes.
+   * - Everyday code just reads `this.isOpen`, which is already reactive.
+   * - Use `$` only for a Solid API that wants the function itself:
+   *   `createMemo(this.$.isOpen)`, `<Show when={this.$.isOpen}>`.
+   */
+  get $(): E.Accessors<this> {
+    return E.Reactive.accessorsOf(this)
+  }
+
+  ////////////////
+  // ## Rendering
+  ////////////////
+
+  /**
+   * Hook:  what the element shows:  the content of its shadow DOM, as JSX.
+   * - Runs ONCE.  Later changes happen inside the JSX, as the members it reads change;
+   *   `render()` itself never runs again.
+   * - It runs while Solid is drawing, so it must NEVER change state:  no `this.isOpen = ...` here.
+   */
+  abstract render(): JSX.Element
 
   ////////////////
   // ## Readiness
   ////////////////
+
+  /**
+   * Is the element in the document?
+   * - Updated a microtask after it connects or disconnects:
+   *   that can happen while the app's Solid is drawing, when state can't change yet.
+   */
+  @state accessor isConnected = false
 
   /**
    * Ready to show:  the runtime (`UI`) has loaded, and this element's style sheets are in its shadow root.
@@ -358,12 +444,6 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   @onChange("isReady")
   protected onReadyChanged(isReady: boolean) {
     if (isReady) queueMicrotask(() => this.domElement.markReady())
-  }
-
-  /** The runtime has loaded:  adopt the style sheets, then show the content. */
-  private onRuntimeLoaded() {
-    this.adoptStyleSheets()
-    this.isReady = true
   }
 
   ////////////////
@@ -392,36 +472,15 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     return Object.keys(this.styleSheets)
   }
 
-  /** Register this class's sheets with the runtime (the first time only), then adopt them into the shadow root. */
+  /** Register this class's sheets with the runtime (the ones it doesn't have yet), then adopt them into the shadow root. */
   private adoptStyleSheets() {
-    if (!UIComponent.registeredStyleSheets.has(this.styleSheets)) {
-      UIComponent.registeredStyleSheets.add(this.styleSheets)
-      for (const [name, css] of Object.entries(this.styleSheets))
-        if (!UI.styles.has(name)) UI.styles.register(name, css)
-    }
+    // so this would be `UI.styles.register(this.stylesheets)`
+    UI.styles.registerOnce(this.styleSheets)
     UI.styles.adoptInto(
       this.domElement.renderRoot,
       untrack(() => this.styleSheetNames)
     )
   }
-
-  /**
-   * The `styleSheets` already registered with the runtime, so each class registers only once.
-   * - For the whole page.
-   * - Not `readonly`:  `resetRegistries()` replaces it (a `WeakSet` can't be emptied).
-   */
-  private static registeredStyleSheets = new WeakSet<object>()
-
-  ////////////////
-  // ## Connection
-  ////////////////
-
-  /**
-   * Is the element in the document?
-   * - Updated a microtask after it connects or disconnects:
-   *   that can happen while the app's Solid is drawing, when state can't change yet.
-   */
-  @state accessor isConnected = false
 
   ////////////////
   // ## Disabled
@@ -429,7 +488,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * Hook:  is the element unusable right now?
-   * - Default never.
+   * - Default is that we are NOT disabled, e.g. can be used.
    * - While it's true, the element ignores clicks (`DOMElement`).
    * - Elements with a `disabled` attribute override it:  `<ui-card>`, `<ui-step>`,
    *   and the form controls, which also check `formIsDisabled`.
@@ -458,14 +517,25 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * The `class` of the top box in the element's shadow DOM, in Fomantic's class names:  `ui small primary button`.
-   * - Built from the attributes (through `classValue()`), then `extraClasses`.
+   * - Built from the attributes (through `classValue()`), then `extraClass`.
    */
-  get rootClasses(): string {
-    return this.elementDefinition.builder.build(this.classInput, { extra: this.extraClasses })
+  get rootClass(): string {
+    return this.elementDefinition.builder.build(this.internalState.classInput, { extra: this.extraClass })
   }
 
-  /** Hook:  classes to add after the noun, e.g. `icon` for a button with only an icon;  default none. */
-  protected get extraClasses(): string | undefined {
+  /**
+   * Hook:  classes to add after the noun;  default none.
+   * - `UIButton`'s adds `icon` to a button that shows only an icon (`ui primary button` => `ui primary button icon`):
+   *   ```ts
+   *   protected get extraClass(): string | undefined {
+   *     if (!this.hasIcon || this.animated) return undefined
+   *     return !this.hasText ? UIT.ICON_CLASS : undefined
+   *   }
+   *   ```
+   * - For a class that follows STATE rather than one attribute;
+   *   a class that follows an attribute comes from the vocabulary (`classValue()`).
+   */
+  protected get extraClass(): string | undefined {
     return undefined
   }
 
@@ -483,27 +553,12 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * Classes for a SECOND box, from attribute values you choose:  e.g. the wrapper of a button with a label beside it.
    * - Keys are the vocabulary's attribute names, type-checked.
    */
-  protected buildClasses(values: Partial<Record<E.AttributeName<V>, unknown>>, extra?: string): string {
+  protected wrapperClass(values: Partial<Record<E.AttributeName<V>, unknown>>, extra?: string): string {
     return this.elementDefinition.builder.build(values, { extra })
   }
 
-  /**
-   * What `rootClasses` builds from:  an object with one getter per attribute, each calling `classValue()`.
-   * - Getters, so `rootClasses` only reacts to the attributes the class names actually use.
-   */
-  private readonly classInput: E.ClassInput
-
-  /** Build `classInput`, once, in the constructor. */
-  private buildClassInput(): E.ClassInput {
-    const input: Record<string, unknown> = {}
-    for (const { spec } of this.elementDefinition.attributes) {
-      Object.defineProperty(input, spec.name, {
-        get: () => this.classValue(spec.name as E.AttributeName<V>),
-        enumerable: true
-      })
-    }
-    return input
-  }
+  /** What only this class uses inside:  ONE field, so it adds one name to the component, not many (`InternalState`). */
+  private readonly internalState: InternalState
 
   ////////////////
   // ## CSS states
@@ -528,19 +583,31 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   ////////////////
 
   /**
-   * The user wants to change `@controlled` member `member` to `next`.
+   * The user wants to change the `@controlled` accessor named `memberName` to `next`:
+   * `this.requestChange("isOpen", true, () => this.send("ui-open", { open: true }))`.
+   * - `memberName`:  the name of an accessor ON THIS COMPONENT (`isOpen`, declared
+   *   `@controlled("open") accessor isOpen`), not the DOM element's property (`open`), which it follows.
    * - First `announce()` sends the event;  it returns false if the page cancelled it.
    * - Then `next` is written to the element's property, unless the event was cancelled,
    *   or the page set the property itself while handling it (the page's value wins).
    * - Returns true when `next` was applied.
    */
-  requestChange<K extends keyof this & string>(member: K, next: this[K], announce: () => boolean): boolean {
-    return E.Reactive.requestChange(this, member, next, announce)
+  requestChange<K extends keyof this & string>(memberName: K, next: this[K], announce: () => boolean): boolean {
+    return E.Reactive.requestChange(this, memberName, next, announce)
   }
 
-  /** Is the page controlling `@controlled` member `member` right now, by having set its property? */
-  isPageControlled(member: keyof this & string): boolean {
-    return E.Reactive.isPageControlled(this, member)
+  /**
+   * Is the `@controlled` accessor named `memberName` (`"value"`) reading the PAGE's value right now, rather than the
+   * element's own?
+   * - A `@controlled` accessor reads its attribute's value when the page gave it one, else its own starting value.
+   *   Take a dropdown's `value`:
+   *   - `<ui-dropdown>`, `value` never set:  `this.value` is the element's own;  `isControlledByPage("value")` is false
+   *   - `<ui-dropdown value="b">`, or `dropdown.value = "b"` from a framework:  `this.value` is the page's `"b"`;  true
+   * - So:  true while the attribute's value isn't `undefined`.
+   * - What it's for:  the dropdown, select and search keep the page's starting value, to restore on a form reset.
+   */
+  isControlledByPage(memberName: keyof this & string): boolean {
+    return E.Reactive.isControlledByPage(this, memberName)
   }
 
   /**
@@ -575,7 +642,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - A decorated method gets the same with `@onChange(..., { writesDOMElement: true })`.
    * - MUST be called from the constructor, a field initializer or `onMount()`, like `createEffect`.
    */
-  protected domElementEffect<T>(compute: () => T, apply: (value: T) => void) {
+  protected addElementEffect<T>(compute: () => T, apply: (value: T) => void) {
     if (isServer) apply(untrack(compute))
     else createEffect(compute, apply)
   }
@@ -588,28 +655,30 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * Listen for event `type` on the element (or on `options.target`), for the element's whole life.
    * - The listener is removed when the element is disposed (`domElement.dispose()`),
    *   NOT when it's moved or disconnected:  the element keeps working after a move.
-   * - For a listener that should stop sooner, use your own `AbortController`.
+   * - For a listener that should stop sooner, use your own `AbortController`;  for one call only, `{ once: true }`.
    */
   protected on<K extends keyof HTMLElementEventMap>(
     type: K,
     listener: (event: HTMLElementEventMap[K]) => void,
-    options?: OnOptions
+    options?: E.OnOptions
   ): void
-  protected on(type: string, listener: (event: Event) => void, options?: OnOptions): void
-  protected on(type: string, listener: (event: Event) => void, { target, ...options }: OnOptions = {}) {
-    if (!this.listeners) {
-      const listeners = (this.listeners = new AbortController())
-      this.domElement.addReleaseCallback(() => listeners.abort())
-    }
-    ;(target ?? this.domElement).addEventListener(type, listener, { ...options, signal: this.listeners.signal })
+  protected on(type: string, listener: (event: Event) => void, options?: E.OnOptions): void
+  protected on(type: string, listener: (event: Event) => void, { target, ...options }: E.OnOptions = {}) {
+    const listeners = (this.internalState.listeners ??= UIComponent.abortedOnDispose(this.domElement))
+    ;(target ?? this.domElement).addEventListener(type, listener, { ...options, signal: listeners.signal })
   }
 
   /**
-   * Removes every listener `on()` added, all at once.
-   * - `on()` adds each listener with this component's `signal`;  aborting it removes them all.
-   * - Made by the first `on()`, which also has it aborted when the element is disposed.
+   * An `AbortController` aborted when `domElement` is disposed:  `on()`'s, for every listener it adds.
+   * - How:  the DOM's own way to remove listeners in a group (DOM API `addEventListener(type, listener, { signal })`,
+   *   in every browser since 2021, nothing to do with Solid).
+   * - Each `on()` passes its `signal`;  `abort()` removes every listener added with it, so nothing keeps a list.
    */
-  private listeners: AbortController | undefined
+  private static abortedOnDispose(domElement: DOMElement): AbortController {
+    const listeners = new AbortController()
+    domElement.addReleaseCallback(() => listeners.abort())
+    return listeners
+  }
 
   /**
    * Send the vocabulary's event `name` from the element, with `detail`.
@@ -629,44 +698,119 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   ////////////////
+  // ## Mounting
+  ////////////////
+
+  /**
+   * Build `Class`'s component for `domElement` and draw it into its shadow root:  what the DOM element's first
+   * connect does (`DOMElement.mountComponent`).
+   * - In a Solid root of its OWN, with no parent:  it lives until `domElement.dispose()`, whatever happens around it.
+   *   So a Solid app's context doesn't reach inside (`appContext` does that).
+   * - Inside an error net (Solid's `<Errored>`), always:  see "Errors and fallback".
+   * - The attribute values arrive as signals (`attrs`), kept in step by the DOM element's change callbacks.
+   * - Released with the DOM element:  the root is disposed, the shadow root emptied.
+   */
+  private static mount(
+    Class: E.UIComponentClass,
+    definition: E.ElementDefinition,
+    domElement: DOMElement,
+    Fallback: E.FallbackClass | undefined
+  ) {
+    createRoot((dispose) => {
+      const attrs = UIComponent.attributeSignals({ ...domElement.attributeValues })
+      domElement.addPropertyChangedCallback((key, value) => {
+        ;(attrs as Record<string, unknown>)[key] = value
+      })
+      const root = domElement.renderRoot
+      domElement.addReleaseCallback(() => {
+        ShadowEvents.unregister(root)
+        root.textContent = ""
+        dispose()
+      })
+      // `<Errored>` called as a function;  `children` is a GETTER, so the component is built inside the net
+      const view = Errored({
+        get children() {
+          return untrack(() => new Class(domElement, definition, attrs).onMount())
+        },
+        fallback: (error: Accessor<unknown>) => {
+          const cause = error()
+          const showsFallback = runWithOwner(null, () => UIComponent.onError(domElement, cause))
+          return showsFallback ? UIComponent.renderFallback(domElement, cause, Fallback) : undefined
+        }
+      })
+      domElement.clearServerContent()
+      ShadowEvents.register(root)
+      insert(root, view)
+    })
+  }
+
+  /**
+   * One Solid signal per key of `values`, read and written as properties:  `attrs`.
+   * - A value is stored as is:  a function-valued attribute (a callback) is a value, not a computation.
+   * - `ownedWrite`:  the DOM element's property setters write them, and anyone may call those from anywhere,
+   *   including inside a Solid computation, where Solid 2 otherwise throws (`REACTIVE_WRITE_IN_OWNED_SCOPE`).
+   * - The server render (`$/ui/static`) makes them the same way.
+   */
+  static attributeSignals<T extends object>(values: T): T {
+    const signals = {} as T
+    for (const key of Object.keys(values)) {
+      const initial = (values as Record<string, unknown>)[key]
+      const [get, set] = createSignal(() => initial, { ownedWrite: true }) as Signal<unknown>
+      Object.defineProperty(signals, key, {
+        get,
+        set(value: unknown) {
+          set(() => value)
+        },
+        enumerable: true
+      })
+    }
+    return signals
+  }
+
+  ////////////////
   // ## Errors and fallback
   //
   // When an element breaks (its constructor, `render()` or an effect throws):
-  // - solid-element catches the error (`ISOLATE_ERRORS`) and calls `onError()`, then `renderFallback()`
+  // - its error net (`mount()`) catches the error and calls `onError()`, then `renderFallback()`
   // - the element shows a plain-DOM stand-in (a native `<button>`, `<select>` ...):  `elementSetup.Fallback`
   // - the rest of the page keeps working
+  //
+  // Every element has its own net, always:  without one, an error halts Solid for the whole page
+  // (`[REACTIVITY_HALTED]`).  A container's net can't catch it instead:  each element's Solid root has no parent
+  // (epic `spell-element`, Q8).
   ////////////////
 
   /**
    * An error escaped this element's constructor, `render()` or an effect.
    * - SIDE EFFECTS:
+   *   - DOM API `:state(errored)` on the element
    *   - logs one `console.error` naming the tag
    *   - sends a cancelable `ui-error` event (`{ error }`):  an app that cancels it keeps the fallback away
    *   - resolves `domElement.ready`, and drops this broken object
-   * - Called by solid-element, outside Solid's drawing, so it may change state.
+   * - Returns whether the element shows its fallback:  false when the app cancelled `ui-error`.
+   * - Called outside Solid's drawing (`runWithOwner(null)`), so it may change state.
    */
-  private static onError(domElement: DOMElement, error: unknown) {
+  private static onError(domElement: DOMElement, error: unknown): boolean {
+    domElement.setState(E.ERRORED_STATE, true)
     console.error(`<${domElement.localName}> failed:`, error)
     domElement.component = undefined
     domElement.markReady()
     const event = new CustomEvent(E.ERROR_EVENT, { bubbles: true, composed: true, cancelable: true, detail: { error } })
-    if (!domElement.dispatchEvent(event)) UIComponent.cancelledElements.add(domElement)
+    return domElement.dispatchEvent(event)
   }
 
   /**
    * Show the fallback in the shadow root:  `Fallback.render(...)`, or a bare `<slot>` when there's none.
-   * - Skipped if the app cancelled `ui-error`.
-   * - Done a microtask LATER:  solid-element clears the shadow root after an error, which would wipe it out;
+   * - Done a microtask LATER:  Solid clears what the broken render had inserted, which would wipe it out;
    *   and some fallbacks (the dropdown's) must already be in place to attach their validity messages.
    * - The fallback is disposed with the element.
-   * - Called by solid-element after this object broke (or was never built).
+   * - Called by the error net (`mount()`) after this object broke (or was never built).
    */
   private static renderFallback(
     domElement: DOMElement,
     error: unknown,
-    Fallback: FallbackClass | undefined
+    Fallback: E.FallbackClass | undefined
   ): undefined {
-    if (UIComponent.cancelledElements.has(domElement)) return undefined
     queueMicrotask(() => {
       const root = domElement.renderRoot
       const handle = Fallback
@@ -677,37 +821,21 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     return undefined
   }
 
-  /**
-   * Elements whose `ui-error` the app cancelled:  they get no fallback.
-   * - For the whole page.
-   * - Not `readonly`:  `resetRegistries()` replaces it.
-   */
-  private static cancelledElements = new WeakSet<DOMElement>()
-
   ////////////////
   // ## Defining the element
   //
   // These are called on the component CLASS, before any element exists:
   // - `define()`:  what a component's `index.ts` calls (`UIButton.define()`),
   //   and what an app calls for a translated tag (`UIButton.define("ie-boton", es)`)
-  // - `defineTag()`:  `define()` without its "already defined?" check;  hot reload uses it
-  // - `register()`:  the records `defineTag()` starts with;  the server render calls it alone
+  // - `register()`:  the records `define()` starts with;  the server render calls it alone
+  // - `tagSetupFor()`:  what the tag's DOM element class carries;  hot reload swaps it in (`HotDefinitions`)
   ////////////////
 
-  /**
-   * Global registry of `ElementDefinition`s of every defined tag, English and translated.
-   * - A component uses it to tell what kind of element a child is:
-   *   `UIComponent.definitions.get(child.localName)?.vocabulary.noun`.
-   * - For the whole page, like `customElements`;  `resetRegistries()` leaves it alone.
-   */
-  static readonly definitions = new Map<string, E.ElementDefinition>()
-
-  /**
-   * Global registry of vocabularies which have been registered.
-   * - For the whole page.
-   * - NOTE: Not `readonly`, `resetRegistries()` replaces it in tests.
-   */
-  private static registeredVocabularies = new WeakSet<E.ComponentVocabulary>()
+  /** What the whole page has defined, like `customElements`:  ONE record, for every component class. */
+  static readonly registry: E.ComponentRegistry = {
+    definitions: new Map(),
+    vocabularies: new WeakSet()
+  }
 
   /**
    * Make this component a custom element, under its vocabulary's tag or a translated one.
@@ -716,58 +844,44 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Does nothing for a tag already defined.
    * - Returns the element class.
    */
-  static define(this: UIComponentClass, tag?: string, dictionary?: E.Dictionary): CustomElementConstructor {
+  static define(this: E.UIComponentClass, tag?: string, dictionary?: E.Dictionary): CustomElementConstructor {
     const definition = new E.ElementDefinition(this.prototype.vocabulary, { tag, dictionary })
-    return customElements.get(definition.tag) ?? UIComponent.defineTag.call(this, definition)
+    const existing = customElements.get(definition.tag)
+    if (existing) return existing
+    // record it, make the tag's own DOM element class on `elementSetup.DOMElement`, and define it (DOM API)
+    UIComponent.register.call(this, definition)
+    const Class = DOMElement.subclassForTag(
+      UIComponent.setupFor(this).DOMElement,
+      UIComponent.tagSetupFor(this, definition)
+    )
+    customElements.define(definition.tag, Class)
+    return Class
   }
 
   /**
-   * `define()` without the "already defined?" check.
-   * - Records `definition` (`register()`), then hands solid-element the tag, its attributes,
-   *   how to build this component, and the class's merged `elementSetup`.
-   * - For a tag that's already defined, solid-element swaps the new class in, in place:
-   *   that's how hot reload (in development) re-defines an edited class (`HotDefinitions`).
+   * What the DOM element class of `definition`'s tag carries, for component class `Class`:
+   * its definition, shadow root options, whether it's a form control, and how to build its component.
    */
-  static defineTag(this: UIComponentClass, definition: E.ElementDefinition): CustomElementConstructor {
-    const {
-      DOMElement: BaseElement,
-      delegatesFocus,
-      assignSlots,
+  static tagSetupFor(Class: E.UIComponentClass, definition: E.ElementDefinition): TagSetup {
+    const { delegatesFocus, slotAssignment, isAFormControl, Fallback } = UIComponent.setupFor(Class)
+    return {
+      elementDefinition: definition,
+      shadowRootInit: { mode: "open", delegatesFocus, slotAssignment },
       isAFormControl,
-      Fallback
-    } = UIComponent.setupFor(this)
-    UIComponent.register.call(this, definition)
-    return customElement(
-      definition.tag,
-      definition.props,
-      (attrs, { element }) => new this(element as unknown as DOMElement, definition, attrs).onMount(),
-      {
-        BaseElement,
-        shadowRootInit: {
-          mode: "open",
-          delegatesFocus,
-          slotAssignment: SlotAssignments[assignSlots]
-        },
-        internals: true,
-        formAssociated: isAFormControl,
-        keepAlive: true,
-        errorBoundary: UIComponent.ISOLATE_ERRORS,
-        onError: (element, error) => UIComponent.onError(element as unknown as DOMElement, error),
-        fallback: (element, error) => UIComponent.renderFallback(element as unknown as DOMElement, error, Fallback)
-      }
-    )
+      mountComponent: (domElement) => UIComponent.mount(Class, definition, domElement, Fallback)
+    }
   }
 
   /**
    * Record `definition` for the page, WITHOUT defining a custom element.
-   * - Adds it to `definitions` and to the parts registry (`PartContext.define()`),
+   * - Adds it to `registry.definitions` and to the parts registry (`PartContext.define()`),
    *   hands its vocabulary and English texts to the runtime,
    *   and puts a getter for each attribute on the class (`Reactive.installAttributeGetters()`).
-   * - `defineTag()` starts with it;  the server render calls it alone, since node has no `customElements`.
+   * - `define()` starts with it;  the server render calls it alone, since node has no `customElements`.
    */
-  static register(this: UIComponentClass, definition: E.ElementDefinition) {
+  static register(this: E.UIComponentClass, definition: E.ElementDefinition) {
     const { vocabulary } = this.prototype
-    UIComponent.definitions.set(definition.tag, definition)
+    UIComponent.registry.definitions.set(definition.tag, definition)
     E.PartContext.define({
       vocabulary,
       tag: definition.tag,
@@ -784,8 +898,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     // - on the server, never loads the runtime (that needs the browser's `CSSStyleSheet`):
     //   it registers only with the one the server render installed (`ServerRuntime`)
     const isRuntimeLoaded = !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]
-    if (!UIComponent.registeredVocabularies.has(vocabulary) && (isRuntimeLoaded || !isServer)) {
-      UIComponent.registeredVocabularies.add(vocabulary)
+    if (!UIComponent.registry.vocabularies.has(vocabulary) && (isRuntimeLoaded || !isServer)) {
+      UIComponent.registry.vocabularies.add(vocabulary)
       if (isRuntimeLoaded) handOver()
       else void UI.load().then(handOver)
     }
@@ -820,126 +934,18 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   ): T["prototype"]["vocabulary"] {
     return this.prototype.vocabulary
   }
-
-  ////////////////
-  // ## Testing
-  ////////////////
-
-  /**
-   * If one element throws while drawing, show ITS fallback and keep the rest of the page working.
-   * - Turn it off only to measure what this protection costs:
-   *   `docs/report.md` has the numbers, `test/isolation.test.tsx` shows a page without it.
-   * - Read when a tag is defined.
-   */
-  static ISOLATE_ERRORS = true
-
-  /**
-   * For tests:  forget which style sheets, vocabularies and cancelled elements were registered.
-   * - Leaves `definitions` alone (a defined tag can't be undefined),
-   *   and the runtime's own records (`UI.styles`, `UI.i18n`):  the next element simply registers again.
-   */
-  static resetRegistries() {
-    UIComponent.registeredStyleSheets = new WeakSet()
-    UIComponent.registeredVocabularies = new WeakSet()
-    UIComponent.cancelledElements = new WeakSet()
-  }
 }
 
-/** A concrete `UIComponent` subclass, as `define()` sees it. */
-export type UIComponentClass = {
-  new (domElement: DOMElement, definition: E.ElementDefinition, attrs: any): UIComponent<any>
-  prototype: UIComponent<any>
+/** An element holding an app's value for the `ui-*` elements inside it:  `<ui-root>` (`UIComponent.appContext`). */
+type AppContextHolder = Element & { appContext?: unknown }
+
+/** The tag whose `appContext` property components read (`UIComponent.appContext`). */
+const ROOT_TAG = "ui-root"
+
+/** `UIComponent.internalState`:  what only the base class uses inside. */
+type InternalState = {
+  /** what `rootClass` builds from:  one getter per attribute, each calling `classValue()` (`ElementDefinition.classInput()`) */
+  readonly classInput: E.ClassInput
+  /** aborted when the element is disposed, removing every listener `on()` added;  made by the first `on()` */
+  listeners?: AbortController
 }
-
-/** The options of `UIComponent.on()`:  `addEventListener()`'s, plus where to listen. */
-export type OnOptions = Omit<AddEventListenerOptions, "signal"> & {
-  /** what to listen on;  default the element itself.  E.g. its shadow root, for `slotchange` */
-  target?: EventTarget
-}
-
-/** A form control's plain-DOM fallback class (`ButtonFallback` ...), as `renderFallback()` calls it. */
-export type FallbackClass = {
-  render(props: E.NativeFallbackProps): E.NativeFallbackHandle
-}
-
-/**
- * How a class's custom element is set up:  `UIComponent.elementSetup`, merged down the class chain.
- * - Read once, when the tag is defined,
- *   except `isAFormControl` and `canRenderUnstyled`, which each element reads as it's built.
- */
-export type ElementSetup = {
-  /**
-   * Does this element act as a control in an HTML `<form>`?
-   * - If so, browser treats the element like an `<input>`:
-   *    - its value is sent with the form,
-   *    - it takes part in the form's validation and reset, and
-   *    - a `<fieldset disabled>` around it disables it (`formIsDisabled`).
-   *
-   * - `false` by default
-   * - `true` for `FormComponent` (inputs, checkboxes, dropdowns ...) and `UIButton`s for submit / reset.
-   * - It's the platform's "form-associated custom element" (`static formAssociated`),
-   *   which the browser reads once, when the tag is defined.
-   */
-  isAFormControl: boolean
-
-  /**
-   * Does clicking the element move focus to the first focusable thing in its shadow DOM?
-   * - Default yes.
-   * - An element with nothing focusable inside (`<ui-flag>`) says no.
-   * - The platform's `delegatesFocus`, read once, when the tag is defined.
-   */
-  delegatesFocus: boolean
-
-  /**
-   * How the element's children land in the `<slot>`s of its shadow DOM.
-   * - `byName` (the default):  each child goes to the slot its `slot` attribute names.
-   * - `manually`:  the element itself hands chosen children to chosen slots (`slot.assign()`).
-   *   `<ui-accordion>` does, to wrap each title + content pair in its own `<details>`.
-   *   A slot it hasn't assigned stays empty.
-   * - The platform's `slotAssignment` (`named` / `manual`), read once, when the tag is defined.
-   */
-  assignSlots: "byName" | "manually"
-
-  /**
-   * Is this one of the generic parts other elements are built from?  (`<ui-header>`, `<ui-content>` ...)
-   * - A part looks for the element it belongs to by walking up past other parts:
-   *   a `<ui-header>` inside a `<ui-content>` inside a `<ui-card>` belongs to the card (`PartContext`).
-   * - Default no.
-   * - `true` for `PartComponent` (every tag of `ui-parts`),
-   *   and for `<ui-item>`, `<ui-list>`, `<ui-menu>` and a feed's `<ui-event>`.
-   * - Said, not worked out from `ownsParts`:  `<ui-label>` is owned by a statistic, but isn't a part.
-   */
-  isAPart: boolean
-
-  /**
-   * The class the DOM element itself is made from.
-   * - Default `DOMElement`.
-   * - `FormComponent` uses `DOMFormControl`, which adds what a form control needs:
-   *   `value`, `form`, `checkValidity()` ...
-   * - A family with a script API of its own names its `DOM<Name>Element` here (`DOMNagElement`).
-   * - Read once, when the tag is defined.
-   */
-  DOMElement: typeof DOMElement
-
-  /**
-   * The plain-DOM stand-in this element shows when it breaks (`UI<Name>.fallback.ts`).
-   * - Default none:  a broken element shows a bare `<slot>`, so its children stay visible.
-   * - Only form controls have one, so a broken control still submits, validates and resets (`docs/fallback.md`).
-   * - It can't use the component:  it runs after the component is gone.
-   */
-  Fallback: FallbackClass | undefined
-
-  /**
-   * Show the content at once, without waiting for the runtime and the style sheets.
-   * - Default `false`:  wait until `isReady`, so nothing shows unstyled.
-   * - For an element whose content must never wait:  `<ui-root>`, which holds the whole page.
-   *   Its `render()` MUST look right unstyled (inline styles only) until `isReady`.
-   */
-  canRenderUnstyled: boolean
-}
-
-/** The platform's `slotAssignment` for each `ElementSetup.assignSlots`. */
-const SlotAssignments = {
-  byName: "named",
-  manually: "manual"
-} as const satisfies Record<ElementSetup["assignSlots"], SlotAssignmentMode>

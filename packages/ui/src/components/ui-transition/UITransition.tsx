@@ -120,7 +120,7 @@ export class UITransition extends E.UIComponent<Vocabulary> {
   }
 
   /** Its state after the noun, as Fomantic's script added it:  `visible`, `animating`. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const words = [this.isShowing ? UIT.VISIBLE : undefined, this.isAnimating ? UIT.ANIMATING : undefined]
     return words.filter(Boolean).join(" ") || undefined
   }
@@ -136,12 +136,12 @@ export class UITransition extends E.UIComponent<Vocabulary> {
     // a server render (`$/ui/static`) never calls `ref`:  first paint's `hidden` as an attribute
     if (isServer)
       return (
-        <div class={this.rootClasses} part={this.partForName("transition")} hidden={!this.willBeVisible || undefined}>
+        <div class={this.rootClass} part={this.partForName("transition")} hidden={!this.willBeVisible || undefined}>
           <slot />
         </div>
       )
     return (
-      <div ref={(element) => this.attach(element)} class={this.rootClasses} part={this.partForName("transition")}>
+      <div ref={(element) => this.attach(element)} class={this.rootClass} part={this.partForName("transition")}>
         <slot />
       </div>
     )

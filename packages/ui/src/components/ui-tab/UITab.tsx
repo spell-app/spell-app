@@ -117,7 +117,7 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
   }
 
   /** Fomantic's pane is a segment:  `ui ... tab segment`. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return SEGMENT
   }
 
@@ -160,7 +160,7 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("tab")} aria-busy={this.loading ? "true" : undefined}>
+      <div class={this.rootClass} part={this.partForName("tab")} aria-busy={this.loading ? "true" : undefined}>
         <slot />
       </div>
     )

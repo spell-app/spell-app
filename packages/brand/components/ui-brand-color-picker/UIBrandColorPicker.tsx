@@ -145,7 +145,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     return super.classValue(name)
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return BRAND_COLOR
   }
 
@@ -198,7 +198,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   render(): JSX.Element {
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("picker")}
         role="group"
         aria-label={this.groupName()}

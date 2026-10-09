@@ -18,7 +18,7 @@ import checkboxCSS from "./UICheckbox.css?inline"
  *   The `checked` ATTRIBUTE in markup is read by the component, as a native checkbox reads its own.
  * - `checkable` tells `<ui-form>` how to read the value (`"checkbox"` / `"radio"`) without importing this family;
  *   `chosenValue` / `unchosenValue` what it submits, with the class defaults no attribute shows.
- * - solid-element refuses a DOM element member named like a prop:  none of these names is one.
+ * - `DOMElement` refuses a member named like an attribute's property:  none of these names is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMCheckElement extends F.DOMFormControl {
@@ -315,7 +315,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     // server render:  the DOM element's id, so its `<label for>`s label the input (the flattener moves it there)
     this.inputId = (isServer && this.domElement.id) || UI.ids.next(ID_PREFIX)
     return (
-      <div class={this.rootClasses} part={this.partForName("checkbox" as never)}>
+      <div class={this.rootClass} part={this.partForName("checkbox" as never)}>
         <input
           ref={(element) => (this.control = element)}
           id={this.inputId}

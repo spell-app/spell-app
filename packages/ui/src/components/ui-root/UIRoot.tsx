@@ -194,8 +194,8 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
           {this.Loading.render(this.partForName("loading"), () => this.loadingMessage)}
         </Show>
         <Show when={this.showsSkeletons}>{this.Skeleton.render(this.partForName("skeleton"), this.$.skeletons)}</Show>
-        <Show when={this.scrolls} fallback={<slot class={this.rootClasses} style={this.slotStyle} />}>
-          {this.scroller(<slot class={this.rootClasses} style={this.slotStyle} />)}
+        <Show when={this.scrolls} fallback={<slot class={this.rootClass} style={this.slotStyle} />}>
+          {this.scroller(<slot class={this.rootClass} style={this.slotStyle} />)}
         </Show>
       </>
     )
@@ -211,7 +211,7 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
    */
   private serverWrapper(): JSX.Element {
     return (
-      <div class={this.rootClasses} style={this.serverStyle}>
+      <div class={this.rootClass} style={this.serverStyle}>
         <Show when={this.scrolls} fallback={<slot />}>
           {this.scroller(<slot />)}
         </Show>

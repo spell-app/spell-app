@@ -13,7 +13,7 @@ import "$/ui/components/ui-label"
 /**
  * Page listeners on `ui-*` elements see the platform's retargeted event:  `target` === the host,
  * `composedPath()[0]` the inner node.  Solid's delegation used to leave the inner node on the event
- * (`@spell-app/solid-element` `events.ts`).
+ * (`ShadowEvents` undoes that).
  */
 
 /** What a page listener saw. */

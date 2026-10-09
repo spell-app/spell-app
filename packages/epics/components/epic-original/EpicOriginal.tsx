@@ -31,7 +31,7 @@ export class EpicOriginal extends E.UIComponent<typeof epicOriginalVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <button
           type="button"
           class={TOGGLE}

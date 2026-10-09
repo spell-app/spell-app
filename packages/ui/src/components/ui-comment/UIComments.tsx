@@ -48,7 +48,7 @@ export class UIComments extends E.UIComponent<typeof commentsVocabulary> {
   render(): JSX.Element {
     return (
       <div
-        class={this.isThread ? this.threadClasses : this.rootClasses}
+        class={this.isThread ? this.threadClasses : this.rootClass}
         part={this.partForName("comments")}
         aria-disabled={this.disabled ? "true" : undefined}
       >

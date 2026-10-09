@@ -30,7 +30,7 @@ export class UIText extends E.UIComponent<typeof textVocabulary> {
 
   render(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("text")}>
+      <span class={this.rootClass} part={this.partForName("text")}>
         <slot />
       </span>
     )

@@ -33,7 +33,7 @@ export class UIBreadcrumb extends E.UIComponent<typeof breadcrumbVocabulary> {
   render(): JSX.Element {
     return (
       <nav
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("breadcrumb")}
         aria-label={this.attributes["aria-label"] ?? this.translationForKey("label")}
         style={this.dividerTokens}

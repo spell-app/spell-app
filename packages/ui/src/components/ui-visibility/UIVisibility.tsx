@@ -33,14 +33,14 @@ export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
   accessor isOnScreen = false
 
   /** `image` after the noun for a lazy-image wrapper (`ui visibility image`), a hook for page CSS. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.type === UIT.IMAGE ? UIT.IMAGE : undefined
   }
 
   render(): JSX.Element {
     if (isServer && this.type === UIT.IMAGE) this.serverImages()
     return (
-      <div class={this.rootClasses} part={this.partForName("visibility")}>
+      <div class={this.rootClass} part={this.partForName("visibility")}>
         <slot />
       </div>
     )

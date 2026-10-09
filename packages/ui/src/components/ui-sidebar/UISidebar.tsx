@@ -194,7 +194,7 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
   }
 
   /** A word width (`thin`) goes after the noun (`UIT.WordWidthClasses`). */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return UIT.WordWidthClasses.classFor(this.width)
   }
 
@@ -260,7 +260,7 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
         fallback={
           <aside
             ref={(element) => (this.box = element)}
-            class={this.rootClasses}
+            class={this.rootClass}
             part={this.partForName("sidebar")}
             aria-label={label()}
           >
@@ -270,7 +270,7 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
       >
         <dialog
           ref={(element) => (this.box = element)}
-          class={this.rootClasses}
+          class={this.rootClass}
           part={this.partForName("sidebar")}
           aria-label={label()}
           aria-modal={this.isVisible ? "true" : undefined}

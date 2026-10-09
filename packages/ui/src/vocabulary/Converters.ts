@@ -5,14 +5,14 @@ import { ValueSets } from "./ValueSets"
 /****************
  * ### `Converters`
  * Pure attribute => property converters,
- * shared by `ElementDefinition` (solid-element's props) and the native fallbacks.
+ * shared by `ElementDefinition` (the DOM element's attributes) and the native fallbacks.
  * - Why here, library-neutral:  the elements and their native fallbacks need the SAME booleans / enums / widths
  *   semantics, and frameworks send attributes in odd shapes -- Vue sends `open="false"` when it can't find a
  *   property, so `"false"` MUST mean false (plan, "Framework consumption contract").
  * - Static and stateless:  converters run on every `attributeChangedCallback`.
  * - Attribute values arrive as `string | null` (`null` ~== absent);  properties may arrive as anything.
  * - `null` is the PLATFORM's here, so it stays (epic `wwod-spell-ui`, Q9):  `getAttribute()` returns it for an absent
- *   attribute, and solid-element's `toAttribute` takes it back to remove one (`booleanToAttribute()`).  Everything of
+ *   attribute, and `ElementDefinition.attributeText()` returns it to remove one (`booleanToAttribute()`).  Everything of
  *   ours that means "none" is `undefined`.
  * - Imports only `$/ui/util` and its folder's peers:  no DOM, no element layer.
  ****************/

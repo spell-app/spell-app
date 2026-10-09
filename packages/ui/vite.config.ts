@@ -7,7 +7,7 @@ import { fileURLToPath } from "node:url"
 
 import { standardDecorators } from "../../vite.decorators.ts"
 import { environment } from "./tools/environment.ts"
-import { solidElementHot } from "./tools/HotElements.ts"
+import { hotElements } from "./tools/HotElements.ts"
 
 /** Absolute path of `src/`. */
 const SRC = fileURLToPath(new URL("./src", import.meta.url))
@@ -174,7 +174,7 @@ export default defineConfig(() => {
   const base = baseConfig()
   return {
     ...base,
-    plugins: [...base.plugins, hotElements(), emitIconPacks(), dts(declarations())],
+    plugins: [...base.plugins, hotElementsPlugin(), emitIconPacks(), dts(declarations())],
     build: {
       outDir: "dist",
       emptyOutDir: true,
@@ -293,33 +293,15 @@ function rewriteDeclaration(filePath: string, content: string) {
 }
 
 /**
- * Hot module replacement for the components in `yarn dev` (`solidElementHot()`, `tools/HotElements.ts`;
- * `apply: "serve"`, so builds are untouched, and NOT in `vitest.config.ts`).
- * - Boundaries:  the component barrels (`src/components/ui-<name>/index.ts`), the modules that call `define()`.
- *   An edit to a component class, vocabulary or fallback re-runs its barrel;  `HotDefinitions` turns the barrel's
- *   `define()` of a new version of a class into a re-definition of every tag it had.
- * - `?inline` component CSS (`src/components/ui-<name>/UI<Name>.css`) re-registers its sheet:  no re-render.
- * - Shared code (`core`, `forms`, the runtime) reaches several barrels:  full reload.
- * - `HotDefinitions` and the element layer (`runtime`, which exports `hotUpdate`) are injected by FILE PATH, not
- *   `$/ui/elements/...`:  `resolve.tsconfigPaths` only resolves aliases for TS / JS importers, and the sheets' handler
- *   import lives in a `.css?inline` module.
+ * Hot module replacement for the components in `yarn dev` (`tools/HotElements.ts`;  `apply: "serve"`, so builds are
+ * untouched, and NOT in `vitest.config.ts`).
+ * - `HotDefinitions` is injected by FILE PATH, not `$/ui/elements/HotDefinitions`:  `resolve.tsconfigPaths` only
+ *   resolves aliases for TS / JS importers, and the sheets' handler import lives in a `.css?inline` module.
  */
-function hotElements(): Plugin {
-  const hotDefinitions = `${SRC}/elements/HotDefinitions.ts`
+function hotElementsPlugin(): Plugin {
   // HACK: `HotElements.ts` types its plugin with `vite`'s `Plugin`, this config with `vite-plus`'s:  the same
   // version, but a second declaration TypeScript won't unify
-  const plugin: unknown = solidElementHot({
-    include: /\/src\/components\/[\w-]+\/index\.ts$/,
-    detect: /\.define\(/,
-    runtime: `${SRC}/elements/solid-element/index.ts`,
-    setup: hotDefinitions,
-    styles: {
-      include: /\/src\/components\/[\w-]+\/[\w-]+\.css\?inline$/,
-      handler: hotDefinitions,
-      call: "HotDefinitions.updateStyle"
-    }
-  })
-  return plugin as Plugin
+  return hotElements(`${SRC}/elements/HotDefinitions.ts`) as unknown as Plugin
 }
 
 /**

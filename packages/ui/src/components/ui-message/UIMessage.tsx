@@ -50,7 +50,7 @@ export class UIMessage extends E.UIComponent<typeof messageVocabulary> {
   }
 
   /** The `icon` class after the noun while it shows an icon:  the sheet's icon layout. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.hasIcon ? UIT.ICON_CLASS : undefined
   }
 
@@ -66,7 +66,7 @@ export class UIMessage extends E.UIComponent<typeof messageVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("message")}>
+      <div class={this.rootClass} part={this.partForName("message")}>
         <Show when={this.hasIcon}>
           <span class={UIT.ICON} part={this.partForName("icon")}>
             <slot name={this.slotForName(UIT.ICON)}>{this.iconGlyph.svg}</slot>

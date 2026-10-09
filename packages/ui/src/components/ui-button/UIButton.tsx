@@ -149,7 +149,7 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
   }
 
   /** `icon` for icon-only buttons and for `labeled icon` buttons. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     if (!this.hasIcon || this.animated) return undefined
     const isLabeledIcon = !!this.labeled && !this.hasLabel
     return !this.hasText || isLabeledIcon ? UIT.ICON_CLASS : undefined
@@ -163,7 +163,7 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
     return (
       <Show when={this.hasLabel} fallback={this.control()}>
         <div
-          class={this.buildClasses({
+          class={this.wrapperClass({
             size: this.size,
             color: this.color,
             labeled: this.labeled || true
@@ -191,7 +191,7 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
               this.resolveInvoker()
             }}
             type={this.nativeType}
-            class={this.rootClasses}
+            class={this.rootClass}
             part={this.partForName("button")}
             disabled={this.isDisabled}
             {...this.staticControl}
@@ -207,7 +207,7 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
       >
         <a
           ref={(element) => (this.innerControl = element)}
-          class={this.rootClasses}
+          class={this.rootClass}
           part={this.partForName("button")}
           href={this.isDisabled ? undefined : this.href}
           target={this.target}

@@ -111,7 +111,7 @@ export class UIStep extends E.UIComponent<typeof stepVocabulary> {
    * - `ui-<color>` for a coloured step:  the generic colour remap (`colors.css`) keys on `.ui.red` / `.ui-red`,
    *   and a step has no `ui`
    */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const color = this.color
     const extra = [
       this.isSelected && !this.selected ? UIT.ACTIVE : "",
@@ -133,7 +133,7 @@ export class UIStep extends E.UIComponent<typeof stepVocabulary> {
     return (
       <Dynamic
         component={this.rootTag}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("step")}
         href={this.rootTag === "a" && !this.disabled ? this.href : undefined}
         target={this.rootTag === "a" ? this.target : undefined}

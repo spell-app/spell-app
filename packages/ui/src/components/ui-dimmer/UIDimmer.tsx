@@ -135,7 +135,7 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
         fallback={
           <div
             ref={(element) => (this.box = element)}
-            class={this.rootClasses}
+            class={this.rootClass}
             part={this.partForName("dimmer")}
             onClick={this.onDimmerClick}
           >
@@ -145,7 +145,7 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
       >
         <dialog
           ref={(element) => (this.box = element)}
-          class={this.rootClasses}
+          class={this.rootClass}
           part={this.partForName("dimmer")}
           aria-label={this.attributes["aria-label"] ?? this.translationForKey("dimmedPage")}
           onClick={this.onDimmerClick}

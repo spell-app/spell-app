@@ -98,10 +98,11 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
           this.temporal = temporal
         })
     }
-    E.onFormStateRestore((state) => {
-      this.value = typeof state === "string" ? state : ""
-    })
     this.domElement.addEventListener("focusout", this.onFocusOut)
+  }
+
+  onFormStateRestore(state: File | string | FormData | null) {
+    this.value = typeof state === "string" ? state : ""
   }
 
   ////////////////
@@ -549,7 +550,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   render(): JSX.Element {
     this.ids = { popup: UI.ids.next(ID_PREFIX), title: UI.ids.next(ID_PREFIX), anchor: `--${UI.ids.next(ID_PREFIX)}` }
     return (
-      <div class={this.rootClasses} part={this.partForName("calendar")} style={{ [ANCHOR_PROPERTY]: this.ids.anchor }}>
+      <div class={this.rootClass} part={this.partForName("calendar")} style={{ [ANCHOR_PROPERTY]: this.ids.anchor }}>
         <Show when={this.inline} fallback={this.popupMode()}>
           <div
             class={PICKER_CLASS}

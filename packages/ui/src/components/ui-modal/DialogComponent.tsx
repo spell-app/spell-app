@@ -316,7 +316,7 @@ export abstract class DialogComponent<
   /** First child element whose definition's noun is `header` (a `<ui-header>`, or a translated one). */
   private findHeading(): Element | undefined {
     for (const child of this.domElement.children) {
-      if (E.UIComponent.definitions.get(child.localName)?.vocabulary.noun === UIT.HEADER) return child
+      if (E.UIComponent.registry.definitions.get(child.localName)?.vocabulary.noun === UIT.HEADER) return child
     }
     return undefined
   }
@@ -363,7 +363,7 @@ export abstract class DialogComponent<
     return (
       <dialog
         ref={(element) => (this.dialog = element)}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.dialogPart(this.rootPart)}
         aria-labelledby={isServer ? this.serverLabelledBy() : undefined}
         onCancel={this.onCancel}

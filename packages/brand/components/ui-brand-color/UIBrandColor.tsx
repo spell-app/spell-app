@@ -33,7 +33,7 @@ import colorCSS from "./UIBrandColor.css?inline"
  *   so nothing clickable sits inside the radio.
  *
  * - On the DOM element, not the component:  the set may reach a chip before the chip has drawn.
- * - `choice` is not an attribute:  solid-element refuses a member named like one.
+ * - `choice` is not an attribute:  `DOMElement` refuses a member named like one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMBrandColorElement extends DOMElement {
@@ -159,7 +159,7 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
   constructor(...args: ConstructorParameters<typeof UIComponent>) {
     super(...args)
     // SIDE EFFECT:  a choice's DOM element is the radio:  its role, checked state and name, through internals
-    this.domElementEffect(
+    this.addElementEffect(
       () => (this.isChoice() ? { checked: this.attrs.selected, label: this.accessibleName() } : undefined),
       (choice) => {
         const { internals } = this.domElement
@@ -175,7 +175,7 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
   ////////////////
 
   /** `brand`, and `labelled` while text shows inside (the AA mark moves up). */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.labelText() ? `${BRAND} ${LABELLED}` : BRAND
   }
 
@@ -206,7 +206,7 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
     return (
       <button
         type="button"
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("chip")}
         style={this.chipStyle()}
         aria-label={this.translationForKey("copy", { name: this.displayName() })}
@@ -222,7 +222,7 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
   private renderImage(): JSX.Element {
     return (
       <span
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("chip")}
         style={this.chipStyle()}
         role={this.isChoice() ? undefined : "img"}

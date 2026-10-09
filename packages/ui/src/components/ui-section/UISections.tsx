@@ -35,7 +35,7 @@ export class UISections extends E.UIComponent<typeof sectionsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("group")}>
+      <div class={this.rootClass} part={this.partForName("group")}>
         <slot />
       </div>
     )

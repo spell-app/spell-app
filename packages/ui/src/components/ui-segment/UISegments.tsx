@@ -24,7 +24,7 @@ export class UISegments extends E.UIComponent<typeof segmentsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("group")}>
+      <div class={this.rootClass} part={this.partForName("group")}>
         <slot />
       </div>
     )

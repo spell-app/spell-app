@@ -11,7 +11,7 @@ import toastCSS from "./UIToast.css?inline"
  * ### `DOMToastElement`
  * The DOM element of `<ui-toast>`:  it adds `close()`, the toast's script API, which its component does.
  *
- * - NOTE: solid-element checks the DOM element's prototype members against the prop names;  `close` isn't one.
+ * - NOTE: `DOMElement` checks its members against the attributes' property names;  `close` isn't one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMToastElement extends E.DOMElement {
@@ -115,7 +115,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   ////////////////
 
   /** Layout words after the noun, as Fomantic's JS added them:  `vertical`, `actions`, `attached top`, `compact`. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const words: string[] = []
     const actions = this.actionWords
     if (this.actionsAreVertical) words.push(VERTICAL)
@@ -227,7 +227,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   /** The toast itself:  icon, content (header, message, slot), close icon, inline actions. */
   private toast(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("toast")} role={this.type === ERROR ? "alert" : "status"}>
+      <div class={this.rootClass} part={this.partForName("toast")} role={this.type === ERROR ? "alert" : "status"}>
         <Show when={this.iconName !== undefined}>
           <span class={ICON_BOX_CLASS} part={this.partForName("icon")}>
             {this.iconGlyph.svg}
@@ -591,10 +591,13 @@ export class UIToast extends E.UIComponent<Vocabulary> {
 
   /**
    * A native button / link, or an element whose definition's noun is `button` (`<ui-button>`, translated too).
-   * - Static:  it reads only the element and the page-wide `UIComponent.definitions`.
+   * - Static:  it reads only the element and the page-wide `UIComponent.registry.definitions`.
    */
   private static isButton(element: Element): boolean {
-    return element.matches(BUTTONS) || E.UIComponent.definitions.get(element.localName)?.vocabulary.noun === UIT.BUTTON
+    return (
+      element.matches(BUTTONS) ||
+      E.UIComponent.registry.definitions.get(element.localName)?.vocabulary.noun === UIT.BUTTON
+    )
   }
 }
 

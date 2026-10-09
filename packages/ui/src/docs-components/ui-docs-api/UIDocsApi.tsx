@@ -122,7 +122,7 @@ export class UIDocsApi extends E.UIComponent<DocsApiVocabulary> {
 
   render(): JSX.Element {
     return (
-      <section class={this.rootClasses} part={this.partForName("api")}>
+      <section class={this.rootClass} part={this.partForName("api")}>
         <Show when={this.message}>
           {(message) => (
             <ui-message part={this.partForName("message")} state={message().state} size={SMALL}>

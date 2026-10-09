@@ -74,7 +74,7 @@ export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
   render(): JSX.Element {
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("reveal")}
         tabindex={this.isTabStop ? 0 : undefined}
         role={this.isTabStop ? "group" : undefined}

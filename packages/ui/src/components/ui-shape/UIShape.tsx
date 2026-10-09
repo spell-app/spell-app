@@ -124,7 +124,8 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   /** Child elements whose definition's noun is `side` (a `<ui-side>`, or a translated one). */
   private findSides(): E.DOMElement[] {
     return [...this.domElement.children].filter(
-      (child): child is E.DOMElement => E.UIComponent.definitions.get(child.localName)?.vocabulary.noun === SIDE
+      (child): child is E.DOMElement =>
+        E.UIComponent.registry.definitions.get(child.localName)?.vocabulary.noun === SIDE
     )
   }
 
@@ -211,7 +212,7 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   @E.state
   accessor isFlipping = false
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.isFlipping ? UIT.ANIMATING : undefined
   }
 
@@ -321,7 +322,7 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   render(): JSX.Element {
     if (this.rendersInlineOnServer) return this.inlineShape()
     return (
-      <div ref={(element) => (this.stage = element)} class={this.rootClasses} part={this.partForName("shape")}>
+      <div ref={(element) => (this.stage = element)} class={this.rootClass} part={this.partForName("shape")}>
         <div ref={(element) => (this.box = element)} class={SIDES} part={this.partForName("sides")} aria-live="polite">
           <slot />
         </div>
@@ -341,7 +342,7 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   /** `render()`'s markup as `<span>`s (`rendersInlineOnServer`). */
   private inlineShape(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("shape")}>
+      <span class={this.rootClass} part={this.partForName("shape")}>
         <span class={SIDES} part={this.partForName("sides")} aria-live="polite">
           <slot />
         </span>

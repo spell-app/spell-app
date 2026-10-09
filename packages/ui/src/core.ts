@@ -28,7 +28,8 @@
  *   its own file instead (WWOD §4 › "Circular imports"), and the order below puts each such file before its readers.
  *   `src/elements/barrel.test.ts` checks every export is live.
  * - NOTE: `solid-js` and `@solidjs/web` are NOT re-exported:  peer dependencies, external in the build
- *   (`vite.config.ts`).  The custom-element layer (`src/elements/solid-element/`) is `ui`'s own code, bundled here.
+ *   (`vite.config.ts`).  The custom-element layer is `ui`'s own code (`DOMElement`,
+ *   `UIComponent`, `ShadowEvents`), bundled here.
  * - NOTE: nothing here may `import * as` a Solid package:  a namespace keeps every export alive, which pins ALL of
  *   Solid into any bundle (and any vendored copy) that includes `core`.  The Solid host page's identity probe
  *   lives in that page (`tools/frameworks/solid/identity.js`).
@@ -62,9 +63,6 @@ export * from "$/ui/elements/LoadableComponent"
 export * from "$/ui/elements/SourceMarkup"
 export * from "$/ui/elements/LoadableBody"
 export * from "$/ui/elements/DOMLoadableBodyElement"
-// the lifecycle and form hooks a few components call (`E.onFormStateRestore()`):  until P2 of epic `spell-element`
-// makes them component methods
-export { onConnect, onDisconnect, onFormAssociated, onFormStateRestore } from "$/ui/elements/solid-element"
 
 /**
  * The package namespace (WWOD §4):  `import { E, UI, UIT } from "$/ui/core"`,

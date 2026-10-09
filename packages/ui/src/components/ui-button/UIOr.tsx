@@ -25,7 +25,7 @@ export class UIOr extends E.UIComponent<typeof orVocabulary> {
   render(): JSX.Element {
     return (
       <span
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("or")}
         data-text={this.text ?? this.translationForKey("or")}
       />

@@ -56,7 +56,7 @@ export class EpicField extends E.UIComponent<typeof epicFieldVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={[this.rootClasses, FIELD]} part={this.partForName("base")}>
+      <div class={[this.rootClass, FIELD]} part={this.partForName("base")}>
         <span class={ICON} part={this.partForName("icon")} aria-hidden="true">
           {this.glyph.svg}
         </span>

@@ -92,14 +92,14 @@ export class UITreeDiagram extends E.UIComponent<typeof treeDiagramVocabulary> {
    * - Reads `tree` itself, not just `drawnTree`:  so the classes follow EVERY write to it,
    *   as `ElementFixture.breakRender()` needs (the only attribute is a non-class one).
    */
-  protected override get extraClasses(): string | undefined {
+  protected override get extraClass(): string | undefined {
     return TreeData.node(this.tree) || this.scriptTree ? undefined : EMPTY
   }
 
   render(): JSX.Element {
     return (
       <svg
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("diagram")}
         role={this.layout ? "img" : undefined}
         aria-label={this.summary()}

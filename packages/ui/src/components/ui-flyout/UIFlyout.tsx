@@ -26,7 +26,7 @@ export class UIFlyout extends DialogComponent<Vocabulary> {
   @E.proto static overlayKind = "flyout" as const
 
   /** A word width (`thin`) goes after the noun (`UIT.WordWidthClasses`). */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return UIT.WordWidthClasses.classFor(this.width)
   }
 

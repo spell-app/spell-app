@@ -75,7 +75,7 @@ export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   render(): JSX.Element {
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("segment")}
         tabindex={this.scrolling ? 0 : undefined}
         style={this.inverted ? { [UIT.PartOwnerTokens.inverted]: INVERTED } : undefined}

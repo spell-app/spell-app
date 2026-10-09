@@ -36,7 +36,7 @@ export class UIBrandPhone extends UIComponent<typeof brandPhoneVocabulary> {
   render(): JSX.Element {
     return (
       <section
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("phone")}
         aria-label={this.name() || undefined}
         aria-busy={this.attrs.dimmed ? "true" : undefined}

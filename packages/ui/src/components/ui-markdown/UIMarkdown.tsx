@@ -134,7 +134,7 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
           hidden={this.editable && this.shownTab !== PREVIEW ? true : undefined}
         >
           <article
-            class={this.rootClasses}
+            class={this.rootClass}
             part={this.partForName("body")}
             onClick={this.onClick}
             ref={(body: HTMLElement) => {

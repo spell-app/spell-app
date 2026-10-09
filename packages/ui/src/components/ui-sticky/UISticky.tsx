@@ -142,7 +142,7 @@ export class UISticky extends E.UIComponent<StickyVocabulary> {
     const box = (
       <div
         ref={(element) => (this.box = element)}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("sticky")}
         style={this.boxStyle}
       >

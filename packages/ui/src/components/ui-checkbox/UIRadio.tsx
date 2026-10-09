@@ -33,23 +33,33 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
    * The group it's in, if named and connected;  tracked.
    * - Starts as the group found at construction (joined in the constructor), so the first render is final.
    * - Then written ONLY by `joinGroup()`, together with the membership, so readers never see one without the other.
-   * - `ownedWrite`:  `joinGroup()` runs from solid-element's hooks, possibly inside a Solid render.
+   * - `ownedWrite`:  `joinGroup()` runs from the lifecycle methods, possibly inside a Solid render.
    */
   @E.state({ ownedWrite: true }) accessor group: RadioGroup | undefined = this.findGroup()
 
   constructor(...args: ConstructorParameters<typeof CheckControl>) {
     super(...args)
     untrack(() => this.group)?.join(this)
-    const join = () => this.joinGroup()
-    E.onConnect(join)
-    E.onDisconnect(join)
-    E.onFormAssociated(join)
-    // `name` reads fresh here:  the DOM element's record has the new value before its callbacks run
+    // `name` reads fresh here:  the DOM element's `attributeValues` has the new value before its callbacks run
     this.domElement.addPropertyChangedCallback((key: string) => {
       if (key === NAME) this.joinGroup()
     })
     // disposal (`domElement.dispose()`):  out of the group, without publishing into a dying root
     onCleanup(() => untrack(() => this.group)?.leave(this))
+  }
+
+  onConnect() {
+    super.onConnect()
+    this.joinGroup()
+  }
+
+  onDisconnect() {
+    super.onDisconnect()
+    this.joinGroup()
+  }
+
+  onFormAssociated() {
+    this.joinGroup()
   }
 
   /**
@@ -142,7 +152,7 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIRadio extends E.AttributeValues<typeof radioVocabulary> {}
 
-/** The `name` prop's key, as solid-element's change callback reports it. */
+/** The `name` attribute's key, as the DOM element's change callbacks report it. */
 const NAME: E.AttributeName<typeof radioVocabulary> = "name"
 
 /** Keys that move to the next radio. */

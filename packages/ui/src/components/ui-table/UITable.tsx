@@ -82,9 +82,9 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
     }
     this.watchDOMElement()
     // stays explicit, a RENDER effect:  the class mirror is the element's main DOM binding, and a throw in its
-    // compute (the classes) must reach solid-element's error boundary -- a plain effect's error is only logged
+    // compute (the classes) must reach the element's error net -- a plain effect's error is only logged
     createRenderEffect(
-      () => [this.managedTable, this.rootClasses] as const,
+      () => [this.managedTable, this.rootClass] as const,
       ([table, classes]) => this.classMirror.apply(table, classes)
     )
     return content
@@ -128,7 +128,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
    * not a state of the DOM element:  `:state()` rules in the page sheet left WebKit with stale viewport media queries
    * on a later table.
    */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.stackBy ? `${STACK_BY_CLASS}${this.stackBy}` : undefined
   }
 
@@ -150,7 +150,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
     return this.authorTable ?? (this.isInDataMode ? this.dataTable : undefined)
   }
 
-  /** Mirrors `rootClasses` onto `managedTable`. */
+  /** Mirrors `rootClass` onto `managedTable`. */
   private readonly classMirror = new TableClassMirror()
 
   /**
@@ -206,7 +206,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
     untrack(() => {
       const table = this.authorTable
       if (!table) return
-      table.setAttribute("class", TableClassMirror.mirrored(table.getAttribute("class"), this.rootClasses))
+      table.setAttribute("class", TableClassMirror.mirrored(table.getAttribute("class"), this.rootClass))
       table.setAttribute(UIT.STATIC_ROOT, this.vocabulary.noun)
       const column = this.sortColumn
       const direction = this.effectiveSortDirection
@@ -263,7 +263,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
    * with the classes the mirror would write, and `aria-sort` on the sorted header.
    */
   private staticTable(): JSX.Element {
-    return <table class={this.rootClasses}>{this.headAndBody(this.effectiveSortDirection)}</table>
+    return <table class={this.rootClass}>{this.headAndBody(this.effectiveSortDirection)}</table>
   }
 
   /**

@@ -1,7 +1,5 @@
 import { createComponent, createRoot, untrack } from "solid-js"
 import { NoHydration, renderToString } from "@solidjs/web"
-import { createProps, type SolidElement } from "$/ui/elements/solid-element"
-import { ServerElement } from "$/ui/elements/solid-element/server"
 import { parseHTML } from "linkedom"
 
 import { E } from "$/ui/core"
@@ -129,7 +127,7 @@ export class StaticRender {
         html: renderToString(() =>
           createComponent(NoHydration, {
             get children() {
-              return ServerElement.run(domElement, () => domElement.component!.onMount())
+              return untrack(() => domElement.component!.onMount())
             }
           })
         )
@@ -143,12 +141,12 @@ export class StaticRender {
   }
 
   /** Stand-in DOM element + component for one element;  MUST run under the render's root. */
-  private static build(element: Element): { domElement: E.DOMElement & SolidElement; family: SSR.StaticFamily } {
+  private static build(element: Element): { domElement: E.DOMElement; family: SSR.StaticFamily } {
     const family = StaticRender.families.get(element.localName)!
     const { Class, definition } = family
     const domElement = SSR.ServerDOMElement.attach(element, definition)
-    const attrs = createProps(ServerElement.props(element, definition.props))
-    ServerElement.run(domElement, () => new Class(domElement, definition, attrs))
+    const attrs = E.UIComponent.attributeSignals({ ...domElement.attributeValues })
+    untrack(() => new Class(domElement, definition, attrs))
     return { domElement, family }
   }
 

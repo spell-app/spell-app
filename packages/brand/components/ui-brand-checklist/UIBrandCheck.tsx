@@ -25,7 +25,7 @@ import checkCSS from "./UIBrandCheck.css?inline"
  *
  * - `checked` is a property here, not a vocabulary attribute:  `el.checked = true` sets `el.selected` (which reflects).
  *   The `checked` ATTRIBUTE in markup is read by the component, as a native checkbox reads its own.
- * - solid-element refuses a DOM element member named like a prop:  `checked` is no prop.
+ * - `DOMElement` refuses a member named like an attribute's property:  `checked` is no prop.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMBrandCheckElement extends DOMElement {
@@ -125,7 +125,7 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
       queueMicrotask(() => this.selectedState.set(true))
     }
     // SIDE EFFECT:  owned, the DOM element is one item of the list;  the active step is the current one
-    this.domElementEffect(
+    this.addElementEffect(
       () => ({ owned: !!this.owner(), active: this.state() === ACTIVE && !this.isCheckable() }),
       ({ owned, active }) => {
         this.domElement.internals.role = owned ? "listitem" : null
@@ -139,7 +139,7 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
   ////////////////
 
   /** The state word, `checkable` and `serif`:  `check done checkable serif`. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return [this.state(), this.isCheckable() ? CHECKABLE : "", this.font() === SERIF ? SERIF : ""]
       .filter(Boolean)
       .join(" ")
@@ -182,7 +182,7 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
   /** A progress line:  the mark, the text and, done or active, what the mark means. */
   private renderLine(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("check")}>
+      <div class={this.rootClass} part={this.partForName("check")}>
         {this.renderMarker()}
         <span class="label" part={this.partForName("label")}>
           <slot />
@@ -200,7 +200,7 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
       <button
         type="button"
         role="checkbox"
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("check")}
         aria-checked={this.state() === DONE ? "true" : "false"}
         onClick={this.onToggle}

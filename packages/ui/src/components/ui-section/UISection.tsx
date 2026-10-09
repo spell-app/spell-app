@@ -406,7 +406,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
    * Words after the noun:  `scrolling` for `height` without it (`height` implies it);  `loading` while a `source`
    * body is slow to arrive (the `loading` look, over the placeholder).
    */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const scrolling = this.height && !this.scrolling ? SCROLLING : undefined
     const loading = !this.loading && this.body.isBusy ? LOADING : undefined
     return [scrolling, loading].filter(Boolean).join(" ") || undefined
@@ -420,7 +420,7 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
     this.watchTitle()
     return (
       <section
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("section")}
         aria-busy={this.isLoading ? "true" : undefined}
       >

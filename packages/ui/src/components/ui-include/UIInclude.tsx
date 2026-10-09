@@ -100,7 +100,7 @@ export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
    * Words after the noun, hooks for page CSS:  a deferred `load` mode (`ui include visible`:  e.g. reserve room for a
    * lazy island), and `loading` while `source` loads.
    */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const mode = this.load && this.load !== EAGER ? this.load : undefined
     const loading = this.loadStatus === E.SourceStatus.loading ? LOADING_CLASS : undefined
     return [mode, loading].filter(Boolean).join(" ") || undefined
@@ -114,7 +114,7 @@ export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
           <slot />
         </Show>
         <div
-          class={this.rootClasses}
+          class={this.rootClass}
           part={this.partForName("content")}
           hidden={!!this.pageStyles}
           ref={(box: HTMLDivElement) => {

@@ -106,7 +106,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   accessor value = this.selectedItemValues()
 
   /** The page's value to restore on a form reset (`undefined`:  back to the `selected` items). */
-  private readonly initialValue = this.isPageControlled("value") ? untrack(() => this.value) : undefined
+  private readonly initialValue = this.isControlledByPage("value") ? untrack(() => this.value) : undefined
 
   /** Chosen values, always as an array;  the same list while equal. */
   @E.derived({ equals: E.isSameList })
@@ -418,7 +418,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
     this.ids = { menu: UI.ids.next(ID_PREFIX), text: UI.ids.next(ID_PREFIX), anchor: `--${UI.ids.next(ID_PREFIX)}` }
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         style={{ [UIT.DROPDOWN_ANCHOR_PROPERTY]: this.ids.anchor }}
         onClick={this.onRootClick}
       >

@@ -19,7 +19,7 @@ import rangeCSS from "./UIBrandColorRange.css?inline"
  * - Worked out from the DOM element's CURRENT properties (`value`, `anchor`, `vibrancy`, `hueShift`, `name`),
  *   not the component's memo, so a read straight after a write sees the new ladder
  *   (Solid applies writes a microtask late).
- * - solid-element refuses a DOM element member named like a prop:  none of these is one.
+ * - `DOMElement` refuses a member named like an attribute's property:  none of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMBrandColorRangeElement extends DOMElement {
@@ -102,7 +102,7 @@ export class UIBrandColorRange extends UIComponent<BrandColorRangeVocabulary> {
   // ## Classes
   ////////////////
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return BRAND_COLOR
   }
 
@@ -134,7 +134,7 @@ export class UIBrandColorRange extends UIComponent<BrandColorRangeVocabulary> {
   /** The ladder:  17 chips, the number under each. */
   private renderLadder(): JSX.Element {
     return (
-      <ol class={this.rootClasses} part={this.partForName("range")} aria-label={this.ladderName()}>
+      <ol class={this.rootClass} part={this.partForName("range")} aria-label={this.ladderName()}>
         <For each={STEPS}>
           {(step) => (
             <li class={CLASSES.step} part={this.partForName("step")}>
@@ -163,7 +163,7 @@ export class UIBrandColorRange extends UIComponent<BrandColorRangeVocabulary> {
   /** The strip:  17 dots, one image. */
   private renderStrip(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("range")} role="img" aria-label={this.ladderName()}>
+      <span class={this.rootClass} part={this.partForName("range")} role="img" aria-label={this.ladderName()}>
         <For each={STEPS}>
           {(step) => <span class={CLASSES.dot} part={this.partForName("dot")} style={this.dotStyle(step)} />}
         </For>

@@ -35,7 +35,7 @@ export class UIDivider extends E.UIComponent<typeof dividerVocabulary> {
   render(): JSX.Element {
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         role={this.hidden ? "none" : "separator"}
         aria-orientation={this.vertical && !this.hidden ? "vertical" : undefined}
         part={this.partForName("divider")}

@@ -518,7 +518,7 @@ The rules are in `AGENTS.md`, "Solid authoring".
 - **Writes land on a microtask:**  tests `flush()` (`ElementFixture.settle()` / `tick()`).
 - **`keepAlive` has a cost:**  a removed element keeps its reactive root until `dispose()` or garbage collection;
   anything page-wide (overlay entries) must follow `isConnected`, not disposal.
-- **Dev diagnostics** flagged the `classes()` memo (now the `rootClasses` getter) as `WIDE_SCOPE_DEPS` (it reads every attribute);  the production
+- **Dev diagnostics** flagged the `classes()` memo (now the `rootClass` getter) as `WIDE_SCOPE_DEPS` (it reads every attribute);  the production
   build drops them.
 
 ## Hot module replacement

@@ -76,7 +76,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   constructor(...args: ConstructorParameters<typeof UIComponent>) {
     super(...args)
     // SIDE EFFECT:  the DOM element is the radio group while `selectable`
-    this.domElementEffect(
+    this.addElementEffect(
       () => this.attrs.selectable,
       (selectable) => {
         this.domElement.internals.role = selectable ? "radiogroup" : null
@@ -95,7 +95,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   ////////////////
 
   /** `color brand`, and `grid` with `columns`. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.columns() ? `${GRID} ${BRAND_COLOR}` : BRAND_COLOR
   }
 
@@ -121,7 +121,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("set")} style={this.layoutStyle()}>
+      <div class={this.rootClass} part={this.partForName("set")} style={this.layoutStyle()}>
         <slot />
       </div>
     )

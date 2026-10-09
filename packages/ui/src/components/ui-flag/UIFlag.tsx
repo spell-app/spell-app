@@ -45,14 +45,14 @@ export class UIFlag extends E.UIComponent<typeof flagVocabulary> {
   }
 
   /** The resolved code as a class word (Fomantic's `fr flag`), for a page's own CSS. */
-  protected override get extraClasses(): string | undefined {
+  protected override get extraClass(): string | undefined {
     return this.resolvedCountry.code || undefined
   }
 
   render(): JSX.Element {
     return (
       <span
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("flag")}
         role={this.accessibleName ? "img" : undefined}
         aria-label={this.accessibleName}

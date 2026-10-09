@@ -275,7 +275,7 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
   render(): JSX.Element {
     return (
       <section
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("tokens")}
         ref={(section: HTMLElement) => this.takeInnerEvents(section)}
       >
