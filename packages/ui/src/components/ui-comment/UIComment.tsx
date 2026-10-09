@@ -22,6 +22,7 @@ import commentCSS from "./UIComment.css?inline"
  *
  * - `disabled`:  `aria-disabled` on the article, which assistive tech (and axe) apply to what's inside.
  ****************/
+@E.cssStates("collapsed")
 export class UIComment extends E.UIComponent<typeof commentVocabulary> {
   @E.proto static vocabulary = commentVocabulary
   @E.protoMerged static elementSetup = {
@@ -39,12 +40,6 @@ export class UIComment extends E.UIComponent<typeof commentVocabulary> {
   @E.cssState("disabled")
   get isDisabled(): boolean {
     return this.disabled
-  }
-
-  /** Folded away:  its `collapsed` attribute. */
-  @E.cssState("collapsed")
-  get isCollapsed(): boolean {
-    return this.collapsed
   }
 
   render(): JSX.Element {

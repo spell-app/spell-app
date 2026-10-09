@@ -63,18 +63,10 @@ export class UIFeedEvent extends E.UIComponent<typeof eventVocabulary> {
     )
   }
 
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    const { internals } = this.domElement
-    // SIDE EFFECT:  a list item in a feed;
-    // a `addElementEffect()`, so a static server render gets the role too (its `<li>`).
-    // `null` is `internals.role`'s own "no role" (a platform boundary)
-    this.addElementEffect(
-      () => (this.context.owner ? "listitem" : null),
-      (role) => {
-        internals.role = role
-      }
-    )
+  /** A list item in a feed;  a server render (`$/ui/static`) applies it too, so the event becomes an `<li>`. */
+  @E.aria("role")
+  protected get ariaRole(): string | undefined {
+    return this.context.owner ? "listitem" : undefined
   }
 
   /** `disabled`.  `:state(disabled)`. */

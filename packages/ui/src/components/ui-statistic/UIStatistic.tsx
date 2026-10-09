@@ -26,6 +26,7 @@ import statisticCSS from "./UIStatistic.css?inline"
  * - No role:  a statistic is text;  the page names a group of them where it matters
  *   (a heading, `aria-label` on a region).
  ****************/
+@E.cssStates("inverted")
 export class UIStatistic extends E.UIComponent<typeof statisticVocabulary> {
   @E.proto static vocabulary = statisticVocabulary
   @E.protoMerged static elementSetup = {
@@ -37,12 +38,6 @@ export class UIStatistic extends E.UIComponent<typeof statisticVocabulary> {
   @E.cssState("statistic")
   get isStatistic(): boolean {
     return true
-  }
-
-  /** For a dark background (`inverted`)? */
-  @E.cssState("inverted")
-  get isInverted(): boolean {
-    return this.inverted
   }
 
   render(): JSX.Element {

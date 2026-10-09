@@ -82,24 +82,24 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
   // ## Disabled and loading
   ////////////////
 
+  /** `disabled`, as `:state(disabled)` and `aria-disabled`. */
   @E.cssState("disabled")
+  @E.aria("ariaDisabled")
   get isDisabled(): boolean {
     return this.disabled
   }
 
-  /** `loading`, as `:state(loading)`. */
+  /** `loading`, as `:state(loading)` and `aria-busy`. */
   @E.cssState("loading")
+  @E.aria("ariaBusy")
   get isLoading(): boolean {
     return this.loading
   }
 
-  /** A list item in a group;  busy / disabled for assistive tech. */
-  @E.onChange("group", "loading", "disabled", { writesDOMElement: true })
-  protected onAriaChanged(group: UICards | undefined, isLoading: boolean, isDisabled: boolean) {
-    const { internals } = this.domElement
-    internals.role = group ? "listitem" : null
-    internals.ariaBusy = isLoading ? "true" : null
-    internals.ariaDisabled = isDisabled ? "true" : null
+  /** A list item in a group. */
+  @E.aria("role")
+  protected get ariaRole(): string | undefined {
+    return this.group ? "listitem" : undefined
   }
 
   ////////////////

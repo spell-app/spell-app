@@ -15,6 +15,8 @@ import formCSS from "./UIForm.css?inline"
  *   its share of the width (`widths`), the gutter and its state as inherited tokens (`UIForm.css`).
  * - `disabled` makes the root `inert`.
  ****************/
+// `disabled` is only a look, not `isDisabled`:  the element still takes clicks
+@E.cssStates("disabled")
 export class UIFields extends E.UIComponent<typeof fieldsVocabulary> {
   @E.proto static vocabulary = fieldsVocabulary
   @E.protoMerged static elementSetup = {
@@ -44,15 +46,6 @@ export class UIFields extends E.UIComponent<typeof fieldsVocabulary> {
   @E.cssState("warning")
   get isWarning(): boolean {
     return this.state === WARNING
-  }
-
-  /**
-   * `:state(disabled)` while `disabled`:  the root is `inert`.
-   * - Not an `isDisabled` override:  that would make the DOM element swallow clicks too.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return this.disabled
   }
 
   render(): JSX.Element {

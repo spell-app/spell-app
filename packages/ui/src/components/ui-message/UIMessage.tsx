@@ -28,6 +28,7 @@ import messageCSS from "./UIMessage.css?inline"
  *
  * - No role:  a message inserted to announce something gets `role="status"` or `alert` from the page.
  ****************/
+@E.cssStates("inverted")
 export class UIMessage extends E.UIComponent<typeof messageVocabulary> {
   @E.proto static vocabulary = messageVocabulary
   @E.protoMerged static elementSetup = { styleSheets: { message: messageCSS } } satisfies Partial<E.ElementSetup>
@@ -52,12 +53,6 @@ export class UIMessage extends E.UIComponent<typeof messageVocabulary> {
   /** The `icon` class before the noun while it shows an icon:  the sheet's icon layout. */
   protected get extraClass(): string | undefined {
     return this.hasIcon ? UIT.ICON_CLASS : undefined
-  }
-
-  /** For dark backgrounds?  `:state(inverted)`. */
-  @E.cssState("inverted")
-  get isInverted(): boolean {
-    return this.inverted
   }
 
   ////////////////

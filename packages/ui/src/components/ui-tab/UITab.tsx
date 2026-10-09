@@ -54,12 +54,23 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
   /** `tabindex` this element put on the DOM element (so it only removes its own). */
   private tabIndexIsOurs = false
 
-  /** Owned:  the DOM element is a `tabpanel` and a Tab stop (unless the page set a `tabindex`);  alone, neither. */
+  /** Owned:  the DOM element is a `tabpanel`;  alone, no role. */
+  @E.aria("role")
+  protected get ariaRole(): string | undefined {
+    return this.owner ? "tabpanel" : undefined
+  }
+
+  /** Owned:  the DOM element is named by its `label`, else its `value`;  alone, unnamed. */
+  @E.aria("ariaLabel")
+  protected get accessibleName(): string | undefined {
+    return this.owner ? (this.label ?? this.value) : undefined
+  }
+
+  /** Owned:  the DOM element is a Tab stop (unless the page set a `tabindex`);  alone, not. */
   @E.onChange("owner", { writesDOMElement: true })
   protected onOwnerChanged(owner: TabOwner | undefined) {
     const { domElement } = this
     const owned = !!owner
-    domElement.internals.role = owned ? "tabpanel" : null
     if (owned && !domElement.hasAttribute("tabindex")) {
       domElement.tabIndex = 0
       this.tabIndexIsOurs = true
@@ -67,12 +78,6 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
       domElement.removeAttribute("tabindex")
       this.tabIndexIsOurs = false
     }
-  }
-
-  /** Owned:  the DOM element is named by its `label`, else its `value`;  alone, unnamed. */
-  @E.onChange("owner", "label", "value", { writesDOMElement: true })
-  protected onLabelChanged(owner: TabOwner | undefined, label: string | undefined, value: string | undefined) {
-    this.domElement.internals.ariaLabel = (owner ? (label ?? value) : undefined) ?? null
   }
 
   ////////////////

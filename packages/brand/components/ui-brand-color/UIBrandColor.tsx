@@ -3,6 +3,7 @@ import type { JSX } from "@solidjs/web"
 
 import {
   after,
+  aria,
   Cell,
   DOMElement,
   IconGlyph,
@@ -170,18 +171,28 @@ export class UIBrandColor extends UIComponent<BrandColorVocabulary> {
     }
   })
 
-  constructor(...args: ConstructorParameters<typeof UIComponent>) {
-    super(...args)
-    // SIDE EFFECT:  a choice's DOM element is the radio:  its role, checked state and name, through internals
-    this.addElementEffect(
-      () => (this.isChoice() ? { checked: this.selected, label: this.accessibleName() } : undefined),
-      (choice) => {
-        const { internals } = this.domElement
-        internals.role = choice ? "radio" : null
-        internals.ariaChecked = choice ? String(choice.checked) : null
-        internals.ariaLabel = choice ? choice.label : null
-      }
-    )
+  ////////////////
+  // ## A choice's ARIA
+  //
+  // A choice's DOM element is the radio:  its role, checked state and name, through internals.
+  ////////////////
+
+  /** `radio` while a choice. */
+  @aria("role")
+  protected get ariaRole(): string | undefined {
+    return this.isChoice() ? "radio" : undefined
+  }
+
+  /** `"true"` / `"false"` while a choice:  a radio's "not checked" is spoken. */
+  @aria("ariaChecked")
+  protected get checkedText(): string | undefined {
+    return this.isChoice() ? String(this.selected) : undefined
+  }
+
+  /** The chip's name, while a choice. */
+  @aria("ariaLabel")
+  protected get choiceName(): string | undefined {
+    return this.isChoice() ? this.accessibleName() : undefined
   }
 
   ////////////////

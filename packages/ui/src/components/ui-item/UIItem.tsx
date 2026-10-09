@@ -74,9 +74,9 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
   }
 
   /** The DOM element's role follows the owner (`listitem` in a list). */
-  @E.onChange("itemContext", { writesDOMElement: true })
-  protected onItemContextChanged(context: UIT.ItemContext | undefined) {
-    this.domElement.internals.role = context?.domElementRole ?? null
+  @E.aria("role")
+  protected get ariaRole(): string | undefined {
+    return this.itemContext?.domElementRole
   }
 
   /**

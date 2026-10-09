@@ -51,6 +51,7 @@ function isSameContext(a: UIT.ItemContext, b: UIT.ItemContext): boolean {
  *   - A menu never moves `selected` itself, EXCEPT a `segmented` one (a single-choice control):
  *     it selects the activated item and unselects the rest, unless a listener cancels the `ui-select`.
  ****************/
+@E.cssStates("vertical")
 export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.ItemOwner {
   @E.proto static vocabulary = menuVocabulary
   @E.protoMerged static elementSetup = {
@@ -166,12 +167,6 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
   /** The menubar is live:  top-level, `interactive`, rendered. */
   get isMenubar(): boolean {
     return !this.parentMenu && this.interactive && this.isReady
-  }
-
-  /** `vertical`?  `:state(vertical)`. */
-  @E.cssState("vertical")
-  get isVertical(): boolean {
-    return this.vertical
   }
 
   /** The menubar's arrow-key axis:  `vertical` menus go up and down. */
