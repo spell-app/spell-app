@@ -557,11 +557,24 @@ export type FallbackClass = {
 }
 
 /**
- * How a class's custom element is set up:  `UIComponent.elementSetup`, merged down the class chain.
+ * How a class's custom element is set up:  `UIComponent.elementSetup`, merged down the class chain (`@protoMerged`).
  * - Read once, when the tag is defined,
- *   except `isAFormControl` and `canRenderUnstyled`, which each element reads as it's built.
+ *   except `styleSheets`, `isAFormControl` and `canRenderUnstyled`, which each element reads as it's built.
  */
 export type ElementSetup = {
+  /**
+   * The component's own style sheets, as `name => CSS text`, in order:  `{ button: buttonCSS }`.
+   * - Default none.
+   * - Every element of the class uses the same sheets:
+   *   registered with the runtime (`UI.styles`) once per class,
+   *   then adopted into each element's shadow root, after the shared foundation sheets.
+   * - A subclass's REPLACE its base's whole (keys merge one level deep only);
+   *   spread the base's to add to them:
+   *   `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
+   * - Which of them apply right now:  `UIComponent.styleSheetNames`.
+   */
+  styleSheets: Readonly<Record<string, string>>
+
   /**
    * Does this element act as a control in an HTML `<form>`?
    * - If so, browser treats the element like an `<input>`:

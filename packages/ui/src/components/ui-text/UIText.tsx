@@ -15,8 +15,10 @@ import textCSS from "./UIText.css?inline"
  ****************/
 export class UIText extends E.UIComponent<typeof textVocabulary> {
   @E.proto static vocabulary = textVocabulary
-  @E.proto static styleSheets = { text: textCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { text: textCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /**
    * `disabled`:  `:state(disabled)`, for page styling only.

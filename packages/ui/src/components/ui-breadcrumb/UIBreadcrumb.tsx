@@ -27,8 +27,10 @@ import breadcrumbCSS from "./UIBreadcrumb.css?inline"
  ****************/
 export class UIBreadcrumb extends E.UIComponent<typeof breadcrumbVocabulary> {
   @E.proto static vocabulary = breadcrumbVocabulary
-  @E.proto static styleSheets = { breadcrumb: breadcrumbCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { breadcrumb: breadcrumbCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (

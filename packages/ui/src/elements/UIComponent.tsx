@@ -15,7 +15,7 @@ import {
 import { insert, isServer, type JSX } from "@solidjs/web"
 
 // Import directly to avoid circular import
-import { proto } from "$/ui/util"
+import { protoMerged } from "$/ui/util"
 import { E, UI } from "$/ui/core"
 // Import directly to avoid circular import
 import { DOMElement, type TagSetup } from "./DOMElement"
@@ -89,7 +89,7 @@ import { ShadowEvents } from "./ShadowEvents"
  *
  * - Subclasses fill in *Hooks* and set what's marked "Class setting:" with `@proto static`.
  *   It's all documented here once, so an override that only fills it in needs no docstring of its own.
- *   - Most settings are keys of ONE object, `elementSetup`:
+ *   - Most settings are keys of ONE object, `elementSetup` (style sheets included), set with `@protoMerged static`:
  *     a subclass states only the keys it changes (`{ delegatesFocus: false }`).
  ****************/
 export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentVocabulary> {
@@ -221,7 +221,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
       },
       { defer: true }
     )
-    const { canRenderUnstyled } = this.setup
+    const { canRenderUnstyled } = this.elementSetup
     // `untrack`:  `<Show>` evaluates its children in a TRACKED computation, so a reactive read in `render()`'s body
     // (outside its JSX) would run it again and rebuild the whole view;  it runs ONCE
     return <Show when={canRenderUnstyled || this.isReady}>{untrack(() => this.render())}</Show>
@@ -277,19 +277,23 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   ////////////////
 
   /**
-   * Class setting:  how the class's custom element is set up, as ONE object (`ElementSetup` documents each key).
+   * Class setting:  how the class's custom element is set up, as ONE object (`ElementSetup` documents each key):
+   * its style sheets, form control, focus, slots, part, DOM element class, fallback, unstyled first paint.
    * - A subclass states only the keys it changes:
-   *   `@E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>`
+   *   `@E.protoMerged static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>`
    *   (`satisfies`, so a misspelt key fails TypeScript).
-   * - The keys merge down the class chain, base class first:
+   * - The keys merge down the class chain, base class first (`@protoMerged`):
    *   `CheckControl`'s `{ DOMElement: DOMCheckElement }` keeps the `{ isAFormControl: true }` of `FormComponent`.
-   * - So `elementSetup` itself is only what ONE class states:
-   *   read the merged result through `setup` (or `UIComponent.setupFor(Class)`).
-   * - `vocabulary` and `styleSheets` stay settings of their own:
-   *   a subclass's `styleSheets` REPLACE its base's, they don't merge.
+   * - So `this.elementSetup` (and `Class.prototype.elementSetup`) is the MERGED result;
+   *   the static `Class.elementSetup` is only what that one class stated.
+   * - Merged key by key:  a key a subclass states replaces its base's whole,
+   *   so a subclass's `styleSheets` replace its base's;  spread the base's to add to them
+   *   (`styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`).
+   * - `vocabulary` stays a setting of its own.
    */
-  declare elementSetup: Partial<E.ElementSetup>
-  @proto static elementSetup: Partial<E.ElementSetup> = {
+  declare elementSetup: E.ElementSetup
+  @protoMerged static elementSetup: Partial<E.ElementSetup> = {
+    styleSheets: {},
     isAFormControl: false,
     delegatesFocus: true,
     slotAssignment: "named",
@@ -298,36 +302,6 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     Fallback: undefined,
     canRenderUnstyled: false
   }
-
-  /** This element's `elementSetup`, merged down its class chain (`UIComponent.setupFor()`). */
-  protected get setup(): E.ElementSetup {
-    return UIComponent.setupFor(this.constructor)
-  }
-
-  /**
-   * The `elementSetup` of `Class`, merged down its class chain.
-   * - Each class's own keys, base class first, so a subclass's keys win.
-   * - `@proto` puts a class's `elementSetup` on its PROTOTYPE:
-   *   a prototype's OWN `elementSetup` is what that class stated.
-   * - Worked out once per class, then kept (`setups`).
-   */
-  static setupFor(Class: { prototype: UIComponent<any> }): E.ElementSetup {
-    let setup = UIComponent.setups.get(Class)
-    if (setup) return setup
-    const stated: Partial<E.ElementSetup>[] = []
-    for (let prototype = Class.prototype; prototype; prototype = Object.getPrototypeOf(prototype)) {
-      if (Object.hasOwn(prototype, "elementSetup")) stated.unshift(prototype.elementSetup)
-    }
-    setup = Object.assign({}, ...stated) as E.ElementSetup
-    UIComponent.setups.set(Class, setup)
-    return setup
-  }
-
-  /**
-   * Each class's merged `elementSetup`, worked out once (`setupFor()`).
-   * - For the whole page, like `registry.definitions`.
-   */
-  private static readonly setups = new WeakMap<object, E.ElementSetup>()
 
   ////////////////
   // ## AppContext
@@ -448,34 +422,24 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   ////////////////
   // ## StyleSheets
+  //
+  // The component's own sheets are a key of its setup, `elementSetup.styleSheets` (`ElementSetup` documents it).
   ////////////////
 
   /**
-   * Class setting:  the component's own style sheets, as `name => CSS text`, in order:  `{ button: buttonCSS }`.
-   * - Default none.
-   * - Every element of the class uses the same sheets:
-   *   registered with the runtime (`UI.styles`) once per class,
-   *   then adopted into each element's shadow root, after the shared foundation sheets.
-   * - Which of them apply right now:  `styleSheetNames`.
-   */
-  declare styleSheets: Readonly<Record<string, string>>
-  @proto static styleSheets: Readonly<Record<string, string>> = {}
-
-  /**
-   * Hook:  the names of the `styleSheets` to adopt right now, in order.
+   * Hook:  the names of the `elementSetup.styleSheets` to adopt right now, in order.
    * - Default:  all of them.
    * - Override it when the sheets depend on where the element sits:
    *   a `<ui-label>` inside a `<ui-statistic>` adds `UIParts.css`.  The shadow root re-adopts when it changes.
    * - The server render reads it too, to scope each sheet to the elements that use it.
    */
   get styleSheetNames(): string[] {
-    return Object.keys(this.styleSheets)
+    return Object.keys(this.elementSetup.styleSheets)
   }
 
   /** Register this class's sheets with the runtime (the ones it doesn't have yet), then adopt them into the shadow root. */
   private adoptStyleSheets() {
-    // so this would be `UI.styles.register(this.stylesheets)`
-    UI.styles.registerOnce(this.styleSheets)
+    UI.styles.registerOnce(this.elementSetup.styleSheets)
     UI.styles.adoptInto(
       this.domElement.renderRoot,
       untrack(() => this.styleSheetNames)
@@ -851,7 +815,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     // record it, make the tag's own DOM element class on `elementSetup.DOMElement`, and define it (DOM API)
     UIComponent.register.call(this, definition)
     const Class = DOMElement.subclassForTag(
-      UIComponent.setupFor(this).DOMElement,
+      this.prototype.elementSetup.DOMElement,
       UIComponent.tagSetupFor(this, definition)
     )
     customElements.define(definition.tag, Class)
@@ -863,7 +827,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * its definition, shadow root options, whether it's a form control, and how to build its component.
    */
   static tagSetupFor(Class: E.UIComponentClass, definition: E.ElementDefinition): TagSetup {
-    const { delegatesFocus, slotAssignment, isAFormControl, Fallback } = UIComponent.setupFor(Class)
+    const { delegatesFocus, slotAssignment, isAFormControl, Fallback } = Class.prototype.elementSetup
     return {
       elementDefinition: definition,
       shadowRootInit: { mode: "open", delegatesFocus, slotAssignment },
@@ -885,7 +849,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     E.PartContext.define({
       vocabulary,
       tag: definition.tag,
-      isAPart: UIComponent.setupFor(this).isAPart,
+      isAPart: this.prototype.elementSetup.isAPart,
       isConditionalOwner: "isOwnerOf" in this.prototype
     })
     // Hand the vocabulary to the runtime (`UI.vocabulary`), and its English texts to `UI.i18n`:

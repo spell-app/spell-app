@@ -5,6 +5,7 @@ import {
   DOMElement,
   IconGlyph,
   proto,
+  protoMerged,
   SlotContent,
   state,
   UIComponent,
@@ -69,8 +70,8 @@ export class DOMBrandFieldElement extends DOMElement {
  ****************/
 export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   @proto static vocabulary = brandFieldVocabulary
-  @proto static styleSheets = { field: fieldCSS }
-  @proto static elementSetup = {
+  @protoMerged static elementSetup = {
+    styleSheets: { field: fieldCSS },
     DOMElement: DOMBrandFieldElement,
     delegatesFocus: false
   } satisfies Partial<ElementSetup>

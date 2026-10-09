@@ -40,8 +40,8 @@ import dimmablePageCSS from "./UIDimmer.page.css?inline"
  ****************/
 export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
   @E.proto static vocabulary = dimmerVocabulary
-  @E.proto static styleSheets = { dimmer: dimmerCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { dimmer: dimmerCSS },
     // a click on the dimmer must not jump focus into its content
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

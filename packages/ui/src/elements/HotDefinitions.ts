@@ -92,7 +92,7 @@ export class HotDefinitions {
   static redefine(TagClass: E.DOMElementClass, Next: E.UIComponentClass, definition: E.ElementDefinition) {
     E.UIComponent.register.call(Next, definition)
     const next = E.UIComponent.tagSetupFor(Next, definition)
-    const reason = HotDefinitions.changeOf(TagClass, E.UIComponent.setupFor(Next).DOMElement, next)
+    const reason = HotDefinitions.changeOf(TagClass, Next.prototype.elementSetup.DOMElement, next)
     if (reason) {
       HotDefinitions.pending.refused.push({ tag: definition.tag, reason })
       return
@@ -159,7 +159,7 @@ export class HotDefinitions {
   /**
    * A component sheet's `?inline` CSS changed:  re-register it by name (`UIButton.css` => `button`).
    * - The name is the file's, without `UI`, in kebab-case (`UITreeDiagram.css` => `tree-diagram`):
-   *   elements register their sheets by that bare name (`@proto static styleSheets = { button: buttonCSS }`).
+   *   elements register their sheets by that bare name (`elementSetup = { styleSheets: { button: buttonCSS } }`).
    * - A second sheet (`UIDimmer.page.css`) or a sheet registered under another name isn't matched:
    *   an edit to it shows after a page reload.
    * - `Styles.register()` replaces the rules of the sheet every shadow root already adopted:  no re-render.

@@ -2,7 +2,7 @@ import { onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 // Import directly to avoid circular import
-import { proto } from "$/ui/util"
+import { proto, protoMerged } from "$/ui/util"
 import { E, UI, type UIT } from "$/ui/core"
 // Import directly to avoid circular import
 import { UIComponent } from "./UIComponent"
@@ -42,7 +42,7 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
    */
   declare wantsInlineContent: boolean
 
-  @proto static elementSetup: Partial<E.ElementSetup> = {
+  @protoMerged static elementSetup: Partial<E.ElementSetup> = {
     // with the script API (`content`, `save()`, `loaded` ...)
     DOMElement: DOMLoadableElement
   }

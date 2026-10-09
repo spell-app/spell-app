@@ -57,8 +57,8 @@ export class DOMRatingElement extends F.DOMFormControl {
  ****************/
 export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   @E.proto static vocabulary = ratingVocabulary
-  @E.proto static styleSheets = { rating: ratingCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { rating: ratingCSS },
     Fallback: RatingFallback,
     DOMElement: DOMRatingElement
   } satisfies Partial<E.ElementSetup>

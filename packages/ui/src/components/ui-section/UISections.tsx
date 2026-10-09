@@ -24,7 +24,7 @@ import sectionCSS from "./UISection.css?inline"
  ****************/
 export class UISections extends E.UIComponent<typeof sectionsVocabulary> {
   @E.proto static vocabulary = sectionsVocabulary
-  @E.proto static styleSheets = { section: sectionCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { section: sectionCSS } } satisfies Partial<E.ElementSetup>
 
   /** Enclosing section or group (`:state(in-section)` / `:state(in-sections)`);  climbs through any component. */
   readonly context = new E.PartContext({

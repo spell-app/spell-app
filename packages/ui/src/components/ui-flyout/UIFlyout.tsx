@@ -21,7 +21,7 @@ import flyoutCSS from "./UIFlyout.css?inline"
  ****************/
 export class UIFlyout extends DialogComponent<Vocabulary> {
   @E.proto static vocabulary = flyoutVocabulary
-  @E.proto static styleSheets = { flyout: flyoutCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { flyout: flyoutCSS } } satisfies Partial<E.ElementSetup>
   @E.proto static rootPart = "flyout"
   @E.proto static overlayKind = "flyout" as const
 

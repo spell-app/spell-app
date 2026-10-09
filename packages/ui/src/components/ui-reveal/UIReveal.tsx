@@ -24,7 +24,7 @@ import revealCSS from "./UIReveal.css?inline"
  ****************/
 export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
   @E.proto static vocabulary = revealVocabulary
-  @E.proto static styleSheets = { reveal: revealCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { reveal: revealCSS } } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)

@@ -24,7 +24,7 @@ import breadcrumbCSS from "./UIBreadcrumb.css?inline"
  ****************/
 export class UIBreadcrumbSection extends E.UIComponent<typeof breadcrumbSectionVocabulary> {
   @E.proto static vocabulary = breadcrumbSectionVocabulary
-  @E.proto static styleSheets = { breadcrumb: breadcrumbCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { breadcrumb: breadcrumbCSS } } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)

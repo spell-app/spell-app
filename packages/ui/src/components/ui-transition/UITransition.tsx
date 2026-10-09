@@ -81,8 +81,8 @@ export class DOMTransitionElement extends E.DOMElement {
  ****************/
 export class UITransition extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = transitionVocabulary
-  @E.proto static styleSheets = { transition: transitionCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { transition: transitionCSS },
     DOMElement: DOMTransitionElement,
     // a click on animated text must not jump focus to a link inside it
     delegatesFocus: false

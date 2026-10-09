@@ -1,7 +1,7 @@
 import { createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIComponent, type ElementSetup } from "$/ui/core"
+import { Cell, proto, protoMerged, UIComponent, type ElementSetup } from "$/ui/core"
 
 import { brandFlourishVocabulary } from "./UIBrandFlourish.en"
 import { Flourish } from "./Flourish"
@@ -32,8 +32,10 @@ import flourishCSS from "./UIBrandFlourish.css?inline"
  ****************/
 export class UIBrandFlourish extends UIComponent<BrandFlourishVocabulary> {
   @proto static vocabulary = brandFlourishVocabulary
-  @proto static styleSheets = { flourish: flourishCSS }
-  @proto static elementSetup = { delegatesFocus: false } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { flourish: flourishCSS },
+    delegatesFocus: false
+  } satisfies Partial<ElementSetup>
 
   /** The element's size, px, as last measured. */
   readonly size = new Cell<{ width: number; height: number }>(FALLBACK_SIZE)

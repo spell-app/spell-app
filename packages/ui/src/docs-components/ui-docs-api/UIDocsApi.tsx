@@ -42,8 +42,10 @@ import apiCSS from "./UIDocsApi.css?inline"
  ****************/
 export class UIDocsApi extends E.UIComponent<DocsApiVocabulary> {
   @E.proto static vocabulary = docsApiVocabulary
-  @E.proto static styleSheets = { table: tableCSS, "docs-api": apiCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { table: tableCSS, "docs-api": apiCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The data

@@ -20,7 +20,7 @@ import fieldCSS from "./EpicField.css?inline"
  ****************/
 export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
   @E.proto static vocabulary = epicUpdatedVocabulary
-  @E.proto static styleSheets = { "epic-field": fieldCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { "epic-field": fieldCSS } } satisfies Partial<E.ElementSetup>
 
   /** Its icon. */
   readonly glyph = new E.IconGlyph({ owner: this, name: () => "pen to square" })

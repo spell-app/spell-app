@@ -7,6 +7,7 @@ import { proto, kebabCase, closestAcrossShadow } from "$/util"
 ```
 
 - `@proto` -- standard decorator that sets a class default on the prototype, so instances carry no copies
+- `@protoMerged` -- `@proto` for a settings object whose keys merge down the class chain (`ui`'s `elementSetup`)
 - `hasOwnProp` ... -- class helpers
 - `kebabCase`, `camelCase`, `numberToWord`, `suggest` -- strings
 - `closestAcrossShadow`, `isBrowser`, `nextFrame`, `whenDefined` -- DOM

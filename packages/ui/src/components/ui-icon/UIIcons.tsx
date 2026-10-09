@@ -17,7 +17,7 @@ import iconCSS from "./UIIcon.css?inline"
  ****************/
 export class UIIcons extends E.UIComponent<typeof iconsVocabulary> {
   @E.proto static vocabulary = iconsVocabulary
-  @E.proto static styleSheets = { icon: iconCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { icon: iconCSS } } satisfies Partial<E.ElementSetup>
 
   /** SIDE EFFECT:  the element's accessible name follows `label`. */
   @E.onChange("label", { writesDOMElement: true })

@@ -43,7 +43,9 @@ function isSameNouns(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
  ****************/
 export class UICard extends E.UIComponent<typeof cardVocabulary> {
   @E.proto static vocabulary = cardVocabulary
-  @E.proto static styleSheets = { card: cardCSS, ...E.PartComponent.styleSheets }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { card: cardCSS, ...E.PartComponent.prototype.elementSetup.styleSheets }
+  } satisfies Partial<E.ElementSetup>
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     if (isServer) return

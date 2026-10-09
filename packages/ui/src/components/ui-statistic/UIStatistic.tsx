@@ -20,7 +20,7 @@ import statisticCSS from "./UIStatistic.css?inline"
  * - The shorthands are the SAME parts, drawn in this shadow root:
  *   `<div class="value in-statistic">` and `<div class="label in-statistic">`,
  *   the static part classes `UIParts.css` keys on (they ARE children of this root),
- *   which is why this component adopts `UIParts.css` too (`E.PartComponent.styleSheets`).
+ *   which is why this component adopts `UIParts.css` too (`E.PartComponent`'s `elementSetup.styleSheets`).
  *   `text` makes the value shorthand a word value.
  *
  * - No role:  a statistic is text;  the page names a group of them where it matters
@@ -28,8 +28,10 @@ import statisticCSS from "./UIStatistic.css?inline"
  ****************/
 export class UIStatistic extends E.UIComponent<typeof statisticVocabulary> {
   @E.proto static vocabulary = statisticVocabulary
-  @E.proto static styleSheets = { statistic: statisticCSS, ...E.PartComponent.styleSheets }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { statistic: statisticCSS, ...E.PartComponent.prototype.elementSetup.styleSheets },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Always `:state(statistic)`. */
   @E.cssState("statistic")

@@ -35,7 +35,9 @@ import panelCSS from "./UIPanel.css?inline"
 export class UIPanel extends UISection {
   // the section's names under the panel's tag:  same shape, but TypeScript only knows the section's literals
   @E.proto static vocabulary = panelVocabulary as unknown as SectionVocabulary
-  @E.proto static styleSheets = { ...UISection.styleSheets, panel: panelCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }
+  } satisfies Partial<E.ElementSetup>
   // the band's chevron at its far end, after any actions (`fold-icon="start"` moves it back)
   @E.proto static defaultFoldIcon = FoldIconPlace.end
 

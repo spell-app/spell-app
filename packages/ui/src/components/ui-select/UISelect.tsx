@@ -36,8 +36,10 @@ import selectCSS from "./UISelect.css?inline"
  ****************/
 export class UISelect extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = selectVocabulary
-  @E.proto static styleSheets = { select: selectCSS }
-  @E.proto static elementSetup = { Fallback: SelectFallback } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { select: selectCSS },
+    Fallback: SelectFallback
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Options

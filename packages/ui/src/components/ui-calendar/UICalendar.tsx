@@ -58,8 +58,10 @@ import calendarCSS from "./UICalendar.css?inline"
  ****************/
 export class UICalendar extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = calendarVocabulary
-  @E.proto static styleSheets = { input: inputCSS, calendar: calendarCSS }
-  @E.proto static elementSetup = { Fallback: CalendarFallback } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { input: inputCSS, calendar: calendarCSS },
+    Fallback: CalendarFallback
+  } satisfies Partial<E.ElementSetup>
 
   /** The DOM element's `<label>`s and `aria-label`, as the field's name. */
   readonly labels = new F.ControlLabels(this.domFormElement)

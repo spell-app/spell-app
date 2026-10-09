@@ -85,8 +85,8 @@ import reviewCSS from "./ReviewControls.css?inline"
  ****************/
 export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   @E.proto static vocabulary = epicItemVocabulary
-  @E.proto static styleSheets = { item: itemCSS, review: reviewCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { item: itemCSS, review: reviewCSS },
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false

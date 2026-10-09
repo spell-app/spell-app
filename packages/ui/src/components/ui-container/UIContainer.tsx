@@ -14,7 +14,7 @@ import containerCSS from "./UIContainer.css?inline"
  ****************/
 export class UIContainer extends E.UIComponent<typeof containerVocabulary> {
   @E.proto static vocabulary = containerVocabulary
-  @E.proto static styleSheets = { container: containerCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { container: containerCSS } } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (

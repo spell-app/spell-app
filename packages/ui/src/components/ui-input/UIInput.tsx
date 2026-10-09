@@ -25,8 +25,10 @@ import inputCSS from "./UIInput.css?inline"
  ****************/
 export class UIInput extends TextControl<Vocabulary> {
   @E.proto static vocabulary = inputVocabulary
-  @E.proto static styleSheets = { label: labelCSS, input: inputCSS }
-  @E.proto static elementSetup = { Fallback: InputFallback } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { label: labelCSS, input: inputCSS },
+    Fallback: InputFallback
+  } satisfies Partial<E.ElementSetup>
 
   /** Which slots have light-DOM children (`label`, `action`, `icon`). */
   readonly slots = new E.SlotContent(this.domElement)

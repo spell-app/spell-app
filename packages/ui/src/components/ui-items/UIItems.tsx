@@ -17,7 +17,7 @@ import itemsCSS from "./UIItems.css?inline"
  *   - and it OWNS its content parts (`ownsParts`), which then style themselves `:state(in-item)`,
  *     where a list's parts see through the item to the list.
  *
- * - Items adopt THIS class's `styleSheets`, so `UIItems.css` holds the item rules too;
+ * - Items adopt THIS class's `elementSetup.styleSheets`, so `UIItems.css` holds the item rules too;
  *   the group's variations reach them as inherited tokens.
  *
  * - Stacking answers to THIS DOM element's width:  it's a block and the size container `ui-items`
@@ -27,8 +27,10 @@ import itemsCSS from "./UIItems.css?inline"
  ****************/
 export class UIItems extends E.UIComponent<typeof itemsVocabulary> implements UIT.ItemOwner {
   @E.proto static vocabulary = itemsVocabulary
-  @E.proto static styleSheets = { items: itemsCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { items: itemsCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Always:  the size container `ui-items` (`:state(items)`). */
   @E.cssState("items")

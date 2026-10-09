@@ -46,7 +46,7 @@ export class StaticStylesheet {
     const tags = new Map<string, string>()
     for (const { Class, definition, kind } of families) {
       tags.set(definition.tag, kind)
-      for (const [name, css] of Object.entries(Class.prototype.styleSheets)) {
+      for (const [name, css] of Object.entries(Class.prototype.elementSetup.styleSheets)) {
         let sheet = sheets.get(name)
         if (!sheet) sheets.set(name, (sheet = { css, kinds: new Set(), words: new Set() }))
         sheet.kinds.add(kind)

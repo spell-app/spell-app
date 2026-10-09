@@ -21,8 +21,8 @@ import visibilityCSS from "./UIVisibility.css?inline"
  ****************/
 export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
   @E.proto static vocabulary = visibilityVocabulary
-  @E.proto static styleSheets = { visibility: visibilityCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { visibility: visibilityCSS },
     // a wrapper:  a click on its text must not jump to a link inside
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
