@@ -231,13 +231,13 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   private typedSoFar = ""
 
   /** Clears `typedSoFar` after `typeAheadDelay`. */
-  private typeAheadTimer?: ReturnType<typeof setTimeout>
+  private typeAheadTimer?: E.CancelablePromise<unknown>
 
   /** Type-ahead:  extend the buffer, highlight the next match (opening first if needed). */
   private typeAhead(key: string, event: KeyboardEvent) {
-    clearTimeout(this.typeAheadTimer)
+    this.typeAheadTimer?.cancel()
     this.typedSoFar += key
-    this.typeAheadTimer = setTimeout(() => (this.typedSoFar = ""), this.typeAheadDelay)
+    this.typeAheadTimer = E.after(this.typeAheadDelay / 1000, () => (this.typedSoFar = ""))
     if (!untrack(() => this.isOpen)) this.requestOpen(true, event)
     const options = untrack(() => this.visibleOptions)
     const index = options.selectionForKey(

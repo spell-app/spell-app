@@ -1,7 +1,7 @@
 import { createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIComponent, type DOMElement, UIT, type ElementSetup } from "$/ui/core"
+import { afterSolidUpdate, Cell, proto, UIComponent, type DOMElement, UIT, type ElementSetup } from "$/ui/core"
 
 import { brandChecklistVocabulary } from "./UIBrandChecklist.en"
 import {
@@ -146,7 +146,7 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
   private queueRefresh() {
     if (this.refreshQueued) return
     this.refreshQueued = true
-    queueMicrotask(() => {
+    afterSolidUpdate(() => {
       this.refreshQueued = false
       this.refreshChecks()
     })

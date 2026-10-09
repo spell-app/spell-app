@@ -1,7 +1,16 @@
 import { Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, SlotContent, UI, type AttributeName, type FieldValue, type ElementSetup } from "$/ui/core"
+import {
+  afterSolidUpdate,
+  IconGlyph,
+  proto,
+  SlotContent,
+  UI,
+  type AttributeName,
+  type FieldValue,
+  type ElementSetup
+} from "$/ui/core"
 import { ControlLabels, DOMFormControl, FormComponent } from "$/ui/forms"
 
 import { brandComposerVocabulary } from "./UIBrandComposer.en"
@@ -324,7 +333,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   private readonly onInput = (event: Event) => {
     const next = (event.currentTarget as HTMLTextAreaElement).value
     const applied = this.valueState.request(next, () => this.send("ui-input", { value: next, originalEvent: event }))
-    if (!applied) queueMicrotask(() => this.syncControl())
+    if (!applied) afterSolidUpdate(() => this.syncControl())
   }
 
   /** Left the box edited:  `ui-change`. */

@@ -161,7 +161,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
   /** SIDE EFFECT:  once the list (or the error) has rendered, scroll to the current page and resolve `listed`. */
   @E.onChange("isListed")
   protected onListedChanged(isListed: boolean) {
-    if (isListed) queueMicrotask(() => void this.onListRendered())
+    if (isListed) E.afterSolidUpdate(() => void this.onListRendered())
   }
 
   /** The list (or its error) has rendered:  wait for its widgets, reveal the current page, resolve `listed`. */
@@ -317,7 +317,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
     NavPreferences.setFavorites(list)
     this.send("ui-favorite", { tag, favorite: isFavorite, favorites: list, originalEvent: event })
     if (isFavorite || !star.closest(`.${FAVORITES}`)) return
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       const next = this.box?.querySelector<HTMLElement>(
         `.${ROWS}:not(.${FAVORITES}) [${DATA.star}="${CSS.escape(tag)}"]`
       )
@@ -429,7 +429,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
    * open, from the same height):  no `transitionend` comes, so end its closing now.
    */
   private closeSoon(topic: string) {
-    requestAnimationFrame(() => requestAnimationFrame(() => this.closeIfStill(topic)))
+    E.beforeNextPaint(() => E.beforeNextPaint(() => this.closeIfStill(topic)))
   }
 
   /** `topic`'s fold isn't animating:  end its closing (`closeSoon()`). */

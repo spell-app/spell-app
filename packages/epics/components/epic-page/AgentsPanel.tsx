@@ -1,5 +1,7 @@
 import { For, Show, createEffect, createSignal, untrack } from "solid-js"
 
+import { E } from "$/ui/core"
+
 import { ageOf, clockOf, sentence, type AgentsClient, type RunningAgent } from "$/epics/review"
 
 import {
@@ -90,7 +92,7 @@ export function AgentsPanel(props: AgentsPanelProps) {
     const edge = box?.getBoundingClientRect().bottom
     setVersion(client!.version)
     if (edge === undefined || edge >= untrack(() => props.top)) return
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       const moved = box!.getBoundingClientRect().bottom - edge
       if (Math.abs(moved) >= 1) window.scrollBy({ top: moved, behavior: "instant" })
     })

@@ -1,4 +1,4 @@
-import { Warnings } from "$/ui/util"
+import { soon, Warnings } from "$/ui/util"
 import * as UIT from "$/ui/components/components.types"
 
 import {
@@ -179,7 +179,7 @@ class VisibilityWatch {
   private checkSoon() {
     if (this.isCheckQueued) return
     this.isCheckQueued = true
-    setTimeout(() => {
+    soon(() => {
       this.isCheckQueued = false
       if (this.observers.length) this.check()
     })

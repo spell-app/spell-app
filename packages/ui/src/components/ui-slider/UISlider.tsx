@@ -410,7 +410,7 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
     this.glideRatio = undefined
     const [value, end] = this.valuesAtDragStart ?? []
     this.valuesAtDragStart = undefined
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       if (untrack(() => this.snappedValue) !== value || untrack(() => this.snappedEnd) !== end) {
         this.send("ui-change", this.detail(undefined, undefined, event))
       }

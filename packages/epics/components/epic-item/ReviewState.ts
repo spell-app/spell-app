@@ -148,15 +148,15 @@ class ReviewNotice {
   private line: HTMLElement | undefined
 
   /** The timer hiding it. */
-  private timer = 0
+  private timer?: E.CancelablePromise<unknown>
 
   /** Say `message` for a few seconds (`NOTICE_MS`). */
   show(message: string) {
     const line = (this.line ??= ReviewNotice.build())
     line.shadowRoot!.querySelector("p")!.textContent = message
     line.hidden = false
-    clearTimeout(this.timer)
-    this.timer = window.setTimeout(() => (line.hidden = true), NOTICE_MS)
+    this.timer?.cancel()
+    this.timer = E.after(NOTICE_MS / 1000, () => (line.hidden = true))
   }
 
   /** The host:  fixed at the bottom of the window, ink on paper reversed. */

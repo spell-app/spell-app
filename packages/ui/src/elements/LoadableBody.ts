@@ -104,10 +104,10 @@ export class LoadableBody {
     this.loadStatus = E.SourceStatus.loading
     this.loadError = undefined
     this.isOverdue = false
-    const timer = setTimeout(() => {
+    const timer = E.after(E.SOURCE_BODY_HOLD_MS / 1000, () => {
       if (generation === this.generation) this.isOverdue = true
-    }, E.SOURCE_BODY_HOLD_MS)
-    const load = this.fetch(request, generation).finally(() => clearTimeout(timer))
+    })
+    const load = this.fetch(request, generation).finally(() => timer.cancel())
     this.pending = load
     // a failure isn't remembered:  the next `load()` tries again
     load.catch(() => {

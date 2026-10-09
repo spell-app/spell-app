@@ -412,7 +412,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
       return
     }
     const shouldFollow = this.send("ui-navigate", { href, kind: hit.entry.kind, originalEvent: event })
-    setTimeout(() => this.finishPick())
+    E.soon(() => this.finishPick())
     if (!shouldFollow) {
       event.preventDefault()
       return

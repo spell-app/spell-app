@@ -335,9 +335,9 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
       const off = target.getBoundingClientRect().top - line
       if (Math.abs(off) >= 1) window.scrollTo({ top: window.scrollY + off })
       still = Math.abs(off) < 1 ? still + 1 : 0
-      if (still < LAND_STILL_FRAMES && ++frames < LAND_MAX_FRAMES) requestAnimationFrame(step)
+      if (still < LAND_STILL_FRAMES && ++frames < LAND_MAX_FRAMES) E.beforeNextPaint(step)
     }
-    requestAnimationFrame(step)
+    E.beforeNextPaint(step)
   }
 }
 

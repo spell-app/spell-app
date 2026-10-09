@@ -192,7 +192,7 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
   @E.onChange("isMenubar", "orientation")
   protected onMenubarChanged(isMenubar: boolean, orientation: E.RovingOrientation) {
     if (!isMenubar) return
-    queueMicrotask(() => this.startRoving(orientation))
+    E.afterSolidUpdate(() => this.startRoving(orientation))
     return () => this.stopRoving()
   }
 
@@ -223,7 +223,7 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
   private queueRefresh() {
     if (this.refreshIsQueued) return
     this.refreshIsQueued = true
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       this.refreshIsQueued = false
       if (!this.rovingTabindex) return
       if (this.domElement.matches(":focus-within")) this.rovingTabindex.refresh()

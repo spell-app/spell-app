@@ -76,7 +76,7 @@ export class UINag extends E.UIComponent<Vocabulary> {
     // SIDE EFFECT:  a stored dismissal hides the DOM element before it first paints
     if (!isServer && untrack(() => this.isHiddenByDismissal)) this.domElement.hidden = true
     this.on("command", this.onCommand)
-    this.domElement.addReleaseCallback(() => clearTimeout(this.displayTimer))
+    this.domElement.addReleaseCallback(() => this.displayTimer?.cancel())
   }
 
   ////////////////
@@ -134,7 +134,7 @@ export class UINag extends E.UIComponent<Vocabulary> {
   private root?: HTMLDivElement
 
   /** Pending `display-time`. */
-  private displayTimer?: ReturnType<typeof setTimeout>
+  private displayTimer?: E.CancelablePromise<unknown>
 
   /** Appeared (entry animation, `ui-show`, timer) since it last showed. */
   private hasShown = false
@@ -146,7 +146,7 @@ export class UINag extends E.UIComponent<Vocabulary> {
   @E.onChange("isConnected", "isReady")
   protected onConnectedChanged(isConnected: boolean, isReady: boolean) {
     if (isConnected && isReady) this.appear()
-    return () => clearTimeout(this.displayTimer)
+    return () => this.displayTimer?.cancel()
   }
 
   /** Entry animation, `ui-show` and the display time -- once per showing. */
@@ -154,7 +154,7 @@ export class UINag extends E.UIComponent<Vocabulary> {
     if (this.hasShown || this.domElement.hidden) return
     this.hasShown = true
     const time = untrack(() => this.displayTime) ?? 0
-    if (time > 0) this.displayTimer = setTimeout(() => this.close("timeout"), time)
+    if (time > 0) this.displayTimer = E.after(time / 1000, () => this.close("timeout"))
     const root = this.root
     const entered = root
       ? UI.transitions.animate({ element: root, name: SLIDE, direction: UIT.IN })
@@ -189,7 +189,7 @@ export class UINag extends E.UIComponent<Vocabulary> {
     const detail: UIT.NagCloseDetail = { reason, originalEvent }
     if (!this.send("ui-close", detail)) return false
     this.isClosing = true
-    clearTimeout(this.displayTimer)
+    this.displayTimer?.cancel()
     if (reason !== "timeout") {
       this.dismissalStore?.dismiss()
       this.isHiddenByDismissal = true
