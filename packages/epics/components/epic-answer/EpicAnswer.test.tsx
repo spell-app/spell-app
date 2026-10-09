@@ -81,6 +81,23 @@ describe("<epic-reply>", () => {
       true,
       "10/7/26 10:50"
     ])
+    // the fold chevron first, before who, on the same top line (Owen, 2026-10-08)
+    const toggle = part(host, "toggle")!.getBoundingClientRect()
+    expect([toggle.right <= who.left, Math.abs(toggle.top - who.top) < 4]).toEqual([true, true])
+  })
+
+  test("Owen's and Claude's replies fold by their band:  the reply hidden until-found;  who and the date stay", async () => {
+    const host = await ElementFixture.render(
+      `<epic-reply from="Owen" at="2026-10-07 10:42" re="revisit soon"><p>Why not reuse it?</p></epic-reply>`
+    )
+    part(host, "toggle")!.click()
+    await ElementFixture.tick()
+    expect([
+      part(host, "body")!.getAttribute("hidden"),
+      part(host, "who")!.textContent,
+      part(host, "date")!.textContent,
+      part(host, "toggle")!.getAttribute("aria-expanded")
+    ]).toEqual(["until-found", "Owen · re: revisit soon", "10/7/26 10:42", "false"])
   })
 })
 

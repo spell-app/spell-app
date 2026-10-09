@@ -1,7 +1,8 @@
 /*
  * `<epic-update>` (EpicUpdate.tsx):  the UPDATE marker.
  * - Empty:  an inline orange label, its text centred, sitting on the text's middle.
- * - A note (`:state(note)`):  a block, warning-tinted, the label as its heading, the children inside.
+ * - A note (`:state(note)`):  a block, warning-tinted, the fold chevron and the label as its heading, the children
+ *   inside;  it folds by its heading (`<FoldButton>`, `FoldButton.css`).
  * - Public tokens (`--epic-update-*`) are never declared here:  read through private aliases.
  */
 
@@ -43,8 +44,21 @@
     border-radius: 8px;
     background: color-mix(in srgb, var(--ui-orange) 8%, var(--epic-bg, var(--ui-background)));
   }
-  :host(:state(note)) .label {
+  /* a note's heading:  the fold chevron, then the label;  its text below, folded `until-found` (findable) */
+  :host(:state(note)) .head {
+    display: flex;
+    align-items: center;
     margin-bottom: 4px;
+  }
+  :host(:state(note)) .head:has(+ .body[hidden]) {
+    margin-bottom: 0;
+  }
+  :host(:state(note)) .body {
+    display: block;
+  }
+  .body[hidden="until-found"] {
+    display: block;
+    content-visibility: hidden;
   }
   ::slotted(p) {
     margin: 4px 0 0;
