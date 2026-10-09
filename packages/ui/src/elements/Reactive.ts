@@ -10,6 +10,7 @@ import {
 } from "solid-js"
 import { isServer } from "@solidjs/web"
 
+import { afterSolidUpdate } from "$/ui/util"
 import type { E } from "$/ui/core"
 
 /****************
@@ -39,7 +40,7 @@ import type { E } from "$/ui/core"
  *   or the DOM attribute changes;  notified by the DOM element's change callbacks and a `MutationObserver`.
  * - Writes never throw:  a notifier set inside an owned scope (a render, a memo), which Solid 2 forbids, is
  *   deferred to a microtask;  the record is written at once either way.
- * - A leaf of the element core:  imports only Solid, so element-core classes import its decorators
+ * - A leaf of the element core:  imports only Solid and `$/ui/util`, so element-core classes import its decorators
  *   directly (their class definitions read them) without entering the `E` cycle.  Knows components only by shape
  *   (`ComponentShape`).
  ****************/
@@ -594,7 +595,7 @@ function notify(write: () => void) {
   try {
     write()
   } catch {
-    queueMicrotask(write)
+    afterSolidUpdate(write)
   }
 }
 

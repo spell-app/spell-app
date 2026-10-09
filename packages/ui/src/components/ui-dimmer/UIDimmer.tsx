@@ -81,7 +81,7 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
   requestClose(reason: UIT.DimmerCloseReason, originalEvent?: Event): boolean {
     if (!untrack(() => this.isActive)) return false
     this.isDismissing = true
-    setTimeout(() => (this.isDismissing = false))
+    E.soon(() => (this.isDismissing = false))
     const detail: UIT.DimmerCloseDetail = { active: false, reason, originalEvent }
     return this.requestChange("isActive", false, () => this.send("ui-close", detail))
   }

@@ -306,7 +306,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
    */
   private adoptDataTable(table: HTMLTableElement) {
     GENERATED.add(table)
-    queueMicrotask(() => (this.dataTable = table))
+    E.afterSolidUpdate(() => (this.dataTable = table))
   }
 
   /**

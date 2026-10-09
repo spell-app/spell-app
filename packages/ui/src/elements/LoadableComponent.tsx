@@ -158,7 +158,7 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
     if (!source) {
       this.loadStatus = E.SourceStatus.loaded
       this.loadError = undefined
-      queueMicrotask(() => this.onLoaded(untrack(() => this.textToShow)))
+      E.afterSolidUpdate(() => this.onLoaded(untrack(() => this.textToShow)))
       return undefined
     }
     if (source === this.fetchedSource && !this.isFresh) return undefined

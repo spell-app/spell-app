@@ -1,6 +1,8 @@
 import { For, Show, createEffect, createSignal, onSettled, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
+import { E } from "$/ui/core"
+
 import { DRAFT_SAVE_MS, FOCUS_HOLD_MS, NOBODY_LISTENING, clockOf, type InboxMark } from "$/epics/review"
 
 import {
@@ -177,7 +179,7 @@ export type ReviewButtonsProps = {
  ****************/
 export function NoteBox(props: NoteBoxProps) {
   let note: HTMLTextAreaElement | undefined
-  let timer = 0
+  let timer: E.CancelablePromise<unknown> | undefined
   const review = props.review
   const [saved, setSaved] = createSignal<{ ok: boolean; at?: string } | undefined>(
     untrack(() => (review.draft() ? { ok: true, at: review.draft()!.at } : undefined))
@@ -194,7 +196,7 @@ export function NoteBox(props: NoteBoxProps) {
     window.addEventListener("pagehide", onPageHide)
     return () => {
       window.removeEventListener("pagehide", onPageHide)
-      clearTimeout(timer)
+      timer?.cancel()
     }
   })
   return (
@@ -246,8 +248,8 @@ export function NoteBox(props: NoteBoxProps) {
   function onInput() {
     review.client?.type(review.id(), note!.value)
     setSaved(undefined)
-    clearTimeout(timer)
-    timer = window.setTimeout(() => void saveDraft(), DRAFT_SAVE_MS)
+    timer?.cancel()
+    timer = E.after(DRAFT_SAVE_MS / 1000, () => void saveDraft())
   }
 
   /** Escape:  leave the box, the draft saved. */
@@ -261,8 +263,8 @@ export function NoteBox(props: NoteBoxProps) {
 
   /** A note box button:  the note becomes a mark;  the box empties. */
   function use(how: NoteHow) {
-    clearTimeout(timer)
-    timer = 0
+    timer?.cancel()
+    timer = undefined
     const text = note!.value.trim()
     note!.value = ""
     setSaved(undefined)
@@ -273,13 +275,13 @@ export function NoteBox(props: NoteBoxProps) {
   /** Save a pending draft now (`keepalive`:  the page is going away). */
   function flush({ keepalive = false } = {}) {
     if (!timer) return
-    clearTimeout(timer)
+    timer.cancel()
     void saveDraft({ keepalive })
   }
 
   /** Save the note as the element's draft;  the floppy says how it went. */
   async function saveDraft({ keepalive = false } = {}) {
-    timer = 0
+    timer = undefined
     const client = review.client
     if (!client || !note) return
     const text = note.value
@@ -399,9 +401,9 @@ export function takeToNote(
     const box = noteBox()
     box?.focus({ preventScroll: true })
     const focused = !!box && box.matches(":focus")
-    if (!focused && performance.now() < until) requestAnimationFrame(focus)
+    if (!focused && performance.now() < until) E.beforeNextPaint(focus)
   }
-  requestAnimationFrame(focus)
+  E.beforeNextPaint(focus)
 }
 
 /** The note box button `mark` stands for:  `todo`, `soon` (Later), `now` (Do Now);  else none. */

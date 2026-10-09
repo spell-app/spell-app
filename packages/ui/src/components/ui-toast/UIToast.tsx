@@ -77,7 +77,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
     this.on("focusin", this.onFocusIn)
     this.on("focusout", this.onFocusOut)
     this.on("command", this.onCommand)
-    this.domElement.addReleaseCallback(() => clearTimeout(this.countdownTimer))
+    this.domElement.addReleaseCallback(() => this.countdownTimer?.cancel())
   }
 
   ////////////////
@@ -412,7 +412,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   accessor isPaused = false
 
   /** Pending countdown. */
-  private countdownTimer?: ReturnType<typeof setTimeout>
+  private countdownTimer?: E.CancelablePromise<unknown>
 
   /** ms left on the countdown. */
   private timeLeft = 0
@@ -433,24 +433,24 @@ export class UIToast extends E.UIComponent<Vocabulary> {
   private resumeTimer() {
     if (this.countdownTimer || this.isClosing || this.timeLeft <= 0 || !this.domElement.isConnected) return
     this.startedAt = performance.now()
-    this.countdownTimer = setTimeout(() => {
+    this.countdownTimer = E.after(this.timeLeft / 1000, () => {
       this.countdownTimer = undefined
       this.timeLeft = 0
       this.close("timeout")
-    }, this.timeLeft)
+    })
   }
 
   /** Hold the countdown, keeping what's left. */
   private pauseTimer() {
     if (!this.countdownTimer) return
-    clearTimeout(this.countdownTimer)
+    this.countdownTimer.cancel()
     this.countdownTimer = undefined
     this.timeLeft = Math.max(0, this.timeLeft - (performance.now() - this.startedAt))
   }
 
   /** Stop counting for good. */
   private stopTimer() {
-    clearTimeout(this.countdownTimer)
+    this.countdownTimer?.cancel()
     this.countdownTimer = undefined
     this.timeLeft = 0
   }
@@ -506,7 +506,7 @@ export class UIToast extends E.UIComponent<Vocabulary> {
 
   /** Focus moved:  resume once it has really left (a move inside refocuses before the microtask). */
   private readonly onFocusOut = () => {
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       this.focusIsInside = this.domElement.matches(":focus-within")
       this.updatePause()
     })

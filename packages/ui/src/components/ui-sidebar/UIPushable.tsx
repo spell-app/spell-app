@@ -112,7 +112,7 @@ export class UIPushable extends E.UIComponent<PushableVocabulary> {
 
   render(): JSX.Element {
     // never on a server:  nothing reports there, and a late report would write a member after the render
-    if (!isServer) queueMicrotask(() => this.askSidebars())
+    if (!isServer) E.afterSolidUpdate(() => this.askSidebars())
     return (
       <div ref={(element) => (this.root = element)} class={PUSHABLE} part={this.partForName("pushable")}>
         <slot />

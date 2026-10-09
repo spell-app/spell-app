@@ -93,7 +93,7 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
     const applied = this.requestChange("value", next, () =>
       this.send("ui-input" as never, { value: next, originalEvent: event })
     )
-    if (!applied) queueMicrotask(() => this.syncControl())
+    if (!applied) E.afterSolidUpdate(() => this.syncControl())
     this.readNativeValidity()
   }
 

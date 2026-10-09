@@ -147,7 +147,7 @@ export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
   accessor wasJustCopied = false
 
   /** Clears `wasJustCopied`. */
-  private copiedTimer?: ReturnType<typeof setTimeout>
+  private copiedTimer?: E.CancelablePromise<unknown>
 
   /** The copy button:  the code to the clipboard, `ui-copy`, "Copied" for a moment. */
   private readonly onCopy = async () => {
@@ -155,8 +155,8 @@ export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
     await navigator.clipboard.writeText(content)
     this.wasJustCopied = true
     this.send("ui-copy", { content })
-    clearTimeout(this.copiedTimer)
-    this.copiedTimer = setTimeout(() => (this.wasJustCopied = false), COPIED_MS)
+    this.copiedTimer?.cancel()
+    this.copiedTimer = E.after(COPIED_MS / 1000, () => (this.wasJustCopied = false))
   }
 
   ////////////////
