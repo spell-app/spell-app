@@ -1131,9 +1131,11 @@ const CLOSED = new Set(["done", "decided", "canceled"])
 
 /**
  * A plan doc's block's items that need Owen, when its `contentsEntry` count doesn't say:  its own items (`COUNTED`
- * in `packages/epics`' `EpicSection.types.ts`) the plan-doc tool marked `attention`.
+ * in `packages/epics`' `EpicSection.types.ts`) the plan-doc tool marked `attention` (red), or `replied` (orange:
+ * Claude answered with options, Owen's turn to pick;  `EpicItem.types.ts` `NEEDS_OWEN`).
  */
-const EPIC_ATTENTION = ':scope > epic-item[state="attention"], :scope > epic-phase[state="attention"]'
+const EPIC_ATTENTION =
+  ':scope > epic-item:is([state="attention"], [state="replied"]), :scope > epic-phase[state="attention"]'
 
 /** A count pill's tooltip:  "2 need you", "1 needs you". */
 function needYou({ attention }) {

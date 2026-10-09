@@ -59,12 +59,15 @@
    * `templates/epics/plan-doc.md`, "Colours"):  a state's fill, and `-on` for what's drawn on it.  The goals pages'
    * id chips, the Epics index's filter, the rail's counts, a details page's question badges.
    * - red needs you;  yellow open, still undecided (DARK ink on it:  `--ui-yellow-on`);  blue Claude is working on
-   *   it;  green decided or done lately;  grey older
+   *   it;  green decided or done lately;  grey older;  orange (DARK ink) Claude answered with options, your turn to
+   *   pick (a plan doc's `replied` items, Owen 2026-10-09)
    * - the same values as `<epic-page>`'s `--epic-state-*` (`packages/epics`, `EpicPage.css`):  change both
    * - red keeps its light-mode hue in dark mode:  dark's lighter red reads as orange
    */
   --spell-state-attention: light-dark(var(--ui-red, #db2828), var(--ui-red-on-light, #db2828));
   --spell-state-attention-on: light-dark(var(--ui-red-on, #fff), var(--ui-ink-on-dark, #fff));
+  --spell-state-replied: var(--ui-orange, #f2711c);
+  --spell-state-replied-on: var(--ui-orange-on, #1b1c1d);
   --spell-state-progress: var(--ui-blue, #2185d0);
   --spell-state-progress-on: var(--ui-blue-on, #fff);
   --spell-state-open: var(--ui-yellow, #fbbd08);

@@ -401,7 +401,8 @@ export class PlanDoc extends PlanReader {
       working: Boolean(data.working),
       underway: !!item.querySelector(UNDERWAY_CARD),
       bedtime: Boolean(data.bedtime),
-      calm: Boolean(data.calm)
+      calm: Boolean(data.calm),
+      awaitsPick: PlanItem.awaitsPick(item)
     }
   }
 

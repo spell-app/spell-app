@@ -199,6 +199,8 @@ export type ItemFacts = {
   bedtime: boolean
   /** not urgent:  blue while open and not reviewed, not red (`<epic-item calm>`) */
   calm: boolean
+  /** Claude answered it last, with options nothing is picked in yet (`PlanItem.awaitsPick()`) */
+  awaitsPick: boolean
 }
 
 /** One item (or an Overview sub-section), as `PlanReader.describeItem()` says it for `plan-doc inbox`. */
@@ -268,6 +270,7 @@ export type OptionCard = {
  * id chip with, and the review picker its state icon (`ItemPicker`).  One meaning per colour (decision Q20 of epic
  * `epic-components`, Owen, 2026-10-08):
  * - `attention` (red):  needs Owen (an open question;  an open judgement call or issue not reviewed)
+ * - `replied` (orange):  Claude answered it with options, and it waits for Owen's pick (Owen, 2026-10-09)
  * - `progress` (blue):  Claude is working on it (an underway status card, or `working`)
  * - `open` (yellow):  open, still undecided, not urgent (todos, caveats, tests;  reviewed issues and judgement
  *   calls;  work a review queued, not started)
@@ -276,6 +279,7 @@ export type OptionCard = {
  */
 export const STATE_COLORS = {
   attention: "red",
+  replied: "orange",
   progress: "blue",
   open: "yellow",
   recent: "green",

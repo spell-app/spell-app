@@ -53,11 +53,11 @@ export const epicItemVocabulary = {
     {
       name: "state",
       kind: "enum",
-      values: ["attention", "progress", "open", "recent", "old"],
+      values: ["attention", "replied", "progress", "open", "recent", "old"],
       description:
-        "Its id chip's colour, written by the script on every edit:  `attention` (red:  needs Owen), `progress` " +
-        "(blue:  Claude is working on it), `open` (yellow:  still undecided, or queued work), `recent` (green:  " +
-        "closed or reviewed lately), `old` (grey)."
+        "Its id chip's colour, written by the script on every edit:  `attention` (red:  needs Owen), `replied` " +
+        "(orange:  Claude answered with options, Owen's turn to pick), `progress` (blue:  Claude is working on it), " +
+        "`open` (yellow:  still undecided, or queued work), `recent` (green:  closed or reviewed lately), `old` (grey)."
     },
     {
       name: "changed",
@@ -228,6 +228,11 @@ export const epicItemVocabulary = {
     { key: "reviewDeferred", text: "deferred", description: "Review label:  put off (`deferred`)." },
     { key: "reviewed", text: "reviewed {date}", description: "Review label:  `reviewed 10/6/26`." },
     { key: "stateAttention", text: "Needs attention", description: "Id chip tooltip, `state=attention`." },
+    {
+      key: "stateReplied",
+      text: "Claude answered:  your turn to pick",
+      description: "Id chip tooltip, `state=replied`."
+    },
     { key: "stateProgress", text: "Claude is working on it", description: "Id chip tooltip, `state=progress`." },
     { key: "stateOpen", text: "Open, still undecided", description: "Id chip tooltip, `state=open`." },
     { key: "stateRecent", text: "Decided or reviewed recently", description: "Id chip tooltip, `state=recent`." },

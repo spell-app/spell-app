@@ -130,7 +130,9 @@ export class OldPlanReader extends PlanReader {
       underway: false,
       bedtime: item.hasAttribute("data-bedtime"),
       // the old markup has no urgency:  every open call is urgent
-      calm: false
+      calm: false,
+      // nor reply cards with options
+      awaitsPick: false
     }
   }
 

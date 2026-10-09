@@ -49,13 +49,15 @@
     /*
      * ## Item states:  an item's id chip colours (and a To review link's), by `state` -- one meaning per colour
      *   (decision Q20, Owen, 2026-10-08):  red needs Owen, blue Claude is on it, yellow open, green done lately, grey
-     *   older.
+     *   older;  orange Claude answered with options, Owen's turn to pick (`replied`, Owen, 2026-10-09).
      * - red keeps its light-mode hue in dark mode too:  dark's lighter red reads as orange
      *   (the raw per-scheme base on purpose, as `plan-doc.css` had it)
-     * - yellow takes DARK ink (`--ui-yellow-on`):  white on yellow can't be read
+     * - yellow and orange take DARK ink (`--ui-yellow-on`, `--ui-orange-on`):  white on them can't be read
      */
     --epic-state-attention: light-dark(var(--ui-red), var(--ui-red-on-light));
     --epic-state-attention-on: light-dark(var(--ui-red-on), var(--ui-ink-on-dark));
+    --epic-state-replied: var(--ui-orange);
+    --epic-state-replied-on: var(--ui-orange-on);
     --epic-state-open: var(--ui-yellow);
     --epic-state-open-on: var(--ui-yellow-on);
     --epic-state-progress: var(--ui-blue);
