@@ -612,9 +612,9 @@ describe("PlanDoc states", () => {
     expect(stateOf(plan, "q1", "j1", "j2", "i1", "i2", "c1", "t1", "v1", "t2", "q2")).toEqual([
       "attention",
       "attention",
-      "recent",
       "open",
-      "old",
+      "open",
+      "recent",
       "open",
       "progress",
       "open",
@@ -624,12 +624,35 @@ describe("PlanDoc states", () => {
     plan.finishStatus("t2")
     plan.finishStatus("q2")
     expect(stateOf(plan, "t2", "q2")).toEqual(["open", "recent"])
+    // decided or done stays green however old (Owen, 2026-10-08):  `recent-since` colours nothing any more
     Markup.set(plan.page, { recentSince: PlanTime.isoTime(new Date(2026, 9, 2)) })
-    expect(stateOf(plan, "j2", "q2")).toEqual(["open", "old"])
-    // no git history:  only a /bedtime run makes green
+    expect(stateOf(plan, "i2", "q2")).toEqual(["recent", "recent"])
     Markup.set(plan.page, { recentSince: undefined })
-    Markup.set<"epic-item">(el(plan, "q2"), { bedtime: true })
-    expect(stateOf(plan, "q2", "c1")).toEqual(["recent", "open"])
+    expect(stateOf(plan, "i2", "q2")).toEqual(["recent", "recent"])
+    // nor does a /bedtime run:  an open item it touched keeps its colour
+    Markup.set<"epic-item">(el(plan, "c1"), { bedtime: true })
+    expect(stateOf(plan, "c1")).toEqual(["open"])
+    expect(problems(plan)).toEqual([])
+  })
+
+  test("grey is only for no longer relevant (canceled);  a review that settles an open item makes it green", () => {
+    const plan = freshPlan()
+    plan.addItem("issue", "moot")
+    plan.addItem("caveat", "accepted as it is")
+    plan.addItem("caveat", "followed up")
+    plan.addItem("judgement", "revisited")
+    plan.addItem("todo", "detailed now")
+    plan.setItem("i1", "canceled")
+    plan.applyMark({ id: "c1", action: "approve" })
+    plan.applyMark({ id: "c2", action: "todo" })
+    // a revisit Claude talked over, a Do Now done (`inbox done`):  answered, still open, so yellow (J10)
+    plan.review("j1")
+    plan.reviewedAs(el(plan, "j1"), "revisit")
+    plan.reviewedAs(el(plan, "t1"), "now")
+    expect(stateOf(plan, "i1", "c1", "c2", "j1", "t1")).toEqual(["old", "recent", "recent", "open", "open"])
+    // a later revisit unsettles it again
+    plan.reviewedAs(el(plan, "c1"), "revisit")
+    expect(stateOf(plan, "c1")).toEqual(["open"])
     expect(problems(plan)).toEqual([])
   })
 

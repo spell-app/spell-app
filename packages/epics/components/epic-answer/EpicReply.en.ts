@@ -33,12 +33,16 @@ export const epicReplyVocabulary = {
   slots: [{ name: "", description: "The reply." }],
   parts: [
     { name: "base", description: "The card:  Claude's violet, Owen's ivory (`from`)." },
-    { name: "header", description: "Its heading band, a flex row:  `who` left, `date` right." },
+    {
+      name: "header",
+      description: "Its heading band, a flex row:  the fold chevron, `who` left, `date` right;  a click folds it."
+    },
+    { name: "toggle", description: "The fold chevron, a `<button>`, first in the band;  only with a body." },
     { name: "who", description: "The heading's left:  `<from> · re: <re>`;  wraps within itself." },
     { name: "date", description: "The heading's right:  `at`, `10/6/26 23:55`, on the top line;  never wraps." },
-    { name: "body", description: "The reply;  not drawn when empty." }
+    { name: "body", description: "The reply;  not drawn when empty;  hidden (`until-found`) while folded." }
   ],
-  states: [],
+  states: [{ name: "open", description: "Unfolded:  it starts so (page state, never written)." }],
   texts: [{ key: "re", text: "re: {re}", description: "What the reply is about, in its heading." }],
   children: [{ tag: "flow", description: "The reply." }]
 } as const satisfies EpicVocabulary

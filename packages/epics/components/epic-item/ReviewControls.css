@@ -8,7 +8,9 @@
  * - colours (decision Q20):  green decided or done (Approve, Make Todo, a pick), blue an ask of Claude (Revisit, Do
  *   Now);  Owen's own words (the note box, a marked note, the note bubble) on the brand's ivory (`--ui-brown-*`)
  * - THE FILL (`data-fill`, Q20):  a grey outline available;  dashed in its colour pressed, not sent;  outlined in it
- *   sent, not done;  solid done.  The note box's buttons and the pick's letter follow it too
+ *   sent, or Claude is on it;  then CLEARED, a grey outline again, once Claude has handled it (Owen's input, taken:
+ *   the id chip carries the result, 2026-10-08).  Never solid.  The note box's buttons and the pick's letter follow
+ *   it too
  * - Public tokens (`--epic-review-*`) are never declared here:  read through private aliases.
  */
 
@@ -22,9 +24,7 @@
     --_epic-act-paper: var(--ui-background, Canvas);
     --_epic-act-rule: var(--epic-rule, var(--ui-border-color, GrayText));
     --_epic-act-green: var(--ui-green, #00853a);
-    --_epic-act-green-on: var(--ui-green-on, #fff);
     --_epic-act-blue: var(--ui-blue, #1a67e0);
-    --_epic-act-blue-on: var(--ui-blue-on, #fff);
     /* Owen's voice:  the ivory of his answer card (`EpicAnswer.css`), its accent the brown ink */
     --_epic-act-ivory: var(--ui-brown-background, light-dark(#f7efe2, #2e261c));
     --_epic-act-ivory-ink: var(--ui-brown-text, light-dark(#534323, #eaddc4));
@@ -72,11 +72,9 @@
   }
   [data-color="green"] {
     --_act: var(--_epic-act-green);
-    --_act-on: var(--_epic-act-green-on);
   }
   [data-color="blue"] {
     --_act: var(--_epic-act-blue);
-    --_act-on: var(--_epic-act-blue-on);
   }
   /* pressed, not sent:  dashed in its colour */
   ui-button[data-fill="dashed"]::part(button) {
@@ -88,12 +86,6 @@
   ui-button[data-fill="outline"]::part(button) {
     box-shadow: inset 0 0 0 1.5px var(--_act);
     color: var(--_act);
-  }
-  /* done:  solid */
-  ui-button[data-fill="solid"]::part(button) {
-    background: var(--_act);
-    box-shadow: inset 0 0 0 1px var(--_act);
-    color: var(--_act-on);
   }
   /* Claude is on it:  its icon turns (Owen, 2026-10-08, the colour page's example B) */
   ui-button[data-busy]::part(icon) {

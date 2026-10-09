@@ -1216,9 +1216,15 @@ const ITEM_STATES = [
   ["attention", "needs you"],
   ["progress", "Claude is working on it"],
   ["open", "open, still undecided"],
-  ["recent", "decided or reviewed recently"],
-  ["old", "decided or reviewed earlier"]
+  ["recent", "decided or done"],
+  ["old", "no longer relevant"]
 ]
+
+/**
+ * A closed item's state, by its status:  decided or done stay `recent` (green) however old;  only `canceled` is `old`
+ * (grey:  no longer relevant).  Owen, 2026-10-08;  `packages/epics` `PlanReader.itemState()`, the same rule.
+ */
+const CLOSED_STATES = { done: "recent", decided: "recent", canceled: "old" }
 
 /** The state names, for checking a `data-state`. */
 const STATE_NAMES = new Set(ITEM_STATES.map(([state]) => state))
@@ -1231,12 +1237,13 @@ const ASKS_OWEN = '.plan-items[data-kind="question"] > *'
 
 /**
  * An item's state:  its `data-state`, else (the index's epic cards, the goals pages' items) from its status:
- * `done` / `decided` are `old`;  an open goals question (`ASKS_OWEN`) `attention`;  anything else `open`.
+ * `done` / `decided` are `recent`, `canceled` `old` (`CLOSED_STATES`);  an open goals question (`ASKS_OWEN`)
+ * `attention`;  anything else `open`.
  */
 function stateOf(item) {
   const state = item.dataset.state
   if (STATE_NAMES.has(state)) return state
-  if (CLOSED.has(item.dataset.status)) return "old"
+  if (CLOSED.has(item.dataset.status)) return CLOSED_STATES[item.dataset.status]
   return item.matches(ASKS_OWEN) ? "attention" : "open"
 }
 

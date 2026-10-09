@@ -25,3 +25,15 @@ export const EMPTY = "empty"
 export const DATED = "dated"
 export const WHO = "who"
 export const DATE = "date"
+
+////////////////
+// ## Ids inside the shadow roots:  what a card's fold button names and controls (`<FoldButton>`)
+////////////////
+
+/** The box a card folds:  its body (the status card's reading and summary together). */
+export const BODY_ID = "body"
+
+/** The heading's words, the fold button's name:  `Answer`, its title;  a reply's or a status card's `who`. */
+export const LABEL_ID = "label"
+export const TITLE_ID = "title"
+export const WHO_ID = "who"

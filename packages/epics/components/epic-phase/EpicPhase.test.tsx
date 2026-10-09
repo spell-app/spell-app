@@ -99,12 +99,13 @@ describe("<epic-field>", () => {
 
   test("To review:  each link marked with its item's state, which colours its chip", async () => {
     const field = await render(
-      `<div><epic-field name="to-review"><a href="#j9">J9</a>, <a href="#q9">Q9</a></epic-field>` +
-        `<p id="j9" state="attention"></p><p id="q9" status="decided"></p></div>`,
+      `<div><epic-field name="to-review"><a href="#j9">J9</a>, <a href="#q9">Q9</a>, <a href="#i9">I9</a></epic-field>` +
+        `<p id="j9" state="attention"></p><p id="q9" status="decided"></p><p id="i9" status="canceled"></p></div>`,
       "epic-field"
     )
     const states = Array.from(field.querySelectorAll("a"), (link) => link.getAttribute("data-spell-state"))
-    expect(states).toEqual(["attention", "old"])
+    // without a `state`:  decided green for good, canceled grey (no longer relevant)
+    expect(states).toEqual(["attention", "recent", "old"])
   })
 })
 
