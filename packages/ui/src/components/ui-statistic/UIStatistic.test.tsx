@@ -339,7 +339,7 @@ describe("<ui-statistics>", () => {
         `${group('stack-with="container"')}</div></div>`
     )
     const groups = [...wrapper.querySelectorAll("ui-statistics")]
-    expect(groups[0]!.shadowRoot!.firstElementChild!.className).toBe("ui stackable three statistics stack-with-page")
+    expect(groups[0]!.shadowRoot!.firstElementChild!.className).toBe("ui stackable three stack-with-page statistics")
     /** Whether `host`'s statistics stack. */
     const stacked = (host: Element) => token(host.shadowRoot!.firstElementChild!, "--_statistics-stacked") === "1"
     await Viewport.resize(1200)

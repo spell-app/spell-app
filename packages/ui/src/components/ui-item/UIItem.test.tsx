@@ -102,12 +102,12 @@ describe("<ui-item> owned", () => {
     ['selected="no"', "div", "item"],
     ["active", "div", "active item"],
     ['active="no"', "div", "item"],
-    ['color="red" selected', "div", "red active item ui-red"],
+    ['color="red" selected', "div", "red active ui-red item"],
     ['position="right"', "div", "right item"],
     ["fitted", "div", "fitted item"],
     ['fitted="vertically"', "div", "vertically fitted item"],
     ["disabled", "div", "disabled item"],
-    ['type="header"', "div", "item header"]
+    ['type="header"', "div", "header item"]
   ])("<ui-item %s> => <%s class=%s>", async (attributes, tag, classes) => {
     const { items } = await owned(`<ui-item ${attributes}>X</ui-item>`)
     const box = boxOf(items[0]!)

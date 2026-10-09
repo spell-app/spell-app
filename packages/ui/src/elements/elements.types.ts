@@ -24,7 +24,7 @@ export type ClassInput = Readonly<Record<string, unknown>>
 
 /** Options for `ClassBuilder.build()`. */
 export type ClassBuildOptions = {
-  /** Classes appended after the noun, e.g. a state (`active`) or a caller's own class. */
+  /** Classes put just before the noun, e.g. a state (`active`) or a caller's own class:  `ui primary icon button`. */
   extra?: string
 }
 

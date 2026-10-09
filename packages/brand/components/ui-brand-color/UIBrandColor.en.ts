@@ -2,7 +2,7 @@
  * Every name `<ui-brand-color>` uses:  tag, attributes, events, parts, states, texts.  Schema:  `ComponentVocabulary`.
  * - Pure data:  `import type` only.
  * - Class words:  `contrast`, `selected`, `details` their names;  `copy` as `copy` or `<format> copy`;
- *   `size` its value.  The element adds `brand` after the noun (`color brand`).
+ *   `size` its value.  The element adds `brand` before the noun (`brand color`).
  */
 
 import type { ComponentVocabulary } from "$/ui/core"

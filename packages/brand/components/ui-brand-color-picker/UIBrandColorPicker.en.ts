@@ -2,7 +2,7 @@
  * Every name `<ui-brand-color-picker>` uses:  tag, attributes, events, slots, parts, states, texts.  Schema:
  * `ComponentVocabulary`.
  * - Pure data:  `import type` only.
- * - Class words:  `disabled` emits its name.  The component adds `brand color` after the noun (`picker brand color`).
+ * - Class words:  `disabled` emits its name.  The component adds `brand color` before the noun (`brand color picker`).
  */
 
 import type { ComponentVocabulary } from "$/ui/core"

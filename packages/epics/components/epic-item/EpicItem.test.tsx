@@ -85,7 +85,7 @@ describe("<epic-item>", () => {
         `<epic-item id="q4" title="D" status="canceled" state="old"></epic-item>`
       ].map(async (html) => (await item(html)).host.shadowRoot!.querySelector("[part~='base']")!.className)
     )
-    expect(states).toEqual(["item attention", "item old", "item open", "item old canceled"])
+    expect(states).toEqual(["attention item", "old item", "open item", "old canceled item"])
   })
 
   test("the review label:  `to do` (queued), else `deferred`, else `reviewed 10/6/26`;  none when unmarked", async () => {

@@ -111,7 +111,7 @@ describe("<epic-choices>", () => {
       "A · A named palette",
       "B · Any CSS colour (recommended)"
     ])
-    expect(options.map((option) => part(option, "base")!.className)).toEqual(["option card", "option card"])
+    expect(options.map((option) => part(option, "base")!.className)).toEqual(["card option", "card option"])
     expect(part(host, "toggle")).toBeNull()
     await expectAccessible(host)
   })

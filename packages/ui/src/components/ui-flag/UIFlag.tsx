@@ -15,7 +15,7 @@ import flagCSS from "./UIFlag.css?inline"
  *   The element is `display: contents`:  the span IS the inline box, where Fomantic's `<i class="fr flag">` sat.
  *
  * - The glyph is the Unicode flag emoji of `country` (`FlagCountry`):  no sprite, no per-country CSS.
- * - The resolved code is also a class word after the noun (`fr`, `gb-eng`;  none when unknown):
+ * - The resolved code is also a class word before the noun (`fr`, `gb-eng`;  none when unknown):
  *   Fomantic's own `fr flag` grammar, which a page's own CSS may select on.
  * - The name:  `UI.i18n.displayName("region", …)` for a country, which follows `UI.i18n.locale`;
  *   the vocabulary's texts for the rainbow, pirate, England … flags.

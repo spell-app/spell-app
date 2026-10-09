@@ -25,7 +25,7 @@ describe("<ui-visibility> static render", () => {
       `<ui-visibility type="image"><img alt="A" data-src="a.png" data-srcset="a.png 1x">` +
         `<img alt="B" data-src="b.png" loading="eager"></ui-visibility>`
     )
-    expect(html).toMatch(/^<div [^>]*class="ui visibility image"/)
+    expect(html).toMatch(/^<div [^>]*class="ui image visibility"/)
     expect(html).toMatch(/<img [^>]*alt="A"[^>]*>/)
     const [first, second] = [...html.matchAll(/<img [^>]*>/g)].map((match) => sorted(match[0]))
     expect(first).toContain(` src="a.png"`)

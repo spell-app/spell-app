@@ -10,7 +10,8 @@ import { E } from "$/ui/core"
  * - Semantics are SUI React's `classNameBuilders.js` exactly:  `useKeyOnly`, `useValueAndKey`,
  *   `useKeyOrValueAndKey`, `useMultipleProp`, `useWidthProp`, `useTextAlignProp`, `useVerticalAlignProp`.
  * - Fixed order:  `ui`, size, color, keyOnly (alphabetical), valueAndKey / keyOrValueAndKey (vocabulary order),
- *   multiple, width, textAlign, verticalAlign, noun, `extra`.  See `docs/grammar.md`.
+ *   multiple, width, textAlign, verticalAlign, `extra`, noun:  `ui primary icon button`, as Fomantic writes it.
+ *   See `docs/grammar.md`.
  * - The constructor sorts the vocabulary ONCE;  `build()` only walks that list and fills one array.
  * - Reads attribute names and CSS keys from the vocabulary, never literals;  the grammar's own
  *   connective words (`aligned`, `wide` ...) are `@proto static grammar`.
@@ -113,8 +114,8 @@ export class ClassBuilder {
           break
       }
     }
-    classes.push(this.vocabulary.noun)
     if (options.extra) classes.push(options.extra)
+    classes.push(this.vocabulary.noun)
     return classes.join(" ")
   }
 

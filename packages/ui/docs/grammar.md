@@ -18,7 +18,7 @@ Implemented by `ClassBuilder` (`src/elements/ClassBuilder.ts`), driven by the co
 ## Shape
 
 ```
-ui  <size>  <color>  <keyOnly...>  <valueAndKey / keyOrValueAndKey...>  <multiple...>  <width...>  <textAlign>  <verticalAlign>  <noun>  <extra>
+ui  <size>  <color>  <keyOnly...>  <valueAndKey / keyOrValueAndKey...>  <multiple...>  <width...>  <textAlign>  <verticalAlign>  <extra>  <noun>
 ```
 
 - `ui` -- always, unless the vocabulary says `ui: false` (context-only parts such as `column`).
@@ -26,8 +26,9 @@ ui  <size>  <color>  <keyOnly...>  <valueAndKey / keyOrValueAndKey...>  <multipl
 - keyOnly -- ALPHABETICAL by canonical attribute name, so output doesn't depend on vocabulary order.
 - valueAndKey and keyOrValueAndKey -- in VOCABULARY order (interleaved, as declared).
 - multiple, width, textAlign, verticalAlign -- in vocabulary order within each kind.
-- noun -- the vocabulary's `noun` (`button`, `card`, `column`).
-- `extra` -- caller-supplied classes, e.g. a state like `active`.
+- `extra` -- the element's own classes, following its state, e.g. `active`, or `icon` on a button showing only an icon.
+  Just before the noun, as Fomantic's markup writes them:  `ui primary icon button`.
+- noun -- the vocabulary's `noun` (`button`, `card`, `column`), always last.
 
 Example, all at once:
 
@@ -475,8 +476,8 @@ first paint never needs the property.  No virtualization yet:  every row renders
   PRIVATE tokens (`PusherTokens`, `--_ui-pusher-*`) the pusher reads:  where it moves (measured, as Fomantic's
   script did), its origin, dimmed, blurred.  Fomantic's sibling rules (`.visible.left.sidebar ~ .pusher`) stay for static markup.
 - `position` (`left` default, `right`, `top`, `bottom`), `width` (Fomantic's words `very thin` 60px, `thin` 150px, `wide`, `very wide`, AND columns / fractions /
-  percentages of the viewport:  `4`, `1/4`, `25%` => `four wide`;  as `<ui-flyout>`'s, the word goes after the noun:
-  `ui left sidebar thin`),
+  percentages of the viewport:  `4`, `1/4`, `25%` => `four wide`;  as `<ui-flyout>`'s, the word goes just before the noun:
+  `ui left thin sidebar`),
   `transition` (`overlay`, `push`, `scale down`, `uncover`, `slide along`, `slide out`;  default Fomantic's:
   `uncover` on the sides, `overlay` at the top / bottom), `inverted` (a dark panel), `blurring`.
 - Semantics, by APG, decided:

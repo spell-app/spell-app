@@ -204,7 +204,7 @@ export class UIBrandColorRange extends UIComponent<BrandColorRangeVocabulary> {
 
 export interface UIBrandColorRange extends AttributeValues<BrandColorRangeVocabulary> {}
 
-/** The class words the component adds after the noun:  `range color brand`. */
+/** The class words the component adds before the noun:  `color brand range`. */
 const BRAND_COLOR = "color brand"
 
 /** The `numbers` value that leaves the step numbers out. */

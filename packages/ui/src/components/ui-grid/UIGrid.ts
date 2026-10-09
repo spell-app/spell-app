@@ -10,7 +10,7 @@ import { GridPart } from "./GridPart"
  * - `columns="3"` => `three column`;  `columns="equal"` or `equal-width` => `equal width`.
  * - Its DOM element is a block and the `ui-grid` size container,
  *   unless it sits in another grid or row (then `display: contents`, like a column).
- * - `stack-with` becomes a private class after the noun (`ui stackable grid stack-with-page`),
+ * - `stack-with` becomes a private class before the noun (`ui stackable stack-with-page grid`),
  *   which the sheet's range rules key on;  rows and columns follow their grid's range.
  ****************/
 export class UIGrid extends GridPart<typeof gridVocabulary> {

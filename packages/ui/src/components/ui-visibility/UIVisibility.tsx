@@ -32,7 +32,7 @@ export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
   @E.state
   accessor isOnScreen = false
 
-  /** `image` after the noun for a lazy-image wrapper (`ui visibility image`), a hook for page CSS. */
+  /** `image` before the noun for a lazy-image wrapper (`ui image visibility`), a hook for page CSS. */
   protected get extraClass(): string | undefined {
     return this.type === UIT.IMAGE ? UIT.IMAGE : undefined
   }

@@ -17,7 +17,7 @@ export type CopyFormat = "hex" | "oklch" | "token" | "css"
 /** What the chip's label shows (`label`). */
 export type ChipLabel = BrandColorVocabulary["attributes"][2]["values"][number]
 
-/** Class word the element adds after the noun:  `color brand`. */
+/** Class word the element adds before the noun:  `brand color`. */
 export const BRAND = "brand"
 
 /** Class word of a chip whose `label` shows text:  the AA mark moves to the top corner. */

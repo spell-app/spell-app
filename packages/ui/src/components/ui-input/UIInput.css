@@ -19,7 +19,7 @@
  *       <slot name="action"></slot>                                                    (action, after)
  *     </div>
  *
- *   - `icon` (after the noun) while there's an icon box and no `left icon`;  `labeled` / `action` are emitted
+ *   - `icon` (before the noun) while there's an icon box and no `left icon`;  `labeled` / `action` are emitted
  *     for a slotted label / action even without the attribute;  `file` for `type="file"`
  *   - NOTE: `<slot>` breaks a CHILD (`>`) selector, so the icon box sizes its glyph with a DESCENDANT selector
  *     (`.icon svg`) plus `::slotted(svg)` / `::slotted(ui-icon)`

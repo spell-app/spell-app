@@ -3,7 +3,7 @@
  * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-transition color="red" pulsating looping>` => `ui red looping pulsating transition`;
- *   the element adds its state after the noun (`visible`, `animating`), as Fomantic's script did.
+ *   the element adds its state before the noun (`visible`, `animating`), the words Fomantic's script added.
  * - `animation` values are Fomantic's names, spaces and all (`fade up`, `horizontal flip`);
  *   the element maps them onto the runtime's kebab-cased catalogue (`TransitionAnimations`).
  */
