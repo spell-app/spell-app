@@ -29,6 +29,7 @@ import {
  *   - the checkout serving it:  `⎇ <worktree or branch>` (served pages only)
  *   - "open in VS Code":  a `vscode://file/...` link to the page's source
  *   - edit mode (pages the page server serves):  hover a section, edit its source in place -- `<spell-section-editor>`
+ *   - neither in a FRAME (VS Code's side bar):  they do nothing there
  *   - light / dark:  ONE button showing the scheme the page shows (sun / moon);  a click flips it
  *     - until the first click, it follows the OS
  *     - flipping BACK to the OS's own scheme follows the OS again, so two clicks always undo one (`flipTheme()`)
@@ -177,11 +178,14 @@ export class SiteHeader extends HTMLElement {
     const badge = checkout
       ? `<span class="badge${this.info?.worktree ? " worktree" : ""}" title="${escape(this.info?.root ?? "")}">⎇ ${escape(checkout)}</span>`
       : ""
-    const file = this.sourceFile
+    // framed (VS Code's side bar):  no "open in VS Code" (a framed page can't follow a `vscode://` link) and no edit
+    // mode -- they did nothing there (Owen, 2026-10-08);  a browser tab keeps both
+    const framed = window.self !== window.top
+    const file = framed ? undefined : this.sourceFile
     const vscode = file
       ? `<a class="tool" href="vscode://file${escape(encodeURI(file))}" title="Open the source in VS Code" aria-label="Open the source in VS Code">${ICONS.code}</a>`
       : ""
-    const canEdit = Boolean(serverConfig()?.token)
+    const canEdit = !framed && Boolean(serverConfig()?.token)
     const editing = canEdit && readEdit()
     const edit = canEdit
       ? `<button class="tool${editing ? " on" : ""}" data-action="edit" aria-pressed="${editing}" title="Edit sections in place" aria-label="Edit sections in place">${ICONS.pencil}</button>`
