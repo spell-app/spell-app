@@ -2,6 +2,7 @@ import { createEffect, createMemo, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import {
+  aria,
   Cell,
   Converters,
   proto,
@@ -84,15 +85,14 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
     return chips.findIndex((chip) => chip.selected)
   })
 
+  /** The DOM element is the radio group while `selectable`. */
+  @aria("role")
+  protected get ariaRole(): string | undefined {
+    return this.selectable ? "radiogroup" : undefined
+  }
+
   constructor(...args: ConstructorParameters<typeof UIComponent>) {
     super(...args)
-    // SIDE EFFECT:  the DOM element is the radio group while `selectable`
-    this.addElementEffect(
-      () => this.selectable,
-      (selectable) => {
-        this.domElement.internals.role = selectable ? "radiogroup" : null
-      }
-    )
     if (isServer) return
     const observer = new MutationObserver(() => this.chips.set(this.scan()))
     observer.observe(this.domElement, { childList: true, subtree: true, attributeFilter: [...CHIP_ATTRIBUTES] })

@@ -56,6 +56,7 @@ import calendarCSS from "./UICalendar.css?inline"
  *   The partner is read through its component, so its changes are live.
  * - A form control:  it submits the ISO value;  `required`, reset, a disabled fieldset;  restores a saved state.
  ****************/
+@E.cssStates("fluid", "inline")
 export class UICalendar extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = calendarVocabulary
   @E.protoMerged static elementSetup = {
@@ -489,18 +490,6 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   @E.cssState("disabled")
   get isDisabled(): boolean {
     return this.disabled || this.formIsDisabled
-  }
-
-  /** Block-level:  its `fluid` attribute. */
-  @E.cssState("fluid")
-  get isFluid(): boolean {
-    return this.fluid
-  }
-
-  /** The grid sits in the page:  its `inline` attribute. */
-  @E.cssState("inline")
-  get isInline(): boolean {
-    return this.inline
   }
 
   /** `open` and `disabled` follow the state, not the attribute. */

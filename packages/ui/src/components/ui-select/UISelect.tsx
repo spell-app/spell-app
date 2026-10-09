@@ -34,6 +34,7 @@ import selectCSS from "./UISelect.css?inline"
  * - Keyboard, picker, type-ahead and screen-reader behaviour are the browser's.
  * - A form control:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
  ****************/
+@E.cssStates("fluid")
 export class UISelect extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = selectVocabulary
   @E.protoMerged static elementSetup = {
@@ -175,12 +176,6 @@ export class UISelect extends F.FormComponent<Vocabulary> {
   ////////////////
   // ## Look
   ////////////////
-
-  /** Block-level:  `fluid`. */
-  @E.cssState("fluid")
-  get isFluid(): boolean {
-    return this.fluid
-  }
 
   /** Draws the customizable select?  Single only, and only once the runtime (`UI.browser`) is there. */
   @E.cssState("customizable")

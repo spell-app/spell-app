@@ -10,7 +10,7 @@ import {
 } from "solid-js"
 import { isServer } from "@solidjs/web"
 
-import { afterSolidUpdate } from "$/ui/util"
+import { afterSolidUpdate, camelCase } from "$/ui/util"
 import type { E } from "$/ui/core"
 
 /****************
@@ -30,6 +30,11 @@ import type { E } from "$/ui/core"
  *     outside Solid:  move it into the record, or make the member a plain getter.
  *   - `@derived({ equals })`:  an equal result keeps the old value (`isSameList` for a filtered list).
  * - `@cssState("open")` on a getter or accessor:  `UIComponent` keeps `:state(open)` in step with it.
+ *   - `@cssStates("disabled", "loading")` on the CLASS:  `:state(x)` follows attribute `x`,
+ *     for states that only mirror their attribute (no getter to write).
+ * - `@aria("ariaBusy")` on a getter or accessor:  the DOM element's `internals.ariaBusy` follows it
+ *   (`true` => `"true"`;  `false`, `undefined` => removed).  Stacks with `@cssState`.
+ *   A value that never changes is `elementSetup.aria` instead.
  * - `@onChange("a", "b") onXChanged(a, b)`:  an effect reading the named members, calling the method with their
  *   values;  a function it returns is the cleanup.  Created by `Reactive.startEffects()`, after every field exists;
  *   the method runs only when a member's value changed.
@@ -140,11 +145,12 @@ export class Reactive {
   ////////////////
 
   /**
-   * Create `instance`'s `@onChange` effects, most-derived class first (as `onMount()` overrides ran before).
+   * Create `instance`'s `@onChange` effects, most-derived class first (as `onMount()` overrides ran before),
+   * then ONE effect for all its `@aria` members.
    * - MUST run under the instance's owner, once every field exists:  `UIComponent.onMount()`, or a helper class's
    *   constructor (`PartContext`).
-   * - Server:  an effect marked `writesDOMElement` applies once, now (the server build never runs an effect's apply);
-   *   the rest aren't created.
+   * - Server:  an effect marked `writesDOMElement`, and the `@aria` one, apply once, now
+   *   (the server build never runs an effect's apply);  the rest aren't created.
    * - The method runs only when a member's VALUE changed (`===`, member by member):  a memo with `equals` sits
    *   between the reads and the effect.  Why:  Solid 2 (rc.13) runs an effect's apply on EVERY re-run of its
    *   compute, equal value or not, and a getter or `@derived` member tracks the sources UNDER it, so its effect
@@ -152,8 +158,8 @@ export class Reactive {
    *   previous cleanup by then.
    */
   static startEffects(instance: object) {
+    const self = instance as Record<PropertyKey, unknown>
     for (const { method, members, writesDOMElement } of Reactive.listFor<OnChangeEntry>(instance, ON_CHANGE)) {
-      const self = instance as Record<PropertyKey, unknown>
       const compute = () => members.map((member) => self[member])
       const apply = (values: unknown[]) => {
         const cleanup = (self[method] as (...values: unknown[]) => unknown)(...values)
@@ -163,11 +169,32 @@ export class Reactive {
         if (writesDOMElement) apply(untrack(compute))
       } else createEffect(createMemo(compute, { equals: isSameList }), apply)
     }
+    Reactive.startAriaEffect(instance as ComponentShape, self)
   }
 
-  /** `@cssState` members of `instance`'s class chain:  `{ member, state }`, most-derived first. */
+  /**
+   * The `@aria` members' effect:  each member's value, as ARIA text, written to the DOM element's `internals`.
+   * - For a property two classes of the chain name, only the subclass's member counts (`listFor()`).
+   * - None when the class has no `@aria` member.
+   */
+  private static startAriaEffect(component: ComponentShape, self: Record<PropertyKey, unknown>) {
+    const entries = Reactive.listFor<AriaEntry>(component, ARIA, (entry) => entry.property)
+    if (!entries.length) return
+    const compute = () => entries.map(({ member }) => ariaText(self[member] as AriaValue))
+    const apply = (texts: (string | null)[]) => {
+      const internals = component.domElement.internals as unknown as Record<E.AriaProperty, string | null>
+      entries.forEach(({ property }, index) => (internals[property] = texts[index]!))
+    }
+    if (isServer) apply(untrack(compute))
+    else createEffect(createMemo(compute, { equals: isSameList }), apply)
+  }
+
+  /**
+   * `@cssState` members and `@cssStates` attributes of `instance`'s class chain:  `{ member, state }`,
+   * most-derived first;  for a state two classes of the chain name, only the subclass's.
+   */
   static cssStatesOf(instance: object): readonly CssStateEntry[] {
-    return Reactive.listFor<CssStateEntry>(instance, CSS_STATES)
+    return Reactive.listFor<CssStateEntry>(instance, CSS_STATES, (entry) => entry.state)
   }
 
   ////////////////
@@ -213,8 +240,10 @@ export class Reactive {
   /**
    * Entries under `key` in `instance`'s class metadata, own class first, then each base class.
    * - Walked once per class and key (`lists`):  each class's metadata object inherits its base class's.
+   * - `claims(entry)`:  what an entry is FOR (a state, an ARIA property);  a later entry claiming the same is dropped,
+   *   so a subclass's entry wins over its base class's.
    */
-  private static listFor<T>(instance: object, key: symbol): readonly T[] {
+  private static listFor<T>(instance: object, key: symbol, claims?: (entry: T) => unknown): readonly T[] {
     const metadata = (instance.constructor as unknown as Record<symbol, Metadata | undefined>)[METADATA]
     if (!metadata) return []
     let byKey = Reactive.lists.get(metadata)
@@ -224,6 +253,15 @@ export class Reactive {
       list = []
       for (let current: Metadata | null = metadata; current; current = Object.getPrototypeOf(current)) {
         if (Object.hasOwn(current, key)) list.push(...(current[key] as unknown[]))
+      }
+      if (claims) {
+        const claimed = new Set<unknown>()
+        list = list.filter((entry) => {
+          const claim = claims(entry as T)
+          if (claimed.has(claim)) return false
+          claimed.add(claim)
+          return true
+        })
       }
       byKey.set(key, list)
     }
@@ -352,8 +390,9 @@ function derivedGetter<This extends object, T>(
 
 /**
  * `@cssState("open")` on a getter or an accessor:  `:state(open)` on the DOM element follows its truthiness.
- * - `UIComponent.onMount()` sets them all in ONE render effect (a throw reaches the error boundary);  a dynamic set
- *   of states is the `cssStates()` hook instead.
+ * - `UIComponent.onMount()` sets them all in ONE render effect (a throw reaches the error boundary).
+ * - A state that only mirrors its attribute:  `@cssStates(...)` on the class, no getter.
+ * - A dynamic set of states:  the `cssStates()` hook (a method of `UIComponent`, not this decorator).
  */
 export function cssState(stateName: string) {
   return function (_target: unknown, context: ClassGetterDecoratorContext | ClassAccessorDecoratorContext) {
@@ -362,11 +401,58 @@ export function cssState(stateName: string) {
 }
 
 /**
+ * `@cssStates("disabled", "loading")` on a CLASS:  `:state(disabled)` follows attribute `disabled` (truthy),
+ * and so on.
+ * - For a state that only mirrors its attribute, under the attribute's name:
+ *   it saves a getter whose whole body would be `return !!this.disabled`.
+ * - Reads the class's member of that name (camelCase:  `"read-only"` reads `this.readOnly`),
+ *   i.e. the attribute's getter, unless the class has its own member by that name.
+ * - Each name MUST be a member of the class (an attribute):  TypeScript flags a typo.
+ * - A state with logic, or a member something else reads (`isDisabled`), stays a getter with `@cssState`.
+ */
+export function cssStates<const N extends string>(...attributes: N[]) {
+  return function <C extends abstract new (...args: any[]) => object>(
+    _class: C & (E.CamelCase<N> extends keyof InstanceType<C> ? unknown : "@cssStates:  not a member of this class"),
+    context: ClassDecoratorContext<C>
+  ) {
+    const list = ownList<CssStateEntry>(context.metadata, CSS_STATES)
+    for (const attribute of attributes) list.push({ member: camelCase(attribute), state: attribute })
+  }
+}
+
+/**
+ * `@aria("ariaBusy")` on a getter or an accessor:  the DOM element's `internals.ariaBusy` follows it.
+ * - The value, as ARIA text:  `true` => `"true"`;  `false`, `undefined`, `null` => `null` (removed);
+ *   a string as is;  a number as text.  A state whose "off" is spoken (`aria-checked="false"`) returns the string.
+ * - Any text property of `ElementInternals`:  `@aria("role")`, `@aria("ariaLabel")`, `@aria("ariaCurrent")` ...
+ * - Stacks with `@cssState` on the same getter:
+ *   `@cssState("loading") @aria("ariaBusy") get isLoading()` (one decorator a line).
+ * - ONE effect per element writes them all (`Reactive.startEffects()`);  a server render applies it once,
+ *   as `@onChange(..., { writesDOMElement: true })` does.
+ * - A value that never changes:  `elementSetup.aria` (`{ role: "listitem" }`), set once, with no effect.
+ */
+export function aria(property: E.AriaProperty) {
+  return function (
+    _target: unknown,
+    context: ClassGetterDecoratorContext<object, AriaValue> | ClassAccessorDecoratorContext<object, AriaValue>
+  ) {
+    ownList<AriaEntry>(context.metadata, ARIA).push({ member: context.name, property })
+  }
+}
+
+/** `@aria`'s value as ARIA text:  `true` => `"true"`;  `false`, `undefined`, `null` => `null`;  else its text. */
+function ariaText(value: AriaValue): string | null {
+  if (value === true) return "true"
+  if (value === false || value === undefined || value === null) return null
+  return String(value)
+}
+
+/**
  * `@onChange("a", "b") onXChanged(a, b)`:  an effect reading members `a` and `b`, calling the method with their
  * values on start and on every change;  a function it returns is the cleanup, run before the next call and on
  * disposal.
- * - A trailing `{ writesDOMElement: true }`:  the method writes the DOM element (ARIA, `:state()`),
- *   so a server render applies it once, as `UIComponent.addElementEffect()` does.
+ * - A trailing `{ writesDOMElement: true }`:  the method writes the DOM element (`:state()`, `tabindex`, ARIA),
+ *   so a server render applies it once, now (the server never runs an effect).  ARIA alone is `@aria`.
  * - Created by `Reactive.startEffects()` (`UIComponent.onMount()`), after every subclass field exists.
  */
 export function onChange(...members: (string | OnChangeOptions)[]) {
@@ -784,6 +870,17 @@ export type CssStateEntry = {
   state: string
 }
 
+/** What an `@aria` member may hold:  turned into ARIA text by `ariaText()`. */
+export type AriaValue = string | number | boolean | null | undefined
+
+/** One `@aria` member. */
+type AriaEntry = {
+  /** the getter / accessor */
+  member: PropertyKey
+  /** the `internals` property it writes */
+  property: E.AriaProperty
+}
+
 /** One `@onChange` method. */
 type OnChangeEntry = {
   /** the method called */
@@ -805,6 +902,9 @@ const RECORD = Symbol("reactive")
 
 /** Metadata key of the `@cssState` list. */
 const CSS_STATES = Symbol("cssStates")
+
+/** Metadata key of the `@aria` list. */
+const ARIA = Symbol("aria")
 
 /** Metadata key of the `@onChange` list. */
 const ON_CHANGE = Symbol("onChange")

@@ -41,6 +41,7 @@ import buttonCSS from "./UIButton.css?inline"
  *   it carries the DOM element's `type`, `name`, `value` and `form*` attributes,
  *   so a form without script submits as the element would (`nativeType`, `staticControl`).
  ****************/
+@E.cssStates("loading")
 export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
   @E.proto static vocabulary = buttonVocabulary
   @E.protoMerged static elementSetup = {
@@ -112,12 +113,6 @@ export class UIButton extends E.UIComponent<typeof buttonVocabulary> {
   @E.cssState("disabled")
   get isDisabled(): boolean {
     return this.disabled || this.formIsDisabled
-  }
-
-  /** Showing a spinner (`loading`)? */
-  @E.cssState("loading")
-  get isLoading(): boolean {
-    return this.loading
   }
 
   /** Full width:  `fluid`, or attached as a whole row (`attached`, `top`, `bottom`). */

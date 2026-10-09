@@ -28,6 +28,7 @@ import { type CommonAttributes } from "./UIInput.types"
  *   as its `aria-label`.
  * - The DOM element's `aria-invalid` (a `<ui-form>` marks failing fields) is passed on to the control.
  ****************/
+@E.cssStates("fluid", "loading")
 export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends F.FormComponent<V> {
   /** The native control. */
   protected control?: HTMLInputElement | HTMLTextAreaElement
@@ -242,18 +243,6 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   @E.cssState("disabled")
   get isDisabled(): boolean {
     return this.disabled || this.formIsDisabled
-  }
-
-  /** Takes the full width?  `:state(fluid)`. */
-  @E.cssState("fluid")
-  get isFluid(): boolean {
-    return this.fluid
-  }
-
-  /** Busy (`<ui-input loading>`)?  `:state(loading)`. */
-  @E.cssState("loading")
-  get isLoading(): boolean {
-    return !!this.loading
   }
 
   protected classValue(name: E.AttributeName<V>): unknown {

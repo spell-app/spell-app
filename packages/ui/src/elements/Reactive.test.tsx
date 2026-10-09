@@ -457,6 +457,143 @@ describe("Reactive:  components", () => {
   })
 })
 
+/** The ARIA stand-in's vocabulary. */
+const ARIA_VOCABULARY = {
+  tag: "x-aria",
+  noun: "aria",
+  attributes: [
+    { name: "loading", kind: "boolean", description: "Busy?" },
+    { name: "read-only", kind: "boolean", description: "Read only?" },
+    { name: "label", kind: "string", description: "A label." },
+    { name: "level", kind: "number", description: "A level." }
+  ],
+  events: [],
+  slots: [],
+  parts: [],
+  states: [
+    { name: "loading", description: "Busy." },
+    { name: "read-only", description: "Read only." },
+    { name: "picked", description: "Picked." }
+  ],
+  texts: []
+} as const satisfies ComponentVocabulary
+
+/** A component on `@cssStates`, `@aria` and `elementSetup.aria`. */
+@E.cssStates("loading", "read-only")
+class AriaTest extends E.UIComponent<typeof ARIA_VOCABULARY> {
+  @E.protoMerged static elementSetup = { aria: { role: "group", ariaRoleDescription: "test" } }
+
+  /** `loading` as `aria-busy`. */
+  @E.aria("ariaBusy")
+  get isLoading(): boolean {
+    return !!this.loading
+  }
+
+  /** `label` as the name. */
+  @E.aria("ariaLabel")
+  get accessibleName(): string | undefined {
+    return this.label
+  }
+
+  /** `level`, a number, as text. */
+  @E.aria("ariaLevel")
+  get ariaLevelNumber(): number | undefined {
+    return this.level
+  }
+
+  /** Own state, on an accessor:  `:state(picked)` and `aria-selected`, stacked. */
+  @E.cssState("picked")
+  @E.aria("ariaSelected")
+  @E.state
+  accessor isPicked = false
+
+  render(): JSX.Element {
+    return <slot />
+  }
+}
+interface AriaTest extends E.AttributeValues<typeof ARIA_VOCABULARY> {}
+Object.defineProperty(AriaTest.prototype, "vocabulary", { value: ARIA_VOCABULARY })
+;(AriaTest as unknown as UIComponentClass & typeof E.UIComponent).define()
+
+/** A subclass naming the same state and ARIA property:  its own wins. */
+class AriaSubclassTest extends AriaTest {
+  /** Never busy, whatever `loading` says. */
+  @E.aria("ariaBusy")
+  get isNeverBusy(): boolean {
+    return false
+  }
+
+  /** `:state(loading)` follows `isPicked` here, not the attribute. */
+  @E.cssState("loading")
+  get isPickedLoading(): boolean {
+    return this.isPicked
+  }
+}
+;(AriaSubclassTest as unknown as UIComponentClass & typeof E.UIComponent).define("x-aria-sub")
+
+/** Render one ARIA stand-in;  returns its host and component. */
+async function ariaTest(html: string) {
+  const host = await ElementFixture.render<DOMElement & Record<string, unknown>>(html)
+  return { host, component: host.component as unknown as AriaTest }
+}
+
+describe("Reactive:  @cssStates, @aria and elementSetup.aria", () => {
+  it("@cssStates:  `:state(x)` follows attribute `x` (a kebab-case name reads its camelCase member)", async () => {
+    const { host } = await ariaTest(`<x-aria loading></x-aria>`)
+    expect(host.matches(":state(loading)")).toBe(true)
+    expect(host.matches(":state(read-only)")).toBe(false)
+    host.removeAttribute("loading")
+    host.setAttribute("read-only", "")
+    await ElementFixture.tick()
+    expect(host.matches(":state(loading)")).toBe(false)
+    expect(host.matches(":state(read-only)")).toBe(true)
+  })
+
+  it('@aria:  true => "true", false / undefined => removed, text as is, a number as text', async () => {
+    const { host } = await ariaTest(`<x-aria loading label="Name" level="2"></x-aria>`)
+    expect(host.internals.ariaBusy).toBe("true")
+    expect(host.internals.ariaLabel).toBe("Name")
+    expect(host.internals.ariaLevel).toBe("2")
+    host.removeAttribute("loading")
+    host.removeAttribute("label")
+    await ElementFixture.tick()
+    expect(host.internals.ariaBusy).toBeNull()
+    expect(host.internals.ariaLabel).toBeNull()
+    expect(host.internals.ariaLevel).toBe("2")
+  })
+
+  it("@aria stacks with @cssState, on an accessor too", async () => {
+    const { host, component } = await ariaTest(`<x-aria></x-aria>`)
+    expect(host.internals.ariaSelected).toBeNull()
+    component.isPicked = true
+    await ElementFixture.tick()
+    expect(host.internals.ariaSelected).toBe("true")
+    expect(host.matches(":state(picked)")).toBe(true)
+  })
+
+  it("elementSetup.aria:  set once, as the component is built", async () => {
+    const { host } = await ariaTest(`<x-aria></x-aria>`)
+    expect(host.internals.role).toBe("group")
+    expect(host.internals.ariaRoleDescription).toBe("test")
+  })
+
+  it("for a state or ARIA property both classes name, the subclass's member wins", async () => {
+    const { host, component } = await ariaTest(`<x-aria-sub loading></x-aria-sub>`)
+    expect(host.internals.ariaBusy).toBeNull()
+    expect(host.matches(":state(loading)")).toBe(false)
+    component.isPicked = true
+    await ElementFixture.tick()
+    expect(host.matches(":state(loading)")).toBe(true)
+  })
+
+  it("@cssStates:  TypeScript flags a name that isn't a member", () => {
+    // @ts-expect-error -- `nope` is no member of `AriaTest`
+    @E.cssStates("nope")
+    class Misspelt extends AriaTest {}
+    expect(Misspelt).toBeDefined()
+  })
+})
+
 describe("Reactive:  vocabulary getters vs base members", () => {
   /** Every family's English vocabulary (components and docs elements). */
   const vocabularies = Object.values(

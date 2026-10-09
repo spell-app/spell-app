@@ -22,6 +22,7 @@ import revealCSS from "./UIReveal.css?inline"
  *   visible one), so assistive tech reads both, in order, at any time.
  * - `prefers-reduced-motion`:  the swap is instant (`UIReveal.css`).
  ****************/
+@E.cssStates("active")
 export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
   @E.proto static vocabulary = revealVocabulary
   @E.protoMerged static elementSetup = { styleSheets: { reveal: revealCSS } } satisfies Partial<E.ElementSetup>
@@ -63,12 +64,6 @@ export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
   @E.cssState("disabled")
   get isDisabled(): boolean {
     return this.disabled
-  }
-
-  /** Revealed by `active`:  `:state(active)`. */
-  @E.cssState("active")
-  get isActive(): boolean {
-    return this.active
   }
 
   render(): JSX.Element {

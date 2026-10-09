@@ -34,6 +34,7 @@ import dropdownCSS from "./UIDropdown.css?inline"
  *   page), the `<ui-item>`s are dropped, and the value goes in hidden inputs, so a static form submits it.
  *   Choosing needs script.
  ****************/
+@E.cssStates("loading", "fluid")
 export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   /**
    * Rows PageUp / PageDown move.
@@ -383,18 +384,6 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   @E.cssState("disabled")
   get isDisabled(): boolean {
     return this.disabled || this.formIsDisabled
-  }
-
-  /** Busy (`loading`):  `:state(loading)`. */
-  @E.cssState("loading")
-  get isLoading(): boolean {
-    return this.loading
-  }
-
-  /** As wide as its container (`fluid`):  `:state(fluid)`. */
-  @E.cssState("fluid")
-  get isFluid(): boolean {
-    return this.fluid
   }
 
   protected classValue(name: E.AttributeName<typeof dropdownVocabulary>): unknown {

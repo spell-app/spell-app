@@ -3,6 +3,7 @@ import type { JSX } from "@solidjs/web"
 
 import {
   afterSolidUpdate,
+  aria,
   DOMElement,
   PartContext,
   proto,
@@ -136,14 +137,22 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
     if (this.domElement.hasAttribute("checked") && !untrack(() => this.selected)) {
       afterSolidUpdate(() => this.selectedState.set(true))
     }
-    // SIDE EFFECT:  owned, the DOM element is one item of the list;  the active step is the current one
-    this.addElementEffect(
-      () => ({ owned: !!this.owner(), active: this.shownState() === ACTIVE && !this.isCheckable() }),
-      ({ owned, active }) => {
-        this.domElement.internals.role = owned ? "listitem" : null
-        this.domElement.internals.ariaCurrent = active ? "step" : null
-      }
-    )
+  }
+
+  ////////////////
+  // ## ARIA
+  ////////////////
+
+  /** Owned, the DOM element is one item of the list. */
+  @aria("role")
+  protected get ariaRole(): string | undefined {
+    return this.owner() ? "listitem" : undefined
+  }
+
+  /** The active step is the current one. */
+  @aria("ariaCurrent")
+  protected get currentText(): string | undefined {
+    return this.shownState() === ACTIVE && !this.isCheckable() ? "step" : undefined
   }
 
   ////////////////
