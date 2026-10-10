@@ -212,6 +212,13 @@ As `plan-doc.md`, "Ids":
   - a `Net effect` paragraph and its list, a `ui-accordion.spell-code` / `.spell-aside`, a `ui-message.plan-update`,
     a labelled block (`<b>Where:</b>`) -> the prose elements below
     (`ProseRewrite`, by the converter's own rules, `ProseShapes`)
+  - a name and its file's path -> the name, its path its tooltip (`PathTooltips`;  epic `airplane`, WWOD §6 ›
+    "Plain text, plain paths"):  `<code>buildTsx()</code>, <code>packages/spell/src/node/buildTsx.ts:40</code>`
+    becomes `<code title="packages/spell/src/node/buildTsx.ts:40">buildTsx()</code>`, which the linker links to the
+    file
+    - read:  a path alone in brackets after a name;  a path after a comma, when the name is the file's or its
+      folder's;  either as plain text, or linked (the link moves onto the name)
+    - left:  a folder, a file with no folder or line, a list of names, any other wording ("in")
   - never inside code or an Original Discussion
   - a shape those rules can't read for sure stays prose:  a Net effect worded otherwise,
     a code accordion holding a `<ui-code>` or two blocks, a note headed `DEFERRED`

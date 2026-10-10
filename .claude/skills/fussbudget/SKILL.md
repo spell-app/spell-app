@@ -11,6 +11,8 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - dense paragraphs, lines broken at the column instead of at phrases
   - implementation words ("the fork") where the plain name ("the element layer") belongs
   - why a squirrely choice was made, before what the thing IS
+  - file paths and exact settings in the running text, where what they MEAN belongs
+    (WWOD §6 › "Plain text, plain paths", epic `airplane`)
 - The rules are WWOD §6, "Comments & docs" (`agents/wwod/WWOD.md`),
   and its long before / afters, `agents/wwod/writing.md`.
   This skill says how to run a pass;  those files say what good looks like.
@@ -19,6 +21,8 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
     - `phrase-split`:  a line ending in the first 1-4 words of a new phrase
     - `dense`:  a docstring paragraph or bullet of 3+ sentences
     - `jargon`:  a banned implementation word, from a short list per package
+    - `path-in-prose`:  a file path in a page's or Markdown's running text
+    - `code-dense`:  a sentence of 3+ code spans, in a page or Markdown
   - It can't see the rest:  that's what the reading pass is for.
 - Every epic's Doc Review runs it:  `.claude/skills/epic/SKILL.md`, "6. Doc Review".
 
@@ -80,10 +84,10 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 4. The checker, for the mechanical list, and its count BEFORE:
    - `spell dev docs fuss <paths...> --json`, or `spell dev docs fuss --branch --json`
    - a plan doc:  `spell dev docs fuss /Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts --json`
-   - In HTML it checks density and jargon only:  the formatter wraps those lines.
+   - In HTML it checks everything but `phrase-split`:  the formatter wraps those lines.
 5. Big scope:  fan out ("Fanning out").  Else the session does it itself.
 6. Each file, top to bottom:
-   - fix each of the checker's misses
+   - fix each of the checker's misses ("The fixes, by kind")
    - then READ, for what no tool sees:
      - written from inside the builder's head:  would someone new to this part follow it?
      - implementation words, where the plain name belongs
@@ -98,6 +102,29 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 8. The checker again:  the count AFTER.
    - A miss left on purpose (a false hit, a line that can't break better):  name it in the report.
 9. Report ("Report").
+
+## The fixes, by kind
+
+- `phrase-split`:  break the line where the phrase starts, or move the whole phrase down.
+- `dense`:  a plain lead line saying what the sentences add up to, then bullets, one fact each.
+- `jargon`:  the name a newcomer would look for, in place of the implementation word.
+- `path-in-prose`:  name the thing, and move its path where a reader can still reach it.
+  - A page:  the path is the name's tooltip, the browser's own (`title`), never a second code span:
+
+    ```html
+    BEFORE  Built:  <code>buildTsx()</code>, <code>packages/spell/src/node/buildTsx.ts:40</code>
+    AFTER   Built:  <code title="packages/spell/src/node/buildTsx.ts">buildTsx()</code>
+    ```
+
+    `doc-links.js` links the name to its `title`'s file, so a click still opens it.
+  - A path with no name to hang it on ("see `guides/x/x.html`"):  the page's title as the link text.
+  - Markdown, which has no tooltips:  a link, `` [`buildTsx()`](packages/spell/src/node/buildTsx.ts) ``.
+    In agent-facing Markdown (`AGENTS.md`, WWOD, `SKILL.md`), a path an agent must open stays reachable that way.
+- `code-dense`:  say what it MEANS, then one fact per bullet;
+  the exact settings and values go in a folded code block (`<epic-code>`, `ui-accordion.spell-code`, a fence),
+  or a tooltip.  Owen's before / after:  `agents/wwod/writing.md`, "A 'Built / Checked' line in a plan doc".
+  - A list of names that IS the point (the methods a class has):  bullets, one name each.
+- Never in Owen's own words, or in a dated record ("What it rewrites").
 
 ## Fanning out
 
