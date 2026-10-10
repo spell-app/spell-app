@@ -260,10 +260,35 @@
   .under-line:has(> *) {
     padding-block-end: 8px;
   }
+  /* folded:  no height, its words still findable;  its inline padding stays, so nothing shifts sideways as it folds */
   .details[hidden="until-found"] {
     display: block;
     content-visibility: hidden;
-    padding: 0;
+    block-size: 0;
+    padding-block: 0;
+  }
+  /*
+   * The fold ANIMATES (Owen, 2026-10-10:  "when I click a response and you auto-close the section, make it animate"):
+   * - its height to 0 and back, in Spell UI's section timing (`--ui-section-duration`, 300ms, `--ui-ease-out`),
+   *   so an item folds in step with the sections around it
+   * - every fold of an item, whatever folded it:  its line, its chevron, an action chosen (`foldAfterAction()`)
+   * - the words stay drawn until the height reaches 0 (`content-visibility` waits:  `allow-discrete`),
+   *   clipped to the shrinking box, top to bottom only (`overflow-y`):  a wide table still overflows sideways
+   * - the docs runtime keeps the line where it is on screen while it folds (`holdWhileFolding()`)
+   * - only where the browser grows a box to `auto`;  elsewhere, and with reduced motion, it folds at once
+   */
+  @supports (interpolate-size: allow-keywords) {
+    @media (prefers-reduced-motion: no-preference) {
+      .details {
+        --_epic-item-fold: var(--ui-section-duration, var(--ui-duration-slow, 300ms));
+        interpolate-size: allow-keywords;
+        overflow-y: clip;
+        transition:
+          block-size var(--_epic-item-fold) var(--ui-ease-out, ease-out),
+          padding-block var(--_epic-item-fold) var(--ui-ease-out, ease-out),
+          content-visibility var(--_epic-item-fold) allow-discrete;
+      }
+    }
   }
   ::slotted(:is(p, ul, ol)) {
     margin-block: 0.35em;
