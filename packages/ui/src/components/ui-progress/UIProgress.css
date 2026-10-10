@@ -59,9 +59,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one private alias per `progress.variables` entry that still matters, from the global tokens. */
   .ui.progress {

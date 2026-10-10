@@ -158,19 +158,4 @@ describe("UIDivider.css in shadow roots", () => {
     expect(getComputedStyle(host).display).toBe("contents")
     expect(getComputedStyle(Sheets.inner(host)).borderTopWidth).toBe("1px")
   })
-
-  it("keeps a hidden divider's spacing instead of dropping the host out of layout", () => {
-    Sheets.adopt(foundationCSS)
-    const host = Sheets.host(`<div class="ui hidden divider" role="none" part="divider"><slot></slot></div>`, [
-      ...foundationCSS,
-      dividerCSS
-    ])
-    host.setAttribute("hidden", "")
-    // The UA default `[hidden] { display: none }` would collapse the host;  the sheet overrides it with
-    // `display: contents` so the root divider still lays out and contributes its margin height.
-    expect(getComputedStyle(host).display).toBe("contents")
-    const inner = getComputedStyle(Sheets.inner(host))
-    expect(parseFloat(inner.marginTop)).toBe(parseFloat(inner.fontSize))
-    expect(inner.borderTopColor).toBe("rgba(0, 0, 0, 0)")
-  })
 })

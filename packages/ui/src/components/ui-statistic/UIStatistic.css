@@ -104,9 +104,6 @@
   :host(:state(spaced):not(:first-child)) {
     margin-block-start: 1em;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* Static markup:  a stackable group's parent is the container. */
   :has(> .ui.stackable.statistics) {
     container: ui-statistics / inline-size;

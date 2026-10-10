@@ -50,9 +50,6 @@
     --ui-color-text: initial;
     --ui-color-inverted: initial;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one per `text.variables` entry that still matters, each the private alias of its public token. */
   span.ui.text {

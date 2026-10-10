@@ -44,7 +44,7 @@ describe("UIText.css source", () => {
     for (const css of [textCSS, textRaw]) {
       const selectors = Sheets.selectors(css)
       expect(selectors).toContain("span.ui.inverted.text")
-      expect(selectors).toContain(":host([hidden])")
+      expect(selectors).toContain(":host")
     }
   })
 

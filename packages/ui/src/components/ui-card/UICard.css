@@ -77,9 +77,6 @@
     display: block;
     container: ui-cards / inline-size;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* Static markup:  the group's parent is the container. */
   :has(> .ui.cards) {
     container: ui-cards / inline-size;

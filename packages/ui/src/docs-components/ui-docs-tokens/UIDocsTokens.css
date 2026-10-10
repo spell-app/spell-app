@@ -29,9 +29,6 @@
      */
     --ui-table-stack-by: var(--ui-stack-with, container);
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   .ui.tokens {
     /* Space between the playground, the filter, the message and the tables. */

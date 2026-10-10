@@ -20,9 +20,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  Fomantic's docs measures. */
   .ui.toc {

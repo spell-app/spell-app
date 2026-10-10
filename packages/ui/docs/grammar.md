@@ -102,7 +102,7 @@ Attribute value => boolean, via `Converters.boolean()`:
 keyOrValueAndKey attributes use `Converters.keyOrValue()`: bare / `"true"` / `"yes"` => `true`,
 `"false"` / `"no"` => `false`, otherwise the (validated) value.
 
-## Shared attributes:  `disabled`, `loading`, `visible`
+## Shared attributes:  `disabled`, `loading`, `visible`, `animation`
 
 Every element takes these, though its vocabulary may not name them (`SharedVocabulary`;  epic `spell-element` P8):
 
@@ -113,11 +113,20 @@ Every element takes these, though its vocabulary may not name them (`SharedVocab
     a form control disables its native control, `<ui-icon>` only dims, `<ui-transition>` pauses.
 - `loading`:  `:state(loading)`.  By default a spinner over it, everything inside inert and dimmed, `aria-busy`
   (`:state(busy)`);  a family with its own loader keeps it (`<ui-button>`, `<ui-segment>`).
-- `visible="false"`:  fades out (`elementSetup.visibleAnimation`), then `:state(hidden)`;  `visible` fades it back.
-  - Hidden at once when set before the element draws.
-  - `<ui-sidebar>`, `<ui-transition>` and `<ui-reveal>` keep their own `visible`.
-- the platform's `hidden` hides any element at once, whatever its own `display` (`reset.css`);
-  `<ui-divider hidden>` keeps Fomantic's meaning, the spacing without the line.  The platform's `inert` works, unstyled.
+- `visible` / `hidden`:  ONE fact, two names, opposites (`el.visible === !el.hidden`;  epic `spell-element` P12).
+  - The `hidden` attribute holds it:  the browser, CSS and a page before its scripts all read it.
+    The element writes a `visible` attribute back only where the page wrote one.
+  - Writing either hides or shows the element with its `animation`;  at once before it first draws.
+  - Neither written:  the family decides (`elementSetup.visible`);  a modal, popup, flyout, sidebar, dimmer, loader
+    and transition start hidden and write `hidden` on themselves.
+  - Both written in markup and disagreeing:  `hidden` wins;  after that, the latest write wins.
+  - `hidden="until-found"` stays the browser's.
+  - `<ui-divider spacer>` is Fomantic's hidden divider;  `<ui-reveal unclipped>` its visible reveal.
+- `animation`:  how the element shows and hides (Fomantic's names, `fade up` ...), or `none`.
+  - The first that applies:  motion off (`none` on it or around it, `--ui-motion: none`, reduced motion),
+    then its own value, then its family's `elementSetup.animation`, default `fade`.
+  - `<ui-root animation="none">` turns off a whole page;  loaders keep spinning.
+- The platform's `inert` works, unstyled.
 - `readonly`:  every form control's vocabulary declares it;  `:state(readonly)`.
 
 ## `medium`

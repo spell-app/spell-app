@@ -135,7 +135,7 @@ export const inputVocabulary = {
       name: "inputmode",
       kind: "enum",
       // Shadows `HTMLElement.inputMode` on purpose:  same attribute, same meaning, forwarded to the native input
-      // (unlike `<ui-divider hidden>`, which means something else:  `dividerHidden`)
+      // (a vocabulary attribute meaning something else would take another name, as `<ui-divider spacer>` did)
       property: "inputMode",
       values: ["none", "text", "decimal", "numeric", "tel", "search", "email", "url"],
       description:

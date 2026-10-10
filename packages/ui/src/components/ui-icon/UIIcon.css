@@ -85,9 +85,6 @@
     --ui-color-on: initial;
     --ui-color-inverted-on: initial;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one private alias per `icon.variables` entry that still matters, from the global tokens. */
   span.ui.icon:not(.label),

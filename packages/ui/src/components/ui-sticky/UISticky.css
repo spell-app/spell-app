@@ -28,9 +28,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  each the private alias of its public token. */
   .ui.sticky {

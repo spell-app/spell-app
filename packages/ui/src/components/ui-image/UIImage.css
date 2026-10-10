@@ -74,9 +74,6 @@
     display: var(--_ui-image-owner-display, contents);
     vertical-align: var(--_ui-image-owner-align, baseline);
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one per `image.variables` entry that still matters, each the private alias of its public token. */
   .ui.image,

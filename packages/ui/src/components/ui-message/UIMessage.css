@@ -70,9 +70,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one private alias per `message.variables` entry that still matters, from the global tokens. */
   .ui.message {

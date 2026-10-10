@@ -490,8 +490,7 @@ Counted by `LocCount` (non-blank, non-comment lines as "code").  The fork is not
   (`button.color = "verde"` on `<ie-boton>` stores `green`, reflects `verde`);  arrays reflect comma-joined;
   `json` kinds (`options`) observe their attribute but never reflect.
 - **Reserved names:**  the fork THROWS at definition when a prop's property would shadow an element member
-  (`hidden`, `title`, `style`, its own `dispose` ...) unless renamed with the vocabulary's `property`
-  (`dividerHidden`).
+  (`hidden`, `title`, `style`, its own `dispose` ...) unless renamed with the vocabulary's `property`.
 - **Pre-upgrade properties:**  the fork's upgrade step (captured in the constructor, re-applied through the
   setters).
 - **Platform options instead of plumbing:**  `UIComponent.define()` passes `BaseElement` (`DOMElement` / `DOMFormControl`),

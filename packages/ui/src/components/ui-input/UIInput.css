@@ -82,9 +82,6 @@
   :host(:state(fluid)) {
     display: flex;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* `delegatesFocus`:  the native control draws the focus, never the DOM element. */
   :host(:focus-visible) {
     outline: none;

@@ -44,9 +44,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* `delegatesFocus`:  the thumb draws the focus ring, never the DOM element. */
   :host(:focus-visible) {
     outline: none;

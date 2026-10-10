@@ -7,6 +7,8 @@
  *   `ui right thin scale down visible sidebar`.
  *   Without `transition`, the element adds Fomantic's default for its side
  *   (`uncover` left / right, `overlay` top / bottom).
+ * - `visible` / `hidden` are every element's (`SharedVocabulary`):  a sidebar starts hidden (`elementSetup.visible`);
+ *   the element adds the `visible` class word while it shows.  `ui-open` / `ui-close` can veto a person's changes.
  * - `position` and `transition` are `kind: "valueOnly"`:  each emits its value alone.
  * - `width` (`kind: "width"`, as `<ui-flyout>`'s) takes Fomantic's sidebar words (`very thin` ... `very wide`),
  *   which the element adds before the noun (`ui left thin sidebar`),
@@ -54,11 +56,6 @@ export const sidebarVocabulary = {
     { name: "inverted", kind: "keyOnly", description: "A dark panel (put an `inverted` menu in it)." },
     { name: "blurring", kind: "keyOnly", description: "Blurs the dimmed page beside it." },
     {
-      name: "visible",
-      kind: "keyOnly",
-      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
-    },
-    {
       name: "persistent",
       kind: "boolean",
       description:
@@ -102,9 +99,6 @@ export const sidebarVocabulary = {
   ],
   slots: [{ name: "", description: "The content:  usually a `<ui-menu vertical fluid>`." }],
   parts: [{ name: "sidebar", description: "The panel:  a `<dialog>`, or an `<aside>` when `persistent`." }],
-  states: [
-    { name: "sidebar", description: "Always:  its `<ui-pushable>` finds it by this." },
-    { name: "visible", description: "Shown." }
-  ],
+  states: [{ name: "sidebar", description: "Always:  its `<ui-pushable>` finds it by this." }],
   texts: [{ key: "sidebar", text: "Sidebar", description: "Accessible name of an unnamed sidebar." }]
 } as const satisfies E.ComponentVocabulary

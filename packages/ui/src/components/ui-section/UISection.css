@@ -114,9 +114,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  each the private alias of its public token. */
   .ui.section {

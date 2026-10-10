@@ -38,9 +38,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one private alias per `comment.variables` entry that still matters;  threads inherit them.
      Declared on the top list AND on a LONE comment (outside a list), which has none to inherit from;  a comment

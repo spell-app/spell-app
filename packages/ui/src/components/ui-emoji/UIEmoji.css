@@ -54,9 +54,6 @@
     /* Don't inherit a parent component's scale:  emoji follow the surrounding TEXT. */
     --ui-scale: initial;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one per `emoji.variables` entry that still matters, each the private alias of its public token. */
   .ui.emoji {

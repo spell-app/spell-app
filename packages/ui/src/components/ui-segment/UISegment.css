@@ -87,9 +87,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* Piled:  the element becomes the stacking context the rotated sheets sit behind. */
   :host(:state(piled)) {
     display: block;

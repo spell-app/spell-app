@@ -17,13 +17,10 @@ import dividerCSS from "./UIDivider.css?inline"
  * - A `role="separator"` box, not an `<hr>`:
  *   a horizontal or vertical divider carries text, which an `<hr>` can't hold.
  *   - `aria-orientation="vertical"` for a `vertical` divider.
- *   - A `hidden` divider is `role="none"`:  it keeps the spacing, without the line.
+ *   - A `spacer` divider is `role="none"`:  it keeps the spacing, without the line.
  *
- * - `hidden` is Fomantic's word for "the spacing without the line",
- *   so the attribute keeps its name, but its DOM property is `dividerHidden`:
- *   `hidden` is already every element's own boolean.
- *   - `UIDivider.css` turns the browser's `[hidden] { display: none }` back into `display: contents`,
- *     so a hidden divider still takes up its space.
+ * - `spacer` is Fomantic's `hidden` divider, renamed (epic `spell-element`, P12):
+ *   `hidden` hides every element, as the platform's does.  Its class word is still `hidden`.
  ****************/
 export class UIDivider extends E.UIComponent<typeof dividerVocabulary> {
   @E.proto static vocabulary = dividerVocabulary
@@ -36,8 +33,8 @@ export class UIDivider extends E.UIComponent<typeof dividerVocabulary> {
     return (
       <div
         class={this.rootClass}
-        role={this.hidden ? "none" : "separator"}
-        aria-orientation={this.vertical && !this.hidden ? "vertical" : undefined}
+        role={this.spacer ? "none" : "separator"}
+        aria-orientation={this.vertical && !this.spacer ? "vertical" : undefined}
         part={this.partForName("divider")}
       >
         <Show when={this.icon}>

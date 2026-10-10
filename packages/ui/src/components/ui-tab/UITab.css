@@ -72,9 +72,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
   .ui.tabs {
     --_ui-tabs-pane-margin: var(--ui-tabs-pane-margin, 1em 0 0);
     --_ui-tabs-menu-margin: var(--ui-tabs-menu-margin, 0);
