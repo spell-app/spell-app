@@ -812,9 +812,12 @@ pre code {
  * - the BULLHORN (`.spell-comment-mark`):  in a section's title (`.at-section`, its `actions` slot), in the page
  *   header (`.at-page`), else (`.at-block`) a line of no height just before the block, its button over the block's
  *   top right corner;  shown while the block is hovered (a section:  its innermost hovered one), when focused, and
- *   always once the block has comments (`data-count`)
- * - the comments under a block (`.spell-comments`):  each a card drawn as the pane is (ivory, Owen's voice):  a
- *   header ("Owen", its state, the date, the trash, the pen) that folds it, then the text;  Claude's answers violet
+ *   always once the block has comments (`data-count`), with the count;  outlined while they all wait for Claude,
+ *   solid once he has one (`data-state`), an orange dot while one has unread news (`data-news`)
+ * - the cards of comments with news (`.spell-comments`), under the paragraph holding the quote, else the block:
+ *   each drawn as the pane is (ivory, Owen's voice):  a header (the pane's summary, its state, the date, the trash)
+ *   that folds it, then the text;  Claude's answers violet
+ * - the bullhorn's list of a block's comments (`.spell-comment-pick`):  a pane of lines, then New comment
  * - the comment pane (`.spell-comment-pane`):  floating, fixed on the screen;  its header, then a textarea that grows
  *   with its text (`growField()`)
  */
@@ -840,6 +843,26 @@ pre code {
   right: 2px;
   border-radius: 999px;
   background: var(--spell-bg);
+}
+.spell-doc-main .spell-comment-mark:not(.at-block) {
+  position: relative;
+}
+/* news Owen hasn't read:  an orange dot on the bullhorn's top right (orange:  changed since you looked) */
+.spell-doc-main .spell-comment-news {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  z-index: 1;
+  width: 9px;
+  height: 9px;
+  border: 1.5px solid var(--spell-bg);
+  border-radius: 50%;
+  background: var(--ui-orange, #f2711c);
+  pointer-events: none;
+}
+.spell-doc-main .spell-comment-mark.at-block > .spell-comment-news {
+  top: 0;
+  right: 0;
 }
 .spell-doc-main
   :is(
@@ -906,10 +929,7 @@ pre code {
   text-align: left;
   cursor: pointer;
 }
-.spell-doc-main button.spell-comment-fold > b {
-  font-weight: 600;
-}
-/* folded:  the first line of the comment, as the pane's header shows what it's on */
+/* what it's on, as the pane's header says it (`headline()`) */
 .spell-doc-main .spell-comment-preview {
   flex: 1 1 auto;
   min-width: 0;
@@ -917,10 +937,6 @@ pre code {
   font-style: italic;
   text-overflow: ellipsis;
   white-space: nowrap;
-  visibility: hidden;
-}
-.spell-doc-main .spell-comment[data-folded] .spell-comment-preview {
-  visibility: visible;
 }
 /*
  * its state, quiet, as the pane's status line:  the fill rule as a dot before the words, a ring while it waits for
@@ -943,18 +959,53 @@ pre code {
   border: 1.5px solid var(--spell-rail-ink);
   border-radius: 50%;
 }
-.spell-doc-main .spell-comment:is([data-state="taken"], [data-state="answered"]) .spell-comment-state::before {
+.spell-doc-main
+  :is(.spell-comment, .spell-comment-choice):is([data-state="taken"], [data-state="answered"])
+  .spell-comment-state::before {
   background: var(--spell-rail-ink);
 }
 .spell-doc-main .spell-comment-state > a {
   color: inherit;
 }
-.spell-doc-main .spell-comment-quote {
-  margin: 0 0 6px;
-  padding: 2px 10px;
-  border-left: 3px solid color-mix(in oklab, var(--spell-rail-ink) 40%, transparent);
-  color: var(--spell-muted);
-  font-style: italic;
+/* the bullhorn's list (`openPicker()`):  one line per comment (its first words, its state), then New comment */
+.spell-doc-main .spell-comment-pane.spell-comment-pick {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+  width: min(320px, calc(100vw - 16px));
+  padding: 4px;
+}
+.spell-doc-main button.spell-comment-choice {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  min-height: 28px;
+  padding: 2px 8px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--spell-rail-ink);
+  font: inherit;
+  font-size: 0.9rem;
+  text-align: left;
+  cursor: pointer;
+}
+.spell-doc-main button.spell-comment-choice:is(:hover, :focus-visible) {
+  background: var(--spell-rail-hover);
+  outline: none;
+}
+.spell-doc-main button.spell-comment-choice[data-news]::after {
+  content: "";
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--ui-orange, #f2711c);
+}
+.spell-doc-main button.spell-comment-choice.spell-comment-new {
+  border-top: 1px solid var(--spell-rail-rule);
 }
 /* a comment's quoted text, on the page:  soft, under the text (`highlightQuotes()`) */
 ::highlight(spell-comment-quote) {
@@ -1075,13 +1126,9 @@ pre code {
   color: var(--spell-muted);
   font-size: 0.85rem;
 }
-/* a comment's trash (`deleteButton()`), on its card and in the pane;  clicked once:  red until the second click (or
-   3s) */
+/* a comment's trash (`deleteButton()`), on its card and in the pane:  one click deletes, Undo in the toast */
 .spell-doc-main .spell-comment-delete[hidden] {
   display: none;
-}
-.spell-doc-main .spell-comment-delete[data-armed] {
-  color: var(--ui-red, #db2828);
 }
 /* a comment's quote on the page, under the pointer:  a click opens it */
 .spell-over-quote .spell-doc-main {

@@ -144,6 +144,29 @@ test("any comment clears, taken or not;  an unknown one is a 404", async () => {
   expect((await post({ page, action: "clear", id })).status).toBe(404)
 })
 
+test("Undo:  `restore` brings back a deleted comment, or a cleared one Claude had, as it was;  same id", async () => {
+  const page = "/epics/big/notes.html"
+  const quoted = { ...ON_TABLE, quote: "Name", offset: 0 }
+  const { id, comments } = (await post({ page, action: "add", ...quoted, text: "back?" })).answer
+  const waiting = comments.find((comment: { id: string }) => comment.id === id)
+  await post({ page, action: "delete", id })
+  const back = await post({ page, action: "restore", id, comment: waiting })
+  expect([back.status, back.answer.id]).toEqual([200, id])
+  expect(back.answer.comments.find((comment: { id: string }) => comment.id === id)).toEqual(waiting)
+  GuideInbox.update(join(root, "epics/big/notes.inbox.json"), (list) => {
+    list.take(id, { epic: "guide-changes", phase: 2 })
+    list.answer(id, "<p>Yes.</p>")
+  })
+  const read = await ask(port, "GET", `/api/comments?page=${encodeURIComponent(page)}`)
+  const had = JSON.parse(read.text).comments.find((comment: { id: string }) => comment.id === id)
+  await post({ page, action: "clear", id })
+  const again = await post({ page, action: "restore", id, comment: had })
+  expect(again.answer.comments.find((comment: { id: string }) => comment.id === id)).toEqual(had)
+  expect((await post({ page, action: "restore", id })).status).toBe(400)
+  expect((await post({ page, action: "restore", id: "cm99", comment: { ...had, text: " " } })).status).toBe(400)
+  await post({ page, action: "clear", id })
+})
+
 test("the page reads its comments back, every status", async () => {
   const got = await ask(port, "GET", "/api/comments?page=%2Fguides%2Fsolid%2Fsolid-2.html")
   expect(got.status).toBe(200)

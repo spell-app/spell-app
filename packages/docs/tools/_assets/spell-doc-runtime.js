@@ -2706,6 +2706,18 @@ const COMMENTS_API = "/api/comments"
 /** `localStorage` key prefix of a page's unsaved comments (`{ [anchor | comment id]: text }`), per page. */
 const COMMENT_DRAFT_KEY_PREFIX = "spell-comment-draft:"
 
+/**
+ * `localStorage` key prefix of the comments Owen has read, per page:  `{ [comment id]: its news' stamp }`
+ * (`newsOf()`);  a newer answer brings its card back.
+ */
+const COMMENT_READ_KEY_PREFIX = "spell-comment-read:"
+
+/** The smallest blocks a quote's card goes under (`holderOf()`):  a paragraph, a list item, a cell ... */
+const TEXT_HOLDERS = "p, li, dt, dd, td, th, blockquote, pre, figcaption, h4, h5, h6"
+
+/** Of those, the ones a card goes INSIDE, at the end, so the list or table stays valid. */
+const HOLDS_INSIDE = /^(li|dt|dd|td|th)$/
+
 /** The CSS highlight the quoted text of every comment is drawn with (`::highlight()` in `spell-doc.css`). */
 const QUOTE_HIGHLIGHT = "spell-comment-quote"
 
@@ -2754,10 +2766,15 @@ const KIND_NAMES = {
  *   - NEVER an empty comment:  nothing typed saves nothing;  emptied, it's deleted at once
  *   - a click on a highlighted quote opens its comment in the pane again:  to edit while it waits, else to read
  *     with Claude's answers, and delete
- *   - each comment:  a card under its block, Owen's, "Owen · 10/10 14:02";  its state by the fill rule
- *     (`templates/epics/plan-doc.md`, "Colours"):  saved, "Saved 14:02 · waiting for Claude":  outlined;
- *     "Taken by Claude" (a guide's, into epic `guide-changes`) or "Answered":  solid.  Edit while it waits;
- *     a trash on every card (two clicks:  `delete` while it waits, else `clear`);  Claude's answers under it, violet
+ *   - CARDS ONLY FOR NEWS (Owen, 2026-10-10:  "cards only when news"):  a comment still waiting for Claude has
+ *     none;  one Claude has taken (a guide's, into epic `guide-changes`) or answered shows a card until Owen reads
+ *     it (unfolds the card, or opens it in the pane:  `COMMENT_READ_KEY_PREFIX`);  a newer answer brings it back
+ *   - a card goes under the paragraph (list item, cell ...) holding its quote (`holderOf()`), else under its block;
+ *     its header the pane's summary (`headline()`), its state by the fill rule (`templates/epics/plan-doc.md`,
+ *     "Colours"), the date, a trash;  no quote;  Claude's answers under the text, violet
+ *   - the trash, on a card or the pane:  one click (`delete` while it waits, else `clear`);  Undo in the toast
+ *   - the BULLHORN keeps every comment within reach:  its count, outlined while they all wait, solid once Claude
+ *     has one, an orange dot while one has unread news;  a click lists them, and New comment (`openPicker()`)
  * - drawn again after a live patch (`spell-doc:updated`), when the page's content changes (a plan doc's part
  *   loading), when the inbox file changes (`spell-server:file`:  another window, Claude), and when the page comes
  *   back into view
@@ -2812,6 +2829,12 @@ class PageComments {
     this.inboxPaths = [page.replace(/(\.plan)?\.html$/, ".inbox.json")]
     /** the `localStorage` key of this page's drafts */
     this.draftKey = `${COMMENT_DRAFT_KEY_PREFIX}${location.pathname}`
+    /** the `localStorage` key of the comments read on this page (`markRead()`) */
+    this.readKey = `${COMMENT_READ_KEY_PREFIX}${location.pathname}`
+    /** the ids of cards Owen unfolded to read on this visit:  read, but kept on the page until he leaves it */
+    this.kept = new Set()
+    /** the bullhorn's list of a block's comments, when open (`openPicker()`) */
+    this.picker = null
   }
 
   /** Fetch the page's comments;  resolves to whether the page takes comments.  NEVER throws. */
@@ -2830,7 +2853,8 @@ class PageComments {
   }
 
   /**
-   * Draw it all again:  every bullhorn, every block's comments, the quotes' highlight.
+   * Draw it all again:  every bullhorn, the cards of comments with news, the quotes' highlight.
+   * - a card goes under the paragraph (list item, cell ...) holding its quote, else under its block (`holderOf()`)
    * - a comment whose block can't be found any more goes under the page header, saying so
    * - the open pane stays as it is, where Owen put it, the cursor in it
    */
@@ -2839,20 +2863,44 @@ class PageComments {
     for (const old of main.querySelectorAll(".spell-comment-mark, .spell-comments")) old.remove()
     const blocks = blocksIn(main)
     const head = pageHeadIn(main)
+    const read = readJSON(this.readKey)
     const onBlock = new Map()
+    const cards = new Map()
     const quotes = []
     for (const comment of this.list) {
       const { block, exact } = findBlock(main, comment, blocks)
       const at = block ?? head
       if (!at) continue
       if (!onBlock.has(at)) onBlock.set(at, [])
-      onBlock.get(at).push({ comment, exact: exact && Boolean(block) })
+      onBlock.get(at).push(comment)
       const quoted = block && comment.quote && quoteIn(block, comment.quote, comment.offset)
       if (quoted) quotes.push({ ...quoted, id: comment.id })
+      if (!this.showsCard(comment, read)) continue
+      const under = quoted ? holderOf(block, quoted) : at
+      if (!cards.has(under)) cards.set(under, [])
+      cards.get(under).push({ comment, exact: exact && Boolean(block) })
     }
-    for (const block of head ? [head, ...blocks] : blocks) this.addBullhorn(block, onBlock.get(block)?.length ?? 0)
-    for (const [block, found] of onBlock) this.boxFor(block).append(...found.map((each) => this.card(each)))
+    for (const block of head ? [head, ...blocks] : blocks) this.addBullhorn(block, onBlock.get(block) ?? [], read)
+    for (const [under, found] of cards) this.boxFor(under).append(...found.map((each) => this.card(each)))
     this.quotes = highlightQuotes(quotes)
+  }
+
+  /**
+   * Whether `comment` shows a card:  only with NEWS (Owen, 2026-10-10:  "cards only when news"), Claude has taken or
+   * answered it and Owen hasn't read that yet;  or he unfolded it on this visit (`kept`).  `read`:  the read stamps.
+   */
+  showsCard(comment, read) {
+    if (commentState(comment) === "saved") return false
+    return this.kept.has(comment.id) || read[comment.id] !== newsOf(comment)
+  }
+
+  /** Comment `id` read:  its news, as it is now, no longer news;  a newer answer is. */
+  markRead(id) {
+    const comment = this.list.find((each) => each.id === id)
+    if (!comment || commentState(comment) === "saved") return
+    const read = readJSON(this.readKey)
+    read[id] = newsOf(comment)
+    writeJSON(this.readKey, read)
   }
 
   /**
@@ -2882,22 +2930,38 @@ class PageComments {
   /**
    * The bullhorn of `block`:  in a docs section's title (its `actions` slot), in the page header,
    * else just before the block, over its top right corner.
+   * - `comments`:  the block's;  with any, it shows their count, always (Owen, 2026-10-10:  "the bullhorn shows the
+   *   count?");  outlined while they all wait for Claude, solid once he has one, an orange dot while one has news
+   *   Owen hasn't read (`read`:  the read stamps)
+   * - a click:  none yet, the pane for a new comment;  else the list of them, and New comment (`openPicker()`)
    */
-  addBullhorn(block, count) {
+  addBullhorn(block, comments, read) {
     const place = this.placeOf(block)
+    const count = comments.length
     const what = place.kind === "page" ? "this page" : `this ${KIND_NAMES[place.kind] ?? place.kind}`
-    const tip = count ? `${count} ${count === 1 ? "comment" : "comments"} on ${what};  add one` : `Comment on ${what}`
+    const news = comments.filter((comment) => this.showsCard(comment, read) && !this.kept.has(comment.id)).length
+    const waiting = comments.every((comment) => commentState(comment) === "saved")
+    const tip = count
+      ? `${count} ${count === 1 ? "comment" : "comments"} on ${what}${news ? `, ${news} with news` : ""}:  read or add one`
+      : `Comment on ${what}`
     const inline = place.kind === "section" || place.kind === "page"
     const mark = document.createElement(inline ? "span" : "div")
     mark.className = `spell-comment-mark at-${inline ? place.kind : "block"}`
     mark.dataset.spellAdded = ""
-    if (count) mark.dataset.count = String(count)
+    if (count) {
+      mark.dataset.count = String(count)
+      mark.dataset.state = waiting ? "saved" : "had"
+    }
+    if (news) mark.dataset.news = ""
     mark.innerHTML =
-      `<ui-button circular basic size="mini" icon="bullhorn" title="${attr(tip)}" aria-label="${attr(tip)}">` +
-      `${count || ""}</ui-button>`
+      `<ui-button ${count ? "" : "circular "}${waiting ? "basic " : ""}size="mini" icon="bullhorn" ` +
+      `title="${attr(tip)}" aria-label="${attr(tip)}">${count || ""}</ui-button>` +
+      (news ? `<span class="spell-comment-news" aria-hidden="true"></span>` : "")
     mark.querySelector("ui-button").addEventListener("click", (event) => {
       event.stopPropagation()
-      this.openBox({ key: place.anchor, place }, event.currentTarget.getBoundingClientRect())
+      const near = event.currentTarget.getBoundingClientRect()
+      if (count) this.openPicker(place, comments, near)
+      else this.openBox({ key: place.anchor, place }, near)
     })
     if (place.kind === "section") {
       mark.slot = "actions"
@@ -2924,19 +2988,90 @@ class PageComments {
   }
 
   /**
-   * The box of comments under `block`, made on first use:  a docs section's first in its body (under its title),
-   * the page's right under the page header, any other block's right after it.
+   * The box of cards under `under` (a block, or the paragraph holding a quote:  `holderOf()`), made on first use:  a
+   * docs section's first in its body (under its title);  a list item's or cell's last inside it;  the page's right
+   * under the page header;  anything else's right after it.
    */
-  boxFor(block) {
-    const next = block.localName === "ui-section" ? firstContentChild(block) : block.nextElementSibling
+  boxFor(under) {
+    const where = under.localName === "ui-section" ? "first" : HOLDS_INSIDE.test(under.localName) ? "last" : "after"
+    const next =
+      where === "first"
+        ? firstContentChild(under)
+        : where === "last"
+          ? under.lastElementChild
+          : under.nextElementSibling
     if (next?.classList.contains("spell-comments")) return next
     const box = document.createElement("div")
     box.className = "spell-comments"
     box.dataset.spellAdded = ""
-    if (block.localName !== "ui-section") block.after(box)
+    if (where === "after") under.after(box)
+    else if (where === "last") under.append(box)
     else if (next) next.before(box)
-    else block.append(box)
+    else under.append(box)
     return box
+  }
+
+  /**
+   * The list of `comments` on the block at `place`, from its bullhorn, under `near`:  each a line (its first words,
+   * its state, an orange dot while it has news) that opens it in the pane;  then New comment.
+   * - so a comment waiting for Claude, which has no card, is still a click away
+   * - closes on a choice, Escape, or a click anywhere else
+   */
+  openPicker(place, comments, near) {
+    this.closePicker()
+    const read = readJSON(this.readKey)
+    const pick = document.createElement("div")
+    pick.className = "spell-comment-pane spell-comment-pick"
+    pick.dataset.spellAdded = ""
+    pick.tabIndex = -1
+    pick.setAttribute("role", "menu")
+    pick.setAttribute("aria-label", `Comments on ${headline(place)}`)
+    pick.innerHTML =
+      comments
+        .map((comment) => {
+          const state = commentState(comment)
+          const said = state === "saved" ? "Waiting for Claude" : state === "taken" ? "Taken by Claude" : "Answered"
+          const news = this.showsCard(comment, read) && !this.kept.has(comment.id)
+          return (
+            `<button type="button" role="menuitem" class="spell-comment-choice" data-id="${attr(comment.id)}" ` +
+            `data-state="${state}"${news ? " data-news" : ""} title="${attr(aboutTip({ id: comment.id, place: comment }))}">` +
+            `<span class="spell-comment-on">${text(comment.text.split("\n")[0])}</span>` +
+            `<span class="spell-comment-state">${said}</span></button>`
+          )
+        })
+        .join("") +
+      `<button type="button" role="menuitem" class="spell-comment-choice spell-comment-new">` +
+      `<ui-icon name="plus"></ui-icon><span class="spell-comment-on">New comment</span></button>`
+    for (const button of pick.querySelectorAll(".spell-comment-choice")) {
+      button.addEventListener("click", (event) => {
+        event.stopPropagation()
+        const at = button.getBoundingClientRect()
+        this.closePicker()
+        if (button.dataset.id) this.openComment(button.dataset.id, at)
+        else this.openBox({ key: place.anchor, place }, at)
+      })
+    }
+    const away = (event) => !pick.contains(event.target) && this.closePicker()
+    const escape = (event) => event.key === "Escape" && this.closePicker()
+    document.addEventListener("pointerdown", away, true)
+    document.addEventListener("keydown", escape, true)
+    pick.forget = () => {
+      document.removeEventListener("pointerdown", away, true)
+      document.removeEventListener("keydown", escape, true)
+    }
+    this.picker = pick
+    this.main.append(pick)
+    const { height } = pick.getBoundingClientRect()
+    const top = near.bottom + 8 + height > innerHeight - 8 ? near.top - height - 8 : near.bottom + 8
+    movePane(pick, near.left, top)
+    pick.querySelector("button")?.focus({ preventScroll: true })
+  }
+
+  /** Close the bullhorn's list, if open. */
+  closePicker() {
+    this.picker?.forget()
+    this.picker?.remove()
+    this.picker = null
   }
 
   ////////////////
@@ -3022,12 +3157,15 @@ class PageComments {
 
   /**
    * Open comment `id` in the pane, under `near`:  to edit while it waits for Claude, else (`view`) to read with its
-   * answers, and delete.  Already open:  the cursor goes back into it, where it is.
+   * answers, and delete;  then it's read, and its card goes.  Already open:  the cursor goes back into it, where it is.
    */
   openComment(id, near) {
     if (this.open?.id === id && this.pane) return this.focusPane()
     const comment = this.list.find((each) => each.id === id)
     if (!comment) return
+    // read in the pane:  its card goes
+    this.markRead(id)
+    this.kept.delete(id)
     const { anchor, kind, label, excerpt, quote, offset } = comment
     const place = { anchor, kind, label, excerpt, quote, offset }
     const view = commentState(comment) !== "saved"
@@ -3072,10 +3210,11 @@ class PageComments {
   ////////////////
 
   /**
-   * A comment's card, drawn as the pane is (Owen, 2026-10-10:  "bullhorn popup looks good.  These are ugly"):  its
-   * header ("Owen", its state, the date, then the trash and, while it waits, Edit at the far right), then a box of
-   * the quote it's on, its text, and Claude's answers.  Folds by its header;  folded, the header shows the
-   * comment's first line.
+   * A comment's card, only while it has NEWS (`showsCard()`), drawn as the pane is (Owen, 2026-10-10:  "bullhorn
+   * popup looks good.  These are ugly"):  its header (the pane's summary, `headline()`, its tooltip the full place;
+   * its state, the date, the trash), then its text and Claude's answers;  no quote (Owen, 2026-10-10:  "I still
+   * don't care about the fully selected text").  Starts folded;  unfolding it reads it (`markRead()`), and it stays
+   * until Owen leaves the page.
    * - `exact` false:  its block changed or moved since, so the card says what it was on
    */
   card({ comment, exact }) {
@@ -3084,26 +3223,19 @@ class PageComments {
     card.id = `comment-${comment.id}`
     const state = commentState(comment)
     card.dataset.state = state
-    const open = this.folds.get(comment.id) ?? state === "saved"
+    const open = this.folds.get(comment.id) ?? false
     if (!open) card.dataset.folded = ""
-    const editing = this.open?.id === comment.id
-    // waiting:  the date says when it was saved, so the state doesn't say it again
-    const said = state === "saved" ? "Waiting for Claude" : stateLabel(comment, state)
+    const place = { ...comment }
     card.innerHTML =
       `<div class="spell-comment-head"><div class="spell-comment-line">` +
-      `<button type="button" class="spell-comment-fold" aria-expanded="${open}" title="${open ? "Fold" : "Unfold"} this comment">` +
-      `<ui-icon name="bullhorn"></ui-icon><b>Owen</b><span class="spell-comment-preview">${text(comment.text.split("\n")[0])}</span></button>` +
-      `<span class="spell-comment-state">${said}</span>` +
+      `<button type="button" class="spell-comment-fold" aria-expanded="${open}" ` +
+      `title="${attr(`${aboutTip({ id: comment.id, place })}\n(${open ? "Fold" : "Unfold"} this comment)`)}">` +
+      `<ui-icon name="bullhorn"></ui-icon><span class="spell-comment-preview">${text(headline(place))}</span></button>` +
+      `<span class="spell-comment-state">${stateLabel(comment, state)}</span>` +
       `<span class="spell-comment-date">${text(shortStamp(localStamp(comment.at)))}</span></div>` +
       deleteButton(state) +
-      (state === "saved" && !editing
-        ? `<button type="button" class="spell-comment-tool spell-comment-edit" ` +
-          `title="Edit this comment, until Claude takes it:  emptied, it's deleted" aria-label="Edit this comment">` +
-          `<ui-icon name="pen to square"></ui-icon></button>`
-        : "") +
       `</div><div class="spell-comment-body">` +
       (exact ? "" : `<p class="spell-comment-moved">The block changed since:  it was “${text(comment.excerpt)}”.</p>`) +
-      (comment.quote ? `<blockquote class="spell-comment-quote">${text(comment.quote)}</blockquote>` : "") +
       commentHTML(comment.text) +
       (comment.replies ?? [])
         .map(
@@ -3113,38 +3245,68 @@ class PageComments {
         )
         .join("") +
       `</div>`
-    if (editing) card.hidden = true
+    if (this.open?.id === comment.id) card.hidden = true
     const fold = card.querySelector(".spell-comment-fold")
     fold.addEventListener("click", () => {
       const opening = card.hasAttribute("data-folded")
-      card.toggleAttribute("data-folded", !opening)
-      fold.setAttribute("aria-expanded", String(opening))
-      fold.title = `${opening ? "Fold" : "Unfold"} this comment`
       this.folds.set(comment.id, opening)
-    })
-    card.querySelector(".spell-comment-edit")?.addEventListener("click", (event) => {
-      this.openComment(comment.id, event.currentTarget.getBoundingClientRect())
+      if (!opening) {
+        card.toggleAttribute("data-folded", true)
+        fold.setAttribute("aria-expanded", "false")
+        return
+      }
+      // read:  kept on the page for this visit, its bullhorn's dot gone
+      this.markRead(comment.id)
+      this.kept.add(comment.id)
+      this.draw()
+      this.main.querySelector(`#comment-${comment.id} .spell-comment-fold`)?.focus({ preventScroll: true })
     })
     wireDelete(card.querySelector(".spell-comment-delete"), () => this.remove(comment.id))
     return card
   }
 
   /**
-   * Delete comment `id`, whatever its state:  gone from the inbox, its card and highlight with it.  NEVER throws.
+   * Delete comment `id`, whatever its state, at once:  gone from the inbox, its card and highlight with it;  a toast
+   * says so, with Undo for `UNDO_MS` (Owen, 2026-10-10:  "didn't know it needed two clicks").  NEVER throws.
    * - while it waits for Claude:  `delete`;  once Claude has it:  `clear` (a taken one stays in its epic)
    * - its pane, if open, closes;  any draft of it is forgotten
    */
   async remove(id) {
     const action = this.waiting(id) ? "delete" : "clear"
+    const was = this.list.find((each) => each.id === id)
     try {
       const answer = await postJSON(COMMENTS_API, { page: location.pathname, action, id })
       this.list = answer.comments ?? this.list
       this.forget(id)
       if (this.open?.id === id) this.closePane()
       else this.draw()
-      noteToast("Comment deleted", "success")
+      let undone = false
+      const undo = () => {
+        if (undone) return
+        undone = true
+        void this.restore(was)
+      }
+      noteToast("Comment deleted", "success", {
+        displayTime: UNDO_MS,
+        actions: was ? [{ text: "Undo", icon: "rotate left", class: "basic", click: undo }] : undefined
+      })
     } catch (error) {
       noteToast(`Couldn't delete the comment:  ${error.message}`, "error")
+    }
+  }
+
+  /**
+   * Undo a delete:  comment `was` (as the server last gave it) back as it was, on its block, its quote highlighted
+   * again;  its id the same unless a new comment took it meanwhile (the server's `restore`).  NEVER throws.
+   */
+  async restore(was) {
+    try {
+      const { id, ...comment } = was
+      const answer = await postJSON(COMMENTS_API, { page: location.pathname, action: "restore", id, comment })
+      this.list = answer.comments ?? this.list
+      this.draw()
+    } catch (error) {
+      noteToast(`Couldn't bring the comment back:  ${error.message}`, "error")
     }
   }
 
@@ -3161,6 +3323,7 @@ class PageComments {
    * - the page never scrolls (Owen, 2026-10-10:  "don't scroll the page and lose context!")
    */
   openBox(open, near) {
+    this.closePicker()
     if (this.pane && this.open?.key === open.key) return this.focusPane()
     void this.open?.finish?.()
     this.pane?.remove()
@@ -3208,7 +3371,7 @@ class PageComments {
    * - the header:  a few words of what it's on (the selected text, else the block:  `headline()`), the floppy, the
    *   trash, ×;  its tooltip names the block in full (`aboutTip()`);  Owen drags the pane by it
    * - the field has no placeholder (Owen, 2026-10-10:  "remove the 'Anything:  a correction...' placeholder")
-   * - the trash deletes the comment (two clicks:  `wireDelete()`);  shown once it's saved
+   * - the trash deletes the comment, one click, Undo in its toast (`wireDelete()`);  shown once it's saved
    * - `view`:  the comment and Claude's answers instead of the field;  no floppy
    * - × or Escape closes it (⌘ / Ctrl Enter too, in the field), saving what's typed first
    */
@@ -3406,6 +3569,38 @@ function aboutTip({ id, place }) {
 }
 
 /**
+ * A comment's NEWS, as a stamp:  when Claude last answered it, else took it, else when it was written;  a card shows
+ * while the stamp Owen read (`COMMENT_READ_KEY_PREFIX`) differs.
+ */
+function newsOf(comment) {
+  const stamps = [comment.at, comment.taken?.at, ...(comment.replies ?? []).map((reply) => reply.at)]
+  // ISO stamps:  the latest is the greatest
+  return stamps.reduce((latest, each) => (each && each > latest ? each : latest), "")
+}
+
+/**
+ * Where a quote's card goes (Owen, 2026-10-10:  "show them under the paragraph where they were defined"):  the
+ * smallest paragraph, list item, cell ... (`TEXT_HOLDERS`) in `block` holding the quote (`quoted`:  `quoteIn()`'s);
+ * else `block` itself.
+ * - never inside an element that would hide it:  one drawing its children in a shadow root with no default slot
+ */
+function holderOf(block, { start, end }) {
+  try {
+    const range = document.createRange()
+    range.setStart(...start)
+    range.setEnd(...end)
+    const node = range.commonAncestorContainer
+    const holder = (node.nodeType === 1 ? node : node.parentElement)?.closest(TEXT_HOLDERS)
+    if (!holder || holder === block || !block.contains(holder)) return block
+    const shadow = holder.parentElement?.shadowRoot
+    if (shadow && !shadow.querySelector("slot:not([name])")) return block
+    return holder
+  } catch {
+    return block
+  }
+}
+
+/**
  * A comment's state, by the fill rule:  `saved` (waiting for Claude:  outlined), `taken` (a guide's, into an epic's
  * phase) or `answered` (both solid).
  */
@@ -3465,13 +3660,13 @@ function highlightQuotes(quotes) {
 /** What the pane's × says, in its tooltip. */
 const CLOSE_TIP = "Close (Escape):  it's saved as you type;  emptied, the comment is deleted"
 
-/** How long a trash waits for its second click, ms. */
-const DELETE_ARMED_MS = 3000
+/** How long the toast saying a comment was deleted offers Undo, ms. */
+const UNDO_MS = 6000
 
 /** What a trash says, in its tooltip:  a comment still waiting for Claude, and one Claude has. */
 const DELETE_TIPS = {
-  saved: "Delete this comment (two clicks)",
-  had: "Delete this comment (two clicks):  gone from the page, whatever Claude did with it"
+  saved: "Delete this comment (Undo in the toast that follows)",
+  had: "Delete this comment:  gone from the page, whatever Claude did with it (Undo in the toast that follows)"
 }
 
 /**
@@ -3488,25 +3683,14 @@ function deleteButton(state, hidden = false) {
 }
 
 /**
- * Wire trash `button` (`deleteButton()`) to `act`, on a second click:  no browser dialog.  The first click turns it
- * red, "Click again to delete", for `DELETE_ARMED_MS`.
+ * Wire trash `button` (`deleteButton()`) to `act`:  one click deletes at once, no dialog;  the toast that says so
+ * offers Undo (`PageComments.remove()`).
+ * - Before 2026-10-10 it took two clicks, the first turning it red:  Owen clicked once, and thought it broken
  */
 function wireDelete(button, act) {
-  if (!button) return
-  const tip = button.title
-  let timer = 0
-  button.addEventListener("click", (event) => {
+  button?.addEventListener("click", (event) => {
     event.stopPropagation()
-    if (button.hasAttribute("data-armed")) {
-      clearTimeout(timer)
-      return void act()
-    }
-    button.setAttribute("data-armed", "")
-    button.title = "Click again to delete"
-    timer = setTimeout(() => {
-      button.removeAttribute("data-armed")
-      button.title = tip
-    }, DELETE_ARMED_MS)
+    void act()
   })
 }
 
@@ -3833,10 +4017,13 @@ function growField(field) {
   field.style.height = `${field.scrollHeight + 2}px`
 }
 
-/** A toast through `UI.toast()`;  the console when toasts aren't there. */
-function noteToast(message, type) {
+/**
+ * A toast through `UI.toast()`;  the console when toasts aren't there.
+ * - `displayTime`:  ms, 3s unless given;  `actions`:  its buttons (`ToastAction`s:  `{ text, icon, class, click }`)
+ */
+function noteToast(message, type, { displayTime = 3000, actions } = {}) {
   try {
-    window.SpellUI.UI.toast({ message, type, position: "bottom right", displayTime: 3000, showIcon: true })
+    window.SpellUI.UI.toast({ message, type, position: "bottom right", displayTime, showIcon: true, actions })
   } catch {
     console.info(message)
   }
