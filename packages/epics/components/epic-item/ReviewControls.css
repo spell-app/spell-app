@@ -8,7 +8,8 @@
  *   and a right margin, for an icon before text) is undone through `::part(icon)`
  * - the controls box is one line tall and centres its children, so it sits on the title's first line
  * - colours (decision Q20):  green decided or done (Approve, Make Todo, a pick, a todo's plane), blue an ask of
- *   Claude (Revisit, Do Now), grey no longer relevant (a todo's x, Owen, 2026-10-09);  Owen's own words (the note box, a marked note, the note bubble) on the brand's ivory (`--ui-brown-*`)
+ *   Claude (Revisit, Do Now), grey no longer relevant (a todo's x, the note box's x:  Owen, 2026-10-09);
+ *   Owen's own words (the note box, a marked note, the note bubble) on the brand's ivory (`--ui-brown-*`)
  * - THE FILL (`data-fill`, Q20):  a grey outline available;  dashed in its colour pressed, not sent;  outlined in it
  *   sent, or Claude is on it;  then CLEARED, a grey outline again, once Claude has handled it (Owen's input, taken:
  *   the id chip carries the result, 2026-10-08).  Never solid.  The note box's buttons and the pick's letter follow
@@ -146,7 +147,7 @@
     margin: 0;
   }
 
-  /* ## The note box:  Owen's voice, on ivory -- the note, and Revisit Later / Make Todo stacked at its right */
+  /* ## The note box:  Owen's voice, on ivory -- the note, and Revisit Later / the x stacked at its right */
   .note-box {
     display: flex;
     gap: 6px;
@@ -210,8 +211,9 @@
     gap: 6px;
   }
   /*
-   * Revisit Later (blue:  an ask of Claude), Make Todo (green, decided):  a grey ring, available;  in its colour when
-   * pointed at;  the element's mark wears the fill (`data-mark`):  dashed until sent, outlined once sent
+   * Revisit Later (blue:  an ask of Claude), the x (grey:  skip this;  a todo's, drop it), a todo's plane (green):
+   * a grey ring, available;  in its colour when pointed at;
+   * the element's mark wears the fill (`data-mark`):  dashed until sent, outlined once sent
    */
   .note-actions > button {
     display: inline-grid;
@@ -230,14 +232,14 @@
     cursor: pointer;
   }
   .note-actions > button:is(:hover, :focus-visible, :active),
-  .note-box[data-sent][data-mark="todo"] > .note-actions > button[data-how="todo"],
+  .note-box[data-sent][data-mark="skip"] > .note-actions > button[data-how="skip"],
   .note-box[data-sent][data-mark="next"] > .note-actions > button[data-how="next"],
   .note-box[data-sent][data-mark="drop"] > .note-actions > button[data-how="drop"],
   .note-box[data-sent][data-mark="soon"] > .note-actions > button[data-how="soon"] {
     box-shadow: inset 0 0 0 1.5px var(--_act);
     color: var(--_act);
   }
-  .note-box:not([data-sent])[data-mark="todo"] > .note-actions > button[data-how="todo"],
+  .note-box:not([data-sent])[data-mark="skip"] > .note-actions > button[data-how="skip"],
   .note-box:not([data-sent])[data-mark="next"] > .note-actions > button[data-how="next"],
   .note-box:not([data-sent])[data-mark="drop"] > .note-actions > button[data-how="drop"],
   .note-box:not([data-sent])[data-mark="soon"] > .note-actions > button[data-how="soon"] {

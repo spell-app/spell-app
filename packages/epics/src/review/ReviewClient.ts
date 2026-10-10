@@ -373,12 +373,13 @@ export class ReviewClient {
   }
 
   /**
-   * Make `id`'s note a mark:  `how` is the note box button pressed (`todo`, `soon`:  Later, `now`:  Do Now;
+   * Make `id`'s note a mark:  `how` is the note box button pressed (`soon`:  Later, `skip`:  the x, `now`:  Do Now;
    * a todo's `next` and `drop`, Owen, 2026-10-09);
    * what was typed is dropped from memory and the backup (the mark carries it).
    * - Later keeps the item's pick:  "pick B, but ..."
+   * - the x (`skip`:  nothing to do) replaces any other mark, a pick too;  its note may be empty
    */
-  useNote(id: string, how: "todo" | "next" | "drop" | "soon" | "now", note: string): Promise<boolean> {
+  useNote(id: string, how: "skip" | "next" | "drop" | "soon" | "now", note: string): Promise<boolean> {
     this.forgetTyped(id)
     this.boxes.delete(id)
     if (how === "now") return this.askNow(id, "revisit", note)

@@ -182,8 +182,9 @@ export type ReviewButtonsProps = {
  * The note box (Owen, 2026-10-06, Q8):  Owen's voice, on ivory --
  * a note that grows as it's typed in, a small Saved mark in its corner,
  * and two round buttons stacked at its right:
- * Revisit Later (blue:  revisit soon, the line's Revisit icon), Make Todo (green);
- * a todo's (`TODO_NOTE_BUTTONS`):  the plane (green), Revisit Later, the x (grey), in its line's order.
+ * Revisit Later (blue:  revisit soon, the line's Revisit icon), the x (grey:  skip this, nothing to do;
+ * Owen, 2026-10-09, in place of Make Todo, which stays on the line);
+ * a todo's (`TODO_NOTE_BUTTONS`):  the plane (green), Revisit Later, the x (grey:  drop it), in its line's order.
  * Do Now is the line's (decision Q20):  it takes the note along.
  * - SAVED as typed:  to the inbox as a draft, `DRAFT_SAVE_MS` after the last key,
  *   and at once when the box loses focus or the page goes away
@@ -430,18 +431,19 @@ export function takeToNote(
 }
 
 /** A marked note's kind, by its mark's action;  a revisit's is by its `when`. */
-const HOW_KEYS: Partial<Record<string, "howTodo" | "howNext" | "howDrop">> = {
+const HOW_KEYS: Partial<Record<string, "howTodo" | "howNext" | "howDrop" | "howSkip">> = {
   todo: "howTodo",
   next: "howNext",
-  drop: "howDrop"
+  drop: "howDrop",
+  skip: "howSkip"
 }
 
 /**
- * The note box button `mark` stands for:  `todo`, a todo's `next` / `drop`, `soon` (Later);
- * else none (a Do Now is the line's).
+ * The note box button `mark` stands for:  the x (`skip`;  a todo's `drop`), a todo's plane (`next`), `soon` (Later);
+ * else none (a Make Todo or a Do Now is the line's).
  */
 function markButton(mark: InboxMark | undefined): NoteHow | undefined {
-  if (mark?.action === "todo" || mark?.action === "next" || mark?.action === "drop") return mark.action
+  if (mark?.action === "skip" || mark?.action === "next" || mark?.action === "drop") return mark.action
   if (mark?.action === "revisit" && !isImmediate(mark)) return "soon"
   return undefined
 }

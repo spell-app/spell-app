@@ -14,10 +14,11 @@
  *   this branch's code as it is now;  stopped at the end
  * - Owen's side, clicked:
  *   - every item's buttons:  ONE group, Approve, Revisit, Make Todo, then Do Now apart (the wand);  an
- *     Overview sub-section's without Approve;  the note box's:  Later, Make Todo (no "now":  Do Now is the line's)
+ *     Overview sub-section's without Approve;  the note box's:  Later, the x (skip this:  Owen, 2026-10-09;  no
+ *     "now":  Do Now is the line's)
  *   - the fill:  Approve pressed dashed green, again none;  Make Todo the same
- *   - Revisit on an item with details:  it opens, its box focused;  ten lines grow it;  the box's Make Todo saves
- *     the todo WITH its note
+ *   - Revisit on an item with details:  it opens, its box focused;  ten lines grow it;  the box's x saves a skip
+ *     WITH its note, the id chip dashed grey
  *   - Revisit on an item without details:  a box under its line;  a draft saved on Tab, back after a reload;  Later:
  *     a revisit soon, shown under the line, and Edit puts it back in the box
  *   - Do Now WITH a note (an Overview sub-section):  a revisit now, dashed while nobody listens, the tooltip saying
@@ -30,8 +31,9 @@
  *     turning (`data-busy`);  `status underway`:  a blue Underway card, the item `progress`;  `status done`:  the
  *     card green;  `inbox done`:  Do Now CLEARED (`review-as="now"`:  the buttons are Owen's input, the chip carries
  *     the result)
- *   - `inbox apply`:  the sent Approve CLEARED (`review-as="approve"`), the chip solid green;  the pick approves its
- *     call (closed, the reply's set `chosen`, a Done card `Chose C · ...`), its pill SOLID
+ *   - `inbox apply`:  the sent Approve CLEARED (`review-as="approve"`), the chip solid green;  the skip:  reviewed,
+ *     still open, its note kept as Owen's reply;  the pick approves its call (closed, the reply's set `chosen`, a
+ *     Done card `Chose C · ...`), its pill SOLID
  *   - Review Now:  the revisit waiting asked now
  * - fails (exit 1) unless each shows on the page AND lands in the inbox (read back through `GET /api/review/inbox`);
  *   at 280px and 900px, light and dark, no review control runs past the window, none sits over its line's title, and
@@ -81,7 +83,7 @@ const flagged = new Set(["--doc", "--from"].flatMap((name) => (args.includes(nam
 const out = args.find((arg, index) => !arg.startsWith("--") && !flagged.has(index)) ?? SHOTS
 const NOBODY = /No Claude session/
 const NOTE = "check-review-epics:  why not reuse the details route?"
-const TODO_NOTE = "check-review-epics:  follow up once the routes settle"
+const SKIP_NOTE = "check-review-epics:  nothing to do, the routes settle it"
 const SECTION_NOTE = "check-review-epics:  is the Overview part clear?"
 const SESSION = "check-review-epics"
 const HOLD_MS = 900
@@ -244,7 +246,7 @@ async function run() {
     })
   }
 
-  // Revisit on an item with details:  opens, docked box focused, grows, the box's Make Todo with the note
+  // Revisit on an item with details:  opens, docked box focused, grows, the box's x (skip this) with the note
   await press(page, withDetails, "revisit")
   await page
     .waitForFunction(
@@ -259,18 +261,26 @@ async function run() {
       (id) => Array.from(rootOf(id).querySelectorAll(".note-actions button"), (button) => button.dataset.how),
       withDetails
     ),
-    ["soon", "todo"]
+    ["soon", "skip"]
   )
   const before = await boxHeight(page, withDetails)
   await page.keyboard.type(Array.from({ length: 10 }, (_, line) => `line ${line + 1}`).join("\n"))
   const after = await boxHeight(page, withDetails)
   if (!(after > before + 60)) problems.push(`${withDetails}:  the note box didn't grow (${before} -> ${after})`)
   await page.keyboard.press("ControlOrMeta+a")
-  await page.keyboard.type(TODO_NOTE)
-  await noteButton(page, withDetails, "todo")
-  await expectMark(page, withDetails, { action: "todo", note: TODO_NOTE }, "the box's Make Todo")
+  await page.keyboard.type(SKIP_NOTE)
+  await noteButton(page, withDetails, "skip")
+  await expectMark(page, withDetails, { action: "skip", note: SKIP_NOTE }, "the box's x (skip this)")
   expect(`${withDetails}'s box emptied`, await noteValue(page, withDetails), "")
-  expect(`${withDetails}'s Make Todo, unsent:  dashed`, (await buttonState(page, withDetails, "todo")).fill, "dashed")
+  // no line button wears a skip:  the id chip alone shows it, dashed grey
+  expect(
+    `${withDetails}'s chip, skipped, unsent:  dashed grey`,
+    await page.evaluate((id) => {
+      const chip = rootOf(id).querySelector("[part~='id']")
+      return { fill: chip.dataset.fill, color: chip.dataset.color }
+    }, withDetails),
+    { fill: "dashed", color: "grey" }
+  )
 
   // an item without details:  a box under its line, a draft saved on Tab, back after a reload, Later, Edit
   await press(page, bare, "revisit")
@@ -404,7 +414,7 @@ async function run() {
   })
   expect(`${question}'s review-as`, await attribute(page, question, "review-as"), "now")
 
-  // `inbox apply`:  the sent Approve applied, its button cleared, the chip green;  the todo filed with its Done card
+  // `inbox apply`:  the sent Approve applied, its button cleared, the chip green;  the skip reviewed, its note kept
   await tool.run(["inbox", docName, "apply"])
   await open(page)
   expect(`${approved}'s review-as`, await attribute(page, approved, "review-as"), "approve")
@@ -413,7 +423,20 @@ async function run() {
     fill: null,
     state: "recent"
   })
-  expect(`${withDetails}:  the todo filed, a Done card`, (await statusOf(page, withDetails)).cards.at(-1), "done")
+  expect(
+    `${withDetails}:  skipped`,
+    await page.evaluate((id) => {
+      const item = document.getElementById(id)
+      return {
+        reviewAs: item.getAttribute("review-as"),
+        status: item.getAttribute("status"),
+        // the doc squeezes runs of spaces
+        note: item.querySelector('epic-reply[from="Owen"][re="skip"]')?.textContent.replace(/\s+/g, " ") ?? null,
+        chip: rootOf(id).querySelector("[part~='id']").dataset.fill ?? null
+      }
+    }, withDetails),
+    { reviewAs: "skip", status: "open", note: SKIP_NOTE.replace(/\s+/g, " "), chip: null }
+  )
   // a todo's plane:  queued for the next phase, a Done card, the buttons cleared;  its x:  canceled, grey
   if (todos.length >= 2) {
     expect(`${todos[0]}'s review-as`, await attribute(page, todos[0], "review-as"), "next")

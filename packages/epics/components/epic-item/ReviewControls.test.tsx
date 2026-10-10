@@ -103,6 +103,14 @@ function button(host: Element, action: string): HTMLElement {
   return host.shadowRoot!.querySelector<HTMLElement>(`ui-button[data-action="${action}"]`)!
 }
 
+/** `host`'s note box buttons' `how`, in order. */
+function noteButtons(host: Element): string[] {
+  return Array.from(
+    host.shadowRoot!.querySelectorAll<HTMLElement>("[part~='note-box'] button"),
+    (it) => it.dataset.how!
+  )
+}
+
 /** Wait for the client's writes and Solid's updates. */
 async function settle() {
   await vi.waitFor(() => expect(routes.fetch).toHaveBeenCalled())
@@ -305,12 +313,12 @@ describe("<epic-item> review controls", () => {
     expect(doNow.getAttribute("aria-label")).toMatch(/No Claude session/)
   })
 
-  test("Do Now takes the note in the box along:  a revisit NOW with it;  the note box keeps Revisit Later and Make Todo", async () => {
+  test("Do Now takes the note in the box along:  a revisit NOW with it;  the note box keeps Revisit Later and the x", async () => {
     await adoptClient()
     const host = await render(`<epic-item id="q5" title="A question" status="open" open><p>Text</p></epic-item>`)
     expect(
       Array.from(host.shadowRoot!.querySelectorAll<HTMLElement>("[part~='note-box'] button"), (it) => it.dataset.how)
-    ).toEqual(["soon", "todo"])
+    ).toEqual(["soon", "skip"])
     const note = host.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~='details'] textarea")!
     note.value = "do it this way"
     note.dispatchEvent(new InputEvent("input", { bubbles: true }))
@@ -318,6 +326,32 @@ describe("<epic-item> review controls", () => {
     await settle()
     expect(routes.posts.at(-1)).toEqual(["now", { page: PAGE, id: "q5", action: "revisit", note: "do it this way" }])
     expect([button(host, "details").dataset.fill, button(host, "revisit").dataset.fill]).toEqual(["dashed", "none"])
+  })
+
+  test("the note box's x, Skip This (Owen, 2026-10-09):  in place of Make Todo;  a skip mark, the chip dashed grey", async () => {
+    await adoptClient()
+    const host = await render(`<epic-item id="j9" title="A call" status="open" open><p>Text</p></epic-item>`)
+    const x = host.shadowRoot!.querySelector<HTMLButtonElement>("[part~='note-box'] button[data-how='skip']")!
+    expect([x.dataset.color, x.title, x.getAttribute("aria-label")]).toEqual([
+      "grey",
+      "Skip this",
+      "Skip this:  nothing to do, marked reviewed once Claude applies it;  a note here says why"
+    ])
+    expect(x.querySelector("ui-icon")!.getAttribute("name")).toBe("xmark")
+    // the line keeps its Make Todo
+    expect(actions(host)).toEqual(["approve", "revisit", "todo", "details"])
+    const note = host.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~='details'] textarea")!
+    note.value = "covered by P3"
+    note.dispatchEvent(new InputEvent("input", { bubbles: true }))
+    x.click()
+    await settle()
+    expect(routes.inbox.marks.j9).toMatchObject({ action: "skip", note: "covered by P3" })
+    expect(host.shadowRoot!.querySelector("[part~='said']")!.textContent).toContain("skip · not sent yet")
+    const chip = host.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!
+    expect([chip.dataset.color, chip.dataset.fill]).toEqual(["grey", "dashed"])
+    expect(chip.title).toMatch(/you chose Skip this · not sent yet/)
+    // none of the line's buttons wears it
+    expect(actions(host).map((action) => button(host, action).dataset.fill)).toEqual(["none", "none", "none", "none"])
   })
 
   test("Revisit on an item without details:  a box under its line;  Later makes the note a mark, shown with Edit", async () => {
@@ -459,9 +493,14 @@ describe("<epic-section kind=overview-part> review controls (Q14)", () => {
     )
     expect(actions(host)).toEqual(["revisit", "todo", "details"])
     expect(host.shadowRoot!.querySelector("[part~='note-box'] textarea")).not.toBeNull()
+    expect(noteButtons(host)).toEqual(["soon", "skip"])
     button(host, "todo").click()
     await settle()
     expect(routes.inbox.marks.o1?.action).toBe("todo")
+    // the box's x:  skip this, nothing to do
+    host.shadowRoot!.querySelector<HTMLButtonElement>("[part~='note-box'] button[data-how='skip']")!.click()
+    await settle()
+    expect(routes.inbox.marks.o1?.action).toBe("skip")
   })
 
   test("other kinds of section draw no review controls", async () => {
@@ -478,6 +517,7 @@ describe("<epic-phase> and <epic-summary> review controls", () => {
     const host = await render(`<epic-phase id="p2" title="Plan-Doc Notes" status="todo" open></epic-phase>`)
     expect(actions(host)).toEqual(["revisit", "todo", "details"])
     expect(host.shadowRoot!.querySelector("[part~='note-box'] textarea")).not.toBeNull()
+    expect(noteButtons(host)).toEqual(["soon", "skip"])
     button(host, "todo").click()
     await settle()
     expect(routes.inbox.marks.p2?.action).toBe("todo")
@@ -495,6 +535,7 @@ describe("<epic-phase> and <epic-summary> review controls", () => {
     expect(host.shadowRoot!.querySelector("[part~='note-box'] textarea")!.getAttribute("aria-label")).toBe(
       "the summary:  your note"
     )
+    expect(noteButtons(host)).toEqual(["soon", "skip"])
     button(host, "details").click()
     await settle()
     expect(routes.posts.at(-1)).toEqual(["now", { page: PAGE, id: "summary", action: "details" }])

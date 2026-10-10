@@ -743,11 +743,14 @@ export class PlanDoc extends PlanReader {
    * - `next`, a todo's plane (Owen, 2026-10-09):  queued into the NEXT phase, the first still to do
    *   (`queue()`, its work `P10 · <name>`;  none:  "the next phase"), a Done card `Queued for P10 · <name>`
    * - `drop`, a todo's x:  canceled (struck through, grey), "dropped by Owen in review" in the log;  reviewed
-   * - `next`, `drop` with a note:  the note kept first, as Owen's reply (`keepNote()`)
+   * - `skip`, every other note box's x (Owen, 2026-10-09):  nothing to do;  reviewed, no status card, its state as
+   *   it was (an open question stays open);  on a todo it's `drop`
+   * - `next`, `drop`, `skip` with a note:  the note kept first, as Owen's reply (`keepNote()`)
    * - `revisit` soon:  left, for Claude to talk over in the chat;  `details`, revisit `now`:  left, an agent's
    *   - a revisit carrying a `pick` ("pick B, but ..."):  left too, NOT answered:  the note may change the pick
    * - an Overview sub-section (`o3`, Q14), a phase (`p3`), the summary (`summary`, epic `airplane` P2):
-   *   approve is noted, todo makes a todo;  the rest as for an item (`applyToPart()`)
+   *   approve and skip are noted (a skip's note kept), todo makes a todo;  the rest as for an item
+   *   (`applyToPart()`)
    * - `new`, a new todo or question Owen asked for from the page (epic `airplane` P2):
    *   made, as `plan-doc add` makes one (`addFromPage()`)
    * - an applied mark adds ONE log line (`J9 approved:  closed (accepted)`);  the methods it calls stamp the item
@@ -762,16 +765,20 @@ export class PlanDoc extends PlanReader {
     }
     const item = this.findItem(mark.id)
     if (!item) return { applied: false, gone: true, left: "no such item:  mark dropped" }
-    const result = this.applyAction(item, mark)
+    // skipping a todo IS dropping it (its own note box's x is Drop It;  a skip comes from a page drawn before)
+    const todoSkip = mark.action === "skip" && PlanItem.kindOf(item.id) === "todo"
+    const applied = todoSkip ? { ...mark, action: "drop" as const } : mark
+    const result = this.applyAction(item, applied)
     if (result.applied) {
       this.log(`${item.id.toUpperCase()} ${result.did}`)
-      this.reviewedAs(item, mark.action === "pick" ? "approve" : mark.action)
+      this.reviewedAs(item, applied.action === "pick" ? "approve" : applied.action)
     }
     return result
   }
 
   /**
-   * Record on `item` how Owen's review mark was handled (`review-as`:  `approve`, `todo`, `revisit`, `now`), once
+   * Record on `item` how Owen's review mark was handled (`review-as`:  `approve`, `todo`, `revisit`, `now`, a
+   * todo's `next` and `drop`, `skip`), once
    * Claude applied it, talked it over or did it:  the inbox forgets the mark, the doc keeps it, and the page keeps that
    * review button SOLID after a reload (done:  epic `windows-and-review` P2, Q8;  the fill rule, Q20).
    * A pick counts as approve;  `now`:  an immediate request (Do Now) done.
@@ -818,6 +825,11 @@ export class PlanDoc extends PlanReader {
         this.setItem(item.id, "canceled")
         this.review(item.id)
         return { applied: true, did: "canceled:  dropped by Owen in review" }
+      }
+      case "skip": {
+        if (note) this.keepNote(item.id, { note, action: "skip", at })
+        this.review(item.id)
+        return { applied: true, did: `skipped:  nothing to do, reviewed${note ? " (his note kept)" : ""}` }
       }
       default:
         return this.leftForClaude({ action, pick, when, note }, () =>
@@ -1487,14 +1499,18 @@ export class PlanDoc extends PlanReader {
    * A mark on what takes notes but isn't an item
    * (`reviewPart()`:  an Overview sub-section, Q14;  a phase or the summary, epic `airplane` P2):
    * - approve is noted (none of them has review marks:  the log says it)
+   * - skip (the note box's x, Owen, 2026-10-09) too:  nothing to do;  its note kept (`keepNote()`), when typed
    * - todo makes a todo linking back, and a Done status card on it
    * - pick isn't for them
    * - revisit and details are Claude's, as for an item
    */
-  private applyToPart(part: ReviewPart, { action, pick, when, note }: PlanMark): MarkResult {
+  private applyToPart(part: ReviewPart, { action, pick, when, note, at }: PlanMark): MarkResult {
     switch (action) {
       case "approve":
         return { applied: true, did: "approved" }
+      case "skip":
+        if (note) this.keepNote(part.id, { note, action: "skip", at })
+        return { applied: true, did: `skipped:  nothing to do${note ? " (his note kept)" : ""}` }
       case "todo": {
         const todo = this.followUp(part, note)
         this.addStatus(part.id, filedTodo(todo), { done: true })
