@@ -3860,6 +3860,9 @@ function pendingReplyOf(comment) {
  * - `editing` (an open reply box's `how`):  the box stands in for the words being edited -- `edit` his first, `reply`
  *   his pending reply
  */
+/** Who said a thread's message, as its first word says it (`messagesHTML()`). */
+const WHO = { owen: "You:", claude: "Claude:" }
+
 function messagesHTML(comment, editing) {
   const said = [{ by: "Owen", at: comment.at, text: comment.text }, ...(comment.replies ?? [])]
   if (editing === "edit") said.shift()
@@ -3897,7 +3900,11 @@ function messagesHTML(comment, editing) {
         ? `<span class="spell-thread-room" aria-hidden="true">${text(shown)}</span>` +
           `<time class="spell-thread-when" datetime="${attr(at)}" title="${attr(local)}">${text(shown)}</time>`
         : ""
-      return `<div class="spell-thread-msg" data-by="${by}">${when}<div class="spell-thread-text">${body}</div></div>`
+      // who, in bold, at the start of the first line (Owen, 2026-10-10:  "Put You in bold, same line, before me and
+      // Claude: before yours");  the Done line has its check instead
+      const who = WHO[by] ? `<b class="spell-thread-who">${WHO[by]}</b> ` : ""
+      const said = who && body.startsWith("<p>") ? `<p>${who}${body.slice(3)}` : who + body
+      return `<div class="spell-thread-msg" data-by="${by}">${when}<div class="spell-thread-text">${said}</div></div>`
     })
     .join("")
 }
