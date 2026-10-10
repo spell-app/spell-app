@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, h } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
 
 // IDEAS FOR EXTENDING THIS
 // - check for NaN in total

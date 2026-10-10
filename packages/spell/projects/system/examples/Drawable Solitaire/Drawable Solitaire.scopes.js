@@ -348,13 +348,12 @@
       section: "set up all piles"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Stock_Pile", line: 16,
+      path: "project:Drawable Solitaire/file:Solitaire.spell/type:StockPile", line: 16,
       super: "project:Drawable Solitaire/file:Pile.spell/type:Pile",
-      section: "set up all piles",
-      description: "set up stock pile: unplayed cards"
+      section: "set up all piles"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Stock_Pile/method:draw a stock-pile", line: [220, 224],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/type:StockPile/method:draw a stock-pile", line: [220, 224],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -362,17 +361,16 @@
     },
     {
       path: "project:Drawable Solitaire/file:Solitaire.spell/variable:stock", line: 18,
-      detail: "Stock_Pile",
+      detail: "StockPile",
       section: "set up all piles"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Discard_Pile", line: 22,
+      path: "project:Drawable Solitaire/file:Solitaire.spell/type:DiscardPile", line: 22,
       super: "project:Drawable Solitaire/file:Pile.spell/type:Pile",
-      section: "set up all piles",
-      description: "set up discards: where played cards go when turning over stock"
+      section: "set up all piles"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Discard_Pile/method:draw a discard-pile", line: [226, 229],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/type:DiscardPile/method:draw a discard-pile", line: [226, 229],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -380,7 +378,7 @@
     },
     {
       path: "project:Drawable Solitaire/file:Solitaire.spell/variable:discards", line: 24,
-      detail: "Discard_Pile",
+      detail: "DiscardPile",
       section: "set up all piles"
     },
     {

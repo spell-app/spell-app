@@ -125,8 +125,8 @@ describe("SpellWords", () => {
       "Deck",
       "Pile",
       "Game",
-      "Stock_Pile",
-      "Discard_Pile",
+      "StockPile",
+      "DiscardPile",
       "Foundation",
       "Tableau"
     ])
@@ -137,7 +137,7 @@ describe("SpellWords", () => {
       isASuit: "is a (suit)",
       shortRank: "short-rank"
     })
-    expect(words.types.Stock_Pile).toEqual({
+    expect(words.types.StockPile).toEqual({
       canPickUpCard: "can pick up (a card)",
       draw: "draw (a stock-pile)"
     })

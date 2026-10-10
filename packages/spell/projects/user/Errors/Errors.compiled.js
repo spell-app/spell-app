@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"
 
 export function doSomething() {
   if (1) {

@@ -2,7 +2,7 @@
   "spellVersion": "0.8.0",
   "provides": [
     "Task",
-    "Todos_App",
+    "TodosApp",
     "create_a_new_task"
   ],
   "statements": [
@@ -44,26 +44,26 @@
       "defined": "/todo.spell:155-196"
     },
     {
-      "type": "Todos_App",
+      "type": "TodosApp",
       "superType": "App",
       "defined": "/todo.spell:198-219"
     },
     {
       "property": "tasks",
-      "of": "Todos_App",
+      "of": "TodosApp",
       "datatype": "list of tasks",
       "defined": "/todo.spell:220-275"
     },
     {
       "property": "newTaskName",
-      "of": "Todos_App",
+      "of": "TodosApp",
       "datatype": "text",
       "defined": "/todo.spell:276-322"
     },
     {
       "property": "filter",
       "classVariable": "Filters",
-      "of": "Todos_App",
+      "of": "TodosApp",
       "enumeration": [
         "'all'",
         "'active'",
@@ -73,7 +73,7 @@
     },
     {
       "property": "shownTasks",
-      "of": "Todos_App",
+      "of": "TodosApp",
       "datatype": "list of tasks",
       "defined": "/todo.spell:384-584"
     },
@@ -81,7 +81,7 @@
       "syntax": "draw {thisArg:expression}",
       "output": "draw",
       "rule": "method_call",
-      "of": "Todos_App",
+      "of": "TodosApp",
       "alias": [
         "statement",
         "expression"

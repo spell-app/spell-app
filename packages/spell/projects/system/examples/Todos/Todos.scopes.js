@@ -45,37 +45,37 @@
       ]
     },
     {
-      path: "project:Todos/file:Todo.spell/type:Todos_App", line: 8,
+      path: "project:Todos/file:Todo.spell/type:TodosApp", line: 8,
       super: "type:App",
       section: "Todo app example"
     },
     {
-      path: "project:Todos/file:Todo.spell/type:Todos_App/property:tasks", line: 9,
+      path: "project:Todos/file:Todo.spell/type:TodosApp/property:tasks", line: 9,
       detail: "list of tasks",
       section: "Todo app example"
     },
     {
-      path: "project:Todos/file:Todo.spell/type:Todos_App/property:filter", line: 10,
+      path: "project:Todos/file:Todo.spell/type:TodosApp/property:filter", line: 10,
       section: "Todo app example"
     },
     {
-      path: "project:Todos/file:Todo.spell/type:Todos_App/enumeration:Filters", line: 10,
+      path: "project:Todos/file:Todo.spell/type:TodosApp/enumeration:Filters", line: 10,
       section: "Todo app example"
     },
     {
-      path: "project:Todos/file:Todo.spell/type:Todos_App/constant:all", line: 10,
+      path: "project:Todos/file:Todo.spell/type:TodosApp/constant:all", line: 10,
       section: "Todo app example"
     },
     {
-      path: "project:Todos/file:Todo.spell/type:Todos_App/constant:active", line: 10,
+      path: "project:Todos/file:Todo.spell/type:TodosApp/constant:active", line: 10,
       section: "Todo app example"
     },
     {
-      path: "project:Todos/file:Todo.spell/type:Todos_App/constant:completed", line: 10,
+      path: "project:Todos/file:Todo.spell/type:TodosApp/constant:completed", line: 10,
       section: "Todo app example"
     },
     {
-      path: "project:Todos/file:Todo.spell/type:Todos_App/method:draw (a todos-app)", line: [37, 62],
+      path: "project:Todos/file:Todo.spell/type:TodosApp/method:draw (a todos-app)", line: [37, 62],
       section: "Todo app example",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -83,7 +83,7 @@
     },
     {
       path: "project:Todos/file:Todo.spell/variable:app", line: 12,
-      detail: "Todos_App",
+      detail: "TodosApp",
       section: "Todo app example"
     },
     {
