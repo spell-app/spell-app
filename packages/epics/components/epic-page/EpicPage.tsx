@@ -151,7 +151,10 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       "epic-collapse-all": collapseAllCSS,
       "epic-state-chips": chipsCSS
     },
-    cssStates: ["future"]
+    cssStates: ["future"],
+    // a container:  a click on any text in the doc must not jump to the header's first link
+    // (focusing it scrolled the page to its top, and the click then missed what it was on:  I7 of `airplane`)
+    delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
   /** Its tag:  what its blocks look for around them. */

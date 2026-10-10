@@ -25,7 +25,9 @@ import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
   @E.proto static vocabulary = epicUpdateVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold-button": foldCSS, "epic-update": updateCSS }
+    styleSheets: { "epic-fold-button": foldCSS, "epic-update": updateCSS },
+    // a container:  a click on its text must not jump to the fold button
+    delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
   /** A note's open or folded state:  open to start with. */
