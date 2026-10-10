@@ -71,10 +71,12 @@ describe("runner builds", () => {
       // imported, NOT bundled:  each element's static imports reach the one `spell-solid.js`
       for (const entry of entries) expect(staticImports(dir, entry), `${dir} ${entry}`).toContain("spell-solid.js")
       // compiled spell draws with the page's one Solid:  the runtime imports `spell-solid.js`, bundles no Solid of its
-      // own, and never loads `ui`, statically OR lazily
+      // own, and never loads the rest of `ui` (`spell-ui.js`), statically OR lazily
+      // - what `spell-solid.js` loads is the page's shared copy:  since `<spell-app>` became a Spell UI component, that
+      //   holds `ui`'s element core too, in a chunk of `ui/`
       const runtimeFiles = staticImports(dir, "spell-runtime.js")
       expect(runtimeFiles, dir).toContain("spell-solid.js")
-      for (const file of runtimeFiles.filter((file) => file !== "spell-solid.js")) {
+      for (const file of runtimeFiles.filter((file) => !shared.includes(file))) {
         expect(holds(dir, file, "solid") || holds(dir, file, "ui"), `${dir} ${file}`).toBe(false)
         expect(readFileSync(join(dir, file), "utf8"), `${dir} ${file}`).not.toMatch(/spell-ui\.js/)
       }
