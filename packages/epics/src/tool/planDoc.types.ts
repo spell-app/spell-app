@@ -302,9 +302,10 @@ export const STATE_COLORS = {
  * The page no longer draws it on the buttons:  once handled they clear, and the id chip shows the result
  * (Owen, 2026-10-08).
  * `now`:  an immediate request (Do Now:  Add Details, revisit now) done;
- * `next`, `drop`:  a todo queued into the next phase, or dropped (its plane and x, Owen, 2026-10-09).
+ * `next`, `drop`:  a todo queued into the next phase, or dropped (its plane and x, Owen, 2026-10-09);
+ * `skip`:  skipped, nothing to do (the note box's x, Owen, 2026-10-09:  NOT settling, an open item stays open).
  */
-export const REVIEW_AS = ["approve", "todo", "revisit", "now", "next", "drop"] as const
+export const REVIEW_AS = ["approve", "todo", "revisit", "now", "next", "drop", "skip"] as const
 
 /** One of `REVIEW_AS`. */
 export type ReviewAs = (typeof REVIEW_AS)[number]

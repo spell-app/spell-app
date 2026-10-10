@@ -193,15 +193,18 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
    * - a mark Claude handled is gone from the inbox:  the buttons clear,
    *   and the chip shows the RESULT, solid in its state's colour
    *   (green decided, yellow still open, red needs Owen:  Owen, 2026-10-08;  orange Owen's turn to pick)
+   * - the note box's x (`skip`, Owen, 2026-10-09) has no button on the line:  the chip alone shows it, grey
    */
   readonly chipMark = createMemo((): ChipMark | undefined => {
     for (const spec of this.reviewButtons()) {
       const fill = this.reviewState.fillOf(spec.action)
       if (fill === "dashed" || fill === "outline") return { color: spec.color, fill, label: spec.label }
     }
-    const pick = this.reviewState.mark()?.pick
-    if (!pick) return undefined
-    return { color: "green", fill: this.reviewState.isSent() ? "outline" : "dashed", label: { pick } }
+    const mark = this.reviewState.mark()
+    const fill = this.reviewState.isSent() ? "outline" : "dashed"
+    if (mark?.action === "skip") return { color: "grey", fill, label: "boxSkip" }
+    if (!mark?.pick) return undefined
+    return { color: "green", fill, label: { pick: mark.pick } }
   })
 
   /** Is its id chip a button (urgent <-> not urgent) now?  Only while the page is reviewed. */

@@ -294,8 +294,9 @@ pruning.
 Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he marks items (each item's buttons:
 one group, Approve, Revisit, Make Todo, then Do Now apart, the wand, for Add Details or a revisit now;  a TODO's
 instead:  the plane "do it in the next phase" (`next`), Revisit, the x "drop it" (`drop`), both applied by
-`inbox apply`;  Choose on option cards;  their colours and fills:  `plan-doc.md`, "Colours") and sends them with the
-page header's paper plane, or with Review Now beside it (the wand:  every revisit waiting is asked now too, epic
+`inbox apply`;  every other note box:  Revisit Later and the x "skip this" (`skip`:  nothing to do, applied by
+`inbox apply` as reviewed, the note kept, the status left as it was);  Choose on option cards;  their colours and
+fills:  `plan-doc.md`, "Colours") and sends them with the page header's paper plane, or with Review Now beside it (the wand:  every revisit waiting is asked now too, epic
 `windows-and-review` P4).  A running Do Now clicked again is "nevermind" (`canceled`, 7.3).
 This session LISTENS:  it waits on the doc's review inbox and acts on what arrives -- mechanical marks at once, Add
 Details and "revisit now" by background agents, "revisit soon" answered one at a time.  EVERY answer goes INTO its
@@ -345,8 +346,8 @@ spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or
    `spell dev docs link <ABS doc> --hash <that id> --review --show`:  the doc opens in the Review tab, at it.
 4. `spell dev plan-doc inbox <name> listen`, then `spell dev plan-doc inbox <name> wait` with Bash `run_in_background: true`.
 5. END THE TURN, short:  "Mark items in the Review tab:  each item's buttons;  Do Now (an item's wand) starts
-   at once (click again to call one off);  a todo's plane queues it for the next phase, its x drops it;  the
-   header's paper plane sends the rest.  I'm listening."  Then the doc's link
+   at once (click again to call one off);  a todo's plane queues it for the next phase, its x drops it;  a note
+   box's x skips it (nothing to do);  the header's paper plane sends the rest.  I'm listening."  Then the doc's link
    pair.
 
 ### 7.3 Woken:  the `wait` command finished

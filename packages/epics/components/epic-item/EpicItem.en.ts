@@ -76,10 +76,10 @@ export const epicItemVocabulary = {
     {
       name: "review-as",
       kind: "enum",
-      values: ["approve", "todo", "revisit", "now", "next", "drop"],
+      values: ["approve", "todo", "revisit", "now", "next", "drop", "skip"],
       description:
         "How Owen's review mark was handled (`now`:  a Do Now request, done;  `next`, `drop`:  a todo queued into " +
-        "the next phase, or dropped):  the record, not drawn on the " +
+        "the next phase, or dropped;  `skip`:  the note box's x, nothing to do):  the record, not drawn on the " +
         "buttons (they clear once handled);  `approve` or `todo` on an open item make it `recent` (green)."
     },
     {

@@ -135,7 +135,7 @@ export const COMMITS_PROPERTY = "--epic-commits-display"
  * The colours of the review controls (decision Q20 of epic `epic-components`, Owen, 2026-10-08):
  * - green:  decided or done (Approve, Make Todo, a pick;  a todo's plane, do it in the next phase)
  * - blue:  do it now, or Claude is on it (Revisit, Do Now)
- * - grey:  no longer relevant (a todo's x, drop it:  Owen, 2026-10-09)
+ * - grey:  no longer relevant (a todo's x, drop it;  every other note box's x, skip this:  Owen, 2026-10-09)
  */
 export type ReviewColor = "green" | "blue" | "grey"
 
@@ -157,8 +157,8 @@ export type ReviewFill = "none" | "dashed" | "outline"
 export type ChipMark = {
   color: ReviewColor
   fill: Exclude<ReviewFill, "none">
-  /** the chosen button's name (`approve`), or a pick's letter */
-  label: ReviewButtonSpec["label"] | { pick: string }
+  /** the chosen button's name (`approve`;  the note box's x, `boxSkip`), or a pick's letter */
+  label: ReviewButtonSpec["label"] | "boxSkip" | { pick: string }
 }
 
 /** One review button:  its action, colour, icon, and its name and tooltip texts. */
@@ -219,21 +219,25 @@ export const OVERVIEW_BUTTONS: readonly ReviewButtonSpec[] = REVIEW_BUTTONS.filt
 /** One note box button:  what it makes of the note (`how`), its colour, icon, name and tooltip. */
 export type NoteButtonSpec = {
   /** the mark it makes of the note (`ReviewClient.useNote()`) */
-  how: "soon" | "todo" | "next" | "drop"
+  how: "soon" | "next" | "drop" | "skip"
   color: ReviewColor
   icon: string
-  label: "boxSoon" | "boxTodo" | "boxNext" | "boxDrop"
-  tip: "boxSoonTip" | "boxTodoTip" | "boxNextTip" | "boxDropTip"
+  label: "boxSoon" | "boxNext" | "boxDrop" | "boxSkip"
+  tip: "boxSoonTip" | "boxNextTip" | "boxDropTip" | "boxSkipTip"
 }
 
 /**
- * The note box's buttons, in the line's order:  Revisit Later (queued for the next send), Make Todo.
+ * The note box's buttons:  Revisit Later (queued for the next send), then the x, Skip This
+ * (Owen, 2026-10-09, in place of Make Todo, which he never used there:  the line keeps its Make Todo).
  * - Revisit Later wears the line's Revisit icon:  both end in the same mark, a revisit
+ * - the x (`skip`, grey:  no longer relevant):  nothing to do here;
+ *   `inbox apply` marks it reviewed and keeps a typed note as Owen's reply
+ * - every box but a todo's (below):  an item's, an Overview section's, a phase's, the summary's
  * - no Do Now here any more (Q20):  the line's Do Now takes the note in the box with it
  */
 export const NOTE_BUTTONS: readonly NoteButtonSpec[] = [
   { how: "soon", color: "blue", icon: "history", label: "boxSoon", tip: "boxSoonTip" },
-  { how: "todo", color: "green", icon: "list check", label: "boxTodo", tip: "boxTodoTip" }
+  { how: "skip", color: "grey", icon: "xmark", label: "boxSkip", tip: "boxSkipTip" }
 ]
 
 /**
@@ -242,6 +246,7 @@ export const NOTE_BUTTONS: readonly NoteButtonSpec[] = [
  * - the plane:  do it in the next phase, with this note
  * - Revisit Later:  just the note, for Claude (the line's Revisit:  "I'm adding text for you")
  * - the x:  drop it, the note saying why
+ *   (every other box's x is Skip This:  on a todo, skipping it IS dropping it)
  */
 export const TODO_NOTE_BUTTONS: readonly NoteButtonSpec[] = [
   { how: "next", color: "green", icon: "paper plane", label: "boxNext", tip: "boxNextTip" },
@@ -286,7 +291,8 @@ export const REVIEW_PARTS = [
   {
     name: "note-box",
     description:
-      "The note box:  the note, then Revisit Later and Make Todo;  a todo's:  the plane, Revisit Later, the x."
+      "The note box:  the note, then Revisit Later and the x (skip this);  a todo's:  the plane, Revisit Later, " +
+      "the x (drop it)."
   },
   { name: "said", description: "A note marked and closed:  `You · revisit soon · sent 10:42`, the note, Edit." }
 ] as const
@@ -341,8 +347,6 @@ export const REVIEW_TEXTS = [
   { key: "noteUnsent", text: "Your note, not sent yet:  {note}", description: "The note bubble:  a mark's note." },
   { key: "notePlaceholder", text: "Your note:  a question, instructions, why", description: "The empty note box." },
   { key: "noteLabel", text: "{id}:  your note", description: "The note box, for a screen reader." },
-  { key: "boxTodo", text: "Make Todo", description: "Note box button:  its name." },
-  { key: "boxTodoTip", text: "Make Todo:  follow it up later, with this note", description: "Note box:  Make Todo." },
   { key: "boxSoon", text: "Revisit Later", description: "Note box button:  its name." },
   { key: "boxSoonTip", text: "Revisit Later:  talk it over in the next batch", description: "Note box:  Later." },
   { key: "boxNext", text: "Do it in the next phase", description: "A todo's note box button (the plane):  its name." },
@@ -353,6 +357,12 @@ export const REVIEW_TEXTS = [
   },
   { key: "boxDrop", text: "Drop it", description: "A todo's note box button (the x):  its name." },
   { key: "boxDropTip", text: "Drop it:  this note says why", description: "A todo's note box:  the x." },
+  { key: "boxSkip", text: "Skip this", description: "Note box button (the x):  its name." },
+  {
+    key: "boxSkipTip",
+    text: "Skip this:  nothing to do, marked reviewed once Claude applies it;  a note here says why",
+    description: "Note box:  the x."
+  },
   { key: "saved", text: "Saved {time}", description: "The note box's floppy:  its draft is saved." },
   { key: "notSaved", text: "Not saved:  {why} (kept in this browser)", description: "The floppy, red:  not saved." },
   { key: "you", text: "You", description: "Who wrote a marked note." },
@@ -361,6 +371,7 @@ export const REVIEW_TEXTS = [
   { key: "howTodo", text: "todo", description: "A marked note's kind." },
   { key: "howNext", text: "next phase", description: "A marked note's kind:  a todo's plane." },
   { key: "howDrop", text: "drop", description: "A marked note's kind:  a todo's x." },
+  { key: "howSkip", text: "skip", description: "A marked note's kind:  the note box's x." },
   { key: "saidSent", text: "{how} · sent {time}", description: "A marked note:  sent." },
   { key: "saidUnsent", text: "{how} · not sent yet", description: "A marked note:  not sent." },
   { key: "edit", text: "Edit", description: "A marked note's button:  back into the note box." }

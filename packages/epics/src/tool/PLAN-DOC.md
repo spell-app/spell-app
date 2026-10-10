@@ -176,7 +176,7 @@ As `plan-doc.md`, "Ids":
   - review marks:  `reviewed`, `deferred`, `queued` (`YYYY-MM-DD`), `work`, `working`, and `review-as`:
     how Owen's mark was handled
     (`approve`, `todo`, `revisit`, `now` -- a Do Now request done, written by `inbox done`;
-    `next`, `drop` -- a todo queued into the next phase, or dropped)
+    `next`, `drop` -- a todo queued into the next phase, or dropped;  `skip` -- the note box's x, nothing to do)
     - `review-as` is the record (the log, `review` outcomes, the state above), never drawn on the buttons:
       once Claude has handled a mark they clear, and the chip shows the result
 - A TODO's review buttons (Owen, 2026-10-09):  the plane, Revisit, the x, one group;  no Approve, Make Todo or Do Now.
@@ -189,6 +189,17 @@ As `plan-doc.md`, "Ids":
   - its note box matches:  the plane, Revisit Later, the x.  The plane or the x takes the note in the box along;
     `inbox apply` keeps it first, as Owen's `<epic-reply re="next phase">` (or `re="drop"`)
   - every other kind keeps Approve, Revisit, Make Todo and Do Now (the wand)
+- EVERY other note box (an item's, an Overview sub-section's, a phase's, the summary's):  Revisit Later, then the x
+  (`skip`, grey, "Skip this";  Owen, 2026-10-09:  in place of Make Todo, which stays on the line).
+  - the x:  nothing to do here.  It takes the note in the box along, or none;  it replaces any other mark, a pick
+    too.  No line button wears it:  the id chip alone does, grey (dashed, then outlined once sent)
+  - `inbox apply`, on an item:  reviewed, and nothing else -- its status as it was (an open question stays open,
+    `skip` settles nothing), no status card;  a note kept first, as Owen's `<epic-reply re="skip">`;  the log
+    `J9 skipped:  nothing to do, reviewed`
+  - on a todo, skipping it IS dropping it (its own box's x is `drop`;  a `skip` from a page drawn before is applied
+    as `drop`)
+  - on an Overview sub-section, a phase, the summary:  logged (`P3 skipped:  nothing to do`), a note kept as for
+    any mark of theirs
 - Options:  `<epic-choices>` of `<epic-option letter title recommended>`, the same open or answered.
   - `chosen` once answered (`decide --option B`, a pick);  mark ONE `recommended`
   - on ANY item kind (P14):  a question's own after its text,
@@ -224,7 +235,7 @@ As `plan-doc.md`, "Ids":
   (`Net effect (A):` over its list, a code block's title over its `<pre>` ...:  `PlanItem.asProse({ plain })`).
 - Owen's note, once Claude clears its mark:  `<epic-reply from="Owen" at="..." re="revisit soon">`.
 - An Overview sub-section takes review marks too (Q14):
-  approve is logged, todo makes a todo linking `#o3`, a kept note is a paragraph at its end.
+  approve and skip are logged, todo makes a todo linking `#o3`, a kept note is a paragraph at its end.
 - So do a phase and the summary (epic `airplane` P2:  Revisit, Make Todo, Do Now on the page;  no Approve):
   - a phase (`p3`):  todo makes `Follow up:  P3 · <title>` linking `#p3`, a Done status card on the phase;
     a kept note is Owen's `<epic-reply>` in the phase, under its `<epic-updated>` lines
@@ -315,7 +326,7 @@ Drawn, never written:  one meaning per colour on every element (decision Q20, Ow
 | orange | changed since Owen looked, or a warning;  an item Claude answered with options, waiting for Owen's pick (Owen, 2026-10-09) | UPDATE, the Updated fence, Plan changes;  "nobody is listening";  a blocked agent;  `replied` chips (DARK text on them), counted on the rail as needing Owen |
 | violet | Claude's voice                           | his reply cards;  the bedtime label                                    |
 | ivory  | Owen's voice                             | his note box, marked note, reply cards, the answer card                |
-| grey   | no longer relevant, inactive, not chosen | `old` chips (canceled);  a todo's x (drop it);  a phase to do;  FUTURE;  buttons at rest |
+| grey   | no longer relevant, inactive, not chosen | `old` chips (canceled);  a todo's x (drop it);  the note box's x (skip this);  a phase to do;  FUTURE;  buttons at rest |
 
 The FILL, on every button, pill and chip with a lifecycle (review buttons, the note box's, the pick's letter, the
 Choose pill and its card, Send).  The review buttons are Owen's INPUT (Owen, 2026-10-08):
@@ -330,7 +341,7 @@ Choose pill and its card, Send).  The review buttons are Owen's INPUT (Owen, 202
 
 An item's id chip MATCHES the chosen review button while Owen's mark is live (Owen, 2026-10-08):
 that button's colour and fill (an Approve pressed, not sent:  a dashed green chip;  a revisit sent:
-an outlined blue one;  a pick:  green).
+an outlined blue one;  a pick:  green;  the note box's x, which has no line button:  grey).
 No mark, or one Claude handled:  its state's colour, solid -- the result
 (an approved J9 green, a revisited J10 still open, yellow).
 
@@ -345,7 +356,8 @@ Discussion, Plan changes and Agents running already did.
 - a click anywhere on the band folds, but on a link or a control in it (`Fold.heading`, `<FoldButton>`)
 
 The review buttons, at every step:  Approve, Revisit, Make Todo in one group, then Do Now apart
-(paper plane:  the inbox's `details` request, or a revisit now when the note box holds a note).
+(the wand:  the inbox's `details` request, or a revisit now when the note box holds a note);
+the note box's:  Revisit Later, the x (skip this).
 
 ## Log
 
