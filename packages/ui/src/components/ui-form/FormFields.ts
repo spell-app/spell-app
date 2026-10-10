@@ -22,6 +22,8 @@ import { FIELD_SELECTOR, type Field, type FieldSpec } from "./UIForm.types"
  * - Errors of a field:  its `rules` through `Validator` (with every value for `match` / `different`,
  *   and every label for their prompts), THEN each control's own constraint validation (`validationMessage`),
  *   de-duplicated.
+ * - Its readings of ONE control (`nameOf()`, `isCheckable()`, `isRadio()`, `isChosen()`, `chosenValueFor()`)
+ *   are public:  `FormBinding` reads controls the same way.
  ****************/
 export class FormFields {
   /**
@@ -222,24 +224,29 @@ export class FormFields {
 
   /** `name`, else `id`. */
   private static identifierFor(control: Element): string | undefined {
+    return FormFields.nameOf(control) || control.id || undefined
+  }
+
+  /** Its `name` (the property, else the attribute), if any:  what `<ui-form value>` binds it to. */
+  static nameOf(control: Element): string | undefined {
     const name = (control as { name?: unknown }).name
-    return (typeof name === "string" && name) || control.getAttribute("name") || control.id || undefined
+    return (typeof name === "string" && name) || control.getAttribute("name") || undefined
   }
 
   /** A checkbox (native, or a `ui-*` element saying so). */
-  private static isCheckable(control: Element): boolean {
+  static isCheckable(control: Element): boolean {
     if (control instanceof HTMLInputElement) return control.type === "checkbox" || control.type === "radio"
     return !!(control as { checkable?: string }).checkable
   }
 
   /** A radio (native, or a `ui-*` element saying so). */
-  private static isRadio(control: Element): boolean {
+  static isRadio(control: Element): boolean {
     if (control instanceof HTMLInputElement) return control.type === "radio"
     return (control as { checkable?: string }).checkable === "radio"
   }
 
   /** Chosen now. */
-  private static isChosen(control: Element): boolean {
+  static isChosen(control: Element): boolean {
     if (control instanceof HTMLInputElement) return control.checked
     return !!(control as { selected?: boolean }).selected
   }
@@ -247,7 +254,7 @@ export class FormFields {
   /**
    * What a chosen checkable submits:  a `ui-*` element's `chosenValue`, else its `value` attribute, else `on` (native).
    */
-  private static chosenValueFor(control: Element): string {
+  static chosenValueFor(control: Element): string {
     return (control as CheckableElement).chosenValue ?? control.getAttribute("value") ?? "on"
   }
 

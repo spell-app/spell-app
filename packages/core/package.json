@@ -20,15 +20,11 @@
     "@solidjs/web": "2.0.0-rc.13",
     "@spell-app/util": "workspace:*",
     "lodash": "^4.17.21",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
     "solid-js": "2.0.0-rc.13"
   },
   "devDependencies": {
     "@types/lodash": "^4.17.17",
     "@types/node": "^22.20.4",
-    "@types/react": "^18.2.56",
-    "@types/react-dom": "^18.2.19",
     "@typescript/typescript6": "^6.0.2",
     "esbuild": "^0.28.2",
     "typescript": "^7.0.2",

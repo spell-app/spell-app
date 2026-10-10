@@ -5150,6 +5150,17 @@
           "name": "prevent-leaving",
           "kind": "boolean",
           "description": "Ask before leaving the page while fields differ from their starting values."
+        },
+        {
+          "name": "value",
+          "kind": "json",
+          "reflect": false,
+          "description": "The object the form is BOUND to:  each control with a `name` shows that property and writes it back as it changes, live both ways (Solid signals, reactive members, spell objects);  a control in a `<ui-repeat>` row binds to the row's item.  Unset:  nothing is bound."
+        },
+        {
+          "name": "debug",
+          "kind": "boolean",
+          "description": "Show the bound `value` (else `values`) as JSON below the form, live."
         }
       ],
       "slots": [
@@ -5185,6 +5196,10 @@
         {
           "name": "form",
           "description": "The form box."
+        },
+        {
+          "name": "debug",
+          "description": "The JSON `debug` shows, a `<pre>` below the content."
         }
       ],
       "states": [
@@ -10368,6 +10383,46 @@
       "main": true,
       "page": true,
       "href": "components/ui-rating.html"
+    },
+    {
+      "tag": "ui-repeat",
+      "name": "Repeat",
+      "folder": "ui-form",
+      "topics": [
+        "forms",
+        "lists",
+        "collections"
+      ],
+      "aka": [
+        "repeater",
+        "field array",
+        "form list",
+        "for each",
+        "list editor"
+      ],
+      "description": "A repeat shows its fields once per item of a list, each row bound to its own item.",
+      "noun": "repeat",
+      "attributes": [
+        {
+          "name": "name",
+          "kind": "string",
+          "description": "The list to repeat over:  this property of the scope -- the `<ui-form>`'s `value`, or the item of the `<ui-repeat>` row around it.  Any iterable (an array, a `Set` ...)."
+        }
+      ],
+      "slots": [
+        {
+          "name": "",
+          "description": "The TEMPLATE:  markup copied once per item (its controls' `name`s bind to the item);  a `<template>`, or plain children, taken into one as it connects."
+        }
+      ],
+      "events": [],
+      "parts": [],
+      "states": [],
+      "texts": [],
+      "mainTag": "ui-form",
+      "main": false,
+      "page": false,
+      "href": "components/ui-form.html#ui-repeat"
     },
     {
       "tag": "ui-reveal",
@@ -19125,7 +19180,8 @@
       "tags": [
         "ui-form",
         "ui-field",
-        "ui-fields"
+        "ui-fields",
+        "ui-repeat"
       ],
       "tokens": [
         {

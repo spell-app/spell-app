@@ -72,7 +72,7 @@
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/method:draw (a todos-app)", line: [29, 60],
+      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/method:draw (a todos-app)", line: [29, 64],
       section: "Todo app example",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }

@@ -4589,6 +4589,13 @@
             "kind": "markdown",
             "value": "Ask before leaving the page while fields differ from their starting values.\n\nTakes:  flag (present / absent)"
           }
+        },
+        {
+          "name": "debug",
+          "description": {
+            "kind": "markdown",
+            "value": "Show the bound `value` (else `values`) as JSON below the form, live.\n\nTakes:  flag (present / absent)"
+          }
         }
       ]
     },
@@ -9821,6 +9828,22 @@
           "description": {
             "kind": "markdown",
             "value": "Form validation:  a rating must be given.\n\nTakes:  flag (present / absent)"
+          }
+        }
+      ]
+    },
+    {
+      "name": "ui-repeat",
+      "description": {
+        "kind": "markdown",
+        "value": "A repeat shows its fields once per item of a list, each row bound to its own item.\n\nAlso known as:  repeater, field array, form list, for each, list editor.\n\n**Slots:**  default"
+      },
+      "attributes": [
+        {
+          "name": "name",
+          "description": {
+            "kind": "markdown",
+            "value": "The list to repeat over:  this property of the scope -- the `<ui-form>`'s `value`, or the item of the `<ui-repeat>` row around it.  Any iterable (an array, a `Set` ...).\n\nTakes:  text"
           }
         }
       ]

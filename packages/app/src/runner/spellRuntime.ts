@@ -5,23 +5,12 @@
  *   so each has its own `spellCore`:  its own `RUNTIME`, console, event listeners and mount point.
  * - It IS a program's `@spell/core`:  it exports `spellCore`, `Thing`, `List` and `App`, and compiled spell's
  *   `import ... from "@spell/core"` is pointed at this module's URL -- see `runApp()`.
- * - Registers the `UI` / `SUI` tags spell programs once drew with:  React kits, which can't draw with Solid, so a
- *   program naming one shows a stand-in until epic `output-targets` P11 moves it onto Spell UI's `<ui-*>` elements.
+ * - Programs draw with Solid, on the page's Spell UI:  `<ui-form>`, `<ui-button>` ... by their own tags.
  * - MUST be the only module in a bundle that imports `spellCore`'s code, so it's all HERE, not in a shared
  *   chunk -- see `element.build.test.ts`, `parser/build.test.ts`.
- * - NOTE: `UI` is NOT the `$/app/ui` barrel, which would pull in the editor:  it's the forms plus the
- *   `semantic-ui-react` pass-throughs.  NEVER rename the `UI` key -- `.spell` sources write `<UI.Form>`,
- *   `<UI.Button>` etc, so it's the spell language's public namespace.
  */
-import * as SUI from "semantic-ui-react"
-
 import { spellCore, Thing, List, App } from "$/core"
-import { F } from "$/app/ui/forms"
-// Import directly, NOT through the `UI` barrel, which would pull in the whole editor.
-import * as SUIPassThroughs from "$/app/ui/SUIPassThroughs"
 import { runCompiled, appIsMounted, unmountApp, type RunCompiledOptions } from "./runCompiled"
-
-spellCore.registerElements({ UI: { ...F, ...SUIPassThroughs }, SUI })
 
 // Compiled spell imports these -- `import { spellCore, Thing, List, App } from "@spell/core"`.
 export { spellCore, Thing, List, App, appIsMounted, unmountApp }

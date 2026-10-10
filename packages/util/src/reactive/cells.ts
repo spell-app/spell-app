@@ -6,8 +6,8 @@
  *   read WHAT, and tell them when it changes.
  * - Push-pull with an equality cutoff:  a write marks direct readers CELL_DIRTY and everything further down CELL_CHECK;  a
  *   CELL_CHECK reader re-validates by pulling its derived sources, and only re-runs if one REALLY changed.
- * - Readers are `Reaction`s:  one per Solid computation (the host's bridge, see `bridgeSolid()`), per React view
- *   (`view()`), or per `observe()`.  Derived values (`Derived`) are both reader and source.
+ * - Readers are `Reaction`s:  one per Solid computation (the host's bridge, see `bridgeSolid()`), or per
+ *   `observe()`.  Derived values (`Derived`) are both reader and source.
  *
  * ONE context per page, on `globalThis`:  every copy of this module shares it.
  * - A page holds several copies:  the app's own `$/util`, plus each `spell-runtime.js` (one per `<spell-app>`, see

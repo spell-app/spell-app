@@ -1,3 +1,4 @@
+import { createSignal, flush } from "solid-js"
 import { describe, expect, it, onTestFinished, vi } from "vite-plus/test"
 import { userEvent } from "vite-plus/test/browser"
 
@@ -8,6 +9,7 @@ import type {
   FormSuccessDetail,
   FormValues
 } from "$/ui/components/components.types"
+import { E } from "$/ui/core"
 import { expectAccessible } from "$/ui/test/A11y"
 
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -36,6 +38,8 @@ type Form = HTMLElement & {
   isValid(): boolean
   reset(): void
   clear(): void
+  value: unknown
+  debug: boolean
 }
 
 /** A text control DOM element. */
@@ -616,6 +620,202 @@ describe("<ui-form> validation", () => {
       window.dispatchEvent(event)
       return event.defaultPrevented
     }
+  })
+})
+
+////////////////
+// ## Bound to an object (`value`)
+////////////////
+
+/** A to-do whose properties are reactive members (`@E.state`);  `toJSON()` for `debug`. */
+class Todo {
+  @E.state accessor title = "Milk"
+  @E.state accessor completed = false
+  @E.state accessor count = 2
+
+  toJSON() {
+    return { title: this.title, completed: this.completed, count: this.count }
+  }
+}
+
+/** A to-do whose `title` is a getter / setter pair over a Solid signal;  records every write. */
+class SignalTodo {
+  private readonly titleSignal = createSignal("Eggs")
+  readonly writes: string[] = []
+
+  get title(): string {
+    return this.titleSignal[0]()
+  }
+  set title(title: string) {
+    this.writes.push(title)
+    this.titleSignal[1](title)
+  }
+}
+
+/** A form-associated control of the barest kind, defined by a test after the form has bound. */
+class LateInput extends HTMLElement {
+  static formAssociated = true
+  private readonly internals = this.attachInternals()
+  value = ""
+
+  get validity(): ValidityState {
+    return this.internals.validity
+  }
+}
+
+/** A form of `fields`, bound to `value`;  returns the form and its `named(name)` control. */
+async function bound(fields: string, value: unknown) {
+  const { host, native } = await form(`<ui-form><form>${fields}</form></ui-form>`)
+  host.value = value
+  await settle()
+  return { host, native, named: (name: string) => native.querySelector(`[name=${name}]`) as Control }
+}
+
+/** Let the form bind, write back and redraw:  a mutation, a microtask, a Solid flush. */
+async function settle() {
+  for (let round = 0; round < 3; round++) await ElementFixture.tick()
+}
+
+/** The `<input>` inside a `<ui-input>`. */
+function inner(control: Element): HTMLInputElement {
+  return control.shadowRoot!.querySelector("input")!
+}
+
+/** A text field, a checkbox and a number field, by name. */
+const TODO_FIELDS = `<ui-input name="title" aria-label="Title"></ui-input>
+  <ui-checkbox name="completed">Done</ui-checkbox>
+  <ui-input name="count" type="number" aria-label="Count"></ui-input>`
+
+describe("<ui-form> value", () => {
+  it("shows a reactive object's properties in its named controls, and follows them as they change", async () => {
+    const todo = new Todo()
+    const { named } = await bound(TODO_FIELDS, todo)
+    expect([named("title").value, named("completed").selected, named("count").value]).toEqual(["Milk", false, "2"])
+    todo.title = "Bread"
+    todo.completed = true
+    todo.count = 7
+    await settle()
+    expect([named("title").value, named("completed").selected, named("count").value]).toEqual(["Bread", true, "7"])
+  })
+
+  it("writes what the person types and clicks back to the object;  a number stays a number", async () => {
+    const todo = new Todo()
+    const { named } = await bound(TODO_FIELDS, todo)
+    await userEvent.type(inner(named("title")), "!")
+    named("completed").shadowRoot!.querySelector("input")!.click()
+    await userEvent.clear(inner(named("count")))
+    await userEvent.type(inner(named("count")), "12")
+    await settle()
+    expect(todo.toJSON()).toEqual({ title: "Milk!", completed: true, count: 12 })
+    expect(document.activeElement).toBe(named("count"))
+  })
+
+  it("binds a getter / setter over a Solid signal both ways, writing once per change (no echo)", async () => {
+    const todo = new SignalTodo()
+    const { named } = await bound(`<ui-input name="title" aria-label="Title"></ui-input>`, todo)
+    expect(named("title").value).toBe("Eggs")
+    todo.title = "Ham"
+    flush()
+    await settle()
+    expect(named("title").value).toBe("Ham")
+    await userEvent.type(inner(named("title")), "s!")
+    await settle()
+    expect(todo.title).toBe("Hams!")
+    expect(todo.writes).toEqual(["Ham", "Hams", "Hams!"])
+  })
+
+  it("binds controls that come later, and lets go of those removed", async () => {
+    const todo = new Todo()
+    const { native, named } = await bound(`<ui-input name="title" aria-label="Title"></ui-input>`, todo)
+    native.insertAdjacentHTML("beforeend", `<ui-checkbox name="completed" selected>Done</ui-checkbox>`)
+    await ElementFixture.settle(native)
+    await settle()
+    const done = named("completed")
+    expect(done.selected).toBe(false)
+    done.remove()
+    await settle()
+    todo.completed = true
+    await settle()
+    expect(done.selected).toBe(false)
+  })
+
+  it("binds a control whose tag is defined only later (a family loaded on demand)", async () => {
+    const todo = new Todo()
+    const { named } = await bound(`<late-title-input name="title"></late-title-input>`, todo)
+    customElements.define("late-title-input", LateInput)
+    await settle()
+    expect(named("title").value).toBe("Milk")
+  })
+
+  it("binds nothing without `value`, binds once it's set, and lets go when it's unset", async () => {
+    const { host, native } = await form(`<ui-form><form>
+      <ui-input name="title" value="Plain" aria-label="Title"></ui-input>
+    </form></ui-form>`)
+    const title = native.querySelector("[name=title]") as Control
+    expect(host.values).toEqual({ title: "Plain" })
+    const todo = new Todo()
+    host.value = todo
+    await settle()
+    expect(title.value).toBe("Milk")
+    host.value = undefined
+    await settle()
+    await userEvent.type(inner(title), "?")
+    await settle()
+    expect([title.value, todo.title]).toEqual(["Milk?", "Milk"])
+  })
+
+  it("radios:  the one whose value it is is chosen;  choosing one writes its value", async () => {
+    const plan = { name: "pro" }
+    const { native } = await bound(
+      `<ui-radio name="name" value="free">Free</ui-radio><ui-radio name="name" value="pro">Pro</ui-radio>`,
+      plan
+    )
+    const [free, pro] = [...native.querySelectorAll<Control>("ui-radio")]
+    expect([free!.selected, pro!.selected]).toEqual([false, true])
+    free!.shadowRoot!.querySelector("input")!.click()
+    await settle()
+    expect(plan.name).toBe("free")
+  })
+
+  it("keeps validation, `values` and `reset()`;  a reset writes the starting values back to the object", async () => {
+    const todo = new Todo()
+    todo.title = ""
+    const { host, named } = await bound(
+      `<ui-field><label for="b-title">Title</label><ui-input id="b-title" name="title" value="Start"></ui-input></ui-field>`,
+      todo
+    )
+    host.rules = { title: "notEmpty" }
+    expect(host.validate()).toBe(false)
+    todo.title = "Tea"
+    await settle()
+    expect(host.validate()).toBe(true)
+    expect(host.values).toEqual({ title: "Tea" })
+    host.reset()
+    await settle()
+    expect([named("title").value, todo.title]).toEqual(["Start", "Start"])
+  })
+})
+
+describe("<ui-form> debug", () => {
+  it("shows the bound object as JSON (its `toJSON()`), live;  without `value`, the form's `values`", async () => {
+    const { host, native } = await form(`<ui-form debug><form>
+      <ui-input name="title" value="Plain" aria-label="Title"></ui-input>
+    </form></ui-form>`)
+    const shown = () => JSON.parse(host.shadowRoot!.querySelector("[part~=debug]")!.textContent!)
+    expect(shown()).toEqual({ title: "Plain" })
+    await userEvent.type(inner(native.querySelector("[name=title]")!), "!")
+    await settle()
+    expect(shown()).toEqual({ title: "Plain!" })
+    const todo = new Todo()
+    host.value = todo
+    await settle()
+    expect(shown()).toEqual({ title: "Milk", completed: false, count: 2 })
+    todo.count = 3
+    await settle()
+    expect(shown().count).toBe(3)
+    host.debug = false
+    await settle()
+    expect(host.shadowRoot!.querySelector("[part~=debug]")).toBeNull()
   })
 })
 

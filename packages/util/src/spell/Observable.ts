@@ -23,7 +23,7 @@ import { Derivative } from "./Derivative"
  * - A prop is a getter / setter pair over `getProp()` / `setProp()` -- what compiled spell emits, and what
  *   `@prop accessor` (`$/util/reactive`) makes for hand-written classes.  Same runtime shape either way.
  * - Reads and writes are SYNCHRONOUS:  a read right after a write sees it.  Readers -- Solid computations through
- *   the host's bridge, React views through `view()`, `observe()` -- re-run when a value they read REALLY changes:
+ *   the host's bridge, `observe()` -- re-run when a value they read REALLY changes:
  *   an `===` write notifies nobody.
  * - "Normal" getters are reactive if they read a prop or state.  `derive()` / `@derived` memoize one, with an
  *   equality cutoff -- only for pure, worth-it ones.
@@ -197,7 +197,7 @@ export class Observable<
 /**
  * Run `fn` and return what it returns.
  * - DEPRECATED:  `easy-state` needed it to re-render once for many writes.  Cells don't:  Solid re-runs a reader on
- *   its own schedule, React batches, so ten writes re-run a reader once anyway.
+ *   its own schedule, so ten writes re-run a reader once anyway.
  */
 export function batch<T>(fn: () => T): T {
   return fn()

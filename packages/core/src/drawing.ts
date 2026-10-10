@@ -15,7 +15,6 @@
 import h from "@solidjs/h"
 import { createComponent, render, type JSX } from "@solidjs/web"
 import { Errored, For, createMemo, runWithOwner } from "solid-js"
-import _get from "lodash/get"
 
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
@@ -23,12 +22,9 @@ import { defineSpellCoreModule } from "./spellCore.types"
 /** What a drawing is:  a Solid node, or anything Solid can put on the page (text, a list of them, nothing). */
 export type Drawing = JSX.Element
 
-/** Registry of known elements, addressable by (possibly dotted) name, e.g. `UI.Button`. */
-export type KnownElementsMap = Record<string, unknown>
-
 /** Spec accepted by `spellCore.element()`. */
 export type ElementSpec = {
-  /** HTML or `ui-*` tag, or a `knownElements` key (possibly dotted, e.g. `"UI.Button"`). */
+  /** HTML or `ui-*` tag, e.g. `"div"`, `"ui-form"`. */
   tag?: string
   /** Attributes, properties and handlers:  a function for each value that can change, as compiled JSX writes. */
   props?: Record<string, unknown> | null
@@ -49,33 +45,20 @@ export const drawingMethods = defineSpellCoreModule({
   ////////////////
 
   /**
-   * Known elements, by name -- the React kits (`UI.Form`, `SUI.Menu`) a runner registers, until epic
-   * `output-targets` P11 replaces them with Spell UI's `<ui-*>` elements.
-   */
-  knownElements: {} as KnownElementsMap,
-
-  /** Register a suite of elements so spell programs can use them by name -- see `knownElements`. */
-  registerElements(componentMap: KnownElementsMap): void {
-    Object.assign(spellCore.knownElements, componentMap)
-  },
-
-  /**
    * An element, drawn with Solid (`@solidjs/h`) -- compiled from spell's JSX, e.g. `<div foo=1>{expr}</div>` =>
    * `spellCore.element({ tag: "div", props: { foo: 1 }, children: [() => expr] })` (see `JSX.ts`).
    * - Props and children that are functions are LIVE:  called while drawing, and again when what they read changes.
    *   Handlers (`onClick`) are the exception:  called on the event.
    * - React's spellings, as spell programs write them, become the page's:  `className` => `class`, `htmlFor` =>
    *   `for`, and a camelCase attribute on an HTML tag lowercased (`colSpan` => `colspan`).
-   * - On a `ui-*` tag (or any tag with a dash), a value that isn't text, a number or a choice is a PROPERTY
-   *   (`prop:options`):  an attribute can only hold text.
-   * - throws if `tag` names a known element:  the React kits can't draw with Solid.  The error net of the thing
+   * - On a `ui-*` tag (or any tag with a dash), a live value or an object is a PROPERTY (`prop:value`):  an
+   *   attribute can only hold text.  See `isPropertyOf()`.
+   * - throws for a dotted tag, e.g. `<UI.Form>`:  the React kits spell programs once named are gone (epic
+   *   `output-targets` P11), and Spell UI's elements go by their own tags, `<ui-form>`.  The error net of the thing
    *   drawing it shows a stand-in instead (`drawThing()`).
    */
   element({ tag = "div", props, children = [] }: ElementSpec = {}): Drawing {
-    if (_get(spellCore.knownElements, tag)) {
-      throw new Error(`<${tag}> draws with React, which spell no longer draws with:  use Spell UI's <ui-*> elements`)
-    }
-    if (tag.includes(".")) console.warn(`spellCore.element():  don't recognize tag '${tag}'`)
+    if (!TAG.test(tag)) throw new Error(`<${tag}> isn't an element:  write Spell UI's own tag, e.g. <ui-form>`)
     // made NOW, not left a thunk:  a thunk would be made again each time the net around it re-reads its children
     const thunk = h(tag, solidProps(tag, props), ...children) as unknown as () => Drawing
     return thunk()
@@ -171,6 +154,12 @@ const ERROR_EVENT = "ui-error"
 const CAMEL_CASE = /[a-z][A-Z]/
 
 /**
+ * A tag `element()` draws:  a name, with dashes for a custom element (`div`, `ui-form`) -- no dots.
+ * - `@solidjs/h` would read `UI.Form` as a `<UI>` with class `Form`.
+ */
+const TAG = /^[a-zA-Z][\w-]*$/
+
+/**
  * `props` as Solid takes them, for `tag` -- see `element()`.
  * - Returns a NEW object;  `null` stays `null`.
  * - Getters are kept as getters:  `@solidjs/h` reads them as live values too.
@@ -184,13 +173,29 @@ function solidProps(tag: string, props: Record<string, unknown> | null | undefin
     if (name === "className") key = "class"
     else if (name === "htmlFor") key = "for"
     else if (isCustomElement) {
-      const value = descriptor.value
-      if (value !== null && typeof value === "object") key = `prop:${name}`
+      if (isPropertyOf(name, descriptor.value)) key = `prop:${name}`
     } else if (!name.startsWith("on") && CAMEL_CASE.test(name)) key = name.toLowerCase()
     Object.defineProperty(result, key, { ...descriptor, enumerable: true })
   }
   return result
 }
+
+/**
+ * On a tag with a dash, is prop `name` with `value` set as a PROPERTY (`prop:name`), rather than an attribute?
+ * - A live value (a function):  yes -- it may be an object at any time, e.g. `<ui-form value={the app}>`, and an
+ *   attribute holds only text.  Spell UI's elements have a property for every attribute, and keep one set before
+ *   they're defined.
+ * - An object:  yes, the same reason.
+ * - Text, a number or a choice written as is (`position="right"`), a handler (`onClick`), and what the page reads
+ *   as an attribute (`class`, `style`, `id`, `slot`, `part`, a dashed name like `aria-label`):  no.
+ */
+function isPropertyOf(name: string, value: unknown): boolean {
+  if (name.startsWith("on") || name.includes("-") || ATTRIBUTES_ONLY.has(name)) return false
+  return typeof value === "function" || (value !== null && typeof value === "object")
+}
+
+/** What stays an attribute on a tag with a dash, whatever its value:  see `isPropertyOf()`. */
+const ATTRIBUTES_ONLY = new Set(["class", "className", "style", "id", "slot", "part"])
 
 /**
  * `thing.draw()`, or its stand-in if that throws -- `drawThing()`'s net, for a `draw()` that fails.

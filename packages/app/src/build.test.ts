@@ -14,8 +14,7 @@ import { describe, test, expect } from "vite-plus/test"
  * - `spellCore` MUST be in `spell-runtime.js` alone -- the runtime programs run on -- NOT in the app's chunks.
  * - And `spell-runtime.js` holds no Solid or `@spell-app/ui`:  compiled spell draws with the APP's Solid, from a
  *   shared chunk (epic `output-targets` P10).  Only `@solidjs/h` is its own, a thin layer over that Solid.
- * - The app's own chunks hold no React:  only `spell-runtime.js` loads it, for the React kits (`UI.*`, `SUI.*`) it
- *   still registers until epic `output-targets` P11 (P9).
+ * - No React anywhere:  not in the app's chunks (P9), nor in what programs run on (epic `output-targets` P11).
  * - `ui`'s icon packs beside the chunk holding `BuiltInPacks`, where it looks (`appConfig({ iconPacks })`).
  * - Built with `--sourcemap` (the config writes none):  what a chunk holds comes from its map's `sources`.
  */
@@ -55,15 +54,11 @@ describe("production build", () => {
       expect(js).toMatch(
         new RegExp(String.raw`\b${RULE}\s*=\s*class\b|\bclass ${RULE}\b|\(\w+,\s*[\`"']${RULE}[\`"']\)`)
       )
-      // the app itself has no React (P9):  React is for programs only, in `spell-runtime.js`'s imports
-      const entry = /src="\/assets\/(index-[\w-]+\.js)"/.exec(readFileSync(join(outDir, "index.html"), "utf8"))![1]!
-      const appFiles = staticImports(assets, entry)
-      expect(appFiles.filter((file) => sources(join(assets, file)).some((source) => REACT.test(source)))).toEqual([])
-      expect(
-        staticImports(outDir, "spell-runtime.js").some((file) =>
-          sources(join(outDir, file)).some((source) => REACT.test(source))
-        )
-      ).toBe(true)
+      // no React anywhere:  the app has none (P9), and programs draw with Solid (epic `output-targets` P11)
+      const withReact = [...files.map((file) => join(assets, file)), join(outDir, "spell-runtime.js")].filter((file) =>
+        sources(file).some((source) => REACT.test(source))
+      )
+      expect(withReact).toEqual([])
       // icon packs where `BuiltInPacks` looks:  beside its own chunk
       const builtIns = files.filter((file) => sources(join(assets, file)).some((source) => BUILT_IN_PACKS.test(source)))
       expect(builtIns).toHaveLength(1)
@@ -82,20 +77,6 @@ const SOLID_OR_UI = /\/node_modules\/(solid-js|@solidjs\/(web|signals))\/|\/pack
 
 /** React and what renders with it, as they appear in a sourcemap's `sources`. */
 const REACT = /\/node_modules\/(react|react-dom|scheduler|semantic-ui-react)\//
-
-/**
- * `file` (relative to `dir`) and every chunk it imports STATICALLY, transitively:  what loads with it.
- * - Reads minified `from"./x.js"` imports;  a dynamic `import()` loads later, on its own terms, so it's left out.
- */
-function staticImports(dir: string, file: string, seen = new Set<string>()): string[] {
-  if (seen.has(file)) return [...seen]
-  seen.add(file)
-  const source = readFileSync(join(dir, file), "utf8")
-  for (const [, path] of source.matchAll(/from\s*"\.\/([^"]+\.js)"/g)) {
-    staticImports(dir, join(dirname(file), path!), seen)
-  }
-  return [...seen]
-}
 
 /** `ui`'s `BuiltInPacks`, which looks for the packs beside its own chunk. */
 const BUILT_IN_PACKS = /\/packages\/ui\/src\/icons\/BuiltInPacks\.ts$/

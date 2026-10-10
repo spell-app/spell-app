@@ -268,6 +268,36 @@ describe("compiled spell draws with Solid", () => {
     cleanups.push(() => toast.remove())
   })
 
+  test("the `Todos - Form Based` example:  a form bound to the app, a row per task, Add Task adds one", async () => {
+    // its compiled javascript, as text:  Vite serves any file by its path, `?raw` as a string
+    const file = new URL(
+      "../../../spell/projects/system/examples/Todos - Form Based/Todos - Form Based.compiled.js",
+      import.meta.url
+    ).pathname
+    const { default: compiled } = (await import(/* @vite-ignore */ `${file}?raw`)) as { default: string }
+    const host = await mount(source(compiled, "Todos"))
+    const titles = () =>
+      [...host.querySelectorAll<HTMLElement & { value: string }>("ui-repeat ui-input[name=title]")].map(
+        (input) => input.value
+      )
+    await waitFor(() => titles().length === 3)
+    expect(titles()).toEqual(["Create todos app", "Teach it to draw", "Test app"])
+    const done = [...host.querySelectorAll<HTMLElement & { selected: boolean }>("ui-repeat ui-checkbox")]
+    expect(done.map((checkbox) => checkbox.selected)).toEqual([true, false, false])
+    expect(host.querySelector(".spell-draw-error")).toBeNull()
+
+    const newTask = host.querySelector<HTMLElement & { value: string }>("ui-input[name=newTaskName]")!
+    const add = [...host.querySelectorAll<HTMLElement & { disabled: boolean }>("ui-button")].find(
+      (button) => button.textContent === "Add Task"
+    )!
+    expect(add.disabled).toBe(true)
+    newTask.value = "Ship it"
+    newTask.dispatchEvent(new Event("input", { bubbles: true, composed: true }))
+    await waitFor(() => !add.disabled)
+    add.click()
+    await waitFor(() => titles()[3] === "Ship it")
+  })
+
   test("React's spellings become the page's:  `className` => `class`, `colSpan` => `colspan`", async () => {
     const host = await mount(source(CARDS, "Game"))
     const cell = await waitFor(() => host.querySelector<HTMLTableCellElement>("td.pile"))

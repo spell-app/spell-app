@@ -6213,6 +6213,14 @@
                 "text": "boolean"
               },
               "fieldName": "preventLeaving"
+            },
+            {
+              "name": "debug",
+              "description": "Show the bound `value` (else `values`) as JSON below the form, live.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "debug"
             }
           ],
           "members": [
@@ -6220,6 +6228,14 @@
               "kind": "field",
               "name": "rules",
               "description": "Validation rules by field name (or id), Fomantic's `fields` shape:  `{ email: \"email\", password: [\"notEmpty\", \"minLength[6]\"], name: { rules: [{ type: \"notEmpty\", prompt: \"...\" }], optional: true } }`.  A JS property (rich data), not an attribute.",
+              "type": {
+                "text": "unknown"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "value",
+              "description": "The object the form is BOUND to:  each control with a `name` shows that property and writes it back as it changes, live both ways (Solid signals, reactive members, spell objects);  a control in a `<ui-repeat>` row binds to the row's item.  Unset:  nothing is bound.  A JS property (rich data), not an attribute.",
               "type": {
                 "text": "unknown"
               }
@@ -6265,6 +6281,10 @@
             {
               "name": "form",
               "description": "The form box."
+            },
+            {
+              "name": "debug",
+              "description": "The JSON `debug` shows, a `<pre>` below the content."
             }
           ],
           "cssStates": [
@@ -6363,6 +6383,35 @@
               "default": "var(--ui-text-color)"
             }
           ]
+        },
+        {
+          "kind": "class",
+          "name": "UIRepeat",
+          "tagName": "ui-repeat",
+          "customElement": true,
+          "summary": "A repeat shows its fields once per item of a list, each row bound to its own item.",
+          "description": "A repeat shows its fields once per item of a list, each row bound to its own item.\n\nAlso known as:  repeater, field array, form list, for each, list editor.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The list to repeat over:  this property of the scope -- the `<ui-form>`'s `value`, or the item of the `<ui-repeat>` row around it.  Any iterable (an array, a `Set` ...).",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "name"
+            }
+          ],
+          "members": [],
+          "events": [],
+          "slots": [
+            {
+              "name": "",
+              "description": "The TEMPLATE:  markup copied once per item (its controls' `name`s bind to the item);  a `<template>`, or plain children, taken into one as it connects."
+            }
+          ],
+          "cssParts": [],
+          "cssStates": [],
+          "cssProperties": []
         }
       ],
       "exports": [
@@ -6411,6 +6460,22 @@
           "name": "ui-form",
           "declaration": {
             "name": "UIForm",
+            "module": "src/components/ui-form/index.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "UIRepeat",
+          "declaration": {
+            "name": "UIRepeat",
+            "module": "src/components/ui-form/index.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ui-repeat",
+          "declaration": {
+            "name": "UIRepeat",
             "module": "src/components/ui-form/index.ts"
           }
         }

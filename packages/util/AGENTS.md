@@ -36,12 +36,12 @@ house style every package shares.  Only what's local is below;  a section named 
   of the spell chain:  every spell-family package may import it, and it imports nothing above it.
   - Formerly the package `spell-util`.  A sub-folder, not loose files:  `string.ts` / `DOM.ts` would clash with the generic
     `string.ts` / `dom.ts` (macOS is case-insensitive), and nothing in `ui` may import it.
-  - Its dependencies (lodash, `chalk`, `pluralize`, `react` ...) are `util`'s `dependencies`.  `ui` bundles none of
+  - Its dependencies (lodash, `chalk`, `pluralize` ...) are `util`'s `dependencies`.  `ui` bundles none of
     them:  `yarn measure` and `yarn smoke` (declarations) prove it.
 - Files in `src/spell/` import the generic helpers by deep path (`$/util/class`), NEVER the `$/util` barrel (it re-exports
   this folder:  a cycle).
 - NOTE: `ResponseErrors.ts` is deliberately NOT in `src/spell/index.ts` -- see its header.
-- Spell's layer of reactivity:  `Observable`, `spellDecorators.ts` (`@thing`), `view.ts` (the React bridge).  The
+- Spell's layer of reactivity:  `Observable` and `spellDecorators.ts` (`@thing`).  The
   engine under it is `src/reactive/` (below).
 - Tests: the generic ones run in a real browser (`util:browser`), `src/spell/**` and `src/reactive/**` in node
   (`util:spell`);  `vitest.config.ts` exports `utilProjects()` for the root run.

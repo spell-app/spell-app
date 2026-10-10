@@ -1,8 +1,9 @@
-import { createEffect, untrack } from "solid-js"
+import { createEffect, Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
 import { formVocabulary } from "./UIForm.en"
+import { FormBinding } from "./FormBinding"
 import { FormFields } from "./FormFields"
 import type { DOMFieldElement } from "./UIField"
 import { ERROR, FIELD_SELECTOR, INFO, SUCCESS, WARNING, type Field } from "./UIForm.types"
@@ -86,6 +87,15 @@ export class DOMFormElement extends E.DOMElement {
  *
  * - `prevent-leaving`:  a `beforeunload` guard while the values differ from those at connect, reset or success.
  *
+ * - `value`:  the form is BOUND to that object (`FormBinding`).
+ *   - each named control shows its property, and writes it back as the person changes it;
+ *     a control inside a `<ui-repeat>` row binds to that row's item instead
+ *   - live both ways, for anything Solid follows (signals, reactive members, spell's objects)
+ *   - after a reset or a clear, the object takes the controls' values
+ *   - without it, nothing is bound:  the form works as it always has
+ * - `debug`:  below the content, a `<pre part="debug">` showing the bound `value` as JSON
+ *   (its `toJSON()` counts), else `values`;  redrawn as they change.
+ *
  * - Static server render (`$/ui/static`):  a `<form>` slotted inside it MERGES into the root,
  *   which becomes `<form class="ui … form">` with the author's attributes (`mergedForm`).
  *   That's Fomantic's own markup, so the form's rules reach its fields and messages,
@@ -98,6 +108,9 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
 
   /** Controls, values, labels, errors. */
   readonly fields = new FormFields({ domElement: this.domElement, form: () => this.nativeForm })
+
+  /** The controls bound to `value`. */
+  private readonly binding = new FormBinding({ domElement: this.domElement, fields: this.fields })
 
   /** Fields showing an error now. */
   private readonly fieldsShowingErrors = new Set<string>()
@@ -195,6 +208,9 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
         aria-busy={this.loading ? "true" : undefined}
       >
         <slot />
+        <Show when={this.debug}>
+          <pre part={this.partForName("debug")}>{this.debugText}</pre>
+        </Show>
       </div>
     )
   }
@@ -225,13 +241,15 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   /**
    * Adds the form discovery, and the DOM element's own listeners, while connected.
    * - Stays an explicit effect:  it watches the DOM (a `MutationObserver`) while connected.
+   * - SIDE EFFECT:  the DOM element holds `value` as the scope its controls bind to (`FormBinding.hold()`).
    */
   onMount() {
+    FormBinding.hold(this.domElement, () => this.value)
     createEffect(
       () => this.isConnected,
       (connected) => {
         if (!connected || isServer) return
-        const observer = new MutationObserver(() => this.findForm())
+        const observer = new MutationObserver(() => this.onContentChanged())
         observer.observe(this.domElement, { childList: true, subtree: true })
         this.findForm()
         const { domElement } = this
@@ -249,6 +267,13 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
       }
     )
     return super.onMount()
+  }
+
+  /** Controls came or went:  find the native form again, bind what's new, redraw `debug`. */
+  private onContentChanged() {
+    this.findForm()
+    if (untrack(() => this.isBound)) this.binding.update()
+    this.changeCount++
   }
 
   /** The native form:  one inside, else the one around. */
@@ -269,6 +294,41 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
       form.noValidate = noValidate
       form.removeEventListener("submit", this.onSubmit, { capture: true })
       form.removeEventListener("reset", this.onReset)
+    }
+  }
+
+  ////////////////
+  // ## The bound object (`value`) and `debug`
+  ////////////////
+
+  /** Bound:  `value` is an object to show and edit. */
+  get isBound(): boolean {
+    return FormBinding.isObject(this.value)
+  }
+
+  /** Bind the controls while bound and connected;  let go of them when either ends. */
+  @E.onChange("isBound", "isConnected")
+  protected onBindingChanged(isBound: boolean, connected: boolean) {
+    if (!isBound || !connected || isServer) return undefined
+    this.binding.update()
+    return () => this.binding.stop()
+  }
+
+  /** Bumped a microtask after every change, and as controls come and go:  `debug` redraws. */
+  @E.state private accessor changeCount = 0
+
+  /**
+   * What `debug` shows:  the bound `value` as JSON (an object's own `toJSON()` counts), else `values`.
+   * - Tracked:  the JSON reads every property it shows, so a reactive object redraws it as it changes;
+   *   `changeCount` covers the rest (a plain object, `values` read from the DOM).
+   */
+  private get debugText(): string {
+    const { value } = this
+    const shown = this.changeCount >= 0 && FormBinding.isObject(value) ? value : this.values
+    try {
+      return JSON.stringify(shown, null, 2)
+    } catch (error) {
+      return String(error)
     }
   }
 
@@ -297,14 +357,18 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   reset() {
     const form = untrack(() => this.nativeForm)
     if (form) form.reset()
-    else for (const control of this.fields.controls()) UIForm.resetControl(control)
+    else {
+      for (const control of this.fields.controls()) UIForm.resetControl(control)
+      queueMicrotask(() => this.binding.writeAll())
+    }
     this.clearErrors()
   }
 
-  /** Every control emptied, prompts and states cleared. */
+  /** Every control emptied, prompts and states cleared;  a bound object takes the empty values. */
   clear() {
     for (const control of this.fields.controls()) UIForm.clearControl(control)
     this.clearErrors()
+    queueMicrotask(() => this.binding.writeAll())
   }
 
   /** Every field's value, by name;  read from the DOM, untracked. */
@@ -420,13 +484,21 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     else this.saveValues()
   }
 
-  /** Native reset:  prompts go once the controls have reset. */
+  /** Native reset:  prompts go once the controls have reset, and a bound object takes their values. */
   private readonly onReset = () => {
-    queueMicrotask(() => this.clearErrors())
+    queueMicrotask(() => {
+      this.clearErrors()
+      this.binding.writeAll()
+    })
   }
 
-  /** A control changed:  validate it for `validate-on="change"`, or while it shows an error. */
+  /**
+   * A control changed:  write it back to `value` and redraw `debug` (both a microtask later),
+   * and validate it for `validate-on="change"`, or while it shows an error.
+   */
   private readonly onChange = (event: Event) => {
+    this.binding.onChange(event)
+    queueMicrotask(() => this.changeCount++)
     const identifier = this.identifierFor(event)
     if (!identifier) return
     if (this.fieldsShowingErrors.has(identifier) || untrack(() => this.validateOn) === "change")

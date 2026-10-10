@@ -2,9 +2,8 @@
  * ### `<ProjectSettings>`
  * Scaffold of a project settings form, on `<ui-form>`:  its fields are placeholders, and submitting logs them.
  * - NOT shown anywhere yet:  `editor.showProjectSettings()` is still a TODO stub, and no route draws this.
- * - NOTE: React's version was on `$/app/ui/forms` (`UI.Form`, `FormGroup`, `FormRepeat`), spell programs' React
- *   form kit;  the app's own UI is on `@spell-app/ui` now.  Nested / repeated values (`nested.type`, `array[1].name`)
- *   are plain field names here, until a real form needs more.
+ * - Nested / repeated values (`nested.type`, `array[1].name`) are plain field names here, until a real form needs
+ *   more:  then `<ui-form value>` binds the fields to an object, and `<ui-repeat>` draws a row per item.
  ****************/
 export function ProjectSettings() {
   return (
