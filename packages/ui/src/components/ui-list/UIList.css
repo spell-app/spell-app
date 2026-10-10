@@ -154,9 +154,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  the switches, and a private alias per `list.variables` entry that still matters;
      the items and sub-lists inherit them. */

@@ -785,7 +785,7 @@ export type ResolvedAttribute = {
   attribute: string
   /** camelCase CANONICAL name:  the key in `AttributeValues` and `DOMElement.attributeValues` (`allowAdditions`) */
   key: string
-  /** element property, e.g. `allowAdditions`, `permitirAdiciones`, or a vocabulary rename (`dividerHidden`) */
+  /** element property, e.g. `allowAdditions`, `permitirAdiciones`, or a vocabulary rename (`inputMode`) */
   property: string
   /**
    * write a property change back to the attribute;

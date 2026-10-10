@@ -98,9 +98,6 @@
     --ui-color-on: initial;
     --ui-color-inverted-on: initial;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* Static markup:  the group's parent is the container. */
   :has(> .ui.steps) {
     container: ui-steps / inline-size;

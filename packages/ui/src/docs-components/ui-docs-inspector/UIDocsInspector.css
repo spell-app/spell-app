@@ -23,9 +23,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   .ui.inspector {
     /* The panel's background. */

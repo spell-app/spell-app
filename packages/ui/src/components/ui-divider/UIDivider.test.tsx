@@ -58,14 +58,15 @@ describe("<ui-divider> classes and markup", () => {
     await expect.poll(() => box.querySelector("svg")).not.toBeNull()
   })
 
-  it("keeps the host's hidden property:  the hidden attribute is property dividerHidden", async () => {
-    const { host, root } = await divider(`<ui-divider hidden></ui-divider>`)
+  it("`spacer` is Fomantic's hidden divider:  the spacing without the line;  `hidden` hides it, as any element", async () => {
+    const { host, root } = await divider(`<ui-divider spacer></ui-divider>`)
     expect(root.getAttribute("role")).toBe("none")
     expect(root.className).toBe("ui hidden divider")
-    // `UIDivider.css`'s `:host([hidden])` overrides the UA's `display: none`:  a hidden divider keeps its spacing
     expect(getComputedStyle(host).display).toBe("contents")
-    expect(typeof host.hidden).toBe("boolean")
-    expect((host as unknown as { dividerHidden: unknown }).dividerHidden).toBe(true)
+    expect((host as unknown as { spacer: unknown }).spacer).toBe(true)
+    host.hidden = true
+    expect((host as unknown as { visible: boolean }).visible).toBe(false)
+    await expect.poll(() => getComputedStyle(host).display).toBe("none")
   })
 })
 

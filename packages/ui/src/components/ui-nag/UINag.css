@@ -28,9 +28,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one private alias per `nag.variables` entry that still matters, from the global tokens. */
   .ui.nag {

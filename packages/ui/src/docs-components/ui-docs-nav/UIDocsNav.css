@@ -33,9 +33,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  the brand panel's measures and colours. */
   .ui.nav {

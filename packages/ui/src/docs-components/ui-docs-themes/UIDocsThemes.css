@@ -27,9 +27,6 @@
     display: inline-block;
     vertical-align: middle;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   .ui.themes {
     /* Space between the controls. */

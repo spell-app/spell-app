@@ -81,9 +81,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /*
    * Colour, as in Fomantic:  a plain `.ui.label` inside `.ui.red.segment` (or any coloured owner) stays grey;
    * only its own colour, or its `labels` group's (`.ui.red.labels .label`), paints.

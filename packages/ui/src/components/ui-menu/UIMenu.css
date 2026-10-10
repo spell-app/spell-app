@@ -118,9 +118,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* A top-level menu starts uncoloured:  only its own `color` paints it (sub-menus inherit the outer menu's). */
   :host(:not(:state(in-menu))) {

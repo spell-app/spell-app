@@ -43,7 +43,14 @@ export const revealVocabulary = {
       description: "Both contents slide:  left (bare), `right`, `up` or `down`."
     },
     { name: "instant", kind: "keyOnly", description: "No delay before the transition starts." },
-    { name: "visible", kind: "keyOnly", description: "Content overflowing the box stays visible (no clipping)." },
+    {
+      name: "unclipped",
+      kind: "keyOnly",
+      key: "visible",
+      description:
+        "Content overflowing the box stays visible, not clipped (Fomantic's `visible` reveal:  the class word stays " +
+        "`visible`).  Renamed because `visible` shows or hides every element."
+    },
     { name: "active", kind: "keyOnly", description: "Revealed now, without hover or focus." },
     { name: "disabled", kind: "keyOnly", description: "Never reveals." }
   ],

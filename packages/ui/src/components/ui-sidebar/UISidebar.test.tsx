@@ -119,10 +119,11 @@ describe("<ui-sidebar> classes and markup", () => {
     expect(aside.getAttribute("aria-label")).toBe("Sections")
   })
 
-  it("hidden:  laid out, but invisible and out of the tab order", async () => {
+  it("starts hidden:  `hidden` written on it, out of the page and the tab order", async () => {
     const { host, panel, wrapper } = await pushable(`<ui-sidebar>${LINKS}</ui-sidebar>`)
-    expect(getComputedStyle(panel).visibility).toBe("hidden")
-    expect(panel.offsetWidth).toBe(260)
+    expect(host.hidden).toBe(true)
+    expect(host.visible).toBe(false)
+    expect(panel.offsetWidth).toBe(0)
     expect(UI.focus.focusables(host)).toHaveLength(0)
     expect(wrapper.querySelector("ui-pushable")!.matches(":state(pushable)")).toBe(true)
   })
@@ -202,7 +203,7 @@ describe("<ui-sidebar> modal (default)", () => {
     expect(pusher.hasAttribute("inert")).toBe(true)
     await expect.poll(() => translation(pusherBox)).toEqual([260, 0])
     await expect.poll(() => getComputedStyle(pusherBox, "::after").opacity).toBe("1")
-    expect(host.matches(":state(visible)")).toBe(true)
+    expect(host.matches(":state(hidden)")).toBe(false)
   })
 
   it("Escape hides it (reason `escape`):  the pusher comes back and focus returns to the toggle", async () => {

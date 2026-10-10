@@ -82,9 +82,6 @@
   :host(:state(fluid)) {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* `delegatesFocus`:  the field and the cells draw the focus, never the DOM element. */
   :host(:focus-visible) {
     outline: none;

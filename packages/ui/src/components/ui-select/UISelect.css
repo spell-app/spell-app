@@ -55,9 +55,6 @@
   :host(:state(fluid)) {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* `delegatesFocus`:  the select draws the ring, never the DOM element. */
   :host(:focus-visible) {
     outline: none;

@@ -91,6 +91,15 @@
   }
 
   /*
+   * A hide animating out (`:state(hiding)`):  `hidden` is already written, so the browser's own
+   * `[hidden] { display: none }` would take the element away at once.  Shown as a custom element is by default;
+   * a family's own `:host { display }` (a later layer) wins.  The hiding itself is below, unlayered.
+   */
+  :host([hidden]:state(hiding)) {
+    display: inline;
+  }
+
+  /*
    * Shared states (`UIComponent`, "Shared states"):  every element's, whatever its family.
    * - `:state(dimmed)`:  `disabled` or `loading` the base class's way, everything inside inert, is dimmed.
    * - On the shadow root's top-level boxes, not the element:

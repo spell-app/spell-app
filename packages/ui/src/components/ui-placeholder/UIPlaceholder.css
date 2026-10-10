@@ -99,9 +99,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /*
    * Tokens:  one per `placeholder.variables` entry that still matters, each the private alias of its public token.

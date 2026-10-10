@@ -26,9 +26,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  the brand pill's measures and the card's. */
   .ui.finder {

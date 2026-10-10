@@ -20,9 +20,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   .ui.api {
     /* Space between one tag's block and the next, with `family`. */

@@ -54,7 +54,7 @@ describe("<ui-reveal> classes", () => {
     ['move="right"', "ui right move reveal"],
     ['rotate="left"', "ui left rotate reveal"],
     ['slide="down"', "ui down slide reveal"],
-    ['size="small" instant visible', "ui small instant visible reveal"],
+    ['size="small" instant unclipped', "ui small instant visible reveal"],
     ["active disabled fade", "ui active disabled fade reveal"]
   ])("<ui-reveal %s>", async (attributes, classes) => {
     const { root } = await render(markup(attributes))

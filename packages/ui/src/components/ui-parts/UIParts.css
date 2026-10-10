@@ -118,9 +118,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Every part root names itself, for parts nested in parts (a date in a summary). */
   .content {
