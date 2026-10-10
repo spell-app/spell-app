@@ -11,6 +11,7 @@ import { STATUS_SLOT } from "$/epics/components/epic-item/EpicItem.types"
 import { epicSummaryVocabulary } from "./EpicSummary.en"
 
 import summaryCSS from "./EpicSummary.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicSummary`
@@ -28,7 +29,7 @@ import summaryCSS from "./EpicSummary.css?inline"
 export class EpicSummary extends E.UIComponent<typeof epicSummaryVocabulary> {
   @E.proto static vocabulary = epicSummaryVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-summary": summaryCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-summary": summaryCSS },
     // `disabled`:  only a look (the sheet dims it), so the text stays findable;  `loading`:  the shared spinner
     disabled: "its own",
     loading: "loader"

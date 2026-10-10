@@ -28,6 +28,14 @@ export const epicAgentsVocabulary = {
   parts: [{ name: "base", description: "Its box:  always there, empty without agents." }],
   states: [],
   texts: [
+    { key: "foldTip", text: "Fold the agents running", description: "Tooltip of its fold button while open." },
+    { key: "unfoldTip", text: "Unfold the agents running", description: "Tooltip of its fold button while folded." },
+    {
+      key: "agentSendTip",
+      text: "Send your note to {name}:  it changes what the agent does next",
+      description: "The Send button's tooltip."
+    },
+
     { key: "agents", text: "Agents running", description: "The panel's title, and its region's name." },
     { key: "agentStarted", text: "Started {time}", description: "An agent's age, its tooltip:  when it started." },
     { key: "agentYou", text: "You", description: "Who sent a redirect:  `You · 10:42 · told 10:43`." },

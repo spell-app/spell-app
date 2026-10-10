@@ -209,9 +209,13 @@ describe("<epic-item> review controls", () => {
         button(host, action).title
       ])
     ).toEqual([
-      ["paper plane", "green", "Do it in the next phase"],
-      ["history", "blue", "Revisit:  I'm adding a note for you"],
-      ["xmark", "grey", "Drop it"]
+      [
+        "paper plane",
+        "green",
+        "Do it in the next phase:  Queued into the next phase still to do, once Claude applies it"
+      ],
+      ["history", "blue", "Revisit:  I'm adding a note for you:  Write a note for Claude in the box at its end"],
+      ["xmark", "grey", "Drop it:  Canceled, struck through, once Claude applies it"]
     ])
     // the plane marks it, dashed green, and so does its chip;  again, cleared
     button(host, "next").click()
@@ -369,7 +373,7 @@ describe("<epic-item> review controls", () => {
     const x = deep(host).querySelector<HTMLButtonElement>("[part~='note-box'] >>> button[data-how='skip']")!
     expect([x.dataset.color, x.title, x.getAttribute("aria-label")]).toEqual([
       "grey",
-      "Skip this",
+      "Skip this:  nothing to do, marked reviewed once Claude applies it;  a note here says why",
       "Skip this:  nothing to do, marked reviewed once Claude applies it;  a note here says why"
     ])
     expect(x.querySelector("ui-icon")!.getAttribute("name")).toBe("xmark")
@@ -519,14 +523,16 @@ describe("<epic-item> review controls", () => {
     expect(parts.slice(-3)).toEqual(["said", "slot:status", "note-box"])
   })
 
-  test("the review label goes:  each review button's tooltip says it (`Approve · reviewed 10/7/26`)", async () => {
+  test("the review label goes:  each review button's tooltip says it (`Approve:  Fine as it is · reviewed 10/7/26`)", async () => {
     await adoptClient()
     const host = await render(
       `<epic-item id="j5" title="A call" status="done" reviewed="2026-10-07"><p>Text</p></epic-item>`
     )
     expect(deep(host).querySelector("[part~='review']")).toBeNull()
-    expect(button(host, "approve").getAttribute("title")).toBe("Approve · reviewed 10/7/26")
-    expect(button(host, "todo").getAttribute("title")).toBe("Make Todo · reviewed 10/7/26")
+    expect(button(host, "approve").getAttribute("title")).toBe("Approve:  Fine as it is · reviewed 10/7/26")
+    expect(button(host, "todo").getAttribute("title")).toBe(
+      "Make Todo:  Follow it up later, as a todo · reviewed 10/7/26"
+    )
   })
 
   test("an open judgement call's id chip:  urgent (red) <-> not urgent (blue), through the inbox", async () => {

@@ -34,6 +34,7 @@ import {
 } from "./EpicReview.types"
 
 import reviewCSS from "./EpicReview.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicReview`
@@ -62,7 +63,7 @@ import reviewCSS from "./EpicReview.css?inline"
 export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
   @E.proto static vocabulary = epicReviewVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-review": reviewCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-review": reviewCSS },
     // a click on a marked note's words must not jump to its Edit button
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -207,10 +208,16 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
     return this.review.fillOf(spec.action)
   }
 
-  /** A button's plain tooltip:  its name, then the element's review label (`Approve · reviewed 10/7/26`). */
+  /**
+   * A button's tooltip:  its name, what a click does or where its mark stands, then the element's review label
+   * (`Approve:  Fine as it is · reviewed 10/7/26`).
+   */
   private tipOf(spec: ReviewButtonSpec): string {
-    const label = this.translationForKey(spec.label)
-    return this.tip ? `${label} · ${this.tip}` : label
+    const said = this.translationForKey("buttonTip", {
+      label: this.translationForKey(spec.label),
+      what: this.stateOf(spec)
+    })
+    return this.tip ? `${said} · ${this.tip}` : said
   }
 
   /** A button's state, for a screen reader. */
@@ -319,7 +326,7 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
         type="button"
         data-how={spec.how}
         data-color={spec.color}
-        title={this.translationForKey(spec.label)}
+        title={this.translationForKey(spec.tip)}
         aria-label={this.translationForKey(spec.tip)}
         onClick={() => this.use(spec.how)}
       >
@@ -466,7 +473,7 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
             <button
               type="button"
               class={SAID_EDIT}
-              title={this.translationForKey("edit")}
+              title={this.translationForKey("editTip")}
               aria-label={this.translationForKey("edit")}
               onClick={() => this.takeToNote(this.review.mark()?.note)}
             >

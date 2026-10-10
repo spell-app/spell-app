@@ -12,6 +12,7 @@ import { ICON, LABEL, TEXT } from "./EpicPhase.types"
 
 import fieldCSS from "./EpicField.css?inline"
 import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicUpdated`
@@ -27,7 +28,7 @@ import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
   @E.proto static vocabulary = epicUpdatedVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold-button": foldCSS, "epic-field": fieldCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-fold-button": foldCSS, "epic-field": fieldCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -63,7 +64,12 @@ export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
         <div ref={this.fold.heading} class={[HEAD, { [FOLDS]: this.hasBody }]}>
           <span class={FOLD_CELL}>
             <Show when={this.hasBody}>
-              {this.fold.button({ controls: BODY_ID, labelledBy: LABEL_ID, part: this.partForName("toggle") })}
+              {this.fold.button({
+                controls: BODY_ID,
+                labelledBy: LABEL_ID,
+                part: this.partForName("toggle"),
+                tips: { fold: this.translationForKey("foldTip"), unfold: this.translationForKey("unfoldTip") }
+              })}
             </Show>
           </span>
           <span class={ICON} part={this.partForName("icon")} aria-hidden="true">
