@@ -733,6 +733,14 @@ pre code {
   line-height: 1.4;
   resize: vertical;
 }
+/* the New epic box:  about 80% of the window's height (Owen, 2026-10-10:  "I might have a lot to say"), nearly all
+   of it the prompt;  the rest is the header, the title line, the hint and the buttons */
+#spell-new-epic-box textarea.spell-note-field {
+  height: calc(80vh - 15rem);
+  min-height: calc(80vh - 15rem);
+  max-height: calc(80vh - 15rem);
+  resize: none;
+}
 /* the New epic box's title:  one line, above its prompt */
 .spell-note-box input.spell-note-field {
   box-sizing: border-box;

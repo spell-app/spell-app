@@ -70,6 +70,12 @@ const SPELL = "node packages/cli/bin/spell.mjs"
 /** Each view's title-bar commands, `<view id>.<name>`:  each listed in `package.json` for both views. */
 const COMMANDS = ["back", "forward", "reload", "restartServer", "openExternal"] as const
 
+/** How many times `remembered()` asks a page server that doesn't answer, `REMEMBER_WAIT_MS` apart:  ~10s in all. */
+const REMEMBER_TRIES = 10
+
+/** How long `remembered()` waits between asks, in ms. */
+const REMEMBER_WAIT_MS = 1000
+
 /****************
  * ### `DocView`
  * One doc view's provider, and the page it shows.
@@ -138,7 +144,8 @@ export class DocView implements vscode.WebviewViewProvider {
   static async pickEpic(): Promise<void> {
     const root = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
     const docs = root ? planDocsIn(root) : []
-    if (!docs.length) return void vscode.window.showWarningMessage("Spell:  no plan docs in this window's first folder.")
+    if (!docs.length)
+      return void vscode.window.showWarningMessage("Spell:  no plan docs in this window's first folder.")
     const picked = await vscode.window.showQuickPick(
       docs.map((doc) => ({
         label: doc.title,
@@ -195,8 +202,11 @@ export class DocView implements vscode.WebviewViewProvider {
         return this.go(-1)
       case "forward":
         return this.go(1)
-      case "reload":
-        return void (here && (await this.show(stamped(here), { reload: true })))
+      case "reload": {
+        // nothing in view yet (a re-made view):  the page this window remembers
+        const page = here ?? (await this.remembered())
+        return void (page && (await this.show(stamped(page), { reload: true })))
+      }
       case "restartServer":
         return this.restartServer()
       case "openExternal":
@@ -298,10 +308,11 @@ export class DocView implements vscode.WebviewViewProvider {
     view.onDidDispose(() => {
       if (this.view === view) this.view = undefined
     })
-    view.webview.onDidReceiveMessage((message: Place | OpenLink | EditCommand | Clipboard) => {
+    view.webview.onDidReceiveMessage((message: Place | Ready | OpenLink | EditCommand | Clipboard) => {
       if (message?.spell === "open") return void DocView.open(message)
       if (message?.spell === "edit") return void this.edit(message)
       if (message?.spell === "clipboard") return void vscode.env.clipboard.writeText(message.text ?? "")
+      if (message?.spell === "ready") return void this.restore(message.url)
       if (message?.spell !== "place") return
       this.current = message.url
       void DocView.memory?.update(`${this.id}.page`, message.url)
@@ -321,7 +332,28 @@ export class DocView implements vscode.WebviewViewProvider {
   async remembered(): Promise<string | undefined> {
     const url = DocView.memory?.get<string>(`${this.id}.page`)
     if (!url) return undefined
-    return (await serverRoot(new URL(url).origin)) ? url : undefined
+    // a page server restarting (`spell dev server ensure` after a merge) is back in a few seconds:  wait for it
+    // rather than forget the page (Owen, 2026-10-10:  "reloading either of those tabs forgets what page was shown")
+    for (let tries = 0; tries < REMEMBER_TRIES; tries++) {
+      if (await serverRoot(new URL(url).origin)) return url
+      await new Promise((done) => setTimeout(done, REMEMBER_WAIT_MS))
+    }
+    return undefined
+  }
+
+  /**
+   * The view's wrapper (re)loaded, showing `shown` (its frame's URL, `null` with no frame):  if that isn't the page
+   * this view should show, point it there.
+   * - why:  VS Code may rebuild a view's wrapper from the html it was FIRST given (a webview reload, the view moved or
+   *   re-made), which names the page the view first opened with, not the one in view since
+   * - the page:  the one last in view (`here`), else the one remembered for this window (`remembered()`)
+   */
+  async restore(shown: string | null | undefined): Promise<void> {
+    const page = this.here ?? (await this.remembered())
+    if (!page || !this.view || (shown && samePage(shown, page))) return
+    this.url = page
+    this.current = undefined
+    void this.view.webview.postMessage({ spell: "navigate", url: stamped(page) })
   }
 
   /**
@@ -368,6 +400,8 @@ export class DocView implements vscode.WebviewViewProvider {
         if (data?.spell === "navigate") return navigate(data.url)
         if (frame && ["history", "go", "edit"].includes(data?.spell)) frame.contentWindow.postMessage(data, "*")
       })
+      // (re)loaded:  the extension points the frame at the page this view should show, if it isn't (restore())
+      vscode.postMessage({ spell: "ready", url: frame ? frame.src : null })
 
       /** Point the frame at url:  the same frame, so the old page stays until the new one paints. */
       function navigate(url) {
@@ -495,6 +529,9 @@ function run(command: string, args: string[], cwd: string): Promise<string> {
  * - `spell`:  `"place"`;  `"open"` is an `OpenLink`, anything else ignored
  */
 type Place = { spell: "place"; url?: string; canGoBack?: boolean; canGoForward?: boolean }
+
+/** The view's wrapper (re)loaded, its frame at `url` (`null`:  no frame yet):  `DocView.restore()`. */
+type Ready = { spell: "ready"; url?: string | null }
 
 /**
  * A link the page asks the view to open:  `{ spell: "open", url, kind }`.
