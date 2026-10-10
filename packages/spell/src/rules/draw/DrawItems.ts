@@ -10,7 +10,7 @@ import { draw } from "./draw.parser"
  * - e.g. `draw each card in the deck`, `draw all cards of the deck`
  * - Only the trailing `{expression}` (the container) is compiled:
  *   - javascript:  `draw each card in the deck` => `spellCore.drawItems(deck)`
- *   - TypeScript:  `<For each={deck.items}>{(item) => item.draw()}</For>`, each item in its own error net
+ *   - TypeScript:  `<For each={deck.items}>{(item) => item.draw()}</For>`, each item in its own error boundary
  * - The `each {variable}` / `(the|all)? {plural_identifier}` part is purely for readability:
  *   it's matched, but never read in `getAST()`.
  */

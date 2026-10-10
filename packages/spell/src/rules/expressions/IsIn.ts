@@ -42,26 +42,10 @@ expressions.addRule(IsIn, {
         ["thing is one of theList", "spellCore.includes(theList, thing)"],
         ["thing is not in theList", "!spellCore.includes(theList, thing)"],
         ["thing is not one of theList", "!spellCore.includes(theList, thing)"],
-        [
-          "thing is either red or green",
-          "spellCore.includes([red, 'green'], thing)",
-          'spellCore.includes([red, "green"], thing)'
-        ],
-        [
-          "thing is not either red or green",
-          "!spellCore.includes([red, 'green'], thing)",
-          '!spellCore.includes([red, "green"], thing)'
-        ],
-        [
-          "thing is not either of red or green",
-          "!spellCore.includes([red, 'green'], thing)",
-          '!spellCore.includes([red, "green"], thing)'
-        ],
-        [
-          "thing is neither red nor green",
-          "!spellCore.includes([red, 'green'], thing)",
-          '!spellCore.includes([red, "green"], thing)'
-        ]
+        ["thing is either red or green", 'spellCore.includes([red, "green"], thing)'],
+        ["thing is not either red or green", '!spellCore.includes([red, "green"], thing)'],
+        ["thing is not either of red or green", '!spellCore.includes([red, "green"], thing)'],
+        ["thing is neither red nor green", '!spellCore.includes([red, "green"], thing)']
       ]
     }
   ]
@@ -78,21 +62,9 @@ expressions.addRule(IsIn, {
         scope.constants?.add("blue")
       },
       tests: [
-        [
-          "thing is green or blue",
-          "spellCore.includes(['green', 'blue'], thing)",
-          'spellCore.includes(["green", "blue"], thing)'
-        ],
-        [
-          "thing is not green or blue",
-          "!spellCore.includes(['green', 'blue'], thing)",
-          '!spellCore.includes(["green", "blue"], thing)'
-        ],
-        [
-          "thing is green or thing is blue",
-          "((thing == 'green') || (thing == 'blue'))",
-          '(thing == "green" || thing == "blue")'
-        ]
+        ["thing is green or blue", 'spellCore.includes(["green", "blue"], thing)'],
+        ["thing is not green or blue", '!spellCore.includes(["green", "blue"], thing)'],
+        ["thing is green or thing is blue", '(thing == "green" || thing == "blue")']
       ]
     }
   ]

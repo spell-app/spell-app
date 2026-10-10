@@ -352,17 +352,18 @@ describe("spell compile", () => {
 
   // NOTE: written by `SpellDiskWorkspace.writeScopes()`, as the language server and `yarn scopes` write theirs --
   // which `yarn scopes` can't show here:  it takes a root's project id, not a temp folder.
-  test("a clean project writes its scope pack too", () => {
+  test("a clean project writes its words and scope pack too", () => {
     const copy = resolve(TEMP, "Solitaire")
     cpSync(fixturePath("Solitaire"), copy, { recursive: true })
     const { status, stderr } = spell(["compile", "."], copy)
     expect(status).toBe(0)
-    expect(stderr).toContain(
-      `wrote Solitaire${SP.COMPILED_JS_SUFFIX}, Solitaire${SP.DECLARATIONS_JSON_SUFFIX}, Solitaire${SP.SCOPES_JS_SUFFIX}`
-    )
+    const wrote = [SP.COMPILED_JS_SUFFIX, SP.DECLARATIONS_JSON_SUFFIX, SP.WORDS_JS_SUFFIX, SP.SCOPES_JS_SUFFIX]
+    expect(stderr).toContain(`wrote ${wrote.map((suffix) => `Solitaire${suffix}`).join(", ")}`)
     const pack = readFileSync(resolve(copy, `Solitaire${SP.SCOPES_JS_SUFFIX}`), "utf8")
     expect(pack).toContain("type:Card")
     expect(pack).not.toContain("file://")
+    const words = readFileSync(resolve(copy, `Solitaire${SP.WORDS_JS_SUFFIX}`), "utf8")
+    expect(words).toContain('moveToPile: "move (a card) to (a pile)"')
   }, 30_000)
 
   test("a project with errors writes no scope pack", () => {
@@ -691,7 +692,7 @@ describe("spell repl", () => {
       encoding: "utf8"
     })
     expect(status).toBe(0)
-    expect(stdout).toContain("=> export let x = 3\n")
+    expect(stdout).toContain("=> export const x = 3\n")
     expect(stdout).toContain("lhs: operand › known_variable  x\n")
     expect(stdout).toMatch(/=> spellCore\.console\.log\(x \+ 1\)\n$/)
   })

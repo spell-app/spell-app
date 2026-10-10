@@ -109,12 +109,13 @@ export const request_getProjectList = respondWithJSON(async (request) => {
  *   but they're kept as separate functions/constants presumably so they CAN diverge later.
  */
 const manifestExtensions = [".spell", ".css", ".js", ".jsx"]
-function isManifestFile(name: string) {
+function isManifestFile(name: string, projectName = "") {
   // NOT a project's compiled output, e.g. `Solitaire.compiled.js`, nor a test fixture's snapshot of it,
-  // nor its scope pack -- `getIndex()` would make it an import
+  // nor its scope pack, nor its words, e.g. `Solitaire.en.js` -- `getIndex()` would make it an import
   if ([SP.COMPILED_JS_SUFFIX, SP.SNAPSHOT_JS_SUFFIX, SP.SCOPES_JS_SUFFIX].some((suffix) => name.endsWith(suffix))) {
     return false
   }
+  if (SP.SpellWords.isWordsFile(name, projectName)) return false
   return manifestExtensions.some((extension) => name.endsWith(extension))
 }
 
@@ -161,7 +162,7 @@ export const getIndex = async (projectId: string): Promise<ProjectIndexJSON> => 
   // Get non-hidden files in project which the front-end knows how to deal with
   const options = { includeFolders: false, ignoreHidden: true, namesOnly: true }
   let fileNames = (await fileUtils.getFolderContents(location.serverPath, options)) //
-    .filter(isManifestFile)
+    .filter((name) => isManifestFile(name, location.projectName))
 
   // HACKY: make sure we have at least one valid file by creating a default file
   if (!fileNames.length) {
@@ -291,6 +292,13 @@ export const request_getScopes = (request: Request, response: Response) =>
  */
 export const request_getDeclarations = (request: Request, response: Response) =>
   sendProjectFile(request, response, SP.DECLARATIONS_JSON_SUFFIX, "application/json")
+
+/**
+ * Send project `projectId`'s words, `<Project>.en.js`, as javascript -- 404 if it hasn't been compiled since they
+ * had a file.  What a runner's Thing Explorer labels things' members by:  see `SP.SpellWords`.
+ */
+export const request_getWords = (request: Request, response: Response) =>
+  sendProjectFile(request, response, SP.WORDS_JS_SUFFIX, "text/javascript")
 
 /** Send request's project's `<Project><suffix>` file as `type`. */
 async function sendProjectFile(request: Request, response: Response, suffix: string, type: string) {

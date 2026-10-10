@@ -90,7 +90,7 @@ describe("compiling docstrings and headings", () => {
       "  /*! SPELL: DECLARES {",
       '    property: "rank", classVariable: "Ranks", of: "Card", enumeration: ["\'ace\'", "\'king\'"],',
       "  } */",
-      "  static Ranks = ['ace', 'king']"
+      '  static Ranks = ["ace", "king"]'
     ])
   })
 
@@ -142,9 +142,9 @@ describe("class members go in their class's body", () => {
     ]
     expect(code(text.join("\n"))).toEqual([
       "export class Task extends Thing {",
-      "  static { this.declareProp('title', { type: 'text' }) }",
-      "  get title() { return this.getProp('title') }",
-      "  set title(value) { this.setProp('title', value) }",
+      '  static { this.declareProp("title", { type: "text" }) }',
+      '  get title() { return this.getProp("title") }',
+      '  set title(value) { this.setProp("title", value) }',
       "",
       "  /** draw it */",
       "  draw() {",
@@ -152,7 +152,7 @@ describe("class members go in their class's body", () => {
       "  }",
       "}",
       "",
-      "export let task = new Task()",
+      "export const task = new Task()",
       "spellCore.console.log(task)",
       "",
       "spellCore.console.log(2)"
@@ -162,9 +162,9 @@ describe("class members go in their class's body", () => {
   test("a member declared ABOVE its class", () => {
     expect(code("cards have a rank as text\na card is a thing")).toEqual([
       "export class Card extends Thing {",
-      "  static { this.declareProp('rank', { type: 'text' }) }",
-      "  get rank() { return this.getProp('rank') }",
-      "  set rank(value) { this.setProp('rank', value) }",
+      '  static { this.declareProp("rank", { type: "text" }) }',
+      '  get rank() { return this.getProp("rank") }',
+      '  set rank(value) { this.setProp("rank", value) }',
       "}"
     ])
   })
@@ -187,9 +187,9 @@ describe("class members go in their class's body", () => {
       "  ////////////////",
       "  // of cards",
       "",
-      "  static { this.declareProp('rank', { type: 'text' }) }",
-      "  get rank() { return this.getProp('rank') }",
-      "  set rank(value) { this.setProp('rank', value) }",
+      '  static { this.declareProp("rank", { type: "text" }) }',
+      '  get rank() { return this.getProp("rank") }',
+      '  set rank(value) { this.setProp("rank", value) }',
       "}",
       "",
       "spellCore.console.log(1)"
@@ -210,10 +210,10 @@ describe("class members go in their class's body", () => {
       "  }",
       "}",
       "export class Joker extends Card {",
-      "  static Colors = ['red', 'black']",
-      "  static { this.declareProp('color', { oneOf: Joker.Colors }) }",
-      "  get color() { return this.getProp('color') }",
-      "  set color(value) { this.setProp('color', value) }",
+      '  static Colors = ["red", "black"]',
+      '  static { this.declareProp("color", { oneOf: Joker.Colors }) }',
+      '  get color() { return this.getProp("color") }',
+      '  set color(value) { this.setProp("color", value) }',
       "}"
     ])
   })
@@ -254,7 +254,7 @@ describe("headings, as the program runs:  `spellCore.heading()`", () => {
     expect(fileCode(["## Set up", "deck = 1", "", "##########", "## Play", "print deck"].join("\n"))).toEqual([
       'spellCore.heading("Set up")',
       "/** Set up */",
-      "export let deck = 1",
+      "export const deck = 1",
       "",
       "//##########",
       'spellCore.heading("Play")',
@@ -286,9 +286,9 @@ describe("headings, as the program runs:  `spellCore.heading()`", () => {
       "  // ## Properties",
       "  ////////////////",
       "  /** of cards */",
-      "  static { this.declareProp('rank', { type: 'text' }) }",
-      "  get rank() { return this.getProp('rank') }",
-      "  set rank(value) { this.setProp('rank', value) }",
+      '  static { this.declareProp("rank", { type: "text" }) }',
+      '  get rank() { return this.getProp("rank") }',
+      '  set rank(value) { this.setProp("rank", value) }',
       "}",
       "",
       'spellCore.heading("Dealing")',

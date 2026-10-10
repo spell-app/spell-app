@@ -46,9 +46,9 @@ expressions.addRule(IsA, {
         ["thing is an Animal", "thing instanceof Animal"],
         ["thing is not a Bee", "!(thing instanceof Bee)"],
         ["thing is not an Animal", "!(thing instanceof Animal)"],
-        ["thing is a number", "typeof thing === 'number'", 'typeof thing === "number"'],
-        ["thing is a boolean", "spellCore.isOfType(thing, 'choice')", 'spellCore.isOfType(thing, "choice")'],
-        ["thing is a list", "spellCore.isOfType(thing, 'List')", 'spellCore.isOfType(thing, "List")'],
+        ["thing is a number", 'typeof thing === "number"'],
+        ["thing is a boolean", 'spellCore.isOfType(thing, "choice")'],
+        ["thing is a list", 'spellCore.isOfType(thing, "List")'],
         // an unknown type is no type:  `is a crad` doesn't parse
         ["thing is a crad", "thing"]
       ]

@@ -22,7 +22,7 @@ tests.addRule(Echo, {
       tests: [
         [`echo 1`, `spellCore.echo(1)`],
         [`echo "foo"`, `spellCore.echo("foo")`],
-        ["echo the rank of a new thing", "spellCore.echo(new Thing().rank)", "spellCore.echo((new Thing()).rank)"]
+        ["echo the rank of a new thing", "spellCore.echo((new Thing()).rank)"]
       ]
     }
   ]

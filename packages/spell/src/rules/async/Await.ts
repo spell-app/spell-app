@@ -35,13 +35,9 @@ _async.addRule(Await, {
       tests: [
         ["await", "await undefined"],
         ["wait for 1", "await 1"],
-        ["set the result to wait for 1", "export let result = await 1", "export const result = await 1"],
+        ["set the result to wait for 1", "export const result = await 1"],
         ["wait for 2 is 1", "await (2 === 1)"],
-        [
-          "if wait for 2 is 1 then print 1",
-          "if (await 2 == 1) { spellCore.console.log(1) }",
-          "if (await 2 == 1) spellCore.console.log(1)"
-        ]
+        ["if wait for 2 is 1 then print 1", "if (await 2 == 1) spellCore.console.log(1)"]
       ]
     },
     {
@@ -53,8 +49,7 @@ _async.addRule(Await, {
         },
         {
           input: ["to do something", "\tif (1) wait for 1"],
-          js: ["export async function doSomething() {", "  if (1) { await 1 }", "}"],
-          ts: ["export async function doSomething() {", "  if (1) await 1", "}"]
+          js: ["export async function doSomething() {", "  if (1) await 1", "}"]
         }
       ]
     }

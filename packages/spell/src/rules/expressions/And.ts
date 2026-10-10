@@ -28,8 +28,8 @@ expressions.addRule(And, {
       },
       tests: [
         ["thing and other", "(thing && other)"],
-        ["thing and other and yet-another", "((thing && other) && yetAnother)", "(thing && other && yetAnother)"],
-        ["thing is 1 and other is 2", "((thing == 1) && (other == 2))", "(thing == 1 && other == 2)"]
+        ["thing and other and yet-another", "(thing && other && yetAnother)"],
+        ["thing is 1 and other is 2", "(thing == 1 && other == 2)"]
       ]
     }
   ]

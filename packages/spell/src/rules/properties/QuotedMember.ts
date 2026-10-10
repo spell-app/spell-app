@@ -63,9 +63,9 @@ properties.addRule(QuotedMember, {
     {
       tests: [
         { title: "one word", input: '"rank"', js: "rank" },
-        { title: "several words", input: '"short rank"', js: "short_rank" },
-        { title: "dashed", input: '"short-rank"', js: "short_rank" },
-        { title: "a leading preposition", input: '"with jokers"', js: "with_jokers" },
+        { title: "several words", input: '"short rank"', js: "shortRank" },
+        { title: "dashed", input: '"short-rank"', js: "shortRank" },
+        { title: "a leading preposition", input: '"with jokers"', js: "withJokers" },
         { title: "a structural word", input: '"rank of"', js: undefined }
       ]
     }

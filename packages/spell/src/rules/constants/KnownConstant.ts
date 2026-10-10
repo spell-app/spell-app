@@ -31,7 +31,7 @@ constants.addRule(KnownConstant, {
         constants.add({ name: "green", output: "#00FF00" })
       },
       tests: [
-        { title: "known constant", input: "red", js: "'red'", ts: '"red"' },
+        { title: "known constant", input: "red", js: '"red"' },
         { title: "known constant w/specific value", input: "green", js: "#00FF00" },
         { title: "unknown constant", input: "missing", js: undefined }
       ]

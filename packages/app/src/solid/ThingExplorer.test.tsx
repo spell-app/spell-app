@@ -3,7 +3,8 @@ import { renderToString } from "@solidjs/web"
 
 import { spellCore, Thing, List } from "$/core"
 import type { ThingOrder } from "$/app/ui/ui.types"
-import { ThingExplorer } from "./ThingExplorer"
+import type { SP } from "$/spell"
+import { ThingExplorer, memberWords } from "./ThingExplorer"
 
 /**
  * The Solid `<ThingExplorer>` drawn as HTML -- the same cases as React's `$/app/ui/ThingExplorer.test.tsx`.
@@ -51,9 +52,26 @@ class Pile extends List {
 /** A sub-type of it. */
 class Foundation extends Pile {}
 
-/** `<ThingExplorer>` of the page's `spellCore.things`, drawn as HTML. */
-function draw(order: ThingOrder, selected?: string, open = ["top", "all", "type:Pile"]) {
-  return renderToString(() => <ThingExplorer things={spellCore.things} state={{ order, open, selected }} />)
+/** `<ThingExplorer>` of the page's `spellCore.things`, drawn as HTML -- with `words`, if given. */
+function draw(order: ThingOrder, selected?: string, open = ["top", "all", "type:Pile"], words?: SP.SpellWordsData) {
+  return renderToString(() => (
+    <ThingExplorer things={spellCore.things} words={words} state={{ order, open, selected }} />
+  ))
+}
+
+/** Card's and Pile's words, as their `<Project>.en.js` would hold them -- see `SP.SpellWords`. */
+const WORDS: SP.SpellWordsData = {
+  lang: "en",
+  types: {
+    Card: { rank: "rank", pile: "pile", turnOver: "turn (a card) over", moveToPile: "move (a card) to (a pile)" },
+    Pile: { name: "the-name" }
+  }
+}
+
+/** The `<th>` of each row of `html`'s details, as text, e.g. `turn over from Card`. */
+function detailLabels(html: string): string[] {
+  const details = html.slice(html.indexOf("DetailsPane"))
+  return [...details.matchAll(/<th[^>]*>(.*?)<\/th>/g)].map(([, th]) => th!.replace(/<[^>]*>/g, " ").trim())
 }
 
 /** Labels of the tree's rows in `html`, in order -- group rows with their counts. */
@@ -151,8 +169,41 @@ describe("<ThingExplorer> (Solid)", () => {
     expect(html).toMatch(
       /<ui-icon name="cog"><\/ui-icon>turn over<span class="inherited">from Card<\/span>.*title="Do it:  turnOver\(\)"/
     )
-    const move = html.slice(html.indexOf("move to (pile)"))
+    const move = html.slice(html.indexOf("move to pile"))
+    expect(move).not.toBe(html)
     expect(move.slice(0, move.indexOf("</tr>"))).not.toContain("play")
+  })
+
+  test("details:  with the program's words, each property and action in spell's words -- slots and all", () => {
+    const stock = new Pile({ name: "stock" })
+    new Card({ rank: "queen", pile: stock })
+    expect(detailLabels(draw("document", "#2", undefined, WORDS))).toEqual([
+      "rank",
+      "pile",
+      "name",
+      "turn (a card) over",
+      "move (a card) to (a pile)"
+    ])
+    // the ▶ still does it by its name
+    expect(draw("document", "#2", undefined, WORDS)).toContain('title="Do it:  turnOver()"')
+  })
+
+  test("details:  an inherited member in its own type's words;  one they don't have by its name", () => {
+    class Joker extends Card {
+      /** Not in the words:  `wild card` from its name. */
+      wildCard() {}
+    }
+    new Joker({})
+    new Pile({ name: "stock" })
+    expect(detailLabels(draw("document", "#1", undefined, WORDS))).toEqual([
+      "rank",
+      "pile",
+      "name",
+      "wild card",
+      "turn (a card) over from Card",
+      "move (a card) to (a pile) from Card"
+    ])
+    expect(detailLabels(draw("document", "#2", undefined, WORDS))).toEqual(["the-name"])
   })
 
   test("shows a list's items", () => {
@@ -176,5 +227,18 @@ describe("<ThingExplorer> (Solid)", () => {
     const html = draw("document", "#1")
     expect(html).toMatch(/<details class="ThingValue list"><summary>list of 2<\/summary>/)
     expect(html).toMatch(/<span class="ThingValue error">no luck<\/span>/)
+  })
+})
+
+describe("memberWords()", () => {
+  test("from the first of a thing's types whose words have it", () => {
+    const words: SP.SpellWordsData = { lang: "en", types: { Pile: { draw: "draw (a pile)" }, Tableau: {} } }
+    expect(memberWords(words, ["Tableau", "Pile", "List"], "draw")).toBe("draw (a pile)")
+    expect(memberWords(words, ["Tableau", "Pile", "List"], "deal")).toBeUndefined()
+    expect(memberWords(undefined, ["Pile"], "draw")).toBeUndefined()
+  })
+
+  test("only what the words say:  NOT what every object has", () => {
+    expect(memberWords({ lang: "en", types: { Card: {} } }, ["Card", "constructor"], "toString")).toBeUndefined()
   })
 })

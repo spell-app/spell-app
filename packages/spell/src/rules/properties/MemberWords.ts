@@ -62,11 +62,11 @@ properties.addRule(MemberWords, {
     {
       tests: [
         { title: "one word", input: "rank", js: "rank" },
-        { title: "several words", input: "short rank", js: "short_rank" },
+        { title: "several words", input: "short rank", js: "shortRank" },
         { title: "a blacklisted word", input: "short", js: "short" },
-        { title: "dashed", input: "short-rank", js: "short_rank" },
+        { title: "dashed", input: "short-rank", js: "shortRank" },
         { title: "a structural word", input: "of", js: undefined },
-        { title: "a leading preposition", input: "with jokers", js: "with_jokers" },
+        { title: "a leading preposition", input: "with jokers", js: "withJokers" },
         { title: "a preposition after the first word ends it", input: "jokers with", js: "jokers" }
       ]
     }

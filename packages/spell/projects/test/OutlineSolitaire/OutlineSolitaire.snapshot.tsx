@@ -21,12 +21,12 @@ export class Deck extends List<Card> {
   //## Dealing:  what a deck does -- after `Card.spell`, as it reads a card's names
 
   setUp() {
-    if (this.is_set_up) return
+    if (this.isSetUp) return
     Deck.Ranks.forEach((rank) => Deck.Suits.forEach((suit) => {
       const it = new Card({ rank: rank, suit: suit })
       this.append(it)
     }))
-    this.is_set_up = true
+    this.isSetUp = true
   }
 
   display() {
@@ -39,16 +39,16 @@ export class Deck extends List<Card> {
 
   static Ranks = RANKS
 
-  @prop({ type: "choice" }) accessor is_set_up!: boolean
+  @prop({ type: "choice" }) accessor isSetUp!: boolean
 }
 export class Suit {
-  static color(suit: any /* spell: type unknown */) {
+  static color(suit: (typeof SUITS)[number]) {
     if (spellCore.includes(["diamonds", "hearts"], suit)) return "red"
     return "black"
   }
 }
 export class Rank {
-  static isAFaceCard(rank: any /* spell: type unknown */) {
+  static isAFaceCard(rank: (typeof RANKS)[number]) {
     return spellCore.includes(["jack", "queen", "king"], rank)
   }
 }

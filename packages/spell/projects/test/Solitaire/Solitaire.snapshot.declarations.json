@@ -61,7 +61,6 @@
     {
       "property": "color",
       "of": "Card",
-      "getter": true,
       "constants": [
         "red",
         "black"
@@ -72,7 +71,6 @@
       "property": "value",
       "of": "Card",
       "datatype": "number",
-      "getter": true,
       "defined": "/Card.spell:440-501"
     },
     {
@@ -194,7 +192,6 @@
       "property": "name",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1086-1137"
     },
     {
@@ -202,7 +199,6 @@
       "asWritten": "short-suit",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1139-1300"
     },
     {
@@ -210,7 +206,6 @@
       "asWritten": "short-rank",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1302-1466"
     },
     {
@@ -218,7 +213,6 @@
       "asWritten": "short-direction",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1468-1548"
     },
     {
@@ -226,14 +220,12 @@
       "asWritten": "short-name",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1551-1611"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1613-1690"
     },
     {
@@ -321,6 +313,13 @@
       "defined": "/Solitaire.spell:3337-4373"
     },
     {
+      "property": "pile",
+      "of": "Card",
+      "datatype": "Pile",
+      "autoDeclared": true,
+      "defined": "/Pile.spell:500-536"
+    },
+    {
       "syntax": "test card setup",
       "output": "test_card_setup",
       "rule": "method_call",
@@ -380,13 +379,6 @@
       "defined": "/Deck.spell:468-1036"
     },
     {
-      "property": "pile",
-      "of": "Card",
-      "datatype": "Pile",
-      "autoDeclared": true,
-      "defined": "/Pile.spell:500-536"
-    },
-    {
       "type": "Pile",
       "superType": "List",
       "itemType": "Card",
@@ -395,21 +387,18 @@
     {
       "property": "color",
       "of": "Pile",
-      "getter": true,
       "defined": "/Pile.spell:52-140"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
-      "getter": true,
       "defined": "/Pile.spell:142-225"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
-      "getter": true,
       "defined": "/Pile.spell:584-748"
     },
     {
@@ -433,7 +422,6 @@
       "property": "state",
       "of": "Game",
       "datatype": "list",
-      "getter": true,
       "defined": "/Solitaire.spell:2210-2329"
     },
     {
@@ -713,50 +701,50 @@
     74,
     82,
     88,
-    94,
-    98,
-    108,
-    113,
-    122,
-    128,
+    93,
+    97,
+    107,
+    112,
+    121,
+    127,
+    145,
     152,
-    159,
-    197,
-    246,
-    249,
-    260,
-    268,
-    275,
+    183,
+    190,
+    239,
+    242,
+    251,
+    257,
+    262,
+    290,
+    293,
+    298,
     303,
-    311,
-    314,
-    319,
-    325,
+    309,
+    321,
+    322,
+    328,
     334,
-    347,
-    348,
-    354,
-    362,
-    440,
-    441,
-    445,
-    461,
-    462,
-    466,
-    474,
-    475,
-    479,
-    488,
-    527,
-    528,
-    532,
-    537,
-    556,
-    562,
-    571,
-    587,
-    621,
-    663,
-    668
+    383,
+    384,
+    388,
+    399,
+    400,
+    404,
+    412,
+    413,
+    417,
+    426,
+    463,
+    464,
+    468,
+    473,
+    490,
+    494,
+    503,
+    519,
+    553,
+    591,
+    596
   ]
 }

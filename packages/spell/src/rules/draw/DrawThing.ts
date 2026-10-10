@@ -7,7 +7,7 @@ import { draw } from "./draw.parser"
 
 /**
  * `draw_thing` rule:  draw a single thing, e.g. `draw the card`.
- * - javascript:  `spellCore.drawThing(card)`, its drawing in its own error net.
+ * - javascript:  `spellCore.drawThing(card)`, its drawing in its own error boundary.
  *   Its `draw()` re-runs when what it read changes:  the card's node is drawn again, nothing else.
  * - TypeScript:  `card.draw()`, whose `@drawn` decorator gives it the same net.
  */
