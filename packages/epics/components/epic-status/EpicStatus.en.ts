@@ -79,6 +79,9 @@ export const epicStatusVocabulary = {
     { name: "open", description: "Unfolded:  it starts so (page state, never written)." }
   ],
   texts: [
+    { key: "foldTip", text: "Fold this status card", description: "Tooltip of its fold button while open." },
+    { key: "unfoldTip", text: "Unfold this status card", description: "Tooltip of its fold button while folded." },
+
     { key: "underway", text: "Claude • Underway", description: "The heading while Claude is on it." },
     { key: "done", text: "Claude • Done", description: "The heading once work was done." },
     { key: "noted", text: "Claude • Noted", description: "The heading once Claude recorded what Owen chose." },

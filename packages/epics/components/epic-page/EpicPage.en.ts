@@ -202,6 +202,12 @@ export const epicPageVocabulary = {
     { name: "commits", description: "Every commit shows (the git toggle is on)." }
   ],
   texts: [
+    {
+      key: "hungTip",
+      text: "Fold or unfold:  how to restart a hung session",
+      description: "Plan hung?:  its tooltip."
+    },
+
     { key: "copyHeading", text: "Copy {command}", description: "The h1's tooltip." },
     {
       key: "newButton",

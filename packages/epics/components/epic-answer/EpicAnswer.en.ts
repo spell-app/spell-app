@@ -51,7 +51,11 @@ export const epicAnswerVocabulary = {
     { name: "body", description: "The answer, and why;  not drawn when empty;  hidden (`until-found`) while folded." }
   ],
   states: [{ name: "open", description: "Unfolded:  it starts so (page state, never written)." }],
-  texts: [{ key: "answer", text: "Answer", description: "The card's label, without an old decision's id." }],
+  texts: [
+    { key: "foldTip", text: "Fold the answer", description: "Tooltip of its fold button while open." },
+    { key: "unfoldTip", text: "Unfold the answer", description: "Tooltip of its fold button while folded." },
+    { key: "answer", text: "Answer", description: "The card's label, without an old decision's id." }
+  ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
     { tag: "flow", description: "The answer, and why." }

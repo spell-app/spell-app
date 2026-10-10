@@ -40,6 +40,9 @@ export const epicUpdateVocabulary = {
     { name: "open", description: "A note, unfolded:  it starts so (page state, never written)." }
   ],
   texts: [
+    { key: "foldTip", text: "Fold this update", description: "Tooltip of its fold button while open." },
+    { key: "unfoldTip", text: "Unfold this update", description: "Tooltip of its fold button while folded." },
+
     { key: "label", text: "UPDATE", description: "The label." },
     { key: "tip", text: "Changed during P{phase}", description: "The label's tooltip." }
   ],

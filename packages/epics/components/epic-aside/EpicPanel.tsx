@@ -58,6 +58,7 @@ export abstract class EpicPanel<V extends E.ComponentVocabulary> extends E.UICom
           part={this.partForName("toggle" as never)}
           aria-expanded={this.isOpen ? "true" : "false"}
           aria-controls={BODY_ID}
+          title={this.translationForKey((this.isOpen ? "foldTip" : "unfoldTip") as never)}
           onClick={this.fold.toggle}
         >
           {Fold.chevron()}
