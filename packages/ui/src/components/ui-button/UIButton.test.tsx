@@ -525,13 +525,13 @@ describe("<ui-button> invoker commands", () => {
   it("native:  a custom command reaches a <ui-modal> (--toggle)", async () => {
     await withInvokers("commandForElement" in HTMLButtonElement.prototype, async () => {
       const { control } = await invoker("--toggle", `<ui-modal id="t" content="Body"></ui-modal>`)
-      const modal = document.querySelector<DOMElement & { open: boolean }>("ui-modal#t")!
+      const modal = document.querySelector<DOMElement & { visible: boolean }>("ui-modal#t")!
       control.click()
       await ElementFixture.settle()
-      expect(modal.open).toBe(true)
+      expect(modal.visible).toBe(true)
       control.click()
       await ElementFixture.settle()
-      expect(modal.open).toBe(false)
+      expect(modal.visible).toBe(false)
     })
   })
 
@@ -586,15 +586,15 @@ describe("<ui-button> invoker commands", () => {
   it("fallback (no invokers):  `--show` / `--toggle` reach a <ui-modal> as user actions", async () => {
     await withInvokers(false, async () => {
       const { host, control } = await invoker("--show", `<ui-modal id="t" content="Body"></ui-modal>`)
-      const modal = document.querySelector<DOMElement & { open: boolean }>("ui-modal#t")!
+      const modal = document.querySelector<DOMElement & { visible: boolean }>("ui-modal#t")!
       control.click()
       await ElementFixture.settle()
-      expect(modal.open).toBe(true)
+      expect(modal.visible).toBe(true)
       host.setAttribute("command", "--toggle")
       await ElementFixture.settle()
       control.click()
       await ElementFixture.settle()
-      expect(modal.open).toBe(false)
+      expect(modal.visible).toBe(false)
     })
   })
 

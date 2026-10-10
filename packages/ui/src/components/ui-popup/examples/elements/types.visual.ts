@@ -7,8 +7,8 @@ import type { VisualHooks } from "$/ui/test/test.types"
  */
 export default {
   states: {
-    "open-titled": { open: (root) => VisualOpen.set(root, "ui-popup[for=popup-types-rating]") },
-    "open-html": { open: (root) => VisualOpen.set(root, "ui-popup[for=popup-types-plan]") },
-    "open-parts": { open: (root) => VisualOpen.set(root, "ui-popup[for=popup-types-parts]") }
+    "open-titled": { open: (root) => VisualOpen.show(root, "ui-popup[for=popup-types-rating]") },
+    "open-html": { open: (root) => VisualOpen.show(root, "ui-popup[for=popup-types-plan]") },
+    "open-parts": { open: (root) => VisualOpen.show(root, "ui-popup[for=popup-types-parts]") }
   }
 } satisfies VisualHooks

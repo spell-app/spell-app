@@ -2,7 +2,8 @@
  * Every name `<ui-modal>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
  * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
- *   `<ui-modal size="tiny" basic vertical-align="top" open>` => `ui tiny active basic top aligned modal`.
+ *   `<ui-modal size="tiny" basic vertical-align="top" visible>` => `ui tiny basic top aligned active modal`;
+ *   `active`, Fomantic's shown-modal class, is the element's own while it shows (the shared `visible` / `hidden`).
  * - Sizes are WIDTHS here (Fomantic's modal ratios), not text sizes:
  *   `UIModal.css` reads the size class, never `--ui-scale`.
  * - A modal OWNS the `header`, `content`, `description` and `actions` parts:  slotted ones get `:state(in-modal)`
@@ -46,12 +47,6 @@ export const modalVocabulary = {
       description: "Pinned near the `top` or `bottom` of the viewport instead of centred (`top aligned`)."
     },
     {
-      name: "open",
-      kind: "keyOnly",
-      key: "active",
-      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
-    },
-    {
       name: "closable",
       kind: "boolean",
       description:
@@ -84,25 +79,25 @@ export const modalVocabulary = {
   events: [
     {
       name: "ui-open",
-      detail: "{ open: true, originalEvent?: Event }",
+      detail: "{ visible: true, originalEvent?: Event }",
       cancelable: true,
-      description: "About to show (a person's action, not an `open` write);  `preventDefault()` keeps it hidden."
+      description: "About to show (a person's action, not a `visible` write);  `preventDefault()` keeps it hidden."
     },
     {
       name: "ui-show",
-      detail: "{ open: true }",
+      detail: "{ visible: true }",
       description: "Shown, its entry transition finished (Fomantic's `onVisible`)."
     },
     {
       name: "ui-close",
-      detail: "{ open: false, reason: ModalCloseReason, originalEvent?: Event }",
+      detail: "{ visible: false, reason: ModalCloseReason, originalEvent?: Event }",
       cancelable: true,
       description:
-        "About to hide:  Escape, the dimmer, the close icon, approve or deny.  `preventDefault()` keeps it open."
+        "About to hide:  Escape, the dimmer, the close icon, approve or deny.  `preventDefault()` keeps it shown."
     },
     {
       name: "ui-hide",
-      detail: "{ open: false }",
+      detail: "{ visible: false }",
       description: "Hidden, its exit transition finished (Fomantic's `onHidden`)."
     },
     {
@@ -111,7 +106,7 @@ export const modalVocabulary = {
       cancelable: true,
       description:
         "An approve button (`.approve` / `.ok` / `.positive`, `<ui-button positive>`) was activated;  " +
-        "`preventDefault()` keeps the modal open (Fomantic's `onApprove` returning `false`)."
+        "`preventDefault()` keeps the modal shown (Fomantic's `onApprove` returning `false`)."
     },
     {
       name: "ui-deny",
@@ -119,7 +114,7 @@ export const modalVocabulary = {
       cancelable: true,
       description:
         "A deny button (`.deny` / `.cancel` / `.negative`, `<ui-button negative>`) was activated;  " +
-        "`preventDefault()` keeps the modal open."
+        "`preventDefault()` keeps the modal shown."
     }
   ],
   slots: [
@@ -134,7 +129,7 @@ export const modalVocabulary = {
     { name: "content", description: "The `content` shorthand." },
     { name: "close", description: "The close icon of a `closable` modal." }
   ],
-  states: [{ name: "open", description: "Shown." }],
+  states: [],
   texts: [
     { key: "close", text: "Close", description: "Accessible name of the close icon." },
     { key: "ok", text: "OK", description: "Approve button of `UI.modals.confirm()` / `alert()` / `prompt()`." },

@@ -2,8 +2,9 @@
  * Every name `<ui-dimmer>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
  * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
- *   `<ui-dimmer shade="light" inverted vertical-align="top" active>` => `ui light active inverted top aligned dimmer`.
- * - `active` is Fomantic's word for a shown dimmer (its class, and `.dimmer('show')`).
+ *   `<ui-dimmer shade="light" inverted vertical-align="top" visible>` => `ui light inverted top aligned active dimmer`.
+ * - `active`, Fomantic's word for a shown dimmer (its class, and `.dimmer('show')`),
+ *   is the element's own class while it shows (the shared `visible` / `hidden`).
  * - `page` makes it a PAGE dimmer:  a modal `<dialog>` over the whole viewport;  else it dims its parent element.
  * - `closedby` mirrors `<dialog closedby>`, as on `<ui-modal>`.
  */
@@ -29,11 +30,6 @@ export const dimmerVocabulary = {
       values: ["medium", "light", "very light"],
       description: "Lighter than the default (Fomantic's shades):  `medium`, `light`, `very light`."
     },
-    {
-      name: "active",
-      kind: "keyOnly",
-      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
-    },
     { name: "page", kind: "keyOnly", description: "Dims the whole page:  a modal dialog over the viewport." },
     { name: "inverted", kind: "keyOnly", description: "A light dimmer (dark text), where the default is dark." },
     { name: "blurring", kind: "keyOnly", description: "Blurs and greys what's behind it (`backdrop-filter`)." },
@@ -51,7 +47,7 @@ export const dimmerVocabulary = {
       values: ["hover", "click"],
       description:
         "Shows by itself:  `hover` while the pointer is over its parent (or focus is inside), `click` when the " +
-        "parent is clicked.  Default:  only `active` shows it."
+        "parent is clicked.  Default:  only `visible` shows it."
     },
     {
       name: "closedby",
@@ -61,32 +57,32 @@ export const dimmerVocabulary = {
       property: "closedBy",
       description:
         "What hides it, as `<dialog closedby>`:  `any` -- a click on the dimmer (not its content) or Escape (a " +
-        "page dimmer) -- the default;  `closerequest` -- Escape only;  `none` -- only `active`.  A `hover` " +
+        "page dimmer) -- the default;  `closerequest` -- Escape only;  `none` -- only `visible`.  A `hover` " +
         "dimmer ignores clicks.  Read when it shows."
     }
   ],
   events: [
     {
       name: "ui-open",
-      detail: "{ active: true, originalEvent?: Event }",
+      detail: "{ visible: true, originalEvent?: Event }",
       cancelable: true,
       description:
         "About to show for a person's action (`show-on`, an invoker command);  `preventDefault()` keeps it hidden."
     },
     {
       name: "ui-show",
-      detail: "{ active: true }",
+      detail: "{ visible: true }",
       description: "Shown, its transition finished (Fomantic's `onVisible`)."
     },
     {
       name: "ui-close",
-      detail: "{ active: false, reason: DimmerCloseReason, originalEvent?: Event }",
+      detail: "{ visible: false, reason: DimmerCloseReason, originalEvent?: Event }",
       cancelable: true,
       description: "About to hide:  a click on it, Escape, the pointer leaving.  `preventDefault()` keeps it shown."
     },
     {
       name: "ui-hide",
-      detail: "{ active: false }",
+      detail: "{ visible: false }",
       description: "Hidden, its transition finished (Fomantic's `onHidden`)."
     }
   ],
@@ -96,10 +92,9 @@ export const dimmerVocabulary = {
     { name: "content", description: "The centred box around the slot." }
   ],
   states: [
-    { name: "active", description: "Shown." },
     { name: "dimmer", description: "Always:  the page sheet positions the parent of an element dimmer by it." },
     { name: "page", description: "A page dimmer." },
-    { name: "on-hover", description: '`show-on="hover"`:  laid out (transparent) while inactive, so Tab can reach it.' }
+    { name: "on-hover", description: '`show-on="hover"`:  laid out (transparent) while hidden, so Tab can reach it.' }
   ],
   texts: [{ key: "dimmedPage", text: "Dimmed page", description: "Accessible name of an unnamed page dimmer." }]
 } as const satisfies E.ComponentVocabulary

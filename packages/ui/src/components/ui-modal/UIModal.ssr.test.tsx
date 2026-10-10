@@ -54,7 +54,7 @@ describe("<ui-modal> static render", () => {
   })
 
   it("stays closed when written open:  showing a modal needs JS", () => {
-    const dialog = fragment(StaticRender.fragment(`<ui-modal open header="Hi"></ui-modal>`)).firstElementChild!
+    const dialog = fragment(StaticRender.fragment(`<ui-modal visible header="Hi"></ui-modal>`)).firstElementChild!
     expect(dialog.localName).toBe("dialog")
     expect(dialog.hasAttribute("open")).toBe(false)
   })

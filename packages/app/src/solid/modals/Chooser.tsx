@@ -35,7 +35,7 @@ export function Chooser(props: ChooserProps) {
       closedby="closerequest"
       header={props.header}
       aria-label={props.header ? undefined : props.message}
-      open=""
+      visible=""
       ref={(element: HTMLElement) => {
         modal = element
         modal.addEventListener("ui-approve", choose)
