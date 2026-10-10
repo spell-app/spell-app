@@ -4,6 +4,7 @@ import type { collectionOtherMethods } from "./collection-other"
 import type { stringMethods } from "./string"
 import type { uiMethods } from "./ui"
 import type { drawingMethods } from "./drawing"
+import type { elementsMethods } from "./elements"
 import type { pathMethods } from "./paths"
 import type { testMethods } from "./tests"
 import type { consoleMethods } from "./console"
@@ -54,6 +55,7 @@ export type SpellCore = typeof coreMethods &
   typeof stringMethods &
   typeof uiMethods &
   typeof drawingMethods &
+  typeof elementsMethods &
   typeof pathMethods &
   typeof testMethods &
   typeof consoleMethods &

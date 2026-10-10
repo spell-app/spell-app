@@ -22,6 +22,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   NEVER import `$/spell` / `$/parser`, or anything above.
 - Drawing code here is Solid work:  READ the root's Solid 2 pointer first.
   - That's [drawing.ts](src/drawing.ts):  `element()`, `drawThing()`, `drawItems()`, `@drawn`, `mountApp()`.
+- A drawable thing's own element (`<solitaire-card>`):  [elements.ts](src/elements.ts) names its tag;
+  the page makes the element (`spellCore.elementDefiner`, app's `SpellElement.tsx`).  Core never imports Spell UI.
 
 ## Who may value-import it
 

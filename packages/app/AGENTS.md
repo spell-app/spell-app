@@ -116,6 +116,11 @@ when working with code in this package, `@spell-app/app`.
     - The program finds its elements through `spellCore.domRoot()`, never `document`.
     - SEE [core's AGENTS.md](../core/AGENTS.md), "Who may value-import it".
     - Mind barrels:  `$/app/runner` holds `runCompiled()`, so a bundle's entry imports its runner's file directly.
+  - A drawable thing (`a card is a drawable thing`) draws as its own Spell UI element, e.g. `<solitaire-card>`:
+    [SpellElement.tsx](src/runner/SpellElement.tsx) (epic `drawable-thing`).
+    - A compiled project's last line, `spellCore.defineElements(...)`, hands its drawable classes to core,
+      which names each tag and asks `spellCore.elementDefiner`:  `installSpellElements()` fills it in, per runtime copy.
+    - ONE tag per type per page, shared by every runtime copy (`SPELL_ELEMENTS`, on `globalThis`).
   - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`):  no parser in the page.
     - `yarn scopes [--compile] <projectId...>` (in `../lsp`) writes them.
     - So does the language server, after each clean compile.
