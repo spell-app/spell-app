@@ -438,9 +438,13 @@ In `tools/`:
     whole page).  Quiet until hovered;  always shown, with a count, once the block has comments
   - or on SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn floating beside the selection;  the comment keeps the quote,
     highlighted softly on the page while the comment exists
-  - the box opens under the block;  each comment shows there as a card, its state by the fill rule
-    (dashed:  typed, not saved;  outlined:  "Saved 14:02 · waiting for Claude";  solid:  "Taken by Claude" /
-    "Answered"), Claude's answers under it;  a toast on save
+  - the box opens under the block (Owen, 2026-10-10):  ivory, its header the first words of the selected text
+    (else of the block;  its tooltip names the block), a floppy and ×, then the text;  no buttons
+    - it saves itself as Owen types (the floppy:  saved, its tooltip the time;  red, not saved);  × or Escape closes
+      it;  closed empty, its comment is deleted
+  - each comment shows under its block as a card, its state by the fill rule
+    (outlined:  "Saved 14:02 · waiting for Claude";  solid:  "Taken by Claude" / "Answered"), Claude's answers
+    under it
   - Built for reading offline, with no Claude:  only the page server writes them.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
   - a docs page's:  its INBOX FILE, `<page>.inbox.json` beside it (`tools/GuideInbox.ts`)
