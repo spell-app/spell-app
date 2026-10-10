@@ -57,7 +57,7 @@
   /*
    * ## Item states (the colour scheme, Q20 of epic `epic-components`, Owen 2026-10-08:  the table is in
    * `templates/epics/plan-doc.md`, "Colours"):  a state's fill, and `-on` for what's drawn on it.  The goals pages'
-   * id chips, the Epics index's filter, the rail's counts, a details page's question badges.
+   * id chips, the Epics index's filter, the toolbar's counts, a details page's question badges.
    * - red needs you;  yellow open, still undecided (DARK ink on it:  `--ui-yellow-on`);  blue Claude is working on
    *   it;  green decided or done lately;  grey older;  orange (DARK ink) Claude answered with options, your turn to
    *   pick (a plan doc's `replied` items, Owen 2026-10-09)
@@ -102,8 +102,8 @@ body {
 *******************************/
 
 /*
- * One content column, centred;  nothing beside it (the contents column went, Owen, 2026-10-08).  The rail FLOATS
- * over the window's right edge ("Rail"):  no room is kept for it, so the page runs to the edge.
+ * One content column, centred;  nothing beside it (the contents column went, Owen, 2026-10-08;  the floating rail
+ * too:  the navigation is a toolbar in the sticky page header since epic `airplane` P8, "Toolbar").
  */
 .spell-doc {
   display: grid;
@@ -506,10 +506,10 @@ pre code {
 *******************************/
 
 /*
- * ## Item filter:  a section's round filter button (`span.spell-item-filter` > `ui-button` + its tooltip, slotted
- * into its title's `actions` by the runtime's `wireItemFilters()`):  plan docs' item lists (`.plan-items`) and the
- * index's epics (`.spell-epics`).  Just after the title, left of the count badge;  each click shows one state's
- * items, hiding the rest (`data-spell-hidden`), with "6 hidden · show all" under them.
+ * ## Item filter:  a section's state chips (`span.spell-item-filter`, slotted into its title's `actions` by the
+ * runtime's `wireItemFilters()`):  the goals pages' item lists (`.plan-items`) and the index's epics
+ * (`.spell-epics`).  Just after the title, left of the count badge;  a click filters by the runtime's `nextShown()`,
+ * hiding items (`data-spell-hidden`), with "6 hidden · show all" under them.
  */
 .spell-doc-main ui-section::part(actions) {
   order: 1;
@@ -523,28 +523,25 @@ pre code {
   gap: 3px;
 }
 /*
- * The state buttons:  round, in their state's colour (`--spell-state-*`), filled while its items show, outlined
- * while hidden;  the grey one first, a filter icon, filled while everything shows.  `old` is the plain grey:  its
- * chips' pale grey is too faint for a ring.
+ * A chip per state, in its colour (`--spell-state-*`), with how many:  SOLID while its items show, OUTLINED while
+ * hidden (Owen, 2026-10-10).  `old` is the plain grey:  its chips' pale grey is too faint for a ring.
  */
 .spell-doc-main button.spell-state-toggle {
   --_state: var(--ui-grey, #767676);
   --_state-on: var(--ui-grey-on, #fff);
   display: inline-grid;
   place-items: center;
-  width: 16px;
-  height: 16px;
-  padding: 0;
-  border: 2px solid var(--_state);
-  border-radius: 50%;
+  box-sizing: border-box;
+  min-width: 22px;
+  height: 18px;
+  padding: 0 5px;
+  border: 1.5px solid var(--_state);
+  border-radius: 999px;
   background: transparent;
-  color: var(--_state);
-  font-size: 0.55rem;
+  color: var(--spell-ink);
+  font: 700 11px/1 var(--spell-sans);
+  font-variant-numeric: tabular-nums;
   cursor: pointer;
-}
-.spell-doc-main button.spell-state-toggle[data-state="all"] {
-  width: 20px;
-  height: 20px;
 }
 .spell-doc-main button.spell-state-toggle[data-state="attention"] {
   --_state: var(--spell-state-attention);
@@ -909,233 +906,45 @@ ui-accordion.spell-aside::part(content) {
 }
 
 /*******************************
-             Rail
+            Toolbar
 *******************************/
 
 /*
- * The rail (`nav.spell-rail`, built by the runtime):  the page's one navigation, at every width -- one icon per
- * top-level section, how many of its items need you beside the icon.
- * - FLOATING (Owen, 2026-10-08:  "don't take up a channel on the right for the sidebar -- it's floating"):  fixed
- *   over the window's right edge, the page under it running to the edge;  opaque, with a shadow, so it reads over
- *   whatever scrolls beneath.  Centred in the height below the site header:  clear of the titles, page header and
- *   open item lines stuck at the top, and of a note box stuck at the bottom, so nothing that stays put hides under
- *   it;  what scrolls under it (a line's last 16px or so, on a narrow window) shows again a scroll later
- * - the brand's IVORY (Polished Ivory, the warm accent:  UI's `--ui-brown-background` / `--ui-brown-text`, a warm
- *   surface in dark mode) for the strip and its flyout;  the current section a deeper ivory, hover a step between
- *   (Owen, 2026-10-04)
- * - only as tall as its entries, its left corners rounded;  scrolls when the window is shorter
- * - no padding:  entries run edge to edge, the attention bar flush with the left edge, a selected entry a square
- *   full-width row (Owen, 2026-10-04)
- * - every entry is `icon | label`:  the strip shows only the icons;  hovering it (or tabbing into it) widens it
- *   LEFTWARD over the page to `--spell-rail-open`, the icons riding its left edge and the labels showing to
- *   their right.  A short delay first, so crossing it on the way to the scrollbar doesn't
- * - a section with items that need you gets a thick RED bar at its entry's left edge;  their count shows only when
- *   the strip is widened, as a red pill at the entry's right end (Owen, 2026-10-04;  red, Q20, 2026-10-08)
+ * The navigation's colours:  the brand's IVORY (Polished Ivory, the warm accent:  UI's `--ui-brown-background` /
+ * `--ui-brown-text`, a warm surface in dark mode);  the current section a deeper ivory, hover a step between (Owen,
+ * 2026-10-04).  `rail` in their names:  the floating right-edge rail they were made for (gone, epic `airplane` P8);
+ * `<epic-page>` reads them too (`--epic-toolbar-*`)
  */
 :root {
-  --spell-rail-width: 32px;
-  --spell-rail-open: 240px;
   --spell-rail-bg: var(--ui-brown-background, light-dark(#f7efe2, #2c2152));
   --spell-rail-ink: var(--ui-brown-text, light-dark(#534323, #eaddc4));
   --spell-rail-hover: color-mix(in srgb, var(--spell-rail-ink) 9%, var(--spell-rail-bg));
   --spell-rail-selected: color-mix(in srgb, var(--spell-rail-ink) 18%, var(--spell-rail-bg));
   --spell-rail-rule: color-mix(in srgb, var(--spell-rail-ink) 22%, transparent);
-  /* the ivory over the opaque surface, in case a theme's is see-through:  the strip floats over the page */
+  /* the ivory over the opaque surface, in case a theme's is see-through:  text scrolls under the stuck bar */
   --spell-rail-fill: linear-gradient(var(--spell-rail-bg), var(--spell-rail-bg)) var(--ui-surface, Canvas);
 }
-.spell-rail {
-  display: flex;
-  position: fixed;
-  /* centred in the height below the site header */
-  top: calc(50% + var(--spell-site-header-height, 0px) / 2);
-  right: 0;
-  translate: 0 -50%;
-  z-index: 899;
-  width: var(--spell-rail-width);
-  max-height: calc(100vh - var(--spell-site-header-height, 0px) - 24px);
-  max-height: calc(100dvh - var(--spell-site-header-height, 0px) - 24px);
-  flex-direction: column;
-  gap: 0;
-  padding: 6px 0;
-  overflow: hidden auto;
-  overscroll-behavior: contain;
-  scrollbar-width: none;
-  background: var(--spell-rail-fill);
-  border: 1px solid var(--spell-rail-rule);
-  border-right: none;
-  border-radius: 14px 0 0 14px;
-  box-shadow: -3px 2px 12px -2px rgb(0 0 0 / 0.18);
-  transition:
-    width 0.16s var(--ui-ease, ease-out),
-    box-shadow 0.16s;
-}
-@media (hover: hover) {
-  .spell-rail:not(.spell-rail-resting):is(:hover, :focus-within) {
-    width: var(--spell-rail-open);
-    box-shadow: -10px 6px 28px -8px rgb(0 0 0 / 0.28);
-    transition-delay: 0.12s;
-  }
-}
-.spell-rail-items {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-/* an entry:  its icon at the strip's left edge, then its label (shown when the rail is wide);  the markup is
-   `label, icon`, so the row runs reversed */
-.spell-rail-item {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  justify-content: flex-end;
-  flex: none;
-  gap: 2px;
-  position: relative;
-  margin: 0;
-  padding: 0;
-  border: none;
-  border-radius: 0;
-  background: none;
-  color: var(--spell-rail-ink);
-  font: 500 0.85rem/1.2 var(--spell-sans);
-  text-decoration: none;
-  cursor: pointer;
-}
-.spell-doc-page .spell-rail-item:hover {
-  background: var(--spell-rail-hover);
-  color: var(--spell-rail-ink);
-}
-.spell-rail-item:focus-visible {
-  outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
-  outline-offset: -2px;
-}
-.spell-rail-item[selected],
-.spell-doc-page .spell-rail-item[selected]:hover {
-  background: var(--spell-rail-selected);
-  color: var(--spell-rail-ink);
-  font-weight: 700;
-}
-.spell-rail-label {
-  flex: 1 1 auto;
-  min-width: 0;
-  overflow: hidden;
-  padding-inline: 6px 10px;
-  white-space: nowrap;
-  text-overflow: ellipsis;
-  text-align: start;
-}
-/* the icon's box:  the glyph centred in the strip's width */
-.spell-rail-icon {
-  display: flex;
-  flex: none;
-  align-items: center;
-  justify-content: center;
-  width: var(--spell-rail-width);
-  height: 34px;
-  font-size: 0.95rem;
-}
-/* needs you:  a thick red bar at the entry's left edge */
-.spell-rail-item:has(.spell-rail-count)::before {
-  content: "";
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  width: 4px;
-  border-radius: 0;
-  background: var(--spell-state-attention);
-}
-.spell-rail-item:has(.spell-rail-count) .spell-rail-label {
-  padding-inline-end: 36px;
-}
-.spell-rail-icon > b {
-  font: 700 0.78rem var(--spell-sans);
-}
-/*
- * an item's number (`Q3` shows 3):  a round badge, its colour the item's state (`data-state` on the entry, from its
- * section;  a details page's questions, `details.js` `markState()`):  red nothing picked yet, green picked, blue
- * Claude has more to do (more details asked for, or only Other written);  no state:  plain
- */
-.spell-rail-icon > b.spell-rail-number {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 22px;
-  height: 22px;
-  padding: 0 4px;
-  border-radius: 11px;
-  font-size: 0.72rem;
-  font-variant-numeric: tabular-nums;
-  background: var(--spell-rail-hover);
-}
-.spell-rail-item[data-state="attention"] .spell-rail-number {
-  background: var(--spell-state-attention);
-  color: var(--spell-state-attention-on);
-}
-.spell-rail-item[data-state="done"] .spell-rail-number {
-  background: var(--spell-state-recent);
-  color: var(--spell-state-recent-on);
-}
-.spell-rail-item[data-state="working"] .spell-rail-number {
-  background: var(--spell-state-progress);
-  color: var(--spell-state-progress-on);
-}
-/*
- * the count:  a small RED pill counting only the items that need Owen;  none, no pill (Q20 of epic
- * `epic-components`, 2026-10-08:  it was orange, counting every open item).  Hidden in the strip (the bar says it),
- * at the entry's right end once widened
- */
-.spell-rail-count {
-  display: none;
-  border-radius: 999px;
-  background: var(--spell-state-attention);
-  color: var(--spell-state-attention-on);
-  font: 700 0.72rem/1.5 var(--spell-sans);
-  text-align: center;
-  font-variant-numeric: tabular-nums;
-  position: absolute;
-  top: 50%;
-  right: 8px;
-  translate: 0 -50%;
-  min-width: 18px;
-  padding: 0 5px;
-  font-size: 0.66rem;
-  line-height: 17px;
-}
-@media (hover: hover) {
-  .spell-rail:not(.spell-rail-resting):is(:hover, :focus-within) .spell-rail-count {
-    display: inline-block;
-  }
-}
-
-/*******************************
-            Toolbar
-*******************************/
 
 /*
  * A plan doc's navigation (`nav.spell-toolbar`, the runtime's `buildToolbar()`;  epic `airplane` P8, Owen 2026-10-10:
- * "a sticky top toolbar instead"), in place of the rail:  the last row of `<epic-page>`'s sticky header (its
- * `toolbar` slot), so it sticks with it, and the titles below stick under it.
- * - the rail's ivory band, edge to edge under the header's rows:  the header's own inset (`--epic-inset`) and bottom
- *   padding (10px) undone, a rule above it
- * - one pill per top-level block, `icon label badges`;  the current one a deeper ivory (scroll-follow;  not bold, so
- *   the row never shifts as it moves)
+ * "a sticky top toolbar instead"):  slotted into the last row of `<epic-page>`'s sticky header
+ * (its `toolbar` slot), so it sticks with it, and the titles below stick under it.
+ * - the row's ivory band, its rule and its tools at the right are `<epic-page>`'s (`EpicPage.css`, "The toolbar");
+ *   this is the section buttons, taking the room the tools leave
+ * - one round button per top-level block, its icon and badges, NO label (Owen, 2026-10-10:  "lose the titles"):
+ *   the name is its tooltip;  the current one a deeper ivory (scroll-follow)
  * - badges:  how many items wait on Owen, red urgent, orange Claude's reply waiting on his pick;  none, no badge
- * - when the labels don't fit (the runtime's `fitLabels()`):  `compact`, tighter and a size smaller;  then `crowded`
- *   (a phone, VS Code's side bar):  only the current pill keeps its label, and the row scrolls sideways if even that
- *   doesn't fit (never the page)
+ * - a row too narrow for them all scrolls sideways (never the page)
  */
 .spell-toolbar {
-  flex: 1 0 100%;
+  flex: 1 1 auto;
   min-width: 0;
-  margin: 0 calc(-1 * var(--epic-inset, 0px)) -10px;
-  border-top: 1px solid var(--spell-rail-rule);
-  background: var(--spell-rail-fill);
 }
 .spell-toolbar-items {
   display: flex;
   gap: 1px;
-  /* a pill's text lines up with the header's inset */
-  padding: 4px calc(var(--epic-inset, 16px) - 7px);
+  /* a button's icon lines up with the header's inset */
+  padding: 4px 4px 4px calc(var(--epic-inset, 16px) - 7px);
   overflow: auto hidden;
   overscroll-behavior-x: contain;
   scrollbar-width: none;
@@ -1144,8 +953,11 @@ ui-accordion.spell-aside::part(content) {
   display: inline-flex;
   flex: none;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   height: 30px;
+  min-width: 30px;
+  justify-content: center;
+  box-sizing: border-box;
   padding: 0 7px;
   border-radius: 999px;
   color: var(--spell-rail-ink);
@@ -1164,7 +976,7 @@ ui-accordion.spell-aside::part(content) {
 .spell-doc-page .spell-toolbar-item[selected] {
   background: var(--spell-rail-selected);
 }
-/* the icon in a box of its own (the runtime watches it draw), the same size however tight the row */
+/* the icon in a box of its own, the same size however tight the row */
 .spell-toolbar-icon {
   display: inline-flex;
   font-size: 14px;
@@ -1190,15 +1002,89 @@ ui-accordion.spell-aside::part(content) {
   background: var(--spell-state-replied);
   color: var(--spell-state-replied-on);
 }
-/* `compact`, then `crowded` (`fitLabels()`):  tighter pills first, then only the current one's label */
-.spell-toolbar:is(.compact, .crowded) .spell-toolbar-item {
-  gap: 3px;
-  padding: 0 5px;
-  font-size: 12px;
+
+/*
+ * ## Every other page's toolbar (`nav.spell-toolbar-titled`, the runtime's `buildPageToolbar()`;  Owen, 2026-10-10:
+ * "Make the floating sidebar in guides a sticky top toolbar like the plan doc.  Have section titles in this one"):
+ * the last row of the sticky page header (`.spell-page-head`), or of the filter bar, or a sticky bar of its own
+ * (`.spell-toolbar-alone`)
+ * - an ivory band with a rule, rounded;  each button its mark and its title, the titles shrinking with `...` when they
+ *   don't all fit;  `.spell-toolbar-icons` (each title would get under 50px):  the marks only
+ */
+.spell-toolbar.spell-toolbar-titled {
+  flex: 1 0 100%;
+  border: 1px solid var(--spell-rail-rule);
+  border-radius: 10px;
+  background: var(--spell-rail-fill);
 }
-.spell-toolbar.crowded .spell-toolbar-item:not([selected]) .spell-toolbar-label {
+.spell-toolbar-titled .spell-toolbar-items {
+  padding: 3px;
+}
+.spell-doc-page .spell-toolbar-titled .spell-toolbar-item {
+  flex: 0 1 auto;
+  min-width: 0;
+  gap: 5px;
+}
+.spell-toolbar-label {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.spell-toolbar-icons .spell-toolbar-label {
   display: none;
 }
+.spell-toolbar-icon > b {
+  font: 700 12px var(--spell-sans);
+}
+/* a page without a sticky header or filter bar:  its toolbar sticks by itself, where the filter bar would */
+.spell-toolbar.spell-toolbar-alone {
+  position: sticky;
+  top: calc(var(--spell-site-header-height, 0px) + var(--spell-head-h, 0px));
+  z-index: 5;
+  margin: 12px 0 8px;
+}
+/*
+ * an item's number (`Q3` shows 3):  a round badge, its colour the item's state (`data-state` on the button, from its
+ * section;  a details page's questions, `details.js` `markState()`):  red nothing picked yet, green picked, blue
+ * Claude has more to do (more details asked for, or only Other written);  no state:  plain
+ */
+.spell-toolbar-icon > b.spell-toolbar-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  box-sizing: border-box;
+  padding: 0 4px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  background: var(--spell-rail-hover);
+}
+.spell-toolbar-item[data-state="attention"] .spell-toolbar-number {
+  background: var(--spell-state-attention);
+  color: var(--spell-state-attention-on);
+}
+.spell-toolbar-item[data-state="done"] .spell-toolbar-number {
+  background: var(--spell-state-recent);
+  color: var(--spell-state-recent-on);
+}
+.spell-toolbar-item[data-state="working"] .spell-toolbar-number {
+  background: var(--spell-state-progress);
+  color: var(--spell-state-progress-on);
+}
+
+/* ## The jump dialog (Cmd / Ctrl + K on a plan doc, the runtime's `openJumpPrompt()`):  a miss says so in red */
+.spell-jump {
+  display: grid;
+  gap: 0.5em;
+}
+.spell-jump-miss {
+  margin: 0.5em 0 0;
+  color: var(--ui-red-text, var(--spell-state-attention));
+  font-size: 0.9em;
+}
+
 /*******************************
             Cards
 *******************************/

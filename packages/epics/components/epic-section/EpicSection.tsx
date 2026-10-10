@@ -22,11 +22,13 @@ import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
 
 import { epicSectionVocabulary } from "./EpicSection.en"
-import { EpicFold } from "./EpicFold"
+import { DOMEpicFoldElement, EpicFold } from "./EpicFold"
+import { StateFilter } from "./StateFilter"
 import {
   CHANGES,
   CHANGES_HEAD,
   CHIP,
+  CHIP_CLICK_KEYS,
   CLOSED_STATUSES,
   COUNT_ATTRIBUTES,
   COUNTED,
@@ -48,12 +50,38 @@ import {
   type ItemStateName,
   type PhaseToggle,
   type SectionCount,
-  type SectionLook
+  type SectionLook,
+  type StateFilterEntry
 } from "./EpicSection.types"
 
+import collapseAllCSS from "$/epics/components/epic-item/CollapseAllButton.css?inline"
 import reviewCSS from "$/epics/components/epic-item/ReviewControls.css?inline"
 import foldCSS from "./EpicFold.css?inline"
 import sectionCSS from "./EpicSection.css?inline"
+import chipsCSS from "./StateChips.css?inline"
+
+/****************
+ * ### `DOMEpicSectionElement`
+ * The DOM element of `<epic-section>`:  a fold's (`DOMEpicFoldElement`), plus its state filter,
+ * which the plan doc's toolbar reads and sets to filter every section at once (`spell-doc-runtime.js`).
+ * - Above `EpicSection`:  its `elementSetup` reads it while the class is defined.
+ ****************/
+export class DOMEpicSectionElement extends DOMEpicFoldElement {
+  /** Its state filter:  each state its items are in, how many, and whether they show;  none without items. */
+  get stateFilter(): readonly StateFilterEntry[] | undefined {
+    return untrack(() => this.section?.stateFilter())
+  }
+
+  /** Show its items in `states` only (none:  every state), as if picked on its own chips;  remembered. */
+  showStates(states: readonly string[] | undefined): void {
+    this.section?.showStates(states)
+  }
+
+  /** Its component, as a section. */
+  private get section(): EpicSection | undefined {
+    return this.component as EpicSection | undefined
+  }
+}
 
 /****************
  * ### `EpicSection`
@@ -67,13 +95,16 @@ import sectionCSS from "./EpicSection.css?inline"
  *   open being any status but `done`, `decided` or `canceled`;  none without any.
  *   Counted again whenever a child comes, goes, or changes its `status` or `state`
  *   (`@fromContent`:  the live update, a part loading).
- * - An item section's STATE FILTER (P10), at the title's end:
- *   - a grey filter chip, then one round chip per state its items are in, in the state's colour:
- *     filled while that state's items show
- *   - the grey chip flips between everything and only what needs Owen (red)
+ * - An item section's STATE FILTER (P10;  chips with counts, epic `airplane` P8), at the title's end:
+ *   - one chip per state its items are in, in the state's colour, with how many:
+ *     solid while that state's items show, outlined while hidden
+ *   - a click (Owen, 2026-10-10;  `StateFilter.nextShown()`):
+ *     everything showing, only that state;  else a hidden state shows too and a shown one hides;
+ *     the only one showing, everything again
  *   - a filtered list says `3 hidden · show all` under it
  *   - hidden items go by a `::slotted()` rule drawn in the shadow root:  the doc's markup is never touched
- *   - remembered per page, under the old runtime's key (`FILTER_KEY`)
+ *   - remembered per page, under the old runtime's key (`FILTER_KEY`);  `ui-filter` says it changed
+ *   - the page's toolbar filters every section at once, through its DOM element (`DOMEpicSectionElement`)
  * - The Phases section's title holds the Files / Verify toggles:  each shows or hides that field in every phase,
  *   through `--epic-files-display` / `--epic-verify-display`, which the fields read;  remembered per page.
  *   Its Plan changes box (T14):  the `slot="changes"` copies the tool writes, above the phases;  nothing without one.
@@ -96,7 +127,14 @@ import sectionCSS from "./EpicSection.css?inline"
 export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   @E.proto static vocabulary = epicSectionVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold": foldCSS, "epic-section": sectionCSS, "epic-review": reviewCSS }
+    DOMElement: DOMEpicSectionElement,
+    styleSheets: {
+      "epic-fold": foldCSS,
+      "epic-collapse-all": collapseAllCSS,
+      "epic-state-chips": chipsCSS,
+      "epic-section": sectionCSS,
+      "epic-review": reviewCSS
+    }
   } satisfies Partial<E.ElementSetup>
 
   ////////////////
@@ -127,9 +165,8 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   /** An Overview sub-section's note box `<textarea>`, once drawn:  Revisit and Edit focus it. */
   private noteInput: HTMLTextAreaElement | undefined
 
-  /** The toggles' icons, in `PHASE_TOGGLES`' order;  the filter chip's;  the Plan changes box's. */
+  /** The toggles' icons, in `PHASE_TOGGLES`' order;  the Plan changes box's. */
   readonly toggleGlyphs = PHASE_TOGGLES.map((toggle) => new E.IconGlyph({ owner: this, name: () => toggle.icon }))
-  readonly filterGlyph = new E.IconGlyph({ owner: this, name: () => "filter" })
   readonly changesGlyph = new E.IconGlyph({ owner: this, name: () => "pen to square" })
 
   /** The Plan changes box's fold:  every titled box folds (Owen, 2026-10-08);  folded to start, as every section. */
@@ -190,18 +227,23 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     return FILTER_STATES.filter((it) => states.has(it.state))
   })
 
+  /** How many of its items are in each state. */
+  readonly stateCounts = createMemo((): ReadonlyMap<string, number> => {
+    const counts = new Map<string, number>()
+    for (const { state } of this.itemStates()) counts.set(state, (counts.get(state) ?? 0) + 1)
+    return counts
+  })
+
   /**
-   * The states showing:  the reader's choice, of the states there are now;  every state when that leaves none (the
-   * old runtime's rule:  a remembered filter never hides a whole list).
+   * The states showing:  the reader's choice, of the states there are now;  none chosen, every state.
+   * - NOTE: a choice can leave none of them now (the page's toolbar showed only red, and this section has none):
+   *   then every item is hidden, and `3 hidden · show all` says so (Owen, 2026-10-10:  filter "everything on the
+   *   page").  Before, such a choice showed everything.
    */
   readonly showing = createMemo((): ReadonlySet<string> => {
     const present = this.present().map((it) => it.state as string)
-    const chosen = (this.chosen ?? present).filter((state) => present.includes(state))
-    return new Set(chosen.length ? chosen : present)
+    return new Set(this.chosen ? this.chosen.filter((state) => present.includes(state)) : present)
   })
-
-  /** Every state the section has shows. */
-  readonly showingAll = createMemo(() => this.showing().size >= this.present().length)
 
   /** The items the filter hides. */
   readonly hidden = createMemo(() => this.itemStates().filter((it) => !this.showing().has(it.state)))
@@ -308,7 +350,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   // ## The state filter
   ////////////////
 
-  /** The filter's chips:  the grey filter chip, then one per state its items are in. */
+  /** The filter's chips:  one per state its items are in, with how many, solid while they show. */
   private filter(): JSX.Element {
     return (
       <Show when={this.present().length}>
@@ -318,22 +360,10 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
           role="group"
           aria-label={this.translationForKey("filterLabel")}
         >
-          <button
-            type="button"
-            class={CHIP}
-            data-state="all"
-            aria-pressed={this.showingAll() ? "true" : "false"}
-            aria-label={this.allWords()}
-            title={this.allWords()}
-            onClick={this.toggleAll}
-          >
-            {this.filterGlyph.svg}
-          </button>
           <For each={this.present()}>
             {(state) => {
               const on = () => this.showing().has(state.state)
-              const words = () =>
-                this.translationForKey(on() ? "showing" : "hiding", { words: this.translationForKey(state.words) })
+              const words = () => this.chipWords(state)
               return (
                 <button
                   type="button"
@@ -343,8 +373,10 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
                   aria-pressed={on() ? "true" : "false"}
                   aria-label={words()}
                   title={words()}
-                  onClick={() => this.flipState(state.state)}
-                />
+                  onClick={() => this.pickState(state.state)}
+                >
+                  {this.stateCounts().get(state.state) ?? 0}
+                </button>
               )
             }}
           </For>
@@ -364,14 +396,15 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     )
   }
 
-  /** The grey chip's words:  what its click does. */
-  private allWords(): string {
-    return this.translationForKey(this.showingAll() && this.needsYou() ? "showNeeds" : "showAll")
-  }
-
-  /** Some item needs Owen (`NEEDS_OWEN`:  red, or orange, his turn to pick):  the grey chip can show only those. */
-  private needsYou(): boolean {
-    return this.present().some((it) => NEEDS_OWEN.has(it.state))
+  /** A chip's name and tooltip:  how many, which state, and what its click does (`StateFilter.clickDoes()`). */
+  private chipWords(state: FilterState): string {
+    const words = this.translationForKey(state.words)
+    const count = this.stateCounts().get(state.state) ?? 0
+    const present = this.present().map((it) => it.state as string)
+    const does = this.translationForKey(
+      CHIP_CLICK_KEYS[StateFilter.clickDoes(present, [...this.showing()], state.state)]
+    )
+    return this.translationForKey("chipWords", { count, words, does })
   }
 
   /** The rule hiding the filtered-out items:  `::slotted(#q3, ...)`;  `""` with none. */
@@ -597,35 +630,58 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     EpicSection.save(PHASE_TOGGLES_KEY, shown)
   }
 
-  /** A state chip, clicked:  its items shown or hidden, the others as they were. */
+  /** A state chip, clicked:  what shows next, by `StateFilter.nextShown()`'s rule. */
   @E.untracked
-  private flipState(state: string) {
-    const showing = new Set(this.showing())
-    if (showing.has(state)) showing.delete(state)
-    else showing.add(state)
-    this.choose([...showing])
-  }
-
-  /** The grey chip, clicked:  everything showing and some item needs Owen:  only those;  else everything. */
-  @E.untracked
-  private readonly toggleAll = () => {
-    const all = this.present().map((it) => it.state as string)
-    this.choose(this.showingAll() && this.needsYou() ? all.filter((state) => NEEDS_OWEN.has(state)) : all)
+  private pickState(state: string) {
+    const present = this.present().map((it) => it.state as string)
+    const next = StateFilter.nextShown(present, [...this.showing()], state)
+    this.showStates(next.length === present.length ? undefined : next)
   }
 
   /** "Show all", under a filtered list. */
   @E.untracked
   private readonly showAll = () => {
-    this.choose(this.present().map((it) => it.state))
+    this.showStates(undefined)
   }
 
-  /** The reader chose to show `states`:  shown, and remembered for this page. */
+  /**
+   * Show its items in `states` only;  none:  every state, now and as new ones come.
+   * - Remembered for this page;  `ui-filter` tells the page (its toolbar's chips follow).
+   * - Its DOM element's `showStates()`:  the page's toolbar filters every section through it.
+   */
   @E.untracked
-  private choose(states: string[]) {
-    this.chosen = states
+  showStates(states: readonly string[] | undefined) {
+    this.chosen = states ? [...states] : undefined
+    this.send("ui-filter", { states: states ? [...states] : undefined })
     const id = this.id
     if (!id) return
-    EpicSection.save(FILTER_KEY, { ...EpicSection.savedFilters(), [id]: states })
+    const saved: Record<string, readonly string[]> = { ...EpicSection.savedFilters() }
+    if (states) saved[id] = [...states]
+    else delete saved[id]
+    EpicSection.save(FILTER_KEY, saved)
+  }
+
+  /**
+   * Its state filter, for the page's toolbar (`DOMEpicSectionElement.stateFilter`):
+   * each state its items are in, how many, and whether they show;  none without items.
+   */
+  @E.untracked
+  stateFilter(): StateFilterEntry[] | undefined {
+    const present = this.present()
+    if (!present.length) return undefined
+    const counts = this.stateCounts()
+    const showing = this.showing()
+    return present.map((it) => ({
+      state: it.state,
+      color: it.color,
+      count: counts.get(it.state) ?? 0,
+      on: showing.has(it.state)
+    }))
+  }
+
+  /** Collapse-all:  the Plan changes box folds too. */
+  protected foldOwnBoxes(): number {
+    return this.changesFold.close() ? 1 : 0
   }
 
   ////////////////

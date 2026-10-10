@@ -1,0 +1,42 @@
+/*
+ * `<CollapseAllButton>` (CollapseAllButton.tsx):  the double up-chevron beside an open title's fold chevron, adopted
+ * as `epic-collapse-all` by `<epic-overview>`, `<epic-section>`, `<epic-phase>` and `<epic-item>`.
+ * - Square and muted, as the Phases toggles;  the chevron's stroke, a size up.
+ */
+
+@layer ui.components.epic-collapse-all;
+
+@layer ui.components.epic-collapse-all {
+  .collapse-all {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    box-sizing: border-box;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 6px;
+    background: none;
+    color: var(--epic-muted, var(--ui-text-muted));
+    cursor: pointer;
+  }
+  .collapse-all:hover {
+    background: var(--epic-accent-soft, var(--ui-primary-background));
+    color: var(--epic-accent, var(--ui-link));
+  }
+  .collapse-all:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+  .collapse-all .chevrons {
+    display: block;
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+}
