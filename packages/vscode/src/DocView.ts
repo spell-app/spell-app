@@ -21,7 +21,8 @@
  * - Opened by hand, before anything was shown:
  *   "Spell Docs" shows the docs index of the window's first folder (the repo root);
  *   "Review" a line saying how to fill it.
- * - Title-bar buttons:  back, forward, reload, restart the page server, open in the browser.
+ * - Title-bar buttons:  back, forward, reload, restart the page server, open in the browser;
+ *   then Inspect and Show Console (`openDevTools()`).
  *   - Home:  the page's own site header (its logo, or "Docs");  VS Code has no clickable view titles.
  *   - `spell.docView.home` stays a palette command, as does "Review:  Docs Index" (`spell.reviewView.home`).
  * - "Review" has a list button too, "Review:  Open Epic..." (`spell.reviewView.openEpic`):
@@ -36,6 +37,12 @@
  *   the view's own script relays both ways.
  *   - A page from no page server never reports:
  *     back / forward stay off, reload and "open in browser" use the page last SHOWN.
+ * - VS Code's keys work in the page (Cmd + Shift + P, Cmd + P, Cmd + B ...):  the live client sends them up
+ *   (`{ spell: "key", ... }`, `forVsCode()` there says which), and the view's script presses them again on its own page
+ *   - why:  VS Code's webview host listens for keys on the view's page only (`pre/index.html`, `handleInnerKeydown`),
+ *     and keys in a frame from another origin never reach it
+ *   - a key pressed by a script still counts:  VS Code passes them on for every extension's webview
+ *     (`forwardUntrustedKeypressEvents: true` in `mainThreadWebviews.ts`, "for when a webview embeds an iframe")
  * - NOTE:  the FIRST show in a window opens the side bar with focus on the view:
  *   VS Code has no way to open a view without focusing it.  Later shows keep focus where it is.
  */
@@ -131,7 +138,25 @@ export class DocView implements vscode.WebviewViewProvider {
     context.subscriptions.push(
       vscode.commands.registerCommand("spell.docView.home", () => DocView.goHome()),
       vscode.commands.registerCommand("spell.reviewView.home", () => DocView.goHome("review")),
-      vscode.commands.registerCommand("spell.reviewView.openEpic", () => DocView.pickEpic())
+      vscode.commands.registerCommand("spell.reviewView.openEpic", () => DocView.pickEpic()),
+      vscode.commands.registerCommand("spell.docView.inspect", () => DocView.openDevTools()),
+      vscode.commands.registerCommand("spell.docView.showConsole", () => DocView.openDevTools())
+    )
+  }
+
+  /**
+   * The Inspect and Show Console buttons, on both views' title bars:  open the developer tools that hold the page,
+   * VS Code's own "Developer:  Open Webview Developer Tools" (`workbench.action.webview.openDeveloperTools`).
+   * - both open the SAME tools, on the tab last used:  VS Code's command takes no tab or mode, it only opens the
+   *   window's tools when a webview is there (`webviewCommands.ts`, `nativeHostService.openDevTools()`)
+   *   - so each button's tooltip says what to pick next:  the element picker (Cmd + Shift + C), or the Console tab
+   *     and the page's frame (`127.0.0.1`) in its context menu
+   * - only in desktop VS Code:  elsewhere the command isn't there, and a warning says so
+   */
+  static async openDevTools(): Promise<void> {
+    await vscode.commands.executeCommand("workbench.action.webview.openDeveloperTools").then(
+      () => undefined,
+      () => vscode.window.showWarningMessage("Spell:  this VS Code has no webview developer tools.")
     )
   }
 
@@ -363,6 +388,7 @@ export class DocView implements vscode.WebviewViewProvider {
    * - `navigate` points the iframe at a new URL, making it first if the view was empty
    * - VS Code's edit commands (`document.execCommand()`, called on THIS document) go to the extension as `edit`
    *   (`edit()`), while there's a page to send them to
+   * - the page's `key`s, from a loopback origin only, are pressed again here (`press()`), for VS Code's keybindings
    * - background:  the side bar's theme colour, on the body AND the iframe, so a page loading shows no white
    */
   html(url: string | undefined): string {
@@ -386,6 +412,8 @@ export class DocView implements vscode.WebviewViewProvider {
   <body>${body}
     <script nonce="${nonce}">
       const vscode = acquireVsCodeApi()
+      // the page server's origins, as the CSP's frame-src:  keys from anywhere else aren't pressed
+      const LOOPBACK = /^http:\\/\\/(127\\.0\\.0\\.1|localhost)(:\\d+)?$/
       let frame = document.querySelector("iframe")
       const EDITS = ["copy", "cut", "paste", "selectAll", "undo", "redo"]
       const execCommand = document.execCommand.bind(document)
@@ -395,7 +423,10 @@ export class DocView implements vscode.WebviewViewProvider {
         return true
       }
       addEventListener("message", (event) => {
-        if (frame && event.source === frame.contentWindow) return vscode.postMessage(event.data)
+        if (frame && event.source === frame.contentWindow) {
+          if (event.data?.spell !== "key") return vscode.postMessage(event.data)
+          return void (LOOPBACK.test(event.origin) && press(event.data))
+        }
         const data = event.data
         if (data?.spell === "navigate") return navigate(data.url)
         if (frame && ["history", "go", "edit"].includes(data?.spell)) frame.contentWindow.postMessage(data, "*")
@@ -413,6 +444,18 @@ export class DocView implements vscode.WebviewViewProvider {
           document.body.prepend(frame)
         }
         frame.src = url
+      }
+
+      /**
+       * A key the page sent for VS Code:  pressed again on THIS page, where VS Code's webview host listens, and passes
+       * it to the workbench, whose keybindings run.  keyCode set by hand:  the host reads it (F1, Cmd + P ...).
+       */
+      function press(key) {
+        const init = { bubbles: true, cancelable: true, repeat: !!key.repeat, key: String(key.key), code: String(key.code) }
+        for (const modifier of ["shiftKey", "altKey", "ctrlKey", "metaKey"]) init[modifier] = !!key[modifier]
+        const keydown = new KeyboardEvent("keydown", init)
+        Object.defineProperty(keydown, "keyCode", { value: Number(key.keyCode) || 0 })
+        dispatchEvent(keydown)
       }
     </script>
   </body>
