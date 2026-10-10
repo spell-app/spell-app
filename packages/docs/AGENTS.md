@@ -222,10 +222,11 @@ In `tools/`:
     `<ui-accordion class="spell-aside" styled>` with ONE `<ui-title>` / `<ui-content>` pair, collapsed (no `open`)
   - buttons:  ALWAYS the pill style with an icon that says what they do:
     `<ui-button circular icon="paper plane">Send</ui-button>`
-    - icon-only buttons are circles (`circular`, no text):  they MUST have an `aria-label`, and a tooltip --
-      a `<ui-popup inverted size="mini" content="What it does">` right after the button
-      (a popup targets its previous sibling).
-      The goals pages' VS Code button is the model (`goals-live.js` `circle()`).
+    - icon-only buttons are circles (`circular`, no text):  they MUST have an `aria-label`, and a tooltip
+  - TOOLTIPS are the browser's own:  a `title` attribute, never a `<ui-tooltip>`, nor a `<ui-popup>` used as one
+    (Owen's standing rule, 2026-10-10;  a styled one only when he asks for "a ui-tooltip with ...").  Older pages
+    still have `<ui-popup inverted size="mini">` tooltips (the goals pages' `goals-live.js` `circle()`):  turn them
+    into `title`s when touching that code
     - `basic` for quiet tools (sidebars, toolbars);  `primary` for the one main action in a dialog
   - an icon a page uses must be in `ICONS` in `tools/bundle-spell-ui.js` (then `spell dev docs update`):
     any other name draws nothing
