@@ -251,6 +251,20 @@ test("done:  a Do Now request done is `review-as=now`;  a revisit talked over, `
   expect(["j1", "j2"].map((id) => plan.findItem(id)!.getAttribute("state"))).not.toContain("recent")
 })
 
+test("done cm1 --file:  the answer goes on the comment's thread;  Owen's reply lists it as waiting again", async () => {
+  const id = "cm1"
+  ReviewInbox.update(inboxFile, (inbox) => void inbox.commentList.add({ anchor: "j1", kind: "item" }, "Why?"))
+  const answer = join(root, "answer.html")
+  writeFileSync(answer, "<p>Because.</p>\n")
+  await commands().inbox.run("x", file, ["done", id], { file: answer, commit: "8c7e1d3" })
+  expect(ReviewInbox.read(inboxFile).comments[id].replies).toEqual([
+    { by: "Claude", at: expect.any(String), html: "<p>Because.</p>", commit: "8c7e1d3" }
+  ])
+  ReviewInbox.update(inboxFile, (inbox) => inbox.commentList.reply(id, "Say more"))
+  await commands().inbox.run("x", file, [], {})
+  expect(printed.join("\n")).toMatch(/CM1 {2}on j1 \(item\)[^\n]*\n {4}Owen replied:  "Say more"/)
+})
+
 test("status:  underway writes the card AND turns the page's spinner on;  done turns both;  done again is refused", async () => {
   const owner = commands()
   vi.spyOn(owner, "warn").mockImplementation(() => undefined)
