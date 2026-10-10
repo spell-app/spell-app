@@ -1,0 +1,55 @@
+<!doctype html>
+<!--
+  A spell project's drawable types, used on a plain page by their tags -- served by the dev server at
+  `/demo/drawable-elements.html`, after `yarn build:element` (epic `drawable-thing`, P8).
+  - The hidden `<spell-app>` runs `@examples/Drawable Solitaire`, which defines its tags:
+    `<drawable-solitaire-card>`, `<drawable-solitaire-pile>` ...
+  - The tags below are written by hand:  each makes its own card or pile from its attributes.
+  - Its buttons call a card's methods and set its properties, as any page's script could.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Drawable elements demo</title>
+    <script type="module" src="/element/spell-app.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font-family: Georgia, serif;
+        background: #f4f1ea;
+      }
+      .table {
+        display: flex;
+        gap: 16px;
+      }
+      .table > * {
+        width: 80px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Drawable elements</h1>
+    <!-- runs the project, so its tags are defined;  its own game stays hidden -->
+    <spell-app project="@examples/Drawable Solitaire" hidden></spell-app>
+
+    <h2>Cards, written by hand</h2>
+    <div class="table">
+      <drawable-solitaire-card id="ace" rank="ace" suit="spades" direction="up"></drawable-solitaire-card>
+      <drawable-solitaire-card rank="queen" suit="hearts" direction="up"></drawable-solitaire-card>
+      <drawable-solitaire-card rank="7" suit="clubs" direction="down"></drawable-solitaire-card>
+    </div>
+
+    <h2>A pile holding cards</h2>
+    <div class="table">
+      <drawable-solitaire-pile>
+        <drawable-solitaire-card rank="king" suit="diamonds" direction="up"></drawable-solitaire-card>
+      </drawable-solitaire-pile>
+    </div>
+
+    <h2>A card's methods and properties, from the page's script</h2>
+    <button onclick="document.getElementById('ace').turnOver()">ace.turnOver()</button>
+    <button onclick="document.getElementById('ace').rank = 'jack'">ace.rank = "jack"</button>
+  </body>
+</html>

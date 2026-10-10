@@ -225,4 +225,75 @@ describe("SpellElement", () => {
       expect(fresh.shadowRoot!.querySelector(".badge")!.textContent).toBe("second")
     })
   })
+
+  describe("its outside is its type's:  attributes, properties, methods (P8)", () => {
+    /** A playing card:  its rank (one of ace, 2 ... 12), suit and side, drawn as e.g. `ace of spades`. */
+    class Ace2 extends Drawable {
+      static elementTag = spellCore.defineElement(this, "Plain")
+      get rank() {
+        return this.getProp("rank")
+      }
+      set rank(value) {
+        this.setProp("rank", value)
+      }
+      get suit() {
+        return this.getProp("suit")
+      }
+      set suit(value) {
+        this.setProp("suit", value)
+      }
+      get face_up() {
+        return this.getProp("face_up")
+      }
+      set face_up(value) {
+        this.setProp("face_up", value)
+      }
+      turn_over() {
+        this.face_up = !this.face_up
+      }
+      draw(): ReturnType<Drawable["draw"]> {
+        const text = () => (this.face_up ? `${this.rank} of ${this.suit}` : "back")
+        return (h("span", { class: "face" }, text) as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    Ace2.declareProp("rank", { oneOf: ["ace", 2, 3, 12] })
+    Ace2.declareProp("suit", { type: "text" })
+    Ace2.declareProp("face_up", { type: "choice" })
+    /** A pile of them. */
+    class Stack2 extends DrawableList<Ace2> {
+      static elementTag = spellCore.defineElement(this, "Plain")
+      static instanceType = Ace2
+    }
+
+    test("a plain page writes <plain-stack><plain-ace2 rank=... suit=...>:  each makes its own thing and draws it", async () => {
+      await Promise.resolve()
+      expect(Stack2.elementTag).toBe("plain-stack2")
+      const stack = await ElementFixture.render<HTMLElement>(
+        '<plain-stack2><plain-ace2 rank="ace" suit="spades" face-up></plain-ace2></plain-stack2>'
+      )
+      await ElementFixture.settle(stack)
+      spellCore.flush()
+      flush()
+      const card = stack.firstElementChild as HTMLElement & {
+        rank: unknown
+        faceUp: boolean
+        turnOver(): void
+        component?: { currentThing?: Ace2 }
+      }
+      expect(card.shadowRoot!.querySelector(".face")!.textContent).toBe("ace of spades")
+      expect(stack.shadowRoot!.querySelector("slot")).not.toBeNull()
+
+      // a legal value given as text is the value:  "2" is 2
+      card.rank = "2"
+      spellCore.flush()
+      flush()
+      expect(card.component!.currentThing!.rank).toBe(2)
+      expect(card.shadowRoot!.querySelector(".face")!.textContent).toBe("2 of spades")
+
+      card.turnOver()
+      spellCore.flush()
+      flush()
+      expect(card.shadowRoot!.querySelector(".face")!.textContent).toBe("back")
+    })
+  })
 })
