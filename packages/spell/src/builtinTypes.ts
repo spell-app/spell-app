@@ -347,6 +347,40 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
     ]
   },
   {
+    name: "drawable",
+    superType: "thing",
+    docstring: md(
+      "A thing drawn as its own custom element -- `a card is a drawable thing` makes a card that is one.",
+      "- Everything a thing has.",
+      "- Its tag starts with the project's or library's name, made singular:  `<solitaire-card>` in a solitaire app.",
+      "- `a drawable thing` and `a drawable` both say it.",
+      "",
+      "```spell",
+      "a card is a drawable thing",
+      "a card has a rank as a number",
+      "to draw (a card)",
+      "  return <div>{its rank}</div>",
+      "```"
+    ),
+    rules: ["create_type"],
+    members: []
+  },
+  {
+    name: "drawable list",
+    superType: "list",
+    docstring: md(
+      "A list drawn as its own custom element, its items inside it -- `a pile is a drawable list of cards`.",
+      "- Everything a list has.",
+      "- Its `to draw` draws its outside;  each item draws itself, inside it.",
+      "",
+      "```spell",
+      "a pile is a drawable list of cards",
+      "```"
+    ),
+    rules: ["create_drawable_list_type"],
+    members: []
+  },
+  {
     name: "text",
     itemType: "character",
     docstring: md(
@@ -467,6 +501,12 @@ export const TYPE_WORDS: P.TypeWords = {
   array: "list",
   thing: "thing",
   app: "app",
+  // two words, so `a card is a drawable thing` leaves none over -- see `P.BUILT_IN_CLASS_NAMES`
+  drawable: "drawable",
+  "drawable thing": "drawable",
+  "drawable-thing": "drawable",
+  "drawable list": "drawable list",
+  "drawable-list": "drawable list",
   nothing: "nothing",
   undefined: "nothing",
   null: "nothing"

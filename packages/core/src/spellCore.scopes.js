@@ -229,6 +229,19 @@
       ]
     },
     {
+      path: "type:Drawable",
+      super: "type:Thing",
+      description: "A thing drawn as its own custom element -- `a card is a drawable thing` makes a card that is one.\n- Everything a thing has.\n- Its tag starts with the project's or library's name, made singular:  `<solitaire-card>` in a solitaire app.\n- `a drawable thing` and `a drawable` both say it.\n\n```spell\na card is a drawable thing\na card has a rank as a number\nto draw (a card)\n  return <div>{its rank}</div>\n```",
+      rules: [
+        { name: "create_type", syntax: "(a|an) {type:type_words} (aka {aka:singular_type})? is (a|an) {superType:type} {with_nested_statements}?" },
+        { name: "create_type", syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type} {with_nested_statements}?" }
+      ]
+    },
+    {
+      path: "type:DrawableList",
+      super: "type:List"
+    },
+    {
       path: "type:Text",
       description: "Words, letters -- anything in quotes, e.g. `\"hello\"`.\n- Counts from 1, as a list does:  `the first character of the name` is its first letter.\n- `+` joins two:  `\"total: \" + x`.\n\n```spell\nset the name to \"Ada\"\nprint the length of the name\nprint the last character of the name\n```"
     },

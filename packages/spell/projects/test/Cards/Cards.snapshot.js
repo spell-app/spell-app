@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"
 
 spellCore.heading("definition of a Card with nice english aliases for working with it")
 /** definition of a Card with nice english aliases for working with it */

@@ -1,5 +1,5 @@
 import { For } from "solid-js"
-import { spellCore, Thing, List, App, prop, derived, drawn, positionOf, trigger, on } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, positionOf, trigger, on } from "@spell/core"
 
 spellCore.heading("Deck:  US standard card deck (without jokers) -- in the outline style")
 ///////////////////////////////////////////////////////////////////////////

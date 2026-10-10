@@ -1511,18 +1511,19 @@ export class TSWriter extends JSWriter {
   /**
    * A list says what it holds:  `a deck is a list of cards` => `class Deck extends List<Card>`, from its
    * `static instanceType = Card`.  So `spellCore.getItemAt(deck, 1)` is a `Card | undefined`.
+   * - A drawable list too:  `class Pile extends DrawableList<Card>`.
    */
   superTypeOf(node: P.ASTClassDeclaration): string {
     const name = super.superTypeOf(node)
-    if (name !== "List") return name
+    if (!P.TSProject.LIST_CLASSES.includes(name)) return name
     const itemType = node.members?.find(
       (member): member is P.ASTStaticDefinition =>
         member instanceof P.ASTStaticDefinition && member.name === "instanceType"
     )?.value
-    if (itemType instanceof P.ASTTypeExpression) return `List<${itemType.name}>`
+    if (itemType instanceof P.ASTTypeExpression) return `${name}<${itemType.name}>`
     // read when made, as a static getter, for an item class further down:  `static get instanceType()`
     const ownItemType = this.project.itemTypes.get(node.type.name)
-    return ownItemType ? `List<${ownItemType}>` : name
+    return ownItemType ? `${name}<${ownItemType}>` : name
   }
 
   /** A new list says what it holds too:  `a new list of piles` => `new List<Pile>({ instanceType: "Pile" })`. */

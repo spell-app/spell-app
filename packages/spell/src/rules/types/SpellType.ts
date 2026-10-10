@@ -1,4 +1,4 @@
-import { NONE, proto, typeCase } from "$/util"
+import { NONE, proto } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { identifierBlacklist } from "$/spell/rules/identifier-blacklist"
@@ -42,11 +42,12 @@ export class SpellType extends P.Pattern<never, TypeMatchData> {
    * Name compiled code uses for the type written as `value`:
    *   its datatype (`SP.typeName()`), but a class in Type_Case.
    * - a value type in spell's words, e.g. `string` => `text`, `boolean` => `choice`, `numbers` => `number`
-   * - a class, singular, e.g. `Thing`, `List` for `array`, `Bank_Account`
+   * - a class, singular, e.g. `Thing`, `List` for `array`, `Bank_Account`, `Drawable` for `drawable thing`
+   *   -- see `P.classCase()`
    */
   mapValue<T = string>(value: string): T {
     const datatype = SP.typeName(value)
-    return (P.isValueType(datatype) ? datatype : typeCase(datatype)) as T
+    return (P.isValueType(datatype) ? datatype : P.classCase(datatype)) as T
   }
 
   /**

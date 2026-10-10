@@ -21,6 +21,9 @@ export class CreateListType extends TypeDeclaration<
   { itemTypeBelow?: boolean }
 > {
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "instanceType" }
+  /** Built-in list type it extends:  `list`, or `drawable list` -- see `CreateDrawableListType`. */
+  @proto static listType: P.Datatype = "list"
+  declare listType: P.Datatype
 
   /**
    * Notes whether what it holds is declared BELOW us, e.g. `a deck is a list of cards` above `a card is a thing`:
@@ -39,7 +42,7 @@ export class CreateListType extends TypeDeclaration<
 
   /** SIDE EFFECT:  declares our type -- see `TypeDeclaration.declareType()`. */
   mutateScope(match: P.MatchFor<this>) {
-    this.declareType(match, "list", { itemType: SP.typeName(`${match.groups.instanceType.value}`) })
+    this.declareType(match, this.listType, { itemType: SP.typeName(`${match.groups.instanceType.value}`) })
   }
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
     const { type, instanceType } = match.groups
@@ -56,7 +59,7 @@ export class CreateListType extends TypeDeclaration<
           })
         ]
       : [new P.ASTStaticDefinition(match, { type: typeAST, name: "instanceType", value })]
-    const superType = new P.ASTTypeExpression(match, { raw: "list", name: "List" })
+    const superType = new P.ASTTypeExpression(match, { raw: this.listType, name: P.classCase(this.listType) })
     return new P.ASTStatementGroup(match, {
       statements: [new P.ASTClassDeclaration(match, { type: typeAST, superType, members })]
     })

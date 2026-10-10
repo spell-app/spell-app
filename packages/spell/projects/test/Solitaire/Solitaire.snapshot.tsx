@@ -1,5 +1,5 @@
 import { Show, For } from "solid-js"
-import { spellCore, Thing, List, App, prop, derived, drawn, positionOf, trigger, on } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, positionOf, trigger, on } from "@spell/core"
 
 spellCore.heading("definition of a Card with nice english aliases for working with it")
 /** card ranks */

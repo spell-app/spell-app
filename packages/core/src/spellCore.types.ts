@@ -26,7 +26,7 @@ export const SPELL_CORE_MODULE = "@spell/core"
  * Spell's own classes, from `spellCore/classes`:  what a project's types are made from, e.g. `a card is a thing`.
  * - What a Type Explorer lists as built in -- see `LSP.ScopeExplorer`.
  */
-export const SPELL_CLASSES = ["Thing", "List", "App"]
+export const SPELL_CLASSES = ["Thing", "List", "App", "Drawable", "DrawableList"]
 
 /** Names every compiled project imports from `SPELL_CORE_MODULE`:  `spellCore`, and spell's classes. */
 export const SPELL_CORE_NAMES = ["spellCore", ...SPELL_CLASSES]
