@@ -536,6 +536,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *   and focus inside moves on to the next focusable element.
    * - ARIA only where the base class owns that state:
    *   a family with a disabled or loading of its own sets its own.
+   * - Inert from ALL of them at once (`hasInertContent`:  disabled the base class's way, or its loader);
+   *   and it clears only the boxes IT made inert, so a family's own (`<ui-form loading>`'s veil) stays (I10).
    * - On a server:  the ARIA only, once.
    */
   @onChange("hasInertContent", "isDisabled", "showsLoader", "isReady", { writesDOMElement: true })
@@ -549,11 +551,20 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     if (elementSetup.disabled === "unusable") domElement.internals.ariaDisabled = isDisabled ? "true" : null
     if (elementSetup.loading === "loader") domElement.internals.ariaBusy = showsLoader ? "true" : null
     if (isServer || !isReady) return
-    // never touch the content of an element that was never inert:  most never are
-    if (!hasInertContent && !internalState.hadInertContent) return
-    internalState.hadInertContent = hasInertContent
-    if (hasInertContent) UI.focus.moveOutOf(domElement)
-    for (const child of domElement.renderRoot.children) (child as HTMLElement).inert = hasInertContent
+    if (!hasInertContent) {
+      // never touch the content of an element that was never inert:  most never are
+      for (const box of internalState.madeInert ?? []) box.inert = false
+      internalState.madeInert = undefined
+      return
+    }
+    UI.focus.moveOutOf(domElement)
+    const madeInert = (internalState.madeInert ??= [])
+    for (const child of domElement.renderRoot.children) {
+      const box = child as HTMLElement
+      if (box.inert) continue
+      box.inert = true
+      madeInert.push(box)
+    }
   }
 
   ////////////////
@@ -639,15 +650,22 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - MUST NOT throw:  a throw is logged, and the change just ends.
    */
   protected async onVisibleChange(visible: boolean, animation: UIT.Animation): Promise<void> {
-    const boxes = [...this.domElement.renderRoot.children].filter((child) => child.localName !== "slot")
+    const { internalState } = this
+    // a box the family hides itself (`hidden` on it) is left alone;  one an earlier hide animated out comes back
+    const animatedOut = internalState.animatedOut ?? []
+    const boxes = [...this.domElement.renderRoot.children].filter(
+      (child): child is HTMLElement =>
+        child.localName !== "slot" && (!(child as HTMLElement).hidden || animatedOut.includes(child as HTMLElement))
+    )
+    internalState.animatedOut = undefined
     if (animation === UIT.NO_ANIMATION || UIT.AnimationLookup.isAttention(animation)) {
-      // at once:  a box an earlier hide animated out shows again
-      if (visible) for (const box of boxes) UI.transitions.reveal(box as HTMLElement)
+      if (visible) for (const box of boxes) UI.transitions.reveal(box)
       return
     }
+    if (!visible) internalState.animatedOut = boxes
     const name = UIT.AnimationLookup.runtimeNameFor(animation)
     const direction = visible ? UIT.IN : UIT.OUT
-    await Promise.all(boxes.map((box) => UI.transitions.animate({ element: box as HTMLElement, name, direction })))
+    await Promise.all(boxes.map((element) => UI.transitions.animate({ element, name, direction })))
   }
 
   /**
@@ -1096,10 +1114,12 @@ type InternalState = {
   readonly classInput: E.ClassInput
   /** aborted when the element is disposed, removing every listener `on()` added;  made by the first `on()` */
   listeners?: AbortController
-  /** its content has been inert (disabled or loading) since it drew:  only then is it touched again */
-  hadInertContent?: boolean
+  /** the boxes the shared states made inert (disabled or loading), the only ones they clear again */
+  madeInert?: HTMLElement[]
   /** `isVisible` as `onVisibleChange()` last ran with it;  `undefined` before the element first drew */
   wasVisible?: boolean
   /** counts `onVisibleChange()` runs, so only the latest ends the hiding */
   visibleRun?: number
+  /** the boxes the default `onVisibleChange()` last animated out (which `UI.transitions` left `hidden`) */
+  animatedOut?: HTMLElement[]
 }
