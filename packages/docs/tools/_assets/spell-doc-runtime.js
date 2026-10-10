@@ -3120,7 +3120,8 @@ class PageComments {
    *   its tooltip names the block in full (`aboutTip()`)
    * - saves itself as Owen types, `COMMENT_SAVE_MS` after he stops (Owen, 2026-10-10:  "Save should just happen as I
    *   type"):  the first save adds the comment, the next ones edit it;  the floppy says how the last one went
-   * - × or Escape (or ⌘ / Ctrl Enter) closes it, saving what's typed first;  closed empty, its comment is deleted
+   * - never an empty comment:  emptied, its comment is deleted at once;  × or Escape (or ⌘ / Ctrl Enter) closes it,
+   *   saving what's typed first
    * - what's typed is also kept in this browser (`COMMENT_DRAFT_KEY_PREFIX`) until it closes saved
    */
   form(open) {
@@ -3145,16 +3146,22 @@ class PageComments {
     let saved = (open.text ?? "").trim()
     let saving = Promise.resolve(true)
     let timer = 0
+    // never an empty comment (Owen, 2026-10-10):  nothing typed saves nothing;  emptied, a saved one goes at once
     const save = async () => {
       const words = field.value.trim()
-      if (!words || words === saved) return true
-      const change = open.id ? { action: "edit", id: open.id, text: words } : { action: "add", ...place, text: words }
+      if (words === saved) return true
+      if (!words && !open.id) return true
+      const change = !words
+        ? { action: "delete", id: open.id }
+        : open.id
+          ? { action: "edit", id: open.id, text: words }
+          : { action: "add", ...place, text: words }
       try {
         const answer = await postJSON(COMMENTS_API, { page: location.pathname, ...change })
-        open.id ??= answer.id
+        open.id = words ? (open.id ?? answer.id) : undefined
         saved = words
         this.list = answer.comments ?? this.list
-        floppy.hidden = false
+        floppy.hidden = !words
         floppy.removeAttribute("data-failed")
         floppy.title = `Saved ${localStamp(new Date().toISOString()).slice(11)} · waiting for Claude`
         return true
@@ -3171,14 +3178,6 @@ class PageComments {
     }
     const close = async () => {
       if (!(await saveNow())) return noteToast(floppy.title, "error")
-      if (!field.value.trim() && open.id) {
-        try {
-          const answer = await postJSON(COMMENTS_API, { page: location.pathname, action: "delete", id: open.id })
-          this.list = answer.comments ?? this.list
-        } catch (error) {
-          return noteToast(`Couldn't delete the comment:  ${error.message}`, "error")
-        }
-      }
       this.forget(key)
       if (this.open === open) {
         this.open = null
