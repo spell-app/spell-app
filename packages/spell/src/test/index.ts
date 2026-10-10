@@ -14,6 +14,7 @@ export {
   fixtureProjectNames,
   compiledFixture,
   fixtureDeclarations,
+  fixtureImports,
   FIXTURES_DIR,
   summarize,
   describeParseErrors

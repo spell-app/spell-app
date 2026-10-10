@@ -1,7 +1,8 @@
 import { beforeAll, describe, test, expect } from "vite-plus/test"
 
 import { describeTypecheckError, typecheck, type TypecheckResult } from "$/spell/node/typecheck"
-import { compiledFixture, fixturePath, fixtureProjectNames, solidSample } from "$/spell/test"
+import { SP } from "$/spell"
+import { compiledFixture, fixtureImports, fixturePath, fixtureProjectNames, solidSample } from "$/spell/test"
 
 /**
  * Every fixture project compiled as TypeScript (the `ts/solid` target, `P.TSWriter`), checked by `tsc` against
@@ -27,7 +28,13 @@ beforeAll(() => {
   const files = Object.fromEntries(
     fixtureProjectNames().map((name) => [`${name}.tsx`, compiledFixture(name, "ts/solid")])
   )
-  result = typecheck({ ...files, "Cards.sample.tsx": solidSample(), "Mistakes.tsx": MISTAKES })
+  // a fixture's imports are the other fixtures' files, checked beside it, e.g. `@test:fixtures:Cards` => `Cards.tsx`
+  const projects = Object.fromEntries(
+    fixtureProjectNames()
+      .flatMap((name) => Object.entries(fixtureImports(name)))
+      .map(([module, fixture]) => [decodeURI(module.slice(SP.SPELL_PROJECT_MODULE.length)), `./${fixture}.tsx`])
+  )
+  result = typecheck({ ...files, "Cards.sample.tsx": solidSample(), "Mistakes.tsx": MISTAKES }, { projects })
 }, 60_000)
 
 describe("fixture projects as TypeScript, checked by tsc", () => {

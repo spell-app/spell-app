@@ -1,0 +1,17 @@
+{
+  "imports": [
+    {
+      "path": "@test:fixtures:Cards",
+      "active": true,
+      "import": ["Card", "Deck", "Pile"]
+    },
+    {
+      "path": "/Solitaire.spell",
+      "active": true
+    },
+    {
+      "path": "/styles.css",
+      "active": true
+    }
+  ]
+}

@@ -70,14 +70,19 @@ export class TSWriter extends JSWriter {
     this.project = project
   }
 
-  /** A writer for the project whose files' statements are `files`:  see `TSProject`. */
-  forProject(files: P.ASTNode[][]): this {
-    return new TSWriter(TSProject.of(files)) as this
+  /** A writer for the project whose files' statements are `files`, parsed in `scope`:  see `TSProject`. */
+  forProject(files: P.ASTNode[][], scope?: P.Scope): this {
+    return new TSWriter(TSProject.of(files, scope)) as this
   }
 
   /**
-   * The finished module:  its `@spell/core` import names the decorators `code` uses too, and Solid's control flow
-   * (`<Show>`, `<For>` ...) is imported from `solid-js` above it.
+   * The finished module:
+   * - its `@spell/core` import names the decorators `code` uses too, and Solid's control flow (`<Show>`, `<For>` ...)
+   *   is imported from `solid-js` above it
+   * - what it imports from another project by TypeScript's names, e.g. `playFromTheStockPile`:  that project's
+   *   `.tsx` exports them so.  A class keeps its name, e.g. `Stock_Pile`.
+   * - a member it adds to a class it imports is declared in that project's module, `declare module "..." { interface
+   *   Card {...} }`:  TypeScript refuses an `interface` merged with an import (`TS2440`)
    */
   module(code: string): string {
     const decorators = DECORATORS.filter((name) => new RegExp(`^\\s*@${name}\\b`, "m").test(code))
@@ -85,6 +90,23 @@ export class TSWriter extends JSWriter {
     code = code.replace(/^import \{ ([^}]*) \} from "@spell\/core"$/m, (_line, names: string) => {
       const all = [...names.split(/,\s*/), ...decorators]
       return `import { ${all.join(", ")} } from "@spell/core"`
+    })
+    // each class imported from another project, by its name here => [its module, its name there]
+    const imported = new Map<string, [string, string]>()
+    code = code.replace(/^import \{ ([^}]*) \} from "(@spell\/project\/[^"]*)"$/gm, (_line, names: string, from) => {
+      const renamed = names.split(/,\s*/).map((name) => {
+        const [there, here = there] = name.split(/\s+as\s+/) as [string, string?]
+        if (/^[A-Z]/.test(there)) imported.set(here, [from, there])
+        const tsName = /^[A-Z]/.test(there) ? there : camelCaseOf(there)
+        return here === there ? tsName : `${tsName} as ${camelCaseOf(here)}`
+      })
+      return `import { ${renamed.join(", ")} } from "${from}"`
+    })
+    code = code.replace(/^export interface (\w+) \{ (.*) \}$/gm, (line, name: string, member: string) => {
+      const found = imported.get(name)
+      if (!found) return line
+      const [from, there] = found
+      return `declare module "${from}" {\n  interface ${there} { ${member} }\n}`
     })
     return solid.length ? `import { ${solid.join(", ")} } from "solid-js"\n${code}` : code
   }
@@ -681,7 +703,8 @@ export class TSWriter extends JSWriter {
 
   /**
    * `export interface Card { member }`:  merges with `export class Card`, wherever it is in the file.
-   * - NOTE: a class from ANOTHER project, imported, can't merge this way:  `tsc` reports it -- see the epic's caveats.
+   * - A class from ANOTHER project, imported, can't merge this way (`TS2440`):  `module()` makes it a `declare module`
+   *   block in that project's module.
    */
   mergedInterface(typeName: string, member: string): string {
     return `export interface ${typeName} { ${member} }`
