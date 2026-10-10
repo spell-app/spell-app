@@ -140,7 +140,7 @@ function commit(message: string) {
   git("commit", "-q", "--allow-empty", "-m", message)
 }
 
-describe("planFollowUps()", () => {
+describe("planFacts()", () => {
   /** A plan doc file in the throwaway repo holding `html`. */
   function doc(name: string, html: string) {
     const file = join(MAIN, `${name}.plan.html`)
@@ -154,20 +154,25 @@ describe("planFollowUps()", () => {
       `<body class="plan-doc" data-future><ui-section id="p1" data-phase="1" data-status="active"></ui-section>
 <ui-item id="q1" data-status="open"></ui-item><ui-item id="t3" data-status="open"></ui-item></body>`
     )
-    expect(CLI.planFollowUps(file)).toEqual({ future: false, active: false, phases: 0, followUps: 0 })
+    expect(CLI.planFacts(file)).toEqual({ phases: [], updated: null, future: false, urgent: [] })
   })
 
-  test("the <epic-*> markup:  phases, the active one, open follow-ups (no caveats), future", () => {
+  test("the <epic-*> markup:  phases, updated, future, the items that need Owen (red and orange chips)", () => {
     const file = doc(
       "new",
-      `<body class="plan-doc"><epic-page epic="new" title="New"
+      `<body class="plan-doc"><epic-page epic="new" title="New" updated="2026-10-08"
   future><epic-section id="phases" kind="phases"><epic-phase id="p1" title="One" status="done"></epic-phase>
 <epic-phase id="p2" title="Two" status="todo"></epic-phase></epic-section>
 <epic-section id="decisions" kind="questions"><epic-item id="q1" title="a"
-  status="open"></epic-item><epic-item id="q2" title="b" status="decided" answered></epic-item></epic-section>
-<epic-section id="caveats" kind="caveats"><epic-item id="c1" title="c" status="open"></epic-item></epic-section>
-<epic-section id="tests" kind="tests"><epic-item id="v1" title="d" status="open"></epic-item></epic-section></epic-page></body>`
+  status="open" state="attention"></epic-item><epic-item id="q2" title="b" status="decided" state="recent" answered></epic-item></epic-section>
+<epic-section id="caveats" kind="caveats"><epic-item id="c1" title="c" status="open" state="open"></epic-item></epic-section>
+<epic-section id="issues" kind="issues"><epic-item id="i1" title="d" status="open" state="replied"></epic-item></epic-section></epic-page></body>`
     )
-    expect(CLI.planFollowUps(file)).toEqual({ future: true, active: false, phases: 2, followUps: 2 })
+    expect(CLI.planFacts(file)).toEqual({
+      phases: ["done", "todo"],
+      updated: "2026-10-08",
+      future: true,
+      urgent: ["q1", "i1"]
+    })
   })
 })

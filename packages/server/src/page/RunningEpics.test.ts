@@ -30,10 +30,14 @@ function put(root: string, path: string, html: string): void {
 
 describe("RunningEpics", () => {
   const root = mkdtempSync(join(tmpdir(), "srv-epics-"))
+  // no running sessions but the ones a test writes:  never this machine's (`RunningEpics.claudeHome`)
+  const claudeHome = mkdtempSync(join(tmpdir(), "srv-epics-claude-"))
+  const home = process.env.SPELL_CLAUDE_HOME
   let server: PageServer
   let port: number
 
   beforeAll(async () => {
+    process.env.SPELL_CLAUDE_HOME = claudeHome
     writeFileSync(join(root, "package.json"), JSON.stringify({ pageServer: { watch: ["pages", "epics"] } }))
     put(root, "epics/index.html", `<html><head></head><body><h1>Epics</h1>${MARKER}</body></html>\n`)
     // merged into the main checkout:  a worktree's copy of it is stale, never listed
@@ -59,7 +63,10 @@ describe("RunningEpics", () => {
 
   afterAll(async () => {
     await server.stop()
+    if (home === undefined) delete process.env.SPELL_CLAUDE_HOME
+    else process.env.SPELL_CLAUDE_HOME = home
     rmSync(root, { recursive: true, force: true })
+    rmSync(claudeHome, { recursive: true, force: true })
   })
 
   it("lists each worktree's own epic, and any the main checkout lacks;  never stale copies", () => {
@@ -69,6 +76,7 @@ describe("RunningEpics", () => {
         worktree: "seo",
         url: "/worktrees/seo/epics/seo/seo.plan.html",
         title: "SEO & co",
+        phases: ["done", "active", "todo"],
         done: 1,
         total: 3,
         active: "P2 · Site Map"
@@ -78,6 +86,7 @@ describe("RunningEpics", () => {
         worktree: "vite",
         url: "/worktrees/vite/packages/docs/epics/vite/vite.html",
         title: "Vite",
+        phases: [],
         done: 0,
         total: 0
       }
@@ -109,14 +118,16 @@ describe("RunningEpics", () => {
     expect(index).not.toContain(MARKER)
     expect(index).toContain(`href="/worktrees/seo/epics/seo/seo.plan.html"`)
     // in progress:  [done/all], outlined in blue, the active phase in the meta line
-    expect(index).toContain(`<ui-label class="spell-epic-state" size="mini" color="blue" basic>1/3</ui-label> <a`)
+    expect(index).toContain(
+      `<ui-label class="spell-epic-state" size="mini" color="blue" basic title="in progress:  P2 · Site Map under way">1/3</ui-label> <a`
+    )
     expect(index).toContain("<ui-meta>P2 · Site Map · .claude/worktrees/seo</ui-meta>")
-    // planning:  a yellow thought bubble (open, still undecided);  open, so Open | All keeps it
-    expect(index).toMatch(/data-epic="vite" data-status="open">.*name="comment dots" color="yellow"/)
+    // no phases yet:  in progress too, saying it's planning;  open, so Open | All keeps it
+    expect(index).toMatch(/data-epic="vite" data-status="open">.*color="blue" basic title="in progress:  planning/)
     expect(index).toContain("SEO &amp; co")
   })
 
-  it("drops a merged epic's card when the epic runs in a worktree;  stalled after a few days without update", () => {
+  it("drops a merged epic's card when the epic runs in a worktree;  paused after a few days without update", () => {
     // the closing tag split over lines, as oxfmt writes it
     const page = `<ui-cards>${MARKER}<ui-card data-epic="seo" data-status="done"><ui-content>old</ui-content></ui-card\n  ><ui-card data-epic="other"><ui-content>x</ui-content></ui-card></ui-cards>`
     const html = new RunningEpics(root).render(page)
@@ -138,8 +149,17 @@ describe("RunningEpics", () => {
       )
       expect(new RunningEpics(stale).list()[0]?.updated).toBe("2026-01-01")
       expect(new RunningEpics(stale).render(MARKER)).toContain(
-        'name="circle pause" color="orange" title="stalled:  no update since 2026-01-01"'
+        'name="circle pause" color="grey" title="paused:  no update since 2026-01-01, 1/2 phases done"'
       )
+      // a session working in its worktree (this process:  alive):  in progress, however old the doc
+      put(
+        stale,
+        "claude/sessions/1.json",
+        JSON.stringify({ pid: process.pid, cwd: join(stale, ".claude/worktrees/slow/packages"), name: "🚧 other" })
+      )
+      const running = new RunningEpics(stale, { claudeHome: join(stale, "claude") })
+      expect(running.runningNames()).toEqual(new Set(["slow", "other"]))
+      expect(running.render(MARKER)).toContain('title="in progress:  1/2 phases done, a session is running">1/2<')
     } finally {
       rmSync(stale, { recursive: true, force: true })
     }
@@ -170,8 +190,8 @@ describe("RunningEpics", () => {
     }
   })
 
-  // as the docs index's `epicState()`:  the two copies match (Q20 of `epic-components`)
-  it("marks a future epic with a grey seedling, and one with follow-ups and no phase under way as sleeping", () => {
+  // the ONE rule, `$/server/site/EpicState`, as the docs index and `<epic-page>` draw it (epic `airplane` P8)
+  it("marks a future epic with a grey seedling;  every phase done:  errors while items need Owen, else done", () => {
     const quiet = mkdtempSync(join(tmpdir(), "srv-epics-quiet-"))
     try {
       put(
@@ -179,30 +199,63 @@ describe("RunningEpics", () => {
         ".claude/worktrees/idea/epics/idea/idea.plan.html",
         `<html><head><title>Epic: Idea</title></head><body><epic-page\n  epic="idea"\n  future\n></epic-page></body></html>\n`
       )
-      put(
-        quiet,
-        ".claude/worktrees/nap/epics/nap/nap.plan.html",
-        `<html><head><title>Epic: Nap</title></head><body><epic-page epic="nap">` +
-          `<epic-section id="phases" kind="phases"><epic-phase id="p1" title="One" status="done"></epic-phase>` +
-          `<epic-phase id="p2" title="Two" status="todo"></epic-phase></epic-section>` +
-          `<epic-section id="issues" kind="issues"><epic-item id="i1" title="A" status="open"></epic-item>` +
-          `<epic-item\n  id="i2"\n  status="open"\n  title="B"\n></epic-item><epic-item id="i3" status="done"></epic-item>` +
-          `</epic-section><epic-section id="tests" kind="tests"><epic-item id="v1" status="open"></epic-item>` +
-          `</epic-section></epic-page></body></html>\n`
-      )
+      for (const name of ["calm", "loud"]) {
+        put(
+          quiet,
+          `.claude/worktrees/${name}/epics/${name}/${name}.plan.html`,
+          `<html><head><title>Epic: ${name}</title></head><body><epic-page epic="${name}">` +
+            `<epic-section id="phases" kind="phases"><epic-phase id="p1" title="One" status="done"></epic-phase>` +
+            `<epic-phase id="p2" title="Two" status="done"></epic-phase></epic-section>` +
+            `<epic-section id="issues" kind="issues"><epic-item id="i1" title="A" status="open" state="open">` +
+            `</epic-item>${name === "loud" ? `<epic-item\n  id="i2"\n  status="open"\n  state="attention"\n></epic-item>` : ""}` +
+            `</epic-section><epic-section id="questions" kind="questions"><epic-item id="q1" status="open" ` +
+            `state="${name === "loud" ? "replied" : "recent"}"></epic-item></epic-section></epic-page></body></html>\n`
+        )
+      }
       const epics = new RunningEpics(quiet)
       expect(epics.list()).toMatchObject([
+        { name: "calm", total: 2, done: 2 },
         { name: "idea", future: true, total: 0 },
-        { name: "nap", total: 2, followUps: ["issue", "issue", "test"] }
+        { name: "loud", total: 2, done: 2, urgent: ["i2", "q1"] }
       ])
+      expect(epics.list()[0]).not.toHaveProperty("urgent")
       const html = epics.render(MARKER)
       expect(html).toContain('name="seedling" color="grey" title="future:  not planned yet"')
       expect(html).toContain(
-        '<span class="spell-epic-state" title="sleeping:  2 issues, 1 test to follow up">😴</span>'
+        'data-epic="calm" data-status="done"><ui-content><ui-header><ui-icon class="spell-epic-state" ' +
+          'name="circle check" color="green" title="done:  every phase done, nothing needs you">'
       )
+      expect(html).toContain(
+        'data-epic="loud" data-status="open"><ui-content><ui-header><ui-icon class="spell-epic-state" ' +
+          'name="circle exclamation" color="red" title="errors:  every phase done, but 1 question, 1 issue need you">'
+      )
+      expect(html).not.toMatch(/sleeping|😴/)
     } finally {
       rmSync(quiet, { recursive: true, force: true })
     }
+  })
+
+  it("marks the docs index's cards again as it serves the page:  today's date, a session running", () => {
+    const now = new Date(2026, 9, 10, 9)
+    const card = (facts: string) =>
+      `<ui-card data-epic="nap" data-status="open"${facts}><ui-content>\n<ui-header>` +
+      `<span class="spell-epic-state" title="sleeping:  1 todo to follow up">😴</span> <a href="nap/nap.plan.html">Nap</a>` +
+      `</ui-header>\n<ui-meta>epics/nap/nap.plan.html</ui-meta>\n</ui-content></ui-card>`
+    const paused = new RunningEpics(root).render(
+      `${MARKER}${card(' data-phases="done todo" data-updated="2026-10-06" data-urgent="j1"')}`,
+      now
+    )
+    expect(paused).toContain(
+      '<ui-icon class="spell-epic-state" name="circle pause" color="grey" title="paused:  no update since 2026-10-06, 1/2 phases done"></ui-icon> <a'
+    )
+    expect(paused).not.toContain("😴")
+    const fresh = new RunningEpics(root).render(
+      `${MARKER}${card(' data-phases="done todo" data-updated="2026-10-08"')}`,
+      now
+    )
+    expect(fresh).toContain('basic title="in progress:  1/2 phases done, updated 2026-10-08">1/2</ui-label> <a')
+    // an index written before the facts:  as it was
+    expect(new RunningEpics(root).render(`${MARKER}${card("")}`, now)).toContain("😴")
   })
 
   it("renders nothing with no running epic, or no marker", () => {
