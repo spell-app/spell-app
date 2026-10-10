@@ -579,7 +579,10 @@ pre code {
   color: var(--spell-muted);
   font-size: 0.85rem;
 }
-/* an epic card's state, before its title:  [3/6], or a done / planning / stalled icon */
+/*
+ * an epic card's state, before its title (`$/server/site/EpicState`):  in progress [3/6], or an errors / paused /
+ * future / done icon
+ */
 .spell-doc-main .spell-epic-state {
   margin-right: 4px;
   vertical-align: 0.1em;

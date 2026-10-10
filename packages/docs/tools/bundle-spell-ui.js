@@ -197,7 +197,7 @@ const ICONS = {
   "solid/trash-can": ["trash can"],
   "solid/plug": ["plug"],
   "solid/circle-play": ["circle play"],
-  "solid/circle-pause": ["circle pause"], // the docs index:  a stalled epic
+  "solid/circle-pause": ["circle pause"], // an epic's state:  paused (`$/server/site/EpicState`)
   // plan docs' review (epic `review-review`):  section icons, the item action menu and filter, the page header's
   // send / files / git buttons
   "solid/file-circle-question": ["file circle question"],

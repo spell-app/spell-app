@@ -116,9 +116,15 @@ export const epicPageVocabulary = {
     { name: "git", description: "The git toggle:  shows or hides every commit (only when the doc has some)." },
     {
       name: "status",
-      description: "The sleeping mark (nothing under way, follow-ups open), then the bedtime and step labels."
+      description: "The state mark (in progress, errors or paused), then the bedtime and step labels."
     },
-    { name: "sleeping", description: "😴:  no phase under way, but open questions, calls, issues, todos or tests." },
+    {
+      name: "state",
+      description:
+        "The epic's state, an icon in its colour (`$/server/site/EpicState`):  in progress (blue), errors (red:  " +
+        "every phase done, items need you), paused (grey:  phases left, untouched for days);  why on hover.  " +
+        "None for a future epic or a done one:  the step label says so."
+    },
     {
       name: "review-line",
       description:
@@ -209,11 +215,6 @@ export const epicPageVocabulary = {
     },
     { key: "copyCommand", text: "Copy the command", description: "The review line's tooltip." },
     { key: "copied", text: "copied", description: "The review line, just copied." },
-    {
-      key: "sleeping",
-      text: "Sleeping:  nothing under way, {words} to follow up",
-      description: "The sleeping mark's tooltip:  `2 questions, 1 todo`."
-    },
     { key: "hung", text: "Plan hung?", description: "The planning aside's title." },
     { key: "hungBefore", text: "Close its Claude tab, then run", description: "The aside, before `/epic <name>`." },
     { key: "hungAfter", text: "and pick \u201cReuse\u201d.", description: "The aside, after `/epic <name>`." },
