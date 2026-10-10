@@ -37,8 +37,9 @@ export type PhaseLine = {
 
 /** The step label:  its look, its words, where it links. */
 export type StepLabel = {
-  /** `blue` the active phase (outlined:  Claude is on it), `green` DONE (solid), `grey` the next one, or FUTURE */
-  color: "blue" | "green" | "grey"
+  /** `blue` the active phase (outlined:  Claude is on it), `green` DONE (solid), `grey` the next one, or FUTURE;  else the
+   * epic state's colour (`red` errors) */
+  color: "blue" | "green" | "grey" | "red"
   icon: string
   /** what it says:  `P4`, `DONE`, `FUTURE` */
   words: string
@@ -84,7 +85,6 @@ export const HUNG = "hung"
 
 export const SEND = "send"
 export const REVIEW_NOW = "review-now"
-export const STATE = "state"
 export const REVIEW_LINE = "review-line"
 
 /**

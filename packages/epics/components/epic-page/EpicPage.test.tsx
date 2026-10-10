@@ -44,7 +44,8 @@ function step(host: Element) {
     words: label.textContent!.trim(),
     color: label.getAttribute("color"),
     href: label.getAttribute("href") ?? undefined,
-    tip: label.getAttribute("title") ?? undefined
+    // its first line:  the state's why follows on the next
+    tip: label.getAttribute("title")?.split("\n")[0]
   }
 }
 
@@ -80,13 +81,14 @@ describe("<epic-page>", () => {
     await expectAccessible(host)
   })
 
-  test("the step label follows the phases:  the active one (blue), else the next (grey), else DONE (green);  none without phases", async () => {
+  // its colour and icon are the epic state's while it has one (the state test below);  DONE and FUTURE keep their own
+  test("the step label follows the phases:  the active one, else the next, else DONE (green);  none without phases", async () => {
     const host = await render(page("", ["done", "active", "todo"]))
-    expect(step(host)).toEqual({ words: "P2", color: "blue", href: "#p2", tip: "P2 · Phase 2" })
+    expect(step(host)).toMatchObject({ words: "P2", href: "#p2", tip: "P2 · Phase 2" })
     host.querySelector("#p2")!.setAttribute("status", "done")
     await ElementFixture.tick()
     await ElementFixture.tick()
-    expect(step(host)).toEqual({ words: "P3", color: "grey", href: "#p3", tip: "Next:  P3 · Phase 3" })
+    expect(step(host)).toMatchObject({ words: "P3", href: "#p3", tip: "Next:  P3 · Phase 3" })
     host.querySelector("#p3")!.setAttribute("status", "done")
     await ElementFixture.tick()
     await ElementFixture.tick()
@@ -165,7 +167,7 @@ describe("<epic-page>", () => {
 
   // Owen, 2026-10-10:  "Page sub header ("Output Targets") should not be sticky";  "Right items:  (=>P14) (whatever
   // the half-filled circle is) (git icon, but bigger)"
-  test("only the h1's row and the toolbar's bar stick, the title between them scrolls;  the step label, then the state mark, then git", async () => {
+  test("only the h1's row and the toolbar's bar stick, the title between them scrolls;  the step label (the state in it), then git", async () => {
     const now = new Date()
     const today = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
       .map((n) => String(n).padStart(2, "0"))
@@ -182,7 +184,7 @@ describe("<epic-page>", () => {
     expect(["header", "subhead", "bar"].map(position)).toEqual(["sticky", "static", "sticky"])
     expect(
       Array.from(shadow.querySelector('[part~="status"]')!.children, (child) => child.getAttribute("part"))
-    ).toEqual([null, "state", "git"])
+    ).toEqual(["state", "git"])
   })
 
   test("draws its crumbs, `Docs › Epics › <title>`;  NONE while the doc still holds its old crumbs before it", async () => {
@@ -225,7 +227,7 @@ describe("<epic-page>", () => {
   })
 
   // epic `airplane` P8 (Owen, 2026-10-10):  in progress, errors, done, paused;  no sleeping mark any more
-  test("the state mark:  in progress between phases, paused once untouched, errors while items need Owen", async () => {
+  test("the state, in the step label:  in progress between phases, paused once untouched, errors while items need Owen", async () => {
     const now = new Date()
     const today = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
       .map((n) => String(n).padStart(2, "0"))
@@ -238,15 +240,15 @@ describe("<epic-page>", () => {
     const mark = (host: Element) => host.shadowRoot!.querySelector<HTMLElement>('[part~="state"]')
     // between phases, items open, touched today:  in progress (it used to sleep)
     const busy = await render(page(`updated="${today}"`, ["done", "todo"], items))
-    expect([mark(busy)?.dataset.state, mark(busy)?.getAttribute("color"), mark(busy)?.title]).toEqual([
-      "progress",
-      "blue",
-      `in progress:  1/2 phases done, updated ${today}`
-    ])
+    expect([
+      mark(busy)?.dataset.state,
+      mark(busy)?.getAttribute("color"),
+      mark(busy)?.title.split("\n").at(-1)
+    ]).toEqual(["progress", "blue", `in progress:  1/2 phases done, updated ${today}`])
     busy.remove()
     // a phase active, but nobody on it for days:  paused
     const idle = await render(page(`updated="2026-01-01"`, ["done", "active"], items))
-    expect([mark(idle)?.dataset.state, mark(idle)?.getAttribute("color"), mark(idle)?.getAttribute("name")]).toEqual([
+    expect([mark(idle)?.dataset.state, mark(idle)?.getAttribute("color"), mark(idle)?.getAttribute("icon")]).toEqual([
       "paused",
       "grey",
       "circle pause"
@@ -254,11 +256,11 @@ describe("<epic-page>", () => {
     idle.remove()
     // every phase done, a question open:  errors;  answered, it's done, and the DONE label says so alone
     const loud = await render(page(`updated="2026-01-01"`, ["done", "done"], items))
-    expect([mark(loud)?.dataset.state, mark(loud)?.getAttribute("color"), mark(loud)?.title]).toEqual([
-      "errors",
-      "red",
-      "errors:  every phase done, but 1 question need you"
-    ])
+    expect([
+      mark(loud)?.dataset.state,
+      mark(loud)?.getAttribute("color"),
+      mark(loud)?.title.split("\n").at(-1)
+    ]).toEqual(["errors", "red", "errors:  every phase done, but 1 question need you"])
     loud.querySelector("#q1")!.setAttribute("state", "recent")
     await ElementFixture.tick()
     await ElementFixture.tick()
