@@ -10,8 +10,8 @@ import { loadFixtureProject, parseSpellProject } from "$/spell/test"
  * body all about cards -- `it` / `its` meaning a card.
  * - Each outline must compile to EXACTLY what today's sentence style does for the same lines (plan doc Q1:
  *   both styles, same meaning).
- * - The rules are `TypeDeclaration` (`classes.ts`), `subject_it` / `subject_its` (`types.ts`), and each member
- *   rule's `{type:subject_it}` syntax.
+ * - The rules are `TypeDeclaration` (`rules/classes/TypeDeclaration.ts`), `subject_it` / `subject_its` (`types/`),
+ *   and each member rule's `{type:subject_it}` syntax.
  */
 describe("outline style", () => {
   test("a type's bulleted body compiles as its sentences do", () => {
@@ -364,7 +364,7 @@ describe("outline style", () => {
       '\t- to "draw its back": <span>[rank] of [suit], [[face down]]</span>'
     ]
     const js = compile(lines)
-    expect(js).toContain("props: { source: `images/${this.rank}-of-${this.suit}.png` }")
+    expect(js).toContain("props: { source: () => `images/${this.rank}-of-${this.suit}.png` }")
     expect(js).toContain("return `the ${this.rank} of ${this.suit}`")
     expect(js).toContain("`${this.rank} of ${this.suit}, [face down]`")
     expect(runSpell([...lines, 'the card is a new card with rank = 2, suit = "spades"'])("card")).toMatchObject({

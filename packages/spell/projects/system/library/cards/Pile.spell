@@ -1,5 +1,7 @@
 ## Pile of playing cards
 a pile is a list of cards
+// what a program calls it, e.g. "stock":  the program importing these cards names its piles
+a pile has a name as text
 // a card is in one pile at a time:  putting it on another pile takes it off this one
 a card belongs to one pile
 

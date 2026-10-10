@@ -4,6 +4,7 @@ import { P } from "$/parser"
 import { SP } from "$/spell"
 import {
   describeParseErrors,
+  describeWarnings,
   loadFixtureProject,
   parseSpellProject,
   summarize,
@@ -12,7 +13,7 @@ import {
 } from "$/spell/test"
 
 /**
- * `P.IncrementalProject` MUST give exactly what a full parse gives:  same compiled output + errors, for every file,
+ * `P.IncrementalProject` MUST give exactly what a full parse gives:  same compiled output, errors and warnings, for every file,
  * and every token where a fresh tokenize puts it.
  * - Edits every `STEP`th line of each Solitaire file -- one kind of edit per line, in rotation -- then puts it back,
  *   all on ONE project, so state has to stay right across many updates.  `INCREMENTAL_FULL=1` edits every line.
@@ -282,7 +283,8 @@ function summarizeIncremental(project: P.IncrementalProject): SpellProjectSummar
   return project.files.map(({ path, parse }) => ({
     path,
     compiled: (parse.match?.compile() as string | undefined) ?? "",
-    errors: describeParseErrors(parse.match)
+    errors: describeParseErrors(parse.match),
+    warnings: describeWarnings(parse.match)
   }))
 }
 

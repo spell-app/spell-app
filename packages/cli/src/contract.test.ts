@@ -1,8 +1,12 @@
-import { resolve } from "path"
+import { mkdtempSync, rmSync, writeFileSync } from "fs"
+import { tmpdir } from "os"
+import { join, resolve } from "path"
+import { pathToFileURL } from "url"
 import { describe, test, expect } from "vite-plus/test"
 
+import { buildTsx } from "$/spell/node/buildTsx"
 import { SP } from "$/spell"
-import { compiledFixture, fixtureProjectNames } from "$/spell/test"
+import { compiledFixture, fixtureImports, fixtureProjectNames } from "$/spell/test"
 import { CLI } from "$/cli"
 
 /**
@@ -12,19 +16,52 @@ import { CLI } from "$/cli"
  *   today;  Python's core (a later epic) must print the same.  What a core must HAVE is `SC.SpellCore`
  *   (`packages/core/src/spellCore.types.ts`).
  * - The snapshot catches a broken core method, which both targets would share.
+ * - A fixture that imports another (`Klondike` imports `Cards`) runs with that one compiled for the same
+ *   target, as its `@spell/project/<id>`.
  * - In a FAKE PAGE (linkedom, `RunSpec.dom`):  `start the game` draws into it, and what it drew is printed last,
  *   so drawing is compared too.  `Math.random()` is seeded, so Solitaire deals the same cards every run.
  * - Changed on purpose:  `yarn vp test run src/contract.test.ts -u`, then read the diff.
  */
-const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".mts" }
+const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx" }
 
-/** What fixture `name` prints when its `target` code runs, as `spell run` would run it. */
-async function printed(name: string, target: string): Promise<string> {
-  const code = compiledFixture(name, target)
+/**
+ * What fixture `name` prints when its `target` code runs, as `spell run` would run it.
+ * - `code`:  that code, unless given.
+ */
+async function printed(name: string, target: string, code = compiledFixture(name, target)): Promise<string> {
   const extension = TARGET_FILES[target]
-  const { exitCode, output } = await CLI.runCode("run", name, code, { extension, capture: true, dom: true })
-  expect(exitCode, `${name} on ${target} exited ${exitCode}:\n${output}`).toBe(CLI.EXIT.OK)
-  return output
+  const folder = mkdtempSync(join(tmpdir(), "spell-contract-"))
+  try {
+    const projects = await importedProjects(name, target, folder)
+    const { exitCode, output } = await CLI.runCode("run", name, code, { extension, projects, capture: true, dom: true })
+    expect(exitCode, `${name} on ${target} exited ${exitCode}:\n${output}`).toBe(CLI.EXIT.OK)
+    return output
+  } finally {
+    rmSync(folder, { recursive: true, force: true })
+  }
+}
+
+/**
+ * Each fixture `name` imports, and what THEY import, compiled for `target` into `folder`:  by project id, its file's
+ * URL, as `CLI.runCode()` takes them.  TypeScript is built first (`buildTsx()`), as `runCode()` builds its own.
+ */
+async function importedProjects(
+  name: string,
+  target: string,
+  folder: string,
+  projects: Record<string, string> = {}
+): Promise<Record<string, string>> {
+  for (const [module, fixture] of Object.entries(fixtureImports(name))) {
+    const projectId = decodeURI(module.slice(SP.SPELL_PROJECT_MODULE.length))
+    if (projects[projectId]) continue
+    let code = compiledFixture(fixture, target)
+    if (TARGET_FILES[target] === ".tsx") code = await buildTsx(code, { filename: `${fixture}.compiled.tsx` })
+    const file = join(folder, `${fixture}.compiled.mjs`)
+    writeFileSync(file, code)
+    projects[projectId] = pathToFileURL(file).href
+    await importedProjects(fixture, target, folder, projects)
+  }
+  return projects
 }
 
 describe("the core contract:  every target prints the same", () => {
@@ -43,4 +80,34 @@ describe("the core contract:  every target prints the same", () => {
       60_000
     )
   }
+})
+
+/**
+ * `spellCore`'s names before epic `output-targets` P16, by their new ones:  a program compiled before then calls the
+ * old ones, and nothing recompiles it.  See `deprecated.ts` in `$/core`.
+ */
+const OLD_NAMES: Record<string, string> = {
+  positionOf: "itemOf",
+  getItemAt: "getItemOf",
+  setItemAt: "setItemOf",
+  removeItemAt: "removeItemOf",
+  removeItemsAt: "removeItemsOf",
+  duplicateList: "duplicateCollection",
+  mergeLists: "mergeCollections",
+  mergeListsInto: "mergeCollectionsInto"
+}
+
+describe("a program compiled before P16, with spellCore's old names", () => {
+  test("prints what it prints today", async () => {
+    const name = "Solitaire"
+    const today = compiledFixture(name, "js/solid")
+    const before = today.replace(/\bspellCore\.(\w+)\(/g, (call, method: string) =>
+      OLD_NAMES[method] ? `spellCore.${OLD_NAMES[method]}(` : call
+    )
+    // it calls the old names, or this test proves nothing
+    for (const old of ["itemOf", "getItemOf", "duplicateCollection", "mergeCollections"]) {
+      expect(before).toContain(`spellCore.${old}(`)
+    }
+    await expect(printed(name, "js/solid", before)).resolves.toEqual(await printed(name, "js/solid"))
+  }, 60_000)
 })

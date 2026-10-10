@@ -111,7 +111,8 @@ export const epicPageVocabulary = {
     {
       name: "header",
       description:
-        "The sticky page header:  the h1, then at its right the step label (the state in it) and the git toggle."
+        "The sticky page header:  the h1, then at its right Send and Review Now (while reviewed), the bedtime label, " +
+        "the step label (the state in it) and the git toggle."
     },
     { name: "heading", description: "The h1, `/epic <name>`:  a click copies it." },
     { name: "subhead", description: "Under the header:  the epic's title, NOT sticky:  it scrolls away." },
@@ -134,24 +135,29 @@ export const epicPageVocabulary = {
     },
     { name: "collapse-all", description: "The toolbar's double chevron:  folds everything on the page." },
     {
-      name: "send-bar",
-      description:
-        "Stuck to the window's bottom while the page is reviewed and anything waits to be sent or asked now:  the " +
-        "pill, then Send (the paper plane:  grey, blue with unsent marks, outlined once sent) and Review Now (the " +
-        "wand:  blue while there's anything for Claude to work through)."
-    },
-    {
       name: "pill",
       description:
-        "In the send bar, when nobody can take the marks:  no Claude session reviewing (orange), or airplane mode;  " +
-        "a click copies the review line's command."
+        "Under the review line, while marks wait and nobody can take them:  no Claude session reviewing (orange), or " +
+        "airplane mode;  a click copies the review line's command."
     },
-    { name: "send", description: "The Send button:  every unsent mark to Claude." },
-    { name: "review-now", description: "The Review Now button:  every mark sent, each revisit asked now." },
+    {
+      name: "send",
+      description:
+        "In the header while the page is reviewed, the paper plane:  every unsent mark to Claude.  A grey outline " +
+        "with nothing to send, dashed blue with unsent marks, outlined blue once sent."
+    },
+    {
+      name: "review-now",
+      description:
+        "In the header while the page is reviewed, the wand:  every mark sent, each revisit asked now.  Outlined " +
+        "blue while there's anything for Claude to work through, else grey."
+    },
     { name: "git", description: "The git toggle:  shows or hides every commit (only when the doc has some)." },
     {
       name: "status",
-      description: "The header's right side:  the bedtime label, the step label, the git toggle."
+      description:
+        "The header's right side:  Send and Review Now (while reviewed), the bedtime label, the step label, the git " +
+        "toggle."
     },
     {
       name: "state",
@@ -262,14 +268,13 @@ export const epicPageVocabulary = {
     {
       key: "nobodyPill",
       text: "No Claude session is reviewing:  start one with",
-      description: "The send bar's pill while nobody listens, before the command it copies."
+      description: "The pill while nobody listens, before the command it copies."
     },
     {
       key: "airplanePill",
       text: "Airplane mode:  this waits for",
-      description: "The send bar's pill in airplane mode, before `/airplane land`."
+      description: "The pill in airplane mode, before `/airplane land`."
     },
-    { key: "sendBar", text: "Send to Claude", description: "The send bar's region, spoken." },
     {
       key: "collapseAll",
       text: "Fold everything on the page",

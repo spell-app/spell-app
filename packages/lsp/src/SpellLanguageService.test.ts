@@ -5,6 +5,7 @@ import { resolve } from "path"
 import { pathToFileURL } from "url"
 import {
   CompletionItemKind,
+  DiagnosticSeverity,
   type CompletionItem,
   type DocumentSymbol,
   type Position,
@@ -45,11 +46,23 @@ describe("SpellLanguageService", () => {
     expect(changed.map((file) => file.file)).toEqual(["Card.spell", "Deck.spell", "Pile.spell", "Solitaire.spell"])
   })
 
-  test("opening a file parses its whole project, cleanly", () => {
+  test("opening a file parses its whole project, cleanly -- bar warnings of what it never says", () => {
+    const warnings: string[] = []
     for (const file of card.project.spellFiles) {
       expect(file.match, file.path).toBeDefined()
-      expect(service.diagnostics(file), file.path).toEqual([])
+      expect(errorsIn(service, file), file.path).toEqual([])
+      for (const { message } of service.diagnostics(file)) {
+        warnings.push(`${file.file}:  ${typeof message === "string" ? message : message.value}`)
+      }
     }
+    expect(warnings).toEqual([
+      'Deck.spell:  Say what "card-names" holds, e.g. "set card-names to a new list of text"',
+      'Solitaire.spell:  Say what "state" holds, e.g. "set state to a new list of text"',
+      // members only `new ... with droppable = no` gives:  nothing declares them (epic `output-targets`, Q45)
+      'Solitaire.spell:  A pile never says it has a droppable:  declare it, e.g. "a pile has a droppable as text"',
+      'Solitaire.spell:  Say what "name" is:  declare it, e.g. "a pile has a name as text"',
+      'Solitaire.spell:  A foundation never says it has a symbol:  declare it, e.g. "a foundation has a symbol as text"'
+    ])
   })
 
   describe("diagnostics", () => {
@@ -67,6 +80,23 @@ describe("SpellLanguageService", () => {
         ])
       })
       expect(service.diagnostics(card)).toEqual([])
+    })
+
+    test("a property with no type gets a WARNING under its statement, asking for one -- and none once it says", async () => {
+      await withCardText(`${cardText}\na card has a nickname`, () => {
+        const lastLine = cardText.split("\n").length
+        expect(service.diagnostics(card)).toEqual([
+          {
+            range: { start: { line: lastLine, character: 0 }, end: { line: lastLine, character: 21 } },
+            severity: DiagnosticSeverity.Warning,
+            source: "spell",
+            message: `Say what "nickname" is, e.g. "a card has a nickname as text"`
+          }
+        ])
+      })
+      await withCardText(`${cardText}\na card has a nickname as text`, () => {
+        expect(service.diagnostics(card)).toEqual([])
+      })
     })
 
     test("an error inside JSX `{...}` sits on its text", async () => {
@@ -292,7 +322,7 @@ describe("SpellLanguageService", () => {
       const renamed = applyEdits(solitaire.parseText, edits)
       expect(renamed).toContain("set the stack to a new deck\nset up the stack\n")
       await withText(solitaireUri, solitaire.parseText, renamed, () => {
-        expect(service.diagnostics(solitaire)).toEqual([])
+        expect(errorsIn(service, solitaire)).toEqual([])
       })
     })
 
@@ -509,7 +539,7 @@ describe("SpellLanguageService", () => {
 
     test("hover, on any of its words:  the property, as written", async () => {
       await withCardText(text, () => {
-        expect(service.diagnostics(card)).toEqual([])
+        expect(errorsIn(service, card)).toEqual([])
         for (const word of ["short", "colour"]) {
           const markdown = (service.hover(card, at(card, readLine, word))!.contents as { value: string }).value
           expect(markdown).toContain("property **short colour** of Card")
@@ -559,7 +589,7 @@ describe("SpellLanguageService", () => {
 
     test("hover on a member:  which type's it is, what it is, and its docs", async () => {
       await withCardText(text, () => {
-        expect(service.diagnostics(card)).toEqual([])
+        expect(errorsIn(service, card)).toEqual([])
         const markdown = (service.hover(card, at(card, lineOf(added[1]!), "length"))!.contents as { value: string })
           .value
         expect(markdown).toContain("property **length** of Text · a number")
@@ -661,7 +691,7 @@ describe("SpellLanguageService", () => {
       await fixes("juggle the deck 3 times", async (_titles, fixed) => {
         expect(fixed).toMatch(/\nto juggle a deck \(number\) times:\n\t\/\/ TODO\n\njuggle the deck 3 times$/)
         await workspace.update(solitaireUri, fixed!)
-        expect(service.diagnostics(solitaire)).toEqual([])
+        expect(errorsIn(service, solitaire)).toEqual([])
       })
     })
 
@@ -670,7 +700,7 @@ describe("SpellLanguageService", () => {
       await fixes("shuffle the deck 3 times", async (titles, fixed) => {
         expect(titles).toEqual(["Define `to shuffle a deck (number) times`"])
         await workspace.update(solitaireUri, fixed!)
-        expect(service.diagnostics(solitaire)).toEqual([])
+        expect(errorsIn(service, solitaire)).toEqual([])
       })
     })
 
@@ -678,7 +708,7 @@ describe("SpellLanguageService", () => {
       await fixes("if stock: shuffle the deck 3 times", async (titles, fixed) => {
         expect(titles).toEqual(["Define `to shuffle a deck (number) times`"])
         await workspace.update(solitaireUri, fixed!)
-        expect(service.diagnostics(solitaire)).toEqual([])
+        expect(errorsIn(service, solitaire)).toEqual([])
       })
     })
 
@@ -698,7 +728,7 @@ describe("SpellLanguageService", () => {
         const compiled = withoutPositions(service.compiled(file))
         const formatted = applyEdits(original, service.formatting(file, tabs))
         await withText(uri, original, formatted, () => {
-          expect(service.diagnostics(file), name).toEqual([])
+          expect(errorsIn(service, file), name).toEqual([])
           // Blank lines compile as they're written, and one with a tab on it belongs to the block it's indented
           // into -- so without the tab, a blank line can move in the javascript.  The code itself can't change.
           expect(withoutPositions(service.compiled(file)), name).toBe(compiled)
@@ -823,7 +853,7 @@ describe("SpellLanguageService", () => {
 
     test("hover on `the pile of the card`:  the pile holding it, from the `belongs to one` line", async () => {
       await withText(pileUri, pileText, membership, () => {
-        for (const file of card.project.spellFiles) expect(service.diagnostics(file), file.path).toEqual([])
+        for (const file of card.project.spellFiles) expect(errorsIn(service, file), file.path).toEqual([])
         expect(hoverAt(solitaire, readLine, "pile", 1)).toContain(
           "property **pile** of Card · a Pile · the Pile holding it, read-only:  it belongs to one at a time"
         )
@@ -938,7 +968,7 @@ describe("SpellLanguageService, outline style", () => {
   })
 
   test("parses cleanly", () => {
-    for (const file of card.project.spellFiles) expect(service.diagnostics(file), file.path).toEqual([])
+    for (const file of card.project.spellFiles) expect(errorsIn(service, file), file.path).toEqual([])
   })
 
   test("hover on an outline line:  how the sentence style says it", () => {
@@ -994,6 +1024,14 @@ function applyEdits(text: string, edits: TextEdit[]): string {
         result.slice(0, offsetOf(range.start)) + newText + result.slice(offsetOf(range.end)),
       text
     )
+}
+
+/**
+ * `file`'s errors, as `service` shows them:  its diagnostics bar its warnings.
+ * - The fixture's own warnings, e.g. `set state to []`, aren't what a test of parsing cleanly is about.
+ */
+function errorsIn(service: LSP.SpellLanguageService, file: SP.SpellFile) {
+  return service.diagnostics(file).filter(({ severity }) => severity === DiagnosticSeverity.Error)
 }
 
 /** `name (Kind)`, then its children indented -- a compact outline to snapshot. */

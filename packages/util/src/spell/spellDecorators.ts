@@ -1,79 +1,13 @@
 /**
- * Spell's own standard (TC39 2023-11) decorators, for HAND-WRITTEN `Observable`s:  `Thing` / `List` / `App`
+ * Spell's own standard (TC39 2023-11) decorator, for HAND-WRITTEN `Observable`s:  `Thing` / `List` / `App`
  * subclasses, `SP.*`, the editor.
- * - `@prop(info) accessor x!: T` -- a reactive prop, declared in its class's schema
- * - `@derived get y()` -- a memoized derived value, with the equality cutoff
  * - `@thing` -- runs `create()` after every field initializer
- * - Here, not beside `@proto` in `../decorators.ts`:  `ui` re-exports that whole file, and these are spell-only.
+ * - The reactive ones (`@prop`, `@state`, `@derived`) are shared, in `$/util/reactive`:  this file adds spell's own.
+ * - Here, not beside `@proto` in `../decorators.ts`:  `ui` re-exports that whole file, and this is spell-only.
  * - Compiled spell can't use decorators (it runs from a `blob:` URL, no transpile step), so whatever these do,
  *   compiled classes MUST get the same runtime shape without them.  See `guides/solid/solid-2.md`.
  * - NOTE: lowered by esbuild via `vite.decorators.ts`;  a decorator MUST start its line.
  */
-
-import * as extend from "./extend"
-import { declareInMetadata, type PropInfo } from "./Schema"
-
-////////////////
-// ## `@prop`
-////////////////
-
-/**
- * `@prop(info) accessor name!: T` -- a reactive prop:  a getter / setter pair over `getProp()` / `setProp()`, with
- * `info` (type, default, `init`, legal values) declared in its class's schema.
- * - The SAME runtime shape as compiled spell's `static { this.declareProp(name, info) }` + accessor pair:  the
- *   prototype gets a getter / setter, the schema gets `info` (via the class's decorator metadata, see `schemaOf()`).
- * - NEVER give it an initializer (`accessor x = 1`):  it runs per instance, after the base constructor, so after
- *   `create()`.  Say `{ default: 1 }`, or `{ init: () => [] }` for an object made once per instance.
- * - On an `Observable` only:  its schema is what supplies the default.
- * - Writes go through the instance's own `setProp()`, so a `Thing`'s checks its type as a compiled setter does.
- */
-export function prop(info: PropInfo = {}) {
-  return function <This extends object, Value>(
-    _target: ClassAccessorDecoratorTarget<This, Value>,
-    context: ClassAccessorDecoratorContext<This, Value>
-  ): ClassAccessorDecoratorResult<This, Value> {
-    const name = String(context.name)
-    // NOTE: `Schema.ts` polyfills `Symbol.metadata`, so lowered decorators always get a metadata object
-    declareInMetadata(context.metadata!, name, info)
-    return {
-      get(this: This): Value {
-        return extend.getProp<Value>(this, name) as Value
-      },
-      set(this: This, value: Value) {
-        ;(this as unknown as PropSetter).setProp(name, value)
-      },
-      init(value: Value): Value {
-        if (value !== undefined) {
-          console.warn(`@prop ${name}:  has an initializer, which runs after create() -- use @prop({ default })`)
-        }
-        return value
-      }
-    }
-  }
-}
-
-/** What `@prop` writes through:  an `Observable`'s (protected) `setProp()`. */
-type PropSetter = { setProp(name: string, value: unknown): unknown }
-
-////////////////
-// ## `@derived`
-////////////////
-
-/**
- * `@derived get name()` -- memoized:  re-computed only when what it read changes, and its readers re-run only when
- * its value REALLY changes (`===`).  See `Observable.derive()`.
- * - ONLY for pure, worth-it getters (loops, list aggregates):  memoizing a cheap getter is ~2x SLOWER.
- * - The getter MUST be pure:  read props / state, write nothing.
- */
-export function derived<This extends object, Value>(
-  getter: (this: This) => Value,
-  context: ClassGetterDecoratorContext<This, Value>
-): (this: This) => Value {
-  const name = String(context.name)
-  return function (this: This): Value {
-    return extend.derive(this, name, getter)
-  }
-}
 
 ////////////////
 // ## `@thing`

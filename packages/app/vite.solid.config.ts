@@ -1,7 +1,7 @@
 import { fileURLToPath } from "node:url"
 import { defineConfig, type Plugin } from "vite"
 
-import { SHARED_SOLID, SHARED_SPECIFIERS, appConfig } from "./vite.shared.ts"
+import { SHARED_DEFAULTS, SHARED_SOLID, SHARED_SPECIFIERS, appConfig } from "./vite.shared.ts"
 
 /** Virtual module re-exporting what `SHARED_SOLID.solid` holds:  see `sharedEntries()`. */
 const SOLID_ENTRY = "\0spell-solid-entry"
@@ -31,7 +31,8 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  * - Built by `yarn build:element` (FIRST, it empties `dist-element/`) and `yarn build:runner` (`--outDir dist-runner`).
  * - `spell-solid.js`:  `solid-js` and `@solidjs/web` (and `@solidjs/signals` under them),
  *   `ui`'s element core, `$/ui/core` (`UIComponent`, `DOMElement` ...), and its root family (`UIRoot`),
- *   which `<spell-app>` and `<spell-editor>` are defined on.
+ *   which `<spell-app>` and `<spell-editor>` are defined on,
+ *   and `@solidjs/h` (as `h`), which compiled spell draws with (`spell-runtime.js`).
  *   - Each is re-exported WHOLE:  the other builds can't tell this one which names they use.
  *   - None of their names clash.
  *   - Importing it defines `<ui-root>` (and what a root draws:  `<ui-loader>`, `<ui-placeholder>`, `<ui-components>`).
@@ -99,6 +100,8 @@ function sharedEntries(): Plugin {
       `export * from "@solidjs/web"`,
       `export * from ${JSON.stringify(UI_CORE)}`,
       `export * from ${JSON.stringify(UI_ROOT)}`,
+      // what `core` draws compiled spell with:  `sharedSolid()` hands it to `spell-runtime.js`
+      `export { default as h } from "@solidjs/h"`,
       `export const loadSpellUI = () => import(${JSON.stringify(UI_ENTRY)})`
     ].join("\n"),
     [UI_ENTRY]: [
@@ -125,6 +128,8 @@ function sharedEntries(): Plugin {
  * - Only when the page has every specifier the other builds take from here (`SHARED_SPECIFIERS`):
  *   a page with some missing (an older docs bundle) gets ours, whole.
  * - Read as the module runs:  the docs bundle must run first (it does:  a classic script runs before any module).
+ * - A module with only a default export (`@solidjs/h`) is renamed:  `h`, as `spell-solid.js` exports it
+ *   (`SHARED_DEFAULTS`).
  * - Ours is imported with `await import()`:  a page that has its own never downloads it.
  *   - Our lazy chunks (`spell-ui.js`, `ui/`) import `spell-solid.js` directly:  only ever loaded with ours.
  * - A page's module has a name ours lacks, or the other way round:  the name is `undefined` there.
@@ -151,8 +156,14 @@ function sharedPageSource(names: readonly string[]): string {
  */
 const page = globalThis.SpellUI?.packModules
 const specifiers = ${JSON.stringify(SHARED_SPECIFIERS)}
+// modules with only a default export, and the name it goes by here
+const defaults = ${JSON.stringify(SHARED_DEFAULTS)}
 const from = specifiers.every((specifier) => page?.[specifier])
-  ? Object.assign({}, ...specifiers.map((specifier) => page[specifier]))
+  ? Object.assign(
+      {},
+      ...specifiers.map((specifier) => page[specifier]),
+      ...Object.entries(defaults).map(([specifier, name]) => ({ [name]: page[specifier].default }))
+    )
   : await import("./${SHARED_SOLID.solid}")
 export const { ${[...names].sort().join(", ")} } = from
 `

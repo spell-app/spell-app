@@ -6,26 +6,32 @@
  */
 
 import _remove from "lodash/remove"
-import { spellCore } from "./core"
 
-/** Callback registered via `on`/`off`/`once`/`trigger`. */
-export type EventCallback = (event: SpellEvent, target: object) => unknown
+/**
+ * Callback registered via `on`/`off`/`once`/`trigger`.
+ * - `Payload`:  what the event brings, as the handler expects it, e.g. `{ card: Card }` for compiled spell's
+ *   `on card-click with a card`.  Types only:  nothing checks it.
+ */
+export type EventCallback<Payload extends object = object> = (event: SpellEvent & Payload, target: object) => unknown
 
 /** Methods added to a target (or its prototype) to make it "eventful". */
 export type EventfulMethods = {
-  /** Register `callback` for `eventType` on this target -- see `SpellEvent.on()`. */
-  on(eventType: string, callback: EventCallback): void
+  /**
+   * Register `callback` for `eventType` on this target -- see `SpellEvent.on()`.
+   * - `Payload` comes from the callback's own type, e.g. `(event: { card: Card }) => ...`.
+   */
+  on<Payload extends object = object>(eventType: string, callback: EventCallback<Payload>): void
   /** Un-register `callback` from `eventType` on this target -- see `SpellEvent.off()`. */
-  off(eventType: string, callback: EventCallback): void
+  off<Payload extends object = object>(eventType: string, callback: EventCallback<Payload>): void
   /** Register `callback` to fire once for `eventType` on this target -- see `SpellEvent.once()`. */
-  once(eventType: string, callback: EventCallback): void
+  once<Payload extends object = object>(eventType: string, callback: EventCallback<Payload>): void
   /** Fire `event` on this target -- see `SpellEvent.trigger()`. */
   trigger(event: SpellEvent | string, props?: object): unknown[]
 }
 
 /**
  * Target with an optional `eventParent` to delegate events to.
- * - Walked recursively, e.g. `SpellRuntime.eventParent` ~== `spellCore`.
+ * - Walked recursively:  a parent hears its child's events too, and its own parent after it.
  */
 type EventfulTarget = { eventParent?: object }
 
@@ -37,7 +43,7 @@ type EventfulTarget = { eventParent?: object }
 export class SpellEvent {
   /** Event's `type` name -- always present, constructor throws if missing. */
   declare type: string;
-  /** Whatever else it was made or triggered with, e.g. `card` for `spellCore.RUNTIME.trigger('card-click', { card })`. */
+  /** Whatever else it was made or triggered with, e.g. `card` for `trigger("card-click", { card })`. */
   [key: string]: unknown
 
   /** Accepts a bare `type` string, or full `SpellEventProps` (which MUST include `type`). */
@@ -175,7 +181,7 @@ export class SpellEvent {
     },
     trigger: {
       value(this: object, event: SpellEvent | string, props?: object) {
-        SpellEvent.trigger(this, event, props)
+        return SpellEvent.trigger(this, event, props)
       }
     }
   }
@@ -194,8 +200,6 @@ export class SpellEvent {
 
 /** Extra properties that can be passed when constructing/triggering a `SpellEvent`. */
 export type SpellEventProps = Record<string, unknown> & { type?: string }
-// Make spellCore itself eventful.
-SpellEvent.makeEventful(spellCore)
 
 /**
  * Higher-order "mixin" class to allow instances of a class to work with SpellEvents.

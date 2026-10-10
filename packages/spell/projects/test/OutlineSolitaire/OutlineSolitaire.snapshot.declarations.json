@@ -130,6 +130,7 @@
     {
       "property": "color",
       "of": "Card",
+      "getter": true,
       "defined": "/Card.spell:169-205"
     },
     {
@@ -227,6 +228,7 @@
       "property": "value",
       "of": "Card",
       "datatype": "number",
+      "getter": true,
       "defined": "/Card.spell:520-573"
     },
     {
@@ -263,6 +265,7 @@
       "property": "name",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:722-765"
     },
     {
@@ -270,6 +273,7 @@
       "asWritten": "short suit",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:769-927"
     },
     {
@@ -277,6 +281,7 @@
       "asWritten": "short rank",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:931-1088"
     },
     {
@@ -284,6 +289,7 @@
       "asWritten": "short direction",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1092-1166"
     },
     {
@@ -291,22 +297,26 @@
       "asWritten": "short name",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1170-1222"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1226-1295"
     },
     {
       "property": "front",
       "of": "Card",
+      "getter": true,
       "defined": "/Card.spell:1312-1543"
     },
     {
       "property": "back",
       "of": "Card",
+      "getter": true,
       "defined": "/Card.spell:1547-1728"
     },
     {
@@ -396,18 +406,21 @@
     {
       "property": "color",
       "of": "Pile",
+      "getter": true,
       "defined": "/Pile.spell:165-253"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
+      "getter": true,
       "defined": "/Pile.spell:255-338"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
+      "getter": true,
       "defined": "/Pile.spell:340-504"
     },
     {
@@ -438,6 +451,7 @@
       "property": "state",
       "of": "Game",
       "datatype": "list",
+      "getter": true,
       "defined": "/Solitaire.spell:2287-2406"
     },
     {

@@ -1,16 +1,29 @@
+import {
+  DERIVED,
+  HAS_SCHEMA,
+  KEYS,
+  PROP_CELLS,
+  PROPS,
+  STATE,
+  STATE_CELLS,
+  declareProp,
+  extend,
+  schemaOf,
+  spellTypeOf,
+  type Cell,
+  type Derived,
+  type PropInfo,
+  type Schema
+} from "$/util/reactive"
+
 import { Derivative } from "./Derivative"
-import * as extend from "./extend"
-import { DERIVED, KEYS, PROP_CELLS, PROPS, STATE, STATE_CELLS } from "./extend"
-import { HAS_SCHEMA, declareProp, schemaOf, spellTypeOf, type PropInfo, type Schema } from "./Schema"
-import type { Cell } from "./Cell"
-import type { Derived } from "./Derived"
 
 /**
- * Base class giving subclasses reactive `props` and `state`, on spell cells (`cells.ts`, `extend.ts`).
+ * Base class giving subclasses reactive `props` and `state`, on spell cells (`$/util/reactive`).
  * - A prop is a getter / setter pair over `getProp()` / `setProp()` -- what compiled spell emits, and what
- *   `@prop accessor` (`spellDecorators.ts`) makes for hand-written classes.  Same runtime shape either way.
+ *   `@prop accessor` (`$/util/reactive`) makes for hand-written classes.  Same runtime shape either way.
  * - Reads and writes are SYNCHRONOUS:  a read right after a write sees it.  Readers -- Solid computations through
- *   the host's bridge, React views through `view()`, `observe()` -- re-run when a value they read REALLY changes:
+ *   the host's bridge, `observe()` -- re-run when a value they read REALLY changes:
  *   an `===` write notifies nobody.
  * - "Normal" getters are reactive if they read a prop or state.  `derive()` / `@derived` memoize one, with an
  *   equality cutoff -- only for pure, worth-it ones.
@@ -184,7 +197,7 @@ export class Observable<
 /**
  * Run `fn` and return what it returns.
  * - DEPRECATED:  `easy-state` needed it to re-render once for many writes.  Cells don't:  Solid re-runs a reader on
- *   its own schedule, React batches, so ten writes re-run a reader once anyway.
+ *   its own schedule, so ten writes re-run a reader once anyway.
  */
 export function batch<T>(fn: () => T): T {
   return fn()

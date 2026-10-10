@@ -44,11 +44,12 @@
     },
     {
       path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/property:tasks", line: 9,
-      detail: "list",
+      detail: "list of tasks",
       section: "Todo app example"
     },
     {
       path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/property:newTaskName", line: 10,
+      detail: "text",
       section: "Todo app example"
     },
     {
@@ -72,19 +73,24 @@
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/method:draw (a todos-app)", line: [29, 60],
+      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/property:shownTasks", line: [13, 16],
+      detail: "list of tasks",
+      section: "Todo app example"
+    },
+    {
+      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/method:draw (a todos-app)", line: [34, 69],
       section: "Todo app example",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
       ]
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/variable:app", line: 13,
+      path: "project:Todos - Form Based/file:todo.spell/variable:app", line: 18,
       detail: "Todos_App",
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/function:create a new task (with title as text, completed as a choice)", line: [17, 23],
+      path: "project:Todos - Form Based/file:todo.spell/function:create a new task (with title as text, completed as a choice)", line: [22, 28],
       section: "Todo app example",
       rules: [
         { name: "create_a_new_task", syntax: "create a new task (with {props:object_literal_properties})?" }

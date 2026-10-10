@@ -281,23 +281,23 @@
       description: "## Pile of playing cards"
     },
     {
-      path: "project:Solitaire/file:Pile.spell/type:Pile/property:color", line: [6, 8],
-      section: "Pile of playing cards"
-    },
-    {
-      path: "project:Solitaire/file:Pile.spell/type:Pile/property:value", line: [10, 12],
-      detail: "number",
-      section: "Pile of playing cards"
-    },
-    {
-      path: "project:Solitaire/file:Pile.spell/type:Pile/property:state", line: [14, 18],
+      path: "project:Solitaire/file:Pile.spell/type:Pile/property:name", line: 5,
       detail: "text",
       section: "Pile of playing cards"
     },
     {
-      path: "project:Solitaire/file:Pile.spell/type:Pile/property:name", line: 127,
-      section: "actions",
-      uri: "spell:/@system:examples:Solitaire/Solitaire.spell"
+      path: "project:Solitaire/file:Pile.spell/type:Pile/property:color", line: [7, 9],
+      section: "Pile of playing cards"
+    },
+    {
+      path: "project:Solitaire/file:Pile.spell/type:Pile/property:value", line: [11, 13],
+      detail: "number",
+      section: "Pile of playing cards"
+    },
+    {
+      path: "project:Solitaire/file:Pile.spell/type:Pile/property:state", line: [15, 19],
+      detail: "text",
+      section: "Pile of playing cards"
     },
     {
       path: "project:Solitaire/file:Solitaire.spell",
@@ -316,7 +316,7 @@
     },
     {
       path: "project:Solitaire/file:Solitaire.spell/type:Game/property:state", line: [68, 72],
-      detail: "list",
+      detail: "list of texts",
       section: "actions"
     },
     {

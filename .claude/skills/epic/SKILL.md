@@ -634,6 +634,14 @@ A NEW session picks up an epic whose own session is gone (closed, crashed, compa
 - It works in the epic's checkout, in a window Owen picks, from where the plan doc says it stopped.
 - The plan doc is the memory:  read it, don't redo it.
 
+0. Already home:  this window or this session is ALREADY the epic's own (Owen, 2026-10-10):
+   - the window:  `spell dev window which` says `workspaces/ongoing/<name>`
+   - or the session:  its folder is `.claude/worktrees/<name>`
+   - and `<name>` has a plan doc (`epics/<name>/`), and is the `<name>` typed, if one was.
+   - Then that's the epic, and nothing is asked:
+     no "Which epic?" modal (step 1), no new-window-or-stay modal (step 3).
+     - Step 3 is `EnterWorktree` with `path` (if not in it yet), then `spell dev window stay <name>`.
+   - One line says so:  "this window is `⎇ <name>`:  resuming it".
 1. Which epic:
    - `<name>` given:  that one.
      No plan doc at `epics/<name>/`:  say so, then the list below.

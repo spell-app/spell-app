@@ -1,0 +1,48 @@
+✅ test card setup
+  ▶️ Executing   `the card is a new card whose rank is queen, suit is spades and direction is up`
+  Card {
+    Symbol(props): Map(3) { 'rank' => 'queen', 'suit' => 'spades', 'direction' => 'up' },
+    Symbol(state): null,
+    Symbol(propCells): null,
+    Symbol(stateCells): null,
+    Symbol(keys): null,
+    Symbol(derived): null
+  }
+  ✅ As expected `the rank of the card` is `queen`
+  ✅ As expected `the suit of the card` is `spades`
+  ✅ As expected `the name of the card` is `"queen-of-spades"`
+  ✅ As expected `the color of the card` is `black`
+  ✅ As expected `the value of the card` is `12`
+  ✅ As expected `the short suit of the card` is `"♠️"`
+  ✅ As expected `the short rank of the card` is `"Q"`
+  ✅ As expected `the short name of the card` is `"Q♠️"`
+  ✅ As expected `the card is face up` is `yes`
+  ✅ As expected `the card is face down` is `no`
+  ✅ As expected `the card is a face card` is `yes`
+  ✅ As expected `the card is not a face card` is `false`
+  ✅ As expected `the card is a spade` is `true`
+  ✅ As expected `the card is a club` is `false`
+  ✅ As expected `the card is a queen` is `true`
+  ✅ As expected `the card is an ace` is `false`
+  ✅ As expected `the card is a 2` is `false`
+  ✅ As expected `the card is the queen of spades` is `true`
+  ✅ As expected `the card is the queen of clubs` is `false`
+  ✅ As expected `the card is not the 2 of diamonds` is `true`
+  ▶️ Executing   `turn the card face down`
+  ✅ As expected `the direction of the card` is `down`
+  ▶️ Executing   `turn the card over`
+  ✅ As expected `the card is face up` is `true`
+✅ test deck creation
+  ▶️ Executing   `the deck is a new deck`
+  ▶️ Executing   `set up the deck`
+  ✅ As expected `the number of cards in the deck` is `52`
+  ▶️ Executing   `set up the deck`
+  ✅ As expected `the number of cards in the deck` is `52`
+  ▶️ Executing   `set the queens to the cards in the deck where the rank of the card is "queen"`
+  ✅ As expected `the number of cards in the queens` is `4`
+  ✅ As expected `the name of the bottom card of the deck` is `"king-of-spades"`
+  ✅ As expected `the short name of the top card of the deck` is `"A♣️"`
+  the deck before shuffling:
+  ▶️ Executing   `display the deck`
+  deck: A♣️, A♦️, A♥️, A♠️, 2♣️, 2♦️, 2♥️, 2♠️, 3♣️, 3♦️, 3♥️, 3♠️, 4♣️, 4♦️, 4♥️, 4♠️, 5♣️, 5♦️, 5♥️, 5♠️, 6♣️, 6♦️, 6♥️, 6♠️, 7♣️, 7♦️, 7♥️, 7♠️, 8♣️, 8♦️, 8♥️, 8♠️, 9♣️, 9♦️, 9♥️, 9♠️, 10♣️, 10♦️, 10♥️, 10♠️, J♣️, J♦️, J♥️, J♠️, Q♣️, Q♦️, Q♥️, Q♠️, K♣️, K♦️, K♥️, K♠️
+  ✅ As expected `the first card of the deck is the ace of clubs` is `yes`

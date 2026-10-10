@@ -3,7 +3,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync,
 import { createServer } from "net"
 import { tmpdir } from "os"
 import { basename, resolve } from "path"
-import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
+import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
 
 import { SRV } from "$/server"
 import { SP } from "$/spell"
@@ -15,6 +15,10 @@ import { fixturePath } from "$/spell/test"
  * - NEVER writes into a fixture:  compiles use `--stdout`.  Projects to break live in a temp folder -- see `tempProject()`.
  */
 const SPELL = resolve(import.meta.dirname, "..", "bin", "spell.mjs")
+
+// each `spell` run starts node and loads spell's source through `tsx`, ~2s;  a test making two or three runs is over
+// vitest's 5s default, worse under the load of every test file at once
+vi.setConfig({ testTimeout: 30_000 })
 
 /** This checkout:  its page server is the one `spell serve` uses. */
 const REPO_ROOT = resolve(import.meta.dirname, "..", "..", "..")
@@ -337,7 +341,7 @@ describe("spell compile", () => {
     const { status, stdout, stderr } = spell(["compile", "@test"])
     expect(status).toBe(2)
     expect(stdout).toBe("")
-    expect(stderr).toContain("@test holds several projects -- name one, or pass --all:\n  @test:fixtures:FizzBuzz\n")
+    expect(stderr).toContain("@test holds several projects -- name one, or pass --all:\n  @test:fixtures:Cards\n")
   })
 
   test("an unknown project", () => {
@@ -365,6 +369,18 @@ describe("spell compile", () => {
     const broken = tempProject("BrokenPack", 'print "fine"\nflibbertigibbet the wombat\n')
     expect(spell(["compile", "."], broken).status).toBe(1)
     expect(existsSync(resolve(broken, `BrokenPack${SP.SCOPES_JS_SUFFIX}`))).toBe(false)
+  })
+
+  test("a warning is listed, but no error:  exit 0, and its scope pack written", () => {
+    const untyped = tempProject("Untyped", "a calculator is an app\na calculator has an input\n")
+    const { status, stderr } = spell(["compile", "."], untyped)
+    expect(stderr).toContain("✓ @workspace")
+    expect(stderr).toContain("1 warning")
+    expect(stderr).toContain(
+      'Untyped.spell:2:1  warning:  Say what "input" is, e.g. "a calculator has an input as text"'
+    )
+    expect(status).toBe(0)
+    expect(existsSync(resolve(untyped, `Untyped${SP.SCOPES_JS_SUFFIX}`))).toBe(true)
   })
 })
 
@@ -583,14 +599,16 @@ describe("spell projects", () => {
   test("lists the roots, with the name to type for each", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +3 projects$/m)
+    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +5 projects$/m)
     expect(stdout).toMatch(/^@user +@user:projects /m)
   })
 
   test("one root's projects, as JSON", () => {
     const { stdout } = spell(["projects", "@test", "--json"])
     expect(JSON.parse(stdout)).toEqual([
+      { name: "@test/Cards", id: "@test:fixtures:Cards" },
       { name: "@test/FizzBuzz", id: "@test:fixtures:FizzBuzz" },
+      { name: "@test/Klondike", id: "@test:fixtures:Klondike" },
       { name: "@test/OutlineSolitaire", id: "@test:fixtures:OutlineSolitaire" },
       { name: "@test/Solitaire", id: "@test:fixtures:Solitaire" }
     ])

@@ -5,6 +5,7 @@
 
 export { unitTestModuleRules } from "$/parser/test"
 export { tsxBinary } from "./tsxBinary"
+export { solidSample } from "./samples"
 export {
   parseSpellProject,
   loadFixtureProject,
@@ -13,8 +14,10 @@ export {
   fixtureProjectNames,
   compiledFixture,
   fixtureDeclarations,
+  fixtureImports,
   FIXTURES_DIR,
   summarize,
-  describeParseErrors
+  describeParseErrors,
+  describeWarnings
 } from "./parseSpellProject"
 export type { SpellSourceFile, ParsedSpellProject, SpellProjectSummary } from "./parseSpellProject"

@@ -230,7 +230,8 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
   nested_statements: { nestedAs: "block" },
   /**
    * `where:`, `with:` or `:` ending the line, then an indented block, e.g. a type's outline body.
-   * - A registered rule matching those words (`classes.ts`), so it stays in `rules` -- see `leadIn`.
+   * - A registered rule matching those words (`rules/classes/WithNestedStatements.ts`),
+   *   so it stays in `rules` -- see `leadIn`.
    */
   with_nested_statements: { nestedAs: "block", leadIn: true },
 
@@ -248,7 +249,7 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
 
 /**
  * A property `set the X of Y to ...` declared at its first set, as `Y`'s type never did.
- * - Noted on that `set`'s match as `data.autoDeclared` (see `assignment_statement`), for its FILE to compile once:
+ * - Noted on that `set`'s match as `data.autoDeclared` (see `AssignmentStatement`), for its FILE to compile once:
  *   `Card.declareProp('pile', { type: 'Pile' })` + `Object.defineProperty(Card.prototype, 'pile', ...)`.
  * - See `SP.Block.autoDeclarations()`.
  */
@@ -261,6 +262,20 @@ export type AutoDeclaredProperty = {
   checkType?: string
   /** Statement declaring its type:  if that's in the same file, the property goes right after it. */
   typeDeclaredBy: P.Match
+}
+
+// ## Warnings
+
+/**
+ * Something a program should say, but which doesn't stop it parsing or running,
+ * e.g. what a property is:  `a calculator has an input` => "Say what "input" is, e.g. ...".
+ * - Noted by the rule which spotted it, on its match, while parsing -- see `SP.SpellWarnings`.
+ */
+export type SpellWarning = {
+  /** What to say, e.g. `Say what "input" is, e.g. "a calculator has an input as text"`. */
+  message: string
+  /** What it's about:  editors show it under this match's text, e.g. `(digit)` in a method's signature. */
+  at: P.Match
 }
 
 // ## Built-in types
@@ -419,6 +434,12 @@ export type SpellDeclaration = {
    * - See `P.ScopeVariable.autoDeclared`.
    */
   autoDeclared?: boolean
+  /**
+   * `property` is DERIVED:  a getter works it out, e.g. `the short rank of a card is: ...`.
+   * - Loads as `P.ScopeVariable.isGetter`, so the TypeScript writer reads it by TypeScript's name (`shortRank`).
+   * - Left out for an `exclusive` member, which is always one:  loading works it out.
+   */
+  getter?: boolean
   /** A method's parameters, with their datatypes where known -- see `P.ScopeMethod.params`. */
   params?: P.ScopeParam[]
   /** What a method returns, if known -- see `P.ScopeMethod.returns`. */

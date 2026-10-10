@@ -155,6 +155,20 @@ describe("spellCore.things", () => {
     expect(spellCore.things.nameOf(new Card({}))).toBeUndefined()
   })
 
+  test("`classNamed()`:  a class once one of its things is made (its super-classes too), or the program exports it", () => {
+    expect(["Card", "Joker", "Deck"].map((name) => spellCore.things.classNamed(name))).toEqual([
+      undefined,
+      undefined,
+      undefined
+    ])
+    spellCore.test("made in a test", () => new Joker({}))
+    spellCore.things.setTopLevel({ Deck, deck: new Deck({}), score: 0 })
+    expect(["Card", "Joker", "Deck"].map((name) => spellCore.things.classNamed(name))).toEqual([Card, Joker, Deck])
+    // spell's own are always known;  a new run forgets the program's
+    spellCore.resetRuntime()
+    expect(["List", "App", "Card"].map((name) => spellCore.things.classNamed(name))).toEqual([List, App, undefined])
+  })
+
   test("bumps `version` once, after a burst of things -- NOT as each registers", async () => {
     await settle()
     let runs = 0

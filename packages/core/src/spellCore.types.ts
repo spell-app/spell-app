@@ -3,12 +3,15 @@ import type { collectionCoreMethods } from "./collection-core"
 import type { collectionOtherMethods } from "./collection-other"
 import type { stringMethods } from "./string"
 import type { uiMethods } from "./ui"
+import type { drawingMethods } from "./drawing"
 import type { pathMethods } from "./paths"
 import type { testMethods } from "./tests"
 import type { consoleMethods } from "./console"
 import type { runtimeMethods } from "./runtime"
 import type { thingsMethods } from "./things"
+import type { jsonMethods } from "./json"
 import type { classesMethods } from "./classes"
+import type { deprecatedMethods } from "./deprecated"
 
 // ## Importing spellCore
 
@@ -36,7 +39,6 @@ export const SPELL_CORE_NAMES = ["spellCore", ...SPELL_CLASSES]
  *   bundle entry -- see `spellRuntime.ts`.
  */
 export const SPELL_BASE_TYPES = ["Object", ...SPELL_CLASSES]
-import type { EventfulMethods } from "./SpellEvent"
 
 /**
  * Assembled type of the `spellCore` singleton -- built by accretion: each module below does
@@ -44,19 +46,22 @@ import type { EventfulMethods } from "./SpellEvent"
  * order), so this is the intersection of every module's methods.
  * - It's the CORE CONTRACT too:  what another target's core must have (Python's, later -- epic `output-targets`), and
  *   what it must print is pinned by the `cli`'s `contract.test.ts`.
+ *   - Except `deprecatedMethods`:  old names, for programs compiled before they changed.  A new core has none.
  */
 export type SpellCore = typeof coreMethods &
   typeof collectionCoreMethods &
   typeof collectionOtherMethods &
   typeof stringMethods &
   typeof uiMethods &
+  typeof drawingMethods &
   typeof pathMethods &
   typeof testMethods &
   typeof consoleMethods &
   typeof runtimeMethods &
   typeof thingsMethods &
+  typeof jsonMethods &
   typeof classesMethods &
-  EventfulMethods
+  typeof deprecatedMethods
 
 // ## Properties
 

@@ -7666,6 +7666,14 @@
               "fieldName": "preventLeaving"
             },
             {
+              "name": "debug",
+              "description": "Show the bound `value` (else `values`) as JSON below the form, live.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "debug"
+            },
+            {
               "name": "visible",
               "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.",
               "type": {
@@ -7687,6 +7695,14 @@
               "kind": "field",
               "name": "rules",
               "description": "Validation rules by field name (or id), Fomantic's `fields` shape:  `{ email: \"email\", password: [\"notEmpty\", \"minLength[6]\"], name: { rules: [{ type: \"notEmpty\", prompt: \"...\" }], optional: true } }`.  A JS property (rich data), not an attribute.",
+              "type": {
+                "text": "unknown"
+              }
+            },
+            {
+              "kind": "field",
+              "name": "value",
+              "description": "The object the form is BOUND to:  each control with a `name` shows that property and writes it back as it changes, live both ways (Solid signals, reactive members, spell objects);  a control in a `<ui-repeat>` row binds to the row's item.  Unset:  nothing is bound.  A JS property (rich data), not an attribute.",
               "type": {
                 "text": "unknown"
               }
@@ -7732,6 +7748,10 @@
             {
               "name": "form",
               "description": "The form box."
+            },
+            {
+              "name": "debug",
+              "description": "The JSON `debug` shows, a `<pre>` in a captioned box below the content."
             }
           ],
           "cssStates": [
@@ -7850,6 +7870,105 @@
               "default": "var(--ui-text-color)"
             }
           ]
+        },
+        {
+          "kind": "class",
+          "name": "UIRepeat",
+          "tagName": "ui-repeat",
+          "customElement": true,
+          "summary": "A repeat shows its fields once per item of a list, each row bound to its own item.",
+          "description": "A repeat shows its fields once per item of a list, each row bound to its own item.\n\nAlso known as:  repeater, field array, form list, for each, list editor.",
+          "attributes": [
+            {
+              "name": "name",
+              "description": "The list to repeat over, by name:  this property of the scope -- the `<ui-form>`'s `value`, or the item of the `<ui-repeat>` row around it.  Any iterable (an array, a `Set` ...).",
+              "type": {
+                "text": "string"
+              },
+              "fieldName": "name"
+            },
+            {
+              "name": "disabled",
+              "description": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`).",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "disabled"
+            },
+            {
+              "name": "loading",
+              "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "loading"
+            },
+            {
+              "name": "visible",
+              "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "visible"
+            },
+            {
+              "name": "animation",
+              "description": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on.",
+              "type": {
+                "text": "\"fade\" | \"fade up\" | \"fade down\" | \"fade left\" | \"fade right\" | \"scale\" | \"zoom\" | \"drop\" | \"browse\" | \"browse right\" | \"fly\" | \"fly up\" | \"fly down\" | \"fly left\" | \"fly right\" | \"slide\" | \"slide up\" | \"slide down\" | \"slide left\" | \"slide right\" | \"swing\" | \"swing up\" | \"swing down\" | \"swing left\" | \"swing right\" | \"horizontal flip\" | \"vertical flip\" | \"flash\" | \"shake\" | \"bounce\" | \"tada\" | \"pulse\" | \"jiggle\" | \"glow\" | \"none\""
+              },
+              "fieldName": "animation"
+            }
+          ],
+          "members": [
+            {
+              "kind": "field",
+              "name": "items",
+              "description": "The list to repeat over, given as a property:  any iterable (an array, a `Set`, spell's `List`), followed as it changes.  Set, it wins over `name`.  A JS property (rich data), not an attribute.",
+              "type": {
+                "text": "unknown"
+              }
+            }
+          ],
+          "events": [],
+          "slots": [
+            {
+              "name": "",
+              "description": "The TEMPLATE:  markup copied once per item (its controls' `name`s bind to the item);  a `<template>`, or plain children, taken into one as it connects."
+            }
+          ],
+          "cssParts": [],
+          "cssStates": [
+            {
+              "name": "disabled",
+              "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
+            },
+            {
+              "name": "loading",
+              "description": "`loading` is set."
+            },
+            {
+              "name": "busy",
+              "description": "`loading`, and the element draws the shared loader:  a spinner over it (`elementSetup.loading`)."
+            },
+            {
+              "name": "dimmed",
+              "description": "Disabled or loading the shared way:  everything inside is inert, and dimmed."
+            },
+            {
+              "name": "hidden",
+              "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
+              "name": "hiding",
+              "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
+            }
+          ],
+          "cssProperties": []
         }
       ],
       "exports": [
@@ -7898,6 +8017,22 @@
           "name": "ui-form",
           "declaration": {
             "name": "UIForm",
+            "module": "src/components/ui-form/index.ts"
+          }
+        },
+        {
+          "kind": "js",
+          "name": "UIRepeat",
+          "declaration": {
+            "name": "UIRepeat",
+            "module": "src/components/ui-form/index.ts"
+          }
+        },
+        {
+          "kind": "custom-element-definition",
+          "name": "ui-repeat",
+          "declaration": {
+            "name": "UIRepeat",
             "module": "src/components/ui-form/index.ts"
           }
         }

@@ -9,8 +9,11 @@ import { ParseError } from "./ParseError"
  * Blank line, compiling to `P.ASTBlankLine` -- generic `P.BlankLine` has no `getAST()` of its own,
  * and spell always converts to AST before compiling.
  * - Subclass rather than patching `P.BlankLine.prototype`, which would change it for every language.
+ * - Class named `SpellBlankLine`, so it doesn't read as the parser's `P.BlankLine`.
  */
-export class blank_line extends P.BlankLine {
+export class SpellBlankLine extends P.BlankLine {
+  static ruleName = "blank_line"
+
   getAST(match: P.MatchFor<this>) {
     return new P.ASTBlankLine(match)
   }
@@ -24,7 +27,7 @@ export class blank_line extends P.BlankLine {
  *   statement attempt to parse that next line as well -- see `commitStatement()`.
  */
 export class BlockLine extends P.Rule<P.RuleProps, never, BlockMatchData> {
-  /** Registered as `line` -- class name isn't rule case. */
+  /** Registered as `line`:  the class name would give `block_line`. */
   static ruleName = "line"
 
   /**

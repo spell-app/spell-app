@@ -14,14 +14,10 @@ when working with code in this package, `@spell-app/app`.
 - The top of the chain (below `cli`):  the web app, its server, and the embeddable web components.
   - Everything else is a package it imports:  `$/spell`, `$/lsp`, `$/parser`, `$/util`, `@spell-app/ui` ...
 - The app is Solid 2 (READ the root's Solid 2 pointer for Solid work).
-  - React is ONLY what compiled spell draws with:  `core`'s classes, [the forms kit](src/ui/forms/), `SUIPassThroughs`.
-  - `spell-runtime.js` loads it.
-  - `build.test.ts` pins that the app's own chunks hold none.
-  - Solid is the DEFAULT JSX:  a new `.tsx` is Solid.
-    - A React file's FIRST line is `/** @jsxImportSource react */`.
-    - `tsc` reads it, and so does `reactFiles()` in `vite.shared.ts`, which every `vite*.config.ts` / `vitest.config.ts` here builds on.
-    - Restart `vite` after adding or dropping one.
-    - Why React is still here:  [the code-debt log](../../agents/CODE-DEBT.md), "app".
+  - So is what compiled spell draws:  `core`'s [drawing.ts](../core/src/drawing.ts),
+    on the page's Spell UI (epic `output-targets` P10-P11).
+  - No React:  every `.tsx` is Solid.
+  - `build.test.ts` pins that no chunk holds React, `spell-runtime.js` included.
   - Two test projects (`vitest.config.ts`):
     - `node`, for most tests:  there `solid-js` is its SERVER build
       (`renderToString`;  writes NOT staged, see [solid.test.tsx](src/solid.test.tsx))
@@ -33,11 +29,10 @@ when working with code in this package, `@spell-app/app`.
       spell Things, `SP.*`, the editor (P11).
       - Each entry imports it before rendering.
       - `tracked()` is a memo over such a read.
-    - Spell's React kit (`F`, `Thing.Component`) follows them through `$/util`'s `view()`.
 - `src/` is the app:
   - `solid/`:  the UI
   - `pages/`:  the pages and the router
-  - `ui/`:  `UI`, and `F` for `ui/forms`, spell PROGRAMS' React kit
+  - `ui/`:  `UI`, shared UI types, and Monaco's plumbing
   - `runner/`, `spellEditor/`, `editor.ts`
   - `index.tsx`:  Solid `render()` into `#app-root`
   - `src/server/` is its API server (`api.ts`, `index.ts`).
@@ -63,7 +58,8 @@ when working with code in this package, `@spell-app/app`.
     - `yarn build:element`:  `dist-element/`, `<spell-app>` and `<spell-editor>`, and their pack, `spell.pack.js`
   - ONE Solid per page, across those bundles.
     - `vite.solid.config.ts` builds FIRST, into each folder:
-      - `spell-solid.js`:  Solid, `ui`'s element core (`$/ui/core`) and its root family
+      - `spell-solid.js`:  Solid, `ui`'s element core (`$/ui/core`) and its root family,
+        and `@solidjs/h`, which compiled spell draws with
         - icon packs beside it
       - `spell-ui.js`:  `$/ui`, lazy
         - its chunks in `ui/`
@@ -73,7 +69,7 @@ when working with code in this package, `@spell-app/app`.
     - They take Solid and the core through `spell-solid-shared.js`:
       - the page's own, when it has them (a docs page's `SpellUI.packModules`)
       - else `spell-solid.js`
-    - `spell-runtime.js` never loads them.
+    - `spell-runtime.js` takes Solid and `h` through it too (compiled spell draws with Solid), never `spell-ui.js`.
     - Pinned by `element.build.test.ts`.
   - `spell dev vscode` is NOT here:  it's the repo root's.
   - `yarn start:lsp` and `yarn scopes` are in `../lsp`.
@@ -96,7 +92,7 @@ when working with code in this package, `@spell-app/app`.
   - The editor page's shortcuts are ONE `keydown` listener ([editorHotkeys.ts](src/pages/editorHotkeys.ts)).
 - `index.html` wraps the app in `<ui-root icons="fomantic">`.
   - So the app's icon names are Fomantic's ([loadUI.ts](src/solid/loadUI.ts)).
-  - It still links `semantic.min.css`:  running programs draw with Semantic UI's React kit.
+  - It still links `semantic.min.css`:  running programs draw with Semantic UI's class words.
 - `src/runner/` runs compiled spell:  the pieces every runner shares.
   - the runners:
     - the web app's editor
@@ -108,9 +104,10 @@ when working with code in this package, `@spell-app/app`.
       - e.g. `$/app/solid/ThingExplorer`, `.../ConsoleLines`, `.../loadUI`
     - `<spell-app>` is a root itself (`icons` default to `fomantic`).
     - VS Code's webview HTML wraps its `#runner-root` in `<ui-root icons="fomantic">`.
-  - The PROGRAM still draws with React:  `App.start()` makes its own root.
+  - The PROGRAM draws with the page's Solid too:  `App.start()` mounts its own root (`spellCore.mountApp()`).
     - A runner hands it `appRoot`, a `<div>` drawn once and never touched again.
     - Semantic UI's CSS stays wherever programs draw.
+    - Each drawn thing has its own error net:  a stand-in, a `ui-error`, and the rest keeps drawing.
   - Programs run on `spell-runtime.js` (`spellRuntime.ts`), NEVER the page's own `core`.
     - The app loads it once (`editor.loadRuntime()`), and so does the VS Code runner.
     - Each `<spell-app>` loads its OWN copy (`loadRuntime()`), so apps on a page don't share a `spellCore`.
@@ -183,7 +180,6 @@ As WWOD §12, plus:
 
 ## Types / Exports
 
-As WWOD §8, plus our self-namespaces:
+As WWOD §8, plus our self-namespace:
 
 - `UI` ~== `$/app/ui`
-- `F` ~== `$/app/ui/forms`
