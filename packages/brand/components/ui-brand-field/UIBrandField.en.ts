@@ -1,13 +1,13 @@
 /**
  * The English vocabulary of `<ui-brand-field>`:  every name the tag uses.
  * - Its tag, attributes (each with its kind and allowed values), slots, parts, states and texts.
- *   The shape is `ComponentVocabulary` (`$/ui/vocabulary`).
+ *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Pure data:  `import type` only.
  * - Class words:  `state` emits its value alone (`error`), as `<ui-field>`'s;
  *   `inline`, `required` and `disabled` their names.  The component adds `brand` before the noun (`brand field`).
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `brandFieldVocabulary`
@@ -87,4 +87,4 @@ export const brandFieldVocabulary = {
     { name: "disabled", description: "Can't be used." }
   ],
   texts: [{ key: "info", text: "More about {label}", description: "The info icon's name;  `{label}` is the label." }]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

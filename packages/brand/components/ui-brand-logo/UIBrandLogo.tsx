@@ -1,7 +1,7 @@
-import { Show, createMemo } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, protoMerged, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
+import { E } from "$/ui/core"
 
 import { brandLogoVocabulary } from "./UIBrandLogo.en"
 
@@ -18,49 +18,52 @@ import logoCSS from "./UIBrandLogo.css?inline"
  *   the component draws nothing until it lands (a frame).
  * - Named `Spell` / `Spell App` (`role="img"`);  `label=""` makes it decorative (`aria-hidden`).
  ****************/
-export class UIBrandLogo extends UIComponent<typeof brandLogoVocabulary> {
-  @proto static vocabulary = brandLogoVocabulary
-  @protoMerged static elementSetup = {
+export class UIBrandLogo extends E.UIComponent<typeof brandLogoVocabulary> {
+  @E.proto static vocabulary = brandLogoVocabulary
+  @E.protoMerged static elementSetup = {
     styleSheets: { logo: logoCSS },
     delegatesFocus: false
-  } satisfies Partial<ElementSetup>
+  } satisfies Partial<E.ElementSetup>
 
   /** The outlines, once loaded:  `undefined` until then. */
-  readonly paths = new Cell<typeof import("./logoPaths") | undefined>(undefined)
+  @E.state accessor paths: typeof import("./logoPaths") | undefined = undefined
 
   /**
    * Loads the outlines (once per page:  the module is cached);  settles once `paths` is set.
    * - the write lands in a promise callback, never a render
    */
-  readonly outlines = import("./logoPaths").then((paths) => this.paths.set(paths))
+  readonly outlines = import("./logoPaths").then((paths) => {
+    this.paths = paths
+  })
 
   /** What to draw:  the viewBox, and either a path (the mark) or SVG markup (a lockup). */
-  readonly shape = createMemo(() => {
-    const paths = this.paths.get()
+  @E.derived
+  get shape() {
+    const paths = this.paths
     if (!paths) return undefined
     const lockup = LOCKUP_OF[this.variant ?? "mark"]
     if (!lockup) return { vb: paths.MARK.vb, d: paths.MARK.d, body: undefined }
     const { vb, body } = paths.LOCKUPS[lockup]!
     return { vb, d: undefined, body }
-  })
+  }
 
   /** The accessible name:  `label`, else the logo's;  `""`:  none (decorative). */
-  readonly name = createMemo(() => {
+  get name(): string {
     if (this.label !== undefined) return this.label
     return this.translationForKey(this.variant === "app" ? "spellApp" : "spell")
-  })
+  }
 
   render(): JSX.Element {
     return (
-      <Show when={this.shape()}>
+      <Show when={this.shape}>
         {(shape) => (
           <svg
             class={["logo", this.tone ?? "ink"]}
             part={this.partForName("logo")}
             viewBox={shape().vb}
-            role={this.name() ? "img" : undefined}
-            aria-label={this.name() || undefined}
-            aria-hidden={this.name() ? undefined : "true"}
+            role={this.name ? "img" : undefined}
+            aria-label={this.name || undefined}
+            aria-hidden={this.name ? undefined : "true"}
           >
             <Show when={shape().d} fallback={<g innerHTML={shape().body} />}>
               <path d={shape().d} />
@@ -72,7 +75,7 @@ export class UIBrandLogo extends UIComponent<typeof brandLogoVocabulary> {
   }
 }
 
-export interface UIBrandLogo extends AttributeValues<typeof brandLogoVocabulary> {}
+export interface UIBrandLogo extends E.AttributeValues<typeof brandLogoVocabulary> {}
 
 /** A `variant` -> its lockup in `logoPaths.ts` (`mark` draws `MARK` instead). */
 const LOCKUP_OF: Readonly<Record<string, string>> = {

@@ -69,7 +69,7 @@ The rules below are its short form.
       - `Reactive` (the reactive members' decorators:  `@state`, `@controlled`, `@derived`, `@cssState`, `@onChange`)
       - `FormComponent` + `DOMFormControl` (form controls), `Cell`, `SlotContent`
       - `PartContext` + `PartComponent` (the generic content parts, styled by their owner)
-      - `Controlled` (compatibility:  brand's components still use it), `IconGlyph`
+      - `Controlled` (compatibility:  nothing uses it since brand moved to `@controlled`), `IconGlyph`
       - `LoadableComponent` + `DOMLoadableElement` (the base of the elements that show a text file:
         `source`, inline text, loading / error look, `save()`)
       - `LoadableBody` + `DOMLoadableBodyElement` (a section's body loaded from `source` the first time it opens)
@@ -829,7 +829,7 @@ As WWOD §12, plus:
       the static `Class.elementSetup` only what that class stated.
     - A base class that others extend types its own as `Partial<E.ElementSetup>`:
       otherwise a subclass stating other keys fails TypeScript's check of the class's static side.
-    - Every other class ends its literal with `satisfies Partial<E.ElementSetup>` (brand:  `Partial<ElementSetup>`):
+    - Every other class ends its literal with `satisfies Partial<E.ElementSetup>`:
       a misspelt key fails TypeScript, where an untyped literal would take it silently.
     - Keys merge one level deep:  a subclass's `styleSheets` REPLACE its base's whole;
       spread the base's to add to them:

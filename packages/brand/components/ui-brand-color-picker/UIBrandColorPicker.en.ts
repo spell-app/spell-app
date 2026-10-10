@@ -1,11 +1,11 @@
 /**
  * Every name `<ui-brand-color-picker>` uses:  tag, attributes, events, slots, parts, states, texts.  Schema:
- * `ComponentVocabulary`.
+ * `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
  * - Class words:  `disabled` emits its name.  The component adds `brand color` before the noun (`brand color picker`).
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-brand-color-picker>`
@@ -109,4 +109,4 @@ export const brandColorPickerVocabulary = {
     { key: "copy", text: "Copy {format}", description: "A copy button's name;  `{format}` the row's label." },
     { key: "copied", text: "Copied {value}", description: "Announced after a copy." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

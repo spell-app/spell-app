@@ -136,8 +136,9 @@ Only what DIFFERS is below.
 
 As the root's, plus these reaches into `ui` past its barrel, each because the barrel can't give it
 (until the elements move into Spell UI, epic todo T2):
-- `$/ui/core` -- the element authoring API (`UIComponent`, `proto`, `protoMerged`, `Cell` ...),
-  as a `ui` family imports it
+- `$/ui/core` (and `$/ui/forms`) -- the element authoring API, as a `ui` family imports it:
+  through its namespaces, `import { E, UI, UIT } from "$/ui/core"` (+ `import { F } from "$/ui/forms"`),
+  then `E.UIComponent`, `@E.state`, `@E.controlled("value")`, `F.FormComponent`
 - `$/ui/runtime`, `$/ui/icons`, `$/ui/styles`, `$/ui/styles/ui.css` --
   the bundle entries (`src/`), as Spell UI's site entry does
 - `$/ui/docs-components/...` -- the docs widgets and `SiteData` (`src/brand-docs.ts`):  not in `$/ui`'s barrel
