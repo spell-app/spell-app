@@ -52,7 +52,10 @@ house style every package shares.  Only what's local is below;  a section named 
     and `/favicon.ico`, importing the leaf, never the browser-only barrel);
     and `EpicState.ts`, an epic's state (in progress, errors, paused, future, done):  the ONE rule the docs index,
     `RunningEpics`, `<epic-page>` and the CLI's session icons share.  NO imports at all, so plain `node` loads it by
-    path (`packages/docs/tools/index.js`) and the epics pack bundles it;  each imports the file, never the barrel
+    path (`packages/docs/tools/index.js`) and the epics pack bundles it;  each imports the file, never the barrel;
+    and `EpicCards.ts` beside it, the Epics page's cards (its groups, a card's star and last-worked date, the
+    favourites file):  the docs index and `RunningEpics` draw them alike.  Its ONE import is `./EpicState.ts`, by
+    file name, so plain `node` loads it too
   - `$/server/test/...` -- test helpers (`serveHandler`, `ask`)
 - Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test` (node);  `yarn favicon [--hat 0.74]`
   after the hat mark changes (headless Chromium renders the PNGs).

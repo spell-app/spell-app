@@ -39,6 +39,7 @@
  * - highlight.js, when the page loaded it
  * - PAGE NOTES (`wireNotes()`):  each `<spell-note>` as a folded card;  served by the page server, a note bubble on
  *   every section's title and a Note pill in the page header, which write notes into the page
+ * - FAVORITE EPICS (`wireFavorites()`):  on the Epics page, a card's star moves it into Favorites and back, at once
  * LANDING -- where a jump puts its target, ONE model for every kind of jump:
  * - the line:  just below the lowest title that will be stuck over the target:  site header + `--spell-top` (page
  *   header, filter bar) + the stack of the target's sections' titles
@@ -177,8 +178,13 @@ async function start() {
   live.ready({ main, rail, sticky, follow, entries: railKey(outline, counts) })
   void wireNotes(main)
   wireNewEpic(main)
-  // the docs index rewrites this page after a new epic:  its header comes back without the pill
-  addEventListener("spell-doc:updated", () => wireNewEpic(main))
+  wireFavorites(main)
+  // the docs index rewrites this page after a new epic:  its header comes back without the pill, a starred card
+  // maybe in its old place too
+  addEventListener("spell-doc:updated", () => {
+    wireNewEpic(main)
+    wireFavorites(main)
+  })
 }
 
 /**
@@ -2675,6 +2681,126 @@ async function postJSON(url, body, retried = false) {
 }
 
 ////////////////
+// ## Favorite epics
+////////////////
+
+/** The page server's route that stars and unstars an epic (`packages/epics/src/tool/epicRoutes.ts`). */
+const FAVORITE_API = "/api/epics/favorite"
+
+/** An Epics page group (`$/server/site/EpicCards` `epicGroupsHtml()`):  its heading's count, its card list. */
+const EPIC_GROUP = ".spell-epic-group[data-group]"
+
+/** Whether the stars' click listener is on `document` already:  once per page, whatever re-wires it. */
+let favoritesWired = false
+
+/**
+ * FAVORITE EPICS (epic `airplane` P8, Owen 2026-10-10):  the star at each Epics card's top right
+ * (`$/server/site/EpicCards` `epicStarHtml()`).
+ * - a click stars or unstars the epic at once:  the card moves to Favorites (or back to its own group,
+ *   `data-group`), alphabetical there, and each group's count follows (`regroupEpics()`);  no reload
+ * - then the page server writes it (`FAVORITE_API`, into the shared `epics/favorites.json`);  refused:  the card
+ *   goes back, and a toast says why
+ * - its answer (every favourite) sets every star:  another window may have starred one meanwhile
+ * - the card's own link never fires:  the star is a button of its own, its click stopped there
+ * - only served by the page server with a token:  from `file://`, the stars show what the docs index wrote, and
+ *   say they need the page server
+ * - a live update of the page (`spell-doc:updated`) may leave a moved card twice:  `regroupEpics()` keeps one
+ */
+function wireFavorites(main) {
+  const stars = main.querySelectorAll(".spell-epic-star")
+  if (!stars.length) return
+  const writable = !!window.SPELL_SERVER?.token && location.protocol !== "file:"
+  if (!writable) {
+    for (const star of stars) {
+      star.disabled = true
+      star.title = "Starring needs the page server (spell dev server ensure)"
+    }
+    return
+  }
+  regroupEpics(main)
+  if (favoritesWired) return
+  favoritesWired = true
+  document.addEventListener("click", (event) => {
+    const star = event.target instanceof Element ? event.target.closest(".spell-epic-star") : null
+    if (!star) return
+    event.preventDefault()
+    event.stopPropagation()
+    void toggleFavorite(star.closest("ui-card[data-epic]"))
+  })
+}
+
+/** Star or unstar `card`'s epic:  at once on the page, then on the page server (`wireFavorites()`). */
+async function toggleFavorite(card) {
+  const main = card?.closest("main")
+  if (!main) return
+  const name = card.dataset.epic
+  const favorite = card.querySelector(".spell-epic-star").getAttribute("aria-pressed") !== "true"
+  setStar(card, favorite)
+  regroupEpics(main)
+  try {
+    const { favorites } = await postJSON(FAVORITE_API, { name, favorite })
+    const starred = new Set(favorites)
+    for (const each of main.querySelectorAll("ui-card[data-epic]")) setStar(each, starred.has(each.dataset.epic))
+  } catch (error) {
+    setStar(card, !favorite)
+    noteToast(`Couldn't ${favorite ? "star" : "unstar"} ${name}:  ${error.message}`, "error")
+  }
+  regroupEpics(main)
+}
+
+/** `card`'s star drawn as `favorite` says:  solid and pressed, or its outline (`epicStarHtml()`'s look). */
+function setStar(card, favorite) {
+  const star = card.querySelector(".spell-epic-star")
+  if (!star) return
+  const name = card.dataset.epic
+  star.setAttribute("aria-pressed", String(favorite))
+  star.setAttribute("aria-label", `${favorite ? "Unstar" : "Star"} ${name}`)
+  star.title = favorite ? "A favorite:  listed first.  Click to unstar" : "Star it:  listed first, under Favorites"
+  star.querySelector("ui-icon")?.setAttribute("name", favorite ? "star" : "star outline")
+}
+
+/**
+ * Put every Epics card in its group:  Favorites when starred, else its own (`data-group`);  alphabetical by title
+ * (`data-title`) in each;  each group's count, and empty ones hidden.
+ * - a card twice (`data-epic`:  a live update re-added one this moved):  the first stays
+ * - SIDE EFFECT:  moves cards between the groups' lists;  callable any time
+ */
+function regroupEpics(main) {
+  const groups = new Map(
+    Array.from(main.querySelectorAll(EPIC_GROUP), (group) => [group.dataset.group, group.querySelector("ui-cards")])
+  )
+  if (!groups.size) return
+  const seen = new Set()
+  const cards = []
+  for (const card of main.querySelectorAll(`${EPIC_GROUP} ui-card[data-epic]`)) {
+    if (seen.has(card.dataset.epic)) card.remove()
+    else {
+      seen.add(card.dataset.epic)
+      cards.push(card)
+    }
+  }
+  const byTitle = (a, b) =>
+    (a.dataset.title ?? "").localeCompare(b.dataset.title ?? "", "en", { sensitivity: "base", numeric: true })
+  for (const [name, list] of groups) {
+    const mine = cards
+      .filter((card) => {
+        const starred = card.querySelector(".spell-epic-star")?.getAttribute("aria-pressed") === "true"
+        return (starred ? "favorites" : card.dataset.group) === name
+      })
+      .toSorted(byTitle)
+    // only what's out of place moves:  a card that stays keeps its focus and hover
+    mine.forEach((card, index) => {
+      if (list?.children[index] !== card) list?.insertBefore(card, list.children[index] ?? null)
+    })
+    const group = list?.closest(EPIC_GROUP)
+    if (!group) continue
+    group.hidden = mine.length === 0
+    const count = group.querySelector(".spell-epic-group-count")
+    if (count) count.textContent = String(mine.length)
+  }
+}
+
+////////////////
 // ## New epic
 ////////////////
 
@@ -2700,9 +2826,8 @@ function wireNewEpic(main) {
   const pill = document.createElement("span")
   pill.className = "spell-new-epic"
   pill.dataset.spellAdded = ""
-  pill.innerHTML =
-    `<ui-button circular basic size="tiny" icon="seedling">New epic</ui-button>` +
-    `<ui-popup inverted size="mini" position="bottom center" content="Write an idea down as a future epic"></ui-popup>`
+  // the browser's own tooltip, a `title` (Owen, 2026-10-10:  never a `<ui-popup>` as a tooltip)
+  pill.innerHTML = `<ui-button circular basic size="tiny" icon="seedling" title="Write an idea down as a future epic">New epic</ui-button>`
   pill.querySelector("ui-button").addEventListener("click", openNewEpicBox)
   head.append(pill)
 }
