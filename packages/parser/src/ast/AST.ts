@@ -831,7 +831,7 @@ export class ASTScopedMethodInvocation extends ASTMethodInvocation {
  * - `methodName` is method name, e.g. `log` or `warn` -- defaults to `log`.
  * - `args` is array of expressions.
  * - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
- *   (see `rules/methods.ts`) skips console calls since they already print something.
+ *   (see `rules/methods/MethodDefinition.ts`) skips console calls since they already print something.
  */
 export type ASTConsoleMethodInvocationProps = Prettify<{
   methodName?: string
@@ -891,7 +891,7 @@ export class ASTCoreMethodInvocation extends ASTScopedMethodInvocation {
  *  - `value` (optional) is expected value AST to match against.
  *  - `valueString` (optional) is string for spell code used to generate `value`, shown in assertion output.
  *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
- *    (see `rules/methods.ts`) skips `expect(...)` calls since they already print an assertion result.
+ *    (see `rules/methods/MethodDefinition.ts`) skips `expect(...)` calls since they already print an assertion result.
  */
 export type ASTExpectMethodInvocationProps = Prettify<{
   expression: ASTExpression
@@ -926,7 +926,7 @@ export class ASTExpectMethodInvocation extends ASTCoreMethodInvocation {
  *  - `expression` is expression to output -- a bare `string` is wrapped as a backtick `ASTStringLiteral`.
  *  - `methodName` (optional) overrides which spellCore method to call, defaults to `"echo"`.
  *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
- *    (see `rules/methods.ts`) skips echo calls since they already print something.
+ *    (see `rules/methods/MethodDefinition.ts`) skips echo calls since they already print something.
  */
 export type ASTEchoInvocationProps = Prettify<{ expression: string | ASTExpression; methodName?: string }>
 
@@ -1260,7 +1260,7 @@ export class ASTStatement extends ASTNode {}
  *  - NOTE: you can use this interchangeably whenever something takes a single `ASTStatement`.
  *  - `statements` is a list of Statements.
  *  - `echoInTests` (overridable getter) is always `false` -- test-mode echo injection
- *    (see `rules/methods.ts`) skips groups since each inner statement is echoed individually.
+ *    (see `rules/methods/MethodDefinition.ts`) skips groups since each inner statement is echoed individually.
  */
 export type ASTStatementGroupProps = Prettify<{
   statements?: Array<ASTStatement | ASTExpression | ASTComment | ASTBlankLine>
