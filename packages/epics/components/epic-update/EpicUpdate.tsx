@@ -39,7 +39,7 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
 
   /** Has it children:  a note, not a bare label?  Follows its children;  never on a server. */
   @E.cssState("note")
-  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  @E.watches({ childList: true, characterData: true, subtree: true })
   get isNote(): boolean {
     return !isServer && EpicUpdate.hasContent(this.domElement)
   }

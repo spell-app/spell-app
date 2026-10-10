@@ -43,7 +43,7 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
     styleSheets: { progress: progressCSS },
     cssStates: ["active"],
     delegatesFocus: false,
-    aria: { role: "progressbar", ariaValueMin: "0" },
+    aria: { role: "progressbar", valueMin: "0" },
     // `disabled`:  only a look
     disabled: "its own"
   } satisfies Partial<E.ElementSetup>
@@ -112,7 +112,7 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   ////////////////
 
   /** The element's text (its slotted label), read again when it changes. */
-  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  @E.watches({ childList: true, characterData: true, subtree: true })
   get elementText(): string {
     return (this.domElement.textContent ?? "").trim()
   }

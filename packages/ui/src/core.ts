@@ -14,7 +14,7 @@
  *   - from `$/ui/elements`, the Solid layer:
  *     - `Reactive`, the decorators:
  *       `state`, `controlled`, `derived`, `cssState`, `aria`, `onChange`, `whileConnected`,
- *       `fromContent`, `on`, `untracked`
+ *       `watches`, `on`, `untracked`
  *     - `Cell`, `ElementDefinition`, `DOMElement`, `UIComponent`, `SlotContent`, `IconGlyph`
  *     - `PartContext` + `PartComponent` (owner context)
  *     - `RootSettings`:  what each `<ui-root>` sets for its subtree (icon packs, emoji)

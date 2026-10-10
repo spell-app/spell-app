@@ -270,7 +270,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   /**
    * While connected and drawn, watch the subtree (numbers, step label) and the headers' heights (`top`).
    * - `isReady` too:  the header must be drawn to be measured.
-   * - Its own `MutationObserver`, not `@fromContent`:  it bumps `layout`, a page-wide signal the page's blocks read
+   * - Its own `MutationObserver`, not `@watches`:  it bumps `layout`, a page-wide signal the page's blocks read
    *   too (`signalsOf()`), not a member of its own.
    * - Its own `ResizeObserver` (no decorator watches sizes), and the window's `resize`.
    */
