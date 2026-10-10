@@ -212,14 +212,14 @@
       ]
     },
     {
-      path: "project:Drawable Solitaire/file:Card.spell/type:Card/property:pile", line: 4,
+      path: "project:Drawable Solitaire/file:Card.spell/type:Card/property:pile", line: 38,
       detail: "Pile",
       section: "Pile of playing cards",
       uri: "spell:/@system:examples:Drawable%20Solitaire/Pile.spell",
       description: "a card is in one pile at a time:  putting it on another pile takes it off this one"
     },
     {
-      path: "project:Drawable Solitaire/file:Card.spell/type:Card/method:play a card", line: [115, 141],
+      path: "project:Drawable Solitaire/file:Card.spell/type:Card/method:play a card", line: [125, 151],
       section: "actions",
       uri: "spell:/@system:examples:Drawable%20Solitaire/Solitaire.spell",
       rules: [
@@ -275,27 +275,27 @@
       uri: "spell:/@system:examples:Drawable%20Solitaire/Pile.spell"
     },
     {
-      path: "project:Drawable Solitaire/file:Pile.spell/type:Pile", line: 2,
-      super: "type:List",
+      path: "project:Drawable Solitaire/file:Pile.spell/type:Pile", line: [3, 36],
+      super: "type:DrawableList",
       section: "Pile of playing cards",
-      description: "## Pile of playing cards"
+      description: "a drawable list:  each pile is its own element, <drawable-solitaire-pile>, holding its cards' elements"
     },
     {
-      path: "project:Drawable Solitaire/file:Pile.spell/type:Pile/property:name", line: 5,
+      path: "project:Drawable Solitaire/file:Pile.spell/type:Pile/property:name", line: 39,
       detail: "text",
       section: "Pile of playing cards"
     },
     {
-      path: "project:Drawable Solitaire/file:Pile.spell/type:Pile/property:color", line: [7, 9],
+      path: "project:Drawable Solitaire/file:Pile.spell/type:Pile/property:color", line: [41, 43],
       section: "Pile of playing cards"
     },
     {
-      path: "project:Drawable Solitaire/file:Pile.spell/type:Pile/property:value", line: [11, 13],
+      path: "project:Drawable Solitaire/file:Pile.spell/type:Pile/property:value", line: [45, 47],
       detail: "number",
       section: "Pile of playing cards"
     },
     {
-      path: "project:Drawable Solitaire/file:Pile.spell/type:Pile/property:state", line: [15, 19],
+      path: "project:Drawable Solitaire/file:Pile.spell/type:Pile/property:state", line: [49, 53],
       detail: "text",
       section: "Pile of playing cards"
     },
@@ -315,12 +315,12 @@
       section: "Game bits"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Game/property:state", line: [68, 72],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Game/property:state", line: [78, 82],
       detail: "list of texts",
       section: "actions"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Game/method:draw a game", line: [221, 257],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Game/method:draw a game", line: [231, 267],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -354,7 +354,7 @@
       description: "set up stock pile: unplayed cards"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Stock_Pile/method:draw a stock-pile", line: [210, 214],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Stock_Pile/method:draw a stock-pile", line: [220, 224],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -372,7 +372,7 @@
       description: "set up discards: where played cards go when turning over stock"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Discard_Pile/method:draw a discard-pile", line: [216, 219],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Discard_Pile/method:draw a discard-pile", line: [226, 229],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -390,7 +390,7 @@
       description: "set up foundation piles: where we build up from ace => king"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Foundation/method:draw a foundation", line: [196, 203],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Foundation/method:draw a foundation", line: [206, 213],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -402,68 +402,68 @@
       section: "set up all piles"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Tableau", line: 46,
+      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Tableau", line: [46, 56],
       super: "project:Drawable Solitaire/file:Pile.spell/type:Pile",
       section: "set up all piles",
       description: "set up tableau piles: vertical piles where we arrange from king to ace"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Tableau/method:draw a tableau", line: [205, 208],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/type:Tableau/method:draw a tableau", line: [215, 218],
       section: "rendering the bits",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
       ]
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/variable:deck", line: 59,
+      path: "project:Drawable Solitaire/file:Solitaire.spell/variable:deck", line: 69,
       detail: "Deck",
       section: "set up all piles",
       description: "set up deck of cards"
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/function:debug the game", line: [74, 76],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/function:debug the game", line: [84, 86],
       section: "actions",
       rules: [
         { name: "debug_the_game", syntax: "debug the game" }
       ]
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/function:reset the stock pile", line: [78, 83],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/function:reset the stock pile", line: [88, 93],
       section: "actions",
       rules: [
         { name: "reset_the_stock_pile", syntax: "reset the stock pile" }
       ]
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/function:play from the stock pile", line: [85, 92],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/function:play from the stock pile", line: [95, 102],
       section: "actions",
       rules: [
         { name: "play_from_the_stock_pile", syntax: "play from the stock pile" }
       ]
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/function:deal the cards", line: [94, 113],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/function:deal the cards", line: [104, 123],
       section: "actions",
       rules: [
         { name: "deal_the_cards", syntax: "deal the cards" }
       ]
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/function:auto-play", line: [146, 175],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/function:auto-play", line: [156, 185],
       section: "actions",
       rules: [
         { name: "auto_play", syntax: "auto-play" }
       ]
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/function:reset the game", line: [177, 179],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/function:reset the game", line: [187, 189],
       section: "actions",
       rules: [
         { name: "reset_the_game", syntax: "reset the game" }
       ]
     },
     {
-      path: "project:Drawable Solitaire/file:Solitaire.spell/function:cheat", line: [181, 189],
+      path: "project:Drawable Solitaire/file:Solitaire.spell/function:cheat", line: [191, 199],
       section: "actions",
       rules: [
         { name: "cheat", syntax: "cheat" }

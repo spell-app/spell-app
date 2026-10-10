@@ -43,7 +43,17 @@ for each pile in the foundations
 	add it to all-piles
 
 // set up tableau piles: vertical piles where we arrange from king to ace
-a tableau is a pile
+a tableau is a pile:
+	<css>
+		:host {
+			min-height: 500px;
+		}
+		/* its cards, one below the other */
+		::slotted(*) {
+			position: relative;
+			margin-bottom: 8px;
+		}
+	</css>
 a tableau can give up a card if: the card is face up
 a tableau can take a card if:
 	if the tableau is empty
@@ -191,31 +201,31 @@ to cheat
 ##############
 ## rendering the bits
 
-// note: tableaus just draw as a (vertical) list of cards
+// each pile draws its outside:  its cards show in its <slot/>, each card its own element
 
 to draw a foundation:
 	set color to "red" if its name is diamonds or its name is hearts otherwise "black"
-	return <div className="Pile Foundation stacked">
-		<div className={"Placeholder ui button basic compact fluid " + color + " " + its name}>
+	return <div className="pile foundation">
+		<div className={"placeholder " + color + " " + its name}>
 			<div className={"suit " + its name}>{its symbol}</div>
 		</div>
-		{draw its bottom card}
+		<slot/>
 	</div>
 
 to draw a tableau:
-	return <div className="Pile Tableau staggered">
-		{draw cards in it}
+	return <div className="pile tableau">
+		<slot/>
 	</div>
 
 to draw a stock-pile:
-	return <div className="Pile Stock stacked">
-		<div className="Placeholder ui button basic compact fluid" onClick={play from the stock pile}/>
-		{draw its bottom card}
+	return <div className="pile stock">
+		<div className="placeholder" onClick={play from the stock pile}/>
+		<slot/>
 	</div>
 
 to draw a discard-pile:
-	return <div className="Pile Discards stacked">
-		{draw its bottom card}
+	return <div className="pile discards">
+		<slot/>
 	</div>
 
 to draw a game

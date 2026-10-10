@@ -295,23 +295,31 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => titles()[3] === "Ship it")
   })
 
-  test("the `Drawable Solitaire` example:  each card its own element, styled by its <css>;  a click still plays", async () => {
+  test("the `Drawable Solitaire` example:  each pile and card its own element, styled by its <css>;  a click still plays", async () => {
     const host = await mount(source(await exampleCompiled("Drawable Solitaire"), "Solitaire"))
-    const cards = () => [...host.querySelectorAll<HTMLElement & { ready: Promise<void> }>("drawable-solitaire-card")]
-    await waitFor(() => cards().length > 20)
-    await Promise.all(cards().map((card) => card.ready))
-    flush()
+    type Element = HTMLElement & { ready: Promise<void> }
+    const cards = () => [...host.querySelectorAll<Element>("drawable-solitaire-card")]
+    await waitFor(() => cards().length === 52)
+    await ElementFixture.settle(host)
     expect(host.querySelector(".spell-draw-error")).toBeNull()
+    // each pile holds its cards' elements, shown through its frame's <slot>
+    const tableaus = () => [...host.querySelectorAll<Element>("drawable-solitaire-tableau")]
+    // dealt with a pause between cards:  wait for the last
+    await waitFor(() => tableaus()[6]?.children.length === 7, 10_000)
+    await ElementFixture.settle(host)
+    expect(tableaus().map((tableau) => tableau.children.length)).toEqual([1, 2, 3, 4, 5, 6, 7])
+    expect(tableaus()[0]!.shadowRoot!.querySelector(".pile.tableau slot")).not.toBeNull()
+    // the card's own <css>, in its own shadow root:  a face-down card's back
     const faces = cards().map((card) => card.shadowRoot!.querySelector(".card"))
-    expect(faces.every(Boolean)).toBe(true)
-    // its own <css>, in its own shadow root:  a face-down card's back
     const down = faces.find((face) => face!.classList.contains("face-down"))!
     expect(getComputedStyle(down).backgroundImage).toContain("repeating-linear-gradient")
+    // the pile's own <css>:  a stacked pile's cards sit on each other
+    const stock = host.querySelector<Element>("drawable-solitaire-stock-pile")!
+    expect(getComputedStyle(stock.lastElementChild!).position).toBe("absolute")
 
-    const discards = () => host.querySelectorAll(".Pile.Discards drawable-solitaire-card").length
+    const discards = () => host.querySelector("drawable-solitaire-discard-pile")!.children.length
     expect(discards()).toBe(0)
-    const stock = host.querySelector<HTMLElement>(".Pile.Stock drawable-solitaire-card")!
-    stock.shadowRoot!.querySelector<HTMLElement>(".card")!.click()
+    ;(stock.lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
     await waitFor(() => discards() > 0)
   })
 

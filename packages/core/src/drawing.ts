@@ -21,6 +21,7 @@ import { Errored, For, createMemo, runWithOwner } from "solid-js"
 
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
+import { DrawableList } from "./classes/DrawableList"
 
 /** What a drawing is:  a Solid node, or anything Solid can put on the page (text, a list of them, nothing). */
 export type Drawing = JSX.Element
@@ -78,6 +79,8 @@ export const drawingMethods = defineSpellCoreModule({
    *   TypeScript can't type, e.g. the last card of a pile.
    * - A DRAWABLE thing (`a card is a drawable thing`) is its element, e.g. `<solitaire-card>`, the card set as its
    *   `thing`:  it draws itself in there, with `drawOwn()`.  When the page can define it -- see `elementFor()`.
+   *   - A drawable LIST's items are its element's children, e.g. `<game-pile>` holding `<game-card>`s,
+   *     shown in its drawing's `<slot>`.
    * - Anything else:  its own drawing, here -- see `drawOwn()`.
    */
   drawThing(drawable?: unknown): Drawing | null {
@@ -85,8 +88,10 @@ export const drawingMethods = defineSpellCoreModule({
     if (typeof thing?.draw !== "function") return null
     const tag = spellCore.elementFor(thing)
     if (tag) {
+      // a drawable list's items are its element's children:  shown in its drawing's `<slot>`
+      const items = thing instanceof DrawableList ? [() => spellCore.drawItems(thing)] : []
       // made NOW, as `element()` does:  the thing is a plain value, set once
-      return (h(tag, { "prop:thing": thing }) as unknown as () => Drawing)()
+      return (h(tag, { "prop:thing": thing }, ...items) as unknown as () => Drawing)()
     }
     return spellCore.drawOwn(thing)
   },

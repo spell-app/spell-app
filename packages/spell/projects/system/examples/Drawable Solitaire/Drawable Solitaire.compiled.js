@@ -333,9 +333,45 @@ export function test_deck_creation() {
 test_deck_creation()
 // -----------
 spellCore.heading("Pile of playing cards")
-/** Pile of playing cards */
-export class Pile extends List {
+///////////////////////////
+// ## Pile of playing cards
+///////////////////////////
+/** a drawable list:  each pile is its own element, <drawable-solitaire-pile>, holding its cards' elements */
+export class Pile extends DrawableList {
   static instanceType = Card
+  static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
+
+  static css = `:host {
+  	display: block;
+  	position: relative;
+  	min-height: 30px;
+  }
+  .pile {
+  	position: relative;
+  	min-height: 30px;
+  }
+  /* its cards, stacked:  the last on top */
+  ::slotted(*) {
+  	position: absolute;
+  	left: 0;
+  	top: 0;
+  	width: 100%;
+  }
+  .placeholder {
+  	box-sizing: border-box;
+  	height: 30px;
+  	border: 1px dashed #b0b0b0;
+  	border-radius: 4px;
+  	text-align: center;
+  	cursor: pointer;
+  }
+  .placeholder.red {
+  	color: crimson;
+  }
+  .placeholder .suit {
+  	font-size: 1.4rem;
+  	line-height: 28px;
+  }`
 
   static { this.declareProp('name', { type: 'text' }) }
   get name() { return this.getProp('name') }
@@ -524,22 +560,24 @@ export let tableaus = new List({ instanceType: "Pile" })
 
 /** set up stock pile: unplayed cards */
 export class Stock_Pile extends Pile {
+  static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
+
   canGiveUp(card) {
     return (card == spellCore.getItemAt(this, -1))
   }
 
   draw() {
-    return spellCore.element({ tag: "div", props: { className: "Pile Stock stacked" }, children: [
+    return spellCore.element({ tag: "div", props: { className: "pile stock" }, children: [
       spellCore.element({
         tag: "div",
         props: {
-          className: "Placeholder ui button basic compact fluid",
+          className: "placeholder",
           onClick: (event) => {
             return play_from_the_stock_pile()
           }
         }
       }),
-      () => spellCore.drawThing(spellCore.getItemAt(this, -1))
+      spellCore.element({ tag: "slot" })
     ] })
   }
 }
@@ -548,13 +586,15 @@ spellCore.append(all_piles, stock)
 
 /** set up discards: where played cards go when turning over stock */
 export class Discard_Pile extends Pile {
+  static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
+
   canGiveUp(card) {
     return (card == spellCore.getItemAt(this, -1))
   }
 
   draw() {
-    return spellCore.element({ tag: "div", props: { className: "Pile Discards stacked" }, children: [
-      () => spellCore.drawThing(spellCore.getItemAt(this, -1))
+    return spellCore.element({ tag: "div", props: { className: "pile discards" }, children: [
+      spellCore.element({ tag: "slot" })
     ] })
   }
 }
@@ -563,6 +603,8 @@ spellCore.append(all_piles, discards)
 
 /** set up foundation piles: where we build up from ace => king */
 export class Foundation extends Pile {
+  static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
+
   canGiveUp(card) {
     return false
   }
@@ -576,17 +618,17 @@ export class Foundation extends Pile {
   //##############
   //## rendering the bits
 
-  // note: tableaus just draw as a (vertical) list of cards
+  // each pile draws its outside:  its cards show in its <slot/>, each card its own element
 
   draw() {
     let color = (((this.name == 'diamonds') || (this.name == 'hearts')) ? "red" : "black")
-    return spellCore.element({ tag: "div", props: { className: "Pile Foundation stacked" }, children: [
-      spellCore.element({ tag: "div", props: { className: () => ((("Placeholder ui button basic compact fluid " + color) + " ") + this.name) }, children: [
+    return spellCore.element({ tag: "div", props: { className: "pile foundation" }, children: [
+      spellCore.element({ tag: "div", props: { className: () => ((("placeholder " + color) + " ") + this.name) }, children: [
         spellCore.element({ tag: "div", props: { className: () => ("suit " + this.name) }, children: [
           () => this.symbol
         ] })
       ] }),
-      () => spellCore.drawThing(spellCore.getItemAt(this, -1))
+      spellCore.element({ tag: "slot" })
     ] })
   }
 }
@@ -620,6 +662,17 @@ spellCore.map(foundations, (pile) => {
 
 /** set up tableau piles: vertical piles where we arrange from king to ace */
 export class Tableau extends Pile {
+  static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
+
+  static css = `:host {
+  	min-height: 500px;
+  }
+  /* its cards, one below the other */
+  ::slotted(*) {
+  	position: relative;
+  	margin-bottom: 8px;
+  }`
+
   canGiveUp(card) {
     return card.is_face_up
   }
@@ -630,8 +683,8 @@ export class Tableau extends Pile {
   }
 
   draw() {
-    return spellCore.element({ tag: "div", props: { className: "Pile Tableau staggered" }, children: [
-      () => spellCore.drawItems(this)
+    return spellCore.element({ tag: "div", props: { className: "pile tableau" }, children: [
+      spellCore.element({ tag: "slot" })
     ] })
   }
 }
@@ -785,4 +838,4 @@ spellCore.heading("rendering the bits")
 reset_the_game()
 game.start()
 // -----------
-spellCore.installStyles(undefined, `/* File styles.css:  the piles and the board.  Each card styles itself:  its <css>, in Card.spell. */¬.Pile {¬	position: relative;¬	min-height: 30px;¬}¬¬.Pile.Tableau {¬	min-height: 500px;¬}¬¬.Pile.stacked drawable-solitaire-card {¬	position: absolute;¬	left: 0;¬	top: 0;¬}¬¬.Pile.staggered drawable-solitaire-card {¬	margin-bottom: 8px !important;¬}¬¬.Pile > .Placeholder {¬	position: relative;¬	height: 30px;¬}¬¬.Pile > .Placeholder .suit {¬	position: relative;¬	font-size: 1.6rem;¬}¬¬.Pile > .Placeholder .suit.diamonds,¬.Pile > .Placeholder .suit.spades {¬	font-size: 1.75rem;¬	top: -0.1rem;¬}`)
+spellCore.installStyles(undefined, `/* File styles.css:  the board's own styles.  The cards and piles style themselves:  their <css>. */¬`)

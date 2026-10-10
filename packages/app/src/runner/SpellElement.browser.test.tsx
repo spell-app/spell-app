@@ -2,7 +2,7 @@ import { describe, expect, test } from "vite-plus/test"
 import { flush } from "solid-js"
 import h from "@solidjs/h"
 
-import { spellCore, App, Drawable } from "$/core"
+import { spellCore, App, Drawable, DrawableList } from "$/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { installSpellElements } from "./SpellElement"
 
@@ -129,6 +129,62 @@ describe("SpellElement", () => {
 
       ace!.shadowRoot!.querySelector("button")!.click()
       expect(table.cards[0]!.clicks).toBe(1)
+      root.remove()
+    })
+  })
+
+  describe("a drawable list's items are its element's children (P6)", () => {
+    /** A card, drawn as its name. */
+    class Chip extends Drawable {
+      static elementTag = spellCore.defineElement(this, "Games")
+      constructor(public label = "") {
+        super()
+      }
+      draw(): ReturnType<Drawable["draw"]> {
+        return (h("b", {}, this.label) as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    /** A pile:  its outside a box around its slot. */
+    class Heap extends DrawableList<Chip> {
+      static elementTag = spellCore.defineElement(this, "Games")
+      static instanceType = Chip
+      draw(): ReturnType<Drawable["draw"]> {
+        return (h("div", { class: "heap" }, h("slot", {})) as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    /** Two heaps, side by side. */
+    class Board extends App {
+      left = new Heap()
+      right = new Heap()
+      draw(): ReturnType<Drawable["draw"]> {
+        const heaps = [() => spellCore.drawThing(this.left), () => spellCore.drawThing(this.right)]
+        return (h("div", {}, ...heaps) as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+
+    test("<game-heap> holds <game-chip>s, shown through its frame's slot;  a chip moved moves to the other heap", async () => {
+      const board = new Board()
+      const [a, b] = [new Chip("a"), new Chip("b")]
+      spellCore.append(board.left, a)
+      spellCore.append(board.left, b)
+      const root = document.createElement("div")
+      document.body.append(root)
+      spellCore.mountApp(board, root)
+      flush()
+      const [left, right] = [...root.querySelectorAll("game-heap")] as HTMLElement[]
+      await ElementFixture.settle(root)
+      const labels = (heap: HTMLElement) =>
+        [...heap.children].map((chip) => `${chip.localName} ${chip.shadowRoot?.textContent}`)
+      expect(labels(left!)).toEqual(["game-chip a", "game-chip b"])
+      expect(left!.shadowRoot!.querySelector(".heap slot")).not.toBeNull()
+      expect((left!.children[0] as HTMLElement).assignedSlot).toBe(left!.shadowRoot!.querySelector("slot"))
+
+      spellCore.remove(board.left, a)
+      spellCore.append(board.right, a)
+      spellCore.flush()
+      await ElementFixture.settle(root)
+      expect(labels(left!)).toEqual(["game-chip b"])
+      expect(labels(right!)).toEqual(["game-chip a"])
       root.remove()
     })
   })

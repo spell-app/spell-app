@@ -299,7 +299,7 @@
       ],
       "kind": "method",
       "name": "play a card",
-      "defined": "/Solitaire.spell:3445-4437"
+      "defined": "/Solitaire.spell:3603-4595"
     },
     {
       "syntax": "test card setup",
@@ -362,42 +362,42 @@
     },
     {
       "type": "Pile",
-      "superType": "List",
+      "superType": "DrawableList",
       "itemType": "Card",
-      "defined": "/Pile.spell:25-50"
+      "defined": "/Pile.spell:131-721"
     },
     {
       "property": "name",
       "of": "Pile",
       "datatype": "text",
-      "defined": "/Pile.spell:164-189"
+      "defined": "/Pile.spell:835-860"
     },
     {
       "property": "color",
       "of": "Pile",
       "getter": true,
-      "defined": "/Pile.spell:191-279"
+      "defined": "/Pile.spell:862-950"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
       "getter": true,
-      "defined": "/Pile.spell:281-364"
+      "defined": "/Pile.spell:952-1035"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
       "getter": true,
-      "defined": "/Pile.spell:366-530"
+      "defined": "/Pile.spell:1037-1201"
     },
     {
       "property": "pile",
       "of": "Card",
       "datatype": "Pile",
       "exclusive": true,
-      "defined": "/Pile.spell:137-163"
+      "defined": "/Pile.spell:808-834"
     },
     {
       "type": "Game",
@@ -415,7 +415,7 @@
       "of": "Game",
       "datatype": "list of texts",
       "getter": true,
-      "defined": "/Solitaire.spell:2287-2422"
+      "defined": "/Solitaire.spell:2445-2580"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -428,7 +428,7 @@
       ],
       "kind": "method",
       "name": "draw a game",
-      "defined": "/Solitaire.spell:6853-8249"
+      "defined": "/Solitaire.spell:6893-8289"
     },
     {
       "type": "Stock_Pile",
@@ -446,7 +446,7 @@
       ],
       "kind": "method",
       "name": "draw a stock-pile",
-      "defined": "/Solitaire.spell:6548-6745"
+      "defined": "/Solitaire.spell:6664-6808"
     },
     {
       "type": "Discard_Pile",
@@ -464,7 +464,7 @@
       ],
       "kind": "method",
       "name": "draw a discard-pile",
-      "defined": "/Solitaire.spell:6747-6851"
+      "defined": "/Solitaire.spell:6810-6891"
     },
     {
       "type": "Foundation",
@@ -482,12 +482,12 @@
       ],
       "kind": "method",
       "name": "draw a foundation",
-      "defined": "/Solitaire.spell:6103-6448"
+      "defined": "/Solitaire.spell:6293-6585"
     },
     {
       "type": "Tableau",
       "superType": "Pile",
-      "defined": "/Solitaire.spell:1733-1752"
+      "defined": "/Solitaire.spell:1733-1910"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -500,7 +500,7 @@
       ],
       "kind": "method",
       "name": "draw a tableau",
-      "defined": "/Solitaire.spell:6450-6546"
+      "defined": "/Solitaire.spell:6587-6662"
     },
     {
       "syntax": "debug the game",
@@ -511,7 +511,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2424-2498"
+      "defined": "/Solitaire.spell:2582-2656"
     },
     {
       "syntax": "reset the stock pile",
@@ -522,7 +522,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2500-2666"
+      "defined": "/Solitaire.spell:2658-2824"
     },
     {
       "syntax": "play from the stock pile",
@@ -533,7 +533,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2668-2855"
+      "defined": "/Solitaire.spell:2826-3013"
     },
     {
       "syntax": "deal the cards",
@@ -544,7 +544,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2857-3443"
+      "defined": "/Solitaire.spell:3015-3601"
     },
     {
       "syntax": "auto-play",
@@ -555,7 +555,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:4481-5559"
+      "defined": "/Solitaire.spell:4639-5717"
     },
     {
       "syntax": "reset the game",
@@ -566,7 +566,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:5561-5626"
+      "defined": "/Solitaire.spell:5719-5784"
     },
     {
       "syntax": "cheat",
@@ -578,7 +578,7 @@
       ],
       "kind": "function",
       "returns": "nothing",
-      "defined": "/Solitaire.spell:5628-6004"
+      "defined": "/Solitaire.spell:5786-6162"
     }
   ],
   "codeLines": [
@@ -611,30 +611,30 @@
     293,
     301,
     308,
-    336,
     339,
-    343,
-    348,
-    353,
-    362,
-    378,
+    375,
     379,
-    385,
-    393,
-    525,
-    530,
-    549,
-    554,
-    564,
-    580,
-    621,
-    631,
-    652,
-    658,
-    667,
-    683,
-    721,
-    763,
-    768
+    384,
+    389,
+    398,
+    414,
+    415,
+    421,
+    429,
+    561,
+    568,
+    587,
+    594,
+    604,
+    622,
+    663,
+    684,
+    705,
+    711,
+    720,
+    736,
+    774,
+    816,
+    821
   ]
 }
