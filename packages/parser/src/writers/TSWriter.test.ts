@@ -294,6 +294,99 @@ describe("TSWriter", () => {
     expect(project.write(pile)).toBe("export class Pile extends List {\n  declare droppable: boolean\n}")
   })
 
+  test("a property the program never types is typed by every value it's given:  made with it, or set (Q54)", () => {
+    const type = (name: string) => new P.ASTTypeExpression(match, { name })
+    const text = (value: string) => new P.ASTStringLiteral(match, { value, quote: '"' })
+    const named = (made: string, value: P.ASTExpression) =>
+      new P.ASTNewInstanceExpression(match, {
+        type: type(made),
+        props: new P.ASTObjectLiteral(match, {
+          properties: [new P.ASTObjectLiteralProperty(match, { property: "name", value })]
+        })
+      })
+    // `set the name of the pile to ...`, on a parameter spell knows is a tableau
+    const setName = (value: P.ASTExpression) =>
+      new P.ASTMethodDefinition(match, {
+        methodName: "rename",
+        args: [new P.ASTVariableExpression(match, { name: "pile", datatype: "Tableau" })],
+        body: new P.ASTAssignmentStatement(match, {
+          thing: new P.ASTPropertyExpression(match, {
+            object: new P.ASTVariableExpression(match, { name: "pile" }),
+            property: "name"
+          }),
+          value
+        })
+      })
+    const pileWith = (...given: P.ASTNode[]) => {
+      const name = new P.ASTReactiveProperty(match, { type: type("Pile"), property: "name" })
+      const pile = new P.ASTClassDeclaration(match, { type: type("Pile"), superType: type("List"), members: [name] })
+      const stock = new P.ASTClassDeclaration(match, { type: type("Stock"), superType: type("Pile") })
+      const tableau = new P.ASTClassDeclaration(match, { type: type("Tableau"), superType: type("Pile") })
+      return writer.forProject([[pile, stock, tableau, ...given]]).write(pile)
+    }
+    const pileOf = (name: string) => `export class Pile extends List {\n  @prop() accessor name!: ${name}\n}`
+
+    // all text:  given when made, set, and read off another pile (which says nothing new)
+    const another = new P.ASTPropertyExpression(match, {
+      object: new P.ASTVariableExpression(match, { name: "other", datatype: "Pile" }),
+      property: "name"
+    })
+    expect(pileWith(named("Stock", text("stock")), setName(text("tableau")), setName(another))).toBe(pileOf("string"))
+    // mixed, text and a number:  the marker
+    expect(pileWith(named("Stock", text("stock")), named("Tableau", new P.ASTNumericLiteral(match, 1)))).toBe(
+      pileOf(UNKNOWN)
+    )
+    expect(pileWith(named("Stock", text("stock")), setName(new P.ASTNumericLiteral(match, 1)))).toBe(pileOf(UNKNOWN))
+    // one it can't tell:  the marker
+    const unknown = new P.ASTVariableExpression(match, { name: "x" })
+    expect(pileWith(named("Stock", text("stock")), setName(unknown))).toBe(pileOf(UNKNOWN))
+    // nothing given:  the marker
+    expect(pileWith()).toBe(pileOf(UNKNOWN))
+  })
+
+  test("a method only its sub-classes define is typed by what they all return (Q54)", () => {
+    const type = (name: string) => new P.ASTTypeExpression(match, { name })
+    const card = () => new P.ASTVariableExpression(match, { name: "card", datatype: "Card" })
+    const canPlay = (owner: string, ...returns: P.ASTExpression[]) =>
+      new P.ASTPropertyDefinition(match, {
+        type: owner,
+        property: "can_play_$card",
+        method: new P.ASTMethodDefinition(match, {
+          methodName: "can_play_$card",
+          args: [card()],
+          body: new P.ASTStatementBlock(match, {
+            statements: returns.map((value) => new P.ASTReturnStatement(match, { value }))
+          })
+        })
+      })
+    const pileWith = (stockReturns: P.ASTExpression[], tableauReturns: P.ASTExpression[]) => {
+      const pile = new P.ASTClassDeclaration(match, { type: type("Pile"), superType: type("List") })
+      const stock = new P.ASTClassDeclaration(match, {
+        type: type("Stock"),
+        superType: type("Pile"),
+        members: [canPlay("Stock", ...stockReturns)]
+      })
+      const tableau = new P.ASTClassDeclaration(match, {
+        type: type("Tableau"),
+        superType: type("Pile"),
+        members: [canPlay("Tableau", ...tableauReturns)]
+      })
+      return writer.forProject([[pile, stock, tableau]]).write(pile)
+    }
+    const pileOf = (returns: string) =>
+      `export class Pile extends List {}\nexport interface Pile {\n  canPlayCard(card: Card): ${returns}\n}`
+    const no = new P.ASTBooleanLiteral(match, false)
+    const isCard = new P.ASTInfixExpression(match, { lhs: card(), operator: "equals", rhs: card() })
+    const both = new P.ASTInfixExpression(match, { lhs: isCard, operator: "and", rhs: no })
+
+    // a comparison, `and`, `no`:  all choices
+    expect(pileWith([no], [isCard, both])).toBe(pileOf("boolean"))
+    // they disagree:  the marker
+    expect(pileWith([no], [new P.ASTNumericLiteral(match, 1)])).toBe(pileOf(UNKNOWN))
+    // one can't be told:  the marker
+    expect(pileWith([no], [new P.ASTVariableExpression(match, { name: "x" })])).toBe(pileOf(UNKNOWN))
+  })
+
   test("a spell List does it itself:  filter, first and last item, a loop that waits", () => {
     const type = (name: string) => new P.ASTTypeExpression(match, { name })
     const piles = () => new P.ASTVariableExpression(match, { name: "all_piles" })
