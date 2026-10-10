@@ -31,7 +31,7 @@ describe("grammar probes", () => {
 
   test("P1a  trailing operand takes the operator", () => {
     expect(probe("print the first card of the deck is face up")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.getItemOf(deck, 1)?.is_face_up)"`
+      `"spellCore.console.log(spellCore.getItemAt(deck, 1)?.is_face_up)"`
     )
   })
 
@@ -49,7 +49,7 @@ describe("grammar probes", () => {
 
   test("P1d  property of a position", () => {
     expect(probe("print the suit of the first card of the deck is hearts")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.getItemOf(deck, 1)?.suit == 'hearts')"`
+      `"spellCore.console.log(spellCore.getItemAt(deck, 1)?.suit == 'hearts')"`
     )
   })
 
@@ -193,20 +193,20 @@ describe("grammar probes", () => {
 
   test("P8a  Deck.spell:40-41 as one line", () => {
     expect(probe("expect the first card of the deck is the ace of clubs to be yes")).toMatchInlineSnapshot(
-      `"spellCore.expect(spellCore.getItemOf(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
+      `"spellCore.expect(spellCore.getItemAt(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
     )
   })
 
   test("P8b  Solitaire:105 without its parens", () => {
     expect(probe("turn the bottom card of the deck face up")).toMatchInlineSnapshot(
-      `"spellCore.getItemOf(deck, -1)?.turn_face_up()"`
+      `"spellCore.getItemAt(deck, -1)?.turn_face_up()"`
     )
   })
 
   test("P8c  Solitaire:166 without its parens", () => {
     // a card, as in Solitaire:  `x` here is a number, and a card's phrase now refuses one (`SuffixLeft`)
     expect(probe("if the card is a king and the card is the first card of the pile return")).toMatchInlineSnapshot(
-      `"if (card.is_a_$rank('king') && (card == spellCore.getItemOf(pile, 1))) { return }"`
+      `"if (card.is_a_$rank('king') && (card == spellCore.getItemAt(pile, 1))) { return }"`
     )
   })
 
@@ -220,7 +220,7 @@ describe("grammar probes", () => {
 
   test("P8d  Card.spell:46 without its parens", () => {
     expect(probe("print the first character of the name of the card as uppercase")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.upperCase(spellCore.getItemOf(card.name, 1)))"`
+      `"spellCore.console.log(spellCore.upperCase(spellCore.getItemAt(card.name, 1)))"`
     )
   })
 
@@ -347,12 +347,12 @@ describe("grammar probes", () => {
     ).toMatchInlineSnapshot(`
       "Object.defineProperty(Pile.prototype, 'last_card', {
         get() {
-          return spellCore.getItemOf(this, 1)
+          return spellCore.getItemAt(this, 1)
         },
         configurable: true
       })
       spellCore.console.log(pile.last_card)
-      spellCore.console.log(spellCore.getItemOf(deck, -1))"
+      spellCore.console.log(spellCore.getItemAt(deck, -1))"
     `)
   })
 
@@ -612,7 +612,7 @@ describe("grammar probes", () => {
         }
 
         canGiveUp(card) {
-          return (card == spellCore.getItemOf(this, -1))
+          return (card == spellCore.getItemAt(this, -1))
         }
       }
       export class Foundation extends Pile {

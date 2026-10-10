@@ -119,17 +119,17 @@ describe("TSWriter", () => {
   test("a property of, or a method on, an item read from a list is read with `?.`:  it may be nothing", () => {
     const top = () =>
       new P.ASTCoreMethodInvocation(match, {
-        methodName: "getItemOf",
+        methodName: "getItemAt",
         args: [new P.ASTVariableExpression(match, { name: "deck" })]
       })
     const name = new P.ASTPropertyExpression(match, {
       object: top(),
       property: new P.ASTPropertyLiteral(match, "name")
     })
-    expect(writer.write(name)).toBe("spellCore.getItemOf(deck)?.name")
+    expect(writer.write(name)).toBe("spellCore.getItemAt(deck)?.name")
     const flip = new P.ASTScopedMethodInvocation(match, { thing: top(), methodName: "flip" })
-    expect(writer.write(flip)).toBe("spellCore.getItemOf(deck)?.flip()")
-    expect(P.JSWriter.instance.write(name)).toBe("spellCore.getItemOf(deck)?.name")
+    expect(writer.write(flip)).toBe("spellCore.getItemAt(deck)?.flip()")
+    expect(P.JSWriter.instance.write(name)).toBe("spellCore.getItemAt(deck)?.name")
   })
 
   test("TypeScript's names:  methods, functions and variables;  a getter where it's read, not a property", () => {
@@ -248,11 +248,11 @@ describe("TSWriter", () => {
       "(card: Card) => card"
     )
     const last = new P.ASTCoreMethodInvocation(match, {
-      methodName: "getItemOf",
+      methodName: "getItemAt",
       args: [new P.ASTVariableExpression(match, { name: "deck" }), new P.ASTNumericLiteral(match, -1)]
     })
     expect(writer.write(new P.ASTPropertyExpression(match, { object: last, property: "name" }))).toBe(
-      "spellCore.getItemOf(deck, -1)?.name"
+      "spellCore.getItemAt(deck, -1)?.name"
     )
   })
 
@@ -314,7 +314,7 @@ describe("TSWriter", () => {
       })
     })
     expect(project.write(core("filter", [piles(), keep]))).toBe("allPiles.filter((pile) => pile.droppable)")
-    expect(project.write(core("getItemOf", [piles(), new P.ASTNumericLiteral(match, -1)]))).toBe("allPiles.lastItem")
+    expect(project.write(core("getItemAt", [piles(), new P.ASTNumericLiteral(match, -1)]))).toBe("allPiles.lastItem")
     expect(project.write(core("isEmpty", [piles()]))).toBe("allPiles.isEmpty")
   })
 

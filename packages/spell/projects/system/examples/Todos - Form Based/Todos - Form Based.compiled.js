@@ -163,7 +163,7 @@ export class Todos_App extends App {
             tag: "ui-item",
             props: {
               onClick: (event) => {
-                return spellCore.removeItemOf(app.tasks, 1)
+                return spellCore.removeItemAt(app.tasks, 1)
               }
             },
             children: [
@@ -174,7 +174,7 @@ export class Todos_App extends App {
             tag: "ui-item",
             props: {
               onClick: (event) => {
-                spellCore.getItemOf(app.tasks, 1).title = "New title"
+                spellCore.getItemAt(app.tasks, 1).title = "New title"
               }
             },
             children: [

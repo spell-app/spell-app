@@ -85,7 +85,7 @@ export const coreMethods = defineSpellCoreModule({
 
   /**
    * Create an new, "empty" instance of `thing.constructor`.
-   * - What collection helpers build their results in, e.g. `map()`, `filter()`, `duplicateCollection()`.
+   * - What collection helpers build their results in, e.g. `map()`, `filter()`, `duplicateList()`.
    * - NOT registered for the Thing Explorer -- see `ThingRegistry.quietly()` -- so a copy the program keeps
    *   doesn't show either.  See `agents/CODE-DEBT.md`.
    * - A SCRATCH list:  an exclusive one, e.g. a `Pile`, owns nothing -- see `spellCore.newScratch()`.

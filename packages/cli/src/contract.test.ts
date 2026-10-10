@@ -24,9 +24,11 @@ import { CLI } from "$/cli"
  */
 const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx" }
 
-/** What fixture `name` prints when its `target` code runs, as `spell run` would run it. */
-async function printed(name: string, target: string): Promise<string> {
-  const code = compiledFixture(name, target)
+/**
+ * What fixture `name` prints when its `target` code runs, as `spell run` would run it.
+ * - `code`:  that code, unless given.
+ */
+async function printed(name: string, target: string, code = compiledFixture(name, target)): Promise<string> {
   const extension = TARGET_FILES[target]
   const folder = mkdtempSync(join(tmpdir(), "spell-contract-"))
   try {
@@ -78,4 +80,34 @@ describe("the core contract:  every target prints the same", () => {
       60_000
     )
   }
+})
+
+/**
+ * `spellCore`'s names before epic `output-targets` P16, by their new ones:  a program compiled before then calls the
+ * old ones, and nothing recompiles it.  See `deprecated.ts` in `$/core`.
+ */
+const OLD_NAMES: Record<string, string> = {
+  positionOf: "itemOf",
+  getItemAt: "getItemOf",
+  setItemAt: "setItemOf",
+  removeItemAt: "removeItemOf",
+  removeItemsAt: "removeItemsOf",
+  duplicateList: "duplicateCollection",
+  mergeLists: "mergeCollections",
+  mergeListsInto: "mergeCollectionsInto"
+}
+
+describe("a program compiled before P16, with spellCore's old names", () => {
+  test("prints what it prints today", async () => {
+    const name = "Solitaire"
+    const today = compiledFixture(name, "js/solid")
+    const before = today.replace(/\bspellCore\.(\w+)\(/g, (call, method: string) =>
+      OLD_NAMES[method] ? `spellCore.${OLD_NAMES[method]}(` : call
+    )
+    // it calls the old names, or this test proves nothing
+    for (const old of ["itemOf", "getItemOf", "duplicateCollection", "mergeCollections"]) {
+      expect(before).toContain(`spellCore.${old}(`)
+    }
+    await expect(printed(name, "js/solid", before)).resolves.toEqual(await printed(name, "js/solid"))
+  }, 60_000)
 })

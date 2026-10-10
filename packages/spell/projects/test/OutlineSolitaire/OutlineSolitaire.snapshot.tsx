@@ -1,5 +1,5 @@
 import { For } from "solid-js"
-import { spellCore, Thing, List, App, prop, derived, drawn, itemOf, trigger, on } from "@spell/core"
+import { spellCore, Thing, List, App, prop, derived, drawn, positionOf, trigger, on } from "@spell/core"
 
 spellCore.heading("Deck:  US standard card deck (without jokers) -- in the outline style")
 ///////////////////////////////////////////////////////////////////////////
@@ -89,7 +89,7 @@ export class Card extends Thing {
   }
 
   get value() {
-    return itemOf(Deck.Ranks, this.rank)
+    return positionOf(Deck.Ranks, this.rank)
   }
 
   static Directions = DIRECTIONS
@@ -119,7 +119,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemOf(this.rank, 1) ?? ""}`.toLocaleUpperCase() ?? "?"
+    return `${spellCore.getItemAt(this.rank, 1) ?? ""}`.toLocaleUpperCase() ?? "?"
   }
 
   get shortDirection() {

@@ -203,9 +203,9 @@ lists.addRule(bracketed_list, {
 ////////////////
 
 /**
- * Duplicate a list, e.g. `a copy of the piles` => `spellCore.duplicateCollection(piles)`.
+ * Duplicate a list, e.g. `a copy of the piles` => `spellCore.duplicateList(piles)`.
  * - QUESTIONABLE SYNTAX: `as (a|an) {type}` clause ??? -- picks constructor for result, e.g.
- *   `a duplicate of list the piles as a list` => `spellCore.duplicateCollection(piles, List)`.
+ *   `a duplicate of list the piles as a list` => `spellCore.duplicateList(piles, List)`.
  */
 class copy_list extends SpellExpression<"expression|type?"> {
   /** The type it's copied `as`, else what it copies. */
@@ -219,7 +219,7 @@ class copy_list extends SpellExpression<"expression|type?"> {
     const args = [P.matchAST(expression)]
     if (type) args.push(P.matchAST(type))
     return new P.ASTCoreMethodInvocation(match, {
-      methodName: "duplicateCollection",
+      methodName: "duplicateList",
       args
     })
   }
@@ -233,8 +233,8 @@ lists.addRule(copy_list, {
         scope.variables?.add("piles")
       },
       tests: [
-        ["a copy of the piles", "spellCore.duplicateCollection(piles)"],
-        ["a duplicate of list the piles as a list", "spellCore.duplicateCollection(piles, List)"]
+        ["a copy of the piles", "spellCore.duplicateList(piles)"],
+        ["a duplicate of list the piles as a list", "spellCore.duplicateList(piles, List)"]
       ]
     }
   ]
@@ -246,9 +246,9 @@ lists.addRule(copy_list, {
 ////////////////
 
 /**
- * Merge a set of lists together, e.g. `merge the piles` => `spellCore.mergeCollections(piles)`.
+ * Merge a set of lists together, e.g. `merge the piles` => `spellCore.mergeLists(piles)`.
  * - QUESTIONABLE SYNTAX: `(as|into) (a|an) new? {type}` clause picks constructor for result, e.g.
- *   `merge the piles as a list` => `spellCore.mergeCollections(piles, List)`.
+ *   `merge the piles as a list` => `spellCore.mergeLists(piles, List)`.
  */
 class merge_lists extends SpellExpression<"expression|type?"> {
   /** The type it's merged `as`, else a `list`. */
@@ -262,7 +262,7 @@ class merge_lists extends SpellExpression<"expression|type?"> {
     const args = [P.matchAST(expression)]
     if (type) args.push(P.matchAST(type))
     return new P.ASTCoreMethodInvocation(match, {
-      methodName: "mergeCollections",
+      methodName: "mergeLists",
       args
     })
   }
@@ -276,8 +276,8 @@ lists.addRule(merge_lists, {
         scope.variables?.add("piles")
       },
       tests: [
-        ["merge the piles", "spellCore.mergeCollections(piles)"],
-        ["merge the piles as a list", "spellCore.mergeCollections(piles, List)"]
+        ["merge the piles", "spellCore.mergeLists(piles)"],
+        ["merge the piles as a list", "spellCore.mergeLists(piles, List)"]
       ]
     }
   ]
@@ -418,7 +418,7 @@ lists.addRule(list_count, {
 ////////////////
 
 /**
- * Return position of an item in a list, e.g. `position of thing in my-list` => `spellCore.itemOf(my_list, thing)`.
+ * Return position of an item in a list, e.g. `position of thing in my-list` => `spellCore.positionOf(my_list, thing)`.
  * - NOTE: position returned is **1-based**.
  * - Returns `undefined` if item is not found.
  * - `Priority.mostSpecific` -- preferred over lower-priority expression rules when tokens are ambiguous.
@@ -431,7 +431,7 @@ class list_position extends SpellExpression<"thing|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
-      methodName: "itemOf",
+      methodName: "positionOf",
       args: [P.matchAST(list), P.matchAST(thing)]
     })
   }
@@ -447,9 +447,9 @@ lists.addRule(list_position, {
         scope.variables?.add("bar")
       },
       tests: [
-        ["position of thing in my-list", "spellCore.itemOf(my_list, thing)"],
-        ["the position of thing in the foo of the bar", "spellCore.itemOf(bar.foo, thing)"],
-        [`the position of "a" in ["a", "b", "c"]`, `spellCore.itemOf(["a", "b", "c"], "a")`]
+        ["position of thing in my-list", "spellCore.positionOf(my_list, thing)"],
+        ["the position of thing in the foo of the bar", "spellCore.positionOf(bar.foo, thing)"],
+        [`the position of "a" in ["a", "b", "c"]`, `spellCore.positionOf(["a", "b", "c"], "a")`]
       ]
     }
   ]
@@ -653,7 +653,7 @@ type ListItemData = {
  * - `{arg}` (e.g. `card`) captured for readability only, unused in output.
  * - NOTE: negative positions come from end of list, e.g. `card -1 of the pile`.
  * - NOTE: positions are **1-based** while Javascript is **0-based**, e.g. `item 1 of the array` => `array[0]`.
- * - Compiles to `spellCore.getItemOf(list, position)`.
+ * - Compiles to `spellCore.getItemAt(list, position)`.
  */
 class position_expression extends ListItemExpression<"arg|position|expression"> {
   @proto static listGroup = "expression"
@@ -661,7 +661,7 @@ class position_expression extends ListItemExpression<"arg|position|expression"> 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { position, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
-      methodName: "getItemOf",
+      methodName: "getItemAt",
       args: [P.matchAST(expression), P.matchAST(position)]
     })
   }
@@ -677,9 +677,9 @@ lists.addRule(position_expression, {
         scope.variables?.add("n")
       },
       tests: [
-        ["item 1 of my-list", "spellCore.getItemOf(my_list, 1)"],
-        ["card 10 of deck", "spellCore.getItemOf(deck, 10)"],
-        ["card n of the cards of the deck", "spellCore.getItemOf(deck.cards, n)"]
+        ["item 1 of my-list", "spellCore.getItemAt(my_list, 1)"],
+        ["card 10 of deck", "spellCore.getItemAt(deck, 10)"],
+        ["card n of the cards of the deck", "spellCore.getItemAt(deck.cards, n)"]
       ]
     }
   ]
@@ -693,7 +693,7 @@ lists.addRule(position_expression, {
 /**
  * Ordinal-word index expression, e.g. `the first item of my-list`, `the tenth card of deck`.
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
- * - Shares same `getItemOf` compile target as `position_expression`, with `{ordinal}` resolved to a number.
+ * - Shares same `getItemAt` compile target as `position_expression`, with `{ordinal}` resolved to a number.
  */
 class ordinal_position_expression extends ListItemExpression<"ordinal|arg|expression"> {
   @proto static listGroup = "expression"
@@ -701,7 +701,7 @@ class ordinal_position_expression extends ListItemExpression<"ordinal|arg|expres
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { ordinal, expression } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
-      methodName: "getItemOf",
+      methodName: "getItemAt",
       args: [P.matchAST(expression), P.matchAST(ordinal)]
     })
   }
@@ -717,9 +717,9 @@ lists.addRule(ordinal_position_expression, {
         scope.variables?.add("words")
       },
       tests: [
-        ["the first item of my-list", "spellCore.getItemOf(my_list, 1)"],
-        ["the tenth card of deck", "spellCore.getItemOf(deck, 10)"],
-        ["the penultimate word in words", "spellCore.getItemOf(words, -2)"]
+        ["the first item of my-list", "spellCore.getItemAt(my_list, 1)"],
+        ["the tenth card of deck", "spellCore.getItemAt(deck, 10)"],
+        ["the penultimate word in words", "spellCore.getItemAt(words, -2)"]
       ]
     }
   ]
@@ -856,7 +856,7 @@ lists.addRule(range_between_expression, {
  * Range expression starting at some item in list, inclusive, e.g. `items in my-list starting with thing`.
  * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
  * - Returns a new list.
- * - Compiles to `spellCore.rangeStartingAt(list, spellCore.itemOf(list, thing))` -- looks up `thing`'s
+ * - Compiles to `spellCore.rangeStartingAt(list, spellCore.positionOf(list, thing))` -- looks up `thing`'s
  *   position first, then takes range from there to end.
  * - If item is not found, returns an empty list. (???)
  */
@@ -868,7 +868,7 @@ class range_starting_with_expression extends SpellExpression<"arg|list|thing"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list } = match.groups
     const itemExpression = new P.ASTCoreMethodInvocation(match, {
-      methodName: "itemOf",
+      methodName: "positionOf",
       args: [P.matchAST(list), P.matchAST(thing)]
     })
     return new P.ASTCoreMethodInvocation(match, {
@@ -889,11 +889,11 @@ lists.addRule(range_starting_with_expression, {
       tests: [
         [
           "items in my-list starting with thing",
-          "spellCore.rangeStartingAt(my_list, spellCore.itemOf(my_list, thing))"
+          "spellCore.rangeStartingAt(my_list, spellCore.positionOf(my_list, thing))"
         ],
         [
           `words in "some words" starting with "some"`,
-          `spellCore.rangeStartingAt("some words", spellCore.itemOf("some words", "some"))`
+          `spellCore.rangeStartingAt("some words", spellCore.positionOf("some words", "some"))`
         ]
       ]
     }
@@ -1284,7 +1284,7 @@ lists.addRule(list_empty, {
 
 /**
  * Remove one item from list by ordinal position, e.g. `remove last card of deck` =>
- * `spellCore.removeItemOf(deck, -1)`.
+ * `spellCore.removeItemAt(deck, -1)`.
  * - `{arg}` (e.g. `card`) captured for readability only, unused in output.
  */
 class list_remove_ordinal extends SpellStatement<"position|arg|list"> {
@@ -1293,7 +1293,7 @@ class list_remove_ordinal extends SpellStatement<"position|arg|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { position, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
-      methodName: "removeItemOf",
+      methodName: "removeItemAt",
       args: [P.matchAST(list), P.matchAST(position)]
     })
   }
@@ -1307,8 +1307,8 @@ lists.addRule(list_remove_ordinal, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["remove last card of deck", "spellCore.removeItemOf(deck, -1)"],
-        ["remove the first card of the deck", "spellCore.removeItemOf(deck, 1)"]
+        ["remove last card of deck", "spellCore.removeItemAt(deck, -1)"],
+        ["remove the first card of the deck", "spellCore.removeItemAt(deck, 1)"]
       ]
     }
   ]
@@ -1322,8 +1322,8 @@ lists.addRule(list_remove_ordinal, {
 /**
  * Remove one item from list by numeric position.
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
- * - Compiles to `spellCore.removeItemOf(list, number)`, e.g. `remove item 4 of my-list` =>
- *   `spellCore.removeItemOf(my_list, 4)`.
+ * - Compiles to `spellCore.removeItemAt(list, number)`, e.g. `remove item 4 of my-list` =>
+ *   `spellCore.removeItemAt(my_list, 4)`.
  */
 class list_remove_position extends SpellStatement<"arg|number|list"> {
   @proto static alias = "statement"
@@ -1331,7 +1331,7 @@ class list_remove_position extends SpellStatement<"arg|number|list"> {
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { number, list } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
-      methodName: "removeItemOf",
+      methodName: "removeItemAt",
       args: [P.matchAST(list), P.matchAST(number)]
     })
   }
@@ -1344,7 +1344,7 @@ lists.addRule(list_remove_position, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add("my-list")
       },
-      tests: [["remove item 4 of my-list", "spellCore.removeItemOf(my_list, 4)"]]
+      tests: [["remove item 4 of my-list", "spellCore.removeItemAt(my_list, 4)"]]
     }
   ]
 })

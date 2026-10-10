@@ -698,32 +698,32 @@ describe("spellCore.any()", () => {
   })
 })
 
-describe("spellCore.removeItemsOf()", () => {
+describe("spellCore.removeItemsAt()", () => {
   test("assertion fails if not defined", () => {
-    spellCore.removeItemsOf()
+    spellCore.removeItemsAt()
     expect(assert.failed).toHaveBeenCalled()
   })
   describe("for arrays", () => {
     test("no change for empty array", () => {
       const collection: unknown[] = []
-      spellCore.removeItemsOf(collection, 1)
+      spellCore.removeItemsAt(collection, 1)
       expect(collection).toEqual([])
     })
     test("removes properly for non-empty array, regardless of order", () => {
       const collection = ["a", "b", "c", "d", "e"]
-      spellCore.removeItemsOf(collection, 1, 3, 5)
+      spellCore.removeItemsAt(collection, 1, 3, 5)
       expect(collection).toEqual(["b", "d"])
     })
   })
   describe("for objects", () => {
     test("no change for empty array", () => {
       const collection = {}
-      spellCore.removeItemsOf(collection, "a")
+      spellCore.removeItemsAt(collection, "a")
       expect(collection).toEqual({})
     })
     test("removes properly for non-empty array, regardless of order", () => {
       const collection = { a: 1, b: 2, c: 3, d: 4, e: 5 }
-      spellCore.removeItemsOf(collection, "a", "c", "e")
+      spellCore.removeItemsAt(collection, "a", "c", "e")
       expect(collection).toEqual({ b: 2, d: 4 })
     })
   })

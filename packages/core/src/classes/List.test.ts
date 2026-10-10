@@ -72,7 +72,7 @@ class Foundation extends Pile {
 /** `a stock-pile can give up a card if: the card is its last card`. */
 class StockPile extends Pile {
   canGiveUp(card: unknown): boolean {
-    return card === spellCore.getItemOf(this, -1)
+    return card === spellCore.getItemAt(this, -1)
   }
 }
 
@@ -193,7 +193,7 @@ describe("exclusive lists", () => {
     spellCore.append(pile, a, b, c)
     spellCore.remove(pile, a)
     expect(a!.pile).toBe(undefined)
-    spellCore.removeItemOf(pile, 1)
+    spellCore.removeItemAt(pile, 1)
     expect(b!.pile).toBe(undefined)
     spellCore.clear(pile)
     expect(c!.pile).toBe(undefined)
@@ -206,7 +206,7 @@ describe("exclusive lists", () => {
     const other = new Pile({})
     spellCore.append(pile, a, b, c)
     spellCore.append(other, d)
-    spellCore.setItemOf(pile, 2, d)
+    spellCore.setItemAt(pile, 2, d)
     expect(itemsOf(pile)).toEqual([a, d, c])
     expect(itemsOf(other)).toEqual([])
     expect(d!.pile).toBe(pile)
@@ -249,10 +249,10 @@ describe("exclusive lists", () => {
       spellCore.filter(pile, () => true),
       spellCore.map(pile, (card) => card),
       spellCore.rangeStartingAt(pile, 1),
-      spellCore.duplicateCollection(pile),
-      spellCore.duplicateCollection(pile, asPile),
-      spellCore.mergeCollections([pile, tableau]),
-      spellCore.mergeCollections([pile, tableau], asPile)
+      spellCore.duplicateList(pile),
+      spellCore.duplicateList(pile, asPile),
+      spellCore.mergeLists([pile, tableau]),
+      spellCore.mergeLists([pile, tableau], asPile)
     ] as List[]
     for (const result of results) expect(result).toBeInstanceOf(Pile)
     expect(itemsOf(results[0]!)).toEqual([a, b])
@@ -424,8 +424,8 @@ function numbers(...items: number[]): List<number> {
  * - Compared by `outcome()`.
  */
 const TWINS: Array<[string, (list: List<number>) => unknown, (list: List<number>) => unknown]> = [
-  ["firstItem", (list) => list.firstItem, (list) => spellCore.getItemOf(list, 1)],
-  ["lastItem", (list) => list.lastItem, (list) => spellCore.getItemOf(list, -1)],
+  ["firstItem", (list) => list.firstItem, (list) => spellCore.getItemAt(list, 1)],
+  ["lastItem", (list) => list.lastItem, (list) => spellCore.getItemAt(list, -1)],
   ["isEmpty", (list) => list.isEmpty, (list) => spellCore.isEmpty(list)],
   ["max", (list) => list.max, (list) => spellCore.largestOf(list)],
   ["min", (list) => list.min, (list) => spellCore.smallestOf(list)],
@@ -458,7 +458,7 @@ const TWINS: Array<[string, (list: List<number>) => unknown, (list: List<number>
   [
     "startingWith",
     (list) => list.startingWith(3),
-    (list) => spellCore.rangeStartingAt(list, spellCore.itemOf(list, 3))
+    (list) => spellCore.rangeStartingAt(list, spellCore.positionOf(list, 3))
   ],
   ["between", (list) => list.between(2, 3), (list) => spellCore.rangeBetween(list, 2, 3)],
   [
@@ -471,12 +471,8 @@ const TWINS: Array<[string, (list: List<number>) => unknown, (list: List<number>
     (list) => [list.endsWith(4), list.endsWith(3)],
     (list) => [spellCore.endsWith(list, 4), spellCore.endsWith(list, 3)]
   ],
-  ["clone", (list) => list.clone(), (list) => spellCore.duplicateCollection(list)],
-  [
-    "appendAll",
-    (list) => list.appendAll([7], numbers(8)),
-    (list) => spellCore.mergeCollectionsInto(list, [7], numbers(8))
-  ]
+  ["clone", (list) => list.clone(), (list) => spellCore.duplicateList(list)],
+  ["appendAll", (list) => list.appendAll([7], numbers(8)), (list) => spellCore.mergeListsInto(list, [7], numbers(8))]
 ]
 
 /**
