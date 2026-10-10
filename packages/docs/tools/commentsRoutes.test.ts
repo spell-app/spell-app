@@ -201,6 +201,18 @@ test("bad changes are refused", async () => {
   expect((await post({ page, action: "edit", text: "x" })).status).toBe(400)
 })
 
+test("NEVER an empty comment:  an add or edit with no text, white space or zero-width spaces is a 400", async () => {
+  const page = "/pages/details/plain.html"
+  for (const text of [undefined, "", "   ", "\n\t \n", "​"])
+    expect([text, (await post({ page, action: "add", ...ON_TABLE, text })).status]).toEqual([text, 400])
+  const { id } = (await post({ page, action: "add", ...ON_TABLE, text: "kept" })).answer
+  for (const text of [undefined, "", "  \n  "])
+    expect([text, (await post({ page, action: "edit", id, text })).status]).toEqual([text, 400])
+  const read = JSON.parse((await ask(port, "GET", `/api/comments?page=${encodeURIComponent(page)}`)).text)
+  expect(read.comments.find((comment: { id: string }) => comment.id === id).text).toBe("kept")
+  await post({ page, action: "delete", id })
+})
+
 test("writes need the token, our origin and our host", async () => {
   const body = { page: "/guides/solid/solid-2.html", action: "add", ...ON_TABLE, text: "x" }
   const bare = await ask(port, "POST", "/api/comments", {

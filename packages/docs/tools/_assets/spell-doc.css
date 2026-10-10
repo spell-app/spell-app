@@ -1003,7 +1003,8 @@ pre code {
   z-index: 1000;
   box-sizing: border-box;
   width: min(380px, calc(100vw - 16px));
-  padding: 4px 8px 8px 10px;
+  /* Owen, 2026-10-10:  "reduce padding inside bullhorn frame to 8px" */
+  padding: 8px;
   border: 1px solid var(--spell-rail-rule);
   border-radius: 10px;
   background: var(--spell-rail-bg);
@@ -1040,8 +1041,12 @@ pre code {
   color: var(--spell-muted);
   font-size: 0.85rem;
 }
-/* a Clear, clicked once:  red until the second click (or 3s) */
-.spell-doc-main .spell-comment-clear[data-armed] {
+/* a comment's trash (`deleteButton()`), on its card and in the pane;  clicked once:  red until the second click (or
+   3s) */
+.spell-doc-main .spell-comment-delete[hidden] {
+  display: none;
+}
+.spell-doc-main .spell-comment-delete[data-armed] {
   --ui-button-color: var(--ui-red, #db2828);
   color: var(--ui-red, #db2828);
 }
@@ -1072,7 +1077,9 @@ pre code {
 .spell-doc-main .spell-comment-close:hover {
   background: var(--spell-rail-hover);
 }
+/* a block, not inline:  no line-gap under it, so the pane's 8px is 8px at the bottom too */
 .spell-doc-main textarea.spell-comment-field {
+  display: block;
   box-sizing: border-box;
   width: 100%;
   min-height: 4lh;
