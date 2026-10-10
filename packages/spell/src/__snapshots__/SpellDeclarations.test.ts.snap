@@ -70,8 +70,8 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     "Deck",
     "Pile",
     "Game",
-    "Stock_Pile",
-    "Discard_Pile",
+    "StockPile",
+    "DiscardPile",
     "Foundation",
     "Tableau",
     "test_card_setup",
@@ -518,13 +518,13 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     {
       "defined": "/Solitaire.spell:410-432",
       "superType": "Pile",
-      "type": "Stock_Pile",
+      "type": "StockPile",
     },
     {
       "defined": "/Solitaire.spell:433-500",
       "kind": "method",
       "name": ""can pick up (a card)"",
-      "of": "Stock_Pile",
+      "of": "StockPile",
       "output": "can_pick_up_$card",
       "params": [
         {
@@ -544,7 +544,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "defined": "/Solitaire.spell:6496-6695",
       "kind": "method",
       "name": "draw (a stock-pile)",
-      "of": "Stock_Pile",
+      "of": "StockPile",
       "output": "draw",
       "rule": "method_call",
       "syntax": "draw {thisArg:expression}",
@@ -552,13 +552,13 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
     {
       "defined": "/Solitaire.spell:666-690",
       "superType": "Pile",
-      "type": "Discard_Pile",
+      "type": "DiscardPile",
     },
     {
       "defined": "/Solitaire.spell:691-760",
       "kind": "method",
       "name": ""can pick up (a card)"",
-      "of": "Discard_Pile",
+      "of": "DiscardPile",
       "output": "can_pick_up_$card",
       "params": [
         {
@@ -578,7 +578,7 @@ exports[`SpellDeclarations, inline > Solitaire's declarations 1`] = `
       "defined": "/Solitaire.spell:6697-6803",
       "kind": "method",
       "name": "draw (a discard-pile)",
-      "of": "Discard_Pile",
+      "of": "DiscardPile",
       "output": "draw",
       "rule": "method_call",
       "syntax": "draw {thisArg:expression}",

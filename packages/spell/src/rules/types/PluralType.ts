@@ -26,8 +26,8 @@ types.addRule(PluralType, {
       tests: [
         { title: "plural, lower case", input: "things", js: "Thing" },
         { title: "plural, upper case", input: "Things", js: "Thing" },
-        { title: "plural, multi-word, lower case", input: "bank-accounts", js: "Bank_Account" },
-        { title: "plural, multi-word, mixed case", input: "Bank-accounts", js: "Bank_Account" },
+        { title: "plural, multi-word, lower case", input: "bank-accounts", js: "BankAccount" },
+        { title: "plural, multi-word, mixed case", input: "Bank-accounts", js: "BankAccount" },
 
         { title: "singular, lower case", input: "thing", js: undefined },
         { title: "singular, upper case", input: "Thing", js: undefined },

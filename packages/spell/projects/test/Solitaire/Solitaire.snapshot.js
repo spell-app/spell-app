@@ -438,7 +438,7 @@ export let foundations = new List({ instanceType: "Pile" })
 export let tableaus = new List({ instanceType: "Pile" })
 
 /** set up stock pile: unplayed cards */
-export class Stock_Pile extends Pile {
+export class StockPile extends Pile {
   canPickUpCard(card) {
     return (card === this.lastItem)
   }
@@ -455,11 +455,11 @@ export class Stock_Pile extends Pile {
     )
   }
 }
-export let stock = new Stock_Pile({ name: "stock", droppable: false })
+export let stock = new StockPile({ name: "stock", droppable: false })
 allPiles.append(stock)
 
 /** set up discards: where played cards go when turning over stock */
-export class Discard_Pile extends Pile {
+export class DiscardPile extends Pile {
   canPickUpCard(card) {
     return (card === this.lastItem)
   }
@@ -468,7 +468,7 @@ export class Discard_Pile extends Pile {
     return h("div", { class: "Pile Discards stacked" }, () => spellCore.drawThing(this.lastItem))
   }
 }
-export let discards = new Discard_Pile({ name: "discards", droppable: false })
+export let discards = new DiscardPile({ name: "discards", droppable: false })
 allPiles.append(discards)
 
 /** set up foundation piles: where we build up from ace => king */

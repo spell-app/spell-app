@@ -134,22 +134,22 @@ describe("testing spell module classes", () => {
         "set checking to a new account",
         "set all to a new list of bank accounts"
       ])
-      const type = scope.types.get("Bank_Account")!
+      const type = scope.types.get("BankAccount")!
       expect(type.aka).toBe("Account")
       expect(scope.types.get("account")).toBe(type)
       expect(scope.types.get("accounts")).toBe(type)
       expect(type.variables.get("balance", "LOCAL_ONLY")?.datatype).toBe("number")
       expect(type.variables.get("owner", "LOCAL_ONLY")?.datatype).toBe("text")
       expect(compiled.filter((line) => /new /.test(line))).toEqual([
-        expect.stringMatching(/savings.*new Bank_Account\(\)/),
-        expect.stringMatching(/checking.*new Bank_Account\(\)/),
-        expect.stringMatching(/all.*Bank_Account/)
+        expect.stringMatching(/savings.*new BankAccount\(\)/),
+        expect.stringMatching(/checking.*new BankAccount\(\)/),
+        expect.stringMatching(/all.*BankAccount/)
       ])
     })
 
     test("only DECLARED words name a type, the longest first", () => {
       const { scope } = parsed("multi-word-greedy", ["a card is a thing", "a big card is a card"])
-      expect(scope.types.get("Big_Card")?.superType).toBe("Card")
+      expect(scope.types.get("BigCard")?.superType).toBe("Card")
       // `card` alone is still the card
       expect(scope.types.get("card")?.name).toBe("Card")
     })

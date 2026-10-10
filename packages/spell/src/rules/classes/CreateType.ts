@@ -60,8 +60,8 @@ classes.addRule(CreateType, {
       tests: [
         ["a card is a thing", "export class Card extends Thing {}"],
         ["a deck is a list", "export class Deck extends List {}"],
-        ["a bank account is a thing", "export class Bank_Account extends Thing {}"],
-        ["a bank account aka account is a thing", "export class Bank_Account extends Thing {}"],
+        ["a bank account is a thing", "export class BankAccount extends Thing {}"],
+        ["a bank account aka account is a thing", "export class BankAccount extends Thing {}"],
         [
           "a card is a drawable thing",
           [

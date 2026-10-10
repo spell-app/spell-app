@@ -62,7 +62,7 @@ describe("ScopeExplorer", () => {
   })
 
   test("a sub-type shows what it inherits, and from where", () => {
-    const stock = find(tree, "Stock_Pile")
+    const stock = find(tree, "StockPile")
     const inherited = stock.members.filter((member) => member.inheritedFrom)
     expect(inherited.length).toBeGreaterThan(0)
     // a pile is a list:  so a list's built-in members too, e.g. its `length`
@@ -204,12 +204,12 @@ describe("ScopeExplorer of a project importing another, compiled", () => {
   })
 
   test("our types inherit from its OWN types, from its sources -- with their docs and locations", () => {
-    const stock = find(tree, "Stock_Pile")
+    const stock = find(tree, "StockPile")
     const fromPile = stock.members.filter((member) => member.inheritedFrom === "Pile")
     expect(fromPile.length).toBeGreaterThan(0)
     // pointing at the members of its OWN Pile, in the imported project -- NOT the declarations-only one
     for (const member of fromPile) expect(member.path).toMatch(/^project:lib\/file:Pile\.spell\/type:Pile\//)
-    expect(find(tree, "Stock_Pile").super).toBe("project:lib/file:Pile.spell/type:Pile")
+    expect(find(tree, "StockPile").super).toBe("project:lib/file:Pile.spell/type:Pile")
     expect(explorer.details(app, fromPile[0]!.path)?.line).toBeDefined()
   })
 

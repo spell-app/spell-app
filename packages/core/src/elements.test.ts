@@ -10,7 +10,7 @@ describe("drawable things' elements", () => {
 
   test("a tag is the project's name made singular, then the class's, kebab-cased", () => {
     expect(elementTagFor("Solitaire", "Card")).toBe("solitaire-card")
-    expect(elementTagFor("games", "Bank_Account")).toBe("game-bank-account")
+    expect(elementTagFor("games", "BankAccount")).toBe("game-bank-account")
     expect(elementTagFor("Todos - Form Based", "Task")).toBe("todos-form-based-task")
     expect(elementTagFor("", "Card")).toBe("spell-card")
   })

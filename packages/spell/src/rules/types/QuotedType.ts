@@ -50,7 +50,7 @@ types.addRule(QuotedType, {
     {
       tests: [
         { title: "a quoted word", input: '"card"', js: "Card" },
-        { title: "dashed", input: '"bank-account"', js: "Bank_Account" },
+        { title: "dashed", input: '"bank-account"', js: "BankAccount" },
         { title: "two words", input: '"playing card"', js: undefined },
         { title: "blacklisted word", input: '"if"', js: undefined }
       ]

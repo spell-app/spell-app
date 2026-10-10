@@ -155,7 +155,7 @@ export class WriterProject {
   /** Spell's built-in list classes:  `List`, and `DrawableList`, a list drawn as its own element. */
   static LIST_CLASSES = ["List", "DrawableList"]
 
-  /** Is class `typeName` class `ancestor`, or below it, e.g. a `Discard_Pile` a `Pile`? */
+  /** Is class `typeName` class `ancestor`, or below it, e.g. a `DiscardPile` a `Pile`? */
   isSubclassOf(typeName: string | undefined, ancestor: string): boolean {
     for (let type = typeName; type; type = this.superTypes.get(type)) {
       if (type === ancestor) return true
@@ -451,7 +451,7 @@ export type TSUndeclared = {
 export type GivenValue = {
   /** The value given, e.g. `"stock"`. */
   value: P.ASTExpression
-  /** Given when one is made:  the class made, e.g. `Stock_Pile`. */
+  /** Given when one is made:  the class made, e.g. `StockPile`. */
   made?: string
   /** Set on one:  what it's set on, e.g. `the pile`. */
   object?: P.ASTExpression

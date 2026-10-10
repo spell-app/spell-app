@@ -39,7 +39,7 @@ export type FileMatch = {
 export type SpellSymbol = {
   /** Symbol as sent to the editor. */
   symbol: DocumentSymbol
-  /** Type_Case name of the type a property / method is declared on, e.g. `Card`. */
+  /** PascalCase name of the type a property / method is declared on, e.g. `Card`. */
   typeName?: string
 }
 
@@ -207,7 +207,7 @@ export type ScopeMember = {
   kind: "type" | "property" | "enumeration" | "method" | "function" | "constant" | "variable"
   /** One-line summary, e.g. its datatype. */
   detail?: string
-  /** Type_Case name of the super-type it came from, if not its node's own. */
+  /** PascalCase name of the super-type it came from, if not its node's own. */
   inheritedFrom?: string
   /** Heading it's under in its file -- see `ScopeEntry.section`. */
   section?: string

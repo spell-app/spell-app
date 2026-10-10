@@ -10,7 +10,7 @@ import { SpellType } from "./SpellType"
  *   At most `SpellType.MAX_NAME_WORDS`.
  * - So it's ONLY for a declaration's name, between fixed words:  `(a|an) {type:type_words} ... is`.
  *   A MENTION of a type is `type`, which takes several words only if someone declared them.
- * - `value`, `raw` and `data.scopeType` as `type`'s, e.g. `Bank_Account` and `bank account`.
+ * - `value`, `raw` and `data.scopeType` as `type`'s, e.g. `BankAccount` and `bank account`.
  */
 export class TypeWords extends SpellType {
   /** Words which end a name, though they're fine in one by themselves. */
@@ -45,11 +45,11 @@ types.addRule(TypeWords, {
     {
       tests: [
         { title: "one word", input: "card", js: "Card" },
-        { title: "two words", input: "bank account", js: "Bank_Account" },
-        { title: "dashed", input: "bank-account", js: "Bank_Account" },
-        { title: "plural", input: "bank accounts", js: "Bank_Account" },
-        { title: "up to a blacklisted word", input: "bank account is", js: "Bank_Account" },
-        { title: "up to aka", input: "bank account aka account", js: "Bank_Account" },
+        { title: "two words", input: "bank account", js: "BankAccount" },
+        { title: "dashed", input: "bank-account", js: "BankAccount" },
+        { title: "plural", input: "bank accounts", js: "BankAccount" },
+        { title: "up to a blacklisted word", input: "bank account is", js: "BankAccount" },
+        { title: "up to aka", input: "bank account aka account", js: "BankAccount" },
         { title: "a blacklisted word", input: "is", js: undefined }
       ]
     }

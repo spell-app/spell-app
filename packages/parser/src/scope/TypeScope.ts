@@ -15,14 +15,14 @@ import { BlockScope } from "./BlockScope"
  *  - Member lookup walks the super-type chain:  `chain()`, `isA()`, `getMember()`.
  */
 export class TypeScope extends BlockScope {
-  /** Name of the type, which should be singular.  Will be normalized to Type_Case. */
+  /** Name of the type, which should be singular.  Will be normalized to PascalCase. */
   declare name: string
-  /** Name of superclass, which should be singular.  Will be normalized to Type_Case. */
+  /** Name of superclass, which should be singular.  Will be normalized to PascalCase. */
   declare superType?: string
   /**
    * Short name the type goes by too, e.g. `Account` for `a bank account aka account is a thing`.
    * - `scope.types` finds the type by it, singular or plural -- after every type's own name.
-   * - Normalized to Type_Case, like `name`.
+   * - Normalized to PascalCase, like `name`.
    */
   declare aka?: string
   /** If true, the type was created as a stub. */
@@ -57,7 +57,7 @@ export class TypeScope extends BlockScope {
   /** Where it was declared, if IMPORTED -- so there's no `declaredBy`.  See `P.DeclaredAt`. */
   declare declaredAt?: P.DeclaredAt
 
-  /** Create with a string `typeName`, or `TypeScopeProps` object; normalizes `name`/`superType` to Type_Case. */
+  /** Create with a string `typeName`, or `TypeScopeProps` object; normalizes `name`/`superType` to PascalCase. */
   constructor(typeName: string)
   constructor(props: TypeScopeProps)
   constructor(input: string | TypeScopeProps) {
@@ -67,7 +67,7 @@ export class TypeScope extends BlockScope {
 
     if (!this.name) throw new TypeError("Types must be created with a 'name'")
 
-    // Make sure type `name` and `superType` are in `Type_Case`
+    // Make sure type `name` and `superType` are in PascalCase
     this.name = P.classCase(this.name)
     if (this.superType) this.superType = P.classCase(this.superType)
     if (this.aka) this.aka = P.classCase(this.aka)
@@ -351,9 +351,9 @@ export type DeclarePropertyOptions = {
 
 /** Constructor props for `TypeScope`. */
 export type TypeScopeProps = {
-  /** Name of the type, which should be singular.  Will be normalized to Type_Case. */
+  /** Name of the type, which should be singular.  Will be normalized to PascalCase. */
   name: string
-  /** Name of superclass, which should be singular.  Will be normalized to Type_Case. */
+  /** Name of superclass, which should be singular.  Will be normalized to PascalCase. */
   superType?: string
   /** See `TypeScope.aka`. */
   aka?: string

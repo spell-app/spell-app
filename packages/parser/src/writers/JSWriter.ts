@@ -20,7 +20,8 @@ import {
   readsMember,
   unwrapped
 } from "./jsShapes"
-import { WriterProject, camelCaseOf, forEachNode, type ProgramPlace } from "./WriterProject"
+import { WriterProject, forEachNode, type ProgramPlace } from "./WriterProject"
+import { Naming, type NameKind } from "./Naming"
 
 /****************
  * ### `JSWriter`
@@ -50,6 +51,9 @@ export class JSWriter extends Writer {
   /** What we know of the project we're writing -- see `WriterProject`. */
   readonly project: WriterProject
 
+  /** How we write each kind of name, e.g. a type in PascalCase -- see `Naming`. */
+  naming = new Naming(Naming.JAVASCRIPT)
+
   /** The class we're writing, e.g. `Tableau`:  what `this` is -- see `kindOf()`. */
   protected currentClass: string | undefined
   /** `@spell/core`'s helpers the code calls by name, e.g. `on`, `trigger`, `positionOf`:  imported by `module()`. */
@@ -74,7 +78,10 @@ export class JSWriter extends Writer {
    */
   forProject(files: P.ASTNode[][], scope?: P.Scope): this {
     const Class = this.constructor as new (project: WriterProject) => this
-    return new Class(WriterProject.of(files, scope))
+    const writer = new Class(WriterProject.of(files, scope))
+    // our language's names, as set on us
+    writer.naming = this.naming
+    return writer
   }
 
   /**
@@ -96,7 +103,7 @@ export class JSWriter extends Writer {
    * - `@spell/core`'s helpers the code calls by name, added to its import (see `coreImportNames()`)
    * - what it imports from another project, by our names, e.g. `playFromTheStockPile`:
    *   that project exports them so
-   * - a class keeps its name, e.g. `Stock_Pile`
+   * - a class keeps its name, e.g. `StockPile`
    */
   module(code: string): string {
     const names = this.coreImportNames(code)
@@ -135,8 +142,13 @@ export class JSWriter extends Writer {
    *   its name is also what a saved thing's JSON, `getProp()` and the Thing Explorer say
    * - a later Python writer would keep spell's snake_case for all of them
    */
-  nameOf(name: string, kind: "property" | "member" = "member"): string {
-    return kind === "property" ? name : camelCaseOf(name)
+  nameOf(name: string, kind: NameKind | "member" = "member"): string {
+    return this.naming.nameOf(name, kind === "member" ? "method" : kind)
+  }
+
+  /** spell's type `name`, e.g. `BankAccount`, as we write a type's name -- `naming`'s `type`;  a value type as is. */
+  typeNameOf(name: string): string {
+    return P.isValueType(name) ? name : this.nameOf(name, "type")
   }
 
   /** Member `name` read off something, by our name:  a getter the project declares as a member, else a property. */
@@ -287,7 +299,7 @@ export class JSWriter extends Writer {
 
   /** `node`'s name, as we write a variable's (`nameOf()`):  `start_pile` => `startPile`;  `spellCore` as is. */
   variableName(node: P.ASTVariableExpression): string {
-    return node.type === "global" ? node.name : this.nameOf(node.name)
+    return node.type === "global" ? node.name : this.nameOf(node.name, "variable")
   }
 
   /** `await x`, or a loop whose body waits written as a plain loop -- see `loop()`. */
@@ -640,7 +652,7 @@ export class JSWriter extends Writer {
         return rest.length === 2 ? `${self}.between(${this.bare(second!)}, ${this.bare(third!)})` : undefined
       case "duplicateList": {
         if (!(second instanceof P.ASTTypeExpression)) return `${self}.clone()`
-        // already that class, e.g. a `Discard_Pile` is a `Pile`:  a copy of its own class (Q36)
+        // already that class, e.g. a `DiscardPile` is a `Pile`:  a copy of its own class (Q36)
         const own = this.kindOf(list)
         const isAlready = !!own && this.project.isSubclassOf(own, second.name)
         return isAlready ? `${self}.clone()` : `${self}.cloneAs(${second.name})`
@@ -786,7 +798,7 @@ export class JSWriter extends Writer {
     }
     const initializer = node.initializer && unwrapped(node.initializer)
     if (initializer instanceof P.ASTNewInstanceExpression) {
-      // made when first read, `as a new task-list`:  the class it makes, e.g. `Task_List`;  a new list is a list
+      // made when first read, `as a new task-list`:  the class it makes, e.g. `TaskList`;  a new list is a list
       if (initializer.type.name !== "List") return kindOfType(initializer.type.name)
       if (newListItemName(initializer)) return undefined
     }
@@ -1002,7 +1014,7 @@ export class JSWriter extends Writer {
   ////////////////
 
   ASTTypeExpression(node: P.ASTTypeExpression): string {
-    return node.name
+    return this.typeNameOf(node.name)
   }
 
   ASTPrototypeExpression(node: P.ASTPrototypeExpression): string {
@@ -1195,7 +1207,7 @@ export class JSWriter extends Writer {
   ASTClassDeclaration(node: P.ASTClassDeclaration): string {
     const { type, superType, members } = node
     const superDeclarator = superType ? `extends ${this.superTypeOf(node)} ` : ""
-    const declaration = `export class ${type.name} ${superDeclarator}`
+    const declaration = `export class ${this.typeNameOf(type.name)} ${superDeclarator}`
     if (!members?.length) return `${declaration}${jsText.EMPTY_BLOCK}`
     const body = this.inClass(type.name, () =>
       members.map((member) => (member instanceof P.ASTClassMember ? this.writeAsMember(member) : this.write(member)))

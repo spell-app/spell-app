@@ -1,4 +1,4 @@
-import { proto } from "$/util"
+import { kebabCase, proto } from "$/util"
 import { P } from "$/parser"
 import { Priority } from "$/spell/rules/rules.types"
 // Import directly to avoid circular import
@@ -110,7 +110,7 @@ export class TypeDeclaration<
   }
 }
 
-/** A type's name in words, e.g. `bank account` for `Bank_Account`. */
+/** A type's name in words, e.g. `bank account` for `BankAccount`. */
 function wordsOf(typeName: string): string {
-  return typeName.replace(/_/g, " ").toLowerCase()
+  return kebabCase(typeName).replace(/-/g, " ").trim()
 }

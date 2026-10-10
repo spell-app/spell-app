@@ -9,7 +9,7 @@ import { identifierBlacklist } from "$/spell/rules/identifier-blacklist"
  * - or SEVERAL words, if they're a name someone declared, e.g. `bank account(s)` after `a bank account is a thing`
  *   - only declared names, the longest first:  `a big card` stays a card, unless a `big card` was declared
  * - A type's short name names it too, compiled as the type's own name:
- *   `account` => `Bank_Account`, after `a bank account aka account is a thing` -- see `P.TypeScope.aka`.
+ *   `account` => `BankAccount`, after `a bank account aka account is a thing` -- see `P.TypeScope.aka`.
  * - Sets `match.data.scopeType` to the existing `TypeScope` looked up by `scope.types`, `NONE` if scope doesn't know it.
  * - Other rules read it as `if (match.is(SpellType)) match.data.scopeType`.
  */
@@ -40,9 +40,9 @@ export class SpellType extends P.Pattern<never, TypeMatchData> {
 
   /**
    * Name compiled code uses for the type written as `value`:
-   *   its datatype (`SP.typeName()`), but a class in Type_Case.
+   *   its datatype (`SP.typeName()`), but a class in PascalCase.
    * - a value type in spell's words, e.g. `string` => `text`, `boolean` => `choice`, `numbers` => `number`
-   * - a class, singular, e.g. `Thing`, `List` for `array`, `Bank_Account`, `Drawable` for `drawable thing`
+   * - a class, singular, e.g. `Thing`, `List` for `array`, `BankAccount`, `Drawable` for `drawable thing`
    *   -- see `P.classCase()`
    */
   mapValue<T = string>(value: string): T {
@@ -89,7 +89,7 @@ export class SpellType extends P.Pattern<never, TypeMatchData> {
 
   /**
    * Match of `words` naming `scopeType`.
-   * - `value`:  how its words compile, e.g. `Bank_Account` for `bank accounts`;
+   * - `value`:  how its words compile, e.g. `BankAccount` for `bank accounts`;
    *   for a short name, the type's own name.
    * - `raw`:  its words as written, e.g. `bank accounts`.
    */
@@ -112,7 +112,7 @@ export class SpellType extends P.Pattern<never, TypeMatchData> {
     return words.map((token) => token.value).join("-")
   }
 
-  /** Is `value` (Type_Case) `scopeType`'s short name, not its own name? */
+  /** Is `value` (PascalCase) `scopeType`'s short name, not its own name? */
   static isShortName(scopeType: P.TypeScope, value: string): boolean {
     return scopeType.aka === value && scopeType.name !== value
   }

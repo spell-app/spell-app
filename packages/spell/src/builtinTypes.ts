@@ -521,7 +521,7 @@ export const TYPE_WORDS: P.TypeWords = {
  *   - `fraction` => `number`
  *   - `char` => `character`
  * - A list of something:  `list of cards` / `array of Card` => `list of cards`.
- * - Anything else is a user's type, Type_Case and singular:  `cards` => `Card`.
+ * - Anything else is a user's type, PascalCase and singular:  `cards` => `Card`.
  */
 export function typeName(written: string): P.Datatype {
   return P.typeName(written, TYPE_WORDS)

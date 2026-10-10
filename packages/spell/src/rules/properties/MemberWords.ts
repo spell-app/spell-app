@@ -17,7 +17,7 @@ import { properties } from "./properties.parser"
  *   re-parses with fewer tokens -- see `declaredPrefix()`.
  */
 export class MemberWords extends P.Pattern {
-  /** Any case, unlike `property`:  a class variable is Type_Case, e.g. `Card Suits`. */
+  /** Any case, unlike `property`:  a class variable is PascalCase, e.g. `Card Suits`. */
   @proto static pattern = P.ALPHANUMERIC_WORD_WITH_DASHES
   @proto static highlightAs: P.HighlightKind = "property"
 

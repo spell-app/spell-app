@@ -245,7 +245,7 @@ classes.addRule(DefinePropertyHas, {
           ["let it = new Card()", "spellCore.console.log(Card.Suits)"],
           ["const it = new Card()", "spellCore.console.log(Card.Suits)"]
         ],
-        ["print bank-account account-types", "spellCore.console.log(Bank_Account.Account_types)"]
+        ["print bank-account account-types", "spellCore.console.log(BankAccount.Account_types)"]
       ]
     },
     {
