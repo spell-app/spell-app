@@ -278,8 +278,9 @@ describe("DOMElement property values", () => {
     const { define } = testTag("translated", [attribute("label", "string")])
     const tag = `x-dom-traducido-${tagCount}`
     const Class = define(tag, { lang: "es", attributes: { label: "etiqueta" } })
-    // then the shared attributes (`SharedVocabulary`), under their Spanish names (`SharedVocabulary.es.ts`)
-    expect(Class.observedAttributes).toEqual(["etiqueta", "desactivado", "cargando", "visible"])
+    // then the shared attributes (`SharedVocabulary`), under their Spanish names (`SharedVocabulary.es.ts`;
+    // `animation` has none yet), and the platform's `hidden`, its other name
+    expect(Class.observedAttributes).toEqual(["etiqueta", "desactivado", "cargando", "visible", "animation", "hidden"])
     const host = await renderTag(tag, `etiqueta="A"`)
     expect(host.etiqueta).toBe("A")
     expect("label" in host).toBe(false)

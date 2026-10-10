@@ -34,7 +34,7 @@ type HotElement = DOMElement & Record<string, any> & { shadowRoot: ShadowRoot }
 const LABEL = { name: "label", kind: "string", description: "A label." } as const
 
 /** What every element starts with for the shared attributes (`SharedVocabulary`), never written in these tests. */
-const SHARED_STARTING_VALUES = { disabled: false, loading: false, visible: true } as const
+const SHARED_STARTING_VALUES = { disabled: false, loading: false, visible: true, animation: undefined } as const
 
 /** The Spanish names of a test tag:  `<x-hot-1-es etiqueta="...">`. */
 const SPANISH = { lang: "es", attributes: { label: "etiqueta" } } as const satisfies Dictionary

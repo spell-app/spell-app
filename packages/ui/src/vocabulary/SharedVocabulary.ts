@@ -1,17 +1,22 @@
+import * as UIT from "$/ui/components/components.types"
+
 import { sharedEs } from "./SharedVocabulary.es"
 import type { AttributeSpec, ComponentVocabulary, SharedDictionary, StateSpec } from "./vocabulary.types"
 
 /****************
  * ### `SharedVocabulary`
  * The attributes and states EVERY component has, without its vocabulary declaring them:
- * `disabled`, `loading` and `visible` (epic `spell-element`, P8).
- * - `UIComponent` reads them ("Shared states"):
- *   so `<ui-menu disabled>`, `<ui-table loading>` and `<ui-message visible="false">` work,
- *   though those vocabularies never name them.
- * - What each means for a family is a key of its `elementSetup` (`disabled`, `loading`, `visibleAnimation`).
+ * `disabled`, `loading`, `visible` and `animation` (epic `spell-element`, P8 and P12).
+ * - `UIComponent` reads them ("Shared states", "Shown or hidden"):
+ *   so `<ui-menu disabled>`, `<ui-table loading>`, `<ui-message visible="false">`
+ *   and `<ui-modal animation="fly down">` work, though those vocabularies never name them.
+ * - What each means for a family is a key of its `elementSetup` (`disabled`, `loading`, `visible`, `animation`).
+ * - `visible` is the platform's `hidden` turned round:  one fact, two names (`DOMElement`, "Shown or hidden").
  * - A vocabulary that declares one of them itself keeps its own spec, and its own meaning:
- *   `<ui-sidebar visible>` starts hidden, `<ui-button disabled>` has Fomantic's look.
+ *   `<ui-button disabled>` has Fomantic's look.
  *   - The shared spec is added only where the vocabulary has none of that name.
+ *   - NOTE: none declares its own `visible` or `animation` any more (P12):  keep it that way,
+ *     or that element loses `visible` / `hidden` as one fact.
  * - The platform's own `hidden` and `inert` need nothing here:  every element has them already.
  * - A translated tag names them in its own language (`<ie-boton desactivado>`):
  *   each language has a small file of them, `SharedVocabulary.<lang>.ts` (`translated()`),
@@ -36,8 +41,7 @@ export class SharedVocabulary {
 
   /**
    * Does `vocabulary` take the SHARED attribute `name`?
-   * - False when it declares its own of that name (`<ui-sidebar>`'s `visible`),
-   *   or when `name` isn't a shared attribute.
+   * - False when it declares its own of that name, or when `name` isn't a shared attribute.
    */
   static takesShared(vocabulary: ComponentVocabulary, name: string): boolean {
     return SharedVocabulary.withShared(vocabulary).shared.has(name)
@@ -96,7 +100,7 @@ type WithShared = {
 /**
  * The attributes every component takes.
  * - `boolean` kinds:  no class word (a vocabulary's own `disabled` / `loading` brings Fomantic's class).
- * - `visible` defaults to TRUE:  `visible="false"` is how a page hides it (`el.visible = false` writes that).
+ * - `visible` and `animation` have no default of their own:  the family's (`elementSetup.visible`, `.animation`).
  */
 const SHARED_ATTRIBUTES: readonly AttributeSpec[] = [
   {
@@ -116,10 +120,20 @@ const SHARED_ATTRIBUTES: readonly AttributeSpec[] = [
   {
     name: "visible",
     kind: "boolean",
-    default: true,
     description:
-      '`visible="false"` hides it with a short animation (a fade);  `visible` (or `="true"`) brings it back.  ' +
-      "Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
+      "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  " +
+      'Writing either one shows or hides the element with its `animation`;  `visible="false"` writes `hidden`.  ' +
+      "Neither written:  the family decides (a modal starts hidden, a message shown).  " +
+      "Both written in markup and disagreeing:  `hidden` wins."
+  },
+  {
+    name: "animation",
+    kind: "enum",
+    values: UIT.Animations,
+    description:
+      "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, " +
+      "else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion " +
+      "setting does;  an element inside can't turn it back on."
   }
 ]
 
@@ -138,5 +152,9 @@ const SHARED_STATES: readonly StateSpec[] = [
     name: "dimmed",
     description: "Disabled or loading the shared way:  everything inside is inert, and dimmed."
   },
-  { name: "hidden", description: '`visible="false"`:  hidden, once its animation has run.' }
+  { name: "hidden", description: 'Hidden (`hidden`, or `visible="false"`), once its animation has run.' },
+  {
+    name: "hiding",
+    description: "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
+  }
 ]

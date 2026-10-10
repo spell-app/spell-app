@@ -12,7 +12,7 @@
  *     and a static initializer that reads one of its constants imports it directly (`LoadableComponent`).
  */
 
-import type { E } from "$/ui/core"
+import type { E, UIT } from "$/ui/core"
 
 ////////////////
 // ## Class builder
@@ -723,14 +723,28 @@ export type ElementSetup = {
   loading: LoadingMeaning
 
   /**
-   * The `<ui-transition>` animation `visible="false"` hides the element with, and `visible` shows it again:
-   * a name from `animations.css` (`"fade"`, `"scale"`, `"fade-down"` ...:  `AnimationNames`).
-   * - Default `"fade"`.
-   * - Not read where the family's vocabulary has a `visible` of its own (`<ui-sidebar>`, `<ui-transition>`,
-   *   `<ui-reveal>`):  `SharedVocabulary`.
+   * What the element shows when the page writes neither `visible` nor `hidden` (every element takes both:
+   * `SharedVocabulary`;  one fact, two names:  `DOMElement`, "Shown or hidden").
+   * - `"shown"` (the default):  a message, a segment, a menu ...
+   * - `"hidden"`:  a modal, flyout, popup, sidebar, dimmer, loader, transition:
+   *   the element writes `hidden` on itself when it first connects.
+   * - Read once, when the tag is defined.
    */
-  visibleAnimation: E.AnimationName
+  visible: StartsVisible
+
+  /**
+   * How the element shows and hides when its own `animation` attribute names none:  Fomantic's name
+   * (`"fade"`, `"scale"`, `"fly down"` ...:  `UIT.Animations`), or `"none"`.
+   * - Default `"fade"`.
+   * - The element's own `animation` wins over it;  `none` from around it, or reduced motion, wins over both
+   *   (`UIComponent.animationToRun`).
+   * - Run by the `onVisibleChange()` hook:  by default on the boxes at the top of the shadow root.
+   */
+  animation: UIT.Animation
 }
+
+/** `elementSetup.visible`:  what an element shows when the page writes neither `visible` nor `hidden`. */
+export type StartsVisible = "shown" | "hidden"
 
 /** `elementSetup.disabled`:  what `disabled` means for a family. */
 export type DisabledMeaning = "unusable" | "its own"
