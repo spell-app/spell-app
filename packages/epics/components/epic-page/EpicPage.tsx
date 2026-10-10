@@ -53,7 +53,6 @@ import {
   SEND,
   SEND_BAR,
   STACK_PROPERTY,
-  STATE,
   STATUS,
   SUBHEAD,
   TODO,
@@ -81,10 +80,11 @@ import agentsCSS from "./AgentsPanel.css?inline"
  * - Draws, top to bottom:
  *   - the crumbs (`Docs › Epics › <title>`, P14:
  *     none while the doc still holds its old `.spell-crumbs` before the page;  none narrow, 720px or less, where the
- *     site header shows the same crumbs in place of its tabs:  `Crumbs.css`)
+ *     side bar is too narrow for them:  `Crumbs.css`)
  *   - the sticky page header:  the h1 `/epic <name>`, copied on click;
- *     at its right the bedtime label, the step label, the state mark and the git toggle (Owen, 2026-10-10:
- *     "Right items:  (=>P14) (whatever the half-filled circle is) (git icon, but bigger)")
+ *     at its right the bedtime label, the step label (the state's icon in it) and the git toggle (Owen,
+ *     2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle is) (git icon, but bigger)";  then the
+ *     state went into the step label:  "Into the pill")
  *   - the epic's title, NOT sticky:  it scrolls away under the header (Owen, 2026-10-10:  "Page sub header ("Output
  *     Targets") should not be sticky")
  *   - the toolbar's bar, sticky again, right below the header (`--epic-head-h`):  the new item form, the toolbar
@@ -96,10 +96,11 @@ import agentsCSS from "./AgentsPanel.css?inline"
  *   - else DONE (solid green) once every phase is done;  else the next one (grey)
  *   - none without phases;  FUTURE (grey:  not started) for a future epic
  *   - read from the `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`
- * - The state mark (Owen, 2026-10-10, epic `airplane` P8), by the ONE rule the Epics list uses too
- *   (`$/server/site/EpicState`):  an icon in the state's colour, why in its tooltip
- *   - in progress (blue), errors (red:  every phase done, items need Owen), paused (grey:  untouched for days)
- *   - none on a future epic or a done one:  the step label says FUTURE or DONE already
+ * - The epic's state (Owen, 2026-10-10, epic `airplane` P8), by the ONE rule the Epics list uses too
+ *   (`$/server/site/EpicState`):  the step label's icon and colour, why under its tooltip (`part="state"`)
+ *   - in progress (blue half circle), errors (red !:  every phase done, items need Owen), paused (grey pause:
+ *     untouched for days)
+ *   - none on a future epic or a done one:  the label is FUTURE or DONE in its own look
  *   - from the phases and items below and the doc's `updated` date, so it follows the live update too;
  *     a session listening to the review counts as running
  * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it flashes)
@@ -240,8 +241,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     }))
   })
 
-  /** The step label;  `undefined` for none. */
-  readonly step = createMemo((): StepLabel | undefined => {
+  /** The step label by the phases alone:  the active one, else the next, DONE or FUTURE;  `undefined` for none. */
+  private readonly phaseStep = createMemo((): StepLabel | undefined => {
     const phases = this.phases()
     if (!phases.length) {
       return this.future ? { color: "grey", icon: "seedling", words: this.translationForKey("future") } : undefined
@@ -305,6 +306,23 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       active: active && `${active.id.toUpperCase()} · ${active.title}`
     })
     return state.name === "future" || state.name === "done" ? undefined : state
+  })
+
+  /**
+   * The step label;  `undefined` for none.
+   * - while the epic has a state (`state()`), its icon and colour are the state's, the state's why under its tooltip
+   *   (Owen, 2026-10-10:  the state's own mark beside it only repeated it)
+   */
+  readonly step = createMemo((): StepLabel | undefined => {
+    const label = this.phaseStep()
+    const state = this.state()
+    if (!label || !state) return label
+    return {
+      ...label,
+      color: state.color as StepLabel["color"],
+      icon: state.icon,
+      tip: `${label.tip ?? label.words}\n${state.tip}`
+    }
   })
 
   /** What the header's review buttons show;  `undefined` while the page isn't reviewed. */
@@ -444,6 +462,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
             <Show when={this.step()}>
               {(step) => (
                 <ui-label
+                  part={this.state() ? this.partForName("state") : undefined}
+                  data-state={this.state()?.name}
                   basic={step().color === "green" ? undefined : ""}
                   color={step().color}
                   icon={step().icon}
@@ -452,20 +472,6 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
                 >
                   {step().words}
                 </ui-label>
-              )}
-            </Show>
-            <Show when={this.state()}>
-              {(state) => (
-                <ui-icon
-                  class={STATE}
-                  part={this.partForName("state")}
-                  name={state().icon}
-                  color={state().color}
-                  role="img"
-                  aria-label={state().tip}
-                  title={state().tip}
-                  data-state={state().name}
-                />
               )}
             </Show>
             <Show when={this.hasCommits()}>{this.gitToggle()}</Show>

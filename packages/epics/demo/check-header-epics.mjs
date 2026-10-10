@@ -1,6 +1,6 @@
 /**
  * Check P10's page header and section tools on preview copies (`preview-epics/<name>/`), in a real browser:  the
- * review line, the state mark and step label, every section's `open/all` badge (against the items and phases in
+ * review line, the step label (the state in it), every section's `open/all` badge (against the items and phases in
  * the doc), the state filter (a chip hides its items and says how many), and the Phases section's Plan changes box.
  * Usage (from the repo root):
  *   node packages/epics/demo/check-header-epics.mjs [--doc <name>]... [outDir]
@@ -184,17 +184,6 @@ function readFacts(width) {
     const dx = Math.abs(outer.left + outer.width / 2 - (glyph.left + glyph.width / 2))
     const dy = Math.abs(outer.top + outer.height / 2 - (glyph.top + glyph.height / 2))
     if (dx > 1 || dy > 1) found.push(`${box.className}'s glyph off centre by ${dx.toFixed(1)}, ${dy.toFixed(1)}`)
-  }
-  // the state mark:  centred on the step label's row
-  const state = root.querySelector('[part~="state"]')
-  const step = root.querySelector(".status ui-label:last-of-type")
-  // the label's host is `display: contents`:  its box is its part's
-  const stepBox = step?.shadowRoot?.querySelector('[part~="label"]')
-  if (state && stepBox) {
-    const a = state.getBoundingClientRect()
-    const b = stepBox.getBoundingClientRect()
-    const off = Math.abs(a.top + a.height / 2 - (b.top + b.height / 2))
-    if (off > 1) found.push(`the state mark sits ${off.toFixed(1)}px off the step label's middle`)
   }
   // each section's badge:  open / all of its items (or phases), as counted here
   const badges = {}
