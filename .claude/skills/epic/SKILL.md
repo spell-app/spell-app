@@ -614,77 +614,121 @@ When Owen says he's done ("stop reviewing", "that's it"), or the session must st
 
 ## 8. Resume:  `/epic resume [<name>]`
 
-A NEW session picks up an epic whose own session is gone (closed, crashed, compacted beyond use):  in the epic's
-checkout, in a window Owen picks, from where the plan doc says it stopped.  The plan doc is the memory:  read it,
-don't redo it.
+A NEW session picks up an epic whose own session is gone (closed, crashed, compacted beyond use).
+- It works in the epic's checkout, in a window Owen picks, from where the plan doc says it stopped.
+- The plan doc is the memory:  read it, don't redo it.
 
 1. Which epic:
-   - `<name>` given:  that one.  No plan doc at `epics/<name>/`:  say so, then the list below.
-   - none:  `spell dev plan-doc list --json`, status `in progress`, minus those with a running session
-     (`spell dev worktree list`).  One:  use it, naming it in the reply.  Several:  AskUserQuestion "Which epic?",
-     label `<name>`, description its next phase and checkout (`plan-doc summary`).
-   - Rename this session `<name>`, first.  A typed `/epic resume <name>` already was, by the prompt hook
-     (`.claude/hooks/prompt-gate.mjs`);  else `spell dev session title "🚧 <name>"`.
-2. Its own session still running (`spell dev worktree status <name>`, `sessions`, `running: true`, not this one):
-   as `.claude/skills/unpark/SKILL.md`, step 2:  tell it, or resume here.
+   - `<name>` given:  that one.
+     No plan doc at `epics/<name>/`:  say so, then the list below.
+   - none given:  the epics in progress, minus those with a running session.
+     - `spell dev plan-doc list --json`, status `in progress`
+     - the running sessions:  `spell dev worktree list`
+     - One:  use it, naming it in the reply.
+     - Several:  AskUserQuestion "Which epic?", label `<name>`,
+       description its next phase and checkout (`plan-doc summary`).
+   - Rename this session `<name>`, first.
+     - A typed `/epic resume <name>` already was, by the prompt hook
+       ([prompt-gate.mjs](.claude/hooks/prompt-gate.mjs)).
+     - Else `spell dev session title "🚧 <name>"`.
+2. Its own session still running (not this one):  as [the unpark skill](.claude/skills/unpark/SKILL.md), step 2.
+   Tell it, or resume here.
+   - Found by `spell dev worktree status <name>`:  `sessions`, `running: true`.
 3. Where:  the plan doc's checkout (`list --json`, `checkout`).
    - `main`:  no worktree;  work in the main checkout, this window.
-   - `.claude/worktrees/<name>`:  as `.claude/skills/unpark/SKILL.md`, step 3 (`stay-check --epic`, new window
-     or stay;  `EnterWorktree` with `path`).  A `PARKED-<name>.md` there:  it was parked;  `/unpark`'s steps
-     instead, and stop here.
-   - the worktree is gone but branch `<name>` isn't:  `EnterWorktree` with `name: "<name>"` re-makes it on that
-     branch (the `WorktreeCreate` hook);  neither:  say so, and ask before starting the epic over.
+   - `.claude/worktrees/<name>`:  as [the unpark skill](.claude/skills/unpark/SKILL.md), step 3.
+     - That's `stay-check --epic`, a new window or stay, and `EnterWorktree` with `path`.
+     - A `PARKED-<name>.md` there:  it was parked.
+       `/unpark`'s steps instead, and stop here.
+   - The worktree is gone but branch `<name>` isn't:
+     `EnterWorktree` with `name: "<name>"` re-makes it on that branch (the `WorktreeCreate` hook).
+   - Neither:  say so, and ask before starting the epic over.
 4. Catch up, in the checkout:
-   - `spell dev plan-doc summary <name>`, the active phase's part file, the log's last lines, `git status
-     --short` and `git log --oneline -5`:  what's done, what's half done
-   - behind `main` (`git log --oneline HEAD..main` not empty):  `spell dev worktree merge-main`, as
-     `.claude/skills/park/SKILL.md` "Resume", steps 2-4 (resuming is the go-ahead for its merge commit)
-   - no `node_modules/`:  `yarn install`
-   - `spell dev plan-doc open <name>` (in a new window:  after the handoff, as "2. Session", step 5)
-5. Reply:  for someone who remembers nothing, three lines at most:  what the epic is, where it stopped, what's
-   waiting on Owen (open questions, issues, tests);  uncommitted work in bold.  Then:
-   - a phase `active` with work under way:  AskUserQuestion "Carry on with P<N> · <Name> (Recommended)" /
-     "Stop here"
-   - else, as "5. Each phase", step 5:  "Start P<N> · <Name> (Recommended)", the top open issue, "Stop here"
-   - no phases yet (it hung while planning):  "3. Plan", from the prompt quoted in its Overview
-   - a new window:  do all of this THIS turn, then end it (the move happens when it ends);  the modal waits for the
-     next turn, in the new window
+   - What's done, what's half done:
+     - `spell dev plan-doc summary <name>`
+     - the active phase's part file, and the log's last lines
+     - `git status --short` and `git log --oneline -5`
+   - Behind `main` (`git log --oneline HEAD..main` not empty):
+     `spell dev worktree merge-main`, as [the park skill](.claude/skills/park/SKILL.md)'s "Resume", steps 2-4.
+     - Resuming is the go-ahead for its merge commit.
+   - No `node_modules/`:  `yarn install`.
+   - `spell dev plan-doc open <name>`.
+     In a new window:  after the handoff, as "2. Session", step 5.
+5. Reply, for someone who remembers nothing:  three lines at most.
+   - What the epic is, where it stopped, and what's waiting on Owen (open questions, issues, tests).
+   - Uncommitted work in bold.
+   - Then:
+     - a phase `active` with work under way:
+       AskUserQuestion "Carry on with P<N> · <Name> (Recommended)" / "Stop here"
+     - else, as "5. Each phase", step 5:  "Start P<N> · <Name> (Recommended)", the top open issue, "Stop here"
+     - no phases yet (it hung while planning):  "3. Plan", from the prompt quoted in its Overview
+     - a new window:  do all of this THIS turn, then end it (the move happens when it ends).
+       The modal waits for the next turn, in the new window.
    - Never start a phase without that pick:  Owen reviews each phase before the next.
 
 ## 9. Future:  `/epic future <name> [text]`
 
-Write an idea down as a FUTURE epic (epic `epic-future`, 2026-10-07):  a stub plan doc and an analysis page, NO
-plan, worktree, window or phases.  `/epic <name>` plans it later, from what this leaves.
+Write an idea down as a FUTURE epic (epic `epic-future`, 2026-10-07).
+- A stub plan doc and an analysis page;  NO plan, worktree, window or phases.
+- `/epic <name>` plans it later, from what this leaves.
 
-- Runs from ANY window, `main` or a worktree:  the prompt hook lets it through and titles the session `📅 <name>`.  No
-  worktree, no plan mode, no move.
-1. Name, collisions, kickoff prompt:  as "1. Name" (the rest of the text is the idea, kept verbatim in
-   `~/.spell/prompts/<name>.md` until the doc holds it).  An existing epic of that name:  say so and stop.
-2. The stub:  `spell dev plan-doc new <name> --future --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md`,
-   then delete the prompt file, and hand-write its `<epic-summary>`:  the idea in two sentences, what changes for
-   Owen.  It's a plan doc with `<epic-page future>`:  a FUTURE label, a "Future epic"
-   notice in place of "Plan hung?", no branch or worktree;  `plan-doc list` says `future`, the Epics index gives
-   it a seedling, between the open epics and the done ones.
+- Runs from ANY window, `main` or a worktree:  the prompt hook lets it through, and titles the session `📅 <name>`.
+  - No worktree, no plan mode, no move.
+1. Name, collisions, kickoff prompt:  as "1. Name".
+   - The rest of the text is the idea, kept verbatim in `~/.spell/prompts/<name>.md` until the doc holds it.
+   - An existing epic of that name:  say so and stop.
+2. The stub:
+
+   ```sh
+   spell dev plan-doc new <name> --future --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md
+   ```
+
+   - Then delete the prompt file.
+   - Hand-write its `<epic-summary>`:  the idea in two sentences, what changes for Owen.
+   - It's a plan doc with `<epic-page future>`:
+     - a FUTURE label
+     - a "Future epic" notice, in place of "Plan hung?"
+     - no branch or worktree
+   - `plan-doc list` says `future`.
+     The Epics index gives it a seedling, between the open epics and the done ones.
 3. Explore, read-only (agents allowed, root rules):  just enough to see the problem, the options and the hard parts.
-   Not a plan:  no phases, no estimates.
-4. The ANALYSIS page:  `spell dev details new analysis --epic <name> --title "<Title>:  analysis"`, written as the
-   details skill says (`.claude/skills/details/SKILL.md`):
+   - Not a plan:  no phases, no estimates.
+4. The ANALYSIS page:
+
+   ```sh
+   spell dev details new analysis --epic <name> --title "<Title>:  analysis"
+   ```
+
+   Written as [the details skill](.claude/skills/details/SKILL.md) says:
    - "Where we are":  that it's a future epic, from which idea, and that answering shapes the plan, later
-   - Context:  the problem in plain words, what exists today (real code), the shape you'd propose (an example), what
-     goes away, the catch (what makes it hard), a rough size
+   - Context:
+     - the problem in plain words
+     - what exists today (real code)
+     - the shape you'd propose (an example)
+     - what goes away
+     - the catch (what makes it hard)
+     - a rough size
    - one question per HIGH-LEVEL open choice (what, where, how far, when):  options side by side, one recommended.
-     Not the small ones:  those are the plan's
-   - `yarn vp fmt <its real path>`, then `spell dev details show <name>/analysis --wait` (Bash, in the background;
-     it opens in the side bar's Review tab).  End the turn with its link pair (`spell dev docs link <page> --review`)
-5. The answer (the waiter wakes the session):  each question `spell dev plan-doc add <name> decision "<answer>"
-   --details "<p>the question, the pick, Owen's note, a link:  <a href=\"details/analysis.html#q2\">analysis
-   Q2</a></p>"`;  a note asking something:  answer it in the reply, and in the decision's details.
-6. Reply:  what the future epic is, what was decided, and that `/epic <name>` plans it;  the plan doc's link pair.
+     Not the small ones:  those are the plan's.
+   - Then `yarn vp fmt <its real path>`.
+   - Then `spell dev details show <name>/analysis --wait`:  Bash, in the background.
+     It opens in the side bar's Review tab.
+   - End the turn with its link pair (`spell dev docs link <page> --review`).
+5. The answer (the waiter wakes the session):  each question becomes a decision:
+
+   ```sh
+   spell dev plan-doc add <name> decision "<answer>" --details "<p>the question, the pick, Owen's note, a link:  <a href=\"details/analysis.html#q2\">analysis Q2</a></p>"
+   ```
+
+   - A note asking something:  answer it in the reply, and in the decision's details.
+6. Reply:  what the future epic is, what was decided, and that `/epic <name>` plans it.
+   Then the plan doc's link pair.
 
 ## 10. Add a phase:  `/epic phase [ids] [name]`
 
-Owen adds a phase to the epic under way, from items it already has or from scratch (epic `skillz` P4, Owen
-2026-10-07:  "`/epic phase J1 J5, t3` => take judgement 1+2 and todo #3 and make a new phase").
+Owen adds a phase to the epic under way, from items it already has, or from scratch.
+- Epic `skillz` P4, Owen 2026-10-07:
+  "`/epic phase J1 J5, t3` => take judgement 1+2 and todo #3 and make a new phase".
 
 ```
 /epic phase                      a new phase with no antecedents:  the text on the lines after says what
@@ -694,25 +738,37 @@ Owen adds a phase to the epic under way, from items it already has or from scrat
   <text on the lines after>      Owen's input:  what the phase is for, how
 ```
 
-- THIS epic:  the session's own, its worktree's plan doc (`spell dev plan-doc list --json`, `checkout`).  None (the
-  main checkout, no epic in this session):  say so in one line and stop.
-- The first line, after `phase`:  each word that's an item id of the doc (`[a-z]\d+`:  `J1`, `t3`, `Q2`, `I4`) is an
-  ANTECEDENT;  the other words, in order, are the phase's name (`add-phases` -> `Add Phases`);  no name:  make one,
-  2-4 words, from the items and the text.  An id the doc doesn't have:  say so, and go on without it.
+- THIS epic:  the session's own, its worktree's plan doc (`spell dev plan-doc list --json`, `checkout`).
+  - None (the main checkout, no epic in this session):  say so in one line, and stop.
+- The first line, after `phase`:
+  - each word that's an item id of the doc (`[a-z]\d+`:  `J1`, `t3`, `Q2`, `I4`) is an ANTECEDENT
+  - the other words, in order, are the phase's name (`add-phases` -> `Add Phases`)
+  - no name:  make one, 2-4 words, from the items and the text
+  - an id the doc doesn't have:  say so, and go on without it
 - The rest of the prompt (the lines after):  Owen's input, word for word, into the phase's goal.
-- The work goes to a background `<name>-plan-doc` agent (root `CLAUDE.md`, "Delegated work"):  reply one line,
-  `adding:  P<n> · <Name> (from J1, J5, T3)`, and end the turn.  Its prompt:
-  1. read each antecedent whole (`spell dev plan-doc items <name> --json`, its part file), and the code it names
-  2. draft the phase as "4. Fill the doc" does:  symptom (one line), changes (two or three), goal (a bullet per
-     outcome, Owen's input in it, each antecedent linked:  `<a href="#j1">J1</a>`), files, verify, estimate
-  3. where:  before Doc Review while Doc Review is still to do (`--before <its number>`:  it moves down one), else
-     last:  `spell dev plan-doc add-phase <name> "<Name>" --symptom ... --changes ... --goal ... --files ...
-     --verify ... --estimate ... [--before <N>]`;  it prints the new number
-  4. each antecedent:  `spell dev plan-doc queue <name> <id> "P<n> · <Name>"` (it's that phase's work now;  closed when
-     the phase does it)
-  5. `spell dev plan-doc log <name> "P<n> added from <ids>:  <Name> (Owen)"`, `check`, `open`
-- When its report comes back:  the new phase's link pair (`spell dev docs link <doc> --hash p<n> --review`), and the
-  next step as "5. Each phase", step 5's modal ("Start P<n> · <Name>" among them).
+- The work goes to a background `<name>-plan-doc` agent (root `CLAUDE.md`, "Delegated work").
+  - Reply one line, `adding:  P<n> · <Name> (from J1, J5, T3)`, and end the turn.
+  - Its prompt:
+    1. read each antecedent whole (`spell dev plan-doc items <name> --json`, its part file), and the code it names
+    2. draft the phase as "4. Fill the doc" does:
+       - symptom (one line), changes (two or three)
+       - goal:  a bullet per outcome, Owen's input in it, each antecedent linked (`<a href="#j1">J1</a>`)
+       - files, verify, estimate
+    3. where:
+       - before Doc Review, while Doc Review is still to do (`--before <its number>`:  it moves down one)
+       - else last
+       - it prints the new number:
+
+       ```sh
+       spell dev plan-doc add-phase <name> "<Name>" --symptom ... --changes ... --goal ... --files ... --verify ... --estimate ... [--before <N>]
+       ```
+
+    4. each antecedent:  `spell dev plan-doc queue <name> <id> "P<n> · <Name>"`.
+       It's that phase's work now;  closed when the phase does it.
+    5. `spell dev plan-doc log <name> "P<n> added from <ids>:  <Name> (Owen)"`, `check`, `open`
+- When its report comes back:
+  - the new phase's link pair (`spell dev docs link <doc> --hash p<n> --review`)
+  - and the next step, as "5. Each phase", step 5's modal ("Start P<n> · <Name>" among them)
 
 ## 11. Start:  `/epic start <P1 | ids>`
 
@@ -724,17 +780,21 @@ Owen starts work in THIS epic, in one block:  a phase, or a handful of its items
   <text on the lines after>      Owen's input for the work, word for word
 ```
 
-- THIS epic:  as "10. Add a phase".  An id it doesn't have:  say so and stop (nothing half-started).
-- A phase (`P<n>`):  "5. Each phase" for it.  Not the next one in order:  say so in one line, then go anyway.  Done
-  already:  say so and ask (modal) "Reopen P<n>?" before touching it.
-- Items (`J3 J4 T6`, spaces or commas, any case):  one block of work in this epic:
-  - read each whole;  together they're the task, Owen's text the steer
-  - mark each in progress:  `spell dev plan-doc queue <name> <id> "started with <the other ids>"`
-  - do the work, recording as "5. Each phase", step 2 does
-  - each done:  `close <name> <id>` (a question:  `decide`);  each talked through:  `review <name> <id> "<outcome>"`
-  - ONE commit for the block:  `<name> J3 + J4 + T6:  <summary>` (the epic's name first, so `commits --backfill`
-    files it under each item), then `spell dev plan-doc commits <name> --backfill`
-  - reply as a phase's end does:  what was done per item (in words, ids after), checks with numbers, what's next
+- THIS epic:  as "10. Add a phase".
+  An id it doesn't have:  say so and stop (nothing half-started).
+- A phase (`P<n>`):  "5. Each phase" for it.
+  - Not the next one in order:  say so in one line, then go anyway.
+  - Done already:  say so and ask (modal) "Reopen P<n>?" before touching it.
+- Items (`J3 J4 T6`, spaces or commas, any case):  one block of work in this epic.
+  - Read each whole:  together they're the task, Owen's text the steer.
+  - Mark each in progress:  `spell dev plan-doc queue <name> <id> "started with <the other ids>"`.
+  - Do the work, recording as "5. Each phase", step 2 does.
+  - Each done:  `close <name> <id>` (a question:  `decide`).
+    Each talked through:  `review <name> <id> "<outcome>"`.
+  - ONE commit for the block:  `<name> J3 + J4 + T6:  <summary>`.
+    - The epic's name first, so `commits --backfill` files it under each item.
+    - Then `spell dev plan-doc commits <name> --backfill`.
+  - Reply as a phase's end does:  what was done per item (in words, ids after), checks with numbers, what's next.
 - Bedtime mode on (`spell dev plan-doc summary <name> --json`, `bedtime`):  no modals, as `/bedtime` says.
 
 ## Cheat sheet (`spell dev plan-doc ...`, from anywhere in the repo)
