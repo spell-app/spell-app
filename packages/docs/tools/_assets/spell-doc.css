@@ -1106,6 +1106,99 @@ ui-accordion.spell-aside::part(content) {
     display: inline-block;
   }
 }
+
+/*******************************
+            Toolbar
+*******************************/
+
+/*
+ * A plan doc's navigation (`nav.spell-toolbar`, the runtime's `buildToolbar()`;  epic `airplane` P8, Owen 2026-10-10:
+ * "a sticky top toolbar instead"), in place of the rail:  the last row of `<epic-page>`'s sticky header (its
+ * `toolbar` slot), so it sticks with it, and the titles below stick under it.
+ * - the rail's ivory band, edge to edge under the header's rows:  the header's own inset (`--epic-inset`) and bottom
+ *   padding (10px) undone, a rule above it
+ * - one pill per top-level block, `icon label badges`;  the current one a deeper ivory (scroll-follow;  not bold, so
+ *   the row never shifts as it moves)
+ * - badges:  how many items wait on Owen, red urgent, orange Claude's reply waiting on his pick;  none, no badge
+ * - when the labels don't fit (the runtime's `fitLabels()`):  `compact`, tighter and a size smaller;  then `crowded`
+ *   (a phone, VS Code's side bar):  only the current pill keeps its label, and the row scrolls sideways if even that
+ *   doesn't fit (never the page)
+ */
+.spell-toolbar {
+  flex: 1 0 100%;
+  min-width: 0;
+  margin: 0 calc(-1 * var(--epic-inset, 0px)) -10px;
+  border-top: 1px solid var(--spell-rail-rule);
+  background: var(--spell-rail-fill);
+}
+.spell-toolbar-items {
+  display: flex;
+  gap: 1px;
+  /* a pill's text lines up with the header's inset */
+  padding: 4px calc(var(--epic-inset, 16px) - 7px);
+  overflow: auto hidden;
+  overscroll-behavior-x: contain;
+  scrollbar-width: none;
+}
+.spell-doc-page .spell-toolbar-item {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  gap: 4px;
+  height: 30px;
+  padding: 0 7px;
+  border-radius: 999px;
+  color: var(--spell-rail-ink);
+  font: 500 13px/1 var(--spell-sans);
+  text-decoration: none;
+  white-space: nowrap;
+}
+.spell-doc-page .spell-toolbar-item:hover {
+  background: var(--spell-rail-hover);
+  color: var(--spell-rail-ink);
+}
+.spell-toolbar-item:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
+  outline-offset: -2px;
+}
+.spell-doc-page .spell-toolbar-item[selected] {
+  background: var(--spell-rail-selected);
+}
+/* the icon in a box of its own (the runtime watches it draw), the same size however tight the row */
+.spell-toolbar-icon {
+  display: inline-flex;
+  font-size: 14px;
+}
+.spell-toolbar-count {
+  min-width: 18px;
+  height: 18px;
+  padding: 0 5px;
+  box-sizing: border-box;
+  border-radius: 999px;
+  font: 700 11px/18px var(--spell-sans);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.spell-toolbar-count + .spell-toolbar-count {
+  margin-inline-start: -3px;
+}
+.spell-toolbar-count.urgent {
+  background: var(--spell-state-attention);
+  color: var(--spell-state-attention-on);
+}
+.spell-toolbar-count.replied {
+  background: var(--spell-state-replied);
+  color: var(--spell-state-replied-on);
+}
+/* `compact`, then `crowded` (`fitLabels()`):  tighter pills first, then only the current one's label */
+.spell-toolbar:is(.compact, .crowded) .spell-toolbar-item {
+  gap: 3px;
+  padding: 0 5px;
+  font-size: 12px;
+}
+.spell-toolbar.crowded .spell-toolbar-item:not([selected]) .spell-toolbar-label {
+  display: none;
+}
 /*******************************
             Cards
 *******************************/
