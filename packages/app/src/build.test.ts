@@ -45,12 +45,12 @@ describe("production build", () => {
       // No raw decorator syntax survived (e.g. `@proto static alias = ...`)
       // NOTE: bare `@proto` DOES legitimately appear, in error message strings.
       expect(js).not.toMatch(/@proto\s+static\s+\w+\s*=/)
-      // `define_property_has` is a REGISTERED rule, so its class name IS its name in the grammar --
-      // that's what `keepNames` protects.
+      // `DefinePropertyHas` is a REGISTERED rule, its name in the grammar worked out from its class name
+      // (`define_property_has`, `P.Rule.ruleNameFor()`) -- that's what `keepNames` protects.
       // - Minified without it, it'd be e.g. `Ab=class extends ...` and the rule would register under a garbage name.
       // - Survives in one of three shapes:  `X = class`, `class X`, or, for a decorated class,
       //   esbuild's `__name(cls, "X")` helper, itself minified to e.g. ``Px(uS,`X`)``.
-      const RULE = "define_property_has"
+      const RULE = "DefinePropertyHas"
       expect(js).toMatch(
         new RegExp(String.raw`\b${RULE}\s*=\s*class\b|\bclass ${RULE}\b|\(\w+,\s*[\`"']${RULE}[\`"']\)`)
       )
