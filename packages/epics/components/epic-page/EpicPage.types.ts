@@ -88,13 +88,12 @@ export const REVIEW_NOW = "review-now"
 export const REVIEW_LINE = "review-line"
 
 /**
- * Classes of the toolbar's sticky bar (the new item form, then the toolbar), the toolbar row, its tools at the right,
- * the send bar and its pill (epic `airplane` P8).
+ * Classes of the toolbar's sticky bar (the new item form, then the toolbar), the toolbar row, its tools at the right
+ * (epic `airplane` P8), and the nobody-listening pill under the review line.
  */
 export const BAR = "bar"
 export const TOOLBAR = "toolbar"
 export const TOOLBAR_TOOLS = "toolbar-tools"
-export const SEND_BAR = "send-bar"
 export const PILL = "pill"
 
 /** The crumbs' class. */
@@ -122,7 +121,7 @@ export const FLASH_MS = 900
 /** The Send button's look:  no marks, some not sent, all sent. */
 export type SendState = "idle" | "unsent" | "sent"
 
-/** What the send bar's buttons show:  from the review inbox, while the page is reviewed. */
+/** What the header's Send and Review Now show:  from the review inbox, while the page is reviewed. */
 export type HeaderMarks = {
   /** Send's look */
   send: SendState
