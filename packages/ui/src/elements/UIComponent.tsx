@@ -604,10 +604,11 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * The `class` of the top box in the element's shadow DOM, in Fomantic's class names:  `ui small primary button`.
-   * - Built from the attributes (through `classValue()`), then `extraClass`, then the noun.
+   * - Built from the attributes (through `classValue()`), then `extraClass`, then the noun (`classNoun`).
    */
   get rootClass(): string {
-    return this.elementDefinition.builder.build(this.internalState.classInput, { extra: this.extraClass })
+    const { extraClass: extra, classNoun: noun } = this
+    return this.elementDefinition.builder.build(this.internalState.classInput, { extra, noun })
   }
 
   /**
@@ -623,6 +624,16 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *   a class that follows an attribute comes from the vocabulary (`classValue()`).
    */
   protected get extraClass(): string | undefined {
+    return undefined
+  }
+
+  /**
+   * Hook:  the last class word;  default the vocabulary's `noun`.
+   * - For an element Fomantic draws as ANOTHER noun:
+   *   `<ui-tab>`'s pane is a segment (`ui bottom attached tab segment`),
+   *   so `UITab` says `segment` here, and `tab` in `extraClass`.
+   */
+  protected get classNoun(): string | undefined {
     return undefined
   }
 

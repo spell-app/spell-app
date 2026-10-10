@@ -469,7 +469,7 @@ As WWOD §18, plus:
     - A member with an attribute's name wins over its getter (and TypeScript flags a type clash),
       so name members for what they are (`isOpen`, not `open`);
       a BASE class never takes a name any vocabulary uses
-      (`elementDefinition`, `validationRules`:  `UIComponent`'s doc, "Member names").
+      (`elementDefinition`, `validationRules`:  `UIComponent`'s doc, "Base classes").
     - Attributes outside the vocabulary, or a vocabulary attribute's raw text:
       `this.attributes["aria-label"]`, `this.attributes.value` --
       the DOM string or `null`, by CANONICAL name (a translated tag reads its own).
