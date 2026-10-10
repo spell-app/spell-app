@@ -10,13 +10,15 @@ function epic(name, statuses, updated = new Date().toISOString().slice(0, 10)) {
     title: name,
     description: "",
     phases: statuses.map((status, i) => ({ status, label: `P${i + 1} · Phase` })),
-    updated
+    updated,
+    future: false,
+    urgent: []
   }
 }
 
 /** A described page at `path`. */
 function page(path) {
-  return { path, title: path, description: "", phases: [], updated: null }
+  return { path, title: path, description: "", phases: [], updated: null, future: false, urgent: [] }
 }
 
 describe("the docs home's cards", () => {
@@ -44,7 +46,7 @@ describe("the docs home's cards", () => {
       "App"
     ])
     const count = Object.fromEntries(cards.map((card) => [card.id, card.count]))
-    expect(count.epics).toBe("2 running · 1 done")
+    expect(count.epics).toBe("2 in progress · 1 done")
     expect(count.guides).toBe("2 guides")
     expect(count.brand).toBe("1 copy · 1 element · 1 page")
     expect(count.templates).toBe("1 template")
@@ -57,14 +59,31 @@ describe("the list pages", () => {
   const epics = LISTS.find((list) => list.id === "epics")
   const guides = LISTS.find((list) => list.id === "guides")
 
-  it("list open epics before done ones, the running epics' slot first, links from the list's folder", () => {
-    const pages = [epic("a", ["done"]), epic("b", ["active", "todo"]), epic("c", [])]
-    expect(epicOrder(pages).map((each) => each.title)).toEqual(["b", "c", "a"])
+  it("list epics by state (in progress, errors, paused, future, done), the running epics' slot first", () => {
+    const loud = { ...epic("e", ["done"]), urgent: ["q1"] }
+    const pages = [
+      epic("a", ["done"]),
+      epic("b", ["active", "todo"]),
+      epic("c", []),
+      epic("p", ["todo"], "2026-01-01"),
+      loud
+    ]
+    expect(epicOrder(pages).map((each) => each.title)).toEqual(["b", "c", "e", "p", "a"])
     const html = listSection(epics, pages)
     expect(html).toMatch(
       /<ui-cards class="spell-grid spell-epics" stackable>\n<!-- running-epics -->\n<ui-card data-epic="b"/
     )
     expect(html).toContain(`<a href="b/b.plan.html">b</a>`)
+    // the facts the page server marks each card again from (`RunningEpics.render()`)
+    expect(html).toContain(`<ui-card data-epic="p" data-status="open" data-phases="todo" data-updated="2026-01-01">`)
+    expect(html).toContain(
+      `<ui-icon class="spell-epic-state" name="circle pause" color="grey" title="paused:  no update since 2026-01-01, 0/1 phases done"></ui-icon> <a href="p/p.plan.html">`
+    )
+    expect(html).toMatch(/data-epic="e" data-status="open" data-phases="done" data-updated="[\d-]+" data-urgent="q1">/)
+    expect(html).toContain(
+      `name="circle exclamation" color="red" title="errors:  every phase done, but 1 question need you"`
+    )
+    expect(html).not.toMatch(/sleeping|😴/)
   })
 
   it("leave the Brand index's own pages to it, in a section of their own (claude-design P11)", () => {
@@ -118,17 +137,18 @@ describe("planOf():  a plan doc's card data (epic-components P8)", () => {
     ],
     updated: "2026-10-06",
     future: false,
-    followUps: ["question", "issue"]
+    urgent: ["q1", "i1"]
   }
 
-  it("reads the <epic-*> markup:  phases, the page's updated and future, open items' kinds", () => {
+  it("reads the <epic-*> markup:  phases, the page's updated and future, the items that need Owen", () => {
     const { document } = parseHTML(`<html><body><epic-page epic="x" title="X" updated="2026-10-06">
 <epic-section id="phases" kind="phases"><epic-phase id="p1" title="First Go" status="done"></epic-phase>
 <epic-phase id="p2" status="active"><span slot="title">Second</span></epic-phase></epic-section>
-<epic-section id="decisions" kind="questions"><epic-item id="q1" title="a" status="open"></epic-item>
-<epic-item id="q2" title="b" status="decided"></epic-item></epic-section>
-<epic-section id="caveats" kind="caveats"><epic-item id="c1" title="c" status="open"></epic-item></epic-section>
-<epic-section id="issues" kind="issues"><epic-item id="i1" title="d" status="open"></epic-item></epic-section>
+<epic-section id="decisions" kind="questions"><epic-item id="q1" title="a" status="open" state="attention"></epic-item>
+<epic-item id="q2" title="b" status="decided" state="recent"></epic-item></epic-section>
+<epic-section id="caveats" kind="caveats"><epic-item id="c1" title="c" status="open" state="open"></epic-item></epic-section>
+<epic-section id="issues" kind="issues"><epic-item id="i1" title="d" status="open" state="replied"></epic-item>
+<epic-item id="i2" title="e" status="open" state="open"></epic-item></epic-section>
 </epic-page></body></html>`)
     expect(planOf(document)).toEqual(expected)
   })
@@ -137,6 +157,6 @@ describe("planOf():  a plan doc's card data (epic-components P8)", () => {
     const { document } = parseHTML(`<html><body><time id="plan-updated">2026-10-06</time>
 <ui-section id="phases"><ui-section data-phase="1" data-status="done" header="P1 · First Go"></ui-section></ui-section>
 <ui-list class="plan-items"><ui-item id="q1" data-status="open"></ui-item></ui-list></body></html>`)
-    expect(planOf(document)).toEqual({ phases: [], updated: null, future: false, followUps: [] })
+    expect(planOf(document)).toEqual({ phases: [], updated: null, future: false, urgent: [] })
   })
 })

@@ -2,6 +2,8 @@ import { Show, createMemo, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
+// Import directly:  the `$/server/site` barrel is the site header's;  this file has no imports, so the pack bundles it
+import { URGENT_SELECTOR, epicStateFor, type EpicState } from "$/server/site/EpicState"
 
 import { PlanDates } from "$/epics/dates"
 import { AgentsClient, NOBODY_LISTENING, isAirplane, isImmediate } from "$/epics/review"
@@ -21,7 +23,6 @@ import {
   CRUMBS,
   DONE,
   FLASH_MS,
-  FOLLOW_UPS,
   GIT,
   HAS_COMMITS,
   HEAD,
@@ -33,13 +34,12 @@ import {
   META,
   NOTICE,
   OLD_CRUMBS,
-  OPEN_ITEMS,
   PROMPT,
   REVIEW_LINE,
   REVIEW_NOW,
   SEND,
-  SLEEPING,
   STACK_PROPERTY,
+  STATE,
   STATUS,
   SUBHEAD,
   TITLES,
@@ -65,7 +65,7 @@ import agentsCSS from "./AgentsPanel.css?inline"
  *   - the crumbs (`Docs › Epics › <title>`, P14:
  *     none while the doc still holds its old `.spell-crumbs` before the page)
  *   - the sticky page header:  the h1 `/epic <name>`, copied on click, over the epic's title;
- *     at its right Send and Review Now while it's reviewed, the git toggle, the sleeping mark,
+ *     at its right Send and Review Now while it's reviewed, the git toggle, the state mark,
  *     the bedtime label and the step label
  *   - the review line, the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`)
  *   - a future epic's notice, then its children
@@ -74,11 +74,12 @@ import agentsCSS from "./AgentsPanel.css?inline"
  *   - else DONE (solid green) once every phase is done;  else the next one (grey)
  *   - none without phases;  FUTURE (grey:  not started) for a future epic
  *   - read from the `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`
- * - The sleeping mark (😴, Owen 2026-10-07:  "so I can see what I need to follow up on"):
- *   phases, none under way, but open follow-ups (`FOLLOW_UPS`:  questions, calls, issues, todos, tests)
- *   - what's open in its tooltip
- *   - not on a future epic, nor one still planning
- *   - from the items below, so it follows the live update too
+ * - The state mark (Owen, 2026-10-10, epic `airplane` P8), by the ONE rule the Epics list uses too
+ *   (`$/server/site/EpicState`):  an icon in the state's colour, why in its tooltip
+ *   - in progress (blue), errors (red:  every phase done, items need Owen), paused (grey:  untouched for days)
+ *   - none on a future epic or a done one:  the step label says FUTURE or DONE already
+ *   - from the phases and items below and the doc's `updated` date, so it follows the live update too;
+ *     a session listening to the review counts as running
  * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it flashes)
  *   - on every plan doc, as today:  it's how a review starts
  *   - while the page is reviewed with no session listening, it says so first, in solid orange (a warning)
@@ -244,25 +245,24 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   })
 
   /**
-   * A SLEEPING doc's open follow-ups, in words (`2 questions, 1 todo`):  phases, none under way, items open;
-   * `""` when it isn't sleeping (a future epic, one still planning, one under way, nothing open).
+   * The epic's state for the header's mark (`epicStateFor()`):  in progress, errors or paused;
+   * `undefined` for a future epic or a done one, whose step label says so.
+   * - running:  a session listening to the page's review (`ReviewClient.listening`);  else the `updated` date decides
    */
-  readonly sleeping = createMemo(() => {
+  readonly state = createMemo((): EpicState | undefined => {
     this.signals.layout.get()
     const phases = this.phases()
-    if (this.future || !phases.length || phases.some((phase) => phase.status === ACTIVE)) return ""
-    const counts = new Map<string, number>()
-    for (const item of this.domElement.querySelectorAll(OPEN_ITEMS)) {
-      const letter = item.id[0] ?? ""
-      if (FOLLOW_UPS[letter]) counts.set(letter, (counts.get(letter) ?? 0) + 1)
-    }
-    return Object.keys(FOLLOW_UPS)
-      .filter((letter) => counts.has(letter))
-      .map((letter) => {
-        const count = counts.get(letter)!
-        return `${count} ${FOLLOW_UPS[letter]![count === 1 ? 0 : 1]}`
-      })
-      .join(", ")
+    const active = phases.find((phase) => phase.status === ACTIVE)
+    const client = this.review.client
+    const state = epicStateFor({
+      phases: phases.map((phase) => phase.status),
+      updated: this.updated,
+      future: this.future,
+      urgent: Array.from(this.domElement.querySelectorAll(URGENT_SELECTOR), (item) => item.id),
+      running: this.review.reviewing() && !!client?.listening,
+      active: active && `${active.id.toUpperCase()} · ${active.title}`
+    })
+    return state.name === "future" || state.name === "done" ? undefined : state
   })
 
   /** What the header's review buttons show;  `undefined` while the page isn't reviewed. */
@@ -358,17 +358,18 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
           <Show when={this.marks()}>{(marks) => this.reviewButtons(marks)}</Show>
           <Show when={this.hasCommits()}>{this.gitToggle()}</Show>
           <span class={STATUS} part={this.partForName("status")}>
-            <Show when={this.sleeping()}>
-              {(words) => (
-                <span
-                  class={SLEEPING}
-                  part={this.partForName("sleeping")}
+            <Show when={this.state()}>
+              {(state) => (
+                <ui-icon
+                  class={STATE}
+                  part={this.partForName("state")}
+                  name={state().icon}
+                  color={state().color}
                   role="img"
-                  aria-label={this.translationForKey("sleeping", { words: words() })}
-                  title={this.translationForKey("sleeping", { words: words() })}
-                >
-                  😴
-                </span>
+                  aria-label={state().tip}
+                  title={state().tip}
+                  data-state={state().name}
+                />
               )}
             </Show>
             <Show when={this.bedtime}>

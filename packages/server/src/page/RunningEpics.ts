@@ -1,7 +1,10 @@
 import { existsSync, readdirSync, readFileSync, realpathSync, watch, type FSWatcher } from "node:fs"
+import { homedir } from "node:os"
 import { basename, join, relative, sep } from "node:path"
 
 import type { SRV } from "$/server"
+// Import directly:  the `$/server/site` barrel is browser code (the site header)
+import { URGENT_STATES, epicStateFor, epicStateMark, type EpicFacts } from "$/server/site/EpicState"
 
 /****************
  * ### `RunningEpics`
@@ -18,9 +21,11 @@ import type { SRV } from "$/server"
  * - The Epics list page (`epics/index.html`;  the docs home until claude-design P5):
  *   - its `<!-- running-epics -->` marker, first in the Epics card list, becomes the running epics' cards,
  *     rendered on each request
- *   - running and merged epics in ONE list, each card's title after its state (`stateMark()`)
- *   - none running:  nothing
- *   - opened from disk:  the marker stays a comment
+ *   - running and merged epics in ONE list, each card's title after its state's mark (`$/server/site/EpicState`)
+ *   - EVERY card marked again as the page is served (`render()`):  a session running for it, and today's date,
+ *     decide in progress or paused, which the docs index can't know when it writes the page
+ *   - none running:  no cards added
+ *   - opened from disk:  the marker stays a comment, the marks as the docs index wrote them
  * - Live:  a plan doc's change reloads its page and the list page (`watch()`).
  * - Which docs:  `<name>` === `<w>` (the epic the worktree is for), or any `<name>` the main checkout lacks.
  *   The rest are stale copies of epics merged before the worktree was cut.
@@ -37,13 +42,23 @@ export class RunningEpics {
   /** the Epics list page, `epics/index.html`, whose marker becomes the list (`spell dev docs index` writes it) */
   readonly index: string
 
+  /**
+   * Claude Code's own folder, whose `sessions/<pid>.json` say which sessions run (`runningNames()`):
+   * `~/.claude`, or `SPELL_CLAUDE_HOME` (as the CLI's `claudeHome()`;  tests point it at a fixture)
+   */
+  readonly claudeHome: string
+
   /** the watcher `watch()` started, closed by `close()` */
   private watcher: FSWatcher | undefined
 
-  constructor(root: string) {
+  constructor(
+    root: string,
+    { claudeHome = process.env.SPELL_CLAUDE_HOME || join(homedir(), ".claude") }: { claudeHome?: string } = {}
+  ) {
     this.root = root
     this.worktrees = join(root, ".claude", "worktrees")
     this.index = join(root, "epics", "index.html")
+    this.claudeHome = claudeHome
   }
 
   /**
@@ -114,16 +129,20 @@ export class RunningEpics {
   }
 
   /**
-   * `page` (the Epics list page) with the running epics' cards at its `<!-- running-epics -->` marker.
-   * - the marker is first in the Epics list (`spell dev docs index` puts it there)
-   * - none running, or no marker:  as is
+   * `page` (the Epics list page) with every card marked as of now, and the running epics' cards at its
+   * `<!-- running-epics -->` marker.
+   * - no marker:  as is
+   * - each card the docs index wrote (its `data-phases` ...):  its state's mark again, with a session running for it
+   *   (`runningNames()`) and today's date;  a card without them (an older index) as is
+   * - the marker is first in the Epics list (`spell dev docs index` puts it there);  none running:  it stays
    * - a merged epic's card of the same name (`data-epic`) goes:  the worktree's doc is the live one
    * - SAME card markup as `packages/docs/tools/index.js` `epicCard()`:  change both
    */
-  render(page: string): string {
+  render(page: string, now: Date = new Date()): string {
+    if (!page.includes(MARKER)) return page
+    const running = this.runningNames()
     const epics = this.list()
-    if (!epics.length || !page.includes(MARKER)) return page
-    let html = page
+    let html = page.replace(CARD, (card: string, name: string) => remark(card, running.has(name), now))
     for (const epic of epics) {
       html = html.replace(
         // oxfmt splits a closing tag over lines (`</ui-card\n  >`)
@@ -131,17 +150,95 @@ export class RunningEpics {
         ""
       )
     }
+    if (!epics.length) return html
     const cards = epics.map((epic) => {
-      const { done, mark } = stateMark(epic)
+      const facts: EpicFacts = {
+        ...epic,
+        running: running.has(epic.name) || running.has(epic.worktree)
+      }
+      const state = epicStateFor(facts, now)
       const where = text(relative(this.root, join(this.worktrees, epic.worktree)))
       return (
-        `<ui-card data-epic="${attr(epic.name)}" data-status="${done ? "done" : "open"}"><ui-content>` +
-        `<ui-header>${mark} <a href="${attr(epic.url)}" target="${attr(epic.name)}">${text(epic.title)}</a>` +
-        `</ui-header><ui-meta>${epic.active ? `${text(epic.active)} · ` : ""}${where}</ui-meta>` +
+        `<ui-card data-epic="${attr(epic.name)}" data-status="${state.name === "done" ? "done" : "open"}"><ui-content>` +
+        `<ui-header>${epicStateMark(state)} <a href="${attr(epic.url)}" target="${attr(epic.name)}">` +
+        `${text(epic.title)}</a></ui-header><ui-meta>${epic.active ? `${text(epic.active)} · ` : ""}${where}</ui-meta>` +
         `</ui-content></ui-card>`
       )
     })
     return html.replace(MARKER, cards.join(""))
+  }
+
+  /**
+   * The names live Claude sessions run for:  for each session whose process is alive (`sessions/<pid>.json`),
+   * the worktree it works in (its `cwd` under `.claude/worktrees/<w>`), and its title without its icon
+   * (`🚧 airplane` -> `airplane`:  `/isolate` and `/epic` title a session for its epic).
+   * - NEVER throws:  an unreadable record is skipped
+   */
+  runningNames(): Set<string> {
+    const names = new Set<string>()
+    const folder = join(this.claudeHome, "sessions")
+    if (!existsSync(folder)) return names
+    for (const file of readdirSync(folder)) {
+      if (!file.endsWith(".json")) continue
+      try {
+        const record = JSON.parse(readFileSync(join(folder, file), "utf8")) as SessionRecord
+        if (typeof record.pid !== "number" || !isAlive(record.pid)) continue
+        if (record.cwd?.startsWith(this.worktrees + sep))
+          names.add(record.cwd.slice(this.worktrees.length + 1).split(sep)[0]!)
+        const title = record.name?.replace(/^[^\p{L}\p{N}]+/u, "").trim()
+        if (title) names.add(title)
+      } catch {
+        // a record being written, or not JSON:  not a running session we can read
+      }
+    }
+    return names
+  }
+}
+
+/** The fields `RunningEpics.runningNames()` reads of a session's record, `~/.claude/sessions/<pid>.json`. */
+type SessionRecord = { pid?: number; cwd?: string; name?: string }
+
+/** An epic's card on the Epics page:  its whole markup, `$1` its name. */
+const CARD = /<ui-card\b[^>]*\bdata-epic="([^"]*)"[\s\S]*?<\/ui-card\s*>/g
+
+/** The state's mark in a card's header:  `<ui-icon class="spell-epic-state" ...>`, a label, or an old emoji `<span>`. */
+const MARK = /<(ui-icon|ui-label|span)\b[^>]*\bclass="spell-epic-state"[^>]*>[\s\S]*?<\/\1\s*>/
+
+/**
+ * Epic card `card` (as the docs index wrote it) with its state's mark and `data-status` as of `now`;
+ * as is without its facts (`data-phases`:  an index written before 2026-10-10).
+ */
+function remark(card: string, running: boolean, now: Date): string {
+  const open = /^<ui-card\b[^>]*>/.exec(card)?.[0] ?? ""
+  const data = (name: string) => new RegExp(`\\sdata-${name}(?:="([^"]*)")?(?=[\\s>])`).exec(open)
+  const phases = data("phases")
+  if (!phases) return card
+  const state = epicStateFor(
+    {
+      phases: (phases[1] ?? "").split(" ").filter(Boolean),
+      updated: data("updated")?.[1],
+      urgent: (data("urgent")?.[1] ?? "").split(" ").filter(Boolean),
+      future: !!data("future"),
+      // the meta line:  `P2 · Site Map · epics/seo/seo.plan.html`
+      // (oxfmt may break it over lines)
+      active: decode(/<ui-meta>([^<]*) · /.exec(card)?.[1]?.replace(/\s+/g, " ").trim() ?? "") || undefined,
+      running
+    },
+    now
+  )
+  const status = state.name === "done" ? "done" : "open"
+  return card
+    .replace(open, open.replace(/\sdata-status="[^"]*"/, ` data-status="${status}"`))
+    .replace(MARK, epicStateMark(state))
+}
+
+/** Whether process `pid` is alive:  signal 0 checks without sending anything;  `EPERM`:  alive, not ours. */
+function isAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0)
+    return true
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === "EPERM"
   }
 }
 
@@ -149,23 +246,26 @@ export class RunningEpics {
  * One running epic.
  * - `name`:  the epic;  `worktree`:  the worktree it's in;  `url`:  its plan doc on the main page server
  * - `title`:  the doc's `<title>`
- * - `done` / `total`:  phases;  `active`:  the active phase's header (`P2 · Name`), if any
- * - `updated`:  the doc's "updated" date (`YYYY-MM-DD`), if any:  an epic with phases left and no update for a
- *   few days shows as stalled
- * - `future`:  written down with `/epic future`, not planned yet;  `followUps`:  what it still asks of Owen, one kind
- *   name per open question, judgement call, issue, todo and test (`FOLLOW_UPS`):  with no phase under way, it sleeps
+ * - `phases`:  each phase's status, in order;  `done` / `total`:  how many phases are done, of all
+ * - `active`:  the active phase's header (`P2 · Name`), if any
+ * - `updated`:  the doc's "updated" date (`YYYY-MM-DD`), if any:  with phases left, no session running and no update
+ *   for a few days, it's paused (`$/server/site/EpicState`)
+ * - `future`:  written down with `/epic future`, not planned yet
+ * - `urgent`:  the ids of the items that need Owen (red and orange chips:  `URGENT_STATES`):
+ *   every phase done with some left, it has errors
  */
 export type RunningEpic = {
   name: string
   worktree: string
   url: string
   title: string
+  phases: string[]
   done: number
   total: number
   active?: string
   updated?: string
   future?: boolean
-  followUps?: string[]
+  urgent?: string[]
 }
 
 /** The marker on the Epics list page that becomes the running epics' cards. */
@@ -222,18 +322,17 @@ function folders(dir: string): string[] {
 }
 
 /**
- * Title, phases and follow-ups of the plan doc at `file`, by pattern:  the server is a leaf, so no HTML parser or
+ * Title, phases and urgent items of the plan doc at `file`, by pattern:  the server is a leaf, so no HTML parser or
  * plan-doc tool.
  * - attributes in any order, across lines:  each `<epic-phase id="pN" title="..." status="S">` (the label
- *   `PN · <title>`), `<epic-page updated future>`, each `<epic-item id="q3" status="open">`
+ *   `PN · <title>`), `<epic-page updated future>`, each `<epic-item id="q3" state="attention">`
  * - a doc still in the old markup (no `<epic-page>`:  one restored from an old backup) reads as an empty plan:  the
  *   plan-doc tool refuses it until it's converted (epic `epic-components` P15)
- * - follow-ups as `packages/docs/tools/index.js` `followUpsIn()` and `packages/cli/src/dev/worktrees.ts`
- *   `planFollowUps()` find them:  change all three
+ * - urgent items as `$/server/site/EpicState` `URGENT_SELECTOR` finds them (the docs index, `<epic-page>`)
  */
 function read(
   file: string
-): Pick<RunningEpic, "title" | "done" | "total" | "active" | "updated" | "future" | "followUps"> {
+): Pick<RunningEpic, "title" | "phases" | "done" | "total" | "active" | "updated" | "future" | "urgent"> {
   const html = readFileSync(file, "utf8")
   // drop the `Epic: ` plan docs' titles start with (since 2026-10-04):  the card is in the Epics list already
   const title = (/<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? "").replace(/^Epic:\s*/, "")
@@ -247,71 +346,26 @@ function read(
   const active = phases.find((phase) => phase.status === "active")?.header
   const updated = /^\d{4}-\d\d-\d\d$/.exec(attribute(page, "updated") ?? "")?.[0]
   const future = /\sfuture(?=[\s=>])/.test(page)
-  const followUps = tags(/<epic-item\b[^>]*>/g)
-    .filter((tag) => attribute(tag, "status") === "open")
-    .map((tag) => FOLLOW_UPS[attribute(tag, "id")?.match(/^([qjitv])\d+$/)?.[1] ?? ""])
-    .filter((kind): kind is string => Boolean(kind))
+  const urgent = tags(/<epic-item\b[^>]*>/g)
+    .filter((tag) => (URGENT_STATES as readonly string[]).includes(attribute(tag, "state") ?? ""))
+    .map((tag) => attribute(tag, "id") ?? "")
+    .filter(Boolean)
   return {
     title: decode(title),
+    phases: phases.map((phase) => phase.status),
     done: phases.filter((phase) => phase.status === "done").length,
     total: phases.length,
     ...(active && { active: decode(active) }),
     ...(updated && { updated }),
     ...(future && { future }),
-    ...(followUps.length > 0 && { followUps })
+    ...(urgent.length > 0 && { urgent })
   }
-}
-
-/** An open item's kind, by its id's letter:  what an epic still asks of Owen (`index.js` has the same). */
-const FOLLOW_UPS: Record<string, string> = { q: "question", j: "judgement call", i: "issue", t: "todo", v: "test" }
-
-/**
- * `epic`'s state:  `{ done, mark }`, `mark` the HTML before its card's title.  Its colours are the colour scheme's
- * (Q20 of epic `epic-components`;  `templates/epics/plan-doc.md`, "Colours").
- * - future:  written down with `/epic future`, not planned yet (a grey seedling:  not started)
- * - sleeping:  open follow-ups (`followUps`) and no phase under way:  😴, what's open on hover
- * - planning:  no phases yet (a yellow thought bubble:  open, still undecided)
- * - done:  every phase done (a green check)
- * - stalled:  phases left, no update for more than `STALLED_DAYS` (an orange pause, a warning;  the date on hover)
- * - in progress:  `[3/6]`, phases done of all, outlined in blue (under way)
- * - SAME as `packages/docs/tools/index.js` `epicState()`:  change both
- */
-function stateMark(epic: RunningEpic, now = Date.now()): { done: boolean; mark: string } {
-  if (epic.future && !epic.total)
-    return { done: false, mark: stateIcon("seedling", "grey", "future:  not planned yet") }
-  if (epic.total && epic.followUps?.length && !epic.active) {
-    const tip = `sleeping:  ${followUpWords(epic.followUps)} to follow up`
-    return { done: false, mark: `<span class="spell-epic-state" title="${attr(tip)}">😴</span>` }
-  }
-  if (!epic.total) return { done: false, mark: stateIcon("comment dots", "yellow", "planning") }
-  if (epic.done === epic.total) return { done: true, mark: stateIcon("circle check", "green", "done") }
-  const idle = epic.updated ? (now - new Date(`${epic.updated}T00:00`).getTime()) / 86_400_000 : 0
-  if (idle > STALLED_DAYS) {
-    return { done: false, mark: stateIcon("circle pause", "orange", `stalled:  no update since ${epic.updated}`) }
-  }
-  const count = `${epic.done}/${epic.total}`
-  return { done: false, mark: `<ui-label class="spell-epic-state" size="mini" color="blue" basic>${count}</ui-label>` }
-}
-
-/** `kinds` (`RunningEpic.followUps`) as words:  `2 issues, 1 test` (`index.js` has the same). */
-function followUpWords(kinds: string[]): string {
-  const counts = new Map<string, number>()
-  for (const kind of kinds) counts.set(kind, (counts.get(kind) ?? 0) + 1)
-  return [...counts].map(([kind, n]) => `${n} ${kind}${n === 1 ? "" : "s"}`).join(", ")
-}
-
-/** An epic state's icon:  `name` (in the docs bundle's `ICONS`), `color`, `title` on hover. */
-function stateIcon(name: string, color: string, title: string): string {
-  return `<ui-icon class="spell-epic-state" name="${name}" color="${color}" title="${attr(title)}"></ui-icon>`
 }
 
 /** `value` with RegExp syntax escaped. */
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
 }
-
-/** Days without an update after which an epic with phases left shows as stalled (`index.js` has the same). */
-const STALLED_DAYS = 3
 
 /** `value` as HTML text. */
 function text(value: string): string {
