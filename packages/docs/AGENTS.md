@@ -611,10 +611,15 @@ In `tools/`:
   - A click on a highlighted quote opens its comment in the pane again:
     - still waiting for Claude:  to edit
     - taken or answered:  to read, with Claude's answers, and the trash
-  - Each comment shows under its block as a card, its state by the fill rule:
-    - outlined:  "Saved 14:02 · waiting for Claude", with Edit and the trash
-    - solid:  "Taken by Claude" / "Answered", with the trash
-    - Claude's answers go under it.
+  - Each comment shows under its block as a card, drawn as the pane is (Owen, 2026-10-10:  "bullhorn popup looks
+    good.  These are ugly"):
+    - one ivory panel, the pane's outline, corners and 8px inside;  no shadow
+    - its header the pane's:  the bullhorn, "Owen" (folded:  the comment's first line), its state, the date,
+      then the trash, and the pen (Edit) at the far right
+    - its text in a box as the pane's field;  Claude's answers in it, violet
+    - The state, quiet:  "Waiting for Claude" / "Taken by Claude" / "Answered", after a dot by the fill rule
+      (a ring while it waits, solid once Claude has it).
+    - Its icon buttons, and the pane's (×, the trash), are plain:  no ring, a tint under the pointer.
   - Built for reading offline, with no Claude:  only the page server writes them.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
   - a docs page's:  its INBOX FILE, `<page>.inbox.json` beside it ([GuideInbox.ts](tools/GuideInbox.ts))

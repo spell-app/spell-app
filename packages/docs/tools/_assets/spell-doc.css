@@ -813,8 +813,8 @@ pre code {
  *   header (`.at-page`), else (`.at-block`) a line of no height just before the block, its button over the block's
  *   top right corner;  shown while the block is hovered (a section:  its innermost hovered one), when focused, and
  *   always once the block has comments (`data-count`)
- * - the comments under a block (`.spell-comments`):  each an ivory card (Owen's voice, as a plan doc's Owen reply),
- *   a band ("Owen", its status, the date at the right) that folds it, then the text;  Claude's answers violet
+ * - the comments under a block (`.spell-comments`):  each a card drawn as the pane is (ivory, Owen's voice):  a
+ *   header ("Owen", its state, the date, the trash, the pen) that folds it, then the text;  Claude's answers violet
  * - the comment pane (`.spell-comment-pane`):  floating, fixed on the screen;  its header, then a textarea that grows
  *   with its text (`growField()`)
  */
@@ -857,35 +857,48 @@ pre code {
   gap: 6px;
   margin: 8px 0 12px;
 }
+/*
+ * a CARD is drawn as the pane is (Owen, 2026-10-10:  "bullhorn popup looks good.  These are ugly.  Colors don't
+ * match bullhorn, no panel outline, headers are completely different"):  one outlined ivory panel, 8px inside, its
+ * header the pane's (`.spell-comment-about`:  type, ink, icons), then its text in a box as the pane's field;
+ * no shadow:  it sits in the page, it doesn't float over it
+ */
 .spell-doc-main .spell-comment {
-  --_comment-fill: var(--ui-brown-background, light-dark(#f7efe2, #2e261c));
-  --_comment-accent: var(--ui-brown-text, light-dark(#534323, #eaddc4));
-  overflow: hidden;
-  border: 1px solid color-mix(in oklab, var(--_comment-accent) 24%, transparent);
+  /* never wider than the column:  a folded card's first line is one long line, cut short */
+  min-width: 0;
+  padding: 8px;
+  border: 1px solid var(--spell-rail-rule);
   border-radius: 10px;
-  background: var(--_comment-fill);
-  font-size: 0.95rem;
+  background: var(--spell-rail-bg);
 }
-/* narrow:  the state and date wrap under "Owen" rather than over it */
-.spell-doc-main .spell-comment-band {
+/*
+ * its header:  the words (fold button, state, date) then the tools, the pen at the far right (Owen, 2026-10-10:
+ * "Edit icon should be far right");  narrow, the state and date wrap under "Owen", the tools stay top right
+ */
+.spell-doc-main .spell-comment-head {
   display: flex;
+  align-items: flex-start;
+  gap: 4px;
+  color: var(--spell-rail-ink);
+  font-size: 0.9rem;
+}
+.spell-doc-main .spell-comment-line {
+  display: flex;
+  flex: 1 1 auto;
   flex-wrap: wrap;
   align-items: center;
-  gap: 2px 8px;
+  gap: 0 10px;
   min-width: 0;
-  padding: 2px 6px 2px 10px;
-  background: color-mix(in oklab, var(--_comment-accent) 12%, var(--_comment-fill));
-  color: color-mix(in oklab, var(--_comment-accent) 70%, var(--spell-ink));
-  font-size: 0.9em;
-  line-height: 1.4;
+  min-height: 24px;
 }
 .spell-doc-main button.spell-comment-fold {
   display: flex;
-  flex: 1 1 6em;
-  align-items: baseline;
+  flex: 1 1 8em;
+  align-items: center;
   gap: 6px;
   min-width: 0;
-  padding: 2px 0;
+  min-height: 24px;
+  padding: 0;
   border: 0;
   background: none;
   color: inherit;
@@ -893,14 +906,15 @@ pre code {
   text-align: left;
   cursor: pointer;
 }
-.spell-doc-main button.spell-comment-fold > ui-icon {
-  align-self: center;
+.spell-doc-main button.spell-comment-fold > b {
+  font-weight: 600;
 }
+/* folded:  the first line of the comment, as the pane's header shows what it's on */
 .spell-doc-main .spell-comment-preview {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
-  font-weight: 400;
+  font-style: italic;
   text-overflow: ellipsis;
   white-space: nowrap;
   visibility: hidden;
@@ -908,32 +922,37 @@ pre code {
 .spell-doc-main .spell-comment[data-folded] .spell-comment-preview {
   visibility: visible;
 }
-/* its state, by the fill rule:  saved, waiting for Claude, outlined (the card's fill the page's);  taken or answered,
-   solid (Owen's ivory, the state's pill filled) */
-.spell-doc-main .spell-comment[data-state="saved"] {
-  border: 1.5px solid color-mix(in oklab, var(--_comment-accent) 55%, transparent);
-  background: var(--spell-bg);
-}
+/*
+ * its state, quiet, as the pane's status line:  the fill rule as a dot before the words, a ring while it waits for
+ * Claude (saved, "outlined"), solid once taken or answered
+ */
 .spell-doc-main .spell-comment-state {
+  display: inline-flex;
   flex: none;
-  padding: 0 6px;
-  border: 1px solid currentcolor;
-  border-radius: 999px;
-  font-size: 0.75rem;
-  font-weight: 400;
+  align-items: center;
+  gap: 5px;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
 }
-.spell-doc-main .spell-comment:is([data-state="taken"], [data-state="answered"]) .spell-comment-state {
-  border-color: transparent;
-  background: var(--_comment-accent);
-  color: var(--_comment-fill);
+.spell-doc-main .spell-comment-state::before {
+  content: "";
+  flex: none;
+  box-sizing: border-box;
+  width: 8px;
+  height: 8px;
+  border: 1.5px solid var(--spell-rail-ink);
+  border-radius: 50%;
+}
+.spell-doc-main .spell-comment:is([data-state="taken"], [data-state="answered"]) .spell-comment-state::before {
+  background: var(--spell-rail-ink);
 }
 .spell-doc-main .spell-comment-state > a {
   color: inherit;
 }
 .spell-doc-main .spell-comment-quote {
-  margin: 6px 0;
+  margin: 0 0 6px;
   padding: 2px 10px;
-  border-left: 3px solid color-mix(in oklab, var(--_comment-accent, var(--spell-muted)) 50%, transparent);
+  border-left: 3px solid color-mix(in oklab, var(--spell-rail-ink) 40%, transparent);
   color: var(--spell-muted);
   font-style: italic;
 }
@@ -962,17 +981,29 @@ pre code {
 }
 .spell-doc-main .spell-comment-date {
   flex: none;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
+/* its text:  in a box as the pane's field is (`textarea.spell-comment-field`) */
 .spell-doc-main .spell-comment-body {
-  padding: 2px 10px 6px;
+  margin-top: 4px;
+  padding: 8px 10px;
+  border: 1px solid var(--spell-rail-rule);
+  border-radius: 6px;
+  background: var(--spell-bg);
+  color: var(--spell-ink);
+  line-height: 1.4;
 }
 .spell-doc-main .spell-comment[data-folded] > .spell-comment-body {
   display: none;
 }
 .spell-doc-main .spell-comment-body > p {
-  margin: 6px 0;
+  margin: 0 0 6px;
+}
+.spell-doc-main .spell-comment-body > :last-child {
+  margin-bottom: 0;
 }
 .spell-doc-main .spell-comment-moved {
   color: var(--spell-muted);
@@ -984,6 +1015,9 @@ pre code {
   border-left: 3px solid var(--ui-violet, #6435c9);
   border-radius: 0 6px 6px 0;
   background: color-mix(in srgb, var(--ui-violet, #6435c9) 7%, var(--spell-bg));
+}
+.spell-doc-main .spell-comment-reply > p {
+  margin: 4px 0 0;
 }
 .spell-doc-main .spell-comment-who {
   margin-top: 4px;
@@ -1047,7 +1081,6 @@ pre code {
   display: none;
 }
 .spell-doc-main .spell-comment-delete[data-armed] {
-  --ui-button-color: var(--ui-red, #db2828);
   color: var(--ui-red, #db2828);
 }
 /* a comment's quote on the page, under the pointer:  a click opens it */
@@ -1062,8 +1095,10 @@ pre code {
 .spell-doc-main .spell-comment-saved[data-failed] {
   color: var(--ui-red, #db2828);
 }
-.spell-doc-main .spell-comment-close {
+/* an icon button in a pane's or card's header (×, the trash, the pen):  plain, a tint under the pointer */
+.spell-doc-main .spell-comment-tool {
   display: inline-grid;
+  flex: none;
   place-items: center;
   width: 24px;
   height: 24px;
@@ -1074,8 +1109,12 @@ pre code {
   color: inherit;
   cursor: pointer;
 }
-.spell-doc-main .spell-comment-close:hover {
+.spell-doc-main .spell-comment-tool:hover {
   background: var(--spell-rail-hover);
+}
+.spell-doc-main .spell-comment-tool:focus-visible {
+  outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
+  outline-offset: -2px;
 }
 /* a block, not inline:  no line-gap under it, so the pane's 8px is 8px at the bottom too */
 .spell-doc-main textarea.spell-comment-field {
