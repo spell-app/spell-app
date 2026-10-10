@@ -87,6 +87,41 @@ describe("PlanDocCommands add-phase --before", () => {
   })
 })
 
+describe("PlanDocCommands calm:  an existing call or issue not urgent, or urgent again (--loud)", () => {
+  test("sets `calm` on each id, prints and logs what it did, and says so when it already was", async () => {
+    const owner = commands()
+    await owner.run(["add", "x", "judgement", "A call"])
+    await owner.run(["add", "x", "issue", "An issue"])
+    const [call, issue] = printed
+    printed = []
+    expect(await owner.run(["calm", "x", call, issue.toLowerCase()])).toBe(0)
+    expect(printed).toEqual([`${call} not urgent:  A call\n${issue} not urgent:  An issue`])
+    const plan = FILES.read(file)
+    expect(plan.item(call).hasAttribute("calm")).toBe(true)
+    expect(plan.itemState(plan.item(issue))).toBe("open")
+    const log = Array.from(plan.document.querySelectorAll("#log > epic-event"), (each) => each.textContent!)
+    expect(log.at(-1)!.replace(/\s+/g, " ")).toBe(`${issue} not urgent: An issue`)
+
+    printed = []
+    expect(await owner.run(["calm", "x", call])).toBe(0)
+    expect(printed).toEqual([`${call} not urgent already:  A call`])
+    expect(await owner.run(["calm", "x", call, "--loud"])).toBe(0)
+    const loud = FILES.read(file)
+    expect(loud.item(call).hasAttribute("calm")).toBe(false)
+    expect(loud.itemState(loud.item(call))).toBe("attention")
+  })
+
+  test("refuses no id, an id the doc doesn't have, or an item that's never urgent, writing nothing", async () => {
+    const owner = commands()
+    await owner.run(["add", "x", "todo", "A todo"])
+    const doc = readFileSync(file, "utf8")
+    expect(await owner.run(["calm", "x"])).toBe(1)
+    expect(await owner.run(["calm", "x", "j99"])).toBe(1)
+    expect(await owner.run(["calm", "x", printed[0]])).toBe(1)
+    expect(readFileSync(file, "utf8")).toBe(doc)
+  })
+})
+
 describe("PlanDocCommands add --details:  a name and its path", () => {
   test("written as the name, its path its tooltip, linked to the file (epic `airplane`)", async () => {
     mkdirSync(join(root, "packages", "x", "src"), { recursive: true })
