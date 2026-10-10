@@ -2873,14 +2873,14 @@ class PageComments {
   }
 
   /**
-   * Whether `comment` has a reply from Claude Owen hasn't seen (Owen, 2026-10-10:  "Make the boxes orange when
-   * there's a reply I haven't seen"):  its latest Claude reply is newer than the one he last saw here.  Never once
-   * it's done:  closing it was seeing it.
+   * Whether `comment` is ORANGE:  Claude spoke last and Owen hasn't answered yet (✓, a reply, ×).  Looking at it
+   * doesn't clear it (Owen, 2026-10-10:  "I was expecting this to be orange, not ivory");  `markSeen()` only records
+   * the reply as read.  Never once it's done.
    */
   unseen(comment) {
-    const latest = comment.turn === "done" ? "" : latestClaudeAt(comment)
-    // ISO times compare as strings
-    return !!latest && !((this.read[comment.id] ?? "") >= latest)
+    // orange while it's Owen's turn, seen or not, until he answers (✓, a reply, ×):  Owen, 2026-10-10, on a thread
+    // gone ivory once looked at:  "I was expecting this to be orange, not ivory"
+    return comment.turn === "owen" && !!latestClaudeAt(comment)
   }
 
   /**
@@ -2891,6 +2891,8 @@ class PageComments {
     const comment = this.list.find((each) => each.id === id)
     if (!comment || !this.unseen(comment)) return
     const read = readJSON(this.readKey)
+    // read already:  nothing to change (the thread stays orange until Owen answers, so the watcher fires again)
+    if ((read[id] ?? "") >= latestClaudeAt(comment)) return
     read[id] = latestClaudeAt(comment)
     writeJSON(this.readKey, read)
     this.draw()
