@@ -165,8 +165,9 @@
   }
   /*
    * at the row's far right, in this order (Owen, 2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle
-   * is) (git icon, but bigger)"):
-   * - the bedtime label (when set), the step label (the state in it), the git toggle
+   * is) (git icon, but bigger)";  then "Move [Send and Review Now] back to the page header, to the left of P11"):
+   * - Send and Review Now (while reviewed), the bedtime label (when set), the step label (the state in it),
+   *   the git toggle
    * - never on a row of their own:  narrow, they stay put, over the h1's end
    *   (Owen, 2026-10-10:  "They should stay in place and overlap the header instead")
    */
@@ -268,36 +269,20 @@
     margin: 0;
   }
   /*
-   * ## The send bar (Owen, 2026-10-10):  stuck to the window's bottom while there's anything to send or ask now.
-   * - the pill (nobody can take the marks) at the left
-   * - Send and Review Now at the right
-   */
-  .send-bar {
-    position: sticky;
-    z-index: 5;
-    bottom: 0;
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 16px;
-    padding: 8px var(--epic-inset);
-    border-top: 1px solid var(--epic-rule);
-    background: var(--epic-bg);
-    box-shadow: 0 -4px 12px rgb(0 0 0 / 0.06);
-  }
-  /*
-   * the pill:
+   * ## The pill, under the review line:  while marks wait and nobody can take them.
    * - no session reviewing:  white on a deep orange
    *   (a warning;  the review line's look before, Owen, the colour page's example E)
    * - airplane mode:  quieter
    * - a click copies the command, flashing as the review line does
+   * - as wide as its words, at the page's inset;  narrow, its words wrap
    */
   .pill {
     --_nobody: oklch(from var(--ui-orange-on-light, #f2711c) calc(l - 0.12) c h);
-    flex: 0 1 auto;
-    min-width: 0;
-    margin-inline-end: auto;
+    display: block;
+    box-sizing: border-box;
+    width: fit-content;
+    max-width: calc(100% - 2 * var(--epic-inset));
+    margin: 4px var(--epic-inset) 0;
     padding: 4px 12px;
     border: none;
     border-radius: 999px;
@@ -329,6 +314,10 @@
     outline: 2px solid var(--ui-focus-color, var(--epic-accent));
     outline-offset: 1px;
   }
+  /*
+   * ## Send and Review Now, the header's first controls (Owen, 2026-10-10:  "Move back to the page header, to the left
+   *    of P11"):  round, as tall as the labels;  grey with nothing to do, blue by the fill rule (Q20) otherwise
+   */
   .send,
   .review-now {
     --_tint: var(--ui-blue, #2185d0);
@@ -344,6 +333,10 @@
     background: none;
     color: var(--epic-muted);
     cursor: pointer;
+  }
+  /* a little more room after them:  the review's actions, then the epic's labels */
+  .review-now {
+    margin-inline-end: 6px;
   }
   :is(.send, .review-now) .icon {
     height: auto;
@@ -411,7 +404,7 @@
   /*
    * ## The review line, under the header:  a quiet line of text, the icon centred on its first row.
    * - a click copies the command and flashes it yellow (`.flash`, `FLASH_MS`)
-   * - nobody reviewing:  the send bar's pill says so
+   * - nobody reviewing while marks wait:  the pill under it says so
    */
   .review-line {
     display: grid;

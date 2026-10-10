@@ -258,8 +258,8 @@ In `tools/`:
       Remembered per page.
   - A PLAN DOC:  `<epic-page>` markup, drawn by the `epics` pack ([epics' AGENTS.md](../epics/AGENTS.md)).
     - Its elements draw themselves, in their shadow roots:
-      - the page header (git), and its toolbar's tools
-      - the review line, the send bar (Send, Review Now)
+      - the page header (Send and Review Now while reviewed, the step label, git), and its toolbar's tools
+      - the review line, and the nobody-listening pill under it
       - the sections, phases and items, their counts and state filters, commits, item folds
       - every review control on the page's ONE review client
         ([the review client](../epics/src/review/), see "Review inbox")
