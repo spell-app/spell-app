@@ -84,12 +84,15 @@ export class InboxCommands {
   /**
    * The page's spinner on item `id` of the doc at `file`, on or off (`inbox working`;  `status` too):
    * the inbox's `working` entry, and the session's heartbeat.
+   * - a comment's id (`cm3`):  its thread's "Claude: thinking…" stub instead (`CommentList.setWorking()`);
+   *   `done cm3` turns it off too.  Throws when there's no such comment.
    * - SIDE EFFECT:  writes the inbox, under its lock
    */
   setWorking(file: string, id: string, on: boolean): void {
     const key = ReviewInbox.toItemId(id)
     ReviewInbox.update(ReviewInbox.pathFor(file), (box) => {
-      box.setWorking(key, on ? workOf(box.marks[key]) : null)
+      if (CommentList.isCommentId(key)) box.commentList.setWorking(key, on)
+      else box.setWorking(key, on ? workOf(box.marks[key]) : null)
       box.touchListening()
     })
   }
