@@ -6,308 +6,435 @@ argument-hint: <name> [what to plan] | review [<name>] | resume [<name>] | futur
 
 # /epic
 
-An EPIC is a planning session and the work it plans;  its live record is the PLAN DOC.  (Was `/plan-doc` until
-2026-10-02;  its tool keeps that name, `spell dev plan-doc`, since it edits the plan doc.)
+An EPIC is a planning session and the work it plans;  its live record is the PLAN DOC.
+- It was `/plan-doc` until 2026-10-02.
+- Its tool keeps that name, `spell dev plan-doc`, since it edits the plan doc.
 
-Plan, then build, in worktree `<name>`, keeping `epics/<name>/<name>.plan.html` (the PLAN DOC) current
-the whole time.  The plan doc is the user's view of the work:  they read it in the right side bar's REVIEW tab (the checkbox icon;  never the "Spell Docs" hat tab:  Owen's rule, 2026-10-07) while you work.
+Plan, then build, in worktree `<name>`, keeping the PLAN DOC current the whole time.
+- The plan doc:  `epics/<name>/<name>.plan.html`.
+- It's the user's view of the work:  they read it in the right side bar's REVIEW tab while you work.
+  - That's the checkbox icon;  never the "Spell Docs" hat tab (Owen's rule, 2026-10-07).
 
-- Shared content:  the plan doc lives in `epics/`, which spell-app doesn't track:  in every
-  checkout it's a link into ONE shared repo, `../spell-app-dev` (epic `shared-content`, 2026-10-04).
+- Shared content:  the plan doc lives in `epics/`, which spell-app doesn't track
+  (epic `shared-content`, 2026-10-04).
+  - In every checkout, `epics/` is a link into ONE shared repo, `../spell-app-dev`.
   - So there is ONE plan doc:  `main` and every worktree see each edit at once;  it never conflicts on merge.
-  - Committed for you after every turn (the `Stop` hook `.claude/hooks/shared-commit.mjs`).  NEVER commit, stage,
-    `git checkout --` or `git restore` it (or the changelog, the docs index, a details page) in spell-app.
-- Rules for the doc (sections, ids, markers, prose):  `templates/epics/plan-doc.md`.  Read it first.
-- Structured edits go through `spell dev plan-doc <command> <name> ...` (cheat sheet below), never by hand.  Hand-edit only
-  prose:  the summary, Overview, phase bodies, item details.
-  - A plan doc is SPLIT (P3 of `claude-design`;  new docs start so):  the skeleton `epics/<name>/<name>.plan.html` keeps
-    the summary, the kickoff prompt and every section, phase and item line;  each BODY is a part file,
-    `epics/<name>/parts/<id>.html`, `<id>` its section's or item's:  `o3.html` (Overview 1.3), `p2.html` (phase 2's
-    Goal / Done / Files / Verify), `q7.html` (Q7's details), `log.html`.  Edit a body's prose in ITS part file, at its
-    real path (`/Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts/<id>.html`).  Its relative links are
-    relative to `parts/` (one `../` more than the skeleton's).
-  - A new Overview sub-section:  write it whole into the skeleton, inside `#overview`;  the next `plan-doc` command
-    moves its body into `parts/<id>.html`.  Nothing is dropped:  content beside a part is kept, after the part's.
-  - `plan-doc.md`, "Parts", has the rules;  `plan-doc split <name>` / `join <name>` switch a doc's shape.
-- Reload the plan doc whenever the session moves to a new stage (name -> worktree -> plan -> fill -> each phase ->
-  doc review):  `spell dev plan-doc open <name>` reloads it in the side bar's Review tab.  `spell dev plan-doc phase` does it for you.
-- Style, in the plan doc:  written for Owen coming back cold (`plan-doc.md`, "Rules"):  a plain lead sentence, then
-  bullets (never a list run together in a sentence), full words, a concrete example for anything tricky, ids
-  explained, and a **Net effect** list (`<epic-net-effect>`) closing every question, issue, judgement call and
-  decision.  NOT caveman (Owen, 2026-10-04).  Replies:  short, the same plain words.
-- Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):  paste what
-  `spell dev docs link <ABSOLUTE path> --hash <id> [--text "..."]`, run in the checkout the doc is in:  it prints
-  the side bar link, then `(_browser_)` (`.claude/skills/details/SKILL.md`, "Links to pages").
-  `--hash`:  the id of what you mean (`p2`, `q3`, `t4`).  A worktree's doc goes on the MAIN server when that one
-  has the route, else the worktree's own.
-- Phase complete:  the LAST line of that reply's text says where we are, each phase linked to its heading in the
-  plan doc (`spell dev docs link <plan doc> --hash p1 --text "P1 · Short Name"`):
+  - Committed for you after every turn
+    (the `Stop` hook, [shared-commit.mjs](.claude/hooks/shared-commit.mjs)).
+  - NEVER commit, stage, `git checkout --` or `git restore` it in spell-app.
+    Nor the changelog, the docs index, or a details page.
+- Rules for the doc (sections, ids, markers, prose):  [plan-doc.md](templates/epics/plan-doc.md).
+  Read it first.
+- Structured edits go through `spell dev plan-doc <command> <name> ...` (cheat sheet below), never by hand.
+  - Hand-edit only prose:  the summary, Overview, phase bodies, item details.
+  - A plan doc is SPLIT (P3 of `claude-design`;  new docs start so):
+    - The skeleton, `epics/<name>/<name>.plan.html`, keeps the summary, the kickoff prompt,
+      and every section, phase and item line.
+    - Each BODY is a part file, `epics/<name>/parts/<id>.html`, `<id>` its section's or item's:
+      - `o3.html`:  Overview 1.3
+      - `p2.html`:  phase 2's Goal / Done / Files / Verify
+      - `q7.html`:  Q7's details
+      - `log.html`
+    - Edit a body's prose in ITS part file, at its real path:
+      `/Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts/<id>.html`.
+    - Its relative links are relative to `parts/`:  one `../` more than the skeleton's.
+  - A new Overview sub-section:  write it whole into the skeleton, inside `#overview`.
+    - The next `plan-doc` command moves its body into `parts/<id>.html`.
+    - Nothing is dropped:  content beside a part is kept, after the part's.
+  - `plan-doc.md`, "Parts", has the rules.
+    `plan-doc split <name>` / `join <name>` switch a doc's shape.
+- Reload the plan doc whenever the session moves to a new stage:
+  name -> worktree -> plan -> fill -> each phase -> doc review.
+  - `spell dev plan-doc open <name>` reloads it in the side bar's Review tab.
+  - `spell dev plan-doc phase` does it for you.
+- Style, in the plan doc:  written for Owen coming back cold (`plan-doc.md`, "Rules"):
+  - a plain lead sentence, then bullets:  never a list run together in a sentence
+  - full words, and a concrete example for anything tricky
+  - ids explained
+  - a **Net effect** list (`<epic-net-effect>`) closing every question, issue, judgement call and decision
+  - NOT caveman (Owen, 2026-10-04).
+  - Replies:  short, the same plain words.
+- Naming a doc in a reply (the plan doc, a durable doc, any `packages/docs` page):
+  paste what `spell dev docs link` prints, run in the checkout the doc is in.
+  - In full:  `spell dev docs link <ABSOLUTE path> --hash <id> [--text "..."]`.
+  - It prints the side bar link, then `(_browser_)`
+    ([the details skill](.claude/skills/details/SKILL.md), "Links to pages").
+  - `--hash`:  the id of what you mean (`p2`, `q3`, `t4`).
+  - A worktree's doc goes on the MAIN server when that one has the route, else the worktree's own.
+- Phase complete:  the LAST line of that reply's text says where we are.
+  - Each phase is linked to its heading in the plan doc:
+    `spell dev docs link <plan doc> --hash p1 --text "P1 · Short Name"`.
   - "<P1 link pair> complete.  Next is <P2 link pair>."
-  - after the last phase:  "All done:  <P<N> · Doc Review link pair> complete."
+  - After the last phase:  "All done:  <P<N> · Doc Review link pair> complete."
 
 ## 1. Name
 
-- First word `review`:  NOT a new epic.  Go to "7. Review" and skip everything else here.  `review` is reserved:
-  never an epic's name.
-- First word `resume`:  NOT a new epic either.  Go to "8. Resume".  Reserved too.
-- First word `color`:  `/epic color <look>` recolours the window it's typed in:  `spell dev window color <look>`
-  (no look:  it lists the 12), one line saying so, and nothing else.  Reserved too.
-- First word `future`:  `/epic future <name> [text]` writes an idea down as a FUTURE epic, not planned yet:  go to
-  "9. Future".  Reserved too.
-- First word `phase`:  `/epic phase [ids] [name]` adds a phase to THIS session's epic:  go to "10. Add a phase".
-  First word `start`:  `/epic start <P1 | ids>` works a phase or a block of items in it:  go to "11. Start".
-  Reserved too (epic `skillz` P4).
-- `<name>` is the first word of `$ARGUMENTS` (or a quoted phrase:  `"Docs Index"`), lower-kebab-cased
-  (`Docs Index` -> `docs-index`).  The rest, if any, is the plan:  the prompt that kicks it off.  No argument:  ask
-  for a name.
-  - a look right after the name (`/epic new-thing -purple`, one of `spell dev window color`'s 12):  the window's
-    colour, NOT the plan's:  `open <name> --color purple` in "2. Session" (or `color purple` when staying);  the
-    prompt hook leaves it out of the text it saves (epic `windows-and-review` P5)
-  - "Make this a plan doc" (invoked mid-session):  propose a name from the work so far in AskUserQuestion,
-    recommended first;  the user can type another in "Other".
-- Checks and rename, BEFORE anything else:  as `.claude/skills/isolate/SKILL.md` "Start", step 0.  A typed
-  `/epic <name> ...` got them from the repo's `UserPromptSubmit` hook (`.claude/hooks/prompt-gate.mjs`):  it
-  renamed the session `<name>`, or blocked the prompt (plan mode) and saved its text.
-  - EXCEPT in another worktree (isolate's step 0 test;  the hook's note says so too):  NOT a failure, and NOT
-    this session's epic.  Go to "From another worktree" and skip everything else.
-  - In `<name>`'s OWN window, its worktree already made (`spell dev window which`:  `workspaces/ongoing/<name>`):
+- Some first words are reserved:  never an epic's name.
+  - `review`:  NOT a new epic.
+    Go to "7. Review", and skip everything else here.
+  - `resume`:  NOT a new epic either.
+    Go to "8. Resume".
+  - `color`:  `/epic color <look>` recolours the window it's typed in.
+    - That's `spell dev window color <look>`;  no look:  it lists the 12.
+    - One line saying so, and nothing else.
+  - `future`:  `/epic future <name> [text]` writes an idea down as a FUTURE epic, not planned yet.
+    Go to "9. Future".
+  - `phase`:  `/epic phase [ids] [name]` adds a phase to THIS session's epic.
+    Go to "10. Add a phase".
+  - `start`:  `/epic start <P1 | ids>` works a phase, or a block of items in it.
+    Go to "11. Start".
+  - `phase` and `start`:  epic `skillz` P4.
+- `<name>` is the first word of `$ARGUMENTS`, or a quoted phrase (`"Docs Index"`).
+  - Lower-kebab-cased:  `Docs Index` -> `docs-index`.
+  - The rest, if any, is the plan:  the prompt that kicks it off.
+  - No argument:  ask for a name.
+  - A look right after the name (`/epic new-thing -purple`, one of `spell dev window color`'s 12)
+    is the window's colour, NOT the plan's.
+    - It's `open <name> --color purple` in "2. Session", or `color purple` when staying.
+    - The prompt hook leaves it out of the text it saves (epic `windows-and-review` P5).
+  - "Make this a plan doc" (invoked mid-session):
+    propose a name from the work so far in AskUserQuestion, recommended first.
+    The user can type another in "Other".
+- Checks and rename, BEFORE anything else:
+  as [the isolate skill](.claude/skills/isolate/SKILL.md)'s "Start", step 0.
+  - A typed `/epic <name> ...` got them from the repo's `UserPromptSubmit` hook
+    ([prompt-gate.mjs](.claude/hooks/prompt-gate.mjs)).
+  - It renamed the session `<name>`, or blocked the prompt (plan mode) and saved its text.
+  - EXCEPT in another worktree (isolate's step 0 test;  the hook's note says so too):
+    NOT a failure, and NOT this session's epic.
+    Go to "From another worktree", and skip everything else.
+  - In `<name>`'s OWN window, its worktree already made
+    (`spell dev window which`:  `workspaces/ongoing/<name>`):
     a session "From another worktree" launched.  See "Launched" there.
-- The kickoff prompt, SAFE before anything else:  the text after `<name>`, verbatim.  Write it to
-  `~/.spell/prompts/<name>.md` at once (as the hook does when it blocks;  an older, different file there:  rename
-  it `<name>.<time>.md` first).  No text, but that file exists:  it IS the kickoff prompt (the hook saved it);  say
-  so in one line.  Delete the file only once the plan doc holds it (`plan-doc new --prompt-file`).
+- The kickoff prompt, SAFE before anything else:  the text after `<name>`, verbatim.
+  - Write it to `~/.spell/prompts/<name>.md` at once, as the hook does when it blocks.
+  - An older, different file there:  rename it `<name>.<time>.md` first.
+  - No text, but that file exists:  it IS the kickoff prompt (the hook saved it).
+    Say so in one line.
+  - Delete the file only once the plan doc holds it (`plan-doc new --prompt-file`).
 - Look for collisions (from the repo root), every time:
   - `epics/<name>/`, `guides/<name>/`, `guides/<name>.html`
-  - the worktree and branch checks of `.claude/skills/isolate/SKILL.md`, "Start", step 2
-  - any hit:  AskUserQuestion, options "Reuse `<name>`" (continue that doc / worktree) and "Different name" (the
-    user types it in "Other").  Never overwrite an existing plan doc.
-  - a FUTURE epic's doc (`plan-doc list --json`:  `status` `future`;  "9. Future"):  no modal, it's waiting to be
-    planned:  say so in one line, then go on.  In "2. Session", step 3, `plan-doc new <name>` PROMOTES it where it
-    is (its prompt, decided questions and analysis page kept;  the meta lines name the branch and worktree):  no
-    `--prompt-file`.  "3. Plan" starts from its kickoff prompt, its decided questions and its analysis page
-    (`epics/<name>/details/analysis.html`, answers in `spell dev details answer <name>/analysis`)
-- Name and nothing after it, nothing saved (and not mid-session):  the user sends the plan in the NEXT prompt, in
-  the new window.  Do "2. Session" now anyway (a stub doc with no prompt, then the move);  its last line asks for
-  the plan.  That next message is the kickoff prompt:  `spell dev plan-doc prompt <name> --file <file>` first, then
-  "3. Plan".
+  - the worktree and branch checks of the isolate skill's "Start", step 2
+  - any hit:  AskUserQuestion, options:
+    - "Reuse `<name>`":  continue that doc / worktree
+    - "Different name":  the user types it in "Other"
+    - Never overwrite an existing plan doc.
+  - A FUTURE epic's doc ("9. Future";  `plan-doc list --json` says `status` `future`):
+    no modal, it's waiting to be planned.
+    - Say so in one line, then go on.
+    - In "2. Session", step 3, `plan-doc new <name>` PROMOTES it where it is:  no `--prompt-file`.
+      Its prompt, decided questions and analysis page are kept;  the meta lines name the branch and worktree.
+    - "3. Plan" starts from its kickoff prompt, its decided questions and its analysis page.
+      The page is `epics/<name>/details/analysis.html`;  its answers, from `spell dev details answer <name>/analysis`.
+- Name and nothing after it, nothing saved (and not mid-session):
+  the user sends the plan in the NEXT prompt, in the new window.
+  - Do "2. Session" now anyway:  a stub doc with no prompt, then the move.
+    Its last line asks for the plan.
+  - That next message is the kickoff prompt:
+    `spell dev plan-doc prompt <name> --file <file>` first, then "3. Plan".
 
 ## Mid-session
 
 When the session already has work under way ("make this a plan doc"), carry it over -- don't start again:
-- Plan mode and edits already made on `main`:  `.claude/skills/isolate/SKILL.md`, "Start", step 0.
-- Step 3:  start from the plan drafted so far (harness plan file, conversation), reshaped into the plan doc's
-  shape;  explore only to fill gaps.  Decisions and questions already settled become `decision` items (questions
-  born answered:  `Q7`).
+- Plan mode, and edits already made on `main`:  the isolate skill's "Start", step 0.
+- Step 3:  start from the plan drafted so far (harness plan file, conversation),
+  reshaped into the plan doc's shape.
+  - Explore only to fill gaps.
+  - Decisions and questions already settled become `decision` items (questions born answered:  `Q7`).
 
 ## From another worktree
 
-`/epic <name> ...` typed in a session working in ANOTHER worktree (`<other>`) means "open a window for epic
-`<name>`" (Owen, 2026-10-07).  This session stays `<other>`'s:  no rename, no `EnterWorktree`, no plan here.
-1. The text after `<name>`:  the hook saved it in `~/.spell/prompts/<name>.md` (natural-language trigger:  save it
-   yourself, as "1. Name" says).
-2. Collisions, as "1. Name" (not the future-epic case:  it goes on as usual in the new window).
-3. AskUserQuestion "Open epic `<name>` in a new window?", the question saying this session works in `<other>` and
-   stays there:
-   - "New window `⎇ <name>`" (Recommended):  step 4
-   - "Not now":  one line, where the text is saved, and that `/epic <name>` alone picks it up from any other window
-4. `spell dev window launch <name> [--color <look>]` (a look after the name, as "1. Name"):  makes the worktree,
-   opens its window, and starts a NEW session there with `/epic <name>` typed in.  One line:  "`⎇ <name>` is open:
-   press enter on `/epic <name>` there".  Then carry on with `<other>`'s work, if any was waiting.
-   - fails (no window bridge, an old extension:  `unknown op` / `bad session id`):  say so in one line;  the text
-     stays saved.
+`/epic <name> ...`, typed in a session working in ANOTHER worktree (`<other>`),
+means "open a window for epic `<name>`" (Owen, 2026-10-07).
+- This session stays `<other>`'s:  no rename, no `EnterWorktree`, no plan here.
 
-**Launched:**  the new session's `/epic <name>` (worktree `.claude/worktrees/<name>` made, this window its own):
-- "1. Name" as usual, but the worktree and branch `<name>` are THIS epic's:  no "Reuse" modal for them (a plan
-  doc or guide already there still asks)
-- "2. Session" as "Staying in this window", with no question and no `window stay` (the window is already
-  `⎇ <name>`, tinted):  `EnterWorktree` with `path: ".claude/worktrees/<name>"`, then steps 2, 3 and 5, then
-  "3. Plan"
+1. The text after `<name>`:  the hook saved it in `~/.spell/prompts/<name>.md`.
+   - A natural-language trigger:  save it yourself, as "1. Name" says.
+2. Collisions, as "1. Name".
+   Not the future-epic case:  it goes on as usual in the new window.
+3. AskUserQuestion "Open epic `<name>` in a new window?",
+   the question saying this session works in `<other>` and stays there:
+   - "New window `⎇ <name>`" (Recommended):  step 4
+   - "Not now":  one line, where the text is saved,
+     and that `/epic <name>` alone picks it up from any other window
+4. `spell dev window launch <name> [--color <look>]`, a look after the name as in "1. Name".
+   - It makes the worktree, opens its window,
+     and starts a NEW session there with `/epic <name>` typed in.
+   - One line:  "`⎇ <name>` is open:  press enter on `/epic <name>` there".
+   - Then carry on with `<other>`'s work, if any was waiting.
+   - It fails (no window bridge, an old extension:  `unknown op` / `bad session id`):
+     say so in one line;  the text stays saved.
+
+**Launched:**  the new session's `/epic <name>`, its worktree made, this window its own:
+- The worktree:  `.claude/worktrees/<name>`.
+- "1. Name" as usual, but the worktree and branch `<name>` are THIS epic's:  no "Reuse" modal for them.
+  - A plan doc or guide already there still asks.
+- "2. Session" as "Staying in this window", with no question and no `window stay`:
+  the window is already `⎇ <name>`, tinted.
+  - `EnterWorktree` with `path: ".claude/worktrees/<name>"`.
+  - Then steps 2, 3 and 5, then "3. Plan".
 
 ## 2. Session:  stub doc, then move
 
-All in the FIRST turn, in this order, then the turn ends.  Why:  the move to the worktree's window waits for the
-turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to this session.
+All in the FIRST turn, in this order, then the turn ends.
+- Why:  the move to the worktree's window waits for the turn to end,
+  and the stub doc keeps the kickoff prompt safe whatever happens to this session.
+
 0. Where:  isolate's "Start", step 2b, with `stay-check --epic`:  a new window, or stay in this one.
-1. Isolate:  read `.claude/skills/isolate/SKILL.md` and follow "Start", step 3 (and step 0 mid-session), with this
-   `<name>` (a skill can't invoke another):  `EnterWorktree`.
-2. `yarn install` in the worktree (a few seconds:  the work needs it;  `spell dev plan-doc` doesn't, it runs the MAIN
-   checkout's CLI).
-3. The STUB doc:  `spell dev plan-doc new <name> --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md` (no file:
-   no `--prompt-file`).  Quoted at the top of the Overview, and in the "Plan hung?" notice above it (copy button,
-   restart steps;  it goes once P1 starts).  Then delete the prompt file.
-   - Reusing a doc:  its prompt missing:  `spell dev plan-doc prompt <name> --file <file>`;  an older doc (before
-     the `<epic-*>` elements):  `spell dev plan-doc convert <name> --out <folder>` first, then copy it back.  No phases yet:  a restart after
-     a hang.  Plan again from its prompt ("3. Plan");  explore only what the doc doesn't say.
-4. Isolate "Start", steps 4-5:  the worktree's own window, then `handoff <name> --prompt continue` (name alone, no
-   plan yet:  no `--prompt`).
-5. `spell dev plan-doc open <name>`, AFTER the handoff:  shown in the right side bar's Review tab (the checkbox icon)
-   of the window the session moves to, once it has (one tab, reloaded on every later `open`).  Needs
-   the spell extension (`spell dev vscode`).
-   - MUST print "... shows in ... once this session moves there".  Why:  only a PENDING move defers it;  before
-     the handoff it shows in THIS window's side bar, the one being left.
-6. Isolate "Start", step 6:  END THE TURN.  Last line:  "moving to `⎇ <name>`:  press enter on `continue`
-   there" (no plan yet:  "send the plan there").
+1. Isolate:  read [the isolate skill](.claude/skills/isolate/SKILL.md),
+   and follow "Start", step 3 (and step 0 mid-session), with this `<name>`:  `EnterWorktree`.
+   - A skill can't invoke another, so follow its steps here.
+2. `yarn install` in the worktree, a few seconds.
+   - The work needs it;  `spell dev plan-doc` doesn't, since it runs the MAIN checkout's CLI.
+3. The STUB doc:
+
+   ```sh
+   spell dev plan-doc new <name> --title "<Title>" --prompt-file ~/.spell/prompts/<name>.md   # no file:  no --prompt-file
+   ```
+
+   - The prompt is quoted at the top of the Overview, and in the "Plan hung?" notice above it.
+     That notice has a copy button and restart steps;  it goes once P1 starts.
+   - Then delete the prompt file.
+   - Reusing a doc:
+     - its prompt missing:  `spell dev plan-doc prompt <name> --file <file>`
+     - an older doc (before the `<epic-*>` elements):
+       `spell dev plan-doc convert <name> --out <folder>` first, then copy it back
+     - No phases yet:  a restart after a hang.
+       Plan again from its prompt ("3. Plan");  explore only what the doc doesn't say.
+4. Isolate "Start", steps 4-5:  the worktree's own window, then `handoff <name> --prompt continue`.
+   - Name alone, no plan yet:  no `--prompt`.
+5. `spell dev plan-doc open <name>`, AFTER the handoff.
+   - It shows in the right side bar's Review tab (the checkbox icon) of the window the session moves to,
+     once it has:  one tab, reloaded on every later `open`.
+   - Needs the spell extension (`spell dev vscode`).
+   - MUST print "... shows in ... once this session moves there".
+     Why:  only a PENDING move defers it;  before the handoff, it shows in THIS window's side bar, the one being left.
+6. Isolate "Start", step 6:  END THE TURN.
+   - Last line:  "moving to `⎇ <name>`:  press enter on `continue` there".
+   - No plan yet:  "send the plan there".
 7. Next turn, in the new window:  isolate's "Continue" step 1 (old tab), then "3. Plan".
 
-Staying in this window (step 0):  skip steps 4 and 6;  `spell dev window stay <name>` instead (the window titled
-`⎇ <name>`, tinted;  isolate's "Stay", step 0).  Step 5's `plan-doc open` shows the doc in THIS window's side
-bar, at once.  Then go straight on to "3. Plan", in this turn;  no plan yet:  the last line asks for it, here.
+Staying in this window (step 0):  skip steps 4 and 6.
+- `spell dev window stay <name>` instead:  the window titled `⎇ <name>`, tinted (isolate's "Stay", step 0).
+- Step 5's `plan-doc open` shows the doc in THIS window's side bar, at once.
+- Then go straight on to "3. Plan", in this turn.
+  No plan yet:  the last line asks for it, here.
 
 ## 3. Plan
 
-1. Explore (read-only), BEFORE plan mode.  NEVER `EnterPlanMode` before "2. Session" is done:  plan mode can't
-   make the worktree or the doc.
-2. Minimal plan doc, BEFORE presenting the plan:  only the Overview and the open questions, so the user can read
-   them in the doc while the plan is up.  Nothing else yet (no phases, decisions, caveats ...).
+1. Explore (read-only), BEFORE plan mode.
+   - NEVER `EnterPlanMode` before "2. Session" is done:  plan mode can't make the worktree or the doc.
+2. Minimal plan doc, BEFORE presenting the plan:  only the Overview and the open questions.
+   - So the user can read them in the doc while the plan is up.
+   - Nothing else yet:  no phases, decisions, caveats ...
    - Hand-write the Overview's sub-sections (shape:  "4. Fill the doc").
-   - `spell dev plan-doc add <name> question "title" --details "..."` per open question, explained with examples
-     ("5. Each phase", item 6).  Agents:  up to 5, don't ask -- unless the user said "watch token
-     budget", then one question is "How many agents can I use for this?".
+   - Per open question, explained with examples ("5. Each phase", item 6):
+     `spell dev plan-doc add <name> question "title" --details "..."`.
+   - Agents:  up to 5, don't ask.
+     Unless the user said "watch token budget":  then one question is "How many agents can I use for this?".
    - `spell dev plan-doc check <name>`, then `spell dev plan-doc open <name>`.
    - Why here:  plan mode allows editing ONLY the harness plan file.
-3. `EnterPlanMode`.  Draft the plan in the harness plan file, in the plan doc's shape:
+3. `EnterPlanMode`.
+   Draft the plan in the harness plan file, in the plan doc's shape:
    1. Summary:  2 sentences
-   2. Phases:  `P1 · Short Name`, 2-4 words each, so "start P2" is unambiguous;  each with goal, files, verify,
-      estimate (wall-clock for Claude, agents included, review not:  `30m`, `2h`, `1-2h`).  The LAST phase is
-      always `Doc Review`.
+   2. Phases:  `P1 · Short Name`, 2-4 words each, so "start P2" is unambiguous.
+      - Each with goal, files, verify, and estimate.
+      - The estimate:  wall-clock for Claude, agents included, review not (`30m`, `2h`, `1-2h`).
+      - The LAST phase is always `Doc Review`.
       - Its goal names the text pass ("6. Doc Review"):
         - `/fussbudget branch` and `/fussbudget epic <name>`:  the branch's text and the plan doc, rewritten
         - the durable doc, written from the cleaned plan doc to the same rules
         - `spell dev docs fuss --branch` last:  its misses fixed, or listed for Owen
-   3. Overview:  the total estimate, then numbered sections (structure, code, flows):  what will become durable
-      docs
+   3. Overview:  the total estimate, then numbered sections (structure, code, flows):
+      what will become durable docs
    4. Caveats, issues, todos, decisions (what + why), open questions (the doc's ids:  `Q1` ...)
 4. Ask the open questions with AskUserQuestion (labels matching the doc's) before ExitPlanMode.
 
 ## 4. Fill the doc (right after ExitPlanMode is approved)
 
-The filling (everything below but the plan file's name) goes to a background agent, `<name>-plan-doc`, as if Owen
-had typed `/bg "plan-doc" ...` (`.claude/skills/bg/SKILL.md`;  Owen, 2026-10-07):  its prompt has these steps, the
-approved plan's path, and the answers;  the session stays free meanwhile, and relays its report.  So does every
-later plan-doc edit bigger than one command:  a phase's Done list and items at its end, a reorder, Doc Review's
-pruning.
+The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed `/bg "plan-doc" ...`
+([the bg skill](.claude/skills/bg/SKILL.md);  Owen, 2026-10-07).
+- That's everything below, except naming the plan file.
+- Its prompt has these steps, the approved plan's path, and the answers.
+- The session stays free meanwhile, and relays its report.
+- So does every later plan-doc edit bigger than one command:
+  a phase's Done list and items at its end, a reorder, Doc Review's pruning.
 
-- Name the harness plan file after the epic, so it traces back (Owen, 2026-10-04):  in `~/.claude/plans/`,
-  `mv <file>.md epic-<name>--<file>.md`, then `ln -s epic-<name>--<file>.md <file>.md` (the harness still reads
-  the old name).
-- `spell dev plan-doc add-phase <name> "Short Name" --symptom "..." --changes "..." --goal "<ul><li>...</li></ul>" --files
-  "..." --verify "..." --estimate "1-2h"` per phase, in order (Owen, 2026-10-06:  "Symptom, Changes, then the
-  details"):  the symptom ONE line (what's wrong today), the changes two or three (what changes), the goal the details,
-  one bullet per outcome, in Owen's terms;  the estimate becomes the title's badge, and the Overview's total
-  (`<epic-overview estimate>`) follows by itself
-- `spell dev plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]` per item
-- Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`
-- Hand-write the summary, `<epic-summary>` (two sentences);  bring the Overview (written in "3. Plan") in line with
-  the approved plan, nested in `<epic-overview id="overview">`:
-  `<epic-section id="o1" kind="overview-part" title="...">`, `#o2` ... (a title with markup:  a `<span slot="title">`
-  first inside instead of `title`;  sub-sub-items:  `<h4 id>`;  a split doc:  the prose goes in `parts/o1.html`).
-  The prose blocks are ELEMENTS (`PLAN-DOC.md`, "Prose elements";  P14 of `epic-components`), never hand-shaped:
-  code in a folded `<epic-code title="file.ts · N lines" language="ts"><pre>...</pre></epic-code>`, digressions in a
-  folded `<epic-aside title="...">`, the Net effect in `<epic-net-effect [option="A" recommended]>`, options on any
-  item in `<epic-choices>`, labelled blocks in `<epic-field label="Where">`;  links to items and phases
-  (`<a href="#d2">D2</a>`).  NEVER change an existing `id`.
-- `spell dev plan-doc check <name>`, then `spell dev plan-doc open <name>` (new stage:  reload)
+- Name the harness plan file after the epic, so it traces back (Owen, 2026-10-04).
+  In `~/.claude/plans/` (the harness still reads the old name, hence the link):
+
+  ```sh
+  mv <file>.md epic-<name>--<file>.md
+  ln -s epic-<name>--<file>.md <file>.md
+  ```
+
+- Per phase, in order, `add-phase`
+  (Owen, 2026-10-06:  "Symptom, Changes, then the details"):
+
+  ```sh
+  spell dev plan-doc add-phase <name> "Short Name" --symptom "..." --changes "..." --goal "<ul><li>...</li></ul>" \
+    --files "..." --verify "..." --estimate "1-2h"
+  ```
+
+  - The symptom:  ONE line, what's wrong today.
+  - The changes:  two or three, what changes.
+  - The goal:  the details, one bullet per outcome, in Owen's terms.
+  - The estimate becomes the title's badge, and the Overview's total (`<epic-overview estimate>`) follows by itself.
+- Per item:  `spell dev plan-doc add <name> decision|caveat|issue|todo|question "title" [--details "<p>...</p>"]`.
+- Questions answered in "3. Plan", the agents one included:  `decide <name> Q<n> "..."`.
+- Hand-write the summary, `<epic-summary>`:  two sentences.
+- Bring the Overview (written in "3. Plan") in line with the approved plan,
+  nested in `<epic-overview id="overview">`:
+  - Each sub-section:  `<epic-section id="o1" kind="overview-part" title="...">`, then `#o2` ...
+  - A title with markup:  a `<span slot="title">` first inside, instead of `title`.
+  - Sub-sub-items:  `<h4 id>`.
+  - A split doc:  the prose goes in `parts/o1.html`.
+- The prose blocks are ELEMENTS, never hand-shaped
+  (`PLAN-DOC.md`, "Prose elements";  P14 of `epic-components`):
+  - code:  in a folded `<epic-code title="file.ts · N lines" language="ts"><pre>...</pre></epic-code>`
+  - digressions:  in a folded `<epic-aside title="...">`
+  - the Net effect:  in `<epic-net-effect [option="A" recommended]>`
+  - options, on any item:  in `<epic-choices>`
+  - labelled blocks:  in `<epic-field label="Where">`
+  - links to items and phases:  `<a href="#d2">D2</a>`
+  - NEVER change an existing `id`.
+- `spell dev plan-doc check <name>`, then `spell dev plan-doc open <name>` (new stage:  reload).
 
 ## 5. Each phase
 
-1. `spell dev plan-doc phase <name> <N> active`, and check the session's name (`.claude/skills/isolate/SKILL.md`,
-   "Session name").
-2. Do the work.  Record as you go, not at the end:
-   - found a problem:  `add ... issue`;  a limit we accept:  `add ... caveat`;  a choice:  `add ... decision` (a
-     question born answered);  a choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement`
-     (ids `J1` ...;  see `/bedtime`);  one that simply follows WWOD gets `--calm` (last):  yellow (open), rather
-     than red (Owen flips it from its id chip while reviewing)
-   - items added while the phase is active carry it:  the phase's "To review" line (written by the script on every
-     edit) lists the ones Owen hasn't reviewed.  Never hand-write a "Judgement calls:" line
-   - something only Owen can check (a live window, a click, a look):  `add ... test "<step>" --details "<p>what
-     should happen</p>"`, into "To test";  `close` it once he says it passed
-   - fixed or done:  `close <name> <id>` (it stays, closed, NOT struck);  made moot by another decision:
-     `cancel <name> <id> "why"` (struck through:  the one struck status, J16 of `review-review`)
-   - an item talked through with Owen (he answered, accepted, or said leave it):  `review <name> <id> "outcome"`,
-     so the next `/epic review` doesn't bring it up again ("7. Review")
-   - changed a phase's PLAN (Owen's feedback, or something found while building):  `updated <name> <N> "<p>what
-     changed, and why</p>"`, a dated line in its fenced Updated block under Symptom / Changes (never an "Updated" word
-     in the text);  then `phase-body <name> <N> --changes ...` (or `--goal` ...) to make the fields say the new plan
-   - changed a prose block:  put `<epic-update phase="N"><p>what changed</p></epic-update>` just before it (the
-     script marks items itself;  `phase <name> N done` drops it);  a note that should stay:  `<epic-note
-     state="update" title="...">` (`plan-doc.md`, "UPDATE markers")
-3. Subagents:  named and listed (`spell dev agents add` / `done`, the root `CLAUDE.md`'s "Delegated work");  paste
-   the cheat sheet below into their prompts, with "record caveats, issues and decisions in the plan doc as you find
-   them".
-4. `spell dev plan-doc phase <name> <N> done --done "<ul><li>...</li></ul>"` (drops that phase's UPDATE markers, writes
-   its Done field, brings the doc forward), then `spell dev plan-doc summary <name>`:  with the phase's items, in a
-   background `<name>-plan-doc` agent ("4. Fill the doc"), while the reply below goes out.  Done:  what was BUILT, ordered by
-   what Owen asks about first:  where to see it, what changed in how he works, what's rough or not yet tried by hand.
-   - commit messages, so the doc can list them (its phase's and items' "Commits"):  a phase `P<n>:  <Name> --
-     <summary>` (`P4 + P5:` for two;  `WIP P3:` for a parked part), an item fix `<name> I3:  ...` (MUST carry the
-     epic's name:  `commits --backfill` ignores a bare `Fix I3:`, since it can't tell which epic)
-   - after the phase's commit:  `spell dev plan-doc commits <name> --backfill` (finds them by subject).  The plan doc
-     is never in that commit:  it's shared content, committed for you (see "Shared content" at the top)
-5. Reply:  a short bulleted list (done, issues, caveats, next), the "complete.  Next is" line (see the top), THEN
-   AskUserQuestion so the user picks without copying anything.  Options, most useful first:
-   - "Start P<N+1> · <Name> (Recommended)"
-   - the top open issue(s):  "Fix I<n>:  <title>"
-   - a caveat or todo worth acting on now
-   - "Stop here"
-   Questions the user must answer also go in the doc (`add ... question`);  once answered,
-   `decide <name> Q3 "what was decided"` (never `close`:  `decide` writes the answer INTO the question, D13 of
-   `review-review`).
-6. Explain every question and every issue the user must weigh in on WITH EXAMPLES, in the doc (rules:
-   `plan-doc.md`, "Explaining a question or issue"), so the user can decide from the doc alone:  define each coined
-   word in plain language ("stacking", "nudge"), show the real code / markup it's about, compare many values in a
-   table, put the options side by side with one recommended, and add a LIVE example when the doc's widgets can show
-   it.  Then ask, with option labels that match the doc's.
+1. `spell dev plan-doc phase <name> <N> active`.
+   - Check the session's name (the isolate skill's "Session name").
+2. Do the work.
+   Record as you go, not at the end:
+   - Found a problem:  `add ... issue`.
+   - A limit we accept:  `add ... caveat`.
+   - A choice:  `add ... decision` (a question born answered).
+   - A choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement`.
+     - Ids `J1` ...;  see `/bedtime`.
+     - One that simply follows WWOD gets `--calm` (last):  yellow (open), rather than red.
+       Owen flips it from its id chip while reviewing.
+   - Items added while the phase is active carry it.
+     - The phase's "To review" line lists the ones Owen hasn't reviewed;  the script writes it on every edit.
+     - Never hand-write a "Judgement calls:" line.
+   - Something only Owen can check (a live window, a click, a look):  a test, into "To test".
+     - `add ... test "<step>" --details "<p>what should happen</p>"`
+     - `close` it once he says it passed.
+   - Fixed or done:  `close <name> <id>`.
+     It stays, closed, NOT struck.
+   - Made moot by another decision:  `cancel <name> <id> "why"`.
+     It's struck through:  the one struck status (J16 of `review-review`).
+   - An item talked through with Owen (he answered, accepted, or said leave it):
+     `review <name> <id> "outcome"`, so the next `/epic review` doesn't bring it up again ("7. Review").
+   - Changed a phase's PLAN (Owen's feedback, or something found while building):
+     - `updated <name> <N> "<p>what changed, and why</p>"`:
+       a dated line in its fenced Updated block, under Symptom / Changes.
+       Never an "Updated" word in the text.
+     - Then `phase-body <name> <N> --changes ...` (or `--goal` ...), to make the fields say the new plan.
+   - Changed a prose block:  put `<epic-update phase="N"><p>what changed</p></epic-update>` just before it.
+     - The script marks items itself;  `phase <name> N done` drops it.
+     - A note that should stay:  `<epic-note state="update" title="...">` (`plan-doc.md`, "UPDATE markers").
+3. Subagents:  named and listed, as the root `CLAUDE.md`'s "Delegated work" says
+   (`spell dev agents add` / `done`).
+   - Paste the cheat sheet below into their prompts,
+     with "record caveats, issues and decisions in the plan doc as you find them".
+4. Close the phase:  `spell dev plan-doc phase <name> <N> done --done "<ul><li>...</li></ul>"`.
+   - It drops that phase's UPDATE markers, writes its Done field, and brings the doc forward.
+   - Then `spell dev plan-doc summary <name>`.
+   - With the phase's items, this runs in a background `<name>-plan-doc` agent ("4. Fill the doc"),
+     while the reply below goes out.
+   - Done:  what was BUILT, ordered by what Owen asks about first:
+     where to see it, what changed in how he works, what's rough or not yet tried by hand.
+   - Commit messages, so the doc can list them (its phase's and items' "Commits"):
+     - a phase:  `P<n>:  <Name> -- <summary>`;  `P4 + P5:` for two;  `WIP P3:` for a parked part
+     - an item fix:  `<name> I3:  ...`.
+       It MUST carry the epic's name:  `commits --backfill` ignores a bare `Fix I3:`, since it can't tell which epic.
+   - After the phase's commit:  `spell dev plan-doc commits <name> --backfill`, which finds them by subject.
+     - The plan doc is never in that commit:
+       it's shared content, committed for you (see "Shared content" at the top).
+5. Reply:  a short bulleted list (done, issues, caveats, next), and the "complete.  Next is" line (see the top).
+   - THEN AskUserQuestion, so the user picks without copying anything.
+     Options, most useful first:
+     - "Start P<N+1> · <Name> (Recommended)"
+     - the top open issue(s):  "Fix I<n>:  <title>"
+     - a caveat or todo worth acting on now
+     - "Stop here"
+   - Questions the user must answer also go in the doc (`add ... question`).
+   - Once answered:  `decide <name> Q3 "what was decided"`.
+     Never `close`:  `decide` writes the answer INTO the question (D13 of `review-review`).
+6. Explain every question and every issue the user must weigh in on WITH EXAMPLES, in the doc,
+   so the user can decide from the doc alone (rules:  `plan-doc.md`, "Explaining a question or issue"):
+   - define each coined word in plain language ("stacking", "nudge")
+   - show the real code / markup it's about
+   - compare many values in a table
+   - put the options side by side, with one recommended
+   - add a LIVE example when the doc's widgets can show it
+   - Then ask, with option labels that match the doc's.
 
 ## 6. Doc Review (last phase)
 
 - Prune:  close stale items;  make the summary and Overview true to what was BUILT.
-- "To test":  every hand check the work needs before merging is there, each a step and what should happen;  list
-  the open ones in the reply, as bullets.
-- The text pass (epic `skillz` P7;  `.claude/skills/fussbudget/SKILL.md`), in this order:
+- "To test":  every hand check the work needs before merging is there, each a step and what should happen.
+  - List the open ones in the reply, as bullets.
+- The text pass (epic `skillz` P7;  [the fussbudget skill](.claude/skills/fussbudget/SKILL.md)), in this order:
   1. First, both named in full, so nothing asks:
      - `/fussbudget branch`:  the text this branch changed, docstrings and comments
-     - `/fussbudget epic <name>`:  the plan doc's prose.  Plan-doc work, so the background `<name>-plan-doc`
-       agent runs it ("4. Fill the doc"), right after its pruning.
-     - Both rewrite in place, uncommitted:  the branch's diff waits for Owen in Source Control, before the
-       phase's commit.
-  2. Then the durable doc (below), written from the CLEANED plan doc, to the same rules:  WWOD §6 and
-     `agents/wwod/writing.md`.
-  3. Last, the checker:  `spell dev docs fuss --branch`, and `spell dev docs fuss <the durable doc's page>`
-     (shared content:  not in the branch's diff).  Its misses fixed, or listed for Owen in the reply.
-- Turn it into durable docs:  `spell dev docs new durable <page> --title "..."` (fixes asset paths for the depth):
-  - one page:  `guides/<name>.html`;  several files (pages, experiments):
-    `guides/<name>/<name>.html` (shared content too:  committed for you, like the plan doc)
-  - from the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits"
-  - finish as in `packages/docs/AGENTS.md`, "Finishing a page";  `spell dev docs index` (the index is shared too:
-    `spell dev plan-doc` keeps the epic's own card current from any checkout)
+     - `/fussbudget epic <name>`:  the plan doc's prose.
+       Plan-doc work, so the background `<name>-plan-doc` agent runs it ("4. Fill the doc"),
+       right after its pruning.
+     - Both rewrite in place, uncommitted:
+       the branch's diff waits for Owen in Source Control, before the phase's commit.
+  2. Then the durable doc (below), written from the CLEANED plan doc, to the same rules:
+     WWOD §6 and [writing.md](agents/wwod/writing.md).
+  3. Last, the checker, on both:
+     - `spell dev docs fuss --branch`
+     - `spell dev docs fuss <the durable doc's page>`:  it's shared content, not in the branch's diff
+     - Its misses fixed, or listed for Owen in the reply.
+- Turn it into durable docs:  `spell dev docs new durable <page> --title "..."` (fixes asset paths for the depth).
+  - One page:  `guides/<name>.html`.
+  - Several files (pages, experiments):  `guides/<name>/<name>.html`.
+    Shared content too:  committed for you, like the plan doc.
+  - From the plan doc:  Overview -> the body;  decisions -> a "Why" section;  open caveats -> "Limits".
+  - Finish as [docs' AGENTS.md](packages/docs/AGENTS.md) says, "Finishing a page".
+  - Then `spell dev docs index`.
+    The index is shared too:  `spell dev plan-doc` keeps the epic's own card current from any checkout.
 - The plan doc stays in `epics/` as the record:  every phase done.
-- Changelog:  write the epic's entry straight into the shared `guides/changelog.html` ("Changelog"
-  in the root's `AGENTS.md`), linking the plan doc and the durable doc;  under "3. Merged into main" if "Finish"
-  below merges it, else "2. In worktrees".  Nothing to commit on the branch for it, and no merge conflict:  every
-  checkout sees the one file.
-- Then leave the worktree:  follow `.claude/skills/isolate/SKILL.md`, "Finish".  No move back:  the session and its
-  plan doc stay in the window they're in.
+- Changelog:  write the epic's entry straight into the shared [changelog](guides/changelog.html)
+  ("Changelog" in the root's `AGENTS.md`).
+  - It links the plan doc and the durable doc.
+  - Under "3. Merged into main" if "Finish" below merges it, else "2. In worktrees".
+  - Nothing to commit on the branch for it, and no merge conflict:  every checkout sees the one file.
+- Then leave the worktree:  follow the isolate skill's "Finish".
+  - No move back:  the session and its plan doc stay in the window they're in.
 - Last line of the reply:  "All done ..." (see the top).
 
 ## 7. Review:  `/epic review [<name>]`
 
-Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he marks items (each item's buttons:
-one group, Approve, Revisit, Make Todo, then Do Now apart, the wand, for Add Details or a revisit now;  a TODO's
-instead:  the plane "do it in the next phase" (`next`), Revisit, the x "drop it" (`drop`), both applied by
-`inbox apply`;  Choose on option cards;  their colours and fills:  `plan-doc.md`, "Colours") and sends them with the
-page header's paper plane, or with Review Now beside it (the wand:  every revisit waiting is asked now too, epic
-`windows-and-review` P4).  A running Do Now clicked again is "nevermind" (`canceled`, 7.3).
-This session LISTENS:  it waits on the doc's review inbox and acts on what arrives -- mechanical marks at once, Add
-Details and "revisit now" by background agents, "revisit soon" answered one at a time.  EVERY answer goes INTO its
-item, on the page;  the chat only links them (Q3 of `windows-and-review`).  No modal walk through items any more
-(epic `review-review`, 2026-10-04;  plan:  `epics/review-review/review-review.plan.html`, 1.1-1.2).
+Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he marks items.
+- Each item's buttons:  one group, Approve, Revisit, Make Todo;
+  then Do Now apart, the wand, for Add Details or a revisit now.
+- A TODO's instead:  the plane, "do it in the next phase" (`next`);  Revisit;  the x, "drop it" (`drop`).
+  `inbox apply` applies both.
+- Choose, on option cards.
+- Their colours and fills:  `plan-doc.md`, "Colours".
+- He sends them with the page header's paper plane,
+  or with Review Now beside it (the wand:  every revisit waiting is asked now too, epic `windows-and-review` P4).
+- A running Do Now clicked again is "nevermind" (`canceled`, 7.3).
 
-- Runs from ANY window, `main` or a worktree:  the prompt hook lets `/epic review` through, never renames the session.
-  No worktree, no plan mode.
+This session LISTENS:  it waits on the doc's review inbox, and acts on what arrives.
+- Mechanical marks:  at once.
+- Add Details and "revisit now":  by background agents.
+- "Revisit soon":  answered one at a time.
+- EVERY answer goes INTO its item, on the page;  the chat only links them (Q3 of `windows-and-review`).
+- No modal walk through items any more (epic `review-review`, 2026-10-04;  [its plan doc](epics/review-review/review-review.plan.html), 1.1-1.2).
+
+- Runs from ANY window, `main` or a worktree.
+  - The prompt hook lets `/epic review` through, and never renames the session.
+  - No worktree, no plan mode.
 - Every `spell dev plan-doc` command edits the epic's ONE shared doc, from any checkout.
-- The page's controls need a PAGE SERVER with the review routes (`spell dev server ensure`):  from `file://`, or a
-  server without them, the page shows no menus.
-- Owen comes to a review COLD:  never a bare id in chat, always what it is in words ("the highlight.js swap (T2)").
+- The page's controls need a PAGE SERVER with the review routes (`spell dev server ensure`).
+  From `file://`, or a server without them, the page shows no menus.
+- Owen comes to a review COLD:  never a bare id in chat.
+  Always what it is in words ("the highlight.js swap (T2)").
 
 Commands, in the order a review uses them:
 ```
@@ -329,105 +456,161 @@ spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or
 ### 7.1 Pick a doc (no `<name>`)
 
 - `spell dev plan-doc list --json`:  `{ name, title, status, checkout, notReviewed, total }` each, in progress first.
-- As reply text, every epic in two groups (in progress / done), most not-reviewed first:  `- commands (worktree
-  commands)  5 / 9`.  Then ONE modal, header `Epic Review`, "Which epic do you want to review?":  the epics with
-  anything not reviewed, label `<name> (in progress)` / `<name> (done)`, description `5 of 9 items not reviewed`;  4
-  or fewer:  all;  more:  the next 2 then "More" (the next names) until 4 or fewer;  any other:  typed in Other.
-- (The Review tab's own start page, "What would you like to review?", will replace this:  todo T1 of
-  `review-review`.)
+- As reply text, every epic in two groups (in progress / done), most not-reviewed first.
+  - E.g. `- commands (worktree commands)  5 / 9`.
+- Then ONE modal, header `Epic Review`, "Which epic do you want to review?":
+  - the epics with anything not reviewed
+  - label `<name> (in progress)` / `<name> (done)`;  description `5 of 9 items not reviewed`
+  - 4 or fewer:  all
+  - more:  the next 2, then "More" (the next names), until 4 or fewer
+  - any other:  typed in Other
+- (The Review tab's own start page, "What would you like to review?", will replace this:
+  todo T1 of `review-review`.)
 
 ### 7.2 Start
 
 1. `spell dev plan-doc items <name> --json`;  the doc's summary for what the epic is.
-2. In chat, three lines at most, for someone who remembers nothing:  what the epic is, what's waiting on him (e.g.
-   "4 judgement calls not reviewed, 2 open questions"), and when he last reviewed it.
-3. The FIRST thing worth his time:  the first item, in page order, whose state is `attention` (red:  an open
-   question, an unreviewed judgement call or issue);  none:  the first `open` (yellow) one;  none:  the top.
-   `spell dev docs link <ABS doc> --hash <that id> --review --show`:  the doc opens in the Review tab, at it.
-4. `spell dev plan-doc inbox <name> listen`, then `spell dev plan-doc inbox <name> wait` with Bash `run_in_background: true`.
-5. END THE TURN, short:  "Mark items in the Review tab:  each item's buttons;  Do Now (an item's wand) starts
-   at once (click again to call one off);  a todo's plane queues it for the next phase, its x drops it;  the
-   header's paper plane sends the rest.  I'm listening."  Then the doc's link
-   pair.
+2. In chat, three lines at most, for someone who remembers nothing:
+   - what the epic is
+   - what's waiting on him (e.g. "4 judgement calls not reviewed, 2 open questions")
+   - when he last reviewed it
+3. The FIRST thing worth his time:
+   - the first item, in page order, whose state is `attention`
+     (red:  an open question, an unreviewed judgement call or issue)
+   - none:  the first `open` (yellow) one
+   - none:  the top
+   - `spell dev docs link <ABS doc> --hash <that id> --review --show`:  the doc opens in the Review tab, at it.
+4. `spell dev plan-doc inbox <name> listen`.
+   - Then `spell dev plan-doc inbox <name> wait`, with Bash `run_in_background: true`.
+5. END THE TURN, short:
+   "Mark items in the Review tab:  each item's buttons;
+   Do Now (an item's wand) starts at once (click again to call one off);
+   a todo's plane queues it for the next phase, its x drops it;
+   the header's paper plane sends the rest.  I'm listening."
+   - Then the doc's link pair.
 
 ### 7.3 Woken:  the `wait` command finished
 
-Read what it printed.  Then, in this order.  Every card you finish says what REALLY happened (Owen, 2026-10-10:
-"Claude Done entries are confusing ... you haven't apparently done anything"):
-- `status ... done` ONLY for work done:  an answer or reply written, details added, code changed, a phase built
-- `status ... noted "<what was recorded;  what happens next>"` when all you did was RECORD his choice ("B it is";
-  a todo made;  "do it next phase"):  e.g. `"Chose B · Bananas:  recorded as the answer;  waiting for the next
-  phase, P9 · Build"`;  an underway card turns noted
-- called off:  `done "Called off on the page:  nothing written."` stays (it says what happened)
+Read what it printed.
+Then, in this order.
 
-The item's id chip follows too (PLAN-DOC.md "Colours"):  dashed not sent, OUTLINED sent / on it / still due, solid
-done.  Leave work you queued `queued` until it's built, so his chip stays outlined.
-1. Exit 2 (timeout, nothing happened):  arm `wait` again, end the turn with one line ("still listening").
-1b. CANCELED (Owen said "nevermind" on a running Do Now, epic `windows-and-review` P2):  stop
-   that item's background agent (`TaskStop`), then `spell dev plan-doc status <name> <id> done "Called off on the
-   page:  nothing written."` and `spell dev plan-doc inbox <name> done <id>`.  An agent that
-   finishes anyway is refused (`plan-doc details` errors:  "Owen called this request off"):  nothing lands.
-2. NOW requests (Add Details, revisit now;  after Review Now, every revisit Owen had marked) -- `wait` already
-   marked them `working` (the page spins):  per item, FIRST its status card, `spell dev plan-doc status <name> <id>
-   underway "<reading>"`:  what you take the task to be, one or two sentences, plain words, no file names (P13 of
-   `epic-components`:  Owen sees it at once, blue, under his note);  THEN a BACKGROUND `Agent`
-   (`run_in_background: true`), each prompt:
-   - which doc, which item (id, title), and the rules:  `plan-doc.md` "Rules" (cold reader, bullets, examples, Net
-     effect) and "Prose" (the blocks are ELEMENTS:  `<epic-code>`, `<epic-aside>`, `<epic-net-effect>`,
-     `<epic-choices>`, `<epic-field label>`;  never `ui-accordion.spell-code` or a `<p><b>Net effect:</b></p>` by
-     hand)
-   - Add Details:  read the item, the code and docs it names, then write what its text leaves out, as MORE
-     details:  `spell dev plan-doc details <name> <id> --more --file <html>`.  The item's text stays on top
-     ("Original Reply");  yours goes under it in a white "More Details" card (P3 of `windows-and-review`), so don't
-     repeat the text:  build on it
-   - revisit now:  answer Owen's note (quote it), in an `<epic-reply from="Claude" at re>` (`plan-doc.md`, "Review
-     inbox", its example):  what he asked, the answer with evidence (real code in an `<epic-code>`, the command and
-     its output), option cards when he must choose (an `<epic-choices>` inside the reply:  he picks on the page), an
-     `<epic-net-effect>`;  `spell dev plan-doc details <name> <id> --append --file <html>`.  With a pick ("picks B
-     · ..., asks:  ..."):  answer about THAT option;  never decide the question (he confirms with a plain pick)
-   - last:  `spell dev plan-doc status <name> <id> done ["<summary>"]` (the card turns green;  a summary only when
-     there's something worth saying:  a surprise, a choice made, something left undone), then
-     `spell dev plan-doc inbox <name> done <id>`
-   Up to 5 agents at once (root rules);  more:  the rest after.
-3. SENT marks:  `spell dev plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each);
-   a pick works on ANY item's cards, a reply's too (I8 of `epic-components`):  a question answered with it, any other
-   item approved with it;  each pick, todo and queued todo gets its outlined NOTED card from `apply` itself ("Chose
-   B · ...:  recorded ...;  waiting for ...", "Made todo T23 ...", "Queued for P10 · ...":  Q19), an approval none.  Then each "to talk over" (revisit soon), one at a time:  `status ... underway "<reading>"` as you
-   take it up, answer his note INTO the item, as a reply
-   (`details --append`, the reply markup of "revisit now" above:  his note quoted, the answer with evidence, option
-   cards when he must choose, so he picks ON THE PAGE), then `status ... done ["<summary>"]` (you wrote an answer;
-   only noting what he said, no answer needed:  `status ... noted "<what>"`), `inbox clear <id>` and
-   `review <name> <id> "<outcome>"`.  In chat:  one line per item, its link (`spell dev docs link ... --hash <id>`), never the answer
-   itself (Q3 of `windows-and-review`:  a long review stays readable).  He answers on the page (Revisit again), or
-   says so in chat;  a quick yes / no:  a modal.
-   - a call made name by name (he wants each name's context before a rule's renames go in):  a SYNTAX-CHOICES page,
-     `spell dev choices new <slug> --epic <name> --rows <rows.json>` then `show <slug> --wait` in the background
-     (`guides/syntax-choices.html`)
-   - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  `status ...
-     underway`, then answer the note about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself (a question;  any other item:  he confirms with a plain pick), then `status ... done`.
-     `inbox clear` / `done` KEEP his pick as that set's `chosen` (with a Noted card) unless you decided otherwise:
-     once he picked, the card says Chosen
-   - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do
-     `inbox apply`, `done`, `clear`, `working` and `status`;  a long talk without them shows "nobody is reviewing" until `wait`
-     runs again
-3b. COMMENTS (epic `airplane` P11):  Owen's comments on the doc's blocks or on text he selected (the bullhorns),
-   `cm1` ...:  `spell dev plan-doc inbox <name>` lists the ones waiting, under "comments", with the block's anchor
-   (`p3#field-2`, an item's id) and the quoted text.  They never wake `wait` by themselves:  the next wake (Send,
-   Review Now, any request) hands them over, so check on every wake.  Answer each like a revisit's note:  INTO the
-   item it's on (`details --append`, his comment quoted), or, on a phase field or Overview prose, into that phase
-   or part;  then `spell dev plan-doc inbox <name> done cm3` (his card turns solid, "Answered").
-4. Arm `wait` again (always, unless he said stop), then reply:  what landed (bullets, items in words, ids after),
-   what's being worked on in the background, what needs him;  the doc's link pair last.
-- A background agent's own completion notice wakes the session too:  nothing to do but check `inbox` shows the item
-  done;  don't re-arm a second `wait` while one runs (`inbox` would print both;  check the background tasks).
+Every card you finish says what REALLY happened
+(Owen, 2026-10-10:  "Claude Done entries are confusing ... you haven't apparently done anything"):
+- `status ... done` ONLY for work done:  an answer or reply written, details added, code changed, a phase built.
+- `status ... noted "<what was recorded;  what happens next>"`, when all you did was RECORD his choice
+  ("B it is";  a todo made;  "do it next phase").
+  - E.g. `"Chose B · Bananas:  recorded as the answer;  waiting for the next phase, P9 · Build"`.
+  - An underway card turns noted.
+- Called off:  `done "Called off on the page:  nothing written."` stays (it says what happened).
+
+The item's id chip follows too (PLAN-DOC.md "Colours"):
+- dashed:  not sent
+- OUTLINED:  sent / on it / still due
+- solid:  done
+- Leave work you queued `queued` until it's built, so his chip stays outlined.
+
+1. Exit 2 (timeout, nothing happened):  arm `wait` again, and end the turn with one line ("still listening").
+
+1b. CANCELED:  Owen said "nevermind" on a running Do Now (epic `windows-and-review` P2).
+   - Stop that item's background agent (`TaskStop`).
+   - Then `spell dev plan-doc status <name> <id> done "Called off on the page:  nothing written."`.
+   - And `spell dev plan-doc inbox <name> done <id>`.
+   - An agent that finishes anyway is refused (`plan-doc details` errors:  "Owen called this request off"):
+     nothing lands.
+2. NOW requests:  Add Details, revisit now;  after Review Now, every revisit Owen had marked.
+   - `wait` already marked them `working`:  the page spins.
+   - Per item, FIRST its status card:  `spell dev plan-doc status <name> <id> underway "<reading>"`.
+     - What you take the task to be:  one or two sentences, plain words, no file names.
+     - Owen sees it at once, blue, under his note (P13 of `epic-components`).
+   - THEN a BACKGROUND `Agent` (`run_in_background: true`).
+     Each prompt carries:
+   - Which doc, which item (id, title), and the rules:
+     - `plan-doc.md` "Rules":  cold reader, bullets, examples, Net effect
+     - and "Prose":  the blocks are ELEMENTS
+       (`<epic-code>`, `<epic-aside>`, `<epic-net-effect>`, `<epic-choices>`, `<epic-field label>`)
+     - never `ui-accordion.spell-code`, or a `<p><b>Net effect:</b></p>` by hand
+   - Add Details:  read the item, the code and docs it names, then write what its text leaves out, as MORE details.
+     - `spell dev plan-doc details <name> <id> --more --file <html>`.
+     - The item's text stays on top ("Original Reply").
+     - Yours goes under it, in a white "More Details" card (P3 of `windows-and-review`).
+       So don't repeat the text:  build on it.
+   - Revisit now:  answer Owen's note (quote it), in an `<epic-reply from="Claude" at re>`
+     (`plan-doc.md`, "Review inbox", its example).
+     - What he asked, then the answer with evidence:
+       real code in an `<epic-code>`, the command and its output.
+     - Option cards when he must choose:  an `<epic-choices>` inside the reply, so he picks on the page.
+     - An `<epic-net-effect>`.
+     - `spell dev plan-doc details <name> <id> --append --file <html>`.
+     - With a pick ("picks B · ..., asks:  ..."):  answer about THAT option.
+       Never decide the question:  he confirms with a plain pick.
+   - Last:  `spell dev plan-doc status <name> <id> done ["<summary>"]`:  the card turns green.
+     - A summary only when there's something worth saying:  a surprise, a choice made, something left undone.
+     - Then `spell dev plan-doc inbox <name> done <id>`.
+   - Up to 5 agents at once (root rules);  more:  the rest after.
+3. SENT marks:  `spell dev plan-doc inbox <name> apply`.
+   - Approvals, picks and todos land in the doc;  it prints each.
+   - A pick works on ANY item's cards, a reply's too (I8 of `epic-components`):
+     a question is answered with it, any other item approved with it.
+   - `apply` itself gives each pick, todo and queued todo its outlined NOTED card;  an approval gets none (Q19):
+     - "Chose B · ...:  recorded ...;  waiting for ..."
+     - "Made todo T23 ..."
+     - "Queued for P10 · ..."
+   - Then each "to talk over" (revisit soon), one at a time:
+     - `status ... underway "<reading>"` as you take it up.
+     - Answer his note INTO the item, as a reply:  `details --append`, with the reply markup of "revisit now" above.
+       His note quoted, the answer with evidence, option cards when he must choose, so he picks ON THE PAGE.
+     - Then `status ... done ["<summary>"]`, since you wrote an answer.
+       Only noting what he said, no answer needed:  `status ... noted "<what>"`.
+     - Then `inbox clear <id>`, and `review <name> <id> "<outcome>"`.
+   - In chat:  one line per item, with its link (`spell dev docs link ... --hash <id>`), never the answer itself.
+     (Q3 of `windows-and-review`:  a long review stays readable.)
+   - He answers on the page (Revisit again), or says so in chat.
+     A quick yes / no:  a modal.
+   - A call made name by name (he wants each name's context before a rule's renames go in):
+     a SYNTAX-CHOICES page ([the syntax-choices guide](guides/syntax-choices.html)).
+     - `spell dev choices new <slug> --epic <name> --rows <rows.json>`.
+     - Then `show <slug> --wait`, in the background.
+   - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it.
+     - `status ... underway`, then answer the note about B.
+     - A question, once he agrees:  decide it yourself,
+       `spell dev plan-doc decide <name> <id> "<card title>" --option B`.
+       Any other item:  he confirms with a plain pick.
+     - Then `status ... done`.
+     - `inbox clear` / `done` KEEP his pick as that set's `chosen` (with a Noted card), unless you decided otherwise.
+       Once he picked, the card says Chosen.
+   - The page counts this session as gone once its heartbeat is 90s old.
+     - `wait` stamps it every 30s.
+     - So do `inbox apply`, `done`, `clear`, `working` and `status`.
+     - A long talk without them shows "nobody is reviewing", until `wait` runs again.
+
+3b. COMMENTS (epic `airplane` P11):  Owen's comments on the doc's blocks, or on text he selected (the bullhorns).
+   - Ids `cm1` ...
+   - `spell dev plan-doc inbox <name>` lists the ones waiting, under "comments".
+     Each with the block's anchor (`p3#field-2`, an item's id) and the quoted text.
+   - They never wake `wait` by themselves:  the next wake (Send, Review Now, any request) hands them over.
+     So check on every wake.
+   - Answer each like a revisit's note:  INTO the item it's on (`details --append`, his comment quoted).
+     On a phase field or Overview prose:  into that phase or part.
+   - Then `spell dev plan-doc inbox <name> done cm3`:  his card turns solid, "Answered".
+4. Arm `wait` again (always, unless he said stop), then reply:
+   - what landed:  bullets, items in words, ids after
+   - what's being worked on in the background
+   - what needs him
+   - the doc's link pair last
+
+- A background agent's own completion notice wakes the session too.
+  - Nothing to do but check `inbox` shows the item done.
+  - Don't re-arm a second `wait` while one runs:  `inbox` would print both.
+    Check the background tasks.
 
 ### 7.4 Finish
 
 When Owen says he's done ("stop reviewing", "that's it"), or the session must stop:
-- stop the waiter (`TaskStop`), `spell dev plan-doc inbox <name> unlisten`
+- stop the waiter (`TaskStop`), then `spell dev plan-doc inbox <name> unlisten`
 - `spell dev plan-doc log <name> "Review:  <n> approved, <n> answered, <n> to todos, <n> details added"`
-- reply:  what was decided and done (in words, ids after), what's still waiting on him;  the link pair
-- the doc's changes:  nothing to commit, from any checkout (shared content, committed for you at the turn's end)
+- reply:  what was decided and done (in words, ids after), and what's still waiting on him;  the link pair
+- the doc's changes:  nothing to commit, from any checkout.
+  It's shared content, committed for you at the turn's end.
 
 ## 8. Resume:  `/epic resume [<name>]`
 
