@@ -507,6 +507,8 @@ In `tools/`:
   with its own named target per destination (re-clicks reuse that tab).
   - `yarn tsx tools/doc-links.js <page>` links `<code>path</code>` references and targets existing links (idempotent).
     Paths resolve against the page's folder, its `experiments/`, the repo root, `packages/`, and `#name/...` aliases.
+  - A name with its path as its tooltip, `<code title="path">name</code>`, links to that path:
+    how prose names a file (WWOD §6 › "Plain text, plain paths").
   - `yarn tsx tools/doc-links.js --check <page>` must pass:
     every local link resolves, one target per destination, no nested links.
   - The rules themselves (how a path resolves, which target a link gets) live in `$/assembler` (`AS.Linker`):
