@@ -531,7 +531,7 @@ export class ReviewClient {
 
   /**
    * "Send to Claude" (`now`:  Review Now, every revisit waiting asked now too);
-   * says what went, or why nothing did (P10's Send and Review Now, in the page's send bar).
+   * says what went, or why nothing did (P10's Send and Review Now, in the page header).
    */
   async send({ now = false }: { now?: boolean } = {}): Promise<boolean> {
     const marks = Object.values(this.inbox.marks)
