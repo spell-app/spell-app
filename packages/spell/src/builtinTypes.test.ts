@@ -68,7 +68,7 @@ describe("built-in type table", () => {
     expect(SP.parseReadAsTemplate("{it}.length")).toEqual({ form: "property", name: "length" })
     expect(SP.parseReadAsTemplate("{it}.getFullYear()")).toEqual({ form: "method", name: "getFullYear" })
     expect(SP.parseReadAsTemplate("spellCore.itemCountOf({it})")).toEqual({ form: "spellCore", name: "itemCountOf" })
-    expect(SP.parseReadAsTemplate("spellCore.getItemOf({it}, 1)")).toBeUndefined()
+    expect(SP.parseReadAsTemplate("spellCore.getItemAt({it}, 1)")).toBeUndefined()
     expect(SP.parseReadAsTemplate("it.length")).toBeUndefined()
   })
 })

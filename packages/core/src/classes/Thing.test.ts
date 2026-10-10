@@ -47,7 +47,16 @@ describe("compiled-style getter / setter properties", () => {
   test("constructor props go through the setter into reactive props", () => {
     const task = new Task({ title: "Write tests" })
     expect(task.title).toBe("Write tests")
-    expect(task.toJSON()).toEqual({ title: "Write tests" })
+    expect(task.toJSON()).toEqual({ "@type": "Task", title: "Write tests" })
+  })
+
+  test('JSON says its class first, `"@type"` -- which isn\'t a prop (output-targets Q49)', () => {
+    const task = new Task({ title: "Write tests", priority: "low" })
+    expect(JSON.stringify(task)).toBe('{"@type":"Task","title":"Write tests","priority":"low"}')
+    expect(task.keys()).toEqual(["title", "priority"])
+    // its CLASS's name, even when the instance says another `type`
+    task.type = "Chore"
+    expect(task.toJSON()["@type"]).toBe("Task")
   })
 
   test("reads are tracked:  a later write re-runs an observer", () => {
@@ -66,6 +75,16 @@ describe("compiled-style getter / setter properties", () => {
     expect(task.tags).toBeInstanceOf(List)
     expect(task.tags).toBe(task.tags)
     expect(new Task({}).tags).not.toBe(task.tags)
+  })
+})
+
+describe("Thing.isOfType()", () => {
+  test("its own type and each it extends, as `spellCore.isOfType()`", () => {
+    class UrgentTask extends Task {}
+    const task = new UrgentTask({})
+    expect(["urgenttask", "Task", "thing"].map((type) => task.isOfType(type))).toEqual([true, true, true])
+    expect(task.isOfType("list")).toBe(false)
+    expect(task.isOfType("task")).toBe(spellCore.isOfType(task, "task"))
   })
 })
 

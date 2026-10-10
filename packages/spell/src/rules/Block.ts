@@ -9,9 +9,6 @@ import { SP } from "$/spell"
  */
 
 export class Block extends P.Rule<P.RuleProps, never, BlockMatchData> {
-  /** Registered as `block` -- class name isn't rule case. */
-  static ruleName = "block"
-
   /**
    * Parse errors collected on a `block` or `line` match, if any.
    * - Static, for a match you can't narrow with `match.is()`, e.g. `Block` can't import `BlockLine` without a cycle.

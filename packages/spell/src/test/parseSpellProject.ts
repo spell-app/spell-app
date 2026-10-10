@@ -43,7 +43,8 @@ export function parseSpellProject(
     const start = performance.now()
     const compiled = (match?.compile() as string | undefined) ?? ""
     const compileMsec = performance.now() - start
-    return { path, contents, scope, match, compiled, errors: describeParseErrors(match), parseMsec, compileMsec }
+    const errors = describeParseErrors(match)
+    return { path, contents, scope, match, compiled, errors, warnings: describeWarnings(match), parseMsec, compileMsec }
   })
 
   return { scope: projectScope, files: parsedFiles }
@@ -100,7 +101,8 @@ export function fixtureDeclarations(projectName: string): string {
  *   and split through the same `SP.SpellDeclarations.split()`.
  * - Its `.css` files compile as `SpellCSSFile` does:  the whole text through the root scope's `css` rule.
  * - Parse errors lead its code, as comments, so a snapshot of it shows them too.
- * - NOT projects it imports:  a fixture is parsed on its own.
+ * - Against the fixtures it imports, e.g. `@test:fixtures:Cards`:  their declarations, as a compiled import's --
+ *   see `fixtureImportScope()`.  NOT their code:  that's theirs.
  * - `version` / `exports` from its `project.json`, as a compile would.
  * - `target`'s writer writes it, `js/solid`'s by default.
  */
@@ -110,7 +112,8 @@ function compileFixture(
 ): { code: string; declarations: SP.SpellDeclarationsData } {
   const projectDir = fixturePath(projectName)
   const { version, exports, imports } = readProjectFile(projectDir)
-  const { scope, files } = parseSpellProject(loadFixtureProject(projectName))
+  const parentScope = fixtureImportScope(projectName)
+  const { scope, files } = parseSpellProject(loadFixtureProject(projectName), { parentScope })
   const errors = files.flatMap(({ path, errors }) => errors.map((error) => `// PARSE ERROR ${path}:${error}\n`))
   const parts = imports
     .filter(({ path, active }) => active !== false && /\.(spell|css)$/.test(path))
@@ -121,8 +124,49 @@ function compileFixture(
     })
   const importLines = SP.SpellProject.importHeaderFor(scope)
   const marked =
-    errors.join("") + importLines + SP.SpellProject.combineCompiled(parts, SP.targetFor(target).writer) + "\n"
+    errors.join("") + SP.SpellProject.combineCompiled(parts, SP.targetFor(target).writer, importLines, scope) + "\n"
   return SP.SpellDeclarations.split(marked, scope, { version, exports })
+}
+
+/**
+ * The fixtures fixture `projectName` imports, by the module its compiled code imports each from, e.g.
+ * `{ "@spell/project/@test:fixtures:Cards": "Cards" }` -- none:  `{}`.
+ * - throws if it imports a project that isn't a fixture:  tests read ONLY `FIXTURES_DIR`.
+ */
+export function fixtureImports(projectName: string): Record<string, string> {
+  const fixtures = `${SP.SpellProjectRoot.fixtures.path}:`
+  const imported: Record<string, string> = {}
+  for (const { path, active } of readProjectFile(fixturePath(projectName)).imports) {
+    if (active === false || /\.(spell|css)$/.test(path)) continue
+    const projectId = SP.SpellProject.projectIdForImport(path)
+    if (!projectId.startsWith(fixtures)) {
+      throw new TypeError(`fixtureImports():  fixture ${projectName} imports ${path}, which isn't a fixture`)
+    }
+    imported[moduleFor(projectId)] = projectId.slice(fixtures.length)
+  }
+  return imported
+}
+
+/**
+ * The import layer fixture `projectName` parses under:  the declarations of each fixture it imports, as
+ * `SpellProject.loadImportScope()` loads a compiled import's -- or the root scope, if it imports none.
+ */
+function fixtureImportScope(projectName: string): P.Scope {
+  const { imports } = readProjectFile(fixturePath(projectName))
+  const loaded: SP.DeclarationsImport[] = Object.entries(fixtureImports(projectName)).map(([module, fixture]) => {
+    const { path, import: picks } = imports.find(
+      (it) => moduleFor(SP.SpellProject.projectIdForImport(it.path)) === module
+    )!
+    const projectId = SP.SpellProject.projectIdForImport(path)
+    return { from: path, projectId, declarations: compileFixture(fixture).declarations, import: picks, module }
+  })
+  const root = SP.SpellParser.rootScope
+  return loaded.length ? SP.SpellDeclarations.importScope(root, loaded) : root
+}
+
+/** The module compiled code imports project `projectId` from, e.g. `@spell/project/@test:fixtures:Cards`. */
+function moduleFor(projectId: string): string {
+  return `${SP.SPELL_PROJECT_MODULE}${encodeURI(projectId)}`
 }
 
 /** `{ path, contents }` of each spell file in fixture `projectName`, in its `project.json` order -- see `FIXTURES_DIR`. */
@@ -144,17 +188,17 @@ function compiledCSS(contents: string): string {
 function readProjectFile(projectDir: string): {
   version?: string
   exports?: string[]
-  imports: Array<{ path: string; active?: boolean }>
+  imports: Array<{ path: string; active?: boolean; import?: string[] }>
 } {
   return JSON.parse(readFileSync(resolve(projectDir, SP.PROJECT_FILE), "utf8"))
 }
 
 /**
- * What must NOT change between a full parse and an incremental one:  compiled output + errors per file.
+ * What must NOT change between a full parse and an incremental one:  compiled output, errors and warnings per file.
  * - Leaves out timings and `Match` objects.
  */
 export function summarize(project: ParsedSpellProject): SpellProjectSummary {
-  return project.files.map(({ path, compiled, errors }) => ({ path, compiled, errors }))
+  return project.files.map(({ path, compiled, errors, warnings }) => ({ path, compiled, errors, warnings }))
 }
 
 /** `"<line>:<ch> <message>"` for each parse error in `match`, 1-based line to match editor. */
@@ -165,6 +209,12 @@ export function describeParseErrors(match: P.Match | undefined): string[] {
     const message = (error.AST as unknown as { value?: string } | undefined)?.value ?? error.inputText
     return `${(error.line ?? 0) + 1}:${error.char ?? 0} ${message}`
   })
+}
+
+/** `"<line>:<ch> <message>"` for each warning in `match` -- see `SP.SpellWarnings` -- 1-based line to match editor. */
+export function describeWarnings(match: P.Match | undefined): string[] {
+  if (!match) return []
+  return SP.SpellWarnings.in(match).map(({ at, message }) => `${(at.line ?? 0) + 1}:${at.char ?? 0} ${message}`)
 }
 
 /** One spell file to parse. */
@@ -187,10 +237,11 @@ export type ParsedSpellProject = {
     match: P.Match | undefined
     compiled: string
     errors: string[]
+    warnings: string[]
     parseMsec: number
     compileMsec: number
   }>
 }
 
 /** Result of `summarize()`. */
-export type SpellProjectSummary = Array<{ path: string; compiled: string; errors: string[] }>
+export type SpellProjectSummary = Array<{ path: string; compiled: string; errors: string[]; warnings: string[] }>

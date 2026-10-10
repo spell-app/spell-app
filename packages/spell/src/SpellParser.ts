@@ -128,7 +128,7 @@ export class SpellParser extends P.Parser {
 
   /**
    * Every rule aliased `expression` is registered as an `operand` instead -- except `expression` itself,
-   * `compound_expression`, which is an operand plus any operators after it.
+   * `CompoundExpression`, which is an operand plus any operators after it.
    * - So `{expression}` is a whole expression, operators and all.
    * - `{operand}` is what an operator acts on:  one expression with no operator at its top,
    *   e.g. `5`, `the first card of the deck`, `(x + 1)`.

@@ -28,7 +28,7 @@ export class Task extends Thing {
           tag: "input",
           props: {
             type: "checkbox",
-            checked: this.is_complete,
+            checked: () => this.is_complete,
             onChange: (event) => {
               this.completed = (this.is_active ? true : false)
             }
@@ -36,7 +36,7 @@ export class Task extends Thing {
         })
       ] }),
       spellCore.element({ tag: "td", props: { width: "82%" }, children: [
-        this.title
+        () => this.title
       ] }),
       spellCore.element({ tag: "td", props: { width: "10%" }, children: [
         spellCore.element({
@@ -56,7 +56,7 @@ export class Task extends Thing {
 }
 
 export class Todos_App extends App {
-  static { this.declareProp('tasks', { init: () => new List() }) }
+  static { this.declareProp('tasks', { init: () => new List({ instanceType: "Task" }) }) }
   get tasks() { return this.getProp('tasks') }
   set tasks(value) { this.setProp('tasks', value) }
 
@@ -82,9 +82,9 @@ export class Todos_App extends App {
         })
       ] }),
       spellCore.element({ tag: "br" }),
-      spellCore.element({ tag: "table", props: { width: "50%" }, children: [
+      spellCore.element({ tag: "table", props: { style: "width: 50%" }, children: [
         spellCore.element({ tag: "tbody", children: [
-          spellCore.drawItems(app.tasks)
+          () => spellCore.drawItems(app.tasks)
         ] })
       ] }),
       spellCore.element({ tag: "br" }),
@@ -141,7 +141,7 @@ export class Todos_App extends App {
           tag: "button",
           props: {
             onClick: (event) => {
-              return spellCore.removeItemOf(app.tasks, 1)
+              return spellCore.removeItemAt(app.tasks, 1)
             }
           },
           children: [
@@ -152,7 +152,7 @@ export class Todos_App extends App {
           tag: "button",
           props: {
             onClick: (event) => {
-              spellCore.getItemOf(app.tasks, 1).title = "New title"
+              spellCore.getItemAt(app.tasks, 1).title = "New title"
             }
           },
           children: [

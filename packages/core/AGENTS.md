@@ -20,14 +20,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - NEVER edit it by hand:  edit the table, run that.
 - Depends only on `$/util`.
   NEVER import `$/spell` / `$/parser`, or anything above.
-- Rendering code here is Solid work:  READ the root's Solid 2 pointer first.
-  - That's `ui.ts`, `element()`, `draw`, and the `Thing` / `List` / `App` components.
+- Drawing code here is Solid work:  READ the root's Solid 2 pointer first.
+  - That's [drawing.ts](src/drawing.ts):  `element()`, `drawThing()`, `drawItems()`, `@drawn`, `mountApp()`.
 
 ## Who may value-import it
 
 - ONLY the app's runner entry, [spellRuntime.ts](../app/src/runner/spellRuntime.ts), may value-import `$/core`,
   in every bundle.
-  - Anything else -- the app, the parser, the language, the forms --
+  - Anything else -- the app, the parser, the language --
     puts it in a shared chunk, or loads a second copy.
   - Programs run on `spell-runtime.js` (built from `spellRuntime.ts`), NEVER the page's own `core`.
     Each runner loads its own copy, so apps on a page don't share one.
@@ -47,7 +47,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - adding it takes it out of the list that held it, and adding one a list holds moves it
   - removing it leaves it with no owner
   - `Pile.ownerOf(card)` is who holds it, TRACKED with a spell cell per item
-    - ONE `WeakMap` per family, by its root class (`ListFamily`, `List.tsx`)
+    - ONE `WeakMap` per family, by its root class (`ListFamily`, [List.ts](src/classes/List.ts))
     - compiled spell's `the pile of a card` is a getter calling it
   - only objects can be owned:  a number or text is just held
 - EVERY change to a list's `items` MUST go through `List.writeItems()`:
@@ -69,6 +69,20 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Tests:
   - [List.test.ts](src/classes/List.test.ts)
   - end to end, spell's [membership.test.ts](../spell/src/parserTests/membership.test.ts)
+
+## JSON
+
+- Every spell object's JSON says its class first, `"@type"`, then its props.
+  - `{ "@type": "Card", "rank": "ace" }`
+  - a list's adds its items:  `{ "@type": "Pile", "name": "stock", "items": [...] }`
+  - written by `$/util`'s `typedJSON()`
+  - `"@type"` is never a prop:  `keys()` (what the Thing Explorer lists) doesn't have it.
+- `spellCore.fromJSON()` ([json.ts](src/json.ts)) reads it back, each object as its class.
+  - It finds a class by name, `spellCore.things.classNamed()`.
+  - That knows a class once one of its things is made,
+    or once a runner hands it the program's modules (`addClasses()`).
+  - A list's items are SET (`writeItems()`), so a pile owns its cards.
+  - An unknown `"@type"`:  a plain object.
 
 ## Decorators
 

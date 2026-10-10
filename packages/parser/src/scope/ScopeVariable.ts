@@ -47,7 +47,7 @@ export class ScopeVariable {
   declare asWritten: string | undefined
   /**
    * `true` for a property its type never declared:  a `set the X of Y to ...` declared it at its first set.
-   * - See spell's `assignment_statement`.
+   * - See spell's `AssignmentStatement`.
    */
   declare autoDeclared: boolean | undefined
   /**
@@ -58,6 +58,16 @@ export class ScopeVariable {
    * - Declared by that membership statement, NOT by a property statement of the item type.
    */
   declare exclusive: boolean | undefined
+  /**
+   * `true` for a DERIVED property:  one a getter works out each time it's read, which nothing stores,
+   * e.g. `the short rank of a card is: ...`, `its "color" is red if ... otherwise black`, `- to "draw its front"`,
+   * and an `exclusive` member.
+   * - Why:  the TypeScript writer names a getter TypeScript's way (`shortRank`), and a stored property spell's
+   *   (`is_set_up`).  A read, `card.short_rank`, doesn't say which, so it asks the member's record --
+   *   for a type from another project, as loaded from that project's declarations (`"getter": true`).
+   * - `undefined` for a stored property, and for a value kind's property, which `readAs` reads.
+   */
+  declare isGetter: boolean | undefined
   /**
    * A built-in member's READ template:  javascript which reads it,
    * `{it}` standing for the value it's read from.
@@ -114,6 +124,8 @@ export type ScopeVariableProps = {
   autoDeclared?: boolean
   /** See `ScopeVariable.exclusive`. */
   exclusive?: boolean
+  /** See `ScopeVariable.isGetter`. */
+  isGetter?: boolean
   /** See `ScopeVariable.readAs`. */
   readAs?: string
   /** See `ScopeVariable.docstring`. */

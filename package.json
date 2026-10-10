@@ -52,6 +52,7 @@
     "vitest": "catalog:"
   },
   "resolutions": {
+    "@solidjs/h": "2.0.0-rc.13",
     "@solidjs/signals": "2.0.0-rc.13",
     "@solidjs/web": "2.0.0-rc.13",
     "solid-js": "2.0.0-rc.13",

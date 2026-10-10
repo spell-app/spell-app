@@ -28,6 +28,7 @@
     "test:watch": "vp test"
   },
   "devDependencies": {
+    "@solidjs/h": "2.0.0-rc.13",
     "@spell-app/assembler": "workspace:*",
     "@spell-app/server": "workspace:*",
     "@spell-app/spell": "workspace:*",

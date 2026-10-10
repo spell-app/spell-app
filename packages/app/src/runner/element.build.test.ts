@@ -29,7 +29,9 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  *   - In a shared chunk, every app on a page would share one -- one runtime, one console --
  *     and a runner would show a `spellCore` its program doesn't run on.
  *   - So nothing a runner itself imports may import `spellCore`.
- * - And `spell-runtime.js` never loads Solid or `ui`:  compiled spell runs on React (decision D9).
+ * - And `spell-runtime.js` draws with the page's one Solid:
+ *   it imports Solid and `h` through `spell-solid-shared.js`, bundles none of its own, and never loads `ui`
+ *   (epic `output-targets` P10).
  * - Monaco only in `<spell-editor>`'s lazy chunks:  the parser compiles, and apps run, before it loads.
  * - Icon packs beside the chunk holding `BuiltInPacks`, where it looks -- complete enough for every Fomantic name.
  * - Every bundle MUST parse:  a build can succeed and still write javascript no browser runs --
@@ -81,11 +83,17 @@ describe("runner builds", () => {
         expect(staticImports(dir, entry), `${dir} ${entry}`).toContain("spell-solid-shared.js")
       }
       expect(readFileSync(join(dir, "spell-solid-shared.js"), "utf8")).toContain(`await import("./spell-solid.js")`)
-      // compiled spell runs on React:  the runtime never loads Solid or `ui`, statically OR lazily
-      for (const file of staticImports(dir, "spell-runtime.js")) {
+      // compiled spell draws with the page's one Solid:  the runtime takes Solid (and `h`) through
+      // `spell-solid-shared.js` too, bundles no Solid or `ui` of its own, and never loads the rest of `ui`
+      // (`spell-ui.js`), statically OR lazily
+      // - what `spell-solid-shared.js` / `spell-solid.js` load is the page's shared copy:  left out
+      const runtimeFiles = staticImports(dir, "spell-runtime.js")
+      expect(runtimeFiles, dir).toContain("spell-solid-shared.js")
+      expect(runtimeFiles, dir).not.toContain("spell-solid.js")
+      const ownFiles = runtimeFiles.filter((file) => !shared.includes(file) && file !== "spell-solid-shared.js")
+      for (const file of ownFiles) {
         expect(holds(dir, file, "solid") || holds(dir, file, "ui"), `${dir} ${file}`).toBe(false)
-        expect(readFileSync(join(dir, file), "utf8"), `${dir} ${file}`).not.toMatch(/spell-(solid|solid-shared|ui)\.js/)
-      }
+        expect(readFileSync(join(dir, file), "utf8"), `${dir} ${file}`).not.toMatch(/spell-(solid|ui)\.js/)
     }
   })
 
@@ -149,12 +157,15 @@ describe("runner builds", () => {
     // every name `spell-solid.js` exports (NOT imported here:  it defines `<ui-root>`, and node has no
     // `customElements`), and the page's modules it reads them from
     const names = SHARED_NAMES.exec(text)![1]!.split(", ")
-    expect(names).toEqual(expect.arrayContaining(["createSignal", "render", "E", "UIComponent", "UIRoot"]))
+    expect(names).toEqual(expect.arrayContaining(["createSignal", "render", "E", "UIComponent", "UIRoot", "h"]))
     const specifiers = JSON.parse(SHARED_SPECIFIERS.exec(text)![1]!) as string[]
-    expect(specifiers).toEqual(["solid-js", "@solidjs/web", "$/ui/core", "$/ui/components/ui-root"])
-    // a page's modules (the docs bundle's `SpellUI.packModules`), each name a stand-in
+    expect(specifiers).toEqual(["solid-js", "@solidjs/web", "@solidjs/h", "$/ui/core", "$/ui/components/ui-root"])
+    // a page's modules (the docs bundle's `SpellUI.packModules`), each name a stand-in;
+    // `@solidjs/h` as it is, a default export, which `spell-solid-shared.js` renames `h`
     const page = Object.fromEntries(names.map((name) => [name, `page's ${name}`]))
-    const packModules = Object.fromEntries(specifiers.map((specifier) => [specifier, page]))
+    const packModules = Object.fromEntries(
+      specifiers.map((specifier) => [specifier, specifier === "@solidjs/h" ? { default: "page's h" } : page])
+    )
     Object.assign(globalThis, { SpellUI: { packModules } })
     try {
       // run as a module:  with the page's modules there, it never imports `spell-solid.js`
@@ -164,6 +175,7 @@ describe("runner builds", () => {
       expect(Object.keys(shared).sort()).toEqual([...names].sort())
       expect(shared.createSignal).toBe("page's createSignal")
       expect(shared.UIRoot).toBe("page's UIRoot")
+      expect(shared.h).toBe("page's h")
     } finally {
       Reflect.deleteProperty(globalThis, "SpellUI")
     }

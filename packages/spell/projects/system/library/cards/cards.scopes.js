@@ -220,7 +220,7 @@
       ]
     },
     {
-      path: "project:cards/file:Card.spell/type:Card/property:pile", line: 4,
+      path: "project:cards/file:Card.spell/type:Card/property:pile", line: 6,
       detail: "Pile",
       section: "Pile of playing cards",
       uri: "spell:/@system:library:cards/Pile.spell",
@@ -330,16 +330,22 @@
       description: "## Pile of playing cards"
     },
     {
-      path: "project:cards/file:Pile.spell/type:Pile/property:color", line: [6, 8],
+      path: "project:cards/file:Pile.spell/type:Pile/property:name", line: 4,
+      detail: "text",
+      section: "Pile of playing cards",
+      description: "what a program calls it, e.g. \"stock\":  the program importing these cards names its piles"
+    },
+    {
+      path: "project:cards/file:Pile.spell/type:Pile/property:color", line: [8, 10],
       section: "Pile of playing cards"
     },
     {
-      path: "project:cards/file:Pile.spell/type:Pile/property:value", line: [10, 12],
+      path: "project:cards/file:Pile.spell/type:Pile/property:value", line: [12, 14],
       detail: "number",
       section: "Pile of playing cards"
     },
     {
-      path: "project:cards/file:Pile.spell/type:Pile/property:state", line: [14, 18],
+      path: "project:cards/file:Pile.spell/type:Pile/property:state", line: [16, 20],
       detail: "text",
       section: "Pile of playing cards"
     }

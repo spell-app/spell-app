@@ -22,7 +22,7 @@ import { SP } from "$/spell"
 /**
  * Spell's built-in types, in the order the Type Explorer lists them -- see `SP.BuiltInType`.
  * - TODO:  members still to add:
- *   - `number`'s `absolute value` and `round`:  their rules (`math.ts`) compile to `spellCore` methods
+ *   - `number`'s `absolute value` and `round`:  their rules (`math/`) compile to `spellCore` methods
  *     which don't exist yet
  *   - a `date`'s `month` (javascript counts months from 0)
  *   - a text's `words`
@@ -185,7 +185,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
           "Add `thing` to the end -- or wherever you say:",
           "- `add the card to the deck`, or `... to the end of the deck`",
           "- `add the card to the start of the deck`, or `prepend the card to the deck`",
-          "- `add the card to the deck before the ace`"
+          "- `add the card to the deck before the ace` (at the start if the ace isn't in it;  `after`:  at the end)"
         )
       },
       {

@@ -10,14 +10,15 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  * - Two entries:
  *   - `spell-app.js`:  the element, for pages to load -- see `components/spell-app/index.ts`
  *   - `spell-runtime.js`:  what ONE app runs on, loaded afresh per element -- see `spellRuntime.ts`
- * - What both use goes in shared chunks, e.g. React:  so every app's copy of the runtime shares ONE React.
+ * - What both use goes in shared chunks.
  *   `spellCore` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
  * - Solid, `ui`'s element core and `@spell-app/ui` are NOT bundled:
  *   they come from `spell-solid.js` / `spell-ui.js` beside it, which `<spell-editor>` imports too --
  *   one Solid per page.
  *   - How:  `sharedSolid()`, through `spell-solid-shared.js` (on a docs page:  the page's own instead).
  *   - `<spell-app>` imports `spell-ui.js` not at all:  it's a root, loading each Spell UI family it draws from `ui/`.
- *   - `spell-runtime.js` never imports them:  compiled spell runs on React.
+ *   - `spell-runtime.js` takes Solid and `h` through `spell-solid-shared.js` too
+ *     (compiled spell draws with Solid), never `spell-ui.js`.
  * - Fixed names, no hashes:  the element finds the runtime, styles and scope packs beside itself.
  * - One `spell-app.css`, which the element puts in each shadow root -- see `shadowStyles.ts`.
  * - `static/` is copied in, so Semantic UI and Lato sit beside the bundle --
@@ -119,7 +120,7 @@ const PACK = { name: "spell", prefix: "spell-" }
  * - Its `define()` imports each family's ES module beside it (`spell-app.js`, `spell-editor.js`):
  *   NOT one script holding them, as `spell dev pack build` makes,
  *   because the elements need what a classic script can't have --
- *   Monaco and the parser as lazy chunks, `spell-runtime.js` loaded afresh per app, React shared between them.
+ *   Monaco and the parser as lazy chunks, `spell-runtime.js` loaded afresh per app.
  * - The modules take Solid and Spell UI's core from the page when it has its own
  *   (a docs page's bundle:  `spell-solid-shared.js`, `vite.solid.config.ts`), else from `spell-solid.js` beside them:
  *   one Solid per page either way (two fail silently).

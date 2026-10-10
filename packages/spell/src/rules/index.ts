@@ -1,8 +1,10 @@
 /**
  * Assembles every spell language rule module into the single `spellParser` instance.
- * - Not a plain re-export barrel: this folder is a flat list of independent rule modules, each exporting
+ * - Not a plain re-export barrel: this folder is a list of independent rule modules, each exporting
  *   its rule classes plus a `SpellParser` which registers them -- this file combines those parsers
  *   via `spellParser.import(...)`.
+ * - A module is a folder, one rule per file, e.g. `events/`:
+ *   see "Parser rules" in spell's `AGENTS.md`.
  * - NOTE: import order matters in a few places -- see the comment above the `ParseError` import.
  *   Structural rules (`blank_line` / `block` / `line` / `parse_error`) are added directly, below.
  */
@@ -11,7 +13,7 @@ import { SpellParser } from "$/spell/SpellParser"
 
 // Structural rule classes, registered directly below.
 import { Block, type DocComment } from "./Block"
-import { BlockLine, blank_line } from "./BlockLine"
+import { BlockLine, SpellBlankLine } from "./BlockLine"
 import { commitStatement, SpellStatement } from "./Statement"
 
 // The following define "modules" of rule sets, which will be combined below.
@@ -68,11 +70,14 @@ export { SpellStatement }
 /** Export so `SpellParser`'s incremental parsing hooks can narrow to them. */
 export { Block, BlockLine }
 
-/** `JSX.ts`'s `match.data` shape for `jsxElement`/`jsxAttribute`/`jsxExpression` matches -- e.g. for UI code that reads them. */
+/**
+ * The JSX module's `match.data` shape for `jsxElement`/`jsxAttribute`/`jsxExpression` matches
+ * -- e.g. for UI code that reads them.
+ */
 export type { JSXMatchData }
 
-// Structural rules.  The last three set `static ruleName` since their class names are `Type_Case`, not rule case.
-spellParser.addRule(blank_line)
+// Structural rules.  `SpellBlankLine` and `BlockLine` set `static ruleName`:  their class names don't give them.
+spellParser.addRule(SpellBlankLine)
 spellParser.addRule(Block)
 spellParser.addRule(BlockLine)
 spellParser.addRule(ParseError)

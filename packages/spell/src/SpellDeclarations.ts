@@ -324,7 +324,8 @@ export class SpellDeclarations {
    * - A `classVariable` goes on instances too, with its `enumeration` as initializer -- as `define_property_has`
    *   declares it.
    * - An `exclusive` property is the member `a card belongs to one pile` gave, e.g. `pile` on `Card`:
-   *   read-only, as there -- see `P.TypeScope.declareOwnerMember()`.
+   *   read-only, as there -- see `P.TypeScope.declareOwnerMember()`.  And a getter, as there.
+   * - A `getter` is a derived property:  its record's `isGetter` -- see `P.ScopeVariable.isGetter`.
    */
   private static loadVariables(
     scope: P.ImportScope,
@@ -337,8 +338,9 @@ export class SpellDeclarations {
     const typeScope = of && names.has(of) ? scope.types.get(of, "LOCAL_ONLY") : undefined
     if (!typeScope) return
     if (property) {
+      const isGetter = declaration.getter || exclusive || undefined
       typeScope.variables.add(
-        definedOnly({ name: property, asWritten, datatype, initializer, autoDeclared, exclusive, declaredAt })
+        definedOnly({ name: property, asWritten, datatype, initializer, autoDeclared, exclusive, isGetter, declaredAt })
       )
     }
     if (classVariable) {
@@ -549,13 +551,14 @@ export class SpellDeclarations {
    * - Instance twin of a `classVariable` in `declared` goes without saying -- `loadVariables()` adds it.
    * - Only a `classVariable` says its `enumeration` -- as `define_property_has` declares it.
    * - `initializer` left out when it's just `enumeration`, as `[a, b]`.
+   * - `getter` for a derived property, left out for an `exclusive` member -- see `SP.SpellDeclaration.getter`.
    */
   private static variableDeclaration(
     variable: P.ScopeVariable,
     typeScope: P.TypeScope,
     declared: unknown[]
   ): SP.SpellDeclaration {
-    const { name, asWritten, datatype, enumeration, initializer, autoDeclared, exclusive } = variable
+    const { name, asWritten, datatype, enumeration, initializer, autoDeclared, exclusive, isGetter } = variable
     const of = typeScope.name
     const derived = enumerationInitializer(enumeration)
     const ownInitializer = initializer === derived ? undefined : initializer
@@ -564,7 +567,9 @@ export class SpellDeclarations {
       (it) => it instanceof P.ScopeVariable && it !== variable && it.kind === "static" && it.name === name
     )
     if (isTwin) return {}
-    return { property: name, asWritten, of, datatype, autoDeclared, exclusive, initializer: ownInitializer }
+    // an `exclusive` member is always a getter:  loading works it out
+    const getter = isGetter && !exclusive ? true : undefined
+    return { property: name, asWritten, of, datatype, autoDeclared, getter, exclusive, initializer: ownInitializer }
   }
 
   /**
@@ -673,6 +678,7 @@ const PROP_ORDER = [
   "name",
   "datatype",
   "autoDeclared",
+  "getter",
   "itemType",
   "exclusive",
   "params",

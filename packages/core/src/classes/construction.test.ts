@@ -7,7 +7,7 @@ import { Thing, List } from "$/core"
  * Construction order:  `create()` runs exactly once per instance, and never before a field it sets is initialized.
  * - `Thing` / `List` call `create()` from their own constructor, before any subclass field initializer.
  * - `@thing` moves that call after the decorated class's fields;  `runsCreate()` keeps it to one call.
- * - See `Thing.create()` and `packages/util/src/spell/spellDecorators.ts`.
+ * - See `Thing.create()` and `@thing` in `packages/util/src/spell/spellDecorators.ts`.
  */
 
 ////////////////

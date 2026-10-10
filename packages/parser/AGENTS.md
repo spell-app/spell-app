@@ -22,6 +22,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - The barrel NEVER pulls it in.
 - `$/parser/test` (`src/test/`) holds the helpers language packages use to test their rules,
   e.g. `unitTestModuleRules()`.
+  - Each rule test checks both writers, `{ input, js, ts }` (`P.RuleTest`).
+  - `BLESS_RULE_TESTS=1` writes each test's `ts` into its source:  `RuleTestSource`, node-only, loaded only then.
   - Tests that need the SPELL grammar are not here:  they're in spell's `src/parserTests/`.
 - Depends only on `$/util` (and what that re-exports).
   NEVER import `$/spell`, or anything above it.
@@ -29,16 +31,21 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   The AST classes never write output themselves.
   - `P.Writer`:  one method per AST class, found by class name (so `keepNames`, below)
   - `P.JSWriter`:  javascript;  what `ASTNode.compile()` calls
-  - `P.TSWriter`:  typescript, javascript plus the types spell knows
+  - `P.TSWriter`:  TypeScript on Solid, as a person writes it, for `<Project>.compiled.tsx`
+    - real JSX, decorators, TypeScript's names, the types spell knows
+    - It reads the whole project first (`P.TSProject`).
   - `P.jsText`:  their punctuation
 - No UI framework, no JSX, no DOM.
   - Node tools run the parser's SOURCE through `tsx` / esbuild / Vite's oxc,
     none of which compile Solid's JSX.
-  - ASTs only write text (`compile()`);  the app shows compiled JavaScript in Monaco.
+  - ASTs only write TEXT (`compile()`), JSX included.
+    - The app shows compiled JavaScript in Monaco.
+    - Solid's compiler builds the TypeScript target's JSX later (`$/spell/node/buildTsx`).
 - "Parser rules" (how to write a rule class + its `syntax` + `tests`) is in [spell's AGENTS.md](../spell/AGENTS.md).
   - The rules there are spell's, on this package's `Rule`.
   - See also the top docstring in [Rule.ts](src/rules/Rule.ts).
-- `keepNames`:  every prod build MUST keep `output.keepNames`, because a rule's class name IS its rule name.
+- `keepNames`:  every prod build MUST keep `output.keepNames`, because a rule's name is worked out from its class name
+  (`ListAddRelative` => `list_add_relative`, `P.Rule.ruleNameFor()`).
   - The builds:  app's [vite.config.ts](../app/vite.config.ts) and [vite.editor.config.ts](../app/vite.editor.config.ts).
   - Pinned by app's [build.test.ts](../app/src/build.test.ts).
 

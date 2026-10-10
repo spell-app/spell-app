@@ -3,9 +3,9 @@
  * - Compiled spell modules `import` what they use:  `import { spellCore, Thing } from "@spell/core"` --
  *   see `SPELL_CORE_MODULE`.  No globals.
  * - `spellCore` is a single singleton (constructed in `core.ts`) assembled by ACCRETION: every
- *   sibling module here (`collection-core`, `collection-other`, `paths`, `string`, `tests`, `console`,
- *   `runtime`, `things`, `ui`, plus `core` itself) does `Object.assign(spellCore, <module>Methods)` as a
- *   top-level side effect when its file first loads -- see `defineSpellCoreModule()` in `spellCore.types.ts`.
+ *   sibling module here (`collection-core`, `collection-other`, `deprecated`, `paths`, `string`, `tests`,
+ *   `console`, `runtime`, `things`, `json`, `ui`, plus `core` itself) does `Object.assign(spellCore, <module>Methods)`
+ *   as a top-level side effect when its file first loads -- see `defineSpellCoreModule()` in `spellCore.types.ts`.
  * - NOTE: most of those modules are imported here ONLY for that side effect (bare `import "./x"`, no
  *   named import) -- importing this barrel (or anything that transitively imports `$/core`) is
  *   what triggers the assembly.  `SpellCore` (the assembled TYPE) is exported separately as a
@@ -20,15 +20,29 @@ import { assert } from "./assert"
 import { spellCore } from "./core"
 import "./collection-core"
 import "./collection-other"
+import "./deprecated"
 import "./paths"
 import "./string"
 import { SpellEvent, Eventful } from "./SpellEvent"
 import "./tests"
 import "./console"
-import "./runtime"
+import { on, off, once, trigger } from "./runtime"
 import "./things"
+import "./json"
 import "./ui"
+import "./drawing"
 
 export { spellCore, assert, SpellEvent, Eventful }
+// Events, as hand-written TypeScript says them:  `trigger("card-click", { card: this })`.  Compiled JavaScript says
+// `spellCore.trigger(...)`:  the same functions.
+export { on, off, once, trigger }
+// Helpers hand-written TypeScript imports by name, e.g. `positionOf(Card.Ranks, this.rank)`.  `itemOf`:  its old name,
+// for TypeScript compiled before epic `output-targets` P16 -- see `deprecated.ts`.
+export { positionOf } from "./collection-core"
+export { itemOf } from "./deprecated"
+// The decorators compiled TypeScript (`ts/solid`) writes, e.g. `@prop({ oneOf: RANKS }) accessor rank!: Rank`:
+// `$/util`'s shared reactive ones, spell's `@thing`, and `@drawn` (`drawing.ts`).  Compiled JavaScript has none.
+export { prop, state, derived, thing } from "$/util"
+export { drawn } from "./drawing"
 export { SPELL_CORE_MODULE, SPELL_CORE_NAMES, type SpellCore, type PropCheck } from "./spellCore.types"
 export * from "./classes"

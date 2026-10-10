@@ -204,9 +204,29 @@ export class CliSession {
   problems(project: SP.SpellProject, file?: SP.SpellFile): CLI.Problem[] {
     const { projectId, parseError } = project
     if (parseError) return [{ project: projectId, message: `Parser crashed:  ${parseError}` }]
-    return (file ? [file] : project.spellFiles).flatMap((it) =>
-      this.service.diagnostics(it).flatMap(({ range: { start }, message, severity }) => {
-        if (severity !== DiagnosticSeverity.Error) return []
+    return this.diagnosticsOf(project, file, DiagnosticSeverity.Error)
+  }
+
+  /**
+   * Warnings in `project` -- or only those in `file`, if given -- as an editor would show them,
+   * e.g. a property with no type (`SP.SpellWarnings`).
+   * - NEVER errors:  listed, but no command counts them, nor exits on them.
+   * - None from a parse which crashed:  `problems()` says so.
+   */
+  warnings(project: SP.SpellProject, file?: SP.SpellFile): CLI.Problem[] {
+    if (project.parseError) return []
+    return this.diagnosticsOf(project, file, DiagnosticSeverity.Warning).map((it) => ({ ...it, severity: "warning" }))
+  }
+
+  /** `project`'s diagnostics of `severity`, as problems -- only `file`'s, if given. */
+  private diagnosticsOf(
+    { projectId, spellFiles }: SP.SpellProject,
+    file: SP.SpellFile | undefined,
+    severity: DiagnosticSeverity
+  ): CLI.Problem[] {
+    return (file ? [file] : spellFiles).flatMap((it) =>
+      this.service.diagnostics(it).flatMap(({ range: { start }, message, severity: its }) => {
+        if (its !== severity) return []
         const path = it.location.serverPath
         const text = typeof message === "string" ? message : message.value
         return [{ project: projectId, path, line: start.line + 1, column: start.character + 1, message: text }]
@@ -216,18 +236,21 @@ export class CliSession {
 
   /**
    * `problem` on one line:  `path:line:col  message`, which terminals and editors can click.
+   * - A warning says so:  `path:line:col  warning:  message`.
    * - Its path is relative to the current folder.
    */
-  problemLine({ project, path, line, column, message }: CLI.Problem): string {
+  problemLine({ project, path, line, column, message: _message, severity }: CLI.Problem): string {
+    const message = severity === "warning" ? `warning:  ${_message}` : _message
     return path ? `${this.relative(path)}:${line}:${column}  ${message}` : `${project}:  ${message}`
   }
 
   /**
    * Finish `row` for `project` -- or just its `file`:  ok, or how many errors, listing them under it.
-   * - `note` follows the error count, e.g. where the output went.
-   * - `list: false` leaves the errors out, e.g. when they're printed elsewhere.
-   * - `details`:  more lines under it, after the errors, e.g. `tsc`'s on a `ts/solid` target -- not counted.
-   * - Returns its problems.
+   * - Its warnings follow, counted and listed too -- but they never make it `"errors"`, nor are they returned.
+   * - `note` follows the counts, e.g. where the output went.
+   * - `list: false` leaves the errors and warnings out, e.g. when they're printed elsewhere.
+   * - `details`:  more lines under it, after them, e.g. `tsc`'s on a `ts/solid` target -- not counted.
+   * - Returns its problems:  its errors.
    */
   report(
     status: CLI.StatusReporter,
@@ -241,12 +264,17 @@ export class CliSession {
     }: { note?: string; file?: SP.SpellFile; list?: boolean; details?: string[] } = {}
   ): CLI.Problem[] {
     const problems = this.problems(project, file)
-    const count = problems.length ? `${problems.length} error${problems.length === 1 ? "" : "s"}` : undefined
-    const details = [...(list ? problems.map((problem) => this.problemLine(problem)) : []), ...more]
+    const warnings = this.warnings(project, file)
+    const counts = [
+      problems.length && `${problems.length} error${problems.length === 1 ? "" : "s"}`,
+      warnings.length && `${warnings.length} warning${warnings.length === 1 ? "" : "s"}`
+    ]
+    const listed = list ? [...problems, ...warnings].map((problem) => this.problemLine(problem)) : []
+    const details = [...listed, ...more]
     status.done(
       row,
       problems.length ? "errors" : "ok",
-      [count, note].filter(Boolean).join(" · "),
+      [...counts, note].filter(Boolean).join(" · "),
       details.length ? details : undefined
     )
     return problems

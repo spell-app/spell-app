@@ -19,10 +19,14 @@ describe("<Markdown>", () => {
   test("draws markdown as HTML once $/markdown has loaded;  the plain text until then", async () => {
     const host = mount(() => <Markdown text={"**bold** and [a link](file:///x.spell#L2)"} onOpen={() => {}} />)
     expect(host.textContent).toContain("**bold**")
-    await vi.waitFor(() => {
-      flush()
-      expect(host.querySelector(".Markdown strong")?.textContent).toBe("bold")
-    })
+    // the first test loads `$/markdown`, and the parser under it:  over the default 1s in a full run
+    await vi.waitFor(
+      () => {
+        flush()
+        expect(host.querySelector(".Markdown strong")?.textContent).toBe("bold")
+      },
+      { timeout: 5000 }
+    )
   })
 
   test("a clicked link goes to onOpen, not the page", async () => {

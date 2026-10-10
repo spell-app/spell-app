@@ -51,7 +51,7 @@ Each folder links to its own `AGENTS.md`:  read it before working there.
 | [core](packages/core/AGENTS.md) | `@spell-app/core` | `$/core` | `SC` | the runtime compiled spell runs on |
 | [spell](packages/spell/AGENTS.md) | `@spell-app/spell` | `$/spell` | `SP` | the spell LANGUAGE on the parser, every spell project (`projects/`), `PARSING.md` and `readme.md` |
 | [lsp](packages/lsp/AGENTS.md) | `@spell-app/lsp` | `$/lsp` | `LSP` | spell's language server (browser-safe) |
-| [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` / `F` | the web app, its server, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here |
+| [app](packages/app/AGENTS.md) | `@spell-app/app` | `$/app` | `UI` | the web app, its server, the runner, and the `<spell-app>` / `<spell-editor>` web components;  `yarn start` / `build*` live here |
 | `packages/vscode/` | | | | the VS Code extension (below) |
 | [ui](packages/ui/AGENTS.md) | `@spell-app/ui` | `$/ui` | | Fomantic UI reborn as `ui-*` custom elements, on Solid 2 |
 | [cli](packages/cli/AGENTS.md) | `@spell-app/cli` | `$/cli` | `CLI` | the `spell` command-line tool, running the spell-family packages' SOURCE through `tsx`;  see its [README](packages/cli/README.md) too |
@@ -116,7 +116,7 @@ ui -> util
 - Global ambient types are in the root `types/` folder.
   - Used bare, no import (WWOD §9 › "Ambient globals used bare").
   - Every spell-family `tsconfig.json` includes that folder.
-  - The types:  `Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`, the `React*` aliases.
+  - The types:  `Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`.
 - `vite.decorators.ts` and `vite.packageVersion.ts` are at the repo root.
 - No `~/` or `#name` alias exists any more.
   - `$` means `packages/`, so `ui` is `$/ui` like the rest.
@@ -393,7 +393,8 @@ ui -> util
 
 - `spell`'s editor app, runners and web components are Solid 2, on `@spell-app/ui`.
   - Version `2.0.0-rc.13`, for every package:  one copy at the root.
-  - Compiled spell still draws with React, for now ([the code-debt log](agents/CODE-DEBT.md), "app").
+  - So is what compiled spell draws (epic `output-targets` P10-P11).
+  - React is left only in the `spell` CLI's terminal screens (Ink).
 - The rules:  [solid-2.md](guides/solid/solid-2.md) (see the top of this file).
   - NOT `@`-imported on purpose:  it loads only when the task needs it.
   - Claude also has the [solid-2 skill](.claude/skills/solid-2/SKILL.md), which triggers on Solid work.

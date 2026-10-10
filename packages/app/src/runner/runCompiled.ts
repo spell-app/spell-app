@@ -6,7 +6,6 @@
  * - Part of `spell-runtime.js`, NOT the runners themselves:  it runs on the `spellCore` of the runtime copy it's
  *   in -- see `spellRuntime.ts`'s `runApp()`.
  */
-import type { Root } from "react-dom/client"
 
 import { spellCore, SPELL_CORE_MODULE } from "$/core"
 
@@ -18,7 +17,7 @@ import { spellCore, SPELL_CORE_MODULE } from "$/core"
  * - Each project it imports comes from `options.loadImport()`, linked onto its own `blob:` URL -- once per run,
  *   however many import it, deepest first.  Without `loadImport`, a project which imports another won't run.
  * - SIDE EFFECT:  hands its top-level things to `spellCore.things`, for the Thing Explorer -- NOT those of
- *   the projects it imports.
+ *   the projects it imports.  Its classes AND theirs too, so `spellCore.fromJSON()` finds them by name.
  * - Answers the error message if it threw, else `undefined`.
  */
 export async function runCompiled(compiled: string, options: RunCompiledOptions): Promise<string | undefined> {
@@ -39,6 +38,12 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
     // `await` in its argument would end up in a function that isn't `async` -- a syntax error in the bundle
     const url = await link(compiled, [])
     const program = (await import(/* @vite-ignore */ url)) as Record<string, unknown>
+    // the classes of each project it imports, e.g. Solitaire's `Card`, for `spellCore.fromJSON()`:  the program
+    // imported them already, so this runs nothing again
+    for (const projectUrl of linked.values()) {
+      const project = await projectUrl
+      spellCore.things.addClasses((await import(/* @vite-ignore */ project)) as Record<string, unknown>)
+    }
     spellCore.things.setTopLevel(program)
     return undefined
   } catch (error) {
@@ -84,16 +89,15 @@ export type RunCompiledOptions = {
 /** Take down the app the last run started, if any -- e.g. before showing another project. */
 export function unmountApp() {
   const element = spellCore.appElement() as AppElement | null
-  element?.REACT_ROOT?.unmount()
-  if (element) delete element.REACT_ROOT
+  element?.spellRoot?.unmount()
 }
 
 /**
- * Did the last run start an app?  `App.start()` leaves its React root on the mount point.
+ * Did the last run start an app?  `App.start()` leaves it on the mount point (`spellCore.mountApp()`).
  * - An app started later, e.g. from a timer, isn't there yet -- a runner should watch for it drawing.
  */
 export function appIsMounted(): boolean {
-  return !!(spellCore.appElement() as AppElement | null)?.REACT_ROOT
+  return !!(spellCore.appElement() as AppElement | null)?.spellRoot
 }
 
 /**
@@ -126,5 +130,5 @@ const SPELL_IMPORT = /(\bfrom\s*)"(@spell\/[^"]+)"/g
  */
 const PROJECT_MODULE = "@spell/project/"
 
-/** The app's mount point, with the React root `App.start()` leaves on it. */
-type AppElement = HTMLElement & { REACT_ROOT?: Root }
+/** The app's mount point, with the mounted app `App.start()` leaves on it. */
+type AppElement = HTMLElement & { spellRoot?: { unmount(): void } }

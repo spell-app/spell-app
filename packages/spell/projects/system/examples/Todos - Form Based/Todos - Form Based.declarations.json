@@ -51,13 +51,14 @@
     {
       "property": "tasks",
       "of": "Todos_App",
-      "datatype": "list",
-      "defined": "/todo.spell:220-266"
+      "datatype": "list of tasks",
+      "defined": "/todo.spell:220-275"
     },
     {
       "property": "newTaskName",
       "of": "Todos_App",
-      "defined": "/todo.spell:267-305"
+      "datatype": "text",
+      "defined": "/todo.spell:276-322"
     },
     {
       "property": "filter",
@@ -68,7 +69,14 @@
         "'active'",
         "'completed'"
       ],
-      "defined": "/todo.spell:306-365"
+      "defined": "/todo.spell:323-382"
+    },
+    {
+      "property": "shownTasks",
+      "of": "Todos_App",
+      "datatype": "list of tasks",
+      "getter": true,
+      "defined": "/todo.spell:384-584"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -81,7 +89,7 @@
       ],
       "kind": "method",
       "name": "draw (a todos-app)",
-      "defined": "/todo.spell:954-2619"
+      "defined": "/todo.spell:1173-2957"
     },
     {
       "syntax": "create a new task (with {props:object_literal_properties})?",
@@ -99,7 +107,7 @@
         }
       ],
       "returns": "nothing",
-      "defined": "/todo.spell:467-792"
+      "defined": "/todo.spell:686-1011"
     }
   ],
   "codeLines": [
@@ -111,8 +119,9 @@
     22,
     23,
     27,
-    30,
-    35,
-    159
+    31,
+    36,
+    46,
+    203
   ]
 }

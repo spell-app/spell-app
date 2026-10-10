@@ -9185,6 +9185,13 @@
           }
         },
         {
+          "name": "debug",
+          "description": {
+            "kind": "markdown",
+            "value": "Show the bound `value` (else `values`) as JSON below the form, live.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
           "name": "visible",
           "description": {
             "kind": "markdown",
@@ -18834,6 +18841,157 @@
           "description": {
             "kind": "markdown",
             "value": "Form validation:  a rating must be given.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "animation",
+          "description": {
+            "kind": "markdown",
+            "value": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on.\n\nTakes:  `fade` · `fade up` · `fade down` · `fade left` · `fade right` · `scale` · `zoom` · `drop` · `browse` · `browse right` · `fly` · `fly up` · `fly down` · `fly left` · `fly right` · `slide` · `slide up` · `slide down` · `slide left` · `slide right` · `swing` · `swing up` · `swing down` · `swing left` · `swing right` · `horizontal flip` · `vertical flip` · `flash` · `shake` · `bounce` · `tada` · `pulse` · `jiggle` · `glow` · `none`"
+          },
+          "values": [
+            {
+              "name": "fade"
+            },
+            {
+              "name": "fade up"
+            },
+            {
+              "name": "fade down"
+            },
+            {
+              "name": "fade left"
+            },
+            {
+              "name": "fade right"
+            },
+            {
+              "name": "scale"
+            },
+            {
+              "name": "zoom"
+            },
+            {
+              "name": "drop"
+            },
+            {
+              "name": "browse"
+            },
+            {
+              "name": "browse right"
+            },
+            {
+              "name": "fly"
+            },
+            {
+              "name": "fly up"
+            },
+            {
+              "name": "fly down"
+            },
+            {
+              "name": "fly left"
+            },
+            {
+              "name": "fly right"
+            },
+            {
+              "name": "slide"
+            },
+            {
+              "name": "slide up"
+            },
+            {
+              "name": "slide down"
+            },
+            {
+              "name": "slide left"
+            },
+            {
+              "name": "slide right"
+            },
+            {
+              "name": "swing"
+            },
+            {
+              "name": "swing up"
+            },
+            {
+              "name": "swing down"
+            },
+            {
+              "name": "swing left"
+            },
+            {
+              "name": "swing right"
+            },
+            {
+              "name": "horizontal flip"
+            },
+            {
+              "name": "vertical flip"
+            },
+            {
+              "name": "flash"
+            },
+            {
+              "name": "shake"
+            },
+            {
+              "name": "bounce"
+            },
+            {
+              "name": "tada"
+            },
+            {
+              "name": "pulse"
+            },
+            {
+              "name": "jiggle"
+            },
+            {
+              "name": "glow"
+            },
+            {
+              "name": "none"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "ui-repeat",
+      "description": {
+        "kind": "markdown",
+        "value": "A repeat shows its fields once per item of a list, each row bound to its own item.\n\nAlso known as:  repeater, field array, form list, for each, list editor.\n\n**Slots:**  default"
+      },
+      "attributes": [
+        {
+          "name": "name",
+          "description": {
+            "kind": "markdown",
+            "value": "The list to repeat over, by name:  this property of the scope -- the `<ui-form>`'s `value`, or the item of the `<ui-repeat>` row around it.  Any iterable (an array, a `Set` ...).\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`).\n\nTakes:  flag (present / absent)"
           }
         },
         {
