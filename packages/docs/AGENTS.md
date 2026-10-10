@@ -589,7 +589,7 @@ In `tools/`:
     - Its header:  the first words of the selected text (else of the block;  its tooltip names the block),
       a floppy and ×.
     - It saves itself as Owen types:  the floppy shows saved (its tooltip the time), or turns red.
-    - × or Escape closes it.  Closed empty, its comment is deleted.
+    - Never an empty comment:  emptied, its comment is deleted at once.  × or Escape closes it.
   - Each comment shows under its block as a card, its state by the fill rule:
     - outlined:  "Saved 14:02 · waiting for Claude"
     - solid:  "Taken by Claude" / "Answered"

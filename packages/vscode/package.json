@@ -125,13 +125,13 @@
       },
       {
         "command": "spell.docView.inspect",
-        "title": "Inspect:  opens Developer Tools;  then Cmd+Shift+C there (the arrow, top left) and click in the page",
+        "title": "Inspect:  opens (or closes) Developer Tools;  then Cmd+Shift+C there (the arrow, top left) and click in the page",
         "category": "Spell",
         "icon": "$(inspect)"
       },
       {
         "command": "spell.docView.showConsole",
-        "title": "Show Console:  opens Developer Tools;  then its Console tab, and the page (127.0.0.1) in the menu at its top left",
+        "title": "Show Console:  opens (or closes) Developer Tools;  then its Console tab, and the page (127.0.0.1) in the menu at its top left",
         "category": "Spell",
         "icon": "$(debug-console)"
       }
