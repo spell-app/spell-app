@@ -140,6 +140,8 @@ In `tools/`:
     guides a sticky top toolbar like the plan doc";  the floating right-edge rail before):
     a row of the top-level sections' buttons, the last row of the sticky page header (`.spell-page-head`),
     so it sticks with it and the titles stick below it (`buildPageToolbar()`)
+    - an ivory band edge to edge across the content column (out of `<main>`'s side padding), square, a rule under it
+      and none above (Owen, 2026-10-10):  the same band as a plan doc's
     - each button:  the section's icon and its title;  the current one a deeper ivory (scroll-follow);
       a red badge counting what needs Owen
     - Give every top-level section an icon:  without one, the button shows its number.
@@ -147,12 +149,13 @@ In `tools/`:
       button's tooltip (`fitTitles()`);  the row scrolls sideways if even that doesn't fit, never the page
     - a page without a sticky page header:  the last row of its filter bar, else a sticky bar of its own before its
       first section (`.spell-toolbar-alone`:  the goals pages)
-  - a PLAN DOC (`body.plan-doc`) has its own (`buildToolbar()`):  the last row of `<epic-page>`'s sticky header (its
-    `toolbar` slot)
+  - a PLAN DOC (`body.plan-doc`) has its own (`buildToolbar()`):  the last row of `<epic-page>`'s sticky toolbar bar
+    (its `toolbar` slot), which sticks right under the h1's row once the epic's title between them has scrolled away
     - one button per top-level block:  its icon ONLY, the title its tooltip (Owen, 2026-10-10:  "lose the titles");
-      the current one a deeper ivory
+      the current one a deeper ivory;  every button the same width, badges or not
     - badges:  the block's items waiting on Owen, red urgent (`state="attention"`),
-      orange Claude replied with options for him to pick (`state="replied"`);  both kinds, both badges;  none, none
+      orange Claude replied with options for him to pick (`state="replied"`);  both kinds, both badges;  none, none;
+      over the icon's top right, a third of a badge on the icon
     - at the row's right, `<epic-page>`'s own:  the page's state filter, collapse-all, the new item button
       (`packages/epics/AGENTS.md`)
     - Cmd / Ctrl + K asks which item to jump to (`J7`, `q3`, any id), and lands there as a link would;  an id that

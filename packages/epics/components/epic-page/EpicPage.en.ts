@@ -98,7 +98,7 @@ export const epicPageVocabulary = {
     {
       name: "toolbar",
       description:
-        "The sticky header's last row:  the section toolbar the docs runtime adds to a plan doc " +
+        "The sticky bar's last row:  the section toolbar the docs runtime adds to a plan doc " +
         '(`<nav slot="toolbar" class="spell-toolbar">`, `spell-doc-runtime.js` `buildToolbar()`);  never in a doc.'
     }
   ],
@@ -110,13 +110,23 @@ export const epicPageVocabulary = {
         "Above the header:  `Docs › Epics › <title>`, the docs' eyebrow.  None while the doc still holds its old " +
         "`ui-breadcrumb.spell-crumbs` before the page."
     },
-    { name: "header", description: "The sticky page header:  the h1, then the tools and labels at its right." },
+    {
+      name: "header",
+      description:
+        "The sticky page header:  the h1, then at its right the step label, the state mark and the git toggle."
+    },
     { name: "heading", description: "The h1, `/epic <name>`:  a click copies it." },
-    { name: "subhead", description: "Under the h1:  the epic's title." },
+    { name: "subhead", description: "Under the header:  the epic's title, NOT sticky:  it scrolls away." },
+    {
+      name: "bar",
+      description:
+        "The toolbar's sticky bar, right below the header once the title has scrolled away:  the new item form " +
+        "(while open), then the toolbar."
+    },
     {
       name: "toolbar",
       description:
-        "The header's last row:  the docs runtime's section buttons (`slot=\"toolbar\"`), then at the right the page's " +
+        "The sticky bar's last row:  the docs runtime's section buttons (`slot=\"toolbar\"`), then at the right the page's " +
         "state filter, collapse-all and (reviewed) the new todo or question button."
     },
     {
