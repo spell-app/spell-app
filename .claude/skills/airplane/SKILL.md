@@ -34,9 +34,23 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
    - A session mid-work will stall offline:
      list them for Owen, one line each, and ask (modal, multi-select) which to `/park` first.
    - Nothing running:  skip.
-3. `spell dev airplane on`.
-4. Reply, short, for Owen about to close the lid:
+3. The docs first?  Ask, ALWAYS (Owen, 2026-10-10, epic `airplane` J20:
+   "When I airplane, ask if I want to do docs-check first").
+   - Which epics:  the ones `/docs-check` alone offers ([its skill](.claude/skills/docs-check/SKILL.md), "Forms"):
+     merged since the last flight, or done in the last week, newest first.
+     - Only those merged into `main`:  this session is in the main checkout,
+       and an unmerged epic's docs are checked from its own worktree.
+   - AskUserQuestion, yes / no:  "Run /docs-check on the epics changed since the last flight first?"
+     - its description names those epics;  none:  says so, and Other takes names
+     - asked in the same modal as step 2's, when both ask
+   - Yes (or names):  run `/docs-check <those epics>`, as its skill says, before step 4.
+     - Its diff waits in Source Control, to review on the plane;
+       the shared docs it fixes are committed at the turn's end.
+   - No:  go on.
+4. `spell dev airplane on`.
+5. Reply, short, for Owen about to close the lid:
    - what was fixed, and anything still failing, in bold
+   - `/docs-check`, when it ran:  how many fixes, and where to review them
    - how it works on the plane, as bullets:
      - open a plan doc:  the Review tab's list button, "Review:  Open Epic...";  any page:  "Review:  Docs Index"
      - mark items as usual;  Send isn't needed:  every mark is taken at landing, sent or not
