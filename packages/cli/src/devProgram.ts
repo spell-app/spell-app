@@ -4,8 +4,8 @@
  * - The plan for them, and every command the repo has:  `guides/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Two kinds:
- *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `choices`, `notes`, `design`, `server`,
- *     `window`, `vscode`):  a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;
+ *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `choices`, `notes`, `comments`, `design`,
+ *     `server`, `window`, `vscode`):  a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;
  *     this file imports them directly, so they load no spell
  *   - lean commands of our own (`pack`, `bundles`):
  *     `(args, options) => Promise<exitCode>`, imported directly the same way
@@ -29,6 +29,7 @@ import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
 import { goalsCommand } from "$/cli/commands/goalsCommand"
 import { notesCommand } from "$/cli/commands/notesCommand"
+import { commentsCommand } from "$/cli/commands/commentsCommand"
 import { PACK_VERBS, packCommand } from "$/cli/commands/packCommand"
 import { planDocCommand } from "$/cli/commands/planDocCommand"
 import { serverCommand } from "$/cli/commands/serverCommand"
@@ -111,6 +112,20 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     .allowUnknownOption()
     .helpOption(false)
     .action(() => runLean(notesCommand, rawArgs("notes")))
+
+  dev
+    .command("comments")
+    .description(
+      "comments Owen leaves on docs pages' blocks:  list them, gather them into epic guide-changes, answer one"
+    )
+    .argument(
+      "[verb]",
+      "list (default) [--all] [--json] | gather [<page>... | --all] [--epic <name>] [--json] | answer"
+    )
+    .argument("[args...]", "the verb's arguments, e.g. answer guides/x.html cm3 --file reply.html")
+    .allowUnknownOption()
+    .helpOption(false)
+    .action(() => runLean(commentsCommand, rawArgs("comments")))
 
   dev
     .command("design")
