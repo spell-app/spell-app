@@ -154,11 +154,35 @@ describe("<epic-page>", () => {
     await ElementFixture.tick()
   })
 
-  test("its blocks are numbered by place, and top-level titles stick below its header", async () => {
+  test("its blocks are numbered by place, and top-level titles stick below its header and toolbar bar", async () => {
     const host = await render(page("", ["todo"]))
-    const header = host.shadowRoot!.querySelector('[part~="header"]')!
+    const [header, bar] = ["header", "bar"].map(
+      (name) => host.shadowRoot!.querySelector(`[part~="${name}"]`)!.getBoundingClientRect().height
+    )
     const phases = host.querySelector("#phases")!.shadowRoot!.querySelector("ui-section")!
-    expect(Number(phases.getAttribute("offset"))).toBe(Math.round(header.getBoundingClientRect().height))
+    expect(Number(phases.getAttribute("offset"))).toBe(Math.round(Math.round(header) + bar))
+  })
+
+  // Owen, 2026-10-10:  "Page sub header ("Output Targets") should not be sticky";  "Right items:  (=>P14) (whatever
+  // the half-filled circle is) (git icon, but bigger)"
+  test("only the h1's row and the toolbar's bar stick, the title between them scrolls;  the step label, then the state mark, then git", async () => {
+    const now = new Date()
+    const today = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+      .map((n) => String(n).padStart(2, "0"))
+      .join("-")
+    const host = await render(
+      page(`updated="${today}" repo="https://example.com/r"`, []).replace(
+        "</epic-section>",
+        `<epic-phase id="p1" title="One" status="done"><epic-commit sha="0123456789abcdef">Did it</epic-commit></epic-phase>` +
+          `<epic-phase id="p2" title="Two" status="active"></epic-phase></epic-section>`
+      )
+    )
+    const shadow = host.shadowRoot!
+    const position = (name: string) => getComputedStyle(shadow.querySelector(`[part~="${name}"]`)!).position
+    expect(["header", "subhead", "bar"].map(position)).toEqual(["sticky", "static", "sticky"])
+    expect(
+      Array.from(shadow.querySelector('[part~="status"]')!.children, (child) => child.getAttribute("part"))
+    ).toEqual([null, "state", "git"])
   })
 
   test("draws its crumbs, `Docs › Epics › <title>`;  NONE while the doc still holds its old crumbs before it", async () => {
@@ -437,7 +461,7 @@ describe("<epic-page> Send and Review Now", () => {
     expect(headerButtons(host)).toEqual({ send: null, now: null })
     button.click()
     await ElementFixture.tick()
-    const form = host.shadowRoot!.querySelector<HTMLFormElement>('header [part~="new-form"]')!
+    const form = host.shadowRoot!.querySelector<HTMLFormElement>('[part~="bar"] [part~="new-form"]')!
     form.querySelector<HTMLInputElement>('[data-field="title"]')!.value = "check the wifi"
     form.requestSubmit()
     await vi.waitFor(() =>

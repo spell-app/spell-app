@@ -1599,6 +1599,8 @@ function fitTitles(toolbar) {
  *   - red:  urgent (`state="attention"`)
  *   - orange:  Claude answered with options, his turn to pick (`state="replied"`)
  *   - both kinds:  both badges, red first
+ *   - over the icon's top right, a third of a badge on the icon (Owen, 2026-10-10:  "Make badge 1/3 way overlap the
+ *     icon"):  every button is the same width, badge or not
  * - in the header's `toolbar` slot (`<epic-page>`'s):  it sticks with the header, and the header's measured height,
  *   where every title below sticks (`--epic-stack`), takes it in;  `<epic-page>` draws the rest of that row at its
  *   right (the page's state filter, collapse-all, the new item button)
@@ -1620,12 +1622,15 @@ function buildToolbar(page, outline, counts) {
       .join(", ")
     // no icon:  the label's first letter stands in
     const mark = glyph ? `<ui-icon name="${attr(glyph)}"></ui-icon>` : `<b>${text(name.charAt(0))}</b>`
+    const badges =
+      badge("urgent", urgent, `${urgent} urgent`) +
+      badge("replied", replied, `${replied} replied:  ${replied === 1 ? "waits" : "wait"} for your pick`)
+    // the badges inside the icon's box, over its top right:  every button the same width, badges or not
     return (
       `<a class="spell-toolbar-item" href="#${attr(id)}" data-rail="${attr(id)}" title="${attr(name)}" ` +
-      `aria-label="${attr(spoken)}"><span class="spell-toolbar-icon">${mark}</span>` +
-      badge("urgent", urgent, `${urgent} urgent`) +
-      badge("replied", replied, `${replied} replied:  ${replied === 1 ? "waits" : "wait"} for your pick`) +
-      `</a>`
+      `aria-label="${attr(spoken)}"><span class="spell-toolbar-icon">${mark}` +
+      (badges && `<span class="spell-toolbar-badges">${badges}</span>`) +
+      `</span></a>`
     )
   })
   if (!entries.length) return undefined
@@ -2375,8 +2380,10 @@ function stuckBottom(main) {
   for (const sticky of main.querySelectorAll("ui-sticky"))
     boxes.push(sticky.shadowRoot?.querySelector('[part~="sticky"]'))
   for (const section of main.querySelectorAll(`ui-section[sticky], ${EPIC_FOLDS}`)) boxes.push(titleOf(section))
-  // a plan doc's page header;  an OPEN item's line sticks below the titles (a closed one's isn't sticky:  skipped)
-  for (const page of main.querySelectorAll("epic-page")) boxes.push(page.shadowRoot?.querySelector('[part~="header"]'))
+  // a plan doc's page header and its toolbar's bar under it (the title between them scrolls away);  an OPEN item's
+  // line sticks below the titles (a closed one's isn't sticky:  skipped)
+  for (const page of main.querySelectorAll("epic-page"))
+    boxes.push(...(page.shadowRoot?.querySelectorAll('[part~="header"], [part~="bar"]') ?? []))
   for (const item of main.querySelectorAll("epic-item")) boxes.push(item.shadowRoot?.querySelector('[part~="line"]'))
   for (const box of boxes) {
     if (!box) continue
