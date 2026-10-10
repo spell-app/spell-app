@@ -313,6 +313,18 @@ export type Dictionary = {
   components?: Readonly<Record<string, ComponentDictionary>>
 }
 
+/**
+ * One language's names for the attributes every element shares (`SharedVocabulary`), in a file of its own:
+ * `SharedVocabulary.es.ts`.
+ * - A dictionary of the same `lang` reads them for every tag;  its own `attributes` (or `components[tag]`) win.
+ */
+export type SharedDictionary = {
+  /** BCP 47 language tag, e.g. `es`:  the dictionaries it serves. */
+  lang: string
+  /** Shared attribute name => localized, e.g. `{ disabled: "desactivado" }`. */
+  attributes: Readonly<Partial<Record<"disabled" | "loading" | "visible" | "animation", string>>>
+}
+
 /** Per-component part of a `Dictionary`:  wins over the dictionary-wide maps for that component only. */
 export type ComponentDictionary = {
   /** Canonical attribute name => localized, for this component only. */

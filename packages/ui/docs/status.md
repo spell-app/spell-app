@@ -12,6 +12,15 @@ Kept up to date as work lands ([AGENTS.md](../AGENTS.md));  last updated 2026-10
     `"its own"` where a component had its own:  29 of them, and every form control);
     `visible="false"` fades out, then `:state(hidden)`;  `hidden` now beats a family's own `display`;
     `readonly` on every form control (`<ui-select>`, `<ui-search>` new).
+  - P11 (T9):  every family whose `disabled` was its own LOOK moved to `"unusable"` (form, fields, field, tab,
+    items, comments, comment, feed, event, segments, segment, section and panel, labels, label, images, image;
+    brand's field);  `"its own"` kept where it means more, or where inert would hide text:
+    native controls (form controls, `<ui-button>`, `<ui-step>`, `<ui-item>`'s options), hidden or paused
+    (`<ui-loader>`, `<ui-dimmer>`, `<ui-transition>`, `<ui-reveal>`), and text-like looks
+    (`<ui-header>`, `<ui-text>`, `<ui-icon(s)>`, `<ui-emoji>`, `<ui-progress>`).
+  - P11 (T10):  a translated tag names the shared attributes in its language (`SharedVocabulary.<lang>.ts`:
+    `<ie-boton desactivado>`);  P11 (T8):  brand's composer and colour picker take `readonly`, as do
+    `<ui-select>` / `<ui-search>`'s native fallbacks.
   - [`AGENTS.md`](../AGENTS.md) "Solid authoring", "Shared states".
   - Built:  base class, `reset.css`, static render (`data-state`, ARIA), tests (`test/sharedStates.test.tsx`).
   - Deferred:  brand's two form controls (`<ui-brand-composer>`, `<ui-brand-color-picker>`) take no `readonly` yet;

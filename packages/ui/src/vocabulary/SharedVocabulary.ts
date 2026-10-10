@@ -1,6 +1,7 @@
 import * as UIT from "$/ui/components/components.types"
 
-import type { AttributeSpec, ComponentVocabulary, StateSpec } from "./vocabulary.types"
+import { sharedEs } from "./SharedVocabulary.es"
+import type { AttributeSpec, ComponentVocabulary, SharedDictionary, StateSpec } from "./vocabulary.types"
 
 /****************
  * ### `SharedVocabulary`
@@ -17,6 +18,9 @@ import type { AttributeSpec, ComponentVocabulary, StateSpec } from "./vocabulary
  *   - NOTE: none declares its own `visible` or `animation` any more (P12):  keep it that way,
  *     or that element loses `visible` / `hidden` as one fact.
  * - The platform's own `hidden` and `inert` need nothing here:  every element has them already.
+ * - A translated tag names them in its own language (`<ie-boton desactivado>`):
+ *   each language has a small file of them, `SharedVocabulary.<lang>.ts` (`translated()`),
+ *   which `Vocabulary.resolve()` reads for every dictionary of that `lang`;  the dictionary's own names win.
  * - Pure data and lookups, no DOM, no element layer:
  *   node reads it with the vocabularies (`yarn site:data` lists them on every tag).
  ****************/
@@ -41,6 +45,15 @@ export class SharedVocabulary {
    */
   static takesShared(vocabulary: ComponentVocabulary, name: string): boolean {
     return SharedVocabulary.withShared(vocabulary).shared.has(name)
+  }
+
+  /**
+   * The name language `lang` gives the shared attribute `name`, from its `SharedVocabulary.<lang>.ts`:
+   * `translated("es", "disabled")` => `"desactivado"`.
+   * - `undefined` when the language has no such file, or `name` isn't a shared attribute.
+   */
+  static translated(lang: string, name: string): string | undefined {
+    return SHARED_DICTIONARIES.get(lang)?.attributes[name as keyof SharedDictionary["attributes"]]
   }
 
   /** Is `name` one of the shared attributes? */
@@ -124,6 +137,9 @@ const SHARED_ATTRIBUTES: readonly AttributeSpec[] = [
   }
 ]
 
+/** Each language's names for the shared attributes, by `lang`:  one `SharedVocabulary.<lang>.ts` each. */
+const SHARED_DICTIONARIES: ReadonlyMap<string, SharedDictionary> = new Map([[sharedEs.lang, sharedEs]])
+
 /** The states `UIComponent` sets on every element, for the shared attributes. */
 const SHARED_STATES: readonly StateSpec[] = [
   { name: "disabled", description: "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)." },
@@ -137,6 +153,7 @@ const SHARED_STATES: readonly StateSpec[] = [
     description: "Disabled or loading the shared way:  everything inside is inert, and dimmed."
   },
   { name: "hidden", description: 'Hidden (`hidden`, or `visible="false"`), once its animation has run.' },
+  { name: "still", description: '`animation="none"`:  no motion here, nor anywhere inside it (`--ui-motion: none`).' },
   {
     name: "hiding",
     description: "Animating out:  `hidden` is already set, and the element stays on screen until it ends."

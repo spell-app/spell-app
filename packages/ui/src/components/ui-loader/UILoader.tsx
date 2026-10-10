@@ -29,7 +29,7 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
     cssStates: ["active"],
     delegatesFocus: false,
     aria: { role: "status", live: "polite" },
-    // `disabled`:  only a look
+    // `disabled`:  hidden, even when `active` (Fomantic's), so nothing inside to make unusable
     disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 

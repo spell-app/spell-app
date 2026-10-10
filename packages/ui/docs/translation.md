@@ -55,6 +55,13 @@ vocabulary.localize("ie-tarjeta", "size", "big")           // { attribute: "tama
 - `define()` throws on collisions (two attributes / values / components landing on one localized name),
   since one of them would become unreachable in that language.
 - Canonical attribute aliases (`checked` for `selected`) stay accepted, untranslated.
+- The attributes EVERY element shares (`disabled`, `loading`, `visible`:  `SharedVocabulary`) are named once per
+  language, in a small file of their own:  `src/vocabulary/SharedVocabulary.<lang>.ts` (`SharedVocabulary.es.ts`:
+  `{ disabled: "desactivado", loading: "cargando", visible: "visible" }`), so `<ie-boton desactivado>` is disabled.
+  - Every dictionary of that `lang` reads it, for every tag;  the dictionary's own `attributes` (or
+    `components[tag]`) win over it.
+  - The same word names a tag's OWN `disabled` too (`<ui-button>`'s), so one word means disabled on every tag.
+  - Their states stay English (`:state(disabled)`), as every state does.
 - `multiple` values translate token by token, multi-word tokens (`large screen`) kept whole.
 
 How the runtime will use it (not built yet):

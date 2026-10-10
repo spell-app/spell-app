@@ -20,7 +20,10 @@ export class EpicPrompt extends E.UIComponent<typeof epicPromptVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { "epic-prompt": promptCSS },
     // a container:  a click on its text must not jump to the `<summary>`
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  unusable, its fold too;  `loading`:  the shared spinner
+    disabled: "unusable",
+    loading: "loader"
   } satisfies Partial<E.ElementSetup>
 
   /** The fold's chevron. */

@@ -163,9 +163,11 @@
  * Motion off:  `animation="none"` turns it off for the element and everything inside it,
  * through a custom property every element below inherits (shadow roots included).
  * - `UIComponent.animationToRun` reads it;  `<ui-root animation="none">` turns off a whole page.
+ * - `:state(still)` for a translated tag (`<ie-mensaje animacion="none">`), and the attribute before scripts run.
  * - Unlayered, as the hiding above:  a component's own rules can't turn motion back on.
  */
-:host([animation="none"]) {
+:host([animation="none"]),
+:host(:state(still)) {
   --ui-motion: none;
 }
 

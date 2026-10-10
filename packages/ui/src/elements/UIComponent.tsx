@@ -624,6 +624,15 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /**
+   * Is the element's own `animation` `none`?  `:state(still)`:
+   * `reset.css` sets `--ui-motion: none` on it, which everything inside inherits (a translated tag's too).
+   */
+  @cssState("still")
+  get isStill(): boolean {
+    return E.Reactive.attributeValue(this, "animation") === UIT.NO_ANIMATION
+  }
+
+  /**
    * Is motion off around the element:  `--ui-motion: none` reaching it, or the person's reduced-motion setting?
    * - Read from the element's computed style:  custom properties pass into shadow roots, so every element below sees it.
    */

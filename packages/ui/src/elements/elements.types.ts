@@ -695,10 +695,10 @@ export type ElementSetup = {
    *   - everything inside is inert (its shadow content, and the children slotted into it):
    *     nothing there can be clicked, focused or typed in, and it's dimmed
    *   - `aria-disabled="true"`;  if focus was inside, it moves on to the next focusable element
-   *   - e.g. `<ui-card disabled>`:  its buttons can't be used either
+   *   - e.g. `<ui-card disabled>`, `<ui-segment disabled>`:  their buttons can't be used either
    * - `"its own"`:  the base class only sets `:state(disabled)`;  the family's code and sheet say what it means:
    *   - unusable its own way:  a form control disables its native control (`FormComponent`), a button its `<button>`
-   *   - only a look:  `<ui-icon>`, `<ui-segment>` dim, and clicks still go through
+   *   - only a look, so text stays findable:  `<ui-icon>`, `<ui-text>` dim, and clicks still go through
    *   - something else:  `<ui-transition>` pauses, `<ui-dimmer>` never shows
    */
   disabled: DisabledMeaning

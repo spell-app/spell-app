@@ -80,7 +80,13 @@ export const brandComposerVocabulary = {
         "Busy:  the Cast button spins and casting is paused (the text stays editable).  The page sets it while it " +
         "builds, and clears it."
     },
-    { name: "disabled", kind: "keyOnly", description: "Faded;  can't be typed in or cast, left out of the form." }
+    { name: "disabled", kind: "keyOnly", description: "Faded;  can't be typed in or cast, left out of the form." },
+    {
+      name: "readonly",
+      kind: "boolean",
+      property: "readOnly",
+      description: "Shows its text but can't be typed in;  still cast and submitted (unlike `disabled`)."
+    }
   ],
   events: [
     {
@@ -124,6 +130,7 @@ export const brandComposerVocabulary = {
     { name: "empty", description: "Nothing (or only blank) written:  the Cast button is dimmed." },
     { name: "casting", description: "Busy:  `casting` is set." },
     { name: "disabled", description: "Can't be used." },
+    { name: "readonly", description: "`readonly`:  can't be typed in." },
     { name: "invalid", description: "Fails validation (`required`), once a person has interacted." }
   ],
   texts: [

@@ -100,6 +100,23 @@ describe("disabled, the base class's way (`elementSetup.disabled` = unusable)", 
     expect(focused()).toBeUndefined()
   })
 
+  test("every family whose disabled was only Fomantic's look is unusable too (P11, T9):  a disabled segment's link", async () => {
+    const segment = await render(`<ui-segment disabled><a href="#x">Go</a></ui-segment>`)
+    expect({
+      ariaDisabled: segment.internals.ariaDisabled,
+      inert: boxesOf(segment).every((box) => box.inert),
+      swallowsClicks: segment.component!.isDisabled
+    }).toEqual({ ariaDisabled: "true", inert: true, swallowsClicks: true })
+    const tags = [
+      ...["ui-form", "ui-fields", "ui-field", "ui-tab", "ui-items", "ui-comments", "ui-comment", "ui-feed"],
+      ...["ui-event", "ui-segments", "ui-segment", "ui-section", "ui-panel", "ui-labels", "ui-label"],
+      ...["ui-images", "ui-image"]
+    ]
+    const meanings: [string, unknown][] = []
+    for (const tag of tags) meanings.push([tag, (await render(`<${tag}></${tag}>`)).component!.elementSetup.disabled])
+    expect(meanings).toEqual(tags.map((tag) => [tag, "unusable"]))
+  })
+
   test("is accessible:  disabled, and loading", async () => {
     await A11y.check(await render(MENU.replace("<ui-menu>", "<ui-menu disabled>")))
     await A11y.check(await render(MENU.replace("<ui-menu>", "<ui-menu loading>")))
