@@ -219,17 +219,22 @@ describe("<epic-section> counts and state filter", () => {
     localStorage.removeItem(`spell-item-state:${location.pathname}`)
   })
 
-  test("its badge is `open/all`, and follows an item's status as it changes, and items coming", async () => {
+  // an item section shows no badge:  its chips say the numbers (Owen, 2026-10-10);  the count still follows, for the toolbar
+  test("its count is `open/all`, follows an item's status as it changes, and items coming;  no badge on its title", async () => {
     const host = await render(questions(["open", "decided", "done", "open"]))
-    expect(inner(host).getAttribute("badge")).toBe("2/4")
+    const count = () =>
+      (host as FoldHost & { contentsEntry?: { count?: { open: number; total: number } } }).contentsEntry?.count
+    expect(inner(host).getAttribute("badge")).toBeNull()
+    expect(count()).toMatchObject({ open: 2, total: 4 })
     host.querySelector("#q1")!.setAttribute("status", "decided")
     await ElementFixture.tick()
     await ElementFixture.tick()
-    expect(inner(host).getAttribute("badge")).toBe("1/4")
+    expect(count()).toMatchObject({ open: 1, total: 4 })
     host.insertAdjacentHTML("beforeend", `<epic-item id="q5" title="Q 5" status="open"></epic-item>`)
     await ElementFixture.tick()
     await ElementFixture.tick()
-    expect(inner(host).getAttribute("badge")).toBe("2/5")
+    expect(count()).toMatchObject({ open: 2, total: 5 })
+    expect(inner(host).getAttribute("badge")).toBeNull()
   })
 
   test("its host's `contentsEntry` (the page's rail):  label, kind icon and count, read as they are NOW", async () => {
