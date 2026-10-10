@@ -10,15 +10,27 @@ import { TypeDeclaration } from "./TypeDeclaration"
  * - SIDE EFFECT: adds `type` to `scope.types`, unless it's already defined (no redefinition/merge) --
  *   see `TypeDeclaration.declareType()`.
  * - Compiles to an exported class declaration, e.g. `a card is a thing` => `export class Card extends Thing {}`.
+ *   A drawable one defines its element in it -- see `TypeDeclaration.elementMember()`.
  *   Another project reaches it by `import`ing it -- no globals.
  */
-export class CreateType extends TypeDeclaration<"type|aka?|superType|with_nested_statements?|body?"> {
+export class CreateType extends TypeDeclaration<
+  "type|aka?|superType|with_nested_statements?|body?",
+  { elementProject?: string }
+> {
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "superType" }
 
-  /** Refuses a name some other type already goes by -- see `TypeDeclaration.refuseTakenNames()`. */
+  /**
+   * Notes a drawable type's project, for its element (`elementMember()`);
+   * then refuses a name some other type already goes by -- see `TypeDeclaration.refuseTakenNames()`.
+   */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
-    const match = super.parse(scope, tokens)
-    return match && this.refuseTakenNames(match)
+    const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
+    if (!match) return undefined
+    const { scopeType } = (match.groups.superType as P.Match<P.MatchGroups, { scopeType?: unknown }>).data
+    if (scopeType instanceof P.TypeScope && DRAWABLE_TYPES.some((base) => scopeType.isA(base))) {
+      match.data.elementProject = TypeDeclaration.projectNameOf(scope)
+    }
+    return this.refuseTakenNames(match)
   }
 
   /** SIDE EFFECT:  declares our type -- see `TypeDeclaration.declareType()`. */
@@ -27,11 +39,14 @@ export class CreateType extends TypeDeclaration<"type|aka?|superType|with_nested
   }
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
     const { type, superType } = match.groups
+    const typeAST = P.matchAST<P.ASTTypeExpression>(type)
+    const element = this.elementMember(match, typeAST, match.data.elementProject)
     return new P.ASTStatementGroup(match, {
       statements: [
         new P.ASTClassDeclaration(match, {
-          type: P.matchAST<P.ASTTypeExpression>(type),
-          superType: P.matchAST<P.ASTTypeExpression>(superType)
+          type: typeAST,
+          superType: P.matchAST<P.ASTTypeExpression>(superType),
+          members: element ? [element] : undefined
         })
       ]
     })
@@ -47,9 +62,30 @@ classes.addRule(CreateType, {
         ["a deck is a list", "export class Deck extends List {}"],
         ["a bank account is a thing", "export class Bank_Account extends Thing {}"],
         ["a bank account aka account is a thing", "export class Bank_Account extends Thing {}"],
-        ["a card is a drawable thing", "export class Card extends Drawable {}"],
-        ["a card is a drawable", "export class Card extends Drawable {}"],
-        ["a pile is a drawable list", "export class Pile extends DrawableList {}"]
+        [
+          "a card is a drawable thing",
+          [
+            "export class Card extends Drawable {",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "}"
+          ]
+        ],
+        [
+          "a card is a drawable",
+          [
+            "export class Card extends Drawable {",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "}"
+          ]
+        ],
+        [
+          "a pile is a drawable list",
+          [
+            "export class Pile extends DrawableList {",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "}"
+          ]
+        ]
       ]
     },
     {
@@ -79,3 +115,6 @@ classes.addRule(CreateType, {
     { compileAs: "block", tests: [['a "card" is a thing where:', "export class Card extends Thing {}"]] }
   ]
 })
+
+/** The built-in types whose sub-types draw as their own elements. */
+const DRAWABLE_TYPES = ["drawable", "drawable list"]

@@ -395,7 +395,6 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    *   (`P.Writer.forProject()`), and finishes the module last (`P.Writer.module()`).
    * - `header`:  what the module starts with, e.g. `importHeaderFor()`'s imports.
    * - `scope`:  the project's, which the writer may read what it imports from (`P.Writer.forProject()`).
-   *   Its drawable types' elements are defined last -- see `elementsFooterFor()`.
    */
   static combineCompiled(
     parts: Array<P.ASTStatementGroup | string | undefined>,
@@ -411,25 +410,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
         return String(projectWriter.write(new P.ASTStatementGroup(part.match, { statements: hoisted[index] })))
       })
       .join(SpellProject.FILE_SEPARATOR)
-    return projectWriter.module(header + code + SpellProject.elementsFooterFor(scope))
-  }
-
-  /**
-   * What a project's module ends with, if it declares drawable types:  defining their elements, e.g.
-   *   `spellCore.defineElements("Solitaire", { Card, Pile })` => `<solitaire-card>`, `<solitaire-pile>`
-   * - Last, so every class is declared;  a tag already drawn by then upgrades when it's defined.
-   * - Its own types only, NOT what it imports:  a library defines its own, as `<game-card>`.
-   * - `""` for any other project, or no project scope.
-   * - See `spellCore.defineElements()`, in core's `elements.ts`.
-   */
-  static elementsFooterFor(scope: P.Scope | undefined): string {
-    if (!(scope instanceof P.ProjectScope)) return ""
-    const drawable = scope.types
-      .get()
-      .filter((type) => !type.stub && DRAWABLE_CLASSES.some((base) => type.isA(base)))
-      .map((type) => type.name)
-    if (!drawable.length) return ""
-    return `\n\nspellCore.defineElements(${JSON.stringify(scope.name)}, { ${drawable.join(", ")} })\n`
+    return projectWriter.module(header + code)
   }
 
   /**
@@ -984,6 +965,3 @@ function containsJSX(node: unknown): boolean {
   if (!(node instanceof P.ASTNode)) return false
   return Object.entries(node).some(([key, value]) => key !== "match" && containsJSX(value))
 }
-
-/** The built-in types whose sub-types draw as their own elements -- see `SpellProject.elementsFooterFor()`. */
-const DRAWABLE_CLASSES = ["drawable", "drawable list"]

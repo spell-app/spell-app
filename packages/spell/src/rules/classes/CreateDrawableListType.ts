@@ -21,8 +21,18 @@ classes.addRule(CreateDrawableListType, {
       tests: [
         [
           "a pile is a drawable list of cards",
-          ["export class Pile extends DrawableList {", "  static instanceType = Card", "}"],
-          ["export class Pile extends DrawableList<Card> {", "  static instanceType = Card", "}"]
+          [
+            "export class Pile extends DrawableList {",
+            "  static instanceType = Card",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "}"
+          ],
+          [
+            "export class Pile extends DrawableList<Card> {",
+            "  static instanceType = Card",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "}"
+          ]
         ]
       ]
     },
@@ -31,8 +41,18 @@ classes.addRule(CreateDrawableListType, {
       tests: [
         [
           "a pile is a drawable list of cards with:",
-          ["export class Pile extends DrawableList {", "  static instanceType = Card", "}"],
-          ["export class Pile extends DrawableList<Card> {", "  static instanceType = Card", "}"]
+          [
+            "export class Pile extends DrawableList {",
+            "  static instanceType = Card",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "}"
+          ],
+          [
+            "export class Pile extends DrawableList<Card> {",
+            "  static instanceType = Card",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "}"
+          ]
         ]
       ]
     }

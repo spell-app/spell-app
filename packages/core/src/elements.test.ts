@@ -15,21 +15,31 @@ describe("drawable things' elements", () => {
     expect(elementTagFor("", "Card")).toBe("spell-card")
   })
 
-  test("defineElements() hands the page each drawable class, and keeps its tag on the class", () => {
-    class Card extends Drawable {}
-    class Pile extends DrawableList<Card> {}
-    class Note extends Thing {}
+  test("defineElement() names a drawable class's tag as it's declared;  the page hears of it once the class is whole", async () => {
     const defined: string[] = []
     spellCore.elementDefiner = (tag, Class) => defined.push(`${tag} ${Class.name}`)
-    spellCore.defineElements("Solitaire", { Card, Pile, Note, deck: new Note(), version: 1 })
-    expect(defined).toEqual(["solitaire-card Card", "solitaire-pile Pile"])
-    expect(spellCore.elementTagOf(new Card())).toBe("solitaire-card")
+    class Card extends Drawable {
+      static elementTag = spellCore.defineElement(this, "Solitaire")
+    }
+    class Pile extends DrawableList<Card> {
+      static elementTag = spellCore.defineElement(this, "Solitaire")
+    }
+    class Note extends Thing {
+      static elementTag = spellCore.defineElement(this, "Solitaire")
+    }
+    expect(defined).toEqual([])
+    expect(spellCore.elementFor(new Pile())).toBe("solitaire-pile")
+    await Promise.resolve()
+    expect(defined).toEqual(["solitaire-pile Pile", "solitaire-card Card"])
+    expect(Card.elementTag).toBe("solitaire-card")
+    expect(spellCore.elementTagOf(new Pile())).toBe("solitaire-pile")
+    expect(Note.elementTag).toBeUndefined()
     expect(spellCore.elementTagOf(new Note())).toBeUndefined()
   })
 
   test("with no definer, the tag is still named", () => {
     class Card extends Drawable {}
-    spellCore.defineElements("games", { Card })
+    spellCore.defineElement(Card, "games")
     expect(spellCore.elementTagOf(new Card())).toBe("game-card")
   })
 })
