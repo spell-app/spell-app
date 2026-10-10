@@ -13,11 +13,11 @@ const DATA = {
   families: { "x-button": { folder: "x-button", mainTag: "x-button", tags: ["x-button", "x-or"] } }
 } as unknown as SiteDataFile
 
-afterEach(() => SiteData.reset())
+afterEach(() => (SiteData.url = undefined))
 
 describe("SiteData.root()", () => {
   test("defaults `base` to the site root above the data file", () => {
-    SiteData.reset("/somewhere/site/_data/components.json")
+    SiteData.url = "/somewhere/site/_data/components.json"
     expect(SiteData.root()).toBe(`${location.origin}/somewhere/site/`)
   })
 })

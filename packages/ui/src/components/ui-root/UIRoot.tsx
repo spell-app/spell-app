@@ -322,7 +322,7 @@ export class UIRoot<V extends E.ComponentVocabulary = RootVocabulary> extends E.
    */
   @E.whileConnected
   protected watch(): E.Disposer {
-    // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while connected:  `@E.fromContent` watches for life
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while connected:  `@E.watches` lasts the element's whole life
     const observer = new MutationObserver(() => void this.loadUndefined())
     for (const root of this.contentRoots) observer.observe(root, { childList: true, subtree: true })
     if (this.hasStarted) void this.loadUndefined()

@@ -61,7 +61,8 @@ class ItemTestOwner extends UIComponent<typeof OWNER_VOCABULARY> implements Item
 interface ItemTestOwner extends AttributeValues<typeof OWNER_VOCABULARY> {}
 Object.defineProperty(ItemTestOwner.prototype, "vocabulary", { value: OWNER_VOCABULARY })
 Object.defineProperty(ItemTestOwner.prototype, "elementSetup", {
-  value: { ...UIComponent.prototype.elementSetup, styleSheets: { "x-item-owner": OWNER_CSS } }
+  // chained to the base's, as `@protoMerged static elementSetup` does
+  value: Object.setPrototypeOf({ styleSheets: { "x-item-owner": OWNER_CSS } }, UIComponent.prototype.elementSetup)
 })
 ;(ItemTestOwner as unknown as UIComponentClass & typeof UIComponent).define(OWNER_VOCABULARY.tag)
 

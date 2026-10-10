@@ -367,7 +367,7 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
    * - Throws a `TypeError` naming EVERY attribute property that would hide a member of the element
    *   (epic `spell-element`, Q6).
    */
-  static subclassForTag(Base: DOMElementBaseClass, tag: TagSetup): DOMElementClass {
+  static subclassForTag(Base: AnyDOMElementClass, tag: TagSetup): DOMElementClass {
     const name = className(tag.elementDefinition.tag)
     const Class = { [name]: class extends Base {} }[name] as unknown as DOMElementClass
     Class.tagSetup = tag
@@ -447,15 +447,17 @@ const INSTANCE_FIELDS: readonly string[] = ["internals", "attributeValues", "com
 ////////////////
 
 /** The class `subclassForTag()` makes for one tag. */
-export type DOMElementClass = DOMElementBaseClass & { new (): DOMElement }
+export type DOMElementClass = AnyDOMElementClass & { new (): DOMElement }
 
 /**
- * The class a tag's own class is made from (`subclassForTag()`'s `Base`, `elementSetup.DOMElement`):
- * `DOMElement`, or a family's subclass of it, whatever its component class.
- * - Why not plain `typeof DOMElement`:  that keeps `C` open, and a subclass that names its component
- *   (`DOMNagElement`, `component: UINag`) doesn't fit "any `C`".
+ * `DOMElement`, or a family's subclass of it (`DOMNagElement`):
+ * the class a tag's own DOM element class is made from (`elementSetup.DOMElement`, `subclassForTag()`'s `Base`).
+ * - Why not plain `typeof DOMElement`:
+ *   `DOMElement<C>` names its component class, and `typeof DOMElement` means "a class that works for ANY `C`".
+ *   `DOMNagElement` works only for `UINag`, so TypeScript refuses it there.
+ *   This type says "for SOME component class", which every family's subclass fits.
  */
-export type DOMElementBaseClass = typeof DOMElement<E.UIComponent<any>>
+export type AnyDOMElementClass = typeof DOMElement<E.UIComponent<any>>
 
 /** What one tag's class carries:  `subclassForTag()`'s input (hot reload swaps it in place). */
 export type TagSetup = {

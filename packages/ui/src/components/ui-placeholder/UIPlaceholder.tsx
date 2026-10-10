@@ -20,7 +20,7 @@ export class UIPlaceholder extends E.UIComponent<typeof placeholderVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { placeholder: placeholderCSS },
     delegatesFocus: false,
-    aria: { ariaHidden: "true" }
+    aria: { hidden: "true" }
   } satisfies Partial<E.ElementSetup>
 
   /** A placeholder:  always (`:state(placeholder)`). */

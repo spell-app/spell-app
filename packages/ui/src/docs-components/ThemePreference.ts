@@ -59,7 +59,7 @@ export class ThemePreference {
 
   /** The look now:  stored on first read, then kept in memory. */
   static get look(): DocsLook {
-    return (ThemePreference.state ??= ThemePreference.read())
+    return (ThemePreference.current ??= ThemePreference.read())
   }
 
   /** The scheme the OS asks for (`prefers-color-scheme`);  `light` where there's no `matchMedia` (a server). */
@@ -146,18 +146,15 @@ export class ThemePreference {
 
   /** Forget the in-memory look (tests):  the next read goes back to storage. */
   static reset(): void {
-    ThemePreference.state = undefined
+    ThemePreference.current = undefined
   }
 
   ////////////////
   // ## Internals
   ////////////////
 
-  /**
-   * The look in memory;  `undefined` until first read.
-   * - Not a `@lazy` `look`:  `update()` writes it too, so it's state, not a value made once.
-   */
-  private static state: DocsLook | undefined
+  /** The look in memory;  `undefined` until first read. */
+  @E.state private static accessor current: DocsLook | undefined = undefined
 
   /** `subscribe()`d listeners. */
   private static readonly listeners = new Set<(look: DocsLook) => void>()
@@ -193,7 +190,7 @@ export class ThemePreference {
   /** Set the look in memory and tell subscribers, if it changed. */
   private static update(look: DocsLook): void {
     const old = ThemePreference.look
-    ThemePreference.state = look
+    ThemePreference.current = look
     if (old.theme === look.theme && old.scheme === look.scheme) return
     ThemePreference.tell(look)
   }

@@ -13404,6 +13404,13 @@
           }
         },
         {
+          "name": "required",
+          "description": {
+            "kind": "markdown",
+            "value": "Form validation:  a value must be chosen, by the page (`value`, a range's `end`) or by moving a thumb.  Unset, the thumb rests at `min` but counts as no value (`valueMissing`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
           "name": "loading",
           "description": {
             "kind": "markdown",

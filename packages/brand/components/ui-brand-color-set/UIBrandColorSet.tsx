@@ -18,7 +18,7 @@ import setCSS from "./UIBrandColorSet.css?inline"
 
 /**
  * Same chips, same keys, same `selected`?  A rescan finding them again changes nothing (`UIBrandColorSet.chips`).
- * - Above the class:  `@fromContent({ equals })` reads it while the class is defined.
+ * - Above the class:  `@watches({ equals })` reads it while the class is defined.
  */
 function isSameChips(a: readonly SetChip[], b: readonly SetChip[]): boolean {
   return (
@@ -54,7 +54,7 @@ function isSameChips(a: readonly SetChip[], b: readonly SetChip[]): boolean {
  *   - Click, Enter or Space chooses;  the arrows move and choose (wrapping;  left / right swap right-to-left);
  *     Home / End go to the ends.
  *   - A choice sends `ui-change`, then sets `value`, unless a handler set it first.
- * - Watches its children and their `name` / `value` / `selected` (`@fromContent`), so chips added,
+ * - Watches its children and their `name` / `value` / `selected` (`@watches`), so chips added,
  *   removed or recoloured later just work.
  * - SIDE EFFECT:  writes its chips' `selected` (while `value` is set), `choice` and `tabindex` (while
  *   `selectable`);  a chip that leaves the set gets its `choice` and `tabindex` back.
@@ -74,7 +74,7 @@ export class UIBrandColorSet extends E.UIComponent<BrandColorSetVocabulary> {
    * The chips, as read from the light DOM:  its children and their `name` / `value` / `selected`;
    * changed only when one of them changes.
    */
-  @E.fromContent({ childList: true, subtree: true, attributeFilter: CHIP_ATTRIBUTES, equals: isSameChips })
+  @E.watches({ childList: true, subtree: true, attributeFilter: CHIP_ATTRIBUTES, equals: isSameChips })
   get chips(): readonly SetChip[] {
     return this.scan()
   }

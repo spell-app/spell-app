@@ -39,7 +39,6 @@ import dropdownCSS from "./UIDropdown.css?inline"
  *   - the value goes in hidden inputs, so a static form submits it
  *   - choosing needs script
  ****************/
-@E.cssStates("loading", "fluid")
 export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   /**
    * Rows PageUp / PageDown move.
@@ -56,6 +55,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   @E.proto static vocabulary = dropdownVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { button: buttonCSS, dropdown: dropdownCSS },
+    cssStates: ["fluid"],
     Fallback: DropdownFallback,
     // `loading`:  a spinner in place of its dropdown icon
     loading: "its own"

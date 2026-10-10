@@ -10,7 +10,8 @@ import { proto, kebabCase, closestAcrossShadow } from "$/util"
 - `@protoMerged` -- `@proto` for a settings object whose keys merge down the class chain (`ui`'s `elementSetup`)
 - `@lazy` -- a getter whose value is made on first read, then kept;  `@once` --
   a method that runs once and returns the same result after (a loader's promise);
-  `forget(object, "name")` drops either's kept value (a `static reset()`)
+  `forget(object, "name")` drops either's kept value;
+  `@resets("name") accessor x` drops it on every write to `x` (`SiteData.url = ...` fetches again)
 - `hasOwnProp` ... -- class helpers
 - `kebabCase`, `camelCase`, `numberToWord`, `suggest` -- strings
 - `closestAcrossShadow`, `isBrowser`, `nextFrame`, `whenDefined` -- DOM

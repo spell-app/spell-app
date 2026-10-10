@@ -144,7 +144,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   ////////////////
 
   /** First author `<table>` child (never the generated one);  follows the DOM element's children. */
-  @E.fromContent({ childList: true })
+  @E.watches({ childList: true })
   get authorTable(): HTMLTableElement | undefined {
     return this.scanAuthorTable()
   }
