@@ -45,7 +45,7 @@ export class SlottedItems {
     this.domElement = domElement
     this.entries = this.read()
     onSettled(() => {
-      // oxlint-disable-next-line spell-ui/no-mutation-observer -- a helper class:  `@E.fromContent` is for components
+      // oxlint-disable-next-line spell-ui/no-mutation-observer -- a helper class:  `@E.watches` is for components
       const observer = new MutationObserver(() => (this.entries = this.read()))
       observer.observe(domElement, { childList: true, subtree: true, attributes: true, characterData: true })
       this.entries = this.read()

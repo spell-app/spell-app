@@ -36,11 +36,11 @@ import selectCSS from "./UISelect.css?inline"
  * - Keyboard, picker, type-ahead and screen-reader behaviour are the browser's.
  * - A form control:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
  ****************/
-@E.cssStates("fluid")
 export class UISelect extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = selectVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { select: selectCSS },
+    cssStates: ["fluid"],
     Fallback: SelectFallback
   } satisfies Partial<E.ElementSetup>
 

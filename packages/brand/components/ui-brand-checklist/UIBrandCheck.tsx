@@ -163,7 +163,7 @@ export class UIBrandCheck extends E.UIComponent<BrandCheckVocabulary> {
   }
 
   /** The active step is the current one. */
-  @E.aria("ariaCurrent")
+  @E.aria("current")
   protected get currentText(): string | undefined {
     return this.shownState === ACTIVE && !this.isCheckable ? "step" : undefined
   }

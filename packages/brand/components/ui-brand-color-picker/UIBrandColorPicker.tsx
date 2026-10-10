@@ -64,6 +64,7 @@ import pickerCSS from "./UIBrandColorPicker.css?inline"
  *   - Its FIRST attribute value is the form's reset value.
  *   - Changes from outside redraw without events.
  * - A form control:  it submits `value` under `name`.
+ *   - `required`:  met once something sets `value`;  until then it shows `DEFAULT_VALUE`, but counts as empty.
  ****************/
 export class UIBrandColorPicker extends F.FormComponent<BrandColorPickerVocabulary> {
   @E.proto static vocabulary = brandColorPickerVocabulary
@@ -137,6 +138,14 @@ export class UIBrandColorPicker extends F.FormComponent<BrandColorPickerVocabula
 
   get formValue(): E.FieldValue {
     return this.hex
+  }
+
+  /**
+   * Empty while no `value` was ever set:  `required` then fails.
+   * - The colour shown then, `DEFAULT_VALUE`, is a default, not a choice;  `formValue` still submits it.
+   */
+  protected get validationValue(): E.FieldValue {
+    return this.value === undefined ? undefined : this.formValue
   }
 
   /** Back to the first `value`. */

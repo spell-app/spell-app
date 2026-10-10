@@ -383,6 +383,34 @@ describe("<ui-slider> forms", () => {
     expect(new FormData(form).getAll("two")).toEqual(["4", "9"])
   })
 
+  it("`required`:  fails while no value was set, though the thumb rests at `min`;  met once one is", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(`<form>
+      <ui-slider name="unset" required aria-label="Unset"></ui-slider>
+      <ui-slider name="given" required value="0" aria-label="Given"></ui-slider>
+      <ui-slider name="span" range required aria-label="Span"></ui-slider>
+    </form>`)
+    await settle()
+    const [unset, given, span] = form.querySelectorAll<Slider>("ui-slider")
+    expect(unset!.validity.valueMissing).toBe(true)
+    expect(span!.validity.valueMissing).toBe(true)
+    expect(given!.validity.valid).toBe(true)
+    expect(form.checkValidity()).toBe(false)
+    // the default is still what a submit would send
+    expect(new FormData(form).get("unset")).toBe("0")
+
+    // a person moves the thumb:  that's a choice
+    parts(unset!).thumbs[0]!.focus()
+    await userEvent.keyboard("{ArrowRight}")
+    span!.end = 18
+    await settle()
+    expect([unset!.validity.valid, span!.validity.valid]).toEqual([true, true])
+
+    // a reset brings back the unset value, and with it the failure
+    form.reset()
+    await settle()
+    expect(unset!.validity.valueMissing).toBe(true)
+  })
+
   it("is named by a <label for> across the shadow boundary", async () => {
     const container = await ElementFixture.render(
       `<div><label for="vol">Volume</label><ui-slider id="vol"></ui-slider></div>`
