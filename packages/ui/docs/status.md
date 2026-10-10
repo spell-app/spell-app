@@ -1,82 +1,101 @@
 # Status
 
-Checklist of every component in [`docs/plan.md`](plan.md), with what's done, in progress, deferred.
-Kept up to date as work lands ([AGENTS.md](../AGENTS.md));  last updated 2026-10-10.
+A checklist of every component in [the plan](plan.md):  what's done, in progress, deferred.
+- Kept up to date as work lands ([ui's AGENTS.md](../AGENTS.md)).
+- Last updated 2026-10-10.
 
 ## Working on now
 
 - **Shared states** (2026-10-09, epic `spell-element` P8):
   every element takes them, though its vocabulary never names them.
-  - The attributes:  `disabled`, `loading`, `visible` and `animation` (`SharedVocabulary`),
-    and the platform's `hidden` and `inert`.
+  - Ours:  `disabled`, `loading`, `visible` and `animation` (`SharedVocabulary`).
+    The platform's:  `hidden` and `inert`.
   - The docs data lists them on every tag (`shared: true`).
   - What `disabled` / `loading` mean per family:  its `elementSetup`.
-    - By default:  `"unusable"` / `"loader"`.
+    - By default `"unusable"` / `"loader"`.
     - `"its own"` where a component had its own:  29 of them, and every form control.
-  - `readonly` on every form control (`<ui-select>`, `<ui-search>` new).
+  - `readonly` on every form control:  new on `<ui-select>`, `<ui-search>`.
   - P11 (T9):  every family whose `disabled` was its own LOOK moved to `"unusable"`:
-    form, fields, field, tab, items, comments, comment, feed, event, segments, segment, section and panel,
-    labels, label, images, image;  brand's field.
-    - `"its own"` kept where it means more, or where inert would hide text:
+    - form, fields, field, tab, items
+    - comments, comment, feed, event
+    - segments, segment, section and panel
+    - labels, label, images, image
+    - brand's field
+    - `"its own"` stays where it means more, or where inert would hide text:
       - native controls:  form controls, `<ui-button>`, `<ui-step>`, `<ui-item>`'s options
       - hidden or paused:  `<ui-loader>`, `<ui-dimmer>`, `<ui-transition>`, `<ui-reveal>`
       - text-like looks:  `<ui-header>`, `<ui-text>`, `<ui-icon(s)>`, `<ui-emoji>`, `<ui-progress>`
-  - P11 (T10):  a translated tag names the shared attributes in its language
-    (`SharedVocabulary.<lang>.ts`:  `<ie-boton desactivado>`).
-  - P11 (T8):  brand's composer and colour picker take `readonly`,
-    as do `<ui-select>` / `<ui-search>`'s native fallbacks.
-  - P12:  `visible` and `hidden` are ONE fact, two names, opposites (`el.visible === !el.hidden`).
-    - The `hidden` attribute holds it;  writing either hides or shows the element with its `animation`.
-    - `hidden` beats a family's own `display` (`reset.css`).
-    - `animation`:  Fomantic's names (`fade up` ...) or `none`;  default `fade`.
-    - The whole story:  [`grammar.md`](grammar.md), "Shared attributes".
-  - [`AGENTS.md`](../AGENTS.md) "Solid authoring", "Shared states".
-  - Built:  base class, `reset.css`, static render (`data-state`, ARIA), tests (`test/sharedStates.test.tsx`).
+  - P11 (T10):  a translated tag names the shared attributes in its own language.
+    - Their names:  `SharedVocabulary.<lang>.ts` (`<ie-boton desactivado>`).
+  - P11 (T8):  brand's composer and colour picker take `readonly`.
+    So do the native fallbacks of `<ui-select>` / `<ui-search>`.
+  - P12:  `visible` and `hidden` are ONE fact, with two names that are opposites.
+    - The `hidden` attribute holds it.
+    - Writing either one hides or shows the element, with its `animation`.
+    - `hidden` beats a family's own `display`, through the reset sheet.
+    - The `animation` attribute takes any of Fomantic's names (`fade up` ...), or `none`.
+      Its default is `fade`.
+    - The whole story:  [the grammar doc](grammar.md), "Shared attributes".
+  - More:  [ui's AGENTS.md](../AGENTS.md), "Solid authoring", "Shared states".
+  - Built:
+    - the base class, `reset.css`
+    - the static render (`data-state`, ARIA)
+    - tests:  [the shared states test](../test/sharedStates.test.tsx)
 
 - **Component names** (2026-10-08, epic `wwod-spell-ui` P15):
   - the class behind a tag is its COMPONENT:  `UIComponent`, `FormComponent`, `LoadableComponent`, `PartComponent`
-  - the tag in the page is its DOM ELEMENT:  `DOMElement`, `DOMFormControl`, `DOMLoadableElement`,
-    a family's `DOM<Name>Element` (in its component's file)
+  - the tag in the page is its DOM ELEMENT:
+    `DOMElement`, `DOMFormControl`, `DOMLoadableElement`, and a family's `DOM<Name>Element`, in its component's file
   - every family file is named for its component (`UIDivider.css`)
-  - native fallbacks for form controls only
+  - native fallbacks, for form controls only
   - The API says "DOM element" too:  `@onChange(..., { writesDOMElement: true })`, `isControlledByPage()`.
   - Built, every family (steps 1-3).
-- **Resumed 2026-10-01** in the monorepo (`packages/ui`), branch `worktree-ui-component-creation`
-  ([its plan doc](../../../epics/ui-component-creation/ui-component-creation.plan.html)):
-  icon follow-ups, a [`SUSPECTED-BUGS.md`](../../../agents/SUSPECTED-BUGS.md) sweep,
-  Owen's decisions ("To review (Owen)" below), Phase D chores.
-- **`<ui-root>`** (P17-P20, 2026-10-01):  built;  P21 (D48-D50:  table `stack-by`, WebKit fixes) built;  P22 doc review done.
+- **Resumed 2026-10-01** in the monorepo (`packages/ui`), on branch `worktree-ui-component-creation`.
+  - Its plan doc:  [`ui-component-creation`](../../../epics/ui-component-creation/ui-component-creation.plan.html).
+  - What's in it:
+    - icon follow-ups
+    - a sweep of [the suspected-bugs log](../../../agents/SUSPECTED-BUGS.md)
+    - Owen's decisions ("To review (Owen)", below)
+    - Phase D chores
+- **`<ui-root>`** (P17-P20, 2026-10-01):  built.
+  - P21 (D48-D50:  table `stack-by`, WebKit fixes):  built.
+  - P22 doc review:  done.
 - **`stack-with="container | page"`** (2026-10-03, epic `spell-ui-pages` P10, D40):
-  grid, cards, steps, form, items, statistics stack by their own width (default) or the screen's.
-  - `<ui-root stack-with>` sets the inherited `--ui-stack-with` for a page (tables' `stack-by` follows it too).
-  - The docs site uses `page`.
-  - [Theming](theming.md), "Stacking".
-- Every check passes after the move;
-  `yarn test:hmr` and `yarn site:build` needed a fix each ([`PAPERCUTS.md`](../../../agents/PAPERCUTS.md)).
-- Visual:  Mac baselines for chromium / firefox / webkit;  Linux baselines wait on a working Docker Desktop.
+  - grid, cards, steps, form, items and statistics stack by their own width (the default), or the screen's
+  - `<ui-root stack-with>` sets the inherited `--ui-stack-with` for a page.
+    Tables' `stack-by` follows it too.
+  - the docs site uses `page`
+  - More:  [the theming doc](theming.md), "Stacking".
+- Every check passes after the move.
+  - `yarn test:hmr` and `yarn site:build` needed a fix each ([the papercuts log](../../../agents/PAPERCUTS.md)).
+- Visual:  Mac baselines for chromium / firefox / webkit.
+  Linux baselines wait on a working Docker Desktop.
 
 ## Legend
 
 ✅ done · 🚧 started, not finished (in a cell:  files for that part exist;  assigned-but-unstarted stays ⬜) · ⬜ not started · 💤 deferred on purpose (see "Deferred") · — not applicable
 
-- **Phase** = the plan's build order:  **A** foundation components, **B** views and remaining static
-  components, **C** behaviour components.  Phase D (site, hardening, release) is its own table below.
-- **Tests** = passing browser tests in the family folder (elements, CSS, a form control's fallback).
-  Every family's element test runs axe on each of its element examples (`examples/elements/*.html`).
-- **Size** = the family's OWN code, min + gzip kB, from `yarn measure`:
-  components + CSS + vocabulary + a form control's fallback.
-  Shared `core` (16.2 kB), `forms` (7.5 kB) and the base library are counted once per page, not here.
-- **Keys** = keyboard walkthrough tests (the plan's "keyboard per APG");  "native" = the shadow markup is a native
-  control (`<button>`, `<a>`) whose keyboard behaviour is the browser's.
-- **Docs** = page on the docs site (`ui/components/ui-<name>.html`, shared);  ✅ links to the page.
-- **Visual** = screenshot tests of every element example, light + dark ([Visual testing](visual-testing.md)):
-  - ✅ = baselines for chromium, firefox and webkit on BOTH `linux` and `local-darwin`
-  - 🚧 local = all three browsers on `local-darwin` only, `linux` missing
-    (Docker Desktop crashes at launch on this Mac, 2026-09-30)
+- **Phase** = the plan's build order:
+  - **A** foundation components
+  - **B** views, and the remaining static components
+  - **C** behaviour components
+  - Phase D (site, hardening, release) is its own table, below.
+- **Tests** = passing browser tests in the family folder:  elements, CSS, a form control's fallback.
+  - Every family's element test runs axe on each of its element examples (`examples/elements/`, its `*.html`).
+- **Size** = the family's OWN code, min + gzip kB, from `yarn measure`.
+  - Its components + CSS + vocabulary + a form control's fallback.
+  - Shared `core` (16.2 kB), `forms` (7.5 kB) and the base library are counted once per page, not here.
+- **Keys** = keyboard walkthrough tests:  the plan's "keyboard per APG".
+  - "native" = the shadow markup is a native control (`<button>`, `<a>`), whose keyboard behaviour is the browser's.
+- **Docs** = its page on the docs site, in the shared `ui/components/`.  ✅ links to the page.
+- **Visual** = screenshot tests of every element example, light + dark ([the visual testing doc](visual-testing.md)).
+  - ✅ = baselines for chromium, firefox and webkit, on BOTH `linux` and `local-darwin`.
+  - 🚧 local = all three browsers on `local-darwin` only, `linux` missing:
+    Docker Desktop crashes at launch on this Mac (2026-09-30).
 
 NOTE:  links are relative, so they work on GitHub and in VS Code.
-- In VS Code's Markdown preview, `.html` / source links open in an editor tab.
-- `.md` links do too, because the repo's VS Code settings set `markdown.preview.openMarkdownLinks` to `inEditor`.
+- In VS Code's Markdown preview, `.html` and source links open in an editor tab.
+- `.md` links do too:  the repo's VS Code settings set `markdown.preview.openMarkdownLinks` to `inEditor`.
 
 ## Components
 
@@ -184,111 +203,181 @@ NOTE:  links are relative, so they work on GitHub and in VS Code.
 
 ## Deferred
 
-Decided or knowingly left for later;  each should be picked up where noted.
+Decided, or knowingly left for later.  Each should be picked up where noted.
 
-- **Visual tests, `linux` baselines:**  the system is built and `local-darwin` baselines exist;
-  `yarn test:visual --os linux --update` once Docker Desktop runs (4.42.1 crashes at launch on macOS 26:  update it).
-- **Custom-elements manifest:**  the plan's API tables were to come from one;
-  the site builds them from the vocabulary files instead (`<ui-docs-api>`, from `site/_data/components.json`).
-  Revisit in Phase D if a manifest is wanted for editors.
-- **Translated tag sets** (`<ie-tarjeta>`) -- designed ([`docs/translation.md`](translation.md)), not built.
-- **Hydration** of server-rendered elements -- SSR renders; the client re-renders.
-- **List / menu:**  other components inside items (labels, buttons, inputs), Fomantic's fixed-menu examples.
+- **Visual tests, `linux` baselines:**  the system is built, and `local-darwin` baselines exist.
+  - Run `yarn test:visual --os linux --update` once Docker Desktop runs.
+  - 4.42.1 crashes at launch on macOS 26:  update it.
+- **Custom-elements manifest:**  the plan's API tables were to come from one.
+  - The site builds them from the vocabulary files instead:
+    `<ui-docs-api>`, from the site's [components data](../site/_data/components.json).
+  - Revisit in Phase D, if a manifest is wanted for editors.
+- **Translated tag sets** (`<ie-tarjeta>`):  designed ([the translation doc](translation.md)), not built.
+- **Hydration** of server-rendered elements:  SSR renders;  the client re-renders.
+- **List / menu:**
+  - other components inside items (labels, buttons, inputs)
+  - Fomantic's fixed-menu examples
 - **Table:**  virtualization of large data tables, `rowspan` when counting columns.
-- **Dimmer:**  built (`<ui-dimmer>`), but the modal keeps its `<dialog>::backdrop` (themed by the same `--ui-dimmer-*`
-  tokens), so stacked modals each dim again --
-  the one shared page dimmer of Fomantic's (`Overlays`' "dimmer coordination" TODO) isn't built;
-  partial dimmers (`top / center / bottom dimmer`), Fomantic's `displayLoader` / `loaderText` (slot a `<ui-loader>`),
-  `legacy`, custom scrollbars.
-- **Transition:**  group animations (`interval`, `reverse` over several children), `displayType`, `onBeforeShow` /
-  `onBeforeHide` hooks, start events (`onStart` / `onShow` / `onHide`:  only the end events fire).
-- **Flyout:**  Fomantic's JS-built flyouts (`$.flyout({ title, content, actions })`, like `UI.modals.*`),
-  `autoShow`, `keyboardShortcuts`, `.pusher` / `.fixed` pushing (a flyout always overlays;  that's `<ui-sidebar>`).
-- **Sidebar:**  `exclusive` (other sidebars hiding), `returnScroll`, `scrollLock`, `.fixed` children moving with the
-  pusher, `body.pushable` (a whole-page pushable is a `<ui-pushable>` of viewport height), the sidebar filling its
-  height with a menu (a `<ui-menu>`'s own box can't be stretched from outside:  use `inverted` on the sidebar).
-- **Shape:**  Fomantic's stage `width` / `height` settings
-  (`next`, `auto`, px:  always `initial`), `jitter`, `set next side` by selector (by index only), `allowRepeats`.
-- **Popup:**  Fomantic settings with no element equivalent yet --
-  `exclusive`, `hideOnScroll`, `offset` / `distanceAway`, `lastResort`, `boundary`;
-  `hoverable: false` (hover popups are always hoverable, WCAG 1.4.13);
-  touch-specific triggers;  show / hide METHODS on the DOM element (`open` is the API);
-  an arrow that follows a flip in browsers without anchored container queries.
-- **Modal:**  `allowMultiple: false` (modals always stack), `detachable`, `observeChanges`,
-  `blurring` / inverted dimmers, `legacy`;  the close icon OUTSIDE the box (the dialog clips it);
-  `UI.modals.*` with custom buttons beyond ok / cancel;
-  a slotted `<ui-header>` pushing past the close icon (parts don't know about it).
-- **Card:**  star / like icon looks and a `.dimmer` inside cards;  a slotted `<ui-button>` / `<ui-image>` spanning the
-  card's edge (no box of its own to widen:  use a plain `<img>` or the `image` shorthand);
-  spacing of paragraphs straight inside a `<ui-content>` (a `<ui-description>`'s are spaced);
-  naming the `<article>` by its header.
-- **Items view:**  favorite / like icon looks;  a slotted `<img>` as a Fomantic `.image` wrapper with its own
-  `<img>` inside (a wrapper can't be sized from the item:  slot the `<img>` itself).
-- **Feed:**  like icons and their colours;  images inside a summary, a user or an `extra images` block (use
-  `<ui-images>`);  a `<ui-label>` inside the label box;  `multiline` text labels.
-- **Comment:**  the reply form's textarea height (Fomantic's 12em:  a `<ui-textarea>` sizes itself by `rows`).
-- **Statistic:**  a value's `<ui-image>` sized like Fomantic's `3rem` image (only a slotted plain `<img>` gets the
-  cap);  "a statistic right after another" is approximated as "not the first statistic among its siblings".
-- **Step:**  circular steps' `center aligned` / `bottom aligned` content (the parts have no alignment attributes);
-  RTL arrows;  an event of its own for `link` steps (the page listens for `click`).
-- **Reveal:**  `ui reveal image` / `circular` couplings (put `<ui-image circular>` in each slot);
-  a ribbon label over the reveal;
-  detecting focusable CUSTOM elements (`<ui-button>`) in the content, which keeps the reveal's own tab stop.
+- **Dimmer:**  built (`<ui-dimmer>`), but the modal keeps its `<dialog>::backdrop`, themed by the same `--ui-dimmer-*` tokens.
+  - So stacked modals each dim again:
+    the one shared page dimmer of Fomantic's isn't built (`Overlays`' "dimmer coordination" TODO).
+  - partial dimmers:  `top / center / bottom dimmer`
+  - Fomantic's `displayLoader` / `loaderText`:  slot a `<ui-loader>`
+  - `legacy`, custom scrollbars
+- **Transition:**
+  - group animations:  `interval`, `reverse` over several children
+  - `displayType`
+  - `onBeforeShow` / `onBeforeHide` hooks
+  - start events (`onStart` / `onShow` / `onHide`):  only the end events fire
+- **Flyout:**
+  - Fomantic's JS-built flyouts, like `UI.modals.*`:  `$.flyout({ title, content, actions })`
+  - `autoShow`, `keyboardShortcuts`
+  - `.pusher` / `.fixed` pushing:  a flyout always overlays;  that's `<ui-sidebar>`
+- **Sidebar:**
+  - `exclusive` (other sidebars hiding), `returnScroll`, `scrollLock`
+  - `.fixed` children moving with the pusher
+  - `body.pushable`:  a whole-page pushable is a `<ui-pushable>` of viewport height
+  - the sidebar filling its height with a menu.
+    A `<ui-menu>`'s own box can't be stretched from outside:  use `inverted` on the sidebar.
+- **Shape:**
+  - Fomantic's stage `width` / `height` settings (`next`, `auto`, px):  always `initial`
+  - `jitter`, `allowRepeats`
+  - `set next side` by selector:  by index only
+- **Popup:**
+  - Fomantic settings with no element equivalent yet:
+    `exclusive`, `hideOnScroll`, `offset` / `distanceAway`, `lastResort`, `boundary`
+  - `hoverable: false`:  hover popups are always hoverable (WCAG 1.4.13)
+  - touch-specific triggers
+  - show / hide METHODS on the DOM element:  the shared `visible` / `hidden` are the API
+  - an arrow that follows a flip, in browsers without anchored container queries
+- **Modal:**
+  - `allowMultiple: false` (modals always stack), `detachable`, `observeChanges`
+  - `blurring` / inverted dimmers, `legacy`
+  - the close icon OUTSIDE the box:  the dialog clips it
+  - `UI.modals.*` with custom buttons, beyond ok / cancel
+  - a slotted `<ui-header>` pushing past the close icon:  parts don't know about it
+- **Card:**
+  - star / like icon looks, and a `.dimmer` inside cards
+  - a slotted `<ui-button>` / `<ui-image>` spanning the card's edge.
+    It has no box of its own to widen:  use a plain `<img>`, or the `image` shorthand.
+  - spacing of paragraphs straight inside a `<ui-content>` (a `<ui-description>`'s are spaced)
+  - naming the `<article>` by its header
+- **Items view:**
+  - favorite / like icon looks
+  - a slotted `<img>` as a Fomantic `.image` wrapper, with its own `<img>` inside.
+    A wrapper can't be sized from the item:  slot the `<img>` itself.
+- **Feed:**
+  - like icons, and their colours
+  - images inside a summary, a user or an `extra images` block:  use `<ui-images>`
+  - a `<ui-label>` inside the label box
+  - `multiline` text labels
+- **Comment:**  the reply form's textarea height.
+  Fomantic's is 12em:  a `<ui-textarea>` sizes itself by `rows`.
+- **Statistic:**
+  - a value's `<ui-image>` sized like Fomantic's `3rem` image:  only a slotted plain `<img>` gets the cap
+  - "a statistic right after another" is approximated as "not the first statistic among its siblings"
+- **Step:**
+  - circular steps' `center aligned` / `bottom aligned` content:  the parts have no alignment attributes
+  - RTL arrows
+  - an event of its own for `link` steps:  the page listens for `click`
+- **Reveal:**
+  - `ui reveal image` / `circular` couplings:  put `<ui-image circular>` in each slot
+  - a ribbon label over the reveal
+  - detecting focusable CUSTOM elements (`<ui-button>`) in the content, which keeps the reveal's own tab stop
 - **Ad:**  a landmark of its own (`<aside>`):  several would share one name (axe `landmark-unique`).
-- **Emoji:**  Fomantic's Twemoji SVG sprites (and an opt-in SVG set for platforms without a colour emoji font);
-  `em[data-emoji]` markup;  names beyond Fomantic's 3,808 (apps use `EmojiData.register()`).
-- **Select:**  the customizable picker for `multiple` (a native list box everywhere);  the dropdown's other types on a
-  select (`search`, `inline`, `button`, `labeled`, `pointing`) and menu heights (`short`, `long`);
-  `ui-open` / `ui-close` (a native picker has no events for them);  a rows count for `multiple`;
-  rich slotted option content (options are drawn from item DATA:  a select owns its `<option>`s).
-- **Search:**  Fomantic's "view all results" `action` link, `clearable` (Escape clears),
-  custom result templates (`templates`, `fields` mapping, `preserveHTML`), `onResponse` transforms,
-  `hideDelay`, `cache: false`, the `searchButton`;  following a result's `url` in a new tab from the keyboard;
-  local searches honour no `search-delay` (they run per keystroke).
-- **Progress:**  the `.ui.segment > .ui.attached.progress` / card coupling (an attached progress sits in the flow);
-  opting out of the automatic `success` at 100% (Fomantic's `autoSuccess: false`);
-  Fomantic's state label texts (`text.active` / `success` ...) and `{bar}` names;
-  `increment()` / `decrement()` methods (set `value`).
-- **Rating:**  Fomantic's text-shadow outline on coloured icons (an icon-font trick);  a preview of the focused point
-  (the `selected` preview follows the pointer only).
-- **Slider:**  `highlightRange` (active labels), thumb tooltips (`showThumbTooltip`), `restrictedLabels`, Fomantic's
-  `ui label` labels, `minRange` / `maxRange`, a `label-distance` attribute (fixed at Fomantic's 100px), `ticked`
-  without `labeled`;  keyboard control of a hovered but unfocused slider (Fomantic's `activateFocus`).
-- **Accordion:**  the accordion menu coupling (`.ui.accordion.menu`), Fomantic's `right` dropdown icon,
-  `closeNested`, `animateChildren` (content fading in), `on: "hover"` titles;  `open` / `close` / `toggle` as DOM
-  element METHODS (the component has `toggle()`;  the page sets `open`);  titles given as Fomantic class grammar
-  (`<div class="title">`) inside the element.
-- **Tab:**  rich tab labels (only `label` text + `icon`:  a label lives on the pane, the tab is drawn elsewhere);
-  Fomantic's remote panes (`path`, `apiSettings`, `cache`, `evaluateScripts`:  use `ui-show`'s `first`);
-  nested `history` paths (`#outer/inner`) -- two `history` tab sets on a page share one hash;  `vertical right` tabs;
-  a named View Transition for the pane area (the default crossfade runs).
+- **Emoji:**
+  - Fomantic's Twemoji SVG sprites, and an opt-in SVG set for platforms without a colour emoji font
+  - `em[data-emoji]` markup
+  - names beyond Fomantic's 3,808:  apps use `EmojiData.register()`
+- **Select:**
+  - the customizable picker for `multiple`:  a native list box everywhere
+  - the dropdown's other types on a select:  `search`, `inline`, `button`, `labeled`, `pointing`
+  - menu heights:  `short`, `long`
+  - `ui-open` / `ui-close`:  a native picker has no events for them
+  - a rows count for `multiple`
+  - rich slotted option content.
+    Options are drawn from item DATA:  a select owns its `<option>`s.
+- **Search:**
+  - Fomantic's "view all results" `action` link
+  - `clearable`:  Escape clears
+  - custom result templates:  `templates`, the `fields` mapping, `preserveHTML`
+  - `onResponse` transforms, `hideDelay`, `cache: false`, the `searchButton`
+  - following a result's `url` in a new tab, from the keyboard
+  - local searches honour no `search-delay`:  they run per keystroke
+- **Progress:**
+  - the `.ui.segment > .ui.attached.progress` / card coupling:  an attached progress sits in the flow
+  - opting out of the automatic `success` at 100% (Fomantic's `autoSuccess: false`)
+  - Fomantic's state label texts (`text.active` / `success` ...), and `{bar}` names
+  - `increment()` / `decrement()` methods:  set `value`
+- **Rating:**
+  - Fomantic's text-shadow outline on coloured icons:  an icon-font trick
+  - a preview of the focused point:  the `selected` preview follows the pointer only
+- **Slider:**
+  - `highlightRange` (active labels), thumb tooltips (`showThumbTooltip`), `restrictedLabels`
+  - Fomantic's `ui label` labels
+  - `minRange` / `maxRange`
+  - a `label-distance` attribute:  fixed at Fomantic's 100px
+  - `ticked` without `labeled`
+  - keyboard control of a hovered but unfocused slider (Fomantic's `activateFocus`)
+- **Accordion:**
+  - the accordion menu coupling (`.ui.accordion.menu`), Fomantic's `right` dropdown icon
+  - `closeNested`, `animateChildren` (content fading in), `on: "hover"` titles
+  - `open` / `close` / `toggle` as DOM element METHODS:  the component has `toggle()`, and the page sets `open`
+  - titles given as Fomantic class grammar (`<div class="title">`), inside the element
+- **Tab:**
+  - rich tab labels:  only `label` text + `icon`.
+    A label lives on the pane, and the tab is drawn elsewhere.
+  - Fomantic's remote panes (`path`, `apiSettings`, `cache`, `evaluateScripts`):  use `ui-show`'s `first`
+  - nested `history` paths (`#outer/inner`):  two `history` tab sets on a page share one hash
+  - `vertical right` tabs
+  - a named View Transition for the pane area:  the default crossfade runs
 
-- **Toast:**  Fomantic's `.ui.message` / `.ui.card` toasts, image toasts (`showImage`), the left close icon,
-  `absolute` containers in an element (`context`) and full-width `attached` containers, `opacity`,
-  showing a page's `<ui-toast>` in a container (Fomantic's clone), re-showing a closed toast.
-  KNOWN LIMIT:  while a modal `<dialog>` is open, everything outside it -- toast containers too -- is inert (checked in Chromium):
-  a toast counts down but can't be clicked, focused or announced;
-  fix by moving the container into the top modal while it's open.
-- **Nag:**  the `.ui.nags` group;  `a.ui.nag` links;  Fomantic's `detachable` and `context` (the nag stays where it
-  is written);  the fade animation option (always `slide-down`).
-- **Sticky:**  Fomantic's `context` (stick within ANY element:  CSS sticks within the parent), `scrollContext`
-  (auto-detected), a direction-aware `pushing` for content taller than the screen (CSS `top` + `bottom` instead),
-  `observeChanges`, `onTop` / `onBottom` / `onReposition` / `onScroll`.
-- **Visibility:**  `onPassed` percentages, `type: 'fixed'` (use `<ui-sticky>`), `includeMargin`, `refreshOnLoad`,
-  `throttle`;  `continuous` / `onUpdate` fire at crossings, not every scrolled pixel;  the element measures against the
-  viewport only (the service takes a `context`).
-- **Calendar:**  multi-month (`multiMonth`, `monthOffset`), week numbers (`showWeekNumbers`),
-  event dates (`eventDates`) and disabled-date messages as tooltips, `enabledDates`, `disabledHours`,
-  the `isDisabled()` callback, `startMode`, `constantHeight: false`, `closable: false`,
-  `on: 'focus'` (a click or ArrowDown opens:  opening on focus fights Tab),
-  `centuryBreak` / `currentCentury` settings (fixed at 60 / 2000), `monthFirst` (the locale's order instead),
-  custom `formatter` / `parser` functions, `touchReadonly`;  RTL arrow keys;  a range partner in ANOTHER tree scope;
-  the native fallback's `inline`, locale and range behaviour.
-- **State:**  Fomantic's hover texts (`activate` / `deactivate` / `hover`:  the accessible name would change
-  under the pointer), `flash`, `sync`, the API-request states and the `automatic` input / progress defaults;
-  the button's native fallback shows the content instead of a state text.
-- **Embed:**  `embed` / `object` children, the player API (`onPause` / `onPlay` / `onStop` were unimplemented in
-  Fomantic too), `color` / `hd` player parameters, `onEmbed` rewriting parameters (use `parameters`).
+- **Toast:**
+  - Fomantic's `.ui.message` / `.ui.card` toasts
+  - image toasts (`showImage`), the left close icon
+  - `absolute` containers in an element (`context`), and full-width `attached` containers
+  - `opacity`
+  - showing a page's `<ui-toast>` in a container (Fomantic's clone), re-showing a closed toast
+  - KNOWN LIMIT:  while a modal `<dialog>` is open, everything outside it is inert, toast containers too.
+    Checked in Chromium.
+    - A toast counts down, but can't be clicked, focused or announced.
+    - Fix by moving the container into the top modal while it's open.
+- **Nag:**
+  - the `.ui.nags` group, `a.ui.nag` links
+  - Fomantic's `detachable` and `context`:  the nag stays where it is written
+  - the fade animation option:  always `slide-down`
+- **Sticky:**
+  - Fomantic's `context`:  stick within ANY element.  CSS sticks within the parent.
+  - `scrollContext`:  auto-detected
+  - a direction-aware `pushing` for content taller than the screen:  CSS `top` + `bottom` instead
+  - `observeChanges`, `onTop` / `onBottom` / `onReposition` / `onScroll`
+- **Visibility:**
+  - `onPassed` percentages, `includeMargin`, `refreshOnLoad`, `throttle`
+  - `type: 'fixed'`:  use `<ui-sticky>`
+  - `continuous` / `onUpdate` fire at crossings, not every scrolled pixel
+  - the element measures against the viewport only (the service takes a `context`)
+- **Calendar:**
+  - multi-month (`multiMonth`, `monthOffset`), week numbers (`showWeekNumbers`)
+  - event dates (`eventDates`), and disabled-date messages as tooltips
+  - `enabledDates`, `disabledHours`, the `isDisabled()` callback
+  - `startMode`, `constantHeight: false`, `closable: false`
+  - `on: 'focus'`:  a click or ArrowDown opens, since opening on focus fights Tab
+  - `centuryBreak` / `currentCentury` settings:  fixed at 60 / 2000
+  - `monthFirst`:  the locale's order instead
+  - custom `formatter` / `parser` functions, `touchReadonly`
+  - RTL arrow keys
+  - a range partner in ANOTHER tree scope
+  - the native fallback's `inline`, locale and range behaviour
+- **State:**
+  - Fomantic's hover texts (`activate` / `deactivate` / `hover`):  the accessible name would change under the pointer
+  - `flash`, `sync`
+  - the API-request states, and the `automatic` input / progress defaults
+  - the button's native fallback shows the content, instead of a state text
+- **Embed:**
+  - `embed` / `object` children
+  - the player API:  `onPause` / `onPlay` / `onStop` were unimplemented in Fomantic too
+  - `color` / `hd` player parameters
+  - `onEmbed` rewriting parameters:  use `parameters`
 
 ## To review (Owen)
 

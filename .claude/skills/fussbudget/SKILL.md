@@ -13,8 +13,8 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - why a squirrely choice was made, before what the thing IS
   - file paths and exact settings in the running text, where what they MEAN belongs
     (WWOD §6 › "Plain text, plain paths", epic `airplane`)
-- The rules are WWOD §6, "Comments & docs" (`agents/wwod/WWOD.md`),
-  and its long before / afters, `agents/wwod/writing.md`.
+- The rules are WWOD §6, "Comments & docs" ([WWOD.md](agents/wwod/WWOD.md)),
+  and its long before / afters, [writing.md](agents/wwod/writing.md).
   This skill says how to run a pass;  those files say what good looks like.
 - Its checker:  `spell dev docs fuss <paths...> | --branch [--json]`.
   - It lists the mechanical misses by file and line, and exits 1 on any:
@@ -24,7 +24,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
     - `path-in-prose`:  a file path in a page's or Markdown's running text
     - `code-dense`:  a sentence of 3+ code spans, in a page or Markdown
   - It can't see the rest:  that's what the reading pass is for.
-- Every epic's Doc Review runs it:  `.claude/skills/epic/SKILL.md`, "6. Doc Review".
+- Every epic's Doc Review runs it:  [the epic skill](.claude/skills/epic/SKILL.md), "6. Doc Review".
 
 ## Forms
 
@@ -56,13 +56,16 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 ## What it rewrites
 
 - Yes:
-  - docstrings and comments, in `.ts` / `.tsx` / `.js` / `.mjs`
+  - docstrings and comments, in code:  `.ts` / `.tsx`, `.js` / `.mjs`
   - READMEs, `AGENTS.md` files, other Markdown
   - docs pages (`guides/`, `ui/`, `pages/`):  their prose
   - plan-doc prose, as "Forms" says
 - Never:
-  - code, names, strings the code uses, marker words (`NOTE:`, `HACK:`, `REFACTOR:` ...)
-  - generated files:  any `git check-attr linguist-generated` marks, `vendor/`, bundles, snapshots, fixtures
+  - code, names, strings the code uses
+  - marker words:  `NOTE:`, `HACK:`, `REFACTOR:` ...
+  - generated files:
+    - any file `git check-attr linguist-generated` marks
+    - `vendor/`, bundles, snapshots, fixtures
   - Owen's own words:  his quotes, a plan doc's kickoff prompt, `<epic-original>`, `<epic-answer>`
   - dated records:  a plan doc's `log.html`, `<epic-updated>` lines, the changelog's old entries
 - Keeps every fact, number and caveat (WWOD §6).
@@ -71,7 +74,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 
 ## Steps
 
-1. Read the rules WHOLE, first:  WWOD §6 and `agents/wwod/writing.md`.
+1. Read the rules WHOLE, first:  WWOD §6 and [writing.md](agents/wwod/writing.md).
    - Every pass, even a small one:  this skill exists because the rule, half-remembered, hasn't worked.
 2. Is anyone else editing it?
    - `spell dev worktree list`:  another session (not this one, not the one that started you)
@@ -120,9 +123,10 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - A path with no name to hang it on ("see `guides/x/x.html`"):  the page's title as the link text.
   - Markdown, which has no tooltips:  a link, `` [`buildTsx()`](packages/spell/src/node/buildTsx.ts) ``.
     In agent-facing Markdown (`AGENTS.md`, WWOD, `SKILL.md`), a path an agent must open stays reachable that way.
-- `code-dense`:  say what it MEANS, then one fact per bullet;
-  the exact settings and values go in a folded code block (`<epic-code>`, `ui-accordion.spell-code`, a fence),
-  or a tooltip.  Owen's before / after:  `agents/wwod/writing.md`, "A 'Built / Checked' line in a plan doc".
+- `code-dense`:  say what it MEANS, then one fact per bullet.
+  - The exact settings and values go in a tooltip, or a folded code block:
+    `<epic-code>` or `ui-accordion.spell-code` in a page, a fence in Markdown.
+  - Owen's before / after:  [writing.md](agents/wwod/writing.md), "A 'Built / Checked' line in a plan doc".
   - A list of names that IS the point (the methods a class has):  bullets, one name each.
 - Never in Owen's own words, or in a dated record ("What it rewrites").
 
@@ -133,7 +137,8 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - Or fewer, when you were given a smaller budget (`/bg` with `n`).
   - More folders than agents:  group neighbours, one agent a group.
   - Why:  one voice per package, and the session stays free.
-- Each one NAMED and LISTED, as the root `CLAUDE.md`'s "Delegated work" says (`.claude/skills/bg/SKILL.md`, "Names"):
+- Each one NAMED and LISTED, as the root `CLAUDE.md`'s "Delegated work" says
+  ([the bg skill](.claude/skills/bg/SKILL.md), "Names"):
   - `spell dev agents add fussbudget-<folder> "<its task>"`:  prints its full name
   - an `Agent` call (`general-purpose`, `run_in_background: true`),
     its `description` starting with that full name

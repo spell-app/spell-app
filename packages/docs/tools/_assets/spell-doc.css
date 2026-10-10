@@ -117,12 +117,14 @@ body {
 }
 /*
  * `--spell-doc-pad-inline`:  the inline padding, as a token, so a block may run edge to edge by breaking out of it
- * (`<epic-page>`, epic `epic-components` P14)
+ * (`<epic-page>`, epic `epic-components` P14;  the toolbars)
+ * - little room above the page's first line, under the site header (Owen, 2026-10-10:  "Significantly less padding
+ *   above";  32px before)
  */
 .spell-doc-main {
   --spell-doc-pad-inline: 16px;
   min-width: 0;
-  padding: 32px var(--spell-doc-pad-inline) 96px;
+  padding: 10px var(--spell-doc-pad-inline) 96px;
 }
 
 /*******************************
@@ -454,6 +456,15 @@ ui-section .lede code {
 }
 .spell-crumbs::part(breadcrumb) {
   font: var(--spell-eyebrow-font);
+}
+/*
+ * narrow (VS Code's side bar, a phone):  no eyebrow, to save room;  no breadcrumb at all there (Owen, 2026-10-10:
+ * "We don't need the breadcrumb").  The site header's narrow breakpoint, 720px (`SiteHeader.ts`)
+ */
+@media (max-width: 720px) {
+  .spell-crumbs {
+    display: none;
+  }
 }
 /* a page's meta lines (who it's for, status, how it was checked):  `ui-list.spell-meta` with an icon per item */
 ui-list.spell-meta {
@@ -962,36 +973,56 @@ pre code {
   font: var(--spell-eyebrow-font);
   letter-spacing: var(--spell-eyebrow-tracking);
 }
-/* the box:  typed and not saved, dashed (the fill rule), "Not saved yet" */
+/*
+ * the box:  ivory, as the toolbar (Owen's voice), lifted off the page by a shadow (Owen, 2026-10-10:  "make the
+ * modal bg beige so it stands out");  it saves as it's typed, so no buttons and no dashed "not saved" border
+ */
 .spell-doc-main .spell-comment-form {
-  padding: 8px 10px;
-  border: 1.5px solid var(--spell-rule);
+  padding: 4px 8px 8px 10px;
+  border: 1px solid var(--spell-rail-rule);
   border-radius: 10px;
-  background: var(--spell-bg);
+  background: var(--spell-rail-bg);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 14%);
 }
-.spell-doc-main .spell-comment-form[data-typed] {
-  border-style: dashed;
-  border-color: var(--ui-brown-text, #534323);
-}
+/* its header:  the bullhorn, a few words of what it's on (its tooltip the whole), the floppy, × */
 .spell-doc-main .spell-comment-about {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  margin: 0 0 6px;
-  color: var(--spell-muted);
+  gap: 6px;
+  margin: 0 0 4px;
+  color: var(--spell-rail-ink);
   font-size: 0.9rem;
 }
-.spell-doc-main .spell-comment-unsaved {
-  display: none;
-  margin-left: auto;
-  padding: 0 6px;
-  border: 1px dashed currentcolor;
-  border-radius: 999px;
-  font-size: 0.75rem;
+.spell-doc-main .spell-comment-on {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.spell-doc-main .spell-comment-form[data-typed] .spell-comment-unsaved {
-  display: inline;
+/* the floppy:  saved (its tooltip the time), red when the last save failed */
+.spell-doc-main .spell-comment-saved {
+  color: var(--spell-muted);
+  font-size: 0.8rem;
+}
+.spell-doc-main .spell-comment-saved[data-failed] {
+  color: var(--ui-red, #db2828);
+}
+.spell-doc-main .spell-comment-close {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.spell-doc-main .spell-comment-close:hover {
+  background: var(--spell-rail-hover);
 }
 .spell-doc-main textarea.spell-comment-field {
   box-sizing: border-box;
@@ -999,26 +1030,13 @@ pre code {
   min-height: 4lh;
   max-height: 50vh;
   padding: 8px 10px;
-  border: 1px solid var(--spell-rule);
+  border: 1px solid var(--spell-rail-rule);
   border-radius: 6px;
   background: var(--spell-bg);
   color: var(--spell-ink);
   font: inherit;
   line-height: 1.4;
   resize: vertical;
-}
-.spell-doc-main .spell-comment-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  margin-top: 6px;
-}
-.spell-doc-main .spell-comment-hint {
-  margin-right: auto;
-  color: var(--spell-muted);
-  font-size: 0.85rem;
 }
 
 /* the New epic box (outside `main`):  a textarea that grows with its text (`growField()`) */
@@ -1239,6 +1257,9 @@ ui-accordion.spell-aside::part(content) {
  *   this is the section buttons, taking the room the tools leave
  * - one round button per top-level block, its icon and badges, NO label (Owen, 2026-10-10:  "lose the titles"):
  *   the name is its tooltip;  the current one a deeper ivory (scroll-follow)
+ *   - every button the same width, badge or not (Owen, 2026-10-10:  "Make plan doc icons consistent, with badge or
+ *     no"):  the badges hang over the icon's top right, a third of a badge on the icon ("Make badge 1/3 way overlap
+ *     the icon"), in the row's top padding
  * - badges:  how many items wait on Owen, red urgent, orange Claude's reply waiting on his pick;  none, no badge
  * - a row too narrow for them all scrolls sideways (never the page)
  */
@@ -1308,23 +1329,67 @@ ui-accordion.spell-aside::part(content) {
   background: var(--spell-state-replied);
   color: var(--spell-state-replied-on);
 }
+/* a plan doc's buttons:  one round size, apart enough for a badge hanging off the one before */
+.spell-toolbar:not(.spell-toolbar-titled) .spell-toolbar-items {
+  gap: 6px;
+}
+.spell-doc-page .spell-toolbar:not(.spell-toolbar-titled) .spell-toolbar-item {
+  width: 30px;
+  padding: 0;
+}
+/* their badges:  over the icon's top right, a third of a badge's width and height on the icon */
+.spell-toolbar-icon:has(> .spell-toolbar-badges) {
+  position: relative;
+}
+.spell-toolbar-badges {
+  --_badge: 16px;
+  position: absolute;
+  bottom: calc(100% - var(--_badge) / 3);
+  left: calc(100% - var(--_badge) / 3);
+  display: flex;
+}
+.spell-toolbar-badges > .spell-toolbar-count {
+  min-width: var(--_badge);
+  height: var(--_badge);
+  padding: 0 4px;
+  font-size: 10px;
+  line-height: var(--_badge);
+}
 
 /*
  * ## Every other page's toolbar (`nav.spell-toolbar-titled`, the runtime's `buildPageToolbar()`;  Owen, 2026-10-10:
  * "Make the floating sidebar in guides a sticky top toolbar like the plan doc.  Have section titles in this one"):
  * the last row of the sticky page header (`.spell-page-head`), or of the filter bar, or a sticky bar of its own
  * (`.spell-toolbar-alone`)
- * - an ivory band with a rule, rounded;  each button its mark and its title, the titles shrinking with `...` when they
- *   don't all fit;  `.spell-toolbar-icons` (each title would get under 50px):  the marks only
+ * - an ivory band as the plan doc's (Owen, 2026-10-10:  "full-page-width, no rounding like plan doc ... a rule below,
+ *   but none above"):  out of `<main>`'s inline padding to the column's edges (`--spell-doc-pad-inline`), square, the
+ *   band's rule under it as the header's bottom edge (the header's own rule and bottom padding give way to it)
+ * - each button its mark and its title, the titles shrinking with `...` when they don't all fit;
+ *   `.spell-toolbar-icons` (each title would get under 50px):  the marks only
  */
 .spell-toolbar.spell-toolbar-titled {
-  flex: 1 0 100%;
-  border: 1px solid var(--spell-rail-rule);
-  border-radius: 10px;
+  --_out: var(--spell-doc-pad-inline, 16px);
+  flex: 1 0 calc(100% + 2 * var(--_out));
+  margin-inline: calc(-1 * var(--_out));
+  /* the band's own rule, as the plan doc's:  the page's rule is all but white on the ivory */
+  border-bottom: 1px solid var(--spell-rail-rule);
   background: var(--spell-rail-fill);
 }
+.spell-page-head:has(> .spell-toolbar-titled) {
+  border-bottom: none;
+}
+.spell-page-head > .spell-toolbar-titled {
+  margin-bottom: -8px;
+}
+.spell-filter:has(> .spell-toolbar-titled) {
+  border-bottom: none;
+}
+.spell-filter > .spell-toolbar-titled {
+  margin-bottom: -10px;
+}
+/* the first button's mark lines up with the column's text (a button's own padding:  7px) */
 .spell-toolbar-titled .spell-toolbar-items {
-  padding: 3px;
+  padding: 3px calc(var(--_out) - 7px);
 }
 .spell-doc-page .spell-toolbar-titled .spell-toolbar-item {
   flex: 0 1 auto;
@@ -1347,7 +1412,7 @@ ui-accordion.spell-aside::part(content) {
   position: sticky;
   top: calc(var(--spell-site-header-height, 0px) + var(--spell-head-h, 0px));
   z-index: 5;
-  margin: 12px 0 8px;
+  margin: 12px calc(-1 * var(--_out)) 8px;
 }
 /*
  * an item's number (`Q3` shows 3):  a round badge, its colour the item's state (`data-state` on the button, from its

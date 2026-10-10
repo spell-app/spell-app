@@ -105,25 +105,26 @@
     color: var(--epic-ink);
   }
 
-  /* ## The sticky header:  the h1, then its controls and labels at the right, each centred on the row */
+  /*
+   * ## The sticky header:  the h1, then its labels and controls at the right, each centred on the row.  The epic's
+   * title under it is NOT sticky (Owen, 2026-10-10):  it scrolls away under the header, and the toolbar's bar sticks
+   * right below the header (`--epic-head-h`, measured)
+   */
   .head {
     position: sticky;
-    z-index: 5;
+    z-index: 6;
     top: var(--spell-site-header-height, 0px);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 6px 10px;
-    padding: 10px var(--epic-inset);
-    border-bottom: 1px solid var(--epic-rule);
+    padding: 8px var(--epic-inset) 4px;
     background: var(--epic-bg);
   }
-  /* the h1 over the subhead, taking the row's free room */
-  .titles {
+  /* the h1, taking the row's free room */
+  .heading {
     flex: 1 1 12em;
     min-width: 0;
-  }
-  .heading {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -157,13 +158,18 @@
     letter-spacing: normal;
   }
   .subhead {
-    margin: 2px 0 0;
+    margin: 0;
+    padding: 0 var(--epic-inset) 8px;
     color: var(--epic-muted);
     font: 400 18px/1.3 var(--epic-sans);
     text-wrap: balance;
   }
-  /* the step label and its kin, at the row's far right, after every button (Owen, 2026-10-08):
-     on the narrow row the buttons wrap to, too */
+  /*
+   * at the row's far right, in this order (Owen, 2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle
+   * is) (git icon, but bigger)"):
+   * - the bedtime label (when set), the step label (the state in it), the git toggle
+   * - on a row of their own when the h1 leaves no room
+   */
   .status {
     display: inline-flex;
     flex: none;
@@ -185,19 +191,26 @@
   }
 
   /*
-   * ## The toolbar (epic `airplane` P8):  the header's last row, on the rail's ivory band, a rule above it.
-   * - edge to edge under the header's rows (its inset and bottom padding undone)
+   * ## The toolbar (epic `airplane` P8):  the last row of its sticky bar,
+   *    right below the header once the title has scrolled away.
+   * - on the rail's ivory band, edge to edge, square, its own rule under it and none above
+   *   (Owen, 2026-10-10:  "full-page-width, no rounding ... a rule below, but none above")
    * - the docs runtime's section buttons (`nav.spell-toolbar`, slotted) take the room,
    *   and scroll sideways if they must
    * - at the right:  the page's state chips, collapse-all, a gap, then the new item button (Owen, 2026-10-10)
    */
+  .bar {
+    position: sticky;
+    z-index: 5;
+    top: calc(var(--spell-site-header-height, 0px) + var(--epic-head-h, 0px));
+    /* the toolbar's own rule, the one that was above it:  the page's rule is all but white on the ivory */
+    border-bottom: 1px solid var(--epic-toolbar-rule);
+    background: var(--epic-bg);
+  }
   .toolbar {
     display: flex;
-    flex: 1 0 100%;
     align-items: center;
     min-width: 0;
-    margin: 0 calc(-1 * var(--epic-inset)) -10px;
-    border-top: 1px solid var(--epic-toolbar-rule);
     background: var(--epic-toolbar-fill);
   }
   .toolbar-tools {
@@ -244,14 +257,14 @@
   }
   /*
    * its form (`<epic-new-item open>`, epic `airplane` P2):
-   * a row of its own across the sticky header, above the toolbar, so it shows wherever Owen is
+   * a row of its own across the sticky bar, above the toolbar, so it shows wherever Owen is
    */
-  .head > epic-new-item {
-    flex: 1 0 100%;
+  .bar > epic-new-item {
     max-height: 60vh;
+    margin: 8px var(--epic-inset);
     overflow: auto;
   }
-  .head > epic-new-item::part(form) {
+  .bar > epic-new-item::part(form) {
     margin: 0;
   }
   /*
@@ -360,19 +373,10 @@
     outline-offset: 1px;
   }
 
-  /* ## The state mark:  an icon in its state's colour, as tall as the labels beside it, on their middle */
-  .state {
-    display: inline-grid;
-    flex: none;
-    place-items: center;
-    height: var(--epic-control-size);
-    margin: 0;
-    font-size: 18px;
-    line-height: 1;
-    cursor: help;
-  }
-
-  /* the git toggle:  round, icon only, the accent while pressed */
+  /*
+   * the git toggle:  icon only, the accent while pressed;  its mark as big as the step label's icon looks (Owen,
+   * 2026-10-10:  "git icon, but bigger"):  the git diamond fills less of its em than a circle
+   */
   .git {
     display: inline-grid;
     flex: none;
@@ -381,6 +385,7 @@
     width: var(--epic-control-size);
     height: var(--epic-control-size);
     padding: 0;
+    font-size: 22px;
     /* the icon alone, no circle (Owen, 2026-10-08) */
     border: none;
     border-radius: 4px;
@@ -571,10 +576,9 @@
 
   /* ## Narrow (VS Code's side bar, a phone):  a smaller h1, so the stuck header leaves room to read */
   @container epic-page (max-width: 480px) {
-    .titles {
-      flex-basis: 100%;
-    }
+    /* the h1 shares its row with the labels while they fit (no row of their own:  the stuck header stays short) */
     .heading {
+      flex-basis: 8em;
       font-size: 24px;
     }
     .subhead {

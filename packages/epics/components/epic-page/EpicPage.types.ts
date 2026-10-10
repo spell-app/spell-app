@@ -37,8 +37,9 @@ export type PhaseLine = {
 
 /** The step label:  its look, its words, where it links. */
 export type StepLabel = {
-  /** `blue` the active phase (outlined:  Claude is on it), `green` DONE (solid), `grey` the next one, or FUTURE */
-  color: "blue" | "green" | "grey"
+  /** `blue` the active phase (outlined:  Claude is on it), `green` DONE (solid), `grey` the next one, or FUTURE;  else the
+   * epic state's colour (`red` errors) */
+  color: "blue" | "green" | "grey" | "red"
   icon: string
   /** what it says:  `P4`, `DONE`, `FUTURE` */
   words: string
@@ -65,12 +66,14 @@ export const COMMITS_PROPERTY = "--epic-commits-display"
 /** The custom property of the sticky stack's bottom, px from the viewport top (`EpicFold` sets it too). */
 export const STACK_PROPERTY = "--epic-stack"
 
+/** The sticky header's height (the h1's row), px:  the toolbar's bar sticks right below it. */
+export const HEAD_PROPERTY = "--epic-head-h"
+
 /** What shows the git toggle:  a commit, or a block whose part lists some. */
 export const HAS_COMMITS = "epic-commit, [commits]"
 
 /** Classes of the shadow markup. */
 export const HEAD = "head"
-export const TITLES = "titles"
 export const HEADING = "heading"
 export const HEADING_COPY = "heading-copy"
 export const SUBHEAD = "subhead"
@@ -82,10 +85,13 @@ export const HUNG = "hung"
 
 export const SEND = "send"
 export const REVIEW_NOW = "review-now"
-export const STATE = "state"
 export const REVIEW_LINE = "review-line"
 
-/** Classes of the toolbar row, its tools at the right, the send bar and its pill (epic `airplane` P8). */
+/**
+ * Classes of the toolbar's sticky bar (the new item form, then the toolbar), the toolbar row, its tools at the right,
+ * the send bar and its pill (epic `airplane` P8).
+ */
+export const BAR = "bar"
 export const TOOLBAR = "toolbar"
 export const TOOLBAR_TOOLS = "toolbar-tools"
 export const SEND_BAR = "send-bar"

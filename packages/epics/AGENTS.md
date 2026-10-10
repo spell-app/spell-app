@@ -3,14 +3,15 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/epics`.
 
-**READ the repo root's [`AGENTS.md`](../../AGENTS.md) and [WWOD](../../agents/wwod/WWOD.md) FIRST:**
+**READ the repo root's [AGENTS.md](../../AGENTS.md) and [WWOD](../../agents/wwod/WWOD.md) FIRST:**
 the repo's layout, and the house style every package shares.
 Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
-- A COMPONENT PACK:  `<epic-*>` custom elements, written as Spell UI families, that a page loads on demand
-  through `<ui-root>` (its `<ui-components source>` names the pack's script):
+- A COMPONENT PACK:  `<epic-*>` custom elements, written as Spell UI families,
+  that a page loads on demand through `<ui-root>`.
+  - The page's `<ui-components source>` names the pack's script:
 
   ```html
   <ui-root>
@@ -20,90 +21,99 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   ```
 
 - Made by `spell dev pack new epics --prefix epic-`.
-  Its tooling is the CLI's `spell dev pack` ([`pack*.ts`](../cli/src/dev/)), so every pack builds and checks the same way.
-- `components/<tag>/` (`$/epics/components`) -- one folder per element family,
-  written exactly like a Spell UI family ([ui's `AGENTS.md`](../ui/AGENTS.md), "Overview" and "Solid authoring"),
-  every file named for its COMPONENT:
-  - `<Name>.tsx` (the component, on `E.UIComponent`)
-  - `<Name>.en.ts` (its tag's vocabulary:  topics + aka, skeleton text)
-  - `<Name>.css`, `<Name>.test.tsx`, `<Name>.types.ts` (only what several of its files share)
-  - `index.ts` (defines its tags:  SIDE EFFECT)
+  - Its tooling is the CLI's (`spell dev pack`, the `pack*.ts` files in [the CLI's dev folder](../cli/src/dev/)),
+    so every pack builds and checks the same way.
+- `components/<tag>/` (`$/epics/components`) -- one folder per element family.
+  - Written exactly like a Spell UI family:
+    [ui's AGENTS.md](../ui/AGENTS.md), "Overview" and "Solid authoring".
+  - Every file named for its COMPONENT:
+    - `<Name>.tsx` (the component, on `E.UIComponent`)
+    - `<Name>.en.ts` (its tag's vocabulary:  topics + aka, skeleton text)
+    - `<Name>.css`, `<Name>.test.tsx`, `<Name>.types.ts` (only what several of its files share)
+    - `index.ts` (defines its tags:  SIDE EFFECT)
   - No native fallback:  only form controls have one.
   - A new one:  `spell dev pack element epics <tag>`, the tag starting `epic-`.
-  - Every component is a family, as in Spell UI (P10 of epic `spell-element`):  no exported function components.
-  - `yarn lint` holds them to it:
-    the `spell-ui/*` rules ([ui's `AGENTS.md`](../ui/AGENTS.md), "Solid authoring", "The lint guard") flag
-    - a hand-written effect, observer, listener, `untrack()` or timer
-    - an exported function component
-  - A piece several families draw is a family of its own, drawn in their shadow roots, never written in a doc:
-    - `<epic-review>`, `<epic-new-item>`, `<epic-agents>`
-    - the barrel of each family that draws one imports its barrel first, so it's defined wherever they are
-    - unless it can't be a tag:  the fold button and chevron every fold draws are `Fold`'s methods
-      (`fold.button()`, `Fold.chevron()`):
-      the button is named by ids in the card's own shadow root, and the chevron shows in the first frame
-- `src/` (`$/epics`, `EP`) --
-  code the elements and the node tools share, and `pack.test.ts`, which runs `spell dev pack check epics`:
+  - Every component is a family, as in Spell UI (P10 of epic `spell-element`).
+    - No exported function components.
+    - The lint rules hold them to it (`yarn lint`).
+      They flag a hand-written effect, observer, listener, `untrack()` or timer,
+      and an exported function component.
+    - Those rules:  [ui's AGENTS.md](../ui/AGENTS.md), "Solid authoring", "The lint guard".
+  - A piece several families draw is a family of its own.
+    - It's drawn in their shadow roots, and never written in a doc.
+    - Those pieces:  `<epic-review>`, `<epic-new-item>`, `<epic-agents>`.
+    - Each family that draws one imports its barrel first,
+      so it's defined wherever they are.
+    - Unless it can't be a tag.
+      The fold button and chevron every fold draws are methods of `Fold`:  `fold.button()`, `Fold.chevron()`.
+      - The button is named by ids in the card's own shadow root.
+      - The chevron shows in the first frame.
+- `src/` (`$/epics`, `EP`) -- code the elements and the node tools share.
+  Also `pack.test.ts`, which runs `spell dev pack check epics`.
   - `definitions/` -- the ONE description of every element:
-    `Definitions.all`, each vocabulary as data plus `children` (the content model).
-    Node-safe:  imports vocabulary files, never a family's barrel
-  - `markup/` -- `Markup` (make, read, set, append) and `MarkupCheck` (validate a doc):  linkedom or the browser's DOM
+    - `Definitions.all`:  each vocabulary as data, plus `children` (the content model)
+    - Node-safe:  imports vocabulary files, never a family's barrel.
+  - `markup/` -- `Markup` (make, read, set, append) and `MarkupCheck` (validate a doc).
+    On linkedom, or the browser's DOM.
   - `dates/` -- `PlanDates`:  every date an element draws, `10/8/26 14:34` (`10/8/26` for a day),
-    from whatever form the doc holds;  NOT the log's (`<epic-event>`).
-    A time alone (`saved 14:42`):  `PlanDates.clock()`
-  - `review/` -- `ReviewClient`, one per page:  the review inbox's reads and writes (`/api/review/*`),
-    token refresh, polling, note-draft backups (the old page runtime's localStorage keys)
-    - touches no browser global until `forPage()` / `watch()`
-    - used by:
+    from whatever form the doc holds.
+    - NOT the log's (`<epic-event>`).
+    - A time alone (`saved 14:42`):  `PlanDates.clock()`.
+  - `review/` -- `ReviewClient`, one per page:  the review inbox's reads and writes (`/api/review/*`).
+    - Also token refresh, polling, and note-draft backups (the old page runtime's localStorage keys).
+    - It touches no browser global until `forPage()` / `watch()`.
+    - Used by:
       - `<epic-review>`:  the review controls `<epic-item>`, `<epic-section>` (Overview parts),
         `<epic-phase>` and `<epic-summary>` draw
-      - `<epic-new-item>`:  `<epic-page>`'s toolbar button, the Todos and Questions sections' New todo / question
+      - `<epic-new-item>`:  `<epic-page>`'s toolbar button, and the Todos and Questions sections' New todo / question
       - `<epic-option>`'s Choose pill
-    - the controls show while `<epic-page reviewing>` is set
-    - `AgentsClient`, one per page:  the epic's running agents (`/api/agents`) and Owen's redirects
-      - served by the page server's [`agentRoutes.ts`](../docs/tools/agentRoutes.ts)
-      - `<epic-page>` draws them as its "Agents running" panel
-        (`<epic-agents>`, in its shadow root before its blocks:  not a section)
-      - both clients POST and watch through the same code, a `ServerLink` each
-        (the token, its one refresh on a 403, the poll and `spell-server:file`)
-  - `convert/` -- the converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`),
-    with a `ConversionProof` per doc:  every id, link target and word kept.
-    Every live doc was converted at the switch (P12 of epic `epic-components`);
-    it stays for a doc restored from an old backup, and writes only under `--out`
+      - The controls show while `<epic-page reviewing>` is set.
+    - `AgentsClient`, one per page:  the epic's running agents, and Owen's redirects.
+      - Served at `/api/agents`, by [agentRoutes.ts](../docs/tools/agentRoutes.ts) in the docs tools.
+      - `<epic-page>` draws them as its "Agents running" panel:
+        `<epic-agents>`, in its shadow root, before its blocks (not a section).
+      - Both clients POST and watch through the same code, a `ServerLink` each:
+        the token, its one refresh on a 403, the poll and `spell-server:file`.
+  - `convert/` -- the converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`).
+    - A `ConversionProof` per doc:  every id, link target and word kept.
+    - Every live doc was converted at the switch (P12 of epic `epic-components`).
+    - It stays for a doc restored from an old backup, and writes only under `--out`.
   - `tool/` -- the plan-doc tool (`spell dev plan-doc`), node only, never bundled into the pack.
-    - It reads and writes `<epic-*>` markup only (through `Markup`), and refuses a doc still in the old markup
-      ("convert it first").
-    - Its rules for a doc's DATA (ids, statuses, review marks, prose):  [`PLAN-DOC.md`](src/tool/PLAN-DOC.md)
-    - its template:  [`plan.html`](src/tool/templates/plan.html)
-    - the old hand-written prose shapes (a `Net effect` paragraph, a code accordion, an option grid ...)
-      have ONE set of rules, `ProseShapes`
+    - It reads and writes `<epic-*>` markup only (through `Markup`),
+      and refuses a doc still in the old markup ("convert it first").
+    - Its rules for a doc's DATA (ids, statuses, review marks, prose):  [PLAN-DOC.md](src/tool/PLAN-DOC.md)
+    - its template:  [plan.html](src/tool/templates/plan.html), in `tool/templates/`
+    - The old hand-written prose shapes have ONE set of rules, `ProseShapes`:
+      a `Net effect` paragraph, a code accordion, an option grid ...
       - `ProseRewrite` turns them into elements,
-        for the tool's way in (`IncomingHtml`) and the converter's second pass alike
+        for the tool's way in (`IncomingHtml`) and the converter's second pass alike.
 - `pack/` -- GENERATED, committed (`spell dev pack build epics`, `yarn pack:build`).  NEVER edit:
-  - `epics.catalog.ts` -- tag => family folder + skeleton, read from the vocabularies;
-    its second line records the hash of the sources it was built from
+  - `epics.catalog.ts` -- tag => family folder + skeleton, read from the vocabularies.
+    Its second line records the hash of the sources it was built from.
   - `epics.entry.ts` -- the script's entry:
     `SpellUI.registerPack({ name, prefix, catalog, define })`, where `define()` imports every family barrel
   - `epics.pack.js` -- the CLASSIC script (an IIFE) a page loads, minified
-    - Solid and Spell UI's shared modules (`solid-js`, `@solidjs/web`, `$/ui/core`, `$/ui/forms`) are NOT in it:
-      it takes them from `globalThis.SpellUI.packModules`, the docs bundle's,
-      so a page has ONE Solid and one `UIComponent`
+    - Solid and Spell UI's shared modules are NOT in it:
+      `solid-js`, `@solidjs/web`, `$/ui/core`, `$/ui/forms`.
+    - It takes them from `globalThis.SpellUI.packModules`, the docs bundle's,
+      so a page has ONE Solid and one `UIComponent`.
 
 ## Rules
 
 - Change an element -- its vocabulary above all, or any file under `components/` or `src/` --
   then `spell dev pack build epics` (`yarn pack:build`), and commit `pack/` in the same change.
-  - `yarn pack:check` exits 1 while `pack/` is stale, and [`pack.test.ts`](src/pack.test.ts) runs it:
+  - `yarn pack:check` exits 1 while `pack/` is stale, and the pack's test (`pack.test.ts`) runs it:
     so `yarn test` and `yarn review` fail until you build.
 - Elements import Spell UI's code ONLY from `$/ui/core` / `$/ui/forms` (as a Spell UI family does),
-  and Solid from `solid-js` / `@solidjs/web`:
-  the build fails on any other `$/ui/...` or Solid import, which the page couldn't share.
+  and Solid from `solid-js` / `@solidjs/web`.
+  - The build fails on any other `$/ui/...` or Solid import, which the page couldn't share.
   - Another shared module:
-    add it to Spell UI's `packModules` AND `PACK_MODULES` in [`packBuild.ts`](../cli/src/dev/packBuild.ts).
+    add it to Spell UI's `packModules` AND to `PACK_MODULES`, in [packBuild.ts](../cli/src/dev/packBuild.ts).
 - Every tag starts `epic-`:  `<ui-root>` knows the pack's tags by that prefix.
-- Every sheet NAME starts `epic-` too (`elementSetup = { styleSheets: { "epic-item": itemCSS } }`):
-  Spell UI keeps ONE sheet per name for the whole page, and the first class to register a name wins,
-  so a bare `item` drew `<epic-item>` with `<ui-item>`'s sheet on any page that had both (I9).
-  [`index.test.tsx`](components/index.test.tsx) checks every class the barrel exports.
+- Every sheet NAME starts `epic-` too:  `elementSetup = { styleSheets: { "epic-item": itemCSS } }`.
+  - Spell UI keeps ONE sheet per name for the whole page, and the first class to register a name wins.
+  - So a bare `item` drew `<epic-item>` with `<ui-item>`'s sheet, on any page that had both (I9).
+  - [The barrel's test](components/index.test.tsx) checks every class the barrel exports.
 - A pack drawn by pages EVERY checkout shows (the shared `epics/`, `guides/` ...):
   those pages load `main`'s `pack/`, through the main checkout's page server.  So:
   - small fixes straight on `main`
