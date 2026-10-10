@@ -27,16 +27,15 @@ import feedCSS from "./UIFeed.css?inline"
  * - Colour:  an event has no `ui`,
  *   so a coloured one adds `ui-<color>` (the utility remap class) for `colors.css`, as `<ui-item>` does.
  *
- * - `disabled`:  `aria-disabled` on the root, which assistive tech (and axe) apply to the content inside.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, its content inert, `aria-disabled`.
  ****************/
 export class UIFeedEvent extends E.UIComponent<typeof eventVocabulary> {
   @E.proto static vocabulary = eventVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { feed: feedCSS },
     isAPart: true,
-    delegatesFocus: false,
-    // `disabled`:  `aria-disabled` on its box, and a look
-    disabled: "its own"
+    delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
   /** Feed, if any. */
@@ -72,12 +71,6 @@ export class UIFeedEvent extends E.UIComponent<typeof eventVocabulary> {
     return this.context.owner ? "listitem" : undefined
   }
 
-  /** `disabled`.  `:state(disabled)`. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled
-  }
-
   /** `ui-<color>` for a coloured event:  the colour remap (`colors.css`) keys on `.ui.red` / `.ui-red`. */
   protected get extraClass(): string | undefined {
     return this.color ? `${UIT.COLOR_CLASS_PREFIX}${this.color}` : undefined
@@ -89,7 +82,7 @@ export class UIFeedEvent extends E.UIComponent<typeof eventVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClass} part={this.partForName("event")} aria-disabled={this.disabled ? "true" : undefined}>
+      <div class={this.rootClass} part={this.partForName("event")}>
         <Show when={this.hasLabel}>
           <div class={UIT.LABEL} part={this.partForName("label")} data-text={this.label || undefined}>
             <Show when={this.image}>

@@ -444,6 +444,9 @@ ui -> util
   - No `.oxlintrc.json` / `.oxfmtrc.json` any more.
   - The editor and `vp check` read the ROOT block only:
     a rule for some packages goes in `rootLint()`'s `overrides` too.
+  - Our own rules:  `vite.lint.patterns.ts` beside it, a JS plugin.
+    - Its rules, `spell-ui/*`, guard Spell UI's patterns in component files:
+      "The lint guard" in [ui's AGENTS.md](packages/ui/AGENTS.md).
 - The root's `ts`, `test:packages` and `review` are `vp run` over every `@spell-app/*` package.
   - `ts` and `test:packages` run 4 at a time.
   - `review` runs one at a time:  its tests flake under load.

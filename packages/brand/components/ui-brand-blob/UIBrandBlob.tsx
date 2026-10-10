@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto, protoMerged, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
+import { E } from "$/ui/core"
 
 import { brandBlobVocabulary } from "./UIBrandBlob.en"
 
@@ -17,12 +17,12 @@ import blobCSS from "./UIBrandBlob.css?inline"
  * - Colours from the `spell-brand` theme's art roles (`--spell-blob` ...), so dark mode follows.
  * - Decorative:  `aria-hidden`, no pointer events.
  ****************/
-export class UIBrandBlob extends UIComponent<typeof brandBlobVocabulary> {
-  @proto static vocabulary = brandBlobVocabulary
-  @protoMerged static elementSetup = {
+export class UIBrandBlob extends E.UIComponent<typeof brandBlobVocabulary> {
+  @E.proto static vocabulary = brandBlobVocabulary
+  @E.protoMerged static elementSetup = {
     styleSheets: { blob: blobCSS },
     delegatesFocus: false
-  } satisfies Partial<ElementSetup>
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (
@@ -35,4 +35,4 @@ export class UIBrandBlob extends UIComponent<typeof brandBlobVocabulary> {
   }
 }
 
-export interface UIBrandBlob extends AttributeValues<typeof brandBlobVocabulary> {}
+export interface UIBrandBlob extends E.AttributeValues<typeof brandBlobVocabulary> {}

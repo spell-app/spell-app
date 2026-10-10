@@ -1,16 +1,17 @@
 /**
  * The English vocabulary of `<ui-brand-phone>`:  every name the tag uses.
- * - The shape is `ComponentVocabulary`.
+ * - The shape is `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
  * - Class words:  `dimmed` writes its name;  `time` and `label` write none.
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `brandPhoneVocabulary`
- * The names of `<ui-brand-phone>`, a phone frame around live app content:  a rounded ivory device with a status bar
- * (time, signal, wifi, battery) on top, the app below.  The Spell App's Build screen preview.
+ * The names of `<ui-brand-phone>`, a phone frame around live app content:
+ * a rounded ivory device with a status bar (time, signal, wifi, battery) on top, the app below.
+ * The Spell App's Build screen preview.
  ****************/
 export const brandPhoneVocabulary = {
   tag: "ui-brand-phone",
@@ -49,4 +50,4 @@ export const brandPhoneVocabulary = {
   ],
   states: [],
   texts: [{ key: "appPreview", text: "App preview", description: "Default name of the region around the app." }]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

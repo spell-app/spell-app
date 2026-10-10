@@ -1,4 +1,4 @@
-import { Repeat, Show, createEffect, untrack } from "solid-js"
+import { Repeat, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -37,23 +37,16 @@ import progressCSS from "./UIProgress.css?inline"
  * - Events:  `ui-change` when the percentage changes, `ui-complete` when it reaches 100.
  *   Both only after the first render, whatever wrote the numbers (there is no user input).
  ****************/
-@E.cssStates("active")
 export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   @E.proto static vocabulary = progressVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { progress: progressCSS },
+    cssStates: ["active"],
     delegatesFocus: false,
-    aria: { role: "progressbar", ariaValueMin: "0" },
+    aria: { role: "progressbar", valueMin: "0" },
     // `disabled`:  only a look
     disabled: "its own"
   } satisfies Partial<E.ElementSetup>
-
-  /** Adds the change events. */
-  onMount(): JSX.Element {
-    // stays explicit:  `defer`, no event for the first render
-    createEffect(() => this.numbers, this.onNumbersChanged, { defer: true })
-    return super.onMount()
-  }
 
   ////////////////
   // ## The numbers
@@ -74,10 +67,11 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   }
 
   /** Percentage when the last `ui-change` went out, to tell when it reaches 100. */
-  private lastAnnouncedPercent = untrack(() => this.numbers.percent)
+  private lastAnnouncedPercent = this.numbers.percent
 
-  /** The numbers changed:  `ui-change`, and `ui-complete` when it just reached 100. */
-  private readonly onNumbersChanged = (numbers: ProgressValues) => {
+  /** The numbers changed:  `ui-change`, and `ui-complete` when it just reached 100.  Not for the first draw. */
+  @E.onChange("numbers", { defer: true })
+  protected onNumbersChanged(numbers: ProgressValues) {
     if (numbers.percent === this.lastAnnouncedPercent) return
     const hasReached = numbers.percent >= 100 && this.lastAnnouncedPercent < 100
     this.lastAnnouncedPercent = numbers.percent
@@ -118,7 +112,7 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   ////////////////
 
   /** The element's text (its slotted label), read again when it changes. */
-  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  @E.watches({ childList: true, characterData: true, subtree: true })
   get elementText(): string {
     return (this.domElement.textContent ?? "").trim()
   }

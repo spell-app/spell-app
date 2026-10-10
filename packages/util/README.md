@@ -12,6 +12,8 @@ import { proto, kebabCase, closestAcrossShadow } from "$/util"
 - `@lazy` -- a getter whose value is made on first read, then kept
 - `@once` -- a method that runs once, and returns the same result after (a loader's promise)
 - `forget(object, "name")` -- drops either's kept value (a `static reset()`)
+- `@resets("name")` on an accessor -- each write to it drops that kept value too
+  (so `SiteData.url = ...` fetches again)
 - `hasOwnProp` ... -- class helpers
 - `kebabCase`, `camelCase`, `numberToWord`, `suggest` -- strings
 - `closestAcrossShadow`, `isBrowser`, `nextFrame`, `whenDefined` -- DOM

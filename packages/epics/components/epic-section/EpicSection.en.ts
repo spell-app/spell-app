@@ -1,15 +1,18 @@
 /**
  * Every name `<epic-section>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from its types file, which is data too, and the
- *   review controls' parts and texts (`REVIEW_*`) from `epic-item`'s:  an Overview sub-section draws them (Q14).
+ * - Pure data:  `import type`, plus other data:
+ *   - the fold pieces (`FOLD_*`), from its types file
+ *   - the parts of the `<epic-review>`s an Overview sub-section draws (Q14)
+ *   - the new-item texts of Todos and Questions
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  * - `kind`'s values are `overview-part`, `SectionIds`' keys, then `report`:  `Definitions.test.ts` checks they agree.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
-// the review controls an Overview sub-section draws, as `<epic-item>` does;  the new-item controls of Todos and Questions
-import { NEW_PARTS, NEW_TEXTS, REVIEW_PARTS, REVIEW_TEXTS } from "$/epics/components/epic-item/EpicItem.types"
+// the review controls an Overview sub-section draws, as `<epic-item>` does;  the waiting new items of Todos and Questions
+import { NEW_KIND_TEXTS, NEW_LIST_TEXTS } from "$/epics/components/epic-new-item/EpicNewItem.types"
+import { REVIEW_PARTS } from "$/epics/components/epic-review/EpicReview.types"
 
 import {
   FILTER_TEXTS,
@@ -132,7 +135,16 @@ export const epicSectionVocabulary = {
     { name: "changes", description: "The Phases section's Plan changes box, above its phases." },
     { name: "empty", description: 'An item section with no items:  "None yet".' },
     ...REVIEW_PARTS,
-    ...NEW_PARTS
+    {
+      name: "new-item",
+      description:
+        "A Todos or Questions section's New todo / New question (an `<epic-new-item>`, epic `airplane` P2), at its " +
+        "end:  the button, or the form in its place.  Only while the page is reviewed."
+    },
+    {
+      name: "new-list",
+      description: "A Todos or Questions section's new items waiting to be made:  dashed until sent, then outlined."
+    }
   ],
   states: [
     ...FOLD_STATES,
@@ -157,8 +169,8 @@ export const epicSectionVocabulary = {
     ...FILTER_TEXTS,
     { key: "hiddenNote", text: "{count} hidden · show all", description: "Under a filtered list;  a click shows all." },
     { key: "changesTitle", text: "Plan changes", description: "The Phases section's box of changes to phases to do." },
-    ...REVIEW_TEXTS,
-    ...NEW_TEXTS
+    ...NEW_KIND_TEXTS,
+    ...NEW_LIST_TEXTS
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },

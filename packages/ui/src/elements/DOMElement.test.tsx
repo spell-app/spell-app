@@ -69,9 +69,11 @@ function testTag(name: string, attributes: readonly AttributeSpec[], { Component
     texts: []
   }
   Object.defineProperty(Class.prototype, "vocabulary", { value: vocabulary })
-  // merged over the base's, as `@protoMerged static elementSetup` would
-  if (setup)
-    Object.defineProperty(Class.prototype, "elementSetup", { value: { ...Component.prototype.elementSetup, ...setup } })
+  // chained to the base's, as `@protoMerged static elementSetup` does
+  if (setup) {
+    const value = Object.setPrototypeOf({ ...setup }, Component.prototype.elementSetup)
+    Object.defineProperty(Class.prototype, "elementSetup", { value })
+  }
   const define = (translatedTag?: string, dictionary?: Dictionary) =>
     UIComponent.define.call(Class as never, translatedTag, dictionary) as DOMElementClass
   return { tag, define }
@@ -166,6 +168,28 @@ describe("DOMElement attributes", () => {
     expect(shown(host)).toBe("object:a,b")
   })
 
+  test("an object written to a string attribute's property reflects as JSON, never `[object Object]`", async () => {
+    const { tag } = definedTag("object-text", [attribute("label", "string")])
+    const host = await renderTag(tag)
+    host.label = { a: 1 }
+    expect(host.getAttribute("label")).toBe('{"a":1}')
+    // a string attribute holds text:  the property reads back the JSON, not the object
+    expect(host.label).toBe('{"a":1}')
+    host.label = 7
+    expect(host.getAttribute("label")).toBe("7")
+    await ElementFixture.tick()
+    expect(shown(host)).toBe("string:7")
+  })
+
+  test("an array of objects reflects as JSON too:  the array itself is kept", async () => {
+    const { tag } = definedTag("object-array", [attribute("items", "string")])
+    const host = await renderTag(tag)
+    const items = [{ a: 1 }, { b: 2 }]
+    host.items = items
+    expect(host.getAttribute("items")).toBe('[{"a":1},{"b":2}]')
+    expect(host.items).toBe(items)
+  })
+
   test("attributes are read before the element connects", () => {
     const { tag } = definedTag("before-connect", [attribute("count", "number", { default: 0 })])
     const host = document.createElement(tag) as Host
@@ -254,8 +278,9 @@ describe("DOMElement property values", () => {
     const { define } = testTag("translated", [attribute("label", "string")])
     const tag = `x-dom-traducido-${tagCount}`
     const Class = define(tag, { lang: "es", attributes: { label: "etiqueta" } })
-    // then the shared attributes (`SharedVocabulary`), under their English names
-    expect(Class.observedAttributes).toEqual(["etiqueta", "disabled", "loading", "visible"])
+    // then the shared attributes (`SharedVocabulary`), under their Spanish names (`SharedVocabulary.es.ts`),
+    // and the platform's `hidden` (`visible` turned round)
+    expect(Class.observedAttributes).toEqual(["etiqueta", "desactivado", "cargando", "visible", "animacion", "hidden"])
     const host = await renderTag(tag, `etiqueta="A"`)
     expect(host.etiqueta).toBe("A")
     expect("label" in host).toBe(false)
@@ -388,8 +413,9 @@ describe("DOMElement.defineProperties()", () => {
 ////////////////
 // ## Lifecycle
 //
-// From solid-element's fix 6 (`lifecycle.test.tsx`):  ui's elements always keep their component across
-// disconnects (solid-element's `keepAlive`);  the hooks are the component's methods now.
+// From solid-element's fix 6 (`lifecycle.test.tsx`):
+// ui's elements always keep their component across disconnects (solid-element's `keepAlive`);
+// the hooks are the component's methods now.
 ////////////////
 
 /** A counter whose count lives in the component:  a click on its button adds one. */
@@ -709,8 +735,8 @@ describe("DOMElement under Solid 2", () => {
     expect(shown(host)).toBe("string:b")
   })
 
-  // found porting this test (epic `spell-element` P2):  `<Show>` evaluates its children in a TRACKED computation, so
-  // `UIComponent.onMount()` untracks its `render()` call
+  // found porting this test (epic `spell-element` P2):
+  // `<Show>` evaluates its children in a TRACKED computation, so `UIComponent.onMount()` untracks its `render()` call
   test("render() runs ONCE, untracked, even when its body reads reactive values", async () => {
     const [outside, setOutside] = createSignal(0)
     const runs = { label: 0, signal: 0 }

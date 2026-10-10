@@ -7,15 +7,16 @@
  *   `.field` > `.segment` > `input.input` + `.suffix`, `button.copy`), `.status`, `.families` > `slot`.
  * - The component writes `--_brand-color-picker-x` / `-y` (the marker's place, 0-1), `-hue` (degrees) and `-color`
  *   (the colour) on the root.
- * - The HSL square is exact CSS:  HSL is linear in sRGB along both axes, so the middle row (L 50%) is a gradient from
- *   grey to the pure hue, and white / black fade over the top / bottom halves.  Gradients and compositing both work
- *   in gamma-encoded sRGB, as HSL does.
- * - Thumbs (the marker, the hue thumb) are the current colour, set off by a soft shadow, never a white ring (the
- *   brand's "Controls" rule);  a soft light glow keeps them visible on dark colours.
- * - Public tokens (`--ui-brand-color-picker-*`) are never declared here:  read through private aliases.  Defaults:
- *   the `spell-brand` roles, else plain `--ui-*` tokens.
- * - NOTE:  sizes are `em` of the root's `--ui-font-size` (16px):  a box with its own `font-size` uses `calc()`s of
- *   its own, never the private size aliases.
+ * - The HSL square is exact CSS:  HSL is linear in sRGB along both axes,
+ *   so the middle row (L 50%) is a gradient from grey to the pure hue,
+ *   and white / black fade over the top / bottom halves.
+ *   Gradients and compositing both work in gamma-encoded sRGB, as HSL does.
+ * - Thumbs (the marker, the hue thumb) are the current colour, set off by a soft shadow,
+ *   never a white ring (the brand's "Controls" rule);  a soft light glow keeps them visible on dark colours.
+ * - Public tokens (`--ui-brand-color-picker-*`) are never declared here:  read through private aliases.
+ *   Defaults:  the `spell-brand` roles, else plain `--ui-*` tokens.
+ * - NOTE:  sizes are `em` of the root's `--ui-font-size` (16px):
+ *   a box with its own `font-size` uses `calc()`s of its own, never the private size aliases.
  */
 
 @layer ui.components.brand-color-picker.types, ui.components.brand-color-picker.content, ui.components.brand-color-picker.states;
@@ -372,5 +373,10 @@
   :host(:state(disabled)) :is(.plane, .hue, .copy) {
     cursor: default;
     pointer-events: none;
+  }
+
+  /* Read-only:  the square and the hue slider don't move;  the copy buttons still work */
+  :host(:state(readonly)) :is(.plane, .hue) {
+    cursor: default;
   }
 }

@@ -1,19 +1,6 @@
-import { createEffect, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  aria,
-  Converters,
-  fromContent,
-  on,
-  proto,
-  protoMerged,
-  UIComponent,
-  UIT,
-  untracked,
-  type ElementSetup,
-  type AttributeValues
-} from "$/ui/core"
+import { E, UIT } from "$/ui/core"
 import { Palette } from "$/brand"
 import { DOMBrandColorElement } from "$/brand/components/ui-brand-color"
 
@@ -31,7 +18,7 @@ import setCSS from "./UIBrandColorSet.css?inline"
 
 /**
  * Same chips, same keys, same `selected`?  A rescan finding them again changes nothing (`UIBrandColorSet.chips`).
- * - Above the class:  `@fromContent({ equals })` reads it while the class is defined.
+ * - Above the class:  `@watches({ equals })` reads it while the class is defined.
  */
 function isSameChips(a: readonly SetChip[], b: readonly SetChip[]): boolean {
   return (
@@ -57,7 +44,7 @@ function isSameChips(a: readonly SetChip[], b: readonly SetChip[]): boolean {
  *
  * - `value`:  the chosen chip's `name`, else its colour
  *   (a colour matches whatever way it's written:  `#8e96b5` finds `142 150 181`).
- *   Controlled (`Controlled`):  setting it marks the matching chip `selected`, and every other one not;
+ *   Controlled (`@E.controlled`):  setting it marks the matching chip `selected`, and every other one not;
  *   unset, the chips' own `selected` stand, and the first of them is the chosen one.
  *
  * - `selectable`:  an APG radio group.
@@ -67,30 +54,27 @@ function isSameChips(a: readonly SetChip[], b: readonly SetChip[]): boolean {
  *   - Click, Enter or Space chooses;  the arrows move and choose (wrapping;  left / right swap right-to-left);
  *     Home / End go to the ends.
  *   - A choice sends `ui-change`, then sets `value`, unless a handler set it first.
- * - Watches its children and their `name` / `value` / `selected` (`@fromContent`), so chips added,
+ * - Watches its children and their `name` / `value` / `selected` (`@watches`), so chips added,
  *   removed or recoloured later just work.
- * - SIDE EFFECT:  writes its chips' `selected` (while `value` is set), `choice` and `tabindex` (while
- *   `selectable`);  a chip that leaves the set gets its `choice` and `tabindex` back.
+ * - SIDE EFFECT:  writes its chips' `selected` (while `value` is set), `choice` and `tabindex` (while `selectable`);
+ *   a chip that leaves the set gets its `choice` and `tabindex` back.
  ****************/
-export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
-  @proto static vocabulary = brandColorSetVocabulary
-  @protoMerged static elementSetup = {
+export class UIBrandColorSet extends E.UIComponent<BrandColorSetVocabulary> {
+  @E.proto static vocabulary = brandColorSetVocabulary
+  @E.protoMerged static elementSetup = {
     styleSheets: { set: setCSS },
     delegatesFocus: false
-  } satisfies Partial<ElementSetup>
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
-  // ## State
+  // ## The chips
   ////////////////
-
-  /** `value`:  set by the page, or chosen;  none until either. */
-  readonly valueState = this.controlled("value", undefined)
 
   /**
    * The chips, as read from the light DOM:  its children and their `name` / `value` / `selected`;
    * changed only when one of them changes.
    */
-  @fromContent({ childList: true, subtree: true, attributeFilter: CHIP_ATTRIBUTES, equals: isSameChips })
+  @E.watches({ childList: true, subtree: true, attributeFilter: CHIP_ATTRIBUTES, equals: isSameChips })
   get chips(): readonly SetChip[] {
     return this.scan()
   }
@@ -98,76 +82,11 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   /** Chips this set has made choices of, or given a `tabindex`:  handed back when they leave. */
   private readonly members = new Set<HTMLElement>()
 
-  ////////////////
-  // ## Derived state
-  ////////////////
-
-  /** Index of the chosen chip, `-1` for none:  the one `value` names, else the first `selected` one. */
-  readonly chosen = createMemo(() => {
-    const chips = this.chips
-    const value = this.valueState.get()
-    if (value) return chips.findIndex((chip) => UIBrandColorSet.matches(chip, value))
-    return chips.findIndex((chip) => chip.selected)
-  })
-
-  /** The DOM element is the radio group while `selectable`. */
-  @aria("role")
-  protected get ariaRole(): string | undefined {
-    return this.selectable ? "radiogroup" : undefined
+  /** The chips' sync:  chosen, choice and Tab stop. */
+  @E.onChange("chips", "chosen", "selectable", "value")
+  protected onChipsChanged(chips: readonly SetChip[], chosen: number, selectable: boolean, value: string | undefined) {
+    this.syncChips(chips, chosen, selectable, !!value)
   }
-
-  ////////////////
-  // ## Element hooks
-  ////////////////
-
-  /** `color brand`, and `grid` with `columns`. */
-  protected get extraClass(): string | undefined {
-    return this.columnCount() ? `${GRID} ${BRAND_COLOR}` : BRAND_COLOR
-  }
-
-  ////////////////
-  // ## Rendering
-  ////////////////
-
-  /** Adds the chips' sync:  chosen, choice and Tab stop. */
-  onMount(): JSX.Element {
-    createEffect(
-      () => ({
-        chips: this.chips,
-        chosen: this.chosen(),
-        selectable: this.selectable,
-        valued: !!this.valueState.get()
-      }),
-      ({ chips, chosen, selectable, valued }) => {
-        this.syncChips(chips, chosen, selectable, valued)
-      }
-    )
-    return super.onMount()
-  }
-
-  render(): JSX.Element {
-    return (
-      <div class={this.rootClass} part={this.partForName("set")} style={this.layoutStyle()}>
-        <slot />
-      </div>
-    )
-  }
-
-  /** Whole chips per row, or `undefined` for one row. */
-  private columnCount(): number | undefined {
-    const columns = Math.floor(this.columns ?? 0)
-    return columns > 0 ? columns : undefined
-  }
-
-  /** The grid's column count, as the private switch the sheet reads. */
-  private layoutStyle(): JSX.CSSProperties | undefined {
-    const columns = this.columnCount()
-    return columns ? { [COLUMNS_PROPERTY]: String(columns) } : undefined
-  }
-
-  ////////////////
-  // ## The chips
-  ////////////////
 
   /**
    * Bring the chips in step:  `selected` on the chosen one only (while `value` is set), `choice` and the roving
@@ -183,14 +102,14 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
       this.members.delete(member)
     }
     chips.forEach(({ chip }, index) => {
-      const domElement = chip as DOMBrandColorElement & { selected?: boolean }
-      if (valued && domElement instanceof DOMBrandColorElement && domElement.selected !== (index === chosen)) {
-        domElement.selected = index === chosen
-      }
+      // a chip not upgraded yet has no `choice` or `selected` of its own:  a write would hide them once it upgrades
+      const upgraded =
+        chip instanceof DOMBrandColorElement ? (chip as DOMBrandColorElement & { selected?: boolean }) : undefined
+      if (valued && upgraded && upgraded.selected !== (index === chosen)) upgraded.selected = index === chosen
       if (selectable) {
-        domElement.choice?.set(true)
+        if (upgraded) upgraded.choice = true
         const tabIndex = index === stop ? 0 : -1
-        if (domElement.tabIndex !== tabIndex || !domElement.hasAttribute("tabindex")) domElement.tabIndex = tabIndex
+        if (chip.tabIndex !== tabIndex || !chip.hasAttribute("tabindex")) chip.tabIndex = tabIndex
         this.members.add(chip)
       } else if (this.members.has(chip)) {
         UIBrandColorSet.release(chip)
@@ -209,32 +128,55 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
         chip: child as HTMLElement,
         name: child.getAttribute("name") ?? "",
         color: Palette.parse(value) ?? value,
-        selected: Converters.boolean(child.getAttribute("selected"), "selected")
+        selected: E.Converters.boolean(child.getAttribute("selected"), "selected")
       })
     }
     return chips
+  }
+
+  /** Hand a chip back:  no longer a choice, no `tabindex` of ours. */
+  private static release(chip: HTMLElement) {
+    if (chip instanceof DOMBrandColorElement) chip.choice = false
+    chip.removeAttribute("tabindex")
   }
 
   ////////////////
   // ## Choosing
   ////////////////
 
+  /** `value`:  set by the page, or chosen;  none until either. */
+  @E.controlled("value") accessor value: string | undefined = undefined
+
+  /** Index of the chosen chip, `-1` for none:  the one `value` names, else the first `selected` one. */
+  get chosen(): number {
+    const chips = this.chips
+    const value = this.value
+    if (value) return chips.findIndex((chip) => UIBrandColorSet.matches(chip, value))
+    return chips.findIndex((chip) => chip.selected)
+  }
+
+  /** The DOM element is the radio group while `selectable`. */
+  @E.aria("role")
+  protected get ariaRole(): string | undefined {
+    return this.selectable ? "radiogroup" : undefined
+  }
+
   /**
    * A user choice of chip `index`:  focus it, then (unless it's the chosen one already) `ui-change` and `value`.
    * - Returns true when `value` changed.
    */
-  @untracked
+  @E.untracked
   choose(index: number, originalEvent?: Event): boolean {
     const chip = this.chips[index]
     if (!chip) return false
     chip.chip.focus()
-    if (index === this.chosen() && this.valueState.get()) return false
+    if (index === this.chosen && this.value) return false
     const value = UIBrandColorSet.keyOf(chip)
-    return this.valueState.request(value, () => this.send("ui-change", { value, originalEvent }))
+    return this.requestChange("value", value, () => this.send("ui-change", { value, originalEvent }))
   }
 
   /** A click on a chip chooses it (`selectable`). */
-  @on("click")
+  @E.on("click")
   protected onClick(event: MouseEvent) {
     if (!this.selectable) return
     const index = this.indexOf(event)
@@ -242,7 +184,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   }
 
   /** The radio group's keys (`selectable`):  arrows, Home / End, Enter / Space. */
-  @on("keydown")
+  @E.on("keydown")
   protected onKeyDown(event: KeyboardEvent) {
     if (!this.selectable || event.altKey || event.ctrlKey || event.metaKey) return
     const index = this.indexOf(event)
@@ -255,7 +197,7 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
   }
 
   /** Index of the chip `event` happened in, else `-1`. */
-  @untracked
+  @E.untracked
   private indexOf(event: Event): number {
     const path = event.composedPath()
     return this.chips.findIndex(({ chip }) => path.includes(chip))
@@ -274,10 +216,6 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
     return (index + step + count) % count
   }
 
-  ////////////////
-  // ## Keys
-  ////////////////
-
   /** What chip `chip` is chosen as:  its `name`, else its colour. */
   private static keyOf(chip: SetChip): string {
     return chip.name || chip.color
@@ -289,14 +227,37 @@ export class UIBrandColorSet extends UIComponent<BrandColorSetVocabulary> {
     return !!chip.color && chip.color === (Palette.parse(value) ?? value)
   }
 
-  /** Hand a chip back:  no longer a choice, no `tabindex` of ours. */
-  private static release(chip: HTMLElement) {
-    ;(chip as DOMBrandColorElement).choice?.set(false)
-    chip.removeAttribute("tabindex")
+  ////////////////
+  // ## Layout
+  ////////////////
+
+  /** `color brand`, and `grid` with `columns`. */
+  protected get extraClass(): string | undefined {
+    return this.columnCount ? `${GRID} ${BRAND_COLOR}` : BRAND_COLOR
+  }
+
+  /** Whole chips per row, or `undefined` for one row. */
+  get columnCount(): number | undefined {
+    const columns = Math.floor(this.columns ?? 0)
+    return columns > 0 ? columns : undefined
+  }
+
+  render(): JSX.Element {
+    return (
+      <div class={this.rootClass} part={this.partForName("set")} style={this.layoutStyle()}>
+        <slot />
+      </div>
+    )
+  }
+
+  /** The grid's column count, as the private switch the sheet reads. */
+  private layoutStyle(): JSX.CSSProperties | undefined {
+    const columns = this.columnCount
+    return columns ? { [COLUMNS_PROPERTY]: String(columns) } : undefined
   }
 }
 
-export interface UIBrandColorSet extends AttributeValues<BrandColorSetVocabulary> {}
+export interface UIBrandColorSet extends E.AttributeValues<BrandColorSetVocabulary> {}
 
 /** The class words the component adds before the noun:  `color brand set`. */
 const BRAND_COLOR = "color brand"

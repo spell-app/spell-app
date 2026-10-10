@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
 import { loaderVocabulary } from "./UILoader.en"
 
 import loaderCSS from "./UILoader.css?inline"
@@ -19,17 +19,18 @@ import loaderCSS from "./UILoader.css?inline"
  *   - With no slotted text, it's named by the `loading` text ("Loading…");
  *     slotted text names it otherwise (a status takes its name from its content).
  *
- * - It shows only while `active` (Fomantic's rule, in `UILoader.css`);
- *   `:state(active)` and `:state(disabled)` are for the page's styles.
+ * - It shows only while `visible` (the shared `visible` / `hidden`), starting hidden:  Fomantic's rule.
+ *   - While it shows, or fades out, its box carries Fomantic's `active`, which `UILoader.css` keys on.
+ *   - `:state(hidden)` and `:state(disabled)` are for the page's styles.
  ****************/
-@E.cssStates("active")
 export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   @E.proto static vocabulary = loaderVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { loader: loaderCSS },
+    visible: "hidden",
     delegatesFocus: false,
-    aria: { role: "status", ariaLive: "polite" },
-    // `disabled`:  only a look
+    aria: { role: "status", live: "polite" },
+    // `disabled`:  hidden even while `visible` (Fomantic's rule), so nothing inside to make unusable
     disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
@@ -51,7 +52,7 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
    *   the text reads `UI.i18n` (via `translationForKey()`), which exists once the runtime loads.
    * - A server render (`$/ui/static`) applies it too.
    */
-  @E.aria("ariaLabel")
+  @E.aria("label")
   protected get accessibleName(): string | undefined {
     return this.isReady && !this.hasText ? this.translationForKey("loading") : undefined
   }
@@ -59,6 +60,11 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   ////////////////
   // ## Rendering
   ////////////////
+
+  /** Fomantic's `active`, just before the noun while shown or fading out (the box shows only with it). */
+  protected get extraClass(): string | undefined {
+    return this.isHidden ? undefined : UIT.ACTIVE
+  }
 
   render(): JSX.Element {
     return (

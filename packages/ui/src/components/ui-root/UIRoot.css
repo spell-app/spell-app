@@ -1,11 +1,13 @@
 /*
- * `<ui-root>`:  no Fomantic counterpart.  Its shadow is `[<ui-loader part="loading">] <slot>`;
+ * `<ui-root>`:  no Fomantic counterpart.
+ * Its shadow is `[<ui-loader part="loading">] <slot>`;
  * everything here styles the DOM element, by state (never by attribute value, which a translation may rename).
  * - The DOM element has no box (`display: contents`) unless `width` / `height` (`:state(box)`) or `fixed`.
  *   Without a box, `theme` still sets `color-scheme` and the colours every component inside inherits,
  *   but paints no background.
- * - Hiding while loading is an INLINE style on the slot (`UIRoot.slotStyle()`):  the root renders before this sheet
- *   arrives.  Width, height and `--ui-scale` are in each root's own sheet (`RootBox`).
+ * - Hiding while loading is an INLINE style on the slot (`UIRoot.contentStyle`):
+ *   the root renders before this sheet arrives.
+ * - Width, height and `--ui-scale` are in each root's own sheet (`RootBox`).
  */
 
 @layer ui.components.root.types, ui.components.root.content, ui.components.root.variations, ui.components.root.states;

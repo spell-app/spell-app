@@ -50,9 +50,6 @@
     display: inline-block;
     vertical-align: baseline;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* `delegatesFocus`:  the box draws the focus ring, never the DOM element. */
   :host(:focus-visible) {
     outline: none;

@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -80,10 +80,10 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
    * The page's look, as last chosen by any picker.
    * - A copy of `ThemePreference.look`, kept in step by `follow()`:  that one isn't reactive.
    */
-  @E.state accessor look: DocsLook = isServer ? SERVER_LOOK : untrack(() => ThemePreference.look)
+  @E.state accessor look: DocsLook = isServer ? SERVER_LOOK : ThemePreference.look
 
   /** The scheme the OS asks for:  what the page shows while following it;  a copy, as `look`. */
-  @E.state accessor osScheme: DocsShownScheme = isServer ? "light" : untrack(() => ThemePreference.osScheme())
+  @E.state accessor osScheme: DocsShownScheme = isServer ? "light" : ThemePreference.osScheme()
 
   /** The scheme the page shows:  the chosen one, or the OS's while following it. */
   get shownScheme(): DocsShownScheme {
@@ -309,7 +309,7 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
           inverted=""
           size={MINI}
           position={TIP_POSITION}
-          hidden={this.isOpen ? "" : undefined}
+          class={this.isOpen ? MUTED_CLASS : undefined}
         >
           {label()}
         </ui-popup>
@@ -523,6 +523,13 @@ const GLYPH_CLASS = "glyph"
 
 /** Class word of the overlay's `<ui-popup>`. */
 const OVERLAY_CLASS = "overlay"
+
+/**
+ * Class word of the palette's tooltip while its overlay is open:  it never shows then.
+ * - Not `hidden`:  on a `<ui-popup>` that's whether it shows (the shared `visible` / `hidden`),
+ *   which its trigger sets again on the next hover.
+ */
+const MUTED_CLASS = "muted"
 
 /** Class word of the overlay's content. */
 const PANEL_CLASS = "panel"

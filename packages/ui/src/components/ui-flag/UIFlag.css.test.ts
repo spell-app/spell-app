@@ -47,7 +47,7 @@ describe("UIFlag.css source", () => {
     for (const css of [flagCSS, flagRaw]) {
       const selectors = Sheets.selectors(css)
       expect(selectors).toContain(".ui.medium.flag")
-      expect(selectors).toContain(":host([hidden])")
+      expect(selectors).toContain(":host")
     }
   })
 

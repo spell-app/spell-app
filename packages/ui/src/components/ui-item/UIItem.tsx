@@ -93,6 +93,10 @@ export class UIItem extends E.UIComponent<typeof itemVocabulary> implements E.Co
    */
   isOwnerOf(): boolean {
     const owner = E.PartContext.componentFor<ItemOwnerComponent>(this.context.resolve())
+    // half-tracked on purpose:
+    // only the owner's item context is untracked (asking it records the item, `UIMenu.itemContext()`);
+    // the rest reads as the caller tracks, so no `@E.untracked` on the method
+    // oxlint-disable-next-line spell-ui/no-untrack -- half-tracked on purpose (above)
     return !!owner?.itemContext && !!untrack(() => owner.itemContext!(this.domElement)).ownsParts
   }
 

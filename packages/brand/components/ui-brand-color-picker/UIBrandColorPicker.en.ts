@@ -1,17 +1,22 @@
 /**
- * Every name `<ui-brand-color-picker>` uses:  tag, attributes, events, slots, parts, states, texts.  Schema:
- * `ComponentVocabulary`.
+ * Every name `<ui-brand-color-picker>` uses:  tag, attributes, events, slots, parts, states, texts.
+ * Schema:  `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
- * - Class words:  `disabled` emits its name.  The component adds `brand color` before the noun (`brand color picker`).
+ * - Class words:  `disabled` emits its name.
+ *   The component adds `brand color` before the noun (`brand color picker`).
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-brand-color-picker>`
- * An inline colour picker, the brand's (Color Set Chooser's "Choose a colour"):  a head row (chip + hex),
- * a hue slider, an HSL SQUARE for that hue (saturation across, lightness up), then HSL, RGB and OKLCH rows,
- * each with a copy button.  Not a popover itself:  a page puts it in a `<ui-popup>` or `<dialog>`.
+ * An inline colour picker, the brand's (Color Set Chooser's "Choose a colour"):
+ * - a head row (chip + hex)
+ * - a hue slider
+ * - an HSL SQUARE for that hue (saturation across, lightness up)
+ * - then HSL, RGB and OKLCH rows, each with a copy button
+ *
+ * Not a popover itself:  a page puts it in a `<ui-popup>` or `<dialog>`.
  ****************/
 export const brandColorPickerVocabulary = {
   tag: "ui-brand-color-picker",
@@ -34,11 +39,24 @@ export const brandColorPickerVocabulary = {
     },
     { name: "name", kind: "string", description: "Form field name:  the form gets `value`." },
     {
+      name: "required",
+      kind: "boolean",
+      description:
+        "Form validation:  a colour must be chosen, by the page (`value`) or by picking one.  " +
+        "Unset, it shows `#8E96B5` but counts as no value (`valueMissing`)."
+    },
+    {
       name: "label",
       kind: "string",
       description: "Name of the picker for screen readers (its group);  default:  what names it, else `Colour`."
     },
-    { name: "disabled", kind: "keyOnly", description: "Faded;  nothing in it can be used (copying neither)." }
+    { name: "disabled", kind: "keyOnly", description: "Faded;  nothing in it can be used (copying neither)." },
+    {
+      name: "readonly",
+      kind: "boolean",
+      property: "readOnly",
+      description: "Shows the colour but can't change it;  copying still works, and it's still submitted."
+    }
   ],
   events: [
     {
@@ -83,8 +101,10 @@ export const brandColorPickerVocabulary = {
   ],
   states: [
     { name: "disabled", description: "Can't be used." },
+    { name: "readonly", description: "`readonly`:  the colour can't be changed." },
     { name: "dragging", description: "The square's marker is being dragged." },
-    { name: "copied", description: "Just copied:  for about 1.4 seconds after a copy button." }
+    { name: "copied", description: "Just copied:  for about 1.4 seconds after a copy button." },
+    { name: "invalid", description: "Fails validation (`required`), once a person has interacted." }
   ],
   texts: [
     { key: "group", text: "Colour", description: "The picker's name, when nothing else names it." },
@@ -109,4 +129,4 @@ export const brandColorPickerVocabulary = {
     { key: "copy", text: "Copy {format}", description: "A copy button's name;  `{format}` the row's label." },
     { key: "copied", text: "Copied {value}", description: "Announced after a copy." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

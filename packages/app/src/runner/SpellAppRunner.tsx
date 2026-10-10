@@ -17,18 +17,21 @@ import "./SpellAppRunner.css"
 
 /****************
  * ### `<SpellAppRunner>`
- * Runs one spell app in a page, inside `<spell-app>`'s shadow root:  an optional toolbar, the app, and a
- * "debug" pane below it -- the Type Explorer, the Thing Explorer, and the program's console.
+ * Runs one spell app in a page, inside `<spell-app>`'s shadow root:
+ * an optional toolbar, the app, and a "debug" pane below it --
+ * the Type Explorer, the Thing Explorer, and the program's console.
  * - Runs on its OWN copy of the spell runtime -- see `loadRuntime()` -- so many can run on a page at once.
  * - Runs `source` when the runtime's loaded, again when `source` changes -- a NEW object -- and on Restart.
  *   Restart fetches the program afresh, so a recompiled one shows -- or runs `source.compiled` again, if set.
- * - The program draws with REACT (`App.start()` makes its own root):  we only hand it `appRoot`, a `<div>` drawn
- *   once and never touched again.  The app it mounted is unmounted with us.
- * - A program with NO app shows its console on top instead, and the explorers below.  One that starts its app
- *   AFTER the run finished, e.g. from a timer, shows it once it draws.
+ * - The program draws with Solid (`App.start()` mounts its own root, `spellCore.mountApp()`):
+ *   we only hand it `appRoot`, a `<div>` drawn once and never touched again.
+ *   The app it mounted is unmounted with us.
+ * - A program with NO app shows its console on top instead, and the explorers below.
+ *   One that starts its app AFTER the run finished, e.g. from a timer, shows it once it draws.
  * - The Type Explorer is read-only, and shows only if there's a scope pack -- see `ScopesSource`.
  * - `debug` and `fluid` are read once, to start;  `runtimeUrl` once per copy loaded.
- * - Its `<ui-*>` tags are the caller's to define (`$/app/solid/loadUI`), with Fomantic's icon names.
+ * - Its `<ui-*>` tags are the caller's to define, with Fomantic's icon names:
+ *   `<spell-app>` is a root that loads them as they appear;  the VS Code runner imports `$/app/solid/loadUI`.
  * - NEVER imports `$/core`:  it'd land in the bundle's shared chunk, so every app would share it.
  *   Everything of spell's comes from this app's copy of the runtime.
  ****************/
@@ -231,8 +234,8 @@ export type SpellAppRunnerProps = {
 }
 
 /**
- * Where a `<spell-app>`'s program, and what's around it, come from -- worked out from its attributes, or from
- * code a `<spell-editor>` pushed to it.  See `pushedSource()`.
+ * Where a `<spell-app>`'s program, and what's around it, come from --
+ * worked out from its attributes, or from code a `<spell-editor>` pushed to it.  See `pushedSource()`.
  * - NOTE: `compiled` and `scopes` are in memory, the rest are URLs.  An in-memory one wins over its URL.
  */
 export type SpellAppSource = {

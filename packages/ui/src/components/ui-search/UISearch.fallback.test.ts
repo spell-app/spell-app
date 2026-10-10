@@ -67,6 +67,11 @@ describe("SearchFallback", () => {
     expect(changes.map((change) => change.value)).toEqual(["banana"])
   })
 
+  it("`readonly`:  the input is read-only", () => {
+    const { input } = search(`<x-fb-search name="q" readonly value="fixed" aria-label="Q"></x-fb-search>`)
+    expect({ readOnly: input().readOnly, value: input().value }).toEqual({ readOnly: true, value: "fixed" })
+  })
+
   it("is invalid while `required` and empty", () => {
     const { host, input } = search(`<x-fb-search name="q" required aria-label="Q"></x-fb-search>`)
     expect(host.internals.validity.valueMissing).toBe(true)

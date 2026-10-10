@@ -1,24 +1,15 @@
-import { For, Show, createMemo, untrack } from "solid-js"
+import { For, Show, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
-import type { NewItem, NewKind } from "$/epics/review"
-// the review controls, shared with `<epic-item>`:  its files, not its barrel (which would define `<epic-item>` here)
-import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "$/epics/components/epic-item/ReviewControls"
-import { NewItemButton, NewItemForm, NewItemList } from "$/epics/components/epic-item/NewItems"
-import { ReviewState } from "$/epics/components/epic-item/ReviewState"
-import {
-  NEEDS_OWEN,
-  NEW_KIND_LOOKS,
-  OVERVIEW_BUTTONS,
-  STATUS_SLOT,
-  STATUS_STATES,
-  type NewTextKey,
-  type ReviewTextKey
-} from "$/epics/components/epic-item/EpicItem.types"
+import { NOBODY_LISTENING, SUMMARY_ID, type NewItem, type NewKind } from "$/epics/review"
+// its view of the review inbox:  the file, not `epic-review`'s barrel (`index.ts` defines that family)
+import { ReviewState } from "$/epics/components/epic-review/ReviewState"
+import { SHOW_NOTE, type ReviewShows } from "$/epics/components/epic-review/EpicReview.types"
+import { NEW_KIND_LOOKS } from "$/epics/components/epic-new-item/EpicNewItem.types"
+import { NEEDS_OWEN, STATUS_SLOT, STATUS_STATES } from "$/epics/components/epic-item/EpicItem.types"
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel
-import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
 
 import { epicSectionVocabulary } from "./EpicSection.en"
@@ -54,8 +45,7 @@ import {
   type StateFilterEntry
 } from "./EpicSection.types"
 
-import collapseAllCSS from "$/epics/components/epic-item/CollapseAllButton.css?inline"
-import reviewCSS from "$/epics/components/epic-item/ReviewControls.css?inline"
+import collapseAllCSS from "$/epics/components/epic-item/CollapseAll.css?inline"
 import foldCSS from "./EpicFold.css?inline"
 import sectionCSS from "./EpicSection.css?inline"
 import chipsCSS from "./StateChips.css?inline"
@@ -67,9 +57,12 @@ import chipsCSS from "./StateChips.css?inline"
  * - Above `EpicSection`:  its `elementSetup` reads it while the class is defined.
  ****************/
 export class DOMEpicSectionElement extends DOMEpicFoldElement {
-  /** Its state filter:  each state its items are in, how many, and whether they show;  none without items. */
+  /**
+   * Its state filter:  each state its items are in, how many, and whether they show;  none without items.
+   * Read untracked (`EpicSection.stateFilter()`):  the page follows its `ui-filter` instead.
+   */
   get stateFilter(): readonly StateFilterEntry[] | undefined {
-    return untrack(() => this.section?.stateFilter())
+    return this.section?.stateFilter()
   }
 
   /** Show its items in `states` only (none:  every state), as if picked on its own chips;  remembered. */
@@ -91,10 +84,13 @@ export class DOMEpicSectionElement extends DOMEpicFoldElement {
  *   then its children:  phases, items, log events or prose.
  *   - the title:  `3. Questions`, by its place among the page's blocks;
  *     `1.2 Why` for an Overview sub-section, its title its own
- * - Its COUNT (P10), on the title's badge:  `open/all` of its items (or phases),
- *   open being any status but `done`, `decided` or `canceled`;  none without any.
+ * - Its COUNT (P10):  `open/all` of its items (or phases), open being any status but `done`, `decided` or
+ *   `canceled`;  none without any.
+ *   - on the title's badge for the Phases section only:  an item section's state chips say the numbers already
+ *     (Owen, 2026-10-10:  "We can remove the (37/58) pill ... since we have the numbers in the filters")
+ *   - the page's toolbar reads it too (`contentsEntry`)
  *   Counted again whenever a child comes, goes, or changes its `status` or `state`
- *   (`@fromContent`:  the live update, a part loading).
+ *   (`@watches`:  the live update, a part loading).
  * - An item section's STATE FILTER (P10;  chips with counts, epic `airplane` P8), at the title's end:
  *   - one chip per state its items are in, in the state's colour, with how many:
  *     solid while that state's items show, outlined while hidden
@@ -105,23 +101,27 @@ export class DOMEpicSectionElement extends DOMEpicFoldElement {
  *   - hidden items go by a `::slotted()` rule drawn in the shadow root:  the doc's markup is never touched
  *   - remembered per page, under the old runtime's key (`FILTER_KEY`);  `ui-filter` says it changed
  *   - the page's toolbar filters every section at once, through its DOM element (`DOMEpicSectionElement`)
- * - The Phases section's title holds the Files / Verify toggles:  each shows or hides that field in every phase,
- *   through `--epic-files-display` / `--epic-verify-display`, which the fields read;  remembered per page.
- *   Its Plan changes box (T14):  the `slot="changes"` copies the tool writes, above the phases;  nothing without one.
+ * - The Phases section's title holds the Files / Verify toggles:
+ *   - each shows or hides that field in every phase,
+ *     through `--epic-files-display` / `--epic-verify-display`, which the fields read
+ *   - remembered per page
+ * - The Phases section's Plan changes box (T14):  the `slot="changes"` copies the tool writes, above the phases;
+ *   nothing without one.
  * - An item section with no items says "None yet".
- * - A REPORT (`kind="report"`, P14):  prose a run wrote for Owen to read (an overnight `/bedtime` report),
- *   right after the Overview, on the page's section band;
- *   titled its own (`title`), never numbered, so the sections after it keep theirs.
+ * - A REPORT (`kind="report"`, P14):  prose a run wrote for Owen to read (an overnight `/bedtime` report).
+ *   - right after the Overview, on the page's section band
+ *   - titled its own (`title`), never numbered, so the sections after it keep theirs
  * - An Overview sub-section is reviewed as an item is, only while the page is reviewed
- *   (decision Q14;  `ReviewControls.tsx`):
- *   - Make Todo, Revisit, Add Details Now in `tools` (no Approve:  Q14 asks for notes, not sign-off)
+ *   (decision Q14;  `<epic-review buttons="part">`):
+ *   - Revisit, Make Todo, Do Now in `tools` (no Approve:  Q14 asks for notes, not sign-off)
  *   - its note box at the end of its body, a marked note at its top
  *   - Claude's status cards (`slot="status"`, P13) just above the note box
- * - NEW ITEMS (epic `airplane` P2;  `NewItems.tsx`):  while the page is reviewed,
- *   the Todos and Questions sections end with the new items of their kind Owen asked for
- *   and Claude hasn't made yet (Edit, Remove),
- *   then a New todo / New question button, which opens the form there.
- * - SIDE EFFECT:  observes its own children, from the first count on (`@fromContent`);
+ *   - Revisit and Edit unfold it (`epic-show-note`)
+ * - NEW ITEMS (epic `airplane` P2), while the page is reviewed:
+ *   the Todos and Questions sections end with
+ *   - the new items of their kind Owen asked for and Claude hasn't made yet (Edit, Remove:  `newItemList()`)
+ *   - then a New todo / New question button, which opens the form there (`<epic-new-item>`)
+ * - SIDE EFFECT:  observes its own children, from the first count on (`@watches`);
  *   follows the review inbox while connected (an Overview sub-section, Todos, Questions).
  ****************/
 export class EpicSection extends EpicFold<EpicSectionVocabulary> {
@@ -132,8 +132,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
       "epic-fold": foldCSS,
       "epic-collapse-all": collapseAllCSS,
       "epic-state-chips": chipsCSS,
-      "epic-section": sectionCSS,
-      "epic-review": reviewCSS
+      "epic-section": sectionCSS
     }
   } satisfies Partial<E.ElementSetup>
 
@@ -147,23 +146,22 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   /** The Phases section's toggles:  which fields show. */
   @E.state accessor shown: Record<string, boolean> = EpicSection.savedToggles()
 
-  /** The states the reader chose to show, as last left on this page;  `undefined`:  every state. */
-  @E.state accessor chosen: readonly string[] | undefined = EpicSection.savedFilters()[untrack(() => this.id) ?? ""]
+  /**
+   * The states the reader chose to show, as last left on this page;  `undefined`:  every state.
+   * - by the DOM element's own `id`, read plainly:  a starting value, never followed
+   */
+  @E.state accessor chosen: readonly string[] | undefined = EpicSection.savedFilters()[this.domElement.id]
 
   /**
-   * Its view of the review inbox:  an Overview sub-section's, keyed by its id;  the Todos and Questions sections', for
-   * their new items (no id:  never marked themselves);  other kinds never read it.
+   * Its view of the review inbox:
+   * - an Overview sub-section's:  keyed by its id (is the page reviewed?  has it a marked note?)
+   * - the Todos and Questions sections':  for their new items (no id:  never marked themselves)
+   * - other kinds never read it
    */
   readonly reviewState = new ReviewState(() => (this.kind === "overview-part" ? this.id : undefined))
 
-  /**
-   * The Todos or Questions section's new item form:
-   * open (`{}`), open on a waiting item (`{ item }`, Edit), or closed (`undefined`).
-   */
-  @E.state accessor newForm: { item?: NewItem } | undefined = undefined
-
-  /** An Overview sub-section's note box `<textarea>`, once drawn:  Revisit and Edit focus it. */
-  private noteInput: HTMLTextAreaElement | undefined
+  /** The Todos or Questions section's `<epic-new-item>`, as drawn:  Edit on a waiting item opens its form on it. */
+  private newItem: (HTMLElement & { open: boolean; editing?: string }) | undefined
 
   /** The toggles' icons, in `PHASE_TOGGLES`' order;  the Plan changes box's. */
   readonly toggleGlyphs = PHASE_TOGGLES.map((toggle) => new E.IconGlyph({ owner: this, name: () => toggle.icon }))
@@ -202,7 +200,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
    * the count and filter follow.
    * - A NEW list on every change, so the count reads the children's `status` again.
    */
-  @E.fromContent({ childList: true, subtree: true, attributeFilter: COUNT_ATTRIBUTES })
+  @E.watches({ childList: true, subtree: true, attributeFilter: COUNT_ATTRIBUTES })
   get counted(): readonly Element[] {
     void this.slots.filledSlots
     if (!this.counts() || isServer) return NOTHING_COUNTED
@@ -237,8 +235,9 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   /**
    * The states showing:  the reader's choice, of the states there are now;  none chosen, every state.
    * - NOTE: a choice can leave none of them now (the page's toolbar showed only red, and this section has none):
-   *   then every item is hidden, and `3 hidden · show all` says so (Owen, 2026-10-10:  filter "everything on the
-   *   page").  Before, such a choice showed everything.
+   *   then every item is hidden, and `3 hidden · show all` says so
+   *   (Owen, 2026-10-10:  filter "everything on the page").
+   *   Before, such a choice showed everything.
    */
   readonly showing = createMemo((): ReadonlySet<string> => {
     const present = this.present().map((it) => it.state as string)
@@ -264,24 +263,28 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
 
   /**
    * Follow the review inbox while connected (kept alive:  a removed one stops):
-   * an Overview sub-section, for its marks;  the Todos and Questions sections, for their new items.
+   * - an Overview sub-section, for its marks
+   * - the Todos and Questions sections, for their new items
    */
   @E.whileConnected
   protected followReviews() {
-    const follows = untrack(() => this.kind) === "overview-part" || !!untrack(() => this.newKind())
+    const follows = this.kind === "overview-part" || !!this.newKind()
     return follows ? this.reviewState.connect() : undefined
   }
 
   render(): JSX.Element {
     // read once:  a section never changes its kind
-    const look = untrack(this.look)
-    const kind = untrack(() => this.kind)
+    // (`render()`'s body runs once, untracked:  `UIComponent.onMount()`)
+    const look = this.look()
+    const kind = this.kind
     return this.renderFold({
       title: () => this.heading(),
       icon: look ? () => this.glyph.svg : undefined,
+      // an item section's chips say the numbers already (Owen, 2026-10-10:  "We can remove the (37/58) pill"):
+      // only phases keep the count
       badge: () => {
         const count = this.count()
-        return count ? `${count.open}/${count.total}` : undefined
+        return count && !this.holdsItems() ? `${count.open}/${count.total}` : undefined
       },
       tools:
         kind === "phases"
@@ -305,7 +308,9 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
           <Show when={kind === "overview-part"}>
             <slot name={this.slotForName(STATUS_SLOT)} />
           </Show>
-          <Show when={kind === "overview-part" && this.reviewState.reviewing()}>{this.noteBox()}</Show>
+          <Show when={kind === "overview-part" && this.reviewState.reviewing()}>
+            {this.reviewControl("note", "note-box")}
+          </Show>
           <Show when={this.reviewState.reviewing() && this.newKind()}>{(newKind) => this.newItems(newKind())}</Show>
         </>
       )
@@ -313,9 +318,10 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   }
 
   /**
-   * The contents entry (`EpicFold.contentsEntry()`):  `3. Questions` with its kind's icon and its count, or an
-   * Overview sub-section's `1.2 <its title>`.  Read fresh from the page:  the count from its children now, never
-   * a memo a pending change hasn't reached yet (the live update re-reads the contents right after it patches).
+   * The contents entry (`EpicFold.contentsEntry()`):
+   * `3. Questions` with its kind's icon and its count, or an Overview sub-section's `1.2 <its title>`.
+   * - read fresh from the page:  the count from its children now, never a memo a pending change hasn't reached yet
+   *   (the live update re-reads the contents right after it patches)
    */
   contentsEntry(): ContentsEntry {
     const kind = this.domElement.getAttribute("kind") ?? ""
@@ -445,8 +451,9 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
 
   /**
    * The Plan changes box (T14):  the tool's copies of each change to a phase still to do;  nothing without one.
-   * - it FOLDS, like every titled box (Owen, 2026-10-08):  its heading is a button with the chevron and how many
-   *   changes it holds;  folded, the changes are hidden `until-found` (find-in-page still reaches them)
+   * - it FOLDS, like every titled box (Owen, 2026-10-08):
+   *   its heading is a button with the chevron and how many changes it holds
+   * - folded, the changes are hidden `until-found` (find-in-page still reaches them)
    */
   private planChanges(): JSX.Element {
     const slot = this.slotForName("changes")
@@ -462,7 +469,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
             aria-controls={CHANGES_BODY}
             onClick={this.changesFold.toggle}
           >
-            <Chevron />
+            {Fold.chevron()}
             <span class="icon" aria-hidden="true">
               {this.changesGlyph.svg}
             </span>
@@ -490,74 +497,30 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   // ## Review (an Overview sub-section)
   ////////////////
 
-  /** The review buttons at the title's end:  Make Todo, Revisit, Add Details Now. */
+  /** The review buttons at the title's end:  Revisit, Make Todo, Do Now. */
   private reviewButtons(): JSX.Element {
-    return (
-      <Show when={this.reviewState.reviewing()}>
-        <ReviewButtons
-          review={this.reviewState}
-          text={this.reviewText}
-          label={this.idLabel()}
-          buttons={OVERVIEW_BUTTONS}
-          part={this.partForName("review-buttons")}
-          onOpenBox={() => this.takeToNote()}
-        />
-      </Show>
-    )
+    return <Show when={this.reviewState.reviewing()}>{this.reviewControl("buttons", "review-buttons")}</Show>
   }
 
   /** A marked note, at the top of its body. */
   private saidNote(): JSX.Element {
     return (
-      <Show when={this.reviewState.reviewing()}>
-        <SaidNote
-          review={this.reviewState}
-          text={this.reviewText}
-          part={this.partForName("said")}
-          onEdit={() => this.takeToNote(this.reviewState.mark()?.note)}
-        />
-      </Show>
+      <Show when={this.reviewState.reviewing() && this.reviewState.noted()}>{this.reviewControl("said", "said")}</Show>
     )
   }
 
-  /** The note box, at the end of its body. */
-  private noteBox(): JSX.Element {
-    return (
-      <NoteBox
-        review={this.reviewState}
-        text={this.reviewText}
-        label={this.idLabel()}
-        part={this.partForName("note-box")}
-        ref={(note) => (this.noteInput = note)}
-        onEscape={() => this.leaveNote()}
-        onUsed={() => this.leaveNote()}
-      />
-    )
+  /** One of its review controls (`<epic-review>`):  what it `shows`, as its `part`. */
+  private reviewControl(shows: ReviewShows, part: "review-buttons" | "note-box" | "said"): JSX.Element {
+    return <epic-review of={this.id} shows={shows} buttons="part" part={this.partForName(part)} />
   }
 
-  /** Its id as shown:  `O1`. */
-  private idLabel(): string {
-    return (this.id ?? "").toUpperCase()
-  }
-
-  /** Its texts, as the review controls ask for them. */
-  private readonly reviewText = (key: ReviewTextKey, params?: Record<string, string | number>) =>
-    this.translationForKey(key, params)
-
-  /** Take the reader to its note box (Revisit;  Edit, with the marked `note`):  unfolded first. */
-  private takeToNote(note?: string) {
-    takeToNote(
-      this.reviewState,
-      () => void this.reveal(),
-      () => this.noteInput,
-      note
-    )
-  }
-
-  /** Done with the note box:  it stays, but stops counting as written in once it's empty. */
-  @E.untracked
-  private leaveNote() {
-    if (!this.noteInput?.value.trim()) this.reviewState.client?.closeBox(this.reviewState.id(), false)
+  /** Revisit or Edit, pressed on its own review controls:  unfolded, to show the note box. */
+  @E.on(SHOW_NOTE, { target: "renderRoot" })
+  protected onShowNote(event: Event) {
+    // its own controls' only:  a nested element's come through here too
+    if ((event.target as Node).getRootNode() !== event.currentTarget) return
+    event.stopPropagation()
+    void this.reveal()
   }
 
   ////////////////
@@ -565,46 +528,95 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   ////////////////
 
   /**
-   * At the end of the Todos or Questions section, while reviewed:  the new items of its kind waiting to be made, then
-   * its New todo / New question button, or the form it opened.
+   * At the end of the Todos or Questions section, while reviewed:
+   * - the new items of its kind waiting to be made (`newItemList()`)
+   * - then its New todo / New question button, or the form it opened (`<epic-new-item>`)
    */
   private newItems(kind: NewKind): JSX.Element {
-    const look = NEW_KIND_LOOKS[kind]
     return (
       <>
-        <NewItemList
-          review={this.reviewState}
-          text={this.newText}
-          kind={kind}
-          part={this.partForName("new-list")}
-          onEdit={(item) => (this.newForm = { item })}
+        {this.newItemList(kind)}
+        <epic-new-item
+          ref={(element: HTMLElement) => (this.newItem = element as typeof this.newItem)}
+          adds={kind}
+          part={this.partForName("new-item")}
         />
-        <Show
-          when={this.newForm}
-          keyed
-          fallback={
-            <NewItemButton
-              label={this.translationForKey(look.add)}
-              words={this.translationForKey(look.add)}
-              open={false}
-              part={this.partForName("new-button")}
-              onClick={() => (this.newForm = {})}
-            />
-          }
-        >
-          {(form) => (
-            <NewItemForm
-              review={this.reviewState}
-              text={this.newText}
-              kind={kind}
-              item={form.item}
-              part={this.partForName("new-form")}
-              onDone={() => (this.newForm = undefined)}
-            />
-          )}
-        </Show>
       </>
     )
+  }
+
+  /**
+   * The new items of one kind waiting to be made, each a card:
+   * its icon, "Todo" or "Question", its title, its note, what it's about (a link), then Edit and Remove.
+   * - the fill rule (decision Q20):  dashed until sent, outlined once sent
+   * - its tooltip says which, and that it waits for a review while nobody is listening
+   * - draws nothing while none waits
+   */
+  private newItemList(kind: NewKind): JSX.Element {
+    const items = () => this.reviewState.newItems(kind)
+    return (
+      <Show when={items().length}>
+        <ul class={NEW_LIST} part={this.partForName("new-list")}>
+          <For each={items()} keyed={(it) => it.id}>
+            {(it) => (
+              <li class={NEW_CARD} data-fill={this.isSent(it()) ? "outline" : "dashed"} title={this.cardTip(it())}>
+                <ui-icon name={NEW_KIND_LOOKS[it().kind].icon} />
+                <span class="what">{this.translationForKey(NEW_KIND_LOOKS[it().kind].label)}</span>
+                <span class="title">{it().title}</span>
+                <span class="tools">
+                  <button
+                    type="button"
+                    title={this.translationForKey("newEdit")}
+                    aria-label={`${this.translationForKey("newEdit")}:  ${it().title}`}
+                    onClick={() => this.editNew(it())}
+                  >
+                    <ui-icon name="pen" />
+                  </button>
+                  <button
+                    type="button"
+                    title={this.translationForKey("newRemove")}
+                    aria-label={`${this.translationForKey("newRemove")}:  ${it().title}`}
+                    onClick={() => void this.reviewState.client?.removeNew(it().id)}
+                  >
+                    <ui-icon name="trash can" />
+                  </button>
+                </span>
+                <Show when={it().note}>{(note) => <p class="note">{note()}</p>}</Show>
+                <Show when={it().near}>
+                  {(near) => (
+                    <a class="about" href={`#${near() === SUMMARY_ID ? SUMMARY_LINK : near()}`}>
+                      {this.translationForKey("newAbout", {
+                        id: near() === SUMMARY_ID ? near() : near().toUpperCase()
+                      })}
+                    </a>
+                  )}
+                </Show>
+              </li>
+            )}
+          </For>
+        </ul>
+      </Show>
+    )
+  }
+
+  /** Has waiting `item` gone with a send? */
+  private isSent(item: NewItem): boolean {
+    return this.reviewState.client?.isSent(item) ?? false
+  }
+
+  /** A waiting card's tooltip:  how far it got;  nobody listening, that it waits for a review. */
+  private cardTip(item: NewItem): string {
+    const state = this.translationForKey(this.isSent(item) ? "newSent" : "newUnsent")
+    return this.reviewState.listening() ? state : `${state}.  ${NOBODY_LISTENING}`
+  }
+
+  /** Edit on a waiting card:  the section's `<epic-new-item>` opens its form on it. */
+  @E.untracked
+  private editNew(item: NewItem) {
+    const box = this.newItem
+    if (!box) return
+    box.editing = item.id
+    box.open = true
   }
 
   /** The kind of new item this section takes (`todo` in Todos, `question` in Questions);  none for any other. */
@@ -612,10 +624,6 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     const kind = this.kind
     return (Object.keys(NEW_KIND_LOOKS) as NewKind[]).find((each) => NEW_KIND_LOOKS[each].section === kind)
   }
-
-  /** Its texts, as the new-item controls ask for them. */
-  private readonly newText = (key: NewTextKey, params?: Record<string, string | number>) =>
-    this.translationForKey(key, params)
 
   ////////////////
   // ## Behaviour
@@ -711,8 +719,9 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   }
 
   /**
-   * The count of `children` (items, or phases):  open being any status but `CLOSED_STATUSES`',  `attention` the items
-   * that need Owen (`NEEDS_OWEN`:  red, or orange, his turn to pick);  none without any.
+   * The count of `children` (items, or phases);  none without any.
+   * - `open`:  any status but `CLOSED_STATUSES`'
+   * - `attention`:  the items that need Owen (`NEEDS_OWEN`:  red, or orange, his turn to pick)
    */
   private static countOf(children: readonly Element[]): SectionCount | undefined {
     if (!children.length) return undefined
@@ -730,8 +739,9 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   }
 
   /**
-   * An item's state, as its id chip reads it (`<epic-item>`'s `itemState`):  `state` when it's one of ours, else by
-   * its status (`STATUS_STATES`:  decided or done `recent`, canceled `old`, else `open`).
+   * An item's state, as its id chip reads it (`<epic-item>`'s `itemState`):
+   * `state` when it's one of ours, else by its status
+   * (`STATUS_STATES`:  decided or done `recent`, canceled `old`, else `open`).
    */
   private static stateOf(item: Element): ItemStateName {
     const state = item.getAttribute("state")
@@ -781,3 +791,10 @@ const NOTHING_COUNTED: readonly Element[] = []
 
 /** `id` of the Plan changes box's body, which its heading controls. */
 const CHANGES_BODY = "changes-body"
+
+/** Classes of the waiting new items (`newItemList()`):  the list, a card. */
+const NEW_LIST = "new-list"
+const NEW_CARD = "new-card"
+
+/** Where a waiting item's link to the summary goes:  it has no id, so the Overview it opens. */
+const SUMMARY_LINK = "overview"

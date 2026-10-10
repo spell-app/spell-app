@@ -1,20 +1,20 @@
 /**
- * Every name `<ui-brand-composer>` uses:  tag, attributes, events, slots, parts, states, texts.  Schema:
- * `ComponentVocabulary`.
+ * Every name `<ui-brand-composer>` uses:  tag, attributes, events, slots, parts, states, texts.
+ * Schema:  `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
- * - Class words:  `casting` and `disabled` emit their names.  The element adds `brand` before the noun,
- *   and `large` for `size="large"` (`brand large composer`).
+ * - Class words:  `casting` and `disabled` emit their names.
+ *   The element adds `brand` before the noun, and `large` for `size="large"` (`brand large composer`).
  * - `value` does NOT reflect, as `<ui-textarea>`'s:  the ATTRIBUTE is the starting (and reset) value,
  *   the PROPERTY the live one.
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-brand-composer>`
- * The brand's "describe your app" box:  a card holding a serif text box where you write a spell, then a row of
- * tools (chips), a keyboard hint and a round Cast button.  Cast is the button or Cmd / Ctrl+Enter;
- * plain Enter starts a new line.
+ * The brand's "describe your app" box:  a card holding a serif text box where you write a spell,
+ * then a row of tools (chips), a keyboard hint and a round Cast button.
+ * Cast is the button or Cmd / Ctrl+Enter;  plain Enter starts a new line.
  ****************/
 export const brandComposerVocabulary = {
   tag: "ui-brand-composer",
@@ -35,6 +35,11 @@ export const brandComposerVocabulary = {
         "The text.  Attribute:  the starting (and reset) value;  property:  the live value, as `<ui-textarea>`'s."
     },
     { name: "name", kind: "string", description: "Form field name:  the form gets `value`." },
+    {
+      name: "required",
+      kind: "boolean",
+      description: "Form validation:  something must be written (`valueMissing`), or the form won't submit."
+    },
     {
       name: "placeholder",
       kind: "string",
@@ -75,7 +80,13 @@ export const brandComposerVocabulary = {
         "Busy:  the Cast button spins and casting is paused (the text stays editable).  The page sets it while it " +
         "builds, and clears it."
     },
-    { name: "disabled", kind: "keyOnly", description: "Faded;  can't be typed in or cast, left out of the form." }
+    { name: "disabled", kind: "keyOnly", description: "Faded;  can't be typed in or cast, left out of the form." },
+    {
+      name: "readonly",
+      kind: "boolean",
+      property: "readOnly",
+      description: "Shows its text but can't be typed in;  still cast and submitted (unlike `disabled`)."
+    }
   ],
   events: [
     {
@@ -118,7 +129,9 @@ export const brandComposerVocabulary = {
   states: [
     { name: "empty", description: "Nothing (or only blank) written:  the Cast button is dimmed." },
     { name: "casting", description: "Busy:  `casting` is set." },
-    { name: "disabled", description: "Can't be used." }
+    { name: "disabled", description: "Can't be used." },
+    { name: "readonly", description: "`readonly`:  can't be typed in." },
+    { name: "invalid", description: "Fails validation (`required`), once a person has interacted." }
   ],
   texts: [
     { key: "label", text: "Your spell", description: "The text box's name, when nothing else names it." },
@@ -128,4 +141,4 @@ export const brandComposerVocabulary = {
     { key: "cast", text: "Cast spell", description: "The Cast button's name." },
     { key: "casting", text: "Casting your spell…", description: "Announced when `casting` turns on." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

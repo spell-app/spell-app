@@ -24,10 +24,8 @@
  *
  * - No `:state()`s:  the rules key on the inner box's classes.
  *
- * - `hidden` keeps its own attribute name, though its DOM property is `dividerHidden`
- *   (so it doesn't hide `HTMLElement.hidden`).
- *   `:host([hidden])` (unlayered) turns the browser's and `reset.css`'s `display: none` back into `display: contents`,
- *   so a hidden divider keeps its spacing.
+ * - `<ui-divider spacer>` is Fomantic's `hidden` divider (the class word stays `hidden`);
+ *   the element's own `hidden` hides it, as on every element.
  *
  * - Left out, on purpose:
  *   - a stackable grid turning a vertical divider horizontal on a phone, and the grid's column rules
@@ -40,16 +38,6 @@
 /*******************************
             Divider
 *******************************/
-
-/*
- * `hidden` is Fomantic's OWN divider word:  a "hidden divider" keeps its spacing, only the line goes.
- * Not a way to hide it, so this overrides the browser's `[hidden] { display: none }`, and `reset.css`'s,
- * which would take the element, and its margin, out of the layout.
- * - UNLAYERED, as `reset.css`'s rule is:  same selector, and this sheet is adopted after it, so this one wins.
- */
-:host([hidden]) {
-  display: contents;
-}
 
 @layer ui.components.divider.types {
   /* The DOM element:  no box of its own;  the inner box is the divider. */

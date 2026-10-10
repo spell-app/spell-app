@@ -4,18 +4,22 @@
  * This sheet only LAYS THEM OUT, plus the look of inline `<code>` (no widget draws one, as in `<ui-docs-api>`).
  * - It styles the component's shadow DOM:  `<section class="ui [global] [playground] tokens" part="tokens">`,
  *   holding in order:
- *   - with `playground`:  `<ui-segment class="playground" part="playground">` around `<div class="bar">` holding
- *     `<div class="preview" part="preview">` (the default slot) and the `<ui-button part="reset">`
+ *   - with `playground`:  `<ui-segment class="playground" part="playground">` around `<div class="bar">`,
+ *     holding `<div class="preview" part="preview">` (the default slot) and the `<ui-button part="reset">`
  *   - the filter:  `<ui-input class="search" part="search">`
  *   - a `<ui-message part="message">`, if any
- *   - the tables:  `<ui-table part="table">` around a native `<table>`;  with `global`,
- *     each inside `<section class="group" part="group">` under its `<ui-header part="header">` and
- *     `<p class="description" part="description">`
- * - A row:  `th[scope=row] > code.name`, then `td > span.default` (the `<ui-label part="swatch">` and the default's
- *   `<code>`), the description, and with `playground` `td > ui-input.value[part="input"]`.
+ *   - the tables:  `<ui-table part="table">` around a native `<table>`;
+ *     with `global`, each inside `<section class="group" part="group">`,
+ *     under its `<ui-header part="header">` and `<p class="description" part="description">`
+ * - A row:
+ *   - `th[scope=row] > code.name`
+ *   - `td > span.default`:  the `<ui-label part="swatch">` and the default's `<code>`
+ *   - the description
+ *   - with `playground`, `td > ui-input.value[part="input"]`
  * - Public tokens (`--ui-docs-tokens-*`) are never declared:  each is read through a private alias
- *   (`docs/theming.md` "Component tokens").  The swatch's size and ring go through `<ui-label>`'s own public tokens
- *   (`--ui-label-empty-size`) and its `::part(label)`, as a page would.
+ *   (`docs/theming.md` "Component tokens").
+ *   The swatch's size and ring go through `<ui-label>`'s own public tokens (`--ui-label-empty-size`)
+ *   and its `::part(label)`, as a page would.
  */
 
 @layer ui.components.docs-tokens.types, ui.components.docs-tokens.content, ui.components.docs-tokens.variations, ui.components.docs-tokens.states;
@@ -28,9 +32,6 @@
      * (`<ui-root stack-with="page">`):  the table's own region token, as a page would set it.
      */
     --ui-table-stack-by: var(--ui-stack-with, container);
-  }
-  :host([hidden]) {
-    display: none;
   }
 
   .ui.tokens {

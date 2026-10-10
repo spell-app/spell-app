@@ -4,9 +4,11 @@
  * This sheet only LAYS THEM OUT, plus the look of inline `<code>`:  no widget draws one,
  * and the foundation's `code` look is `ui-typography`'s, a PAGE sheet that never reaches a shadow root.
  * - It styles the component's shadow DOM:
- *   `<section class="ui api" part="api">` holding an optional `<ui-message part="message">`, then per tag either the
- *   tables directly, or (`family`) a `<section class="tag" part="tag">` with its `<ui-header part="header">`
- *   (an `<a>` to itself inside), `<p class="description" part="description">` and the tables.
+ *   `<section class="ui api" part="api">`, holding an optional `<ui-message part="message">`, then per tag either:
+ *   - the tables directly
+ *   - or (`family`) a `<section class="tag" part="tag">`:
+ *     its `<ui-header part="header">` (an `<a>` to itself inside), `<p class="description" part="description">`
+ *     and the tables
  *   - A table is `<ui-header part="title">`, an optional `<p class="note" part="note">`,
  *     and `<ui-table part="table">` around a native `<table>`,
  *     whose row headers (`th[scope=row]`) hold the name and `<small class="ui-caption">` notes.
@@ -19,9 +21,6 @@
 @layer ui.components.docs-api.types {
   :host {
     display: block;
-  }
-  :host([hidden]) {
-    display: none;
   }
 
   .ui.api {
@@ -69,7 +68,8 @@
     display: block;
   }
 
-  /* A tag header's self-link keeps the header's colour (plan-doc gap:  `<ui-header href>` isn't a heading). */
+  /* A tag header's self-link keeps the header's colour
+     (a gap the plan doc records:  `<ui-header href>` isn't a heading). */
   [part~="header"] > a {
     color: inherit;
     text-decoration-line: none;
@@ -91,7 +91,7 @@
     margin-block-start: 0;
   }
 
-  /* Inline code:  `ui-typography`'s look (plan-doc gap:  no widget, and that sheet is page-only). */
+  /* Inline code:  `ui-typography`'s look (a gap the plan doc records:  no widget, and that sheet is page-only). */
   code {
     padding: 0.125em 0.375em;
     border-radius: var(--ui-radius-s);

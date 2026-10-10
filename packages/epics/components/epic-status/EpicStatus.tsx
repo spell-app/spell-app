@@ -8,31 +8,30 @@ import { PlanDates } from "$/epics/dates"
 import { BODY, BODY_ID, DATE, DATED, EMPTY, HEADER, WHO, WHO_ID } from "$/epics/components/epic-answer/EpicAnswer.types"
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
 import { FOLDS, Fold } from "$/epics/components/epic-item/Fold"
-import { FoldButton } from "$/epics/components/epic-item/FoldButton"
 
 import { epicStatusVocabulary } from "./EpicStatus.en"
 
 import answerCSS from "$/epics/components/epic-answer/EpicAnswer.css?inline"
-import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
+import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 import statusCSS from "./EpicStatus.css?inline"
 
 /****************
  * ### `EpicStatus`
- * The component behind `<epic-status>`:  Claude's status card on an item (or an Overview sub-section), under Owen's
- * note (P13) -- what Claude took his review mark to mean, then that it's done, or noted.
+ * The component behind `<epic-status>`:  Claude's status card on an item (or an Overview sub-section),
+ * under Owen's note (P13).  It says what Claude took his review mark to mean, then that it's done, or noted.
  * - Its band:  the fold chevron, then on the left
  *   - `Claude • Underway` (blue):  Claude is on it
  *   - `Claude • Done` (green):  work was done (an answer written, code changed, a phase built)
- *   - `Claude • Noted` (a calm outline, no fill):  Claude only RECORDED what Owen chose (a pick, a todo made or
- *     queued), so it never reads as work done (Owen, 2026-10-10)
+ *   - `Claude • Noted` (a calm outline, no fill):  Claude only RECORDED what Owen chose
+ *     (a pick, a todo made or queued), so it never reads as work done (Owen, 2026-10-10)
  * - the date at the right of the top line (`.header.dated`, as `EpicReply`'s):  `done-at` once finished, else `at`;
  *   once finished, the date's tooltip says when it was taken
  * - Its body:  the reading (its children), kept as it was when it turns done;
  *   then the summary (`slot="summary"`), only when there is one
  * - Folds by its band, reading and summary together (Owen, 2026-10-08:  everything in a section box folds):
  *   open to start with;  page state, never written;  folded, `hidden="until-found"`
- * - Written by the plan-doc tool (`plan-doc status`, `inbox apply`), never by hand;  a later mark on the same item
- *   adds a new card, the old ones stay
+ * - Written by the plan-doc tool (`plan-doc status`, `inbox apply`), never by hand;
+ *   a later mark on the same item adds a new card, the old ones stay
  ****************/
 export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
   @E.proto static vocabulary = epicStatusVocabulary
@@ -112,7 +111,7 @@ export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
           part={this.partForName("header")}
         >
           <Show when={this.hasBody}>
-            <FoldButton fold={this.fold} controls={BODY_ID} labelledBy={WHO_ID} part={this.partForName("toggle")} />
+            {this.fold.button({ controls: BODY_ID, labelledBy: WHO_ID, part: this.partForName("toggle") })}
           </Show>
           <span id={WHO_ID} class={WHO} part={this.partForName("who")}>
             {this.translationForKey(this.isDone ? "done" : this.isNoted ? "noted" : "underway")}

@@ -2,29 +2,45 @@
 
 A checklist of every component in [the plan](plan.md):  what's done, in progress, deferred.
 - Kept up to date as work lands ([ui's AGENTS.md](../AGENTS.md)).
-- Last updated 2026-10-09.
+- Last updated 2026-10-10.
 
 ## Working on now
 
 - **Shared states** (2026-10-09, epic `spell-element` P8):
-  every element takes `disabled`, `loading` and `visible` (`SharedVocabulary`),
-  and the platform's `hidden` and `inert`, though its vocabulary never names them.
+  every element takes them, though its vocabulary never names them.
+  - Ours:  `disabled`, `loading`, `visible` and `animation` (`SharedVocabulary`).
+    The platform's:  `hidden` and `inert`.
   - The docs data lists them on every tag (`shared: true`).
   - What `disabled` / `loading` mean per family:  its `elementSetup`.
     - By default `"unusable"` / `"loader"`.
     - `"its own"` where a component had its own:  29 of them, and every form control.
-  - `visible="false"` fades out, then `:state(hidden)`.
-  - `hidden` now beats a family's own `display`.
   - `readonly` on every form control:  new on `<ui-select>`, `<ui-search>`.
+  - P11 (T9):  every family whose `disabled` was its own LOOK moved to `"unusable"`:
+    - form, fields, field, tab, items
+    - comments, comment, feed, event
+    - segments, segment, section and panel
+    - labels, label, images, image
+    - brand's field
+    - `"its own"` stays where it means more, or where inert would hide text:
+      - native controls:  form controls, `<ui-button>`, `<ui-step>`, `<ui-item>`'s options
+      - hidden or paused:  `<ui-loader>`, `<ui-dimmer>`, `<ui-transition>`, `<ui-reveal>`
+      - text-like looks:  `<ui-header>`, `<ui-text>`, `<ui-icon(s)>`, `<ui-emoji>`, `<ui-progress>`
+  - P11 (T10):  a translated tag names the shared attributes in its own language.
+    - Their names:  `SharedVocabulary.<lang>.ts` (`<ie-boton desactivado>`).
+  - P11 (T8):  brand's composer and colour picker take `readonly`.
+    So do the native fallbacks of `<ui-select>` / `<ui-search>`.
+  - P12:  `visible` and `hidden` are ONE fact, with two names that are opposites.
+    - The `hidden` attribute holds it.
+    - Writing either one hides or shows the element, with its `animation`.
+    - `hidden` beats a family's own `display`, through the reset sheet.
+    - The `animation` attribute takes any of Fomantic's names (`fade up` ...), or `none`.
+      Its default is `fade`.
+    - The whole story:  [the grammar doc](grammar.md), "Shared attributes".
   - More:  [ui's AGENTS.md](../AGENTS.md), "Solid authoring", "Shared states".
   - Built:
     - the base class, `reset.css`
     - the static render (`data-state`, ARIA)
     - tests:  [the shared states test](../test/sharedStates.test.tsx)
-  - Deferred:
-    - brand's two form controls take no `readonly` yet:  `<ui-brand-composer>`, `<ui-brand-color-picker>`
-    - the native fallbacks ignore `readonly` on `<ui-select>` / `<ui-search>`
-    - translated tags keep the shared attributes' English names
 
 - **Component names** (2026-10-08, epic `wwod-spell-ui` P15):
   - the class behind a tag is its COMPONENT:  `UIComponent`, `FormComponent`, `LoadableComponent`, `PartComponent`
@@ -96,7 +112,7 @@ NOTE:  links are relative, so they work on GitHub and in VS Code.
 | image | A | `ui-image`, `ui-images` | ✅ | 57 | 5.57 | — | [✅](../../../ui/components/ui-image.html) | 🚧 local | |
 | text | A | `ui-text` | ✅ | 39 | 2.70 | — | [✅](../../../ui/components/ui-text.html) | 🚧 local | |
 | flag | A | `ui-flag` | ✅ | 45 | 6.08 | — | [✅](../../../ui/components/ui-flag.html) | 🚧 local | emoji only, by design (2026-10-06, epic `wwod-spell-ui` J47):  the `famfamfam` sprite theme removed;  `--ui-flag-font-family` (default `--ui-font-family-emoji`) also read by `<ui-dropdown>` / `<ui-select>` row flags;  docs:  "A flag font" (an opt-in polyfill font for Windows Chromium;  `ui` ships none) |
-| loader | A | `ui-loader` | ✅ | 44 | 4.26 | — | [✅](../../../ui/components/ui-loader.html) | 🚧 local | |
+| loader | A | `ui-loader` | ✅ | 44 | 4.26 | — | [✅](../../../ui/components/ui-loader.html) | 🚧 local | shown by the shared `visible` / `hidden`, starting hidden (epic `spell-element` P12;  was `active`) |
 | placeholder | A | `ui-placeholder` (+ `-header`, `-paragraph`, `-line`, `-image`) | ✅ | 47 | 5.90 | — | [✅](../../../ui/components/ui-placeholder.html) | 🚧 local | |
 | input | A | `ui-input`, `ui-textarea` | ✅ | 70 | 10.38 | ✅ | [✅](../../../ui/components/ui-input.html) + [textarea](../../../ui/components/ui-textarea.html) | 🚧 local | form-associated;  numbers (`type="number"`, `inputmode` decimal / numeric) right-aligned in tabular figures (`--ui-input-numeric-align`) |
 | checkbox | A | `ui-checkbox`, `ui-radio` | ✅ | 67 | 9.29 | ✅ | [✅](../../../ui/components/ui-checkbox.html) + [radio](../../../ui/components/ui-radio.html) | 🚧 local | standard / radio / slider / toggle;  `checked` aliases `selected`;  `off-value` (2026-10-06, epic `wwod-spell-ui` J44):  submitted while unchosen, `form.values` and `ui-change` report it, a static render leaves it out;  `@proto static defaultChosenValue` / `defaultUnchosenValue` class defaults for subclasses (P14) |
@@ -118,19 +134,19 @@ NOTE:  links are relative, so they work on GitHub and in VS Code.
 | ad | B | `ui-ad` | ✅ | 45 | 3.42 | — | [✅](../../../ui/components/ui-ad.html) | 🚧 local | IAB units as `unit="medium rectangle"` |
 | emoji | B | `ui-emoji` | ✅ | 32 | 4.05 | — | [✅](../../../ui/components/ui-emoji.html) | 🚧 local | NATIVE Unicode emoji, two name sets switched like icon packs (`cldr` default, 3,979;  `fomantic`, 3,808;  `<ui-root emoji>` / `EmojiData.use()`), lazy data chunks per set (`scripts/gen-emoji.ts`), no sprites / CDN |
 | dropdown | C | `ui-dropdown` (+ `ui-item`) | ✅ | 67 | 16.48 | ✅ | [✅](../../../ui/components/ui-dropdown.html) | 🚧 local | built early, as the benchmark component |
-| popup | C | `ui-popup`, `[data-tooltip]` | ✅ | 93 | 8.41 | ✅ | [✅](../../../ui/components/ui-popup.html) | 🚧 local | the DOM element is the popover, CSS anchor positioning only (Fomantic's 8 positions + 4 of ours, flips);  `open-on` hover / focus / click / manual;  tooltip or non-modal dialog ARIA;  CSS-only tooltip in `native.css`;  a `flowing` popup drops a slotted grid's size containment |
-| modal | C | `ui-modal`, `UI.modals.*` | ✅ | 68 | 8.74 | ✅ | [✅](../../../ui/components/ui-modal.html) | 🚧 local | native `<dialog>` + `showModal()`, `::backdrop` dimmer;  `closedby`, approve / deny, `--show` invoker command;  `UI.modals.confirm/alert/prompt` |
+| popup | C | `ui-popup`, `[data-tooltip]` | ✅ | 93 | 8.41 | ✅ | [✅](../../../ui/components/ui-popup.html) | 🚧 local | the DOM element is the popover, CSS anchor positioning only (Fomantic's 8 positions + 4 of ours, flips);  `open-on` hover / focus / click / manual;  tooltip or non-modal dialog ARIA;  CSS-only tooltip in `native.css`;  a `flowing` popup drops a slotted grid's size containment;  shown by the shared `visible` / `hidden`, starting hidden (epic `spell-element` P12;  was `open`) |
+| modal | C | `ui-modal`, `UI.modals.*` | ✅ | 68 | 8.74 | ✅ | [✅](../../../ui/components/ui-modal.html) | 🚧 local | native `<dialog>` + `showModal()`, `::backdrop` dimmer;  `closedby`, approve / deny, `--show` invoker command;  `UI.modals.confirm/alert/prompt`;  shown by the shared `visible` / `hidden`, starting hidden (epic `spell-element` P12;  was `open`) |
 | transition | C | `ui-transition` | ✅ | 32 | 4.90 | ✅ | [✅](../../../ui/components/ui-transition.html) | 🚧 local | the `animations.css` catalogue through `UI.transitions`;  `visible`, DOM element methods `show()` / `hide()` / `toggle()` / `transition(name)`, invoker commands;  Fomantic's queue;  reduced motion |
-| dimmer | C | `ui-dimmer` | ✅ | 42 | 6.22 | ✅ | [✅](../../../ui/components/ui-dimmer.html) | 🚧 local | element dimmer over its parent;  `page` = a MODAL `<dialog>`;  `show-on` hover / click (hover reachable by Tab);  `blurring` by `backdrop-filter`;  `--ui-dimmer-*` tokens shared with the modal's `::backdrop` |
+| dimmer | C | `ui-dimmer` | ✅ | 42 | 6.22 | ✅ | [✅](../../../ui/components/ui-dimmer.html) | 🚧 local | element dimmer over its parent;  `page` = a MODAL `<dialog>`;  `show-on` hover / click (hover reachable by Tab);  `blurring` by `backdrop-filter`;  `--ui-dimmer-*` tokens shared with the modal's `::backdrop`;  shown by the shared `visible` / `hidden`, starting hidden (epic `spell-element` P12;  was `active`) |
 | select | C | `ui-select` | ✅ | 48 | 8.10 | native | [✅](../../../ui/components/ui-select.html) | 🚧 local | a native `<select>`:  the customizable select (`appearance: base-select`) where supported, else the plain picker in the same closed look;  groups, `multiple`, form-associated;  [`docs/grammar.md`](grammar.md) "Selects" (vs `ui-dropdown`) |
 | search | C | `ui-search` | ✅ | 54 | 12.85 | ✅ | [✅](../../../ui/components/ui-search.html) | 🚧 local | APG combobox + listbox popover (CSS anchored);  local `source` (`SearchMatcher`, Fomantic's matching) or remote `url` through `UI.api` (debounce, abort, cache);  `category`;  form-associated (the input's text) |
-| flyout | C | `ui-flyout` | ✅ | 42 | 5.12 | ✅ | [✅](../../../ui/components/ui-flyout.html) | 🚧 local | side modal on `<dialog>` + `showModal()`;  shares `<ui-modal>`'s component base (`DialogComponent`, modal family);  four sides, word and column widths |
+| flyout | C | `ui-flyout` | ✅ | 42 | 5.12 | ✅ | [✅](../../../ui/components/ui-flyout.html) | 🚧 local | side modal on `<dialog>` + `showModal()`;  shares `<ui-modal>`'s component base (`DialogComponent`, modal family);  four sides, word and column widths;  shown by the shared `visible` / `hidden`, starting hidden (epic `spell-element` P12;  was `open`) |
 | sidebar | C | `ui-sidebar`, `ui-pushable`, `ui-pusher` | ✅ | 44 | 7.83 | ✅ | [✅](../../../ui/components/ui-sidebar.html) | 🚧 local | Fomantic's six transitions, four sides, widths;  modal drawer (`<dialog>` + `show()`, trap, `inert` dimmed pusher) or `persistent` `<aside>`;  pusher moved by tokens |
 | accordion | C | `ui-accordion` (+ `ui-title` / `ui-content` pairs) | ✅ | 62 | 7.05 | ✅ | [✅](../../../ui/components/ui-accordion.html) | 🚧 local | native `<details name>` per pair (manual slot assignment);  `open` = panel indexes;  cancelable `ui-open` / `ui-close`;  nested takes its parent's look;  `interpolate-size` animation;  `source` (2026-10-05, epic `claude-design` P2):  the first panel's content from a file, fetched the first time it opens (`LoadableBody`), into its `<ui-content>` (made when missing) |
 | tab | C | `ui-tabs`, `ui-tab` (the pane) | ✅ | 76 | 8.56 | ✅ | [✅](../../../ui/components/ui-tab.html) | 🚧 local | APG tablist drawn from the panes' labels, styled by `UIMenu.css`;  `activation`, `history` (URL hash), `lazy`, `appearance` (the menu's, `segmented` included:  the docs site's page tabs are `appearance="segmented" alignment="fluid" equal`), `alignment`, `equal`, `compact`, View Transitions;  no `ui-tab-pane`:  Fomantic's `.ui.tab` IS the pane;  the tab list has no menu block margins (`--ui-tabs-menu-margin`, `0`:  was a `2em` gap, design-system I29) |
 | progress | C | `ui-progress` | ✅ | 50 | 7.41 | — | [✅](../../../ui/components/ui-progress.html) | 🚧 local | the DOM element is the `progressbar` (internals);  several bars, `indicating`, indeterminate filling / sliding / swinging, auto `success` at 100% |
 | rating | C | `ui-rating` | ✅ | 48 | 6.23 | ✅ | [✅](../../../ui/components/ui-rating.html) | 🚧 local | form-associated;  native radios in a `<fieldset role=radiogroup>`;  any icon name;  partial (display) values;  `clearable` |
-| slider | C | `ui-slider` | ✅ | 57 | 9.10 | ✅ | [✅](../../../ui/components/ui-slider.html) | 🚧 local | form-associated;  APG slider thumbs, `range` (two form entries), labeled / ticked, vertical, reversed;  positions by CSS ratio;  `ticked` alone (ours):  plain ticks under the track;  `tick-step`:  labels / ticks apart from `step` |
+| slider | C | `ui-slider` | ✅ | 57 | 9.10 | ✅ | [✅](../../../ui/components/ui-slider.html) | 🚧 local | form-associated;  APG slider thumbs, `range` (two form entries), labeled / ticked, vertical, reversed;  positions by CSS ratio;  `ticked` alone (ours):  plain ticks under the track;  `tick-step`:  labels / ticks apart from `step`;  `required` (epic `spell-element` J44):  fails while no value was set, though the thumb rests at `min` |
 | calendar | C | `ui-calendar` | ✅ | 64 | 15.44 | ✅ | [✅](../../../ui/components/ui-calendar.html) | 🚧 local | form-associated;  field + popover dialog (CSS anchored) or `inline`;  APG date-picker grid over Fomantic's year / month / day / hour / minute views;  `Temporal` (native, else `temporal-polyfill` from a lazy chunk) + `Intl` names, formats, 12 / 24 h;  typed text in the locale's order;  `min` / `max`, disabled dates / weekdays, ranges;  [`docs/grammar.md`](grammar.md) "Calendars" |
 | toast | C | `ui-toast`, `UI.toast()` | ✅ | 81 | 11.03 | ✅ | [✅](../../../ui/components/ui-toast.html) | 🚧 local | in-place box, or `UI.toast()` in a popover container per position;  types / colours / inverted, icon, close icon, progress bar, countdown paused on hover / focus, actions (inline, basic, vertical, attached), `role=status` / `alert`, never takes focus;  `UI.toast({ class })` keeps every word on the host (theme one toast);  `--ui-toast-font-size` |
 | sticky | C | `ui-sticky` | ✅ | 30 | 3.67 | — | [✅](../../../ui/components/ui-sticky.html) | 🚧 local | CSS `position: sticky`;  `:state(stuck)` / `:state(bound)`, `ui-stick` / `ui-unstick` from an `IntersectionObserver` on sentinels;  `offset`, `bottom-offset`, `pushing`;  while stuck, reserves its room as the scroll container's `scroll-padding-top` / `-bottom` (Page Down skips what it covers;  not columns) |
@@ -232,7 +248,7 @@ Decided, or knowingly left for later.  Each should be picked up where noted.
     `exclusive`, `hideOnScroll`, `offset` / `distanceAway`, `lastResort`, `boundary`
   - `hoverable: false`:  hover popups are always hoverable (WCAG 1.4.13)
   - touch-specific triggers
-  - show / hide METHODS on the DOM element:  `open` is the API
+  - show / hide METHODS on the DOM element:  the shared `visible` / `hidden` are the API
   - an arrow that follows a flip, in browsers without anchored container queries
 - **Modal:**
   - `allowMultiple: false` (modals always stack), `detachable`, `observeChanges`

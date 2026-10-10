@@ -1,8 +1,9 @@
 /*
  * `<epic-update>` (EpicUpdate.tsx):  the UPDATE marker.
  * - Empty:  an inline orange label, its text centred, sitting on the text's middle.
- * - A note (`:state(note)`):  a block, warning-tinted, the fold chevron and the label as its heading, the children
- *   inside;  it folds by its heading (`<FoldButton>`, `FoldButton.css`).
+ * - A note (`:state(note)`):  a block, warning-tinted,
+ *   the fold chevron and the label as its heading, the children inside;
+ *   it folds by its heading (`fold.button()`, `Fold.css`).
  * - Public tokens (`--epic-update-*`) are never declared here:  read through private aliases.
  */
 

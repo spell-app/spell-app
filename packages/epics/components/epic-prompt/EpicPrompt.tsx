@@ -9,8 +9,10 @@ import promptCSS from "./EpicPrompt.css?inline"
 /****************
  * ### `EpicPrompt`
  * The component behind `<epic-prompt>`:  the prompt that started the plan, folded under `Kickoff prompt`.
- * - A native `<details>`, folded to start with:  a chevron and `Kickoff prompt` on the brand's ivory (Owen's voice,
- *   Q20);  unfolded, the prompt a quoted card on it.  Whether it's open is page state, never in the file.
+ * - A native `<details>`, folded to start with:
+ *   - folded:  a chevron and `Kickoff prompt` on the brand's ivory (Owen's voice, Q20)
+ *   - unfolded:  the prompt a quoted card on it
+ *   - whether it's open is page state, never in the file
  * - The prompt is its light children, through the default slot inside the `<details>`:
  *   find-in-page unfolds it, and the live update sees them (Q12).
  * - `<epic-overview>` draws it where it drew `<blockquote slot="prompt">`:  after the summary, above the estimate.
@@ -20,7 +22,10 @@ export class EpicPrompt extends E.UIComponent<typeof epicPromptVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { "epic-prompt": promptCSS },
     // a container:  a click on its text must not jump to the `<summary>`
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  unusable, its fold too;  `loading`:  the shared spinner
+    disabled: "unusable",
+    loading: "loader"
   } satisfies Partial<E.ElementSetup>
 
   /** The fold's chevron. */

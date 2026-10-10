@@ -115,23 +115,39 @@ keyOrValueAndKey attributes use `Converters.keyOrValue()`:
 - `"false"` / `"no"` => `false`
 - otherwise the (validated) value
 
-## Shared attributes:  `disabled`, `loading`, `visible`
+## Shared attributes:  `disabled`, `loading`, `visible`, `animation`
 
 Every element takes these, though its vocabulary may not name them (`SharedVocabulary`;  epic `spell-element` P8):
 
 - `disabled`:  `:state(disabled)`.
   - By default unusable:
     clicks swallowed, `aria-disabled`, everything inside inert and dimmed (`:state(dimmed)`), focus inside moves on.
-  - A family with a disabled of its own keeps it (`elementSetup.disabled = "its own"`):
-    a form control disables its native control, `<ui-icon>` only dims, `<ui-transition>` pauses.
+  - A family whose disabled means more keeps it (`elementSetup.disabled = "its own"`):
+    - a form control disables its native control
+    - `<ui-icon>` and `<ui-text>` only dim, so their text stays findable
+    - `<ui-transition>` pauses
 - `loading`:  `:state(loading)`.
   - By default a spinner over it, everything inside inert and dimmed, `aria-busy` (`:state(busy)`).
   - A family with its own loader keeps it (`<ui-button>`, `<ui-segment>`).
-- `visible="false"`:  fades out (`elementSetup.visibleAnimation`), then `:state(hidden)`;  `visible` fades it back.
-  - Hidden at once when set before the element draws.
-  - `<ui-sidebar>`, `<ui-transition>` and `<ui-reveal>` keep their own `visible`.
-- the platform's `hidden` hides any element at once, whatever its own `display` (`reset.css`).
-  - `<ui-divider hidden>` keeps Fomantic's meaning:  the spacing without the line.
+- `visible` / `hidden`:  ONE fact, two names, opposites (`el.visible === !el.hidden`;  epic `spell-element` P12).
+  - The `hidden` attribute holds it:  the browser, CSS and a page before its scripts all read it.
+  - The element writes a `visible` attribute back only where the page wrote one.
+  - Writing either one hides or shows the element, with its `animation`.
+    At once, before it first draws.
+  - Neither written:  the family decides (`elementSetup.visible`).
+    - A modal, popup, flyout, sidebar, dimmer, loader and transition start hidden,
+      and write `hidden` on themselves.
+  - Both written in markup, and disagreeing:  `hidden` wins.
+    After that, the latest write wins.
+  - `hidden="until-found"` stays the browser's.
+  - Fomantic's hidden divider is `<ui-divider spacer>`;  its visible reveal, `<ui-reveal unclipped>`.
+- `animation`:  how the element shows and hides (Fomantic's names, `fade up` ...), or `none`.
+  - The first that applies:
+    1. motion off:  `none` on it or around it, `--ui-motion: none`, or reduced motion
+    2. its own value
+    3. its family's `elementSetup.animation`
+    4. `fade`
+  - `<ui-root animation="none">` turns off a whole page.  Loaders keep spinning.
 - The platform's `inert` works, unstyled.
 - `readonly`:  every form control's vocabulary declares it;  `:state(readonly)`.
 
@@ -375,9 +391,13 @@ Give the element `rows` and NO slotted `<table>`, and it draws one into its LIGH
     and a tree-scoped name can't reach into its shadow root.
     So the popup then anchors to the target's first shadow box IMPLICITLY
     (`showPopover({ source })`, `position-anchor: auto`).
+- Shown by the shared `visible` / `hidden`, starting hidden, and controlled.
+  - The trigger's cancelable `ui-open` / `ui-close` come first, `detail.visible` saying which.
+  - Fomantic's `visible` class is the box's while it shows.
 - `open-on`:
   - `hover`, plus keyboard focus;  `show-delay` / `hide-delay` are Fomantic's 50 / 70 ms
-  - `focus`, `click`, `manual`
+  - `focus`, `click`
+  - `manual`:  only `visible`
   - A hovered popup stays open while the pointer is over it (WCAG 1.4.13),
     where Fomantic defaulted to `hoverable: false`.
   - `hoverable="false"` (boolean, default true) gives Fomantic's behaviour back:
@@ -453,11 +473,12 @@ Give the element `rows` and NO slotted `<table>`, and it draws one into its LIGH
   - `closable` absent:  no icon, dismissed by `closedby`.
 - Invoker commands (`--show`, `--close`, `--toggle`) arrive as the `command` event on the DOM element,
   from a native `<button commandfor command>` or a `<ui-button commandfor command>`.
-- Events:
+- Events, in order (`detail.visible` says which way):
   - `ui-open`:  cancelable;  a user action, the `--show` invoker command
   - `ui-close`:  cancelable, with a `reason`:  `escape` / `outside` / `close` / `approve` / `deny` / `close-all`
   - then `ui-show` / `ui-hide`, once the CSS transition has ended
-  - Writing `open` is the app's own decision, and fires no `ui-open` / `ui-close`.
+  - Writing `visible` (or `hidden`, its other name) is the app's own decision, and fires no `ui-open` / `ui-close`.
+- A modal starts hidden (`elementSetup.visible` is `"hidden"`).
 - Approve / deny:  anywhere inside, either of
   - Fomantic's classes:  `.approve` / `.ok` / `.positive`, and `.deny` / `.cancel` / `.negative`
   - `<ui-button positive / negative>`
@@ -488,8 +509,8 @@ Give the element `rows` and NO slotted `<table>`, and it draws one into its LIGH
   - The BOX animates:  the `animations.css` catalogue, through `UI.transitions`.
   - Its `hidden` attribute hides the content:  out of the page and the accessibility tree.
   - `inline` makes it an inline block, around an image or a button.
-- `visible` drives it:
-  - absent => hidden
+- The shared `visible` / `hidden` drive it:
+  - it starts hidden
   - a change animates `animation` in / out
   - first paint never animates
 - `animation` takes Fomantic's names, spaces and all (`fade up`, `horizontal flip`, `browse right`).
@@ -497,7 +518,7 @@ Give the element `rows` and NO slotted `<table>`, and it draws one into its LIGH
 - DOM element METHODS (`DOMTransitionElement`), as there's no attribute for "shake now":
   - `show()`, `hide()`, `toggle()`
   - `transition(name?)`:  Fomantic's `$(el).transition(name)` (`animate` is taken by Web Animations)
-  - They write `visible`, so it reflects.
+  - They write `visible`, so `hidden` follows, and frameworks see it.
   - Invoker commands do the same with no script:
     `--show`, `--close`, `--toggle`, `--transition` (`TransitionCommands`).
 - Queue, as Fomantic's `queue: true`:  each animation waits for the one before.
@@ -516,7 +537,7 @@ Give the element `rows` and NO slotted `<table>`, and it draws one into its LIGH
 ```html
 <ui-segment>
   <p>Content</p>
-  <ui-dimmer active blurring><ui-header level="4">Saved</ui-header></ui-dimmer>
+  <ui-dimmer visible blurring><ui-header level="4">Saved</ui-header></ui-dimmer>
 </ui-segment>
 <div class="card-image"><img src="..." alt="" /><ui-dimmer show-on="hover"><ui-button inverted>Add</ui-button></ui-dimmer></div>
 <ui-dimmer id="busy" page aria-label="Loading"><ui-loader>Loading</ui-loader></ui-dimmer>
@@ -533,8 +554,10 @@ Give the element `rows` and NO slotted `<table>`, and it draws one into its LIGH
     - focus back on hide
     - scroll lock and Escape, through `UI.overlays` (kind `dimmer`)
   - Named by the DOM element's `aria-label`, else "Dimmed page".
-- `active` (Fomantic's word and class) is auto-controlled.
-  - User actions fire the cancelable `ui-open` / `ui-close`, with a `reason`:  `click`, `escape`, `hover`, `close-all`.
+- The shared `visible` / `hidden` show it, starting hidden.
+  - Fomantic's `active` is the box's class while it shows.
+  - Auto-controlled:  user actions fire the cancelable `ui-open` / `ui-close`,
+    with a `reason`:  `click`, `escape`, `hover`, `close-all`.
   - Then `ui-show` / `ui-hide`, after the fade.
 - `show-on="hover"`:  shown while the pointer is over the parent, OR focus is inside it.
   - An inactive hover dimmer stays laid out (transparent, click-through), so Tab reaches its buttons:
@@ -571,8 +594,8 @@ Give the element `rows` and NO slotted `<table>`, and it draws one into its LIGH
   - It slides in from `position`:  `left` (the default), `right`, `top`, `bottom`.
   - Over a lighter `::backdrop` (0.4).
   - The same `DialogComponent` base, so all of these work as on `<ui-modal>`:
-    `open`, `closedby`, `closable`, `header` / `content`, approve / deny, `--show` / `--close`, the six events,
-    naming, `UI.overlays` (kind `flyout`).
+    `visible` / `hidden`, `closedby`, `closable`, `header` / `content`, approve / deny, `--show` / `--close`,
+    the six events, naming, `UI.overlays` (kind `flyout`).
 - The split:  `DialogComponent` (modal family) is the component base;
   `UIModal` / `UIFlyout` add vocabulary, sheet, `rootPart` and `overlayKind`.
   - The flyout family imports `$/ui/components/ui-modal`, so loading it defines `<ui-modal>` too.
@@ -920,7 +943,7 @@ Give the element `rows` and NO slotted `<table>`, and it draws one into its LIGH
   - `slide` / `slide="right | up | down"`
 - Also:
   - `instant`
-  - `visible`:  no clipping
+  - `unclipped`:  no clipping (Fomantic's `visible`)
   - `active`:  revealed (Fomantic's word, since it means "shown", not "chosen")
   - `disabled`
 - Keyboard:  revealed on `:focus-within`, as on hover.

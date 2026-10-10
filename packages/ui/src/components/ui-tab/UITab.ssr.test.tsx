@@ -36,7 +36,7 @@ describe("<ui-tabs> static render", () => {
     expect(panes.map((pane) => pane.textContent)).toEqual(["One", "Two", "Three"])
     expect(panes.map((pane) => pane.getAttribute("aria-label"))).toEqual(["First", "Second", "Third"])
     expect(panes.map((pane) => pane.classList.contains("active"))).toEqual([false, true, false])
-    expect(panes[1]!.getAttribute("class")).toBe("ui active bottom attached segment tab in-tabs")
+    expect(panes[1]!.getAttribute("class")).toBe("ui active bottom attached tab segment in-tabs")
     expect(panes[1]!.getAttribute("data-state")).toBe("in-tabs pane selected")
     // each tab controls its pane, by id
     expect(tabs.map((tab) => tab.getAttribute("aria-controls"))).toEqual(panes.map((pane) => pane.id))

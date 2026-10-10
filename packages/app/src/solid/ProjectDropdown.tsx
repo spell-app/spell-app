@@ -8,8 +8,8 @@ import "./ProjectDropdown.css"
 
 /****************
  * ### `<ProjectMenu>`
- * Every project of `projectRoot` (default:  `editor.projectRoot`) as a `<ui-menu>` of links;  choosing one shows
- * it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.
+ * Every project of `projectRoot` (default:  `editor.projectRoot`) as a `<ui-menu>` of links;
+ * choosing one shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.
  * - SIDE EFFECT:  loads `projectRoot` if it isn't yet, showing "Loading..." until it is (or "Couldn't load").
  * - Every other prop goes to the `<ui-menu>`, e.g. `vertical=""`, `fluid=""`.
  ****************/
@@ -46,11 +46,12 @@ export type ProjectMenuProps = UIElementAttributes & {
 /****************
  * ### `<ProjectDropdown>`
  * Every project of `projectRoot` (default:  `editor.projectRoot`) as a `<ui-dropdown>` showing `editor.project`;
- * choosing one shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.  Built as `<FileDropdown>` is.
- * - SIDE EFFECT:  loads `projectRoot` if it isn't yet;  loading (spinning caret, no items) until it is and a
- *   project is selected.
- * - The dropdown's value is ALWAYS `editor.project`'s path:  choosing sets it back during the event, and shows the
- *   project chosen, which then becomes `editor.project` (see `choose()`).
+ * choosing one shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.
+ * Built as `<FileDropdown>` is.
+ * - SIDE EFFECT:  loads `projectRoot` if it isn't yet;
+ *   loading (spinning caret, no items) until it is and a project is selected.
+ * - The dropdown's value is ALWAYS `editor.project`'s path (see `choose()`):
+ *   choosing sets it back during the event, and shows the project chosen, which then becomes `editor.project`.
  * - `showLabel` (default `true`):  a `<DropdownLabel>` first, e.g. "Example:".
  * - Sits in a menu:  wrapped in a `<ui-item class="ProjectDropdown">`.  Look:  `ProjectDropdown.css`.
  ****************/
@@ -118,8 +119,8 @@ type ProjectRootState = {
 
 /**
  * `root()` (default:  `editor.projectRoot`), read through `tracked()`:  Solid sees it load and change.
- * - SIDE EFFECT:  loads the root once it's known, if it isn't yet.  A failure is a console warning and `failed`,
- *   e.g. a root whose folder doesn't exist (the server answers 500).
+ * - SIDE EFFECT:  loads the root once it's known, if it isn't yet.
+ *   A failure is a console warning and `failed`, e.g. a root whose folder doesn't exist (the server answers 500).
  * - A memo makes a new `tracked()` per root (disposing the last):  `tracked()`'s read can't follow Solid props.
  * - Call in a component body:  it's owned by the component.
  */
@@ -164,7 +165,8 @@ function open(path: string, useRunner?: boolean) {
 /**
  * The dropdown's `ui-change`:  click the item chosen, which opens its project.
  * - SIDE EFFECT:  sets the dropdown's `value` back to `editor.project`'s DURING the event, so the dropdown keeps ours:
- *   the host decides (`Controlled`, `packages/ui/src/elements/Controlled.ts`).  Opening the project then moves it on.
+ *   the host decides (`requestChange()` on a `@controlled` member, `packages/ui/src/elements/Reactive.ts`).
+ * - Opening the project then moves it on.
  */
 function choose(event: CustomEvent<{ value: string }>) {
   const dropdown = event.currentTarget as HTMLElement & { value?: unknown }

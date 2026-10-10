@@ -52,9 +52,6 @@
     /* Don't inherit a parent component's scale:  flags follow the surrounding TEXT. */
     --ui-scale: initial;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one per `flag.variables` entry that still matters, each the private alias of its public token. */
   .ui.flag {

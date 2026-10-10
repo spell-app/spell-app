@@ -8,7 +8,7 @@
  *   - `DOMElement` / `DOMFormControl` (DOM element bases), `UIComponent` (the component base), `FormComponent`
  *   - `Reactive` (its reactive members' decorators)
  *   - `ElementDefinition` (vocabulary => attribute names and conversions)
- *   - `Controlled` (compatibility, for `brand`), `Cell`, `SlotContent`, `IconGlyph`, `ControlLabels`
+ *   - `Cell`, `SlotContent`, `IconGlyph`, `ControlLabels`
  *   - `PartContext` + `PartComponent` (owner context)
  *   - `RootSettings` (what a `<ui-root>` sets for its subtree)
  *   - `LoadableComponent` + `DOMLoadableElement` (elements showing a text file)
@@ -38,7 +38,6 @@ export * from "./Cell"
 export * from "./ElementDefinition"
 export * from "./DOMElement"
 export * from "./PartContext"
-export * from "./Controlled"
 export * from "./UIComponent"
 export * from "./PartComponent"
 export * from "./SlotContent"

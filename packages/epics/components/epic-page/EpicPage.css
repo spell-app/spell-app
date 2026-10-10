@@ -1,9 +1,10 @@
 /*
- * `<epic-page>` (EpicPage.tsx):  a plan doc's page -- the sticky header, the meta lines, a future epic's notice,
- * then its blocks.
- * - THE PACK'S TOKENS:  `:host` declares every `--epic-*` token the `<epic-*>` elements share (colours, bands, the
- *   inset, the item states' colours, the chip);  each element below inherits them through the flat tree.  An
- *   element drawn outside a page (a test) has none:  it reads each with a fallback, or looks plain.
+ * `<epic-page>` (EpicPage.tsx):  a plan doc's page.
+ * - the sticky header, the meta lines, a future epic's notice, then its blocks
+ * - THE PACK'S TOKENS:  `:host` declares every `--epic-*` token the `<epic-*>` elements share
+ *   (colours, bands, the inset, the item states' colours, the chip).
+ *   - each element below inherits them through the flat tree
+ *   - an element drawn outside a page (a test) has none:  it reads each with a fallback, or looks plain
  *   - from the docs' own names (`--spell-ink` ...:  `spell-doc.css`), each falling back to Spell UI's intent tokens,
  *     so a page without `spell-doc.css` still reads
  *   - a page overrides one with `epic-page { --epic-inset: 8px }`:  the outer tree beats `:host`
@@ -16,8 +17,10 @@
   :host {
     display: block;
     /*
-     * ## Edge to edge (P14):  out of `<main>`'s inline padding, the docs' token (`spell-doc.css`), so the bands reach
-     * across;  everything inside insets itself by `--epic-inset`.  A page without the token:  no breakout
+     * ## Edge to edge (P14):  out of `<main>`'s inline padding, the docs' token (`spell-doc.css`),
+     * so the bands reach across.
+     * - everything inside insets itself by `--epic-inset`
+     * - a page without the token:  no breakout
      */
     margin-inline: calc(-1 * var(--spell-doc-pad-inline, 0px));
 
@@ -50,9 +53,10 @@
     --epic-control-size: 28px;
 
     /*
-     * ## Item states:  an item's id chip colours (and a To review link's), by `state` -- one meaning per colour
-     *   (decision Q20, Owen, 2026-10-08):  red needs Owen, blue Claude is on it, yellow open, green done lately, grey
-     *   older;  orange Claude answered with options, Owen's turn to pick (`replied`, Owen, 2026-10-09).
+     * ## Item states:  an item's id chip colours (and a To review link's), by `state`
+     * - one meaning per colour (decision Q20, Owen, 2026-10-08):
+     *   red needs Owen, blue Claude is on it, yellow open, green done lately, grey older
+     * - orange:  Claude answered with options, Owen's turn to pick (`replied`, Owen, 2026-10-09)
      * - red keeps its light-mode hue in dark mode too:  dark's lighter red reads as orange
      *   (the raw per-scheme base on purpose, as `plan-doc.css` had it)
      * - yellow and orange take DARK ink (`--ui-yellow-on`, `--ui-orange-on`):  white on them can't be read
@@ -71,8 +75,8 @@
     --epic-state-old-on: var(--ui-grey-text);
 
     /*
-     * ## The chip:  an item's id, a To review link, a commit's sha -- one height, its text centred.  In em:  each
-     * resolves where it's used, so a chip follows the text it sits in
+     * ## The chip:  an item's id, a To review link, a commit's sha -- one height, its text centred.
+     * In em:  each resolves where it's used, so a chip follows the text it sits in
      */
     --epic-chip-height: 1.6em;
     --epic-chip-font-size: 0.8em;
@@ -83,9 +87,10 @@
     --epic-aside: var(--epic-warm);
 
     /*
-     * ## The sticky stack:  where an open item's line sticks, px from the viewport top.  Here, below the site
-     * header;  the page's box sets it below its own header too (measured), and every fold (section, phase) around
-     * its children, below its stuck title
+     * ## The sticky stack:  where an open item's line sticks, px from the viewport top.
+     * - here:  below the site header
+     * - the page's box sets it below its own header too (measured)
+     * - and every fold (section, phase) around its children, below its stuck title
      */
     --epic-stack: var(--spell-site-header-height, 0px);
   }
@@ -110,7 +115,6 @@
     z-index: 6;
     top: var(--spell-site-header-height, 0px);
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     gap: 6px 10px;
     padding: 8px var(--epic-inset) 4px;
@@ -161,8 +165,10 @@
   }
   /*
    * at the row's far right, in this order (Owen, 2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle
-   * is) (git icon, but bigger)"):  the bedtime label (when set), the step label (the state in it), the git toggle;
-   * on a row of their own when the h1 leaves no room
+   * is) (git icon, but bigger)"):
+   * - the bedtime label (when set), the step label (the state in it), the git toggle
+   * - never on a row of their own:  narrow, they stay put, over the h1's end
+   *   (Owen, 2026-10-10:  "They should stay in place and overlap the header instead")
    */
   .status {
     display: inline-flex;
@@ -185,11 +191,13 @@
   }
 
   /*
-   * ## The toolbar (epic `airplane` P8):  the last row of its sticky bar, right below the header once the title has
-   * scrolled away;  on the rail's ivory band, edge to edge, square, its own rule under it and none above (Owen,
-   * 2026-10-10:  "full-page-width, no rounding ... a rule below, but none above").  The docs runtime's section buttons
-   * (`nav.spell-toolbar`, slotted) take the room and scroll sideways if they must;  at the right, the page's state
-   * chips, collapse-all, a gap, then the new item button (Owen, 2026-10-10)
+   * ## The toolbar (epic `airplane` P8):  the last row of its sticky bar,
+   *    right below the header once the title has scrolled away.
+   * - on the rail's ivory band, edge to edge, square, its own rule under it and none above
+   *   (Owen, 2026-10-10:  "full-page-width, no rounding ... a rule below, but none above")
+   * - the docs runtime's section buttons (`nav.spell-toolbar`, slotted) take the room,
+   *   and scroll sideways if they must
+   * - at the right:  the page's state chips, collapse-all, a gap, then the new item button (Owen, 2026-10-10)
    */
   .bar {
     position: sticky;
@@ -213,22 +221,56 @@
     margin-inline-start: auto;
     padding: 4px var(--epic-inset) 4px 8px;
   }
-  .toolbar-tools .new-button {
-    margin-inline-start: 12px;
-  }
   .toolbar-tools:empty {
     display: none;
   }
-  /* the `+`'s form (epic `airplane` P2):  a row of its own across the sticky bar, so it shows wherever Owen is */
-  .bar > .new-form {
+  /* the new todo or question button (comment dots):  round, a gap before it;  green while its form is open */
+  .new-button {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    box-sizing: border-box;
+    width: var(--epic-control-size, 28px);
+    height: var(--epic-control-size, 28px);
+    margin-inline-start: 12px;
+    padding: 0;
+    border: 1px solid var(--epic-rule);
+    border-radius: 999px;
+    background: none;
+    color: var(--epic-muted);
+    font: inherit;
+    font-size: 14px;
+    line-height: 1;
+    cursor: pointer;
+  }
+  .new-button:is(:hover, [aria-expanded="true"]) {
+    border-color: var(--ui-green, #00853a);
+    color: var(--ui-green, #00853a);
+  }
+  .new-button:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+  .new-button ui-icon::part(icon) {
     width: auto;
+    margin: 0;
+  }
+  /*
+   * its form (`<epic-new-item open>`, epic `airplane` P2):
+   * a row of its own across the sticky bar, above the toolbar, so it shows wherever Owen is
+   */
+  .bar > epic-new-item {
     max-height: 60vh;
     margin: 8px var(--epic-inset);
     overflow: auto;
   }
+  .bar > epic-new-item::part(form) {
+    margin: 0;
+  }
   /*
-   * ## The send bar (Owen, 2026-10-10):  stuck to the window's bottom while there's anything to send or ask now;
-   * the pill (nobody can take the marks) at the left, Send and Review Now at the right
+   * ## The send bar (Owen, 2026-10-10):  stuck to the window's bottom while there's anything to send or ask now.
+   * - the pill (nobody can take the marks) at the left
+   * - Send and Review Now at the right
    */
   .send-bar {
     position: sticky;
@@ -245,8 +287,11 @@
     box-shadow: 0 -4px 12px rgb(0 0 0 / 0.06);
   }
   /*
-   * the pill:  no session reviewing, white on a deep orange (a warning;  the review line's look before, Owen, the
-   * colour page's example E);  airplane mode, quieter;  a click copies the command, flashing as the review line does
+   * the pill:
+   * - no session reviewing:  white on a deep orange
+   *   (a warning;  the review line's look before, Owen, the colour page's example E)
+   * - airplane mode:  quieter
+   * - a click copies the command, flashing as the review line does
    */
   .pill {
     --_nobody: oklch(from var(--ui-orange-on-light, #f2711c) calc(l - 0.12) c h);
@@ -364,8 +409,9 @@
   }
 
   /*
-   * ## The review line, under the header:  a quiet line of text, the icon centred on its first row;  a click copies
-   * the command and flashes it yellow (`.flash`, `FLASH_MS`).  Nobody reviewing:  the send bar's pill says so
+   * ## The review line, under the header:  a quiet line of text, the icon centred on its first row.
+   * - a click copies the command and flashes it yellow (`.flash`, `FLASH_MS`)
+   * - nobody reviewing:  the send bar's pill says so
    */
   .review-line {
     display: grid;
@@ -532,8 +578,18 @@
   @container epic-page (max-width: 480px) {
     /* the h1 shares its row with the labels while they fit (no row of their own:  the stuck header stays short) */
     .heading {
-      flex-basis: 8em;
+      flex-basis: 100%;
       font-size: 24px;
+    }
+    /* the labels stay at the row's right, over the h1's end:  the header's own ground under them, fading left */
+    .status {
+      position: absolute;
+      top: 8px;
+      inset-inline-end: var(--epic-inset);
+      height: calc(24px * 1.15);
+      padding-inline-start: 6px;
+      background: var(--epic-bg);
+      box-shadow: -10px 0 8px -2px var(--epic-bg);
     }
     .subhead {
       font-size: 15px;

@@ -1,9 +1,10 @@
 /**
- * `$/epics/components` barrel:  every `<epic-*>` element of the `epics` pack, each defined (SIDE EFFECT) as
- * its folder's barrel is imported.
+ * `$/epics/components` barrel:  every `<epic-*>` element of the `epics` pack,
+ * each defined (SIDE EFFECT) as its folder's barrel is imported.
  * - `spell dev pack element epics <tag>` adds a family, and its line here.
- * - The pack's script doesn't import this:  its generated entry (`pack/epics.entry.ts`) imports each family's
- *   barrel from `define()`, when `<ui-root>` registers the pack.
+ * - The pack's script doesn't import this:
+ *   its generated entry (`pack/epics.entry.ts`) imports each family's barrel from `define()`,
+ *   when `<ui-root>` registers the pack.
  */
 export * from "./epic-page"
 export * from "./epic-overview"
@@ -24,3 +25,6 @@ export * from "./epic-prompt"
 export * from "./epic-code"
 export * from "./epic-aside"
 export * from "./epic-note"
+export * from "./epic-review"
+export * from "./epic-new-item"
+export * from "./epic-agents"

@@ -1,6 +1,6 @@
 /**
- * Loose types and constants of the `epic-page` family;  and the JSX types of the Spell UI tags every `<epic-*>`
- * element draws in its shadow root.
+ * Loose types and constants of the `epic-page` family;
+ * and the JSX types of the Spell UI tags every `<epic-*>` element draws in its shadow root.
  * - Data only:  nothing here runs.
  */
 
@@ -15,8 +15,8 @@ export type EpicPageVocabulary = typeof epicPageVocabulary
 
 /**
  * The page-wide values its blocks read, per `<epic-page>` DOM element (`EpicPage.signalsOf()`).
- * - Kept by DOM element, not on the component:  a section may connect before the page's component exists (the pack
- *   defines its families in any order), and reads the same signals either way.
+ * - Kept by DOM element, not on the component:  a section may connect before the page's component exists
+ *   (the pack defines its families in any order), and reads the same signals either way.
  */
 export type PageSignals = {
   /** Where top-level titles stick:  below the site header and the page header, px from the viewport top. */
@@ -49,7 +49,7 @@ export type StepLabel = {
   href?: string
 }
 
-/** The phase status that's under way, and the done one. */
+/** The phase statuses:  under way, done, still to do. */
 export const ACTIVE = "active"
 export const DONE = "done"
 export const TODO = "todo"
@@ -101,8 +101,8 @@ export const PILL = "pill"
 export const CRUMBS = "crumbs"
 
 /**
- * The crumbs' links, from the page's folder:  a plan doc is always `epics/<name>/<name>.plan.html`.  `target`s name
- * the VS Code side bar's tab, as the old crumbs did.
+ * The crumbs' links, from the page's folder:  a plan doc is always `epics/<name>/<name>.plan.html`.
+ * - `target`s name the VS Code side bar's tab, as the old crumbs did
  */
 export const CRUMB_LINKS = {
   docs: { href: "../../pages/index.html", target: "src-packages-docs-index-html" },
@@ -110,9 +110,9 @@ export const CRUMB_LINKS = {
 } as const
 
 /**
- * The crumbs a doc may still hold before the page, from before P14 (`ui-breadcrumb.spell-crumbs` in `<main>`):  while
- * they're there, the page draws none of its own, so they never show twice.  REFACTOR:  goes once every doc is
- * migrated (P14's second pass).
+ * The crumbs a doc may still hold before the page, from before P14 (`ui-breadcrumb.spell-crumbs` in `<main>`):
+ * while they're there, the page draws none of its own, so they never show twice.
+ * - REFACTOR:  goes once every doc is migrated (P14's second pass).
  */
 export const OLD_CRUMBS = ":scope > .spell-crumbs"
 
@@ -122,7 +122,7 @@ export const FLASH_MS = 900
 /** The Send button's look:  no marks, some not sent, all sent. */
 export type SendState = "idle" | "unsent" | "sent"
 
-/** What the header's review buttons show:  from the review inbox, while the page is reviewed. */
+/** What the send bar's buttons show:  from the review inbox, while the page is reviewed. */
 export type HeaderMarks = {
   /** Send's look */
   send: SendState
@@ -133,30 +133,6 @@ export type HeaderMarks = {
   /** a Claude session is listening */
   listening: boolean
 }
-
-/** One of `<epic-page>`'s text keys. */
-export type PageTextKey = E.TextKey<EpicPageVocabulary>
-
-/** How a piece of the page asks it for a text:  `UIComponent.translationForKey()`, as a plain function. */
-export type PageText = (key: PageTextKey, params?: Record<string, string | number>) => string
-
-/** Classes of the running-agents panel (`AgentsPanel.tsx`):  its box, title and count, and each agent's row. */
-export const AGENTS_BOX = "agents-box"
-export const AGENTS = "agents"
-export const AGENTS_TITLE = "agents-title"
-export const AGENTS_COUNT = "agents-count"
-export const AGENT = "agent"
-export const AGENT_LINE = "agent-line"
-export const AGENT_NAME = "agent-name"
-export const AGENT_AGE = "agent-age"
-export const AGENT_TASK = "agent-task"
-export const AGENT_REDIRECTS = "agent-redirects"
-export const AGENT_SAID = "agent-said"
-export const AGENT_SAID_NOTE = "agent-said-note"
-export const AGENT_REDIRECT = "agent-redirect"
-export const AGENT_NOTE = "agent-note"
-export const AGENT_SEND = "agent-send"
-export const AGENT_ERROR = "agent-error"
 
 /** The kickoff prompt, which the `Plan hung?` aside offers to copy. */
 export const PROMPT = 'epic-overview > [slot="prompt"]'
@@ -174,6 +150,9 @@ declare module "@solidjs/web/types/jsx.js" {
       "ui-code": UIJSXAttributes
       "ui-breadcrumb": UIJSXAttributes
       "ui-breadcrumb-section": UIJSXAttributes
+      // the pack's own families it draws in its shadow root
+      "epic-new-item": UIJSXAttributes
+      "epic-agents": UIJSXAttributes
     }
   }
 }

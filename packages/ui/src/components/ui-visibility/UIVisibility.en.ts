@@ -42,12 +42,6 @@ export const visibilityVocabulary = {
       values: ["image"],
       description: "`image`:  every `<img data-src>` inside gets its source once on screen, then fades in (`ui-load`)."
     },
-    {
-      name: "transition",
-      kind: "string",
-      default: "fade",
-      description: '`type="image"`:  animation once loaded, a `UI.transitions` name;  `none` for none.'
-    },
     { name: "duration", kind: "number", default: 1000, description: '`type="image"`:  that animation\'s ms.' }
   ],
   events: [

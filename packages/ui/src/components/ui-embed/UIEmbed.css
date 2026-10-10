@@ -29,9 +29,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one per `embed.variables` entry that still matters, each the private alias of its public token. */
   .ui.embed {

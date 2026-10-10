@@ -11,8 +11,9 @@ import nagCSS from "./UINag.css?inline"
 import nagRaw from "./UINag.css?raw"
 
 /**
- * `UINag.css` on its own, before any element exists:  the sheet's source rules and the computed styles of the
- * light-DOM examples (the same class grammar the shadow root uses).
+ * `UINag.css` on its own, before any element exists:
+ * the sheet's source rules, and the computed styles of the light-DOM examples
+ * (the same class grammar the shadow root uses).
  * - Sheets are adopted into the document per test and removed again.
  */
 
@@ -36,7 +37,7 @@ describe("UINag.css source", () => {
 
   it("parses with replaceSync, keeping the ::slotted title rules", () => {
     const selectors = Sheets.selectors(nagCSS)
-    expect(selectors.length).toBeGreaterThan(15)
+    expect(selectors.length).toBeGreaterThan(14)
     expect(selectors.some((selector) => selector.includes("::slotted(.title)"))).toBe(true)
   })
 

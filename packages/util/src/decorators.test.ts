@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { forget, lazy, once, proto, protoMerged } from "./decorators"
+import { forget, lazy, once, proto, protoMerged, resets } from "./decorators"
 
 /**
- * Proves standard decorators are lowered (`vite.decorators.ts`) and `@proto` / `@protoMerged` / `@lazy` / `@once`
- * work in the browser.
+ * Proves standard decorators are lowered (`vite.decorators.ts`),
+ * and `@proto` / `@protoMerged` / `@lazy` / `@once` work in the browser.
  * - If lowering breaks, this FILE fails to load with a bare `SyntaxError`, rather than a test failing.
  */
 
@@ -104,26 +104,33 @@ class BlueSquare extends Plain {
   @protoMerged static setup = { shape: "square", parts: { b: "B" } } satisfies Partial<Setup>
 }
 
+/** `setup`'s keys read by name, as code reads them:  through the prototype chain. */
+function keysOf({ color, shape, parts }: Setup) {
+  return { color, shape, parts }
+}
+
 describe("@protoMerged static", () => {
-  it("puts the parent's value merged with this class's on the prototype", () => {
-    expect(new Blue().setup).toEqual({ color: "blue", shape: "round", parts: { a: "A" } })
+  it("puts this class's object on the prototype, the parent's object chained under it", () => {
+    expect(keysOf(new Blue().setup)).toEqual({ color: "blue", shape: "round", parts: { a: "A" } })
     expect(Object.hasOwn(Blue.prototype, "setup")).toBe(true)
+    expect(Object.getPrototypeOf(Blue.prototype.setup)).toBe(Setting.prototype.setup)
   })
 
-  it("inherits the parent's merged value when a class states none", () => {
+  it("copies nothing:  the static and the prototype's are ONE object, holding only what the class stated", () => {
+    expect(Blue.prototype.setup).toBe(Blue.setup)
+    expect(Blue.setup).toEqual({ color: "blue" })
+  })
+
+  it("inherits the parent's object when a class states none", () => {
     expect(new Plain().setup).toBe(new Blue().setup)
   })
 
-  it("merges shallowly:  a stated key replaces the parent's whole", () => {
-    expect(new BlueSquare().setup).toEqual({ color: "blue", shape: "square", parts: { b: "B" } })
+  it("a stated key replaces the parent's whole", () => {
+    expect(keysOf(new BlueSquare().setup)).toEqual({ color: "blue", shape: "square", parts: { b: "B" } })
   })
 
   it("leaves the parent's value alone", () => {
-    expect(new Setting().setup).toEqual({ color: "red", shape: "round", parts: { a: "A" } })
-  })
-
-  it("keeps only what the class stated on the static", () => {
-    expect(Blue.setup).toEqual({ color: "blue" })
+    expect(keysOf(new Setting().setup)).toEqual({ color: "red", shape: "round", parts: { a: "A" } })
   })
 
   it("is non-enumerable on the prototype", () => {
@@ -264,5 +271,69 @@ describe("@once", () => {
       }
       return new Wrong()
     }).toThrow(/@once value: only works on methods/)
+  })
+})
+
+describe("@resets accessor", () => {
+  class Loader {
+    static loads = 0
+    @resets("load") static accessor url: string | undefined
+    @once static load() {
+      Loader.loads++
+      return `${Loader.url}#${Loader.loads}`
+    }
+  }
+
+  it("forgets what `@once` kept on every write, even of the same value", () => {
+    Loader.url = "a"
+    expect(Loader.load()).toBe("a#1")
+    expect(Loader.load()).toBe("a#1")
+    Loader.url = "b"
+    expect(Loader.load()).toBe("b#2")
+    // oxlint-disable-next-line no-self-assign -- the point:  writing the same value starts over too
+    Loader.url = Loader.url
+    expect(Loader.load()).toBe("b#3")
+    Loader.url = undefined
+    expect(Loader.url).toBeUndefined()
+    expect(Loader.load()).toBe("undefined#4")
+  })
+
+  it("keeps `??=` working:  a write before the first call forgets nothing", () => {
+    class Late {
+      static loads = 0
+      @resets("load") static accessor url: string | undefined
+      @once static load() {
+        return `${Late.url}#${++Late.loads}`
+      }
+    }
+    Late.url ??= "first"
+    Late.url ??= "second"
+    expect(Late.load()).toBe("first#1")
+    expect(Late.loads).toBe(1)
+  })
+
+  it("on an instance, forgets that instance's `@lazy` value only", () => {
+    class Square {
+      @resets("area") accessor side = 1
+      @lazy get area() {
+        return this.side * this.side
+      }
+    }
+    const one = new Square()
+    const two = new Square()
+    expect([one.area, two.area]).toEqual([1, 1])
+    one.side = 3
+    expect([one.area, two.area]).toEqual([9, 1])
+  })
+
+  it("names only members the object has:  a typo is a compile error", () => {
+    class Typo {
+      // @ts-expect-error -- `lod` is no static of `Typo`
+      @resets("lod") static accessor url: string | undefined
+      @once static load() {
+        return 1
+      }
+    }
+    expect(Typo.load()).toBe(1)
   })
 })

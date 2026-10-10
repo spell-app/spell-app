@@ -1,4 +1,4 @@
-import { NativeFallback, proto } from "$/ui/core"
+import { E } from "$/ui/core"
 import { Palette } from "$/brand"
 
 import { brandColorPickerVocabulary } from "./UIBrandColorPicker.en"
@@ -18,10 +18,10 @@ import { BRAND_COLOR, DEFAULT_VALUE } from "./UIBrandColorPicker.types"
  *   else `#8E96B5`.
  * - Named by `label` (else "Colour"), and the DOM element's `aria-*`.
  ****************/
-export class BrandColorPickerFallback extends NativeFallback<typeof brandColorPickerVocabulary> {
-  @proto static vocabulary = brandColorPickerVocabulary
+export class BrandColorPickerFallback extends E.NativeFallback<typeof brandColorPickerVocabulary> {
+  @E.proto static vocabulary = brandColorPickerVocabulary
 
-  @proto static degraded = [
+  @E.proto static degraded = [
     "the HSL square and the hue slider (the browser's colour input instead)",
     "the HSL, RGB and OKLCH rows and their copy buttons, the head row, the slots",
     "vetoing by re-setting `value`, form reset"
@@ -36,9 +36,14 @@ export class BrandColorPickerFallback extends NativeFallback<typeof brandColorPi
     const input = this.create("input", {
       type: "color",
       disabled: this.flag("disabled"),
+      "aria-readonly": this.flag("readonly") ? "true" : undefined,
       "aria-label": this.attr("label") ?? "Colour"
     })
     this.decorate(input, "rgb")
+    // `readonly`:  the browser's picker never opens (a colour input has no `readonly` of its own)
+    this.listen(input, "click", (event) => {
+      if (this.flag("readonly")) event.preventDefault()
+    })
     // a colour input takes lower-case `#rrggbb` only
     input.value = (Palette.parse(start) ?? DEFAULT_VALUE).toLowerCase()
     this.listen(input, "input", (event) => this.changed(event, "ui-input"))

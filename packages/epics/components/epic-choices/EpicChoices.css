@@ -1,10 +1,12 @@
 /*
- * `<epic-choices>` (EpicChoices.tsx), `<epic-option>` (EpicOption.tsx):  a question's options -- cards side by side
- * while it's open, each folding by its header (open to start with);  answered, folded under a `Choices` aside, a
- * panel each, the chosen one green and open.
+ * `<epic-choices>` (EpicChoices.tsx), `<epic-option>` (EpicOption.tsx):  a question's options.
+ * - open question:  cards side by side, each folding by its header (open to start with)
+ * - answered:  folded under a `Choices` aside, a panel each, the chosen one green and open
  * - ONE sheet for both tags:  `:host(epic-choices)` / `:host(epic-option)` where the hosts differ.
- * - Shared look from `<epic-page>`'s `:host`, each with a private fallback:  `--epic-part-gap` (between an item's
- *   parts), `--epic-aside` (the asides' warm fill), `--epic-rule`, `--epic-band-row`.
+ * - Shared look from `<epic-page>`'s `:host`, each with a private fallback:
+ *   - `--epic-part-gap`:  between an item's parts
+ *   - `--epic-aside`:  the asides' warm fill
+ *   - `--epic-rule`, `--epic-band-row`
  * - Public tokens (`--epic-choices-*`) are never declared here:  read through private aliases.
  */
 
@@ -32,7 +34,7 @@
     min-width: 0;
   }
 
-  /* the fold chevron (`Chevron()`):  right while folded, down while open */
+  /* the fold chevron (`Fold.chevron()`):  right while folded, down while open */
   .chevron {
     flex: none;
     width: 12px;
@@ -126,9 +128,10 @@
     fill: currentColor;
   }
   /*
-   * The Choose pill (P10), at the header's end:  its box one line of the header tall and on its FIRST line
-   * (`align-self`), so the pill centres on the title's first line however many lines it wraps to.  A grey outline,
-   * available;  picked:  the fill rule's green (below)
+   * The Choose pill (P10), at the header's end.
+   * - its box one line of the header tall and on its FIRST line (`align-self`),
+   *   so the pill centres on the title's first line however many lines it wraps to
+   * - a grey outline:  available;  picked:  the fill rule's green (below)
    */
   .actions {
     display: inline-flex;
@@ -265,9 +268,11 @@
   }
 
   /*
-   * Picked in review, the fill rule (decision Q20):  `Chosen`, DASHED green until sent, outlined green once sent;
-   * applied, its set `chosen`:  the pill SOLID green, the chosen panel green (above).  The card framed to match
-   * (2px:  its border, and an outline just inside it, drawn over the header's band), an answered panel's title green
+   * Picked in review, the fill rule (decision Q20):
+   * - `Chosen`:  DASHED green until sent, outlined green once sent
+   * - applied, its set `chosen`:  the pill SOLID green, the chosen panel green (above)
+   * - the card framed to match (2px:  its border, and an outline just inside it, drawn over the header's band),
+   *   an answered panel's title green
    */
   .choose[aria-pressed="true"] {
     border: 1.5px dashed var(--_epic-choices-pick);

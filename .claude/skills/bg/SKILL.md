@@ -102,7 +102,8 @@ The task, word for word:
   (no `$(...)`, no `&&` chains, no `cd`).
 - You can't ask Owen anything:  no AskUserQuestion.  A choice he might make differently:  take the default the code
   and plan best support, and record it:  in an epic, `spell dev plan-doc add <epic> judgement "<the call>" --details
-  "<p>chose X over Y because Z</p>"`;  else in your report.  A choice you can't make safely (it would delete or
+  "<p>chose X over Y because Z</p>" --calm` (`--calm` unless it would surprise him:  the epic skill's "5. Each
+  phase", step 2);  else in your report.  A choice you can't make safely (it would delete or
   overwrite work, publish anything, or change what the task means):  stop there, and make it your report's question.
 - Other running agents:  `spell dev agents list`.  Don't edit files another one's task names.
 - Your LAST message is your report, short:  what changed (files), where to look, checks run with numbers, judgement

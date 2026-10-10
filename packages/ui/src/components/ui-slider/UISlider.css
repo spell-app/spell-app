@@ -15,23 +15,26 @@
  *       </ul>
  *     </div>
  *
- * - Positions:  the component writes RATIOS (`0` ... `1` along min ... max) and this sheet turns them into offsets --
- *   so `reversed` and `vertical` are pure CSS (anchoring `right` / `top` / `bottom` instead of `left`),
- *   and the static markup only needs the same custom properties.  A thumb's centre travels `thumb / 2` ...
- *   `100% - thumb / 2`; a single thumb's fill starts at the track's edge, a range's runs thumb centre to thumb centre.
+ * - Positions:  the component writes RATIOS (`0` ... `1` along min ... max), and this sheet turns them into offsets.
+ *   - So `reversed` and `vertical` are pure CSS (anchoring `right` / `top` / `bottom` instead of `left`),
+ *     and the static markup only needs the same custom properties.
+ *   - A thumb's centre travels `thumb / 2` ... `100% - thumb / 2`.
+ *   - A single thumb's fill starts at the track's edge;  a range's runs thumb centre to thumb centre.
  * - The DOM element:  `display: block`;  a `vertical` slider fills the DOM element's height (give it one).
  *   `:state(disabled)` / `:state(dragging)` are for PAGE styling only.
  * - Colours by remap:  the fill (and `basic` thumbs) take `--ui-color`;  uncoloured, Fomantic's black.
  * - Sizes:  `--ui-scale` (from `sizes.css`) scales the whole slider (every length is `em`);
  *   Fomantic only defined `small` / `large` / `big` heights.
  * - Focus:  keyboard focus rings the thumb (`:focus-visible`), for WCAG 2.4.7.
- * - Public tokens (`--ui-slider-*`, the theming surface) are NEVER declared here:  the token block reads each
- *   through a private alias, `--_ui-slider-height: var(--ui-slider-height, 1.5em)`, and every rule reads the
- *   alias.  So a value set on `:root`, an ancestor, the DOM element,
- *   `::part(slider)` or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens").
- * - NOTE: left out, on purpose:  `highlightRange` (the `active labels`), thumb tooltips,
- *   `ui label` labels (`.labels .ui.label`) and the `.checkbox` exclusions (the checkbox's own `slider` type lives in
- *   `UICheckbox.css`).
+ * - Public tokens (`--ui-slider-*`, the theming surface) are NEVER declared here:
+ *   the token block reads each through a private alias, and every rule reads the alias:
+ *   `--_ui-slider-height: var(--ui-slider-height, 1.5em)`.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(slider)` or in the app stylesheet
+ *   reaches the box (`docs/theming.md` "Component tokens").
+ * - NOTE: left out, on purpose:
+ *   - `highlightRange` (the `active labels`), thumb tooltips
+ *   - `ui label` labels (`.labels .ui.label`)
+ *   - the `.checkbox` exclusions (the checkbox's own `slider` type lives in `UICheckbox.css`)
  */
 
 @layer ui.components.slider.types, ui.components.slider.content, ui.components.slider.variations, ui.components.slider.states;
@@ -44,17 +47,14 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* `delegatesFocus`:  the thumb draws the focus ring, never the DOM element. */
   :host(:focus-visible) {
     outline: none;
   }
 
   /*
-   * Tokens:  one per `slider.variables` entry that still matters, from the global tokens -- each the private alias
-   * of its public token (never declare the public one:  it would block inherited values).
+   * Tokens:  one per `slider.variables` entry that still matters, from the global tokens --
+   * each the private alias of its public token (never declare the public one:  it would block inherited values).
    */
   .ui.slider {
     --_ui-slider-height: var(--ui-slider-height, 1.5em);
@@ -223,9 +223,9 @@
   }
 
   /*
-   * Ticks alone (`ticked` without `labeled`;  ours, not Fomantic's):  the labels are empty, the strip as above;
-   * each tick runs from the track's middle down a half label height, so (the track painting over it) it shows UNDER the
-   * track, as a native range's tick marks.
+   * Ticks alone (`ticked` without `labeled`;  ours, not Fomantic's):  the labels are empty, the strip as above.
+   * Each tick runs from the track's middle down a half label height,
+   * so (the track painting over it) it shows UNDER the track, as a native range's tick marks.
    */
   .ui.ticked.slider:not(.labeled) > .labels {
     position: absolute;

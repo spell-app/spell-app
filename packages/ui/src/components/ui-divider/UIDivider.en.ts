@@ -30,13 +30,12 @@ export const dividerVocabulary = {
       description: "A vertical rule with optional text, centred in a `position: relative` owner (segment, grid)."
     },
     {
-      name: "hidden",
+      name: "spacer",
       kind: "keyOnly",
-      property: "dividerHidden",
+      key: "hidden",
       description:
-        "The spacing without the line.  Fomantic's own vocabulary word;  the JS property is `dividerHidden` so " +
-        "it doesn't shadow `HTMLElement.hidden` -- `UIDivider.css` overrides the UA `[hidden] { display: none }` " +
-        "so the host keeps contributing its margin."
+        "The spacing without the line (Fomantic's `hidden` divider:  the class word stays `hidden`).  " +
+        "Renamed because `hidden` hides every element, as the platform's does."
     },
     { name: "fitted", kind: "keyOnly", description: "No space above or below." },
     { name: "clearing", kind: "keyOnly", description: "Clears floated content above it." },

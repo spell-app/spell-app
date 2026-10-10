@@ -2,11 +2,12 @@
  * Every name `<ui-flyout>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
  * Schema:  `E.ComponentVocabulary`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
- *   `<ui-flyout position="right" inverted width="4" open>` => `ui right inverted visible four wide flyout`;
+ *   `<ui-flyout position="right" inverted width="4" visible>` => `ui right inverted four wide visible flyout`;
  *   a word width (`thin`, `very wide`) is added before the noun by the element (`ui left very wide flyout`).
- * - `open` emits `visible`, Fomantic's shown-flyout class.
+ * - `visible` is also Fomantic's shown-flyout class:
+ *   the box has it while the element shows (the shared `visible` / `hidden`, not declared here).
  * - The SAME dialog vocabulary as `<ui-modal>`, since both run on `DialogComponent`:
- *   `open`, `closable`, `closedby`, `header`, `content`, the six events, the `close` text.
+ *   `closable`, `closedby`, `header`, `content`, the six events, the `close` text.
  * - A flyout OWNS the `header`, `content`, `description` and `actions` parts:
  *   slotted ones get `:state(in-flyout)` and style themselves from `UIParts.css`.
  */
@@ -35,12 +36,6 @@ export const flyoutVocabulary = {
     { name: "fullscreen", kind: "keyOnly", description: "The whole viewport wide." },
     { name: "inverted", kind: "keyOnly", description: "The dark scheme." },
     { name: "blurring", kind: "keyOnly", description: "Blurs and greys the page behind its dimmer." },
-    {
-      name: "open",
-      kind: "keyOnly",
-      key: "visible",
-      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
-    },
     {
       name: "width",
       kind: "width",
@@ -79,25 +74,25 @@ export const flyoutVocabulary = {
   events: [
     {
       name: "ui-open",
-      detail: "{ open: true, originalEvent?: Event }",
+      detail: "{ visible: true, originalEvent?: Event }",
       cancelable: true,
-      description: "About to show (a person's action, not an `open` write);  `preventDefault()` keeps it hidden."
+      description: "About to show (a person's action, not a `visible` write);  `preventDefault()` keeps it hidden."
     },
     {
       name: "ui-show",
-      detail: "{ open: true }",
+      detail: "{ visible: true }",
       description: "Shown, its entry transition finished (Fomantic's `onVisible`)."
     },
     {
       name: "ui-close",
-      detail: "{ open: false, reason: ModalCloseReason, originalEvent?: Event }",
+      detail: "{ visible: false, reason: ModalCloseReason, originalEvent?: Event }",
       cancelable: true,
       description:
-        "About to hide:  Escape, the dimmer, the close icon, approve or deny.  `preventDefault()` keeps it open."
+        "About to hide:  Escape, the dimmer, the close icon, approve or deny.  `preventDefault()` keeps it shown."
     },
     {
       name: "ui-hide",
-      detail: "{ open: false }",
+      detail: "{ visible: false }",
       description: "Hidden, its exit transition finished (Fomantic's `onHidden`)."
     },
     {
@@ -106,7 +101,7 @@ export const flyoutVocabulary = {
       cancelable: true,
       description:
         "An approve button (`.approve` / `.ok` / `.positive`, `<ui-button positive>`) was activated;  " +
-        "`preventDefault()` keeps it open (Fomantic's `onApprove` returning `false`)."
+        "`preventDefault()` keeps it shown (Fomantic's `onApprove` returning `false`)."
     },
     {
       name: "ui-deny",
@@ -114,7 +109,7 @@ export const flyoutVocabulary = {
       cancelable: true,
       description:
         "A deny button (`.deny` / `.cancel` / `.negative`, `<ui-button negative>`) was activated;  " +
-        "`preventDefault()` keeps it open."
+        "`preventDefault()` keeps it shown."
     }
   ],
   slots: [{ name: "", description: "Content parts:  `<ui-header>`, `<ui-content>`, `<ui-actions>` with buttons." }],
@@ -124,7 +119,7 @@ export const flyoutVocabulary = {
     { name: "content", description: "The `content` shorthand." },
     { name: "close", description: "The close icon of a `closable` flyout." }
   ],
-  states: [{ name: "open", description: "Shown." }],
+  states: [],
   texts: [{ key: "close", text: "Close", description: "Accessible name of the close icon." }],
   ownsParts: ["header", "content", "description", "actions"]
 } as const satisfies E.ComponentVocabulary

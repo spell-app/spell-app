@@ -1,4 +1,4 @@
-import { NativeFallback, proto } from "$/ui/core"
+import { E } from "$/ui/core"
 
 import { brandComposerVocabulary } from "./UIBrandComposer.en"
 import { BRAND, DEFAULT_ROWS, ENTER } from "./UIBrandComposer.types"
@@ -15,12 +15,13 @@ import { BRAND, DEFAULT_ROWS, ENTER } from "./UIBrandComposer.types"
  * - Still casts:  the button or Cmd / Ctrl+Enter send a cancelable `ui-cast` (not with blank text),
  *   then submit the form.
  * - Its starting value is the DOM element's `value` PROPERTY, else its attribute.
+ * - `readonly`:  the text box's own, as the component's.
  * - Named by `label`, else `eyebrow`, else "Your spell".
  ****************/
-export class BrandComposerFallback extends NativeFallback<typeof brandComposerVocabulary> {
-  @proto static vocabulary = brandComposerVocabulary
+export class BrandComposerFallback extends E.NativeFallback<typeof brandComposerVocabulary> {
+  @E.proto static vocabulary = brandComposerVocabulary
 
-  @proto static degraded = [
+  @E.proto static degraded = [
     "the card's look, the eyebrow, the tools slot and the hint",
     "`casting` (the button stays a plain button), growing with the text",
     "vetoing by re-setting `value`, form reset of the value"
@@ -36,6 +37,7 @@ export class BrandComposerFallback extends NativeFallback<typeof brandComposerVo
       rows: this.attr("rows") ?? String(DEFAULT_ROWS),
       placeholder: this.attr("placeholder") ?? "Describe what you want to build…",
       disabled,
+      readonly: this.flag("readonly"),
       "aria-label": this.attr("label") || this.attr("eyebrow") || "Your spell"
     })
     this.decorate(control, "textarea")

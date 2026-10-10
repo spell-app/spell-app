@@ -69,6 +69,7 @@ Owen is back online.  Gather everything, work through it in the background, then
      - approvals, picks, todos, and new items
      - a todo's plane:  queued into the next phase
      - a todo's x:  dropped, canceled
+     - a note box's x:  skipped, reviewed with nothing to do
 
 4b. Docs pages' comments, in the session itself (quick):  `spell dev comments gather --json`.
    - Every waiting comment (and page note still new) goes into epic `guide-changes`, one phase per page.

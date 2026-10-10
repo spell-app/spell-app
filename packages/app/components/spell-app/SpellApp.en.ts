@@ -1,5 +1,10 @@
 /**
- * Every name `<spell-app>` uses:  tag, attributes, events, texts.  Schema:  `E.ComponentVocabulary` (`$/ui/core`).
+ * Every name `<spell-app>` adds to a root's:  tag, attributes, events, texts.
+ * Schema:  `E.ComponentVocabulary` (`$/ui/core`).
+ * - `<spell-app>` is a root (`UIRoot`):
+ *   its whole vocabulary is `<ui-root>`'s names, then these (`SpellApp.vocabulary`, `SpellApp.tsx`).
+ * - Where both name an attribute, this one wins:
+ *   `display` and `icons` (other defaults), `width`, `height` and `assets` (other meanings).
  * - Pure data:  `import type` only, so node can read it (the component pack's catalog, `vite.element.config.ts`).
  */
 
@@ -8,6 +13,7 @@ import type { E } from "$/ui/core"
 /****************
  * ### `<spell-app>`
  * Runs a compiled spell project in any page, in its own shadow root:  no editor.
+ * A root, as `<ui-root>` is.
  ****************/
 export const spellAppVocabulary = {
   tag: "spell-app",
@@ -17,7 +23,8 @@ export const spellAppVocabulary = {
   ui: false,
   description:
     "Runs a compiled spell project in any page, in its own shadow root:  from the spell server (`project`), from " +
-    "files anywhere (`src`), or what a `<spell-editor>` compiles (`editor`, `run()`).",
+    "files anywhere (`src`), or what a `<spell-editor>` compiles (`editor`, `run()`).  A root, as `<ui-root>` is:  " +
+    "it loads the Spell UI widgets it draws, and the other spell tags inside it, as they appear.",
   attributes: [
     {
       name: "project",
@@ -65,7 +72,25 @@ export const spellAppVocabulary = {
       name: "assets",
       kind: "string",
       description:
-        "Where Semantic UI, Lato and `spell-app.css` are;  default, beside its script.  Read as it joins the page."
+        "Where Semantic UI, Lato, `spell-app.css` and the icon packs (`icon-packs/`) are;  default, beside its " +
+        "script.  Semantic UI's sheets are read as it joins the page."
+    },
+    {
+      name: "display",
+      kind: "enum",
+      values: ["skeleton", "when-ready", "immediately"],
+      default: "immediately",
+      description:
+        "While the Spell UI widgets it draws load, as `<ui-root>`'s:  `immediately` (the default) -- draw as they " +
+        "arrive;  `when-ready` -- nothing (space kept) until they're ready;  `skeleton` -- placeholders."
+    },
+    {
+      name: "icons",
+      kind: "string",
+      default: "fomantic",
+      description:
+        "Icon packs for everything inside, as `<ui-root>`'s:  default `fomantic`, the names its toolbar and panes " +
+        "use.  The page's own icons, outside it, keep theirs."
     },
     {
       name: "pushed",

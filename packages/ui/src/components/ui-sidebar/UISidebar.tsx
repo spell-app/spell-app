@@ -27,20 +27,23 @@ import sidebarCSS from "./UISidebar.css?inline"
  *     (a complementary landmark;  a `<ui-menu>` inside is the `<nav>`).
  *     Nothing is dimmed, inert or trapped, and focus stays put.
  *
- * - A hidden sidebar is `visibility: hidden` (out of the tab order and the accessibility tree),
- *   but laid out, so its pushable can measure it.
+ * - A hidden sidebar is `hidden`, as every element (it starts hidden:  `elementSetup.visible`);
+ *   while it slides out, `:state(hiding)` keeps it on screen (`onVisibleChange()`).
  *
- * - `visible` is controlled:  the cancelable `ui-open` / `ui-close` come first for a person's actions
+ * - `visible` / `hidden` are controlled:
+ *   the cancelable `ui-open` / `ui-close` come first for a person's actions
  *   (invoker commands, `UIT.ToggleCommands`;  Escape;  a click beside it).
  *   - `ui-show` / `ui-hide` follow once the transition has ended.
- *   - Writing `visible` fires no `ui-open` / `ui-close`.
+ *   - Writing `visible` or `hidden` fires no `ui-open` / `ui-close`.
  ****************/
 export class UISidebar extends E.UIComponent<SidebarVocabulary> {
   @E.proto static vocabulary = sidebarVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { sidebar: sidebarCSS },
     // a click on the panel's padding must not jump focus to its first link
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `visible` shows it
+    visible: "hidden"
   } satisfies Partial<E.ElementSetup>
 
   /** Always:  its `<ui-pushable>` finds it by `:state(sidebar)`. */
@@ -52,11 +55,6 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
   ////////////////
   // ## Visible
   ////////////////
-
-  /** `visible`:  shown;  always the DOM element's property (a boolean). */
-  @E.cssState("visible")
-  @E.controlled("visible")
-  accessor isVisible = false
 
   /** Modal (the default), or `persistent`. */
   get isModal(): boolean {
@@ -168,6 +166,19 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
     })
   }
 
+  /**
+   * The panel slides by its own CSS transitions (`transition`, its `visible` class word):
+   * a hide resolves once they end, so the element stays on screen till then (`:state(hiding)`).
+   * - Waits for the next paint first:  the class word changes in the same update, and its transitions start with it.
+   * - Motion off (`--ui-motion: none`, reduced motion) shortens them to nothing (`reset.css`).
+   */
+  protected async onVisibleChange(visible: boolean, _animation: UIT.Animation): Promise<void> {
+    if (visible || !this.box) return
+    await new Promise((resolve) => E.beforeNextPaint(() => resolve(undefined)))
+    if (this.isVisible) return
+    await Promise.allSettled((this.box.getAnimations() ?? []).map((animation) => animation.finished))
+  }
+
   /** Run `then` once the panel's transitions end, unless another show / hide started meanwhile. */
   private after(then: () => void) {
     const generation = ++this.generation
@@ -191,14 +202,14 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
     return this.transition ?? (VERTICAL.has(this.position ?? UIT.LEFT) ? OVERLAY : UNCOVER)
   }
 
-  /** A word width (`thin`) goes before the noun (`UIT.WordWidthClasses`). */
+  /** A word width (`thin`) goes before the noun (`UIT.WordWidthClasses`), then `visible` while it shows. */
   protected get extraClass(): string | undefined {
-    return UIT.WordWidthClasses.classFor(this.width)
+    const words = [UIT.WordWidthClasses.classFor(this.width), this.isVisible ? UIT.VISIBLE : undefined]
+    return words.filter(Boolean).join(" ") || undefined
   }
 
   protected classValue(name: E.AttributeName<SidebarVocabulary>): unknown {
     if (name === "width" && UIT.WordWidthClasses.classFor(this.width)) return undefined
-    if (name === "visible") return this.isVisible
     if (name === "transition") return this.transitionName
     return super.classValue(name)
   }
@@ -227,7 +238,8 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
 
   /**
    * What the pusher does beside this sidebar (Fomantic's `sidebar.less` "Animations"):
-   * - `overlay`:  stays;  `scale down`:  shrinks to 0.75 towards the far side
+   * - `overlay`:  stays
+   * - `scale down`:  shrinks to 0.75 towards the far side
    * - `push`, `uncover`, `slide along`, `slide out`:
    *   moves by the panel's measured width (height at the top / bottom), as Fomantic's script measured it
    * - A method, not a getter:  it MEASURES the panel.

@@ -1,43 +1,55 @@
 /*
  * The style sheet of `<ui-menu>` and its items (`<ui-item>` owned by a menu):
  * a port of Fomantic's `menu.less` + `menu.variables`.
- * - ONE sheet, adopted by the menu (its root, or a sub-menu's) AND by every `<ui-item>` it owns (the item adopts
- *   its owner's `styles` after `UIItem.css`), so the item rules live here.
+ * - ONE sheet, adopted by the menu (its root, or a sub-menu's) AND by every `<ui-item>` it owns,
+ *   so the item rules live here.
+ *   (The item adopts its owner's `styles` after `UIItem.css`.)
  * - Shadow markup contract (class grammar on semantic elements):
- *   - top-level `<ui-menu>`:  `<nav class="ui [size] [color] [keyOnly ...] menu" part="menu" aria-label>` around
- *     `<slot>` (a navigation landmark of links);  `interactive`:  `<div class="..." part="menu" role="menubar"
- *     aria-orientation>` with roving focus over its items
- *   - a `<ui-menu>` owned by a menu (`:state(in-menu)`) is a SUB-MENU:  `<div class="[position] menu" part="menu">`,
- *     no `ui` (Fomantic's `.right.menu`, or a vertical menu's `.item > .menu`)
- *   - `<ui-item>` in a menu (`:state(in-menu)`):  `<a | button | div class="[color] [position] [keyOnly ...] item
- *     [header]" part="item">` holding its icon / image boxes and the slot (`UIItem.css`)
- * - DOM elements are `display: contents`:  the menu root is the flex container and each item root its flex item,
- *   exactly where Fomantic's `.ui.menu > .item` sat.  The DOM element's position
- *   (`:host(:state(in-menu):first-child)`) stands in for `.item:first-child`.
- * - Every item rule has two selectors sharing one body:  the element (`:host(:state(in-menu)) > .item`) and static
- *   class grammar (`.ui.menu .item`), as in `UIParts.css`.
+ *   - top-level `<ui-menu>`:  `<nav class="ui [size] [color] [keyOnly ...] menu" part="menu" aria-label>`
+ *     around `<slot>` (a navigation landmark of links)
+ *   - `interactive`:  `<div class="..." part="menu" role="menubar" aria-orientation>`,
+ *     with roving focus over its items
+ *   - a `<ui-menu>` owned by a menu (`:state(in-menu)`) is a SUB-MENU:
+ *     `<div class="[position] menu" part="menu">`, no `ui`
+ *     (Fomantic's `.right.menu`, or a vertical menu's `.item > .menu`)
+ *   - `<ui-item>` in a menu (`:state(in-menu)`):
+ *     `<a | button | div class="[color] [position] [keyOnly ...] item [header]" part="item">`,
+ *     holding its icon / image boxes and the slot (`UIItem.css`)
+ * - DOM elements are `display: contents`:
+ *   the menu root is the flex container and each item root its flex item,
+ *   exactly where Fomantic's `.ui.menu > .item` sat.
+ *   - The DOM element's position (`:host(:state(in-menu):first-child)`) stands in for `.item:first-child`.
+ * - Every item rule has two selectors sharing one body, as in `UIParts.css`:
+ *   - the element:  `:host(:state(in-menu)) > .item`
+ *   - static class grammar:  `.ui.menu .item`
  *
  * ## Owner tokens
- * An item can't see its menu's classes, so the menu ROOT resolves every variation (and combination:
- * `secondary pointing`, `vertical tabular`, `inverted secondary` ...) into INHERITED `--_ui-menu-*` tokens,
- * and the item rules only read them.  The top-level root declares all of them (defaults included),
- * so a nested top-level menu never inherits an outer one's look;  a sub-menu root writes only its edges (and,
- * in a vertical menu, its smaller look) and inherits the rest.
- * - Public tokens (`--ui-menu-*`, the theming surface) are NEVER declared here:  the root reads each through a
- *   private alias, `--_ui-menu-item-padding: var(--ui-menu-item-padding, 0.92857em 1.14286em)`,
- *   which variations write, and every rule reads the alias.  So a value set on `:root`, an ancestor, the DOM element,
- *   `::part(menu)` or in the app stylesheet reaches the menu and its items (`docs/theming.md` "Component tokens");
- *   set it on the menu or above, not on an item.  A variation that swaps a value wins over the page's.
+ * An item can't see its menu's classes,
+ * so the menu ROOT resolves every variation into INHERITED `--_ui-menu-*` tokens, and the item rules only read them.
+ * - Combinations too:  `secondary pointing`, `vertical tabular`, `inverted secondary` ...
+ * - The top-level root declares all of them (defaults included),
+ *   so a nested top-level menu never inherits an outer one's look.
+ * - A sub-menu root writes only its edges (and, in a vertical menu, its smaller look), and inherits the rest.
+ * - Public tokens (`--ui-menu-*`, the theming surface) are NEVER declared here:
+ *   the root reads each through a private alias, which variations write, and every rule reads the alias:
+ *   `--_ui-menu-item-padding: var(--ui-menu-item-padding, 0.92857em 1.14286em)`.
+ *   - So a value set on `:root`, an ancestor, the DOM element, `::part(menu)` or in the app stylesheet
+ *     reaches the menu and its items (`docs/theming.md` "Component tokens").
+ *   - Set it on the menu or above, not on an item.
+ *   - A variation that swaps a value wins over the page's.
  * - The rows marked (switch) are private:  the menu's classes decide them, so the page never sets them.
  *   The first / last / only item corners derive from `--ui-menu-radius`.
  * - VARIATION TOKENS:  what `vertical`, `secondary`, `text` and `segmented` swap is a public token of its own,
- *   `--ui-menu-<variation>-<token>` (Fomantic's `@secondaryItemPadding`, `@textMenuItemColor` ...),
- *   read through its alias in the variation's block, which writes the generic alias from it:
- *   `--_ui-menu-item-padding: var(--_ui-menu-secondary-item-padding)`.  So a page restyles a secondary menu with
- *   `--ui-menu-secondary-item-padding`, while a theme's `:root` `--ui-menu-item-padding` (the BASE menu's) never
- *   leaks into a secondary, text or tabular one.  The generic tokens still reach whatever a variation leaves alone
- *   (a text menu's `--ui-menu-active-color`, a secondary menu's `--ui-menu-active-weight`).  Listed at each block.
- *   `pointing`, `tabular`, `inverted` still swap privately.
+ *   `--ui-menu-<variation>-<token>` (Fomantic's `@secondaryItemPadding`, `@textMenuItemColor` ...).
+ *   - The variation's block reads it through its alias, and writes the generic alias from it:
+ *     `--_ui-menu-item-padding: var(--_ui-menu-secondary-item-padding)`.
+ *   - So a page restyles a secondary menu with `--ui-menu-secondary-item-padding`,
+ *     while a theme's `:root` `--ui-menu-item-padding` (the BASE menu's)
+ *     never leaks into a secondary, text or tabular one.
+ *   - The generic tokens still reach whatever a variation leaves alone
+ *     (a text menu's `--ui-menu-active-color`, a secondary menu's `--ui-menu-active-weight`).
+ *     Listed at each block.
+ *   - `pointing`, `tabular`, `inverted` still swap privately.
  *
  * | Token                               | What                                  | Changed by                           |
  * | ----------------------------------- | ------------------------------------- | ------------------------------------ |
@@ -80,17 +92,20 @@
  * | `--ui-menu-disabled-color`          | disabled item text                    | inverted                             |
  * | `--ui-menu-icon-*`                  | an item's icon margin / opacity / size / display | vertical, icon, labeled icon |
  *
- * - Colour:  the menu's DOM element resets the generic colour tokens (`--ui-color*`), so only its OWN `color` (the
- *   `.ui.red` remap on its root) or an item's (`ui-red`, the class the item adds for its `color`) paints the
- *   active item:  its text in `--ui-color-text` (the hue's AA text variant;  Fomantic's raw hue fails contrast on
- *   the active fill), its border in `--ui-color`.
+ * - Colour:  the menu's DOM element resets the generic colour tokens (`--ui-color*`),
+ *   so only its OWN `color` (the `.ui.red` remap on its root)
+ *   or an item's (`ui-red`, the class the item adds for its `color`) paints the active item:
+ *   - its text in `--ui-color-text`:  the hue's AA text variant
+ *     (Fomantic's raw hue fails contrast on the active fill)
+ *   - its border in `--ui-color`
  * - Scheme:  a plain menu follows the page's `color-scheme` (light again only nested in something inverted).
- *   `inverted` sets `color-scheme: dark` (+ `--ui-inverted: 1`) and every `light-dark()` token follows;
- *   an inverted COLOURED menu fills with `--ui-color`, its active item with `--ui-color-active`, and its text is the
- *   hue's contrast-picked `--ui-color-on` (Fomantic's white fails AA on the lighter hues).
- * - Sizes:  Fomantic's menu ladder is flatter than the generic one (large 15px, massive 18px on 14px);
- *   it is the square root of `--ui-scale` here (within 2%, massive 1.41 for 1.29).  The root's `<slot>` resets
- *   `--ui-scale`, so items' components aren't scaled twice.  A vertical menu's width scales the same way.
+ *   - `inverted` sets `color-scheme: dark` (+ `--ui-inverted: 1`), and every `light-dark()` token follows.
+ *   - An inverted COLOURED menu fills with `--ui-color`, its active item with `--ui-color-active`,
+ *     and its text is the hue's contrast-picked `--ui-color-on` (Fomantic's white fails AA on the lighter hues).
+ * - Sizes:  Fomantic's menu ladder is flatter than the generic one (large 15px, massive 18px on 14px).
+ *   - It is the square root of `--ui-scale` here (within 2%, massive 1.41 for 1.29).
+ *   - The root's `<slot>` resets `--ui-scale`, so items' components aren't scaled twice.
+ *   - A vertical menu's width scales the same way.
  * - Overlays (hover / active fills) are the ink at low alpha (`oklch(from var(--ui-ink) l c h / 0.05)`),
  *   which turns white on the dark scheme by itself.
  * - NOTE: left out, on purpose:
@@ -117,9 +132,6 @@
   /* DOM elements:  no box of their own;  the root is the menu (or the item). */
   :host {
     display: contents;
-  }
-  :host([hidden]) {
-    display: none;
   }
 
   /* A top-level menu starts uncoloured:  only its own `color` paints it (sub-menus inherit the outer menu's). */
@@ -229,9 +241,11 @@
     box-shadow: var(--ui-shadow-subtle);
   }
   /*
-   * Scheme:  a plain menu follows the page's (`color-scheme` / `--ui-scheme` inherit), so it turns dark under
-   * `themes/dark.css` or an OS preference;  nested in something inverted, it resets to the light scheme,
-   * as a plain segment does (Fomantic paints it white).  `.ui.inverted.menu` below wins by specificity.
+   * Scheme:  a plain menu follows the page's (`color-scheme` / `--ui-scheme` inherit),
+   * so it turns dark under `themes/dark.css` or an OS preference.
+   * - Nested in something inverted, it resets to the light scheme,
+   *   as a plain segment does (Fomantic paints it white).
+   * - `.ui.inverted.menu` below wins by specificity.
    */
   @container style(--ui-inverted: 1) {
     .ui.menu {
@@ -485,9 +499,12 @@
 
   /*
    * ## Vertical
-   * - Variation tokens:  `--ui-menu-vertical-item-display` (`block`;  `flex` puts the icon first and centres the
-   *   item in `--ui-menu-item-min-height`), `-active-radius`, `-icon-float` (`right`;  `none` keeps the icon before
-   *   the text), `-icon-margin`.
+   * - Variation tokens:
+   *   - `--ui-menu-vertical-item-display`:  `block`;
+   *     `flex` puts the icon first and centres the item in `--ui-menu-item-min-height`
+   *   - `-active-radius`
+   *   - `-icon-float`:  `right`;  `none` keeps the icon before the text
+   *   - `-icon-margin`
    */
   .ui.vertical.menu {
     --_ui-menu-vertical-item-display: var(--ui-menu-vertical-item-display, block);
@@ -508,8 +525,9 @@
   }
   @container style(--_ui-menu-layout: vertical) {
     /*
-     * A `<button>` item (a `link` menu's) shrinks to its text even as a block, where an `<a>` / `<div>` fills the
-     * column:  `stretch` fills it (margins kept), so the hover / selected fill spans the menu.
+     * A `<button>` item (a `link` menu's) shrinks to its text even as a block,
+     * where an `<a>` / `<div>` fills the column:
+     * `stretch` fills it (margins kept), so the hover / selected fill spans the menu.
      * Later values win where the browser knows them.
      */
     :host(:state(in-menu)) > button.item,
@@ -551,14 +569,16 @@
 
   /*
    * ## Secondary:  no box;  rounded, spaced items.
-   * - Variation tokens:  `--ui-menu-secondary-item-padding`,
-   *   `-item-margin` (`-vertical-item-margin` when vertical), `-item-radius` (every item's corners,
-   *   the active one's too), `-item-color`, `-hover-background`, `-active-background`, `-active-color`,
-   *   `-inline-margin` (`-0.35714em`:  the side hang that undoes the items' side margin, so their pills line up with
-   *   the text beside the menu;  `0` keeps the menu inside its box).  The active weight stays the generic
-   *   `--ui-menu-active-weight`.
+   * - Variation tokens:
+   *   - `--ui-menu-secondary-item-padding`
+   *   - `-item-margin` (`-vertical-item-margin` when vertical)
+   *   - `-item-radius`:  every item's corners, the active one's too
+   *   - `-item-color`, `-hover-background`, `-active-background`, `-active-color`
+   *   - `-inline-margin`:  `-0.35714em`, the side hang that undoes the items' side margin,
+   *     so their pills line up with the text beside the menu;  `0` keeps the menu inside its box
+   * - The active weight stays the generic `--ui-menu-active-weight`.
    * - NOTE: `secondary` is a hue word too (`colors.css` remaps `--ui-color*` on `.ui.secondary`),
-   *   so its active text is the secondary hue's `--ui-color-text`, never the generic `--ui-menu-active-color`;
+   *   so its active text is the secondary hue's `--ui-color-text`, never the generic `--ui-menu-active-color`.
    *   `--ui-menu-secondary-active-color` (unset by default) overrides it, and the menu's `color` with it.
    */
   .ui.secondary.menu {
@@ -708,11 +728,14 @@
 
   /*
    * ## Text:  plain words, no box.
-   * - Variation tokens:  `--ui-menu-text-margin` (`1em -0.5em`:  the block margin, `--ui-menu-margin`,
-   *   and a hang that lines the first word up with the text beside it;  set `0` with `-item-padding: 0`),
-   *   `-item-padding`, `-item-color`, `-hover-color` (the item colour:  no change), `-active-weight` (normal,
-   *   as Fomantic's:  a page whose links are heavier sets it to match).  The active colour stays the generic
-   *   `--ui-menu-active-color`; spacing between items:  `--ui-menu-gap`.
+   * - Variation tokens:
+   *   - `--ui-menu-text-margin`:  `1em -0.5em`, the block margin (`--ui-menu-margin`)
+   *     and a hang that lines the first word up with the text beside it;  set `0` with `-item-padding: 0`
+   *   - `-item-padding`, `-item-color`
+   *   - `-hover-color`:  the item colour, so no change
+   *   - `-active-weight`:  normal, as Fomantic's;  a page whose links are heavier sets it to match
+   * - The active colour stays the generic `--ui-menu-active-color`.
+   * - Spacing between items:  `--ui-menu-gap`.
    */
   .ui.text.menu {
     --_ui-menu-text-margin: var(--ui-menu-text-margin, var(--_ui-menu-margin) -0.5em);
@@ -911,10 +934,11 @@
   }
 
   /*
-   * ## Segmented (`appearance="segmented"`):  a segmented control -- a TRACK holding the options, the selected one a
-   * THUMB.  Default:  a bordered group of joined items, the thumb filled with the menu's colour (`color`,
-   * else the primary colour) with its on-colour text;  the group hugs its items (`alignment` moves it,
-   * `fluid` spreads it).
+   * ## Segmented (`appearance="segmented"`):  a segmented control.
+   * A TRACK holds the options;  the selected one is a THUMB.
+   * - Default:  a bordered group of joined items,
+   *   the thumb filled with the menu's colour (`color`, else the primary colour), with its on-colour text.
+   * - The group hugs its items:  `alignment` moves it, `fluid` spreads it.
    * - Variation tokens, enough for a theme to draw a pill track with a raised thumb (`spell-brand`'s):
    *   - track:  `--ui-menu-segmented-background`, `-border`, `-radius` (the menu's), `-padding` (an inset around
    *     the options, `0`), `-gap` (between them, `0`;  a horizontal track), `-divider` (hairlines between them;
@@ -991,8 +1015,8 @@
   }
 
   /*
-   * ## Alignment (`alignment`):  where the items sit along a horizontal bar -- packed at one end, or filling it.  A
-   * segmented group (and an `equal` packed one, below) IS its items, so it moves as a whole instead.
+   * ## Alignment (`alignment`):  where the items sit along a horizontal bar -- packed at one end, or filling it.
+   * A segmented group (and an `equal` packed one, below) IS its items, so it moves as a whole instead.
    */
   .ui[class*="left aligned"].menu {
     justify-content: flex-start;
@@ -1020,8 +1044,8 @@
   }
 
   /*
-   * ## Equal (`equal`):  every item the same width, from the items themselves (no count;  `items="equal"`, Fomantic's
-   * `equal width`, is the older fill-only spelling, so `.width` is left out).
+   * ## Equal (`equal`):  every item the same width, from the items themselves (no count).
+   * - `items="equal"` (Fomantic's `equal width`) is the older fill-only spelling, so `.width` is left out.
    * - packed:  a grid of equal columns, each as wide as the widest item;  the bar hugs them and `alignment` moves it
    * - `fluid aligned`:  an equal share of the bar each (`flex: 1 1 0`)
    * - NOTE: a packed `tabular` bar hugs its tabs too, so its rule ends at the last tab

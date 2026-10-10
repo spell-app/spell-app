@@ -1,4 +1,4 @@
-import { Show, createEffect, untrack } from "solid-js"
+import { Show } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -60,21 +60,22 @@ import sectionCSS from "./UISection.css?inline"
  *   - The DOM element (`DOMLoadableBodyElement`) has `load()` / `reload()`;  states `loaded` and `error`.
  *   - In the class, not the vocabulary:  a subclass (`<ui-panel>`) gets it with the vocabulary it reuses.
  *
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, everything in it inert (its fold button too), `aria-disabled`;  `toggle()` does nothing.
+ *
  * - SIDE EFFECTS:
  *   - with `sticky`:  a `ResizeObserver` keeps the title's height (`titleHeight`) for the stack,
  *     and `StickyWatch` writes the scroll container's inline `scroll-padding-top` while stuck
  *   - with `source`:  replaces its own light children (the placeholder) with the file's body.
  ****************/
-@E.cssStates("inverted")
 export class UISection extends E.UIComponent<SectionVocabulary> {
   @E.proto static vocabulary = sectionVocabulary
   @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     styleSheets: { section: sectionCSS },
+    cssStates: ["inverted"],
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false,
-    // `disabled`:  Fomantic's look
-    disabled: "its own",
     // `loading`:  Fomantic's veil
     loading: "its own"
   }
@@ -260,28 +261,24 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   }
 
   /**
-   * While connected and `sticky`:  measure the title (for the stack) and watch it stick,
-   * again whenever its `top` changes;  unstuck otherwise.
-   * - Stays an explicit effect:  conditional, and it observes the DOM (`ResizeObserver`, `StickyWatch`).
+   * Once drawn (`isReady`), while connected and `sticky`:  measure the title (for the stack) and watch it stick,
+   * again whenever its `top` changes;  unstuck otherwise.  Returns its stop.
    */
-  private watchTitle() {
-    createEffect(
-      () => ({ watching: this.isConnected && !!this.sticky, offset: this.stickTop }),
-      ({ watching, offset }) => {
-        const { title, sentinel } = this
-        if (!watching || !title || !sentinel) {
-          this.stickyWatch.reset()
-          return undefined
-        }
-        const resizes = new ResizeObserver(() => (this.titleHeight = title.getBoundingClientRect().height))
-        resizes.observe(title)
-        const unwatch = this.stickyWatch.observe({ domElement: this.domElement, top: sentinel, box: title }, { offset })
-        return () => {
-          resizes.disconnect()
-          unwatch()
-        }
-      }
-    )
+  @E.onChange("isReady", "isConnected", "sticky", "stickTop")
+  protected onStickingChanged(isReady: boolean, isConnected: boolean, sticky: boolean | undefined, offset: number) {
+    if (!isReady) return undefined
+    const { title, sentinel } = this
+    if (!isConnected || !sticky || !title || !sentinel) {
+      this.stickyWatch.reset()
+      return undefined
+    }
+    const resizes = new ResizeObserver(() => (this.titleHeight = title.getBoundingClientRect().height))
+    resizes.observe(title)
+    const unwatch = this.stickyWatch.observe({ domElement: this.domElement, top: sentinel, box: title }, { offset })
+    return () => {
+      resizes.disconnect()
+      unwatch()
+    }
   }
 
   ////////////////
@@ -326,8 +323,8 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   /** The content from `source`, loaded on first unfold;  into the DOM element's light DOM. */
   readonly body = new E.LoadableBody({
     domElement: this.domElement,
-    source: () => untrack(() => this.source) || undefined,
-    select: () => untrack(() => this.select) || undefined,
+    source: () => this.source || undefined,
+    select: () => this.select || undefined,
     target: () => this.domElement,
     send: (name, detail) => this.send(name as never, detail)
   })
@@ -398,12 +395,6 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
     return this.isReady && UI.browser.supports.interpolateSize
   }
 
-  /** Disabled by its attribute. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return !!this.disabled
-  }
-
   /**
    * Words before the noun:
    * - `scrolling` for `height` without it (`height` implies it)
@@ -420,7 +411,6 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   ////////////////
 
   render(): JSX.Element {
-    this.watchTitle()
     return (
       <section
         class={this.rootClass}

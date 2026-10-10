@@ -7,6 +7,6 @@ import type { VisualHooks } from "$/ui/test/test.types"
  */
 export default {
   states: {
-    "open-page": { open: (root) => VisualOpen.set(root, "#dimmer-types-page", "active"), capture: "viewport" }
+    "open-page": { open: (root) => VisualOpen.show(root, "#dimmer-types-page"), capture: "viewport" }
   }
 } satisfies VisualHooks

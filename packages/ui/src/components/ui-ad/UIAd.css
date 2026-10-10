@@ -32,9 +32,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one per `ad.variables` entry, each the private alias of its public token. */
   .ui.ad {

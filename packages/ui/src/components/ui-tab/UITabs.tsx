@@ -1,4 +1,4 @@
-import { For, Show, flush, untrack, type Accessor } from "solid-js"
+import { For, Show, flush, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -43,7 +43,7 @@ import tabCSS from "./UITab.css?inline"
  *   - the pane is a `tabpanel` named by its label (it can't point back into this shadow root)
  * - The swap:  a View Transition (`document.startViewTransition`) when `UI.browser.supports.viewTransitions`
  *   and the person doesn't prefer reduced motion, else instant.
- *   The tab list follows the selection at once;  the panes swap inside the transition (`shownValue`).
+ *   - The tab list follows the selection at once;  the panes swap inside the transition (`shownValue`).
  * - `history`:  the selected value mirrors `location.hash` (see the vocabulary).
  * - SIDE EFFECTS:
  *   `history` pushes history entries, and listens to its window's `hashchange` / `popstate` while connected.
@@ -216,14 +216,11 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
     transition.ready.catch(() => undefined)
   }
 
-  /** Animate the swap?  See `show()`. */
+  /** Animate the swap (see `show()`)?  Untracked. */
+  @E.untracked
   private get canTransition(): boolean {
     const { domElement } = this
-    if (
-      !untrack(() => this.isReady) ||
-      !domElement.isConnected ||
-      domElement.ownerDocument.visibilityState !== UIT.VISIBLE
-    )
+    if (!this.isReady || !domElement.isConnected || domElement.ownerDocument.visibilityState !== UIT.VISIBLE)
       return false
     return UI.browser.supports.viewTransitions && !UI.browser.isReducedMotion
   }

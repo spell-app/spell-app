@@ -12,7 +12,7 @@ import flyoutCSS from "./UIFlyout.css?inline"
  * sliding in from `position` (left by default) over a `::backdrop` dimmer.
  *
  * - Its behaviour is `<ui-modal>`'s, through the shared `DialogComponent` (modal family):
- *   `open`, `closedby`, the `closable` icon, approve / deny, `--show` / `--close` invoker commands,
+ *   `visible` / `hidden`, `closedby`, the `closable` icon, approve / deny, `--show` / `--close` invoker commands,
  *   `ui-open` / `ui-close` / `ui-show` / `ui-hide`, its name (`aria-label`, `header` or a slotted `<ui-header>`),
  *   `UI.overlays` (kind `flyout`:  scroll lock, keyboard scope, focus restore).
  * - This class adds its names, its looks and the word widths (`thin`, `very wide`, as `<ui-sidebar>` has).
@@ -21,13 +21,20 @@ import flyoutCSS from "./UIFlyout.css?inline"
  ****************/
 export class UIFlyout extends DialogComponent<Vocabulary> {
   @E.proto static vocabulary = flyoutVocabulary
-  @E.protoMerged static elementSetup = { styleSheets: { flyout: flyoutCSS } } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { flyout: flyoutCSS },
+    // what the sheet's own transition is called (it slides in from `position`'s edge):
+    // Fomantic's nearest name, for a flyout from the left (the default)
+    animation: "fly right"
+  } satisfies Partial<E.ElementSetup>
   @E.proto static rootPart = "flyout"
   @E.proto static overlayKind = "flyout" as const
+  @E.proto static shownClass = "visible"
 
-  /** A word width (`thin`) goes before the noun (`UIT.WordWidthClasses`). */
+  /** A word width (`thin`) goes before the noun (`UIT.WordWidthClasses`), after the shown class. */
   protected get extraClass(): string | undefined {
-    return UIT.WordWidthClasses.classFor(this.width)
+    const words = [super.extraClass, UIT.WordWidthClasses.classFor(this.width)].filter(Boolean)
+    return words.length ? words.join(" ") : undefined
   }
 
   /** A word width emits nothing through `ClassBuilder`:  its `width` kind only knows columns. */

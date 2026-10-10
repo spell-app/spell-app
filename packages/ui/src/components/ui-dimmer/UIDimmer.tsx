@@ -23,73 +23,70 @@ import dimmablePageCSS from "./UIDimmer.page.css?inline"
  *   - Registered with `UI.overlays` (kind `dimmer`:  scroll lock, keyboard scope, Escape).
  *   - Named by the DOM element's `aria-label`, else "Dimmed page".
  *
- * - `active` is controlled (`isActive`):  the cancelable `ui-open` / `ui-close` come first for a person's actions:
- *   - `show-on`:  `hover` (the pointer over the parent, or focus inside it) or `click` (a click on the parent)
- *   - a click on the dimmer itself (not its content;  `closedby="any"`)
- *   - Escape (a page dimmer), invoker commands (`UIT.ToggleCommands`).
+ * - Shown or hidden by the shared `visible` / `hidden` (`UIComponent`, "Shown or hidden"), starting hidden.
+ *   - While it shows, its box has Fomantic's `active` class.
+ *   - Controlled (`isVisible`):  for a person's actions, the cancelable `ui-open` / `ui-close` come first:
+ *     - `show-on`:  `hover` (the pointer over the parent, or focus inside it) or `click` (a click on the parent)
+ *     - a click on the dimmer itself (not its content;  `closedby="any"`)
+ *     - Escape (a page dimmer), invoker commands (`UIT.ToggleCommands`)
+ *   - `ui-show` / `ui-hide` follow once its transition has ended.
+ *   - Writing `visible` (or `hidden`) fires no `ui-open` / `ui-close`.
  *
- *   `ui-show` / `ui-hide` follow once the CSS transition has ended.
- *   Writing `active` fires no `ui-open` / `ui-close`.
- *
- * - An inactive `hover` dimmer stays laid out but transparent (and ignores the pointer),
- *   so a keyboard user can Tab into its content, which shows it.
+ * - A hidden `hover` dimmer stays laid out but transparent (and ignores the pointer),
+ *   so a keyboard user can Tab into its content, which shows it (`UIDimmer.css`).
  *
  * - Looks:  a dark dimmer is the dark scheme for its content (`color-scheme: dark`, `--ui-inverted: 1`),
  *   so a `<ui-header>` in it turns light by itself;  `inverted` is the light one.
  *   `blurring` blurs what's behind (`backdrop-filter`), instead of Fomantic's filter on the siblings.
  ****************/
-@E.cssStates("page")
 export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
   @E.proto static vocabulary = dimmerVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { dimmer: dimmerCSS },
+    cssStates: ["page"],
     // a click on the dimmer must not jump focus into its content
     delegatesFocus: false,
     // `disabled`:  it never shows
-    disabled: "its own"
+    disabled: "its own",
+    visible: "hidden"
   } satisfies Partial<E.ElementSetup>
 
   ////////////////
-  // ## Showing (`active`)
+  // ## Showing (`visible`)
   ////////////////
 
-  /** `active`:  always the DOM element's property (a boolean). */
-  @E.controlled("active")
-  accessor isActive = false
-
-  /** Shown now:  `active`, and not `disabled`. */
-  @E.cssState("active")
+  /** Shown now:  `visible`, and not `disabled`. */
   get isShowing(): boolean {
-    return this.isActive && !this.disabled
+    return this.isVisible && !this.disabled
   }
 
-  protected classValue(name: E.AttributeName<typeof dimmerVocabulary>): unknown {
-    if (name === UIT.ACTIVE) return this.isShowing
-    return super.classValue(name)
+  /** Fomantic's `active`, just before the noun while it shows. */
+  protected get extraClass(): string | undefined {
+    return this.isShowing ? UIT.ACTIVE : undefined
   }
 
   /** Show for a person's action, dispatching the cancelable `ui-open` first;  true when applied. */
   @E.untracked
   requestOpen(originalEvent?: Event): boolean {
-    if (this.isActive || this.disabled) return false
-    const detail: UIT.DimmerOpenDetail = { active: true, originalEvent }
-    return this.requestChange("isActive", true, () => this.send("ui-open", detail))
+    if (this.isVisible || this.disabled) return false
+    const detail: UIT.DimmerOpenDetail = { visible: true, originalEvent }
+    return this.requestChange("isVisible", true, () => this.send("ui-open", detail))
   }
 
   /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
   @E.untracked
   requestClose(reason: UIT.DimmerCloseReason, originalEvent?: Event): boolean {
-    if (!this.isActive) return false
+    if (!this.isVisible) return false
     this.isDismissing = true
     E.soon(() => (this.isDismissing = false))
-    const detail: UIT.DimmerCloseDetail = { active: false, reason, originalEvent }
-    return this.requestChange("isActive", false, () => this.send("ui-close", detail))
+    const detail: UIT.DimmerCloseDetail = { visible: false, reason, originalEvent }
+    return this.requestChange("isVisible", false, () => this.send("ui-close", detail))
   }
 
   /** An invoker command aimed at the DOM element (`UIT.ToggleCommands`). */
   @E.on("command")
   protected onCommand(event: Event) {
-    const action = UIT.ToggleCommands.action(event, this.isActive)
+    const action = UIT.ToggleCommands.action(event, this.isVisible)
     if (action === "show") this.requestOpen(event)
     else if (action === "close") this.requestClose("click", event)
   }
@@ -168,56 +165,80 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
     onDismiss: (reason: E.DismissReason) => void this.requestClose(reason === "outside" ? "click" : reason)
   }
 
+  /** What is on screen now:  an element dimmer, a page dimmer (its `<dialog>`), or nothing. */
+  private shown?: { kind: DimmerKind; box?: HTMLDialogElement }
+
   /**
-   * Show while showing AND connected, once rendered (`isReady`:  the box exists then);  hide on the way out.
-   * - The kind is captured for the cleanup:  a page dimmer leaves `UI.overlays` even if `page` changed meanwhile.
+   * `visible` changed (`UIComponent`'s hook):  show the dimmer, or take it down.
+   * - Resolves once the box's transition has ended, sending `ui-show` / `ui-hide`.
+   * - How it moves, by `animation`:
+   *   - the family's own (`fade`), or an attention one (`shake`):  the sheet's transition (`UIDimmer.css`)
+   *   - any other:  on the box, through `UI.transitions`
+   *   - `none`:  at once
+   * - A disabled dimmer never shows, and fires nothing.
    */
-  @E.onChange("isConnected", "isShowing", "page", "isReady")
-  protected onShowingChanged(isConnected: boolean, isShowing: boolean, page: boolean, isReady: boolean) {
-    if (!isConnected || !isShowing || !isReady) return undefined
-    const kind: DimmerKind = page ? "page" : "element"
-    this.show(kind)
-    return () => this.hide(kind)
-  }
-
-  /** A page dimmer:  `showModal()` and `UI.overlays`;  then `ui-show` once the entry transition ends. */
-  @E.untracked
-  private show(kind: DimmerKind) {
+  protected async onVisibleChange(visible: boolean, animation: UIT.Animation): Promise<void> {
     const box = this.box
-    if (kind === "page" && box instanceof HTMLDialogElement) {
-      this.overlay.closeOnEscape = (this.closedby ?? "any") !== "none"
-      if (!box.open) {
-        box.showModal()
-        UI.focus.enter(box)
-      }
-      UI.overlays.open(this.overlay)
+    const keyframes = UIT.AnimationLookup.keyframesBeside(animation, this.elementSetup.animation)
+    const wasShown = !!this.shown
+    if (!visible && wasShown && keyframes && box) {
+      await UI.transitions.animate({ element: box, name: keyframes, direction: UIT.OUT })
+      // shown again while the keyframes ran
+      if (this.isVisible) return
     }
-    this.after(() => {
-      const detail: UIT.DimmerOpenDetail = { active: true }
-      if (this.isShowing) this.send("ui-show", detail)
-    })
+    this.place()
+    if (visible ? !this.shown : !wasShown) return
+    if (visible && keyframes && box) await UI.transitions.animate({ element: box, name: keyframes, direction: UIT.IN })
+    const detail: UIT.DimmerOpenDetail = { visible }
+    if (!(await this.transitionsEnd())) return
+    if (visible ? this.isShowing : !this.isShowing && this.domElement.isConnected) {
+      this.send(visible ? "ui-show" : "ui-hide", detail)
+    }
   }
 
-  /** A page dimmer:  `close()`, THEN leave `UI.overlays` (focus restore needs the page no longer `inert`). */
-  private hide(kind: DimmerKind) {
+  /** Placed again whenever what decides it changes:  connected, `page`, `disabled`, drawn. */
+  @E.onChange("isConnected", "page", "disabled", "isReady", { defer: true })
+  protected onPlacementChanged() {
+    this.place()
+  }
+
+  /**
+   * Put on screen what should be there now, taking down what shouldn't:  nothing, an element or a page dimmer.
+   * - A page dimmer:  `showModal()` and `UI.overlays`;  taken down, `close()` THEN leave `UI.overlays`
+   *   (focus restore needs the page no longer `inert`).
+   * - The `<dialog>` it showed is kept:  `page` may switch the box before it's taken down.
+   * - A box that `UI.transitions` animated out (left `hidden`) shows again.
+   */
+  @E.untracked
+  private place() {
     const box = this.box
-    if (kind === "page") {
-      if (box instanceof HTMLDialogElement && box.open) box.close()
+    const kind: DimmerKind | undefined =
+      this.isConnected && this.isReady && this.isShowing ? (this.page ? "page" : "element") : undefined
+    if (kind === this.shown?.kind) return
+    const dialog = this.shown?.box
+    if (dialog) {
+      if (dialog.open) dialog.close()
       UI.overlays.close(this.overlay)
     }
-    this.after(() => {
-      const detail: UIT.DimmerOpenDetail = { active: false }
-      if (!this.isShowing && this.domElement.isConnected) this.send("ui-hide", detail)
-    })
+    this.shown = undefined
+    if (!kind) return
+    if (box) UI.transitions.reveal(box)
+    if (kind === "element" || !(box instanceof HTMLDialogElement)) return void (this.shown = { kind })
+    this.overlay.closeOnEscape = (this.closedby ?? "any") !== "none"
+    if (!box.open) {
+      box.showModal()
+      UI.focus.enter(box)
+    }
+    UI.overlays.open(this.overlay)
+    this.shown = { kind, box }
   }
 
-  /** Run `then` once the box's own transitions end, unless another show / hide started meanwhile. */
-  private after(then: () => void) {
+  /** Once the box's own transitions end:  `true` unless another show / hide started meanwhile. */
+  private async transitionsEnd(): Promise<boolean> {
     const generation = ++this.generation
     const animations = this.box?.getAnimations() ?? []
-    void Promise.allSettled(animations.map((animation) => animation.finished)).then(() => {
-      if (generation === this.generation) then()
-    })
+    await Promise.allSettled(animations.map((animation) => animation.finished))
+    return generation === this.generation
   }
 
   ////////////////
@@ -318,15 +339,15 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
     this.requestClose("escape", event)
   }
 
-  /** A page dimmer's dialog closed while the element thinks it's active:  the browser forced it -- follow. */
+  /** A page dimmer's dialog closed while the element thinks it's shown:  the browser forced it -- follow. */
   @E.untracked
   private readonly onClose = (event: Event) => {
     const box = this.box
     if ((box instanceof HTMLDialogElement && box.open) || !this.domElement.isConnected) return
-    if (!this.isActive) return
-    const detail: UIT.DimmerCloseDetail = { active: false, reason: "escape", originalEvent: event }
+    if (!this.isVisible) return
+    const detail: UIT.DimmerCloseDetail = { visible: false, reason: "escape", originalEvent: event }
     this.send("ui-close", detail)
-    this.isActive = false
+    this.isVisible = false
   }
 }
 

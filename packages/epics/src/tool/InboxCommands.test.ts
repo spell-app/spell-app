@@ -1,6 +1,6 @@
 /**
- * Tests of `InboxCommands` (`spell dev plan-doc inbox ...`) on a scratch checkout:  a plan doc in `<epic-*>` markup
- * and its inbox file.
+ * Tests of `InboxCommands` (`spell dev plan-doc inbox ...`) on a scratch checkout:
+ * a plan doc in `<epic-*>` markup and its inbox file.
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
@@ -185,6 +185,45 @@ test("apply:  a todo's plane with no phase still to do:  queued for the next pha
     /^Queued for the next phase:\s+there's no phase to do yet$/
   )
   expect(printed.join("\n")).toContain("T1  queued for the next phase (no phase to do yet)")
+})
+
+test("apply:  the note box's x (`skip`):  reviewed, nothing else, a note kept;  a todo dropped;  a phase noted", async () => {
+  const plan = PlanDoc.parse(readFileSync(file, "utf8"))
+  plan.addPhase("Bring It In")
+  plan.addItem("question", "which way?")
+  plan.addItem("todo", "an old idea")
+  plan.updateStates()
+  writeFileSync(file, plan.toString())
+  ReviewInbox.update(inboxFile, (inbox) => {
+    inbox.setMark("j1", { action: "skip", note: "covered by P3" }, T1)
+    inbox.setMark("q1", { action: "skip" }, T1)
+    inbox.setMark("t1", { action: "skip" }, T1)
+    inbox.setMark("p1", { action: "skip", note: "fine as planned" }, T1)
+    inbox.markSent(T2)
+  })
+  await commands().inbox.run("x", file, ["apply"], {})
+  const after = PlanDoc.parse(readFileSync(file, "utf8"))
+  const facts = (id: string) => {
+    const item = after.findItem(id)!
+    return [item.getAttribute("status"), item.getAttribute("reviewed"), item.getAttribute("review-as")]
+  }
+  // still open (a skip settles nothing), reviewed, no status card
+  expect(facts("j1")).toEqual(["open", after.today, "skip"])
+  expect(facts("q1")).toEqual(["open", after.today, "skip"])
+  expect(after.findItem("j1")!.querySelector("epic-status")).toBeNull()
+  expect(after.findItem("j1")!.getAttribute("state")).not.toBe("attention")
+  expect(after.findItem("j1")!.querySelector('epic-reply[from="Owen"][re="skip"]')?.textContent).toBe("covered by P3")
+  // a todo:  skipping it IS dropping it
+  expect(facts("t1")).toEqual(["canceled", after.today, "drop"])
+  expect(after.document.getElementById("p1")!.querySelector('epic-reply[from="Owen"]')?.textContent).toBe(
+    "fine as planned"
+  )
+  const out = printed.join("\n")
+  expect(out).toContain("J1  skipped:  nothing to do, reviewed (his note kept)")
+  expect(out).toContain("Q1  skipped:  nothing to do, reviewed")
+  expect(out).toContain("T1  canceled:  dropped by Owen in review")
+  expect(out).toContain("P1  skipped:  nothing to do (his note kept)")
+  expect(ReviewInbox.read(inboxFile).isEmpty).toBe(true)
 })
 
 test("apply --all:  marks never sent are applied too, as if sent (`/airplane land`)", async () => {

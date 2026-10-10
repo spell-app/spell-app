@@ -8,13 +8,15 @@ import { E, UI } from "$/ui/core"
  * keeping the element objects, their attributes and their property values.
  * - Dev-only;  NEVER in a build.
  * - Loaded by the Vite plugin (`tools/HotElements.ts`) into every component barrel, before its `define()` calls run.
- *   SIDE EFFECT:  `install()` wraps `UIComponent.define`, and hooks into every DOM element made (`DOMElement.hotReloadHooks`).
+ * - SIDE EFFECT:
+ *   `install()` wraps `UIComponent.define`, and hooks into every DOM element made (`DOMElement.hotReloadHooks`).
  * - Why:  `define()` is idempotent per tag, so a barrel re-run by HMR would return the OLD element class.
  *   - The wrapper records every tag's class and dictionary.
  *   - When a DIFFERENT class of the SAME name defines a known tag (its module was re-evaluated),
  *     that class takes over EVERY tag the old one had, the translated aliases (`ie-boton`) included.
  * - The platform can't define a tag twice, so each tag's DOM element class STAYS,
- *   and what it reads is swapped in place (`redefine()`):  its definition, its properties, how it builds its component.
+ *   and what it reads is swapped in place (`redefine()`):
+ *   its definition, its properties, how it builds its component.
  *   - Only when nothing the platform read once at definition changed
  *     (observed attributes, DOM API `formAssociated`, the base class, shadow root options);
  *     else `update()` reloads the page.
@@ -103,7 +105,7 @@ export class HotDefinitions {
       return
     }
     // dry run on a stand-in with the same chain:  a clash throws BEFORE anything changed
-    const Base = Object.getPrototypeOf(TagClass) as E.DOMElementBaseClass
+    const Base = Object.getPrototypeOf(TagClass) as E.AnyDOMElementClass
     const Probe = class extends Base {} as unknown as E.DOMElementClass
     Probe.tagSetup = next
     E.DOMElement.defineProperties(Probe)
@@ -122,9 +124,9 @@ export class HotDefinitions {
    * - All of these are read ONCE,
    *   by DOM API `customElements.define()` or by the constructor of elements that already exist.
    */
-  static changeOf(TagClass: E.DOMElementClass, Base: E.DOMElementBaseClass, next: E.TagSetup): string | undefined {
+  static changeOf(TagClass: E.DOMElementClass, Base: E.AnyDOMElementClass, next: E.TagSetup): string | undefined {
     const before = TagClass.observedAttributes
-    const after = next.elementDefinition.attributes.map(({ attribute }) => attribute)
+    const after = E.DOMElement.observedAttributesFor(next.elementDefinition)
     const added = after.filter((name) => !before.includes(name))
     const removed = before.filter((name) => !after.includes(name))
     if (added.length || removed.length) {
@@ -230,7 +232,10 @@ export class HotDefinitions {
     for (const attribute of next.attributes) {
       const isKnown = previous.attributes.some(({ key }) => key === attribute.key)
       const source = isKnown ? sources[attribute.key] : undefined
-      if (source === "property") kept[attribute.key] = values[attribute.key]
+      // shown or hidden:  the `hidden` attribute holds it (`DOMElement`, "Shown or hidden")
+      if (attribute.key === "visible" && next.takesShared("visible")) {
+        kept[attribute.key] = !domElement.hasAttribute("hidden")
+      } else if (source === "property") kept[attribute.key] = values[attribute.key]
       else if (source === "attribute") {
         kept[attribute.key] = next.convert(attribute, domElement.getAttribute(attribute.attribute))
       } else kept[attribute.key] = next.startingValue(attribute)

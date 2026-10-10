@@ -1,11 +1,11 @@
 /**
- * Every name `<ui-brand-color-range>` uses:  tag, attributes, events, parts, texts.  Schema:  `ComponentVocabulary`.
+ * Every name `<ui-brand-color-range>` uses:  tag, attributes, events, parts, texts.  Schema:  `E.ComponentVocabulary`.
  * - Pure data:  `import type` only;  the steps are written out (`STEPS` in `$/brand` is a value).
  * - Class words:  `contrast`, `details`, `strip` their names;  `copy` as `<ui-brand-color>`'s.
  *   The component adds `color brand` before the noun (`color brand range`).
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-brand-color-range>`
@@ -119,4 +119,4 @@ export const brandColorRangeVocabulary = {
   ],
   states: [],
   texts: [{ key: "ladder", text: "{name}:  17 shades of {seed}", description: "Names the ladder or strip." }]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

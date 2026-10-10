@@ -1,11 +1,11 @@
 /**
- * Every name `<ui-brand-checklist>` uses:  tag, attributes, slots, parts, texts.  Schema:  `ComponentVocabulary`.
+ * Every name `<ui-brand-checklist>` uses:  tag, attributes, slots, parts, texts.  Schema:  `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
  * - No class words:  every attribute is a plain property (`number`, `boolean`, `enum`).
  * - Owner of its `<ui-brand-check>`s (`ownsParts:  check`):  each asks it how to show (`ChecklistOwner`).
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-brand-checklist>`
@@ -58,4 +58,4 @@ export const brandChecklistVocabulary = {
     { key: "allDone", text: "All done", description: "Announced when `step` reaches the end." }
   ],
   ownsParts: ["check"]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

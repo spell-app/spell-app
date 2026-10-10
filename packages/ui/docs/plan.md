@@ -25,7 +25,7 @@
 
 | Decision | Choice |
 |---|---|
-| Base library | **Solid 2** (decided 2026-09-30 after the Milestone 0 spike, `docs/spike-lit-vs-solid.md`):  `solid-js` / `@solidjs/web` 2.0 RC pinned exactly, through our fork `@spell-app/solid-element` (`packages/solid-element/`);  Solid, `@solidjs/web` and the fork are peer dependencies.  Promoted into `src/` 2026-09-29 (`docs/plan-promote-solid.md`, `docs/report.md`). |
+| Base library | **Solid 2** (decided 2026-09-30 after the Milestone 0 spike, `docs/spike-lit-vs-solid.md`):  `solid-js` / `@solidjs/web` 2.0 RC pinned exactly, through ui's own element core, [`src/elements/`](../src/elements/) (`DOMElement`, `UIComponent`);  Solid and `@solidjs/web` are peer dependencies.  Promoted into `src/` 2026-09-29 (`docs/plan-promote-solid.md`, `docs/report.md`). |
 | DOM strategy | **Shadow DOM everywhere** (Web Awesome style) with **semantic shadow markup** (`<button>`, `<dialog>`, `<input>`, `<nav>`, `<table>`…, never a `<div>` where an element exists). |
 | Global runtime | A **shared `UI` runtime**, loaded dynamically by the first component that connects, coordinates keyboard shortcuts, overlays/modals, browser sniffing and feature flags, styles, i18n, vocabulary, and utilities. |
 | Overrides | A **utility class layer** (`ui-bold`, `ui-stack`, …, modelled on Web Awesome) plus components **adopt the page's app stylesheet**: one sheet, `id="ui-app-stylesheet"`, convention over configuration, it `@import`s anything else. |

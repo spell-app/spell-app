@@ -15,13 +15,13 @@ describe("<ui-dimmer> static render", () => {
     StaticRender.define(UIDimmer)
   })
 
-  it("renders an active element dimmer around its content", () => {
-    const html = StaticRender.fragment(`<ui-dimmer active id="dim"><p>Dimmed</p></ui-dimmer>`)
+  it("renders a visible element dimmer around its content (`active`)", () => {
+    const html = StaticRender.fragment(`<ui-dimmer visible id="dim"><p>Dimmed</p></ui-dimmer>`)
     const root = fragment(html).firstElementChild!
     expect(root.localName).toBe("div")
     expect(root.id).toBe("dim")
     expect(root.getAttribute("class")).toBe("ui active dimmer")
-    expect(root.getAttribute("data-state")).toBe("active dimmer")
+    expect(root.getAttribute("data-state")).toBe("dimmer")
     expect(root.querySelector(":scope > .content > p")!.textContent).toBe("Dimmed")
     expect(html).not.toMatch(/<ui-|<slot/)
   })

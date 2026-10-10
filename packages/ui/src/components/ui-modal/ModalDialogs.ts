@@ -5,7 +5,7 @@ import { type Vocabulary } from "./UIModal.types"
 /****************
  * ### `ModalDialogs`
  * The dialogs behind `UI.modals.confirm()` / `alert()` / `prompt()` (Fomantic's `$.modal('confirm', …)`):
- * a `<ui-modal>` built for the call, appended to `<body>`, opened, and removed once hidden.
+ * a `<ui-modal>` built for the call, appended to `<body>`, shown (`visible`), and removed once hidden.
  *
  * - Markup:  `<ui-modal size="tiny" closedby="closerequest" header="title">` holding
  *   - a `<ui-content>`:  the message as a `<p>`, or for `prompt()` a `<label>` around it and an `<input>`
@@ -16,9 +16,10 @@ import { type Vocabulary } from "./UIModal.types"
  * - Button texts:  `okText` / `cancelText`, else the translated `ok` / `cancel` texts (`UI.i18n`).
  * - Everything is light DOM built with `createElement` / `textContent`:  never `innerHTML` with caller text.
  * - Other families' tags (`<ui-content>`, `<ui-actions>`, `<ui-button>`) are looked up at CALL time,
- *   by class noun, in the vocabulary registry (`UI.vocabulary`):
- *   importing their vocabulary files would reach into other families' files, which `AGENTS.md` keeps behind
- *   `$/ui/core`.  The family barrel imports `parts` and `button`, so both are defined before any dialog opens.
+ *   by class noun, in the vocabulary registry (`UI.vocabulary`).
+ *   - Why:  importing their vocabulary files would reach into other families' files,
+ *     which `AGENTS.md` keeps behind `$/ui/core`.
+ *   - The family barrel imports `parts` and `button`, so both are defined before any dialog opens.
  * - Registered by the family barrel as `UI.modals`' provider;  the runtime never imports it.
  ****************/
 export class ModalDialogs implements E.ModalProvider {
@@ -56,7 +57,7 @@ export class ModalDialogs implements E.ModalProvider {
     { canDeny, input }: { canDeny: boolean; input?: string },
     result: (isApproved: boolean, value: string) => T
   ): Promise<T> {
-    const modal = this.document.createElement(modalVocabulary.tag) as HTMLElement & { open: boolean }
+    const modal = this.document.createElement(modalVocabulary.tag) as HTMLElement & { visible: boolean }
     modal.setAttribute(SIZE, TINY)
     modal.setAttribute("closedby", "closerequest")
     if (options.title) modal.setAttribute(UIT.HEADER, options.title)
@@ -74,7 +75,7 @@ export class ModalDialogs implements E.ModalProvider {
       if (event.key === UIT.Key.enter) approve.click()
     })
     this.document.body.append(modal)
-    modal.open = true
+    modal.visible = true
     return new Promise<T>((resolve) => {
       let isApproved = false
       modal.addEventListener(APPROVE_EVENT, () => (isApproved = true))

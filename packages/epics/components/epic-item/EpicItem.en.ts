@@ -1,13 +1,14 @@
 /**
  * Every name `<epic-item>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the review controls' parts and texts (`REVIEW_*`) from its types file, data too:
- *   `<epic-section>`'s vocabulary spreads the same ones.
+ * - Pure data:  `import type`, plus data from `epic-review`'s types file.
+ *   - the review controls' parts and button names (`REVIEW_*`):
+ *     it draws `<epic-review>`, and its id chip's tooltip names the chosen button
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
-import { REVIEW_PARTS, REVIEW_TEXTS } from "./EpicItem.types"
+import { REVIEW_NAME_TEXTS, REVIEW_PARTS } from "$/epics/components/epic-review/EpicReview.types"
 
 /****************
  * ### `<epic-item>`
@@ -76,10 +77,10 @@ export const epicItemVocabulary = {
     {
       name: "review-as",
       kind: "enum",
-      values: ["approve", "todo", "revisit", "now", "next", "drop"],
+      values: ["approve", "todo", "revisit", "now", "next", "drop", "skip"],
       description:
         "How Owen's review mark was handled (`now`:  a Do Now request, done;  `next`, `drop`:  a todo queued into " +
-        "the next phase, or dropped):  the record, not drawn on the " +
+        "the next phase, or dropped;  `skip`:  the note box's x, nothing to do):  the record, not drawn on the " +
         "buttons (they clear once handled);  `approve` or `todo` on an open item make it `recent` (green)."
     },
     {
@@ -296,7 +297,7 @@ export const epicItemVocabulary = {
       text: "Couldn't show {source}.",
       description: "The part arrived, but couldn't be shown."
     },
-    ...REVIEW_TEXTS
+    ...REVIEW_NAME_TEXTS
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },

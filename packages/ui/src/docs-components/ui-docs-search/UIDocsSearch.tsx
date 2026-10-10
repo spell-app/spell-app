@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -49,8 +49,9 @@ export class DOMDocsSearchElement extends E.DOMElement<UIDocsSearch> {
    * The text typed;  `""` before the component exists.
    * - Untracked:  a page's Solid effect reading it doesn't re-run on every keystroke.
    */
+  @E.untracked
   get query(): string {
-    return untrack(() => this.component?.query) ?? ""
+    return this.component?.query ?? ""
   }
 }
 
@@ -82,16 +83,16 @@ export class DOMDocsSearchElement extends E.DOMElement<UIDocsSearch> {
  *   - else a result on the page shown sets the hash,
  *     closing the drawer the field is in (the site's landing scrolls)
  *   - and any other loads its page
- *   The field then empties.
+ *   - then the field empties
  * - Data:  the page shown's sections are read live from its DOM on every focus (`PageOutline`, `page`);
  *   the rest come from the site's data, fetched on the FIRST focus or keystroke
  *   (`SiteData` + `SearchData`, `SearchIndex`).
- *   Until it's in, or if it fails, only the page shown is searched.
+ *   - Until it's in, or if it fails, only the page shown is searched.
  * - Every keystroke fires `ui-input` (`{ value }`):  `<ui-docs-nav>` filters its list by it.
  * - Shortcuts (`shortcuts`, on by default):
- *   `/` (not while typing in a field) and Cmd / Ctrl+K summon the field (`summon()`):
- *   of several, the visible one, else one in a closed drawer, which opens.
- *   One document listener serves every field, while any is connected.
+ *   `/` (not while typing in a field) and Cmd / Ctrl+K summon the field (`summon()`).
+ *   - Of several fields, the visible one, else one in a closed drawer, which opens.
+ *   - One document listener serves every field, while any is connected.
  * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of `<ui-icon>`s, which its barrel imports.
  ****************/
 export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
@@ -433,8 +434,8 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
    * - The same hash again re-announces it (`hashchange`), so the page lands once more.
    */
   private jumpHere(hash: string) {
-    const drawer = E.closestAcrossShadow(this.domElement, DRAWERS)
-    if (drawer?.hasAttribute(OPEN)) drawer.removeAttribute(OPEN)
+    const drawer = E.closestAcrossShadow<HTMLElement>(this.domElement, DRAWERS)
+    if (drawer && !drawer.hidden) drawer.hidden = true
     if (location.hash === hash) {
       window.dispatchEvent(new HashChangeEvent("hashchange", { oldURL: location.href, newURL: location.href }))
     } else location.hash = hash
@@ -626,8 +627,9 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
     const before = UIDocsSearch.deepActive()
     if (before && !this.domElement.shadowRoot?.contains(before)) this.returnFocus = before
     if (!this.domElement.checkVisibility()) {
-      const drawer = E.closestAcrossShadow(this.domElement, DRAWERS)
-      if (drawer && !drawer.hasAttribute(OPEN)) drawer.setAttribute(OPEN, "")
+      // a drawer's shared `hidden` / `visible` (one fact):  showing it animates it in
+      const drawer = E.closestAcrossShadow<HTMLElement>(this.domElement, DRAWERS)
+      if (drawer?.hidden) drawer.hidden = false
       for (let frame = 0; frame < SUMMON_FRAMES && !this.domElement.checkVisibility(); frame++) await E.nextFrame()
       // the drawer moves focus into itself as it opens:  take it after
       await E.nextFrame()
@@ -745,9 +747,6 @@ const INDEX_ATTRIBUTE = "data-index"
 
 /** The input's `aria-keyshortcuts`, while shortcuts are on. */
 const KEY_SHORTCUTS = "/ Meta+K Control+K"
-
-/** A drawer's `open` attribute:  `summon()` opens one, a jump to the page shown closes it. */
-const OPEN = "open"
 
 /** Class word of an icon's box (the field's, a result's). */
 const GLYPH = "glyph"

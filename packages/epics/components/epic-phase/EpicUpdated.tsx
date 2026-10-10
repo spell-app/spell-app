@@ -6,20 +6,19 @@ import { E } from "$/ui/core"
 import { PlanDates } from "$/epics/dates"
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
 import { FOLDS, Fold } from "$/epics/components/epic-item/Fold"
-import { FoldButton } from "$/epics/components/epic-item/FoldButton"
 
 import { epicUpdatedVocabulary } from "./EpicUpdated.en"
 import { ICON, LABEL, TEXT } from "./EpicPhase.types"
 
 import fieldCSS from "./EpicField.css?inline"
-import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
+import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 
 /****************
  * ### `EpicUpdated`
  * The component behind `<epic-updated>`:
- * one dated change to a phase's plan, FENCED under its Symptom / Changes (a dashed orange box) --
- * the fold chevron, its icon, `Updated` and the time (`at`, to the minute), the phase under way then;
- * under them, what changed (its children).
+ * one dated change to a phase's plan, FENCED under its Symptom / Changes (a dashed orange box).
+ * - its heading:  the fold chevron, its icon, `Updated` and the time (`at`, to the minute), the phase under way then
+ * - under them:  what changed (its children)
  * - Folds by its heading row (Owen, 2026-10-08:  everything in a section box folds):
  *   open to start with;  page state, never written;  folded, what changed is `hidden="until-found"`.
  * - Kept once the phase is done:  the record of how the plan moved.
@@ -64,7 +63,7 @@ export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
         <div ref={this.fold.heading} class={[HEAD, { [FOLDS]: this.hasBody }]}>
           <span class={FOLD_CELL}>
             <Show when={this.hasBody}>
-              <FoldButton fold={this.fold} controls={BODY_ID} labelledBy={LABEL_ID} part={this.partForName("toggle")} />
+              {this.fold.button({ controls: BODY_ID, labelledBy: LABEL_ID, part: this.partForName("toggle") })}
             </Show>
           </span>
           <span class={ICON} part={this.partForName("icon")} aria-hidden="true">

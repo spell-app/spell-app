@@ -7,10 +7,11 @@ import "./RunnerPane.css"
  * ### `<RunnerPane>`
  * One of a runner's panes:  a toolbar of `tabs`, then `children`, what tab `pane` shows.
  * - A single tab just says what it is.
- * - Tabs are `<ui-item>`s in a `<ui-menu>`:  whoever mounts a runner defines the `<ui-*>` tags
- *   (`$/app/solid/loadUI`), and gives it Fomantic's icon names (`<ui-root icons="fomantic">`).
- * - HACK: each tab's icon is a slotted `<ui-icon>`, not the item's `icon`:  `<ui-menu>` draws that at 0 x 0
- *   (plan doc I1, as `$/app/solid`'s `<Action>`).
+ * - Tabs are `<ui-item>`s in a `<ui-menu>`.
+ *   Whoever mounts a runner defines the `<ui-*>` tags (`$/app/solid/loadUI`, or a root around it:  `<spell-app>`),
+ *   and gives it Fomantic's icon names (`<ui-root icons="fomantic">`, `<spell-app>`'s default `icons`).
+ * - HACK: each tab's icon is a slotted `<ui-icon>`, not the item's `icon`:
+ *   `<ui-menu>` draws that at 0 x 0 (plan doc I1, as `$/app/solid`'s `<Action>`).
  ****************/
 export function RunnerPane<Id extends string>(props: RunnerPaneProps<Id>) {
   return (

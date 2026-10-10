@@ -7,7 +7,7 @@ import { E, UI, type UIT } from "$/ui/core"
 // Import directly to avoid circular import
 import { UIComponent } from "./UIComponent"
 import { DOMLoadableElement } from "./DOMLoadableElement"
-import { cssState, fromContent, onChange, state, untracked } from "./Reactive"
+import { cssState, watches, onChange, state, untracked } from "./Reactive"
 import { SOURCE_LOADER_TAG, SOURCE_MESSAGE_TAG } from "./elements.types"
 
 /****************
@@ -19,7 +19,7 @@ import { SOURCE_LOADER_TAG, SOURCE_MESSAGE_TAG } from "./elements.types"
  * - Text comes from, first match wins:
  *   1. `domElement.content = "..."` (`wasEdited`), until `source` changes or `reload()`
  *   2. `source`:  fetched through `UI.sources` (same origin only), when `load` says (`eager`, `visible`, `idle`)
- *   3. the DOM element's own content (`wantsInlineContent`), dedented, followed as it changes (`@fromContent`):
+ *   3. the DOM element's own content (`wantsInlineContent`), dedented, followed as it changes (`@watches`):
  *      a `<script type="text/...">` child (exact text), else a `<template>` child (its markup),
  *      else the DOM element's text
  * - States:
@@ -79,7 +79,7 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
    * The DOM element's own content as text, dedented (`wantsInlineContent`);  follows it as the page changes it.
    * - `""` on a server, and for a class that doesn't want inline content.
    */
-  @fromContent({ childList: true, characterData: true, subtree: true })
+  @watches({ childList: true, characterData: true, subtree: true })
   get inlineText(): string {
     return isServer || !this.wantsInlineContent ? "" : LoadableComponent.inlineTextOf(this.domElement)
   }
@@ -474,10 +474,10 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
 
 /**
  * Attributes each status element gets, by tag:
- * - the loader:  spinning (`active`), in the text flow (`inline`), centred (`centered`)
+ * - the loader:  shown (`visible`), in the text flow (`inline`), centred (`centered`)
  * - the message:  the error look (`state="error"`)
  */
 const STATUS_ATTRIBUTES = {
-  [SOURCE_LOADER_TAG]: { active: "", inline: "", centered: "" },
+  [SOURCE_LOADER_TAG]: { visible: "", inline: "", centered: "" },
   [SOURCE_MESSAGE_TAG]: { state: "error" }
 } as const

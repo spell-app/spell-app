@@ -42,6 +42,14 @@ describe("ReviewInbox marks", () => {
     expect(() => ReviewInbox.toMark({ action: "drop", note: 3 })).toThrow(InboxError)
   })
 
+  test("the note box's x (`skip`):  its note trimmed, kept only when there is one;  a pick never", () => {
+    expect(ReviewInbox.toMark({ action: "skip", note: " covered by P3 ", pick: "B" })).toEqual({
+      action: "skip",
+      note: "covered by P3"
+    })
+    expect(ReviewInbox.toMark({ action: "skip" })).toEqual({ action: "skip" })
+  })
+
   test("a revisit may carry a pick:  'pick B, but ...'", () => {
     expect(ReviewInbox.toMark({ action: "revisit", note: " only plan docs? ", pick: "B" })).toEqual({
       action: "revisit",

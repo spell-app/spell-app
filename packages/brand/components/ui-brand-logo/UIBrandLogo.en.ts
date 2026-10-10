@@ -1,11 +1,11 @@
 /**
  * The English vocabulary of `<ui-brand-logo>`:  every name the tag uses.
- * - The shape is `ComponentVocabulary`.
+ * - The shape is `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
  * - `variant` and `tone` are not class words:  the component draws the outline and sets its colour.
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `brandLogoVocabulary`
@@ -51,4 +51,4 @@ export const brandLogoVocabulary = {
     { key: "spell", text: "Spell", description: "Default name of the mark and the lockups." },
     { key: "spellApp", text: "Spell App", description: "Default name of the `app` lockup." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

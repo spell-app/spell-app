@@ -1,20 +1,8 @@
-import { Show, createEffect } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  afterSolidUpdate,
-  IconGlyph,
-  proto,
-  protoMerged,
-  SlotContent,
-  UI,
-  untracked,
-  type AttributeName,
-  type FieldValue,
-  type ElementSetup,
-  type AttributeValues
-} from "$/ui/core"
-import { DOMFormControl, FormComponent } from "$/ui/forms"
+import { E, UI } from "$/ui/core"
+import { F } from "$/ui/forms"
 
 import { brandComposerVocabulary } from "./UIBrandComposer.en"
 import { BrandComposerFallback } from "./UIBrandComposer.fallback"
@@ -37,12 +25,13 @@ import composerCSS from "./UIBrandComposer.css?inline"
 /****************
  * ### `DOMBrandComposerElement`
  * The DOM element of `<ui-brand-composer>`:  a form control's DOM element (`DOMFormControl`), plus `cast()`,
- * so a page can cast what it just put in `value` (the marketing hero's idea chips fill the box and cast at once).
+ * so a page can cast what it just put in `value`
+ * (the marketing hero's idea chips fill the box and cast at once).
  *
  * - `DOMElement` refuses a member named like an attribute's property:  `cast` is no attribute (`casting` is).
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMBrandComposerElement extends DOMFormControl<UIBrandComposer> {
+export class DOMBrandComposerElement extends F.DOMFormControl<UIBrandComposer> {
   /**
    * Cast the current text, as the Cast button does:  `ui-cast`, then the form's submit.
    * - Returns false when nothing was cast:  empty text, `casting`, `disabled`, not rendered yet, or cancelled.
@@ -61,9 +50,10 @@ export class DOMBrandComposerElement extends DOMFormControl<UIBrandComposer> {
  *   a borderless serif `<textarea part="textarea">`, then the bar:
  *   the `tools` slot (chips), the hint, the round Cast button.
  *
- * - `value` is controlled (`Controlled`), as `<ui-textarea>`'s:  typing sends `ui-input` first,
- *   and a handler that sets `el.value` again wins.  The ATTRIBUTE is the starting value, which a form reset restores;
- *   no reflection.  Leaving the box edited sends `ui-change`.
+ * - `value` is controlled (`@E.controlled`, as `text`), as `<ui-textarea>`'s:
+ *   - typing sends `ui-input` first, and a handler that sets `el.value` again wins
+ *   - the ATTRIBUTE is the starting value, which a form reset restores;  no reflection
+ *   - leaving the box edited sends `ui-change`
  *
  * - Cast:  the button, Cmd / Ctrl+Enter in the box (either key, on any platform), or the DOM element's `cast()`.
  *   - Plain Enter types a new line.
@@ -71,100 +61,138 @@ export class DOMBrandComposerElement extends DOMFormControl<UIBrandComposer> {
  *     the button stays focusable then, `aria-disabled`.
  *   - `ui-cast` is CANCELABLE:  unless cancelled, a composer inside a `<form>` submits it (`requestSubmit()`),
  *     so `name` / `value` reach the form's `submit` handler.
- * - `casting`:  the PAGE sets it while it builds and clears it;  the button spins (still, with reduced motion),
- *   the card is `aria-busy`, and "Casting your spell…" is announced.  The text stays editable.
+ * - `readonly`:  as `<ui-textarea>`'s, the text box's own `readonly`:  it can't be typed in,
+ *   yet casts and submits its text (`:state(readonly)`, `FormComponent.isReadOnly`).
+ * - `casting`:  the PAGE sets it while it builds and clears it.
+ *   - The button spins (still, with reduced motion), the card is `aria-busy`,
+ *     and "Casting your spell…" is announced.
+ *   - The text stays editable.
  * - Grows with its text (`field-sizing: content`, where the browser has it) from `rows` lines,
  *   up to `--ui-brand-composer-max-height`;  elsewhere it stays `rows` tall and scrolls.
  * - The box's name:  `label`, else what names the DOM element (`aria-label`, `<label for>`), else `eyebrow`,
- *   else "Your spell".  The hint is its description (`aria-describedby`), the shortcut its `aria-keyshortcuts`.
+ *   else "Your spell".
+ *   The hint is its description (`aria-describedby`), the shortcut its `aria-keyshortcuts`.
  * - A form control:  it submits `value` under `name`.
  ****************/
-export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
-  @proto static vocabulary = brandComposerVocabulary
-  @protoMerged static elementSetup = {
+export class UIBrandComposer extends F.FormComponent<BrandComposerVocabulary> {
+  @E.proto static vocabulary = brandComposerVocabulary
+  @E.protoMerged static elementSetup = {
     styleSheets: { composer: composerCSS },
+    cssStates: ["casting"],
     Fallback: BrandComposerFallback,
     DOMElement: DOMBrandComposerElement
-  } satisfies Partial<ElementSetup>
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
-  // ## State
+  // ## The text
   ////////////////
 
-  /** `value`:  set by the page, or typed in;  `""` until either. */
-  readonly valueState = this.controlled("value", "")
+  /**
+   * The text:  `value` set by the page, or typed in;  `""` until either.
+   * - Named for what it is (epic `spell-element`, J13):  `this.value` stays the attribute.
+   */
+  @E.controlled("value") accessor text = ""
 
-  /** Which slots have light-DOM children:  `eyebrow`, `tools`. */
-  readonly slots = new SlotContent(this.domElement)
+  /** Nothing to cast:  empty, or only blanks. */
+  @E.cssState("empty")
+  get isBlank(): boolean {
+    return !this.text.trim()
+  }
 
-  /** The Cast button's arrow, and the spinner it shows while `casting`;  loaded up front, so neither flashes in. */
-  readonly glyphs = {
-    cast: new IconGlyph({ owner: this, name: () => CAST_ICON }),
-    casting: new IconGlyph({ owner: this, name: () => CASTING_ICON })
+  /** Can't cast now:  blank, `casting` or disabled. */
+  get isBlocked(): boolean {
+    return this.isBlank || !!this.casting || this.isDisabled
   }
 
   /** The native text box. */
   private control?: HTMLTextAreaElement
 
-  ////////////////
-  // ## Values
-  ////////////////
-
-  /** The text;  tracked. */
-  text(): string {
-    return String(this.valueState.get() ?? "")
+  /** The text box shows the text again, e.g. after a cancelled `ui-input`, or a set from outside. */
+  @E.onChange("text", "isReady")
+  protected onTextChanged() {
+    this.syncControl()
   }
 
-  /** Nothing to cast:  empty, or only blanks;  tracked. */
-  isBlank(): boolean {
-    return !this.text().trim()
+  /** The text box shows the text, if it doesn't already. */
+  @E.untracked
+  private syncControl() {
+    const { control, text } = this
+    if (control && control.value !== text) control.value = text
   }
 
-  /** Can't cast now:  blank, `casting` or disabled;  tracked. */
-  isBlocked(): boolean {
-    return this.isBlank() || this.casting || this.isDisabled
+  /** Typing:  `ui-input` first, then the text (unless a handler took over:  the box shows the text again). */
+  private readonly onInput = (event: Event) => {
+    const next = (event.currentTarget as HTMLTextAreaElement).value
+    const applied = this.requestChange("text", next, () => this.send("ui-input", { value: next, originalEvent: event }))
+    if (!applied) this.syncControl()
   }
 
-  protected get extraClass(): string | undefined {
-    return this.size === LARGE ? `${BRAND} ${LARGE}` : BRAND
-  }
-
-  protected cssStates() {
-    return { empty: this.isBlank(), casting: this.casting }
+  /** Left the box edited:  `ui-change`. */
+  @E.untracked
+  private readonly onChange = (event: Event) => {
+    this.send("ui-change", { value: this.text, originalEvent: event })
   }
 
   ////////////////
   // ## Form
   ////////////////
 
-  get formValue(): FieldValue {
-    return this.text()
+  get formValue(): E.FieldValue {
+    return this.text
   }
 
   /** Back to the `value` ATTRIBUTE (native `defaultValue`). */
   onFormReset() {
-    const { attribute } = this.elementDefinition.attribute("value")
-    this.valueState.set(this.domElement.getAttribute(attribute) ?? "")
+    this.text = this.attributes.value ?? ""
   }
 
   ////////////////
-  // ## Wiring
+  // ## Casting
   ////////////////
 
-  /** Adds the value sync (`value` => the text box, after DOM updates). */
-  onMount(): JSX.Element {
-    createEffect(
-      () => [this.text(), this.isReady],
-      () => {
-        this.syncControl()
-      }
-    )
-    return super.onMount()
+  /**
+   * Cast the current text (the button, Cmd / Ctrl+Enter, the DOM element's `cast()`):
+   * send `ui-cast`, then, unless cancelled, submit the form.
+   * - Reads the members fresh:  a page may set `value` (or `casting`) and cast in one go.
+   * - Returns false when nothing was cast (see the class doc), or `ui-cast` was cancelled.
+   * - SIDE EFFECT:  `requestSubmit()` on the DOM element's form.
+   */
+  @E.untracked
+  cast(originalEvent?: Event): boolean {
+    if (this.isBlocked) return false
+    if (!this.send("ui-cast", { value: this.text, originalEvent })) return false
+    this.domElement.internals.form?.requestSubmit()
+    return true
+  }
+
+  /** Cmd / Ctrl+Enter casts;  plain Enter (and Enter while composing) types as usual. */
+  private readonly onKeyDown = (event: KeyboardEvent) => {
+    if (event.key !== ENTER || !(event.metaKey || event.ctrlKey) || event.isComposing) return
+    event.preventDefault()
+    this.cast(event)
+  }
+
+  /** The Cast button. */
+  private readonly onCastClick = (event: MouseEvent) => {
+    this.cast(event)
   }
 
   ////////////////
   // ## Rendering
   ////////////////
+
+  /** Which slots have light-DOM children:  `eyebrow`, `tools`. */
+  readonly slots = new E.SlotContent(this.domElement)
+
+  /** The Cast button's arrow, and the spinner it shows while `casting`;  loaded up front, so neither flashes in. */
+  readonly glyphs = {
+    cast: new E.IconGlyph({ owner: this, name: () => CAST_ICON }),
+    casting: new E.IconGlyph({ owner: this, name: () => CASTING_ICON })
+  }
+
+  protected get extraClass(): string | undefined {
+    return this.size === LARGE ? `${BRAND} ${LARGE}` : BRAND
+  }
 
   render(): JSX.Element {
     return (
@@ -178,14 +206,15 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
           ref={(element) => (this.control = element)}
           class={CLASSES.textarea}
           part={this.partForName("textarea")}
-          rows={this.rowCount()}
+          rows={this.rowCount}
           style={this.rowsStyle()}
           placeholder={this.placeholder ?? this.translationForKey("placeholder")}
           spellcheck="true"
           aria-label={this.boxName()}
-          aria-describedby={this.shownHint() ? IDS.hint : undefined}
+          aria-describedby={this.shownHint ? IDS.hint : undefined}
           aria-keyshortcuts={this.shortcut()}
           disabled={this.isDisabled}
+          readonly={this.isReadOnly}
           onInput={this.onInput}
           onChange={this.onChange}
           onKeyDown={this.onKeyDown}
@@ -196,9 +225,9 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
               <slot name={this.slotForName("tools")} />
             </div>
           </Show>
-          <Show when={this.shownHint()}>
+          <Show when={this.shownHint}>
             <span id={IDS.hint} class={CLASSES.hint} part={this.partForName("hint")}>
-              {this.shownHint()}
+              {this.shownHint}
             </span>
           </Show>
           <button
@@ -207,7 +236,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
             part={this.partForName("cast")}
             aria-label={this.translationForKey("cast")}
             aria-keyshortcuts={this.shortcut()}
-            aria-disabled={this.isBlocked() ? "true" : undefined}
+            aria-disabled={this.isBlocked ? "true" : undefined}
             disabled={this.isDisabled}
             onClick={this.onCastClick}
           >
@@ -224,9 +253,14 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   }
 
   /** `rows`, else `DEFAULT_ROWS`;  at least 1. */
-  private rowCount(): number {
+  get rowCount(): number {
     const rows = this.rows
     return typeof rows === "number" && Number.isFinite(rows) ? Math.max(1, Math.round(rows)) : DEFAULT_ROWS
+  }
+
+  /** The hint:  `hint`, else the platform's;  `""` hides it. */
+  get shownHint(): string {
+    return this.hint ?? this.translationForKey(UI.browser.isApple ? "hintApple" : "hintOther")
   }
 
   /**
@@ -234,7 +268,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
    * - A method, not an inline object:  Solid's server compile drops the `;` between COMPUTED keys.
    */
   private rowsStyle(): Record<string, string> {
-    return { [ROWS_VAR]: String(this.rowCount()) }
+    return { [ROWS_VAR]: String(this.rowCount) }
   }
 
   /** The text box's name (see the class doc);  tracked. */
@@ -242,90 +276,10 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
     return this.label || this.labels.accessibleName || this.eyebrow || this.translationForKey("label")
   }
 
-  /** The hint:  `hint`, else the platform's;  `""` hides it.  Tracked. */
-  private shownHint(): string {
-    return this.hint ?? this.translationForKey(UI.browser.isApple ? "hintApple" : "hintOther")
-  }
-
   /** `aria-keyshortcuts` of the cast shortcut, the platform's. */
   private shortcut(): string {
     return UI.browser.isApple ? SHORTCUTS.apple : SHORTCUTS.other
   }
-
-  ////////////////
-  // ## Casting
-  ////////////////
-
-  /**
-   * Cast the current text (the button, Cmd / Ctrl+Enter, the DOM element's `cast()`):
-   * send `ui-cast`, then, unless cancelled, submit the form.
-   * - Reads the DOM element's PROPERTIES, not the signals:
-   *   a page may set `value` (or `casting`) and cast in one go, before the signals' writes land.
-   * - Returns false when nothing was cast (see the class doc), or `ui-cast` was cancelled.
-   * - SIDE EFFECT:  `requestSubmit()` on the DOM element's form.
-   */
-  @untracked
-  cast(originalEvent?: Event): boolean {
-    const value = this.current()
-    if (!value.trim() || this.flagNow("casting") || this.flagNow("disabled") || this.formIsDisabled) {
-      return false
-    }
-    if (!this.send("ui-cast", { value, originalEvent })) return false
-    this.domElement.internals.form?.requestSubmit()
-    return true
-  }
-
-  /** The text now:  the DOM element's `value` property (synchronous), else `""`. */
-  private current(): string {
-    const value = this.propertyNow("value")
-    return typeof value === "string" ? value : ""
-  }
-
-  /** Boolean attribute `name`'s DOM element property, now. */
-  private flagNow(name: "casting" | "disabled"): boolean {
-    return !!this.propertyNow(name)
-  }
-
-  /** Attribute `name`'s DOM element property, read synchronously (the DOM element's `attributeValues`, not the signal). */
-  private propertyNow(name: AttributeName<BrandComposerVocabulary>): unknown {
-    const { property } = this.elementDefinition.attribute(name)
-    return (this.domElement as unknown as Record<string, unknown>)[property]
-  }
-
-  /** The text box shows `value` again, e.g. after a cancelled `ui-input`, or a set from outside. */
-  private syncControl() {
-    const { control } = this
-    const value = this.current()
-    if (control && control.value !== value) control.value = value
-  }
-
-  ////////////////
-  // ## Handlers
-  ////////////////
-
-  /** Typing:  `ui-input` first, then the value (unless a handler took over). */
-  private readonly onInput = (event: Event) => {
-    const next = (event.currentTarget as HTMLTextAreaElement).value
-    const applied = this.valueState.request(next, () => this.send("ui-input", { value: next, originalEvent: event }))
-    if (!applied) afterSolidUpdate(() => this.syncControl())
-  }
-
-  /** Left the box edited:  `ui-change`. */
-  private readonly onChange = (event: Event) => {
-    this.send("ui-change", { value: this.current(), originalEvent: event })
-  }
-
-  /** Cmd / Ctrl+Enter casts;  plain Enter (and Enter while composing) types as usual. */
-  private readonly onKeyDown = (event: KeyboardEvent) => {
-    if (event.key !== ENTER || !(event.metaKey || event.ctrlKey) || event.isComposing) return
-    event.preventDefault()
-    this.cast(event)
-  }
-
-  /** The Cast button. */
-  private readonly onCastClick = (event: MouseEvent) => {
-    this.cast(event)
-  }
 }
 
-export interface UIBrandComposer extends AttributeValues<BrandComposerVocabulary> {}
+export interface UIBrandComposer extends E.AttributeValues<BrandComposerVocabulary> {}

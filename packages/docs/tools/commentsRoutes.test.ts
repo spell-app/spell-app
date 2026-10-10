@@ -133,6 +133,17 @@ test("a taken comment can't change:  409", async () => {
   expect((await post({ page, action: "delete", id })).status).toBe(409)
 })
 
+test("any comment clears, taken or not;  an unknown one is a 404", async () => {
+  const page = "/epics/big/notes.html"
+  const { id } = (await post({ page, action: "add", ...ON_TABLE, text: "x" })).answer
+  GuideInbox.update(join(root, "epics/big/notes.inbox.json"), (comments) =>
+    comments.take(id, { epic: "guide-changes", phase: 1 })
+  )
+  const cleared = await post({ page, action: "clear", id })
+  expect(cleared.answer.comments.some((comment: { id: string }) => comment.id === id)).toBe(false)
+  expect((await post({ page, action: "clear", id })).status).toBe(404)
+})
+
 test("the page reads its comments back, every status", async () => {
   const got = await ask(port, "GET", "/api/comments?page=%2Fguides%2Fsolid%2Fsolid-2.html")
   expect(got.status).toBe(200)
@@ -188,6 +199,18 @@ test("bad changes are refused", async () => {
   expect((await post({ page, action: "add", ...ON_TABLE, anchor: "two words", text: "x" })).status).toBe(400)
   expect((await post({ page, action: "add", ...ON_TABLE, kind: "Not a kind", text: "x" })).status).toBe(400)
   expect((await post({ page, action: "edit", text: "x" })).status).toBe(400)
+})
+
+test("NEVER an empty comment:  an add or edit with no text, white space or zero-width spaces is a 400", async () => {
+  const page = "/pages/details/plain.html"
+  for (const text of [undefined, "", "   ", "\n\t \n", "​"])
+    expect([text, (await post({ page, action: "add", ...ON_TABLE, text })).status]).toEqual([text, 400])
+  const { id } = (await post({ page, action: "add", ...ON_TABLE, text: "kept" })).answer
+  for (const text of [undefined, "", "  \n  "])
+    expect([text, (await post({ page, action: "edit", id, text })).status]).toEqual([text, 400])
+  const read = JSON.parse((await ask(port, "GET", `/api/comments?page=${encodeURIComponent(page)}`)).text)
+  expect(read.comments.find((comment: { id: string }) => comment.id === id).text).toBe("kept")
+  await post({ page, action: "delete", id })
 })
 
 test("writes need the token, our origin and our host", async () => {

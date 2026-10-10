@@ -8,7 +8,7 @@ import { E } from "$/ui/core"
  *   - its camelCase CANONICAL key (what the component reads, `this.allowAdditions`)
  *   - its (localized) attribute and property names
  *   - then the shared attributes the vocabulary doesn't declare, under their English names on a translated tag too
- *     (`SharedVocabulary`:  `disabled`, `loading`, `visible`)
+ *     (`SharedVocabulary`:  `disabled`, `loading`, `visible`, `animation`)
  * - The DOM element (`DOMElement`) does the rest:  a property per attribute, the upgrade step, reflection.
  * - ONE conversion per kind of value, each way:
  *   - `convert()`:  attribute text or property value => value
@@ -55,7 +55,7 @@ export class ElementDefinition {
     // no tag and no dictionary is the vocabulary's OWN tag, whatever its prefix (`x-item-owner` in tests)
     this.tag = tag ?? (dictionary ? localized.tag : vocabulary.tag)
     this.builder = new E.ClassBuilder(vocabulary)
-    // the vocabulary's own, then the shared ones it doesn't declare (`disabled`, `loading`, `visible`)
+    // the vocabulary's own, then the shared ones it doesn't declare (`disabled`, `loading`, `visible`, `animation`)
     this.attributes = E.SharedVocabulary.attributesFor(vocabulary).map((spec) => {
       const attribute = localized.names.attributes.get(spec.name) ?? spec.name
       const key = E.camelCase(spec.name)
@@ -206,6 +206,23 @@ export class ElementDefinition {
     return value
   }
 
+  /**
+   * Is an element of this tag shown, by its markup alone?
+   * (`visible` and the platform's `hidden`, one fact:  `DOMElement`, "Shown or hidden")
+   * 1. `hidden` written, any value (`until-found` too):  no, whatever `visible` says
+   * 2. else `visible` written:  its value (`"false"` => no)
+   * 3. else the family's `startsVisible` (`elementSetup.visible`)
+   * - `attributeText(name)`:  an attribute's text, `null` when absent (DOM API `getAttribute()`).
+   * - Shared by the DOM element (before its first connect) and the static render.
+   */
+  visibleInMarkup(attributeText: (name: string) => string | null, startsVisible: E.StartsVisible): boolean {
+    if (attributeText("hidden") !== null) return false
+    const visible = this.byName.get(VISIBLE)
+    const text = visible && attributeText(visible.attribute)
+    if (visible && text !== null && text !== undefined) return this.convert(visible, text) === true
+    return startsVisible === "shown"
+  }
+
   /** Localized value => canonical (`rojo` => `red`, `movil tableta` => `mobile tablet`);  others unchanged. */
   private canonicalValue(attribute: E.ResolvedAttribute, value: unknown): unknown {
     if (typeof value !== "string" || !this.localized.values.has(attribute.spec.name)) return value
@@ -216,7 +233,7 @@ export class ElementDefinition {
    * Attribute text for a canonical `value`, or `null` to remove it.
    * - Booleans:  `""` or removed (NEVER `"true"`);  `"false"` only for off over a `true` default (`visible`).
    * - `keyOrValueAndKey`:  `""` for bare, else the value.
-   * - Arrays:  comma-joined.
+   * - Arrays:  comma-joined (`a,b`);  one holding anything but strings, numbers and booleans as JSON (`[{"a":1}]`).
    * - Canonical values are written LOCALIZED (`red` => `rojo` on `<ie-boton>`).
    */
   attributeText(attribute: E.ResolvedAttribute, value: unknown): string | null {
@@ -231,7 +248,8 @@ export class ElementDefinition {
     if (spec.kind === "icon" && value == null && typeof spec.default === "string") return "false"
     if (value == null || value === false) return null
     if (value === true) return ""
-    if (Array.isArray(value)) return value.join(",")
+    // an array of objects as JSON (`[{"a":1}]`):  comma-joined, each would read `[object Object]`
+    if (Array.isArray(value) && value.every((item) => ElementDefinition.isPrimitive(item))) return value.join(",")
     const text = ElementDefinition.text(value)
     return this.localized.names.values.get(spec.name)?.get(text) ?? text
   }
@@ -246,10 +264,18 @@ export class ElementDefinition {
    */
   private static text(value: unknown): string {
     if (typeof value === "string") return value
-    if (typeof value === "number" || typeof value === "boolean") return String(value)
+    if (ElementDefinition.isPrimitive(value)) return String(value)
     return JSON.stringify(value)
   }
+
+  /** `value` is a string, number or boolean:  text as it is, no JSON needed. */
+  private static isPrimitive(value: unknown): value is string | number | boolean {
+    return typeof value === "string" || typeof value === "number" || typeof value === "boolean"
+  }
 }
+
+/** The shared `visible` attribute's canonical name (`SharedVocabulary`). */
+const VISIBLE = "visible"
 
 /** Constructor props for `ElementDefinition`. */
 export type ElementDefinitionProps = {

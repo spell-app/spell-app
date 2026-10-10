@@ -25,14 +25,14 @@ import itemsCSS from "./UIItems.css?inline"
  *   With `stack-with="page"` (a private class), it answers to the screen's.
  *
  * - Not interactive:  `link` is Fomantic's hover look;  an item that goes somewhere takes `href` (one link).
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, its items inert, `aria-disabled`.
  ****************/
 export class UIItems extends E.UIComponent<typeof itemsVocabulary> implements UIT.ItemOwner {
   @E.proto static vocabulary = itemsVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { items: itemsCSS },
-    delegatesFocus: false,
-    // `disabled`:  only a look
-    disabled: "its own"
+    delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
   /** Always:  the size container `ui-items` (`:state(items)`). */

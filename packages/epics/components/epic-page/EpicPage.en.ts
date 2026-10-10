@@ -1,15 +1,13 @@
 /**
  * Every name `<epic-page>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the new-item controls' parts and texts (`NEW_*`) from `epic-item`'s types file,
- *   data too:  its toolbar's new item button (epic `airplane` P2);  and the state filter's texts (`FILTER_TEXTS`)
- *   from `epic-section`'s, for its toolbar's chips.
+ * - Pure data:  `import type`, plus data from `epic-section`'s types file.
+ *   - the state filter's texts (`FILTER_TEXTS`), for its toolbar's chips
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
-// the new-item controls its toolbar draws, as a Todos section does;  the state filter's chips, as a section's
-import { NEW_PARTS, NEW_TEXTS } from "$/epics/components/epic-item/EpicItem.types"
+// the state filter's chips, as a section's
 import { FILTER_TEXTS } from "$/epics/components/epic-section/EpicSection.types"
 
 /****************
@@ -175,7 +173,23 @@ export const epicPageVocabulary = {
       description:
         "A doc still planning (no phases, not future):  the folded `Plan hung?` aside, with the prompt to copy."
     },
-    ...NEW_PARTS
+    {
+      name: "new-button",
+      description:
+        "The toolbar's New todo or question (comment dots, epic `airplane` P2):  opens the form.  Only while the page " +
+        "is reviewed."
+    },
+    {
+      name: "new-form",
+      description:
+        "The new todo or question form the toolbar button opened (an `<epic-new-item open>`):  a row of its own " +
+        "across the header."
+    },
+    {
+      name: "agents",
+      description:
+        "The running agents (an `<epic-agents>`, epic `skillz` P3), right before its blocks:  only while an agent runs."
+    }
   ],
   states: [
     { name: "future", description: "A future epic." },
@@ -183,6 +197,11 @@ export const epicPageVocabulary = {
   ],
   texts: [
     { key: "copyHeading", text: "Copy {command}", description: "The h1's tooltip." },
+    {
+      key: "newButton",
+      text: "New todo or question",
+      description: "The toolbar's new item button (comment dots):  its name and tooltip."
+    },
     { key: "crumbs", text: "Breadcrumb", description: "The crumbs, spoken." },
     { key: "crumbDocs", text: "Docs", description: "The crumbs' first:  the docs home." },
     { key: "crumbEpics", text: "Epics", description: "The crumbs' second:  the epics' index." },
@@ -266,16 +285,7 @@ export const epicPageVocabulary = {
     { key: "copied", text: "copied", description: "The review line, just copied." },
     { key: "hung", text: "Plan hung?", description: "The planning aside's title." },
     { key: "hungBefore", text: "Close its Claude tab, then run", description: "The aside, before `/epic <name>`." },
-    { key: "hungAfter", text: "and pick \u201cReuse\u201d.", description: "The aside, after `/epic <name>`." },
-    { key: "agents", text: "Agents running", description: "The running-agents panel's title, and its region's name." },
-    { key: "agentStarted", text: "Started {time}", description: "An agent's age, its tooltip:  when it started." },
-    { key: "agentYou", text: "You", description: "Who sent a redirect:  `You \u00b7 10:42 \u00b7 told 10:43`." },
-    { key: "agentTold", text: "told {time}", description: "A redirect a session passed on to the agent." },
-    { key: "agentWaiting", text: "waiting for the session", description: "A redirect no session passed on yet." },
-    { key: "agentNote", text: "Redirect {name} ...", description: "An agent's empty note box." },
-    { key: "agentNoteLabel", text: "Redirect {name}:  your note", description: "An agent's note box, spoken." },
-    { key: "agentSend", text: "Send", description: "An agent's Send button:  the note redirects it." },
-    ...NEW_TEXTS
+    { key: "hungAfter", text: "and pick \u201cReuse\u201d.", description: "The aside, after `/epic <name>`." }
   ],
   children: [
     { tag: "flow", slot: "durable", max: 1, description: "The durable doc's link." },

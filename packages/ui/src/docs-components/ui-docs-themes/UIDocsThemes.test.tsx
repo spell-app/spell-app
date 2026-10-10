@@ -114,7 +114,7 @@ async function clean() {
 beforeEach(async () => {
   os = "light"
   vi.spyOn(ThemePreference, "osScheme").mockImplementation(() => os)
-  SiteData.reset(REAL_DATA)
+  SiteData.url = REAL_DATA
   await UI.load()
   // Escape through a keyboard binding rather than `CloseWatcher`, so the test can press it
   UI.overlays.useCloseWatcher = false
@@ -236,7 +236,7 @@ describe("<ui-docs-themes> overlay", () => {
     await vi.waitFor(() => expect(focused()).toBe(row(host, SPELL)))
     await ElementFixture.settle()
     expect(host.matches(":state(open)")).toBe(true)
-    expect(host.shadowRoot!.querySelectorAll("[part~=tip]")[0]!.hasAttribute("hidden")).toBe(true)
+    expect(host.shadowRoot!.querySelectorAll("[part~=tip]")[0]!.classList.contains("muted")).toBe(true)
 
     await userEvent.keyboard("{ArrowDown}")
     expect(focused()).toBe(row(host, SPELL_BRAND))

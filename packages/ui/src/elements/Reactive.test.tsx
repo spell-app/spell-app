@@ -45,6 +45,14 @@ class Basket {
     return () => this.calls.push("cleanup")
   }
 
+  /** Every call of `onDiscountChanged()`:  deferred, so never the starting discount. */
+  readonly discountChanges: number[] = []
+
+  @E.onChange("discount", { defer: true })
+  protected onDiscountChanged(discount: number) {
+    this.discountChanges.push(discount)
+  }
+
   /** A plain getter over two members:  its effect tracks both. */
   get isBigOrder(): boolean {
     return this.items.length * (100 - this.discount) >= 200
@@ -92,6 +100,12 @@ class Basket {
   /** `priceNow()` as an arrow-function field, as a handler passed around. */
   @E.untracked
   readonly priceHandler = (price: number): number => price * (1 - this.discount / 100)
+
+  /** The discount as a fraction, read untracked:  a getter. */
+  @E.untracked
+  get discountNow(): number {
+    return this.discount / 100
+  }
 }
 
 describe("Reactive:  @state", () => {
@@ -280,12 +294,26 @@ describe("Reactive:  @onChange", () => {
     expect(basket.calls).toEqual([" @0"])
     dispose()
   })
+
+  it("`{ defer: true }`:  not called at the start, only on a change", () => {
+    const basket = new Basket()
+    const dispose = createRoot((dispose) => {
+      E.Reactive.startEffects(basket)
+      return dispose
+    })
+    flush()
+    expect(basket.discountChanges).toEqual([])
+    basket.discount = 15
+    flush()
+    expect(basket.discountChanges).toEqual([15])
+    dispose()
+  })
 })
 
 describe("Reactive:  @untracked", () => {
   it("a computation calling the method doesn't follow what it reads;  the same method undecorated does", () => {
     const basket = new Basket()
-    const runs = { untracked: 0, field: 0, tracked: 0 }
+    const runs = { untracked: 0, field: 0, getter: 0, tracked: 0 }
     const dispose = createRoot((dispose) => {
       createEffect(
         () => {
@@ -303,6 +331,13 @@ describe("Reactive:  @untracked", () => {
       )
       createEffect(
         () => {
+          runs.getter++
+          return basket.discountNow
+        },
+        () => {}
+      )
+      createEffect(
+        () => {
           runs.tracked++
           return basket.priceTracked(10)
         },
@@ -312,7 +347,7 @@ describe("Reactive:  @untracked", () => {
     })
     basket.discount = 50
     flush()
-    expect(runs).toEqual({ untracked: 1, field: 1, tracked: 2 })
+    expect(runs).toEqual({ untracked: 1, field: 1, getter: 1, tracked: 2 })
     dispose()
   })
 
@@ -322,11 +357,13 @@ describe("Reactive:  @untracked", () => {
     expect(basket.priceNow(50)).toBe(40)
     expect(basket.lastPrice).toBe(40)
     expect(basket.priceHandler(50)).toBe(40)
+    expect(basket.discountNow).toBe(0.2)
   })
 
-  it("on anything but a method (or a function field), throws a TypeError naming the member", () => {
+  it("on anything but a method, a getter or a function field, throws a TypeError naming the member", () => {
+    const setter = { kind: "setter", name: "total", static: false, metadata: {} }
+    expect(() => E.untracked(() => {}, setter as never)).toThrow(/@untracked total/)
     const getter = { kind: "getter", name: "total", static: false, metadata: {} }
-    expect(() => E.untracked(() => 1, getter as never)).toThrow(/@untracked total/)
     expect(() => E.on("ping")(() => {}, getter as never)).toThrow(/@on total/)
     const field = { kind: "field", name: "count", static: false, metadata: {} }
     expect(() => (E.untracked(undefined, field as never) as (value: unknown) => unknown)(0)).toThrow(/@untracked count/)
@@ -615,32 +652,34 @@ const ARIA_VOCABULARY = {
   texts: []
 } as const satisfies ComponentVocabulary
 
-/** A component on `@cssStates`, `@aria` and `elementSetup.aria`. */
-@E.cssStates("loading", "read-only")
+/** A component on `elementSetup.cssStates`, `@aria` and `elementSetup.aria`. */
 class AriaTest extends E.UIComponent<typeof ARIA_VOCABULARY> {
-  @E.protoMerged static elementSetup = { aria: { role: "group", ariaRoleDescription: "test" } }
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
+    cssStates: ["loading", "read-only"],
+    aria: { role: "group", roleDescription: "test" }
+  }
 
   /** `loading` as `aria-busy`. */
-  @E.aria("ariaBusy")
+  @E.aria("busy")
   get isLoading(): boolean {
     return !!this.loading
   }
 
   /** `label` as the name. */
-  @E.aria("ariaLabel")
+  @E.aria("label")
   get accessibleName(): string | undefined {
     return this.label
   }
 
   /** `level`, a number, as text. */
-  @E.aria("ariaLevel")
+  @E.aria("level")
   get ariaLevelNumber(): number | undefined {
     return this.level
   }
 
   /** Own state, on an accessor:  `:state(picked)` and `aria-selected`, stacked. */
   @E.cssState("picked")
-  @E.aria("ariaSelected")
+  @E.aria("selected")
   @E.state
   accessor isPicked = false
 
@@ -655,7 +694,7 @@ Object.defineProperty(AriaTest.prototype, "vocabulary", { value: ARIA_VOCABULARY
 /** A subclass naming the same state and ARIA property:  its own wins. */
 class AriaSubclassTest extends AriaTest {
   /** Never busy, whatever `loading` says. */
-  @E.aria("ariaBusy")
+  @E.aria("busy")
   get isNeverBusy(): boolean {
     return false
   }
@@ -674,8 +713,8 @@ async function ariaTest(html: string) {
   return { host, component: host.component as unknown as AriaTest }
 }
 
-describe("Reactive:  @cssStates, @aria and elementSetup.aria", () => {
-  it("@cssStates:  `:state(x)` follows attribute `x` (a kebab-case name reads its camelCase member)", async () => {
+describe("Reactive:  elementSetup.cssStates, @aria and elementSetup.aria", () => {
+  it("elementSetup.cssStates:  `:state(x)` follows attribute `x` (a kebab-case name reads its camelCase member)", async () => {
     const { host } = await ariaTest(`<x-aria loading></x-aria>`)
     expect(host.matches(":state(loading)")).toBe(true)
     expect(host.matches(":state(read-only)")).toBe(false)
@@ -723,11 +762,12 @@ describe("Reactive:  @cssStates, @aria and elementSetup.aria", () => {
     expect(host.matches(":state(loading)")).toBe(true)
   })
 
-  it("@cssStates:  TypeScript flags a name that isn't a member", () => {
-    // @ts-expect-error -- `nope` is no member of `AriaTest`
-    @E.cssStates("nope")
-    class Misspelt extends AriaTest {}
-    expect(Misspelt).toBeDefined()
+  it("elementSetup.cssStates:  define() throws on a name the tag has no attribute or member for", () => {
+    class Misspelt extends AriaTest {
+      @E.protoMerged static elementSetup = { cssStates: ["loading", "nope"] } satisfies Partial<E.ElementSetup>
+    }
+    const define = () => (Misspelt as unknown as UIComponentClass & typeof E.UIComponent).define("x-aria-misspelt")
+    expect(define).toThrow(/<x-aria-misspelt>'s elementSetup.cssStates names nope,/)
   })
 })
 
@@ -768,7 +808,7 @@ describe("Reactive:  vocabulary getters vs base members", () => {
   }
 })
 
-/** The `@fromContent` / `@whileConnected` stand-in's vocabulary:  nothing of its own. */
+/** The `@watches` / `@whileConnected` stand-in's vocabulary:  nothing of its own. */
 const CONTENT_VOCABULARY = {
   tag: "x-content",
   noun: "content",
@@ -780,20 +820,20 @@ const CONTENT_VOCABULARY = {
   texts: []
 } as const satisfies ComponentVocabulary
 
-/** A component reading its light DOM (`@fromContent`), and following its connection (`@whileConnected`). */
+/** A component reading its light DOM (`@watches`), and following its connection (`@whileConnected`). */
 class ContentTest extends E.UIComponent<typeof CONTENT_VOCABULARY> {
   /** How many times `childCount` computed. */
   computes = 0
 
   /** Its children, counted. */
-  @E.fromContent({ childList: true })
+  @E.watches({ childList: true })
   get childCount(): number {
     this.computes++
     return this.domElement.children.length
   }
 
   /** Ids of the elements marked `data-mark`, anywhere inside;  the same list while their number is. */
-  @E.fromContent({
+  @E.watches({
     subtree: true,
     attributeFilter: ["data-mark"],
     equals: (a: string[], b: string[]) => a.length === b.length
@@ -805,7 +845,7 @@ class ContentTest extends E.UIComponent<typeof CONTENT_VOCABULARY> {
   /** How many mutations each `onTitleChanged()` call had. */
   readonly titleChanges: number[] = []
 
-  @E.fromContent({ attributeFilter: ["title"] })
+  @E.watches({ attributeFilter: ["title"] })
   protected onTitleChanged(mutations: MutationRecord[]) {
     this.titleChanges.push(mutations.length)
   }
@@ -836,7 +876,7 @@ async function content(inner = "") {
   return { host, component, box }
 }
 
-describe("Reactive:  @fromContent", () => {
+describe("Reactive:  @watches", () => {
   it("a getter follows the light DOM, and the view with it", async () => {
     const { host, component, box } = await content(`<b></b>`)
     expect(component.childCount).toBe(1)

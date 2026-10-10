@@ -94,6 +94,21 @@ describe("SelectFallback", () => {
     expect(changes.map((change) => change.value)).toEqual(["b"])
   })
 
+  it("`readonly`:  `aria-readonly`;  a change is undone, and nothing sent", () => {
+    const { form, host, native } = select(
+      `<x-fb-select name="fruit" readonly value="a"><ui-item value="a">A</ui-item><ui-item value="b">B</ui-item></x-fb-select>`
+    )
+    const changes: SelectChangeDetail[] = []
+    host.addEventListener("ui-change", (event) => changes.push((event as CustomEvent<SelectChangeDetail>).detail))
+    choose(native(), "b")
+    expect({
+      ariaReadOnly: native().getAttribute("aria-readonly"),
+      shown: native().value,
+      submitted: new FormData(form).get("fruit"),
+      changes
+    }).toEqual({ ariaReadOnly: "true", shown: "a", submitted: "a", changes: [] })
+  })
+
   it("submits one entry per value with `multiple`, with no placeholder", () => {
     const { form, native } = select(`<x-fb-select multiple name="skills" aria-label="Skills" value="a,c">
       <ui-item value="a">A</ui-item><ui-item value="b">B</ui-item><ui-item value="c">C</ui-item>

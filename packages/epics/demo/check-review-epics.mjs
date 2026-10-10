@@ -1,43 +1,54 @@
 /**
- * Check the `<epic-*>` review controls in a real browser, as Owen uses them (epic `epic-components` P9, the colour
- * scheme and fill rule of P14, decision Q20):  clicks through every flow, has the plan-doc tool do Claude's side on
- * the same copy, and reads the inbox back.
+ * Check the `<epic-*>` review controls in a real browser, as Owen uses them
+ * (epic `epic-components` P9, the colour scheme and fill rule of P14, decision Q20).
+ * - it clicks through every flow, has the plan-doc tool do Claude's side on the same copy, and reads the inbox back
+ *
  * Usage (from the repo root):
  *   node packages/epics/demo/check-review-epics.mjs [--doc <name> [--from <folder>]] [outDir]
- * - the doc:  a SCRATCH COPY, never a real one:  `review-sample.html` (default), or `--doc <name>`, a copy of
- *   `epics/<name>/` (its skeleton and parts:  a doc in `<epic-page>` markup;  never its inbox or details), or of
- *   `--from <folder>` (a converted copy:  `spell dev plan-doc convert <name> --out <folder>`).  Copied to
- *   `demo/shots/epics/<name>/<name>.plan.html` (git-ignored):  the review routes take plan docs only
- *   (`epics/<name>/<name>.plan.html`), its inbox file lands beside it, and the tool finds it there
- *   (`PlanDocFiles({ root: demo/shots })`)
- * - the server:  a page server of its OWN on this checkout (`PageServer`, no pid file, a free port), so the routes are
- *   this branch's code as it is now;  stopped at the end
+ * - the doc:  a SCRATCH COPY, never a real one
+ *   - `review-sample.html` (default)
+ *   - or `--doc <name>`, a copy of `epics/<name>/`
+ *     (its skeleton and parts:  a doc in `<epic-page>` markup;  never its inbox or details)
+ *   - or of `--from <folder>` (a converted copy:  `spell dev plan-doc convert <name> --out <folder>`)
+ *   - copied to `demo/shots/epics/<name>/<name>.plan.html` (git-ignored):
+ *     the review routes take plan docs only (`epics/<name>/<name>.plan.html`), its inbox file lands beside it,
+ *     and the tool finds it there (`PlanDocFiles({ root: demo/shots })`)
+ * - the server:  a page server of its OWN on this checkout (`PageServer`, no pid file, a free port),
+ *   so the routes are this branch's code as it is now;  stopped at the end
  * - Owen's side, clicked:
- *   - every item's buttons:  ONE group, Approve, Revisit, Make Todo, then Do Now apart (the wand);  an
- *     Overview sub-section's without Approve;  the note box's:  Later, Make Todo (no "now":  Do Now is the line's)
+ *   - every item's buttons:  ONE group, Approve, Revisit, Make Todo, then Do Now apart (the wand)
+ *     - an Overview sub-section's:  without Approve
+ *     - the note box's:  Later, the x (skip this:  Owen, 2026-10-09;  no "now":  Do Now is the line's)
  *   - the fill:  Approve pressed dashed green, again none;  Make Todo the same
- *   - Revisit on an item with details:  it opens, its box focused;  ten lines grow it;  the box's Make Todo saves
- *     the todo WITH its note
- *   - Revisit on an item without details:  a box under its line;  a draft saved on Tab, back after a reload;  Later:
- *     a revisit soon, shown under the line, and Edit puts it back in the box
- *   - Do Now WITH a note (an Overview sub-section):  a revisit now, dashed while nobody listens, the tooltip saying
- *     so;  clicked again:  called off, the note back in its box
- *   - a pick on a judgement call's REPLY cards (I8:  picks work anywhere;  the call added to the copy, its text and
- *     a reply each holding cards):  the mark names that set (`choices: 1`), its pill dashed, the text's untouched
- *   - Send:  the header's button unsent -> sent;  the marks outlined
+ *   - Revisit on an item with details:  it opens, its box focused;  ten lines grow it;
+ *     the box's x saves a skip WITH its note, the id chip dashed grey
+ *   - Revisit on an item without details:  a box under its line;  a draft saved on Tab, back after a reload;
+ *     Later:  a revisit soon, shown under the line, and Edit puts it back in the box
+ *   - Do Now WITH a note (an Overview sub-section):  a revisit now, dashed while nobody listens, the tooltip saying so;
+ *     clicked again:  called off, the note back in its box
+ *   - a pick on a judgement call's REPLY cards
+ *     (I8:  picks work anywhere;  the call added to the copy, its text and a reply each holding cards):
+ *     the mark names that set (`choices: 1`), its pill dashed, the text's untouched
+ *   - Send:  the send bar's button unsent -> sent;  the marks outlined
  * - Claude's side, by the plan-doc tool on the copy (`PlanDocCommands`), the page reloaded after each:
- *   - Do Now without a note on an item:  `inbox listen`, `inbox wait` takes it:  its button outlined, its icon
- *     turning (`data-busy`);  `status underway`:  a blue Underway card, the item `progress`;  `status done`:  the
- *     card green;  `inbox done`:  Do Now CLEARED (`review-as="now"`:  the buttons are Owen's input, the chip carries
- *     the result)
- *   - `inbox apply`:  the sent Approve CLEARED (`review-as="approve"`), the chip solid green;  the pick approves its
- *     call (closed, the reply's set `chosen`, a Noted card `Chose C · ...:  recorded ...`), its pill SOLID
+ *   - Do Now without a note on an item:
+ *     - `inbox listen`, `inbox wait` takes it:  its button outlined, its icon turning (`data-busy`)
+ *     - `status underway`:  a blue Underway card, the item `progress`
+ *     - `status done`:  the card green
+ *     - `inbox done`:  Do Now CLEARED (`review-as="now"`:  the buttons are Owen's input, the chip carries the result)
+ *   - `inbox apply`:
+ *     - the sent Approve CLEARED (`review-as="approve"`), the chip solid green
+ *     - the skip:  reviewed, still open, its note kept as Owen's reply
+ *     - the pick approves its call (closed, the reply's set `chosen`, a Noted card `Chose C · ...:  recorded ...`),
+ *       its pill SOLID
  *   - Review Now:  the revisit waiting asked now
- * - fails (exit 1) unless each shows on the page AND lands in the inbox (read back through `GET /api/review/inbox`);
- *   at 280px and 900px, light and dark, no review control runs past the window, none sits over its line's title, and
- *   every button's glyph is centred in it (within 1px);  the header's round buttons too
- * - screenshots (outDir, default `demo/shots/`):  `review-<width>-<scheme>.png`, `review-marked.png`,
- *   `review-done.png`, `review-picked.png` / `review-picked-dark.png` (the pick applied)
+ * - fails (exit 1) unless each shows on the page AND lands in the inbox (read back through `GET /api/review/inbox`)
+ * - and at 280px and 900px, light and dark, unless:
+ *   - no review control runs past the window, and none sits over its line's title
+ *   - every button's glyph is centred in it (within 1px);  the page's round buttons too (Send, Review Now, git)
+ * - screenshots (outDir, default `demo/shots/`):
+ *   `review-<width>-<scheme>.png`, `review-marked.png`, `review-done.png`,
+ *   `review-picked.png` / `review-picked-dark.png` (the pick applied)
  * - REFUSES to run while the copy's inbox file exists (a run killed half way:  delete it);  deletes it afterwards
  * - re-runs itself under `tsx` (the page server, `ReviewInbox` and the tool are TypeScript)
  */
@@ -81,7 +92,7 @@ const flagged = new Set(["--doc", "--from"].flatMap((name) => (args.includes(nam
 const out = args.find((arg, index) => !arg.startsWith("--") && !flagged.has(index)) ?? SHOTS
 const NOBODY = /No Claude session/
 const NOTE = "check-review-epics:  why not reuse the details route?"
-const TODO_NOTE = "check-review-epics:  follow up once the routes settle"
+const SKIP_NOTE = "check-review-epics:  nothing to do, the routes settle it"
 const SECTION_NOTE = "check-review-epics:  is the Overview part clear?"
 const SESSION = "check-review-epics"
 const HOLD_MS = 900
@@ -145,8 +156,29 @@ if (problems.length) {
 
 async function run() {
   const context = await browser.newContext({ viewport: { width: 900, height: 1000 }, deviceScaleFactor: 2 })
-  // on every load, a live reload's too
-  await context.addInitScript(() => (window.rootOf = (id) => document.getElementById(id).shadowRoot))
+  // on every load, a live reload's too:  `rootOf(id)` queries element `id`'s shadow root, then those of the
+  // `<epic-review>`s / `<epic-new-item>`s drawn in it (its review controls, P10)
+  await context.addInitScript(() => {
+    window.rootOf = (id) => {
+      const root = document.getElementById(id).shadowRoot
+      const roots = () => [
+        root,
+        ...Array.from(root.querySelectorAll("epic-review, epic-new-item"), (inner) => inner.shadowRoot).filter(Boolean)
+      ]
+      return {
+        querySelector: (selector) =>
+          roots()
+            .map((it) => it.querySelector(selector))
+            .find(Boolean) ?? null,
+        querySelectorAll: (selector) => roots().flatMap((it) => Array.from(it.querySelectorAll(selector))),
+        // the focused element, inside the review control that holds the focus
+        get activeElement() {
+          const active = root.activeElement
+          return active?.shadowRoot?.activeElement ?? active
+        }
+      }
+    }
+  })
   const page = await context.newPage()
   const logs = []
   page.on("pageerror", (error) => logs.push(`pageerror:  ${error.message}`))
@@ -244,7 +276,7 @@ async function run() {
     })
   }
 
-  // Revisit on an item with details:  opens, docked box focused, grows, the box's Make Todo with the note
+  // Revisit on an item with details:  opens, docked box focused, grows, the box's x (skip this) with the note
   await press(page, withDetails, "revisit")
   await page
     .waitForFunction(
@@ -259,18 +291,26 @@ async function run() {
       (id) => Array.from(rootOf(id).querySelectorAll(".note-actions button"), (button) => button.dataset.how),
       withDetails
     ),
-    ["soon", "todo"]
+    ["soon", "skip"]
   )
   const before = await boxHeight(page, withDetails)
   await page.keyboard.type(Array.from({ length: 10 }, (_, line) => `line ${line + 1}`).join("\n"))
   const after = await boxHeight(page, withDetails)
   if (!(after > before + 60)) problems.push(`${withDetails}:  the note box didn't grow (${before} -> ${after})`)
   await page.keyboard.press("ControlOrMeta+a")
-  await page.keyboard.type(TODO_NOTE)
-  await noteButton(page, withDetails, "todo")
-  await expectMark(page, withDetails, { action: "todo", note: TODO_NOTE }, "the box's Make Todo")
+  await page.keyboard.type(SKIP_NOTE)
+  await noteButton(page, withDetails, "skip")
+  await expectMark(page, withDetails, { action: "skip", note: SKIP_NOTE }, "the box's x (skip this)")
   expect(`${withDetails}'s box emptied`, await noteValue(page, withDetails), "")
-  expect(`${withDetails}'s Make Todo, unsent:  dashed`, (await buttonState(page, withDetails, "todo")).fill, "dashed")
+  // no line button wears a skip:  the id chip alone shows it, dashed grey
+  expect(
+    `${withDetails}'s chip, skipped, unsent:  dashed grey`,
+    await page.evaluate((id) => {
+      const chip = rootOf(id).querySelector("[part~='id']")
+      return { fill: chip.dataset.fill, color: chip.dataset.color }
+    }, withDetails),
+    { fill: "dashed", color: "grey" }
+  )
 
   // an item without details:  a box under its line, a draft saved on Tab, back after a reload, Later, Edit
   await press(page, bare, "revisit")
@@ -352,7 +392,7 @@ async function run() {
     ["choose", "choose", "dashed"]
   ])
 
-  // the header:  Send with unsent marks, its tooltip saying nobody listens;  a click sends;  the marks outlined
+  // the send bar:  Send with unsent marks, its tooltip saying nobody listens;  a click sends;  the marks outlined
   expect("the header's buttons, marks unsent", await headerState(page), { send: "unsent", now: "ready", nobody: true })
   await page.locator("epic-page button.send").click()
   await waitInbox(page, (inbox) => !!inbox.sent, "Send:  the marks sent")
@@ -384,7 +424,7 @@ async function run() {
     busy: true
   })
 
-  // its status card:  Underway (blue, the item `progress`), then Done (green);  `inbox done`:  Do Now solid
+  // its status card:  Underway (blue, the item `progress`), then Done (green);  `inbox done`:  Do Now cleared
   await tool.run(["status", docName, question, "underway", "<p>Write what the question's text leaves out.</p>"])
   await open(page)
   expect(`${question}:  an Underway card, the item in progress`, await statusOf(page, question), {
@@ -404,7 +444,7 @@ async function run() {
   })
   expect(`${question}'s review-as`, await attribute(page, question, "review-as"), "now")
 
-  // `inbox apply`:  the sent Approve applied, its button cleared, the chip green;  the todo filed with its Done card
+  // `inbox apply`:  the sent Approve applied, its button cleared, the chip green;  the skip reviewed, its note kept
   await tool.run(["inbox", docName, "apply"])
   await open(page)
   expect(`${approved}'s review-as`, await attribute(page, approved, "review-as"), "approve")
@@ -413,7 +453,20 @@ async function run() {
     fill: null,
     state: "recent"
   })
-  expect(`${withDetails}:  the todo filed, a Noted card (Owen, 2026-10-10)`, (await statusOf(page, withDetails)).cards.at(-1), "noted")
+  expect(
+    `${withDetails}:  skipped`,
+    await page.evaluate((id) => {
+      const item = document.getElementById(id)
+      return {
+        reviewAs: item.getAttribute("review-as"),
+        status: item.getAttribute("status"),
+        // the doc squeezes runs of spaces
+        note: item.querySelector('epic-reply[from="Owen"][re="skip"]')?.textContent.replace(/\s+/g, " ") ?? null,
+        chip: rootOf(id).querySelector("[part~='id']").dataset.fill ?? null
+      }
+    }, withDetails),
+    { reviewAs: "skip", status: "open", note: SKIP_NOTE.replace(/\s+/g, " "), chip: null }
+  )
   // a todo's plane:  queued for the next phase, a Noted card, its chip outlined green, the buttons cleared;  its x:  canceled, grey
   if (todos.length >= 2) {
     expect(`${todos[0]}'s review-as`, await attribute(page, todos[0], "review-as"), "next")
@@ -505,7 +558,7 @@ function measure(width) {
   const found = []
   let measured = 0
   for (const host of document.querySelectorAll("epic-item, epic-section[kind='overview-part']")) {
-    const root = host.shadowRoot
+    const root = rootOf(host.id)
     const controls = root.querySelector(".review-controls")
     if (!controls) continue
     const box = controls.getBoundingClientRect()
@@ -540,7 +593,7 @@ function measure(width) {
         found.push(`${host.id}'s ${button.dataset.action} glyph off centre by ${dx.toFixed(1)}, ${dy.toFixed(1)}`)
     }
   }
-  // the page header's round buttons:  in the window, each glyph centred
+  // the page's round buttons (the send bar's Send and Review Now, the header's git toggle):  in the window, centred
   const head = document.querySelector("epic-page")?.shadowRoot
   for (const button of head?.querySelectorAll("button.send, button.review-now, button.git") ?? []) {
     const outer = button.getBoundingClientRect()
@@ -560,8 +613,9 @@ function measure(width) {
 ////////////////
 
 /**
- * Copy the doc (and its parts) to `folder`, its relative links moved deeper:  the sample sits in `demo/` (two
- * folders under the package), a real doc in `epics/<name>/`;  the copy six folders under the root.
+ * Copy the doc (and its parts) to `folder`, its relative links moved deeper.
+ * - the sample sits in `demo/` (two folders under the package), a real doc in `epics/<name>/`
+ * - the copy:  six folders under the root
  */
 function copyDoc() {
   rmSync(folder, { recursive: true, force: true })
@@ -605,9 +659,11 @@ async function open(page) {
 }
 
 /**
- * The items to click, four different ones (`items`:  `{ id, open, details }` each, in page order):  a question (Do
- * Now's lifecycle on it);  an open item with details;  an open one without;  an open item Approve closes or reviews,
- * not a question (approving one needs a recommended option).
+ * The items to click, four different ones (`items`:  `{ id, open, details }` each, in page order):
+ * - a question (Do Now's lifecycle on it)
+ * - an open item with details
+ * - an open one without
+ * - an open item Approve closes or reviews, not a question (approving one needs a recommended option)
  */
 function pickItems(items) {
   const taken = new Set()
@@ -663,8 +719,9 @@ function buttonState(page, id, action) {
 }
 
 /**
- * Item `id`'s id chip, as drawn:  its fill (`null`:  no live mark, so its state's colour, solid) and its state (the
- * item box's class word:  `recent`, `open` ...).
+ * Item `id`'s id chip, as drawn:
+ * - its fill (`null`:  no live mark, so its state's colour, solid)
+ * - its state (the item box's class word:  `recent`, `open` ...)
  */
 function chipState(page, id) {
   return page.evaluate((id) => {
@@ -677,8 +734,8 @@ function chipState(page, id) {
 }
 
 /**
- * Item `id`'s Choose pills, per card set (`<epic-choices>`, in page order), as the fill rule draws them:  `choose`
- * (a grey outline), `dashed` (picked, unsent), `outline` (sent), `solid` (applied);  `null` with no pill.
+ * Item `id`'s Choose pills, per card set (`<epic-choices>`, in page order), as the fill rule draws them:
+ * `choose` (a grey outline), `dashed` (picked, unsent), `outline` (sent), `solid` (applied);  `null` with no pill.
  */
 function pickPills(page, id) {
   return page.evaluate(
@@ -700,8 +757,8 @@ function pickPills(page, id) {
 }
 
 /**
- * Add to the copy, by the tool, a judgement call whose text holds option cards and whose reply holds three more
- * (`A`-`C`, `Option C` ...);  returns its id.
+ * Add to the copy, by the tool, a judgement call whose text holds option cards,
+ * and whose reply holds three more (`A`-`C`, `Option C` ...);  returns its id.
  */
 async function addPickCall() {
   const cards = (letters) =>

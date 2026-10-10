@@ -33,9 +33,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Every owned root says whether it shows media, so a `<ui-content>` beside it becomes a table cell. */
   .item {

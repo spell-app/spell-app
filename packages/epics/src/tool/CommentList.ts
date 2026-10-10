@@ -13,6 +13,9 @@ const MAX_QUOTE = 2_000
 /** Longest label or excerpt kept, in characters. */
 const MAX_LABEL = 200
 
+/** Characters that draw nothing and that `trim()` keeps:  zero-width spaces, joiners, the word joiner. */
+const INVISIBLE = /[​-‍⁠]/g
+
 /****************
  * ### `CommentsError`
  * A problem the person should see as a message, not a stack trace:  a bad anchor, a missing comment, one that can't
@@ -38,6 +41,7 @@ CommentsError.prototype.name = "CommentsError"
  * - each comment:  where it is (`anchor`, `kind`, `label`, `excerpt`, and for a comment on selected text its
  *   `quote` and `offset`:  `packages/docs/tools/BlockAnchors.js`), Owen's text, when, and its status:
  *   - `new`:  saved, waiting for Claude;  Owen may edit or delete it
+ *   - any status:  Owen may CLEAR it (`clear()`):  gone from the inbox, its highlight with it
  *   - `taken`:  Claude took it:  a guide's into epic `guide-changes` (`taken`:  which phase)
  *   - `answered`:  Claude answered it (a plan doc's:  in the doc;  `replies` may hold the answer)
  * - pure:  no files;  the owner reads and writes them under its lock
@@ -117,6 +121,15 @@ export class CommentList {
     delete this.comments[id]
   }
 
+  /**
+   * Clear comment `id`, whatever its status:  Owen's done with it (Owen, 2026-10-10:  "I should be able to clear a
+   * comment").  A taken one stays in the epic it went into;  an answered one's answer goes with it.
+   */
+  clear(id: string): void {
+    this.comment(id)
+    delete this.comments[id]
+  }
+
   ////////////////
   // ## Claude's edits
   ////////////////
@@ -191,10 +204,13 @@ function numberOf(id: string): number {
   return Number(/^cm(\d+)$/.exec(id)?.[1] ?? 0)
 }
 
-/** `text` trimmed;  throws when blank or too long. */
+/**
+ * `text` trimmed;  throws when blank (white space only, or characters that draw nothing:  zero-width spaces and
+ * joiners) or too long:  NEVER an empty comment (Owen, 2026-10-10).
+ */
 function checkedText(text: unknown): string {
   const words = typeof text === "string" ? text.trim() : ""
-  if (!words) throw new CommentsError("a comment needs some text")
+  if (!words.replace(INVISIBLE, "").trim()) throw new CommentsError("a comment needs some text")
   if (words.length > MAX_TEXT) throw new CommentsError(`a comment holds at most ${MAX_TEXT} characters`)
   return words
 }
