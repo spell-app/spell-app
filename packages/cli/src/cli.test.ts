@@ -3,7 +3,7 @@ import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync, realpathSync,
 import { createServer } from "net"
 import { tmpdir } from "os"
 import { basename, resolve } from "path"
-import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
+import { afterAll, beforeAll, describe, test, expect, vi } from "vite-plus/test"
 
 import { SRV } from "$/server"
 import { SP } from "$/spell"
@@ -15,6 +15,10 @@ import { fixturePath } from "$/spell/test"
  * - NEVER writes into a fixture:  compiles use `--stdout`.  Projects to break live in a temp folder -- see `tempProject()`.
  */
 const SPELL = resolve(import.meta.dirname, "..", "bin", "spell.mjs")
+
+// each `spell` run starts node and loads spell's source through `tsx`, ~2s;  a test making two or three runs is over
+// vitest's 5s default, worse under the load of every test file at once
+vi.setConfig({ testTimeout: 30_000 })
 
 /** This checkout:  its page server is the one `spell serve` uses. */
 const REPO_ROOT = resolve(import.meta.dirname, "..", "..", "..")

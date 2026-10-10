@@ -68,7 +68,6 @@ function browserConfig() {
   return {
     ...config,
     optimizeDeps: {
-      ...config.optimizeDeps,
       // crawl the tests' imports up front:  `$/app/editor` pulls in more (`marked`, lodash ...)
       // - `spellRuntime.ts` too:  tests import it by URL (`editor.loadRuntime()`), which the crawl can't follow, so
       //   ITS deps (`lodash/cloneDeep` ...) were found mid-run on a fresh cache (C6)
