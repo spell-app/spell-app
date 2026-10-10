@@ -30,7 +30,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - NOTE: `LineToken` / `BlockToken` copy `line` from their first token.
   - JSX `{...}` contents are parsed later, from a trimmed, newline-collapsed copy of the same length.
     - So the JSX rules shift those tokens to their file positions:
-      `SpellJSXContent.placeInFile()`, in [JSX.ts](src/rules/JSX.ts).
+      `SpellJSXContent.placeInFile()`, in [JSX/SpellJSXContent.ts](src/rules/JSX/SpellJSXContent.ts).
     - They hang them on the `JSXExpressionToken`, as `innerTokens`.
     - There `Tokenizer.forEachToken()` reaches them, and so does `moveTokens()`.
 - A token's or match's two ends:
@@ -532,7 +532,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - `flatBody` (`SpellStatement`):  the body is NOT `enclose`d.
     - `Block.getAST()` splices its statements in after the type's.
     - So `SP.hoistClassMembers()` moves its members into the class as usual.
-- `subject_it` / `subject_its` (`types.ts`, `SubjectRule`):  `it` / `its` as a line's SUBJECT.
+- `subject_it` / `subject_its` (`types/`, `SubjectRule`):  `it` / `its` as a line's SUBJECT.
   - Each is a `SpellType` match for the type:  `value` its name, `raw` its instance name, `data.scopeType`.
   - Only directly in a `SubjectScope`.
     Inside a getter or method in the body, `it` is the instance, as anywhere.
@@ -585,7 +585,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - It records the property's `readAs` as `Suit.color({it})`.
   - So `the color of its suit` compiles to `Suit.color(this.suit)`:
     `MemberReadExpression`, the `static` form of `SP.parseReadAsTemplate()`.
-- A value-per-line body (`if.ts`, at `Priority.overridable`):
+- A value-per-line body (`if/ValueIf.ts`, at `Priority.overridable`):
   - `value_if`:  `red if it is diamonds or hearts` => `if (...) { return 'red' }`
   - `value_otherwise`:  `black otherwise` => `return 'black'`
 - `it is diamonds or hearts` / `is jack, queen or king`:  `is_in` with `value_choices` (`lists.ts`).
@@ -648,7 +648,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 ## Fill-ins:  `"images/[rank]-of-[suit].png"`
 
 - `[x]` inside text ALWAYS fills in (plan doc Q2).
-  - `parseFillIns()` (`core.ts`) splits the text into plain pieces and fill-ins.
+  - `parseFillIns()` (`core/TextLiteral.ts`) splits the text into plain pieces and fill-ins.
   - Each fill-in is parsed as an expression, where the text is.
   - It reads `its x` when `x` is a property of `it`'s type:  so `[rank]` in a card's getter is the card's.
   - A real bracket:  `[[` or `\[`, and `]]` (Q15).
@@ -694,7 +694,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 
 - Changes happen ONLY in `mutateScope()`, run by `commitStatement()` (step 4 above).
   `getAST()` is pure:  see below.
-  - variables:  `AssignmentStatement`, `get` ([assignment.ts](src/rules/assignment.ts))
+  - variables:  `AssignmentStatement`, `get` ([assignment/](src/rules/assignment/))
     - into `match.scope`, so inside a body they stay local
   - `get` / `set it to` ALWAYS declare a new `it` (`declareIt()`):
     - plain `it`, then `it_2`, `it_3`...

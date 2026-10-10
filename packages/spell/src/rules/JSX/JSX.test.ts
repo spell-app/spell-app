@@ -3,7 +3,7 @@ import { unitTestModuleRules } from "$/spell/test"
 import { P } from "$/parser"
 import { spellParser } from "$/spell"
 import { spellCore } from "$/core"
-import type { JSXMatchData } from "./JSX"
+import type { JSXMatchData } from "./JSX.shared"
 
 describe("testing spell module JSX", () => {
   unitTestModuleRules(spellParser, "JSX", spellCore.resetRuntime)
