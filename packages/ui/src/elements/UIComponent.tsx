@@ -287,7 +287,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   /**
    * Class setting:  how the class's custom element is set up, as ONE object (`ElementSetup` documents each key):
    * its style sheets, the `:state()`s that mirror an attribute, form control, focus, slots, part, DOM element class,
-   * fallback, unstyled first paint, ARIA, and what the shared `disabled`, `loading` and `visible` do for it.
+   * fallback, unstyled first paint, whether it's a root, ARIA, and what the shared `disabled`, `loading` and
+   * `visible` do for it.
    * - A subclass states only the keys it changes:
    *   `@E.protoMerged static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>`
    *   (`satisfies`, so a misspelt key fails TypeScript).
@@ -312,6 +313,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     DOMElement: DOMElement,
     Fallback: undefined,
     canRenderUnstyled: false,
+    root: false,
     aria: {},
     disabled: "unusable",
     loading: "loader",
@@ -324,7 +326,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * The value an app handed its `ui-*` elements;  `null` when none:
-   * the `appContext` property of the nearest `<ui-root>` around this element (crossing shadow roots).
+   * the `appContext` property of the nearest root around this element (crossing shadow roots):
+   * a `<ui-root>`, or any other root (`elementSetup.root`:  `<spell-app>`).
    * - `<ui-root prop:appContext={value}>` in a Solid app, `root.appContext = value` anywhere else.
    * - Read once, when this object is built.
    * - Why not a Solid context:  each element draws in a Solid root of its own, with no parent,
@@ -333,7 +336,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    */
   readonly appContext: unknown
 
-  /** The `appContext` of the nearest `<ui-root>` around `domElement` (a translated tag too), else `null`. */
+  /** The `appContext` of the nearest root around `domElement` (a translated tag too), else `null`. */
   private static appContextFor(domElement: DOMElement): unknown {
     let node: Node | null = domElement.parentNode
     while (node) {
@@ -345,10 +348,16 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     return null
   }
 
-  /** Is `localName` `<ui-root>`, or a translated alias of it? */
+  /**
+   * Is `localName` a root's tag?  One whose class says `elementSetup.root` (`<ui-root>`, a translation of it,
+   * `<spell-app>`), or `<ui-root>` before its family has loaded:  an app may set its `appContext` that early.
+   */
   private static isRootTag(localName: string): boolean {
-    return localName === ROOT_TAG || UIComponent.registry.definitions.get(localName)?.vocabulary.tag === ROOT_TAG
+    return localName === ROOT_TAG || UIComponent.rootTags.has(localName)
   }
+
+  /** Every defined tag whose class says `elementSetup.root`:  `register()` adds them.  Page-wide. */
+  private static readonly rootTags = new Set<string>()
 
   ////////////////
   // ## Attributes
@@ -950,6 +959,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   static register(this: E.UIComponentClass, definition: E.ElementDefinition) {
     const { vocabulary } = this.prototype
     UIComponent.registry.definitions.set(definition.tag, definition)
+    if (this.prototype.elementSetup.root) UIComponent.rootTags.add(definition.tag)
     E.PartContext.define({
       vocabulary,
       tag: definition.tag,
@@ -1004,10 +1014,10 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 }
 
-/** An element holding an app's value for the `ui-*` elements inside it:  `<ui-root>` (`UIComponent.appContext`). */
+/** An element holding an app's value for the `ui-*` elements inside it:  a root (`UIComponent.appContext`). */
 type AppContextHolder = Element & { appContext?: unknown }
 
-/** The tag whose `appContext` property components read (`UIComponent.appContext`). */
+/** `<ui-root>`'s tag:  a root even before its family loads (`UIComponent.isRootTag()`). */
 const ROOT_TAG = "ui-root"
 
 /** `UIComponent.internalState`:  what only the base class uses inside. */

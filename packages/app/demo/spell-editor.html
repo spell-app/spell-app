@@ -8,6 +8,8 @@
   - Three editors of three projects on one page, each with its own files.
   - Loaded as a Spell UI component pack:  `spell-ui.js` gives the page `<ui-root>`, whose `<ui-components>` loads
     `spell.pack.js`, which defines `<spell-editor>` and `<spell-app>` (`vite.element.config.ts`, `componentPack()`).
+    The `<ui-root>` is needed here, unlike on the `<spell-app>` demo:  the editors sit BESIDE the apps, outside any
+    `<spell-app>` (a root, which loads the spell tags inside it).  Each `<spell-app>` is a root nested in it.
 -->
 <html lang="en">
   <head>
