@@ -595,17 +595,16 @@ In `tools/`:
     - a section (in its title), table, aside, code block, message, cards, steps, top-level list
     - a plan doc's items, phase fields, summary and Overview prose
     - the page header:  the whole page
-    - Quiet until hovered.
-      Always shown, with a count ("📢 2"), once the block has comments.
-    - Its look gives their state, by the fill rule:  outlined while they all wait for Claude, solid once he has one.
-      An orange dot while one has a reply from Claude Owen hasn't SEEN (as its thread is orange, below).
-    - Its tooltip (`title`):  the count, the block's kind and whose turn ("1 comment on this item:  your turn"),
-      then " · a reply you haven't seen".
+    - Quiet until hovered, ALWAYS:  it only starts a new comment ("Comment on this item").
+    - No count, whatever the block has (Owen, 2026-10-10:  "Bullhorn to the far right is unnecessary"):  each comment
+      is a thread on the page, right there.
+      - Before 2026-10-10 a block with comments showed "📢 N" always, sitting at the end of its thread's header row,
+        with an orange dot for news;  its click listed them (`openPicker()`, gone).
+      - The toolbar's signals stay as they were.
     - Over a plan doc item's own review pills and Do Now, it moves left of them (`makeRoom()`;  Owen, 2026-10-10:
       "Overlap in bullhorn buttons"), over the end of the item's title, as a text block's does.
       A thread right under a short block (a folded item) it would cover leaves room on its header's right.
-    - A click with comments there:  a short list of them (first words, whose turn), then New comment
-      (`openPicker()`).  A line opens that comment's thread;  so does a click on its highlighted quote.
+    - A click on a comment's highlighted quote opens its thread.
   - Or on SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn floating beside the selection.
     - The comment keeps the quote, highlighted softly on the page while the comment exists.
   - The box is a small floating PANE (Owen, 2026-10-10), fixed on the screen, for writing a NEW comment.
@@ -660,10 +659,13 @@ In `tools/`:
   - A thread's LOOK (the mockup, `pages/details/comment-thread-mock.html`, and Owen's notes on it):
     - ALL ivory, whoever spoke last:  the pane's `--spell-rail-bg`, outline and corners;  no shadow
       ("Make the entire thing ivory").
-    - ORANGE while it has a reply from Claude Owen hasn't seen (`unseen()`;  Owen, 2026-10-10:  "Make the boxes
-      orange when there's a reply I haven't seen"):  its outline `--ui-orange`, its header tinted orange;  the rest
-      as ever.  Orange is our colour for "changed since you looked".
-      - SEEN:  he unfolds it (or opens it from the bullhorn's list or its quote), or it's open with half of it (or
+    - ORANGE while it has a reply from Claude Owen hasn't seen (`unseen()`;  Owen, 2026-10-10:  "make the
+      background of the entire bullhorn thread + the last claude reply orange").
+      Orange is our colour for "changed since you looked".
+      - The whole thread's ground:  `--ui-orange` mixed into the ivory, 13% (22% in the dark, where less reads brown).
+      - Claude's latest reply (`data-latest`):  a stronger mix, 30% (40% dark), with a faint orange ring.
+      - Its outline and header stay as on any thread (before 2026-10-10, only those turned orange).
+      - SEEN:  he unfolds it (or opens it from its quote), or it's open with half of it (or
         half the screen) on screen for 1.2s (`SEEN_MS`) while the page is in view.
       - Remembered in this browser, per page:  `spell-comment-read:<path>`, `{ [comment id]: time of the latest
         Claude reply seen }`, the store the news-only cards kept before threads.
@@ -677,7 +679,7 @@ In `tools/`:
         pointer.
       - Tooltips (Owen, 2026-10-10:  "No tooltip on those same buttons"):  "That's good:  done", "Reply",
         "Skip it:  done, nothing more to do".  Each `title` is copied onto the button inside the `<ui-button>`
-        (`titleInside()`), where the pointer lands, as the bullhorn's is.
+        (`titleInside()`), where the pointer lands, as the bullhorn's is.  See TOOLTIPS, below.
       - Approve's check (green):  "that's good".  The thread is done:  it folds, a check circle in its header.
       - Revisit's history (blue):  reply.  The cursor goes into the reply box at the thread's end.
       - The note box's x (grey):  "skip it".  Done, nothing more to do.
@@ -703,7 +705,7 @@ In `tools/`:
       - While Claude THINKS about it (the comment's `working`;  Owen, 2026-10-10:  "What does it look like when
         you're thinking?  You could put in a stub and replace that when you've thought"):  "Claude: thinking…" last,
         in Claude's box, its words violet and italic, a turning `circle notch`, its time when he started.
-        His answer takes its place.  The bullhorn's list says "Claude is thinking…".
+        His answer takes its place.
       - Each one's time in its top right corner, `position: absolute`.
         The first's carries the day (`10/10 09:12`), the rest only the time, unless the day changed.
         The full date and time is its tooltip.
@@ -727,6 +729,19 @@ In `tools/`:
     - A draft is kept in this browser while it differs from what's saved.
   - Owen's icon buttons outside the pill (the pen, the trash, the pane's ×) are plain:  no ring, a tint under the
     pointer.
+  - TOOLTIPS (Owen, 2026-10-10:  "The buttons don't have browser tooltips -- unclear what they do"):  the browser's
+    own (`title`), a few words each;  the longer wording is the `aria-label`.
+    - ✓ "That's good:  done", Revisit "Reply", × "Skip it:  done, nothing more to do", Reopen, the trash "Delete
+      this comment", the pen "Edit your last words", the pane's × "Close".
+    - Why they didn't show in VS Code's side bar:  Electron 38 and up, on macOS, mostly shows a `title`'s tooltip
+      only while the pointer is on the titled element ITSELF, not on a child of it
+      ([electron/electron#49843](https://github.com/electron/electron/issues/49843), open;  VS Code 1.141 runs
+      Electron 43).  The pointer was on each button's icon.
+    - So every icon inside a comment's buttons (the pill's, the pen, the trash, the fold, the pane's × and floppy, the
+      bullhorn) takes no pointer (`pointer-events: none`, spell-doc.css "TOOLTIPS that show"):  it lands on the
+      titled button.  Keep it so for any new comment button.
+    - A plain browser shows them either way;  headless Playwright can't show a native tooltip, only check what's under
+      the pointer.
   - Built for reading offline, with no Claude:  only the page server writes them.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
   - a docs page's:  its INBOX FILE, `<page>.inbox.json` beside it ([GuideInbox.ts](tools/GuideInbox.ts))
