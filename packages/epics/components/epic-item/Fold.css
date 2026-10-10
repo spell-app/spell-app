@@ -1,5 +1,5 @@
 /*
- * `<FoldButton>` (FoldButton.tsx):  the fold chevron first in a card's heading band, adopted by every card that folds
+ * `fold.button()` (`Fold.tsx`):  the fold chevron first in a card's heading band, adopted by every card that folds
  * by its band (`<epic-reply>`, `<epic-answer>`, `<epic-status>`, `<epic-note>`, `<epic-update>`, `<epic-updated>`).
  * - One line of the band tall and on its FIRST line, so the chevron centres there however many lines the heading
  *   wraps to;  in the band's own colour.

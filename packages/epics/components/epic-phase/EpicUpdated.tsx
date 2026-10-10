@@ -6,13 +6,12 @@ import { E } from "$/ui/core"
 import { PlanDates } from "$/epics/dates"
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
 import { FOLDS, Fold } from "$/epics/components/epic-item/Fold"
-import { FoldButton } from "$/epics/components/epic-item/FoldButton"
 
 import { epicUpdatedVocabulary } from "./EpicUpdated.en"
 import { ICON, LABEL, TEXT } from "./EpicPhase.types"
 
 import fieldCSS from "./EpicField.css?inline"
-import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
+import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 
 /****************
  * ### `EpicUpdated`
@@ -64,7 +63,7 @@ export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
         <div ref={this.fold.heading} class={[HEAD, { [FOLDS]: this.hasBody }]}>
           <span class={FOLD_CELL}>
             <Show when={this.hasBody}>
-              <FoldButton fold={this.fold} controls={BODY_ID} labelledBy={LABEL_ID} part={this.partForName("toggle")} />
+              {this.fold.button({ controls: BODY_ID, labelledBy: LABEL_ID, part: this.partForName("toggle") })}
             </Show>
           </span>
           <span class={ICON} part={this.partForName("icon")} aria-hidden="true">

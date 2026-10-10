@@ -2,7 +2,6 @@ import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
-import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
 
 import { epicOriginalVocabulary } from "./EpicOriginal.en"
@@ -41,7 +40,7 @@ export class EpicOriginal extends E.UIComponent<typeof epicOriginalVocabulary> {
           aria-controls={BODY_ID}
           onClick={this.fold.toggle}
         >
-          <Chevron />
+          {Fold.chevron()}
           {this.translationForKey("original")}
         </button>
         <div

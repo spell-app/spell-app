@@ -5,7 +5,7 @@
  * - Files and Verify hide until the Phases title's toggles show them:  `--epic-files-display` /
  *   `--epic-verify-display`, inherited from the Phases section (`block`), else `none`.
  * - `<epic-updated>`:  fenced, a dashed orange box (Owen, 2026-10-06:  never an "Updated" word buried in the text);
- *   a fold column before the icon (`<FoldButton>`, Owen, 2026-10-08), and what changed BELOW its heading, folded
+ *   a fold column before the icon (`fold.button()`, Owen, 2026-10-08), and what changed BELOW its heading, folded
  *   `until-found`.
  * - Public tokens (`--epic-field-*`) are never declared here:  read through private aliases.
  */

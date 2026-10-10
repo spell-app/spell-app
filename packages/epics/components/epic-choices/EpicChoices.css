@@ -32,7 +32,7 @@
     min-width: 0;
   }
 
-  /* the fold chevron (`Chevron()`):  right while folded, down while open */
+  /* the fold chevron (`Fold.chevron()`):  right while folded, down while open */
   .chevron {
     flex: none;
     width: 12px;

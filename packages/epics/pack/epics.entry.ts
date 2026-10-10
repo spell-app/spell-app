@@ -14,6 +14,7 @@ SpellUI.registerPack({
   catalog: CATALOG,
   define: () =>
     Promise.all([
+      import("../components/epic-agents"),
       import("../components/epic-answer"),
       import("../components/epic-aside"),
       import("../components/epic-choices"),
@@ -22,6 +23,7 @@ SpellUI.registerPack({
       import("../components/epic-event"),
       import("../components/epic-item"),
       import("../components/epic-net-effect"),
+      import("../components/epic-new-item"),
       import("../components/epic-note"),
       import("../components/epic-original"),
       import("../components/epic-overview"),
@@ -29,6 +31,7 @@ SpellUI.registerPack({
       import("../components/epic-phase"),
       import("../components/epic-prompt"),
       import("../components/epic-question"),
+      import("../components/epic-review"),
       import("../components/epic-section"),
       import("../components/epic-status"),
       import("../components/epic-summary"),

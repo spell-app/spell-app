@@ -29,6 +29,13 @@ house style every package shares.  Only what's local is below;  a section named 
   - `index.ts` (defines its tags:  SIDE EFFECT)
   - No native fallback:  only form controls have one.
   - A new one:  `spell dev pack element epics <tag>`, the tag starting `epic-`.
+  - Every component is a family, as in Spell UI (P10 of epic `spell-element`):  no exported function components.
+    A piece several families draw is a family of its own, drawn in their shadow roots
+    (`<epic-review>`, `<epic-new-item>`, `<epic-agents>`:  never written in a doc), and the barrel of each family
+    that draws one imports its barrel first, so it's defined wherever they are.
+    Unless it can't be a tag:  the fold button and chevron every fold draws are `Fold`'s methods
+    (`fold.button()`, `Fold.chevron()`:  the button is named by ids in the card's own shadow root, and the chevron
+    shows in the first frame).
 - `src/` (`$/epics`, `EP`) --
   code the elements and the node tools share, and `pack.test.ts`, which runs `spell dev pack check epics`:
   - `definitions/` -- the ONE description of every element:
@@ -41,13 +48,13 @@ house style every package shares.  Only what's local is below;  a section named 
   - `review/` -- `ReviewClient`, one per page:  the review inbox's reads and writes (`/api/review/*`),
     token refresh, polling, note-draft backups (the old runtime's localStorage keys)
     - touches no browser global until `forPage()` / `watch()`
-    - used by the `ReviewControls` of `<epic-item>`, `<epic-section>` (Overview parts), `<epic-phase>`
-      and `<epic-summary>`, the new-item controls (`NewItems.tsx`:  `<epic-page>`'s `+`, the Todos and Questions
-      sections) and `<epic-option>`'s Choose pill;  the controls show while `<epic-page reviewing>` is set
+    - used by `<epic-review>` (the review controls `<epic-item>`, `<epic-section>` (Overview parts), `<epic-phase>`
+      and `<epic-summary>` draw), `<epic-new-item>` (`<epic-page>`'s `+`, the Todos and Questions sections' New
+      todo / question) and `<epic-option>`'s Choose pill;  the controls show while `<epic-page reviewing>` is set
     - `AgentsClient`, one per page:
       the epic's running agents (`/api/agents`, `packages/docs/tools/agentRoutes.ts`) and Owen's redirects
       - `<epic-page>` draws them as its "Agents running" panel
-        (`AgentsPanel.tsx`, in its shadow root before its blocks:  not a section)
+        (`<epic-agents>`, in its shadow root before its blocks:  not a section)
       - both clients POST and watch through the same code, a `ServerLink` each
         (the token, its one refresh on a 403, the poll and `spell-server:file`)
   - `convert/` -- the converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`),

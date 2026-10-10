@@ -39,7 +39,7 @@ async function card(html: string) {
   return host
 }
 
-describe("every card folds from its heading (<FoldButton>)", () => {
+describe("every card folds from its heading (fold.button())", () => {
   test.each(CARDS)(
     "$tag:  the chevron FIRST in its heading, open to start;  a click folds it until-found, and back",
     async ({ html }) => {

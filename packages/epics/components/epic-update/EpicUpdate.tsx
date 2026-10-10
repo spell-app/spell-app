@@ -5,12 +5,11 @@ import { E } from "$/ui/core"
 
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
 import { FOLDS, Fold } from "$/epics/components/epic-item/Fold"
-import { FoldButton } from "$/epics/components/epic-item/FoldButton"
 
 import { epicUpdateVocabulary } from "./EpicUpdate.en"
 
 import updateCSS from "./EpicUpdate.css?inline"
-import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
+import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 
 /****************
  * ### `EpicUpdate`
@@ -50,7 +49,7 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
       <span class={this.rootClass} part={this.partForName("base")}>
         <span ref={this.fold.heading} class={[HEAD, { [FOLDS]: this.isNote }]}>
           <Show when={this.isNote}>
-            <FoldButton fold={this.fold} controls={BODY_ID} labelledBy={LABEL_ID} part={this.partForName("toggle")} />
+            {this.fold.button({ controls: BODY_ID, labelledBy: LABEL_ID, part: this.partForName("toggle") })}
           </Show>
           <span
             id={LABEL_ID}

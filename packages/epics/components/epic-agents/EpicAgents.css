@@ -1,5 +1,5 @@
 /*
- * The running-agents panel (AgentsPanel.tsx), adopted by `<epic-page>`:  "Agents running" above the page's blocks,
+ * `<epic-agents>` (`EpicAgents.tsx`), drawn by `<epic-page>`:  "Agents running" above the page's blocks,
  * a quiet panel, not a section -- a row per agent (name, status, age, task), its redirects so far, and a note box
  * with Send.  From `plan-doc.css`'s "Running agents" (the old runtime's), the same look.
  * - colours:  the pack's tokens (`EpicPage.css`) and Spell UI's, each with a fallback:  light and dark alike

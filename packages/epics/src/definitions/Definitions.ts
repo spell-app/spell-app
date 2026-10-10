@@ -1,3 +1,4 @@
+import { epicAgentsVocabulary } from "$/epics/components/epic-agents/EpicAgents.en"
 import { epicAnswerVocabulary } from "$/epics/components/epic-answer/EpicAnswer.en"
 import { epicMoreVocabulary } from "$/epics/components/epic-answer/EpicMore.en"
 import { epicReplyVocabulary } from "$/epics/components/epic-answer/EpicReply.en"
@@ -9,6 +10,7 @@ import { epicCommitVocabulary } from "$/epics/components/epic-commit/EpicCommit.
 import { epicEventVocabulary } from "$/epics/components/epic-event/EpicEvent.en"
 import { epicItemVocabulary } from "$/epics/components/epic-item/EpicItem.en"
 import { epicNetEffectVocabulary } from "$/epics/components/epic-net-effect/EpicNetEffect.en"
+import { epicNewItemVocabulary } from "$/epics/components/epic-new-item/EpicNewItem.en"
 import { epicNoteVocabulary } from "$/epics/components/epic-note/EpicNote.en"
 import { epicOriginalVocabulary } from "$/epics/components/epic-original/EpicOriginal.en"
 import { epicVersionVocabulary } from "$/epics/components/epic-original/EpicVersion.en"
@@ -19,6 +21,7 @@ import { epicPhaseVocabulary } from "$/epics/components/epic-phase/EpicPhase.en"
 import { epicUpdatedVocabulary } from "$/epics/components/epic-phase/EpicUpdated.en"
 import { epicPromptVocabulary } from "$/epics/components/epic-prompt/EpicPrompt.en"
 import { epicQuestionVocabulary } from "$/epics/components/epic-question/EpicQuestion.en"
+import { epicReviewVocabulary } from "$/epics/components/epic-review/EpicReview.en"
 import { epicSectionVocabulary } from "$/epics/components/epic-section/EpicSection.en"
 import { epicStatusVocabulary } from "$/epics/components/epic-status/EpicStatus.en"
 import { epicSummaryVocabulary } from "$/epics/components/epic-summary/EpicSummary.en"
@@ -62,7 +65,11 @@ export class Definitions {
     "epic-net-effect": epicNetEffectVocabulary,
     "epic-note": epicNoteVocabulary,
     "epic-aside": epicAsideVocabulary,
-    "epic-code": epicCodeVocabulary
+    "epic-code": epicCodeVocabulary,
+    // drawn only inside other elements' shadow roots, never written in a doc
+    "epic-review": epicReviewVocabulary,
+    "epic-new-item": epicNewItemVocabulary,
+    "epic-agents": epicAgentsVocabulary
   } as const
 
   /** Every tag, in `all`'s order. */

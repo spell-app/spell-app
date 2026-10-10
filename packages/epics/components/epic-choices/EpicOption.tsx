@@ -4,7 +4,6 @@ import { Dynamic, type JSX } from "@solidjs/web"
 import { E } from "$/ui/core"
 
 import { NOBODY_LISTENING, ReviewClient, picks } from "$/epics/review"
-import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
 import { CLOSED_STATUSES } from "$/epics/components/epic-item/EpicItem.types"
 
@@ -188,9 +187,7 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
             aria-controls={this.canFold ? BODY_ID : undefined}
             onClick={this.onHeaderClick}
           >
-            <Show when={this.canFold}>
-              <Chevron />
-            </Show>
+            <Show when={this.canFold}>{Fold.chevron()}</Show>
             <Show when={this.isChosen && this.questionIsAnswered}>
               <svg class={CHECK} part={this.partForName("check")} viewBox="0 0 16 16" aria-hidden="true">
                 <path d="M2.5 8.5l3.5 3.5 7.5-8" />

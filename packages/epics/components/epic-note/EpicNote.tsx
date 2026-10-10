@@ -5,12 +5,11 @@ import { E } from "$/ui/core"
 
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
 import { FOLDS, Fold } from "$/epics/components/epic-item/Fold"
-import { FoldButton } from "$/epics/components/epic-item/FoldButton"
 
 import { epicNoteVocabulary } from "./EpicNote.en"
 
 import noteCSS from "./EpicNote.css?inline"
-import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
+import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 
 /****************
  * ### `EpicNote`
@@ -62,12 +61,11 @@ export class EpicNote extends E.UIComponent<typeof epicNoteVocabulary> {
       <div class={this.rootClass} part={this.partForName("base")} title="">
         <div ref={this.fold.heading} class={[HEADER, { [FOLDS]: this.hasBody }]} part={this.partForName("header")}>
           <Show when={this.hasBody}>
-            <FoldButton
-              fold={this.fold}
-              controls={BODY_ID}
-              labelledBy={this.title ? `${LABEL_ID} ${TITLE_ID}` : LABEL_ID}
-              part={this.partForName("toggle")}
-            />
+            {this.fold.button({
+              controls: BODY_ID,
+              labelledBy: this.title ? `${LABEL_ID} ${TITLE_ID}` : LABEL_ID,
+              part: this.partForName("toggle")
+            })}
           </Show>
           <span id={LABEL_ID} class={LABEL} part={this.partForName("label")}>
             {this.translationForKey(this.isDone ? "done" : "update")}

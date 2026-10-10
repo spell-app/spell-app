@@ -1,15 +1,20 @@
-import { Show, createEffect, createMemo, onSettled, untrack } from "solid-js"
+import { Show, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
 import { PlanDates } from "$/epics/dates"
+// its view of the review inbox:  the file, not `epic-review`'s barrel (`index.ts` defines that family)
+import { ReviewState } from "$/epics/components/epic-review/ReviewState"
+import {
+  REVIEW_BUTTONS,
+  SHOW_NOTE,
+  TODO_BUTTONS,
+  type ReviewShows
+} from "$/epics/components/epic-review/EpicReview.types"
 
 import { epicItemVocabulary } from "./EpicItem.en"
-import { Chevron } from "./Chevron"
-import { CONTROLS } from "./Fold"
-import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "./ReviewControls"
-import { ReviewState } from "./ReviewState"
+import { CONTROLS, Fold } from "./Fold"
 import {
   BED_ICON,
   CALM_ID,
@@ -31,30 +36,24 @@ import {
   LINE,
   MORE_TAG,
   NOTE,
-  NOTE_BUTTONS,
   NOTE_OPEN,
   OVERNIGHT,
   REVIEW,
-  REVIEW_BUTTONS,
   STATE_TIP_KEYS,
   STATUS_SLOT,
   STATUS_STATES,
   TITLE,
-  TODO_BUTTONS,
   TODO_ID,
-  TODO_NOTE_BUTTONS,
   TOGGLE,
   UNDER_LINE,
   UNFOLDED,
   type ChipMark,
   type EpicItemVocabulary,
   type ItemState,
-  type ReviewLabel,
-  type ReviewTextKey
+  type ReviewLabel
 } from "./EpicItem.types"
 
 import itemCSS from "./EpicItem.css?inline"
-import reviewCSS from "./ReviewControls.css?inline"
 
 /****************
  * ### `EpicItem`
@@ -73,8 +72,9 @@ import reviewCSS from "./ReviewControls.css?inline"
  *   see them (Q12);  hidden `until-found` while folded.  Over its own text, `Original question` (answered) or
  *   `Original reply` (with a More Details card);  under them Claude's status cards (`<epic-status slot="status">`,
  *   P13), then the note box.
- * - Review (P9, `ReviewControls.tsx`):
+ * - Review (P9, three `<epic-review>`s:  its buttons, its note box, a marked note):
  *   only while the page is reviewed (served with a token, its inbox answering:  `ReviewState`).
+ *   Revisit and Edit unfold it to show the box (`epic-show-note`).
  *   Approve, Revisit, Make Todo, then Do Now (the wand) at the line's end;
  *   a todo's:  the plane (do it in the next phase), Revisit, the x (drop it:  Owen, 2026-10-09);
  *   the review label in their tooltips (not beside them:  Owen, 2026-10-07);
@@ -102,7 +102,7 @@ import reviewCSS from "./ReviewControls.css?inline"
 export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   @E.proto static vocabulary = epicItemVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-item": itemCSS, "epic-review": reviewCSS },
+    styleSheets: { "epic-item": itemCSS },
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false
@@ -127,11 +127,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
     return this.scanChildren()
   }
 
-  /** Its view of the page's review inbox. */
+  /** Its view of the page's review inbox:  its chip, its state, where its review controls show. */
   readonly reviewState = new ReviewState(() => this.id)
-
-  /** The note box's `<textarea>`, once drawn:  Revisit and Edit focus it. */
-  private noteInput: HTMLTextAreaElement | undefined
 
   /** Its own commits show (its git icon pressed). */
   @E.state accessor showCommits = false
@@ -145,11 +142,23 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   /** Its details from `source`, loaded the first time it opens;  into the DOM element's light DOM. */
   readonly body = new E.LoadableBody({
     domElement: this.domElement,
-    source: () => untrack(() => this.source) || undefined,
+    source: () => this.partSource(),
     select: () => undefined,
     target: () => this.domElement,
     send: (name, detail) => this.send(name as never, detail)
   })
+
+  /** Its `source`, for `body`:  untracked, so a load never follows it. */
+  @E.untracked
+  private partSource(): string | undefined {
+    return this.source || undefined
+  }
+
+  /** Load the `source` part whenever it's open and connected (`open` alone:  a `source` means details). */
+  @E.onChange("source", "isMarkedOpen", "isConnected")
+  protected onSourceShown(source: string | undefined, open: boolean, connected: boolean) {
+    if (source && open && connected) this.body.load().catch(() => undefined)
+  }
 
   ////////////////
   // ## Derived state
@@ -353,27 +362,6 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   // ## Rendering
   ////////////////
 
-  /**
-   * Load the `source` part whenever it's open and connected;  follow links to it.
-   * - In `onMount()`, not `render()`:  effects outside the drawing.
-   */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      createEffect(
-        () => ({ source: this.source, open: this.isOpen(), connected: this.isConnected }),
-        ({ source, open, connected }) => {
-          if (source && open && connected) this.body.load().catch(() => undefined)
-        }
-      )
-      onSettled(() => {
-        window.addEventListener("hashchange", this.followHash)
-        this.followHash()
-        return () => window.removeEventListener("hashchange", this.followHash)
-      })
-    }
-    return super.onMount()
-  }
-
   /** The inbox's changes, while connected (kept alive:  a removed item must stop listening). */
   @E.whileConnected
   protected followReviews() {
@@ -392,7 +380,6 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
           </div>
         </Show>
         <div
-          ref={(element) => element.addEventListener("beforematch", this.onBeforeMatch)}
           id={DETAILS_ID}
           class={DETAILS}
           part={this.partForName("details")}
@@ -435,7 +422,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
               aria-label={this.translationForKey(this.showsOpen() ? "fold" : "unfold", { id: this.label() })}
               title={this.translationForKey(this.showsOpen() ? "fold" : "unfold", { id: this.label() })}
             >
-              <Chevron />
+              {Fold.chevron()}
             </button>
           </Show>
         </span>
@@ -493,17 +480,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
               </span>
             )}
           </Show>
-          <Show when={this.reviewState.reviewing()}>
-            <ReviewButtons
-              review={this.reviewState}
-              text={this.reviewText}
-              label={this.label()}
-              buttons={this.reviewButtons()}
-              reviewTip={this.reviewTip()}
-              part={this.partForName("review-buttons")}
-              onOpenBox={() => this.takeToNote()}
-            />
-          </Show>
+          <Show when={this.reviewState.reviewing()}>{this.reviewControl("buttons", "review-buttons")}</Show>
         </span>
       </div>
     )
@@ -527,30 +504,30 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
     )
   }
 
-  /** A marked note, its box closed:  just above the note box. */
+  /** A marked note, its box closed:  just above the note box;  nothing without one. */
   private saidNote(): JSX.Element {
-    return (
-      <SaidNote
-        review={this.reviewState}
-        text={this.reviewText}
-        part={this.partForName("said")}
-        onEdit={() => this.takeToNote(this.reviewState.mark()?.note)}
-      />
-    )
+    return <Show when={this.reviewState.noted()}>{this.reviewControl("said", "said")}</Show>
   }
 
-  /** The note box:  docked at the end of its details, or under its line (an item without details). */
+  /**
+   * The note box:  docked at the end of its details, or under its line (an item without details:  `under-line`,
+   * so leaving it closes it).
+   */
   private noteBox(): JSX.Element {
+    return this.reviewControl("note", "note-box")
+  }
+
+  /** One of its review controls (`<epic-review>`):  what it `shows`, as its `part`. */
+  private reviewControl(shows: ReviewShows, part: "review-buttons" | "note-box" | "said"): JSX.Element {
     return (
-      <NoteBox
-        review={this.reviewState}
-        text={this.reviewText}
+      <epic-review
+        of={this.id}
+        shows={shows}
+        buttons={TODO_ID.test(this.id ?? "") ? "todo" : "item"}
         label={this.label()}
-        part={this.partForName("note-box")}
-        buttons={TODO_ID.test(this.id ?? "") ? TODO_NOTE_BUTTONS : NOTE_BUTTONS}
-        ref={(note) => (this.noteInput = note)}
-        onEscape={() => this.leaveNote()}
-        onUsed={() => this.leaveNote()}
+        tip={this.reviewTip()}
+        under-line={shows === "note" && !this.hasDetails() ? "" : undefined}
+        part={this.partForName(part)}
       />
     )
   }
@@ -559,27 +536,13 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   // ## Review
   ////////////////
 
-  /** Its texts, as the review controls ask for them. */
-  private readonly reviewText = (key: ReviewTextKey, params?: Record<string, string | number>) =>
-    this.translationForKey(key, params)
-
-  /** Take the reader to its note box (Revisit;  Edit, with the marked `note`):  unfolded first, if it has details. */
-  private takeToNote(note?: string) {
-    takeToNote(
-      this.reviewState,
-      () => this.reveal(),
-      () => this.noteInput,
-      note
-    )
-  }
-
-  /** Done with the note box:  closed under the line;  a docked one stays, but stops counting as written in. */
-  @E.untracked
-  private leaveNote() {
-    const client = this.reviewState.client
-    if (!client) return
-    const docked = this.hasDetails()
-    if (!docked || !this.noteInput?.value.trim()) client.closeBox(this.reviewState.id(), false)
+  /** Revisit or Edit, pressed on its own review controls:  unfolded to show the note box, if it has details. */
+  @E.on(SHOW_NOTE, { target: "renderRoot" })
+  protected onShowNote(event: Event) {
+    // its own controls' only:  a nested item's come through here too
+    if ((event.target as Node).getRootNode() !== event.currentTarget) return
+    event.stopPropagation()
+    this.reveal()
   }
 
   ////////////////
@@ -654,8 +617,24 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   }
 
   /** Find-in-page matched inside the folded details:  the browser has revealed them;  adopt it. */
-  private readonly onBeforeMatch = () => {
+  @E.on("beforematch", { target: "renderRoot" })
+  protected onBeforeMatch() {
     this.reveal()
+  }
+
+  /** The address's own `#hash` was followed:  an item that moves doesn't open for it again as it reconnects. */
+  private hasFollowedHash = false
+
+  /** While connected, follow links (`hashchange`);  the first time, the address's own `#hash` too.  Returns the undo. */
+  @E.whileConnected
+  protected watchHash() {
+    const listeners = new AbortController()
+    window.addEventListener("hashchange", this.followHash, { signal: listeners.signal })
+    if (!this.hasFollowedHash) {
+      this.hasFollowedHash = true
+      this.followHash()
+    }
+    return () => listeners.abort()
   }
 
   /**

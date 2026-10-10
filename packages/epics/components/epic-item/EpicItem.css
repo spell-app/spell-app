@@ -289,10 +289,13 @@
    * The note box, last in the details (Owen, 2026-10-07):  sticks to the window's bottom while the item is open and
    * taller than the window;  a ring of paper hides the text scrolling past its rounded corners
    */
-  .details > .note-box {
+  .details > [part~="note-box"] {
     position: sticky;
     z-index: 1;
     bottom: 4px;
+  }
+  /* the ring on the box itself (`<epic-review>`'s), so it follows its rounded corners */
+  .details > [part~="note-box"]::part(base) {
     box-shadow: 0 0 0 4px var(--ui-background, Canvas);
   }
   .note {

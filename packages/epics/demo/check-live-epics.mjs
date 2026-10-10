@@ -98,7 +98,7 @@ try {
     await note.waitFor({ timeout: EDIT_TIMEOUT_MS })
     await note.fill(NOTE)
   } catch {
-    problems.push(`#${itemId} drew no note box (is the page reviewed?  is P9's ReviewControls in the pack?)`)
+    problems.push(`#${itemId} drew no note box (is the page reviewed?  is epic-review in the pack?)`)
   }
   await page.waitForTimeout(400)
   await page.evaluate(readerState, itemId)
@@ -190,12 +190,15 @@ function readerState(id) {
 function watchBlinks(id) {
   const blinks = (window.__checkLiveBlinks = new Set())
   const root = document.getElementById(id).shadowRoot
-  const note = root.querySelector("textarea")
+  // the note box is an `<epic-review>` in the item's shadow root, its textarea in its own
+  const box = root.querySelector("[part~='note-box']")
+  const note = box?.shadowRoot?.querySelector("textarea")
   const look = (when) => {
     const details = root.getElementById("details")
     if (!details || details.hasAttribute("hidden")) blinks.add(`details hidden (${when})`)
     if (!note?.isConnected) blinks.add(`note box gone (${when})`)
-    else if (root.activeElement !== note) blinks.add(`note box unfocused (${when})`)
+    else if (root.activeElement !== box || box.shadowRoot.activeElement !== note)
+      blinks.add(`note box unfocused (${when})`)
   }
   new MutationObserver(() => look("on a change")).observe(root, { attributes: true, childList: true, subtree: true })
   const frame = () => {
@@ -228,7 +231,8 @@ function announce({ file, id }) {
 /** In the page:  where things stand. */
 function stateNow(id) {
   const item = document.getElementById(id)
-  const note = item?.shadowRoot?.querySelector("textarea")
+  const box = item?.shadowRoot?.querySelector("[part~='note-box']")
+  const note = box?.shadowRoot?.querySelector("textarea")
   return {
     marker: window.__checkLive === true,
     same: {
@@ -239,7 +243,11 @@ function stateNow(id) {
     open: !!item?.hasAttribute("open"),
     reviewing: !!document.querySelector("epic-page")?.hasAttribute("reviewing"),
     note: note?.value ?? null,
-    focused: !!note && document.activeElement === item && item.shadowRoot.activeElement === note,
+    focused:
+      !!note &&
+      document.activeElement === item &&
+      item.shadowRoot.activeElement === box &&
+      box.shadowRoot.activeElement === note,
     y: scrollY
   }
 }

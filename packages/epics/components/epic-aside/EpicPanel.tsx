@@ -3,7 +3,6 @@ import type { JSX } from "@solidjs/web"
 import { E } from "$/ui/core"
 
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
-import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
 
 /****************
@@ -58,7 +57,7 @@ export abstract class EpicPanel<V extends E.ComponentVocabulary> extends E.UICom
           aria-controls={BODY_ID}
           onClick={this.fold.toggle}
         >
-          <Chevron />
+          {Fold.chevron()}
           <span class={HEADING} part={this.partForName("heading" as never)}>
             {this.heading()}
           </span>

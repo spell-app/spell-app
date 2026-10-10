@@ -139,30 +139,6 @@ export type HeaderMarks = {
   listening: boolean
 }
 
-/** One of `<epic-page>`'s text keys. */
-export type PageTextKey = E.TextKey<EpicPageVocabulary>
-
-/** How a piece of the page asks it for a text:  `UIComponent.translationForKey()`, as a plain function. */
-export type PageText = (key: PageTextKey, params?: Record<string, string | number>) => string
-
-/** Classes of the running-agents panel (`AgentsPanel.tsx`):  its box, title and count, and each agent's row. */
-export const AGENTS_BOX = "agents-box"
-export const AGENTS = "agents"
-export const AGENTS_TITLE = "agents-title"
-export const AGENTS_COUNT = "agents-count"
-export const AGENT = "agent"
-export const AGENT_LINE = "agent-line"
-export const AGENT_NAME = "agent-name"
-export const AGENT_AGE = "agent-age"
-export const AGENT_TASK = "agent-task"
-export const AGENT_REDIRECTS = "agent-redirects"
-export const AGENT_SAID = "agent-said"
-export const AGENT_SAID_NOTE = "agent-said-note"
-export const AGENT_REDIRECT = "agent-redirect"
-export const AGENT_NOTE = "agent-note"
-export const AGENT_SEND = "agent-send"
-export const AGENT_ERROR = "agent-error"
-
 /** The kickoff prompt, which the `Plan hung?` aside offers to copy. */
 export const PROMPT = 'epic-overview > [slot="prompt"]'
 export const ICON = "icon"
@@ -179,6 +155,9 @@ declare module "@solidjs/web/types/jsx.js" {
       "ui-code": UIJSXAttributes
       "ui-breadcrumb": UIJSXAttributes
       "ui-breadcrumb-section": UIJSXAttributes
+      // the pack's own families it draws in its shadow root
+      "epic-new-item": UIJSXAttributes
+      "epic-agents": UIJSXAttributes
     }
   }
 }
