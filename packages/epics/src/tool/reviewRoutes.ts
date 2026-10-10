@@ -34,6 +34,9 @@
  * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now, for marks and comments alike;
  *   `now: true` is "Review Now" (epic `windows-and-review` P4):
  *   every revisit waiting becomes an immediate request too (`ReviewInbox.reviewNow()`)
+ * - `POST /api/review/start` `{ page }` -- "start a review" (epic `airplane` P12):  types `/epic review <epic>` into
+ *   the ONE running Claude session titled for the epic;  none or several:  sends nothing, says which it found
+ *   (`ReviewStart`);  answers its `StartResult`, not the inbox
  * - writes:  under the inbox's lock, atomic (`ReviewInbox.updateAsync()`);
  *   each needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  * - Loaded by the page server under `tsx` (`PageServer.loadRoutes()`), with `packages/server/tsconfig.json`'s aliases.
@@ -46,6 +49,7 @@ import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
 
 import { InboxError, ReviewInbox, type PageInbox } from "./ReviewInbox"
+import { ReviewStart } from "./ReviewStart"
 
 /** Where the routes live. */
 const API = "/api/review"
@@ -58,7 +62,7 @@ const PLAN_DOC = /\/(?:packages\/docs\/content\/)?epics\/([^/]+)\/\1\.plan\.html
 
 const reviewRoutes: RouteModule = {
   name: "review",
-  setup({ router, guard, web }) {
+  setup({ root, router, guard, web }) {
     const api = new SRV.Router()
     api.get("/inbox", (request, reply) => {
       const inbox = ReviewInbox.read(ReviewInbox.pathFor(planDoc(web.files, request.query.page)))
@@ -108,6 +112,12 @@ const reviewRoutes: RouteModule = {
       const body = request.body as { page?: unknown; now?: unknown }
       const file = planDoc(web.files, body.page)
       reply.json(await update(file, (inbox) => (body.now === true ? inbox.reviewNow() : inbox.markSent())))
+    })
+    api.post("/start", async (request, reply) => {
+      const body = request.body as { page?: unknown }
+      const file = planDoc(web.files, body.page)
+      const epic = PLAN_DOC.exec(file)![1]!
+      reply.json(await new ReviewStart(root).start(epic))
     })
     router.use(API, api)
   }
