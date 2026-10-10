@@ -84,8 +84,11 @@ export class DOMEpicSectionElement extends DOMEpicFoldElement {
  *   then its children:  phases, items, log events or prose.
  *   - the title:  `3. Questions`, by its place among the page's blocks;
  *     `1.2 Why` for an Overview sub-section, its title its own
- * - Its COUNT (P10), on the title's badge:  `open/all` of its items (or phases),
- *   open being any status but `done`, `decided` or `canceled`;  none without any.
+ * - Its COUNT (P10):  `open/all` of its items (or phases), open being any status but `done`, `decided` or
+ *   `canceled`;  none without any.
+ *   - on the title's badge for the Phases section only:  an item section's state chips say the numbers already
+ *     (Owen, 2026-10-10:  "We can remove the (37/58) pill ... since we have the numbers in the filters")
+ *   - the page's toolbar reads it too (`contentsEntry`)
  *   Counted again whenever a child comes, goes, or changes its `status` or `state`
  *   (`@watches`:  the live update, a part loading).
  * - An item section's STATE FILTER (P10;  chips with counts, epic `airplane` P8), at the title's end:
@@ -277,9 +280,11 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     return this.renderFold({
       title: () => this.heading(),
       icon: look ? () => this.glyph.svg : undefined,
+      // an item section's chips say the numbers already (Owen, 2026-10-10:  "We can remove the (37/58) pill"):
+      // only phases keep the count
       badge: () => {
         const count = this.count()
-        return count ? `${count.open}/${count.total}` : undefined
+        return count && !this.holdsItems() ? `${count.open}/${count.total}` : undefined
       },
       tools:
         kind === "phases"
