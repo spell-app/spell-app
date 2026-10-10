@@ -104,26 +104,33 @@ class BlueSquare extends Plain {
   @protoMerged static setup = { shape: "square", parts: { b: "B" } } satisfies Partial<Setup>
 }
 
+/** `setup`'s keys read by name, as code reads them:  through the prototype chain. */
+function keysOf({ color, shape, parts }: Setup) {
+  return { color, shape, parts }
+}
+
 describe("@protoMerged static", () => {
-  it("puts the parent's value merged with this class's on the prototype", () => {
-    expect(new Blue().setup).toEqual({ color: "blue", shape: "round", parts: { a: "A" } })
+  it("puts this class's object on the prototype, the parent's object chained under it", () => {
+    expect(keysOf(new Blue().setup)).toEqual({ color: "blue", shape: "round", parts: { a: "A" } })
     expect(Object.hasOwn(Blue.prototype, "setup")).toBe(true)
+    expect(Object.getPrototypeOf(Blue.prototype.setup)).toBe(Setting.prototype.setup)
   })
 
-  it("inherits the parent's merged value when a class states none", () => {
+  it("copies nothing:  the static and the prototype's are ONE object, holding only what the class stated", () => {
+    expect(Blue.prototype.setup).toBe(Blue.setup)
+    expect(Blue.setup).toEqual({ color: "blue" })
+  })
+
+  it("inherits the parent's object when a class states none", () => {
     expect(new Plain().setup).toBe(new Blue().setup)
   })
 
-  it("merges shallowly:  a stated key replaces the parent's whole", () => {
-    expect(new BlueSquare().setup).toEqual({ color: "blue", shape: "square", parts: { b: "B" } })
+  it("a stated key replaces the parent's whole", () => {
+    expect(keysOf(new BlueSquare().setup)).toEqual({ color: "blue", shape: "square", parts: { b: "B" } })
   })
 
   it("leaves the parent's value alone", () => {
-    expect(new Setting().setup).toEqual({ color: "red", shape: "round", parts: { a: "A" } })
-  })
-
-  it("keeps only what the class stated on the static", () => {
-    expect(Blue.setup).toEqual({ color: "blue" })
+    expect(keysOf(new Setting().setup)).toEqual({ color: "red", shape: "round", parts: { a: "A" } })
   })
 
   it("is non-enumerable on the prototype", () => {

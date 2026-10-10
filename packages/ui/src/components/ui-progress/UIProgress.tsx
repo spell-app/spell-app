@@ -37,11 +37,11 @@ import progressCSS from "./UIProgress.css?inline"
  * - Events:  `ui-change` when the percentage changes, `ui-complete` when it reaches 100.
  *   Both only after the first render, whatever wrote the numbers (there is no user input).
  ****************/
-@E.cssStates("active")
 export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   @E.proto static vocabulary = progressVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { progress: progressCSS },
+    cssStates: ["active"],
     delegatesFocus: false,
     aria: { role: "progressbar", valueMin: "0" },
     // `disabled`:  only a look

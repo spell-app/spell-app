@@ -42,11 +42,11 @@ import searchCSS from "./UISearch.css?inline"
  * - A form control (decided 2026-09-30):  Fomantic's search wraps a REAL `<input class="prompt">`,
  *   which submits its text under its `name`;  so does this one, with `required` => `valueMissing`.
  ****************/
-@E.cssStates("fluid")
 export class UISearch extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = searchVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { input: inputCSS, search: searchCSS },
+    cssStates: ["fluid"],
     Fallback: SearchFallback,
     // `loading`:  a spinner in its input
     loading: "its own"

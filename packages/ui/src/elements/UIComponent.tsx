@@ -56,7 +56,7 @@ import { ShadowEvents } from "./ShadowEvents"
  *   @state accessor isOpen = false     // this.isOpen = true;  if (this.isOpen) ...
  *   ```
  *   A read is always up to date, even right after a write;  JSX will update the view as the value changes.
- *   The decorators (`@state`, `@controlled`, `@derived`, `@cssState`, `@cssStates`, `@aria`, `@onChange`,
+ *   The decorators (`@state`, `@controlled`, `@derived`, `@cssState`, `@aria`, `@onChange`,
  *   `@whileConnected`, `@watches`, `@on`, `@untracked`) are in `Reactive.ts`.
  *
  * - **Attributes**:  every DOM element attribute has a getter/setter on the component,
@@ -193,7 +193,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Called once, by `mount()`, right after the constructor.
    * - SIDE EFFECTS:
    *   - adopts the class's style sheets into the shadow root (if the runtime has loaded)
-   *   - keeps the element's `:state()`s in step with its `@cssState` members, its `@cssStates` attributes
+   *   - keeps the element's `:state()`s in step with its `@cssState` members, `elementSetup.cssStates`
    *     and `cssStates()`;  for a state two classes of the chain name, the subclass's member wins
    *   - starts the `@onChange` and `@whileConnected` methods, the `@aria` members' effect,
    *     and the `@watches` methods' watch
@@ -204,7 +204,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   onMount(): JSX.Element {
     if (!isServer && untrack(() => this.isReady)) this.adoptStyleSheets()
     // a RENDER effect, so a getter that throws shows the element's fallback (a plain effect would only log it)
-    const decorated = E.Reactive.cssStatesOf(this)
+    const decorated = E.Reactive.cssStatesOf(this, this.elementSetup.cssStates)
     createRenderEffect(
       () => {
         const states: Record<string, boolean | undefined> = { ...this.cssStates() }
@@ -286,16 +286,17 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * Class setting:  how the class's custom element is set up, as ONE object (`ElementSetup` documents each key):
-   * its style sheets, form control, focus, slots, part, DOM element class, fallback, unstyled first paint, ARIA,
-   * and what the shared `disabled`, `loading` and `visible` do for it.
+   * its style sheets, the `:state()`s that mirror an attribute, form control, focus, slots, part, DOM element class,
+   * fallback, unstyled first paint, ARIA, and what the shared `disabled`, `loading` and `visible` do for it.
    * - A subclass states only the keys it changes:
    *   `@E.protoMerged static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>`
    *   (`satisfies`, so a misspelt key fails TypeScript).
-   * - The keys merge down the class chain, base class first (`@protoMerged`):
+   * - Each class's object is chained to its base class's (`@protoMerged`):
+   *   a key it doesn't state is read from the base's, so
    *   `CheckControl`'s `{ DOMElement: DOMCheckElement }` keeps the `{ isAFormControl: true }` of `FormComponent`.
-   * - So `this.elementSetup` (and `Class.prototype.elementSetup`) is the MERGED result;
-   *   the static `Class.elementSetup` is only what that one class stated.
-   * - Merged key by key:  a key a subclass states replaces its base's whole,
+   * - Read keys by name (`this.elementSetup.styleSheets`, `Class.prototype.elementSetup` outside an instance):
+   *   a spread or `Object.keys()` of the whole object sees only its own class's keys.
+   * - Key by key:  a key a subclass states replaces its base's whole,
    *   so a subclass's `styleSheets` replace its base's;  spread the base's to add to them
    *   (`styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`).
    * - `vocabulary` stays a setting of its own.
@@ -303,6 +304,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   declare elementSetup: E.ElementSetup
   @protoMerged static elementSetup: Partial<E.ElementSetup> = {
     styleSheets: {},
+    cssStates: [],
     isAFormControl: false,
     delegatesFocus: true,
     slotAssignment: "named",
@@ -657,6 +659,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Default none.
    * - Keys are the vocabulary's state names.
    * - Prefer `@cssState("open")` on the member the state follows.
+   * - Not `elementSetup.cssStates`, the list of states that only mirror an attribute:  same name, another thing.
    * - If it throws, the element shows its fallback, as when `render()` throws.
    */
   protected cssStates(): Partial<Record<E.StateName<V>, boolean>> {
@@ -888,6 +891,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *   its translated attribute, property and event names all reach the same component.
    * - Does nothing for a tag already defined.
    * - Returns the element class.
+   * - throws a `TypeError` on a name in `elementSetup.cssStates` the tag has no attribute or member for (a typo)
    */
   static define(this: E.UIComponentClass, tag?: string, dictionary?: E.Dictionary): CustomElementConstructor {
     const definition = new E.ElementDefinition(this.prototype.vocabulary, { tag, dictionary })
@@ -895,6 +899,14 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     if (existing) return existing
     // record it, make the tag's own DOM element class on `elementSetup.DOMElement`, and define it (DOM API)
     UIComponent.register.call(this, definition)
+    // after `register()`, which puts each attribute's getter on the prototype
+    const strays = this.prototype.elementSetup.cssStates.filter((state) => !(E.camelCase(state) in this.prototype))
+    if (strays.length) {
+      throw new TypeError(
+        `UIComponent.define():  <${definition.tag}>'s elementSetup.cssStates names ${strays.join(", ")}, ` +
+          "which it has no attribute or member for;  fix the name, or give the class that member"
+      )
+    }
     const Class = DOMElement.subclassForTag(
       this.prototype.elementSetup.DOMElement,
       UIComponent.tagSetupFor(this, definition)

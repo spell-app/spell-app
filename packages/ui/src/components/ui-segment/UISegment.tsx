@@ -24,11 +24,11 @@ import segmentCSS from "./UISegment.css?inline"
  * - `loading`:  `aria-busy` (through `internals`) and a visually hidden `role=status` "Loading…".
  * - `disabled`:  `aria-disabled`.
  ****************/
-@E.cssStates("piled", "inverted")
 export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   @E.proto static vocabulary = segmentVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { segment: segmentCSS },
+    cssStates: ["piled", "inverted"],
     // `disabled`:  only a look, with `aria-disabled`
     disabled: "its own",
     // `loading`:  Fomantic's veil

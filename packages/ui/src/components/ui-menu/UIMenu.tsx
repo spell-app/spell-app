@@ -51,11 +51,11 @@ function isSameContext(a: UIT.ItemContext, b: UIT.ItemContext): boolean {
  *   - A menu never moves `selected` itself, EXCEPT a `segmented` one (a single-choice control):
  *     it selects the activated item and unselects the rest, unless a listener cancels the `ui-select`.
  ****************/
-@E.cssStates("vertical")
 export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.ItemOwner {
   @E.proto static vocabulary = menuVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { menu: menuCSS },
+    cssStates: ["vertical"],
     // a sub-menu is a part of its menu:  an item's header looks past it to the menu
     isAPart: true,
     // nothing to delegate to:  the items are the focus targets

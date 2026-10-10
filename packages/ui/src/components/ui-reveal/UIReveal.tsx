@@ -29,11 +29,11 @@ const WATCHED = ["href", "disabled", "tabindex", "contenteditable", "type"]
  *   so assistive tech reads both, in order, at any time.
  * - `prefers-reduced-motion`:  the swap is instant (`UIReveal.css`).
  ****************/
-@E.cssStates("active")
 export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
   @E.proto static vocabulary = revealVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { reveal: revealCSS },
+    cssStates: ["active"],
     // `disabled`:  it never reveals
     disabled: "its own"
   } satisfies Partial<E.ElementSetup>
