@@ -309,7 +309,7 @@ export class UIDocsThemes extends E.UIComponent<DocsThemesVocabulary> {
           inverted=""
           size={MINI}
           position={TIP_POSITION}
-          hidden={this.isOpen ? "" : undefined}
+          class={this.isOpen ? MUTED_CLASS : undefined}
         >
           {label()}
         </ui-popup>
@@ -523,6 +523,13 @@ const GLYPH_CLASS = "glyph"
 
 /** Class word of the overlay's `<ui-popup>`. */
 const OVERLAY_CLASS = "overlay"
+
+/**
+ * Class word of the palette's tooltip while its overlay is open:  it never shows then.
+ * - Not `hidden`:  on a `<ui-popup>` that's whether it shows (the shared `visible` / `hidden`),
+ *   which its trigger sets again on the next hover.
+ */
+const MUTED_CLASS = "muted"
 
 /** Class word of the overlay's content. */
 const PANEL_CLASS = "panel"

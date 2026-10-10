@@ -263,7 +263,7 @@
   }
 
   /* Tooltips:  the palette's hides while its overlay is open. */
-  [part~="tip"][hidden] {
+  [part~="tip"].muted {
     display: none;
   }
 }

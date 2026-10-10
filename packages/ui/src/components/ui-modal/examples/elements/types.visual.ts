@@ -7,7 +7,7 @@ import type { VisualHooks } from "$/ui/test/test.types"
  */
 export default {
   states: {
-    "open-standard": { open: (root) => VisualOpen.set(root, "#modal-types-standard"), capture: "viewport" },
-    "open-basic": { open: (root) => VisualOpen.set(root, "#modal-types-basic"), capture: "viewport" }
+    "open-standard": { open: (root) => VisualOpen.show(root, "#modal-types-standard"), capture: "viewport" },
+    "open-basic": { open: (root) => VisualOpen.show(root, "#modal-types-basic"), capture: "viewport" }
   }
 } satisfies VisualHooks

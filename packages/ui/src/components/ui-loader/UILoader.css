@@ -20,7 +20,9 @@
  * - Visibility:  Fomantic's rule, kept.  A loader shows only when `active` (or inside an active dimmer);
  *   `disabled` hides it again.  `display` is a private token,
  *   so `inline` / `centered` pick the shown display without fighting the `states` sublayer.
- * - `:state(active)` and `:state(disabled)`, set by the component, are for the PAGE's styles only;
+ *   - The element writes `active` on its box while it's `visible` (or fading out):
+ *     the shared `visible` / `hidden`, starting hidden.
+ * - `:state(hidden)` and `:state(disabled)`, set by the component, are for the PAGE's styles only;
  *   this sheet keys on the box's classes.
  *
  * - Colours:  the arc reads `--ui-color` (the hue remap), with `--ui-loader-line-color` as its fallback;
@@ -44,11 +46,11 @@
  *
  * - Fomantic's `.ui.dimmer > .loader` rules are kept for STATIC markup
  *   (a dimmer shows its loader and inverts it;  an `inverted` dimmer keeps it light).
- *   A component can't see its parent, so `<ui-dimmer>` MUST make its loader `active` itself,
+ *   A component can't see its parent, so a `<ui-loader>` in a `<ui-dimmer>` MUST be `visible` itself,
  *   and hand it the scheme (`color-scheme` inherits).
  *
  * - Left out, on purpose:
- *   - the `visible` / `hidden` class synonyms:  `active` and the element's `hidden` attribute cover them
+ *   - the `visible` / `hidden` class synonyms:  `active` and the element's `visible` / `hidden` cover them
  *   - the `.loading` rules for OTHER components (buttons, inputs, icons, segments, cards, forms):
  *     those sheets draw their own spinners
  *   - Firefox's `-moz-animation` `currentcolor-elastic-loader` workaround:
@@ -100,11 +102,9 @@
 
 @layer ui.components.loader.types {
   /* The DOM element:  no box of its own;  the inner box is the loader. */
+  /* `hidden` is `reset.css`'s:  it keeps a loader on screen while it fades out. */
   :host {
     display: contents;
-  }
-  :host([hidden]) {
-    display: none;
   }
 
   /*

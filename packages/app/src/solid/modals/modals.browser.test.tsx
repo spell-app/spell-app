@@ -11,7 +11,7 @@ import { normalizeChooserOptions } from "$/app/solid/modals"
  */
 
 /** A `<ui-modal>` host, as the tests poke it. */
-type Modal = HTMLElement & { open: boolean }
+type Modal = HTMLElement & { visible: boolean }
 
 /** A `<ui-radio>` / `<ui-checkbox>` host. */
 type Choice = HTMLElement & { selected: boolean }
@@ -102,11 +102,11 @@ describe("prompt / promptForNumber", () => {
     expect(input.max).toBe("100")
     expect(input.step).toBe("1")
     expect(input.placeholder).toBe("Between 10 and 100")
-    // too small:  stays open
+    // too small:  stays shown
     input.value = "5"
     click(modal, ".approve")
     await ElementFixture.tick()
-    expect(modal.open).toBe(true)
+    expect(modal.visible).toBe(true)
     input.value = "42"
     click(modal, ".approve")
     expect(await answer).toBe("42")
@@ -214,9 +214,9 @@ describe("choose", () => {
 // ## Helpers
 ////////////////
 
-/** The open dialog:  the newest `<ui-modal>` in the page, once it's open and its elements have rendered. */
+/** The shown dialog:  the newest `<ui-modal>` in the page, once it's `visible` and its elements have rendered. */
 async function current(): Promise<Modal> {
-  await expect.poll(() => newest()?.open, { timeout: 5000 }).toBe(true)
+  await expect.poll(() => newest()?.visible, { timeout: 5000 }).toBe(true)
   const modal = newest()!
   await ElementFixture.settle(modal)
   return modal

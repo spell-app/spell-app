@@ -2456,7 +2456,7 @@ function openNoteBox({ anchor, id, label, text: current = "" }) {
   box.querySelector(".spell-note-delete").hidden = !id
   const field = box.querySelector("textarea")
   field.value = typeof drafts[key] === "string" ? drafts[key] : current
-  box.setAttribute("open", "")
+  box.visible = true
   requestAnimationFrame(() => {
     growField(field)
     field.focus()
@@ -2487,7 +2487,7 @@ function noteBox() {
   const save = box.querySelector(".spell-note-save")
   const draftKey = `${NOTE_DRAFT_KEY_PREFIX}${location.pathname}`
   const keyOf = () => box.dataset.id || box.dataset.anchor
-  const close = () => box.removeAttribute("open")
+  const close = () => (box.visible = false)
   /** Send `change` (`add`, `edit` or `delete`);  close and forget the draft once it's written. */
   const send = async (change, saying) => {
     save.setAttribute("loading", "")
@@ -2599,7 +2599,7 @@ function openNewEpicBox() {
   const [title, prompt] = box.querySelectorAll("input, textarea")
   title.value = typeof draft.title === "string" ? draft.title : ""
   prompt.value = typeof draft.prompt === "string" ? draft.prompt : ""
-  box.setAttribute("open", "")
+  box.visible = true
   requestAnimationFrame(() => {
     growField(prompt)
     ;(title.value ? prompt : title).focus()
@@ -2627,7 +2627,7 @@ function newEpicBox() {
   box = template.content.firstElementChild
   const [title, prompt] = box.querySelectorAll("input, textarea")
   const save = box.querySelector(".spell-note-save")
-  const close = () => box.removeAttribute("open")
+  const close = () => (box.visible = false)
   const keep = () => writeJSON(NEW_EPIC_DRAFT_KEY, { title: title.value, prompt: prompt.value })
   const submit = async () => {
     if (!title.value.trim()) return title.focus()

@@ -16,7 +16,7 @@ const EXAMPLES = import.meta.glob<string>("/src/components/ui-loader/examples/el
 
 /** Render one `<ui-loader>`;  returns it with its root. */
 async function loader(html: string) {
-  const host = await ElementFixture.render<DOMElement>(html)
+  const host = await ElementFixture.render<DOMElement & { visible: boolean }>(html)
   const root = host.shadowRoot!.querySelector<HTMLElement>("[part~=loader]")!
   return { host, root }
 }
@@ -31,13 +31,13 @@ describe("<ui-loader> classes", () => {
     ['size="large"', "ui large loader"],
     ['size="medium"', "ui loader"],
     ['color="red" speed="slow"', "ui red slow loader"],
-    ['speed="fast" active', "ui fast active loader"],
-    ['active="yes" inline="no"', "ui active loader"],
-    ["active text", "ui active text loader"],
-    ["active inline centered", "ui active centered inline loader"],
-    ["active indeterminate", "ui active indeterminate loader"],
-    ["active double elastic inverted", "ui active double elastic inverted loader"],
-    ["active disabled", "ui active disabled loader"]
+    ['speed="fast" visible', "ui fast active loader"],
+    ['visible="yes" inline="no"', "ui active loader"],
+    ["visible text", "ui text active loader"],
+    ["visible inline centered", "ui centered inline active loader"],
+    ["visible indeterminate", "ui indeterminate active loader"],
+    ["visible double elastic inverted", "ui double elastic inverted active loader"],
+    ["visible disabled", "ui disabled active loader"]
   ])("<ui-loader %s>", async (attributes, classes) => {
     const { root } = await loader(`<ui-loader ${attributes}></ui-loader>`)
     expect(root).toMatchObject({ localName: "div", className: classes })
@@ -51,14 +51,14 @@ describe("<ui-loader> classes", () => {
 
 describe("<ui-loader> live region", () => {
   it("is a polite status on the element, named `Loading…` while empty", async () => {
-    const { host, root } = await loader(`<ui-loader active></ui-loader>`)
+    const { host, root } = await loader(`<ui-loader visible></ui-loader>`)
     expect(host.internals).toMatchObject({ role: "status", ariaLive: "polite", ariaLabel: "Loading…" })
     // nothing in the shadow root claims the role:  the element is the region
     expect(root.hasAttribute("role")).toBe(false)
   })
 
   it("takes its name from slotted text instead, and back when it's removed", async () => {
-    const { host } = await loader(`<ui-loader active text>Preparing files</ui-loader>`)
+    const { host } = await loader(`<ui-loader visible text>Preparing files</ui-loader>`)
     expect(host.internals.ariaLabel).toBeNull()
     host.textContent = ""
     await expect.poll(() => host.internals.ariaLabel).toBe("Loading…")
@@ -70,19 +70,20 @@ describe("<ui-loader> live region", () => {
 ////////////////
 
 describe("<ui-loader> states and visibility", () => {
-  it("sets :state(active) / :state(disabled)", async () => {
-    const { host } = await loader(`<ui-loader active disabled></ui-loader>`)
-    expect(host.matches(":state(active)")).toBe(true)
+  it("sets :state(hidden) once hidden, and :state(disabled)", async () => {
+    const { host } = await loader(`<ui-loader visible disabled></ui-loader>`)
+    expect(host.matches(":state(hidden)")).toBe(false)
     expect(host.matches(":state(disabled)")).toBe(true)
-    host.removeAttribute("active")
-    await ElementFixture.tick()
-    expect(host.matches(":state(active)")).toBe(false)
+    host.visible = false
+    expect(host.hidden).toBe(true)
+    await expect.poll(() => host.matches(":state(hidden)")).toBe(true)
   })
 
-  it("shows only while active, and not while disabled", async () => {
+  it("starts hidden;  shows only while visible, and not while disabled", async () => {
     const { host, root } = await loader(`<ui-loader inline></ui-loader>`)
     expect(getComputedStyle(root).display).toBe("none")
-    host.setAttribute("active", "")
+    expect(host.hidden).toBe(true)
+    host.visible = true
     await ElementFixture.tick()
     expect(getComputedStyle(root).display).not.toBe("none")
     host.setAttribute("disabled", "")
@@ -92,7 +93,7 @@ describe("<ui-loader> states and visibility", () => {
 
   it("centres over the nearest positioned ancestor across the shadow boundary", async () => {
     const box = await ElementFixture.render<HTMLElement>(
-      `<div style="position: relative; width: 300px; height: 200px"><ui-loader active></ui-loader></div>`
+      `<div style="position: relative; width: 300px; height: 200px"><ui-loader visible></ui-loader></div>`
     )
     const root = box.querySelector("ui-loader")!.shadowRoot!.querySelector<HTMLElement>("[part~=loader]")!
     const outer = box.getBoundingClientRect()
@@ -113,7 +114,7 @@ describe("<ui-loader> tokens from outside", () => {
   }
 
   /** The element under test. */
-  const MARKUP = `<ui-loader active></ui-loader>`
+  const MARKUP = `<ui-loader visible></ui-loader>`
 
   it("takes a token set on the element", async () => {
     const host = await ElementFixture.render(MARKUP.replace("<ui-loader", `<ui-loader style="--ui-loader-size: 40px"`))

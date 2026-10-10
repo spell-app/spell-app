@@ -31,5 +31,8 @@ export class LoaderMessage {
 /** A class `UIRoot.Loading` accepts:  `LoaderMessage` or one shaped like it. */
 export type RootLoading = Pick<typeof LoaderMessage, "render">
 
-/** The loader's switches for a centred spinner with its text below:  `<ui-loader active inline centered text>`. */
-const LOADER_SWITCHES: readonly E.AttributeName<typeof loaderVocabulary>[] = ["active", "inline", "centered", "text"]
+/** The loader's switches for a centred spinner with its text below:  `<ui-loader visible inline centered text>`. */
+const LOADER_SWITCHES: readonly LoaderSwitch[] = ["visible", "inline", "centered", "text"]
+
+/** One of the loader's attributes:  its vocabulary's, or the shared `visible` (`SharedVocabulary`). */
+type LoaderSwitch = E.AttributeName<typeof loaderVocabulary> | "visible"

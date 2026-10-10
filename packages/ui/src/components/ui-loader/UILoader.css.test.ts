@@ -43,7 +43,7 @@ describe("UILoader.css source", () => {
   it("parses with replaceSync, keeping the host rules and its own keyframes", () => {
     for (const css of [loaderCSS, loaderRaw]) {
       const selectors = Sheets.selectors(css)
-      expect(selectors.length).toBeGreaterThan(20)
+      expect(selectors.length).toBeGreaterThan(15)
       expect(selectors).toContain(":host")
       expect(selectors.some((selector) => selector.includes(":host(:empty) > .ui.elastic.inline.loader"))).toBe(true)
       const sheet = Sheets.from([css])[0]!

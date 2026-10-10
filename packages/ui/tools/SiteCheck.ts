@@ -972,16 +972,9 @@ function overflowState() {
 }
 
 /**
- * Whether a `ui-flyout` / `ui-sidebar` is open:  `:state(open)`, an `open` / `visible` attribute, or its shadow
- * `<dialog>` open.
+ * Whether a `ui-flyout` / `ui-sidebar` is shown:  not `hidden`
+ * (the shared `visible` / `hidden`, one fact, kept in the `hidden` attribute).
  */
 function navState() {
-  return [...document.querySelectorAll("ui-flyout, ui-sidebar")].some((el) => {
-    try {
-      if (el.matches(":state(open)")) return true
-    } catch {
-      // a browser without custom states:  the attributes
-    }
-    return el.hasAttribute("open") || el.hasAttribute("visible") || !!el.shadowRoot?.querySelector("dialog[open]")
-  })
+  return [...document.querySelectorAll<HTMLElement>("ui-flyout, ui-sidebar")].some((el) => !el.hidden)
 }
