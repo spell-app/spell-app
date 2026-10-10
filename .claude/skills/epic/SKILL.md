@@ -136,7 +136,7 @@ turn to end, and the stub doc keeps the kickoff prompt safe whatever happens to 
    no `--prompt-file`).  Quoted at the top of the Overview, and in the "Plan hung?" notice above it (copy button,
    restart steps;  it goes once P1 starts).  Then delete the prompt file.
    - Reusing a doc:  its prompt missing:  `spell dev plan-doc prompt <name> --file <file>`;  an older doc (before
-     2026-10-01, or `section.s2` markup):  `spell dev plan-doc migrate <name>` first.  No phases yet:  a restart after
+     the `<epic-*>` elements):  `spell dev plan-doc convert <name> --out <folder>` first, then copy it back.  No phases yet:  a restart after
      a hang.  Plan again from its prompt ("3. Plan");  explore only what the doc doesn't say.
 4. Isolate "Start", steps 4-5:  the worktree's own window, then `handoff <name> --prompt continue` (name alone, no
    plan yet:  no `--prompt`).

@@ -40,15 +40,15 @@ file gets its own ROUND:  its text goes into the plan file, Owen comments, Claud
    - **Approved** (plan mode is over):  step 5.
 5. Write the reviewed text back to the real file:  the plan file's body below the `---`, with the header and (for
    non-`.md`) the fence stripped.  Check it:  `git diff --stat <path>` shows only what the comments changed.
-   - The file is a generated or checked one (a plan doc, a WWOD file):  run its check (`yarn plan-doc check`,
-     `cites.py` ...).
+   - The file is a generated or checked one (a plan doc, a WWOD file):  run its check (`spell dev plan-doc check`,
+     `spell dev wwod check` ...).
 6. Next file:  step 2.  After the last:  one line per file ("`<path>`:  N rounds, M comments applied" or "approved
    as is"), and stage the changes (commit only when Owen says).
 
 ## Notes
 
-- An epic running:  log each file's round count in its plan doc (`yarn plan-doc log <name> "..."`);  a comment that
-  changes a decision becomes a `decision` item.
+- An epic running:  log each file's round count in its plan doc (`spell dev plan-doc log <name> "..."`);  a comment that
+  changes a decision becomes a question born answered (`add <name> decision "..."`).
 - NEVER apply Owen's comments to the real file while still in plan mode (it can't be edited there), and never skip
   write-back:  the plan file is overwritten by the next round.
 - Comments arrive as quoted lines + Owen's text, or as general feedback;  map each to the line it quotes.  Unsure
