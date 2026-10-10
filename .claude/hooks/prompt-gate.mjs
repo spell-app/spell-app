@@ -11,7 +11,8 @@
  *
  * ## What it does, in order
  * - stdin `{ prompt, cwd, session_id, permission_mode, ... }`
- * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...`),
+ * - Acts only on `/isolate <name>` (not `/isolate done`), `/epic <name> [plan]` (not `/epic review ...` or
+ *   `/epic done`, which is `/isolate done`),
  *   `/epic resume <name>` and `/unpark <name>`.  `review`, `resume`, `color` and `future` are reserved epic names:  a
  *   review runs from any window, and keeps the session's name;  a resume, like `/unpark`, is only renamed (it picks
  *   its window itself);  `/epic color <look>` recolours the window it's typed in:  nothing to gate;
@@ -135,7 +136,8 @@ export function dropDoneTitle(id) {
 
 /**
  * `{ skill, name, text }` for an `/isolate <name>`, `/epic <name> [text]`, `/epic resume <name>` or `/unpark <name>`
- * prompt;  `null` for any other prompt, a missing name, `/isolate done`, `/epic review ...`, `/epic resume` alone or
+ * prompt;  `null` for any other prompt, a missing name, `/isolate done`, `/epic done`, `/epic review ...`,
+ * `/epic resume` alone or
  * `/unpark ?`.
  * - `skill`:  `"epic resume"` for `/epic resume <name>`
  * - `name`:  the first word, or a quoted phrase, lower-kebab-cased
@@ -149,7 +151,8 @@ export function parseCommand(prompt) {
   const quoted = /^(["'])(.+?)\1\s*([\s\S]*)$/.exec(args)
   const [word, rest] = quoted ? [quoted[2], quoted[3]] : splitFirst(args)
   const name = kebab(word)
-  if (!name || (skill === "isolate" && name === "done")) return null
+  // `/isolate done` and `/epic done` (the same steps) leave a worktree:  nothing to gate, no rename
+  if (!name || name === "done") return null
   // `/epic review [<name>]` runs from any window and keeps the session's name:  nothing to gate
   if (skill === "epic" && name === "review") return null
   // `/epic color <look>` recolours this window:  nothing to gate, no rename
