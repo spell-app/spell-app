@@ -69,11 +69,11 @@ export class DOMBrandComposerElement extends F.DOMFormControl<UIBrandComposer> {
  *   else "Your spell".  The hint is its description (`aria-describedby`), the shortcut its `aria-keyshortcuts`.
  * - A form control:  it submits `value` under `name`.
  ****************/
-@E.cssStates("casting")
 export class UIBrandComposer extends F.FormComponent<BrandComposerVocabulary> {
   @E.proto static vocabulary = brandComposerVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { composer: composerCSS },
+    cssStates: ["casting"],
     Fallback: BrandComposerFallback,
     DOMElement: DOMBrandComposerElement
   } satisfies Partial<E.ElementSetup>

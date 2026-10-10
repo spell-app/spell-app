@@ -29,10 +29,12 @@ import messageCSS from "./UIMessage.css?inline"
  *
  * - No role:  a message inserted to announce something gets `role="status"` or `alert` from the page.
  ****************/
-@E.cssStates("inverted")
 export class UIMessage extends E.UIComponent<typeof messageVocabulary> {
   @E.proto static vocabulary = messageVocabulary
-  @E.protoMerged static elementSetup = { styleSheets: { message: messageCSS } } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { message: messageCSS },
+    cssStates: ["inverted"]
+  } satisfies Partial<E.ElementSetup>
 
   /** Which of its slots have content in the light DOM:  a slotted icon. */
   readonly slots = new E.SlotContent(this.domElement)

@@ -36,6 +36,11 @@ export const brandComposerVocabulary = {
     },
     { name: "name", kind: "string", description: "Form field name:  the form gets `value`." },
     {
+      name: "required",
+      kind: "boolean",
+      description: "Form validation:  something must be written (`valueMissing`), or the form won't submit."
+    },
+    {
       name: "placeholder",
       kind: "string",
       description: 'Hint shown while empty;  default `Describe what you want to build…`, `placeholder=""` none.'
@@ -125,7 +130,8 @@ export const brandComposerVocabulary = {
     { name: "empty", description: "Nothing (or only blank) written:  the Cast button is dimmed." },
     { name: "casting", description: "Busy:  `casting` is set." },
     { name: "disabled", description: "Can't be used." },
-    { name: "readonly", description: "`readonly`:  can't be typed in." }
+    { name: "readonly", description: "`readonly`:  can't be typed in." },
+    { name: "invalid", description: "Fails validation (`required`), once a person has interacted." }
   ],
   texts: [
     { key: "label", text: "Your spell", description: "The text box's name, when nothing else names it." },

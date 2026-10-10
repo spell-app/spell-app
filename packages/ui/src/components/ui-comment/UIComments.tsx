@@ -24,11 +24,11 @@ import commentCSS from "./UIComment.css?inline"
  * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, what's inside inert,
  *   `aria-disabled`.
  ****************/
-@E.cssStates("collapsed")
 export class UIComments extends E.UIComponent<typeof commentsVocabulary> {
   @E.proto static vocabulary = commentsVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { comment: commentCSS },
+    cssStates: ["collapsed"],
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 

@@ -32,11 +32,11 @@ import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
  * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, its link and delete button inert,
  *   `aria-disabled`;  a link label also loses its `href`.
  ****************/
-@E.cssStates("active")
 export class UILabel extends E.UIComponent<typeof labelVocabulary> {
   @E.proto static vocabulary = labelVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { label: labelCSS, parts: partsCSS }
+    styleSheets: { label: labelCSS, parts: partsCSS },
+    cssStates: ["active"]
   } satisfies Partial<E.ElementSetup>
 
   /** The owner, when it's a statistic's label. */

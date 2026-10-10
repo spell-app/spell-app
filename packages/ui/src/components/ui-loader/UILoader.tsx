@@ -22,13 +22,13 @@ import loaderCSS from "./UILoader.css?inline"
  * - It shows only while `active` (Fomantic's rule, in `UILoader.css`);
  *   `:state(active)` and `:state(disabled)` are for the page's styles.
  ****************/
-@E.cssStates("active")
 export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   @E.proto static vocabulary = loaderVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { loader: loaderCSS },
+    cssStates: ["active"],
     delegatesFocus: false,
-    aria: { role: "status", ariaLive: "polite" },
+    aria: { role: "status", live: "polite" },
     // `disabled`:  hidden, even when `active` (Fomantic's), so nothing inside to make unusable
     disabled: "its own"
   } satisfies Partial<E.ElementSetup>
@@ -51,7 +51,7 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
    *   the text reads `UI.i18n` (via `translationForKey()`), which exists once the runtime loads.
    * - A server render (`$/ui/static`) applies it too.
    */
-  @E.aria("ariaLabel")
+  @E.aria("label")
   protected get accessibleName(): string | undefined {
     return this.isReady && !this.hasText ? this.translationForKey("loading") : undefined
   }

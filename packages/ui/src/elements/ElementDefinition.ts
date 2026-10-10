@@ -216,7 +216,7 @@ export class ElementDefinition {
    * Attribute text for a canonical `value`, or `null` to remove it.
    * - Booleans:  `""` or removed (NEVER `"true"`);  `"false"` only for off over a `true` default (`visible`).
    * - `keyOrValueAndKey`:  `""` for bare, else the value.
-   * - Arrays:  comma-joined.
+   * - Arrays:  comma-joined (`a,b`);  one holding anything but strings, numbers and booleans as JSON (`[{"a":1}]`).
    * - Canonical values are written LOCALIZED (`red` => `rojo` on `<ie-boton>`).
    */
   attributeText(attribute: E.ResolvedAttribute, value: unknown): string | null {
@@ -231,7 +231,8 @@ export class ElementDefinition {
     if (spec.kind === "icon" && value == null && typeof spec.default === "string") return "false"
     if (value == null || value === false) return null
     if (value === true) return ""
-    if (Array.isArray(value)) return value.join(",")
+    // an array of objects as JSON (`[{"a":1}]`):  comma-joined, each would read `[object Object]`
+    if (Array.isArray(value) && value.every((item) => ElementDefinition.isPrimitive(item))) return value.join(",")
     const text = ElementDefinition.text(value)
     return this.localized.names.values.get(spec.name)?.get(text) ?? text
   }
@@ -246,8 +247,13 @@ export class ElementDefinition {
    */
   private static text(value: unknown): string {
     if (typeof value === "string") return value
-    if (typeof value === "number" || typeof value === "boolean") return String(value)
+    if (ElementDefinition.isPrimitive(value)) return String(value)
     return JSON.stringify(value)
+  }
+
+  /** `value` is a string, number or boolean:  text as it is, no JSON needed. */
+  private static isPrimitive(value: unknown): value is string | number | boolean {
+    return typeof value === "string" || typeof value === "number" || typeof value === "boolean"
   }
 }
 

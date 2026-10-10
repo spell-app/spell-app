@@ -25,11 +25,11 @@ import segmentCSS from "./UISegment.css?inline"
  * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, its content inert,
  *   `aria-disabled`.
  ****************/
-@E.cssStates("piled", "inverted")
 export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   @E.proto static vocabulary = segmentVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { segment: segmentCSS },
+    cssStates: ["piled", "inverted"],
     // `loading`:  Fomantic's veil
     loading: "its own"
   } satisfies Partial<E.ElementSetup>
@@ -40,7 +40,7 @@ export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
 
   /** Loading (`loading`):  `:state(loading)` and `aria-busy`. */
   @E.cssState("loading")
-  @E.aria("ariaBusy")
+  @E.aria("busy")
   get isLoading(): boolean {
     return !!this.loading
   }

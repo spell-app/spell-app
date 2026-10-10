@@ -68,11 +68,11 @@ import sectionCSS from "./UISection.css?inline"
  *     and `StickyWatch` writes the scroll container's inline `scroll-padding-top` while stuck
  *   - with `source`:  replaces its own light children (the placeholder) with the file's body.
  ****************/
-@E.cssStates("inverted")
 export class UISection extends E.UIComponent<SectionVocabulary> {
   @E.proto static vocabulary = sectionVocabulary
   @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     styleSheets: { section: sectionCSS },
+    cssStates: ["inverted"],
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false,
