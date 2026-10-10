@@ -1,6 +1,6 @@
 import { describe, test, expect, vi } from "vite-plus/test"
 
-import { spellCore, Thing, List, App } from "$/core"
+import { spellCore, Thing, List, App, on, off, once, trigger, positionOf } from "$/core"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { loadFixtureProject, parseSpellProject } from "$/spell/test"
@@ -222,14 +222,14 @@ describe("outline style", () => {
 
     test("the deck first:  the values are known", () => {
       const js = compile([...DECK, ...CARD, ...USES])
-      expect(js).toContain("is_a_$suit(suit) {")
-      expect(js).toContain("let spade = queen.is_a_$suit('spades')")
+      expect(js).toContain("isASuit(suit) {")
+      expect(js).toContain("let spade = queen.isASuit('spades')")
       expect(runSpell([...DECK, ...CARD, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
     })
 
     test("the card first:  checked where it's used (issue I3's order)", () => {
       const js = compile([...CARD, ...DECK, ...USES])
-      expect(js).toContain("let spade = queen.is_a_$suit('spades')")
+      expect(js).toContain("let spade = queen.isASuit('spades')")
       expect(runSpell([...CARD, ...DECK, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
     })
 
@@ -243,9 +243,9 @@ describe("outline style", () => {
         "set low to ace is a face card"
       ]
       const js = compile(lines)
-      expect(js).toMatch(/export class Rank \{\s+static is_a_face_card\(rank\) \{/)
+      expect(js).toMatch(/export class Rank \{\s+static isAFaceCard\(rank\) \{/)
       expect(js).toContain("spellCore.includes(['jack', 'queen', 'king'], rank)")
-      expect(js).toContain("let face = Rank.is_a_face_card(queen.rank)")
+      expect(js).toContain("let face = Rank.isAFaceCard(queen.rank)")
       expect(runSpell(lines)("face, low")).toEqual({ face: true, low: false })
     })
 
@@ -255,7 +255,7 @@ describe("outline style", () => {
           .replace('"is a (suit)"', '"is a (suit)" for its suits')
           .replace('"is the (rank) of (suits)"', '"is the (rank) of (suits)" for its ranks and its suits')
       )
-      expect(compile([...DECK, ...card, ...USES])).toContain("let spade = queen.is_a_$suit('spades')")
+      expect(compile([...DECK, ...card, ...USES])).toContain("let spade = queen.isASuit('spades')")
       expect(runSpell([...DECK, ...card, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
       expect(runSpell([...card, ...DECK, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
     })
@@ -269,13 +269,13 @@ describe("outline style", () => {
 
     test('a word that names no property stays a word:  `it "is face up" if ...` is still a phrase method', () => {
       const js = compile([...DECK, ...CARD, '\t- it "is face up" if its direction is up'])
-      expect(js).toContain("get is_face_up() {")
+      expect(js).toContain("get isFaceUp() {")
     })
 
     test('only a word in parens is a blank (J9):  `it "is my suit" if ...` is a plain phrase, `suit` a word', () => {
       const js = compile([...DECK, ...CARD, '\t- it "is my suit" if its suit is spades'])
-      expect(js).toContain("get is_my_suit() {")
-      expect(js).not.toContain("is_my_$suit")
+      expect(js).toContain("get isMySuit() {")
+      expect(js).not.toContain("isMySuit(suit)")
     })
 
     test('no blank and no `if` is an error, not an empty method (J9):  `it "is a suit"`', () => {
@@ -294,8 +294,8 @@ describe("outline style", () => {
 
     test("`always` / `never` is the body of a phrase true for every one of the type (I6, option A)", () => {
       const js = compile([...DECK, ...CARD, '\t- it "can move" always', '\t- it "can fly" never'])
-      expect(js).toMatch(/get can_move\(\) \{\s+return true\s+\}/)
-      expect(js).toMatch(/get can_fly\(\) \{\s+return false\s+\}/)
+      expect(js).toMatch(/get canMove\(\) \{\s+return true\s+\}/)
+      expect(js).toMatch(/get canFly\(\) \{\s+return false\s+\}/)
     })
 
     test('a blank naming no property with a list of values is an error (J9):  `it "is a (color)"`', () => {
@@ -322,13 +322,13 @@ describe("outline style", () => {
 
     test("`... and the game is red` is the game's phrase, not the card's (declared first)", () => {
       const lines = [...TYPES, "set both to the card is face up and the game is red"]
-      expect(compile(lines)).toContain("let both = (card.is_face_up && game.is_$team('red'))")
+      expect(compile(lines)).toContain("let both = (card.isFaceUp && game.isTeam('red'))")
       expect(runSpell(lines)("both")).toEqual({ both: false })
     })
 
     test("`... or the game is red` too", () => {
       const lines = [...TYPES, "set either to the card is black or the game is red"]
-      expect(compile(lines)).toContain("let either = (card.is_$color('black') || game.is_$team('red'))")
+      expect(compile(lines)).toContain("let either = (card.isColor('black') || game.isTeam('red'))")
       expect(runSpell(lines)("either")).toEqual({ either: false })
     })
 
@@ -449,10 +449,18 @@ function runSpellFiles(sources: Array<{ path: string; contents: string }>) {
     .join("\n")
     .replace(/^export /gm, "")
   return (names: string) => {
-    const body = `${code}\nreturn { ${names} }`
+    // each top-level variable by spell's name, e.g. `first_pile`:  compiled javascript calls it `firstPile`
+    const named = names
+      .split(/,\s*/)
+      .filter(Boolean)
+      .map((name) => `${name}: ${P.JSWriter.instance.nameOf(name)}`)
+    const body = `${code}\nreturn { ${named.join(", ")} }`
+    // `@spell/core`'s helpers it imports by name, e.g. `trigger()`, as the import it lost would give them
+    const imported = { on, off, once, trigger, positionOf }
     // oxlint-disable-next-line no-implied-eval -- running compiled spell, as a runner does, is the test
-    const fn = new Function("spellCore", "Thing", "List", "App", body)
-    return spellCore.things.quietly(() => fn(spellCore, Thing, List, App)) as Record<string, unknown>
+    const fn = new Function("spellCore", "Thing", "List", "App", ...Object.keys(imported), body)
+    const run = () => fn(spellCore, Thing, List, App, ...Object.values(imported))
+    return spellCore.things.quietly(run) as Record<string, unknown>
   }
 }
 

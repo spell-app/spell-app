@@ -164,7 +164,7 @@ export class MethodDefinition<
       name: nameMatch.inputText.trimEnd(),
       nameMatch,
       of: signature.instanceType,
-      detail: signature.methodName && `${signature.methodName}()`
+      detail: signature.methodName && `${P.JSWriter.instance.nameOf(signature.methodName)}()`
     }
   }
 

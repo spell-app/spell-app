@@ -239,7 +239,7 @@ export class SpellFile extends TextFile {
    */
   async compile(parentScope?: P.Scope): Promise<string | undefined> {
     const match = await this.parse(parentScope)
-    const compiled = match?.compile()
+    const compiled = P.JSWriter.instance.writeMatch(match)
     batch(() => {
       this.setState("AST", match?.AST)
       this.setState("compiled", typeof compiled === "string" ? SP.SpellDeclarations.stripComments(compiled) : undefined)

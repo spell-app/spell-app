@@ -64,7 +64,7 @@ async function testProject() {
 
   const wanted = (name: string) => !spec.filter || comparable(name).includes(comparable(spec.filter))
   const tests = Object.entries(module).filter(
-    ([name, value]) => name.startsWith("test_") && typeof value === "function" && wanted(name.slice(5))
+    ([name, value]) => /^test[A-Z_]/.test(name) && typeof value === "function" && wanted(name.replace(/^test_?/, ""))
   )
   for (const [name, test] of tests) {
     if (!all.some((result) => comparable(result.name) === comparable(name))) (test as () => void)()
@@ -87,9 +87,10 @@ async function testProject() {
   process.exit(failed ? 1 : 0)
 }
 
-/** A test's name or its function's, for comparing:  `test_deck_creation` ~== `test deck creation`. */
+/** A test's name or its function's, for comparing:  `testDeckCreation` ~== `test deck creation`. */
 function comparable(name: string): string {
   return name
+    .replace(/([a-z0-9])([A-Z])/g, "$1 $2")
     .toLowerCase()
     .replace(/[\s_-]+/g, " ")
     .trim()

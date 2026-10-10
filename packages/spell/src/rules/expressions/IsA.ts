@@ -42,11 +42,11 @@ expressions.addRule(IsA, {
         scope.types?.add("Animal")
       },
       tests: [
-        ["thing is a Bee", "spellCore.isOfType(thing, 'Bee')", 'spellCore.isOfType(thing, "Bee")'],
-        ["thing is an Animal", "spellCore.isOfType(thing, 'Animal')", 'spellCore.isOfType(thing, "Animal")'],
-        ["thing is not a Bee", "!spellCore.isOfType(thing, 'Bee')", '!spellCore.isOfType(thing, "Bee")'],
-        ["thing is not an Animal", "!spellCore.isOfType(thing, 'Animal')", '!spellCore.isOfType(thing, "Animal")'],
-        ["thing is a number", "spellCore.isOfType(thing, 'number')", 'typeof thing === "number"'],
+        ["thing is a Bee", "thing instanceof Bee"],
+        ["thing is an Animal", "thing instanceof Animal"],
+        ["thing is not a Bee", "!(thing instanceof Bee)"],
+        ["thing is not an Animal", "!(thing instanceof Animal)"],
+        ["thing is a number", "typeof thing === 'number'", 'typeof thing === "number"'],
         ["thing is a boolean", "spellCore.isOfType(thing, 'choice')", 'spellCore.isOfType(thing, "choice")'],
         ["thing is a list", "spellCore.isOfType(thing, 'List')", 'spellCore.isOfType(thing, "List")'],
         // an unknown type is no type:  `is a crad` doesn't parse

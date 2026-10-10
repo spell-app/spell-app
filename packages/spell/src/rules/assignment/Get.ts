@@ -56,8 +56,8 @@ assignment.addRule(Get, {
         variables.add("thing")
       },
       tests: [
-        ["get thing", "let it_2 = thing", "const it2 = thing"],
-        ["get the foo of the thing", "let it_2 = thing.foo", "const it2 = thing.foo"]
+        ["get thing", "let it2 = thing", "const it2 = thing"],
+        ["get the foo of the thing", "let it2 = thing.foo", "const it2 = thing.foo"]
       ]
     },
     {
@@ -69,7 +69,7 @@ assignment.addRule(Get, {
       tests: [
         {
           input: ["get thing", "get the foo of the thing", "print it"],
-          js: ["let it = thing", "let it_2 = thing.foo", "spellCore.console.log(it_2)"],
+          js: ["let it = thing", "let it2 = thing.foo", "spellCore.console.log(it2)"],
           ts: ["const it = thing", "const it2 = thing.foo", "spellCore.console.log(it2)"]
         }
       ]
@@ -85,7 +85,7 @@ assignment.addRule(Get, {
       tests: [
         {
           input: ["get thing", "get the foo of the thing"],
-          js: ["let it = thing", "let it_3 = thing.foo"],
+          js: ["let it = thing", "let it3 = thing.foo"],
           ts: ["const it = thing", "const it3 = thing.foo"]
         }
       ]

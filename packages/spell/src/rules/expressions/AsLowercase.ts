@@ -25,7 +25,7 @@ expressions.addRule(AsLowercase, {
     {
       compileAs: "expression",
       tests: [
-        [`"foo" as lower case`, `spellCore.lowerCase("foo")`, '"foo".toLocaleLowerCase()'],
+        [`"foo" as lower case`, '"foo".toLocaleLowerCase()'],
         [`1 as lowercase`, `spellCore.lowerCase(1)`]
       ]
     }

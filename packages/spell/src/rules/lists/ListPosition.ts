@@ -36,17 +36,9 @@ lists.addRule(ListPosition, {
         scope.variables?.add("bar")
       },
       tests: [
-        ["position of thing in my-list", "spellCore.positionOf(my_list, thing)", "positionOf(myList, thing)"],
-        [
-          "the position of thing in the foo of the bar",
-          "spellCore.positionOf(bar.foo, thing)",
-          "positionOf(bar.foo, thing)"
-        ],
-        [
-          `the position of "a" in ["a", "b", "c"]`,
-          `spellCore.positionOf(["a", "b", "c"], "a")`,
-          'positionOf(["a", "b", "c"], "a")'
-        ]
+        ["position of thing in my-list", "positionOf(myList, thing)"],
+        ["the position of thing in the foo of the bar", "positionOf(bar.foo, thing)"],
+        [`the position of "a" in ["a", "b", "c"]`, 'positionOf(["a", "b", "c"], "a")']
       ]
     }
   ]

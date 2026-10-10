@@ -75,11 +75,11 @@ properties.addRule(PropertyExpression, {
         )
       },
       tests: [
-        ["the short rank of the card", "card.short_rank"],
-        ["the short-rank of the card", "card.short_rank"],
-        ["the long name of the card", "card.long_name"],
-        ["the last card of the deck", "deck.last_card"],
-        ["the short rank of the last card of the deck", "deck.last_card.short_rank"],
+        ["the short rank of the card", "card.shortRank"],
+        ["the short-rank of the card", "card.shortRank"],
+        ["the long name of the card", "card.longName"],
+        ["the last card of the deck", "deck.lastCard"],
+        ["the short rank of the last card of the deck", "deck.lastCard.shortRank"],
         ["the suit of the card", "card.suit"],
         ["the suits of the card", "Card.Suits"]
       ]

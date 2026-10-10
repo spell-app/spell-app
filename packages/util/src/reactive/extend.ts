@@ -200,6 +200,12 @@ export function getProps(target: any): Record<string, any> {
 export const TYPE_KEY = "@type"
 
 /**
+ * Key a list's JSON holds its items under:  `"@items"`, after its own props.
+ * - `@`, as `TYPE_KEY`'s:  no prop can be named `@...`, so a list type's own `items` property is kept too.
+ */
+export const ITEMS_KEY = "@items"
+
+/**
  * `target`'s props as a plain object, its class's name FIRST:  `{ "@type": "Card", "rank": "ace", ... }`.
  * - What a spell object's `toJSON()` answers (`Thing`, `List`), so its JSON can be read back as that class.
  * - `type`:  the name to write, default `target`'s class's.

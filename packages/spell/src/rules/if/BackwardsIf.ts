@@ -54,7 +54,7 @@ _if_.addRule(BackwardsIf, {
         },
         {
           input: "get the foo of the bar if bar is defined otherwise the bar of the foo",
-          js: "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)",
+          js: "let it = (bar !== undefined ? bar.foo : foo.bar)",
           ts: "const it = bar !== undefined ? bar.foo : foo.bar"
         },
         {

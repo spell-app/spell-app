@@ -23,7 +23,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - `$/parser/test` (`src/test/`) holds the helpers language packages use to test their rules,
   e.g. `unitTestModuleRules()`.
   - Each rule test checks both writers, `{ input, js, ts }` (`P.RuleTest`).
-  - `BLESS_RULE_TESTS=1` writes each test's `ts` into its source:  `RuleTestSource`, node-only, loaded only then.
+  - `BLESS_RULE_TESTS=1` writes each test's `js` and `ts` into its source:
+    `RuleTestSource`, node-only, loaded only then.
   - Tests that need the SPELL grammar are not here:  they're in spell's `src/parserTests/`.
 - Depends only on `$/util` (and what that re-exports).
   NEVER import `$/spell`, or anything above it.
@@ -31,9 +32,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   The AST classes never write output themselves.
   - `P.Writer`:  one method per AST class, found by class name (so `keepNames`, below)
   - `P.JSWriter`:  javascript;  what `ASTNode.compile()` calls
-  - `P.TSWriter`:  TypeScript on Solid, as a person writes it, for `<Project>.compiled.tsx`
-    - real JSX, decorators, TypeScript's names, the types spell knows
-    - It reads the whole project first (`P.TSProject`).
+    - as a person writes it, where javascript can take it with no build step (epic `output-targets`, P19):
+      camelCase method and getter names (`nameOf()`), a `List`'s own methods, `===`, `for...of`, template text
+    - It reads the whole project first (`P.WriterProject`, through `forProject()`), to know what each value is.
+  - `P.TSWriter`:  TypeScript on Solid, for `<Project>.compiled.tsx`
+    - extends `P.JSWriter`:  only what's TypeScript's own is here -- real JSX, decorators, the types spell knows,
+      `!` where `?.` can't go
+  - `jsShapes.ts`:  the pure helpers both share (not in the barrel)
   - `P.jsText`:  their punctuation
 - No UI framework, no JSX, no DOM.
   - Node tools run the parser's SOURCE through `tsx` / esbuild / Vite's oxc,

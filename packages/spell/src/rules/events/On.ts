@@ -87,29 +87,24 @@ events.addRule(On, {
       },
       tests: [
         //
-        { title: "No statements", input: `on card-click`, js: "spellCore.on('card-click')", ts: 'on("card-click")' },
+        { title: "No statements", input: `on card-click`, js: "on('card-click')", ts: 'on("card-click")' },
         {
           title: "Inline statement",
           input: `on event card-click: print 1`,
-          js: ["spellCore.on('card-click', (event) => {", "  return spellCore.console.log(1)", "})"],
+          js: ["on('card-click', (event) => {", "  return spellCore.console.log(1)", "})"],
           ts: 'on("card-click", () => spellCore.console.log(1))'
         },
         {
           title: "Nested block",
           input: [`on event card-click with a card:`, `\tprint the name of the card`],
-          js: [
-            "spellCore.on('card-click', (event) => {",
-            "  let { card } = event",
-            "  spellCore.console.log(card.name)",
-            "})"
-          ],
+          js: ["on('card-click', (event) => {", "  let { card } = event", "  spellCore.console.log(card.name)", "})"],
           ts: 'on<{ card: Card }>("card-click", ({ card }) => spellCore.console.log(card.name))'
         },
         {
           title: "Show error if nested block and inline statement",
           input: [`on event card-click with a card: print 1`, `\tprint the name of the card`],
           js: [
-            "spellCore.on('card-click', (event) => {",
+            "on('card-click', (event) => {",
             "  let { card } = event",
             "  spellCore.console.log(card.name)",
             "})",

@@ -55,17 +55,17 @@ lists.addRule(ListRangeIteration, {
       tests: [
         [
           "for each number from 1 to 10:",
-          "spellCore.map(spellCore.getRange(1, 10), (number) => {})",
+          "spellCore.getRange(1, 10).forEach((number) => {})",
           "spellCore.getRange(1, 10).forEach(() => {})"
         ],
         [
           "for each number from 1 to 10: print the number",
-          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "  return spellCore.console.log(number)", "})"],
+          ["spellCore.getRange(1, 10).forEach((number) => {", "  return spellCore.console.log(number)", "})"],
           "spellCore.getRange(1, 10).forEach((number) => spellCore.console.log(number))"
         ],
         [
           "for each number from 1 to 10:\n\tprint the number",
-          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "  spellCore.console.log(number)", "})"],
+          ["spellCore.getRange(1, 10).forEach((number) => {", "  spellCore.console.log(number)", "})"],
           "spellCore.getRange(1, 10).forEach((number) => spellCore.console.log(number))"
         ]
       ]

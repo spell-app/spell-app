@@ -1,10 +1,10 @@
 /**
  * `spellCore.fromJSON()`:  a spell object's JSON read back as what it was (epic `output-targets`, P15, Q49).
  * - A thing's JSON says its class first, `"@type"`, then its props:  `Thing.toJSON()`.
- * - A list's says its class, its own props, then its items:  `{ "@type": "Pile", "name": "stock", "items": [...] }`,
+ * - A list's says its class, its own props, then its items:  `{ "@type": "Pile", "name": "stock", "@items": [...] }`,
  *   `List.toJSON()`.
  */
-import { setProp, TYPE_KEY } from "$/util"
+import { ITEMS_KEY, setProp, TYPE_KEY } from "$/util"
 
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
@@ -21,7 +21,7 @@ export const jsonMethods = defineSpellCoreModule({
    *   else spell's own, e.g. `List`.
    * - Made as the program makes one, `new Card({ rank, suit })`:  through its setters, then its `create()`;
    *   a prop with no setter is set after.  It's one of the program's things then, in the Thing Explorer.
-   * - A list:  its own props as above, then its items, each rebuilt, set as its `items`, so an exclusive list,
+   * - A list:  its own props as above, then its items, each rebuilt, set as its `items` (from `"@items"`), so an exclusive list,
    *   e.g. a `Pile`, owns its cards (`List.writeItems()`).  What its `create()` added is replaced.
    * - An unknown `"@type"`, no class by that name:  a plain object, its `"@type"` kept, its fields rebuilt.
    *   NEVER throws for one.
@@ -43,7 +43,7 @@ function rebuild(value: unknown): unknown {
   if (!Class) return rebuildFields(value)
   const { [TYPE_KEY]: _type, ...fields } = value
   if (!isListClass(Class)) return make(Class, fields)
-  const { items, ...props } = fields
+  const { [ITEMS_KEY]: items, ...props } = fields
   const list = make(Class, props) as List
   list.items = Array.isArray(items) ? items.map(rebuild) : []
   return list

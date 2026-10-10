@@ -31,9 +31,9 @@ class Card extends Thing {
     return `${this.rank}-card`
   }
   /** `to turn (a card) over`:  no arguments, so it gets a ▶. */
-  turn_over() {}
+  turnOver() {}
   /** `to move (a card) to (a pile)`:  takes one, so it doesn't. */
-  move_to_$pile(pile: Pile) {
+  moveToPile(pile: Pile) {
     this.pile = pile
   }
 }
@@ -149,7 +149,7 @@ describe("<ThingExplorer> (Solid)", () => {
     new Joker({})
     const html = draw("document", "#1")
     expect(html).toMatch(
-      /<ui-icon name="cog"><\/ui-icon>turn over<span class="inherited">from Card<\/span>.*title="Do it:  turn_over\(\)"/
+      /<ui-icon name="cog"><\/ui-icon>turn over<span class="inherited">from Card<\/span>.*title="Do it:  turnOver\(\)"/
     )
     const move = html.slice(html.indexOf("move to (pile)"))
     expect(move.slice(0, move.indexOf("</tr>"))).not.toContain("play")

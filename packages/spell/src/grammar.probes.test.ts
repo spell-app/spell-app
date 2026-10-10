@@ -31,48 +31,48 @@ describe("grammar probes", () => {
 
   test("P1a  trailing operand takes the operator", () => {
     expect(probe("print the first card of the deck is face up")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.getItemAt(deck, 1)?.is_face_up)"`
+      `"spellCore.console.log(deck.firstItem?.isFaceUp)"`
     )
   })
 
   test("P1b  count vs comparison", () => {
     expect(probe("print the number of cards in the deck is 52")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.itemCountOf(deck) == 52)"`
+      `"spellCore.console.log(deck.length === 52)"`
     )
   })
 
   test("P1c  count vs arithmetic", () => {
     expect(probe("print the number of cards in the deck + 1")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.itemCountOf(deck) + 1)"`
+      `"spellCore.console.log(deck.length + 1)"`
     )
   })
 
   test("P1d  property of a position", () => {
     expect(probe("print the suit of the first card of the deck is hearts")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.getItemAt(deck, 1)?.suit == 'hearts')"`
+      `"spellCore.console.log(deck.firstItem?.suit == 'hearts')"`
     )
   })
 
   test("P1e  `of` after an argument", () => {
     expect(probe("to remove (a card) of (a pile): print 1", "remove the card of the pile")).toMatchInlineSnapshot(`
-      "Card.prototype.remove_of_$pile = function (pile) {
+      "Card.prototype.removeOfPile = function (pile) {
         return spellCore.console.log(1)
       }
-      card.remove_of_$pile(pile)"
+      card.removeOfPile(pile)"
     `)
   })
 
   test("P1f  count with `where`", () => {
     expect(probe("print the number of cards in the deck where its color is red")).toMatchInlineSnapshot(`
-      "spellCore.console.log(spellCore.itemCountOf(spellCore.filter(deck, (card) => {
+      "spellCore.console.log(deck.filter((card) => {
         return (card.color == 'red')
-      })))"
+      }).length)"
     `)
   })
 
   test("P1g  list with `where`", () => {
     expect(probe("print the cards in the deck where its color is red")).toMatchInlineSnapshot(`
-      "spellCore.console.log(spellCore.filter(deck, (card) => {
+      "spellCore.console.log(deck.filter((card) => {
         return (card.color == 'red')
       }))"
     `)
@@ -116,26 +116,26 @@ describe("grammar probes", () => {
     expect(
       probe("to put (a card) on (a pile): print 1", "to put (a chip) on (a pot): print 2", "put the chip on the pot")
     ).toMatchInlineSnapshot(`
-      "Card.prototype.put_on_$pile = function (pile) {
+      "Card.prototype.putOnPile = function (pile) {
         return spellCore.console.log(1)
       }
-      Chip.prototype.put_on_$pot = function (pot) {
+      Chip.prototype.putOnPot = function (pot) {
         return spellCore.console.log(2)
       }
-      chip.put_on_$pot(pot)"
+      chip.putOnPot(pot)"
     `)
   })
 
   test("P4b  built-in list add", () => {
-    expect(probe("add the card to the deck")).toMatchInlineSnapshot(`"spellCore.append(deck, card)"`)
+    expect(probe("add the card to the deck")).toMatchInlineSnapshot(`"deck.append(card)"`)
   })
 
   test("P4c  a user `add` shadows it for a deck", () => {
     expect(probe("to add (a card) to (a pile): print 1", "add the card to the deck")).toMatchInlineSnapshot(`
-      "Card.prototype.add_to_$pile = function (pile) {
+      "Card.prototype.addToPile = function (pile) {
         return spellCore.console.log(1)
       }
-      spellCore.append(deck, card)"
+      deck.append(card)"
     `)
   })
 
@@ -145,7 +145,7 @@ describe("grammar probes", () => {
 
   test("P5   paren-free signature", () => {
     expect(probe("to give a card to a pile: print 1")).toMatchInlineSnapshot(`
-      "Card.prototype.give_to_$pile = function (pile) {
+      "Card.prototype.giveToPile = function (pile) {
         return spellCore.console.log(1)
       }"
     `)
@@ -153,16 +153,16 @@ describe("grammar probes", () => {
 
   test("P5b  a/an before a word that is NOT a type", () => {
     expect(probe("to make a mess: print 1", "make a mess")).toMatchInlineSnapshot(`
-      "export function make_a_mess() {
+      "export function makeAMess() {
         return spellCore.console.log(1)
       }
-      make_a_mess()"
+      makeAMess()"
     `)
   })
 
   test("P6a  multi-word getter", () => {
     expect(probe("the short rank of a card is: return 1")).toMatchInlineSnapshot(`
-      "Object.defineProperty(Card.prototype, 'short_rank', {
+      "Object.defineProperty(Card.prototype, 'shortRank', {
         get() {},
         configurable: true
       })
@@ -173,13 +173,13 @@ describe("grammar probes", () => {
 
   test("P6b  multi-word property read", () => {
     expect(probe("print the short-rank of the card", "print the short rank of the card")).toMatchInlineSnapshot(`
-      "spellCore.console.log(card.short_rank)
-      spellCore.console.log(card.short_rank)"
+      "spellCore.console.log(card.shortRank)
+      spellCore.console.log(card.shortRank)"
     `)
   })
 
   test("P7   `is a` accepts any word as a type", () => {
-    expect(probe("print the card is a new card")).toMatchInlineSnapshot(`"spellCore.console.log(card == new Card())"`)
+    expect(probe("print the card is a new card")).toMatchInlineSnapshot(`"spellCore.console.log(card === new Card())"`)
   })
 
   test("P7b  setting a property the type never declared", () => {
@@ -193,20 +193,18 @@ describe("grammar probes", () => {
 
   test("P8a  Deck.spell:40-41 as one line", () => {
     expect(probe("expect the first card of the deck is the ace of clubs to be yes")).toMatchInlineSnapshot(
-      `"spellCore.expect(spellCore.getItemAt(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
+      `"spellCore.expect(deck.firstItem?.isTheRankOfSuits('ace', 'clubs'), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
     )
   })
 
   test("P8b  Solitaire:105 without its parens", () => {
-    expect(probe("turn the bottom card of the deck face up")).toMatchInlineSnapshot(
-      `"spellCore.getItemAt(deck, -1)?.turn_face_up()"`
-    )
+    expect(probe("turn the bottom card of the deck face up")).toMatchInlineSnapshot(`"deck.lastItem?.turnFaceUp()"`)
   })
 
   test("P8c  Solitaire:166 without its parens", () => {
     // a card, as in Solitaire:  `x` here is a number, and a card's phrase now refuses one (`SuffixLeft`)
     expect(probe("if the card is a king and the card is the first card of the pile return")).toMatchInlineSnapshot(
-      `"if (card.is_a_$rank('king') && (card == spellCore.getItemAt(pile, 1))) { return }"`
+      `"if (card.isARank('king') && (card === pile.firstItem)) { return }"`
     )
   })
 
@@ -220,7 +218,7 @@ describe("grammar probes", () => {
 
   test("P8d  Card.spell:46 without its parens", () => {
     expect(probe("print the first character of the name of the card as uppercase")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.upperCase(spellCore.getItemAt(card.name, 1)))"`
+      `"spellCore.console.log(spellCore.getItemAt(card.name, 1)?.toLocaleUpperCase())"`
     )
   })
 
@@ -238,12 +236,12 @@ describe("grammar probes", () => {
   test("T1  `is a` names a known type:  a typo is an error", () => {
     expect(probe("print the card is a crad", "print the card is a thing", "print x is a number"))
       .toMatchInlineSnapshot(`
-      "spellCore.console.log(card)
-      /* PARSE ERROR: Don't understand "is a crad" */
-      spellCore.console.log(spellCore.isOfType(card, 'Thing'))
-      spellCore.console.log(spellCore.isOfType(x, 'number'))
-      ERROR 8:15 Don't understand "is a crad""
-    `)
+        "spellCore.console.log(card)
+        /* PARSE ERROR: Don't understand "is a crad" */
+        spellCore.console.log(card.isOfType('Thing'))
+        spellCore.console.log(typeof x === 'number')
+        ERROR 8:15 Don't understand "is a crad""
+      `)
   })
 
   test("T2  `as choice` declares a `choice`", () => {
@@ -267,17 +265,17 @@ describe("grammar probes", () => {
 
   test("T3  `is a` names a type declared further down", () => {
     expect(probe("print the card is a widget", "a widget is a thing")).toMatchInlineSnapshot(`
-      "spellCore.console.log(spellCore.isOfType(card, 'Widget'))
+      "spellCore.console.log(card instanceof Widget)
       export class Widget extends Thing {}"
     `)
   })
 
   test("T4  paren-free signature, called", () => {
     expect(probe("to give a card to a pile: print 1", "give the card to the pile")).toMatchInlineSnapshot(`
-      "Card.prototype.give_to_$pile = function (pile) {
+      "Card.prototype.giveToPile = function (pile) {
         return spellCore.console.log(1)
       }
-      card.give_to_$pile(pile)"
+      card.giveToPile(pile)"
     `)
   })
 
@@ -290,23 +288,23 @@ describe("grammar probes", () => {
         "announce x + y"
       )
     ).toMatchInlineSnapshot(`
-      "export function double_$n(n) {
+      "export function doubleN(n) {
         return (n * 2)
       }
-      if (double_$n(x) == 4) { spellCore.console.log(1) }
-      export function announce_$message(message) {
+      if (doubleN(x) === 4) { spellCore.console.log(1) }
+      export function announceMessage(message) {
         return spellCore.console.log(1)
       }
-      announce_$message(x + y)"
+      announceMessage(x + y)"
     `)
   })
 
   test("T6  `wait for`:  a statement waits for everything, an expression for an operand", () => {
     expect(probe("to check: wait for x is 1", "to check again: if wait for x is 1: print 1")).toMatchInlineSnapshot(`
       "export async function check() {
-        return await (x == 1)
+        return await (x === 1)
       }
-      export async function check_again() {
+      export async function checkAgain() {
         if (await x == 1) { spellCore.console.log(1) }
       }"
     `)
@@ -325,15 +323,15 @@ describe("grammar probes", () => {
         "print its short colour + 1"
       )
     ).toMatchInlineSnapshot(`
-      "Object.defineProperty(Card.prototype, 'short_colour', {
+      "Object.defineProperty(Card.prototype, 'shortColour', {
         get() {
           return this.color
         },
         configurable: true
       })
-      spellCore.console.log(card.short_colour)
+      spellCore.console.log(card.shortColour)
       let it = card
-      spellCore.console.log(it.short_colour + 1)"
+      spellCore.console.log(it.shortColour + 1)"
     `)
   })
 
@@ -345,14 +343,14 @@ describe("grammar probes", () => {
         "print the last card of the deck"
       )
     ).toMatchInlineSnapshot(`
-      "Object.defineProperty(Pile.prototype, 'last_card', {
+      "Object.defineProperty(Pile.prototype, 'lastCard', {
         get() {
-          return spellCore.getItemAt(this, 1)
+          return this.firstItem
         },
         configurable: true
       })
-      spellCore.console.log(pile.last_card)
-      spellCore.console.log(spellCore.getItemAt(deck, -1))"
+      spellCore.console.log(pile.lastCard)
+      spellCore.console.log(deck.lastItem)"
     `)
   })
 
@@ -414,10 +412,10 @@ describe("grammar probes", () => {
     ).toMatchInlineSnapshot(`
       "export let title = "Solitaire"
       spellCore.console.log(title.length)
-      spellCore.console.log(spellCore.itemCountOf(deck))
-      spellCore.console.log(spellCore.itemCountOf(pile))
+      spellCore.console.log(deck.length)
+      spellCore.console.log(pile.length)
       let it = deck
-      spellCore.console.log(spellCore.itemCountOf(it) + 1)"
+      spellCore.console.log(it.length + 1)"
     `)
   })
 
@@ -488,7 +486,7 @@ describe("grammar probes", () => {
         configurable: true
       })
       ---
-      spellCore.append(pile, card)
+      pile.append(card)
       spellCore.console.log(card.pile)
       /* PARSE ERROR: Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead */
       ERROR /Probe.spell 6:0 Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead"
@@ -515,8 +513,8 @@ describe("grammar probes", () => {
       export class Tableau extends Pile {}
       ---
       export let tableau = new Tableau()
-      spellCore.append(deck, card)
-      spellCore.append(tableau, card)"
+      deck.append(card)
+      tableau.append(card)"
     `)
   })
 
@@ -536,7 +534,7 @@ describe("grammar probes", () => {
       export class Pile extends List {
         static instanceType = Card
       }
-      Card.prototype.stash_in_$pile = function (pile) {
+      Card.prototype.stashInPile = function (pile) {
         this.pile = pile
       }
       Pile.exclusive = true
@@ -563,7 +561,7 @@ describe("grammar probes", () => {
       }
 
       ---
-      spellCore.append(pile, card)
+      pile.append(card)
       spellCore.console.log(card.pile)"
     `)
   })
@@ -608,16 +606,16 @@ describe("grammar probes", () => {
       })
       export class Tableau extends Pile {
         canTake(card) {
-          return spellCore.isEmpty(this)
+          return this.isEmpty
         }
 
         canGiveUp(card) {
-          return (card == spellCore.getItemAt(this, -1))
+          return (card === this.lastItem)
         }
       }
       export class Foundation extends Pile {
         canTake(card) {
-          if (spellCore.isEmpty(this)) { return true }
+          if (this.isEmpty) { return true }
           return false
         }
 
@@ -655,7 +653,7 @@ describe("grammar probes", () => {
       spellCore.move(card, pile)
       export let moved = spellCore.move(card, pile)
       if (spellCore.move(card, pile)) { spellCore.console.log(1) }
-      if (spellCore.move(card, pile) == false) { spellCore.console.log(2) }
+      if (!spellCore.move(card, pile)) { spellCore.console.log(2) }
       if (spellCore.canTake(pile, card)) { spellCore.console.log(3) }
       if (!spellCore.canGiveUp(pile, card)) { spellCore.console.log(4) }
       if (spellCore.canGiveUp(pile, card)) { spellCore.console.log(5) }"
@@ -684,8 +682,8 @@ describe("grammar probes", () => {
         configurable: true
       })
       ---
-      spellCore.append(pile, card)
-      spellCore.remove(pile, card)
+      pile.append(card)
+      pile.remove(card)
       spellCore.clear(pile)"
     `)
   })

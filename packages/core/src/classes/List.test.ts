@@ -365,21 +365,21 @@ describe("JSON (output-targets Q49)", () => {
     deck.add(ranked("A"), ranked("K"))
     const table = new Table({ name: "table", deck })
     expect(JSON.stringify(table)).toBe(
-      '{"@type":"Table","name":"table","deck":{"@type":"NamedDeck","name":"spare","items":[' +
+      '{"@type":"Table","name":"table","deck":{"@type":"NamedDeck","name":"spare","@items":[' +
         '{"@type":"RankedCard","rank":"A"},{"@type":"RankedCard","rank":"K"}]}}'
     )
   })
 
   test('a plain list, and a scratch one:  `"@type"` and its items', () => {
-    expect(JSON.parse(JSON.stringify(new List().append(1, 2)))).toEqual({ "@type": "List", items: [1, 2] })
+    expect(JSON.parse(JSON.stringify(new List().append(1, 2)))).toEqual({ "@type": "List", "@items": [1, 2] })
     const pile = new Pile({}).append(ranked("A"), ranked("K"))
     expect(JSON.parse(JSON.stringify(pile.filter((card) => (card as RankedCard).rank === "K")))).toEqual({
       "@type": "Pile",
-      items: [{ "@type": "RankedCard", rank: "K" }]
+      "@items": [{ "@type": "RankedCard", rank: "K" }]
     })
   })
 
-  test('neither `"@type"` nor `"items"` is a prop:  `keys()` lists only its own', () => {
+  test('neither `"@type"` nor `"@items"` is a prop:  `keys()` lists only its own', () => {
     const deck = new NamedDeck({ name: "spare" }).append(ranked("A"))
     JSON.stringify(deck)
     expect(deck.keys()).toEqual(["name"])
@@ -390,7 +390,7 @@ describe("JSON (output-targets Q49)", () => {
     deck.add(ranked("A"))
     const seen: string[] = []
     const stop = observe(() => {
-      seen.push(JSON.stringify(deck.toJSON().items))
+      seen.push(JSON.stringify(deck.toJSON()["@items"]))
     })
     deck.add(ranked("K"))
     deck.removeItem(1)

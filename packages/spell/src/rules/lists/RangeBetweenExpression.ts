@@ -34,7 +34,7 @@ lists.addRule(RangeBetweenExpression, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["item 1 to 2 of my-list", "spellCore.rangeBetween(my_list, 1, 2)", "spellCore.rangeBetween(myList, 1, 2)"],
+        ["item 1 to 2 of my-list", "spellCore.rangeBetween(myList, 1, 2)"],
         [`word 2 to 3 in "some other words"`, `spellCore.rangeBetween("some other words", 2, 3)`],
         ["card 1 to 3 from deck", "spellCore.rangeBetween(deck, 1, 3)"]
       ]

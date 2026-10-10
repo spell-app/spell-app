@@ -244,8 +244,8 @@ describe("SpellLanguageService", () => {
     test("on a method call:  its signature, and the javascript it becomes", () => {
       const markdown = (service.hover(card, at(card, 70, "turn"))!.contents as { value: string }).value
       expect(markdown).toContain("method **turn (a card) face down**")
-      expect(markdown).toContain("compiles to `turn_face_down()`")
-      expect(markdown).toContain("```js\nif (this.direction == 'up') { this.turn_face_down() }\n```")
+      expect(markdown).toContain("compiles to `turnFaceDown()`")
+      expect(markdown).toContain("```js\nif (this.direction == 'up') { this.turnFaceDown() }\n```")
     })
 
     test("a declaration's docstring, just under its name", () => {
@@ -340,7 +340,7 @@ describe("SpellLanguageService", () => {
     // `get a new foundation ...` then `add it to the foundations`, for the second foundation
     expect(hover(solitaire, at(solitaire, 35, "it"))).toContain("variable **it**: Foundation · as `it_2`")
     // the signature of `to turn (a card) face up`
-    expect(hover(card, at(card, 60, "turn"))).toContain("compiles to `turn_face_up()`")
+    expect(hover(card, at(card, 60, "turn"))).toContain("compiles to `turnFaceUp()`")
   })
 
   test("hover says what a variable holds:  an argument, a loop's item, `it`", () => {

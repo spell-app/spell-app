@@ -1,6 +1,6 @@
 /**
  * A rule module's source file, read for its rule tests, and rewritten in place:
- * how `BLESS_RULE_TESTS=1` writes each test's `ts` into the source (see `unitTestModuleRules()`).
+ * how `BLESS_RULE_TESTS=1` writes each test's `js` and `ts` into the source (see `unitTestModuleRules()`).
  * - NODE-ONLY, test-only:  it reads and writes files.
  *   `unitTestModuleRules()` loads it only when blessing, so a plain test run never does.
  * - Knows no language:  it finds tests by their shape, the `P.RuleTest`s in any `tests: [...]` array.
@@ -11,8 +11,8 @@ import { parseSync } from "vite-plus"
 /****************
  * ### `RuleTestSource`
  * One source file's rule tests:  each `[input, js, ts?]` tuple or `{ input, js, ts }` object in a `tests: [...]`.
- * - `bless()` sets each test's `ts` to what the TypeScript writer wrote;
- *   left out where it's the same as `js`.
+ * - `bless()` sets each test's `js` and `ts` to what the writers wrote;  its `ts`
+ *   left out where it's the same as its `js`.
  * - `renameOutputs()` renames the old `output:` key to `js:`.
  * - Edits are text edits at the test's place in the file:  everything else stays as written.
  *   `vp fmt` tidies them after.
@@ -69,28 +69,34 @@ export class RuleTestSource {
   }
 
   /**
-   * Set each test's `ts` to `blessed`'s, found by its `input` and `js`:  left out where it's the same as `js`.
+   * Set each test's `js` and `ts` to `blessed`'s, found by its `input` and old `js`:  `ts` left out where it's the
+   * same as `js`.
    * - Returns what it couldn't bless, as warnings:  `blessed` gave two different values for one test,
    *   or one which can't be written as a literal (an error a writer threw).
    * - A test `blessed` doesn't name is left as it is.
    */
   bless(blessed: BlessedTest[]): string[] {
     const warnings: string[] = []
-    const byKey = new Map<string, unknown[]>()
-    for (const { input, js, ts } of blessed) {
+    const byKey = new Map<string, Array<{ js: unknown; ts: unknown }>>()
+    for (const { input, js, writtenJs, ts } of blessed) {
       const values = byKey.get(RuleTestSource.keyOf(input, js)) ?? []
-      if (!values.some((it) => it === ts)) values.push(ts)
+      if (!values.some((it) => it.js === writtenJs && it.ts === ts)) values.push({ js: writtenJs, ts })
       byKey.set(RuleTestSource.keyOf(input, js), values)
     }
     for (const test of this.tests) {
       const values = byKey.get(RuleTestSource.keyOf(test.input, test.js))
       if (!values) continue
       if (values.length > 1) {
-        warnings.push(`${this.path}:  '${test.input}' compiles to ${values.length} different ts:  left as is`)
+        warnings.push(`${this.path}:  '${test.input}' compiles to ${values.length} different outputs:  left as is`)
         continue
       }
-      const [ts] = values
-      if (ts === test.js) this.removeTs(test)
+      const [{ js, ts }] = values as [{ js: unknown; ts: unknown }]
+      if (!isWritable(js)) {
+        warnings.push(`${this.path}:  '${test.input}':  js is ${String(js)}, not a literal:  left as is`)
+        continue
+      }
+      if (js !== test.js) this.setJs(test, literalFor(js))
+      if (ts === js) this.removeTs(test)
       else if (test.ts && ts === test.tsValue) continue
       else if (isWritable(ts)) this.setTs(test, literalFor(ts))
       else warnings.push(`${this.path}:  '${test.input}':  ts is ${String(ts)}, not a literal:  left as is`)
@@ -118,6 +124,12 @@ export class RuleTestSource {
   /** `test` without its `ts`, if it has one. */
   private removeTs({ ts, previous }: SourceTest) {
     if (ts && previous) this.edits.push({ start: previous.end, end: ts.end, text: "" })
+  }
+
+  /** `test` with its `js` set to `literal`. */
+  private setJs({ jsNode, isTuple }: SourceTest, literal: string) {
+    const value = isTuple ? jsNode : (jsNode.value as SourceNode)
+    this.edits.push({ start: value.start, end: value.end, text: literal })
   }
 
   /** `test` with `ts` set to `literal`:  its own `ts` replaced, or a new one after its `js`. */
@@ -157,6 +169,8 @@ export type BlessedTest = {
   input: string
   /** Its `js`, as the test says, lines joined. */
   js: unknown
+  /** What the javascript writer wrote. */
+  writtenJs: unknown
   /** What the TypeScript writer wrote. */
   ts: unknown
 }

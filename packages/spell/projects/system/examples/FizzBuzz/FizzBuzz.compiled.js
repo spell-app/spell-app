@@ -2,8 +2,8 @@ import { spellCore, Thing, List, App } from "@spell/core"
 
 spellCore.heading("File FizzBuzz.spell")
 /** File FizzBuzz.spell */
-export function play_fizzbuzz() {
-  spellCore.map(spellCore.getRange(1, 100), (number) => {
+export function playFizzbuzz() {
+  spellCore.getRange(1, 100).forEach((number) => {
     if (spellCore.isOfType(number / 15, 'integer')) { spellCore.console.log(number, "fizzbuzz") }
     else if (spellCore.isOfType(number / 3, 'integer')) { spellCore.console.log(number, "fizz") }
     else if (spellCore.isOfType(number / 5, 'integer')) { spellCore.console.log(number, "buzz") }
@@ -11,4 +11,4 @@ export function play_fizzbuzz() {
   })
 }
 
-play_fizzbuzz()
+playFizzbuzz()

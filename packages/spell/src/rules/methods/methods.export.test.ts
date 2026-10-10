@@ -32,7 +32,7 @@ describe("scope records the rules it creates, for export", () => {
     const importer = spellParser.getScope("importer")
     expect(importer.parser!.rules.frobnicate_$thing).toBeUndefined()
     importer.addRule(entry.rule, entry.definition)
-    expect(importer.compile("frobnicate 1", "statement")).toBe("frobnicate_$thing(1)")
+    expect(importer.compile("frobnicate 1", "statement")).toBe("frobnicateThing(1)")
   })
 
   test("...typed as it was defined, and an operand inside an expression", () => {
@@ -43,7 +43,7 @@ describe("scope records the rules it creates, for export", () => {
     importer.addRule(entry.rule, entry.definition)
     // text isn't a number
     expect(importer.parse('double "a"', "statement")).toBeUndefined()
-    expect(importer.compile("double 2 + 1", "statement")).toBe("double_$n(2 + 1)")
-    expect(importer.compile("double 2 + 1", "expression")).toBe("(double_$n(2) + 1)")
+    expect(importer.compile("double 2 + 1", "statement")).toBe("doubleN(2 + 1)")
+    expect(importer.compile("double 2 + 1", "expression")).toBe("(doubleN(2) + 1)")
   })
 })

@@ -426,7 +426,8 @@ export class SpellDeclarations {
    * What `declaration`'s statement declared, as its rule's `getDeclaration()` said when it was parsed --
    * `undefined` if it doesn't say.
    * - `kind` and `name` where `declarationFor()` left them out because a key says, e.g. `property`.
-   * - `name` defaults to `syntax`, e.g. `play fizzbuzz`;  `detail` to `output()`, as `MethodDefinition` says.
+   * - `name` defaults to `syntax`, e.g. `play fizzbuzz`;  `detail` to `output()` by its javascript name,
+   *   `playFizzbuzz()`, as `MethodDefinition` says.
    */
   private static editorDeclaration(declaration: SP.SpellDeclaration): P.ImportedRuleDeclared["declaration"] {
     const { type, property, classVariable, of, syntax, output } = declaration
@@ -437,7 +438,12 @@ export class SpellDeclarations {
       declaration.name ?? (kind === "type" ? type : kind === "property" ? (property ?? classVariable) : syntax)
     if (!kind || name === undefined) return undefined
     const isMethod = kind === "method" || kind === "function"
-    return definedOnly({ kind, name, of, detail: isMethod && output ? `${output}()` : undefined })
+    return definedOnly({
+      kind,
+      name,
+      of,
+      detail: isMethod && output ? `${P.JSWriter.instance.nameOf(output)}()` : undefined
+    })
   }
 
   /**

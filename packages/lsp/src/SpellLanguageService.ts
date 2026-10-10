@@ -2123,10 +2123,13 @@ export class SpellLanguageService {
     )
   }
 
-  /** `match` compiled to javascript, or `undefined` if that throws, e.g. for a half-typed statement. */
+  /**
+   * `match` compiled to javascript, as its project reads names (`P.JSWriter.writeMatch()`), or `undefined` if
+   * that throws, e.g. for a half-typed statement.
+   */
   static compileQuietly(match: P.Match): string | undefined {
     try {
-      const compiled = match.compile()
+      const compiled = P.JSWriter.instance.writeMatch(match)
       // declaration markers are for the declarations file, not for people -- see `SP.SpellDeclarations`
       return typeof compiled === "string" ? SP.SpellDeclarations.stripComments(compiled) : undefined
     } catch {

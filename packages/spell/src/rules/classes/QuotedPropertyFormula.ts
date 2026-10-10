@@ -289,7 +289,7 @@ classes.addRule(QuotedPropertyFormula, {
       tests: [
         [
           'a card "is a (rank)" for its ranks',
-          ["Card.prototype.is_a_$rank = function (rank) {", "  return this.rank === rank", "}"],
+          ["Card.prototype.isARank = function (rank) {", "  return this.rank === rank", "}"],
           [
             "export interface Card { isARank(rank: any /* spell: type unknown */): boolean }",
             "Card.prototype.isARank = function (this: Card, rank: any /* spell: type unknown */) {",
@@ -300,7 +300,7 @@ classes.addRule(QuotedPropertyFormula, {
         [
           'a card "is the (rank) of (suits)" for its ranks and its suits',
           [
-            "Card.prototype.is_the_$rank_of_$suits = function (rank, suit) {",
+            "Card.prototype.isTheRankOfSuits = function (rank, suit) {",
             "  return this.rank === rank && this.suit === suit",
             "}"
           ],
@@ -331,12 +331,12 @@ classes.addRule(QuotedPropertyFormula, {
       tests: [
         [
           "print card is a club",
-          "spellCore.console.log(card.is_a_$suit('clubs'))",
+          "spellCore.console.log(card.isASuit('clubs'))",
           'spellCore.console.log(card.isASuit("clubs"))'
         ],
         [
           "print card is the 2 of hearts",
-          "spellCore.console.log(card.is_the_$rank_of_$suits(2, 'hearts'))",
+          "spellCore.console.log(card.isTheRankOfSuits(2, 'hearts'))",
           'spellCore.console.log(card.isTheRankOfSuits(2, "hearts"))'
         ]
       ]

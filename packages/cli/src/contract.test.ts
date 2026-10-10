@@ -4,6 +4,7 @@ import { join, resolve } from "path"
 import { pathToFileURL } from "url"
 import { describe, test, expect } from "vite-plus/test"
 
+import { P } from "$/parser"
 import { buildTsx } from "$/spell/node/buildTsx"
 import { SP } from "$/spell"
 import { compiledFixture, fixtureImports, fixtureProjectNames } from "$/spell/test"
@@ -97,11 +98,21 @@ const OLD_NAMES: Record<string, string> = {
   mergeListsInto: "mergeCollectionsInto"
 }
 
+/**
+ * Javascript as written before epic `output-targets` P19:  every `spellCore` helper called by name,
+ * `spellCore.getItemAt(stock, -1)`, never a list's own method -- see `P.JSWriter.coreCall()`.
+ */
+class HelpersByName extends P.JSWriter {
+  coreCall(): string | undefined {
+    return undefined
+  }
+}
+
 describe("a program compiled before P16, with spellCore's old names", () => {
   test("prints what it prints today", async () => {
     const name = "Solitaire"
-    const today = compiledFixture(name, "js/solid")
-    const before = today.replace(/\bspellCore\.(\w+)\(/g, (call, method: string) =>
+    const helpersByName = compiledFixture(name, new HelpersByName())
+    const before = helpersByName.replace(/\bspellCore\.(\w+)\(/g, (call, method: string) =>
       OLD_NAMES[method] ? `spellCore.${OLD_NAMES[method]}(` : call
     )
     // it calls the old names, or this test proves nothing

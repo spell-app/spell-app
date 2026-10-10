@@ -27,7 +27,7 @@ lists.addRule(ListReverse, {
       },
       tests: [
         ["reverse the cards of the deck", "spellCore.reverse(deck)"],
-        ["reverse my-list", "spellCore.reverse(my_list)", "spellCore.reverse(myList)"]
+        ["reverse my-list", "spellCore.reverse(myList)"]
       ]
     }
   ]

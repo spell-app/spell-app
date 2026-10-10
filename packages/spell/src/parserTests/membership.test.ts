@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { spellCore, Thing, List, App } from "$/core"
+import { spellCore, Thing, List, App, on, off, once, trigger, positionOf } from "$/core"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { parseSpellProject } from "$/spell/test"
@@ -123,10 +123,18 @@ function runSpell(lines: string[]) {
     .join("\n")
     .replace(/^export /gm, "")
   return (names: string) => {
-    const body = `${code}\nreturn { ${names} }`
+    // each top-level variable by spell's name, e.g. `first_pile`:  compiled javascript calls it `firstPile`
+    const named = names
+      .split(/,\s*/)
+      .filter(Boolean)
+      .map((name) => `${name}: ${P.JSWriter.instance.nameOf(name)}`)
+    const body = `${code}\nreturn { ${named.join(", ")} }`
+    // `@spell/core`'s helpers it imports by name, e.g. `trigger()`, as the import it lost would give them
+    const imported = { on, off, once, trigger, positionOf }
     // oxlint-disable-next-line no-implied-eval -- running compiled spell, as a runner does, is the test
-    const fn = new Function("spellCore", "Thing", "List", "App", body)
-    return spellCore.things.quietly(() => fn(spellCore, Thing, List, App)) as Record<string, unknown>
+    const fn = new Function("spellCore", "Thing", "List", "App", ...Object.keys(imported), body)
+    const run = () => fn(spellCore, Thing, List, App, ...Object.values(imported))
+    return spellCore.things.quietly(run) as Record<string, unknown>
   }
 }
 
