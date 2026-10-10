@@ -77,10 +77,11 @@
   --spell-state-old: var(--ui-grey-background, light-dark(#eeeeee, #34343b));
   --spell-state-old-on: var(--ui-grey-text, GrayText);
   /*
-   * an Epics card's star while it's a favourite:  Owen's pick, so Owen's voice, the brand's gold-brown (ivory's ink;
-   * "Colours":  ivory).  NOT yellow:  yellow means "open, still undecided"
+   * an Epics card's star while it's a favourite:  the page's yellow, a star's own colour (epic `airplane` J22, Owen
+   * 2026-10-10:  "make it yellow";  the brand's gold-brown before).  Not starred:  its outline, grey.
+   * - the one place yellow doesn't mean "open":  a star reads as a favourite, never as a state
    */
-  --spell-favorite: var(--ui-brown, #a5673f);
+  --spell-favorite: var(--spell-state-open);
 }
 
 * {
@@ -120,11 +121,18 @@ body {
  * (`<epic-page>`, epic `epic-components` P14;  the toolbars)
  * - little room above the page's first line, under the site header (Owen, 2026-10-10:  "Significantly less padding
  *   above";  32px before)
+ * - a window's worth of empty ground below the last line (`--spell-doc-pad-end`):  the window, less the site header
+ *   and the page header that stick above everything
+ *   - so folding something near the page's end never makes the page shorter than where it's scrolled to:
+ *     the browser would pull the page back, and what was clicked would jump down
+ *   - epic `airplane` J10, Owen 2026-10-10:  "add spacer below the page, this happens more than you think";
+ *     96px before.  The runtime still holds the page's height while it folds (`holdWhileFolding()`), as a second guard
  */
 .spell-doc-main {
   --spell-doc-pad-inline: 16px;
+  --spell-doc-pad-end: max(96px, calc(100vh - var(--spell-site-header-height, 0px) - var(--spell-top, 0px)));
   min-width: 0;
-  padding: 10px var(--spell-doc-pad-inline) 96px;
+  padding: 10px var(--spell-doc-pad-inline) var(--spell-doc-pad-end);
 }
 
 /*******************************
