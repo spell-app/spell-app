@@ -1,4 +1,4 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -16,14 +16,18 @@ import anchoredCSS from "./UIPopup.anchored.css?raw"
  * - Its target:  the `target` property, else the element `for` names (in the popup's own tree),
  *   else the previous element sibling (Fomantic's `inline` markup:  a popup right after what opens it).
  *
- * - `open-on`:  `hover` (with `show-delay` / `hide-delay`, and on keyboard focus too), `focus`,
- *   `click` (toggles), `manual` (only `open`).
+ * - `open-on`:
+ *   - `hover` (with `show-delay` / `hide-delay`, and on keyboard focus too)
+ *   - `focus`
+ *   - `click` (toggles)
+ *   - `manual` (only `open`)
  *   - A hovered popup stays open while the pointer is over it (WCAG 1.4.13),
- *     unlike Fomantic's default `hoverable: false`.  `hoverable="false"` gives Fomantic's behaviour back:
+ *     unlike Fomantic's default `hoverable: false`.
+ *     `hoverable="false"` gives Fomantic's behaviour back:
  *     it hides as the pointer leaves the target, after `hide-delay`.
  *
- * - Invoker commands (`<button commandfor="id" command="--toggle">`, `UIT.ToggleCommands`) are a person's actions
- *   too:  the popup opens at ITS target, whichever button sent the command.
+ * - Invoker commands (`<button commandfor="id" command="--toggle">`, `UIT.ToggleCommands`)
+ *   are a person's actions too:  the popup opens at ITS target, whichever button sent the command.
  *
  * - `open` is controlled:  the cancelable `ui-open` / `ui-close` come first.
  *   Escape and outside clicks come from `UI.overlays` (kind `popover`;  the target counts as inside).
@@ -45,23 +49,16 @@ import anchoredCSS from "./UIPopup.anchored.css?raw"
  *   - the target's inline `anchor-name` (a per-instance name ADDED to its list) and its ARIA attributes
  *   - the DOM element's `popover`, `id`, and inline `position-anchor` / `position-area`.
  ****************/
+@E.cssStates("fluid")
 export class UIPopup extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = popupVocabulary
-  @E.proto static styleSheets = { popup: popupCSS, "popup-anchored": anchoredCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { popup: popupCSS, "popup-anchored": anchoredCSS },
     // nothing inside needs focus delegated:  a click on a tooltip's text must not jump to a link in it
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `loading`:  Fomantic's loader inside the popup
+    loading: "its own"
   } satisfies Partial<E.ElementSetup>
-
-  /** Listens to its own DOM element:  pointer and focus leaving it, the popover's `toggle`, invoker commands. */
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    this.on("pointerenter", this.onPopupEnter)
-    this.on("pointerleave", this.onPopupLeave)
-    this.on("focusout", this.onPopupFocusOut)
-    this.on("toggle", this.onToggle)
-    this.on("command", this.onCommand)
-  }
 
   ////////////////
   // ## Open
@@ -73,7 +70,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   accessor isOpen = false
 
   /** Pending delayed show / hide. */
-  private delayTimer?: ReturnType<typeof setTimeout>
+  private delayTimer?: E.CancelablePromise<unknown>
 
   /** This element's `UI.overlays` entry;  `anchor` follows the target. */
   private readonly overlay: E.OverlayEntry = {
@@ -83,18 +80,19 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   }
 
   /** Show or hide, dispatching the cancelable `ui-open` / `ui-close` first;  true when applied. */
+  @E.untracked
   requestOpen(open: boolean, originalEvent?: Event): boolean {
-    clearTimeout(this.delayTimer)
-    if (open === untrack(() => this.isOpen)) return false
+    this.delayTimer?.cancel()
+    if (open === this.isOpen) return false
     const detail: UIT.PopupOpenDetail = { open, originalEvent }
     return this.requestChange("isOpen", open, () => this.send(open ? "ui-open" : "ui-close", detail))
   }
 
   /** `requestOpen()` after `delay` ms (at once for `0`);  a newer call replaces a pending one. */
   private schedule(open: boolean, delay: number, originalEvent?: Event) {
-    clearTimeout(this.delayTimer)
+    this.delayTimer?.cancel()
     if (delay <= 0) return void this.requestOpen(open, originalEvent)
-    this.delayTimer = setTimeout(() => this.requestOpen(open, originalEvent), delay)
+    this.delayTimer = E.after(delay / 1000, () => this.requestOpen(open, originalEvent))
   }
 
   /** Ready, connected and open:  show (once a `ui-*` target is ready);  the cleanup hides. */
@@ -103,7 +101,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     if (!isReady || !isConnected || !isOpen) return undefined
     // a `ui-*` target renders async:  its box (or `display: contents`) is only known once it's ready
     let isCancelled = false
-    const target = untrack(() => this.targetElement) as { ready?: Promise<void> } | undefined
+    const target = this.targetElement as { ready?: Promise<void> } | undefined
     void (target?.ready ?? Promise.resolve()).then(() => isCancelled || this.show())
     return () => {
       isCancelled = true
@@ -113,12 +111,14 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
 
   /**
    * Show the popover against the target and register with `UI.overlays`.
-   * - Anchor:  the target's `anchor-name` when it has a box, else the implicit anchor of `source` (see
-   *   `UIPopup.css`).  `source` also makes the target the popover's invoker, so Tab from it continues inside.
+   * - Anchor:  the target's `anchor-name` when it has a box,
+   *   else the implicit anchor of `source` (see `UIPopup.css`).
+   * - `source` also makes the target the popover's invoker, so Tab from it continues inside.
    */
+  @E.untracked
   private show() {
     const { domElement } = this
-    const target = untrack(() => this.targetElement)
+    const target = this.targetElement
     const anchor = target ? UIPopup.anchorBoxFor(target) : undefined
     domElement.popover ||= this.popoverMode
     domElement.style.setProperty("position-anchor", anchor === target ? this.anchorName : anchor ? "auto" : "none")
@@ -126,35 +126,33 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
       domElement.showPopover(anchor ? ({ source: anchor } as ShowPopoverOptions) : undefined)
     }
     this.overlay.anchor = target
-    this.overlay.restoreFocus = untrack(() => this.isInteractive)
+    this.overlay.restoreFocus = this.isInteractive
     UI.overlays.open(this.overlay)
   }
 
   /** Hide the popover and leave `UI.overlays`. */
   private hide() {
-    clearTimeout(this.delayTimer)
+    this.delayTimer?.cancel()
     if (this.domElement.matches(":popover-open")) this.domElement.hidePopover()
     UI.overlays.close(this.overlay)
   }
 
   /**
-   * The popover's `toggle`:  the browser closed it (a `hint` popover's light dismiss) while the element thinks it's
-   * open -- follow, announcing a `ui-close` that can't veto any more.
+   * The popover's `toggle`:  the browser closed it (a `hint` popover's light dismiss)
+   * while the element thinks it's open -- follow, announcing a `ui-close` that can't veto any more.
    */
-  private readonly onToggle = (event: Event) => {
-    if ((event as ToggleEvent).newState !== CLOSED || !this.domElement.isConnected || !untrack(() => this.isOpen))
-      return
+  @E.on("toggle")
+  protected onToggle(event: Event) {
+    if ((event as ToggleEvent).newState !== CLOSED || !this.domElement.isConnected || !this.isOpen) return
     const detail: UIT.PopupOpenDetail = { open: false, originalEvent: event }
     this.send("ui-close", detail)
     this.isOpen = false
   }
 
   /** An invoker command aimed at the DOM element (`ToggleCommands`). */
-  private readonly onCommand = (event: Event) => {
-    const action = UIT.ToggleCommands.action(
-      event,
-      untrack(() => this.isOpen)
-    )
+  @E.on("command")
+  protected onCommand(event: Event) {
+    const action = UIT.ToggleCommands.action(event, this.isOpen)
     if (action) this.requestOpen(action === "show", event)
   }
 
@@ -227,7 +225,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     this.ariaElement = element
     return () => {
       listeners.abort()
-      clearTimeout(this.delayTimer)
+      this.delayTimer?.cancel()
       UIPopup.removeAnchorName(target, this.anchorName)
       unrelate()
       if (isClick) {
@@ -241,8 +239,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   /**
    * A server render's binding:  the target's ARIA, as `bind()` adds it, without listeners.
    * - SIDE EFFECTS:  gives the DOM element (the render's parsed copy) an id, which its root keeps,
-   *   and sets the target's `aria-describedby` / `aria-controls` and `aria-haspopup`.  No `aria-expanded`:
-   *   a native invoker reports its popover's state itself.
+   *   and sets the target's `aria-describedby` / `aria-controls` and `aria-haspopup`.
+   * - No `aria-expanded`:  a native invoker reports its popover's state itself.
    */
   private serverBind() {
     const target = this.targetElement
@@ -282,8 +280,9 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   }
 
   /** Click on the target (`click`):  toggle. */
+  @E.untracked
   private readonly onTargetClick = (event: MouseEvent) => {
-    this.requestOpen(!untrack(() => this.isOpen), event)
+    this.requestOpen(!this.isOpen, event)
   }
 
   ////////////////
@@ -291,21 +290,24 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   ////////////////
 
   /** Pointer onto the popup:  keep a hovered popup open, unless `hoverable` is off (Fomantic's default). */
-  private readonly onPopupEnter = () => {
-    if (untrack(() => this.trigger) !== UIT.PopupTrigger.hover) return
-    if (untrack(() => this.hoverable) !== false) clearTimeout(this.delayTimer)
+  @E.on("pointerenter")
+  protected onPopupEnter() {
+    if (this.trigger !== UIT.PopupTrigger.hover) return
+    if (this.hoverable !== false) this.delayTimer?.cancel()
   }
 
   /** Pointer off the popup:  hide a hovered popup after `hide-delay`. */
-  private readonly onPopupLeave = (event: PointerEvent) => {
-    if (untrack(() => this.trigger) === UIT.PopupTrigger.hover) this.schedule(false, this.hideDelay ?? 0, event)
+  @E.on("pointerleave")
+  protected onPopupLeave(event: PointerEvent) {
+    if (this.trigger === UIT.PopupTrigger.hover) this.schedule(false, this.hideDelay ?? 0, event)
   }
 
   /** Focus off the popup (`focus`):  hide, unless it went back to the target. */
-  private readonly onPopupFocusOut = (event: FocusEvent) => {
-    if (untrack(() => this.trigger) !== UIT.PopupTrigger.focus) return
+  @E.on("focusout")
+  protected onPopupFocusOut(event: FocusEvent) {
+    if (this.trigger !== UIT.PopupTrigger.focus) return
     const next = event.relatedTarget as Node | null
-    const target = untrack(() => this.targetElement)
+    const target = this.targetElement
     if (UI.focus.containsDeep(this.domElement, next) || (target && next && UI.focus.containsDeep(target, next))) return
     this.schedule(false, 0, event)
   }
@@ -314,17 +316,16 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   // ## The DOM element's role, name, position and popover
   ////////////////
 
-  /** SIDE EFFECT:  the DOM element is a dialog for a click popup, else a tooltip. */
-  @E.onChange("isInteractive", { writesDOMElement: true })
-  protected onInteractiveChanged(isInteractive: boolean) {
-    this.domElement.internals.role = isInteractive ? "dialog" : "tooltip"
+  /** The DOM element is a dialog for a click popup, else a tooltip. */
+  @E.aria("role")
+  protected get ariaRole(): string {
+    return this.isInteractive ? "dialog" : "tooltip"
   }
 
-  /** SIDE EFFECT:  a click popup's dialog is named by `header`. */
-  @E.onChange("isInteractive", "header", { writesDOMElement: true })
-  protected onDialogNameChanged(isInteractive: boolean, header: string | undefined) {
-    // `null`, not `undefined`:  `ElementInternals.ariaLabel` is a platform property, cleared by `null`
-    this.domElement.internals.ariaLabel = isInteractive ? (header ?? null) : null
+  /** A click popup's dialog is named by `header`. */
+  @E.aria("ariaLabel")
+  protected get accessibleName(): string | undefined {
+    return this.isInteractive ? this.header : undefined
   }
 
   /** SIDE EFFECT:  the DOM element's `position-area` follows `position`. */
@@ -375,15 +376,9 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
     return super.classValue(name)
   }
 
-  /** The position words, after the noun:  `ui popup top left`. */
-  protected get extraClasses(): string | undefined {
+  /** The position words, before the noun:  `ui top left popup`. */
+  protected get extraClass(): string | undefined {
     return this.position ?? DEFAULT_POSITION
-  }
-
-  /** As wide as its target (`fluid`):  `:state(fluid)`. */
-  @E.cssState("fluid")
-  get isFluid(): boolean {
-    return this.fluid
   }
 
   ////////////////
@@ -391,8 +386,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   ////////////////
 
   /**
-   * Adds the server render's target binding (`serverBind()`) to `UIComponent.onMount()`;  the role,
-   * name and position effects write the DOM element there too (`writesDOMElement`).
+   * Adds the server render's target binding (`serverBind()`) to `UIComponent.onMount()`;
+   * the role and name (`@aria`) and the position effect (`writesDOMElement`) write the DOM element there too.
    */
   onMount(): JSX.Element {
     if (isServer) this.serverBind()
@@ -402,7 +397,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   render(): JSX.Element {
     if (isServer) return this.serverMarkup()
     return (
-      <div class={this.rootClasses} part={this.partForName("popup")}>
+      <div class={this.rootClass} part={this.partForName("popup")}>
         <Show when={this.header}>
           <div class={UIT.HEADER} part={this.partForName("header")}>
             {this.header}
@@ -426,7 +421,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
    */
   private serverMarkup(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("popup")} popover={this.serverPopover}>
+      <span class={this.rootClass} part={this.partForName("popup")} popover={this.serverPopover}>
         <Show when={this.header}>
           <span class={UIT.HEADER} part={this.partForName("header")}>
             {this.header}
@@ -455,8 +450,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   }
 
   /**
-   * The box to anchor to:  `target`, or -- when it has none (`display: contents`) -- the first element of its
-   * shadow root, else its first child element.
+   * The box to anchor to:  `target`, or -- when it has none (`display: contents`) --
+   * the first element of its shadow root, else its first child element.
    * - STATIC:  needs no instance, only the target.
    */
   private static anchorBoxFor(target: Element): Element {
@@ -513,10 +508,11 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   /**
    * Point `element`'s idref `relation` (`aria-describedby`, `aria-controls`) at `domElement` too,
    * ADDED to what's there;  returns the undo.
-   * - The attribute's token list when both share a tree, else element reflection (`ariaDescribedByElements`),
-   *   since an idref can't cross a shadow boundary.
-   * - The undo keeps the way it was added:  by the time it runs the DOM element may be detached (its root is then
-   *   itself), which must not switch an attribute token list over to reflection.
+   * - The attribute's token list when both share a tree,
+   *   else element reflection (`ariaDescribedByElements`), since an idref can't cross a shadow boundary.
+   * - The undo keeps the way it was added:
+   *   by the time it runs the DOM element may be detached (its root is then itself),
+   *   which must not switch an attribute token list over to reflection.
    * - STATIC:  needs no instance;  a server render (`serverBind()`) and a live binding (`bind()`) share it.
    */
   private static addAriaRelation({ element, relation, domElement }: AriaRelationProps): () => void {
@@ -591,7 +587,7 @@ type AriaRelationProps = {
 // ## Constants
 ////////////////
 
-/** Fomantic's default position:  the popup's class words after its noun, `ui popup top left`. */
+/** Fomantic's default position:  the popup's class words before its noun, `ui top left popup`. */
 const DEFAULT_POSITION = "top left"
 
 /** Fomantic's default trigger. */
@@ -613,8 +609,8 @@ const CLOSED = "closed"
 const CONTENTS = "contents"
 
 /**
- * `position` => `position-area`:  the popup on that side, its edge lined up with the target's (`span-*` grows
- * away from the named corner), or centred on it.
+ * `position` => `position-area`:  the popup on that side,
+ * its edge lined up with the target's (`span-*` grows away from the named corner), or centred on it.
  */
 const POSITION_AREAS: Readonly<Record<string, string>> = {
   "top left": "top span-right",

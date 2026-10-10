@@ -18,10 +18,10 @@ import markdownCSS from "./UIMarkdown.css?inline"
  * - `reveal(id)`:  scroll to one of them from outside.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMMarkdownElement extends E.DOMLoadableElement {
+export class DOMMarkdownElement extends E.DOMLoadableElement<UIMarkdown> {
   /** Each heading of the last render;  `[]` before the first.  Untracked:  it's for scripts. */
   get headings(): MarkdownHeading[] {
-    return untrack(() => this.markdown?.headings) ?? []
+    return untrack(() => this.component?.headings) ?? []
   }
 
   /**
@@ -31,12 +31,7 @@ export class DOMMarkdownElement extends E.DOMLoadableElement {
    *   e.g. from a table of contents outside the element.
    */
   reveal(id: string): boolean {
-    return this.markdown?.reveal(id) ?? false
-  }
-
-  /** This element's component, once it has one. */
-  private get markdown(): UIMarkdown | undefined {
-    return this.component as UIMarkdown | undefined
+    return this.component?.reveal(id) ?? false
   }
 }
 
@@ -44,8 +39,8 @@ export class DOMMarkdownElement extends E.DOMLoadableElement {
  * ### `UIMarkdown`
  * The component behind `<ui-markdown>`:  GitHub-flavoured markdown, rendered.
  *
- * - Its shadow DOM:  `<article class="ui [size] markdown" part="body">`,
- *   in a `<section>` (the preview panel, when `editable`).
+ * - Its shadow DOM:
+ *   `<article class="ui [size] markdown" part="body">` in a `<section>` (the preview panel, when `editable`).
  * - The text:  the element's own (`<script type="text/markdown">` keeps it exact),
  *   or a `source` file (see `LoadableComponent`).
  * - Rendering:  marked, loaded with the first render (`MarkdownRenderer` -> `MarkdownEngine`, the lazy chunk).
@@ -75,8 +70,8 @@ export class DOMMarkdownElement extends E.DOMLoadableElement {
  ****************/
 export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
   @E.proto static vocabulary = markdownVocabulary
-  @E.proto static styleSheets = { markdown: markdownCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { markdown: markdownCSS },
     DOMElement: DOMMarkdownElement,
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -134,7 +129,7 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
           hidden={this.editable && this.shownTab !== PREVIEW ? true : undefined}
         >
           <article
-            class={this.rootClasses}
+            class={this.rootClass}
             part={this.partForName("body")}
             onClick={this.onClick}
             ref={(body: HTMLElement) => {
@@ -252,17 +247,16 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
   }
 
   /** While connected, listen to `window`'s `hashchange`;  returns the listener's abort. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (!isConnected) return
+  @E.whileConnected
+  protected followHash() {
     const listeners = new AbortController()
     window.addEventListener("hashchange", () => this.onHashChange(), { signal: listeners.signal })
     return () => listeners.abort()
   }
 
   /**
-   * Scroll to the heading the address's `#id` names, if it's one of ours:  on `hashchange`, and once after the first
-   * render.
+   * Scroll to the heading the address's `#id` names, if it's one of ours:
+   * on `hashchange`, and once after the first render.
    * - Not when the PAGE has that id:  the browser went there itself.
    */
   private onHashChange() {
@@ -363,8 +357,8 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
   /**
    * Put `fragment`'s top-level nodes in `body`, keeping the ones already there whose markup is the same:
    * the unchanged lead and tail stay, only the middle is swapped.
-   * - Why:  an edit changes a block or two;  re-creating every `ui-*` element would re-highlight every code block and
-   *   lose each one's state (a scrolled table, a copied-code tick).
+   * - Why:  an edit changes a block or two;  re-creating every `ui-*` element would re-highlight every code block
+   *   and lose each one's state (a scrolled table, a copied-code tick).
    * - A node not put here (marked's render, before `editable`) has no markup recorded, so it's always swapped.
    */
   private patchBody(body: HTMLElement, fragment: DocumentFragment) {
@@ -464,8 +458,8 @@ const TAB_ROLES = { list: "tablist", tab: "tab", panel: "tabpanel" } as const
 const TABLE_SHEET = "table"
 
 /**
- * A leading `#` title (`skip-title`):  blank lines, then an ATX `# Title` (one `#`) or a setext title (a line
- * underlined with `=`), with its line end.
+ * A leading `#` title (`skip-title`), with its line end:
+ * blank lines, then an ATX `# Title` (one `#`) or a setext title (a line underlined with `=`).
  */
 const LEADING_TITLE = /^(?:[ \t]*\n)*[ ]{0,3}(?:#(?=[ \t\n]|$)[^\n]*|[^\s][^\n]*\n[ ]{0,3}=+[ \t]*)(?:\n|$)/
 

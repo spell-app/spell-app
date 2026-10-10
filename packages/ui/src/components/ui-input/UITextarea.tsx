@@ -18,8 +18,10 @@ import inputCSS from "./UIInput.css?inline"
  ****************/
 export class UITextarea extends TextControl<typeof textareaVocabulary> {
   @E.proto static vocabulary = textareaVocabulary
-  @E.proto static styleSheets = { input: inputCSS }
-  @E.proto static elementSetup = { Fallback: InputFallback } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { input: inputCSS },
+    Fallback: InputFallback
+  } satisfies Partial<E.ElementSetup>
 
   protected get constraints(): Record<string, unknown> {
     return { required: this.required, minlength: this.minlength, maxlength: this.maxlength }
@@ -27,7 +29,7 @@ export class UITextarea extends TextControl<typeof textareaVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("input")}>
+      <div class={this.rootClass} part={this.partForName("input")}>
         <textarea
           ref={(element) => (this.control = element)}
           part={this.partForName("control")}

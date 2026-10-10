@@ -58,7 +58,7 @@ describe("<ui-message> classes", () => {
     ['floating compact="yes" centered inverted', "ui centered compact floating inverted message"],
     ['floating="no"', "ui message"],
     ['text-align="right"', "ui right aligned message"],
-    ['icon="envelope"', "ui message icon"]
+    ['icon="envelope"', "ui icon message"]
   ])("<ui-message %s>", async (attributes, classes) => {
     const { root } = await message(`<ui-message ${attributes}>Text</ui-message>`)
     expect(root.localName).toBe("div")
@@ -67,7 +67,7 @@ describe("<ui-message> classes", () => {
 
   it("adds `icon` for a slotted icon too, and drops it when the icon goes", async () => {
     const { host, root } = await message(`<ui-message><ui-icon slot="icon" name="envelope"></ui-icon>Mail</ui-message>`)
-    expect(root.className).toBe("ui message icon")
+    expect(root.className).toBe("ui icon message")
     host.querySelector("ui-icon")!.remove()
     await expect.poll(() => root.className).toBe("ui message")
   })

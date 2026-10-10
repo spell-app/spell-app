@@ -3,35 +3,39 @@ import type { RadioMember } from "./UICheckbox.types"
 
 /****************
  * ### `RadioGroup`
- * Every `<ui-radio>` of one `name` in one SCOPE -- its form owner, else its root node (document or shadow root) --
- * as native radios group.
+ * Every `<ui-radio>` of one `name` in one SCOPE, as native radios group:
+ * its form owner, else its root node (document or shadow root).
  * - Why our own:  each `<ui-radio>` keeps its `<input type="radio">` in its OWN shadow root,
  *   and native grouping only spans one tree, so the platform never sees two of them as a group.
- * - Registry:  `RadioGroup.of(scope, name)`, weakly keyed by the scope node;  members `join()` / `leave()` as they
- *   connect, move and rename -- from the member's lifecycle and attribute callbacks, NEVER from an effect.
- * - Everything a member renders from is tracked (`version`), so tabbability and group validity follow joins,
- *   leaves and selections.  Reads see the live set, so a member renders against its own membership at once.
- * - Why not an effect relaying `group` into `join()`:  readers ran once against the stale membership and again
- *   after the effect's write -- Solid dev's `EFFECT_RELAY_TEAR`, a wasted frame per radio.
+ * - Registry:  `RadioGroup.of(scope, name)`, weakly keyed by the scope node.
+ *   Members `join()` / `leave()` as they connect, move and rename:
+ *   from the member's lifecycle and attribute callbacks, NEVER from an effect.
+ * - Everything a member renders from is tracked (`version`),
+ *   so tabbability and group validity follow joins, leaves and selections.
+ * - Reads see the live set, so a member renders against its own membership at once.
+ * - Why not an effect relaying `group` into `join()`:
+ *   readers ran once against the stale membership and again after the effect's write
+ *   (Solid dev's `EFFECT_RELAY_TEAR`), a wasted frame per radio.
  ****************/
 export class RadioGroup {
   /**
    * Groups by scope node, then name.
-   * - STATIC:  page-wide, so every radio of one scope and name finds the same group;  weakly keyed, so a scope that
-   *   goes away takes its groups with it.
+   * - STATIC:  page-wide, so every radio of one scope and name finds the same group.
+   * - Weakly keyed, so a scope that goes away takes its groups with it.
    */
   private static readonly groups = new WeakMap<Node, Map<string, RadioGroup>>()
 
   /**
    * Bumped on every join / leave:  tracked reads of the members go through it.
-   * - `ownedWrite`:  a member joins from its constructor and solid-element's hooks,
+   * - `ownedWrite`:  a member joins from its constructor and its lifecycle methods (`onConnect()` ...),
    *   which may run inside a Solid render.
    */
   @E.state({ ownedWrite: true }) private accessor version = 0
 
   /**
    * Members right now -- read LIVE, not from a published copy.
-   * - Why:  signal writes land on a microtask;  a copy would show a member joining in this tick only a flush later
+   * - Why:  signal writes land on a microtask;
+   *   a copy would show a member joining in this tick only a flush later
    *   (every radio's first render against a membership without itself).
    */
   private readonly current = new Set<RadioMember>()
@@ -90,8 +94,8 @@ export class RadioGroup {
   }
 
   /**
-   * The ONE member in the tab order:  the chosen one when it's enabled, else the first enabled one (native radio
-   * group behaviour);  tracked.
+   * The ONE member in the tab order, as in a native radio group;  tracked:
+   * the chosen one when it's enabled, else the first enabled one.
    */
   @E.derived
   get tabStop(): RadioMember | undefined {

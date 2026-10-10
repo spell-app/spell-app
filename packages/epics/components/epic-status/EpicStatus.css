@@ -3,7 +3,8 @@
  * (`EpicAnswer.css`, adopted first):  its box, its dated band (`.header.dated`:  who left, the date right), its body.
  * Only the fills are here, in the colours of decision Q20 (Owen, 2026-10-08):
  * - underway:  blue, Claude is working on it
- * - done:  green, done;  both with a border solid enough to tell them from the reply cards around them
+ * - done:  green, work was done;  both with a border solid enough to tell them from the reply cards around them
+ * - noted:  Owen's choice recorded, nothing built:  no fill, a green outline (Owen, 2026-10-10)
  * - the summary under the reading, across a rule
  * - Public tokens (`--epic-status-*`) are never declared here:  read through private aliases.
  */
@@ -21,6 +22,13 @@
   .status.done {
     --_epic-card-fill: var(--ui-green-background, light-dark(#e6f6ec, #13301f));
     --_epic-card-accent: var(--ui-green-text, var(--ui-green, #00853a));
+  }
+  /* noted:  Owen's choice recorded, nothing built yet:  OUTLINED green on the page's surface, the fill rule's
+     "recorded" (a sent mark is outlined too);  the green fill stays Done's alone */
+  .status.noted {
+    --_epic-card-fill: var(--ui-surface, Canvas);
+    --_epic-card-accent: var(--ui-green-text, var(--ui-green, #00853a));
+    --_epic-card-band: var(--_epic-card-fill);
   }
   .summary {
     border-top: 1px solid var(--_epic-card-rule);

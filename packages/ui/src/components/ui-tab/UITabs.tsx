@@ -29,27 +29,31 @@ import tabCSS from "./UITab.css?inline"
  *   `vertical`, `inverted`, `alignment`, `equal`, sizes, colours.
  * - The owner of the panes (`ownsParts:  tab`, `TabOwner`):  each asks `paneState()` whether it shows,
  *   which edge it joins, and how it looks.
- * - Selection:  `value` is controlled.  A click (or, `automatic`, an arrow key) dispatches the cancelable
- *   `ui-change` first.  Without a `value`:  the first `selected` pane, else the first enabled one;
- *   a `value` that names no pane falls back the same way.
+ * - Selection:  `value` is controlled.
+ *   - A click (or, `automatic`, an arrow key) dispatches the cancelable `ui-change` first.
+ *   - Without a `value`:  the first `selected` pane, else the first enabled one;
+ *     a `value` that names no pane falls back the same way.
  * - Keyboard (APG):  ONE Tab stop, the selected tab (`UI.focus.roving`);
  *   ArrowLeft / ArrowRight (ArrowUp / ArrowDown when `vertical`), Home, End;  disabled tabs are skipped.
- *   `activation="manual"`:  the arrows move focus only, Enter / Space select;
- *   focus coming back to the list lands on the selected tab.
- * - ARIA:  each tab `aria-controls` its pane (element reflection:  the pane is light DOM, a tree this shadow root
- *   may point into);  the pane is a `tabpanel` named by its label (it can't point back into this shadow root).
+ *   - `activation="manual"`:  the arrows move focus only, Enter / Space select;
+ *     focus coming back to the list lands on the selected tab.
+ * - ARIA:
+ *   - each tab `aria-controls` its pane
+ *     (element reflection:  the pane is light DOM, a tree this shadow root may point into)
+ *   - the pane is a `tabpanel` named by its label (it can't point back into this shadow root)
  * - The swap:  a View Transition (`document.startViewTransition`) when `UI.browser.supports.viewTransitions`
  *   and the person doesn't prefer reduced motion, else instant.
  *   The tab list follows the selection at once;  the panes swap inside the transition (`shownValue`).
  * - `history`:  the selected value mirrors `location.hash` (see the vocabulary).
- * - SIDE EFFECTS:  `history` pushes history entries, and listens to its window's `hashchange` / `popstate`
- *   while connected.  The page globals (`window`, `document`, `location`, `history`) are the DOM element's
- *   document's, so a tab set in an iframe follows its own frame.
+ * - SIDE EFFECTS:
+ *   `history` pushes history entries, and listens to its window's `hashchange` / `popstate` while connected.
+ *   - The page globals (`window`, `document`, `location`, `history`) are the DOM element's document's,
+ *     so a tab set in an iframe follows its own frame.
  ****************/
 export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabOwner {
   @E.proto static vocabulary = tabsVocabulary
-  @E.proto static styleSheets = { menu: menuCSS, tab: tabCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { menu: menuCSS, tab: tabCSS },
     // the tabs are the focus targets;  a click on a pane must not jump to one
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -93,7 +97,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
     // a server render reads every pane before it renders, and writes nothing after
     if (isServer || this.refreshIsQueued) return
     this.refreshIsQueued = true
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       this.refreshIsQueued = false
       this.refreshPanes()
     })
@@ -125,8 +129,9 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   }
 
   /** `TabOwner`:  `pane`'s value.  Untracked. */
+  @E.untracked
   valueFor(pane: Element): string {
-    return untrack(() => this.values[this.tabs.indexOf(pane as E.DOMElement)]) ?? ""
+    return this.values[this.tabs.indexOf(pane as E.DOMElement)] ?? ""
   }
 
   ////////////////
@@ -155,17 +160,19 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   }
 
   /**
-   * Select `pane` as a person would:  the cancelable `ui-change` first, then `value` (and, with `history`,
-   * a new history entry).  True when applied;  false for a disabled or already selected pane, or a veto.
+   * Select `pane` as a person would:
+   * the cancelable `ui-change` first, then `value` (and, with `history`, a new history entry).
+   * - True when applied;  false for a disabled or already selected pane, or a veto.
    */
+  @E.untracked
   select(pane: Element, originalEvent?: Event): boolean {
     const tab = (pane as E.DOMElement).component
-    if (!(tab instanceof UITab) || untrack(() => tab.disabled)) return false
+    if (!(tab instanceof UITab) || tab.disabled) return false
     const value = this.valueFor(pane)
-    if (value === untrack(() => this.selectedValue)) return false
+    if (value === this.selectedValue) return false
     const detail: UIT.TabChangeDetail = { value, tab: pane, originalEvent }
     const applied = this.requestChange("value", value, () => this.send("ui-change", detail))
-    if (applied && untrack(() => this.history)) UITabs.pushHash(value, this.view)
+    if (applied && this.history) UITabs.pushHash(value, this.view)
     return applied
   }
 
@@ -190,11 +197,13 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   /**
    * Put the pane for `value` on screen:  inside a View Transition when the browser has them,
    * the person doesn't prefer reduced motion and another pane was showing;  else at once.
-   * - Runs in an effect's APPLY function (a write is allowed there);  the transition's callback runs later,
-   *   outside any owner, and flushes so the new panes are in the DOM when it returns.
+   * - Runs in an effect's APPLY function (a write is allowed there).
+   * - The transition's callback runs later, outside any owner,
+   *   and flushes so the new panes are in the DOM when it returns.
    */
+  @E.untracked
   private show(value: string | undefined) {
-    const before = untrack(() => this.shownValue)
+    const before = this.shownValue
     if (before === undefined || before === value || !this.canTransition) {
       this.shownValue = value
       return
@@ -272,8 +281,9 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   private bar: HTMLElement | undefined
 
   /**
-   * The tab list rendered:  keep it, and hear its keys in the CAPTURE phase -- before the roving tabindex's own
-   * listener moves focus (and before Solid's delegated handlers, which run at the root).
+   * The tab list rendered:  keep it, and hear its keys in the CAPTURE phase --
+   * before the roving tabindex's own listener moves focus
+   * (and before Solid's delegated handlers, which run at the root).
    */
   private attachBar(bar: HTMLElement) {
     this.bar = bar
@@ -296,17 +306,19 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   private focusMovingKey: KeyboardEvent | undefined
 
   /**
-   * The roving tabindex, (re)started once rendered and connected, and whenever `vertical`, the tabs or the selected
-   * index change (`tabs` keeps its identity while the same DOM elements are in it).
+   * The roving tabindex, (re)started once rendered and connected,
+   * and whenever `vertical`, the tabs or the selected index change
+   * (`tabs` keeps its identity while the same DOM elements are in it).
    */
   @E.onChange("isReady", "isConnected", "isVertical", "tabs", "selectedIndex")
   protected onRovingChanged(isReady: boolean, isConnected: boolean) {
     if (!isReady || !isConnected) return
-    queueMicrotask(() => this.startRoving())
+    E.afterSolidUpdate(() => this.startRoving())
     return () => this.stopRoving()
   }
 
   /** (Re)start the roving tabindex on the tab list, the selected tab as the Tab stop. */
+  @E.untracked
   private startRoving() {
     this.stopRoving()
     const bar = this.bar
@@ -314,11 +326,8 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
     this.rovingTabindex = UI.focus.roving({
       container: bar,
       items: () => this.buttons(),
-      orientation: untrack(() => this.vertical) ? "vertical" : "horizontal",
-      activeIndex: Math.max(
-        0,
-        untrack(() => this.selectedIndex)
-      ),
+      orientation: this.vertical ? "vertical" : "horizontal",
+      activeIndex: Math.max(0, this.selectedIndex),
       onChange: (_item, index) => this.onRovingChange(index)
     })
   }
@@ -331,30 +340,33 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
 
   /**
    * A key on the tab list:  remember it, so the roving move it causes can select.
-   * - NOTE: never cleared on a microtask:  a browser-dispatched event runs a microtask checkpoint between its
-   *   listeners, so it would be gone before the roving tabindex's listener runs.  `onRovingChange()` checks the event
-   *   is still being dispatched instead.
+   * - NOTE: never cleared on a microtask:
+   *   a browser-dispatched event runs a microtask checkpoint between its listeners,
+   *   so it would be gone before the roving tabindex's listener runs.
+   *   `onRovingChange()` checks the event is still being dispatched instead.
    */
   private readonly onKeyDown = (event: KeyboardEvent) => {
     this.focusMovingKey = event
   }
 
   /** The roving focus moved to tab `index`:  select it when a key moved it and activation is `automatic`. */
+  @E.untracked
   private onRovingChange(index: number) {
     const key = this.focusMovingKey
     // a click's focus also moves the roving stop:  only a key still being dispatched counts
-    if (!key || key.eventPhase === Event.NONE || untrack(() => this.activation) === "manual") return
-    const pane = untrack(() => this.tabs)[index]
+    if (!key || key.eventPhase === Event.NONE || this.activation === "manual") return
+    const pane = this.tabs[index]
     if (pane) this.select(pane, key)
   }
 
   /** Focus left the tab list:  the Tab stop goes back to the selected tab (`manual` may have moved it). */
+  @E.untracked
   private readonly onFocusOut = (event: FocusEvent) => {
     // `relatedTarget`:  `null` when focus left the page
     const next = event.relatedTarget as Node | null
     if (next && this.bar?.contains(next)) return
     const roving = this.rovingTabindex
-    if (roving && roving.activeIndex !== untrack(() => this.selectedIndex)) this.startRoving()
+    if (roving && roving.activeIndex !== this.selectedIndex) this.startRoving()
   }
 
   ////////////////
@@ -368,16 +380,17 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
     const listeners = new AbortController()
     const onNavigate = (event: Event) => this.onHashChange(event)
     for (const type of HISTORY_EVENTS) this.view.addEventListener(type, onNavigate, { signal: listeners.signal })
-    queueMicrotask(() => this.onHashChange())
+    E.afterSolidUpdate(() => this.onHashChange())
     return () => listeners.abort()
   }
 
   /** The URL hash changed (or, `event`-less, the page opened on one):  select the pane it names. */
+  @E.untracked
   private onHashChange(event?: Event) {
     const value = UITabs.hashValue(this.view.location)
-    const index = untrack(() => this.values).indexOf(value ?? NO_VALUE)
-    const pane = untrack(() => this.tabs)[index]
-    if (!pane || value === untrack(() => this.selectedValue)) return
+    const index = this.values.indexOf(value ?? NO_VALUE)
+    const pane = this.tabs[index]
+    if (!pane || value === this.selectedValue) return
     if (event) this.select(pane, event)
     else this.value = value
   }
@@ -407,7 +420,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
     )
     const panes = <slot onSlotChange={() => this.refreshPanes()} />
     return (
-      <div class={this.rootClasses} part={this.partForName("tabs")}>
+      <div class={this.rootClass} part={this.partForName("tabs")}>
         {this.menuEdge === UIT.BOTTOM ? [panes, menu] : [menu, panes]}
       </div>
     )
@@ -416,7 +429,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
   /**
    * One tab:  a `<button role="tab">` in the menu's item grammar, controlling `pane`.
    * - `aria-controls`:  element reflection in a browser;  in a server render (`$/ui/static`), the pane's id.
-   *   SIDE EFFECT there:
+   * - SIDE EFFECT in a server render:
    *   gives the pane (the render's parsed copy) an id if it has none, which the static output keeps.
    */
   private tab(pane: E.DOMElement, index: Accessor<number>): JSX.Element {
@@ -456,7 +469,7 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
 
   /** A pane child:  an element DEFINED with the pane's noun (`<ui-tab>`, or its translated tag). */
   private static isPane(this: void, element: Element): boolean {
-    return E.UIComponent.definitions.get(element.localName)?.vocabulary.noun === tabVocabulary.noun
+    return E.UIComponent.registry.definitions.get(element.localName)?.vocabulary.noun === tabVocabulary.noun
   }
 
   /** The `UITab` component of an (upgraded) pane. */

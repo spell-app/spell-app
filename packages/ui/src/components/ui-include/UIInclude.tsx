@@ -13,19 +13,14 @@ import includeCSS from "./UIInclude.css?inline"
  * to the source API it inherits from `DOMLoadableElement` (`content`, `save()` ...).
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMIncludeElement extends E.DOMLoadableElement {
+export class DOMIncludeElement extends E.DOMLoadableElement<UIInclude> {
   /**
-   * Where the included markup lives:  the shadow box (`[part~=content]`), or the DOM element itself with
-   * `page-styles`;  `undefined` before it loads.
+   * Where the included markup lives:
+   * the shadow box (`[part~=content]`), or the DOM element itself with `page-styles`;  `undefined` before it loads.
    * - For editors:  edit there, then `save()`.
    */
   get contentRoot(): HTMLElement | undefined {
-    return this.include?.contentRoot
-  }
-
-  /** This element's component, once it has one. */
-  private get include(): UIInclude | undefined {
-    return this.component as UIInclude | undefined
+    return this.component?.contentRoot
   }
 }
 
@@ -55,8 +50,8 @@ export class DOMIncludeElement extends E.DOMLoadableElement {
  ****************/
 export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
   @E.proto static vocabulary = includeVocabulary
-  @E.proto static styleSheets = { include: includeCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { include: includeCSS },
     DOMElement: DOMIncludeElement,
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -97,10 +92,11 @@ export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
   }
 
   /**
-   * Words after the noun, hooks for page CSS:  a deferred `load` mode (`ui include visible`:  e.g. reserve room for a
-   * lazy island), and `loading` while `source` loads.
+   * Words before the noun, hooks for page CSS:
+   * - a deferred `load` mode (`ui visible include`:  e.g. reserve room for a lazy island)
+   * - `loading` while `source` loads
    */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const mode = this.load && this.load !== EAGER ? this.load : undefined
     const loading = this.loadStatus === E.SourceStatus.loading ? LOADING_CLASS : undefined
     return [mode, loading].filter(Boolean).join(" ") || undefined
@@ -114,7 +110,7 @@ export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
           <slot />
         </Show>
         <div
-          class={this.rootClasses}
+          class={this.rootClass}
           part={this.partForName("content")}
           hidden={!!this.pageStyles}
           ref={(box: HTMLDivElement) => {
@@ -180,8 +176,9 @@ export class UIInclude extends E.LoadableComponent<typeof includeVocabulary> {
   ////////////////
 
   /**
-   * The FILE as it should be saved:  the text as loaded while the markup is untouched (or not yet rebuilt from a new
-   * `content`);  else the live markup -- the `select`ed element alone, or spliced into the file's `<body>`.
+   * The FILE as it should be saved:
+   * - the text as loaded, while the markup is untouched (or not yet rebuilt from a new `content`)
+   * - else the live markup:  the `select`ed element alone, or spliced into the file's `<body>`
    */
   get content(): string {
     const text = super.content
@@ -249,7 +246,7 @@ export interface UIInclude extends E.AttributeValues<typeof includeVocabulary> {
 /** The default `load` mode:  no class word. */
 const EAGER: UIT.SourceLoadMode = "eager"
 
-/** Class word after the noun while `source` loads. */
+/** Class word before the noun while `source` loads. */
 const LOADING_CLASS = "loading"
 
 /** The `<body ...>` opening tag of a page, for splicing a saved body back into its file. */

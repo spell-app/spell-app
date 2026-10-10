@@ -65,6 +65,15 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
     folder: "ui-docs-example",
     skeleton: { parts: [{ shape: "header" }, { shape: "paragraph", lines: 2 }] }
   },
+  "ui-docs-inspector": {
+    folder: "ui-docs-inspector",
+    skeleton: {
+      parts: [
+        { shape: "line", length: "short" },
+        { shape: "paragraph", lines: 4 }
+      ]
+    }
+  },
   "ui-docs-nav": {
     folder: "ui-docs-nav",
     skeleton: {

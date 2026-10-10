@@ -1,5 +1,7 @@
 /**
- * Standard (TC39 2023-11) decorators.
+ * Standard (TC39 2023-11) decorators:
+ * - `@proto` / `@protoMerged` -- class defaults on the prototype
+ * - `@lazy` / `@once` -- a getter / method whose result is made once and kept, with `forget()` to drop it
  * - NOTE: lowered by esbuild via `vite.decorators.ts` -- vite 8's own transformer doesn't do it yet.
  * - Decorator MUST be first thing on its line (`@proto static x = 1` is fine), or that plugin won't notice the file.
  */
@@ -9,9 +11,10 @@ import type { AbstractClass } from "./util.types"
 /**
  * Put value of a `static` field on the class's PROTOTYPE, so every instance sees it as a default:
  * `@proto static alias = "statement"` => `instance.alias === "statement"`.
- * - Why not an instance field?  Those initialize per instance AFTER `super()` returns, so a base class
- *   constructor can't see them -- and a standard field decorator never gets to touch the prototype.
- *   `static` initializers run once, at class definition, with `this` ~== the class.
+ * - Why not an instance field?
+ *   - Those initialize per instance AFTER `super()` returns, so a base class constructor can't see them --
+ *     and a standard field decorator never gets to touch the prototype.
+ *   - `static` initializers run once, at class definition, with `this` ~== the class.
  * - Inherited through prototype chain;  instances may shadow with their own value, e.g. `Object.assign(this, props)`.
  * - Non-enumerable, so it stays out of `Object.keys()` / spreads -- instances only show what's theirs.
  * - NOTE: static keeps its value too, harmless.
@@ -33,6 +36,105 @@ export function proto<This extends AbstractClass<object>, Value>(
     return value
   }
 }
+
+/**
+ * Like `@proto`, for a static OBJECT whose keys add up down the class chain:
+ * `@protoMerged static elementSetup = { delegatesFocus: false }`.
+ * - Puts `{ ...the parent class's value, ...this class's }` on the PROTOTYPE, once, when the class is defined:
+ *   so `instance.elementSetup` (and `Class.prototype.elementSetup`) is already the merged result.
+ * - Merges SHALLOWLY:  a key this class states replaces the parent's value for that key, whole.
+ *   To add to an object-valued key, spread the parent's:
+ *   `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
+ * - A class that doesn't state one inherits its parent's merged value, through the prototype chain.
+ * - NOTE: the static keeps only what THIS class stated;  read the merged result from the prototype.
+ * - Field name MUST be something instances already declare, as for `@proto`.
+ * - SIDE EFFECT: then calls the class's `static protoDefined(name, mergedValue)`, if it has one, as `@proto` does.
+ */
+export function protoMerged<This extends AbstractClass<object>, Value extends object>(
+  _target: undefined,
+  context: ClassFieldDecoratorContext<This, Value> & { name: keyof InstanceType<This> }
+) {
+  if (!context.static) {
+    throw new TypeError(`@protoMerged ${String(context.name)}: only works on 'static' fields;  make it 'static'.`)
+  }
+  return function (this: This, value: Value): Value {
+    const parentPrototype = Object.getPrototypeOf(this.prototype) as Record<PropertyKey, unknown> | null
+    const merged = { ...(parentPrototype?.[context.name] as object | undefined), ...value }
+    Object.defineProperty(this.prototype, context.name, { value: merged, writable: true, configurable: true })
+    ;(this as ProtoAware).protoDefined?.(context.name, merged)
+    return value
+  }
+}
+
+/**
+ * A getter whose value is made on first read, then kept:
+ * `@lazy get supports() { return this.detect() }`.
+ * - Kept per object it's read on:  each instance its own;  a `static` one, per class it's read on (`X.supports`).
+ * - Replaces a backing field plus `return (this.field ??= make())`.
+ * - A getter that throws keeps nothing:  the next read tries again.  `undefined` IS kept.
+ * - `forget(object, "name")` drops the kept value, e.g. in a `static reset()` for tests:  the next read makes it anew.
+ * - NOT reactive:  the value is made once, whatever it read.  A reactive cached value is `@derived` (`ui`).
+ * - throws a `TypeError` on anything but a getter
+ */
+export function lazy<This extends object, Value>(
+  getter: (this: This) => Value,
+  context: ClassGetterDecoratorContext<This, Value>
+) {
+  if (context.kind !== "getter") {
+    throw new TypeError(`@lazy ${String(context.name)}: only works on getters;  make it a 'get'.`)
+  }
+  return function (this: This): Value {
+    return remembered(this, context.name, () => getter.call(this))
+  }
+}
+
+/**
+ * A method that runs ONCE, then returns the same result to every later call, e.g. a loader's promise:
+ * `@once static load() { return import("./Engine").then(...) }`.
+ * - Takes no arguments:  one result per object would ignore them.
+ * - Kept per object it's called on, as `@lazy`'s value is:  each instance, or for a `static`, the class it's called on.
+ *   Call it on its object (`X.load()`), never detached (`const load = X.load`).
+ * - A rejected promise is kept too:  every later call gets the same rejection, until `forget(object, "name")`.
+ *   A method that THROWS keeps nothing:  the next call runs it again.
+ * - throws a `TypeError` on anything but a method
+ */
+export function once<This extends object, Value>(
+  method: (this: This) => Value,
+  context: ClassMethodDecoratorContext<This, (this: This) => Value>
+) {
+  if (context.kind !== "method") {
+    throw new TypeError(`@once ${String(context.name)}: only works on methods.`)
+  }
+  return function (this: This): Value {
+    return remembered(this, context.name, () => method.call(this))
+  }
+}
+
+/**
+ * Drop what `@lazy` getter or `@once` method `name` kept for `owner`:  the next read or call makes it anew.
+ * - `owner` is the object it was kept for:  an instance, or the class for a `static` one.
+ * - e.g. `static reset() { forget(SiteData, "load") }`
+ * - Nothing kept:  does nothing.
+ */
+export function forget<Owner extends object>(owner: Owner, name: keyof Owner): void {
+  REMEMBERED.get(owner)?.delete(name)
+}
+
+/** `owner`'s kept value for `name`, made by `make()` the first time. */
+function remembered<Value>(owner: object, name: PropertyKey, make: () => Value): Value {
+  let values = REMEMBERED.get(owner)
+  if (values?.has(name)) return values.get(name) as Value
+  const value = make()
+  if (!values) REMEMBERED.set(owner, (values = new Map()))
+  values.set(name, value)
+  return value
+}
+
+/**
+ * What `@lazy` / `@once` kept:  object => member name => value.
+ * - A `WeakMap`, so an object's values go with it;  outside the object, so a frozen object can have them too.
+ */
+const REMEMBERED = new WeakMap<object, Map<PropertyKey, unknown>>()
 
 /** A class which wants to hear about each `@proto static` defined on it or a subclass -- see `proto()`. */
 type ProtoAware = {

@@ -26,8 +26,14 @@ import emojiCSS from "./UIEmoji.css?inline"
  ****************/
 export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
   @E.proto static vocabulary = emojiVocabulary
-  @E.proto static styleSheets = { emoji: emojiCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { emoji: emojiCSS },
+    delegatesFocus: false,
+    // `disabled`:  only a look
+    disabled: "its own",
+    // `loading`:  it spins
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** The glyph, `undefined` while loading or for an unknown name. */
   @E.state accessor emoji: string | undefined = untrack(() =>
@@ -57,8 +63,9 @@ export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
 
   /**
    * Load every emoji `html` names (`<ui-emoji name="...">`), so a static server render of it draws them.
-   * - MUST be awaited before `StaticRender.fragment(html)` / `page(html)` (`$/ui/static`):  that render is synchronous
-   *   and draws only names already loaded (`EmojiData.peek()`);  a browser loads them after first paint instead.
+   * - MUST be awaited before `StaticRender.fragment(html)` / `page(html)` (`$/ui/static`):
+   *   that render is synchronous and draws only names already loaded (`EmojiData.peek()`);
+   *   a browser loads them after first paint instead.
    * - In every name set that ships:  which one an element uses depends on its `<ui-root emoji>`, unknown in markup.
    * - `tag`:  the tag the family is defined under, if not its own.
    * - STATIC:  the server render calls it before any element exists.
@@ -73,26 +80,10 @@ export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
     return EmojiData.preload(names)
   }
 
-  /**
-   * Looks disabled?  `:state(disabled)`.
-   * - A look only, NOT the base's `isDisabled`:
-   *   the element would swallow clicks meant for the `<button>` or `<a>` around it.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return this.disabled
-  }
-
-  /** Busy?  `:state(loading)`. */
-  @E.cssState("loading")
-  get isLoading(): boolean {
-    return this.loading
-  }
-
   render(): JSX.Element {
     return (
       <span
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("emoji")}
         role={this.isLabelled ? "img" : undefined}
         aria-label={this.isLabelled ? this.label : undefined}
@@ -109,10 +100,11 @@ export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
   }
 
   /** Resolve `name` in the set this element sees;  writes only if it is still the latest request. */
+  @E.untracked
   private async load(name: string | undefined) {
     const request = ++this.latestRequest
     const emoji = await EmojiData.get(name, EmojiData.setFor(this.domElement))
-    if (this.latestRequest === request && untrack(() => this.emoji) !== emoji) this.emoji = emoji
+    if (this.latestRequest === request && this.emoji !== emoji) this.emoji = emoji
   }
 }
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */

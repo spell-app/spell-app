@@ -4,16 +4,21 @@ import { E } from "$/ui/core"
  * ### `ElementDefinition`
  * Everything ONE registered tag needs from its `ComponentVocabulary` (+ an optional translation `Dictionary`),
  * so a component never spells an attribute, event, slot or part name.
- * - `props`:  the `@spell-app/solid-element` prop definitions, one per vocabulary attribute, keyed by camelCase
- *   CANONICAL name (what the component reads, `attrs.allowAdditions`), with the (localized) attribute and
- *   property names and a `Converters`-based converter.  solid-element does the rest:  prototype accessors, the upgrade
- *   step, removals, synchronous reflection.
- * - Values:  localized values (`rojo`) are canonicalized on the way IN, from attributes and property writes
- *   alike (`fromProperty`), so `ClassBuilder` and the component only ever see canonical English (`red`);
+ * - `attributes`:  one `ResolvedAttribute` per vocabulary attribute, with
+ *   - its camelCase CANONICAL key (what the component reads, `this.allowAdditions`)
+ *   - its (localized) attribute and property names
+ *   - then the shared attributes the vocabulary doesn't declare, under their English names on a translated tag too
+ *     (`SharedVocabulary`:  `disabled`, `loading`, `visible`)
+ * - The DOM element (`DOMElement`) does the rest:  a property per attribute, the upgrade step, reflection.
+ * - ONE conversion per kind of value, each way:
+ *   - `convert()`:  attribute text or property value => value
+ *   - `attributeText()`:  value => attribute text
+ * - Values:  localized values (`rojo`) are canonicalized on the way IN, from attributes and property writes alike,
+ *   so `ClassBuilder` and the component only ever see canonical English (`red`);
  *   reflection writes them localized again.
  * - One instance per tag;  the canonical tag and each translated alias get their own.
- * - No Solid, no DOM:  of the core (`E`), it uses only the vocabulary layer and `E.ClassBuilder`, so the server render
- *   (`$/ui/static`) builds one in node.
+ * - No Solid, no DOM:  of the core (`E`), it uses only the vocabulary layer and `E.ClassBuilder`,
+ *   so the server render (`$/ui/static`) builds one in node.
  ****************/
 export class ElementDefinition {
   /** Canonical vocabulary. */
@@ -31,11 +36,11 @@ export class ElementDefinition {
   /** Every attribute, in vocabulary order. */
   readonly attributes: readonly E.ResolvedAttribute[]
 
-  /** Fork prop definitions, by canonical key. */
-  readonly props: E.PropDefinitions = {}
-
   /** Resolved attribute by canonical name (`allow-additions`). */
   private readonly byName = new Map<string, E.ResolvedAttribute>()
+
+  /** Resolved attribute by the (localized) name authors write (`permitir-adiciones`). */
+  private readonly byAttribute = new Map<string, E.ResolvedAttribute>()
 
   /** Private registry, so `canonicalValue()` can map multi-word values for THIS tag without the runtime. */
   private readonly names = new E.Vocabulary()
@@ -50,7 +55,8 @@ export class ElementDefinition {
     // no tag and no dictionary is the vocabulary's OWN tag, whatever its prefix (`x-item-owner` in tests)
     this.tag = tag ?? (dictionary ? localized.tag : vocabulary.tag)
     this.builder = new E.ClassBuilder(vocabulary)
-    this.attributes = vocabulary.attributes.map((spec) => {
+    // the vocabulary's own, then the shared ones it doesn't declare (`disabled`, `loading`, `visible`)
+    this.attributes = E.SharedVocabulary.attributesFor(vocabulary).map((spec) => {
       const attribute = localized.names.attributes.get(spec.name) ?? spec.name
       const key = E.camelCase(spec.name)
       const property = attribute === spec.name ? (spec.property ?? key) : E.camelCase(attribute)
@@ -62,7 +68,7 @@ export class ElementDefinition {
         reflect: spec.kind !== "json" && spec.reflect !== false
       }
       this.byName.set(spec.name, resolved)
-      this.props[key] = this.prop(resolved)
+      this.byAttribute.set(attribute, resolved)
       return resolved
     })
   }
@@ -87,8 +93,25 @@ export class ElementDefinition {
   }
 
   /**
-   * The attribute authors write for `name`:  a vocabulary attribute's localized name (`value` => `valor`), else
-   * `name` itself (`aria-label`, an alias, an already-localized name).
+   * Does this tag take the SHARED attribute `name` (`SharedVocabulary`)?
+   * - False when its vocabulary declares its own of that name:  `<ui-sidebar>`'s `visible` starts hidden.
+   */
+  takesShared(name: string): boolean {
+    return E.SharedVocabulary.takesShared(this.vocabulary, name)
+  }
+
+  /**
+   * Attribute resolved from the name authors write (`permitir-adiciones` on `<ie-desplegable>`);
+   * `undefined` for one outside the vocabulary.
+   * - The name DOM API `attributeChangedCallback()` hands the DOM element.
+   */
+  attributeNamed(attributeName: string): E.ResolvedAttribute | undefined {
+    return this.byAttribute.get(attributeName)
+  }
+
+  /**
+   * The attribute authors write for `name`:  a vocabulary attribute's localized name (`value` => `valor`),
+   * else `name` itself (`aria-label`, an alias, an already-localized name).
    */
   localAttribute(name: string): string {
     return this.byName.get(name)?.attribute ?? name
@@ -108,6 +131,24 @@ export class ElementDefinition {
   part(name: string): string {
     const localized = this.localized.names.parts.get(name) ?? name
     return localized === name ? name : `${name} ${localized}`
+  }
+
+  ////////////////
+  // ## Classes
+  ////////////////
+
+  /**
+   * What `builder` builds a component's class string from:
+   * one getter per attribute (by canonical name), each calling `read(name)`.
+   * - Getters, so a class string reacts only to the attributes its class words actually read.
+   * - `read` is the component's `classValue()`:  usually the attribute's value, sometimes state (`isActive`).
+   */
+  classInput(read: (name: string) => unknown): E.ClassInput {
+    const input: Record<string, unknown> = {}
+    for (const { spec } of this.attributes) {
+      Object.defineProperty(input, spec.name, { get: () => read(spec.name), enumerable: true })
+    }
+    return input
   }
 
   ////////////////
@@ -154,6 +195,17 @@ export class ElementDefinition {
     }
   }
 
+  /**
+   * `attribute`'s value before anything set it:  its default, converted.
+   * - An array or object default is copied (shallow), so no two elements share one.
+   */
+  startingValue(attribute: E.ResolvedAttribute): unknown {
+    const value = this.convert(attribute, undefined)
+    if (Array.isArray(value)) return value.slice()
+    if (value && typeof value === "object") return { ...value }
+    return value
+  }
+
   /** Localized value => canonical (`rojo` => `red`, `movil tableta` => `mobile tablet`);  others unchanged. */
   private canonicalValue(attribute: E.ResolvedAttribute, value: unknown): unknown {
     if (typeof value !== "string" || !this.localized.values.has(attribute.spec.name)) return value
@@ -162,14 +214,18 @@ export class ElementDefinition {
 
   /**
    * Attribute text for a canonical `value`, or `null` to remove it.
-   * - Booleans:  `""` or removed (NEVER `"true"` / `"false"`);  `keyOrValueAndKey`:  `""` for bare, else the
-   *   value;  arrays:  comma-joined.
+   * - Booleans:  `""` or removed (NEVER `"true"`);  `"false"` only for off over a `true` default (`visible`).
+   * - `keyOrValueAndKey`:  `""` for bare, else the value.
+   * - Arrays:  comma-joined.
    * - Canonical values are written LOCALIZED (`red` => `rojo` on `<ie-boton>`).
    */
-  private attributeText(attribute: E.ResolvedAttribute, value: unknown): string | null {
+  attributeText(attribute: E.ResolvedAttribute, value: unknown): string | null {
     const { spec } = attribute
     if (spec.kind === "keyOnly" || spec.kind === "boolean") {
-      return E.Converters.booleanToAttribute(E.Converters.boolean(value as string | boolean | null | undefined))
+      const isOn = E.Converters.boolean(value as string | boolean | null | undefined)
+      // off over a TRUE default (`visible`, `closable`) reflects as `"false"`:  removed, it would be the default again
+      if (!isOn && spec.default === true) return "false"
+      return E.Converters.booleanToAttribute(isOn)
     }
     // an `icon` turned off over its default reflects as `"false"`:  removing it would bring the default back
     if (spec.kind === "icon" && value == null && typeof spec.default === "string") return "false"
@@ -178,31 +234,6 @@ export class ElementDefinition {
     if (Array.isArray(value)) return value.join(",")
     const text = ElementDefinition.text(value)
     return this.localized.names.values.get(spec.name)?.get(text) ?? text
-  }
-
-  ////////////////
-  // ## Prop definitions
-  ////////////////
-
-  /**
-   * solid-element's definition for one attribute.
-   * - `property` only when it differs from the key (a vocabulary rename, a translated name):  a key solid-element
-   *   finds on `HTMLElement` (`hidden`, `title`) then throws at definition instead of silently shadowing it.
-   * - `json` kinds (`options`) keep observing their attribute (first paint MUST NOT need the property), but
-   *   never reflect.
-   */
-  private prop(attribute: E.ResolvedAttribute): E.PropDefinitions[string] {
-    return {
-      value: this.convert(attribute, undefined),
-      attribute: attribute.attribute,
-      ...(attribute.property === attribute.key ? {} : { property: attribute.property }),
-      reflect: attribute.reflect,
-      converter: {
-        fromAttribute: (text) => this.convert(attribute, text),
-        fromProperty: (value) => this.convert(attribute, value),
-        toAttribute: (value) => this.attributeText(attribute, value)
-      }
-    }
   }
 
   ////////////////

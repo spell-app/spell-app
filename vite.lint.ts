@@ -7,8 +7,9 @@ import type { OxlintConfig } from "vite-plus/lint"
  *   `vp fmt`, `vp check`) folded them into `vite.config.ts`.
  * - Plain objects, spread by the root's `vite.config.ts` and each package's:  `lint.extends` only takes FILE paths,
  *   and the files are gone.
- * - NOTE: a package's `lint` block does NOT inherit the root's:  oxlint reads the nearest config only, so each
- *   package spreads `packageLint()`.  `vp check` reads the ROOT block only.
+ * - NOTE: a package's `lint` block does NOT inherit the root's:
+ *   oxlint reads the nearest config only, so each package spreads `packageLint()`.
+ *   `vp check` reads the ROOT block only.
  */
 
 ////////////////
@@ -17,7 +18,6 @@ import type { OxlintConfig } from "vite-plus/lint"
 
 /**
  * Shared rules:  every package.  `packageLint({ react: true })` adds React's (`reactLint`).
- * - `solid-element` spreads this too, though it's a fork of upstream code:  only `ignorePatterns` differ.
  */
 export const lintBase = {
   // MUST be listed:  without it, oxlint adds its DEFAULT plugins (e.g. `unicorn`)
@@ -28,16 +28,16 @@ export const lintBase = {
 
   // Type-aware rules, driven from the config,
   // so the CLI and the editor agree without anyone having to remember a flag.
-  // - runs on `oxlint-tsgolint`, which `vite-plus` brings
+  // - Runs on `oxlint-tsgolint`, which `vite-plus` brings.
   // - NOTE: NOT `typeCheck`:  `yarn ts` already runs `tsc`, and a second type check reports every error twice.
   options: { typeAware: true },
 
-  // `vite-plus/prefer-vite-plus-imports`:  `vite-plus/test`, not `vitest` (and so on), so every package gets its
-  // tools at the one version `vite-plus` pins.
+  // `vite-plus/prefer-vite-plus-imports`:  `vite-plus/test`, not `vitest` (and so on),
+  // so every package gets its tools at the one version `vite-plus` pins.
   jsPlugins: [{ name: "vite-plus", specifier: "vite-plus/oxlint-plugin" }],
 
-  // NOTE: only rules that DIFFER from the `correctness` defaults belong here.  Anything listed as plain `"error"`
-  // was redundant and has been removed -- `categories` already enables it.
+  // NOTE: only rules that DIFFER from the `correctness` defaults belong here.
+  // Anything listed as plain `"error"` was redundant and has been removed -- `categories` already enables it.
   rules: {
     ////////////////
     // ## Core / TypeScript
@@ -50,9 +50,9 @@ export const lintBase = {
     "typescript/no-explicit-any": "off",
 
     "prefer-const": ["error", { destructuring: "all" }],
-    // `ui`'s controllers type their vocabulary getters by merging an interface into the class
+    // `ui`'s components type their attribute getters by merging an interface into the class
     // (`export interface UIButton extends E.AttributeValues<typeof buttonVocabulary> {}`);
-    // the getters are real, installed on the prototype by `UIElement.register()` (epic `wwod-spell-ui`, P14).
+    // the getters are real, put on the class by `UIComponent.register()` (epic `wwod-spell-ui`, P14).
     "typescript/no-unsafe-declaration-merging": "off",
 
     ////////////////
@@ -60,11 +60,11 @@ export const lintBase = {
     ////////////////
 
     // Passing a method reference is idiomatic throughout this codebase --
-    // `store`/`spellCore` are singletons whose methods reach them by name rather than via `this`, and React components
-    // are handed prototype methods on purpose (see `ErrorHandler`).  ~37 hits, all intentional.
+    // `store`/`spellCore` are singletons whose methods reach them by name rather than via `this`,
+    // and React components are handed prototype methods on purpose (see `ErrorHandler`).  ~37 hits, all intentional.
     "typescript/unbound-method": "off",
-    // spellCore stringifies arbitrary values on purpose (`upperCase(thing)` etc), so this rule fires ~36 times on
-    // intended behaviour.  Individual risky spots are suppressed inline.
+    // spellCore stringifies arbitrary values on purpose (`upperCase(thing)` etc),
+    // so this rule fires ~36 times on intended behaviour.  Individual risky spots are suppressed inline.
     "typescript/restrict-template-expressions": "off",
 
     ////////////////
@@ -76,8 +76,8 @@ export const lintBase = {
 } satisfies OxlintConfig
 
 /**
- * React's rules, for packages with React code:  `spell` (the app), `cli` (Ink screens) and the ones split from
- * `spell`.  Merged AFTER `lintBase`.
+ * React's rules, for packages with React code:
+ * `spell` (the app), `cli` (Ink screens) and the ones split from `spell`.  Merged AFTER `lintBase`.
  * - NEVER for `ui`:  it's Solid, where React's rules misfire (e.g. `jsx-key`).
  */
 export const reactLint = {
@@ -143,8 +143,9 @@ export const rootLintIgnore = [
 
 /**
  * Rules tests turn off, as an `overrides` entry for the root block and every package's.
- * - `typescript/no-misused-spread`:  WWOD §20 compares a whole instance with `toEqual({ ...instance })`, which the
- *   rule calls a mistake (a spread drops the prototype:  that's the point there).  Epic `wwod-spell-ui`, I22.
+ * - `typescript/no-misused-spread`:  WWOD §20 compares a whole instance with `toEqual({ ...instance })`,
+ *   which the rule calls a mistake (a spread drops the prototype:  that's the point there).
+ *   Epic `wwod-spell-ui`, I22.
  */
 export const testLint = {
   files: ["**/*.test.ts", "**/*.test.tsx"],
@@ -152,8 +153,9 @@ export const testLint = {
 } satisfies NonNullable<OxlintConfig["overrides"]>[number]
 
 /**
- * Packages that get React's rules (`reactLint`):  the ROOT block's `overrides` -- one config for the editor and
- * `vp check`, which never read a package's.  Their `vite.config.ts` says `packageLint({ react: true })`.
+ * Packages that get React's rules (`reactLint`):  the ROOT block's `overrides` --
+ * one config for the editor and `vp check`, which never read a package's.
+ * Their `vite.config.ts` says `packageLint({ react: true })`.
  */
 export const REACT_PACKAGES = ["app", "cli", "core", "lsp", "parser", "spell", "util"]
 
@@ -200,8 +202,8 @@ export type PackageLintProps = {
 ////////////////
 
 /**
- * oxfmt settings, for every package:  `vp fmt` reads the nearest `vite.config.ts` `fmt` block, so a package with
- * its own `vite.config.ts` spreads this.
+ * oxfmt settings, for every package:
+ * `vp fmt` reads the nearest `vite.config.ts` `fmt` block, so a package with its own `vite.config.ts` spreads this.
  */
 export const fmtConfig = {
   trailingComma: "none",

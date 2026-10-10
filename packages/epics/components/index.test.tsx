@@ -13,7 +13,7 @@ import * as Components from "$/epics/components"
 /** Every sheet the barrel's classes register, as `<Class>: <sheet name>`. */
 const SHEETS = Object.entries(Components).flatMap(([name, Class]) =>
   Class.prototype instanceof E.UIComponent
-    ? Object.keys(Class.prototype.styleSheets).map((sheet) => `${name}: ${sheet}`)
+    ? Object.keys(Class.prototype.elementSetup.styleSheets).map((sheet) => `${name}: ${sheet}`)
     : []
 )
 

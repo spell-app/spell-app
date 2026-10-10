@@ -33,6 +33,15 @@ describe("ReviewInbox marks", () => {
     expect(ReviewInbox.toMark({ action: "pick", pick: "B", note: "x" })).toEqual({ action: "pick", pick: "B" })
   })
 
+  test("a todo's plane (`next`) and x (`drop`):  their note trimmed, kept only when there is one", () => {
+    expect(ReviewInbox.toMark({ action: "next", note: "  after P3 ", pick: "B" })).toEqual({
+      action: "next",
+      note: "after P3"
+    })
+    expect(ReviewInbox.toMark({ action: "drop", note: "  " })).toEqual({ action: "drop" })
+    expect(() => ReviewInbox.toMark({ action: "drop", note: 3 })).toThrow(InboxError)
+  })
+
   test("a revisit may carry a pick:  'pick B, but ...'", () => {
     expect(ReviewInbox.toMark({ action: "revisit", note: " only plan docs? ", pick: "B" })).toEqual({
       action: "revisit",

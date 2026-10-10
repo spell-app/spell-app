@@ -24,48 +24,36 @@ import segmentCSS from "./UISegment.css?inline"
  * - `loading`:  `aria-busy` (through `internals`) and a visually hidden `role=status` "Loading…".
  * - `disabled`:  `aria-disabled`.
  ****************/
+@E.cssStates("piled", "inverted")
 export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   @E.proto static vocabulary = segmentVocabulary
-  @E.proto static styleSheets = { segment: segmentCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { segment: segmentCSS },
+    // `disabled`:  only a look, with `aria-disabled`
+    disabled: "its own",
+    // `loading`:  Fomantic's veil
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## States
   ////////////////
 
-  /** Piled sheets (`piled`).  `:state(piled)`. */
-  @E.cssState("piled")
-  get isPiled(): boolean {
-    return !!this.piled
-  }
-
-  /** The dark scheme (`inverted`).  `:state(inverted)`. */
-  @E.cssState("inverted")
-  get isInverted(): boolean {
-    return !!this.inverted
-  }
-
-  /** Loading (`loading`).  `:state(loading)`. */
+  /** Loading (`loading`):  `:state(loading)` and `aria-busy`. */
   @E.cssState("loading")
+  @E.aria("ariaBusy")
   get isLoading(): boolean {
     return !!this.loading
   }
 
   /**
-   * Marked disabled (`disabled`):  only a look, not `isDisabled`,
-   * so the element still takes clicks (its content's links).
-   * `:state(disabled)`.
+   * Marked disabled (`disabled`):  `aria-disabled` (`:state(disabled)` is `UIComponent`'s).
+   * - Only a look (`elementSetup.disabled` is `"its own"`),
+   *   so the element still takes clicks (its content's links).
    */
-  @E.cssState("disabled")
+  @E.aria("ariaDisabled")
   get looksDisabled(): boolean {
-    return !!this.disabled
-  }
-
-  /** SIDE EFFECT:  busy / disabled for assistive tech. */
-  @E.onChange("loading", "disabled", { writesDOMElement: true })
-  protected onBusyOrDisabledChanged(isLoading: boolean | undefined, isDisabled: boolean | undefined) {
-    const { internals } = this.domElement
-    internals.ariaBusy = isLoading ? "true" : null
-    internals.ariaDisabled = isDisabled ? "true" : null
+    return this.isMarkedDisabled
   }
 
   ////////////////
@@ -75,7 +63,7 @@ export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   render(): JSX.Element {
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("segment")}
         tabindex={this.scrolling ? 0 : undefined}
         style={this.inverted ? { [UIT.PartOwnerTokens.inverted]: INVERTED } : undefined}

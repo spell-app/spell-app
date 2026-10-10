@@ -37,8 +37,9 @@ export type PhaseLine = {
 
 /** The step label:  its look, its words, where it links. */
 export type StepLabel = {
-  /** `blue` the active phase (outlined:  Claude is on it), `green` DONE (solid), `grey` the next one, or FUTURE */
-  color: "blue" | "green" | "grey"
+  /** `blue` the active phase (outlined:  Claude is on it), `green` DONE (solid), `grey` the next one, or FUTURE;  else the
+   * epic state's colour (`red` errors) */
+  color: "blue" | "green" | "grey" | "red"
   icon: string
   /** what it says:  `P4`, `DONE`, `FUTURE` */
   words: string
@@ -65,12 +66,14 @@ export const COMMITS_PROPERTY = "--epic-commits-display"
 /** The custom property of the sticky stack's bottom, px from the viewport top (`EpicFold` sets it too). */
 export const STACK_PROPERTY = "--epic-stack"
 
+/** The sticky header's height (the h1's row), px:  the toolbar's bar sticks right below it. */
+export const HEAD_PROPERTY = "--epic-head-h"
+
 /** What shows the git toggle:  a commit, or a block whose part lists some. */
 export const HAS_COMMITS = "epic-commit, [commits]"
 
 /** Classes of the shadow markup. */
 export const HEAD = "head"
-export const TITLES = "titles"
 export const HEADING = "heading"
 export const HEADING_COPY = "heading-copy"
 export const SUBHEAD = "subhead"
@@ -80,11 +83,19 @@ export const GIT = "git"
 export const NOTICE = "notice"
 export const HUNG = "hung"
 
-export const ACTIONS = "actions"
 export const SEND = "send"
 export const REVIEW_NOW = "review-now"
-export const SLEEPING = "sleeping"
 export const REVIEW_LINE = "review-line"
+
+/**
+ * Classes of the toolbar's sticky bar (the new item form, then the toolbar), the toolbar row, its tools at the right,
+ * the send bar and its pill (epic `airplane` P8).
+ */
+export const BAR = "bar"
+export const TOOLBAR = "toolbar"
+export const TOOLBAR_TOOLS = "toolbar-tools"
+export const SEND_BAR = "send-bar"
+export const PILL = "pill"
 
 /** The crumbs' class. */
 export const CRUMBS = "crumbs"
@@ -107,22 +118,6 @@ export const OLD_CRUMBS = ":scope > .spell-crumbs"
 
 /** How long the review line flashes once copied, ms:  as the old runtime's (`FLASH_MS`). */
 export const FLASH_MS = 900
-
-/**
- * The items a sleeping doc follows up on, by id letter:  everything open but caveats (limits accepted, open for
- * good) -- each kind's words, one and many.  The same as the old runtime's `FOLLOW_UPS`, `tools/index.js`'s and
- * `worktrees.ts` `planFollowUps()`.
- */
-export const FOLLOW_UPS: Record<string, readonly [one: string, many: string]> = {
-  q: ["question", "questions"],
-  j: ["judgement call", "judgement calls"],
-  i: ["issue", "issues"],
-  t: ["todo", "todos"],
-  v: ["test", "tests"]
-}
-
-/** The open items of a page's sections:  what a sleeping doc counts. */
-export const OPEN_ITEMS = 'epic-section > epic-item[status="open"]'
 
 /** The Send button's look:  no marks, some not sent, all sent. */
 export type SendState = "idle" | "unsent" | "sent"

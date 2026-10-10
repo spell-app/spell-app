@@ -197,7 +197,7 @@ describe("CLI.newElement()", () => {
       "export class EpicPageHeader extends E.UIComponent<typeof epicPageHeaderVocabulary>"
     )
     expect(read(`${family}/EpicPageHeader.tsx`)).toContain(
-      '@E.proto static styleSheets = { "epic-page-header": pageHeaderCSS }'
+      '@E.protoMerged static elementSetup = {\n    styleSheets: { "epic-page-header": pageHeaderCSS }\n  }'
     )
     expect(read(`${family}/EpicPageHeader.en.ts`)).toMatch(
       /export const epicPageHeaderVocabulary = \{\n {2}tag: "epic-page-header",[\s\S]*noun: "page-header",/

@@ -9,8 +9,9 @@ import containerCSS from "./UIToast.container.css?inline"
  * The toasts behind `UI.toast({…})` / `UI.toasts.show()` (Fomantic's `$.toast({…})`):
  * a `<ui-toast>` built for the call, put in the container for its `position`, removed once it has hidden.
  *
- * - Containers:  one `<div popover="manual" class="ui [position] toast-container" role="region">` per position
- *   (and `horizontal`), in `<body>`, styled by the page sheet `toast-container` (`UIToast.container.css`).
+ * - Containers:
+ *   one `<div popover="manual" class="ui [position] toast-container" role="region">` per position (and `horizontal`),
+ *   in `<body>`, styled by the page sheet `toast-container` (`UIToast.container.css`).
  *   - Shown (or re-shown, to be lifted above anything opened since) for each new toast, unless focus is inside it.
  *   - Removed when its last toast goes.
  * - Options map onto attributes (`title` => `header`, `showProgress` => `progress` …);
@@ -18,8 +19,9 @@ import containerCSS from "./UIToast.container.css?inline"
  * - `class` words sort themselves:  a `type` word, a hue (`color`) or `inverted`.
  *   Every word also stays on the `<ui-toast>`,
  *   so a page can theme one toast by its own class (the `--ui-toast-*` tokens).
- * - Actions become `<ui-button slot="actions">`s:  Fomantic's `class` on the button
- *   (so `.positive` / `.deny` … still approve / deny), its button words and hue as attributes.
+ * - Actions become `<ui-button slot="actions">`s:
+ *   Fomantic's `class` on the button (so `.positive` / `.deny` … still approve / deny),
+ *   its button words and hue as attributes.
  *   - `attached` layouts wrap them in a `<ui-buttons>`.
  *   - An action's `click()` returning `false` prevents the click's default, which keeps the toast.
  * - Replacing:  `show({ id })` with the id of a showing toast removes that one first (its `closed` resolves).
@@ -99,8 +101,9 @@ export class ToastStack implements E.ToastProvider {
   }
 
   /**
-   * The actions:  `<ui-button slot="actions">`s, or one `<ui-buttons slot="actions">` around them for `attached`
-   * layouts (`vertical` with `vertical attached`).
+   * The actions:
+   * `<ui-button slot="actions">`s, or one `<ui-buttons slot="actions">` around them for `attached` layouts
+   * (`vertical` with `vertical attached`).
    */
   private actionsFor(actions: readonly E.ToastAction[], layout: string): Node {
     const words = layout.split(UIT.WHITESPACE)
@@ -122,9 +125,10 @@ export class ToastStack implements E.ToastProvider {
   }
 
   /**
-   * One action as a `<ui-button>`:  `class` kept on the DOM element (approve / deny classes), its words that are button
-   * attributes (`positive`, `basic` ...) or hues (`color`) set as attributes;
-   * `click` wired, `false` keeping the toast open.
+   * One action as a `<ui-button>`:
+   * - `class` kept on the DOM element (approve / deny classes)
+   * - its words that are button attributes (`positive`, `basic` ...) or hues (`color`) set as attributes
+   * - `click` wired, `false` keeping the toast open
    */
   private buttonFor(action: E.ToastAction): HTMLElement {
     const definition = ToastStack.definitionFor(UIT.BUTTON)
@@ -152,10 +156,10 @@ export class ToastStack implements E.ToastProvider {
 
   /**
    * The registered definition whose vocabulary noun is `noun` (`<ui-button>`, or a translated tag).
-   * - Static:  it reads the page-wide registry, `UIComponent.definitions`, nothing of this stack's.
+   * - Static:  it reads the page-wide registry, `UIComponent.registry.definitions`, nothing of this stack's.
    */
   private static definitionFor(noun: string) {
-    for (const definition of E.UIComponent.definitions.values()) {
+    for (const definition of E.UIComponent.registry.definitions.values()) {
       if (definition.vocabulary.noun === noun) return definition
     }
     return undefined

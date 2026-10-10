@@ -11,16 +11,18 @@ import originalCSS from "./EpicOriginal.css?inline"
 
 /****************
  * ### `EpicVersion`
- * The component behind `<epic-version>`:  one earlier version of an item's text, in its Original Discussion -- a
- * small heading, then the text as it was.
- * - Heading:  `As of <as-of>` (when it was replaced, `10/4/26 20:49`:  `PlanDates`);  the first version, undated,
- *   `As first written` -- but only once there's a second:  a lone version needs no heading (plan-doc.md, "Markup
- *   the script writes").
+ * The component behind `<epic-version>`:  one earlier version of an item's text, in its Original Discussion --
+ * a small heading, then the text as it was.
+ * - Heading:  `As of <as-of>` (when it was replaced, `10/4/26 20:49`:  `PlanDates`);
+ *   the first version, undated, `As first written` -- but only once there's a second:
+ *   a lone version needs no heading (plan-doc.md, "Markup the script writes").
  ****************/
 export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
   @E.proto static vocabulary = epicVersionVocabulary
-  @E.proto static styleSheets = { "epic-original": originalCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-original": originalCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Versions beside it, itself included:  followed as its parent's children change. */
   @E.state accessor versionCount = this.countVersions()
@@ -48,7 +50,7 @@ export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <Show when={this.heading}>
           <div class={HEADING} part={this.partForName("heading")}>
             {this.heading}

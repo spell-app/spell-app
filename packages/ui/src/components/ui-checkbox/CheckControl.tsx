@@ -18,10 +18,10 @@ import checkboxCSS from "./UICheckbox.css?inline"
  *   The `checked` ATTRIBUTE in markup is read by the component, as a native checkbox reads its own.
  * - `checkable` tells `<ui-form>` how to read the value (`"checkbox"` / `"radio"`) without importing this family;
  *   `chosenValue` / `unchosenValue` what it submits, with the class defaults no attribute shows.
- * - solid-element refuses a DOM element member named like a prop:  none of these names is one.
+ * - `DOMElement` refuses a member named like an attribute's property:  none of these names is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMCheckElement extends F.DOMFormControl {
+export class DOMCheckElement extends F.DOMFormControl<CheckControl> {
   /** Another name for `selected`. */
   get checked(): boolean {
     return !!(this as unknown as { selected?: boolean }).selected
@@ -33,22 +33,17 @@ export class DOMCheckElement extends F.DOMFormControl {
 
   /** How a form reads it:  `"radio"` for `<ui-radio>`, else `"checkbox"`. */
   get checkable(): CheckControl["checkable"] {
-    return this.check?.checkable ?? "checkbox"
+    return this.component?.checkable ?? "checkbox"
   }
 
   /** Submitted while chosen:  `value`, else its class's `defaultChosenValue`;  none before its component exists. */
   get chosenValue(): string | undefined {
-    return this.check?.chosenValue
+    return this.component?.chosenValue
   }
 
   /** Submitted while unchosen:  `off-value`, else its class's `defaultUnchosenValue`;  none ~== nothing. */
   get unchosenValue(): string | undefined {
-    return this.check?.unchosenValue
-  }
-
-  /** The component, once it exists. */
-  private get check(): CheckControl | undefined {
-    return this.component as CheckControl | undefined
+    return this.component?.unchosenValue
   }
 }
 
@@ -60,12 +55,12 @@ export class DOMCheckElement extends F.DOMFormControl {
  *
  * - `selected` is controlled (`isSelected`):  the input's `change` sends `ui-change` first;
  *   a handler that sets `el.selected` again wins (the input shows that state).
- *   `checked` is another name for it:  the DOM element's property (`DOMCheckElement`),
- *   and the `checked` ATTRIBUTE, which selects it as markup selects a native checkbox.
+ *   - `checked` is another name for it:  the DOM element's property (`DOMCheckElement`),
+ *     and the `checked` ATTRIBUTE, which selects it as markup selects a native checkbox.
  *
  * - The form value:  `chosenValue` while chosen (`value`, else the class's `defaultChosenValue`, `on`),
  *   and `unchosenValue` otherwise (`<ui-checkbox>`'s `off-value`;  none:  nothing).
- *   A form reset restores the starting state.
+ *   - A form reset restores the starting state.
  *   - A subclass changes both for every element it defines:
  *     `@E.proto static defaultChosenValue = "open"` (`defaultUnchosenValue` on `UICheckbox`).
  *   - `required` reads the chosen state only:  an off-value never counts as chosen.
@@ -84,23 +79,27 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
    */
   declare readonly defaultChosenValue: string
 
-  @E.proto static elementSetup: Partial<E.ElementSetup> = { Fallback: CheckboxFallback, DOMElement: DOMCheckElement }
-  @E.proto static styleSheets = { checkbox: checkboxCSS }
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
+    styleSheets: { checkbox: checkboxCSS },
+    Fallback: CheckboxFallback,
+    DOMElement: DOMCheckElement
+  }
 
   /** Default:  `on`, as a native checkbox. */
   @E.proto static defaultChosenValue = "on"
+
+  /** Shows `:state(invalid)` only after interaction, as in `TextControl`. */
+  @E.proto static invalidShows: E.InvalidTiming = "once touched"
 
   /** How a form reads it. */
   abstract readonly checkable: "checkbox" | "radio"
 
   constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
-    this.domElement.addEventListener("click", this.onDOMElementClick)
-    this.domElement.addEventListener("invalid", this.onInvalid)
     // `checked` in markup selects, a microtask later:
     // outside the component's body, where the write to the DOM element may notify
     if (this.wasInitiallySelected && !untrack(() => this.selectedProperty)) {
-      queueMicrotask(() => (this.isSelected = true))
+      E.afterSolidUpdate(() => (this.isSelected = true))
     }
   }
 
@@ -143,8 +142,8 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   }
 
   /**
-   * Someone chose or unchose it (a click, a key):  send `ui-change`, then set the DOM element's property,
-   * unless a handler set it first.
+   * Someone chose or unchose it (a click, a key):
+   * send `ui-change`, then set the DOM element's property, unless a handler set it first.
    * - `detail.value`:  what it stands for after the change:
    *   `chosenValue`, or once unchosen, `unchosenValue` when there is one.
    * - Returns true when applied.
@@ -156,7 +155,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     const applied = E.Reactive.requestChange(this, "selectedProperty", selected, () =>
       this.send("ui-change" as never, { selected, value, originalEvent })
     )
-    if (!applied) queueMicrotask(() => this.control && (this.control.checked = untrack(() => this.isSelected)))
+    if (!applied) E.afterSolidUpdate(() => this.control && (this.control.checked = this.isSelected))
     this.onChosen(applied)
     return applied
   }
@@ -191,39 +190,15 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   }
 
   ////////////////
-  // ## Disabled
-  ////////////////
-
-  /** Can't be used now:  `disabled`, or a disabled fieldset / form;  tracked. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
-  protected classValue(name: E.AttributeName<V>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
-  }
-
-  ////////////////
   // ## Label
   ////////////////
 
   /** Which slots have light-DOM children:  the label text. */
   readonly slots = new E.SlotContent(this.domElement)
 
-  /** The DOM element's `<label>`s and `aria-label`, as the input's name when there's no text. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
-
-  /** Has label text (slot or shorthand)? */
+  /** Has label text (slot or shorthand)?  Else `labels` names the input. */
   protected get hasLabelText(): boolean {
     return this.slots.hasContent("") || !!this.label
-  }
-
-  /** Connected:  read the DOM element's `<label>`s again. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (isConnected) this.labels.refresh()
   }
 
   ////////////////
@@ -240,13 +215,8 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     return this.isSelected ? this.chosenValue : undefined
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
   onFormReset() {
     this.isSelected = this.wasInitiallySelected
-    this.isTouched = false
   }
 
   protected get validationLabel(): string | undefined {
@@ -255,18 +225,6 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
 
   protected get validationAnchor(): HTMLElement | undefined {
     return this.control
-  }
-
-  /** Someone has interacted with it:  only then does it show `:state(invalid)`. */
-  @E.state accessor isTouched = false
-
-  protected shouldShowInvalid(result: E.ValidationResult): boolean {
-    return !result.valid && this.isTouched
-  }
-
-  /** A submit or `reportValidity()` found it invalid:  show it. */
-  private readonly onInvalid = () => {
-    this.isTouched = true
   }
 
   ////////////////
@@ -297,8 +255,8 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
    * - What it needs to submit without script:  `name`, `value`, `checked`;  and the `STATIC_CONTROL` mark.
    * - `{}` in a browser, where the DOM element submits (`ElementInternals`) and an effect sets `checked`.
    * - `value` left out when it's the native default.
-   * - No off-value:  a native box can't submit one, and a hidden input of the same name would send both while
-   *   chosen (epic `wwod-spell-ui`, J44).
+   * - No off-value:  a native box can't submit one,
+   *   and a hidden input of the same name would send both while chosen (epic `wwod-spell-ui`, J44).
    */
   protected get staticControl(): Record<string, unknown> {
     if (!isServer) return {}
@@ -315,7 +273,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     // server render:  the DOM element's id, so its `<label for>`s label the input (the flattener moves it there)
     this.inputId = (isServer && this.domElement.id) || UI.ids.next(ID_PREFIX)
     return (
-      <div class={this.rootClasses} part={this.partForName("checkbox" as never)}>
+      <div class={this.rootClass} part={this.partForName("checkbox" as never)}>
         <input
           ref={(element) => (this.control = element)}
           id={this.inputId}
@@ -327,7 +285,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
           required={this.required}
           aria-readonly={this.readonly && this.inputType === "checkbox" ? "true" : undefined}
           aria-label={this.hasLabelText ? undefined : this.labels.accessibleName}
-          aria-invalid={this.isTouched && !this.validation.valid ? "true" : undefined}
+          aria-invalid={this.isShownInvalid ? "true" : undefined}
           {...this.staticControl}
           onClick={this.onClick}
           onChange={this.onChange}
@@ -354,9 +312,8 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   /** A key on the input:  arrow keys, for radios;  nothing for a checkbox. */
   protected onKeyDown(_event: KeyboardEvent) {}
 
-  /** A click aimed at the DOM element itself clicks the input;  retargeted clicks from inside are left alone. */
-  private readonly onDOMElementClick = (event: MouseEvent) => {
-    if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
+  /** A click aimed at the DOM element itself clicks the input. */
+  protected activateControl() {
     this.control?.click()
   }
 

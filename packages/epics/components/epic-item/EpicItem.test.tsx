@@ -42,6 +42,15 @@ function slotNames(host: Element): string[] {
   return Array.from(host.shadowRoot!.querySelectorAll("slot"), (slot) => slot.getAttribute("name") ?? "")
 }
 
+/** What CSS colour `color` (`var(--ui-orange)`) computes to in this document, as `getComputedStyle()` says it. */
+function colorOf(color: string): string {
+  const probe = document.body.appendChild(document.createElement("div"))
+  probe.style.color = color
+  const computed = getComputedStyle(probe).color
+  probe.remove()
+  return computed
+}
+
 /** Answer every fetch of `url` with `html` (status `status`). */
 function serve(url: string, html: string, status = 200) {
   return vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
@@ -76,6 +85,19 @@ describe("<epic-item>", () => {
     expect(host.shadowRoot!.querySelector("[part~='base']")!.getAttribute("title")).toBe("")
   })
 
+  test("a name's path, its tooltip (`<code title>`, epic `airplane`), is what the pointer finds:  nothing covers or swallows it", async () => {
+    const path = "packages/spell/src/node/buildTsx.ts"
+    const { host } = await item(
+      `<epic-item id="j1" title="Built it" status="open" open><p>Built:  <code title="${path}">buildTsx()</code></p></epic-item>`
+    )
+    const code = host.querySelector("code")!
+    const box = code.getBoundingClientRect()
+    expect(box.width).toBeGreaterThan(0)
+    expect(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)).toBe(code)
+    expect(getComputedStyle(code).pointerEvents).not.toBe("none")
+    expect(code.title).toBe(path)
+  })
+
   test("the chip's colour follows `state`;  without one, decided or done is `recent` (green), canceled `old`, open `open`", async () => {
     const states = await Promise.all(
       [
@@ -88,13 +110,24 @@ describe("<epic-item>", () => {
       ].map(async (html) => (await item(html)).host.shadowRoot!.querySelector("[part~='base']")!.className)
     )
     expect(states).toEqual([
-      "item attention",
-      "item recent",
-      "item open",
-      "item old canceled",
-      "item recent",
-      "item old canceled"
+      "attention item",
+      "recent item",
+      "open item",
+      "old canceled item",
+      "recent item",
+      "old canceled item"
     ])
+  })
+
+  test("`replied` (Owen, 2026-10-09):  an orange chip with dark text, Owen's turn to pick, in its tooltip", async () => {
+    const { host, chip } = await item(
+      `<epic-item id="j17" title="A call" status="open" state="replied" reviewed="2026-10-09"></epic-item>`
+    )
+    expect(host.shadowRoot!.querySelector("[part~='base']")!.className).toBe("replied item")
+    expect(chip.title).toBe("Claude answered:  your turn to pick · reviewed 10/9/26")
+    const [orange, ink] = [colorOf("var(--ui-orange)"), colorOf("var(--ui-orange-on)")]
+    expect(orange).not.toBe(colorOf("transparent"))
+    expect([getComputedStyle(chip).backgroundColor, getComputedStyle(chip).color]).toEqual([orange, ink])
   })
 
   test("the review label:  `to do` (queued), else `deferred`, else `reviewed 10/6/26`;  none when unmarked", async () => {

@@ -12,12 +12,13 @@ import { DOMElement } from "./DOMElement"
  *   rejects when it fails
  * - `save(text?)` / `reload()` -- see `LoadableComponent`
  * - Works before the first render:  a `content` set early is kept and shown once the component exists.
- * - Knows its component only as a `LoadableComponentShape` (`elements.types`):  NEVER imports `LoadableComponent`,
- *   which imports it.
- * - NOTE: solid-element checks DOM element prototype members against prop names;  none of these is an attribute.
- *   Private members too:  NEVER call one `source` or `load` (instance fields would hide the attributes' accessors).
+ * - Knows its component only as a `LoadableComponentShape` (`elements.types`):
+ *   NEVER imports `LoadableComponent`, which imports it.
+ *   - A family's subclass names its component class (`DOMCodeElement extends E.DOMLoadableElement<UICode>`).
+ * - NOTE: `DOMElement` checks its members against the attributes' property names;  none of these is an attribute.
+ *   - Private members too:  NEVER call one `source` or `load` (instance fields would hide the attributes' accessors).
  ****************/
-export class DOMLoadableElement extends DOMElement {
+export class DOMLoadableElement<C extends LoadableComponentType = LoadableComponentType> extends DOMElement<C> {
   /** `content` set before the component existed;  the component takes it */
   private pendingContent?: string
 
@@ -36,21 +37,22 @@ export class DOMLoadableElement extends DOMElement {
    * - Before the component exists:  what was set early, else `""`.
    */
   get content(): string {
-    return this.loadable?.content ?? this.pendingContent ?? ""
+    return this.component?.content ?? this.pendingContent ?? ""
   }
 
   /**
-   * Show `text` instead of the source's, until `source` changes or `reload()`;  `dirty` until saved, `ui-change`.
+   * Show `text` instead of the source's, until `source` changes or `reload()`.
+   * - `dirty` until saved;  sends `ui-change`.
    * - Before the component exists:  kept, and shown once it does.
    */
   set content(text: string) {
-    if (this.loadable) this.loadable.content = text
+    if (this.component) this.component.content = text
     else this.pendingContent = text
   }
 
   /** Version of the last load / save (the response's `ETag`);  `undefined` before one, or when there was none. */
   get etag(): string | undefined {
-    return this.loadable?.lastETag
+    return this.component?.lastETag
   }
 
   /**
@@ -58,7 +60,7 @@ export class DOMLoadableElement extends DOMElement {
    * - Before the component exists:  whether `content` was set early.
    */
   get dirty(): boolean {
-    return this.loadable?.isDirty ?? this.pendingContent !== undefined
+    return this.component?.isDirty ?? this.pendingContent !== undefined
   }
 
   /**
@@ -74,7 +76,7 @@ export class DOMLoadableElement extends DOMElement {
    * - Before the component exists:  `false`, nothing saved.
    */
   save(text?: string): Promise<boolean> {
-    return this.loadable?.save(text) ?? Promise.resolve(false)
+    return this.component?.save(text) ?? Promise.resolve(false)
   }
 
   /**
@@ -82,7 +84,7 @@ export class DOMLoadableElement extends DOMElement {
    * - Before the component exists:  `loaded`.
    */
   reload(): Promise<string> {
-    return this.loadable?.reload() ?? this.currentLoad.promise
+    return this.component?.reload() ?? this.currentLoad.promise
   }
 
   ////////////////
@@ -115,15 +117,10 @@ export class DOMLoadableElement extends DOMElement {
     this.currentLoad.reject(error)
   }
 
-  /** The component, typed;  `undefined` until solid-element creates it. */
-  private get loadable(): E.LoadableComponentShape | undefined {
-    return this.component as unknown as E.LoadableComponentShape | undefined
-  }
-
   /**
    * A promise with its settle functions.
-   * - Its rejection is pre-handled:  nobody awaiting `loaded` must not be an "unhandled rejection";  an awaiting
-   *   caller still sees it.
+   * - Its rejection is pre-handled:  a failure nobody awaits must not be an "unhandled rejection".
+   *   A caller awaiting `loaded` still sees it.
    * - Static:  needs no DOM element.
    */
   private static deferred() {
@@ -137,3 +134,6 @@ export class DOMLoadableElement extends DOMElement {
     return { promise, resolve, reject }
   }
 }
+
+/** What a `DOMLoadableElement`'s component is:  a component, with the `LoadableComponentShape` API. */
+type LoadableComponentType = E.UIComponent<any> & E.LoadableComponentShape

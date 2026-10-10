@@ -1,17 +1,22 @@
-import type { E, UIT } from "$/ui/core"
+import { E, type UIT } from "$/ui/core"
 import { CalendarDates } from "./CalendarDates"
 import type { DatePart, Moment, MomentFields, MomentLike } from "./UICalendar.types"
 
 /****************
  * ### `CalendarText`
- * The words of one calendar in one locale:  the field's text, cell and title texts, weekday / month names (all
- * `Intl`, through `UI.i18n`), and reading back what a person TYPES.
+ * The words of one calendar in one locale:
+ * - the field's text, cell and title texts, weekday / month names (all `Intl`, through `UI.i18n`)
+ * - reading back what a person TYPES
+ *
  * - Formatting passes `timeZone: "UTC"` with `CalendarDates.epoch()`:  a moment's fields print as they are,
  *   with no zone shift, whichever `Temporal` made them.
  * - 12 / 24 hours:  whatever the locale's `Intl` clock is (`en-US` `2:30 PM`, `de-DE` `14:30`).
- * - Parsing (`read()`):  ISO first;  else a forgiving read in the spirit of Fomantic's `parser.date`,
- *   with the LOCALE's field order (`9/30/2026` in `en-US`, `30.9.2026` in `de-DE`), its month names (long or a 3+
- *   letter prefix) and day periods (`PM`, plus English `am` / `pm`).  It reads its own output back.
+ * - Parsing (`read()`):  ISO first;
+ *   else a forgiving read in the spirit of Fomantic's `parser.date`, with the LOCALE's:
+ *   - field order (`9/30/2026` in `en-US`, `30.9.2026` in `de-DE`)
+ *   - month names (long or a 3+ letter prefix)
+ *   - day periods (`PM`, plus English `am` / `pm`)
+ * - It reads its own output back.
  ****************/
 export class CalendarText {
   /** Where `Intl` lives, and its formatter cache. */
@@ -19,9 +24,6 @@ export class CalendarText {
 
   /** BCP 47 locale. */
   readonly locale: string
-
-  /** Lowercased month names, long then short, index % 12 === month - 1;  built on first `read()`. */
-  private monthNames?: string[]
 
   constructor({ i18n, locale }: CalendarTextProps) {
     this.i18n = i18n
@@ -114,7 +116,8 @@ export class CalendarText {
   /**
    * Year / month / day from the date part of typed text, or `undefined`.
    * - A 4+ digit first number means year-first (ISO-ish order);  a month NAME takes the month;
-   *   otherwise the locale's numeric order.  Two-digit years:  under 60 => 20xx, else 19xx (Fomantic's `centuryBreak`).
+   *   otherwise the locale's numeric order.
+   * - Two-digit years:  under 60 => 20xx, else 19xx (Fomantic's `centuryBreak`).
    */
   private dateFields(text: string, type: UIT.CalendarType): MomentFields | undefined {
     const numbers = text.match(DIGITS) ?? []
@@ -148,16 +151,20 @@ export class CalendarText {
 
   /** Month (1-12) named in `text`:  a full name or a 3+ letter prefix of one, long or short. */
   private monthByName(text: string): number | undefined {
-    const names = (this.monthNames ??= [
-      ...this.i18n.months("long", this.locale),
-      ...this.i18n.months("short", this.locale)
-    ].map((name) => name.toLocaleLowerCase(this.locale).replace(/\./g, "")))
+    const names = this.monthNames
     for (const word of text.match(WORDS) ?? []) {
       if (word.length < 3) continue
       const index = names.findIndex((name) => name === word || name.startsWith(word))
       if (index >= 0) return (index % 12) + 1
     }
     return undefined
+  }
+
+  /** Lowercased month names, long then short, index % 12 === month - 1;  built on first `read()`. */
+  @E.lazy private get monthNames(): string[] {
+    return [...this.i18n.months("long", this.locale), ...this.i18n.months("short", this.locale)].map((name) =>
+      name.toLocaleLowerCase(this.locale).replace(/\./g, "")
+    )
   }
 
   /** The locale's order of year / month / day in a numeric date, e.g. `month, day, year` for `en-US`. */

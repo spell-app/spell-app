@@ -17,7 +17,13 @@ import iconCSS from "./UIIcon.css?inline"
  ****************/
 export class UIIcons extends E.UIComponent<typeof iconsVocabulary> {
   @E.proto static vocabulary = iconsVocabulary
-  @E.proto static styleSheets = { icon: iconCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { icon: iconCSS },
+    // `disabled`:  only a look
+    disabled: "its own",
+    // `loading`:  its icons spin
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** SIDE EFFECT:  the element's accessible name follows `label`. */
   @E.onChange("label", { writesDOMElement: true })
@@ -27,7 +33,7 @@ export class UIIcons extends E.UIComponent<typeof iconsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("icons")}>
+      <span class={this.rootClass} part={this.partForName("icons")}>
         <slot />
       </span>
     )

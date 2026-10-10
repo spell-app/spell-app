@@ -14,7 +14,7 @@ describe("<ui-ad> static render", () => {
   it("renders an ad unit, its test text as data", () => {
     const html = StaticRender.fragment(`<ui-ad unit="medium rectangle" test></ui-ad>`)
     expect(sorted(html)).toBe(
-      sorted(`<div data-ui="ad" class="ui medium rectangle ad test" part="ad" data-text="Ad"></div>`)
+      sorted(`<div data-ui="ad" class="ui medium rectangle test ad" part="ad" data-text="Ad"></div>`)
     )
   })
 })

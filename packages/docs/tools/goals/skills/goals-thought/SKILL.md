@@ -6,18 +6,21 @@ argument-hint: "[set/][topic][/item-or-section] [the thought]"
 
 # /goals-thought
 
-Save a thought where it belongs on a goals page, marked new.  Don't discuss it, don't change anything else:
-digesting is `/goals-update`'s job.
+Save a thought where it belongs on a goals page, marked new.
+- Don't discuss it, don't change anything else:  digesting is `/goals-update`'s job.
 
-- `G` is `scripts/goals.sh` in the `goals` skill's base directory (this skill's sibling:  `../goals/scripts/goals.sh`
-  from this skill's base directory, e.g. `.claude/skills/goals/scripts/goals.sh`).
+- `G` is `scripts/goals.sh` in the `goals` skill's base directory, this skill's sibling.
+  - That's `../goals/scripts/goals.sh` from this skill's base directory,
+    e.g. `.claude/skills/goals/scripts/goals.sh`.
 
 1. Split `$ARGUMENTS`:  the first word is the TARGET (`[set/]topic[/anchor]`);  the rest is the thought.
-   - The first word isn't a target (`G resolve <word>` fails with no close choice):  the thought is all of
-     `$ARGUMENTS`, and the target is the topic under discussion in this session;  none:  ask (AskUserQuestion
-     with `G sets` / `G resolve` choices).
+   - The first word isn't a target (`G resolve <word>` fails with no close choice):
+     - the thought is all of `$ARGUMENTS`
+     - the target is the topic under discussion in this session
+     - none:  ask (AskUserQuestion, with `G sets` / `G resolve` choices)
    - "which goal set?":  AskUserQuestion with the printed choices.
-2. No thought text:  ask for it in plain chat, one line ("What's the thought?").  Take Owen's words verbatim.
+2. No thought text:  ask for it in plain chat, one line ("What's the thought?").
+   Take Owen's words verbatim.
 3. Save it, with the text on stdin so quotes survive:
 
    ```sh
@@ -26,5 +29,5 @@ digesting is `/goals-update`'s job.
    THOUGHT
    ```
 
-4. Reply in one line:  the new id and where it went (`spell/motivation/T3, on G1`), and that `/goals-update
-   <target>` will work it in.
+4. Reply in one line:  the new id and where it went (`spell/motivation/T3, on G1`),
+   and that `/goals-update <target>` will work it in.

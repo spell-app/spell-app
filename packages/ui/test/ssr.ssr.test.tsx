@@ -14,19 +14,18 @@ import buttonCSS from "$/ui/components/ui-button/UIButton.css?inline"
 
 /**
  * SSR probe:  can `<ui-button primary>Save</ui-button>` be rendered to a Declarative Shadow DOM string?
- * - `@spell-app/solid-element` (like `@solidjs/element`) has no server render yet (it needs a live `HTMLElement`), so
+ * - The element class needs a live `HTMLElement`, so
  *   this drives the COMPONENT directly under `@solidjs/web`'s server `renderToString`,
  *   with a stub DOM element standing in for the element (no internals, no observers)
- *   and converted attributes as solid-element would hand them over,
+ *   and converted attributes as the DOM element would hand them over,
  *   then wraps the result in `<template shadowrootmode>`.
  * - SIDE EFFECT:  writes the string to `.cache/ssr-button.html` for the browser check (`dsd.test.ts`).
  */
 describe("<ui-button> server render to Declarative Shadow DOM", () => {
   it("renders <ui-button primary>Save</ui-button> to a DSD string", async () => {
     const definition = new ElementDefinition(buttonVocabulary)
-    const attrs = { primary: true } as unknown as ConstructorParameters<typeof UIButton>[2]
     const host = stubHost()
-    const html = renderToString(() => new UIButton(host, definition, attrs).onMount())
+    const html = renderToString(() => new UIButton(host, definition).onMount())
     const css = [...foundationCSS, buttonCSS].join("\n")
     const dsd =
       `<ui-button primary><template shadowrootmode="open" shadowrootdelegatesfocus>` +
@@ -44,6 +43,7 @@ describe("<ui-button> server render to Declarative Shadow DOM", () => {
 function stubHost(): DOMElement {
   return {
     childNodes: [],
+    attributeValues: { primary: true },
     shadowRoot: null,
     getAttribute: () => null,
     addPropertyChangedCallback() {},

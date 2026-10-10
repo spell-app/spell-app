@@ -6,14 +6,15 @@
     the apps it's linked to, from either side:  the editor's `app="<selector>"`, or an app's `editor="<selector>"`.
   - NOTE: edits SAVE to the example projects on disk, as the web app's editor does.
   - Three editors of three projects on one page, each with its own files.
+  - Loaded as a Spell UI component pack:  `spell-ui.js` gives the page `<ui-root>`, whose `<ui-components>` loads
+    `spell.pack.js`, which defines `<spell-editor>` and `<spell-app>` (`vite.element.config.ts`, `componentPack()`).
 -->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>spell-editor demo</title>
-    <script type="module" src="/element/spell-app.js"></script>
-    <script type="module" src="/element/spell-editor.js"></script>
+    <script type="module" src="/element/spell-ui.js"></script>
     <style>
       body {
         margin: 0;
@@ -43,25 +44,28 @@
     </style>
   </head>
   <body>
-    <h1>spell-editor</h1>
-    <p><strong>Edits save</strong> to the example projects on disk.</p>
+    <ui-root>
+      <ui-components source="/element/spell.pack.js"></ui-components>
+      <h1>spell-editor</h1>
+      <p><strong>Edits save</strong> to the example projects on disk.</p>
 
-    <h2>Linked from the editor's side: <code>app="#calculator"</code></h2>
-    <div class="side-by-side">
-      <spell-editor project="@examples/Calculator" app="#calculator" height="420px"></spell-editor>
-      <spell-app id="calculator" project="@examples/Calculator" toolbar></spell-app>
-    </div>
+      <h2>Linked from the editor's side: <code>app="#calculator"</code></h2>
+      <div class="side-by-side">
+        <spell-editor project="@examples/Calculator" app="#calculator" height="420px"></spell-editor>
+        <spell-app id="calculator" project="@examples/Calculator" toolbar></spell-app>
+      </div>
 
-    <h2>Linked from the apps' side: two apps with <code>editor="#todos"</code></h2>
-    <p>Neither app names a project: each waits for the editor's first compile.</p>
-    <spell-editor id="todos" project="@examples/Todos" height="360px"></spell-editor>
-    <div class="side-by-side">
-      <spell-app editor="#todos" toolbar></spell-app>
-      <spell-app editor="#todos" toolbar></spell-app>
-    </div>
+      <h2>Linked from the apps' side: two apps with <code>editor="#todos"</code></h2>
+      <p>Neither app names a project: each waits for the editor's first compile.</p>
+      <spell-editor id="todos" project="@examples/Todos" height="360px"></spell-editor>
+      <div class="side-by-side">
+        <spell-app editor="#todos" toolbar></spell-app>
+        <spell-app editor="#todos" toolbar></spell-app>
+      </div>
 
-    <h2>A project of several files, with the Type Explorer following edits</h2>
-    <spell-editor project="@examples/Solitaire" file="Card.spell" app="#solitaire" height="420px"></spell-editor>
-    <spell-app id="solitaire" project="@examples/Solitaire" toolbar debug="explorer" height="640px"></spell-app>
+      <h2>A project of several files, with the Type Explorer following edits</h2>
+      <spell-editor project="@examples/Solitaire" file="Card.spell" app="#solitaire" height="420px"></spell-editor>
+      <spell-app id="solitaire" project="@examples/Solitaire" toolbar debug="explorer" height="640px"></spell-app>
+    </ui-root>
   </body>
 </html>

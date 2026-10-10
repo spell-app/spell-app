@@ -13,12 +13,12 @@ import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
  *
  * - Its shadow DOM is one box, `<span class="ui … label" part="label">` (an `<a>` with `href`), holding, in order:
  *   the `image` `<img>`, the icon box, the default slot, the `detail` shorthand and the `removable` delete button.
- *   - It adds the `icon` class (after the noun) when there's an icon and no text:  the icon centres.
+ *   - It adds the `icon` class (before the noun) when there's an icon and no text:  the icon centres.
  *
  * - `image` is a string attribute:
  *   - bare (or `""`):  the `image` class, around a slotted `<img>`
  *   - a URL:  the `src` of the label's own `<img class="image" part="image" alt="">`
- *   `ClassBuilder` writes no class for a string attribute, so the `image` class is added by hand.
+ *   - `ClassBuilder` writes no class for a string attribute, so the `image` class is added by hand.
  *
  * - `removable`:  a real `<button class="delete icon">`, named by the `remove` text.
  *   A click sends the cancelable `ui-remove`:  the label never removes itself, the page does.
@@ -29,9 +29,14 @@ import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
  *
  * - The element's `aria-label` moves to the inner box, so an icon-only or corner label has a name.
  ****************/
+@E.cssStates("active")
 export class UILabel extends E.UIComponent<typeof labelVocabulary> {
   @E.proto static vocabulary = labelVocabulary
-  @E.proto static styleSheets = { label: labelCSS, parts: partsCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { label: labelCSS, parts: partsCSS },
+    // `disabled`:  only a look
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** The owner, when it's a statistic's label. */
   readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })
@@ -73,19 +78,13 @@ export class UILabel extends E.UIComponent<typeof labelVocabulary> {
   // ## States and classes
   ////////////////
 
-  /** Highlighted (`active`)? */
-  @E.cssState("active")
-  get isActive(): boolean {
-    return this.active
-  }
-
   @E.cssState("disabled")
   get isDisabled(): boolean {
     return this.disabled
   }
 
   /** `image` for an image label, `icon` for an icon without text:  words `ClassBuilder` can't emit. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const extra = [this.image === undefined ? "" : UIT.IMAGE, this.hasIcon && !this.hasText ? UIT.ICON : ""]
     return extra.filter(Boolean).join(" ") || undefined
   }
@@ -114,7 +113,7 @@ export class UILabel extends E.UIComponent<typeof labelVocabulary> {
     return (
       <Dynamic
         component={this.href ? "a" : "span"}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("label")}
         href={this.disabled ? undefined : this.href}
         target={this.href ? this.target : undefined}

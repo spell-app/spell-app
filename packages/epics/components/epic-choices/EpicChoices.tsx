@@ -26,21 +26,43 @@ import choicesCSS from "./EpicChoices.css?inline"
  * - Open question:  the option cards side by side (as many as fit, at least 14em each;  one column when narrow).
  * - Answered (`chosen`, or `answered` on its `<epic-item>`):  folded away under a `Choices` aside, its options
  *   panels in one box, the chosen one marked and open.  Find-in-page unfolds it.
- * - Reads its item's `answered` and its own `chosen` as they change (`EpicChoices.watch()`);  `<epic-option>` reads
- *   the same, through the same two statics.
+ *   - the folded heading names the chosen one, green with a check (`Choices  ✓ Chosen:  B · Bananas`), so the
+ *     pick stays in sight while folded (Owen, 2026-10-10)
+ * - Reads its item's `answered` and its own `chosen` as they change (`EpicChoices.watch()`);
+ *   `<epic-option>` reads the same, through the same two statics.
  ****************/
 export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   @E.proto static vocabulary = epicChoicesVocabulary
-  @E.proto static styleSheets = { "epic-choices": choicesCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-choices": choicesCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Its question is answered:  folded under Choices. */
   @E.cssState("answered")
   @E.state
   accessor questionIsAnswered = EpicChoices.isAnswered(this.domElement)
 
+  /** Its `chosen` letter, followed as it changes;  `undefined` while none is. */
+  @E.state accessor chosenLetter = EpicChoices.chosenFor(this.domElement)
+
   /** Its options' box:  folded until the reader opens it. */
   readonly fold = new Fold(() => false)
+
+  /**
+   * The chosen option, as the folded heading names it (`B · Bananas`);  `undefined` while none is.
+   * - so Owen's pick stays in sight with the box folded (Owen, 2026-10-10:  "losing the Chosen marker")
+   * - its title read plainly:  an option's title doesn't change under a set already chosen
+   */
+  get chosenName(): string | undefined {
+    const letter = this.chosenLetter
+    if (!letter) return undefined
+    const option = Array.from(this.domElement.children).find(
+      (child) => child.localName === OPTION_TAG && child.getAttribute("letter") === letter
+    )
+    const title = option?.getAttribute("title") ?? option?.querySelector(":scope > [slot=title]")?.textContent ?? ""
+    return title.trim() ? `${letter}${LETTER_SEPARATOR}${title.trim()}` : letter
+  }
 
   /** Answered and unfolded. */
   @E.cssState("open")
@@ -48,14 +70,17 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
     return this.questionIsAnswered && this.fold.isOpen()
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.questionIsAnswered ? ANSWERED : undefined
   }
 
   onMount(): JSX.Element {
     if (!isServer) {
       onSettled(() =>
-        EpicChoices.watch(this.domElement, () => (this.questionIsAnswered = EpicChoices.isAnswered(this.domElement)))
+        EpicChoices.watch(this.domElement, () => {
+          this.questionIsAnswered = EpicChoices.isAnswered(this.domElement)
+          this.chosenLetter = EpicChoices.chosenFor(this.domElement)
+        })
       )
     }
     return super.onMount()
@@ -63,7 +88,7 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <Show when={this.questionIsAnswered} fallback={<slot />}>
           <button
             type="button"
@@ -75,6 +100,16 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
           >
             <Chevron />
             {this.translationForKey("choices")}
+            <Show when={this.chosenName}>
+              {(name) => (
+                <span class={CHOSEN_MARK} part={this.partForName("chosen")}>
+                  <svg class={CHECK} viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M2.5 8.5l3.5 3.5 7.5-8" />
+                  </svg>
+                  {this.translationForKey("chosen", { name: name() })}
+                </span>
+              )}
+            </Show>
           </button>
           <div
             ref={this.fold.watch}
@@ -129,8 +164,8 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   }
 
   /**
-   * Call `changed` whenever what `isAnswered()` / `chosenFor()` / `itemStatusFor()` read changes:  `chosen`, the
-   * item's `answered` and `status`.  Returns how to stop.
+   * Call `changed` whenever what `isAnswered()` / `chosenFor()` / `itemStatusFor()` read changes:
+   * `chosen`, the item's `answered` and `status`.  Returns how to stop.
    */
   static watch(element: Element, changed: () => void): () => void {
     const observer = new MutationObserver(changed)
@@ -151,3 +186,11 @@ const PANELS = "panels"
 
 /** `id` of that box, for its toggle's `aria-controls`. */
 const PANELS_ID = "panels"
+
+/** Class of the folded heading's chosen option (`Chosen:  B · Bananas`), and of its check. */
+const CHOSEN_MARK = "chosen-mark"
+const CHECK = "check"
+
+/** Its options' tag, and what joins a letter and a title (`B · Bananas`), as `<epic-option>` draws it. */
+const OPTION_TAG = "epic-option"
+const LETTER_SEPARATOR = " · "

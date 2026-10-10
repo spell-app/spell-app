@@ -15,19 +15,14 @@ import codeCSS from "./UICode.css?inline"
  * it adds `detectedLanguage` to the source API it inherits from `DOMLoadableElement` (`content`, `save()` ...).
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMCodeElement extends E.DOMLoadableElement {
+export class DOMCodeElement extends E.DOMLoadableElement<UICode> {
   /**
-   * What auto-detection picked (when no `language` is given);  `undefined` otherwise,
-   * or before the colours arrive (`ui-highlight` says when).
+   * What auto-detection picked (when no `language` is given);
+   * `undefined` otherwise, or before the colours arrive (`ui-highlight` says when).
    * - Untracked:  it's for scripts.
    */
   get detectedLanguage(): string | undefined {
-    return untrack(() => this.code?.detectedLanguage)
-  }
-
-  /** This element's component, once it has one. */
-  private get code(): UICode | undefined {
-    return this.component as UICode | undefined
+    return untrack(() => this.component?.detectedLanguage)
   }
 }
 
@@ -36,24 +31,27 @@ export class DOMCodeElement extends E.DOMLoadableElement {
  * The component behind `<ui-code>`:  a block of code, coloured by language.
  *
  * - Its shadow DOM:
- *   `<div class="ui [numbered] [wrapping] code" part="box">` around an optional copy `<button>` and
- *   `<pre><code class="hljs language-x">`, one `<span class="line">` per line.
+ *   `<div class="ui [numbered] [wrapping] code" part="box">`
+ *   around an optional copy `<button>` and `<pre><code class="hljs language-x">`, one `<span class="line">` per line.
  * - The text:  the element's own (`<script type="text/plain">` keeps `<` and `&` exact),
  *   or a `source` file (see `LoadableComponent`).
  * - The colours come from highlight.js, loaded with the first highlight
  *   (`CodeHighlighter` -> `CodeEngine`, the lazy chunk):
  *   - no `language`:  guessed among the detect set
  *   - `text`:  none
- *   - a language `UI.code` knows (spell):  its own highlighter.
- *   The code shows plain until the colours arrive.
+ *   - a language `UI.code` knows (spell):  its own highlighter
+ * - The code shows plain until the colours arrive.
  *   An unknown language stays plain, with a `render` `ui-error` (no message:  the code is still there).
  * - `line-numbers` (from `start`) and `wrap` are CSS:  counters, and a hanging indent per `.line`.
  * - The `<pre>` is a tab stop, named "`<language>` code", so a keyboard can scroll it.
  ****************/
 export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
   @E.proto static vocabulary = codeVocabulary
-  @E.proto static styleSheets = { code: codeCSS }
-  @E.proto static elementSetup = { DOMElement: DOMCodeElement, delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { code: codeCSS },
+    DOMElement: DOMCodeElement,
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Colouring
@@ -118,6 +116,7 @@ export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
   }
 
   /** Colour `code` as `language`;  `ui-highlight` when done, a `render` `ui-error` (code left plain) when not. */
+  @E.untracked
   private async highlight(code: string, language: string | undefined) {
     const ticket = ++this.ticket
     try {
@@ -130,7 +129,7 @@ export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
       if (ticket !== this.ticket) return
       this.highlighted = undefined
       const kind = E.SourceError.kindFor(error, "render")
-      this.sendSourceEvent("ui-error", { kind, source: untrack(() => this.source || undefined), error })
+      this.sendSourceEvent("ui-error", { kind, source: this.source || undefined, error })
     }
   }
 
@@ -144,7 +143,7 @@ export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
   accessor wasJustCopied = false
 
   /** Clears `wasJustCopied`. */
-  private copiedTimer?: ReturnType<typeof setTimeout>
+  private copiedTimer?: E.CancelablePromise<unknown>
 
   /** The copy button:  the code to the clipboard, `ui-copy`, "Copied" for a moment. */
   private readonly onCopy = async () => {
@@ -152,8 +151,8 @@ export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
     await navigator.clipboard.writeText(content)
     this.wasJustCopied = true
     this.send("ui-copy", { content })
-    clearTimeout(this.copiedTimer)
-    this.copiedTimer = setTimeout(() => (this.wasJustCopied = false), COPIED_MS)
+    this.copiedTimer?.cancel()
+    this.copiedTimer = E.after(COPIED_MS / 1000, () => (this.wasJustCopied = false))
   }
 
   ////////////////
@@ -162,7 +161,7 @@ export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
 
   protected renderContent(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("box")}>
+      <div class={this.rootClass} part={this.partForName("box")}>
         <Show when={this.copy}>
           <button type="button" class={COPY_CLASS} part={this.partForName("copy")} onClick={this.onCopy}>
             {this.wasJustCopied ? this.translationForKey("codeCopied") : this.translationForKey("codeCopy")}

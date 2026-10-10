@@ -22,7 +22,13 @@ import iconCSS from "./UIIcon.css?inline"
  ****************/
 export class UIIcon extends E.UIComponent<typeof iconVocabulary> {
   @E.proto static vocabulary = iconVocabulary
-  @E.proto static styleSheets = { icon: iconCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { icon: iconCSS },
+    // `disabled`:  only a look
+    disabled: "its own",
+    // `loading`:  it spins
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** Its `<ui-icons>` parent, if any. */
   readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun, isDirect: true })
@@ -50,28 +56,9 @@ export class UIIcon extends E.UIComponent<typeof iconVocabulary> {
     IconLabels.applyTo(this.domElement.internals, label)
   }
 
-  ////////////////
-  // ## States
-  ////////////////
-
-  /**
-   * Dimmed (`disabled`):  `:state(disabled)`.
-   * - Not `isDisabled`:  that would make the element swallow clicks, which an icon never did.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return this.disabled
-  }
-
-  /** Spinning (`loading`):  `:state(loading)`. */
-  @E.cssState("loading")
-  get isLoading(): boolean {
-    return this.loading
-  }
-
   render(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("icon")}>
+      <span class={this.rootClass} part={this.partForName("icon")}>
         {this.iconGlyph.svg}
       </span>
     )

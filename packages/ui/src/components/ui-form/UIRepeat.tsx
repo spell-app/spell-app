@@ -36,8 +36,10 @@ import formCSS from "./UIForm.css?inline"
  ****************/
 export class UIRepeat extends E.UIComponent<typeof repeatVocabulary> {
   @E.proto static vocabulary = repeatVocabulary
-  @E.proto static styleSheets = { form: formCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { form: formCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return <slot />

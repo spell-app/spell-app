@@ -138,6 +138,18 @@ export class PlanItem {
   }
 
   /**
+   * Is `item` waiting for Owen to pick?  Claude answered it last, with options:  its LAST reply
+   * (`<epic-reply>`, its child) is Claude's, and holds a card set with nothing chosen yet.
+   * - a pick (`<epic-choices chosen>`), or a newer reply from Owen:  no longer waiting
+   * - a reply asking without cards (a yes / no in prose):  not this;  only unpicked cards count
+   */
+  static awaitsPick(item: Element): boolean {
+    const reply = Array.from(item.querySelectorAll(`:scope > ${REPLY_TAG}`)).at(-1)
+    if (!reply || Markup.read<"epic-reply">(reply).from !== CLAUDE) return false
+    return Array.from(reply.querySelectorAll(CHOICES_TAG)).some((choices) => !choices.hasAttribute("chosen"))
+  }
+
+  /**
    * "Pick B, but ...":  a revisit's pick and note as one phrase, `picks B · <card title>, asks:  "<note>"`.
    * - `option`:  the card (`PlanReader.optionCards()`'s);  none with that letter:  "(no such option card)"
    * - the inbox's printout (under "revisit, to talk over") and `PlanDoc.applyMark()` (what it left) say it the same
@@ -242,6 +254,10 @@ const RECOMMENDED = /\(recommended\)/i
 const CHOICES_TAG = "epic-choices"
 const ITEM_TAG = "epic-item"
 const ORIGINAL_TAG = "epic-original"
+
+/** A reply on an item, and the `from` of Claude's (`awaitsPick()`). */
+const REPLY_TAG = "epic-reply"
+const CLAUDE = "Claude"
 
 /** Each card's heading as prose (`PlanItem.asProse()`):  what its element draws from its data. */
 const CARD_HEADINGS: Record<string, (element: Element) => string | undefined> = {

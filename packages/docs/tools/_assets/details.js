@@ -94,7 +94,9 @@
     const more = question.querySelector(".spell-option-card[data-more]")
     const state = more || (other && !picked) ? "working" : picked ? "done" : "attention"
     question.dataset.state = state
-    document.querySelector(`nav.spell-rail [data-rail="${CSS.escape(question.id)}"]`)?.setAttribute("data-state", state)
+    document
+      .querySelector(`nav.spell-toolbar [data-rail="${CSS.escape(question.id)}"]`)
+      ?.setAttribute("data-state", state)
   }
 
   /**

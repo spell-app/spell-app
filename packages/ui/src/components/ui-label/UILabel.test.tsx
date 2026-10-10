@@ -67,8 +67,8 @@ describe("<ui-label> classes", () => {
     ["fluid centered", "ui centered fluid label"],
     ["prompt", "ui prompt label"],
     ["active disabled inverted", "ui active disabled inverted label"],
-    // `image` is a string kind:  no grammar slot, so the element adds the class as an extra, after the noun
-    ["image", "ui label image"]
+    // `image` is a string kind:  no grammar slot, so the element adds the class as an extra, before the noun
+    ["image", "ui image label"]
   ])("<ui-label %s>", async (attributes, classes) => {
     const { root } = await label(`<ui-label ${attributes}>Text</ui-label>`)
     expect(root.className).toBe(classes)
@@ -76,13 +76,13 @@ describe("<ui-label> classes", () => {
 
   it("adds `icon` for an icon without text, not with text", async () => {
     const { root: alone } = await label(`<ui-label icon="check" aria-label="Checked"></ui-label>`)
-    expect(alone.className).toBe("ui label icon")
+    expect(alone.className).toBe("ui icon label")
     const { root: withText } = await label(`<ui-label icon="envelope">Mail</ui-label>`)
     expect(withText.className).toBe("ui label")
     const { root: slotted } = await label(
       `<ui-label aria-label="Checked"><ui-icon slot="icon" name="check"></ui-icon></ui-label>`
     )
-    expect(slotted.className).toBe("ui label icon")
+    expect(slotted.className).toBe("ui icon label")
   })
 
   it("sets `:state(active)` / `:state(disabled)`", async () => {
@@ -330,8 +330,8 @@ describe("<ui-label> tokens from outside", () => {
 
 describe("<ui-label> statistic / standalone swap", () => {
   it("keeps elements slotted into it live when its root switches branch", async () => {
-    // loaded first:  the label renders its slot synchronously, BEFORE the detail connects (the old owner bug's
-    // trigger, `@spell-app/solid-element` fix 11)
+    // loaded first:  the label renders its slot synchronously, BEFORE the detail connects.
+    // That order used to trigger an owner bug;  each element's Solid root has no owner now (epic `spell-element` Q8).
     await UI.load()
     const holder = await ElementFixture.render(
       `<div><ui-statistic><ui-label>Dogs<ui-detail>214</ui-detail></ui-label></ui-statistic><p></p></div>`

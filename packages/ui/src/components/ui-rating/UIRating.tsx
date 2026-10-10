@@ -1,6 +1,5 @@
-import { Repeat, Show, untrack } from "solid-js"
+import { Repeat, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
-import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
@@ -16,18 +15,13 @@ import ratingCSS from "./UIRating.css?inline"
  *
  * - Why:  `delegatesFocus` hands a plain `focus()` to the shadow root's FIRST focusable element (radio 1),
  *   even when radio 3 is chosen.  Tab and `<label for>` already reach the chosen one.
- * - solid-element refuses a DOM element member named like a prop:  `focus` is not one.
+ * - `DOMElement` refuses a member named like an attribute's property:  `focus` is not one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMRatingElement extends F.DOMFormControl {
+export class DOMRatingElement extends F.DOMFormControl<UIRating> {
   /** Focus the chosen radio, else the first. */
   override focus(options?: FocusOptions) {
-    if (!this.rating?.focus(options)) super.focus(options)
-  }
-
-  /** The component, once it exists. */
-  private get rating(): UIRating | undefined {
-    return this.component as UIRating | undefined
+    if (!this.component?.focus(options)) super.focus(options)
   }
 }
 
@@ -35,8 +29,9 @@ export class DOMRatingElement extends F.DOMFormControl {
  * ### `UIRating`
  * The component behind `<ui-rating>`:  a rating of one to `max-rating` icons, as an APG radio group.
  *
- * - Its shadow DOM:  `<fieldset class="ui … rating" part="rating" role="radiogroup">` holding one
- *   `<label class="[active] [partial] [selected] icon" part="icon">` per point,
+ * - Its shadow DOM:
+ *   `<fieldset class="ui … rating" part="rating" role="radiogroup">`
+ *   holding one `<label class="[active] [partial] [selected] icon" part="icon">` per point,
  *   each around a native radio (`part="control"`, invisible, over the glyph) and the icon's `<svg>`.
  *
  * - Why native radios in one shadow root:  they ARE a radio group, and each carries its own name ("3 of 5").
@@ -47,8 +42,9 @@ export class DOMRatingElement extends F.DOMFormControl {
  * - `value` is controlled (`@controlled`):  a choice sends `ui-change` first;
  *   a handler that sets `el.value` again wins, and the radios show that value.
  *   The ATTRIBUTE is the starting (and reset) value.
- * - Fractions (`value="3.5"`) fill part of the next icon (Fomantic's `partial`, `--full`).  Only a display:
- *   no radio is chosen, and the group's `aria-description` says "Rated 3.5 of 5".  A person's choice is always whole.
+ * - Fractions (`value="3.5"`) fill part of the next icon (Fomantic's `partial`, `--full`).
+ *   - Only a display:  no radio is chosen, and the group's `aria-description` says "Rated 3.5 of 5".
+ *   - A person's choice is always whole.
  * - `clearable`:  choosing the current rating again clears it (Fomantic's `clearable`;  `auto` ~== one icon).
  * - Hover previews a choice (`selected` icons, `selected` root), as Fomantic's script did.
  * - `readonly` (Fomantic's `interactive: false`):  focusable, announced read-only, and nothing changes it.
@@ -58,19 +54,17 @@ export class DOMRatingElement extends F.DOMFormControl {
  ****************/
 export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   @E.proto static vocabulary = ratingVocabulary
-  @E.proto static styleSheets = { rating: ratingCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { rating: ratingCSS },
     Fallback: RatingFallback,
     DOMElement: DOMRatingElement
   } satisfies Partial<E.ElementSetup>
 
-  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
-    super(...args)
-    this.domElement.addEventListener("invalid", this.onInvalid)
-    this.domElement.addEventListener("click", this.onDOMElementClick)
-    onFormStateRestore((state) => {
-      this.value = Number(state) || 0
-    })
+  /** Shows as invalid only once a person has interacted. */
+  @E.proto static invalidShows: E.InvalidTiming = "once touched"
+
+  onFormStateRestore(state: File | string | FormData | null) {
+    this.value = Number(state) || 0
   }
 
   ////////////////
@@ -111,8 +105,9 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /** Check exactly the radio of the current rating (none for 0 or a fraction). */
+  @E.untracked
   private syncRadios() {
-    const rating = untrack(() => this.rating)
+    const rating = this.rating
     for (const radio of this.radios()) radio.checked = Number(radio.value) === rating
   }
 
@@ -124,7 +119,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   choose(value: number, originalEvent?: Event): boolean {
     this.isTouched = true
     const applied = this.requestChange("value", value, () => this.send("ui-change", { value, originalEvent }))
-    if (!applied) queueMicrotask(() => this.syncRadios())
+    if (!applied) E.afterSolidUpdate(() => this.syncRadios())
     return applied
   }
 
@@ -146,13 +141,14 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /** `selected` while the pointer previews a choice. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.hoveredPoint ? UIT.SELECTED : undefined
   }
 
   /** Preview choice `point` while pointing at it. */
+  @E.untracked
   private hover(point: number) {
-    if (untrack(() => this.isInteractive)) this.hoveredPoint = point
+    if (this.isInteractive) this.hoveredPoint = point
   }
 
   /** The pointer left the group:  no preview. */
@@ -161,39 +157,8 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   ////////////////
-  // ## Disabled
-  ////////////////
-
-  /** Disabled by its attribute, or by a disabled fieldset. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
-  protected classValue(name: E.AttributeName<typeof ratingVocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
-  }
-
-  ////////////////
-  // ## Name
-  ////////////////
-
-  /** The DOM element's `<label>`s and `aria-label`, as the group's name. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
-
-  /** Connected:  read the labels again (they may have changed while it was away). */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (isConnected) this.labels.refresh()
-  }
-
-  ////////////////
   // ## Form
   ////////////////
-
-  /** A person has interacted:  only then does it show as invalid. */
-  @E.state accessor isTouched = false
 
   /** The rating while above `0`;  `null` (`setFormValue()`'s "no value") at `0`. */
   get formValue(): E.FieldValue {
@@ -201,18 +166,9 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
     return rating > 0 ? String(rating) : null
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
-  /** Back to the `value` ATTRIBUTE;  forgets the interaction. */
+  /** Back to the `value` ATTRIBUTE. */
   onFormReset() {
     this.value = E.Converters.number(this.attributes.value)
-    this.isTouched = false
-  }
-
-  protected get validationRules(): E.ValidationRule[] {
-    return this.required ? [UIT.REQUIRED_RULE] : []
   }
 
   protected get validationLabel(): string | undefined {
@@ -221,15 +177,6 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
 
   protected get validationAnchor(): HTMLElement | undefined {
     return this.radios()[0]
-  }
-
-  protected shouldShowInvalid(result: E.ValidationResult): boolean {
-    return !result.valid && this.isTouched
-  }
-
-  /** A submit or `reportValidity()` found it invalid:  show it. */
-  private readonly onInvalid = () => {
-    this.isTouched = true
   }
 
   ////////////////
@@ -250,14 +197,14 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
     return (
       <fieldset
         ref={(element) => (this.group = element)}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("rating")}
         role="radiogroup"
         disabled={this.isDisabled}
         aria-label={this.labels.accessibleName}
         aria-readonly={this.readonly ? "true" : undefined}
         aria-required={this.required ? "true" : undefined}
-        aria-invalid={this.isTouched && !this.validation.valid ? "true" : undefined}
+        aria-invalid={this.isShownInvalid ? "true" : undefined}
         aria-description={this.fractionDescription}
         onPointerLeave={this.onPointerLeave}
         onKeyDown={this.onKeyDown}
@@ -340,13 +287,14 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   ////////////////
 
   /** `readonly`:  cancel the click (the radio reverts);  the current rating clicked again clears a clearable one. */
+  @E.untracked
   private readonly onClick = (event: MouseEvent) => {
-    if (untrack(() => this.readonly)) {
+    if (this.readonly) {
       event.preventDefault()
       return
     }
     const point = Number((event.currentTarget as HTMLInputElement).value)
-    if (point === untrack(() => this.rating) && untrack(() => this.isClearable)) this.choose(0, event)
+    if (point === this.rating && this.isClearable) this.choose(0, event)
   }
 
   /** A radio was chosen (click, arrows, Space). */
@@ -355,13 +303,14 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /** `readonly` blocks the native keys;  Home / End jump;  Backspace / Delete clear a clearable rating. */
+  @E.untracked
   private readonly onKeyDown = (event: KeyboardEvent) => {
     const { key } = event
-    if (untrack(() => this.readonly)) {
+    if (this.readonly) {
       if (CHOICE_KEYS.has(key)) event.preventDefault()
       return
     }
-    if (!untrack(() => this.isInteractive)) return
+    if (!this.isInteractive) return
     if (key === UIT.Key.home || key === UIT.Key.end) {
       event.preventDefault()
       const radios = this.radios()
@@ -380,14 +329,15 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
       if (target && !target.checked) this.choose(Number(target.value), event)
       return
     }
-    if (CLEAR_KEYS.has(key) && untrack(() => this.isClearable)) {
+    if (CLEAR_KEYS.has(key) && this.isClearable) {
       event.preventDefault()
       this.choose(0, event)
     }
   }
 
   /**
-   * Which way an arrow key would run off the end of the group:  -1 before the first radio, 1 past the last,
+   * Which way an arrow key would run off the end of the group:
+   * -1 before the first radio, 1 past the last,
    * 0 when it is not that (the browser moves, or wraps, on its own).
    */
   private wrapStep(event: KeyboardEvent): -1 | 0 | 1 {
@@ -404,8 +354,7 @@ export class UIRating extends F.FormComponent<typeof ratingVocabulary> {
   }
 
   /** A click aimed at the DOM element itself (its `<label for>`) focuses the group's tab stop. */
-  private readonly onDOMElementClick = (event: MouseEvent) => {
-    if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
+  protected activateControl() {
     this.focus()
   }
 

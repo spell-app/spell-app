@@ -122,6 +122,18 @@
         "title": "Review:  Docs Index",
         "category": "Spell",
         "icon": "$(home)"
+      },
+      {
+        "command": "spell.docView.inspect",
+        "title": "Inspect:  opens (or closes) Developer Tools;  then Cmd+Shift+C there (the arrow, top left) and click in the page",
+        "category": "Spell",
+        "icon": "$(inspect)"
+      },
+      {
+        "command": "spell.docView.showConsole",
+        "title": "Show Console:  opens (or closes) Developer Tools;  then its Console tab, and the page (127.0.0.1) in the menu at its top left",
+        "category": "Spell",
+        "icon": "$(debug-console)"
       }
     ],
     "configuration": {
@@ -247,6 +259,16 @@
           "command": "spell.reviewView.openEpic",
           "when": "view == spell.reviewView",
           "group": "navigation@0"
+        },
+        {
+          "command": "spell.docView.inspect",
+          "when": "view == spell.docView || view == spell.reviewView",
+          "group": "navigation@6"
+        },
+        {
+          "command": "spell.docView.showConsole",
+          "when": "view == spell.docView || view == spell.reviewView",
+          "group": "navigation@7"
         }
       ]
     },

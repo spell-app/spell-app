@@ -17,13 +17,11 @@ import placeholderCSS from "./UIPlaceholder.css?inline"
  ****************/
 export class UIPlaceholder extends E.UIComponent<typeof placeholderVocabulary> {
   @E.proto static vocabulary = placeholderVocabulary
-  @E.proto static styleSheets = { placeholder: placeholderCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
-
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    this.domElement.internals.ariaHidden = "true"
-  }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { placeholder: placeholderCSS },
+    delegatesFocus: false,
+    aria: { ariaHidden: "true" }
+  } satisfies Partial<E.ElementSetup>
 
   /** A placeholder:  always (`:state(placeholder)`). */
   @E.cssState(UIT.PLACEHOLDER_HOST_STATE)
@@ -33,7 +31,7 @@ export class UIPlaceholder extends E.UIComponent<typeof placeholderVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("placeholder")}>
+      <div class={this.rootClass} part={this.partForName("placeholder")}>
         <slot />
       </div>
     )

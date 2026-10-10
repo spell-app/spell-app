@@ -7,18 +7,20 @@ import statisticCSS from "./UIStatistic.css?inline"
 
 /****************
  * ### `UIStatistics`
- * The component behind `<ui-statistics>`:  a group of statistics sharing one look,
- * `<div class="ui … statistics" part="group"><slot></slot></div>`.
+ * The component behind `<ui-statistics>`:
+ * a group of statistics sharing one look, `<div class="ui … statistics" part="group"><slot></slot></div>`.
  *
  * - `UIStatistic.css` hands the group's size, colour, layout, count and stacking to its statistics
  *   through inherited private tokens.
  * - The DOM element is a block and the size container `stackable` answers to (`:state(statistics)`);
- *   with `stack-with="page"` (a private class after the noun), the screen is.
+ *   with `stack-with="page"` (a private class before the noun), the screen is.
  ****************/
 export class UIStatistics extends E.UIComponent<typeof statisticsVocabulary> {
   @E.proto static vocabulary = statisticsVocabulary
-  @E.proto static styleSheets = { statistic: statisticCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { statistic: statisticCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Always `:state(statistics)`:  the size container `stackable` answers to. */
   @E.cssState("statistics")
@@ -38,13 +40,13 @@ export class UIStatistics extends E.UIComponent<typeof statisticsVocabulary> {
   }
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return UIT.StackClasses.classFor(this.stackWith)
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("group")}>
+      <div class={this.rootClass} part={this.partForName("group")}>
         <slot />
       </div>
     )

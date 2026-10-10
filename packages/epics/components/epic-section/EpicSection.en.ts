@@ -11,7 +11,14 @@ import type { EpicVocabulary } from "$/epics/definitions"
 // the review controls an Overview sub-section draws, as `<epic-item>` does;  the new-item controls of Todos and Questions
 import { NEW_PARTS, NEW_TEXTS, REVIEW_PARTS, REVIEW_TEXTS } from "$/epics/components/epic-item/EpicItem.types"
 
-import { FOLD_EVENTS, FOLD_OPEN_ATTRIBUTE, FOLD_PARTS, FOLD_STATES, FOLD_TEXTS } from "./EpicSection.types"
+import {
+  FILTER_TEXTS,
+  FOLD_EVENTS,
+  FOLD_OPEN_ATTRIBUTE,
+  FOLD_PARTS,
+  FOLD_STATES,
+  FOLD_TEXTS
+} from "./EpicSection.types"
 
 /****************
  * ### `<epic-section>`
@@ -80,7 +87,16 @@ export const epicSectionVocabulary = {
     },
     FOLD_OPEN_ATTRIBUTE
   ],
-  events: [...FOLD_EVENTS],
+  events: [
+    ...FOLD_EVENTS,
+    {
+      name: "ui-filter",
+      detail: "{ states: string[] | undefined }",
+      description:
+        "Its state filter changed:  its chips, `show all`, or the page's toolbar (`showStates()`).  `states` the ones " +
+        "showing;  none:  every state."
+    }
+  ],
   slots: [
     { name: "", description: "Its phases, items, log events or prose." },
     { name: "title", description: "A title with markup, in place of `title`." },
@@ -109,8 +125,8 @@ export const epicSectionVocabulary = {
     {
       name: "filter",
       description:
-        "An item section's state filter:  a grey filter chip (show all / only what needs you), then one round chip " +
-        "per state its items are in, filled while that state's items show."
+        "An item section's state filter:  one chip per state its items are in, with how many, solid while that " +
+        "state's items show, outlined while hidden."
     },
     { name: "hidden-note", description: 'Under a filtered list:  "3 hidden · show all".' },
     { name: "changes", description: "The Phases section's Plan changes box, above its phases." },
@@ -138,24 +154,7 @@ export const epicSectionVocabulary = {
     { key: "showVerify", text: "Show each phase's Verify", description: "The Phases title's Verify toggle, off." },
     { key: "hideVerify", text: "Hide each phase's Verify", description: "The Verify toggle, on." },
     { key: "count", text: "{open} open of {total}", description: "The count badge's tooltip:  `3/7` in words." },
-    { key: "filterLabel", text: "Show items by state", description: "The state filter's group, for a screen reader." },
-    { key: "showAll", text: "Show everything", description: "The filter chip:  what its click does." },
-    {
-      key: "showNeeds",
-      text: "Show only what needs you",
-      description: "The filter chip, everything showing and an item needing attention:  what its click does."
-    },
-    { key: "showing", text: "Showing:  {words}", description: "A state chip, pressed:  its items show." },
-    { key: "hiding", text: "Hiding:  {words}", description: "A state chip, not pressed:  its items are hidden." },
-    {
-      key: "stateProgress",
-      text: "Claude is working on it",
-      description: "A state chip's words:  `progress` (blue)."
-    },
-    { key: "stateAttention", text: "needs attention", description: "A state chip's words:  `attention` (red)." },
-    { key: "stateOpen", text: "open, still undecided", description: "A state chip's words:  `open` (yellow)." },
-    { key: "stateRecent", text: "decided or done", description: "A state chip's words:  `recent` (green)." },
-    { key: "stateOld", text: "no longer relevant", description: "A state chip's words:  `old` (grey)." },
+    ...FILTER_TEXTS,
     { key: "hiddenNote", text: "{count} hidden · show all", description: "Under a filtered list;  a click shows all." },
     { key: "changesTitle", text: "Plan changes", description: "The Phases section's box of changes to phases to do." },
     ...REVIEW_TEXTS,

@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -19,7 +19,8 @@ import tocCSS from "./UIDocsToc.css?inline"
  * The component behind `<ui-docs-toc>`:  Fomantic's docs "On this page" menu
  * (`ui vertical following fluid accordion text menu`, in the right rail).
  *
- * - Its shadow DOM:  `<div class="ui [size] toc" part="toc">` holding an optional `<ui-header part="header">`
+ * - Its shadow DOM:
+ *   `<div class="ui [size] toc" part="toc">` holding an optional `<ui-header part="header">`
  *   and ONE `<ui-menu vertical text fluid part="menu">` (the landmark) of section links.
  *   Under the section in view, an item holds a `<ui-menu part="entries">` of its entries' links.
  * - It lists the FOLLOWED content (`for`;  of a `<ui-tabs>`, its shown pane) by `TocIndex.scan()`:
@@ -31,20 +32,22 @@ import tocCSS from "./UIDocsToc.css?inline"
  * - It follows the scroll:  the entry whose top passed the reading line (`TocIndex.current()`) is `selected`,
  *   and its section opens;  `ui-change { value }` when that changes.
  * - Links are plain `#id` links:  the browser scrolls (below the document's `scroll-padding-top`).
- *   A hash naming an element in a HIDDEN pane of the followed tabs (a link from elsewhere, or a page opened on it)
- *   shows that pane first, then scrolls to it:  `<ui-tabs history>` ignores hashes that aren't pane values.
+ *   - A hash naming an element in a HIDDEN pane of the followed tabs (a link from elsewhere, or a page opened on it)
+ *     shows that pane first, then scrolls to it:  `<ui-tabs history>` ignores hashes that aren't pane values.
  * - It scans again when the tabs show another pane (`ui-show`),
  *   and when the followed content changes (a `MutationObserver`:  children, `header` / `level` / `id`).
- *   It re-follows when that content resizes (a `ResizeObserver`:  components drawing late move the headings
- *   without any scroll).
+ * - It re-follows when that content resizes
+ *   (a `ResizeObserver`:  components drawing late move the headings without any scroll).
  * - SIDE EFFECTS:
  *   - gives each listed heading / example without an `id` one (a slug of its text), so its link works
  *   - while connected:  `window` `scroll` / `resize` / `hashchange` listeners, and the two observers.
  ****************/
 export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   @E.proto static vocabulary = docsTocVocabulary
-  @E.proto static styleSheets = { "docs-toc": tocCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "docs-toc": tocCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The sections
@@ -83,7 +86,7 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("toc")}>
+      <div class={this.rootClass} part={this.partForName("toc")}>
         <Show when={this.header}>
           <ui-header part={this.partForName("header")}>{this.header}</ui-header>
         </Show>
@@ -119,8 +122,8 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   }
 
   /**
-   * `parent`'s entries, while it's open (`expanded`, or on the way to the entry in view):  a menu of their links,
-   * each followed by its own entries the same way (nested `<ui-section>`s).
+   * `parent`'s entries, while it's open (`expanded`, or on the way to the entry in view):
+   * a menu of their links, each followed by its own entries the same way (nested `<ui-section>`s).
    */
   private entries(parent: TocEntry): JSX.Element {
     const isOpen = () => !!parent.entries.length && (!!this.expanded || this.pathInView.includes(parent.id))
@@ -157,20 +160,18 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   // ## Following the page
   ////////////////
 
-  /** Scheduled frame of a pending scan / follow, if any. */
-  private scheduledFrame = 0
+  /** Cancels the frame scheduled for a pending scan / follow, if any. */
+  private cancelScheduledFrame?: () => void
 
-  /** What the `scheduledFrame` does:  a rescan wins over a follow. */
+  /** What the scheduled frame does:  a rescan wins over a follow. */
   private queuedUpdate: TocUpdate | undefined
 
-  /** SIDE EFFECT:  page listeners and the observers, while connected. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    return isConnected ? this.watch() : undefined
-  }
-
-  /** Start following:  the first scan, the hash, listeners and the observers;  returns their cleanup. */
-  private watch(): () => void {
+  /**
+   * While connected, follow the page:  the first scan, the hash, listeners and the observers;  returns their cleanup.
+   * - SIDE EFFECT:  page listeners and the observers.
+   */
+  @E.whileConnected
+  protected watch(): () => void {
     const document = this.domElement.ownerDocument
     const view = document.defaultView!
     const observer = new MutationObserver(() => this.schedule("rescan"))
@@ -186,7 +187,7 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
     view.addEventListener("hashchange", onHash)
     // the toc may come before what it follows:  look again once the page is parsed
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true })
-    else queueMicrotask(start)
+    else E.afterSolidUpdate(start)
     return () => {
       observer.disconnect()
       resized.disconnect()
@@ -195,14 +196,14 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
       view.removeEventListener("scroll", onScroll)
       view.removeEventListener("resize", onScroll)
       view.removeEventListener("hashchange", onHash)
-      cancelAnimationFrame(this.scheduledFrame)
-      this.scheduledFrame = 0
+      this.cancelScheduledFrame?.()
+      this.cancelScheduledFrame = undefined
     }
   }
 
   /**
    * Follow what `for` names, once it exists:  observe it, hear its tabs show a pane, scan it, land on the hash.
-   * Returns what it follows (`watch()` undoes the tabs' listener), or `undefined` while it doesn't exist.
+   * - Returns what it follows (`watch()` undoes the tabs' listener), or `undefined` while it doesn't exist.
    */
   private observe({ observer, resized, onShow }: Observers): FollowedContent | undefined {
     const followed = this.followedContent()
@@ -224,13 +225,13 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   private schedule(update: TocUpdate): void {
     if (update === "rescan") this.queuedUpdate = update
     else this.queuedUpdate ??= update
-    if (this.scheduledFrame) return
-    this.scheduledFrame = requestAnimationFrame(() => this.onFrame())
+    if (this.cancelScheduledFrame) return
+    this.cancelScheduledFrame = E.beforeNextPaint(() => this.onFrame())
   }
 
   /** The scheduled frame:  do what's queued. */
   private onFrame(): void {
-    this.scheduledFrame = 0
+    this.cancelScheduledFrame = undefined
     const update = this.queuedUpdate
     this.queuedUpdate = undefined
     if (update === "rescan") this.rescan()
@@ -248,17 +249,18 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   }
 
   /** Mark the entry in view;  `ui-change` when it moved. */
-  private followScroll(sections = untrack(() => this.sections)): void {
+  @E.untracked
+  private followScroll(sections = this.sections): void {
     const id = TocIndex.current(sections, this.domElement.ownerDocument)
-    if (id === untrack(() => this.idInView)) return
+    if (id === this.idInView) return
     this.idInView = id
     if (id) this.send("ui-change", { value: id })
   }
 
   /**
    * Show what `location.hash` names:  its pane first when it's in a hidden pane of the followed tabs,
-   * then scroll to it.  On `"page load"`, scroll again once the page's root is ready (components arriving move the
-   * target down).
+   * then scroll to it.
+   * - On `"page load"`, scroll again once the page's root is ready (components arriving move the target down).
    */
   private reveal(moment: RevealMoment): void {
     const document = this.domElement.ownerDocument
@@ -272,8 +274,8 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
     const isPageLoad = moment === "page load"
     if (tabs && pane && TocIndex.shownPane(tabs) !== pane) {
       ;(tabs as HTMLElement & { value?: string }).value = TocIndex.paneValue(tabs, pane)
-      requestAnimationFrame(() => requestAnimationFrame(scroll))
-    } else if (isPageLoad || !target.getClientRects().length) requestAnimationFrame(scroll)
+      E.beforeNextPaint(() => E.beforeNextPaint(scroll))
+    } else if (isPageLoad || !target.getClientRects().length) E.beforeNextPaint(scroll)
     if (isPageLoad) TocIndex.whenReady(this.domElement, scroll)
   }
 

@@ -1,13 +1,13 @@
-import { onSettled, untrack } from "solid-js"
+import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 // Import directly to avoid circular import
-import { proto } from "$/ui/util"
+import { lazy, proto, protoMerged } from "$/ui/util"
 import { E, UI, type UIT } from "$/ui/core"
 // Import directly to avoid circular import
 import { UIComponent } from "./UIComponent"
 import { DOMLoadableElement } from "./DOMLoadableElement"
-import { cssState, onChange, state } from "./Reactive"
+import { cssState, fromContent, onChange, state, untracked } from "./Reactive"
 import { SOURCE_LOADER_TAG, SOURCE_MESSAGE_TAG } from "./elements.types"
 
 /****************
@@ -19,30 +19,39 @@ import { SOURCE_LOADER_TAG, SOURCE_MESSAGE_TAG } from "./elements.types"
  * - Text comes from, first match wins:
  *   1. `domElement.content = "..."` (`wasEdited`), until `source` changes or `reload()`
  *   2. `source`:  fetched through `UI.sources` (same origin only), when `load` says (`eager`, `visible`, `idle`)
- *   3. the DOM element's own content (`wantsInlineContent`):  a `<script type="text/...">` child (exact text), else a
- *      `<template>` child (its markup), else the DOM element's text;  dedented;  followed by a `MutationObserver`
- * - States:  `:state(loading)` (a `<ui-loader>` shows), `:state(error)` (a `<ui-message>` says why, unless the
- *   cancelable `ui-error` was cancelled), `:state(saving)`, `:state(dirty)`.
+ *   3. the DOM element's own content (`wantsInlineContent`), dedented, followed as it changes (`@fromContent`):
+ *      a `<script type="text/...">` child (exact text), else a `<template>` child (its markup),
+ *      else the DOM element's text
+ * - States:
+ *   - `:state(loading)`:  a `<ui-loader>` shows
+ *   - `:state(error)`:  a `<ui-message>` says why, unless the cancelable `ui-error` was cancelled
+ *   - `:state(saving)`, `:state(dirty)`
  * - Saving (`save()`):  the cancelable `ui-save` first, then `UI.sources.save()` through the page's saver;
- *   `ui-saved` or `ui-error` after.  A save failure never replaces the content with a message.
- * - The vocabulary MUST spread `UIT.SourceAttributes` / `SourceEvents` / `SourceParts` / `SourceStates` /
- *   `SourceTexts`:  the names used here.  The family barrel MUST import `ui-loader` and `ui-message` (built here by
- *   tag, see `SOURCE_LOADER_TAG`).
+ *   `ui-saved` or `ui-error` after.
+ *   - A save failure never replaces the content with a message.
+ * - The vocabulary MUST spread the names used here:
+ *   `UIT.SourceAttributes` / `SourceEvents` / `SourceParts` / `SourceStates` / `SourceTexts`.
+ * - The family barrel MUST import `ui-loader` and `ui-message` (built here by tag, see `SOURCE_LOADER_TAG`).
  * - A moved element keeps its content:  reconnecting doesn't fetch again (`keepAlive`).
- * - Imports the core as `E` / `UI` / `UIT`, except what its class definition reads (the base class,
- *   `elementSetup.DOMElement`, the decorators, the status tags):  directly (WWOD §4 › "Circular imports").
- *   NEVER a value from `$/ui/components`:  the vocabulary pieces it relies on (`UIT.Source*`) only as types.
+ * - Imports the core as `E` / `UI` / `UIT`, except what its class definition reads:
+ *   the base class, `elementSetup.DOMElement`, the decorators and the status tags come directly
+ *   (WWOD §4 › "Circular imports").
+ *   - NEVER a value from `$/ui/components`:  the vocabulary pieces it relies on (`UIT.Source*`) only as types.
  ****************/
 export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.ComponentVocabulary>
   extends UIComponent<V>
   implements E.LoadableComponentShape
 {
   /**
-   * Read the DOM element's own content as the text when there's no `source`?  See `@proto static wantsInlineContent`.
+   * Read the DOM element's own content as the text when there's no `source`?
+   * - See `@proto static wantsInlineContent`.
    */
   declare wantsInlineContent: boolean
 
-  @proto static elementSetup: Partial<E.ElementSetup> = {
+  // NOTE: `this.domElement as DOMLoadableElement` below, not a `declare readonly domElement: DOMLoadableElement`:
+  // two field initializers here read it,
+  // and TypeScript refuses those as "used before its initialization" (TS2729)
+  @protoMerged static elementSetup: Partial<E.ElementSetup> = {
     // with the script API (`content`, `save()`, `loaded` ...)
     DOMElement: DOMLoadableElement
   }
@@ -57,7 +66,8 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
   declare source: string | undefined
 
   /**
-   * `load`:  when to fetch `source`;  `undefined` for a value the vocabulary doesn't know.  Its getter, as `source`.
+   * `load`:  when to fetch `source`;  `undefined` for a value the vocabulary doesn't know.
+   * - The vocabulary's getter, as `source`.
    */
   declare load: UIT.SourceLoadMode | undefined
 
@@ -66,12 +76,13 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
   ////////////////
 
   /**
-   * The DOM element's own content as text, dedented (`wantsInlineContent`);  followed from `onMount()`.
-   * - `(this as LoadableComponent)`:  TS calls `wantsInlineContent` "used before its initialization" in an initializer,
-   *   though it's on the prototype (`@proto static`) before any instance exists.
+   * The DOM element's own content as text, dedented (`wantsInlineContent`);  follows it as the page changes it.
+   * - `""` on a server, and for a class that doesn't want inline content.
    */
-  @state accessor inlineText =
-    isServer || !(this as LoadableComponent).wantsInlineContent ? "" : LoadableComponent.inlineTextOf(this.domElement)
+  @fromContent({ childList: true, characterData: true, subtree: true })
+  get inlineText(): string {
+    return isServer || !this.wantsInlineContent ? "" : LoadableComponent.inlineTextOf(this.domElement)
+  }
 
   /** Last text fetched from `source`. */
   @state accessor fetchedText: string | undefined = undefined
@@ -117,7 +128,10 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
     return this.load ?? "eager"
   }
 
-  /** `source` the current content belongs to;  a different one drops edits.  Not reactive:  nothing renders it. */
+  /**
+   * `source` the current content belongs to;  a different one drops edits.
+   * - Not reactive:  nothing renders it.
+   */
   private contentSource: E.URLString | undefined
 
   /** `source` whose text is in `fetchedText`;  reconnecting with the same one fetches nothing. */
@@ -145,8 +159,8 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
 
   /**
    * Start showing `source` (or the inline content) as `policy` says;  returns how to stop.
-   * - A new `source` drops edits and starts a new `domElement.loaded`;  the same one already fetched does nothing
-   *   (a reconnect).
+   * - A new `source` drops edits and starts a new `domElement.loaded`.
+   * - The same one already fetched does nothing (a reconnect).
    */
   private scheduleLoad(source: E.URLString | undefined, policy: UIT.SourceLoadMode): (() => void) | undefined {
     const domElement = this.domElement as DOMLoadableElement
@@ -158,7 +172,7 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
     if (!source) {
       this.loadStatus = E.SourceStatus.loaded
       this.loadError = undefined
-      queueMicrotask(() => this.onLoaded(untrack(() => this.textToShow)))
+      E.afterSolidUpdate(() => this.onLoaded(this.textToShow))
       return undefined
     }
     if (source === this.fetchedSource && !this.isFresh) return undefined
@@ -209,17 +223,22 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
     }
   }
 
-  /** Content arrived:  settle `domElement.loaded`, then `ui-load` (an edit, when there is one, wins as the content). */
+  /**
+   * Content arrived:  settle `domElement.loaded`, then `ui-load`.
+   * - An edit, when there is one, wins as the content.
+   */
+  @untracked
   private onLoaded(text: string) {
     const content = this.wasEdited ?? text
     ;(this.domElement as DOMLoadableElement).endLoad(content)
-    this.sendSourceEvent(E.SourceEvent.load, { source: untrack(() => this.source || undefined), content })
+    this.sendSourceEvent(E.SourceEvent.load, { source: this.source || undefined, content })
   }
 
   /** Fetch `source` again past the cache, dropping edits;  resolves with the new content. */
+  @untracked
   reload(): Promise<string> {
     const domElement = this.domElement as DOMLoadableElement
-    const source = untrack(() => this.source || undefined)
+    const source = this.source || undefined
     this.dropEdits()
     if (!source) return domElement.loaded
     this.stopLoading?.()
@@ -258,11 +277,12 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
    * Loading or showing failed:  `ui-error`, then the message unless it was cancelled.
    * - Subclasses call it for `render` failures (bad markup, an unknown language ...).
    */
+  @untracked
   protected onLoadError(error: unknown, kind: E.SourceErrorKind = "load") {
     const reason = E.SourceError.kindFor(error, kind)
     this.loadStatus = E.SourceStatus.error
     ;(this.domElement as DOMLoadableElement).failLoad(error)
-    const source = untrack(() => this.source || undefined)
+    const source = this.source || undefined
     const isShown = this.sendSourceEvent(E.SourceEvent.error, { kind: reason, source, error })
     if (isShown) this.loadError = { kind: reason, error }
   }
@@ -289,13 +309,16 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
    * - `text` given:  shown first, as setting `content`.
    * - The cancelable `ui-save` first:  cancelled -> `false` (the listener saves).
    * - No `source`:  nothing to write -- the content stays, `ui-saved`, `true`.
-   * - Else `UI.sources.save()` (`fragment`:  `saveFragment()`);  `ui-saved` with the new `etag`, or `ui-error`
-   *   (`save`, `conflict`, `no-saver` ...) and `false`.  The content stays either way.
+   * - Else `UI.sources.save()` (`fragment`:  `saveFragment()`), then
+   *   - `ui-saved` with the new `etag`
+   *   - or `ui-error` (`save`, `conflict`, `no-saver` ...) and `false`
+   * - The content stays either way.
    */
+  @untracked
   async save(text?: string): Promise<boolean> {
     if (text !== undefined) this.content = text
     const { content, lastETag: etag } = this
-    const source = untrack(() => this.source || undefined)
+    const source = this.source || undefined
     if (!this.sendSourceEvent(E.SourceEvent.save, { source, content, etag })) return false
     if (!source) {
       this.isDirty = false
@@ -343,26 +366,12 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
   }
 
   /**
-   * Follows the DOM element's own content (`wantsInlineContent`), then renders;  loading follows `onSourceChanged()`.
-   */
-  onMount(): JSX.Element {
-    if (!isServer && this.wantsInlineContent) {
-      onSettled(() => {
-        const observer = new MutationObserver(() => (this.inlineText = LoadableComponent.inlineTextOf(this.domElement)))
-        observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
-        return () => observer.disconnect()
-      })
-    }
-    return super.onMount()
-  }
-
-  /**
    * The `<ui-loader>` shown while loading.
-   * - Built once, by the DOM (`statusElement()`:  Solid's JSX has no types for our tags);  each time it shows, its
-   *   `aria-label` says what's loading ("Loading <source>").
+   * - Built once, by the DOM (`statusElement()`:  Solid's JSX has no types for our tags).
+   * - Each time it shows, its `aria-label` says what's loading ("Loading <source>").
    */
   private loader(): HTMLElement {
-    const loader = (this.loaderElement ??= this.statusElement(SOURCE_LOADER_TAG, "loader"))
+    const loader = this.loaderElement
     loader.setAttribute(
       "aria-label",
       this.translationForKey("sourceLoading" as E.TextKey<V>, { source: this.source ?? "" })
@@ -370,18 +379,22 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
     return loader
   }
 
-  /** The loader, once built. */
-  private loaderElement?: HTMLElement
+  /** The loader, built on first use. */
+  @lazy private get loaderElement(): HTMLElement {
+    return this.statusElement(SOURCE_LOADER_TAG, "loader")
+  }
 
   /** The `<ui-message>` shown on failure, built once as the loader is;  its text follows `errorText`. */
   private errorMessage(): HTMLElement {
-    const message = (this.errorElement ??= this.statusElement(SOURCE_MESSAGE_TAG, "error"))
+    const message = this.errorElement
     message.textContent = this.errorText ?? ""
     return message
   }
 
-  /** The error message, once built. */
-  private errorElement?: HTMLElement
+  /** The error message, built on first use. */
+  @lazy private get errorElement(): HTMLElement {
+    return this.statusElement(SOURCE_MESSAGE_TAG, "error")
+  }
 
   /** A `<ui-loader>` or `<ui-message>` with part `part`, and the attributes `STATUS_ATTRIBUTES` gives its tag. */
   private statusElement(tag: keyof typeof STATUS_ATTRIBUTES, part: string): HTMLElement {
@@ -396,8 +409,8 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
   ////////////////
 
   /**
-   * Throws (a `SourceError`, its `kind` the failure's) when this element must NOT load `source`, checked before
-   * fetching;  default never.
+   * Hook, checked before fetching:  throws when this element must NOT load `source`;  default never.
+   * - Throws a `SourceError`, its `kind` the failure's.
    * - `<ui-include>`:  a cycle (an include inside an include of the same file).
    */
   protected checkSource(_source: string) {}
@@ -421,11 +434,11 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
   ////////////////
 
   /**
-   * `domElement`'s own content as text:  a `<script type="text/...">` child's exact text, else a `<template>` child's
-   * markup, else the DOM element's text;  dedented.
+   * `domElement`'s own content as text, dedented:
+   * a `<script type="text/...">` child's exact text, else a `<template>` child's markup, else the DOM element's text.
    * - Static:  the native fallbacks (`ui-code`, `ui-markdown`) read the same text, without a component.
-   * - `localName`, not `instanceof HTMLScriptElement`:  shared code never names a DOM global (`AGENTS.md` "Solid
-   *   authoring" › SSR).
+   * - `localName`, not `instanceof HTMLScriptElement`:
+   *   shared code never names a DOM global (`AGENTS.md` "Solid authoring" › SSR).
    */
   static inlineTextOf(domElement: HTMLElement): string {
     let text = domElement.textContent ?? ""
@@ -443,8 +456,8 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
   }
 
   /**
-   * `text` without its common indent, and without blank first / last lines:  inline content is indented with the
-   * page's markup.
+   * `text` without its common indent, and without blank first / last lines:
+   * inline content is indented with the page's markup.
    * - Tabs and spaces count one each;  blank lines don't set the indent.
    * - Static:  pure text, no element needed.
    */

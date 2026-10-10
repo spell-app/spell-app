@@ -12,35 +12,30 @@ import nagCSS from "./UINag.css?inline"
  * The DOM element of `<ui-nag>`:  it adds the nag's script API,
  * `close()`, `show()`, `clear()` and `dismissed`, which its component does.
  *
- * - NOTE: solid-element checks the DOM element's prototype members against the prop names;  none of these is one.
+ * - NOTE: `DOMElement` checks its members against the attributes' property names;  none of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMNagElement extends E.DOMElement {
+export class DOMNagElement extends E.DOMElement<UINag> {
   /**
    * Dismiss it now, reason `dismiss` (the cancelable `ui-close` first), storing the dismissal;  true when it closes.
    */
   close(): boolean {
-    return this.nag?.close() ?? false
+    return this.component?.close() ?? false
   }
 
   /** Show it again, unless a dismissal is stored (and it doesn't `persist`);  true when it shows. */
   show(): boolean {
-    return this.nag?.show() ?? false
+    return this.component?.show() ?? false
   }
 
   /** Forget a stored dismissal (Fomantic's `clear`). */
   clear() {
-    this.nag?.clearDismissal()
+    this.component?.clearDismissal()
   }
 
   /** A dismissal is stored (and not expired);  `false` without a `key`. */
   get dismissed(): boolean {
-    return this.nag?.isDismissed ?? false
-  }
-
-  /** Its component. */
-  private get nag(): UINag | undefined {
-    return this.component as UINag | undefined
+    return this.component?.isDismissed ?? false
   }
 }
 
@@ -48,35 +43,39 @@ export class DOMNagElement extends E.DOMElement {
  * ### `UINag`
  * The component behind `<ui-nag>`:  a bar at the top (or `bottom`) of the page or its container
  * that stays until dismissed, and can remember the dismissal.
- * `<div class="ui … nag" part="nag">` around the slot, with a close icon.
+ * Its shadow DOM:  `<div class="ui … nag" part="nag">` around the slot, with a close icon.
  *
- * - Remembering (opt-in, with `key`):  closing it from its icon (or `domElement.close()`) stores `value` under
- *   `key` in `storage` (`DismissalStore`:  local / session / cookie, `expires` days).
+ * - Remembering (opt-in, with `key`):  closing it from its icon (or `domElement.close()`)
+ *   stores `value` under `key` in `storage` (`DismissalStore`:  local / session / cookie, `expires` days).
  *   - A nag whose dismissal is stored is `hidden` from the start (set on the DOM element as it first connects,
  *     before anything paints), unless it `persist`s.
  *   - Storage that is blocked or missing just doesn't remember:  the nag still shows and closes.
  *
- * - Closing:  the cancelable `ui-close` (with a `reason`) first, then the exit animation (Fomantic's `slide`),
- *   `hidden` on the DOM element, and `ui-hide`.  It never removes itself.
- *   `display-time` hides it without storing anything.
+ * - Closing:  the cancelable `ui-close` (with a `reason`) first,
+ *   then the exit animation (Fomantic's `slide`), `hidden` on the DOM element, and `ui-hide`.
+ *   - It never removes itself.
+ *   - `display-time` hides it without storing anything.
  *
- * - Invoker commands (`UIT.ToggleCommands`):  a `<button commandfor command="--show">` shows it (`show()`),
- *   `--close` closes it (`close()`, so a `key` remembers it), `--toggle` picks by `hidden`.
+ * - Invoker commands (`UIT.ToggleCommands`):
+ *   - a `<button commandfor command="--show">` shows it (`show()`)
+ *   - `--close` closes it (`close()`, so a `key` remembers it)
+ *   - `--toggle` picks by `hidden`
  *
  * - No role:  a banner that must be announced gets `role` / `aria-live` from the page.
  *   The close icon is a real `<button>` with a translated label.
  ****************/
 export class UINag extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = nagVocabulary
-  @E.proto static styleSheets = { nag: nagCSS }
-  @E.proto static elementSetup = { DOMElement: DOMNagElement } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { nag: nagCSS },
+    DOMElement: DOMNagElement
+  } satisfies Partial<E.ElementSetup>
 
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     // SIDE EFFECT:  a stored dismissal hides the DOM element before it first paints
     if (!isServer && untrack(() => this.isHiddenByDismissal)) this.domElement.hidden = true
-    this.on("command", this.onCommand)
-    this.domElement.addReleaseCallback(() => clearTimeout(this.displayTimer))
+    this.domElement.addReleaseCallback(() => this.displayTimer?.cancel())
   }
 
   ////////////////
@@ -134,27 +133,29 @@ export class UINag extends E.UIComponent<Vocabulary> {
   private root?: HTMLDivElement
 
   /** Pending `display-time`. */
-  private displayTimer?: ReturnType<typeof setTimeout>
+  private displayTimer?: E.CancelablePromise<unknown>
 
   /** Appeared (entry animation, `ui-show`, timer) since it last showed. */
   private hasShown = false
 
   /**
    * Appear once connected (and not hidden), waiting for the runtime (`isReady`) too, as the render does:
-   * appearing animates the rendered bar.  The cleanup drops a pending `display-time`.
+   * appearing animates the rendered bar.
+   * - The cleanup drops a pending `display-time`.
    */
   @E.onChange("isConnected", "isReady")
   protected onConnectedChanged(isConnected: boolean, isReady: boolean) {
     if (isConnected && isReady) this.appear()
-    return () => clearTimeout(this.displayTimer)
+    return () => this.displayTimer?.cancel()
   }
 
   /** Entry animation, `ui-show` and the display time -- once per showing. */
+  @E.untracked
   private appear() {
     if (this.hasShown || this.domElement.hidden) return
     this.hasShown = true
-    const time = untrack(() => this.displayTime) ?? 0
-    if (time > 0) this.displayTimer = setTimeout(() => this.close("timeout"), time)
+    const time = this.displayTime ?? 0
+    if (time > 0) this.displayTimer = E.after(time / 1000, () => this.close("timeout"))
     const root = this.root
     const entered = root
       ? UI.transitions.animate({ element: root, name: SLIDE, direction: UIT.IN })
@@ -189,7 +190,7 @@ export class UINag extends E.UIComponent<Vocabulary> {
     const detail: UIT.NagCloseDetail = { reason, originalEvent }
     if (!this.send("ui-close", detail)) return false
     this.isClosing = true
-    clearTimeout(this.displayTimer)
+    this.displayTimer?.cancel()
     if (reason !== "timeout") {
       this.dismissalStore?.dismiss()
       this.isHiddenByDismissal = true
@@ -209,7 +210,8 @@ export class UINag extends E.UIComponent<Vocabulary> {
   }
 
   /** An invoker command aimed at the DOM element (`UIT.ToggleCommands`):  open means not `hidden`. */
-  private readonly onCommand = (event: Event) => {
+  @E.on("command")
+  protected onCommand(event: Event) {
     const action = UIT.ToggleCommands.action(event, !this.domElement.hidden)
     if (action === "show") this.show()
     else if (action === "close") this.close("dismiss", event)
@@ -230,7 +232,7 @@ export class UINag extends E.UIComponent<Vocabulary> {
 
   render(): JSX.Element {
     return (
-      <div ref={(element) => (this.root = element)} class={this.rootClasses} part={this.partForName("nag")}>
+      <div ref={(element) => (this.root = element)} class={this.rootClass} part={this.partForName("nag")}>
         <slot />
         <Show when={this.closable}>
           <button

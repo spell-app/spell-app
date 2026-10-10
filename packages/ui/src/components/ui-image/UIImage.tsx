@@ -15,16 +15,24 @@ import imageCSS from "./UIImage.css?inline"
  *   the link carrying the classes.
  *   The element is `display: contents`:  the inner box IS the image, so it floats and sits in text as Fomantic's did.
  *
- * - `alt` passes straight through:  `alt=""` is a decorative image (assistive tech skips it),
- *   and a MISSING `alt` stays missing:  a bug to fix in the page, which axe reports,
- *   not one to hide with an empty default.  A linked image's `alt` names the link.
+ * - `alt` passes straight through:
+ *   - `alt=""` is a decorative image (assistive tech skips it)
+ *   - a MISSING `alt` stays missing:  a bug to fix in the page, which axe reports,
+ *     not one to hide with an empty default
+ *   - a linked image's `alt` names the link
  * - `width` / `height` are the native intrinsic size (they reserve space before it loads);
  *   `size` sets the drawn width.
  * - `disabled`:  a link loses its `href` and gets `aria-disabled`;  `:state(disabled)` is for the page's styles.
  ****************/
 export class UIImage extends E.UIComponent<typeof imageVocabulary> {
   @E.proto static vocabulary = imageVocabulary
-  @E.proto static styleSheets = { image: imageCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { image: imageCSS },
+    // `disabled`:  only a look
+    disabled: "its own",
+    // `loading`:  Fomantic's placeholder look
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** Disabled by its attribute;  `:state(disabled)`. */
   @E.cssState("disabled")
@@ -36,7 +44,7 @@ export class UIImage extends E.UIComponent<typeof imageVocabulary> {
     return (
       <Show when={this.href} fallback={this.image("image")}>
         <a
-          class={this.rootClasses}
+          class={this.rootClass}
           part={this.partForName("image")}
           href={this.disabled ? undefined : this.href}
           aria-disabled={this.disabled ? "true" : undefined}
@@ -51,7 +59,7 @@ export class UIImage extends E.UIComponent<typeof imageVocabulary> {
   private image(part: "image" | "img"): JSX.Element {
     return (
       <img
-        class={part === "image" ? this.rootClasses : undefined}
+        class={part === "image" ? this.rootClass : undefined}
         part={this.partForName(part)}
         src={this.src}
         alt={this.alt}

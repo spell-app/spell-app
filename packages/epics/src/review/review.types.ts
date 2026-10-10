@@ -74,10 +74,12 @@ export function isAirplane(): boolean {
 }
 
 /**
- * The four review actions of an item's line, in their order:  Approve, Revisit, Make Todo, then Do Now (`details`:
- * the inbox's name for an immediate request, kept from Add Details Now;  decision Q20).
+ * The review actions of an item's line:
+ * - most items:  Approve, Revisit, Make Todo, then Do Now
+ *   (`details`:  the inbox's name for an immediate request, kept from Add Details Now;  decision Q20)
+ * - a todo (Owen, 2026-10-09):  `next` (the plane:  do it in the next phase), Revisit, `drop` (the x:  drop it)
  */
-export const REVIEW_ACTIONS = ["approve", "revisit", "todo", "details"] as const
+export const REVIEW_ACTIONS = ["approve", "revisit", "todo", "details", "next", "drop"] as const
 
 /** One of `REVIEW_ACTIONS`. */
 export type ReviewAction = (typeof REVIEW_ACTIONS)[number]

@@ -14,11 +14,15 @@ import labelCSS from "./UILabel.css?inline"
  ****************/
 export class UILabels extends E.UIComponent<typeof labelsVocabulary> {
   @E.proto static vocabulary = labelsVocabulary
-  @E.proto static styleSheets = { label: labelCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { label: labelCSS },
+    // `disabled`:  only a look
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("group")}>
+      <div class={this.rootClass} part={this.partForName("group")}>
         <slot />
       </div>
     )

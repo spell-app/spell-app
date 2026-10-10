@@ -1,4 +1,3 @@
-import { untrack } from "solid-js"
 import { isServer } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -10,10 +9,10 @@ import { type CommonAttributes } from "./UIInput.types"
  * The base component of `<ui-input>` and `<ui-textarea>`:  a native `<input>` / `<textarea>` in the shadow root,
  * whose value, validity and name belong to the DOM ELEMENT.
  *
- * - `value` is controlled (`@controlled`).
- *   Typing sends `ui-input` first;  a handler that sets `el.value` again wins (the control shows that value).
- *   The ATTRIBUTE is the starting value, which a form reset restores (as a native `defaultValue`);
- *   the property doesn't reflect.
+ * - `value` is controlled (`@controlled`):
+ *   typing sends `ui-input` first;  a handler that sets `el.value` again wins (the control shows that value).
+ *   - The ATTRIBUTE is the starting value, which a form reset restores (as a native `defaultValue`);
+ *     the property doesn't reflect.
  *
  * - Validity:  the NATIVE control's constraint validation (`required`, `pattern`, `type="email"` ...)
  *   merged with Fomantic `rules` (through `Validator`), into the DOM element's `setValidity()`:
@@ -22,25 +21,29 @@ import { type CommonAttributes } from "./UIInput.types"
  *
  * - `:state(invalid)` shows only once the person has interacted (`isTouched`), as `:user-invalid` does:
  *   a committed change, leaving an edited field,
- *   or a submit / `reportValidity()` that found it invalid (the `invalid` event).  A reset clears it.
+ *   or a submit / `reportValidity()` that found it invalid (the `invalid` event).
+ *   A reset clears it.
  *
- * - Its name:  `ControlLabels` hands the DOM element's `<label for>` / `aria-label` to the control
- *   as its `aria-label`.
+ * - Its name:
+ *   `ControlLabels` hands the DOM element's `<label for>` / `aria-label` to the control as its `aria-label`.
  * - The DOM element's `aria-invalid` (a `<ui-form>` marks failing fields) is passed on to the control.
  ****************/
+@E.cssStates("fluid", "loading")
 export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends F.FormComponent<V> {
+  /** Shows `:state(invalid)` only after interaction (see the class doc). */
+  @E.proto static invalidShows: E.InvalidTiming = "once touched"
+
   /** The native control. */
   protected control?: HTMLInputElement | HTMLTextAreaElement
-
-  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
-    super(...args)
-    this.domElement.addEventListener("invalid", this.onInvalid)
-    this.domElement.addEventListener("click", this.onDOMElementClick)
-  }
 
   /** Focus the native control. */
   focus(options?: FocusOptions) {
     this.control?.focus(options)
+  }
+
+  /** A click aimed at the DOM element itself (its `<label for>`, its `click()`) focuses the control. */
+  protected activateControl() {
+    this.control?.focus()
   }
 
   ////////////////
@@ -57,14 +60,9 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
     return this.value
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
-  /** Back to the `value` ATTRIBUTE (native `defaultValue`);  forgets the interaction. */
+  /** Back to the `value` ATTRIBUTE (native `defaultValue`). */
   onFormReset() {
     this.value = this.attributes.value ?? ""
-    this.isTouched = false
   }
 
   /**
@@ -78,9 +76,10 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /** The control shows `value` again, e.g. after a cancelled `ui-input`. */
+  @E.untracked
   protected syncControl() {
     const { control } = this
-    const value = untrack(() => this.value)
+    const value = this.value
     // a file input's value can only be cleared from script
     if (!control || control.value === value || (control.type === "file" && value !== "")) return
     control.value = value
@@ -93,33 +92,33 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
     const applied = this.requestChange("value", next, () =>
       this.send("ui-input" as never, { value: next, originalEvent: event })
     )
-    if (!applied) queueMicrotask(() => this.syncControl())
+    if (!applied) E.afterSolidUpdate(() => this.syncControl())
     this.readNativeValidity()
   }
 
   /** Commit:  `ui-change`;  the person has now interacted. */
+  @E.untracked
   protected readonly onChange = (event: Event) => {
     this.isTouched = true
-    this.send("ui-change" as never, { value: untrack(() => this.value), originalEvent: event })
+    this.send("ui-change" as never, { value: this.value, originalEvent: event })
   }
 
   /** Focus:  remember the value, to tell an edit on the way out. */
+  @E.untracked
   protected readonly onFocus = () => {
-    this.valueAtFocus = untrack(() => this.value)
+    this.valueAtFocus = this.value
   }
 
   /** Leaving an edited field counts as interaction. */
+  @E.untracked
   protected readonly onBlur = () => {
-    if (this.valueAtFocus !== undefined && this.valueAtFocus !== untrack(() => this.value)) this.isTouched = true
+    if (this.valueAtFocus !== undefined && this.valueAtFocus !== this.value) this.isTouched = true
     this.valueAtFocus = undefined
   }
 
   ////////////////
   // ## Validity
   ////////////////
-
-  /** The person has interacted (see the class doc). */
-  @E.state accessor isTouched = false
 
   /** The native control's own constraint validation, re-read after updates. */
   @E.state accessor nativeValidity: E.ValidationResult = VALID
@@ -156,10 +155,6 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
     return this.control
   }
 
-  protected shouldShowInvalid(result: E.ValidationResult): boolean {
-    return !result.valid && this.isTouched
-  }
-
   /**
    * Constraint attributes the native control carries, e.g. `{ required, pattern }`;  tracked.
    * - Spread onto the control, and read by `onConstraintsChanged()`.
@@ -176,6 +171,7 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   /** Copy the control's validity into `nativeValidity`. */
+  @E.untracked
   protected readNativeValidity() {
     const control = this.control
     if (!control) return
@@ -183,7 +179,7 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
     const flags: ValidityStateFlags = {}
     for (const flag of NATIVE_FLAGS) if (validity[flag]) flags[flag] = true
     if (validity.valid) {
-      if (!untrack(() => this.nativeValidity).valid) this.nativeValidity = VALID
+      if (!this.nativeValidity.valid) this.nativeValidity = VALID
       return
     }
     const message = control.validationMessage
@@ -196,30 +192,15 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
     this.nativeValidity = { valid: false, errors, flags, message }
   }
 
-  /** A submit or `reportValidity()` found it invalid:  show it. */
-  private readonly onInvalid = () => {
-    this.isTouched = true
-  }
-
   ////////////////
   // ## Name and ARIA
   ////////////////
 
-  /** The DOM element's `<label>`s and `aria-label`, as the control's name. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
-
-  /** Connected:  the DOM element's `<label>`s may be others now. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (isConnected) this.labels.refresh()
-  }
-
-  /** The control's ARIA:  its name, and invalid (the DOM element's `aria-invalid`, or shown invalid). */
+  /** The control's ARIA:  its name (`labels`), and invalid (the DOM element's `aria-invalid`, or shown invalid). */
   protected get controlAria() {
     return {
       "aria-label": this.labels.accessibleName,
-      "aria-invalid":
-        this.attributes["aria-invalid"] === "true" || (this.isTouched && !this.validation.valid) ? "true" : undefined
+      "aria-invalid": this.attributes["aria-invalid"] === "true" || this.isShownInvalid ? "true" : undefined
     } as const
   }
 
@@ -232,42 +213,6 @@ export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentV
   protected get staticControl(): Record<string, unknown> {
     if (!isServer) return {}
     return { [UIT.STATIC_CONTROL]: "", name: this.name, value: this.value || undefined }
-  }
-
-  ////////////////
-  // ## Look and use
-  ////////////////
-
-  /** Disabled by its attribute, or by a disabled fieldset;  `:state(disabled)`. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
-  /** Takes the full width?  `:state(fluid)`. */
-  @E.cssState("fluid")
-  get isFluid(): boolean {
-    return this.fluid
-  }
-
-  /** Busy (`<ui-input loading>`)?  `:state(loading)`. */
-  @E.cssState("loading")
-  get isLoading(): boolean {
-    return !!this.loading
-  }
-
-  protected classValue(name: E.AttributeName<V>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
-  }
-
-  /**
-   * A click aimed at the DOM element itself (its `<label for>`, its `click()`) focuses the control.
-   * - Clicks from inside the shadow root arrive retargeted, and are left alone.
-   */
-  private readonly onDOMElementClick = (event: MouseEvent) => {
-    if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
-    this.control?.focus()
   }
 }
 

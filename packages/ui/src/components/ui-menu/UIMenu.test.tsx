@@ -164,7 +164,7 @@ describe("<ui-menu> semantics", () => {
       ariaCurrent: "true"
     })
     expect(header!.localName).toBe("div")
-    expect(header!.className).toBe("item header")
+    expect(header!.className).toBe("header item")
     expect(getComputedStyle(header!).fontWeight).toBe("700")
   })
 
@@ -302,7 +302,7 @@ describe("<ui-menu> owner tokens reach the items", () => {
     const { items: plain } = await menu()
     expect(red).not.toBe(styleOf(plain[1]!).color)
     const { items: own } = await menu("", `<ui-item href="#x" color="red" selected>X</ui-item>`)
-    expect(boxOf(own[0]!).className).toBe("red active item ui-red")
+    expect(boxOf(own[0]!).className).toBe("red active ui-red item")
     expect(styleOf(own[0]!).color).toBe(red)
   })
 

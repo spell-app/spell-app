@@ -32,17 +32,17 @@ import searchCSS from "./UIDocsSearch.css?inline"
  * The DOM element of `<ui-docs-search>`:  it adds the script API, `summon()` and `query`,
  * which its component (`UIDocsSearch`) carries out.
  * - `focus()` is the DOM element's own:  `delegatesFocus` puts it in the field.
- * - None of these members is named like an attribute:  solid-element refuses a member that is.
+ * - None of these members is named like an attribute:  `DOMElement` refuses a member that is.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMDocsSearchElement extends E.DOMElement {
+export class DOMDocsSearchElement extends E.DOMElement<UIDocsSearch> {
   /**
    * Show the field and focus it, its text selected:  what `/` and Cmd / Ctrl+K do.
    * - A field that isn't on screen opens the drawer it's in first (a closed `<ui-flyout>` / `<ui-sidebar>`),
    *   e.g. a narrow top bar's search button.
    */
   summon(): Promise<void> {
-    return this.search?.summon() ?? this.ready.then(() => this.search?.summon())
+    return this.component?.summon() ?? this.ready.then(() => this.component?.summon())
   }
 
   /**
@@ -50,12 +50,7 @@ export class DOMDocsSearchElement extends E.DOMElement {
    * - Untracked:  a page's Solid effect reading it doesn't re-run on every keystroke.
    */
   get query(): string {
-    return untrack(() => this.search?.query) ?? ""
-  }
-
-  /** This element's component, once it has one. */
-  private get search(): UIDocsSearch | undefined {
-    return this.component as UIDocsSearch | undefined
+    return untrack(() => this.component?.query) ?? ""
   }
 }
 
@@ -67,12 +62,14 @@ export class DOMDocsSearchElement extends E.DOMElement {
  * grouped, best first, with the matched text marked;  pick one to jump there.
  *
  * - Its shadow DOM:  `<div class="ui [size] finder" part="search">` holding
- *   - `<div class="field" part="field">` (the pill, the results' anchor):  an icon,
- *     `<input role="combobox" part="input">`, a clear `<button>` while there's text,
+ *   - `<div class="field" part="field">` (the pill, the results' anchor):
+ *     an icon, `<input role="combobox" part="input">`, a clear `<button>` while there's text,
  *     and the shortcut hint `<span part="keys">` of `<kbd>`s
  *   - `<div class="results" part="results" popover="manual">` (in the top layer, so no panel or drawer clips it):
- *     a `<div role="listbox">` of `<div role="group" part="group">`s, each a mono eyebrow (`part="label"`)
- *     over `<a role="option" part="option" href>`s;  a note (no matches, loading);  the keys line (`part="hints"`)
+ *     - a `<div role="listbox">` of `<div role="group" part="group">`s,
+ *       each a mono eyebrow (`part="label"`) over `<a role="option" part="option" href>`s
+ *     - a note (no matches, loading)
+ *     - the keys line (`part="hints"`)
  *   - a visually hidden `role=status`:  how many results.
  * - An ARIA combobox, with list autocomplete:  focus stays in the field,
  *   and `aria-activedescendant` names the highlighted option (the first by default:  Enter takes the best match).
@@ -82,22 +79,27 @@ export class DOMDocsSearchElement extends E.DOMElement {
  * - Results are LINKS (`<a href>`), so a router that takes the page's link clicks takes them too.
  *   Picking one fires a cancelable `ui-navigate`:
  *   - vetoed:  a router took it
- *   - else a result on the page shown sets the hash (closing the drawer the field is in:  the site's landing scrolls),
- *     and any other loads its page.
+ *   - else a result on the page shown sets the hash,
+ *     closing the drawer the field is in (the site's landing scrolls)
+ *   - and any other loads its page
  *   The field then empties.
  * - Data:  the page shown's sections are read live from its DOM on every focus (`PageOutline`, `page`);
- *   the rest come from the site's data, fetched on the FIRST focus or keystroke (`SiteData` + `SearchData`,
- *   `SearchIndex`).  Until it's in, or if it fails, only the page shown is searched.
+ *   the rest come from the site's data, fetched on the FIRST focus or keystroke
+ *   (`SiteData` + `SearchData`, `SearchIndex`).
+ *   Until it's in, or if it fails, only the page shown is searched.
  * - Every keystroke fires `ui-input` (`{ value }`):  `<ui-docs-nav>` filters its list by it.
- * - Shortcuts (`shortcuts`, on by default):  `/` (not while typing in a field) and Cmd / Ctrl+K summon the field
- *   (`summon()`):  of several, the visible one, else one in a closed drawer, which opens.
+ * - Shortcuts (`shortcuts`, on by default):
+ *   `/` (not while typing in a field) and Cmd / Ctrl+K summon the field (`summon()`):
+ *   of several, the visible one, else one in a closed drawer, which opens.
  *   One document listener serves every field, while any is connected.
  * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of `<ui-icon>`s, which its barrel imports.
  ****************/
 export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
   @E.proto static vocabulary = docsSearchVocabulary
-  @E.proto static styleSheets = { "docs-search": searchCSS }
-  @E.proto static elementSetup = { DOMElement: DOMDocsSearchElement } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "docs-search": searchCSS },
+    DOMElement: DOMDocsSearchElement
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The text typed
@@ -399,8 +401,8 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
 
   /**
    * Go to the result at `index`, as `event` (Enter, a click) asked:  see the class.
-   * - The card closes and the text clears on the NEXT task:  a click's link must still be in the page when the
-   *   browser follows it.
+   * - The card closes and the text clears on the NEXT task:
+   *   a click's link must still be in the page when the browser follows it.
    */
   private choose(index: number, event: KeyboardEvent | MouseEvent) {
     const hit = this.rows[index]
@@ -412,7 +414,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
       return
     }
     const shouldFollow = this.send("ui-navigate", { href, kind: hit.entry.kind, originalEvent: event })
-    setTimeout(() => this.finishPick())
+    E.soon(() => this.finishPick())
     if (!shouldFollow) {
       event.preventDefault()
       return
@@ -427,7 +429,8 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
 
   /**
    * Land on `hash` on the page shown:  close the drawer the field is in (the landing measures the page),
-   * then set the hash;  the same hash again re-announces it (`hashchange`), so the page lands once more.
+   * then set the hash.
+   * - The same hash again re-announces it (`hashchange`), so the page lands once more.
    */
   private jumpHere(hash: string) {
     const drawer = E.closestAcrossShadow(this.domElement, DRAWERS)
@@ -468,11 +471,7 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div
-        class={this.rootClasses}
-        part={this.partForName("search")}
-        ref={(element: HTMLElement) => this.wire(element)}
-      >
+      <div class={this.rootClass} part={this.partForName("search")} ref={(element: HTMLElement) => this.wire(element)}>
         <div class={FIELD} part={this.partForName("field")}>
           <span class={GLYPH} aria-hidden="true">
             <ui-icon name={SEARCH_ICON} />
@@ -638,9 +637,8 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
   }
 
   /** SIDE EFFECT:  `/` and Cmd / Ctrl+K, while connected;  the cleanup stops listening. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (!isConnected) return undefined
+  @E.whileConnected
+  protected listenForShortcuts() {
     UIDocsSearch.listen(this)
     return () => UIDocsSearch.unlisten(this)
   }
@@ -739,8 +737,9 @@ const GROUP_ID = "docs-search-group-"
 
 /**
  * Attribute holding an option's index among all rows:  what hover and click find it by.
- * - NOTE: the JSX writes it literally (`data-index={...}`):  a spread to use this key there would make each option's
- *   attributes one object Solid sets as a whole.  Keep the two in step.
+ * - NOTE: the JSX writes it literally (`data-index={...}`):
+ *   a spread to use this key there would make each option's attributes one object Solid sets as a whole.
+ *   Keep the two in step.
  */
 const INDEX_ATTRIBUTE = "data-index"
 

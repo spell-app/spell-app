@@ -9,13 +9,14 @@ import type { ContentsEntry } from "$/epics/components/epic-section/EpicSection.
 
 import { epicOverviewVocabulary } from "./EpicOverview.en"
 
+import collapseAllCSS from "$/epics/components/epic-item/CollapseAllButton.css?inline"
 import foldCSS from "$/epics/components/epic-section/EpicFold.css?inline"
 import overviewCSS from "./EpicOverview.css?inline"
 
 /****************
  * ### `EpicOverview`
- * The component behind `<epic-overview>`:  a plan doc's Overview -- `1. Overview`, a fold (`EpicFold`), its
- * lightbulb icon.
+ * The component behind `<epic-overview>`:  a plan doc's Overview --
+ * `1. Overview`, a fold (`EpicFold`), its lightbulb icon.
  * - Inside, in order:  the summary (`<epic-summary>`, a lede), the Kickoff prompt (`<epic-prompt>`, folded), the
  *   estimate line (`estimate`), then its sub-sections (`<epic-section kind="overview-part">`).
  * - Summary and prompt are its light children, in the default slot with the sub-sections, so the estimate drawn
@@ -26,7 +27,9 @@ import overviewCSS from "./EpicOverview.css?inline"
  ****************/
 export class EpicOverview extends EpicFold<typeof epicOverviewVocabulary> {
   @E.proto static vocabulary = epicOverviewVocabulary
-  @E.proto static styleSheets = { "epic-fold": foldCSS, "epic-overview": overviewCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-fold": foldCSS, "epic-collapse-all": collapseAllCSS, "epic-overview": overviewCSS }
+  } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  is there a kickoff prompt? */
   readonly slots = new E.SlotContent(this.domElement)

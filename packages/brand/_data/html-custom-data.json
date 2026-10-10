@@ -70,6 +70,27 @@
               "name": "current"
             }
           ]
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
+          }
         }
       ]
     },
@@ -126,6 +147,27 @@
               "name": "serif"
             }
           ]
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
+          }
         }
       ]
     },
@@ -164,6 +206,27 @@
               "name": "serif"
             }
           ]
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
+          }
         }
       ]
     },
@@ -286,6 +349,27 @@
               "name": "massive"
             }
           ]
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
+          }
         }
       ]
     },
@@ -322,6 +406,20 @@
           "description": {
             "kind": "markdown",
             "value": "Faded;  nothing in it can be used (copying neither).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
           }
         }
       ]
@@ -504,6 +602,27 @@
             "kind": "markdown",
             "value": "A small strip of 17 dots instead of chips (the Chooser's folded Variants header).\n\nTakes:  flag (present / absent)"
           }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
+          }
         }
       ]
     },
@@ -533,6 +652,27 @@
           "description": {
             "kind": "markdown",
             "value": "A radio group:  click, Enter or Space chooses a chip, the arrow keys move and choose, Home / End go to the ends.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
           }
         }
       ]
@@ -621,6 +761,20 @@
             "kind": "markdown",
             "value": "Faded;  can't be typed in or cast, left out of the form.\n\nTakes:  flag (present / absent)"
           }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
+          }
         }
       ]
     },
@@ -707,6 +861,20 @@
             "kind": "markdown",
             "value": "Dimmed and not usable (`inert`).\n\nTakes:  flag (present / absent)"
           }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
+          }
         }
       ]
     },
@@ -775,6 +943,27 @@
             "kind": "markdown",
             "value": "Line weight, px.\n\nTakes:  number\nDefault:  `1.6`"
           }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
+          }
         }
       ]
     },
@@ -839,6 +1028,27 @@
             "kind": "markdown",
             "value": "Accessible name;  default `Spell` (`Spell App`).  `\"\"`:  decorative, hidden from screen readers.\n\nTakes:  text"
           }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
+          }
         }
       ]
     },
@@ -868,6 +1078,27 @@
           "description": {
             "kind": "markdown",
             "value": "Accessible name of the region around the app;  default `App preview`.  `\"\"`:  no region, just a frame.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "disabled",
+          "description": {
+            "kind": "markdown",
+            "value": "Can't be used:  dimmed, out of the tab order, and everything inside it inert;  `aria-disabled`.  Shared by every element;  a family may give it a meaning of its own (`elementSetup.disabled`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "loading",
+          "description": {
+            "kind": "markdown",
+            "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "`visible=\"false\"` hides it with a short animation (a fade);  `visible` (or `=\"true\"`) brings it back.  Shared by every element.  The platform's `hidden` hides at once, and wins when both are set.\n\nTakes:  flag (present / absent)\nDefault:  `true`"
           }
         }
       ]

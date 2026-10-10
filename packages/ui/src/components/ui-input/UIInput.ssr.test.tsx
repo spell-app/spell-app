@@ -7,8 +7,8 @@ import { UIInput } from "$/ui/components/ui-input/UIInput"
 import { UITextarea } from "$/ui/components/ui-input/UITextarea"
 
 /**
- * `<ui-input>` / `<ui-textarea>` in a static server render (`$/ui/static`):  Fomantic's `div.ui.input` around the
- * native control, which carries what a no-JS form submits.
+ * `<ui-input>` / `<ui-textarea>` in a static server render (`$/ui/static`):
+ * Fomantic's `div.ui.input` around the native control, which carries what a no-JS form submits.
  */
 describe("<ui-input> static render", () => {
   beforeAll(() => {
@@ -42,7 +42,7 @@ describe("<ui-input> static render", () => {
   it("renders states:  disabled control, loading box with its icon box", () => {
     const html = StaticRender.fragment(`<ui-input disabled></ui-input><ui-input loading icon="search"></ui-input>`)
     expect(html).toMatch(/class="ui disabled input"[^>]*><input [^>]*disabled/)
-    expect(html).toMatch(/data-state="loading"[^>]*class="ui loading input icon"/)
+    expect(html).toMatch(/data-state="loading"[^>]*class="ui loading icon input"/)
     expect(html).toMatch(/aria-busy="true"/)
     expect(html).toMatch(/<span class="icon" part="icon">/)
   })

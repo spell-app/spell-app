@@ -10,28 +10,23 @@ import formCSS from "./UIForm.css?inline"
 
 /****************
  * ### `DOMFieldElement`
- * The DOM element of `<ui-field>`:  it adds `showErrors()`, which `<ui-form>` calls to show
- * (or, with `[]`, clear) the field's inline prompt and error state.
+ * The DOM element of `<ui-field>`:  it adds `showErrors()`, which `<ui-form>` calls
+ * to show (or, with `[]`, clear) the field's inline prompt and error state.
  *
  * - No attribute is written, so the author's `state` stays theirs.
  * - `errors`:  the prompts shown now.
- * - solid-element checks a DOM element's prototype members against prop names;  neither of these is one.
+ * - `DOMElement` checks its members against the attributes' property names;  neither of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMFieldElement extends E.DOMElement {
+export class DOMFieldElement extends E.DOMElement<UIField> {
   /** Show `messages` as the field's prompt (and `error` state);  `[]` clears. */
   showErrors(messages: readonly string[]) {
-    this.field?.showErrors(messages)
+    this.component?.showErrors(messages)
   }
 
   /** Prompts shown now. */
   get errors(): readonly string[] {
-    return untrack(() => this.field?.errors) ?? []
-  }
-
-  /** The field's component, once it exists. */
-  private get field(): UIField | undefined {
-    return this.component as UIField | undefined
+    return untrack(() => this.component?.errors) ?? []
   }
 }
 
@@ -53,10 +48,12 @@ export class DOMFieldElement extends E.DOMElement {
  ****************/
 export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   @E.proto static vocabulary = fieldVocabulary
-  @E.proto static styleSheets = { label: labelCSS, form: formCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { label: labelCSS, form: formCSS },
     DOMElement: DOMFieldElement,
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  its content inert, a look;  the element still takes clicks
+    disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
   ////////////////
@@ -67,8 +64,9 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   @E.state accessor errors: readonly string[] = []
 
   /** Show `messages` (see `DOMFieldElement`). */
+  @E.untracked
   showErrors(messages: readonly string[]) {
-    const current = untrack(() => this.errors)
+    const current = this.errors
     if (current.length !== messages.length || current.some((message, index) => message !== messages[index])) {
       this.errors = [...messages]
     }
@@ -107,15 +105,6 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
     return this.shownState === WARNING
   }
 
-  /**
-   * `:state(disabled)` while `disabled`:  the root is `inert`.
-   * - Not an `isDisabled` override:  that would make the DOM element swallow clicks too.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return this.disabled
-  }
-
   /** Always `:state(field)`:  how `<ui-form>` finds a control's field. */
   @E.cssState("field")
   get isField(): boolean {
@@ -133,7 +122,7 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("field")} inert={this.disabled}>
+      <div class={this.rootClass} part={this.partForName("field")} inert={this.disabled}>
         <slot />
         <Show when={this.errors.length}>
           <span class={this.inline ? INLINE_PROMPT : PROMPT} part={this.partForName("prompt")} role="alert">

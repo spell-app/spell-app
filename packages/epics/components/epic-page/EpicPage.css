@@ -32,6 +32,9 @@
     --epic-card: var(--spell-card, var(--ui-surface));
     --epic-warm: var(--spell-warm, var(--ui-accent-background));
     --epic-code-bg: var(--spell-code-bg, var(--ui-code-background));
+    /* the toolbar's band:  the docs' rail ivory (`spell-doc.css`) */
+    --epic-toolbar-fill: var(--spell-rail-fill, var(--epic-warm));
+    --epic-toolbar-rule: var(--spell-rail-rule, var(--epic-rule));
 
     /* ## Type */
     --epic-sans: var(--spell-sans, var(--ui-font-family));
@@ -49,13 +52,15 @@
     /*
      * ## Item states:  an item's id chip colours (and a To review link's), by `state` -- one meaning per colour
      *   (decision Q20, Owen, 2026-10-08):  red needs Owen, blue Claude is on it, yellow open, green done lately, grey
-     *   older.
+     *   older;  orange Claude answered with options, Owen's turn to pick (`replied`, Owen, 2026-10-09).
      * - red keeps its light-mode hue in dark mode too:  dark's lighter red reads as orange
      *   (the raw per-scheme base on purpose, as `plan-doc.css` had it)
-     * - yellow takes DARK ink (`--ui-yellow-on`):  white on yellow can't be read
+     * - yellow and orange take DARK ink (`--ui-yellow-on`, `--ui-orange-on`):  white on them can't be read
      */
     --epic-state-attention: light-dark(var(--ui-red), var(--ui-red-on-light));
     --epic-state-attention-on: light-dark(var(--ui-red-on), var(--ui-ink-on-dark));
+    --epic-state-replied: var(--ui-orange);
+    --epic-state-replied-on: var(--ui-orange-on);
     --epic-state-open: var(--ui-yellow);
     --epic-state-open-on: var(--ui-yellow-on);
     --epic-state-progress: var(--ui-blue);
@@ -95,25 +100,26 @@
     color: var(--epic-ink);
   }
 
-  /* ## The sticky header:  the h1, then its controls and labels at the right, each centred on the row */
+  /*
+   * ## The sticky header:  the h1, then its labels and controls at the right, each centred on the row.  The epic's
+   * title under it is NOT sticky (Owen, 2026-10-10):  it scrolls away under the header, and the toolbar's bar sticks
+   * right below the header (`--epic-head-h`, measured)
+   */
   .head {
     position: sticky;
-    z-index: 5;
+    z-index: 6;
     top: var(--spell-site-header-height, 0px);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: 6px 10px;
-    padding: 10px var(--epic-inset);
-    border-bottom: 1px solid var(--epic-rule);
+    padding: 8px var(--epic-inset) 4px;
     background: var(--epic-bg);
   }
-  /* the h1 over the subhead, taking the row's free room */
-  .titles {
+  /* the h1, taking the row's free room */
+  .heading {
     flex: 1 1 12em;
     min-width: 0;
-  }
-  .heading {
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -147,16 +153,17 @@
     letter-spacing: normal;
   }
   .subhead {
-    margin: 2px 0 0;
+    margin: 0;
+    padding: 0 var(--epic-inset) 8px;
     color: var(--epic-muted);
     font: 400 18px/1.3 var(--epic-sans);
     text-wrap: balance;
   }
-  .actions:empty {
-    display: none;
-  }
-  /* the step label and its kin, at the row's far right, after every button (Owen, 2026-10-08) -- on the narrow row
-     the buttons wrap to, too */
+  /*
+   * at the row's far right, in this order (Owen, 2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle
+   * is) (git icon, but bigger)"):  the bedtime label (when set), the step label (the state in it), the git toggle;
+   * on a row of their own when the h1 leaves no room
+   */
   .status {
     display: inline-flex;
     flex: none;
@@ -178,23 +185,104 @@
   }
 
   /*
-   * ## Send and Review Now (while reviewed):  round, icon only, as tall as the git toggle beside them;  blue, an ask
-   * of Claude, wearing the fill (decision Q20).  Send:  a grey outline with nothing to send, DASHED blue with marks
-   * not sent, outlined blue once sent (recorded, not done).  Review Now:  outlined blue while there's anything for
-   * Claude to work through, solid when pointed at
+   * ## The toolbar (epic `airplane` P8):  the last row of its sticky bar, right below the header once the title has
+   * scrolled away;  on the rail's ivory band, edge to edge, square, its own rule under it and none above (Owen,
+   * 2026-10-10:  "full-page-width, no rounding ... a rule below, but none above").  The docs runtime's section buttons
+   * (`nav.spell-toolbar`, slotted) take the room and scroll sideways if they must;  at the right, the page's state
+   * chips, collapse-all, a gap, then the new item button (Owen, 2026-10-10)
    */
-  .actions {
+  .bar {
+    position: sticky;
+    z-index: 5;
+    top: calc(var(--spell-site-header-height, 0px) + var(--epic-head-h, 0px));
+    /* the toolbar's own rule, the one that was above it:  the page's rule is all but white on the ivory */
+    border-bottom: 1px solid var(--epic-toolbar-rule);
+    background: var(--epic-bg);
+  }
+  .toolbar {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    background: var(--epic-toolbar-fill);
+  }
+  .toolbar-tools {
     display: inline-flex;
     flex: none;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
+    margin-inline-start: auto;
+    padding: 4px var(--epic-inset) 4px 8px;
   }
-  /* the `+`'s form (epic `airplane` P2):  a row of its own across the sticky header, so it shows wherever Owen is */
-  .head > .new-form {
-    flex: 1 0 100%;
+  .toolbar-tools .new-button {
+    margin-inline-start: 12px;
+  }
+  .toolbar-tools:empty {
+    display: none;
+  }
+  /* the `+`'s form (epic `airplane` P2):  a row of its own across the sticky bar, so it shows wherever Owen is */
+  .bar > .new-form {
+    width: auto;
     max-height: 60vh;
-    margin: 0;
+    margin: 8px var(--epic-inset);
     overflow: auto;
+  }
+  /*
+   * ## The send bar (Owen, 2026-10-10):  stuck to the window's bottom while there's anything to send or ask now;
+   * the pill (nobody can take the marks) at the left, Send and Review Now at the right
+   */
+  .send-bar {
+    position: sticky;
+    z-index: 5;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 8px var(--epic-inset);
+    border-top: 1px solid var(--epic-rule);
+    background: var(--epic-bg);
+    box-shadow: 0 -4px 12px rgb(0 0 0 / 0.06);
+  }
+  /*
+   * the pill:  no session reviewing, white on a deep orange (a warning;  the review line's look before, Owen, the
+   * colour page's example E);  airplane mode, quieter;  a click copies the command, flashing as the review line does
+   */
+  .pill {
+    --_nobody: oklch(from var(--ui-orange-on-light, #f2711c) calc(l - 0.12) c h);
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-inline-end: auto;
+    padding: 4px 12px;
+    border: none;
+    border-radius: 999px;
+    background: var(--_nobody);
+    color: var(--ui-ink-on-dark, #fff);
+    font: 600 13px/1.4 var(--epic-sans);
+    text-align: start;
+    overflow-wrap: anywhere;
+    cursor: copy;
+  }
+  .pill code {
+    background: color-mix(in oklab, var(--ui-ink-on-dark, #fff) 18%, transparent);
+    color: inherit;
+  }
+  .pill:hover {
+    background: oklch(from var(--_nobody) calc(l - 0.05) c h);
+  }
+  .pill.airplane {
+    background: var(--epic-accent-soft);
+    color: var(--epic-ink);
+  }
+  .pill.airplane code {
+    background: none;
+  }
+  .pill.flash {
+    animation: epic-review-line-flash 0.9s ease-out;
+  }
+  .pill:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
   }
   .send,
   .review-now {
@@ -240,18 +328,10 @@
     outline-offset: 1px;
   }
 
-  /* ## The sleeping mark:  an emoji, its box as tall as the labels beside it, the glyph on their middle */
-  .sleeping {
-    display: inline-grid;
-    flex: none;
-    place-items: center;
-    height: var(--epic-control-size);
-    font-size: 20px;
-    line-height: 1;
-    cursor: help;
-  }
-
-  /* the git toggle:  round, icon only, the accent while pressed */
+  /*
+   * the git toggle:  icon only, the accent while pressed;  its mark as big as the step label's icon looks (Owen,
+   * 2026-10-10:  "git icon, but bigger"):  the git diamond fills less of its em than a circle
+   */
   .git {
     display: inline-grid;
     flex: none;
@@ -260,6 +340,7 @@
     width: var(--epic-control-size);
     height: var(--epic-control-size);
     padding: 0;
+    font-size: 22px;
     /* the icon alone, no circle (Owen, 2026-10-08) */
     border: none;
     border-radius: 4px;
@@ -284,8 +365,7 @@
 
   /*
    * ## The review line, under the header:  a quiet line of text, the icon centred on its first row;  a click copies
-   * the command and flashes it yellow (`.flash`, `FLASH_MS`).  Nobody reviewing:  it says so, a warning in solid
-   * orange, its ink reversed, so it stands out (Owen, 2026-10-08, the colour page's example E)
+   * the command and flashes it yellow (`.flash`, `FLASH_MS`).  Nobody reviewing:  the send bar's pill says so
    */
   .review-line {
     display: grid;
@@ -311,26 +391,6 @@
   .review-line:focus-visible {
     outline: 2px solid var(--ui-focus-color, var(--epic-accent));
     outline-offset: 1px;
-  }
-  /*
-   * inverse, white on orange (Owen):  light mode's orange a step deeper in BOTH schemes (the raw per-scheme base on
-   * purpose, as the red chips:  dark's lighter orange can't carry white), and the words bold, so white reads on it
-   */
-  .review-line.nobody {
-    --_nobody: oklch(from var(--ui-orange-on-light, #f2711c) calc(l - 0.12) c h);
-    background: var(--_nobody);
-    color: var(--ui-ink-on-dark, #fff);
-    font-weight: 600;
-  }
-  .review-line.nobody :is(.icon, code) {
-    color: inherit;
-  }
-  .review-line.nobody code {
-    background: color-mix(in oklab, var(--ui-ink-on-dark, #fff) 18%, transparent);
-  }
-  .review-line.nobody:hover {
-    background: oklch(from var(--_nobody) calc(l - 0.05) c h);
-    color: var(--ui-ink-on-dark, #fff);
   }
   .review-line .done {
     color: var(--epic-ink);
@@ -470,10 +530,9 @@
 
   /* ## Narrow (VS Code's side bar, a phone):  a smaller h1, so the stuck header leaves room to read */
   @container epic-page (max-width: 480px) {
-    .titles {
-      flex-basis: 100%;
-    }
+    /* the h1 shares its row with the labels while they fit (no row of their own:  the stuck header stays short) */
     .heading {
+      flex-basis: 8em;
       font-size: 24px;
     }
     .subhead {

@@ -1,4 +1,3 @@
-import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -10,12 +9,12 @@ import sidebarCSS from "./UISidebar.css?inline"
 /****************
  * ### `UIPushable`
  * The component behind `<ui-pushable>`:  the box sidebars slide in (Fomantic's `.pushable`),
- * `<div class="pushable" part="pushable"><slot>`, a clipping,
- * positioned box holding `<ui-sidebar>`s and a `<ui-pusher>`.
+ * `<div class="pushable" part="pushable"><slot>`,
+ * a clipping, positioned box holding `<ui-sidebar>`s and a `<ui-pusher>`.
  *
  * - Its visible sidebars REPORT what they need (`report()`, a `UIT.SidebarLayout`).
- *   It turns that into inherited tokens on its root (`UIT.PusherTokens`:  where the pusher moves, dimmed, blurred),
- *   which `UISidebar.css` reads in each `<ui-pusher>`.
+ *   It turns that into inherited tokens on its root, which `UISidebar.css` reads in each `<ui-pusher>`
+ *   (`UIT.PusherTokens`:  where the pusher moves, dimmed, blurred).
  * - One pushing sidebar moves the pusher;  two at once (opposite sides) leave it in place, as Fomantic's do.
  * - SIDE EFFECT on the light DOM:  while a MODAL sidebar is visible,
  *   every other child (the pusher, other sidebars) gets `inert`;  removed again when it hides
@@ -23,8 +22,10 @@ import sidebarCSS from "./UISidebar.css?inline"
  ****************/
 export class UIPushable extends E.UIComponent<PushableVocabulary> {
   @E.proto static vocabulary = pushableVocabulary
-  @E.proto static styleSheets = { sidebar: sidebarCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { sidebar: sidebarCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Always:  its sidebars find it by `:state(pushable)`. */
   @E.cssState("pushable")
@@ -49,8 +50,9 @@ export class UIPushable extends E.UIComponent<PushableVocabulary> {
    * A sidebar's layout while it's visible, `undefined` once hidden (or gone).
    * - Called from the sidebar's effects and handlers, never from an owned scope.
    */
+  @E.untracked
   report(sidebar: Element, layout: UIT.SidebarLayout | undefined) {
-    const next = new Map(untrack(() => this.sidebarLayouts))
+    const next = new Map(this.sidebarLayouts)
     if (layout) next.set(sidebar, layout)
     else if (!next.delete(sidebar)) return
     this.sidebarLayouts = next
@@ -110,7 +112,7 @@ export class UIPushable extends E.UIComponent<PushableVocabulary> {
 
   render(): JSX.Element {
     // never on a server:  nothing reports there, and a late report would write a member after the render
-    if (!isServer) queueMicrotask(() => this.askSidebars())
+    if (!isServer) E.afterSolidUpdate(() => this.askSidebars())
     return (
       <div ref={(element) => (this.root = element)} class={PUSHABLE} part={this.partForName("pushable")}>
         <slot />

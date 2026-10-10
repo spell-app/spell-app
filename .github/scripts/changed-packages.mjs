@@ -9,8 +9,7 @@ import { readdirSync, readFileSync } from "node:fs"
 
 /** Package folder => folders that import it, directly or not.  MUST follow the one-way flow in `tsconfig.base.json`. */
 const DEPENDENTS = {
-  util: ["solid-element", "ui", "parser", "core", "spell", "lsp", "app", "cli"],
-  "solid-element": ["ui", "cli"],
+  util: ["ui", "parser", "core", "spell", "lsp", "app", "cli"],
   ui: ["cli"],
   parser: ["spell", "lsp", "app", "cli"],
   core: ["spell", "lsp", "app", "cli"],

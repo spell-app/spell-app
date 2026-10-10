@@ -1,7 +1,7 @@
 import { Show, createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIComponent, type ElementSetup } from "$/ui/core"
+import { Cell, proto, protoMerged, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
 
 import { brandLogoVocabulary } from "./UIBrandLogo.en"
 
@@ -20,8 +20,10 @@ import logoCSS from "./UIBrandLogo.css?inline"
  ****************/
 export class UIBrandLogo extends UIComponent<typeof brandLogoVocabulary> {
   @proto static vocabulary = brandLogoVocabulary
-  @proto static styleSheets = { logo: logoCSS }
-  @proto static elementSetup = { delegatesFocus: false } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { logo: logoCSS },
+    delegatesFocus: false
+  } satisfies Partial<ElementSetup>
 
   /** The outlines, once loaded:  `undefined` until then. */
   readonly paths = new Cell<typeof import("./logoPaths") | undefined>(undefined)
@@ -36,7 +38,7 @@ export class UIBrandLogo extends UIComponent<typeof brandLogoVocabulary> {
   readonly shape = createMemo(() => {
     const paths = this.paths.get()
     if (!paths) return undefined
-    const lockup = LOCKUP_OF[this.attrs.variant ?? "mark"]
+    const lockup = LOCKUP_OF[this.variant ?? "mark"]
     if (!lockup) return { vb: paths.MARK.vb, d: paths.MARK.d, body: undefined }
     const { vb, body } = paths.LOCKUPS[lockup]!
     return { vb, d: undefined, body }
@@ -44,8 +46,8 @@ export class UIBrandLogo extends UIComponent<typeof brandLogoVocabulary> {
 
   /** The accessible name:  `label`, else the logo's;  `""`:  none (decorative). */
   readonly name = createMemo(() => {
-    if (this.attrs.label !== undefined) return this.attrs.label
-    return this.translationForKey(this.attrs.variant === "app" ? "spellApp" : "spell")
+    if (this.label !== undefined) return this.label
+    return this.translationForKey(this.variant === "app" ? "spellApp" : "spell")
   })
 
   render(): JSX.Element {
@@ -53,7 +55,7 @@ export class UIBrandLogo extends UIComponent<typeof brandLogoVocabulary> {
       <Show when={this.shape()}>
         {(shape) => (
           <svg
-            class={["logo", this.attrs.tone ?? "ink"]}
+            class={["logo", this.tone ?? "ink"]}
             part={this.partForName("logo")}
             viewBox={shape().vb}
             role={this.name() ? "img" : undefined}
@@ -69,6 +71,8 @@ export class UIBrandLogo extends UIComponent<typeof brandLogoVocabulary> {
     )
   }
 }
+
+export interface UIBrandLogo extends AttributeValues<typeof brandLogoVocabulary> {}
 
 /** A `variant` -> its lockup in `logoPaths.ts` (`mark` draws `MARK` instead). */
 const LOCKUP_OF: Readonly<Record<string, string>> = {

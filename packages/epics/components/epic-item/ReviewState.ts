@@ -1,4 +1,3 @@
-import { untrack } from "solid-js"
 import { isServer } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -12,6 +11,7 @@ import {
   type InboxMark,
   type NewItem,
   type NewKind,
+  type PickFields,
   type ReviewAction,
   type Running
 } from "$/epics/review"
@@ -79,6 +79,9 @@ export class ReviewState {
   /** Has Claude taken its request (an agent at work on it), rather than it waiting to be taken? */
   readonly workedOn = (): boolean => this.read((client, id) => client.isWorkedOn(id)) ?? false
 
+  /** Its pick Claude took off the inbox since the page loaded (`ReviewClient.takenPickOf()`), if any. */
+  readonly takenPick = (): PickFields | undefined => this.read((client, id) => client.takenPickOf(id))
+
   /** Has its mark gone to Claude? */
   readonly isSent = (): boolean =>
     this.read((client, id) => !!client.markOf(id) && client.isSent(client.markOf(id)!)) ?? false
@@ -124,14 +127,19 @@ export class ReviewState {
   // ## Acts (untracked:  from handlers)
   ////////////////
 
-  /** Its `action` button clicked:  `"open-box"` when the caller should take the reader to the note box. */
-  press(action: ReviewAction): "open-box" | undefined {
-    return this.client?.press(untrack(this.id), action)
+  /**
+   * Its `action` button clicked:  `"open-box"` when the caller should take the reader to the note box, `"chosen"`
+   * when an action was chosen for it (the caller folds it), else `undefined` (`ReviewClient.press()`).
+   */
+  @E.untracked
+  press(action: ReviewAction): "open-box" | "chosen" | undefined {
+    return this.client?.press(this.id(), action)
   }
 
   /** Its id chip clicked:  urgent <-> not urgent (`docCalm`:  what the doc says). */
+  @E.untracked
   toggleCalm(docCalm: boolean) {
-    void this.client?.toggleCalm(untrack(this.id), docCalm)
+    void this.client?.toggleCalm(this.id(), docCalm)
   }
 
   /** A failed save's words:  the client's last write error. */
@@ -185,23 +193,23 @@ export class ReviewState {
  * - SIDE EFFECT:  adds its host to `document.body` on the first `show()`
  ****************/
 class ReviewNotice {
-  /** The host, once shown. */
-  private line: HTMLElement | undefined
-
   /** The timer hiding it. */
-  private timer = 0
+  private timer?: E.CancelablePromise<unknown>
 
   /** Say `message` for a few seconds (`NOTICE_MS`). */
   show(message: string) {
-    const line = (this.line ??= ReviewNotice.build())
+    const { line } = this
     line.shadowRoot!.querySelector("p")!.textContent = message
     line.hidden = false
-    clearTimeout(this.timer)
-    this.timer = window.setTimeout(() => (line.hidden = true), NOTICE_MS)
+    this.timer?.cancel()
+    this.timer = E.after(NOTICE_MS / 1000, () => (line.hidden = true))
   }
 
-  /** The host:  fixed at the bottom of the window, ink on paper reversed. */
-  private static build(): HTMLElement {
+  /**
+   * The host:  fixed at the bottom of the window, ink on paper reversed.
+   * - SIDE EFFECT:  built and added to `document.body` on first read (the first `show()`).
+   */
+  @E.lazy private get line(): HTMLElement {
     const line = document.createElement("div")
     line.setAttribute("role", "status")
     line.hidden = true

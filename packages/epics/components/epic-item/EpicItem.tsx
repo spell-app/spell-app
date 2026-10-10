@@ -7,7 +7,8 @@ import { PlanDates } from "$/epics/dates"
 
 import { epicItemVocabulary } from "./EpicItem.en"
 import { Chevron } from "./Chevron"
-import { CONTROLS } from "./Fold"
+import { CollapseAllButton } from "./CollapseAllButton"
+import { CONTROLS, FOLDING_CARDS, foldAllUnder } from "./Fold"
 import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "./ReviewControls"
 import { ReviewState } from "./ReviewState"
 import {
@@ -16,6 +17,7 @@ import {
   CANCELED,
   CELL,
   CHIP,
+  CHOSEN_SET,
   COMMIT_TAG,
   COMMITS_PROPERTY,
   DETAILS,
@@ -31,6 +33,8 @@ import {
   LINE,
   MORE_TAG,
   NOTE,
+  NOTE_BUTTONS,
+  NOTE_OPEN,
   OVERNIGHT,
   REVIEW,
   REVIEW_BUTTONS,
@@ -38,6 +42,9 @@ import {
   STATUS_SLOT,
   STATUS_STATES,
   TITLE,
+  TODO_BUTTONS,
+  TODO_ID,
+  TODO_NOTE_BUTTONS,
   TOGGLE,
   UNDER_LINE,
   UNFOLDED,
@@ -48,16 +55,18 @@ import {
   type ReviewTextKey
 } from "./EpicItem.types"
 
+import collapseAllCSS from "./CollapseAllButton.css?inline"
 import itemCSS from "./EpicItem.css?inline"
 import reviewCSS from "./ReviewControls.css?inline"
 
 /****************
  * ### `EpicItem`
  * The component behind `<epic-item>`:  one item -- question, judgement call, caveat, todo, issue or test -- its kind its id's letter (Q11).
- * - Its LINE, in the shadow root:  the fold chevron (only with details), the id chip (`Q7`, a link to `#q7`) in its
- *   state's colour, the title (`title`, or `slot="title"`), the bed icon (`overnight`:  made overnight), the git icon
- *   (with commits), the review label (`reviewed 10/6/26`, `deferred`, `to do`) and the review buttons.  Sticky while
- *   open, under the section titles stuck above it.
+ * - Its LINE, in the shadow root:  the fold chevron (only with details),
+ *   the id chip (`Q7`, a link to `#q7`) in its state's colour, the title (`title`, or `slot="title"`),
+ *   the bed icon (`overnight`:  made overnight), the git icon (with commits),
+ *   the review label (`reviewed 10/6/26`, `deferred`, `to do`) and the review buttons.
+ *   Sticky while open, under the section titles stuck above it.
  * - `calm`:  an open judgement call or issue not reviewed yet is yellow (`open`), not red (`attention`).
  * - Its COMMITS (`<epic-commit>` children, or `commits` while its part isn't in):  hidden until the page's git toggle
  *   shows every commit;  its git icon shows just its own (T17, the old runtime's `plan-git-hint`), opening it first,
@@ -67,31 +76,41 @@ import reviewCSS from "./ReviewControls.css?inline"
  *   see them (Q12);  hidden `until-found` while folded.  Over its own text, `Original question` (answered) or
  *   `Original reply` (with a More Details card);  under them Claude's status cards (`<epic-status slot="status">`,
  *   P13), then the note box.
- * - Review (P9, `ReviewControls.tsx`):  only while the page is reviewed (served with a token, its inbox answering:
- *   `ReviewState`).  Approve, Revisit, Make Todo, then Do Now at the line's end, the review label in their
- *   tooltips (not beside them:  Owen, 2026-10-07);  the note box LAST in its details, whatever its state, sticky at
- *   the window's bottom while it's open and taller than the window, or, without details, under its line once
- *   Revisit opens it;  a marked note just above the box, with Edit, and Claude's status cards between the two.
- *   While it carries a mark (a button dashed or outlined, or a pick), its id chip MATCHES the chosen button:  that
- *   button's colour and fill (`chipMark`, Owen, 2026-10-08);  without one, its state's colour, solid.  Once Claude
- *   has handled the mark the buttons CLEAR (Owen's input, taken):  the chip carries the result.
- *   The id chip of an item Owen may call urgent or not (`canCalm`) is a button:  urgent <-> not urgent, through the
- *   inbox (`ReviewClient.toggleCalm()`).  All in the shadow root:  a part reloaded keeps a half-typed note.
+ * - Review (P9, `ReviewControls.tsx`):
+ *   only while the page is reviewed (served with a token, its inbox answering:  `ReviewState`).
+ *   Approve, Revisit, Make Todo, then Do Now (the wand) at the line's end;
+ *   a todo's:  the plane (do it in the next phase), Revisit, the x (drop it:  Owen, 2026-10-09);
+ *   the review label in their tooltips (not beside them:  Owen, 2026-10-07);
+ *   the note box LAST in its details, whatever its state, sticky at the window's bottom
+ *   while it's open and taller than the window, or, without details, under its line once Revisit opens it
+ *   (lined up with where details start;  its chevron then shows, and folding closes the box);
+ *   a marked note just above the box, with Edit, and Claude's status cards between the two.
+ *   - While it carries a mark (a button dashed or outlined, or a pick), its id chip MATCHES the chosen button:
+ *     that button's colour and fill (`chipMark`, Owen, 2026-10-08);  without one, its state's colour, solid.
+ *   - Once Claude has handled the mark the buttons CLEAR (Owen's input, taken):  the chip carries the result.
+ *   - The id chip of an item Owen may call urgent or not (`canCalm`) is a button:
+ *     urgent <-> not urgent, through the inbox (`ReviewClient.toggleCalm()`).
+ *   - All in the shadow root:  a part reloaded keeps a half-typed note.
  * - Folding:  `open` (page state, never in the file);  a click on the line (not on a link or control in it) or
  *   Enter / Space on the chevron go through the cancelable `ui-open` / `ui-close`.  A link to the item, to an id
  *   in `part-ids`, or to an element inside it opens it, as does find-in-page.
- * - Source:  `source="parts/q7.html"` is fetched the first time it opens (`LoadableBody`, as `<ui-section source>`),
- *   into its LIGHT children, replacing the placeholder;  `ui-load` then.  From `file://` it can't load:  the
- *   `Loads from ... (needs the page server)` note, as today.
- * - The DOM element's own `title` would show as a tooltip over everything in it, prose included:  the shadow wrapper's
- *   EMPTY `title` stops it there (T8).
- * - SIDE EFFECT:  with `source`, replaces its own light children (the placeholder) with the part;  listens for
- *   `hashchange` while connected.
+ *   - Folding while its line is stuck keeps the line where it is on screen (`keepLinePut()`).
+ *   - It folds by itself once Owen chooses an action for it (`foldAfterAction()`):  a review button, a note box
+ *     button, a Choose pill (Owen, 2026-10-10:  "collapse the item", so he moves on to the next).
+ *   - Collapse-all (epic `airplane` P8):  open, with cards or panels inside, a double chevron at its line's end
+ *     folds them all (`collapseAll()`);  the page's collapse-all folds the item itself too (`collapse()`).
+ * - Source:  `source="parts/q7.html"` is fetched the first time it opens (`LoadableBody`,
+ *   as `<ui-section source>`), into its LIGHT children, replacing the placeholder;  `ui-load` then.
+ *   From `file://` it can't load:  the `Loads from ... (needs the page server)` note, as today.
+ * - The DOM element's own `title` would show as a tooltip over everything in it, prose included:
+ *   the shadow wrapper's EMPTY `title` stops it there (T8).
+ * - SIDE EFFECT:  with `source`, replaces its own light children (the placeholder) with the part;
+ *   listens for `hashchange` while connected.
  ****************/
 export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   @E.proto static vocabulary = epicItemVocabulary
-  @E.proto static styleSheets = { "epic-item": itemCSS, "epic-review": reviewCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-item": itemCSS, "epic-collapse-all": collapseAllCSS, "epic-review": reviewCSS },
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false
@@ -107,14 +126,23 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   /** `open`:  the DOM element's (a boolean is always the DOM element's, see `@controlled`). */
   @E.controlled("open") accessor isMarkedOpen = false
 
-  /** What its light children start with, and whether a More Details card is among them:  for its label. */
-  @E.state accessor childScan: ChildScan = this.scanChildren()
+  /**
+   * What its light children start with, and whether a More Details card is among them:  for its label.
+   * - Follows them as they change.
+   */
+  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  get childScan(): ChildScan {
+    return this.scanChildren()
+  }
 
   /** Its view of the page's review inbox. */
   readonly reviewState = new ReviewState(() => this.id)
 
   /** The note box's `<textarea>`, once drawn:  Revisit and Edit focus it. */
   private noteInput: HTMLTextAreaElement | undefined
+
+  /** Its line, once drawn:  folding keeps it where it is on screen (`keepLinePut()`). */
+  private lineBox: HTMLElement | undefined
 
   /** Its own commits show (its git icon pressed). */
   @E.state accessor showCommits = false
@@ -139,6 +167,12 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   ////////////////
 
   /**
+   * Its review buttons, in their order:  a todo's three (the plane, Revisit, the x:  Owen, 2026-10-09), else an
+   * item's four.  Before `chipMark`, which reads it (memos compute as they're made).
+   */
+  readonly reviewButtons = createMemo(() => (TODO_ID.test(this.id ?? "") ? TODO_BUTTONS : REVIEW_BUTTONS))
+
+  /**
    * May Owen call it urgent or not (its id chip, while the page is reviewed)?  An open judgement call or issue, not
    * reviewed, nothing queued or under way:  the items red for want of a review (`PlanReader.itemState()`).
    */
@@ -148,12 +182,12 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   })
 
   /**
-   * Where it stands:  `state` as the script wrote it, else by its status (`STATUS_STATES`:  decided or done
-   * `recent`, canceled `old`, else `open`).
-   * - Claude's agent at work on it (the review inbox's `working`, the page's live view of it):  `progress` (blue), at
-   *   once, before the script rewrites `state`
-   * - Owen's urgency, not applied yet (its id chip clicked):  `open` (yellow) when not urgent, `attention` (red) when
-   *   urgent, at once
+   * Where it stands:  `state` as the script wrote it,
+   * else by its status (`STATUS_STATES`:  decided or done `recent`, canceled `old`, else `open`).
+   * - Claude's agent at work on it (the review inbox's `working`, the page's live view of it):
+   *   `progress` (blue), at once, before the script rewrites `state`
+   * - Owen's urgency, not applied yet (its id chip clicked):
+   *   `open` (yellow) when not urgent, `attention` (red) when urgent, at once
    */
   readonly itemState = createMemo((): ItemState => {
     if (this.reviewState.workedOn()) return "progress"
@@ -165,19 +199,31 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   })
 
   /**
-   * Owen's live mark, as its id chip wears it:  the chosen review button's colour and fill (dashed until sent, then
-   * outlined), or a pick's (green);  `undefined` without one, so the chip shows its state.
-   * - a mark Claude handled is gone from the inbox:  the buttons clear, and the chip shows the RESULT, solid in its
-   *   state's colour (green decided, yellow still open, red needs Owen:  Owen, 2026-10-08)
+   * Where Owen's answer on it stands, as its id chip wears it (Owen, 2026-10-10:  "leaning into outlines"):
+   * the FILL says how far it got, so he sees at a glance what he already answered.
+   * - his live mark:  the chosen review button's colour (a pick's green), DASHED until sent, then OUTLINED
+   * - a pick Claude took off the inbox, its `chosen` not on the page yet:  green, outlined
+   * - answered, and the work still due:  OUTLINED
+   *   - queued (`queued`:  a review said "do it", a todo's plane):  green
+   *   - Claude working on it (an underway card, an agent at work:  `progress`):  blue
+   * - `undefined` once nothing more is due, so the chip shows its state SOLID:  the RESULT
+   *   (green decided or done, yellow still open, red needs Owen, orange Owen's turn to pick:  Owen, 2026-10-08)
    */
   readonly chipMark = createMemo((): ChipMark | undefined => {
-    for (const spec of REVIEW_BUTTONS) {
+    for (const spec of this.reviewButtons()) {
       const fill = this.reviewState.fillOf(spec.action)
       if (fill === "dashed" || fill === "outline") return { color: spec.color, fill, label: spec.label }
     }
     const pick = this.reviewState.mark()?.pick
-    if (!pick) return undefined
-    return { color: "green", fill: this.reviewState.isSent() ? "outline" : "dashed", label: { pick } }
+    if (pick) return { color: "green", fill: this.reviewState.isSent() ? "outline" : "dashed", label: { pick } }
+    // read plainly:  the doc's `chosen` lands with the item's own attributes changing (`reviewed`, `state` ...),
+    // which re-run this
+    const taken = this.reviewState.takenPick()?.pick
+    if (taken && !this.domElement.querySelector(CHOSEN_SET))
+      return { color: "green", fill: "outline", label: { pick: taken } }
+    if (this.itemState() === "progress") return { color: "blue", fill: "outline" }
+    if (this.queued && this.status === "open") return { color: "green", fill: "outline" }
+    return undefined
   })
 
   /** Is its id chip a button (urgent <-> not urgent) now?  Only while the page is reviewed. */
@@ -190,6 +236,29 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
 
   /** Unfolded. */
   readonly isOpen = createMemo(() => !!this.isMarkedOpen && this.hasDetails())
+
+  /**
+   * Its note box is open under its line (an item without details, Revisit pressed):  its chevron shows, unfolded, and
+   * folding closes the box, its draft kept (Owen, 2026-10-09:  "note item is not collapsible").
+   */
+  readonly boxUnderLine = createMemo(
+    () => this.reviewState.reviewing() && !this.hasDetails() && this.reviewState.boxOpen()
+  )
+
+  /** Has a chevron:  details to fold, or a note box open under its line. */
+  readonly foldable = createMemo(() => this.hasDetails() || this.boxUnderLine())
+
+  /** Shows as unfolded:  its details, or its note box under the line. */
+  readonly showsOpen = createMemo(() => this.isOpen() || this.boxUnderLine())
+
+  /** Holds a card or panel that folds (`FOLDING_CARDS`:  a reply, the answer, an aside ...). */
+  @E.fromContent({ childList: true, subtree: true })
+  get holdsFolds(): boolean {
+    return !isServer && !!this.domElement.querySelector(FOLDING_CARDS)
+  }
+
+  /** Shows its collapse-all button, at its line's end:  open, with something inside that folds. */
+  readonly canCollapseAll = createMemo(() => this.isOpen() && this.holdsFolds)
 
   /** Details box held closed while the `source` part is on its way. */
   readonly veiled = createMemo(() => !isServer && !!this.source && this.body.isVeiled)
@@ -216,8 +285,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   readonly hasCommits = createMemo(() => !!this.commits || this.childScan.hasCommits)
 
   /**
-   * The review label, in words, for the review buttons' tooltips (`Approve · reviewed 10/7/26`):  while the page is
-   * reviewed, the buttons say it, not a label beside them (Owen, 2026-10-07).
+   * The review label, in words, for the review buttons' tooltips (`Approve · reviewed 10/7/26`):
+   * while the page is reviewed, the buttons say it, not a label beside them (Owen, 2026-10-07).
    */
   readonly reviewTip = createMemo((): string | undefined => {
     const { queued, work, deferred, reviewed } = this
@@ -229,18 +298,20 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
 
   /** Anything at the end of the line:  the bed and git icons, a review label, or the review buttons. */
   readonly hasExtras = createMemo(
-    () => !!this.overnight || this.hasCommits() || !!this.review() || this.reviewState.reviewing()
+    () =>
+      !!this.overnight || this.hasCommits() || !!this.review() || this.reviewState.reviewing() || this.canCollapseAll()
   )
 
   /**
-   * The id chip's tooltip:  where it stands, then its review marks (`Needs attention · not reviewed yet`);  while it
-   * toggles, what a click does (and an urgency not sent yet).
+   * The id chip's tooltip:  where it stands, then its review marks (`Needs attention · not reviewed yet`);
+   * while it toggles, what a click does (and an urgency not sent yet).
    */
   readonly chipTip = createMemo(() => {
     const { queued, work, reviewed, deferred, status } = this
     const parts = [this.translationForKey(STATE_TIP_KEYS[this.itemState()])]
     const mark = this.chipMark()
-    if (mark) {
+    // a mark with no label (work still due:  queued, Claude on it):  the state's words and `to do` say it
+    if (mark?.label) {
       const { label } = mark
       const chosen =
         typeof label === "string"
@@ -281,13 +352,19 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   ////////////////
 
   /**
-   * Words after the noun:  its state (`item attention`), `canceled`, `has-details`, `unfolded`.
+   * Words before the noun:  its state (`attention item`), `canceled`, `has-details`, `note-open`, `unfolded`.
    * - NOTE: `unfolded`, not `open`:  `open` is a state (yellow) already;  of the statuses only `canceled` looks
    *   different (struck through), so only it is a word here.
    */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const canceled = this.status === CANCELED
-    return [this.itemState(), canceled && CANCELED, this.hasDetails() && HAS_DETAILS, this.isOpen() && UNFOLDED]
+    return [
+      this.itemState(),
+      canceled && CANCELED,
+      this.hasDetails() && HAS_DETAILS,
+      this.boxUnderLine() && NOTE_OPEN,
+      this.isOpen() && UNFOLDED
+    ]
       .filter(Boolean)
       .join(" ")
   }
@@ -307,7 +384,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   ////////////////
 
   /**
-   * Load the `source` part whenever it's open and connected;  follow links to it and its children's changes.
+   * Load the `source` part whenever it's open and connected;  follow links to it.
    * - In `onMount()`, not `render()`:  effects outside the drawing.
    */
   onMount(): JSX.Element {
@@ -318,30 +395,25 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
           if (source && open && connected) this.body.load().catch(() => undefined)
         }
       )
-      // the inbox's changes, while connected (kept alive, a removed item must stop listening)
-      createEffect(
-        () => this.isConnected,
-        (connected) => (connected ? this.reviewState.connect() : undefined)
-      )
       onSettled(() => {
-        const observer = new MutationObserver(() => (this.childScan = this.scanChildren()))
-        observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
-        this.childScan = this.scanChildren()
         window.addEventListener("hashchange", this.followHash)
         this.followHash()
-        return () => {
-          observer.disconnect()
-          window.removeEventListener("hashchange", this.followHash)
-        }
+        return () => window.removeEventListener("hashchange", this.followHash)
       })
     }
     return super.onMount()
   }
 
+  /** The inbox's changes, while connected (kept alive:  a removed item must stop listening). */
+  @E.whileConnected
+  protected followReviews() {
+    return this.reviewState.connect()
+  }
+
   render(): JSX.Element {
     return (
       // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over all of it (T8)
-      <div class={this.rootClasses} part={this.partForName("base")} title="">
+      <div class={this.rootClass} part={this.partForName("base")} title="">
         {this.renderLine()}
         <Show when={this.reviewState.reviewing() && !this.hasDetails()}>
           <div class={UNDER_LINE}>
@@ -381,17 +453,22 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   /** The line:  chevron, id chip, title, review label, actions. */
   private renderLine(): JSX.Element {
     return (
-      <div class={LINE} part={this.partForName("line")} onClick={this.onLineClick}>
+      <div
+        ref={(element) => (this.lineBox = element)}
+        class={LINE}
+        part={this.partForName("line")}
+        onClick={this.onLineClick}
+      >
         <span class={[CELL, FOLD]}>
-          <Show when={this.hasDetails()}>
+          <Show when={this.foldable()}>
             <button
               type="button"
               class={TOGGLE}
               part={this.partForName("toggle")}
-              aria-expanded={this.isOpen() ? "true" : "false"}
-              aria-controls={DETAILS_ID}
-              aria-label={this.translationForKey(this.isOpen() ? "fold" : "unfold", { id: this.label() })}
-              title={this.translationForKey(this.isOpen() ? "fold" : "unfold", { id: this.label() })}
+              aria-expanded={this.showsOpen() ? "true" : "false"}
+              aria-controls={this.hasDetails() ? DETAILS_ID : undefined}
+              aria-label={this.translationForKey(this.showsOpen() ? "fold" : "unfold", { id: this.label() })}
+              title={this.translationForKey(this.showsOpen() ? "fold" : "unfold", { id: this.label() })}
             >
               <Chevron />
             </button>
@@ -456,10 +533,18 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
               review={this.reviewState}
               text={this.reviewText}
               label={this.label()}
-              buttons={REVIEW_BUTTONS}
+              buttons={this.reviewButtons()}
               reviewTip={this.reviewTip()}
               part={this.partForName("review-buttons")}
               onOpenBox={() => this.takeToNote()}
+              onChosen={() => this.foldAfterAction()}
+            />
+          </Show>
+          <Show when={this.canCollapseAll()}>
+            <CollapseAllButton
+              label={this.translationForKey("collapseAll", { id: this.label() })}
+              part={this.partForName("collapse-all")}
+              onCollapse={() => this.collapseAll()}
             />
           </Show>
         </span>
@@ -505,9 +590,13 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
         text={this.reviewText}
         label={this.label()}
         part={this.partForName("note-box")}
+        buttons={TODO_ID.test(this.id ?? "") ? TODO_NOTE_BUTTONS : NOTE_BUTTONS}
         ref={(note) => (this.noteInput = note)}
         onEscape={() => this.leaveNote()}
-        onUsed={() => this.leaveNote()}
+        onUsed={() => {
+          this.foldAfterAction()
+          this.leaveNote()
+        }}
       />
     )
   }
@@ -531,11 +620,12 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   }
 
   /** Done with the note box:  closed under the line;  a docked one stays, but stops counting as written in. */
+  @E.untracked
   private leaveNote() {
     const client = this.reviewState.client
     if (!client) return
-    const docked = untrack(this.hasDetails)
-    if (!docked || !this.noteInput?.value.trim()) client.closeBox(untrack(this.reviewState.id), false)
+    const docked = this.hasDetails()
+    if (!docked || !this.noteInput?.value.trim()) client.closeBox(this.reviewState.id(), false)
   }
 
   ////////////////
@@ -558,18 +648,69 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
 
   /**
    * Fold or unfold as the user would:  the cancelable `ui-open` / `ui-close` first, then `open`.  True when applied.
-   * - Does nothing without details.
+   * - Without details:  folding its note box open under the line closes it, the draft kept;  else nothing.
    */
+  @E.untracked
   toggle(originalEvent?: Event): boolean {
-    if (!untrack(this.hasDetails)) return false
-    const opening = !untrack(this.isOpen)
+    if (!this.hasDetails()) {
+      if (!this.boxUnderLine()) return false
+      this.reviewState.client?.closeBox(this.reviewState.id(), false)
+      return true
+    }
+    const opening = !this.isOpen()
     const detail = { open: opening, item: this.domElement, originalEvent }
-    return this.requestChange("isMarkedOpen", opening, () => this.send(opening ? "ui-open" : "ui-close", detail))
+    return this.requestChange("isMarkedOpen", opening, () => {
+      const applied = this.send(opening ? "ui-open" : "ui-close", detail)
+      if (applied && !opening) this.keepLinePut()
+      return applied
+    })
+  }
+
+  /** Fold it, if open, as a click on its line would (`toggle()`);  true when it folded.  Collapse-all's. */
+  @E.untracked
+  collapse(): boolean {
+    return this.isOpen() ? this.toggle() : false
+  }
+
+  /**
+   * Collapse-all, the double chevron at its line's end:  fold every card and panel inside it (`foldAllUnder()`),
+   * the item itself staying open;  its line kept where it is on screen.  Returns how many it folded.
+   */
+  @E.untracked
+  collapseAll(): number {
+    this.keepLinePut()
+    return foldAllUnder(this.domElement)
+  }
+
+  /**
+   * Owen chose an action for it (a review button, a note box button, a Choose pill):  fold it, so he moves on to the
+   * next (Owen, 2026-10-10), its line kept where it is on screen.  Folded already, or nothing to fold:  nothing.
+   */
+  @E.untracked
+  foldAfterAction() {
+    if (this.showsOpen()) this.toggle()
+  }
+
+  /**
+   * About to fold while its line is STUCK (its top scrolled past):  scroll at once so the line stays where it is on
+   * screen, and the details fold away below it (the runtime's `keepTitlePut()`, for an item).
+   * - why:  else the page keeps its scroll while the details vanish above it, and the reader lands as far down the
+   *   page as he'd read into the item (Owen, 2026-10-10:  "loses the scroll of the page entirely")
+   */
+  private keepLinePut() {
+    const line = this.lineBox
+    const base = line?.parentElement
+    if (!line || !base) return
+    const stuckAt = line.getBoundingClientRect().top
+    const top = base.getBoundingClientRect().top
+    if (top >= stuckAt - 1) return
+    window.scrollTo({ top: window.scrollY + top - stuckAt, behavior: "instant" })
   }
 
   /** Unfold for a link or find-in-page:  `ui-open` after the fact (not cancelable). */
+  @E.untracked
   private reveal() {
-    if (untrack(this.isOpen) || !untrack(this.hasDetails)) return
+    if (this.isOpen() || !this.hasDetails()) return
     const detail = { open: true, item: this.domElement }
     const init = { bubbles: true, composed: true, cancelable: false, detail }
     this.domElement.dispatchEvent(new CustomEvent(this.elementDefinition.event("ui-open"), init))
@@ -584,10 +725,11 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   }
 
   /** The id chip clicked while it toggles:  urgent <-> not urgent;  the line doesn't fold. */
+  @E.untracked
   private readonly flipUrgency = (event: MouseEvent) => {
     event.preventDefault()
     event.stopPropagation()
-    this.reviewState.toggleCalm(!!untrack(() => this.calm))
+    this.reviewState.toggleCalm(!!this.calm)
   }
 
   /** A click on the line:  folds, unless it landed on a link or control (the id chip, P9's buttons). */
@@ -608,13 +750,14 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   }
 
   /**
-   * The page's `#hash` names this item, an id in its `part-ids`, or an element inside it:  open it;  a part id lands
-   * once the part is in.
+   * The page's `#hash` names this item, an id in its `part-ids`, or an element inside it:  open it;
+   * a part id lands once the part is in.
    */
+  @E.untracked
   private readonly followHash = () => {
     const target = decodeURIComponent(location.hash.slice(1))
     if (!target) return
-    const partIds = (untrack(() => this.partIds) ?? "").split(/\s+/)
+    const partIds = (this.partIds ?? "").split(/\s+/)
     if (partIds.includes(target)) {
       this.reveal()
       this.body

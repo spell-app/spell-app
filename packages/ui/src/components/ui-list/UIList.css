@@ -1,11 +1,12 @@
 /*
  * The style sheet of `<ui-list>` and the `<ui-item>`s inside it:  a port of Fomantic's `list.less` + `list.variables`.
- * - ONE sheet for the list AND its items:  the list adopts it after the foundation;  every item it owns adopts it
- *   after `UIItem.css` (`UIItem.styleSheetNames` reads the owner's `styleSheets`).
+ * - ONE sheet for the list AND its items:  the list adopts it after the foundation;
+ *   every item it owns adopts it after `UIItem.css`
+ *   (`UIItem.styleSheetNames` reads the owner's `elementSetup.styleSheets`).
  * - Shadow markup contract (class grammar on semantic elements):
- *   - `<ui-list>`:  `<ul class="ui [size] [keyOnly ...] [relaxed] [floated] [aligned] list" part="list"
- *     role="list"><slot></slot></ul>`, an `<ol>` when ordered;  `role="list"` because `list-style: none` drops
- *     list semantics in Safari
+ *   - `<ui-list>`:  `<ul class="ui [size] [keyOnly ...] [relaxed] [floated] [aligned] list" part="list" role="list">`
+ *     around `<slot></slot>`, an `<ol>` when ordered;
+ *     `role="list"` because `list-style: none` drops list semantics in Safari
  *   - a `<ui-list>` inside a list (the SUB-LIST, `:state(in-list)`):
  *     `<ul class="list" part="list" role="list">` -- no `ui`, no variations:  it inherits the outer list's tokens,
  *     as Fomantic's `.ui.list .list > .item` does
@@ -19,29 +20,32 @@
  *
  *   The DOM element's position replaces Fomantic's `:first-child` / `:last-child` / `+`:
  *   `:host(:state(in-list):first-child)`.
- * - Public tokens (`--ui-list-*`, the theming surface) are NEVER declared here:  the list root reads each through a
- *   private alias, `--_ui-list-item-padding-block: var(--ui-list-item-padding-block, 0.21428571em)`,
- *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the DOM element,
- *   `::part(list)` or in the app stylesheet reaches the list and its items (`docs/theming.md` "Component tokens");
- *   set it on the list or above, not on an item.
- * - Variations reach the items as INHERITED TOKENS:  each variation writes the `--_ui-list-*` aliases on the list
- *   root (class selectors, combinations included:  `.ui.horizontal.divided.list`), so it wins over the page's base
- *   value, and the item rules only read them.  Where a variation changes STRUCTURE the items style-query a private
- *   switch instead:  `--_ui-list-marker: number` (an item's `value` replaces its number) and
- *   `--_ui-list-animated: 1` (hover indent).
+ * - Public tokens (`--ui-list-*`, the theming surface) are NEVER declared here:
+ *   the list root reads each through a private alias,
+ *   `--_ui-list-item-padding-block: var(--ui-list-item-padding-block, 0.21428571em)`, and every rule reads the alias.
+ *   - So a value set on `:root`, an ancestor, the DOM element, `::part(list)` or in the app stylesheet
+ *     reaches the list and its items (`docs/theming.md` "Component tokens").
+ *   - Set it on the list or above, not on an item.
+ * - Variations reach the items as INHERITED TOKENS:
+ *   each variation writes the `--_ui-list-*` aliases on the list root
+ *   (class selectors, combinations included:  `.ui.horizontal.divided.list`),
+ *   so it wins over the page's base value, and the item rules only read them.
+ *   - Where a variation changes STRUCTURE, the items style-query a private switch instead:
+ *     `--_ui-list-marker: number` (an item's `value` replaces its number) and `--_ui-list-animated: 1` (hover indent).
  *   - EXCEPT the look-only variations `link`, `selection` and `bulleted`'s marker:  they set their DEFAULTS through
  *     the public tokens (`--_ui-list-link-color: var(--ui-list-link-color, var(--ui-text-unselected))`),
  *     so a page's colour, padding or bullet still reaches a link / selection / bulleted list.
  *     The structural ones (`horizontal`, `relaxed`, `divided`, `celled` ...) keep winning.
- * - The root declares EVERY alias below, default included, so a list nested as a new top-level list never
- *   inherits an outer list's look.  The sub-list writes the item geometry aliases from the `--ui-list-child-*`
- *   tokens' aliases (Fomantic's child items are tighter, never bordered, never horizontal);
- *   it never re-declares them from the public tokens, so the outer list's variations reach it.
+ * - The root declares EVERY alias below, default included,
+ *   so a list nested as a new top-level list never inherits an outer list's look.
+ *   - The sub-list writes the item geometry aliases from the `--ui-list-child-*` tokens' aliases
+ *     (Fomantic's child items are tighter, never bordered, never horizontal);
+ *     it never re-declares them from the public tokens, so the outer list's variations reach it.
  * - Numbering is CSS counters:  `counter-reset: ordered` on the root (and every sub-list),
- *   `counter-increment` on each item's `::before`;  counters cross shadow boundaries and nest (`counters(ordered, ".")`
- *   => `1.2`).
- * - DOM elements are `display: contents`:  the list root and item roots are the boxes, so the list's inline / table
- *   layout applies to them directly.
+ *   `counter-increment` on each item's `::before`;
+ *   counters cross shadow boundaries and nest (`counters(ordered, ".")` => `1.2`).
+ * - DOM elements are `display: contents`:
+ *   the list root and item roots are the boxes, so the list's inline / table layout applies to them directly.
  *
  * ## Tokens
  *
@@ -112,12 +116,13 @@
  * | `--ui-list-child-item-margin-inline`    | `0`                              | `fitted selection`                         |
  * | `--ui-list-child-marker-margin`         | `0`                              | `bulleted`, `ordered` (`-2em`)             |
  *
- * - Owner tokens the ITEM root sets for what's slotted into it:  `--_ui-icon-owner-*` (a slotted `<ui-icon>` is a
- *   table cell beside the content, like Fomantic's `> .item > i.icon`), reset on slotted parts
- *   (`::slotted(:state(in-list))`) so icons inside a content block stay inline;
- *   `--_ui-part: item` (a sub-list inside a `<ui-content>` drops its indent,
- *   `--_ui-part: content`);  `--_ui-item-media: image` for the `image` shorthand (`UIParts.css`:
- *   the content beside it is an inline block, Fomantic's `img.image + .content`).
+ * - Owner tokens the ITEM root sets for what's slotted into it:
+ *   - `--_ui-icon-owner-*`:  a slotted `<ui-icon>` is a table cell beside the content
+ *     (like Fomantic's `> .item > i.icon`), reset on slotted parts (`::slotted(:state(in-list))`)
+ *     so icons inside a content block stay inline
+ *   - `--_ui-part: item` (a sub-list inside a `<ui-content>` drops its indent, `--_ui-part: content`)
+ *   - `--_ui-item-media: image` for the `image` shorthand
+ *     (`UIParts.css`:  the content beside it is an inline block, Fomantic's `img.image + .content`)
  * - Colours:  `inverted` sets `color-scheme: dark` (+ `--ui-inverted: 1`), so the `light-dark()` text,
  *   border and ink tokens (link list greys, selection backgrounds) resolve on-dark by themselves;
  *   only Fomantic's explicit inverted colours (content, header, links) are remapped.
@@ -126,10 +131,11 @@
  *     the element's root is ALWAYS a `<ul>` / `<ol>` of `<ui-item>`s, so it says `bulleted` / `ordered` with classes
  *   - `.ui.menu .ui.list` coupling:  `UIMenu.css` owns it
  *   - floated / aligned CONTENT (`right floated content`, `middle aligned content`):
- *     `<ui-content floated>` / `vertical-align` style themselves (`UIParts.css`);  the static class-grammar rules stay
- *     here
- *   - a slotted `<img>` / `<ui-image>` FOLLOWED by a `<ui-content>`:  the content is a table cell (`UIParts.css`,
- *     `:not(:first-child)`) beside an inline-block image, so it wraps below;  use the item's `image` shorthand
+ *     `<ui-content floated>` / `vertical-align` style themselves (`UIParts.css`);
+ *     the static class-grammar rules stay here
+ *   - a slotted `<img>` / `<ui-image>` FOLLOWED by a `<ui-content>`:
+ *     the content is a table cell (`UIParts.css`, `:not(:first-child)`) beside an inline-block image,
+ *     so it wraps below;  use the item's `image` shorthand
  *   - links nested INSIDE a slotted part (`<ui-description>Watch <a>…</a>`):  out of this sheet's reach;
  *     they keep the page's link colour (static markup gets Fomantic's `.item a` rules)
  *   - the icon cell's `:only-child` and `.loading.icon + .content` rules:  a shadow root can't see them;
@@ -152,8 +158,8 @@
     display: none;
   }
 
-  /* Tokens:  the switches, and a private alias per `list.variables` entry that still matters;  the items and
-     sub-lists inherit them. */
+  /* Tokens:  the switches, and a private alias per `list.variables` entry that still matters;
+     the items and sub-lists inherit them. */
   .ui.list {
     --_ui-list-layout: vertical;
     --_ui-list-align: top;
@@ -253,8 +259,9 @@
     --ui-scale: initial;
   }
 
-  /* `width: stretch` (fill the line, margins included):  Firefox spells it `-moz-available`, older Safari
-     `-webkit-fill-available`.  A token, since an unsupported keyword inside a `var()` is invalid at computed-value time
+  /* `width: stretch` (fill the line, margins included):
+     Firefox spells it `-moz-available`, older Safari `-webkit-fill-available`.
+     A token, since an unsupported keyword inside a `var()` is invalid at computed-value time
      and silently drops the width to `auto` (a button item then shrinks to its text). */
   @supports not (width: stretch) {
     @supports (width: -webkit-fill-available) {
@@ -436,8 +443,8 @@
     transition: color var(--ui-duration-fast) var(--ui-ease);
   }
 
-  /* Whatever follows the icon box (text, a content block) is the next cell of the same row:  Fomantic's
-     `i.icon:only-child` escape (inline text beside a lone icon) can't be seen from a shadow root. */
+  /* Whatever follows the icon box (text, a content block) is the next cell of the same row:
+     Fomantic's `i.icon:only-child` escape (inline text beside a lone icon) can't be seen from a shadow root. */
   :host(:state(in-list)) > .item > .icon + slot {
     display: var(--_ui-list-icon-slot-display);
     width: 100%;

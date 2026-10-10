@@ -29,8 +29,8 @@ type Sidebar = DOMElement & { visible: boolean; closedBy: string }
 const LINKS = `<a href="#one">One</a> <a href="#two">Two</a>`
 
 /**
- * Render a pushable holding `sidebars` and a pusher with a toggle button;  returns the first sidebar, its panel,
- * the pusher (DOM element and box) and the toggle.
+ * Render a pushable holding `sidebars` and a pusher with a toggle button;
+ * returns the first sidebar, its panel, the pusher (DOM element and box) and the toggle.
  */
 async function pushable(sidebars: string) {
   const wrapper = await ElementFixture.render(
@@ -97,8 +97,8 @@ describe("<ui-sidebar> classes and markup", () => {
     ["", "ui left uncover sidebar"],
     ['position="right"', "ui right uncover sidebar"],
     ['position="top"', "ui top overlay sidebar"],
-    ['width="very thin" transition="scale down"', "ui left scale down sidebar very thin"],
-    ['width="very-wide"', "ui left uncover sidebar very wide"],
+    ['width="very thin" transition="scale down"', "ui left scale down very thin sidebar"],
+    ['width="very-wide"', "ui left uncover very wide sidebar"],
     ['width="4"', "ui left uncover four wide sidebar"],
     ['width="1/4"', "ui left uncover four wide sidebar"],
     ['width="50%"', "ui left uncover eight wide sidebar"],

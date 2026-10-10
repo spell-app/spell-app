@@ -1,19 +1,23 @@
 import { E } from "$/ui/core"
+import type { F } from "$/ui/forms"
 
 /****************
  * ### `DOMFormControl`
  * The DOM element of a form control (`<ui-dropdown>`, `<ui-input>`, `<ui-checkbox>` ...):
  * it adds the platform's form-control API (`form`, `validity`, `checkValidity()` ...), read from `internals`.
  * - Its component is a `FormComponent`, whose `elementSetup.DOMElement` names this class.
- * - Form association itself is solid-element's `formAssociated` option (`elementSetup.isAFormControl`, passed by
- *   `UIComponent.define()`);  form callbacks reach the component through solid-element's `onFormReset` /
- *   `onFormDisabled` hooks.
+ *   A control's own subclass names its component class (`DOMCheckElement extends F.DOMFormControl<CheckControl>`).
+ * - Form association itself is `elementSetup.isAFormControl`
+ *   (DOM API `static formAssociated`, set per tag by `UIComponent.define()`).
+ * - The browser's form callbacks reach the component as its methods (`onFormReset()`, `onFormDisabled()` ...),
+ *   through `DOMElement`.
+ *   - A reset clears the component's `isTouched` first:  so no control's `onFormReset()` has to.
  * - `<ui-button type="submit|reset">` is form-associated too, but keeps `DOMElement`:  it needs no value or validity.
- * - Part of the `forms` entry:  extends `E.DOMElement` through the `$/ui/core` ENTRY, never its leaf;  safe while this
- *   module evaluates, since the core never imports `forms` (see `FormComponent`).
+ * - Part of the `forms` entry:  extends `E.DOMElement` through the `$/ui/core` ENTRY, never its leaf.
+ *   Safe while this module evaluates, since the core never imports `forms` (see `FormComponent`).
  * - `null` where the platform says it (`form`):  the same API as a native control.
  ****************/
-export class DOMFormControl extends E.DOMElement {
+export class DOMFormControl<C extends F.FormComponent<any> = F.FormComponent<any>> extends E.DOMElement<C> {
   /** Form owner;  `null` outside a form, as a native control's. */
   get form(): HTMLFormElement | null {
     return this.internals.form
@@ -47,5 +51,14 @@ export class DOMFormControl extends E.DOMElement {
   /** Valid?  Shows the browser's message when not. */
   reportValidity(): boolean {
     return this.internals.reportValidity()
+  }
+
+  /**
+   * DOM API:  the form was reset.
+   * - The component forgets the interaction (`isTouched`), then restores its starting value (`onFormReset()`).
+   */
+  formResetCallback() {
+    if (this.component) this.component.isTouched = false
+    super.formResetCallback()
   }
 }

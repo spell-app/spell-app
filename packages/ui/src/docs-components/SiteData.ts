@@ -9,28 +9,26 @@ import {
 
 /****************
  * ### `SiteData`
- * The docs site's generated data, `site/_data/components.json` (`yarn site:data`), fetched once per page and shared
- * by every docs element (`<ui-docs-api>`, `<ui-docs-tokens>`, `<ui-docs-nav>` ...).
- * - Where it is:  `SiteData.url`.  The site bundle's entry (`site/_src/site.ts`) sets it from its own location
- *   (`_assets/` => `../_data/components.json`), so a page at any depth finds it.  Unset:  a
- *   `<meta name="ui-docs-data" content="...">` in the page, else `_data/components.json` against the page.
- * - Fails loudly:  a missing or broken file rejects `load()` (and stays rejected until `reset()`);  an element shows
- *   its error, it never guesses.
+ * The docs site's generated data, `site/_data/components.json` (`yarn site:data`),
+ * fetched once per page and shared by every docs element (`<ui-docs-api>`, `<ui-docs-tokens>`, `<ui-docs-nav>` ...).
+ * - Where it is:  `SiteData.url`.
+ *   - The site bundle's entry (`site/_src/site.ts`) sets it from its own location
+ *     (`_assets/` => `../_data/components.json`), so a page at any depth finds it.
+ *   - Unset:  a `<meta name="ui-docs-data" content="...">` in the page, else `_data/components.json` against the page.
+ * - Fails loudly:  a missing or broken file rejects `load()` (and stays rejected until `reset()`);
+ *   an element shows its error, it never guesses.
  * - Plain fetch, no Solid:  elements wrap `load()` in their own async memo.
  * - The site's other files go through `request()` too (`SearchData`, the layout's `SiteShell`):  one way to fail.
- * - Imports `$/ui/core` for `E.SourceError` only:  every bundle that loads this already has the core.
+ * - Imports `$/ui/core` for `E.SourceError` and `@E.once` only:  every bundle that loads this already has the core.
  * - Static only:  the data is one per page.
  ****************/
 export class SiteData {
   /** URL of `components.json`, absolute or against the page;  see the class. */
   static url: string | undefined
 
-  /** The one fetch, once started. */
-  private static loading: Promise<SiteDataFile> | undefined
-
-  /** The data file, fetched once per page. */
-  static load(): Promise<SiteDataFile> {
-    return (SiteData.loading ??= SiteData.fetch(SiteData.resolve()))
+  /** The data file, fetched once per page (until `reset()`). */
+  @E.once static load(): Promise<SiteDataFile> {
+    return SiteData.fetch(SiteData.resolve())
   }
 
   /**
@@ -38,7 +36,7 @@ export class SiteData {
    * - No `url`:  back to the page's own (`<meta>`, else `SITE_DATA_PATH`), as `SearchData.reset()` is.
    */
   static reset(url?: string): void {
-    SiteData.loading = undefined
+    E.forget(SiteData, "load")
     SiteData.url = url
   }
 
@@ -63,10 +61,10 @@ export class SiteData {
 
   /**
    * GET `url` for `method`;  resolves with the response, which answered 2xx.
-   * - Throws a `load` `E.SourceError` when it doesn't answer (the network error as `cause.error`) or answers
-   *   anything else (`cause.status`);  the message names `method`, the URL, and `fix`.
-   * - Not `UI.sources`:  that refuses `data:` URLs (tests point `url` at one), caches the text, and needs the
-   *   runtime chunk, which the layout's fetch (`SiteShell`) mustn't wait for.
+   * - Throws a `load` `E.SourceError` when it doesn't answer (the network error as `cause.error`)
+   *   or answers anything else (`cause.status`);  the message names `method`, the URL, and `fix`.
+   * - Not `UI.sources`:  that refuses `data:` URLs (tests point `url` at one), caches the text,
+   *   and needs the runtime chunk, which the layout's fetch (`SiteShell`) mustn't wait for.
    */
   static async request(url: string, { method, fix }: SiteRequest): Promise<Response> {
     let response: Response

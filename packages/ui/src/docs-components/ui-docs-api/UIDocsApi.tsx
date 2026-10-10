@@ -22,8 +22,8 @@ import apiCSS from "./UIDocsApi.css?inline"
  * The component behind `<ui-docs-api>`:  the API reference of a tag (`tag="ui-button"`),
  * or of every tag of a family (`family="ui-button"`), as Fomantic tables.
  *
- * - One `<ui-table celled compact definition>` per section (attributes, properties, events, slots, parts, states,
- *   texts), each under a `<ui-header>` title;  only the sections the tag has.
+ * - One `<ui-table celled compact definition>` per section, each under a `<ui-header>` title:
+ *   attributes, properties, events, slots, parts, states, texts;  only the sections the tag has.
  * - Data:  `components.json`, through `SiteData` (fetched once per page);  NEVER the vocabularies.
  *   What the tables hold comes from `ApiModel`.
  * - `family`:  each tag in its own `<section part="tag">`, under a `dividing` `<ui-header>`
@@ -35,15 +35,17 @@ import apiCSS from "./UIDocsApi.css?inline"
  * - Values:  compact `<ui-labels size="mini">`;  hues painted in their own colour, a numeric run as one label.
  * - Phone width:  every table is `stackable` by its OWN width (`stack-by="container"`):
  *   rows become blocks in a narrow column, whatever the viewport.
- * - Sheets:  `UITable.css` is adopted HERE too:  `<ui-table>` styles its light-DOM `<table>` with a PAGE sheet,
- *   which never reaches a table inside this shadow root.
+ * - Sheets:  `UITable.css` is adopted HERE too:
+ *   `<ui-table>` styles its light-DOM `<table>` with a PAGE sheet, which never reaches a table inside this shadow root.
  * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of other families' widgets,
  *   which its barrel imports.
  ****************/
 export class UIDocsApi extends E.UIComponent<DocsApiVocabulary> {
   @E.proto static vocabulary = docsApiVocabulary
-  @E.proto static styleSheets = { table: tableCSS, "docs-api": apiCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { table: tableCSS, "docs-api": apiCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The data
@@ -122,7 +124,7 @@ export class UIDocsApi extends E.UIComponent<DocsApiVocabulary> {
 
   render(): JSX.Element {
     return (
-      <section class={this.rootClasses} part={this.partForName("api")}>
+      <section class={this.rootClass} part={this.partForName("api")}>
         <Show when={this.message}>
           {(message) => (
             <ui-message part={this.partForName("message")} state={message().state} size={SMALL}>
@@ -251,9 +253,8 @@ export class UIDocsApi extends E.UIComponent<DocsApiVocabulary> {
   ////////////////
 
   /** While connected:  follow `hashchange`. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (!isConnected) return undefined
+  @E.whileConnected
+  protected followHash() {
     window.addEventListener("hashchange", this.onHashChange)
     return () => window.removeEventListener("hashchange", this.onHashChange)
   }
@@ -263,8 +264,8 @@ export class UIDocsApi extends E.UIComponent<DocsApiVocabulary> {
 
   /**
    * Scroll the tag header `hash` names into view, if it's in this shadow root.
-   * - Waits for the widgets in the shadow root to render first (`ready`):  until they do, the tables above it
-   *   are still growing, and the scroll would land short.
+   * - Waits for the widgets in the shadow root to render first (`ready`):
+   *   until they do, the tables above it are still growing, and the scroll would land short.
    * - Scrolls the header's `<section>` when the `<ui-header>` draws no box of its own (`display: contents`).
    */
   private async reveal(hash: string): Promise<void> {
@@ -274,7 +275,7 @@ export class UIDocsApi extends E.UIComponent<DocsApiVocabulary> {
     if (!header) return
     const elements = [...root.querySelectorAll("*")].filter((element) => "ready" in element)
     await Promise.all(elements.map((element) => (element as Element & { ready: Promise<void> }).ready))
-    requestAnimationFrame(() => (header.getClientRects().length ? header : header.parentElement)?.scrollIntoView())
+    E.beforeNextPaint(() => (header.getClientRects().length ? header : header.parentElement)?.scrollIntoView())
   }
 
   /**
@@ -337,7 +338,7 @@ const NEGATIVE = "negative"
 const WARNING = "warning"
 
 /**
- * `level`:  a heading level, leaving room for the table titles one level deeper;  unset, `3`,
- * under the page's `h2` "API" section.
+ * `level`:  a heading level, leaving room for the table titles one level deeper;
+ * unset, `3`, under the page's `h2` "API" section.
  */
 const LEVELS: HeadingBounds = { min: 1, max: 5, fallback: 3 }

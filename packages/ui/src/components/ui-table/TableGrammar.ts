@@ -4,10 +4,10 @@ import { tableVocabulary } from "./UITable.en"
 /****************
  * ### `TableGrammar`
  * Class strings a table needs besides its own root's:  the shadow `.scroller`'s, and a data-mode cell's.
- * - Scroller:  `ClassBuilder` over the table vocabulary's scroller-shaped attributes (`resizable`,
- *   `attached`, `scrolling`, `overflowing`) with the noun `scroller` and no `ui`, e.g.
- *   `resizable top attached short scrolling scroller`.  Same grammar as the table, so `UITable.css` keys the
- *   scroller on the same phrases (`[class*="very short"]`).
+ * - Scroller:  `ClassBuilder` over the table vocabulary's scroller-shaped attributes
+ *   (`resizable`, `attached`, `scrolling`, `overflowing`) with the noun `scroller` and no `ui`,
+ *   e.g. `resizable top attached short scrolling scroller`.
+ *   Same grammar as the table, so `UITable.css` keys the scroller on the same phrases (`[class*="very short"]`).
  * - Cell:  a `TableColumn`'s `textAlign` / `width` as Fomantic's cell classes (`right aligned four wide`).
  * - Plain functions of their input, no DOM.
  * - STATIC and instance-free on purpose:  nothing to hold but the one cached builder.
@@ -17,12 +17,6 @@ export class TableGrammar {
   static scroller(value: (name: string) => unknown): string {
     const input: Record<string, unknown> = {}
     for (const name of SCROLLER_ATTRIBUTES) input[name] = value(name)
-    TableGrammar.builder ??= new E.ClassBuilder({
-      ...tableVocabulary,
-      noun: SCROLLER_NOUN,
-      ui: false,
-      attributes: tableVocabulary.attributes.filter(({ name }) => SCROLLER_ATTRIBUTES.includes(name))
-    })
     return TableGrammar.builder.build(input)
   }
 
@@ -52,7 +46,14 @@ export class TableGrammar {
    * Builds scroller classes:  the table vocabulary narrowed to `SCROLLER_ATTRIBUTES`, noun `scroller`, no `ui`.
    * - Static:  one per page, made on first use.
    */
-  private static builder: E.ClassBuilder | undefined
+  @E.lazy private static get builder(): E.ClassBuilder {
+    return new E.ClassBuilder({
+      ...tableVocabulary,
+      noun: SCROLLER_NOUN,
+      ui: false,
+      attributes: tableVocabulary.attributes.filter(({ name }) => SCROLLER_ATTRIBUTES.includes(name))
+    })
+  }
 }
 
 /** Scroller attribute that caps the height and scrolls, head and foot stuck. */

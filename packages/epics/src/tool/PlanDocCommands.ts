@@ -4,6 +4,7 @@ import { dirname, join, relative, resolve, sep } from "node:path"
 
 import { OPEN_KINDS, PlanDocError, REVIEW_SECTIONS, TITLE_PREFIX, type Phase, type PlanSummary } from "./planDoc.types"
 
+import { EpicDocs, GROUPS, type EpicDecisions, type EpicDocList } from "./EpicDocs"
 import { EpicParts } from "./EpicParts"
 import { InboxCommands } from "./InboxCommands"
 import { ItemPicker } from "./ItemPicker"
@@ -23,8 +24,11 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
  * Used by the `/epic` skill and its agents.
  * - what's data:  `PLAN-DOC.md` beside this;  the elements:  `$/epics/definitions`
  * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
- *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `check`, `open`, `convert`, `split`, `join`,
- *   `inbox`, `details`, `status`, `original` (`spell dev plan-doc` with no command lists them:  `USAGE`).
+ *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `docs`, `decisions`, `check`, `open`, `convert`,
+ *   `split`, `join`, `inbox`, `details`, `status`, `original`
+ *   (`spell dev plan-doc` with no command lists them:  `USAGE`).
+ * - `docs`, `decisions`:  the docs an epic wrote besides its plan doc, and what its plan doc settled
+ *   (`EpicDocs`), for `/docs-check`
  * - the `<epic-*>` markup only:  every command refuses a doc still in the old markup
  *   (one restored from an old backup) before it writes anything:  `convert` it first (`PlanDocFiles.read()`)
  * - `migrate` and `relayout` are gone:  the converter (`convert`, `$/epics/convert`) replaced them
@@ -205,6 +209,10 @@ export class PlanDocCommands {
         return this.joinDoc(file)
       case "summary":
         return this.printSummary(this.read(file).summary(), Boolean(flags.json))
+      case "docs":
+        return this.printDocs(new EpicDocs({ files: this.files, name }).find(), Boolean(flags.json))
+      case "decisions":
+        return this.printDecisions(new EpicDocs({ files: this.files, name }).decisions(), Boolean(flags.json))
       case "check":
         return this.check(file, flags)
       case "open":
@@ -371,13 +379,17 @@ export class PlanDocCommands {
   }
 
   /**
-   * `status <name> <id> underway "<reading>"` / `done ["<summary>"]` / `done --filed "<what>"`:
+   * `status <name> <id> underway "<reading>"` / `done ["<summary>"]` / `noted "<what>"`:
    * Claude's status card on an item or an Overview sub-section (P13), and the page's spinner on it.
    * - `underway`:  a new blue card (`PlanDoc.addStatus()`), stamped now;  the spinner on (`inbox working`), so
    *   one call does both
-   * - `done`:  its latest underway card turns green (`PlanDoc.finishStatus()`), the summary under its reading when
-   *   given;  the spinner off.  Refused on an item with no underway card
-   * - `done --filed`:  a card born done, saying what was filed (`inbox apply` writes these itself, Q19)
+   * - `done`:  WORK was done (an answer written, code changed, a phase built):  its latest underway card turns
+   *   green (`PlanDoc.finishStatus()`), the summary under its reading when given;  the spinner off.
+   *   Refused on an item with no underway card
+   * - `noted`:  Claude only RECORDED what Owen chose (Owen, 2026-10-10):  a calm Noted card, `what` saying what was
+   *   recorded and what happens next (`PlanDoc.noteStatus()`:  an underway card turns noted, else one born noted);
+   *   the spinner off.  `inbox apply` writes these itself for picks, todos and new items (Q19)
+   *   - `done --filed "<what>"`, the older spelling, means `noted` too:  what was filed is a record
    * - reading, summary:  HTML, as `updated` takes (plain text works as it is)
    * - NOT logged:  the mark it answers already is (`inbox apply`, `details`)
    */
@@ -386,14 +398,17 @@ export class PlanDocCommands {
     const filed = flags.filed
     if (filed === true) throw new PlanDocError(`--filed needs what was filed ("Chose B · Keep one file per template")`)
     let title: string
+    let said = state
     if (state === "underway")
       title = await this.edit(file, (plan) => plan.addStatus(id, need(text, "the reading (html)")))
-    else if (state === "done" && filed !== undefined)
-      title = await this.edit(file, (plan) => plan.addStatus(id, filed, { done: true }))
-    else if (state === "done") title = await this.edit(file, (plan) => plan.finishStatus(id, text))
-    else throw new PlanDocError(`status ${id} underway | done, not '${state ?? ""}'\n${USAGE}`)
+    else if (state === "noted" || (state === "done" && filed !== undefined)) {
+      const what = state === "noted" ? need(text, "what was recorded (html)") : String(filed)
+      title = await this.edit(file, (plan) => plan.noteStatus(id, what))
+      said = "noted"
+    } else if (state === "done") title = await this.edit(file, (plan) => plan.finishStatus(id, text))
+    else throw new PlanDocError(`status ${id} underway | done | noted, not '${state ?? ""}'\n${USAGE}`)
     this.inbox.setWorking(file, id, state === "underway")
-    this.print(`${id.toUpperCase()} ${state}:  ${title}`)
+    this.print(`${id.toUpperCase()} ${said}:  ${title}`)
   }
 
   /** `original <name> <id> --file <html> [--as-of "YYYY-MM-DD HH:MM"]`:  earlier text into an item's Original Discussion. */
@@ -636,6 +651,55 @@ export class PlanDocCommands {
   }
 
   /**
+   * `docs`:  the docs an epic wrote besides its plan doc, by group, each with why it's listed;
+   * its changelog entry last (or JSON for `/docs-check`).
+   * - `swept` pages (`EpicDocs.groupOf()`):  counted, listed only by `--json`
+   */
+  private printDocs(list: EpicDocList, json: boolean): void {
+    if (json) return this.print(JSON.stringify(list, null, 2))
+    const { counts } = list
+    const lines = [
+      `${list.epic}:  ${list.docs.length - counts.swept} docs  ` +
+        `(${counts.wrote} wrote, ${counts.related} related, ${counts.linked} linked;  ${counts.swept} swept:  --json)`
+    ]
+    for (const group of GROUPS) {
+      const docs = list.docs.filter((doc) => doc.group === group)
+      if (!docs.length || group === "swept") continue
+      lines.push(`${group}:`)
+      const width = Math.max(...docs.map((doc) => doc.path.length))
+      for (const doc of docs) {
+        const commits = doc.commits.length
+          ? ` ${doc.commits.slice(0, 3).join(" ")}${doc.commits.length > 3 ? " ..." : ""}`
+          : ""
+        lines.push(`  ${doc.path.padEnd(width)}  ${doc.reasons.join(", ")}${commits}`)
+      }
+    }
+    const { changelog } = list
+    lines.push(`changelog:  ${changelog.path}#${changelog.anchor}${changelog.found ? "" : "  (no entry yet)"}`)
+    this.print(lines.join("\n"))
+  }
+
+  /**
+   * `decisions`:  what an epic's plan doc settled, for checking its docs against:  each phase and its Done list,
+   * then the items, their status, chosen option and answer (or JSON, with every item's text, for `/docs-check`).
+   */
+  private printDecisions(decisions: EpicDecisions, json: boolean): void {
+    if (json) return this.print(JSON.stringify(decisions, null, 2))
+    const lines = [`${decisions.epic}:  ${decisions.planDoc}`]
+    for (const phase of decisions.phases) {
+      lines.push(`P${phase.n} · ${phase.name}  [${phase.status}]`)
+      if (phase.done) lines.push(`    done:  ${phase.done}`)
+      for (const update of phase.updates) lines.push(`    updated ${update.at}:  ${update.text}`)
+    }
+    for (const item of decisions.items) {
+      lines.push(`${item.id.padEnd(4)} [${item.status}]  ${item.title}`)
+      if (item.chosen) lines.push(`    chose:  ${item.chosen}`)
+      if (item.answer) lines.push(`    answer:  ${item.answer}`)
+    }
+    this.print(lines.join("\n"))
+  }
+
+  /**
    * `items`:  where reviews stand, then each section with items (or `--section <kind or label>` only), its counts
    * and the items `--filter` picks;  `--json`:  `{ file, status, sections }`.
    * - `--spec <file>`:  the review's item picker instead (`ItemPicker.spec()`), written to that file
@@ -743,6 +807,14 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    gone, once read
   prompt <name> "text" | --file path               set the prompt that started the plan ("" removes it)
   summary <name> [--json]                          open questions, issues, caveats, todos;  the next phase
+  docs <name> [--json]                             the docs the epic wrote besides its plan doc:  its durable
+                                                   doc, what its commits changed (wrote), docs that name it
+                                                   (related), docs it only links to (linked);  its
+                                                   changelog entry;  the shared pages its turns swept up
+                                                   (swept):  counted, --json lists them.  For /docs-check
+  decisions <name> [--json]                        what the plan doc settled:  phases (Done, Updated notes),
+                                                   items (status, chosen option, answer;  --json:  their
+                                                   text).  For /docs-check
   review <name> <id> ["outcome"]                   mark an item reviewed today;  the outcome goes in the log
   defer <name> <id>                                put an item off:  still not reviewed, dated
   queue <name> <id> "work"  /  unqueue <name> <id> work a review decided on, waiting  /  started or dropped
@@ -794,11 +866,16 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
   status <name> <id> underway "html"              Claude took Owen's mark on an item (or an Overview section):
                                                    a blue "Claude • Underway" card with Claude's reading of
                                                    the task (a sentence or two, no file names);  spinner on
-  status <name> <id> done ["html"]                 that card turns green "Claude • Done", the reading kept, the
-                                                   summary under it when there's something worth saying;
-                                                   spinner off.  Refused with no underway card
-  status <name> <id> done --filed "html"           a card born done, saying what was filed (inbox apply writes
-                                                   these for picks and todos itself)
+  status <name> <id> done ["html"]                 WORK was done (an answer written, code changed):  that card
+                                                   turns green "Claude • Done", the reading kept, the summary
+                                                   under it when there's something worth saying;  spinner off.
+                                                   Refused with no underway card
+  status <name> <id> noted "html"                  Claude only RECORDED Owen's choice:  a calm "Claude • Noted"
+                                                   card saying what was recorded and what happens next ("Chose
+                                                   B · ...:  recorded;  waiting for the next phase, P9 · ...");
+                                                   an underway card turns noted;  spinner off.  inbox apply
+                                                   writes these for picks, todos and new items itself
+                                                   (done --filed "html":  the older spelling, the same)
   original <name> <id> --file <html> [--as-of "YYYY-MM-DD HH:MM"]
                                                    put earlier text (from git) into an item's Original
                                                    Discussion:  as first written, or dated --as-of (when it was

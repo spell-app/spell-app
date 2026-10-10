@@ -1,7 +1,5 @@
 import { createComponent, createRoot, untrack } from "solid-js"
 import { NoHydration, renderToString } from "@solidjs/web"
-import { createProps, type SolidElement } from "@spell-app/solid-element"
-import { ServerElement } from "@spell-app/solid-element/server"
 import { parseHTML } from "linkedom"
 
 import { E } from "$/ui/core"
@@ -12,18 +10,18 @@ import { SSR } from "$/ui/static"
  * A page of `ui-*` elements => plain light-DOM HTML:  no shadow DOM, no scripts, for crawlers and no-JS readers.
  * - Server-side (node, `@solidjs/web`'s server build):  the components render with `renderToString`.
  * - Steps:
- *   1. parse the page (linkedom);  every element of a `define()`d family becomes a stand-in DOM element
- *   (`ServerDOMElement`) 2. build EVERY component, in document order (owners first), before any renders:
- *   items need their list, tab
- *      buttons their panes, a section's heading level its parent
+ *   1. parse the page (linkedom);
+ *      every element of a `define()`d family becomes a stand-in DOM element (`ServerDOMElement`)
+ *   2. build EVERY component, in document order (owners first), before any renders:
+ *      items need their list, tab buttons their panes, a section's heading level its parent
  *   3. render each component's view to HTML
  *   4. flatten (`StaticFlattener`):  DOM elements replaced by their roots, slots by their children
- *   5. wire what works without scripts (`StaticInteractions`:  dialogs, popovers, unique ids);  then the page's own
- *      `<style>`s are rewritten for that (`StaticPageStyles`:  `::part()`, `:state()`, `ui-*` tags)
+ *   5. wire what works without scripts (`StaticInteractions`:  dialogs, popovers, unique ids)
+ *   6. rewrite the page's own `<style>`s for that (`StaticPageStyles`:  `::part()`, `:state()`, `ui-*` tags)
  * - Families are opt-in (`define()`):  a `ui-*` tag without one stays as it is.
  * - NOTE: the page MUST NOT load the elements too:  an upgrade would take the flattened markup for slotted content.
- * - The TOP of `$/ui/static`'s graph (with `StaticCatalog`):  uses `$/ui/core` and every peer, but no family;
- *   node only, NEVER imported by a component or `$/ui`.
+ * - The TOP of `$/ui/static`'s graph (with `StaticCatalog`):  uses `$/ui/core` and every peer, but no family.
+ *   Node only, NEVER imported by a component or `$/ui`.
  * - STATIC:  one set of families per process, as `customElements` is one registry per page.
  ****************/
 export class StaticRender {
@@ -44,8 +42,9 @@ export class StaticRender {
 
   /**
    * Make `classes` renderable, under their vocabularies' tags.
-   * - SIDE EFFECT:  installs the server runtime first (`ServerRuntime`), then records each definition page-wide
-   *   (`UIComponent.register()`) as `define()` would in a browser.  Idempotent per tag.
+   * - SIDE EFFECT:  installs the server runtime first (`ServerRuntime`),
+   *   then records each definition page-wide (`UIComponent.register()`), as `define()` would in a browser.
+   * - Idempotent per tag.
    */
   static define(...classes: E.UIComponentClass[]) {
     SSR.ServerRuntime.install()
@@ -58,9 +57,10 @@ export class StaticRender {
   }
 
   /**
-   * Load what `html`'s render will read synchronously, before `page()` / `fragment()`:  the icon packs
-   * (`ServerRuntime.icons()`), and each defined family's own data through its optional `static preload(html, tag)`
-   * (`UIEmoji`:  the emoji names the page uses).
+   * Load what `html`'s render will read synchronously, before `page()` / `fragment()`:
+   * - the icon packs (`ServerRuntime.icons()`)
+   * - each defined family's own data, through its optional `static preload(html, tag)`
+   *   (`UIEmoji`:  the emoji names the page uses)
    * - MUST be awaited:  data loads asynchronously, the render is synchronous.
    */
   static async prepare(html: string, icons?: readonly string[]): Promise<void> {
@@ -107,7 +107,7 @@ export class StaticRender {
   // ## Rendering
   ////////////////
 
-  /** Steps 2-5 on a parsed `document`. */
+  /** Every step after parsing (the class docs' "Steps"), on a parsed `document`. */
   private static render(document: Document) {
     const ids = SSR.ServerRuntime.install().ids as unknown as SSR.ServerIds
     // generated ids skip the page's own, numbered from 1 per page
@@ -129,7 +129,7 @@ export class StaticRender {
         html: renderToString(() =>
           createComponent(NoHydration, {
             get children() {
-              return ServerElement.run(domElement, () => domElement.component!.onMount())
+              return untrack(() => domElement.component!.onMount())
             }
           })
         )
@@ -143,12 +143,12 @@ export class StaticRender {
   }
 
   /** Stand-in DOM element + component for one element;  MUST run under the render's root. */
-  private static build(element: Element): { domElement: E.DOMElement & SolidElement; family: SSR.StaticFamily } {
+  private static build(element: Element): { domElement: E.DOMElement; family: SSR.StaticFamily } {
     const family = StaticRender.families.get(element.localName)!
     const { Class, definition } = family
     const domElement = SSR.ServerDOMElement.attach(element, definition)
-    const attrs = createProps(ServerElement.props(element, definition.props))
-    ServerElement.run(domElement, () => new Class(domElement, definition, attrs))
+
+    untrack(() => new Class(domElement, definition))
     return { domElement, family }
   }
 

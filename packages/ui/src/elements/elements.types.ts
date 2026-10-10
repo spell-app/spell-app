@@ -1,15 +1,16 @@
 /**
- * Shared types for `$/ui/elements` -- the element core:  class building, validation, menu options, owner context,
- * shorthand, native fallbacks (library-neutral), and the Solid layer:  how a `ComponentVocabulary` becomes typed,
- * converted property values, and what the pieces of `UIComponent` hand each other.
- * - Runtime-light:  types, plus a few constants (`WHITESPACE`, `ERROR_EVENT`, `ERRORED_STATE`, `StickyWatchEdges` and
- *   `StickyWatch`'s thresholds, the source URL attributes).
- * - The BOTTOM of the folder's import graph:  `import type` only (the core's types as `E`, erased), so it NEVER loads a
- *   class module of its folder, the DOM or Solid -- `core.ts` re-exports it, and a static initializer that reads one
- *   of its constants imports it directly (`LoadableComponent`).
+ * Shared types for `$/ui/elements` -- the element core:
+ * - the parts with no Solid:  class building, validation, menu options, owner context, shorthand, native fallbacks
+ * - the Solid layer:  how a `ComponentVocabulary` becomes typed, converted property values,
+ *   and what the pieces of `UIComponent` hand each other
+ * - Runtime-light:  types, plus a few constants
+ *   (`WHITESPACE`, `ERROR_EVENT`, `ERRORED_STATE`, `StickyWatchEdges` and `StickyWatch`'s thresholds,
+ *   the source URL attributes).
+ * - The BOTTOM of the folder's import graph:  `import type` only (the core's types as `E`, erased),
+ *   so it NEVER loads a class module of its folder, the DOM or Solid.
+ *   - `core.ts` re-exports it,
+ *     and a static initializer that reads one of its constants imports it directly (`LoadableComponent`).
  */
-
-import type { PropDefinition } from "@spell-app/solid-element"
 
 import type { E } from "$/ui/core"
 
@@ -26,7 +27,7 @@ export type ClassInput = Readonly<Record<string, unknown>>
 
 /** Options for `ClassBuilder.build()`. */
 export type ClassBuildOptions = {
-  /** Classes appended after the noun, e.g. a state (`active`) or a caller's own class. */
+  /** Classes put just before the noun, e.g. a state (`active`) or a caller's own class:  `ui primary icon button`. */
   extra?: string
 }
 
@@ -231,6 +232,13 @@ export type ValidationResult = {
   message: string
 }
 
+/**
+ * When a form control shows `:state(invalid)` (`FormComponent.invalidShows`):
+ * - `"at once"`:  whenever it's invalid, as `:invalid` does
+ * - `"once touched"`:  only after someone has interacted with it (`isTouched`), as `:user-invalid` does
+ */
+export type InvalidTiming = "at once" | "once touched"
+
 /** What `Validator.range()` tests:  the value itself, or its length (`minLength`, `size` ...). */
 export const RangeMeasures = ["value", "length"] as const
 /** One of `RangeMeasures`. */
@@ -349,10 +357,10 @@ export type OwnerLookup =
  * A PART that owns parts only in some contexts, implemented on its COMPONENT:
  * `<ui-item>` owns its content parts in the Items view (`:state(in-item)`),
  * but in a list or menu they see through it to the list / menu.
- * - `PartContext` registers such a class (it has `isOwnerOf()`) as a conditional owner of its vocabulary's
- *   `ownsParts`, and asks it during every climb;  while it says no, it's transparent like any part.
- * - MUST read the DOM now, not signals:  it runs inside other parts' re-resolution, right after moves, before
- *   Solid's writes land.
+ * - `PartContext` registers such a class (it has `isOwnerOf()`) as a conditional owner of its vocabulary's `ownsParts`,
+ *   and asks it during every climb;  while it says no, it's transparent like any part.
+ * - MUST read the DOM now, not signals:
+ *   it runs inside other parts' re-resolution, right after moves, before Solid's writes land.
  * - An element with no component yet (not upgraded) owns nothing;  its own settle re-resolves its parts.
  */
 export type ConditionalOwner = {
@@ -375,8 +383,9 @@ export type PartDefinition = {
 /** Options for `OwnerContext.find()`. */
 export type OwnerFindOptions = {
   /**
-   * Stop climbing at an element for which this returns true, e.g. a component that isn't a part and
-   * doesn't own this one, so a header inside a segment inside a card isn't styled as the card's.
+   * Stop climbing at an element for which this returns true,
+   * e.g. a component that isn't a part and doesn't own this one,
+   * so a header inside a segment inside a card isn't styled as the card's.
    */
   barrier?: (element: Element) => boolean
 }
@@ -388,10 +397,10 @@ export type OwnerMatch = {
   /** Its class-grammar noun, e.g. `card`;  becomes `:state(in-card)`. */
   ownerNoun: string
   /**
-   * Custom elements between the part and its owner:  `0` for `card > header`,
-   * `1` for `card > content > header`.
-   * - Mirrors Fomantic's `.ui.card > .content > .header` vs `.ui.card > .header`;  native wrappers and
-   *   slots don't count.
+   * Custom elements between the part and its owner:
+   * `0` for `card > header`, `1` for `card > content > header`.
+   * - Mirrors Fomantic's `.ui.card > .content > .header` vs `.ui.card > .header`.
+   * - Native wrappers and slots don't count.
    */
   depth: number
 }
@@ -492,8 +501,8 @@ export type TextKey<V extends E.ComponentVocabulary> = V["texts"][number]["key"]
  * Property type after conversion, per attribute spec.
  * - keyOnly / boolean => `boolean`  (`"no"` / `"false"` ~== false)
  * - keyOrValueAndKey => `true` (bare), `false`, or the validated value
- * - enumerated kinds => the validated value, `undefined` when absent or unknown;  an INLINE value list
- *   narrows to its literal union, so `attrs.type === "submit"` is checked against the vocabulary
+ * - enumerated kinds => the validated value, `undefined` when absent or unknown;
+ *   an INLINE value list narrows to its literal union, so `this.type === "submit"` is checked against the vocabulary
  * - json => `unknown`:  the component casts to its own shape
  */
 export type SpecValue<S extends E.AttributeSpec> = S["kind"] extends "keyOnly" | "boolean"
@@ -515,13 +524,199 @@ export type InlineValues<S extends E.AttributeSpec> = S["values"] extends readon
 
 /**
  * Every attribute of `V` as a converted property, keyed by camelCase canonical name:  `allowAdditions`, `size`.
- * - A component's vocabulary members (`export interface UIButton extends E.AttributeValues<...> {}`):  reading
- *   one is fresh and tracked;  writing one writes the DOM element's PROPERTY (`Reactive.installAttributeGetters()`).
- * - `Readonly<>`, solid-element's props (`UIComponent.attrs`):  one signal each, converted on the way in.
+ * - A component's vocabulary members (`export interface UIButton extends E.AttributeValues<...> {}`):
+ *   reading one is fresh and tracked;
+ *   writing one writes the DOM element's PROPERTY (`Reactive.installAttributeGetters()`).
  */
 export type AttributeValues<V extends E.ComponentVocabulary> = {
   [S in V["attributes"][number] as CamelCase<S["name"]>]: SpecValue<S>
 }
+
+////////////////
+// ## Components
+////////////////
+
+/** A concrete `UIComponent` subclass, as `define()` sees it. */
+export type UIComponentClass = {
+  new (domElement: E.DOMElement, definition: E.ElementDefinition): E.UIComponent<any>
+  prototype: E.UIComponent<any>
+}
+
+/** `UIComponent.registry`:  what the whole page has defined. */
+export type ComponentRegistry = {
+  /**
+   * The `ElementDefinition` of every defined tag, English and translated, by tag.
+   * - A component uses it to tell what kind of element a child is:
+   *   `UIComponent.registry.definitions.get(child.localName)?.vocabulary.noun`.
+   */
+  readonly definitions: Map<string, E.ElementDefinition>
+  /** The vocabularies already handed to the runtime (`UIComponent.register()`), so each is handed over once. */
+  readonly vocabularies: WeakSet<E.ComponentVocabulary>
+}
+
+/** The options of `UIComponent.on()`:  `addEventListener()`'s, plus where to listen. */
+export type OnOptions = Omit<AddEventListenerOptions, "signal"> & {
+  /** what to listen on;  default the element itself.  E.g. its shadow root, for `slotchange` */
+  target?: EventTarget
+  /** remove the listener after it runs once (DOM API `addEventListener()`'s own `once`) */
+  once?: boolean
+}
+
+/** A form control's plain-DOM fallback class (`ButtonFallback` ...), as `renderFallback()` calls it. */
+export type FallbackClass = {
+  render(props: E.NativeFallbackProps): E.NativeFallbackHandle
+}
+
+/**
+ * How a class's custom element is set up:  `UIComponent.elementSetup`, merged down the class chain (`@protoMerged`).
+ * - Read once, when the tag is defined,
+ *   except `styleSheets`, `isAFormControl`, `canRenderUnstyled` and `aria`, which each element reads as it's built.
+ */
+export type ElementSetup = {
+  /**
+   * The component's own style sheets, as `name => CSS text`, in order:  `{ button: buttonCSS }`.
+   * - Default none.
+   * - Every element of the class uses the same sheets:
+   *   registered with the runtime (`UI.styles`) once per class,
+   *   then adopted into each element's shadow root, after the shared foundation sheets.
+   * - A subclass's REPLACE its base's whole (keys merge one level deep only);
+   *   spread the base's to add to them:
+   *   `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
+   * - Which of them apply right now:  `UIComponent.styleSheetNames`.
+   * - NOTE: a name is PAGE-WIDE:  one sheet per name, and the first class to register it wins,
+   *   so a second class with the same name and other CSS silently draws with the first one's.
+   *   A component pack's sheets carry its prefix (`{ "epic-item": itemCSS }`),
+   *   never a bare noun one of ours may have (`item`).
+   */
+  styleSheets: Readonly<Record<string, string>>
+
+  /**
+   * Does this element act as a control in an HTML `<form>`?
+   * - If so, browser treats the element like an `<input>`:
+   *    - its value is sent with the form,
+   *    - it takes part in the form's validation and reset, and
+   *    - a `<fieldset disabled>` around it disables it (`formIsDisabled`).
+   *
+   * - `false` by default
+   * - `true` for `FormComponent` (inputs, checkboxes, dropdowns ...) and `UIButton`s for submit / reset.
+   * - It's the platform's "form-associated custom element" (`static formAssociated`),
+   *   which the browser reads once, when the tag is defined.
+   */
+  isAFormControl: boolean
+
+  /**
+   * Does clicking the element move focus to the first focusable thing in its shadow DOM?
+   * - Default yes.
+   * - An element with nothing focusable inside (`<ui-flag>`) says no.
+   * - The platform's `delegatesFocus`, read once, when the tag is defined.
+   */
+  delegatesFocus: boolean
+
+  /**
+   * How the element's children land in the `<slot>`s of its shadow DOM (DOM API `slotAssignment`).
+   * - `"named"` (the default):  each child goes to the slot its `slot` attribute names.
+   * - `"manual"`:  the element itself hands chosen children to chosen slots (`slot.assign()`).
+   *   - `<ui-accordion>` does, to wrap each title + content pair in its own `<details>`.
+   *   - A slot it hasn't assigned stays empty.
+   * - Read once, when the tag is defined.
+   */
+  slotAssignment: SlotAssignmentMode
+
+  /**
+   * Is this one of the generic parts other elements are built from?  (`<ui-header>`, `<ui-content>` ...)
+   * - A part looks for the element it belongs to by walking up past other parts:
+   *   a `<ui-header>` inside a `<ui-content>` inside a `<ui-card>` belongs to the card (`PartContext`).
+   * - Default no.
+   * - `true` for `PartComponent` (every tag of `ui-parts`),
+   *   and for `<ui-item>`, `<ui-list>`, `<ui-menu>` and a feed's `<ui-event>`.
+   * - Said, not worked out from `ownsParts`:  `<ui-label>` is owned by a statistic, but isn't a part.
+   */
+  isAPart: boolean
+
+  /**
+   * The class the DOM element itself is made from.
+   * - Default `DOMElement`.
+   * - `FormComponent` uses `DOMFormControl`, which adds what a form control needs:
+   *   `value`, `form`, `checkValidity()` ...
+   * - A family with a script API of its own names its `DOM<Name>Element` here (`DOMNagElement`).
+   * - Read once, when the tag is defined.
+   */
+  DOMElement: E.DOMElementBaseClass
+
+  /**
+   * The plain-DOM stand-in this element shows when it breaks (`UI<Name>.fallback.ts`).
+   * - Default none:  a broken element shows a bare `<slot>`, so its children stay visible.
+   * - Only form controls have one, so a broken control still submits, validates and resets (`docs/fallback.md`).
+   * - It can't use the component:  it runs after the component is gone.
+   */
+  Fallback: FallbackClass | undefined
+
+  /**
+   * Show the content at once, without waiting for the runtime and the style sheets.
+   * - Default `false`:  wait until `isReady`, so nothing shows unstyled.
+   * - For an element whose content must never wait:  `<ui-root>`, which holds the whole page.
+   *   Its `render()` MUST look right unstyled (inline styles only) until `isReady`.
+   */
+  canRenderUnstyled: boolean
+
+  /**
+   * ARIA the DOM element ALWAYS has, set once on its `internals` when the component is built:
+   * `{ role: "listitem" }`, `{ role: "status", ariaLive: "polite" }`.
+   * - Default none.
+   * - For a value that never changes;  one that follows state is an `@aria` getter, which wins once its effect runs
+   *   (`<ui-card>`'s role follows its group).
+   * - A server render (`$/ui/static`) gets it too:  a `listitem` becomes an `<li>`.
+   */
+  aria: Readonly<Partial<Record<AriaProperty, string>>>
+
+  /**
+   * What `disabled` means for this family (every element takes it:  `SharedVocabulary`).
+   * - `"unusable"` (the default):  the base class does it all, as `<fieldset disabled>` does to its controls:
+   *   - `isDisabled`, so the DOM element swallows clicks
+   *   - everything inside is inert (its shadow content, and the children slotted into it):
+   *     nothing there can be clicked, focused or typed in, and it's dimmed
+   *   - `aria-disabled="true"`;  if focus was inside, it moves on to the next focusable element
+   *   - e.g. `<ui-card disabled>`:  its buttons can't be used either
+   * - `"its own"`:  the base class only sets `:state(disabled)`;  the family's code and sheet say what it means:
+   *   - unusable its own way:  a form control disables its native control (`FormComponent`), a button its `<button>`
+   *   - only a look:  `<ui-icon>`, `<ui-segment>` dim, and clicks still go through
+   *   - something else:  `<ui-transition>` pauses, `<ui-dimmer>` never shows
+   */
+  disabled: DisabledMeaning
+
+  /**
+   * What `loading` does for this family (every element takes it:  `SharedVocabulary`).
+   * - `"loader"` (the default):  the base class dims everything inside and makes it inert,
+   *   draws a spinner over it, and sets `aria-busy="true"`.
+   * - `"its own"`:  the base class only sets `:state(loading)`;
+   *   the family draws its own loader (`<ui-button>`'s spinner, `<ui-segment>`'s veil),
+   *   or `loading` means something else (`<ui-root>`'s message).
+   */
+  loading: LoadingMeaning
+
+  /**
+   * The `<ui-transition>` animation `visible="false"` hides the element with, and `visible` shows it again:
+   * a name from `animations.css` (`"fade"`, `"scale"`, `"fade-down"` ...:  `AnimationNames`).
+   * - Default `"fade"`.
+   * - Not read where the family's vocabulary has a `visible` of its own (`<ui-sidebar>`, `<ui-transition>`,
+   *   `<ui-reveal>`):  `SharedVocabulary`.
+   */
+  visibleAnimation: E.AnimationName
+}
+
+/** `elementSetup.disabled`:  what `disabled` means for a family. */
+export type DisabledMeaning = "unusable" | "its own"
+
+/** `elementSetup.loading`:  what `loading` does for a family. */
+export type LoadingMeaning = "loader" | "its own"
+
+/**
+ * A text property of `ElementInternals`' ARIA (DOM API `ARIAMixin`):  `role`, `ariaBusy`, `ariaLabel` ...
+ * - NOT the element-reference ones (`ariaLabelledByElements` ...):  `@aria` and `elementSetup.aria` write text.
+ */
+export type AriaProperty = {
+  [K in keyof ARIAMixin]-?: ARIAMixin[K] extends string | null ? K : never
+}[keyof ARIAMixin]
 
 ////////////////
 // ## Element definition
@@ -533,16 +728,16 @@ export type ResolvedAttribute = {
   spec: E.AttributeSpec
   /** attribute name authors write, e.g. `primario` */
   attribute: string
-  /** camelCase CANONICAL name:  the key in `AttributeValues` and in solid-element's props (`props.allowAdditions`) */
+  /** camelCase CANONICAL name:  the key in `AttributeValues` and `DOMElement.attributeValues` (`allowAdditions`) */
   key: string
   /** element property, e.g. `allowAdditions`, `permitirAdiciones`, or a vocabulary rename (`dividerHidden`) */
   property: string
-  /** reflect property changes to the attribute */
+  /**
+   * write a property change back to the attribute;
+   * never for `json` kinds (`options`), which still observe their attribute (first paint MUST NOT need the property)
+   */
   reflect: boolean
 }
-
-/** solid-element's prop definitions for one tag, by `ResolvedAttribute.key`. */
-export type PropDefinitions = Record<string, PropDefinition>
 
 ////////////////
 // ## Errors
@@ -550,13 +745,16 @@ export type PropDefinitions = Record<string, PropDefinition>
 
 /**
  * Event an element dispatches when its render fails, before showing its native fallback.
- * - Cancelable, `bubbles`, `composed`, `detail: { error }`;  `preventDefault()` keeps the fallback out (the
- *   page takes over).
+ * - Cancelable, `bubbles`, `composed`, `detail: { error }`.
+ * - `preventDefault()` keeps the fallback out (the page takes over).
  * - NOTE: no vocabulary names it yet (every element has it).
  */
 export const ERROR_EVENT = "ui-error"
 
-/** Custom state of a failed element (`:state(errored)`), set by solid-element's boundary and by the fallback. */
+/**
+ * Custom state of a failed element (`:state(errored)`),
+ * set by the error net (`UIComponent.onError()`) and by the fallback.
+ */
 export const ERRORED_STATE = "errored"
 
 ////////////////
@@ -585,8 +783,8 @@ export type SourceFailure = {
 }
 
 /**
- * A URL as written in markup (`source="docs/intro.md"`):  maybe relative, resolved against the page by whoever
- * fetches it.
+ * A URL as written in markup (`source="docs/intro.md"`):
+ * maybe relative, resolved against the page by whoever fetches it.
  */
 export type URLString = string
 
@@ -610,8 +808,8 @@ export const SOURCE_LOADER_TAG = "ui-loader"
 export const SOURCE_MESSAGE_TAG = "ui-message"
 
 /**
- * Attributes holding a URL, rewritten against `source` (`SourceMarkup.rewriteUrls()`), so fetched links, images
- * and nested sources point where they did there.
+ * Attributes holding a URL, rewritten against `source` (`SourceMarkup.rewriteUrls()`),
+ * so fetched links, images and nested sources point where they did there.
  */
 export const URL_ATTRIBUTES = ["href", "src", "action", "poster", "source"] as const
 
@@ -619,8 +817,8 @@ export const URL_ATTRIBUTES = ["href", "src", "action", "poster", "source"] as c
 export const URL_SELECTOR = URL_ATTRIBUTES.map((name) => `[${name}]`).join(",")
 
 /**
- * Prefix of the attribute keeping a rewritten URL's ORIGINAL value (`data-ui-include-href`), so the markup can be
- * given back as it was written (`<ui-include>`'s `content`, a docs example's source).
+ * Prefix of the attribute keeping a rewritten URL's ORIGINAL value (`data-ui-include-href`),
+ * so the markup can be given back as it was written (`<ui-include>`'s `content`, a docs example's source).
  * - Named for `<ui-include>`, which came first;  `<ui-section source>` / `<ui-accordion source>` write it too.
  */
 export const ORIGINAL_PREFIX = "data-ui-include-"
@@ -640,10 +838,10 @@ export const SOURCE_FAILURE_KEYS: Partial<Record<E.SourceErrorKind, string>> & {
 }
 
 /**
- * Milliseconds an opening section / panel waits for its source body before it opens on the placeholder instead
- * (`LoadableBody.isVeiled`).
- * - Why wait at all:  the body arrives in one piece, so the fold animates once, to the real height;  a same-origin
- *   fetch usually takes a few milliseconds.
+ * Milliseconds an opening section / panel waits for its source body,
+ * before it opens on the placeholder instead (`LoadableBody.isVeiled`).
+ * - Why wait at all:  the body arrives in one piece, so the fold animates once, to the real height.
+ *   A same-origin fetch usually takes a few milliseconds.
  */
 export const SOURCE_BODY_HOLD_MS = 300
 
@@ -674,8 +872,8 @@ export const SOURCE_ATTRIBUTE = "source"
 
 /**
  * Events the source layer dispatches through its owner:  `SourceEvent.load`.
- * - The owner's vocabulary MUST name them:  `UIT.SourceEvents` (`LoadableComponent`), `UIT.SourceBodyEvents`
- *   (`LoadableBody`:  `load` and `error` only).
+ * - The owner's vocabulary MUST name them:
+ *   `UIT.SourceEvents` (`LoadableComponent`), `UIT.SourceBodyEvents` (`LoadableBody`:  `load` and `error` only).
  */
 export const SourceEvent = {
   load: "ui-load",

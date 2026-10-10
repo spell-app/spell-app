@@ -55,7 +55,7 @@ describe("<ui-grid> classes", () => {
     ['reversed="mobile tablet vertically"', "ui mobile reversed tablet vertically reversed grid"],
     ['text-align="center" vertical-align="middle"', "ui center aligned middle aligned grid"],
     ['columns="2" stretched text-align="justified"', "ui stretched two column justified grid"],
-    ['stack-with="container"', "ui grid stack-with-container"]
+    ['stack-with="container"', "ui stack-with-container grid"]
   ])("<ui-grid %s>", async (attributes, classes) => {
     const host = await ElementFixture.render<DOMElement>(`<ui-grid ${attributes}></ui-grid>`)
     const root = rootOf(host)
@@ -256,7 +256,7 @@ describe("<ui-grid stack-with>", () => {
 
   it("`page` follows the SCREEN:  no stacking in a narrow box on a desktop, stacking on a phone", async () => {
     const box = await inBox(500, stackable('stack-with="page"'))
-    expect(rootOf(box.querySelector("ui-grid")!).className).toBe("ui stackable three column grid stack-with-page")
+    expect(rootOf(box.querySelector("ui-grid")!).className).toBe("ui stackable three column stack-with-page grid")
     await Viewport.resize(1200)
     await expect.poll(() => stacked(box)).toBe(false)
     await Viewport.resize(500)

@@ -16,18 +16,21 @@ import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
 
 /****************
  * ### `EpicUpdated`
- * The component behind `<epic-updated>`:  one dated change to a phase's plan, FENCED under its Symptom / Changes (a
- * dashed orange box) -- the fold chevron, its icon, `Updated` and the time (`at`, to the minute), the phase under
- * way then;  under them, what changed (its children).
- * - Folds by its heading row (Owen, 2026-10-08:  everything in a section box folds):  open to start with;  page
- *   state, never written;  folded, what changed is `hidden="until-found"`.
+ * The component behind `<epic-updated>`:
+ * one dated change to a phase's plan, FENCED under its Symptom / Changes (a dashed orange box) --
+ * the fold chevron, its icon, `Updated` and the time (`at`, to the minute), the phase under way then;
+ * under them, what changed (its children).
+ * - Folds by its heading row (Owen, 2026-10-08:  everything in a section box folds):
+ *   open to start with;  page state, never written;  folded, what changed is `hidden="until-found"`.
  * - Kept once the phase is done:  the record of how the plan moved.
  * - A copy in the Phases section's Plan changes box (`of`, the phase it changes) leads with a `P5` link to it.
  ****************/
 export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
   @E.proto static vocabulary = epicUpdatedVocabulary
-  @E.proto static styleSheets = { "epic-fold-button": foldCSS, "epic-field": fieldCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-fold-button": foldCSS, "epic-field": fieldCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a change to fold? */
   readonly slots = new E.SlotContent(this.domElement)
@@ -56,7 +59,7 @@ export class EpicUpdated extends E.UIComponent<typeof epicUpdatedVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={[this.rootClasses, UPDATED]} part={this.partForName("base")}>
+      <div class={[this.rootClass, UPDATED]} part={this.partForName("base")}>
         {/* the heading row:  its cells are the fence's grid's (`display: contents`), its clicks fold */}
         <div ref={this.fold.heading} class={[HEAD, { [FOLDS]: this.hasBody }]}>
           <span class={FOLD_CELL}>

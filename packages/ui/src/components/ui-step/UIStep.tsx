@@ -9,7 +9,8 @@ import stepCSS from "./UIStep.css?inline"
 
 /****************
  * ### `UIStep`
- * The component behind `<ui-step>`:  one step of a sequence,
+ * The component behind `<ui-step>`:  one step of a sequence.
+ * Its shadow DOM:
  * `<div class="[color] [keyOnly ...] step" part="step">` (an `<a>` with `href`, a `<button>` with `link`)
  * holding the icon box, the shorthand content (`header`, `description`), the slot,
  * and once `completed`, a visually hidden "Completed".
@@ -17,31 +18,36 @@ import stepCSS from "./UIStep.css?inline"
  * - Semantics:
  *   - the DOM element is a `listitem` (through `internals`) of the group's `<ol>`;
  *   - the selected step is the current one:  `aria-current="step"` on the root;
- *   - a disabled step is `aria-disabled` (a link keeps its `<a>`, without `href`), a disabled `<button>` is
- *     `disabled`:  its dimmed text is an INACTIVE component's (WCAG 1.4.3's exemption), and assistive tech says so.
+ *   - a disabled step is `aria-disabled` (a link keeps its `<a>`, without `href`),
+ *     a disabled `<button>` is `disabled`:
+ *     its dimmed text is an INACTIVE component's (WCAG 1.4.3's exemption), and assistive tech says so.
  *
  * - `selected` is canonical;  an `active` attribute is Fomantic's word for it, read raw (`attributes`).
  *
- * - Completed:  a check replaces the icon (the `icon` glyph, or the slotted `slot=icon`, which stays in the DOM,
- *   hidden);  an ordered step's number turns into a check in CSS.
+ * - Completed:  a check replaces the icon
+ *   (the `icon` glyph, or the slotted `slot=icon`, which stays in the DOM, hidden);
+ *   an ordered step's number turns into a check in CSS.
  *
- * - It OWNS the `content`, `title` and `description` parts (`ownsParts`):  slotted parts style themselves
- *   from `UIParts.css` (`:state(in-step)`), reading `--_ui-step-state` and `--_ui-step-layout` from this root.
+ * - It OWNS the `content`, `title` and `description` parts (`ownsParts`):
+ *   slotted parts style themselves from `UIParts.css` (`:state(in-step)`),
+ *   reading `--_ui-step-state` and `--_ui-step-layout` from this root.
  *   The shorthands are the same parts drawn here with their static `in-step` classes,
  *   which is why the step adopts `UIParts.css`.
  *
- * - Group variations (vertical, ordered, stacked, circular ...) arrive as inherited `--_ui-steps-*` tokens
- *   from the `<ui-steps>` root;  `UIStep.css` reads them (see its header).
+ * - Group variations (vertical, ordered, stacked, circular ...)
+ *   arrive as inherited `--_ui-steps-*` tokens from the `<ui-steps>` root;
+ *   `UIStep.css` reads them (see its header).
  ****************/
+@E.cssStates("completed")
 export class UIStep extends E.UIComponent<typeof stepVocabulary> {
   @E.proto static vocabulary = stepVocabulary
-  @E.proto static styleSheets = { step: stepCSS, parts: partsCSS }
-
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    // SIDE EFFECT:  one item of the group's ordered list;  a server render (`$/ui/static`) makes the root an `<li>`
-    this.domElement.internals.role = "listitem"
-  }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { step: stepCSS, parts: partsCSS },
+    // one item of the group's ordered list;  a server render (`$/ui/static`) makes the root an `<li>`
+    aria: { role: "listitem" },
+    // `disabled`:  its link or button is disabled
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## State
@@ -51,12 +57,6 @@ export class UIStep extends E.UIComponent<typeof stepVocabulary> {
   @E.cssState("selected")
   get isSelected(): boolean {
     return this.selected || E.Converters.boolean(this.attributes[UIT.ACTIVE], UIT.ACTIVE)
-  }
-
-  /** `completed`:  `:state(completed)`. */
-  @E.cssState("completed")
-  get isCompleted(): boolean {
-    return !!this.completed
   }
 
   /** Disabled by its attribute;  `:state(disabled)`. */
@@ -108,10 +108,10 @@ export class UIStep extends E.UIComponent<typeof stepVocabulary> {
   /**
    * Extra class words:
    * - `active` for the `active` alias, when `selected` doesn't add it
-   * - `ui-<color>` for a coloured step:  the generic colour remap (`colors.css`) keys on `.ui.red` / `.ui-red`,
-   *   and a step has no `ui`
+   * - `ui-<color>` for a coloured step:
+   *   the generic colour remap (`colors.css`) keys on `.ui.red` / `.ui-red`, and a step has no `ui`
    */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const color = this.color
     const extra = [
       this.isSelected && !this.selected ? UIT.ACTIVE : "",
@@ -133,7 +133,7 @@ export class UIStep extends E.UIComponent<typeof stepVocabulary> {
     return (
       <Dynamic
         component={this.rootTag}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("step")}
         href={this.rootTag === "a" && !this.disabled ? this.href : undefined}
         target={this.rootTag === "a" ? this.target : undefined}

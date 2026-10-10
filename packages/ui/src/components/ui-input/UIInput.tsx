@@ -25,8 +25,12 @@ import inputCSS from "./UIInput.css?inline"
  ****************/
 export class UIInput extends TextControl<Vocabulary> {
   @E.proto static vocabulary = inputVocabulary
-  @E.proto static styleSheets = { label: labelCSS, input: inputCSS }
-  @E.proto static elementSetup = { Fallback: InputFallback } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { label: labelCSS, input: inputCSS },
+    Fallback: InputFallback,
+    // `loading`:  a spinner in place of its icon
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** Which slots have light-DOM children (`label`, `action`, `icon`). */
   readonly slots = new E.SlotContent(this.domElement)
@@ -122,7 +126,7 @@ export class UIInput extends TextControl<Vocabulary> {
     return super.classValue(name)
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     const extra = [this.hasIconBox && this.iconPosition !== UIT.LEFT ? UIT.ICON : "", this.isFileInput ? "file" : ""]
     return extra.filter(Boolean).join(" ") || undefined
   }
@@ -147,7 +151,7 @@ export class UIInput extends TextControl<Vocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("input")}>
+      <div class={this.rootClass} part={this.partForName("input")}>
         <Show when={this.labelPlace === "start"}>{this.labelBox()}</Show>
         <Show when={this.actionPlace === "start"}>
           <slot name={this.slotForName("action")} />
@@ -211,7 +215,7 @@ export class UIInput extends TextControl<Vocabulary> {
   /** Enter submits the form, as a native field would. */
   private readonly onKeyDown = (event: KeyboardEvent) => {
     if (event.key !== UIT.Key.enter || event.isComposing || event.defaultPrevented) return
-    const form = this.domFormElement.form
+    const form = this.domElement.form
     if (!form) return
     event.preventDefault()
     this.isTouched = true
@@ -221,10 +225,10 @@ export class UIInput extends TextControl<Vocabulary> {
   }
 
   /**
-   * A form's default button:  a native submit button, or a `<ui-button type="submit">` (form-associated,
-   * so in `form.elements`).
-   * - STATIC:  pure, a `find()` predicate.  `instanceof` is safe here:  a key handler, which the static render never
-   *   reaches.
+   * A form's default button:
+   * a native submit button, or a `<ui-button type="submit">` (form-associated, so in `form.elements`).
+   * - STATIC:  pure, a `find()` predicate.
+   * - `instanceof` is safe here:  a key handler, which the static render never reaches.
    */
   private static isSubmitter(element: Element): boolean {
     if (element instanceof HTMLButtonElement || element instanceof HTMLInputElement) {

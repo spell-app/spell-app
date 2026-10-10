@@ -10,12 +10,12 @@ import eventCSS from "./EpicEvent.css?inline"
  * ### `EpicEvent`
  * The component behind `<epic-event>`:  one line of the log -- its icon (`icon`, default `pen to square`), its time
  * to the minute (`at`), then what happened (its children).
- * - A row:  the icon centred on the first line, the time in mono, the text wrapping beside them;  too narrow, the
- *   text wraps under the time.
+ * - A row:  the icon centred on the first line, the time in mono, the text wrapping beside them;
+ *   too narrow, the text wraps under the time.
  ****************/
 export class EpicEvent extends E.UIComponent<typeof epicEventVocabulary> {
   @E.proto static vocabulary = epicEventVocabulary
-  @E.proto static styleSheets = { "epic-event": eventCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { "epic-event": eventCSS } } satisfies Partial<E.ElementSetup>
 
   /** Its icon. */
   readonly glyph = new E.IconGlyph({ owner: this, name: () => this.icon || DEFAULT_ICON })
@@ -29,7 +29,7 @@ export class EpicEvent extends E.UIComponent<typeof epicEventVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <span class={ICON} part={this.partForName("icon")} aria-hidden="true">
           {this.glyph.svg}
         </span>

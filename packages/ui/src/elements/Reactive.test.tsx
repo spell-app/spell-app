@@ -1,4 +1,4 @@
-import { createRoot, flush } from "solid-js"
+import { createEffect, createRoot, flush } from "solid-js"
 import { render, type JSX } from "@solidjs/web"
 import { describe, expect, it } from "vite-plus/test"
 
@@ -73,6 +73,25 @@ class Basket {
     this.groceryCounts++
     return this.groceries.length
   }
+
+  /** The price after the discount, read untracked;  writes `lastPrice`. */
+  @E.untracked
+  priceNow(price: number): number {
+    this.lastPrice = price * (1 - this.discount / 100)
+    return this.lastPrice
+  }
+
+  /** The same, tracked. */
+  priceTracked(price: number): number {
+    return price * (1 - this.discount / 100)
+  }
+
+  /** `priceNow()`'s last result. */
+  @E.state accessor lastPrice = 0
+
+  /** `priceNow()` as an arrow-function field, as a handler passed around. */
+  @E.untracked
+  readonly priceHandler = (price: number): number => price * (1 - this.discount / 100)
 }
 
 describe("Reactive:  @state", () => {
@@ -263,6 +282,57 @@ describe("Reactive:  @onChange", () => {
   })
 })
 
+describe("Reactive:  @untracked", () => {
+  it("a computation calling the method doesn't follow what it reads;  the same method undecorated does", () => {
+    const basket = new Basket()
+    const runs = { untracked: 0, field: 0, tracked: 0 }
+    const dispose = createRoot((dispose) => {
+      createEffect(
+        () => {
+          runs.untracked++
+          return basket.priceNow(10)
+        },
+        () => {}
+      )
+      createEffect(
+        () => {
+          runs.field++
+          return basket.priceHandler(10)
+        },
+        () => {}
+      )
+      createEffect(
+        () => {
+          runs.tracked++
+          return basket.priceTracked(10)
+        },
+        () => {}
+      )
+      return dispose
+    })
+    basket.discount = 50
+    flush()
+    expect(runs).toEqual({ untracked: 1, field: 1, tracked: 2 })
+    dispose()
+  })
+
+  it("passes `this` and the arguments, returns the result, and writes as usual", () => {
+    const basket = new Basket()
+    basket.discount = 20
+    expect(basket.priceNow(50)).toBe(40)
+    expect(basket.lastPrice).toBe(40)
+    expect(basket.priceHandler(50)).toBe(40)
+  })
+
+  it("on anything but a method (or a function field), throws a TypeError naming the member", () => {
+    const getter = { kind: "getter", name: "total", static: false, metadata: {} }
+    expect(() => E.untracked(() => 1, getter as never)).toThrow(/@untracked total/)
+    expect(() => E.on("ping")(() => {}, getter as never)).toThrow(/@on total/)
+    const field = { kind: "field", name: "count", static: false, metadata: {} }
+    expect(() => (E.untracked(undefined, field as never) as (value: unknown) => unknown)(0)).toThrow(/@untracked count/)
+  })
+})
+
 ////////////////
 // ## Components
 ////////////////
@@ -308,12 +378,28 @@ class ReactiveTest extends E.UIComponent<typeof VOCABULARY> {
     return this.attributes.label
   }
 
-  /** `ping` events heard through `on()`. */
+  /** `ping` events heard through `@on`. */
   pings = 0
 
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    this.on("ping", () => this.pings++)
+  /** Which `@on` methods ran, in order. */
+  readonly heard: string[] = []
+
+  @E.on("ping")
+  protected onPing() {
+    this.pings++
+    this.heard.push("base")
+  }
+
+  /** `peek`:  reads `label`, untracked. */
+  @E.on("peek")
+  protected onPeek() {
+    this.heard.push(`peek ${this.label}`)
+  }
+
+  /** `pong` on the shadow root. */
+  @E.on("pong", { target: "renderRoot" })
+  protected onPong() {
+    this.heard.push("pong")
   }
 
   /** `onOpenChanged()` calls. */
@@ -346,6 +432,22 @@ Object.defineProperty(ReactiveTest.prototype, "vocabulary", { value: VOCABULARY 
 /** The stand-in in Spanish:  `<x-reactivo etiqueta="..." abierto>`. */
 const SPANISH = { lang: "es", attributes: { label: "etiqueta", open: "abierto" } } as const satisfies Dictionary
 ;(ReactiveTest as unknown as UIComponentClass & typeof E.UIComponent).define("x-reactivo", SPANISH)
+
+/** A subclass:  overrides an `@on` method, decorated again, and adds its own. */
+class ReactiveSubclass extends ReactiveTest {
+  @E.on("ping")
+  protected override onPing() {
+    super.onPing()
+    this.heard.push("override")
+  }
+
+  @E.on("ping")
+  protected onSubclassPing() {
+    this.heard.push("subclass")
+  }
+}
+Object.defineProperty(ReactiveSubclass.prototype, "vocabulary", { value: { ...VOCABULARY, tag: "x-reactive-sub" } })
+;(ReactiveSubclass as unknown as UIComponentClass & typeof E.UIComponent).define()
 
 /** Render one stand-in element;  returns its host, component and box. */
 async function reactive(html: string) {
@@ -436,7 +538,7 @@ describe("Reactive:  components", () => {
     expect(component.rawLabel).toBe("D")
   })
 
-  it("on():  hears the host until it's released, across a move", async () => {
+  it("@on:  hears the host until it's released, across a move", async () => {
     const { host, component } = await reactive(`<x-reactive></x-reactive>`)
     host.dispatchEvent(new Event("ping"))
     host.remove()
@@ -448,12 +550,184 @@ describe("Reactive:  components", () => {
     expect(component.pings).toBe(2)
   })
 
+  it("@on:  the method runs untracked, even when the event is sent from inside a computation", async () => {
+    const { host, component } = await reactive(`<x-reactive label="A"></x-reactive>`)
+    let runs = 0
+    const dispose = createRoot((dispose) => {
+      createEffect(
+        () => {
+          runs++
+          host.dispatchEvent(new Event("peek"))
+        },
+        () => {}
+      )
+      return dispose
+    })
+    host.label = "B"
+    flush()
+    expect(component.heard).toEqual(["peek A"])
+    expect(runs).toBe(1)
+    dispose()
+  })
+
+  it("@on({ target: 'renderRoot' }):  listens on the shadow root", async () => {
+    const { host, component } = await reactive(`<x-reactive></x-reactive>`)
+    host.dispatchEvent(new Event("pong"))
+    host.shadowRoot!.dispatchEvent(new Event("pong"))
+    expect(component.heard).toEqual(["pong"])
+  })
+
+  it("@on in a subclass:  base class's listeners first;  an override decorated again listens once", async () => {
+    const { host, component } = await reactive(`<x-reactive-sub></x-reactive-sub>`)
+    expect(component).toBeInstanceOf(ReactiveSubclass)
+    host.dispatchEvent(new Event("ping"))
+    expect(component.heard).toEqual(["base", "override", "subclass"])
+    expect(component.pings).toBe(1)
+  })
+
   it("$:  an Accessor per member", async () => {
     const { host, component } = await reactive(`<x-reactive label="A"></x-reactive>`)
     expect(component.$.title()).toBe("A (medium)")
     host.open = true
     expect(component.$.isOpen()).toBe(true)
     expect(component.$.title).toBe(component.$.title)
+  })
+})
+
+/** The ARIA stand-in's vocabulary. */
+const ARIA_VOCABULARY = {
+  tag: "x-aria",
+  noun: "aria",
+  attributes: [
+    { name: "loading", kind: "boolean", description: "Busy?" },
+    { name: "read-only", kind: "boolean", description: "Read only?" },
+    { name: "label", kind: "string", description: "A label." },
+    { name: "level", kind: "number", description: "A level." }
+  ],
+  events: [],
+  slots: [],
+  parts: [],
+  states: [
+    { name: "loading", description: "Busy." },
+    { name: "read-only", description: "Read only." },
+    { name: "picked", description: "Picked." }
+  ],
+  texts: []
+} as const satisfies ComponentVocabulary
+
+/** A component on `@cssStates`, `@aria` and `elementSetup.aria`. */
+@E.cssStates("loading", "read-only")
+class AriaTest extends E.UIComponent<typeof ARIA_VOCABULARY> {
+  @E.protoMerged static elementSetup = { aria: { role: "group", ariaRoleDescription: "test" } }
+
+  /** `loading` as `aria-busy`. */
+  @E.aria("ariaBusy")
+  get isLoading(): boolean {
+    return !!this.loading
+  }
+
+  /** `label` as the name. */
+  @E.aria("ariaLabel")
+  get accessibleName(): string | undefined {
+    return this.label
+  }
+
+  /** `level`, a number, as text. */
+  @E.aria("ariaLevel")
+  get ariaLevelNumber(): number | undefined {
+    return this.level
+  }
+
+  /** Own state, on an accessor:  `:state(picked)` and `aria-selected`, stacked. */
+  @E.cssState("picked")
+  @E.aria("ariaSelected")
+  @E.state
+  accessor isPicked = false
+
+  render(): JSX.Element {
+    return <slot />
+  }
+}
+interface AriaTest extends E.AttributeValues<typeof ARIA_VOCABULARY> {}
+Object.defineProperty(AriaTest.prototype, "vocabulary", { value: ARIA_VOCABULARY })
+;(AriaTest as unknown as UIComponentClass & typeof E.UIComponent).define()
+
+/** A subclass naming the same state and ARIA property:  its own wins. */
+class AriaSubclassTest extends AriaTest {
+  /** Never busy, whatever `loading` says. */
+  @E.aria("ariaBusy")
+  get isNeverBusy(): boolean {
+    return false
+  }
+
+  /** `:state(loading)` follows `isPicked` here, not the attribute. */
+  @E.cssState("loading")
+  get isPickedLoading(): boolean {
+    return this.isPicked
+  }
+}
+;(AriaSubclassTest as unknown as UIComponentClass & typeof E.UIComponent).define("x-aria-sub")
+
+/** Render one ARIA stand-in;  returns its host and component. */
+async function ariaTest(html: string) {
+  const host = await ElementFixture.render<DOMElement & Record<string, unknown>>(html)
+  return { host, component: host.component as unknown as AriaTest }
+}
+
+describe("Reactive:  @cssStates, @aria and elementSetup.aria", () => {
+  it("@cssStates:  `:state(x)` follows attribute `x` (a kebab-case name reads its camelCase member)", async () => {
+    const { host } = await ariaTest(`<x-aria loading></x-aria>`)
+    expect(host.matches(":state(loading)")).toBe(true)
+    expect(host.matches(":state(read-only)")).toBe(false)
+    host.removeAttribute("loading")
+    host.setAttribute("read-only", "")
+    await ElementFixture.tick()
+    expect(host.matches(":state(loading)")).toBe(false)
+    expect(host.matches(":state(read-only)")).toBe(true)
+  })
+
+  it('@aria:  true => "true", false / undefined => removed, text as is, a number as text', async () => {
+    const { host } = await ariaTest(`<x-aria loading label="Name" level="2"></x-aria>`)
+    expect(host.internals.ariaBusy).toBe("true")
+    expect(host.internals.ariaLabel).toBe("Name")
+    expect(host.internals.ariaLevel).toBe("2")
+    host.removeAttribute("loading")
+    host.removeAttribute("label")
+    await ElementFixture.tick()
+    expect(host.internals.ariaBusy).toBeNull()
+    expect(host.internals.ariaLabel).toBeNull()
+    expect(host.internals.ariaLevel).toBe("2")
+  })
+
+  it("@aria stacks with @cssState, on an accessor too", async () => {
+    const { host, component } = await ariaTest(`<x-aria></x-aria>`)
+    expect(host.internals.ariaSelected).toBeNull()
+    component.isPicked = true
+    await ElementFixture.tick()
+    expect(host.internals.ariaSelected).toBe("true")
+    expect(host.matches(":state(picked)")).toBe(true)
+  })
+
+  it("elementSetup.aria:  set once, as the component is built", async () => {
+    const { host } = await ariaTest(`<x-aria></x-aria>`)
+    expect(host.internals.role).toBe("group")
+    expect(host.internals.ariaRoleDescription).toBe("test")
+  })
+
+  it("for a state or ARIA property both classes name, the subclass's member wins", async () => {
+    const { host, component } = await ariaTest(`<x-aria-sub loading></x-aria-sub>`)
+    expect(host.internals.ariaBusy).toBeNull()
+    expect(host.matches(":state(loading)")).toBe(false)
+    component.isPicked = true
+    await ElementFixture.tick()
+    expect(host.matches(":state(loading)")).toBe(true)
+  })
+
+  it("@cssStates:  TypeScript flags a name that isn't a member", () => {
+    // @ts-expect-error -- `nope` is no member of `AriaTest`
+    @E.cssStates("nope")
+    class Misspelt extends AriaTest {}
+    expect(Misspelt).toBeDefined()
   })
 })
 
@@ -472,7 +746,7 @@ describe("Reactive:  vocabulary getters vs base members", () => {
 
   it("no attribute is named like a member of UIComponent or FormComponent (the base would hide its getter)", async () => {
     const { component } = await reactive(`<x-reactive></x-reactive>`)
-    const standIn = new Set(["computes", "opens", "pings"])
+    const standIn = new Set(["computes", "opens", "pings", "heard"])
     const fields = Object.keys(component).filter((key) => !standIn.has(key))
     const taken = new Set([...fields, ...namesOf(E.UIComponent.prototype), ...namesOf(F.FormComponent.prototype)])
     const clashes = vocabularies.flatMap(({ tag, attributes }) =>
@@ -492,4 +766,163 @@ describe("Reactive:  vocabulary getters vs base members", () => {
       names.push(...Object.getOwnPropertyNames(current))
     return names
   }
+})
+
+/** The `@fromContent` / `@whileConnected` stand-in's vocabulary:  nothing of its own. */
+const CONTENT_VOCABULARY = {
+  tag: "x-content",
+  noun: "content",
+  attributes: [],
+  events: [],
+  slots: [],
+  parts: [{ name: "box", description: "The box." }],
+  states: [],
+  texts: []
+} as const satisfies ComponentVocabulary
+
+/** A component reading its light DOM (`@fromContent`), and following its connection (`@whileConnected`). */
+class ContentTest extends E.UIComponent<typeof CONTENT_VOCABULARY> {
+  /** How many times `childCount` computed. */
+  computes = 0
+
+  /** Its children, counted. */
+  @E.fromContent({ childList: true })
+  get childCount(): number {
+    this.computes++
+    return this.domElement.children.length
+  }
+
+  /** Ids of the elements marked `data-mark`, anywhere inside;  the same list while their number is. */
+  @E.fromContent({
+    subtree: true,
+    attributeFilter: ["data-mark"],
+    equals: (a: string[], b: string[]) => a.length === b.length
+  })
+  get marked(): string[] {
+    return Array.from(this.domElement.querySelectorAll("[data-mark]"), (element) => element.id)
+  }
+
+  /** How many mutations each `onTitleChanged()` call had. */
+  readonly titleChanges: number[] = []
+
+  @E.fromContent({ attributeFilter: ["title"] })
+  protected onTitleChanged(mutations: MutationRecord[]) {
+    this.titleChanges.push(mutations.length)
+  }
+
+  /** `connect` / `disconnect`, in order. */
+  readonly connections: string[] = []
+
+  @E.whileConnected
+  protected followConnection() {
+    this.connections.push("connect")
+    return () => {
+      this.connections.push("disconnect")
+    }
+  }
+
+  render(): JSX.Element {
+    return <span part={this.partForName("box")}>{this.childCount}</span>
+  }
+}
+Object.defineProperty(ContentTest.prototype, "vocabulary", { value: CONTENT_VOCABULARY })
+;(ContentTest as unknown as UIComponentClass & typeof E.UIComponent).define()
+
+/** Render one `<x-content>` with `inner` inside;  returns its host, component and box. */
+async function content(inner = "") {
+  const host = await ElementFixture.render<DOMElement>(`<x-content>${inner}</x-content>`)
+  const component = host.component as unknown as ContentTest
+  const box = () => host.shadowRoot!.querySelector<HTMLElement>("[part=box]")!
+  return { host, component, box }
+}
+
+describe("Reactive:  @fromContent", () => {
+  it("a getter follows the light DOM, and the view with it", async () => {
+    const { host, component, box } = await content(`<b></b>`)
+    expect(component.childCount).toBe(1)
+    expect(box().textContent).toBe("1")
+    host.append(document.createElement("i"))
+    await ElementFixture.tick()
+    expect(component.childCount).toBe(2)
+    await ElementFixture.tick()
+    expect(box().textContent).toBe("2")
+  })
+
+  it("recomputes only on a change it watches", async () => {
+    const { host, component } = await content(`<b></b>`)
+    void component.childCount
+    const before = component.computes
+    host.setAttribute("data-other", "")
+    host.firstElementChild!.append(document.createElement("i"))
+    await ElementFixture.tick()
+    void component.childCount
+    expect(component.computes).toBe(before)
+  })
+
+  it("with `equals`:  an equal rescan keeps the old value, and tells nobody", async () => {
+    const { component } = await content(`<b id="a" data-mark></b><b id="b"></b>`)
+    const first = component.marked
+    expect(first).toEqual(["a"])
+    const heard: string[][] = []
+    const dispose = createRoot((dispose) => {
+      createEffect(
+        () => component.marked,
+        (marked) => {
+          heard.push(marked)
+        }
+      )
+      return dispose
+    })
+    flush()
+    expect(heard).toEqual([["a"]])
+    const [a, b] = Array.from(component.domElement.children)
+    a!.removeAttribute("data-mark")
+    b!.setAttribute("data-mark", "")
+    await ElementFixture.tick()
+    expect(component.marked).toBe(first)
+    b!.setAttribute("data-mark", "")
+    a!.setAttribute("data-mark", "")
+    await ElementFixture.tick()
+    expect(component.marked).toEqual(["a", "b"])
+    expect(heard).toEqual([["a"], ["a", "b"]])
+    dispose()
+  })
+
+  it("a method is called on each change it watches, with its mutations;  not at the start", async () => {
+    const { host, component } = await content()
+    expect(component.titleChanges).toEqual([])
+    host.title = "One"
+    host.title = "Two"
+    host.setAttribute("data-other", "")
+    await ElementFixture.tick()
+    expect(component.titleChanges).toEqual([2])
+  })
+
+  it("keeps watching across a move;  stops when the host is released", async () => {
+    const { host, component } = await content()
+    void component.childCount
+    host.remove()
+    document.body.append(host)
+    host.append(document.createElement("b"))
+    await ElementFixture.tick()
+    expect(component.childCount).toBe(1)
+    host.dispose()
+    const before = component.computes
+    host.append(document.createElement("b"))
+    await ElementFixture.tick()
+    expect(component.computes).toBe(before)
+  })
+})
+
+describe("Reactive:  @whileConnected", () => {
+  it("runs on each connect;  its cleanup on each disconnect", async () => {
+    const { host, component } = await content()
+    expect(component.connections).toEqual(["connect"])
+    host.remove()
+    await ElementFixture.tick()
+    expect(component.connections).toEqual(["connect", "disconnect"])
+    document.body.append(host)
+    await ElementFixture.tick()
+    expect(component.connections).toEqual(["connect", "disconnect", "connect"])
+  })
 })

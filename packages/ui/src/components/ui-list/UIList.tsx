@@ -14,9 +14,9 @@ import listCSS from "./UIList.css?inline"
  * - It owns its items (`ItemOwner`):  every `<ui-item>` inside finds this list (`PartContext`)
  *   and asks `itemContext()` how to draw itself:
  *   - a DOM element with `role=listitem`;
- *   - in a `selection` list, an interactive box:  a link with `href`, a `<button>` with the item's own `link`,
- *     a `<div>` otherwise.
- *   - Items adopt THIS class's `styleSheets`, so `UIList.css` holds the item rules too,
+ *   - in a `selection` list, an interactive box:
+ *     a link with `href`, a `<button>` with the item's own `link`, a `<div>` otherwise.
+ *   - Items adopt THIS class's `elementSetup.styleSheets`, so `UIList.css` holds the item rules too,
  *     and the list's variations reach them as inherited tokens.
  *
  * - A part too (`elementSetup.isAPart`, noun `list`):  a `<ui-list>` inside a list is Fomantic's sub-list.
@@ -34,15 +34,11 @@ import listCSS from "./UIList.css?inline"
  ****************/
 export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.ItemOwner {
   @E.proto static vocabulary = listVocabulary
-  @E.proto static styleSheets = { list: listCSS }
-  @E.proto static elementSetup = { isAPart: true, delegatesFocus: false } satisfies Partial<E.ElementSetup>
-
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    // SIDE EFFECT:  one listener for every item's activation
-    this.domElement.addEventListener("click", this.onClick)
-    this.domElement.addReleaseCallback(() => this.domElement.removeEventListener("click", this.onClick))
-  }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { list: listCSS },
+    isAPart: true,
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Nesting
@@ -97,7 +93,7 @@ export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.
     return (
       <Dynamic
         component={this.isOrdered ? "ol" : "ul"}
-        class={this.isNested ? this.vocabulary.noun : this.rootClasses}
+        class={this.isNested ? this.vocabulary.noun : this.rootClass}
         part={this.partForName("list")}
         role="list"
       >
@@ -111,7 +107,8 @@ export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.
   ////////////////
 
   /** A click (or Enter / Space) on an interactive item of THIS list:  `ui-select`. */
-  private readonly onClick = (event: MouseEvent) => {
+  @E.on("click")
+  protected onClick(event: MouseEvent) {
     const item = this.activatedItem(event)
     if (!item) return
     const detail: UIT.ListSelectDetail = { value: UIList.valueFor(item), item, originalEvent: event }
@@ -120,8 +117,8 @@ export class UIList extends E.UIComponent<typeof listVocabulary> implements UIT.
 
   /**
    * The item of this list whose link / button `event` went through, or `undefined`.
-   * - Walks `composedPath()` inward-out:  the first ITEM on it decides;  an item of a sub-list means the sub-list
-   *   handles it.
+   * - Walks `composedPath()` inward-out:  the first ITEM on it decides;
+   *   an item of a sub-list means the sub-list handles it.
    * - Only through the item's own root (`<a>` / `<button>` in its shadow):  a click on a plain `<div>` item,
    *   or on a link inside its content, doesn't select it.
    */

@@ -1,14 +1,15 @@
 /**
- * Shared types of the doc-only elements (`src/docs-components/`):  the shape of the site's generated data file,
- * `site/_data/components.json`, which `<ui-docs-api>`, `<ui-docs-tokens>`, `<ui-docs-nav>` ... read through `SiteData`.
+ * Shared types of the doc-only elements (`src/docs-components/`):
+ * the shape of the site's generated data file, `site/_data/components.json`,
+ * which `<ui-docs-api>`, `<ui-docs-tokens>`, `<ui-docs-nav>` ... read through `SiteData`.
  * - Why a data file, not the vocabularies:  `ComponentDefinitions` imports every vocabulary (~325 KB of source);
- *   a docs element importing it would drag all of that into the site bundle (and into docs' `spell-ui.js`,
- *   whose `<ui-root>` glob reaches these families too).  The file is written by `yarn site:data`
- *   (`scripts/site-data.ts`, built by `tools/SiteDataBuilder.ts`) and committed;
- *   `tools/SiteDataBuilder.test.ts` fails while it's stale.
+ *   a docs element importing it would drag all of that into the site bundle
+ *   (and into docs' `spell-ui.js`, whose `<ui-root>` glob reaches these families too).
+ * - The file is written by `yarn site:data` (`scripts/site-data.ts`, built by `tools/SiteDataBuilder.ts`)
+ *   and committed;  `tools/SiteDataBuilder.test.ts` fails while it's stale.
  * - Also the JSX types of the `<ui-*>` tags the docs elements render in their shadow roots (`DocsJSXTags`).
- * - Runtime-light:  types and constants only, plus the docs families' small pure helpers (`HeadingLevels`,
- *   `VocabularyTexts`).
+ * - Runtime-light:
+ *   types and constants only, plus the docs families' small pure helpers (`HeadingLevels`, `VocabularyTexts`).
  */
 
 import type { JSX } from "@solidjs/web"
@@ -18,14 +19,14 @@ import type { JSX } from "@solidjs/web"
 ////////////////
 
 /**
- * The `<ui-*>` tags a docs element may render in its JSX, each as loose attributes:
- * `@spell-app/ui`'s components build their shadow markup from native elements, so `ui` declares no JSX types for its
- * own tags;  the docs elements are the first to COMPOSE widgets.
+ * The `<ui-*>` tags a docs element may render in its JSX, each as loose attributes.
+ * - Why:  `@spell-app/ui`'s components build their shadow markup from native elements,
+ *   so `ui` declares no JSX types for its own tags;  the docs elements are the first to COMPOSE widgets.
  * - Named tags, NOT `` [tag: `ui-${string}`] ``:  `app`'s `solid.types.ts` declares that index signature,
  *   and two identical index signatures in one program are an error (TS2374) the moment `app` compiles a file of ours.
- * - A docs element that renders another tag adds it here.  NOT `ui-dropdown`:
- *   `tools/frameworks/solid/app.tsx` declares it, and a second declaration here would clash.
- *   That one takes any attribute too, so docs elements (`<ui-docs-themes>`) render `<ui-dropdown>` typed by it.
+ * - A docs element that renders another tag adds it here.
+ *   - NOT `ui-dropdown`:  `tools/frameworks/solid/app.tsx` declares it, and a second declaration here would clash.
+ *   - That one takes any attribute too, so docs elements (`<ui-docs-themes>`) render `<ui-dropdown>` typed by it.
  * - Loose on purpose:  any attribute as a string, `prop:` for rich data;  a misspelt attribute isn't caught.
  */
 declare module "@solidjs/web/types/jsx.js" {
@@ -77,13 +78,13 @@ export type SiteDataFile = {
   /** folder => its family (page title, summary, status, tags, CSS tokens), components and docs families both */
   readonly families: Readonly<Record<string, SiteFamily>>
   /**
-   * the FOUNDATION tokens (`--ui-font-size`, palette, radii, motion ...), grouped, from the generated sheets
-   * (`tools/FoundationTokens.ts`):  `<ui-docs-tokens global>`
+   * the FOUNDATION tokens (`--ui-font-size`, palette, radii, motion ...), grouped,
+   * from the generated sheets (`tools/FoundationTokens.ts`):  `<ui-docs-tokens global>`
    */
   readonly foundation: readonly SiteFoundationGroup[]
   /**
-   * every theme sheet (`src/styles/themes/*.css`, `classic` and `dark` included), A-Z:  its title and the families
-   * it touches (`tools/ThemeFamilies.ts`):  `<ui-docs-themes>` titles and filters by it
+   * every theme sheet (`src/styles/themes/*.css`, `classic` and `dark` included), A-Z:
+   * its title and the families it touches (`tools/ThemeFamilies.ts`);  `<ui-docs-themes>` titles and filters by it
    */
   readonly themes: readonly SiteTheme[]
 }
@@ -124,9 +125,9 @@ export type SiteTag = {
   /** `true` for the family's main tag, whose page IS the family page */
   readonly main: boolean
   /**
-   * `true` when `href` is a page of its own:  the family's main tag, or a sub-tag split onto its own page
-   * (`SiteFamily.pages`, e.g. `ui-radio`);  `false` for a sub-tag documented on its family's page (`ui-or`) and a
-   * doc-only tag
+   * `true` when `href` is a page of its own:
+   * the family's main tag, or a sub-tag split onto its own page (`SiteFamily.pages`, e.g. `ui-radio`);
+   * `false` for a sub-tag documented on its family's page (`ui-or`) and a doc-only tag
    */
   readonly page: boolean
   /**
@@ -169,6 +170,8 @@ export type SiteAttribute = {
   readonly property?: string
   /** `false`:  not reflected to the attribute (rich data) */
   readonly reflect?: boolean
+  /** `true`:  one of the attributes every element takes (`SharedVocabulary`:  `disabled`, `loading`, `visible`) */
+  readonly shared?: boolean
   readonly description: string
 }
 
@@ -269,17 +272,19 @@ export type SiteFoundationGroup = {
 ////////////////
 
 /**
- * `site/_data/pages.json`:  the hand-kept per-family facts the vocabularies don't hold -- title, summary, status,
- * the sub-tags with a page of their own, and how to read its tokens.  `yarn site:data` reads it and writes `components.json`.
+ * `site/_data/pages.json`:  the hand-kept per-family facts the vocabularies don't hold --
+ * title, summary, status, the sub-tags with a page of their own, and how to read its tokens.
+ * `yarn site:data` reads it and writes `components.json`.
  * - Seeded ONCE per new family from its vocabulary (`SiteDataBuilder`);  from then on THIS file is the source.
- *   Edit it by hand.  (The first seeds came from the old Astro site's MDX pages, deleted in epic `spell-ui-pages` P7.)
+ * - Edit it by hand.
+ * - The first seeds came from the old Astro site's MDX pages, deleted in epic `spell-ui-pages` P7.
  */
 export type SitePagesFile = {
   readonly $comment: string
   readonly families: Readonly<Record<string, SitePageSeed>>
   /**
-   * theme sheet name => its hand-kept facts;  a new sheet is seeded from its header comment's first words
-   * (`GitHub theme:` => `GitHub`)
+   * theme sheet name => its hand-kept facts;
+   * a new sheet is seeded from its header comment's first words (`GitHub theme:` => `GitHub`)
    */
   readonly themes?: Readonly<Record<string, SiteThemeSeed>>
 }
@@ -300,8 +305,8 @@ export type SitePageSeed = {
   /**
    * sub-tags documented on a page of their OWN (`components/<tag>.html`), tag => its title, summary, status;
    * every other tag stays on the family page (epic `ui-docs-rework`, P7)
-   * - hand-added, never seeded;  `yarn site:data` gives these tags `href:  components/<tag>.html`, and `yarn site:new
-   *   <tag>` writes their page
+   * - hand-added, never seeded;  `yarn site:data` gives these tags `href:  components/<tag>.html`,
+   *   and `yarn site:new <tag>` writes their page
    */
   readonly pages?: Readonly<Record<string, SiteTagPage>>
   /** how to read its tokens;  absent:  every `--<folder>-*` token its sheets alias or read */
@@ -323,8 +328,9 @@ export type SiteTokenSeed = {
 ////////////////
 
 /**
- * `site/_data/icons.json`:  what the icon browser (`site/icons.html`) needs beyond the packs' own indexes,
- * which it loads through `UI.icons` like any page.  GENERATED by `yarn site:data` from `src/icons/data/search.json`.
+ * `site/_data/icons.json`:  what the icon browser (`ui/icons.html`) needs beyond the packs' own indexes,
+ * which it loads through `UI.icons` like any page.
+ * - GENERATED by `yarn site:data` from `src/icons/data/search.json`.
  * - Fetched only on the first search:  ~100 KB.
  */
 export type SiteIconsFile = {
@@ -341,9 +347,10 @@ export type SiteIconsFile = {
 ////////////////
 
 /**
- * `site/_data/search.json`:  every page of the site and its sections, for `<ui-docs-search>`'s jumps to OTHER pages
- * (the page shown is read live from its DOM).  GENERATED by `yarn site:data` (`tools/SiteSearchBuilder.ts`) from the
- * page files' markup.
+ * `_data/search.json` (the shared `ui/_data/search.json`, beside the hand-written pages):
+ * every page of the site and its sections, for `<ui-docs-search>`'s jumps to OTHER pages
+ * (the page shown is read live from its DOM).
+ * - GENERATED by `yarn site:data` (`tools/SiteSearchBuilder.ts`) from the page files' markup.
  * - Fetched on the first search, beside `components.json`.
  */
 export type SiteSearchFile = {
@@ -361,8 +368,9 @@ export type SiteSearchPage = {
   /** its `<meta name="description">` */
   readonly summary?: string
   /**
-   * a component page:  the tag it documents, its file name, e.g. `ui-divider` (a family's main tag) or `ui-radio` (a
-   * sub-tag with its own page);  the search lists the page itself as that component, not as a page
+   * a component page:  the tag it documents, its file name,
+   * e.g. `ui-divider` (a family's main tag) or `ui-radio` (a sub-tag with its own page);
+   * the search lists the page itself as that component, not as a page
    */
   readonly tag?: string
   /** its `#site-tabs` panes:  value => label, e.g. `examples` => `Examples` */
@@ -433,8 +441,8 @@ export const DOCS_DEFAULT_THEME = "spell"
 export const DOCS_PLAIN_THEME = "default"
 
 /**
- * `<html>` class `ThemePreference.applyScheme()` sets for one frame:  a theme turns transitions off under it
- * (`spell.css`), so a scheme switch doesn't animate every colour.
+ * `<html>` class `ThemePreference.applyScheme()` sets for one frame:
+ * a theme turns transitions off under it (`spell.css`), so a scheme switch doesn't animate every colour.
  */
 export const DOCS_SCHEME_SWITCHING = "ui-scheme-switching"
 
@@ -442,16 +450,17 @@ export const DOCS_SCHEME_SWITCHING = "ui-scheme-switching"
  * `localStorage` keys of the viewer's look (`ThemePreference`).
  * - `scheme`:  ONE key for every doc site:  `light` / `dark`, absent for `system` (follow the OS).
  *   `<spell-site-header>` on the docs, plan docs and goals reads and writes it too.
- *   - MUST equal `SCHEME_KEY` in `packages/server/src/site/site.types.ts`:  `ui` can't import it (the server package
- *     is a leaf `ui` stays clear of in shipped code);  `UIDocsThemes.test.tsx` pins the two equal
+ *   - MUST equal `SCHEME_KEY` in `packages/server/src/site/site.types.ts`:
+ *     `ui` can't import it (the server package is a leaf `ui` stays clear of in shipped code);
+ *     `UIDocsThemes.test.tsx` pins the two equal
  * - `theme`:  a `UI.themes` name (`github`, `classic`), `DOCS_PLAIN_THEME` for our own look,
  *   absent for `DOCS_DEFAULT_THEME`.  Spell UI's site only.
  */
 export const DOCS_LOOK_KEYS = { scheme: "spell-site:scheme", theme: "spell-ui-site:theme" } as const
 
 /**
- * The scheme keys used before there was one (2026-10-04):  read once when `DOCS_LOOK_KEYS.scheme` is absent,
- * copied to it, then removed.  First valid one wins.
+ * The scheme keys used before there was one (2026-10-04):
+ * read once when `DOCS_LOOK_KEYS.scheme` is absent, copied to it, then removed;  first valid one wins.
  * - `spell-site:theme`:  `<spell-site-header>`'s (docs, plan docs, goals)
  * - `spell-ui-site:scheme`:  Spell UI's site (and the Astro site before it)
  * - MUST equal `LEGACY_SCHEME_KEYS` in `packages/server/src/site/site.types.ts`
@@ -466,8 +475,8 @@ export const DOCS_DARK_QUERY = "(prefers-color-scheme: dark)"
 ////////////////
 
 /**
- * A backticked span in a description, its content in group 1:  `<ui-docs-example>` and `<ui-docs-tokens>` split
- * text on it and draw each odd piece as `<code>`.
+ * A backticked span in a description, its content in group 1:
+ * `<ui-docs-example>` and `<ui-docs-tokens>` split text on it and draw each odd piece as `<code>`.
  * - `<ui-docs-api>` follows CommonMark's longer fences instead (`InlineCode`):  its texts come from vocabularies.
  */
 export const CODE_SPAN = /`([^`]+)`/g
@@ -502,8 +511,8 @@ export type TextsVocabulary = {
 
 /****************
  * ### `VocabularyTexts`
- * A vocabulary's ENGLISH text, `{name}` placeholders filled:  what the docs families' native fallbacks show,
- * as they never reach `UI.i18n` (the runtime may be what failed).
+ * A vocabulary's ENGLISH text, `{name}` placeholders filled:
+ * what the docs families' native fallbacks show, as they never reach `UI.i18n` (the runtime may be what failed).
  * - Static:  pure, and shared by every docs fallback.
  ****************/
 export class VocabularyTexts {

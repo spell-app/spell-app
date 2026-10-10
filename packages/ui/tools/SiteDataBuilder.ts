@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 
+import { SharedVocabulary } from "../src/vocabulary/SharedVocabulary.ts"
 import { ValueSets } from "../src/vocabulary/ValueSets.ts"
 import {
   SITE_DATA_VERSION,
@@ -25,19 +26,19 @@ import { VocabularyFiles } from "./VocabularyFiles.ts"
  * ### `SiteDataBuilder`
  * Builds the Spell UI site's data:  `site/_data/components.json` (`SiteDataFile`) from every vocabulary and family
  * sheet, and keeps `site/_data/pages.json` (`SitePagesFile`, the hand-kept per-family facts) complete.
- * - Run by `yarn site:data` (`scripts/site-data.ts`), which writes both;  `tools/SiteDataBuilder.test.ts` fails
- *   while either is stale.
+ * - Run by `yarn site:data` (`scripts/site-data.ts`), which writes both;
+ *   `tools/SiteDataBuilder.test.ts` fails while either is stale.
  * - Reads the vocabulary FILES (`import()` each `UI<Name>.en.ts`), as `yarn gen:root` does:
- *   `ComponentDefinitions` needs Vite's `import.meta.glob`.  Components from `src/components/`, doc-only elements
- *   from `src/docs-components/`.
+ *   `ComponentDefinitions` needs Vite's `import.meta.glob`.
+ *   Components from `src/components/`, doc-only elements from `src/docs-components/`.
  * - pages.json:  a family missing from it is SEEDED, once, from its vocabulary (title from the tag, summary its
  *   description, `done`);  after that the file is the source.  The first seeds came from the old Astro site's MDX
  *   pages (frontmatter + token-table props), deleted with it (epic `spell-ui-pages`, P7).
  * - Also the FOUNDATION tokens, grouped (`foundation`, `tools/FoundationTokens.ts`), for the theming page's tables.
  * - And the theme sheets (`themes`, `tools/ThemeFamilies.ts`):  title and the families each touches, for
  *   `<ui-docs-themes>`;  titles are pages.json's `themes`, seeded once per new sheet.
- * - And the search file, `ui/_data/search.json` (`searchText()`, `tools/SiteSearchBuilder.ts`):  every page's
- *   sections, read from the pages' markup.
+ * - And the search file, `ui/_data/search.json` (`searchText()`, `tools/SiteSearchBuilder.ts`):
+ *   every page's sections, read from the pages' markup.
  * - Deterministic:  sorted, no dates, so a rebuild with nothing changed writes the same bytes.
  * - Node only;  imports `src/` data only (vocabularies, `ValueSets`, the site data's types), never the elements.
  ****************/
@@ -104,10 +105,10 @@ export class SiteDataBuilder {
   }
 
   /**
-   * The text of `icons.json` (`SiteIconsFile`):  Font Awesome's search terms, `src/icons/data/search.json`, for the
-   * icon browser's search.
-   * - One icon per line (not `stringify()`'s one term per line):  a third of the size, and a diff still names the
-   *   icon that changed.
+   * The text of `icons.json` (`SiteIconsFile`):
+   * Font Awesome's search terms, `src/icons/data/search.json`, for the icon browser's search.
+   * - One icon per line (not `stringify()`'s one term per line):
+   *   a third of the size, and a diff still names the icon that changed.
    */
   iconsText(): string {
     const terms: Record<string, string[]> = JSON.parse(
@@ -214,7 +215,10 @@ export class SiteDataBuilder {
       aka: [...(vocabulary.aka ?? [])],
       ...(vocabulary.description && { description: vocabulary.description }),
       noun: vocabulary.noun,
-      attributes: vocabulary.attributes.map((spec) => SiteDataBuilder.attributeFor(spec)),
+      // its own, then the shared ones it doesn't declare (`disabled`, `loading`, `visible`), marked `shared`
+      attributes: SharedVocabulary.attributesFor(vocabulary).map((spec) =>
+        SiteDataBuilder.attributeFor(spec, SharedVocabulary.takesShared(vocabulary, spec.name))
+      ),
       slots: vocabulary.slots.map(({ name, description }) => ({ name, description })),
       events: vocabulary.events.map(({ name, detail, cancelable, description }) => ({
         name,
@@ -223,13 +227,16 @@ export class SiteDataBuilder {
         description
       })),
       parts: vocabulary.parts.map(({ name, description }) => ({ name, description })),
-      states: vocabulary.states.map(({ name, description }) => ({ name, description })),
+      states: SharedVocabulary.statesFor(vocabulary).map(({ name, description }) => ({ name, description })),
       texts: vocabulary.texts.map(({ key, text, description }) => ({ key, text, ...(description && { description }) }))
     }
   }
 
-  /** One attribute, its values resolved (`valueSetFor()`):  a shared set's name kept as `valueSet`. */
-  private static attributeFor(spec: AttributeSpec): SiteAttribute {
+  /**
+   * One attribute, its values resolved (`valueSetFor()`):  a shared set's name kept as `valueSet`.
+   * - `isShared`:  one of the attributes every element takes, not the vocabulary's own (`shared: true`).
+   */
+  private static attributeFor(spec: AttributeSpec, isShared: boolean): SiteAttribute {
     const set = SiteDataBuilder.valueSetFor(spec)
     const shared = typeof set === "string" ? set : undefined
     const values = set === undefined ? undefined : [...ValueSets.get(set)]
@@ -242,6 +249,7 @@ export class SiteDataBuilder {
       ...(spec.aliases?.length && { aliases: [...spec.aliases] }),
       ...(spec.property && { property: spec.property }),
       ...(spec.reflect === false && { reflect: false }),
+      ...(isShared && { shared: true }),
       description: spec.description
     }
   }
@@ -261,9 +269,9 @@ export class SiteDataBuilder {
   }
 
   /**
-   * `tags` A-Z by name, each with what its family says:  main tag, and the docs page:  `components/<tag>.html` for
-   * the main tag and a sub-tag with its own page (`SiteFamily.pages`), else `components/<main>.html#<tag>`;  none for
-   * a doc-only tag.
+   * `tags` A-Z by name, each with what its family says:  main tag, and the docs page:
+   * `components/<tag>.html` for the main tag and a sub-tag with its own page (`SiteFamily.pages`),
+   * else `components/<main>.html#<tag>`;  none for a doc-only tag.
    */
   private static finishTags(tags: RawTag[], families: Record<string, SiteFamily>): SiteTag[] {
     return [...tags]
@@ -287,8 +295,8 @@ export class SiteDataBuilder {
   /**
    * A family's `pages` (sub-tags with a page of their own), from its seed:  A-Z, as `{ pages }` to spread, or nothing
    * when it has none.
-   * - Throws a `TypeError` on a tag the family doesn't have, or its main tag:  a typo in pages.json would else drop
-   *   a page silently.
+   * - Throws a `TypeError` on a tag the family doesn't have, or its main tag:
+   *   a typo in pages.json would else drop a page silently.
    */
   private static pagesFor({ folder, tags, mainTag, seed }: PagesForParams): { pages?: Record<string, SiteTagPage> } {
     const names = Object.keys(seed.pages ?? {}).sort()
@@ -355,8 +363,8 @@ export class SiteDataBuilder {
 }
 
 /**
- * Where a `SiteDataBuilder` reads and writes;  each absolute, each defaulting to the Spell UI site's own.  Another
- * package's elements (`packages/brand`'s `scripts/site-data.ts`) pass their own folders.
+ * Where a `SiteDataBuilder` reads and writes;  each absolute, each defaulting to the Spell UI site's own.
+ * Another package's elements (`packages/brand`'s `scripts/site-data.ts`) pass their own folders.
  * - NOTE: foundation tokens and theme sheets always come from Spell UI (`root`'s `src/styles/`)
  */
 export type SiteDataBuilderProps = {

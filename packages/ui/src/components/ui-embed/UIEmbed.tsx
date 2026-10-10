@@ -1,4 +1,4 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -13,27 +13,22 @@ import embedCSS from "./UIEmbed.css?inline"
  * The DOM element of `<ui-embed>`:
  * it adds the embed's script API, `activate()` and `reset()`, which its component does.
  *
- * - NOTE: solid-element checks the DOM element's prototype members against the prop names;
+ * - NOTE: `DOMElement` checks its members against the attributes' property names;
  *   neither `activate` nor `reset` is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMEmbedElement extends E.DOMElement {
+export class DOMEmbedElement extends E.DOMElement<UIEmbed> {
   /**
    * Load the frame as the play button would (the cancelable `ui-activate` first);
    * true when it loads (Fomantic's `show`).
    */
   activate(): boolean {
-    return this.embed?.activate() ?? false
+    return this.component?.activate() ?? false
   }
 
   /** Back to the placeholder, with `ui-reset` (Fomantic's `reset`). */
   reset() {
-    this.embed?.reset()
-  }
-
-  /** Its component. */
-  private get embed(): UIEmbed | undefined {
-    return this.component as UIEmbed | undefined
+    this.component?.reset()
   }
 }
 
@@ -59,8 +54,10 @@ export class DOMEmbedElement extends E.DOMElement {
  ****************/
 export class UIEmbed extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = embedVocabulary
-  @E.proto static styleSheets = { embed: embedCSS }
-  @E.proto static elementSetup = { DOMElement: DOMEmbedElement } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { embed: embedCSS },
+    DOMElement: DOMEmbedElement
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## Active
@@ -77,9 +74,10 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
   private shouldFocusFrame = false
 
   /** Load the frame as an action of the page's reader:  the cancelable `ui-activate` first.  True when it loads. */
+  @E.untracked
   activate(originalEvent?: Event): boolean {
-    if (untrack(() => this.isActive)) return false
-    const url = untrack(() => this.frameUrl)
+    if (this.isActive) return false
+    const url = this.frameUrl
     if (!url) return false
     const detail: UIT.EmbedActivateDetail = { url, originalEvent }
     const isApplied = this.requestChange("isActive", true, () => this.send("ui-activate", detail))
@@ -88,8 +86,9 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
   }
 
   /** Back to the placeholder (Fomantic's `reset`), with `ui-reset`. */
+  @E.untracked
   reset() {
-    if (!untrack(() => this.isActive)) return
+    if (!this.isActive) return
     this.isActive = false
     this.send("ui-reset", {})
   }
@@ -136,8 +135,8 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
     return super.classValue(name)
   }
 
-  /** The aspect-ratio word after the noun (`ui embed 4:3`). */
-  protected get extraClasses(): string | undefined {
+  /** The aspect-ratio word before the noun (`ui 4:3 embed`). */
+  protected get extraClass(): string | undefined {
     return this.aspectRatio ?? undefined
   }
 
@@ -147,7 +146,7 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("embed")}>
+      <div class={this.rootClass} part={this.partForName("embed")}>
         <Show when={this.isActive && this.frameUrl} fallback={this.playButton()}>
           <div class={FRAME_CLASS} part={this.partForName("frame")}>
             <iframe
@@ -200,7 +199,7 @@ export class UIEmbed extends E.UIComponent<Vocabulary> {
   private readonly onFrame = (frame: HTMLIFrameElement) => {
     if (!this.shouldFocusFrame) return
     this.shouldFocusFrame = false
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       if (frame.isConnected) frame.focus()
     })
   }

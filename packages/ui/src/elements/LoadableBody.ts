@@ -4,23 +4,27 @@ import { state } from "./Reactive"
 
 /****************
  * ### `LoadableBody`
- * The content of a `<ui-section source>` or `<ui-accordion source>`, fetched the first time it opens, so a long
- * page can ship as a SKELETON (every title) and load each body on demand.  One per owning element, which says WHEN
- * (`load()` once it opens) and WHERE (`target()`);  this does the rest, in the owner's LIGHT DOM, so the page's CSS
- * reaches it.
- * - Fetched through `UI.sources` (same origin only, cached per URL:  the path `<ui-include>` takes), parsed by
- *   `SourceMarkup` (`<body>` or the `select` match, scripts inert, relative URLs rewritten against `source`).
- * - Insert:  replaces the target's PLACEHOLDER -- every child but an element with a `slot` attribute (a section's
- *   header, icon, badge ... stay) -- and, on `reload()`, the body it put there before.
- * - Events through the owner:  `ui-load` once the body is in;  the cancelable `ui-error` on failure, after which
- *   `loadError` holds what to say (unless cancelled).  A failure isn't remembered:  the next `load()` tries again.
- * - `isVeiled`:  the owner keeps its content box closed while it's true, so an opening section or panel shows the
- *   body, not the placeholder, and animates once;  it turns false when the body arrives, on failure, or after
- *   `SOURCE_BODY_HOLD_MS` (then `isOverdue`:  the owner shows its loading look over the placeholder).  Only before
- *   the FIRST body:  a `reload()` (the live update) keeps the old body shown until the new one replaces it in place,
- *   so an open section doesn't blink, and its controls keep the focus.
- * - The families of `ui-*` tags in the body are NOT loaded here:  light DOM is the page's, so whatever defines the
- *   page's tags (a `<ui-root>`, which watches its subtree, or a bundle) defines these too.
+ * The content of a `<ui-section source>` or `<ui-accordion source>`, fetched the first time it opens,
+ * so a long page can ship as a SKELETON (every title) and load each body on demand.
+ * - One per owning element, which says WHEN (`load()` once it opens) and WHERE (`target()`).
+ * - This does the rest, in the owner's LIGHT DOM, so the page's CSS reaches it.
+ * - Fetched through `UI.sources` (same origin only, cached per URL:  the path `<ui-include>` takes).
+ * - Parsed by `SourceMarkup`:  `<body>` or the `select` match, scripts inert, relative URLs rewritten against `source`.
+ * - Insert:  replaces the target's PLACEHOLDER,
+ *   every child but an element with a `slot` attribute (a section's header, icon, badge ... stay);
+ *   on `reload()`, replaces the body it put there before too.
+ * - Events through the owner:
+ *   - `ui-load` once the body is in
+ *   - the cancelable `ui-error` on failure, after which `loadError` holds what to say (unless cancelled)
+ *   - a failure isn't remembered:  the next `load()` tries again
+ * - `isVeiled`:  the owner keeps its content box closed while it's true,
+ *   so an opening section or panel shows the body, not the placeholder, and animates once.
+ *   - It turns false when the body arrives, on failure, or after `SOURCE_BODY_HOLD_MS`
+ *     (then `isOverdue`:  the owner shows its loading look over the placeholder).
+ *   - Only before the FIRST body:  a `reload()` (the live update) keeps the old body shown
+ *     until the new one replaces it in place, so an open section doesn't blink, and its controls keep the focus.
+ * - The families of `ui-*` tags in the body are NOT loaded here:  light DOM is the page's,
+ *   so whatever defines the page's tags (a `<ui-root>`, which watches its subtree, or a bundle) defines these too.
  * - NOTE: a cycle (a body holding a source of its own file) or nesting deeper than `MAX_DEPTH` is a `render` error.
  * - Knows its owner only as a `LoadableBodyOwner` (`elements.types`):  NEVER imports a component.
  ****************/
@@ -78,8 +82,9 @@ export class LoadableBody {
   ////////////////
 
   /**
-   * Fetch and insert the body for the current `source` (and `select`), once:  the same promise until either
-   * changes.  Rejects when it fails.
+   * Fetch and insert the body for the current `source` (and `select`), once:
+   * the same promise until either changes.
+   * - Rejects when it fails.
    * - No `source`:  resolves at once, nothing changes.
    */
   load(): Promise<void> {
@@ -104,10 +109,10 @@ export class LoadableBody {
     this.loadStatus = E.SourceStatus.loading
     this.loadError = undefined
     this.isOverdue = false
-    const timer = setTimeout(() => {
+    const timer = E.after(E.SOURCE_BODY_HOLD_MS / 1000, () => {
       if (generation === this.generation) this.isOverdue = true
-    }, E.SOURCE_BODY_HOLD_MS)
-    const load = this.fetch(request, generation).finally(() => clearTimeout(timer))
+    })
+    const load = this.fetch(request, generation).finally(() => timer.cancel())
     this.pending = load
     // a failure isn't remembered:  the next `load()` tries again
     load.catch(() => {

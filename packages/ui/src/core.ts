@@ -1,37 +1,48 @@
 /**
  * `core` lib entry (`@spell-app/ui/core`):  the element core PLUS the foundation it builds on, as ONE module.
- * - Every component file imports shared code from here (`$/ui/core`), never from the pieces, so Rolldown puts all of
- *   it in `dist/core.js` and each family entry holds only its own classes, sheet, vocabulary and fallback.
+ * - Every component file imports shared code from here (`$/ui/core`), never from the pieces,
+ *   so Rolldown puts all of it in `dist/core.js`,
+ *   and each family entry holds only its own classes, sheet, vocabulary and fallback.
  * - Pulls in:
  *   - `$/ui/util`, `$/ui/vocabulary` -- foundation JS (`proto`, `Warnings`, `ValueSets`, `Converters` ...)
  *   - `$/ui/components/components.types` as the namespace `UIT` (`UIT.FLUID`, `UIT.ToggleCommands`, `UIT.SelectValue` ...)
- *   - from `$/ui/elements`, library-neutral:  `elements.types` (the element core's shared types and constants),
- *     `ClassBuilder`, `Shorthand`, `OwnerContext`, `NativeFallback` (the fallbacks' base), `StickyWatch`
- *     (`<ui-sticky>` and `<ui-section sticky>`)
- *   - from `$/ui/elements`, the Solid layer:  `Reactive` (the decorators:  `state`, `controlled`, `derived`,
- *     `cssState`, `onChange`), `Cell`, `ElementDefinition`, `DOMElement`, `PartContext` + `PartComponent`
- *     (owner context), `Controlled` (compatibility, for `brand`), `UIComponent`, `SlotContent`, `RootSettings`
- *     (what each `<ui-root>` sets for its subtree:  icon packs, emoji), `IconGlyph`, and the source layer:
- *     `DOMLoadableElement` + `LoadableComponent` (the elements that show a text file), `SourceMarkup`, `LoadableBody`,
- *     `DOMLoadableBodyElement`
- *     (`<ui-section source>` / `<ui-accordion source>`)
- *   - `$/ui/runtime` -- the eager loader (`UI`, `loadUI`), `runtime.types` and the services' TYPES;  `UIRuntime`
- *     itself stays a lazy chunk
- *   - `$/ui/icons` -- the icon pack format (`IconName`, `BuiltInPacks`);  the packs are separate files
- *     (`dist/icon-packs/`), loaded by the runtime (`UI.icons`)
- * - NOT here:  the `forms` entry (`forms.ts`:  `FormComponent`, `DOMFormControl`, `Validator`, `MenuOptions`,
- *   `ControlLabels`), loaded only by families that import it.
- * - NOTE: `$/ui/elements` LEAVES are re-exported, one by one, as `AGENTS.md` ("Solid authoring") says:  its barrel
- *   also exports the `forms` files, and an `export *` of it here would make them `core` exports, i.e. core bytes.
- * - NOTE: those leaves import this entry back, as `E` / `UI` / `UIT`:  a cycle, on purpose (WWOD §4 › "ONE namespace
- *   per sub-system").  What a leaf reads while it EVALUATES (a base class, `@proto`, a static initializer) comes from
- *   its own file instead (WWOD §4 › "Circular imports"), and the order below puts each such file before its readers.
- *   `src/elements/barrel.test.ts` checks every export is live.
- * - NOTE: `solid-js`, `@solidjs/web` and `@spell-app/solid-element` are NOT re-exported:  peer dependencies, external
- *   in the build (`vite.config.ts`).
- * - NOTE: nothing here may `import * as` a Solid package:  a namespace keeps every export alive, which pins ALL of
- *   Solid into any bundle (and any vendored copy) that includes `core`.  The Solid host page's identity probe
- *   lives in that page (`tools/frameworks/solid/identity.js`).
+ *   - from `$/ui/elements`, what doesn't use Solid:
+ *     - `elements.types` (the element core's shared types and constants)
+ *     - `ClassBuilder`, `Shorthand`, `OwnerContext`
+ *     - `NativeFallback` (the fallbacks' base)
+ *     - `StickyWatch` (`<ui-sticky>` and `<ui-section sticky>`)
+ *   - from `$/ui/elements`, the Solid layer:
+ *     - `Reactive`, the decorators:
+ *       `state`, `controlled`, `derived`, `cssState`, `cssStates`, `aria`, `onChange`, `whileConnected`,
+ *       `fromContent`, `on`, `untracked`
+ *     - `Cell`, `ElementDefinition`, `DOMElement`, `UIComponent`, `SlotContent`, `IconGlyph`
+ *     - `PartContext` + `PartComponent` (owner context)
+ *     - `Controlled` (compatibility, for `brand`)
+ *     - `RootSettings`:  what each `<ui-root>` sets for its subtree (icon packs, emoji)
+ *     - the elements that show a text file:
+ *       `DOMLoadableElement` + `LoadableComponent`, `SourceMarkup`,
+ *       and `LoadableBody` + `DOMLoadableBodyElement` (`<ui-section source>` / `<ui-accordion source>`)
+ *   - `$/ui/runtime` -- the eager loader (`UI`, `loadUI`), `runtime.types` and the services' TYPES;
+ *     `UIRuntime` itself stays a lazy chunk
+ *   - `$/ui/icons` -- the icon pack format (`IconName`, `BuiltInPacks`);
+ *     the packs are separate files (`dist/icon-packs/`), loaded by the runtime (`UI.icons`)
+ * - NOT here:  the `forms` entry, loaded only by families that import it
+ *   (`forms.ts`:  `FormComponent`, `DOMFormControl`, `Validator`, `MenuOptions`, `ControlLabels`).
+ * - NOTE: `$/ui/elements` LEAVES are re-exported one by one, as `AGENTS.md` ("Solid authoring") says:
+ *   its barrel also exports the `forms` files,
+ *   and an `export *` of it here would make them `core` exports, i.e. core bytes.
+ * - NOTE: those leaves import this entry back, as `E` / `UI` / `UIT`:
+ *   a cycle, on purpose (WWOD §4 › "ONE namespace per sub-system").
+ *   - What a leaf reads while it EVALUATES (a base class, `@proto`, a static initializer)
+ *     comes from its own file instead (WWOD §4 › "Circular imports").
+ *   - The order below puts each such file before its readers.
+ *   - `src/elements/barrel.test.ts` checks every export is live.
+ * - NOTE: `solid-js` and `@solidjs/web` are NOT re-exported:
+ *   peer dependencies, external in the build (`vite.config.ts`).
+ *   The custom-element layer is `ui`'s own code (`DOMElement`, `UIComponent`, `ShadowEvents`), bundled here.
+ * - NOTE: nothing here may `import * as` a Solid package:  a namespace keeps every export alive,
+ *   which pins ALL of Solid into any bundle (and any vendored copy) that includes `core`.
+ *   The Solid host page's identity probe lives in that page (`tools/frameworks/solid/identity.js`).
  */
 
 export * from "$/ui/util"
@@ -64,7 +75,7 @@ export * from "$/ui/elements/LoadableBody"
 export * from "$/ui/elements/DOMLoadableBodyElement"
 
 /**
- * The package namespace (WWOD §4):  `import { E, UI, UIT } from "$/ui/core"`,
- * then `E.UIComponent`, `@E.proto` (`AGENTS.md`).
+ * The package namespace (WWOD §4):
+ * `import { E, UI, UIT } from "$/ui/core"`, then `E.UIComponent`, `@E.proto` (`AGENTS.md`).
  */
 export * as E from "$/ui/core"

@@ -17,23 +17,29 @@ import dropdownCSS from "./UIDropdown.css?inline"
  * - Its shadow DOM:  a `<button>` combobox (with `search`, an `<input>`),
  *   and an anchor-positioned popover menu.
  *
- * - Its options:  the slotted `<ui-item>`s (`SlottedItems`), then the `options` property, then additions,
- *   as `MenuOptions`.  `@derived` members work out the visible list on each key
+ * - Its options (`MenuOptions`):
+ *   the slotted `<ui-item>`s (`SlottedItems`), then the `options` property, then additions.
+ *   `@derived` members work out the visible list on each key
  *   (leaving out chosen ones, filtering, adding the addition).
  *
  * - `value` and `open` are controlled (`@controlled`):  the events go first, and a handler may cancel or override.
  * - Invoker commands (`<button commandfor="id" command="--toggle">`, `ToggleCommands`) open and close the menu,
  *   as a person's action;  a disabled or read-only dropdown ignores them.
  * - The menu's rows render only while it's open (`<For>`, keyed by option);
- *   `aria-activedescendant` points at the highlighted row.  Escape and outside clicks come from `UI.overlays`.
+ *   `aria-activedescendant` points at the highlighted row.
+ * - Escape and outside clicks come from `UI.overlays`.
  * - A form control:  `multiple` submits one `FormData` entry per value;  `required` => `valueMissing`.
+ *   Named by `label`, else by the DOM element's `<label for>` / `aria-label` (`ControlLabels`).
  * - An option's `flag` draws through `UIT.Flags`, the rule `<ui-flag>` draws with.
  *   Fomantic's country names (`france`) are `<ui-flag>`'s alone, so a flag that isn't a code shows as its text.
  *
- * - In a static server render (`$/ui/static`):  the menu is closed, with its rows rendered (their text is in the
- *   page), the `<ui-item>`s are dropped, and the value goes in hidden inputs, so a static form submits it.
- *   Choosing needs script.
+ * - In a static server render (`$/ui/static`):
+ *   - the menu is closed, with its rows rendered (their text is in the page)
+ *   - the `<ui-item>`s are dropped
+ *   - the value goes in hidden inputs, so a static form submits it
+ *   - choosing needs script
  ****************/
+@E.cssStates("loading", "fluid")
 export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   /**
    * Rows PageUp / PageDown move.
@@ -48,20 +54,18 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   declare typeAheadDelay: number
 
   @E.proto static vocabulary = dropdownVocabulary
-  @E.proto static styleSheets = { button: buttonCSS, dropdown: dropdownCSS }
-  @E.proto static elementSetup = { Fallback: DropdownFallback } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { button: buttonCSS, dropdown: dropdownCSS },
+    Fallback: DropdownFallback,
+    // `loading`:  a spinner in place of its dropdown icon
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** Default:  10 rows. */
   @E.proto static pageSize = 10
 
   /** Default:  500 ms. */
   @E.proto static typeAheadDelay = 500
-
-  /** Listens for invoker commands aimed at the DOM element, until it's released. */
-  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
-    super(...args)
-    this.on("command", this.onCommand)
-  }
 
   ////////////////
   // ## Options
@@ -106,7 +110,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   accessor value = this.selectedItemValues()
 
   /** The page's value to restore on a form reset (`undefined`:  back to the `selected` items). */
-  private readonly initialValue = this.isPageControlled("value") ? untrack(() => this.value) : undefined
+  private readonly initialValue = this.isControlledByPage("value") ? untrack(() => this.value) : undefined
 
   /** Chosen values, always as an array;  the same list while equal. */
   @E.derived({ equals: E.isSameList })
@@ -135,22 +139,24 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /** Values of slotted items marked `selected`, the uncontrolled starting value. */
+  @E.untracked
   private selectedItemValues(): string | string[] | undefined {
-    const values = untrack(() => this.items.entries)
+    const values = this.items.entries
       .filter(UIDropdown.isOption)
       .filter((option) => option.selected)
       .map((option) => option.value)
     if (!values.length) return undefined
-    return untrack(() => this.multiple) ? values : values[0]
+    return this.multiple ? values : values[0]
   }
 
   /** Choose `option` (or add the addition), as the person did with `originalEvent`. */
+  @E.untracked
   select(option: E.MenuOption, originalEvent?: Event) {
     if (option.disabled || this.readonly) return
-    const values = untrack(() => this.chosenValues)
+    const values = this.chosenValues
     const isAddition = "addition" in option
     if (this.multiple) {
-      if (!untrack(() => this.hasRoomForMore)) return
+      if (!this.hasRoomForMore) return
       const next = [...values, option.value]
       this.commit(next, originalEvent, () => this.send("ui-add", { value: option.value, originalEvent }))
       this.query = ""
@@ -165,9 +171,10 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /** Remove one chosen value (multiple). */
+  @E.untracked
   remove(value: string, originalEvent?: Event) {
     if (this.readonly || this.isDisabled) return
-    const next = untrack(() => this.chosenValues).filter((item) => item !== value)
+    const next = this.chosenValues.filter((item) => item !== value)
     this.commit(next, originalEvent, () => this.send("ui-remove", { value, originalEvent }))
   }
 
@@ -193,22 +200,14 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
     return this.multiple ? values : (values[0] ?? null)
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
   /** Back to the starting value;  clears the query. */
   onFormReset() {
     this.value = this.initialValue
     this.query = ""
   }
 
-  protected get validationRules(): E.ValidationRule[] {
-    return this.required ? [UIT.REQUIRED_RULE] : []
-  }
-
   protected get validationLabel(): string | undefined {
-    return this.label || undefined
+    return this.accessibleName
   }
 
   protected get validationAnchor(): HTMLElement | undefined {
@@ -231,19 +230,17 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   private typedSoFar = ""
 
   /** Clears `typedSoFar` after `typeAheadDelay`. */
-  private typeAheadTimer?: ReturnType<typeof setTimeout>
+  private typeAheadTimer?: E.CancelablePromise<unknown>
 
   /** Type-ahead:  extend the buffer, highlight the next match (opening first if needed). */
+  @E.untracked
   private typeAhead(key: string, event: KeyboardEvent) {
-    clearTimeout(this.typeAheadTimer)
+    this.typeAheadTimer?.cancel()
     this.typedSoFar += key
-    this.typeAheadTimer = setTimeout(() => (this.typedSoFar = ""), this.typeAheadDelay)
-    if (!untrack(() => this.isOpen)) this.requestOpen(true, event)
-    const options = untrack(() => this.visibleOptions)
-    const index = options.selectionForKey(
-      this.typedSoFar,
-      untrack(() => this.highlightedIndex)
-    )
+    this.typeAheadTimer = E.after(this.typeAheadDelay / 1000, () => (this.typedSoFar = ""))
+    if (!this.isOpen) this.requestOpen(true, event)
+    const options = this.visibleOptions
+    const index = options.selectionForKey(this.typedSoFar, this.highlightedIndex)
     if (index >= 0) this.highlightedIndex = index
   }
 
@@ -286,18 +283,17 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /** Highlight `option` if it's visible. */
+  @E.untracked
   private highlight(option: E.MenuOption) {
-    const index = untrack(() => this.visibleOptions).options.indexOf(option)
-    if (index >= 0 && index !== untrack(() => this.highlightedIndex)) this.highlightedIndex = index
+    const index = this.visibleOptions.options.indexOf(option)
+    if (index >= 0 && index !== this.highlightedIndex) this.highlightedIndex = index
   }
 
   /** Move the highlight by `delta` enabled options. */
+  @E.untracked
   private move(delta: number) {
-    const options = untrack(() => this.visibleOptions)
-    this.highlightedIndex = options.nextEnabledIndex(
-      untrack(() => this.highlightedIndex),
-      delta
-    )
+    const options = this.visibleOptions
+    this.highlightedIndex = options.nextEnabledIndex(this.highlightedIndex, delta)
   }
 
   /** Open:  keep the highlighted row in view. */
@@ -340,15 +336,16 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
    * - Opening highlights the chosen option, else the first enabled one.
    * - Returns true when it changed.
    */
+  @E.untracked
   requestOpen(open: boolean, originalEvent?: Event): boolean {
-    if (open === untrack(() => this.isOpen)) return false
+    if (open === this.isOpen) return false
     if (open && (this.isDisabled || this.readonly)) return false
     const done = this.requestChange("isOpen", open, () =>
       this.send(open ? "ui-open" : "ui-close", { open, originalEvent })
     )
     if (done && open) {
-      const options = untrack(() => this.visibleOptions)
-      const chosen = options.options.findIndex((option) => untrack(() => this.chosenValueSet).has(option.value))
+      const options = this.visibleOptions
+      const chosen = options.options.findIndex((option) => this.chosenValueSet.has(option.value))
       this.highlightedIndex = chosen >= 0 ? chosen : options.nextEnabledIndex(-1, 1)
     }
     if (done && !open) this.query = ""
@@ -357,8 +354,9 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
 
   /**
    * Popover + overlay registration while open AND connected, once rendered.
-   * - `isConnected`:  `keepAlive` keeps an open dropdown's state when it's removed, but the page must not keep its
-   *   overlay entry (Escape / outside clicks) for an element that isn't there;  reconnecting re-registers.
+   * - `isConnected`:  `keepAlive` keeps an open dropdown's state when it's removed,
+   *   but the page must not keep its overlay entry (Escape / outside clicks) for an element that isn't there;
+   *   reconnecting re-registers.
    * - `isReady`:  the menu renders only then;  an element opened before shows it as it arrives.
    */
   @E.onChange("isOpen", "isConnected", "isReady")
@@ -374,30 +372,19 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   ////////////////
-  // ## Disabled, classes and states
+  // ## Name and classes
   ////////////////
 
-  /** Disabled by its attribute, or by a disabled fieldset;  `:state(disabled)`. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
-  /** Busy (`loading`):  `:state(loading)`. */
-  @E.cssState("loading")
-  get isLoading(): boolean {
-    return this.loading
-  }
-
-  /** As wide as its container (`fluid`):  `:state(fluid)`. */
-  @E.cssState("fluid")
-  get isFluid(): boolean {
-    return this.fluid
+  /**
+   * Name of the combobox and its listbox:
+   * `label`, else what names the DOM element (`labels`:  `<label for>`, `aria-label` ...).
+   */
+  private get accessibleName(): string | undefined {
+    return this.label || this.labels.accessibleName
   }
 
   protected classValue(name: E.AttributeName<typeof dropdownVocabulary>): unknown {
     if (name === "open") return this.isOpen
-    if (name === "disabled") return this.isDisabled
     return super.classValue(name)
   }
 
@@ -418,7 +405,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
     this.ids = { menu: UI.ids.next(ID_PREFIX), text: UI.ids.next(ID_PREFIX), anchor: `--${UI.ids.next(ID_PREFIX)}` }
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         style={{ [UIT.DROPDOWN_ANCHOR_PROPERTY]: this.ids.anchor }}
         onClick={this.onRootClick}
       >
@@ -487,7 +474,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
       "aria-controls": this.ids.menu,
       "aria-haspopup": "listbox",
       "aria-activedescendant": this.isOpen && highlighted ? this.idFor(highlighted) : undefined,
-      "aria-label": this.label || undefined,
+      "aria-label": this.accessibleName,
       "aria-describedby": this.ids.text,
       "aria-busy": this.loading ? "true" : undefined,
       "aria-readonly": this.readonly ? "true" : undefined,
@@ -591,7 +578,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
         // a server render can't show a popover:  an open menu is a plain one, shown by the root's `active`
         popover={this.simple || (isServer && this.isOpen) ? undefined : "manual"}
         part={this.partForName("menu")}
-        aria-label={this.label || undefined}
+        aria-label={this.accessibleName}
         aria-multiselectable={this.multiple ? "true" : undefined}
         onMouseDown={UIDropdown.preventDefault}
       >
@@ -713,16 +700,14 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   ////////////////
 
   /**
-   * An invoker command aimed at the DOM element (`ToggleCommands`):  a person's action,
-   * ignored when disabled or read-only.
+   * An invoker command aimed at the DOM element (`ToggleCommands`):
+   * a person's action, ignored when disabled or read-only.
    * - Opening focuses the combobox, as opening it by keyboard leaves it (the keys need it).
    */
-  private readonly onCommand = (event: Event) => {
-    if (untrack(() => this.isDisabled || this.readonly)) return
-    const action = UIT.ToggleCommands.action(
-      event,
-      untrack(() => this.isOpen)
-    )
+  @E.on("command")
+  protected onCommand(event: Event) {
+    if (this.isDisabled || this.readonly) return
+    const action = UIT.ToggleCommands.action(event, this.isOpen)
     if (action === "show") {
       this.combobox?.focus({ preventScroll: true })
       this.requestOpen(true, event)
@@ -730,21 +715,23 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /** Trigger / input click:  toggle (the input only opens). */
+  @E.untracked
   private readonly onTriggerClick = (event: MouseEvent) => {
     // Safari doesn't focus a <button> on a mouse click, and the keys (arrows, Enter, Escape) need focus here
     // (`detail` is 0 for a keyboard or scripted click, which has the focus it needs, or none to give)
     if (event.detail > 0) this.combobox?.focus({ preventScroll: true })
-    if (this.search && untrack(() => this.isOpen)) return
-    this.requestOpen(!untrack(() => this.isOpen), event)
+    if (this.search && this.isOpen) return
+    this.requestOpen(!this.isOpen, event)
   }
 
   /** Click on the root outside the combobox (caret, text of a search dropdown):  focus + toggle. */
+  @E.untracked
   private readonly onRootClick = (event: MouseEvent) => {
     const target = event.composedPath()[0]
     if (!this.search || target === this.combobox || this.menu?.contains(target as Node)) return
     if ((target as Element).closest?.("button")) return
     this.combobox?.focus()
-    this.requestOpen(!untrack(() => this.isOpen), event)
+    this.requestOpen(!this.isOpen, event)
   }
 
   /** Clear button. */
@@ -763,9 +750,10 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /**
-   * Leaving the combobox closes the menu, unless focus stays inside, or moves to (or is lost by a press on) one of
-   * this dropdown's invoker buttons:  that button's `command` decides, so `--toggle` closes an open menu instead of
-   * closing it here and reopening it.
+   * Leaving the combobox closes the menu, unless focus stays inside,
+   * or moves to (or is lost by a press on) one of this dropdown's invoker buttons.
+   * - That button's `command` decides,
+   *   so `--toggle` closes an open menu instead of closing it here and reopening it.
    */
   private readonly onBlur = (event: FocusEvent) => {
     const next = event.relatedTarget as Node | null
@@ -777,9 +765,10 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   }
 
   /** Combobox keyboard pattern (APG), plus type-ahead and Backspace-removes-last. */
+  @E.untracked
   private readonly onKeyDown = (event: KeyboardEvent) => {
     if (this.isDisabled || event.defaultPrevented) return
-    const isOpen = untrack(() => this.isOpen)
+    const isOpen = this.isOpen
     const { key } = event
     switch (key) {
       case UIT.Key.arrowDown:
@@ -792,7 +781,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
       case UIT.Key.end:
         if (!isOpen) return
         event.preventDefault()
-        this.highlightedIndex = untrack(() => this.visibleOptions).nextEnabledIndex(-1, key === UIT.Key.home ? 1 : -1)
+        this.highlightedIndex = this.visibleOptions.nextEnabledIndex(-1, key === UIT.Key.home ? 1 : -1)
         return
       case UIT.Key.pageDown:
       case UIT.Key.pageUp:
@@ -806,15 +795,15 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
           return
         }
         event.preventDefault()
-        const visible = untrack(() => this.visibleOptions)
-        const option = untrack(() => this.highlightedOption) ?? visible.addition
+        const visible = this.visibleOptions
+        const option = this.highlightedOption ?? visible.addition
         if (option) this.select(option, event)
         return
       }
       case UIT.Key.space: {
         if (this.search || !isOpen) return
         event.preventDefault()
-        const option = untrack(() => this.highlightedOption)
+        const option = this.highlightedOption
         if (option) this.select(option, event)
         return
       }
@@ -822,8 +811,8 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
         if (isOpen) this.requestOpen(false, event)
         return
       case UIT.Key.backspace: {
-        const values = untrack(() => this.chosenValues)
-        if (this.search && this.multiple && !untrack(() => this.query) && values.length) {
+        const values = this.chosenValues
+        if (this.search && this.multiple && !this.query && values.length) {
           this.remove(values.at(-1)!, event)
         }
         return
@@ -864,8 +853,8 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   /**
    * Draw icon `name` from the packs `element` sees (its `<ui-root icons>`, else `UI.icons`) into it, once loaded.
    * - Plain DOM, no signal:  rows are many and their icons never change.
-   * - NEVER rejects (fire-and-forget):  a runtime chunk or icon that won't load draws no icon, not a page error,
-   *   as `IconGlyph` does.
+   * - NEVER rejects (fire-and-forget), as `IconGlyph` does:
+   *   a runtime chunk or icon that won't load draws no icon, not a page error.
    * - STATIC:  needs no instance, only the element.
    */
   private static async fillIcon(element: HTMLElement, name: string | undefined) {

@@ -16,27 +16,32 @@
  *       remembers their folds, and lands links inside them
  *   - HEADINGS (the goals pages):  `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`;
  *     this runtime adds the fold chevrons and every sticky's `offset`
- * - the RAIL, the page's one navigation:  a strip of the top-level sections' icons FLOATING over the right edge
- *   (`buildRail()`), every width;  no column is kept for it, the page runs to the window's edge.
- *   No contents list:  Owen, 2026-10-08 ("remove the Contents thing entirely ... it is useless")
+ * - the TOOLBAR, the page's one navigation (epic `airplane` P8;  the floating right-edge rail before):  a row of the
+ *   top-level sections' buttons, the last row of the sticky page header (`buildPageToolbar()`):  mark and title,
+ *   the titles shrinking, then gone on a narrow window.  No contents list:  Owen, 2026-10-08
+ *   - a PLAN DOC's (`buildToolbar()`):  its blocks' icons only, with badges of the items waiting on Owen, in
+ *     `<epic-page>`'s header;  and Cmd / Ctrl + K asks for an item to jump to (`wireJumpKey()`)
  * - sticky headers:  the page header (`ui-sticky.spell-h1`) sticks at the top, each top-level title below it,
  *   nested ones below their parents' (re-measured on resize);
  *   CSS variables on the sections let anchors land below them all
  * - everything that sticks or lands at the top starts BELOW the fixed site header (`<spell-site-header>`,
- *   `siteHeaderHeight()`):  the page header, the titles, the rail
+ *   `siteHeaderHeight()`):  the page header and its toolbar, the titles
  * - folding:  every section folds from a chevron on its title;  folds are remembered per page, and `collapsed`
  *   (`data-fold="closed"` on HEADINGS pages) starts one folded
  * - counts:  a top-level section holding `[data-status]` items (the Epics index's epic cards, the goals pages' items)
  *   shows open / all on its title;
- *   the rail shows, with a red bar and pill, how many NEED OWEN (none:  no pill;  `countItems()`);
- *   an epic card section also gets a round filter button stepping through the items' states (`wireItemFilters()`)
- * - scroll-follow:  the rail's entry of the section being read is highlighted, and the address follows it
+ *   the toolbar shows, with a red badge, how many NEED OWEN (none:  no badge;  `countItems()`);
+ *   an epic card section also gets state chips with counts, filtering its items (`wireItemFilters()`)
+ * - scroll-follow:  the toolbar's button of the section being read is highlighted, and the address follows it
  * - links to any id in `main` (a section, a heading, a plan item) land below the stuck titles, unfolding what
  *   hides it
  * - the CHEATSHEET card filters
  * - highlight.js, when the page loaded it
- * - PAGE NOTES (`wireNotes()`):  each `<spell-note>` as a folded card;  served by the page server, a note bubble on
- *   every section's title and a Note pill in the page header, which write notes into the page
+ * - COMMENTS (`wireComments()`):  served by the page server, a bullhorn beside every major block (and in the page
+ *   header), and ⌘ I or a floating bullhorn on selected text, which open a comment box under the block;  the
+ *   comments wait in an inbox file (a docs page's own, a plan doc's review inbox), drawn under their blocks.
+ *   PAGE NOTES (`wireNotes()`), written into docs pages before them:  each `<spell-note>` a folded card
+ * - FAVORITE EPICS (`wireFavorites()`):  on the Epics page, a card's star moves it into Favorites and back, at once
  * LANDING -- where a jump puts its target, ONE model for every kind of jump:
  * - the line:  just below the lowest title that will be stuck over the target:  site header + `--spell-top` (page
  *   header, filter bar) + the stack of the target's sections' titles
@@ -60,6 +65,21 @@
  * NOTE: panels open and close through the accordion's `open` PROPERTY (panel indexes as text):
  * that's `<ui-accordion>`'s controlled state, and writing it announces nothing (`ui-open` / `ui-close` mean the user).
  */
+
+import {
+  PAGE_ANCHOR,
+  anchorOf,
+  blockAround,
+  blocksIn,
+  excerptOf,
+  findBlock,
+  kindOf,
+  offsetIn,
+  pageHeadIn,
+  quoteIn,
+  sectionOf,
+  sectionTitle
+} from "../BlockAnchors.js"
 
 /** Custom elements this runtime drives:  wait for their definitions before wiring. */
 const TAGS = [
@@ -90,6 +110,9 @@ const UNFOLD_FRAMES = 2
  * (`--ui-section-duration`, 300ms) and moves the target a few pixels after the first landing.
  */
 const SETTLE_MS = 450
+
+/** How long a closing fold's header is held in place (`holdWhileFolding()`):  its transition (300ms) and a margin. */
+const FOLD_HOLD_MS = 600
 
 /**
  * A plan doc's folding blocks (`packages/epics`):  its sections, in the outline, the folds and the landing.
@@ -158,25 +181,32 @@ async function start() {
   // the goals pages (HEADINGS) get no filter, but their id chips are coloured by state too
   if (outline.sections) wireItemFilters(main)
   else markItemStates(main)
-  const rail = buildRail(outline, counts)
+  const rail = buildNavigation(main, outline, counts)
   // before the sections first draw, so a saved fold doesn't animate shut
   const folds = wireFolds(main, outline)
   const used = TAGS.filter((tag) => document.querySelector(tag))
   await Promise.all(used.map((tag) => customElements.whenDefined(tag)))
   const sticky = trackStickyHeights(main, outline)
   const follow = followScroll(main, outline, rail)
-  const jump = wireAnchors(main, outline, sticky, follow, folds)
+  const { jump, go, canGo } = wireAnchors(main, outline, sticky, follow, folds)
   wirePaging(main)
+  if (document.body.classList.contains("plan-doc")) wireJumpKey(go, canGo)
   wireFilter(main)
   // UI renders its shadow content a little after the definitions:  land once it has
   await nextFrames(2)
   sticky.measure()
   land(landing, jump, follow)
   live.ready({ main, rail, sticky, follow, entries: railKey(outline, counts) })
-  void wireNotes(main)
+  wireNotes(main)
+  void wireComments(main)
   wireNewEpic(main)
-  // the docs index rewrites this page after a new epic:  its header comes back without the pill
-  addEventListener("spell-doc:updated", () => wireNewEpic(main))
+  wireFavorites(main)
+  // the docs index rewrites this page after a new epic:  its header comes back without the pill, a starred card
+  // maybe in its old place too
+  addEventListener("spell-doc:updated", () => {
+    wireNewEpic(main)
+    wireFavorites(main)
+  })
 }
 
 /**
@@ -895,7 +925,7 @@ function keepAnchor(anchor) {
 /**
  * After a patch, redo what the runtime built from the markup, as `start()` did:
  * - the outline (ids for new entries), counts, item filters
- * - the rail, rebuilt only when its entries, icons or counts changed (`railKey()`)
+ * - the toolbar, rebuilt only when its entries, icons or counts changed (`railKey()`)
  * - sticky lines, re-tracked when new sections came in
  * - code colors in what's new;  scroll-follow re-read
  * - then `spell-doc:updated` on `window`, `detail.changed`
@@ -910,7 +940,7 @@ async function rewire(page, changed) {
   wireItemFilters(main)
   highlightIn(changed)
   const entries = railKey(outline, counts)
-  if (entries !== page.entries) page.rail = buildRail(outline, counts)
+  if (entries !== page.entries) page.rail = buildNavigation(main, outline, counts)
   page.entries = entries
   if (changed.some((node) => withSelf(node, "ui-section").length)) page.sticky = trackStickyHeights(main, outline)
   page.follow.rescan(page.rail)
@@ -920,13 +950,14 @@ async function rewire(page, changed) {
   dispatchEvent(new CustomEvent("spell-doc:updated", { detail: { changed } }))
 }
 
-/** What the rail is built from, as one string:  entries, labels, icons, what needs Owen. */
+/** What the toolbar is built from, as one string:  entries, labels, icons, what needs Owen. */
 function railKey(outline, counts) {
   return JSON.stringify(outline.groups.map(entry))
 
-  /** One top-level entry:  its id, label, icon and state, and how many of its items need Owen. */
+  /** One top-level entry:  its id, label, icon and state, and how many of its items need Owen (and how). */
   function entry(node) {
-    return [node.id, node.label, node.glyph, node.element.dataset.state, counts.get(node.element)?.attention ?? 0]
+    const count = counts.get(node.element)
+    return [node.id, node.label, node.glyph, node.element.dataset.state, count?.attention ?? 0, count?.replied ?? 0]
   }
 }
 
@@ -948,7 +979,7 @@ function highlightIn(elements) {
 ////////////////
 
 /**
- * The page's outline, from either markup (see the header):  what the rail, the counts, scroll-follow
+ * The page's outline, from either markup (see the header):  what the toolbar, the counts, scroll-follow
  * and the anchors work from.
  * - SECTIONS markup (`main > ui-section`, or a plan doc's `<epic-page>`):  top-level sections are the groups
  *   - their entries, at any depth:
@@ -957,12 +988,12 @@ function highlightIn(elements) {
  *   - a plan doc's sections are its folding blocks
  *     (`EPIC_FOLDS`:  the Overview and its parts, the sections, the phases)
  * - HEADINGS markup:  h2s are the groups, h3s their entries, h4s under the h3 before them
- * - a node:  `{ element, id, label, glyph, children }` -- `glyph` the name of its (first) `<ui-icon>`, for the rail
+ * - a node:  `{ element, id, label, glyph, children }` -- `glyph` the name of its (first) `<ui-icon>`, for the toolbar
  * - returns `{ sections, groups, orphans, targets, entryOf, groupOf, folded }`:
  *   - `orphans`:  entries before or outside any group
  *   - `targets`:  selector of every entry's element, for scroll-follow
  *   - `entryOf(element)`:  the entry holding `element`, which a jump to it makes current
- *   - `groupOf(entry)`:  its top-level element, for the rail
+ *   - `groupOf(entry)`:  its top-level element, for the toolbar
  *   - `folded(element)`:  hidden by a folded section around it (SECTIONS;  HEADINGS hide those with `display`)
  * - SIDE EFFECT:  gives an entry with no `id` a slug of its label (`-2`, `-3` ... when taken)
  */
@@ -1148,9 +1179,18 @@ const CLOSED = new Set(["done", "decided", "canceled"])
 
 /**
  * A plan doc's block's items that need Owen, when its `contentsEntry` count doesn't say:
- * its own items (`COUNTED` in `packages/epics`' `EpicSection.types.ts`) the plan-doc tool marked `attention`.
+ * its own items (`COUNTED` in `packages/epics`' `EpicSection.types.ts`) the plan-doc tool marked
+ * - `attention` (red)
+ * - or `replied` (orange:  Claude answered with options, Owen's turn to pick;  `EpicItem.types.ts` `NEEDS_OWEN`).
  */
-const EPIC_ATTENTION = ':scope > epic-item[state="attention"], :scope > epic-phase[state="attention"]'
+const EPIC_ATTENTION =
+  ':scope > epic-item:is([state="attention"], [state="replied"]), :scope > epic-phase[state="attention"]'
+
+/**
+ * Of those, the ones Claude answered with options, waiting on Owen's pick (`replied`, orange):  the plan-doc toolbar
+ * shows them apart from the urgent ones (red;  `buildToolbar()`).
+ */
+const EPIC_REPLIED = ':scope > :is(epic-item, epic-phase)[state="replied"]'
 
 /** A count pill's tooltip:  "2 need you", "1 needs you". */
 function needYou({ attention }) {
@@ -1161,12 +1201,13 @@ function needYou({ attention }) {
  * Each top-level section's items -- `[data-status]` elements, not counting ones inside another --
  * as `{ open, total, attention }`, by the group's element (the `<ui-section>`, or the h2).
  * - "open":  any status but `CLOSED`'s
- * - "attention":  the items that need Owen (`stateOf()`:  the rail's red bar and pill, Q20 of epic `epic-components`)
+ * - "attention":  the items that need Owen (`stateOf()`:  the toolbar's red badge, Q20 of epic `epic-components`)
  * - sections without items are left out;  nested sections get no count of their own
  * - the Epics index's epic cards, the goals pages' items
  * - a plan doc's sections count themselves (`<epic-section>`, on their titles):  their count is read from their
  *   hosts' `contentsEntry`, never written;
- *   its `attention` too, else the items' `state="attention"` (`EPIC_ATTENTION`)
+ *   its `attention` too, else the items' `state="attention"` (`EPIC_ATTENTION`);
+ *   and `replied`, how many of those wait on Owen's pick (`EPIC_REPLIED`:  the toolbar's orange badge)
  * - SIDE EFFECT:  writes `open/total` on the section's title:  its `badge` (SECTIONS), or a `ui-label.spell-count`
  *   at the right of the h2 (HEADINGS);  callable again (it replaces both)
  */
@@ -1177,7 +1218,8 @@ function countItems(outline) {
       const count = element.contentsEntry?.count
       if (count) {
         const attention = count.attention ?? element.querySelectorAll(EPIC_ATTENTION).length
-        counts.set(element, { ...count, attention })
+        const replied = Math.min(attention, element.querySelectorAll(EPIC_REPLIED).length)
+        counts.set(element, { ...count, attention, replied })
       }
       continue
     }
@@ -1297,15 +1339,16 @@ function markItemStates(main) {
 /**
  * The status filter on every top-level `<ui-section>` with a filterable list
  * (the index's `.spell-epics`, a `.plan-items` list, each holding `[data-status]` children):
- * - ONE round button per state the section has items in, used like checkboxes --
- *   filled in its color while its items show, outlined while hidden
- * - first, a grey filter button that flips between "show all" and "show only what needs you" (red),
- *   rather than a useless "none" (Owen, 2026-10-04)
+ * - ONE chip per state the section has items in, in its colour, with how many (Owen, 2026-10-10:  no filter icon):
+ *   SOLID while its items show, OUTLINED while hidden
+ * - a click, by `nextShown()`:  everything showing, only that state;  else a hidden state shows too and a shown one
+ *   hides;  the only one showing, everything again
  * - in the title's `actions` slot (`span.spell-item-filter`);  `spell-doc.css` puts it left of the count badge
  * - a filtered list shows "3 hidden · show all" under it (`.spell-hidden-note`):  a click there shows all
  * - the choice:  `data-show="<states shown>"` on the section (none for all), `data-spell-hidden` on the items it
  *   hides (CSS hides them);  remembered per page (`localStorage`, `{ [section id]: [states] }`);  all by default
- * - SIDE EFFECT:  marks the items' states (`markItemStates()`), adds the buttons and notes to the page;
+ * - a plan doc's sections filter themselves (`<epic-section>`), by the same rule
+ * - SIDE EFFECT:  marks the items' states (`markItemStates()`), adds the chips and notes to the page;
  *   callable again (it replaces the ones it added)
  */
 function wireItemFilters(main) {
@@ -1318,16 +1361,18 @@ function wireItemFilters(main) {
       list.querySelector(":scope > [data-status]")
     )
     if (!lists.length) continue
-    const has = new Set(lists.flatMap((list) => itemsOf(list).map((item) => item.dataset.spellState)))
-    const present = ITEM_STATES.filter(([state]) => has.has(state))
+    const counts = new Map()
+    for (const item of lists.flatMap(itemsOf))
+      counts.set(item.dataset.spellState, (counts.get(item.dataset.spellState) ?? 0) + 1)
+    const present = ITEM_STATES.filter(([state]) => counts.has(state))
+    const states = present.map(([state]) => state)
     const group = document.createElement("span")
     group.className = "spell-item-filter"
     group.slot = "actions"
     group.dataset.spellAdded = ""
-    const all = stateButton("all", "")
-    all.innerHTML = `<ui-icon name="filter"></ui-icon>`
-    group.append(all)
-    const buttons = present.map(([state, words]) => stateButton(state, words))
+    group.setAttribute("role", "group")
+    group.setAttribute("aria-label", "Show items by state")
+    const buttons = present.map(([state]) => stateButton(state, counts.get(state)))
     group.append(...buttons)
     const notes = lists.map((list) => {
       const note = document.createElement("a")
@@ -1336,27 +1381,17 @@ function wireItemFilters(main) {
       note.dataset.spellAdded = ""
       note.addEventListener("click", (event) => {
         event.preventDefault()
-        choose(present.map(([state]) => state))
+        choose(states)
       })
       list.after(note)
       return note
     })
-    const filter = { section, lists, notes, all, buttons, present }
-    all.addEventListener("click", () => {
-      const showingAll = filterShown(filter).length === present.length
-      const red = present.some(([state]) => state === "attention")
-      choose(showingAll && red ? ["attention"] : present.map(([state]) => state))
-    })
+    const filter = { section, lists, notes, buttons, present, counts }
     for (const button of buttons)
-      button.addEventListener("click", () => {
-        const shown = new Set(filterShown(filter))
-        if (shown.has(button.dataset.state)) shown.delete(button.dataset.state)
-        else shown.add(button.dataset.state)
-        choose([...shown])
-      })
+      button.addEventListener("click", () => choose(nextShown(states, filterShown(filter), button.dataset.state)))
     section.append(group)
-    const remembered = Array.isArray(saved[section.id]) ? saved[section.id].filter((state) => has.has(state)) : []
-    showItems(filter, remembered.length ? remembered : present.map(([state]) => state))
+    const remembered = Array.isArray(saved[section.id]) ? saved[section.id].filter((state) => counts.has(state)) : []
+    showItems(filter, remembered.length ? remembered : states)
 
     /** The reader picked the states `shown`:  apply them and remember. */
     function choose(shown) {
@@ -1366,15 +1401,30 @@ function wireItemFilters(main) {
     }
   }
 
-  /** A round state button:  `state` (`spell-doc.css` colours it by it), its tooltip's `words`. */
-  function stateButton(state, words) {
+  /** A state chip:  `state` (`spell-doc.css` colours it by it), its `count` of items. */
+  function stateButton(state, count) {
     const button = document.createElement("button")
     button.type = "button"
     button.className = "spell-state-toggle"
     button.dataset.state = state
-    if (words) button.title = words
+    button.textContent = String(count)
     return button
   }
+}
+
+/**
+ * What shows after a click on `clicked`'s chip, of the states `present`, `shown` showing now (Owen, 2026-10-10:
+ * "if all states are showing and I click one state, I want you to show just that state"):
+ * - everything showing:  only `clicked`;  `clicked` hidden:  it shows too;
+ *   `clicked` showing with others:  it hides;  `clicked` the only one showing:  everything again
+ * - the plan docs' rule too:  `packages/epics` `StateFilter.nextShown()`, the same lines (the pack can't be imported)
+ */
+function nextShown(present, shown, clicked) {
+  const showing = present.filter((state) => shown.includes(state))
+  if (showing.length === present.length) return [clicked]
+  if (!showing.includes(clicked)) return present.filter((state) => state === clicked || showing.includes(state))
+  if (showing.length === 1) return [...present]
+  return showing.filter((state) => state !== clicked)
 }
 
 /** The states a filter shows now (`{ buttons }`, see `wireItemFilters()`). */
@@ -1385,25 +1435,32 @@ function filterShown({ buttons }) {
 }
 
 /**
- * Show the items of the states `shown` in a filter's section (`{ section, lists, notes, all, buttons, present }`):
- * each state button pressed or not, the grey button's tooltip saying what its click does, an "N hidden" note under
- * each list that hides any.
+ * Show the items of the states `shown` in a filter's section (`{ section, lists, notes, buttons, present, counts }`):
+ * each chip pressed or not, its tooltip saying how many, which state and what its click does;
+ * an "N hidden" note under each list that hides any.
  */
-function showItems({ section, lists, notes, all, buttons, present }, shown) {
+function showItems({ section, lists, notes, buttons, present, counts }, shown) {
   const showing = new Set(shown)
+  const states = present.map(([state]) => state)
   for (const button of buttons) {
-    const on = showing.has(button.dataset.state)
-    button.setAttribute("aria-pressed", String(on))
-    const words = ITEM_STATES.find(([state]) => state === button.dataset.state)?.[1] ?? ""
-    button.title = `${on ? "Showing" : "Hiding"}:  ${words}`
+    const state = button.dataset.state
+    button.setAttribute("aria-pressed", String(showing.has(state)))
+    const words = ITEM_STATES.find(([each]) => each === state)?.[1] ?? ""
+    const next = nextShown(states, [...showing], state)
+    const does =
+      next.length === states.length
+        ? "show everything"
+        : next.length === 1 && next[0] === state
+          ? "show only these"
+          : next.includes(state)
+            ? "show these too"
+            : "hide these"
+    button.title = `${counts.get(state)} ${words}:  ${does}`
+    button.setAttribute("aria-label", button.title)
   }
-  const everything = showing.size >= present.length
+  const everything = states.every((state) => showing.has(state))
   if (everything) delete section.dataset.show
   else section.dataset.show = [...showing].join(" ")
-  const red = present.some(([state]) => state === "attention")
-  all.title = everything && red ? "Show only what needs you" : "Show everything"
-  all.setAttribute("aria-label", all.title)
-  all.setAttribute("aria-pressed", String(everything))
   lists.forEach((list, index) => {
     let hidden = 0
     for (const item of itemsOf(list)) {
@@ -1422,70 +1479,192 @@ function itemsOf(list) {
 }
 
 ////////////////
-// ## Rail
+// ## Toolbar
 ////////////////
 
+/** Below this many px for each title, a page toolbar shows its buttons' icons only (`fitTitles()`). */
+const MIN_TITLE_PX = 50
+
 /**
- * The rail:  a narrow strip FLOATING over the page's right edge, one icon per top-level section that jumps to it --
- * the page's one navigation, at every width (no contents list since 2026-10-08).
- * - a section's mark:  for an item (its label starts with an id, `Q3 · When?`), the id's number in a round badge,
- *   coloured by the section's `data-state` (`spell-doc.css`;  a details page's questions set it, `details.js`);
- *   else its own `<ui-icon>` (or `icon`), else its number (`2.`), else its first letter
- * - how many of the section's items need Owen (`counts`, `attention`):  a red bar on the entry, and a red pill once the
- *   strip widens;  none:  neither
- * - every entry carries its section's label, shown when the rail widens
- *   (hover, keyboard focus:  CSS), so no tooltips
- * - plain elements (`<button>`, `<a>`), not `ui-*`:  the strip is the page's own chrome, every box styled here
- * - CSS places it (`spell-doc.css`, "Rail");  scroll-follow marks the current section's entry `selected`, by
- *   `data-rail`;  the CHEATSHEET filter hides the entries of the sections it hid
- * - none for a page with no top-level sections
- * - callable again (a page updated in place):  replaces the rail it built before
- * - SIDE EFFECT:  appends the `<nav>` to the body;  removes a hand-written `.spell-toc-open` (pages before
- *   2026-10-01 had a "Contents" button at the bottom) and the rail built before
+ * The page's navigation:  a plan doc's toolbar (`buildToolbar()`), else the page toolbar (`buildPageToolbar()`).
+ * - returns the `<nav>`, whose `[data-rail]` entries scroll-follow marks;  none without top-level sections
+ * - `data-rail`:  the name the floating rail gave them (gone since epic `airplane` P8);  kept, as scroll-follow,
+ *   `details.js` and `check-spell.js` read it
  */
-function buildRail(outline, counts) {
-  for (const old of document.querySelectorAll(".spell-toc-open, nav.spell-rail")) old.remove()
-  // HEADINGS:  only the h2s that head a sticky section (an index page's plain h2s get no icon)
+function buildNavigation(main, outline, counts) {
+  const page = document.body.classList.contains("plan-doc") ? main.querySelector("epic-page") : null
+  return page ? buildToolbar(page, outline, counts) : buildPageToolbar(main, outline, counts)
+}
+
+/**
+ * Every other page's navigation (Owen, 2026-10-10:  "Make the floating sidebar in guides a sticky top toolbar like the
+ * plan doc.  Have section titles in this one"):  a row of buttons, one per top-level section, in the sticky page
+ * header, in place of the floating rail.
+ * - each:  the section's mark and its title, a link to it (`wireAnchors()` lands it);  scroll-follow marks the current
+ *   one `selected`, by `data-rail`
+ *   - the mark:  an item's number for an item (`Q3 · When?` shows 3, coloured by the section's `data-state`:  a
+ *     details page's questions, `details.js`);  else its `<ui-icon>`;  else its number (`2.`);  else its first letter
+ *   - a red badge:  how many of its items need Owen (`counts`, `attention`);  none, none
+ * - titles too long for the row end in `...`;  when each would get under `MIN_TITLE_PX`, they go, and the buttons
+ *   show their marks only, the title as their tooltip (`fitTitles()`);  still too wide, the row scrolls sideways
+ * - where:  the last row of the sticky page header (`ui-sticky.spell-h1 > header.spell-page-head`), so it sticks with
+ *   it and the titles stick below it;  a page without one (the goals pages, a cheat sheet):  the last row of its
+ *   filter bar (`.spell-filter`), else a sticky bar of its own before the first section (`.spell-toolbar-alone`,
+ *   measured as the filter bar is:  `trackStickyHeights()`)
+ * - HEADINGS (the goals pages):  only the h2s that head a sticky section
+ * - callable again (a page updated in place):  replaces the toolbar it built before
+ * - SIDE EFFECT:  adds the `<nav>` inside `main`, marked `data-spell-added` so the live patch steps around it;
+ *   removes a hand-written `.spell-toc-open` (pages before 2026-10-01 had a "Contents" button)
+ */
+function buildPageToolbar(main, outline, counts) {
+  for (const old of document.querySelectorAll(".spell-toc-open, nav.spell-toolbar")) old.remove()
   const groups = outline.sections ? outline.groups : outline.groups.filter((group) => headingSection(group.element))
   const entries = groups.map(({ element, id, label, glyph }) => {
     // an item id first in the label (`Q3 · When?`) says more than any icon:  every question's would be the same
     const itemNumber = label.match(/^[A-Z](\d+)\b/)?.[1]
     const mark = itemNumber
-      ? `<b class="spell-rail-number">${text(itemNumber)}</b>`
+      ? `<b class="spell-toolbar-number">${text(itemNumber)}</b>`
       : glyph
         ? `<ui-icon name="${attr(glyph)}"></ui-icon>`
         : `<b>${text((label.match(/^\d+/) ?? [label.charAt(0)])[0])}</b>`
+    const name = itemNumber ? label : shortLabel(label)
     const count = counts.get(element)
     const badge = count?.attention
-      ? `<span class="spell-rail-count" title="${needYou(count)}">${count.attention}</span>`
+      ? `<span class="spell-toolbar-count urgent" title="${needYou(count)}">${count.attention}</span>`
       : ""
     const state = element.dataset.state ? ` data-state="${attr(element.dataset.state)}"` : ""
     return (
-      `<a class="spell-rail-item" href="#${attr(id)}" data-rail="${attr(id)}"${state}>` +
-      `<span class="spell-rail-label">${text(label)}</span><span class="spell-rail-icon">${mark}${badge}</span></a>`
+      `<a class="spell-toolbar-item" href="#${attr(id)}" data-rail="${attr(id)}" title="${attr(label)}"${state}>` +
+      `<span class="spell-toolbar-icon">${mark}</span><span class="spell-toolbar-label">${text(name)}</span>` +
+      `${badge}</a>`
     )
   })
   if (!entries.length) return undefined
-  const rail = document.createElement("nav")
-  rail.className = "spell-rail"
-  rail.setAttribute("aria-label", "Sections")
-  rail.innerHTML = `<div class="spell-rail-items">${entries.join("")}</div>`
-  rail.addEventListener("click", (event) => {
-    if (event.target.closest?.("a.spell-rail-item")) restRail(rail)
-  })
-  document.body.append(rail)
-  return rail
+  const toolbar = document.createElement("nav")
+  toolbar.className = "spell-toolbar spell-toolbar-titled"
+  toolbar.dataset.spellAdded = ""
+  toolbar.setAttribute("aria-label", "Sections")
+  toolbar.innerHTML = `<div class="spell-toolbar-items">${entries.join("")}</div>`
+  const head =
+    main.querySelector(":scope > ui-sticky.spell-h1 > .spell-page-head") ?? main.querySelector(".spell-filter")
+  if (head) head.append(toolbar)
+  else {
+    toolbar.classList.add("spell-toolbar-alone")
+    const first = groups[0].element
+    ;(outline.sections ? first : (headingSection(first) ?? first)).before(toolbar)
+  }
+  // the current button in view, on a row scrolled sideways
+  new MutationObserver((changes) => {
+    for (const { target } of changes) if (target.hasAttribute("selected")) scrollIntoRow(target)
+  }).observe(toolbar, { subtree: true, attributeFilter: ["selected"] })
+  // fitted again as the window changes width, and as the icons draw and the fonts load
+  const fit = new ResizeObserver(() => fitTitles(toolbar))
+  for (const box of [toolbar, ...toolbar.querySelectorAll(".spell-toolbar-icon")]) fit.observe(box)
+  void document.fonts?.ready.then(() => fitTitles(toolbar))
+  return toolbar
 }
 
 /**
- * A section was picked from the widened rail:  it narrows back at once, though the pointer is still over it (Owen,
- * 2026-10-04:  it stayed open until a click in the page).  `spell-rail-resting` holds it narrow until the pointer
- * leaves;  the focus leaves too (`:focus-within` widens it).
+ * The page toolbar's titles:  shown, shrinking with `...` (CSS), while each gets `MIN_TITLE_PX` or more of the row;
+ * else gone (`spell-toolbar-icons`), the marks only (Owen, 2026-10-10:  "remove the titles entirely if they each only
+ * get less than 50px").
+ * - each title's share:  the row's room, less every button's mark, badge and padding, split evenly
  */
-function restRail(rail) {
-  rail.classList.add("spell-rail-resting")
-  rail.addEventListener("pointerleave", () => rail.classList.remove("spell-rail-resting"), { once: true })
-  if (rail.contains(document.activeElement)) document.activeElement.blur()
+function fitTitles(toolbar) {
+  const row = toolbar.firstElementChild
+  const items = Array.from(row.children)
+  toolbar.classList.remove("spell-toolbar-icons")
+  if (!items.length) return
+  const style = getComputedStyle(row)
+  const room =
+    row.clientWidth -
+    parseFloat(style.paddingLeft) -
+    parseFloat(style.paddingRight) -
+    (parseFloat(style.columnGap) || 0) * (items.length - 1)
+  const fixed = items.reduce(
+    (sum, item) => sum + item.offsetWidth - (item.querySelector(".spell-toolbar-label")?.offsetWidth ?? 0),
+    0
+  )
+  if ((room - fixed) / items.length < MIN_TITLE_PX) toolbar.classList.add("spell-toolbar-icons")
+}
+
+/**
+ * A PLAN DOC's navigation (epic `airplane` P8, Owen 2026-10-10:  "The contents sidebar on the plan doc should be a
+ * sticky top toolbar instead"):  a row of buttons across the bottom of `<epic-page>`'s sticky header, one per
+ * top-level block (Overview, Phases, Questions ... Log), in place of the floating rail it had before.
+ * - each:  the block's icon, a link to it (`wireAnchors()` lands it);  its title without its number (`Questions`)
+ *   only as its tooltip and name (Owen, 2026-10-10:  "lose the titles ... when I click on the thing it goes to that
+ *   section anyway");  scroll-follow marks the current one `selected`, by `data-rail` (as the rail's)
+ * - BADGES:  how many of the block's items wait on Owen, from `counts` (none:  no badge)
+ *   - red:  urgent (`state="attention"`)
+ *   - orange:  Claude answered with options, his turn to pick (`state="replied"`)
+ *   - both kinds:  both badges, red first
+ *   - over the icon's top right, a third of a badge on the icon (Owen, 2026-10-10:  "Make badge 1/3 way overlap the
+ *     icon"):  every button is the same width, badge or not
+ * - in the header's `toolbar` slot (`<epic-page>`'s):  it sticks with the header, and the header's measured height,
+ *   where every title below sticks (`--epic-stack`), takes it in;  `<epic-page>` draws the rest of that row at its
+ *   right (the page's state filter, collapse-all, the new item button)
+ * - a window too narrow for every button:  the row scrolls sideways (`spell-doc.css`, "Toolbar"), the current button
+ *   scrolled into view
+ * - callable again (a page updated in place):  replaces the toolbar built before
+ * - SIDE EFFECT:  appends the `<nav>` to `page`, marked `data-spell-added` so the live patch steps around it
+ */
+function buildToolbar(page, outline, counts) {
+  for (const old of document.querySelectorAll(".spell-toc-open, nav.spell-toolbar")) old.remove()
+  const entries = outline.groups.map(({ element, id, label, glyph }) => {
+    const count = counts.get(element)
+    const replied = count?.replied ?? 0
+    const urgent = (count?.attention ?? 0) - replied
+    const name = shortLabel(label)
+    // spoken:  the name, then what the badges say
+    const spoken = [name, urgent > 0 && `${urgent} urgent`, replied > 0 && `${replied} replied`]
+      .filter(Boolean)
+      .join(", ")
+    // no icon:  the label's first letter stands in
+    const mark = glyph ? `<ui-icon name="${attr(glyph)}"></ui-icon>` : `<b>${text(name.charAt(0))}</b>`
+    const badges =
+      badge("urgent", urgent, `${urgent} urgent`) +
+      badge("replied", replied, `${replied} replied:  ${replied === 1 ? "waits" : "wait"} for your pick`)
+    // the badges inside the icon's box, over its top right:  every button the same width, badges or not
+    return (
+      `<a class="spell-toolbar-item" href="#${attr(id)}" data-rail="${attr(id)}" title="${attr(name)}" ` +
+      `aria-label="${attr(spoken)}"><span class="spell-toolbar-icon">${mark}` +
+      (badges && `<span class="spell-toolbar-badges">${badges}</span>`) +
+      `</span></a>`
+    )
+  })
+  if (!entries.length) return undefined
+  const toolbar = document.createElement("nav")
+  toolbar.className = "spell-toolbar"
+  toolbar.slot = "toolbar"
+  toolbar.dataset.spellAdded = ""
+  toolbar.setAttribute("aria-label", "Sections")
+  toolbar.innerHTML = `<div class="spell-toolbar-items">${entries.join("")}</div>`
+  // the current button in view, on a row scrolled sideways
+  new MutationObserver((changes) => {
+    for (const { target } of changes) if (target.hasAttribute("selected")) scrollIntoRow(target)
+  }).observe(toolbar, { subtree: true, attributeFilter: ["selected"] })
+  page.append(toolbar)
+  return toolbar
+
+  /** A badge of `number` items of `kind`, or nothing for none. */
+  function badge(kind, number, tip) {
+    return number > 0 ? `<span class="spell-toolbar-count ${kind}" title="${attr(tip)}">${number}</span>` : ""
+  }
+}
+
+/** A block's label without its number:  `3. Questions` is `Questions`. */
+function shortLabel(label) {
+  return label.replace(/^\d+(?:\.\d+)*\.?\s+/, "")
+}
+
+/** Scroll `item`'s row sideways (never the page) until it shows whole, centred if it has to move. */
+function scrollIntoRow(item) {
+  const row = item.parentElement
+  if (!row || row.scrollWidth <= row.clientWidth) return
+  const start = item.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft
+  if (start >= row.scrollLeft && start + item.offsetWidth <= row.scrollLeft + row.clientWidth) return
+  row.scrollTo({ left: start - (row.clientWidth - item.offsetWidth) / 2, behavior: "smooth" })
 }
 
 ////////////////
@@ -1535,6 +1714,68 @@ function wireFolds(main, outline) {
       else if (startFolded) setCollapsed(section, true)
     main.addEventListener("ui-open", onToggle, { signal })
     main.addEventListener("ui-close", onToggle, { signal })
+    main.addEventListener("ui-close", holdWhileFolding, { signal })
+  }
+
+  /**
+   * Any fold closing (a section, a plan doc's Overview part, phase or item):  its header stays where it is on screen
+   * while the content folds away under it.
+   * - why:  the browser's scroll anchoring kept something BELOW the fold in place instead, so the clicked header slid
+   *   down hundreds of pixels as its body shrank, then wobbled (Owen, 2026-10-10:  "the 1.1 sections bounce when
+   *   closed";  measured:  the header moved 336 -> 692px)
+   * - anchoring is off for the page while it folds;  each frame, the header is put back where it was
+   * - starts after the toggle's own handlers (a microtask):  `keepTitlePut()` / an item's `keepLinePut()` may first
+   *   scroll a STUCK title into place, and that's the place kept
+   * - near the end of a short page (everything else folded), the page would get shorter than where it's scrolled to,
+   *   and the browser pulls it back:  the header jumps down.  So the page keeps its height (`min-height`) until the
+   *   reader scrolls back far enough for the shorter page to hold him
+   * - stops after `FOLD_HOLD_MS`, or at once when the reader scrolls
+   */
+  function holdWhileFolding(event) {
+    if (event.defaultPrevented || !event.cancelable || !(event.target instanceof Element)) return
+    const element = event.target
+    queueMicrotask(() => {
+      const root = document.documentElement
+      const before = element.getBoundingClientRect().top
+      const until = performance.now() + FOLD_HOLD_MS
+      let stopped = false
+      const stop = () => (stopped = true)
+      addEventListener("wheel", stop, { once: true, passive: true })
+      addEventListener("touchmove", stop, { once: true, passive: true })
+      root.style.overflowAnchor = "none"
+      root.style.minHeight = `${root.scrollHeight}px`
+      const hold = () => {
+        const off = element.getBoundingClientRect().top - before
+        if (!stopped && Math.abs(off) >= 1) scrollTo({ top: scrollY + off, behavior: "instant" })
+        if (!stopped && performance.now() < until) return requestAnimationFrame(hold)
+        root.style.overflowAnchor = ""
+        removeEventListener("wheel", stop)
+        removeEventListener("touchmove", stop)
+        releaseHeight(root)
+      }
+      requestAnimationFrame(hold)
+    })
+  }
+
+  /**
+   * Let the page take its natural height again once that no longer pulls the reader back:  at once if it fits where
+   * he's scrolled to, else as soon as he scrolls up far enough.
+   */
+  function releaseHeight(root) {
+    const kept = root.style.minHeight
+    const natural = () => {
+      root.style.minHeight = ""
+      const height = root.scrollHeight
+      root.style.minHeight = kept
+      return height
+    }
+    const release = () => {
+      if (scrollY + innerHeight > natural() + 1) return false
+      root.style.minHeight = ""
+      removeEventListener("scroll", release)
+      return true
+    }
+    if (!release()) addEventListener("scroll", release, { passive: true })
   }
 
   /**
@@ -1695,7 +1936,8 @@ let stickyObserver
  */
 function trackStickyHeights(main, outline) {
   const head = main.querySelector(":scope > ui-sticky.spell-h1")
-  const bar = main.querySelector(".spell-filter")
+  // the filter bar, or a page toolbar sticking by itself (`buildPageToolbar()`):  never both
+  const bar = main.querySelector(".spell-filter, nav.spell-toolbar-alone")
   const h2Stickies = outline.sections ? [] : Array.from(main.querySelectorAll("ui-sticky.spell-h2"))
   const h3Stickies = outline.sections ? [] : Array.from(main.querySelectorAll("ui-sticky.spell-h3"))
   const sections = outline.sections ? Array.from(main.querySelectorAll("ui-section")) : []
@@ -1823,12 +2065,12 @@ function h2HeightAbove(sticky) {
 
 /**
  * Same-page links to anything with an id in `main` (a section, a heading, a plan item) jump there ourselves, and
- * the rail follows AT ONCE.
+ * the toolbar follows AT ONCE.
  * - a section lands with its title at its sticky line;  anything else below every stuck title above it (both by
  *   the site header plus their `scroll-margin-top`, "Landing" in the header):  the browser's own jump would add
  *   the stuck titles' scroll padding (they reserve it) on top
  * - HEADINGS:  a STICKY heading's jump goes to its section:  a stuck heading already "is" at the top, so the
- *   browser's own jump to it does nothing -- e.g. the rail's entry of the section you're reading
+ *   browser's own jump to it does nothing -- e.g. the toolbar's entry of the section you're reading
  * - folded sections around the target unfold first, and a target that is a folded item opens (`folds.reveal()`);
  *   an unfolded `<ui-section>` draws on the next frames, so the jump lands once it has, and once more after a fold's
  *   transition (`SETTLE_MS`) unless the reader scrolled meanwhile
@@ -1838,8 +2080,10 @@ function h2HeightAbove(sticky) {
  * - in a frame (VS Code's view), the parent's `{ spell: "go", hash }` too:  the view showing the page it already
  *   shows, at an id (`packages/vscode/src/DocView.ts`);  a history entry, as a click's
  * - a jump that moves the address says so (`spell-doc:place`):  `pushState()` fires no `hashchange`
- * - returns `jump(id, { unfoldTarget })`:  `unfoldTarget: false` unfolds only what's AROUND a folded target
- *   section (`land()`:  a reload lands on the section being read as it was, folded or not)
+ * - returns `{ jump, go, canGo }`:
+ *   - `jump(id, { unfoldTarget })`:  `unfoldTarget: false` unfolds only what's AROUND a folded target section
+ *     (`land()`:  a reload lands on the section being read as it was, folded or not)
+ *   - `go(id)`:  as a click on a link to `#id` (a history entry, then the jump);  `canGo(id)`:  is there one to land on
  */
 function wireAnchors(main, outline, sticky, follow, folds) {
   document.addEventListener("click", (event) => {
@@ -1852,7 +2096,7 @@ function wireAnchors(main, outline, sticky, follow, folds) {
   addEventListener("popstate", () => jump(hashId()))
   addEventListener("hashchange", () => jump(hashId()))
   if (window.parent !== window) addEventListener("message", onMessage)
-  return jump
+  return { jump, go, canGo: (id) => !!(targetIn(id) || hostHolding(main, id)) }
 
   /** Follow a same-page link to `id`:  a history entry (unless the address is there already), then the jump. */
   function go(id) {
@@ -1951,6 +2195,101 @@ function topOf(element) {
 }
 
 ////////////////
+// ## Jump to an item (Cmd / Ctrl + K)
+////////////////
+
+/**
+ * Cmd-K (Ctrl-K) on a plan doc asks which item to jump to (Owen, 2026-10-10:  "add command-k which brings up
+ * ui-prompt asking what number I want to jump to (e.g. J7)"), and lands there exactly as a link to `#j7` does
+ * (`go()`:  what hides it unfolds, an item opens, it lands below the stuck titles).
+ * - any id on the page, case and a `#` aside:  `J7`, `q3`, `P2`, `o1`, `#decisions`
+ * - an id that isn't there:  the dialog says so and stays open, the text selected for typing over
+ * - never while typing in a field (a note box, the new item form), nor with a dialog already open
+ * - the dialog is a `<ui-modal>` built as `UI.modals.prompt()` builds its own (`ModalDialogs`):
+ *   no `<ui-prompt>` element exists, and `prompt()` closes on any answer, so it couldn't stay open on a miss;
+ *   here its cancelable `ui-approve` is cancelled instead
+ * - K is free:  the live client takes only Cmd / Ctrl + A C X V Z in VS Code's view (`liveClient.ts` `editKey()`)
+ */
+function wireJumpKey(go, canGo) {
+  document.addEventListener("keydown", (event) => {
+    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.defaultPrevented) return
+    if (event.key.toLowerCase() !== "k" || event.isComposing) return
+    if (document.querySelector("dialog[open], ui-modal[open]") || typingIn(event)) return
+    event.preventDefault()
+    openJumpPrompt(go, canGo)
+  })
+}
+
+/** The jump dialog:  an id typed, Go lands there;  Cancel or Escape just closes it. */
+function openJumpPrompt(go, canGo) {
+  const modal = document.createElement("ui-modal")
+  for (const [name, value] of Object.entries({ size: "tiny", closedby: "closerequest", header: "Jump to which item?" }))
+    modal.setAttribute(name, value)
+  modal.dataset.spellAdded = ""
+  const content = document.createElement("ui-content")
+  const label = document.createElement("label")
+  label.className = "ui-native spell-jump"
+  label.append("Its id:  J7, q3, P2 ...")
+  const input = document.createElement("input")
+  input.type = "text"
+  input.autofocus = true
+  input.autocomplete = "off"
+  input.spellcheck = false
+  const miss = document.createElement("p")
+  miss.className = "spell-jump-miss"
+  miss.setAttribute("role", "alert")
+  miss.hidden = true
+  label.append(input)
+  content.append(label, miss)
+  const actions = document.createElement("ui-actions")
+  const cancel = document.createElement("ui-button")
+  cancel.className = "cancel"
+  cancel.textContent = "Cancel"
+  const approve = document.createElement("ui-button")
+  approve.className = "approve"
+  approve.setAttribute("primary", "")
+  approve.textContent = "Go"
+  actions.append(cancel, approve)
+  modal.append(content, actions)
+  let target = ""
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") approve.click()
+  })
+  input.addEventListener("input", () => (miss.hidden = true))
+  modal.addEventListener("ui-approve", (event) => {
+    const id = input.value.trim().replace(/^#/, "").toLowerCase()
+    if (id && canGo(id)) {
+      target = id
+      return
+    }
+    // stays open:  says what it couldn't find
+    event.preventDefault()
+    miss.textContent = id ? `No ${input.value.trim()} on this page.` : "Type an id first."
+    miss.hidden = false
+    input.select()
+  })
+  modal.addEventListener(
+    "ui-hide",
+    () => {
+      modal.remove()
+      if (target) go(target)
+    },
+    { once: true }
+  )
+  document.body.append(modal)
+  modal.open = true
+  // the input once the dialog has drawn:  `autofocus` alone loses to the dialog's own focus on some opens
+  void nextFrames(2).then(() => input.focus())
+}
+
+/** Is `event`'s key typed into a field (an input, a textarea, a select, editable text)? */
+function typingIn(event) {
+  return event
+    .composedPath()
+    .some((node) => node instanceof Element && (node.isContentEditable || node.matches(`${FIELDS}, textarea, input`)))
+}
+
+////////////////
 // ## Paging
 ////////////////
 
@@ -2041,8 +2380,10 @@ function stuckBottom(main) {
   for (const sticky of main.querySelectorAll("ui-sticky"))
     boxes.push(sticky.shadowRoot?.querySelector('[part~="sticky"]'))
   for (const section of main.querySelectorAll(`ui-section[sticky], ${EPIC_FOLDS}`)) boxes.push(titleOf(section))
-  // a plan doc's page header;  an OPEN item's line sticks below the titles (a closed one's isn't sticky:  skipped)
-  for (const page of main.querySelectorAll("epic-page")) boxes.push(page.shadowRoot?.querySelector('[part~="header"]'))
+  // a plan doc's page header and its toolbar's bar under it (the title between them scrolls away);  an OPEN item's
+  // line sticks below the titles (a closed one's isn't sticky:  skipped)
+  for (const page of main.querySelectorAll("epic-page"))
+    boxes.push(...(page.shadowRoot?.querySelectorAll('[part~="header"], [part~="bar"]') ?? []))
   for (const item of main.querySelectorAll("epic-item")) boxes.push(item.shadowRoot?.querySelector('[part~="line"]'))
   for (const box of boxes) {
     if (!box) continue
@@ -2074,10 +2415,10 @@ function decodeHash(hash) {
 ////////////////
 
 /**
- * Mark the rail's entry of the section being read, and let the address follow it.
+ * Mark the toolbar's entry of the section being read, and let the address follow it.
  * - "Current":  the last entry (section, heading) whose top has reached its landing line (the site header and its
  *   `scroll-margin-top`, plus a little);  entries hidden by the filter or inside a folded section don't count
- * - the rail's entry of the current entry's top-level section is `selected`
+ * - the toolbar's entry of the current entry's top-level section is `selected`
  * - the ADDRESS follows too, once `followAddress()` has been called (`land()`, after the page has landed):
  *   the current entry's `#id` replaces the URL's hash (`history.replaceState()`:  no history entry, no jump);
  *   not while a followed link is pinned (its click set the hash), and no hash above the first entry
@@ -2086,7 +2427,7 @@ function decodeHash(hash) {
  *     VS Code's view (`liveClient.ts` `reportPlace()`)
  * - returns `{ update, pin, followAddress, rescan }`:
  *   - `pin(entry)` makes it current until the page scrolls again (a link was followed)
- *   - `rescan(rail)` reads the entries and the rail again:  the page was updated in place (`rewire()`)
+ *   - `rescan(rail)` reads the entries and the toolbar again:  the page was updated in place (`rewire()`)
  */
 function followScroll(main, outline, rail) {
   let headings = []
@@ -2101,7 +2442,7 @@ function followScroll(main, outline, rail) {
   addEventListener("resize", schedule, { passive: true })
   return { update, pin, followAddress, rescan }
 
-  /** Read the entries and the rail's items;  a rebuilt rail gets its mark again on the next update. */
+  /** Read the entries and the toolbar's items;  a rebuilt toolbar gets its mark again on the next update. */
   function rescan(nextRail) {
     headings = Array.from(main.querySelectorAll(outline.targets))
     const items = Array.from(nextRail?.querySelectorAll("[data-rail]") ?? [])
@@ -2153,7 +2494,7 @@ function followScroll(main, outline, rail) {
     dispatchEvent(new Event("spell-doc:place"))
   }
 
-  /** Mark the rail's entry of `heading`'s top-level section. */
+  /** Mark the toolbar's entry of `heading`'s top-level section. */
   function setActive(heading) {
     if (!heading || heading === active) return
     active = heading
@@ -2208,7 +2549,7 @@ function titlesOf(accordion) {
 /**
  * `ui-input[data-spell-filter]` shows only the cards holding every typed word, and `ui-select[data-spell-filter-badge]`
  * only those with a `ui-label` badge of the chosen text ("" = any);  sections without a visible card hide too, and
- * so do their rail entries.
+ * so do their toolbar buttons.
  * - reads values from the events' `detail`:  during `ui-input` / `ui-change` the element's `value` is still the old one
  * - SIDE EFFECT:  remembers the typed filter (not the badge) in `localStorage` (when the browser allows it), per
  *   page:  under the input's `data-spell-filter` value, or `FILTER_KEY_PREFIX` + the page's path
@@ -2277,7 +2618,7 @@ function wireFilter(main) {
       }
     }
     if (empty) empty.hidden = shown > 0
-    for (const item of document.querySelectorAll("nav.spell-rail [data-rail]")) {
+    for (const item of document.querySelectorAll("nav.spell-toolbar [data-rail]")) {
       item.hidden = !!document.getElementById(item.dataset.rail)?.closest("[hidden]")
     }
   }
@@ -2315,57 +2656,24 @@ function readSaved(key) {
 // ## Page notes
 ////////////////
 
-/** The page server's notes routes (`packages/docs/tools/notesRoutes.ts`). */
-const NOTES_API = "/api/notes"
-
-/** `localStorage` key prefix of a page's unsaved notes (`{ [section id | "page" | note id]: text }`), per page. */
-const NOTE_DRAFT_KEY_PREFIX = "spell-note-draft:"
-
 /**
- * PAGE NOTES (epic `airplane`, P3):  notes Owen leaves on a page for Claude, written INTO the page by the page
- * server (`notesRoutes.ts`;  the markup and its rules:  `packages/docs/tools/PageNotes.js`).
- * - every page, `file://` too:  each `<spell-note>` is a folded card (`drawNoteCards()`):  a head line ("Owen ·
- *   10/10 14:02", the first line of the note while folded, its status, how many replies) that unfolds it, then the
- *   text and Claude's replies under it
- * - served by the page server with a token, on a page that takes notes (the `GET` says `takesNotes`):  WRITABLE,
- *   so also
- *   - a note bubble in every section's title (`addNoteBubbles()`):  shown while the reader is in that section, and
- *     always, with a count, once the section has notes
- *   - a Note pill in the page header, with "N new" linking to the first new note (`addNotePill()`)
- *   - Edit on a new note's card;  every one of them opens the note box (`openNoteBox()`)
- * - a write changes the page's file:  the page server's live update patches it in place (scroll and folds kept),
- *   and this draws again on `spell-doc:updated`.  What it adds in `main` carries `data-spell-added`.
- * - NEVER throws:  a page with no server, or a server without the routes, keeps the cards
+ * PAGE NOTES (epic `airplane`, P3):  notes written INTO a page (`<spell-notes>` / `<spell-note>`;  the markup and its
+ * rules:  `packages/docs/tools/PageNotes.js`), each drawn as a folded card (`drawNoteCards()`).
+ * - READ ONLY since P11:  comments (below) replaced the bubbles and the Note pill that wrote them;
+ *   the notes already written still show, and `spell dev notes` still answers them
+ * - every page, `file://` too;  drawn again on `spell-doc:updated` (an answer changes the page)
  */
-async function wireNotes(main) {
-  let writable = false
-  drawNotes(main, writable)
-  addEventListener("spell-doc:updated", () => drawNotes(main, writable))
-  const server = window.SPELL_SERVER
-  if (!server?.token || location.protocol === "file:") return
-  try {
-    const response = await fetch(`${NOTES_API}?page=${encodeURIComponent(location.pathname)}`, { cache: "no-store" })
-    writable = response.ok && (await response.json()).takesNotes === true
-  } catch {
-    // no routes, no bubbles
-  }
-  if (writable) drawNotes(main, true)
-}
-
-/** Draw the page's notes:  the cards;  `writable`, the bubbles, the pill and the cards' Edit too. */
-function drawNotes(main, writable) {
-  drawNoteCards(main, writable)
-  if (!writable) return
-  addNoteBubbles(main)
-  addNotePill(main)
+function wireNotes(main) {
+  drawNoteCards(main)
+  addEventListener("spell-doc:updated", () => drawNoteCards(main))
 }
 
 /**
- * Give each `<spell-note>` its head line, again after every update (the status or replies may have changed).
+ * Give each `<spell-note>` its head line, again after every update (the status or replies may have changed):
+ * "Owen · 10/10 14:02", the first line of the note while folded, its status, how many replies.
  * - the head is a button that folds and unfolds the card (the note's `open`, which a live patch keeps)
- * - `writable` and the note `new`:  an Edit circle after it
  */
-function drawNoteCards(main, writable) {
+function drawNoteCards(main) {
   for (const note of main.querySelectorAll("spell-note")) {
     note.querySelector(":scope > .spell-note-head")?.remove()
     const status = note.getAttribute("status") || "new"
@@ -2378,156 +2686,634 @@ function drawNoteCards(main, writable) {
       `<ui-icon name="comment"></ui-icon><b>Owen</b> · ${text(shortStamp(note.getAttribute("at")))}` +
       `<span class="spell-note-preview">${text(noteText(note).split("\n")[0])}</span>` +
       `<span class="spell-note-status" data-note-status="${attr(status)}">${text(status)}` +
-      `${replies ? ` · ${replies} ${replies === 1 ? "reply" : "replies"}` : ""}</span></button>` +
-      (writable && status === "new"
-        ? `<ui-button class="spell-note-edit" circular basic size="mini" icon="pen to square" aria-label="Edit this note"></ui-button>` +
-          `<ui-popup inverted size="mini" content="Edit or delete this note:  until Claude has seen it"></ui-popup>`
-        : "")
+      `${replies ? ` · ${replies} ${replies === 1 ? "reply" : "replies"}` : ""}</span></button>`
     head.querySelector(".spell-note-fold").addEventListener("click", () => {
       note.toggleAttribute("open")
       head.querySelector(".spell-note-fold").setAttribute("aria-expanded", String(note.hasAttribute("open")))
     })
-    head
-      .querySelector(".spell-note-edit")
-      ?.addEventListener("click", () => openNoteBox({ id: note.id, label: noteLabel(note), text: noteText(note) }))
     note.prepend(head)
   }
 }
 
-/**
- * A note bubble in the title of every `<ui-section id>` (its `actions` slot):
- * a round button, or a pill with the count once the section has notes
- * (`data-count`:  always shown;  CSS shows the others while the reader is in the section).
- */
-function addNoteBubbles(main) {
-  for (const section of main.querySelectorAll("ui-section[id]")) {
-    section.querySelector(":scope > .spell-note-bubble")?.remove()
-    const count = section.querySelectorAll(`:scope > spell-notes[for="${CSS.escape(section.id)}"] > spell-note`).length
-    const label = sectionLabel(section) || section.id
-    const bubble = document.createElement("span")
-    bubble.className = "spell-note-bubble"
-    bubble.slot = "actions"
-    bubble.dataset.spellAdded = ""
-    if (count) bubble.dataset.count = String(count)
-    bubble.innerHTML =
-      `<ui-button circular basic size="mini" icon="comment" aria-label="Add a note on ${attr(label)}">${count || ""}</ui-button>` +
-      `<ui-popup inverted size="mini" content="${attr(`Add a note on ${label}, for Claude`)}"></ui-popup>`
-    bubble.addEventListener("click", (event) => {
-      event.stopPropagation()
-      if (event.target.closest("ui-button")) openNoteBox({ anchor: section.id, label })
-    })
-    section.append(bubble)
-  }
+////////////////
+// ## Comments
+////////////////
+
+/** The page server's comments routes (`packages/docs/tools/commentsRoutes.ts`). */
+const COMMENTS_API = "/api/comments"
+
+/** `localStorage` key prefix of a page's unsaved comments (`{ [anchor | comment id]: text }`), per page. */
+const COMMENT_DRAFT_KEY_PREFIX = "spell-comment-draft:"
+
+/** The CSS highlight the quoted text of every comment is drawn with (`::highlight()` in `spell-doc.css`). */
+const QUOTE_HIGHLIGHT = "spell-comment-quote"
+
+/** How long after Owen stops typing the comment box saves itself, ms. */
+const COMMENT_SAVE_MS = 600
+
+/** How many characters of the selected text (or the block's) the comment box's header shows. */
+const HEADLINE_CHARS = 40
+
+/** How long after the page's content changes (a plan doc's part loading) the comments draw again, ms. */
+const REDRAW_MS = 150
+
+/** Block kinds whose text starts at their top:  their bullhorn floats right, beside it, instead of over it. */
+const TEXT_KINDS = new Set(["field", "prose", "summary", "list", "item"])
+
+/** What a block kind is called in the bullhorn's tooltip and the comment box. */
+const KIND_NAMES = {
+  section: "section",
+  item: "item",
+  field: "field",
+  summary: "summary",
+  prose: "paragraph",
+  table: "table",
+  aside: "aside",
+  code: "code block",
+  message: "message",
+  cards: "cards",
+  steps: "steps",
+  list: "list",
+  page: "page"
 }
 
-/** The page header's Note pill, for a note on the whole page, and "N new" linking to the first new note. */
-function addNotePill(main) {
-  const head = main.querySelector(".spell-page-head")
-  if (!head) return
-  head.querySelector(":scope > .spell-page-notes")?.remove()
-  const fresh = main.querySelectorAll('spell-note[status="new"]')
-  const pill = document.createElement("span")
-  pill.className = "spell-page-notes"
-  pill.dataset.spellAdded = ""
-  pill.innerHTML =
-    (fresh.length ? `<a class="spell-notes-count" href="#${attr(fresh[0].id)}">${fresh.length} new</a>` : "") +
-    `<ui-button circular basic size="tiny" icon="comment">Note</ui-button>` +
-    `<ui-popup inverted size="mini" position="bottom center" content="A note on this page, for Claude"></ui-popup>`
-  pill.querySelector("ui-button").addEventListener("click", () => openNoteBox({ anchor: "page", label: "this page" }))
-  head.append(pill)
-}
-
 /**
- * The note box:  a `<ui-modal>` with a textarea that grows with its text;  ⌘ / Ctrl Enter saves.
- * - `{ anchor, label }`:  a new note on that section (`page`:  the whole page)
- * - `{ id, label, text }`:  editing a new note, with Delete
- * - what's typed and not saved is kept per page and note (`NOTE_DRAFT_KEY_PREFIX`) until it's saved
+ * COMMENTS (epic `airplane`, P11):  Owen's comments for Claude, on a page's blocks or on text he selected, kept by
+ * the page server (`commentsRoutes.ts`):  a docs page's in its inbox file (`<page>.inbox.json`), a plan doc's in the
+ * epic's review inbox.  No Claude, no network:  only the page server, so it works on a plane.
+ * - served by the page server with a token, on a page that takes comments (the `GET` says `takesComments`):
+ *   - a BULLHORN beside every major block (`BlockAnchors.js` `blocksIn()`:  sections, tables, asides, code,
+ *     messages, cards, steps, top-level lists;  a plan doc's items, phase fields, summary and Overview prose) and in
+ *     the page header (the whole page):  shown while the block is hovered, always once it has comments, with a count
+ *   - SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn that floats beside the selection:  the box opens for that block,
+ *     its header the text's first words;  the comment keeps the quote, highlighted on the page while it exists
+ *   - the box opens right under the block (a section's:  under its title):  ivory, a header and a textarea that
+ *     grows, no buttons (Owen, 2026-10-10);  it saves itself as Owen types, a floppy in its header says so;
+ *     × or Escape closes it;  what's typed is also kept in this browser until saved (`COMMENT_DRAFT_KEY_PREFIX`)
+ *   - each comment:  a card under its block, Owen's, "Owen · 10/10 14:02";  its state by the fill rule
+ *     (`templates/epics/plan-doc.md`, "Colours"):  saved, "Saved 14:02 · waiting for Claude":  outlined;
+ *     "Taken by Claude" (a guide's, into epic `guide-changes`) or "Answered":  solid.  Edit while it waits (closed
+ *     empty, it's deleted);  Claude's answers under it, violet
+ * - drawn again after a live patch (`spell-doc:updated`), when the page's content changes (a plan doc's part
+ *   loading), when the inbox file changes (`spell-server:file`:  another window, Claude), and when the page comes
+ *   back into view
+ * - what it adds in `main` carries `data-spell-added`:  a patch steps around it, the anchors never count it
+ * - NEVER throws:  a page with no server, or a server without the routes, shows no bullhorns
  */
-function openNoteBox({ anchor, id, label, text: current = "" }) {
-  const box = noteBox()
-  const key = id ?? anchor
-  const drafts = readJSON(`${NOTE_DRAFT_KEY_PREFIX}${location.pathname}`)
-  box.dataset.anchor = anchor ?? ""
-  box.dataset.id = id ?? ""
-  box.querySelector(".spell-note-about").innerHTML = `${id ? `Note ${text(id)}, on` : "On"} <b>${text(label)}</b>`
-  box.querySelector(".spell-note-delete").hidden = !id
-  const field = box.querySelector("textarea")
-  field.value = typeof drafts[key] === "string" ? drafts[key] : current
-  box.setAttribute("open", "")
-  requestAnimationFrame(() => {
-    growField(field)
-    field.focus()
+async function wireComments(main) {
+  if (!window.SPELL_SERVER?.token || location.protocol === "file:") return
+  const comments = new PageComments(main)
+  if (!(await comments.load())) return
+  comments.draw()
+  const reload = () => void comments.load().then((takes) => takes && comments.draw())
+  addEventListener("spell-doc:updated", () => comments.draw())
+  addEventListener("spell-server:file", (event) => {
+    if (comments.inboxPaths.includes(decodeURIComponent(event.detail?.path ?? ""))) reload()
   })
+  document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && reload())
+  comments.watchContent()
+  comments.wireSelection()
 }
 
-/** The note box, made once (outside `main`:  a live patch never sees it). */
-function noteBox() {
-  let box = document.getElementById("spell-note-box")
-  if (box) return box
-  const template = document.createElement("template")
-  template.innerHTML = `<ui-modal id="spell-note-box" class="spell-note-box" size="small" closable>
-  <ui-header><ui-icon name="comment"></ui-icon> A note for Claude</ui-header>
-  <ui-content>
-    <p class="spell-note-about"></p>
-    <textarea class="spell-note-field" rows="3" aria-label="Your note"
-      placeholder="Anything:  a question, a correction, an idea.  Claude picks these up with spell dev notes."></textarea>
-    <p class="spell-note-hint">⌘ Enter saves.  It's written into the page, marked new, until Claude answers it.</p>
-  </ui-content>
-  <ui-actions>
-    <ui-button class="spell-note-delete" circular basic icon="xmark">Delete</ui-button>
-    <ui-button class="spell-note-cancel" circular basic>Cancel</ui-button>
-    <ui-button class="spell-note-save" circular primary icon="paper plane">Save note</ui-button>
-  </ui-actions>
-</ui-modal>`
-  box = template.content.firstElementChild
-  const field = box.querySelector("textarea")
-  const save = box.querySelector(".spell-note-save")
-  const draftKey = `${NOTE_DRAFT_KEY_PREFIX}${location.pathname}`
-  const keyOf = () => box.dataset.id || box.dataset.anchor
-  const close = () => box.removeAttribute("open")
-  /** Send `change` (`add`, `edit` or `delete`);  close and forget the draft once it's written. */
-  const send = async (change, saying) => {
-    save.setAttribute("loading", "")
+/****************
+ * ### `PageComments`
+ * One page's comments:  what the server holds, drawn under their blocks;  the one comment box open;  the floating
+ * bullhorn of a text selection.
+ * - `list`:  the comments as the server last answered;  every write answers the whole list, which is drawn again
+ * - NEVER throws:  a failed save says so in a toast, the text kept in the box
+ ****************/
+class PageComments {
+  /** - `main`:  the page's `main`, where the blocks are */
+  constructor(main) {
+    /** the page's `main` */
+    this.main = main
+    /** the comments, as the server last answered (`CommentList` `all`) */
+    this.list = []
+    /** the box open, if any:  `{ key, place, id?, text? }` (`place`:  `{ anchor, kind, label, excerpt, quote? ... }`) */
+    this.open = null
+    /** the open box's element, kept across redraws while the same comment is open (`placeBox()`) */
+    this.box = null
+    /** each card's fold, by comment id, as the reader left it;  else waiting ones open, the rest folded */
+    this.folds = new Map()
+    const page = decodeURIComponent(location.pathname)
+    /** the URL paths of the inbox files the comments may be in, as the page server announces their changes */
+    this.inboxPaths = [page.replace(/(\.plan)?\.html$/, ".inbox.json")]
+    /** the `localStorage` key of this page's drafts */
+    this.draftKey = `${COMMENT_DRAFT_KEY_PREFIX}${location.pathname}`
+  }
+
+  /** Fetch the page's comments;  resolves to whether the page takes comments.  NEVER throws. */
+  async load() {
     try {
-      await postNote({ page: location.pathname, ...change })
-      const drafts = readJSON(draftKey)
-      delete drafts[keyOf()]
-      writeJSON(draftKey, drafts)
-      close()
-      noteToast(saying, "success")
-    } catch (error) {
-      noteToast(`Couldn't save the note:  ${error.message}`, "error")
-    } finally {
-      save.removeAttribute("loading")
+      const response = await fetch(`${COMMENTS_API}?page=${encodeURIComponent(location.pathname)}`, {
+        cache: "no-store"
+      })
+      const answer = response.ok ? await response.json() : {}
+      if (answer.takesComments !== true) return false
+      this.list = answer.comments ?? []
+      return true
+    } catch {
+      return false
     }
   }
-  const submit = () => {
-    const words = field.value.trim()
-    if (!words) return field.focus()
-    const { id, anchor } = box.dataset
-    void send(id ? { action: "edit", id, text: words } : { action: "add", for: anchor, text: words }, "Note saved")
+
+  /**
+   * Draw it all again:  every bullhorn, every block's comments, the quotes' highlight, the open box (its text from
+   * the drafts).
+   * - a comment whose block can't be found any more goes under the page header, saying so
+   * - `focus`:  the cursor into the open box, and the box into view
+   */
+  draw({ focus = false } = {}) {
+    const { main } = this
+    // typing when a save, a patch or another window redraws:  the box comes back with the cursor where it was
+    const field = this.box?.querySelector("textarea")
+    const caret = field && field === document.activeElement ? [field.selectionStart, field.selectionEnd] : null
+    this.box?.remove()
+    for (const old of main.querySelectorAll(".spell-comment-mark, .spell-comments")) old.remove()
+    const blocks = blocksIn(main)
+    const head = pageHeadIn(main)
+    const onBlock = new Map()
+    const quotes = []
+    for (const comment of this.list) {
+      const { block, exact } = findBlock(main, comment, blocks)
+      const at = block ?? head
+      if (!at) continue
+      if (!onBlock.has(at)) onBlock.set(at, [])
+      onBlock.get(at).push({ comment, exact: exact && Boolean(block) })
+      const quoted = block && comment.quote && quoteIn(block, comment.quote, comment.offset)
+      if (quoted) quotes.push(quoted)
+    }
+    for (const block of head ? [head, ...blocks] : blocks) this.addBullhorn(block, onBlock.get(block)?.length ?? 0)
+    for (const [block, found] of onBlock) this.boxFor(block).append(...found.map((each) => this.card(each)))
+    highlightQuotes(quotes)
+    if (this.open) this.placeBox({ focus, caret, scroll: focus })
   }
-  field.addEventListener("input", () => {
-    growField(field)
-    const drafts = readJSON(draftKey)
-    drafts[keyOf()] = field.value
-    writeJSON(draftKey, drafts)
-  })
-  field.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) submit()
-  })
-  save.addEventListener("click", submit)
-  box.querySelector(".spell-note-cancel").addEventListener("click", close)
-  box
-    .querySelector(".spell-note-delete")
-    .addEventListener("click", () => void send({ action: "delete", id: box.dataset.id }, "Note deleted"))
-  document.body.append(box)
-  return box
+
+  /**
+   * Draw again when the page's own content changes:  a plan doc's part loads its blocks when it opens.
+   * - changes inside what this adds (`data-spell-added`) don't count:  drawing would wake it again
+   */
+  watchContent() {
+    let timer = 0
+    const ours = (node) =>
+      node.nodeType === 1 && (node.matches("[data-spell-added]") || node.closest("[data-spell-added]"))
+    new MutationObserver((records) => {
+      const theirs = records.some(
+        (record) =>
+          !ours(record.target) &&
+          [...record.addedNodes, ...record.removedNodes].some((node) => node.nodeType === 1 && !ours(node))
+      )
+      if (!theirs) return
+      clearTimeout(timer)
+      timer = setTimeout(() => this.draw(), REDRAW_MS)
+    }).observe(this.main, { childList: true, subtree: true })
+  }
+
+  ////////////////
+  // ## Bullhorns
+  ////////////////
+
+  /**
+   * The bullhorn of `block`:  in a docs section's title (its `actions` slot), in the page header,
+   * else just before the block, over its top right corner.
+   */
+  addBullhorn(block, count) {
+    const place = this.placeOf(block)
+    const what = place.kind === "page" ? "this page" : `this ${KIND_NAMES[place.kind] ?? place.kind}`
+    const tip = count ? `${count} ${count === 1 ? "comment" : "comments"} on ${what};  add one` : `Comment on ${what}`
+    const inline = place.kind === "section" || place.kind === "page"
+    const mark = document.createElement(inline ? "span" : "div")
+    mark.className = `spell-comment-mark at-${inline ? place.kind : "block"}`
+    // text starts at a text block's top right:  the bullhorn floats there, the text wrapping round it
+    if (TEXT_KINDS.has(place.kind)) mark.classList.add("at-text")
+    mark.dataset.spellAdded = ""
+    if (count) mark.dataset.count = String(count)
+    mark.innerHTML =
+      `<ui-button circular basic size="mini" icon="bullhorn" title="${attr(tip)}" aria-label="${attr(tip)}">` +
+      `${count || ""}</ui-button>`
+    mark.querySelector("ui-button").addEventListener("click", (event) => {
+      event.stopPropagation()
+      this.openBox({ key: place.anchor, place })
+    })
+    if (place.kind === "section") {
+      mark.slot = "actions"
+      block.append(mark)
+    } else if (place.kind === "page") {
+      // in the page header, before its toolbar:  the toolbar stays its last row
+      const head = block.querySelector(".spell-page-head")
+      if (head) beforeToolbar(head, mark)
+      else block.append(mark)
+    } else block.before(mark)
+  }
+
+  /** Where `block` is, as a comment on it is saved:  `{ anchor, kind, label, excerpt }` (`BlockAnchors.js`). */
+  placeOf(block) {
+    if (block === pageHeadIn(this.main)) return { anchor: PAGE_ANCHOR, kind: "page", label: "", excerpt: "" }
+    const kind = kindOf(block)
+    const section = kind === "section" || kind === "item" ? block : sectionOf(block, this.main)
+    return {
+      anchor: anchorOf(block, this.main),
+      kind,
+      label: section ? sectionTitle(section) : "",
+      excerpt: excerptOf(block)
+    }
+  }
+
+  /**
+   * The box of comments under `block`, made on first use:  a docs section's first in its body (under its title),
+   * the page's right under the page header, any other block's right after it.
+   */
+  boxFor(block) {
+    const next = block.localName === "ui-section" ? firstContentChild(block) : block.nextElementSibling
+    if (next?.classList.contains("spell-comments")) return next
+    const box = document.createElement("div")
+    box.className = "spell-comments"
+    box.dataset.spellAdded = ""
+    if (block.localName !== "ui-section") block.after(box)
+    else if (next) next.before(box)
+    else block.append(box)
+    return box
+  }
+
+  ////////////////
+  // ## Selected text
+  ////////////////
+
+  /**
+   * Comment on selected text:  ⌘ / Ctrl I, or the bullhorn floating beside the selection (`floatingBullhorn()`).
+   * - only a selection inside one of the page's blocks;  never in a comment box or a field
+   * - leaves the selection alone:  copy, ⌘ A ... work as before
+   */
+  wireSelection() {
+    let timer = 0
+    document.addEventListener("selectionchange", () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => this.showFloating(), 120)
+    })
+    addEventListener("scroll", () => this.floating?.setAttribute("hidden", ""), { passive: true })
+    document.addEventListener("keydown", (event) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== "i") return
+      const selected = this.selected()
+      if (!selected) return
+      event.preventDefault()
+      this.commentOn(selected)
+    })
+  }
+
+  /** The selection, when it's text in one of the page's blocks:  `{ block, quote, offset, range }`;  else `null`. */
+  selected() {
+    const selection = getSelection()
+    if (!selection || selection.isCollapsed || !selection.rangeCount) return null
+    const range = selection.getRangeAt(0)
+    const start = range.startContainer
+    if (!this.main.contains(start)) return null
+    const element = start.nodeType === 1 ? start : start.parentElement
+    if (element?.closest("[data-spell-added], textarea, input")) return null
+    const block = blockAround(start, blocksIn(this.main))
+    const quote = selection.toString().trim()
+    if (!block || !quote) return null
+    return { block, quote, offset: offsetIn(block, start, range.startOffset), range }
+  }
+
+  /** Open the comment box on the selection's block, its text quoted. */
+  commentOn({ block, quote, offset }) {
+    this.floating?.setAttribute("hidden", "")
+    const place = { ...this.placeOf(block), quote: quote.slice(0, 2000), offset }
+    this.openBox({ key: `${place.anchor}~${offset}`, place })
+  }
+
+  /** Show the floating bullhorn beside a selection in a block;  hide it otherwise. */
+  showFloating() {
+    const selected = this.selected()
+    const button = this.floatingBullhorn()
+    if (!selected) return button.setAttribute("hidden", "")
+    const rects = selected.range.getClientRects()
+    const last = rects[rects.length - 1] ?? selected.range.getBoundingClientRect()
+    button.style.left = `${Math.min(innerWidth - 36, last.right + 6)}px`
+    button.style.top = `${Math.max(4, last.top - 4)}px`
+    button.removeAttribute("hidden")
+  }
+
+  /** The floating bullhorn, made once (in `body`, outside `main`):  a click comments on the selection. */
+  floatingBullhorn() {
+    if (this.floating) return this.floating
+    const button = document.createElement("button")
+    button.type = "button"
+    button.className = "spell-comment-float"
+    button.hidden = true
+    const tip = `Comment on this text (${/Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl "}I)`
+    button.title = tip
+    button.setAttribute("aria-label", tip)
+    button.innerHTML = `<ui-icon name="bullhorn"></ui-icon>`
+    // keep the selection:  a press would otherwise clear it before the click
+    button.addEventListener("pointerdown", (event) => event.preventDefault())
+    button.addEventListener("click", () => {
+      const selected = this.selected()
+      if (selected) this.commentOn(selected)
+    })
+    document.body.append(button)
+    return (this.floating = button)
+  }
+
+  ////////////////
+  // ## Cards
+  ////////////////
+
+  /**
+   * A comment's card:  its band ("Owen", its state, the date, Edit while it waits), then the quote it's on, its
+   * text, and Claude's answers.  Folds by its band;  folded, the band shows the comment's first line.
+   * - `exact` false:  its block changed or moved since, so the card says what it was on
+   */
+  card({ comment, exact }) {
+    const card = document.createElement("div")
+    card.className = "spell-comment"
+    card.id = `comment-${comment.id}`
+    const state = commentState(comment)
+    card.dataset.state = state
+    const open = this.folds.get(comment.id) ?? state === "saved"
+    if (!open) card.dataset.folded = ""
+    const editing = this.open?.id === comment.id
+    card.innerHTML =
+      `<div class="spell-comment-band">` +
+      `<button type="button" class="spell-comment-fold" aria-expanded="${open}" title="${open ? "Fold" : "Unfold"} this comment">` +
+      `<ui-icon name="bullhorn"></ui-icon><b>Owen</b><span class="spell-comment-preview">${text(comment.text.split("\n")[0])}</span></button>` +
+      `<span class="spell-comment-state">${stateLabel(comment, state)}</span>` +
+      `<span class="spell-comment-date">${text(shortStamp(localStamp(comment.at)))}</span>` +
+      (state === "saved" && !editing
+        ? `<ui-button class="spell-comment-edit" circular basic size="mini" icon="pen to square" ` +
+          `title="Edit or delete this comment:  until Claude takes it" aria-label="Edit this comment"></ui-button>`
+        : "") +
+      `</div><div class="spell-comment-body">` +
+      (exact ? "" : `<p class="spell-comment-moved">The block changed since:  it was “${text(comment.excerpt)}”.</p>`) +
+      (comment.quote ? `<blockquote class="spell-comment-quote">${text(comment.quote)}</blockquote>` : "") +
+      commentHTML(comment.text) +
+      (comment.replies ?? [])
+        .map(
+          (reply) =>
+            `<div class="spell-comment-reply"><div class="spell-comment-who">${text(reply.by)} · ` +
+            `${text(shortStamp(localStamp(reply.at)))}</div>${reply.html}</div>`
+        )
+        .join("") +
+      `</div>`
+    if (editing) card.hidden = true
+    const fold = card.querySelector(".spell-comment-fold")
+    fold.addEventListener("click", () => {
+      const opening = card.hasAttribute("data-folded")
+      card.toggleAttribute("data-folded", !opening)
+      fold.setAttribute("aria-expanded", String(opening))
+      fold.title = `${opening ? "Fold" : "Unfold"} this comment`
+      this.folds.set(comment.id, opening)
+    })
+    card.querySelector(".spell-comment-edit")?.addEventListener("click", () => {
+      const { anchor, kind, label, excerpt, quote, offset } = comment
+      const place = { anchor, kind, label, excerpt, quote, offset }
+      this.openBox({ key: comment.id, id: comment.id, place, text: comment.text })
+    })
+    return card
+  }
+
+  ////////////////
+  // ## The comment box
+  ////////////////
+
+  /**
+   * Open the comment box for `open` (`{ key, place, id?, text? }`):  a new comment on `place`'s block (`quote`:  on
+   * that text), or (`id`) editing that one (its card hidden meanwhile).
+   * - only one is open:  opening another closes this one (it saved itself as it was typed)
+   */
+  openBox(open) {
+    this.open = open
+    this.draw({ focus: true })
+  }
+
+  /**
+   * Put the open box under its block, after its comments;  whatever folds it away unfolds.
+   * - the same box element while the same comment is open (`this.box`):  a redraw (a save, another window) moves it,
+   *   never makes it again, so what's typed and the cursor stay
+   * - `focus`:  the cursor in it, at the end;  `caret`:  the cursor put back where it was;  `scroll`:  into view
+   */
+  placeBox({ focus, caret, scroll }) {
+    const { block } = findBlock(this.main, this.open.place)
+    const at = block ?? pageHeadIn(this.main)
+    if (!at) return
+    reveal(at)
+    if (this.box?.dataset.key !== this.open.key) this.box = this.form(this.open)
+    const form = this.box
+    this.boxFor(at).append(form)
+    const field = form.querySelector("textarea")
+    requestAnimationFrame(() => {
+      growField(field)
+      if (caret) {
+        field.focus()
+        field.setSelectionRange(...caret)
+      } else if (focus) {
+        field.focus()
+        field.setSelectionRange(field.value.length, field.value.length)
+      }
+      if (scroll) form.scrollIntoView({ block: "nearest" })
+    })
+  }
+
+  /**
+   * The comment box's markup and wiring, for `open` (`openBox()`'s):  a header, then the text;  no buttons.
+   * - the header:  a few words of what it's on (the selected text, else the block:  `headline()`), the floppy, ×;
+   *   its tooltip names the block in full (`aboutTip()`)
+   * - saves itself as Owen types, `COMMENT_SAVE_MS` after he stops (Owen, 2026-10-10:  "Save should just happen as I
+   *   type"):  the first save adds the comment, the next ones edit it;  the floppy says how the last one went
+   * - never an empty comment:  emptied, its comment is deleted at once;  × or Escape (or ⌘ / Ctrl Enter) closes it,
+   *   saving what's typed first
+   * - what's typed is also kept in this browser (`COMMENT_DRAFT_KEY_PREFIX`) until it closes saved
+   */
+  form(open) {
+    const { key, place } = open
+    const form = document.createElement("div")
+    form.className = "spell-comment-form"
+    form.dataset.spellAdded = ""
+    form.dataset.key = key
+    form.innerHTML =
+      `<div class="spell-comment-about" title="${attr(aboutTip(open))}"><ui-icon name="bullhorn"></ui-icon>` +
+      `<span class="spell-comment-on">${text(headline(place))}</span>` +
+      `<span class="spell-comment-saved" hidden><ui-icon name="floppy disk outline"></ui-icon></span>` +
+      `<button type="button" class="spell-comment-close" title="Close:  it's saved as you type;  closed empty, ` +
+      `the comment goes" aria-label="Close the comment box"><ui-icon name="xmark"></ui-icon></button></div>` +
+      `<textarea class="spell-comment-field" rows="3" aria-label="Your comment" ` +
+      `placeholder="Anything:  a correction, a question, what's missing.  It's saved as you type, for Claude."></textarea>`
+    const field = form.querySelector("textarea")
+    const floppy = form.querySelector(".spell-comment-saved")
+    const drafts = readJSON(this.draftKey)
+    field.value = typeof drafts[key] === "string" ? drafts[key] : (open.text ?? "")
+    // what the server holds;  one save at a time, in order, so a quick typist never adds the comment twice
+    let saved = (open.text ?? "").trim()
+    let saving = Promise.resolve(true)
+    let timer = 0
+    // never an empty comment (Owen, 2026-10-10):  nothing typed saves nothing;  emptied, a saved one goes at once
+    const save = async () => {
+      const words = field.value.trim()
+      if (words === saved) return true
+      if (!words && !open.id) return true
+      const change = !words
+        ? { action: "delete", id: open.id }
+        : open.id
+          ? { action: "edit", id: open.id, text: words }
+          : { action: "add", ...place, text: words }
+      try {
+        const answer = await postJSON(COMMENTS_API, { page: location.pathname, ...change })
+        open.id = words ? (open.id ?? answer.id) : undefined
+        saved = words
+        this.list = answer.comments ?? this.list
+        floppy.hidden = !words
+        floppy.removeAttribute("data-failed")
+        floppy.title = `Saved ${localStamp(new Date().toISOString()).slice(11)} · waiting for Claude`
+        return true
+      } catch (error) {
+        floppy.hidden = false
+        floppy.setAttribute("data-failed", "")
+        floppy.title = `Not saved:  ${error.message} (kept in this browser)`
+        return false
+      }
+    }
+    const saveNow = () => {
+      clearTimeout(timer)
+      return (saving = saving.then(save))
+    }
+    const close = async () => {
+      if (!(await saveNow())) return noteToast(floppy.title, "error")
+      this.forget(key)
+      if (this.open === open) {
+        this.open = null
+        this.box = null
+      }
+      this.draw()
+    }
+    field.addEventListener("input", () => {
+      growField(field)
+      const kept = readJSON(this.draftKey)
+      kept[key] = field.value
+      writeJSON(this.draftKey, kept)
+      clearTimeout(timer)
+      timer = setTimeout(saveNow, COMMENT_SAVE_MS)
+    })
+    field.addEventListener("blur", () => void saveNow())
+    field.addEventListener("keydown", (event) => {
+      if (event.key === "Escape" || (event.key === "Enter" && (event.metaKey || event.ctrlKey))) {
+        event.preventDefault()
+        event.stopPropagation()
+        void close()
+      }
+    })
+    form.querySelector(".spell-comment-close").addEventListener("click", () => void close())
+    return form
+  }
+
+  /** Drop the draft under `key`. */
+  forget(key) {
+    const drafts = readJSON(this.draftKey)
+    delete drafts[key]
+    writeJSON(this.draftKey, drafts)
+  }
 }
 
-/** POST `change` to the notes route (`postJSON()`);  returns its answer. */
-function postNote(change) {
-  return postJSON(NOTES_API, change)
+/**
+ * A few words of what a comment box is on, for its header:  the start of the selected text, else of its block's
+ * text, in quotes;  "This page" for the page.
+ */
+function headline(place) {
+  if (place.kind === "page") return "This page"
+  const words = (place.quote || place.excerpt || place.label || "").replace(/\s+/g, " ").trim()
+  if (!words) return `This ${KIND_NAMES[place.kind] ?? place.kind}`
+  return `“${words.length > HEADLINE_CHARS ? `${words.slice(0, HEADLINE_CHARS).trimEnd()}…` : words}”`
+}
+
+/** The comment box header's tooltip:  which block it's on, in full ("On a field in Guide Comments"). */
+function aboutTip({ id, place }) {
+  const what = place.kind === "page" ? "the page" : `a ${KIND_NAMES[place.kind] ?? place.kind}`
+  const named = place.kind === "section" || place.kind === "item"
+  const on = named && place.label ? `“${place.label}”` : what
+  const where = place.kind === "page" || named || !place.label ? "" : ` in “${place.label}”`
+  return `${id ? `Comment ${id}, on` : "On"} ${on}${where}${place.quote ? `:  “${place.quote}”` : ""}`
+}
+
+/**
+ * A comment's state, by the fill rule:  `saved` (waiting for Claude:  outlined), `taken` (a guide's, into an epic's
+ * phase) or `answered` (both solid).
+ */
+function commentState(comment) {
+  if (comment.status === "answered" || comment.replies?.length) return "answered"
+  return comment.status === "taken" ? "taken" : "saved"
+}
+
+/** What a comment's band says of its state:  "Saved 14:02 · waiting for Claude", "Taken by Claude · P3" ... */
+function stateLabel(comment, state) {
+  if (state === "saved") return `Saved ${text(localStamp(comment.at).slice(11))} · waiting for Claude`
+  const taken = comment.taken
+  const where = taken
+    ? ` · <a href="${attr(planLink(taken))}">${text(taken.epic)} P${text(String(taken.phase))}</a>`
+    : ""
+  return state === "taken" ? `Taken by Claude${where}` : `Answered${where}`
+}
+
+/** Highlight each quote's text on the page, softly (`QUOTE_HIGHLIGHT`);  none where the browser can't. */
+function highlightQuotes(quotes) {
+  if (!globalThis.Highlight || !globalThis.CSS?.highlights) return
+  const ranges = quotes.flatMap(({ start, end }) => {
+    try {
+      const range = document.createRange()
+      range.setStart(...start)
+      range.setEnd(...end)
+      return [range]
+    } catch {
+      return []
+    }
+  })
+  CSS.highlights.set(QUOTE_HIGHLIGHT, new Highlight(...ranges))
+}
+
+/**
+ * Unfold whatever hides `element`:  a docs section it's in (or is), a plan doc's folded item, phase or part
+ * (their `open`).
+ */
+function reveal(element) {
+  for (let at = element; at && at !== document.body; at = at.parentElement) {
+    if (at.localName === "ui-section" && at.collapsed) at.collapsed = false
+    else if (/^epic-(item|phase|section|overview)$/.test(at.localName) && !at.hasAttribute("open"))
+      at.setAttribute("open", "")
+  }
+}
+
+/** A docs section's first child in its body (not its slotted icon, header or actions);  `null` for none. */
+function firstContentChild(section) {
+  return Array.from(section.children).find((child) => !child.hasAttribute("slot")) ?? null
+}
+
+/**
+ * A comment's text as markup:  a `<p>` per block (split at blank lines), a single newline a `<br>`,
+ * `backticked` runs `<code>`.  `PageNotes.js` `htmlOf()` does the same on the server.
+ */
+function commentHTML(words) {
+  return words
+    .trim()
+    .split(/\n[ \t]*\n\s*/)
+    .map(
+      (block) =>
+        `<p>${text(block.trim())
+          .replace(/`([^`]+)`/g, "<code>$1</code>")
+          .replace(/\n/g, "<br />")}</p>`
+    )
+    .join("")
+}
+
+/** An ISO time as local `YYYY-MM-DD HH:MM` (`shortStamp()` takes it from there). */
+function localStamp(iso) {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return iso ?? ""
+  const two = (value) => String(value).padStart(2, "0")
+  return `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())} ${two(date.getHours())}:${two(date.getMinutes())}`
+}
+
+/** The URL of the phase a comment was taken into, from this checkout's root (a worktree's `/worktrees/<w>/` too). */
+function planLink({ epic, phase }) {
+  const root = /^\/worktrees\/[^/]+\//.exec(location.pathname)?.[0] ?? "/"
+  return `${root}epics/${encodeURIComponent(epic)}/${encodeURIComponent(epic)}.plan.html#p${phase}`
 }
 
 /**
@@ -2557,6 +3343,126 @@ async function postJSON(url, body, retried = false) {
 }
 
 ////////////////
+// ## Favorite epics
+////////////////
+
+/** The page server's route that stars and unstars an epic (`packages/epics/src/tool/epicRoutes.ts`). */
+const FAVORITE_API = "/api/epics/favorite"
+
+/** An Epics page group (`$/server/site/EpicCards` `epicGroupsHtml()`):  its heading's count, its card list. */
+const EPIC_GROUP = ".spell-epic-group[data-group]"
+
+/** Whether the stars' click listener is on `document` already:  once per page, whatever re-wires it. */
+let favoritesWired = false
+
+/**
+ * FAVORITE EPICS (epic `airplane` P8, Owen 2026-10-10):  the star at each Epics card's top right
+ * (`$/server/site/EpicCards` `epicStarHtml()`).
+ * - a click stars or unstars the epic at once:  the card moves to Favorites (or back to its own group,
+ *   `data-group`), alphabetical there, and each group's count follows (`regroupEpics()`);  no reload
+ * - then the page server writes it (`FAVORITE_API`, into the shared `epics/favorites.json`);  refused:  the card
+ *   goes back, and a toast says why
+ * - its answer (every favourite) sets every star:  another window may have starred one meanwhile
+ * - the card's own link never fires:  the star is a button of its own, its click stopped there
+ * - only served by the page server with a token:  from `file://`, the stars show what the docs index wrote, and
+ *   say they need the page server
+ * - a live update of the page (`spell-doc:updated`) may leave a moved card twice:  `regroupEpics()` keeps one
+ */
+function wireFavorites(main) {
+  const stars = main.querySelectorAll(".spell-epic-star")
+  if (!stars.length) return
+  const writable = !!window.SPELL_SERVER?.token && location.protocol !== "file:"
+  if (!writable) {
+    for (const star of stars) {
+      star.disabled = true
+      star.title = "Starring needs the page server (spell dev server ensure)"
+    }
+    return
+  }
+  regroupEpics(main)
+  if (favoritesWired) return
+  favoritesWired = true
+  document.addEventListener("click", (event) => {
+    const star = event.target instanceof Element ? event.target.closest(".spell-epic-star") : null
+    if (!star) return
+    event.preventDefault()
+    event.stopPropagation()
+    void toggleFavorite(star.closest("ui-card[data-epic]"))
+  })
+}
+
+/** Star or unstar `card`'s epic:  at once on the page, then on the page server (`wireFavorites()`). */
+async function toggleFavorite(card) {
+  const main = card?.closest("main")
+  if (!main) return
+  const name = card.dataset.epic
+  const favorite = card.querySelector(".spell-epic-star").getAttribute("aria-pressed") !== "true"
+  setStar(card, favorite)
+  regroupEpics(main)
+  try {
+    const { favorites } = await postJSON(FAVORITE_API, { name, favorite })
+    const starred = new Set(favorites)
+    for (const each of main.querySelectorAll("ui-card[data-epic]")) setStar(each, starred.has(each.dataset.epic))
+  } catch (error) {
+    setStar(card, !favorite)
+    noteToast(`Couldn't ${favorite ? "star" : "unstar"} ${name}:  ${error.message}`, "error")
+  }
+  regroupEpics(main)
+}
+
+/** `card`'s star drawn as `favorite` says:  solid and pressed, or its outline (`epicStarHtml()`'s look). */
+function setStar(card, favorite) {
+  const star = card.querySelector(".spell-epic-star")
+  if (!star) return
+  const name = card.dataset.epic
+  star.setAttribute("aria-pressed", String(favorite))
+  star.setAttribute("aria-label", `${favorite ? "Unstar" : "Star"} ${name}`)
+  star.title = favorite ? "A favorite:  listed first.  Click to unstar" : "Star it:  listed first, under Favorites"
+  star.querySelector("ui-icon")?.setAttribute("name", favorite ? "star" : "star outline")
+}
+
+/**
+ * Put every Epics card in its group:  Favorites when starred, else its own (`data-group`);  alphabetical by title
+ * (`data-title`) in each;  each group's count, and empty ones hidden.
+ * - a card twice (`data-epic`:  a live update re-added one this moved):  the first stays
+ * - SIDE EFFECT:  moves cards between the groups' lists;  callable any time
+ */
+function regroupEpics(main) {
+  const groups = new Map(
+    Array.from(main.querySelectorAll(EPIC_GROUP), (group) => [group.dataset.group, group.querySelector("ui-cards")])
+  )
+  if (!groups.size) return
+  const seen = new Set()
+  const cards = []
+  for (const card of main.querySelectorAll(`${EPIC_GROUP} ui-card[data-epic]`)) {
+    if (seen.has(card.dataset.epic)) card.remove()
+    else {
+      seen.add(card.dataset.epic)
+      cards.push(card)
+    }
+  }
+  const byTitle = (a, b) =>
+    (a.dataset.title ?? "").localeCompare(b.dataset.title ?? "", "en", { sensitivity: "base", numeric: true })
+  for (const [name, list] of groups) {
+    const mine = cards
+      .filter((card) => {
+        const starred = card.querySelector(".spell-epic-star")?.getAttribute("aria-pressed") === "true"
+        return (starred ? "favorites" : card.dataset.group) === name
+      })
+      .toSorted(byTitle)
+    // only what's out of place moves:  a card that stays keeps its focus and hover
+    mine.forEach((card, index) => {
+      if (list?.children[index] !== card) list?.insertBefore(card, list.children[index] ?? null)
+    })
+    const group = list?.closest(EPIC_GROUP)
+    if (!group) continue
+    group.hidden = mine.length === 0
+    const count = group.querySelector(".spell-epic-group-count")
+    if (count) count.textContent = String(mine.length)
+  }
+}
+
+////////////////
 // ## New epic
 ////////////////
 
@@ -2582,11 +3488,17 @@ function wireNewEpic(main) {
   const pill = document.createElement("span")
   pill.className = "spell-new-epic"
   pill.dataset.spellAdded = ""
-  pill.innerHTML =
-    `<ui-button circular basic size="tiny" icon="seedling">New epic</ui-button>` +
-    `<ui-popup inverted size="mini" position="bottom center" content="Write an idea down as a future epic"></ui-popup>`
+  // the browser's own tooltip, a `title` (Owen, 2026-10-10:  never a `<ui-popup>` as a tooltip)
+  pill.innerHTML = `<ui-button circular basic size="tiny" icon="seedling" title="Write an idea down as a future epic">New epic</ui-button>`
   pill.querySelector("ui-button").addEventListener("click", openNewEpicBox)
-  head.append(pill)
+  beforeToolbar(head, pill)
+}
+
+/** Add `pill` to the page header `head`, before its toolbar (`buildPageToolbar()`):  the toolbar stays its last row. */
+function beforeToolbar(head, pill) {
+  const toolbar = head.querySelector(":scope > nav.spell-toolbar")
+  if (toolbar) toolbar.before(pill)
+  else head.append(pill)
 }
 
 /** Open the New epic box, with the draft typed so far. */
@@ -2693,14 +3605,7 @@ function noteText(note) {
   }
 }
 
-/** What a note is about, for the note box:  its section's title, or "this page". */
-function noteLabel(note) {
-  const anchor = note.closest("spell-notes")?.getAttribute("for")
-  const section = anchor && anchor !== "page" ? document.getElementById(anchor) : null
-  return section ? sectionLabel(section) || anchor : "this page"
-}
-
-/** A note's `at` (`2026-10-10 14:02`) as its card shows it:  `10/10 14:02`. */
+/** A note's or comment's `at` (`2026-10-10 14:02`) as its card shows it:  `10/10 14:02`. */
 function shortStamp(at) {
   const parts = /^\d{4}-(\d\d)-(\d\d)[ T](\d\d:\d\d)/.exec(at ?? "")
   return parts ? `${Number(parts[1])}/${Number(parts[2])} ${parts[3]}` : (at ?? "")

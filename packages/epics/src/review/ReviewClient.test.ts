@@ -145,15 +145,14 @@ describe("ReviewClient.start()", () => {
 })
 
 describe("ReviewClient.press()", () => {
-  test("Approve marks at once, then saves;  a second press clears it", async () => {
+  test("Approve marks at once, then saves (CHOSEN:  the item folds);  a second press clears it", async () => {
     const { client, server } = await started()
     const seen: number[] = []
     client.subscribe(() => seen.push(client.version))
-    const saving = client.press("q1", "approve")
-    expect(saving).toBeUndefined()
+    expect(client.press("q1", "approve")).toBe("chosen")
     expect(client.markOf("q1")?.action).toBe("approve")
     await vi.waitFor(() => expect(server.inbox.marks.q1?.action).toBe("approve"))
-    client.press("q1", "approve")
+    expect(client.press("q1", "approve")).toBeUndefined()
     expect(client.markOf("q1")).toBeUndefined()
     await vi.waitFor(() => expect(server.inbox.marks.q1).toBeUndefined())
     await vi.waitFor(() => expect(seen.length).toBe(4))
@@ -185,11 +184,25 @@ describe("ReviewClient.press()", () => {
     expect(server.inbox.marks.j2).not.toHaveProperty("choices")
   })
 
+  test("a todo's plane (`next`) and x (`drop`) mark it as Approve does;  a note in the box goes along", async () => {
+    const { client, server } = await started()
+    client.press("t1", "next")
+    await vi.waitFor(() => expect(server.inbox.marks.t1).toMatchObject({ action: "next" }))
+    expect(server.inbox.marks.t1).not.toHaveProperty("note")
+    client.press("t1", "next")
+    await vi.waitFor(() => expect(server.inbox.marks.t1).toBeUndefined())
+    client.openBox("t2")
+    client.type("t2", "moot since P3")
+    client.press("t2", "drop")
+    await vi.waitFor(() => expect(server.inbox.marks.t2).toMatchObject({ action: "drop", note: "moot since P3" }))
+    expect([client.isBoxOpen("t2"), client.typedOf("t2"), client.busyButtonOf("t2")]).toEqual([false, "", null])
+  })
+
   test("Do Now with a note in the box asks a revisit NOW with it (the box closes, emptied);  without, details", async () => {
     const { client, server } = await started()
     client.openBox("j2")
     client.type("j2", "look at this now")
-    client.press("j2", "details")
+    expect(client.press("j2", "details")).toBe("chosen")
     await vi.waitFor(() => expect(server.inbox.now.map(({ id, action }) => [id, action])).toEqual([["j2", "revisit"]]))
     expect(server.inbox.marks.j2).toMatchObject({ action: "revisit", when: "now", note: "look at this now" })
     expect([client.isBoxOpen("j2"), client.typedOf("j2"), client.busyButtonOf("j2")]).toEqual([false, "", "details"])
@@ -216,7 +229,8 @@ describe("ReviewClient.press()", () => {
     const { client, server } = await started()
     await client.useNote("j2", "now", "look at this now")
     expect([client.runningOf("j2")?.action, client.busyButtonOf("j2")]).toEqual(["revisit", "details"])
-    client.press("j2", "details")
+    // called off:  nothing chosen, so the item stays open
+    expect(client.press("j2", "details")).toBeUndefined()
     expect(client.runningOf("j2")).toBeNull()
     await vi.waitFor(() => expect(server.inbox.canceled.j2).toBeDefined())
     await vi.waitFor(() => expect(server.inbox.drafts.j2?.note).toBe("look at this now"))
@@ -282,6 +296,24 @@ describe("ReviewClient writes", () => {
     expect(client.unsentCount).toBe(0)
     expect(await client.send()).toBe(false)
     expect(notices).toEqual([`Saved.  ${NOBODY_LISTENING}`, "Sent already:  waiting for Claude"])
+  })
+
+  test("a SENT pick Claude takes off the inbox is remembered (`takenPickOf()`) until Owen marks the item again", async () => {
+    const { client, server } = await started()
+    await client.choose("q1", "B", 1)
+    await client.choose("j2", "A")
+    expect(await client.refresh()).toBe(true)
+    // not sent:  gone from the inbox (Owen's other window), nothing taken
+    server.inbox.setMark("j2", null)
+    await client.refresh()
+    expect(client.takenPickOf("j2")).toBeUndefined()
+    await client.send()
+    // `inbox apply` cleared it:  the doc's `chosen` is on its way
+    server.inbox.clearMarks(["q1"])
+    await client.refresh()
+    expect(client.takenPickOf("q1")).toEqual({ pick: "B", choices: 1 })
+    await client.choose("q1", "A", 1)
+    expect(client.takenPickOf("q1")).toBeUndefined()
   })
 })
 

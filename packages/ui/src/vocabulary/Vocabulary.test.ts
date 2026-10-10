@@ -217,6 +217,37 @@ describe("Vocabulary.define() with a Spanish dictionary", () => {
   })
 })
 
+describe("Vocabulary.define():  another package's events", () => {
+  /** A component pack's tag, with an event of its own prefix and one of Spell UI's. */
+  const APP = {
+    tag: "spell-app",
+    noun: "app",
+    attributes: [],
+    events: [
+      { name: "spell-open", detail: "{ href: string }", description: "A link was clicked." },
+      { name: "ui-change", detail: "{}", description: "Changed." }
+    ],
+    slots: [],
+    parts: [],
+    states: [],
+    texts: []
+  } as const satisfies ComponentVocabulary
+
+  it("keep their names, canonical or under another prefix;  Spell UI's take the prefix", () => {
+    const vocabulary = new Vocabulary()
+    vocabulary.register(APP)
+    expect([...vocabulary.define().get("spell-app")!.events.keys()]).toEqual(["spell-open", "ui-change"])
+    expect([...vocabulary.define("ie", SPANISH).get("spell-app")!.events.keys()]).toEqual(["spell-open", "ie-cambio"])
+  })
+
+  it("are translated when the dictionary names them", () => {
+    const vocabulary = new Vocabulary()
+    vocabulary.register(APP)
+    const events = vocabulary.define("ie", { lang: "es", events: { "spell-open": "abrir" } }).get("spell-app")!.events
+    expect([...events.keys()]).toEqual(["ie-abrir", "ie-change"])
+  })
+})
+
 describe("Vocabulary.define() collisions", () => {
   it("throws when two attributes translate to the same name", () => {
     const vocabulary = registry()

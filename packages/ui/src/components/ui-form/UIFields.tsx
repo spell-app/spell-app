@@ -8,17 +8,22 @@ import formCSS from "./UIForm.css?inline"
 
 /****************
  * ### `UIFields`
- * The component behind `<ui-fields>`:  a row (or a `grouped` stack) of fields,
- * `<div class="… fields" part="fields"><slot></slot></div>`.
+ * The component behind `<ui-fields>`:
+ * a row (or a `grouped` stack) of fields, `<div class="… fields" part="fields"><slot></slot></div>`.
  *
- * - The DOM element is `display: contents`;  the root is the flex row, and hands each `<ui-field>`
- *   its share of the width (`widths`), the gutter and its state as inherited tokens (`UIForm.css`).
+ * - The DOM element is `display: contents`;  the root is the flex row,
+ *   and hands each `<ui-field>` its share of the width (`widths`), the gutter and its state
+ *   as inherited tokens (`UIForm.css`).
  * - `disabled` makes the root `inert`.
  ****************/
 export class UIFields extends E.UIComponent<typeof fieldsVocabulary> {
   @E.proto static vocabulary = fieldsVocabulary
-  @E.proto static styleSheets = { form: formCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { form: formCSS },
+    delegatesFocus: false,
+    // `disabled`:  its content inert, a look;  the element still takes clicks
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** `:state(error)`:  `state="error"`. */
   @E.cssState("error")
@@ -44,18 +49,9 @@ export class UIFields extends E.UIComponent<typeof fieldsVocabulary> {
     return this.state === WARNING
   }
 
-  /**
-   * `:state(disabled)` while `disabled`:  the root is `inert`.
-   * - Not an `isDisabled` override:  that would make the DOM element swallow clicks too.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return this.disabled
-  }
-
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("fields")} inert={this.disabled}>
+      <div class={this.rootClass} part={this.partForName("fields")} inert={this.disabled}>
         <slot />
       </div>
     )

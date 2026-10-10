@@ -15,12 +15,16 @@ import imageCSS from "./UIImage.css?inline"
  ****************/
 export class UIImages extends E.UIComponent<typeof imagesVocabulary> {
   @E.proto static vocabulary = imagesVocabulary
-  @E.proto static styleSheets = { image: imageCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { image: imageCSS },
+    delegatesFocus: false,
+    // `disabled`:  only a look
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("group")}>
+      <div class={this.rootClass} part={this.partForName("group")}>
         <slot />
       </div>
     )

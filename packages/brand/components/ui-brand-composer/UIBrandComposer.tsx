@@ -1,8 +1,20 @@
-import { Show, createEffect, untrack } from "solid-js"
+import { Show, createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { IconGlyph, proto, SlotContent, UI, type AttributeName, type FieldValue, type ElementSetup } from "$/ui/core"
-import { ControlLabels, DOMFormControl, FormComponent } from "$/ui/forms"
+import {
+  afterSolidUpdate,
+  IconGlyph,
+  proto,
+  protoMerged,
+  SlotContent,
+  UI,
+  untracked,
+  type AttributeName,
+  type FieldValue,
+  type ElementSetup,
+  type AttributeValues
+} from "$/ui/core"
+import { DOMFormControl, FormComponent } from "$/ui/forms"
 
 import { brandComposerVocabulary } from "./UIBrandComposer.en"
 import { BrandComposerFallback } from "./UIBrandComposer.fallback"
@@ -27,21 +39,16 @@ import composerCSS from "./UIBrandComposer.css?inline"
  * The DOM element of `<ui-brand-composer>`:  a form control's DOM element (`DOMFormControl`), plus `cast()`,
  * so a page can cast what it just put in `value` (the marketing hero's idea chips fill the box and cast at once).
  *
- * - solid-element refuses a DOM element member named like a prop:  `cast` is no attribute (`casting` is).
+ * - `DOMElement` refuses a member named like an attribute's property:  `cast` is no attribute (`casting` is).
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMBrandComposerElement extends DOMFormControl {
+export class DOMBrandComposerElement extends DOMFormControl<UIBrandComposer> {
   /**
    * Cast the current text, as the Cast button does:  `ui-cast`, then the form's submit.
    * - Returns false when nothing was cast:  empty text, `casting`, `disabled`, not rendered yet, or cancelled.
    */
   cast(): boolean {
-    return this.composer?.cast() ?? false
-  }
-
-  /** The component, once it exists. */
-  private get composer(): UIBrandComposer | undefined {
-    return this.component as UIBrandComposer | undefined
+    return this.component?.cast() ?? false
   }
 }
 
@@ -59,10 +66,11 @@ export class DOMBrandComposerElement extends DOMFormControl {
  *   no reflection.  Leaving the box edited sends `ui-change`.
  *
  * - Cast:  the button, Cmd / Ctrl+Enter in the box (either key, on any platform), or the DOM element's `cast()`.
- *   Plain Enter types a new line.
- *   Nothing happens with blank text, while `casting`, or `disabled`:  the button stays focusable then, `aria-disabled`.
- *   `ui-cast` is CANCELABLE:  unless cancelled, a composer inside a `<form>` submits it (`requestSubmit()`),
- *   so `name` / `value` reach the form's `submit` handler.
+ *   - Plain Enter types a new line.
+ *   - Nothing happens with blank text, while `casting`, or `disabled`:
+ *     the button stays focusable then, `aria-disabled`.
+ *   - `ui-cast` is CANCELABLE:  unless cancelled, a composer inside a `<form>` submits it (`requestSubmit()`),
+ *     so `name` / `value` reach the form's `submit` handler.
  * - `casting`:  the PAGE sets it while it builds and clears it;  the button spins (still, with reduced motion),
  *   the card is `aria-busy`, and "Casting your spell…" is announced.  The text stays editable.
  * - Grows with its text (`field-sizing: content`, where the browser has it) from `rows` lines,
@@ -73,8 +81,8 @@ export class DOMBrandComposerElement extends DOMFormControl {
  ****************/
 export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   @proto static vocabulary = brandComposerVocabulary
-  @proto static styleSheets = { composer: composerCSS }
-  @proto static elementSetup = {
+  @protoMerged static elementSetup = {
+    styleSheets: { composer: composerCSS },
     Fallback: BrandComposerFallback,
     DOMElement: DOMBrandComposerElement
   } satisfies Partial<ElementSetup>
@@ -88,9 +96,6 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
 
   /** Which slots have light-DOM children:  `eyebrow`, `tools`. */
   readonly slots = new SlotContent(this.domElement)
-
-  /** The DOM element's `<label>`s and `aria-label`, as the text box's name. */
-  readonly labels = new ControlLabels(this.domFormElement)
 
   /** The Cast button's arrow, and the spinner it shows while `casting`;  loaded up front, so neither flashes in. */
   readonly glyphs = {
@@ -106,35 +111,26 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   ////////////////
 
   /** The text;  tracked. */
-  value(): string {
+  text(): string {
     return String(this.valueState.get() ?? "")
   }
 
   /** Nothing to cast:  empty, or only blanks;  tracked. */
   isBlank(): boolean {
-    return !this.value().trim()
-  }
-
-  get isDisabled(): boolean {
-    return this.attrs.disabled || this.formIsDisabled
+    return !this.text().trim()
   }
 
   /** Can't cast now:  blank, `casting` or disabled;  tracked. */
   isBlocked(): boolean {
-    return this.isBlank() || this.attrs.casting || this.isDisabled
+    return this.isBlank() || this.casting || this.isDisabled
   }
 
-  protected classValue(name: AttributeName<BrandComposerVocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
-  }
-
-  protected get extraClasses(): string | undefined {
-    return this.attrs.size === LARGE ? `${BRAND} ${LARGE}` : BRAND
+  protected get extraClass(): string | undefined {
+    return this.size === LARGE ? `${BRAND} ${LARGE}` : BRAND
   }
 
   protected cssStates() {
-    return { empty: this.isBlank(), casting: this.attrs.casting, disabled: this.isDisabled }
+    return { empty: this.isBlank(), casting: this.casting }
   }
 
   ////////////////
@@ -142,11 +138,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   ////////////////
 
   get formValue(): FieldValue {
-    return this.value()
-  }
-
-  protected get formName(): string | undefined {
-    return this.attrs.name
+    return this.text()
   }
 
   /** Back to the `value` ATTRIBUTE (native `defaultValue`). */
@@ -159,18 +151,12 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   // ## Wiring
   ////////////////
 
-  /** Adds the value sync (`value` => the text box, after DOM updates) and the labels' refresh. */
+  /** Adds the value sync (`value` => the text box, after DOM updates). */
   onMount(): JSX.Element {
     createEffect(
-      () => [this.value(), this.isReady],
+      () => [this.text(), this.isReady],
       () => {
         this.syncControl()
-      }
-    )
-    createEffect(
-      () => this.isConnected,
-      (connected) => {
-        if (connected) this.labels.refresh()
       }
     )
     return super.onMount()
@@ -182,26 +168,22 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div
-        class={this.rootClasses}
-        part={this.partForName("composer")}
-        aria-busy={this.attrs.casting ? "true" : undefined}
-      >
-        <Show when={this.attrs.eyebrow || this.slots.hasContent(this.slotForName("eyebrow"))}>
+      <div class={this.rootClass} part={this.partForName("composer")} aria-busy={this.casting ? "true" : undefined}>
+        <Show when={this.eyebrow || this.slots.hasContent(this.slotForName("eyebrow"))}>
           <div class={CLASSES.eyebrow} part={this.partForName("eyebrow")}>
-            <slot name={this.slotForName("eyebrow")}>{this.attrs.eyebrow}</slot>
+            <slot name={this.slotForName("eyebrow")}>{this.eyebrow}</slot>
           </div>
         </Show>
         <textarea
           ref={(element) => (this.control = element)}
           class={CLASSES.textarea}
           part={this.partForName("textarea")}
-          rows={this.rows()}
+          rows={this.rowCount()}
           style={this.rowsStyle()}
-          placeholder={this.attrs.placeholder ?? this.translationForKey("placeholder")}
+          placeholder={this.placeholder ?? this.translationForKey("placeholder")}
           spellcheck="true"
           aria-label={this.boxName()}
-          aria-describedby={this.hint() ? IDS.hint : undefined}
+          aria-describedby={this.shownHint() ? IDS.hint : undefined}
           aria-keyshortcuts={this.shortcut()}
           disabled={this.isDisabled}
           onInput={this.onInput}
@@ -214,9 +196,9 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
               <slot name={this.slotForName("tools")} />
             </div>
           </Show>
-          <Show when={this.hint()}>
+          <Show when={this.shownHint()}>
             <span id={IDS.hint} class={CLASSES.hint} part={this.partForName("hint")}>
-              {this.hint()}
+              {this.shownHint()}
             </span>
           </Show>
           <button
@@ -229,21 +211,21 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
             disabled={this.isDisabled}
             onClick={this.onCastClick}
           >
-            <Show when={this.attrs.casting} fallback={<span class={CLASSES.icon}>{this.glyphs.cast.svg}</span>}>
+            <Show when={this.casting} fallback={<span class={CLASSES.icon}>{this.glyphs.cast.svg}</span>}>
               <span class={[CLASSES.icon, CLASSES.spin]}>{this.glyphs.casting.svg}</span>
             </Show>
           </button>
         </div>
         <span class={CLASSES.status} role="status">
-          {this.attrs.casting ? this.translationForKey("casting") : ""}
+          {this.casting ? this.translationForKey("casting") : ""}
         </span>
       </div>
     )
   }
 
   /** `rows`, else `DEFAULT_ROWS`;  at least 1. */
-  private rows(): number {
-    const rows = this.attrs.rows
+  private rowCount(): number {
+    const rows = this.rows
     return typeof rows === "number" && Number.isFinite(rows) ? Math.max(1, Math.round(rows)) : DEFAULT_ROWS
   }
 
@@ -252,17 +234,17 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
    * - A method, not an inline object:  Solid's server compile drops the `;` between COMPUTED keys.
    */
   private rowsStyle(): Record<string, string> {
-    return { [ROWS_VAR]: String(this.rows()) }
+    return { [ROWS_VAR]: String(this.rowCount()) }
   }
 
   /** The text box's name (see the class doc);  tracked. */
   private boxName(): string {
-    return this.attrs.label || this.labels.accessibleName || this.attrs.eyebrow || this.translationForKey("label")
+    return this.label || this.labels.accessibleName || this.eyebrow || this.translationForKey("label")
   }
 
   /** The hint:  `hint`, else the platform's;  `""` hides it.  Tracked. */
-  private hint(): string {
-    return this.attrs.hint ?? this.translationForKey(UI.browser.isApple ? "hintApple" : "hintOther")
+  private shownHint(): string {
+    return this.hint ?? this.translationForKey(UI.browser.isApple ? "hintApple" : "hintOther")
   }
 
   /** `aria-keyshortcuts` of the cast shortcut, the platform's. */
@@ -275,20 +257,21 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   ////////////////
 
   /**
-   * Cast the current text (the button, Cmd / Ctrl+Enter, the DOM element's `cast()`):  send `ui-cast`,
-   * then, unless cancelled, submit the form.
+   * Cast the current text (the button, Cmd / Ctrl+Enter, the DOM element's `cast()`):
+   * send `ui-cast`, then, unless cancelled, submit the form.
    * - Reads the DOM element's PROPERTIES, not the signals:
    *   a page may set `value` (or `casting`) and cast in one go, before the signals' writes land.
    * - Returns false when nothing was cast (see the class doc), or `ui-cast` was cancelled.
    * - SIDE EFFECT:  `requestSubmit()` on the DOM element's form.
    */
+  @untracked
   cast(originalEvent?: Event): boolean {
     const value = this.current()
-    if (!value.trim() || this.flagNow("casting") || this.flagNow("disabled") || untrack(() => this.formIsDisabled)) {
+    if (!value.trim() || this.flagNow("casting") || this.flagNow("disabled") || this.formIsDisabled) {
       return false
     }
     if (!this.send("ui-cast", { value, originalEvent })) return false
-    this.domFormElement.internals.form?.requestSubmit()
+    this.domElement.internals.form?.requestSubmit()
     return true
   }
 
@@ -303,7 +286,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
     return !!this.propertyNow(name)
   }
 
-  /** Attribute `name`'s DOM element property, read synchronously (solid-element's stored value, not the signal). */
+  /** Attribute `name`'s DOM element property, read synchronously (the DOM element's `attributeValues`, not the signal). */
   private propertyNow(name: AttributeName<BrandComposerVocabulary>): unknown {
     const { property } = this.elementDefinition.attribute(name)
     return (this.domElement as unknown as Record<string, unknown>)[property]
@@ -324,7 +307,7 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
   private readonly onInput = (event: Event) => {
     const next = (event.currentTarget as HTMLTextAreaElement).value
     const applied = this.valueState.request(next, () => this.send("ui-input", { value: next, originalEvent: event }))
-    if (!applied) queueMicrotask(() => this.syncControl())
+    if (!applied) afterSolidUpdate(() => this.syncControl())
   }
 
   /** Left the box edited:  `ui-change`. */
@@ -344,3 +327,5 @@ export class UIBrandComposer extends FormComponent<BrandComposerVocabulary> {
     this.cast(event)
   }
 }
+
+export interface UIBrandComposer extends AttributeValues<BrandComposerVocabulary> {}

@@ -13,11 +13,13 @@ import __nounCamel__CSS from "./__Class__.css?inline"
  ****************/
 export class __Class__ extends E.UIComponent<typeof __vocab__Vocabulary> {
   @E.proto static vocabulary = __vocab__Vocabulary
-  @E.proto static styleSheets = { "__tag__": __nounCamel__CSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "__tag__": __nounCamel__CSS }
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <slot />
       </div>
     )

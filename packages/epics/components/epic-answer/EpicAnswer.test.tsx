@@ -51,7 +51,7 @@ describe("<epic-reply>", () => {
       ["Owen", "10/6/26 10:42"]
     ])
     expect(part(claude, "date")!.getAttribute("datetime")).toBe("2026-10-06 23:55")
-    expect([part(claude, "base")!.className, part(owen, "base")!.className]).toEqual(["reply", "reply owen"])
+    expect([part(claude, "base")!.className, part(owen, "base")!.className]).toEqual(["reply", "owen reply"])
     await expectAccessible(claude)
     await expectAccessible(owen)
   })

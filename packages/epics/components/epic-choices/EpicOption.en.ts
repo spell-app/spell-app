@@ -84,7 +84,13 @@ export const epicOptionVocabulary = {
       description: "The thumbs-up after the recommended option's title:  its label and tooltip."
     },
     { key: "choose", text: "Choose", description: "The Choose pill." },
-    { key: "chosen", text: "Chosen", description: "The Choose pill, its letter picked." },
+    { key: "chosen", text: "Chosen", description: "The Choose pill on its set's chosen option:  the pick applied." },
+    { key: "chosenNotSent", text: "Chosen · not sent", description: "The Choose pill, its letter picked, not sent." },
+    {
+      key: "chosenSent",
+      text: "Chosen · sent",
+      description: "The Choose pill, its letter picked and sent:  Claude has it, the doc doesn't yet."
+    },
     { key: "tipChoose", text: "Pick {letter}", description: "The pill's tooltip." },
     { key: "tipChosen", text: "{letter} is picked:  click to un-pick", description: "The picked pill's tooltip." },
     { key: "tipSent", text: "sent", description: "The picked pill's tooltip, once its mark went to Claude." },

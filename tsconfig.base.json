@@ -20,7 +20,7 @@
   //   `$/util` barrel also holds spell's heavy utilities, which `ui` must not bundle).
   // - NOTE: every alias works from every package.  The one-way dependency rule is by convention:
   //   `cli` -> `app` -> `lsp` -> `spell` -> `parser` / `core` -> `util`, `markdown` -> `parser`, and
-  //   `ui` -> `solid-element` / `util`.  e.g. `ui` MUST NOT import `$/spell`.
+  //   `ui` -> `util`.  e.g. `ui` MUST NOT import `$/spell`.
   //   `server` is a LEAF (node built-ins only):  anything may import it.  Its opt-in entry points:  `$/server/page/...`
   //   (the page server) and `$/server/site/...` (the site header);  `$/server/test/...` are its test helpers.
   //   `assembler` (assembling pages:  link targets, formatting) is node-only and imports no package:  `docs` and
@@ -42,6 +42,9 @@
       "$/lsp/*": ["./packages/lsp/src/*"],
       "$/app": ["./packages/app/src/index.tsx"],
       "$/app/*": ["./packages/app/src/*"],
+      // `<spell-app>` / `<spell-editor>` live in `packages/app/components/`, outside `src/`, as a component pack's
+      // families do (`epics` below):  `$/app/components/*` is longer than `$/app/*`, so it wins
+      "$/app/components/*": ["./packages/app/components/*"],
       "$/cli": ["./packages/cli/src/index.ts"],
       "$/cli/*": ["./packages/cli/src/*"],
       "$/server": ["./packages/server/src/index.ts"],

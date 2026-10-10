@@ -5,11 +5,14 @@ import {
   DOMElement,
   IconGlyph,
   proto,
+  protoMerged,
   SlotContent,
   state,
   UIComponent,
+  untracked,
   type AttributeName,
-  type ElementSetup
+  type ElementSetup,
+  type AttributeValues
 } from "$/ui/core"
 
 import { brandFieldVocabulary } from "./UIBrandField.en"
@@ -22,23 +25,18 @@ import fieldCSS from "./UIBrandField.css?inline"
  * through `:state(field)`, as on a `<ui-field>` (whose DOM element, `DOMFieldElement`, has the same two members).
  *
  * - `errors`:  the messages `<ui-form>` asked to show.
- * - solid-element checks a DOM element's prototype members against prop names;  neither of these is one.
+ * - `DOMElement` checks its members against the attributes' property names;  neither of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMBrandFieldElement extends DOMElement {
+export class DOMBrandFieldElement extends DOMElement<UIBrandField> {
   /** Show `messages` under the control (and the `error` state);  `[]` clears. */
   showErrors(messages: readonly string[]) {
-    this.field?.showErrors(messages)
+    this.component?.showErrors(messages)
   }
 
   /** Messages `<ui-form>` asked to show;  untracked. */
   get errors(): readonly string[] {
-    return untrack(() => this.field?.formErrors) ?? []
-  }
-
-  /** The field's component, once it exists. */
-  private get field(): UIBrandField | undefined {
-    return this.component as UIBrandField | undefined
+    return untrack(() => this.component?.formErrors) ?? []
   }
 }
 
@@ -69,10 +67,12 @@ export class DOMBrandFieldElement extends DOMElement {
  ****************/
 export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   @proto static vocabulary = brandFieldVocabulary
-  @proto static styleSheets = { field: fieldCSS }
-  @proto static elementSetup = {
+  @protoMerged static elementSetup = {
+    styleSheets: { field: fieldCSS },
     DOMElement: DOMBrandFieldElement,
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  its box is inert, a look;  the element still takes clicks
+    disabled: "its own"
   } satisfies Partial<ElementSetup>
 
   ////////////////
@@ -86,7 +86,7 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   readonly slots = new SlotContent(this.domElement)
 
   /** Has an info tip:  `info`, or `slot="info"`. */
-  readonly hasInfo = createMemo(() => !!this.attrs.info || this.slots.hasContent(this.slotForName("info")))
+  readonly hasInfo = createMemo(() => !!this.info || this.slots.hasContent(this.slotForName("info")))
 
   /** Glyph of the info icon, while there's a tip. */
   readonly infoGlyph = new IconGlyph({ owner: this, name: () => (this.hasInfo() ? INFO_ICON : undefined) })
@@ -105,24 +105,25 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   readonly errors = createMemo((): readonly string[] => {
     const fromForm = this.formErrors
     if (fromForm.length) return fromForm
-    return this.attrs.error ? [this.attrs.error] : []
+    return this.error ? [this.error] : []
   })
 
   /** The state shown:  `error` while there's an error, else the attribute. */
-  readonly shownState = createMemo(() => (this.errors().length ? ERROR : this.attrs.state))
+  readonly shownState = createMemo(() => (this.errors().length ? ERROR : this.state))
 
   readonly hasActions = createMemo(() => this.slots.hasContent(this.slotForName("actions")))
-  readonly hasValue = createMemo(() => !!this.attrs.value || this.slots.hasContent(this.slotForName("value")))
-  readonly hasHelp = createMemo(() => !!this.attrs.help || this.slots.hasContent(this.slotForName("help")))
-  readonly hasLabel = createMemo(() => !!this.attrs.label || this.slots.hasContent(this.slotForName("label")))
+  readonly hasValue = createMemo(() => !!this.value || this.slots.hasContent(this.slotForName("value")))
+  readonly hasHelp = createMemo(() => !!this.help || this.slots.hasContent(this.slotForName("help")))
+  readonly hasLabel = createMemo(() => !!this.label || this.slots.hasContent(this.slotForName("label")))
 
   ////////////////
   // ## `<ui-form>`
   ////////////////
 
   /** Show `messages` (see `DOMBrandFieldElement`). */
+  @untracked
   showErrors(messages: readonly string[]) {
-    const current = untrack(() => this.formErrors)
+    const current = this.formErrors
     if (current.length !== messages.length || current.some((message, index) => message !== messages[index])) {
       this.formErrors = [...messages]
     }
@@ -137,12 +138,13 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
     return super.classValue(name)
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return BRAND
   }
 
   protected cssStates() {
-    return { field: true, error: this.shownState() === ERROR, disabled: this.attrs.disabled }
+    // `:state(disabled)` is `UIComponent`'s
+    return { field: true, error: this.shownState() === ERROR }
   }
 
   ////////////////
@@ -152,14 +154,14 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   render(): JSX.Element {
     this.effects()
     return (
-      <div class={this.rootClasses} part={this.partForName("field")} inert={this.attrs.disabled}>
+      <div class={this.rootClass} part={this.partForName("field")} inert={this.disabled}>
         <Show when={this.hasLabel() || this.hasActions() || this.hasValue() || this.hasInfo()}>{this.renderRow()}</Show>
         <div class={CLASSES.control} part={this.partForName("control")}>
           <slot ref={(element) => (this.controlSlot = element)} onSlotChange={this.onControlChange} />
         </div>
         <Show when={this.hasHelp()}>
           <div class={CLASSES.help} part={this.partForName("help")}>
-            <slot name={this.slotForName("help")}>{this.attrs.help}</slot>
+            <slot name={this.slotForName("help")}>{this.help}</slot>
           </div>
         </Show>
         <Show when={this.errors().length}>
@@ -176,7 +178,7 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
     return (
       <div class={CLASSES.row} part={this.partForName("row")}>
         <span class={CLASSES.label} part={this.partForName("label")} onClick={this.onLabelClick}>
-          <slot name={this.slotForName("label")}>{this.attrs.label}</slot>
+          <slot name={this.slotForName("label")}>{this.label}</slot>
         </span>
         <Show when={this.hasActions()}>
           <span class={CLASSES.actions} part={this.partForName("actions")}>
@@ -185,7 +187,7 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
         </Show>
         <Show when={this.hasValue()}>
           <span class={CLASSES.value} part={this.partForName("value")}>
-            <slot name={this.slotForName("value")}>{this.attrs.value}</slot>
+            <slot name={this.slotForName("value")}>{this.value}</slot>
           </span>
         </Show>
         <Show when={this.hasInfo()}>
@@ -194,12 +196,12 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
             part={this.partForName("info")}
             tabindex="0"
             role="img"
-            aria-label={this.translationForKey("info", { label: this.attrs.label ?? "" })}
+            aria-label={this.translationForKey("info", { label: this.label ?? "" })}
             aria-describedby={TIP_ID}
           >
             {this.infoGlyph.svg}
             <span id={TIP_ID} class={CLASSES.tip} part={this.partForName("tip")} role="tooltip">
-              <slot name={this.slotForName("info")}>{this.attrs.info}</slot>
+              <slot name={this.slotForName("info")}>{this.info}</slot>
             </span>
           </span>
         </Show>
@@ -210,7 +212,7 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   /** A new `label`:  rename the controls this field named. */
   private effects() {
     createEffect(
-      () => this.attrs.label,
+      () => this.label,
       (label) => {
         this.nameControls(label)
       }
@@ -222,8 +224,9 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   ////////////////
 
   /** The slotted controls changed:  name the new ones. */
+  @untracked
   private readonly onControlChange = () => {
-    this.nameControls(untrack(() => this.attrs.label))
+    this.nameControls(this.label)
   }
 
   /**
@@ -251,7 +254,9 @@ export class UIBrandField extends UIComponent<typeof brandFieldVocabulary> {
   }
 }
 
-/** Class word the component adds after the noun:  `field brand`. */
+export interface UIBrandField extends AttributeValues<typeof brandFieldVocabulary> {}
+
+/** Class word the component adds before the noun:  `brand field`. */
 const BRAND = "brand"
 
 /** The `error` state, shown while there's an error message. */
