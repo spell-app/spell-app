@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E, UI } from "$/ui/core"
 import type { SpellCore } from "$/core"
 import { spellElementVocabulary } from "./SpellElement.en"
 
@@ -35,20 +35,36 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
   /**
    * Make `tag` the element of drawable class `Class`, from `spellCore`'s program, e.g. `solitaire-card` for `Card`.
    * - The first time:  a component class for the tag, its vocabulary ours under that tag, defined on the page.
-   * - Again (a program run again, or another `<spell-app>` running the same project):  the tag stays defined,
-   *   and draws with the latest `spellCore` from then on.
+   * - Again (a program run again after an edit, or another `<spell-app>` running the same project):
+   *   the platform can't define a tag twice, so it stays, and what's behind it is swapped (epic `drawable-thing` P7):
+   *   - it draws with the latest `spellCore` from then on (`SPELL_ELEMENTS`)
+   *   - its type's CSS is replaced in every element of the tag on the page, at once (`restyle()`)
+   *   - what it draws comes from its `thing`, so a program run again draws its new things with their new `draw()`
    */
   static defineFor(tag: string, Class: Function, spellCore: SpellCore): void {
     SPELL_ELEMENTS.set(tag, { Class, spellCore })
-    if (customElements.get(tag)) return
+    // never "":  `UI.styles.register()` takes that as "unregister", and the tag's elements would lose the sheet
+    const css = SpellElement.cssOf(Class) || `/* <${tag}>:  no styles of its own */`
+    if (customElements.get(tag)) return SpellElement.restyle(tag, css)
     // our names under its tag:  typed as ours, whose tag is a literal
     const vocabulary = { ...spellElementVocabulary, tag, noun: Class.name } as unknown as typeof spellElementVocabulary
-    const css = SpellElement.cssOf(Class)
     const Component = class extends SpellElement {
       @E.proto static vocabulary = vocabulary
-      @E.protoMerged static elementSetup: Partial<E.ElementSetup> = { styleSheets: css ? { [tag]: css } : {} }
+      // the sheet is named for the tag, so `restyle()` can replace it
+      @E.protoMerged static elementSetup: Partial<E.ElementSetup> = { styleSheets: { [tag]: css } }
     }
     Component.define()
+  }
+
+  /**
+   * Replace `tag`'s own sheet with `css`, in every shadow root that adopted it:  no element is drawn again.
+   * - Spell UI's own way to swap a sheet (`UI.styles.register()`), as its hot reload does.
+   * - Waits for the runtime, if it hasn't loaded yet.
+   */
+  static restyle(tag: string, css: string): void {
+    const register = () => void UI.styles.register(tag, css)
+    if ((globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY]) register()
+    else void UI.load().then(register)
   }
 
   /**
