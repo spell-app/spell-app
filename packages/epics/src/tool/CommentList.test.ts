@@ -52,6 +52,30 @@ describe("CommentList", () => {
     expect([comments.comment(other).status, comments.waiting]).toEqual(["answered", []])
   })
 
+  test("Undo:  a deleted or cleared comment comes back as it was, under its id unless a new one took it", () => {
+    const comments = new CommentList({})
+    const id = comments.add({ ...ON_FIELD, quote: "the inbox file", offset: 14 }, "Which one?", NOW)
+    comments.take(id, { epic: "guide-changes", phase: 4 }, NOW)
+    comments.answer(id, "<p>That one.</p>", NOW)
+    const before = comments.all[0]
+    comments.clear(id)
+    expect(comments.restore(id, before)).toBe(id)
+    expect(comments.all).toEqual([before])
+    // deleted, then a new comment took its id:  back under the next one
+    comments.clear(id)
+    expect(comments.add(ON_FIELD, "newer", NOW)).toBe(id)
+    expect(comments.restore(id, before)).toBe("cm2")
+    const { id: _id, ...kept } = before
+    expect(comments.comment("cm2")).toEqual(kept)
+    expect(comments.all.map(({ id: each, text }) => [each, text])).toEqual([
+      ["cm1", "newer"],
+      ["cm2", "Which one?"]
+    ])
+    expect(() => comments.restore("cm9", { ...before, text: "  " })).toThrow(/needs some text/)
+    expect(() => comments.restore("cm9", { ...before, status: "gone" as "new" })).toThrow(/isn't a comment's status/)
+    expect(() => comments.restore("cm9", { ...before, anchor: "two words" })).toThrow(/isn't an anchor/)
+  })
+
   test("refuses a bad anchor or kind, blank text, a comment that isn't there", () => {
     const comments = new CommentList({})
     expect(() => comments.add({ ...ON_FIELD, anchor: "two words" }, "x")).toThrow(/isn't an anchor/)

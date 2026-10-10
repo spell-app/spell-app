@@ -17,6 +17,8 @@
  *   - `add` `{ anchor, kind, label, excerpt, quote?, offset?, text }`:  a new comment;  answers its `id`
  *   - `edit` `{ id, text }`, `delete` `{ id }`:  only while the comment is `new` (else 409)
  *   - `clear` `{ id }`:  gone, whatever its status (`CommentList.clear()`)
+ *   - `restore` `{ id, comment }`:  a comment deleted or cleared a moment ago, back as the GET gave it (the page's
+ *     Undo:  `CommentList.restore()`);  answers its `id`, the same unless a new comment took it meanwhile
  * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too).
  *   Which pages take comments (`commentsPage()`):
  *   - any `.html` under `guides/`, `pages/` (the docs home, details pages) and `epics/` (plan docs, an epic's own
@@ -35,7 +37,7 @@ import { existsSync, readFileSync } from "node:fs"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
-import { CommentsError, type CommentList, type CommentPlace } from "$/epics/tool/CommentList"
+import { CommentsError, type Comment, type CommentList, type CommentPlace } from "$/epics/tool/CommentList"
 import { ReviewInbox } from "$/epics/tool/ReviewInbox"
 
 import { GuideInbox } from "./GuideInbox"
@@ -126,6 +128,7 @@ export async function changeComments<T>(file: string, change: (comments: Comment
 /** Make `change` in `comments`;  returns the comment's id. */
 function changeComment(comments: CommentList, change: CommentChange): string {
   if (change.action === "add") return comments.add(change.place, change.text)
+  if (change.action === "restore") return comments.restore(change.id, change.comment)
   if (change.action === "edit") comments.edit(change.id, change.text)
   else if (change.action === "clear") comments.clear(change.id)
   else comments.remove(change.id)
@@ -134,11 +137,11 @@ function changeComment(comments: CommentList, change: CommentChange): string {
 
 /**
  * A POST's body, checked.
- * - 400:  an unknown `action`, or what it needs missing (`anchor` and `kind` to add, `id` to edit, delete or clear);
- *   the rest is checked by `CommentList`
+ * - 400:  an unknown `action`, or what it needs missing (`anchor` and `kind` to add, `id` to edit, delete, clear
+ *   or restore, the `comment` to restore);  the rest is checked by `CommentList`
  */
 function toChange(body: unknown): CommentChange {
-  const { page, action, id, text, anchor, kind, label, excerpt, quote, offset } = (body ?? {}) as Record<
+  const { page, action, id, text, anchor, kind, label, excerpt, quote, offset, comment } = (body ?? {}) as Record<
     string,
     unknown
   >
@@ -155,9 +158,13 @@ function toChange(body: unknown): CommentChange {
     if (typeof quote === "string") Object.assign(place, { quote, offset: Number(offset) })
     return { page, action, place, text: words }
   }
-  if (action !== "edit" && action !== "delete" && action !== "clear")
-    throw new SRV.HttpError(400, `action is add, edit, delete or clear, not "${String(action)}"`)
+  if (action !== "edit" && action !== "delete" && action !== "clear" && action !== "restore")
+    throw new SRV.HttpError(400, `action is add, edit, delete, clear or restore, not "${String(action)}"`)
   if (typeof id !== "string") throw new SRV.HttpError(400, `${action}:  which comment?`)
+  if (action === "restore") {
+    if (!comment || typeof comment !== "object") throw new SRV.HttpError(400, "restore:  which comment, as it was?")
+    return { page, action, id, comment: comment as Comment }
+  }
   return action === "edit" ? { page, action, id, text: words } : { page, action, id }
 }
 
@@ -179,3 +186,4 @@ type CommentChange =
   | { page: unknown; action: "add"; place: CommentPlace; text: string }
   | { page: unknown; action: "edit"; id: string; text: string }
   | { page: unknown; action: "delete" | "clear"; id: string }
+  | { page: unknown; action: "restore"; id: string; comment: Comment }
