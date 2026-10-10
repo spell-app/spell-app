@@ -1,0 +1,74 @@
+<!doctype html>
+<!--
+  Owen's Klondike sketch:  a spell app laid out in plain HTML, around its program --
+  served by the dev server at `/demo/klondike-layout.html`, after `yarn build:element` (epic `drawable-thing`, P9).
+  - The `<spell-app>`'s markup IS the app's drawing:  the game's own `to draw` isn't drawn.
+  - Each drawable tag is the program's thing named by its `id` (`T1` ... the tableaus;  `clubs` ... the foundations),
+    or its one thing of that type (the stock, the discards).
+  - The curly-bracket holes and the action are spell, compiled in the page against the program:
+    the page loads spell's parser for them, and only for them.
+  - An attribute hole with a space in it needs quotes:  `action="{auto-play}"` is fine bare, `"{bump the score}"` isn't.
+-->
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Klondike layout demo</title>
+    <script type="module" src="/element/spell-app.js"></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 16px;
+        font-family: Georgia, serif;
+        background: #f4f1ea;
+      }
+      .row {
+        display: grid;
+        grid-template-columns: repeat(7, 1fr);
+        gap: 12px;
+        margin-bottom: 16px;
+        align-items: start;
+      }
+      .title {
+        grid-column: span 2;
+        font-size: 1.4em;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <spell-app project="@examples/Drawable Solitaire" name="Solitaire">
+      <div class="row">
+        <div class="title">Klondike Solitaire</div>
+        <div class="score">Score {score of the game}</div>
+        <button action="{auto-play}">AutoPlay</button>
+      </div>
+      <div class="row">
+        <drawable-solitaire-discard-pile></drawable-solitaire-discard-pile>
+        <!-- a <spell> block's lines and indents are spell's:  the formatter leaves them alone -->
+        <!-- prettier-ignore -->
+        <drawable-solitaire-stock-pile>
+          <spell>
+            when double-clicked
+              play from the stock pile
+          </spell>
+        </drawable-solitaire-stock-pile>
+        <div></div>
+        <drawable-solitaire-foundation id="clubs"></drawable-solitaire-foundation>
+        <drawable-solitaire-foundation id="diamonds"></drawable-solitaire-foundation>
+        <drawable-solitaire-foundation id="hearts"></drawable-solitaire-foundation>
+        <drawable-solitaire-foundation id="spades"></drawable-solitaire-foundation>
+      </div>
+      <div class="row">
+        <drawable-solitaire-tableau id="T1"></drawable-solitaire-tableau>
+        <drawable-solitaire-tableau id="T2"></drawable-solitaire-tableau>
+        <drawable-solitaire-tableau id="T3"></drawable-solitaire-tableau>
+        <drawable-solitaire-tableau id="T4"></drawable-solitaire-tableau>
+        <drawable-solitaire-tableau id="T5"></drawable-solitaire-tableau>
+        <drawable-solitaire-tableau id="T6"></drawable-solitaire-tableau>
+        <drawable-solitaire-tableau id="T7"></drawable-solitaire-tableau>
+      </div>
+      <div>{the number of cards in the stock} cards left in the stock</div>
+    </spell-app>
+  </body>
+</html>

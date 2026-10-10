@@ -89,3 +89,27 @@ export type SpellCompiled = {
   /** Its declarations, for the Type Explorer's code -- see `SP.SpellDeclarationsData`. */
   declarations?: SP.SpellDeclarationsData
 }
+
+////////////////
+// ## Spell in a layout
+//  what `<spell-app>`'s layout may hold (epic `drawable-thing` P9) -- here, so the runner can tell
+//  WITHOUT loading `LayoutSpell`, which holds the parser
+////////////////
+
+/** The tag of a block of spell in a layout:  `<spell> when clicked ... </spell>`. */
+export const LAYOUT_SPELL_TAG = "spell"
+
+/** A hole in a layout's text:  `{...}`, no braces inside. */
+export const LAYOUT_HOLE = /\{[^{}]+\}/
+
+/** An attribute that's all one hole, `{...}`, its spell captured. */
+export const LAYOUT_WHOLE_HOLE = /^\s*\{([\s\S]+)\}\s*$/
+
+/** Does `root`'s layout have spell in it:  a hole, an action or a `<spell>` block?  See `LayoutSpell`. */
+export function layoutHasSpell(root: Element): boolean {
+  if (root.querySelector(LAYOUT_SPELL_TAG)) return true
+  if (LAYOUT_HOLE.test(root.textContent ?? "")) return true
+  return [...root.querySelectorAll("*")].some((element) =>
+    [...element.attributes].some((attribute) => LAYOUT_WHOLE_HOLE.test(attribute.value))
+  )
+}

@@ -186,6 +186,24 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
     }
   }
 
+  /** The drawable class `element`'s tag is for, e.g. `Card` for `<solitaire-card>` -- `undefined` for any other tag. */
+  static classOf(element: Element): Function | undefined {
+    return SPELL_ELEMENTS.get(element.localName)?.Class
+  }
+
+  /** The thing drawable tag `element` draws, if any -- see `currentThing`. */
+  static thingOf(element: Element): object | undefined {
+    return (element as Element & { component?: SpellElement }).component?.currentThing
+  }
+
+  /** `element`, or its nearest ancestor, that's a drawable type's tag -- `undefined` if none is. */
+  static closestDrawable(element: Element): Element | undefined {
+    for (let at: Element | null = element; at; at = at.parentElement) {
+      if (SPELL_ELEMENTS.has(at.localName)) return at
+    }
+    return undefined
+  }
+
   /**
    * Replace `tag`'s own sheet with `css`, in every shadow root that adopted it:  no element is drawn again.
    * - Spell UI's own way to swap a sheet (`UI.styles.register()`), as its hot reload does.

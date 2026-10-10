@@ -4,6 +4,8 @@ import { flush } from "solid-js"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import type { SpellCompiled } from "$/app/runner/runner.types"
 import type { DOMSpellAppElement } from "$/app/components/spell-app"
+import type { P } from "$/parser"
+import type { SP } from "$/spell"
 
 /**
  * `<spell-app>` as a root (`UIRoot`), on a page with nothing else of Spell UI.
@@ -90,6 +92,82 @@ describe("<spell-app> laid out in markup (epic `drawable-thing` P9)", () => {
     expect(app.shadowRoot!.querySelector(".own-drawing")).toBeNull()
   })
 })
+
+describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", () => {
+  /** A game with a score, a function that bumps it, and one drawable tile, as a project compiles them. */
+  const GAME = [
+    "a tile is a drawable thing",
+    "a tile has a name as text",
+    "a tile has a count as a number",
+    "a game is an app",
+    "a game has a score as a number",
+    "set the game to a new game",
+    "set the score of the game to 3",
+    "to bump the score",
+    "\tset the score of the game to the score of the game + 1",
+    'set the first-tile to a new tile with name = "T1", count = 2',
+    "to draw a tile",
+    '\treturn <b className="tile">{its name}</b>',
+    "to draw a game",
+    '\treturn <p className="own-drawing">its own</p>',
+    "start the game"
+  ].join("\n")
+
+  test("holes show the program's values, live;  an action runs on a click;  a <spell> block handles its element's", async () => {
+    const app = await mountApp(
+      `<spell-app>` +
+        `<p class="score">Score {score of the game}</p>` +
+        `<button class="bump" action="{bump the score}">Bump</button>` +
+        `<test-project-tile id="T1"><spell>\n  when clicked\n    set its count to its count + 1\n</spell></test-project-tile>` +
+        `<p class="count">{the count of T1} left</p>` +
+        `</spell-app>`
+    )
+    app.run({ projectId: "@test:fixtures:Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
+    const text = (selector: string) => app.querySelector(selector)?.textContent
+    await waitFor(() => text(".score") === "Score 3", 10_000)
+    expect(text(".count")).toBe("2 left")
+    expect(app.querySelector<HTMLElement>("spell")!.hidden).toBe(true)
+
+    app.querySelector<HTMLElement>(".bump")!.click()
+    await waitFor(() => text(".score") === "Score 4")
+
+    app.querySelector<HTMLElement>("test-project-tile")!.click()
+    await waitFor(() => text(".count") === "3 left")
+    // its `to draw` isn't drawn:  the markup is its drawing
+    expect(app.shadowRoot!.querySelector(".own-drawing")).toBeNull()
+  })
+
+  test("spell that doesn't read shows ⚠ where it was", async () => {
+    const app = await mountApp(`<spell-app><p class="bad">{no such thing at all}</p></spell-app>`)
+    app.run({ projectId: "@test:fixtures:Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
+    await waitFor(() => app.querySelector(".bad")?.textContent === "⚠", 10_000)
+  })
+})
+
+/**
+ * Spell project `text`, one file, compiled as a project is:  its javascript, and its declarations.
+ * - Spell imported only now:  imported with the file, it loads before `<spell-app>`'s own setup has run.
+ */
+async function compiledProject(text: string): Promise<{ compiled: string; declarations: SP.SpellDeclarationsData }> {
+  const [{ P }, { SP }] = await Promise.all([import("$/parser"), import("$/spell")])
+  const parentScope = SP.SpellParser.rootScope
+  const scope = new P.ProjectScope({
+    name: "test-project",
+    path: "/test-project",
+    parser: parentScope.parser!.clone({ module: "/test-project" }),
+    parentScope
+  })
+  scope.parser!.stubDeclaredTypes(scope, [text])
+  const match = new P.FileScope({ name: "/Main.spell", path: "/Main.spell", parentScope: scope }).parse(text, "block")!
+  const marked = SP.SpellProject.combineCompiled(
+    [match.AST as P.ASTStatementGroup],
+    undefined,
+    SP.SpellProject.importHeaderFor(scope),
+    scope
+  )
+  const { code, declarations } = SP.SpellDeclarations.split(marked, scope)
+  return { compiled: code, declarations }
+}
 
 ////////////////
 // ## Helpers
