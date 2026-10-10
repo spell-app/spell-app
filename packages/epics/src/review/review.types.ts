@@ -11,11 +11,11 @@ import type {
   InboxDraft,
   InboxListener,
   InboxMark,
-  InboxRecord,
   InboxUrgency,
   NewKind,
   NowAction,
   NowRequest,
+  PageInbox,
   PickFields,
   WorkingEntry
 } from "$/epics/tool/ReviewInbox"
@@ -109,8 +109,15 @@ export const AGENTS_FILE = "agents.json"
 // ## Types
 ////////////////
 
-/** The inbox as the page keeps it:  every field a route's reply has that the page reads. */
-export type Inbox = Pick<InboxRecord, "marks" | "drafts" | "urgency" | "sent" | "now" | "working" | "listening">
+/**
+ * The inbox as the page keeps it:  every field a route's reply has that the page reads.
+ * - `unsentComments`:  the ids of the comments Send would hand over, as the routes work it out
+ *   (`ReviewInbox.forPage()`);  `[]` from a server started before Send took comments
+ */
+export type Inbox = Pick<
+  PageInbox,
+  "marks" | "drafts" | "urgency" | "sent" | "now" | "working" | "listening" | "unsentComments"
+>
 
 /** A mark to set, before the route stamps it. */
 export type MarkInput = Omit<InboxMark, "at">
@@ -228,7 +235,10 @@ export function inboxOf(reply: unknown): Inbox {
     sent: typeof record.sent === "string" ? record.sent : null,
     now: Array.isArray(record.now) ? (record.now as NowRequest[]) : [],
     working: isObject(record.working) ? (record.working as Inbox["working"]) : {},
-    listening: isObject(record.listening) ? (record.listening as InboxListener) : null
+    listening: isObject(record.listening) ? (record.listening as InboxListener) : null,
+    unsentComments: Array.isArray(record.unsentComments)
+      ? record.unsentComments.filter((id): id is string => typeof id === "string")
+      : []
   }
 }
 
@@ -327,4 +337,15 @@ export function sentence(message: string): string {
 /** A plain object (not null, not an array)? */
 function isObject(value: unknown): boolean {
   return !!value && typeof value === "object" && !Array.isArray(value)
+}
+
+/**
+ * The page server's answer to "start a review" (`POST /api/review/start`, epic `airplane` P12):  its `StartResult`.
+ * - `sent`:  typed into the one session titled for the epic;  `none` / `several` / `no-window`:  nothing sent
+ */
+export type StartAnswer = {
+  state: "sent" | "none" | "several" | "no-window"
+  command: string
+  sessions: string[]
+  message: string
 }
