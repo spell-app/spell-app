@@ -101,8 +101,8 @@ export function getKnownType(match: P.Match): P.TypeScope {
 ////////////////
 
 /** Possibly-unknown type identifier, singular or plural, e.g. `thing` or `things` => `Thing`. */
-class type extends SpellType {}
-types.addRule(type, {
+class Type extends SpellType {}
+types.addRule(Type, {
   tests: [
     {
       tests: [
@@ -123,7 +123,7 @@ types.addRule(type, {
 ////////////////
 
 /** Possibly-unknown type identifier which MUST be singular -- fails on plural input. */
-class singular_type extends SpellType {
+class SingularType extends SpellType {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     if (match && typeof match.raw === "string" && match.raw === singularize(match.raw)) return match
@@ -135,7 +135,7 @@ class singular_type extends SpellType {
     return type
   }
 }
-types.addRule(singular_type, {
+types.addRule(SingularType, {
   tests: [
     {
       tests: [
@@ -162,7 +162,7 @@ types.addRule(singular_type, {
  * Possibly-unknown type identifier which MUST be plural -- fails on singular input.
  * - NOTE: the output type name will be SINGULAR, e.g. `things` => `Thing`.
  */
-class plural_type extends SpellType {
+class PluralType extends SpellType {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     if (match && typeof match.raw === "string" && match.raw === pluralize(match.raw)) return match
@@ -174,7 +174,7 @@ class plural_type extends SpellType {
     return type
   }
 }
-types.addRule(plural_type, {
+types.addRule(PluralType, {
   tests: [
     {
       tests: [
@@ -203,15 +203,15 @@ types.addRule(plural_type, {
  * - One word (dashes OK) inside straight quotes, not blacklisted;  a `SpellType` match like `card` would be.
  * - `raw` is the name without its quotes, e.g. `card`.
  */
-class quoted_type extends SpellType {
+class QuotedType extends SpellType {
   /** A text token whose inside is one type word. */
   test(scope: P.Scope, tokens: P.Token[], start = 0) {
-    return quoted_type.nameOf(tokens[start], this.blacklist) !== undefined
+    return QuotedType.nameOf(tokens[start], this.blacklist) !== undefined
   }
 
   parse(scope: P.Scope, tokens: P.Token[]) {
     const [token] = tokens
-    const raw = quoted_type.nameOf(token, this.blacklist)
+    const raw = QuotedType.nameOf(token, this.blacklist)
     if (!token || raw === undefined) return undefined
     const match: P.MatchFor<this> = new P.Match({
       rule: this,
@@ -238,7 +238,7 @@ class quoted_type extends SpellType {
     return name
   }
 }
-types.addRule(quoted_type, {
+types.addRule(QuotedType, {
   tests: [
     {
       tests: [
@@ -305,14 +305,14 @@ export class SubjectRule extends SpellType {
 }
 
 /** `it`, as the subject of an outline body's line, e.g. `- it has a deck` -- see `SubjectRule`. */
-class subject_it extends SubjectRule {}
-types.addRule(subject_it)
+class SubjectIt extends SubjectRule {}
+types.addRule(SubjectIt)
 
 /** `its`, as the subject of an outline body's line, e.g. `- its "suit" is ...` -- see `SubjectRule`. */
-class subject_its extends SubjectRule {
+class SubjectIts extends SubjectRule {
   @proto static word = "its"
 }
-types.addRule(subject_its)
+types.addRule(SubjectIts)
 
 ////////////////
 // ## `known_type` rule
@@ -323,7 +323,7 @@ types.addRule(subject_its)
  * Known type identifier, NOT including built-in types like `Object`.
  * - `match.data.scopeType` will be the existing `TypeScope`.
  */
-class known_type extends SpellType {
+class KnownType extends SpellType {
   // alias: "expression",
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
@@ -333,7 +333,7 @@ class known_type extends SpellType {
     return undefined
   }
 }
-types.addRule(known_type, {
+types.addRule(KnownType, {
   tests: [
     {
       beforeEach(scope: P.Scope) {

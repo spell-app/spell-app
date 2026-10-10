@@ -28,10 +28,10 @@ export const core = new SpellParser({ module: "core" })
  *   `whitespace` `Subrule`), matching zero-or-more times.  See report: the old bag form got away with
  *   `constructor: class ... extends P.Subrule` only because it's dead code, never referenced elsewhere.
  */
-class eat_whitespace extends P.Repeat {
+class EatWhitespace extends P.Repeat {
   @proto static datatype = "text"
 }
-core.addRule(eat_whitespace, {
+core.addRule(EatWhitespace, {
   syntax: "{whitespace}*"
 })
 
@@ -41,7 +41,7 @@ core.addRule(eat_whitespace, {
 ////////////////
 
 /** Any whitespace token -- space, tab, newline, etc., wrapped as-is into a `StringLiteral`. */
-class whitespace extends P.TokenType {
+class Whitespace extends P.TokenType {
   @proto static datatype = "text"
   @proto static tokenType = P.WhitespaceToken
 
@@ -50,7 +50,7 @@ class whitespace extends P.TokenType {
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
-core.addRule(whitespace)
+core.addRule(Whitespace)
 
 ////////////////
 // ## `indent` rule
@@ -58,7 +58,7 @@ core.addRule(whitespace)
 ////////////////
 
 /** Indent whitespace specifically, e.g. leading spaces/tabs at start of a line. */
-class indent extends P.TokenType {
+class Indent extends P.TokenType {
   @proto static datatype = "text"
   @proto static tokenType = P.IndentToken
 
@@ -67,7 +67,7 @@ class indent extends P.TokenType {
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
-core.addRule(indent)
+core.addRule(Indent)
 
 ////////////////
 // ## `newline` rule
@@ -75,7 +75,7 @@ core.addRule(indent)
 ////////////////
 
 /** Single newline. */
-class newline extends P.TokenType {
+class Newline extends P.TokenType {
   @proto static datatype = "text"
   @proto static tokenType = P.NewlineToken
 
@@ -84,7 +84,7 @@ class newline extends P.TokenType {
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
-core.addRule(newline)
+core.addRule(Newline)
 
 ////////////////
 // ## `inline_whitespace` rule
@@ -95,7 +95,7 @@ core.addRule(newline)
  * Inline whitespace only, e.g. spaces/tabs between tokens on same line.
  * - NOTE: normally filtered out when tokenizing, so this rule rarely matches in practice.
  */
-class inline_whitespace extends P.TokenType {
+class InlineWhitespace extends P.TokenType {
   @proto static datatype = "text"
   @proto static tokenType = P.InlineWhitespaceToken
 
@@ -104,23 +104,23 @@ class inline_whitespace extends P.TokenType {
     return new P.ASTStringLiteral(match, { value: assert.string(value), raw })
   }
 }
-core.addRule(inline_whitespace)
+core.addRule(InlineWhitespace)
 
 ////////////////////////////////////////
 // # Simple types:  number, boolean, text (string), etc.
 ////////////////////////////////////////
 
 ////////////////
-// ## `number` rule (class `numeric`)
+// ## `number` rule (class `NumberLiteral`)
 //    e.g. "1"
 ////////////////
 
 /**
  * `number` as a float or integer token.
- * - Class named `numeric`, not `number` -- `number` is a reserved TS type keyword.
+ * - Class named `NumberLiteral`, not `Number`, which would hide javascript's `Number`.
  * - TODO:  `integer` and `decimal`?  too techy?
  */
-class numeric extends P.TokenType {
+class NumberLiteral extends P.TokenType {
   static ruleName = "number"
   @proto static highlightAs: P.HighlightKind = "number"
   @proto static alias = "expression"
@@ -132,7 +132,7 @@ class numeric extends P.TokenType {
     return new P.ASTNumericLiteral(match, { value: assert.number(value), raw })
   }
 }
-core.addRule(numeric, {
+core.addRule(NumberLiteral, {
   tests: [
     {
       title: "correctly matches numbers",
@@ -169,7 +169,7 @@ core.addRule(numeric, {
 ////////////////
 
 /** `number` spelled out as a string, `zero` to `ten` -- `VALUE_MAP` does the word-to-number lookup. */
-class number_as_string extends P.Pattern {
+class NumberAsString extends P.Pattern {
   @proto static alias = ["expression", "number"]
   @proto static datatype = "number"
   @proto static pattern = /^(zero|one|two|three|four|five|six|seven|eight|nine|ten)$/
@@ -192,7 +192,7 @@ class number_as_string extends P.Pattern {
     return new P.ASTNumericLiteral(match, { value: assert.number(value), raw })
   }
 }
-core.addRule(number_as_string, {
+core.addRule(NumberAsString, {
   tests: [
     {
       title: "correctly matches number strings",
@@ -214,16 +214,16 @@ core.addRule(number_as_string, {
 })
 
 ////////////////
-// ## `boolean` rule (class `_boolean`)
+// ## `boolean` rule (class `BooleanLiteral`)
 //    e.g. "true", also accepts synonyms like "yes"/"ok"/"always"
 ////////////////
 
 /**
  * Boolean literal -- also accepts common synonyms like `yes`/`no`, `ok`/`cancel`, `always`/`never`.
- * - Class named `_boolean`, not `boolean` -- `boolean` is a reserved TS type keyword.
+ * - Class named `BooleanLiteral`, not `Boolean`, which would hide javascript's `Boolean`.
  * - TODO: better name for this?  "flag"?  "truism"?
  */
-class _boolean extends P.Pattern {
+class BooleanLiteral extends P.Pattern {
   static ruleName = "boolean"
   @proto static alias = "expression"
   @proto static datatype = "choice"
@@ -244,7 +244,7 @@ class _boolean extends P.Pattern {
     return new P.ASTBooleanLiteral(match, { value: assert.boolean(value), raw })
   }
 }
-core.addRule(_boolean, {
+core.addRule(BooleanLiteral, {
   tests: [
     {
       title: "correctly matches booleans",
@@ -272,7 +272,7 @@ core.addRule(_boolean, {
 })
 
 ////////////////
-// ## `text` rule
+// ## `text` rule (class `TextLiteral`)
 //    e.g. '""'
 ////////////////
 
@@ -280,8 +280,10 @@ core.addRule(_boolean, {
  * Literal `text` string.
  * - NOTE: in spell you must use DOUBLE QUOTES (`"`) -- single quotes are treated as a single symbol.
  * - Its AST is a text value:  the text inside the quotes, with the source's spelling, quotes and all, as `raw`.
+ * - Class named `TextLiteral`, not `Text`, which would hide the DOM's `Text`.
  */
-class text extends P.TokenType<never, { fillIns?: FillInParts }> {
+class TextLiteral extends P.TokenType<never, { fillIns?: FillInParts }> {
+  static ruleName = "text"
   @proto static alias = "expression"
   @proto static highlightAs: P.HighlightKind = "string"
   @proto static datatype = "text"
@@ -306,7 +308,7 @@ class text extends P.TokenType<never, { fillIns?: FillInParts }> {
     if (match.data.fillIns) return fillInsAST(match, match.data.fillIns)
     const raw = assert.string(match.value)
     return new P.ASTStringLiteral(match, {
-      value: text.plainText(raw, match.matched[0] as P.TextToken),
+      value: TextLiteral.plainText(raw, match.matched[0] as P.TextToken),
       quote: '"',
       raw
     })
@@ -321,7 +323,7 @@ class text extends P.TokenType<never, { fillIns?: FillInParts }> {
     }
   }
 }
-core.addRule(text, {
+core.addRule(TextLiteral, {
   tests: [
     {
       title: "correctly matches text",
@@ -424,8 +426,12 @@ export function fillInsAST(match: P.Match, parts: FillInParts): P.ASTTemplateStr
 //    e.g. "//"
 ////////////////
 
-/** Line comment token -- wraps a `CommentToken` into a `LineComment` AST node, e.g. `// foo`. */
-class comment extends P.TokenType {
+/**
+ * Line comment token -- wraps a `CommentToken` into a `LineComment` AST node, e.g. `// foo`.
+ * - Class named `CommentLine`, not `Comment`, which would hide the DOM's `Comment`.
+ */
+class CommentLine extends P.TokenType {
+  static ruleName = "comment"
   @proto static tokenType = P.CommentToken
   @proto static highlightAs: P.HighlightKind = "comment"
 
@@ -437,7 +443,7 @@ class comment extends P.TokenType {
     return new P.ASTLineComment(match, { commentSymbol, initialWhitespace, value })
   }
 }
-core.addRule(comment, {
+core.addRule(CommentLine, {
   tests: [
     {
       compileAs: "comment",
@@ -453,15 +459,15 @@ core.addRule(comment, {
 })
 
 ////////////////
-// ## `undefined` rule (class `undefined_literal`)
+// ## `undefined` rule (class `UndefinedLiteral`)
 //    e.g. "nothing"
 ////////////////
 
 /**
  * `undefined` as an expression... ???
- * - Class named `undefined_literal`, not `undefined` -- `undefined` is a reserved word.
+ * - Class named `UndefinedLiteral`, so `static ruleName` gives the rule its name:  `undefined` is a reserved word.
  */
-class undefined_literal extends P.Literal {
+class UndefinedLiteral extends P.Literal {
   static ruleName = "undefined"
   @proto static alias = "expression"
   @proto static datatype = "nothing"
@@ -470,7 +476,7 @@ class undefined_literal extends P.Literal {
     return new P.ASTNothingLiteral(match)
   }
 }
-core.addRule(undefined_literal, {
+core.addRule(UndefinedLiteral, {
   syntax: "(undefined|nothing)",
   tests: [
     {
@@ -484,15 +490,17 @@ core.addRule(undefined_literal, {
 })
 
 ////////////////
-// ## `keyword` rule
+// ## `keyword` rule (class `KeywordRule`)
 //    e.g. "abc"
 ////////////////
 
 /**
  * Single alphanumeric word used as a keyword, e.g. in a method definition.
  * - Case is not a factor, but it must start with a letter.
+ * - Class named `KeywordRule`, not `Keyword`, which would read as the parser's `P.Keyword`.
  */
-class keyword extends P.Pattern {
+class KeywordRule extends P.Pattern {
+  static ruleName = "keyword"
   @proto static pattern = /^[a-zA-Z][\w-]*$/
 
   /** Converts dashes to underscores when compiling, so `abc-def` outputs as valid JS identifier `abc_def`. */
@@ -505,7 +513,7 @@ class keyword extends P.Pattern {
     return new P.ASTKeywordLiteral(match, { value: assert.string(value), raw })
   }
 }
-core.addRule(keyword, {
+core.addRule(KeywordRule, {
   tests: [
     {
       title: "correctly matches words",

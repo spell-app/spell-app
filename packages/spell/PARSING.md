@@ -134,14 +134,14 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 
 ## Expressions
 
-- `expression` is ONE rule, [`compound_expression`](src/rules/expressions.ts):
+- `expression` is ONE rule, [`CompoundExpression`](src/rules/expressions.ts):
   `{lhs:operand} {rhsChain:expression_suffix}*`
   - an `operand`, then each `expression_suffix` binding tighter than its `bound` (0:  all)
-  - no suffix:  the operand's own match, as is, so `match.is(known_variable)` still works
+  - no suffix:  the operand's own match, as is, so `match.is(KnownVariable)` still works
 - An `operand` is what an operator acts on:  one expression with no operator at its TOP.
   - e.g. `5`, `the deck`, `(x + 1)`
   - e.g. `the first card of the deck` (it nests), `the cards in the deck where ...`
-  - Every rule aliased `expression`, other than `compound_expression`, is registered as `operand` instead:
+  - Every rule aliased `expression`, other than `CompoundExpression`, is registered as `operand` instead:
     `SpellParser.getNamesForRule()`.
   - That also throws for an operand whose syntax STARTS with an expression:  it would recurse forever.
   - Something after an expression is an `expression_suffix`, e.g. `list_membership_test`.
@@ -211,7 +211,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     (see "Return types" below)
   - `new_thing` / `create_thing` / `new_list`:  the type made
   - list rules:  the item type (`data.itemType`), the list's type, or `number`
-  - `compound_expression`:  `getAST()`'s shunting-yard again, over datatypes
+  - `CompoundExpression`:  `getAST()`'s shunting-yard again, over datatypes
     - each suffix's `getResultDatatype(match, lhs, rhs)`, by default its `datatype`:
     - `choice` for every suffix but the ones below
     - `+ - * /`:  `number`;  `+` of text is `text`
@@ -238,7 +238,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - `property_value_getter` sets its property's `datatype`, if it declared it and nothing gave it one.
   - Each is journaled (`P.ParseJournal.assign()`), from `SpellStatement.getReturnedDatatype()`:
     - an inline EXPRESSION body (`the value of a card is its rank`):  that expression's datatype
-    - else every `return` in the body (`getReturnValue()`, `return_statement`'s), inside `if`s too
+    - else every `return` in the body (`getReturnValue()`, `ReturnStatement`'s), inside `if`s too
       - but NOT in a body with a `MethodScope` of its own, e.g. a loop's:  that compiles to a callback
       - all the same:  that;  none, or a mix:  unknown
       - a bare `return` is `nothing`
@@ -383,7 +383,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - It REPLACES a `pile` another statement declared, e.g. auto-declared by an earlier `set`.
   - NOT for a built-in item type (`a thing belongs to one bag`):  the root scope is shared.
   - Nothing goes on the list type's `TypeScope`:  the member is the whole record.
-- `set the pile of the card to ...` is refused (`assignment_statement.parse()`):  move the card instead.
+- `set the pile of the card to ...` is refused (`AssignmentStatement.parse()`):  move the card instead.
 - It compiles to two patches, where the line is:  after both classes, NEVER hoisted into them.
 
   ```js
@@ -476,7 +476,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - It competes with the REFUSING rule's priority (`P.Match.priority`),
     so a plainer rule matching the same words can't take the line instead.
     - Refuse only what the rule matched to the line's end, or it beats a longer match.
-  - Used by the property declarations (`SpellStatement.refuseBuiltInType()`) and `assignment_statement`:
+  - Used by the property declarations (`SpellStatement.refuseBuiltInType()`) and `AssignmentStatement`:
     see "Built-in types".
   - Errors inside JSX `{...}` live in the JSX rules' `match.data`, not `matched`.
     - `BlockLine` gathers them from anywhere in its statement (`SpellJSX.parseErrorsIn()`) into `data.errors` too.
@@ -557,8 +557,8 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 - `it` / `its` starting a line OUTSIDE a type's body says so (`BlockLine.isOutlineLineOutsideBody()`).
 - A property's quotes are optional:  `- its rank is a number` (plan doc Q4).
   - Quoted names work in the sentence style too:  `a card has a "suit" as ...` (J3, option C).
-  - `- it "rank" is ...` is refused, saying to write `its` (`quoted_type_expression.isPropertySlip()`).
-- A phrase and nothing more is refused, saying to add a body (`quoted_type_expression.isBodiless()`, plan doc I6).
+  - `- it "rank" is ...` is refused, saying to write `its` (`QuotedTypeExpression.isPropertySlip()`).
+- A phrase and nothing more is refused, saying to add a body (`QuotedTypeExpression.isBodiless()`, plan doc I6).
   - e.g. `- it "can move"` or `a card "can fly"`:  no `if`, `is` or `:`
   - Why:  it'd compile to an empty method.
   - A dangling `if` is fine:  its body may be the indented lines below.
@@ -624,12 +624,12 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - its `parse()` checks the word against the kind's values WHERE THE PHRASE IS USED
     (`kindValue()`, into `data.kindArgs`)
 - A phrase ON a value kind:  `a rank "is a face card" if ...`.
-  - `quoted_type_expression.processSignature()` sets `signature.valueKindOf`.
+  - `QuotedTypeExpression.processSignature()` sets `signature.valueKindOf`.
   - It compiles to the kind's static method:  `static is_a_face_card(rank)`.
   - Its `MethodPostfixRule` (`staticOf`) compiles to `Rank.is_a_face_card(card.rank)`.
   - Postfix phrases only.
 - A user's phrase checks WHOSE it is.
-  - `compound_expression` tells the first suffix after an operand what that operand is.
+  - `CompoundExpression` tells the first suffix after an operand what that operand is.
     - That's `SuffixLeft` (`expressions.ts`):  a side channel, set while that suffix parses, restored after.
   - These refuse an operand KNOWN not to be their owner (`scope.couldBeA()`):
     - `MethodPostfixRule`, `MethodInfixRule` and `QuotedPropertyRule`
@@ -694,7 +694,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 
 - Changes happen ONLY in `mutateScope()`, run by `commitStatement()` (step 4 above).
   `getAST()` is pure:  see below.
-  - variables:  `assignment_statement`, `get` ([assignment.ts](src/rules/assignment.ts))
+  - variables:  `AssignmentStatement`, `get` ([assignment.ts](src/rules/assignment.ts))
     - into `match.scope`, so inside a body they stay local
   - `get` / `set it to` ALWAYS declare a new `it` (`declareIt()`):
     - plain `it`, then `it_2`, `it_3`...
@@ -725,7 +725,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
       - a plural `classVariables` entry (e.g. `Suits`), with an instance twin in `variables`
       - ONE static rule, `class_member`, reads that for any type:  no rule per enumeration (see "Members")
   - auto-declared properties:  `set the X of Y to V` declares `X` on `Y`'s type.
-    - That's `assignment_statement.declareProperty()`.
+    - That's `AssignmentStatement.declareProperty()`.
     - It's `autoDeclared`, holding `V`'s datatype, so it's reactive.
     - Only where `Y`'s type is one the PROJECT declares (not a stub, an import or a built-in),
       and `X` isn't on it.

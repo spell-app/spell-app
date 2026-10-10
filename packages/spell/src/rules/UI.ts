@@ -24,7 +24,7 @@ export const UI = new SpellParser({ module: "UI" })
  * - `operator` (`info`/`warning`/`error`/`group`/`collapsed group`) selects the `console` method
  *   via `operatorMap`; omitted operator defaults to `log`.
  */
-class print extends SpellStatement<"operator?|expressions"> {
+class Print extends SpellStatement<"operator?|expressions"> {
   @proto static alias = "statement"
 
   /** Maps `operator` group value to `console` method name; `default` is used when `operator` is absent. */
@@ -45,7 +45,7 @@ class print extends SpellStatement<"operator?|expressions"> {
     })
   }
 }
-UI.addRule(print, {
+UI.addRule(Print, {
   syntax: "print (operator:info|warning|error|collapsed? group)? [expressions:{expression} ,]",
   tests: [
     {
@@ -67,14 +67,14 @@ UI.addRule(print, {
 ////////////////
 
 /** Stop a previous `print group...` */
-class end_print_group extends SpellStatement {
+class EndPrintGroup extends SpellStatement {
   @proto static alias = "statement"
 
   getAST(match: P.MatchFor<this>) {
     return new P.ASTConsoleMethodInvocation(match, { methodName: "groupEnd" })
   }
 }
-UI.addRule(end_print_group, {
+UI.addRule(EndPrintGroup, {
   syntax: "end print group",
   tests: [
     {
@@ -94,7 +94,7 @@ UI.addRule(end_print_group, {
  * - Returns a promise which `resolve()`s when notice is hidden (manually or otherwise).
  * - NOTE: we DO NOT actually `await` the promise!  ???
  */
-class notify extends SpellStatement<"message|okButton?"> {
+class Notify extends SpellStatement<"message|okButton?"> {
   @proto static alias = ["statement", "async"]
 
   getAST(match: P.MatchFor<this>) {
@@ -107,7 +107,7 @@ class notify extends SpellStatement<"message|okButton?"> {
     })
   }
 }
-UI.addRule(notify, {
+UI.addRule(Notify, {
   syntax: "notify {message:expression} (with {okButton:text})?", // TODO: "with close" ?
   tests: [
     {
@@ -131,7 +131,7 @@ UI.addRule(notify, {
  * - NOTE: we'll `await` the promise!
  * - TODO: `the result = await ...` ?
  */
-class alert extends SpellStatement<"message|okButton?"> {
+class Alert extends SpellStatement<"message|okButton?"> {
   @proto static alias = ["statement", "async"]
 
   getAST(match: P.MatchFor<this>) {
@@ -146,7 +146,7 @@ class alert extends SpellStatement<"message|okButton?"> {
     })
   }
 }
-UI.addRule(alert, {
+UI.addRule(Alert, {
   syntax: "alert {message:expression} (with {okButton:text})?",
   tests: [
     {
@@ -170,7 +170,7 @@ UI.addRule(alert, {
  * - NOTE: we'll `await` the promise!
  * - TODO: `the result = await ...` ?
  */
-class warn extends SpellStatement<"message|okButton?"> {
+class Warn extends SpellStatement<"message|okButton?"> {
   @proto static alias = "statement"
 
   getAST(match: P.MatchFor<this>) {
@@ -185,7 +185,7 @@ class warn extends SpellStatement<"message|okButton?"> {
     })
   }
 }
-UI.addRule(warn, {
+UI.addRule(Warn, {
   syntax: "warn {message:expression} (with {okButton:text})?",
   tests: [
     {
@@ -209,7 +209,7 @@ UI.addRule(warn, {
  * - NOTE: we'll `await` the promise!
  * - TODO: `the result = await ...` ?
  */
-class confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
+class Confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
   @proto static alias = "statement"
 
   getAST(match: P.MatchFor<this>) {
@@ -225,7 +225,7 @@ class confirm extends SpellStatement<"message|okButton?|cancelButton?"> {
     })
   }
 }
-UI.addRule(confirm, {
+UI.addRule(Confirm, {
   syntax: "confirm {message:expression} (with {okButton:text} ((and|or) {cancelButton:text})?)?",
   tests: [
     {
@@ -251,7 +251,7 @@ UI.addRule(confirm, {
  * - NOTE: we'll `await` the promise!
  * - TODO: `the result = await ...` ?
  */
-class prompt extends SpellStatement<"message|defaultValue?"> {
+class Prompt extends SpellStatement<"message|defaultValue?"> {
   @proto static alias = "statement"
 
   getAST(match: P.MatchFor<this>) {
@@ -266,7 +266,7 @@ class prompt extends SpellStatement<"message|defaultValue?"> {
     })
   }
 }
-UI.addRule(prompt, {
+UI.addRule(Prompt, {
   syntax: "prompt {message:expression} (with {defaultValue:expression})?",
   tests: [
     {
@@ -308,8 +308,10 @@ UI.addRule(prompt, {
  * Parse CSS from a `TextToken` WITHOUT quotes.
  * - Compiles to `spellCore.installStyles(file, css)`; newlines in `css` are escaped to `¬` so the
  *   value survives being embedded in a backtick template literal.
+ * - Class named `CSSStyles`, not `CSS`, which would hide the DOM's `CSS`.
  */
-class css extends P.TokenType<never, CSSMatchData> {
+class CSSStyles extends P.TokenType<never, CSSMatchData> {
+  static ruleName = "css"
   @proto static alias = "expression"
   @proto static tokenType = P.TextToken
 
@@ -328,7 +330,7 @@ class css extends P.TokenType<never, CSSMatchData> {
     })
   }
 }
-UI.addRule(css, {
+UI.addRule(CSSStyles, {
   tests: [
     {
       title: "correctly matches css",

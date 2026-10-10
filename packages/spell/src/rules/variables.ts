@@ -95,8 +95,8 @@ export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> 
  * Variable identifier with no adornments (no leading `the`, no known/unknown check).
  * - You won't generally use this directly -- use `variable` or `known_variable` instead.
  */
-class identifier extends SpellIdentifier {}
-variables.addRule(identifier)
+class Identifier extends SpellIdentifier {}
+variables.addRule(Identifier)
 
 ////////////////
 // ## `singular_identifier` rule
@@ -104,7 +104,7 @@ variables.addRule(identifier)
 ////////////////
 
 /** Possibly-unknown variable identifier which MUST be singular, WITHOUT `the` -- fails on plural input. */
-class singular_identifier extends SpellIdentifier {
+class SingularIdentifier extends SpellIdentifier {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     // Anything but a definite plural will do -- uncountable words (`"either"`) match here AND in `plural_identifier`.
@@ -117,7 +117,7 @@ class singular_identifier extends SpellIdentifier {
     return "singular"
   }
 }
-variables.addRule(singular_identifier, {
+variables.addRule(SingularIdentifier, {
   tests: [
     {
       tests: [
@@ -137,7 +137,7 @@ variables.addRule(singular_identifier, {
 ////////////////
 
 /** Possibly-unknown variable identifier which MUST be plural, WITHOUT `the` -- fails on singular input. */
-class plural_identifier extends SpellIdentifier {
+class PluralIdentifier extends SpellIdentifier {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     // Anything but a definite singular will do -- uncountable words (`"either"`) match here AND in `singular_identifier`.
@@ -150,7 +150,7 @@ class plural_identifier extends SpellIdentifier {
     return "plural"
   }
 }
-variables.addRule(plural_identifier, {
+variables.addRule(PluralIdentifier, {
   tests: [
     {
       tests: [
@@ -176,7 +176,7 @@ const VARIABLE_SYNTAX = "the? {identifier}"
  * `SpellIdentifier` which may or may not be known, with optional `the` prefix, e.g. `the thing`.
  * - `match.data.scopeVar` is set to the scope `ScopeVariable` if known, `NONE` if not.
  */
-export class variable extends P.Sequence<"identifier", VariableMatchData> {
+export class Variable extends P.Sequence<"identifier", VariableMatchData> {
   parse(scope: P.Scope, tokens: P.Token[]) {
     // `super.parse()` is typed for any rule -- we know it's ours.
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -206,7 +206,7 @@ export class variable extends P.Sequence<"identifier", VariableMatchData> {
     return identifier.rule.getPlurality(identifier)
   }
 }
-variables.addRule(variable, {
+variables.addRule(Variable, {
   syntax: VARIABLE_SYNTAX,
   tests: [
     {
@@ -234,17 +234,17 @@ type VariableMatchData = IdentifierMatchData
  * -- unlike `singular_identifier`, this fails if unresolvable.
  * - Matched as an `expression`, unlike plain `variable`, because it only succeeds when resolvable.
  */
-class known_variable extends variable {
+class KnownVariable extends Variable {
   @proto static alias = "expression"
 
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
-    // Succeed only if `variable.parse()` found the scope variable for the identifier.
+    // Succeed only if `Variable.parse()` found the scope variable for the identifier.
     if (match?.data.scopeVar !== NONE) return match
     return undefined
   }
 }
-variables.addRule(known_variable, {
+variables.addRule(KnownVariable, {
   syntax: VARIABLE_SYNTAX,
   tests: [
     {

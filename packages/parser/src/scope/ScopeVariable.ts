@@ -47,7 +47,7 @@ export class ScopeVariable {
   declare asWritten: string | undefined
   /**
    * `true` for a property its type never declared:  a `set the X of Y to ...` declared it at its first set.
-   * - See spell's `assignment_statement`.
+   * - See spell's `AssignmentStatement`.
    */
   declare autoDeclared: boolean | undefined
   /**

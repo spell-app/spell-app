@@ -1640,7 +1640,7 @@ export class ASTStaticMethod extends ASTClassMember {
  * - `member` (required) is the ClassMember, compiled with its `compile()`.
  * - NOT a ClassMember itself, so `SP.hoistClassMembers()` leaves it where it is.
  *   - Why:  spell declares a property at its first `set` in the file which sets it,
- *     and that must never change another file's output -- see spell's `assignment_statement`.
+ *     and that must never change another file's output -- see spell's `AssignmentStatement`.
  */
 export type ASTPatchedMemberProps = Prettify<{ member: ASTClassMember }>
 

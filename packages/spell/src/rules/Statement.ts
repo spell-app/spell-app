@@ -112,7 +112,7 @@ export class SpellStatement<
    *   and no project's journal records.  A property there would leak into every other project,
    *   and outlive its edit.  Its members are spell's own, in `SP.BUILT_IN_TYPE_TABLE`.
    * - A METHOD of a built-in type is fine:  its record goes in the project's `methods` -- see `MethodDefinition`.
-   * - A lookup:  call it WHILE PARSING, e.g. from `define_property_has.parse()`.
+   * - A lookup:  call it WHILE PARSING, e.g. from `DefinePropertyHas.parse()`.
    */
   static refuseBuiltInType(match: P.Match, type: P.Match, property: P.Match | undefined): P.Match {
     if (!SP.isBuiltInTypeScope(match.scope.types?.get(`${type.value}`))) return match

@@ -92,8 +92,8 @@ type ConstantMatchData = {
  * - `match.data.scopeConstant` will be the existing `ScopeConstant` if one already exists.
  * - Compiles to a quoted string literal of its own name when unknown, e.g. `red` => `'red'`.
  */
-class constant extends SpellConstant {}
-constants.addRule(constant, {
+class Constant extends SpellConstant {}
+constants.addRule(Constant, {
   tests: [
     {
       tests: [
@@ -116,7 +116,7 @@ constants.addRule(constant, {
  *   resolvable, so it can't spuriously eat an unrelated identifier.
  * - Compiles to the constant's own `output` if it set one, else a quoted string literal of its name.
  */
-class known_constant extends SpellConstant {
+class KnownConstant extends SpellConstant {
   @proto static alias = "expression"
 
   parse(scope: P.Scope, tokens: P.Token[]) {
@@ -126,7 +126,7 @@ class known_constant extends SpellConstant {
     return undefined
   }
 }
-constants.addRule(known_constant, {
+constants.addRule(KnownConstant, {
   tests: [
     {
       compileAs: "known_constant", // TODO: to "expression"

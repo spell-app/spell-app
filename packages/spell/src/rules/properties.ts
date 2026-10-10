@@ -39,7 +39,7 @@ const LOWER_INITIAL_WORD = /^[a-z][\w-]*$/
  * - Declarations and resolved reads take `member_words`.
  * - `mapValue()` converts dashes to underscores, e.g. `foo-bar` compiles as `foo_bar`.
  */
-class property extends P.Pattern {
+class Property extends P.Pattern {
   @proto static pattern = LOWER_INITIAL_WORD
   @proto static blacklist = identifierBlacklist
   @proto static highlightAs: P.HighlightKind = "property"
@@ -56,7 +56,7 @@ class property extends P.Pattern {
     return new P.ASTPropertyLiteral(match)
   }
 }
-properties.addRule(property)
+properties.addRule(Property)
 
 ////////////////
 // ## `member_words` rule
@@ -122,20 +122,20 @@ const MEMBER_LEADING_WORDS = new Set(["with", "for", "from", "in", "on", "by", "
  * - Greedy:  a rule wanting FEWER, e.g. the longest run a type declares (`its short rank + 1`),
  *   re-parses with fewer tokens -- see `declaredPrefix()`.
  */
-class member_words extends P.Pattern {
+class MemberWords extends P.Pattern {
   /** Any case, unlike `property`:  a class variable is Type_Case, e.g. `Card Suits`. */
   @proto static pattern = P.ALPHANUMERIC_WORD_WITH_DASHES
   @proto static highlightAs: P.HighlightKind = "property"
 
   /** Does a member's word start at `start`:  a word, not a structural one -- or one which may lead a name? */
   test(scope: P.Scope, tokens: P.Token[], start = 0) {
-    return start < tokens.length && member_words.isMemberWord(tokens[start]!, this.pattern, true)
+    return start < tokens.length && MemberWords.isMemberWord(tokens[start]!, this.pattern, true)
   }
 
   /** Every member word from the first token on -- see class docs. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     let count = 0
-    while (count < tokens.length && member_words.isMemberWord(tokens[count]!, this.pattern, count === 0)) count++
+    while (count < tokens.length && MemberWords.isMemberWord(tokens[count]!, this.pattern, count === 0)) count++
     if (!count) return undefined
     const words = tokens.slice(0, count)
     return new P.Match({
@@ -163,7 +163,7 @@ class member_words extends P.Pattern {
     return !MEMBER_STOP_WORDS.has(word) || (first && MEMBER_LEADING_WORDS.has(word))
   }
 }
-properties.addRule(member_words, {
+properties.addRule(MemberWords, {
   tests: [
     {
       tests: [
@@ -190,16 +190,16 @@ properties.addRule(member_words, {
  * - The words inside are a `member_words` name, every one of them:  `value` and `raw` as `member_words`'s,
  *   e.g. `short_rank` / `short rank`.
  */
-class quoted_member extends P.Rule {
+class QuotedMember extends P.Rule {
   @proto static highlightAs: P.HighlightKind = "property"
 
   test(scope: P.Scope, tokens: P.Token[], start = 0) {
-    return quoted_member.wordsOf(tokens[start]) !== undefined
+    return QuotedMember.wordsOf(tokens[start]) !== undefined
   }
 
   parse(scope: P.Scope, tokens: P.Token[]) {
     const [token] = tokens
-    const words = quoted_member.wordsOf(token)
+    const words = QuotedMember.wordsOf(token)
     if (!token || !words) return undefined
     return new P.Match({
       rule: this,
@@ -238,7 +238,7 @@ class quoted_member extends P.Rule {
     return words[0] && words.every(isMemberWord) ? words : undefined
   }
 }
-properties.addRule(quoted_member, {
+properties.addRule(QuotedMember, {
   tests: [
     {
       tests: [
@@ -366,7 +366,7 @@ export class MemberReadExpression<
    * - `type`:  the type it reads from, if known -- for a resolved read, the one declaring what it found
    * - `property`:  its `property` match, the member's words
    * - `member`:  what it found, if anything
-   * - Why:  `set the X of Y to ...` declares `X` if `Y`'s type doesn't -- see `assignment_statement`.
+   * - Why:  `set the X of Y to ...` declares `X` if `Y`'s type doesn't -- see `AssignmentStatement`.
    * - Reads only `match.data`, as noted while parsing.
    */
   static memberRead(match: P.Match): MemberRead | undefined {
@@ -441,7 +441,7 @@ export type MemberRead = {
  * - `set` an undeclared one, on a type the project declares, and it's declared there --
  *   see `MemberReadExpression.memberRead()`.
  */
-class property_expression extends MemberReadExpression<"property|expression"> {
+class PropertyExpression extends MemberReadExpression<"property|expression"> {
   @proto static priority = Priority.preferred
 
   /**
@@ -454,7 +454,7 @@ class property_expression extends MemberReadExpression<"property|expression"> {
     const { property, expression } = match.groups
     const ownerType = (match.data.ownerType = scope.getType(expression.datatype))
     if (this.resolveMember(match, ownerType, `${property.raw}`)) return match
-    if (!property_expression.isLooseProperty(scope, property)) return undefined
+    if (!PropertyExpression.isLooseProperty(scope, property)) return undefined
     match.data.member = ownerType?.getMember(`${property.value}`)
     if (!match.data.member) MemberReadExpression.warnIfUndeclared(match, ownerType, property)
     return match
@@ -469,7 +469,7 @@ class property_expression extends MemberReadExpression<"property|expression"> {
     return property.length === 1 && scope.getRuleOrDie("property").test(scope, property.tokens, 0) !== false
   }
 }
-properties.addRule(property_expression, {
+properties.addRule(PropertyExpression, {
   syntax: "the {property:member_words} of {expression:operand}",
   tests: [
     {
@@ -550,7 +550,7 @@ properties.addRule(property_expression, {
  *   so at `Priority.preferred` it would beat `its last card`, the ordinal.
  * - Tracks `it`, as `its_property` does.
  */
-class its_known_property extends MemberReadExpression<"property", ItsMatchData> {
+class ItsKnownProperty extends MemberReadExpression<"property", ItsMatchData> {
   @proto static priority = Priority.preferred
 
   /** Note `it`, and resolve the longest run of our words its type declares -- see class docs. */
@@ -572,7 +572,7 @@ class its_known_property extends MemberReadExpression<"property", ItsMatchData> 
     return this.getMemberAST(match, itsObject(match), match.groups.property)
   }
 }
-properties.addRule(its_known_property, {
+properties.addRule(ItsKnownProperty, {
   syntax: "its {property:member_words}",
   tests: [
     {
@@ -607,7 +607,7 @@ properties.addRule(its_known_property, {
  * - Tracks `it`:  `get it` / `put its foo in the bar`.
  * - Synonym for `this` if `it` is not (yet) defined in scope.
  */
-class its_property extends MemberReadExpression<"property", ItsMatchData> {
+class ItsProperty extends MemberReadExpression<"property", ItsMatchData> {
   /** Note `it`, its type, and the member of it we read, while we can look them up. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -625,7 +625,7 @@ class its_property extends MemberReadExpression<"property", ItsMatchData> {
     return new P.ASTPropertyExpression(match, { object: itsObject(match), property })
   }
 }
-properties.addRule(its_property, {
+properties.addRule(ItsProperty, {
   syntax: "its {property}",
   tests: [
     {
@@ -683,7 +683,7 @@ properties.addRule(its_property, {
  * - Synonym for `this` if `it` is not (yet) defined in scope.
  * - Compiles to `spellCore.getItemAt(object, ordinal)` rather than a plain property access.
  */
-class its_ordinal extends SpellExpression<"ordinal|arg", ItsMatchData & { itemType?: P.Datatype }> {
+class ItsOrdinal extends SpellExpression<"ordinal|arg", ItsMatchData & { itemType?: P.Datatype }> {
   /** Note `it`, and what it holds, while we can look them up. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -704,7 +704,7 @@ class its_ordinal extends SpellExpression<"ordinal|arg", ItsMatchData & { itemTy
     })
   }
 }
-properties.addRule(its_ordinal, {
+properties.addRule(ItsOrdinal, {
   syntax: "its {ordinal} {arg:singular_identifier}",
   tests: [
     {
@@ -755,7 +755,7 @@ properties.addRule(its_ordinal, {
  * - Its name is `member_words`, e.g. `short rank is 1`,
  *   or a `property` for a structural word, e.g. `a = 1`.
  */
-class object_literal_property extends P.Sequence<"property|value"> {
+class ObjectLiteralProperty extends P.Sequence<"property|value"> {
   getAST(match: P.MatchFor<this>) {
     const { property, value } = match.groups
     return new P.ASTObjectLiteralProperty(match, {
@@ -764,7 +764,7 @@ class object_literal_property extends P.Sequence<"property|value"> {
     })
   }
 }
-properties.addRule(object_literal_property, {
+properties.addRule(ObjectLiteralProperty, {
   syntax: "(property:{member_words}|{property}) (=|is|of) {value:expression}",
   tests: [
     {
@@ -795,14 +795,14 @@ properties.addRule(object_literal_property, {
 ////////////////
 
 /** Object literal: creates an object with one or more property values, e.g. `foo = 1 and bar is 2`. */
-class object_literal_properties extends P.Repeat {
+class ObjectLiteralProperties extends P.Repeat {
   getAST(match: P.MatchFor<this>) {
     return new P.ASTObjectLiteral(match, {
       properties: match.items.map((propMatch) => P.asAST<P.ASTObjectLiteralProperty>(propMatch.AST))
     })
   }
 }
-properties.addRule(object_literal_properties, {
+properties.addRule(ObjectLiteralProperties, {
   syntax: "[{object_literal_property} (,|and)]",
   tests: [
     {

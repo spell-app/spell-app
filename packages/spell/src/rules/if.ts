@@ -19,16 +19,14 @@ export const _if_ = new SpellParser({ module: "if" })
 
 /**
  * `if {condition} (then|:)?` statement, with an inline statement or an indented nested block as body.
- * - Named `_if` to avoid the reserved word `if` -- `name: "if"` keeps the actual rule name;
- *   the module export below is `_if_` for the same reason.
+ * - The module's parser is `_if_`, since `if` is a reserved word.
  * - `{statement_body}?`: doesn't parse its own body -- `SpellStatement` parses a trailing inline statement,
  *   or `commitStatement()` a following indented block, into `getBody(match)`.
  * - Compiles body in a nested `BlockScope` (named `"if"`) via `getNestedScopeForMatch()`.
  * - Prefers nested block over inline statement when (invalidly) given both -- see `getBody()`.
  * - Compiles to `if (condition) { ...statements }`.
  */
-class _if extends SpellStatement<"condition|body?"> {
-  static ruleName = "if"
+class If extends SpellStatement<"condition|body?"> {
   @proto static alias = "statement"
 
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
@@ -42,7 +40,7 @@ class _if extends SpellStatement<"condition|body?"> {
     })
   }
 }
-_if_.addRule(_if, {
+_if_.addRule(If, {
   syntax: "if {condition:expression} (then|:)? {statement_body}?",
   tests: [
     {
@@ -136,7 +134,7 @@ _if_.addRule(_if, {
  * - Prefers nested block over inline statement when (invalidly) given both -- see `getBody()`.
  * - Compiles to `else if (condition) { ...statements }`.
  */
-class else_if extends SpellStatement<"condition|body?"> {
+class ElseIf extends SpellStatement<"condition|body?"> {
   @proto static alias = "statement"
   @proto static priority = Priority.preferred
 
@@ -151,7 +149,7 @@ class else_if extends SpellStatement<"condition|body?"> {
     })
   }
 }
-_if_.addRule(else_if, {
+_if_.addRule(ElseIf, {
   syntax: "(else|otherwise) if {condition:expression} (then|:)? {statement_body}?",
   tests: [
     {
@@ -218,7 +216,7 @@ _if_.addRule(else_if, {
 })
 
 ////////////////
-// ## `else` rule (class `_else`)
+// ## `else` rule
 //    e.g. "else"
 ////////////////
 
@@ -228,8 +226,7 @@ _if_.addRule(else_if, {
  * - Compiles body in a nested `BlockScope` (named `"else"`) via `getNestedScopeForMatch()`.
  * - Compiles to `else { ...statements }`.
  */
-class _else extends SpellStatement<"body?"> {
-  static ruleName = "else"
+class Else extends SpellStatement<"body?"> {
   @proto static alias = "statement"
 
   getNestedScopeForMatch(match: P.MatchFor<this>): P.Scope {
@@ -241,7 +238,7 @@ class _else extends SpellStatement<"body?"> {
     })
   }
 }
-_if_.addRule(_else, {
+_if_.addRule(Else, {
   syntax: "(else|otherwise) :? {statement_body}?",
   tests: [
     {
@@ -303,12 +300,12 @@ _if_.addRule(_else, {
 /**
  * Postfix ternary: `{expr} if {condition} (else|otherwise) {expr}` -- English word order
  * ("do X if Y else Z") rather than `condition ? then : else`.
- * - `expression_suffix`: `lhs` (the value before `if`) is supplied by `compound_expression`'s
+ * - `expression_suffix`: `lhs` (the value before `if`) is supplied by `CompoundExpression`'s
  *   shunting-yard; this rule's own `syntax` only spells out `operator` (actually the *condition*
  *   expression here) and the trailing `rhs` expression.
  * - Compiles to `P.ASTTernaryExpression`.
  */
-class backwards_if extends InfixOperatorSuffix<"operator|expression"> {
+class BackwardsIf extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.ternary
 
   /** What both sides are, if they agree -- else unknown. */
@@ -331,7 +328,7 @@ class backwards_if extends InfixOperatorSuffix<"operator|expression"> {
     })
   }
 }
-_if_.addRule(backwards_if, {
+_if_.addRule(BackwardsIf, {
   syntax: "if {operator:expression} (else|otherwise) {expression}",
   tests: [
     {
@@ -381,7 +378,7 @@ _if_.addRule(backwards_if, {
  * - The value is an expression, else a bare word, e.g. `red`, as `'red'`.
  * - `Priority.overridable`:  a statement with `if` after it, e.g. `draw it if it is face up`, stays that.
  */
-class value_if extends SpellStatement<"value|condition"> {
+class ValueIf extends SpellStatement<"value|condition"> {
   @proto static priority = Priority.overridable
   @proto static alias = "statement"
 
@@ -403,7 +400,7 @@ class value_if extends SpellStatement<"value|condition"> {
     return { value: match.groups.value }
   }
 }
-_if_.addRule(value_if, {
+_if_.addRule(ValueIf, {
   syntax: "(value:{expression}|{constant}) if {condition:expression}",
   tests: [
     {
@@ -424,7 +421,7 @@ _if_.addRule(value_if, {
 ////////////////
 
 /** `black otherwise` -- the value when no `value_if` line above was the answer:  `return 'black'`. */
-class value_otherwise extends SpellStatement<"value"> {
+class ValueOtherwise extends SpellStatement<"value"> {
   @proto static priority = Priority.overridable
   @proto static alias = "statement"
 
@@ -442,7 +439,7 @@ class value_otherwise extends SpellStatement<"value"> {
     return { value: match.groups.value }
   }
 }
-_if_.addRule(value_otherwise, {
+_if_.addRule(ValueOtherwise, {
   syntax: "(value:{expression}|{constant}) (otherwise|else)",
   tests: [{ compileAs: "statement", tests: [["black otherwise", "return 'black'", 'return "black"']] }]
 })

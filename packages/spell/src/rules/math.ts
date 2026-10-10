@@ -26,11 +26,11 @@ export const math = new SpellParser({ module: "math" })
  * `<`, `>`, `<=`, `>=` comparison, e.g. `salary > expenses`.
  * - NOTE: output of `operator` will NOT have space between `>=`.
  * - `getAST()` below looks unreachable in practice: `InfixOperatorSuffix.getAST()` deliberately
- *   throws, and `compound_expression`'s shunting-yard calls `compileAST()`/`compileASTExpression()`
+ *   throws, and `CompoundExpression`'s shunting-yard calls `compileAST()`/`compileASTExpression()`
  *   directly on matched suffix rules, never `getAST()`.
  *   TODO: confirm this is genuinely dead code, and if so remove it.
  */
-class gt_lt extends InfixOperatorSuffix<"operator|expression"> {
+class GtLt extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
   @proto static parenthesize = true
 
@@ -49,7 +49,7 @@ class gt_lt extends InfixOperatorSuffix<"operator|expression"> {
     })
   }
 }
-math.addRule(gt_lt, {
+math.addRule(GtLt, {
   syntax: "(operator:(<|>) =?) {expression:operand}",
   tests: [
     {
@@ -87,7 +87,7 @@ math.addRule(gt_lt, {
  *   `at least` / `at most`.
  * - `getAST()` below looks unreachable in practice, same as `gt_lt` above -- see `TODO` there.
  */
-class is_gt_lt extends InfixOperatorSuffix<"operator|expression"> {
+class IsGtLt extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison
   @proto static parenthesize = true
 
@@ -104,7 +104,7 @@ class is_gt_lt extends InfixOperatorSuffix<"operator|expression"> {
     })
   }
 }
-math.addRule(is_gt_lt, {
+math.addRule(IsGtLt, {
   syntax: "(operator:is (greater|less) than (or equal to)?) {expression:operand}",
   tests: [
     {
@@ -129,7 +129,7 @@ math.addRule(is_gt_lt, {
 ////////////////
 
 /** `plus` / `+`, e.g. `price + tax` -- `Precedence.sum`:  tighter than comparisons, looser than `*` `/`. */
-class plus extends InfixOperatorSuffix {
+class Plus extends InfixOperatorSuffix {
   @proto static precedence = Precedence.sum
   @proto static parenthesize = true
 
@@ -144,8 +144,8 @@ class plus extends InfixOperatorSuffix {
     lhs: P.Datatype | undefined,
     rhs: P.Datatype | undefined
   ): P.Datatype | undefined {
-    if (plus.isTextual(lhs) || plus.isTextual(rhs)) return "text"
-    if (plus.isNumeric(lhs) && plus.isNumeric(rhs)) return "number"
+    if (Plus.isTextual(lhs) || Plus.isTextual(rhs)) return "text"
+    if (Plus.isNumeric(lhs) && Plus.isNumeric(rhs)) return "number"
     return undefined
   }
 
@@ -163,7 +163,7 @@ class plus extends InfixOperatorSuffix {
     return datatype === "number" || datatype === "integer"
   }
 }
-math.addRule(plus, {
+math.addRule(Plus, {
   syntax: "(operator:plus|+) {expression:operand}",
   tests: [
     {
@@ -191,7 +191,7 @@ math.addRule(plus, {
  * - NOTE: bare `-` requires surrounding spaces -- otherwise it'd clash with negative-number literals,
  *   see commented-out test below.
  */
-class minus extends InfixOperatorSuffix {
+class Minus extends InfixOperatorSuffix {
   @proto static precedence = Precedence.sum
   @proto static parenthesize = true
   @proto static datatype = "number"
@@ -200,7 +200,7 @@ class minus extends InfixOperatorSuffix {
     return "minus"
   }
 }
-math.addRule(minus, {
+math.addRule(Minus, {
   syntax: "(operator:minus|-) {expression:operand}",
   tests: [
     {
@@ -224,7 +224,7 @@ math.addRule(minus, {
 ////////////////
 
 /** `*` / `times`, e.g. `price * taxRate` -- `Precedence.product`, tightest, alongside `/`. */
-class times extends InfixOperatorSuffix {
+class Times extends InfixOperatorSuffix {
   @proto static precedence = Precedence.product
   @proto static parenthesize = true
   @proto static datatype = "number"
@@ -233,7 +233,7 @@ class times extends InfixOperatorSuffix {
     return "times"
   }
 }
-math.addRule(times, {
+math.addRule(Times, {
   syntax: "(operator:*|times) {expression:operand}",
   tests: [
     {
@@ -257,7 +257,7 @@ math.addRule(times, {
 ////////////////
 
 /** `/` / `divided by`, e.g. `price / taxRate` -- `Precedence.product`, same as `*`. */
-class divided_by extends InfixOperatorSuffix {
+class DividedBy extends InfixOperatorSuffix {
   @proto static precedence = Precedence.product
   @proto static parenthesize = true
   @proto static datatype = "number"
@@ -266,7 +266,7 @@ class divided_by extends InfixOperatorSuffix {
     return "divided by"
   }
 }
-math.addRule(divided_by, {
+math.addRule(DividedBy, {
   syntax: "(operator:/|divided by) {expression:operand}",
   tests: [
     {
@@ -302,7 +302,7 @@ math.addRule(divided_by, {
  * - Takes a sum, like `|x + 1|`, but stops before a comparison (`arithmetic_expression`):
  *   `the absolute value of x + 1 is 3` => `absoluteValue(x + 1) == 3`.
  */
-class absolute_value extends SpellExpression<"operator|expression"> {
+class AbsoluteValue extends SpellExpression<"operator|expression"> {
   @proto static datatype = "number"
 
   getAST(match: P.MatchFor<this>) {
@@ -314,7 +314,7 @@ class absolute_value extends SpellExpression<"operator|expression"> {
     })
   }
 }
-math.addRule(absolute_value, {
+math.addRule(AbsoluteValue, {
   syntax: "(operator:the? absolute value of) {expression:arithmetic_expression}",
   tests: [
     {
@@ -336,7 +336,7 @@ math.addRule(absolute_value, {
  * `the biggest`/`largest` [thing] `of`/`in` {expression}, e.g. `largest of the prices`.
  * - `Priority.specific` beats `the biggest of x` read as a property (`property_expression`).
  */
-class max extends SpellExpression<"operator|argument?|expression"> {
+class Max extends SpellExpression<"operator|argument?|expression"> {
   @proto static priority = Priority.specific
   @proto static datatype = "number"
 
@@ -349,7 +349,7 @@ class max extends SpellExpression<"operator|argument?|expression"> {
     })
   }
 }
-math.addRule(max, {
+math.addRule(Max, {
   syntax: "(operator:the? (biggest|largest)) {argument:singular_identifier}? (of|in) {expression:operand}",
   tests: [
     {
@@ -376,7 +376,7 @@ math.addRule(max, {
  * `the smallest` [thing] `of`/`in` {expression}, e.g. `smallest of prices`.
  * - `Priority.specific`, same reasoning as `max` above.
  */
-class min extends SpellExpression<"operator|argument?|expression"> {
+class Min extends SpellExpression<"operator|argument?|expression"> {
   @proto static priority = Priority.specific
   @proto static datatype = "number"
 
@@ -389,7 +389,7 @@ class min extends SpellExpression<"operator|argument?|expression"> {
     })
   }
 }
-math.addRule(min, {
+math.addRule(Min, {
   syntax: "(operator:the? smallest) {argument:singular_identifier}? (of|in) {expression:operand}",
   tests: [
     {
@@ -415,7 +415,7 @@ math.addRule(min, {
  * - TODO: precision:  to the nearest tenth ?
  * - `Priority.preferred`, lowest of the `expression` alternatives here.
  */
-class round_number extends SpellExpression<"expression|operator?"> {
+class RoundNumber extends SpellExpression<"expression|operator?"> {
   @proto static priority = Priority.preferred
   @proto static datatype = "number"
 
@@ -432,7 +432,7 @@ class round_number extends SpellExpression<"expression|operator?"> {
     })
   }
 }
-math.addRule(round_number, {
+math.addRule(RoundNumber, {
   syntax: "round {expression:arithmetic_expression} (operator:off|up|down)?",
   tests: [
     {

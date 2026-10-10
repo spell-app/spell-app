@@ -52,8 +52,8 @@ export const classes = new SpellParser({ module: "classes" })
  *   `syntax`, e.g. `(a|an) {type} is (a|an) {superType:type} {with_nested_statements}?`, and the statement takes
  *   the block only when this matched.
  */
-class with_nested_statements extends P.Sequence {}
-classes.addRule(with_nested_statements, {
+class WithNestedStatements extends P.Sequence {}
+classes.addRule(WithNestedStatements, {
   syntax: "(where|with)? :",
   tests: [
     {
@@ -110,7 +110,7 @@ class TypeDeclaration<Groups extends string, MatchData extends P.AnyMatchData = 
  * - Compiles to an exported class declaration, e.g. `a card is a thing` => `export class Card extends Thing {}`.
  *   Another project reaches it by `import`ing it -- no globals.
  */
-class create_type extends TypeDeclaration<"type|superType|with_nested_statements?|body?"> {
+class CreateType extends TypeDeclaration<"type|superType|with_nested_statements?|body?"> {
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "superType" }
 
   mutateScope(match: P.MatchFor<this>) {
@@ -140,7 +140,7 @@ class create_type extends TypeDeclaration<"type|superType|with_nested_statements
     })
   }
 }
-classes.addRule(create_type, {
+classes.addRule(CreateType, {
   syntax: "(a|an) {type} is (a|an) {superType:type} {with_nested_statements}?",
   tests: [
     {
@@ -170,7 +170,7 @@ classes.addRule(create_type, {
     }
   ]
 })
-classes.addRule(create_type, {
+classes.addRule(CreateType, {
   syntax: "(a|an) {type:quoted_type} is (a|an) {superType:type} {with_nested_statements}?",
   tests: [
     { compileAs: "statement", tests: [['a "card" is a thing', "export class Card extends Thing {}"]] },
@@ -193,7 +193,7 @@ classes.addRule(create_type, {
  *   e.g. `a deck is a list of cards` => `export class Deck extends List {` + `static instanceType = Card` + `}`.
  * - A card in at most ONE pile at a time:  `a card belongs to one pile`, below.
  */
-class create_list_type extends TypeDeclaration<
+class CreateListType extends TypeDeclaration<
   "type|instanceType|with_nested_statements?|body?",
   { itemTypeBelow?: boolean }
 > {
@@ -251,7 +251,7 @@ class create_list_type extends TypeDeclaration<
     })
   }
 }
-classes.addRule(create_list_type, {
+classes.addRule(CreateListType, {
   syntax: "create a type (named|called) {type} as (a|an) list of {instanceType:type}",
   tests: [
     {
@@ -267,7 +267,7 @@ classes.addRule(create_list_type, {
   ]
 })
 // TODO: "{plural_type} are a list of ..."
-classes.addRule(create_list_type, {
+classes.addRule(CreateListType, {
   syntax: "(a|an) {type} is (a|an) list of {instanceType:type} {with_nested_statements}?",
   tests: [
     {
@@ -292,7 +292,7 @@ classes.addRule(create_list_type, {
     }
   ]
 })
-classes.addRule(create_list_type, {
+classes.addRule(CreateListType, {
   syntax: "(a|an) {type:quoted_type} is (a|an) list of {instanceType:type} {with_nested_statements}?",
   tests: [
     {
@@ -343,7 +343,7 @@ classes.addRule(create_list_type, {
  *     e.g. `set the pile of the card to ...` above us.
  * - `a card can belong to many piles` is the opposite:  see `can_belong_to_many`.
  */
-class belongs_to_one extends SpellStatement<"type|list"> {
+class BelongsToOne extends SpellStatement<"type|list"> {
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "list", of: "type" }
@@ -363,12 +363,12 @@ class belongs_to_one extends SpellStatement<"type|list"> {
       [type, `a ${type.raw} is a thing`],
       [list, `a ${list.raw} is a list of ${pluralize(`${type.raw}`)}`]
     ] as const) {
-      const declared = belongs_to_one.typeOf(word)
+      const declared = BelongsToOne.typeOf(word)
       if (!declared || declared.stub) {
         return SpellStatement.refuse(match, `Can't say ${sentence} yet:  declare "${example}" above it`)
       }
     }
-    const listType = belongs_to_one.typeOf(list)!
+    const listType = BelongsToOne.typeOf(list)!
     if (SP.isBuiltInTypeScope(listType)) {
       return SpellStatement.refuse(match, `Can't say ${sentence}:  every list would hold a ${type.raw} once`)
     }
@@ -395,7 +395,7 @@ class belongs_to_one extends SpellStatement<"type|list"> {
     })
     const statements: P.ASTStatement[] = [new P.ASTPatchedMember(match, { member: exclusive })]
     if (!P.isBuiltInType(SP.typeName(`${type.value}`))) {
-      statements.push(belongs_to_one.ownerMemberAST(match, P.matchAST<P.ASTTypeExpression>(type), listAST))
+      statements.push(BelongsToOne.ownerMemberAST(match, P.matchAST<P.ASTTypeExpression>(type), listAST))
     }
     return new P.ASTStatementGroup(match, { statements })
   }
@@ -412,7 +412,7 @@ class belongs_to_one extends SpellStatement<"type|list"> {
    * - Named as `declareOwnerMember()` names it, e.g. `stock_pile` for `a stock-pile`.
    */
   static ownerMemberAST(
-    match: P.MatchFor<belongs_to_one>,
+    match: P.MatchFor<BelongsToOne>,
     itemAST: P.ASTTypeExpression,
     listAST: P.ASTTypeExpression
   ): P.ASTPatchedMember {
@@ -430,7 +430,7 @@ class belongs_to_one extends SpellStatement<"type|list"> {
     })
   }
 }
-classes.addRule(belongs_to_one, {
+classes.addRule(BelongsToOne, {
   syntax: "(a|an) {type} belongs to one {list:type}",
   tests: [
     {
@@ -484,7 +484,7 @@ classes.addRule(belongs_to_one, {
   ]
 })
 // in an outline body:  `- it belongs to a deck` -- tests in `parserTests/outline.test.ts`
-classes.addRule(belongs_to_one, { syntax: "{type:subject_it} belongs to (one|a|an) {list:type}" })
+classes.addRule(BelongsToOne, { syntax: "{type:subject_it} belongs to (one|a|an) {list:type}" })
 
 ////////////////
 // ## `can_belong_to_many` rule
@@ -495,7 +495,7 @@ classes.addRule(belongs_to_one, { syntax: "{type:subject_it} belongs to (one|a|a
  * `a card can belong to many piles` -- the opposite of `a card belongs to one pile`:
  * what a list does anyway, so it compiles to nothing.  It says so for a reader (plan doc Q22).
  */
-class can_belong_to_many extends SpellStatement<"type|list"> {
+class CanBelongToMany extends SpellStatement<"type|list"> {
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
 
@@ -503,7 +503,7 @@ class can_belong_to_many extends SpellStatement<"type|list"> {
     return new P.ASTStatementGroup(match, { statements: [] })
   }
 }
-classes.addRule(can_belong_to_many, {
+classes.addRule(CanBelongToMany, {
   syntax: "(a|an) {type:known_type} can belong to many {list:known_type}",
   tests: [
     {
@@ -533,7 +533,7 @@ classes.addRule(can_belong_to_many, {
  * - Only a move asks, e.g. `move the card to the tableau` -- see `list_move`.
  *   `add`, `remove` and `clear` never do:  dealing, gathering cards back.
  */
-class list_guard extends SpellStatement<"type|verb|item|body?|never?"> {
+class ListGuard extends SpellStatement<"type|verb|item|body?|never?"> {
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
 
@@ -545,7 +545,7 @@ class list_guard extends SpellStatement<"type|verb|item|body?|never?"> {
       name: `can ${never ? "never " : ""}${verb.raw} a ${item.raw}`,
       nameMatch: verb,
       of: `${type.value}`,
-      detail: `${list_guard.methodName(match)}()`
+      detail: `${ListGuard.methodName(match)}()`
     }
   }
 
@@ -573,17 +573,17 @@ class list_guard extends SpellStatement<"type|verb|item|body?|never?"> {
       : P.matchAST<MethodBody>(this.getBody(match))
     return new P.ASTPropertyDefinition(match, {
       type: P.matchAST<P.ASTTypeExpression>(type),
-      property: list_guard.methodName(match),
+      property: ListGuard.methodName(match),
       method: new P.ASTMethodDefinition(match, { args: [arg], body, datatype: "choice" })
     })
   }
 
   /** `canTake` for `add` / `take`, else `canGiveUp` -- the `List` method we override. */
-  static methodName(match: P.MatchFor<list_guard>): "canTake" | "canGiveUp" {
+  static methodName(match: P.MatchFor<ListGuard>): "canTake" | "canGiveUp" {
     return ["add", "take"].includes(`${match.groups.verb.value}`) ? "canTake" : "canGiveUp"
   }
 }
-classes.addRule(list_guard, {
+classes.addRule(ListGuard, {
   syntax: "(a|an) {type:known_type} can (verb:add|take) (a|an) {item:type} if :? {expression_body}?",
   tests: [
     {
@@ -627,7 +627,7 @@ classes.addRule(list_guard, {
     }
   ]
 })
-classes.addRule(list_guard, {
+classes.addRule(ListGuard, {
   syntax:
     "(a|an) {type:known_type} can (verb:release|remove|give up|let go of) (a|an) {item:type} if :? {expression_body}?",
   tests: [
@@ -661,7 +661,7 @@ classes.addRule(list_guard, {
     }
   ]
 })
-classes.addRule(list_guard, {
+classes.addRule(ListGuard, {
   syntax: "(a|an) {type:known_type} can (never:never) (verb:release|remove|give up|let go of) (a|an) {item:type}",
   tests: [
     {
@@ -695,7 +695,7 @@ classes.addRule(list_guard, {
  * - NOTE: we assume that all types take an object of properties????
  * - Compiles to `new Type(...)`, e.g. `a new Thing with a = 1, b = yes` => `new Thing({ a: 1, b: true })`.
  */
-class new_thing extends SpellStatement<"type|props?"> {
+class NewThing extends SpellStatement<"type|props?"> {
   @proto static alias = "expression"
 
   /** The type it makes, e.g. `Card`, `thing`. */
@@ -711,7 +711,7 @@ class new_thing extends SpellStatement<"type|props?"> {
     })
   }
 }
-classes.addRule(new_thing, {
+classes.addRule(NewThing, {
   syntax: "a new {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
   tests: [
     {
@@ -742,7 +742,7 @@ classes.addRule(new_thing, {
  * `a new list of <type>` -- constructs a `List`, optionally tagged with `instanceType`.
  * - Compiles to `new List(...)`, e.g. `a new list of Todos` => `new List({ instanceType: "Todo" })`.
  */
-class new_list extends SpellStatement<"instanceType?"> {
+class NewList extends SpellStatement<"instanceType?"> {
   @proto static alias = "expression"
 
   /** A `list`, or a `list of` what it says, e.g. `list of todos`. */
@@ -768,7 +768,7 @@ class new_list extends SpellStatement<"instanceType?"> {
     })
   }
 }
-classes.addRule(new_list, {
+classes.addRule(NewList, {
   syntax: "a new (list|List) of {instanceType:type}?",
   tests: [
     {
@@ -804,7 +804,7 @@ classes.addRule(new_list, {
  * - TODO: in `statement` form, put into `it`???
  * - FIXME: `list`, `text`, etc don't follow these semantics???
  */
-class create_thing extends SpellStatement<"type|props?"> {
+class CreateThing extends SpellStatement<"type|props?"> {
   @proto static alias = ["expression", "statement"]
 
   /** The type it makes, e.g. `Card`, `thing`. */
@@ -820,7 +820,7 @@ class create_thing extends SpellStatement<"type|props?"> {
     })
   }
 }
-classes.addRule(create_thing, {
+classes.addRule(CreateThing, {
   syntax: "create (a|an) {type:known_type} ((with|where|whose) {props:object_literal_properties})?",
   tests: [
     {
@@ -870,7 +870,7 @@ classes.addRule(create_thing, {
  * allowed values as an enumeration, for use by `define_property_has` below.
  * - Compiles (via `getAST()`) to a `P.ASTEnumeration` array literal, e.g. `['red', 'black']`.
  */
-class type_specifier_enum extends P.Sequence<"enumeration"> {
+class TypeSpecifierEnum extends P.Sequence<"enumeration"> {
   @proto static alias = "type_specifier"
 
   getAST(match: P.MatchFor<this>): P.ASTEnumeration {
@@ -885,7 +885,7 @@ class type_specifier_enum extends P.Sequence<"enumeration"> {
     })
   }
 }
-classes.addRule(type_specifier_enum, {
+classes.addRule(TypeSpecifierEnum, {
   syntax: "as (either|one of) {enumeration:identifier_list}",
   tests: [
     {
@@ -910,7 +910,7 @@ classes.addRule(type_specifier_enum, {
  * `as a number` / `as an automobile` -- specifies a property's datatype as a primitive or known type.
  * - Compiles (via `getAST()`) directly to the `datatype`'s `TypeExpression`, e.g. `number` or `Automobile`.
  */
-class type_specifier_datatype extends P.Sequence<"datatype"> {
+class TypeSpecifierDatatype extends P.Sequence<"datatype"> {
   @proto static alias = "type_specifier"
 
   /** The type it names, in spell's words, e.g. `number`, `Automobile`. */
@@ -922,7 +922,7 @@ class type_specifier_datatype extends P.Sequence<"datatype"> {
     return P.matchAST<P.ASTTypeExpression>(match.groups.datatype)
   }
 }
-classes.addRule(type_specifier_datatype, {
+classes.addRule(TypeSpecifierDatatype, {
   syntax: "as (a|an)? {datatype:singular_type}",
   tests: [
     {
@@ -943,7 +943,7 @@ classes.addRule(type_specifier_datatype, {
  * `as a new thing` -- specifies a property's default/initializer value as a `new_thing` expression.
  * - Compiles (via `getAST()`) to the nested `NewInstanceExpression`, e.g. `new Thing()`.
  */
-class type_specifier_instance extends P.Sequence<"new_thing"> {
+class TypeSpecifierInstance extends P.Sequence<"new_thing"> {
   @proto static alias = "type_specifier"
 
   /** The type it makes, e.g. `thing` for `as a new thing`. */
@@ -955,7 +955,7 @@ class type_specifier_instance extends P.Sequence<"new_thing"> {
     return P.matchAST<P.ASTNewInstanceExpression>(match.groups.new_thing)
   }
 }
-classes.addRule(type_specifier_instance, {
+classes.addRule(TypeSpecifierInstance, {
   syntax: "as {new_thing}",
   tests: [
     {
@@ -977,7 +977,7 @@ classes.addRule(type_specifier_instance, {
  * - Compiles to a fixed `TypeExpression` with `name: "choice"` rather than a real `boolean` datatype --
  *   matches spell's `choice` vocabulary (see `type_specifier_enum`'s "either" wording too).
  */
-class type_specifier_yes_or_no extends P.Sequence {
+class TypeSpecifierYesOrNo extends P.Sequence {
   @proto static alias = "type_specifier"
   @proto static datatype = "choice"
 
@@ -985,7 +985,7 @@ class type_specifier_yes_or_no extends P.Sequence {
     return new P.ASTTypeExpression(match, { raw: "yes or no", name: "choice" })
   }
 }
-classes.addRule(type_specifier_yes_or_no, {
+classes.addRule(TypeSpecifierYesOrNo, {
   syntax: "as either? (yes or no|true or false)",
   tests: [{ tests: [["as yes or no", "choice"]] }]
 })
@@ -1006,7 +1006,7 @@ classes.addRule(type_specifier_yes_or_no, {
  * - `Priority.userDeclared`, as the per-enumeration rule had:
  *   a type's own member beats a longer built-in reading.
  */
-class class_member extends SpellExpression<"type|member", ClassMemberData> {
+class ClassMember extends SpellExpression<"type|member", ClassMemberData> {
   @proto static priority = Priority.userDeclared
   @proto static datatype = "list"
 
@@ -1032,7 +1032,7 @@ class class_member extends SpellExpression<"type|member", ClassMemberData> {
     })
   }
 }
-classes.addRule(class_member, {
+classes.addRule(ClassMember, {
   syntax: "{type:known_type} {member:member_words}",
   tests: [
     {
@@ -1086,7 +1086,7 @@ type ClassMemberData = {
  *   `set name(value) { this.setProp('name', value) }`
  * - An enumeration's values also go on the class, e.g. `static Suits = ['clubs', ...]` -- see `class_member`.
  */
-class define_property_has extends SpellStatement<"type|property|specifier?", { valueType?: P.TypeScope }> {
+class DefinePropertyHas extends SpellStatement<"type|property|specifier?", { valueType?: P.TypeScope }> {
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type", detail: "specifier" }
@@ -1104,7 +1104,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { v
     const { specifier } = match.groups
     const valueType = specifier?.datatype ? scope.types?.get(specifier.datatype) : undefined
     if (valueType) match.data.valueType = valueType
-    define_property_has.warnUntyped(match)
+    DefinePropertyHas.warnUntyped(match)
     return SpellStatement.refuseBuiltInType(match, match.groups.type, match.groups.property)
   }
 
@@ -1118,7 +1118,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { v
    *     takes a `new_thing`, not a `new_list`;  epic `output-targets`, an issue)
    * - NOT an enumeration (`as one of ...`), a type, or a new thing:  they say.
    */
-  private static warnUntyped(match: P.MatchFor<define_property_has>): void {
+  private static warnUntyped(match: P.MatchFor<DefinePropertyHas>): void {
     const { property, specifier } = match.groups
     const words = property.raw ?? `${property.value}`
     const said = match.inputText.trim()
@@ -1177,7 +1177,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { v
     const said = specifier?.inputText.trim()
     const as = !said
       ? ""
-      : specifier!.is(outline_specifier_enum) && !/^(either|one of)\b/i.test(said)
+      : specifier!.is(OutlineSpecifierEnum) && !/^(either|one of)\b/i.test(said)
         ? ` as one of ${said}`
         : ` as ${said}`
     return `a ${typeWords} has a ${property.raw}${as}`
@@ -1234,7 +1234,7 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { v
     return new P.ASTStatementGroup(match, { statements })
   }
 }
-classes.addRule(define_property_has, {
+classes.addRule(DefinePropertyHas, {
   syntax: "(a|an) {type:singular_type} has (a|an|a property)? {property:member_words} {specifier:type_specifier}?",
   tests: [
     {
@@ -1343,7 +1343,7 @@ classes.addRule(define_property_has, {
     }
   ]
 })
-classes.addRule(define_property_has, {
+classes.addRule(DefinePropertyHas, {
   syntax: "{type:plural_type} have (a|an|a property)? {property:member_words} {specifier:type_specifier}?",
   tests: [
     {
@@ -1437,23 +1437,23 @@ classes.addRule(define_property_has, {
 })
 // a quoted name in the sentence style (plan doc J3, option C) -- tests in `parserTests/outline.test.ts`:
 // `a card has a "suit" as one of ...`, `cards have a "direction" as either up or down`
-classes.addRule(define_property_has, {
+classes.addRule(DefinePropertyHas, {
   syntax: "(a|an) {type:singular_type} has (a|an|a property)? {property:quoted_member} {specifier:type_specifier}?"
 })
-classes.addRule(define_property_has, {
+classes.addRule(DefinePropertyHas, {
   syntax: "{type:plural_type} have (a|an|a property)? {property:quoted_member} {specifier:type_specifier}?"
 })
 // in an outline body -- tests in `parserTests/outline.test.ts`:
 // - `- it has a deck`
 // - `- its "suit" is one of clubs, diamonds, hearts or spades`, `- its "rank" is a number`
-classes.addRule(define_property_has, {
+classes.addRule(DefinePropertyHas, {
   syntax: "{type:subject_it} has (a|an|a property)? {property:member_words} {specifier:type_specifier}?"
 })
-classes.addRule(define_property_has, {
+classes.addRule(DefinePropertyHas, {
   syntax: "{type:subject_its} {property:quoted_member} is {specifier:outline_specifier}"
 })
 // ... and the quotes are optional (plan doc Q4):  `- its rank is a number`
-classes.addRule(define_property_has, {
+classes.addRule(DefinePropertyHas, {
   syntax: "{type:subject_its} {property:member_words} is {specifier:outline_specifier}"
 })
 
@@ -1469,7 +1469,7 @@ classes.addRule(define_property_has, {
  * - `yes or no` -- `outline_specifier_yes_or_no`
  * - Their own alias, `outline_specifier`, so `a card has a suit one of ...` (no `as`) stays an error.
  */
-class outline_specifier_enum extends type_specifier_enum {
+class OutlineSpecifierEnum extends TypeSpecifierEnum {
   @proto static alias = "outline_specifier"
 
   /**
@@ -1484,7 +1484,7 @@ class outline_specifier_enum extends type_specifier_enum {
     return list.items.length >= 2 && hasOr ? match : undefined
   }
 }
-classes.addRule(outline_specifier_enum, {
+classes.addRule(OutlineSpecifierEnum, {
   syntax: "(either|one of) {enumeration:identifier_list}",
   tests: [
     {
@@ -1498,7 +1498,7 @@ classes.addRule(outline_specifier_enum, {
     }
   ]
 })
-classes.addRule(outline_specifier_enum, {
+classes.addRule(OutlineSpecifierEnum, {
   syntax: "{enumeration:identifier_list}",
   tests: [
     {
@@ -1512,20 +1512,20 @@ classes.addRule(outline_specifier_enum, {
 })
 
 /** `a number` -- see `outline_specifier_enum`. */
-class outline_specifier_datatype extends type_specifier_datatype {
+class OutlineSpecifierDatatype extends TypeSpecifierDatatype {
   @proto static alias = "outline_specifier"
 }
-classes.addRule(outline_specifier_datatype, {
+classes.addRule(OutlineSpecifierDatatype, {
   syntax: "(a|an) {datatype:singular_type}",
   tests: [{ tests: [["a number", "number"]] }]
 })
 // `a suit of its deck`:  a value kind, saying where its list is kept -- for the reader;  the kind says it already
-classes.addRule(outline_specifier_datatype, {
+classes.addRule(OutlineSpecifierDatatype, {
   syntax: "(a|an) {datatype:singular_type} of its {owner:member_words}",
   tests: [{ tests: [["a suit of its deck", "Suit"]] }]
 })
 // without the article, only a KNOWN type:  `its "name" is text`, but `its "x" is total` stays a getter (issue I2)
-classes.addRule(outline_specifier_datatype, {
+classes.addRule(OutlineSpecifierDatatype, {
   syntax: "{datatype:known_type}",
   tests: [
     {
@@ -1538,10 +1538,10 @@ classes.addRule(outline_specifier_datatype, {
 })
 
 /** `yes or no` -- see `outline_specifier_enum`. */
-class outline_specifier_yes_or_no extends type_specifier_yes_or_no {
+class OutlineSpecifierYesOrNo extends TypeSpecifierYesOrNo {
   @proto static alias = "outline_specifier"
 }
-classes.addRule(outline_specifier_yes_or_no, {
+classes.addRule(OutlineSpecifierYesOrNo, {
   syntax: "either? (yes or no|true or false)",
   tests: [{ tests: [["yes or no", "choice"]] }]
 })
@@ -1564,7 +1564,7 @@ classes.addRule(outline_specifier_yes_or_no, {
  *   `Deck.Suits = ['clubs', ...]` + `export class Suit {}`.  Its values stay plain text (plan doc Q10).
  * - The name MUST be quoted:  see the registration.
  */
-class value_kind extends SpellStatement<"values|specifier", ValueKindData> {
+class ValueKind extends SpellStatement<"values|specifier", ValueKindData> {
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "values" }
@@ -1572,7 +1572,7 @@ class value_kind extends SpellStatement<"values|specifier", ValueKindData> {
   /** Only in a type's outline body, and only for a list of values -- see class docs. */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
-    if (!match || !match.groups.specifier.is(type_specifier_enum)) return undefined
+    if (!match || !match.groups.specifier.is(TypeSpecifierEnum)) return undefined
     const owner = P.SubjectScope.of(scope)?.subjectType
     if (!owner) return undefined
     match.data.owner = owner.name
@@ -1588,7 +1588,7 @@ class value_kind extends SpellStatement<"values|specifier", ValueKindData> {
     const enumeration = match.groups.specifier.AST
     if (!ownerType || !(enumeration instanceof P.ASTEnumeration)) return
     const { values } = enumeration
-    const listName = value_kind.listName(match)
+    const listName = ValueKind.listName(match)
     const varProps: P.ScopeVariableProps & { enumeration: Array<string | number> } = {
       name: listName,
       enumeration: values,
@@ -1614,7 +1614,7 @@ class value_kind extends SpellStatement<"values|specifier", ValueKindData> {
     const value = match.groups.specifier.AST as P.ASTEnumeration
     return new P.ASTStatementGroup(match, {
       statements: [
-        new P.ASTStaticDefinition(match, { type: owner!, name: value_kind.listName(match), value }),
+        new P.ASTStaticDefinition(match, { type: owner!, name: ValueKind.listName(match), value }),
         new P.ASTClassDeclaration(match, { type: new P.ASTTypeExpression(match, { name: kind! }) })
       ]
     })
@@ -1627,7 +1627,7 @@ class value_kind extends SpellStatement<"values|specifier", ValueKindData> {
 }
 // quoted only:  unquoted, `{values:member_words}` matches any words at a line's start, e.g. completion offered
 // `as one of ...` after `set y`
-classes.addRule(value_kind, {
+classes.addRule(ValueKind, {
   syntax: "{values:quoted_member} {specifier:type_specifier}"
 })
 
@@ -1648,14 +1648,14 @@ type ValueKindData = {
  * `the color of a card` -- one of two `type_property` spellings consumed by `property_value_either` and
  * `property_value_getter` below.  No `getAST()`: callers read `match.groups.type`/`.property` directly.
  */
-class the_property_of_a_thing extends P.Sequence<"property|type"> {
+class ThePropertyOfAThing extends P.Sequence<"property|type"> {
   @proto static alias = "type_property"
 }
-classes.addRule(the_property_of_a_thing, {
+classes.addRule(ThePropertyOfAThing, {
   syntax: "the {property:member_words} of (a|an) {type}"
 })
 // a quoted name, "quotes teach a new word" (plan doc J3, option C):  `the "color" of a card is red if ...`
-classes.addRule(the_property_of_a_thing, {
+classes.addRule(ThePropertyOfAThing, {
   syntax: "the {property:quoted_member} of (a|an) {type}"
 })
 
@@ -1665,10 +1665,10 @@ classes.addRule(the_property_of_a_thing, {
 ////////////////
 
 /** `a cards color` -- the other `type_property` spelling, see `the_property_of_a_thing` above. */
-class a_things_property extends P.Sequence<"type|property"> {
+class AThingsProperty extends P.Sequence<"type|property"> {
   @proto static alias = "type_property"
 }
-classes.addRule(a_things_property, {
+classes.addRule(AThingsProperty, {
   syntax: "(a|an) {type:plural_type} {property:member_words}"
 })
 
@@ -1682,13 +1682,13 @@ classes.addRule(a_things_property, {
  * `- its "color" is red if its suit is either diamonds or hearts otherwise it is black`.
  * - The quotes are optional (plan doc Q4):  `- its color is red if ...`.
  */
-class its_quoted_property extends P.Sequence<"type|property"> {
+class ItsQuotedProperty extends P.Sequence<"type|property"> {
   @proto static alias = "type_property"
 }
-classes.addRule(its_quoted_property, {
+classes.addRule(ItsQuotedProperty, {
   syntax: "{type:subject_its} {property:quoted_member}"
 })
-classes.addRule(its_quoted_property, {
+classes.addRule(ItsQuotedProperty, {
   syntax: "{type:subject_its} {property:member_words}"
 })
 
@@ -1705,7 +1705,7 @@ classes.addRule(its_quoted_property, {
  * - Compiles to a getter in its class that `if`s on `condition`, returning `otherValue`
  *   (or falling through) when absent.
  */
-class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
+class PropertyValueEither extends SpellStatement<PropertyValueEitherGroups> {
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = {
     kind: "property",
@@ -1756,7 +1756,7 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
     })
   }
 }
-classes.addRule(property_value_either, {
+classes.addRule(PropertyValueEither, {
   syntax:
     "{type_property} is (value:{constant}|{expression}) if {condition:expression} (otherwise it is (otherValue:{constant}|{expression}))?",
   tests: [
@@ -1835,7 +1835,7 @@ type PropertyValueEitherGroups = P.GroupsFor<"type_property", P.Match<P.GroupsFo
  * - Compiles to a getter in its class running the parsed body, e.g.
  *   `the value of a card is its name` => `get value() { return this.name }`.
  */
-class property_value_getter extends SpellStatement<"property|type|body?", { valueKind?: boolean }> {
+class PropertyValueGetter extends SpellStatement<"property|type|body?", { valueKind?: boolean }> {
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "property", of: "type" }
 
@@ -1929,7 +1929,7 @@ class property_value_getter extends SpellStatement<"property|type|body?", { valu
     })
   }
 }
-classes.addRule(property_value_getter, {
+classes.addRule(PropertyValueGetter, {
   syntax: "the {property:member_words} of (a|an) {type:known_type} is :? {expression_body}?",
   tests: [
     {
@@ -2017,14 +2017,14 @@ classes.addRule(property_value_getter, {
   ]
 })
 // in an outline body:  `- its "color" is the color of its suit` -- tests in `parserTests/outline.test.ts`
-classes.addRule(property_value_getter, {
+classes.addRule(PropertyValueGetter, {
   syntax: "{type:subject_its} {property:quoted_member} is :? {expression_body}?"
 })
-classes.addRule(property_value_getter, {
+classes.addRule(PropertyValueGetter, {
   syntax: "{type:subject_its} {property:member_words} is :? {expression_body}?"
 })
 // a quoted name in the sentence style (plan doc J3, option C):  `the "short name" of a card is: ...`
-classes.addRule(property_value_getter, {
+classes.addRule(PropertyValueGetter, {
   syntax: "the {property:quoted_member} of (a|an) {type:known_type} is :? {expression_body}?"
 })
 
@@ -2052,7 +2052,7 @@ type MethodBody = P.ASTStatementBlock | P.ASTStatement | P.ASTExpression
  *   So `its direction` should be `up or down`;  no direction draws the front.
  * - The body is one line of markup, inline or indented:  it IS the side, no `return` needed.
  */
-class draw_side extends SpellStatement<"alias|body?", { side?: string; drawsBoth?: boolean }> {
+class DrawSide extends SpellStatement<"alias|body?", { side?: string; drawsBoth?: boolean }> {
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "property", name: "alias" }
@@ -2130,7 +2130,7 @@ class draw_side extends SpellStatement<"alias|body?", { side?: string; drawsBoth
     return new P.ASTStatementGroup(match, { statements })
   }
 }
-classes.addRule(draw_side, {
+classes.addRule(DrawSide, {
   syntax: "to {alias:text} :? ({inline_expression}|{nested_expression})?"
 })
 
@@ -2241,7 +2241,7 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
   ): P.ASTScopedMethodInvocation {
     // This dynamically-generated rule's syntax repeats the `expression` group name (once per
     // `$var` in the quoted alias), and each of those groups matches a plain keyword literal with
-    // no `getAST()` -- so the shunting-yard algorithm's `compile()` helper (`compound_expression`
+    // no `getAST()` -- so the shunting-yard algorithm's `compile()` helper (`CompoundExpression`
     // in expressions.ts) leaves `rhs` as the raw `P.Match[]` rather than resolving it to an
     // `Expression`. Neither shape is representable in `OperatorOperands`, which assumes a single
     // already-resolved `Expression`.
@@ -2328,7 +2328,7 @@ function placeholderData(
  *   (rank) of (suits)" for its ranks and its suits` => a `value(rank, suit)` method returning
  *   `this.rank === rank && this.suit === suit`.
  */
-class quoted_property_formula extends SpellStatement<"type|alias|sources?", QuotedPropertyFormulaMatchData> {
+class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?", QuotedPropertyFormulaMatchData> {
   @proto static priority = Priority.declaration
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "method", name: "alias", of: "type" }
@@ -2349,7 +2349,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
     const phrase = `${match.groups.alias.value}`.replace(/^["']|["']$/g, "")
     const alias = phrase.split(" ")
     if (alias[0] !== "is") return undefined
-    if (match.groups.sources) return quoted_property_formula.resolveSources(match)
+    if (match.groups.sources) return QuotedPropertyFormula.resolveSources(match)
     // more after the phrase, e.g. `it "is face up" if ...`:  not ours, a `quoted_type_expression`
     if (tokens.slice(match.length).join("").trim()) return undefined
     const typeWords = SpellStatement.subjectWords(match) ?? "thing"
@@ -2360,7 +2360,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
           `or say when it's true, "${phrase}" if ...`
       )
     }
-    const inferred = quoted_property_formula.inferPlaceholders(alias, getKnownType(match.groups.type))
+    const inferred = QuotedPropertyFormula.inferPlaceholders(alias, getKnownType(match.groups.type))
     if (!inferred) return undefined
     if ("unlisted" in inferred) {
       return SpellStatement.refuse(
@@ -2379,12 +2379,12 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
    * - As written, else by its singular:  `for its suits` is a value kind's `suit` (plan doc I5), or the sentence
    *   style's own `suits` list.
    */
-  private static resolveSources(match: P.MatchFor<quoted_property_formula>): P.Match {
+  private static resolveSources(match: P.MatchFor<QuotedPropertyFormula>): P.Match {
     const type = getKnownType(match.groups.type)
     const sources: string[] = []
     for (const source of match.groups.sources!.items) {
       const name = `${(source.groups.property as P.Match | undefined)?.value}`
-      const listed = quoted_property_formula.listedProperty(type, [name, singularize(name)])
+      const listed = QuotedPropertyFormula.listedProperty(type, [name, singularize(name)])
       if (!listed) {
         return SpellStatement.refuse(
           match,
@@ -2407,7 +2407,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
       const variable = type.variables.get(name)
       if (!variable) continue
       // its own list of values is kept as its plural, e.g. `Suits` for `its "suit" is one of ...`
-      if (quoted_property_formula.enumerationOf(type, name)) return variable.name
+      if (QuotedPropertyFormula.enumerationOf(type, name)) return variable.name
       const kind = type.getType(variable.datatype)
       if (kind?.valueKind || kind?.stub) return variable.name
     }
@@ -2445,7 +2445,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
       // only a blank in parens:  a bare word is always just a word (plan doc J9:  "require the parens")
       const blank = /^\((.+)\)$/.exec(word)?.[1]
       if (!blank) continue
-      const listed = quoted_property_formula.listedProperty(type, [singularize(blank)])
+      const listed = QuotedPropertyFormula.listedProperty(type, [singularize(blank)])
       if (!listed) return { unlisted: blank }
       sources.push(listed)
     }
@@ -2497,7 +2497,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
         const variable = typeScope?.variables.get(propertyName)
         const kindType = variable?.datatype ? typeScope?.getType(variable.datatype) : undefined
         const enumeration =
-          (typeScope && quoted_property_formula.enumerationOf(typeScope, `${propertyName}`)) ??
+          (typeScope && QuotedPropertyFormula.enumerationOf(typeScope, `${propertyName}`)) ??
           kindType?.valueKind?.values
         // set up enumeration matcher
         if (variable && enumeration) {
@@ -2577,7 +2577,7 @@ class quoted_property_formula extends SpellStatement<"type|alias|sources?", Quot
     return new P.ASTStatementGroup(match, { statements })
   }
 }
-classes.addRule(quoted_property_formula, {
+classes.addRule(QuotedPropertyFormula, {
   syntax: "(a|an) {type} {alias:text} for [sources:(its {property:member_words}) and]",
   tests: [
     {
@@ -2650,11 +2650,11 @@ classes.addRule(quoted_property_formula, {
   ]
 })
 // in an outline body:  `- it "is a (suit)" for its suits` -- tests in `parserTests/outline.test.ts`
-classes.addRule(quoted_property_formula, {
+classes.addRule(QuotedPropertyFormula, {
   syntax: "{type:subject_it} {alias:text} for [sources:(its {property:member_words}) and]"
 })
 // ... and with the placeholders inferred (P3):  `- it "is a suit"`, `- it "is the rank of suits"` -- see `parse()`
-classes.addRule(quoted_property_formula, {
+classes.addRule(QuotedPropertyFormula, {
   syntax: "{type:subject_it} {alias:text}"
 })
 
@@ -2696,7 +2696,7 @@ type QuotedPropertyFormulaMatchData = {
   sources?: string[]
 }
 
-/** What `quoted_property_formula.inferPlaceholders()` works out. */
+/** What `QuotedPropertyFormula.inferPlaceholders()` works out. */
 type InferredPlaceholders = {
   /** The phrase's words, a placeholder in parens, e.g. `["is", "a", "(suit)"]`. */
   words: string[]

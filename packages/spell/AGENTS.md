@@ -237,7 +237,7 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - Look up what the AST needs WHILE PARSING, into `match.data`.
 - What a statement's `mutateScope()` changes, for incremental parsing:  `@proto static changesScope`.
   - Or override `getScopeChanges(match)`, when only SOME matches change what later lines see.
-  - It reads only `match.data`, e.g. `assignment_statement` is `"global"` only when it auto-declared a property.
+  - It reads only `match.data`, e.g. `AssignmentStatement` is `"global"` only when it auto-declared a property.
   - See "Incremental parsing" in `PARSING.md`.
 - A slot NAMING a member (a property's declaration, a read of one) is `{property:member_words}`:
   several words, blacklisted ones too, up to a structural word.
@@ -268,7 +268,7 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - NEVER add ad hoc fields to a `Match`:  use `match.data`.
 - Other modules reach a rule by NAME, through `syntax` / `parser.rules`;  by its CLASS only to subclass it,
   or to narrow a match with `match.is()`.
-  - A module not yet in the folder layout still holds many snake_case rule classes, exporting only those.
+  - A module not yet in the folder layout still holds many rule classes in one file, exporting only those.
 - A base rule class for a category of spell things is `Spell<Thing>`, paired with the lowercase rule it fathers.
   - `SpellConstant` / `constant`
   - `SpellType` / `type`

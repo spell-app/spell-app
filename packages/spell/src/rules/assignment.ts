@@ -19,8 +19,7 @@ export const assignment = new SpellParser({ module: "assignment" })
 /**
  * Assignment, via any of 4 equivalent surface forms:  `{thing} = {value}`, `let {thing} = {value}`,
  * `set {thing} to {value}`, or `{variable} is {value}`.
- * - Named `assignment_statement` to avoid colliding with the `assignment` module export below --
- *   `name: "assignment"` keeps the actual rule name.
+ * - Class named `AssignmentStatement`, for what it is;  `static ruleName` keeps the rule name, `assignment`.
  * - `thing` may be a plain `{variable}` (declares/updates a scope variable) or an arbitrary
  *   `{expression}` (e.g. property assignment `let the name of X = ...`, which only compiles if `X`
  *   already exists).
@@ -37,7 +36,7 @@ export const assignment = new SpellParser({ module: "assignment" })
  * - So is the pile a card belongs to, e.g. `set the pile of the card to x`:  move the card to the pile instead.
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
  */
-class assignment_statement extends SpellStatement<"thing|value", AssignmentMatchData> {
+class AssignmentStatement extends SpellStatement<"thing|value", AssignmentMatchData> {
   static ruleName = "assignment"
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "variable", name: "thing" }
@@ -88,10 +87,10 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
       // which already accepts a plain name string as `.add()`/`.get()` input.
       const scope = match.scope as P.BlockScope
       const { variables } = scope
-      // `set it to ...` always declares a new `it` -- see `assignment_statement.declareIt()`
+      // `set it to ...` always declares a new `it` -- see `AssignmentStatement.declareIt()`
       const { datatype } = value
       if (varName === "it") {
-        match.data.newIt = assignment_statement.declareIt(scope, match, datatype)
+        match.data.newIt = AssignmentStatement.declareIt(scope, match, datatype)
         match.data.isNewVariable = true
         return
       }
@@ -102,7 +101,7 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
       else if (scopeVar.isAlias) variables.replace({ name: scopeVar.name, datatype, declaredBy: match })
       // Remember the original scopeVar for `getAST()` below
       match.data.originalVar = scopeVar
-      if (match.data.isNewVariable && datatype === "list") assignment_statement.warnListOfNothing(match, identifier)
+      if (match.data.isNewVariable && datatype === "list") AssignmentStatement.warnListOfNothing(match, identifier)
     } else {
       this.declareProperty(match)
     }
@@ -114,7 +113,7 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
    * - Any list spell can't say the items of, e.g. `[]`, `a new list`, `[1, "a"]`.
    * - NOT a list it can, e.g. `a new list of piles`, `[1, 2]`.
    */
-  private static warnListOfNothing(match: P.MatchFor<assignment_statement>, identifier: P.Match): void {
+  private static warnListOfNothing(match: P.MatchFor<AssignmentStatement>, identifier: P.Match): void {
     const words = identifier.raw ?? `${identifier.value}`
     const example = `set ${words} to a new list of ${SP.SpellWarnings.exampleItemType(match.scope, words)}`
     SP.SpellWarnings.note(match, `Say what "${words}" holds, e.g. "${example}"`, match.groups.value)
@@ -149,7 +148,7 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
     match.data.autoDeclared = {
       typeName: type.name,
       property: name,
-      checkType: assignment_statement.checkTypeFor(match.scope, datatype),
+      checkType: AssignmentStatement.checkTypeFor(match.scope, datatype),
       typeDeclaredBy: type.declaredBy
     }
     // what it holds, when `V` doesn't say:  ask for its declaration (epic `output-targets`, Q24)
@@ -210,7 +209,7 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
   static declareIt(scope: P.BlockScope, declaredBy: P.Match, datatype?: P.Datatype): P.ScopeVariable {
     const { variables } = scope
     const visible = variables.get("it")
-    let number = visible && !visible.isAlias ? assignment_statement.itNumber(visible) + 1 : 1
+    let number = visible && !visible.isAlias ? AssignmentStatement.itNumber(visible) + 1 : 1
     while (number > 1 && variables.get(`it_${number}`)) number++
     const output = number === 1 ? undefined : `it_${number}`
     const [it] = variables.replace({ name: "it", output, datatype, declaredBy })
@@ -223,11 +222,11 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
     return number ? Number(number) : 1
   }
 }
-assignment.addRule(assignment_statement, {
+assignment.addRule(AssignmentStatement, {
   syntax: "(thing:{expression}|{variable}) = {value:expression}",
   tests: [
     {
-      ...setup_assignment_statement(),
+      ...setupAssignmentStatement(),
       tests: [
         {
           title: "non-existing var",
@@ -240,11 +239,11 @@ assignment.addRule(assignment_statement, {
     }
   ]
 })
-assignment.addRule(assignment_statement, {
+assignment.addRule(AssignmentStatement, {
   syntax: "let (thing:{expression}|{variable}) = {value:expression}",
   tests: [
     {
-      ...setup_assignment_statement(),
+      ...setupAssignmentStatement(),
       tests: [
         {
           title: "non-existing var: property set (won't work)",
@@ -260,11 +259,11 @@ assignment.addRule(assignment_statement, {
     }
   ]
 })
-assignment.addRule(assignment_statement, {
+assignment.addRule(AssignmentStatement, {
   syntax: "set (thing:{expression}|{variable}) to {value:expression}",
   tests: [
     {
-      ...setup_assignment_statement(),
+      ...setupAssignmentStatement(),
       tests: [
         {
           title: "non-existing var",
@@ -288,11 +287,11 @@ assignment.addRule(assignment_statement, {
     }
   ]
 })
-assignment.addRule(assignment_statement, {
+assignment.addRule(AssignmentStatement, {
   syntax: "{thing:variable} is {value:expression}",
   tests: [
     {
-      ...setup_assignment_statement(),
+      ...setupAssignmentStatement(),
       tests: [
         {
           title: "non-existing var",
@@ -308,10 +307,10 @@ assignment.addRule(assignment_statement, {
 
 /**
  * Test setup shared by each `assignment` syntax:  spread into a test block, e.g.
- * `{ ...setup_assignment_statement(), tests: [...] }`.
+ * `{ ...setupAssignmentStatement(), tests: [...] }`.
  * - `beforeEach` adds variable `thing`, alias `it` (=> `this`) and type `Person`.
  */
-function setup_assignment_statement(): Pick<P.RuleTestBlock, "compileAs" | "beforeEach"> {
+function setupAssignmentStatement(): Pick<P.RuleTestBlock, "compileAs" | "beforeEach"> {
   return {
     compileAs: "block",
     beforeEach(scope: P.Scope) {
@@ -332,7 +331,7 @@ type AssignmentMatchData = {
   isNewVariable?: boolean
   /** Original scope `ScopeVariable` for `thing`, before any alias redefinition hackery. */
   originalVar?: P.ScopeVariable
-  /** When `thing` is `it`:  the NEW `it` variable we declared -- see `assignment_statement.declareIt()`. */
+  /** When `thing` is `it`:  the NEW `it` variable we declared -- see `AssignmentStatement.declareIt()`. */
   newIt?: P.ScopeVariable
   /** When `thing` is a property its type never declared:  what we declared -- see `declareProperty()`. */
   autoDeclared?: SP.AutoDeclaredProperty
@@ -346,18 +345,18 @@ type AssignmentMatchData = {
 /**
  * `get {value}` -- assign `value` to a NEW `it`.
  * - SIDE EFFECT: `mutateScope()` declares that `it`:  plain `it` the first time, then `it_2`, `it_3`...
- *   so a callback which captured an earlier `it` keeps it -- see `assignment_statement.declareIt()`.
+ *   so a callback which captured an earlier `it` keeps it -- see `AssignmentStatement.declareIt()`.
  * - Compiles to `let it = value`, `let it_2 = value`, ...
  */
-class get extends SpellStatement<"value", GetMatchData> {
+class Get extends SpellStatement<"value", GetMatchData> {
   @proto static alias = ["assignment", "statement"]
   @proto static changesScope: P.ScopeChanges = "internal"
 
-  /** Declare a new `it`, holding what `value` is -- see `assignment_statement.declareIt()`. */
+  /** Declare a new `it`, holding what `value` is -- see `AssignmentStatement.declareIt()`. */
   mutateScope(match: P.MatchFor<this>) {
     // `match.scope` is typed as `P.Scope`, whose `.variables` getter can be `undefined` -- we know it's a block.
     const scope = match.scope as P.BlockScope
-    match.data.itVar = assignment_statement.declareIt(scope, match, match.groups.value.datatype)
+    match.data.itVar = AssignmentStatement.declareIt(scope, match, match.groups.value.datatype)
   }
   /** Build `P.ASTAssignmentStatement` declaring our new `it` as `value`. */
   getAST(match: P.MatchFor<this>): P.ASTAssignmentStatement {
@@ -370,7 +369,7 @@ class get extends SpellStatement<"value", GetMatchData> {
     })
   }
 }
-assignment.addRule(get, {
+assignment.addRule(Get, {
   syntax: "get {value:expression}",
   tests: [
     {
@@ -453,7 +452,7 @@ assignment.addRule(get, {
 
 /** What `get` stashes on its match. */
 type GetMatchData = {
-  /** The NEW `it` variable we declared -- see `assignment_statement.declareIt()`. */
+  /** The NEW `it` variable we declared -- see `AssignmentStatement.declareIt()`. */
   itVar?: P.ScopeVariable
 }
 
@@ -472,7 +471,7 @@ type GetMatchData = {
  * - Accepts the returned expression inline (`return thing`) or as ONE line in a nested indented block
  *   (`return\n\t1 + 2`).
  */
-class return_statement extends SpellStatement<"expression?|body?"> {
+class ReturnStatement extends SpellStatement<"expression?|body?"> {
   @proto static alias = "statement"
 
   /** We return what follows `return`, or what's indented under it -- see `SpellStatement.getReturnedDatatype()`. */
@@ -485,7 +484,7 @@ class return_statement extends SpellStatement<"expression?|body?"> {
     return new P.ASTReturnStatement(match, { value: result?.AST as P.ASTExpression | undefined })
   }
 }
-assignment.addRule(return_statement, {
+assignment.addRule(ReturnStatement, {
   syntax: "(return|exit with?) {expression}? {nested_expression}?",
   tests: [
     {
