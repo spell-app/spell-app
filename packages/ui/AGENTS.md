@@ -487,10 +487,15 @@ As WWOD §18, plus:
   - `@E.cssState("open")` on a getter or accessor -- `:state(open)` follows it;
     `cssStates()` only for a computed set.  Replaces the old `hostStates()`.
     - A state that only mirrors its attribute, under the same name:
-      `@E.cssStates("loading", "fluid")` on the CLASS, no getter (TypeScript flags a name the class has no member for).
+      its name in `elementSetup.cssStates` (`cssStates: ["active", "fluid"]`), no getter.
+      - A subclass that adds states spreads its base's list:
+        `cssStates: [...TextControl.prototype.elementSetup.cssStates, "inline"]`.
+      - `define()` throws on a name the tag has no attribute or member for (a typo).
+      - Same name as the `cssStates()` hook, another thing:  the hook works out a set in code.
       Keep a getter (with `@E.cssState`) when something else reads it:
       `isDisabled`, a base class's hook (`CheckControl.isIndeterminate`), an effect.
-    - For a state two classes of the chain name, the subclass's member wins.
+    - For a state two classes of the chain name, the subclass's member wins;
+      for one a member and `elementSetup.cssStates` both name, the member.
   - `@E.aria("ariaBusy")` on a getter or accessor -- the DOM element's `internals.ariaBusy` follows it:
     `true` => `"true"`, `false` / `undefined` => removed, text as is.
     - `@E.aria("role")`, `@E.aria("ariaLabel")` ...;
@@ -563,7 +568,7 @@ As WWOD §18, plus:
       every component is BUILT inside `untrack()` (`UIComponent.mount()`, the static render),
       and `render()` runs once, untracked (`UIComponent.onMount()`).
   - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `elementSetup.disabled = "its own"`;
-    `:state(disabled)` comes from `UIComponent` ("Shared states" above), so no `@E.cssStates("disabled")`;
+    `:state(disabled)` comes from `UIComponent` ("Shared states" above), so no `"disabled"` in `elementSetup.cssStates`;
     ARIA of its own, if any, on a getter (`<ui-segment>`'s `@E.aria("ariaDisabled") get looksDisabled()`).
     Never an `isDisabled` override (the DOM element swallows clicks while `isDisabled`).
   - Element-core files import the decorators directly (`import { state } from "./Reactive"`:
@@ -844,20 +849,22 @@ As WWOD §12, plus:
     superseding "`@proto static` defaults at the TOP".
   - A subclass that only SETS settings (`@proto static vocabulary = ...`) still lists them first, before its members.
   - Per-class settings of the custom element itself are keys of ONE setting, `elementSetup` (type `ElementSetup`),
-    MERGED down the class chain, base class first, by `@protoMerged` (`$/util`, as `E.protoMerged`):
-    style sheets, form control, focus, slots, part, DOM element class, fallback, unstyled first paint,
-    constant ARIA, and what the shared `disabled`, `loading` and `visible` do for it.
+    inherited key by key down the class chain by `@protoMerged` (`$/util`, as `E.protoMerged`):
+    style sheets, the `:state()`s that mirror an attribute, form control, focus, slots, part, DOM element class,
+    fallback, unstyled first paint, constant ARIA, and what the shared `disabled`, `loading` and `visible` do for it.
     A subclass states only the keys it changes:
     ```ts
     @E.protoMerged static elementSetup = { styleSheets: { nag: nagCSS }, DOMElement: DOMNagElement } satisfies Partial<E.ElementSetup>
     ```
-    - `this.elementSetup` (`Class.prototype.elementSetup` from outside) is the merged result;
-      the static `Class.elementSetup` only what that class stated.
+    - Each class's object is chained to its base class's (its prototype):  a key it doesn't state is read from there.
+      ONE object per class, so `Class.elementSetup` and `Class.prototype.elementSetup` are the same.
+      Read keys by name (`this.elementSetup.styleSheets`):
+      a spread or `Object.keys()` of the whole object sees only its own class's keys.
     - A base class that others extend types its own as `Partial<E.ElementSetup>`:
       otherwise a subclass stating other keys fails TypeScript's check of the class's static side.
     - Every other class ends its literal with `satisfies Partial<E.ElementSetup>`:
       a misspelt key fails TypeScript, where an untyped literal would take it silently.
-    - Keys merge one level deep:  a subclass's `styleSheets` REPLACE its base's whole;
+    - Only the top level is chained:  a subclass's `styleSheets` (or `cssStates`, `aria`) REPLACE its base's whole;
       spread the base's to add to them:
       `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
   - `vocabulary` stays a setting of its own.

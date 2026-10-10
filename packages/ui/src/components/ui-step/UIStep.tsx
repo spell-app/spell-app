@@ -38,11 +38,11 @@ import stepCSS from "./UIStep.css?inline"
  *   arrive as inherited `--_ui-steps-*` tokens from the `<ui-steps>` root;
  *   `UIStep.css` reads them (see its header).
  ****************/
-@E.cssStates("completed")
 export class UIStep extends E.UIComponent<typeof stepVocabulary> {
   @E.proto static vocabulary = stepVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { step: stepCSS, parts: partsCSS },
+    cssStates: ["completed"],
     // one item of the group's ordered list;  a server render (`$/ui/static`) makes the root an `<li>`
     aria: { role: "listitem" },
     // `disabled`:  its link or button is disabled

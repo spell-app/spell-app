@@ -29,11 +29,11 @@ import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
  *
  * - The element's `aria-label` moves to the inner box, so an icon-only or corner label has a name.
  ****************/
-@E.cssStates("active")
 export class UILabel extends E.UIComponent<typeof labelVocabulary> {
   @E.proto static vocabulary = labelVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { label: labelCSS, parts: partsCSS },
+    cssStates: ["active"],
     // `disabled`:  only a look
     disabled: "its own"
   } satisfies Partial<E.ElementSetup>

@@ -22,11 +22,11 @@ import loaderCSS from "./UILoader.css?inline"
  * - It shows only while `active` (Fomantic's rule, in `UILoader.css`);
  *   `:state(active)` and `:state(disabled)` are for the page's styles.
  ****************/
-@E.cssStates("active")
 export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   @E.proto static vocabulary = loaderVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { loader: loaderCSS },
+    cssStates: ["active"],
     delegatesFocus: false,
     aria: { role: "status", ariaLive: "polite" },
     // `disabled`:  only a look
