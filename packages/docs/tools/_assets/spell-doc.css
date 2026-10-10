@@ -813,10 +813,11 @@ pre code {
  *   header (`.at-page`), else (`.at-block`) a line of no height just before the block, its button over the block's
  *   top right corner;  shown while the block is hovered (a section:  its innermost hovered one), when focused, and
  *   always once the block has comments (`data-count`), with the count;  outlined while they all wait for Claude,
- *   solid once he has one (`data-state`), an orange dot while one has unread news (`data-news`)
- * - the cards of comments with news (`.spell-comments`), under the paragraph holding the quote, else the block:
- *   each drawn as the pane is (ivory, Owen's voice):  a header (the pane's summary, its state, the date, the trash)
- *   that folds it, then the text;  Claude's answers violet
+ *   solid once he has one (`data-state`), an orange dot while one is Owen's turn (`data-news`)
+ * - every comment's THREAD (`.spell-thread`, in a `.spell-comments` box), under the paragraph holding the quote, else
+ *   the block:  one ivory pane that folds;  its header (chevron, bullhorn, the pane's summary, Owen's answer as a
+ *   plan doc item's review pills, the trash), then the messages:  his plain on the ivory, Claude's light violet, a
+ *   green Done line;  each one's time in its top right corner
  * - the bullhorn's list of a block's comments (`.spell-comment-pick`):  a pane of lines, then New comment
  * - the comment pane (`.spell-comment-pane`):  floating, fixed on the screen;  its header, then a textarea that grows
  *   with its text (`growField()`)
@@ -881,42 +882,35 @@ pre code {
   margin: 8px 0 12px;
 }
 /*
- * a CARD is drawn as the pane is (Owen, 2026-10-10:  "bullhorn popup looks good.  These are ugly.  Colors don't
- * match bullhorn, no panel outline, headers are completely different"):  one outlined ivory panel, 8px inside, its
- * header the pane's (`.spell-comment-about`:  type, ink, icons), then its text in a box as the pane's field;
- * no shadow:  it sits in the page, it doesn't float over it
+ * a THREAD (`thread()`;  Owen, 2026-10-10:  "the entire comment thread should be in one collapsable/accordion pane";
+ * "Make the entire thing ivory"):  ONE ivory pane, the comment pane's outline and corners, whoever spoke last;  no
+ * shadow:  it sits in the page, it doesn't float over it
+ * - its header:  chevron, bullhorn (a green check circle once done), the summary, Owen's answer, the trash
+ * - its body, while open:  the messages, 8px in on every side;  then the reply box
  */
-.spell-doc-main .spell-comment {
-  /* never wider than the column:  a folded card's first line is one long line, cut short */
+.spell-doc-main .spell-thread {
+  --spell-thread-violet: var(--ui-violet, #6435c9);
+  --spell-thread-green: var(--ui-green-text, var(--ui-green, #21ba45));
+  /* never wider than the column:  a folded thread's header is one line, its summary cut short */
   min-width: 0;
-  padding: 8px;
   border: 1px solid var(--spell-rail-rule);
   border-radius: 10px;
   background: var(--spell-rail-bg);
+  color: var(--spell-ink);
 }
-/*
- * its header:  the words (fold button, state, date) then the tools, the pen at the far right (Owen, 2026-10-10:
- * "Edit icon should be far right");  narrow, the state and date wrap under "Owen", the tools stay top right
- */
-.spell-doc-main .spell-comment-head {
+.spell-doc-main .spell-thread-head {
   display: flex;
-  align-items: flex-start;
-  gap: 4px;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 4px 6px 4px 8px;
   color: var(--spell-rail-ink);
   font-size: 0.9rem;
+  cursor: pointer;
 }
-.spell-doc-main .spell-comment-line {
+.spell-doc-main button.spell-thread-fold {
   display: flex;
   flex: 1 1 auto;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0 10px;
-  min-width: 0;
-  min-height: 24px;
-}
-.spell-doc-main button.spell-comment-fold {
-  display: flex;
-  flex: 1 1 8em;
   align-items: center;
   gap: 6px;
   min-width: 0;
@@ -929,8 +923,35 @@ pre code {
   text-align: left;
   cursor: pointer;
 }
+.spell-doc-main button.spell-thread-fold:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--ui-focus-color, var(--spell-doc-accent));
+}
+/* `ui-icon`'s host is `display: contents`:  a span to turn, or colour */
+.spell-doc-main .spell-thread-chevron,
+.spell-doc-main .spell-thread-mark {
+  display: inline-grid;
+  flex: none;
+  place-items: center;
+  width: 14px;
+}
+.spell-doc-main .spell-thread-chevron {
+  font-size: 0.75rem;
+  transition: rotate 0.15s;
+}
+.spell-doc-main .spell-thread[data-open] .spell-thread-chevron {
+  rotate: 90deg;
+}
+@media (prefers-reduced-motion: reduce) {
+  .spell-doc-main .spell-thread-chevron {
+    transition: none;
+  }
+}
+.spell-doc-main .spell-thread[data-turn="done"] .spell-thread-mark {
+  color: var(--spell-thread-green);
+}
 /* what it's on, as the pane's header says it (`headline()`) */
-.spell-doc-main .spell-comment-preview {
+.spell-doc-main .spell-thread-headline {
   flex: 1 1 auto;
   min-width: 0;
   overflow: hidden;
@@ -939,8 +960,142 @@ pre code {
   white-space: nowrap;
 }
 /*
- * its state, quiet, as the pane's status line:  the fill rule as a dot before the words, a ring while it waits for
- * Claude (saved, "outlined"), solid once taken or answered
+ * Owen's answer (`answerButtons()`):  a plan doc item's review pills (`EpicReview.css`, "The line's controls"), as
+ * they look there:  one grouped pill of 24px squares, the glyph centred, muted at rest, its colour under the pointer
+ */
+.spell-doc-main .spell-thread-answer {
+  display: inline-flex;
+  flex: none;
+  align-items: center;
+  font-size: 14px;
+  line-height: 1;
+}
+.spell-doc-main .spell-thread-answer ui-button::part(button) {
+  display: inline-grid;
+  place-items: center;
+  box-sizing: border-box;
+  width: 24px;
+  height: 24px;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  /* the page's ground under them, as on an item's line:  on the ivory, a basic button's own is see-through */
+  background: var(--spell-bg);
+  color: var(--spell-muted);
+  font-size: 12px;
+  line-height: 1;
+}
+.spell-doc-main .spell-thread-answer ui-button::part(icon) {
+  margin: 0;
+}
+.spell-doc-main .spell-thread-answer ui-button[data-color="green"] {
+  --_act: var(--ui-green, #00853a);
+}
+.spell-doc-main .spell-thread-answer ui-button[data-color="blue"] {
+  --_act: var(--ui-blue, #1a67e0);
+}
+.spell-doc-main .spell-thread-answer ui-button[data-color="grey"] {
+  --_act: var(--ui-grey, light-dark(#767676, #a0a0a0));
+}
+.spell-doc-main .spell-thread-answer ui-button:hover::part(button) {
+  box-shadow: inset 0 0 0 1.5px var(--_act);
+  color: var(--_act);
+}
+.spell-doc-main .spell-thread-body {
+  display: none;
+  gap: 6px;
+  padding: 0 8px 8px;
+}
+.spell-doc-main .spell-thread[data-open] > .spell-thread-body {
+  display: grid;
+}
+/*
+ * a MESSAGE (`messagesHTML()`;  Owen, 2026-10-10:  "lose the 'claude' 'You' bit -- move the time to the top-right of
+ * each bit position absolute"):  no names, the colour says who
+ * - Owen's:  plain on the ivory, no box, but the same padding and (clear) border as Claude's, so the spacing is one
+ * - Claude's:  a light violet box, a thin violet outline;  no thick side bar (Owen, 2026-10-10)
+ * - the Done line:  green ink, a thin green outline, its check where a name would be
+ * - the time over the top right corner;  a hidden copy of it floats there (`.spell-thread-room`), so the first
+ *   line's text stops short of it and the rest run full width
+ */
+.spell-doc-main .spell-thread-msg {
+  position: relative;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-radius: 8px;
+  line-height: 1.4;
+}
+.spell-doc-main .spell-thread-msg[data-by="claude"] {
+  border-color: color-mix(in srgb, var(--spell-thread-violet) 30%, transparent);
+  background: color-mix(in srgb, var(--spell-thread-violet) 9%, var(--spell-bg));
+}
+.spell-doc-main .spell-thread-msg[data-by="done"] {
+  border-color: color-mix(in srgb, var(--spell-thread-green) 40%, transparent);
+  color: var(--spell-thread-green);
+}
+.spell-doc-main :is(.spell-thread-when, .spell-thread-room) {
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.4rem;
+  white-space: nowrap;
+}
+.spell-doc-main .spell-thread-when {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  color: var(--spell-muted);
+}
+.spell-doc-main .spell-thread-room {
+  float: right;
+  margin-left: 10px;
+  visibility: hidden;
+}
+.spell-doc-main .spell-thread-text > :first-child {
+  margin-top: 0;
+}
+.spell-doc-main .spell-thread-text > :last-child {
+  margin-bottom: 0;
+}
+.spell-doc-main .spell-thread-text > :is(p, ul, ol) {
+  margin-block: 0 6px;
+}
+.spell-doc-main .spell-thread-text > :is(ul, ol) {
+  padding-left: 20px;
+}
+/* its block changed or moved since:  what it was on, quiet, above the messages */
+.spell-doc-main .spell-comment-moved {
+  margin: 0;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+}
+.spell-doc-main .spell-thread-check {
+  display: inline-grid;
+  place-items: center;
+  margin-right: 6px;
+}
+/* the pen:  Owen's words, while Claude hasn't taken them;  a plain icon button, as the trash */
+.spell-doc-main .spell-thread-edit {
+  font-size: 0.8rem;
+}
+/* the reply box (`startReply()`):  the pane's field, its floppy in the lower right corner */
+.spell-doc-main .spell-thread-reply {
+  position: relative;
+}
+.spell-doc-main .spell-thread-reply > textarea.spell-comment-field {
+  min-height: 3lh;
+  padding-right: 26px;
+}
+.spell-doc-main .spell-thread-reply > .spell-comment-saved {
+  position: absolute;
+  right: 8px;
+  bottom: 6px;
+}
+.spell-doc-main .spell-thread-reply > .spell-comment-saved[hidden] {
+  display: none;
+}
+/*
+ * a comment's state in the bullhorn's list, quiet:  the fill rule as a dot before the words, a ring while it waits
+ * for Claude ("outlined"), solid once he answered (Owen's turn) or it's done
  */
 .spell-doc-main .spell-comment-state {
   display: inline-flex;
@@ -959,13 +1114,8 @@ pre code {
   border: 1.5px solid var(--spell-rail-ink);
   border-radius: 50%;
 }
-.spell-doc-main
-  :is(.spell-comment, .spell-comment-choice):is([data-state="taken"], [data-state="answered"])
-  .spell-comment-state::before {
+.spell-doc-main .spell-comment-choice:is([data-turn="owen"], [data-turn="done"]) .spell-comment-state::before {
   background: var(--spell-rail-ink);
-}
-.spell-doc-main .spell-comment-state > a {
-  color: inherit;
 }
 /* the bullhorn's list (`openPicker()`):  one line per comment (its first words, its state), then New comment */
 .spell-doc-main .spell-comment-pane.spell-comment-pick {
@@ -1030,52 +1180,6 @@ pre code {
 .spell-comment-float[hidden] {
   display: none;
 }
-.spell-doc-main .spell-comment-date {
-  flex: none;
-  color: var(--spell-muted);
-  font-size: 0.85rem;
-  font-variant-numeric: tabular-nums;
-  white-space: nowrap;
-}
-/* its text:  in a box as the pane's field is (`textarea.spell-comment-field`) */
-.spell-doc-main .spell-comment-body {
-  margin-top: 4px;
-  padding: 8px 10px;
-  border: 1px solid var(--spell-rail-rule);
-  border-radius: 6px;
-  background: var(--spell-bg);
-  color: var(--spell-ink);
-  line-height: 1.4;
-}
-.spell-doc-main .spell-comment[data-folded] > .spell-comment-body {
-  display: none;
-}
-.spell-doc-main .spell-comment-body > p {
-  margin: 0 0 6px;
-}
-.spell-doc-main .spell-comment-body > :last-child {
-  margin-bottom: 0;
-}
-.spell-doc-main .spell-comment-moved {
-  color: var(--spell-muted);
-  font-size: 0.85rem;
-}
-.spell-doc-main .spell-comment-reply {
-  margin: 6px 0 4px;
-  padding: 2px 10px 4px;
-  border-left: 3px solid var(--ui-violet, #6435c9);
-  border-radius: 0 6px 6px 0;
-  background: color-mix(in srgb, var(--ui-violet, #6435c9) 7%, var(--spell-bg));
-}
-.spell-doc-main .spell-comment-reply > p {
-  margin: 4px 0 0;
-}
-.spell-doc-main .spell-comment-who {
-  margin-top: 4px;
-  color: var(--ui-violet, #6435c9);
-  font: var(--spell-eyebrow-font);
-  letter-spacing: var(--spell-eyebrow-tracking);
-}
 /*
  * the PANE (`.spell-comment-pane`, in `main`, fixed on the screen):  small, just under the selection (or the button
  * clicked), dragged by its header;  the page never scrolls for it (Owen, 2026-10-10:  "a little floating pane ...
@@ -1115,16 +1219,6 @@ pre code {
   font-style: italic;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-/* a comment Claude has, to read:  its state, its text, Claude's answers */
-.spell-doc-main .spell-comment-view {
-  max-height: 50vh;
-  overflow-y: auto;
-}
-.spell-doc-main .spell-comment-status {
-  margin: 0 0 4px;
-  color: var(--spell-muted);
-  font-size: 0.85rem;
 }
 /* a comment's trash (`deleteButton()`), on its card and in the pane:  one click deletes, Undo in the toast */
 .spell-doc-main .spell-comment-delete[hidden] {

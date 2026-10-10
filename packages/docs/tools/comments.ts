@@ -18,7 +18,10 @@
  *   - no page:  every page (as `--all`)
  *   - `--epic`:  another epic than `guide-changes` (a scratch one, to try it)
  *   - `--json`:  `[{ page, epic, phase, as: "phase" | "update", comments, notes }]`
- * - `answer <page> <id> --file <html>`:  Claude's answer under the comment (the file's markup, as is)
+ * - `answer <page> <id> --file <html> [--commit <sha>]`:  Claude's answer on the comment's thread (the file's
+ *   markup, as is);  `--commit`, the commit it was built in (the thread's Done line shows it)
+ * - a THREAD:  Owen answers Claude's answer on the page (that's good, reply, skip it:  `CommentList`);  his reply is
+ *   waiting work, as a new comment is:  `list` shows it under the comment, `gather` takes it again
  * - `<page>`:  from the checkout's root (`guides/x.html`), or from an area (`pages.js` `pageFile()`)
  * - plan docs' comments wait in their epic's review inbox instead:  `spell dev plan-doc inbox <name>`
  * - Exit codes:  0;  1 a comment or page that isn't there (the message says why);  2 usage.
@@ -26,7 +29,7 @@
 import { readFileSync } from "node:fs"
 import { relative, resolve } from "node:path"
 
-import { CommentsError } from "$/epics/tool/CommentList"
+import { CommentList, CommentsError } from "$/epics/tool/CommentList"
 
 import { GUIDE_CHANGES, GuideChanges } from "./GuideChanges"
 import { GuideInbox } from "./GuideInbox"
@@ -44,7 +47,8 @@ async function run([verb = "list", ...rest]: string[], flags: Record<string, str
     const [page, id] = rest
     if (!page || !id || typeof flags.file !== "string") return usage()
     const reply = readFileSync(resolve(flags.file), "utf8")
-    GuideInbox.update(GuideInbox.fileFor(pageFile(page)), (comments) => comments.answer(id, reply))
+    const commit = typeof flags.commit === "string" ? flags.commit : undefined
+    GuideInbox.update(GuideInbox.fileFor(pageFile(page)), (comments) => comments.answer(id, reply, new Date(), commit))
     console.log(`${relative(ROOT, pageFile(page))}  ${id}  answered`)
     return 0
   } catch (error) {
@@ -72,6 +76,11 @@ function list(flags: Record<string, string | true>): number {
       console.log(`${comment.page}  ${comment.id}  ${where || comment.anchor}  ${comment.at}${state}`)
       if (comment.quote) console.log(`  on "${comment.quote}"`)
       for (const line of comment.text.split("\n")) console.log(line ? `  ${line}` : "")
+      // his reply on the thread since Claude answered:  the work now
+      const reply = CommentList.isWaiting(comment) && comment.replies?.findLast((each) => each.by === "Owen")
+      if (!reply) continue
+      console.log(`  Owen replied ${reply.at}:`)
+      for (const line of reply.text!.split("\n")) console.log(line ? `    ${line}` : "")
     }
   return 0
 }
@@ -102,7 +111,7 @@ function usage(): number {
   console.error(
     "usage:  spell dev comments list [--all] [--json]\n" +
       "        spell dev comments gather [<page>... | --all] [--epic <name>] [--json]\n" +
-      "        spell dev comments answer <page> <id> --file <reply.html>"
+      "        spell dev comments answer <page> <id> --file <reply.html> [--commit <sha>]"
   )
   return 2
 }
