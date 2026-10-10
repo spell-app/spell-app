@@ -5,7 +5,7 @@
  * - Call `unitTestModuleRules(parser, <moduleName>)` to test all rules in that module.
  * - Each input is parsed once, then written by BOTH writers:  javascript (`P.JSWriter`) and TypeScript (`P.TSWriter`).
  *   A test without `ts` expects the same TypeScript as javascript.
- * - Blessing:  `BLESS_RULE_TESTS=1` writes what the TypeScript writer wrote into each test's `ts`, in the source,
+ * - Blessing:  `BLESS_RULE_TESTS=1` writes what each writer wrote into each test's `js` and `ts`, in the source,
  *   then `vp fmt` tidies it -- e.g. `yarn test:rules:bless` in spell.  Read the diff after.
  * - TODO: add `only` to test block to skip everything else in the file.
  */
@@ -23,7 +23,7 @@ import type { BlessedTest } from "./RuleTestSource"
 /** Shape of one test entry after `P.normalizeRuleTest()` fills in defaults (`title`, `skip`, etc). */
 type NormalizedRuleTest = ReturnType<typeof P.normalizeRuleTest>
 
-/** Set, `BLESS_RULE_TESTS=1`:  write each test's `ts` into the source, rather than checking it. */
+/** Set, `BLESS_RULE_TESTS=1`:  write each test's `js` and `ts` into the source, rather than checking them. */
 const IS_BLESSING = !!process.env.BLESS_RULE_TESTS
 
 /**
@@ -31,7 +31,7 @@ const IS_BLESSING = !!process.env.BLESS_RULE_TESTS
  * - Pass `initializeContext` to have it run before each rule.
  */
 export function unitTestModuleRules(parser: P.Parser, moduleName: string, initializeContext?: () => void) {
-  /** While blessing:  what the TypeScript writer wrote for each test. */
+  /** While blessing:  what each writer wrote for each test. */
   const blessed: BlessedTest[] = []
 
   describe(`rule unit tests`, () => {
@@ -46,7 +46,7 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
     rules.forEach((rule) => executeRuleTests(rule))
     // Each test compiled as it was collected, above:  `blessed` is complete.
     if (IS_BLESSING) {
-      test("BLESS_RULE_TESTS:  every test's ts written into its source", async () => {
+      test("BLESS_RULE_TESTS:  every test's js and ts written into its source", async () => {
         expect(await blessSources(expect.getState().testPath!, blessed)).toEqual([])
       })
     }
@@ -128,7 +128,7 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
    * and register a vitest `test()` comparing them to `js` and `ts`.
    * - ONE test per input when both match;  else a `describe()` with a test for each writer that didn't.
    * - Whitespace (returns/tabs) is made visible via `showWhitespace()` so mismatches are legible in output.
-   * - While blessing, `ts` isn't checked:  what was written is kept, for `blessSources()`.
+   * - While blessing, nothing is checked:  what was written is kept, for `blessSources()`.
    */
   function executeTest(
     { input, js, ts, title }: NormalizedRuleTest,
@@ -144,11 +144,11 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
     if (beforeEach) beforeEach(scope)
 
     const compiled = compileMatch(scope, ruleName, input, js)
-    if (IS_BLESSING) blessed.push({ input, js, ts: compiled.ts })
+    if (IS_BLESSING) blessed.push({ input, js, writtenJs: compiled.js, ts: compiled.ts })
     const failures = [
       { writer: "javascript", got: compiled.js, expected: js },
       { writer: "TypeScript", got: compiled.ts, expected: ts }
-    ].filter(({ writer, got, expected }) => !isEqual(got, expected) && !(IS_BLESSING && writer === "TypeScript"))
+    ].filter(({ got, expected }) => !isEqual(got, expected) && !IS_BLESSING)
 
     const testTitle = `${(title ? `${title}: '` : "'") + showWhitespace(input)}'`
     if (!failures.length) {
@@ -171,7 +171,7 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
    * Parse `input` as `ruleName`, and write it with each writer:  `{ js, ts }`.
    * - As its parser's `normalizeTestOutput()` has it, e.g. without spell's declarations comments.
    * - A rule with no AST (`getAST()`) compiles itself:  the same for both.
-   * - The TypeScript writer sees just this match, as the whole project (`P.Writer.forProject()`).
+   * - Each writer sees just this match, as the whole project, in its scope (`P.JSWriter.writeMatch()`).
    * - A writer's error is what it wrote -- unless it's a `ParserError` and the test expects nothing (`js`).
    * - Both `undefined` if parsing fails or throws.
    */
@@ -196,19 +196,14 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
     }
     const parsed = match
     return {
-      js: written(() => parsed.compile()),
-      ts: written(() => {
-        const ast = parsed.rule.getAST ? parsed.AST : undefined
-        if (!ast) return parsed.compile()
-        const statements = ast instanceof P.ASTStatementGroup ? (ast.statements ?? []) : [ast]
-        return P.TSWriter.instance.forProject([statements], scope).write(ast)
-      })
+      js: written(() => P.JSWriter.instance.writeMatch(parsed)),
+      ts: written(() => P.TSWriter.instance.writeMatch(parsed))
     }
   }
 }
 
 /**
- * Write each test's `ts` into the source files the test file at `testPath` tests:  see `P.RuleTestSource`.
+ * Write each test's `js` and `ts` into the source files the test file at `testPath` tests:  see `P.RuleTestSource`.
  * - A module in a folder of its own, `rules/events/events.test.ts`:  every source file in that folder.
  * - Else the file beside it, `rules/Block.test.ts` => `rules/Block.ts`.
  * - Returns what it couldn't bless:  see `P.RuleTestSource.bless()`.
@@ -230,7 +225,10 @@ async function blessSources(testPath: string, blessed: BlessedTest[]): Promise<s
     sources.flatMap((source) => source.tests.map(({ input, js }) => RuleTestSource.keyOf(input, js)))
   )
   const notFound = blessed
-    .filter(({ input, js, ts }) => !isEqual(ts, js) && !found.has(RuleTestSource.keyOf(input, js)))
+    .filter(
+      ({ input, js, writtenJs, ts }) =>
+        (!isEqual(ts, js) || !isEqual(writtenJs, js)) && !found.has(RuleTestSource.keyOf(input, js))
+    )
     .map(({ input }) => `'${input}':  not found in ${paths.join(", ")}`)
   return [
     ...notFound,

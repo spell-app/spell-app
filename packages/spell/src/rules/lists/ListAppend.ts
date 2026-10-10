@@ -25,7 +25,7 @@ lists.addRule(ListAppend, {
         scope.variables?.add("my-list")
         scope.variables?.add("thing")
       },
-      tests: [["append thing to my-list", "spellCore.append(my_list, thing)", "spellCore.append(myList, thing)"]]
+      tests: [["append thing to my-list", "spellCore.append(myList, thing)"]]
     }
   ]
 })

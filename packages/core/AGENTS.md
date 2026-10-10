@@ -74,9 +74,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 - Every spell object's JSON says its class first, `"@type"`, then its props.
   - `{ "@type": "Card", "rank": "ace" }`
-  - a list's adds its items:  `{ "@type": "Pile", "name": "stock", "items": [...] }`
+  - a list's adds its items, under `"@items"` (`ITEMS_KEY`):  `{ "@type": "Pile", "name": "stock", "@items": [...] }`
   - written by `$/util`'s `typedJSON()`
-  - `"@type"` is never a prop:  `keys()` (what the Thing Explorer lists) doesn't have it.
+  - Neither `"@type"` nor `"@items"` is ever a prop:  `keys()` (what the Thing Explorer lists) doesn't have them.
 - `spellCore.fromJSON()` ([json.ts](src/json.ts)) reads it back, each object as its class.
   - It finds a class by name, `spellCore.things.classNamed()`.
   - That knows a class once one of its things is made,

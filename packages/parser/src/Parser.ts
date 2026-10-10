@@ -523,7 +523,8 @@ export class Parser extends Derivative {
           if (debug && compileAs !== ruleName) console.group(`testing as ${compileAs}`)
 
           tests.forEach((test) => {
-            // javascript only:  the speed test times the parser, so what it does mustn't grow with each writer
+            // javascript only, as its rule test writes it (`JSWriter.writeMatch()`):  the speed test times the parser,
+            // so what it does mustn't grow with each writer
             const { input, js: output, skip } = P.normalizeRuleTest(test)
             if (skip || input === "") return
 
@@ -537,7 +538,7 @@ export class Parser extends Derivative {
               const match = scope.parse(input, compileAs!)
               if (match) {
                 scope.parser?.commit(match)
-                result = this.normalizeTestOutput(match.compile())
+                result = this.normalizeTestOutput(P.JSWriter.instance.writeMatch(match))
               }
             } catch (e) {
               result = e

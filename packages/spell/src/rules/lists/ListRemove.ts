@@ -29,7 +29,7 @@ lists.addRule(ListRemove, {
         scope.variables?.add("thing")
         scope.variables?.add("my-list")
       },
-      tests: [["remove thing from my-list", "spellCore.remove(my_list, thing)", "spellCore.remove(myList, thing)"]]
+      tests: [["remove thing from my-list", "spellCore.remove(myList, thing)"]]
     }
   ]
 })

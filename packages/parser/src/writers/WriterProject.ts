@@ -1,23 +1,25 @@
 import { P } from "$/parser"
 
 /****************
- * ### `TSProject`
- * What `P.TSWriter` must know about a whole project BEFORE it writes any of it:  how to name a member it reads,
- * which variables are set again, which members move into their classes, which lists become typed constants, what
- * values it gives each member.
- * - Made once per compile, from every file's statements:  `TSProject.of(files)`, through `TSWriter.forProject()`.
+ * ### `WriterProject`
+ * What a javascript writer (`P.JSWriter`, `P.TSWriter`) must know about a whole project BEFORE it writes any of it:
+ * how to name a member it reads, what each value is, which variables are set again, which members move into their
+ * classes, which lists become typed constants, what values it gives each member.
+ * - Made once per compile, from every file's statements:  `WriterProject.of(files)`, through `JSWriter.forProject()`.
+ * - Both writers read what it knows of names and values;  what moves, and the typed constants, are TypeScript's.
  * - Plain facts, worked out from the tree alone:  no scope lookups, nothing written.
- * - An empty one (`new TSProject()`) knows nothing, e.g. for `TSWriter.instance` writing one node in a test:  then
- *   no getter is renamed where it's read, every new variable is `let`, and nothing moves.
+ * - An empty one (`new WriterProject()`) knows nothing, e.g. for `JSWriter.instance` writing one node:  then no
+ *   getter is renamed where it's read, every new variable is `let`, and nothing moves.
  ****************/
-export class TSProject {
+export class WriterProject {
   /**
-   * Getters the project declares, by spell's name, e.g. `is_face_up`:  read as TypeScript's, `isFaceUp`.
+   * Getters the project declares, by spell's name, e.g. `is_face_up`:  read by a member's name, `isFaceUp` -- see
+   * `JSWriter.memberName()`.
    * - And the methods of the types it imports, e.g. `is_face_up` from `card "is face up" if ...`:  one read as a
    *   property is a getter there.  And their getters declared as properties (`the short name of a card is ...`):
    *   their declarations say `"getter": true` (`P.ScopeVariable.isGetter`).
-   * - NOT a name some class also has as a property (`ASTReactiveProperty`):  a property keeps spell's name, and a
-   *   read can't tell which of the two it is.
+   * - NOT a name some class also has as a property (`ASTReactiveProperty`):  a property is named as a property, and
+   *   a read can't tell which of the two it is.
    */
   readonly getters = new Set<string>()
   /** Variables set AFTER they're declared, by spell's name, e.g. `state`:  `let`;  any other new variable is `const`. */
@@ -71,30 +73,24 @@ export class TSProject {
   readonly importedMembers = new Map<string, Set<string>>()
   /**
    * Every value the program gives a member, by the member's name, e.g. `name` => `"stock"`, `"discards"` ...
-   * - What types a property whose type the program never says (Q54):  see `TSWriter.givenKind()`.
+   * - What types a property whose type the program never says (Q54):  see `JSWriter.givenKind()`.
    * - Given when one is made:  `a new stock-pile with name = "stock"`.
    * - Set on one:  `set the name of the pile to ...`.
    */
-  readonly givenValues = new Map<string, TSGivenValue[]>()
+  readonly givenValues = new Map<string, GivenValue[]>()
 
-  /** What `files`' statements say, and the import layer above `scope`, if any -- see the class docs. */
-  static of(files: P.ASTNode[][], scope?: P.Scope): TSProject {
-    const project = new TSProject()
+  /**
+   * What `files`' statements say, and the import layer above `scope`, if any -- see the class docs.
+   * - And what `scope`'s project says of its types, from their records:  for ONE file written alone (the editor's
+   *   view of a file, `JSWriter.writeMatch()`), a type another of its files declares is known as an imported
+   *   one is, and its getters are read by their member names.
+   */
+  static of(files: P.ASTNode[][], scope?: P.Scope): WriterProject {
+    const project = new WriterProject()
+    const projectLayers: P.Scope[] = []
     for (let layer = scope; layer; layer = layer.parentScope) {
-      if (!(layer instanceof P.ImportScope)) continue
-      for (const type of layer.types?.get() ?? []) {
-        const members = new Set<string>()
-        for (const method of type.methods?.get() ?? []) {
-          project.getters.add(method.name)
-          members.add(method.name)
-        }
-        for (const variable of type.variables?.get() ?? []) {
-          members.add(variable.name)
-          if (variable.isGetter) project.getters.add(variable.name)
-        }
-        project.importedMembers.set(type.name, members)
-        if (type.superType) project.superTypes.set(type.name, type.superType)
-      }
+      if (layer instanceof P.ImportScope) project.noteTypes(layer)
+      else if (layer instanceof P.ProjectScope || layer instanceof P.FileScope) projectLayers.push(layer)
     }
     const classes = new Map<string, P.ASTClassDeclaration>()
     const properties = new Set<string>()
@@ -112,6 +108,7 @@ export class TSProject {
         })
       }
     }
+    for (const layer of projectLayers) project.noteTypes(layer, classes)
     for (const name of properties) project.getters.delete(name)
     for (const statements of files) project.moveMembers(statements, classes)
     for (const declaration of classes.values()) project.noteClass(declaration, classes)
@@ -199,6 +196,29 @@ export class TSProject {
   ////////////////
   // ## Working it out
   ////////////////
+
+  /**
+   * SIDE EFFECT:  notes what the types `layer` declares say they have:  their getters, in `getters` -- their methods
+   * (one read as a property is a getter) and their derived properties (`P.ScopeVariable.isGetter`).
+   * - Each type NOT in `written` (the classes the files declare), and not noted already, is noted as imported:  its
+   *   members in `importedMembers`, its super-type in `superTypes`.
+   */
+  private noteTypes(layer: P.Scope, written = new Map<string, P.ASTClassDeclaration>()) {
+    for (const type of layer.types?.get() ?? []) {
+      const members = new Set<string>()
+      for (const method of type.methods?.get() ?? []) {
+        this.getters.add(method.name)
+        members.add(method.name)
+      }
+      for (const variable of type.variables?.get() ?? []) {
+        members.add(variable.name)
+        if (variable.isGetter) this.getters.add(variable.name)
+      }
+      if (written.has(type.name) || this.importedMembers.has(type.name)) continue
+      this.importedMembers.set(type.name, members)
+      if (type.superType) this.superTypes.set(type.name, type.superType)
+    }
+  }
 
   /**
    * SIDE EFFECT:  notes each member in `statements` written outside a class in `classes` (and the comments right
@@ -313,7 +333,7 @@ export class TSProject {
    * SIDE EFFECT:  notes in `givenValues` each value `node`, and everything under it, gives a member -- with `where`
    * it's given:  in which class, inside which methods.
    */
-  private noteGivenValues(node: unknown, where: TSWhere) {
+  private noteGivenValues(node: unknown, where: ProgramPlace) {
     if (Array.isArray(node)) {
       for (const item of node) this.noteGivenValues(item, where)
       return
@@ -337,7 +357,7 @@ export class TSProject {
   }
 
   /** SIDE EFFECT:  notes `given`, a value the program gives member `name`, in `givenValues`. */
-  private noteGiven(name: string, given: TSGivenValue) {
+  private noteGiven(name: string, given: GivenValue) {
     this.givenValues.set(name, [...(this.givenValues.get(name) ?? []), given])
   }
 
@@ -387,7 +407,7 @@ export type TSList = {
 }
 
 /**
- * A member a class gets for TypeScript only -- see `TSProject.undeclared`.  The javascript doesn't change.
+ * A member a class gets for TypeScript only -- see `WriterProject.undeclared`.  The javascript doesn't change.
  * - A value given when one is made:  `declare symbol: string` in its class.
  * - A method:  merged in after its class, `export interface Pile { canPickUpCard(card: Card): boolean }` -- a
  *   `declare` property would clash with the classes below that define it as a method.
@@ -395,7 +415,7 @@ export type TSList = {
 export type TSUndeclared = {
   /** Its name, spell's. */
   name: string
-  /** A value given when one is made:  typed by every value the program gives it -- see `TSProject.givenValues`. */
+  /** A value given when one is made:  typed by every value the program gives it -- see `WriterProject.givenValues`. */
   isValue?: boolean
   /** For a method:  one class's definition of it, typing its parameters. */
   method?: P.ASTMethodDefinition
@@ -404,11 +424,11 @@ export type TSUndeclared = {
 }
 
 /**
- * A value the program gives a member -- see `TSProject.givenValues`.
+ * A value the program gives a member -- see `WriterProject.givenValues`.
  * - Given when one is made:  `a new stock-pile with name = "stock"`.
  * - Set on one:  `set the name of the pile to ...`.
  */
-export type TSGivenValue = {
+export type GivenValue = {
   /** The value given, e.g. `"stock"`. */
   value: P.ASTExpression
   /** Given when one is made:  the class made, e.g. `Stock_Pile`. */
@@ -416,11 +436,11 @@ export type TSGivenValue = {
   /** Set on one:  what it's set on, e.g. `the pile`. */
   object?: P.ASTExpression
   /** Where it's given:  so the writer can tell what `object` and `value` are. */
-  where: TSWhere
+  where: ProgramPlace
 }
 
 /** Where in a program something is:  in which class's members, if any, and inside which methods. */
-export type TSWhere = {
+export type ProgramPlace = {
   /** The class whose member it's in, e.g. `Tableau`:  what `this` is there. */
   typeName?: string
   /** The methods it's inside, outermost first:  their parameters are known there. */
@@ -476,7 +496,8 @@ export function typeCaseOf(name: string): string {
 }
 
 /**
- * TypeScript's name for spell's `name`:  `is_a_$suit` => `isASuit`, `turn_face_up` => `turnFaceUp`, `it_2` => `it2`.
+ * Spell's `name` in camelCase, as javascript and TypeScript write a member's name (`JSWriter.nameOf()`):
+ * `is_a_$suit` => `isASuit`, `turn_face_up` => `turnFaceUp`, `it_2` => `it2`.
  * - `$` marks where a value goes in a spell name:  dropped, as `_` is.
  * - A name with neither is as is, e.g. `play`, `Card`.
  */

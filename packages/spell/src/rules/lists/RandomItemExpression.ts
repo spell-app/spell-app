@@ -26,7 +26,7 @@ lists.addRule(RandomItemExpression, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["a random item of my-list", "spellCore.randomItemOf(my_list)", "spellCore.randomItemOf(myList)"],
+        ["a random item of my-list", "spellCore.randomItemOf(myList)"],
         [`a random word in "some words"`, `spellCore.randomItemOf("some words")`],
         ["a random card from the deck", "spellCore.randomItemOf(deck)"]
       ]

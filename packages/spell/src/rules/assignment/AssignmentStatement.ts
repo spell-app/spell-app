@@ -222,7 +222,7 @@ assignment.addRule(AssignmentStatement, {
         {
           title: "non-existing var",
           input: "unknown-var = yes",
-          js: "export let unknown_var = true",
+          js: "export let unknownVar = true",
           ts: "export const unknownVar: boolean = true"
         },
         { title: "existing var", input: "thing = yes", js: "thing = true" }
@@ -259,7 +259,7 @@ assignment.addRule(AssignmentStatement, {
         {
           title: "non-existing var",
           input: "set unknown-var to yes",
-          js: "export let unknown_var = true",
+          js: "export let unknownVar = true",
           ts: "export const unknownVar: boolean = true"
         },
         { title: "existing var", input: "set thing to yes", js: "thing = true" },

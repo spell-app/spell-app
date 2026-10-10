@@ -31,7 +31,7 @@ lists.addRule(ListShuffle, {
       tests: [
         ["shuffle cards of deck", "spellCore.randomize(deck)"],
         ["shuffle the cards of the deck", "spellCore.randomize(deck)"],
-        ["randomize my-list", "spellCore.randomize(my_list)", "spellCore.randomize(myList)"]
+        ["randomize my-list", "spellCore.randomize(myList)"]
       ]
     }
   ]

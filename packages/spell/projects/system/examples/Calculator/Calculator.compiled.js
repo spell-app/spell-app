@@ -42,36 +42,36 @@ export class Calculator extends App {
     this.total = 0
   }
 
-  update_the_total_of_calculator() {
-    if (spellCore.isEmpty(this.right)) { this.output = "" }
+  updateTheTotalOfCalculator() {
+    if (!this.right) { this.output = "" }
     else {
       let lhs = parseFloat(this.left)
       let rhs = parseFloat(this.right)
-      if (this.operator == "+") { this.total = (lhs + rhs) }
-      else if (this.operator == "–") { this.total = (lhs - rhs) }
-      else if (this.operator == "x") { this.total = (lhs * rhs) }
+      if (this.operator === "+") { this.total = (lhs + rhs) }
+      else if (this.operator === "–") { this.total = (lhs - rhs) }
+      else if (this.operator === "x") { this.total = (lhs * rhs) }
       else { this.total = (lhs / rhs) }
-      this.output = (" = " + this.total)
+      this.output = ` = ${this.total}`
     }
   }
 
-  append_$digit_to_calculator(digit) {
+  appendDigitToCalculator(digit) {
     // TODO: handle digit = "DELETE"
-    if (digit == ".") {
-      if (spellCore.isEmpty(this.input)) { this.input = "0." }
-      else if (!spellCore.includes(this.input, ".")) { this.input = (this.input + ".") }
+    if (digit === ".") {
+      if (!this.input) { this.input = "0." }
+      else if (!this.input.includes(".")) { this.input = `${this.input}.` }
     }
-    else if (digit != "DELETE") { this.input = (this.input + digit) }
+    else if (digit !== "DELETE") { this.input = (this.input + digit) }
     // add to left or right field as appropriate
-    if (spellCore.isEmpty(this.operator)) { this.left = this.input }
+    if (!this.operator) { this.left = this.input }
     else { this.right = this.input }
-    this.update_the_total_of_calculator()
+    this.updateTheTotalOfCalculator()
   }
 
-  set_the_operator_of_calculator_to_$op(op) {
+  setTheOperatorOfCalculatorToOp(op) {
     this.operator = op
     this.input = ""
-    if (!spellCore.isEmpty(this.right)) {
+    if (this.right) {
       // move total to right
       this.left = `${this.total}`
       this.right = ""
@@ -126,7 +126,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator("7")
+                  return this.appendDigitToCalculator("7")
                 }
               },
               children: [
@@ -140,7 +140,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator("8")
+                  return this.appendDigitToCalculator("8")
                 }
               },
               children: [
@@ -154,7 +154,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator("9")
+                  return this.appendDigitToCalculator("9")
                 }
               },
               children: [
@@ -184,7 +184,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator("4")
+                  return this.appendDigitToCalculator("4")
                 }
               },
               children: [
@@ -198,7 +198,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator("5")
+                  return this.appendDigitToCalculator("5")
                 }
               },
               children: [
@@ -212,7 +212,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator("6")
+                  return this.appendDigitToCalculator("6")
                 }
               },
               children: [
@@ -242,7 +242,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator("1")
+                  return this.appendDigitToCalculator("1")
                 }
               },
               children: [
@@ -256,7 +256,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator("2")
+                  return this.appendDigitToCalculator("2")
                 }
               },
               children: [
@@ -270,7 +270,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator("3")
+                  return this.appendDigitToCalculator("3")
                 }
               },
               children: [
@@ -300,7 +300,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator("0")
+                  return this.appendDigitToCalculator("0")
                 }
               },
               children: [
@@ -314,7 +314,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator(".")
+                  return this.appendDigitToCalculator(".")
                 }
               },
               children: [
@@ -329,7 +329,7 @@ export class Calculator extends App {
                 hidden: true,
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to_calculator("DELETE")
+                  return this.appendDigitToCalculator("DELETE")
                 }
               },
               children: [

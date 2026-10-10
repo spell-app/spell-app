@@ -36,16 +36,8 @@ lists.addRule(ListAddRelative, {
         scope.variables?.add("other-thing")
       },
       tests: [
-        [
-          "add thing to my-list before other-thing",
-          "spellCore.addBefore(my_list, other_thing, thing)",
-          "spellCore.addBefore(myList, otherThing, thing)"
-        ],
-        [
-          "add thing to my-list after other-thing",
-          "spellCore.addAfter(my_list, other_thing, thing)",
-          "spellCore.addAfter(myList, otherThing, thing)"
-        ]
+        ["add thing to my-list before other-thing", "spellCore.addBefore(myList, otherThing, thing)"],
+        ["add thing to my-list after other-thing", "spellCore.addAfter(myList, otherThing, thing)"]
       ]
     }
   ]

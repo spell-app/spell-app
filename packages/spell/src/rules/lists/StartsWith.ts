@@ -36,7 +36,7 @@ lists.addRule(StartsWith, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["my-list starts with thing", "spellCore.startsWith(my_list, thing)", "spellCore.startsWith(myList, thing)"],
+        ["my-list starts with thing", "spellCore.startsWith(myList, thing)"],
         ["[1,2,3] starts with 1", "spellCore.startsWith([1, 2, 3], 1)"],
         ["[1,2,3] does not start with 10", "!spellCore.startsWith([1, 2, 3], 10)"],
         ["[1,2,3] doesn't start with 10", "!spellCore.startsWith([1, 2, 3], 10)"],

@@ -56,17 +56,17 @@ lists.addRule(ListFilter, {
         ],
         [
           "the items in my-list where the id of the item > 1",
-          [`spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `})`],
+          ["spellCore.filter(myList, (item) => {", "  return (item.id > 1)", "})"],
           "spellCore.filter(myList, (item) => item.id > 1)"
         ],
         [
           "the items in my-list where the id of it > 1",
-          ["spellCore.filter(my_list, (item) => {", "  return (item.id > 1)", "})"],
+          ["spellCore.filter(myList, (item) => {", "  return (item.id > 1)", "})"],
           "spellCore.filter(myList, (item) => item.id > 1)"
         ],
         [
           "the items in my-list where its id > 1",
-          [`spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `})`],
+          ["spellCore.filter(myList, (item) => {", "  return (item.id > 1)", "})"],
           "spellCore.filter(myList, (item) => item.id > 1)"
         ]
       ]

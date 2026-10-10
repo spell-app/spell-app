@@ -36,7 +36,7 @@ class Card extends Thing {
     return `${this.rank}-card`
   }
   /** `to turn (a card) over`:  no arguments, so it gets a ▶. */
-  turn_over() {
+  turnOver() {
     this.rank = "turned"
   }
 }

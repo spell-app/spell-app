@@ -3,7 +3,7 @@
  */
 import _ from "lodash"
 
-import { Cell, isTrackingCells, Observable, runsCreate, typedJSON, type PropInfo } from "$/util"
+import { Cell, isTrackingCells, ITEMS_KEY, Observable, runsCreate, typedJSON, type PropInfo } from "$/util"
 import { spellCore } from "$/core/core"
 import type { CollectionIterationCallback } from "$/core/collection-other"
 import type { Drawing } from "$/core/drawing"
@@ -569,15 +569,16 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * Our JSON:  our class's name as `"@type"`, our own props, then our items under `"items"`, each by its own JSON --
-   * `{ "@type": "Pile", "name": "stock", "items": [{ "@type": "Card", ... }] }` (epic `output-targets`, Q49).
-   * - A plain `List`, with no props:  `{ "@type": "List", "items": [...] }`.  A scratch list too.
+   * Our JSON:  our class's name as `"@type"`, our own props, then our items under `"@items"` (`ITEMS_KEY`), each by
+   * its own JSON -- `{ "@type": "Pile", "name": "stock", "@items": [{ "@type": "Card", ... }] }` (epic
+   * `output-targets`, Q49, J53).
+   * - A plain `List`, with no props:  `{ "@type": "List", "@items": [...] }`.  A scratch list too.
    * - So it reads back as what it was:  `spellCore.fromJSON()` (`json.ts`).
-   * - `"items"` can't collide with a prop:  it's our own `items` accessor's name.
+   * - `"@items"` never collides with a prop, as `"@type"` never does:  no prop is named `@...`.
    * - Tracked:  a reader re-runs when a prop or the items change (and, through each item's `toJSON()`, when they do).
    */
   toJSON(): Record<string, unknown> {
-    return { ...typedJSON(this), items: this.items }
+    return { ...typedJSON(this), [ITEMS_KEY]: this.items }
   }
 
   /**

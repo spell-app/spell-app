@@ -81,11 +81,11 @@ classes.addRule(ListGuard, {
       tests: [
         [
           "a pile can take a card if: it is empty",
-          ["Pile.prototype.canTake = function (card) {", "  return spellCore.isEmpty(this)", "}"],
+          ["Pile.prototype.canTake = function (card) {", "  return this.isEmpty", "}"],
           [
             "export interface Pile { canTake(card: Card): boolean }",
             "Pile.prototype.canTake = function (this: Pile, card: Card) {",
-            "  return spellCore.isEmpty(this)",
+            "  return this.isEmpty",
             "}"
           ]
         ],
@@ -98,15 +98,15 @@ classes.addRule(ListGuard, {
           ],
           js: [
             "Pile.prototype.canTake = function (card) {",
-            "  if (spellCore.isEmpty(this)) { return true }",
-            "  return (card != spellCore.getItemAt(this, -1))",
+            "  if (this.isEmpty) { return true }",
+            "  return (card !== this.lastItem)",
             "}"
           ],
           ts: [
             "export interface Pile { canTake(card: Card): boolean }",
             "Pile.prototype.canTake = function (this: Pile, card: Card) {",
-            "  if (spellCore.isEmpty(this)) return true",
-            "  return card !== spellCore.getItemAt(this, -1)",
+            "  if (this.isEmpty) return true",
+            "  return card !== this.lastItem",
             "}"
           ]
         }
@@ -126,11 +126,11 @@ classes.addRule(ListGuard, {
       tests: [
         [
           "a pile can give up a card if: the card is its last card",
-          ["Pile.prototype.canGiveUp = function (card) {", "  return (card == spellCore.getItemAt(this, -1))", "}"],
+          ["Pile.prototype.canGiveUp = function (card) {", "  return (card === this.lastItem)", "}"],
           [
             "export interface Pile { canGiveUp(card: Card): boolean }",
             "Pile.prototype.canGiveUp = function (this: Pile, card: Card) {",
-            "  return card === spellCore.getItemAt(this, -1)",
+            "  return card === this.lastItem",
             "}"
           ]
         ],

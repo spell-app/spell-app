@@ -31,10 +31,10 @@ events.addRule(Trigger, {
       compileAs: "statement",
       tests: [
         //
-        { input: `trigger card-click`, js: "spellCore.trigger('card-click')", ts: 'trigger("card-click")' },
+        { input: `trigger card-click`, js: "trigger('card-click')", ts: 'trigger("card-click")' },
         {
           input: `fire event card-click with card = 1`,
-          js: "spellCore.trigger('card-click', { card: 1 })",
+          js: "trigger('card-click', { card: 1 })",
           ts: 'trigger("card-click", { card: 1 })'
         }
       ]

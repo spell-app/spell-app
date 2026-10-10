@@ -37,15 +37,14 @@ expressions.addRule(ThereIsA, {
         scope.variables?.add("animal")
       },
       tests: [
-        { input: "there is a thing", js: "spellCore.isDefined(thing)", ts: "thing !== undefined" },
-        { input: "there is an animal", js: "spellCore.isDefined(animal)", ts: "animal !== undefined" },
-        { input: "there is not a thing", js: "!spellCore.isDefined(thing)", ts: "thing === undefined" },
-        { input: "there is no such animal", js: "!spellCore.isDefined(animal)", ts: "animal === undefined" },
+        { input: "there is a thing", js: "thing !== undefined" },
+        { input: "there is an animal", js: "animal !== undefined" },
+        { input: "there is not a thing", js: "thing === undefined" },
+        { input: "there is no such animal", js: "animal === undefined" },
         // an operand:  `and` is the expression's, not the thing's (D23)
         {
           input: "there is a thing and animal",
-          js: "(spellCore.isDefined(thing) && animal)",
-          ts: "(thing !== undefined && animal)"
+          js: "(thing !== undefined && animal)"
         }
       ]
     }

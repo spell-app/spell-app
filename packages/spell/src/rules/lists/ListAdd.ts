@@ -31,14 +31,14 @@ lists.addRule(ListAdd, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["add thing to the start of my-list", "spellCore.prepend(my_list, thing)", "spellCore.prepend(myList, thing)"],
-        ["add thing to the front of my-list", "spellCore.prepend(my_list, thing)", "spellCore.prepend(myList, thing)"],
-        ["add thing to the top of my-list", "spellCore.prepend(my_list, thing)", "spellCore.prepend(myList, thing)"],
+        ["add thing to the start of my-list", "spellCore.prepend(myList, thing)"],
+        ["add thing to the front of my-list", "spellCore.prepend(myList, thing)"],
+        ["add thing to the top of my-list", "spellCore.prepend(myList, thing)"],
 
-        ["add thing to my-list", "spellCore.append(my_list, thing)", "spellCore.append(myList, thing)"],
-        ["add thing to the end of my-list", "spellCore.append(my_list, thing)", "spellCore.append(myList, thing)"],
-        ["add thing to the back of my-list", "spellCore.append(my_list, thing)", "spellCore.append(myList, thing)"],
-        ["add thing to the bottom of my-list", "spellCore.append(my_list, thing)", "spellCore.append(myList, thing)"]
+        ["add thing to my-list", "spellCore.append(myList, thing)"],
+        ["add thing to the end of my-list", "spellCore.append(myList, thing)"],
+        ["add thing to the back of my-list", "spellCore.append(myList, thing)"],
+        ["add thing to the bottom of my-list", "spellCore.append(myList, thing)"]
       ]
     }
   ]

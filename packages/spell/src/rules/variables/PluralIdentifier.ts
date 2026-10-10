@@ -26,7 +26,7 @@ variables.addRule(PluralIdentifier, {
       tests: [
         { title: "uncountable, matches as plural too", input: "sheep", js: "sheep" },
         { title: "plural, single word", input: "things", js: "things" },
-        { title: "plural, multi-word", input: "bank-accounts", js: "bank_accounts", ts: "bankAccounts" },
+        { title: "plural, multi-word", input: "bank-accounts", js: "bankAccounts" },
         { title: "singular, single word", input: "thing", js: undefined },
         { title: "singular, multi-word", input: "bank-account", js: undefined }
       ]

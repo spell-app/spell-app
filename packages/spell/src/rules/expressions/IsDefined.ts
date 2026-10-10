@@ -34,9 +34,9 @@ expressions.addRule(IsDefined, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["thing is defined", "spellCore.isDefined(thing)", "thing !== undefined"],
-        ["thing is undefined", "!spellCore.isDefined(thing)", "thing === undefined"],
-        ["thing is not defined", "!spellCore.isDefined(thing)", "thing === undefined"]
+        ["thing is defined", "thing !== undefined"],
+        ["thing is undefined", "thing === undefined"],
+        ["thing is not defined", "thing === undefined"]
       ]
     }
   ]

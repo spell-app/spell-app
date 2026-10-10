@@ -282,7 +282,7 @@ function newProject(files: SpellSourceFile[], keepLastGood = false) {
 function summarizeIncremental(project: P.IncrementalProject): SpellProjectSummary {
   return project.files.map(({ path, parse }) => ({
     path,
-    compiled: (parse.match?.compile() as string | undefined) ?? "",
+    compiled: (P.JSWriter.instance.writeMatch(parse.match) as string | undefined) ?? "",
     errors: describeParseErrors(parse.match),
     warnings: describeWarnings(parse.match)
   }))

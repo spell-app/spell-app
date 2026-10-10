@@ -41,12 +41,12 @@ lists.addRule(ListRemoveWhere, {
       tests: [
         [
           "remove items from my-list where",
-          "spellCore.removeWhere(my_list, (item) => {})",
+          "spellCore.removeWhere(myList, (item) => {})",
           "spellCore.removeWhere(myList, () => {})"
         ],
         [
           `remove items from my-list where item is not "ace"`,
-          [`spellCore.removeWhere(my_list, (item) => {`, `  return (item != "ace")`, `})`],
+          ["spellCore.removeWhere(myList, (item) => {", '  return (item != "ace")', "})"],
           'spellCore.removeWhere(myList, (item) => item != "ace")'
         ],
         [

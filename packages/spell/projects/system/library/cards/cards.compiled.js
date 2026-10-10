@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App } from "@spell/core"
+import { spellCore, Thing, List, App, positionOf, trigger } from "@spell/core"
 
 spellCore.heading("Definition of a Card with nice english aliases for working with it")
 /** Definition of a Card with nice english aliases for working with it */
@@ -26,7 +26,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   get value() {
-    return spellCore.positionOf(Card.Ranks, this.rank)
+    return positionOf(Card.Ranks, this.rank)
   }
 
   /** card direction:  up or down */
@@ -39,65 +39,65 @@ export class Card extends Thing {
   // ## aliases
   /////////////
   /** "card is face up/down" */
-  get is_face_up() {
+  get isFaceUp() {
     return (this.direction == 'up')
   }
 
-  get is_face_down() {
+  get isFaceDown() {
     return (this.direction == 'down')
   }
 
   /** `card is a face card` */
-  get is_a_face_card() {
+  get isAFaceCard() {
     return spellCore.includes(['jack', 'queen', 'king'], this.rank)
   }
 
   /** "card is a spade", "...is a club" etc */
-  is_a_$suit(suit) {
+  isASuit(suit) {
     return this.suit === suit
   }
 
   /** "card is a queen", "...is an ace" etc */
-  is_a_$rank(rank) {
+  isARank(rank) {
     return this.rank === rank
   }
 
   /** "card is the queen of spades" etc */
-  is_the_$rank_of_$suits(rank, suit) {
+  isTheRankOfSuits(rank, suit) {
     return this.rank === rank && this.suit === suit
   }
 
   /** name as a derivation of name/suit */
   get name() {
-    return ((this.rank + "-of-") + this.suit)
+    return `${this.rank}-of-${this.suit}`
   }
 
-  get short_suit() {
-    if (this.is_a_$suit('clubs')) { return "♣️" }
-    if (this.is_a_$suit('diamonds')) { return "♦️" }
-    if (this.is_a_$suit('hearts')) { return "♥️" }
-    if (this.is_a_$suit('spades')) { return "♠️" }
+  get shortSuit() {
+    if (this.isASuit('clubs')) { return "♣️" }
+    if (this.isASuit('diamonds')) { return "♦️" }
+    if (this.isASuit('hearts')) { return "♥️" }
+    if (this.isASuit('spades')) { return "♠️" }
     return "?"
   }
 
-  get short_rank() {
-    if (this.rank == undefined) { return "?" }
-    if (spellCore.isOfType(this.rank, 'number')) { return ("" + this.rank) }
-    return spellCore.upperCase(spellCore.getItemAt(this.rank, 1))
+  get shortRank() {
+    if (this.rank === undefined) { return "?" }
+    if (typeof this.rank === 'number') { return `${this.rank}` }
+    return `${spellCore.getItemAt(this.rank, 1) ?? ''}`.toLocaleUpperCase()
   }
 
-  get short_direction() {
+  get shortDirection() {
     if (this.direction == 'up') { return "+" }
     return "—"
     
   }
 
-  get short_name() {
-    return (this.short_rank + this.short_suit)
+  get shortName() {
+    return (this.shortRank + this.shortSuit)
   }
 
   get state() {
-    return ((this.short_rank + this.short_suit) + this.short_direction)
+    return ((this.shortRank + this.shortSuit) + this.shortDirection)
   }
 
   //## actions
@@ -106,12 +106,12 @@ export class Card extends Thing {
    * Turn card face up or face down
    * Note that this will animate if you `wait for turn the card face up`
    */
-  async turn_face_up() {
+  async turnFaceUp() {
     this.direction = 'up'
     await spellCore.pauseFor(50, 'msec')
   }
 
-  async turn_face_down() {
+  async turnFaceDown() {
     this.direction = 'down'
     await spellCore.pauseFor(50, 'msec')
   }
@@ -120,19 +120,19 @@ export class Card extends Thing {
    * Flip card to opposite direction
    * Note that this will animate if you `wait for turn the card face up`
    */
-  async turn_over() {
-    if (this.direction == 'up') { this.turn_face_down() }
-    else { this.turn_face_up() }
+  async turnOver() {
+    if (this.direction == 'up') { this.turnFaceDown() }
+    else { this.turnFaceUp() }
     await spellCore.pauseFor(50, 'msec')
   }
 
   draw() {
-    let className = (((((("Card face-" + this.direction) + " ") + this.rank) + " ") + this.suit) + " ui button compact fluid ")
-    if (this.is_face_down) { return spellCore.element({
+    let className = `Card face-${this.direction} ${this.rank} ${this.suit} ui button compact fluid `
+    if (this.isFaceDown) { return spellCore.element({
       tag: "div",
       props: {
         onClick: (event) => {
-          return spellCore.trigger('card-click', { card: this })
+          return trigger('card-click', { card: this })
         },
         className: () => className
       },
@@ -144,22 +144,22 @@ export class Card extends Thing {
       tag: "div",
       props: {
         onClick: (event) => {
-          return spellCore.trigger('card-click', { card: this })
+          return trigger('card-click', { card: this })
         },
         className: () => (className + this.color)
       },
       children: [
-        () => (this.short_rank + " "),
+        () => `${this.shortRank} `,
         spellCore.element({ tag: "span", props: { className: "suit" }, children: [
-          () => this.short_suit
+          () => this.shortSuit
         ] })
       ]
     })
   }
 
   /** "card is the red joker", "...is the black joker" -- asked of ANY card, which only a joker of that color is */
-  is_the_$color_joker(color) {
-    return (spellCore.isOfType(this, 'Joker') && (this.color == color))
+  isTheColorJoker(color) {
+    return (this instanceof Joker && (this.color == color))
   }
 }
 
@@ -174,18 +174,18 @@ export class Joker extends Card {
 
   /** name as its color, e.g. "red joker" */
   get name() {
-    return (this.color + "-joker")
+    return `${this.color}-joker`
   }
 
-  get short_name() {
+  get shortName() {
     return "🃏"
   }
 }
 
 spellCore.heading("create a card instance with default properties")
 /** create a card instance with default properties */
-export function test_card_setup() {
-  return spellCore.test('test card setup', function test_card_setup() {
+export function testCardSetup() {
+  return spellCore.test('test card setup', function testCardSetup() {
     spellCore.echoTestAction(`the card is a new card whose rank is queen, suit is spades and direction is up`)
     let card = new Card({
       rank: 'queen',
@@ -198,58 +198,58 @@ export function test_card_setup() {
     spellCore.expect(card.name, `the name of the card`, "queen-of-spades", `"queen-of-spades"`)
     spellCore.expect(card.color, `the color of the card`, 'black', `black`)
     spellCore.expect(card.value, `the value of the card`, 12, `12`)
-    spellCore.expect(card.short_suit, `the short suit of the card`, "♠️", `"♠️"`)
-    spellCore.expect(card.short_rank, `the short rank of the card`, "Q", `"Q"`)
-    spellCore.expect(card.short_name, `the short name of the card`, "Q♠️", `"Q♠️"`)
+    spellCore.expect(card.shortSuit, `the short suit of the card`, "♠️", `"♠️"`)
+    spellCore.expect(card.shortRank, `the short rank of the card`, "Q", `"Q"`)
+    spellCore.expect(card.shortName, `the short name of the card`, "Q♠️", `"Q♠️"`)
     
-    spellCore.expect(card.is_face_up, `the card is face up`, true, `yes`)
-    spellCore.expect(card.is_face_down, `the card is face down`, false, `no`)
+    spellCore.expect(card.isFaceUp, `the card is face up`, true, `yes`)
+    spellCore.expect(card.isFaceDown, `the card is face down`, false, `no`)
     
-    spellCore.expect(card.is_a_face_card, `the card is a face card`, true, `yes`)
-    spellCore.expect(!card.is_a_face_card, `the card is not a face card`, false, `false`)
+    spellCore.expect(card.isAFaceCard, `the card is a face card`, true, `yes`)
+    spellCore.expect(!card.isAFaceCard, `the card is not a face card`, false, `false`)
     
-    spellCore.expect(card.is_a_$suit('spades'), `the card is a spade`, true, `true`)
-    spellCore.expect(card.is_a_$suit('clubs'), `the card is a club`, false, `false`)
+    spellCore.expect(card.isASuit('spades'), `the card is a spade`, true, `true`)
+    spellCore.expect(card.isASuit('clubs'), `the card is a club`, false, `false`)
     
-    spellCore.expect(card.is_a_$rank('queen'), `the card is a queen`, true, `true`)
-    spellCore.expect(card.is_a_$rank('ace'), `the card is an ace`, false, `false`)
-    spellCore.expect(card.is_a_$rank(2), `the card is a 2`, false, `false`)
+    spellCore.expect(card.isARank('queen'), `the card is a queen`, true, `true`)
+    spellCore.expect(card.isARank('ace'), `the card is an ace`, false, `false`)
+    spellCore.expect(card.isARank(2), `the card is a 2`, false, `false`)
     
-    spellCore.expect(card.is_the_$rank_of_$suits('queen', 'spades'), `the card is the queen of spades`, true, `true`)
-    spellCore.expect(card.is_the_$rank_of_$suits('queen', 'clubs'), `the card is the queen of clubs`, false, `false`)
-    spellCore.expect(!card.is_the_$rank_of_$suits(2, 'diamonds'), `the card is not the 2 of diamonds`, true, `true`)
+    spellCore.expect(card.isTheRankOfSuits('queen', 'spades'), `the card is the queen of spades`, true, `true`)
+    spellCore.expect(card.isTheRankOfSuits('queen', 'clubs'), `the card is the queen of clubs`, false, `false`)
+    spellCore.expect(!card.isTheRankOfSuits(2, 'diamonds'), `the card is not the 2 of diamonds`, true, `true`)
     
     spellCore.echoTestAction(`turn the card face down`)
-    card.turn_face_down()
+    card.turnFaceDown()
     spellCore.expect(card.direction, `the direction of the card`, 'down', `down`)
     
     spellCore.echoTestAction(`turn the card over`)
-    card.turn_over()
-    spellCore.expect(card.is_face_up, `the card is face up`, true, `true`)
+    card.turnOver()
+    spellCore.expect(card.isFaceUp, `the card is face up`, true, `true`)
     
     spellCore.echoTestAction(`the joker is a new joker whose color is red and direction is up`)
     let joker = new Joker({ color: 'red', direction: 'up' })
     spellCore.echo(joker)
-    spellCore.expect(spellCore.isOfType(joker, 'Joker'), `the joker is a joker`, true, `yes`)
-    spellCore.expect(spellCore.isOfType(joker, 'Card'), `the joker is a card`, true, `yes`)
-    spellCore.expect(spellCore.isOfType(card, 'Joker'), `the card is a joker`, false, `no`)
-    spellCore.expect(!spellCore.isOfType(card, 'Joker'), `the card is not a joker`, true, `yes`)
+    spellCore.expect(joker instanceof Joker, `the joker is a joker`, true, `yes`)
+    spellCore.expect(joker instanceof Card, `the joker is a card`, true, `yes`)
+    spellCore.expect(card instanceof Joker, `the card is a joker`, false, `no`)
+    spellCore.expect(!(card instanceof Joker), `the card is not a joker`, true, `yes`)
     
     spellCore.expect(joker.color, `the color of the joker`, 'red', `red`)
     spellCore.expect(joker.name, `the name of the joker`, "red-joker", `"red-joker"`)
-    spellCore.expect(joker.short_name, `the short name of the joker`, "🃏", `"🃏"`)
-    spellCore.expect(joker.is_face_up, `the joker is face up`, true, `yes`)
+    spellCore.expect(joker.shortName, `the short name of the joker`, "🃏", `"🃏"`)
+    spellCore.expect(joker.isFaceUp, `the joker is face up`, true, `yes`)
     spellCore.echoTestAction(`turn the joker over`)
-    joker.turn_over()
-    spellCore.expect(joker.is_face_down, `the joker is face down`, true, `yes`)
+    joker.turnOver()
+    spellCore.expect(joker.isFaceDown, `the joker is face down`, true, `yes`)
     
-    spellCore.expect(joker.is_the_$color_joker('red'), `the joker is the red joker`, true, `yes`)
-    spellCore.expect(joker.is_the_$color_joker('black'), `the joker is the black joker`, false, `no`)
-    spellCore.expect(!(joker.is_the_$color_joker('black')), `the joker is not the black joker`, true, `yes`)
-    spellCore.expect(card.is_the_$color_joker('red'), `the card is the red joker`, false, `no`)
+    spellCore.expect(joker.isTheColorJoker('red'), `the joker is the red joker`, true, `yes`)
+    spellCore.expect(joker.isTheColorJoker('black'), `the joker is the black joker`, false, `no`)
+    spellCore.expect(!joker.isTheColorJoker('black'), `the joker is not the black joker`, true, `yes`)
+    spellCore.expect(card.isTheColorJoker('red'), `the card is the red joker`, false, `no`)
   })
 }
-test_card_setup()
+testCardSetup()
 // -----------
 spellCore.heading("Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes")
 //## Deck:   US standard card deck -- with its two jokers too, if its with jokers is yes
@@ -262,29 +262,29 @@ export class Deck extends List {
   get with_jokers() { return this.getProp('with_jokers') }
   set with_jokers(value) { this.setProp('with_jokers', value) }
 
-  set_up() {
+  setUp() {
     if (this.is_set_up) { return }
-    spellCore.map(Card.Ranks, (rank) => {
-      spellCore.map(Card.Suits, (suit) => {
+    Card.Ranks.forEach((rank) => {
+      Card.Suits.forEach((suit) => {
         let it = new Card({ rank: rank, suit: suit })
-        spellCore.append(this, it)
+        this.append(it)
       })
     })
     if (this.with_jokers) {
       let it = new Joker({ color: 'red' })
-      spellCore.append(this, it)
-      let it_2 = new Joker({ color: 'black' })
-      spellCore.append(this, it_2)
+      this.append(it)
+      let it2 = new Joker({ color: 'black' })
+      this.append(it2)
     }
     this.is_set_up = true
   }
 
   display() {
-    let card_names = new List()
-    spellCore.map(this, (card) => {
-      spellCore.append(card_names, card.short_name)
+    let cardNames = new List()
+    this.forEach((card) => {
+      cardNames.append(card.shortName)
     })
-    spellCore.echo("deck: " + card_names)
+    spellCore.echo(`deck: ${cardNames}`)
   }
 }
 Deck.declareProp('is_set_up', { type: 'choice' })
@@ -294,58 +294,58 @@ Object.defineProperty(Deck.prototype, 'is_set_up', {
   configurable: true
 })
 
-export function test_deck_creation() {
-  return spellCore.test('test deck creation', function test_deck_creation() {
+export function testDeckCreation() {
+  return spellCore.test('test deck creation', function testDeckCreation() {
     spellCore.echoTestAction(`the deck is a new deck`)
     let deck = new Deck()
     spellCore.echoTestAction(`set up the deck`)
-    deck.set_up()
-    spellCore.expect(spellCore.itemCountOf(deck), `the number of cards in the deck`, 52, `52`)
+    deck.setUp()
+    spellCore.expect(deck.length, `the number of cards in the deck`, 52, `52`)
     spellCore.echoTestAction(`set up the deck`)
-    deck.set_up()
-    spellCore.expect(spellCore.itemCountOf(deck), `the number of cards in the deck`, 52, `52`)
+    deck.setUp()
+    spellCore.expect(deck.length, `the number of cards in the deck`, 52, `52`)
     spellCore.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
-    let queens = spellCore.filter(deck, (card) => {
+    let queens = deck.filter((card) => {
       return (card.rank == "queen")
     })
-    spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
-    spellCore.expect(spellCore.getItemAt(deck, -1)?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    spellCore.expect(spellCore.getItemAt(deck, 1)?.short_name, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
+    spellCore.expect(queens.length, `the number of cards in the queens`, 4, `4`)
+    spellCore.expect(deck.lastItem?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    spellCore.expect(deck.firstItem?.shortName, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
     
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
     deck.display()
-    spellCore.expect(spellCore.getItemAt(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
+    spellCore.expect(deck.firstItem?.isTheRankOfSuits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
     
     spellCore.echoTestAction(`shuffle the deck`)
-    spellCore.randomize(deck)
+    deck.randomize()
     spellCore.echoTestAction(`shuffle the deck`)
-    spellCore.randomize(deck)
+    deck.randomize()
     
     spellCore.echo("the deck after shuffling:")
     spellCore.echoTestAction(`display the deck`)
     deck.display()
   })
 }
-test_deck_creation()
+testDeckCreation()
 
-export function test_deck_with_jokers() {
-  return spellCore.test('test deck with jokers', function test_deck_with_jokers() {
+export function testDeckWithJokers() {
+  return spellCore.test('test deck with jokers', function testDeckWithJokers() {
     spellCore.echoTestAction(`the deck is a new deck whose with jokers is yes`)
     let deck = new Deck({ with_jokers: true })
     spellCore.echoTestAction(`set up the deck`)
-    deck.set_up()
-    spellCore.expect(spellCore.itemCountOf(deck), `the number of cards in the deck`, 54, `54`)
+    deck.setUp()
+    spellCore.expect(deck.length, `the number of cards in the deck`, 54, `54`)
     spellCore.echoTestAction(`set the jokers to the cards in the deck where the card is a joker`)
-    let jokers = spellCore.filter(deck, (card) => {
-      return spellCore.isOfType(card, 'Joker')
+    let jokers = deck.filter((card) => {
+      return card instanceof Joker
     })
-    spellCore.expect(spellCore.itemCountOf(jokers), `the number of cards in the jokers`, 2, `2`)
-    spellCore.expect(spellCore.getItemAt(deck, -1)?.is_the_$color_joker('black'), `the last card of the deck is the black joker`, true, `yes`)
-    spellCore.expect(spellCore.getItemAt(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
+    spellCore.expect(jokers.length, `the number of cards in the jokers`, 2, `2`)
+    spellCore.expect(deck.lastItem?.isTheColorJoker('black'), `the last card of the deck is the black joker`, true, `yes`)
+    spellCore.expect(deck.firstItem?.isTheRankOfSuits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
-test_deck_with_jokers()
+testDeckWithJokers()
 // -----------
 spellCore.heading("Pile of playing cards")
 /** Pile of playing cards */
@@ -358,19 +358,19 @@ export class Pile extends List {
   set name(value) { this.setProp('name', value) }
 
   get color() {
-    if (spellCore.isEmpty(this)) { return "none" }
-    return spellCore.getItemAt(this, -1)?.color
+    if (this.isEmpty) { return "none" }
+    return this.lastItem?.color
   }
 
   get value() {
-    if (spellCore.isEmpty(this)) { return 0 }
-    return spellCore.getItemAt(this, -1)?.value
+    if (this.isEmpty) { return 0 }
+    return this.lastItem?.value
   }
 
   get state() {
-    let state = ((this.name || "pile") + ":")
-    spellCore.map(this, (card) => {
-      state = ((state + " ") + card.state)
+    let state = `${this.name || "pile"}:`
+    this.forEach((card) => {
+      state = `${state} ${card.state}`
     })
     return state
   }

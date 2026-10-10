@@ -25,7 +25,7 @@ lists.addRule(ListPrepend, {
         scope.variables?.add("my-list")
         scope.variables?.add("thing")
       },
-      tests: [["prepend thing to my-list", "spellCore.prepend(my_list, thing)", "spellCore.prepend(myList, thing)"]]
+      tests: [["prepend thing to my-list", "spellCore.prepend(myList, thing)"]]
     }
   ]
 })

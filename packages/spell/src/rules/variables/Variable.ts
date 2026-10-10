@@ -45,8 +45,8 @@ variables.addRule(Variable, {
       tests: [
         { title: "single word", input: "thing", js: "thing" },
         { title: "single word with the", input: "the thing", js: "thing" },
-        { title: "multi-word", input: "bank-account", js: "bank_account", ts: "bankAccount" },
-        { title: "multi-word with the", input: "the bank-account", js: "bank_account", ts: "bankAccount" },
+        { title: "multi-word", input: "bank-account", js: "bankAccount" },
+        { title: "multi-word with the", input: "the bank-account", js: "bankAccount" },
         { title: "blacklisted word", input: "if", js: undefined }
       ]
     }

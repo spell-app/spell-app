@@ -11,26 +11,26 @@ export class Task extends Thing {
   get completed() { return this.getProp('completed') }
   set completed(value) { this.setProp('completed', value) }
 
-  get is_complete() {
-    return (this.completed == true)
+  get isComplete() {
+    return (this.completed)
   }
 
-  get is_active() {
-    return (this.completed == false)
+  get isActive() {
+    return (!this.completed)
   }
 
   draw() {
-    if (this.is_complete && (app.filter == "active")) { return false }
-    if (this.is_active && (app.filter == "completed")) { return false }
+    if (this.isComplete && (app.filter == "active")) { return false }
+    if (this.isActive && (app.filter == "completed")) { return false }
     return spellCore.element({ tag: "tr", children: [
       spellCore.element({ tag: "td", props: { width: "8%" }, children: [
         spellCore.element({
           tag: "input",
           props: {
             type: "checkbox",
-            checked: () => this.is_complete,
+            checked: () => this.isComplete,
             onChange: (event) => {
-              this.completed = (this.is_active ? true : false)
+              this.completed = (this.isActive ? true : false)
             }
           }
         })
@@ -76,7 +76,7 @@ export class Todos_App extends App {
           props: {
             type: "text",
             onBlur: (event) => {
-              return create_a_new_task({ title: event.target.value })
+              return createANewTask({ title: event.target.value })
             }
           }
         })
@@ -130,7 +130,7 @@ export class Todos_App extends App {
           tag: "button",
           props: {
             onClick: (event) => {
-              return create_a_new_task({ title: "Moar" })
+              return createANewTask({ title: "Moar" })
             }
           },
           children: [
@@ -164,7 +164,7 @@ export class Todos_App extends App {
           props: {
             onClick: (event) => {
               return spellCore.removeWhere(app.tasks, (item) => {
-                return item.is_complete
+                return item.isComplete
               })
             }
           },
@@ -180,15 +180,15 @@ export class Todos_App extends App {
 export let app = new Todos_App()
 app.filter = "all"
 
-export function create_a_new_task(props = {}) {
+export function createANewTask(props = {}) {
   let { title } = props
   let it = new Task({ title: title, completed: false })
   spellCore.append(app.tasks, it)
 }
 
-create_a_new_task({ title: "Create todos app" })
-create_a_new_task({ title: "Teach it to draw" })
-create_a_new_task({ title: "Test app" })
+createANewTask({ title: "Create todos app" })
+createANewTask({ title: "Teach it to draw" })
+createANewTask({ title: "Test app" })
 
 app.start()
 spellCore.console.log(app)

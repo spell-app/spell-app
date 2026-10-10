@@ -11,12 +11,12 @@ export class Task extends Thing {
   get completed() { return this.getProp('completed') }
   set completed(value) { this.setProp('completed', value) }
 
-  get is_complete() {
-    return (this.completed == true)
+  get isComplete() {
+    return (this.completed)
   }
 
-  get is_active() {
-    return (this.completed == false)
+  get isActive() {
+    return (!this.completed)
   }
 }
 
@@ -36,10 +36,10 @@ export class Todos_App extends App {
 
   get shownTasks() {
     if (this.filter == "active") { return spellCore.filter(this.tasks, (task) => {
-      return task.is_active
+      return task.isActive
     }) }
     if (this.filter == "completed") { return spellCore.filter(this.tasks, (task) => {
-      return task.is_complete
+      return task.isComplete
     }) }
     return this.tasks
   }
@@ -127,9 +127,9 @@ export class Todos_App extends App {
               spellCore.element({
                 tag: "ui-button",
                 props: {
-                  disabled: () => (app.newTaskName == ""),
+                  disabled: () => (app.newTaskName === ""),
                   onClick: (event) => {
-                    return create_a_new_task()
+                    return createANewTask()
                   }
                 },
                 children: [
@@ -149,7 +149,7 @@ export class Todos_App extends App {
             tag: "ui-item",
             props: {
               onClick: (event) => {
-                return create_a_new_task({ title: "Moar" })
+                return createANewTask({ title: "Moar" })
               }
             },
             children: [
@@ -183,7 +183,7 @@ export class Todos_App extends App {
             props: {
               onClick: (event) => {
                 return spellCore.removeWhere(app.tasks, (item) => {
-                  return item.is_complete
+                  return item.isComplete
                 })
               }
             },
@@ -201,10 +201,10 @@ export let app = new Todos_App()
 app.filter = "all"
 app.newTaskName = ""
 
-export function create_a_new_task(props = {}) {
+export function createANewTask(props = {}) {
   let { title, completed } = props
-  if (!spellCore.isDefined(title)) {
-    if (app.newTaskName == "") { return }
+  if (title === undefined) {
+    if (app.newTaskName === "") { return }
     title = app.newTaskName
     app.newTaskName = ""
   }
@@ -212,9 +212,9 @@ export function create_a_new_task(props = {}) {
   spellCore.append(app.tasks, it)
 }
 
-create_a_new_task({ title: "Create todos app", completed: true })
-create_a_new_task({ title: "Teach it to draw" })
-create_a_new_task({ title: "Test app" })
+createANewTask({ title: "Create todos app", completed: true })
+createANewTask({ title: "Teach it to draw" })
+createANewTask({ title: "Test app" })
 
 app.start()
 spellCore.console.log(app)

@@ -87,7 +87,7 @@ lists.addRule(ListIteration, {
         ["for each card in deck:", "spellCore.map(deck, (card) => {})", "spellCore.map(deck, () => {})"],
         [
           "for item, index in my-list:",
-          "spellCore.map(my_list, (item, index) => {})",
+          "spellCore.map(myList, (item, index) => {})",
           "spellCore.map(myList, () => {})"
         ],
         [

@@ -30,8 +30,8 @@ expressions.addRule(Exists, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["thing exists", "spellCore.isDefined(thing)", "thing !== undefined"],
-        ["thing does not exist", "!spellCore.isDefined(thing)", "thing === undefined"]
+        ["thing exists", "thing !== undefined"],
+        ["thing does not exist", "thing === undefined"]
       ]
     }
   ]

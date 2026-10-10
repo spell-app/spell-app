@@ -33,7 +33,7 @@ variables.addRule(KnownVariable, {
       },
       tests: [
         { title: "single word", input: "thing", js: "thing" },
-        { title: "multi-word", input: "bank-account", js: "bank_account", ts: "bankAccount" },
+        { title: "multi-word", input: "bank-account", js: "bankAccount" },
         { title: "not defined", input: "nothing", js: undefined }
       ]
     }

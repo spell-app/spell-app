@@ -204,11 +204,11 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - `js`:  what the javascript writer writes;  `ts`:  what the TypeScript writer writes.
     Leave `ts` out where it's the same as `js`.
   - `input` is parsed ONCE, then written by both:  a change to either writer fails the rule's own tests.
-  - A rule alone has no project around it, so its `ts` shows what the writer does without one,
-    e.g. a type it can't know.
-  - `yarn test:rules:bless` writes each test's `ts` into the source (`BLESS_RULE_TESTS=1`, then `vp fmt`).
+  - A rule alone has no project around it but its test's scope, so its `js` and `ts` show what the writers do
+    without one, e.g. a type they can't know.
+  - `yarn test:rules:bless` writes each test's `js` and `ts` into the source (`BLESS_RULE_TESTS=1`, then `vp fmt`).
     - Read the diff after:  it's the review.
-    - It finds each test by its `input` and `js`;  one it can't place fails the run, saying why.
+    - It finds each test by its `input` and old `js`;  one it can't place fails the run, saying why.
   - Test setup shared by a rule's registrations:  `setup<RuleClass>()`, returning `{ compileAs, beforeEach }`.
     - It's spread into each block:  `{ ...setupAssignmentStatement(), tests: [...] }`.
   - Tests need no type annotations there.

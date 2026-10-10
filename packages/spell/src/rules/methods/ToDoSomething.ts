@@ -37,14 +37,12 @@ methods.addRule(ToDoSomething, {
         {
           title: "keyword-only signature",
           input: "to start the game",
-          js: ["export function start_the_game() {}"],
-          ts: "export function startTheGame() {}"
+          js: "export function startTheGame() {}"
         },
         {
           title: "keyword-only signature - `it` is not defined",
           input: "to start the game: print it",
-          js: ["export function start_the_game() {}", '/* PARSE ERROR: Don\'t understand "print it" */'],
-          ts: ["export function startTheGame() {}", '/* PARSE ERROR: Don\'t understand "print it" */']
+          js: ["export function startTheGame() {}", '/* PARSE ERROR: Don\'t understand "print it" */']
         },
         {
           title: "paren-free type arg in signature:  a known type is a parameter",
@@ -69,7 +67,7 @@ methods.addRule(ToDoSomething, {
         {
           title: "paren-free type args in signature ~== parenthesized",
           input: "to give a card to a pile: set its pile to the pile",
-          js: [`Card.prototype.give_to_$pile = function (pile) {`, `  this.pile = pile`, `}`],
+          js: ["Card.prototype.giveToPile = function (pile) {", "  this.pile = pile", "}"],
           ts: [
             "export interface Card { giveToPile(pile: Pile): any /* spell: type unknown */ }",
             "Card.prototype.giveToPile = function (this: Card, pile: Pile) {",
@@ -80,19 +78,17 @@ methods.addRule(ToDoSomething, {
         {
           title: "paren-free:  a word that isn't a type stays words",
           input: "to make a mess",
-          js: ["export function make_a_mess() {}"],
-          ts: "export function makeAMess() {}"
+          js: "export function makeAMess() {}"
         },
         {
           title: "paren-free:  `the` + a type stays words",
           input: "to shuffle the deck",
-          js: ["export function shuffle_the_deck() {}"],
-          ts: "export function shuffleTheDeck() {}"
+          js: "export function shuffleTheDeck() {}"
         },
         {
           title: "simple arg in signature - arg is defined",
           input: "to notify (message): print the message",
-          js: [`export function notify_$message(message) {`, `  return spellCore.console.log(message)`, `}`],
+          js: ["export function notifyMessage(message) {", "  return spellCore.console.log(message)", "}"],
           ts: [
             "export function notifyMessage(message: any /* spell: type unknown */) {",
             "  return spellCore.console.log(message)",
@@ -102,7 +98,7 @@ methods.addRule(ToDoSomething, {
         {
           title: "simple arg in signature - it is not defined",
           input: "to notify (message): print it",
-          js: ["export function notify_$message(message) {}", '/* PARSE ERROR: Don\'t understand "print it" */'],
+          js: ["export function notifyMessage(message) {}", '/* PARSE ERROR: Don\'t understand "print it" */'],
           ts: [
             "export function notifyMessage(message: any /* spell: type unknown */) {}",
             '/* PARSE ERROR: Don\'t understand "print it" */'
@@ -111,23 +107,19 @@ methods.addRule(ToDoSomething, {
         {
           title: "typed simple arg in signature - arg is defined",
           input: "to notify (message as text): print the message",
-          js: [`export function notify_$message(message) {`, `  return spellCore.console.log(message)`, `}`],
+          js: ["export function notifyMessage(message) {", "  return spellCore.console.log(message)", "}"],
           ts: ["export function notifyMessage(message: string) {", "  return spellCore.console.log(message)", "}"]
         },
         {
           title: "typed simple arg in signature - `it` is not defined",
           input: "to notify (message as text): print it",
-          js: ["export function notify_$message(message) {}", '/* PARSE ERROR: Don\'t understand "print it" */'],
+          js: ["export function notifyMessage(message) {}", '/* PARSE ERROR: Don\'t understand "print it" */'],
           ts: ["export function notifyMessage(message: string) {}", '/* PARSE ERROR: Don\'t understand "print it" */']
         },
         {
           title: "valued simple arg in signature - arg is defined",
           input: 'to notify (message = "Really?"): print the message',
-          js: [
-            `export function notify_$message(message = "Really?") {`,
-            `  return spellCore.console.log(message)`,
-            `}`
-          ],
+          js: ['export function notifyMessage(message = "Really?") {', "  return spellCore.console.log(message)", "}"],
           ts: [
             'export function notifyMessage(message: string = "Really?") {',
             "  return spellCore.console.log(message)",
@@ -138,7 +130,7 @@ methods.addRule(ToDoSomething, {
           title: "typed simple arg in signature - `it` is not defined",
           input: 'to notify (message = "Really?"): print it',
           js: [
-            'export function notify_$message(message = "Really?") {}',
+            'export function notifyMessage(message = "Really?") {}',
             '/* PARSE ERROR: Don\'t understand "print it" */'
           ],
           ts: [
@@ -182,7 +174,7 @@ methods.addRule(ToDoSomething, {
         {
           title: "multiple type args in signature - thisVar",
           input: "to add (a card) to (a pile): set the pile of the card to the pile",
-          js: [`Card.prototype.add_to_$pile = function (pile) {`, `  this.pile = pile`, `}`],
+          js: ["Card.prototype.addToPile = function (pile) {", "  this.pile = pile", "}"],
           ts: [
             "export interface Card { addToPile(pile: Pile): any /* spell: type unknown */ }",
             "Card.prototype.addToPile = function (this: Card, pile: Pile) {",
@@ -193,7 +185,7 @@ methods.addRule(ToDoSomething, {
         {
           title: "multiple type args in signature - it",
           input: "to add (a card) to (a pile): set the pile of it to the pile",
-          js: [`Card.prototype.add_to_$pile = function (pile) {`, `  this.pile = pile`, `}`],
+          js: ["Card.prototype.addToPile = function (pile) {", "  this.pile = pile", "}"],
           ts: [
             "export interface Card { addToPile(pile: Pile): any /* spell: type unknown */ }",
             "Card.prototype.addToPile = function (this: Card, pile: Pile) {",
@@ -204,7 +196,7 @@ methods.addRule(ToDoSomething, {
         {
           title: "multiple type args in signature - its",
           input: "to add (a card) to (a pile): set its pile to the pile",
-          js: [`Card.prototype.add_to_$pile = function (pile) {`, `  this.pile = pile`, `}`],
+          js: ["Card.prototype.addToPile = function (pile) {", "  this.pile = pile", "}"],
           ts: [
             "export interface Card { addToPile(pile: Pile): any /* spell: type unknown */ }",
             "Card.prototype.addToPile = function (this: Card, pile: Pile) {",
@@ -278,7 +270,7 @@ methods.addRule(ToDoSomething, {
         {
           title: "mixed vars in signature",
           input: "to prompt (message as text) and (reply)",
-          js: ["export function prompt_$message_and_$reply(message, reply) {}"],
+          js: "export function promptMessageAndReply(message, reply) {}",
           ts: "export function promptMessageAndReply(message: string, reply: any /* spell: type unknown */) {}"
         }
       ]
@@ -294,17 +286,16 @@ methods.addRule(ToDoSomething, {
         {
           title: "top level keyword-only method",
           input: ["to start the game", "\tprint 1", "start the game"],
-          js: [`export function start_the_game() {`, `  spellCore.console.log(1)`, `}`, `start_the_game()`],
-          ts: ["export function startTheGame() {", "  spellCore.console.log(1)", "}", "startTheGame()"]
+          js: ["export function startTheGame() {", "  spellCore.console.log(1)", "}", "startTheGame()"]
         },
         {
           title: "top level simple argument method",
           input: ["to notify (message): print the message", "notify 1"],
           js: [
-            `export function notify_$message(message) {`,
-            `  return spellCore.console.log(message)`,
-            `}`,
-            "notify_$message(1)"
+            "export function notifyMessage(message) {",
+            "  return spellCore.console.log(message)",
+            "}",
+            "notifyMessage(1)"
           ],
           ts: [
             "export function notifyMessage(message: any /* spell: type unknown */) {",
@@ -317,10 +308,10 @@ methods.addRule(ToDoSomething, {
           title: "top level typed simple argument method",
           input: ["to notify (message as text): print the message", 'notify "hi"'],
           js: [
-            `export function notify_$message(message) {`,
-            `  return spellCore.console.log(message)`,
-            `}`,
-            `notify_$message("hi")`
+            "export function notifyMessage(message) {",
+            "  return spellCore.console.log(message)",
+            "}",
+            'notifyMessage("hi")'
           ],
           ts: [
             "export function notifyMessage(message: string) {",
@@ -334,10 +325,10 @@ methods.addRule(ToDoSomething, {
             "typed call:  an argument KNOWN to be the wrong type isn't a call to it -- here, the built-in `notify`",
           input: ["to notify (message as text): print the message", "notify 1"],
           js: [
-            `export function notify_$message(message) {`,
-            `  return spellCore.console.log(message)`,
-            `}`,
-            `spellCore.notify(1)`
+            "export function notifyMessage(message) {",
+            "  return spellCore.console.log(message)",
+            "}",
+            "spellCore.notify(1)"
           ],
           ts: [
             "export function notifyMessage(message: string) {",
@@ -356,11 +347,11 @@ methods.addRule(ToDoSomething, {
           ],
           js: [
             "export class Joker extends Card {}",
-            `Card.prototype.show_on_$pile = function (pile) {`,
-            `  return spellCore.console.log(1)`,
-            `}`,
-            "new Joker().show_on_$pile(new Pile())",
-            `/* PARSE ERROR: Don't understand "show a new card on a new card" */`
+            "Card.prototype.showOnPile = function (pile) {",
+            "  return spellCore.console.log(1)",
+            "}",
+            "new Joker().showOnPile(new Pile())",
+            '/* PARSE ERROR: Don\'t understand "show a new card on a new card" */'
           ],
           ts: [
             "export class Joker extends Card {}",
@@ -388,10 +379,10 @@ methods.addRule(ToDoSomething, {
           title: "multiple type args in signature",
           input: ["to play (a card) on (a pile): set its pile to the pile", "play a new card on a new pile"],
           js: [
-            `Card.prototype.play_on_$pile = function (pile) {`,
-            `  this.pile = pile`,
-            `}`,
-            "new Card().play_on_$pile(new Pile())"
+            "Card.prototype.playOnPile = function (pile) {",
+            "  this.pile = pile",
+            "}",
+            "new Card().playOnPile(new Pile())"
           ],
           ts: [
             "export interface Card { playOnPile(pile: Pile): any /* spell: type unknown */ }",
@@ -405,10 +396,10 @@ methods.addRule(ToDoSomething, {
           title: "paren-free type args in signature",
           input: ["to play a card on a pile: set its pile to the pile", "play a new card on a new pile"],
           js: [
-            `Card.prototype.play_on_$pile = function (pile) {`,
-            `  this.pile = pile`,
-            `}`,
-            "new Card().play_on_$pile(new Pile())"
+            "Card.prototype.playOnPile = function (pile) {",
+            "  this.pile = pile",
+            "}",
+            "new Card().playOnPile(new Pile())"
           ],
           ts: [
             "export interface Card { playOnPile(pile: Pile): any /* spell: type unknown */ }",
@@ -577,12 +568,12 @@ methods.addRule(ToDoSomething, {
             'notify "Really?" with reply = "yes"'
           ],
           js: [
-            "export function notify_$message(message, props = {}) {",
+            "export function notifyMessage(message, props = {}) {",
             '  let { reply = "yep" } = props',
             "  spellCore.console.log(message)",
             "  spellCore.console.log(reply)",
             "}",
-            'notify_$message("Really?", { reply: "yes" })'
+            'notifyMessage("Really?", { reply: "yes" })'
           ],
           ts: [
             "export function notifyMessage(message: any /* spell: type unknown */, props: Object = {}) {",

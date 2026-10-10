@@ -4,7 +4,7 @@
  *   e.g. a `Deck` -- NOT a plain `new List()`, which would bury the explorer in scratch lists.
  * - NOT while a test runs, e.g. in `to test card setup`:  a test's things are its own, not the program's.
  * - Plus the program's top-level things, by name -- see `setTopLevel()` -- so a plain list the program keeps,
- *   e.g. `all_piles`, shows too.
+ *   e.g. `allPiles`, shows too.
  * - And the heading each was made under, as the program ran -- see `heading()`.
  * - And the program's classes, by name, e.g. for `spellCore.fromJSON()` -- see `classNamed()`.
  */
@@ -217,7 +217,7 @@ export class ThingRegistry {
 
   /**
    * The program's top-level things, by name, in the order it declares them -- `Thing`s and `List`s only.
-   * - Includes plain lists, e.g. `all_piles`, which `byType()` leaves out.
+   * - Includes plain lists, e.g. `allPiles`, which `byType()` leaves out.
    */
   topLevel(): NamedThing[] {
     void this.version
@@ -360,7 +360,7 @@ export class ThingRegistry {
    * Actions of `thing`, as its program declares them -- each type's own first, then those it inherits, each
    * once:  a sub-type's overrides its super-type's.
    * - Each method of its classes, down to -- NOT including -- the built-in type it comes from.  Spell compiles
-   *   an action on a type to one, e.g. `to turn (a card) over` => `turn_over()`.
+   *   an action on a type to one, e.g. `to turn (a card) over` => `turnOver()`.
    * - NOTE: named from the METHOD's name -- see `actionLabel()` -- as its spell wording is only in a comment.
    * - An action spell compiles to a getter, e.g. `(a card) is face up`, is a computed property instead.
    */
@@ -383,7 +383,7 @@ export class ThingRegistry {
   }
 
   /**
-   * Do action `name` to `thing`, e.g. `turn_over` -- one which takes no arguments.
+   * Do action `name` to `thing`, e.g. `turnOver` -- one which takes no arguments.
    * - An error, thrown or from a promise it returns, goes to `spellCore.console`, as the program's would.
    */
   perform(thing: ThingLike, name: string): void {
@@ -424,14 +424,12 @@ function isProgramClass(value: unknown): value is ThingClass {
 }
 
 /**
- * Name to show action method `name` by:  its words, and `(name)` for each argument, e.g.
- * `move_to_$pile` => `move to (pile)`, `turn_over` => `turn over`.
+ * Name to show action method `name` by:  its words, as compiled javascript names it in camelCase (epic
+ * `output-targets`, P19), e.g. `moveToPile` => `move to pile`, `turnOver` => `turn over`.
+ * - Spell's own `$` before a slot's word is gone from the name:  so is the `(pile)` the label once showed.
  */
 function actionLabel(name: string): string {
-  return name
-    .split("_")
-    .map((word) => (word.startsWith("$") ? `(${word.slice(1)})` : word))
-    .join(" ")
+  return name.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase()
 }
 
 /** Is `name` a member of a built-in type, e.g. `type`, `items`, `Component` -- NOT one of a thing's properties? */
@@ -463,7 +461,7 @@ export type ThingProperty = {
 
 /** An action of a thing, as `ThingRegistry.actionsOf()` answers it. */
 export type ThingAction = {
-  /** Its method's name, e.g. `move_to_$pile`. */
+  /** Its method's name, e.g. `moveToPile`. */
   name: string
   /** Name to show it by, e.g. `move to (pile)`. */
   label: string

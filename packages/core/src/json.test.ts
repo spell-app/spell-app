@@ -126,7 +126,7 @@ describe("spellCore.fromJSON()", () => {
   })
 
   test("a plain list:  `List`, with its items", () => {
-    const read = spellCore.fromJSON('{ "@type": "List", "items": [1, 2, 3] }') as List<number>
+    const read = spellCore.fromJSON('{ "@type": "List", "@items": [1, 2, 3] }') as List<number>
     expect(read.constructor).toBe(List)
     expect([...read]).toEqual([1, 2, 3])
   })
@@ -154,7 +154,7 @@ describe("spellCore.fromJSON()", () => {
       }
     }
     void new Hand()
-    const read = spellCore.fromJSON('{ "@type": "Hand", "name": "mine", "items": [{ "@type": "Card", "rank": 3 }] }')
+    const read = spellCore.fromJSON('{ "@type": "Hand", "name": "mine", "@items": [{ "@type": "Card", "rank": 3 }] }')
     expect((read as Hand).items.map((card) => card.rank)).toEqual([3])
   })
 

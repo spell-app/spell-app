@@ -29,7 +29,7 @@ lists.addRule(ListRemovePosition, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add("my-list")
       },
-      tests: [["remove item 4 of my-list", "spellCore.removeItemAt(my_list, 4)", "spellCore.removeItemAt(myList, 4)"]]
+      tests: [["remove item 4 of my-list", "spellCore.removeItemAt(myList, 4)"]]
     }
   ]
 })

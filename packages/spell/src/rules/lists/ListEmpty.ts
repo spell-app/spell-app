@@ -29,7 +29,7 @@ lists.addRule(ListEmpty, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["empty my-list", "spellCore.clear(my_list)", "spellCore.clear(myList)"],
+        ["empty my-list", "spellCore.clear(myList)"],
         ["clear the cards of the deck", "spellCore.clear(deck.cards)"]
       ]
     }
