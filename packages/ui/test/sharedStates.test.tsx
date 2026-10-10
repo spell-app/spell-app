@@ -155,6 +155,18 @@ describe("disabled, a family's own (`elementSetup.disabled` = its own)", () => {
 ////////////////
 
 describe("loading", () => {
+  test("a family's own inert stays:  <ui-form disabled loading> losing `disabled` keeps its veil inert (I10)", async () => {
+    const form = await render(`<ui-form disabled loading><button>Send</button></ui-form>`)
+    const inertBoxes = () => boxesOf(form).filter((box) => box.inert).length
+    expect(inertBoxes()).toBeGreaterThan(0)
+    form.disabled = false
+    await ElementFixture.settle(form)
+    expect(inertBoxes()).toBeGreaterThan(0)
+    form.loading = false
+    await ElementFixture.settle(form)
+    expect(inertBoxes()).toBe(0)
+  })
+
   test("the base class's loader:  :state(loading) and :state(busy), aria-busy, its content inert", async () => {
     const menu = await render(`<ui-menu loading><ui-item>A</ui-item></ui-menu>`)
     expect(menu.matches(":state(loading)")).toBe(true)

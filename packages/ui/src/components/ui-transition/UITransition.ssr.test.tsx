@@ -11,15 +11,16 @@ describe("<ui-transition> static render", () => {
     StaticRender.define(UITransition)
   })
 
-  it("renders a box hidden unless visible", () => {
+  it("renders a box hidden unless visible:  a transition starts hidden (`:state(hidden)`)", () => {
     const html = StaticRender.fragment(
       `<ui-transition animation="fade"><p>Hidden</p></ui-transition>` +
         `<ui-transition visible inline><p>Shown</p></ui-transition>`
     )
     expect(sorted(html)).toBe(
       sorted(
-        `<div data-ui="transition" class="ui transition" part="transition" hidden=""><p data-ui-slotted="">Hidden</p>` +
-          `</div><div data-ui="transition" data-state="visible" class="ui inline visible transition" ` +
+        `<div data-ui="transition" data-state="hidden" class="ui transition" part="transition" hidden="">` +
+          `<p data-ui-slotted="">Hidden</p></div>` +
+          `<div data-ui="transition" class="ui inline visible transition" ` +
           `part="transition"><p data-ui-slotted="">Shown</p></div>`
       )
     )

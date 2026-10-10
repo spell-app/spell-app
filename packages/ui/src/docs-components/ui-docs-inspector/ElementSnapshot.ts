@@ -84,9 +84,15 @@ export class ElementSnapshot {
     const definition = tagSetup.elementDefinition
     for (const attribute of definition.attributes) {
       const value = self[attribute.property]
-      // a boolean at its TRUE default (`visible`, which every tag has) is no more "set" than a false one
-      const isAtTrueDefault = value === true && definition.convert(attribute, undefined) === true
-      if (!all && (value === undefined || value === null || value === false || isAtTrueDefault)) continue
+      // a boolean at its TRUE default (`closable`) is no more "set" than a false one;
+      // nor is the shared `visible` at its family's default (`elementSetup.visible`)
+      const isShared = attribute.key === "visible" && definition.takesShared("visible")
+      const isAtTrueDefault = isShared
+        ? value === (tagSetup.visible === "shown")
+        : value === true && definition.convert(attribute, undefined) === true
+      if (!all && (value === undefined || value === null || (value === false && !isShared) || isAtTrueDefault)) {
+        continue
+      }
       rows.push({ name: attribute.property, value: ElementSnapshot.valueText(value) })
     }
     return rows

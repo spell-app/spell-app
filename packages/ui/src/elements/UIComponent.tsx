@@ -289,7 +289,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   /**
    * Class setting:  how the class's custom element is set up, as ONE object (`ElementSetup` documents each key):
    * its style sheets, the `:state()`s that mirror an attribute, form control, focus, slots, part, DOM element class,
-   * fallback, unstyled first paint, ARIA, and what the shared `disabled`, `loading` and `visible` do for it.
+   * fallback, unstyled first paint, ARIA, and what the shared `disabled`, `loading`, `visible` and `animation` do for it.
    * - A subclass states only the keys it changes:
    *   `@E.protoMerged static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>`
    *   (`satisfies`, so a misspelt key fails TypeScript).

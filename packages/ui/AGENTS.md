@@ -42,7 +42,7 @@ The rules below are its short form.
     - Everything in `$/ui/util` lands in the `core` bundle (`core.ts` re-exports it), so keep it small
   - `src/vocabulary/` (`V` through the `api` entry) -- the naming layer:
     vocabulary schema, value sets, `Vocabulary` (registry, translated names, `replace()` for hot reload), `Converters`,
-    `SharedVocabulary` (the attributes and states every component takes:  `disabled`, `loading`, `visible`);
+    `SharedVocabulary` (the attributes and states every component takes:  `disabled`, `loading`, `visible`, `animation`);
     `SkeletonText` (skeleton text <=> `SkeletonSpec`) too, but reached by path, NOT through the barrel:
     `core` re-exports the barrel, and no page parses skeleton text (node tools do:  `tools/RootCatalog.ts`)
   - `src/runtime/` (`UI`) -- the shared `UI` runtime, ONE instance per page (`globalThis.UI ??= new UIRuntime()`).
@@ -422,12 +422,12 @@ As WWOD §18, plus:
   - a click on the DOM element itself calling `activateControl()`
   - NEVER copy one of them into a control:  override a hook instead (`activateControl()`, `validationRules`),
     or set `@E.proto static invalidShows = "once touched"` (`FormComponent`'s header).
-- SHARED STATES (`UIComponent`, "Shared states";  epic `spell-element` P8):
-  every element takes `disabled`, `loading` and `visible`, though its vocabulary never names them
+- SHARED STATES (`UIComponent`, "Shared states" and "Shown or hidden";  epic `spell-element` P8, P12):
+  every element takes `disabled`, `loading`, `visible` and `animation`, though its vocabulary never names them
   (`SharedVocabulary` adds them to its `ElementDefinition`, its docs data and its manifests),
-  and the platform's `hidden` and `inert`.
-  NEVER declare them in a vocabulary just to get them;  a vocabulary that declares one keeps its own spec and meaning
-  (`<ui-sidebar visible>` starts hidden, `<ui-reveal visible>` stops clipping).
+  and the platform's `hidden` (`visible` turned round) and `inert`.
+  NEVER declare them in a vocabulary just to get them;  a vocabulary that declares one keeps its own spec and meaning,
+  and NONE may declare its own `visible` or `animation` (it would lose `visible` / `hidden` as one fact).
   - `disabled`:  `:state(disabled)` always (`isMarkedDisabled`:  the attribute, or a disabled fieldset);
     the rest is `elementSetup.disabled`:
     - `"unusable"`, the default:  `isDisabled`, so clicks are swallowed, `aria-disabled`,
@@ -440,20 +440,31 @@ As WWOD §18, plus:
   - `loading`:  `:state(loading)` always (`isMarkedLoading`, `true` only);  the rest is `elementSetup.loading`:
     - `"loader"`, the default:  `aria-busy`, everything inside inert and dimmed, a spinner over it, `:state(busy)`
     - or `"its own"`:  `<ui-button>`'s spinner, `<ui-segment>`'s veil, `<ui-root>`'s message
-  - `visible="false"`:  animates the element out (`elementSetup.visibleAnimation`, default `"fade"`,
-    through `UI.transitions` on the shadow root's boxes), then `:state(hidden)`;
-    `visible` / `="true"` animates it back.
-    - At once before it first draws.
-    - `el.visible = false` reflects as `visible="false"` (a `true` default)
-  - `hidden`:  instant, before scripts and in the static render;
-    `reset.css` makes it beat a family's own `:host { display }` (unlayered);  both set, `hidden` wins.
-    `<ui-divider hidden>` keeps Fomantic's meaning
+  - the shared inert covers both at once (`hasInertContent`), and clears only the boxes IT made inert:
+    a family's own (`<ui-form loading>`'s veil) stays (I10)
+  - `visible` / `hidden`:  ONE fact, two names (`DOMElement`, "Shown or hidden"):
+    - `el.visible === !el.hidden`;  writing either, as an attribute or a property, sets it;
+      the `hidden` attribute holds it, and `visible` is written back only where the page wrote one
+    - neither written:  `elementSetup.visible` (`"shown"`;  `"hidden"` writes `hidden` on the first connect);
+      both written in markup and disagreeing:  `hidden` wins;  after that the latest write wins
+    - the component's `isVisible` (controlled, `visible`);  each change runs the hook
+      `onVisibleChange(visible, animation)`:  by default the animation on the shadow root's top-level boxes
+      (leaving a box the family hides itself alone);  a family overrides it to show and hide its own way
+    - `:state(hiding)` keeps it on screen while a hide runs (`reset.css`), `:state(hidden)` once it's done;
+      at once before it first draws;  `hidden="until-found"` stays the browser's
+    - renamed, as their old meaning clashed:  `<ui-divider spacer>`, `<ui-reveal unclipped>`
+  - `animation`:  Fomantic's names or `none`;  `animationToRun` is the first that applies:
+    motion off (its own `none`, `--ui-motion: none` from around it, reduced motion), its own value,
+    `elementSetup.animation` (default `"fade"`).
+    `none` sets `--ui-motion: none` (`:state(still)`), which also stills the families' CSS motion (a style query)
   - `inert`:  the platform's, left UNSTYLED:  families set it on boxes with a look of their own
     (`<ui-form loading>`'s veil), and overlays on what they cover (`<ui-pushable>` on its pusher),
     so a generic dim would double up
   - the base class's look is in `reset.css` (every shadow root adopts it):
     the dim keys on `:state(dimmed)` (`disabled` or `loading` the base class's way;  the shadow root's top-level boxes),
-    the spinner on `:state(busy)`, the hiding on `[hidden]` / `:state(hidden)`;
+    the spinner on `:state(busy)`, the hiding on `[hidden]` (unlayered:  it beats a family's `:host { display }`;
+    so no family sheet writes its own `:host([hidden])`);
+    the static render maps them through `data-state` and ARIA (`StaticStylesheet`'s unlayered `HIDDEN`)
     the static render maps them through `data-state` and ARIA (`StaticStylesheet`'s unlayered `HIDDEN`)
 - **Reactive members** (`src/elements/Reactive.ts`;  WWOD §12 › "Reactive members"):
   decorators over ONE record per instance, so `this.x` reads fresh right after `this.x = v` (no flush),
@@ -862,7 +873,7 @@ As WWOD §12, plus:
   - Per-class settings of the custom element itself are keys of ONE setting, `elementSetup` (type `ElementSetup`),
     inherited key by key down the class chain by `@protoMerged` (`$/util`, as `E.protoMerged`):
     style sheets, the `:state()`s that mirror an attribute, form control, focus, slots, part, DOM element class,
-    fallback, unstyled first paint, constant ARIA, and what the shared `disabled`, `loading` and `visible` do for it.
+    fallback, unstyled first paint, constant ARIA, and what the shared `disabled`, `loading`, `visible` and `animation` do for it.
     A subclass states only the keys it changes:
     ```ts
     @E.protoMerged static elementSetup = { styleSheets: { nag: nagCSS }, DOMElement: DOMNagElement } satisfies Partial<E.ElementSetup>
