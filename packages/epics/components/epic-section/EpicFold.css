@@ -127,6 +127,16 @@
   .header {
     display: inline;
   }
+  /*
+   * the title's words and icon let the pointer through to `<ui-section>`'s fold button around them,
+   * which has the tooltip:  VS Code shows one only on the titled element itself (`Tooltip.css`)
+   */
+  .header,
+  .icon,
+  ui-section::part(header),
+  ui-section::part(icon) {
+    pointer-events: none;
+  }
 
   /* the children's box */
   .body {

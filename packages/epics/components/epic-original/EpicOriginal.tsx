@@ -7,6 +7,7 @@ import { Fold } from "$/epics/components/epic-item/Fold"
 import { epicOriginalVocabulary } from "./EpicOriginal.en"
 
 import originalCSS from "./EpicOriginal.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicOriginal`
@@ -17,7 +18,7 @@ import originalCSS from "./EpicOriginal.css?inline"
 export class EpicOriginal extends E.UIComponent<typeof epicOriginalVocabulary> {
   @E.proto static vocabulary = epicOriginalVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-original": originalCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-original": originalCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -39,6 +40,7 @@ export class EpicOriginal extends E.UIComponent<typeof epicOriginalVocabulary> {
           part={this.partForName("toggle")}
           aria-expanded={this.isOpen ? "true" : "false"}
           aria-controls={BODY_ID}
+          title={this.translationForKey(this.isOpen ? "foldTip" : "unfoldTip")}
           onClick={this.fold.toggle}
         >
           {Fold.chevron()}

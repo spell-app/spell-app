@@ -11,6 +11,7 @@ import { epicFieldVocabulary } from "./EpicField.en"
 import { ICON, LABEL, TEXT } from "./EpicPhase.types"
 
 import fieldCSS from "./EpicField.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicField`
@@ -26,7 +27,9 @@ import fieldCSS from "./EpicField.css?inline"
  ****************/
 export class EpicField extends E.UIComponent<typeof epicFieldVocabulary> {
   @E.proto static vocabulary = epicFieldVocabulary
-  @E.protoMerged static elementSetup = { styleSheets: { "epic-field": fieldCSS } } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-field": fieldCSS }
+  } satisfies Partial<E.ElementSetup>
 
   /** Its look:  icon and label key;  Symptom's for an unknown name. */
   get look(): FieldLook {

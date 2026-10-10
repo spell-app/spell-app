@@ -70,12 +70,13 @@ export class Fold {
    * - The cards:
    *   `<epic-reply>`, `<epic-answer>`, `<epic-status>`, `<epic-note>`, an `<epic-update>` note, `<epic-updated>`
    * - A `<button>`, named by the heading's words (`labelledBy`:  ids in the same shadow root),
-   *   its `aria-expanded` as the fold stands
+   *   its `aria-expanded` as the fold stands,
+   *   its tooltip (`tips`) what a click does
    * - The chevron turns down while open (`Fold.css`, which each card adopts).
    * - No click handler of its own:  its band's (`heading`) takes a click on it, Enter and Space too,
    *   and a click on the rest of the band.
    */
-  button({ controls, labelledBy, part }: FoldButtonOptions): JSX.Element {
+  button({ controls, labelledBy, part, tips }: FoldButtonOptions): JSX.Element {
     return (
       <button
         type="button"
@@ -84,6 +85,7 @@ export class Fold {
         aria-expanded={this.isOpen() ? "true" : "false"}
         aria-controls={controls}
         aria-labelledby={labelledBy}
+        title={this.isOpen() ? tips.fold : tips.unfold}
       >
         {Fold.chevron()}
       </button>
@@ -215,6 +217,16 @@ export type FoldButtonOptions = {
   labelledBy: string
   /** its `part`:  `toggle` in every card's vocabulary */
   part: string
+  /** its tooltip while open (`fold`) and while folded (`unfold`):  the card's `foldTip` / `unfoldTip` texts */
+  tips: FoldTips
+}
+
+/** A fold button's tooltips, from its card's vocabulary. */
+export type FoldTips = {
+  /** while open:  `Fold this reply` */
+  fold: string
+  /** while folded:  `Unfold this reply` */
+  unfold: string
 }
 
 /** Class of a card's fold button (`fold.button()`):  a click on it always folds. */

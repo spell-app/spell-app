@@ -18,6 +18,7 @@ import {
 } from "./EpicChoices.types"
 
 import choicesCSS from "./EpicChoices.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicChoices`
@@ -34,7 +35,7 @@ import choicesCSS from "./EpicChoices.css?inline"
 export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   @E.proto static vocabulary = epicChoicesVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-choices": choicesCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-choices": choicesCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -96,6 +97,7 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
             part={this.partForName("toggle")}
             aria-expanded={this.isOpen ? "true" : "false"}
             aria-controls={PANELS_ID}
+            title={this.translationForKey(this.isOpen ? "foldTip" : "unfoldTip")}
             onClick={this.fold.toggle}
           >
             {Fold.chevron()}
