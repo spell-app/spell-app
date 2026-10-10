@@ -9,7 +9,7 @@ import cardCSS from "./UICard.css?inline"
 
 /**
  * Same nouns:  a rescan finding them again changes nothing (`UICard.slottedNouns`'s `equals`).
- * - Above the class:  `@fromContent({ equals })` reads it while the class is defined.
+ * - Above the class:  `@watches({ equals })` reads it while the class is defined.
  */
 function isSameNouns(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
   return a.size === b.size && [...a].every((noun) => b.has(noun))
@@ -75,7 +75,7 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
 
   /** `loading`, as `:state(loading)` and `aria-busy`. */
   @E.cssState("loading")
-  @E.aria("ariaBusy")
+  @E.aria("busy")
   get isLoading(): boolean {
     return this.loading
   }
@@ -94,7 +94,7 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
    * Nouns the slotted content already has (`header`, `extra` ...;  `image` for an `<img>`).
    * - Follows what's slotted, at any depth:  shorthands yield to it.
    */
-  @E.fromContent({ childList: true, subtree: true, equals: isSameNouns })
+  @E.watches({ childList: true, subtree: true, equals: isSameNouns })
   get slottedNouns(): ReadonlySet<string> {
     return isServer ? NOTHING_SLOTTED : this.scan()
   }

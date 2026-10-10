@@ -28,7 +28,7 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { loader: loaderCSS },
     delegatesFocus: false,
-    aria: { role: "status", ariaLive: "polite" },
+    aria: { role: "status", live: "polite" },
     // `disabled`:  only a look
     disabled: "its own"
   } satisfies Partial<E.ElementSetup>
@@ -51,7 +51,7 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
    *   the text reads `UI.i18n` (via `translationForKey()`), which exists once the runtime loads.
    * - A server render (`$/ui/static`) applies it too.
    */
-  @E.aria("ariaLabel")
+  @E.aria("label")
   protected get accessibleName(): string | undefined {
     return this.isReady && !this.hasText ? this.translationForKey("loading") : undefined
   }

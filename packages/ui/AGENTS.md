@@ -458,6 +458,11 @@ As WWOD §18, plus:
   and Solid follows the reads in JSX and effects.  The decorator says how the member works:
   - `@E.state accessor isOpen = false` -- the element's own state (`{ equals }`, `{ ownedWrite }` when needed).
     Replaces a `Cell` field and its `.get()` / `.set()`.
+    - A value that CHANGES after it's made is `@E.state`, even where nothing reactive reads it yet:
+      the decorator says the intent (`ThemePreference`'s in-memory look, `RootSettings.generation`).
+    - A value made once and kept:  `@E.lazy get x()`, or `@E.once` on a method (a loader's promise).
+    - Handles to things the class started (a timer, an observer, an `AbortController`) stay plain fields
+      (`UIDocsToc.queuedUpdate`, `ControlLabels.labelObserver`):  nobody should watch them.
   - `@E.controlled("open") accessor isOpen = false` -- the DOM element's property when set, else the starting value;
     a write goes to the DOM element's property.
     - A user change:  `this.requestChange("isOpen", next, () => this.send(...))`;  `isControlledByPage("isOpen")`.
@@ -491,21 +496,24 @@ As WWOD §18, plus:
       Keep a getter (with `@E.cssState`) when something else reads it:
       `isDisabled`, a base class's hook (`CheckControl.isIndeterminate`), an effect.
     - For a state two classes of the chain name, the subclass's member wins.
-  - `@E.aria("ariaBusy")` on a getter or accessor -- the DOM element's `internals.ariaBusy` follows it:
+  - `@E.aria("busy")` on a getter or accessor -- the DOM element's `internals.ariaBusy` follows it:
     `true` => `"true"`, `false` / `undefined` => removed, text as is.
-    - `@E.aria("role")`, `@E.aria("ariaLabel")` ...;
+    - `@E.aria("role")`, `@E.aria("label")` ...;
       stacks with `@E.cssState`, a decorator a line
-      (`@E.cssState("loading")`, `@E.aria("ariaBusy")`, `get isLoading()`).
+      (`@E.cssState("loading")`, `@E.aria("busy")`, `get isLoading()`).
+    - Short names, one spelling wherever ARIA is written:  `E.AriaNames` (`busy: "ariaBusy"`, `aria-busy`)
+      lists the ones in use;  a name not there fails TypeScript, so add it there (one line).
     - One effect per element writes them all;  a server render applies it once.
     - The subclass's member wins here too.
     - ARIA that never changes:
-      `elementSetup.aria` (`{ role: "listitem" }`, `{ role: "status", ariaLive: "polite" }`),
+      `elementSetup.aria` (`{ role: "listitem" }`, `{ role: "status", live: "polite" }`, the same short names),
       set once as the component is built, no effect.  An `@E.aria` member for the same property wins once it runs.
   - `@E.onChange("a", "b") onXChanged(a, b)` -- an effect reading the members, calling the method with their values;
     a function it returns is the cleanup;  `{ writesDOMElement: true }` applies once on a server,
     for a method that writes the DOM element beyond ARIA (`:state()`, `tabindex`).
     - Created in `onMount()`, after every field exists.
     - The method runs untracked:  only the members it names re-run it, so its other reads need no `untrack()`.
+      To re-run on another member, name it;  there is no tracked mode.
     - Runs only when a member's VALUE changed (`===`, member by member):
       a getter member tracks the sources under it, and Solid 2 applies an effect on every re-run of its compute,
       so `startEffects()` puts a memo with `equals` in between.
@@ -522,7 +530,7 @@ As WWOD §18, plus:
     - Sugar over `@E.onChange("isConnected")` for a listener or observer
       on `window`, the document or the light DOM that must stop while the element is out of the page.
     - Never on a server.
-  - `@E.fromContent({ childList: true, subtree: true }) get slotted()` --
+  - `@E.watches({ childList: true, subtree: true }) get slotted()` --
     a member read from the DOM element's light DOM, recomputed when what the options name changes
     (`MutationObserver`'s `childList`, `subtree`, `characterData`, `attributes`, `attributeFilter`;
     `equals` as `@E.derived`'s).
@@ -564,7 +572,7 @@ As WWOD §18, plus:
       and `render()` runs once, untracked (`UIComponent.onMount()`).
   - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `elementSetup.disabled = "its own"`;
     `:state(disabled)` comes from `UIComponent` ("Shared states" above), so no `@E.cssStates("disabled")`;
-    ARIA of its own, if any, on a getter (`<ui-segment>`'s `@E.aria("ariaDisabled") get looksDisabled()`).
+    ARIA of its own, if any, on a getter (`<ui-segment>`'s `@E.aria("disabled") get looksDisabled()`).
     Never an `isDisabled` override (the DOM element swallows clicks while `isDisabled`).
   - Element-core files import the decorators directly (`import { state } from "./Reactive"`:
     their class definitions read them);  component files use `@E.state` (and `@E.proto`).
