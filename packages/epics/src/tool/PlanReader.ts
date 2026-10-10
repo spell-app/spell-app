@@ -205,7 +205,7 @@ export abstract class PlanReader {
    * - Claude answered it last, with options nothing is picked in yet (`PlanItem.awaitsPick()`):  `replied`, Owen's
    *   turn to pick (Owen, 2026-10-09);  a pick, a newer reply from Owen, or closing it ends that
    * - waiting on Owen:  `attention`:  an open question;  an open judgement call or issue not reviewed, unless it's
-   *   `calm` (not urgent:  it simply follows WWOD, or Owen said so from its id chip):  then `open`
+   *   `calm` (not urgent:  it wouldn't surprise Owen, or he said so from its id chip):  then `open`
    * - settled by a review, though still open (`SETTLED_AS`:  approved, made a todo):  `recent`
    * - else `open`:  a revisit or Do Now Claude answered leaves it open, yellow (J10)
    */
