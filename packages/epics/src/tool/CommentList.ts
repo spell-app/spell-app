@@ -13,6 +13,9 @@ const MAX_QUOTE = 2_000
 /** Longest label or excerpt kept, in characters. */
 const MAX_LABEL = 200
 
+/** A comment's statuses (`Comment.status`). */
+const STATUSES: readonly string[] = ["new", "taken", "answered"]
+
 /** Characters that draw nothing and that `trim()` keeps:  zero-width spaces, joiners, the word joiner. */
 const INVISIBLE = /[​-‍⁠]/g
 
@@ -42,6 +45,7 @@ CommentsError.prototype.name = "CommentsError"
  *   `quote` and `offset`:  `packages/docs/tools/BlockAnchors.js`), Owen's text, when, and its status:
  *   - `new`:  saved, waiting for Claude;  Owen may edit or delete it
  *   - any status:  Owen may CLEAR it (`clear()`):  gone from the inbox, its highlight with it
+ *   - deleted or cleared:  the page's Undo puts it back as it was (`restore()`)
  *   - `taken`:  Claude took it:  a guide's into epic `guide-changes` (`taken`:  which phase)
  *   - `answered`:  Claude answered it (a plan doc's:  in the doc;  `replies` may hold the answer)
  * - pure:  no files;  the owner reads and writes them under its lock
@@ -90,7 +94,7 @@ export class CommentList {
     const { anchor, kind, quote, offset } = where
     if (typeof anchor !== "string" || !ANCHOR.test(anchor)) throw new CommentsError(`"${anchor}" isn't an anchor`)
     if (typeof kind !== "string" || !KIND.test(kind)) throw new CommentsError(`"${kind}" isn't a kind of block`)
-    const id = `cm${Math.max(0, ...Object.keys(this.comments).map(numberOf)) + 1}`
+    const id = this.nextId()
     const comment: Comment = {
       anchor,
       kind,
@@ -130,6 +134,43 @@ export class CommentList {
     delete this.comments[id]
   }
 
+  /**
+   * Put back comment `comment`, deleted or cleared a moment ago, as it was:  its place, text, dates, status, the
+   * phase it went into and Claude's answers (the page's Undo, Owen 2026-10-10:  "didn't know it needed two clicks").
+   * Returns its id:  `id` again, unless a new comment took it meanwhile;  then the next free one.
+   * - throws on what `add()` refuses (a bad anchor or kind, blank text), or a status that isn't one
+   */
+  restore(id: string, comment: Comment): string {
+    const { anchor, kind, quote, offset, status, taken, replies, edited } = comment ?? ({} as Comment)
+    if (typeof anchor !== "string" || !ANCHOR.test(anchor)) throw new CommentsError(`"${anchor}" isn't an anchor`)
+    if (typeof kind !== "string" || !KIND.test(kind)) throw new CommentsError(`"${kind}" isn't a kind of block`)
+    if (!STATUSES.includes(status)) throw new CommentsError(`"${status}" isn't a comment's status`)
+    const back: Comment = {
+      anchor,
+      kind,
+      label: short(comment.label),
+      excerpt: short(comment.excerpt),
+      text: checkedText(comment.text),
+      at: stamp(comment.at) ?? new Date().toISOString(),
+      status
+    }
+    if (typeof quote === "string" && quote.trim()) {
+      back.quote = quote.trim().slice(0, MAX_QUOTE)
+      back.offset = Number.isInteger(offset) && Number(offset) >= 0 ? Number(offset) : 0
+    }
+    if (stamp(edited)) back.edited = stamp(edited)
+    if (taken && typeof taken.epic === "string" && Number.isInteger(taken.phase))
+      back.taken = { epic: taken.epic, phase: taken.phase, at: stamp(taken.at) ?? back.at }
+    const answers = Array.isArray(replies)
+      ? replies.filter((reply) => typeof reply?.by === "string" && typeof reply.html === "string")
+      : []
+    if (answers.length) back.replies = answers.map(({ by, at, html }) => ({ by, at: stamp(at) ?? back.at, html }))
+    const free = CommentList.isCommentId(id) && !Object.hasOwn(this.comments, id)
+    const restored = free ? id : this.nextId()
+    this.comments[restored] = back
+    return restored
+  }
+
   ////////////////
   // ## Claude's edits
   ////////////////
@@ -150,6 +191,11 @@ export class CommentList {
     const markup = String(html ?? "").trim()
     if (markup) comment.replies = [...(comment.replies ?? []), { by: "Claude", at: now.toISOString(), html: markup }]
     if (comment.status === "new") comment.status = "answered"
+  }
+
+  /** The id a new comment gets:  one past the highest (`cm3` after `cm2`). */
+  private nextId(): string {
+    return `cm${Math.max(0, ...Object.keys(this.comments).map(numberOf)) + 1}`
   }
 
   /** Comment `id`, while it's `new`;  throws a 409 once Claude has it. */
@@ -198,6 +244,13 @@ export type Comment = Required<Omit<CommentPlace, "quote" | "offset">> &
 
 /** A comment with its id (`cm3`). */
 export type IdentifiedComment = Comment & { id: string }
+
+/** `value` as an ISO date, when it's a date;  else `undefined`. */
+function stamp(value: unknown): string | undefined {
+  if (typeof value !== "string") return undefined
+  const date = new Date(value)
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString()
+}
 
 /** A comment id's number:  `cm12` -> 12;  0 for anything else. */
 function numberOf(id: string): number {
