@@ -1,6 +1,7 @@
 /**
  * The browser side of a `WebServer` with live reload:  runs in every page it serves, from `/_server/live.js`.
  * - MUST stay self-contained:  it's served as `(${liveClient})()`, so it can't use imports or module helpers
+ *   - the one helper it calls, `forVsCode()`, is served beside it (`liveClientScript()`), so tests can call it too
  */
 
 /**
@@ -95,6 +96,7 @@ export type PageEditResult = { ok: boolean; status: number; etag?: string; error
  *     (the docs runtime moved the address with `history.replaceState()`, which fires no `hashchange`)
  *   - runs `history.go()` when the parent posts `{ spell: "history", go: -1 | 1 }`
  *   - runs an edit key when the parent posts `{ spell: "edit", command, text? }` (`edit()`)
+ *   - hands VS Code its keys (`forwardKey()`):  Cmd + Shift + P, Cmd + P, Cmd + B ... work from inside the page
  *   - routes link clicks (`followInFrame()`):  a frame can't open the tabs docs links ask for
  *   - `{ spell: "go", hash }` from the parent is the docs runtime's (`spell-doc-runtime.js` `wireAnchors()`)
  *   - why here:  the view's frame is cross-origin, so the view can't read or move its history itself
@@ -152,6 +154,8 @@ export function liveClient(): void {
         edit(data.command, data.text)
     })
     addEventListener("keydown", editKey, true)
+    // a same-origin frame of a live page (the brand index's thumbnails) has no VS Code above it
+    if (!liveParent()) addEventListener("keydown", forwardKey)
     addEventListener("click", followInFrame, true)
   }
   holder.__spellLiveChange = onChange
@@ -402,10 +406,13 @@ export function liveClient(): void {
    * - paste:  asks the extension for the clipboard (`{ spell: "edit", command: "paste" }`, which the view passes
    *   on);  it answers with `edit("paste", text)`
    * - nothing selected to copy or cut:  left alone
+   * - Shift with any of them but Z and G:  left alone, for VS Code (`forwardKey()`):
+   *   Cmd + Shift + F searches every file, + Shift + X shows the extensions, + Shift + V previews markdown ...
    */
   function editKey(event: KeyboardEvent) {
     if (!(event.metaKey || event.ctrlKey) || event.altKey || event.defaultPrevented) return
     const key = event.key.toLowerCase()
+    if (event.shiftKey && key !== "z" && key !== "g") return
     // find:  VS Code's side-bar views have no find bar of their own, so the page brings one (`openFind()`)
     if (key === "f" || key === "g") {
       event.preventDefault()
@@ -440,6 +447,41 @@ export function liveClient(): void {
     }
     lastKey = { command, at: Date.now() }
     edit(command)
+  }
+
+  /**
+   * A key for VS Code, pressed in the page while it's in VS Code's side-bar view (`forVsCode()` says which):
+   * sent to the view's wrapper, `{ spell: "key", key, code, keyCode, shiftKey, altKey, ctrlKey, metaKey, repeat }`,
+   * which presses it again where VS Code listens (`DocView.ts` `html()`), so its keybindings run:
+   * Cmd + Shift + P the command palette, Cmd + P quick open, Cmd + Shift + O go to symbol, Cmd + B the side bar ...
+   * - why:  VS Code hears keys on the view's own page only, and this page is a frame inside it, from another origin:
+   *   its keys never reach that page, so VS Code never saw them (epic `airplane`, 2026-10-10)
+   * - sent once every handler has had the key:  one the page took (`preventDefault()`:  Cmd + K jump, Cmd + I comment,
+   *   a `UI.keyboard` shortcut) stays the page's
+   */
+  function forwardKey(event: KeyboardEvent) {
+    const apple = /Mac|iPhone|iPad/.test(navigator.userAgent)
+    if (!forVsCode(event, { apple, field: fieldKind(event) })) return
+    const { key, code, keyCode, shiftKey, altKey, ctrlKey, metaKey, repeat } = event
+    setTimeout(() => {
+      if (event.defaultPrevented) return
+      const press = { spell: "key", key, code, keyCode, shiftKey, altKey, ctrlKey, metaKey, repeat }
+      window.parent.postMessage(press, "*")
+    })
+  }
+
+  /**
+   * What kind of field a key went to:  `"rich"` (contenteditable), `"text"` (a text input, a textarea, a select),
+   * `undefined` (none:  the page itself, a button, a checkbox ...).
+   * - through shadow roots:  `ui-textarea`'s own textarea
+   */
+  function fieldKind(event: KeyboardEvent): KeyPlace["field"] {
+    const target = event.composedPath()[0]
+    if (!(target instanceof HTMLElement)) return undefined
+    if (target.isContentEditable) return "rich"
+    if (target instanceof HTMLTextAreaElement || target instanceof HTMLSelectElement) return "text"
+    const notText = /^(button|checkbox|radio|range|reset|submit|color|file|image)$/
+    return target instanceof HTMLInputElement && !notText.test(target.type) ? "text" : undefined
   }
 
   /**
@@ -630,6 +672,41 @@ export function liveClient(): void {
 }
 
 /**
+ * Is `press` a key VS Code should handle, pressed in a page in VS Code's side-bar view (`liveClient()` `forwardKey()`)?
+ * - `apple`:  Cmd is the command key;  else Ctrl
+ * - `field`:  the key went to a field, `"text"` or `"rich"` (contenteditable);  `undefined`:  to the page
+ * - yes:  F1 to F19, with or without modifiers;  and Cmd or Ctrl with any other key, except:
+ *   - a modifier on its own
+ *   - the page's own edit keys (`editKey()`):  Cmd / Ctrl + A C X V Y F, and + Z and + G with or without Shift
+ *   - a key that moves or edits where it is:  arrows, Home, End, Page Up / Down, Backspace, Delete, Enter, Escape,
+ *     Space (Cmd + Enter sends a note)
+ *   - in a field, on a Mac:  Ctrl without Cmd (Ctrl + A, E, K ... move the caret there)
+ *   - in rich text:  + B, I, U
+ * - Alt with Cmd / Ctrl is VS Code's too (Cmd + Alt + B, the secondary side bar):  the page's edit keys never take Alt
+ * - MUST stay self-contained:  `liveClientScript()` serves it beside `liveClient()`
+ */
+export function forVsCode(press: KeyPress, { apple, field }: KeyPlace): boolean {
+  if (press.isComposing) return false
+  if (/^F([1-9]|1[0-9])$/.test(press.key)) return true
+  if (!(press.metaKey || press.ctrlKey)) return false
+  if (/^(Meta|Control|Shift|Alt|AltGraph|CapsLock|Fn)$/.test(press.key)) return false
+  if (/^(Arrow\w+|Home|End|PageUp|PageDown|Backspace|Delete|Enter|Escape| )$/.test(press.key)) return false
+  const letter = press.key.toLowerCase()
+  if (!press.altKey && (/^[zg]$/.test(letter) || (!press.shiftKey && /^[acxvyf]$/.test(letter)))) return false
+  if (!field) return true
+  if (apple && !press.metaKey) return false
+  return !(field === "rich" && /^[biu]$/.test(letter))
+}
+
+/** A key pressed, as `forVsCode()` reads it:  a `KeyboardEvent`'s fields. */
+export type KeyPress = Pick<KeyboardEvent, "key" | "metaKey" | "ctrlKey" | "altKey" | "shiftKey"> & {
+  isComposing?: boolean
+}
+
+/** Where a key was pressed, for `forVsCode()`:  on a Mac or not, and in which kind of field, if any. */
+export type KeyPlace = { apple: boolean; field?: "text" | "rich" }
+
+/**
  * What `liveClient()` keeps on `window`.
  * - `SPELL_SERVER`:  injected by the server (`ServerConfig`)
  * - `__spellLive`:  the client has run (once per page)
@@ -642,7 +719,7 @@ type LiveWindow = Window & {
 }
 
 /**
- * `liveClient` as a classic script, for `/_server/live.js`.
+ * `liveClient` as a classic script, for `/_server/live.js`:  `forVsCode()` first, which it calls.
  * - HACK: `__name` is a no-op shim:  tsx / esbuild's `keepNames` wraps nested functions in `__name(fn, "fn")`,
  *   a helper that lives in the MODULE, not in the stringified function
  */
@@ -650,6 +727,7 @@ export function liveClientScript(): string {
   return [
     "// spell server:  live reload and page edits (packages/server/src/liveClient.ts)",
     "var __name = (fn) => fn;",
+    forVsCode.toString(),
     `(${liveClient.toString()})()`,
     ""
   ].join("\n")
