@@ -6,14 +6,16 @@ argument-hint: '["name"] [n] <task> | ? | stop <name>'
 
 # /bg
 
-Hand a task to a helper agent that works in the background (epic `skillz`), so the panel is free again at once:  Owen
-keeps talking to this session, or sends more `/bg` tasks, while it works.  When it's done, its notice wakes this
-session, which reports.
+Hand a task to a helper agent that works in the background (epic `skillz`), so the panel is free again at once.
+- Owen keeps talking to this session, or sends more `/bg` tasks, while it works.
+- When it's done, its notice wakes this session, which reports.
 
-- Every agent this session starts, `/bg` or not, is NAMED and LISTED the same way:  the root `CLAUDE.md`'s rule,
-  "Delegated work".  This skill is that rule's full text.
-- The list:  `spell dev agents` (`packages/docs/tools/agents.ts`):  `epics/<epic>/agents.json` in an epic, else
-  `.spell-agents.json` at the checkout's root;  git-ignored, gone when empty.
+- Every agent this session starts, `/bg` or not, is NAMED and LISTED the same way.
+  - That's the root `CLAUDE.md`'s rule, "Delegated work".
+  - This skill is that rule's full text.
+- The list:  `spell dev agents` ([agents.ts](packages/docs/tools/agents.ts)).
+  - In an epic, it's `epics/<epic>/agents.json`;  else `.spell-agents.json` at the checkout's root.
+  - Git-ignored, and gone when empty.
 
 ## Forms
 
@@ -23,39 +25,57 @@ session, which reports.
 /bg stop <name>             stop one
 ```
 
-- `"name"`:  a quoted FIRST word:  its name, before the prefix.  None:  make one up from the task, 1-3 words,
-  kebab-case (`string-docstrings`).
-- `n`:  a whole number 1-5 next (after the name, if any):  the most agents the task may use IN ALL, the helper
-  itself included.  Default 1:  the helper alone.  A HARD cap, unlike the root rule's "up to 5, unasked".
-- the rest:  the task, word for word.  No task:  ask for one (one line), nothing started.
+- `"name"`:  a quoted FIRST word:  its name, before the prefix.
+  - None:  make one up from the task, 1-3 words, kebab-case (`string-docstrings`).
+- `n`:  a whole number 1-5 next (after the name, if any).
+  - It's the most agents the task may use IN ALL, the helper itself included.
+  - Default 1:  the helper alone.
+  - A HARD cap, unlike the root rule's "up to 5, unasked".
+- The rest:  the task, word for word.
+  - No task:  ask for one (one line), nothing started.
 
 ## Names
 
-- The REAL name is the list's prefix + the name:  the epic's name, else the worktree's, else `main`.
-  `/bg "aaa" ...` in epic `skillz` is `skillz-aaa`.  `spell dev agents add` adds the prefix and prints the full name.
-- Claude Code's `Agent` call has no name field:  the name goes FIRST in its `description`:
-  `skillz-aaa: docstrings in string.ts`.
+- The REAL name is the list's prefix + the name.
+  - The prefix:  the epic's name, else the worktree's, else `main`.
+  - `/bg "aaa" ...` in epic `skillz` is `skillz-aaa`.
+  - `spell dev agents add` adds the prefix, and prints the full name.
+- Claude Code's `Agent` call has no name field:  the name goes FIRST in its `description`.
+  - E.g. `skillz-aaa: docstrings in string.ts`.
 - Taken (`add` exits 1, "running already"):  add a number, `aaa-2`.
 
 ## Start:  `/bg ["name"] [n] <task>`
 
-Quick:  the point is a free panel.  No exploring, no reading the files the task names.
+Quick:  the point is a free panel.
+No exploring, no reading the files the task names.
+
 1. Parse it (Forms).
-2. Same files?  `spell dev agents list --json`:  does a running agent's task touch the files or folders this one
-   will (the tasks name them, or plainly mean them:  "the plan doc", "the /epic skill")?
-   - yes:  `spell dev agents add <name> "<task, a sentence or less>" --status "blocked on <its full name>"`, and
-     DON'T start it.  Reply one line:  `waiting:  <full name> starts when <other> is done (same files:  <which>)`.
-     End the turn.
-   - plan-doc work always overlaps other plan-doc work:  one at a time.
+2. Same files?  `spell dev agents list --json`.
+   - Does a running agent's task touch the files or folders this one will?
+     The tasks name them, or plainly mean them ("the plan doc", "the /epic skill").
+   - Yes:  list this one as blocked, and DON'T start it.
+
+     ```sh
+     spell dev agents add <name> "<task, a sentence or less>" --status "blocked on <its full name>"
+     ```
+
+     - Reply one line:  `waiting:  <full name> starts when <other> is done (same files:  <which>)`.
+     - End the turn.
+   - Plan-doc work always overlaps other plan-doc work:  one at a time.
 3. `spell dev agents add <name> "<task, a sentence or less>"`:  prints the full name.
-4. ONE `Agent` call:  `subagent_type: "fork"` (a copy of this session:  it sees the conversation, so "fix the thing we
-   just talked about" works), `run_in_background: true`, `description: "<full name>: <task gist>"`, `prompt`:  the
-   template below.
-   - `Agent type 'fork' not found` (a session without forks:  the VS Code panel's, 2026-10-07, I3 of `skillz`):  the
-     same call with `subagent_type: "general-purpose"`.  It sees NOTHING of the conversation:  fill the template's
-     Context line with what the task leans on ("the thing we just talked about":  which thing, which files)
-5. `spell dev agents set <name> --task-id <the agent's id>` (from the `Agent` result):  what `/bg stop` stops, and
-   where a redirect goes.
+4. ONE `Agent` call, with:
+   - `subagent_type: "fork"`:  a copy of this session.
+     It sees the conversation, so "fix the thing we just talked about" works.
+   - `run_in_background: true`
+   - `description: "<full name>: <task gist>"`
+   - `prompt`:  the template below
+   - `Agent type 'fork' not found`:  a session without forks (the VS Code panel's, 2026-10-07, I3 of `skillz`).
+     - Make the same call with `subagent_type: "general-purpose"`.
+     - It sees NOTHING of the conversation.
+     - So fill the template's Context line with what the task leans on
+       ("the thing we just talked about":  which thing, which files).
+5. `spell dev agents set <name> --task-id <the agent's id>`, the id from the `Agent` result.
+   - It's what `/bg stop` stops, and where a redirect goes.
 6. No redirect waiter running in this session yet ("Redirects" below):  start one.
 7. Reply ONE line, then END THE TURN:  `started:  <full name> (<n> agent|agents)`.
 
@@ -94,28 +114,35 @@ The task, word for word:
 
 The helper's report reaches this session as a notice, between whatever else it's doing.
 1. `spell dev agents done <name>`.
-2. Reply, the FIRST line in bold, by itself:  `**Agent <full name> came back with:**`.  Then the report, short, in
-   Owen's words:  what changed, where to look, what needs him.  Links as the root rules say (a page:  side bar +
-   browser, `spell dev docs link ... --show`;  a plan doc:  `--review`);  files:  `[file.ts](path)`.
+2. Reply, the FIRST line in bold, by itself:  `**Agent <full name> came back with:**`.
+   - Then the report, short, in Owen's words:  what changed, where to look, what needs him.
+   - Links as the root rules say:
+     - a page:  side bar + browser, `spell dev docs link ... --show`
+     - a plan doc:  `--review`
+     - files:  `[file.ts](path)`
 3. A question in its report that only Owen can answer:  AskUserQuestion, with the epic and what it's for.
-4. An agent `blocked on` this one:  `spell dev agents set <its name> --status active`, then start it (Start, steps
-   4-6), in the same turn.
+4. An agent `blocked on` this one:  `spell dev agents set <its name> --status active`.
+   - Then start it (Start, steps 4-6), in the same turn.
 
 ## Redirects
 
-In an epic, the plan doc shows its running agents at the top ("Agents running"), each with a note box:  Owen types
-there to STEER an agent mid-task (P3 of epic `skillz`;  `packages/docs/tools/agentRoutes.ts`).  The note waits in the
-list, untold, until this session passes it on.
-- The waiter:  `spell dev agents wait`, with Bash `run_in_background: true`, ONE per session, while any agent this
-  session started runs.  Its exit wakes the session:
-  - 0:  it printed the untold notes, `skillz-aaa:  <note>` each.  Per note:  `SendMessage` to that agent (`to`:  its
-    `taskId` from `spell dev agents list --json`), "Owen redirects you, from the plan doc:  <note>";  then
-    `spell dev agents told <name>` (the page shows it told).  One line in the reply per note:  `redirected:  <name>`.
-    Start the waiter again.
+In an epic, the plan doc shows its running agents at the top ("Agents running"), each with a note box.
+- Owen types there to STEER an agent mid-task
+  (P3 of epic `skillz`;  [agentRoutes.ts](packages/docs/tools/agentRoutes.ts)).
+- The note waits in the list, untold, until this session passes it on.
+- The waiter:  `spell dev agents wait`, with Bash `run_in_background: true`.
+  - ONE per session, while any agent this session started runs.
+  - Its exit wakes the session, by its code:
+  - 0:  it printed the untold notes, `skillz-aaa:  <note>` each.  Per note:
+    - `SendMessage` to that agent:  "Owen redirects you, from the plan doc:  <note>".
+      Its `to` is the agent's `taskId`, from `spell dev agents list --json`.
+    - Then `spell dev agents told <name>`:  the page shows it told.
+    - One line in the reply per note:  `redirected:  <name>`.
+    - Start the waiter again.
   - 3:  nothing runs any more:  don't start it again
   - 2:  timed out (an hour):  start it again while agents run
-- The agent isn't this session's (another session's, same epic):  leave its notes untold:  that session's waiter
-  takes them.
+- The agent isn't this session's (another session's, same epic):  leave its notes untold.
+  That session's waiter takes them.
 
 ## `/bg ?`
 
