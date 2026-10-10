@@ -10,6 +10,7 @@ import { epicNoteVocabulary } from "./EpicNote.en"
 
 import noteCSS from "./EpicNote.css?inline"
 import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicNote`
@@ -28,7 +29,7 @@ import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 export class EpicNote extends E.UIComponent<typeof epicNoteVocabulary> {
   @E.proto static vocabulary = epicNoteVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold-button": foldCSS, "epic-note": noteCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-fold-button": foldCSS, "epic-note": noteCSS },
     delegatesFocus: false,
     // `disabled`:  only a look (the sheet dims it), so the text stays findable;  `loading`:  the shared spinner
     disabled: "its own",
@@ -69,7 +70,8 @@ export class EpicNote extends E.UIComponent<typeof epicNoteVocabulary> {
             {this.fold.button({
               controls: BODY_ID,
               labelledBy: this.title ? `${LABEL_ID} ${TITLE_ID}` : LABEL_ID,
-              part: this.partForName("toggle")
+              part: this.partForName("toggle"),
+              tips: { fold: this.translationForKey("foldTip"), unfold: this.translationForKey("unfoldTip") }
             })}
           </Show>
           <span id={LABEL_ID} class={LABEL} part={this.partForName("label")}>

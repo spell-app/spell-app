@@ -43,6 +43,10 @@ export const epicReplyVocabulary = {
     { name: "body", description: "The reply;  not drawn when empty;  hidden (`until-found`) while folded." }
   ],
   states: [{ name: "open", description: "Unfolded:  it starts so (page state, never written)." }],
-  texts: [{ key: "re", text: "re: {re}", description: "What the reply is about, in its heading." }],
+  texts: [
+    { key: "foldTip", text: "Fold this reply", description: "Tooltip of its fold button while open." },
+    { key: "unfoldTip", text: "Unfold this reply", description: "Tooltip of its fold button while folded." },
+    { key: "re", text: "re: {re}", description: "What the reply is about, in its heading." }
+  ],
   children: [{ tag: "flow", description: "The reply." }]
 } as const satisfies EpicVocabulary

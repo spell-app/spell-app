@@ -65,6 +65,7 @@ import collapseAllCSS from "$/epics/components/epic-item/CollapseAll.css?inline"
 import chipsCSS from "$/epics/components/epic-section/StateChips.css?inline"
 import pageCSS from "./EpicPage.css?inline"
 import crumbsCSS from "./Crumbs.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicPage`
@@ -151,6 +152,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.proto static vocabulary = epicPageVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: {
+      "epic-tooltip": tooltipCSS,
       "epic-page": pageCSS,
       "epic-crumbs": crumbsCSS,
       "epic-collapse-all": collapseAllCSS,
@@ -832,7 +834,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   private hungNotice(): JSX.Element {
     return (
       <details class={HUNG} part={this.partForName("hung")}>
-        <summary>
+        <summary title={this.translationForKey("hungTip")}>
           <span class="chevron" aria-hidden="true">
             {this.icons.chevron.svg}
           </span>

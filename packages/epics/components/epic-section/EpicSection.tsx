@@ -49,6 +49,7 @@ import collapseAllCSS from "$/epics/components/epic-item/CollapseAll.css?inline"
 import foldCSS from "./EpicFold.css?inline"
 import sectionCSS from "./EpicSection.css?inline"
 import chipsCSS from "./StateChips.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `DOMEpicSectionElement`
@@ -129,6 +130,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   @E.protoMerged static elementSetup = {
     DOMElement: DOMEpicSectionElement,
     styleSheets: {
+      "epic-tooltip": tooltipCSS,
       "epic-fold": foldCSS,
       "epic-collapse-all": collapseAllCSS,
       "epic-state-chips": chipsCSS,
@@ -396,7 +398,13 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   /** Under a filtered list:  `3 hidden · show all`;  a click shows everything. */
   private hiddenNote(): JSX.Element {
     return (
-      <button type="button" class={HIDDEN_NOTE} part={this.partForName("hidden-note")} onClick={this.showAll}>
+      <button
+        type="button"
+        class={HIDDEN_NOTE}
+        part={this.partForName("hidden-note")}
+        title={this.translationForKey("hiddenTip")}
+        onClick={this.showAll}
+      >
         {this.translationForKey("hiddenNote", { count: this.hidden().length })}
       </button>
     )
@@ -467,6 +475,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
             class={CHANGES_HEAD}
             aria-expanded={this.changesFold.isOpen() ? "true" : "false"}
             aria-controls={CHANGES_BODY}
+            title={this.translationForKey(this.changesFold.isOpen() ? "foldTip" : "unfoldTip")}
             onClick={this.changesFold.toggle}
           >
             {Fold.chevron()}

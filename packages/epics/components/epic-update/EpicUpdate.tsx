@@ -10,6 +10,7 @@ import { epicUpdateVocabulary } from "./EpicUpdate.en"
 
 import updateCSS from "./EpicUpdate.css?inline"
 import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicUpdate`
@@ -25,7 +26,7 @@ import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
   @E.proto static vocabulary = epicUpdateVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold-button": foldCSS, "epic-update": updateCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-fold-button": foldCSS, "epic-update": updateCSS },
     // a container:  a click on its text must not jump to the fold button
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -51,7 +52,12 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
       <span class={this.rootClass} part={this.partForName("base")}>
         <span ref={this.fold.heading} class={[HEAD, { [FOLDS]: this.isNote }]}>
           <Show when={this.isNote}>
-            {this.fold.button({ controls: BODY_ID, labelledBy: LABEL_ID, part: this.partForName("toggle") })}
+            {this.fold.button({
+              controls: BODY_ID,
+              labelledBy: LABEL_ID,
+              part: this.partForName("toggle"),
+              tips: { fold: this.translationForKey("foldTip"), unfold: this.translationForKey("unfoldTip") }
+            })}
           </Show>
           <span
             id={LABEL_ID}

@@ -20,6 +20,7 @@ import {
 } from "./EpicNewItem.types"
 
 import newItemCSS from "./EpicNewItem.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicNewItem`
@@ -40,7 +41,7 @@ import newItemCSS from "./EpicNewItem.css?inline"
 export class EpicNewItem extends E.UIComponent<EpicNewItemVocabulary> {
   @E.proto static vocabulary = epicNewItemVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-new-item": newItemCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-new-item": newItemCSS },
     // the form's fields take the focus themselves
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -144,6 +145,7 @@ export class EpicNewItem extends E.UIComponent<EpicNewItemVocabulary> {
                 type="button"
                 data-kind={each}
                 aria-pressed={this.formKind === each ? "true" : "false"}
+                title={this.translationForKey(NEW_KIND_LOOKS[each].tip)}
                 onClick={() => (this.formKind = each)}
               >
                 <ui-icon name={NEW_KIND_LOOKS[each].icon} />
@@ -184,11 +186,16 @@ export class EpicNewItem extends E.UIComponent<EpicNewItemVocabulary> {
             placeholder={this.translationForKey("newNear")}
             aria-label={this.translationForKey("newNear")}
           />
-          <button type="submit" data-color="green" disabled={this.isSaving}>
+          <button
+            type="submit"
+            data-color="green"
+            disabled={this.isSaving}
+            title={this.translationForKey(item ? "newSaveTip" : "newAddTip")}
+          >
             <ui-icon name="check" />
             {this.translationForKey(item ? "newSave" : "newAdd")}
           </button>
-          <button type="button" onClick={() => this.close()}>
+          <button type="button" title={this.translationForKey("newCancelTip")} onClick={() => this.close()}>
             {this.translationForKey("newCancel")}
           </button>
         </span>

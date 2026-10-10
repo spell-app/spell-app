@@ -151,6 +151,14 @@ export const epicSectionVocabulary = {
     { name: "tools", description: "Its title has tools:  the Phases toggles, or a state filter (items in it)." }
   ],
   texts: [
+    { key: "foldTip", text: "Fold the plan changes", description: "Tooltip of its fold button while open." },
+    { key: "unfoldTip", text: "Unfold the plan changes", description: "Tooltip of its fold button while folded." },
+    {
+      key: "hiddenTip",
+      text: "Show everything:  clear the filter",
+      description: "The note under a filtered list:  its tooltip."
+    },
+
     ...FOLD_TEXTS,
     { key: "phasesTitle", text: "Phases" },
     { key: "questionsTitle", text: "Questions" },

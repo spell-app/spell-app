@@ -28,6 +28,14 @@ export const epicOriginalVocabulary = {
     { name: "body", description: "The versions;  hidden while folded." }
   ],
   states: [{ name: "open", description: "Unfolded (it starts folded)." }],
-  texts: [{ key: "original", text: "Original Discussion", description: "The aside's heading." }],
+  texts: [
+    { key: "foldTip", text: "Fold the original discussion", description: "Tooltip of its fold button while open." },
+    {
+      key: "unfoldTip",
+      text: "Unfold the original discussion",
+      description: "Tooltip of its fold button while folded."
+    },
+    { key: "original", text: "Original Discussion", description: "The aside's heading." }
+  ],
   children: [{ tag: "epic-version", min: 1, description: "The versions, oldest first." }]
 } as const satisfies EpicVocabulary
