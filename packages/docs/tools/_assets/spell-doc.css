@@ -458,9 +458,8 @@ ui-section .lede code {
   font: var(--spell-eyebrow-font);
 }
 /*
- * narrow (VS Code's side bar, a phone):  no eyebrow -- the site header shows the same crumbs in place of its tabs
- * there (`SiteHeader.ts`, its narrow breakpoint:  720px;  Owen, 2026-10-10:  "instead of keeping 'Guides', you could
- * keep the breadcrumb, saves space on smaller screen")
+ * narrow (VS Code's side bar, a phone):  no eyebrow, to save room;  no breadcrumb at all there (Owen, 2026-10-10:
+ * "We don't need the breadcrumb").  The site header's narrow breakpoint, 720px (`SiteHeader.ts`)
  */
 @media (max-width: 720px) {
   .spell-crumbs {
