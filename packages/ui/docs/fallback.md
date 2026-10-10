@@ -1,13 +1,15 @@
 # Native fallbacks
 
-What a FORM CONTROL shows when its real render throws:  plain DOM, no Solid, so it renders whatever broke the Solid
-render, and the form around it keeps working.
+What a FORM CONTROL shows when its real render throws.
+- It's plain DOM, no Solid, so it renders whatever broke the Solid render.
+- And the form around it keeps working.
 
 ## Which families have one
 
-Only the form controls (Owen, epic `wwod-spell-ui` P15:  "ditch the fallback stuff unless it's necessary for e.g.
-form functionality").  A broken control without one would drop its value from the form, its validity and its reset;
-a broken anything-else only loses its look and behaviour.
+Only the form controls.
+- Owen, epic `wwod-spell-ui` P15:  "ditch the fallback stuff unless it's necessary for e.g. form functionality".
+- A broken control without one would drop its value from the form, its validity and its reset.
+- A broken anything-else only loses its look and behaviour.
 
 | Family | Why it keeps a fallback |
 | ------ | ----------------------- |
@@ -25,17 +27,21 @@ a broken anything-else only loses its look and behaviour.
 
 Considered and left out:
 
-- `ui-form` / `ui-field` / `ui-fields`:  the controls are the page's light DOM, so a bare `<slot>` still shows
-  them, each with its own fallback;  the native `<form>` around them still submits.  Lost:  the layout classes, and
-  `disabled` making the box `inert` (a `<fieldset disabled>` still disables the controls in it).
+- `ui-form` / `ui-field` / `ui-fields`:  the controls are the page's light DOM,
+  so a bare `<slot>` still shows them, each with its own fallback.
+  - The native `<form>` around them still submits.
+  - Lost:  the layout classes, and `disabled` making the box `inert`.
+    A `<fieldset disabled>` still disables the controls in it.
 - `ui-brand-field`:  layout around a slotted control, as `ui-field`.
-- Content from attributes (`ui-image`'s `<img>`, `ui-icon`, `ui-flag`, `header` / `message` shorthands):  not
-  form functionality.  A broken one shows its children only.
-- Dialogs (`ui-modal`, `ui-flyout`, `ui-sidebar`):  their content is the page's light DOM, so a bare `<slot>` shows
-  it in place, without the dialog.
+- Content from attributes:  not form functionality.  A broken one shows its children only.
+  - `ui-image`'s `<img>`, `ui-icon`, `ui-flag`
+  - the `header` / `message` shorthands
+- Dialogs (`ui-modal`, `ui-flyout`, `ui-sidebar`):  their content is the page's light DOM,
+  so a bare `<slot>` shows it in place, without the dialog.
 
-Every other family has none:  when it breaks, it shows a bare `<slot>` (`UIComponent.renderFallback()`), so its
-children still show (the case "a family without a fallback ..." in `test/fallback.cases.ts`).
+Every other family has none.
+- When it breaks, it shows a bare `<slot>` (`UIComponent.renderFallback()`), so its children still show.
+- Tested by the case "a family without a fallback ..." in [the fallback cases](../test/fallback.cases.ts).
 
 ## API
 
@@ -45,20 +51,24 @@ static render({ domElement, root, error?, internals? }): NativeFallbackHandle
 // handle: { dispose(): void, degraded: readonly string[] }
 ```
 
-- One `NativeFallbackProps` object, the constructor's too:  `new ButtonFallback({ domElement, root, error, internals })`.
-- A class serving several tags sets `@proto static vocabularies` (the first the default);  the base picks the
-  DOM element's tag's into `vocabulary`, so no subclass needs a constructor for it.
-- `root.replaceChildren(...)`:  the component's adopted sheets stay, so the same `ui-*` classes and `part`s
-  style the fallback.
-- With `internals`, adds custom state `errored` (page styling).
-- Form-associated DOM elements (`elementSetup.isAFormControl`, the platform's `formAssociated`) get real form
-  behaviour through `internals`.
-- Classes, each in its family's `UI<Name>.fallback.ts`:  `ButtonFallback`, `InputFallback` (input + textarea),
-  `CheckboxFallback` (checkbox + radio), `DropdownFallback`, `SelectFallback`, `SearchFallback`,
-  `CalendarFallback`, `SliderFallback`, `RatingFallback`;  brand's `BrandColorPickerFallback`,
-  `BrandComposerFallback`.
-- Reads canonical English attribute names (a translated element maps them back first);  booleans go through
-  `Converters` (`disabled="no"` is false).
+- One `NativeFallbackProps` object, the constructor's too:
+  `new ButtonFallback({ domElement, root, error, internals })`.
+- A class serving several tags sets `@proto static vocabularies`, the first the default.
+  - The base picks the DOM element's tag's into `vocabulary`, so no subclass needs a constructor for it.
+- `root.replaceChildren(...)`:  the component's adopted sheets stay,
+  so the same `ui-*` classes and `part`s style the fallback.
+- With `internals`, it adds the custom state `errored`, for page styling.
+- Form-associated DOM elements get real form behaviour, through `internals`.
+  - That's `elementSetup.isAFormControl`:  the platform's `formAssociated`.
+- The classes, each in its family's `UI<Name>.fallback.ts`:
+  - `ButtonFallback`
+  - `InputFallback`:  input + textarea
+  - `CheckboxFallback`:  checkbox + radio
+  - `DropdownFallback`, `SelectFallback`, `SearchFallback`
+  - `CalendarFallback`, `SliderFallback`, `RatingFallback`
+  - brand's `BrandColorPickerFallback`, `BrandComposerFallback`
+- It reads canonical English attribute names:  a translated element maps them back first.
+  - Booleans go through `Converters` (`disabled="no"` is false).
 
 ## What each keeps and what degrades
 
@@ -74,14 +84,17 @@ static render({ domElement, root, error?, internals? }): NativeFallbackHandle
 | slider    | native `<input type="range" part="thumb">`s (two for a `range`, named "Minimum" / "Maximum"), form value (two entries under `name` for a range), `domElement.value` / `end`, `ui-input` / `ui-change` | Fomantic's track, fill and thumbs, `labeled` / `ticked` labels, `vertical` / `reversed`, `smooth`, `step-labels`, vetoing a change, form reset, translated thumb names |
 | rating    | a `<fieldset role="radiogroup">` of visible native radios, numbered, form value + `required` validity, `domElement.value`, `ui-change` | icon glyphs, colours, sizes, hover preview, partial icons, `clearable`, Home / End, vetoing a change, `:state(invalid)`, form reset, `<label for>` names |
 
-Everywhere:  `aria-labelledby` / `aria-describedby` idrefs dangle (they can't cross the shadow boundary),
-properties other than dropdown `value` / `options` are not read (only reflected attributes).
+Everywhere:
+- `aria-labelledby` / `aria-describedby` idrefs dangle:  they can't cross the shadow boundary.
+- Properties other than dropdown `value` / `options` are not read:  only reflected attributes.
 
 ## Bytes
 
-esbuild, minify, `target es2022`, gzip level 9.  "Net" excludes the lowered-decorator helpers (about 2046 min /
-1188 gzip, shared once per bundle) and shared code (`$/ui/util`, `$/ui/vocabulary`, `ClassBuilder`, the family's
-vocabulary), which the real element already ships.  Measured before P15 dropped the non-form fallbacks.
+How it was measured:  esbuild, minify, `target es2022`, gzip level 9.
+- "Net" excludes what the real element already ships:
+  - the lowered-decorator helpers (about 2046 min / 1188 gzip, shared once per bundle)
+  - shared code:  `$/ui/util`, `$/ui/vocabulary`, `ClassBuilder`, the family's vocabulary
+- Measured before P15 dropped the non-form fallbacks.
 
 | Piece                       | min (B) | gzip (B) | net gzip (B) |
 | --------------------------- | ------: | -------: | -----------: |
@@ -89,5 +102,6 @@ vocabulary), which the real element already ships.  Measured before P15 dropped 
 | button                      |    3553 |     1863 |          675 |
 | dropdown                    |    4845 |     2434 |         1246 |
 
-Bundled standalone with everything it needs (base, `ClassBuilder`, `$/ui/util`, vocabulary), button is 6.7 kB gzip
-and dropdown 8.3 kB.
+Bundled standalone, with everything it needs (base, `ClassBuilder`, `$/ui/util`, vocabulary):
+- button is 6.7 kB gzip
+- dropdown is 8.3 kB
