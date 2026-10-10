@@ -17,6 +17,8 @@ import { spellElementVocabulary } from "./SpellElement.en"
  *     which the element writes to its thing
  *   - each method of its type is a method:  `card.turnOver()` calls its thing's `turn_over()`
  *   - written by hand, with no `thing` set, it makes its own:  a new thing of its type, once mounted
+ *   - in a `<spell-app>`'s layout, it's the program's thing of its type with its `id` as its name instead:
+ *     `<solitaire-tableau id="T1">` (P9, Q9) -- see `boundThing`
  *   - English names only, for now
  * - ONE tag per drawable type, defined the first time a program defines its elements (`defineFor()`).
  *   What the tag draws with is looked up when it draws (`SPELL_ELEMENTS`), so a program run again takes it over.
@@ -38,17 +40,43 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
     return <>{this.drawing}</>
   }
 
-  /** What we draw:  our `thing`, else the one we made. */
+  /** What we draw:  our `thing`;  else, in a layout, the program's (`boundThing`);  else the one we made. */
   get currentThing(): object | undefined {
-    return (this.thing as object | undefined) ?? this.ownThing
+    return (this.thing as object | undefined) ?? this.boundThing ?? this.ownThing
   }
 
-  /** Our thing's drawing -- nothing until we have a thing, or before our tag's runtime is known. */
+  /** Are we in a `<spell-app>`'s layout, its markup around the program?  See `SpellApp.hasLayout`. */
+  get isInLayout(): boolean {
+    return !!this.domElement.closest("spell-app")
+  }
+
+  /**
+   * In a layout:  the program's thing of our type named by our `id`, e.g. the tableau named `T1` --
+   * or, with no `id`, its one thing of our type.  `undefined` if there's none (yet).
+   * - Tracked:  found as soon as the program makes it.  See `spellCore.thingFor()`.
+   */
+  get boundThing(): object | undefined {
+    if (!this.isInLayout) return undefined
+    const entry = SPELL_ELEMENTS.get(this.domElement.localName)
+    return entry?.spellCore.thingFor(entry.Class, this.domElement.id || undefined)
+  }
+
+  /**
+   * Our thing's drawing -- nothing before our tag's runtime is known.
+   * - In a layout, with no thing of ours in the program:  a stand-in saying so, not a blank (Q9).
+   */
   get drawing(): JSX.Element {
     const thing = this.currentThing
     const entry = SPELL_ELEMENTS.get(this.domElement.localName)
-    if (!thing || !entry) return null
+    if (!entry) return null
+    if (!thing) return this.isInLayout ? <span class="spell-draw-error">{this.missingText(entry)}</span> : null
     return entry.spellCore.drawOwn(thing) as JSX.Element
+  }
+
+  /** What our stand-in says, when the program has no thing for us:  e.g. `⚠ no Tableau named "T9"`. */
+  private missingText(entry: SpellElementEntry): string {
+    const { id } = this.domElement
+    return id ? `⚠ no ${entry.Class.name} named "${id}"` : `⚠ no ${entry.Class.name}, or more than one:  give it an id`
   }
 
   /**
@@ -60,7 +88,10 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
       () => this.thing,
       (thing) => {
         const entry = SPELL_ELEMENTS.get(this.domElement.localName)
-        if (!thing && !this.ownThing && entry) this.ownThing = new (entry.Class as new () => object)()
+        // in a layout, the program's thing is ours:  never one of our own
+        if (!thing && !this.ownThing && entry && !this.isInLayout) {
+          this.ownThing = new (entry.Class as new () => object)()
+        }
       }
     )
     for (const property of this.typeProperties) {

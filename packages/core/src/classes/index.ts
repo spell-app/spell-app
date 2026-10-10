@@ -21,6 +21,13 @@ export const classesMethods = defineSpellCoreModule({
   /** Base types known to the `spell` language/parser -- see `SPELL_BASE_TYPES`. */
   BASE_TYPES: [...SPELL_BASE_TYPES] as string[],
 
+  /**
+   * Is the app's page laid out in markup, around the program?  Then `App.start()` draws nothing:
+   * the markup is the app's drawing, and its tags find their things (epic `drawable-thing` P9).
+   * - Set by the runner for each run, e.g. a `<spell-app>` with markup inside it.
+   */
+  appLayout: false,
+
   /** DOM `id` of the element an `App` mounts into when the host set no `appRoot`. */
   REACT_APP_ROOT_ID: "spell-app-root",
 

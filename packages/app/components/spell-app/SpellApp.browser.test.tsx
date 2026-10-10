@@ -30,6 +30,26 @@ export let shown = new Shown()
 shown.start()
 `
 
+/** A program with two named tiles, drawable, and an app whose own drawing a layout replaces. */
+const TILES = `
+import { spellCore, App, Drawable } from "@spell/core"
+export class Tile extends Drawable {
+  static elementTag = spellCore.defineElement(this, "Layout")
+  get name() { return this.getProp('name') }
+  set name(value) { this.setProp('name', value) }
+  draw() { return spellCore.element({ tag: "b", props: { className: "tile" }, children: [() => this.name] }) }
+}
+export class Board extends App {
+  draw() { return spellCore.element({ tag: "p", props: { className: "own-drawing" }, children: ["its own"] }) }
+}
+export let t1 = new Tile()
+t1.name = "T1"
+export let t2 = new Tile()
+t2.name = "T2"
+export let board = new Board()
+board.start()
+`
+
 describe("<spell-app>, a root", () => {
   test("loads the Spell UI widgets its runner draws, on demand:  none before", async () => {
     expect(customElements.get("ui-menu")).toBeUndefined()
@@ -50,6 +70,24 @@ describe("<spell-app>, a root", () => {
     )
     // in dev the script beside it is its source folder's, where no such file is:  tried, and failed
     expect(failed.map(({ tag, reason }) => `${tag} ${reason}`)).toEqual(["spell-nothing-here failed"])
+  })
+})
+
+describe("<spell-app> laid out in markup (epic `drawable-thing` P9)", () => {
+  test("its markup is the app's drawing, not its `to draw`;  each tag is the program's thing named by its id", async () => {
+    const app = await mountApp(
+      `<spell-app><div class="row">` +
+        `<layout-tile id="T1"></layout-tile><layout-tile id="T2"></layout-tile><layout-tile id="T9"></layout-tile>` +
+        `</div></spell-app>`
+    )
+    app.run({ projectId: "@test:fixtures:Tiles", compiled: TILES } satisfies SpellCompiled)
+    const tile = (id: string) => app.querySelector(`layout-tile#${id}`)!.shadowRoot?.textContent
+    await waitFor(() => tile("T1") === "T1")
+    expect(tile("T2")).toBe("T2")
+    expect(tile("T9")).toBe('⚠ no Tile named "T9"')
+    // shown through the runner's slot;  the app's own drawing isn't drawn
+    expect(app.querySelector(".row")!.assignedSlot).not.toBeNull()
+    expect(app.shadowRoot!.querySelector(".own-drawing")).toBeNull()
   })
 })
 

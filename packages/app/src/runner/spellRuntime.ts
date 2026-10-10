@@ -26,8 +26,9 @@ export { spellCore, Thing, List, App, Drawable, DrawableList, appIsMounted, unmo
  * - `coreUrl` MUST be this copy's own URL, so the program's `@spell/core` is this `spellCore`.
  * - Answers the error message if it threw, else `undefined`.
  */
-export function runApp(compiled: string, { appRoot, ...options }: RunAppOptions): Promise<string | undefined> {
+export function runApp(compiled: string, { appRoot, layout, ...options }: RunAppOptions): Promise<string | undefined> {
   if (appRoot) spellCore.appRoot = appRoot
+  spellCore.appLayout = !!layout
   return runCompiled(compiled, options)
 }
 
@@ -35,4 +36,6 @@ export function runApp(compiled: string, { appRoot, ...options }: RunAppOptions)
 export type RunAppOptions = RunCompiledOptions & {
   /** Where the app draws -- see `spellCore.appRoot`. */
   appRoot?: HTMLElement
+  /** Is the app's page laid out in markup, e.g. inside its `<spell-app>`?  Then its `to draw` isn't drawn. */
+  layout?: boolean
 }

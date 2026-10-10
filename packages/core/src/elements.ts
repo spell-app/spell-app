@@ -83,6 +83,20 @@ export const elementsMethods = defineSpellCoreModule({
     return { properties, methods }
   },
 
+  /**
+   * The program's thing of class `Class` named `name`, e.g. the tableau named `T1` -- for a tag in a page's layout,
+   * `<solitaire-tableau id="T1">` (epic `drawable-thing` P9, Q9).
+   * - Of `Class` EXACTLY, not a sub-class:  `<solitaire-pile>` isn't a tableau's tag.
+   * - No `name`:  its one thing of `Class`, if it made exactly one.
+   * - `undefined` if none matches.
+   * - Reads the registry's `version`:  a reader re-runs as things are made.
+   */
+  thingFor(Class: Function, name?: string): object | undefined {
+    const things = spellCore.things.all().filter((thing) => thing.constructor === Class)
+    if (name === undefined) return things.length === 1 ? things[0] : undefined
+    return things.find((thing) => `${(thing as { name?: unknown }).name}` === name)
+  },
+
   /** Tag of `drawable`'s element, e.g. `solitaire-card` -- `undefined` if its class has none. */
   elementTagOf(drawable: unknown): string | undefined {
     if (!drawable || typeof drawable !== "object") return undefined
