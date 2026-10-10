@@ -273,6 +273,15 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
     })
   }
 
+  /**
+   * Is the app laid out in markup inside us, e.g. `<spell-app><ui-row>...</ui-row></spell-app>`?
+   * - Then that markup is the app's drawing, and its `to draw` isn't drawn (epic `drawable-thing` P9, Q10).
+   * - Read as the runner starts:  markup added later doesn't switch a running app over.
+   */
+  get hasLayout(): boolean {
+    return this.domElement.children.length > 0
+  }
+
   /** The runner, or why there's nothing to run;  hidden while the root loads, if `display` says so. */
   protected content(): JSX.Element {
     return (
@@ -291,6 +300,7 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
             <SpellAppRunner
               source={source()}
               toolbar={this.toolbar}
+              layout={this.hasLayout}
               debug={this.debug}
               fluid={!cssSize(this.height)}
               runtimeUrl={new URL("spell-runtime.js", BUNDLE).href}

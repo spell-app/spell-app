@@ -15,8 +15,13 @@ export class App extends Thing {
    * - Compiles from `start the game` -- see `rules/draw/StartApp.ts` (a method call on the app instance, not a global).
    * - Starting again replaces the app drawn there.
    * - SIDE EFFECT: appends a `div` to `document.body` the first time it's called, if the host set no `appRoot`.
+   * - With `spellCore.appLayout` (a `<spell-app>` with markup inside it):  draws nothing, saying so on the console.
    */
   start(): void {
+    if (spellCore.appLayout) {
+      spellCore.console.log(`${this.constructor.name}:  its page's markup draws it, not its \`to draw\``)
+      return
+    }
     let element = spellCore.appElement()
     if (!element) {
       element = document.createElement("div")

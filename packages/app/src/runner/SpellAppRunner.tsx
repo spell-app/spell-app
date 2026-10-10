@@ -52,7 +52,15 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
 
   // NOTE: ALWAYS here, just hidden without an app -- so its mount point is never redrawn
   const appRoot = (<div class="App" />) as HTMLDivElement
-  const appPane = <div class={["SpellAppApp", { hidden: !hasApp() }]}>{appRoot}</div>
+  // a layout in markup is the app's drawing:  shown through a slot, its `to draw` not drawn (epic `drawable-thing` P9)
+  const appPane = (
+    <div class={["SpellAppApp", { hidden: !hasApp() && !props.layout }]}>
+      <Show when={props.layout}>
+        <slot />
+      </Show>
+      {appRoot}
+    </div>
+  )
 
   // this app's own copy of the runtime, for as long as we're here -- and its app, unmounted with us
   createEffect(
@@ -161,7 +169,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
 
   /** Run `source` afresh in `copy` -- see `runProgram()` -- and show how it went. */
   async function run(copy: LoadedRuntime, source: SpellAppSource) {
-    const ran = await runProgram(copy, source, appRoot)
+    const ran = await runProgram(copy, source, appRoot, !!props.layout)
     compiledRef.current = ran.compiled
     setError(ran.error)
     setHasApp(ran.hasApp)
@@ -219,6 +227,11 @@ export type SpellAppRunnerProps = {
   source: SpellAppSource
   /** Show the toolbar? */
   toolbar: boolean
+  /**
+   * Is the app laid out in markup, inside its `<spell-app>`?  Then that markup shows, through a slot,
+   * and the app's `to draw` isn't drawn -- see `spellCore.appLayout`.
+   */
+  layout?: boolean
   /** Open the debug pane to start, on this tab -- else it starts closed. */
   debug?: DebugPane
   /** As tall as it needs to be, NOT a fixed height -- see `<RunnerSplit unit>`. */
@@ -327,13 +340,19 @@ type SpellAppToolbarProps = {
  * - Answers how it went, and the compiled javascript it loaded, by project id --
  *   the program's own under `MAIN_PROJECT` -- for the Type Explorer's "Compiled Output".
  */
-async function runProgram(copy: LoadedRuntime, source: SpellAppSource, appRoot: HTMLElement): Promise<Ran> {
+async function runProgram(
+  copy: LoadedRuntime,
+  source: SpellAppSource,
+  appRoot: HTMLElement,
+  layout: boolean
+): Promise<Ran> {
   const compiled = new Map<string, string>()
   try {
     const text = source.compiled ?? (await fetchText(source.compiledUrl))
     compiled.set(MAIN_PROJECT, text)
     const error = await copy.runtime.runApp(text, {
       appRoot,
+      layout,
       coreUrl: copy.coreUrl,
       loadImport: async (projectId) => {
         const imported = await fetchText(source.importUrl(projectId))
