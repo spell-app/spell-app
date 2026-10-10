@@ -172,7 +172,8 @@ The session MUST stay titled `🚧 <name>` while its work is under way.
      - More than 4 go in several questions.
    - For each picked:
      - `git worktree remove .claude/worktrees/<name>`
-     - `git branch -d <branch>`;  `-D` for an agent's branch that's only in `<owner>`, since `-d` checks against `main`
+     - `git branch -d <branch>`
+       - `-D` for an agent's branch that's only in `<owner>`, since `-d` checks against `main`
    - Then stop:  steps 1-8 are for a session IN a worktree.
 1. Report what's uncommitted and unmerged in the worktree:
    `git status --short`, `git log --oneline main..HEAD`.
@@ -228,7 +229,7 @@ The session MUST stay titled `🚧 <name>` while its work is under way.
    - All from the worktree.
    - `git fetch origin main`, then `git rev-list --count origin/main..main`:
      how far local `main` is ahead of GitHub's.
-     - Not 0:  NO offer.  Say why in one line, e.g.
+     - Not 0:  NO offer;  say why in one line, e.g.
        "No pull request:  GitHub's `main` is 62 commits behind local `main`,
        so a PR would list all 62 as well as this branch's.  Push `main` first if you want one."
      - NEVER push `main` from here.
@@ -253,17 +254,18 @@ The session MUST stay titled `🚧 <name>` while its work is under way.
        - Title:  the branch's changelog entry's header without its date
          (`2026-10-05 · Review Review` -> `Review Review`).
          No entry (left unmerged):  the plan doc's title, else the branch name.
-       - Body:  the entry's bullets as a markdown list (`- ...`).
-         Plain text:  its links point into shared docs, which aren't on GitHub.
-         Then the attribution line the session's instructions give for pull requests.
+       - Body:
+         - the entry's bullets, as a markdown list (`- ...`)
+         - plain text:  its links point into shared docs, which aren't on GitHub
+         - then the attribution line the session's instructions give for pull requests
      - One line with the PR's URL.
    - Merged later (step 7) and `main` pushed:  GitHub marks the PR merged by itself, its commits being in `main`.
 5. NO move back:  the session stays in the window it's in (the worktree's, or the one it stayed in).
    - Why:  Owen (2026-10-03) "we don't need to go back into the originating window.
      That's just confusing things".
    - The worktree's window stays open for Owen to read the summary;  he closes it.
-   - Its file, `workspaces/ongoing/<name>.code-workspace`, goes with `spell dev window close <name>` later,
-     or `/worktrees` lists it.
+   - Its file goes with `spell dev window close <name>` later, or `/worktrees` lists it.
+     That file:  `workspaces/ongoing/<name>.code-workspace`.
    - NEVER `handoff <name> --back` from here.
    - It STAYED in its window ("Stay" above):
      `spell dev window stay --end` puts the window's title and title bar back.
@@ -273,9 +275,9 @@ The session MUST stay titled `🚧 <name>` while its work is under way.
    - On a hook-made worktree, `remove` refuses without `discard_changes` anyway.
 7. Merging, only after "Merge now" got the branch ready.
    Now in the main checkout:
-   - It must be on `main` (`git branch --show-current`), with nothing uncommitted (`git status --short`):
-     another session may be working there.
-     Either fails:  say which, and don't merge.
+   - It must be on `main`, with nothing uncommitted:  another session may be working there.
+     - The checks:  `git branch --show-current`, `git status --short`.
+     - Either fails:  say which, and don't merge.
    - `git merge --ff-only <name>`.
      - Refused (`main` moved since step 2):  say so, and don't merge.
      - `/isolate <name>` re-enters the worktree to merge `main` in again.
