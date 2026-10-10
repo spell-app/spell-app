@@ -1,7 +1,8 @@
 # `$/assembler` -- assembling pages
 
-The steps between a page's content and its file on disk, shared by every tool that writes pages (the docs tools,
-the plan-doc tool).  One namespace, `AS`.
+The steps between a page's content and its file on disk.
+- Shared by every tool that writes pages:  the docs tools, the plan-doc tool.
+- One namespace, `AS`.
 
 ```ts
 import { AS } from "$/assembler"
@@ -21,16 +22,24 @@ If you find yourself writing a second copy of any of these, stop and reuse.
 
 ## Bundles built on demand
 
-The bundles only the page server serves are NOT committed (Owen, 2026-10-07:  their hashed chunk names churned every
-diff and merge).  Each is git-ignored, and built when stale:
+The bundles only the page server serves are NOT committed.
+- Why (Owen, 2026-10-07):  their hashed chunk names churned every diff and merge.
+- Each is git-ignored, and built when stale:
 
 ```ts
 for (const bundle of AS.Bundle.all(root)) if (bundle.isStale) bundle.build()
 ```
 
-- `spell dev bundles build [<name>...] [--stale]` / `spell dev bundles check [<name>...]` -- the command line
-- the page server runs `spell dev bundles build --stale` when it starts, and a request for a bundle's file waits
-  while it runs (`packages/server/src/page/BundleBuild.ts`)
+- The command line:
+
+  ```sh
+  spell dev bundles build [<name>...] [--stale]
+  spell dev bundles check [<name>...]
+  ```
+
+- The page server runs `spell dev bundles build --stale` when it starts.
+  - A request for a bundle's file waits while it runs.
+  - That's [BundleBuild.ts](../server/src/page/BundleBuild.ts), in the page server.
 
 | Bundle | Built by | Into |
 | --- | --- | --- |
@@ -56,7 +65,9 @@ for (const bundle of AS.Bundle.all(root)) if (bundle.isStale) bundle.build()
 
 ## Deferred
 
-- The page server's assembly code (`packages/server/src/page/`) moves in here, so other assembly tools can be built on
-  it (e.g. a redone goals package).
-- `packages/docs/tools/pages.js` still has its own copy of the area folders (`AREAS`) for `findPages()`;  `Linker`
-  has the list it indexes.
+- The page server's assembly code moves in here, so other assembly tools can be built on it
+  (e.g. a redone goals package).
+  - It's in [the page server's folder](../server/src/page/).
+- The docs tools' [pages.js](../docs/tools/pages.js) still has its own copy of the area folders (`AREAS`),
+  for `findPages()`.
+  `Linker` has the list it indexes.

@@ -1599,6 +1599,8 @@ function fitTitles(toolbar) {
  *   - red:  urgent (`state="attention"`)
  *   - orange:  Claude answered with options, his turn to pick (`state="replied"`)
  *   - both kinds:  both badges, red first
+ *   - over the icon's top right, a third of a badge on the icon (Owen, 2026-10-10:  "Make badge 1/3 way overlap the
+ *     icon"):  every button is the same width, badge or not
  * - in the header's `toolbar` slot (`<epic-page>`'s):  it sticks with the header, and the header's measured height,
  *   where every title below sticks (`--epic-stack`), takes it in;  `<epic-page>` draws the rest of that row at its
  *   right (the page's state filter, collapse-all, the new item button)
@@ -1620,12 +1622,15 @@ function buildToolbar(page, outline, counts) {
       .join(", ")
     // no icon:  the label's first letter stands in
     const mark = glyph ? `<ui-icon name="${attr(glyph)}"></ui-icon>` : `<b>${text(name.charAt(0))}</b>`
+    const badges =
+      badge("urgent", urgent, `${urgent} urgent`) +
+      badge("replied", replied, `${replied} replied:  ${replied === 1 ? "waits" : "wait"} for your pick`)
+    // the badges inside the icon's box, over its top right:  every button the same width, badges or not
     return (
       `<a class="spell-toolbar-item" href="#${attr(id)}" data-rail="${attr(id)}" title="${attr(name)}" ` +
-      `aria-label="${attr(spoken)}"><span class="spell-toolbar-icon">${mark}</span>` +
-      badge("urgent", urgent, `${urgent} urgent`) +
-      badge("replied", replied, `${replied} replied:  ${replied === 1 ? "waits" : "wait"} for your pick`) +
-      `</a>`
+      `aria-label="${attr(spoken)}"><span class="spell-toolbar-icon">${mark}` +
+      (badges && `<span class="spell-toolbar-badges">${badges}</span>`) +
+      `</span></a>`
     )
   })
   if (!entries.length) return undefined
@@ -2375,8 +2380,10 @@ function stuckBottom(main) {
   for (const sticky of main.querySelectorAll("ui-sticky"))
     boxes.push(sticky.shadowRoot?.querySelector('[part~="sticky"]'))
   for (const section of main.querySelectorAll(`ui-section[sticky], ${EPIC_FOLDS}`)) boxes.push(titleOf(section))
-  // a plan doc's page header;  an OPEN item's line sticks below the titles (a closed one's isn't sticky:  skipped)
-  for (const page of main.querySelectorAll("epic-page")) boxes.push(page.shadowRoot?.querySelector('[part~="header"]'))
+  // a plan doc's page header and its toolbar's bar under it (the title between them scrolls away);  an OPEN item's
+  // line sticks below the titles (a closed one's isn't sticky:  skipped)
+  for (const page of main.querySelectorAll("epic-page"))
+    boxes.push(...(page.shadowRoot?.querySelectorAll('[part~="header"], [part~="bar"]') ?? []))
   for (const item of main.querySelectorAll("epic-item")) boxes.push(item.shadowRoot?.querySelector('[part~="line"]'))
   for (const box of boxes) {
     if (!box) continue
@@ -2701,6 +2708,12 @@ const COMMENT_DRAFT_KEY_PREFIX = "spell-comment-draft:"
 /** The CSS highlight the quoted text of every comment is drawn with (`::highlight()` in `spell-doc.css`). */
 const QUOTE_HIGHLIGHT = "spell-comment-quote"
 
+/** How long after Owen stops typing the comment box saves itself, ms. */
+const COMMENT_SAVE_MS = 600
+
+/** How many characters of the selected text (or the block's) the comment box's header shows. */
+const HEADLINE_CHARS = 40
+
 /** How long after the page's content changes (a plan doc's part loading) the comments draw again, ms. */
 const REDRAW_MS = 150
 
@@ -2733,14 +2746,14 @@ const KIND_NAMES = {
  *     messages, cards, steps, top-level lists;  a plan doc's items, phase fields, summary and Overview prose) and in
  *     the page header (the whole page):  shown while the block is hovered, always once it has comments, with a count
  *   - SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn that floats beside the selection:  the box opens for that block,
- *     the text quoted at its top;  the comment keeps the quote, highlighted on the page while the comment exists
- *   - the box opens right under the block (a section's:  under its title), a textarea that grows;
- *     ⌘ / Ctrl Enter saves, Escape cancels;  what's typed is kept per page until saved (`COMMENT_DRAFT_KEY_PREFIX`)
+ *     its header the text's first words;  the comment keeps the quote, highlighted on the page while it exists
+ *   - the box opens right under the block (a section's:  under its title):  ivory, a header and a textarea that
+ *     grows, no buttons (Owen, 2026-10-10);  it saves itself as Owen types, a floppy in its header says so;
+ *     × or Escape closes it;  what's typed is also kept in this browser until saved (`COMMENT_DRAFT_KEY_PREFIX`)
  *   - each comment:  a card under its block, Owen's, "Owen · 10/10 14:02";  its state by the fill rule
- *     (`templates/epics/plan-doc.md`, "Colours"):  the box while typed, not saved:  dashed;
- *     saved, "Saved 14:02 · waiting for Claude":  outlined;  "Taken by Claude" (a guide's, into epic
- *     `guide-changes`) or "Answered":  solid.  Edit (and Delete) while it waits;  Claude's answers under it, violet
- *   - a toast on every save
+ *     (`templates/epics/plan-doc.md`, "Colours"):  saved, "Saved 14:02 · waiting for Claude":  outlined;
+ *     "Taken by Claude" (a guide's, into epic `guide-changes`) or "Answered":  solid.  Edit while it waits (closed
+ *     empty, it's deleted);  Claude's answers under it, violet
  * - drawn again after a live patch (`spell-doc:updated`), when the page's content changes (a plan doc's part
  *   loading), when the inbox file changes (`spell-server:file`:  another window, Claude), and when the page comes
  *   back into view
@@ -2778,6 +2791,8 @@ class PageComments {
     this.list = []
     /** the box open, if any:  `{ key, place, id?, text? }` (`place`:  `{ anchor, kind, label, excerpt, quote? ... }`) */
     this.open = null
+    /** the open box's element, kept across redraws while the same comment is open (`placeBox()`) */
+    this.box = null
     /** each card's fold, by comment id, as the reader left it;  else waiting ones open, the rest folded */
     this.folds = new Map()
     const page = decodeURIComponent(location.pathname)
@@ -2810,8 +2825,10 @@ class PageComments {
    */
   draw({ focus = false } = {}) {
     const { main } = this
-    // typing when a patch or another window redraws:  the box comes back with the cursor in it
-    const typing = main.querySelector(".spell-comment-form")?.contains(document.activeElement) ?? false
+    // typing when a save, a patch or another window redraws:  the box comes back with the cursor where it was
+    const field = this.box?.querySelector("textarea")
+    const caret = field && field === document.activeElement ? [field.selectionStart, field.selectionEnd] : null
+    this.box?.remove()
     for (const old of main.querySelectorAll(".spell-comment-mark, .spell-comments")) old.remove()
     const blocks = blocksIn(main)
     const head = pageHeadIn(main)
@@ -2829,7 +2846,7 @@ class PageComments {
     for (const block of head ? [head, ...blocks] : blocks) this.addBullhorn(block, onBlock.get(block)?.length ?? 0)
     for (const [block, found] of onBlock) this.boxFor(block).append(...found.map((each) => this.card(each)))
     highlightQuotes(quotes)
-    if (this.open) this.placeBox({ focus: focus || typing, scroll: focus })
+    if (this.open) this.placeBox({ focus, caret, scroll: focus })
   }
 
   /**
@@ -3061,8 +3078,8 @@ class PageComments {
 
   /**
    * Open the comment box for `open` (`{ key, place, id?, text? }`):  a new comment on `place`'s block (`quote`:  on
-   * that text), or (`id`) editing that one (its card hidden meanwhile), with Delete.
-   * - only one is open:  opening another closes this one (its text kept as a draft)
+   * that text), or (`id`) editing that one (its card hidden meanwhile).
+   * - only one is open:  opening another closes this one (it saved itself as it was typed)
    */
   openBox(open) {
     this.open = open
@@ -3071,19 +3088,25 @@ class PageComments {
 
   /**
    * Put the open box under its block, after its comments;  whatever folds it away unfolds.
-   * - `focus`:  the cursor in it, at the end;  `scroll`:  brought into view
+   * - the same box element while the same comment is open (`this.box`):  a redraw (a save, another window) moves it,
+   *   never makes it again, so what's typed and the cursor stay
+   * - `focus`:  the cursor in it, at the end;  `caret`:  the cursor put back where it was;  `scroll`:  into view
    */
-  placeBox({ focus, scroll }) {
+  placeBox({ focus, caret, scroll }) {
     const { block } = findBlock(this.main, this.open.place)
     const at = block ?? pageHeadIn(this.main)
     if (!at) return
     reveal(at)
-    const form = this.form(this.open)
+    if (this.box?.dataset.key !== this.open.key) this.box = this.form(this.open)
+    const form = this.box
     this.boxFor(at).append(form)
     const field = form.querySelector("textarea")
     requestAnimationFrame(() => {
       growField(field)
-      if (focus) {
+      if (caret) {
+        field.focus()
+        field.setSelectionRange(...caret)
+      } else if (focus) {
         field.focus()
         field.setSelectionRange(field.value.length, field.value.length)
       }
@@ -3092,85 +3115,95 @@ class PageComments {
   }
 
   /**
-   * The comment box's markup and wiring, for `open` (`openBox()`'s).
-   * - dashed while it holds text not saved (`data-state="typed"`), as the fill rule says
+   * The comment box's markup and wiring, for `open` (`openBox()`'s):  a header, then the text;  no buttons.
+   * - the header:  a few words of what it's on (the selected text, else the block:  `headline()`), the floppy, ×;
+   *   its tooltip names the block in full (`aboutTip()`)
+   * - saves itself as Owen types, `COMMENT_SAVE_MS` after he stops (Owen, 2026-10-10:  "Save should just happen as I
+   *   type"):  the first save adds the comment, the next ones edit it;  the floppy says how the last one went
+   * - × or Escape (or ⌘ / Ctrl Enter) closes it, saving what's typed first;  closed empty, its comment is deleted
+   * - what's typed is also kept in this browser (`COMMENT_DRAFT_KEY_PREFIX`) until it closes saved
    */
-  form({ key, id, place, text: current = "" }) {
+  form(open) {
+    const { key, place } = open
     const form = document.createElement("div")
     form.className = "spell-comment-form"
     form.dataset.spellAdded = ""
-    const what = place.kind === "page" ? "the page" : (KIND_NAMES[place.kind] ?? place.kind)
-    const named = place.kind === "section" || place.kind === "item"
-    const where = place.kind === "page" || named || !place.label ? "" : ` in ${place.label}`
+    form.dataset.key = key
     form.innerHTML =
-      `<p class="spell-comment-about"><ui-icon name="bullhorn"></ui-icon> ${id ? `Comment ${text(id)}, on` : "On"} ` +
-      `<b>${text(named ? place.label || `this ${what}` : what)}</b>${text(where)}` +
-      `<span class="spell-comment-unsaved">Not saved yet</span></p>` +
-      (place.quote ? `<blockquote class="spell-comment-quote">${text(place.quote)}</blockquote>` : "") +
+      `<div class="spell-comment-about" title="${attr(aboutTip(open))}"><ui-icon name="bullhorn"></ui-icon>` +
+      `<span class="spell-comment-on">${text(headline(place))}</span>` +
+      `<span class="spell-comment-saved" hidden><ui-icon name="floppy disk outline"></ui-icon></span>` +
+      `<button type="button" class="spell-comment-close" title="Close:  it's saved as you type;  closed empty, ` +
+      `the comment goes" aria-label="Close the comment box"><ui-icon name="xmark"></ui-icon></button></div>` +
       `<textarea class="spell-comment-field" rows="3" aria-label="Your comment" ` +
-      `placeholder="Anything:  a correction, a question, what's missing.  It waits here for Claude."></textarea>` +
-      `<div class="spell-comment-actions"><span class="spell-comment-hint">⌘ Enter saves, Escape cancels</span>` +
-      (id
-        ? `<ui-button class="spell-comment-delete" circular basic size="small" icon="xmark">Delete</ui-button>`
-        : "") +
-      `<ui-button class="spell-comment-cancel" circular basic size="small">Cancel</ui-button>` +
-      `<ui-button class="spell-comment-save" circular primary size="small" icon="bullhorn">Save</ui-button></div>`
+      `placeholder="Anything:  a correction, a question, what's missing.  It's saved as you type, for Claude."></textarea>`
     const field = form.querySelector("textarea")
+    const floppy = form.querySelector(".spell-comment-saved")
     const drafts = readJSON(this.draftKey)
-    field.value = typeof drafts[key] === "string" ? drafts[key] : current
-    const typed = () =>
-      form.toggleAttribute("data-typed", field.value.trim() !== current.trim() && !!field.value.trim())
-    typed()
-    const close = () => {
-      this.forget(key)
-      this.open = null
-      this.draw()
-    }
-    const submit = () => {
+    field.value = typeof drafts[key] === "string" ? drafts[key] : (open.text ?? "")
+    // what the server holds;  one save at a time, in order, so a quick typist never adds the comment twice
+    let saved = (open.text ?? "").trim()
+    let saving = Promise.resolve(true)
+    let timer = 0
+    const save = async () => {
       const words = field.value.trim()
-      if (!words) return field.focus()
-      const change = id ? { action: "edit", id, text: words } : { action: "add", ...place, text: words }
-      void this.send(change, key, form, id ? "Comment saved" : "Comment saved:  waiting for Claude")
+      if (!words || words === saved) return true
+      const change = open.id ? { action: "edit", id: open.id, text: words } : { action: "add", ...place, text: words }
+      try {
+        const answer = await postJSON(COMMENTS_API, { page: location.pathname, ...change })
+        open.id ??= answer.id
+        saved = words
+        this.list = answer.comments ?? this.list
+        floppy.hidden = false
+        floppy.removeAttribute("data-failed")
+        floppy.title = `Saved ${localStamp(new Date().toISOString()).slice(11)} · waiting for Claude`
+        return true
+      } catch (error) {
+        floppy.hidden = false
+        floppy.setAttribute("data-failed", "")
+        floppy.title = `Not saved:  ${error.message} (kept in this browser)`
+        return false
+      }
+    }
+    const saveNow = () => {
+      clearTimeout(timer)
+      return (saving = saving.then(save))
+    }
+    const close = async () => {
+      if (!(await saveNow())) return noteToast(floppy.title, "error")
+      if (!field.value.trim() && open.id) {
+        try {
+          const answer = await postJSON(COMMENTS_API, { page: location.pathname, action: "delete", id: open.id })
+          this.list = answer.comments ?? this.list
+        } catch (error) {
+          return noteToast(`Couldn't delete the comment:  ${error.message}`, "error")
+        }
+      }
+      this.forget(key)
+      if (this.open === open) {
+        this.open = null
+        this.box = null
+      }
+      this.draw()
     }
     field.addEventListener("input", () => {
       growField(field)
-      typed()
       const kept = readJSON(this.draftKey)
       kept[key] = field.value
       writeJSON(this.draftKey, kept)
+      clearTimeout(timer)
+      timer = setTimeout(saveNow, COMMENT_SAVE_MS)
     })
+    field.addEventListener("blur", () => void saveNow())
     field.addEventListener("keydown", (event) => {
-      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+      if (event.key === "Escape" || (event.key === "Enter" && (event.metaKey || event.ctrlKey))) {
         event.preventDefault()
-        submit()
-      } else if (event.key === "Escape") {
         event.stopPropagation()
-        close()
+        void close()
       }
     })
-    form.querySelector(".spell-comment-save").addEventListener("click", submit)
-    form.querySelector(".spell-comment-cancel").addEventListener("click", close)
-    form
-      .querySelector(".spell-comment-delete")
-      ?.addEventListener("click", () => void this.send({ action: "delete", id }, key, form, "Comment deleted"))
+    form.querySelector(".spell-comment-close").addEventListener("click", () => void close())
     return form
-  }
-
-  /** Send `change` to the comments route;  done:  close the box, forget its draft, draw the new list.  NEVER throws. */
-  async send(change, key, form, saying) {
-    const save = form.querySelector(".spell-comment-save")
-    save.setAttribute("loading", "")
-    try {
-      const answer = await postJSON(COMMENTS_API, { page: location.pathname, ...change })
-      this.list = answer.comments ?? this.list
-      this.forget(key)
-      this.open = null
-      this.draw()
-      noteToast(saying, "success")
-    } catch (error) {
-      save.removeAttribute("loading")
-      noteToast(`Couldn't save the comment:  ${error.message}`, "error")
-    }
   }
 
   /** Drop the draft under `key`. */
@@ -3179,6 +3212,26 @@ class PageComments {
     delete drafts[key]
     writeJSON(this.draftKey, drafts)
   }
+}
+
+/**
+ * A few words of what a comment box is on, for its header:  the start of the selected text, else of its block's
+ * text, in quotes;  "This page" for the page.
+ */
+function headline(place) {
+  if (place.kind === "page") return "This page"
+  const words = (place.quote || place.excerpt || place.label || "").replace(/\s+/g, " ").trim()
+  if (!words) return `This ${KIND_NAMES[place.kind] ?? place.kind}`
+  return `“${words.length > HEADLINE_CHARS ? `${words.slice(0, HEADLINE_CHARS).trimEnd()}…` : words}”`
+}
+
+/** The comment box header's tooltip:  which block it's on, in full ("On a field in Guide Comments"). */
+function aboutTip({ id, place }) {
+  const what = place.kind === "page" ? "the page" : `a ${KIND_NAMES[place.kind] ?? place.kind}`
+  const named = place.kind === "section" || place.kind === "item"
+  const on = named && place.label ? `“${place.label}”` : what
+  const where = place.kind === "page" || named || !place.label ? "" : ` in “${place.label}”`
+  return `${id ? `Comment ${id}, on` : "On"} ${on}${where}${place.quote ? `:  “${place.quote}”` : ""}`
 }
 
 /**

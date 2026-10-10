@@ -25,7 +25,10 @@ import {
  *   - served by the page server:  they're absolute, and server-only properties (Spell UI, App) turn on
  * - Brand:  the hat mark (`LOGO_MARK`), a link to the docs home (`SITE_HOME`), which lights no tab.
  * - Also shows:
- *   - the page's place:  `Guides › Unified Server` (the property, then `document.title`;  the home:  its title)
+ *   - no breadcrumb (Owen, 2026-10-10:  "We don't need the breadcrumb in the spell doc toolbar"):  the lit tab says
+ *     where the page is, the page's own title what it is
+ *   - narrow (720px or less:  VS Code's side bar, a phone):  the tabs scroll sideways;  the pages' own eyebrow
+ *     crumbs hide at that width
  *   - the checkout serving it:  `⎇ <worktree or branch>` (served pages only)
  *   - "open in VS Code":  a `vscode://file/...` link to the page's source
  *   - edit mode (pages the page server serves):  hover a section, edit its source in place -- `<spell-section-editor>`
@@ -43,7 +46,6 @@ import {
  * - Self-contained:  its own shadow DOM and CSS, no UI elements, so it looks the same on every property.
  * - `docked`:  a compact row in place, not a fixed bar, inside the page's own chrome
  *   (the Spell UI site's side column and top bar)
- *   - no crumbs (the page shows its own title)
  *   - no light / dark button (the page has its own)
  *   - no room kept on the page (`--spell-site-header-height` is 0)
  * - Re-draws on `spell-site:page` (a router swapped the page in place:  new title, new source file).
@@ -170,10 +172,6 @@ export class SiteHeader extends HTMLElement {
         ? `<a class="tab" href="${escape(href)}"${current}${own}>${escape(property.name)}</a>`
         : `<span class="tab off" title="only when served:  spell dev server ensure">${escape(property.name)}</span>`
     }).join("")
-    const title = document.title.trim()
-    const crumbs = active
-      ? `<span class="crumb">${escape(active.name)}</span>${title ? `<span class="sep">›</span><span class="title">${escape(title)}</span>` : ""}`
-      : `<span class="title">${escape(title)}</span>`
     const checkout = this.info?.worktree ?? this.info?.branch
     const badge = checkout
       ? `<span class="badge${this.info?.worktree ? " worktree" : ""}" title="${escape(this.info?.root ?? "")}">⎇ ${escape(checkout)}</span>`
@@ -197,7 +195,7 @@ export class SiteHeader extends HTMLElement {
 <header part="bar">
   <a class="brand" href="${escape(this.href({ path: SITE_HOME }) ?? "#")}" title="Spell docs" aria-label="Spell docs">${LOGO_MARK}</a>
   <nav aria-label="Site">${tabs}</nav>
-  <div class="crumbs">${crumbs}</div>
+  <span class="spacer"></span>
   ${badge}${edit}${vscode}
   ${this.docked ? "" : `<button class="tool" data-action="theme" title="${themeLabel}" aria-label="${themeLabel}">${ICONS[shown]}</button>`}
 </header>`
@@ -411,11 +409,7 @@ nav { display: flex; gap: 2px; }
 .tab[aria-current="page"] { background: light-dark(#e9e4ff, #33295e); color: light-dark(#3d2a9e, #d9d0ff); }
 .tab.off { opacity: 0.45; cursor: default; }
 .tab.off:hover { background: none; color: light-dark(#55555f, #a9a9b6); }
-.crumbs { flex: 1; min-width: 0; display: flex; gap: 6px; overflow: hidden; color: light-dark(#6b6b76, #9a9aa6); }
-.crumbs > * { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.crumb { flex: none; }
-.title { color: inherit; font-weight: 600; color: light-dark(#1d1d22, #ececf1); }
-.sep { flex: none; opacity: 0.6; }
+.spacer { flex: 1; }
 .badge { flex: none; padding: 4px 9px; border-radius: 999px; font-size: 12px; background: light-dark(#eef0f3, #2a2d33); }
 .badge.worktree { background: light-dark(#fff1d6, #4a3610); color: light-dark(#7a4c00, #ffd48a); }
 .tool {
@@ -430,16 +424,17 @@ nav { display: flex; gap: 2px; }
   position: static; height: auto; flex-wrap: wrap; gap: 4px 6px; padding: 0;
   font-size: 13px; background: none; border: 0; backdrop-filter: none; -webkit-backdrop-filter: none;
 }
-:host([docked]) .crumbs { display: none; }
 :host([docked]) nav { flex-wrap: wrap; }
 :host([docked]) .brand svg { height: 20px; }
 :host([docked]) .tab { padding: 5px 8px; }
 :host([docked]) .tool { width: 26px; height: 26px; }
 :host([docked]) .tool svg { width: 16px; height: 16px; }
+/* narrow (VS Code's side bar, a phone):  the tabs scroll sideways;  the pages' own eyebrow crumbs hide at the same
+   width (spell-doc.css, <epic-page>'s Crumbs.css) */
 @media (max-width: 720px) {
-  .crumbs { display: none; }
   header { gap: 6px; padding: 0 8px; }
   nav { overflow-x: auto; flex: 1; scrollbar-width: none; }
+  .spacer { display: none; }
   .tab { padding: 7px 8px; }
   .badge { display: none; }
 }

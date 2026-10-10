@@ -11,22 +11,24 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
 - Every page saves to this laptop's page server.
 - `/airplane` gets the laptop ready before;  `/airplane land` works through what he left, after.
 
-- The repo actions are `spell dev airplane ...` (`packages/docs/tools/airplane.ts`);  this skill holds the dialog.
-- The switch:  `~/.spell/airplane.json` (`AirplaneMode`, `packages/server/src/page/`).
-  - While it's on, the page server tells every page,
-    and the review controls say "queued for when you land" instead of "start `/epic review`".
+- The repo actions are `spell dev airplane ...` ([airplane.ts](packages/docs/tools/airplane.ts));
+  this skill holds the dialog.
+- The switch:  `~/.spell/airplane.json`, read by [`AirplaneMode`](packages/server/src/page/AirplaneMode.ts).
+  - While it's on, the page server tells every page.
+  - Then the review controls say "queued for when you land", instead of "start `/epic review`".
 - Runs from the MAIN checkout:  its page server is the one the side bar uses.
   In a worktree:  say so in one line, and stop.
 
 ## `/airplane`:  before the flight
 
-1. `spell dev airplane check --fix`:
-   fixes what it can on the spot, then lists each check (`ok`, `fixed`, `fail`, `note`).
+1. `spell dev airplane check --fix`:  fixes what it can on the spot, then lists each check.
+   - Each check's result:  `ok`, `fixed`, `fail` or `note`.
    - `page server`:  `--fix` starts it, or restarts one older than its code
-   - `offline pages`:  `--fix` points every page's highlight.js at the repo's copy;
-     anything else remote it names:  fix the page by hand, or tell Owen which pages will look plain
-   - `extension`:  too old:  `spell dev vscode` (from `main`, never a branch behind it:  it installs into VS Code),
-     then ask Owen to reload the window (Developer:  Reload Window)
+   - `offline pages`:  `--fix` points every page's highlight.js at the repo's copy.
+     Anything else remote it names:  fix the page by hand, or tell Owen which pages will look plain.
+   - `extension`, too old:  `spell dev vscode`.
+     - Run it from `main`, never a branch behind it:  it installs into VS Code.
+     - Then ask Owen to reload the window (Developer:  Reload Window).
    - `waiting`:  marks already in the inboxes from before:  say which epics;  they'll be gathered at landing too
 2. Running sessions:  `spell dev worktree list`.
    - A session mid-work will stall offline:
@@ -43,8 +45,8 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
      - any page, plan docs too:  the bullhorn beside a block (a section, table, aside, code, an item, a phase's
        field ...), or select text and press ⌘ I (or the bullhorn floating beside it):  a comment, saved at once,
        "Saved 14:02 · waiting for Claude" on its card
-     - a new epic:  the Epics page's New epic pill (its seedling):  a title and what it's for;
-       it's written down as a future epic at once, and the landing asks whether to start it
+     - a new epic:  the Epics page's New epic pill (its seedling):  a title and what it's for.
+       It's written down as a future epic at once, and the landing asks whether to start it.
      - Do Now still works:  it waits, dashed, for landing
      - the page server stopped (laptop asleep, restarted):  the Review tab's "Restart Page Server" button
      - turn Wi-Fi fully off while reading:  a "pay first" wifi page makes requests hang
@@ -63,39 +65,45 @@ Owen is back online.  Gather everything, work through it in the background, then
 2. `spell dev airplane off`.  Nothing waiting:  say so in one line, and stop.
 3. Reply at once, short:  the counts by place, and that the work runs in the background now.
 4. Per epic, in the session itself (quick):  `spell dev plan-doc inbox <name> apply --all`.
-   These land in the doc, sent or not (Owen's decision Q3 of `airplane`):
-   - approvals, picks, todos
-   - a todo's plane (queued into the next phase) and x (dropped:  canceled)
-   - a note box's x (skipped:  reviewed, nothing to do)
-   - new items
+   - Into the doc go, sent or not (Owen's decision Q3 of `airplane`):
+     - approvals, picks, todos, and new items
+     - a todo's plane:  queued into the next phase
+     - a todo's x:  dropped, canceled
+     - a note box's x:  skipped, reviewed with nothing to do
+
 4b. Docs pages' comments, in the session itself (quick):  `spell dev comments gather --json`.
-   - Every waiting comment (and page note still new) goes into epic `guide-changes`, one phase per page,
-     each marked taken on its page.
-   - The phase is made the first time;  a page whose phase is still open gets an Updated block in it.
+   - Every waiting comment (and page note still new) goes into epic `guide-changes`, one phase per page.
+     - The phase is made the first time.
+     - A page whose phase is still open gets an Updated block in it.
+   - Each is marked taken on its page.
    - Say which pages, and that `/epic guide-changes` works them;  nothing else to do for them now.
-5. The rest goes to background agents, named and listed (root `CLAUDE.md`, "Delegated work"), up to 5 at once:
-   - each Do Now, revisit and phase note:  as `/epic review` answers one ("7.3", step 2):
-     - the status card first
-     - the answer INTO the item
-     - then `status ... done`, `inbox done | clear`
-   - a mark that only asked to RECORD a choice (no answer to write):
-     `status ... noted "<what was recorded;  what happens next>"`, never `done`
-     (Owen, 2026-10-10:  a Done card means work was done).
-     `apply --all`'s own cards for picks, todos and new items are Noted already
-   - each comment on a plan doc (`epics[].comments`):  as `/epic review` answers one ("7.3", step 3b):
-     into the item or phase it's on, then `plan-doc inbox <name> done cm3`
-   - page notes were gathered in 4b with the comments.
-     One written into a page since:
-     read the page and the note, answer under it (`spell dev notes answer <page> <id> --file`)
-   - details answers and goals thoughts:  as `/details` and `/goals-update` take them
-   - nothing is decided for Owen:  an answer that needs him ends in option cards, and the item stays red
-5b. New epics (`newEpics`, made with the Epics page's New epic):
-   ask which to start, with CHECKBOXES (Owen, 2026-10-09).
+5. The rest goes to background agents, up to 5 at once.
+   They're named and listed (the root `CLAUDE.md`, "Delegated work").
+   - Each Do Now, revisit and phase note:  as `/epic review` answers one ("7.3", step 2).
+     - The status card first, then the answer INTO the item.
+     - Then `status ... done`, and `inbox done | clear`.
+   - A mark that only asked to RECORD a choice (no answer to write):
+     `status ... noted "<what was recorded;  what happens next>"`.
+     - Never `done` (Owen, 2026-10-10:  a Done card means work was done).
+     - The cards `apply --all` makes for picks, todos and new items are Noted already.
+   - Each comment on a plan doc (`epics[].comments`):  as `/epic review` answers one ("7.3", step 3b).
+     - Into the item or phase it's on, then `plan-doc inbox <name> done cm3`.
+   - Page notes were gathered in 4b with the comments.
+     One written into a page since:  read the page and the note, and answer under it
+     (`spell dev notes answer <page> <id> --file`).
+   - Details answers and goals thoughts:  as `/details` and `/goals-update` take them.
+   - Nothing is decided for Owen:  an answer that needs him ends in option cards, and the item stays red.
+
+5b. New epics (`newEpics`, made with the Epics page's New epic):  ask which to start, with CHECKBOXES
+   (Owen, 2026-10-09).
    - AskUserQuestion, `multiSelect`, "Start which new epics?"
-   - one option per epic:  label its title, description `<name>` and the prompt's first line
-   - 4 per question, up to 4 questions;  more than 16:  a details page with a `multiple` question instead
-   - each picked:  `spell dev window launch <name>`:  its own worktree and window, a NEW session there with
-     `/epic <name>` typed in (it plans the future epic where it is:  prompt kept).  One line per window.
+   - One option per epic:  its title for the label;  `<name>` and the prompt's first line for the description.
+   - 4 per question, up to 4 questions.
+     More than 16:  a details page with a `multiple` question instead.
+   - Each picked:  `spell dev window launch <name>`.
+     - Its own worktree and window, with a NEW session there, `/epic <name>` typed in.
+     - That session plans the future epic where it is:  prompt kept.
+     - One line per window.
    - not picked:  they stay future epics, seedlings on the Epics page;  `/epic <name>` any time
    - asked while the agents of step 5 run:  the modal doesn't wait for them
 6. Drafts (text he typed and never submitted):  never acted on.
