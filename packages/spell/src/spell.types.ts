@@ -402,6 +402,8 @@ export type SpellDeclaration = {
   type?: string
   /** `type`'s supertype, e.g. `Thing`. */
   superType?: string
+  /** `type`'s short name, e.g. `Account` for `a bank account aka account` -- see `P.TypeScope.aka`. */
+  aka?: string
   /**
    * What `type` holds, if it's a list type, e.g. `Card` for `a deck is a list of cards`.
    * - See `P.TypeScope.itemType`.

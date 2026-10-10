@@ -47,15 +47,26 @@ export class ScopeList<ListType = any, InputType = ListType> {
    * - By default, if not found locally, recursively checks `parent`'s list (if any).
    * - Pass `LOCAL_ONLY` to only search this list's own items, skipping the parent chain.
    * - With no `key`, returns ALL our own items.  NEVER change that array -- see class docs.
+   * - With an `aliasProp`, an item's alias finds it too, after every key in this list, e.g. a type's short name.
    */
   get(): readonly ListType[]
   get(key: string, localOnly?: "LOCAL_ONLY"): ListType
   get(key?: string, localOnly?: "LOCAL_ONLY") {
     if (key === undefined) return this.#items
     key = this.normalizeKey(key)
-    const item = this.#items.find((it) => key === this.getKeyFor(it))
+    const item = this.#items.find((it) => key === this.getKeyFor(it)) ?? this.getByAlias(key)
     if (!item && !localOnly) return this.parent?.get(key)
     return item
+  }
+
+  /** Our own item whose alias is (normalized) `key`, if we have an `aliasProp`. */
+  private getByAlias(key: string): ListType | undefined {
+    const { aliasProp } = this.props
+    if (!aliasProp) return undefined
+    return this.#items.find((it) => {
+      const alias = (it as Record<string, any>)[aliasProp]
+      return alias !== undefined && key === this.normalizeKey(alias)
+    })
   }
 
   /**
@@ -140,6 +151,12 @@ export type ScopeListProps<ListType = any, InputType = ListType> = {
 
   /** Optional method to use to normalize key. e.g. `_.snakeCase`. */
   normalizeKey?: (key: string) => string
+
+  /**
+   * Optional name of a second key, which finds an item too, e.g. `aka` for a type's short name.
+   * - Normalized as keys are;  a key always wins over an alias.
+   */
+  aliasProp?: string
 
   /** Optional method to transform raw input during `add()`. */
   transformer?: (thing: ListType | InputType) => ListType

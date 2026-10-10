@@ -5,28 +5,25 @@ import { TypeDeclaration } from "./TypeDeclaration"
 
 /**
  * `create_type` rule:  `a card is a thing` -- declares `type` as a new class extending `superType`.
+ * - Its name may be several words, with a short name:  `a bank account aka account is a thing` -- see `TypeDeclaration`.
  * - `Priority.declaration`, so this wins over other `{type} is {type}` -ish statement rules.
- * - SIDE EFFECT: adds `type` to `scope.types`, unless it's already defined (no redefinition/merge).
+ * - SIDE EFFECT: adds `type` to `scope.types`, unless it's already defined (no redefinition/merge) --
+ *   see `TypeDeclaration.declareType()`.
  * - Compiles to an exported class declaration, e.g. `a card is a thing` => `export class Card extends Thing {}`.
  *   Another project reaches it by `import`ing it -- no globals.
  */
-export class CreateType extends TypeDeclaration<"type|superType|with_nested_statements?|body?"> {
+export class CreateType extends TypeDeclaration<"type|aka?|superType|with_nested_statements?|body?"> {
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "superType" }
 
+  /** Refuses a name some other type already goes by -- see `TypeDeclaration.refuseTakenNames()`. */
+  parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
+    const match = super.parse(scope, tokens)
+    return match && this.refuseTakenNames(match)
+  }
+
+  /** SIDE EFFECT:  declares our type -- see `TypeDeclaration.declareType()`. */
   mutateScope(match: P.MatchFor<this>) {
-    const { type, superType } = match.groups
-    // Forget it if type is already defined, unless it was only stubbed by an earlier mention.
-    // TODO: complain if existing type is set up differently!
-    // An IMPORTED one is declared again anyway, so `SP.SpellDeclarations.checkImportClashes()` can report it.
-    const existing = match.scope.types?.get(type.value)
-    if (existing && !(existing.parentScope instanceof P.ImportScope)) {
-      // a stub, or left by an earlier parse of this statement -- see `P.TypeScope.sameStatement()`
-      if (existing.stub || P.TypeScope.sameStatement(existing.declaredBy, match)) {
-        existing.claim(match, superType.value)
-      }
-      return
-    }
-    match.scope.types?.add({ name: type.value, superType: superType.value, declaredBy: match })
+    this.declareType(match, `${match.groups.superType.value}`)
   }
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
     const { type, superType } = match.groups
@@ -41,13 +38,15 @@ export class CreateType extends TypeDeclaration<"type|superType|with_nested_stat
   }
 }
 classes.addRule(CreateType, {
-  syntax: "(a|an) {type} is (a|an) {superType:type} {with_nested_statements}?",
+  syntax: "(a|an) {type:type_words} (aka {aka:singular_type})? is (a|an) {superType:type} {with_nested_statements}?",
   tests: [
     {
       compileAs: "statement",
       tests: [
         ["a card is a thing", "export class Card extends Thing {}"],
-        ["a deck is a list", "export class Deck extends List {}"]
+        ["a deck is a list", "export class Deck extends List {}"],
+        ["a bank account is a thing", "export class Bank_Account extends Thing {}"],
+        ["a bank account aka account is a thing", "export class Bank_Account extends Thing {}"]
       ]
     },
     {

@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vite-plus/test"
 import { describeWarnings, unitTestModuleRules } from "$/spell/test"
-import { spellParser } from "$/spell"
+import { SP, spellParser } from "$/spell"
 import { spellCore } from "$/core"
 
 describe("testing spell module classes", () => {
@@ -114,6 +114,55 @@ describe("testing spell module classes", () => {
         "\t- its size is a number"
       ]
       expect(warningsIn(lines, "typed-properties")).toEqual([])
+    })
+  })
+
+  describe("multi-word type names (epic `drawable-thing`, P1)", () => {
+    /** `lines` parsed as one block in a fresh scope:  the scope, and the block's compiled lines. */
+    function parsed(name: string, lines: string[]) {
+      const scope = spellParser.getScope(name)
+      const block = scope.parse(lines.join("\n"), "block")!
+      return { scope, compiled: `${block.compile()}`.split("\n") }
+    }
+
+    test("a type of two words, with a short name:  either name, singular or plural, finds it", () => {
+      const { scope, compiled } = parsed("multi-word-type", [
+        "a bank account aka account is a thing",
+        "a bank account has a balance as a number",
+        "an account has an owner as text",
+        "set savings to a new bank account",
+        "set checking to a new account",
+        "set all to a new list of bank accounts"
+      ])
+      const type = scope.types.get("Bank_Account")!
+      expect(type.aka).toBe("Account")
+      expect(scope.types.get("account")).toBe(type)
+      expect(scope.types.get("accounts")).toBe(type)
+      expect(type.variables.get("balance", "LOCAL_ONLY")?.datatype).toBe("number")
+      expect(type.variables.get("owner", "LOCAL_ONLY")?.datatype).toBe("text")
+      expect(compiled.filter((line) => /new /.test(line))).toEqual([
+        expect.stringMatching(/savings.*new Bank_Account\(\)/),
+        expect.stringMatching(/checking.*new Bank_Account\(\)/),
+        expect.stringMatching(/all.*Bank_Account/)
+      ])
+    })
+
+    test("only DECLARED words name a type, the longest first", () => {
+      const { scope } = parsed("multi-word-greedy", ["a card is a thing", "a big card is a card"])
+      expect(scope.types.get("Big_Card")?.superType).toBe("Card")
+      // `card` alone is still the card
+      expect(scope.types.get("card")?.name).toBe("Card")
+    })
+
+    test("a name another type already goes by is refused, saying why", () => {
+      const lines = ["a card is a thing", "a bank account aka account is a thing"]
+      const taken = (line: string) => {
+        const scope = spellParser.getScope("multi-word-taken")
+        const block = scope.parse([...lines, line].join("\n"), "block")!
+        return SP.Block.getParseErrors(block)?.map((error) => error.message)
+      }
+      expect(taken("an account is a thing")).toEqual(['"account" is already the short name of bank account'])
+      expect(taken("a savings account aka card is a thing")).toEqual(['"card" already names a type:  card'])
     })
   })
 })

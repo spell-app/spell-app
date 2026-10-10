@@ -7,6 +7,6 @@
 import { SpellParser } from "$/spell/SpellParser"
 
 /**
- * Rule module for type-name rules (`type`, `singular_type`, `plural_type`, `known_type`).
+ * Rule module for type-name rules (`type`, `singular_type`, `plural_type`, `known_type`, `type_words` ...).
  */
 export const types = new SpellParser({ module: "types" })

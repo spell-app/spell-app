@@ -450,3 +450,17 @@ describe("SpellDeclarations of a derived property", () => {
     expect(card.variables.get("rank", "LOCAL_ONLY")?.isGetter).toBeUndefined()
   })
 })
+
+/** A type's short name, `a bank account aka account` (epic `drawable-thing`, P1), in another project. */
+describe("SpellDeclarations, a type's short name", () => {
+  test("goes into its declarations, and finds the type in a project that imports it", () => {
+    const { declarations } = compiledProject([
+      { path: "/Bank.spell", contents: "a bank account aka account is a thing" }
+    ])
+    expect(declarations.statements.find((it) => it.type === "Bank_Account")?.aka).toBe("Account")
+    const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [
+      { from: "@library/bank", declarations }
+    ])
+    expect(imports.types.get("accounts")?.name).toBe("Bank_Account")
+  })
+})

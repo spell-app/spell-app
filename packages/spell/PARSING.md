@@ -277,6 +277,25 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 - Always NAME a slot, so `match.groups` keeps its key.
 - Add one mixed-operator line to the probe ledger, [grammar.probes.test.ts](src/grammar.probes.test.ts).
 
+## Type names:  `a bank account aka account is a thing`
+
+- A type's name may be one word (`card`, `bank-account`) or several (`bank account`), and it may have a short name.
+  - `a bank account aka account is a thing`:  ONE type, compiled `Bank_Account`, as `bank-account` would be.
+  - Afterwards `bank account(s)` and `account(s)` both name it.
+- A DECLARATION's name is [`type_words`](src/rules/types/TypeWords.ts):  every word up to a blacklisted one or `aka`.
+  - `create_type` and `create_list_type`:  `(a|an) {type:type_words} (aka {aka:singular_type})? is ...`
+  - Both declare through `TypeDeclaration.declareType()`, and refuse a name another type already goes by
+    (`refuseTakenNames()`), e.g. `an account is a thing` after the line above.
+- A MENTION is any [`SpellType`](src/rules/types/SpellType.ts) rule (`type`, `known_type`, `singular_type` ...):
+  - first the LONGEST run of 2 to `MAX_NAME_WORDS` words that names a type in scope, joined with dashes to look up
+  - else one word, as ever
+  - So only DECLARED names take several words:  `a big card` stays a card, unless someone declared a `big card`.
+  - A type has to be declared before a mention of several words can find it:  no stubs for those.
+- The short name is `TypeScope.aka`.
+  - `scope.types` finds a type by it too (the list's `aliasProp`), after every type's own name in that scope.
+  - A mention by the short name compiles as the type's own name:  `account` => `Bank_Account`.
+  - Project declarations carry it (`aka`), so an importing project knows the short name too.
+
 ## Members:  `the short rank of the card`
 
 - A member's NAME is [`member_words`](src/rules/properties/MemberWords.ts):  1..N words, up to the first structural one.
