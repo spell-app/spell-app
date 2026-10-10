@@ -35,7 +35,7 @@ describe("<ui-feed> static render", () => {
           `Elliot<time class="date in-feed" part="date" data-ui="date" data-state="in-feed" data-ui-slotted="">` +
           `1 Hour Ago</time></div></div></li>` +
           `<li class="disabled event in-feed" part="event" aria-disabled="true" data-ui="event" ` +
-          `data-state="in-feed disabled" data-ui-slotted=""><div class="label" part="label"></div>` +
+          `data-state="in-feed disabled dimmed" data-ui-slotted=""><div class="label" part="label"></div>` +
           `<div class="content in-feed" part="content" data-ui="content" data-state="in-feed" data-ui-slotted="">` +
           `<div class="summary in-feed" part="summary" data-ui="summary" data-state="in-feed" data-ui-slotted="">` +
           `Helen</div></div></li></ol>`

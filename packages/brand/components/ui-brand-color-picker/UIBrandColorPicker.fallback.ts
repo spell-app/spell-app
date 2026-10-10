@@ -36,9 +36,14 @@ export class BrandColorPickerFallback extends E.NativeFallback<typeof brandColor
     const input = this.create("input", {
       type: "color",
       disabled: this.flag("disabled"),
+      "aria-readonly": this.flag("readonly") ? "true" : undefined,
       "aria-label": this.attr("label") ?? "Colour"
     })
     this.decorate(input, "rgb")
+    // `readonly`:  the browser's picker never opens (a colour input has no `readonly` of its own)
+    this.listen(input, "click", (event) => {
+      if (this.flag("readonly")) event.preventDefault()
+    })
     // a colour input takes lower-case `#rrggbb` only
     input.value = (Palette.parse(start) ?? DEFAULT_VALUE).toLowerCase()
     this.listen(input, "input", (event) => this.changed(event, "ui-input"))

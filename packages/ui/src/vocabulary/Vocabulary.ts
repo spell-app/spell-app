@@ -8,6 +8,7 @@ import type {
   NameMap,
   NamePair
 } from "./vocabulary.types"
+import { SharedVocabulary } from "./SharedVocabulary"
 import { ValueSets } from "./ValueSets"
 
 /****************
@@ -126,6 +127,9 @@ export class Vocabulary {
    * Localized names of one `vocabulary` under `prefix` + `dictionary`.
    * - Pure:  doesn't touch the registry.
    * - Lookup order per name:  `dictionary.components[tag]` > dictionary-wide map > canonical.
+   *   - The shared attributes (`SharedVocabulary`:  `disabled`, `loading`, `visible`) are named too,
+   *     whether the tag takes the shared one or declares its own:
+   *     between the dictionary-wide map and canonical, its language's `SharedVocabulary.<lang>.ts`.
    * - Canonical attribute aliases (`checked` for `selected`) are kept untranslated,
    *   unless a localized name already uses the word.
    * - Throws on a collision within the component, e.g. two attributes translated to the same word.
@@ -153,8 +157,15 @@ export class Vocabulary {
     }
     const where = `<${localized.tag}>`
 
-    for (const spec of vocabulary.attributes) {
-      const name = component.attributes?.[spec.name] ?? dictionary.attributes?.[spec.name] ?? spec.name
+    // the tag's own attributes, then the shared ones it doesn't declare (`disabled` ...):  a dictionary names both;
+    // `disabled`, `loading` and `visible` it doesn't name take their language's `SharedVocabulary.<lang>.ts` name,
+    // the tag's own `disabled` (`<ui-button>`'s) too, so one word means disabled on every tag
+    for (const spec of SharedVocabulary.attributesFor(vocabulary)) {
+      const name =
+        component.attributes?.[spec.name] ??
+        dictionary.attributes?.[spec.name] ??
+        SharedVocabulary.translated(dictionary.lang, spec.name) ??
+        spec.name
       Vocabulary.claim({ map: localized.attributes, name, value: spec, what: `${where} attribute` })
       names.attributes.set(spec.name, name)
       const values = Vocabulary.resolveValues(spec, vocabulary.tag, dictionary)

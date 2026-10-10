@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vite-plus/test"
 
+import type { DOMElement } from "$/ui/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { expectAccessible } from "$/ui/test/A11y"
 
@@ -52,5 +53,15 @@ describe("<epic-aside>", () => {
     await ElementFixture.tick()
     expect([host.getBoundingClientRect().width <= 320, wrap.scrollWidth <= 320]).toEqual([true, true])
     await expectAccessible(host)
+  })
+
+  test("`disabled` is unusable (the default):  dimmed, its fold button inert, `aria-disabled`", async () => {
+    const host = await ElementFixture.render<DOMElement>(ASIDE.replace("<epic-aside ", "<epic-aside disabled "))
+    await ElementFixture.tick()
+    expect({
+      dimmed: host.matches(":state(dimmed)"),
+      inert: part(host, "toggle").closest("[inert]") !== null,
+      ariaDisabled: host.internals.ariaDisabled
+    }).toEqual({ dimmed: true, inert: true, ariaDisabled: "true" })
   })
 })

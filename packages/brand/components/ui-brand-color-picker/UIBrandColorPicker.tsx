@@ -60,6 +60,9 @@ import pickerCSS from "./UIBrandColorPicker.css?inline"
  *   - Enter or leaving the field commits (`ui-change`) and shows the value again;  Escape drops the draft.
  * - Copy buttons:  `hsl(250 54% 55%)` (the HSL row as shown), `#RRGGBB`, `oklch(52.0% 0.181 286)` to the clipboard,
  *   then `ui-copy`, a check for `COPIED_MS`, and "Copied ..." announced.  A refused clipboard write does nothing.
+ * - `readonly`:  as ui's form controls (`FormComponent.isReadOnly`, `:state(readonly)`), the colour can't be changed:
+ *   the square ignores the pointer and keys, the sliders spring back, the fields are read-only;
+ *   copying still works, and the form still gets `value`.
  * - `value` is controlled (`@E.controlled`) and reflects;  a `ui-input` handler that sets it again wins.
  *   - Its FIRST attribute value is the form's reset value.
  *   - Changes from outside redraw without events.
@@ -101,9 +104,11 @@ export class UIBrandColorPicker extends F.FormComponent<BrandColorPickerVocabula
   /**
    * Edit the colour to `next` as the user:  send `ui-input` when `value` changes, then set the DOM element's
    * property, unless a handler set it first (then the edit is undone).
+   * - Nothing while `readonly`:  every edit comes through here.
    */
   @E.untracked
   private move(next: Hsl, originalEvent: Event) {
+    if (this.isReadOnly) return
     const previous = this.working
     this.working = next
     const hex = Palette.hslToHex(next)
@@ -302,6 +307,7 @@ export class UIBrandColorPicker extends F.FormComponent<BrandColorPickerVocabula
         aria-label={this.translationForKey(axis === "s" ? "saturation" : "lightness")}
         aria-valuetext={this.translationForKey("percent", { value: amount() })}
         aria-roledescription={this.translationForKey("planeRole")}
+        aria-readonly={this.isReadOnly ? "true" : undefined}
         disabled={this.isDisabled}
         onKeyDown={this.onPlaneKeyDown}
         onInput={(event) => this.onAxisInput(axis, event)}
@@ -313,7 +319,7 @@ export class UIBrandColorPicker extends F.FormComponent<BrandColorPickerVocabula
   /** Press on the square:  the marker jumps there and is dragged;  the square takes focus. */
   @E.untracked
   private readonly onPointerDown = (event: PointerEvent) => {
-    if (event.button !== 0 || this.isDisabled || !this.plane) return
+    if (event.button !== 0 || this.isDisabled || this.isReadOnly || !this.plane) return
     event.preventDefault()
     this.dragPointer = event.pointerId
     try {
@@ -388,8 +394,20 @@ export class UIBrandColorPicker extends F.FormComponent<BrandColorPickerVocabula
 
   /** A square slider's own `input` (an assistive technology's increment):  its axis to its value. */
   private onAxisInput(axis: "s" | "l", event: Event) {
+    if (this.refuseRange(event, this.percent(this.working[axis]))) return
     const value = (event.currentTarget as HTMLInputElement).valueAsNumber
     if (Number.isFinite(value)) this.move({ ...this.working, [axis]: value / 100 }, event)
+  }
+
+  /**
+   * `readonly`:  put a native range the user moved back on `value`, and say so (true);  false otherwise.
+   * - A range input has no `readonly` of its own:  its thumb moves before `input` arrives.
+   */
+  @E.untracked
+  private refuseRange(event: Event, value: number): boolean {
+    if (!this.isReadOnly) return false
+    ;(event.currentTarget as HTMLInputElement).value = String(value)
+    return true
   }
 
   /** A native `change` (the hue slider released, a square slider's increment):  commit. */
@@ -420,6 +438,7 @@ export class UIBrandColorPicker extends F.FormComponent<BrandColorPickerVocabula
           value={String(hue())}
           aria-label={this.translationForKey("hue")}
           aria-valuetext={this.translationForKey("hueValue", { h: hue() % 360 })}
+          aria-readonly={this.isReadOnly ? "true" : undefined}
           disabled={this.isDisabled}
           onInput={this.onHueInput}
           onChange={this.onCommit}
@@ -430,6 +449,7 @@ export class UIBrandColorPicker extends F.FormComponent<BrandColorPickerVocabula
 
   /** The hue slider moved;  `360` stays `360` (not `0`), so the thumb stays at the end it was dragged to. */
   private readonly onHueInput = (event: Event) => {
+    if (this.refuseRange(event, Math.round(this.working.h))) return
     const hue = (event.currentTarget as HTMLInputElement).valueAsNumber
     if (Number.isFinite(hue)) this.move({ ...this.working, h: hue }, event)
   }
@@ -494,6 +514,7 @@ export class UIBrandColorPicker extends F.FormComponent<BrandColorPickerVocabula
           value={this.drafts[key] ?? this.fieldText(key)}
           aria-invalid={this.isInvalid(key) ? "true" : undefined}
           disabled={this.isDisabled}
+          readonly={this.isReadOnly}
           onInput={(event) => this.onTextInput(key, event)}
           onKeyDown={(event) => this.onTextKeyDown(key, event)}
           onFocusOut={(event) => this.commitText(key, event)}

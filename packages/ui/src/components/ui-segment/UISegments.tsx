@@ -17,8 +17,6 @@ export class UISegments extends E.UIComponent<typeof segmentsVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { segment: segmentCSS },
     cssStates: ["piled"],
-    // `disabled`:  only a look
-    disabled: "its own",
     // `loading`:  Fomantic's veil
     loading: "its own"
   } satisfies Partial<E.ElementSetup>

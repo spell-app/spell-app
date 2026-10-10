@@ -20,6 +20,8 @@ import tabCSS from "./UITab.css?inline"
  *     so keyboard users reach content with no control in it.
  * - Alone (no `<ui-tabs>`):  shown while its own `selected` (or `active`) is set.
  * - Hidden panes are DOM elements with `display: none`:  out of the layout and the accessibility tree.
+ * - `disabled`:  its tab can't be selected;  the pane itself is unusable, the base class's way
+ *   (`elementSetup.disabled`:  its content inert and dimmed, `aria-disabled`).
  * - `lazy`:  its `<template>` children are stamped into it (light DOM, after them) the first time it shows;
  *   `ui-show` (`{ value, first }`) fires every time it becomes the shown pane.
  * - Its looks come from `UISegment.css` (the pane IS a segment) and `UITab.css`, adopted in that order.
@@ -30,8 +32,6 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
     styleSheets: { segment: segmentCSS, tab: tabCSS },
     // the DOM element is the tabpanel and its focus stop;  nothing inside to delegate to
     delegatesFocus: false,
-    // `disabled`:  Fomantic's look
-    disabled: "its own",
     // `loading`:  Fomantic's veil
     loading: "its own"
   } satisfies Partial<E.ElementSetup>

@@ -159,6 +159,10 @@ describe("Vocabulary.define() with the English identity dictionary", () => {
       "only",
       "pointing",
       "selected",
+      // the shared attributes (`SharedVocabulary`), then the aliases
+      "disabled",
+      "loading",
+      "visible",
       "checked"
     ])
     expect(localized.attributes.get("checked")).toBe(CARD.attributes[5])

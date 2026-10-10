@@ -240,12 +240,15 @@ describe("<ui-comments> variations", () => {
     expect(root.getBoundingClientRect().width).toBe(650)
   })
 
-  it("fades a disabled comment, marked aria-disabled", async () => {
+  it("fades a disabled comment, unusable (the base class's way):  inert, marked aria-disabled", async () => {
     const { comments } = await list("", `<ui-comment disabled>${PARTS}</ui-comment>`)
     const root = rootOf(comments[0]!)
-    expect(root.getAttribute("aria-disabled")).toBe("true")
-    expect(Number(style(root).opacity)).toBeLessThan(1)
-    expect(comments[0]!.matches(":state(disabled)")).toBe(true)
+    expect({
+      ariaDisabled: (comments[0] as DOMElement).internals.ariaDisabled,
+      inert: root.inert,
+      faded: Number(style(root).opacity) < 1,
+      state: comments[0]!.matches(":state(disabled)")
+    }).toEqual({ ariaDisabled: "true", inert: true, faded: true, state: true })
   })
 })
 

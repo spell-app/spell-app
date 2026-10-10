@@ -45,7 +45,13 @@ export const brandColorPickerVocabulary = {
       kind: "string",
       description: "Name of the picker for screen readers (its group);  default:  what names it, else `Colour`."
     },
-    { name: "disabled", kind: "keyOnly", description: "Faded;  nothing in it can be used (copying neither)." }
+    { name: "disabled", kind: "keyOnly", description: "Faded;  nothing in it can be used (copying neither)." },
+    {
+      name: "readonly",
+      kind: "boolean",
+      property: "readOnly",
+      description: "Shows the colour but can't change it;  copying still works, and it's still submitted."
+    }
   ],
   events: [
     {
@@ -90,6 +96,7 @@ export const brandColorPickerVocabulary = {
   ],
   states: [
     { name: "disabled", description: "Can't be used." },
+    { name: "readonly", description: "`readonly`:  the colour can't be changed." },
     { name: "dragging", description: "The square's marker is being dragged." },
     { name: "copied", description: "Just copied:  for about 1.4 seconds after a copy button." },
     { name: "invalid", description: "Fails validation (`required`), once a person has interacted." }

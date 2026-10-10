@@ -271,6 +271,17 @@ describe("<ui-brand-composer> casting", () => {
     expect(host.cast()).toBe(false)
     expect(fired).toEqual([])
   })
+
+  it("`readonly`:  `:state(readonly)`, the box read-only;  it still casts", async () => {
+    const host = await composer(`<ui-brand-composer value="Habits" readonly></ui-brand-composer>`)
+    const fired = record(host)
+    expect({ state: host.matches(":state(readonly)"), readOnly: box(host).readOnly }).toEqual({
+      state: true,
+      readOnly: true
+    })
+    expect(host.cast()).toBe(true)
+    expect(fired).toEqual([{ type: "ui-cast", value: "Habits" }])
+  })
 })
 
 ////////////////

@@ -26,6 +26,22 @@ describe("UIComponent.define(tag, dictionary)", () => {
     expect(host.getAttribute("color")).toBe("azul")
   })
 
+  it("names the shared attributes in Spanish:  `<ie-boton desactivado>` is disabled", async () => {
+    const host = await ElementFixture.render<DOMElement & { desactivado: boolean }>(
+      `<ie-boton desactivado>Guardar</ie-boton>`
+    )
+    expect({
+      native: host.shadowRoot!.querySelector("button")!.disabled,
+      state: host.matches(":state(disabled)"),
+      property: host.desactivado,
+      english: "disabled" in host
+    }).toEqual({ native: true, state: true, property: true, english: false })
+    // the button and dropdown declare their own `disabled` / `loading`:  the same words name them
+    // (a tag that takes the shared ones:  `DOMElement.test.tsx`, "a translated tag renames ...")
+    const dropdown = await ElementFixture.render<DOMElement>(`<ie-desplegable cargando></ie-desplegable>`)
+    expect(dropdown.matches(":state(loading)")).toBe(true)
+  })
+
   it("dispatches translated events", async () => {
     const button = await ElementFixture.render<DOMElement>(`<ie-boton alternable>Votar</ie-boton>`)
     const toggles: unknown[] = []
