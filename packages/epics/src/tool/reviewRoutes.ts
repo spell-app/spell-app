@@ -10,7 +10,8 @@
  *   ONLY a plan doc:  anything else is a 403
  * - every answer is the whole inbox, as `ReviewInbox` keeps it (an empty one when there's no file),
  *   except a `listening` whose heartbeat stopped:
- *   `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing
+ *   `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing;
+ *   plus `unsentComments`, the comments Send would hand over (their thread's rules are `CommentList`'s)
  * - `GET /api/review/inbox?page=<path>` -- the inbox;  the page polls it
  * - `POST /api/review/mark` `{ page, id, mark }` -- set item `id`'s mark, or remove it (`mark: null`)
  *   - the mark:  `{ action, when?, note?, pick?, choices? }`, `at` stamped here;
@@ -30,9 +31,12 @@
  *   (`revisit` or `todo`;  empty or `null` drops it):  kept until the mark that uses it (`ReviewInbox.setDraft()`)
  * - `POST /api/review/urgency` `{ page, id, calm }` -- Owen clicked an open judgement call's or issue's id chip:
  *   `calm` true, not urgent;  false, urgent;  `null` drops it (`ReviewInbox.setUrgency()`)
- * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now;
+ * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now, for marks and comments alike;
  *   `now: true` is "Review Now" (epic `windows-and-review` P4):
  *   every revisit waiting becomes an immediate request too (`ReviewInbox.reviewNow()`)
+ * - `POST /api/review/start` `{ page }` -- "start a review" (epic `airplane` P12):  types `/epic review <epic>` into
+ *   the ONE running Claude session titled for the epic;  none or several:  sends nothing, says which it found
+ *   (`ReviewStart`);  answers its `StartResult`, not the inbox
  * - writes:  under the inbox's lock, atomic (`ReviewInbox.updateAsync()`);
  *   each needs the page server's token (`x-server-token`) and its own origin (`SRV.Guard`)
  * - Loaded by the page server under `tsx` (`PageServer.loadRoutes()`), with `packages/server/tsconfig.json`'s aliases.
@@ -44,7 +48,8 @@ import { readFileSync } from "node:fs"
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
 
-import { InboxError, ReviewInbox, type InboxRecord } from "./ReviewInbox"
+import { InboxError, ReviewInbox, type PageInbox } from "./ReviewInbox"
+import { ReviewStart } from "./ReviewStart"
 
 /** Where the routes live. */
 const API = "/api/review"
@@ -57,7 +62,7 @@ const PLAN_DOC = /\/(?:packages\/docs\/content\/)?epics\/([^/]+)\/\1\.plan\.html
 
 const reviewRoutes: RouteModule = {
   name: "review",
-  setup({ router, guard, web }) {
+  setup({ root, router, guard, web }) {
     const api = new SRV.Router()
     api.get("/inbox", (request, reply) => {
       const inbox = ReviewInbox.read(ReviewInbox.pathFor(planDoc(web.files, request.query.page)))
@@ -108,6 +113,12 @@ const reviewRoutes: RouteModule = {
       const file = planDoc(web.files, body.page)
       reply.json(await update(file, (inbox) => (body.now === true ? inbox.reviewNow() : inbox.markSent())))
     })
+    api.post("/start", async (request, reply) => {
+      const body = request.body as { page?: unknown }
+      const file = planDoc(web.files, body.page)
+      const epic = PLAN_DOC.exec(file)![1]!
+      reply.json(await new ReviewStart(root).start(epic))
+    })
     router.use(API, api)
   }
 }
@@ -146,7 +157,7 @@ function itemOf(file: string, id: unknown): string {
  * the inbox after, as the page reads it (`ReviewInbox.forPage()`).
  * - an `InboxError` (a bad mark, a bad action) is a 400
  */
-async function update(file: string, change: (inbox: ReviewInbox) => unknown): Promise<InboxRecord> {
+async function update(file: string, change: (inbox: ReviewInbox) => unknown): Promise<PageInbox> {
   const inbox = await ReviewInbox.updateAsync(ReviewInbox.pathFor(file), (each) => asHttp(() => change(each)))
   return inbox.forPage()
 }

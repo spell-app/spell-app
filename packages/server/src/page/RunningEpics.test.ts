@@ -3,7 +3,15 @@ import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { MARKER, PageServer, RunningEpics, type RunningEpic } from "$/server/page"
+import {
+  MARKER,
+  PageServer,
+  RunningEpics,
+  sessionsTitledFor,
+  titleNames,
+  type LiveSession,
+  type RunningEpic
+} from "$/server/page"
 import { EPIC_CARDS_END, EPIC_CARDS_START } from "$/server/site/EpicCards"
 import { ask } from "$/server/test/serve"
 
@@ -339,5 +347,31 @@ describe("RunningEpics, shared content", () => {
     expect(epics.map(({ name, worktree, url }) => ({ name, worktree, url }))).toEqual([
       { name: "wt", worktree: "wt", url: "/epics/wt/wt.plan.html" }
     ])
+  })
+})
+
+// epic `airplane` P12:  which running session a plan doc's "start a review" types into
+describe("sessions titled for an epic", () => {
+  it("names it as its bare title, or as a whole word;  never inside a longer name", () => {
+    expect(titleNames("🚧 airplane", "airplane")).toBe(true)
+    expect(titleNames("⏸️ airplane", "airplane")).toBe(true)
+    expect(titleNames("airplane", "airplane")).toBe(true)
+    expect(titleNames("review the airplane epic", "airplane")).toBe(true)
+    expect(titleNames("🚧 airplane-mode", "airplane")).toBe(false)
+    expect(titleNames("🚧 seo", "airplane")).toBe(false)
+    expect(titleNames("", "airplane")).toBe(false)
+  })
+
+  it("keeps the matching sessions, in order", () => {
+    const session = (title: string, pid: number): LiveSession => ({
+      pid,
+      sessionId: "",
+      title,
+      status: "idle",
+      cwd: ""
+    })
+    const all = [session("🚧 seo", 1), session("🚧 airplane", 2), session("airplane notes", 3)]
+    expect(sessionsTitledFor("airplane", all).map((each) => each.pid)).toEqual([2, 3])
+    expect(sessionsTitledFor("docs", all)).toEqual([])
   })
 })

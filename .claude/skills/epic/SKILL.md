@@ -444,7 +444,15 @@ This session LISTENS:  it waits on the doc's review inbox, and acts on what arri
 
 - Runs from ANY window, `main` or a worktree.
   - The prompt hook lets `/epic review` through, and never renames the session.
+  - EXCEPT in a session titled for a DIFFERENT epic (`🚧 seo` typing `/epic review airplane`):
+    the hook refuses it, with a one-line reason (epic `airplane` P12, Q10 B).
+    Untitled and main sessions are allowed.
   - No worktree, no plan mode.
+- Started from the PAGE too (epic `airplane` P12):  Owen clicks the "No Claude session is reviewing" pill
+  (or the review line).
+  - The page server finds the ONE running session titled for the epic (`🚧 <name>`, or the name as a word),
+    and types `/epic review <name>` into its tab through its window's bridge:  Owen presses Enter there.
+  - None, or several:  nothing is sent, and the page says which sessions it found.
 - Every `spell dev plan-doc` command edits the epic's ONE shared doc, from any checkout.
 - The page's controls need a PAGE SERVER with the review routes (`spell dev server ensure`).
   From `file://`, or a server without them, the page shows no menus.
@@ -607,8 +615,11 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
      Each with the block's anchor (`p3#field-2`, an item's id) and the quoted text.
      - A REPLY of his on a thread is waiting work too, as a new comment is:  listed under its comment,
        "Owen replied:  ...".  Answer his latest words, the thread above for context.
-   - They never wake `wait` by themselves:  the next wake (Send, Review Now, any request) hands them over.
-     So check on every wake.
+   - Owen's SEND hands them over, as it does marks (Owen, 2026-10-10:  Send stays the way comments reach you).
+     - A new comment, or his reply on a thread, turns Send blue on the page;  pressing it (or Review Now) wakes `wait`.
+     - `wait` prints them under the send:  "comments, to answer on their threads", with his latest reply.
+     - Each goes over once, until he speaks on its thread again.
+     - A comment never wakes `wait` by itself, unsent.  Still check `inbox` on every wake:  one may wait unsent.
    - FIRST, as you start on one:  `spell dev plan-doc inbox <name> working cm3 on`.
      - His thread shows "Claude: thinking…" at its end (a turning notch) until your answer lands:
        `done cm3` turns it off.  Dropped without an answer:  `working cm3 off`.

@@ -22,6 +22,7 @@ import {
   type ReviewAction,
   type ReviewClientOptions,
   type Running,
+  type StartAnswer,
   type WriteOptions
 } from "./review.types"
 import { ServerLink } from "./ServerLink"
@@ -34,6 +35,8 @@ import { ServerLink } from "./ServerLink"
  * - Who uses it:
  *   - the review controls (`<epic-review>`, drawn by `<epic-item>`, `<epic-section>` ...) draw from it
  *   - P10's Send, Review Now and Choose pills call it (`send()`, `choose()`), and an item's id chip (`toggleCalm()`)
+ *   - Send hands over Owen's comments too (the docs runtime's bullhorns write them, in the same inbox file):
+ *     the routes say which wait for it (`inbox.unsentComments`)
  * - REVIEWING only when the page is served with a token (`window.SPELL_SERVER`) and its inbox answers:
  *   never from `file://`, nor from a server without the routes (`reviewing` stays false, and nothing is drawn)
  * - every route's reply is the whole inbox:  a write's answer replaces what's shown;
@@ -310,9 +313,23 @@ export class ReviewClient {
       .sort((a, b) => newNumber(a.id) - newNumber(b.id))
   }
 
-  /** How many marks and urgencies wait for "Send to Claude". */
+  /** Everything waiting for "Send to Claude":  marks, urgencies and comments. */
   get unsentCount(): number {
+    return this.unsentMarkCount + this.unsentCommentCount
+  }
+
+  /** How many marks and urgencies wait for "Send to Claude". */
+  get unsentMarkCount(): number {
     return this.unsentMarks().length + this.unsentUrgency().length
+  }
+
+  /**
+   * How many comments wait for "Send to Claude":  Claude's turn on the thread, and Owen's words newer than the last
+   * send (Owen, 2026-10-10:  Send is how comments reach Claude).
+   * - the routes count them (`inbox.unsentComments`):  the threads' rules are the server's
+   */
+  get unsentCommentCount(): number {
+    return this.inbox.unsentComments.length
   }
 
   ////////////////
@@ -532,6 +549,8 @@ export class ReviewClient {
   /**
    * "Send to Claude" (`now`:  Review Now, every revisit waiting asked now too);
    * says what went, or why nothing did (P10's Send and Review Now, in the page header).
+   * - hands over the unsent marks, urgencies AND comments (`unsentCommentCount`):
+   *   a comment or a reply on a thread wakes a listening session only through a send
    */
   async send({ now = false }: { now?: boolean } = {}): Promise<boolean> {
     const marks = Object.values(this.inbox.marks)
@@ -539,26 +558,45 @@ export class ReviewClient {
       ...(now ? marks.filter((mark) => !isImmediate(mark)) : this.unsentMarks()),
       ...this.unsentUrgency()
     ]
-    if (!waiting.length) {
+    const comments = this.unsentCommentCount
+    if (!waiting.length && !comments) {
       this.notify(
         now
-          ? "Nothing to work through:  mark an item first"
+          ? "Nothing to work through:  mark an item or leave a comment first"
           : marks.length
             ? "Sent already:  waiting for Claude"
-            : "Nothing to send:  mark an item first"
+            : "Nothing to send:  mark an item or leave a comment first"
       )
       return false
     }
     if (!(await this.write("send", now ? { now: true } : {}))) return false
-    const count = waiting.length
+    const what = countWords(waiting.length, comments)
     this.notify(
       !this.inbox.listening
         ? `Saved.  ${NOBODY_LISTENING}`
         : now
-          ? `Claude is working through ${count} now:  answers land in the items`
-          : `Sent ${count} to Claude`
+          ? `Claude is working through ${what} now:  answers land in the items`
+          : `Sent ${what} to Claude`
     )
     return true
+  }
+
+  /**
+   * "Start a review" (epic `airplane` P12):  ask the page server to type `/epic review <epic>` into the ONE running
+   * Claude session titled for the epic (`POST /api/review/start`);  says what came of it (a notice).
+   * - its answer, or `undefined` when the server couldn't be asked (the notice says why)
+   * - NEVER throws
+   */
+  async startReview(): Promise<StartAnswer | undefined> {
+    try {
+      const answer = (await this.link.post(`${REVIEW_API}/start`, { page: this.options.page })) as StartAnswer
+      this.notify(answer.message)
+      return answer
+    } catch (failure) {
+      const error = (failure as Error).message
+      this.notify(`${error[0]!.toUpperCase()}${error.slice(1)}.`)
+      return undefined
+    }
   }
 
   /**
@@ -719,6 +757,15 @@ export class ReviewClient {
 
 /** The summary's tag:  how the page finds it, having no id. */
 const SUMMARY_TAG = "epic-summary"
+
+/** `marks` marks and `comments` comments, in words:  `2 marks, 1 comment`;  either left out at 0. */
+function countWords(marks: number, comments: number): string {
+  const counted = [
+    marks ? `${marks} mark${marks === 1 ? "" : "s"}` : "",
+    comments ? `${comments} comment${comments === 1 ? "" : "s"}` : ""
+  ]
+  return counted.filter(Boolean).join(", ")
+}
 
 /** A new item key's number:  `new12` -> 12, for their order. */
 function newNumber(id: string): number {
