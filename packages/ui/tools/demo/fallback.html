@@ -33,12 +33,12 @@
       <li>
         The failed element logs one console error, dispatches <code>ui-error</code>, gets
         <code>:state(errored)</code> and renders its family's native fallback
-        (<code>src/components/ui-&lt;name&gt;/UI&lt;Name&gt;.fallback.ts</code>): plain DOM with the same class
-        grammar, so the component's own sheet still styles it, and the control still submits, validates and resets.
+        (<code>src/components/ui-&lt;name&gt;/UI&lt;Name&gt;.fallback.ts</code>): plain DOM with the same class grammar,
+        so the component's own sheet still styles it, and the control still submits, validates and resets.
       </li>
       <li>
-        Only form controls have one (<code>docs/fallback.md</code>); any other element shows its children through a
-        bare <code>&lt;slot&gt;</code>.
+        Only form controls have one (<code>docs/fallback.md</code>); any other element shows its children through a bare
+        <code>&lt;slot&gt;</code>.
       </li>
       <li>
         Served by <code>yarn serve</code> / <code>yarn smoke</code> (import map: <code>dist/</code> + the vendored
