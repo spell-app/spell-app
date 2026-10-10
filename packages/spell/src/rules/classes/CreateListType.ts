@@ -18,7 +18,7 @@ import { TypeDeclaration } from "./TypeDeclaration"
  */
 export class CreateListType extends TypeDeclaration<
   "type|instanceType|aka?|with_nested_statements?|body?",
-  { itemTypeBelow?: boolean }
+  { itemTypeBelow?: boolean; elementProject?: string }
 > {
   @proto static declares: P.DeclaresSpec = { kind: "type", name: "type", detail: "instanceType" }
   /** Built-in list type it extends:  `list`, or `drawable list` -- see `CreateDrawableListType`. */
@@ -37,6 +37,8 @@ export class CreateListType extends TypeDeclaration<
     if (!match) return undefined
     const { scopeType } = (match.groups.instanceType as P.Match<P.MatchGroups, { scopeType?: unknown }>).data
     if (scopeType instanceof P.TypeScope && scopeType.stub) match.data.itemTypeBelow = true
+    // a drawable list defines its element -- see `TypeDeclaration.elementMember()`
+    if (this.listType !== "list") match.data.elementProject = TypeDeclaration.projectNameOf(scope)
     return this.refuseTakenNames(match)
   }
 
@@ -60,6 +62,8 @@ export class CreateListType extends TypeDeclaration<
         ]
       : [new P.ASTStaticDefinition(match, { type: typeAST, name: "instanceType", value })]
     const superType = new P.ASTTypeExpression(match, { raw: this.listType, name: P.classCase(this.listType) })
+    const element = this.elementMember(match, typeAST, match.data.elementProject)
+    if (element) members.push(element)
     return new P.ASTStatementGroup(match, {
       statements: [new P.ASTClassDeclaration(match, { type: typeAST, superType, members })]
     })

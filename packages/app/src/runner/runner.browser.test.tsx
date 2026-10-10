@@ -295,6 +295,26 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => titles()[3] === "Ship it")
   })
 
+  test("the `Drawable Solitaire` example:  each card its own element, styled by its <css>;  a click still plays", async () => {
+    const host = await mount(source(await exampleCompiled("Drawable Solitaire"), "Solitaire"))
+    const cards = () => [...host.querySelectorAll<HTMLElement & { ready: Promise<void> }>("drawable-solitaire-card")]
+    await waitFor(() => cards().length > 20)
+    await Promise.all(cards().map((card) => card.ready))
+    flush()
+    expect(host.querySelector(".spell-draw-error")).toBeNull()
+    const faces = cards().map((card) => card.shadowRoot!.querySelector(".card"))
+    expect(faces.every(Boolean)).toBe(true)
+    // its own <css>, in its own shadow root:  a face-down card's back
+    const down = faces.find((face) => face!.classList.contains("face-down"))!
+    expect(getComputedStyle(down).backgroundImage).toContain("repeating-linear-gradient")
+
+    const discards = () => host.querySelectorAll(".Pile.Discards drawable-solitaire-card").length
+    expect(discards()).toBe(0)
+    const stock = host.querySelector<HTMLElement>(".Pile.Stock drawable-solitaire-card")!
+    stock.shadowRoot!.querySelector<HTMLElement>(".card")!.click()
+    await waitFor(() => discards() > 0)
+  })
+
   test("`Todos - Form Based`:  ticking a task shows in the debug JSON;  Active / Completed show only those tasks", async () => {
     const host = await mount(source(await todosExample(), "Todos"))
     const titles = () =>
@@ -476,12 +496,14 @@ async function testRuntime() {
   return { runtime, coreUrl: url, release: () => {} }
 }
 
-/** The `Todos - Form Based` example's committed compiled javascript, as text:  Vite serves a file by its path. */
+/** The `Todos - Form Based` example's committed compiled javascript, as text. */
 async function todosExample(): Promise<string> {
-  const file = new URL(
-    "../../../spell/projects/system/examples/Todos - Form Based/Todos - Form Based.compiled.js",
-    import.meta.url
-  ).pathname
+  return exampleCompiled("Todos - Form Based")
+}
+
+/** Example `name`'s committed compiled javascript, as text:  Vite serves a file by its path. */
+async function exampleCompiled(name: string): Promise<string> {
+  const file = new URL(`../../../spell/projects/system/examples/${name}/${name}.compiled.js`, import.meta.url).pathname
   const { default: compiled } = (await import(/* @vite-ignore */ `${file}?raw`)) as { default: string }
   return compiled
 }

@@ -10,7 +10,7 @@ import { spellElementVocabulary } from "./SpellElement.en"
  *
  * - A Spell UI component like any `ui-*` one:  its own shadow root, with the page's theme and base styles.
  *   Then its type's own `<css>`, its class's `static css`, after its super-types' (`cssOf()`).
- * - It draws its `thing`, through the program's runtime:  `spellCore.drawThing()`, in the thing's error net.
+ * - It draws its `thing`, through the program's runtime:  `spellCore.drawOwn()`, in the thing's error net.
  * - ONE tag per drawable type, defined the first time a program defines its elements (`defineFor()`).
  *   What the tag draws with is looked up when it draws (`SPELL_ELEMENTS`), so a program run again takes it over.
  * - Part of `spell-runtime.js`:  NEVER value-imports `$/core`.
@@ -29,7 +29,7 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
     const { thing } = this
     const entry = SPELL_ELEMENTS.get(this.domElement.localName)
     if (!thing || !entry) return null
-    return entry.spellCore.drawThing(thing) as JSX.Element
+    return entry.spellCore.drawOwn(thing) as JSX.Element
   }
 
   /**

@@ -118,8 +118,10 @@ when working with code in this package, `@spell-app/app`.
     - Mind barrels:  `$/app/runner` holds `runCompiled()`, so a bundle's entry imports its runner's file directly.
   - A drawable thing (`a card is a drawable thing`) draws as its own Spell UI element, e.g. `<solitaire-card>`:
     [SpellElement.tsx](src/runner/SpellElement.tsx) (epic `drawable-thing`).
-    - A compiled project's last line, `spellCore.defineElements(...)`, hands its drawable classes to core,
-      which names each tag and asks `spellCore.elementDefiner`:  `installSpellElements()` fills it in, per runtime copy.
+    - A drawable class names its tag as it's declared (`static elementTag = spellCore.defineElement(this, ...)`);
+      core asks `spellCore.elementDefiner` once the class is whole:  `installSpellElements()` fills it in, per runtime copy.
+    - `draw the card` then draws `<solitaire-card>`, the card as its `thing`;  the element draws it inside (`drawOwn()`).
+    - The example:  `@examples/Drawable Solitaire`, each card its own element, styled by its `<css>`.
     - ONE tag per type per page, shared by every runtime copy (`SPELL_ELEMENTS`, on `globalThis`).
   - Its Type Explorer reads scope packs, `<Project>.scopes.js` (`LSP.ScopePack`):  no parser in the page.
     - `yarn scopes [--compile] <projectId...>` (in `../lsp`) writes them.

@@ -4,8 +4,8 @@ import { parseSpellProject } from "$/spell/test"
 import { SP } from "$/spell"
 
 /**
- * A project's drawable types define their elements as its compiled module's last line (epic `drawable-thing`, P3):
- * `spellCore.defineElements(<project>, { Card, Pile })` -- see `SpellProject.elementsFooterFor()`.
+ * A drawable type defines its element as its class is declared (epic `drawable-thing`, P5):
+ * `static elementTag = spellCore.defineElement(this, "<project>")` -- see `TypeDeclaration.elementMember()`.
  */
 describe("drawable types' elements", () => {
   /** `lines` as one file of a test project:  its compiled module. */
@@ -14,17 +14,23 @@ describe("drawable types' elements", () => {
     return SP.SpellProject.combineCompiled([files[0]!.match!.AST as never], undefined, "", scope)
   }
 
-  test("each drawable type, a sub-type of one too, is defined last", () => {
+  test("each drawable type, a sub-type of one too, defines its element as it's declared", () => {
     const code = compiled([
       "a card is a drawable thing",
       "a joker is a card",
       "a pile is a drawable list of cards",
       "a note is a thing"
     ])
-    expect(code.trimEnd().split("\n").at(-1)).toBe('spellCore.defineElements("test-project", { Card, Joker, Pile })')
+    const defining = code.split("\n").filter((line) => line.includes("defineElement"))
+    expect(defining.map((line) => line.trim())).toEqual([
+      'static elementTag = spellCore.defineElement(this, "test-project")',
+      'static elementTag = spellCore.defineElement(this, "test-project")',
+      'static elementTag = spellCore.defineElement(this, "test-project")'
+    ])
+    expect(code).toMatch(/class Note extends Thing \{\}/)
   })
 
-  test("a project with none ends as before", () => {
-    expect(compiled(["a card is a thing"])).not.toContain("defineElements")
+  test("a project with none compiles as before", () => {
+    expect(compiled(["a card is a thing"])).not.toContain("defineElement")
   })
 })

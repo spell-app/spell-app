@@ -76,7 +76,13 @@ classes.addRule(CSSBlock, {
       tests: [
         [
           ["a card is a drawable thing:", "\t<css>", "\t\t.red { color: crimson }", "\t</css>"],
-          ["export class Card extends Drawable {", "  static css = `.red { color: crimson }`", "}"]
+          [
+            "export class Card extends Drawable {",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "",
+            "  static css = `.red { color: crimson }`",
+            "}"
+          ]
         ]
       ]
     }

@@ -17,6 +17,8 @@ import { SpellType } from "$/spell/rules/types/SpellType"
  *   `a bank account aka account is a thing` -- `{type:type_words} (aka {aka:singular_type})?`.
  *   - Either name finds the type afterwards, e.g. `the accounts`, `a new bank account`.
  *   - A name some other type already goes by is refused -- see `refuseTakenNames()`.
+ * - A DRAWABLE type (`a card is a drawable thing`, or a sub-type of one) defines its element as its class is declared,
+ *   in a static field:  `static elementTag = spellCore.defineElement(this, "Solitaire")` -- see `elementMember()`.
  */
 export class TypeDeclaration<
   Groups extends string,
@@ -74,6 +76,32 @@ export class TypeDeclaration<
       return
     }
     scope.types?.add({ name, superType, declaredBy: match, ...options })
+  }
+
+  /**
+   * Name of the project `scope` is in, which a drawable type's element is named after, e.g. `Solitaire` --
+   * `""` outside a project.  Call it WHILE PARSING:  it looks up scope.
+   */
+  static projectNameOf(scope: P.Scope): string {
+    for (let at: P.Scope | undefined = scope; at; at = at.parentScope) {
+      if (at instanceof P.ProjectScope) return at.name ?? ""
+    }
+    return ""
+  }
+
+  /**
+   * The member that defines a drawable type's element as its class is declared, in project `project` --
+   * `undefined` for a type that isn't drawable (no `project`).
+   * - `static elementTag = spellCore.defineElement(this, "Solitaire")`:  a static field runs as the class is made,
+   *   so before the program draws anything.  See `spellCore.defineElement()`, in core's `elements.ts`.
+   */
+  elementMember(match: P.Match, type: P.ASTTypeExpression, project: string | undefined): P.ASTClassMember | undefined {
+    if (project === undefined) return undefined
+    return new P.ASTStaticDefinition(match, {
+      type,
+      name: "elementTag",
+      value: new P.ASTStringLiteral(match, `spellCore.defineElement(this, ${JSON.stringify(project)})`)
+    })
   }
 
   /** `match`, with the groups every type declaration has:  TS can't see every subclass has them. */

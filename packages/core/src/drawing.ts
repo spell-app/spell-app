@@ -72,15 +72,33 @@ export const drawingMethods = defineSpellCoreModule({
   ////////////////
 
   /**
-   * `drawable`'s drawing, in its own error net -- `null` if it can't draw (no `draw()`).
+   * `drawable` drawn -- `null` if it can't draw (no `draw()`).
    * - Compiles from `draw the card` -- see `rules/draw/DrawThing.ts`.
    *   Takes ANYTHING, as it checks:  compiled spell draws what
    *   TypeScript can't type, e.g. the last card of a pile.
+   * - A DRAWABLE thing (`a card is a drawable thing`) is its element, e.g. `<solitaire-card>`, the card set as its
+   *   `thing`:  it draws itself in there, with `drawOwn()`.  When the page can define it -- see `elementFor()`.
+   * - Anything else:  its own drawing, here -- see `drawOwn()`.
+   */
+  drawThing(drawable?: unknown): Drawing | null {
+    const thing = drawable as Partial<Drawable> | undefined
+    if (typeof thing?.draw !== "function") return null
+    const tag = spellCore.elementFor(thing)
+    if (tag) {
+      // made NOW, as `element()` does:  the thing is a plain value, set once
+      return (h(tag, { "prop:thing": thing }) as unknown as () => Drawing)()
+    }
+    return spellCore.drawOwn(thing)
+  },
+
+  /**
+   * `drawable`'s OWN drawing, in its own error net, never its element -- `null` if it can't draw (no `draw()`).
+   * - What `drawThing()` draws for a thing with no element, and what a drawable thing's element draws inside.
    * - Its `draw()` re-runs when something it read OUTSIDE its live values changes, e.g. the `is face down` an
    *   `if` chose by:  the card's node is drawn again, nothing else.  Its live values update on their own.
    * - The error net is `drawInNet()`'s.  A thing whose `draw()` is `@drawn` brings its own:  it's called straight.
    */
-  drawThing(drawable?: unknown): Drawing | null {
+  drawOwn(drawable?: unknown): Drawing | null {
     const thing = drawable as Partial<Drawable> | undefined
     if (typeof thing?.draw !== "function") return null
     // a second net around `@drawn`'s own would catch nothing more
