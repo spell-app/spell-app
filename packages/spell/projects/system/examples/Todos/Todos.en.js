@@ -9,7 +9,7 @@ export const words = {
       isActive: "is active",
       draw: "draw (a task)"
     },
-    Todos_App: {
+    TodosApp: {
       tasks: "tasks",
       filter: "filter",
       draw: "draw (a todos-app)"

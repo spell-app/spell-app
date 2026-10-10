@@ -44,11 +44,11 @@ export const words = {
       state: "state",
       draw: "draw (a game)"
     },
-    Stock_Pile: {
+    StockPile: {
       canPickUpCard: "can pick up (a card)",
       draw: "draw (a stock-pile)"
     },
-    Discard_Pile: {
+    DiscardPile: {
       canPickUpCard: "can pick up (a card)",
       draw: "draw (a discard-pile)"
     },

@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, h, positionOf, trigger, on } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, h, positionOf, trigger, on } from "@spell/core"
 
 spellCore.heading("definition of a Card with nice english aliases for working with it")
 /** definition of a Card with nice english aliases for working with it */
@@ -370,7 +370,7 @@ export const foundations = new List({ instanceType: "Pile" })
 export const tableaus = new List({ instanceType: "Pile" })
 
 /** set up stock pile: unplayed cards */
-export class Stock_Pile extends Pile {
+export class StockPile extends Pile {
   canGiveUp(card) {
     return card === this.lastItem
   }
@@ -382,11 +382,11 @@ export class Stock_Pile extends Pile {
     )
   }
 }
-export const stock = new Stock_Pile({ name: "stock", droppable: false })
+export const stock = new StockPile({ name: "stock", droppable: false })
 allPiles.append(stock)
 
 /** set up discards: where played cards go when turning over stock */
-export class Discard_Pile extends Pile {
+export class DiscardPile extends Pile {
   canGiveUp(card) {
     return card === this.lastItem
   }
@@ -395,7 +395,7 @@ export class Discard_Pile extends Pile {
     return h("div", { class: "Pile Discards stacked" }, () => spellCore.drawThing(this.lastItem))
   }
 }
-export const discards = new Discard_Pile({ name: "discards", droppable: false })
+export const discards = new DiscardPile({ name: "discards", droppable: false })
 allPiles.append(discards)
 
 /** set up foundation piles: where we build up from ace => king */

@@ -624,7 +624,7 @@ export class JSWriter extends Writer {
     const text = this.tight(thing)
     if (name === "number") return `typeof ${text} === ${this.quoted("number")}`
     if (name === "text") return `typeof ${text} === ${this.quoted("string")}`
-    if (this.project.isClass(name)) return `${text} instanceof ${name}`
+    if (this.project.isClass(name)) return `${text} instanceof ${this.typeNameOf(name)}`
     const kind = this.kindOf(thing)
     return kind && this.project.isClass(kind) ? `${text}.isOfType(${this.quoted(name)})` : undefined
   }
@@ -701,10 +701,10 @@ export class JSWriter extends Writer {
         // already that class, e.g. a `DiscardPile` is a `Pile`:  a copy of its own class (Q36)
         const own = this.kindOf(list)
         const isAlready = !!own && this.project.isSubclassOf(own, second.name)
-        return isAlready ? `${self}.clone()` : `${self}.cloneAs(${second.name})`
+        return isAlready ? `${self}.clone()` : `${self}.cloneAs(${this.typeNameOf(second.name)})`
       }
       case "mergeLists":
-        return second instanceof P.ASTTypeExpression ? `${self}.merged(${second.name})` : undefined
+        return second instanceof P.ASTTypeExpression ? `${self}.merged(${this.typeNameOf(second.name)})` : undefined
     }
     return undefined
   }
@@ -1241,9 +1241,21 @@ export class JSWriter extends Writer {
   ASTObjectLiteralProperty(node: P.ASTObjectLiteralProperty): string {
     const error = node.error ? ` ${this.write(node.error)}` : ""
     const prop = this.write(node.property)
-    if (node.value) return `${prop}: ${this.bare(node.value)}${error}`
+    if (node.value) return `${prop}: ${this.typeNamed(node) ?? this.bare(node.value)}${error}`
     const variable = this.nameOf(node.property.value)
     return variable === prop ? `${prop}${error}` : `${prop}: ${variable}${error}`
+  }
+
+  /**
+   * A type's name in quotes, as we write a type's name (`typeNameOf()`), for a property that names a type:
+   * `type: "Pile"` in a `declareProp()`, `instanceType: "Pile"` in a new list -- `undefined` for any other.
+   * - So a language writing types in its own case, e.g. `pile`, says the same name in both places.
+   */
+  typeNamed(node: P.ASTObjectLiteralProperty): string | undefined {
+    if (!TYPE_NAMING_KEYS.has(node.property.value)) return undefined
+    const value = unwrapped(node.value!)
+    if (!(value instanceof P.ASTStringLiteral) || !this.project.isClass(value.value)) return undefined
+    return this.quoted(this.typeNameOf(value.value))
   }
 
   ////////////////
@@ -1419,7 +1431,7 @@ export class JSWriter extends Writer {
 
   /** What `node` extends, after `extends`, e.g. `Thing`.  A typed target may say more:  see `TSWriter`. */
   superTypeOf(node: P.ASTClassDeclaration): string {
-    return node.superType!.name
+    return this.typeNameOf(node.superType!.name)
   }
 
   /** `new Type()` (empty parens) when it has no `props`, else `new Type(props)`. */
@@ -1840,6 +1852,9 @@ function isSimpleStatement(node: P.ASTNode): boolean {
   if (node instanceof P.ASTAssignmentStatement) return !node.isNewVariable
   return node instanceof P.ASTReturnStatement || node instanceof P.ASTExpression
 }
+
+/** Keys of an object literal whose text value is a type's name -- see `JSWriter.typeNamed()`. */
+const TYPE_NAMING_KEYS = new Set(["type", "instanceType"])
 
 /**
  * How tightly each operator binds, javascript's levels:  higher binds tighter.

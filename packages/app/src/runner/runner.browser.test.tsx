@@ -362,7 +362,7 @@ describe("compiled spell draws with Solid", () => {
       [...host.querySelectorAll<HTMLElement>("ui-item")].find((item) => item.textContent === text)!
     await waitFor(() => titles().length === 3)
     // each object says its class;  a list shows its items (it was `"tasks": {}`)
-    expect(debugJSON()["@type"]).toBe("Todos_App")
+    expect(debugJSON()["@type"]).toBe("TodosApp")
     expect(debugJSON().tasks).toEqual({
       "@type": "List",
       "@items": [

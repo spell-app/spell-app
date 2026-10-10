@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, h } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, h } from "@spell/core"
 
 spellCore.heading("Todo app example")
 /** Todo app example */
@@ -36,13 +36,13 @@ export class Task extends Thing {
   }
 }
 
-export class Todos_App extends App {
+export class TodosApp extends App {
   static { this.declareProp("tasks", { init: () => new List({ instanceType: "Task" }) }) }
   get tasks() { return this.getProp("tasks") }
   set tasks(value) { this.setProp("tasks", value) }
 
   static Filters = ["all", "active", "completed"]
-  static { this.declareProp("filter", { oneOf: Todos_App.Filters }) }
+  static { this.declareProp("filter", { oneOf: TodosApp.Filters }) }
   get filter() { return this.getProp("filter") }
   set filter(value) { this.setProp("filter", value) }
 
@@ -74,7 +74,7 @@ export class Todos_App extends App {
   }
 }
 
-export const app = new Todos_App()
+export const app = new TodosApp()
 app.filter = "all"
 
 export function createANewTask(props = {}) {

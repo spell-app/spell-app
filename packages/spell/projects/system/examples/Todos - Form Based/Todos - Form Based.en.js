@@ -8,7 +8,7 @@ export const words = {
       isComplete: "is complete",
       isActive: "is active"
     },
-    Todos_App: {
+    TodosApp: {
       tasks: "tasks",
       newTaskName: "newTaskName",
       filter: "filter",

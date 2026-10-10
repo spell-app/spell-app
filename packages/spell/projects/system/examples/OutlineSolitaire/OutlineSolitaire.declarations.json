@@ -7,8 +7,8 @@
     "Card",
     "Pile",
     "Game",
-    "Stock_Pile",
-    "Discard_Pile",
+    "StockPile",
+    "DiscardPile",
     "Foundation",
     "Tableau",
     "test_card_setup",
@@ -454,7 +454,7 @@
       "defined": "/Solitaire.spell:6853-8249"
     },
     {
-      "type": "Stock_Pile",
+      "type": "StockPile",
       "superType": "Pile",
       "defined": "/Solitaire.spell:410-432"
     },
@@ -462,7 +462,7 @@
       "syntax": "draw {thisArg:expression}",
       "output": "draw",
       "rule": "method_call",
-      "of": "Stock_Pile",
+      "of": "StockPile",
       "alias": [
         "statement",
         "expression"
@@ -472,7 +472,7 @@
       "defined": "/Solitaire.spell:6548-6745"
     },
     {
-      "type": "Discard_Pile",
+      "type": "DiscardPile",
       "superType": "Pile",
       "defined": "/Solitaire.spell:661-685"
     },
@@ -480,7 +480,7 @@
       "syntax": "draw {thisArg:expression}",
       "output": "draw",
       "rule": "method_call",
-      "of": "Discard_Pile",
+      "of": "DiscardPile",
       "alias": [
         "statement",
         "expression"

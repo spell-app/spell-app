@@ -38,47 +38,47 @@
       ]
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App", line: 8,
+      path: "project:Todos - Form Based/file:todo.spell/type:TodosApp", line: 8,
       super: "type:App",
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/property:tasks", line: 9,
+      path: "project:Todos - Form Based/file:todo.spell/type:TodosApp/property:tasks", line: 9,
       detail: "list of tasks",
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/property:newTaskName", line: 10,
+      path: "project:Todos - Form Based/file:todo.spell/type:TodosApp/property:newTaskName", line: 10,
       detail: "text",
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/property:filter", line: 11,
+      path: "project:Todos - Form Based/file:todo.spell/type:TodosApp/property:filter", line: 11,
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/enumeration:Filters", line: 11,
+      path: "project:Todos - Form Based/file:todo.spell/type:TodosApp/enumeration:Filters", line: 11,
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/constant:all", line: 11,
+      path: "project:Todos - Form Based/file:todo.spell/type:TodosApp/constant:all", line: 11,
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/constant:active", line: 11,
+      path: "project:Todos - Form Based/file:todo.spell/type:TodosApp/constant:active", line: 11,
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/constant:completed", line: 11,
+      path: "project:Todos - Form Based/file:todo.spell/type:TodosApp/constant:completed", line: 11,
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/property:shownTasks", line: [13, 16],
+      path: "project:Todos - Form Based/file:todo.spell/type:TodosApp/property:shownTasks", line: [13, 16],
       detail: "list of tasks",
       section: "Todo app example"
     },
     {
-      path: "project:Todos - Form Based/file:todo.spell/type:Todos_App/method:draw (a todos-app)", line: [34, 69],
+      path: "project:Todos - Form Based/file:todo.spell/type:TodosApp/method:draw (a todos-app)", line: [34, 69],
       section: "Todo app example",
       rules: [
         { name: "draw", syntax: "draw {thisArg:expression}" }
@@ -86,7 +86,7 @@
     },
     {
       path: "project:Todos - Form Based/file:todo.spell/variable:app", line: 18,
-      detail: "Todos_App",
+      detail: "TodosApp",
       section: "Todo app example"
     },
     {

@@ -21,10 +21,13 @@ describe("a writer's naming map", () => {
   }
 
   test("types in snake_case:  no type's PascalCase name is left in the code", () => {
-    // comments say what they like:  only code counts
+    // comments and text say what they like (a heading, a class attribute):  only code counts,
+    // and the text the runtime reads as a type's name, `type: "Card"`
     const code = snakeTyped()
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/\/\/.*$/gm, "")
+      .replace(/(?<!\b(?:type|instanceType):\s*)"[^"\n]*"/g, '""')
+      .replace(/`[^`]*`/g, "``")
     const types = ["Card", "Deck", "Pile", "Game", "StockPile", "DiscardPile", "Foundation", "Tableau"]
     const left = types.flatMap((type) => {
       const lines = code.split("\n").filter((line) => new RegExp(`\\b${type}\\b`).test(line))
@@ -38,7 +41,7 @@ describe("a writer's naming map", () => {
     expect(naming.nameOf("BankAccount", "type")).toBe("BankAccount")
     expect(naming.nameOf("turn_face_up", "method")).toBe("turnFaceUp")
     expect(naming.nameOf("start_pile", "variable")).toBe("startPile")
-    expect(naming.nameOf("is_set_up", "property")).toBe("is_set_up")
+    expect(naming.nameOf("is_set_up", "property")).toBe("isSetUp")
     expect(naming.nameOf("Thing", "type")).toBe("Thing")
   })
 

@@ -34,15 +34,15 @@ shown.start()
 
 /** A program with two named tiles, drawable, and an app whose own drawing a layout replaces. */
 const TILES = `
-import { spellCore, App, Drawable } from "@spell/core"
+import { spellCore, App, Drawable, h } from "@spell/core"
 export class Tile extends Drawable {
   static elementTag = spellCore.defineElement(this, "Layout")
   get name() { return this.getProp('name') }
   set name(value) { this.setProp('name', value) }
-  draw() { return spellCore.element({ tag: "b", props: { className: "tile" }, children: [() => this.name] }) }
+  draw() { return h("b", { class: "tile" }, () => this.name) }
 }
 export class Board extends App {
-  draw() { return spellCore.element({ tag: "p", props: { className: "own-drawing" }, children: ["its own"] }) }
+  draw() { return h("p", { class: "own-drawing" }, "its own") }
 }
 export let t1 = new Tile()
 t1.name = "T1"

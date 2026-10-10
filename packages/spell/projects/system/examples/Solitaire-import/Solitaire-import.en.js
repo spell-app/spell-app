@@ -7,10 +7,10 @@ export const words = {
       state: "state",
       draw: "draw a game"
     },
-    Stock_Pile: {
+    StockPile: {
       draw: "draw a stock-pile"
     },
-    Discard_Pile: {
+    DiscardPile: {
       draw: "draw a discard-pile"
     },
     Foundation: {
