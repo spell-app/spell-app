@@ -821,7 +821,7 @@ pre code {
  *   header (`.at-page`), else (`.at-block`) a line of no height just before the block, its button over the block's
  *   top right corner;  shown while the block is hovered (a section:  its innermost hovered one), when focused, and
  *   always once the block has comments (`data-count`), with the count;  outlined while they all wait for Claude,
- *   solid once he has one (`data-state`), an orange dot while one is Owen's turn (`data-news`)
+ *   solid once he has one (`data-state`), an orange dot while one has a reply he hasn't seen (`data-news`)
  * - every comment's THREAD (`.spell-thread`, in a `.spell-comments` box), under the paragraph holding the quote, else
  *   the block:  one ivory pane that folds;  its header (chevron, bullhorn, the pane's summary, Owen's answer as a
  *   plan doc item's review pills, the trash), then the messages:  his plain on the ivory, Claude's light violet, a
@@ -926,6 +926,24 @@ pre code {
   border-radius: 10px;
   background: var(--spell-rail-bg);
   color: var(--spell-ink);
+}
+/*
+ * a reply from Claude Owen hasn't SEEN (`unseen()`;  Owen, 2026-10-10:  "Make the boxes orange when there's a reply
+ * I haven't seen"):  orange, our colour for "changed since you looked" -- the outline, and the header tinted;  the
+ * rest as ever.  Seen:  he unfolds it, or it's open on screen a moment
+ */
+.spell-doc-main .spell-thread[data-unseen] {
+  border-color: var(--ui-orange, #f2711c);
+}
+.spell-doc-main .spell-thread[data-unseen] > .spell-thread-head {
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--ui-orange, #f2711c) 16%, var(--spell-rail-bg));
+}
+.spell-doc-main .spell-thread[data-unseen][data-open] > .spell-thread-head {
+  border-radius: 9px 9px 0 0;
+}
+.spell-doc-main .spell-thread[data-unseen] .spell-thread-mark {
+  color: var(--ui-orange-text, var(--ui-orange, #f2711c));
 }
 .spell-doc-main .spell-thread-head {
   display: flex;
@@ -1053,11 +1071,27 @@ pre code {
   padding: 2px 6px;
   border: 1px solid transparent;
   border-radius: 6px;
+  /* a step under the page's text (Owen, 2026-10-10:  "Make text in comments smaller");  the times keep theirs */
+  font-size: 0.9em;
   line-height: 1.35;
 }
+/*
+ * every message but the LAST smaller still, and quieter (Owen, 2026-10-10:  "Make font smaller for "not current"
+ * things -- everything other than last message");  the thinking stub and the Done line count as the last
+ */
+.spell-doc-main .spell-thread-msg[data-older] {
+  font-size: 0.8em;
+}
+.spell-doc-main .spell-thread-msg[data-older] > .spell-thread-text {
+  color: color-mix(in srgb, var(--spell-ink) 72%, var(--spell-rail-bg));
+}
+/*
+ * Claude's:  its outline only a faint ring, drawn as a shadow (Owen, 2026-10-10:  "lighten border around your
+ * replies, make it just border-as-shadow");  the border stays, clear, so nothing moves
+ */
 .spell-doc-main .spell-thread-msg:is([data-by="claude"], [data-by="thinking"]) {
-  border-color: color-mix(in srgb, var(--spell-thread-violet) 30%, transparent);
   background: color-mix(in srgb, var(--spell-thread-violet) 9%, var(--spell-bg));
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--spell-thread-violet) 16%, transparent);
 }
 /*
  * Claude THINKING about it (`working`;  Owen, 2026-10-10:  "What does it look like when you're thinking?  You could
@@ -1089,7 +1123,7 @@ pre code {
   }
 }
 .spell-doc-main .spell-thread-msg[data-by="done"] {
-  border-color: color-mix(in srgb, var(--spell-thread-green) 40%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--spell-thread-green) 25%, transparent);
   color: var(--spell-thread-green);
 }
 .spell-doc-main :is(.spell-thread-when, .spell-thread-room) {
@@ -1338,6 +1372,8 @@ pre code {
   background: var(--spell-bg);
   color: var(--spell-ink);
   font: inherit;
+  /* a step under the page's text, as a thread's messages (Owen, 2026-10-10:  "Make text in comments smaller") */
+  font-size: 0.9em;
   line-height: 1.4;
   resize: vertical;
 }
