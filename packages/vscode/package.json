@@ -134,6 +134,53 @@
         "title": "Show Console:  opens (or closes) Developer Tools;  then its Console tab, and the page (127.0.0.1) in the menu at its top left",
         "category": "Spell",
         "icon": "$(debug-console)"
+      },
+      {
+        "command": "spell.docMenu.cut",
+        "title": "Cut",
+        "category": "Spell Docs"
+      },
+      {
+        "command": "spell.docMenu.copy",
+        "title": "Copy",
+        "category": "Spell Docs"
+      },
+      {
+        "command": "spell.docMenu.paste",
+        "title": "Paste",
+        "category": "Spell Docs"
+      },
+      {
+        "command": "spell.docMenu.selectAll",
+        "title": "Select All",
+        "category": "Spell Docs"
+      },
+      {
+        "command": "spell.docMenu.back",
+        "title": "Back",
+        "category": "Spell Docs",
+        "enablement": "webviewId == spell.docView && spell.docView.canGoBack || webviewId == spell.reviewView && spell.reviewView.canGoBack"
+      },
+      {
+        "command": "spell.docMenu.forward",
+        "title": "Forward",
+        "category": "Spell Docs",
+        "enablement": "webviewId == spell.docView && spell.docView.canGoForward || webviewId == spell.reviewView && spell.reviewView.canGoForward"
+      },
+      {
+        "command": "spell.docMenu.reload",
+        "title": "Reload",
+        "category": "Spell Docs"
+      },
+      {
+        "command": "spell.docMenu.openExternal",
+        "title": "Open in Browser",
+        "category": "Spell Docs"
+      },
+      {
+        "command": "spell.docMenu.inspect",
+        "title": "Inspect (Developer Tools)",
+        "category": "Spell Docs"
       }
     ],
     "configuration": {
@@ -269,6 +316,91 @@
           "command": "spell.docView.showConsole",
           "when": "view == spell.docView || view == spell.reviewView",
           "group": "navigation@7"
+        }
+      ],
+      "webview/context": [
+        {
+          "command": "spell.docMenu.cut",
+          "when": "(webviewId == spell.docView || webviewId == spell.reviewView) && spellField && spellSelection",
+          "group": "1_edit@1"
+        },
+        {
+          "command": "spell.docMenu.copy",
+          "when": "(webviewId == spell.docView || webviewId == spell.reviewView) && spellSelection",
+          "group": "1_edit@2"
+        },
+        {
+          "command": "spell.docMenu.paste",
+          "when": "(webviewId == spell.docView || webviewId == spell.reviewView) && spellField",
+          "group": "1_edit@3"
+        },
+        {
+          "command": "spell.docMenu.selectAll",
+          "when": "(webviewId == spell.docView || webviewId == spell.reviewView)",
+          "group": "1_edit@4"
+        },
+        {
+          "command": "spell.docMenu.back",
+          "when": "(webviewId == spell.docView || webviewId == spell.reviewView)",
+          "group": "2_page@1"
+        },
+        {
+          "command": "spell.docMenu.forward",
+          "when": "(webviewId == spell.docView || webviewId == spell.reviewView)",
+          "group": "2_page@2"
+        },
+        {
+          "command": "spell.docMenu.reload",
+          "when": "(webviewId == spell.docView || webviewId == spell.reviewView)",
+          "group": "2_page@3"
+        },
+        {
+          "command": "spell.docMenu.openExternal",
+          "when": "(webviewId == spell.docView || webviewId == spell.reviewView)",
+          "group": "3_open@1"
+        },
+        {
+          "command": "spell.docMenu.inspect",
+          "when": "(webviewId == spell.docView || webviewId == spell.reviewView)",
+          "group": "4_inspect@1"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "spell.docMenu.cut",
+          "when": "false"
+        },
+        {
+          "command": "spell.docMenu.copy",
+          "when": "false"
+        },
+        {
+          "command": "spell.docMenu.paste",
+          "when": "false"
+        },
+        {
+          "command": "spell.docMenu.selectAll",
+          "when": "false"
+        },
+        {
+          "command": "spell.docMenu.back",
+          "when": "false"
+        },
+        {
+          "command": "spell.docMenu.forward",
+          "when": "false"
+        },
+        {
+          "command": "spell.docMenu.reload",
+          "when": "false"
+        },
+        {
+          "command": "spell.docMenu.openExternal",
+          "when": "false"
+        },
+        {
+          "command": "spell.docMenu.inspect",
+          "when": "false"
         }
       ]
     },
