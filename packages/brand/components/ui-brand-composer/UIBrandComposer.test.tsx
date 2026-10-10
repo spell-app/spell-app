@@ -313,6 +313,21 @@ describe("<ui-brand-composer> form", () => {
     expect(new FormData(form).get("spell")).toBe("Habits")
   })
 
+  it("`required`:  fails while nothing (or only blank) is written", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(
+      `<form><ui-brand-composer name="spell" required></ui-brand-composer></form>`
+    )
+    const host = form.querySelector<ComposerDOMElement>("ui-brand-composer")!
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(false)
+    type(host, "   ")
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(false)
+    type(host, "Book club")
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(true)
+  })
+
   it("takes its name from a `<label for>`", async () => {
     const wrapper = await ElementFixture.render(
       `<div><label for="spell">Describe your app</label><ui-brand-composer id="spell"></ui-brand-composer></div>`

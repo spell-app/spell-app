@@ -46,7 +46,7 @@ export class UITreeDiagram extends E.UIComponent<typeof treeDiagramVocabulary> {
    * JSON text of the `<script type="application/json">` child;  `undefined` without one.
    * - Follows the script child as the page changes it.
    */
-  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  @E.watches({ childList: true, characterData: true, subtree: true })
   get scriptText(): string | undefined {
     return isServer ? undefined : TreeData.scriptText(this.domElement)
   }

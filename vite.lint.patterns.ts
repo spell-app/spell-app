@@ -25,7 +25,7 @@ const SOLID_CALLS: Record<string, string> = {
     'a hand-written render effect:  use `@E.onChange("member")` (`{ writesDOMElement: true }` to run on a ' +
     "server too) or an `@E.aria` / `@E.cssState` member",
   onSettled:
-    '`onSettled()`:  use `@E.fromContent` for the light DOM, `@E.onChange("isReady")` for after the first draw, ' +
+    '`onSettled()`:  use `@E.watches` for the light DOM, `@E.onChange("isReady")` for after the first draw, ' +
     "or `E.afterSolidUpdate()`",
   onMount:
     "Solid's `onMount()`:  override the component's own `onMount()` method, or use `@E.onChange` / `@E.whileConnected`"
@@ -52,14 +52,14 @@ const noSolidEffect = defineRule({
   }
 })
 
-/** `new MutationObserver(...)`:  `@E.fromContent` watches the element's own light DOM. */
+/** `new MutationObserver(...)`:  `@E.watches` follows the element's own light DOM. */
 const noMutationObserver = defineRule({
   meta: {
     type: "suggestion",
-    docs: { description: "No hand-made MutationObserver in a component:  `@E.fromContent` watches the light DOM" },
+    docs: { description: "No hand-made MutationObserver in a component:  `@E.watches` follows the light DOM" },
     messages: {
       observer:
-        "a hand-made `MutationObserver`:  use `@E.fromContent({ childList: true, ... })` on a getter or method.  " +
+        "a hand-made `MutationObserver`:  use `@E.watches({ childList: true, ... })` on a getter or method.  " +
         "A watch on ANOTHER element, or one only while connected, stays:  say why"
     }
   },

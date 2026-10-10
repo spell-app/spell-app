@@ -395,6 +395,13 @@
           }
         },
         {
+          "name": "required",
+          "description": {
+            "kind": "markdown",
+            "value": "Form validation:  a colour must be chosen, by the page (`value`) or by picking one.  Unset, it shows `#8E96B5` but counts as no value (`valueMissing`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
           "name": "label",
           "description": {
             "kind": "markdown",
@@ -696,6 +703,13 @@
           "description": {
             "kind": "markdown",
             "value": "Form field name:  the form gets `value`.\n\nTakes:  text"
+          }
+        },
+        {
+          "name": "required",
+          "description": {
+            "kind": "markdown",
+            "value": "Form validation:  something must be written (`valueMissing`), or the form won't submit.\n\nTakes:  flag (present / absent)"
           }
         },
         {

@@ -15422,6 +15422,11 @@
           "description": "Form field name."
         },
         {
+          "name": "required",
+          "kind": "boolean",
+          "description": "Form validation:  a value must be chosen, by the page (`value`, a range's `end`) or by moving a thumb.  Unset, the thumb rests at `min` but counts as no value (`valueMissing`)."
+        },
+        {
           "name": "loading",
           "kind": "boolean",
           "shared": true,
@@ -15482,6 +15487,10 @@
         {
           "name": "dragging",
           "description": "A thumb is being dragged."
+        },
+        {
+          "name": "invalid",
+          "description": "Fails validation (`required`), once a person has interacted."
         },
         {
           "name": "loading",

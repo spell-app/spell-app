@@ -29,8 +29,8 @@ The rules below are its short form.
   MUST be updated in the same change that builds, finishes or defers anything in it.
 - Layout:
   - `../util/` -- `@spell-app/util` (`$/util`), shared with `spell`:
-    `@proto` / `@protoMerged` / `@lazy` / `@once`
-    (`decorators.ts`;  component files say `@E.lazy`, `@E.once`, `E.forget()`),
+    `@proto` / `@protoMerged` / `@lazy` / `@once` / `@resets`
+    (`decorators.ts`;  component files say `@E.lazy`, `@E.once`, `@E.resets`, `E.forget()`),
     `class.ts`, `string.ts` (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`.
     - `src/util/index.ts` (`$/ui/util`) re-exports it, so source keeps saying `from "$/ui/util"`;
       its declarations ship in `dist/_util/`.
@@ -458,6 +458,11 @@ As WWOD §18, plus:
   and Solid follows the reads in JSX and effects.  The decorator says how the member works:
   - `@E.state accessor isOpen = false` -- the element's own state (`{ equals }`, `{ ownedWrite }` when needed).
     Replaces a `Cell` field and its `.get()` / `.set()`.
+    - A value that CHANGES after it's made is `@E.state`, even where nothing reactive reads it yet:
+      the decorator says the intent (`ThemePreference`'s in-memory look, `RootSettings.generation`).
+    - A value made once and kept:  `@E.lazy get x()`, or `@E.once` on a method (a loader's promise).
+    - Handles to things the class started (a timer, an observer, an `AbortController`) stay plain fields
+      (`UIDocsToc.queuedUpdate`, `ControlLabels.labelObserver`):  nobody should watch them.
   - `@E.controlled("open") accessor isOpen = false` -- the DOM element's property when set, else the starting value;
     a write goes to the DOM element's property.
     - A user change:  `this.requestChange("isOpen", next, () => this.send(...))`;  `isControlledByPage("isOpen")`.
@@ -487,25 +492,33 @@ As WWOD §18, plus:
   - `@E.cssState("open")` on a getter or accessor -- `:state(open)` follows it;
     `cssStates()` only for a computed set.  Replaces the old `hostStates()`.
     - A state that only mirrors its attribute, under the same name:
-      `@E.cssStates("loading", "fluid")` on the CLASS, no getter (TypeScript flags a name the class has no member for).
+      its name in `elementSetup.cssStates` (`cssStates: ["active", "fluid"]`), no getter.
+      - A subclass that adds states spreads its base's list:
+        `cssStates: [...TextControl.prototype.elementSetup.cssStates, "inline"]`.
+      - `define()` throws on a name the tag has no attribute or member for (a typo).
+      - Same name as the `cssStates()` hook, another thing:  the hook works out a set in code.
       Keep a getter (with `@E.cssState`) when something else reads it:
       `isDisabled`, a base class's hook (`CheckControl.isIndeterminate`), an effect.
-    - For a state two classes of the chain name, the subclass's member wins.
-  - `@E.aria("ariaBusy")` on a getter or accessor -- the DOM element's `internals.ariaBusy` follows it:
+    - For a state two classes of the chain name, the subclass's member wins;
+      for one a member and `elementSetup.cssStates` both name, the member.
+  - `@E.aria("busy")` on a getter or accessor -- the DOM element's `internals.ariaBusy` follows it:
     `true` => `"true"`, `false` / `undefined` => removed, text as is.
-    - `@E.aria("role")`, `@E.aria("ariaLabel")` ...;
+    - `@E.aria("role")`, `@E.aria("label")` ...;
       stacks with `@E.cssState`, a decorator a line
-      (`@E.cssState("loading")`, `@E.aria("ariaBusy")`, `get isLoading()`).
+      (`@E.cssState("loading")`, `@E.aria("busy")`, `get isLoading()`).
+    - Short names, one spelling wherever ARIA is written:  `E.AriaNames` (`busy: "ariaBusy"`, `aria-busy`)
+      lists the ones in use;  a name not there fails TypeScript, so add it there (one line).
     - One effect per element writes them all;  a server render applies it once.
     - The subclass's member wins here too.
     - ARIA that never changes:
-      `elementSetup.aria` (`{ role: "listitem" }`, `{ role: "status", ariaLive: "polite" }`),
+      `elementSetup.aria` (`{ role: "listitem" }`, `{ role: "status", live: "polite" }`, the same short names),
       set once as the component is built, no effect.  An `@E.aria` member for the same property wins once it runs.
   - `@E.onChange("a", "b") onXChanged(a, b)` -- an effect reading the members, calling the method with their values;
     a function it returns is the cleanup;  `{ writesDOMElement: true }` applies once on a server,
     for a method that writes the DOM element beyond ARIA (`:state()`, `tabindex`).
     - Created in `onMount()`, after every field exists.
     - The method runs untracked:  only the members it names re-run it, so its other reads need no `untrack()`.
+      To re-run on another member, name it;  there is no tracked mode.
     - Runs only when a member's VALUE changed (`===`, member by member):
       a getter member tracks the sources under it, and Solid 2 applies an effect on every re-run of its compute,
       so `startEffects()` puts a memo with `equals` in between.
@@ -522,7 +535,7 @@ As WWOD §18, plus:
     - Sugar over `@E.onChange("isConnected")` for a listener or observer
       on `window`, the document or the light DOM that must stop while the element is out of the page.
     - Never on a server.
-  - `@E.fromContent({ childList: true, subtree: true }) get slotted()` --
+  - `@E.watches({ childList: true, subtree: true }) get slotted()` --
     a member read from the DOM element's light DOM, recomputed when what the options name changes
     (`MutationObserver`'s `childList`, `subtree`, `characterData`, `attributes`, `attributeFilter`;
     `equals` as `@E.derived`'s).
@@ -563,8 +576,8 @@ As WWOD §18, plus:
       every component is BUILT inside `untrack()` (`UIComponent.mount()`, the static render),
       and `render()` runs once, untracked (`UIComponent.onMount()`).
   - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `elementSetup.disabled = "its own"`;
-    `:state(disabled)` comes from `UIComponent` ("Shared states" above), so no `@E.cssStates("disabled")`;
-    ARIA of its own, if any, on a getter (`<ui-segment>`'s `@E.aria("ariaDisabled") get looksDisabled()`).
+    `:state(disabled)` comes from `UIComponent` ("Shared states" above), so no `"disabled"` in `elementSetup.cssStates`;
+    ARIA of its own, if any, on a getter (`<ui-segment>`'s `@E.aria("disabled") get looksDisabled()`).
     Never an `isDisabled` override (the DOM element swallows clicks while `isDisabled`).
   - Element-core files import the decorators directly (`import { state } from "./Reactive"`:
     their class definitions read them);  component files use `@E.state` (and `@E.proto`).
@@ -844,20 +857,22 @@ As WWOD §12, plus:
     superseding "`@proto static` defaults at the TOP".
   - A subclass that only SETS settings (`@proto static vocabulary = ...`) still lists them first, before its members.
   - Per-class settings of the custom element itself are keys of ONE setting, `elementSetup` (type `ElementSetup`),
-    MERGED down the class chain, base class first, by `@protoMerged` (`$/util`, as `E.protoMerged`):
-    style sheets, form control, focus, slots, part, DOM element class, fallback, unstyled first paint,
-    constant ARIA, and what the shared `disabled`, `loading` and `visible` do for it.
+    inherited key by key down the class chain by `@protoMerged` (`$/util`, as `E.protoMerged`):
+    style sheets, the `:state()`s that mirror an attribute, form control, focus, slots, part, DOM element class,
+    fallback, unstyled first paint, constant ARIA, and what the shared `disabled`, `loading` and `visible` do for it.
     A subclass states only the keys it changes:
     ```ts
     @E.protoMerged static elementSetup = { styleSheets: { nag: nagCSS }, DOMElement: DOMNagElement } satisfies Partial<E.ElementSetup>
     ```
-    - `this.elementSetup` (`Class.prototype.elementSetup` from outside) is the merged result;
-      the static `Class.elementSetup` only what that class stated.
+    - Each class's object is chained to its base class's (its prototype):  a key it doesn't state is read from there.
+      ONE object per class, so `Class.elementSetup` and `Class.prototype.elementSetup` are the same.
+      Read keys by name (`this.elementSetup.styleSheets`):
+      a spread or `Object.keys()` of the whole object sees only its own class's keys.
     - A base class that others extend types its own as `Partial<E.ElementSetup>`:
       otherwise a subclass stating other keys fails TypeScript's check of the class's static side.
     - Every other class ends its literal with `satisfies Partial<E.ElementSetup>`:
       a misspelt key fails TypeScript, where an untyped literal would take it silently.
-    - Keys merge one level deep:  a subclass's `styleSheets` REPLACE its base's whole;
+    - Only the top level is chained:  a subclass's `styleSheets` (or `cssStates`, `aria`) REPLACE its base's whole;
       spread the base's to add to them:
       `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
   - `vocabulary` stays a setting of its own.
