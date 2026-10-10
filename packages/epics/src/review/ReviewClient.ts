@@ -22,6 +22,7 @@ import {
   type ReviewAction,
   type ReviewClientOptions,
   type Running,
+  type StartAnswer,
   type WriteOptions
 } from "./review.types"
 import { ServerLink } from "./ServerLink"
@@ -578,6 +579,24 @@ export class ReviewClient {
           : `Sent ${what} to Claude`
     )
     return true
+  }
+
+  /**
+   * "Start a review" (epic `airplane` P12):  ask the page server to type `/epic review <epic>` into the ONE running
+   * Claude session titled for the epic (`POST /api/review/start`);  says what came of it (a notice).
+   * - its answer, or `undefined` when the server couldn't be asked (the notice says why)
+   * - NEVER throws
+   */
+  async startReview(): Promise<StartAnswer | undefined> {
+    try {
+      const answer = (await this.link.post(`${REVIEW_API}/start`, { page: this.options.page })) as StartAnswer
+      this.notify(answer.message)
+      return answer
+    } catch (failure) {
+      const error = (failure as Error).message
+      this.notify(`${error[0]!.toUpperCase()}${error.slice(1)}.`)
+      return undefined
+    }
   }
 
   /**

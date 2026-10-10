@@ -37,6 +37,8 @@
  *    (its work merged, epic `windows-and-review` P6) isn't `<name>`, so reopening takes the ✅ off;  a ✅ still queued
  *    for it is dropped (`dropDoneTitle()`).  That's
  *    what lets the move to a worktree's window find the old tab by its label (`.claude/hooks/handoff.mjs`).
+ * 0. `/epic review <name>`, first:  blocked in a session titled for a DIFFERENT epic (`🚧 <other>`:  epic `airplane`
+ *    P12, Q10 B;  `reviewRefusal()`).  Any other review passes untouched.
  * - SIDE EFFECT:  before either block (and the note), any text after the name is saved to `<prompts>/<name>.md`, and quoted
  *   back in the reason, so it can be copied.  `/epic <name>` / `/isolate <name>` alone picks it up later.
  *   `<prompts>`:  `$SPELL_PROMPTS_DIR`, else `~/.spell/prompts`.  An older file is kept as `<name>.<time>.md`.
@@ -75,6 +77,8 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
  * - SIDE EFFECT:  saves the prompt's text before blocking it (`savePrompt()`)
  */
 export function gate(input, window) {
+  const refused = reviewRefusal(input)
+  if (refused) return { decision: "block", reason: refused }
   const command = parseCommand(input.prompt)
   if (!command) return null
   const { skill, name, text } = command
@@ -109,6 +113,31 @@ export function gate(input, window) {
   return rename(input, `${TITLE_ICONS.active} ${name}`)
 }
 
+
+/**
+ * Why `/epic review <name>` must not run in this session, or `null` (epic `airplane` P12, Q10 B):  a session
+ * titled for a DIFFERENT epic refuses it.
+ * - "titled for an epic":  its title starts with one of `TITLE_ICONS` (`🚧 seo`);  the rest is the epic's name
+ * - an untitled session, or one titled some other way (a main session's own words):  allowed
+ * - `/epic review` alone (this session's own epic) is never refused
+ */
+export function reviewRefusal(input) {
+  const match = /^\s*\/epic\s+review\s+(?:(["'])(.+?)\1|(\S+))/.exec(input.prompt ?? "")
+  if (!match) return null
+  const name = kebab(match[2] ?? match[3])
+  const epic = epicOfTitle(input.session_title)
+  if (!name || !epic || epic === name) return null
+  return `This session is titled for epic \`${epic}\`, not \`${name}\`:  run \`/epic review ${name}\` in ${name}'s own session (or a main one).`
+}
+
+/** The epic session title `title` names (`🚧 seo` -> `seo`), or `null` when it isn't an epic's title. */
+export function epicOfTitle(title) {
+  const text = String(title ?? "").trim()
+  for (const icon of Object.values(TITLE_ICONS)) {
+    if (text.startsWith(icon)) return kebab(text.slice(icon.length)) || null
+  }
+  return null
+}
 
 /**
  * Title the session `title` (`hookSpecificOutput.sessionTitle`), unless it already is;  `null`:  nothing to do.

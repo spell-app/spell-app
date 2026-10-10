@@ -114,7 +114,8 @@ import crumbsCSS from "./Crumbs.css?inline"
  *   - nobody listening:  their tooltips say so (`NOBODY_LISTENING`)
  *   - what a click did goes to the notice line at the window's bottom (`ReviewState`'s)
  * - THE PILL, under the review line, while marks or comments wait and nobody can take them:
- *   no session listening (solid orange, a warning), or airplane mode;  a click copies the review line's command
+ *   no session listening (solid orange, a warning), or airplane mode;  a click copies the review line's command,
+ *   and, out of airplane mode, starts the review in the epic's own session (`ReviewClient.startReview()`)
  * - NEW TODO OR QUESTION (epic `airplane` P2), while reviewed:
  *   - the toolbar's comment-dots button opens the form (an `<epic-new-item open>`) on a row of its own
  *     in the toolbar's sticky bar;  saved or cancelled, it closes (`epic-new-closed`)
@@ -729,7 +730,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   /**
    * The pill under the review line, while marks wait and nobody can take them (`hasPill()`):
    * no Claude session listening (orange), or airplane mode.
-   * - a click copies the review line's command (`/epic review <name>`, `/airplane land`)
+   * - a click copies the review line's command (`/epic review <name>`, `/airplane land`), and, out of airplane
+   *   mode, starts the review in the epic's own session (`copyCommand()`)
    */
   private pill(): JSX.Element {
     return (
@@ -737,7 +739,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         type="button"
         class={[PILL, { airplane: isAirplane(), flash: this.isCopied }]}
         part={this.partForName("pill")}
-        title={this.translationForKey("copyCommand")}
+        title={this.translationForKey(isAirplane() ? "copyCommand" : "startReview")}
         onClick={() => void this.copyCommand()}
       >
         {this.translationForKey(isAirplane() ? "airplanePill" : "nobodyPill")} <code>{this.command()}</code>
@@ -940,9 +942,15 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     return Array.from(this.domElement.querySelectorAll<FilterHost>(SECTIONS))
   }
 
-  /** The review line, clicked:  copy the command, then flash and say so. */
+  /**
+   * The review line or the pill, clicked:  copy the command, then flash and say so.
+   * - nobody listening, not in airplane mode:  start the review too (epic `airplane` P12):  the page server types
+   *   `/epic review <name>` into the session titled for the epic, or says why it didn't (`ReviewClient.startReview()`)
+   */
   @E.untracked
   private async copyCommand() {
+    const client = this.review.client
+    if (client && !client.listening && !isAirplane()) void client.startReview()
     if (!(await EpicPage.copyText(this.command()))) return
     // off first, so a second click flashes again
     this.isCopied = false
