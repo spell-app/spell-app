@@ -16,8 +16,13 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
 - The switch:  `~/.spell/airplane.json`, read by [`AirplaneMode`](packages/server/src/page/AirplaneMode.ts).
   - While it's on, the page server tells every page.
   - Then the review controls say "queued for when you land", instead of "start `/epic review`".
-- Runs from the MAIN checkout:  its page server is the one the side bar uses.
-  In a worktree:  say so in one line, and stop.
+- Works from ANY session, a worktree's too (Owen, 2026-10-10:  "when I land in any session, all should come back
+  online").
+  - Its commands act on the MAIN checkout:  its page server is the one the side bar uses.
+  - So run each `spell dev ...` here from the main checkout's root:
+    `cd "$(dirname "$(git rev-parse --path-format=absolute --git-common-dir)")" && spell dev airplane ...`.
+  - The inboxes, plan docs and pages are shared content:  the same files from every checkout.
+  - Only `/docs-check` (step 3) stays per checkout:  it checks epics merged into `main`, so it runs there too.
 
 ## `/airplane`:  before the flight
 
@@ -82,7 +87,13 @@ Owen is back online.  Gather everything, work through it in the background, then
      answered (his latest words:  the last of its `replies`, `by: "Owen"`).  Those he closed ("that's good",
      "skip it") aren't.
    - Run it FIRST, while the switch is on:  its `since` is when the flight began, which picks the details answers.
-2. `spell dev airplane off`.  Nothing waiting:  say so in one line, and stop.
+2. `spell dev airplane off`.
+2b. Bring every session back online:  `spell dev park list`, each entry still `parked`.
+   - Its session running (`spell dev worktree status <name>`, `running: true`):
+     `SendMessage` to it:  "Run `/unpark <name>` (asked by `/airplane land`)."
+     This session itself:  unpark it here, as [the unpark skill](.claude/skills/unpark/SKILL.md) says, once the rest is done.
+   - Not running:  list it in the reply, with `/session <name>` to reopen it, then `/unpark <name>` there.
+   - Nothing waiting AND nothing parked:  say so in one line, and stop.
 3. Reply at once, short:  the counts by place, and that the work runs in the background now.
 4. Per epic, in the session itself (quick):  `spell dev plan-doc inbox <name> apply --all`.
    - Into the doc go, sent or not (Owen's decision Q3 of `airplane`):
