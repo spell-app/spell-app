@@ -25,7 +25,11 @@ import {
  *   - served by the page server:  they're absolute, and server-only properties (Spell UI, App) turn on
  * - Brand:  the hat mark (`LOGO_MARK`), a link to the docs home (`SITE_HOME`), which lights no tab.
  * - Also shows:
- *   - the page's place:  `Guides › Unified Server` (the property, then `document.title`;  the home:  its title)
+ *   - the page's place:  `Guides › Unified Server` (the property, a link to its home, then `document.title`;  the home:
+ *     its title)
+ *   - narrow (720px or less:  VS Code's side bar, a phone):  those crumbs IN PLACE of the tabs (Owen, 2026-10-10:
+ *     "instead of keeping 'Guides', you could keep the breadcrumb, saves space on smaller screen");  the hat goes
+ *     home, the property's crumb to its home.  The pages' own eyebrow crumbs hide at that width
  *   - the checkout serving it:  `⎇ <worktree or branch>` (served pages only)
  *   - "open in VS Code":  a `vscode://file/...` link to the page's source
  *   - edit mode (pages the page server serves):  hover a section, edit its source in place -- `<spell-section-editor>`
@@ -171,8 +175,15 @@ export class SiteHeader extends HTMLElement {
         : `<span class="tab off" title="only when served:  spell dev server ensure">${escape(property.name)}</span>`
     }).join("")
     const title = document.title.trim()
+    // the property a link to its home, where it can be reached:  narrow, the crumbs stand in for the tabs
+    const home = active && this.href(active)
+    const crumb = active
+      ? home
+        ? `<a class="crumb" href="${escape(home)}">${escape(active.name)}</a>`
+        : `<span class="crumb">${escape(active.name)}</span>`
+      : ""
     const crumbs = active
-      ? `<span class="crumb">${escape(active.name)}</span>${title ? `<span class="sep">›</span><span class="title">${escape(title)}</span>` : ""}`
+      ? `${crumb}${title ? `<span class="sep">›</span><span class="title">${escape(title)}</span>` : ""}`
       : `<span class="title">${escape(title)}</span>`
     const checkout = this.info?.worktree ?? this.info?.branch
     const badge = checkout
@@ -436,11 +447,14 @@ nav { display: flex; gap: 2px; }
 :host([docked]) .tab { padding: 5px 8px; }
 :host([docked]) .tool { width: 26px; height: 26px; }
 :host([docked]) .tool svg { width: 16px; height: 16px; }
+a.crumb:hover { color: light-dark(#3d2a9e, #d9d0ff); text-decoration: underline; }
+/* narrow (VS Code's side bar, a phone):  the crumbs in place of the tabs (Owen, 2026-10-10:  "instead of keeping
+   'Guides', you could keep the breadcrumb, saves space on smaller screen");  the pages' own eyebrow crumbs hide at the
+   same width (spell-doc.css, <epic-page>'s Crumbs.css).  Docked, the tabs stay:  it has no crumbs */
 @media (max-width: 720px) {
-  .crumbs { display: none; }
   header { gap: 6px; padding: 0 8px; }
-  nav { overflow-x: auto; flex: 1; scrollbar-width: none; }
-  .tab { padding: 7px 8px; }
+  :host(:not([docked])) nav { display: none; }
+  .crumbs { padding-inline-start: 4px; }
   .badge { display: none; }
 }
 `
