@@ -22,7 +22,7 @@ import { SP } from "$/spell"
 /**
  * Spell's built-in types, in the order the Type Explorer lists them -- see `SP.BuiltInType`.
  * - TODO:  members still to add:
- *   - `number`'s `absolute value` and `round`:  their rules (`math.ts`) compile to `spellCore` methods
+ *   - `number`'s `absolute value` and `round`:  their rules (`math/`) compile to `spellCore` methods
  *     which don't exist yet
  *   - a `date`'s `month` (javascript counts months from 0)
  *   - a text's `words`
