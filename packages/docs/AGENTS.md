@@ -659,8 +659,10 @@ In `tools/`:
   - A thread's LOOK (the mockup, `pages/details/comment-thread-mock.html`, and Owen's notes on it):
     - ALL ivory, whoever spoke last:  the pane's `--spell-rail-bg`, outline and corners;  no shadow
       ("Make the entire thing ivory").
-    - ORANGE while it has a reply from Claude Owen hasn't seen (`unseen()`;  Owen, 2026-10-10:  "make the
-      background of the entire bullhorn thread + the last claude reply orange").
+    - ORANGE while it's Owen's turn:  Claude spoke last, and he hasn't answered (✓, a reply, ×) (`unseen()`;  Owen,
+      2026-10-10:  "make the background of the entire bullhorn thread + the last claude reply orange", then, on one
+      that went ivory once looked at:  "I was expecting this to be orange, not ivory").
+      Looking at it no longer clears it:  the SEEN rule below only marks the reply read.
       Orange is our colour for "changed since you looked".
       - The whole thread's ground:  `--ui-orange` mixed into the ivory, 13% (22% in the dark, where less reads brown).
       - Claude's latest reply (`data-latest`):  a stronger mix, 30% (40% dark), with a faint orange ring.
