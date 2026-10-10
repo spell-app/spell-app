@@ -297,6 +297,24 @@ describe("ReviewClient writes", () => {
     expect(await client.send()).toBe(false)
     expect(notices).toEqual([`Saved.  ${NOBODY_LISTENING}`, "Sent already:  waiting for Claude"])
   })
+
+  test("a SENT pick Claude takes off the inbox is remembered (`takenPickOf()`) until Owen marks the item again", async () => {
+    const { client, server } = await started()
+    await client.choose("q1", "B", 1)
+    await client.choose("j2", "A")
+    expect(await client.refresh()).toBe(true)
+    // not sent:  gone from the inbox (Owen's other window), nothing taken
+    server.inbox.setMark("j2", null)
+    await client.refresh()
+    expect(client.takenPickOf("j2")).toBeUndefined()
+    await client.send()
+    // `inbox apply` cleared it:  the doc's `chosen` is on its way
+    server.inbox.clearMarks(["q1"])
+    await client.refresh()
+    expect(client.takenPickOf("q1")).toEqual({ pick: "B", choices: 1 })
+    await client.choose("q1", "A", 1)
+    expect(client.takenPickOf("q1")).toBeUndefined()
+  })
 })
 
 // epic `airplane` P2:  new todos and questions from the page

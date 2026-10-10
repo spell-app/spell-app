@@ -18,6 +18,7 @@ import {
   type NewItemInput,
   type NewKind,
   type NowAction,
+  type PickFields,
   type ReviewAction,
   type ReviewClientOptions,
   type Running,
@@ -83,6 +84,14 @@ export class ReviewClient {
 
   /** What's typed in each note box right now:  kept for an element drawn anew (the live update). */
   private readonly typed = new Map<string, string>()
+
+  /**
+   * Picks Claude TOOK:  id -> the pick of a sent mark that left the inbox without Owen (`inbox apply`, `done`,
+   * `clear`), kept until the page reloads or Owen marks the item again (`takenPickOf()`).
+   * - why:  the inbox forgets the mark before the page has the doc's `chosen` (its live update can lag, or wait
+   *   while the view is hidden), and the Choose pill dropped back to "Choose" meanwhile (Owen, 2026-10-10)
+   */
+  private readonly taken = new Map<string, PickFields>()
 
   /** Writes in flight:  a poll's answer can't overwrite what they're about to. */
   private writing = 0
@@ -216,6 +225,14 @@ export class ReviewClient {
   /** Has `mark` gone to Claude? */
   isSent(mark: InboxMark): boolean {
     return isSent(mark, this.inbox.sent)
+  }
+
+  /**
+   * Item `id`'s pick that Claude took off the inbox since the page loaded (`{ pick, choices? }`), if any:
+   * a Choose pill keeps showing it as sent until the doc's `chosen` arrives.
+   */
+  takenPickOf(id: string): PickFields | undefined {
+    return this.taken.get(id)
   }
 
   /** Is a Claude session waiting on the inbox? */
@@ -404,6 +421,8 @@ export class ReviewClient {
 
   /** Mark item `id` (`mark`, or `null` to clear), shown at once, then saved. */
   async save(id: string, mark: MarkInput | null): Promise<boolean> {
+    // Owen marked it again:  what Claude took before is no longer his latest word
+    this.taken.delete(id)
     if (mark) this.inbox.marks[id] = { ...mark, at: new Date().toISOString() }
     else delete this.inbox.marks[id]
     this.changed()
@@ -620,6 +639,18 @@ export class ReviewClient {
     this.changed()
   }
 
+  /**
+   * Show inbox `next` from now on, remembering each pick Claude took on the way (`taken`):
+   * a SENT mark carrying a pick that `next` no longer has.
+   * - a mark `next` has again (Owen's, or a pick taken back into a revisit) drops what was remembered for it
+   */
+  private replaceInbox(next: Inbox) {
+    for (const [id, mark] of Object.entries(this.inbox.marks))
+      if (mark.pick && !next.marks[id] && this.isSent(mark)) this.taken.set(id, pickOf(mark))
+    for (const id of Object.keys(next.marks)) this.taken.delete(id)
+    this.inbox = next
+  }
+
   /** Read the inbox;  true when it answered (a write in flight wins:  its answer is newer). */
   private async load(): Promise<boolean> {
     try {
@@ -627,7 +658,7 @@ export class ReviewClient {
       const response = await this.options.fetch(url, { cache: "no-store" })
       if (!response.ok) return false
       const read = inboxOf(await response.json())
-      if (!this.writing) this.inbox = read
+      if (!this.writing) this.replaceInbox(read)
       return true
     } catch {
       return false
@@ -644,7 +675,7 @@ export class ReviewClient {
     let error = ""
     try {
       const reply = await this.link.post(`${REVIEW_API}/${route}`, { page: this.options.page, ...body }, { keepalive })
-      this.inbox = inboxOf(reply)
+      this.replaceInbox(inboxOf(reply))
       this.changed()
       return true
     } catch (failure) {

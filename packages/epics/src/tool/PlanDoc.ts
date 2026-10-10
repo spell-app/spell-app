@@ -31,6 +31,7 @@ import {
   type CommitOptions,
   type CommitTarget,
   type DecideOptions,
+  type FinishedState,
   type ItemDescription,
   type ItemFacts,
   type ItemKind,
@@ -43,7 +44,8 @@ import {
   type Phase,
   type PhaseFieldValues,
   type PlanMark,
-  type ReviewAs
+  type ReviewAs,
+  type StatusState
 } from "./planDoc.types"
 
 import { IncomingHtml } from "./IncomingHtml"
@@ -738,10 +740,13 @@ export class PlanDoc extends PlanReader {
    *   - anything else (an open caveat, issue or todo;  a closed or answered item):  reviewed
    * - `pick`, from any of the item's card sets (`choices`, by position;  none, its own:  I8):  that set's option
    *   chosen;  a question answered with it (its title the answer), any other item APPROVED with it (as approve);
-   *   reviewed, a Done card `Chose B · <title>` (`pickOption()`)
-   * - `todo`:  a new todo, "Follow up:  <title>", linking back;  the item reviewed
+   *   reviewed, a Noted card `Chose B · <title>:  recorded ...;  waiting for the next phase, P9 · <name>`
+   *   (`pickOption()`)
+   * - `todo`:  a new todo, "Follow up:  <title>", linking back;  the item reviewed;  a Noted card `Made todo T23 ...`
    * - `next`, a todo's plane (Owen, 2026-10-09):  queued into the NEXT phase, the first still to do
-   *   (`queue()`, its work `P10 · <name>`;  none:  "the next phase"), a Done card `Queued for P10 · <name>`
+   *   (`queue()`, its work `P10 · <name>`;  none:  "the next phase"), a Noted card `Queued for P10 · <name>`
+   * - every card `apply` writes is NOTED, never Done (Owen, 2026-10-10):  it records Owen's choice;  nothing is
+   *   built yet
    * - `drop`, a todo's x:  canceled (struck through, grey), "dropped by Owen in review" in the log;  reviewed
    * - `next`, `drop` with a note:  the note kept first, as Owen's reply (`keepNote()`)
    * - `revisit` soon:  left, for Claude to talk over in the chat;  `details`, revisit `now`:  left, an agent's
@@ -801,7 +806,7 @@ export class PlanDoc extends PlanReader {
         const from = { label: item.id.toUpperCase(), link: item.id, what: kind, title: PlanItem.titleOf(item) }
         const todo = this.followUp(from, note)
         this.review(item.id)
-        this.addStatus(item.id, filedTodo(todo), { done: true })
+        this.noteStatus(item.id, filedTodo(todo))
         return { applied: true, did: `to todo ${todo.toUpperCase()}` }
       }
       case "next": {
@@ -810,7 +815,7 @@ export class PlanDoc extends PlanReader {
         if (note) this.keepNote(item.id, { note, action: "next phase", at })
         this.queue(item.id, where)
         const card = phase ? `Queued for ${where}` : `Queued for the next phase:  there's no phase to do yet`
-        this.addStatus(item.id, PlanMarkup.text(card), { done: true })
+        this.noteStatus(item.id, PlanMarkup.text(card))
         return { applied: true, did: `queued for ${where}${phase ? "" : " (no phase to do yet)"}` }
       }
       case "drop": {
@@ -856,7 +861,8 @@ export class PlanDoc extends PlanReader {
    * its text, a reply, More Details.
    * - a question:  answered with it (`answerWith()`)
    * - any other kind:  APPROVED with it (`approve()`:  an open judgement call closed, accepted;  reviewed)
-   * - either way, a Done status card, `Chose B · <title>` (Q19), and the option in the log line
+   * - either way, a Noted status card, `Chose B · <title>:  <what was recorded>;  <what happens next>` (Q19;
+   *   Noted, not Done:  Owen, 2026-10-10), and the option in the log line
    * - left for Claude when the item has no such set, or the set no such option
    */
   private pickOption(
@@ -873,15 +879,41 @@ export class PlanDoc extends PlanReader {
     const where = set.closest(REPLY_TAG) ? " (a reply's options)" : set.closest(MORE_TAG) ? " (More Details')" : ""
     const picked = `picked ${option.letter}:  ${option.title}${where}`
     let did: string
+    let recorded: string
     if (kind === "question") {
       this.answerWith(item, option, choices)
       did = picked
+      recorded = "recorded as the answer"
     } else {
       this.chooseOption(item, option.letter, choices)
-      did = `${picked};  approved:  ${this.approve(item, kind, open)}`
+      const approved = this.approve(item, kind, open)
+      did = `${picked};  approved:  ${approved}`
+      // `closed (accepted)` -> `recorded, the call accepted`;  `closed (passed)` -> `recorded, the test passed`
+      const closed = /\((\w+)\)/.exec(approved)?.[1]
+      recorded = closed ? `recorded, the ${kind === "judgement" ? "call" : kind} ${closed}` : "recorded"
     }
-    this.addStatus(item.id, `Chose ${option.letter} · ${PlanMarkup.text(option.title)}`, { done: true })
+    this.noteStatus(item.id, pickedWords(option, `${recorded};  ${this.nextStepWords()}`))
     return { applied: true, did }
+  }
+
+  /**
+   * Record Owen's pick from a mark Claude finished without applying it
+   * (`inbox done | clear`:  a revisit carrying a pick, "pick B, but ...", talked over or answered by an agent):
+   * that set's `chosen` (`chooseOption()`), so his pick stays marked on the page, and a Noted card.
+   * Returns what it did, for the log;  `undefined` when there was nothing to record.
+   * - only while the set has NO `chosen` yet:  a `decide --option` after the talk had the last word
+   * - never answers or closes the item:  the talk may have changed what happens (Claude's `decide` does that)
+   * - NEVER throws:  an item, set or option gone since leaves nothing to record
+   */
+  keepPick(id: string, { pick, choices }: { pick?: string; choices?: number }): string | undefined {
+    const item = this.findItem(id)
+    const set = item && pick ? PlanItem.choiceSet(item, choices) : null
+    if (!item || !set || set.hasAttribute("chosen")) return undefined
+    const option = PlanItem.optionsIn(set).find((card) => card.letter === pick)
+    if (!option) return undefined
+    this.chooseOption(item, option.letter, choices)
+    this.noteStatus(item.id, pickedWords(option, `recorded after the talk;  ${this.nextStepWords()}`))
+    return `picked ${option.letter}:  ${option.title} (kept from the revisit)`
   }
 
   /**
@@ -1053,23 +1085,27 @@ export class PlanDoc extends PlanReader {
   ////////////////
 
   /**
-   * Claude took Owen's mark on item `id` (or an Overview sub-section, `o3`;  a phase, `p3`;  the summary):  a new status card saying what it took
-   * the task to be (`reading`, HTML);  returns its title (P13).
+   * Claude took Owen's mark on item `id` (or an Overview sub-section, `o3`;  a phase, `p3`;  the summary):
+   * a new status card saying what it took the task to be (`reading`, HTML);  returns its title (P13).
    * - `<epic-status slot="status" state="underway" at="2026-10-08 14:20"><p>reading</p></epic-status>`, after its
    *   other status cards:  a later mark adds a new card, the old ones stay
-   * - `done`:  a card born done (`state="done"`, `at` alone):  a pick or a todo `inbox apply` filed (Q19)
+   * - `state`:
+   *   - `underway` (the default):  Claude is on it
+   *   - `noted`, a card born NOTED (`at` alone):  Claude RECORDED what Owen chose, nothing more
+   *     (a pick, a todo made or queued, a new item made:  `inbox apply`;  `noteStatus()`)
+   *   - `done`, a card born done:  work Claude did, with no underway card first
    * - `reading`:  inline HTML (wrapped in a `<p>`) or blocks (`<p>`, `<ul>` ...);
    *   plain text goes as it is (`&lt;` for a `<`)
    * - slotted, so never ordered (`Markup.place()`):  appended;  drawn under Owen's marked note, above the note box
    * - an item is stamped (`changed`), not flagged UPDATE:  a record of a mark, not a change to the item
    * - throws for an id the doc doesn't have, or a reading with no text
    */
-  addStatus(id: string, reading: string, { done = false }: { done?: boolean } = {}): string {
+  addStatus(id: string, reading: string, { state = "underway" }: { state?: StatusState } = {}): string {
     const host = this.statusHost(id)
     const blocks = this.statusBlocks(reading)
     if (!blocks.length) throw new PlanDocError(`${id.toUpperCase()}:  a status card needs a reading`)
     const at = PlanTime.clockTime(this.now)
-    const card = this.make("epic-status", { state: done ? "done" : "underway", at }, blocks)
+    const card = this.make("epic-status", { state, at }, blocks)
     card.setAttribute("slot", STATUS_SLOT)
     Markup.place(host, card)
     if (host.localName === "epic-item") this.stamp(host)
@@ -1077,26 +1113,55 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Item `id`'s work is done (or an Overview sub-section's):  its LATEST underway status card turns done, stamped
-   * `done-at`, its reading kept;  `summary` (HTML, as `addStatus()`'s reading) goes under it, `slot="summary"`, when
-   * there's something worth saying.  Returns its title.
-   * - throws when it has no underway card:  `addStatus()` first, or `{ done: true }` for a card born done
+   * Item `id`'s work is finished (or an Overview sub-section's ...):  its LATEST underway status card turns
+   * `done` (work was done:  an answer written, code changed, a phase built), or `noted` (Claude only RECORDED what
+   * Owen chose), stamped `done-at`, its reading kept.  Returns its title.
+   * - `summary` (HTML, as `addStatus()`'s reading) goes under the reading, `slot="summary"`,
+   *   when there's something worth saying
+   * - throws when it has no underway card:  `addStatus()` first, or a card born noted (`noteStatus()`)
    */
-  finishStatus(id: string, summary?: string): string {
+  finishStatus(id: string, summary?: string, { state = "done" }: { state?: FinishedState } = {}): string {
     const host = this.statusHost(id)
-    const card = Array.from(host.querySelectorAll(UNDERWAY_CARD)).at(-1)
+    const card = this.underwayCard(host)
     if (!card)
       throw new PlanDocError(
         `${id.toUpperCase()} has no underway status card:  \`status <name> ${id} underway "<reading>"\` first ` +
-          `(or \`done --filed "<what was filed>"\` for a card born done)`
+          `(or \`status <name> ${id} noted "<what was recorded>"\` when you only recorded Owen's choice)`
       )
-    Markup.set<"epic-status">(card, { state: "done", doneAt: PlanTime.clockTime(this.now) })
+    Markup.set<"epic-status">(card, { state, doneAt: PlanTime.clockTime(this.now) })
     for (const block of this.statusBlocks(summary ?? "")) {
       block.setAttribute("slot", SUMMARY_SLOT)
       card.append(block)
     }
     if (host.localName === "epic-item") this.stamp(host)
     return PlanItem.titleOf(host)
+  }
+
+  /**
+   * Claude RECORDED what Owen chose on item `id` (or an Overview sub-section, a phase, the summary):
+   * a Noted card, `what` (HTML, one line) saying what was recorded and what happens next.  Returns its title.
+   * - its latest underway card, if any, turns `noted` (`finishStatus()`), `what` its summary:
+   *   the session took the mark, and recording it was all there was to do
+   * - else a card born noted (`addStatus()`)
+   * - NOT for work done (an answer written, code changed):  that's `finishStatus()`'s Done
+   */
+  noteStatus(id: string, what: string): string {
+    if (this.underwayCard(this.statusHost(id))) return this.finishStatus(id, what, { state: "noted" })
+    return this.addStatus(id, what, { state: "noted" })
+  }
+
+  /**
+   * What happens next to something Owen chose, for a Noted card:
+   * `waiting for the next phase, P9 · Name`;  no phase to do:  `waiting for a phase to take it up`.
+   */
+  nextStepWords(): string {
+    const phase = this.phases.find((each) => each.status === "todo")
+    return phase ? `waiting for the next phase, P${phase.n} · ${phase.name}` : "waiting for a phase to take it up"
+  }
+
+  /** `host`'s latest underway status card, if any. */
+  private underwayCard(host: Element): Element | undefined {
+    return Array.from(host.querySelectorAll(UNDERWAY_CARD)).at(-1)
   }
 
   /**
@@ -1487,7 +1552,7 @@ export class PlanDoc extends PlanReader {
    * A mark on what takes notes but isn't an item
    * (`reviewPart()`:  an Overview sub-section, Q14;  a phase or the summary, epic `airplane` P2):
    * - approve is noted (none of them has review marks:  the log says it)
-   * - todo makes a todo linking back, and a Done status card on it
+   * - todo makes a todo linking back, and a Noted status card on it
    * - pick isn't for them
    * - revisit and details are Claude's, as for an item
    */
@@ -1497,7 +1562,7 @@ export class PlanDoc extends PlanReader {
         return { applied: true, did: "approved" }
       case "todo": {
         const todo = this.followUp(part, note)
-        this.addStatus(part.id, filedTodo(todo), { done: true })
+        this.noteStatus(part.id, filedTodo(todo))
         return { applied: true, did: `to todo ${todo.toUpperCase()}` }
       }
       case "pick":
@@ -1522,7 +1587,7 @@ export class PlanDoc extends PlanReader {
   /**
    * A new todo or question Owen asked for from the page (`{ action: "new", kind, title, note?, near? }`, epic
    * `airplane` P2), made as `plan-doc add` makes one (`addItem()`):  his note its details, a line linking what it's
-   * about (`near`), and a Done status card saying where it came from;  one log line.
+   * about (`near`), and a Noted status card saying where it came from;  one log line.
    * - a mark with no kind or title (a hand edit):  dropped (`gone`), nothing made
    */
   private addFromPage({ id: key, kind, title, note, near, at }: PlanMark): MarkResult {
@@ -1531,7 +1596,7 @@ export class PlanDoc extends PlanReader {
     const details = `${promptHTML(note)}${about}`
     const id = this.addItem(kind, title, { details: details || undefined })
     const written = at ? `, written ${PlanTime.clockTime(new Date(at))}` : ""
-    this.addStatus(id, `Made from the page:  Owen's new ${kind}${written}.`, { done: true })
+    this.noteStatus(id, `Made from the page:  Owen's new ${kind}${written}.`)
     this.log(`${id.toUpperCase()} made from the page:  Owen's new ${kind} (${String(key).toUpperCase()})`)
     return { applied: true, did: `made ${kind} ${id.toUpperCase()}:  ${title}` }
   }
@@ -1610,9 +1675,17 @@ type ReviewPart = {
 /** Tags that stand as blocks in a status card's reading or summary;  anything else is inline, wrapped in a `<p>`. */
 const STATUS_BLOCKS = /^(p|ul|ol|dl|div|blockquote|pre|table)$/
 
-/** A Done card's reading for a todo `inbox apply` filed (Q19):  `Made todo T23 to follow this up.`, linked. */
+/** A Noted card's line for a todo `inbox apply` made (Q19):  `Made todo T23 to follow this up.`, linked. */
 function filedTodo(todo: string): string {
   return `Made todo <a href="#${todo}">${todo.toUpperCase()}</a> to follow this up.`
+}
+
+/**
+ * A Noted card's line for Owen's pick:  `Chose B · Bananas:  <what>`, e.g.
+ * `Chose B · Bananas:  recorded as the answer;  waiting for the next phase, P9 · Build`.
+ */
+function pickedWords(option: OptionCard, what: string): string {
+  return PlanMarkup.text(`Chose ${option.letter} · ${option.title}:  ${what}`)
 }
 
 /** The cards a pick's option set may sit in, for its log line (`PlanDoc.pickOption()`). */

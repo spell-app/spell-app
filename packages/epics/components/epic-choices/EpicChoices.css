@@ -192,6 +192,21 @@
     font: 600 1em / 1.35 var(--ui-font-family-heading, inherit);
     cursor: pointer;
   }
+  /* the chosen option named in the heading, green with its check:  the pick in sight while folded */
+  .chosen-mark {
+    display: inline-flex;
+    gap: 0.35em;
+    align-items: baseline;
+    margin-inline-start: 0.75em;
+    color: var(--ui-green-text, var(--ui-green));
+    font-weight: 600;
+    font-family: var(--ui-font-family, inherit);
+    font-size: 0.9em;
+  }
+  .chosen-mark .check {
+    align-self: center;
+    margin-block: 0;
+  }
   .panels {
     margin: 0 8px 8px;
     overflow: hidden;

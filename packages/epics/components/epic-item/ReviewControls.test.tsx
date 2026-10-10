@@ -403,6 +403,42 @@ describe("<epic-item> review controls", () => {
     expect(approved.shadowRoot!.querySelector("[part~='details'] textarea")).not.toBeNull()
   })
 
+  test("answered, the work still due (Owen, 2026-10-10):  the chip OUTLINED -- green queued, blue Claude on it;  done, solid", async () => {
+    await adoptClient()
+    const queued = await render(
+      `<epic-item id="t4" title="Tidy" status="open" state="open" queued="2026-10-10" work="P9 · Build" review-as="next"></epic-item>`
+    )
+    const onIt = await render(`<epic-item id="j6" title="A call" status="open" state="progress"></epic-item>`)
+    const doneTodo = await render(
+      `<epic-item id="t5" title="Tidied" status="done" state="recent" queued="2026-10-10"></epic-item>`
+    )
+    await settle()
+    const look = (host: Element) => {
+      const chip = host.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!
+      return [chip.dataset.color, chip.dataset.fill, getComputedStyle(chip).backgroundColor === "rgba(0, 0, 0, 0)"]
+    }
+    expect([look(queued), look(onIt), look(doneTodo)]).toEqual([
+      ["green", "outline", true],
+      ["blue", "outline", true],
+      [undefined, undefined, false]
+    ])
+    // its tooltip still says where it stands and what's to do
+    expect(queued.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!.title).toMatch(/to do:  P9 · Build/)
+  })
+
+  test("a pick Claude took off the inbox, the doc's `chosen` not here yet:  the chip stays green, outlined", async () => {
+    routes.inbox.marks.j7 = { action: "pick", pick: "B", at: new Date(Date.now() - 60_000).toISOString() }
+    routes.inbox.sent = new Date().toISOString()
+    const client = await adoptClient()
+    const host = await render(`<epic-item id="j7" title="A call" status="open" state="attention"></epic-item>`)
+    await settle()
+    delete routes.inbox.marks.j7
+    await client.refresh()
+    await settle()
+    const chip = host.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!
+    expect([chip.dataset.color, chip.dataset.fill]).toEqual(["green", "outline"])
+  })
+
   test("a marked note shows ABOVE the note box, last in the details;  Claude's status cards between them (P13)", async () => {
     routes.inbox.marks.q3 = { action: "revisit", when: "soon", note: "why B?", at: new Date().toISOString() }
     await adoptClient()
