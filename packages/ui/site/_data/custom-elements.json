@@ -242,6 +242,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -446,6 +450,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -608,6 +616,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -784,6 +796,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -1204,6 +1220,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -1666,6 +1686,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -1754,6 +1778,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -2207,6 +2235,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -2607,6 +2639,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -2919,6 +2955,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -3188,6 +3228,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -3587,6 +3631,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -3849,6 +3897,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -4057,6 +4109,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -4241,6 +4297,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -4360,6 +4420,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -4531,6 +4595,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -4811,6 +4879,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -4923,12 +4995,12 @@
               "fieldName": "vertical"
             },
             {
-              "name": "hidden",
-              "description": "The spacing without the line.  Fomantic's own vocabulary word;  the JS property is `dividerHidden` so it doesn't shadow `HTMLElement.hidden` -- `UIDivider.css` overrides the UA `[hidden] { display: none }` so the host keeps contributing its margin.",
+              "name": "spacer",
+              "description": "The spacing without the line (Fomantic's `hidden` divider:  the class word stays `hidden`).  Renamed because `hidden` hides every element, as the platform's does.",
               "type": {
                 "text": "boolean"
               },
-              "fieldName": "dividerHidden"
+              "fieldName": "spacer"
             },
             {
               "name": "fitted",
@@ -5049,6 +5121,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -5625,6 +5701,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -6071,6 +6151,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -6240,6 +6324,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -6443,6 +6531,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -6580,6 +6672,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -6771,6 +6867,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -7047,6 +7147,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -7294,6 +7398,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -7447,6 +7555,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -7662,6 +7774,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -7980,6 +8096,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -8201,6 +8321,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -8463,6 +8587,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -8705,6 +8833,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -8944,6 +9076,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -9196,6 +9332,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -9437,6 +9577,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -9654,6 +9798,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -10030,6 +10178,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -10435,6 +10587,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -10687,6 +10843,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -10852,6 +11012,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -11244,6 +11408,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -11652,6 +11820,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -11905,6 +12077,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -12367,6 +12543,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -12685,6 +12865,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -13155,6 +13339,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -13774,6 +13962,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -14138,6 +14330,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -14516,6 +14712,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -15048,6 +15248,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -15227,6 +15431,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -15332,6 +15540,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -15447,6 +15659,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -15628,6 +15844,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -15721,6 +15941,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -15838,6 +16062,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -15931,6 +16159,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -16034,6 +16266,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -16269,6 +16505,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -16530,6 +16770,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -16615,6 +16859,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -16720,6 +16968,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -16817,6 +17069,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -17138,6 +17394,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -17322,6 +17582,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -17416,6 +17680,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -17502,6 +17770,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -17583,6 +17855,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -17923,6 +18199,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -18297,6 +18577,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -18561,6 +18845,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -18782,6 +19070,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -18906,12 +19198,12 @@
               "fieldName": "instant"
             },
             {
-              "name": "visible",
-              "description": "Content overflowing the box stays visible (no clipping).",
+              "name": "unclipped",
+              "description": "Content overflowing the box stays visible, not clipped (Fomantic's `visible` reveal:  the class word stays `visible`).  Renamed because `visible` shows or hides every element.",
               "type": {
                 "text": "boolean"
               },
-              "fieldName": "visible"
+              "fieldName": "unclipped"
             },
             {
               "name": "active",
@@ -18936,6 +19228,14 @@
                 "text": "boolean"
               },
               "fieldName": "loading"
+            },
+            {
+              "name": "visible",
+              "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "visible"
             },
             {
               "name": "animation",
@@ -19000,6 +19300,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -19261,6 +19565,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -19690,6 +19998,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -20287,6 +20599,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -20575,6 +20891,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -20882,6 +21202,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -21209,6 +21533,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -21467,6 +21795,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -21779,6 +22111,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -21908,6 +22244,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -22035,6 +22375,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -22122,6 +22466,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -22178,14 +22526,6 @@
               "fieldName": "blurring"
             },
             {
-              "name": "visible",
-              "description": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.",
-              "type": {
-                "text": "boolean"
-              },
-              "fieldName": "visible"
-            },
-            {
               "name": "persistent",
               "description": "Part of the page, not a modal:  an `<aside>` landmark;  the page beside it is neither dimmed nor inert, focus doesn't move, and nothing but `visible` hides it.",
               "type": {
@@ -22217,6 +22557,14 @@
                 "text": "boolean"
               },
               "fieldName": "loading"
+            },
+            {
+              "name": "visible",
+              "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "visible"
             },
             {
               "name": "animation",
@@ -22276,10 +22624,6 @@
               "description": "Always:  its `<ui-pushable>` finds it by this."
             },
             {
-              "name": "visible",
-              "description": "Shown."
-            },
-            {
               "name": "disabled",
               "description": "`disabled` is set (or, on a form control, a `<fieldset disabled>` around it)."
             },
@@ -22298,6 +22642,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -22687,6 +23035,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -22983,6 +23335,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -23165,6 +23521,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -23392,6 +23752,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -23741,6 +24105,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -23911,6 +24279,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -24119,6 +24491,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -24380,6 +24756,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -24774,6 +25154,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -25148,6 +25532,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -25492,6 +25880,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -25641,29 +26033,12 @@
           "description": "A transition is an animation used to show or hide content, or to draw attention to it.\n\nAlso known as:  animate, fade, slide, motion, effect.",
           "attributes": [
             {
-              "name": "animation",
-              "description": "Animation for showing / hiding (Fomantic's names:  `fade up`, `scale`, `horizontal flip` ...);  an attention one (`shake`, `pulse` ...) shows / hides at once, and runs through `transition()`.",
-              "type": {
-                "text": "\"fade\" | \"fade up\" | \"fade down\" | \"fade left\" | \"fade right\" | \"scale\" | \"zoom\" | \"drop\" | \"browse\" | \"browse right\" | \"fly\" | \"fly up\" | \"fly down\" | \"fly left\" | \"fly right\" | \"slide\" | \"slide up\" | \"slide down\" | \"slide left\" | \"slide right\" | \"swing\" | \"swing up\" | \"swing down\" | \"swing left\" | \"swing right\" | \"horizontal flip\" | \"vertical flip\" | \"flash\" | \"shake\" | \"bounce\" | \"tada\" | \"pulse\" | \"jiggle\" | \"glow\""
-              },
-              "default": "\"fade\"",
-              "fieldName": "animation"
-            },
-            {
               "name": "duration",
               "description": "Length of each animation:  ms (`300`) or a CSS time (`0.3s`);  default the animation's own.",
               "type": {
                 "text": "string"
               },
               "fieldName": "duration"
-            },
-            {
-              "name": "visible",
-              "description": "Shown.  Changing it animates in / out;  absent => hidden (its content is out of the page and the accessibility tree).",
-              "type": {
-                "text": "boolean"
-              },
-              "fieldName": "visible"
             },
             {
               "name": "interrupt",
@@ -25736,6 +26111,22 @@
                 "text": "boolean"
               },
               "fieldName": "loading"
+            },
+            {
+              "name": "visible",
+              "description": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "visible"
+            },
+            {
+              "name": "animation",
+              "description": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on.",
+              "type": {
+                "text": "\"fade\" | \"fade up\" | \"fade down\" | \"fade left\" | \"fade right\" | \"scale\" | \"zoom\" | \"drop\" | \"browse\" | \"browse right\" | \"fly\" | \"fly up\" | \"fly down\" | \"fly left\" | \"fly right\" | \"slide\" | \"slide up\" | \"slide down\" | \"slide left\" | \"slide right\" | \"swing\" | \"swing up\" | \"swing down\" | \"swing left\" | \"swing right\" | \"horizontal flip\" | \"vertical flip\" | \"flash\" | \"shake\" | \"bounce\" | \"tada\" | \"pulse\" | \"jiggle\" | \"glow\" | \"none\""
+              },
+              "fieldName": "animation"
             }
           ],
           "members": [],
@@ -25776,10 +26167,6 @@
           ],
           "cssStates": [
             {
-              "name": "visible",
-              "description": "Shown, or animating in."
-            },
-            {
               "name": "animating",
               "description": "An animation is running."
             },
@@ -25802,6 +26189,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
@@ -25936,6 +26327,10 @@
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
             },
             {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
+            },
+            {
               "name": "hiding",
               "description": "Animating out:  `hidden` is already set, and the element stays on screen until it ends."
             }
@@ -26060,15 +26455,6 @@
                 "text": "\"image\""
               },
               "fieldName": "type"
-            },
-            {
-              "name": "transition",
-              "description": "`type=\"image\"`:  animation once loaded, a `UI.transitions` name;  `none` for none.",
-              "type": {
-                "text": "string"
-              },
-              "default": "\"fade\"",
-              "fieldName": "transition"
             },
             {
               "name": "duration",
@@ -26207,6 +26593,10 @@
             {
               "name": "hidden",
               "description": "Hidden (`hidden`, or `visible=\"false\"`), once its animation has run."
+            },
+            {
+              "name": "still",
+              "description": "`animation=\"none\"`:  no motion here, nor anywhere inside it (`--ui-motion: none`)."
             },
             {
               "name": "hiding",
