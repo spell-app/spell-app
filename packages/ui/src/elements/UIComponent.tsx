@@ -15,9 +15,11 @@ import { insert, isServer, type JSX } from "@solidjs/web"
 // Import directly to avoid circular import
 import { protoMerged } from "$/ui/util"
 import { E, UI, UIT } from "$/ui/core"
+// Import directly to avoid circular import:  `elementSetup`'s initializer reads it
+import { DEFAULT_ANIMATION } from "$/ui/components/components.types"
 // Import directly to avoid circular import
 import { DOMElement, type TagSetup } from "./DOMElement"
-import { cssState, on, onChange, state, untracked } from "./Reactive"
+import { controlled, cssState, on, onChange, state, untracked } from "./Reactive"
 // a leaf of its own (Solid only, no `ui` imports), not part of `E`
 import { ShadowEvents } from "./ShadowEvents"
 
@@ -317,7 +319,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     aria: {},
     disabled: "unusable",
     loading: "loader",
-    visibleAnimation: "fade"
+    visible: "shown",
+    animation: DEFAULT_ANIMATION
   }
 
   ////////////////
@@ -462,15 +465,15 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   ////////////////
-  // ## Shared states:  disabled, loading, visible
+  // ## Shared states:  disabled, loading
   //
-  // Every element takes `disabled`, `loading` and `visible`, though its vocabulary may not name them
-  // (`SharedVocabulary`), and the platform's own `hidden` and `inert`:
+  // Every element takes `disabled` and `loading`, though its vocabulary may not name them
+  // (`SharedVocabulary`), and the platform's own `inert`:
   // - `disabled`:  `:state(disabled)` always;  the rest per family (`elementSetup.disabled`):
   //   by default unusable, with everything inside inert
   // - `loading`:  `:state(loading)` always;  by default a loader over it (`elementSetup.loading`)
-  // - `visible="false"`:  hides it with an animation (`elementSetup.visibleAnimation`), then `:state(hidden)`
-  // - `hidden` hides at once (`reset.css`, which every shadow root adopts);  `inert` is the platform's, unstyled
+  // - `inert` is the platform's, unstyled
+  // - `visible`, `hidden` and `animation`:  "Shown or hidden", below
   ////////////////
 
   /**
@@ -538,30 +541,23 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * A shared state changed (ONE effect for all of them, as every element has it):
-   * - disabled or loading:  ARIA on the DOM element, its content inert or not,
+   * - ARIA on the DOM element, its content inert or not,
    *   and focus inside moves on to the next focusable element.
-   *   - ARIA only where the base class owns that state:
-   *     a family with a disabled or loading of its own sets its own.
-   * - `visible`:  animate the element out (then `:state(hidden)`) or back in.
-   *   At once, with no animation, before the element first draws:  `<ui-message visible="false">` starts hidden.
+   * - ARIA only where the base class owns that state:
+   *   a family with a disabled or loading of its own sets its own.
    * - On a server:  the ARIA only, once.
    */
-  @onChange("hasInertContent", "isDisabled", "showsLoader", "wantsVisible", "isReady", { writesDOMElement: true })
+  @onChange("hasInertContent", "isDisabled", "showsLoader", "isReady", { writesDOMElement: true })
   protected onSharedStatesChanged(
     hasInertContent: boolean,
     isDisabled: boolean,
     showsLoader: boolean,
-    wantsVisible: boolean,
     isReady: boolean
   ) {
     const { domElement, elementSetup, internalState } = this
     if (elementSetup.disabled === "unusable") domElement.internals.ariaDisabled = isDisabled ? "true" : null
     if (elementSetup.loading === "loader") domElement.internals.ariaBusy = showsLoader ? "true" : null
-    if (isServer) return
-    const wasVisible = internalState.wasVisible
-    internalState.wasVisible = wantsVisible
-    if (!isReady) return
-    if (wasVisible !== undefined && wasVisible !== wantsVisible) void this.animateVisible(wantsVisible)
+    if (isServer || !isReady) return
     // never touch the content of an element that was never inert:  most never are
     if (!hasInertContent && !internalState.hadInertContent) return
     internalState.hadInertContent = hasInertContent
@@ -569,44 +565,127 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     for (const child of domElement.renderRoot.children) (child as HTMLElement).inert = hasInertContent
   }
 
-  /**
-   * Is `visible` asking for the element to show?
-   * - `visible="false"` says no;  absent, bare or `"true"` say yes.
-   * - Always yes where the family's vocabulary has a `visible` of its own (`<ui-sidebar>` starts hidden):
-   *   it handles that itself.
-   */
-  get wantsVisible(): boolean {
-    return !this.elementDefinition.takesShared("visible") || E.Reactive.attributeValue(this, "visible") !== false
-  }
+  ////////////////
+  // ## Shown or hidden:  visible, hidden, animation
+  //
+  // `visible` and the platform's `hidden` are ONE fact, opposites;  the DOM element keeps the two names in step
+  // (`DOMElement`, "Shown or hidden"), and this class runs each change:
+  // - `isVisible` is the fact, controlled;  `elementSetup.visible` what it is when the page writes neither name
+  // - a change runs `onVisibleChange()` with `animationToRun`:  by default on the shadow root's top-level boxes;
+  //   a family overrides it to show and hide its own way (a dialog's `showModal()` / `close()`)
+  // - while a hide runs, `:state(hiding)` keeps the element on screen (`reset.css`);  `:state(hidden)` once it ends
+  // - at once before the element first draws, and wherever motion is off (`animation="none"`, reduced motion)
+  ////////////////
 
   /**
-   * Hidden by `visible="false"`, once its animation has run.
-   * - `:state(hidden)`, which `reset.css` hides (`display: none`, as the platform's `hidden`).
+   * Is the element shown?  `el.visible`, which is always `!el.hidden`.
+   * - Controlled:  `this.isVisible = false` hides it, as `el.visible = false` or `el.hidden = true` do.
+   * - A person's action asks first, with an event the page may cancel:
+   *   `this.requestChange("isVisible", false, () => this.send("ui-close", { visible: false }))`.
+   * - What it is when the page writes neither name:  `elementSetup.visible`.
+   */
+  @controlled("visible")
+  accessor isVisible = true
+
+  /**
+   * Hidden, once its animation has run:  `:state(hidden)`.
+   * - What hides it is the `hidden` attribute (`reset.css`):  this state is for a family's own CSS
+   *   (`:host(:not(:state(hidden)))`, "shown or on its way out").
    */
   @cssState("hidden")
-  get isHiddenByVisible(): boolean {
-    return !this.wantsVisible && !this.isHiding
+  get isHidden(): boolean {
+    return !this.isVisible && !this.isHiding
   }
 
-  /** Is `visible="false"`'s animation running right now?  The element stays in the page until it ends. */
-  @state private accessor isHiding = false
+  /**
+   * Is a hide running right now?  `:state(hiding)`:
+   * the `hidden` attribute is already set, and `reset.css` keeps the element on screen until it ends.
+   */
+  @cssState("hiding")
+  @state
+  accessor isHiding = false
 
   /**
-   * Run `elementSetup.visibleAnimation` in or out (`UI.transitions`), on the boxes in the shadow root.
-   * - Why not the element:  most `ui-*` DOM elements are `display: contents`, with no box of their own to animate.
-   * - `isHiding` while it runs out;  a later run (back in, or out again) takes over.
-   * - NEVER throws:  an animation that can't run just ends.
+   * The animation `visible` / `hidden` run right now:  the first of these that applies.
+   * 1. `"none"` when motion is off:  the element's own `animation="none"`;  `none` from around it
+   *    (`--ui-motion: none`, which `<ui-root animation="none">`, any element's `animation="none"` or a page's CSS sets);
+   *    or the person's reduced-motion setting.  So an element inside can't turn motion back on.
+   * 2. the element's own `animation` (`<ui-modal animation="fly down">`, `el.animation = "scale"`)
+   * 3. its family's default, `elementSetup.animation`, which is `"fade"` unless the family says otherwise
+   * - Untracked:  read as a change runs, never followed.
    */
-  private async animateVisible(show: boolean) {
+  @untracked
+  get animationToRun(): UIT.Animation {
+    const own = E.Reactive.attributeValue(this, "animation") as UIT.Animation | undefined
+    if (own === UIT.NO_ANIMATION || this.isMotionOff) return UIT.NO_ANIMATION
+    return own ?? this.elementSetup.animation
+  }
+
+  /**
+   * Is motion off around the element:  `--ui-motion: none` reaching it, or the person's reduced-motion setting?
+   * - Read from the element's computed style:  custom properties pass into shadow roots, so every element below sees it.
+   */
+  private get isMotionOff(): boolean {
+    if (UI.browser.isReducedMotion) return true
+    const { domElement } = this
+    if (!domElement.isConnected) return false
+    return getComputedStyle(domElement).getPropertyValue(UIT.MOTION_PROPERTY).trim() === UIT.NO_ANIMATION
+  }
+
+  /**
+   * Hook:  show or hide what the element draws, as `visible` changes;  resolves once it's done.
+   * - `animation`:  the one to run (Fomantic's name, `"fade up"`), or `"none"`:  at once.
+   *   - `"none"` when the element first draws, so nothing animates in as a page loads;
+   *     and wherever motion is off (`animationToRun`).
+   *   - An attention animation (`shake`) shows and hides at once too.
+   * - While a hide runs, the element stays on screen (`:state(hiding)`);  it's hidden once the promise settles.
+   * - Default:  `animation` in or out on the boxes at the top of the shadow root, through `UI.transitions`.
+   *   - Why not the element:  most `ui-*` DOM elements are `display: contents`, with no box of their own.
+   *   - An element whose shadow root is only a `<slot>` shows and hides at once.
+   * - Override it to show and hide your own way (a dialog's `showModal()` / `close()`);
+   *   called once the element first draws, then on each change.
+   *   A later change may start before this one ends:  check `isVisible` before acting late.
+   * - MUST NOT throw:  a throw is logged, and the change just ends.
+   */
+  protected async onVisibleChange(visible: boolean, animation: UIT.Animation): Promise<void> {
+    const boxes = [...this.domElement.renderRoot.children].filter((child) => child.localName !== "slot")
+    if (animation === UIT.NO_ANIMATION || UIT.AnimationLookup.isAttention(animation)) {
+      // at once:  a box an earlier hide animated out shows again
+      if (visible) for (const box of boxes) UI.transitions.reveal(box as HTMLElement)
+      return
+    }
+    const name = UIT.AnimationLookup.runtimeNameFor(animation)
+    const direction = visible ? UIT.IN : UIT.OUT
+    await Promise.all(boxes.map((box) => UI.transitions.animate({ element: box as HTMLElement, name, direction })))
+  }
+
+  /**
+   * `visible` changed, or the element first drew:  run `onVisibleChange()`.
+   * - The first time (once `isReady`) with `"none"`;  then with `animationToRun`.
+   */
+  @onChange("isVisible", "isReady")
+  protected onVisibleOrReadyChanged(isVisible: boolean, isReady: boolean) {
+    if (!isReady) return
+    const { internalState } = this
+    const isFirst = internalState.wasVisible === undefined
+    if (!isFirst && internalState.wasVisible === isVisible) return
+    internalState.wasVisible = isVisible
+    void this.runVisibleChange(isVisible, isFirst ? UIT.NO_ANIMATION : this.animationToRun)
+  }
+
+  /**
+   * Run `onVisibleChange()`, with `:state(hiding)` on while a hide animates;  a later run takes over.
+   * - NEVER throws:  a hook that throws is logged, and the change ends.
+   */
+  private async runVisibleChange(visible: boolean, animation: UIT.Animation) {
     const { internalState } = this
     const run = (internalState.visibleRun = (internalState.visibleRun ?? 0) + 1)
-    const boxes = [...this.domElement.renderRoot.children].filter((child) => child.localName !== "slot")
-    this.isHiding = !show
-    const name = this.elementSetup.visibleAnimation
-    const direction = show ? UIT.IN : UIT.OUT
-    await Promise.all(
-      boxes.map((element) => UI.transitions.animate({ element: element as HTMLElement, name, direction }))
-    ).catch(() => undefined)
+    this.isHiding = !visible && animation !== UIT.NO_ANIMATION
+    try {
+      await this.onVisibleChange(visible, animation)
+    } catch (error) {
+      E.Warnings.warn(`<${this.domElement.localName}>.onVisibleChange()`, "failed;  the change ends here", error)
+    }
     if (internalState.visibleRun === run) this.isHiding = false
   }
 
@@ -940,11 +1019,12 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * its definition, shadow root options, whether it's a form control, and how to build its component.
    */
   static tagSetupFor(Class: E.UIComponentClass, definition: E.ElementDefinition): TagSetup {
-    const { delegatesFocus, slotAssignment, isAFormControl, Fallback } = Class.prototype.elementSetup
+    const { delegatesFocus, slotAssignment, isAFormControl, Fallback, visible } = Class.prototype.elementSetup
     return {
       elementDefinition: definition,
       shadowRootInit: { mode: "open", delegatesFocus, slotAssignment },
       isAFormControl,
+      visible,
       mountComponent: (domElement) => UIComponent.mount(Class, definition, domElement, Fallback)
     }
   }
@@ -1028,8 +1108,8 @@ type InternalState = {
   listeners?: AbortController
   /** its content has been inert (disabled or loading) since it drew:  only then is it touched again */
   hadInertContent?: boolean
-  /** `wantsVisible` as the shared states' effect last saw it;  `undefined` before its first run */
+  /** `isVisible` as `onVisibleChange()` last ran with it;  `undefined` before the element first drew */
   wasVisible?: boolean
-  /** counts `animateVisible()` runs, so only the latest ends the hiding */
+  /** counts `onVisibleChange()` runs, so only the latest ends the hiding */
   visibleRun?: number
 }

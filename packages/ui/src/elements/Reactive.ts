@@ -274,7 +274,7 @@ export class Reactive {
    */
   static requestChange(component: ComponentShape, member: string, next: unknown, announce: () => boolean): boolean {
     const { key } = Reactive.controlledAttribute(component, member)
-    const writes = Reactive.recordOf(component).propertyWrites!
+    const writes = watchPropertyWrites(Reactive.recordOf(component), component)
     const before = writes[key] ?? 0
     if (!announce() || (writes[key] ?? 0) !== before) return false
     ;(component as unknown as Record<string, unknown>)[member] = next
@@ -402,16 +402,23 @@ export function controlled(attribute: string) {
         const record = Reactive.recordOf(this)
         record.values[member] = initial
         ;(record.controlled ??= {})[member] = attribute
-        if (!record.propertyWrites) {
-          const writes: Record<string, number> = (record.propertyWrites = {})
-          this.domElement.addPropertyChangedCallback((key: string) => {
-            writes[key] = (writes[key] ?? 0) + 1
-          })
-        }
+        // a BASE class's field starts before its constructor sets `domElement` (`UIComponent.isVisible`):
+        // then `requestChange()` starts the count
+        if (this.domElement) watchPropertyWrites(record, this)
         return initial
       }
     }
   }
+}
+
+/** Count the DOM element's property writes, by key, for `requestChange()`;  once per record.  Returns the counts. */
+function watchPropertyWrites(record: ReactiveRecord, component: ComponentShape): Record<string, number> {
+  if (record.propertyWrites) return record.propertyWrites
+  const writes: Record<string, number> = (record.propertyWrites = {})
+  component.domElement.addPropertyChangedCallback((key: string) => {
+    writes[key] = (writes[key] ?? 0) + 1
+  })
+  return writes
 }
 
 /**

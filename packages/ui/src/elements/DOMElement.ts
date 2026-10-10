@@ -86,6 +86,7 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
       for (const attribute of definition.attributes) {
         this.attributeValues[attribute.key] = definition.startingValue(attribute)
       }
+      if (this.visibleAttribute) this.attributeValues[VISIBLE] = this.isVisibleInMarkup
       this.captureUpgradeValues(definition)
     }
     // capture on the DOM element itself, so a disabled element swallows clicks before page listeners on it run
@@ -105,6 +106,7 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
    * - NEVER writes default values to attributes:  a bare element grows no attributes, as a native one doesn't.
    */
   connectedCallback() {
+    this.settleVisible()
     this.restoreUpgradeValues()
     const { connectedState } = this
     if (!connectedState.isMounted) {
@@ -157,14 +159,14 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
    */
   attributeChangedCallback(name: string, _old: string | null, text: string | null) {
     const definition = this.tagSetup?.elementDefinition
+    const { connectedState } = this
+    if (connectedState.reflecting === name) return
+    const visibleAttribute = this.visibleAttribute
     const attribute = definition?.attributeNamed(name)
-    if (
-      !attribute ||
-      this.connectedState.reflecting === name ||
-      this.connectedState.upgradeValues?.has(attribute.property)
-    ) {
-      return
-    }
+    // a vocabulary's own `hidden` (none ships one) keeps its meaning
+    if (visibleAttribute && name === "hidden" && !attribute) return this.onHiddenAttributeChanged(text)
+    if (!attribute || connectedState.upgradeValues?.has(attribute.property)) return
+    if (attribute === visibleAttribute) return this.onVisibleAttributeChanged(text)
     this.setValue(attribute, definition.convert(attribute, text), "attribute")
   }
 
@@ -179,22 +181,33 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
    * - Callbacks run on every write, equal or not:  setting the same value again is still a decision.
    */
   private setValue(attribute: E.ResolvedAttribute, value: unknown, source: ValueSource) {
+    // `el.visible = x` writes `hidden` instead ("Shown or hidden")
+    if (source === "property" && attribute === this.visibleAttribute) return this.writeVisible(value === true)
+    if (source === "property" && attribute.reflect) this.reflectAttribute(attribute, value)
+    this.storeValue(attribute, value, source)
+  }
+
+  /** Store `value` for `attribute` (no reflection), then call the change callbacks. */
+  private storeValue(attribute: E.ResolvedAttribute, value: unknown, source: ValueSource) {
     const old = this.attributeValues[attribute.key]
     this.attributeValues[attribute.key] = value
     if (import.meta.hot) DOMElement.hotReloadHooks?.valueSet(this, attribute.key, source)
-    if (source === "property" && attribute.reflect) this.reflectAttribute(attribute, value)
     for (const callback of this.connectedState.propertyChangedCallbacks.slice()) {
       callback(attribute.key, value, old, source)
     }
   }
 
+  /** Write `value` to `attribute`'s attribute;  nothing when the text is already there. */
+  private reflectAttribute(attribute: E.ResolvedAttribute, value: unknown) {
+    this.writeAttribute(attribute.attribute, this.tagSetup.elementDefinition.attributeText(attribute, value))
+  }
+
   /**
-   * Write `value` to `attribute`'s attribute;  nothing when the text is already there.
+   * Write attribute `name` as `text` (`null`:  remove it), unheard by `attributeChangedCallback()`;
+   * nothing when the text is already there.
    * - Synchronous:  the browser calls `attributeChangedCallback()` inside `setAttribute()`, which `reflecting` ignores.
    */
-  private reflectAttribute(attribute: E.ResolvedAttribute, value: unknown) {
-    const name = attribute.attribute
-    const text = this.tagSetup.elementDefinition.attributeText(attribute, value)
+  private writeAttribute(name: string, text: string | null) {
     if (this.getAttribute(name) === text) return
     const { connectedState } = this
     const outer = connectedState.reflecting
@@ -205,6 +218,85 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
     } finally {
       connectedState.reflecting = outer
     }
+  }
+
+  ////////////////
+  // ## Shown or hidden
+  //
+  // `visible` and the platform's `hidden` are ONE fact with two names, opposites (epic `spell-element`, P12):
+  // - `el.visible` is always `!el.hidden`;  writing either one, as an attribute or a property, sets the fact
+  // - the `hidden` attribute is where it's kept:  the browser, CSS and a page before its scripts load all read it
+  // - the `visible` attribute is written back only if the page wrote one,
+  //   so a page that only uses `hidden` never sees a `visible` attribute appear
+  // - markup, everything written before the first connect:  `hidden` wins over `visible`;
+  //   neither written:  the family decides (`elementSetup.visible`), and one that starts hidden writes `hidden`
+  // - after that, the latest write wins
+  // - the fact is kept in `attributeValues.visible` too, so the component reads it as any attribute (`isVisible`)
+  //   and hears of each change;  it animates the change (`UIComponent`, "Shown or hidden")
+  ////////////////
+
+  /**
+   * The shared `visible` attribute, resolved;  `undefined` on a tag without it
+   * (a vocabulary that declares its own `visible`, or a bare test class).
+   */
+  private get visibleAttribute(): E.ResolvedAttribute | undefined {
+    const definition = this.tagSetup?.elementDefinition
+    return definition?.takesShared(VISIBLE) ? definition.attribute(VISIBLE) : undefined
+  }
+
+  /** What the markup says right now:  `ElementDefinition.visibleInMarkup()`. */
+  private get isVisibleInMarkup(): boolean {
+    return this.tagSetup.elementDefinition.visibleInMarkup((name) => this.getAttribute(name), this.tagSetup.visible)
+  }
+
+  /**
+   * First connect:  settle what the markup says, and write it out.
+   * - `hidden` when hidden and not written yet (`<ui-modal>`, `<ui-message visible="false">`);
+   * - `visible="false"` where the page wrote a `visible` that `hidden` overruled (`<ui-message hidden visible>`).
+   */
+  private settleVisible() {
+    const { connectedState } = this
+    const attribute = this.visibleAttribute
+    if (connectedState.isVisibleSettled || !attribute) return
+    connectedState.isVisibleSettled = true
+    this.writeVisible(this.isVisibleInMarkup, "attribute")
+  }
+
+  /**
+   * Show or hide:  write `hidden` (and `visible`, where the page wrote one), then store the fact.
+   * - `source`:  where the change came from;  a property write (`el.visible = false`) settles the markup first.
+   * - A hidden element stays as the page hid it:  `hidden="until-found"` is kept.
+   */
+  private writeVisible(visible: boolean, source: ValueSource = "property") {
+    const { connectedState } = this
+    const attribute = this.visibleAttribute!
+    connectedState.isVisibleSettled = true
+    if (visible) this.writeAttribute("hidden", null)
+    else if (!this.hasAttribute("hidden")) this.writeAttribute("hidden", "")
+    // the page's own `visible`, rewritten only when it disagrees (`visible="yes"` stays as written)
+    const text = this.getAttribute(attribute.attribute)
+    const says = text !== null && this.tagSetup.elementDefinition.convert(attribute, text) === true
+    if (text !== null && says !== visible) this.writeAttribute(attribute.attribute, visible ? "" : "false")
+    this.storeValue(attribute, visible, source)
+  }
+
+  /** `hidden` was written by the page:  before the first connect, re-read the markup;  after it, the latest write wins. */
+  private onHiddenAttributeChanged(text: string | null) {
+    if (!this.connectedState.isVisibleSettled)
+      return this.storeValue(this.visibleAttribute!, this.isVisibleInMarkup, "attribute")
+    this.writeVisible(text === null, "attribute")
+  }
+
+  /**
+   * `visible` was written by the page:  before the first connect, re-read the markup;  after it, the latest write wins.
+   * - Removed:  neither name is written any more, unless `hidden` is,
+   *   so the family decides again (`<ui-modal visible>` losing `visible` hides).
+   */
+  private onVisibleAttributeChanged(text: string | null) {
+    const attribute = this.visibleAttribute!
+    if (!this.connectedState.isVisibleSettled) return this.storeValue(attribute, this.isVisibleInMarkup, "attribute")
+    if (text === null) return this.writeVisible(this.isVisibleInMarkup, "attribute")
+    this.writeVisible(this.tagSetup.elementDefinition.convert(attribute, text) === true, "attribute")
   }
 
   ////////////////
@@ -357,7 +449,17 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
 
   /** DOM API:  the attributes the browser reports changes of (`attributeChangedCallback()`), read once at definition. */
   static get observedAttributes(): string[] {
-    return this.tagSetup?.elementDefinition.attributes.map(({ attribute }) => attribute) ?? []
+    const definition = this.tagSetup?.elementDefinition
+    return definition ? DOMElement.observedAttributesFor(definition) : []
+  }
+
+  /**
+   * The attributes a tag of `definition` observes:  each of its attributes,
+   * and the platform's `hidden` where it's `visible` turned round ("Shown or hidden").
+   */
+  static observedAttributesFor(definition: E.ElementDefinition): string[] {
+    const names = definition.attributes.map(({ attribute }) => attribute)
+    return definition.takesShared(VISIBLE) && !names.includes("hidden") ? [...names, "hidden"] : names
   }
 
   /**
@@ -442,6 +544,9 @@ function className(tag: string): string {
  */
 const INSTANCE_FIELDS: readonly string[] = ["internals", "attributeValues", "component", "ready", "connectedState"]
 
+/** The shared `visible` attribute's canonical name and key (`SharedVocabulary`). */
+const VISIBLE = "visible"
+
 ////////////////
 // ## Types
 ////////////////
@@ -467,6 +572,8 @@ export type TagSetup = {
   shadowRootInit: ShadowRootInit
   /** DOM API `static formAssociated`:  read once, at definition */
   isAFormControl: boolean
+  /** what it shows when the page writes neither `visible` nor `hidden`:  `elementSetup.visible` */
+  visible: E.StartsVisible
   /** build and render the component;  called on the element's first connect (and again after `dispose()`) */
   mountComponent: (domElement: DOMElement) => void
 }
@@ -502,6 +609,8 @@ type ConnectedState = {
   reflecting?: string
   /** properties set before the upgrade, by property name, until the first connect */
   upgradeValues?: Map<string, unknown>
+  /** the markup's `visible` / `hidden` has been settled ("Shown or hidden"):  the latest write wins from now on */
+  isVisibleSettled?: boolean
   /** the shadow root, once made */
   root?: ShadowRoot
   /** the shadow root came from the server, with content to clear before the first render */
