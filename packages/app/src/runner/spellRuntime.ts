@@ -6,11 +6,16 @@
  * - It IS a program's `@spell/core`:  it exports `spellCore` and spell's classes (`Thing`, `List` ...), and compiled spell's
  *   `import ... from "@spell/core"` is pointed at this module's URL -- see `runApp()`.
  * - Programs draw with Solid, on the page's Spell UI:  `<ui-form>`, `<ui-button>` ... by their own tags.
+ * - A drawable thing draws as its own Spell UI element, e.g. `<solitaire-card>`:  see `SpellElement`.
  * - MUST be the only module in a bundle that imports `spellCore`'s code, so it's all HERE, not in a shared
  *   chunk -- see `element.build.test.ts`, `parser/build.test.ts`.
  */
 import { spellCore, Thing, List, App, Drawable, DrawableList } from "$/core"
 import { runCompiled, appIsMounted, unmountApp, type RunCompiledOptions } from "./runCompiled"
+import { installSpellElements } from "./SpellElement"
+
+// a drawable thing's element, e.g. `<solitaire-card>`:  Spell UI's, which core can't make itself
+installSpellElements(spellCore)
 
 // Compiled spell imports these -- `import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"`.
 export { spellCore, Thing, List, App, Drawable, DrawableList, appIsMounted, unmountApp }
