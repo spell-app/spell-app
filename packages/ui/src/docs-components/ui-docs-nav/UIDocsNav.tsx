@@ -1,4 +1,4 @@
-import { For, Match, Show, Switch, createMemo, untrack } from "solid-js"
+import { For, Match, Show, Switch, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -297,11 +297,10 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
   }
 
   /** The starred tags, A-Z.  Untracked:  script API (`DOMDocsNavElement.favorites`). */
+  @E.untracked
   get favoriteTags(): string[] {
-    return untrack(() => {
-      const favorites = this.favorites
-      return (this.navIndex?.rows ?? []).filter((row) => favorites.has(row.tag)).map((row) => row.tag)
-    })
+    const favorites = this.favorites
+    return (this.navIndex?.rows ?? []).filter((row) => favorites.has(row.tag)).map((row) => row.tag)
   }
 
   /**

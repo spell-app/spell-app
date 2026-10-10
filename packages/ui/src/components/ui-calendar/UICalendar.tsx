@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -94,7 +94,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
     // SSR renders the field only:  no runtime, no Temporal
-    if (!isServer && !untrack(() => this.temporal)) {
+    if (!isServer && !this.temporal) {
       void UI.load()
         .then(() => UI.i18n.loadTemporal())
         .then((temporal) => {
@@ -505,7 +505,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   ////////////////
 
   /** Starting value, for form reset:  the `value` ATTRIBUTE. */
-  private readonly initialValue = untrack(() => this.attributes.value) ?? undefined
+  private readonly initialValue = this.attributes.value ?? undefined
 
   get formValue(): E.FieldValue {
     // `null`:  `setFormValue()`'s "no value"

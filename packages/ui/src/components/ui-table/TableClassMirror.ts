@@ -38,6 +38,7 @@ export class TableClassMirror {
       if (!table) return
       const current = new Set(TableClassMirror.words(table.getAttribute("class")))
       this.owned = new Set(TableClassMirror.words(classes).filter((word) => current.has(word)))
+      // oxlint-disable-next-line spell-ui/no-mutation-observer -- a helper class, watching ANOTHER element (the table)
       this.observer = new MutationObserver(() => this.write())
       this.observer.observe(table, { attributeFilter: ["class"] })
     }

@@ -1,4 +1,4 @@
-import { For, Show, untrack, type Accessor } from "solid-js"
+import { For, Show, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -214,8 +214,8 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   /** The first panel's content from `source`, loaded when it first opens. */
   readonly body = new E.LoadableBody({
     domElement: this.domElement,
-    source: () => untrack(() => this.source) || undefined,
-    select: () => untrack(() => this.select) || undefined,
+    source: () => this.source || undefined,
+    select: () => this.select || undefined,
     target: () => this.bodyTarget(),
     send: (name, detail) => this.send(name as never, detail)
   })
@@ -349,7 +349,7 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
     part: typeof TITLE_PART | typeof CONTENT_PART
   ): JSX.Element {
     if (!isServer) return <slot ref={(slot: HTMLSlotElement) => slot.assign(child)} />
-    const name = `${part}-${untrack(index)}`
+    const name = `${part}-${index()}`
     child.setAttribute("slot", name)
     return <slot name={name} />
   }

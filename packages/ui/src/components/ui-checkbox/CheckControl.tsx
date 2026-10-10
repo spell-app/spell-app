@@ -1,4 +1,3 @@
-import { createEffect, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -98,7 +97,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
     super(...args)
     // `checked` in markup selects, a microtask later:
     // outside the component's body, where the write to the DOM element may notify
-    if (this.wasInitiallySelected && !untrack(() => this.selectedProperty)) {
+    if (this.wasInitiallySelected && !this.selectedProperty) {
       E.afterSolidUpdate(() => (this.isSelected = true))
     }
   }
@@ -126,7 +125,7 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   @E.controlled("selected") private accessor selectedProperty = false
 
   /** Chosen at first, for form reset:  `selected` or `checked` in markup. */
-  private readonly wasInitiallySelected = untrack(() => this.selectedProperty || this.attributes["checked"] !== null)
+  private readonly wasInitiallySelected = this.selectedProperty || this.attributes["checked"] !== null
 
   /** Neither on nor off?  Checkbox only;  tracked. */
   protected get isIndeterminate(): boolean {
@@ -163,16 +162,15 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   /** After a transition someone made;  checkbox clears `indeterminate`. */
   protected onChosen(_applied: boolean) {}
 
-  /** Adds the `checked` attribute alias:  a LATER edit of it selects (the first is `wasInitiallySelected`'s). */
-  onMount() {
-    createEffect(
-      () => this.attributes["checked"],
-      (checked) => {
-        this.isSelected = checked !== null
-      },
-      { defer: true }
-    )
-    return super.onMount()
+  /** The `checked` attribute alias:  a LATER edit of it selects (the first is `wasInitiallySelected`'s). */
+  @E.onChange("checkedAttribute", { defer: true })
+  protected onCheckedAttributeChanged(checked: string | null) {
+    this.isSelected = checked !== null
+  }
+
+  /** The `checked` attribute's text (`null`:  absent):  a member, so `@E.onChange` can follow it. */
+  protected get checkedAttribute(): string | null {
+    return this.attributes["checked"]
   }
 
   ////////////////

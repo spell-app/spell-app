@@ -1,4 +1,3 @@
-import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -95,7 +94,7 @@ export class UITransition extends E.UIComponent<Vocabulary> {
   /** Shown, or on its way in;  follows the queue, not the `visible` attribute;  `:state(visible)`. */
   @E.cssState("visible")
   @E.state
-  accessor isShowing = untrack(() => !!this.visible)
+  accessor isShowing = !!this.visible
 
   /** An animation is running.  `:state(animating)`. */
   @E.cssState("animating")
@@ -103,7 +102,7 @@ export class UITransition extends E.UIComponent<Vocabulary> {
   accessor isAnimating = false
 
   /** Where the queue is heading:  visible once every queued step has run. */
-  private willBeVisible = untrack(() => !!this.visible)
+  private willBeVisible = !!this.visible
 
   /**
    * `visible` changed:  queue an `in` / `out`.
@@ -283,13 +282,15 @@ export class UITransition extends E.UIComponent<Vocabulary> {
   ////////////////
 
   /** The `animation` attribute, untracked. */
+  @E.untracked
   private get animationName(): string {
-    return untrack(() => this.animation) ?? DEFAULT_ANIMATION
+    return this.animation ?? DEFAULT_ANIMATION
   }
 
-  /** `duration` as `UI.transitions` takes it:  bare digits are ms. */
+  /** `duration` as `UI.transitions` takes it:  bare digits are ms;  untracked. */
+  @E.untracked
   private get animateOptions(): E.AnimateOptions {
-    const duration = untrack(() => this.duration)?.trim()
+    const duration = this.duration?.trim()
     if (!duration) return {}
     return { duration: UIT.DIGITS.test(duration) ? Number(duration) : duration }
   }

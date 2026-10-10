@@ -849,7 +849,7 @@ export const SOURCE_BODY_HOLD_MS = 300
 export type LoadableBodyOwner = {
   /** the DOM element:  its `source` / `select` attributes, its events */
   domElement: HTMLElement
-  /** `source`, as written;  `undefined` when absent or empty */
+  /** `source`, as written;  `undefined` when absent or empty.  Read untracked (`LoadableBody.load()`). */
   source(): string | undefined
   /** `select`, as written;  `undefined` when absent or empty */
   select(): string | undefined

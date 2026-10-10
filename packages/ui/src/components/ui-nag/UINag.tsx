@@ -1,4 +1,4 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -74,7 +74,7 @@ export class UINag extends E.UIComponent<Vocabulary> {
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     // SIDE EFFECT:  a stored dismissal hides the DOM element before it first paints
-    if (!isServer && untrack(() => this.isHiddenByDismissal)) this.domElement.hidden = true
+    if (!isServer && this.isHiddenByDismissal) this.domElement.hidden = true
     this.domElement.addReleaseCallback(() => this.displayTimer?.cancel())
   }
 
@@ -85,7 +85,7 @@ export class UINag extends E.UIComponent<Vocabulary> {
   /** Hidden because it was dismissed, now or before (stored):  `:state(dismissed)`. */
   @E.cssState("dismissed")
   @E.state
-  accessor isHiddenByDismissal = untrack(() => this.isHiddenByStorage)
+  accessor isHiddenByDismissal = this.isHiddenByStorage
 
   /** A dismissal is stored (and not expired).  `false` without a `key`. */
   get isDismissed(): boolean {
@@ -106,22 +106,21 @@ export class UINag extends E.UIComponent<Vocabulary> {
    * The dismissal store for the current attributes, or `undefined` without a `key`.
    * - A new one per read, untracked:  nothing renders from it.
    */
+  @E.untracked
   private get dismissalStore(): DismissalStore | undefined {
-    return untrack(() => {
-      const { key, value, storage, expires, path, domain, secure, samesite } = this
-      if (!key) return undefined
-      return new DismissalStore({
-        storage: (storage ?? DEFAULT_STORAGE) as UIT.NagStorage,
-        key,
-        value: value ?? DEFAULT_VALUE,
-        expires: expires ?? DEFAULT_EXPIRES,
-        cookie: {
-          path: path ?? undefined,
-          domain: domain ?? undefined,
-          secure: !!secure,
-          sameSite: samesite ?? undefined
-        }
-      })
+    const { key, value, storage, expires, path, domain, secure, samesite } = this
+    if (!key) return undefined
+    return new DismissalStore({
+      storage: (storage ?? DEFAULT_STORAGE) as UIT.NagStorage,
+      key,
+      value: value ?? DEFAULT_VALUE,
+      expires: expires ?? DEFAULT_EXPIRES,
+      cookie: {
+        path: path ?? undefined,
+        domain: domain ?? undefined,
+        secure: !!secure,
+        sameSite: samesite ?? undefined
+      }
     })
   }
 

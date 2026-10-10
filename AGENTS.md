@@ -295,6 +295,8 @@ READ `guides/dev/commands/commands.md` FIRST,** and suggest where it belongs bef
   blocks).  No `.oxlintrc.json` / `.oxfmtrc.json` any more.
   - The editor and `vp check` read the ROOT block only:
     a rule for some packages goes in `rootLint()`'s `overrides` too.
+  - Our own rules:  `vite.lint.patterns.ts` beside it, a JS plugin (`spell-ui/*`:  Spell UI's patterns in
+    component files;  `packages/ui/AGENTS.md`, "The lint guard").
 - Root `ts` / `test:packages` / `review` are `vp run` over every `@spell-app/*` package:
   `ts` and `test:packages` 4 at a time, `review` one at a time (its tests flake under load).
   - NEVER `vp run --cache` a plain script:  its file tracking misses TS 7's native `tsc`, so it replays a stale

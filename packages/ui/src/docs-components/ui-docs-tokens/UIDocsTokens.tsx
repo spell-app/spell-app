@@ -1,4 +1,4 @@
-import { For, Show, createEffect } from "solid-js"
+import { For, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -183,22 +183,19 @@ export class UIDocsTokens extends E.UIComponent<DocsTokensVocabulary> {
     this.apply(isConnected && playground ? overrides : new Map<string, string>(), target)
   }
 
-  /** Base `onMount()` (which starts `onOverridesChanged()`), plus the probe of the colour rows. */
-  override onMount(): JSX.Element {
-    const content = super.onMount()
-    if (isServer) return content
-    // after the apply (`onOverridesChanged()`, same flush, created first),
-    // so a reset re-probes with the tokens already removed
-    createEffect(
-      () => ({
-        view: this.isReady && this.playground ? this.tokenView : undefined,
-        isPristine: this.overrides.size === 0
-      }),
-      ({ view }) => {
-        if (view?.kind === "tables") this.probe(view.tables)
-      }
-    )
-    return content
+  /**
+   * Probe the colour rows of the shown tables, and again after each playground change.
+   * - Declared after `onOverridesChanged()`, so it runs after it in the same flush:
+   *   a reset re-probes with the tokens already removed.
+   */
+  @E.onChange("probedView", "overrides")
+  protected onProbedViewChanged(view: TokenView | undefined) {
+    if (view?.kind === "tables") this.probe(view.tables)
+  }
+
+  /** The view whose colour rows are probed:  once drawn, while `playground`;  else `undefined`. */
+  protected get probedView(): TokenView | undefined {
+    return this.isReady && this.playground ? this.tokenView : undefined
   }
 
   /** The reset button:  remove every token the playground set. */

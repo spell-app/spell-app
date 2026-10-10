@@ -134,6 +134,7 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
    * `chosen`, the item's `answered` and `status`.  Returns how to stop.
    */
   static watch(element: Element, changed: () => void): () => void {
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- watches ANCESTORS (`<epic-choices>`, `<epic-item>`)
     const observer = new MutationObserver(changed)
     const choices = element.closest(CHOICES_TAG)
     const item = element.closest(ITEM_TAG)

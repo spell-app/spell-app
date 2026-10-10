@@ -1,4 +1,4 @@
-import { Show, createEffect, untrack } from "solid-js"
+import { Show } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -260,28 +260,24 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   }
 
   /**
-   * While connected and `sticky`:  measure the title (for the stack) and watch it stick,
-   * again whenever its `top` changes;  unstuck otherwise.
-   * - Stays an explicit effect:  conditional, and it observes the DOM (`ResizeObserver`, `StickyWatch`).
+   * Once drawn (`isReady`), while connected and `sticky`:  measure the title (for the stack) and watch it stick,
+   * again whenever its `top` changes;  unstuck otherwise.  Returns its stop.
    */
-  private watchTitle() {
-    createEffect(
-      () => ({ watching: this.isConnected && !!this.sticky, offset: this.stickTop }),
-      ({ watching, offset }) => {
-        const { title, sentinel } = this
-        if (!watching || !title || !sentinel) {
-          this.stickyWatch.reset()
-          return undefined
-        }
-        const resizes = new ResizeObserver(() => (this.titleHeight = title.getBoundingClientRect().height))
-        resizes.observe(title)
-        const unwatch = this.stickyWatch.observe({ domElement: this.domElement, top: sentinel, box: title }, { offset })
-        return () => {
-          resizes.disconnect()
-          unwatch()
-        }
-      }
-    )
+  @E.onChange("isReady", "isConnected", "sticky", "stickTop")
+  protected onStickingChanged(isReady: boolean, isConnected: boolean, sticky: boolean | undefined, offset: number) {
+    if (!isReady) return undefined
+    const { title, sentinel } = this
+    if (!isConnected || !sticky || !title || !sentinel) {
+      this.stickyWatch.reset()
+      return undefined
+    }
+    const resizes = new ResizeObserver(() => (this.titleHeight = title.getBoundingClientRect().height))
+    resizes.observe(title)
+    const unwatch = this.stickyWatch.observe({ domElement: this.domElement, top: sentinel, box: title }, { offset })
+    return () => {
+      resizes.disconnect()
+      unwatch()
+    }
   }
 
   ////////////////
@@ -326,8 +322,8 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   /** The content from `source`, loaded on first unfold;  into the DOM element's light DOM. */
   readonly body = new E.LoadableBody({
     domElement: this.domElement,
-    source: () => untrack(() => this.source) || undefined,
-    select: () => untrack(() => this.select) || undefined,
+    source: () => this.source || undefined,
+    select: () => this.select || undefined,
     target: () => this.domElement,
     send: (name, detail) => this.send(name as never, detail)
   })
@@ -420,7 +416,6 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   ////////////////
 
   render(): JSX.Element {
-    this.watchTitle()
     return (
       <section
         class={this.rootClass}

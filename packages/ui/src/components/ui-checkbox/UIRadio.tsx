@@ -1,4 +1,4 @@
-import { onCleanup, untrack } from "solid-js"
+import { onCleanup } from "solid-js"
 
 import { E, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
@@ -39,13 +39,13 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
 
   constructor(...args: ConstructorParameters<typeof CheckControl>) {
     super(...args)
-    untrack(() => this.group)?.join(this)
+    this.group?.join(this)
     // `name` reads fresh here:  the DOM element's `attributeValues` has the new value before its callbacks run
     this.domElement.addPropertyChangedCallback((key: string) => {
       if (key === NAME) this.joinGroup()
     })
     // disposal (`domElement.dispose()`):  out of the group, without publishing into a dying root
-    onCleanup(() => untrack(() => this.group)?.leave(this))
+    onCleanup(() => this.leaveGroup())
   }
 
   onConnect() {
@@ -77,6 +77,12 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
     current?.leave(this)
     next?.join(this)
     this.group = next
+  }
+
+  /** Leave its group for good:  the element is being released. */
+  @E.untracked
+  private leaveGroup() {
+    this.group?.leave(this)
   }
 
   /** The group its name, connection and form owner call for now. */

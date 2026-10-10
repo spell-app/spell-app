@@ -1,4 +1,4 @@
-import { For, Show, createMemo, untrack } from "solid-js"
+import { For, Show, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -220,10 +220,10 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   }
 
   render(): JSX.Element {
-    // read once, by hand:  a section never changes its kind, and `render()`'s body is no place for a tracked read
-    // (`UIComponent.onMount()`);  no decorator reads inside a body
-    const look = untrack(this.look)
-    const kind = untrack(() => this.kind)
+    // read once:  a section never changes its kind
+    // (`render()`'s body runs once, untracked:  `UIComponent.onMount()`)
+    const look = this.look()
+    const kind = this.kind
     return this.renderFold({
       title: () => this.heading(),
       icon: look ? () => this.glyph.svg : undefined,

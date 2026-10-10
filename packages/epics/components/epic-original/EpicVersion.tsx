@@ -42,6 +42,7 @@ export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
   protected watchVersions() {
     const parent = this.domElement.parentElement
     if (!parent) return undefined
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- watches its PARENT, another element (above)
     const observer = new MutationObserver(() => (this.versionCount = this.countVersions()))
     observer.observe(parent, { childList: true })
     this.versionCount = this.countVersions()

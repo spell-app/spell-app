@@ -1,3 +1,4 @@
+// oxlint-disable-next-line spell-ui/no-solid-effect -- a static helper drawing plain DOM:  no members to decorate
 import { createRenderEffect, type Accessor } from "solid-js"
 import type { JSX } from "@solidjs/web"
 

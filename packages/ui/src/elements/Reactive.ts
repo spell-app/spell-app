@@ -54,6 +54,7 @@ import type { E } from "$/ui/core"
  *   added by `UIComponent`'s constructor (`Reactive.listenersOf()`);  the method runs untracked.
  * - `@untracked select(option)`:  the method's body runs inside `untrack()`,
  *   so an action or a handler reads members without `untrack(() => this.x)` around each read.
+ *   On a getter too (`@untracked get cssDuration()`).
  * - `Reactive.accessorsOf(instance)` (a component's `$`):
  *   `$.isOpen` is an `Accessor` of `this.isOpen`, for Solid APIs that take one.
  * - Vocabulary getters (`installAttributeGetters()`;  their setters write the DOM element's property)
@@ -184,7 +185,7 @@ export class Reactive {
   static startEffects(instance: object) {
     const self = instance as Record<PropertyKey, unknown>
     for (const entry of Reactive.listFor<OnChangeEntry>(instance, ON_CHANGE)) {
-      const { method, members, writesDOMElement, whileConnected } = entry
+      const { method, members, writesDOMElement, defer, whileConnected } = entry
       const compute = () => members.map((member) => self[member])
       const apply = (values: unknown[]) => {
         // `@whileConnected`:  only while connected, and the method takes no values
@@ -194,8 +195,8 @@ export class Reactive {
         return typeof cleanup === "function" ? (cleanup as () => void) : undefined
       }
       if (isServer) {
-        if (writesDOMElement) apply(untrack(compute))
-      } else createEffect(createMemo(compute, { equals: isSameList }), apply)
+        if (writesDOMElement && !defer) apply(untrack(compute))
+      } else createEffect(createMemo(compute, { equals: isSameList }), apply, { defer })
     }
     Reactive.startAriaEffect(instance as ComponentShape, self)
     if (isServer) return
@@ -512,6 +513,8 @@ function ariaText(value: AriaValue): string | null {
  * - A trailing `{ writesDOMElement: true }`:  the method writes the DOM element (`:state()`, `tabindex`, ARIA),
  *   so a server render applies it once, now (the server never runs an effect).
  *   ARIA alone is `@aria`.
+ * - A trailing `{ defer: true }`:  NOT called at the start, only on a change
+ *   (an event the first draw mustn't send:  `<ui-progress>`'s `ui-change`).
  * - Created by `Reactive.startEffects()` (`UIComponent.onMount()`), after every subclass field exists.
  */
 export function onChange(...members: (string | OnChangeOptions)[]) {
@@ -521,7 +524,8 @@ export function onChange(...members: (string | OnChangeOptions)[]) {
     ownList<OnChangeEntry>(context.metadata, ON_CHANGE).push({
       method: context.name,
       members: members as string[],
-      writesDOMElement: !!options.writesDOMElement
+      writesDOMElement: !!options.writesDOMElement,
+      defer: !!options.defer
     })
   }
 }
@@ -641,29 +645,42 @@ export function on(type: string, options: ListenerOptions = {}) {
  *   with no `untrack(() => this.hasRoomForMore)` around each read.
  * - On an arrow-function field too, for a handler passed around (`onClick={this.onDimmerClick}`):
  *   `@E.untracked private readonly onDimmerClick = (event: MouseEvent) => { ... }`.
+ * - On a getter, for a value read to ACT on, never to follow:
+ *   - a setting an animation reads as it starts (`@E.untracked private get cssDuration()`)
+ *   - a DOM element's script API over its component (`@E.untracked get errors() { return this.component?.errors ?? [] }`),
+ *     so a page's Solid effect reading it doesn't re-run each time it changes.
+ *     The whole getter is untracked, a subclass's override of what it calls included.
  * - Writes are the same either way:  `untrack()` changes reads only.
  * - NEVER on a method a computation calls so it updates
  *   (a helper of a getter, of JSX or of an effect's first function):
  *   the computation would stop following those reads.
  * - An `@on` method needs none:  its listener already runs it untracked.
  * - An override in a subclass is untracked only when it's decorated too.
+ * - NOT needed in a component's constructor or field initializers:  every component is built inside `untrack()`
+ *   (`UIComponent.mount()`, and the static render's `StaticRender`).
  */
 export function untracked<This, Args extends unknown[], Result>(
   method: (this: This, ...args: Args) => Result,
   context: ClassMethodDecoratorContext<This, (this: This, ...args: Args) => Result>
 ): (this: This, ...args: Args) => Result
+export function untracked<This, Value>(
+  getter: (this: This) => Value,
+  context: ClassGetterDecoratorContext<This, Value>
+): (this: This) => Value
 export function untracked<This, Handler extends (...args: any[]) => unknown>(
   field: undefined,
   context: ClassFieldDecoratorContext<This, Handler>
 ): (handler: Handler) => Handler
 export function untracked(
   method: AnyFunction | undefined,
-  context: ClassMethodDecoratorContext | ClassFieldDecoratorContext
+  context: ClassMethodDecoratorContext | ClassGetterDecoratorContext | ClassFieldDecoratorContext
 ): AnyFunction {
   const name = String(context.name)
-  if (context.kind === "method") return untrackedCall(method!)
+  if (context.kind === "method" || context.kind === "getter") return untrackedCall(method!)
   if (context.kind !== "field" || context.static) {
-    throw new TypeError(`@untracked ${name}:  only works on methods and arrow-function fields;  untrack() its reads`)
+    throw new TypeError(
+      `@untracked ${name}:  only works on methods, getters and arrow-function fields;  untrack() its reads`
+    )
   }
   return (handler: unknown) => {
     if (typeof handler !== "function") {
@@ -1140,6 +1157,8 @@ export type DerivedOptions = {
 export type OnChangeOptions = {
   /** The method writes the DOM element:  a server render applies it once. */
   writesDOMElement?: boolean
+  /** Not called at the start, only on a change:  an event the first draw mustn't send.  Never on a server. */
+  defer?: boolean
 }
 
 /** Options of `@fromContent`:  what to watch, as `MutationObserver.observe()` takes it, and `equals`. */
@@ -1259,6 +1278,8 @@ type OnChangeEntry = {
   members: string[]
   /** apply once on a server */
   writesDOMElement: boolean
+  /** not called at the start, only on a change */
+  defer?: boolean
   /** `@whileConnected`:  called (without values) only while `isConnected` */
   whileConnected?: boolean
 }

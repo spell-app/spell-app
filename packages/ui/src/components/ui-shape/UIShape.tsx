@@ -1,4 +1,3 @@
-import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -79,7 +78,7 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
    * Has had sides;  until then `shownIndex` is only a guess.
    * - NOTE:  the barrel defines `<ui-shape>` BEFORE `<ui-side>`, so a parsed shape upgrades with no sides yet.
    */
-  private hasHadSides = untrack(() => this.sides.length > 0)
+  private hasHadSides = this.sides.length > 0
 
   /** The default slot's content changed:  find the sides again. */
   @E.on("slotchange", { target: "renderRoot" })
@@ -134,7 +133,7 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
    * Index of the side shown now:
    * NOT a mirror of `activeSideIndex`, it follows the queue (it lags while a flip runs).
    */
-  private shownIndex = untrack(() => this.normalize(this.activeSideIndex, this.sides.length))
+  private shownIndex = this.normalize(this.activeSideIndex, this.sides.length)
 
   /** Where the queue is heading. */
   private queuedIndex = this.shownIndex
@@ -301,13 +300,15 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
   }
 
   /** The `direction` attribute (or its default);  untracked. */
+  @E.untracked
   private get defaultFlip(): UIT.ShapeFlip {
-    return untrack(() => this.direction) ?? DEFAULT_FLIP
+    return this.direction ?? DEFAULT_FLIP
   }
 
   /** `duration` as CSS:  bare digits are ms;  untracked. */
+  @E.untracked
   private get cssDuration(): string | undefined {
-    const text = untrack(() => this.duration)?.trim()
+    const text = this.duration?.trim()
     if (!text) return undefined
     return UIT.DIGITS.test(text) ? `${text}ms` : text
   }
@@ -334,8 +335,9 @@ export class UIShape extends E.UIComponent<ShapeVocabulary> {
    * a `<div>` would close an open `<p>` when a browser parses the page.
    * - Its sides follow (`UISide`).
    */
+  @E.untracked
   get rendersInlineOnServer(): boolean {
-    return isServer && untrack(() => !!this.text)
+    return isServer && !!this.text
   }
 
   /** `render()`'s markup as `<span>`s (`rendersInlineOnServer`). */

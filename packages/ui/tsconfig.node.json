@@ -10,5 +10,11 @@
     "noEmit": true,
     "types": ["node"]
   },
-  "include": ["vite.config.ts", "vite.site.config.ts", "vitest.config.ts", "../../vite.decorators.ts"]
+  "include": [
+    "vite.config.ts",
+    "vite.site.config.ts",
+    "vitest.config.ts",
+    "../../vite.decorators.ts",
+    "../../vite.lint.patterns.ts"
+  ]
 }

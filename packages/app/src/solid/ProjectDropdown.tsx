@@ -164,7 +164,8 @@ function open(path: string, useRunner?: boolean) {
 /**
  * The dropdown's `ui-change`:  click the item chosen, which opens its project.
  * - SIDE EFFECT:  sets the dropdown's `value` back to `editor.project`'s DURING the event, so the dropdown keeps ours:
- *   the host decides (`Controlled`, `packages/ui/src/elements/Controlled.ts`).  Opening the project then moves it on.
+ *   the host decides (`requestChange()` on a `@controlled` member, `packages/ui/src/elements/Reactive.ts`).
+ *   Opening the project then moves it on.
  */
 function choose(event: CustomEvent<{ value: string }>) {
   const dropdown = event.currentTarget as HTMLElement & { value?: unknown }

@@ -105,6 +105,7 @@ export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
     const stops = new Map<HTMLImageElement, E.Disposer>()
     const options: E.LazyImageOptions = { transition: UIVisibility.animationFor(transition), duration, offset }
     this.lazyLoad(stops, options)
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while `images` is on and the element connected
     const observer = new MutationObserver(() => this.lazyLoad(stops, options))
     observer.observe(this.domElement, { childList: true, subtree: true, attributeFilter: [DATA_SRC] })
     return () => {

@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -25,8 +25,9 @@ export class DOMFieldElement extends E.DOMElement<UIField> {
   }
 
   /** Prompts shown now. */
+  @E.untracked
   get errors(): readonly string[] {
-    return untrack(() => this.component?.errors) ?? []
+    return this.component?.errors ?? []
   }
 }
 

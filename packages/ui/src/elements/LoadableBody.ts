@@ -1,6 +1,6 @@
 import { E, UI } from "$/ui/core"
 // Import directly to avoid circular import
-import { state } from "./Reactive"
+import { state, untracked } from "./Reactive"
 
 /****************
  * ### `LoadableBody`
@@ -86,7 +86,10 @@ export class LoadableBody {
    * the same promise until either changes.
    * - Rejects when it fails.
    * - No `source`:  resolves at once, nothing changes.
+   * - Untracked:  a load never follows `source` / `select` (the owner says when to load),
+   *   so the owner's `source()` / `select()` read plainly.
    */
+  @untracked
   load(): Promise<void> {
     const source = this.owner.source()
     if (!source) return Promise.resolve()
@@ -95,7 +98,8 @@ export class LoadableBody {
     return this.start({ source, select, fresh: false })
   }
 
-  /** Fetch the body again past the cache, and replace the one inserted;  resolves once it's in. */
+  /** Fetch the body again past the cache, and replace the one inserted;  resolves once it's in.  Untracked, as `load()`. */
+  @untracked
   reload(): Promise<void> {
     const source = this.owner.source()
     if (!source) return Promise.resolve()
