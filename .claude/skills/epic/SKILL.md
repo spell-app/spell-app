@@ -609,6 +609,10 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
        "Owen replied:  ...".  Answer his latest words, the thread above for context.
    - They never wake `wait` by themselves:  the next wake (Send, Review Now, any request) hands them over.
      So check on every wake.
+   - FIRST, as you start on one:  `spell dev plan-doc inbox <name> working cm3 on`.
+     - His thread shows "Claude: thinking…" at its end (a turning notch) until your answer lands:
+       `done cm3` turns it off.  Dropped without an answer:  `working cm3 off`.
+     - What he said before it counts as read:  more words of his go after it, as a new reply (waiting again).
    - Answer each like a revisit's note:  INTO the item it's on (`details --append`, his comment quoted).
      On a phase field or Overview prose:  into that phase or part.
    - Then `spell dev plan-doc inbox <name> done cm3 --file <answer.html> [--commit <sha>]`.
