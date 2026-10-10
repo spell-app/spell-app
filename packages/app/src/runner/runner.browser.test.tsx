@@ -303,16 +303,20 @@ describe("compiled spell draws with Solid", () => {
     const menuItem = (text: string) =>
       [...host.querySelectorAll<HTMLElement>("ui-item")].find((item) => item.textContent === text)!
     await waitFor(() => titles().length === 3)
-    // a list shows as its items (it was `"tasks": {}`)
-    expect(debugJSON().tasks).toEqual([
-      { title: "Create todos app", completed: true },
-      { title: "Teach it to draw", completed: false },
-      { title: "Test app", completed: false }
-    ])
+    // each object says its class;  a list shows its items (it was `"tasks": {}`)
+    expect(debugJSON()["@type"]).toBe("Todos_App")
+    expect(debugJSON().tasks).toEqual({
+      "@type": "Task_List",
+      items: [
+        { "@type": "Task", title: "Create todos app", completed: true },
+        { "@type": "Task", title: "Teach it to draw", completed: false },
+        { "@type": "Task", title: "Test app", completed: false }
+      ]
+    })
 
     // a real click, on the checkbox as the person sees it
     await userEvent.click(host.querySelectorAll("ui-repeat ui-checkbox")[1]!)
-    await waitFor(() => debugJSON().tasks[1].completed === true)
+    await waitFor(() => debugJSON().tasks.items[1].completed === true)
 
     menuItem("Active").click()
     // a row coming back is a new one:  its controls are bound as it joins the form
@@ -322,7 +326,7 @@ describe("compiled spell draws with Solid", () => {
 
     // a change from outside the form shows in the JSON too
     menuItem("Change name").click()
-    await waitFor(() => debugJSON().tasks[0].title === "New title")
+    await waitFor(() => debugJSON().tasks.items[0].title === "New title")
     menuItem("All").click()
     await waitFor(() => titles().length === 3)
   })

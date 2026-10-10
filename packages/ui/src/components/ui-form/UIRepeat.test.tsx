@@ -143,6 +143,24 @@ describe("<ui-repeat>", () => {
     expect(titles(repeat)).toEqual(["X", "Y"])
   })
 
+  test("takes its list as the `items` property, over `name`;  follows it as it changes", async () => {
+    const list = new TodoList()
+    const [milk, eggs] = [new Task("Milk"), new Task("Eggs")]
+    list.tasks = [milk]
+    const { repeat } = await bound(`<ui-repeat name="nothing">${TASK_ROW}</ui-repeat>`, list)
+    const repeating = repeat as Element & { items: unknown }
+    repeating.items = [eggs, milk]
+    await settle()
+    expect(titles(repeat)).toEqual(["Eggs", "Milk"])
+    // bound to each item, as by `name`
+    eggs.title = "Brown eggs"
+    await settle()
+    expect(titles(repeat)).toEqual(["Brown eggs", "Milk"])
+    repeating.items = new Bag([milk])
+    await settle()
+    expect(titles(repeat)).toEqual(["Milk"])
+  })
+
   test("a repeat inside a row reads its list from that row's item", async () => {
     const list = new TodoList()
     const [trip, party] = [new Task("Trip"), new Task("Party")]

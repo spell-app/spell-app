@@ -1,7 +1,7 @@
 /**
  * Base classes for spell.
  */
-import { Observable, runsCreate, type PropInfo } from "$/util"
+import { Observable, runsCreate, typedJSON, type PropInfo } from "$/util"
 import { spellCore } from "$/core/core"
 import type { Drawing } from "$/core/drawing"
 import { Eventful } from "$/core/SpellEvent"
@@ -74,6 +74,16 @@ export class Thing extends Eventful(Observable) {
    */
   isOfType(typeName: string): boolean {
     return spellCore.isOfType(this, typeName)
+  }
+
+  /**
+   * Our JSON:  our class's name as `"@type"`, then our props -- `{ "@type": "Card", "rank": "ace", ... }`.
+   * - So it reads back as what it was:  `spellCore.fromJSON()` (`json.ts`).
+   * - `"@type"` is our CLASS's name, even if this instance overrides `type`:  the class is what's rebuilt.
+   * - Tracked:  a reader re-runs when a prop comes, goes or changes, e.g. `<ui-form debug>`.
+   */
+  toJSON(): Record<string, unknown> {
+    return typedJSON(this)
   }
 
   /**

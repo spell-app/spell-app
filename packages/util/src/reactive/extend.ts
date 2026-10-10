@@ -193,6 +193,24 @@ export function getProps(target: any): Record<string, any> {
   return Object.fromEntries(extended[PROPS])
 }
 
+/**
+ * Key a typed object's JSON names its class under:  `"@type"`, JSON-LD's spelling.
+ * - No prop can be named `@...` (spell's names are words), so it never collides, where `"type"` would.
+ */
+export const TYPE_KEY = "@type"
+
+/**
+ * `target`'s props as a plain object, its class's name FIRST:  `{ "@type": "Card", "rank": "ace", ... }`.
+ * - What a spell object's `toJSON()` answers (`Thing`, `List`), so its JSON can be read back as that class.
+ * - `type`:  the name to write, default `target`'s class's.
+ * - `"@type"` is NOT a prop:  `keysOf()` and `getProps()` never list it.
+ * - Tracked, as `getProps()`.
+ * - NOTE: a plain object, so an integer-like prop (`"2"`) is hoisted even above `"@type"`, as `getProps()` says.
+ */
+export function typedJSON(target: any, type: string = target.constructor.name): Record<string, any> {
+  return { [TYPE_KEY]: type, ...getProps(target) }
+}
+
 ////////////////
 // ## State
 ////////////////

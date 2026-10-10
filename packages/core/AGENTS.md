@@ -56,6 +56,15 @@ house style every package shares.  Only what's local is below;  a section named 
   - `spellCore.canTake()` / `canGiveUp()` ask without moving;  a plain array has no guards.
 - Tests:  `src/classes/List.test.ts`;  end to end, spell's `src/parserTests/membership.test.ts`.
 
+## JSON
+
+- Every spell object's JSON says its class first, `"@type"` (`$/util`'s `typedJSON()`), then its props:
+  `{ "@type": "Card", "rank": "ace" }`;  a list's adds its items, `{ "@type": "Pile", "name": "stock", "items": [...] }`.
+  - `"@type"` is never a prop:  `keys()` (what the Thing Explorer lists) doesn't have it.
+- `spellCore.fromJSON()` (`src/json.ts`) reads it back:  each class by name, `spellCore.things.classNamed()`, which
+  knows a class once one of its things is made, or a runner hands it the program's modules (`addClasses()`).
+  - A list's items are SET (`writeItems()`), so a pile owns its cards.  An unknown `"@type"`:  a plain object.
+
 ## Decorators
 
 As WWOD §12, plus:

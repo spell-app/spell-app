@@ -9843,7 +9843,7 @@
           "name": "name",
           "description": {
             "kind": "markdown",
-            "value": "The list to repeat over:  this property of the scope -- the `<ui-form>`'s `value`, or the item of the `<ui-repeat>` row around it.  Any iterable (an array, a `Set` ...).\n\nTakes:  text"
+            "value": "The list to repeat over, by name:  this property of the scope -- the `<ui-form>`'s `value`, or the item of the `<ui-repeat>` row around it.  Any iterable (an array, a `Set` ...).\n\nTakes:  text"
           }
         }
       ]

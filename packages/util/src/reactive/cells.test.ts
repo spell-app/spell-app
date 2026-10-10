@@ -1,6 +1,19 @@
 import { describe, test, expect, vi, afterEach } from "vite-plus/test"
 
-import { Observable, cellsContext, derived, flushCells, observe, prop, schemaOf, thing, type PropInfo } from "$/util"
+import {
+  Observable,
+  TYPE_KEY,
+  cellsContext,
+  derived,
+  flushCells,
+  getProps,
+  observe,
+  prop,
+  schemaOf,
+  thing,
+  typedJSON,
+  type PropInfo
+} from "$/util"
 
 /**
  * Spell cells, pinned:  the measured design of `guides/solid/experiments/spell-cells.ts` and `decorators.ts`,
@@ -171,6 +184,33 @@ describe("keys in creation order", () => {
     expect(hand.cards).toBe(hand.cards)
     expect(new Hand({}).cards).not.toBe(hand.cards)
     expect(hand.keys()).toEqual(["cards"])
+  })
+})
+
+describe("typed JSON (output-targets P15, Q49)", () => {
+  test('`typedJSON()`:  `"@type"`, the class\'s name, first -- then the props, in `keys()` order', () => {
+    const card = new Card({ suit: "clubs", rank: 3 })
+    expect(JSON.stringify(typedJSON(card))).toBe('{"@type":"Card","suit":"clubs","rank":3}')
+    expect(typedJSON(card, "Joker")[TYPE_KEY]).toBe("Joker")
+  })
+
+  test('`"@type"` is never a prop:  not in `keys()`, nor `getProps()`', () => {
+    const card = new Card({ rank: 3 })
+    typedJSON(card)
+    expect(card.keys()).toEqual(["rank"])
+    expect(getProps(card)).toEqual({ rank: 3 })
+    expect(card.toJSON()).toEqual({ rank: 3 })
+  })
+
+  test("tracked, as `getProps()`:  a reader re-runs when a value changes", () => {
+    const card = new Card({ rank: 7 })
+    const seen: string[] = []
+    const stop = observe(() => {
+      seen.push(JSON.stringify(typedJSON(card)))
+    })
+    card.rank = 8
+    stop()
+    expect(seen).toEqual(['{"@type":"Card","rank":7}', '{"@type":"Card","rank":8}'])
   })
 })
 

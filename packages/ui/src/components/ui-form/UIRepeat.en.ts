@@ -21,11 +21,19 @@ export const repeatVocabulary = {
   description: "A repeat shows its fields once per item of a list, each row bound to its own item.",
   attributes: [
     {
+      name: "items",
+      kind: "json",
+      reflect: false,
+      description:
+        "The list to repeat over, given as a property:  any iterable (an array, a `Set`, spell's `List`), followed " +
+        "as it changes.  Set, it wins over `name`."
+    },
+    {
       name: "name",
       kind: "string",
       description:
-        "The list to repeat over:  this property of the scope -- the `<ui-form>`'s `value`, or the item of the " +
-        "`<ui-repeat>` row around it.  Any iterable (an array, a `Set` ...)."
+        "The list to repeat over, by name:  this property of the scope -- the `<ui-form>`'s `value`, or the item of " +
+        "the `<ui-repeat>` row around it.  Any iterable (an array, a `Set` ...)."
     }
   ],
   events: [],

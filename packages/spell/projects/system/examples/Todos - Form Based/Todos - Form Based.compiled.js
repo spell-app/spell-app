@@ -105,7 +105,7 @@ export class Todos_App extends App {
           ]
         }),
         spellCore.element({ tag: "ui-form", props: { debug: true, value: () => app }, children: [
-          spellCore.element({ tag: "ui-repeat", props: { name: "shownTasks" }, children: [
+          spellCore.element({ tag: "ui-repeat", props: { items: () => app.shownTasks }, children: [
             spellCore.element({ tag: "ui-fields", children: [
               spellCore.element({ tag: "ui-field", props: { width: "1" }, children: [
                 spellCore.element({ tag: "ui-checkbox", props: { name: "completed", 'aria-label': "Done" } })

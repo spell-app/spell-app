@@ -9,6 +9,7 @@ import type { testMethods } from "./tests"
 import type { consoleMethods } from "./console"
 import type { runtimeMethods } from "./runtime"
 import type { thingsMethods } from "./things"
+import type { jsonMethods } from "./json"
 import type { classesMethods } from "./classes"
 
 // ## Importing spellCore
@@ -56,6 +57,7 @@ export type SpellCore = typeof coreMethods &
   typeof consoleMethods &
   typeof runtimeMethods &
   typeof thingsMethods &
+  typeof jsonMethods &
   typeof classesMethods
 
 // ## Properties
