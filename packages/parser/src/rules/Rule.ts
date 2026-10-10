@@ -29,7 +29,7 @@ import { P } from "$/parser"
  *
  * ### 1. Named rule for a language ~== a class, registered with a parser along with `syntax` + `tests`  (the normal way)
  * ```ts
- * export class define_property_has extends SpellStatement<
+ * export class DefinePropertyHas extends SpellStatement<
  *   "type|property|specifier?",                  // `Groups`:  see `P.GroupsFor`, copy from module's `__snapshots__`
  *   { bits?: PropertyBits }                        // `MatchData`:  what we stash in `match.data`
  * > {
@@ -37,18 +37,23 @@ import { P } from "$/parser"
  *   @proto static declares = {...}
  *   getAST(match: P.MatchFor<this>) {...}        // ...and how it behaves
  * }
- * classes.addRule(define_property_has, {         // ...registering says how it's WRITTEN in this language
+ * classes.addRule(DefinePropertyHas, {           // ...registering says how it's WRITTEN in this language
  *   syntax: "(a|an) {type} has {property} {specifier}?",
- *   tests: [...]                                 // tests for THIS syntax
+ *   tests: [                                     // tests for THIS syntax:  each writer's output -- see `P.RuleTest`
+ *     { compileAs: "statement", tests: [{ input: "a card has a suit", js: "...", ts: "..." }] }
+ *   ]
  * })
- * classes.addRule(define_property_has, {         // another way to write it:  register again
+ * classes.addRule(DefinePropertyHas, {           // another way to write it:  register again
  *   syntax: "{type} have {property} {specifier}?",
  *   tests: [...]
  * })
  * ```
  * - Why only `syntax` + `tests` at registration:  the class can then be reused by another language's parser.
  * - `@proto static` values are inherited by subclasses;  `@proto` rejects a prop the rule doesn't declare.
- * - Class name IS the rule name;  plain `static ruleName = "if"` for reserved words (`class _if`).
+ * - The rule NAME comes from the class name, in snake_case:  `DefinePropertyHas` => `"define_property_has"`,
+ *   what `syntax` strings say (`{define_property_has}`) -- see `ruleNameFor()`.
+ *   - Plain `static ruleName = "line"` where the class name doesn't give it (`class BlockLine`).
+ * - Spell keeps one rule class per file, the file named for the class:  "Parser rules" in spell's `AGENTS.md`.
  * - `priority` picks between rules matching the SAME words -- see `Choice.getBestMatch()`:
  *   a `Choice` takes the highest priority, then the longest match, then the earliest rule.
  *   - NOT how tightly an operator binds:  that's spell's operator `precedence`, read only by its expression loop.
@@ -143,7 +148,7 @@ export abstract class Rule<
       ...extraProps
     } = definition
     if (skip || (Object.hasOwn(this, "skip") && this.skip)) return undefined
-    const name = extraProps.name || (Object.hasOwn(this, "ruleName") && this.ruleName) || this.name
+    const name = extraProps.name || (Object.hasOwn(this, "ruleName") && this.ruleName) || Rule.ruleNameFor(this.name)
     if (!name) {
       throw new P.ParserError({
         message: "Rule class must have a name or `static ruleName`.",
@@ -170,6 +175,23 @@ export abstract class Rule<
     if (tests) props.tests = tests
     const constructor = this as unknown as new (props: RuleProps) => Rule
     return new constructor(props).freeze()
+  }
+
+  /**
+   * The rule name a class is registered under when it doesn't set `static ruleName`:
+   * a PascalCase class name in snake_case, anything else as is.
+   * - `ListAddRelative` => `"list_add_relative"`, `If` => `"if"`, `Item2Of` => `"item2_of"`
+   * - `list_add_relative`, `matchGroup` (rulex's), `_if` => unchanged
+   * - Only splits before a capital, so digits stay put;  a run of capitals is one word:  `JSXText` => `"jsx_text"`.
+   * - Why rule names stay snake_case while classes are PascalCase:  `syntax` strings (`{list_add_relative}`),
+   *   saved declarations and highlighting all name rules, so the names didn't change when the classes did
+   *   (epic `output-targets` P18).
+   */
+  static ruleNameFor(className: string): string {
+    if (!/^[A-Z]/.test(className)) return className
+    return (RULE_NAMES[className] ??= className
+      .replace(/(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])/g, "_")
+      .toLowerCase())
   }
 
   /**
@@ -324,9 +346,10 @@ export abstract class Rule<
   ////////////////
 
   /**
-   * Name to register rule under, if class name won't do.  Plain `static`, NOT inherited.
-   * - Defaults to class name, e.g. `class define_property_has` => `"define_property_has"`.
-   * - Set explicitly for reserved words (`class _if` => `"if"`) or dynamically-named rules.
+   * Name to register rule under, if the one worked out from the class name won't do.  Plain `static`, NOT inherited.
+   * - Defaults to `ruleNameFor()` the class name, e.g. `class DefinePropertyHas` => `"define_property_has"`.
+   * - Set explicitly where that isn't the name, e.g. `class BlockLine` => `"line"`, `class SpellJSXText` =>
+   *   `"jsxText"`;  or for dynamically-named rules.
    */
   static ruleName?: string
   /** Tests for this rule.  Plain `static`, NOT inherited, or we'd re-run them for each subclass. */
@@ -708,3 +731,6 @@ const STRUCTURE_PROPS = ["rules", "rule", "literal", "literals"]
  *   silently ignores its own definition.
  */
 const PLAIN_STATICS = ["ruleName", "tests", "skip", "specializedFrom", "specializedWith"]
+
+/** Memo for `Rule.ruleNameFor()`:  class name => rule name. */
+const RULE_NAMES: Record<string, string> = Object.create(null)

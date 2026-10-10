@@ -57,6 +57,23 @@ describe("rules defined as classes", () => {
       parser.addRule(if_subclass, { syntax: "if {condition:word}" })
       expect(parser.rules.if_subclass).toBeDefined()
     })
+    test("a PascalCase class registers under its name in snake_case;  any other name as is", () => {
+      class GiveItTo extends TestStatement {}
+      const parser = makeParser()
+      parser.addRule(GiveItTo, { syntax: "give {thing:word} to {recipient:word}" })
+      expect(parser.rules.give_it_to).toBeInstanceOf(GiveItTo)
+      expect(parser.rules.GiveItTo).toBeUndefined()
+      expect(parser.rules.give_statement).toBeDefined()
+    })
+    test("`ruleNameFor()`:  splits only before a capital;  a run of capitals is one word", () => {
+      expect(P.Rule.ruleNameFor("ListAddRelative")).toBe("list_add_relative")
+      expect(P.Rule.ruleNameFor("If")).toBe("if")
+      expect(P.Rule.ruleNameFor("Item2Of")).toBe("item2_of")
+      expect(P.Rule.ruleNameFor("JSXText")).toBe("jsx_text")
+      expect(P.Rule.ruleNameFor("list_add_relative")).toBe("list_add_relative")
+      expect(P.Rule.ruleNameFor("matchGroup")).toBe("matchGroup")
+      expect(P.Rule.ruleNameFor("_if")).toBe("_if")
+    })
     test("anonymous class without `ruleName` throws", () => {
       expect(() => new Parser().addRule(class extends P.Sequence {})).toThrow(P.ParserError)
     })

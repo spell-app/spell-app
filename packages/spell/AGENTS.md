@@ -93,13 +93,21 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - `priority` (from the `Priority` table, `rules.types.ts`) only breaks a tie between rules matching the SAME words
     - `precedence` (from the `Precedence` table) is how tightly an operator binds
     - A new expression or operator:  `PARSING.md`, "Adding an expression rule".
-  - Class name IS the rule name.
-    - Use plain `static ruleName = "if"` only for reserved words (`class _if`),
-      or when the class name isn't rule case (`class Block` => `"block"`).
+  - Rule CLASSES are PascalCase;  rule NAMES are snake_case, worked out from the class name.
+    - `class ListAddRelative` => `list_add_relative`, `class If` => `if`:  `P.Rule.ruleNameFor()`.
+    - The rule name is what everything else says:  `syntax` (`{list_add_relative}`), `parser.rules`,
+      declarations, error messages, the `__snapshots__`.
+    - Plain `static ruleName = "..."` only where the class name doesn't give it,
+      e.g. `class BlockLine` => `"line"`, `class SpellJSXText` => `"jsxText"`.
+      - Also where the PascalCase name would hide a javascript or DOM global (`Number`, `Boolean`, `Text`,
+        `Comment` ...) or reads as a parser class (`Keyword`):  a fuller class name, keeping the rule name,
+        e.g. `class NumberLiteral` + `static ruleName = "number"`.
     - So the prod build keeps class names:  [parser's AGENTS.md](../parser/AGENTS.md), `keepNames`.
+    - [ruleNames.test.ts](src/rules/ruleNames.test.ts) pins every rule's name, module and registration order:
+      a renamed class that changes a rule's name fails it.
   - ONE `syntax` per registration.
     - A rule with several calls `addRule()` once per syntax, each with the `tests` for that syntax,
-      e.g. `assignment_statement`.
+      e.g. `assignment` (`AssignmentStatement`).
     - Instances merge into a `P.Group`, under the rule's name.
   - Put a prop on a base class when EVERY subclass wants the same value.
     - e.g. `SpellExpression`'s `alias = "expression"`
@@ -107,7 +115,7 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - A subclass just states its own value, for an exception.
   - Constructor defaults also work, for what every rule of a base class has in common.
     - e.g. `super({ pattern, blacklist, ...props })`:  see `SpellIdentifier`
-  - The finished shape:  [variables.ts](src/rules/variables.ts).
+  - The finished shape:  [events/](src/rules/events/), one rule per file (see "Rule module layout" below).
     All the ways to make a rule:  the top docstring in [Rule.ts](../parser/src/rules/Rule.ts).
   - `SpellParser.addRule()` and `scope.addRule()` only TYPE `{ syntax, tests }` (`P.SyntaxAndTests`).
     So a stray `alias` there is a compile error.
@@ -158,42 +166,51 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - Base classes set it for their family, so most rules need nothing:
     - `SpellIdentifier` => `"variable"`
     - `Keyword` => `"keyword"`
-- Rule module layout, top to bottom:
-  - header docstring, imports
-  - `export const <module> = new SpellParser({ module: "<module>" })`, at the TOP:
-    classes can't be hoisted to it
-  - then for EACH rule, in tie-break order (when two rules tie on `priority` and length, the EARLIER wins):
-    - a group header naming the rule and showing what it matches, exactly this shape:
-
-      ```
-      ////////////////
-      // ## `known_variable` rule
-      //    e.g. "the thing", if `thing` is in scope
-      ////////////////
-      ```
-
-      - `e.g.` is indented 4, so it lines up under the rule name.
-      - The example comes from the rule's own `tests`, so it stays true.
-      - A base class which is never registered gets `` // ## `SpellIdentifier` base class ``.
-      - A rule whose class name differs gets `` // ## `number` rule (class `numeric`) ``.
-      - A broad SECTION spanning several rules uses a wider banner, one level up:
-        `// # Various flavors of whitespace`.
-    - constants the rule's registration reads (`VARIABLE_SYNTAX`)
-      - The header goes ABOVE these:  it marks where the rule starts, not where its class starts.
-      - They MUST precede `addRule()`:  a `const` isn't hoisted.
-    - docstring + `class known_variable extends ... {}`
-      - exported only if something outside the file needs it
-      - its `@proto static` props FIRST in the class body
-    - `<module>.addRule(known_variable, { syntax, tests })`, immediately after the class, once per syntax
-    - THEN types and helper functions only this rule uses (`type VariableMatchData`, `setup_assignment_statement()`)
-      - Types and function declarations are hoisted, so they can follow what uses them.
-  - Types and helpers SHARED by several rules go in a section at the BOTTOM of the module, e.g. `// ## Shared types`.
-    So none sits above a rule that needs it.
-  - Test setup shared by a rule's registrations:  `setup_<rule_class>()`, returning `{ compileAs, beforeEach }`.
-    - It's spread into each block:  `{ ...setup_assignment_statement(), tests: [...] }`.
-  - Tests need no type annotations there.
-  - Each module needs a sibling `<module>.test.ts` calling `unitTestModuleRules()` (from `$/parser/test`),
+- Rule module layout:  a module is a FOLDER, one rule class per file (epic `output-targets` P18).
+  - The model:  [events/](src/rules/events/).
+    Modules not converted yet are still one file (`lists.ts`):  each moves to this layout as it's next worked on.
+  - `rules/<module>/<module>.parser.ts`:  the module's parser, and nothing else.
+    - `export const <module> = new SpellParser({ module: "<module>" })`
+    - A file of its own, so each rule file can import it without importing its siblings.
+  - `rules/<module>/<RuleClass>.ts`:  ONE rule class, the file named for it, e.g. `events/Trigger.ts`.
+    - Top to bottom:
+      - imports:  `./<module>.parser`, peer files (a base class), `$/spell/rules/<other module>` for another's
+      - constants the registration reads (`VARIABLE_SYNTAX`):  a `const` isn't hoisted
+      - docstring + `export class Trigger extends ... {}`, its `@proto static` props FIRST in the body
+      - `<module>.addRule(Trigger, { syntax, tests })`, right after the class, once per syntax
+      - THEN the types and helpers only this rule uses (`type VariableMatchData`, `setupAssignmentStatement()`)
+        - Types and function declarations are hoisted, so they can follow what uses them.
+    - The class docstring's first line starts with the RULE name, so a search for `{list_add_relative}` finds it:
+      `` `list_add_relative` rule:  adds an item before or after another ``, then `- e.g. ...` from its own `tests`.
+    - Every rule class is exported:  one exported class per file (WWOD §8).
+    - A base class shared by several rules (registered or not):  a file of its own, named for it.
+  - `rules/<module>/<module>.shared.ts`:  types, constants and helper functions SHARED by several of its rule files.
+    - Only if there are any.
+      What one rule alone uses stays in that rule's file.
+    - `.shared`, not `.types`:  rule helpers build AST nodes (`new P.AST...`), values a `.types.ts` mustn't import.
+  - `rules/<module>/index.ts`:  `export * from` each file, in TIE-BREAK order.
+    - When two rules tie on `priority` and length, the one registered FIRST wins (`Choice.getBestMatch()`).
+      Each rule registers as its file loads, so this list IS the registration order:  keep the module's old order.
+    - `./<module>.parser` first, then `./<module>.shared`, then the rule files.
+    - A rule file that imports a peer (its base class) loads it first:
+      fine as long as the base came first in the old order too.
+    - Other modules and `rules/index.ts` import the folder (`$/spell/rules/<module>`, `./<module>`) as before.
+  - `rules/<module>/<module>.test.ts`:  `unitTestModuleRules(spellParser, "<module>", ...)` (from `$/spell/test`),
     or its tests never run.
+    - Its `__snapshots__` (the group specs) are beside it, in `rules/<module>/__snapshots__/`.
+- A rule's `tests`:  `{ input, js, ts }`, or a tuple `[input, js, ts?]` (`P.RuleTest`).
+  - `js`:  what the javascript writer writes;  `ts`:  what the TypeScript writer writes.
+    Leave `ts` out where it's the same as `js`.
+  - `input` is parsed ONCE, then written by both:  a change to either writer fails the rule's own tests.
+  - A rule alone has no project around it, so its `ts` shows what the writer does without one,
+    e.g. a type it can't know.
+  - `yarn test:rules:bless` writes each test's `ts` into the source (`BLESS_RULE_TESTS=1`, then `vp fmt`).
+    - Read the diff after:  it's the review.
+    - It finds each test by its `input` and `js`;  one it can't place fails the run, saying why.
+  - Test setup shared by a rule's registrations:  `setup<RuleClass>()`, returning `{ compileAs, beforeEach }`.
+    - It's spread into each block:  `{ ...setupAssignmentStatement(), tests: [...] }`.
+  - Tests need no type annotations there.
+  - `yarn test:rules` runs every rule module's tests, and `ruleNames.test.ts`.
 - Type arguments:  `Rule<Props, Groups, MatchData>`, all defaulted, so bare `P.Rule` / `P.Sequence` / `P.Match` work.
   - Rule base classes fix `Props`, so authors write `SpellStatement<"type|property|specifier?", { ruleComment?: ... }>`.
   - `rule.matchGroup` (was `argument`) is the name a rule's match goes under in `match.groups`,
@@ -204,7 +221,7 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - Use an object type when `getGroupsForMatch()` derives non-`Match` values.
   - `MatchData` is what a rule stashes on its matches, read as `match.data.foo`.
   - Hooks take `match: P.MatchFor<this>`.
-    To read another rule's match, narrow with `match.is(other_rule)`.
+    To read another rule's match, narrow with `match.is(OtherRule)`.
 - `match.groups` holds ONLY what the syntax matched (`Match | Match[]`).
   - Anything a rule works out for itself goes in `match.data`, typically via a caching method:
     `getBits(match) { return (match.data.bits ??= ...) }`.
@@ -249,11 +266,9 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
 - Rules are IMMUTABLE (frozen on registration), and shared by every parse.
   - NEVER store per-parse state on a rule.
   - NEVER add ad hoc fields to a `Match`:  use `match.data`.
-- An exception to "one exported class per file":  a rule module holds many snake_case rule classes.
-  - Export ONLY what something outside the file needs:
-    a base class to subclass, or a rule to narrow with `match.is()`.
-  - Leaf rules stay unexported.
-    Other modules reach them by NAME, through `syntax` / `parser.rules`.
+- Other modules reach a rule by NAME, through `syntax` / `parser.rules`;  by its CLASS only to subclass it,
+  or to narrow a match with `match.is()`.
+  - A module not yet in the folder layout still holds many snake_case rule classes, exporting only those.
 - A base rule class for a category of spell things is `Spell<Thing>`, paired with the lowercase rule it fathers.
   - `SpellConstant` / `constant`
   - `SpellType` / `type`

@@ -50,12 +50,24 @@ lists.addRule(identifier_list, {
   tests: [
     {
       tests: [
-        ["up or down", "['up', 'down']"],
-        ["red and black", "['red', 'black']"],
-        ["back nor forth", "['back', 'forth']"],
-        ["clubs, diamonds, hearts, spades", "['clubs', 'diamonds', 'hearts', 'spades']"],
-        ["ace, 2, 3, 4, jack, queen or king", "['ace', 2, 3, 4, 'jack', 'queen', 'king']"],
-        ["ace, 2 ... 5, jack, queen or king", "['ace', 2, 3, 4, 5, 'jack', 'queen', 'king']"]
+        ["up or down", "['up', 'down']", '["up", "down"]'],
+        ["red and black", "['red', 'black']", '["red", "black"]'],
+        ["back nor forth", "['back', 'forth']", '["back", "forth"]'],
+        [
+          "clubs, diamonds, hearts, spades",
+          "['clubs', 'diamonds', 'hearts', 'spades']",
+          '["clubs", "diamonds", "hearts", "spades"]'
+        ],
+        [
+          "ace, 2, 3, 4, jack, queen or king",
+          "['ace', 2, 3, 4, 'jack', 'queen', 'king']",
+          '["ace", 2, 3, 4, "jack", "queen", "king"]'
+        ],
+        [
+          "ace, 2 ... 5, jack, queen or king",
+          "['ace', 2, 3, 4, 5, 'jack', 'queen', 'king']",
+          '["ace", 2, 3, 4, 5, "jack", "queen", "king"]'
+        ]
       ]
     }
   ]
@@ -136,8 +148,8 @@ lists.addRule(value_choices, {
         for (const name of ["jack", "queen", "king"]) scope.constants?.add(name)
       },
       tests: [
-        ["jack or queen", "['jack', 'queen']"],
-        ["jack, queen or king", "['jack', 'queen', 'king']"],
+        ["jack or queen", "['jack', 'queen']", '["jack", "queen"]'],
+        ["jack, queen or king", "['jack', 'queen', 'king']", '["jack", "queen", "king"]'],
         ["2 or 3", "[2, 3]"],
         ["jack, queen", undefined],
         ["jack or red", undefined]
@@ -343,7 +355,7 @@ lists.addRule(list_length, {
         scope.variables?.add("bar")
       },
       tests: [
-        ["number of items in my-list", "spellCore.itemCountOf(my_list)"],
+        ["number of items in my-list", "spellCore.itemCountOf(my_list)", "spellCore.itemCountOf(myList)"],
         ["the number of foos in the foo of the bar", "spellCore.itemCountOf(bar.foo)"],
         ["the number of items in [1,2,3]", "spellCore.itemCountOf([1, 2, 3])"]
       ]
@@ -362,7 +374,8 @@ lists.addRule(list_length, {
       tests: [
         [
           "the number of items in my-list where its id > 1",
-          [`spellCore.itemCountOf(spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `}))`]
+          [`spellCore.itemCountOf(spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `}))`],
+          "spellCore.itemCountOf(spellCore.filter(myList, (item) => item.id > 1))"
         ]
       ]
     }
@@ -406,7 +419,7 @@ lists.addRule(list_count, {
       tests: [
         ["the number of card suits", "spellCore.itemCountOf(Card.Suits)"],
         ["the number of [1, 2]", "spellCore.itemCountOf([1, 2])"],
-        { title: "not a list:  a property read", input: "the number of x", output: "x.number" }
+        { title: "not a list:  a property read", input: "the number of x", js: "x.number" }
       ]
     }
   ]
@@ -447,9 +460,17 @@ lists.addRule(list_position, {
         scope.variables?.add("bar")
       },
       tests: [
-        ["position of thing in my-list", "spellCore.positionOf(my_list, thing)"],
-        ["the position of thing in the foo of the bar", "spellCore.positionOf(bar.foo, thing)"],
-        [`the position of "a" in ["a", "b", "c"]`, `spellCore.positionOf(["a", "b", "c"], "a")`]
+        ["position of thing in my-list", "spellCore.positionOf(my_list, thing)", "positionOf(myList, thing)"],
+        [
+          "the position of thing in the foo of the bar",
+          "spellCore.positionOf(bar.foo, thing)",
+          "positionOf(bar.foo, thing)"
+        ],
+        [
+          `the position of "a" in ["a", "b", "c"]`,
+          `spellCore.positionOf(["a", "b", "c"], "a")`,
+          'positionOf(["a", "b", "c"], "a")'
+        ]
       ]
     }
   ]
@@ -491,7 +512,7 @@ lists.addRule(starts_with, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["my-list starts with thing", "spellCore.startsWith(my_list, thing)"],
+        ["my-list starts with thing", "spellCore.startsWith(my_list, thing)", "spellCore.startsWith(myList, thing)"],
         ["[1,2,3] starts with 1", "spellCore.startsWith([1, 2, 3], 1)"],
         ["[1,2,3] does not start with 10", "!spellCore.startsWith([1, 2, 3], 10)"],
         ["[1,2,3] doesn't start with 10", "!spellCore.startsWith([1, 2, 3], 10)"],
@@ -534,7 +555,7 @@ lists.addRule(ends_with, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["my-list ends with thing", "spellCore.endsWith(my_list, thing)"],
+        ["my-list ends with thing", "spellCore.endsWith(my_list, thing)", "spellCore.endsWith(myList, thing)"],
         ["[1,2,3] ends with 1", "spellCore.endsWith([1, 2, 3], 1)"],
         ["[1,2,3] does not end with 10", "!spellCore.endsWith([1, 2, 3], 10)"],
         ["[1,2,3] doesnt end with 10", "!spellCore.endsWith([1, 2, 3], 10)"],
@@ -677,7 +698,7 @@ lists.addRule(position_expression, {
         scope.variables?.add("n")
       },
       tests: [
-        ["item 1 of my-list", "spellCore.getItemAt(my_list, 1)"],
+        ["item 1 of my-list", "spellCore.getItemAt(my_list, 1)", "spellCore.getItemAt(myList, 1)"],
         ["card 10 of deck", "spellCore.getItemAt(deck, 10)"],
         ["card n of the cards of the deck", "spellCore.getItemAt(deck.cards, n)"]
       ]
@@ -717,7 +738,7 @@ lists.addRule(ordinal_position_expression, {
         scope.variables?.add("words")
       },
       tests: [
-        ["the first item of my-list", "spellCore.getItemAt(my_list, 1)"],
+        ["the first item of my-list", "spellCore.getItemAt(my_list, 1)", "spellCore.getItemAt(myList, 1)"],
         ["the tenth card of deck", "spellCore.getItemAt(deck, 10)"],
         ["the penultimate word in words", "spellCore.getItemAt(words, -2)"]
       ]
@@ -754,7 +775,7 @@ lists.addRule(random_item_expression, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["a random item of my-list", "spellCore.randomItemOf(my_list)"],
+        ["a random item of my-list", "spellCore.randomItemOf(my_list)", "spellCore.randomItemOf(myList)"],
         [`a random word in "some words"`, `spellCore.randomItemOf("some words")`],
         ["a random card from the deck", "spellCore.randomItemOf(deck)"]
       ]
@@ -796,7 +817,7 @@ lists.addRule(random_items_expression, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["2 random items of my-list", "spellCore.randomItemsOf(my_list, 2)"],
+        ["2 random items of my-list", "spellCore.randomItemsOf(my_list, 2)", "spellCore.randomItemsOf(myList, 2)"],
         [`2 random words in "some other words"`, `spellCore.randomItemsOf("some other words", 2)`],
         ["3 random cards from deck", "spellCore.randomItemsOf(deck, 3)"]
       ]
@@ -839,7 +860,7 @@ lists.addRule(range_between_expression, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["item 1 to 2 of my-list", "spellCore.rangeBetween(my_list, 1, 2)"],
+        ["item 1 to 2 of my-list", "spellCore.rangeBetween(my_list, 1, 2)", "spellCore.rangeBetween(myList, 1, 2)"],
         [`word 2 to 3 in "some other words"`, `spellCore.rangeBetween("some other words", 2, 3)`],
         ["card 1 to 3 from deck", "spellCore.rangeBetween(deck, 1, 3)"]
       ]
@@ -889,11 +910,13 @@ lists.addRule(range_starting_with_expression, {
       tests: [
         [
           "items in my-list starting with thing",
-          "spellCore.rangeStartingAt(my_list, spellCore.positionOf(my_list, thing))"
+          "spellCore.rangeStartingAt(my_list, spellCore.positionOf(my_list, thing))",
+          "spellCore.rangeStartingAt(myList, positionOf(myList, thing))"
         ],
         [
           `words in "some words" starting with "some"`,
-          `spellCore.rangeStartingAt("some words", spellCore.positionOf("some words", "some"))`
+          `spellCore.rangeStartingAt("some words", spellCore.positionOf("some words", "some"))`,
+          'spellCore.rangeStartingAt("some words", positionOf("some words", "some"))'
         ]
       ]
     }
@@ -935,7 +958,11 @@ lists.addRule(range_count_expression, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["top 2 items of my-list", "spellCore.rangeStartingAt(my_list, 1, 2)"],
+        [
+          "top 2 items of my-list",
+          "spellCore.rangeStartingAt(my_list, 1, 2)",
+          "spellCore.rangeStartingAt(myList, 1, 2)"
+        ],
         [`first 2 words in "some other words"`, `spellCore.rangeStartingAt("some other words", 1, 2)`],
         ["last two cards from deck", "spellCore.rangeStartingAt(deck, -1, 2)"]
       ]
@@ -986,22 +1013,30 @@ lists.addRule(list_filter, {
         scope.variables?.add("my-list")
       },
       tests: [
-        [`words in "a word list" where`, `spellCore.filter("a word list", (word) => {})`],
+        [
+          `words in "a word list" where`,
+          `spellCore.filter("a word list", (word) => {})`,
+          'spellCore.filter("a word list", () => {})'
+        ],
         [
           `words in "a word list" where word starts with "a"`,
-          [`spellCore.filter("a word list", (word) => {`, `  return spellCore.startsWith(word, "a")`, `})`]
+          [`spellCore.filter("a word list", (word) => {`, `  return spellCore.startsWith(word, "a")`, `})`],
+          'spellCore.filter("a word list", (word: string) => spellCore.startsWith(word, "a"))'
         ],
         [
           "the items in my-list where the id of the item > 1",
-          [`spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `})`]
+          [`spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `})`],
+          "spellCore.filter(myList, (item) => item.id > 1)"
         ],
         [
           "the items in my-list where the id of it > 1",
-          ["spellCore.filter(my_list, (item) => {", "  return (item.id > 1)", "})"]
+          ["spellCore.filter(my_list, (item) => {", "  return (item.id > 1)", "})"],
+          "spellCore.filter(myList, (item) => item.id > 1)"
         ],
         [
           "the items in my-list where its id > 1",
-          [`spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `})`]
+          [`spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `})`],
+          "spellCore.filter(myList, (item) => item.id > 1)"
         ]
       ]
     }
@@ -1055,22 +1090,41 @@ lists.addRule(list_membership_test, {
         scope.variables?.add("bar")
       },
       tests: [
-        ["my-list has items where", "spellCore.any(my_list, (item) => {})"],
-        ["my-list has items where the item is 1", ["spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"]],
-        ["my-list has items where it is 1", ["spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"]],
+        ["my-list has items where", "spellCore.any(my_list, (item) => {})", "spellCore.any(myList, () => {})"],
+        [
+          "my-list has items where the item is 1",
+          ["spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"],
+          "spellCore.any(myList, (item) => item == 1)"
+        ],
+        [
+          "my-list has items where it is 1",
+          ["spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"],
+          "spellCore.any(myList, (item) => item == 1)"
+        ],
         [
           "my-list has items where its foo is 1",
-          ["spellCore.any(my_list, (item) => {", "  return (item.foo == 1)", "})"]
+          ["spellCore.any(my_list, (item) => {", "  return (item.foo == 1)", "})"],
+          "spellCore.any(myList, (item) => item.foo == 1)"
         ],
-        ["my-list has no items where item is 1", ["!spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"]],
-        ["my-list has no items where it is 1", ["!spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"]],
+        [
+          "my-list has no items where item is 1",
+          ["!spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"],
+          "!spellCore.any(myList, (item) => item == 1)"
+        ],
+        [
+          "my-list has no items where it is 1",
+          ["!spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"],
+          "!spellCore.any(myList, (item) => item == 1)"
+        ],
         [
           "my-list doesnt have items where item is 1",
-          ["!spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"]
+          ["!spellCore.any(my_list, (item) => {", "  return (item == 1)", "})"],
+          "!spellCore.any(myList, (item) => item == 1)"
         ],
         [
           "the foo of the bar does not have items where item is 1",
-          ["!spellCore.any(bar.foo, (item) => {", "  return (item == 1)", "})"]
+          ["!spellCore.any(bar.foo, (item) => {", "  return (item == 1)", "})"],
+          "!spellCore.any(bar.foo, (item) => item == 1)"
         ]
       ]
     }
@@ -1113,14 +1167,14 @@ lists.addRule(list_add, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["add thing to the start of my-list", "spellCore.prepend(my_list, thing)"],
-        ["add thing to the front of my-list", "spellCore.prepend(my_list, thing)"],
-        ["add thing to the top of my-list", "spellCore.prepend(my_list, thing)"],
+        ["add thing to the start of my-list", "spellCore.prepend(my_list, thing)", "spellCore.prepend(myList, thing)"],
+        ["add thing to the front of my-list", "spellCore.prepend(my_list, thing)", "spellCore.prepend(myList, thing)"],
+        ["add thing to the top of my-list", "spellCore.prepend(my_list, thing)", "spellCore.prepend(myList, thing)"],
 
-        ["add thing to my-list", "spellCore.append(my_list, thing)"],
-        ["add thing to the end of my-list", "spellCore.append(my_list, thing)"],
-        ["add thing to the back of my-list", "spellCore.append(my_list, thing)"],
-        ["add thing to the bottom of my-list", "spellCore.append(my_list, thing)"]
+        ["add thing to my-list", "spellCore.append(my_list, thing)", "spellCore.append(myList, thing)"],
+        ["add thing to the end of my-list", "spellCore.append(my_list, thing)", "spellCore.append(myList, thing)"],
+        ["add thing to the back of my-list", "spellCore.append(my_list, thing)", "spellCore.append(myList, thing)"],
+        ["add thing to the bottom of my-list", "spellCore.append(my_list, thing)", "spellCore.append(myList, thing)"]
       ]
     }
   ]
@@ -1152,7 +1206,7 @@ lists.addRule(list_prepend, {
         scope.variables?.add("my-list")
         scope.variables?.add("thing")
       },
-      tests: [["prepend thing to my-list", "spellCore.prepend(my_list, thing)"]]
+      tests: [["prepend thing to my-list", "spellCore.prepend(my_list, thing)", "spellCore.prepend(myList, thing)"]]
     }
   ]
 })
@@ -1183,7 +1237,7 @@ lists.addRule(list_append, {
         scope.variables?.add("my-list")
         scope.variables?.add("thing")
       },
-      tests: [["append thing to my-list", "spellCore.append(my_list, thing)"]]
+      tests: [["append thing to my-list", "spellCore.append(my_list, thing)", "spellCore.append(myList, thing)"]]
     }
   ]
 })
@@ -1229,8 +1283,16 @@ lists.addRule(list_add_relative, {
         scope.variables?.add("other-thing")
       },
       tests: [
-        ["add thing to my-list before other-thing", "spellCore.addBefore(my_list, other_thing, thing)"],
-        ["add thing to my-list after other-thing", "spellCore.addAfter(my_list, other_thing, thing)"]
+        [
+          "add thing to my-list before other-thing",
+          "spellCore.addBefore(my_list, other_thing, thing)",
+          "spellCore.addBefore(myList, otherThing, thing)"
+        ],
+        [
+          "add thing to my-list after other-thing",
+          "spellCore.addAfter(my_list, other_thing, thing)",
+          "spellCore.addAfter(myList, otherThing, thing)"
+        ]
       ]
     }
   ]
@@ -1270,7 +1332,7 @@ lists.addRule(list_empty, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["empty my-list", "spellCore.clear(my_list)"],
+        ["empty my-list", "spellCore.clear(my_list)", "spellCore.clear(myList)"],
         ["clear the cards of the deck", "spellCore.clear(deck.cards)"]
       ]
     }
@@ -1344,7 +1406,7 @@ lists.addRule(list_remove_position, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add("my-list")
       },
-      tests: [["remove item 4 of my-list", "spellCore.removeItemAt(my_list, 4)"]]
+      tests: [["remove item 4 of my-list", "spellCore.removeItemAt(my_list, 4)", "spellCore.removeItemAt(myList, 4)"]]
     }
   ]
 })
@@ -1379,7 +1441,13 @@ lists.addRule(list_remove_range, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add("my-list")
       },
-      tests: [["remove items 2 to 4 of my-list", "spellCore.removeRangeBetween(my_list, 2, 4)"]]
+      tests: [
+        [
+          "remove items 2 to 4 of my-list",
+          "spellCore.removeRangeBetween(my_list, 2, 4)",
+          "spellCore.removeRangeBetween(myList, 2, 4)"
+        ]
+      ]
     }
   ]
 })
@@ -1451,7 +1519,7 @@ lists.addRule(list_remove, {
         scope.variables?.add("thing")
         scope.variables?.add("my-list")
       },
-      tests: [["remove thing from my-list", "spellCore.remove(my_list, thing)"]]
+      tests: [["remove thing from my-list", "spellCore.remove(my_list, thing)", "spellCore.remove(myList, thing)"]]
     }
   ]
 })
@@ -1494,22 +1562,30 @@ lists.addRule(list_remove_where, {
         scope.constants?.add("clubs")
       },
       tests: [
-        ["remove items from my-list where", "spellCore.removeWhere(my_list, (item) => {})"],
+        [
+          "remove items from my-list where",
+          "spellCore.removeWhere(my_list, (item) => {})",
+          "spellCore.removeWhere(myList, () => {})"
+        ],
         [
           `remove items from my-list where item is not "ace"`,
-          [`spellCore.removeWhere(my_list, (item) => {`, `  return (item != "ace")`, `})`]
+          [`spellCore.removeWhere(my_list, (item) => {`, `  return (item != "ace")`, `})`],
+          'spellCore.removeWhere(myList, (item) => item != "ace")'
         ],
         [
           "remove cards in deck where the suit of the card is clubs",
-          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"]
+          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"],
+          'spellCore.removeWhere(deck, (card) => card.suit == "clubs")'
         ],
         [
           "remove cards in deck where the suit of it is clubs",
-          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"]
+          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"],
+          'spellCore.removeWhere(deck, (card) => card.suit == "clubs")'
         ],
         [
           "remove cards in deck where its suit is clubs",
-          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"]
+          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"],
+          'spellCore.removeWhere(deck, (card) => card.suit == "clubs")'
         ]
       ]
     }
@@ -1561,7 +1637,11 @@ lists.addRule(list_move, {
       },
       tests: [
         ["move card to tableau", "spellCore.move(card, tableau)"],
-        ["if move card to tableau then print 1", "if (spellCore.move(card, tableau)) { spellCore.console.log(1) }"]
+        [
+          "if move card to tableau then print 1",
+          "if (spellCore.move(card, tableau)) { spellCore.console.log(1) }",
+          "if (spellCore.move(card, tableau)) spellCore.console.log(1)"
+        ]
       ]
     }
   ]
@@ -1671,7 +1751,7 @@ lists.addRule(list_reverse, {
       },
       tests: [
         ["reverse the cards of the deck", "spellCore.reverse(deck)"],
-        ["reverse my-list", "spellCore.reverse(my_list)"]
+        ["reverse my-list", "spellCore.reverse(my_list)", "spellCore.reverse(myList)"]
       ]
     }
   ]
@@ -1706,7 +1786,7 @@ lists.addRule(list_shuffle, {
       tests: [
         ["shuffle cards of deck", "spellCore.randomize(deck)"],
         ["shuffle the cards of the deck", "spellCore.randomize(deck)"],
-        ["randomize my-list", "spellCore.randomize(my_list)"]
+        ["randomize my-list", "spellCore.randomize(my_list)", "spellCore.randomize(myList)"]
       ]
     }
   ]
@@ -1769,25 +1849,32 @@ lists.addRule(repeat_n_times, {
         {
           title: "No statements",
           input: "repeat 1 time:",
-          output: "spellCore.map(spellCore.countTo(1), (number) => {})"
+          js: "spellCore.map(spellCore.countTo(1), (number) => {})",
+          ts: "spellCore.map(spellCore.countTo(1), () => {})"
         },
         {
           title: "Inline statement",
           input: "repeat 3 times: print the number",
-          output: ["spellCore.map(spellCore.countTo(3), (number) => {", "  return spellCore.console.log(number)", "})"]
+          js: ["spellCore.map(spellCore.countTo(3), (number) => {", "  return spellCore.console.log(number)", "})"],
+          ts: "spellCore.map(spellCore.countTo(3), (number) => spellCore.console.log(number))"
         },
         {
           title: "Nested block statement",
           input: ["repeat 3 times:", "\tprint it"],
-          output: ["spellCore.map(spellCore.countTo(3), (number) => {", "  spellCore.console.log(number)", "})"]
+          js: ["spellCore.map(spellCore.countTo(3), (number) => {", "  spellCore.console.log(number)", "})"],
+          ts: "spellCore.map(spellCore.countTo(3), (number) => spellCore.console.log(number))"
         },
         {
           title: "Error if nested block and inline statement",
           input: ["repeat 3 times: print 1", "\tprint it"],
-          output: [
+          js: [
             "spellCore.map(spellCore.countTo(3), (number) => {",
             "  spellCore.console.log(number)",
             "})",
+            "/* PARSE ERROR: Got both inline statement and nested block */"
+          ],
+          ts: [
+            "spellCore.map(spellCore.countTo(3), (number) => spellCore.console.log(number))",
             "/* PARSE ERROR: Got both inline statement and nested block */"
           ]
         }
@@ -1879,15 +1966,21 @@ lists.addRule(list_iteration, {
         scope.variables?.add("messages")
       },
       tests: [
-        ["for each card in deck:", "spellCore.map(deck, (card) => {})"],
-        ["for item, index in my-list:", "spellCore.map(my_list, (item, index) => {})"],
+        ["for each card in deck:", "spellCore.map(deck, (card) => {})", "spellCore.map(deck, () => {})"],
+        [
+          "for item, index in my-list:",
+          "spellCore.map(my_list, (item, index) => {})",
+          "spellCore.map(myList, () => {})"
+        ],
         [
           `for each card in deck: set the direction of the card to "down"`,
-          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`]
+          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`],
+          'spellCore.map(deck, (card) => (card.direction = "down"))'
         ],
         [
           `for each card in deck: set the direction of it to "down"`,
-          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`]
+          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`],
+          'spellCore.map(deck, (card) => (card.direction = "down"))'
         ],
         [
           "for message, index in messages: add message + index to messages",
@@ -1895,7 +1988,8 @@ lists.addRule(list_iteration, {
             `spellCore.map(messages, (message, index) => {`,
             `  return spellCore.append(messages, message + index)`,
             `})`
-          ]
+          ],
+          "spellCore.map(messages, (message, index: number) => spellCore.append(messages, message + index))"
         ],
         [
           "for message, index in messages: add it + index to messages",
@@ -1903,20 +1997,24 @@ lists.addRule(list_iteration, {
             `spellCore.map(messages, (message, index) => {`,
             `  return spellCore.append(messages, message + index)`,
             `})`
-          ]
+          ],
+          "spellCore.map(messages, (message, index: number) => spellCore.append(messages, message + index))"
         ],
         [
           "for message, index in messages: set its list to messages",
-          [`spellCore.map(messages, (message, index) => {`, `  message.list = messages`, `})`]
+          [`spellCore.map(messages, (message, index) => {`, `  message.list = messages`, `})`],
+          "spellCore.map(messages, (message) => (message.list = messages))"
         ],
 
         [
           `for each card in deck:\n\tset the direction of the card to "down"`,
-          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`]
+          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`],
+          'spellCore.map(deck, (card) => (card.direction = "down"))'
         ],
         [
           [`for each card in deck:`, `\tset the direction of it to "down"`],
-          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`]
+          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`],
+          'spellCore.map(deck, (card) => (card.direction = "down"))'
         ],
         [
           [`for each card in deck:`, `\tset the direction of the card to "down"`, `\tset the value of the card to 10`],
@@ -1928,6 +2026,11 @@ lists.addRule(list_iteration, {
             `spellCore.map(messages, (message, index) => {`,
             `  if (index > 2) { spellCore.append(messages, message) }`,
             `})`
+          ],
+          [
+            "spellCore.map(messages, (message, index: number) => {",
+            "  if (index > 2) spellCore.append(messages, message)",
+            "})"
           ]
         ]
       ]
@@ -1988,14 +2091,20 @@ lists.addRule(list_range_iteration, {
     {
       compileAs: "block",
       tests: [
-        ["for each number from 1 to 10:", "spellCore.map(spellCore.getRange(1, 10), (number) => {})"],
+        [
+          "for each number from 1 to 10:",
+          "spellCore.map(spellCore.getRange(1, 10), (number) => {})",
+          "spellCore.getRange(1, 10).forEach(() => {})"
+        ],
         [
           "for each number from 1 to 10: print the number",
-          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "  return spellCore.console.log(number)", "})"]
+          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "  return spellCore.console.log(number)", "})"],
+          "spellCore.getRange(1, 10).forEach((number) => spellCore.console.log(number))"
         ],
         [
           "for each number from 1 to 10:\n\tprint the number",
-          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "  spellCore.console.log(number)", "})"]
+          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "  spellCore.console.log(number)", "})"],
+          "spellCore.getRange(1, 10).forEach((number) => spellCore.console.log(number))"
         ]
       ]
     }

@@ -229,8 +229,13 @@ assignment.addRule(assignment_statement, {
     {
       ...setup_assignment_statement(),
       tests: [
-        { title: "non-existing var", input: "unknown-var = yes", output: "export let unknown_var = true" },
-        { title: "existing var", input: "thing = yes", output: "thing = true" }
+        {
+          title: "non-existing var",
+          input: "unknown-var = yes",
+          js: "export let unknown_var = true",
+          ts: "export const unknownVar: boolean = true"
+        },
+        { title: "existing var", input: "thing = yes", js: "thing = true" }
       ]
     }
   ]
@@ -244,12 +249,12 @@ assignment.addRule(assignment_statement, {
         {
           title: "non-existing var: property set (won't work)",
           input: `let the name of unknown-var = "bob"`,
-          output: `/* PARSE ERROR: Don't understand "let the name of unknown-var = "bob"" */`
+          js: `/* PARSE ERROR: Don't understand "let the name of unknown-var = "bob"" */`
         },
         {
           title: "existing var: property set",
           input: `let the name of thing = "bob"`,
-          output: `thing.name = "bob"`
+          js: `thing.name = "bob"`
         }
       ]
     }
@@ -261,17 +266,23 @@ assignment.addRule(assignment_statement, {
     {
       ...setup_assignment_statement(),
       tests: [
-        { title: "non-existing var", input: "set unknown-var to yes", output: "export let unknown_var = true" },
-        { title: "existing var", input: "set thing to yes", output: "thing = true" },
+        {
+          title: "non-existing var",
+          input: "set unknown-var to yes",
+          js: "export let unknown_var = true",
+          ts: "export const unknownVar: boolean = true"
+        },
+        { title: "existing var", input: "set thing to yes", js: "thing = true" },
         {
           title: "alias var reassign works",
           input: "set it to the name of it",
-          output: "let it = this.name"
+          js: "let it = this.name",
+          ts: "const it = this.name"
         },
         {
           title: "assignment to alias property doesn't redefine alias",
           input: "set the title of it to the name of it",
-          output: "this.title = this.name"
+          js: "this.title = this.name"
         }
       ]
     }
@@ -286,9 +297,10 @@ assignment.addRule(assignment_statement, {
         {
           title: "non-existing var",
           input: `bob is a new person whose name is "bob"`,
-          output: `export let bob = new Person({ name: "bob" })`
+          js: `export let bob = new Person({ name: "bob" })`,
+          ts: 'export const bob = new Person({ name: "bob" })'
         },
-        { title: "existing var", input: "thing is a new person", output: "thing = new Person()" }
+        { title: "existing var", input: "thing is a new person", js: "thing = new Person()" }
       ]
     }
   ]
@@ -368,8 +380,8 @@ assignment.addRule(get, {
         ;(scope as P.BlockScope).variables.add("thing")
       },
       tests: [
-        ["get thing", "let it = thing"],
-        ["get the foo of the thing", "let it = thing.foo"]
+        ["get thing", "let it = thing", "const it = thing"],
+        ["get the foo of the thing", "let it = thing.foo", "const it = thing.foo"]
       ]
     },
     {
@@ -381,8 +393,8 @@ assignment.addRule(get, {
         variables.add("thing")
       },
       tests: [
-        ["get thing", "let it_2 = thing"],
-        ["get the foo of the thing", "let it_2 = thing.foo"]
+        ["get thing", "let it_2 = thing", "const it2 = thing"],
+        ["get the foo of the thing", "let it_2 = thing.foo", "const it2 = thing.foo"]
       ]
     },
     {
@@ -394,7 +406,8 @@ assignment.addRule(get, {
       tests: [
         {
           input: ["get thing", "get the foo of the thing", "print it"],
-          output: ["let it = thing", "let it_2 = thing.foo", "spellCore.console.log(it_2)"]
+          js: ["let it = thing", "let it_2 = thing.foo", "spellCore.console.log(it_2)"],
+          ts: ["const it = thing", "const it2 = thing.foo", "spellCore.console.log(it2)"]
         }
       ]
     },
@@ -409,7 +422,8 @@ assignment.addRule(get, {
       tests: [
         {
           input: ["get thing", "get the foo of the thing"],
-          output: ["let it = thing", "let it_3 = thing.foo"]
+          js: ["let it = thing", "let it_3 = thing.foo"],
+          ts: ["const it = thing", "const it3 = thing.foo"]
         }
       ]
     },
@@ -424,11 +438,13 @@ assignment.addRule(get, {
       tests: [
         {
           input: ["print it", "get the thing", "print it"],
-          output: ["spellCore.console.log(this)", "let it = thing", "spellCore.console.log(it)"]
+          js: ["spellCore.console.log(this)", "let it = thing", "spellCore.console.log(it)"],
+          ts: ["spellCore.console.log(this)", "const it = thing", "spellCore.console.log(it)"]
         },
         {
           input: ["print it", "get its name", "print it"],
-          output: ["spellCore.console.log(this)", "let it = this.name", "spellCore.console.log(it)"]
+          js: ["spellCore.console.log(this)", "let it = this.name", "spellCore.console.log(it)"],
+          ts: ["spellCore.console.log(this)", "const it = this.name", "spellCore.console.log(it)"]
         }
       ]
     }
@@ -490,14 +506,15 @@ assignment.addRule(return_statement, {
       compileAs: "block",
       tests: [
         // simple expression
-        ["return\n\t1 + 2", "return (1 + 2)"],
+        ["return\n\t1 + 2", "return (1 + 2)", "return 1 + 2"],
         // inline JSX
-        ["return\n\t<div/>", 'return spellCore.element({ tag: "div" })'],
-        ["return\n\t1 + <div/>", 'return (1 + spellCore.element({ tag: "div" }))'],
+        ["return\n\t<div/>", 'return spellCore.element({ tag: "div" })', "return <div />"],
+        ["return\n\t1 + <div/>", 'return (1 + spellCore.element({ tag: "div" }))', "return 1 + (<div />)"],
         // multi-line JSX
         [
           ["return", "\t<div>", "\t\t<span/>", "\t</div>"],
-          ['return spellCore.element({ tag: "div", children: [', '  spellCore.element({ tag: "span" })', "] })"]
+          ['return spellCore.element({ tag: "div", children: [', '  spellCore.element({ tag: "span" })', "] })"],
+          ["return (", "  <div>", "    <span />", "  </div>", ")"]
         ],
         // fails for more than one indented line
         [

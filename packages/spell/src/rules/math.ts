@@ -59,17 +59,17 @@ math.addRule(gt_lt, {
         scope.variables?.add("expenses")
       },
       tests: [
-        { title: "> with spaces", input: "salary > expenses", output: "(salary > expenses)" },
-        { title: "> without spaces", input: "salary>expenses", output: "(salary > expenses)" },
+        { title: "> with spaces", input: "salary > expenses", js: "(salary > expenses)" },
+        { title: "> without spaces", input: "salary>expenses", js: "(salary > expenses)" },
 
-        { title: "< with spaces", input: "salary < expenses", output: "(salary < expenses)" },
-        { title: "< without spaces", input: "salary<expenses", output: "(salary < expenses)" },
+        { title: "< with spaces", input: "salary < expenses", js: "(salary < expenses)" },
+        { title: "< without spaces", input: "salary<expenses", js: "(salary < expenses)" },
 
-        { title: ">= with spaces", input: "salary >= expenses", output: "(salary >= expenses)" },
-        { title: ">= without spaces", input: "salary>=expenses", output: "(salary >= expenses)" },
+        { title: ">= with spaces", input: "salary >= expenses", js: "(salary >= expenses)" },
+        { title: ">= without spaces", input: "salary>=expenses", js: "(salary >= expenses)" },
 
-        { title: "<= with spaces", input: "salary <= expenses", output: "(salary <= expenses)" },
-        { title: "<= without spaces", input: "salary<=expenses", output: "(salary <= expenses)" }
+        { title: "<= with spaces", input: "salary <= expenses", js: "(salary <= expenses)" },
+        { title: "<= without spaces", input: "salary<=expenses", js: "(salary <= expenses)" }
       ]
     }
   ]

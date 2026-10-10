@@ -60,9 +60,14 @@ tests.addRule(expect_test, {
         ["expect the is-face-up of it", "spellCore.expect(it.is_face_up, `the is-face-up of it`)"],
         [
           "expect the number of items in my-list to be 0",
-          "spellCore.expect(spellCore.itemCountOf(my_list), `the number of items in my-list`, 0, `0`)"
+          "spellCore.expect(spellCore.itemCountOf(my_list), `the number of items in my-list`, 0, `0`)",
+          "spellCore.expect(spellCore.itemCountOf(myList), `the number of items in my-list`, 0, `0`)"
         ],
-        ["expect that it is a thing", "spellCore.expect(spellCore.isOfType(it, 'Thing'), `it is a thing`)"]
+        [
+          "expect that it is a thing",
+          "spellCore.expect(spellCore.isOfType(it, 'Thing'), `it is a thing`)",
+          'spellCore.expect(spellCore.isOfType(it, "Thing"), `it is a thing`)'
+        ]
       ]
     }
   ]
@@ -134,7 +139,7 @@ tests.addRule(echo, {
       tests: [
         [`echo 1`, `spellCore.echo(1)`],
         [`echo "foo"`, `spellCore.echo("foo")`],
-        ["echo the rank of a new thing", "spellCore.echo(new Thing().rank)"]
+        ["echo the rank of a new thing", "spellCore.echo(new Thing().rank)", "spellCore.echo((new Thing()).rank)"]
       ]
     }
   ]

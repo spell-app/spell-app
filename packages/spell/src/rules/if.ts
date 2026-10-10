@@ -55,9 +55,9 @@ _if_.addRule(_if, {
         ["if a", "if (a) {}"],
         ["if a then", "if (a) {}"],
         ["if a:", "if (a) {}"],
-        ["if a then b = 1", "if (a) { let b = 1 }"],
-        ["if a: b = 1", "if (a) { let b = 1 }"],
-        ["if a : b = 1", "if (a) { let b = 1 }"]
+        ["if a then b = 1", "if (a) { let b = 1 }", "if (a) const b: number = 1"],
+        ["if a: b = 1", "if (a) { let b = 1 }", "if (a) const b: number = 1"],
+        ["if a : b = 1", "if (a) { let b = 1 }", "if (a) const b: number = 1"]
       ]
     },
     {
@@ -70,37 +70,52 @@ _if_.addRule(_if, {
         {
           title: "Separate blocks if no indentation on second line.",
           input: ["if a:", "b = 1"],
-          output: ["if (a) {}", "export let b = 1"] // NOTE: this is correct!
+          js: ["if (a) {}", "export let b = 1"],
+          ts: ["if (a) {}", "export const b: number = 1"] // NOTE: this is correct!
         },
         {
           title: "Single tabbed statement appears inline",
           input: ["if a:", "\tb = 1"],
-          output: "if (a) { let b = 1 }"
+          js: "if (a) { let b = 1 }",
+          ts: "if (a) const b: number = 1"
         },
         {
           title: "ANY number of spaces should count as indentation",
           input: ["if a:", " b = 1"],
-          output: "if (a) { let b = 1 }"
+          js: "if (a) { let b = 1 }",
+          ts: "if (a) const b: number = 1"
         },
         {
           title: "Indent with tab, output has tabs spaces",
           input: ["if a:", "\tb = 1", "\tc=1"],
-          output: ["if (a) {", "  let b = 1", "  let c = 1", "}"]
+          js: ["if (a) {", "  let b = 1", "  let c = 1", "}"],
+          ts: ["if (a) {", "  const b: number = 1", "  const c: number = 1", "}"]
         },
         {
           title: "Multiple lines in the nested block",
           input: ["if a:", "\tb = 1", "\tc = 2"],
-          output: ["if (a) {", "  let b = 1", "  let c = 2", "}"]
+          js: ["if (a) {", "  let b = 1", "  let c = 2", "}"],
+          ts: ["if (a) {", "  const b: number = 1", "  const c: number = 2", "}"]
         },
         {
           title: "Nested ifs work fine",
           input: ["if a", "\tb = 1", "\tif b", "\t\tc = 2", "\t\td = 3"],
-          output: ["if (a) {", "  let b = 1", "  if (b) {", "    let c = 2", "    let d = 3", "  }", "}"]
+          js: ["if (a) {", "  let b = 1", "  if (b) {", "    let c = 2", "    let d = 3", "  }", "}"],
+          ts: [
+            "if (a) {",
+            "  const b: number = 1",
+            "  if (b) {",
+            "    const c: number = 2",
+            "    const d: number = 3",
+            "  }",
+            "}"
+          ]
         },
         {
           title: "Show error if nested block AND inline statement. Prefer block.",
           input: ["if a b = 1", "\tc = 2"],
-          output: ["if (a) { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
+          js: ["if (a) { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"],
+          ts: ["if (a) const c: number = 2", "/* PARSE ERROR: Got both inline statement and nested block */"]
         }
       ]
     }
@@ -149,9 +164,9 @@ _if_.addRule(else_if, {
         ["else if a", "else if (a) {}"],
         ["else if a:", "else if (a) {}"],
         ["else if a then", "else if (a) {}"],
-        ["else if a b = 1", "else if (a) { let b = 1 }"],
-        ["else if a: b = 1", "else if (a) { let b = 1 }"],
-        ["else if a then b = 1", "else if (a) { let b = 1 }"]
+        ["else if a b = 1", "else if (a) { let b = 1 }", "else if (a) const b: number = 1"],
+        ["else if a: b = 1", "else if (a) { let b = 1 }", "else if (a) const b: number = 1"],
+        ["else if a then b = 1", "else if (a) { let b = 1 }", "else if (a) const b: number = 1"]
       ]
     },
     {
@@ -164,32 +179,38 @@ _if_.addRule(else_if, {
         {
           title: "Separate blocks if no indentation on second line.",
           input: ["else if a:", "b = 1"],
-          output: ["else if (a) {}", "export let b = 1"]
+          js: ["else if (a) {}", "export let b = 1"],
+          ts: ["else if (a) {}", "export const b: number = 1"]
         },
         {
           title: "Indent with tab",
           input: ["else if a:", "\tb = 1"],
-          output: "else if (a) { let b = 1 }"
+          js: "else if (a) { let b = 1 }",
+          ts: "else if (a) const b: number = 1"
         },
         {
           title: "ANY number of spaces should count as indentation",
           input: ["else if a:", " b = 1"],
-          output: "else if (a) { let b = 1 }"
+          js: "else if (a) { let b = 1 }",
+          ts: "else if (a) const b: number = 1"
         },
         {
           title: "Multiple lines in the nested block",
           input: ["else if a:", "\tb = 1", "\tc = 2"],
-          output: ["else if (a) {", "  let b = 1", "  let c = 2", "}"]
+          js: ["else if (a) {", "  let b = 1", "  let c = 2", "}"],
+          ts: ["else if (a) {", "  const b: number = 1", "  const c: number = 2", "}"]
         },
         {
           title: "Nested else ifs work fine",
           input: ["else if a", "\tif a", "\t\tc=2"],
-          output: "else if (a) { if (a) { let c = 2 } }"
+          js: "else if (a) { if (a) { let c = 2 } }",
+          ts: "else if (a) { if (a) const c: number = 2 }"
         },
         {
           title: "Show error if nested block AND inline statement. Prefer block.",
           input: ["else if a b = 1", "\tc = 2"],
-          output: ["else if (a) { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
+          js: ["else if (a) { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"],
+          ts: ["else if (a) const c: number = 2", "/* PARSE ERROR: Got both inline statement and nested block */"]
         }
       ]
     }
@@ -229,10 +250,10 @@ _if_.addRule(_else, {
       tests: [
         ["else", "else {}"],
         ["otherwise", "else {}"],
-        ["else: b = 1", "else { let b = 1 }"],
-        ["otherwise: b = 1", "else { let b = 1 }"],
-        ["else b = 1", "else { let b = 1 }"],
-        ["otherwise b = 1", "else { let b = 1 }"]
+        ["else: b = 1", "else { let b = 1 }", "else const b: number = 1"],
+        ["otherwise: b = 1", "else { let b = 1 }", "else const b: number = 1"],
+        ["else b = 1", "else { let b = 1 }", "else const b: number = 1"],
+        ["otherwise b = 1", "else { let b = 1 }", "else const b: number = 1"]
       ]
     },
     {
@@ -242,27 +263,32 @@ _if_.addRule(_else, {
         {
           title: "Separate blocks if no indentation on second line.",
           input: ["else", "b = 1"],
-          output: ["else {}", "export let b = 1"]
+          js: ["else {}", "export let b = 1"],
+          ts: ["else {}", "export const b: number = 1"]
         },
         {
           title: "Indent with tab",
           input: ["else", "\tb = 1"],
-          output: "else { let b = 1 }"
+          js: "else { let b = 1 }",
+          ts: "else const b: number = 1"
         },
         {
           title: "ANY number of spaces should count as indentation",
           input: ["else", " b = 1"],
-          output: "else { let b = 1 }"
+          js: "else { let b = 1 }",
+          ts: "else const b: number = 1"
         },
         {
           title: "Multiple lines in the nested block",
           input: ["else", "\tb = 1", "\tlet c = 2"],
-          output: ["else {", "  let b = 1", "  let c = 2", "}"]
+          js: ["else {", "  let b = 1", "  let c = 2", "}"],
+          ts: ["else {", "  const b: number = 1", "  const c: number = 2", "}"]
         },
         {
           title: "Show error if nested block AND inline statement. Prefer block.",
           input: ["else b = 1", "\tc = 2"],
-          output: ["else { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"]
+          js: ["else { let c = 2 }", "/* PARSE ERROR: Got both inline statement and nested block */"],
+          ts: ["else const c: number = 2", "/* PARSE ERROR: Got both inline statement and nested block */"]
         }
       ]
     }
@@ -317,14 +343,20 @@ _if_.addRule(backwards_if, {
         variables.add("foo")
       },
       tests: [
-        { input: "print 1 if bar else 2", output: "spellCore.console.log((bar ? 1 : 2))" },
+        {
+          input: "print 1 if bar else 2",
+          js: "spellCore.console.log((bar ? 1 : 2))",
+          ts: "spellCore.console.log(bar ? 1 : 2)"
+        },
         {
           input: "get the foo of the bar if bar is defined otherwise the bar of the foo",
-          output: "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)"
+          js: "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)",
+          ts: "const it = bar !== undefined ? bar.foo : foo.bar"
         },
         {
           input: `set color to "red" if 1 + 1 else "black"`,
-          output: `export let color = ((1 + 1) ? "red" : "black")`
+          js: `export let color = ((1 + 1) ? "red" : "black")`,
+          ts: 'export const color = 1 + 1 ? "red" : "black"'
         }
       ]
     }
@@ -379,7 +411,9 @@ _if_.addRule(value_if, {
       beforeEach(scope: P.Scope) {
         ;(scope as P.BlockScope).variables.add("suit")
       },
-      tests: [[`red if suit is "hearts"`, `if (suit == "hearts") { return 'red' }`]]
+      tests: [
+        [`red if suit is "hearts"`, `if (suit == "hearts") { return 'red' }`, 'if (suit == "hearts") return "red"']
+      ]
     }
   ]
 })
@@ -410,5 +444,5 @@ class value_otherwise extends SpellStatement<"value"> {
 }
 _if_.addRule(value_otherwise, {
   syntax: "(value:{expression}|{constant}) (otherwise|else)",
-  tests: [{ compileAs: "statement", tests: [["black otherwise", "return 'black'"]] }]
+  tests: [{ compileAs: "statement", tests: [["black otherwise", "return 'black'", 'return "black"']] }]
 })

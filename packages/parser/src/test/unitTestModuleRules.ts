@@ -1,10 +1,13 @@
 /**
  * Helper scripts to test rules defined for a parser "module".
- * - To make a rule testable, give its class a `static tests: P.RuleTests = [...]` block.
- * - Call `unitTestModuleRules(<moduleName>)` to test all rules in that module.
+ * - A rule's tests are registered with it:  `parser.addRule(RuleClass, { syntax, tests })`.
+ *   Each test is `[input, js, ts?]` or `{ input, js, ts }`:  see `P.RuleTest`.
+ * - Call `unitTestModuleRules(parser, <moduleName>)` to test all rules in that module.
+ * - Each input is parsed once, then written by BOTH writers:  javascript (`P.JSWriter`) and TypeScript (`P.TSWriter`).
+ *   A test without `ts` expects the same TypeScript as javascript.
+ * - Blessing:  `BLESS_RULE_TESTS=1` writes what the TypeScript writer wrote into each test's `ts`, in the source,
+ *   then `vp fmt` tidies it -- e.g. `yarn test:rules:bless` in spell.  Read the diff after.
  * - TODO: add `only` to test block to skip everything else in the file.
- * - TODO: rules w/specific titles to `{ title, input, output }`.
- * - TODO: output as a function?
  */
 
 import { describe, test, expect } from "vite-plus/test"
@@ -14,15 +17,23 @@ import isEqual from "lodash/isEqual"
 import { showWhitespace } from "$/util"
 
 import { P } from "$/parser"
+// Import type only:  loaded only when blessing, as it reads and writes files
+import type { BlessedTest } from "./RuleTestSource"
 
 /** Shape of one test entry after `P.normalizeRuleTest()` fills in defaults (`title`, `skip`, etc). */
 type NormalizedRuleTest = ReturnType<typeof P.normalizeRuleTest>
+
+/** Set, `BLESS_RULE_TESTS=1`:  write each test's `ts` into the source, rather than checking it. */
+const IS_BLESSING = !!process.env.BLESS_RULE_TESTS
 
 /**
  * Unit test all rules for `moduleName` in `parser`.
  * - Pass `initializeContext` to have it run before each rule.
  */
 export function unitTestModuleRules(parser: P.Parser, moduleName: string, initializeContext?: () => void) {
+  /** While blessing:  what the TypeScript writer wrote for each test. */
+  const blessed: BlessedTest[] = []
+
   describe(`rule unit tests`, () => {
     const rules = getTestableRulesForModule(moduleName)
     if (!rules || rules.length === 0) {
@@ -33,6 +44,12 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
     }
 
     rules.forEach((rule) => executeRuleTests(rule))
+    // Each test compiled as it was collected, above:  `blessed` is complete.
+    if (IS_BLESSING) {
+      test("BLESS_RULE_TESTS:  every test's ts written into its source", async () => {
+        expect(await blessSources(expect.getState().testPath!, blessed)).toEqual([])
+      })
+    }
   })
 
   describe(`rule group specs`, () => {
@@ -107,12 +124,14 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
   }
 
   /**
-   * Run a single normalized test case: parse+compile `input` as `ruleName` in a fresh scope, register
-   * a vitest `test()`/`describe()` comparing result to `output`.
+   * Run a single normalized test case:  parse `input` as `ruleName` in a fresh scope, write it with both writers,
+   * and register a vitest `test()` comparing them to `js` and `ts`.
+   * - ONE test per input when both match;  else a `describe()` with a test for each writer that didn't.
    * - Whitespace (returns/tabs) is made visible via `showWhitespace()` so mismatches are legible in output.
+   * - While blessing, `ts` isn't checked:  what was written is kept, for `blessSources()`.
    */
   function executeTest(
-    { input, output, title }: NormalizedRuleTest,
+    { input, js, ts, title }: NormalizedRuleTest,
     ruleName: string,
     beforeEach?: (scope: P.Scope) => void
   ) {
@@ -124,45 +143,101 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
     // If a `beforeEach` method was defined, run that before parsing to seed variables/etc.
     if (beforeEach) beforeEach(scope)
 
-    const compiled = compileMatch(scope, ruleName, input, output)
-    const success = isEqual(compiled, output)
+    const compiled = compileMatch(scope, ruleName, input, js)
+    if (IS_BLESSING) blessed.push({ input, js, ts: compiled.ts })
+    const failures = [
+      { writer: "javascript", got: compiled.js, expected: js },
+      { writer: "TypeScript", got: compiled.ts, expected: ts }
+    ].filter(({ writer, got, expected }) => !isEqual(got, expected) && !(IS_BLESSING && writer === "TypeScript"))
 
     const testTitle = `${(title ? `${title}: '` : "'") + showWhitespace(input)}'`
-    if (success) {
+    if (!failures.length) {
       test(testTitle, () => expect(true).toBe(true))
       return
     }
-
-    if (typeof compiled === "string" && typeof output === "string") {
-      describe(testTitle, () => {
-        // Show returns and tabs in the output display
-        test(`compiled matches output`, () => expect(showWhitespace(compiled)).toBe(showWhitespace(output)))
-      })
-    } else {
-      test(testTitle, () => expect(compiled).toEqual(output))
-    }
+    describe(testTitle, () => {
+      for (const { writer, got, expected } of failures) {
+        test(`${writer} matches`, () => {
+          // Show returns and tabs in the output display
+          if (typeof got === "string" && typeof expected === "string") {
+            expect(showWhitespace(got)).toBe(showWhitespace(expected))
+          } else expect(got).toEqual(expected)
+        })
+      }
+    })
   }
 
   /**
-   * Parse and compile `input` as `ruleName`, returning the compiled output.
+   * Parse `input` as `ruleName`, and write it with each writer:  `{ js, ts }`.
    * - As its parser's `normalizeTestOutput()` has it, e.g. without spell's declarations comments.
-   * - Returns the error if `compile()` throws (unless it's a `ParserError` and no `output` is expected).
-   * - Returns `undefined` if parsing fails or throws.
+   * - A rule with no AST (`getAST()`) compiles itself:  the same for both.
+   * - The TypeScript writer sees just this match, as the whole project (`P.Writer.forProject()`).
+   * - A writer's error is what it wrote -- unless it's a `ParserError` and the test expects nothing (`js`).
+   * - Both `undefined` if parsing fails or throws.
    */
-  function compileMatch(scope: P.Scope, ruleName: string, input: string, output: unknown): unknown {
+  function compileMatch(scope: P.Scope, ruleName: string, input: string, js: unknown): { js: unknown; ts: unknown } {
+    let match: P.Match | undefined
     try {
-      const match = scope.parse(input, ruleName)
-      if (!match) return undefined
+      match = scope.parse(input, ruleName)
+      if (!match) return { js: undefined, ts: undefined }
       // Lock it in, as block parsing would -- e.g. a new variable's `let`.
       scope.parser?.commit(match)
+    } catch (e) {
+      return { js: undefined, ts: undefined }
+    }
+    const written = (write: () => unknown): unknown => {
       try {
-        return scope.parser ? scope.parser.normalizeTestOutput(match.compile()) : match.compile()
+        const output = write()
+        return scope.parser ? scope.parser.normalizeTestOutput(output) : output
       } catch (e) {
-        if (e instanceof P.ParserError && output === undefined) return undefined
+        if (e instanceof P.ParserError && js === undefined) return undefined
         return e
       }
-    } catch (e) {
-      return undefined
+    }
+    const parsed = match
+    return {
+      js: written(() => parsed.compile()),
+      ts: written(() => {
+        const ast = parsed.rule.getAST ? parsed.AST : undefined
+        if (!ast) return parsed.compile()
+        const statements = ast instanceof P.ASTStatementGroup ? (ast.statements ?? []) : [ast]
+        return P.TSWriter.instance.forProject([statements], scope).write(ast)
+      })
     }
   }
+}
+
+/**
+ * Write each test's `ts` into the source files the test file at `testPath` tests:  see `P.RuleTestSource`.
+ * - A module in a folder of its own, `rules/events/events.test.ts`:  every source file in that folder.
+ * - Else the file beside it, `rules/lists.test.ts` => `rules/lists.ts`.
+ * - Returns what it couldn't bless:  see `P.RuleTestSource.bless()`.
+ */
+async function blessSources(testPath: string, blessed: BlessedTest[]): Promise<string[]> {
+  const { readdirSync } = await import("node:fs")
+  const { basename, dirname, join } = await import("node:path")
+  const { RuleTestSource } = await import("./RuleTestSource")
+  const folder = dirname(testPath)
+  const name = basename(testPath, ".test.ts")
+  const paths =
+    basename(folder) === name
+      ? (readdirSync(folder, { recursive: true }) as string[])
+          .filter((path) => path.endsWith(".ts") && !path.endsWith(".test.ts"))
+          .map((path) => join(folder, path))
+      : [join(folder, `${name}.ts`)]
+  const sources = paths.map((path) => RuleTestSource.load(path))
+  const found = new Set(
+    sources.flatMap((source) => source.tests.map(({ input, js }) => RuleTestSource.keyOf(input, js)))
+  )
+  const notFound = blessed
+    .filter(({ input, js, ts }) => !isEqual(ts, js) && !found.has(RuleTestSource.keyOf(input, js)))
+    .map(({ input }) => `'${input}':  not found in ${paths.join(", ")}`)
+  return [
+    ...notFound,
+    ...sources.flatMap((source) => {
+      const warnings = source.bless(blessed)
+      source.save()
+      return warnings
+    })
+  ]
 }

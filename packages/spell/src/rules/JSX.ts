@@ -94,16 +94,34 @@ JSX.addRule(SpellJSX, {
       title: "Simple nested elements",
       compileAs: "expression",
       tests: [
-        [`<a/>`, `spellCore.element({ tag: "a" })`],
-        [`<a></a>`, `spellCore.element({ tag: "a" })`],
-        [`<a b=1 c="ccc"/>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc" } })`],
+        [`<a/>`, `spellCore.element({ tag: "a" })`, "<a />"],
+        [`<a></a>`, `spellCore.element({ tag: "a" })`, "<a />"],
+        [`<a b=1 c="ccc"/>`, `spellCore.element({ tag: "a", props: { b: 1, c: "ccc" } })`, '<a b={1} c="ccc" />'],
         [
           `<a b=1 c="ccc" d></a>`,
-          [`spellCore.element({`, `  tag: "a",`, `  props: {`, `    b: 1,`, `    c: "ccc",`, `    d: true`, `  }`, `})`]
+          [
+            `spellCore.element({`,
+            `  tag: "a",`,
+            `  props: {`,
+            `    b: 1,`,
+            `    c: "ccc",`,
+            `    d: true`,
+            `  }`,
+            `})`
+          ],
+          '<a b={1} c="ccc" d={true} />'
         ],
 
-        [`<a><b/></a>`, [`spellCore.element({ tag: "a", children: [`, `  spellCore.element({ tag: "b" })`, `] })`]],
-        [`<a><b></b></a>`, [`spellCore.element({ tag: "a", children: [`, `  spellCore.element({ tag: "b" })`, `] })`]],
+        [
+          `<a><b/></a>`,
+          [`spellCore.element({ tag: "a", children: [`, `  spellCore.element({ tag: "b" })`, `] })`],
+          ["<a>", "  <b />", "</a>"]
+        ],
+        [
+          `<a><b></b></a>`,
+          [`spellCore.element({ tag: "a", children: [`, `  spellCore.element({ tag: "b" })`, `] })`],
+          ["<a>", "  <b />", "</a>"]
+        ],
         [
           `<a A=1><b c=1>foo</b></a>`,
           [
@@ -112,7 +130,8 @@ JSX.addRule(SpellJSX, {
             `    "foo"`,
             `  ] })`,
             `] })`
-          ]
+          ],
+          ["<a A={1}>", "  <b c={1}>foo</b>", "</a>"]
         ],
         [
           `<a><b><c>d</c></b></a>`,
@@ -124,7 +143,8 @@ JSX.addRule(SpellJSX, {
             `    ] })`,
             `  ] })`,
             `] })`
-          ]
+          ],
+          ["<a>", "  <b>", "    <c>d</c>", "  </b>", "</a>"]
         ],
         [
           `<a>\n\tBBB\n\t<c/>\n\tDDD</a>`,
@@ -134,7 +154,8 @@ JSX.addRule(SpellJSX, {
             '  spellCore.element({ tag: "c" }),',
             '  "DDD"',
             "] })"
-          ]
+          ],
+          ["<a>", "  BBB", "  <c />", "  DDD", "</a>"]
         ],
         [
           ["<ui-button ", "\thidden={1} ", "\tonPress={print 2}", "\t/>"],
@@ -148,7 +169,8 @@ JSX.addRule(SpellJSX, {
             "    }",
             "  }",
             "})"
-          ]
+          ],
+          "<ui-button hidden={1} onPress={() => spellCore.console.log(2)} />"
         ],
         [
           '<input attrOnly text="text" number=1 boolean={yes} expression={1 + 1} onClick={print the value of the target of the event} />',
@@ -166,7 +188,8 @@ JSX.addRule(SpellJSX, {
             `    }`,
             `  }`,
             `})`
-          ]
+          ],
+          '<input attronly={true} text="text" number={1} boolean={true} expression={1 + 1} onClick={(event) => spellCore.console.log(event.target.value)} />'
         ]
       ]
     },
@@ -177,14 +200,16 @@ JSX.addRule(SpellJSX, {
         scope.variables?.add("card")
       },
       tests: [
-        [`<div foo/>`, `spellCore.element({ tag: "div", props: { foo: true } })`],
+        [`<div foo/>`, `spellCore.element({ tag: "div", props: { foo: true } })`, "<div foo={true} />"],
         [
           `<div rank={the rank of the card} value={1 + 2 + 3}/>`,
-          `spellCore.element({ tag: "div", props: { rank: () => card.rank, value: () => ((1 + 2) + 3) } })`
+          `spellCore.element({ tag: "div", props: { rank: () => card.rank, value: () => ((1 + 2) + 3) } })`,
+          "<div rank={card.rank} value={1 + 2 + 3} />"
         ],
         [
           `<div rank={unknown expression} value={another unknown expression}/>`,
-          `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: Don't understand "unknown expression" */, value: undefined /* PARSE ERROR: Don't understand "another unknown expression" */ } })`
+          `spellCore.element({ tag: "div", props: { rank: undefined /* PARSE ERROR: Don't understand "unknown expression" */, value: undefined /* PARSE ERROR: Don't understand "another unknown expression" */ } })`,
+          "<div />"
         ],
         // DO parse a statement as an attribute expression
         [
@@ -198,18 +223,24 @@ JSX.addRule(SpellJSX, {
             `    }`,
             `  }`,
             `})`
-          ]
+          ],
+          "<div on-click={() => spellCore.console.log(1024)} />"
         ],
         // don't match attribute expressions that don't eat the entire text
         [
           "<div foo={true true}/>",
-          `spellCore.element({ tag: "div", props: { foo: undefined /* PARSE ERROR: Don't understand "true true" */ } })`
+          `spellCore.element({ tag: "div", props: { foo: undefined /* PARSE ERROR: Don't understand "true true" */ } })`,
+          "<div />"
         ],
         // ignore newlines in attribute expression
         // NOTE: this was previously a comma expression `(a, b)` instead of a `[a, b]` tuple, which JS
         // silently evaluated to a single-element array (the comma operator discards `a`) -- a latent
         // bug surfaced by `RuleTest`'s tuple typing. Fixed to the evidently-intended 2-tuple.
-        ["<div foo={\n1 + \n\t2\n\t}/>", `spellCore.element({ tag: "div", props: { foo: () => (1 + 2) } })`]
+        [
+          "<div foo={\n1 + \n\t2\n\t}/>",
+          `spellCore.element({ tag: "div", props: { foo: () => (1 + 2) } })`,
+          "<div foo={1 + 2} />"
+        ]
       ]
     },
     {
@@ -229,19 +260,26 @@ JSX.addRule(SpellJSX, {
             "    ] })",
             "  ] })",
             "] }) } })"
-          ]
+          ],
+          ["<div foo={<a>", "  <b>", "    <c>{1}</c>", "  </b>", "</a>} />"]
         ],
         // compound expression
-        [`<div>{1 + 2 + 3}</div>`, ['spellCore.element({ tag: "div", children: [', "  () => ((1 + 2) + 3)", "] })"]],
+        [
+          `<div>{1 + 2 + 3}</div>`,
+          ['spellCore.element({ tag: "div", children: [', "  () => ((1 + 2) + 3)", "] })"],
+          "<div>{1 + 2 + 3}</div>"
+        ],
         // multi-line expression is fine
         [
           "<div>{\n\t1 + \n2 + 3\t\n}</div>",
-          ['spellCore.element({ tag: "div", children: [', "  () => ((1 + 2) + 3)", "] })"]
+          ['spellCore.element({ tag: "div", children: [', "  () => ((1 + 2) + 3)", "] })"],
+          "<div>{1 + 2 + 3}</div>"
         ],
         //
         [
           `<div>{the rank of the card}</div>`,
-          ['spellCore.element({ tag: "div", children: [', "  () => card.rank", "] })"]
+          ['spellCore.element({ tag: "div", children: [', "  () => card.rank", "] })"],
+          "<div>{card.rank}</div>"
         ],
         // fail if we don't eat entire expression
         [
@@ -250,7 +288,8 @@ JSX.addRule(SpellJSX, {
             'spellCore.element({ tag: "div", children: [',
             '  null /* PARSE ERROR: Don\'t understand "true true" */',
             "] })"
-          ]
+          ],
+          '<div>{null /* PARSE ERROR: Don\'t understand "true true" */}</div>'
         ],
         // fail on unknown expression
         [
@@ -259,7 +298,8 @@ JSX.addRule(SpellJSX, {
             'spellCore.element({ tag: "div", children: [',
             '  null /* PARSE ERROR: Don\'t understand "unknown expression" */',
             "] })"
-          ]
+          ],
+          '<div>{null /* PARSE ERROR: Don\'t understand "unknown expression" */}</div>'
         ],
         // DO NOT parse a inline statement as a JSXExpression
         [
@@ -268,7 +308,8 @@ JSX.addRule(SpellJSX, {
             'spellCore.element({ tag: "div", children: [',
             '  null /* PARSE ERROR: Don\'t understand "print 1024" */',
             "] })"
-          ]
+          ],
+          '<div>{null /* PARSE ERROR: Don\'t understand "print 1024" */}</div>'
         ]
       ]
     }

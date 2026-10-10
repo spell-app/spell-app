@@ -106,12 +106,12 @@ types.addRule(type, {
   tests: [
     {
       tests: [
-        { title: "lower case", input: "thing", output: "Thing" },
-        { title: "upper case", input: "Thing", output: "Thing" },
-        { title: "multi-word, lower case", input: "bank-account", output: "Bank_Account" },
-        { title: "multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
-        { title: "multi-word, upper case", input: "Bank-Account", output: "Bank_Account" },
-        { title: "blacklisted word", input: "if", output: undefined }
+        { title: "lower case", input: "thing", js: "Thing" },
+        { title: "upper case", input: "Thing", js: "Thing" },
+        { title: "multi-word, lower case", input: "bank-account", js: "Bank_Account" },
+        { title: "multi-word, mixed case", input: "Bank-account", js: "Bank_Account" },
+        { title: "multi-word, upper case", input: "Bank-Account", js: "Bank_Account" },
+        { title: "blacklisted word", input: "if", js: undefined }
       ]
     }
   ]
@@ -139,15 +139,15 @@ types.addRule(singular_type, {
   tests: [
     {
       tests: [
-        { title: "singular, lower case", input: "thing", output: "Thing" },
-        { title: "singular, upper case", input: "Thing", output: "Thing" },
-        { title: "singular, multi-word, lower case", input: "bank-account", output: "Bank_Account" },
-        { title: "singular, multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
+        { title: "singular, lower case", input: "thing", js: "Thing" },
+        { title: "singular, upper case", input: "Thing", js: "Thing" },
+        { title: "singular, multi-word, lower case", input: "bank-account", js: "Bank_Account" },
+        { title: "singular, multi-word, mixed case", input: "Bank-account", js: "Bank_Account" },
 
-        { title: "plural, lower case", input: "things", output: undefined },
-        { title: "plural, upper case", input: "Things", output: undefined },
-        { title: "plural, multi-word, lower case", input: "bank-accounts", output: undefined },
-        { title: "plural, multi-word, mixed case", input: "Bank-accounts", output: undefined }
+        { title: "plural, lower case", input: "things", js: undefined },
+        { title: "plural, upper case", input: "Things", js: undefined },
+        { title: "plural, multi-word, lower case", input: "bank-accounts", js: undefined },
+        { title: "plural, multi-word, mixed case", input: "Bank-accounts", js: undefined }
       ]
     }
   ]
@@ -178,15 +178,15 @@ types.addRule(plural_type, {
   tests: [
     {
       tests: [
-        { title: "plural, lower case", input: "things", output: "Thing" },
-        { title: "plural, upper case", input: "Things", output: "Thing" },
-        { title: "plural, multi-word, lower case", input: "bank-accounts", output: "Bank_Account" },
-        { title: "plural, multi-word, mixed case", input: "Bank-accounts", output: "Bank_Account" },
+        { title: "plural, lower case", input: "things", js: "Thing" },
+        { title: "plural, upper case", input: "Things", js: "Thing" },
+        { title: "plural, multi-word, lower case", input: "bank-accounts", js: "Bank_Account" },
+        { title: "plural, multi-word, mixed case", input: "Bank-accounts", js: "Bank_Account" },
 
-        { title: "singular, lower case", input: "thing", output: undefined },
-        { title: "singular, upper case", input: "Thing", output: undefined },
-        { title: "singular, multi-word, lower case", input: "bank-account", output: undefined },
-        { title: "singular, multi-word, mixed case", input: "Bank-account", output: undefined }
+        { title: "singular, lower case", input: "thing", js: undefined },
+        { title: "singular, upper case", input: "Thing", js: undefined },
+        { title: "singular, multi-word, lower case", input: "bank-account", js: undefined },
+        { title: "singular, multi-word, mixed case", input: "Bank-account", js: undefined }
       ]
     }
   ]
@@ -242,10 +242,10 @@ types.addRule(quoted_type, {
   tests: [
     {
       tests: [
-        { title: "a quoted word", input: '"card"', output: "Card" },
-        { title: "dashed", input: '"bank-account"', output: "Bank_Account" },
-        { title: "two words", input: '"playing card"', output: undefined },
-        { title: "blacklisted word", input: '"if"', output: undefined }
+        { title: "a quoted word", input: '"card"', js: "Card" },
+        { title: "dashed", input: '"bank-account"', js: "Bank_Account" },
+        { title: "two words", input: '"playing card"', js: undefined },
+        { title: "blacklisted word", input: '"if"', js: undefined }
       ]
     }
   ]
@@ -344,18 +344,18 @@ types.addRule(known_type, {
         types.add({ name: "Bank-Account" })
       },
       tests: [
-        { title: "singular, known type, lower case", input: "thing", output: "Thing" },
-        { title: "singular, known type, upper case", input: "Thing", output: "Thing" },
-        { title: "singular, known, multi-word, lower case", input: "bank-account", output: "Bank_Account" },
-        { title: "singular, known, multi-word, mixed case", input: "Bank-account", output: "Bank_Account" },
-        { title: "singular, known, multi-word, upper case", input: "Bank-Account", output: "Bank_Account" },
-        { title: "plural, known type, lower case", input: "thing", output: "Thing" },
-        { title: "plural, known type, upper case", input: "Thing", output: "Thing" },
-        { title: "plural, known, multi-word, lower case", input: "bank-accounts", output: "Bank_Account" },
-        { title: "plural, known, multi-word, mixed case", input: "Bank-accounts", output: "Bank_Account" },
-        { title: "plural, known, multi-word, upper case", input: "Bank-Accounts", output: "Bank_Account" },
-        { title: "unknown", input: "widget", output: undefined },
-        { title: "unknown. multi-word", input: "other-thing", output: undefined }
+        { title: "singular, known type, lower case", input: "thing", js: "Thing" },
+        { title: "singular, known type, upper case", input: "Thing", js: "Thing" },
+        { title: "singular, known, multi-word, lower case", input: "bank-account", js: "Bank_Account" },
+        { title: "singular, known, multi-word, mixed case", input: "Bank-account", js: "Bank_Account" },
+        { title: "singular, known, multi-word, upper case", input: "Bank-Account", js: "Bank_Account" },
+        { title: "plural, known type, lower case", input: "thing", js: "Thing" },
+        { title: "plural, known type, upper case", input: "Thing", js: "Thing" },
+        { title: "plural, known, multi-word, lower case", input: "bank-accounts", js: "Bank_Account" },
+        { title: "plural, known, multi-word, mixed case", input: "Bank-accounts", js: "Bank_Account" },
+        { title: "plural, known, multi-word, upper case", input: "Bank-Accounts", js: "Bank_Account" },
+        { title: "unknown", input: "widget", js: undefined },
+        { title: "unknown. multi-word", input: "other-thing", js: undefined }
       ]
     }
   ]

@@ -22,6 +22,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - The barrel NEVER pulls it in.
 - `$/parser/test` (`src/test/`) holds the helpers language packages use to test their rules,
   e.g. `unitTestModuleRules()`.
+  - Each rule test checks both writers, `{ input, js, ts }` (`P.RuleTest`).
+  - `BLESS_RULE_TESTS=1` writes each test's `ts` into its source:  `RuleTestSource`, node-only, loaded only then.
   - Tests that need the SPELL grammar are not here:  they're in spell's `src/parserTests/`.
 - Depends only on `$/util` (and what that re-exports).
   NEVER import `$/spell`, or anything above it.
@@ -42,7 +44,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - "Parser rules" (how to write a rule class + its `syntax` + `tests`) is in [spell's AGENTS.md](../spell/AGENTS.md).
   - The rules there are spell's, on this package's `Rule`.
   - See also the top docstring in [Rule.ts](src/rules/Rule.ts).
-- `keepNames`:  every prod build MUST keep `output.keepNames`, because a rule's class name IS its rule name.
+- `keepNames`:  every prod build MUST keep `output.keepNames`, because a rule's name is worked out from its class name
+  (`ListAddRelative` => `list_add_relative`, `P.Rule.ruleNameFor()`).
   - The builds:  app's [vite.config.ts](../app/vite.config.ts) and [vite.editor.config.ts](../app/vite.editor.config.ts).
   - Pinned by app's [build.test.ts](../app/src/build.test.ts).
 
