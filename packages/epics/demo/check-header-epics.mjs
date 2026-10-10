@@ -1,6 +1,6 @@
 /**
  * Check P10's page header and section tools on preview copies (`preview-epics/<name>/`), in a real browser:  the
- * review line, the step label (the state in it), every section's `open/all` badge (against the items and phases in
+ * review line, the step label (the state in it), the Phases section's `open/all` badge (against the items and phases in
  * the doc), the state filter (a chip hides its items and says how many), and the Phases section's Plan changes box.
  * Usage (from the repo root):
  *   node packages/epics/demo/check-header-epics.mjs [--doc <name>]... [outDir]
@@ -192,7 +192,8 @@ function readFacts(width) {
     const open = Array.from(counted).filter(
       (it) => !["done", "decided", "canceled"].includes(it.getAttribute("status"))
     ).length
-    const want = counted.length ? `${open}/${counted.length}` : null
+    // only the Phases section shows its count:  an item section's chips say the numbers (Owen, 2026-10-10)
+    const want = counted.length && section.getAttribute("kind") === "phases" ? `${open}/${counted.length}` : null
     const badge = section.shadowRoot.querySelector("ui-section").getAttribute("badge")
     badges[section.id] = badge
     if (badge !== want) found.push(`#${section.id}'s badge ${badge}, wanted ${want}`)

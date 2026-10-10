@@ -832,7 +832,7 @@ In this order, from `packages/docs`:
     - They must keep the open item, a half-typed note and its focus, and the scroll.
     - Run it after touching `liveClient.ts`, or the runtime's "Live update".
   - `node packages/epics/demo/check-header-epics.mjs [--doc <name>]... [outDir]`, from the root:
-    - the page header, the review line, every section's `open/all` badge,
+    - the page header, the review line, the Phases section's `open/all` badge (item sections show only their state chips),
       the state filter and the Plan changes box
     - at 280 / 900px, light and dark
 - `tools/to-ui-section.js <page>...`:  converts old `section.s2|s3` pages to `<ui-section>`, ids kept.
