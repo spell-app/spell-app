@@ -85,6 +85,19 @@ describe("<epic-item>", () => {
     expect(host.shadowRoot!.querySelector("[part~='base']")!.getAttribute("title")).toBe("")
   })
 
+  test("a name's path, its tooltip (`<code title>`, epic `airplane`), is what the pointer finds:  nothing covers or swallows it", async () => {
+    const path = "packages/spell/src/node/buildTsx.ts"
+    const { host } = await item(
+      `<epic-item id="j1" title="Built it" status="open" open><p>Built:  <code title="${path}">buildTsx()</code></p></epic-item>`
+    )
+    const code = host.querySelector("code")!
+    const box = code.getBoundingClientRect()
+    expect(box.width).toBeGreaterThan(0)
+    expect(document.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2)).toBe(code)
+    expect(getComputedStyle(code).pointerEvents).not.toBe("none")
+    expect(code.title).toBe(path)
+  })
+
   test("the chip's colour follows `state`;  without one, decided or done is `recent` (green), canceled `old`, open `open`", async () => {
     const states = await Promise.all(
       [

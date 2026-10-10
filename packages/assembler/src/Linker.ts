@@ -11,6 +11,7 @@ import type { AS } from "$/assembler"
  * re-clicks reuse a tab.  Rules:  `packages/docs/AGENTS.md`, "Links".
  * - `link()`:  `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link when the path resolves to a real
  *   file or folder;  an existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
+ *   - a name with its path as its tooltip, `<code title="path">name</code>`, links to that path the same way
  * - `check()`:  every local href resolves INSIDE the repo, every non-anchor link has a target, one target per
  *   destination (`target="_self"`, a same-tab link, is exempt from the last)
  *   - a missing target version control IGNORES is fine:  runtime files and local clones exist only on some
@@ -74,11 +75,13 @@ export class Linker {
     const unresolved = new Set<string>()
     for (const m of text.matchAll(CODE_SPAN)) {
       if (spans.some(([start, end]) => start <= m.index && m.index < end)) continue
-      let dest = this.resolve(m[1], pageDir)
+      // a name with its path as its tooltip (`<code title="path">name</code>`) links to that path, never its text
+      const path = m[1] ?? m[2]
+      let dest = this.resolve(path, pageDir)
       // a path outside the repo (a handoff in a sibling folder) works only on this machine:  leave it as text
       if (dest && !URL_START.test(dest) && !this.isInside(dest)) dest = undefined
       if (!dest) {
-        if (m[1].includes("/") || PATH_LIKE.test(m[1].trim())) unresolved.add(m[1])
+        if (path.includes("/") || PATH_LIKE.test(path.trim())) unresolved.add(path)
         continue
       }
       // `|| "."`:  the page's own folder
@@ -287,8 +290,12 @@ const SHARED_TAB = "github"
 /** An absolute URL. */
 const URL_START = /^https?:\/\//
 
-/** A code span, `[1]` its text. */
-const CODE_SPAN = /<code>([^<]+)<\/code\s*>/g
+/**
+ * A code span:  `[2]` its text;
+ * `[1]` its `title`, when that's its only attribute:  a name with its path as its tooltip (WWOD §6 › "Plain text,
+ * plain paths")
+ */
+const CODE_SPAN = /<code(?:\s+title="([^"]+)")?\s*>([^<]+)<\/code\s*>/g
 
 /** A `<pre>` block:  `link()` never links inside one, `check()` ignores it. */
 const PRE = /<pre\b[\s\S]*?<\/pre\s*>/g
