@@ -94,6 +94,7 @@ describe("runner builds", () => {
       for (const file of ownFiles) {
         expect(holds(dir, file, "solid") || holds(dir, file, "ui"), `${dir} ${file}`).toBe(false)
         expect(readFileSync(join(dir, file), "utf8"), `${dir} ${file}`).not.toMatch(/spell-(solid|ui)\.js/)
+      }
     }
   })
 
