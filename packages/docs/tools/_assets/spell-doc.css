@@ -893,6 +893,8 @@ pre code {
   --spell-thread-green: var(--ui-green-text, var(--ui-green, #21ba45));
   /* never wider than the column:  a folded thread's header is one line, its summary cut short */
   min-width: 0;
+  /* in from the text's edges (Owen, 2026-10-10:  "Margin left/right on the entire panel 32px") */
+  margin-inline: 32px;
   border: 1px solid var(--spell-rail-rule);
   border-radius: 10px;
   background: var(--spell-rail-bg);
@@ -903,7 +905,7 @@ pre code {
   align-items: center;
   gap: 6px;
   min-height: 24px;
-  padding: 4px 6px 4px 8px;
+  padding: 2px 4px 2px 6px;
   color: var(--spell-rail-ink);
   font-size: 0.9rem;
   cursor: pointer;
@@ -1003,8 +1005,8 @@ pre code {
 }
 .spell-doc-main .spell-thread-body {
   display: none;
-  gap: 6px;
-  padding: 0 8px 8px;
+  gap: 2px;
+  padding: 0 6px 4px;
 }
 .spell-doc-main .spell-thread[data-open] > .spell-thread-body {
   display: grid;
@@ -1020,10 +1022,11 @@ pre code {
  */
 .spell-doc-main .spell-thread-msg {
   position: relative;
-  padding: 6px 10px;
+  /* tight (Owen, 2026-10-10:  "Tighten up padding a lot") */
+  padding: 2px 6px;
   border: 1px solid transparent;
-  border-radius: 8px;
-  line-height: 1.4;
+  border-radius: 6px;
+  line-height: 1.35;
 }
 .spell-doc-main .spell-thread-msg[data-by="claude"] {
   border-color: color-mix(in srgb, var(--spell-thread-violet) 30%, transparent);
@@ -1041,8 +1044,8 @@ pre code {
 }
 .spell-doc-main .spell-thread-when {
   position: absolute;
-  top: 6px;
-  right: 10px;
+  top: 2px;
+  right: 6px;
   color: var(--spell-muted);
 }
 .spell-doc-main .spell-thread-room {
@@ -1057,7 +1060,10 @@ pre code {
   margin-bottom: 0;
 }
 .spell-doc-main .spell-thread-text > :is(p, ul, ol) {
-  margin-block: 0 6px;
+  margin-block: 0 3px;
+}
+.spell-doc-main .spell-thread-who {
+  font-weight: 700;
 }
 .spell-doc-main .spell-thread-text > :is(ul, ol) {
   padding-left: 20px;
