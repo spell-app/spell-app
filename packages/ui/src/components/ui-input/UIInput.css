@@ -1,8 +1,9 @@
 /*
  * The style sheet of `<ui-input>` and `<ui-textarea>`:  a port of Fomantic's `input.less` + `input.variables`,
  * plus the `textarea` rules of `form.less` (Fomantic styles a textarea only inside `.ui.input` / `.ui.form`).
- * - Adopted after the foundation, and AFTER `UILabel.css`:  the joined label is a real `.ui.label` in the shadow
- *   root, which this sheet re-shapes (the `ui.components.input` layers come later, so they win).
+ * - Adopted after the foundation, and AFTER `UILabel.css`:
+ *   the joined label is a real `.ui.label` in the shadow root, which this sheet re-shapes
+ *   (the `ui.components.input` layers come later, so they win).
  * - The shadow markup it expects (class grammar on semantic elements), in this order inside the root:
  *
  *     <div class="ui [size color state] [transparent fluid loading disabled inverted] [left icon]
@@ -19,34 +20,39 @@
  *       <slot name="action"></slot>                                                    (action, after)
  *     </div>
  *
- *   - `icon` (after the noun) while there's an icon box and no `left icon`;  `labeled` / `action` are emitted
- *     for a slotted label / action even without the attribute;  `file` for `type="file"`
+ *   - `icon` (before the noun) while there's an icon box and no `left icon`;
+ *     `labeled` / `action` are emitted for a slotted label / action even without the attribute;
+ *     `file` for `type="file"`
  *   - NOTE: `<slot>` breaks a CHILD (`>`) selector, so the icon box sizes its glyph with a DESCENDANT selector
  *     (`.icon svg`) plus `::slotted(svg)` / `::slotted(ui-icon)`
  * - The DOM element:  `inline-flex`, `:state(fluid)` block-level.
  *   An owner (`<ui-field>`) sizes it with the inherited `--_ui-input-owner-width` (default `auto`);
  *   the root and the native control grow to fill.
  * - Action buttons (`<ui-button slot="action">`) are FLEX ITEMS of the root (a slot is `display: contents`).
- *   The input squares their joined corners through UIButton.css's group corner tokens (`--_ui-buttons-ss` ...):
- *   a joined action is a one-sided button group.  `:first-child` / `:last-child` are the DOM element's own children.
- * - States:  `state="error|info|success|warning"` is a colour remap (`colors.css`);  one rule set reads
- *   `--ui-color-background` / `-border` / `-text`.  An owner field hands its state down as INHERITED,
- *   already resolved tokens (`--_ui-field-state-background` / `-border` / `-color`), which the input's own `state`
- *   beats.
+ *   - The input squares their joined corners through UIButton.css's group corner tokens (`--_ui-buttons-ss` ...):
+ *     a joined action is a one-sided button group.
+ *   - `:first-child` / `:last-child` are the DOM element's own children.
+ * - States:  `state="error|info|success|warning"` is a colour remap (`colors.css`);
+ *   one rule set reads `--ui-color-background` / `-border` / `-text`.
+ *   - An owner field hands its state down as INHERITED, already resolved tokens
+ *     (`--_ui-field-state-background` / `-border` / `-color`), which the input's own `state` beats.
  * - Focus:  the native control draws Fomantic's focus border;  `delegatesFocus` keeps the DOM element's ring off.
- * - Public tokens (`--ui-input-*`, the theming surface) are NEVER declared here:  the token block reads each
- *   through a private alias, `--_ui-input-radius: var(--ui-input-radius, var(--ui-radius))`, and every rule reads
- *   the alias.  So a value set on `:root`, an ancestor, the DOM element,
- *   `::part(input)` or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens").
- *   Owners that theme a nested input set its PUBLIC token, as a page would (`UISearch.css`:  `--ui-input-radius`).
- *   The joined label takes the input's font size (the corner one `--ui-input-corner-ratio` of it),
- *   never `--ui-label-font-ratio`.
+ * - Public tokens (`--ui-input-*`, the theming surface) are NEVER declared here:
+ *   the token block reads each through a private alias,
+ *   `--_ui-input-radius: var(--ui-input-radius, var(--ui-radius))`, and every rule reads the alias.
+ *   - So a value set on `:root`, an ancestor, the DOM element, `::part(input)` or in the app stylesheet
+ *     reaches the box (`docs/theming.md` "Component tokens").
+ *   - Owners that theme a nested input set its PUBLIC token, as a page would (`UISearch.css`:  `--ui-input-radius`).
+ *   - The joined label takes the input's font size (the corner one `--ui-input-corner-ratio` of it),
+ *     never `--ui-label-font-ratio`.
  * - NOTE: left out, on purpose:
  *   - the `.ui.input.down` / `.ui.input.focus` classes (static screenshots):  `:active` / `:focus` do it
- *   - Fomantic's `invalid` variation (`:invalid:not(:placeholder-shown)`):  the component sets `:state(invalid)` on
- *     the DOM element after user interaction, for page styling, and forms show `state="error"`
- *   - a slotted `<ui-label>` as the joined label:  its box lives in ITS shadow root, out of reach for the
- *     joined corners, so the input draws its own label box around slotted CONTENT
+ *   - Fomantic's `invalid` variation (`:invalid:not(:placeholder-shown)`):
+ *     the component sets `:state(invalid)` on the DOM element after user interaction, for page styling,
+ *     and forms show `state="error"`
+ *   - a slotted `<ui-label>` as the joined label:
+ *     its box lives in ITS shadow root, out of reach for the joined corners,
+ *     so the input draws its own label box around slotted CONTENT
  *   - labels on both sides at once (`$ … .00`):  one label per input
  *   - the `invisible file` input with a separate `<label class="ui button">`:  the native file button stays
  *   - dropdown-inside-input spacing (`.ui.icon.input > .ui.dropdown` ...):  a slotted dropdown sizes itself
@@ -85,8 +91,8 @@
   }
 
   /*
-   * Tokens:  one per `input.variables` entry that still matters, from the global tokens -- each the private alias
-   * of its public token (never declare the public one:  it would block inherited values).
+   * Tokens:  one per `input.variables` entry that still matters, from the global tokens,
+   * each the private alias of its public token (never declare the public one:  it would block inherited values).
    */
   .ui.input {
     --_ui-input-padding-block: var(--ui-input-padding-block, 0.67857em);
@@ -182,9 +188,10 @@
       border-color var(--_ui-input-duration) var(--ui-ease);
   }
   /*
-   * Numbers:  right-aligned against their unit (a `right labeled` `%`), in tabular figures, so a column of them lines
-   * up (Spell UI's "UI rules");  `type="number"` or a numeric keyboard (`inputmode`).
-   * `--ui-input-numeric-align` sets them back to `start`.
+   * Numbers:  right-aligned against their unit (a `right labeled` `%`), in tabular figures,
+   * so a column of them lines up (Spell UI's "UI rules").
+   * - `type="number"` or a numeric keyboard (`inputmode`).
+   * - `--ui-input-numeric-align` sets them back to `start`.
    */
   .ui.input > input:is([type="number"], [inputmode="decimal"], [inputmode="numeric"]) {
     font-variant-numeric: tabular-nums;

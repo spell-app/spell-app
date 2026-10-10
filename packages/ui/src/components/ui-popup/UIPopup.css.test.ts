@@ -19,8 +19,10 @@ import popupRaw from "./UIPopup.css?raw"
 import anchoredRaw from "./UIPopup.anchored.css?raw"
 
 /**
- * `UIPopup.css` on its own, before any element exists:  the sheet's source rules and the computed styles of the
- * light-DOM examples (the class grammar the shadow root uses), plus the CSS-only tooltip (`native.css`).
+ * `UIPopup.css` on its own, before any element exists:
+ * - the sheet's source rules
+ * - the computed styles of the light-DOM examples (the class grammar the shadow root uses)
+ * - the CSS-only tooltip (`native.css`)
  * - Sheets are adopted into the document per test and removed again.
  */
 
@@ -88,7 +90,7 @@ describe("UIPopup.css source", () => {
       expect(Sheets.covers(css, phrase), `${popupVocabulary.tag}: ${phrase}`).toBe(true)
   })
 
-  it("covers every position word the element adds after the noun", () => {
+  it("covers every position word the element adds before the noun", () => {
     for (const position of ["top left", "top center", "top right", "bottom left", "bottom center", "bottom right"]) {
       expect(Sheets.covers(popupRaw, position), position).toBe(true)
     }

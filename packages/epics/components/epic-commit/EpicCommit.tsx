@@ -19,7 +19,7 @@ import commitCSS from "./EpicCommit.css?inline"
  ****************/
 export class EpicCommit extends E.UIComponent<typeof epicCommitVocabulary> {
   @E.proto static vocabulary = epicCommitVocabulary
-  @E.proto static styleSheets = { "epic-commit": commitCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { "epic-commit": commitCSS } } satisfies Partial<E.ElementSetup>
 
   /** The heading's icon. */
   readonly glyph = new E.IconGlyph({ owner: this, name: () => "code branch" })
@@ -37,7 +37,7 @@ export class EpicCommit extends E.UIComponent<typeof epicCommitVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <div class={HEADING} part={this.partForName("heading")}>
           <span class={ICON} aria-hidden="true">
             {this.glyph.svg}

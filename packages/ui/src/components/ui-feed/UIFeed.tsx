@@ -7,8 +7,8 @@ import feedCSS from "./UIFeed.css?inline"
 
 /****************
  * ### `UIFeed`
- * The component behind `<ui-feed>`:  an activity feed of `<ui-event>`s,
- * `<ul class="ui ... feed" part="feed" role="list"><slot></slot></ul>`,
+ * The component behind `<ui-feed>`:
+ * an activity feed of `<ui-event>`s, `<ul class="ui ... feed" part="feed" role="list"><slot></slot></ul>`,
  * an `<ol>` when `ordered` (the numbers mean something).
  *
  * - It owns its events and their content parts (`ownsParts`):
@@ -23,14 +23,18 @@ import feedCSS from "./UIFeed.css?inline"
  ****************/
 export class UIFeed extends E.UIComponent<typeof feedVocabulary> {
   @E.proto static vocabulary = feedVocabulary
-  @E.proto static styleSheets = { feed: feedCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { feed: feedCSS },
+    delegatesFocus: false,
+    // `disabled`:  only a look
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (
       <Dynamic
         component={this.ordered ? "ol" : "ul"}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("feed")}
         role="list"
       >

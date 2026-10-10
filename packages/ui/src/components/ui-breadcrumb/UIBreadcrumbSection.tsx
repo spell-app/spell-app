@@ -10,53 +10,47 @@ import breadcrumbCSS from "./UIBreadcrumb.css?inline"
  * ### `UIBreadcrumbSection`
  * The component behind `<ui-breadcrumb-section>`:  one step of the trail.
  *
- * - Its shadow DOM is its own leading divider,
- *   `<span class="divider" part="divider" aria-hidden="true">` (empty:
- *   `UIBreadcrumb.css` draws the breadcrumb's divider tokens into it, and hides it on the first section),
+ * - Its shadow DOM is its own leading divider, `<span class="divider" part="divider" aria-hidden="true">`,
  *   then the section around the `<slot>`:
- *   - `active`:  `<span class="active section" part="section" aria-current="page">`, the current page,
- *     never a link, even with `href`
+ *   - `active`:  `<span class="active section" part="section" aria-current="page">`:
+ *     the current page, never a link, even with `href`
  *   - `href`:  `<a class="section" part="section" href target>`
  *   - else `<span class="section" part="section">`
+ * - The divider is empty:  `UIBreadcrumb.css` draws the breadcrumb's divider tokens into it,
+ *   and hides it on the first section.
  *
- * - The ELEMENT is `role=listitem` (through `internals`), so the breadcrumb's `<ol>` owns real list items
- *   through its slot.
+ * - The ELEMENT is `role=listitem` (through `internals`),
+ *   so the breadcrumb's `<ol>` owns real list items through its slot.
  ****************/
+@E.cssStates("active")
 export class UIBreadcrumbSection extends E.UIComponent<typeof breadcrumbSectionVocabulary> {
   @E.proto static vocabulary = breadcrumbSectionVocabulary
-  @E.proto static styleSheets = { breadcrumb: breadcrumbCSS }
-
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    this.domElement.internals.role = "listitem"
-  }
-
-  /** The current page (`active`)? */
-  @E.cssState("active")
-  get isActive(): boolean {
-    return this.active
-  }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { breadcrumb: breadcrumbCSS },
+    aria: { role: "listitem" }
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     const content = (
       <>
         <span class={DIVIDER} part={this.partForName("divider")} aria-hidden="true" />
         <Show when={this.href && !this.active} fallback={this.plainSection()}>
-          <a class={this.rootClasses} part={this.partForName("section")} href={this.href} target={this.target}>
+          <a class={this.rootClass} part={this.partForName("section")} href={this.href} target={this.target}>
             <slot />
           </a>
         </Show>
       </>
     )
-    // a server render (`$/ui/static`) has no element to be the list item:  ONE root, which the flattener makes the
-    // `<li>` -- the class grammar's semantic form, `<li><span class="divider"></span><a class="section">`
+    // a server render (`$/ui/static`) has no element to be the list item:
+    // ONE root, which the flattener makes the `<li>` --
+    // the class grammar's semantic form, `<li><span class="divider"></span><a class="section">`
     return isServer ? <span>{content}</span> : content
   }
 
   /** The section as text:  the current page (`aria-current`), or a level without a link. */
   private plainSection(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("section")} aria-current={this.active ? "page" : undefined}>
+      <span class={this.rootClass} part={this.partForName("section")} aria-current={this.active ? "page" : undefined}>
         <slot />
       </span>
     )

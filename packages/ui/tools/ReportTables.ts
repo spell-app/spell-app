@@ -20,11 +20,12 @@ import { Terminal } from "./Terminal.ts"
 /****************
  * ### `ReportTables`
  * Rewrites the GENERATED tables of `docs/report.md` from the result files, with fixed headers, units and rounding.
- * - A table lives between `<!-- generated:<name> -->` and `<!-- /generated:<name> -->`;  ONLY that content
- *   is replaced, prose around it is left alone.  Names are the keys of `TABLES` (`TableName`).
- * - Inputs, all in `tools/results/`:  `measure-results.json` (`BundleMeasure`), `perf-results.json` (`PerfRun`,
- *   written by the dropdown perf test), `smoke-results.json` (`SmokeRunner`), `loc-results.json` (`LocCount`).  A
- *   missing file renders a one-line "not measured" note instead of the table.
+ * - A table lives between `<!-- generated:<name> -->` and `<!-- /generated:<name> -->`;
+ *   ONLY that content is replaced, prose around it is left alone.  Names are the keys of `TABLES` (`TableName`).
+ * - Inputs, all in `tools/results/`:
+ *   `measure-results.json` (`BundleMeasure`), `perf-results.json` (`PerfRun`, written by the dropdown perf test),
+ *   `smoke-results.json` (`SmokeRunner`), `loc-results.json` (`LocCount`).
+ *   A missing file renders a one-line "not measured" note instead of the table.
  * - Idempotent:  running it twice changes nothing.
  ****************/
 export class ReportTables {
@@ -418,7 +419,7 @@ const CHECK_LABELS: Record<keyof MeasureChecks, string> = {
   entriesMissingCore: "every family entry imports `core.js`",
   runtimeChunks: "no Rolldown runtime chunk (`rolldown-runtime-<hash>.js`):  its helpers stay in `core.js`",
   coreOutsideCore: "no shared-entry module outside its own chunk (`core.js`, `forms.js` ...)",
-  libraryBundled: "no Solid / fork module in `dist/`",
+  libraryBundled: "no Solid module in `dist/`",
   docsBundled: "no doc-only `<ui-docs-*>` module in `dist/`",
   lazyInEager: "runtime + icon data only in lazy chunks",
   unattributed: "every module attributed to a bucket",
@@ -426,8 +427,8 @@ const CHECK_LABELS: Record<keyof MeasureChecks, string> = {
   lightDarkLowered: "`light-dark()` kept as is (never lowered to `--lightningcss-*` variables)"
 }
 
-/** Packages the versions table lists:  Solid, the fork and the Solid plugin (the pins that matter). */
-const VERSIONED = /^solid-js$|^@solidjs\/|^@spell-app\/solid-element$/
+/** Packages the versions table lists:  Solid and the Solid plugin (the pins that matter). */
+const VERSIONED = /^solid-js$|^@solidjs\//
 
 /** What each extra entry (`MeasureResults.extra`) holds, for the tier table. */
 const EXTRA: Record<string, string> = { api: "`E` / `V` namespaces, `@spell-app/ui/api`" }

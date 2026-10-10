@@ -8,7 +8,7 @@ import type { brandColorPickerVocabulary } from "./UIBrandColorPicker.en"
 /** `brandColorPickerVocabulary`'s type. */
 export type BrandColorPickerVocabulary = typeof brandColorPickerVocabulary
 
-/** The class words the component adds after the noun:  `picker brand color`. */
+/** The class words the component adds before the noun:  `brand color picker`. */
 export const BRAND_COLOR = "brand color"
 
 /** Colour without a `value`:  House of Owen, the brand's seed (the Color Set Chooser's starting colour). */

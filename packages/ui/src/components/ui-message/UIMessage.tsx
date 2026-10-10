@@ -14,23 +14,25 @@ import messageCSS from "./UIMessage.css?inline"
  * - Its shadow DOM is one box, `<div class="ui … message" part="message">`, holding, in order:
  *   the icon box, ALWAYS a `<div class="content" part="content">` (the `header` shorthand, then the default slot),
  *   and the `dismissible` close button.
- *   - It adds the `icon` class (after the noun) while there's an icon (the `icon` shorthand or a slotted
+ *   - It adds the `icon` class (before the noun) while there's an icon (the `icon` shorthand or a slotted
  *     `slot="icon"`):  `UIMessage.css` switches to the icon layout (`--_ui-message-layout: icon`) by it.
  *
  * - It OWNS the `header` and `content` parts (`ownsParts`):
  *   a slotted `<ui-header>` or `<ui-content>` finds it through `PartContext`,
- *   sets `:state(in-message)` and styles itself from `UIParts.css`, reading the owner tokens `UIMessage.css` declares
- *   on the inner box. `define()` registers it as their owner;  nothing to do here.
+ *   sets `:state(in-message)` and styles itself from `UIParts.css`,
+ *   reading the owner tokens `UIMessage.css` declares on the inner box.
+ *   `define()` registers it as their owner;  nothing to do here.
  *
  * - Dismissing:  the close button sends the cancelable `ui-dismiss`.
- *   Unless it's cancelled, the element sets `hidden` on ITSELF.
- *   It never removes itself:  a framework that drew the node still owns it.
+ *   - Unless it's cancelled, the element sets `hidden` on ITSELF.
+ *   - It never removes itself:  a framework that drew the node still owns it.
  *
  * - No role:  a message inserted to announce something gets `role="status"` or `alert` from the page.
  ****************/
+@E.cssStates("inverted")
 export class UIMessage extends E.UIComponent<typeof messageVocabulary> {
   @E.proto static vocabulary = messageVocabulary
-  @E.proto static styleSheets = { message: messageCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { message: messageCSS } } satisfies Partial<E.ElementSetup>
 
   /** Which of its slots have content in the light DOM:  a slotted icon. */
   readonly slots = new E.SlotContent(this.domElement)
@@ -49,15 +51,9 @@ export class UIMessage extends E.UIComponent<typeof messageVocabulary> {
     return !!this.icon || this.slots.hasContent(this.slotForName(UIT.ICON))
   }
 
-  /** The `icon` class after the noun while it shows an icon:  the sheet's icon layout. */
-  protected get extraClasses(): string | undefined {
+  /** The `icon` class before the noun while it shows an icon:  the sheet's icon layout. */
+  protected get extraClass(): string | undefined {
     return this.hasIcon ? UIT.ICON_CLASS : undefined
-  }
-
-  /** For dark backgrounds?  `:state(inverted)`. */
-  @E.cssState("inverted")
-  get isInverted(): boolean {
-    return this.inverted
   }
 
   ////////////////
@@ -66,7 +62,7 @@ export class UIMessage extends E.UIComponent<typeof messageVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("message")}>
+      <div class={this.rootClass} part={this.partForName("message")}>
         <Show when={this.hasIcon}>
           <span class={UIT.ICON} part={this.partForName("icon")}>
             <slot name={this.slotForName(UIT.ICON)}>{this.iconGlyph.svg}</slot>

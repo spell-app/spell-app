@@ -202,6 +202,8 @@ export abstract class PlanReader {
    * - closed otherwise (done, decided, an old doc's `d7`):  `recent`, green, however long ago (Owen, 2026-10-08:
    *   "green across the board is good")
    * - work a review queued, not started (`queued`):  `open`, still to do (Q20:  no longer `progress`)
+   * - Claude answered it last, with options nothing is picked in yet (`PlanItem.awaitsPick()`):  `replied`, Owen's
+   *   turn to pick (Owen, 2026-10-09);  a pick, a newer reply from Owen, or closing it ends that
    * - waiting on Owen:  `attention`:  an open question;  an open judgement call or issue not reviewed, unless it's
    *   `calm` (not urgent:  it simply follows WWOD, or Owen said so from its id chip):  then `open`
    * - settled by a review, though still open (`SETTLED_AS`:  approved, made a todo):  `recent`
@@ -213,6 +215,7 @@ export abstract class PlanReader {
     if (facts.status === CANCELED) return "old"
     if (CLOSED.has(facts.status) || OLD_DECISION.test(facts.id)) return "recent"
     if (facts.queued !== undefined) return "open"
+    if (facts.awaitsPick) return "replied"
     if (QUESTION_ID.test(facts.id)) return "attention"
     if (CALM_ID.test(facts.id) && facts.reviewed === undefined) return facts.calm ? "open" : "attention"
     if (SETTLED_AS.has(facts.reviewAs ?? "")) return "recent"

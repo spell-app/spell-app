@@ -21,6 +21,7 @@ import { REPO_ROOT, findCheckout } from "$/cli/findCheckout"
  * - `agents`:  the running-agents list (`packages/docs/tools/AgentList.ts`), in the caller's folder
  * - `airplane`:  airplane mode and its pre-flight check (`packages/docs/tools/airplane.ts`), in the caller's folder
  * - `notes`:  page notes (`packages/docs/tools/notes.ts`), in the caller's folder (`answer --file` is from there)
+ * - `comments`:  comments on docs pages (`packages/docs/tools/comments.ts`), likewise
  * - NOTE: `goals` has its own lookup (`goalsCommand()`);  `vscode` runs yarn itself (`vscodeSteps()`);
  *   `plan-doc` runs in this process (`planDocCommand()`, epic `epic-components` P7)
  */
@@ -37,6 +38,7 @@ export const TOOLS = {
   details: { tool: "packages/docs/tools/details.js", cwd: "packages/docs" },
   choices: { tool: "packages/docs/tools/choices.js", cwd: "packages/docs" },
   notes: { tool: "packages/docs/tools/notes.ts", tsx: "packages/docs/tsconfig.json" },
+  comments: { tool: "packages/docs/tools/comments.ts", tsx: "packages/docs/tsconfig.json" },
   "design build": { tool: "packages/ui/scripts/design-build.ts", tsx: "packages/ui/scripts/tsconfig.json" },
   "design bundle": { tool: "packages/docs/tools/bundle-spell-ui.js", cwd: "packages/docs" },
   "design check": { tool: "packages/docs/tools/check-design-bundle.js", cwd: "packages/docs" },

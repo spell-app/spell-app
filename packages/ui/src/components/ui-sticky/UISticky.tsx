@@ -9,8 +9,8 @@ import stickyCSS from "./UISticky.css?inline"
  * ### `UISticky`
  * The component behind `<ui-sticky>`:  content that sticks as the page scrolls,
  * `position: sticky` on `<div class="ui … sticky" part="sticky">`, between two 1px sentinels.
- * It only REPORTS what CSS does (`:state(stuck)`, `ui-stick` / `ui-unstick`), through an `IntersectionObserver`:
- * no scroll listener, no JS positioning.
+ * It only REPORTS what CSS does (`:state(stuck)`, `ui-stick` / `ui-unstick`),
+ * through an `IntersectionObserver`:  no scroll listener, no JS positioning.
  *
  * - The DOM element is `display: contents`, so the sentinels and the box are children of its PARENT,
  *   which is the box's containing block:  it sticks within its parent (Fomantic's `context`),
@@ -23,14 +23,15 @@ import stickyCSS from "./UISticky.css?inline"
  *     and an inline public name would block the page's value exactly as a sheet declaration does.
  *
  * - Stuck:  the top sentinel (where the box would be) has passed the `offset` line,
- *   while the box hasn't been pushed above it;  with `pushing`, the bottom sentinel is also below the bottom line.
- *   Measured by `StickyWatch` (shared with `<ui-section sticky>`) on every observer callback,
- *   against the nearest scroll container (else the document's viewport).
+ *   while the box hasn't been pushed above it;
+ *   with `pushing`, the bottom sentinel is also below the bottom line.
+ *   - Measured by `StickyWatch` (shared with `<ui-section sticky>`) on every observer callback,
+ *     against the nearest scroll container (else the document's viewport).
  *
- * - SIDE EFFECT (`StickyWatch`'s):  while stuck, it RESERVES its room on the scroll container (`<html>` for the page):
- *   inline `scroll-padding-top` (`-bottom` at the bottom edge) is the furthest edge of every box stuck there.
- *   So Page Down / Space, focus and `scrollIntoView()` keep content out from under it.
- *   Chromium and Firefox honour it for paging;  Safari only for the rest.
+ * - SIDE EFFECT (`StickyWatch`'s):  while stuck, it RESERVES its room on the scroll container (`<html>` for the page).
+ *   - Inline `scroll-padding-top` (`-bottom` at the bottom edge) is the furthest edge of every box stuck there.
+ *   - So Page Down / Space, focus and `scrollIntoView()` keep content out from under it.
+ *   - Chromium and Firefox honour it for paging;  Safari only for the rest.
  *   - A box taller than half the visible area, or narrower than half its width (`STICKY_MAX_RESERVE`),
  *     is a sticky COLUMN (a sidebar), not a header:  it reserves nothing, or paging would barely move.
  *   - The inline property is the stickies' while any is stuck, removed once none is:
@@ -38,8 +39,8 @@ import stickyCSS from "./UISticky.css?inline"
  ****************/
 export class UISticky extends E.UIComponent<StickyVocabulary> {
   @E.proto static vocabulary = stickyVocabulary
-  @E.proto static styleSheets = { sticky: stickyCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { sticky: stickyCSS },
     // a wrapper:  a click on its text must not jump to a link inside
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -97,7 +98,7 @@ export class UISticky extends E.UIComponent<StickyVocabulary> {
   private box?: HTMLDivElement
 
   /**
-   * Observe while connected and drawn (`isReady`:  the sentinels exist),
+   * Observe while connected and drawn (once `isReady`, the sentinels exist),
    * again whenever the offsets or `pushing` change;  unstuck once disconnected.
    */
   @E.onChange("isConnected", "isReady", "offset", "bottomOffset", "pushing")
@@ -128,8 +129,9 @@ export class UISticky extends E.UIComponent<StickyVocabulary> {
 
   /**
    * The box's inline tokens:  top and bottom offsets.
-   * - A getter, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
-   *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
+   * - A getter, not an inline object:
+   *   Solid's server compile (rc.11) drops the `;` between an inline style object's COMPUTED keys
+   *   (`--a:1px--b:2`), and the browser then ignores both.
    */
   private get boxStyle(): Record<string, string> {
     return {
@@ -142,7 +144,7 @@ export class UISticky extends E.UIComponent<StickyVocabulary> {
     const box = (
       <div
         ref={(element) => (this.box = element)}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("sticky")}
         style={this.boxStyle}
       >

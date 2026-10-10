@@ -5,15 +5,17 @@ import { ValueSets } from "./ValueSets"
 /****************
  * ### `Converters`
  * Pure attribute => property converters,
- * shared by `ElementDefinition` (solid-element's props) and the native fallbacks.
- * - Why here, library-neutral:  the elements and their native fallbacks need the SAME booleans / enums / widths
- *   semantics, and frameworks send attributes in odd shapes -- Vue sends `open="false"` when it can't find a
- *   property, so `"false"` MUST mean false (plan, "Framework consumption contract").
+ * shared by `ElementDefinition` (the DOM element's attributes) and the native fallbacks.
+ * - Why here, with no DOM and no Solid:
+ *   - the elements and their native fallbacks need the SAME booleans / enums / widths semantics
+ *   - frameworks send attributes in odd shapes:  Vue sends `open="false"` when it can't find a property,
+ *     so `"false"` MUST mean false (`docs/plan.md`, "Framework consumption contract")
  * - Static and stateless:  converters run on every `attributeChangedCallback`.
  * - Attribute values arrive as `string | null` (`null` ~== absent);  properties may arrive as anything.
- * - `null` is the PLATFORM's here, so it stays (epic `wwod-spell-ui`, Q9):  `getAttribute()` returns it for an absent
- *   attribute, and solid-element's `toAttribute` takes it back to remove one (`booleanToAttribute()`).  Everything of
- *   ours that means "none" is `undefined`.
+ * - `null` is the PLATFORM's here, so it stays (epic `wwod-spell-ui`, Q9):
+ *   - `getAttribute()` returns it for an absent attribute
+ *   - `ElementDefinition.attributeText()` returns it to remove one (`booleanToAttribute()`)
+ *   - everything of ours that means "none" is `undefined`
  * - Imports only `$/ui/util` and its folder's peers:  no DOM, no element layer.
  ****************/
 export class Converters {
@@ -48,8 +50,8 @@ export class Converters {
   /**
    * `keyOrValueAndKey` attribute => `true` (bare), `false` (absent / `"false"`), or its value.
    * - `pointing` => true;  `pointing="left"` => `"left"`;  `pointing="false"` => false.
-   * - A value is checked against `set` with the same warning as `enumValue()`;  unknown values => `true`,
-   *   so a typo still gets the bare variation rather than nothing.
+   * - A value is checked against `set` with the same warning as `enumValue()`.
+   * - Unknown values => `true`, so a typo still gets the bare variation rather than nothing.
    */
   static keyOrValue(
     value: string | boolean | null | undefined,
@@ -72,7 +74,8 @@ export class Converters {
    * `icon` attribute value => icon name, `""` for "the element's own icon", or `undefined` for none.
    * - Why:  frameworks (JSX, Astro) render a bare `icon` as `icon="true"`, which MUST NOT be looked up as a glyph.
    * - bare / `"true"` / `"yes"` / `true` => `fallback` (the vocabulary default), else `""`
-   * - `"false"` / `"no"` / `false` => `undefined`, even over a default.  NOT `"0"`:  Font Awesome has a `0` glyph.
+   * - `"false"` / `"no"` / `false` => `undefined`, even over a default;
+   *   NOT `"0"`:  Font Awesome has a `0` glyph.
    * - a string / number => the trimmed name;  absent (`null` / `undefined`) or any other value => `undefined`
    */
   static icon(value: unknown, fallback?: unknown): string | undefined {
@@ -99,7 +102,7 @@ export class Converters {
   /**
    * Attribute value => canonical member of `set`, or `undefined` if it isn't one.
    * - Trims and lower-cases, and collapses inner whitespace (`"top   left"` => `"top left"`).
-   * - SIDE EFFECT (dev only): warns `did you mean "red"?` via `ValueSets.suggest()` for unknown values.
+   * - SIDE EFFECT (dev only):  warns `did you mean "red"?` via `ValueSets.suggest()` for unknown values.
    */
   static enumValue(
     value: string | null | undefined,
@@ -137,12 +140,13 @@ export class Converters {
 
   /**
    * Rich property value:  JSON text is parsed, a plain string stays a string, anything else passes through.
-   * - Why parse:  `json` attributes are property-first (`AGENTS.md`), but plain HTML can still write
-   *   `options='[...]'` and frameworks without property binding set strings.
-   * - Why not parse EVERY string:  a string is also a value -- `rules="email"` / `el.rules = "minLength[6]"` is
-   *   Fomantic's shorthand.  Only JSON-shaped text (starting `[`, `{` or `"`) is parsed.
+   * - Why parse:  `json` attributes are property-first (`AGENTS.md`),
+   *   but plain HTML can still write `options='[...]'`, and frameworks without property binding set strings.
+   * - Why not parse EVERY string:  a string is also a value
+   *   (`rules="email"` / `el.rules = "minLength[6]"` is Fomantic's shorthand).
+   *   Only JSON-shaped text (starting `[`, `{` or `"`) is parsed.
    * - Consumers MUST accept a string where they don't want one (`options` drops non-arrays).
-   * - SIDE EFFECT (dev only): warns and returns `undefined` for JSON-shaped text that doesn't parse (a typo).
+   * - SIDE EFFECT (dev only):  warns and returns `undefined` for JSON-shaped text that doesn't parse (a typo).
    */
   static json<T = unknown>(value: unknown): T | undefined {
     if (typeof value !== "string") return value as T

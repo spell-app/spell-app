@@ -1,3 +1,5 @@
+// `$/ui/util` by name, never the `$/ui/core` entry:  node scripts load this file (see the class docs)
+import { beforeNextPaint } from "$/ui/util"
 import {
   EXAMPLE_TAG,
   HEADING_SELECTOR,
@@ -17,10 +19,10 @@ import {
  * - Plain DOM, no Solid:  node scripts load it by path (`scripts/site-sections.ts`, `tools/SiteCheck.ts`),
  *   so it NEVER imports a value from `$/ui/core`.
  * - Static only:  pure reads (and id writes) of the DOM it's given.
- * - Entries form a tree:  level 2 headings and top-level `<ui-section>`s, then what's under each (examples,
- *   level 3 headings, nested sections), as deep as the sections nest.
- * - SIDE EFFECT:  `scan()` gives every listed heading / section / example without an `id` one (a slug of its text,
- *   made unique in the document), so the links have targets and other pages can link to them.
+ * - Entries form a tree:  level 2 headings and top-level `<ui-section>`s,
+ *   then what's under each (examples, level 3 headings, nested sections), as deep as the sections nest.
+ * - SIDE EFFECT:  `scan()` gives every listed heading / section / example without an `id` one
+ *   (a slug of its text, made unique in the document), so the links have targets and other pages can link to them.
  ****************/
 export class TocIndex {
   /**
@@ -52,12 +54,13 @@ export class TocIndex {
   }
 
   /**
-   * The sections of `root`, in page order:  each level 2 heading with the examples / level 3 headings after it,
-   * and each `<ui-section>` with what's nested in it (sections, examples, headings), at any depth.
+   * The sections of `root`, in page order:
+   * - each level 2 heading with the examples / level 3 headings after it
+   * - each `<ui-section>` with what's nested in it (sections, examples, headings), at any depth
    * - A level 2 heading inside a `<ui-section>` is an entry of that section, like the rest.
    * - Headings before the first section become sections with no entries.
-   * - Skipped:  headings and sections inside an example's live markup (a header page's demos), inside templates;
-   *   sections without a title.
+   * - Skipped:  sections without a title, and headings and sections
+   *   inside an example's live markup (a header page's demos) or inside templates.
    * - `reserved`:  ids a new id must not take (the tab values, which the URL hash also names).
    */
   static scan(root: Element, reserved: ReadonlySet<string> = new Set()): TocSection[] {
@@ -95,8 +98,10 @@ export class TocIndex {
   }
 
   /**
-   * The id of the entry in view:  the last one whose top has passed the reading line (the document's scroll padding
-   * plus a fifth of the viewport);  the last one at the page's end;  the first one above everything.
+   * The id of the entry in view:
+   * - the last one whose top has passed the reading line (the document's scroll padding plus a fifth of the viewport)
+   * - the last one at the page's end
+   * - the first one above everything
    * - Entries without a box (a hidden pane) or inside a folded `<ui-section>` are skipped.
    */
   static current(sections: readonly TocSection[], document: Document): string | undefined {
@@ -135,13 +140,13 @@ export class TocIndex {
   }
 
   /**
-   * Run `then` once the `<ui-root>` around `element` is ready (every component drawn), or on the next frame when
-   * it already is or there is none.
+   * Run `then` once the `<ui-root>` around `element` is ready (every component drawn),
+   * or on the next frame when it already is or there is none.
    */
   static whenReady(element: Element, then: () => void): void {
     const root = element.closest("ui-root")
-    if (!root || TocIndex.hasState(root, "ready")) requestAnimationFrame(then)
-    else root.addEventListener("ui-ready", () => requestAnimationFrame(then), { once: true })
+    if (!root || TocIndex.hasState(root, "ready")) beforeNextPaint(then)
+    else root.addEventListener("ui-ready", () => beforeNextPaint(then), { once: true })
   }
 
   /** `text` as an id:  lowercase words joined by `-`, e.g. `Labeled Icon` => `labeled-icon`. */
@@ -169,8 +174,8 @@ export class TocIndex {
 
   /**
    * A heading's link text:  an example's `header`, else its text, whitespace collapsed.
-   * - A nested heading of the same tag is its SUB header (`<ui-header>Title<ui-header>sub</ui-header></ui-header>`):
-   *   left out, so the link says `Title`, not `Title sub`.
+   * - A nested heading of the same tag is its SUB header
+   *   (`<ui-header>Title<ui-header>sub</ui-header></ui-header>`):  left out, so the link says `Title`, not `Title sub`.
    */
   private static text(heading: Element): string {
     let text: string | null | undefined
@@ -179,8 +184,8 @@ export class TocIndex {
       text = heading.getAttribute(HEADER) || heading.querySelector(SECTION_HEADER_SELECTOR)?.textContent
     else
       text = [...heading.childNodes]
-        // `localName`, not `instanceof Element`:  node scripts run this on linkedom, which has no `Element` global;
-        // a text node has no `localName`
+        // `localName`, not `instanceof Element`:
+        // node scripts run this on linkedom, which has no `Element` global;  a text node has no `localName`
         .filter((node) => (node as Element).localName !== heading.localName)
         .map((node) => node.textContent)
         .join("")

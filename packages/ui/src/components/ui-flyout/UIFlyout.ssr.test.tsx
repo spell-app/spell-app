@@ -9,15 +9,16 @@ import { UIHeader } from "$/ui/components/ui-parts/UIHeader"
 import { UIFlyout } from "$/ui/components/ui-flyout/UIFlyout"
 
 /**
- * `<ui-flyout>` rendered statically (`$/ui/static`):  `UIFlyout` loads WITHOUT the modal family's barrel (no
- * `customElements` in node), and renders `DialogComponent`'s closed `<dialog>` with the flyout's classes.
+ * `<ui-flyout>` rendered statically (`$/ui/static`):
+ * `UIFlyout` loads WITHOUT the modal family's barrel (no `customElements` in node),
+ * and renders `DialogComponent`'s closed `<dialog>` with the flyout's classes.
  */
 describe("<ui-flyout> static render", () => {
   beforeAll(() => {
     StaticRender.define(UIFlyout, UIHeader, UIContent)
   })
 
-  it("renders a closed side <dialog>, its width word after the noun", () => {
+  it("renders a closed side <dialog>, its width word before the noun", () => {
     const html = StaticRender.fragment(
       `<ui-flyout id="side" position="right" width="thin"><ui-header>Profile</ui-header>` +
         `<ui-content>Body</ui-content></ui-flyout>`
@@ -25,7 +26,7 @@ describe("<ui-flyout> static render", () => {
     const dialog = fragment(html).firstElementChild!
     expect(dialog.localName).toBe("dialog")
     expect(dialog.id).toBe("side")
-    expect(dialog.getAttribute("class")).toBe("ui right flyout thin")
+    expect(dialog.getAttribute("class")).toBe("ui right thin flyout")
     expect(dialog.hasAttribute("open")).toBe(false)
     const heading = dialog.querySelector(":scope > .header.in-flyout")!
     expect(dialog.getAttribute("aria-labelledby")).toBe(heading.id)

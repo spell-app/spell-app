@@ -1,6 +1,6 @@
 // Import directly to avoid circular import
 import { proto } from "$/ui/util"
-import { type Prettify } from "$/ui/util"
+import { after, type Prettify } from "$/ui/util"
 import * as UIT from "$/ui/components/components.types"
 
 import { CssDisplay, type AnimateOptions, type AnimationDirection, type AnimationName } from "./runtime.types"
@@ -21,17 +21,18 @@ import type { Browser } from "./Browser"
  *     (a `:host { display: block }` beats the UA `[hidden]` rule)
  * - Resolves `true` when the animation ends, `false` when interrupted by another `animate()` on the same element.
  *   Starting an animation cancels the running one -- e.g. `in` while an `out` is mid-way.
- * - Never hangs:  resolves straight away when no animation applies (reduced motion, `animations.css` not loaded),
- *   and after a fail-safe timeout of the computed duration plus `failSafeDelay` if `animationend` never comes
- *   (Fomantic's `failSafeDelay`).
+ * - Never hangs:
+ *   - resolves straight away when no animation applies (reduced motion, `animations.css` not loaded)
+ *   - resolves after a fail-safe timeout if `animationend` never comes:
+ *     the computed duration plus `failSafeDelay` (Fomantic's `failSafeDelay`)
  * - NOTE: CSS-only transitions (`@starting-style` + `allow-discrete` on popovers / dialogs) need no JS;
  *   `whenTransitionEnds()` is for code that must wait for them.
  ****************/
 export class Transitions {
   /**
    * ms added to the computed duration before giving up on `animationend`
-   * - `@proto` default (on the prototype, not per instance), as is `forcedDisplayAttribute`:  an instance or
-   *   subclass overrides it
+   * - `@proto` default (on the prototype, not per instance), as is `forcedDisplayAttribute`:
+   *   an instance or subclass overrides it
    */
   declare failSafeDelay: number
   @proto static failSafeDelay = 100
@@ -79,11 +80,11 @@ export class Transitions {
       const onEnd = (event: AnimationEvent) => {
         if (event.target === element) finish(true)
       }
-      const timer = setTimeout(() => finish(true), wait + this.failSafeDelay)
+      const timer = after((wait + this.failSafeDelay) / 1000, () => finish(true))
       const finish = (completed: boolean) => {
         if (this.running.get(element) !== run) return
         this.running.delete(element)
-        clearTimeout(timer)
+        timer.cancel()
         listeners.abort()
         // an interrupted run leaves the element to its successor
         if (completed) this.cleanup(element, direction, options)

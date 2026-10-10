@@ -15,9 +15,9 @@ import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
 
 /****************
  * ### `EpicAnswer`
- * The component behind `<epic-answer>`:  an answered question's answer card, after its question and Choices -- a
- * warm card, its heading band `Answer · <title>` (`D7 · <title>` when it keeps an old decision's id, so old `#d7`
- * links land on it:  the id is the DOM element's own), then the answer and why (its light children).
+ * The component behind `<epic-answer>`:  an answered question's answer card, after its question and Choices --
+ * a warm card, its heading band `Answer · <title>` (`D7 · <title>` when it keeps an old decision's id,
+ * so old `#d7` links land on it:  the id is the DOM element's own), then the answer and why (its light children).
  * - A title with markup:  a `slot="title"` child, in place of `title` (T12).
  * - No children:  the heading alone, a card one band tall.
  * - Folds by its band, the chevron first (Owen, 2026-10-08:  everything in a section box folds):  open to start
@@ -25,8 +25,10 @@ import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
  ****************/
 export class EpicAnswer extends E.UIComponent<typeof epicAnswerVocabulary> {
   @E.proto static vocabulary = epicAnswerVocabulary
-  @E.proto static styleSheets = { "epic-fold-button": foldCSS, "epic-answer": answerCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-fold-button": foldCSS, "epic-answer": answerCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a body? */
   readonly slots = new E.SlotContent(this.domElement)
@@ -58,7 +60,7 @@ export class EpicAnswer extends E.UIComponent<typeof epicAnswerVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <div ref={this.fold.heading} class={[HEADER, { [FOLDS]: this.hasBody }]} part={this.partForName("header")}>
           <Show when={this.hasBody}>
             <FoldButton

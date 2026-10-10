@@ -1,14 +1,16 @@
 /**
  * Every name `<epic-page>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
  * - Pure data:  `import type`, plus the new-item controls' parts and texts (`NEW_*`) from `epic-item`'s types file,
- *   data too:  its header's `+` (epic `airplane` P2).
+ *   data too:  its toolbar's new item button (epic `airplane` P2);  and the state filter's texts (`FILTER_TEXTS`)
+ *   from `epic-section`'s, for its toolbar's chips.
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
-// the new-item controls its header draws, as a Todos section does
+// the new-item controls its toolbar draws, as a Todos section does;  the state filter's chips, as a section's
 import { NEW_PARTS, NEW_TEXTS } from "$/epics/components/epic-item/EpicItem.types"
+import { FILTER_TEXTS } from "$/epics/components/epic-section/EpicSection.types"
 
 /****************
  * ### `<epic-page>`
@@ -92,6 +94,12 @@ export const epicPageVocabulary = {
       name: "durable",
       description:
         'A link to the durable doc, once Doc Review wrote one:  `<a slot="durable" href="../../guides/x.html">X</a>`.'
+    },
+    {
+      name: "toolbar",
+      description:
+        "The sticky bar's last row:  the section toolbar the docs runtime adds to a plan doc " +
+        '(`<nav slot="toolbar" class="spell-toolbar">`, `spell-doc-runtime.js` `buildToolbar()`);  never in a doc.'
     }
   ],
   parts: [
@@ -102,28 +110,63 @@ export const epicPageVocabulary = {
         "Above the header:  `Docs › Epics › <title>`, the docs' eyebrow.  None while the doc still holds its old " +
         "`ui-breadcrumb.spell-crumbs` before the page."
     },
-    { name: "header", description: "The sticky page header:  the h1, then the tools and labels at its right." },
-    { name: "heading", description: "The h1, `/epic <name>`:  a click copies it." },
-    { name: "subhead", description: "Under the h1:  the epic's title." },
     {
-      name: "actions",
+      name: "header",
       description:
-        "While the page is reviewed:  Send (the paper plane:  grey, blue with unsent marks, outlined once sent) and " +
-        "Review Now (the wand:  blue while there's anything for Claude to work through)."
+        "The sticky page header:  the h1, then at its right the step label (the state in it) and the git toggle."
+    },
+    { name: "heading", description: "The h1, `/epic <name>`:  a click copies it." },
+    { name: "subhead", description: "Under the header:  the epic's title, NOT sticky:  it scrolls away." },
+    {
+      name: "bar",
+      description:
+        "The toolbar's sticky bar, right below the header once the title has scrolled away:  the new item form " +
+        "(while open), then the toolbar."
+    },
+    {
+      name: "toolbar",
+      description:
+        "The sticky bar's last row:  the docs runtime's section buttons (`slot=\"toolbar\"`), then at the right the page's " +
+        "state filter, collapse-all and (reviewed) the new todo or question button."
+    },
+    {
+      name: "filter",
+      description:
+        "The toolbar's state filter:  a chip per state the page's items are in, with how many;  filters every section."
+    },
+    { name: "collapse-all", description: "The toolbar's double chevron:  folds everything on the page." },
+    {
+      name: "send-bar",
+      description:
+        "Stuck to the window's bottom while the page is reviewed and anything waits to be sent or asked now:  the " +
+        "pill, then Send (the paper plane:  grey, blue with unsent marks, outlined once sent) and Review Now (the " +
+        "wand:  blue while there's anything for Claude to work through)."
+    },
+    {
+      name: "pill",
+      description:
+        "In the send bar, when nobody can take the marks:  no Claude session reviewing (orange), or airplane mode;  " +
+        "a click copies the review line's command."
     },
     { name: "send", description: "The Send button:  every unsent mark to Claude." },
     { name: "review-now", description: "The Review Now button:  every mark sent, each revisit asked now." },
     { name: "git", description: "The git toggle:  shows or hides every commit (only when the doc has some)." },
     {
       name: "status",
-      description: "The sleeping mark (nothing under way, follow-ups open), then the bedtime and step labels."
+      description: "The header's right side:  the bedtime label, the step label, the git toggle."
     },
-    { name: "sleeping", description: "😴:  no phase under way, but open questions, calls, issues, todos or tests." },
+    {
+      name: "state",
+      description:
+        "The step label while the epic has a state, its icon and colour the state's (`$/server/site/EpicState`):  " +
+        "in progress (blue half circle), errors (red:  every phase done, items need you), paused (grey:  phases " +
+        "left, untouched for days);  why on hover.  None for a future epic or a done one:  FUTURE or DONE says so."
+    },
     {
       name: "review-line",
       description:
-        "Under the header:  `To review this doc, type /epic review <name>`, copied on click;  while the page is " +
-        "reviewed with nobody listening, it says no session is reviewing."
+        "Under the header:  `To review this doc, type /epic review <name>` (airplane mode:  `/airplane land`), " +
+        "copied on click."
     },
     { name: "meta", description: "The meta lines:  branch, worktree, dates, durable doc." },
     { name: "notice", description: "A future epic's notice:  not planned yet." },
@@ -198,10 +241,22 @@ export const epicPageVocabulary = {
     },
     { key: "reviewLine", text: "To review this doc, type", description: "The review line, before the command." },
     {
-      key: "reviewLineNobody",
-      text: "No Claude session is reviewing this doc.  To start one, type",
-      description: "The review line while the page is reviewed and nobody listens."
+      key: "nobodyPill",
+      text: "No Claude session is reviewing:  start one with",
+      description: "The send bar's pill while nobody listens, before the command it copies."
     },
+    {
+      key: "airplanePill",
+      text: "Airplane mode:  this waits for",
+      description: "The send bar's pill in airplane mode, before `/airplane land`."
+    },
+    { key: "sendBar", text: "Send to Claude", description: "The send bar's region, spoken." },
+    {
+      key: "collapseAll",
+      text: "Fold everything on the page",
+      description: "The toolbar's collapse-all button:  its name and tooltip."
+    },
+    ...FILTER_TEXTS,
     {
       key: "reviewLineAirplane",
       text: "Airplane mode:  what you mark here waits for",
@@ -209,11 +264,6 @@ export const epicPageVocabulary = {
     },
     { key: "copyCommand", text: "Copy the command", description: "The review line's tooltip." },
     { key: "copied", text: "copied", description: "The review line, just copied." },
-    {
-      key: "sleeping",
-      text: "Sleeping:  nothing under way, {words} to follow up",
-      description: "The sleeping mark's tooltip:  `2 questions, 1 todo`."
-    },
     { key: "hung", text: "Plan hung?", description: "The planning aside's title." },
     { key: "hungBefore", text: "Close its Claude tab, then run", description: "The aside, before `/epic <name>`." },
     { key: "hungAfter", text: "and pick \u201cReuse\u201d.", description: "The aside, after `/epic <name>`." },

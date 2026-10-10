@@ -10,16 +10,17 @@ import { Fold } from "$/epics/components/epic-item/Fold"
  * ### `EpicPanel`
  * Base of the plan doc's folded PANELS in prose -- `<epic-aside>`, `<epic-code>`:  a heading that folds a body,
  * nothing else (no sticky line, no contents entry:  that's `EpicFold`'s, for sections and phases).
- * - The heading is a `<button>`:  the fold chevron, then `heading()`.  The body (`body()`:  the element's children
- *   by default) is hidden `until-found` while folded, so find-in-page reaches it and unfolds it (`Fold`).
+ * - The heading is a `<button>`:  the fold chevron, then `heading()`.
+ *   The body (`body()`:  the element's children by default) is hidden `until-found` while folded,
+ *   so find-in-page reaches it and unfolds it (`Fold`).
  * - Folding is PAGE state, never written to the doc:  folded to start with, unless `startsOpen()` says so.
- * - The DOM element's own `title` would be a browser tooltip over the whole panel:  the wrapper's EMPTY `title`
- *   stops it there (T8).
+ * - The DOM element's own `title` would be a browser tooltip over the whole panel:
+ *   the wrapper's EMPTY `title` stops it there (T8).
  * - Its shape:  `EpicPanel.css`, which each subclass adopts beside its own sheet (the fill, the heading's type).
  * - Subclasses in other families import THIS file directly, never the `epic-aside` barrel.
  ****************/
 export abstract class EpicPanel<V extends E.ComponentVocabulary> extends E.UIComponent<V> {
-  @E.proto static elementSetup: Partial<E.ElementSetup> = {
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     // a container:  a click on its text must not jump to the fold button
     delegatesFocus: false
   }
@@ -48,7 +49,7 @@ export abstract class EpicPanel<V extends E.ComponentVocabulary> extends E.UICom
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base" as never)} title="">
+      <div class={this.rootClass} part={this.partForName("base" as never)} title="">
         <button
           type="button"
           class={TOGGLE}

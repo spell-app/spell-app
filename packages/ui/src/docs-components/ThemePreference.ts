@@ -1,4 +1,4 @@
-import { UI } from "$/ui/core"
+import { E, UI } from "$/ui/core"
 import {
   DOCS_DARK_QUERY,
   DOCS_DEFAULT_THEME,
@@ -14,35 +14,42 @@ import {
 
 /****************
  * ### `ThemePreference`
- * The docs site viewer's LOOK -- theme (`UI.themes`) and colour scheme -- remembered per viewer, re-applied on
- * every page.  `<ui-docs-themes>` changes it;  the site entry (`site/_src/site.ts`) calls `restore()` once per page.
- * - Theme:  `DOCS_DEFAULT_THEME` (`spell`, the brand) until the viewer picks another;  picking Plain (our own look,
- *   `undefined`) is stored as `DOCS_PLAIN_THEME`, so it outlives the page.
- * - Stored in `localStorage` (`DOCS_LOOK_KEYS`), every access in try/catch:  a private window or blocked storage
- *   just forgets between pages.  The look is ALSO kept in memory, so it works for the page either way.
- * - Scheme:  ONE store for every doc site:  `DOCS_LOOK_KEYS.scheme` is the key `<spell-site-header>` uses on the
- *   docs, plan docs and goals (`SCHEME_KEY`), with the same values (`light` / `dark`, absent:  follow the OS) and
- *   applied the same way:  `ui-light` / `ui-dark` on `<html>` (UI's tokens and `--ui-scheme` follow) AND inline
- *   `color-scheme` (the site header's own `light-dark()`).  The old keys (`DOCS_LEGACY_SCHEME_KEYS`) are read once,
- *   when the new one is absent.  For the frame it switches in, `DOCS_SCHEME_SWITCHING` is on `<html>` too:  a theme
- *   can turn transitions off under it.
- * - `system` follows the OS:  `shownScheme()` resolves it through `prefers-color-scheme`, and `subscribe()`d
- *   listeners hear when the OS switches (the icon showing the scheme stays right).  Other tabs' switches arrive
- *   through `storage` events.
- * - Before first paint:  a module script runs too late, so pages inline `HEAD_SCRIPT` in `<head>` (P3's template):
- *   it re-applies the SCHEME synchronously.  The THEME can't be:  its sheet is a lazy chunk.  `restore()` starts that
- *   load as the site bundle evaluates, alongside the families' own chunks, so it usually lands with their first
- *   render;  page text may flash the default look for a frame.
- * - Several pickers on one page (the right column's, a component page's `for` one) stay in step through
- *   `subscribe()`.
- * - Imports the core entry (`UI`, `$/ui/core`), which the site entry loads anyway;  the runtime chunk (`UI.themes`)
- *   loads only to apply a theme.
+ * The docs site viewer's LOOK -- theme (`UI.themes`) and colour scheme --
+ * remembered per viewer, re-applied on every page.
+ * `<ui-docs-themes>` changes it;  the site entry (`site/_src/site.ts`) calls `restore()` once per page.
+ * - Theme:  `DOCS_DEFAULT_THEME` (`spell`, the brand) until the viewer picks another;
+ *   picking Plain (our own look, `undefined`) is stored as `DOCS_PLAIN_THEME`, so it outlives the page.
+ * - Stored in `localStorage` (`DOCS_LOOK_KEYS`), every access in try/catch:
+ *   a private window or blocked storage just forgets between pages.
+ *   The look is ALSO kept in memory, so it works for the page either way.
+ * - Scheme:  ONE store for every doc site.
+ *   - `DOCS_LOOK_KEYS.scheme` is the key `<spell-site-header>` uses on the docs, plan docs and goals (`SCHEME_KEY`),
+ *     with the same values (`light` / `dark`, absent:  follow the OS).
+ *   - Applied the same way:  `ui-light` / `ui-dark` on `<html>` (UI's tokens and `--ui-scheme` follow)
+ *     AND inline `color-scheme` (the site header's own `light-dark()`).
+ *   - The old keys (`DOCS_LEGACY_SCHEME_KEYS`) are read once, when the new one is absent.
+ *   - For the frame it switches in, `DOCS_SCHEME_SWITCHING` is on `<html>` too:
+ *     a theme can turn transitions off under it.
+ * - `system` follows the OS:  `shownScheme()` resolves it through `prefers-color-scheme`,
+ *   and `subscribe()`d listeners hear when the OS switches (the icon showing the scheme stays right).
+ *   Other tabs' switches arrive through `storage` events.
+ * - Before first paint:  a module script runs too late,
+ *   so pages inline `HEAD_SCRIPT` in `<head>` (the page template, `templates/spell-ui-docs.html`).
+ *   - It re-applies the SCHEME synchronously.
+ *   - The THEME can't be:  its sheet is a lazy chunk.
+ *     `restore()` starts that load as the site bundle evaluates, alongside the families' own chunks,
+ *     so it usually lands with their first render;  page text may flash the default look for a frame.
+ * - Several pickers on one page (the right column's, a component page's `for` one)
+ *   stay in step through `subscribe()`.
+ * - Imports the core entry (`UI`, `$/ui/core`), which the site entry loads anyway;
+ *   the runtime chunk (`UI.themes`) loads only to apply a theme.
  * - Static only:  the look is one per page.
  ****************/
 export class ThemePreference {
   /**
-   * Inline `<head>` script re-applying the stored scheme before first paint, as `applyScheme()` does;  P3's page
-   * template inlines it, in `<head>` before the stylesheet `<link>`.  ES5, no dependencies, never throws.
+   * Inline `<head>` script re-applying the stored scheme before first paint, as `applyScheme()` does.
+   * - The page template (`templates/spell-ui-docs.html`) inlines it, in `<head>` before the stylesheet `<link>`.
+   * - ES5, no dependencies, never throws.
    * - Reads the old keys too (`DOCS_LEGACY_SCHEME_KEYS`) while the new one is absent:  `restore()` moves them over.
    */
   static readonly HEAD_SCRIPT =
@@ -67,7 +74,8 @@ export class ThemePreference {
 
   /**
    * Choose theme `name` (`undefined` or `""`:  our own look):  remember it, tell subscribers, apply it.
-   * - Resolves once its sheets are registered.  An unknown name (a renamed sheet) is forgotten:  the default theme.
+   * - Resolves once its sheets are registered.
+   * - An unknown name (a renamed sheet) is forgotten:  the default theme.
    */
   static async setTheme(name: string | undefined): Promise<void> {
     const theme = name || undefined
@@ -91,8 +99,8 @@ export class ThemePreference {
   }
 
   /**
-   * Show `scheme` on `root` (default `<html>`):  its `ui-light` / `ui-dark` class (the other one off) and the same
-   * inline `color-scheme`;  `system`:  neither.
+   * Show `scheme` on `root` (default `<html>`):
+   * its `ui-light` / `ui-dark` class (the other one off) and the same inline `color-scheme`;  `system`:  neither.
    * - SIDE EFFECT:  `DOCS_SCHEME_SWITCHING` on `root` until the frame after next (`withoutTransitions()`).
    */
   static applyScheme(scheme: DocsScheme, root: HTMLElement = document.documentElement): void {
@@ -115,8 +123,9 @@ export class ThemePreference {
   }
 
   /**
-   * Call `listener` with the look on every change -- and when the OS switches scheme, since the scheme the page
-   * shows changed (`shownScheme()`);  returns the unsubscribe.
+   * Call `listener` with the look on every change --
+   * and when the OS switches scheme, since the scheme the page shows changed (`shownScheme()`);
+   * returns the unsubscribe.
    * - SIDE EFFECT:  starts watching the OS and other tabs (`watch()`), once.
    */
   static subscribe(listener: (look: DocsLook) => void): () => void {
@@ -128,8 +137,8 @@ export class ThemePreference {
   }
 
   /**
-   * The OS switched scheme:  tell listeners, since the scheme the page shows changed while following it.  Called by
-   * the `prefers-color-scheme` watch (`watch()`);  public for tests, which can't switch the OS.
+   * The OS switched scheme:  tell listeners, since the scheme the page shows changed while following it.
+   * - Called by the `prefers-color-scheme` watch (`watch()`);  public for tests, which can't switch the OS.
    */
   static osChanged(): void {
     ThemePreference.tell(ThemePreference.look)
@@ -144,22 +153,23 @@ export class ThemePreference {
   // ## Internals
   ////////////////
 
-  /** The look in memory;  `undefined` until first read. */
+  /**
+   * The look in memory;  `undefined` until first read.
+   * - Not a `@lazy` `look`:  `update()` writes it too, so it's state, not a value made once.
+   */
   private static state: DocsLook | undefined
 
   /** `subscribe()`d listeners. */
   private static readonly listeners = new Set<(look: DocsLook) => void>()
 
-  /** `watch()` ran:  the page follows the OS and other tabs. */
-  private static watching = false
-
   /**
-   * Once per page:  tell listeners when the OS switches scheme (the shown scheme changed while following it), and
-   * take other tabs' scheme switches (`storage`):  applied here too.  Page-wide for the page's life:  nothing to undo.
+   * Once per page:
+   * - tell listeners when the OS switches scheme (the shown scheme changed while following it)
+   * - take other tabs' scheme switches (`storage`):  applied here too
+   * - page-wide for the page's life:  nothing to undo
    */
-  private static watch(): void {
-    if (ThemePreference.watching || typeof window === "undefined") return
-    ThemePreference.watching = true
+  @E.once private static watch(): void {
+    if (typeof window === "undefined") return
     matchMedia(DOCS_DARK_QUERY).addEventListener("change", () => ThemePreference.osChanged())
     window.addEventListener("storage", (event) => {
       if (event.key !== DOCS_LOOK_KEYS.scheme && event.key !== null) return
@@ -170,13 +180,14 @@ export class ThemePreference {
   }
 
   /**
-   * Put `DOCS_SCHEME_SWITCHING` on `root` until the frame after next:  the first frame paints the new scheme with
-   * transitions off, the second turns them back on.  A second switch meanwhile just ends it a frame early.
+   * Put `DOCS_SCHEME_SWITCHING` on `root` until the frame after next:
+   * the first frame paints the new scheme with transitions off, the second turns them back on.
+   * - A second switch meanwhile just ends it a frame early.
    */
   private static withoutTransitions(root: Element): void {
     if (typeof requestAnimationFrame !== "function") return
     root.classList.add(DOCS_SCHEME_SWITCHING)
-    requestAnimationFrame(() => requestAnimationFrame(() => root.classList.remove(DOCS_SCHEME_SWITCHING)))
+    E.beforeNextPaint(() => E.beforeNextPaint(() => root.classList.remove(DOCS_SCHEME_SWITCHING)))
   }
 
   /** Set the look in memory and tell subscribers, if it changed. */
@@ -219,8 +230,9 @@ export class ThemePreference {
   }
 
   /**
-   * Move the scheme from its old keys (`DOCS_LEGACY_SCHEME_KEYS`), while the new one is absent:  the first valid one
-   * is copied to `DOCS_LOOK_KEYS.scheme`, and every old key removed, so this runs once.  Returns the scheme.
+   * Move the scheme from its old keys (`DOCS_LEGACY_SCHEME_KEYS`), while the new one is absent:
+   * the first valid one is copied to `DOCS_LOOK_KEYS.scheme`, and every old key removed, so this runs once.
+   * - Returns the scheme.
    * - The same steps as `<spell-site-header>`'s:  whichever site the viewer opens first moves it.
    */
   private static migrateScheme(): string | undefined {

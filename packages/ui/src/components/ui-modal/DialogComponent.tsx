@@ -6,11 +6,11 @@ import { type DialogAttributes, type DialogEventName } from "./UIModal.types"
 
 /****************
  * ### `DialogComponent`
- * The base of the components behind `<ui-modal>` and `<ui-flyout>`:  everything they do,
- * on a shadow `<dialog class="ui … <noun>" part="<rootPart>">` shown with `showModal()`.
+ * The base of the components behind `<ui-modal>` and `<ui-flyout>`:
+ * everything they do, on a shadow `<dialog class="ui … <noun>" part="<rootPart>">` shown with `showModal()`.
  * The browser gives it the focus trap, the `inert` page, the top layer and the `::backdrop` (the dimmer).
  *
- * - A subclass adds only its names and looks:  `vocabulary`, `styleSheets`, `rootPart`, `overlayKind`.
+ * - A subclass adds only its names and looks:  `vocabulary`, `elementSetup.styleSheets`, `rootPart`, `overlayKind`.
  *
  * - In the modal family, not `src/elements/`:  a flyout IS Fomantic's side modal
  *   (the same parts, buttons, events and dismissal), and nothing else shares it yet.
@@ -34,13 +34,15 @@ import { type DialogAttributes, type DialogEventName } from "./UIModal.types"
  *   - A close the browser forces anyway (a repeated Escape it won't let a page veto) is followed:
  *     a `ui-close` that can't veto, then `open` off.
  *
- * - Opening as a PERSON'S action, so `ui-open` fires:  an invoker command,
- *   `<button commandfor="id" command="--show">` (`ToggleCommands`;  `--close` closes, `--toggle` flips).
+ * - Opening as a PERSON'S action, so `ui-open` fires:
+ *   an invoker command, `<button commandfor="id" command="--show">`
+ *   (`ToggleCommands`;  `--close` closes, `--toggle` flips).
  *   Writing `open` is the app's own decision, and fires nothing.
  *
- * - Buttons:  a click on an approve / deny element (`ModalActionSelectors`:  Fomantic's `.approve` / `.deny`
- *   classes, `<ui-button positive / negative>`) fires the cancelable `ui-approve` / `ui-deny`, then closes.
- *   The `closable` icon closes (reason `close`).
+ * - Buttons:  a click on an approve / deny element fires the cancelable `ui-approve` / `ui-deny`, then closes.
+ *   - Those elements (`ModalActionSelectors`):
+ *     Fomantic's `.approve` / `.deny` classes, `<ui-button positive / negative>`.
+ *   - The `closable` icon closes (reason `close`).
  *
  * - `closable="false"` is Fomantic's `closable: false` AND `closeIcon: false`:
  *   no icon, and (unless `closedby` is set) `closedby="none"`, so Escape and the dimmer do nothing.
@@ -57,8 +59,8 @@ export abstract class DialogComponent<
   /** `UI.overlays` kind:  `modal` or `flyout`. */
   declare overlayKind: E.OverlayKind
 
-  // The dialog attributes this base reads (see the class docs):  each vocabulary's getters, declared here since `V`
-  // is unknown to this class.
+  // The dialog attributes this base reads (see the class docs):
+  // each vocabulary's getters, declared here since `V` is unknown to this class.
 
   /** `closable`:  the close icon;  `false` (written) is also Fomantic's `closable: false`. */
   declare closable: boolean
@@ -88,9 +90,6 @@ export abstract class DialogComponent<
   constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
     super(...args)
     this.overlayEntry.kind = this.overlayKind
-    if (isServer) return
-    this.on("slotchange", this.onSlotChange, { target: this.domElement.renderRoot })
-    this.on("command", this.onCommand)
   }
 
   ////////////////
@@ -111,17 +110,19 @@ export abstract class DialogComponent<
   }
 
   /** Show, dispatching the cancelable `ui-open` first;  true when applied. */
+  @E.untracked
   requestOpen(originalEvent?: Event): boolean {
-    if (untrack(() => this.isOpen)) return false
+    if (this.isOpen) return false
     const detail: UIT.ModalOpenDetail = { open: true, originalEvent }
     return this.requestChange("isOpen", true, () => this.fire("ui-open", detail))
   }
 
   /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
+  @E.untracked
   requestClose(reason: UIT.ModalCloseReason, originalEvent?: Event): boolean {
-    if (!untrack(() => this.isOpen)) return false
+    if (!this.isOpen) return false
     this.isDismissing = true
-    setTimeout(() => (this.isDismissing = false))
+    E.soon(() => (this.isDismissing = false))
     const detail: UIT.ModalCloseDetail = { open: false, reason, originalEvent }
     return this.requestChange("isOpen", false, () => this.fire("ui-close", detail))
   }
@@ -158,7 +159,7 @@ export abstract class DialogComponent<
     UI.overlays.open(this.overlayEntry)
     this.after(() => {
       const detail: UIT.ModalOpenDetail = { open: true }
-      if (untrack(() => this.isOpen)) this.fire("ui-show", detail)
+      if (this.isOpen) this.fire("ui-show", detail)
     })
   }
 
@@ -172,7 +173,7 @@ export abstract class DialogComponent<
     UI.overlays.close(this.overlayEntry)
     this.after(() => {
       const detail: UIT.ModalOpenDetail = { open: false }
-      if (!untrack(() => this.isOpen) && this.domElement.isConnected) this.fire("ui-hide", detail)
+      if (!this.isOpen && this.domElement.isConnected) this.fire("ui-hide", detail)
     })
   }
 
@@ -191,11 +192,9 @@ export abstract class DialogComponent<
   }
 
   /** An invoker command aimed at the DOM element (`UIT.ToggleCommands`). */
-  private readonly onCommand = (event: Event) => {
-    const action = UIT.ToggleCommands.action(
-      event,
-      untrack(() => this.isOpen)
-    )
+  @E.on("command")
+  protected onCommand(event: Event) {
+    const action = UIT.ToggleCommands.action(event, this.isOpen)
     if (action === "show") this.requestOpen(event)
     else if (action === "close") this.requestClose("close", event)
   }
@@ -250,8 +249,9 @@ export abstract class DialogComponent<
    * - `close` is queued as a task:
    *   one from an earlier close can arrive after a quick re-open, when the dialog is open again -- ignored.
    */
+  @E.untracked
   private readonly onClose = (event: Event) => {
-    if (this.dialog?.open || !this.domElement.isConnected || !untrack(() => this.isOpen)) return
+    if (this.dialog?.open || !this.domElement.isConnected || !this.isOpen) return
     const detail: UIT.ModalCloseDetail = { open: false, reason: "escape", originalEvent: event }
     this.fire("ui-close", detail)
     this.isOpen = false
@@ -311,12 +311,15 @@ export abstract class DialogComponent<
   private headerId = ""
 
   /** The light DOM's slotted children changed:  look for the heading again. */
-  private readonly onSlotChange = () => (this.heading = this.findHeading())
+  @E.on("slotchange", { target: "renderRoot" })
+  protected onSlotChange() {
+    this.heading = this.findHeading()
+  }
 
   /** First child element whose definition's noun is `header` (a `<ui-header>`, or a translated one). */
   private findHeading(): Element | undefined {
     for (const child of this.domElement.children) {
-      if (E.UIComponent.definitions.get(child.localName)?.vocabulary.noun === UIT.HEADER) return child
+      if (E.UIComponent.registry.definitions.get(child.localName)?.vocabulary.noun === UIT.HEADER) return child
     }
     return undefined
   }
@@ -342,9 +345,10 @@ export abstract class DialogComponent<
   }
 
   /**
-   * The dialog's `aria-labelledby` in a server render (`$/ui/static`), where no effect applies and no element
-   * reflects:  the `header` shorthand's id, else the slotted heading's,
+   * The dialog's `aria-labelledby` in a server render (`$/ui/static`):
+   * the `header` shorthand's id, else the slotted heading's,
    * unless the DOM element has an `aria-label` (which the static output moves onto the dialog).
+   * - Why:  on a server no effect applies and no element reflects.
    * - SIDE EFFECT:  gives the slotted heading (the render's parsed copy) an id if it has none.
    */
   private serverLabelledBy(): string | undefined {
@@ -363,7 +367,7 @@ export abstract class DialogComponent<
     return (
       <dialog
         ref={(element) => (this.dialog = element)}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.dialogPart(this.rootPart)}
         aria-labelledby={isServer ? this.serverLabelledBy() : undefined}
         onCancel={this.onCancel}

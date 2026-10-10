@@ -16,18 +16,20 @@ import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
  * ### `EpicNote`
  * The component behind `<epic-note>`:  a small note in prose, older prose's hand-written UPDATE / DONE message as an
  * element -- a card headed by its label (`UPDATE`, `DONE`), then `title`, its children inside.
- * - Colours by `state`, one meaning each (decision Q20):  `update` orange, changed since you looked;  `done` green,
- *   decided or done.
+ * - Colours by `state`, one meaning each (decision Q20):  `update` orange, changed since you looked;
+ *   `done` green, decided or done.
  * - Never removed by the tool:  unlike `<epic-update>`, it isn't tied to a phase.
- * - Folds by its heading, the chevron first (Owen, 2026-10-08:  everything in a section box folds):  open to start
- *   with;  page state, never written;  folded, the note is `hidden="until-found"`.
- * - The DOM element's own `title` would be a browser tooltip over the whole note:  the card's EMPTY `title` stops it
- *   there (T8).
+ * - Folds by its heading, the chevron first (Owen, 2026-10-08:  everything in a section box folds):
+ *   open to start with;  page state, never written;  folded, the note is `hidden="until-found"`.
+ * - The DOM element's own `title` would be a browser tooltip over the whole note:
+ *   the card's EMPTY `title` stops it there (T8).
  ****************/
 export class EpicNote extends E.UIComponent<typeof epicNoteVocabulary> {
   @E.proto static vocabulary = epicNoteVocabulary
-  @E.proto static styleSheets = { "epic-fold-button": foldCSS, "epic-note": noteCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-fold-button": foldCSS, "epic-note": noteCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a body? */
   readonly slots = new E.SlotContent(this.domElement)
@@ -51,13 +53,13 @@ export class EpicNote extends E.UIComponent<typeof epicNoteVocabulary> {
     return this.state === DONE
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return this.isDone ? DONE : UPDATE
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")} title="">
+      <div class={this.rootClass} part={this.partForName("base")} title="">
         <div ref={this.fold.heading} class={[HEADER, { [FOLDS]: this.hasBody }]} part={this.partForName("header")}>
           <Show when={this.hasBody}>
             <FoldButton

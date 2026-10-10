@@ -3,10 +3,10 @@
  * Schema:  `E.ComponentVocabulary`.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-flyout position="right" inverted width="4" open>` => `ui right inverted visible four wide flyout`;
- *   a word width (`thin`, `very wide`) is added after the noun by the element (`ui left flyout very wide`).
+ *   a word width (`thin`, `very wide`) is added before the noun by the element (`ui left very wide flyout`).
  * - `open` emits `visible`, Fomantic's shown-flyout class.
- * - The SAME dialog vocabulary as `<ui-modal>` (`open`, `closable`, `closedby`, `header`, `content`, the six events,
- *   the `close` text):  both run on `DialogComponent`.
+ * - The SAME dialog vocabulary as `<ui-modal>`, since both run on `DialogComponent`:
+ *   `open`, `closable`, `closedby`, `header`, `content`, the six events, the `close` text.
  * - A flyout OWNS the `header`, `content`, `description` and `actions` parts:
  *   slotted ones get `:state(in-flyout)` and style themselves from `UIParts.css`.
  */
@@ -15,8 +15,8 @@ import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-flyout>`
- * A side modal:  `<dialog class="ui [position] ... flyout" part="flyout">`, shown with `showModal()`,
- * sliding in from an edge of the viewport.
+ * A side modal, sliding in from an edge of the viewport:
+ * `<dialog class="ui [position] ... flyout" part="flyout">`, shown with `showModal()`.
  ****************/
 export const flyoutVocabulary = {
   tag: "ui-flyout",

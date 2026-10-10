@@ -1,7 +1,18 @@
 import { createEffect, createMemo, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIComponent, type DOMElement, UIT, type ElementSetup } from "$/ui/core"
+import {
+  afterSolidUpdate,
+  Cell,
+  proto,
+  protoMerged,
+  UIComponent,
+  type DOMElement,
+  UIT,
+  untracked,
+  type ElementSetup,
+  type AttributeValues
+} from "$/ui/core"
 
 import { brandChecklistVocabulary } from "./UIBrandChecklist.en"
 import {
@@ -20,7 +31,7 @@ import checklistCSS from "./UIBrandChecklist.css?inline"
  * ### `UIBrandChecklist`
  * The component behind `<ui-brand-checklist>`:  a list of `<ui-brand-check>`s, its light-DOM children.
  *
- * - Its shadow DOM:  `<div class="checklist" part="list" role="list"><slot>`,
+ * - Its shadow DOM, a `<div class="checklist" part="list" role="list"><slot>`
  *   then a visually hidden live region (`part="status"`).
  * - `step` (progress, the build card):  checks before index `step` are done, the one at `step` active,
  *   the rest pending;  at or past the end, all done.  Each check asks `checkState()` (it finds this list through
@@ -34,9 +45,11 @@ import checklistCSS from "./UIBrandChecklist.css?inline"
  ****************/
 export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> implements ChecklistOwner {
   @proto static vocabulary = brandChecklistVocabulary
-  @proto static styleSheets = { brandChecklist: checklistCSS }
   // the checks are the focus targets
-  @proto static elementSetup = { delegatesFocus: false } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { brandChecklist: checklistCSS },
+    delegatesFocus: false
+  } satisfies Partial<ElementSetup>
 
   ////////////////
   // ## State
@@ -61,8 +74,8 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
   ////////////////
 
   /** `step` as a whole number, or `undefined`. */
-  readonly step = createMemo(() => {
-    const step = this.attrs.step
+  readonly currentStep = createMemo(() => {
+    const step = this.step
     return step === undefined ? undefined : Math.max(0, Math.floor(step))
   })
 
@@ -77,9 +90,9 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
   checkState(check: Element): ChecklistCheckState {
     const index = this.checks.get().indexOf(check as DOMElement)
     if (index < 0) this.queueRefresh()
-    const step = this.step()
-    const checkable = !!this.attrs.checkable
-    const font = this.attrs.font
+    const step = this.currentStep()
+    const checkable = !!this.checkable
+    const font = this.font
     if (step === undefined || index < 0 || checkable) return { state: undefined, checkable, font }
     return { state: index < step ? DONE : index === step ? ACTIVE : PENDING, checkable, font }
   }
@@ -96,7 +109,7 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
   render(): JSX.Element {
     return (
       <>
-        <div class={this.rootClasses} part={this.partForName("list")} role="list" aria-label={this.ariaLabel}>
+        <div class={this.rootClass} part={this.partForName("list")} role="list" aria-label={this.ariaLabel}>
           <slot onSlotChange={() => this.refreshChecks()} />
         </div>
         <span class={UIT.VISUALLY_HIDDEN} part={this.partForName("status")} role="status">
@@ -112,9 +125,9 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
    * - The APPLY writes the live region's text (a signal write is allowed there).
    */
   private effects() {
-    let before: number | undefined = untrack(this.step)
+    let before: number | undefined = untrack(this.currentStep)
     createEffect(
-      () => (this.attrs.checkable ? undefined : this.step()),
+      () => (this.checkable ? undefined : this.currentStep()),
       (step) => {
         const previous = before
         before = step
@@ -126,8 +139,9 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
   }
 
   /** What to say on reaching `step`:  "All done" at the end, else "<text> done" for the check before it. */
+  @untracked
   private announce(step: number): string {
-    const checks = untrack(this.checks.get)
+    const checks = this.checks.get()
     if (step >= checks.length) return this.translationForKey("allDone")
     const label = checks[step - 1]?.textContent?.trim() ?? ""
     return label ? this.translationForKey("stepDone", { label }) : ""
@@ -146,7 +160,7 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
   private queueRefresh() {
     if (this.refreshQueued) return
     this.refreshQueued = true
-    queueMicrotask(() => {
+    afterSolidUpdate(() => {
       this.refreshQueued = false
       this.refreshChecks()
     })
@@ -159,6 +173,8 @@ export class UIBrandChecklist extends UIComponent<BrandChecklistVocabulary> impl
 
   /** A check child:  an element DEFINED with the check's noun (`<ui-brand-check>`, or its translated tag). */
   private static isCheck(this: void, element: Element): boolean {
-    return UIComponent.definitions.get(element.localName)?.vocabulary.noun === CHECK_NOUN
+    return UIComponent.registry.definitions.get(element.localName)?.vocabulary.noun === CHECK_NOUN
   }
 }
+
+export interface UIBrandChecklist extends AttributeValues<BrandChecklistVocabulary> {}

@@ -8,8 +8,8 @@ import commentCSS from "./UIComment.css?inline"
 
 /****************
  * ### `UIComments`
- * The component behind `<ui-comments>`:  a list of comments,
- * `<div class="ui [size] [keyOnly ...] comments" part="comments"><slot></slot></div>`,
+ * The component behind `<ui-comments>`:
+ * a list of comments, `<div class="ui [size] [keyOnly ...] comments" part="comments"><slot></slot></div>`,
  * then the `reply` slot's box (`<div class="reply" part="reply">`) when a reply form is slotted.
  *
  * - It owns its comments (`ownsParts:  comment`):  each `<ui-comment>` gets `:state(in-comments)`.
@@ -23,10 +23,15 @@ import commentCSS from "./UIComment.css?inline"
  *
  * - `disabled`:  `aria-disabled` on the root, which assistive tech (and axe) apply to what's inside.
  ****************/
+@E.cssStates("collapsed")
 export class UIComments extends E.UIComponent<typeof commentsVocabulary> {
   @E.proto static vocabulary = commentsVocabulary
-  @E.proto static styleSheets = { comment: commentCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { comment: commentCSS },
+    delegatesFocus: false,
+    // `disabled`:  `aria-disabled` on its box, and a look
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** The comment this is the thread of, if any. */
   readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })
@@ -39,16 +44,10 @@ export class UIComments extends E.UIComponent<typeof commentsVocabulary> {
     return !!this.context.owner
   }
 
-  /** Folded away:  its `collapsed` attribute. */
-  @E.cssState("collapsed")
-  get isCollapsed(): boolean {
-    return this.collapsed
-  }
-
   render(): JSX.Element {
     return (
       <div
-        class={this.isThread ? this.threadClasses : this.rootClasses}
+        class={this.isThread ? this.threadClasses : this.rootClass}
         part={this.partForName("comments")}
         aria-disabled={this.disabled ? "true" : undefined}
       >

@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vite-plus/test"
 
-import { dropsPushedCode, editorCompiled, isEditor, pushedSource, type SpellAppSource } from "$/app/runner"
+import { editorCompiled, isEditor, pushedKey, pushedSource, type SpellAppSource } from "$/app/runner"
 
 /** What a `<spell-app editor="<selector>">` decides, with no DOM -- see "Fed by an editor" in `SpellAppRunner`. */
 describe("<spell-app> fed by an editor", () => {
@@ -39,22 +39,22 @@ describe("<spell-app> fed by an editor", () => {
     })
   })
 
-  describe("dropsPushedCode()", () => {
-    test("a change to what it runs, or which editor, drops it", () => {
+  describe("pushedKey()", () => {
+    const app = { project: "@examples/Solitaire", src: undefined, scopes: null, name: "Mine", editor: "#ed" }
+
+    test("a change to what it runs, or which editor, makes another key", () => {
       for (const attribute of ["project", "src", "scopes", "name", "editor"])
-        expect(dropsPushedCode(attribute, null, "x"), attribute).toBe(true)
-      expect(dropsPushedCode("editor", "#a", "#b")).toBe(true)
-      expect(dropsPushedCode("project", "x", null)).toBe(true)
+        expect(pushedKey({ ...app, [attribute]: "x" }), attribute).not.toBe(pushedKey(app))
     })
 
     test("how it looks does NOT", () => {
       for (const attribute of ["toolbar", "debug", "width", "height", "assets"])
-        expect(dropsPushedCode(attribute, null, "x"), attribute).toBe(false)
+        expect(pushedKey({ ...app, [attribute]: "x" } as typeof app), attribute).toBe(pushedKey(app))
     })
 
-    test("setting the value it has is NOT a change", () => {
-      expect(dropsPushedCode("project", "x", "x")).toBe(false)
-      expect(dropsPushedCode("editor", null, null)).toBe(false)
+    test("the same values are the same key;  absent is absent, `undefined` or `null`", () => {
+      expect(pushedKey({ ...app })).toBe(pushedKey(app))
+      expect(pushedKey({ ...app, src: null, scopes: undefined })).toBe(pushedKey(app))
     })
   })
 

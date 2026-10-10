@@ -5,9 +5,11 @@
  * - Class words come out through `ClassBuilder`:
  *   `<ui-select size="small" fluid state="error">` => `ui small error fluid select`, on the shadow `<select>`.
  *   `UISelect.css` keys on those words.
- * - NOTE: the noun is `select`, not Fomantic's `selection dropdown`:  the element IS a native `<select>` with its
- *   own sheet, and a `.ui.selection.dropdown` class would pull in `UIDropdown.css` wherever both sheets are on one
- *   page (the demo, an app that links both).  The LOOK is the closed `selection dropdown`'s.
+ * - NOTE: the noun is `select`, not Fomantic's `selection dropdown`:
+ *   the element IS a native `<select>` with its own sheet,
+ *   and a `.ui.selection.dropdown` class would pull in `UIDropdown.css`
+ *   wherever both sheets are on one page (the demo, an app that links both).
+ *   The LOOK is the closed `selection dropdown`'s.
  * - Rich data is a PROPERTY (`options`, `kind: "json"`);  first paint never needs it --
  *   slotted `<ui-item>`s or the `value` / `placeholder` attributes carry what SSR must show.
  */
@@ -38,6 +40,12 @@ export const selectVocabulary = {
     { name: "compact", kind: "keyOnly", description: "No minimum width:  as wide as its longest option." },
     { name: "inverted", kind: "keyOnly", description: "For dark backgrounds:  the dark scheme's colours." },
     { name: "disabled", kind: "keyOnly", description: "Can't be used;  dimmed, and left out of the form." },
+    {
+      name: "readonly",
+      kind: "boolean",
+      property: "readOnly",
+      description: "Shows its value but can't be changed (a change is undone);  still focusable and submitted."
+    },
     {
       name: "multiple",
       kind: "keyOnly",
@@ -85,6 +93,7 @@ export const selectVocabulary = {
   ],
   states: [
     { name: "disabled", description: "Can't be used." },
+    { name: "readonly", description: "`readonly`:  can't be changed." },
     { name: "invalid", description: "Fails validation (`required`)." },
     { name: "fluid", description: "The host is block-level (`fluid`)." },
     { name: "customizable", description: "The browser draws the customizable select (`appearance: base-select`)." }

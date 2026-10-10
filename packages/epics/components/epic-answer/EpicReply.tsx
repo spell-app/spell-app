@@ -28,8 +28,10 @@ import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
  ****************/
 export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
   @E.proto static vocabulary = epicReplyVocabulary
-  @E.proto static styleSheets = { "epic-fold-button": foldCSS, "epic-answer": answerCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-fold-button": foldCSS, "epic-answer": answerCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a body? */
   readonly slots = new E.SlotContent(this.domElement)
@@ -59,13 +61,13 @@ export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
     return PlanDates.format(this.at)
   }
 
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return FROM_OWEN.test(this.from ?? "") ? OWEN : undefined
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <div
           ref={this.fold.heading}
           class={[HEADER, DATED, { [FOLDS]: this.hasBody }]}

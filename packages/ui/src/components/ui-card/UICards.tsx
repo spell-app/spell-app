@@ -7,8 +7,8 @@ import cardCSS from "./UICard.css?inline"
 
 /****************
  * ### `UICards`
- * The component behind `<ui-cards>`:  a group of cards in a wrapping row,
- * `<div class="ui ... cards" part="group" role="list"><slot></slot></div>`.
+ * The component behind `<ui-cards>`:
+ * a group of cards in a wrapping row, `<div class="ui ... cards" part="group" role="list"><slot></slot></div>`.
  *
  * - It owns its cards (`ownsParts:  card`):  each `<ui-card>` finds this group (`PartContext`),
  *   its DOM element becomes a `role=listitem` with `:state(in-cards)`,
@@ -18,15 +18,17 @@ import cardCSS from "./UICard.css?inline"
  * - Count, spacing and width reach the cards as private inherited tokens (`--_cards-*`, `UICard.css`).
  *   - `doubling` and `stackable` answer to THIS DOM element's width:
  *     it's a block and the size container `ui-cards` (`:state(cards)`, always on).
- *   - With `stack-with="page"` (a private class after the noun), they answer to the screen's.
+ *   - With `stack-with="page"` (a private class before the noun), they answer to the screen's.
  *
  * - A list:  a group of cards reads as "list, 3 items";  each card is still its own `<article>` or link.
  * - It shares the card's sheet, `UICard.css`.
  ****************/
 export class UICards extends E.UIComponent<typeof cardsVocabulary> {
   @E.proto static vocabulary = cardsVocabulary
-  @E.proto static styleSheets = { card: cardCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { card: cardCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** The group's value of variation `name`, which its cards take when they don't set it.  Tracked. */
   variationFor(name: UIT.CardSharedVariation): unknown {
@@ -40,13 +42,13 @@ export class UICards extends E.UIComponent<typeof cardsVocabulary> {
   }
 
   /** `stack-with`'s class (`UIT.StackClasses`). */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return UIT.StackClasses.classFor(this.stackWith)
   }
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("group")} role="list">
+      <div class={this.rootClass} part={this.partForName("group")} role="list">
         <slot />
       </div>
     )

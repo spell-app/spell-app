@@ -12,13 +12,14 @@ import originalCSS from "./EpicOriginal.css?inline"
 /****************
  * ### `EpicOriginal`
  * The component behind `<epic-original>`:  an item's Original Discussion -- the text a rewrite or a second answer
- * replaced, one `<epic-version>` each, in a warm aside folded under its heading (as Choices).  Find-in-page unfolds
- * it.
+ * replaced, one `<epic-version>` each, in a warm aside folded under its heading (as Choices).  Find-in-page unfolds it.
  ****************/
 export class EpicOriginal extends E.UIComponent<typeof epicOriginalVocabulary> {
   @E.proto static vocabulary = epicOriginalVocabulary
-  @E.proto static styleSheets = { "epic-original": originalCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-original": originalCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Folded until the reader opens it:  history, not the current text. */
   readonly fold = new Fold(() => false)
@@ -31,7 +32,7 @@ export class EpicOriginal extends E.UIComponent<typeof epicOriginalVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("base")}>
+      <div class={this.rootClass} part={this.partForName("base")}>
         <button
           type="button"
           class={TOGGLE}

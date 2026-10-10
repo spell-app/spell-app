@@ -13,8 +13,9 @@ import "$/ui/components/ui-item"
 import "$/ui/components/ui-parts"
 
 /**
- * `<ui-item>` on its own:  unowned (the dropdown's data item), and owned by a stand-in OWNER implementing
- * `ItemOwner` -- the list and menu test their own looks and roles.
+ * `<ui-item>` on its own:
+ * unowned (the dropdown's data item), and owned by a stand-in OWNER implementing `ItemOwner`.
+ * - The list and menu test their own looks and roles.
  */
 
 /** The stand-in owner's vocabulary:  it owns items and headers. */
@@ -50,7 +51,7 @@ class ItemTestOwner extends UIComponent<typeof OWNER_VOCABULARY> implements Item
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses}>
+      <div class={this.rootClass}>
         <slot />
       </div>
     )
@@ -59,7 +60,9 @@ class ItemTestOwner extends UIComponent<typeof OWNER_VOCABULARY> implements Item
 /** The vocabulary getters, typed (`UIComponent`'s doc). */
 interface ItemTestOwner extends AttributeValues<typeof OWNER_VOCABULARY> {}
 Object.defineProperty(ItemTestOwner.prototype, "vocabulary", { value: OWNER_VOCABULARY })
-Object.defineProperty(ItemTestOwner.prototype, "styleSheets", { value: { "x-item-owner": OWNER_CSS } })
+Object.defineProperty(ItemTestOwner.prototype, "elementSetup", {
+  value: { ...UIComponent.prototype.elementSetup, styleSheets: { "x-item-owner": OWNER_CSS } }
+})
 ;(ItemTestOwner as unknown as UIComponentClass & typeof UIComponent).define(OWNER_VOCABULARY.tag)
 
 /** Render items inside a stand-in owner;  returns the owner and the item DOM elements. */
@@ -100,12 +103,12 @@ describe("<ui-item> owned", () => {
     ['selected="no"', "div", "item"],
     ["active", "div", "active item"],
     ['active="no"', "div", "item"],
-    ['color="red" selected', "div", "red active item ui-red"],
+    ['color="red" selected', "div", "red active ui-red item"],
     ['position="right"', "div", "right item"],
     ["fitted", "div", "fitted item"],
     ['fitted="vertically"', "div", "vertically fitted item"],
     ["disabled", "div", "disabled item"],
-    ['type="header"', "div", "item header"]
+    ['type="header"', "div", "header item"]
   ])("<ui-item %s> => <%s class=%s>", async (attributes, tag, classes) => {
     const { items } = await owned(`<ui-item ${attributes}>X</ui-item>`)
     const box = boxOf(items[0]!)

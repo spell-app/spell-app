@@ -2,7 +2,7 @@
 
 import { beforeAll, describe, expect, it } from "vite-plus/test"
 
-import { StaticRender } from "$/ui/static"
+import { StaticRender, StaticStylesheet } from "$/ui/static"
 import { UIButton } from "$/ui/components/ui-button/UIButton"
 import { UICard } from "$/ui/components/ui-card/UICard"
 import { UICards } from "$/ui/components/ui-card/UICards"
@@ -16,8 +16,9 @@ import { UISection } from "$/ui/components/ui-section/UISection"
 import { UISegment } from "$/ui/components/ui-segment/UISegment"
 
 /**
- * `StaticRender` on the P1 families (button, segment, card + parts, list + items, section):  real page markup in,
- * flattened light-DOM HTML out, compared with the class grammar of each family's `examples/*.html`.
+ * `StaticRender` on the first families it rendered (epic `seo`, P1:  button, segment, card + parts, list + items,
+ * section):  real page markup in, flattened light-DOM HTML out,
+ * compared with the class grammar of each family's `examples/*.html`.
  */
 describe("StaticRender.fragment()", () => {
   beforeAll(() => {
@@ -111,6 +112,20 @@ describe("StaticRender.fragment()", () => {
   it("makes a <div> root inside a <p> a <span>, so parsing doesn't end the paragraph", () => {
     const html = StaticRender.fragment(`<p>Before <ui-segment basic>inline</ui-segment> after</p>`)
     expect(html).toMatch(/^<p>Before <span [^>]*class="ui basic segment"[^>]*>inline<\/span> after<\/p>$/)
+  })
+
+  it("carries the shared states:  disabled as ARIA and data-state, visible=false and hidden hide", () => {
+    expect(sorted(StaticRender.fragment(`<ui-card disabled>x</ui-card>`))).toBe(
+      sorted(
+        `<article class="ui disabled card" part="card" data-ui="card" aria-disabled="true" data-state="disabled dimmed">x</article>`
+      )
+    )
+    const segment = StaticRender.fragment(`<ui-segment visible="false">x</ui-segment>`)
+    expect(segment).toContain(`data-state="hidden"`)
+    expect(StaticRender.fragment(`<ui-segment hidden inert>x</ui-segment>`)).toMatch(/^<div [^>]*hidden[^>]*>x<\/div>$/)
+    // a static page hides both, whatever the segment's own display
+    const css = StaticStylesheet.build([...StaticRender.families.values()], StaticRender.sheetUsage)
+    expect(css).toContain(`[hidden]:not([hidden="until-found"]),\n[data-ui][data-state~="hidden"] {\n  display: none;`)
   })
 
   it("leaves tags of families it doesn't know", () => {

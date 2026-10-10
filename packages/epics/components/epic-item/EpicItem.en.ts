@@ -53,11 +53,12 @@ export const epicItemVocabulary = {
     {
       name: "state",
       kind: "enum",
-      values: ["attention", "progress", "open", "recent", "old"],
+      values: ["attention", "replied", "progress", "open", "recent", "old"],
       description:
-        "Its id chip's colour, written by the script on every edit:  `attention` (red:  needs Owen), `progress` " +
-        "(blue:  Claude is working on it), `open` (yellow:  still undecided, or queued work), `recent` (green:  " +
-        "decided or done, however long ago), `old` (grey:  no longer relevant, canceled)."
+        "Its id chip's colour, written by the script on every edit:  `attention` (red:  needs Owen), `replied` " +
+        "(orange:  Claude answered with options, Owen's turn to pick), `progress` (blue:  Claude is working on it), " +
+        "`open` (yellow:  still undecided, or queued work), `recent` (green:  decided or done, however long ago), " +
+        "`old` (grey:  no longer relevant, canceled)."
     },
     {
       name: "changed",
@@ -75,9 +76,10 @@ export const epicItemVocabulary = {
     {
       name: "review-as",
       kind: "enum",
-      values: ["approve", "todo", "revisit", "now"],
+      values: ["approve", "todo", "revisit", "now", "next", "drop"],
       description:
-        "How Owen's review mark was handled (`now`:  a Do Now request, done):  the record, not drawn on the " +
+        "How Owen's review mark was handled (`now`:  a Do Now request, done;  `next`, `drop`:  a todo queued into " +
+        "the next phase, or dropped):  the record, not drawn on the " +
         "buttons (they clear once handled);  `approve` or `todo` on an open item make it `recent` (green)."
     },
     {
@@ -180,6 +182,10 @@ export const epicItemVocabulary = {
     { name: "line", description: "Its line:  fold button, id chip, title, review label, actions;  sticky while open." },
     { name: "toggle", description: "The fold `<button>` (the chevron), on an item with details." },
     {
+      name: "collapse-all",
+      description: "Open, holding cards or panels that fold:  the double chevron at its line's end, folding them all."
+    },
+    {
       name: "id",
       description:
         "The id chip (`Q7`), a link to the item, in its state's colour.  While the page is reviewed, an open " +
@@ -218,6 +224,11 @@ export const epicItemVocabulary = {
     { key: "fold", text: "Fold {id}", description: "Accessible name of the fold button while open." },
     { key: "unfold", text: "Unfold {id}", description: "Accessible name of the fold button while folded." },
     {
+      key: "collapseAll",
+      text: "Fold everything in {id}",
+      description: "The collapse-all button's name and tooltip:  folds every card and panel in the item."
+    },
+    {
       key: "showCommits",
       text: "Show this item's commits",
       description: "The git icon's tooltip, its commits hidden."
@@ -229,6 +240,11 @@ export const epicItemVocabulary = {
     { key: "reviewDeferred", text: "deferred", description: "Review label:  put off (`deferred`)." },
     { key: "reviewed", text: "reviewed {date}", description: "Review label:  `reviewed 10/6/26`." },
     { key: "stateAttention", text: "Needs attention", description: "Id chip tooltip, `state=attention`." },
+    {
+      key: "stateReplied",
+      text: "Claude answered:  your turn to pick",
+      description: "Id chip tooltip, `state=replied`."
+    },
     { key: "stateProgress", text: "Claude is working on it", description: "Id chip tooltip, `state=progress`." },
     { key: "stateOpen", text: "Open, still undecided", description: "Id chip tooltip, `state=open`." },
     { key: "stateRecent", text: "Decided or done", description: "Id chip tooltip, `state=recent`." },

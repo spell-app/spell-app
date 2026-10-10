@@ -61,9 +61,9 @@ describe("<ui-button> classes", () => {
 
   it("adds `icon` for icon-only and `labeled icon` buttons", async () => {
     const { control: iconOnly } = await button(`<ui-button icon="cloud" aria-label="Cloud"></ui-button>`)
-    expect(iconOnly.className).toBe("ui button icon")
+    expect(iconOnly.className).toBe("ui icon button")
     const { control: labeledIcon } = await button(`<ui-button labeled icon="pause">Pause</ui-button>`)
-    expect(labeledIcon.className).toBe("ui labeled button icon")
+    expect(labeledIcon.className).toBe("ui labeled icon button")
     const { control: withText } = await button(`<ui-button icon="pause">Pause</ui-button>`)
     expect(withText.className).toBe("ui button")
   })
@@ -380,9 +380,9 @@ async function group(attributes: string) {
 ////////////////
 
 /**
- * Public `--ui-button-*` tokens set from OUTSIDE the shadow root reach the box:  the sheet declares only private
- * aliases (`--_ui-button-radius: var(--ui-button-radius, ...)`), never the public names (`docs/theming.md`
- * "Component tokens").
+ * Public `--ui-button-*` tokens set from OUTSIDE the shadow root reach the box:
+ * the sheet declares only private aliases (`--_ui-button-radius: var(--ui-button-radius, ...)`),
+ * never the public names (`docs/theming.md` "Component tokens").
  */
 describe("<ui-button> tokens from outside", () => {
   /** The inner control's top-left radius. */

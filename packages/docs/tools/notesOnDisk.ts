@@ -1,7 +1,33 @@
-import { readFileSync, readdirSync } from "node:fs"
-import { join, relative } from "node:path"
+import { readFileSync, readdirSync, renameSync, writeFileSync } from "node:fs"
+import { basename, dirname, join, relative } from "node:path"
+
+import { AS } from "$/assembler"
+import { SRV } from "$/server"
 
 import { PageNotes } from "./PageNotes.js"
+
+/**
+ * Change the notes of the page at `file` with `change(notes)`, under the page's lock;
+ * returns what `change` returned (`spell dev notes answer | done`, and `spell dev comments gather`).
+ * - formats the page after (oxfmt, in memory:  `AS.formatHTML()`) only when it was formatted before:
+ *   a long note wraps as `vp fmt` would wrap it, and a page that wasn't keeps every other byte
+ * - atomic:  a temp file renamed over the page, so the live reload never reads half a page
+ * - throws what `change` throws (`NotesError` ...);  the page is left as it was
+ * - SIDE EFFECT:  writes the page
+ */
+export async function editNotes<T>(file: string, change: (notes: PageNotes) => T): Promise<T> {
+  return SRV.FileLock.runAsync(file, async () => {
+    const before = readFileSync(file, "utf8")
+    const formatted = (await AS.formatHTML(file, before).catch(() => undefined)) === before
+    const notes = new PageNotes(before)
+    const result = change(notes)
+    const html = formatted ? await AS.formatHTML(file, notes.html) : notes.html
+    const temp = join(dirname(file), `.${basename(file)}.${process.pid}.tmp`)
+    writeFileSync(temp, html)
+    renameSync(temp, file)
+    return result
+  })
+}
 
 /**
  * The page notes on every page under `folders`, page by page:  each note with its page, from checkout `root`

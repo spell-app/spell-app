@@ -9,9 +9,9 @@ import type { AS } from "$/assembler"
 /**
  * Links source references in a page of the spell-app checkout at `root`:  one named target per destination, so
  * re-clicks reuse a tab.  Rules:  `packages/docs/AGENTS.md`, "Links".
- * - `link()`:  `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link when the path resolves to a
- *   real file or folder;  an existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per
- *   file)
+ * - `link()`:  `<code>path</code>` outside `<pre>` / `<a>` / `<head>` becomes a link when the path resolves to a real
+ *   file or folder;  an existing `<a href>` without a target gets one (external:  per URL;  sibling docs:  per file)
+ *   - a name with its path as its tooltip, `<code title="path">name</code>`, links to that path the same way
  * - `check()`:  every local href resolves INSIDE the repo, every non-anchor link has a target, one target per
  *   destination (`target="_self"`, a same-tab link, is exempt from the last)
  *   - a missing target version control IGNORES is fine:  runtime files and local clones exist only on some
@@ -53,8 +53,7 @@ export class Linker {
       ["solidjs/solid", "https://github.com/solidjs/solid/tree/next"],
       ["solidjs/solid-docs", "https://github.com/solidjs/solid-docs/tree/v2-rebuild"],
       ["documentation/solid-2.0/", "https://github.com/solidjs/solid/tree/next/documentation/solid-2.0"],
-      ["@spell-app/ui", join(this.ui, "README.md")],
-      ["@spell-app/solid-element", join(this.packages, "solid-element/README.md")]
+      ["@spell-app/ui", join(this.ui, "README.md")]
     ])
   }
 
@@ -76,11 +75,13 @@ export class Linker {
     const unresolved = new Set<string>()
     for (const m of text.matchAll(CODE_SPAN)) {
       if (spans.some(([start, end]) => start <= m.index && m.index < end)) continue
-      let dest = this.resolve(m[1], pageDir)
+      // a name with its path as its tooltip (`<code title="path">name</code>`) links to that path, never its text
+      const path = m[1] ?? m[2]
+      let dest = this.resolve(path, pageDir)
       // a path outside the repo (a handoff in a sibling folder) works only on this machine:  leave it as text
       if (dest && !URL_START.test(dest) && !this.isInside(dest)) dest = undefined
       if (!dest) {
-        if (m[1].includes("/") || PATH_LIKE.test(m[1].trim())) unresolved.add(m[1])
+        if (path.includes("/") || PATH_LIKE.test(path.trim())) unresolved.add(path)
         continue
       }
       // `|| "."`:  the page's own folder
@@ -99,8 +100,7 @@ export class Linker {
   /**
    * The tab name for `dest`, an absolute path or URL:  re-clicks reuse that tab.
    * - URLs:  `ext-<slug>`
-   * - a plan doc:  its `<name>`, since the page sets `window.name` to it and `spell dev plan-doc open <name>` reuses
-   *   it
+   * - a plan doc:  its `<name>`, since the page sets `window.name` to it and `spell dev plan-doc open <name>` reuses it
    * - anything else:  `src-<slug of the repo-relative path>`
    * - at most 80 characters after the prefix
    */
@@ -133,9 +133,9 @@ export class Linker {
 
   /**
    * A code span's text -> an existing absolute path or `https://` URL, else `undefined`.
-   * - tries, in order:  `special`, `solid-js/...` in `nodeModules`, `solidjs.com` pages, then the path against the
-   *   page's folder, its `experiments/`, the repo root, `packages/`, the docs home's folder (`pages/`) and UI;  a
-   *   bare file name last, when ONE file outside a `test/` folder has it
+   * - tries, in order:  `special`, `solid-js/...` in `nodeModules`, `solidjs.com` pages,
+   *   then the path against the page's folder, its `experiments/`, the repo root, `packages/`,
+   *   the docs home's folder (`pages/`) and UI;  a bare file name last, when ONE file outside a `test/` folder has it
    * - `file.ts:75` drops its line number
    * - NOTE:  the alias form is `#name/...`, from before the `$/` aliases:  a `$/name/...` span never resolves
    */
@@ -224,8 +224,9 @@ export class Linker {
         problems.push(`no target:  ${href}`)
         continue
       }
-      // `_self`:  a page that reads like a site (the master plan) navigates in place, on purpose.  `github`:  a plan
-      // doc's commit links (`<epic-commit>`) share ONE GitHub tab, on purpose (P3 of `review-review`)
+      // `_self`:  a page that reads like a site (the master plan) navigates in place, on purpose.
+      // `github`:  a plan doc's commit links (`<epic-commit>`) share ONE GitHub tab,
+      // on purpose (P3 of `review-review`)
       if (target === "_self" || target === SHARED_TAB) continue
       if (!byDest.has(dest)) byDest.set(dest, new Set())
       byDest.get(dest)!.add(target)
@@ -277,8 +278,8 @@ const SKIP_DIRS = new Set([
 ])
 
 /**
- * A plan doc, `epics/<name>/<name>.plan.html` (before 2026-10-04 `<name>.html`;  before 2026-10-05 under
- * `packages/docs/content/` or `packages/docs/`), relative to the repo root:  `[1]` is its name.
+ * A plan doc, `epics/<name>/<name>.plan.html` (before 2026-10-04 `<name>.html`;
+ * before 2026-10-05 under `packages/docs/content/` or `packages/docs/`), relative to the repo root:  `[1]` is its name.
  * - same as `packages/docs/tools/relocate.js` `PLAN_DOC`
  */
 const PLAN_DOC = /(?:^|\/)(?:packages\/docs\/(?:content\/)?)?epics\/([^/]+)\/\1(?:\.plan)?\.html$/
@@ -289,8 +290,12 @@ const SHARED_TAB = "github"
 /** An absolute URL. */
 const URL_START = /^https?:\/\//
 
-/** A code span, `[1]` its text. */
-const CODE_SPAN = /<code>([^<]+)<\/code\s*>/g
+/**
+ * A code span:  `[2]` its text;
+ * `[1]` its `title`, when that's its only attribute:  a name with its path as its tooltip (WWOD §6 › "Plain text,
+ * plain paths")
+ */
+const CODE_SPAN = /<code(?:\s+title="([^"]+)")?\s*>([^<]+)<\/code\s*>/g
 
 /** A `<pre>` block:  `link()` never links inside one, `check()` ignores it. */
 const PRE = /<pre\b[\s\S]*?<\/pre\s*>/g

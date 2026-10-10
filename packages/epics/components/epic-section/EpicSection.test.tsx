@@ -6,6 +6,7 @@ import { expectAccessible } from "$/ui/test/A11y"
 
 import "$/ui/components/ui-section"
 import "$/epics/components/epic-section"
+import "$/epics/components/epic-phase"
 
 /** Fixture parts the test server serves (the package root is its root). */
 const FIXTURES = "/components/epic-section/fixtures"
@@ -244,6 +245,9 @@ describe("<epic-section> counts and state filter", () => {
     host.querySelector("#q1")!.setAttribute("status", "decided")
     host.querySelector("#q1")!.setAttribute("state", "recent")
     expect(entry()).toMatchObject({ count: { open: 0, total: 3, attention: 0 } })
+    // `replied` (orange:  Claude answered with options, Owen's turn to pick) needs him too (Owen, 2026-10-09)
+    host.querySelector("#q2")!.setAttribute("state", "replied")
+    expect(entry()).toMatchObject({ count: { attention: 1 } })
     const part = await render(`<epic-section id="o2" kind="overview-part" title="Why"><p>Prose.</p></epic-section>`)
     expect((part as FoldHost & { contentsEntry?: unknown }).contentsEntry).toEqual({ label: "1.1 Why" })
   })
@@ -261,44 +265,92 @@ describe("<epic-section> counts and state filter", () => {
     expect(host.shadowRoot!.querySelector('[part~="filter"]')).toBeNull()
   })
 
-  test("a chip per state its items are in, all pressed;  a click hides that state's items, and says how many", async () => {
+  test("a chip per state its items are in, with how many, all solid;  no filter icon;  passes axe", async () => {
     const host = await render(questions(["open:attention", "open:open", "decided:old", "open"]))
-    expect(chips(host)).toEqual({ all: true, attention: true, open: true, old: true })
+    expect(chips(host)).toEqual({ attention: true, open: true, old: true })
+    const counts = Array.from(host.shadowRoot!.querySelectorAll('[part~="filter"] button'), (chip) => chip.textContent)
+    expect(counts).toEqual(["1", "2", "1"])
+    expect(host.shadowRoot!.querySelector('[part~="filter"] svg')).toBeNull()
+    const open = host.shadowRoot!.querySelector<HTMLButtonElement>('[data-state="open"]')!
+    expect(open.title).toBe("2 open, still undecided:  show only these")
+    expect(getComputedStyle(open).backgroundColor).not.toMatch(/^rgba\(0, 0, 0, 0\)$|^transparent$/)
     await expectAccessible(host)
-    host.shadowRoot!.querySelector<HTMLButtonElement>('[data-state="open"]')!.click()
-    await ElementFixture.tick()
-    expect(chips(host)).toEqual({ all: false, attention: true, open: false, old: true })
-    expect(shownIds(host)).toEqual(["q1", "q3"])
-    const note = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="hidden-note"]')!
-    expect(note.textContent).toBe("2 hidden · show all")
-    expect(JSON.parse(localStorage.getItem(`spell-item-state:${location.pathname}`)!)).toEqual({
-      decisions: ["attention", "old"]
-    })
-    note.click()
-    await ElementFixture.tick()
-    expect(shownIds(host)).toEqual(["q1", "q2", "q3", "q4"])
-    expect(host.shadowRoot!.querySelector('[part~="hidden-note"]')).toBeNull()
   })
 
-  test("the grey chip flips between everything and only what needs you;  a new state shows;  remembered", async () => {
-    const host = await render(questions(["open:attention", "open:open", "decided:recent"]))
-    const all = host.shadowRoot!.querySelector<HTMLButtonElement>('[data-state="all"]')!
-    expect(all.title).toBe("Show only what needs you")
-    all.click()
-    await ElementFixture.tick()
+  test("Owen's rule:  all on, a click shows only that;  a hidden one shows too;  a shown one hides;  the last one, all again", async () => {
+    const host = await render(questions(["open:attention", "open:open", "decided:recent", "open:open"]))
+    const click = async (state: string) => {
+      host.shadowRoot!.querySelector<HTMLButtonElement>(`[data-state="${state}"]`)!.click()
+      await ElementFixture.tick()
+    }
+    await click("open")
+    expect(chips(host)).toEqual({ attention: false, open: true, recent: false })
+    expect(shownIds(host)).toEqual(["q2", "q4"])
+    expect(host.shadowRoot!.querySelector('[part~="hidden-note"]')!.textContent).toBe("2 hidden · show all")
+    // hidden, outlined:  no fill
+    const red = host.shadowRoot!.querySelector<HTMLButtonElement>('[data-state="attention"]')!
+    expect(getComputedStyle(red).backgroundColor).toMatch(/^rgba\(0, 0, 0, 0\)$|^transparent$/)
+    expect(red.title).toBe("1 needs attention:  show these too")
+    await click("attention")
+    expect(chips(host)).toEqual({ attention: true, open: true, recent: false })
+    await click("open")
     expect(shownIds(host)).toEqual(["q1"])
-    expect(all.title).toBe("Show everything")
-    // an item turning red shows:  it's in a shown state
-    host.querySelector("#q2")!.setAttribute("state", "attention")
+    await click("attention")
+    expect(chips(host)).toEqual({ attention: true, open: true, recent: true })
+    expect(shownIds(host)).toEqual(["q1", "q2", "q3", "q4"])
+    // everything showing is remembered as no choice:  a state that comes later shows too
+    expect(JSON.parse(localStorage.getItem(`spell-item-state:${location.pathname}`)!)).toEqual({})
+  })
+
+  test("remembered per page;  a choice its states have left hides the list, and says so", async () => {
+    const host = await render(questions(["open:attention", "open:open"]))
+    host.shadowRoot!.querySelector<HTMLButtonElement>('[data-state="attention"]')!.click()
     await ElementFixture.tick()
-    await ElementFixture.tick()
-    expect(shownIds(host)).toEqual(["q1", "q2"])
+    expect(JSON.parse(localStorage.getItem(`spell-item-state:${location.pathname}`)!)).toEqual({
+      decisions: ["attention"]
+    })
     host.remove()
     const again = await render(questions(["open:attention", "open:open"]))
     expect(shownIds(again)).toEqual(["q1"])
-    again.shadowRoot!.querySelector<HTMLButtonElement>('[data-state="all"]')!.click()
+    // the red one answered:  nothing left to show, and the line says how to get it back
+    again.querySelector("#q1")!.setAttribute("state", "recent")
+    await ElementFixture.tick()
+    await ElementFixture.tick()
+    expect(shownIds(again)).toEqual([])
+    const note = again.shadowRoot!.querySelector<HTMLButtonElement>('[part~="hidden-note"]')!
+    expect(note.textContent).toBe("2 hidden · show all")
+    note.click()
     await ElementFixture.tick()
     expect(shownIds(again)).toEqual(["q1", "q2"])
+  })
+
+  test("`replied` (orange, Owen's turn to pick):  its own chip", async () => {
+    const host = await render(questions(["open:replied", "open:open", "open:attention"]))
+    expect(chips(host)).toEqual({ attention: true, replied: true, open: true })
+    expect(host.shadowRoot!.querySelector('[data-state="replied"]')!.getAttribute("data-color")).toBe("orange")
+  })
+
+  test("collapse-all, beside the chevron while open:  its items and the Plan changes box fold, it stays open", async () => {
+    const host = await render(
+      `<epic-section id="phases" kind="phases" open>` +
+        `<epic-updated slot="changes" at="2026-10-07 10:00" phase="1" of="2">Split it.</epic-updated>` +
+        `<epic-phase id="p1" title="One" status="active" open><p>Do it.</p></epic-phase></epic-section>`
+    )
+    await ElementFixture.settle(host)
+    host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="changes"] button')!.click()
+    await ElementFixture.tick()
+    const button = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="tools"] [part~="collapse-all"]')!
+    // last in the title's tools:  beside the chevron
+    expect(button.parentElement!.lastElementChild).toBe(button)
+    button.click()
+    await ElementFixture.tick()
+    const phase = host.querySelector("epic-phase")!
+    expect([host.matches(":state(open)"), phase.matches(":state(open)")]).toEqual([true, false])
+    expect(host.shadowRoot!.querySelector('[part~="changes"] button')!.getAttribute("aria-expanded")).toBe("false")
+    // folded:  no collapse-all
+    ;(host as FoldHost & { open: boolean }).open = false
+    await ElementFixture.tick()
+    expect(host.shadowRoot!.querySelector('[part~="collapse-all"]')).toBeNull()
   })
 
   test("the Phases section draws its Plan changes box from the `changes` slot;  none without", async () => {

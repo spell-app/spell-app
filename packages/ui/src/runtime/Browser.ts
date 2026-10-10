@@ -1,23 +1,22 @@
-import { isBrowser } from "$/ui/util"
+import { isBrowser, lazy } from "$/ui/util"
 
 import type { BrowserSupports } from "./runtime.types"
 
 /****************
  * ### `Browser`
  * Browser sniffing and feature flags, as `UI.browser`.
- * - ONE place for "can this browser do X":  call sites read `UI.browser.supports.popoverHint`,
- *   NEVER a user-agent check of their own (see `AGENTS.md` "Platform").
+ * - ONE place for "can this browser do X":
+ *   call sites read `UI.browser.supports.popoverHint`, NEVER a user-agent check of their own
+ *   (see `AGENTS.md` "Platform").
  * - Constructs anywhere:  outside a browser (SSR, node tooling) every flag is `false`.
- * - `supports` is detected once, on first read;  media-query flags (`isReducedMotion`, `isDark`)
- *   are live, re-read on every access.
+ * - `supports` is detected once, on first read.
+ * - Media-query flags (`isReducedMotion`, `isDark`) are live, re-read on every access.
  ****************/
 export class Browser {
   /** Feature flags, detected once on first read -- see `BrowserSupports`. */
-  get supports(): BrowserSupports {
-    return (this.detected ??= this.detect())
+  @lazy get supports(): BrowserSupports {
+    return this.detect()
   }
-  /** cache for `supports`, filled on first read */
-  private detected?: BrowserSupports
 
   ////////////////
   // ## Engines and platforms

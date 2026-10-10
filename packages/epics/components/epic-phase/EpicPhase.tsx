@@ -1,5 +1,5 @@
-import { Show, createEffect, untrack } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { Show } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
@@ -14,6 +14,7 @@ import type { ContentsEntry } from "$/epics/components/epic-section/EpicSection.
 import { epicPhaseVocabulary } from "./EpicPhase.en"
 import { ICON } from "./EpicPhase.types"
 
+import collapseAllCSS from "$/epics/components/epic-item/CollapseAllButton.css?inline"
 import reviewCSS from "$/epics/components/epic-item/ReviewControls.css?inline"
 import foldCSS from "$/epics/components/epic-section/EpicFold.css?inline"
 import phaseCSS from "./EpicPhase.css?inline"
@@ -35,7 +36,14 @@ import phaseCSS from "./EpicPhase.css?inline"
  ****************/
 export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
   @E.proto static vocabulary = epicPhaseVocabulary
-  @E.proto static styleSheets = { "epic-fold": foldCSS, "epic-phase": phaseCSS, "epic-review": reviewCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: {
+      "epic-fold": foldCSS,
+      "epic-collapse-all": collapseAllCSS,
+      "epic-phase": phaseCSS,
+      "epic-review": reviewCSS
+    }
+  } satisfies Partial<E.ElementSetup>
 
   /** Its status, as drawn:  `todo` for anything unknown. */
   get shownStatus(): PhaseStatus {
@@ -64,14 +72,9 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
   }
 
   /** Follow the review inbox while connected (kept alive:  a removed phase stops). */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      createEffect(
-        () => this.isConnected,
-        (connected) => (connected ? this.reviewState.connect() : undefined)
-      )
-    }
-    return super.onMount()
+  @E.whileConnected
+  protected followReviews() {
+    return this.reviewState.connect()
   }
 
   render(): JSX.Element {
@@ -172,8 +175,9 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
   }
 
   /** Done with the note box:  it stays, but stops counting as written in once it's empty. */
+  @E.untracked
   private leaveNote() {
-    if (!this.noteInput?.value.trim()) this.reviewState.client?.closeBox(untrack(this.reviewState.id), false)
+    if (!this.noteInput?.value.trim()) this.reviewState.client?.closeBox(this.reviewState.id(), false)
   }
 }
 

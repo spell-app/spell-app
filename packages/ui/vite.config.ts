@@ -6,11 +6,8 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 
 import { standardDecorators } from "../../vite.decorators.ts"
-// the fork's HMR plugin from SOURCE, not `@spell-app/solid-element/vite`:  Vite bundles this config with every BARE
-// import external, so Node would load the package's `dist/vite.js`, which a fresh checkout doesn't have yet
-// (Node 22.17 can't load the `.ts`).  A relative import is bundled into the config instead.  See `AGENTS.md`.
-import { solidElementHot } from "../solid-element/src/vite.ts"
 import { environment } from "./tools/environment.ts"
+import { hotElements } from "./tools/HotElements.ts"
 
 /** Absolute path of `src/`. */
 const SRC = fileURLToPath(new URL("./src", import.meta.url))
@@ -111,31 +108,28 @@ export const ENTRIES: Record<string, string> = {
 }
 
 /**
- * Solid's packages, subpaths included (`solid-js/web`, `@solidjs/web`, `@solidjs/signals`), and our element
- * layer fork:  PEER dependencies, never bundled.  The app (or an import map, see `yarn vendor`) supplies ONE copy,
+ * Solid's packages, subpaths included (`solid-js/web`, `@solidjs/web`, `@solidjs/signals`):
+ * PEER dependencies, never bundled.  The app (or an import map, see `yarn vendor`) supplies ONE copy,
  * so the app's owners, context and signals reach the components.
+ * - The custom-element layer (`DOMElement`, `UIComponent`) is `ui`'s own code, bundled (epic `spell-element`).
  */
-export const SOLID_EXTERNAL = /^solid-js(\/|$)|^@solidjs\/|^@spell-app\/solid-element(\/|$)/
+export const SOLID_EXTERNAL = /^solid-js(\/|$)|^@solidjs\//
 
-/**
- * Packages that MUST resolve to one copy:  the linked fork (`packages/solid-element`) resolves its imports from its
- * OWN `node_modules` otherwise, and two Solids can't share owners (`agents/PAPERCUTS.md`).
- */
+/** Packages that MUST resolve to one copy:  two Solids can't share owners (`agents/PAPERCUTS.md`). */
 export const SOLID_DEDUPE = ["solid-js", "@solidjs/web"]
 
 /**
- * Config shared by the library build / dev server (below), `vitest.config.ts` and the docs site:  plugins, aliases,
- * dedupe, Lightning CSS.
+ * Config shared by the library build / dev server (below), `vitest.config.ts` and the docs site:
+ * plugins, aliases, dedupe, Lightning CSS.
  * - Aliases (`$/ui`, `$/ui/test`, `$/util` ...) come from the repo root's `tsconfig.base.json`, through
  *   `resolve.tsconfigPaths`.  A FUNCTION, so every caller gets its own plugin instances.
  * - `standardDecorators()` MUST come first:  both it and the Solid plugin are `enforce: "pre"`, and the Solid
  *   compiler must see decorator-free code.
- * - `SPELL_UI_SOLID_PROD=1` (`environment.isSolidProduction`, `tools/environment.ts`):  Solid's PRODUCTION runtime
- *   under `vite dev` (no dev diagnostics, no performance tracks), for timing `tools/demo/perf.html`.
+ * - `SPELL_UI_SOLID_PROD=1` (`environment.isSolidProduction`, `tools/environment.ts`):
+ *   Solid's PRODUCTION runtime under `vite dev` (no dev diagnostics, no performance tracks),
+ *   for timing `tools/demo/perf.html`.
  * - `optimizeDeps`:  `axe-core`, `temporal-polyfill` (only a Temporal-less page imports it), highlight.js, marked and
- *   DOMPurify (only the lazy `CodeEngine` / `MarkdownEngine` import them) pre-bundled up front, so the first test run doesn't reload mid-run;  NOT
- *   `@spell-app/solid-element`:  it's linked TypeScript source (its `development` export), compiled by the Solid
- *   plugin like our own files.
+ *   DOMPurify (only the lazy `CodeEngine` / `MarkdownEngine` import them) pre-bundled up front, so the first test run doesn't reload mid-run.
  */
 export function baseConfig() {
   const production = environment.isSolidProduction ? { dev: false, performanceTracks: false } : {}
@@ -153,8 +147,7 @@ export function baseConfig() {
         "highlight.js/lib/languages/*",
         "marked",
         "dompurify"
-      ],
-      exclude: ["@spell-app/solid-element"]
+      ]
     },
     css: {
       transformer: "lightningcss",
@@ -169,8 +162,8 @@ export function baseConfig() {
 /**
  * Library build of `@spell-app/ui`, and the dev server (`yarn dev`:  `tools/demo/`).
  * - ESM only:  every consumer we target (bundlers, `<script type="module">`, frameworks) speaks it.
- * - `solid-js`, `@solidjs/web` and `@spell-app/solid-element` are external (`SOLID_EXTERNAL`);  the `UIRuntime` and
- *   icon packs are separate files (`emitIconPacks()`).
+ * - `solid-js` and `@solidjs/web` are external (`SOLID_EXTERNAL`);
+ *   the `UIRuntime` and icon packs are separate files (`emitIconPacks()`).
  * - `preserveEntrySignatures: "allow-extension"`:  lets `core.js` / `button.js` ... hold their own code and export
  *   what siblings need, instead of Vite's lib-mode default (`strict`), which turns every entry into a facade over
  *   a hashed chunk.
@@ -182,7 +175,7 @@ export default defineConfig(() => {
   const base = baseConfig()
   return {
     ...base,
-    plugins: [...base.plugins, hotElements(), emitIconPacks(), dts(declarations())],
+    plugins: [...base.plugins, hotElementsPlugin(), emitIconPacks(), dts(declarations())],
     build: {
       outDir: "dist",
       emptyOutDir: true,
@@ -220,8 +213,9 @@ function emojiChunkNames(chunk: { facadeModuleId: string | null; moduleIds: read
 const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
 
 /**
- * `vite-plugin-dts` options for the published declarations:  `dist/index.d.ts`, `dist/core.d.ts`,
- * `dist/components/ui-<name>/index.d.ts` ... -- the paths `package.json` `exports` names.
+ * `vite-plugin-dts` options for the published declarations:
+ * `dist/index.d.ts`, `dist/core.d.ts`, `dist/components/ui-<name>/index.d.ts` ... --
+ * the paths `package.json` `exports` names.
  * - `src/` imports `$/util` (`../util/src`, OUTSIDE this package), so the program's root is `packages/`
  *   (`compilerOptions.rootDir`, else TS6059) and both `src/` trees are included.
  * - Then `beforeWriteFile` moves what the plugin wrote to `dist/ui/src/**` up to `dist/**`, and
@@ -229,11 +223,12 @@ const EMOJI_DATA = /\/components\/ui-emoji\/data\/([\w-]+)\/(\w+)\.json$/
  *   specifiers to relative ones.  `pathsToAliases: false`:  the plugin's own rewrite measures from the layout
  *   BEFORE the move, and gets `../packages/ui/src/...`.
  * - `?inline` CSS imports (`styles/index.ts`) become `declare const x: string`:  only `vite/client` types them.
- * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIComponent` is copied into every
- *   entry that reaches it, and a class with private members is a DIFFERENT type in each copy.  Per-file
- *   declarations keep one `UIComponent` for `@spell-app/ui/core` and `@spell-app/ui/ui-button` alike.
- * - `util` is not published on its own, so its GENERIC declarations ship inside `@spell-app/ui`.  NOT `util/src/spell/` or
- *   `util`'s barrel (which flattens it in):  `exclude` lists them, and `src/util/index.ts` imports file by file.
+ * - Why not `bundleTypes`:  it rolls each entry up on its own, so a class like `UIComponent` is copied into every entry
+ *   that reaches it, and a class with private members is a DIFFERENT type in each copy.
+ *   Per-file declarations keep one `UIComponent` for `@spell-app/ui/core` and `@spell-app/ui/ui-button` alike.
+ * - `util` is not published on its own, so its GENERIC declarations ship inside `@spell-app/ui`.
+ *   NOT `util/src/spell/` or `util`'s barrel (which flattens it in):
+ *   `exclude` lists them, and `src/util/index.ts` imports file by file.
  * - MUST end with NO `$/` alias in `dist/**.d.ts` and no path outside `dist/`;  `yarn smoke` checks.
  */
 export function declarations(): PluginOptions {
@@ -259,8 +254,9 @@ export function declarations(): PluginOptions {
  * `declarations()`'s `beforeWriteFile`:  where a `.d.ts` goes in `dist/`, and its imports made to match.
  * - Returns `false` (skip) for anything outside `ui/src` and `util/src`.
  * - Only import / export STATEMENTS are rewritten (`from "..."`, `import("...")`):  doc comments may mention aliases.
- * - A specifier is resolved against the SOURCE tree, then expressed in `dist/` terms.  A folder becomes
- *   `<folder>/index`:  `dist/styles.js` (a lib entry) sits beside `dist/styles/`, and TypeScript would pick the `.js`.
+ * - A specifier is resolved against the SOURCE tree, then expressed in `dist/` terms.
+ *   A folder becomes `<folder>/index`:
+ *   `dist/styles.js` (a lib entry) sits beside `dist/styles/`, and TypeScript would pick the `.js`.
  * - `import sheet from "./x.css?inline"` (`styles/index.ts`) is typed by `vite/client`, which a consumer may not
  *   have:  the sheets are plain strings.
  */
@@ -301,32 +297,16 @@ function rewriteDeclaration(filePath: string, content: string) {
 }
 
 /**
- * Hot module replacement for the components in `yarn dev` (the fork's `solidElementHot()`;  `apply: "serve"`, so
- * builds are untouched, and NOT in `vitest.config.ts`).
- * - Boundaries:  the component barrels (`src/components/ui-<name>/index.ts`), the modules that call `define()`.
- *   An edit to a component class, vocabulary or fallback re-runs its barrel;  `HotDefinitions` turns the barrel's
- *   `define()` of a new version of a class into a re-definition of every tag it had.
- * - `?inline` component CSS (`src/components/ui-<name>/UI<Name>.css`) re-registers its sheet:  no re-render.
- * - Shared code (`core`, `forms`, the runtime) reaches several barrels:  full reload.
- * - `HotDefinitions` is injected by FILE PATH, not `$/ui/elements/HotDefinitions`:  `resolve.tsconfigPaths` only
- *   resolves aliases for TS / JS importers, and the sheets' handler import lives in a `.css?inline` module.
+ * Hot module replacement for the components in `yarn dev` (`tools/HotElements.ts`;
+ * `apply: "serve"`, so builds are untouched, and NOT in `vitest.config.ts`).
+ * - `HotDefinitions` is injected by FILE PATH, not `$/ui/elements/HotDefinitions`:
+ *   `resolve.tsconfigPaths` only resolves aliases for TS / JS importers, and the sheets' handler import lives in a
+ *   `.css?inline` module.
  */
-function hotElements(): Plugin {
-  const hotDefinitions = `${SRC}/elements/HotDefinitions.ts`
-  // HACK: the fork is its own yarn project, so its `Plugin` type comes from ITS `vite` install:  the same version,
-  // but a second declaration TypeScript won't unify (a `tsconfig` `paths` pin would also redirect `tsx`'s runtime
-  // resolution of `vite` to a `.d.ts`)
-  const plugin: unknown = solidElementHot({
-    include: /\/src\/components\/[\w-]+\/index\.ts$/,
-    detect: /\.define\(/,
-    setup: hotDefinitions,
-    styles: {
-      include: /\/src\/components\/[\w-]+\/[\w-]+\.css\?inline$/,
-      handler: hotDefinitions,
-      call: "HotDefinitions.updateStyle"
-    }
-  })
-  return plugin as Plugin
+function hotElementsPlugin(): Plugin {
+  // HACK: `HotElements.ts` types its plugin with `vite`'s `Plugin`, this config with `vite-plus`'s:
+  // the same version, but a second declaration TypeScript won't unify
+  return hotElements(`${SRC}/elements/HotDefinitions.ts`) as unknown as Plugin
 }
 
 /**

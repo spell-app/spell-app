@@ -1,5 +1,7 @@
 import { For, Show, createEffect, createSignal, untrack } from "solid-js"
 
+import { E } from "$/ui/core"
+
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel
 import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
@@ -27,17 +29,17 @@ import {
 
 /****************
  * ### `<AgentsPanel>`
- * The epic's RUNNING AGENTS (epic `skillz` P3), drawn by `<epic-page>` right before its blocks:  "Agents running" (a
- * robot, the count when more than one), a row per agent, each with a note box that REDIRECTS it.
+ * The epic's RUNNING AGENTS (epic `skillz` P3), drawn by `<epic-page>` right before its blocks:
+ * "Agents running" (a robot, the count when more than one), a row per agent, each with a note box that REDIRECTS it.
  * - it FOLDS from its title, like every titled box (Owen, 2026-10-08);  open to start with:  it's live news
  * - shown ONLY while the page's `AgentsClient` is `listed` (a plan doc served with a token, the list answering) and
  *   an agent runs
- * - in the page's shadow root, NOT a section:  the contents, the rail and the counts never see it (they read the
- *   light DOM)
+ * - in the page's shadow root, NOT a section:
+ *   the contents, the rail and the counts never see it (they read the light DOM)
  * - one row per agent, KEYED by name (`<AgentRow>`):  a poll updates it in place, never touching what's typed in its
  *   box, nor its focus
- * - keeps the reader's place:  read below it, the page scrolls by what it grew or shrank as it comes, changes or
- *   goes (`follow()`)
+ * - keeps the reader's place:  read below it, the page scrolls by what it grew or shrank as it comes,
+ *   changes or goes (`follow()`)
  * - Plain Solid, no element of its own:  the caller passes its client, `connected`, the reading line and `text()`;
  *   its look is `AgentsPanel.css`, adopted by `<epic-page>`
  ****************/
@@ -105,7 +107,7 @@ export function AgentsPanel(props: AgentsPanelProps) {
     const edge = box?.getBoundingClientRect().bottom
     setVersion(client!.version)
     if (edge === undefined || edge >= untrack(() => props.top)) return
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       const moved = box!.getBoundingClientRect().bottom - edge
       if (Math.abs(moved) >= 1) window.scrollBy({ top: moved, behavior: "instant" })
     })

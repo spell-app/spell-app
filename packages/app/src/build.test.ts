@@ -42,14 +42,14 @@ describe("production build", () => {
       expect(() => execFileSync("node", ["--check", join(outDir, "spell-runtime.js")], { stdio: "pipe" })).not.toThrow()
       expect(sources(join(outDir, "spell-runtime.js")).filter((source) => SOLID_OR_UI.test(source))).toEqual([])
       const js = [runtime, ...chunks].join("\n")
-      // No raw decorator syntax survived -- e.g. `@proto static alias = ...`
+      // No raw decorator syntax survived (e.g. `@proto static alias = ...`)
       // NOTE: bare `@proto` DOES legitimately appear, in error message strings.
       expect(js).not.toMatch(/@proto\s+static\s+\w+\s*=/)
-      // `define_property_has` is a REGISTERED rule, so its class name IS its name in the grammar -- that's
-      // what `keepNames` protects.  Minified without it, it'd be e.g. `Ab=class extends ...` and the rule
-      // would register under a garbage name.
-      // Survives in one of three shapes:  `X = class`, `class X`, or, for a decorated class, esbuild's
-      // `__name(cls, "X")` helper, itself minified to e.g. ``Px(uS,`X`)``.
+      // `define_property_has` is a REGISTERED rule, so its class name IS its name in the grammar --
+      // that's what `keepNames` protects.
+      // - Minified without it, it'd be e.g. `Ab=class extends ...` and the rule would register under a garbage name.
+      // - Survives in one of three shapes:  `X = class`, `class X`, or, for a decorated class,
+      //   esbuild's `__name(cls, "X")` helper, itself minified to e.g. ``Px(uS,`X`)``.
       const RULE = "define_property_has"
       expect(js).toMatch(
         new RegExp(String.raw`\b${RULE}\s*=\s*class\b|\bclass ${RULE}\b|\(\w+,\s*[\`"']${RULE}[\`"']\)`)
@@ -72,8 +72,8 @@ describe("production build", () => {
   }, 60_000)
 })
 
-/** Solid's packages, our element layer fork and `@spell-app/ui`, as they appear in a sourcemap's `sources`. */
-const SOLID_OR_UI = /\/node_modules\/(solid-js|@solidjs\/(web|signals))\/|\/packages\/(solid-element|ui)\/src\//
+/** Solid's packages and `@spell-app/ui`, as they appear in a sourcemap's `sources`. */
+const SOLID_OR_UI = /\/node_modules\/(solid-js|@solidjs\/(web|signals))\/|\/packages\/ui\/src\//
 
 /** React and what renders with it, as they appear in a sourcemap's `sources`. */
 const REACT = /\/node_modules\/(react|react-dom|scheduler|semantic-ui-react)\//

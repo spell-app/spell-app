@@ -14,17 +14,19 @@ import fieldCSS from "./EpicField.css?inline"
 
 /****************
  * ### `EpicField`
- * The component behind `<epic-field>`:  one named field of a phase (Symptom, Changes, Goal ...) -- its icon in a
- * column, centred on the first line, then its bold label (`Symptom:`) and its prose, wrapping beside the icon.
+ * The component behind `<epic-field>`:  one named field of a phase (Symptom, Changes, Goal ...) --
+ * its icon in a column, centred on the first line, then its bold label (`Symptom:`) and its prose,
+ * wrapping beside the icon.
  * - A labelled block in prose (`label`, no `name`:  `Where:`, P14):  the bold label and its prose, no icon column.
  * - Files and Verify are hidden until the Phases title's toggles show them (`--epic-files-display` /
  *   `--epic-verify-display`, inherited from the Phases section).
- * - To review:  each `#link` shows as a chip in its item's state colour.  SIDE EFFECT:  writes `data-spell-state` on
- *   those links (light DOM), as today's runtime did, again whenever the page's layout changes.
+ * - To review:  each `#link` shows as a chip in its item's state colour.
+ *   SIDE EFFECT:  writes `data-spell-state` on those links (light DOM), as today's runtime did,
+ *   again whenever the page's layout changes.
  ****************/
 export class EpicField extends E.UIComponent<typeof epicFieldVocabulary> {
   @E.proto static vocabulary = epicFieldVocabulary
-  @E.proto static styleSheets = { "epic-field": fieldCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { "epic-field": fieldCSS } } satisfies Partial<E.ElementSetup>
 
   /** Its look:  icon and label key;  Symptom's for an unknown name. */
   get look(): FieldLook {
@@ -63,7 +65,7 @@ export class EpicField extends E.UIComponent<typeof epicFieldVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={[this.rootClasses, FIELD, this.isLabelled && LABELLED]} part={this.partForName("base")}>
+      <div class={[this.rootClass, FIELD, this.isLabelled && LABELLED]} part={this.partForName("base")}>
         <Show when={!this.isLabelled}>
           <span class={ICON} part={this.partForName("icon")} aria-hidden="true">
             {this.glyph.svg}
@@ -116,8 +118,8 @@ type FieldLook = (typeof FIELD_LOOKS)[FieldName]
 const TO_REVIEW = "to-review"
 
 /**
- * The attribute the To review links get, their item's state (`attention`, `open` ...):  the name today's runtime
- * gave it, which the field's sheet colours by.
+ * The attribute the To review links get, their item's state (`attention`, `open` ...):
+ * the name today's runtime gave it, which the field's sheet colours by.
  */
 const LINK_STATE = "data-spell-state"
 

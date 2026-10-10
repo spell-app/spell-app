@@ -93,6 +93,15 @@ describe("<ui-dropdown> markup", () => {
     expect(menu.getAttribute("popover")).toBe("manual")
   })
 
+  it("is named by a <label for> when it has no `label`", async () => {
+    const page = await ElementFixture.render(
+      `<div><label for="size">Size</label><ui-dropdown id="size" selection><ui-item>S</ui-item></ui-dropdown></div>`
+    )
+    const { combobox, menu } = parts(page.querySelector<Dropdown>("ui-dropdown")!)
+    await expect.poll(() => combobox.getAttribute("aria-label")).toBe("Size")
+    expect(menu.getAttribute("aria-label")).toBe("Size")
+  })
+
   it("renders the `icon` slot inside `.dropdown.icon` only while it is occupied (the caret is `:empty`)", async () => {
     const { host, root } = await dropdown(GENDER)
     const icon = root.querySelector(".dropdown.icon")!
@@ -203,7 +212,7 @@ describe("<ui-dropdown> open / close", () => {
     expect(UI.overlays.entries).toHaveLength(1)
     const parent = host.parentElement!
     host.remove()
-    // `isConnected` follows a microtask late (solid-element's hooks may run inside a Solid render)
+    // `isConnected` follows a microtask late (lifecycle methods may run inside a Solid render)
     await ElementFixture.tick()
     await ElementFixture.tick()
     expect(UI.overlays.entries).toHaveLength(0)

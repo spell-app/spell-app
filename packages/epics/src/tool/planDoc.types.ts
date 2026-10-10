@@ -202,6 +202,8 @@ export type ItemFacts = {
   bedtime: boolean
   /** not urgent:  blue while open and not reviewed, not red (`<epic-item calm>`) */
   calm: boolean
+  /** Claude answered it last, with options nothing is picked in yet (`PlanItem.awaitsPick()`) */
+  awaitsPick: boolean
   /** how Claude handled Owen's last review mark (`<epic-item review-as>`, `REVIEW_AS`), or `undefined` */
   reviewAs: string | undefined
 }
@@ -276,6 +278,7 @@ export type OptionCard = {
  * id chip with, and the review picker its state icon (`ItemPicker`).
  * One meaning per colour (decision Q20 of epic `epic-components`, Owen, 2026-10-08):
  * - `attention` (red):  needs Owen (an open question;  an open judgement call or issue not reviewed)
+ * - `replied` (orange):  Claude answered it with options, and it waits for Owen's pick (Owen, 2026-10-09)
  * - `progress` (blue):  Claude is working on it (an underway status card, or `working`)
  * - `open` (yellow):  open, still undecided, not urgent
  *   (todos, caveats, tests;  reviewed issues and judgement calls;  work a review queued, not started;
@@ -286,6 +289,7 @@ export type OptionCard = {
  */
 export const STATE_COLORS = {
   attention: "red",
+  replied: "orange",
   progress: "blue",
   open: "yellow",
   recent: "green",
@@ -297,9 +301,10 @@ export const STATE_COLORS = {
  * the record (the log, `review` outcomes, `SETTLED_AS`).
  * The page no longer draws it on the buttons:  once handled they clear, and the id chip shows the result
  * (Owen, 2026-10-08).
- * `now`:  an immediate request (Do Now:  Add Details, revisit now) done.
+ * `now`:  an immediate request (Do Now:  Add Details, revisit now) done;
+ * `next`, `drop`:  a todo queued into the next phase, or dropped (its plane and x, Owen, 2026-10-09).
  */
-export const REVIEW_AS = ["approve", "todo", "revisit", "now"] as const
+export const REVIEW_AS = ["approve", "todo", "revisit", "now", "next", "drop"] as const
 
 /** One of `REVIEW_AS`. */
 export type ReviewAs = (typeof REVIEW_AS)[number]
@@ -313,6 +318,18 @@ export const SETTLED_AS: ReadonlySet<string> = new Set<ReviewAs>(["approve", "to
 
 /** A status card Claude is still on (`<epic-status state="underway">`), among an item's children:  `progress`. */
 export const UNDERWAY_CARD = ':scope > epic-status[state="underway"]'
+
+/**
+ * A status card's `state` (`<epic-status state>`):
+ * - `underway`:  Claude is on it (blue)
+ * - `done`:  work was done -- an answer written, code changed, a phase built (green)
+ * - `noted`:  Claude RECORDED what Owen chose -- a pick, a todo made or queued, a new item made -- and nothing
+ *   more yet (a calm outline:  Owen, 2026-10-10, epic `airplane` P8)
+ */
+export type StatusState = "underway" | "done" | "noted"
+
+/** How an underway card finishes (`PlanDoc.finishStatus()`):  work `done`, or Owen's choice only `noted`. */
+export type FinishedState = Exclude<StatusState, "underway">
 
 /** An item's standing on the page, `STATE_COLORS`':  `attention`, `progress` ... */
 export type ItemState = keyof typeof STATE_COLORS

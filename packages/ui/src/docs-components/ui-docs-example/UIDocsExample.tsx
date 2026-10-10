@@ -17,20 +17,24 @@ import exampleCSS from "./UIDocsExample.css?inline"
  *   - the header row (`<ui-header>` + the code `<ui-button>`), then the description
  *   - `<ui-segment part="demo">` around the default slot (the live example:  the element's own children)
  *   - while `code` is on, `<ui-segment part="code">`, with the markup in a `<ui-code>`.
- * - The markup shown is read ONCE, on first connect (`ExampleSource.of()`):  a `<template>` child,
- *   else the page snapshot the site entry took before any family loaded,
- *   else the live children minus runtime attributes.  See `ExampleSource` for why, and its limits.
- * - A `<template>` child is also stamped out live, once,
- *   right after it (on a microtask:  never inside this render, so the stamped elements upgrade under their own owners).
- * - `code` is the open state (auto-controlled, reflected):  the button flips it and fires `ui-toggle { open }`;
- *   `:state(open)` follows it.
+ * - The markup shown is read ONCE, on first connect (`ExampleSource.of()`):
+ *   - a `<template>` child
+ *   - else the page snapshot the site entry took before any family loaded
+ *   - else the live children minus runtime attributes
+ *   - see `ExampleSource` for why, and its limits
+ * - A `<template>` child is also stamped out live, once, right after it
+ *   (on a microtask:  never inside this render, so the stamped elements upgrade under their own owners).
+ * - `code` is the open state (auto-controlled, reflected):
+ *   the button flips it and fires `ui-toggle { open }`;  `:state(open)` follows it.
  * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of other families' widgets,
  *   which its barrel imports.
  ****************/
 export class UIDocsExample extends E.UIComponent<typeof docsExampleVocabulary> {
   @E.proto static vocabulary = docsExampleVocabulary
-  @E.proto static styleSheets = { "docs-example": exampleCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "docs-example": exampleCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** The markup to show, read once before anything here touches the light DOM. */
   readonly sourceMarkup: string = isServer ? "" : ExampleSource.of(this.domElement)
@@ -85,7 +89,7 @@ export class UIDocsExample extends E.UIComponent<typeof docsExampleVocabulary> {
    */
   private stamp() {
     const template = ExampleSource.template(this.domElement)
-    if (template) queueMicrotask(() => template.after(template.content.cloneNode(true)))
+    if (template) E.afterSolidUpdate(() => template.after(template.content.cloneNode(true)))
   }
 
   ////////////////
@@ -94,7 +98,7 @@ export class UIDocsExample extends E.UIComponent<typeof docsExampleVocabulary> {
 
   render(): JSX.Element {
     return (
-      <section class={this.rootClasses} part={this.partForName("example")}>
+      <section class={this.rootClass} part={this.partForName("example")}>
         <div class={HEADING_CLASS}>
           <Show when={this.header}>
             <ui-header

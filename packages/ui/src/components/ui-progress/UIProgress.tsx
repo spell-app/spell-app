@@ -1,5 +1,5 @@
-import { Repeat, Show, createEffect, onSettled, untrack } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { Repeat, Show, createEffect, untrack } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import { ProgressValues } from "./ProgressValues"
@@ -18,8 +18,8 @@ import progressCSS from "./UIProgress.css?inline"
  *   - and `<div class="label" part="label">` around the slot.
  *
  * - The numbers:  `value` (a share of `total`, else a percentage) or `percent`.
- *   A comma list makes several bars (`ProgressValues`).
- *   The widths and `data-percent` are written as Fomantic's JS wrote them.
+ *   - A comma list makes several bars (`ProgressValues`).
+ *   - The widths and `data-percent` are written as Fomantic's JS wrote them.
  *
  * - Accessibility:  the DOM ELEMENT is the `progressbar`, through `internals`.
  *   A native `<progress>` can't hold Fomantic's bars, their texts, several values or the indeterminate looks,
@@ -37,21 +37,16 @@ import progressCSS from "./UIProgress.css?inline"
  * - Events:  `ui-change` when the percentage changes, `ui-complete` when it reaches 100.
  *   Both only after the first render, whatever wrote the numbers (there is no user input).
  ****************/
+@E.cssStates("active")
 export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   @E.proto static vocabulary = progressVocabulary
-  @E.proto static styleSheets = { progress: progressCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
-
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    this.domElement.internals.role = "progressbar"
-    if (isServer) return
-    onSettled(() => {
-      const observer = new MutationObserver(() => (this.elementText = (this.domElement.textContent ?? "").trim()))
-      observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
-      return () => observer.disconnect()
-    })
-  }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { progress: progressCSS },
+    delegatesFocus: false,
+    aria: { role: "progressbar", ariaValueMin: "0" },
+    // `disabled`:  only a look
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** Adds the change events. */
   onMount(): JSX.Element {
@@ -95,12 +90,6 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   // ## States
   ////////////////
 
-  /** Shows activity (`active`).  `:state(active)`. */
-  @E.cssState("active")
-  get isActive(): boolean {
-    return !!this.active
-  }
-
   /** Unknown progress?  `:state(indeterminate)`. */
   @E.cssState("indeterminate")
   get isIndeterminate(): boolean {
@@ -111,16 +100,6 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   @E.cssState("complete")
   get isComplete(): boolean {
     return !this.isIndeterminate && this.numbers.percent >= 100
-  }
-
-  /**
-   * Marked disabled (`disabled`, dimmed):  only a look, not `isDisabled`,
-   * so the element's clicks aren't swallowed.
-   * `:state(disabled)`.
-   */
-  @E.cssState("disabled")
-  get looksDisabled(): boolean {
-    return !!this.disabled
   }
 
   /** `state`, else `success` for a single complete bar (Fomantic's `autoSuccess`). */
@@ -139,7 +118,10 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   ////////////////
 
   /** The element's text (its slotted label), read again when it changes. */
-  @E.state accessor elementText = (this.domElement.textContent ?? "").trim()
+  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  get elementText(): string {
+    return (this.domElement.textContent ?? "").trim()
+  }
 
   /** `value` in the page's number format, to `precision` decimals. */
   private readonly format = (value: number): string =>
@@ -186,7 +168,6 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   protected onAriaValuesChanged(aria: UIProgress["ariaValues"]) {
     if (!aria) return
     const { internals } = this.domElement
-    internals.ariaValueMin = "0"
     internals.ariaValueMax = aria.max
     internals.ariaValueNow = aria.now
     internals.ariaValueText = aria.text
@@ -200,7 +181,7 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   render(): JSX.Element {
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("progress")}
         data-percent={this.isIndeterminate ? undefined : String(Math.round(this.numbers.percent))}
       >
@@ -241,8 +222,10 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   }
 
   /**
-   * Width, and corners of several bars (Fomantic's `set.barWidth()`):  a zero bar among several is hidden;
-   * only the first and last shown bars keep their outer corners.  None while indeterminate (the CSS fills the track).
+   * Width, and corners of several bars (Fomantic's `set.barWidth()`):
+   * - a zero bar among several is hidden
+   * - only the first and last shown bars keep their outer corners
+   * - none while indeterminate (the CSS fills the track)
    */
   private barStyle(index: number): JSX.CSSProperties {
     if (this.isIndeterminate) return {}

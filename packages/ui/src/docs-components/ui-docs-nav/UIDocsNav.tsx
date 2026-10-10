@@ -31,19 +31,20 @@ import navCSS from "./UIDocsNav.css?inline"
 
 /****************
  * ### `DOMDocsNavElement`
- * The DOM element of `<ui-docs-nav>`:  it adds the script API (`focusSearch()`, `revealCurrent()`, `favorites`,
- * `listed`), for the page template that puts the nav in a `<ui-sidebar>` / `<ui-flyout>`.
+ * The DOM element of `<ui-docs-nav>`:
+ * it adds the script API (`focusSearch()`, `revealCurrent()`, `favorites`, `listed`),
+ * for the page template that puts the nav in a `<ui-sidebar>` / `<ui-flyout>`.
  * Its component (`UIDocsNav`) carries it out.
- * - None of these members is named like an attribute:  solid-element refuses a member that is.
+ * - None of these members is named like an attribute:  `DOMElement` refuses a member that is.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMDocsNavElement extends E.DOMElement {
+export class DOMDocsNavElement extends E.DOMElement<UIDocsNav> {
   /**
    * Focus the search field (`<ui-docs-search>`'s `summon()`:  what `/` and Cmd / Ctrl+K do),
    * opening the drawer the nav is in first, if it's closed.
    */
   focusSearch() {
-    this.nav?.focusSearch()
+    this.component?.focusSearch()
   }
 
   /**
@@ -51,22 +52,17 @@ export class DOMDocsNavElement extends E.DOMElement {
    * - A flyout calls it once open:  a hidden nav can't measure.
    */
   revealCurrent() {
-    this.nav?.revealCurrent()
+    this.component?.revealCurrent()
   }
 
   /** The starred tags, A-Z;  `[]` before the component exists. */
   get favorites(): string[] {
-    return this.nav?.favoriteTags ?? []
+    return this.component?.favoriteTags ?? []
   }
 
   /** Resolves once the component list has loaded and rendered;  also on a load error, which it then shows. */
   get listed(): Promise<void> {
-    return this.nav?.listed ?? this.ready.then(() => this.nav?.listed)
-  }
-
-  /** This element's component, once it has one. */
-  private get nav(): UIDocsNav | undefined {
-    return this.component as UIDocsNav | undefined
+    return this.component?.listed ?? this.ready.then(() => this.component?.listed)
   }
 }
 
@@ -78,23 +74,29 @@ export class DOMDocsNavElement extends E.DOMElement {
  *
  * - Its shadow DOM:  `<div class="ui [size] nav" part="nav">` (the panel) holding
  *   - `<div class="masthead" part="header">`:  the `header` slot (a logo),
- *     then the site search `<ui-docs-search>` beside the A-Z / Topics `<ui-buttons>`, and a visually hidden live status
+ *     then the site search `<ui-docs-search>` beside the A-Z / Topics `<ui-buttons>`,
+ *     and a visually hidden live status
  *   - `<nav part="menu">` (the landmark, the panel's scroll box) of GROUPS,
  *     each a heading band (`<h2><button aria-expanded>`) over a fold:
- *     Get started (the intro pages), Favourites, Components (A-Z rows, or a lighter `<h3>` band per TOPIC,
- *     each folding its rows), Foundation;  then the `footer` slot.
+ *     - Get started (the intro pages)
+ *     - Favourites
+ *     - Components (A-Z rows, or a lighter `<h3>` band per TOPIC, each folding its rows)
+ *     - Foundation
+ *     - then the `footer` slot
  * - A row is `<li>`:  a native link `<a>` (an icon, or a status badge),
  *   plus, for a component, its star (a `toggle` `<ui-button>`).
  *   The links are native:  ~100 rows needn't be ~100 more widgets.
  * - Folding:  every group stays rendered (its fold goes `inert` when shut).
- *   A topic renders its rows only while open, and while its fold eases shut
- *   (`closingTopics`, ended by the fold's `transitionend`).
- *   The motion is the sheet's, only under `prefers-reduced-motion: no-preference`;
- *   a topic opened after `:state(settled)` eases open too.
+ *   - A topic renders its rows only while open, and while its fold eases shut
+ *     (`closingTopics`, ended by the fold's `transitionend`).
+ *   - The motion is the sheet's, only under `prefers-reduced-motion: no-preference`;
+ *     a topic opened after `:state(settled)` eases open too.
  * - Data:  `SiteData` (`components.json`), fetched once;  `NavIndex` makes the rows and topics.
- *   Docs-only tags are never listed.  Links are `base` + the data's `href`.
- * - Search:  the field is `<ui-docs-search>`, the SITE's search (its results card jumps anywhere:
- *   sections, components, attributes, pages).  Its text also FILTERS this list (its `ui-input`, every keystroke):
+ *   - Docs-only tags are never listed.
+ *   - Links are `base` + the data's `href`.
+ * - Search:  the field is `<ui-docs-search>`, the SITE's search
+ *   (its results card jumps anywhere:  sections, components, attributes, pages).
+ *   Its text also FILTERS this list (its `ui-input`, every keystroke):
  *   - it hides what doesn't match
  *   - Favourites, Components and every topic with a match open (a band closes one for this query)
  *   - clearing it restores the viewer's folds
@@ -113,8 +115,8 @@ export class DOMDocsNavElement extends E.DOMElement {
  ****************/
 export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
   @E.proto static vocabulary = docsNavVocabulary
-  @E.proto static styleSheets = { "docs-nav": navCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "docs-nav": navCSS },
     DOMElement: DOMDocsNavElement,
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -146,7 +148,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
   }
 
   /**
-   * The list's widgets are ready and the current page revealed:  from now on a topic eases open.  `:state(settled)`.
+   * The list's widgets are ready and the current page revealed:  from now on a topic eases open;  `:state(settled)`.
    */
   @E.cssState("settled")
   @E.state
@@ -161,7 +163,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
   /** SIDE EFFECT:  once the list (or the error) has rendered, scroll to the current page and resolve `listed`. */
   @E.onChange("isListed")
   protected onListedChanged(isListed: boolean) {
-    if (isListed) queueMicrotask(() => void this.onListRendered())
+    if (isListed) E.afterSolidUpdate(() => void this.onListRendered())
   }
 
   /** The list (or its error) has rendered:  wait for its widgets, reveal the current page, resolve `listed`. */
@@ -202,7 +204,8 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
 
   /**
    * Scroll the current page's link into view, a third of the way down its scroll container (the panel's list);
-   * nothing if it's already in view, or nothing scrolls (never the page itself).  Script API (`DOMDocsNavElement`).
+   * nothing if it's already in view, or nothing scrolls (never the page itself).
+   * - Script API (`DOMDocsNavElement`).
    * - The link in the main list, not its copy in Favourites;  none in a shut fold.
    */
   revealCurrent() {
@@ -303,8 +306,8 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
 
   /**
    * Star or un-star `tag`;  remembered, `ui-favorite`.
-   * - Un-starring from the Favourites list removes the clicked row:  focus moves to the tag's star in the list
-   *   below, else the search box.
+   * - Un-starring from the Favourites list removes the clicked row:
+   *   focus moves to the tag's star in the list below, else the search box.
    */
   private toggleFavorite({ tag, star, event }: { tag: string; star: Element; event: Event }) {
     const favorites = new Set(this.favorites)
@@ -317,7 +320,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
     NavPreferences.setFavorites(list)
     this.send("ui-favorite", { tag, favorite: isFavorite, favorites: list, originalEvent: event })
     if (isFavorite || !star.closest(`.${FAVORITES}`)) return
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       const next = this.box?.querySelector<HTMLElement>(
         `.${ROWS}:not(.${FAVORITES}) [${DATA.star}="${CSS.escape(tag)}"]`
       )
@@ -351,10 +354,11 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
    * - Re-set during the event, so the button's own flip doesn't stand (`requestChange()`):
    *   clicking the pressed button would otherwise un-press it while the view stays.
    */
+  @E.untracked
   private onToggle(event: Event) {
     const button = event.target as HTMLElement & { active?: boolean }
     const view = button.getAttribute(DATA.view)
-    if (view) button.active = view === untrack(() => this.view)
+    if (view) button.active = view === this.view
   }
 
   ////////////////
@@ -406,8 +410,8 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
 
   /**
    * A topic's fold has eased shut:  stop rendering its rows.
-   * - NOT `transitioncancel`:  shutting a topic while it eases open cancels the opening, and the closing that
-   *   replaces it ends with its own `transitionend` (or none:  `closeSoon()`).
+   * - NOT `transitioncancel`:  shutting a topic while it eases open cancels the opening,
+   *   and the closing that replaces it ends with its own `transitionend` (or none:  `closeSoon()`).
    */
   private onTransitionEnd(event: TransitionEvent) {
     if (event.propertyName !== "grid-template-rows") return
@@ -425,11 +429,11 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
   }
 
   /**
-   * `topic` was just shut:  if its fold isn't easing shut two frames on, it never will (shut mid-way through easing
-   * open, from the same height):  no `transitionend` comes, so end its closing now.
+   * `topic` was just shut:  if its fold isn't easing shut two frames on, it never will
+   * (shut mid-way through easing open, from the same height):  no `transitionend` comes, so end its closing now.
    */
   private closeSoon(topic: string) {
-    requestAnimationFrame(() => requestAnimationFrame(() => this.closeIfStill(topic)))
+    E.beforeNextPaint(() => E.beforeNextPaint(() => this.closeIfStill(topic)))
   }
 
   /** `topic`'s fold isn't animating:  end its closing (`closeSoon()`). */
@@ -483,7 +487,7 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("nav")} ref={(element: HTMLElement) => this.wire(element)}>
+      <div class={this.rootClass} part={this.partForName("nav")} ref={(element: HTMLElement) => this.wire(element)}>
         {this.masthead()}
         <nav
           part={this.partForName("menu")}
@@ -547,7 +551,8 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
 
   /**
    * One group:  its heading band (a `<button aria-expanded>` in an `<h2>`, the brand's sub-head band), then its fold.
-   * - The fold stays rendered while shut:  `inert` keeps its links out of reach, the sheet hides it once folded.
+   * - The fold stays rendered while shut:
+   *   `inert` keeps its links out of reach, the sheet hides it once folded.
    */
   private group({ group, title, body, extra }: GroupProps): JSX.Element {
     const isOpen = () => this.groupIsOpen(group)
@@ -822,8 +827,9 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
   }
 
   /**
-   * The nearest scroll container of `element`, up the FLAT tree (slots, shadow hosts):  one whose content overflows
-   * and may scroll.  Never the page's own scroller.
+   * The nearest scroll container of `element`, up the FLAT tree (slots, shadow hosts):
+   * one whose content overflows and may scroll.
+   * - Never the page's own scroller.
    */
   private static scrollerFor(element: Element): HTMLElement | undefined {
     const page = document.scrollingElement

@@ -8,24 +8,30 @@ import commentCSS from "./UIComment.css?inline"
 
 /****************
  * ### `UIComment`
- * The component behind `<ui-comment>`:  one comment,
- * `<article class="[keyOnly ...] comment" part="comment"><slot></slot></article>`,
+ * The component behind `<ui-comment>`:
+ * one comment, `<article class="[keyOnly ...] comment" part="comment"><slot></slot></article>`,
  * then the `reply` slot's box (`<div class="reply" part="reply">`) when a reply form is slotted.
  *
  * - Why `<article>`:  HTML names "a user-submitted comment" as its example of a self-contained composition,
  *   and nests the replies' articles inside the comment they answer, as a thread of `<ui-comments>` inside does.
  *
- * - It owns its content parts (`ownsParts`):  `<ui-avatar>`, `<ui-content>`, `<ui-author>`, `<ui-meta>`,
- *   `<ui-description>` and `<ui-actions>` get `:state(in-comment)`;  a `<ui-comments>` inside is its thread.
+ * - It owns its content parts (`ownsParts`):
+ *   `<ui-avatar>`, `<ui-content>`, `<ui-author>`, `<ui-meta>`, `<ui-description>` and `<ui-actions>`
+ *   get `:state(in-comment)`;  a `<ui-comments>` inside is its thread.
  *
  * - In a `<ui-comments>` (`PartContext`, noun `comment`):  `:state(in-comments)`.
  *
  * - `disabled`:  `aria-disabled` on the article, which assistive tech (and axe) apply to what's inside.
  ****************/
+@E.cssStates("collapsed")
 export class UIComment extends E.UIComponent<typeof commentVocabulary> {
   @E.proto static vocabulary = commentVocabulary
-  @E.proto static styleSheets = { comment: commentCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { comment: commentCSS },
+    delegatesFocus: false,
+    // `disabled`:  `aria-disabled` on its box, and a look
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   /** Its comment list, if any. */
   readonly context = new E.PartContext({ domElement: this.domElement, noun: this.vocabulary.noun })
@@ -39,16 +45,10 @@ export class UIComment extends E.UIComponent<typeof commentVocabulary> {
     return this.disabled
   }
 
-  /** Folded away:  its `collapsed` attribute. */
-  @E.cssState("collapsed")
-  get isCollapsed(): boolean {
-    return this.collapsed
-  }
-
   render(): JSX.Element {
     return (
       <article
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("comment")}
         aria-disabled={this.disabled ? "true" : undefined}
       >

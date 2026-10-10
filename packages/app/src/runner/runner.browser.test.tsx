@@ -8,17 +8,19 @@ import type { SpellCompiled } from "$/app/runner/runner.types"
 import { uiReady } from "$/app/solid/loadUI"
 import { SpellAppRunner, type SpellAppControls, type SpellAppSource } from "./SpellAppRunner"
 import { RunnerSplit } from "./RunnerSplit"
-import { defineSpellApp, type SpellAppElement } from "./SpellAppElement"
+import type { DOMSpellAppElement } from "$/app/components/spell-app"
 
 /**
  * The Solid runners, in the browser:  `<SpellAppRunner>` running compiled spell into its app root, live, and the
  * `<spell-app>` element around it.
- * - The runtime:  `spellRuntime.ts` as vite serves it, imported by its URL -- ALSO the program's `@spell/core`,
- *   so the program and the runner share its `spellCore`, as with a real `spell-runtime.js` copy.  `loadRuntime()`'s
- *   `blob:` copy can't load in dev:  vite's imports are root-relative, which a `blob:` URL can't resolve.
- * - The program draws with Solid (`spellCore.element()`), into the runner's app root:  as compiled spell writes it,
- *   a value that can change is a function (`() => this.count`).
- * - `shadowStyles()` is stubbed:  the test server doesn't serve `static/` (Semantic UI, Lato).
+ * - The runtime:  `spellRuntime.ts` as vite serves it, imported by its URL --
+ *   ALSO the program's `@spell/core`, so the program and the runner share its `spellCore`,
+ *   as with a real `spell-runtime.js` copy.
+ *   `loadRuntime()`'s `blob:` copy can't load in dev:
+ *   vite's imports are root-relative, which a `blob:` URL can't resolve.
+ * - The program draws with Solid (`spellCore.element()`), into the runner's app root:
+ *   as compiled spell writes it, a value that can change is a function (`() => this.count`).
+ * - `adoptShadowStyles()` is stubbed:  the test server doesn't serve `static/` (Semantic UI, Lato).
  */
 vi.mock("./loadRuntime", async (importOriginal) => {
   const original = await importOriginal<typeof import("./loadRuntime")>()
@@ -26,7 +28,7 @@ vi.mock("./loadRuntime", async (importOriginal) => {
 })
 vi.mock("./shadowStyles", async (importOriginal) => {
   const original = await importOriginal<typeof import("./shadowStyles")>()
-  return { ...original, shadowStyles: async () => [] }
+  return { ...original, adoptShadowStyles: async () => {} }
 })
 
 /** A program with an app:  a counter, drawn as a button that counts its clicks.  It logs as it starts. */
@@ -375,7 +377,7 @@ describe("<RunnerSplit>", () => {
 
 describe("<spell-app>", () => {
   test("defined once;  `width` / `height` set its inline size", async () => {
-    defineSpellApp()
+    await import("$/app/components/spell-app")
     expect(customElements.get("spell-app")).toBeDefined()
     const app = await mountApp(`<spell-app width="300px" height="200px"></spell-app>`)
     expect(app.style.width).toBe("300px")
@@ -435,6 +437,30 @@ describe("<spell-app>", () => {
     await waitFor(() => root.querySelector("button.count")?.textContent === "Count: 2")
     app.restart()
     await waitFor(() => root.querySelector("button.count")?.textContent === "Count: 1")
+  })
+
+  test("a move in one go keeps the app;  leaving the page lets go of it, a microtask later", async () => {
+    const app = await mountApp(`<spell-app toolbar></spell-app>`)
+    app.run(compiled(COUNTER))
+    const root = app.shadowRoot!
+    await waitFor(() => root.querySelector("button.count"))
+    const holder = document.createElement("div")
+    document.body.append(holder)
+    cleanups.push(() => holder.remove())
+    holder.append(app)
+    await ElementFixture.tick()
+    expect(root.querySelector("button.count")).not.toBeNull()
+    app.remove()
+    await ElementFixture.tick()
+    expect(root.childNodes).toHaveLength(0)
+    // back on the page:  a new component, running the code pushed before
+    holder.append(app)
+    await waitFor(() => root.querySelector("button.count"))
+  })
+
+  test("Type Explorer links go out as `spell-open`", async () => {
+    const app = await mountApp(`<spell-app></spell-app>`)
+    expect(app.component!.elementDefinition.event("spell-open")).toBe("spell-open")
   })
 })
 
@@ -514,16 +540,15 @@ async function mountSettable(
 }
 
 /** Add `<spell-app>` markup `html` to the page;  removed after the test. */
-async function mountApp(html: string): Promise<SpellAppElement> {
+async function mountApp(html: string): Promise<DOMSpellAppElement> {
   await uiReady
-  if (!customElements.get("spell-app")) defineSpellApp()
+  await import("$/app/components/spell-app")
   const holder = document.createElement("div")
   holder.innerHTML = html
-  const app = holder.firstElementChild as SpellAppElement
+  const app = holder.firstElementChild as DOMSpellAppElement
   document.body.append(app)
   cleanups.push(() => app.remove())
-  flush()
-  await ElementFixture.tick()
+  await ElementFixture.settle(app)
   return app
 }
 

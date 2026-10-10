@@ -1,4 +1,4 @@
-import { For, Show, onSettled, untrack, type Accessor } from "solid-js"
+import { For, Show, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -28,32 +28,27 @@ import treeDiagramCSS from "./UITreeDiagram.css?inline"
  *   - The property wins.
  *   - Invalid JSON draws nothing, and warns once.
  *   - It redraws when `tree` is set again:  set a NEW tree (one changed in place isn't seen).
- * - Layout:  `TreeLayout` (pure).  Drawn at its natural size in em (`--_ui-tree-diagram-natural-width`),
+ * - Layout:  `TreeLayout` (pure).
+ *   Drawn at its natural size in em (`--_ui-tree-diagram-natural-width`),
  *   shrinking to fit its container down to `--ui-tree-diagram-min-scale`, and scrolling sideways below that.
- * - Nothing to draw:  the `<svg>` is `ui tree diagram empty`, hidden;  the DOM element has no height.
+ * - Nothing to draw:  the `<svg>` is `ui empty tree diagram`, hidden;  the DOM element has no height.
  * - Accessibility:  the `<svg>` is `role="img"`, named by a summary ("Tree:  If, with 3 children");
  *   each node's `title` is its box's `<title>` (hover text).
  ****************/
 export class UITreeDiagram extends E.UIComponent<typeof treeDiagramVocabulary> {
   @E.proto static vocabulary = treeDiagramVocabulary
-  @E.proto static styleSheets = { "tree-diagram": treeDiagramCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "tree-diagram": treeDiagramCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
-  /** JSON text of the `<script type="application/json">` child;  `undefined` without one.  Followed in `onMount()`. */
-  @E.state accessor scriptText: string | undefined = isServer
-    ? undefined
-    : untrack(() => TreeData.scriptText(this.domElement))
-
-  /** Follow the script child as the page changes it. */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      onSettled(() => {
-        const observer = new MutationObserver(() => (this.scriptText = TreeData.scriptText(this.domElement)))
-        observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
-        return () => observer.disconnect()
-      })
-    }
-    return super.onMount()
+  /**
+   * JSON text of the `<script type="application/json">` child;  `undefined` without one.
+   * - Follows the script child as the page changes it.
+   */
+  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  get scriptText(): string | undefined {
+    return isServer ? undefined : TreeData.scriptText(this.domElement)
   }
 
   /**
@@ -92,14 +87,14 @@ export class UITreeDiagram extends E.UIComponent<typeof treeDiagramVocabulary> {
    * - Reads `tree` itself, not just `drawnTree`:  so the classes follow EVERY write to it,
    *   as `ElementFixture.breakRender()` needs (the only attribute is a non-class one).
    */
-  protected override get extraClasses(): string | undefined {
+  protected override get extraClass(): string | undefined {
     return TreeData.node(this.tree) || this.scriptTree ? undefined : EMPTY
   }
 
   render(): JSX.Element {
     return (
       <svg
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("diagram")}
         role={this.layout ? "img" : undefined}
         aria-label={this.summary()}
@@ -215,7 +210,7 @@ export class UITreeDiagram extends E.UIComponent<typeof treeDiagramVocabulary> {
 /** The vocabulary getters, typed (`UIComponent`'s doc). */
 export interface UITreeDiagram extends E.AttributeValues<typeof treeDiagramVocabulary> {}
 
-/** Class word after the noun when there's nothing to draw (`ui tree diagram empty`):  the `<svg>` hides. */
+/** Class word before the noun when there's nothing to draw (`ui empty tree diagram`):  the `<svg>` hides. */
 const EMPTY = "empty"
 
 /** Class of each node's `<g>`, its box, its texts;  each edge;  each slot label. */

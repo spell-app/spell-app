@@ -1,12 +1,15 @@
 /**
- * `UIT` -- what several component families share:  event details, the CSS contracts every implementation of a
- * component (the element and its native fallback) must honour, vocabulary pieces, and the words more than one family
- * reads (`UIT.ACTIVE`, `UIT.Key`).
+ * `UIT` -- what several component families share:
+ * - event details
+ * - the CSS contracts every implementation of a component (the element and its native fallback) must honour
+ * - vocabulary pieces, and the words more than one family reads (`UIT.ACTIVE`, `UIT.Key`)
+ *
  * - Read as `UIT.X`:  element and fallback files `import { E, UI, UIT } from "$/ui/core"`;
  *   vocabularies and types files, which node imports (`yarn site:data`, `yarn gen:root`),
  *   value-import this file directly, `import * as UIT from "$/ui/components/components.types"` (`AGENTS.md` "Imports").
- * - PURE DATA, at the bottom of the import graph:  `import type` only, so node loads it and it never pulls in the
- *   element layer.  Its small helper classes (`Flags`, `StackClasses`, `ToggleCommands`) read only what's here.
+ * - PURE DATA, at the bottom of the import graph:
+ *   `import type` only, so node loads it and it never pulls in the element layer.
+ *   Its small helper classes (`Flags`, `StackClasses`, `ToggleCommands`) read only what's here.
  * - A constant ONE family reads stays in that family's types file;  it moves here once a second family needs it.
  */
 
@@ -133,9 +136,9 @@ export type ItemType = "item" | "header" | "divider"
 
 /**
  * How an OWNER wants its generic `<ui-item>`s rendered, from `ItemOwner.itemContext()`.
- * - The item finds its owner through `PartContext` (the owner's vocabulary `ownsParts` has `item`) and reads
- *   this in a memo, so an owner attribute change (`<ui-list selection>`,
- *   `<ui-menu interactive>`) re-renders every item.
+ * - The item finds its owner through `PartContext` (the owner's vocabulary `ownsParts` has `item`)
+ *   and reads this in a memo, so an owner attribute change
+ *   (`<ui-list selection>`, `<ui-menu interactive>`) re-renders every item.
  */
 export type ItemContext = {
   /** Role of the item's DOM element (internals), e.g. `listitem`;  `undefined` for none. */
@@ -147,8 +150,9 @@ export type ItemContext = {
   /** `aria-current` of a SELECTED item that is a link:  `page` in a navigation menu. */
   current: "page" | "true"
   /**
-   * The item OWNS its content parts (`:state(in-item)`):  the Items view.  Default false:  a list's or menu's parts
-   * see through the item to the list / menu (`:state(in-list)`).  See `ConditionalOwner`.
+   * The item OWNS its content parts (`:state(in-item)`):  the Items view.
+   * - Default false:  a list's or menu's parts see through the item to the list / menu (`:state(in-list)`).
+   * - See `ConditionalOwner`.
    */
   ownsParts?: boolean
   /** Classes of the `image` shorthand's `<img>`;  default `ui avatar image` (a list's avatar). */
@@ -191,10 +195,11 @@ export const DROPDOWN_ANCHOR_PROPERTY = "--_ui-dropdown-anchor"
 ////////////////
 
 /**
- * Custom property an owner sets on itself to steer a slotted `<ui-icon>` (a `display: contents` element takes no box
- * styles from `::slotted()`), e.g. `--_ui-icon-owner-margin: 0 0.75em 0 0` on a label root.  See `UIIcon.css`.
- * - PRIVATE (`--_ui-`):  an internal switch between components, never a theming surface
- *   (`docs/theming.md` "Owner tokens").
+ * Custom property an owner sets on itself to steer a slotted `<ui-icon>`,
+ * e.g. `--_ui-icon-owner-margin: 0 0.75em 0 0` on a label root.  See `UIIcon.css`.
+ * - Why:  a `display: contents` element takes no box styles from `::slotted()`.
+ * - PRIVATE (`--_ui-`):  an internal switch between components, never a theming surface.
+ *   See `docs/theming.md` "Owner tokens".
  */
 export type IconOwnerToken =
   | "--_ui-icon-owner-display"
@@ -228,8 +233,8 @@ export type HeaderLevel = 1 | 2 | 3 | 4 | 5 | 6
  * - The look tokens (`modalHeaderSize`, `statisticValueSize`) name the owner's private ALIAS of a public token
  *   (`--_ui-modal-header-size: var(--ui-modal-header-size, 1.42857em)`):  the page sets the public one,
  *   the owner's variations write the alias, and parts read only the alias (`docs/theming.md` "Owner tokens").
- * - MUST be declared on EVERY root of the owner, default value included, so a nested owner never inherits an
- *   outer owner's layout.
+ * - MUST be declared on EVERY root of the owner, default value included,
+ *   so a nested owner never inherits an outer owner's layout.
  * - `inverted` owners also set `color-scheme: dark`;  the token is only for looks the dark scheme doesn't give.
  */
 export const PartOwnerTokens = {
@@ -265,17 +270,20 @@ export const PartOwnerTokens = {
 export const PART_STATIC_CLASS_PREFIX = "in-"
 
 /**
- * Marks the NATIVE control in a static server render (`$/ui/static`), for the flattener:  the DOM element's `id`
- * and ARIA names belong there, so a `<label for>` the DOM element's id labels the control.
- * - Elements NEVER set it in a browser;  `StaticFlattener` moves the DOM element's `id` / `aria-label*` /
- *   `aria-describedby` there, then drops the mark (seo plan, T5).
+ * Marks the NATIVE control in a static server render (`$/ui/static`), for the flattener:
+ * the DOM element's `id` and ARIA names belong there,
+ * so a `<label for>` naming the DOM element's id labels the control.
+ * - Elements NEVER set it in a browser;
+ *   `StaticFlattener` moves the DOM element's `id` / `aria-label*` / `aria-describedby` there,
+ *   then drops the mark (seo plan, T5).
  */
 export const STATIC_CONTROL = "data-ui-control"
 
 /**
  * Marks each component ROOT in a static server render (`$/ui/static`) with its family's kind (`data-ui="table"`).
- * - The flattener writes it (as `SSR.ROOT_ATTRIBUTE`, which IS this);  a component writes it itself only on what the
- *   flattener never sees as a root:  `<ui-table>`'s slotted author table.
+ * - The flattener writes it (as `SSR.ROOT_ATTRIBUTE`, which IS this);
+ *   a component writes it itself only on what the flattener never sees as a root:
+ *   `<ui-table>`'s slotted author table.
  * - PUBLISHED spelling:  component sheets (`:not([data-ui])`) and `native.css` spell it out.
  */
 export const STATIC_ROOT = "data-ui"
@@ -286,8 +294,8 @@ export const STATIC_ROOT = "data-ui"
 
 /**
  * Size container a top-level `<ui-grid>` establishes (`container: ui-grid / inline-size`), see `UIGrid.css`.
- * - `stackable`, `doubling`, `reversed` and per-device widths answer to it, not to the viewport (unless
- *   `stack-with="page"`, see "Stacking").
+ * - `stackable`, `doubling`, `reversed` and per-device widths answer to it, not to the viewport
+ *   (unless `stack-with="page"`, see "Stacking").
  * - Page CSS may query it too, e.g. `@container ui-grid (width < 768px) { ... }` inside a column.
  */
 export const GRID_CONTAINER_NAME = "ui-grid"
@@ -316,7 +324,7 @@ export type StackWith = (typeof StackWithValues)[number]
 export const STACK_WITH_TOKEN = "--ui-stack-with"
 
 /**
- * Prefix of the private class an element's `stack-with` adds after the noun:  `ui stackable grid stack-with-page`.
+ * Prefix of the private class an element's `stack-with` adds before the noun:  `ui stackable stack-with-page grid`.
  * - A class, not a `:state()` of the DOM element:
  *   `:state()` rules left WebKit with stale viewport media queries (`UITable.css`'s `stack-by`, the same mechanism)
  * - From the CANONICAL value, so a translated attribute still works
@@ -341,10 +349,12 @@ export class StackClasses {
 
 /**
  * `appearance` of `<ui-menu>` and `<ui-tabs>` (whose tab list IS a menu):  the menu's LOOK, one word.
- * - Each value emits itself as the class word (`kind: "valueOnly"`), so `appearance="tabular"` ~== the older
- *   boolean `tabular`, which stays as an alias;  `appearance="pointing" secondary` ~== `secondary pointing`.
- * - `segmented` is ours:  a bordered group of joined items, the selected one filled with the menu's colour (the
- *   primary colour by default) -- a segmented control.  It hugs its items;  `alignment` places it.
+ * - Each value emits itself as the class word (`kind: "valueOnly"`),
+ *   so `appearance="tabular"` ~== the older boolean `tabular`, which stays as an alias;
+ *   `appearance="pointing" secondary` ~== `secondary pointing`.
+ * - `segmented` is ours, a segmented control:  a bordered group of joined items,
+ *   the selected one filled with the menu's colour (the primary colour by default).
+ *   It hugs its items;  `alignment` places it.
  * - NOTE: not `vertical` (an orientation every look combines with) or `basic` (`<ui-tabs basic>` is the panes')
  */
 export const MenuAppearances = ["tabular", "pointing", "secondary", "text", "segmented"] as const
@@ -379,13 +389,13 @@ export type MessageDismissDetail = {
 ////////////////
 
 /**
- * Inherited tokens a `<ui-breadcrumb>` sets INLINE on its root, which every `<ui-breadcrumb-section>` draws as
- * its leading divider.  See "Dividers" in `UIBreadcrumb.css`.
+ * Inherited tokens a `<ui-breadcrumb>` sets INLINE on its root,
+ * which every `<ui-breadcrumb-section>` draws as its leading divider.  See "Dividers" in `UIBreadcrumb.css`.
  * - `text` -- a CSS STRING (`"›"`), from `divider`;  quote and escape it as CSS (`\"`, `\\`, `\A `), not JSON
- * - `icon` -- an `<image>`, `url("data:image/svg+xml,...")` of the `divider-icon` SVG;  painted as a mask in
- *   `currentColor`
- * - `layout` -- `icon` while `divider-icon` is set;  removed otherwise.  PRIVATE (`--_ui-`):
- *   a switch the element decides;  static markup sets it by hand
+ * - `icon` -- an `<image>`, `url("data:image/svg+xml,...")` of the `divider-icon` SVG;
+ *   painted as a mask in `currentColor`
+ * - `layout` -- `icon` while `divider-icon` is set;  removed otherwise.
+ *   PRIVATE (`--_ui-`):  a switch the element decides;  static markup sets it by hand
  */
 export const BreadcrumbDividerTokens = {
   text: "--ui-breadcrumb-divider",
@@ -419,8 +429,8 @@ export type InputChangeDetail = {
 /**
  * Inherited tokens an OWNER sets for the text controls inside it (`UIInput.css`), e.g. `<ui-field>` on its root.
  * - `width` -- the DOM element's inline size (`100%` in a field, `auto` in an inline one)
- * - `color` / `background` / `border` -- a field's state, RESOLVED colours (declared where the state's remap
- *   runs), so a control's own `state` still wins
+ * - `color` / `background` / `border` -- a field's state, as RESOLVED colours
+ *   (declared where the state's remap runs), so a control's own `state` still wins
  */
 export const InputOwnerTokens = {
   width: "--_ui-input-owner-width",
@@ -456,8 +466,10 @@ export type FormValues = Record<string, E.FieldValue>
 /**
  * One field's rules in `<ui-form rules>`, Fomantic's `fields` shape:
  * - a shorthand string (`"notEmpty"`, `"minLength[6]"`) or a list of them / rule objects
- * - or `{ rules, optional?, depends?, identifier? }`:  `optional` skips a blank field, `depends` skips the field
- *   while another is blank, `identifier` names the control when the key doesn't
+ * - or `{ rules, optional?, depends?, identifier? }`:
+ *   - `optional` skips a blank field
+ *   - `depends` skips the field while another is blank
+ *   - `identifier` names the control when the key doesn't
  * - NOTE: Fomantic's deprecated `empty` means `notEmpty`
  */
 export type FormFieldRules =
@@ -508,8 +520,9 @@ export type FormFailureDetail = FormSuccessDetail & {
 }
 
 /**
- * Custom state every `<ui-field>` carries, always:  `<ui-form>` finds a control's field with
- * `control.closest(":state(field)")`, whatever the field's tag is called in a translation.
+ * Custom state every `<ui-field>` carries, always:
+ * `<ui-form>` finds a control's field with `control.closest(":state(field)")`,
+ * whatever the field's tag is called in a translation.
  */
 export const FIELD_HOST_STATE = "field"
 
@@ -577,8 +590,9 @@ export type ListSelectDetail = {
 ////////////////
 
 /**
- * Variations of a `<ui-cards>` group that every card in it takes as its OWN class when it doesn't set the
- * attribute itself (Fomantic's `.ui.raised.cards > .card`), read through `UICards.variationFor()`.
+ * Variations of a `<ui-cards>` group that every card in it takes as its OWN class,
+ * when it doesn't set the attribute itself (Fomantic's `.ui.raised.cards > .card`).
+ * - Read through `UICards.variationFor()`.
  */
 export type CardSharedVariation = "size" | "color" | "horizontal" | "raised" | "link" | "basic" | "inverted"
 
@@ -611,8 +625,8 @@ export type PopupOpenDetail = {
 
 /**
  * Why a `<ui-modal>` is closing, in `ui-close`'s `detail.reason`.
- * - `escape` / `outside` / `close-all` -- as `UI.overlays` asks (`DismissReason`);  `outside` is a click on the
- *   `::backdrop`
+ * - `escape` / `outside` / `close-all` -- as `UI.overlays` asks (`DismissReason`);
+ *   `outside` is a click on the `::backdrop`
  * - `close` -- the close icon
  * - `approve` / `deny` -- an approve / deny button (after its own `ui-approve` / `ui-deny`)
  */
@@ -645,8 +659,8 @@ export type ModalActionDetail = {
 }
 
 /**
- * Which activated elements inside a `<ui-modal>` approve or deny it:  Fomantic's `.actions` classes,
- * plus the `positive` / `negative` attributes of a `<ui-button>`.
+ * Which activated elements inside a `<ui-modal>` approve or deny it:
+ * Fomantic's `.actions` classes, plus the `positive` / `negative` attributes of a `<ui-button>`.
  * - Matched against the light-DOM elements on a click's composed path, innermost first;
  *   the native fallback uses the same selectors.
  */
@@ -678,8 +692,8 @@ export type SelectChangeDetail = {
 ////////////////
 
 /**
- * One result of a `<ui-search>`, Fomantic's result fields;  other fields may ride along (`search-fields` can name
- * them).
+ * One result of a `<ui-search>`, Fomantic's result fields;
+ * other fields may ride along (`search-fields` can name them).
  */
 export type SearchResult = {
   /** shown, and what choosing the result puts in the input */
@@ -720,8 +734,8 @@ export type SearchResponse =
   | { results?: readonly SearchResult[] | readonly SearchCategory[] | Readonly<Record<string, SearchCategory>> }
 
 /**
- * How a local search matches, Fomantic's `fullTextSearch`:  a query at the START of a word always matches (and
- * sorts first);  then
+ * How a local search matches, Fomantic's `fullTextSearch`:
+ * a query at the START of a word always matches (and sorts first);  then
  * - `exact` -- anywhere in the field (default)
  * - `fuzzy` -- its characters in order, gaps allowed (Fomantic's `true`)
  * - `prefix` -- nothing more (Fomantic's `false`)
@@ -940,8 +954,8 @@ export type DimmerCloseDetail = {
 
 /**
  * Why a `<ui-sidebar>` is closing, in `ui-close`'s `detail.reason`.
- * - `escape` / `outside` / `close-all` -- as `UI.overlays` asks;  `outside` is a click on the pusher (or anywhere
- *   else outside the sidebar)
+ * - `escape` / `outside` / `close-all` -- as `UI.overlays` asks;
+ *   `outside` is a click on the pusher (or anywhere else outside the sidebar)
  * - `close` -- the `--close` / `--toggle` invoker command
  */
 export type SidebarCloseReason = "escape" | "outside" | "close-all" | "close"
@@ -966,10 +980,11 @@ export type SidebarCloseDetail = {
 
 /****************
  * ### `ToggleCommands`
- * Invoker commands a `<ui-modal>`, `<ui-flyout>`, `<ui-sidebar>`, `<ui-dimmer>`, `<ui-popup>`,
- * `<ui-dropdown>` and `<ui-toast>` (`--close` only) answer (`<button commandfor="id" command="--toggle">`):
- * custom commands, since a custom element gets no built-in ones (`show-modal` only reaches a real `<dialog>`).
- * All are user actions (the cancelable `ui-open` / `ui-close` first).
+ * Invoker commands that show, close or toggle an element (`<button commandfor="id" command="--toggle">`),
+ * answered by `<ui-modal>`, `<ui-flyout>`, `<ui-sidebar>`, `<ui-dimmer>`, `<ui-popup>`, `<ui-dropdown>`
+ * and `<ui-toast>` (`--close` only).
+ * - Custom commands, since a custom element gets no built-in ones (`show-modal` only reaches a real `<dialog>`).
+ * - All are user actions:  the cancelable `ui-open` / `ui-close` first.
  * - The words, `ToggleCommands.show` ... (as `TransitionCommands` / `ShapeCommands` hold theirs), and `action()`,
  *   the shared first step of every family's `onCommand`.
  * - Static:  one set of words per page.
@@ -985,8 +1000,8 @@ export class ToggleCommands {
   static readonly toggle = "--toggle"
 
   /**
-   * What `event` asks of an element that is `open` now:  `"show"`, `"close"`, or `undefined` for a command it doesn't
-   * know (`--toggle` flips `open`).
+   * What `event` asks of an element that is `open` now:
+   * `"show"`, `"close"`, or `undefined` for a command it doesn't know (`--toggle` flips `open`).
    */
   static action(event: Event, open: boolean): "show" | "close" | undefined {
     const { command } = event as Event & { command?: string }
@@ -1042,8 +1057,8 @@ export type WordWidth = (typeof WordWidths)[number]
 
 /****************
  * ### `WordWidthClasses`
- * The word a `width` adds after the noun (`ui left sidebar thin`), shared by `<ui-sidebar>`,
- * `<ui-flyout>` and their fallbacks:  `ClassBuilder`'s `width` kind only knows columns.
+ * The word a `width` adds before the noun (`ui left thin sidebar`),
+ * shared by `<ui-sidebar>`, `<ui-flyout>` and their fallbacks:  `ClassBuilder`'s `width` kind only knows columns.
  ****************/
 export class WordWidthClasses {
   /**
@@ -1095,8 +1110,9 @@ export const SIDE_HOST_STATE = "side"
 ////////////////
 
 /**
- * One panel of a `<ui-accordion>`:  a title child and the child after it, wrapped in one `<details>` in the shadow
- * root.  `AccordionPanels.read()` keeps the same object while the pair is unchanged, so the panel isn't re-rendered.
+ * One panel of a `<ui-accordion>`:  a title child and the child after it,
+ * wrapped in one `<details>` in the shadow root.
+ * - `AccordionPanels.read()` keeps the same object while the pair is unchanged, so the panel isn't re-rendered.
  */
 export type AccordionPanel = {
   /** the `<ui-title>` child */
@@ -1341,8 +1357,9 @@ export const CLOSE_ICON = "xmark"
 export const CLOSE_TEXT = "×"
 
 /**
- * Prefix of the colour remap class a coloured box adds without the `ui` word (`ui-red`):  an item, a step,
- * a feed event.  Why:  the generic remap (`colors.css`) keys on `.ui.red` or `.ui-red`.
+ * Prefix of the colour remap class a coloured box adds without the `ui` word (`ui-red`):
+ * an item, a step, a feed event.
+ * - Why:  the generic remap (`colors.css`) keys on `.ui.red` or `.ui-red`.
  */
 export const COLOR_CLASS_PREFIX = "ui-"
 
@@ -1524,8 +1541,8 @@ export type SourceErrorDetail = {
 
 /**
  * Attributes of an element whose BODY can come from a file, loaded the first time it opens;
- * spread into its vocabulary's `attributes` (`<ui-section>`, and so every subclass reusing its vocabulary,
- * `<ui-accordion>`).
+ * spread into its vocabulary's `attributes`:
+ * `<ui-section>`, and so every subclass reusing its vocabulary (`<ui-accordion>`).
  */
 export const SourceBodyAttributes = [
   {

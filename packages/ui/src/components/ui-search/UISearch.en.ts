@@ -6,8 +6,8 @@
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-search category fluid aligned="right">` => `ui category fluid right aligned search`.
  *   `UISearch.css` keys on those words.
- * - Rich data is a PROPERTY (`source`, `kind: "json"`);  first paint never needs it -- the input and its `value`
- *   are all SSR must show.
+ * - Rich data is a PROPERTY (`source`, `kind: "json"`);
+ *   first paint never needs it -- the input and its `value` are all SSR must show.
  */
 
 import type { E } from "$/ui/core"
@@ -15,8 +15,8 @@ import * as UIT from "$/ui/components/components.types"
 
 /****************
  * ### `<ui-search>`
- * A combobox + listbox:  a text `<input>` and an anchor-positioned popover of results, from a local `source` or a
- * remote `url`.
+ * A combobox + listbox:  a text `<input>` and an anchor-positioned popover of results,
+ * from a local `source` or a remote `url`.
  ****************/
 export const searchVocabulary = {
   tag: "ui-search",
@@ -48,6 +48,12 @@ export const searchVocabulary = {
     },
     { name: "loading", kind: "keyOnly", description: "Busy:  the icon spins.  Also shown while a remote query runs." },
     { name: "disabled", kind: "keyOnly", description: "Can't be used;  dimmed, and left out of the form." },
+    {
+      name: "readonly",
+      kind: "boolean",
+      property: "readOnly",
+      description: "Shows its value but can't be typed in, and the results never open;  still focusable and submitted."
+    },
     {
       name: "open",
       kind: "boolean",
@@ -167,6 +173,7 @@ export const searchVocabulary = {
   states: [
     { name: "open", description: "The results are showing." },
     { name: "disabled", description: "Can't be used." },
+    { name: "readonly", description: "`readonly`:  can't be changed." },
     { name: "loading", description: "Busy (`loading`, or a remote query running)." },
     { name: "invalid", description: "Fails validation (`required`)." },
     { name: "fluid", description: "The host is block-level (`fluid`)." }

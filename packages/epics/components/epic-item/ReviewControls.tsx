@@ -1,6 +1,8 @@
 import { For, Show, createEffect, createSignal, onSettled, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
+import { E } from "$/ui/core"
+
 import { DRAFT_SAVE_MS, FOCUS_HOLD_MS, NOBODY_LISTENING, clockOf, isImmediate, type InboxMark } from "$/epics/review"
 
 import {
@@ -19,6 +21,7 @@ import {
   SAID_EDIT,
   SAID_NOTE,
   SAID_WHAT,
+  type NoteButtonSpec,
   type NoteHow,
   type ReviewButtonSpec,
   type ReviewFill,
@@ -39,16 +42,20 @@ import type { ReviewState } from "./ReviewState"
 /****************
  * ### `<ReviewButtons>`
  * The controls at the end of a line:  the note bubble (what Owen wrote, its words as the tooltip), a pick's letter,
- * the group (Approve, Revisit, Make Todo), then Do Now apart (decision Q20).
+ * the group (Approve, Revisit, Make Todo), then Do Now apart (decision Q20, the wand);
+ * a todo's group instead:  the plane (do it in the next phase), Revisit, the x (drop it:  Owen, 2026-10-09).
  * - every button shows at every step, its FILL saying how far its mark has got (`ReviewFill`, `fillOf()`):
  *   a grey outline available;  dashed in its colour pressed, not sent;  outlined sent (a Do Now:  taken);
  *   then CLEARED, a grey outline again, once Claude has handled it (they're Owen's input:  the id chip carries
  *   the result, Owen, 2026-10-08)
- * - colours:  green decided (Approve, Make Todo), blue an ask of Claude (Revisit, Do Now)
+ * - colours:  green decided (Approve, Make Todo, a todo's plane), blue an ask of Claude (Revisit, Do Now),
+ *   grey no longer relevant (a todo's x)
  * - work on its way or under way (`ReviewState.busyButton()`):  that button's icon turns while Claude is on it
  *   (`data-busy`);  queued with nobody listening, it stays dashed.  Clicked then:  "nevermind"
  * - Revisit asks the element to take the reader to the note box (`onOpenBox`);
  *   Do Now takes the note in it along (`ReviewClient.press()`)
+ * - a click that CHOSE an action (not one that cleared a mark or called a request off) tells the element
+ *   (`onChosen`):  an item folds, so Owen moves on to the next (Owen, 2026-10-10)
  * - tooltips:  the plain browser ones (`title`), just the name (Q8), then the element's review label
  *   (`Approve · reviewed 10/7/26`:  Owen, 2026-10-07, in place of the label beside them);
  *   a screen reader hears the state too
@@ -105,7 +112,9 @@ export function ReviewButtons(props: ReviewButtonsProps) {
           // the line's own click would fold it
           event.preventDefault()
           event.stopPropagation()
-          if (props.review.press(spec.action) === "open-box") props.onOpenBox()
+          const pressed = props.review.press(spec.action)
+          if (pressed === "open-box") props.onOpenBox()
+          else if (pressed === "chosen") props.onChosen?.()
         }}
       />
     )
@@ -162,7 +171,7 @@ export type ReviewButtonsProps = {
   text: ReviewText
   /** the element's id as shown (`Q7`, `O1`):  the group's spoken name */
   label: string
-  /** which buttons, in their order:  an item's four;  an Overview section's, without Approve */
+  /** which buttons, in their order:  an item's four;  a todo's three;  an Overview section's, without Approve */
   buttons: readonly ReviewButtonSpec[]
   /** the element's review label in words (`reviewed 10/7/26`), after every button's name in its tooltip */
   reviewTip?: string
@@ -170,6 +179,8 @@ export type ReviewButtonsProps = {
   part: string
   /** Revisit was pressed:  take the reader to the note box */
   onOpenBox: () => void
+  /** a button chose an action for it (Approve, Make Todo, Do Now, a todo's plane or x);  none:  nothing more */
+  onChosen?: () => void
 }
 
 /****************
@@ -177,7 +188,8 @@ export type ReviewButtonsProps = {
  * The note box (Owen, 2026-10-06, Q8):  Owen's voice, on ivory --
  * a note that grows as it's typed in, a small Saved mark in its corner,
  * and two round buttons stacked at its right:
- * Revisit Later (blue:  revisit soon, the line's Revisit icon), Make Todo (green).
+ * Revisit Later (blue:  revisit soon, the line's Revisit icon), Make Todo (green);
+ * a todo's (`TODO_NOTE_BUTTONS`):  the plane (green), Revisit Later, the x (grey), in its line's order.
  * Do Now is the line's (decision Q20):  it takes the note along.
  * - SAVED as typed:  to the inbox as a draft, `DRAFT_SAVE_MS` after the last key,
  *   and at once when the box loses focus or the page goes away
@@ -190,7 +202,7 @@ export type ReviewButtonsProps = {
  ****************/
 export function NoteBox(props: NoteBoxProps) {
   let note: HTMLTextAreaElement | undefined
-  let timer = 0
+  let timer: E.CancelablePromise<unknown> | undefined
   const review = props.review
   const [saved, setSaved] = createSignal<{ ok: boolean; at?: string } | undefined>(
     untrack(() => (review.draft() ? { ok: true, at: review.draft()!.at } : undefined))
@@ -205,9 +217,10 @@ export function NoteBox(props: NoteBoxProps) {
   onSettled(() => {
     const onPageHide = () => flush({ keepalive: true })
     window.addEventListener("pagehide", onPageHide)
+    // closed with a draft not saved yet (an item without details, folded by its chevron):  saved now
     return () => {
       window.removeEventListener("pagehide", onPageHide)
-      clearTimeout(timer)
+      flush()
     }
   })
   return (
@@ -243,7 +256,7 @@ export function NoteBox(props: NoteBoxProps) {
         </span>
       </span>
       <span class={NOTE_ACTIONS}>
-        <For each={NOTE_BUTTONS}>
+        <For each={props.buttons ?? NOTE_BUTTONS}>
           {(spec) => (
             <button
               type="button"
@@ -265,8 +278,8 @@ export function NoteBox(props: NoteBoxProps) {
   function onInput() {
     review.client?.type(review.id(), note!.value)
     setSaved(undefined)
-    clearTimeout(timer)
-    timer = window.setTimeout(() => void saveDraft(), DRAFT_SAVE_MS)
+    timer?.cancel()
+    timer = E.after(DRAFT_SAVE_MS / 1000, () => void saveDraft())
   }
 
   /** Escape:  leave the box, the draft saved. */
@@ -280,8 +293,8 @@ export function NoteBox(props: NoteBoxProps) {
 
   /** A note box button:  the note becomes a mark;  the box empties. */
   function use(how: NoteHow) {
-    clearTimeout(timer)
-    timer = 0
+    timer?.cancel()
+    timer = undefined
     const text = note!.value.trim()
     note!.value = ""
     setSaved(undefined)
@@ -292,13 +305,13 @@ export function NoteBox(props: NoteBoxProps) {
   /** Save a pending draft now (`keepalive`:  the page is going away). */
   function flush({ keepalive = false } = {}) {
     if (!timer) return
-    clearTimeout(timer)
+    timer.cancel()
     void saveDraft({ keepalive })
   }
 
   /** Save the note as the element's draft;  the floppy says how it went. */
   async function saveDraft({ keepalive = false } = {}) {
-    timer = 0
+    timer = undefined
     const client = review.client
     if (!client || !note) return
     const text = note.value
@@ -327,11 +340,13 @@ export type NoteBoxProps = {
   label: string
   /** the `part` of the box */
   part: string
+  /** its buttons, in their order:  `NOTE_BUTTONS` (the default), or a todo's `TODO_NOTE_BUTTONS` */
+  buttons?: readonly NoteButtonSpec[]
   /** the note's `<textarea>`, as it's drawn:  for focusing it */
   ref?: (note: HTMLTextAreaElement) => void
   /** Escape pressed in it */
   onEscape?: () => void
-  /** a button made the note a mark */
+  /** a button made the note a mark:  an action chosen */
   onUsed?: () => void
 }
 
@@ -369,7 +384,7 @@ export function SaidNote(props: SaidNoteProps) {
 
   /** `revisit soon · sent 10:42`. */
   function what(mark: InboxMark): string {
-    const how = props.text(mark.action === "todo" ? "howTodo" : mark.when === "now" ? "howNow" : "howSoon")
+    const how = props.text(HOW_KEYS[mark.action] ?? (mark.when === "now" ? "howNow" : "howSoon"))
     if (!review.isSent()) return props.text("saidUnsent", { how })
     const sent = mark.when === "now" ? mark.at : review.client?.inbox.sent
     return props.text("saidSent", { how, time: clockOf(sent) })
@@ -415,14 +430,24 @@ export function takeToNote(
     const box = noteBox()
     box?.focus({ preventScroll: true })
     const focused = !!box && box.matches(":focus")
-    if (!focused && performance.now() < until) requestAnimationFrame(focus)
+    if (!focused && performance.now() < until) E.beforeNextPaint(focus)
   }
-  requestAnimationFrame(focus)
+  E.beforeNextPaint(focus)
 }
 
-/** The note box button `mark` stands for:  `todo`, `soon` (Later);  else none (a Do Now is the line's). */
+/** A marked note's kind, by its mark's action;  a revisit's is by its `when`. */
+const HOW_KEYS: Partial<Record<string, "howTodo" | "howNext" | "howDrop">> = {
+  todo: "howTodo",
+  next: "howNext",
+  drop: "howDrop"
+}
+
+/**
+ * The note box button `mark` stands for:  `todo`, a todo's `next` / `drop`, `soon` (Later);
+ * else none (a Do Now is the line's).
+ */
 function markButton(mark: InboxMark | undefined): NoteHow | undefined {
-  if (mark?.action === "todo") return "todo"
+  if (mark?.action === "todo" || mark?.action === "next" || mark?.action === "drop") return mark.action
   if (mark?.action === "revisit" && !isImmediate(mark)) return "soon"
   return undefined
 }

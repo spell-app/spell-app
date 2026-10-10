@@ -1,7 +1,15 @@
-import { createEffect, createMemo } from "solid-js"
+import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, proto, UIComponent, type ElementSetup } from "$/ui/core"
+import {
+  Cell,
+  proto,
+  protoMerged,
+  UIComponent,
+  whileConnected,
+  type ElementSetup,
+  type AttributeValues
+} from "$/ui/core"
 
 import { brandFlourishVocabulary } from "./UIBrandFlourish.en"
 import { Flourish } from "./Flourish"
@@ -32,8 +40,10 @@ import flourishCSS from "./UIBrandFlourish.css?inline"
  ****************/
 export class UIBrandFlourish extends UIComponent<BrandFlourishVocabulary> {
   @proto static vocabulary = brandFlourishVocabulary
-  @proto static styleSheets = { flourish: flourishCSS }
-  @proto static elementSetup = { delegatesFocus: false } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { flourish: flourishCSS },
+    delegatesFocus: false
+  } satisfies Partial<ElementSetup>
 
   /** The element's size, px, as last measured. */
   readonly size = new Cell<{ width: number; height: number }>(FALLBACK_SIZE)
@@ -42,17 +52,16 @@ export class UIBrandFlourish extends UIComponent<BrandFlourishVocabulary> {
   readonly art = createMemo(() => {
     const { width, height } = this.size.get()
     const colors = {
-      stroke: this.attrs.stroke || DEFAULT_COLORS.stroke,
-      fill: this.attrs.fill || DEFAULT_COLORS.fill,
-      fill2: this.attrs.fill2 || DEFAULT_COLORS.fill2,
-      weight: this.attrs.weight ?? DEFAULT_WEIGHT
+      stroke: this.stroke || DEFAULT_COLORS.stroke,
+      fill: this.fill || DEFAULT_COLORS.fill,
+      fill2: this.fill2 || DEFAULT_COLORS.fill2,
+      weight: this.weight ?? DEFAULT_WEIGHT
     }
-    const variant = (this.attrs.variant ?? "swoop") as FlourishVariant
-    return Flourish.draw(variant, width, height, this.attrs.seed ?? DEFAULT_SEED, colors)
+    const variant = (this.variant ?? "swoop") as FlourishVariant
+    return Flourish.draw(variant, width, height, this.seed ?? DEFAULT_SEED, colors)
   })
 
   render(): JSX.Element {
-    this.effects()
     return (
       <svg
         class="art"
@@ -65,18 +74,15 @@ export class UIBrandFlourish extends UIComponent<BrandFlourishVocabulary> {
   }
 
   /** While connected:  measure the element, and again on every resize. */
-  private effects() {
-    createEffect(
-      () => this.isConnected,
-      (connected) => {
-        if (!connected) return undefined
-        const resizes = new ResizeObserver(() => {
-          const { width, height } = this.domElement.getBoundingClientRect()
-          if (width && height) this.size.set({ width, height })
-        })
-        resizes.observe(this.domElement)
-        return () => resizes.disconnect()
-      }
-    )
+  @whileConnected
+  protected measure() {
+    const resizes = new ResizeObserver(() => {
+      const { width, height } = this.domElement.getBoundingClientRect()
+      if (width && height) this.size.set({ width, height })
+    })
+    resizes.observe(this.domElement)
+    return () => resizes.disconnect()
   }
 }
+
+export interface UIBrandFlourish extends AttributeValues<BrandFlourishVocabulary> {}

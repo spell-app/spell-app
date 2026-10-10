@@ -18,14 +18,15 @@
  *
  * - The public tokens (`--ui-divider-*`) are NEVER declared here.
  *   The token block gives each a private alias, `--_ui-divider-margin: var(--ui-divider-margin, 1em)`,
- *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the element,
- *   `::part(divider)` or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ *   and every rule reads the alias.
+ *   So a value set on `:root`, an ancestor, the element, `::part(divider)` or in the app's style sheet
+ *   reaches the box (`docs/theming.md`, "Component tokens").
  *
  * - No `:state()`s:  the rules key on the inner box's classes.
  *
  * - `hidden` keeps its own attribute name, though its DOM property is `dividerHidden`
  *   (so it doesn't hide `HTMLElement.hidden`).
- *   `:host([hidden])` turns the browser's `display: none` back into `display: contents`,
+ *   `:host([hidden])` (unlayered) turns the browser's and `reset.css`'s `display: none` back into `display: contents`,
  *   so a hidden divider keeps its spacing.
  *
  * - Left out, on purpose:
@@ -40,17 +41,19 @@
             Divider
 *******************************/
 
+/*
+ * `hidden` is Fomantic's OWN divider word:  a "hidden divider" keeps its spacing, only the line goes.
+ * Not a way to hide it, so this overrides the browser's `[hidden] { display: none }`, and `reset.css`'s,
+ * which would take the element, and its margin, out of the layout.
+ * - UNLAYERED, as `reset.css`'s rule is:  same selector, and this sheet is adopted after it, so this one wins.
+ */
+:host([hidden]) {
+  display: contents;
+}
+
 @layer ui.components.divider.types {
   /* The DOM element:  no box of its own;  the inner box is the divider. */
   :host {
-    display: contents;
-  }
-  /*
-   * `hidden` is Fomantic's OWN divider word:  a "hidden divider" keeps its spacing, only the line goes.
-   * Not a way to hide it, so this overrides the browser's `[hidden] { display: none }`,
-   * which would take the element, and its margin, out of the layout.
-   */
-  :host([hidden]) {
     display: contents;
   }
 

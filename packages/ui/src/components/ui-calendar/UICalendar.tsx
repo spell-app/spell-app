@@ -1,6 +1,5 @@
 import { For, Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
-import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
@@ -27,13 +26,15 @@ import calendarCSS from "./UICalendar.css?inline"
  *
  * - Its shadow DOM:  a text field (`ui left icon input`) whose icon button opens a popover dialog with the picker;
  *   or, with `inline`, the picker itself.
- *   The picker is a header (previous / title / next) over a `<table role=grid>` in Fomantic's class grammar
- *   (`ui celled center aligned unstackable seven column table day`), then an optional Today / Now button.
+ *   The picker is a header (previous / title / next) over a `<table role=grid>`,
+ *   in Fomantic's class grammar (`ui celled center aligned unstackable seven column table day`),
+ *   then an optional Today / Now button.
  *
- * - Views (Fomantic's modes):  years => months => days => hours => minutes, as far as `type` goes
- *   (`CalendarDates.modes()`).
- *   Choosing a cell in a coarser view opens the next finer one;  the finest sets the value.
- *   The title button goes back up.  Pages, cells and bounds are `CalendarView`'s.
+ * - Views (Fomantic's modes):  years => months => days => hours => minutes,
+ *   as far as `type` goes (`CalendarDates.modes()`).
+ *   - Choosing a cell in a coarser view opens the next finer one;  the finest sets the value.
+ *   - The title button goes back up.
+ *   - Pages, cells and bounds are `CalendarView`'s.
  *
  * - Dates are `Temporal` (`UI.i18n.temporal`):  the browser's own, else `temporal-polyfill`, loaded lazily;
  *   the picker renders once it's here.
@@ -49,21 +50,22 @@ import calendarCSS from "./UICalendar.css?inline"
  *
  * - Typing:  the field's text is read on `change` / Enter (`CalendarText.read()`);
  *   unreadable or out-of-range text goes back to the value's.
- * - `value` and `open` are controlled (`@controlled`):  `ui-change` / `ui-open` / `ui-close` go first,
- *   and are cancelable.  The `value` ATTRIBUTE is the starting (and form-reset) value.
+ * - `value` and `open` are controlled (`@controlled`):
+ *   `ui-change` / `ui-open` / `ui-close` go first, and are cancelable.
+ *   The `value` ATTRIBUTE is the starting (and form-reset) value.
  * - Ranges (Fomantic's `startCalendar` / `endCalendar`):
  *   `start-calendar="id"` makes this the END (the partner's value is its minimum),
  *   and `end-calendar="id"` the START;  the span between them is highlighted.
  *   The partner is read through its component, so its changes are live.
  * - A form control:  it submits the ISO value;  `required`, reset, a disabled fieldset;  restores a saved state.
  ****************/
+@E.cssStates("fluid", "inline")
 export class UICalendar extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = calendarVocabulary
-  @E.proto static styleSheets = { input: inputCSS, calendar: calendarCSS }
-  @E.proto static elementSetup = { Fallback: CalendarFallback } satisfies Partial<E.ElementSetup>
-
-  /** The DOM element's `<label>`s and `aria-label`, as the field's name. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
+  @E.protoMerged static elementSetup = {
+    styleSheets: { input: inputCSS, calendar: calendarCSS },
+    Fallback: CalendarFallback
+  } satisfies Partial<E.ElementSetup>
 
   /** The popup button's glyph:  `icon`, else `calendar` (`clock` for `time`). */
   readonly iconGlyph = new E.IconGlyph({
@@ -99,10 +101,10 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
           this.temporal = temporal
         })
     }
-    onFormStateRestore((state) => {
-      this.value = typeof state === "string" ? state : ""
-    })
-    this.domElement.addEventListener("focusout", this.onFocusOut)
+  }
+
+  onFormStateRestore(state: File | string | FormData | null) {
+    this.value = typeof state === "string" ? state : ""
   }
 
   ////////////////
@@ -166,8 +168,9 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
    * Set the value to `moment` (`undefined` clears), dispatching the cancelable `ui-change` first;  true when applied.
    * - SIDE EFFECT:  drops typed text either way (a vetoed value shows the old one again).
    */
+  @E.untracked
   commit(moment: Moment | undefined, originalEvent?: Event): boolean {
-    const dates = untrack(() => this.dates)
+    const dates = this.dates
     if (!dates) return false
     const value = moment ? dates.format(moment) : ""
     const detail: UIT.CalendarChangeDetail = { value, originalEvent }
@@ -186,14 +189,15 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   /** Commit typed text to the value;  empty clears, unreadable or out-of-range reverts. */
+  @E.untracked
   private commitTypedText(event: Event) {
-    const text = untrack(() => this.typedText)
+    const text = this.typedText
     if (text === undefined) return
-    const dates = untrack(() => this.dates)
+    const dates = this.dates
     if (!dates) return
     if (!text.trim()) return void this.commit(undefined, event)
-    const moment = untrack(() => this.words).read(text, dates)
-    const [earliest, latest] = untrack(() => [this.earliest, this.latest])
+    const moment = this.words.read(text, dates)
+    const [earliest, latest] = [this.earliest, this.latest]
     if (
       !moment ||
       (earliest && dates.compare(moment, earliest, "minute") < 0) ||
@@ -229,8 +233,9 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
    * Open or close the popup, dispatching the cancelable `ui-open` / `ui-close` first;  true when applied.
    * - Opening starts over in the type's first view, on the value (or `initial-date`, or today).
    */
+  @E.untracked
   requestOpen(open: boolean, originalEvent?: Event): boolean {
-    if (this.inline || open === untrack(() => this.popupIsOpen)) return false
+    if (this.inline || open === this.popupIsOpen) return false
     if (open && (this.isDisabled || this.readonly)) return false
     const detail: UIT.CalendarOpenDetail = { open, originalEvent }
     const isApplied = this.requestChange("isOpen", open, () => this.send(open ? "ui-open" : "ui-close", detail))
@@ -273,14 +278,16 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   /** The icon button:  toggles;  opening puts focus in the grid (APG). */
+  @E.untracked
   private readonly onTriggerClick = (event: MouseEvent) => {
-    const popupIsOpen = untrack(() => this.popupIsOpen)
+    const popupIsOpen = this.popupIsOpen
     this.shouldMoveFocus = !popupIsOpen
     this.requestOpen(!popupIsOpen, event)
   }
 
   /** Focus leaving the DOM element (to something else that takes focus) closes the popup. */
-  private readonly onFocusOut = (event: FocusEvent) => {
+  @E.on("focusout")
+  protected onFocusOut(event: FocusEvent) {
     const next = event.relatedTarget as Node | null
     if (!next || this.domElement.contains(next) || this.domElement.renderRoot.contains(next)) return
     this.requestOpen(false, event)
@@ -380,15 +387,18 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * A cell was chosen:  the finest view sets the value (and closes the popup);  a coarser one opens the next view
-   * on that cell, keeping the finer fields of the focus (a month chosen keeps the day, clamped).
+   * A cell was chosen:
+   * - the finest view sets the value (and closes the popup)
+   * - a coarser one opens the next view on that cell,
+   *   keeping the finer fields of the focus (a month chosen keeps the day, clamped)
    */
+  @E.untracked
   choose(cell: CalendarCell, originalEvent?: Event) {
-    const dates = untrack(() => this.dates)
-    const focus = untrack(() => this.focusedMoment)
+    const dates = this.dates
+    const focus = this.focusedMoment
     if (!dates || !focus || cell.disabled || this.readonly || this.isDisabled) return
-    const modes = untrack(() => this.modes)
-    const mode = untrack(() => this.mode)
+    const modes = this.modes
+    const mode = this.mode
     const next = modes[modes.indexOf(mode) + 1]
     if (!next) {
       this.explicitFocus = cell.moment
@@ -408,29 +418,30 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   /** The title:  up to the coarser view. */
+  @E.untracked
   private readonly onTitleClick = () => {
-    const up = untrack(() => this.page)?.up
+    const up = this.page?.up
     if (up) this.explicitMode = up
   }
 
   /** Today / Now:  the value becomes today (to the type's unit), and the popup closes. */
+  @E.untracked
   private readonly onToday = (event: MouseEvent) => {
-    const dates = untrack(() => this.dates)
+    const dates = this.dates
     if (!dates || this.readonly || this.isDisabled) return
-    const final = untrack(() => this.modes).at(-1)!
+    const final = this.modes.at(-1)!
     if (this.commit(dates.floor(dates.now(), final), event)) this.requestOpen(false, event)
   }
 
   /** Grid keys (APG):  move the focus moment, choose, or pass on. */
+  @E.untracked
   private readonly onGridKeyDown = (event: KeyboardEvent) => {
     if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return
-    const input = untrack(() => this.viewInput)
+    const input = this.viewInput
     if (!input) return
     if (event.key === UIT.Key.enter || event.key === UIT.Key.space) {
       event.preventDefault()
-      const cell = untrack(() => this.page)
-        ?.rows.flat()
-        .find((each) => each.focus)
+      const cell = this.page?.rows.flat().find((each) => each.focus)
       if (cell) this.choose(cell, event)
       return
     }
@@ -480,31 +491,12 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   ////////////////
-  // ## Disabled and classes
+  // ## Classes
   ////////////////
 
-  /** Disabled by its attribute, or by a disabled fieldset. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
-  /** Block-level:  its `fluid` attribute. */
-  @E.cssState("fluid")
-  get isFluid(): boolean {
-    return this.fluid
-  }
-
-  /** The grid sits in the page:  its `inline` attribute. */
-  @E.cssState("inline")
-  get isInline(): boolean {
-    return this.inline
-  }
-
-  /** `open` and `disabled` follow the state, not the attribute. */
+  /** `open` follows the state, not the attribute. */
   protected classValue(name: E.AttributeName<Vocabulary>): unknown {
     if (name === "open") return this.popupIsOpen
-    if (name === "disabled") return this.isDisabled
     return super.classValue(name)
   }
 
@@ -520,19 +512,11 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
     return String(this.value ?? "") || null
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
   /** Back to the `value` attribute;  drops typed text. */
   onFormReset() {
     this.value = this.initialValue ?? ""
     this.typedText = undefined
     this.explicitFocus = undefined
-  }
-
-  protected get validationRules(): E.ValidationRule[] {
-    return this.required ? [UIT.REQUIRED_RULE] : []
   }
 
   protected get validationLabel(): string | undefined {
@@ -550,7 +534,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   render(): JSX.Element {
     this.ids = { popup: UI.ids.next(ID_PREFIX), title: UI.ids.next(ID_PREFIX), anchor: `--${UI.ids.next(ID_PREFIX)}` }
     return (
-      <div class={this.rootClasses} part={this.partForName("calendar")} style={{ [ANCHOR_PROPERTY]: this.ids.anchor }}>
+      <div class={this.rootClass} part={this.partForName("calendar")} style={{ [ANCHOR_PROPERTY]: this.ids.anchor }}>
         <Show when={this.inline} fallback={this.popupMode()}>
           <div
             class={PICKER_CLASS}
@@ -572,8 +556,8 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * Server render only:  the ISO value as a hidden input, so a static form submits it as the DOM element would
-   * (`ElementInternals`) -- the field shows it formatted.
+   * Server render only:  the ISO value as a hidden input,
+   * so a static form submits it as the DOM element would (`ElementInternals`);  the field shows it formatted.
    */
   private staticValue(): JSX.Element {
     const name = this.name
@@ -803,8 +787,8 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   /**
    * Load `Temporal` before a static server render, so its pickers render in full (header, grid, cells):
    * the render is synchronous, and node has no `Temporal`, so `UI.i18n` loads `temporal-polyfill` (`loadTemporal()`).
-   * - Called by `StaticRender.prepare(html)` (`$/ui/static`) for a page with this tag;  NEVER in a browser,
-   *   where the constructor loads it after first paint, as before.
+   * - Called by `StaticRender.prepare(html)` (`$/ui/static`) for a page with this tag.
+   *   NEVER in a browser, where the constructor loads it after first paint.
    * - STATIC:  it runs before any calendar exists (`SSR.StaticPreload`).
    * - NOTE: "today" (highlight, starting page) is then the RENDER's day.
    */
@@ -871,8 +855,9 @@ export interface UICalendar extends E.AttributeValues<Vocabulary> {}
 ////////////////
 // ## Markup
 // Class words of the markup contract (`UICalendar.css`) -- grammar, not attributes, so not in the vocabulary.
-// Fomantic's cell classes:  `active` === chosen, `focus` === the keyboard's cell, `adjacent` === another month's
-// day, `range` === inside a range.
+// Fomantic's cell classes:
+// - `active` === chosen, `focus` === the keyboard's cell
+// - `adjacent` === another month's day, `range` === inside a range
 ////////////////
 
 /** The field's box (`UIInput.css`'s grammar). */

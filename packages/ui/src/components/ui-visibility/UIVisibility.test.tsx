@@ -68,8 +68,9 @@ async function observersSettle() {
 /**
  * How long, after a frame, the observers get to report a scroll:
  * a REAL wait, on purpose (as in `src/runtime/Visibility.test.ts`).
- * - `IntersectionObserver` delivers after the browser's next rendering update, and `Visibility` then coalesces its
- *   reports with a `setTimeout`:  fake timers drive neither, and "nothing fired" can't be polled for.
+ * - `IntersectionObserver` delivers after the browser's next rendering update,
+ *   and `Visibility` then coalesces its reports with a `setTimeout`:
+ *   fake timers drive neither, and "nothing fired" can't be polled for.
  */
 const OBSERVER_SETTLE_MS = 40
 
@@ -179,7 +180,7 @@ describe("UI.observeVisibility() on a `display: contents` host", () => {
 describe("<ui-visibility type=image>", () => {
   it("marks the box `image`", async () => {
     const host = await below(`type="image"`)
-    expect(host.shadowRoot!.querySelector("[part~=visibility]")!.className).toBe("ui visibility image")
+    expect(host.shadowRoot!.querySelector("[part~=visibility]")!.className).toBe("ui image visibility")
   })
 
   it("loads each <img data-src> once on screen, then fires ui-load", async () => {

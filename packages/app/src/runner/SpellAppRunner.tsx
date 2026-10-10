@@ -267,11 +267,8 @@ export type SpellAppControls = {
   restart: () => void
 }
 
-/** Tab of the debug pane:  the Type Explorer, the Thing Explorer, or the program's console. */
+/** Tab of the debug pane:  the Type Explorer, the Thing Explorer, or the program's console (`<spell-app debug>`). */
 export type DebugPane = "explorer" | "things" | "console"
-
-/** Each tab of the debug pane, in order -- e.g. what `<spell-app debug>` may say. */
-export const DEBUG_PANES: DebugPane[] = ["explorer", "things", "console"]
 
 /****************
  * ### `<SpellAppToolbar>`
@@ -321,11 +318,11 @@ type SpellAppToolbarProps = {
 ////////////////
 
 /**
- * Run `source`'s program afresh in runtime copy `copy`, drawing into `appRoot`:  fetched again, with each project
- * it imports.
+ * Run `source`'s program afresh in runtime copy `copy`, drawing into `appRoot`:
+ * fetched again, with each project it imports.
  * - NOTE: its own javascript is NOT fetched if it's in memory, `source.compiled` -- its imports still are.
- * - Answers how it went, and the compiled javascript it loaded, by project id -- the program's own under
- *   `MAIN_PROJECT` -- for the Type Explorer's "Compiled Output".
+ * - Answers how it went, and the compiled javascript it loaded, by project id --
+ *   the program's own under `MAIN_PROJECT` -- for the Type Explorer's "Compiled Output".
  */
 async function runProgram(copy: LoadedRuntime, source: SpellAppSource, appRoot: HTMLElement): Promise<Ran> {
   const compiled = new Map<string, string>()
@@ -360,8 +357,8 @@ type Ran = {
 /**
  * The Type Explorer's data for `source`:  the built-ins' scope pack, then its own -- `undefined` if it has none.
  * - Its own is `source.scopes` if that's set, else loaded from `source.scopesUrl`.
- * - Its `spell` from the sources, if `source` says where they are;  its `compiled` from what the last run
- *   loaded, in `compiledRef`.
+ * - Its `spell` from the sources, if `source` says where they are;
+ *   its `compiled` from what the last run loaded, in `compiledRef`.
  */
 async function loadScopes(
   source: SpellAppSource,
@@ -386,7 +383,8 @@ async function loadScopes(
 
 ////////////////
 // ## Fed by an editor
-//  what a `<spell-app editor="<selector>">` decides -- here, NOT in `SpellAppElement`, so it's testable with no DOM.
+//  what a `<spell-app editor="<selector>">` decides --
+//  here, NOT in its component (`SpellApp`), so it's testable with no DOM.
 ////////////////
 
 /**
@@ -406,17 +404,22 @@ export function pushedSource(base: SpellAppSource, pushed: SpellCompiled, name?:
 }
 
 /**
- * Does changing `<spell-app>` attribute `attribute` from `old` to `value` drop the code an editor pushed to it?
- * - Yes for what says what it runs, or which editor it's fed by:  see `DROPS_PUSHED_CODE`.
+ * What code pushed to a `<spell-app>` was pushed FOR:  the app's `project`, `src`, `scopes`, `name` and `editor` then
+ * (`PUSHED_FOR`), as one string.
+ * - Pushed code counts only while the app's are the same:
+ *   a change of what it runs, or of which editor feeds it, drops it.
  * - NOT `toolbar`, `debug`, `width`, `height`, `assets`:  they change how it looks, and NEVER re-run it.
- * - NOTE: setting an attribute to the value it has is NOT a change.
+ * - `undefined` and `null` are the same:  no such attribute.
  */
-export function dropsPushedCode(attribute: string, old: string | null, value: string | null): boolean {
-  return old !== value && DROPS_PUSHED_CODE.includes(attribute)
+export function pushedKey(app: PushedFor): string {
+  return JSON.stringify(PUSHED_FOR.map((name) => app[name] ?? null))
 }
 
-/** `<spell-app>` attributes whose change drops the code an editor pushed to it -- see `dropsPushedCode()`. */
-const DROPS_PUSHED_CODE = ["project", "src", "scopes", "name", "editor"]
+/** The `<spell-app>` attributes whose change drops the code an editor pushed to it -- see `pushedKey()`. */
+export const PUSHED_FOR = ["project", "src", "scopes", "name", "editor"] as const
+
+/** A `<spell-app>`, or its component, as far as `pushedKey()` cares. */
+export type PushedFor = { readonly [Name in (typeof PUSHED_FOR)[number]]?: string | null }
 
 /**
  * Is `target`, what fired an event, an element `selector` matches -- e.g. a `<spell-app>`'s `editor`?

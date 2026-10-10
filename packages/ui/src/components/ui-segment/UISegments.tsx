@@ -12,19 +12,20 @@ import segmentCSS from "./UISegment.css?inline"
  * - Its shadow DOM is one box, `<div class="ui … segments" part="group">`, around a slot for the segments.
  * - `UISegment.css` hands the group's look to the slotted segments, through `--_ui-segments-*` tokens.
  ****************/
+@E.cssStates("piled")
 export class UISegments extends E.UIComponent<typeof segmentsVocabulary> {
   @E.proto static vocabulary = segmentsVocabulary
-  @E.proto static styleSheets = { segment: segmentCSS }
-
-  /** Piled sheets (`piled`).  `:state(piled)`. */
-  @E.cssState("piled")
-  get isPiled(): boolean {
-    return !!this.piled
-  }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { segment: segmentCSS },
+    // `disabled`:  only a look
+    disabled: "its own",
+    // `loading`:  Fomantic's veil
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("group")}>
+      <div class={this.rootClass} part={this.partForName("group")}>
         <slot />
       </div>
     )

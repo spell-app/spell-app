@@ -432,7 +432,7 @@ describe("<ui-cards>", () => {
         `<ui-cards columns="4" stackable stack-with="container">${four}</ui-cards></div></div>`
     )
     const [own, token, container] = [...wrapper.querySelectorAll("ui-cards")]
-    expect(rootOf(own!).className).toBe("ui stackable four cards stack-with-page")
+    expect(rootOf(own!).className).toBe("ui stackable four stack-with-page cards")
     await Viewport.resize(1200)
     await expect.poll(() => [oneRow(own!), oneRow(token!), oneRow(container!)]).toEqual([true, true, false])
     await Viewport.resize(500)

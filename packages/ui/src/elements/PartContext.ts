@@ -1,5 +1,4 @@
 import { onSettled, untrack } from "solid-js"
-import { onConnect } from "@spell-app/solid-element"
 
 import { E } from "$/ui/core"
 // Import directly to avoid circular import
@@ -15,31 +14,37 @@ function isSameOwner(a: E.OwnerMatch | undefined, b: E.OwnerMatch | undefined) {
 
 /****************
  * ### `PartContext`
- * The OWNER of one element acting as a generic content part (`<ui-header>` in a card, `<ui-detail>` in a label,
- * `<ui-label>` in a statistic, `<ui-icon>` in `<ui-icons>`), plus the page-wide registry of who owns what.
- * - Resolution is `OwnerContext.find()` over the flat tree, with a `barrier` at every registered NON-part
- *   component:  a header inside a segment inside a card stays standalone, as Fomantic's child combinators have it.
- * - `isDirect` mode (icons):  only the flat-tree parent component counts, skipping its own shadow internals
- *   (`.ui.icons > .icon`).
- * - CONDITIONAL owners (`ConditionalOwner`, a part whose component has `isOwnerOf()`):  asked during the climb,
- *   transparent while they say no -- `<ui-item>` owns its content parts in the Items view only.
- * - SIDE EFFECT:  keeps `:state(in-<owner>)` on the DOM element in step with `owner` (`onOwnerChanged()`);  NEVER the
- *   static `in-<owner>` class.
+ * The OWNER of one element acting as a generic content part, plus the page-wide registry of who owns what:
+ * `<ui-header>` in a card, `<ui-detail>` in a label, `<ui-label>` in a statistic, `<ui-icon>` in `<ui-icons>`.
+ * - Resolution is `OwnerContext.find()` over the flat tree,
+ *   with a `barrier` at every registered NON-part component:
+ *   a header inside a segment inside a card stays standalone, as Fomantic's child combinators have it.
+ * - `isDirect` mode (icons):  only the flat-tree parent component counts,
+ *   skipping its own shadow internals (`.ui.icons > .icon`).
+ * - CONDITIONAL owners (`ConditionalOwner`, a part whose component has `isOwnerOf()`):
+ *   asked during the climb, transparent while they say no --
+ *   `<ui-item>` owns its content parts in the Items view only.
+ * - SIDE EFFECT:  keeps `:state(in-<owner>)` on the DOM element in step with `owner` (`onOwnerChanged()`);
+ *   NEVER the static `in-<owner>` class.
  * - Re-resolves on:
- *   - every connect after the first (`keepAlive` keeps the component across moves, so a part re-parented into
- *     another owner hears it through solid-element's `onConnect`), a microtask late:  the hook may run inside a
- *     Solid render, where the signal write would throw
+ *   - every connect after the first, a microtask late
+ *     - the component lives across moves, so a part re-parented into another owner hears it
+ *       through `PartContext.connected()`, from `UIComponent.onConnect()`
+ *     - a microtask late:  a connect may arrive while Solid is drawing, where the signal write would throw
  *   - `slotchange` in any `UIComponent`'s shadow root, for the elements entering AND leaving that slot
  *     (`UIComponent` calls `PartContext.slotChanged()`), cascading to part descendants
  *   - once after the first settle, for owners whose shadow rendered after this part connected
- * - NOTE: no platform event says "my assigned slot changed";  a FOREIGN component re-slotting a part
- *   isn't seen until the part reconnects.
+ * - NOTE: no platform event says "my assigned slot changed";
+ *   a FOREIGN component re-slotting a part isn't seen until the part reconnects.
  * - MUST be created under the element's owner (field initializer / constructor):  it creates an effect.
- * - Knows `DOMElement` / `UIComponent` by type only:  `UIComponent` imports this file
- *   (for `define()` and `slotChanged()`).
+ * - Knows `DOMElement` / `UIComponent` by type only:
+ *   `UIComponent` imports this file (for `define()` and `slotChanged()`).
  ****************/
 export class PartContext {
-  /** Nearest owner, or `undefined` when standalone;  tracked.  A re-resolve to the same owner changes nothing. */
+  /**
+   * Nearest owner, or `undefined` when standalone;  tracked.
+   * - A re-resolve to the same owner changes nothing.
+   */
   @state({ equals: isSameOwner }) accessor owner: E.OwnerMatch | undefined = undefined
 
   /** The element. */
@@ -68,12 +73,13 @@ export class PartContext {
         if (PartContext.contexts.get(domElement) === this) PartContext.contexts.delete(domElement)
       }
     })
-    let isFirstConnect = true
-    onConnect(() => {
-      if (isFirstConnect) isFirstConnect = false
-      else queueMicrotask(() => this.refresh())
-    })
   }
+
+  /**
+   * Has the element connected since this context was made?
+   * - The first connect is the one it was resolved for.
+   */
+  private hasConnected = false
 
   /** Owner noun (`card`), or `undefined`;  tracked. */
   get ownerNoun(): string | undefined {
@@ -102,8 +108,8 @@ export class PartContext {
   }
 
   /**
-   * Resolve again, e.g. after re-slotting;  cascades to part descendants in the light DOM, which climb through
-   * this element.
+   * Resolve again, e.g. after re-slotting.
+   * - Cascades to part descendants in the light DOM, which climb through this element.
    * - Writes `owner`:  call it from a handler, `onSettled` or a microtask, not a render.
    */
   refresh() {
@@ -136,8 +142,9 @@ export class PartContext {
   ////////////////
 
   /**
-   * Record a defined element:  its owner nouns (from `ownsParts`, under the tag it was defined as) and whether
-   * it is a part, which makes it transparent to other parts' climbs.
+   * Record a defined element:
+   * - its owner nouns (from `ownsParts`, under the tag it was defined as)
+   * - whether it is a part, which makes it transparent to other parts' climbs
    * - `isConditionalOwner`:  its component decides per instance (`ConditionalOwner`).
    * - Called by `UIComponent.register()` for every tag, translated aliases included.
    * - Static:  the registry is page-wide, filled before any instance exists.
@@ -196,8 +203,8 @@ export class PartContext {
 
   /**
    * A slot's assignment changed:  re-resolve every element that entered or left it, and their part descendants.
-   * - The registry keeps what each slot held before (`lastAssigned`), since leavers aren't in
-   *   `assignedElements()` any more.
+   * - The registry keeps what each slot held before (`lastAssigned`),
+   *   since leavers aren't in `assignedElements()` any more.
    * - Static:  `UIComponent` calls it for any slot in its shadow root, whichever parts it holds.
    */
   static slotChanged(slot: HTMLSlotElement) {
@@ -209,6 +216,18 @@ export class PartContext {
       if (context) context.refresh()
       else for (const inner of element.querySelectorAll("*")) PartContext.contexts.get(inner)?.refresh()
     }
+  }
+
+  /**
+   * `domElement` connected (`UIComponent.onConnect()`):  re-resolve its context, if it has one, a microtask later.
+   * - Not on its first connect:  the context was resolved for that one.
+   * - Static:  `UIComponent` calls it for every element, whether it's a part or not.
+   */
+  static connected(domElement: E.DOMElement) {
+    const context = PartContext.contexts.get(domElement)
+    if (!context) return
+    if (!context.hasConnected) context.hasConnected = true
+    else E.afterSolidUpdate(() => context.refresh())
   }
 
   /** Forget every defined tag and live context, for tests. */
@@ -226,8 +245,9 @@ export class PartContext {
   ////////////////
 
   /**
-   * What `OwnerContext.find()` asks about each element of the climb, for part `noun`:  `owners` itself, or -- once
-   * any conditional owner is defined -- a function asking a conditional owner whether it owns `noun` now.
+   * What `OwnerContext.find()` asks about each element of the climb, for part `noun`:
+   * - `owners` itself, while no conditional owner is defined
+   * - else a function asking a conditional owner whether it owns `noun` now
    */
   private static lookupFor(noun: string, owners: ReadonlyMap<string, string>): E.OwnerLookup {
     if (!PartContext.conditionalTags.size) return owners
@@ -277,8 +297,8 @@ export type PartContextProps = {
   /** Only the flat-tree parent component counts (`<ui-icon>` in `<ui-icons>`). */
   isDirect?: boolean
   /**
-   * Where the climb stops, ignored with `isDirect`;  default `PartContext.isBarrier` (any registered non-part
-   * component).
+   * Where the climb stops, ignored with `isDirect`;
+   * default `PartContext.isBarrier` (any registered non-part component).
    * - `<ui-section>` passes `PartContext.noBarrier`:  a section inside a segment inside a section is still nested.
    */
   barrier?: (element: Element) => boolean

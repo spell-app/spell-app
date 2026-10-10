@@ -2,7 +2,7 @@
  * Every name `<ui-embed>` uses:  tag, attributes (kind + allowed values), events, slots, parts, states, texts.
  * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:  `<ui-embed active>` => `ui active embed`;
- *   the element adds the `aspect-ratio` word after the noun (`ui embed 4:3`),
+ *   the element adds the `aspect-ratio` word before the noun (`ui 4:3 embed`),
  *   which `UIEmbed.css` matches with `[class*="4:3"]`, as Fomantic's.
  * - Fomantic's `data-id` is `video-id` here:  `id` is the element's own id.
  */

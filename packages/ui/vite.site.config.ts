@@ -13,17 +13,17 @@ export const SITE_ASSETS = `${ROOT}site/_assets`
 export const SITE_ENTRY = `${ROOT}site/_src/site.ts`
 
 /**
- * The Spell UI site's bundle (`yarn site:bundle`, run by `scripts/site-bundle.ts`):  `site/_src/site.ts` =>
- * `site/_assets/site.js` + `site.css` + lazy chunks.  See the entry for what's in it.
+ * The Spell UI site's bundle (`yarn site:bundle`, run by `scripts/site-bundle.ts`):
+ * `site/_src/site.ts` => `site/_assets/site.js` + `site.css` + lazy chunks.  See the entry for what's in it.
  * - `baseConfig()`:  the library's own plugins (decorators BEFORE Solid), Solid dedupe, Lightning CSS targets.
  * - An APP build of one JS entry (not lib mode):  code-split, with Vite's preload helper for the lazy chunks.
  * - `base: "./"`:  chunk URLs relative to the chunk that imports them, so `_assets/` works under `/ui/` at any page
  *   depth.  The default `/` asks the server ROOT for `/<chunk>.js` (`agents/PAPERCUTS.md`, app, 2026-10-02).
- * - Stable names where the tree is stable, so a rebuild's diff is small:  `site.js`, `site.css`, one
- *   `<family>.js` per family barrel (`ui-button.js`, `ui-docs-example.js`), emoji data under `emoji/<set>/`;  every
- *   other chunk (shared code, the runtime, engines) `<name>-<hash>.js`.
- * - Minified, no sourcemaps:  as a deploy would ship it.  `emptyOutDir: false`:  `scripts/site-bundle.ts` clears the folder
- *   itself, keeping the `icon-packs` link.
+ * - Stable names where the tree is stable, so a rebuild's diff is small:  `site.js`, `site.css`,
+ *   one `<family>.js` per family barrel (`ui-button.js`, `ui-docs-example.js`), emoji data under `emoji/<set>/`;
+ *   every other chunk (shared code, the runtime, engines) `<name>-<hash>.js`.
+ * - Minified, no sourcemaps:  as a deploy would ship it.  `emptyOutDir: false`:
+ *   `scripts/site-bundle.ts` clears the folder itself, keeping the `icon-packs` link.
  * - Aliases set here as well:  `site/` is outside `tsconfig.json`'s files, where `tsconfigPaths` may not apply.
  */
 export default defineConfig(() => {
@@ -42,9 +42,7 @@ export default defineConfig(() => {
         { find: /^\$\/util$/, replacement: `${ROOT}../util/src/index.ts` },
         { find: /^\$\/util\//, replacement: `${ROOT}../util/src/` },
         { find: /^\$\/server$/, replacement: `${ROOT}../server/src/index.ts` },
-        { find: /^\$\/server\//, replacement: `${ROOT}../server/src/` },
-        // the fork from SOURCE, as `vite.config.ts` does:  a fresh checkout has no `packages/solid-element/dist/`
-        { find: /^@spell-app\/solid-element$/, replacement: `${ROOT}../solid-element/src/index.ts` }
+        { find: /^\$\/server\//, replacement: `${ROOT}../server/src/` }
       ]
     },
     build: {

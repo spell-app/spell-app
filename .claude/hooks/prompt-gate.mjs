@@ -50,11 +50,12 @@ import { pathToFileURL } from "node:url"
 import { LOOKS, Window } from "../../scripts/window.mjs"
 
 /**
- * The session's icons (Owen, 2026-10-07):  🚧 work under way, 📅 a future epic written down, ✅ merged.  The same as
- * `packages/cli/src/dev/sessions.ts` `TITLE_ICONS`:  change both.
+ * The session's icons (Owen, 2026-10-07):  🚧 work under way, 📅 a future epic written down, ✅ merged;  🚨 errors
+ * and ⏸️ paused, from its epic's state (2026-10-10).  The same as `packages/cli/src/dev/sessions.ts` `TITLE_ICONS`:
+ * change both.
  * - up here:  the hook runs as this file loads (below), and needs it then
  */
-export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅", sleeping: "😴" }
+export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅", errors: "🚨", paused: "⏸️" }
 
 // run as the hook;  imported (by its tests), nothing runs
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {

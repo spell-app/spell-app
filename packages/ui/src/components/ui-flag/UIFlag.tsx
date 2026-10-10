@@ -15,7 +15,7 @@ import flagCSS from "./UIFlag.css?inline"
  *   The element is `display: contents`:  the span IS the inline box, where Fomantic's `<i class="fr flag">` sat.
  *
  * - The glyph is the Unicode flag emoji of `country` (`FlagCountry`):  no sprite, no per-country CSS.
- * - The resolved code is also a class word after the noun (`fr`, `gb-eng`;  none when unknown):
+ * - The resolved code is also a class word before the noun (`fr`, `gb-eng`;  none when unknown):
  *   Fomantic's own `fr flag` grammar, which a page's own CSS may select on.
  * - The name:  `UI.i18n.displayName("region", …)` for a country, which follows `UI.i18n.locale`;
  *   the vocabulary's texts for the rainbow, pirate, England … flags.
@@ -23,8 +23,10 @@ import flagCSS from "./UIFlag.css?inline"
  ****************/
 export class UIFlag extends E.UIComponent<typeof flagVocabulary> {
   @E.proto static vocabulary = flagVocabulary
-  @E.proto static styleSheets = { flag: flagCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { flag: flagCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** `country`, resolved. */
   @E.derived
@@ -34,8 +36,8 @@ export class UIFlag extends E.UIComponent<typeof flagVocabulary> {
 
   /**
    * Accessible name, `undefined` when unknown.
-   * - Computed on first read:  reads `UI.i18n`, which exists only once the runtime has loaded -- i.e.
-   *   by first render.
+   * - Computed on first read:
+   *   reads `UI.i18n`, which exists only once the runtime has loaded, i.e. by first render.
    */
   @E.derived
   get accessibleName(): string | undefined {
@@ -45,14 +47,14 @@ export class UIFlag extends E.UIComponent<typeof flagVocabulary> {
   }
 
   /** The resolved code as a class word (Fomantic's `fr flag`), for a page's own CSS. */
-  protected override get extraClasses(): string | undefined {
+  protected override get extraClass(): string | undefined {
     return this.resolvedCountry.code || undefined
   }
 
   render(): JSX.Element {
     return (
       <span
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("flag")}
         role={this.accessibleName ? "img" : undefined}
         aria-label={this.accessibleName}

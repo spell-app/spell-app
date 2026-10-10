@@ -1,9 +1,9 @@
 import type { JSX } from "@solidjs/web"
 
-import { proto } from "$/ui/util"
+import { protoMerged } from "$/ui/util"
 import { PartVocabularies } from "$/ui/components/ui-parts/UIParts.types"
 import type { ComponentVocabulary } from "$/ui/vocabulary"
-import { UIComponent, type UIComponentClass } from "$/ui/elements"
+import { UIComponent, type ElementSetup, type UIComponentClass } from "$/ui/elements"
 
 /** Host layout of a stub:  a block, like the static `<div class="ui card">` it replaces. */
 const STUB_CSS = ":host { display: block }"
@@ -18,11 +18,11 @@ const STUB_CSS = ":host { display: block }"
  * - NOTE: test / demo scaffolding, not a component.
  */
 export class StubOwner extends UIComponent {
-  @proto static styleSheets = { "stub-owner": STUB_CSS }
+  @protoMerged static elementSetup = { styleSheets: { "stub-owner": STUB_CSS } } satisfies Partial<ElementSetup>
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.vocabulary.noun} style={{ display: "contents" }}>
+      <div class={this.rootClass} part={this.vocabulary.noun} style={{ display: "contents" }}>
         <slot />
       </div>
     )

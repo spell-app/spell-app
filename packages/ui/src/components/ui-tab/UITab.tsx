@@ -1,4 +1,3 @@
-import { untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -17,7 +16,8 @@ import tabCSS from "./UITab.css?inline"
  * - Owned (`PartContext`, `:state(in-tabs)`):  the tab set decides how it shows (`TabOwner.paneState()`):
  *   selected or not, attached to which edge, basic.
  *   - The DOM element is the `role="tabpanel"` (through `internals`), named by `label`,
- *     and a Tab stop (`tabindex="0"`, unless the page set one), so keyboard users reach content with no control in it.
+ *     and a Tab stop (`tabindex="0"`, unless the page set one),
+ *     so keyboard users reach content with no control in it.
  * - Alone (no `<ui-tabs>`):  shown while its own `selected` (or `active`) is set.
  * - Hidden panes are DOM elements with `display: none`:  out of the layout and the accessibility tree.
  * - `lazy`:  its `<template>` children are stamped into it (light DOM, after them) the first time it shows;
@@ -26,10 +26,14 @@ import tabCSS from "./UITab.css?inline"
  ****************/
 export class UITab extends E.UIComponent<typeof tabVocabulary> {
   @E.proto static vocabulary = tabVocabulary
-  @E.proto static styleSheets = { segment: segmentCSS, tab: tabCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { segment: segmentCSS, tab: tabCSS },
     // the DOM element is the tabpanel and its focus stop;  nothing inside to delegate to
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  Fomantic's look
+    disabled: "its own",
+    // `loading`:  Fomantic's veil
+    loading: "its own"
   } satisfies Partial<E.ElementSetup>
 
   /** Always:  `UITab.css` tells a pane's DOM element from a tab set's by `:state(pane)`. */
@@ -54,12 +58,23 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
   /** `tabindex` this element put on the DOM element (so it only removes its own). */
   private tabIndexIsOurs = false
 
-  /** Owned:  the DOM element is a `tabpanel` and a Tab stop (unless the page set a `tabindex`);  alone, neither. */
+  /** Owned:  the DOM element is a `tabpanel`;  alone, no role. */
+  @E.aria("role")
+  protected get ariaRole(): string | undefined {
+    return this.owner ? "tabpanel" : undefined
+  }
+
+  /** Owned:  the DOM element is named by its `label`, else its `value`;  alone, unnamed. */
+  @E.aria("ariaLabel")
+  protected get accessibleName(): string | undefined {
+    return this.owner ? (this.label ?? this.value) : undefined
+  }
+
+  /** Owned:  the DOM element is a Tab stop (unless the page set a `tabindex`);  alone, not. */
   @E.onChange("owner", { writesDOMElement: true })
   protected onOwnerChanged(owner: TabOwner | undefined) {
     const { domElement } = this
     const owned = !!owner
-    domElement.internals.role = owned ? "tabpanel" : null
     if (owned && !domElement.hasAttribute("tabindex")) {
       domElement.tabIndex = 0
       this.tabIndexIsOurs = true
@@ -67,12 +82,6 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
       domElement.removeAttribute("tabindex")
       this.tabIndexIsOurs = false
     }
-  }
-
-  /** Owned:  the DOM element is named by its `label`, else its `value`;  alone, unnamed. */
-  @E.onChange("owner", "label", "value", { writesDOMElement: true })
-  protected onLabelChanged(owner: TabOwner | undefined, label: string | undefined, value: string | undefined) {
-    this.domElement.internals.ariaLabel = (owner ? (label ?? value) : undefined) ?? null
   }
 
   ////////////////
@@ -86,8 +95,9 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
 
   /**
    * How to show:  the owner's say, else its own attributes.
-   * - `@derived`:  the owner's answer looks the pane up among the tabs, and four readers share it.  Lazy by nature,
-   *   so a static render (`$/ui/static`), which builds this pane before its later siblings, asks at render time.
+   * - `@derived`:  the owner's answer looks the pane up among the tabs, and four readers share it.
+   * - Lazy by nature, so a static render (`$/ui/static`),
+   *   which builds this pane before its later siblings, asks at render time.
    */
   @E.derived
   get paneState(): TabPaneState {
@@ -117,7 +127,7 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
   }
 
   /** Fomantic's pane is a segment:  `ui ... tab segment`. */
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return SEGMENT
   }
 
@@ -140,16 +150,17 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
   }
 
   /** Became the shown pane:  stamp lazy content the first time, then `ui-show`. */
+  @E.untracked
   private onShown() {
     const first = !this.wasShownBefore
     this.wasShownBefore = true
-    if (first && untrack(() => this.lazy)) {
+    if (first && this.lazy) {
       for (const template of this.domElement.querySelectorAll<HTMLTemplateElement>(TEMPLATES)) {
         this.domElement.append(template.content.cloneNode(true))
       }
     }
-    const owner = untrack(() => this.owner)
-    const value = owner ? owner.valueFor(this.domElement) : (untrack(() => this.value) ?? "")
+    const owner = this.owner
+    const value = owner ? owner.valueFor(this.domElement) : (this.value ?? "")
     const detail: UIT.TabShowDetail = { value, first }
     this.send("ui-show", detail)
   }
@@ -160,7 +171,7 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("tab")} aria-busy={this.loading ? "true" : undefined}>
+      <div class={this.rootClass} part={this.partForName("tab")} aria-busy={this.loading ? "true" : undefined}>
         <slot />
       </div>
     )

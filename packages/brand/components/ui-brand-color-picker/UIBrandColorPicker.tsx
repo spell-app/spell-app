@@ -1,8 +1,20 @@
 import { For, Show, createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { Cell, IconGlyph, proto, SlotContent, type AttributeName, type FieldValue, type ElementSetup } from "$/ui/core"
-import { ControlLabels, FormComponent } from "$/ui/forms"
+import {
+  after,
+  Cell,
+  IconGlyph,
+  proto,
+  protoMerged,
+  SlotContent,
+  untracked,
+  type CancelablePromise,
+  type FieldValue,
+  type ElementSetup,
+  type AttributeValues
+} from "$/ui/core"
+import { FormComponent } from "$/ui/forms"
 import { Palette, type Hsl, type Oklch } from "$/brand"
 
 import { brandColorPickerVocabulary } from "./UIBrandColorPicker.en"
@@ -38,31 +50,39 @@ import pickerCSS from "./UIBrandColorPicker.css?inline"
  *   (chip, `header` slot, hex, `actions` slot), the hue slider, the HSL SQUARE for that hue,
  *   the HSL / RGB / OKLCH rows (each with a copy button), then the default slot (e.g. family chips).
  *
- * - The square:  saturation 0 -> 100% across, lightness 100% (top) -> 0% down, for the current hue;  every point is a
- *   real sRGB colour.  Drawn by CSS (`UIBrandColorPicker.css`):  two gradients over the hue, exact,
- *   since HSL is linear in sRGB along both axes;  a hue change repaints, nothing is computed per pixel.
+ * - The square:  saturation 0 -> 100% across, lightness 100% (top) -> 0% down, for the current hue;
+ *   every point is a real sRGB colour.  Drawn by CSS (`UIBrandColorPicker.css`):
+ *   two gradients over the hue, exact, since HSL is linear in sRGB along both axes;
+ *   a hue change repaints, nothing is computed per pixel.
  * - The colour being edited (`working`) is HSL, apart from `value` (`#RRGGBB`), so a grey keeps its hue (and black
  *   or white their saturation too):  the square and the hue slider don't jump when the colour passes through them.
  * - Keyboard (see the docs page):  the square is two visually hidden native range inputs,
- *   Saturation and Lightness (one tab stop:  the Lightness one is `tabindex=-1`);  on either, Left / Right move S and
- *   Up / Down move L by 1% (Shift:  10%), PageUp / PageDown L by 10%, Home / End S to 0 / 100%.
- *   Each key is `ui-input` then `ui-change`. An assistive technology's own increment arrives as their `input`.
- * - Pointer:  press on the square jumps the marker there and drags it (pointer capture);  `ui-input` per new colour,
- *   `ui-change` on release.  The hue slider:  `ui-input` per step, `ui-change` on its native `change`.
- * - Typing:  the hex field takes anything `Palette.parse()` reads;  the HSL and OKLCH fields numbers (H in degrees,
- *   S / L in %, C plain).  An OKLCH colour a screen can't show is mapped in (`Palette.oklchToHex()`:  same L and H,
- *   less C).  A valid keystroke is `ui-input`;  unreadable text shows the field's `error` look and changes nothing.
- *   Enter or leaving the field commits (`ui-change`) and shows the value again;  Escape drops the draft.
+ *   Saturation and Lightness (one tab stop:  the Lightness one is `tabindex=-1`);
+ *   on either, Left / Right move S and Up / Down move L by 1% (10% with Shift),
+ *   PageUp / PageDown L by 10%, Home / End S to 0 / 100%.
+ *   - Each key is `ui-input` then `ui-change`.
+ *   - An assistive technology's own increment arrives as their `input`.
+ * - Pointer:  press on the square jumps the marker there and drags it (pointer capture);
+ *   `ui-input` per new colour, `ui-change` on release.
+ *   The hue slider:  `ui-input` per step, `ui-change` on its native `change`.
+ * - Typing:  the hex field takes anything `Palette.parse()` reads;
+ *   the HSL and OKLCH fields numbers (H in degrees, S / L in %, C plain).
+ *   - An OKLCH colour a screen can't show is mapped in (`Palette.oklchToHex()`:  same L and H, less C).
+ *   - A valid keystroke is `ui-input`;  unreadable text shows the field's `error` look and changes nothing.
+ *   - Enter or leaving the field commits (`ui-change`) and shows the value again;  Escape drops the draft.
  * - Copy buttons:  `hsl(250 54% 55%)` (the HSL row as shown), `#RRGGBB`, `oklch(52.0% 0.181 286)` to the clipboard,
  *   then `ui-copy`, a check for `COPIED_MS`, and "Copied ..." announced.  A refused clipboard write does nothing.
  * - `value` is controlled (`Controlled`) and reflects;  a `ui-input` handler that sets it again wins.
- *   Its FIRST attribute value is the form's reset value.  Changes from outside redraw without events.
+ *   - Its FIRST attribute value is the form's reset value.
+ *   - Changes from outside redraw without events.
  * - A form control:  it submits `value` under `name`.
  ****************/
 export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary> {
   @proto static vocabulary = brandColorPickerVocabulary
-  @proto static styleSheets = { picker: pickerCSS }
-  @proto static elementSetup = { Fallback: BrandColorPickerFallback } satisfies Partial<ElementSetup>
+  @protoMerged static elementSetup = {
+    styleSheets: { picker: pickerCSS },
+    Fallback: BrandColorPickerFallback
+  } satisfies Partial<ElementSetup>
 
   ////////////////
   // ## State
@@ -72,7 +92,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   readonly valueState = this.controlled("value", undefined)
 
   /** The colour being edited, HSL (see the class doc). */
-  readonly working = new Cell<Hsl>(untrack(() => Palette.hexToHsl(this.value())))
+  readonly working = new Cell<Hsl>(untrack(() => Palette.hexToHsl(this.hex())))
 
   /** Text typed in the fields and not committed yet. */
   readonly drafts = new Cell<Drafts>({})
@@ -86,9 +106,6 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   /** Light-DOM slot occupancy:  header, actions, the default slot. */
   readonly slots = new SlotContent(this.domElement)
 
-  /** The DOM element's `<label>`s and `aria-label` (a `<ui-brand-field>` names it so), as the group's name. */
-  readonly labels = new ControlLabels(this.domFormElement)
-
   /** Each row's copy icon and check, loaded up front so the check shows at once. */
   readonly glyphs = {
     hsl: this.copyGlyphs(),
@@ -97,7 +114,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   }
 
   /** `value` when the element was created:  the form's reset value. */
-  private readonly initialValue = untrack(() => this.attrs.value)
+  private readonly initialValue = untrack(() => this.value)
 
   // NOTE:  plain mirrors of the cells, for handlers:  a cell's write lands on a microtask, and two events can arrive
   // before it (a test, a fast drag)
@@ -106,7 +123,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   private latest: Hsl = untrack(() => this.working.get())
 
   /** `value`, now. */
-  private latestHex = untrack(() => this.value())
+  private latestHex = untrack(() => this.hex())
 
   /** `value` at the last `ui-change` (or outside set):  a commit fires only when it differs. */
   private committedHex = this.latestHex
@@ -124,33 +141,24 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   private dragPointer?: number
 
   /** Timer clearing `copied`. */
-  private copiedTimer: ReturnType<typeof setTimeout> | undefined
+  private copiedTimer: CancelablePromise<unknown> | undefined
 
   ////////////////
   // ## Values
   ////////////////
 
   /** The colour, `#RRGGBB`:  `value` read as `Palette.parse()` reads it, else `DEFAULT_VALUE`;  tracked. */
-  value(): string {
+  hex(): string {
     const value = this.valueState.get()
     return (typeof value === "string" ? Palette.parse(value) : undefined) ?? DEFAULT_VALUE
   }
 
-  get isDisabled(): boolean {
-    return this.attrs.disabled || this.formIsDisabled
-  }
-
-  protected classValue(name: AttributeName<BrandColorPickerVocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
-  }
-
-  protected get extraClasses(): string | undefined {
+  protected get extraClass(): string | undefined {
     return BRAND_COLOR
   }
 
   protected cssStates() {
-    return { disabled: this.isDisabled, dragging: this.dragging.get(), copied: !!this.copied.get() }
+    return { dragging: this.dragging.get(), copied: !!this.copied.get() }
   }
 
   ////////////////
@@ -158,11 +166,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   ////////////////
 
   get formValue(): FieldValue {
-    return this.value()
-  }
-
-  protected get formName(): string | undefined {
-    return this.attrs.name
+    return this.hex()
   }
 
   /** Back to the first `value`. */
@@ -174,16 +178,10 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   // ## Wiring
   ////////////////
 
-  /** Adds following outside `value` changes, and the labels' refresh. */
+  /** Adds following outside `value` changes. */
   onMount(): JSX.Element {
     createEffect(
-      () => this.isConnected,
-      (connected) => {
-        if (connected) this.labels.refresh()
-      }
-    )
-    createEffect(
-      () => this.value(),
+      () => this.hex(),
       (hex) => {
         this.adopt(hex)
       }
@@ -198,7 +196,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   render(): JSX.Element {
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("picker")}
         role="group"
         aria-label={this.groupName()}
@@ -231,7 +229,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
         <span class={CLASSES.readout}>
           <slot name={this.slotForName("header")} />
           <span class={CLASSES.hex} part={this.partForName("hex")}>
-            {this.value()}
+            {this.hex()}
           </span>
         </span>
         <Show when={this.slots.hasContent(this.slotForName("actions"))}>
@@ -402,13 +400,13 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
       [VARS.x]: String(s),
       [VARS.y]: String(1 - l),
       [VARS.hue]: String(h),
-      [VARS.color]: this.value()
+      [VARS.color]: this.hex()
     }
   }
 
   /** The group's name:  `label`, else what names the DOM element, else "Colour". */
   private groupName(): string {
-    return this.attrs.label ?? this.labels.accessibleName ?? this.translationForKey("group")
+    return this.label ?? this.labels.accessibleName ?? this.translationForKey("group")
   }
 
   /** What field `key` shows while not typed in:  HSL from `working`, the hex and OKLCH from `value`;  tracked. */
@@ -417,7 +415,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     if (key === "hslH") return String(Math.round(h) % 360)
     if (key === "hslS") return String(this.percent(s))
     if (key === "hslL") return String(this.percent(l))
-    const hex = this.value()
+    const hex = this.hex()
     if (key === "rgb") return hex
     const oklch = Palette.hexToOklch(hex)
     if (key === "oklchL") return (oklch.l * 100).toFixed(1)
@@ -505,8 +503,9 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
    * A copy button:  write the clipboard, then `ui-copy`, the check and the announcement.
    * - SIDE EFFECT:  writes the clipboard;  a refused write (no permission) does nothing.
    */
+  @untracked
   private async copy(format: CopyFormat, originalEvent: MouseEvent) {
-    if (untrack(() => this.isDisabled)) return
+    if (this.isDisabled) return
     const value = this.copyText(format)
     try {
       await navigator.clipboard.writeText(value)
@@ -515,8 +514,8 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     }
     this.copied.set({ format, value })
     this.send("ui-copy", { value, format, originalEvent })
-    clearTimeout(this.copiedTimer)
-    this.copiedTimer = setTimeout(() => this.copied.set(undefined), COPIED_MS)
+    this.copiedTimer?.cancel()
+    this.copiedTimer = after(COPIED_MS / 1000, () => this.copied.set(undefined))
   }
 
   ////////////////
@@ -524,8 +523,9 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   ////////////////
 
   /** Press on the square:  the marker jumps there and is dragged;  the square takes focus. */
+  @untracked
   private readonly onPointerDown = (event: PointerEvent) => {
-    if (event.button !== 0 || untrack(() => this.isDisabled) || !this.plane) return
+    if (event.button !== 0 || this.isDisabled || !this.plane) return
     event.preventDefault()
     this.dragPointer = event.pointerId
     try {
@@ -561,11 +561,12 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   }
 
   /** A key on the square's sliders (see the class doc):  `ui-input`, then `ui-change`. */
+  @untracked
   private readonly onPlaneKeyDown = (event: KeyboardEvent) => {
     const next = this.keyMove(event)
     if (!next) return
     event.preventDefault()
-    if (untrack(() => this.isDisabled)) return
+    if (this.isDisabled) return
     this.move(next, event)
     this.commit(event)
   }
@@ -696,3 +697,5 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     return trimmed && /^[-+]?(\d+\.?\d*|\.\d+)$/.test(trimmed) ? Number(trimmed) : Number.NaN
   }
 }
+
+export interface UIBrandColorPicker extends AttributeValues<BrandColorPickerVocabulary> {}

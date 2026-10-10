@@ -17,7 +17,7 @@ import accordionCSS from "./UIAccordion.css?inline"
  *   - The shadow DOM wraps each pair in `<details part="panel">`:
  *     `<summary class="title">` + `<div class="content">`, each with a `<slot>` for its child.
  *   - The component hands each child to its slot by hand
- *     (`elementSetup.assignSlots` `manually`:  the platform's `slotAssignment: "manual"`).
+ *     (`elementSetup.slotAssignment` `"manual"`, the platform's).
  * - Why `<details>`:  the browser does the disclosure.
  *   - `<summary>` is a focusable button that announces its expanded state;  Enter / Space toggle it.
  *   - Find-in-page opens a closed panel.
@@ -30,9 +30,9 @@ import accordionCSS from "./UIAccordion.css?inline"
  *   - a change the browser makes itself (find-in-page) is announced after the fact, and adopted.
  * - Keyboard:  Tab between titles;  Enter / Space toggle (native);
  *   ArrowDown / ArrowUp / Home / End move between this accordion's titles (APG's optional keys).
- * - Nested:  a `<ui-accordion>` inside another (`PartContext`,
- *   `:state(in-accordion)`) draws Fomantic's `accordion` without `ui`, and inherits its parent's look through the
- *   `--_ui-accordion-*` aliases.
+ * - Nested:  a `<ui-accordion>` inside another (`PartContext`, `:state(in-accordion)`)
+ *   draws Fomantic's `accordion` without `ui`,
+ *   and inherits its parent's look through the `--_ui-accordion-*` aliases.
  * - Animated when `UI.browser.supports.interpolateSize` (`:state(animated)`):
  *   `::details-content` grows to `auto` height;  under `prefers-reduced-motion` the CSS drops the transition.
  * - *Source* (`source`, `select`):  the FIRST panel's content comes from a file
@@ -43,25 +43,16 @@ import accordionCSS from "./UIAccordion.css?inline"
  *     so it opens on the body.
  *   - The DOM element (`DOMLoadableBodyElement`) has `load()` / `reload()`;  states `loading`, `loaded`, `error`.
  * - SIDE EFFECTS:
- *   - watches its own child list (a `MutationObserver`), to pair the titles and contents again
+ *   - watches its own child list (`@fromContent`), to pair the titles and contents again
  *   - with `source`:  may add a `<ui-content>` child, and replaces its children with the file's body.
  ****************/
 export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   @E.proto static vocabulary = accordionVocabulary
-  @E.proto static styleSheets = { accordion: accordionCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { accordion: accordionCSS },
     DOMElement: E.DOMLoadableBodyElement,
-    assignSlots: "manually" as const
+    slotAssignment: "manual" as const
   } satisfies Partial<E.ElementSetup>
-
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    if (isServer) return
-    const { domElement } = this
-    const observer = new MutationObserver(() => this.onChildrenChanged())
-    observer.observe(domElement, { childList: true })
-    domElement.addReleaseCallback(() => observer.disconnect())
-  }
 
   ////////////////
   // ## Nesting
@@ -75,10 +66,10 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
     return !!this.context.owner
   }
 
-  /** Root classes:  the class grammar;  nested, without `ui` (Fomantic's `.ui.accordion .accordion`). */
-  private get rootClass(): string {
-    const classes = this.rootClasses
-    return this.isNested ? classes.replace(UI_WORD, "") : classes
+  /** Nested, without `ui` (Fomantic's `.ui.accordion .accordion`). */
+  get rootClass(): string {
+    const value = super.rootClass
+    return this.isNested ? value.replace(UI_WORD, "") : value
   }
 
   ////////////////
@@ -97,7 +88,8 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   readonly group = isServer ? UI.ids.next(DETAILS_GROUP) : DETAILS_GROUP
 
   /** A child was added, removed or moved:  pair the panels again. */
-  private onChildrenChanged() {
+  @E.fromContent({ childList: true })
+  protected onChildrenChanged() {
     this.panels = AccordionPanels.read(this.domElement, UIAccordion.isTitle, this.panels)
   }
 
@@ -131,11 +123,12 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
    * - A `collapsible="no"` accordion never closes its open panel this way.
    * - Returns true when applied.
    */
+  @E.untracked
   toggle(index: number, originalEvent?: Event): boolean {
-    const current = untrack(() => this.openIndexes)
-    const exclusive = untrack(() => this.exclusive)
+    const current = this.openIndexes
+    const exclusive = this.exclusive
     const opening = !current.includes(index)
-    if (!opening && !untrack(() => this.collapsible)) return false
+    if (!opening && !this.collapsible) return false
     const closing = opening ? (exclusive ? current : []) : [index]
     const next = opening ? (exclusive ? [index] : [...current, index]) : current.filter((open) => open !== index)
     return this.requestChange("openText", AccordionPanels.format(next.sort((a, b) => a - b)), () => {
@@ -147,16 +140,17 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   }
 
   /** `detail` of `ui-open` / `ui-close` for panel `index`:  its title and content added. */
+  @E.untracked
   private detail({ index, open, originalEvent }: AccordionDetailParams): UIT.AccordionToggleDetail {
-    const panel = untrack(() => this.panels)[index]
+    const panel = this.panels[index]
     return { index, open, title: panel?.title as Element, content: panel?.content, originalEvent }
   }
 
   /**
-   * A click on a title (Enter / Space on the focused `<summary>` click it too):  stop the native toggle and go
-   * through `toggle()`.
-   * - A click on something interactive INSIDE the title (a link, a button) is left alone, as the native `<summary>`
-   *   would.
+   * A click on a title (Enter / Space on the focused `<summary>` click it too):
+   * stop the native toggle and go through `toggle()`.
+   * - A click on something interactive INSIDE the title (a link, a button) is left alone,
+   *   as the native `<summary>` would.
    */
   private onTitleClick(index: number, event: MouseEvent) {
     if (UIT.TitleControls.isClicked(event, "summary")) return
@@ -165,18 +159,20 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   }
 
   /**
-   * A `<details>` toggled:  when the browser did it (find-in-page opening a closed panel, the `name` group closing
-   * one), announce and adopt the DOM's open set;  our own writes already match it.
+   * A `<details>` toggled:  when the browser did it, announce and adopt the DOM's open set
+   * (find-in-page opening a closed panel, the `name` group closing one).
+   * - Our own writes already match it.
    */
+  @E.untracked
   private onToggle(event: Event) {
     const root = (event.currentTarget as Element).parentElement
     if (!root) return
     const panels = [...root.children].filter(
       (child): child is HTMLDetailsElement => child instanceof HTMLDetailsElement
     )
-    const before = untrack(() => this.openIndexes)
+    const before = this.openIndexes
     // the `source` panel held closed for its body (`isVeiled`) is open all the same
-    const held = (index: number) => index === SOURCE_PANEL && before.includes(index) && untrack(() => this.isVeiled)
+    const held = (index: number) => index === SOURCE_PANEL && before.includes(index) && this.isVeiled
     const now = panels.flatMap((details, index) => (details.open || held(index) ? [index] : []))
     if (AccordionPanels.format(now) === AccordionPanels.format(before)) return
     for (const index of now) {
@@ -272,8 +268,8 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   }
 
   /**
-   * Where the `source` body goes:  the first title's content child, made (a `<ui-content>` right after the title)
-   * when there's none.
+   * Where the `source` body goes:  the first title's content child,
+   * made when there's none (a `<ui-content>` right after the title).
    * - Read from the DOM, not `panels`:  the `MutationObserver` re-pairs on a microtask.
    * - Made only now, when the body arrives:  on first connect the parser may not have added the children yet.
    * - No title at all:  the DOM element itself (nothing shows it:  only pairs are shown).
@@ -367,7 +363,7 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
    * - STATIC:  pure, and handed to `AccordionPanels.read()` as a plain callback, no `this`.
    */
   private static isTitle(element: Element): boolean {
-    return E.UIComponent.definitions.get(element.localName)?.vocabulary.noun === TITLE_NOUN
+    return E.UIComponent.registry.definitions.get(element.localName)?.vocabulary.noun === TITLE_NOUN
   }
 }
 
@@ -404,8 +400,8 @@ const SOURCE_ERROR = "source error"
 
 /**
  * The shared `name` of an exclusive accordion's `<details>`, so the browser closes the others.
- * - Scoped to the accordion's own shadow root, so one constant serves every accordion;  a server render,
- *   with no shadow root, makes it page-unique (`UIAccordion.group`).
+ * - Scoped to the accordion's own shadow root, so one constant serves every accordion;
+ *   a server render, with no shadow root, makes it page-unique (`UIAccordion.group`).
  */
 const DETAILS_GROUP = "panels"
 

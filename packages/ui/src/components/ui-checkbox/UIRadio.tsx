@@ -1,5 +1,4 @@
 import { onCleanup, untrack } from "solid-js"
-import { onConnect, onDisconnect, onFormAssociated } from "@spell-app/solid-element"
 
 import { E, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
@@ -34,23 +33,33 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
    * The group it's in, if named and connected;  tracked.
    * - Starts as the group found at construction (joined in the constructor), so the first render is final.
    * - Then written ONLY by `joinGroup()`, together with the membership, so readers never see one without the other.
-   * - `ownedWrite`:  `joinGroup()` runs from solid-element's hooks, possibly inside a Solid render.
+   * - `ownedWrite`:  `joinGroup()` runs from the lifecycle methods, possibly inside a Solid render.
    */
   @E.state({ ownedWrite: true }) accessor group: RadioGroup | undefined = this.findGroup()
 
   constructor(...args: ConstructorParameters<typeof CheckControl>) {
     super(...args)
     untrack(() => this.group)?.join(this)
-    const join = () => this.joinGroup()
-    onConnect(join)
-    onDisconnect(join)
-    onFormAssociated(join)
-    // `name` reads fresh here:  the DOM element's record has the new value before its callbacks run
+    // `name` reads fresh here:  the DOM element's `attributeValues` has the new value before its callbacks run
     this.domElement.addPropertyChangedCallback((key: string) => {
       if (key === NAME) this.joinGroup()
     })
     // disposal (`domElement.dispose()`):  out of the group, without publishing into a dying root
     onCleanup(() => untrack(() => this.group)?.leave(this))
+  }
+
+  onConnect() {
+    super.onConnect()
+    this.joinGroup()
+  }
+
+  onDisconnect() {
+    super.onDisconnect()
+    this.joinGroup()
+  }
+
+  onFormAssociated() {
+    this.joinGroup()
   }
 
   /**
@@ -60,9 +69,10 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
    * - Reads the platform synchronously (`isConnected`, `internals.form`), and its own members untracked:
    *   it may run inside someone else's Solid computation.
    */
+  @E.untracked
   private joinGroup() {
     const next = this.findGroup()
-    const current = untrack(() => this.group)
+    const current = this.group
     if (next === current) return
     current?.leave(this)
     next?.join(this)
@@ -70,9 +80,10 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
   }
 
   /** The group its name, connection and form owner call for now. */
+  @E.untracked
   private findGroup(): RadioGroup | undefined {
     const { domElement } = this
-    const groupName = untrack(() => this.name)
+    const groupName = this.name
     if (!groupName || !domElement.isConnected) return undefined
     return RadioGroup.of(domElement.internals.form ?? domElement.getRootNode(), groupName)
   }
@@ -81,19 +92,20 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
   @E.onChange("isSelected", "group")
   protected onGroupChoiceChanged(isSelected: boolean, group: RadioGroup | undefined) {
     if (!isSelected || !group) return
-    for (const other of group.others(this)) if (untrack(() => other.isSelected)) other.isSelected = false
+    for (const other of group.others(this)) if (other.isSelected) other.isSelected = false
   }
 
   /** Arrow keys move the choice through the group, focus following. */
+  @E.untracked
   protected onKeyDown(event: KeyboardEvent) {
     const delta = NEXT.has(event.key) ? 1 : PREVIOUS.has(event.key) ? -1 : 0
-    const group = untrack(() => this.group)
+    const group = this.group
     if (!delta || !group) return
     event.preventDefault()
     // `readonly` never changes the choice, from either end of the move
-    if (untrack(() => this.readonly)) return
+    if (this.readonly) return
     const target = group.step(this, delta) as UIRadio | undefined
-    if (!target || untrack(() => target.readonly)) return
+    if (!target || target.readonly) return
     target.focus()
     target.choose(true, event)
   }
@@ -143,7 +155,7 @@ export class UIRadio extends CheckControl<typeof radioVocabulary> implements Rad
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UIRadio extends E.AttributeValues<typeof radioVocabulary> {}
 
-/** The `name` prop's key, as solid-element's change callback reports it. */
+/** The `name` attribute's key, as the DOM element's change callbacks report it. */
 const NAME: E.AttributeName<typeof radioVocabulary> = "name"
 
 /** Keys that move to the next radio. */

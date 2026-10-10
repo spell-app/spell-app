@@ -10,8 +10,9 @@ import { UIDate } from "$/ui/components/ui-parts/UIDate"
 import { UISummary } from "$/ui/components/ui-parts/UISummary"
 
 /**
- * `<ui-feed>` in the static server render (`$/ui/static`):  a `<ul>` (`<ol>` when `ordered`) whose events' `<div>`
- * roots become the `<li>`s -- the events' `listitem` role is a `domElementEffect()`, applied once on the server.
+ * `<ui-feed>` in the static server render (`$/ui/static`):
+ * a `<ul>` (`<ol>` when `ordered`) whose events' `<div>` roots become the `<li>`s.
+ * - The events' `listitem` role is an `@aria` getter, applied once on the server.
  */
 describe("<ui-feed> static render", () => {
   beforeAll(() => {
@@ -27,7 +28,7 @@ describe("<ui-feed> static render", () => {
     expect(sorted(html)).toBe(
       sorted(
         `<ol class="ui blue ordered feed" part="feed" role="list" data-ui="feed">` +
-          `<li class="red event ui-red in-feed" part="event" data-ui="event" data-state="in-feed" data-ui-slotted="">` +
+          `<li class="red ui-red event in-feed" part="event" data-ui="event" data-state="in-feed" data-ui-slotted="">` +
           `<div class="label" part="label" data-text="A"></div>` +
           `<div class="content in-feed" part="content" data-ui="content" data-state="in-feed" data-ui-slotted="">` +
           `<div class="summary in-feed" part="summary" data-ui="summary" data-state="in-feed" data-ui-slotted="">` +

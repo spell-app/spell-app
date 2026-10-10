@@ -1,6 +1,5 @@
-import { For, Repeat, Show, createEffect, untrack } from "solid-js"
+import { For, Repeat, Show, createEffect } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
-import { onFormStateRestore } from "@spell-app/solid-element"
 
 import { E, UI, UIT } from "$/ui/core"
 import { F } from "$/ui/forms"
@@ -17,14 +16,15 @@ import sliderCSS from "./UISlider.css?inline"
  *
  * - Its shadow DOM, in Fomantic's markup:
  *   `<div class="ui … slider" part="slider">` around `<div class="inner">` (the track, its fill, one or two `thumb`s)
- *   and, when `labeled` or `ticked`, `<ul class="auto labels">` (empty labels when only `ticked`:
- *   the sheet draws their ticks).  Labels come every `tick-step` (default `step`).
+ *   and, when `labeled` or `ticked`, `<ul class="auto labels">`
+ *   (empty labels when only `ticked`:  the sheet draws their ticks).
+ *   - Labels come every `tick-step` (default `step`).
  *
  * - The thumbs are APG sliders (`role=slider`, `aria-value*`, `aria-orientation`):
  *   no native element has two thumbs, or Fomantic's parts.
- *   A `range`'s thumbs are "Minimum" / "Maximum", inside a `group` named for the DOM element,
- *   and each bounds the other (`preventCrossover`).
- *   The labels are `aria-hidden`:  the thumbs speak their values.
+ *   - A `range`'s thumbs are "Minimum" / "Maximum", inside a `group` named for the DOM element,
+ *     and each bounds the other (`preventCrossover`).
+ *   - The labels are `aria-hidden`:  the thumbs speak their values.
  *
  * - Keys (on a thumb):
  *   - arrows step in the direction they point,
@@ -32,35 +32,30 @@ import sliderCSS from "./UISlider.css?inline"
  *   - PageUp / PageDown take 2 steps (Fomantic's `pageMultiplier`)
  *   - Home / End go to the thumb's lowest / highest value
  *   - each key sends `ui-input`, then `ui-change`.
- * - Pointer:  pressing the track moves the nearest thumb there, and dragging follows (pointer capture);
- *   `ui-input` for each new value, `ui-change` once when the drag ends somewhere new.
- *   `smooth` lets the thumb glide between steps.
+ * - Pointer:  pressing the track moves the nearest thumb there, and dragging follows (pointer capture).
+ *   - `ui-input` for each new value, `ui-change` once when the drag ends somewhere new.
+ *   - `smooth` lets the thumb glide between steps.
  *
  * - `value` / `end` are controlled (`@controlled`):  a `ui-input` handler that sets them again wins.
  *   The ATTRIBUTES are the starting (and reset) values.
- * - Positions are CSS:  the component writes ratios (`--_slider-at` per thumb and label,
- *   `--_slider-from` / `--_slider-to` on the inner box), and `UISlider.css` places everything,
- *   `reversed` / `vertical` included.
- * - A form control:  it submits `value`;  a `range` submits TWO entries under `name`
- *   (`FormData.getAll(name)` ~== `[value, end]`), per `FormComponent`'s multi-value convention.
+ * - Positions are CSS:
+ *   - the component writes ratios:
+ *     `--_slider-at` per thumb and label, `--_slider-from` / `--_slider-to` on the inner box
+ *   - `UISlider.css` places everything, `reversed` / `vertical` included
+ * - A form control:  it submits `value`;
+ *   a `range` submits TWO entries under `name` (`FormData.getAll(name)` ~== `[value, end]`),
+ *   per `FormComponent`'s multi-value convention.
  *   It restores a saved state (back / forward cache, autofill).
  ****************/
 export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   @E.proto static vocabulary = sliderVocabulary
-  @E.proto static styleSheets = { slider: sliderCSS }
-  @E.proto static elementSetup = { Fallback: SliderFallback } satisfies Partial<E.ElementSetup>
-
-  /** The DOM element's `<label>`s and `aria-label`, as the thumb's (or range group's) name. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
+  @E.protoMerged static elementSetup = {
+    styleSheets: { slider: sliderCSS },
+    Fallback: SliderFallback
+  } satisfies Partial<E.ElementSetup>
 
   /** The inner box:  track, fill, thumbs. */
   private inner?: HTMLElement
-
-  constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
-    super(...args)
-    this.domElement.addEventListener("click", this.onDOMElementClick)
-    onFormStateRestore((state) => this.onFormStateRestored(state))
-  }
 
   ////////////////
   // ## Values
@@ -120,24 +115,26 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   }
 
   /**
-   * Move `thumb` to `value` (within its bounds) as a person would:  send `ui-input`,
-   * then set the DOM element's property, unless a handler set it first.
+   * Move `thumb` to `value` (within its bounds) as a person would:
+   * send `ui-input`, then set the DOM element's property, unless a handler set it first.
    * - Returns true when the value changed.
    */
+  @E.untracked
   private move(thumb: Thumb, value: number, originalEvent: Event): boolean {
-    const [low, high] = untrack(() => this.bounds(thumb))
+    const [low, high] = this.bounds(thumb)
     const next = Math.min(high, Math.max(low, value))
-    if (next === untrack(() => this.thumbValue(thumb))) return false
+    if (next === this.thumbValue(thumb)) return false
     return this.requestChange(thumb === SECOND ? "end" : "value", next, () =>
       this.send("ui-input", this.detail(thumb, next, originalEvent))
     )
   }
 
   /** Event detail with `thumb` at `next`:  `{ value, end?, originalEvent }`. */
+  @E.untracked
   private detail(thumb: Thumb | undefined, next: number | undefined, originalEvent: Event) {
-    const value = thumb === FIRST && next !== undefined ? next : untrack(() => this.snappedValue)
-    if (!untrack(() => this.range)) return { value, originalEvent }
-    const end = thumb === SECOND && next !== undefined ? next : untrack(() => this.snappedEnd)
+    const value = thumb === FIRST && next !== undefined ? next : this.snappedValue
+    if (!this.range) return { value, originalEvent }
+    const end = thumb === SECOND && next !== undefined ? next : this.snappedEnd
     return { value, end, originalEvent }
   }
 
@@ -145,20 +142,9 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   // ## Disabled
   ////////////////
 
-  /** Disabled by its attribute, or by a disabled fieldset. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
-
   /** Can a person change it? */
   get isInteractive(): boolean {
     return !this.isDisabled && !this.readonly
-  }
-
-  protected classValue(name: E.AttributeName<typeof sliderVocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled
-    return super.classValue(name)
   }
 
   ////////////////
@@ -169,18 +155,14 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
     return this.range ? [String(this.snappedValue), String(this.snappedEnd)] : String(this.snappedValue)
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
   /** Back to the `value` / `end` ATTRIBUTES. */
   onFormReset() {
     this.value = E.Converters.number(this.attributes.value)
     this.end = E.Converters.number(this.attributes.end)
   }
 
-  /** A saved state:  one value, or a range's two entries.  `null`:  solid-element's callback, a platform boundary. */
-  private onFormStateRestored(state: File | string | FormData | null) {
+  /** A saved state:  one value, or a range's two entries.  `null`:  DOM API `formStateRestoreCallback()`'s. */
+  onFormStateRestore(state: File | string | FormData | null) {
     const values =
       state instanceof FormData ? [...state.values()].map(String) : typeof state === "string" ? [state] : []
     if (values[0] !== undefined) this.value = Number(values[0])
@@ -208,18 +190,13 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
     return super.onMount()
   }
 
-  /** Connected:  read the name from the DOM element's labels again. */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (isConnected) this.labels.refresh()
-  }
-
   /**
    * Track length from the DOM element's box (always there, unlike the inner box before the first render):
    * its size less the slider's padding and a thumb, read from the rendered root when there is one.
    */
+  @E.untracked
   private measure() {
-    const vertical = untrack(() => this.vertical)
+    const vertical = this.vertical
     const inner = this.inner
     const length = inner?.isConnected
       ? vertical
@@ -237,8 +214,9 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   /**
    * The inner box's inline tokens:  the selected range's two ends, as ratios.
-   * - A getter, not an inline object:  Solid's server compile (rc.11) drops the `;` between an inline style
-   *   object's COMPUTED keys (`--a:1px--b:2`), and the browser then ignores both.
+   * - A getter, not an inline object:
+   *   Solid's server compile (rc.11) drops the `;` between an inline style object's COMPUTED keys
+   *   (`--a:1px--b:2`), and the browser then ignores both.
    */
   private get innerStyle(): Record<string, string> {
     return { [FROM]: String(this.ratio(FIRST, { isFill: true })), [TO]: String(this.ratio(SECOND, { isFill: true })) }
@@ -246,7 +224,7 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div class={this.rootClasses} part={this.partForName("slider")}>
+      <div class={this.rootClass} part={this.partForName("slider")}>
         <div
           ref={(element) => (this.inner = element)}
           class={INNER}
@@ -311,7 +289,8 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   /**
    * Server render only (`$/ui/static`):  the `STATIC_CONTROL` mark on `target`,
-   * when the DOM element's name belongs to it (a single slider's thumb, a range's group);  `{}` in a browser.
+   * when the DOM element's name belongs to it (a single slider's thumb, a range's group).
+   * - `{}` in a browser.
    */
   private staticMark(target: Thumb | "group"): Record<string, unknown> {
     if (!isServer) return {}
@@ -321,7 +300,8 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   /**
    * Server render only (`$/ui/static`):  the value as hidden inputs (two for a `range`),
-   * so a static form submits it without script;  in a browser the DOM element submits (`ElementInternals`).
+   * so a static form submits it without script.
+   * - In a browser the DOM element submits (`ElementInternals`).
    */
   private staticValues(): JSX.Element {
     const name = this.name
@@ -383,15 +363,16 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   private valuesAtDragStart?: readonly [number, number]
 
   /** Press on the track or a thumb:  that thumb (else the nearest) jumps to the pointer and is dragged. */
+  @E.untracked
   private readonly onPointerDown = (event: PointerEvent) => {
-    if (event.button !== 0 || !untrack(() => this.isInteractive) || !this.inner) return
+    if (event.button !== 0 || !this.isInteractive || !this.inner) return
     event.preventDefault()
     const ratio = this.pointerRatio(event)
     // the pressed element itself:  delegated handlers may see a retargeted `event.target`
     const target = (event.composedPath()[0] as Element).closest?.(THUMB_SELECTOR)
     const thumb = target ? (target.classList.contains(SECOND_CLASS) ? SECOND : FIRST) : this.nearest(ratio)
     this.capture(event.pointerId)
-    this.valuesAtDragStart = untrack(() => [this.snappedValue, this.snappedEnd] as const)
+    this.valuesAtDragStart = [this.snappedValue, this.snappedEnd] as const
     this.draggedThumb = thumb
     this.inner.querySelectorAll<HTMLElement>(THUMB_SELECTOR)[thumb]?.focus()
     if (!target) this.drag(thumb, ratio, event)
@@ -405,6 +386,7 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   }
 
   /** Release:  `ui-change` when the drag moved anything. */
+  @E.untracked
   private readonly onPointerUp = (event: PointerEvent) => {
     if (this.draggedThumb === undefined) return
     this.draggedThumb = undefined
@@ -412,8 +394,8 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
     this.glideRatio = undefined
     const [value, end] = this.valuesAtDragStart ?? []
     this.valuesAtDragStart = undefined
-    queueMicrotask(() => {
-      if (untrack(() => this.snappedValue) !== value || untrack(() => this.snappedEnd) !== end) {
+    E.afterSolidUpdate(() => {
+      if (this.snappedValue !== value || this.snappedEnd !== end) {
         this.send("ui-change", this.detail(undefined, undefined, event))
       }
     })
@@ -421,7 +403,8 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   /**
    * Route pointer `id`'s moves to the inner box until release.
-   * - A pointer with no pressed button (a synthetic event) can't be captured:  moves then only arrive while over it.
+   * - A pointer with no pressed button (a synthetic event) can't be captured:
+   *   moves then only arrive while over it.
    */
   private capture(id: number) {
     try {
@@ -432,21 +415,23 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   }
 
   /** Move `thumb` to the value at `ratio`;  a `smooth` slider draws it at the pointer meanwhile. */
+  @E.untracked
   private drag(thumb: Thumb, ratio: number, event: Event) {
-    const scale = untrack(() => this.scale)
-    if (untrack(() => this.smooth)) {
-      const [low, high] = untrack(() => this.bounds(thumb))
+    const scale = this.scale
+    if (this.smooth) {
+      const [low, high] = this.bounds(thumb)
       this.glideRatio = Math.min(scale.ratio(high), Math.max(scale.ratio(low), ratio))
     }
     this.move(thumb, scale.valueAt(ratio), event)
   }
 
   /** The pointer's position along the track, `0` (min) ... `1` (max). */
+  @E.untracked
   private pointerRatio(event: PointerEvent): number {
     const inner = this.inner!
     const box = inner.getBoundingClientRect()
     const thumb = inner.querySelector<HTMLElement>(THUMB_SELECTOR)
-    const [vertical, reversed] = untrack(() => [this.vertical, this.reversed])
+    const [vertical, reversed] = [this.vertical, this.reversed]
     const size = vertical ? (thumb?.offsetHeight ?? 0) : (thumb?.offsetWidth ?? 0)
     const length = (vertical ? box.height : box.width) - size
     const offset = (vertical ? event.clientY - box.top : event.clientX - box.left) - size / 2
@@ -455,12 +440,13 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   }
 
   /** The thumb nearest `ratio`;  a tie goes to the one that can move that way. */
+  @E.untracked
   private nearest(ratio: number): Thumb {
-    if (!untrack(() => this.range)) return FIRST
-    const scale = untrack(() => this.scale)
-    const first = Math.abs(ratio - scale.ratio(untrack(() => this.snappedValue)))
-    const second = Math.abs(ratio - scale.ratio(untrack(() => this.snappedEnd)))
-    if (first === second) return ratio > scale.ratio(untrack(() => this.snappedValue)) ? SECOND : FIRST
+    if (!this.range) return FIRST
+    const scale = this.scale
+    const first = Math.abs(ratio - scale.ratio(this.snappedValue))
+    const second = Math.abs(ratio - scale.ratio(this.snappedEnd))
+    if (first === second) return ratio > scale.ratio(this.snappedValue) ? SECOND : FIRST
     return first < second ? FIRST : SECOND
   }
 
@@ -469,24 +455,26 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   ////////////////
 
   /** Keys on a thumb, see the class doc. */
+  @E.untracked
   private onKeyDown(thumb: Thumb, event: KeyboardEvent) {
-    const scale = untrack(() => this.scale)
-    const current = untrack(() => this.thumbValue(thumb))
+    const scale = this.scale
+    const current = this.thumbValue(thumb)
     let next: number | undefined
     const steps = this.keySteps(event.key)
     if (steps) next = scale.move(current, steps)
-    else if (event.key === UIT.Key.home) next = untrack(() => this.bounds(thumb))[0]
-    else if (event.key === UIT.Key.end) next = untrack(() => this.bounds(thumb))[1]
+    else if (event.key === UIT.Key.home) next = this.bounds(thumb)[0]
+    else if (event.key === UIT.Key.end) next = this.bounds(thumb)[1]
     if (next === undefined) return
     event.preventDefault()
-    if (!untrack(() => this.isInteractive)) return
+    if (!this.isInteractive) return
     const value = next
     if (this.move(thumb, value, event)) this.send("ui-change", this.detail(thumb, value, event))
   }
 
   /** Steps key `key` takes:  arrows the way they point (Fomantic's `keyMovement`), pages 2;  `0` for other keys. */
+  @E.untracked
   private keySteps(key: string): number {
-    const [vertical, reversed] = untrack(() => [this.vertical, this.reversed])
+    const [vertical, reversed] = [this.vertical, this.reversed]
     // the value grows downward on a vertical slider (min at the top) and leftward on a reversed horizontal one
     const { arrowUp, arrowDown, arrowLeft, arrowRight, pageUp, pageDown } = UIT.Key
     const grows = vertical ? (reversed ? arrowUp : arrowDown) : reversed ? arrowLeft : arrowRight
@@ -499,8 +487,7 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   }
 
   /** A click aimed at the DOM element itself (its `<label for>`) focuses the first thumb. */
-  private readonly onDOMElementClick = (event: MouseEvent) => {
-    if (event.composedPath()[0] !== this.domElement || this.isDisabled) return
+  protected activateControl() {
     this.inner?.querySelector<HTMLElement>(THUMB_SELECTOR)?.focus()
   }
 }

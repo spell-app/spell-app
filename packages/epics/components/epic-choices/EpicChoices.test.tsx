@@ -118,7 +118,7 @@ describe("<epic-choices>", () => {
       "Recommended"
     ])
     await vi.waitFor(() => expect(thumb.querySelector("svg")).not.toBeNull())
-    expect(options.map((option) => part(option, "base")!.className)).toEqual(["option card", "option card"])
+    expect(options.map((option) => part(option, "base")!.className)).toEqual(["card option", "card option"])
     expect(part(host, "toggle")).toBeNull()
     await expectAccessible(host)
   })
@@ -149,12 +149,18 @@ describe("<epic-choices>", () => {
     await expectAccessible(host)
   })
 
-  test("answered:  folded under `Choices`;  the chosen option a panel marked with a check, and open;  passes axe", async () => {
+  test("answered:  folded under `Choices`, which NAMES the chosen one;  that one a panel marked with a check, and open;  passes axe", async () => {
     const { host, options } = await choices(`<epic-choices chosen="B">${OPTIONS}</epic-choices>`)
     const [a, b] = options
     expect(host.matches(":state(answered)")).toBe(true)
-    expect([part(host, "toggle")!.textContent, part(host, "panels")!.getAttribute("hidden")]).toEqual([
-      "Choices",
+    // folded, the pick stays in sight (Owen, 2026-10-10)
+    expect([
+      part(host, "toggle")!.textContent,
+      part(host, "chosen")!.textContent,
+      part(host, "panels")!.getAttribute("hidden")
+    ]).toEqual([
+      `ChoicesChosen:  B · ${b!.getAttribute("title")}`,
+      `Chosen:  B · ${b!.getAttribute("title")}`,
       "until-found"
     ])
     expect([a.matches(":state(chosen)"), b.matches(":state(chosen)")]).toEqual([false, true])
@@ -226,7 +232,7 @@ describe("<epic-option>'s Choose pill (P10)", () => {
     expect(routes.posts).toEqual([["mark", { page: PAGE, id: "q1", mark: { action: "pick", pick: "B", choices: 0 } }]])
     expect(pills(options)).toEqual([
       ["Choose", "false"],
-      ["Chosen", "true"]
+      ["Chosen · not sent", "true"]
     ])
     expect([options[1].matches(":state(picked)"), part(options[1], "base")!.classList.contains("picked")]).toEqual([
       true,
@@ -344,7 +350,7 @@ describe("<epic-option>'s Choose pill, anywhere (I8)", () => {
     expect(routes.posts).toEqual([["mark", { page: PAGE, id: "j2", mark: { action: "pick", pick: "A", choices: 1 } }]])
     expect([pills(own)[0], pills(reply)[0]]).toEqual([
       ["Choose", "false"],
-      ["Chosen", "true"]
+      ["Chosen · not sent", "true"]
     ])
     // dashed until sent, wherever the cards are
     expect(getComputedStyle(pillOf(reply[0])!).borderTopStyle).toBe("dashed")
@@ -357,9 +363,36 @@ describe("<epic-option>'s Choose pill, anywhere (I8)", () => {
     const { own, reply } = await twoSets()
     await settle()
     expect([pills(own)[1], pills(reply)[1]]).toEqual([
-      ["Chosen", "true"],
+      ["Chosen · not sent", "true"],
       ["Choose", "false"]
     ])
+  })
+
+  test("from the pick on, it says Chosen:  not sent, sent, still sent once Claude takes it (the doc on its way), then applied", async () => {
+    const { client, routes } = await reviewing()
+    const { host, options } = await choices(
+      `<epic-item id="q1" title="Which?" status="open"><epic-choices>${OPTIONS}</epic-choices></epic-item>`
+    )
+    await settle()
+    pillOf(options[1])!.click()
+    await settle()
+    expect(pills(options)[1]).toEqual(["Chosen · not sent", "true"])
+    await client.send()
+    await settle()
+    expect(pills(options)[1]).toEqual(["Chosen · sent", "true"])
+    // `inbox apply` clears the mark before the page has the doc's `chosen` (Owen, 2026-10-10:  "losing the marker")
+    delete routes.inbox.marks.q1
+    await client.refresh()
+    await settle()
+    expect([pills(options)[1], getComputedStyle(pillOf(options[1])!).borderTopStyle]).toEqual([
+      ["Chosen · sent", "true"],
+      "solid"
+    ])
+    // the doc lands:  applied
+    host.setAttribute("chosen", "B")
+    host.closest("epic-item")!.setAttribute("status", "decided")
+    await settle()
+    expect(pills(options)[1]).toEqual(["Chosen", "true"])
   })
 
   test("applied in a reply (its set `chosen`, the call accepted):  that option's pill solid;  the rest none", async () => {

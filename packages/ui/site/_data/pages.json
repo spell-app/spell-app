@@ -95,6 +95,11 @@
       "summary": "An example shows its own markup live, under a header and description, with the same markup as code a button shows and hides.",
       "status": "done"
     },
+    "ui-docs-inspector": {
+      "title": "Docs inspector",
+      "summary": "An inspector shows another element's attributes, properties and custom states, live:  click the element, and watch them change.",
+      "status": "done"
+    },
     "ui-docs-nav": {
       "title": "Docs nav",
       "summary": "A docs nav lists the site's pages and every component, A-Z or by topic, with search and favourites;  the current page is highlighted and scrolled into view.",

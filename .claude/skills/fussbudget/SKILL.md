@@ -9,18 +9,22 @@ argument-hint: "[<path...> | epic <name> | branch]"
 Rewrites the words around the code, so future-Owen can read them cold (epic `skillz`, P7).
 - What it fixes:  text written from inside the builder's head.
   - dense paragraphs, lines broken at the column instead of at phrases
-  - implementation words ("the fork") where the plain name ("solid-element") belongs
+  - implementation words ("the fork") where the plain name ("the element layer") belongs
   - why a squirrely choice was made, before what the thing IS
-- The rules are WWOD §6, "Comments & docs" (`agents/wwod/WWOD.md`),
-  and its long before / afters, `agents/wwod/writing.md`.
+  - file paths and exact settings in the running text, where what they MEAN belongs
+    (WWOD §6 › "Plain text, plain paths", epic `airplane`)
+- The rules are WWOD §6, "Comments & docs" ([WWOD.md](agents/wwod/WWOD.md)),
+  and its long before / afters, [writing.md](agents/wwod/writing.md).
   This skill says how to run a pass;  those files say what good looks like.
 - Its checker:  `spell dev docs fuss <paths...> | --branch [--json]`.
   - It lists the mechanical misses by file and line, and exits 1 on any:
     - `phrase-split`:  a line ending in the first 1-4 words of a new phrase
     - `dense`:  a docstring paragraph or bullet of 3+ sentences
     - `jargon`:  a banned implementation word, from a short list per package
+    - `path-in-prose`:  a file path in a page's or Markdown's running text
+    - `code-dense`:  a sentence of 3+ code spans, in a page or Markdown
   - It can't see the rest:  that's what the reading pass is for.
-- Every epic's Doc Review runs it:  `.claude/skills/epic/SKILL.md`, "6. Doc Review".
+- Every epic's Doc Review runs it:  [the epic skill](.claude/skills/epic/SKILL.md), "6. Doc Review".
 
 ## Forms
 
@@ -37,8 +41,9 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
     `/Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts/<id>.html`.
   - Never its structure:  no ids, no sections, no item lines, nothing `spell dev plan-doc` writes.
 - `branch`:  every file this branch changed or added since `main`, WHOLE.
-  - The files:  `git diff --name-only main...HEAD`, `git diff --name-only HEAD`,
-    and `git ls-files --others --exclude-standard` (new, untracked).
+  - The files:
+    - `git diff --name-only main...HEAD` and `git diff --name-only HEAD`
+    - `git ls-files --others --exclude-standard` (new, untracked)
   - Whole files, not just the changed lines:  Owen can always undo a hunk (J14 of `skillz`).
   - On `main` with nothing changed:  say so and stop.
 - Nothing after it:  AskUserQuestion, "What should /fussbudget cover?", options:
@@ -51,13 +56,16 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 ## What it rewrites
 
 - Yes:
-  - docstrings and comments, in `.ts` / `.tsx` / `.js` / `.mjs`
+  - docstrings and comments, in code:  `.ts` / `.tsx`, `.js` / `.mjs`
   - READMEs, `AGENTS.md` files, other Markdown
   - docs pages (`guides/`, `ui/`, `pages/`):  their prose
   - plan-doc prose, as "Forms" says
 - Never:
-  - code, names, strings the code uses, marker words (`NOTE:`, `HACK:`, `REFACTOR:` ...)
-  - generated files:  any `git check-attr linguist-generated` marks, `vendor/`, bundles, snapshots, fixtures
+  - code, names, strings the code uses
+  - marker words:  `NOTE:`, `HACK:`, `REFACTOR:` ...
+  - generated files:
+    - any file `git check-attr linguist-generated` marks
+    - `vendor/`, bundles, snapshots, fixtures
   - Owen's own words:  his quotes, a plan doc's kickoff prompt, `<epic-original>`, `<epic-answer>`
   - dated records:  a plan doc's `log.html`, `<epic-updated>` lines, the changelog's old entries
 - Keeps every fact, number and caveat (WWOD §6).
@@ -66,7 +74,7 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 
 ## Steps
 
-1. Read the rules WHOLE, first:  WWOD §6 and `agents/wwod/writing.md`.
+1. Read the rules WHOLE, first:  WWOD §6 and [writing.md](agents/wwod/writing.md).
    - Every pass, even a small one:  this skill exists because the rule, half-remembered, hasn't worked.
 2. Is anyone else editing it?
    - `spell dev worktree list`:  another session (not this one, not the one that started you)
@@ -79,10 +87,10 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
 4. The checker, for the mechanical list, and its count BEFORE:
    - `spell dev docs fuss <paths...> --json`, or `spell dev docs fuss --branch --json`
    - a plan doc:  `spell dev docs fuss /Users/owen/www/spell-app/spell-app-dev/epics/<name>/parts --json`
-   - In HTML it checks density and jargon only:  the formatter wraps those lines.
+   - In HTML it checks everything but `phrase-split`:  the formatter wraps those lines.
 5. Big scope:  fan out ("Fanning out").  Else the session does it itself.
 6. Each file, top to bottom:
-   - fix each of the checker's misses
+   - fix each of the checker's misses ("The fixes, by kind")
    - then READ, for what no tool sees:
      - written from inside the builder's head:  would someone new to this part follow it?
      - implementation words, where the plain name belongs
@@ -98,6 +106,30 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
    - A miss left on purpose (a false hit, a line that can't break better):  name it in the report.
 9. Report ("Report").
 
+## The fixes, by kind
+
+- `phrase-split`:  break the line where the phrase starts, or move the whole phrase down.
+- `dense`:  a plain lead line saying what the sentences add up to, then bullets, one fact each.
+- `jargon`:  the name a newcomer would look for, in place of the implementation word.
+- `path-in-prose`:  name the thing, and move its path where a reader can still reach it.
+  - A page:  the path is the name's tooltip, the browser's own (`title`), never a second code span:
+
+    ```html
+    BEFORE  Built:  <code>buildTsx()</code>, <code>packages/spell/src/node/buildTsx.ts:40</code>
+    AFTER   Built:  <code title="packages/spell/src/node/buildTsx.ts">buildTsx()</code>
+    ```
+
+    `doc-links.js` links the name to its `title`'s file, so a click still opens it.
+  - A path with no name to hang it on ("see `guides/x/x.html`"):  the page's title as the link text.
+  - Markdown, which has no tooltips:  a link, `` [`buildTsx()`](packages/spell/src/node/buildTsx.ts) ``.
+    In agent-facing Markdown (`AGENTS.md`, WWOD, `SKILL.md`), a path an agent must open stays reachable that way.
+- `code-dense`:  say what it MEANS, then one fact per bullet.
+  - The exact settings and values go in a tooltip, or a folded code block:
+    `<epic-code>` or `ui-accordion.spell-code` in a page, a fence in Markdown.
+  - Owen's before / after:  [writing.md](agents/wwod/writing.md), "A 'Built / Checked' line in a plan doc".
+  - A list of names that IS the point (the methods a class has):  bullets, one name each.
+- Never in Owen's own words, or in a dated record ("What it rewrites").
+
 ## Fanning out
 
 - One folder, a few files, or a plan doc:  no agents, the session does it.
@@ -105,7 +137,8 @@ Rewrites the words around the code, so future-Owen can read them cold (epic `ski
   - Or fewer, when you were given a smaller budget (`/bg` with `n`).
   - More folders than agents:  group neighbours, one agent a group.
   - Why:  one voice per package, and the session stays free.
-- Each one NAMED and LISTED, as the root `CLAUDE.md`'s "Delegated work" says (`.claude/skills/bg/SKILL.md`, "Names"):
+- Each one NAMED and LISTED, as the root `CLAUDE.md`'s "Delegated work" says
+  ([the bg skill](.claude/skills/bg/SKILL.md), "Names"):
   - `spell dev agents add fussbudget-<folder> "<its task>"`:  prints its full name
   - an `Agent` call (`general-purpose`, `run_in_background: true`),
     its `description` starting with that full name

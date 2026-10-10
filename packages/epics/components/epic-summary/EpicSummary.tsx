@@ -1,5 +1,5 @@
-import { Show, createEffect, untrack } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { Show } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
@@ -27,7 +27,9 @@ import summaryCSS from "./EpicSummary.css?inline"
  ****************/
 export class EpicSummary extends E.UIComponent<typeof epicSummaryVocabulary> {
   @E.proto static vocabulary = epicSummaryVocabulary
-  @E.proto static styleSheets = { "epic-summary": summaryCSS, "epic-review": reviewCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-summary": summaryCSS, "epic-review": reviewCSS }
+  } satisfies Partial<E.ElementSetup>
 
   /** Its view of the review inbox, keyed `summary`. */
   readonly reviewState = new ReviewState(() => SUMMARY_ID)
@@ -36,20 +38,15 @@ export class EpicSummary extends E.UIComponent<typeof epicSummaryVocabulary> {
   private noteInput: HTMLTextAreaElement | undefined
 
   /** Follow the review inbox while connected (kept alive:  a removed summary stops). */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      createEffect(
-        () => this.isConnected,
-        (connected) => (connected ? this.reviewState.connect() : undefined)
-      )
-    }
-    return super.onMount()
+  @E.whileConnected
+  protected followReviews() {
+    return this.reviewState.connect()
   }
 
   render(): JSX.Element {
     return (
       <>
-        <div class={this.rootClasses} part={this.partForName("base")}>
+        <div class={this.rootClass} part={this.partForName("base")}>
           <slot />
         </div>
         <slot name={this.slotForName("notes")} />
@@ -100,8 +97,9 @@ export class EpicSummary extends E.UIComponent<typeof epicSummaryVocabulary> {
   }
 
   /** Done with the note box:  it stays, but stops counting as written in once it's empty. */
+  @E.untracked
   private leaveNote() {
-    if (!this.noteInput?.value.trim()) this.reviewState.client?.closeBox(untrack(this.reviewState.id), false)
+    if (!this.noteInput?.value.trim()) this.reviewState.client?.closeBox(this.reviewState.id(), false)
   }
 }
 

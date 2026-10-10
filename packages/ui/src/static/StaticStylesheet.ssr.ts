@@ -11,34 +11,36 @@ import { LIST_ITEM, ROOT, SLOTTED } from "./static.types.ssr"
  * The ONE stylesheet a static page (`StaticRender`) links:  the page foundation, then every family's sheets
  * rewritten for light DOM, each kept to its own component.
  * - Order:
- *   1. `@layer ui-slotted, page, ui;`:  `::slotted()` rules first (they lost to the page in a shadow root);  a
- *      page's own CSS goes in `@layer page`, so components win where both set a property
- *      (unlayered page CSS would beat every `ui.*` layer)
- *   2. `pageCSS`:  layers, tokens, colors ... typography, native, as a page with elements gets them, less the
- *      shadow-only selectors (`page()`)
+ *   1. `@layer ui-slotted, page, ui;`:
+ *      - `::slotted()` rules first (they lost to the page in a shadow root)
+ *      - a page's own CSS goes in `@layer page`, so components win where both set a property
+ *        (unlayered page CSS would beat every `ui.*` layer)
+ *   2. `pageCSS`:  layers, tokens, colors ... typography, native, as a page with elements gets them,
+ *      less the shadow-only selectors (`page()`)
  *   3. `reset.css`, which only ever applied inside shadow roots:  scoped to every component
  *   4. each family's sheets (`styles`), selectors rewritten (`StaticSelectors`), wrapped in `@scope`
- *   5. list item wrappers as `display: contents`;  `[hidden]`, unlayered:  component `display` rules would beat
- *      the browser's own
- * - The `@scope` boundary stands in for the shadow boundary:  from a component's root (`data-ui="<kind>"`) down
- *   to, not into, other components and author content:
- *   - `[data-ui-slotted]:not([data-ui]) > *`:  slotted author elements are in scope (as `::slotted()` reached
- *     them), their insides aren't
- *   - `:scope [data-ui] > *`:  another component's root is in scope (slotted, or rendered inside this one's
- *     markup), its insides aren't
+ *   5. list item wrappers as `display: contents`
+ *   6. `[hidden]`, unlayered:  component `display` rules would beat the browser's own
+ * - The `@scope` boundary stands in for the shadow boundary:
+ *   from a component's root (`data-ui="<kind>"`) down to, not into, other components and author content:
+ *   - `[data-ui-slotted]:not([data-ui]) > *`:
+ *     slotted author elements are in scope (as `::slotted()` reached them), their insides aren't
+ *   - `:scope [data-ui] > *`:
+ *     another component's root is in scope (slotted, or rendered inside this one's markup), its insides aren't
  *   - NOTE: a slotted COMPONENT's root carries `data-ui-slotted` too, so the first clause skips `[data-ui]`:
  *     otherwise its own scope would end at its own children
  * - A sheet shared by several families (`UIParts.css`) is emitted once, scoped to all their kinds.
- * - Node only (`$/ui/static`, postcss):  reads the families' sheet TEXT (`styles`), never renders;  NEVER imported
- *   by a component or `$/ui`.
+ * - Node only (`$/ui/static`, postcss):  reads the families' sheet TEXT (`styles`), never renders.
+ *   NEVER imported by a component or `$/ui`.
  ****************/
 export class StaticStylesheet {
   /**
    * The stylesheet for `families`.
    * - `usage` (`StaticRender.sheetUsage`):  which elements were seen adopting which sheets, in what order.
    *   - each sheet is scoped to its users as well as its own families (items adopting their list's sheet)
-   *   - sheets are emitted in an order that keeps every adoption order seen (`ordered()`):  a sheet's layers are
-   *     declared where it first appears, and a later layer wins, as a later-adopted sheet did in a shadow root
+   *   - sheets are emitted in an order that keeps every adoption order seen (`ordered()`):
+   *     a sheet's layers are declared where it first appears,
+   *     and a later layer wins, as a later-adopted sheet did in a shadow root
    */
   static build(families: Iterable<SSR.StaticFamily>, usage?: SSR.StaticSheetUsage): string {
     // `kinds`:  the `data-ui` marks of the roots a sheet styles;  `words`:  their class-grammar nouns (`.ui.<noun>`)
@@ -46,7 +48,7 @@ export class StaticStylesheet {
     const tags = new Map<string, string>()
     for (const { Class, definition, kind } of families) {
       tags.set(definition.tag, kind)
-      for (const [name, css] of Object.entries(Class.prototype.styleSheets)) {
+      for (const [name, css] of Object.entries(Class.prototype.elementSetup.styleSheets)) {
         let sheet = sheets.get(name)
         if (!sheet) sheets.set(name, (sheet = { css, kinds: new Set(), words: new Set() }))
         sheet.kinds.add(kind)
@@ -62,9 +64,9 @@ export class StaticStylesheet {
     ]
     for (const name of StaticStylesheet.ordered([...sheets.keys()], usage?.orders.values() ?? [])) {
       const { css, kinds, words } = sheets.get(name)!
-      // also class-grammar markup the PAGE wrote (`<button class="ui button">`), as a page sheet styled it -- never a
-      // component's own markup (the calendar's `<table class="ui table">`):  outside every component, or author
-      // content slotted into one (`AUTHOR`)
+      // also class-grammar markup the PAGE wrote (`<button class="ui button">`), as a page sheet styled it:
+      // outside every component, or author content slotted into one (`AUTHOR`);
+      // never a component's own markup (the calendar's `<table class="ui table">`)
       const roots = [
         ...[...kinds].map((kind) => `[${SSR.ROOT_ATTRIBUTE}="${kind}"]`),
         ...[...words].map((word) => `.ui.${word}:not(${ROOT})${AUTHOR}`)
@@ -118,8 +120,9 @@ export class StaticStylesheet {
     const sheet = postcss.parse(css)
     sheet.walkRules((rule) => {
       if (SSR.StaticPageStyles.inKeyframes(rule)) return
-      // `pageOnly` sheets (typography, native) were never adopted into shadow roots:  they keep out of components'
-      // own markup (`REACH`);  the foundation (tokens, utilities ...) was, so it reaches everywhere
+      // `pageOnly` sheets (typography, native) were never adopted into shadow roots:
+      // they keep out of components' own markup (`REACH`);
+      // the foundation (tokens, utilities ...) was, so it reaches everywhere
       const selectors = rule.selectors
         .filter((selector) => !SHADOW_ONLY.test(selector))
         .map((selector) => (pageOnly ? SSR.StaticSelectors.onSubject(selector, SSR.REACH) : selector))
@@ -134,11 +137,11 @@ export class StaticStylesheet {
 
   /**
    * `css` rewritten for light DOM, its rules wrapped in `@scope (<root>) to (<limit>)`.
-   * - Host-only rules move to `@layer ui.reset`, the first `ui` layer:  what the DOM element set (token resets,
-   *   `color`), the root's own rules overrode, being another element;  on the SAME element now,
-   *   any later layer must still win.
-   * - `::slotted()` rules move to `@layer ui-slotted`, before `page`:  in a shadow root they lost to the page's CSS
-   *   and to the slotted component's own rules.
+   * - Host-only rules move to `@layer ui.reset`, the first `ui` layer.
+   *   - What the DOM element set (token resets, `color`), the root's own rules overrode, being another element.
+   *   - On the SAME element now, any later layer must still win.
+   * - `::slotted()` rules move to `@layer ui-slotted`, before `page`:
+   *   in a shadow root they lost to the page's CSS and to the slotted component's own rules.
    */
   static scope(css: string, root: string, options: SSR.StaticSelectorOptions = {}): string {
     const sheet = postcss.parse(css)
@@ -168,8 +171,9 @@ export class StaticStylesheet {
 
   /**
    * Rewrite one rule's selectors.
-   * - Host-only selectors (`:host(X)` alone) go to a copy of the rule without `display` (that was the DOM element
-   *   box's, never the root's, and the class-grammar twins beside them keep theirs), for `ui.reset`.
+   * - Host-only selectors (`:host(X)` alone) go to a copy of the rule without `display`, for `ui.reset`:
+   *   that `display` was the DOM element box's, never the root's,
+   *   and the class-grammar twins beside them keep theirs.
    * - `::slotted()` selectors go to a copy for `ui-slotted`.
    * - Both collected in `moved`, by layer.
    */
@@ -205,8 +209,9 @@ export class StaticStylesheet {
   }
 
   /**
-   * Wrap `container`'s scopable children in `@scope <params>`, at the innermost layer level:  `@layer` statements
-   * and at-rules that can't sit in a scope (`@keyframes`, `@property`, `@font-face`) stay where they are.
+   * Wrap `container`'s scopable children in `@scope <params>`, at the innermost layer level.
+   * - `@layer` statements and at-rules that can't sit in a scope (`@keyframes`, `@property`, `@font-face`)
+   *   stay where they are.
    */
   private static wrap(container: Container, params: string) {
     let scope: AtRule | undefined
@@ -259,8 +264,8 @@ type MoveParams = {
 }
 
 /**
- * Markup the page wrote, not a component's render:  outside every component root, or slotted author content (itself
- * or inside it).
+ * Markup the page wrote, not a component's render:
+ * outside every component root, or slotted author content (itself or inside it).
  * - NOTE:  approximate:  a component rendered inside slotted author content counts as the page's too.
  */
 const AUTHOR = `:is(:not(${ROOT} *), ${SLOTTED}:not(${ROOT}), ${SLOTTED}:not(${ROOT}) *)`
@@ -286,8 +291,11 @@ const LIST_OWNERS = new Set(["cards", "list", "feed", "steps", "items"])
 /** The list item wrapper lays out as its item:  the item's root stays the group's flex / grid child. */
 const LIST_ITEMS = `@layer ui.base {\n  ${LIST_ITEM} {\n    display: contents;\n  }\n}`
 
-/** Hidden means hidden, whatever a component's `display` says;  unlayered, so it beats every layer. */
-const HIDDEN = `[hidden]:not([hidden="until-found"]) {\n  display: none;\n}`
+/**
+ * Hidden means hidden, whatever a component's `display` says;  unlayered, so it beats every layer.
+ * - The platform's `hidden`, and `visible="false"` (`:state(hidden)`, as `data-state` here:  `UIComponent`)
+ */
+const HIDDEN = `[hidden]:not([hidden="until-found"]),\n${ROOT}[data-state~="hidden"] {\n  display: none;\n}`
 
 /** Selectors that only ever match inside a shadow tree. */
 const SHADOW_ONLY = /:host|::slotted|:state\(/

@@ -28,22 +28,29 @@ import searchCSS from "./UISearch.css?inline"
  *
  * - The results:  the `source` PROPERTY, searched here (`SearchMatcher`, Fomantic's matching),
  *   or the `url` template, asked through `UI.api` (`{query}`).
- *   - `search-delay` waits for a pause in typing;  a newer query cancels an older one;  answers are kept per query.
- *   - `category` groups them.
+ *   - `search-delay` waits for a pause in typing
+ *   - a newer query cancels an older one
+ *   - answers are kept per query
+ *   - `category` groups them
  *
  * - `value` (the input's text) and `open` are controlled (`@controlled`):
  *   the events go first, and a handler may cancel or override.
  *   Choosing a result puts its title in the input and follows its `url`.
  * - The rows render only while shown;  `aria-activedescendant` points at the highlighted one.
- *   A polite live region announces the result count and messages.
- *   Escape and outside clicks come from `UI.overlays`.
+ *   - A polite live region announces the result count and messages.
+ *   - Escape and outside clicks come from `UI.overlays`.
  * - A form control (decided 2026-09-30):  Fomantic's search wraps a REAL `<input class="prompt">`,
  *   which submits its text under its `name`;  so does this one, with `required` => `valueMissing`.
  ****************/
+@E.cssStates("fluid")
 export class UISearch extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = searchVocabulary
-  @E.proto static styleSheets = { input: inputCSS, search: searchCSS }
-  @E.proto static elementSetup = { Fallback: SearchFallback } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { input: inputCSS, search: searchCSS },
+    Fallback: SearchFallback,
+    // `loading`:  a spinner in its input
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
   // ## The text
@@ -71,7 +78,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   @E.state accessor inputRevision = 0
 
   /** The value to restore on a form reset:  the page's `value` (its attribute), `undefined` when it has none. */
-  private readonly initialValue = untrack(() => (this.isPageControlled("value") ? this.value : undefined))
+  private readonly initialValue = untrack(() => (this.isControlledByPage("value") ? this.value : undefined))
 
   /** The value when the input took focus, to tell whether leaving it is an edit. */
   private valueAtFocus?: string
@@ -171,17 +178,15 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /** Run the query already in the input, as `originalEvent` asked (a click, ArrowDown). */
+  @E.untracked
   private rerunQuery(originalEvent: Event) {
-    this.runQuery(
-      untrack(() => this.query),
-      originalEvent
-    )
+    this.runQuery(this.query, originalEvent)
   }
 
   /**
-   * Ask the `url` for `query`'s results through `UI.api`:  debounced by `search-delay`,
-   * the previous query aborted, the answer cached per query.  An aborted query is ignored;
-   * a failed one shows `searchServerError`.
+   * Ask the `url` for `query`'s results through `UI.api`:
+   * debounced by `search-delay`, the previous query aborted, the answer cached per query.
+   * - An aborted query is ignored;  a failed one shows `searchServerError`.
    */
   private fetch(query: string) {
     const url = this.url!
@@ -205,8 +210,8 @@ export class UISearch extends F.FormComponent<Vocabulary> {
       .then((response) => {
         const groups = SearchMatcher.groupsFor(response, max)
         this.answersByQuery.set(query, groups)
-        // superseded while the answer was on its way (a transport that ignores the signal still delivers it):  cached,
-        // not shown
+        // superseded while the answer was on its way (a transport that ignores the signal still delivers it):
+        // cached, not shown
         if (running.signal.aborted) return
         this.remoteAnswer = { query, groups, status: RemoteStatus.done }
         this.send("ui-results", { query, results: groups.flatMap((group) => group.results) })
@@ -240,16 +245,18 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /** Highlight `result` if it's shown. */
+  @E.untracked
   private highlight(result: UIT.SearchResult) {
-    const index = untrack(() => this.shownResults).indexOf(result)
-    if (index >= 0 && index !== untrack(() => this.highlightedIndex)) this.highlightedIndex = index
+    const index = this.shownResults.indexOf(result)
+    if (index >= 0 && index !== this.highlightedIndex) this.highlightedIndex = index
   }
 
   /** Move the highlight by `delta`, stopping at the ends (Fomantic's arrows). */
+  @E.untracked
   private move(delta: number) {
-    const count = untrack(() => this.shownResults).length
+    const count = this.shownResults.length
     if (!count) return
-    const from = untrack(() => this.highlightedIndex)
+    const from = this.highlightedIndex
     this.highlightedIndex = from < 0 ? (delta > 0 ? 0 : count - 1) : Math.max(0, Math.min(count - 1, from + delta))
   }
 
@@ -291,9 +298,10 @@ export class UISearch extends F.FormComponent<Vocabulary> {
    * Show or hide the results, dispatching the cancelable `ui-open` / `ui-close` first.
    * - Not `open()` / `close()`:  `open` is the attribute's.
    */
+  @E.untracked
   requestOpen(open: boolean, originalEvent?: Event): boolean {
-    if (open === untrack(() => this.isOpen)) return false
-    if (open && this.isDisabled) return false
+    if (open === this.isOpen) return false
+    if (open && (this.isDisabled || this.isReadOnly)) return false
     const isDone = this.requestChange("isOpen", open, () =>
       this.send(open ? "ui-open" : "ui-close", { open, originalEvent })
     )
@@ -302,10 +310,11 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * Choose `result`, as someone did with `originalEvent`:  the cancelable `ui-select` first, then its title in the
-   * input (`ui-change`), the results hidden, and its `url` followed.
-   * - A click on a result LINK follows it natively (new tabs work);  other ways follow it with `location.assign()`,
-   *   the DOM element's own document's.
+   * Choose `result`, as someone did with `originalEvent`:
+   * the cancelable `ui-select` first, then its title in the input (`ui-change`), the results hidden,
+   * and its `url` followed.
+   * - A click on a result LINK follows it natively (new tabs work);
+   *   other ways follow it with `location.assign()`, the DOM element's own document's.
    */
   select(result: UIT.SearchResult, originalEvent?: Event) {
     if (!this.send("ui-select", { result, originalEvent })) {
@@ -319,14 +328,8 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   ////////////////
-  // ## Disabled, busy, fluid
+  // ## Busy
   ////////////////
-
-  /** Disabled by its attribute, or by a disabled fieldset. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled || this.formIsDisabled
-  }
 
   /** Busy:  the `loading` attribute, or a remote query running. */
   @E.cssState("loading")
@@ -334,15 +337,8 @@ export class UISearch extends F.FormComponent<Vocabulary> {
     return this.loading || this.isFetching
   }
 
-  /** `fluid`, as `:state(fluid)`. */
-  @E.cssState("fluid")
-  get isFluid(): boolean {
-    return this.fluid
-  }
-
-  /** `disabled` / `loading` classes:  also by a disabled fieldset / a running remote query. */
+  /** The `loading` class:  also by a running remote query. */
   protected classValue(name: E.AttributeName<Vocabulary>): unknown {
-    if (name === "disabled") return this.isDisabled
     if (name === "loading") return this.isLoading
     return super.classValue(name)
   }
@@ -351,18 +347,9 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   // ## Name
   ////////////////
 
-  /** The DOM element's `<label>`s and `aria-label`, as the input's name. */
-  readonly labels = new F.ControlLabels(this.domFormElement)
-
-  /** Name for the input:  its `<label>`s / `aria-label`, else `placeholder`, else the translated `label`. */
+  /** Name for the input:  its `<label>`s / `aria-label` (`labels`), else `placeholder`, else the translated `label`. */
   private get label(): string {
     return this.labels.accessibleName ?? this.placeholder ?? this.translationForKey("searchLabel")
-  }
-
-  /** Connected:  read the labels again (they may have changed while it was away). */
-  @E.onChange("isConnected")
-  protected onConnectedChanged(isConnected: boolean) {
-    if (isConnected) this.labels.refresh()
   }
 
   ////////////////
@@ -373,10 +360,6 @@ export class UISearch extends F.FormComponent<Vocabulary> {
     return this.query
   }
 
-  protected get formName(): string | undefined {
-    return this.name
-  }
-
   /** Back to the `value` attribute;  the input shows it, nothing is highlighted. */
   onFormReset() {
     this.value = this.initialValue
@@ -384,14 +367,12 @@ export class UISearch extends F.FormComponent<Vocabulary> {
     this.highlightedIndex = -1
   }
 
-  protected get validationRules(): E.ValidationRule[] {
-    return this.required ? [UIT.REQUIRED_RULE] : []
-  }
-
   /**
    * The label in validation messages.
-   * - Only once `isReady`:  `label` may fall back to a translated text, and validation can run before the runtime
-   *   arrives (seen on the docs kitchen sink:  `UI.i18n ... isn't loaded yet`).  Tracked, so it recomputes.
+   * - Only once `isReady`:  `label` may fall back to a translated text,
+   *   and validation can run before the runtime arrives
+   *   (seen on the docs kitchen sink:  `UI.i18n ... isn't loaded yet`).
+   * - Tracked, so it recomputes.
    */
   protected get validationLabel(): string | undefined {
     return this.isReady ? this.label : undefined
@@ -427,7 +408,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
     this.ids = { results: UI.ids.next(ID_PREFIX), anchor: `--${UI.ids.next(ID_PREFIX)}` }
     return (
       <div
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("search")}
         style={{ [UIT.SEARCH_ANCHOR_PROPERTY]: this.ids.anchor }}
       >
@@ -447,6 +428,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
             value={untrack(() => this.query)}
             placeholder={this.placeholder}
             disabled={this.isDisabled}
+            readonly={this.isReadOnly}
             aria-autocomplete="list"
             aria-haspopup="listbox"
             aria-expanded={this.resultsAreShowing && this.shownResults.length ? "true" : "false"}
@@ -478,8 +460,9 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * Server render only (`$/ui/static`):  the input's `name` (it holds the query, the value) and the `STATIC_CONTROL`
-   * mark, so a static form submits it;  `{}` in a browser, where the DOM element submits (`ElementInternals`).
+   * Server render only (`$/ui/static`):  the input's `name` (it holds the query, the value)
+   * and the `STATIC_CONTROL` mark, so a static form submits it.
+   * - `{}` in a browser, where the DOM element submits (`ElementInternals`).
    */
   private get staticControl(): Record<string, unknown> {
     return isServer ? { [UIT.STATIC_CONTROL]: "", name: this.name } : {}
@@ -534,8 +517,8 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /**
-   * One result:  a link when it has a `url` (Fomantic's `<a class="result">`, `tabindex=-1`:  focus stays in the
-   * input), else a `<div>`.
+   * One result:  a link when it has a `url`, else a `<div>`.
+   * - The link:  Fomantic's `<a class="result">`, `tabindex=-1`, so focus stays in the input.
    */
   private row(result: UIT.SearchResult): JSX.Element {
     const url = typeof result.url === "string" && result.url ? result.url : undefined
@@ -671,16 +654,18 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /** A click in the input reopens results someone closed. */
+  @E.untracked
   private readonly onClick = (event: MouseEvent) => {
-    if (!untrack(() => this.isOpen)) this.rerunQuery(event)
+    if (!this.isOpen) this.rerunQuery(event)
   }
 
   /** Leaving:  close (unless focus stays inside);  an edited text commits with `ui-change`. */
+  @E.untracked
   private readonly onBlur = (event: FocusEvent) => {
     const next = event.relatedTarget as Node | null
     if (next && (this.domElement.contains(next) || this.domElement.renderRoot.contains(next))) return
     this.requestOpen(false, event)
-    const value = untrack(() => this.query)
+    const value = this.query
     if (this.valueAtFocus !== undefined && value !== this.valueAtFocus) {
       this.send("ui-change", { value, originalEvent: event })
     }
@@ -688,9 +673,10 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   }
 
   /** Combobox keys:  arrows move, Enter chooses, Escape clears a closed search (an open one closes, overlays). */
+  @E.untracked
   private readonly onKeyDown = (event: KeyboardEvent) => {
     if (this.isDisabled || event.defaultPrevented || event.isComposing) return
-    const isShowing = untrack(() => this.resultsAreShowing)
+    const isShowing = this.resultsAreShowing
     switch (event.key) {
       case UIT.Key.arrowDown:
         event.preventDefault()
@@ -703,22 +689,22 @@ export class UISearch extends F.FormComponent<Vocabulary> {
         this.move(-1)
         return
       case UIT.Key.enter: {
-        const result = isShowing ? untrack(() => this.highlightedResult) : undefined
+        const result = isShowing ? this.highlightedResult : undefined
         if (result) {
           event.preventDefault()
           this.select(result, event)
-        } else this.domFormElement.form?.requestSubmit()
+        } else this.domElement.form?.requestSubmit()
         return
       }
       case UIT.Key.escape:
         // showing:  `UI.overlays` closes it;  else Escape clears (APG)
-        if (isShowing || !untrack(() => this.query)) return
+        if (isShowing || !this.query) return
         event.preventDefault()
         this.requestOpen(false, event)
         this.commit("", event)
         return
       case UIT.Key.tab:
-        if (untrack(() => this.isOpen)) this.requestOpen(false, event)
+        if (this.isOpen) this.requestOpen(false, event)
         return
     }
   }
@@ -759,8 +745,8 @@ const CATEGORY_ID_INFIX = "-category-"
 const SEARCH_ICON = "magnifying-glass"
 
 /**
- * Class word of the input box while busy.  Class words are the markup contract (`UISearch.css`) -- grammar,
- * not attributes, so not in the vocabulary.
+ * Class word of the input box while busy.
+ * - Class words are the markup contract (`UISearch.css`) -- grammar, not attributes, so not in the vocabulary.
  * - NOTE: `active` (`UIT.ACTIVE`) === the HIGHLIGHTED result (and its category):  Fomantic's meaning.
  */
 const LOADING = "loading"

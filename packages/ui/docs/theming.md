@@ -1,7 +1,8 @@
 # Theming `@spell-app/ui`
 
 How the CSS foundation fits together:  tokens, remaps, layers, the app stylesheet, utilities and themes.
-Everything lives in `src/styles/`;  the design rationale is in `plan.md` ("CSS system").
+- Everything lives in [the styles folder](../src/styles/).
+- The design rationale:  [the plan](plan.md), "CSS system".
 
 ## The pieces
 
@@ -23,18 +24,22 @@ Everything lives in `src/styles/`;  the design rationale is in `plan.md` ("CSS s
 | `media.css` | `@custom-media --ui-mobile` ... (build-time only) | -- |
 | `ui.css` | one `@import` entry of the page set, for pages without the runtime | -- |
 
-\* GENERATED from `styles.en.ts` by `yarn gen:styles` -- never edit them by hand.  The generated
-files are committed, so consumers need no build step;  `styles.test.ts` fails when they're stale.
+\* GENERATED, never edit them by hand.
+- Built from [the styles vocabulary](../src/styles/styles.en.ts) by `yarn gen:styles`.
+- The generated files are committed, so consumers need no build step.
+- [The styles test](../src/styles/styles.test.ts) fails when they're stale.
 
-`$/ui/styles` exports each sheet as text (`tokensCSS` ...), plus `foundationCSS` (adoption order for the document
-AND every shadow root) and `pageCSS` (foundation + typography + native, for the document only).
+`$/ui/styles` exports each sheet as text (`tokensCSS` ...), plus two sets:
+- `foundationCSS`:  in adoption order, for the document AND every shadow root
+- `pageCSS`:  foundation + typography + native, for the document only
 
 ## Units
 
-- NEVER `rem`:  the host page can redefine it.  The ONE absolute length is `--ui-font-size` (px, default
-  `16px`);  everything else is `em` of the local font size, or px for hairlines and shadows.
-- A component root sets `font-size: calc(var(--ui-font-size) * var(--ui-scale, 1))` and uses `em` inside.
-- Scale a whole region by overriding `--ui-font-size` on a wrapper;  components inside follow.
+- NEVER `rem`:  the host page can redefine it.
+- The ONE absolute length is `--ui-font-size`:  px, default `16px`.
+  - Everything else is `em` of the local font size, or px for hairlines and shadows.
+- A component root sets `font-size: calc(var(--ui-font-size) * var(--ui-scale, 1))`, and uses `em` inside.
+- Scale a whole region by overriding `--ui-font-size` on a wrapper:  components inside follow.
 
 ## Layers
 
@@ -42,30 +47,34 @@ AND every shadow root) and `pageCSS` (foundation + typography + native, for the 
 @layer ui.reset, ui.tokens, ui.base, ui.components, ui.utilities, ui.theme, ui.app;
 ```
 
-- Later layers win regardless of specificity;  unlayered page CSS beats all of them.
-- Each component adds `ui.components.<name>.types / content / variations / states`, so states beat
-  variations without `!important`.
-- `layers.css` must be adopted FIRST into the document and into every shadow root (each is its own scope).
+- Later layers win, regardless of specificity.
+  Unlayered page CSS beats all of them.
+- Each component adds `ui.components.<name>.types / content / variations / states`,
+  so states beat variations without `!important`.
+- `layers.css` must be adopted FIRST, into the document and into every shadow root (each is its own scope).
 
 ## Tokens
 
 - Declared on `:root`, plus a `:host` copy guarded by `@container not style(--ui-sheet-<name>: loaded)`:
-  - where the page loaded the sheet, the guard is false, `:host` declares nothing, and page / wrapper
-    overrides inherit into components
+  - where the page loaded the sheet, the guard is false, and `:host` declares nothing.
+    So page and wrapper overrides inherit into components.
   - where it didn't (detached rendering), the component's own adopted copy supplies the defaults
   - an unguarded `:host { --ui-font-size: 16px }` would instead block every wrapper override
-- Colours are `light-dark()` token streams, resolved where they're USED, so `color-scheme` on any subtree flips
-  every colour below it -- in the page and through shadow boundaries.
-- The concrete per-scheme bases (`--ui-red-on-light`, `--ui-red-on-dark`) are registered with `@property`
-  (`<color>`), so they animate and type-check.  The `light-dark()` tokens themselves are NOT:  a registered
-  `<color>` resolves `light-dark()` where it's declared (`:root`), freezing the page's scheme into `.ui-dark`
-  subtrees.  NOTE: `@property` only registers from the document -- rules inside shadow-root sheets are ignored.
+- Colours are `light-dark()` token streams, resolved where they're USED.
+  - So `color-scheme` on any subtree flips every colour below it:  in the page, and through shadow boundaries.
+- The concrete per-scheme bases (`--ui-red-on-light`, `--ui-red-on-dark`) are registered with `@property` (`<color>`),
+  so they animate and type-check.
+  - The `light-dark()` tokens themselves are NOT.
+    A registered `<color>` resolves `light-dark()` where it's declared (`:root`),
+    freezing the page's scheme into `.ui-dark` subtrees.
+  - NOTE: `@property` only registers from the document:  rules inside shadow-root sheets are ignored.
 
 ### Colour tokens
 
-For every hue (`red orange yellow olive green teal blue violet purple pink brown grey black`), the aliases
-(`primary` -> `blue`, `secondary` -> `black`) and the semantic colours (`positive negative info warning`,
-with `success` / `error` as aliases):
+These exist for every colour:
+- every hue:  `red orange yellow olive green teal blue violet purple pink brown grey black`
+- the aliases:  `primary` -> `blue`, `secondary` -> `black`
+- the semantic colours:  `positive negative info warning`, with `success` / `error` as aliases
 
 | Token | Meaning | Fomantic |
 |---|---|---|
@@ -75,14 +84,18 @@ with `success` / `error` as aliases):
 | `--ui-red-inverted` | the colour on dark surfaces, whatever the scheme | `@lightRed` |
 | `--ui-red-on` / `--ui-red-inverted-on` | text ON the solid colour (white or ink), per scheme | `@white` |
 
-Neutrals:  `--ui-background`, `--ui-surface`, `--ui-surface-muted`, `--ui-surface-strong`, `--ui-highlight`,
-`--ui-ink`, `--ui-text-color` / `--ui-text-{dark,muted,light,unselected,hovered,pressed,selected,disabled}`
-(+ `--ui-text-inverted-*`), `--ui-border-color[-strong|-internal|-selected|-selected-strong|-disabled]`,
-`--ui-link[-hover]`, `--ui-focus-color`, `--ui-focus-border`.
+The neutrals:
+- surfaces:  `--ui-background`, `--ui-surface`, `--ui-surface-muted`, `--ui-surface-strong`, `--ui-highlight`
+- ink and text:
+  - `--ui-ink`, `--ui-text-color`
+  - `--ui-text-{dark,muted,light,unselected,hovered,pressed,selected,disabled}`, and `--ui-text-inverted-*`
+- borders:  `--ui-border-color[-strong|-internal|-selected|-selected-strong|-disabled]`
+- links and focus:  `--ui-link[-hover]`, `--ui-focus-color`, `--ui-focus-border`
 
 ## Remaps
 
-Component CSS never names a hue.  A colour class re-points the GENERIC tokens, and one rule set consumes them:
+Component CSS never names a hue.
+- A colour class re-points the GENERIC tokens, and one rule set consumes them:
 
 ```css
 /* generated, colors.css */
@@ -102,40 +115,51 @@ Component CSS never names a hue.  A colour class re-points the GENERIC tokens, a
 .ui.button:hover { background: var(--ui-color-hover, var(--_ui-button-background-hover)); }
 ```
 
-- Contract for components:  READ `--ui-color*` with a fallback for the uncoloured look;  NEVER declare them
-  (remaps live in `ui.tokens`, below components, so a component declaration would override the colour class).
-- Sizes work the same way:  `.ui.large, .ui-large { --ui-scale: var(--ui-size-large) }`;  `.medium` emits
-  `--ui-scale: 1`, a no-op that also resets a size inherited from a wrapper.
-- The generic tokens INHERIT:  `<div class="ui-red">` recolours every component inside it (that's the point of
-  the `ui-<hue>` utility).  A component that must not inherit a parent's colour resets it on its own `:host`.
-- `data-variation="red small"` (tooltips / popups) sets `--ui-variation-color` / `--ui-variation-scale`
-  instead, so a coloured tooltip never recolours the element it hangs off.
+- The contract for components:  READ `--ui-color*`, with a fallback for the uncoloured look.
+  NEVER declare them.
+  - Why:  remaps live in `ui.tokens`, below components, so a component's declaration would override the colour class.
+- Sizes work the same way:  `.ui.large, .ui-large { --ui-scale: var(--ui-size-large) }`.
+  - `.medium` emits `--ui-scale: 1`:  a no-op, that also resets a size inherited from a wrapper.
+- The generic tokens INHERIT:  `<div class="ui-red">` recolours every component inside it.
+  - That's the point of the `ui-<hue>` utility.
+  - A component that must not inherit a parent's colour resets it on its own `:host`.
+- Tooltips and popups take `data-variation="red small"`, which sets two tokens of their own instead,
+  so a coloured tooltip never recolours the element it hangs off.
+  - `--ui-variation-color` / `--ui-variation-scale`
 
 ### Contrast
 
-Text on a solid colour is `--ui-<colour>-on`:  white or ink (`--ui-ink-on-light`), chosen by `StyleGenerator` at
-generation time as the first of `onColors` (white first) that reaches WCAG AA 4.5:1 on the colour AND its hover /
-focus / down / active states, separately for the light and dark scheme (`ColorContrast`, clipped to sRGB as axe
-does).  `contrast-color()` would do it in CSS, but is Chromium-only.
+Text on a solid colour is `--ui-<colour>-on`:  white, or ink (`--ui-ink-on-light`).
+- `StyleGenerator` chooses it when it generates the sheets:
+  - the first of `onColors` (white first) that reaches WCAG AA 4.5:1 on the colour,
+    AND on its hover / focus / down / active states
+  - separately for the light and dark scheme
+  - measured by `ColorContrast`, clipped to sRGB as axe does
+- `contrast-color()` would do it in CSS, but is Chromium-only.
 
-- Light scheme:  white on red, green, blue, violet, purple, pink, brown, grey, black;  ink on orange, yellow,
-  olive, teal, info, warning.  Dark scheme (lighter `onDark` hues):  ink on everything but black.
+What it picks:
+- Light scheme:
+  - white on red, green, blue, violet, purple, pink, brown, grey, black
+  - ink on orange, yellow, olive, teal, info, warning
+- Dark scheme (lighter `onDark` hues):  ink on everything but black.
 - `--ui-<colour>-inverted-on` is the dark-scheme pick, for the `-inverted` colour used whatever the scheme.
-- `-text` roles reach 4.5:1 on `--ui-background` in both schemes, hue `-border`s 3:1 (UI boundaries).
-- `colors.contrast.test.ts` measures every pair from the COMPUTED tokens, so a vocabulary change that breaks
-  contrast fails a test, naming the colour.
-- A theme that changes a base (`--ui-red-on-light`) should re-check its `-on`:  it's data, not derived.  The
-  classic theme keeps Fomantic's palette, and with it Fomantic's contrast failures.
+- `-text` roles reach 4.5:1 on `--ui-background` in both schemes;  hue `-border`s reach 3:1 (UI boundaries).
+- [The contrast test](../src/styles/colors.contrast.test.ts) measures every pair from the COMPUTED tokens.
+  So a vocabulary change that breaks contrast fails a test, naming the colour.
+- A theme that changes a base (`--ui-red-on-light`) should re-check its `-on`:  it's data, not derived.
+  - The classic theme keeps Fomantic's palette, and with it Fomantic's contrast failures.
 
 ## Component tokens
 
-Every family exposes PUBLIC per-component tokens, `--ui-<tag>-*`, one per Fomantic `.variables` entry that still
-matters:  `--ui-button-radius`, `--ui-card-width`, `--ui-header-color`.  Each docs page lists them with their
-defaults (`tools/FamilyTokens.ts` reads them from the sheet).  Decided 2026-09-30 (Owen).
+Every family exposes PUBLIC per-component tokens, `--ui-<tag>-*`:  one per Fomantic `.variables` entry that still matters.
+- E.g. `--ui-button-radius`, `--ui-card-width`, `--ui-header-color`.
+- Each docs page lists them with their defaults:  [the family tokens tool](../tools/FamilyTokens.ts) reads them from the sheet.
+- Decided 2026-09-30 (Owen).
 
 ### Where you can set them
 
-Anywhere above or on the box;  all of these work, for elements and static class-grammar markup alike:
+Anywhere above or on the box.
+All of these work, for elements and static class-grammar markup alike:
 
 | Where | Reaches | Example |
 |---|---|---|
@@ -145,16 +169,23 @@ Anywhere above or on the box;  all of these work, for elements and static class-
 | `::part(<root part>)` | the inner box itself | `ui-button::part(button) { --ui-button-radius: 0 }` |
 | the app stylesheet | the inner box, by class grammar | `@layer ui.app { .ui.primary.button { --ui-button-radius: 0 } }` |
 
-A variation that SWAPS a value (`circular` buttons) wins over the base token, whatever you set:  restyle the
-variation itself with plain properties, through the app stylesheet or `::part()` plus the element's attribute
-(`ui-button[circular]::part(button) { border-radius: 0.5em }`).
+A variation that SWAPS a value (`circular` buttons) wins over the base token, whatever you set.
+- To restyle it, write plain properties on the variation itself:
+  through the app stylesheet, or `::part()` plus the element's attribute.
+
+  ```css
+  ui-button[circular]::part(button) { border-radius: 0.5em }
+  ```
 
 ### The pattern (component authors)
 
-A component sheet NEVER declares a public component token.  Custom properties inherit, but a declaration on the
-inner box beats any inherited value:  a sheet that said `.ui.button { --ui-button-radius: var(--ui-radius) }`
-blocked every value set on the element, an ancestor or `:root` (only `::part()` got through).  Instead the sheet reads
-each public token through a PRIVATE ALIAS declared where the public one used to be, and every rule reads the alias:
+A component sheet NEVER declares a public component token.
+- Why:  custom properties inherit, but a declaration on the inner box beats any inherited value.
+  - A sheet that said `.ui.button { --ui-button-radius: var(--ui-radius) }`
+    blocked every value set on the element, an ancestor or `:root`.
+    Only `::part()` got through.
+- Instead, the sheet reads each public token through a PRIVATE ALIAS, declared where the public one used to be.
+  Every rule reads the alias:
 
 ```css
 .ui.button, .ui.buttons, .or {
@@ -164,36 +195,48 @@ each public token through a PRIVATE ALIAS declared where the public one used to 
 .ui.button { border-radius: var(--_ui-button-radius); }
 ```
 
-- Naming:  `--_ui-<tag>-<rest>`, the public name with `_`, mechanical and grep-able.  The older ad-hoc privates
-  (`--_button-*`, `--_card-*`) are variation plumbing and keep their names.
-- Declare the alias on EVERY box that reads it (the token block's selector list, as before), so a nested instance
-  resolves its own value, never an outer one's.
-- Rules read the alias, never the public name:  a bare `var(--ui-button-radius)` would skip what a variation writes.
-- A default derived from another token reads that token's ALIAS (`labeled-icon-width` above), so the user's base
-  value flows into it.  Both aliases sit on the same box:  `var()` in a custom property resolves where it's declared.
-- NOT component tokens, mechanism unchanged:  the remaps (`--ui-color*`, `--ui-scale`, `--ui-inverted`,
-  `--ui-scheme`, `--ui-variation-*`, a local `--ui-size-*` ladder) and the global tokens.  A sheet may declare those.
-- `test/componentTokens.test.ts` enforces it:  no sheet declares a `--ui-<tag>-*` name (any family's), every alias
-  is named after the token it reads, and no sheet reads an aliased token bare.  `EXCEPTIONS` lists deliberate
-  cross-family theming, each with why.
-- A token nothing varies needs no alias:  the rule reads it where it paints, `var(--ui-modal-content-padding, 1.5em)`.
-  `tools/FamilyTokens.ts` (the docs' token tables) lists both kinds.
+- Naming:  `--_ui-<tag>-<rest>`, the public name with `_`:  mechanical, and grep-able.
+  - The older ad-hoc privates (`--_button-*`, `--_card-*`) are variation plumbing, and keep their names.
+- Declare the alias on EVERY box that reads it:  the token block's selector list, as before.
+  - So a nested instance resolves its own value, never an outer one's.
+- Rules read the alias, never the public name:
+  a bare `var(--ui-button-radius)` would skip what a variation writes.
+- A default derived from another token reads that token's ALIAS (`labeled-icon-width` above),
+  so the user's base value flows into it.
+  - Both aliases sit on the same box:  `var()` in a custom property resolves where it's declared.
+- NOT component tokens, their mechanism unchanged:  a sheet may declare these.
+  - the remaps:  `--ui-color*`, `--ui-scale`, `--ui-inverted`, `--ui-scheme`, `--ui-variation-*`,
+    a local `--ui-size-*` ladder
+  - the global tokens
+- [The component tokens test](../test/componentTokens.test.ts) enforces it:
+  - no sheet declares a `--ui-<tag>-*` name (any family's)
+  - every alias is named after the token it reads
+  - no sheet reads an aliased token bare
+  - `EXCEPTIONS` lists deliberate cross-family theming, each with why.
+- A token nothing varies needs no alias:  the rule reads it where it paints.
+  - `var(--ui-modal-content-padding, 1.5em)`
+  - [The family tokens tool](../tools/FamilyTokens.ts) (the docs' token tables) lists both kinds.
 
 ### Variations
 
-- A variation that SWAPS to another value writes the alias, on the box that declares it (a later sublayer, so it
-  wins):  `.ui.wide.foo { --_ui-foo-gap: 2em }`.  If Fomantic has a variable for the swapped value, that's a
-  public token of its own, read through its alias:  `--_button-pad-block: var(--_ui-button-tertiary-padding)`.
-- A variation that is a FUNCTION of a base token derives from the base's alias, so the user's base value flows
-  through:  `compact` sets `--_button-density: var(--_ui-button-compact-ratio)` and the padding rule computes
-  `calc(var(--_ui-button-padding-block) * var(--_button-density, 1))`.
-- GROUPS:  a variation on a group box (`.ui.basic.buttons`) that its members must follow can't write the alias --
-  each member box re-declares `--_ui-button-*` from the public token and drops it.  Use a separate private
-  variation token read IN FRONT of the alias, as the button does:  `var(--_button-radius, var(--_ui-button-radius))`.
+- A variation that SWAPS to another value writes the alias, on the box that declares it:
+  a later sublayer, so it wins.
+  - `.ui.wide.foo { --_ui-foo-gap: 2em }`
+  - If Fomantic has a variable for the swapped value, that's a public token of its own, read through its alias:
+    `--_button-pad-block: var(--_ui-button-tertiary-padding)`.
+- A variation that is a FUNCTION of a base token derives from the base's alias,
+  so the user's base value flows through.
+  - `compact` sets `--_button-density: var(--_ui-button-compact-ratio)`.
+  - The padding rule computes `calc(var(--_ui-button-padding-block) * var(--_button-density, 1))`.
+- GROUPS:  a variation on a group box (`.ui.basic.buttons`) that its members must follow can't write the alias.
+  - Each member box re-declares `--_ui-button-*` from the public token, and drops it.
+  - Use a separate private variation token, read IN FRONT of the alias, as the button does:
+    `var(--_button-radius, var(--_ui-button-radius))`.
 
 ### Owner tokens
 
-An owner hands the components inside it (content parts, items, icons, labels) inherited tokens.  Four kinds:
+An owner hands the components inside it inherited tokens:  content parts, items, icons, labels.
+Four kinds:
 
 | Kind | Example | Owner (declares on EVERY root) | Reader |
 |---|---|---|---|
@@ -202,37 +245,50 @@ An owner hands the components inside it (content parts, items, icons, labels) in
 | look token nobody varies | `--ui-card-header-color` | nothing | `var(--ui-card-header-color, var(--ui-text-dark))` |
 | owner-provided, user-settable too | `--ui-label-owner-edge` | an owner COMPONENT writes the private name | `var(--_ui-label-owner-edge, var(--ui-label-owner-edge, 0px))`, permanently:  a plain `<div>` owner sets the public one |
 
-- Switches are private because the owner's attributes decide them:  a page setting a layout switch would lie about
-  the layout.  They were public `--ui-*` names until 2026-09-30, renamed in every family (a pure rename, no look
-  change):
-  - owners and parts:  `--_ui-card-layout`, `--_ui-card-leading`, `--_ui-part` and every switch of `UIParts.css`'s
-    "Owner tokens" table (`PartOwnerTokens`), whose two look entries now name the aliases
-    `--_ui-modal-header-size` and `--_ui-statistic-value-size`
-  - icons, inputs, labels:  `--_ui-icon-owner-*`, `--_ui-icons-*` (corner icons), `--_ui-input-owner-width`,
-    `--_ui-label-owner-*` (read dual, see the table), `--_ui-labels-margin`, `--_ui-label-layout`
-  - groups:  `--_ui-buttons-*` (positions), `--_ui-segments-*`, `--_ui-images-*`, `--_ui-steps-*` (layout,
-    `circular`, `ordered`, corners ...;  the aliases of `--ui-steps-radius` / `-border` / `-accent-on` share the
-    prefix)
-  - forms:  `--_ui-field-state-*`, `--_ui-fields-*` (inline, stacked, child widths, paddings), `--_ui-form-equal-width`,
-    `--_ui-form-unstackable`, `--_ui-form-stack-with` (see "Stacking")
-  - menus, lists, tabs:  `--_ui-menu-layout`, `--_ui-menu-stackable`, `--_ui-menu-divider-side`,
-    `--_ui-menu-first-radius` / `-last-radius` / `-only-radius`, `--_ui-list-layout`, `--_ui-list-align`,
-    `--_ui-list-marker`, `--_ui-list-animated`, `--_ui-item-*`, `--_ui-tabs-pane-flex`
+- Switches are private because the owner's attributes decide them:
+  a page setting a layout switch would lie about the layout.
+- They were public `--ui-*` names until 2026-09-30.
+  They were renamed in every family:  a pure rename, no look change.
+  - owners and parts:
+    - `--_ui-card-layout`, `--_ui-card-leading`, `--_ui-part`
+    - every switch of the "Owner tokens" table in `UIParts.css` (`PartOwnerTokens`).
+      Its two look entries now name the aliases, `--_ui-modal-header-size` and `--_ui-statistic-value-size`.
+  - icons, inputs, labels:
+    - `--_ui-icon-owner-*`, `--_ui-icons-*` (corner icons), `--_ui-input-owner-width`
+    - `--_ui-label-owner-*` (read dual:  see the table), `--_ui-labels-margin`, `--_ui-label-layout`
+  - groups:
+    - `--_ui-buttons-*` (positions), `--_ui-segments-*`, `--_ui-images-*`
+    - `--_ui-steps-*`:  layout, `circular`, `ordered`, corners ...
+      The aliases of `--ui-steps-radius` / `-border` / `-accent-on` share the prefix.
+  - forms:
+    - `--_ui-field-state-*`
+    - `--_ui-fields-*`:  inline, stacked, child widths, paddings
+    - `--_ui-form-equal-width`, `--_ui-form-unstackable`, `--_ui-form-stack-with` (see "Stacking")
+  - menus, lists, tabs:
+    - `--_ui-menu-layout`, `--_ui-menu-stackable`, `--_ui-menu-divider-side`
+    - `--_ui-menu-first-radius` / `-last-radius` / `-only-radius`
+    - `--_ui-list-layout`, `--_ui-list-align`, `--_ui-list-marker`, `--_ui-list-animated`
+    - `--_ui-item-*`, `--_ui-tabs-pane-flex`
   - steps:  `--_ui-step-state`, `--_ui-step-layout`
   - one-offs:  `--_ui-container-width`, `--_ui-shape-type`, `--_ui-breadcrumb-divider-layout`
-  - set inline by an element:  `--_ui-dropdown-anchor`, `--_ui-search-anchor`, `--_ui-calendar-anchor` (anchor
-    names), `--_ui-pusher-*` (`PusherTokens`)
-- Declared on EVERY owner root, default included (the alias re-declares from the public token), so a nested owner
-  never inherits an outer owner's value.
-- Where a page sets an owner look token:  on the owner, above it, or `::part()` of the owner's box -- the part
-  reads the owner's alias, so NOT on the part (a look token nobody varies works on the part too).
-- Parts read an owner-varied token through the alias ONLY.  A dual read, `var(--_ui-x, var(--ui-x, <default>))`,
-  is for a reader that may sit OUTSIDE every declaring box, where only the public name can reach it:
-  `UILabel.css`'s `--ui-label-owner-*` (a plain `<div>` owner sets the public one), `UIForm.css`'s field rules (a field
-  outside a form) and `UILabel.css`'s `<ui-detail>` link rule.
-- Cross-family theming:  an owner that deliberately themes a NESTED component of another family sets that
-  family's PUBLIC token, as the page would (`UISearch.css`:  `--ui-input-radius` on its input) -- an `EXCEPTIONS`
-  entry in the test, with why.
+  - set inline by an element:
+    - the anchor names:  `--_ui-dropdown-anchor`, `--_ui-search-anchor`, `--_ui-calendar-anchor`
+    - `--_ui-pusher-*` (`PusherTokens`)
+- Declared on EVERY owner root, default included (the alias re-declares from the public token),
+  so a nested owner never inherits an outer owner's value.
+- Where a page sets an owner look token:  on the owner, above it, or `::part()` of the owner's box.
+  - NOT on the part:  the part reads the owner's alias.
+  - A look token nobody varies works on the part too.
+- Parts read an owner-varied token through the alias ONLY.
+  - A dual read, `var(--_ui-x, var(--ui-x, <default>))`, is for a reader that may sit OUTSIDE every declaring box,
+    where only the public name can reach it:
+    - `UILabel.css`'s `--ui-label-owner-*`:  a plain `<div>` owner sets the public one
+    - `UIForm.css`'s field rules:  a field outside a form
+    - `UILabel.css`'s `<ui-detail>` link rule
+- Cross-family theming:  an owner that deliberately themes a NESTED component of another family
+  sets that family's PUBLIC token, as the page would.
+  - `UISearch.css` sets `--ui-input-radius` on its input.
+  - It's an `EXCEPTIONS` entry in the test, with why.
 
 ### Worked example
 
@@ -254,12 +310,14 @@ An owner hands the components inside it (content parts, items, icons, labels) in
 
 The contract (the runtime's `Styles` service implements it):
 
-- The page has at most ONE `<link>` or `<style>` with `id="ui-app-stylesheet"`.  It may `@import` anything else.
-- The runtime mirrors it into one shared constructable sheet and appends it LAST to every component's
-  `adoptedStyleSheets`:  tokens -> component -> utilities -> app stylesheet.  Later edits, a late insertion
-  and `<link>` loads are picked up.
-- Put overrides in `@layer ui.app` (or leave them unlayered to beat everything).  Inside shadow roots the
-  class grammar is Fomantic's, so the override language is the one you know:
+- The page has at most ONE `<link>` or `<style>` with `id="ui-app-stylesheet"`.
+  It may `@import` anything else.
+- The runtime mirrors it into one shared constructable sheet,
+  and appends it LAST to every component's `adoptedStyleSheets`.
+  - The order:  tokens -> component -> utilities -> app stylesheet.
+  - Later edits, a late insertion and `<link>` loads are picked up.
+- Put overrides in `@layer ui.app`, or leave them unlayered to beat everything.
+  - Inside shadow roots the class grammar is Fomantic's, so the override language is the one you know:
 
 ```css
 /* #ui-app-stylesheet */
@@ -271,7 +329,7 @@ The contract (the runtime's `Styles` service implements it):
 
 ## Overriding colours
 
-Globally -- one base token re-colours the hue everywhere, derived states and roles included:
+Globally:  one base token re-colours the hue everywhere, derived states and roles included.
 
 ```css
 @layer ui.app {
@@ -290,7 +348,7 @@ Hand-tune one role for one hue (themes do this, e.g. classic's yellow text):
 :root { --ui-yellow-text: oklch(0.62 0.13 80); }
 ```
 
-Per region -- tokens inherit, so override them on a wrapper:
+Per region:  tokens inherit, so override them on a wrapper.
 
 ```html
 <section style="--ui-font-size: 18px; --ui-radius: 0">...</section>
@@ -298,104 +356,142 @@ Per region -- tokens inherit, so override them on a wrapper:
 <ui-root theme="dark" size="small">...</ui-root>  <!-- the same through a root:  scheme, and `--ui-scale` for all inside -->
 ```
 
-Per instance -- set the generic tokens on an UNCOLOURED component;  they inherit into its shadow:
+Per instance:  set the generic tokens on an UNCOLOURED component.  They inherit into its shadow.
 
 ```html
 <ui-button style="--ui-color: hotpink; --ui-color-hover: deeppink; --ui-color-on: black">Hot</ui-button>
 ```
 
-- Don't combine it with `color="..."`:  the inner `.ui.red` element's remap re-declares `--ui-color`,
-  which beats the inherited value.
-- Derived states only come for free where a remap runs (they're derived from `--ui-color` on the element with
-  the colour class), so set the ones you need.  `--ui-color-on` is never derived (see "Contrast"):  set it
-  whenever you set `--ui-color`.
+- Don't combine it with `color="..."`:
+  the inner `.ui.red` element's remap re-declares `--ui-color`, which beats the inherited value.
+- Derived states only come for free where a remap runs, so set the ones you need.
+  - They're derived from `--ui-color` on the element with the colour class.
+- `--ui-color-on` is never derived (see "Contrast"):  set it whenever you set `--ui-color`.
 
 NOTE: re-pointing a BASE on an intermediate element (`.card { --ui-red: hotpink }`) changes `--ui-red` below it,
-but not the derived `--ui-red-hover` / `-text` (custom properties substitute `var()` where they're declared,
-at `:root`).  Override `--ui-color*` there instead, or the base on `:root`.
+but not the derived `--ui-red-hover` / `-text`.
+- Why:  custom properties substitute `var()` where they're declared, at `:root`.
+- Override `--ui-color*` there instead, or the base on `:root`.
 
 ## Utilities
 
-`utilities.css` (hand-written) plus the generated colour / size parts;  all `ui-*`, all in `ui.utilities`,
-adopted into the page and every shadow root:
+[The utilities sheet](../src/styles/utilities.css) (hand-written), plus the generated colour and size parts.
+- All `ui-*`, all in `ui.utilities`.
+- Adopted into the page and every shadow root.
 
-- layout:  `ui-stack`, `ui-cluster`, `ui-split` (`ui-split:row` / `ui-split:column`), `ui-flank`
-  (`:start` / `:end`), `ui-frame` (`:square` / `:landscape` / `:portrait`), `ui-grid` (`--min-column-size`),
-  `ui-span-grid`, `ui-gap-<space>`, `ui-align-items-*`, `ui-align-self-*`, `ui-justify-content-*`,
-  `ui-flex-wrap` / `-nowrap`
-- sizing:  `ui-w-1/2 1/3 2/3 1/4 3/4 full auto fit`, `ui-h-full auto fit`, `ui-m[-side]-<space>`,
-  `ui-p[-side]-<space>` with sides `b i bs be is ie`
-- text:  `ui-body` / `ui-heading` / `ui-caption` (+ `-<size>`), `ui-font-size-<size>`, `ui-font-weight-*`, `ui-bold`,
-  `ui-italic`, `ui-muted`, `ui-text-{start,center,end,justify,nowrap,balance,pretty,truncate}`,
-  `ui-text-{uppercase,lowercase,capitalize}`, `ui-link`, `ui-link-plain`, `ui-list-plain`
-- colour:  `ui-<colour>` (remap), `ui-text-<colour>`, `ui-bg-<colour>` (the pale background role),
-  `ui-border-<colour>`
-- theme:  `ui-light`, `ui-dark`, `ui-invert` (flips relative to its parent, via a style query on `--ui-scheme`)
+The utilities:
+- layout:
+  - `ui-stack`, `ui-cluster`, `ui-flank` (`:start` / `:end`)
+  - `ui-split`:  `ui-split:row` / `ui-split:column`
+  - `ui-frame`:  `:square` / `:landscape` / `:portrait`
+  - `ui-grid` (`--min-column-size`), `ui-span-grid`
+  - `ui-gap-<space>`
+  - `ui-align-items-*`, `ui-align-self-*`, `ui-justify-content-*`
+  - `ui-flex-wrap` / `-nowrap`
+- sizing:
+  - `ui-w-1/2 1/3 2/3 1/4 3/4 full auto fit`
+  - `ui-h-full auto fit`
+  - `ui-m[-side]-<space>`, `ui-p[-side]-<space>`, with sides `b i bs be is ie`
+- text:
+  - `ui-body` / `ui-heading` / `ui-caption`, and each `-<size>`
+  - `ui-font-size-<size>`, `ui-font-weight-*`, `ui-bold`, `ui-italic`, `ui-muted`
+  - `ui-text-{start,center,end,justify,nowrap,balance,pretty,truncate}`
+  - `ui-text-{uppercase,lowercase,capitalize}`
+  - `ui-link`, `ui-link-plain`, `ui-list-plain`
+- colour:
+  - `ui-<colour>`:  the remap
+  - `ui-text-<colour>`, `ui-border-<colour>`
+  - `ui-bg-<colour>`:  the pale background role
+- theme:  `ui-light`, `ui-dark`, `ui-invert`
+  - `ui-invert` flips relative to its parent, via a style query on `--ui-scheme`.
 - shape:  `ui-rounded-{s,m,l,pill,circle,square}`
-- misc:  `ui-prose` / `ui-not-prose`, `ui-visually-hidden[-force]`, `ui-cloak` (hides undefined elements,
-  2s cap), `ui-hidden`, `ui-block`, `ui-flex`, `ui-hidden-{mobile,tablet,computer}`
+- misc:
+  - `ui-prose` / `ui-not-prose`
+  - `ui-visually-hidden[-force]`
+  - `ui-cloak`:  hides undefined elements, for 2s at most
+  - `ui-hidden`, `ui-block`, `ui-flex`, `ui-hidden-{mobile,tablet,computer}`
 
-`<space>` is `3xs 2xs xs s m l xl 2xl 3xl`;  `<size>` is `mini tiny small medium large big huge massive`.
+The scales:
+- `<space>` is `3xs 2xs xs s m l xl 2xl 3xl`
+- `<size>` is `mini tiny small medium large big huge massive`
 
 ## Stacking:  the element's width or the page's (`stack-with`)
 
-Fomantic's responsive words (`stackable`, `doubling`, per-device widths, `reversed`) are SCREEN-based.  Ours are
-CONTAINER-based by default:  a stackable grid in a 300px sidebar stacks on a desktop, which is the point of a
-component.  `stack-with` picks per element, or for a whole page (decided 2026-10-03, D40 in the `spell-ui-pages` plan
-doc):
+Fomantic's responsive words are SCREEN-based:  `stackable`, `doubling`, per-device widths, `reversed`.
+Ours are CONTAINER-based by default.
+- A stackable grid in a 300px sidebar stacks on a desktop:  that's the point of a component.
+- `stack-with` picks, per element or for a whole page.
+  Decided 2026-10-03:  D40 in the `spell-ui-pages` plan doc.
 
 | Where | Says | Example |
 |---|---|---|
 | the element | `stack-with="container"` (default) or `"page"` | `<ui-grid stackable columns="3" stack-with="page">` |
 | a subtree | the inherited token `--ui-stack-with: page \| container` | `<ui-root stack-with="page">` sets it;  any ancestor's `style` too |
 
-- The element's attribute beats the token;  neither:  `container`.  The breakpoints are the same either way
-  (`mobile` < 768px, `tablet` 768..991px, `computer` >= 992px, `large screen` 1200..1919px, `widescreen` >= 1920px),
-  measured on the element's own width (`@container`) or the screen's (`@media`, `media.css`).
-- On `<ui-grid>` (`stackable`, `doubling`, per-device widths, `reversed`;  its rows and columns follow it),
-  `<ui-cards>` (`stackable`, `doubling`), `<ui-steps>` (stacking, `stackable="tablet"`), `<ui-form>` (its rows of
-  fields;  `<ui-fields>` follow it), `<ui-items>` (stacking, the tablet image width), `<ui-statistics>` (`stackable`).
-- `<ui-table>` keeps its own `stack-by="viewport | container"` (viewport by default, as Fomantic) and
-  `--ui-table-stack-by`;  without either it follows `--ui-stack-with` (`page` ~== `viewport`).
-- Already screen-based, nothing to switch:  `stackable` menus, button groups and horizontal segments, and `only`
-  (device visibility) on grids.
-- The docs site sets `<ui-root stack-with="page">` on every page, so its examples lay out as on fomantic-ui.com
-  whatever the docs column's width.
-- How a sheet does it (`UIGrid.css` "Responsive" is the full version):
-  - the attribute is a PRIVATE CLASS on the element's root (`stack-with-page` / `stack-with-container`, from
-    `UIT.StackClasses`), never a `:state()` of the element:  a `:state()` rule left WebKit's viewport media queries
-    stale (`UITable.css`'s `stack-by`)
-  - rules whose subject is the ROOT are written four times:  `@container (<range>)` and `@media (<range>)`, each
-    once for the token (`@container [not] style(--ui-stack-with: page)`, read from the element, with `:not()` the other
-    class) and once for the attribute (its class, under the opposite token query), so exactly one copy matches
-  - what the parts (columns, items, fields) read is a FLAG the root works out once (`--_grid-range`,
-    `--_items-narrow`) or a switch it declares (`--_ui-form-stack-with`), queried with `@container style()`:  a
-    box can't style-query its own custom properties, only its ancestors'
-  - the sheet `@import`s `media.css` (`@custom-media`, Lightning CSS)
+- The element's attribute beats the token.  Neither:  `container`.
+- The breakpoints are the same either way:
+  - `mobile` < 768px, `tablet` 768..991px, `computer` >= 992px
+  - `large screen` 1200..1919px, `widescreen` >= 1920px
+  - measured on the element's own width (`@container`), or the screen's (`@media`, `media.css`)
+- The elements that take it:
+  - `<ui-grid>`:  `stackable`, `doubling`, per-device widths, `reversed`;  its rows and columns follow it
+  - `<ui-cards>`:  `stackable`, `doubling`
+  - `<ui-steps>`:  stacking, `stackable="tablet"`
+  - `<ui-form>`:  its rows of fields;  `<ui-fields>` follow it
+  - `<ui-items>`:  stacking, the tablet image width
+  - `<ui-statistics>`:  `stackable`
+- `<ui-table>` keeps its own `stack-by="viewport | container"` and `--ui-table-stack-by`.
+  - Viewport by default, as Fomantic.
+  - Without either, it follows `--ui-stack-with` (`page` ~== `viewport`).
+- Already screen-based, nothing to switch:
+  - `stackable` menus, button groups and horizontal segments
+  - `only` (device visibility) on grids
+- The docs site sets `<ui-root stack-with="page">` on every page,
+  so its examples lay out as on fomantic-ui.com, whatever the docs column's width.
+- How a sheet does it (the full version:  `UIGrid.css`, "Responsive"):
+  - The attribute is a PRIVATE CLASS on the element's root (`stack-with-page` / `stack-with-container`,
+    from `UIT.StackClasses`), never a `:state()` of the element.
+    - Why:  a `:state()` rule left WebKit's viewport media queries stale (`UITable.css`'s `stack-by`).
+  - Rules whose subject is the ROOT are written four times, so exactly one copy matches:
+    - `@container (<range>)` and `@media (<range>)`, each written twice:
+    - once for the token:  `@container [not] style(--ui-stack-with: page)`, read from the element,
+      with `:not()` the other class
+    - once for the attribute:  its class, under the opposite token query
+  - What the parts (columns, items, fields) read, queried with `@container style()`:
+    - a FLAG the root works out once (`--_grid-range`, `--_items-narrow`)
+    - or a switch it declares (`--_ui-form-stack-with`)
+    - Why:  a box can't style-query its own custom properties, only its ancestors'.
+  - The sheet `@import`s `media.css` (`@custom-media`, Lightning CSS).
 
 ## Themes
 
 A theme is a sheet of token overrides in `@layer ui.theme`, loaded on the page after the foundation.
-Tokens inherit into shadow roots, so components follow without adopting anything.
+- Tokens inherit into shadow roots, so components follow without adopting anything.
+- [`classic.css`](../src/styles/themes/classic.css):  Fomantic's look.
+  - Lato, 14px, Fomantic's size ratios
+  - the original palette (as OKLCH), hand-picked text and background tints, emotive message colours
+  - 4px radii, flat shadows
+  - It loads no font:  add Lato yourself.
+- [`dark.css`](../src/styles/themes/dark.css):  `color-scheme: dark` on `:root`.
+  - Every colour token is a `light-dark()` pair, so forcing the scheme IS the dark token set.
+  - Tune one value with its `-on-dark` base.
 
-- `themes/classic.css`:  Lato, 14px, Fomantic's size ratios, original palette (as OKLCH), hand-picked text and
-  background tints, emotive message colours, 4px radii, flat shadows.  Loads no font -- add Lato yourself.
-- `themes/dark.css`:  `color-scheme: dark` on `:root`.  Every colour token is a `light-dark()` pair, so forcing
-  the scheme IS the dark token set.  Tune one value with its `-on-dark` base.
-
-Dark mode by default follows the OS (`color-scheme: light dark` on `:root`, in `ui.tokens` so a page's own
-`color-scheme` wins).  A light-only page sets `:root { color-scheme: light }` or `class="ui-light"`.
+Dark mode follows the OS by default:  `color-scheme: light dark` on `:root`.
+- It's in `ui.tokens`, so a page's own `color-scheme` wins.
+- A light-only page sets `:root { color-scheme: light }`, or `class="ui-light"`.
 
 ### Our own theme:  `spell`
 
-`themes/spell.css` is the Spell brand (`brand/spell-design-system/`) as a theme, and the DEFAULT look of
-every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks another) and `packages/docs` pages
-(`spell-ui.entry.js`).
-
-- Listed in `UI.themes.own`, not `names`:  it's no Fomantic port.  Applied exactly like one, on top of `classic`,
-  so it restates every classic token the brand replaces (type, the size ladder, radii, ink, borders, shadows, the
-  palette, message colours, links, focus).
-- Maps the brand's semantic meanings, light and dark (dark is AUBERGINE, `violet-950`, never black), onto `--ui-*`:
+[`spell.css`](../src/styles/themes/spell.css) is the Spell brand as a theme ([the brand's design system](../../../brand/spell-design-system/)).
+- It's the DEFAULT look of the Spell UI docs (`ThemePreference`), until the viewer picks another.
+- `packages/docs` pages wore it too (`spell-ui.entry.js`),
+  until epic `design-system` moved them to `spell-brand` (below).
+- Listed in `UI.themes.own`, not `names`:  it's no Fomantic port.
+  - Applied exactly like one, on top of `classic`.
+  - So it restates every classic token the brand replaces:
+    type, the size ladder, radii, ink, borders, shadows, the palette, message colours, links, focus.
+- It maps the brand's semantic meanings onto `--ui-*`, light and dark.
+  Dark is AUBERGINE (`violet-950`), never black.
 
 | Brand | Token(s) | Light / dark |
 |---|---|---|
@@ -407,48 +503,68 @@ every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks an
 | shadows `xs` ... `lg` | `--ui-shadow-subtle` / `-raised` / `-floating` / `-floating-hover` | grey-blue / near-black + lilac glow, one list each |
 | lavender | `--ui-highlight`, `--ui-info-*`, active menu items | `violet-150` / `violet-800` |
 
-- Fonts:  `'Spell Serif'` is the INSTALLED Palatino family only (macOS / iOS `Palatino`, Windows `Palatino Linotype`
-  / `Book Antiqua`, Linux `P052` / `TeX Gyre Pagella`);  none installed (some Linux, Android):  the generic `serif`.
-  No font files ship (Owen, 2026-10-04).  Serif headers (`h1` / `h2`
-  bold, the rest regular), the italic serif lede (a header's sub header), the mono eyebrow (`sub` headers, statistic
-  labels);  body in the system sans, code in the system mono.
-- Shape:  pill buttons, labels and progress bars;  12px inputs;  16px cards, segments, messages, toasts;  22px
-  modals;  round checkboxes.
-- Beyond tokens:  a 3px focus ring, buttons that press to `scale: 0.97` (reduced motion:  none), balanced
-  headings, tabular numbers in tables and statistics, link underlines from the font, an 8% outline on images,
-  font smoothing, `scroll-margin-top` under the site header, and no transitions during a scheme switch
-  (`html.ui-scheme-switching`, set for one frame by `ThemePreference.applyScheme()`).  A transition that must
-  run in that very frame (`<ui-docs-themes>`' sun / moon swap) declares itself `!important` in its component layer:
-  an earlier layer's `!important` wins.
+- Fonts:
+  - `'Spell Serif'` is the INSTALLED Palatino family only:
+    - macOS / iOS:  `Palatino`
+    - Windows:  `Palatino Linotype` / `Book Antiqua`
+    - Linux:  `P052` / `TeX Gyre Pagella`
+    - none installed (some Linux, Android):  the generic `serif`
+  - No font files ship (Owen, 2026-10-04).
+  - Serif headers:  `h1` / `h2` bold, the rest regular.
+  - The italic serif lede (a header's sub header).
+  - The mono eyebrow:  `sub` headers, statistic labels.
+  - Body in the system sans, code in the system mono.
+- Shape:
+  - pill buttons, labels and progress bars
+  - 12px inputs;  16px cards, segments, messages, toasts;  22px modals
+  - round checkboxes
+- Beyond tokens:
+  - a 3px focus ring
+  - buttons that press to `scale: 0.97` (reduced motion:  none)
+  - balanced headings, tabular numbers in tables and statistics
+  - link underlines from the font, an 8% outline on images, font smoothing
+  - `scroll-margin-top` under the site header
+  - no transitions during a scheme switch:
+    `html.ui-scheme-switching`, set for one frame by `ThemePreference.applyScheme()`
+    - A transition that must run in that very frame (`<ui-docs-themes>`' sun / moon swap)
+      declares itself `!important` in its component layer:  an earlier layer's `!important` wins.
 
 ### Our own theme:  `spell-brand`
 
-`themes/spell-brand.css` is `spell` as Claude Design's brand pages draw it, converging on them (epic
-`design-system`, `packages/docs/content/epics/design-system/design-system.plan.html`).
-
-- Started 2026-10-04 as a FULL COPY of `spell.css`, so the two may drift;  whether it replaces `spell` is a later
-  call.  Also in `UI.themes.own`, and in the docs' theme picker as "Spell brand".
-- Adds the brand's own semantic roles that no `--ui-*` token covers, as `--spell-*` `light-dark()` pairs:
-  surfaces (`--spell-surface-tint`, `-warm`, `-selected`, `-code`, `-inverse`), text, accent (`--spell-accent`,
-  `-soft`, `-ring`), borders, status, art (`--spell-blob`, `--spell-line-flourish`), shadows (`--spell-shadow-xs`
-  ... `-lg`), type roles (`--spell-type-eyebrow`, `-lede`, `-spell` ...) and the Polished Ivory ladder.  Read by
-  `packages/brand`'s `<ui-brand-*>` elements and `.spell.html` pages, never by `<ui-*>` elements.
-- The brand pages load it through `packages/brand`'s bundle (`_assets/ui/brand-ui.js`).
+[`spell-brand.css`](../src/styles/themes/spell-brand.css) is `spell` as Claude Design's brand pages draw it, converging on them
+(epic `design-system`, [its plan doc](../../../epics/design-system/design-system.plan.html)).
+- Started 2026-10-04 as a FULL COPY of `spell.css`, so the two may drift.
+  - Whether it replaces `spell` is a later call.
+- Also in `UI.themes.own`, and in the docs' theme picker as "Spell Brand", second.
+- The docs pages wear it:  `packages/docs`'s bundle applies it (epic `design-system`, P9).
+- It adds the brand's own semantic roles that no `--ui-*` token covers, as `--spell-*` `light-dark()` pairs:
+  - surfaces:  `--spell-surface-tint`, `-warm`, `-selected`, `-code`, `-inverse`
+  - text
+  - accent:  `--spell-accent`, `-soft`, `-ring`
+  - borders, status
+  - art:  `--spell-blob`, `--spell-line-flourish`
+  - shadows:  `--spell-shadow-xs` ... `-lg`
+  - type roles:  `--spell-type-eyebrow`, `-lede`, `-spell` ...
+  - the Polished Ivory ladder
+  - They're read by `packages/brand`'s `<ui-brand-*>` elements and `.spell.html` pages, never by `<ui-*>` elements.
+- The brand pages load it through `packages/brand`'s bundle (`brand-ui.js`, in its `_assets/ui/`).
 
 ### Fomantic themes
 
-Every other sheet in `themes/` is a port of one of Fomantic's themes (`src/themes/<name>/` in Fomantic):
-`github.css`, `material.css`, `fomantic-classic.css` (Fomantic's own `classic` theme;  ours keeps the name) ...
-
-- Fomantic's themes are DELTAS on Fomantic's default look, and our equivalent of that look is `classic.css`.  So a
-  Fomantic theme is applied ON TOP of `classic`:  both sheets, `classic` first, both `@layer ui.theme` (the theme
-  wins ties by order).  A theme sheet never repeats classic's tokens.
+Every other sheet in [the themes folder](../src/styles/themes/) is a port of one of Fomantic's themes
+(in Fomantic, its `<name>/` folder of `src/themes/`).
+- `github.css`, `material.css`, `fomantic-classic.css` (Fomantic's own `classic` theme;  ours keeps the name) ...
+- Fomantic's themes are DELTAS on Fomantic's default look, and our equivalent of that look is `classic.css`.
+  - So a Fomantic theme is applied ON TOP of `classic`:  both sheets, `classic` first, both `@layer ui.theme`.
+  - The theme wins ties, by order.
+  - A theme sheet never repeats classic's tokens.
 - A theme sheet has two halves, both in `@layer ui.theme`:
-  1. TOKENS on `:root`:  Fomantic's `.variables` as `--ui-*` globals and `--ui-<tag>-*` component tokens.  They
-     inherit into shadow roots.
-  2. OVERRIDES:  Fomantic's `.overrides`, and any variable with no token, as CLASS-GRAMMAR rules (`.ui.button`,
-     `.ui.menu .item`), the markup our components render INSIDE their shadow roots.  A page sheet can't reach in
-     there, so theme sheets are ALSO adopted into every shadow root (`shadow: true`, below).
+  1. TOKENS on `:root`:  Fomantic's `.variables`, as `--ui-*` globals and `--ui-<tag>-*` component tokens.
+     They inherit into shadow roots.
+  2. OVERRIDES:  Fomantic's `.overrides`, and any variable with no token, as CLASS-GRAMMAR rules.
+     - `.ui.button`, `.ui.menu .item`:  the markup our components render INSIDE their shadow roots.
+     - A page sheet can't reach in there,
+       so theme sheets are ALSO adopted into every shadow root (`shadow: true`, below).
 - Assets a theme needs live in `themes/<name>/`, referenced relatively.
 
 ### Applying a theme:  `UI.themes`
@@ -465,47 +581,75 @@ await themes.apply("classic") // classic alone
 await themes.apply(undefined) // our own look
 ```
 
-- `Themes` (`src/runtime/Themes.ts`, the runtime service behind `UI.themes`):  a LITERAL
-  `import.meta.glob("../styles/themes/*.css", { query: "?inline" })`, so a new sheet in `themes/` is a theme with no
-  registry edit.  Each sheet is its own LAZY chunk, loaded on first `apply()`.  None is in `$/ui/styles`, which
-  holds no code:  code there split Rolldown's helpers into an extra chunk every page fetched (epic `wwod-spell-ui`,
-  I13).
-- `UI.themes.sheets`:  every sheet, `classic` and `dark` included;  `UI.themes.names`:  the Fomantic themes, i.e.
-  without `classic`, `dark` and `own` (`spell`, `spell-brand`, above):
-  - `classic`:  the base, applied with every Fomantic theme, or alone with `apply("classic")`
-  - `dark`:  a colour SCHEME, not a look:  switch it with `color-scheme`, `ui-dark` or `<ui-root theme="dark">`,
-    on top of any theme.  `apply("dark")` throws.  A theme picker offers `own` (`spell`, `spell-brand`),
-    "plain" (`undefined`), `classic`, then `names`;  a separate light / dark switch.  The docs site's is `<ui-docs-themes>`
-    (`src/docs-components/`:  a sun / moon flip and a palette overlay with the list and "Match system"),
-    remembering both per viewer through `ThemePreference`, the scheme under the one key every doc site shares;  `for="ui-button"` lists the
-    themes touching one family, from the site data's `themes` (`tools/ThemeFamilies.ts` reads each sheet's class
-    grammar and tokens at build time).
-- `apply()` registers two `UI.styles` names (`UI.themes.slots`):  `classic` (the base slot) and `theme` (the current
-  Fomantic theme;  switching replaces its text in place).  Concurrent calls:  the last one wins.
-  `UI.themes.current` is the last name applied.
+- [`Themes`](../src/runtime/Themes.ts), the runtime service behind `UI.themes`, finds the sheets with a LITERAL glob:
+
+  ```ts
+  import.meta.glob("../styles/themes/*.css", { query: "?inline" })
+  ```
+
+  - So a new sheet in `themes/` is a theme, with no registry edit.
+  - Each sheet is its own LAZY chunk, loaded on first `apply()`.
+  - None is in `$/ui/styles`, which holds no code.
+    Code there split Rolldown's helpers into an extra chunk every page fetched (epic `wwod-spell-ui`, I13).
+- `UI.themes.sheets`:  every sheet, `classic` and `dark` included.
+- `UI.themes.names`:  the Fomantic themes, i.e. without `classic`, `dark` and `own` (`spell`, `spell-brand`, above).
+  - `classic`:  the base, applied with every Fomantic theme, or alone with `apply("classic")`.
+  - `dark`:  a colour SCHEME, not a look.
+    - Switch it with `color-scheme`, `ui-dark` or `<ui-root theme="dark">`, on top of any theme.
+    - `apply("dark")` throws.
+- A theme picker offers, in order:  `own` (`spell`, `spell-brand`), "plain" (`undefined`), `classic`, then `names`.
+  - And a separate light / dark switch.
+- The docs site's picker is `<ui-docs-themes>` (in [the docs components](../src/docs-components/)):
+  - a sun / moon flip, and a palette overlay with the list and "Match system"
+  - It remembers both per viewer through `ThemePreference`:
+    the scheme under the one key every doc site shares.
+  - `for="ui-button"` lists the themes touching one family, from the site data's `themes`.
+    [The theme families tool](../tools/ThemeFamilies.ts) reads each sheet's class grammar and tokens at build time.
+- `apply()` registers two `UI.styles` names (`UI.themes.slots`):
+  - `classic`:  the base slot
+  - `theme`:  the current Fomantic theme;  switching replaces its text in place
+  - Concurrent calls:  the last one wins.
+  - `UI.themes.current` is the last name applied.
 - Under it, `UI.styles.register(name, css, { page: true, shadow: true })`:
-  - `page`:  on `document.adoptedStyleSheets` (tokens, and class-grammar markup in the page)
-  - `shadow`:  adopted into EVERY component shadow root, existing and future, after utilities and before the
-    app stylesheet:  foundation -> component -> utilities -> `shadow` sheets (registration order) -> app sheet
-  - `register(name, "")` UNREGISTERS:  off the page, out of every root, `has(name)` false
-- Shipping:  a bundle that includes the runtime (a site bundle, an app) gets one chunk per theme beside it,
-  fetched on `apply()`;  keep code-splitting on (a single-file bundle inlines every theme, which works, just
-  bigger).  A page without the runtime can still `<link>` `ui.css` + `themes/classic.css` + `themes/<name>.css`,
-  but then only the TOKEN half reaches components:  the overrides need the runtime's shadow adoption.
+  - `page`:  on `document.adoptedStyleSheets`, for tokens and class-grammar markup in the page
+  - `shadow`:  adopted into EVERY component shadow root, existing and future,
+    after utilities and before the app stylesheet:
+
+    ```text
+    foundation -> component -> utilities -> `shadow` sheets (registration order) -> app sheet
+    ```
+
+  - `register(name, "")` UNREGISTERS:  off the page, out of every root, `has(name)` false.
+- Shipping:  a bundle that includes the runtime (a site bundle, an app) gets one chunk per theme beside it.
+  - Each is fetched on `apply()`.
+  - Keep code-splitting on.
+    A single-file bundle inlines every theme:  it works, just bigger.
+  - A page without the runtime can still `<link>` the sheets:  `ui.css`, then `classic.css`, then `<name>.css`.
+    - But then only the TOKEN half reaches components:  the overrides need the runtime's shadow adoption.
 
 ### Porting a Fomantic theme (recipe)
 
-References:  `github.css` (big:  16 components, tokens + overrides), `material.css` (fonts, palette, `-on`
-re-checks), `fomantic-classic.css` (small, mostly overrides).
+The references:
+- `github.css`:  big, 16 components, tokens + overrides
+- `material.css`:  fonts, palette, `-on` re-checks
+- `fomantic-classic.css`:  small, mostly overrides
 
-1. Read `reference/Fomantic-UI/src/themes/<name>/**`:  `globals/site.variables` first, then each component's
-   `.variables` and `.overrides`.  Only what's THERE is the theme:  everything else is Fomantic's default, which
-   `classic.css` already is.  An empty or comment-only file ports to nothing.
-2. Create `themes/<name>.css` with a header comment like `github.css`'s (what, touches, font, dark scheme,
-   NOT ported), everything inside `@layer ui.theme { ... }`.  No registry edit:  `UI.themes` globs the folder.
-3. Tokens first, on `:root`.  Find each component's public tokens in its sheet's token block
-   (`grep -n -- '--_ui-<tag>-.*: var(' src/components/ui-<family>/*.css`;  some wrap over two lines) or its docs
-   table.  Common mappings:
+1. Read the theme in Fomantic, `src/themes/<name>/**` in `reference/Fomantic-UI/`.
+   - `globals/site.variables` first, then each component's `.variables` and `.overrides`.
+   - Only what's THERE is the theme:  everything else is Fomantic's default, which `classic.css` already is.
+   - An empty or comment-only file ports to nothing.
+2. Create `<name>.css` in `themes/`, everything inside `@layer ui.theme { ... }`.
+   - Its header comment like `github.css`'s:  what, touches, font, dark scheme, NOT ported.
+   - No registry edit:  `UI.themes` globs the folder.
+3. Tokens first, on `:root`.
+   - Find each component's public tokens in its sheet's token block, or its docs table.
+     Some wrap over two lines:
+
+     ```sh
+     grep -n -- '--_ui-<tag>-.*: var(' src/components/ui-<family>/*.css
+     ```
+
+   - Common mappings:
 
 | Fomantic | Ours | Note |
 |---|---|---|
@@ -529,126 +673,174 @@ re-checks), `fomantic-classic.css` (small, mostly overrides).
 | `@borderRadius` | `--ui-<tag>-radius` | |
 | `@fontWeight`, `@textTransform` | `--ui-<tag>-font-weight` ... where it exists | else an override |
 
-   - Colours as OKLCH, as `light-dark(<Fomantic's>, <the default dark recipe>)` where the default is a pair:  keep
-     dark mode working (Fomantic had none).  Copy the dark half from `colors.css` / `classic.css`.
-   - A token holding a `background` may take a gradient when the sheet paints it with the `background` SHORTHAND
-     (`--ui-menu-background: var(--ui-surface) linear-gradient(...)`);  check the rule that reads it.
-   - Changed a hue's base?  Re-check its `--ui-<hue>-on`:  white if it reaches 4.5:1 on the colour, else
-     `var(--ui-ink-on-light)` (`material.css` does it for most hues).
+   - Colours as OKLCH:  keep dark mode working (Fomantic had none).
+     - Where the default is a pair, write `light-dark(<Fomantic's>, <the default dark recipe>)`.
+     - Copy the dark half from `colors.css` / `classic.css`.
+   - A token holding a `background` may take a gradient,
+     when the sheet paints it with the `background` SHORTHAND:  check the rule that reads it.
+     - `--ui-menu-background: var(--ui-surface) linear-gradient(...)`
+   - Changed a hue's base?  Re-check its `--ui-<hue>-on`.
+     - White if it reaches 4.5:1 on the colour, else `var(--ui-ink-on-light)`.
+     - `material.css` does it for most hues.
 4. Overrides second:  Fomantic's `.overrides`, and any variable with NO token, as class-grammar rules.
-   - Use the selectors the COMPONENT'S sheet uses for that box, read from its header ("Shadow markup contract")
-     and rules.  An item / part box often has two:  the element's (`:host(:state(in-menu)) > .item`) and static
-     class grammar (`.ui.menu .item`);  write both.  `<ui-table>` renders a light-DOM `<table>`:
-     `:is(.ui.table, :where(ui-table) > table)`.
-   - `ui.theme` beats EVERY component layer, variations and states included.  Fomantic's override competed by
-     specificity, so scope yours to what it meant:  `.ui.button:not(.basic, .inverted, .tertiary)`, not
-     `.ui.button`.
-   - Re-colour a component only (GitHub's buttons pick their own blue) by writing the remap on its box:
-     `.ui.button:is(.primary, .blue) { --ui-color: ...; --ui-color-on: ... }`;  hover / down states derive.
-   - Don't set private tokens (`--_ui-*`, `--_button-*`).  Querying a private SWITCH is fine:
-     `@container style(--_ui-steps-layout: horizontal) { ... }`, as the component does.
-   - `!important` in Fomantic:  usually unnecessary here (the layer already wins);  drop it.
-5. What can't be ported:  skip it, list it in the header's "NOT ported", and record a plan-doc caveat.  Usual
-   suspects:
-   - icon FONTS (`icon.variables` / `assets/fonts`):  icons are SVG packs;  build a pack instead
-   - `@import (css) url(...)` of web fonts:  a runtime sheet drops `@import` (`replaceSync`);  the page loads fonts
-   - breakpoints (`@mobileBreakpoint` ...) and `@pageMinWidth`:  build-time `@custom-media` / page layout
-   - per-component SIZE ladders in px / rem (`@mini` ... `@massive`):  sizes are ratios of `--ui-font-size`;
-     scale the default instead (`github.css`'s buttons)
-   - markup we don't render (a component we don't have, Fomantic's JS-added classes like `.focused`:  try the
-     native state, e.g. `:focus-within`)
-6. Assets the theme really uses (images, a font it needs to look right) go in `themes/<name>/`, referenced
-   relatively.
-7. Test:  append a `describe("<name>.css")` to `themes/themes.test.ts`:  `ThemeHarness.use(name)`, then at least one
-   COMPUTED style per touched component INSIDE its shadow root (`ThemeHarness.inner(html, selector)`;
-   `test/ThemeHarness.ts`).  `UI.themes`' own tests (`src/runtime/Themes.test.ts`) already check that the sheet is
-   wholly `@layer ui.theme`.
-8. Look:  screenshot the touched components with the theme applied, next to fomantic-ui.com's theming page
-   (`reference/Fomantic-UI-Docs/server/documents/usage/theming.html.eco`), light and dark.
+   - Use the selectors the COMPONENT'S sheet uses for that box:
+     read them from its header ("Shadow markup contract") and its rules.
+     - An item / part box often has two:  write both.
+       - the element's:  `:host(:state(in-menu)) > .item`
+       - static class grammar:  `.ui.menu .item`
+     - `<ui-table>` renders a light-DOM `<table>`:  `:is(.ui.table, :where(ui-table) > table)`.
+   - `ui.theme` beats EVERY component layer, variations and states included.
+     - Fomantic's override competed by specificity, so scope yours to what it meant.
+     - `.ui.button:not(.basic, .inverted, .tertiary)`, not `.ui.button`.
+   - Re-colour a component only (GitHub's buttons pick their own blue) by writing the remap on its box.
+     Hover and down states derive.
+
+     ```css
+     .ui.button:is(.primary, .blue) { --ui-color: ...; --ui-color-on: ... }
+     ```
+
+   - Don't set private tokens (`--_ui-*`, `--_button-*`).
+     - Querying a private SWITCH is fine, as the component does:
+       `@container style(--_ui-steps-layout: horizontal) { ... }`.
+   - `!important` in Fomantic:  usually unnecessary here, since the layer already wins.  Drop it.
+5. What can't be ported:  skip it, list it in the header's "NOT ported", and record a plan-doc caveat.
+   The usual suspects:
+   - icon FONTS (`icon.variables` / `assets/fonts`):  icons are SVG packs, so build a pack instead
+   - `@import (css) url(...)` of web fonts:  a runtime sheet drops `@import` (`replaceSync`), so the page loads fonts
+   - breakpoints (`@mobileBreakpoint` ...) and `@pageMinWidth`:  build-time `@custom-media`, or page layout
+   - per-component SIZE ladders in px / rem (`@mini` ... `@massive`):  sizes are ratios of `--ui-font-size`.
+     Scale the default instead (`github.css`'s buttons).
+   - markup we don't render:
+     - a component we don't have
+     - Fomantic's JS-added classes like `.focused`:  try the native state, e.g. `:focus-within`
+6. Assets the theme really uses go in `themes/<name>/`, referenced relatively.
+   - images, a font it needs to look right
+7. Test:  append a `describe("<name>.css")` to [the themes test](../src/styles/themes/themes.test.ts).
+   - `ThemeHarness.use(name)`, then at least one COMPUTED style per touched component, INSIDE its shadow root.
+   - `ThemeHarness.inner(html, selector)`, in [the theme harness](../test/ThemeHarness.ts).
+   - `UI.themes`' own tests ([the Themes test](../src/runtime/Themes.test.ts))
+     already check that the sheet is wholly `@layer ui.theme`.
+8. Look:  screenshot the touched components with the theme applied, light and dark,
+   next to the theming page of fomantic-ui.com.
+   - Its source:  `usage/theming.html.eco` in `reference/Fomantic-UI-Docs/server/documents/`.
 
 ## Build notes
 
-- `@custom-media` (`media.css`) and the `@import`s in `utilities.css` / `native.css` / `ui.css` need Lightning CSS
-  (Vite's `css.transformer: "lightningcss"` with `drafts.customMedia`).  Raw, those rules are dropped.
-- `css.lightningcss.targets` MUST be modern browsers (the platform the plan assumes).  With Vite's default
-  targets Lightning CSS lowers `light-dark()` into `--lightningcss-light` variables substituted at `:root`,
-  which breaks `.ui-dark` subtrees, and adds hex / `lab()` fallbacks for every OKLCH literal.
+- Some rules need Lightning CSS:  Vite's `css.transformer: "lightningcss"`, with `drafts.customMedia`.
+  - `@custom-media` (`media.css`)
+  - the `@import`s in `utilities.css` / `native.css` / `ui.css`
+  - Raw, those rules are dropped.
+- `css.lightningcss.targets` MUST be modern browsers:  the platform the plan assumes.
+  - With Vite's default targets, Lightning CSS lowers `light-dark()` into `--lightningcss-light` variables
+    substituted at `:root`, which breaks `.ui-dark` subtrees.
+  - And it adds hex / `lab()` fallbacks for every OKLCH literal.
 
 ## Converting a family (recipe)
 
-Every family is converted (2026-09-30);  the recipe stays for a NEW family ported from Fomantic's `.variables`, or a
-sheet the test catches declaring a public token.  References:  `button` (a plain family with a group), `card` (an
-owner), `parts` (the header's own tokens, and the part side of owner tokens).
+Every family is converted (2026-09-30).  The recipe stays for:
+- a NEW family, ported from Fomantic's `.variables`
+- a sheet the test catches declaring a public token
 
-1. Dry run:  `yarn tokens:alias <family>` prints, per sheet, the notes to review and every OTHER file still naming
-   one of the family's public tokens.  `--write` applies it (and runs oxfmt over the sheets).
-   - Without the codemod:  `grep -nE -- '^\s*--ui-<tag>-[a-z0-9-]+\s*:' src/components/ui-<family>/*.css` finds the
-     declarations (one grep per tag:  `button`, `buttons`, `or`);  `grep -rnE -- '--ui-<tag>-' src test site
-     docs` finds the rest.
-2. What the codemod does, per sheet:  the FIRST declaration of each public token becomes the alias
-   (`--_ui-x: var(--ui-x, <value>)`), every later declaration (a variation) writes `--_ui-x`, and every
-   `var(--ui-x` / `style(--ui-x` read in the family's sheets becomes `--_ui-x`.  Comments keep the public names.
+The references:
+- `button`:  a plain family, with a group
+- `card`:  an owner
+- `parts`:  the header's own tokens, and the part side of owner tokens
+
+1. Dry run:  `yarn tokens:alias <family>`.
+   - It prints, per sheet, the notes to review, and every OTHER file still naming one of the family's public tokens.
+   - `--write` applies it, and runs oxfmt over the sheets.
+   - Without the codemod, two greps:
+     - the declarations, one grep per tag (`button`, `buttons`, `or`)
+     - the rest
+
+     ```sh
+     grep -nE -- '^\s*--ui-<tag>-[a-z0-9-]+\s*:' src/components/ui-<family>/*.css
+     grep -rnE -- '--ui-<tag>-' src test site docs
+     ```
+
+2. What the codemod does, per sheet:
+   - the FIRST declaration of each public token becomes the alias:  `--_ui-x: var(--ui-x, <value>)`
+   - every later declaration (a variation) writes `--_ui-x`
+   - every `var(--ui-x` / `style(--ui-x` read in the family's sheets becomes `--_ui-x`
+   - Comments keep the public names.
 3. Review every note it prints:
-   - `variation writes --_ui-x`:  fine when the variation's class sits on the box that declares the alias.  On a
-     GROUP box whose members must follow, see "Variations" (a separate `--_<family>-*` token in front of the alias).
-   - `FIRST declaration ... is nested`:  the token has no base value (only `@media` / `@container` variants).  Add a
-     base alias to the token block with the default its readers fall back to, so nested owners reset it.
+   - `variation writes --_ui-x`:  fine when the variation's class sits on the box that declares the alias.
+     - On a GROUP box whose members must follow, see "Variations":
+       a separate `--_<family>-*` token, in front of the alias.
+   - `FIRST declaration ... is nested`:  the token has no base value, only `@media` / `@container` variants.
+     - Add a base alias to the token block, with the default its readers fall back to, so nested owners reset it.
    - `declares another family's token`:  an alias (a look token), a private switch, or an `EXCEPTIONS` entry.
-   - Is it really a public token?  Internal plumbing named `--ui-<tag>-*` (like the button group's corner
-     factors) becomes a private SWITCH instead:  rename it `--_ui-...` in every file that names it, no alias.
-4. Reads OUTSIDE the declaring box:  the codemod rewrites every read in the family's sheets.  A rule whose box is
-   neither a box of the token block's selector list nor inside one reads an unset alias -- give it
-   `var(--_ui-x, var(--ui-x, <default>))`.  Watch sheets ADOPTED BY A PART (`<ui-item>` adopts `UIMenu.css` /
-   `UIList.css`):  the alias block must not match the part's own box, or the part re-declares the alias from the
-   public token and drops the owner's variation.
+   - Is it really a public token?
+     - Internal plumbing named `--ui-<tag>-*` (like the button group's corner factors) becomes a private SWITCH instead.
+     - Rename it `--_ui-...` in every file that names it, with no alias.
+4. Reads OUTSIDE the declaring box:  the codemod rewrites every read in the family's sheets.
+   - A rule whose box is neither a box of the token block's selector list, nor inside one, reads an unset alias.
+     Give it `var(--_ui-x, var(--ui-x, <default>))`.
+   - Watch sheets ADOPTED BY A PART:  `<ui-item>` adopts `UIMenu.css` / `UIList.css`.
+     - The alias block must not match the part's own box.
+     - Else the part re-declares the alias from the public token, and drops the owner's variation.
 5. The other files it lists:
-   - `UIParts.css`:  a look token your owner varies is read as the alias only, `var(--_ui-x, <default>)`;  add the
-     owner's rule there, as `modal` does.
-   - Another family's sheet reading your token:  the alias if it sits inside your box, else the dual read
-     `var(--_ui-x, var(--ui-x, <default>))` (step 4).
-   - Tests reading a value off the inner box (`getPropertyValue("--ui-x")`):  read `--_ui-x`, or better, assert
-     the computed property it drives.
-   - TS setting a public token INLINE on its own root (`style={{ "--ui-x": ... }}`) blocks the page exactly like a
-     sheet:  set the private name.  Check `grep -rn -- '--ui-<tag>-' src/components/ui-<family>/*.ts*`.
-   - `PartOwnerTokens` (`components.types.ts`):  a look token (`modalHeaderSize`, `statisticValueSize`) names
-     the alias;  so does every switch an element sets inline (`PusherTokens`, the anchor names).
-   - Examples and docs:  public names stay (they're the API);  fix text that says "only through `::part()`" or
-     "declared on the box".
-6. The sheet's header comment:  add the "Public tokens ... are NEVER declared here" bullet (copy `UIButton.css`'s)
-   and say "private alias" in the token block's comment.
+   - `UIParts.css`:  a look token your owner varies is read as the alias only, `var(--_ui-x, <default>)`.
+     Add the owner's rule there, as `modal` does.
+   - Another family's sheet reading your token:  the alias, if it sits inside your box.
+     Else the dual read, `var(--_ui-x, var(--ui-x, <default>))` (step 4).
+   - Tests reading a value off the inner box (`getPropertyValue("--ui-x")`):  read `--_ui-x`.
+     Or better, assert the computed property it drives.
+   - TS setting a public token INLINE on its own root (`style={{ "--ui-x": ... }}`) blocks the page, exactly like a sheet.
+     - Set the private name.
+     - Check with `grep -rn -- '--ui-<tag>-' src/components/ui-<family>/*.ts*`.
+   - `PartOwnerTokens` (`components.types.ts`):  a look token (`modalHeaderSize`, `statisticValueSize`) names the alias.
+     - So does every switch an element sets inline:  `PusherTokens`, the anchor names.
+   - Examples and docs:  public names stay, since they're the API.
+     - Fix text that says "only through `::part()`" or "declared on the box".
+6. The sheet's header comment:
+   - add the "Public tokens ... are NEVER declared here" bullet (copy `UIButton.css`'s)
+   - say "private alias" in the token block's comment
 7. Add `EXCEPTIONS` entries if any, each with why.
-8. Tests, in `UI<Name>.test.tsx` (templates:  `UIButton.test.tsx` "tokens from outside", `UICard.test.tsx`):
-   - a public token set on the ELEMENT, on an ANCESTOR, through `::part(<root part>)` and on `:root`
-     (`document.documentElement.style`, removed with `onTestFinished`), each changing a COMPUTED property of the
-     inner box
+8. Tests, in `UI<Name>.test.tsx`.
+   - Templates:  `UIButton.test.tsx`'s "tokens from outside", and `UICard.test.tsx`.
+   - A public token set in four places, each changing a COMPUTED property of the inner box:
+     - on the ELEMENT
+     - on an ANCESTOR
+     - through `::part(<root part>)`
+     - on `:root`:  `document.documentElement.style`, removed with `onTestFinished`
    - a group family:  one set on the group reaches its members
    - an owner:  one owner look token set on the owner reaches a part
-   - variations:  one that swaps (wins over the base token) or derives (follows it)
+   - variations:  one that swaps (wins over the base token), or derives (follows it)
    - static markup (`UI<Name>.css.test.ts`):  one set on a wrapper of class-grammar markup
-9. Docs page (`ui/components/ui-<family>.html`, the shared pages;  Theming tab):  "set it on the element, any
-   ancestor, or `::part()`", as `ui-button.html`.  The `<ui-docs-tokens>` table reads the aliases on its own
-   (`yarn site:data`).
-10. Look unchanged:  compare computed styles of every example before and after (the reference conversions did, for
-    every property that paints);  run `yarn vitest run --project browser src/components/ui-<family> test/`.
+9. Docs page:  the family's page in the shared `ui/components/`, its Theming tab.
+   - Say "set it on the element, any ancestor, or `::part()`", as `ui-button.html` does.
+   - The `<ui-docs-tokens>` table reads the aliases on its own (`yarn site:data`).
+10. Look unchanged:  compare the computed styles of every example, before and after.
+    - The reference conversions did, for every property that paints.
+    - Run the family's tests:
+
+      ```sh
+      yarn vitest run --project browser src/components/ui-<family> test/
+      ```
 
 Pitfalls met on the way:
 
 - The group variation vs member re-declaration (step 3), and reads outside the declaring box (step 4).
-- `var()` in a custom property resolves where it's DECLARED:  an alias whose default reads another alias must sit
-  on the same box.  The token block is the natural place.
-- A style query on an own token (`@container style(--ui-x: v)`) becomes `style(--_ui-x: v)`:  the queried element
-  must be inside the declaring box.
-- `!important` inside a value can't be wrapped in `var()`:  the codemod notes it, fix by hand.
-- oxfmt reflows long aliases over three lines;  expected.
-- A family whose ROOT has no part name (`dropdown`:  its root `<div>` carries no `part`) can't be themed through
-  `::part(<root>)`:  its docs page says "on the element or any ancestor" only, and its tests skip the `::part()`
-  case.  A `::part()` of an inner piece (`::part(menu)`) sits inside the alias box, so the aliases already resolved
-  there:  it takes plain properties, not tokens.
-- A screen-size breakpoint changes a private DEFAULT, never the alias:  `UIModal.css` declares
-  `--_ui-modal-width: var(--ui-modal-width, var(--_modal-width))` once and its `@media` rules set `--_modal-width`
-  (the same for `search`'s result rows and `segment`'s scrolling height).  Writing the alias in a `@media` rule
-  would beat a page's `--ui-modal-width` on that screen.
-  - the exception is a token that IS one breakpoint's value:  `container`'s `scrolling` height has
-    `--ui-container-scrolling-height` (mobile) and `-tablet`, `-computer`, `-widescreen`, each with its own
-    private alias, which the matching `@media` rule copies into the working alias.  The docs table shows such a default through
-  `CssTokens`' `defaults` prop.
+- `var()` in a custom property resolves where it's DECLARED.
+  - So an alias whose default reads another alias must sit on the same box.
+  - The token block is the natural place.
+- A style query on an own token (`@container style(--ui-x: v)`) becomes `style(--_ui-x: v)`:
+  the queried element must be inside the declaring box.
+- `!important` inside a value can't be wrapped in `var()`:  the codemod notes it.  Fix it by hand.
+- oxfmt reflows long aliases over three lines:  expected.
+- A family whose ROOT has no part name can't be themed through `::part(<root>)`.
+  - `dropdown`:  its root `<div>` carries no `part`.
+  - Its docs page says "on the element or any ancestor" only, and its tests skip the `::part()` case.
+  - A `::part()` of an inner piece (`::part(menu)`) sits inside the alias box, so the aliases already resolved there:
+    it takes plain properties, not tokens.
+- A screen-size breakpoint changes a private DEFAULT, never the alias.
+  - `UIModal.css` declares `--_ui-modal-width: var(--ui-modal-width, var(--_modal-width))` once,
+    and its `@media` rules set `--_modal-width`.
+  - The same for `search`'s result rows, and `segment`'s scrolling height.
+  - Writing the alias in a `@media` rule would beat a page's `--ui-modal-width` on that screen.
+  - The exception is a token that IS one breakpoint's value:  `container`'s `scrolling` height.
+    - It has `--ui-container-scrolling-height` (mobile), and `-tablet`, `-computer`, `-widescreen`,
+      each with its own private alias.
+    - The matching `@media` rule copies it into the working alias.
+    - The docs table shows such a default through `CssTokens`' `defaults` prop.

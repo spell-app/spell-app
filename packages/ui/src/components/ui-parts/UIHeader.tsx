@@ -11,20 +11,24 @@ import { headerVocabulary } from "./UIHeader.en"
  *   - on a `<div>`;
  *   - on `<h1>` ... `<h6>` with `level` (a page header, sized by its level unless `size` is set);
  *   - on `<a>` with `href`.
- * - OWNED (in a card, a modal ... or another header, whose sub header it then is):  a bare `.header`, never `ui`,
- *   as Fomantic's `.ui.card > .content > .header`.
+ * - OWNED (in a card, a modal ... or another header, whose sub header it then is):
+ *   a bare `.header`, never `ui`, as Fomantic's `.ui.card > .content > .header`.
  * - `level` makes a real heading.  A linked heading is `<a role="heading" aria-level>`,
  *   since the link carries the class grammar.
  * - It is an OWNER too (`ownsParts:  header, content`):  a `<ui-header>` or `<ui-content>` inside it belongs to it.
  ****************/
 export class UIHeader extends E.PartComponent<typeof headerVocabulary> {
   @E.proto static vocabulary = headerVocabulary
+  @E.protoMerged static elementSetup = {
+    // `disabled`:  only a look
+    disabled: "its own"
+  } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {
     return (
       <Dynamic
         component={this.rootTag}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("header")}
         href={this.href}
         role={this.href && this.level ? "heading" : undefined}
@@ -43,8 +47,8 @@ export class UIHeader extends E.PartComponent<typeof headerVocabulary> {
   }
 
   /** Standalone:  the class grammar;  owned:  the bare noun. */
-  get rootClasses(): string {
-    return this.context.ownerNoun ? this.vocabulary.noun : super.rootClasses
+  get rootClass(): string {
+    return this.context.ownerNoun ? this.vocabulary.noun : super.rootClass
   }
 }
 

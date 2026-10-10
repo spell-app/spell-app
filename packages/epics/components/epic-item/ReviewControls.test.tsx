@@ -10,6 +10,7 @@ import "$/ui/components/ui-button"
 import "$/ui/components/ui-icon"
 import "$/ui/components/ui-section"
 import "$/epics/components/epic-item"
+import "$/epics/components/epic-choices"
 import "$/epics/components/epic-section"
 import "$/epics/components/epic-phase"
 import "$/epics/components/epic-summary"
@@ -140,8 +141,9 @@ describe("<epic-item> review controls", () => {
         (it) => (it as HTMLElement).dataset.action
       )
     ).toEqual(["approve", "revisit", "todo"])
+    // the wand, as the page header's Review Now (Owen, 2026-10-09:  the plane is a todo's "next phase" now)
     expect([button(host, "details").getAttribute("icon"), button(host, "details").dataset.color]).toEqual([
-      "paper plane",
+      "wand magic sparkles",
       "blue"
     ])
     expect(actions(host).map((action) => button(host, action).dataset.fill)).toEqual(["none", "none", "none", "none"])
@@ -149,6 +151,81 @@ describe("<epic-item> review controls", () => {
     await settle()
     expect(routes.inbox.marks.q1?.action).toBe("approve")
     expect([button(host, "approve").dataset.fill, button(host, "approve").dataset.color]).toEqual(["dashed", "green"])
+  })
+
+  test("a todo:  the plane (next phase), Revisit, the x (drop), one group;  no Approve, Make Todo or Do Now", async () => {
+    await adoptClient()
+    const host = await render(`<epic-item id="t4" title="A todo" status="open"><p>Text</p></epic-item>`)
+    expect(actions(host)).toEqual(["next", "revisit", "drop"])
+    expect(
+      Array.from(host.shadowRoot!.querySelectorAll<HTMLElement>("ui-buttons > ui-button"), (it) => it.dataset.action)
+    ).toEqual(["next", "revisit", "drop"])
+    expect(
+      actions(host).map((action) => [
+        button(host, action).getAttribute("icon"),
+        button(host, action).dataset.color,
+        button(host, action).title
+      ])
+    ).toEqual([
+      ["paper plane", "green", "Do it in the next phase"],
+      ["history", "blue", "Revisit:  I'm adding a note for you"],
+      ["xmark", "grey", "Drop it"]
+    ])
+    // the plane marks it, dashed green, and so does its chip;  again, cleared
+    button(host, "next").click()
+    await settle()
+    expect(routes.inbox.marks.t4?.action).toBe("next")
+    const chip = host.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!
+    expect([button(host, "next").dataset.fill, chip.dataset.color, chip.dataset.fill]).toEqual([
+      "dashed",
+      "green",
+      "dashed"
+    ])
+    // the x:  the latest mark wins, grey
+    button(host, "drop").click()
+    await settle()
+    expect(routes.inbox.marks.t4?.action).toBe("drop")
+    expect([button(host, "next").dataset.fill, button(host, "drop").dataset.fill, chip.dataset.color]).toEqual([
+      "none",
+      "dashed",
+      "grey"
+    ])
+    button(host, "drop").click()
+    await settle()
+    expect(routes.inbox.marks.t4).toBeUndefined()
+    // other kinds keep theirs
+    const call = await render(`<epic-item id="j4" title="A call" status="open"></epic-item>`)
+    expect(actions(call)).toEqual(["approve", "revisit", "todo", "details"])
+  })
+
+  test("a todo's note box:  the plane, Revisit Later, the x;  the plane takes the note along, as does the line's x", async () => {
+    await adoptClient()
+    const host = await render(`<epic-item id="t5" title="A todo" status="open" open><p>Text</p></epic-item>`)
+    const how = () =>
+      Array.from(host.shadowRoot!.querySelectorAll<HTMLElement>("[part~='note-box'] button"), (it) => [
+        it.dataset.how,
+        it.dataset.color
+      ])
+    expect(how()).toEqual([
+      ["next", "green"],
+      ["soon", "blue"],
+      ["drop", "grey"]
+    ])
+    const note = host.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~='details'] textarea")!
+    note.value = "after the merge"
+    note.dispatchEvent(new InputEvent("input", { bubbles: true }))
+    host.shadowRoot!.querySelector<HTMLButtonElement>('button[data-how="next"]')!.click()
+    await settle()
+    expect(routes.inbox.marks.t5).toMatchObject({ action: "next", note: "after the merge" })
+    expect(host.shadowRoot!.querySelector("[part~='said']")!.textContent).toContain("next phase · not sent yet")
+    // the line's x, with words in the box:  they go along
+    const other = await render(`<epic-item id="t6" title="Another" status="open" open><p>Text</p></epic-item>`)
+    const box = other.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~='details'] textarea")!
+    box.value = "moot since P3"
+    box.dispatchEvent(new InputEvent("input", { bubbles: true }))
+    button(other, "drop").click()
+    await settle()
+    expect(routes.inbox.marks.t6).toMatchObject({ action: "drop", note: "moot since P3" })
   })
 
   test("the fill:  a mark dashed until sent, then outlined;  Claude on it, its icon turns;  handled, they CLEAR", async () => {
@@ -261,6 +338,28 @@ describe("<epic-item> review controls", () => {
     expect(host.shadowRoot!.querySelector(".under-line textarea")).toBeNull()
   })
 
+  test("an item without details:  its box lines up where details start;  its chevron shows, and folds the box away", async () => {
+    await adoptClient()
+    const host =
+      await render(`<div style="width: 360px"><epic-item id="t7" title="A bare todo" status="open"></epic-item>
+      <epic-item id="t8" title="With text" status="open" open><p>Text</p></epic-item></div>`)
+    const [bare, full] = Array.from(host.querySelectorAll("epic-item"))
+    const toggle = () => bare!.shadowRoot!.querySelector<HTMLButtonElement>("[part~='toggle']")
+    expect(toggle()).toBeNull()
+    button(bare!, "revisit").click()
+    await settle()
+    const box = bare!.shadowRoot!.querySelector<HTMLElement>(".under-line [part~='note-box']")!
+    const docked = full!.shadowRoot!.querySelector<HTMLElement>("[part~='details'] [part~='note-box']")!
+    // the same left edge as an item's details:  under the id chip, not the item's edge
+    expect(Math.round(box.getBoundingClientRect().left)).toBe(Math.round(docked.getBoundingClientRect().left))
+    expect(box.getBoundingClientRect().left - bare!.getBoundingClientRect().left).toBeGreaterThan(20)
+    expect(toggle()?.getAttribute("aria-expanded")).toBe("true")
+    toggle()!.click()
+    await settle()
+    expect(bare!.shadowRoot!.querySelector(".under-line [part~='note-box']")).toBeNull()
+    expect(toggle()).toBeNull()
+  })
+
   test("a note box LAST in its details, saved as a draft when it loses focus;  still there once approved", async () => {
     await adoptClient()
     const host = await render(`<epic-item id="q1" title="A question" status="open" open><p>Text</p></epic-item>`)
@@ -302,6 +401,42 @@ describe("<epic-item> review controls", () => {
     ])
     // every button and the note box stay:  a new mark can follow
     expect(approved.shadowRoot!.querySelector("[part~='details'] textarea")).not.toBeNull()
+  })
+
+  test("answered, the work still due (Owen, 2026-10-10):  the chip OUTLINED -- green queued, blue Claude on it;  done, solid", async () => {
+    await adoptClient()
+    const queued = await render(
+      `<epic-item id="t4" title="Tidy" status="open" state="open" queued="2026-10-10" work="P9 · Build" review-as="next"></epic-item>`
+    )
+    const onIt = await render(`<epic-item id="j6" title="A call" status="open" state="progress"></epic-item>`)
+    const doneTodo = await render(
+      `<epic-item id="t5" title="Tidied" status="done" state="recent" queued="2026-10-10"></epic-item>`
+    )
+    await settle()
+    const look = (host: Element) => {
+      const chip = host.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!
+      return [chip.dataset.color, chip.dataset.fill, getComputedStyle(chip).backgroundColor === "rgba(0, 0, 0, 0)"]
+    }
+    expect([look(queued), look(onIt), look(doneTodo)]).toEqual([
+      ["green", "outline", true],
+      ["blue", "outline", true],
+      [undefined, undefined, false]
+    ])
+    // its tooltip still says where it stands and what's to do
+    expect(queued.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!.title).toMatch(/to do:  P9 · Build/)
+  })
+
+  test("a pick Claude took off the inbox, the doc's `chosen` not here yet:  the chip stays green, outlined", async () => {
+    routes.inbox.marks.j7 = { action: "pick", pick: "B", at: new Date(Date.now() - 60_000).toISOString() }
+    routes.inbox.sent = new Date().toISOString()
+    const client = await adoptClient()
+    const host = await render(`<epic-item id="j7" title="A call" status="open" state="attention"></epic-item>`)
+    await settle()
+    delete routes.inbox.marks.j7
+    await client.refresh()
+    await settle()
+    const chip = host.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!
+    expect([chip.dataset.color, chip.dataset.fill]).toEqual(["green", "outline"])
   })
 
   test("a marked note shows ABOVE the note box, last in the details;  Claude's status cards between them (P13)", async () => {
@@ -350,6 +485,74 @@ describe("<epic-item> review controls", () => {
     const question = await render(`<epic-item id="q4" title="Which?" status="open"></epic-item>`)
     const reviewed = await render(`<epic-item id="j7" title="Seen" status="open" reviewed="2026-10-07"></epic-item>`)
     for (const host of [question, reviewed]) expect(host.shadowRoot!.querySelector("[part~='id']")!.localName).toBe("a")
+  })
+
+  test("an action CHOSEN folds the item (Owen, 2026-10-10):  Approve, Do Now, the x, a note box button, a pick", async () => {
+    await adoptClient()
+    const item = (html: string) => render(`<epic-item status="open" open ${html}><p>Text</p></epic-item>`)
+    const approved = await item(`id="q1" title="A question"`)
+    button(approved, "approve").click()
+    const asked = await item(`id="j2" title="A call"`)
+    button(asked, "details").click()
+    const dropped = await item(`id="t1" title="A todo"`)
+    button(dropped, "drop").click()
+    const noted = await item(`id="j3" title="Another call"`)
+    noted.shadowRoot!.querySelector<HTMLButtonElement>('[part~="note-box"] button[data-how="todo"]')!.click()
+    await settle()
+    expect([approved.open, asked.open, dropped.open, noted.open]).toEqual([false, false, false, false])
+    // a pick on its option cards (`<epic-option>`'s Choose pill)
+    const question = await render(`<epic-item id="q2" title="Which?" status="open" open><epic-choices>
+      <epic-option letter="A" title="One"><ul><li>short</li></ul></epic-option>
+      <epic-option letter="B" title="Two"><ul><li>free</li></ul></epic-option></epic-choices></epic-item>`)
+    const option = question.querySelector("epic-option")!
+    option.shadowRoot!.querySelector<HTMLButtonElement>("[part~='choose']")!.click()
+    await settle()
+    expect([routes.inbox.marks.q2?.pick, question.open]).toEqual(["A", false])
+  })
+
+  test("NOT folded by Revisit (the box opens), typing, a mark cleared, or a request called off", async () => {
+    await adoptClient()
+    const host = await render(`<epic-item id="q1" title="A question" status="open" open><p>Text</p></epic-item>`)
+    button(host, "revisit").click()
+    const note = host.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~='details'] textarea")!
+    note.value = "half a thought"
+    note.dispatchEvent(new InputEvent("input", { bubbles: true }))
+    await settle()
+    expect(host.open).toBe(true)
+    // a mark pressed again clears it:  nothing chosen, it stays open
+    button(host, "todo").click()
+    await settle()
+    host.open = true
+    await ElementFixture.tick()
+    button(host, "todo").click()
+    await settle()
+    expect([routes.inbox.marks.q1, host.open]).toEqual([undefined, true])
+    // Do Now pressed again while it runs:  called off
+    button(host, "details").click()
+    await settle()
+    host.open = true
+    await ElementFixture.tick()
+    button(host, "details").click()
+    await settle()
+    expect(host.open).toBe(true)
+  })
+
+  test("folding keeps its STUCK line where it is on screen;  the details fold away below it", async () => {
+    await adoptClient()
+    const host = await render(`<div><epic-item id="j4" title="A long call" status="open" open>
+      <p style="height: 3000px">Long text</p></epic-item><div style="height: 4000px"></div></div>`)
+    const item = host.querySelector("epic-item")!
+    const line = () => item.shadowRoot!.querySelector<HTMLElement>("[part~='line']")!
+    window.scrollTo({ top: item.getBoundingClientRect().top + window.scrollY + 1500, behavior: "instant" })
+    await ElementFixture.tick()
+    const stuckAt = line().getBoundingClientRect().top
+    // stuck:  the item's top is far above the window
+    expect(item.getBoundingClientRect().top).toBeLessThan(stuckAt - 1000)
+    button(item, "approve").click()
+    await settle()
+    expect((item as Element & { open: boolean }).open).toBe(false)
+    expect(Math.abs(line().getBoundingClientRect().top - stuckAt)).toBeLessThan(2)
+    window.scrollTo({ top: 0, behavior: "instant" })
   })
 })
 

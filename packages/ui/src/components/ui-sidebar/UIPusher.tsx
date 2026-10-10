@@ -10,14 +10,17 @@ import sidebarCSS from "./UISidebar.css?inline"
  * The component behind `<ui-pusher>`:
  * the page content beside a sidebar (Fomantic's `.pusher`), `<div class="pusher" part="pusher"><slot>`.
  *
- * - Passive:  `UISidebar.css` moves and dims it from the tokens its `<ui-pushable>` sets (`UIT.PusherTokens`),
+ * - Passive:
+ *   `UISidebar.css` moves and dims it from the tokens its `<ui-pushable>` sets (`UIT.PusherTokens`),
  *   and the pushable makes the DOM element `inert` beside a modal sidebar.
  * - Its `::after` is the dimmer.
  ****************/
 export class UIPusher extends E.UIComponent<typeof pusherVocabulary> {
   @E.proto static vocabulary = pusherVocabulary
-  @E.proto static styleSheets = { sidebar: sidebarCSS }
-  @E.proto static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup = {
+    styleSheets: { sidebar: sidebarCSS },
+    delegatesFocus: false
+  } satisfies Partial<E.ElementSetup>
 
   /** Always:  `:state(pusher)`. */
   @E.cssState("pusher")

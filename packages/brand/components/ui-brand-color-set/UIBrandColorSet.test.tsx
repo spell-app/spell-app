@@ -56,7 +56,7 @@ describe("<ui-brand-color-set> layout", () => {
   it("lays chips out in one row, each at its own size, shrinking alike when narrow", async () => {
     const { host, chips } = await render(`<ui-brand-color-set>${PRESETS}</ui-brand-color-set>`)
     const box = host.shadowRoot!.querySelector("[part~=set]")!
-    expect([...box.classList]).toEqual(["set", "color", "brand"])
+    expect([...box.classList]).toEqual(["color", "brand", "set"])
     const tops = chips.map((chip) => chip.getBoundingClientRect().top)
     expect(new Set(tops).size).toBe(1)
     expect(chipOf(chips[0]!).getBoundingClientRect().width).toBe(48)

@@ -1,14 +1,15 @@
 /*
  * The style sheet of `<ui-items>` (the Items VIEW) and the `<ui-item>`s inside it:
  * a port of Fomantic's `item.less` + `item.variables`.
- * - ONE sheet for the group AND its items:  the group adopts it after the foundation;  every item it owns adopts it
- *   after `UIItem.css` (`UIItem.styleSheetNames` reads the owner's `styleSheets`).
+ * - ONE sheet for the group AND its items:  the group adopts it after the foundation;
+ *   every item it owns adopts it after `UIItem.css`
+ *   (`UIItem.styleSheetNames` reads the owner's `elementSetup.styleSheets`).
  * - Shadow markup contract (class grammar on semantic elements):
- *   - `<ui-items>`:  `<div class="ui [size] [keyOnly ...] [relaxed] items" part="items" role="list"><slot></slot>
- *     </div>`
- *   - its `<ui-item>`s (`UIItem.css`):  `<div | a class="[keyOnly ...] item" part="item">` holding the `image`
- *     shorthand's `<img class="image" part="image" alt="">`, then the default `<slot>`;  the item's DOM element is
- *     `role=listitem` and carries `:state(in-items)`
+ *   - `<ui-items>`:
+ *     `<div class="ui [size] [keyOnly ...] [relaxed] items" part="items" role="list"><slot></slot></div>`
+ *   - its `<ui-item>`s (`UIItem.css`):  `<div | a class="[keyOnly ...] item" part="item">`
+ *     holding the `image` shorthand's `<img class="image" part="image" alt="">`, then the default `<slot>`;
+ *     the item's DOM element is `role=listitem` and carries `:state(in-items)`
  * - Every ITEM rule has two selectors sharing one body, like `UIList.css`:
  *
  *       :host(:state(in-items)) > .item,     <- the element:  the item's own shadow root
@@ -16,18 +17,23 @@
  *
  *   The DOM element's position replaces Fomantic's `:first-child` / `:last-child`:
  *   `:host(:state(in-items):first-child)`.
- * - The item OWNS its content parts here (`ItemContext.ownsParts`):  `<ui-content>`, `<ui-header>`, `<ui-meta>`,
- *   `<ui-description>`, `<ui-extra>` inside get `:state(in-item)`, and `UIParts.css` styles them.
- *   The item root declares the owner tokens they read:  `--_ui-item-layout` (`row`, `stacked` in a narrow group),
- *   `--_ui-item-state` (`normal`, `hover` on a link item) and `--_ui-item-content-distance` (from
- *   `--ui-items-content-distance`, narrower in a tablet-wide group);  `UIItem.css` adds `--_ui-item-media` (the content
- *   beside the `image` shorthand).  All private:  the group decides them;  theme with `--ui-items-*`.
+ * - The item OWNS its content parts here (`ItemContext.ownsParts`):
+ *   `<ui-content>`, `<ui-header>`, `<ui-meta>`, `<ui-description>`, `<ui-extra>` inside get `:state(in-item)`,
+ *   and `UIParts.css` styles them.
+ *   - The item root declares the owner tokens they read:
+ *     - `--_ui-item-layout` (`row`, `stacked` in a narrow group)
+ *     - `--_ui-item-state` (`normal`, `hover` on a link item)
+ *     - `--_ui-item-content-distance` (from `--ui-items-content-distance`, narrower in a tablet-wide group)
+ *   - `UIItem.css` adds `--_ui-item-media` (the content beside the `image` shorthand).
+ *   - All private:  the group decides them;  theme with `--ui-items-*`.
  * - Images:  the `image` shorthand, a slotted `<img>` (both Fomantic's `.image:not(.ui)`, 175px wide),
  *   or a `<ui-image size="tiny">` (a `ui image`, sized by itself).
- * - Public tokens (`--ui-items-*`, the theming surface) are NEVER declared here:  the group root reads each through
- *   a private alias, `--_ui-items-margin: var(--ui-items-margin, 1.5em)`, and every rule reads the alias.
- *   So a value set on `:root`, an ancestor, the DOM element, `::part(items)` or in the app stylesheet reaches the group
- *   and its items (`docs/theming.md` "Component tokens");  set it on the group or above, not on one item.
+ * - Public tokens (`--ui-items-*`, the theming surface) are NEVER declared here:
+ *   the group root reads each through a private alias, `--_ui-items-margin: var(--ui-items-margin, 1.5em)`,
+ *   and every rule reads the alias.
+ *   - So a value set on `:root`, an ancestor, the DOM element, `::part(items)` or in the app stylesheet
+ *     reaches the group and its items (`docs/theming.md` "Component tokens").
+ *   - Set it on the group or above, not on one item.
  * - Group variations reach the items as INHERITED private tokens (`--_items-*`, set on the group root,
  *   read from the aliases);  NEVER set them from outside, theme with `--ui-items-*`.
  * - Responsive:  the group's DOM element is a block and the size container `ui-items`;
@@ -59,8 +65,9 @@
     display: block;
     container: ui-items / inline-size;
     /*
-     * The group's outer margin sits on the DOM ELEMENT:  a size container is its own formatting context, so a margin on
-     * the root inside it never collapses with the heading above, as static markup's does.
+     * The group's outer margin sits on the DOM ELEMENT:
+     * a size container is its own formatting context,
+     * so a margin on the root inside it never collapses with the heading above, as static markup's does.
      */
     margin-block: var(--_ui-items-margin);
   }
@@ -311,8 +318,9 @@
 
   /*
    * Responsive, by the GROUP's width (`ui-items` container):  tablet 768..991px, mobile < 768px.
-   * - Tablet:  a narrower image and content distance.  Mobile:  items stack (image above content, the image as wide
-   *   as it can be up to 250px tall) unless `unstackable`, which keeps a 125px image beside the content.
+   * - Tablet:  a narrower image and content distance.
+   * - Mobile:  items stack (image above content, the image as wide as it can be up to 250px tall)
+   *   unless `unstackable`, which keeps a 125px image beside the content.
    */
   @container (768px <= width < 992px) {
     @container not style(--ui-stack-with: page) {
@@ -397,8 +405,8 @@
       --_ui-item-layout: stacked;
       flex-direction: column;
     }
-    /* A slotted `<ui-image size="tiny">` takes its natural width too (Fomantic's `width: auto !important`), no
-       taller than a stacked image (its `max-height: 250px !important`) and centred (its `margin: auto`). */
+    /* A slotted `<ui-image size="tiny">` takes its natural width too (Fomantic's `width: auto !important`),
+       no taller than a stacked image (its `max-height: 250px !important`) and centred (its `margin: auto`). */
     :host(:state(in-items)) > .item {
       --_ui-image-owner-width: auto;
       --_ui-image-owner-max-height: var(--_ui-items-mobile-image-height);

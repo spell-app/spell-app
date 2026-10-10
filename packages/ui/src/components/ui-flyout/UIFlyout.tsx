@@ -15,18 +15,18 @@ import flyoutCSS from "./UIFlyout.css?inline"
  *   `open`, `closedby`, the `closable` icon, approve / deny, `--show` / `--close` invoker commands,
  *   `ui-open` / `ui-close` / `ui-show` / `ui-hide`, its name (`aria-label`, `header` or a slotted `<ui-header>`),
  *   `UI.overlays` (kind `flyout`:  scroll lock, keyboard scope, focus restore).
- *   This class adds its names, its looks and the word widths (`thin`, `very wide`, as `<ui-sidebar>` has).
+ * - This class adds its names, its looks and the word widths (`thin`, `very wide`, as `<ui-sidebar>` has).
  * - A flyout is always page-level (the top layer);  it never pushes content:
  *   that's `<ui-sidebar>` in a `<ui-pushable>`.
  ****************/
 export class UIFlyout extends DialogComponent<Vocabulary> {
   @E.proto static vocabulary = flyoutVocabulary
-  @E.proto static styleSheets = { flyout: flyoutCSS }
+  @E.protoMerged static elementSetup = { styleSheets: { flyout: flyoutCSS } } satisfies Partial<E.ElementSetup>
   @E.proto static rootPart = "flyout"
   @E.proto static overlayKind = "flyout" as const
 
-  /** A word width (`thin`) goes after the noun (`UIT.WordWidthClasses`). */
-  protected get extraClasses(): string | undefined {
+  /** A word width (`thin`) goes before the noun (`UIT.WordWidthClasses`). */
+  protected get extraClass(): string | undefined {
     return UIT.WordWidthClasses.classFor(this.width)
   }
 

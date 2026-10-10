@@ -220,7 +220,7 @@ describe("<ui-form> layout", () => {
         `<ui-form stack-with="container"><form>${row}</form></ui-form></div></div>`
     )
     const forms = [...wrapper.querySelectorAll("ui-form")]
-    expect(forms[0]!.shadowRoot!.querySelector("[part~=form]")!.className).toBe("ui form stack-with-page")
+    expect(forms[0]!.shadowRoot!.querySelector("[part~=form]")!.className).toBe("ui stack-with-page form")
     await Viewport.resize(1200)
     await expect.poll(() => forms.map((host) => stacked(host))).toEqual([false, false, true])
     await Viewport.resize(500)

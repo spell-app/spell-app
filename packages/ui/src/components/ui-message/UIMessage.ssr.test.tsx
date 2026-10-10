@@ -23,7 +23,7 @@ describe("<ui-message> static render", () => {
 
   it("renders an icon box and a named close button", () => {
     const html = StaticRender.fragment(`<ui-message icon="envelope" dismissible>Hi</ui-message>`)
-    expect(html).toMatch(/^<div [^>]*class="ui message icon"/)
+    expect(html).toMatch(/^<div [^>]*class="ui icon message"/)
     expect(html).toContain(`<span class="icon" part="icon">`)
     expect(html).toMatch(/<button [^>]*aria-label="Dismiss"/)
     expect(html).toMatch(/<button [^>]*type="button"/)

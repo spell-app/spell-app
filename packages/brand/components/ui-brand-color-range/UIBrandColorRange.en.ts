@@ -2,7 +2,7 @@
  * Every name `<ui-brand-color-range>` uses:  tag, attributes, events, parts, texts.  Schema:  `ComponentVocabulary`.
  * - Pure data:  `import type` only;  the steps are written out (`STEPS` in `$/brand` is a value).
  * - Class words:  `contrast`, `details`, `strip` their names;  `copy` as `<ui-brand-color>`'s.
- *   The component adds `color brand` after the noun (`range color brand`).
+ *   The component adds `color brand` before the noun (`color brand range`).
  */
 
 import type { ComponentVocabulary } from "$/ui/core"

@@ -1,4 +1,4 @@
-import { Show, onSettled } from "solid-js"
+import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -14,17 +14,20 @@ import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
 
 /****************
  * ### `EpicUpdate`
- * The component behind `<epic-update>`:  an UPDATE marker, while a phase is active (`phase <N> done` removes its
- * phase's):
+ * The component behind `<epic-update>`:
+ * an UPDATE marker, while a phase is active (`phase <N> done` removes its phase's):
  * - empty:  an orange `UPDATE` label, inline (on a new or changed item's line, in prose)
  * - with children:  a NOTE -- a warning-tinted box headed by the fold chevron and the label, its children inside --
- *   just before the prose it's about (`:state(note)`).  It folds by its heading (Owen, 2026-10-08:  everything in a
- *   section box folds):  open to start with;  page state;  folded, `hidden="until-found"`
+ *   just before the prose it's about (`:state(note)`).
+ *   It folds by its heading (Owen, 2026-10-08:  everything in a section box folds):
+ *   open to start with;  page state;  folded, `hidden="until-found"`
  * - Its tooltip names the phase:  `Changed during P3`.
  ****************/
 export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
   @E.proto static vocabulary = epicUpdateVocabulary
-  @E.proto static styleSheets = { "epic-fold-button": foldCSS, "epic-update": updateCSS }
+  @E.protoMerged static elementSetup = {
+    styleSheets: { "epic-fold-button": foldCSS, "epic-update": updateCSS }
+  } satisfies Partial<E.ElementSetup>
 
   /** A note's open or folded state:  open to start with. */
   readonly fold = new Fold(() => true)
@@ -35,28 +38,16 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
     return this.isNote && this.fold.isOpen()
   }
 
-  /** Has it children:  a note, not a bare label? */
+  /** Has it children:  a note, not a bare label?  Follows its children;  never on a server. */
   @E.cssState("note")
-  @E.state
-  accessor isNote = false
-
-  /** Follow its children:  a note while it has any. */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      onSettled(() => {
-        const update = () => (this.isNote = EpicUpdate.hasContent(this.domElement))
-        const observer = new MutationObserver(update)
-        observer.observe(this.domElement, { childList: true, characterData: true, subtree: true })
-        update()
-        return () => observer.disconnect()
-      })
-    }
-    return super.onMount()
+  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  get isNote(): boolean {
+    return !isServer && EpicUpdate.hasContent(this.domElement)
   }
 
   render(): JSX.Element {
     return (
-      <span class={this.rootClasses} part={this.partForName("base")}>
+      <span class={this.rootClass} part={this.partForName("base")}>
         <span ref={this.fold.heading} class={[HEAD, { [FOLDS]: this.isNote }]}>
           <Show when={this.isNote}>
             <FoldButton fold={this.fold} controls={BODY_ID} labelledBy={LABEL_ID} part={this.partForName("toggle")} />

@@ -7,9 +7,9 @@ import { dirname, join, normalize, relative, resolve } from "node:path"
  * ### `DeclarationCheck`
  * Checks the built declarations (`dist/**.d.ts`, `vite.config.ts` `declarations()`) are what a consumer needs.
  * - Every `types` path in `package.json` `exports` (and the top-level `types`) exists.
- * - Every import / export STATEMENT is a bare package name, or a relative path that resolves INSIDE `dist/`:  no
- *   `$/util`, `$/ui` ... (build-time aliases a consumer can't resolve), and nothing escaping `dist/` (`util` is
- *   not published on its own, so its declarations ship in `dist/_util/`).  Doc comments may mention aliases.
+ * - Every import / export STATEMENT is a bare package name, or a relative path that resolves INSIDE `dist/`:
+ *   no `$/util`, `$/ui` ... (build-time aliases a consumer can't resolve), and nothing escaping `dist/` (`util` is not
+ *   published on its own, so its declarations ship in `dist/_util/`).  Doc comments may mention aliases.
  * - `problems()` is empty when it's fine;  `yarn smoke` runs it after `vite build` and fails otherwise.
  * - Node only, node built-ins only.
  ****************/
@@ -50,7 +50,8 @@ export class DeclarationCheck {
   private badSpecifiers(): string[] {
     const problems: string[] = []
     for (const file of DeclarationCheck.declarationFiles(this.dist)) {
-      const code = readFileSync(file, "utf8")
+      // block comments dropped first:  a docstring's example (`import("./Engine")`) is no statement
+      const code = readFileSync(file, "utf8").replace(/\/\*[\s\S]*?\*\//g, "")
       for (const [, specifier] of code.matchAll(/(?:from |import\(|^import )["']([^"']+)["']/gm)) {
         if (!specifier.startsWith(".")) {
           if (specifier.startsWith("#") || specifier.startsWith("$")) {

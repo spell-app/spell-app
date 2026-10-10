@@ -9,20 +9,22 @@ import visibilityCSS from "./UIVisibility.css?inline"
  * ### `UIVisibility`
  * The component behind `<ui-visibility>`:  a block around content that reports where it is against the screen,
  * `<div class="ui visibility" part="visibility">` around the slot.
- * Fomantic's visibility callbacks become `ui-*` events (`ui-visible`, `ui-hidden`, `ui-top-passed` …),
- * through `UI.observeVisibility()`:  an `IntersectionObserver`, no scroll listener.
+ *
+ * - Fomantic's visibility callbacks become `ui-*` events (`ui-visible`, `ui-hidden`, `ui-top-passed` …),
+ *   through `UI.observeVisibility()`:  an `IntersectionObserver`, no scroll listener.
  *
  * - It watches while connected;
  *   again whenever `once`, `continuous`, `offset` or the image settings change (which re-arms `once`).
  * - `:state(visible)`:  on screen as of the last check.
- * - `type="image"`:  each `<img data-src>` inside (found now and as the content changes) goes through
- *   `UI.visibility.lazyImage()`:  its source is set once it's on screen, then it fades in and `ui-load` fires.
+ * - `type="image"`:  each `<img data-src>` inside (found now and as the content changes)
+ *   goes through `UI.visibility.lazyImage()`:
+ *   its source is set once it's on screen, then it fades in and `ui-load` fires.
  * - Measured against the viewport (Fomantic's default `context`).
  ****************/
 export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
   @E.proto static vocabulary = visibilityVocabulary
-  @E.proto static styleSheets = { visibility: visibilityCSS }
-  @E.proto static elementSetup = {
+  @E.protoMerged static elementSetup = {
+    styleSheets: { visibility: visibilityCSS },
     // a wrapper:  a click on its text must not jump to a link inside
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -32,22 +34,23 @@ export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
   @E.state
   accessor isOnScreen = false
 
-  /** `image` after the noun for a lazy-image wrapper (`ui visibility image`), a hook for page CSS. */
-  protected get extraClasses(): string | undefined {
+  /** `image` before the noun for a lazy-image wrapper (`ui image visibility`), a hook for page CSS. */
+  protected get extraClass(): string | undefined {
     return this.type === UIT.IMAGE ? UIT.IMAGE : undefined
   }
 
   render(): JSX.Element {
     if (isServer && this.type === UIT.IMAGE) this.serverImages()
     return (
-      <div class={this.rootClasses} part={this.partForName("visibility")}>
+      <div class={this.rootClass} part={this.partForName("visibility")}>
         <slot />
       </div>
     )
   }
 
   /**
-   * Watch while connected, once rendered (`isReady`, as when the render started it);  anew when the settings change.
+   * Watch while connected, once rendered (`isReady`, as when the render started it);
+   * anew when the settings change.
    * - Returns the undo, run before the next watch.
    */
   @E.onChange("isReady", "isConnected", "once", "continuous", "offset", "type", "transition", "duration")
@@ -128,7 +131,8 @@ export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
 
   /**
    * Static server render (`$/ui/static`):  nothing will observe, so each `<img data-src>` gets its source now,
-   * with `loading="lazy"` (unless it says otherwise):  crawlers and no-JS readers see the image, the browser defers it.
+   * with `loading="lazy"` (unless it says otherwise).
+   * - Crawlers and no-JS readers see the image;  the browser defers it.
    * - SIDE EFFECT:  writes the DOM element's light-DOM images, which the flattener then moves into the root.
    */
   private serverImages() {

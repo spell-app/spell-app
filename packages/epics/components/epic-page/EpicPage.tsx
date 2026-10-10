@@ -1,33 +1,43 @@
-import { Show, createEffect, createMemo, onSettled, untrack } from "solid-js"
+import { For, Show, createMemo, onSettled, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
+// Import directly:  the `$/server/site` barrel is the site header's;  this file has no imports, so the pack bundles it
+import { URGENT_SELECTOR, epicStateFor, type EpicState } from "$/server/site/EpicState"
 
 import { PlanDates } from "$/epics/dates"
 import { AgentsClient, NOBODY_LISTENING, isAirplane, isImmediate } from "$/epics/review"
-
-/** What takes Owen's marks after a flight (epic `airplane`):  the review line's command in airplane mode. */
-const AIRPLANE_LAND = "/airplane land"
 // the page's view of the review inbox, as an item's:  its file, not `epic-item`'s barrel (which would define it here)
 import { ReviewState } from "$/epics/components/epic-item/ReviewState"
 import { NewItemButton, NewItemForm } from "$/epics/components/epic-item/NewItems"
 import type { NewTextKey } from "$/epics/components/epic-item/EpicItem.types"
+// the fold and filter pieces the blocks share:  their files, not their families' barrels (which would define them here)
+import { CollapseAllButton } from "$/epics/components/epic-item/CollapseAllButton"
+import { foldAllUnder } from "$/epics/components/epic-item/Fold"
+import { StateFilter } from "$/epics/components/epic-section/StateFilter"
+import {
+  CHIP,
+  CHIP_CLICK_KEYS,
+  FILTER,
+  FILTER_STATES,
+  type StateFilterEntry
+} from "$/epics/components/epic-section/EpicSection.types"
 
 import { epicPageVocabulary } from "./EpicPage.en"
 import { AgentsPanel } from "./AgentsPanel"
 import {
-  ACTIONS,
   ACTIVE,
+  BAR,
   COMMITS_KEY,
   COMMITS_PROPERTY,
   CRUMB_LINKS,
   CRUMBS,
   DONE,
   FLASH_MS,
-  FOLLOW_UPS,
   GIT,
   HAS_COMMITS,
   HEAD,
+  HEAD_PROPERTY,
   HEADING,
   HEADING_COPY,
   HUNG,
@@ -36,17 +46,18 @@ import {
   META,
   NOTICE,
   OLD_CRUMBS,
-  OPEN_ITEMS,
+  PILL,
   PROMPT,
   REVIEW_LINE,
   REVIEW_NOW,
   SEND,
-  SLEEPING,
+  SEND_BAR,
   STACK_PROPERTY,
   STATUS,
   SUBHEAD,
-  TITLES,
   TODO,
+  TOOLBAR,
+  TOOLBAR_TOOLS,
   type EpicPageVocabulary,
   type HeaderMarks,
   type PageSignals,
@@ -55,7 +66,9 @@ import {
   type StepLabel
 } from "./EpicPage.types"
 
+import collapseAllCSS from "$/epics/components/epic-item/CollapseAllButton.css?inline"
 import reviewCSS from "$/epics/components/epic-item/ReviewControls.css?inline"
+import chipsCSS from "$/epics/components/epic-section/StateChips.css?inline"
 import pageCSS from "./EpicPage.css?inline"
 import crumbsCSS from "./Crumbs.css?inline"
 import agentsCSS from "./AgentsPanel.css?inline"
@@ -66,28 +79,37 @@ import agentsCSS from "./AgentsPanel.css?inline"
  * one epic's page, its data in attributes, its Overview and sections as children.
  * - Draws, top to bottom:
  *   - the crumbs (`Docs › Epics › <title>`, P14:
- *     none while the doc still holds its old `.spell-crumbs` before the page)
- *   - the sticky page header:  the h1 `/epic <name>`, copied on click, over the epic's title;
- *     at its right Send and Review Now while it's reviewed, the git toggle, the sleeping mark,
- *     the bedtime label and the step label
+ *     none while the doc still holds its old `.spell-crumbs` before the page;  none narrow, 720px or less, where the
+ *     side bar is too narrow for them:  `Crumbs.css`)
+ *   - the sticky page header:  the h1 `/epic <name>`, copied on click;
+ *     at its right the bedtime label, the step label (the state's icon in it) and the git toggle (Owen,
+ *     2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle is) (git icon, but bigger)";  then the
+ *     state went into the step label:  "Into the pill")
+ *   - the epic's title, NOT sticky:  it scrolls away under the header (Owen, 2026-10-10:  "Page sub header ("Output
+ *     Targets") should not be sticky")
+ *   - the toolbar's bar, sticky again, right below the header (`--epic-head-h`):  the new item form, the toolbar
  *   - the review line, the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`)
  *   - a future epic's notice, then its children
+ *   - the send bar, stuck to the window's bottom while anything waits to be sent
  * - The step label follows the phases, in the colours of decision Q20:
  *   - the active one (outlined blue:  Claude is on it;  links to it)
  *   - else DONE (solid green) once every phase is done;  else the next one (grey)
  *   - none without phases;  FUTURE (grey:  not started) for a future epic
  *   - read from the `<epic-phase>`s below, so it follows the live update:  a `MutationObserver` bumps `layout`
- * - The sleeping mark (😴, Owen 2026-10-07:  "so I can see what I need to follow up on"):
- *   phases, none under way, but open follow-ups (`FOLLOW_UPS`:  questions, calls, issues, todos, tests)
- *   - what's open in its tooltip
- *   - not on a future epic, nor one still planning
- *   - from the items below, so it follows the live update too
+ * - The epic's state (Owen, 2026-10-10, epic `airplane` P8), by the ONE rule the Epics list uses too
+ *   (`$/server/site/EpicState`):  the step label's icon and colour, why under its tooltip (`part="state"`)
+ *   - in progress (blue half circle), errors (red !:  every phase done, items need Owen), paused (grey pause:
+ *     untouched for days)
+ *   - none on a future epic or a done one:  the label is FUTURE or DONE in its own look
+ *   - from the phases and items below and the doc's `updated` date, so it follows the live update too;
+ *     a session listening to the review counts as running
  * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it flashes)
- *   - on every plan doc, as today:  it's how a review starts
- *   - while the page is reviewed with no session listening, it says so first, in solid orange (a warning)
- * - REVIEW (P10), only while the page is reviewed
- *   (served with a token, its inbox answering:  `ReviewClient`, through a `ReviewState` of its own),
- *   blue and wearing the fill rule (Q20):
+ *   - on every plan doc, as today:  it's how a review starts;  airplane mode:  `/airplane land`
+ * - THE SEND BAR (P10;  at the window's bottom since epic `airplane` P8, Owen 2026-10-10), only while the page is
+ *   reviewed (served with a token, its inbox answering:  `ReviewClient`, through a `ReviewState` of its own)
+ *   and something waits to be sent or asked now;  blue and wearing the fill rule (Q20):
+ *   - first, a pill when nobody can take the marks:  no session listening (solid orange, a warning), or airplane
+ *     mode;  a click copies the review line's command
  *   - Send (paper plane):
  *     a grey outline with nothing to send, dashed blue with marks not sent, outlined blue once sent
  *   - Review Now (wand):  every mark sent and each revisit asked now;
@@ -95,8 +117,15 @@ import agentsCSS from "./AgentsPanel.css?inline"
  *   - nobody listening:  their tooltips say so (`NOBODY_LISTENING`)
  *   - what a click did goes to the notice line at the window's bottom (`ReviewState`'s)
  * - NEW TODO OR QUESTION (epic `airplane` P2;  `NewItems.tsx`), while reviewed:
- *   a round `+` before Send opens the form on a row of its own in the sticky header;
+ *   the toolbar's comment-dots button opens the form on a row of its own in the toolbar's sticky bar;
  *   what's asked for waits in the inbox, drawn at the end of its section (Todos, Questions) until Claude makes it.
+ * - THE TOOLBAR (epic `airplane` P8):  the sticky bar's last row, edge to edge, its own rule under it and none
+ *   above (Owen, 2026-10-10);  the header's and the bar's measured heights (`top`, `--epic-stack`) take it in:
+ *   - `slot="toolbar"`, where the docs runtime puts a plan doc's section buttons (`spell-doc-runtime.js`
+ *     `buildToolbar()`)
+ *   - at its right, the PAGE'S STATE FILTER:  every section's chips added up, a click filtering every section
+ *     at once (`StateFilter`, through each section's DOM element);  collapse-all, folding the whole page;
+ *     then, while reviewed, the new item button
  * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<AgentsPanel>`),
  *   only while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs
  *   - each row a note box that redirects that agent
@@ -104,7 +133,8 @@ import agentsCSS from "./AgentsPanel.css?inline"
  * - The git toggle (only when the doc lists commits) shows or hides every `<epic-commit>` below,
  *   through `--epic-commits-display`;  remembered per page (`localStorage`), as today's.
  * - The page-wide signals its blocks read (`signalsOf()`):  `layout`, and `top`, where top-level titles stick
- *   (the site header's `--spell-site-header-height` plus this header's height, re-measured as either changes size).
+ *   (the site header's `--spell-site-header-height` plus this header's and the toolbar bar's heights, re-measured as
+ *   any of them changes size).
  * - EDGE TO EDGE (P14):  its `:host` breaks out of the docs' `<main>` padding
  *   (`--spell-doc-pad-inline`, `spell-doc.css`), so the bands reach across;
  *   everything inside insets itself by `--epic-inset`.
@@ -113,14 +143,19 @@ import agentsCSS from "./AgentsPanel.css?inline"
  * - SIDE EFFECT:  observes its subtree and the site header while connected;
  *   follows the page's review and agents clients.
  ****************/
+@E.cssStates("future")
 export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.proto static vocabulary = epicPageVocabulary
-  @E.proto static styleSheets = {
-    "epic-page": pageCSS,
-    "epic-crumbs": crumbsCSS,
-    "epic-agents": agentsCSS,
-    "epic-review": reviewCSS
-  }
+  @E.protoMerged static elementSetup = {
+    styleSheets: {
+      "epic-page": pageCSS,
+      "epic-crumbs": crumbsCSS,
+      "epic-agents": agentsCSS,
+      "epic-review": reviewCSS,
+      "epic-collapse-all": collapseAllCSS,
+      "epic-state-chips": chipsCSS
+    }
+  } satisfies Partial<E.ElementSetup>
 
   /** Its tag:  what its blocks look for around them. */
   static readonly TAG = epicPageVocabulary.tag
@@ -158,8 +193,14 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   /** The heading, just copied:  it says so. */
   @E.state accessor isHeadingCopied = false
 
-  /** The header's new item form is open (its `+` clicked;  epic `airplane` P2). */
+  /** Bumped when a section's filter changes (`ui-filter`) or the sections first draw:  the toolbar's chips follow. */
+  @E.state accessor filterTick = 0
+
+  /** The header's new item form is open (its toolbar button clicked;  epic `airplane` P2). */
   @E.state accessor isAdding = false
+
+  /** The sticky header's measured height, px:  where the toolbar's bar sticks, below it (`measure()`). */
+  @E.state accessor headHeight = 0
 
   /** The meta lines', the header buttons' and the review line's icons. */
   readonly icons = {
@@ -175,13 +216,16 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   }
 
   /** The review line's flash timer. */
-  private flashTimer = 0
+  private flashTimer?: E.CancelablePromise<unknown>
 
   /** Clears the heading's "copied". */
-  private headingTimer = 0
+  private headingTimer?: E.CancelablePromise<unknown>
 
   /** The sticky header, as drawn. */
   private header?: HTMLElement
+
+  /** The toolbar's sticky bar under it, as drawn. */
+  private bar?: HTMLElement
 
   ////////////////
   // ## Derived state
@@ -197,8 +241,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     }))
   })
 
-  /** The step label;  `undefined` for none. */
-  readonly step = createMemo((): StepLabel | undefined => {
+  /** The step label by the phases alone:  the active one, else the next, DONE or FUTURE;  `undefined` for none. */
+  private readonly phaseStep = createMemo((): StepLabel | undefined => {
     const phases = this.phases()
     if (!phases.length) {
       return this.future ? { color: "grey", icon: "seedling", words: this.translationForKey("future") } : undefined
@@ -244,25 +288,41 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   })
 
   /**
-   * A SLEEPING doc's open follow-ups, in words (`2 questions, 1 todo`):  phases, none under way, items open;
-   * `""` when it isn't sleeping (a future epic, one still planning, one under way, nothing open).
+   * The epic's state for the header's mark (`epicStateFor()`):  in progress, errors or paused;
+   * `undefined` for a future epic or a done one, whose step label says so.
+   * - running:  a session listening to the page's review (`ReviewClient.listening`);  else the `updated` date decides
    */
-  readonly sleeping = createMemo(() => {
+  readonly state = createMemo((): EpicState | undefined => {
     this.signals.layout.get()
     const phases = this.phases()
-    if (this.future || !phases.length || phases.some((phase) => phase.status === ACTIVE)) return ""
-    const counts = new Map<string, number>()
-    for (const item of this.domElement.querySelectorAll(OPEN_ITEMS)) {
-      const letter = item.id[0] ?? ""
-      if (FOLLOW_UPS[letter]) counts.set(letter, (counts.get(letter) ?? 0) + 1)
+    const active = phases.find((phase) => phase.status === ACTIVE)
+    const client = this.review.client
+    const state = epicStateFor({
+      phases: phases.map((phase) => phase.status),
+      updated: this.updated,
+      future: this.future,
+      urgent: Array.from(this.domElement.querySelectorAll(URGENT_SELECTOR), (item) => item.id),
+      running: this.review.reviewing() && !!client?.listening,
+      active: active && `${active.id.toUpperCase()} · ${active.title}`
+    })
+    return state.name === "future" || state.name === "done" ? undefined : state
+  })
+
+  /**
+   * The step label;  `undefined` for none.
+   * - while the epic has a state (`state()`), its icon and colour are the state's, the state's why under its tooltip
+   *   (Owen, 2026-10-10:  the state's own mark beside it only repeated it)
+   */
+  readonly step = createMemo((): StepLabel | undefined => {
+    const label = this.phaseStep()
+    const state = this.state()
+    if (!label || !state) return label
+    return {
+      ...label,
+      color: state.color as StepLabel["color"],
+      icon: state.icon,
+      tip: `${label.tip ?? label.words}\n${state.tip}`
     }
-    return Object.keys(FOLLOW_UPS)
-      .filter((letter) => counts.has(letter))
-      .map((letter) => {
-        const count = counts.get(letter)!
-        return `${count} ${FOLLOW_UPS[letter]![count === 1 ? 0 : 1]}`
-      })
-      .join(", ")
   })
 
   /** What the header's review buttons show;  `undefined` while the page isn't reviewed. */
@@ -280,36 +340,47 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     }
   })
 
-  ////////////////
-  // ## Element hooks
-  ////////////////
+  /** What the send bar shows;  `undefined` (no bar) unless reviewed with anything to send or ask now. */
+  readonly sendBarMarks = createMemo((): HeaderMarks | undefined => {
+    const marks = this.marks()
+    return marks && (marks.unsent || marks.waiting) ? marks : undefined
+  })
 
-  /** A future epic:  not planned yet. */
-  @E.cssState("future")
-  get isFuture(): boolean {
-    return !!this.future
-  }
+  /**
+   * The toolbar's state chips:  every section's filter (`DOMEpicSectionElement.stateFilter`) added up, a state on
+   * while every section having it shows it.  Read again on every layout change and section filter change.
+   */
+  readonly filterChips = createMemo((): StateFilterEntry[] => {
+    this.signals.layout.get()
+    void this.filterTick
+    if (isServer) return []
+    const totals = new Map<string, StateFilterEntry>()
+    for (const section of this.filterHosts()) {
+      for (const entry of section.stateFilter ?? []) {
+        const total = totals.get(entry.state)
+        if (total) totals.set(entry.state, { ...total, count: total.count + entry.count, on: total.on && entry.on })
+        else totals.set(entry.state, { ...entry })
+      }
+    }
+    return FILTER_STATES.flatMap((it) => totals.get(it.state) ?? [])
+  })
 
   ////////////////
   // ## Rendering
   ////////////////
 
   /**
-   * Watch the subtree (numbers, step label) and the headers' heights (`top`) while connected;
-   * follow the review inbox while connected (kept alive:  a removed page stops).
+   * Watch the subtree (numbers, step label) and the headers' heights (`top`).
+   * - Its own `MutationObserver`, not `@fromContent`:  it bumps `layout`, which the page's blocks read too.
    */
   onMount(): JSX.Element {
     if (!isServer) {
-      createEffect(
-        () => this.isConnected,
-        (connected) => (connected ? this.review.connect() : undefined)
-      )
       onSettled(() => {
         let queued = false
         const bump = () => {
           if (queued) return
           queued = true
-          queueMicrotask(() => {
+          E.afterSolidUpdate(() => {
             queued = false
             this.signals.layout.set(untrack(() => this.signals.layout.get()) + 1)
           })
@@ -322,63 +393,59 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
           attributeFilter: LAYOUT_ATTRIBUTES
         })
         const resizes = new ResizeObserver(() => this.measure())
-        if (this.header) resizes.observe(this.header)
+        for (const box of [this.header, this.bar]) if (box) resizes.observe(box)
         const site = document.querySelector("spell-site-header")
         if (site) resizes.observe(site)
         window.addEventListener("resize", this.measure)
         this.measure()
+        // the toolbar's chips:  again as a section's filter changes, and once the sections have drawn;
+        // after Solid's update, so the sections' own memos (what shows) have taken the change
+        const filtered = () =>
+          E.afterSolidUpdate(() => {
+            this.filterTick++
+          })
+        this.domElement.addEventListener("ui-filter", filtered)
+        void customElements
+          .whenDefined(SECTIONS)
+          .then(() => Promise.all(this.filterHosts().map((section) => section.ready)))
+          .then(filtered)
         return () => {
           mutations.disconnect()
           resizes.disconnect()
           window.removeEventListener("resize", this.measure)
+          this.domElement.removeEventListener("ui-filter", filtered)
         }
       })
     }
     return super.onMount()
   }
 
+  /** Follow the review inbox while connected (kept alive:  a removed page stops). */
+  @E.whileConnected
+  protected followReviews() {
+    return this.review.connect()
+  }
+
   render(): JSX.Element {
     return (
       // an EMPTY title:  the DOM element's `title` would otherwise be a tooltip over the whole page (T8)
-      <div class={this.rootClasses} part={this.partForName("base")} title="" style={this.pageStyle()}>
+      <div class={this.rootClass} part={this.partForName("base")} title="" style={this.pageStyle()}>
         <Show when={!this.hasOldCrumbs()}>{this.crumbs()}</Show>
         <header ref={(element) => (this.header = element)} class={HEAD} part={this.partForName("header")}>
-          <div class={TITLES}>
-            <h1 class={HEADING} part={this.partForName("heading")}>
-              <button
-                type="button"
-                class={[HEADING_COPY, { flash: this.isHeadingCopied }]}
-                title={this.translationForKey("copyHeading", { command: this.headingCommand() })}
-                onClick={() => void this.copyHeading()}
-              >
-                {this.headingCommand()}
-              </button>
-              <span class="done" aria-live="polite">
-                {this.isHeadingCopied ? this.translationForKey("copied") : ""}
-              </span>
-            </h1>
-            <Show when={this.title}>
-              <p class={SUBHEAD} part={this.partForName("subhead")}>
-                {this.title}
-              </p>
-            </Show>
-          </div>
-          <Show when={this.marks()}>{(marks) => this.reviewButtons(marks)}</Show>
-          <Show when={this.hasCommits()}>{this.gitToggle()}</Show>
+          <h1 class={HEADING} part={this.partForName("heading")}>
+            <button
+              type="button"
+              class={[HEADING_COPY, { flash: this.isHeadingCopied }]}
+              title={this.translationForKey("copyHeading", { command: this.headingCommand() })}
+              onClick={() => void this.copyHeading()}
+            >
+              {this.headingCommand()}
+            </button>
+            <span class="done" aria-live="polite">
+              {this.isHeadingCopied ? this.translationForKey("copied") : ""}
+            </span>
+          </h1>
           <span class={STATUS} part={this.partForName("status")}>
-            <Show when={this.sleeping()}>
-              {(words) => (
-                <span
-                  class={SLEEPING}
-                  part={this.partForName("sleeping")}
-                  role="img"
-                  aria-label={this.translationForKey("sleeping", { words: words() })}
-                  title={this.translationForKey("sleeping", { words: words() })}
-                >
-                  😴
-                </span>
-              )}
-            </Show>
             <Show when={this.bedtime}>
               {(phases) => (
                 <ui-label
@@ -395,6 +462,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
             <Show when={this.step()}>
               {(step) => (
                 <ui-label
+                  part={this.state() ? this.partForName("state") : undefined}
+                  data-state={this.state()?.name}
                   basic={step().color === "green" ? undefined : ""}
                   color={step().color}
                   icon={step().icon}
@@ -405,7 +474,15 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
                 </ui-label>
               )}
             </Show>
+            <Show when={this.hasCommits()}>{this.gitToggle()}</Show>
           </span>
+        </header>
+        <Show when={this.title}>
+          <p class={SUBHEAD} part={this.partForName("subhead")}>
+            {this.title}
+          </p>
+        </Show>
+        <div ref={(element) => (this.bar = element)} class={BAR} part={this.partForName("bar")}>
           <Show when={this.isAdding && this.marks()}>
             <NewItemForm
               review={this.review}
@@ -414,7 +491,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
               onDone={() => (this.isAdding = false)}
             />
           </Show>
-        </header>
+          {this.toolbar()}
+        </div>
         {this.reviewLine()}
         {this.metaLines()}
         <Show when={this.future}>{this.futureNotice()}</Show>
@@ -426,6 +504,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
           text={this.pageText}
         />
         <slot />
+        <Show when={this.sendBarMarks()}>{(marks) => this.sendBar(marks)}</Show>
       </div>
     )
   }
@@ -506,16 +585,107 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     )
   }
 
-  /** New todo or question, Send and Review Now:  round icon buttons;  Send and Review Now coloured by what waits (`marks`). */
-  private reviewButtons(marks: () => HeaderMarks): JSX.Element {
+  /**
+   * The header's last row, the TOOLBAR (epic `airplane` P8):  the docs runtime's section buttons (`slot="toolbar"`),
+   * then at the right the page's state filter (`pageFilter()`), collapse-all, and, while reviewed, a gap and
+   * the new todo or question button (comment dots;  Owen, 2026-10-10).
+   */
+  private toolbar(): JSX.Element {
     return (
-      <span class={ACTIONS} part={this.partForName("actions")}>
-        <NewItemButton
-          label={this.translationForKey("newButton")}
-          open={this.isAdding}
-          part={this.partForName("new-button")}
-          onClick={() => (this.isAdding = !this.isAdding)}
-        />
+      <div class={TOOLBAR} part={this.partForName("toolbar")}>
+        <slot name={this.slotForName("toolbar")} />
+        <span class={TOOLBAR_TOOLS}>
+          {this.pageFilter()}
+          <CollapseAllButton
+            label={this.translationForKey("collapseAll")}
+            part={this.partForName("collapse-all")}
+            onCollapse={() => this.collapseAll()}
+          />
+          <Show when={this.marks()}>
+            <NewItemButton
+              icon="comment dots"
+              label={this.translationForKey("newButton")}
+              open={this.isAdding}
+              part={this.partForName("new-button")}
+              onClick={() => (this.isAdding = !this.isAdding)}
+            />
+          </Show>
+        </span>
+      </div>
+    )
+  }
+
+  /**
+   * The page's state filter, in the toolbar:  a chip per state the page's items are in, with how many, solid while
+   * EVERY section showing that state shows it;  a click filters every section at once, by the sections' own rule
+   * (`StateFilter.nextShown()`).
+   */
+  private pageFilter(): JSX.Element {
+    return (
+      <Show when={this.filterChips().length}>
+        <span
+          class={FILTER}
+          part={this.partForName("filter")}
+          role="group"
+          aria-label={this.translationForKey("filterLabel")}
+        >
+          <For each={this.filterChips()}>
+            {(chip) => (
+              <button
+                type="button"
+                class={CHIP}
+                data-state={chip.state}
+                data-color={chip.color}
+                aria-pressed={chip.on ? "true" : "false"}
+                aria-label={this.chipWords(chip)}
+                title={this.chipWords(chip)}
+                onClick={() => this.pickState(chip.state)}
+              >
+                {chip.count}
+              </button>
+            )}
+          </For>
+        </span>
+      </Show>
+    )
+  }
+
+  /** A page chip's name and tooltip:  how many, which state, what its click does. */
+  private chipWords(chip: StateFilterEntry): string {
+    const chips = this.filterChips()
+    const present = chips.map((it) => it.state as string)
+    const shown = chips.filter((it) => it.on).map((it) => it.state as string)
+    const words = this.translationForKey(FILTER_STATES.find((it) => it.state === chip.state)!.words)
+    const does = this.translationForKey(CHIP_CLICK_KEYS[StateFilter.clickDoes(present, shown, chip.state)])
+    return this.translationForKey("chipWords", { count: chip.count, words, does })
+  }
+
+  /**
+   * The SEND BAR (Owen, 2026-10-10:  "a sticky toolbar at the bottom of the page, which shows up when there are things
+   * that are unsent"):  stuck to the window's bottom while there's anything to send or to ask now (`sendBarMarks()`)
+   * - Send (paper plane) and Review Now (wand), blue and wearing the fill rule (Q20), as they were in the header
+   * - first, a pill when nobody can take them:  no Claude session listening (orange), or airplane mode;
+   *   a click copies the review line's command (`/epic review <name>`, `/airplane land`)
+   */
+  private sendBar(marks: () => HeaderMarks): JSX.Element {
+    return (
+      <div
+        class={SEND_BAR}
+        part={this.partForName("send-bar")}
+        role="region"
+        aria-label={this.translationForKey("sendBar")}
+      >
+        <Show when={isAirplane() || !marks().listening}>
+          <button
+            type="button"
+            class={[PILL, { airplane: isAirplane(), flash: this.isCopied }]}
+            part={this.partForName("pill")}
+            title={this.translationForKey("copyCommand")}
+            onClick={() => void this.copyCommand()}
+          >
+            {this.translationForKey(isAirplane() ? "airplanePill" : "nobodyPill")} <code>{this.command()}</code>
+          </button>
+        </Show>
         <button
           type="button"
           class={SEND}
@@ -538,7 +708,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         >
           {this.icon(this.icons.reviewNow)}
         </button>
-      </span>
+      </div>
     )
   }
 
@@ -566,24 +736,21 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   }
 
   /**
-   * The review line:  `To review this doc, type /epic review <name>`, a click copies the command;
-   * reviewed with nobody listening, it says so first.
+   * The review line:  `To review this doc, type /epic review <name>` (in airplane mode `/airplane land`),
+   * a click copies the command.  Nobody listening:  the send bar's pill says so (`sendBar()`), and copies it too.
    */
   private reviewLine(): JSX.Element {
-    // airplane mode:  nobody CAN listen, so no warning;  the line names what takes the marks when Owen lands
-    const nobody = () => !isAirplane() && !!this.marks() && !this.marks()!.listening
     return (
       <button
         type="button"
-        class={[REVIEW_LINE, { flash: this.isCopied, nobody: nobody() }]}
+        class={[REVIEW_LINE, { flash: this.isCopied }]}
         part={this.partForName("review-line")}
         title={this.translationForKey("copyCommand")}
         onClick={() => void this.copyCommand()}
       >
         {this.icon(this.icons.copy)}
         <span>
-          {this.translationForKey(isAirplane() ? "reviewLineAirplane" : nobody() ? "reviewLineNobody" : "reviewLine")}{" "}
-          <code>{this.command()}</code>
+          {this.translationForKey(isAirplane() ? "reviewLineAirplane" : "reviewLine")} <code>{this.command()}</code>
         </span>
         <span class="done" aria-live="polite">
           {this.isCopied ? this.translationForKey("copied") : ""}
@@ -672,11 +839,14 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   }
 
   /**
-   * The wrapper's inline style, for everything below:  the sticky stack below this header (`--epic-stack`);
-   * every commit shown while the toggle is on.
+   * The wrapper's inline style, for everything below:  the sticky stack below this header and its bar
+   * (`--epic-stack`);  where the bar sticks (`--epic-head-h`);  every commit shown while the toggle is on.
    */
   private pageStyle(): Record<string, string> {
-    const style: Record<string, string> = { [STACK_PROPERTY]: `${this.signals.top.get()}px` }
+    const style: Record<string, string> = {
+      [STACK_PROPERTY]: `${this.signals.top.get()}px`,
+      [HEAD_PROPERTY]: `${this.headHeight}px`
+    }
     if (this.showCommits) style[COMMITS_PROPERTY] = "block"
     return style
   }
@@ -696,22 +866,56 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     }
   }
 
+  /**
+   * A toolbar chip, clicked:  every section filtered at once, by the sections' own rule (`StateFilter.nextShown()`);
+   * everything again:  each section's choice forgotten, so a state that comes later shows too.
+   */
+  @E.untracked
+  private pickState(state: string) {
+    const chips = this.filterChips()
+    const present = chips.map((it) => it.state as string)
+    const next = StateFilter.nextShown(
+      present,
+      chips.filter((it) => it.on).map((it) => it.state),
+      state
+    )
+    const states = next.length === present.length ? undefined : next
+    for (const section of this.filterHosts()) if (section.stateFilter) section.showStates?.(states)
+  }
+
+  /**
+   * The toolbar's collapse-all:  every block, item, card and panel on the page folded (`foldAllUnder()`), then the page
+   * back at its top, where the folded blocks now all show (Owen, 2026-10-10).
+   */
+  @E.untracked
+  private collapseAll() {
+    foldAllUnder(this.domElement)
+    window.scrollTo({ top: 0, behavior: "instant" })
+  }
+
+  /** The sections below that have a state filter (`DOMEpicSectionElement`):  the item sections. */
+  private filterHosts(): FilterHost[] {
+    return Array.from(this.domElement.querySelectorAll<FilterHost>(SECTIONS))
+  }
+
   /** The review line, clicked:  copy the command, then flash and say so. */
+  @E.untracked
   private async copyCommand() {
-    if (!(await EpicPage.copyText(untrack(() => this.command())))) return
+    if (!(await EpicPage.copyText(this.command()))) return
     // off first, so a second click flashes again
     this.isCopied = false
-    clearTimeout(this.flashTimer)
-    requestAnimationFrame(() => (this.isCopied = true))
-    this.flashTimer = window.setTimeout(() => (this.isCopied = false), FLASH_MS + 600)
+    this.flashTimer?.cancel()
+    E.beforeNextPaint(() => (this.isCopied = true))
+    this.flashTimer = E.after((FLASH_MS + 600) / 1000, () => (this.isCopied = false))
   }
 
   /** The heading, clicked:  copy `/epic <name>`, then say so for a moment. */
+  @E.untracked
   private async copyHeading() {
-    if (!(await EpicPage.copyText(untrack(() => this.headingCommand())))) return
+    if (!(await EpicPage.copyText(this.headingCommand()))) return
     this.isHeadingCopied = true
-    clearTimeout(this.headingTimer)
-    this.headingTimer = window.setTimeout(() => (this.isHeadingCopied = false), FLASH_MS + 600)
+    this.headingTimer?.cancel()
+    this.headingTimer = E.after((FLASH_MS + 600) / 1000, () => (this.isHeadingCopied = false))
   }
 
   /** `translationForKey()`, as a plain function:  for the pieces drawn as their own components (`<AgentsPanel>`). */
@@ -721,12 +925,18 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   private readonly newText = (key: NewTextKey, params?: Record<string, string | number>) =>
     this.translationForKey(key, params)
 
-  /** Measure where top-level titles stick:  the site header's height plus this header's. */
+  /**
+   * Measure where the toolbar's bar sticks (below this header) and where top-level titles stick:  the site header's
+   * height plus this header's and the bar's.
+   */
+  @E.untracked
   private readonly measure = () => {
     const site = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--spell-site-header-height"))
-    const head = this.header?.getBoundingClientRect().height ?? 0
-    const top = Math.round((Number.isNaN(site) ? 0 : site) + head)
-    if (untrack(() => this.signals.top.get()) !== top) this.signals.top.set(top)
+    const head = Math.round(this.header?.getBoundingClientRect().height ?? 0)
+    const bar = this.bar?.getBoundingClientRect().height ?? 0
+    const top = Math.round((Number.isNaN(site) ? 0 : site) + head + bar)
+    if (this.headHeight !== head) this.headHeight = head
+    if (this.signals.top.get() !== top) this.signals.top.set(top)
   }
 
   /** A phase's step label:  `P4`, its name in the tooltip, a link to it. */
@@ -799,3 +1009,18 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface EpicPage extends E.AttributeValues<EpicPageVocabulary> {}
+
+/**
+ * A section's DOM element, as the toolbar's filter reads it (`DOMEpicSectionElement`):
+ * by its shape, not its class (importing `<epic-section>`'s files here would loop:  they import this one).
+ */
+type FilterHost = E.DOMElement & {
+  readonly stateFilter?: readonly StateFilterEntry[]
+  showStates?(states: readonly string[] | undefined): void
+}
+
+/** The sections, which filter their items. */
+const SECTIONS = "epic-section"
+
+/** What takes Owen's marks after a flight (epic `airplane`):  the review line's command in airplane mode. */
+const AIRPLANE_LAND = "/airplane land"

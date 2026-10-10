@@ -1,4 +1,4 @@
-import { Show, onSettled } from "solid-js"
+import { Show } from "solid-js"
 import { Dynamic, isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -9,7 +9,7 @@ import cardCSS from "./UICard.css?inline"
 
 /**
  * Same nouns:  a rescan finding them again changes nothing (`UICard.slottedNouns`'s `equals`).
- * - Above the class:  `@state({ equals })` reads it while the class is defined.
+ * - Above the class:  `@fromContent({ equals })` reads it while the class is defined.
  */
 function isSameNouns(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
   return a.size === b.size && [...a].every((noun) => b.has(noun))
@@ -35,28 +35,21 @@ function isSameNouns(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
  *   - A slotted part of the same noun anywhere inside (or a slotted `<img>`, for `image`) wins:
  *     that shorthand isn't drawn.
  *
- * - In a `<ui-cards>` group (`PartContext`, noun `card`):  the DOM element is a `role=listitem` with
- *   `:state(in-cards)`, and every shared variation the card doesn't set comes from the group (`classValue()`).
+ * - In a `<ui-cards>` group (`PartContext`, noun `card`):
+ *   the DOM element is a `role=listitem` with `:state(in-cards)`,
+ *   and every shared variation the card doesn't set comes from the group (`classValue()`).
  *
  * - `loading`:  `aria-busy` (through `internals`) and a visually hidden `role=status` "Loading…".
- * - `disabled`:  `aria-disabled`, and a link card loses its `href`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  `aria-disabled`, everything inside inert;
+ *   and a link card loses its `href`.
  ****************/
 export class UICard extends E.UIComponent<typeof cardVocabulary> {
   @E.proto static vocabulary = cardVocabulary
-  @E.proto static styleSheets = { card: cardCSS, ...E.PartComponent.styleSheets }
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    if (isServer) return
-    const { domElement } = this
-    // SIDE EFFECT:  shorthands follow what's slotted, at any depth
-    onSettled(() => {
-      const observer = new MutationObserver(() => (this.slottedNouns = this.scan()))
-      observer.observe(domElement, { childList: true, subtree: true })
-      this.slottedNouns = this.scan()
-      return () => observer.disconnect()
-    })
-  }
-
+  @E.protoMerged static elementSetup = {
+    styleSheets: { card: cardCSS, ...E.PartComponent.prototype.elementSetup.styleSheets },
+    // `loading`:  Fomantic's veil
+    loading: "its own"
+  } satisfies Partial<E.ElementSetup>
   ////////////////
   // ## Group
   ////////////////
@@ -77,37 +70,34 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
   }
 
   ////////////////
-  // ## Disabled and loading
+  // ## Loading
   ////////////////
 
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled
-  }
-
-  /** `loading`, as `:state(loading)`. */
+  /** `loading`, as `:state(loading)` and `aria-busy`. */
   @E.cssState("loading")
+  @E.aria("ariaBusy")
   get isLoading(): boolean {
     return this.loading
   }
 
-  /** A list item in a group;  busy / disabled for assistive tech. */
-  @E.onChange("group", "loading", "disabled", { writesDOMElement: true })
-  protected onAriaChanged(group: UICards | undefined, isLoading: boolean, isDisabled: boolean) {
-    const { internals } = this.domElement
-    internals.role = group ? "listitem" : null
-    internals.ariaBusy = isLoading ? "true" : null
-    internals.ariaDisabled = isDisabled ? "true" : null
+  /** A list item in a group. */
+  @E.aria("role")
+  protected get ariaRole(): string | undefined {
+    return this.group ? "listitem" : undefined
   }
 
   ////////////////
   // ## Shorthands
   ////////////////
 
-  /** Nouns the slotted content already has (`header`, `extra` ...;  `image` for an `<img>`). */
-  @E.state({ equals: isSameNouns }) accessor slottedNouns: ReadonlySet<string> = isServer
-    ? NOTHING_SLOTTED
-    : this.scan()
+  /**
+   * Nouns the slotted content already has (`header`, `extra` ...;  `image` for an `<img>`).
+   * - Follows what's slotted, at any depth:  shorthands yield to it.
+   */
+  @E.fromContent({ childList: true, subtree: true, equals: isSameNouns })
+  get slottedNouns(): ReadonlySet<string> {
+    return isServer ? NOTHING_SLOTTED : this.scan()
+  }
 
   /** Does shorthand `noun` render:  set, and no slotted part of that noun? */
   rendersShorthand(noun: Shorthand): boolean {
@@ -124,7 +114,7 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
     const nouns = new Set<string>()
     for (const child of this.domElement.children) if (child.localName === "img" && !child.slot) nouns.add(UIT.IMAGE)
     for (const element of this.domElement.querySelectorAll("*")) {
-      const noun = E.UIComponent.definitions.get(element.localName)?.vocabulary.noun
+      const noun = E.UIComponent.registry.definitions.get(element.localName)?.vocabulary.noun
       if (noun && (Shorthands as readonly string[]).includes(noun)) nouns.add(noun)
     }
     return nouns
@@ -144,7 +134,7 @@ export class UICard extends E.UIComponent<typeof cardVocabulary> {
     return (
       <Dynamic
         component={this.rootTag}
-        class={this.rootClasses}
+        class={this.rootClass}
         part={this.partForName("card")}
         href={isLink() && !this.disabled ? this.href : undefined}
         target={isLink() ? this.target : undefined}

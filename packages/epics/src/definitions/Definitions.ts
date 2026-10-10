@@ -88,7 +88,7 @@ export class Definitions {
   /**
    * `spec`'s key in `EpicData`:  its name in camelCase (`review-as` => `reviewAs`), as its component's attribute getter (`this.reviewAs`).
    * - NOT `spec.property`, the DOM element's JS property:  `id` and `title` take `epicId` / `epicTitle` there, so they
-   *   don't shadow the platform's own (the fork refuses that), but data says `id` and `title`.
+   *   don't shadow the platform's own (`DOMElement` refuses that), but data says `id` and `title`.
    * - NOTE: a private copy of `$/util`'s `camelCase()`:  that barrel drags spell's utilities into the pack, and
    *   `$/ui/util` isn't node-safe through `$/ui/core`.
    */

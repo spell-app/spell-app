@@ -11,14 +11,20 @@
  *   - `phrase-split`:  a line ending in the first 1-4 words of a new phrase,
  *     the phrase going on to the next line (a phrase starts after `:`, `;`, `.` or `--`);
  *     also a line whose next line is short, when the whole phrase fits there
- *   - `dense`:  a paragraph, or one bullet, of 3 or more sentences
+ *   - `dense`:  a paragraph, or one bullet, of 3 or more sentences:  a plain lead line, then bullets
  *   - `jargon`:  a word its package bans (`Fuss.JARGON`;  `packages/ui` bans "the fork")
+ *   - `path-in-prose`:  a file path in the running text of a page or Markdown (`packages/x/y.ts`, `y.ts:12`):
+ *     name the thing, its path its tooltip (`<code title="path">name</code>`;  in Markdown, a link)
+ *   - `code-dense`:  a sentence of 3 or more code spans, in a page or Markdown:
+ *     say what it means, the exact values in folded code
+ *   - the last two:  WWOD §6 › "Plain text, plain paths" (epic `airplane`)
  * - What it reads:
  *   - comments and docstrings in `.ts`, `.tsx`, `.js`, `.mjs`
  *   - Markdown prose
- *   - `.html` pages:  `dense` and `jargon` only, since the formatter wraps their lines
+ *   - `.html` pages:  all but `phrase-split`, since the formatter wraps their lines
  * - What it skips:
- *   - code spans, code blocks and URLs
+ *   - code spans, code blocks and URLs;  but a code span that is a whole path is `path-in-prose`
+ *   - a path in an attribute (`title`, `href`) or a Markdown link's target:  where it belongs
  *   - `@param`-style tags, license headers, lint directives, commented-out code
  *   - in folders:  `node_modules`, build output, dot folders, generated files
  *     (the root `.gitattributes`' `linguist-generated` ones)
@@ -47,8 +53,7 @@ export class Fuss {
     if (!format) return []
     const units = format === "html" ? htmlUnits(text) : format === "md" ? markdownUnits(text) : codeUnits(text)
     const banned = Fuss.bannedIn(file)
-    const wraps = format !== "html"
-    return units.flatMap((unit) => unitMisses(unit, { file, banned, wraps })).sort((a, b) => a.line - b.line)
+    return units.flatMap((unit) => unitMisses(unit, { file, banned, format })).sort((a, b) => a.line - b.line)
   }
 
   /**
@@ -116,7 +121,7 @@ export class Fuss {
   /**
    * The words each package bans from its comments and docs, by folder from the repo's root.
    * - Implementation words a newcomer can't follow:  name the thing by what it is instead.
-   *   In `packages/ui`, "solid-element", never "the fork".
+   *   In `packages/ui`, never "the fork":  say what the code is ("the element layer", `DOMElement`).
    * - Matched whole, in any case;  never inside a code span.
    * - `static`, so a reader finds the table on the class it configures.
    */
@@ -188,7 +193,7 @@ function plural(count: number, one: string, many: string): string {
 ////////////////
 
 /** Each kind of miss, in the order the summary counts them. */
-export const FUSS_KINDS = ["phrase-split", "dense", "jargon"] as const
+export const FUSS_KINDS = ["phrase-split", "dense", "jargon", "path-in-prose", "code-dense"] as const
 
 /** One kind of miss (see this file's header). */
 export type FussKind = (typeof FUSS_KINDS)[number]
@@ -197,7 +202,7 @@ export type FussKind = (typeof FUSS_KINDS)[number]
 export type FussMiss = {
   /** the file, from the current folder */
   file: string
-  /** 1-based;  for `dense`, the paragraph's or bullet's first line */
+  /** 1-based;  for `dense`, the paragraph's or bullet's first line;  for `code-dense`, the sentence's */
   line: number
   kind: FussKind
   /** the line's text, its comment markers gone */
@@ -232,19 +237,26 @@ type ProseUnit = {
 /** The longest line, as the formatter wraps code:  a phrase moved down must still fit. */
 const MAX_WIDTH = 120
 
-/** The misses in one unit:  jargon on any line, phrase splits between its lines (`wraps`), `dense` on the whole. */
+/**
+ * The misses in one unit:
+ * - jargon on any line;  phrase splits between its lines (not in a page:  the formatter wraps those)
+ * - `dense` on the whole
+ * - in a page or Markdown:  paths on any line, `code-dense` per sentence
+ */
 function unitMisses(
   unit: ProseUnit,
-  { file, banned, wraps }: { file: string; banned: string[]; wraps: boolean }
+  { file, banned, format }: { file: string; banned: string[]; format: Format }
 ): FussMiss[] {
   const misses: FussMiss[] = []
   const masked = maskLines(unit.lines.map((it) => it.text))
   unit.lines.forEach(({ line, text }, index) => {
     const found = banned.filter((word) => wordPattern(word).test(masked[index]))
     if (found.length) misses.push({ file, line, kind: "jargon", text, why: `says ${found.map(quoted).join(", ")}` })
+    const paths = format === "code" ? [] : pathsIn(text, masked[index])
+    if (paths.length) misses.push({ file, line, kind: "path-in-prose", text, why: pathWhy(paths, format) })
   })
   if (unit.isHeading) return misses
-  if (wraps) {
+  if (format !== "html") {
     for (let index = 0; index < unit.lines.length - 1; index++) {
       const why = phraseSplit(unit.lines, masked, index)
       if (why)
@@ -254,9 +266,122 @@ function unitMisses(
   const sentences = sentenceCount(masked.join(" "))
   if (sentences >= 3) {
     const { line, text } = unit.lines[0]
-    misses.push({ file, line, kind: "dense", text, why: `${sentences} sentences:  one or two, or bullets` })
+    misses.push({ file, line, kind: "dense", text, why: `${sentences} sentences:  ${DENSE_FIX}` })
+  }
+  if (format !== "code") misses.push(...codeDense(unit, masked, file))
+  return misses
+}
+
+/** What a `dense` miss says to do. */
+const DENSE_FIX = "a plain lead line saying what they add up to, then bullets, one fact each"
+
+/**
+ * The file paths on one line of a page's or Markdown's prose (`text`, `masked` its `maskLine()`), in order:
+ * - a code span that is a whole path (`packages/x/y.ts`);  NOT one holding a command that names a path
+ * - a path in the text itself
+ * - never a URL, a Markdown link's target, or a tag's attributes (`title`, `href`):  that's where a path goes
+ */
+function pathsIn(text: string, masked: string): string[] {
+  const spans = Array.from(text.matchAll(/`([^`]+)`/g), (match) => match[1].trim()).filter(isFilePath)
+  const prose = masked.replace(/\]\([^)]*\)/g, blank).replace(/<[^>]*>/g, blank)
+  const bare = Array.from(prose.matchAll(PATH_TOKEN), (match) => match[0]).filter(isFilePath)
+  return unique([...spans, ...bare])
+}
+
+/** What a `path-in-prose` miss says:  the paths, and the fix in `format`. */
+function pathWhy(paths: string[], format: Format): string {
+  const fix =
+    format === "html"
+      ? 'name the thing, its path its tooltip:  <code title="path">name</code>'
+      : "name the thing, and link it:  [`name`](path)"
+  return `a file path in the prose, ${paths.map(quoted).join(", ")}:  ${fix}`
+}
+
+/**
+ * Whether `token` is a file path a reader would open, not a name:
+ * - a file in a folder (`tools/fuss.ts`), or a file and its line (`fuss.ts:12`)
+ * - 3 or more parts from a top folder of the checkout or a package (`packages/docs/tools`)
+ * - NOT a folder alone (`packages/`, `packages/docs/`), a package (`@spell-app/ui`), an alias (`$/epics/tool`),
+ *   a URL, a route (`/api/review`), a date (`10/9/26`), a file alone (`fuss.ts`), or words like "read/write/check"
+ */
+function isFilePath(token: string): boolean {
+  const trimmed = token.replace(/[.,;:!?)]+$/, "")
+  if (/^(?:[a-z]+:\/\/|\/|[$@~#])|\s/i.test(trimmed)) return false
+  const line = /:\d+(?:-\d+)?$/.exec(trimmed)
+  const parts = trimmed
+    .slice(0, line ? line.index : undefined)
+    .replace(/^(?:\.{1,2}\/)+/, "")
+    .replace(/\/$/, "")
+    .split("/")
+  if (!parts.every((part) => /[a-z]/i.test(part) && /^[\w.<>*{}-]+$/.test(part))) return false
+  const isFile = FILE_EXTENSION.test(parts.at(-1)!)
+  if (parts.length === 1) return isFile && !!line
+  return isFile || (parts.length >= 3 && ROOT_FOLDERS.has(parts[0]))
+}
+
+/** A path-like run of text:  parts split by `/`, maybe a line number;  not starting inside a word or after a `/`. */
+const PATH_TOKEN = /(?<![\w.@$/<>*{}-])(?:\.{1,2}\/)*[\w.<>*{}-]+(?:\/[\w.<>*{}-]+)*\/?(?::\d+(?:-\d+)?)?/g
+
+/** A file's extension, as the docs name files. */
+const FILE_EXTENSION = /\.(?:ts|tsx|js|mjs|cjs|jsx|mts|cts|md|html|json|css|yml|yaml|sh|txt)$/
+
+/** The top folders of the checkout and of a package:  where a path without an extension starts. */
+const ROOT_FOLDERS = new Set([
+  "packages",
+  "src",
+  "epics",
+  "guides",
+  "agents",
+  "templates",
+  "pages",
+  "goals",
+  "scripts",
+  "workspaces",
+  "types",
+  "tools",
+  "components",
+  "node_modules",
+  ".claude",
+  "ui",
+  "brand",
+  "docs",
+  "test"
+])
+
+/**
+ * The sentences of `unit` with 3 or more code spans:  a `code-dense` miss each, at the line it starts on.
+ * - `masked`:  its lines through `maskLines()`, which find where sentences end
+ */
+function codeDense(unit: ProseUnit, masked: string[], file: string): FussMiss[] {
+  const text = unit.lines.map((it) => it.text).join(" ")
+  const spans = Array.from(text.matchAll(/`[^`]+`/g), (match) => match.index)
+  // each sentence's end, at its last word's punctuation, and the next one's start, past the spaces after it
+  const breaks = Array.from(masked.join(" ").matchAll(SENTENCE_ENDS), (match) => ({
+    end: match.index,
+    next: match.index + match[0].length
+  }))
+  const misses: FussMiss[] = []
+  let start = 0
+  for (const { end, next } of [...breaks, { end: text.length, next: text.length }]) {
+    const count = spans.filter((at) => at >= start && at < end).length
+    if (count > 2) {
+      const { line, text: lineText } = lineAtOffset(unit.lines, start)
+      const why = `${count} code spans in one sentence:  at most two;  say what it means, the exact values in folded code`
+      misses.push({ file, line, kind: "code-dense", text: lineText, why })
+    }
+    start = next
   }
   return misses
+}
+
+/** The line of `lines`, joined by single spaces, that holds `offset`. */
+function lineAtOffset(lines: ProseLine[], offset: number): ProseLine {
+  let end = 0
+  for (const line of lines) {
+    end += line.text.length + 1
+    if (offset < end) return line
+  }
+  return lines.at(-1)!
 }
 
 /**
@@ -295,6 +420,9 @@ function sentenceCount(masked: string): number {
 
 /** A sentence's end, followed by the next's start (a capital, a digit, a quote or a bracket). */
 const SENTENCE_END = /[.?!]["'”)\]]*\s+(?=[A-Z0-9"“'([*_])/
+
+/** Every sentence's end in a text, as `SENTENCE_END` finds one. */
+const SENTENCE_ENDS = new RegExp(SENTENCE_END.source, "g")
 
 /** How many words `text` has, split at spaces. */
 function wordCount(text: string): number {

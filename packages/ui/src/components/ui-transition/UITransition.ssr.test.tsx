@@ -19,7 +19,7 @@ describe("<ui-transition> static render", () => {
     expect(sorted(html)).toBe(
       sorted(
         `<div data-ui="transition" class="ui transition" part="transition" hidden=""><p data-ui-slotted="">Hidden</p>` +
-          `</div><div data-ui="transition" data-state="visible" class="ui inline transition visible" ` +
+          `</div><div data-ui="transition" data-state="visible" class="ui inline visible transition" ` +
           `part="transition"><p data-ui-slotted="">Shown</p></div>`
       )
     )

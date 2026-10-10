@@ -22,6 +22,12 @@ const DONE =
   `<p slot="summary">Recommended keeping a file each:  the JSON would need escaping for every template.</p>` +
   `</epic-status>`
 
+/** A card born noted, as `inbox apply` writes it for a pick (Owen, 2026-10-10). */
+const NOTED =
+  `<epic-status slot="status" state="noted" at="2026-10-08 15:02">` +
+  `<p>Chose B · Keep one file per template:  recorded as the answer;  waiting for the next phase, P9 · Build</p>` +
+  `</epic-status>`
+
 describe("<epic-status>", () => {
   test("underway:  `Claude • Underway` left, `at` right as `10/8/26 14:20`, the reading;  blue (Claude on it, Q20);  passes axe", async () => {
     const host = await ElementFixture.render(UNDERWAY)
@@ -38,7 +44,7 @@ describe("<epic-status>", () => {
       date: "10/8/26 14:20",
       datetime: "2026-10-08 14:20",
       tip: "",
-      base: "status underway",
+      base: "underway status",
       summaryShown: false,
       states: [true, false]
     })
@@ -61,7 +67,7 @@ describe("<epic-status>", () => {
       who: "Claude • Done",
       date: "10/8/26 14:34",
       tip: "taken 10/8/26 14:20",
-      base: "status done",
+      base: "done status",
       summarySlot: "summary",
       summaryShown: true,
       done: true
@@ -69,9 +75,9 @@ describe("<epic-status>", () => {
     await expectAccessible(host)
   })
 
-  test("a card born done (a pick `inbox apply` filed):  `at` alone is its date;  no summary, no summary box", async () => {
+  test("a card born done (work done, no underway card first):  `at` alone is its date;  no summary, no summary box", async () => {
     const host = await ElementFixture.render(
-      `<epic-status state="done" at="2026-10-08 15:02"><p>Chose B · Keep one file per template</p></epic-status>`
+      `<epic-status state="done" at="2026-10-08 15:02"><p>Fixed the fold.</p></epic-status>`
     )
     expect([part(host, "date")!.textContent, part(host, "date")!.title, part(host, "summary")!.offsetHeight]).toEqual([
       "10/8/26 15:02",
@@ -80,15 +86,34 @@ describe("<epic-status>", () => {
     ])
   })
 
-  test("the two fills differ (blue, green), and each stays readable in the DARK scheme too (axe)", async () => {
+  test("noted (a pick `inbox apply` recorded):  `Claude • Noted`, never read as Done;  no fill, a green outline;  passes axe", async () => {
+    const host = await ElementFixture.render(NOTED)
+    const base = getComputedStyle(part(host, "base")!)
+    expect({
+      who: part(host, "who")!.textContent,
+      date: part(host, "date")!.textContent,
+      base: part(host, "base")!.className,
+      states: [host.matches(":state(noted)"), host.matches(":state(done)"), host.matches(":state(underway)")]
+    }).toEqual({
+      who: "Claude • Noted",
+      date: "10/8/26 15:02",
+      base: "noted status",
+      states: [true, false, false]
+    })
+    expect(base.borderTopColor).not.toBe(base.backgroundColor)
+    await expectAccessible(host)
+  })
+
+  test("the three fills differ (blue, green, none), and each stays readable in the DARK scheme too (axe)", async () => {
     const wrap = await ElementFixture.render(
-      `<div style="color-scheme: dark; background: #1b1c1d; padding: 4px">${UNDERWAY}${DONE}</div>`
+      `<div style="color-scheme: dark; background: #1b1c1d; padding: 4px">${UNDERWAY}${DONE}${NOTED}</div>`
     )
-    const [underway, done] = Array.from(wrap.querySelectorAll("epic-status"))
-    const fills = [underway, done].map((host) => getComputedStyle(part(host, "base")!).backgroundColor)
-    expect(fills[0]).not.toBe(fills[1])
+    const [underway, done, noted] = Array.from(wrap.querySelectorAll("epic-status"))
+    const fills = [underway, done, noted].map((host) => getComputedStyle(part(host, "base")!).backgroundColor)
+    expect(new Set(fills).size).toBe(3)
     await expectAccessible(underway)
     await expectAccessible(done)
+    await expectAccessible(noted)
   })
 
   test("folds by its band (Owen, 2026-10-08):  the reading and the summary together, the band alone left", async () => {
