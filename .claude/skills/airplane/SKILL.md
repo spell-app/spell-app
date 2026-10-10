@@ -64,6 +64,9 @@ Owen is back online.  Gather everything, work through it in the background, then
 5. The rest goes to background agents, named and listed (root `CLAUDE.md`, "Delegated work"), up to 5 at once:
    - each Do Now, revisit and phase note:  as `/epic review` answers one ("7.3", step 2):
      the status card first, the answer INTO the item, `status ... done`, `inbox done | clear`
+   - a mark that only asked to RECORD a choice (no answer to write):  `status ... noted "<what was recorded;  what
+     happens next>"`, never `done` (Owen, 2026-10-10:  a Done card means work was done);  `apply --all`'s own cards
+     for picks, todos and new items are Noted already
    - each page note:  read the page and the note, answer under it (`spell dev notes answer <page> <id> --file`);
      a note asking for work in an epic:  `plan-doc add <epic> todo` too, linked from the answer
    - details answers and goals thoughts:  as `/details` and `/goals-update` take them

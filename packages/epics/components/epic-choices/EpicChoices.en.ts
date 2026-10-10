@@ -33,13 +33,24 @@ export const epicChoicesVocabulary = {
   parts: [
     { name: "base", description: "The cards side by side;  answered, the folded Choices aside." },
     { name: "toggle", description: "Answered:  the `Choices` `<button>` that folds the options." },
+    {
+      name: "chosen",
+      description: "Answered with an option chosen:  `✓ Chosen:  B · Bananas` in the toggle, green, folded or not."
+    },
     { name: "panels", description: "Answered:  the box of option panels, hidden while folded." }
   ],
   states: [
     { name: "answered", description: "Its question is answered (`chosen`, or `answered` on its item):  folded." },
     { name: "open", description: "Answered, and its options unfolded." }
   ],
-  texts: [{ key: "choices", text: "Choices", description: "The answered question's options' heading." }],
+  texts: [
+    { key: "choices", text: "Choices", description: "The answered question's options' heading." },
+    {
+      key: "chosen",
+      text: "Chosen:  {name}",
+      description: "After the heading:  the chosen option, `{name}` its letter and title (`B · Bananas`)."
+    }
+  ],
   children: [{ tag: "epic-option", min: 1, description: "The options, `A`, `B` ..." }],
   // P14:  options in any prose too -- a reply's, a judgement call's text (`Upgrader`, the old prose option grids)
   flow: true

@@ -319,6 +319,18 @@ export const SETTLED_AS: ReadonlySet<string> = new Set<ReviewAs>(["approve", "to
 /** A status card Claude is still on (`<epic-status state="underway">`), among an item's children:  `progress`. */
 export const UNDERWAY_CARD = ':scope > epic-status[state="underway"]'
 
+/**
+ * A status card's `state` (`<epic-status state>`):
+ * - `underway`:  Claude is on it (blue)
+ * - `done`:  work was done -- an answer written, code changed, a phase built (green)
+ * - `noted`:  Claude RECORDED what Owen chose -- a pick, a todo made or queued, a new item made -- and nothing
+ *   more yet (a calm outline:  Owen, 2026-10-10, epic `airplane` P8)
+ */
+export type StatusState = "underway" | "done" | "noted"
+
+/** How an underway card finishes (`PlanDoc.finishStatus()`):  work `done`, or Owen's choice only `noted`. */
+export type FinishedState = Exclude<StatusState, "underway">
+
 /** An item's standing on the page, `STATE_COLORS`':  `attention`, `progress` ... */
 export type ItemState = keyof typeof STATE_COLORS
 

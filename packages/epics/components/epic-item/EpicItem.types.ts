@@ -121,6 +121,9 @@ export const BED_ICON = "bed"
 /** A commit's tag:  an item with one among its children gets the git icon (T17). */
 export const COMMIT_TAG = "epic-commit"
 
+/** A card set with an option chosen, anywhere in an item:  a pick that has landed in the doc. */
+export const CHOSEN_SET = "epic-choices[chosen]"
+
 /**
  * The custom property `<epic-commit>` shows by (`block`):  the page's git toggle sets it for every commit, an item's
  * git icon for its own (`EpicPage.types.ts` `COMMITS_PROPERTY`, the same name).
@@ -151,14 +154,16 @@ export type ReviewColor = "green" | "blue" | "grey"
 export type ReviewFill = "none" | "dashed" | "outline"
 
 /**
- * Owen's mark on an item, as its id chip wears it (Owen, 2026-10-08:  the chip matches the chosen button):
- * the chosen button's colour and fill, and its name for the chip's tooltip.  Only a LIVE mark:  dashed or outlined.
+ * Where Owen's answer on an item stands, as its id chip wears it (`EpicItem.chipMark`):
+ * a colour and a fill, dashed or outlined;  none, and the chip is solid in its state's colour.
+ * - his live mark (Owen, 2026-10-08:  the chip matches the chosen button):  that button's colour and fill
+ * - answered, work still due (Owen, 2026-10-10):  outlined, green queued, blue Claude on it
  */
 export type ChipMark = {
   color: ReviewColor
   fill: Exclude<ReviewFill, "none">
-  /** the chosen button's name (`approve`), or a pick's letter */
-  label: ReviewButtonSpec["label"] | { pick: string }
+  /** the chosen button's name (`approve`), or a pick's letter, for the tooltip;  none when work is still due */
+  label?: ReviewButtonSpec["label"] | { pick: string }
 }
 
 /** One review button:  its action, colour, icon, and its name and tooltip texts. */

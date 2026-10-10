@@ -379,13 +379,17 @@ export class PlanDocCommands {
   }
 
   /**
-   * `status <name> <id> underway "<reading>"` / `done ["<summary>"]` / `done --filed "<what>"`:
+   * `status <name> <id> underway "<reading>"` / `done ["<summary>"]` / `noted "<what>"`:
    * Claude's status card on an item or an Overview sub-section (P13), and the page's spinner on it.
    * - `underway`:  a new blue card (`PlanDoc.addStatus()`), stamped now;  the spinner on (`inbox working`), so
    *   one call does both
-   * - `done`:  its latest underway card turns green (`PlanDoc.finishStatus()`), the summary under its reading when
-   *   given;  the spinner off.  Refused on an item with no underway card
-   * - `done --filed`:  a card born done, saying what was filed (`inbox apply` writes these itself, Q19)
+   * - `done`:  WORK was done (an answer written, code changed, a phase built):  its latest underway card turns
+   *   green (`PlanDoc.finishStatus()`), the summary under its reading when given;  the spinner off.
+   *   Refused on an item with no underway card
+   * - `noted`:  Claude only RECORDED what Owen chose (Owen, 2026-10-10):  a calm Noted card, `what` saying what was
+   *   recorded and what happens next (`PlanDoc.noteStatus()`:  an underway card turns noted, else one born noted);
+   *   the spinner off.  `inbox apply` writes these itself for picks, todos and new items (Q19)
+   *   - `done --filed "<what>"`, the older spelling, means `noted` too:  what was filed is a record
    * - reading, summary:  HTML, as `updated` takes (plain text works as it is)
    * - NOT logged:  the mark it answers already is (`inbox apply`, `details`)
    */
@@ -394,14 +398,17 @@ export class PlanDocCommands {
     const filed = flags.filed
     if (filed === true) throw new PlanDocError(`--filed needs what was filed ("Chose B · Keep one file per template")`)
     let title: string
+    let said = state
     if (state === "underway")
       title = await this.edit(file, (plan) => plan.addStatus(id, need(text, "the reading (html)")))
-    else if (state === "done" && filed !== undefined)
-      title = await this.edit(file, (plan) => plan.addStatus(id, filed, { done: true }))
-    else if (state === "done") title = await this.edit(file, (plan) => plan.finishStatus(id, text))
-    else throw new PlanDocError(`status ${id} underway | done, not '${state ?? ""}'\n${USAGE}`)
+    else if (state === "noted" || (state === "done" && filed !== undefined)) {
+      const what = state === "noted" ? need(text, "what was recorded (html)") : String(filed)
+      title = await this.edit(file, (plan) => plan.noteStatus(id, what))
+      said = "noted"
+    } else if (state === "done") title = await this.edit(file, (plan) => plan.finishStatus(id, text))
+    else throw new PlanDocError(`status ${id} underway | done | noted, not '${state ?? ""}'\n${USAGE}`)
     this.inbox.setWorking(file, id, state === "underway")
-    this.print(`${id.toUpperCase()} ${state}:  ${title}`)
+    this.print(`${id.toUpperCase()} ${said}:  ${title}`)
   }
 
   /** `original <name> <id> --file <html> [--as-of "YYYY-MM-DD HH:MM"]`:  earlier text into an item's Original Discussion. */
@@ -859,11 +866,16 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
   status <name> <id> underway "html"              Claude took Owen's mark on an item (or an Overview section):
                                                    a blue "Claude • Underway" card with Claude's reading of
                                                    the task (a sentence or two, no file names);  spinner on
-  status <name> <id> done ["html"]                 that card turns green "Claude • Done", the reading kept, the
-                                                   summary under it when there's something worth saying;
-                                                   spinner off.  Refused with no underway card
-  status <name> <id> done --filed "html"           a card born done, saying what was filed (inbox apply writes
-                                                   these for picks and todos itself)
+  status <name> <id> done ["html"]                 WORK was done (an answer written, code changed):  that card
+                                                   turns green "Claude • Done", the reading kept, the summary
+                                                   under it when there's something worth saying;  spinner off.
+                                                   Refused with no underway card
+  status <name> <id> noted "html"                  Claude only RECORDED Owen's choice:  a calm "Claude • Noted"
+                                                   card saying what was recorded and what happens next ("Chose
+                                                   B · ...:  recorded;  waiting for the next phase, P9 · ...");
+                                                   an underway card turns noted;  spinner off.  inbox apply
+                                                   writes these for picks, todos and new items itself
+                                                   (done --filed "html":  the older spelling, the same)
   original <name> <id> --file <html> [--as-of "YYYY-MM-DD HH:MM"]
                                                    put earlier text (from git) into an item's Original
                                                    Discussion:  as first written, or dated --as-of (when it was
