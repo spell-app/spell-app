@@ -337,7 +337,16 @@ describe("<epic-page>", () => {
 
 /** The review routes, as `fetch`, over an inbox kept here:  each reply the whole inbox;  `posts` every POST. */
 class FakeRoutes {
-  inbox: Inbox = { marks: {}, drafts: {}, urgency: {}, sent: null, now: [], working: {}, listening: null }
+  inbox: Inbox = {
+    marks: {},
+    drafts: {},
+    urgency: {},
+    sent: null,
+    now: [],
+    working: {},
+    listening: null,
+    unsentComments: []
+  }
   posts: [string, Record<string, unknown>][] = []
 
   readonly fetch = vi.fn(async (input: string, init?: RequestInit): Promise<Response> => {
@@ -345,7 +354,10 @@ class FakeRoutes {
     if (route !== "inbox") {
       const body = JSON.parse(init!.body as string) as Record<string, unknown>
       this.posts.push([route, body])
-      if (route === "send") this.inbox.sent = new Date(Date.now() + 1000).toISOString()
+      if (route === "send") {
+        this.inbox.sent = new Date(Date.now() + 1000).toISOString()
+        this.inbox.unsentComments = []
+      }
       if (route === "new") {
         const at = new Date().toISOString()
         this.inbox.marks.new1 = { ...(body.entry as object), action: "new", at } as Inbox["marks"][string]
@@ -440,6 +452,30 @@ describe("<epic-page> Send and Review Now", () => {
     await expectAccessible(host)
   })
 
+  // Owen, 2026-10-10:  "send button at top of page doesn't appear to be hooked up" -- with only a comment waiting,
+  // Send was grey and a click said "Nothing to send"
+  test("a comment waiting for Claude makes Send blue;  its tooltip counts it;  a click sends", async () => {
+    const routes = new FakeRoutes()
+    const at = new Date().toISOString()
+    routes.inbox.listening = { session: "s1", since: at, seen: at }
+    routes.inbox.unsentComments = ["cm1"]
+    await adoptClient(routes)
+    const host = await render(page("", ["todo"]))
+    await vi.waitFor(() => expect(headerButtons(host).send).not.toBeNull())
+    expect(headerButtons(host)).toEqual({
+      send: ["unsent", "Send 1 comment to Claude"],
+      now: ["ready", "Review Now:  Claude works through 1 comment at once, answers in its item"]
+    })
+    routes.inbox.marks = { q1: { action: "approve", at }, q2: { action: "todo", at } }
+    routes.inbox.unsentComments = ["cm1", "cm2"]
+    await ReviewClient.forPage().refresh()
+    await ElementFixture.tick()
+    expect(headerButtons(host).send).toEqual(["unsent", "Send 2 marks, 2 comments to Claude"])
+    host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="send"]')!.click()
+    await vi.waitFor(() => expect(routes.posts.map(([route]) => route)).toEqual(["send"]))
+    await vi.waitFor(() => expect(headerButtons(host).send).toEqual(["sent", "Sent:  waiting for Claude"]))
+  })
+
   test("the pill copies the review line's command", async () => {
     const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue()
     const routes = new FakeRoutes()
@@ -467,7 +503,7 @@ describe("<epic-page> Send and Review Now", () => {
     expect(button.querySelector("ui-icon")!.getAttribute("name")).toBe("comment dots")
     // nothing waiting:  both there, grey (so they're always in the same place), and no pill
     expect(headerButtons(host)).toEqual({
-      send: ["idle", "Nothing to send:  mark an item first (its buttons)"],
+      send: ["idle", "Nothing to send:  mark an item (its buttons) or leave a comment (its bullhorn)"],
       now: ["idle", "Review Now:  nothing to work through yet"]
     })
     expect(host.shadowRoot!.querySelector('[part~="pill"]')).toBeNull()

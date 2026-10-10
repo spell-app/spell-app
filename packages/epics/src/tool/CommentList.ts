@@ -62,6 +62,8 @@ CommentsError.prototype.name = "CommentsError"
  *   - WHOSE TURN (`turnOf()`):  Owen's once Claude spoke last;  Claude's while Owen did;  nobody's once done
  *   - WAITING (`waiting`):  Claude's turn, and he hasn't taken it yet.  So a reply on a thread is new work, as a
  *     new comment is (`/epic review`, `/airplane land`, `spell dev comments gather`)
+ *     - a plan doc's waiting comment goes to Claude with its page's Send, as a mark does:
+ *       `ReviewInbox.unsentComments`, by Owen's last words (`lastWordsAt()`)
  *   - WORKING (`setWorking()`):  Claude is thinking about it now;  the page shows a "Claude: thinking…" stub at the
  *     thread's end until his answer lands (`answer()` turns it off).  What Owen said before it counts as read:  not
  *     waiting any more, and his last reply no longer his to change (a new one goes after it)
@@ -109,6 +111,20 @@ export class CommentList {
     const spoke = comment.replies?.findLast((reply) => reply.by === OWEN)?.at ?? comment.at
     const held = heldSince(comment)
     return !held || held < spoke
+  }
+
+  /**
+   * When Owen last changed his words on `comment`'s thread, ISO:
+   * the latest of the comment, his replies, and their edits.
+   * - what a plan doc's Send compares with its `sent` (`ReviewInbox.unsentComments`):
+   *   words newer than the last send haven't gone to Claude yet
+   */
+  static lastWordsAt(comment: Comment): string {
+    const times = [comment.at, comment.edited]
+    for (const reply of comment.replies ?? []) if (reply.by === OWEN) times.push(reply.at, reply.edited)
+    return times
+      .filter((each): each is string => !!each)
+      .reduce((latest, each) => (Date.parse(each) > Date.parse(latest) ? each : latest))
   }
 
   /** Comment `id`;  throws a 404 `CommentsError` when there's none. */

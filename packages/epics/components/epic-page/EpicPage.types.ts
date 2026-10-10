@@ -118,15 +118,17 @@ export const OLD_CRUMBS = ":scope > .spell-crumbs"
 /** How long the review line flashes once copied, ms:  as the old runtime's (`FLASH_MS`). */
 export const FLASH_MS = 900
 
-/** The Send button's look:  no marks, some not sent, all sent. */
+/** The Send button's look:  no marks, some marks or comments not sent, all sent. */
 export type SendState = "idle" | "unsent" | "sent"
 
 /** What the header's Send and Review Now show:  from the review inbox, while the page is reviewed. */
 export type HeaderMarks = {
   /** Send's look */
   send: SendState
-  /** marks not sent yet */
+  /** marks (and urgencies) not sent yet */
   unsent: number
+  /** comments waiting for Claude, not sent yet:  Owen's new words on a thread (`ReviewClient.unsentCommentCount`) */
+  comments: number
   /** marks Review Now would have Claude work through:  all but the requests already on their way */
   waiting: number
   /** a Claude session is listening */
