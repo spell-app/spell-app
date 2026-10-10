@@ -145,7 +145,7 @@ describe("SpellDeclarations.importScope()", () => {
     const fromSources = summarize(parseSpellProject(all)).filter(({ path }) => path === "/Solitaire.spell")
     const fromDeclarations = summarize(parseSpellProject(app, { parentScope: importLibrary() }))
     // bar two things.  `set the name of cards-to-move to ...` declares a pile's `name`
-    // only on a type the project declares itself -- see `assignment_statement.declareProperty()`
+    // only on a type the project declares itself -- see `AssignmentStatement.declareProperty()`
     // -- and so only there asks what it is
     const autoDeclared =
       /\/\*! SPELL: DECLARES \{\n {2}property: "name", of: "Pile", autoDeclared: true,\n.*\n\} \*\/\n(.*\n){5}/

@@ -24,7 +24,7 @@ export const draw = new SpellParser({ module: "draw" })
  * Draw a single thing, e.g. `draw the card` => `spellCore.drawThing(card)`.
  * - `drawThing()` draws it as its reactive `Component`, which re-renders when what its `draw()` read changes.
  */
-class draw_thing extends SpellStatement<"expression"> {
+class DrawThing extends SpellStatement<"expression"> {
   /** An expression (JSX `{draw …}`) AND a statement:  as a statement, a project's own `draw` method would win. */
   @proto static alias = ["statement", "expression"]
   /**
@@ -40,7 +40,7 @@ class draw_thing extends SpellStatement<"expression"> {
     })
   }
 }
-draw.addRule(draw_thing, {
+draw.addRule(DrawThing, {
   syntax: "draw {expression}"
 })
 
@@ -55,7 +55,7 @@ draw.addRule(draw_thing, {
  *   but never read in `getAST()`, only the trailing `{expression}` (the container) is compiled, e.g.
  *   `draw each card in the deck` => `spellCore.drawItems(deck)`.
  */
-class draw_items extends SpellStatement<"variable?|plural_identifier?|expression"> {
+class DrawItems extends SpellStatement<"variable?|plural_identifier?|expression"> {
   /** An expression (JSX `{draw …}`) AND a statement:  as a statement, a project's own `draw` method would win. */
   @proto static alias = ["statement", "expression"]
   /**
@@ -71,7 +71,7 @@ class draw_items extends SpellStatement<"variable?|plural_identifier?|expression
     })
   }
 }
-draw.addRule(draw_items, {
+draw.addRule(DrawItems, {
   syntax: "draw (each {variable}|(the|all)? {plural_identifier}) (of|in) {expression}",
   tests: [
     {
@@ -111,7 +111,7 @@ draw.addRule(draw_items, {
 ////////////////
 
 /** Start a scoped `App`/`Drawable`, e.g. `start the game` => `game.start()` (a method call, not a global). */
-class start_app extends SpellStatement<"app"> {
+class StartApp extends SpellStatement<"app"> {
   @proto static alias = "statement"
 
   getAST(match: P.MatchFor<this>) {
@@ -121,6 +121,6 @@ class start_app extends SpellStatement<"app"> {
     })
   }
 }
-draw.addRule(start_app, {
+draw.addRule(StartApp, {
   syntax: "start {app:expression}"
 })

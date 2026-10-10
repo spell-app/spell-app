@@ -248,7 +248,7 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
 
 /**
  * A property `set the X of Y to ...` declared at its first set, as `Y`'s type never did.
- * - Noted on that `set`'s match as `data.autoDeclared` (see `assignment_statement`), for its FILE to compile once:
+ * - Noted on that `set`'s match as `data.autoDeclared` (see `AssignmentStatement`), for its FILE to compile once:
  *   `Card.declareProp('pile', { type: 'Pile' })` + `Object.defineProperty(Card.prototype, 'pile', ...)`.
  * - See `SP.Block.autoDeclarations()`.
  */

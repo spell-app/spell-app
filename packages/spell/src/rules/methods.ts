@@ -310,7 +310,7 @@ export class MethodInfixRule extends InfixOperatorSuffix {
 
   /**
    * Match, unless a side is KNOWN to be the wrong type -- as `DynamicMethodRule.parse()`.
-   * - Our left side, when `compound_expression` knows it:  see `SuffixLeft`.
+   * - Our left side, when `CompoundExpression` knows it:  see `SuffixLeft`.
    */
   parse(scope: P.Scope, tokens: P.Token[]): P.Match | undefined {
     if (!SuffixLeft.couldBeA(scope, this.thisType)) return undefined
@@ -347,7 +347,7 @@ export class MethodInfixRule extends InfixOperatorSuffix {
  *   promoted via `inlineInitialType`), or a postfix/infix expression (`quoted_type_expression` only).
  * - Also registers the generated call-site rule (`getRule()`) onto `scope.parser` (`mutateScope()`), so the
  *   new syntax is usable immediately after the definition.
- * - Generic pass-through: each subclass has its own `signature` group typing, e.g. `to_do_something extends
+ * - Generic pass-through: each subclass has its own `signature` group typing, e.g. `ToDoSomething extends
  *   MethodDefinition<"asTest?|signature|body?">`.  `MethodDefinitionData` (`signature`,
  *   the processed/cached result of `getSignature()`) is ALWAYS added on top of whatever `MatchData` a
  *   subclass declares.
@@ -590,7 +590,7 @@ export class MethodDefinition<
    * Register the CALL SITE rule directly onto `match.scope.parser` -- called by `mutateScope()`, this is
    * what makes `notify 1`, `card.play()`, `card is a bug`, etc. parseable after their
    * `to`/`animation`/quoted definitions.
-   * - `asPostfixExpression`/`asInfixExpression` (set by `quoted_type_expression.processSignature()`) register
+   * - `asPostfixExpression`/`asInfixExpression` (set by `QuotedTypeExpression.processSignature()`) register
    *   a `MethodPostfixRule`/`MethodInfixRule`.
    * - Otherwise registers a `DynamicMethodRule`, aliased `"statement"` when
    *   `asTest` (so it can't be used as an expression), else `["statement", "expression"]`.
@@ -821,7 +821,7 @@ const DANGLING_WORDS =
  * - `method` contributes the (dash-normalized) word to the signature's `methodBits`; `syntax` contributes
  *   its raw, unmodified text to the rule's rulex `syntax`.
  */
-class method_keyword extends P.Pattern<never, MethodArgData> {
+class MethodKeyword extends P.Pattern<never, MethodArgData> {
   @proto static pattern = /^[a-zA-Z][\w-]*$/
   @proto static highlightAs: P.HighlightKind = "function"
 
@@ -840,7 +840,7 @@ class method_keyword extends P.Pattern<never, MethodArgData> {
     return match
   }
 }
-methods.addRule(method_keyword)
+methods.addRule(MethodKeyword)
 
 ////////////////
 // ## `var_method_arg` rule
@@ -856,7 +856,7 @@ methods.addRule(method_keyword)
  * - It says nothing of what it holds, so it asks (epic `output-targets`, Q24):  a warning,
  *   e.g. `Say what "digit" is, e.g. "(digit as text)"` -- see `typed_method_arg`.
  */
-class var_method_arg extends SpellIdentifier<MethodArgData> {
+class VarMethodArg extends SpellIdentifier<MethodArgData> {
   @proto static alias = ["method_arg", "simple_method_arg"]
   @proto static highlightAs: P.HighlightKind = "parameter"
 
@@ -875,7 +875,7 @@ class var_method_arg extends SpellIdentifier<MethodArgData> {
     return match
   }
 }
-methods.addRule(var_method_arg)
+methods.addRule(VarMethodArg)
 
 ////////////////
 // ## `valued_var_method_arg` rule
@@ -890,7 +890,7 @@ methods.addRule(var_method_arg)
  * - `method`/`syntax` are the same as `var_method_arg`'s (`$name` / `{callArgs:expression}`) -- the default
  *   value only affects the generated function parameter (`arg.default`), not the call syntax.
  */
-class valued_var_method_arg extends SpellStatement<"identifier|value", MethodArgData> {
+class ValuedVarMethodArg extends SpellStatement<"identifier|value", MethodArgData> {
   @proto static alias = ["method_arg", "simple_method_arg"]
 
   parse(scope: P.Scope, tokens: P.Token[]) {
@@ -908,7 +908,7 @@ class valued_var_method_arg extends SpellStatement<"identifier|value", MethodArg
     return match
   }
 }
-methods.addRule(valued_var_method_arg, {
+methods.addRule(ValuedVarMethodArg, {
   syntax: `{identifier} (=|is|of|as|set to) {value:expression}`
 })
 
@@ -921,11 +921,11 @@ methods.addRule(valued_var_method_arg, {
  * Bare type name inside parens, e.g. `(a card)` in `to create (a card): ...`.
  * - `method` bit uses the raw matched text (`type.raw`); `arg.name` uses `instanceCase(type.value)` --
  *   see the existing `TODO` on `method` below.
- * - When this is the FIRST type found in a `to`/`animation` signature, `method_signature`'s
+ * - When this is the FIRST type found in a `to`/`animation` signature, `MethodSignature`'s
  *   `parse()` records it in `types`, and `MethodDefinition.processSignature()` later promotes
  *   it to an instance-method receiver (`thisArg`) rather than a call argument.
  */
-class type_method_arg extends P.Sequence<"type", MethodArgData> {
+class TypeMethodArg extends P.Sequence<"type", MethodArgData> {
   @proto static alias = ["method_arg", "simple_method_arg"]
 
   parse(scope: P.Scope, tokens: P.Token[]) {
@@ -945,7 +945,7 @@ class type_method_arg extends P.Sequence<"type", MethodArgData> {
     return match
   }
 }
-methods.addRule(type_method_arg, {
+methods.addRule(TypeMethodArg, {
   syntax: `(a|an) {type}`
 })
 
@@ -963,12 +963,12 @@ methods.addRule(type_method_arg, {
  * - Read by `method_signature` exactly as `type_method_arg` is -- see `buildSignatureData()`.
  * - NOT a `method_arg`:  only `method_signature` takes it, outside parens.
  */
-class bare_type_arg extends type_method_arg {
+class BareTypeArg extends TypeMethodArg {
   @proto static alias = []
   /** Editors colour its type's word, `card`, as the parameter it names. */
   @proto static highlightAs: P.HighlightKind = "parameter"
 }
-methods.addRule(bare_type_arg, {
+methods.addRule(BareTypeArg, {
   syntax: `(a|an) {type:known_type}`
 })
 
@@ -985,7 +985,7 @@ methods.addRule(bare_type_arg, {
  * - `method`/`syntax` match `var_method_arg`'s (`$name` / `{callArgs:expression}`) -- the type only
  *   annotates the arg, it doesn't change the generated method name or call syntax.
  */
-class typed_method_arg extends P.Sequence<"identifier|type", MethodArgData> {
+class TypedMethodArg extends P.Sequence<"identifier|type", MethodArgData> {
   @proto static alias = ["method_arg", "simple_method_arg"]
 
   parse(scope: P.Scope, tokens: P.Token[]) {
@@ -1006,7 +1006,7 @@ class typed_method_arg extends P.Sequence<"identifier|type", MethodArgData> {
     return match
   }
 }
-methods.addRule(typed_method_arg, {
+methods.addRule(TypedMethodArg, {
   syntax: `{identifier} as (a|an)? {type}`
 })
 
@@ -1032,7 +1032,7 @@ methods.addRule(typed_method_arg, {
  * - `match.data.props` (an array of `P.ASTVariableExpression`) is also what `events.ts`'s `on` rule reads
  *   directly off a matched `{props:with_props_arg}` group -- see `on.getNestedScopeForMatch()`/`getAST()`.
  */
-export class with_props_arg extends P.Sequence<never, MethodArgData> {
+export class WithPropsArg extends P.Sequence<never, MethodArgData> {
   @proto static alias = ["method_arg"]
 
   /** Map each comma/`and`-joined item's `arg` into `props`, and build the synthetic `props` catch-all arg. */
@@ -1053,7 +1053,7 @@ export class with_props_arg extends P.Sequence<never, MethodArgData> {
     return match
   }
 }
-methods.addRule(with_props_arg, {
+methods.addRule(WithPropsArg, {
   syntax: "with [{simple_method_arg} (,|and)]"
 })
 
@@ -1072,7 +1072,7 @@ methods.addRule(with_props_arg, {
  *   `methodName`/`syntax` by `MethodDefinition.computeSignature()`), `args`, `types` (candidate
  *   instance-method receivers), `extraVars` and `props` into `match.data` -- see `MethodSignatureData`.
  */
-class method_signature extends P.Repeat<never, MethodSignatureData> {
+class MethodSignature extends P.Repeat<never, MethodSignatureData> {
   /** Build `match.data`, then reject the match entirely if no keyword was found -- arg-only signatures
    *  (e.g. `to (foo)`) are invalid. */
   parse(scope: P.Scope, tokens: P.Token[]) {
@@ -1096,7 +1096,7 @@ class method_signature extends P.Repeat<never, MethodSignatureData> {
     const data = match.data
     data.items = match.items.map(
       (item) =>
-        (item.is(method_keyword) || item.is(bare_type_arg)
+        (item.is(MethodKeyword) || item.is(BareTypeArg)
           ? item.data
           : (item.matched[1] as P.Match).data) as MethodArgData
     )
@@ -1158,7 +1158,7 @@ class method_signature extends P.Repeat<never, MethodSignatureData> {
     })
   }
 }
-methods.addRule(method_signature, {
+methods.addRule(MethodSignature, {
   syntax: `({bare_type_arg}|{method_keyword}|\\( {method_arg} \\))+`
 })
 
@@ -1177,7 +1177,7 @@ methods.addRule(method_signature, {
  *   `method_signature`.
  * - Its parameters' warnings are noted again on it, about the quoted text -- see `SP.SpellWarnings.in()`.
  */
-class quoted_method_signature extends P.TokenType {
+class QuotedMethodSignature extends P.TokenType {
   @proto static tokenType = P.TextToken
   @proto static highlightAs: P.HighlightKind = "function"
 
@@ -1190,7 +1190,7 @@ class quoted_method_signature extends P.TokenType {
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens)
     const signature =
-      match && (scope.parse(JSON.parse(match.value), "method_signature") as P.MatchFor<method_signature> | undefined)
+      match && (scope.parse(JSON.parse(match.value), "method_signature") as P.MatchFor<MethodSignature> | undefined)
     if (!signature || !signature.data.foundKeyword) return undefined
     // its warnings are about words in the quotes, whose positions are the string's:  shown under the quotes
     for (const { message } of SP.SpellWarnings.in(signature)) SP.SpellWarnings.note(signature, message, match)
@@ -1200,7 +1200,7 @@ class quoted_method_signature extends P.TokenType {
     return signature
   }
 }
-methods.addRule(quoted_method_signature)
+methods.addRule(QuotedMethodSignature)
 
 ////////////////
 // ## `to_do_something` rule
@@ -1218,12 +1218,12 @@ methods.addRule(quoted_method_signature)
  * - Trailing `:` is optional so both `to foo the bar` (no body) and `to foo the bar:` (body follows)
  *   parse.
  */
-class to_do_something extends MethodDefinition<"asTest?|signature|body?"> {
+class ToDoSomething extends MethodDefinition<"asTest?|signature|body?"> {
   @proto static alias = "statement"
   // promote the first captured type arg (e.g. `(a card)`) to an instance-method receiver
   @proto static inlineInitialType = true
 }
-methods.addRule(to_do_something, {
+methods.addRule(ToDoSomething, {
   // TODO: add tests for `test` case
   syntax: `to (asTest:test)? {signature:method_signature} :? {statement_body}?`,
   tests: [
@@ -1839,12 +1839,12 @@ methods.addRule(to_do_something, {
  *   StopProcessInvocation }` -- which is what makes re-invoking a running animation a no-op (see
  *   `spellCore.processIsRunning()` in the compiled output) and always stops the process on the way out.
  */
-class create_animation extends MethodDefinition<"asAnimation|signature|body?"> {
+class CreateAnimation extends MethodDefinition<"asAnimation|signature|body?"> {
   @proto static alias = "statement"
   // promote the first captured type arg (e.g. `(a card)`) to an instance-method receiver
   @proto static inlineInitialType = true
 }
-methods.addRule(create_animation, {
+methods.addRule(CreateAnimation, {
   syntax: `(asAnimation:create? animation) {signature:method_signature} :? {statement_body}?`,
   tests: [
     {
@@ -1938,7 +1938,7 @@ methods.addRule(create_animation, {
  *   phrasing (`is`/`is not`/`isn't`/`isnt`) compile to the same rule with `shouldNegateOutput()` flipping
  *   the output.
  */
-class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
+class QuotedTypeExpression extends MethodDefinition<"type|signature|body?"> {
   @proto static priority = Priority.belowDeclaration
   @proto static alias = "statement"
 
@@ -1965,12 +1965,12 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
       }
       const refused = SpellStatement.refuseUnknownType(match, match.groups.type)
       if (refused !== match) return refused
-      if (quoted_type_expression.isPropertySlip(scope, tokens)) {
+      if (QuotedTypeExpression.isPropertySlip(scope, tokens)) {
         const whole = match.clone({ matched: tokens, tokens: [...tokens] })
         const name = (tokens[1] as P.TextToken).innerText
         return SpellStatement.refuse(whole, `A property starts "its":  write its "${name}" is ...`)
       }
-      if (quoted_type_expression.isBodiless(match, tokens)) {
+      if (QuotedTypeExpression.isBodiless(match, tokens)) {
         const phrase = match.groups.signature.inputText.trim()
         return SpellStatement.refuse(match, `${phrase} has no body:  write ${phrase} always, or ${phrase} if ...`)
       }
@@ -1984,7 +1984,7 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
    * - Refused, saying so:  it'd compile to an empty method, `get can_move() {}`, always `undefined`.
    * - A dangling `if` is fine:  its body may be the indented lines below.
    */
-  private static isBodiless(match: P.MatchFor<quoted_type_expression>, tokens: P.Token[]): boolean {
+  private static isBodiless(match: P.MatchFor<QuotedTypeExpression>, tokens: P.Token[]): boolean {
     const lastOfSignature = match.groups.signature.tokens.at(-1)
     const after = tokens.slice(tokens.indexOf(lastOfSignature!) + 1)
     return !after.join("").trim()
@@ -2054,7 +2054,7 @@ class quoted_type_expression extends MethodDefinition<"type|signature|body?"> {
     return signature
   }
 }
-methods.addRule(quoted_type_expression, {
+methods.addRule(QuotedTypeExpression, {
   syntax: "(a|an) {type:singular_type} {signature:quoted_method_signature} (if|is)? :? {expression_body}?",
   tests: [
     {
@@ -2365,7 +2365,7 @@ methods.addRule(quoted_type_expression, {
   ]
 })
 // in an outline body:  `- it "is face up" if its direction is up` -- tests in `parserTests/outline.test.ts`
-methods.addRule(quoted_type_expression, {
+methods.addRule(QuotedTypeExpression, {
   syntax: "{type:subject_it} {signature:quoted_method_signature} (if|is)? :? {expression_body}?"
 })
 
@@ -2374,7 +2374,7 @@ methods.addRule(quoted_type_expression, {
 ////////////////
 
 /**
- * Data `method_signature`'s `parse()` builds into `match.data`, then `MethodDefinition.processSignature()`
+ * Data `MethodSignature`'s `parse()` builds into `match.data`, then `MethodDefinition.processSignature()`
  * (and overrides, e.g. `quoted_type_expression`) further mutates.
  */
 type MethodSignatureData = {
@@ -2407,15 +2407,15 @@ type MethodSignatureData = {
   /** Type to add an instance method to, set by `processSignature()`. */
   instanceType: string | undefined
   /** `true` when the definition compiles to a postfix expression (e.g. `card.is_a_bug`) instead of a callable
-   *  method -- set by `MethodDefinition.processSignature()` / `quoted_type_expression.processSignature()`. */
+   *  method -- set by `MethodDefinition.processSignature()` / `QuotedTypeExpression.processSignature()`. */
   asPostfixExpression?: boolean
   /** `true` when it compiles to an infix expression (e.g. `card.nerds_out_with_$another(thing)`) -- set by
-   *  `MethodDefinition.processSignature()` / `quoted_type_expression.processSignature()`. */
+   *  `MethodDefinition.processSignature()` / `QuotedTypeExpression.processSignature()`. */
   asInfixExpression?: boolean
   /**
    * A phrase on a VALUE kind, e.g. `Rank` for `a rank "is a face card" if ...` (plan doc `outline-spell`, P3):
    * its values are plain text, so the method is the kind's STATIC one, given the value -- `Rank.is_a_face_card(r)`.
-   * Set by `quoted_type_expression.processSignature()`;  postfix only.
+   * Set by `QuotedTypeExpression.processSignature()`;  postfix only.
    */
   valueKindOf?: string
 }

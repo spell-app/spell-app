@@ -24,7 +24,7 @@ export const tests = new SpellParser({ module: "tests" })
  * `expect {expression}` or `expect {expression} to be {value}` -- an assertion.
  * - e.g. `expect the rank of it to be "queen"` => `spellCore.expect(it.rank, ..., "queen", ...)`.
  */
-class expect_test extends SpellStatement<"expression|value?"> {
+class ExpectTest extends SpellStatement<"expression|value?"> {
   @proto static alias = ["statement"]
 
   getAST(match: P.MatchFor<this>) {
@@ -40,7 +40,7 @@ class expect_test extends SpellStatement<"expression|value?"> {
     })
   }
 }
-tests.addRule(expect_test, {
+tests.addRule(ExpectTest, {
   syntax: "expect that? {expression} (to be {value:expression})?",
   tests: [
     {
@@ -82,7 +82,7 @@ tests.addRule(expect_test, {
  * `start test {message}` or `start quiet test {message}` -- marks beginning of a named test run.
  * - `quiet` suppresses normal test output (e.g. for tests nested inside other tests).
  */
-class start_test extends SpellStatement<"quiet?|message"> {
+class StartTest extends SpellStatement<"quiet?|message"> {
   @proto static alias = "statement"
 
   getAST(match: P.MatchFor<this>) {
@@ -93,7 +93,7 @@ class start_test extends SpellStatement<"quiet?|message"> {
     })
   }
 }
-tests.addRule(start_test, {
+tests.addRule(StartTest, {
   syntax: "start (quiet:quiet)? test {message:text}"
 })
 
@@ -103,7 +103,7 @@ tests.addRule(start_test, {
 ////////////////
 
 /** `end test` -- marks end of the current named test run started by `start_test`. */
-class end_test extends SpellStatement {
+class EndTest extends SpellStatement {
   @proto static alias = "statement"
 
   getAST(match: P.MatchFor<this>) {
@@ -112,7 +112,7 @@ class end_test extends SpellStatement {
     })
   }
 }
-tests.addRule(end_test, {
+tests.addRule(EndTest, {
   syntax: "end test"
 })
 
@@ -122,7 +122,7 @@ tests.addRule(end_test, {
 ////////////////
 
 /** `echo {expression}` -- print `expression`'s value, e.g. for debugging. */
-class echo extends SpellStatement<"expression"> {
+class Echo extends SpellStatement<"expression"> {
   @proto static alias = ["statement"]
 
   getAST(match: P.MatchFor<this>) {
@@ -132,7 +132,7 @@ class echo extends SpellStatement<"expression"> {
     })
   }
 }
-tests.addRule(echo, {
+tests.addRule(Echo, {
   syntax: "echo {expression}",
   tests: [
     {

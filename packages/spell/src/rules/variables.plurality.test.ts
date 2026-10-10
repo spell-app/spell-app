@@ -1,13 +1,13 @@
 import { describe, test, expect } from "vite-plus/test"
 import { spellParser } from "$/spell"
-import { variable, SpellIdentifier } from "./variables"
+import { Variable, SpellIdentifier } from "./variables"
 
 /** Plurality of `input` parsed as `ruleName`, asked the way other rules would ask. */
 function pluralityOf(input: string, ruleName: string) {
   const scope = spellParser.getScope("test_plurality")
   if (ruleName === "known_variable") scope.variables.add(input.replace(/^the /, ""))
   const match = scope.parse(input, ruleName)
-  if (match?.is(variable)) return match.rule.getPlurality(match)
+  if (match?.is(Variable)) return match.rule.getPlurality(match)
   if (match?.is(SpellIdentifier)) return match.rule.getPlurality(match)
   return undefined
 }

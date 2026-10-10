@@ -13,7 +13,7 @@ import { SpellParser } from "$/spell/SpellParser"
 
 // Structural rule classes, registered directly below.
 import { Block, type DocComment } from "./Block"
-import { BlockLine, blank_line } from "./BlockLine"
+import { BlockLine, SpellBlankLine } from "./BlockLine"
 import { commitStatement, SpellStatement } from "./Statement"
 
 // The following define "modules" of rule sets, which will be combined below.
@@ -73,8 +73,8 @@ export { Block, BlockLine }
 /** `JSX.ts`'s `match.data` shape for `jsxElement`/`jsxAttribute`/`jsxExpression` matches -- e.g. for UI code that reads them. */
 export type { JSXMatchData }
 
-// Structural rules.  The last three set `static ruleName` since their class names are `Type_Case`, not rule case.
-spellParser.addRule(blank_line)
+// Structural rules.  `SpellBlankLine` and `BlockLine` set `static ruleName`:  their class names don't give them.
+spellParser.addRule(SpellBlankLine)
 spellParser.addRule(Block)
 spellParser.addRule(BlockLine)
 spellParser.addRule(ParseError)

@@ -20,14 +20,14 @@ export const statements = new SpellParser({ module: "statements" })
 ////////////////
 
 /** No-op statement -- compiles to `spellCore.doNothing()`. */
-class do_nothing extends SpellStatement {
+class DoNothing extends SpellStatement {
   @proto static alias = "statement"
 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     return new P.ASTCoreMethodInvocation(match, { methodName: "doNothing" })
   }
 }
-statements.addRule(do_nothing, {
+statements.addRule(DoNothing, {
   syntax: "do nothing",
   tests: [
     {

@@ -1,6 +1,6 @@
 import { proto } from "$/util"
 import { P } from "$/parser"
-import { with_props_arg } from "$/spell/rules/methods"
+import { WithPropsArg } from "$/spell/rules/methods"
 // Import directly to avoid circular import
 import { SpellStatement } from "$/spell/rules/Statement"
 import { events } from "./events.parser"
@@ -28,10 +28,10 @@ export class On extends SpellStatement<"eventName|props?|body?"> {
   getNestedScopeForMatch(match: P.MatchFor<this>) {
     const { eventName, props } = match.groups
     const args: P.ScopeVariableProps[] = [{ name: "event" }]
-    // `with_props_arg`'s own `parse()` (in methods) stashes its prop `P.ASTVariableExpression`s
+    // `WithPropsArg`'s own `parse()` (in methods) stashes its prop `P.ASTVariableExpression`s
     // directly on `match.data.props` -- narrow via `is()` to read them typed, rather than the generic
     // `props` group.
-    if (props?.is(with_props_arg)) {
+    if (props?.is(WithPropsArg)) {
       for (const { name, datatype } of props.data.props ?? []) {
         args.push({ name, datatype: typeof datatype === "string" ? datatype : undefined })
       }
@@ -60,7 +60,7 @@ export class On extends SpellStatement<"eventName|props?|body?"> {
       })
       // If they specified event props to pay attention to,
       // look them up at the start of the message
-      if (props?.is(with_props_arg) && props.data.props) {
+      if (props?.is(WithPropsArg) && props.data.props) {
         method.body.statements!.unshift(
           new P.ASTDestructuredAssignment(props, {
             thing: event,
