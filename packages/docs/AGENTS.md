@@ -582,7 +582,11 @@ In `tools/`:
     - a plan doc's items, phase fields, summary and Overview prose
     - the page header:  the whole page
     - Quiet until hovered.
-      Always shown, with a count, once the block has comments.
+      Always shown, with a count ("📢 2"), once the block has comments.
+    - Its look gives their state, by the fill rule:  outlined while they all wait for Claude, solid once he has one.
+      An orange dot while one has news Owen hasn't read.
+    - A click with comments there:  a short list of them (first words, state), then New comment (`openPicker()`).
+      That's how a waiting comment, which has no card, is reached;  or a click on its highlighted quote.
   - Or on SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn floating beside the selection.
     - The comment keeps the quote, highlighted softly on the page while the comment exists.
   - The box is a small floating PANE (Owen, 2026-10-10), fixed on the screen:
@@ -605,20 +609,33 @@ In `tools/`:
       bullhorn opened with it, and closing the pane saved it again, as a new comment.
       A new comment's draft that copies a comment already on its block is dropped.
   - DELETE:  a trash on every comment's card, and in the pane's header (Owen, 2026-10-10).
-    - Icon only, its tooltip says what it does;  two clicks, no dialog:
-      the first turns it red, "Click again to delete", for 3s.
+    - Icon only, its tooltip says what it does;  ONE click deletes at once, no dialog.
+    - A toast says "Comment deleted", with Undo for 6s (`UNDO_MS`).
+      - Undo puts it back as it was:  same block, quote and highlight, text, dates, state, Claude's answers.
+      - Its id stays, unless a new comment took it meanwhile (`restore`, below).
+      - Before 2026-10-10 the trash took two clicks, the first turning it red:  Owen clicked once, and thought it broken.
     - `delete` while the comment waits for Claude;  `clear` once Claude has it (a taken one stays in its epic).
   - A click on a highlighted quote opens its comment in the pane again:
     - still waiting for Claude:  to edit
     - taken or answered:  to read, with Claude's answers, and the trash
-  - Each comment shows under its block as a card, drawn as the pane is (Owen, 2026-10-10:  "bullhorn popup looks
-    good.  These are ugly"):
+  - CARDS ONLY FOR NEWS (Owen, 2026-10-10:  "cards only when news"):
+    - A comment waiting for Claude has no card.
+    - One Claude has taken (a guide's, into `guide-changes`) or answered shows a card, folded, until Owen reads it.
+    - Read:  he unfolded the card (it stays until he leaves the page), or opened the comment in the pane (it goes).
+    - Kept per page in this browser, `spell-comment-read:<path>` in `localStorage`:  each comment's latest news stamp
+      (its last answer, else when it was taken).  A newer answer brings the card back.
+  - Where a card goes (Owen, 2026-10-10:  "show them under the paragraph where they were defined"):
+    - a text comment's:  right after the smallest paragraph, list item, cell ... holding its quote (`holderOf()`);
+      inside a list item or cell, at its end
+    - else under its block, as before;  a docs section's first in its body
+  - A card is drawn as the pane is (Owen, 2026-10-10:  "bullhorn popup looks good.  These are ugly"):
     - one ivory panel, the pane's outline, corners and 8px inside;  no shadow
-    - its header the pane's:  the bullhorn, "Owen" (folded:  the comment's first line), its state, the date,
-      then the trash, and the pen (Edit) at the far right
+    - its header the pane's summary (`headline()`:  the quote's first words, else the block's), not "Owen"
+      - its tooltip the full place;  then its state, the date, the trash
+    - NO quote in it (Owen, 2026-10-10:  "I still don't care about the fully selected text")
     - its text in a box as the pane's field;  Claude's answers in it, violet
-    - The state, quiet:  "Waiting for Claude" / "Taken by Claude" / "Answered", after a dot by the fill rule
-      (a ring while it waits, solid once Claude has it).
+    - The state, quiet:  "Taken by Claude" / "Answered" (the bullhorn's list:  "Waiting for Claude" too),
+      after a dot by the fill rule (a ring while it waits, solid once Claude has it).
     - Its icon buttons, and the pane's (×, the trash), are plain:  no ring, a tint under the pointer.
   - Built for reading offline, with no Claude:  only the page server writes them.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
@@ -632,9 +649,10 @@ In `tools/`:
   - a text comment also has its `quote` and `offset`
 - The routes:  [commentsRoutes.ts](tools/commentsRoutes.ts)
   - `GET /api/comments?page=` (`takesComments`, every comment)
-  - `POST /api/comments { page, action: add | edit | delete | clear, ... }`
+  - `POST /api/comments { page, action: add | edit | delete | clear | restore, ... }`
     - edit and delete only while `new`;  clear whatever its state
     - add and edit need text:  blank is a 400
+    - `restore { id, comment }`:  the trash's Undo, the comment as the GET gave it (`CommentList.restore()`)
   - pages under `guides/`, `pages/`, `epics/` (plan docs too)
   - NOT:
     - a plan doc's `parts/`

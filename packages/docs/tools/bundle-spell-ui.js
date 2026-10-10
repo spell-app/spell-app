@@ -211,6 +211,7 @@ const ICONS = {
   "solid/plus": ["plus"],
   "solid/pen": ["pen"],
   "solid/trash-can": ["trash can"],
+  "solid/rotate-left": ["rotate left", "undo alternate"], // Undo, in the toast after a comment's deleted
   "solid/plug": ["plug"],
   "solid/circle-play": ["circle play"],
   "solid/circle-pause": ["circle pause"], // an epic's state:  paused (`$/server/site/EpicState`)
