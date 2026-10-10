@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vite-plus/test"
 import { spellParser } from "$/spell"
-import { Variable, SpellIdentifier } from "./variables"
+import { Variable, SpellIdentifier } from "$/spell/rules/variables"
 
 /** Plurality of `input` parsed as `ruleName`, asked the way other rules would ask. */
 function pluralityOf(input: string, ruleName: string) {
