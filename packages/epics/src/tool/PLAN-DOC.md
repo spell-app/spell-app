@@ -175,9 +175,20 @@ As `plan-doc.md`, "Ids":
   - `phase`:  the phase active when it was added
   - review marks:  `reviewed`, `deferred`, `queued` (`YYYY-MM-DD`), `work`, `working`, and `review-as`:
     how Owen's mark was handled
-    (`approve`, `todo`, `revisit`, `now` -- a Do Now request done, written by `inbox done`)
+    (`approve`, `todo`, `revisit`, `now` -- a Do Now request done, written by `inbox done`;
+    `next`, `drop` -- a todo queued into the next phase, or dropped)
     - `review-as` is the record (the log, `review` outcomes, the state above), never drawn on the buttons:
       once Claude has handled a mark they clear, and the chip shows the result
+- A TODO's review buttons (Owen, 2026-10-09):  the plane, Revisit, the x, one group;  no Approve, Make Todo or Do Now.
+  - the plane (`next`, green):  "Do it in the next phase".  `inbox apply` queues it into the first phase whose
+    status is `todo` (`queued`, `work` `P10 · <name>`;  none:  `the next phase`, and its line says so), with a Done
+    status card `Queued for P10 · <name>`;  reviewed
+  - Revisit (blue):  "Revisit:  I'm adding a note for you";  answered as any revisit
+  - the x (`drop`, grey):  "Drop it".  `inbox apply` cancels it (struck through, grey;  the log
+    `T3 canceled:  dropped by Owen in review`);  reviewed
+  - its note box matches:  the plane, Revisit Later, the x.  The plane or the x takes the note in the box along;
+    `inbox apply` keeps it first, as Owen's `<epic-reply re="next phase">` (or `re="drop"`)
+  - every other kind keeps Approve, Revisit, Make Todo and Do Now (the wand)
 - Options:  `<epic-choices>` of `<epic-option letter title recommended>`, the same open or answered.
   - `chosen` once answered (`decide --option B`, a pick);  mark ONE `recommended`
   - on ANY item kind (P14):  a question's own after its text,
@@ -299,12 +310,12 @@ Drawn, never written:  one meaning per colour on every element (decision Q20, Ow
 | ------ | ---------------------------------------- | ---------------------------------------------------------------------- |
 | red    | needs Owen                               | `attention` chips;  the rail's count (only what needs him)             |
 | yellow | open, still undecided (DARK text on it)  | `open` chips;  a `to do` review label                                  |
-| blue   | do it now, or Claude is working on it    | `progress` chips;  Revisit, Do Now, Send, Review Now;  Underway cards;  the active phase |
-| green  | decided or done (however long ago)       | `recent` chips;  Approve, Make Todo, a pick, the chosen option;  Done cards;  DONE |
+| blue   | do it now, or Claude is working on it    | `progress` chips;  Revisit, Do Now and Review Now (both the wand), Send;  Underway cards;  the active phase |
+| green  | decided or done (however long ago)       | `recent` chips;  Approve, Make Todo, a todo's plane (next phase), a pick, the chosen option;  Done cards;  DONE |
 | orange | changed since Owen looked, or a warning;  an item Claude answered with options, waiting for Owen's pick (Owen, 2026-10-09) | UPDATE, the Updated fence, Plan changes;  "nobody is listening";  a blocked agent;  `replied` chips (DARK text on them), counted on the rail as needing Owen |
 | violet | Claude's voice                           | his reply cards;  the bedtime label                                    |
 | ivory  | Owen's voice                             | his note box, marked note, reply cards, the answer card                |
-| grey   | no longer relevant, inactive, not chosen | `old` chips (canceled);  a phase to do;  FUTURE;  buttons at rest      |
+| grey   | no longer relevant, inactive, not chosen | `old` chips (canceled);  a todo's x (drop it);  a phase to do;  FUTURE;  buttons at rest |
 
 The FILL, on every button, pill and chip with a lifecycle (review buttons, the note box's, the pick's letter, the
 Choose pill and its card, Send).  The review buttons are Owen's INPUT (Owen, 2026-10-08):

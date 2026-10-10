@@ -130,6 +130,62 @@ test("apply:  a sent todo gets a status card born done, saying what was filed (Q
   expect(plan.findItem("j2")!.querySelector("epic-status")).toBeNull()
 })
 
+test("apply:  a todo's plane queues it into the first phase still to do, with a Done card;  its x cancels it", async () => {
+  const plan = PlanDoc.parse(readFileSync(file, "utf8"))
+  plan.addPhase("Bring It In")
+  plan.addPhase("Fold Into Elements")
+  plan.setPhase(1, "active")
+  plan.addItem("todo", "tidy the routes")
+  plan.addItem("todo", "an old idea")
+  plan.updateStates()
+  writeFileSync(file, plan.toString())
+  ReviewInbox.update(inboxFile, (inbox) => {
+    inbox.setMark("t1", { action: "next", note: "after the merge" }, T1)
+    inbox.setMark("t2", { action: "drop" }, T1)
+    inbox.markSent(T2)
+  })
+  await commands().inbox.run("x", file, ["apply"], {})
+  const after = PlanDoc.parse(readFileSync(file, "utf8"))
+  const t1 = after.findItem("t1")!
+  expect([t1.getAttribute("queued"), t1.getAttribute("work"), t1.getAttribute("review-as")]).toEqual([
+    after.today,
+    "P2 · Fold Into Elements",
+    "next"
+  ])
+  const card = t1.querySelector(':scope > epic-status[slot="status"]')!
+  expect([card.getAttribute("state"), card.textContent]).toEqual(["done", "Queued for P2 · Fold Into Elements"])
+  // Owen's note kept, as his reply
+  expect(t1.querySelector('epic-reply[from="Owen"]')?.textContent).toBe("after the merge")
+  const t2 = after.findItem("t2")!
+  expect([t2.getAttribute("status"), t2.getAttribute("state"), t2.getAttribute("review-as")]).toEqual([
+    "canceled",
+    "old",
+    "drop"
+  ])
+  const out = printed.join("\n")
+  expect(out).toContain("T1  queued for P2 · Fold Into Elements")
+  expect(out).toContain("T2  canceled:  dropped by Owen in review")
+  expect(after.toString()).toMatch(/T2 canceled:\s+dropped by Owen in review/)
+  expect(ReviewInbox.read(inboxFile).isEmpty).toBe(true)
+})
+
+test("apply:  a todo's plane with no phase still to do:  queued for the next phase, and it says so", async () => {
+  const plan = PlanDoc.parse(readFileSync(file, "utf8"))
+  plan.addItem("todo", "later")
+  writeFileSync(file, plan.toString())
+  ReviewInbox.update(inboxFile, (inbox) => {
+    inbox.setMark("t1", { action: "next" }, T1)
+    inbox.markSent(T2)
+  })
+  await commands().inbox.run("x", file, ["apply"], {})
+  const t1 = PlanDoc.parse(readFileSync(file, "utf8")).findItem("t1")!
+  expect(t1.getAttribute("work")).toBe("the next phase")
+  expect(t1.querySelector("epic-status")!.textContent).toMatch(
+    /^Queued for the next phase:\s+there's no phase to do yet$/
+  )
+  expect(printed.join("\n")).toContain("T1  queued for the next phase (no phase to do yet)")
+})
+
 test("apply --all:  marks never sent are applied too, as if sent (`/airplane land`)", async () => {
   ReviewInbox.update(inboxFile, (inbox) => inbox.setMark("j1", { action: "todo" }, T1))
   await commands().inbox.run("x", file, ["apply"], {})
