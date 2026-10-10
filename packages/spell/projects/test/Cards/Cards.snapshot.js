@@ -26,7 +26,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   get value() {
-    return spellCore.itemOf(Card.Ranks, this.rank)
+    return spellCore.positionOf(Card.Ranks, this.rank)
   }
 
   /** card direction:  up or down */
@@ -83,7 +83,7 @@ export class Card extends Thing {
   get short_rank() {
     if (this.rank == undefined) { return "?" }
     if (spellCore.isOfType(this.rank, 'number')) { return ("" + this.rank) }
-    return spellCore.upperCase(spellCore.getItemOf(this.rank, 1))
+    return spellCore.upperCase(spellCore.getItemAt(this.rank, 1))
   }
 
   get short_direction() {
@@ -253,13 +253,13 @@ export function test_deck_creation() {
       return (card.rank == "queen")
     })
     spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
-    spellCore.expect(spellCore.getItemOf(deck, -1)?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    spellCore.expect(spellCore.getItemOf(deck, 1)?.short_name, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
+    spellCore.expect(spellCore.getItemAt(deck, -1)?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    spellCore.expect(spellCore.getItemAt(deck, 1)?.short_name, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
     
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
     deck.display()
-    spellCore.expect(spellCore.getItemOf(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
+    spellCore.expect(spellCore.getItemAt(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
 test_deck_creation()
@@ -271,12 +271,12 @@ export class Pile extends List {
 
   get color() {
     if (spellCore.isEmpty(this)) { return "none" }
-    return spellCore.getItemOf(this, -1)?.color
+    return spellCore.getItemAt(this, -1)?.color
   }
 
   get value() {
     if (spellCore.isEmpty(this)) { return 0 }
-    return spellCore.getItemOf(this, -1)?.value
+    return spellCore.getItemAt(this, -1)?.value
   }
 
   get state() {

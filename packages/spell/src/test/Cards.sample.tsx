@@ -31,7 +31,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   get value() {
-    return spellCore.itemOf(Card.Ranks, this.rank)
+    return spellCore.positionOf(Card.Ranks, this.rank)
   }
 
   get isFaceDown() {
@@ -40,7 +40,7 @@ export class Card extends Thing {
 
   get shortRank() {
     if (spellCore.isOfType(this.rank, "number")) return `${this.rank}`
-    return spellCore.upperCase(spellCore.getItemOf(this.rank, 1))
+    return spellCore.upperCase(spellCore.getItemAt(this.rank, 1))
   }
 
   /** Flip card to opposite direction */
@@ -107,7 +107,7 @@ export class Game extends App {
           Score {this.score}
         </ui-button>
         {this.stock.draw()}
-        <p class="top">{spellCore.getItemOf(this.stock, -1)?.draw()}</p>
+        <p class="top">{spellCore.getItemAt(this.stock, -1)?.draw()}</p>
       </div>
     )
   }

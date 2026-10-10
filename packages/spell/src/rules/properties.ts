@@ -678,7 +678,7 @@ properties.addRule(its_property, {
  * `its {ordinal} {arg}` -- possessive-plus-ordinal shorthand, e.g. `its third card`.
  * - Tracks `it`:  `get it` / `put its foo in the bar`.
  * - Synonym for `this` if `it` is not (yet) defined in scope.
- * - Compiles to `spellCore.getItemOf(object, ordinal)` rather than a plain property access.
+ * - Compiles to `spellCore.getItemAt(object, ordinal)` rather than a plain property access.
  */
 class its_ordinal extends SpellExpression<"ordinal|arg", ItsMatchData & { itemType?: P.Datatype }> {
   /** Note `it`, and what it holds, while we can look them up. */
@@ -696,7 +696,7 @@ class its_ordinal extends SpellExpression<"ordinal|arg", ItsMatchData & { itemTy
   getAST(match: P.MatchFor<this>) {
     const { ordinal } = match.groups
     return new P.ASTCoreMethodInvocation(match, {
-      methodName: "getItemOf",
+      methodName: "getItemAt",
       args: [itsObject(match), P.asAST<P.ASTExpression>(ordinal.AST)]
     })
   }
@@ -711,8 +711,8 @@ properties.addRule(its_ordinal, {
         scope.variables?.add({ name: "it", output: "it" })
       },
       tests: [
-        ["its third foo", "spellCore.getItemOf(it, 3)"],
-        ["its last card", "spellCore.getItemOf(it, -1)"]
+        ["its third foo", "spellCore.getItemAt(it, 3)"],
+        ["its last card", "spellCore.getItemAt(it, -1)"]
       ]
     },
     {
@@ -721,7 +721,7 @@ properties.addRule(its_ordinal, {
       tests: [
         [
           ["get a new thing", "print its last item"],
-          ["let it = new Thing()", "spellCore.console.log(spellCore.getItemOf(it, -1))"]
+          ["let it = new Thing()", "spellCore.console.log(spellCore.getItemAt(it, -1))"]
         ]
       ]
     },
@@ -731,12 +731,12 @@ properties.addRule(its_ordinal, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add({ name: "it", output: "other" })
       },
-      tests: [["its third thing", "spellCore.getItemOf(other, 3)"]]
+      tests: [["its third thing", "spellCore.getItemAt(other, 3)"]]
     },
     {
       title: "maps to `this` when `it` is not defined",
       compileAs: "expression",
-      tests: [["its third thing", "spellCore.getItemOf(this, 3)"]]
+      tests: [["its third thing", "spellCore.getItemAt(this, 3)"]]
     }
   ]
 })

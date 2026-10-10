@@ -27,19 +27,19 @@ export type CollectionLike = {
   getKeys?(): Array<string | number>
   /** Custom collection's own values, in iteration order. */
   getValues?(): unknown[]
-  /** Custom collection's own single-item getter. */
-  getItem?(item: string | number): unknown
-  /** Custom collection's own single-item setter. */
-  setItem?(item: string | number, value: unknown): unknown
+  /** Custom collection's own getter, of the item at `position`. */
+  getItem?(position: string | number): unknown
+  /** Custom collection's own setter, of the item at `position`. */
+  setItem?(position: string | number, value: unknown): unknown
   /** Custom collection's own insert-at-position. */
   addAtPosition?(start: number, ...things: unknown[]): void
-  /** Custom collection's own single-item remover. */
-  removeItem?(item: string | number): void
-  /** Custom collection's own "key of value" lookup. */
-  itemOf?(thing: unknown): string | number | undefined
+  /** Custom collection's own remover, of the item at `position`. */
+  removeItem?(position: string | number): void
+  /** Custom collection's own "position of value" lookup. */
+  positionOf?(thing: unknown): string | number | undefined
   /** Custom collection's own remove-everything. */
   clear?(): void
-  /** Custom collection's own `[value, item, collection]` iterator factory. */
+  /** Custom collection's own `[value, position, collection]` iterator factory. */
   iterator?(): Iterator<[unknown, string | number, unknown]>
 }
 
@@ -51,7 +51,7 @@ export type CollectionLike = {
  *   unresolved.
  * - A list as its `getItem()` only, NOT all of `List<T>`:  inferring from `this` in a sub-class's `draw()` would
  *   read `draw()` itself, a circular inference (TS7023).
- * - Taken by the helpers whose result or callback follows their collection, e.g. `getItemOf()`, `forEach()`.
+ * - Taken by the helpers whose result or callback follows their collection, e.g. `getItemAt()`, `forEach()`.
  */
 export type CollectionOf<T = unknown> =
   | Pick<List<T>, "getItem">
@@ -61,7 +61,7 @@ export type CollectionOf<T = unknown> =
   | undefined
 
 /**
- * Key type of collection `C`, as `itemOf()` returns it:  a 1-based position for a `List` or an array.
+ * Position type of collection `C`, as `positionOf()` returns it:  a 1-based position for a `List` or an array.
  * - Else a string key or a position, e.g. for a plain object.  `undefined` / `null` add nothing.
  * - NOTE:  unresolved for `this` in a `List` sub-class, unlike `CollectionOf`.
  */
@@ -134,38 +134,38 @@ export const collectionCoreMethods = defineSpellCoreModule({
   },
 
   /**
-   * `item` key of first instance of `thing` in `collection` -- see `itemOf()`, below, which it is.
+   * Position of the first `thing` in `collection` -- see `positionOf()`, below, which it is.
    * - Compiles from `position of thing in my-list` -- see `lists.ts`.
    */
-  itemOf,
+  positionOf,
 
   /**
-   * Return `item` from collection.
-   * - For array: `item` is 1-based position.
-   * - For object: `item` is string key.
+   * The item at `position` of `collection`.
+   * - For array: `position` counts from 1.
+   * - For object: `position` is its string key.
    * - Compiles from `item 1 of my-list` / `the first item of my-list` -- see `lists.ts`.
    * - Typed by `collection`:  a `List<Card>`'s is a `Card`, if it has one -- see `CollectionOf`.
    */
-  getItemOf<T = unknown>(collection?: CollectionOf<T>, item?: string | number): T | undefined {
-    if (!assert.isDefined(collection, "spellCore.getItemOf(collection)")) return undefined
+  getItemAt<T = unknown>(collection?: CollectionOf<T>, position?: string | number): T | undefined {
+    if (!assert.isDefined(collection, "spellCore.getItemAt(collection)")) return undefined
     const coll = asCollection(collection)
-    if (typeof coll.getItem === "function") return coll.getItem(item as string | number) as T | undefined
-    if (spellCore.isArrayLike(collection)) return coll[(item as number) - 1] as T | undefined
-    return coll[item as string] as T | undefined
+    if (typeof coll.getItem === "function") return coll.getItem(position as string | number) as T | undefined
+    if (spellCore.isArrayLike(collection)) return coll[(position as number) - 1] as T | undefined
+    return coll[position as string] as T | undefined
   },
 
   /**
-   * Set `item` of `collection` to `value`.
-   * - For array: `item` is 1-based position.
-   * - For object: `item` is string key.
+   * Set the item at `position` of `collection` to `value`.
+   * - For array: `position` counts from 1.
+   * - For object: `position` is its string key.
    */
-  setItemOf(collection?: unknown, item?: string | number, value?: unknown): unknown {
-    if (!assert.isDefined(collection, "spellCore.setItemOf(collection)")) return undefined
+  setItemAt(collection?: unknown, position?: string | number, value?: unknown): unknown {
+    if (!assert.isDefined(collection, "spellCore.setItemAt(collection)")) return undefined
     const coll = asCollection(collection)
-    if (typeof coll.setItem === "function") return coll.setItem(item as string | number, value)
+    if (typeof coll.setItem === "function") return coll.setItem(position as string | number, value)
 
-    if (spellCore.isArrayLike(collection)) coll[(item as number) - 1] = value
-    else coll[item as string] = value
+    if (spellCore.isArrayLike(collection)) coll[(position as number) - 1] = value
+    else coll[position as string] = value
     return value
   },
 
@@ -187,20 +187,20 @@ export const collectionCoreMethods = defineSpellCoreModule({
   },
 
   /**
-   * Remove `item` from `collection`.
-   * - For array: `item` is 1-based position, items after item removed are slid back into place.
-   * - For object: `item` is string key, which will be deleted.
+   * Remove the item at `position` of `collection`.
+   * - For array: `position` counts from 1;  the items after it slide back into place.
+   * - For object: `position` is its string key, which is deleted.
    * - Compiles from `remove last card of deck` / `remove item 4 of my-list` -- see `lists.ts`.
    */
-  removeItemOf(collection?: unknown, item?: string | number): void {
-    if (!assert.isDefined(collection, "spellCore.removeItemOf(collection)")) return
+  removeItemAt(collection?: unknown, position?: string | number): void {
+    if (!assert.isDefined(collection, "spellCore.removeItemAt(collection)")) return
     const coll = asCollection(collection)
     if (coll.removeItem) {
-      coll.removeItem(item as string | number)
+      coll.removeItem(position as string | number)
       return
     }
-    if (spellCore.isArrayLike(collection)) Array.prototype.splice.call(collection, (item as number) - 1, 1)
-    else delete coll[item as string]
+    if (spellCore.isArrayLike(collection)) Array.prototype.splice.call(collection, (position as number) - 1, 1)
+    else delete coll[position as string]
   },
 
   /**
@@ -215,7 +215,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
       return
     }
     const keys = spellCore.keysOf(collection).reverse()
-    keys.forEach((key) => spellCore.removeItemOf(collection, key))
+    keys.forEach((key) => spellCore.removeItemAt(collection, key))
 
     // For arrays, try to set the `length` to 0
     // Might fail on a read-only object.
@@ -229,7 +229,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
   },
 
   /**
-   * Return an invoked iterator which yields `[value, item, collection]` for each item in the collection.
+   * Return an invoked iterator which yields `[value, position, collection]` for each item in the collection.
    * - Backs nearly every other iteration method here and in `collection-other.ts` (`forEach`, `map`, `all`, ...).
    * - Typed by `collection`, so their callbacks are too -- see `CollectionOf`.
    * - e.g.
@@ -237,7 +237,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
    *   iterator = spellCore.getIteratorFor(collection)
    *   let result = iterator.next()
    *   while (!result.done) {
-   *     const [ value, item, collection ] = result.value
+   *     const [ value, position, collection ] = result.value
    *     result = iterator.next()
    *   }
    *   ```
@@ -255,14 +255,14 @@ export const collectionCoreMethods = defineSpellCoreModule({
       return (function* numericIterator() {
         const count = spellCore.itemCountOf(collection)
         for (let position = 1; position <= count; position++) {
-          yield [spellCore.getItemOf(collection, position), position, collection] as [T, number, unknown]
+          yield [spellCore.getItemAt(collection, position), position, collection] as [T, number, unknown]
         }
       })()
     }
     const keys = spellCore.keysOf(collection)
     return (function* keyedIterator() {
       for (let i = 0; i < keys.length; i++) {
-        yield [spellCore.getItemOf(collection, keys[i]), keys[i], collection] as [T, string | number, unknown]
+        yield [spellCore.getItemAt(collection, keys[i]), keys[i], collection] as [T, string | number, unknown]
       }
     })()
   }
@@ -271,24 +271,25 @@ Object.assign(spellCore, collectionCoreMethods)
 
 /**
  * Position of `thing` in `collection`, from 1 -- `undefined` if it isn't there.  A plain object's:  its key.
- * - Hand-written TypeScript imports it by name:  `import { itemOf } from "@spell/core"`, then
- *   `itemOf(Card.Ranks, this.rank)`.  Compiled JavaScript calls it as `spellCore.itemOf(...)`:  the SAME function.
+ * - Hand-written TypeScript imports it by name:  `import { positionOf } from "@spell/core"`, then
+ *   `positionOf(Card.Ranks, this.rank)`.  Compiled JavaScript calls it as `spellCore.positionOf(...)`:  the SAME
+ *   function.
  * - Typed `number` when `thing` is of an array's own item type, e.g. a `Rank` in `Card.Ranks` (`as const`):  a value
  *   of an enumeration's type is always in it.  TYPES ONLY:  it's the same call.
  *   - Else typed by `collection`, see `KeyOf`:  a `List`'s is `number | undefined` either way.
- * - RENAME:  `positionOf`, in epic `output-targets` P16.
+ * - Was `itemOf()` before epic `output-targets` P16, and still answers to it:  see `deprecated.ts`.
  */
-export function itemOf<T>(collection: readonly T[], thing: NoInfer<T>): number
-export function itemOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined
-export function itemOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined {
-  if (!assert.isDefined(collection, "spellCore.itemOf(collection)")) return undefined
+export function positionOf<T>(collection: readonly T[], thing: NoInfer<T>): number
+export function positionOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined
+export function positionOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined {
+  if (!assert.isDefined(collection, "spellCore.positionOf(collection)")) return undefined
   const coll = asCollection(collection)
-  if (typeof coll.itemOf === "function") return coll.itemOf(thing) as KeyOf<C> | undefined
+  if (typeof coll.positionOf === "function") return coll.positionOf(thing) as KeyOf<C> | undefined
   const iterator = spellCore.getIteratorFor(collection)
   let result = iterator.next()
   while (!result.done) {
-    const [value, item] = result.value
-    if (value === thing) return item as KeyOf<C>
+    const [value, position] = result.value
+    if (value === thing) return position as KeyOf<C>
     result = iterator.next()
   }
   return undefined

@@ -41,9 +41,9 @@ class Card extends Thing {
   @prop({ type: "text", default: "hearts" }) accessor suit!: string
   @prop({ type: "choice", default: false }) accessor isBroken!: boolean
 
-  /** Its position in `Card.Ranks`:  `itemOf()` takes a read-only list. */
+  /** Its position in `Card.Ranks`:  `positionOf()` takes a read-only list. */
   get value() {
-    return spellCore.itemOf(Card.Ranks, this.rank)
+    return spellCore.positionOf(Card.Ranks, this.rank)
   }
 
   @drawn

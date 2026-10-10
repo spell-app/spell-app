@@ -576,7 +576,7 @@ classes.addRule(list_guard, {
           output: [
             "Pile.prototype.canTake = function (card) {",
             "  if (spellCore.isEmpty(this)) { return true }",
-            "  return (card != spellCore.getItemOf(this, -1))",
+            "  return (card != spellCore.getItemAt(this, -1))",
             "}"
           ]
         }
@@ -596,7 +596,7 @@ classes.addRule(list_guard, {
       tests: [
         [
           "a pile can give up a card if: the card is its last card",
-          ["Pile.prototype.canGiveUp = function (card) {", "  return (card == spellCore.getItemOf(this, -1))", "}"]
+          ["Pile.prototype.canGiveUp = function (card) {", "  return (card == spellCore.getItemAt(this, -1))", "}"]
         ],
         ["a pile can let go of a card if: yes", ["Pile.prototype.canGiveUp = function (card) {", "  return true", "}"]]
       ]
@@ -1794,7 +1794,7 @@ classes.addRule(property_value_getter, {
           output: [
             "Object.defineProperty(Card.prototype, 'short_name', {",
             "  get() {",
-            "    return spellCore.getItemOf(this.name, 1)",
+            "    return spellCore.getItemAt(this.name, 1)",
             "  },",
             "  configurable: true",
             "})"
@@ -1806,7 +1806,7 @@ classes.addRule(property_value_getter, {
           output: [
             "Object.defineProperty(Card.prototype, 'short_name', {",
             "  get() {",
-            "    return spellCore.getItemOf(this.name, 1)",
+            "    return spellCore.getItemAt(this.name, 1)",
             "  },",
             "  configurable: true",
             "})",

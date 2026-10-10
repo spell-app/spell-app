@@ -1,5 +1,5 @@
 import { describe, test, expect, expectTypeOf, beforeEach, vi } from "vite-plus/test"
-import { spellCore, assert, itemOf, List, Thing } from "$/core"
+import { spellCore, assert, positionOf, List, Thing } from "$/core"
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {
@@ -13,10 +13,10 @@ class CustomCollection {
   getKeys = vi.fn(() => ["key1", "key2"])
   getValues = vi.fn(() => ["value1", "value2"])
   getItem = vi.fn(() => "value")
-  setItem = vi.fn((item, value) => value)
+  setItem = vi.fn((position, value) => value)
   addAtPosition = vi.fn()
   removeItem = vi.fn()
-  itemOf = vi.fn(() => "item")
+  positionOf = vi.fn(() => "key1")
   clear = vi.fn()
   iterator = vi.fn()
 }
@@ -121,100 +121,100 @@ describe("spellCore.valuesOf()", () => {
   })
 })
 
-describe("itemOf(), imported by name", () => {
-  test("does what `spellCore.itemOf()` does, counting from 1;  a list's or an array's is a number", () => {
+describe("positionOf(), imported by name", () => {
+  test("does what `spellCore.positionOf()` does, counting from 1;  a list's or an array's is a number", () => {
     const deck = new List<string>().append("a", "b")
-    expect([itemOf(deck, "b"), itemOf(["x", "y"], "x"), itemOf(deck, "zzz")]).toEqual([2, 1, undefined])
-    expect(itemOf({ one: 1 }, 1)).toBe(spellCore.itemOf({ one: 1 }, 1))
-    expectTypeOf(itemOf(deck, "b")).toEqualTypeOf<number | undefined>()
+    expect([positionOf(deck, "b"), positionOf(["x", "y"], "x"), positionOf(deck, "zzz")]).toEqual([2, 1, undefined])
+    expect(positionOf({ one: 1 }, 1)).toBe(spellCore.positionOf({ one: 1 }, 1))
+    expectTypeOf(positionOf(deck, "b")).toEqualTypeOf<number | undefined>()
   })
 
   test("typed `number` for a value of an array's OWN item type:  an enumeration's value is always in it", () => {
     const RANKS = ["A", 2, 3] as const
     const rank: (typeof RANKS)[number] = 2
-    expect(itemOf(RANKS, rank)).toBe(2)
-    expectTypeOf(itemOf(RANKS, rank)).toEqualTypeOf<number>()
-    expectTypeOf(spellCore.itemOf(RANKS, rank)).toEqualTypeOf<number>()
-    expectTypeOf(itemOf(RANKS, "Q" as unknown)).toEqualTypeOf<number | undefined>()
+    expect(positionOf(RANKS, rank)).toBe(2)
+    expectTypeOf(positionOf(RANKS, rank)).toEqualTypeOf<number>()
+    expectTypeOf(spellCore.positionOf(RANKS, rank)).toEqualTypeOf<number>()
+    expectTypeOf(positionOf(RANKS, "Q" as unknown)).toEqualTypeOf<number | undefined>()
   })
 })
 
-describe("spellCore.itemOf()", () => {
+describe("spellCore.positionOf()", () => {
   test("assertion fails and returns undefined if not defined", () => {
-    expect(spellCore.itemOf()).toEqual(undefined)
+    expect(spellCore.positionOf()).toEqual(undefined)
     expect(assert.failed).toHaveBeenCalled()
   })
-  test("calls `itemOf` function if defined", () => {
+  test("calls `positionOf` function if defined", () => {
     const custom = new CustomCollection()
-    expect(spellCore.itemOf(custom)).toEqual("item")
-    expect(custom.itemOf).toHaveBeenCalled()
+    expect(spellCore.positionOf(custom)).toEqual("key1")
+    expect(custom.positionOf).toHaveBeenCalled()
   })
   test("returns undefined if not found in array", () => {
-    expect(spellCore.itemOf([], 1)).toEqual(undefined)
+    expect(spellCore.positionOf([], 1)).toEqual(undefined)
   })
   test("returns position if found in array", () => {
-    expect(spellCore.itemOf(["a", "b"], "a")).toEqual(1)
+    expect(spellCore.positionOf(["a", "b"], "a")).toEqual(1)
   })
   test("returns undefined if not found in object", () => {
-    expect(spellCore.itemOf({}, 1)).toEqual(undefined)
+    expect(spellCore.positionOf({}, 1)).toEqual(undefined)
   })
   test("returns correct value for a non-empty object", () => {
-    expect(spellCore.itemOf({ a: 1, b: true }, 1)).toEqual("a")
+    expect(spellCore.positionOf({ a: 1, b: true }, 1)).toEqual("a")
   })
 })
 
-describe("spellCore.getItemOf()", () => {
+describe("spellCore.getItemAt()", () => {
   test("assertion fails and returns undefined if not defined", () => {
-    expect(spellCore.getItemOf()).toEqual(undefined)
+    expect(spellCore.getItemAt()).toEqual(undefined)
     expect(assert.failed).toHaveBeenCalled()
   })
   test("calls `getItem` function if defined", () => {
     const custom = new CustomCollection()
-    expect(spellCore.getItemOf(custom)).toEqual("value")
+    expect(spellCore.getItemAt(custom)).toEqual("value")
     expect(custom.getItem).toHaveBeenCalled()
   })
   test("returns undefined for an empty array", () => {
-    expect(spellCore.getItemOf([], 1)).toEqual(undefined)
+    expect(spellCore.getItemAt([], 1)).toEqual(undefined)
   })
   test("returns correct value for a non-empty array", () => {
-    expect(spellCore.getItemOf(["a", "b"], 1)).toEqual("a")
+    expect(spellCore.getItemAt(["a", "b"], 1)).toEqual("a")
   })
   test("returns undefined for an empty object", () => {
-    expect(spellCore.getItemOf({}, 1)).toEqual(undefined)
+    expect(spellCore.getItemAt({}, 1)).toEqual(undefined)
   })
   test("returns correct value for a non-empty object", () => {
-    expect(spellCore.getItemOf({ a: 1, b: true }, "a")).toEqual(1)
+    expect(spellCore.getItemAt({ a: 1, b: true }, "a")).toEqual(1)
   })
 })
 
-describe("spellCore.setItemOf()", () => {
+describe("spellCore.setItemAt()", () => {
   test("assertion fails if not defined", () => {
-    spellCore.setItemOf()
+    spellCore.setItemAt()
     expect(assert.failed).toHaveBeenCalled()
   })
   test("calls `setItem` function if defined", () => {
     const custom = new CustomCollection()
-    expect(spellCore.setItemOf(custom, 1, "foo")).toEqual("foo")
+    expect(spellCore.setItemAt(custom, 1, "foo")).toEqual("foo")
     expect(custom.setItem).toHaveBeenCalled()
   })
   test("updates array properly if not present", () => {
     const collection = ["a"]
-    spellCore.setItemOf(collection, 2, "b")
+    spellCore.setItemAt(collection, 2, "b")
     expect(collection).toEqual(["a", "b"])
   })
   test("updates array properly if present", () => {
     const collection = ["a", "b"]
-    spellCore.setItemOf(collection, 2, "B")
+    spellCore.setItemAt(collection, 2, "B")
     expect(collection).toEqual(["a", "B"])
   })
   test("updates object properly if not present", () => {
     const collection = { a: 1 }
-    spellCore.setItemOf(collection, "b", true)
+    spellCore.setItemAt(collection, "b", true)
     expect(collection).toEqual({ a: 1, b: true })
   })
   test("updates object properly if present", () => {
     const collection = { a: 1, b: false }
-    spellCore.setItemOf(collection, "b", true)
+    spellCore.setItemAt(collection, "b", true)
     expect(collection).toEqual({ a: 1, b: true })
   })
 })
@@ -279,34 +279,34 @@ describe("spellCore.addAtPosition()", () => {
   })
 })
 
-describe("spellCore.removeItemOf()", () => {
+describe("spellCore.removeItemAt()", () => {
   test("assertion fails if not defined", () => {
-    spellCore.removeItemOf()
+    spellCore.removeItemAt()
     expect(assert.failed).toHaveBeenCalled()
   })
   test("calls `removeItem` function if defined", () => {
     const custom = new CustomCollection()
-    spellCore.removeItemOf(custom, 1)
+    spellCore.removeItemAt(custom, 1)
     expect(custom.removeItem).toHaveBeenCalled()
   })
   test("updates array properly if not present", () => {
     const collection = ["a"]
-    spellCore.removeItemOf(collection, 2)
+    spellCore.removeItemAt(collection, 2)
     expect(collection).toEqual(["a"])
   })
   test("updates array properly if present", () => {
     const collection = ["a", "b", "c"]
-    spellCore.removeItemOf(collection, 2)
+    spellCore.removeItemAt(collection, 2)
     expect(collection).toEqual(["a", "c"])
   })
   test("updates object properly if not present", () => {
     const collection = { a: 1 }
-    spellCore.removeItemOf(collection, "b")
+    spellCore.removeItemAt(collection, "b")
     expect(collection).toEqual({ a: 1 })
   })
   test("updates object properly if present", () => {
     const collection = { a: 1, b: false }
-    spellCore.removeItemOf(collection, "b")
+    spellCore.removeItemAt(collection, "b")
     expect(collection).toEqual({ a: 1 })
   })
 })
@@ -385,11 +385,11 @@ class Card extends Thing {
 /** A list TypeScript knows holds cards. */
 class Deck extends List<Card> {
   get top() {
-    return spellCore.getItemOf(this, -1)
+    return spellCore.getItemAt(this, -1)
   }
   // `this` in a sub-class's `draw()`:  no circular inference (TS7023)
   draw() {
-    return spellCore.drawThing(spellCore.getItemOf(this, -1))
+    return spellCore.drawThing(spellCore.getItemAt(this, -1))
   }
 }
 
@@ -398,15 +398,15 @@ class Pile extends List {}
 
 describe("typed collections:  a helper's result and callbacks follow its collection's items", () => {
   test("a `List<Card>`'s item is a `Card`, if it has one -- `this` in a sub-class too", () => {
-    expectTypeOf(spellCore.getItemOf(new Deck(), 1)).toEqualTypeOf<Card | undefined>()
+    expectTypeOf(spellCore.getItemAt(new Deck(), 1)).toEqualTypeOf<Card | undefined>()
     expectTypeOf(new Deck().top).toEqualTypeOf<Card | undefined>()
-    expectTypeOf(spellCore.getItemOf([new Card()], 1)).toEqualTypeOf<Card | undefined>()
+    expectTypeOf(spellCore.getItemAt([new Card()], 1)).toEqualTypeOf<Card | undefined>()
     expectTypeOf(spellCore.randomItemOf(new Deck())).toEqualTypeOf<Card | undefined>()
   })
 
   test("a list with no item type, or a collection typed `unknown`, holds `unknown`", () => {
-    expectTypeOf(spellCore.getItemOf(new Pile(), 1)).toEqualTypeOf<unknown>()
-    expectTypeOf(spellCore.getItemOf({ a: 1 } as unknown, "a")).toEqualTypeOf<unknown>()
+    expectTypeOf(spellCore.getItemAt(new Pile(), 1)).toEqualTypeOf<unknown>()
+    expectTypeOf(spellCore.getItemAt({ a: 1 } as unknown, "a")).toEqualTypeOf<unknown>()
   })
 
   test("a callback is checked against the collection's items, and ONLY them", () => {
@@ -418,20 +418,20 @@ describe("typed collections:  a helper's result and callbacks follow its collect
     spellCore.forEach(new Pile(), (card: Card) => card)
   })
 
-  test("`itemOf()` a list or an array is a position;  of anything else, a key or a position", () => {
-    expectTypeOf(spellCore.itemOf(new Pile(), 1)).toEqualTypeOf<number | undefined>()
-    // an array's own item type:  typed as always there -- see `itemOf()`
-    expectTypeOf(spellCore.itemOf(["a"], "a")).toEqualTypeOf<number>()
-    expectTypeOf(spellCore.itemOf(["a"], 1 as unknown)).toEqualTypeOf<number | undefined>()
-    expectTypeOf(spellCore.itemOf({ a: 1 }, 1)).toEqualTypeOf<string | number | undefined>()
+  test("`positionOf()` a list or an array is a position;  of anything else, a key or a position", () => {
+    expectTypeOf(spellCore.positionOf(new Pile(), 1)).toEqualTypeOf<number | undefined>()
+    // an array's own item type:  typed as always there -- see `positionOf()`
+    expectTypeOf(spellCore.positionOf(["a"], "a")).toEqualTypeOf<number>()
+    expectTypeOf(spellCore.positionOf(["a"], 1 as unknown)).toEqualTypeOf<number | undefined>()
+    expectTypeOf(spellCore.positionOf({ a: 1 }, 1)).toEqualTypeOf<string | number | undefined>()
   })
 
   test("a read-only `as const` list, as compiled TypeScript writes one, is a collection like any other", () => {
     const RANKS = ["ace", 2, "king"] as const
-    expectTypeOf(spellCore.itemOf(RANKS, "king")).toEqualTypeOf<number>()
-    expectTypeOf(spellCore.getItemOf(RANKS, 1)).toEqualTypeOf<"ace" | 2 | "king" | undefined>()
+    expectTypeOf(spellCore.positionOf(RANKS, "king")).toEqualTypeOf<number>()
+    expectTypeOf(spellCore.getItemAt(RANKS, 1)).toEqualTypeOf<"ace" | 2 | "king" | undefined>()
     expectTypeOf(spellCore.includes(RANKS, "ace")).toEqualTypeOf<boolean>()
     spellCore.forEach(RANKS, (rank) => expectTypeOf(rank).toEqualTypeOf<"ace" | 2 | "king">())
-    expect(spellCore.itemOf(RANKS, "king")).toBe(3)
+    expect(spellCore.positionOf(RANKS, "king")).toBe(3)
   })
 })

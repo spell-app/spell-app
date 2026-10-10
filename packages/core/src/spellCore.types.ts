@@ -11,6 +11,7 @@ import type { runtimeMethods } from "./runtime"
 import type { thingsMethods } from "./things"
 import type { jsonMethods } from "./json"
 import type { classesMethods } from "./classes"
+import type { deprecatedMethods } from "./deprecated"
 
 // ## Importing spellCore
 
@@ -45,6 +46,7 @@ export const SPELL_BASE_TYPES = ["Object", ...SPELL_CLASSES]
  * order), so this is the intersection of every module's methods.
  * - It's the CORE CONTRACT too:  what another target's core must have (Python's, later -- epic `output-targets`), and
  *   what it must print is pinned by the `cli`'s `contract.test.ts`.
+ *   - Except `deprecatedMethods`:  old names, for programs compiled before they changed.  A new core has none.
  */
 export type SpellCore = typeof coreMethods &
   typeof collectionCoreMethods &
@@ -58,7 +60,8 @@ export type SpellCore = typeof coreMethods &
   typeof runtimeMethods &
   typeof thingsMethods &
   typeof jsonMethods &
-  typeof classesMethods
+  typeof classesMethods &
+  typeof deprecatedMethods
 
 // ## Properties
 

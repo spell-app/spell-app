@@ -163,12 +163,16 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   getValues(): T[] {
     return [...this.items]
   }
-  /** Return the `oneIndex` for first occurance of `thing` in our list. */
-  itemOf(thing: unknown): number | undefined {
+  /** Return the `oneIndex` for first occurance of `thing` in our list -- `the position of card in the pile`. */
+  positionOf(thing: unknown): number | undefined {
     // widened:  we may be asked for anything
     const zeroIndex = (this.items as unknown[]).indexOf(thing)
     if (zeroIndex === -1) return undefined
     return zeroIndex + 1
+  }
+  /** @deprecated  `positionOf()`, since epic `output-targets` P16:  TypeScript compiled before it calls this. */
+  itemOf(thing: unknown): number | undefined {
+    return this.positionOf(thing)
   }
   /** Return item stored at `oneIndex` or `undefined`. */
   getItem(oneIndex: number): T | undefined {
@@ -416,10 +420,11 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * The items from `item` to the end, in a scratch list of our class -- `cards of the pile starting with card`.
-   * - NOTE:  `item` isn't here:  ALL of them, as compiled spell does it, `rangeStartingAt(list, itemOf(list, item))`.
+   * - NOTE:  `item` isn't here:  ALL of them, as compiled spell does it,
+   *   `rangeStartingAt(list, positionOf(list, item))`.
    */
   startingWith(item: unknown): this {
-    return spellCore.rangeStartingAt(this, spellCore.itemOf(this, item))
+    return spellCore.rangeStartingAt(this, spellCore.positionOf(this, item))
   }
 
   /**
@@ -446,29 +451,29 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * discard-pile already is a pile (Q36).
    */
   clone(): this {
-    return spellCore.duplicateCollection(this)
+    return spellCore.duplicateList(this)
   }
 
-  /** A scratch copy of us, as `Class` -- `a copy of discards as a hand`.  See `spellCore.duplicateCollection()`. */
+  /** A scratch copy of us, as `Class` -- `a copy of discards as a hand`.  See `spellCore.duplicateList()`. */
   cloneAs<L>(Class: new () => L): L {
-    return spellCore.duplicateCollection(this, Class)
+    return spellCore.duplicateList(this, Class)
   }
 
-  /** SIDE EFFECT:  add every item of each of `lists`, in turn.  Returns us -- see `spellCore.mergeCollectionsInto()`. */
+  /** SIDE EFFECT:  add every item of each of `lists`, in turn.  Returns us -- see `spellCore.mergeListsInto()`. */
   appendAll(...lists: unknown[]): this {
-    spellCore.mergeCollectionsInto(this, ...lists)
+    spellCore.mergeListsInto(this, ...lists)
     return this
   }
 
   /**
    * We're a list of lists:  their items, all in one scratch list -- `merge the piles`.
    * - No `Class`:  of our first list's class, `undefined` if we're empty.  `merge the piles as a pile`:  `Class`.
-   * - See `spellCore.mergeCollections()`.
+   * - See `spellCore.mergeLists()`.
    */
   merged(): T | undefined
   merged<L>(Class: new () => L): L
   merged<L>(Class?: new () => L): T | L | undefined {
-    return spellCore.mergeCollections<T, T | L>(this, Class)
+    return spellCore.mergeLists<T, T | L>(this, Class)
   }
 
   /** Are we of type `typeName`, or a sub-type of it?  e.g. `"pile"`, `"list"` -- see `spellCore.isOfType()`. */

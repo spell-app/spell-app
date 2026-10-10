@@ -637,7 +637,7 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * May `node` be nothing?  An item read from a list (`spellCore.getItemOf(pile, -1)`), what's read off one, or a
+   * May `node` be nothing?  An item read from a list (`spellCore.getItemAt(pile, -1)`), what's read off one, or a
    * variable set to one:  reading off it is written `?.`, so spell reads off nothing as nothing and never throws (epic
    * `output-targets`, Q38).
    */
@@ -659,7 +659,7 @@ export class JSWriter extends Writer {
   }
 
   /** The `spellCore` helpers that read ONE item of a list, which may be nothing:  see `mayBeNothing()`. */
-  static ITEM_READS = new Set(["getItemOf", "randomItemOf"])
+  static ITEM_READS = new Set(["getItemAt", "randomItemOf"])
 
   /** What's being set, while it's written:  never read off with `?.`, which can't be set. */
   private settingNow: P.ASTNode | undefined

@@ -26,7 +26,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   get value() {
-    return spellCore.itemOf(Card.Ranks, this.rank)
+    return spellCore.positionOf(Card.Ranks, this.rank)
   }
 
   /** card direction:  up or down */
@@ -83,7 +83,7 @@ export class Card extends Thing {
   get short_rank() {
     if (this.rank == undefined) { return "?" }
     if (spellCore.isOfType(this.rank, 'number')) { return ("" + this.rank) }
-    return spellCore.upperCase(spellCore.getItemOf(this.rank, 1))
+    return spellCore.upperCase(spellCore.getItemAt(this.rank, 1))
   }
 
   get short_direction() {
@@ -181,10 +181,10 @@ export class Card extends Thing {
     let droppable_piles = spellCore.filter(all_piles, (pile) => {
       return ((pile.droppable == true) && (pile.can_play_$card(this)))
     })
-    let end_pile = spellCore.getItemOf(droppable_piles, 1)
+    let end_pile = spellCore.getItemAt(droppable_piles, 1)
     if (!spellCore.isDefined(end_pile)) { return false }
     
-    let cards_to_move = (spellCore.rangeStartingAt(start_pile, spellCore.itemOf(start_pile, this)))
+    let cards_to_move = (spellCore.rangeStartingAt(start_pile, spellCore.positionOf(start_pile, this)))
     cards_to_move.name = start_pile.name
     spellCore.console.log(((("moving (" + cards_to_move.state) + ") to (") + end_pile.state) + ")")
     
@@ -194,7 +194,7 @@ export class Card extends Thing {
     
     if (spellCore.isOfType(start_pile, 'Tableau') && !spellCore.isEmpty(start_pile)) {
       await spellCore.pauseFor(200, 'msec')
-      let it = spellCore.getItemOf(start_pile, -1)
+      let it = spellCore.getItemAt(start_pile, -1)
       spellCore.console.log(((("turning over (" + start_pile.name) + ": ") + it?.state) + ")")
       it?.turn_face_up()
     }
@@ -300,14 +300,14 @@ export function test_deck_creation() {
       return (card.rank == "queen")
     })
     spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
-    spellCore.expect(spellCore.getItemOf(deck, -1)?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    spellCore.expect(spellCore.getItemOf(deck, 1)?.short_name, `the short-name of the top card of the deck`, "A♣️", `"A♣️"`)
+    spellCore.expect(spellCore.getItemAt(deck, -1)?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    spellCore.expect(spellCore.getItemAt(deck, 1)?.short_name, `the short-name of the top card of the deck`, "A♣️", `"A♣️"`)
     
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
     deck.display()
     spellCore.echoTestAction(`get the first card of the deck`)
-    let it = spellCore.getItemOf(deck, 1)
+    let it = spellCore.getItemAt(deck, 1)
     spellCore.expect(it?.is_the_$rank_of_$suits('ace', 'clubs'), `it is the ace of clubs`, true, `yes`)
   })
 }
@@ -326,12 +326,12 @@ export class Pile extends List {
 
   get color() {
     if (spellCore.isEmpty(this)) { return "none" }
-    return spellCore.getItemOf(this, -1)?.color
+    return spellCore.getItemAt(this, -1)?.color
   }
 
   get value() {
     if (spellCore.isEmpty(this)) { return 0 }
-    return spellCore.getItemOf(this, -1)?.value
+    return spellCore.getItemAt(this, -1)?.value
     
   }
 
@@ -452,39 +452,39 @@ export class Game extends App {
               ] }),
               spellCore.element({ tag: "td" }),
               spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(spellCore.getItemOf(foundations, 1))
+                () => spellCore.drawThing(spellCore.getItemAt(foundations, 1))
               ] }),
               spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(spellCore.getItemOf(foundations, 2))
+                () => spellCore.drawThing(spellCore.getItemAt(foundations, 2))
               ] }),
               spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(spellCore.getItemOf(foundations, 3))
+                () => spellCore.drawThing(spellCore.getItemAt(foundations, 3))
               ] }),
               spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(spellCore.getItemOf(foundations, 4))
+                () => spellCore.drawThing(spellCore.getItemAt(foundations, 4))
               ] })
             ] }),
             spellCore.element({ tag: "tr", children: [
               spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 1))
+                () => spellCore.drawThing(spellCore.getItemAt(tableaus, 1))
               ] }),
               spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 2))
+                () => spellCore.drawThing(spellCore.getItemAt(tableaus, 2))
               ] }),
               spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 3))
+                () => spellCore.drawThing(spellCore.getItemAt(tableaus, 3))
               ] }),
               spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 4))
+                () => spellCore.drawThing(spellCore.getItemAt(tableaus, 4))
               ] }),
               spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 5))
+                () => spellCore.drawThing(spellCore.getItemAt(tableaus, 5))
               ] }),
               spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 6))
+                () => spellCore.drawThing(spellCore.getItemAt(tableaus, 6))
               ] }),
               spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 7))
+                () => spellCore.drawThing(spellCore.getItemAt(tableaus, 7))
               ] })
             ] })
           ] })
@@ -506,7 +506,7 @@ export let tableaus = new List({ instanceType: "Pile" })
 /** set up stock pile: unplayed cards */
 export class Stock_Pile extends Pile {
   can_pick_up_$card(card) {
-    return (card == spellCore.getItemOf(this, -1))
+    return (card == spellCore.getItemAt(this, -1))
   }
 
   draw() {
@@ -520,7 +520,7 @@ export class Stock_Pile extends Pile {
           }
         }
       }),
-      () => spellCore.drawThing(spellCore.getItemOf(this, -1))
+      () => spellCore.drawThing(spellCore.getItemAt(this, -1))
     ] })
   }
 }
@@ -530,12 +530,12 @@ spellCore.append(all_piles, stock)
 /** set up discards: where played cards go when turning over stock */
 export class Discard_Pile extends Pile {
   can_pick_up_$card(card) {
-    return (card == spellCore.getItemOf(this, -1))
+    return (card == spellCore.getItemAt(this, -1))
   }
 
   draw() {
     return spellCore.element({ tag: "div", props: { className: "Pile Discards stacked" }, children: [
-      () => spellCore.drawThing(spellCore.getItemOf(this, -1))
+      () => spellCore.drawThing(spellCore.getItemAt(this, -1))
     ] })
   }
 }
@@ -565,7 +565,7 @@ export class Foundation extends Pile {
           () => this.symbol
         ] })
       ] }),
-      () => spellCore.drawThing(spellCore.getItemOf(this, -1))
+      () => spellCore.drawThing(spellCore.getItemAt(this, -1))
     ] })
   }
 }
@@ -636,7 +636,7 @@ export function debug_the_game() {
 }
 
 export function reset_the_stock_pile() {
-  let cards = spellCore.duplicateCollection(discards, Pile)
+  let cards = spellCore.duplicateList(discards, Pile)
   spellCore.reverse(cards)
   spellCore.map(cards, (card) => {
     card.move_to_$pile(stock)
@@ -650,7 +650,7 @@ export async function play_from_the_stock_pile() {
   try {
     if (spellCore.isEmpty(stock)) { await reset_the_stock_pile() }
     
-    let it_5 = spellCore.getItemOf(stock, -1)
+    let it_5 = spellCore.getItemAt(stock, -1)
     it_5?.turn_face_up()
     // pause for 150 msec
     it_5?.move_to_$pile(discards)
@@ -665,7 +665,7 @@ export async function deal_the_cards() {
   spellCore.startProcess('deal_the_cards', 'EXCLUSIVE')
   try {
     /** pull all cards into stock with a nice animation */
-    let cards = (spellCore.mergeCollections(all_piles, Pile))
+    let cards = (spellCore.mergeLists(all_piles, Pile))
     spellCore.reverse(cards)
     await spellCore.forEachSequential(cards, async (card) => {
       let start_pile = card.pile
@@ -676,9 +676,9 @@ export async function deal_the_cards() {
     
     // deal cards into tableaus
     await spellCore.forEachSequential(spellCore.getRange(1, 7), async (row) => {
-      (spellCore.getItemOf(stock, -1))?.turn_face_up()
+      (spellCore.getItemAt(stock, -1))?.turn_face_up()
       await spellCore.forEachSequential(spellCore.getRange(row, 7), async (column) => {
-        await spellCore.getItemOf(stock, -1)?.move_to_$pile(spellCore.getItemOf(tableaus, column))
+        await spellCore.getItemAt(stock, -1)?.move_to_$pile(spellCore.getItemAt(tableaus, column))
       })
     })
     
@@ -697,7 +697,7 @@ spellCore.on('card-click', (event) => {
 export async function auto_play() {
   let anything_changed = false
   if (!spellCore.isEmpty(discards)) {
-    let test_card = spellCore.getItemOf(discards, -1)
+    let test_card = spellCore.getItemAt(discards, -1)
     if (await test_card?.play()) {
       anything_changed = true
       await spellCore.pauseFor(500, 'msec')
@@ -707,8 +707,8 @@ export async function auto_play() {
   // attempt to move bottom card of tableaus to foundations
   await spellCore.forEachSequential(tableaus, async (pile) => {
     if (spellCore.isEmpty(pile)) { return }
-    let test_card = spellCore.getItemOf(pile, -1)
-    let foundation = spellCore.getItemOf(spellCore.filter(foundations, (pile) => {
+    let test_card = spellCore.getItemAt(pile, -1)
+    let foundation = spellCore.getItemAt(spellCore.filter(foundations, (pile) => {
       return (pile.name == test_card?.suit)
     }), 1)
     if (foundation?.can_play_$card(test_card)) {
@@ -724,8 +724,8 @@ export async function auto_play() {
       return card.is_face_up
     })
     if (spellCore.isEmpty(face_up_cards)) { return }
-    let test_card = spellCore.getItemOf(face_up_cards, 1)
-    if ((test_card?.is_a_$rank('king')) && (test_card == spellCore.getItemOf(pile, 1))) { return }
+    let test_card = spellCore.getItemAt(face_up_cards, 1)
+    if ((test_card?.is_a_$rank('king')) && (test_card == spellCore.getItemAt(pile, 1))) { return }
     if (await test_card?.play()) {
       anything_changed = true
       await spellCore.pauseFor(500, 'msec')
@@ -743,7 +743,7 @@ export function reset_the_game() {
 
 export async function cheat() {
   let remaining_piles = spellCore.filter(tableaus, (pile) => {
-    return (!spellCore.isEmpty(pile) && spellCore.getItemOf(pile, 1)?.is_face_down)
+    return (!spellCore.isEmpty(pile) && spellCore.getItemAt(pile, 1)?.is_face_down)
   })
   if (spellCore.isEmpty(remaining_piles)) { return }
   let pile = spellCore.randomItemOf(remaining_piles)

@@ -21,7 +21,7 @@ import { TSProject, camelCaseOf, forEachNode, listNamedBy, type TSUndeclared } f
  * - Types where spell knows them:  parameters, properties, lists `as const`.  A type spell DOESN'T know is written
  *   `UNKNOWN`, `any /* spell: type unknown *\/`, never a bare `any`:  so every gap shows, and can be counted (epic
  *   `output-targets`, Q16).
- * - Spell's own built-ins stay `spellCore` calls:  `getItemOf(rank, 1)` counts from 1, so both targets print the same
+ * - Spell's own built-ins stay `spellCore` calls:  `getItemAt(rank, 1)` counts from 1, so both targets print the same
  *   (the core contract, `contract.test.ts` in `$/cli`).
  * - Sees the whole project first (`forProject()`, a `TSProject`):  `TSWriter.instance` alone knows nothing of it,
  *   e.g. writing one node in a test.
@@ -66,7 +66,7 @@ export class TSWriter extends JSWriter {
   private currentClass: string | undefined
   /** Destructurings typed by the parameter they read, e.g. an event's payload:  see `arrow()`. */
   private typedByParam = new WeakSet<P.ASTDestructuredAssignment>()
-  /** `@spell/core`'s helpers the code calls by name, e.g. `on`, `trigger`, `itemOf`:  imported by `module()`. */
+  /** `@spell/core`'s helpers the code calls by name, e.g. `on`, `trigger`, `positionOf`:  imported by `module()`. */
   private coreImports = new Set<string>()
   /** While writing a getter:  what it returns early for nothing, e.g. `0` -- see `ASTReturnStatement()`. */
   private getterDefault: P.ASTExpression | undefined
@@ -97,7 +97,7 @@ export class TSWriter extends JSWriter {
    *   `.tsx` exports them so.  A class keeps its name, e.g. `Stock_Pile`.
    * - a member it adds to a class it imports is declared in that project's module, `declare module "..." { interface
    *   Card {...} }`:  TypeScript refuses an `interface` merged with an import (`TS2440`)
-   * - a helper it calls by name (`on()`, `trigger()`, `itemOf()`) is imported from `@spell/core` too
+   * - a helper it calls by name (`on()`, `trigger()`, `positionOf()`) is imported from `@spell/core` too
    */
   module(code: string): string {
     const decorators = DECORATORS.filter((name) => new RegExp(`^\\s*@${name}\\b`, "m").test(code))
@@ -167,7 +167,7 @@ export class TSWriter extends JSWriter {
   /**
    * `object.property`:  a getter the project declares by TypeScript's name (`card.isFaceUp`), a property by spell's.
    * - `?.` off what may be nothing (`mayBeNothing()`):  `startPile.lastItem?.state`.
-   * - Being SET, it can't be `?.`:  `!` instead, `spellCore.getItemOf(app.tasks, 1)!.title = "New title"`.
+   * - Being SET, it can't be `?.`:  `!` instead, `spellCore.getItemAt(app.tasks, 1)!.title = "New title"`.
    */
   ASTPropertyExpression(node: P.ASTPropertyExpression): string {
     const name = node.property.value
@@ -325,7 +325,7 @@ export class TSWriter extends JSWriter {
     switch (node.methodName) {
       case "getRange":
         return "array"
-      case "getItemOf":
+      case "getItemAt":
       case "randomItemOf": {
         // one of a list's items:  its class's item type, e.g. a `Card` of a `Pile`
         const list = first && this.kindOf(first, depth + 1)
@@ -336,15 +336,15 @@ export class TSWriter extends JSWriter {
       case "rangeBetween":
       case "randomItemsOf":
         return first && this.kindOf(first, depth + 1)
-      case "duplicateCollection":
-      case "mergeCollections":
+      case "duplicateList":
+      case "mergeLists":
         if (second instanceof P.ASTTypeExpression) return second.name
-        return node.methodName === "duplicateCollection" && first ? this.kindOf(first, depth + 1) : undefined
+        return node.methodName === "duplicateList" && first ? this.kindOf(first, depth + 1) : undefined
       case "upperCase":
       case "lowerCase":
         return "text"
       case "itemCountOf":
-      case "itemOf":
+      case "positionOf":
         return "number"
       case "isEmpty":
       case "includes":
@@ -388,7 +388,7 @@ export class TSWriter extends JSWriter {
    * - a list written out:  `["diamonds", "hearts"].includes(this.suit)`
    * - a type test:  `x instanceof Tableau`, `typeof x === "number"`
    * - one of spell's `List`s:  its own method, see `listCall()`
-   * - a position in a list written out, or another helper used often:  imported by name, `itemOf(Card.Ranks, rank)`
+   * - a position in a list written out, or another helper used often:  imported by name, `positionOf(Card.Ranks, rank)`
    * - events:  `trigger()`, `on()`, see `eventCall()`
    */
   coreCall(node: P.ASTScopedMethodInvocation): string | undefined {
@@ -477,7 +477,7 @@ export class TSWriter extends JSWriter {
         return second ? `${self}.${isStatement ? "forEach" : name}(${callback()})` : undefined
       case "forEachSequential":
         return second ? `${self}.forEachSequential(${callback()})` : undefined
-      case "getItemOf":
+      case "getItemAt":
         if (rest.length !== 1) return undefined
         if (isNumber(second, 1)) return `${self}.firstItem`
         if (isNumber(second, -1)) return `${self}.lastItem`
@@ -494,7 +494,7 @@ export class TSWriter extends JSWriter {
         return `${self}.max`
       case "smallestOf":
         return `${self}.min`
-      case "itemOf":
+      case "positionOf":
       case "remove":
         return rest.length === 1 ? `${self}.${name}(${found(second!)})` : undefined
       case "includes":
@@ -511,7 +511,7 @@ export class TSWriter extends JSWriter {
         if (rest.length !== 1) return undefined
         if (
           isCoreCall(unwrapped(second!)) &&
-          (unwrapped(second!) as P.ASTScopedMethodInvocation).methodName === "itemOf"
+          (unwrapped(second!) as P.ASTScopedMethodInvocation).methodName === "positionOf"
         ) {
           const [ofList, item] = (unwrapped(second!) as P.ASTScopedMethodInvocation).args.args ?? []
           if (ofList && item && this.write(ofList) === this.write(list))
@@ -520,14 +520,14 @@ export class TSWriter extends JSWriter {
         return `${self}.startingFrom(${this.bare(second!)})`
       case "rangeBetween":
         return rest.length === 2 ? `${self}.between(${this.bare(second!)}, ${this.bare(third!)})` : undefined
-      case "duplicateCollection": {
+      case "duplicateList": {
         if (!(second instanceof P.ASTTypeExpression)) return `${self}.clone()`
         // already that class, e.g. a `Discard_Pile` is a `Pile`:  a copy of its own class (Q36)
         const own = this.kindOf(list)
         const isAlready = !!own && this.project.isSubclassOf(own, second.name)
         return isAlready ? `${self}.clone()` : `${self}.cloneAs(${second.name})`
       }
-      case "mergeCollections":
+      case "mergeLists":
         return second instanceof P.ASTTypeExpression ? `${self}.merged(${second.name})` : undefined
     }
     return undefined
@@ -1031,7 +1031,7 @@ export class TSWriter extends JSWriter {
       const datatype = inner.datatype ?? inner.match?.datatype
       const type = typeof datatype === "string" && !datatype.startsWith("list") ? this.typeFor(datatype) : undefined
       if (!type) return `${declared} = ${written}`
-      // an item read says its type as a type argument, still maybe nothing:  `spellCore.getItemOf<Card>(...)`
+      // an item read says its type as a type argument, still maybe nothing:  `spellCore.getItemAt<Card>(...)`
       if (JSWriter.ITEM_READS.has((inner as P.ASTScopedMethodInvocation).methodName)) {
         return `${declared} = ${written.replace(/^spellCore\.(\w+)\(/, `spellCore.$1<${type}>(`)}`
       }
@@ -1396,7 +1396,7 @@ export class TSWriter extends JSWriter {
 
   /**
    * A list says what it holds:  `a deck is a list of cards` => `class Deck extends List<Card>`, from its
-   * `static instanceType = Card`.  So `spellCore.getItemOf(deck, 1)` is a `Card | undefined`.
+   * `static instanceType = Card`.  So `spellCore.getItemAt(deck, 1)` is a `Card | undefined`.
    */
   superTypeOf(node: P.ASTClassDeclaration): string {
     const name = super.superTypeOf(node)
@@ -1680,8 +1680,8 @@ const LOOSE_CORE_CALL = /^!|^typeof |\s(?:===|!==|instanceof)\s/
 /** Spell's events, through `@spell/core`'s own `on()`, `trigger()` ... -- see `TSWriter.eventCall()`. */
 const EVENTS = new Set(["on", "off", "once", "trigger"])
 
-/** `spellCore` helpers worth importing by name, e.g. `itemOf(Card.Ranks, this.rank)`. */
-const IMPORTED_HELPERS = new Set(["itemOf"])
+/** `spellCore` helpers worth importing by name, e.g. `positionOf(Card.Ranks, this.rank)`. */
+const IMPORTED_HELPERS = new Set(["positionOf"])
 
 /** What spell's `datatype` is, as `TSWriter.kindOf()` says it -- `undefined` for a list (a `List` or an array). */
 function kindFromDatatype(datatype: P.Datatype | RegExpConstructor | undefined): string | undefined {
