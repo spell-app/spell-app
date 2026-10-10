@@ -94,6 +94,9 @@ import agentsCSS from "./AgentsPanel.css?inline"
  * - NEW TODO OR QUESTION (epic `airplane` P2;  `NewItems.tsx`), while reviewed:
  *   a round `+` before Send opens the form on a row of its own in the sticky header;
  *   what's asked for waits in the inbox, drawn at the end of its section (Todos, Questions) until Claude makes it.
+ * - THE SECTION TOOLBAR (epic `airplane` P8):  the header's last row is `slot="toolbar"`, where the docs runtime
+ *   puts a plan doc's navigation (`spell-doc-runtime.js` `buildToolbar()`):  inside the header, so it sticks with
+ *   it, and the header's measured height (`top`, `--epic-stack`) takes it in.
  * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<AgentsPanel>`),
  *   only while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs
  *   - each row a note box that redirects that agent
@@ -406,6 +409,8 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
               onDone={() => (this.isAdding = false)}
             />
           </Show>
+          {/* a plan doc's section toolbar, added by the docs runtime:  the header's last row */}
+          <slot name={this.slotForName("toolbar")} />
         </header>
         {this.reviewLine()}
         {this.metaLines()}
