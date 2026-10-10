@@ -34,8 +34,7 @@ import type { E } from "$/ui/core"
  *     move it into the record, or make the member a plain getter.
  *   - `@derived({ equals })`:  an equal result keeps the old value (`isSameList` for a filtered list).
  * - `@cssState("open")` on a getter or accessor:  `UIComponent` keeps `:state(open)` in step with it.
- *   - `@cssStates("disabled", "loading")` on the CLASS:
- *     `:state(x)` follows attribute `x`, for states that only mirror their attribute (no getter to write).
+ *   - A state that only mirrors its attribute needs no getter:  its name goes in `elementSetup.cssStates`.
  * - `@aria("ariaBusy")` on a getter or accessor:  the DOM element's `internals.ariaBusy` follows it
  *   (`true` => `"true"`;  `false`, `undefined` => removed).
  *   - Stacks with `@cssState`.
@@ -224,12 +223,19 @@ export class Reactive {
   }
 
   /**
-   * `@cssState` members and `@cssStates` attributes of `instance`'s class chain, most-derived first:
+   * `@cssState` members of `instance`'s class chain, most-derived first, then the `mirrored` states:
    * `{ member, state }`.
-   * - For a state two classes of the chain name, only the subclass's.
+   * - `mirrored`:  states that only mirror the attribute of their name (`elementSetup.cssStates`),
+   *   each read through its camelCase member (`"read-only"` => `readOnly`).
+   * - For a state two classes of the chain name, only the subclass's;
+   *   for one a member and `mirrored` both name, the member's.
    */
-  static cssStatesOf(instance: object): readonly CssStateEntry[] {
-    return Reactive.listFor<CssStateEntry>(instance, CSS_STATES, { claims: (entry) => entry.state })
+  static cssStatesOf(instance: object, mirrored: readonly string[] = []): readonly CssStateEntry[] {
+    const members = Reactive.listFor<CssStateEntry>(instance, CSS_STATES, { claims: (entry) => entry.state })
+    if (!mirrored.length) return members
+    const claimed = new Set(members.map(({ state }) => state))
+    const unclaimed = mirrored.filter((state) => !claimed.has(state))
+    return [...members, ...unclaimed.map((state) => ({ member: camelCase(state), state }))]
   }
 
   ////////////////
@@ -448,32 +454,12 @@ function derivedGetter<This extends object, T>(
 /**
  * `@cssState("open")` on a getter or an accessor:  `:state(open)` on the DOM element follows its truthiness.
  * - `UIComponent.onMount()` sets them all in ONE render effect (a throw reaches the error boundary).
- * - A state that only mirrors its attribute:  `@cssStates(...)` on the class, no getter.
- * - A dynamic set of states:  the `cssStates()` hook (a method of `UIComponent`, not this decorator).
+ * - A state that only mirrors its attribute:  a name in `elementSetup.cssStates`, no getter.
+ * - A dynamic set of states:  the `cssStates()` hook (a method of `UIComponent`).
  */
 export function cssState(stateName: string) {
   return function (_target: unknown, context: ClassGetterDecoratorContext | ClassAccessorDecoratorContext) {
     ownList<CssStateEntry>(context.metadata, CSS_STATES).push({ member: context.name, state: stateName })
-  }
-}
-
-/**
- * `@cssStates("disabled", "loading")` on a CLASS:
- * `:state(disabled)` follows attribute `disabled` (truthy), and so on.
- * - For a state that only mirrors its attribute, under the attribute's name:
- *   it saves a getter whose whole body would be `return !!this.disabled`.
- * - Reads the class's member of that name, camelCase (`"read-only"` reads `this.readOnly`):
- *   the attribute's getter, unless the class has its own member by that name.
- * - Each name MUST be a member of the class (an attribute):  TypeScript flags a typo.
- * - A state with logic, or a member something else reads (`isDisabled`), stays a getter with `@cssState`.
- */
-export function cssStates<const N extends string>(...attributes: N[]) {
-  return function <C extends abstract new (...args: any[]) => object>(
-    _class: C & (E.CamelCase<N> extends keyof InstanceType<C> ? unknown : "@cssStates:  not a member of this class"),
-    context: ClassDecoratorContext<C>
-  ) {
-    const list = ownList<CssStateEntry>(context.metadata, CSS_STATES)
-    for (const attribute of attributes) list.push({ member: camelCase(attribute), state: attribute })
   }
 }
 

@@ -652,10 +652,12 @@ const ARIA_VOCABULARY = {
   texts: []
 } as const satisfies ComponentVocabulary
 
-/** A component on `@cssStates`, `@aria` and `elementSetup.aria`. */
-@E.cssStates("loading", "read-only")
+/** A component on `elementSetup.cssStates`, `@aria` and `elementSetup.aria`. */
 class AriaTest extends E.UIComponent<typeof ARIA_VOCABULARY> {
-  @E.protoMerged static elementSetup = { aria: { role: "group", ariaRoleDescription: "test" } }
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
+    cssStates: ["loading", "read-only"],
+    aria: { role: "group", ariaRoleDescription: "test" }
+  }
 
   /** `loading` as `aria-busy`. */
   @E.aria("ariaBusy")
@@ -711,8 +713,8 @@ async function ariaTest(html: string) {
   return { host, component: host.component as unknown as AriaTest }
 }
 
-describe("Reactive:  @cssStates, @aria and elementSetup.aria", () => {
-  it("@cssStates:  `:state(x)` follows attribute `x` (a kebab-case name reads its camelCase member)", async () => {
+describe("Reactive:  elementSetup.cssStates, @aria and elementSetup.aria", () => {
+  it("elementSetup.cssStates:  `:state(x)` follows attribute `x` (a kebab-case name reads its camelCase member)", async () => {
     const { host } = await ariaTest(`<x-aria loading></x-aria>`)
     expect(host.matches(":state(loading)")).toBe(true)
     expect(host.matches(":state(read-only)")).toBe(false)
@@ -760,11 +762,12 @@ describe("Reactive:  @cssStates, @aria and elementSetup.aria", () => {
     expect(host.matches(":state(loading)")).toBe(true)
   })
 
-  it("@cssStates:  TypeScript flags a name that isn't a member", () => {
-    // @ts-expect-error -- `nope` is no member of `AriaTest`
-    @E.cssStates("nope")
-    class Misspelt extends AriaTest {}
-    expect(Misspelt).toBeDefined()
+  it("elementSetup.cssStates:  define() throws on a name the tag has no attribute or member for", () => {
+    class Misspelt extends AriaTest {
+      @E.protoMerged static elementSetup = { cssStates: ["loading", "nope"] } satisfies Partial<E.ElementSetup>
+    }
+    const define = () => (Misspelt as unknown as UIComponentClass & typeof E.UIComponent).define("x-aria-misspelt")
+    expect(define).toThrow(/<x-aria-misspelt>'s elementSetup.cssStates names nope,/)
   })
 })
 

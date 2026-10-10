@@ -28,11 +28,11 @@ import statisticCSS from "./UIStatistic.css?inline"
  * - No role:  a statistic is text;  the page names a group of them where it matters
  *   (a heading, `aria-label` on a region).
  ****************/
-@E.cssStates("inverted")
 export class UIStatistic extends E.UIComponent<typeof statisticVocabulary> {
   @E.proto static vocabulary = statisticVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { statistic: statisticCSS, ...E.PartComponent.prototype.elementSetup.styleSheets },
+    cssStates: ["inverted"],
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 

@@ -570,7 +570,8 @@ export type FallbackClass = {
 /**
  * How a class's custom element is set up:  `UIComponent.elementSetup`, merged down the class chain (`@protoMerged`).
  * - Read once, when the tag is defined,
- *   except `styleSheets`, `isAFormControl`, `canRenderUnstyled` and `aria`, which each element reads as it's built.
+ *   except `styleSheets`, `cssStates`, `isAFormControl`, `canRenderUnstyled` and `aria`,
+ *   which each element reads as it's built.
  */
 export type ElementSetup = {
   /**
@@ -579,7 +580,7 @@ export type ElementSetup = {
    * - Every element of the class uses the same sheets:
    *   registered with the runtime (`UI.styles`) once per class,
    *   then adopted into each element's shadow root, after the shared foundation sheets.
-   * - A subclass's REPLACE its base's whole (keys merge one level deep only);
+   * - A subclass's REPLACE its base's whole (only the top level of `elementSetup` is inherited key by key);
    *   spread the base's to add to them:
    *   `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
    * - Which of them apply right now:  `UIComponent.styleSheetNames`.
@@ -589,6 +590,21 @@ export type ElementSetup = {
    *   never a bare noun one of ours may have (`item`).
    */
   styleSheets: Readonly<Record<string, string>>
+
+  /**
+   * The `:state()`s that only mirror an attribute of the same name:  `["active", "fluid"]`.
+   * - `<ui-label active>` gets `:state(active)`, read through the component's member `active`
+   *   (camelCase:  `"read-only"` reads `readOnly`), the attribute's getter unless the class has its own.
+   * - Default none.
+   * - A subclass that ADDS states spreads its base's, as for `styleSheets`:
+   *   `cssStates: [...TextControl.prototype.elementSetup.cssStates, "inline"]`.
+   * - A state with logic, or one whose member something else reads (`isDisabled`), is a getter with `@cssState`;
+   *   for a state both name, the `@cssState` member wins.
+   * - `define()` throws on a name the tag has no attribute or member for (a typo).
+   * - NOT the `cssStates()` hook, which works out a set of states in code.
+   * - `disabled`, `loading` and the other shared states need no entry:  `UIComponent` sets them for every element.
+   */
+  cssStates: readonly string[]
 
   /**
    * Does this element act as a control in an HTML `<form>`?
@@ -641,7 +657,7 @@ export type ElementSetup = {
    * - A family with a script API of its own names its `DOM<Name>Element` here (`DOMNagElement`).
    * - Read once, when the tag is defined.
    */
-  DOMElement: E.DOMElementBaseClass
+  DOMElement: E.AnyDOMElementClass
 
   /**
    * The plain-DOM stand-in this element shows when it breaks (`UI<Name>.fallback.ts`).

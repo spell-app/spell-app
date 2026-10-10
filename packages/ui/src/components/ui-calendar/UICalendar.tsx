@@ -59,11 +59,11 @@ import calendarCSS from "./UICalendar.css?inline"
  *   The partner is read through its component, so its changes are live.
  * - A form control:  it submits the ISO value;  `required`, reset, a disabled fieldset;  restores a saved state.
  ****************/
-@E.cssStates("fluid", "inline")
 export class UICalendar extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = calendarVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { input: inputCSS, calendar: calendarCSS },
+    cssStates: ["fluid", "inline"],
     Fallback: CalendarFallback
   } satisfies Partial<E.ElementSetup>
 
