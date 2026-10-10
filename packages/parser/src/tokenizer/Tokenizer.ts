@@ -16,6 +16,14 @@ export class Tokenizer {
   whitespacePolicy: P.WhitespacePolicy = P.WhitespacePolicy.ALL
 
   /**
+   * JSX tags whose contents are RAW TEXT, as HTML's `<style>`:  one `JSXTextToken` up to the end tag,
+   * so `{`, `<` and `}` there are just text.
+   * - e.g. spell's `["css"]`:  `<css> .red { color: red } </css>`
+   * - None by default.
+   */
+  rawTextTags: string[] = []
+
+  /**
    * Quote symbols recognized by `matchText`.
    * - REFACTOR: backtick?  left/right quotes, e.g. `""` and `''`?
    */
@@ -401,7 +409,9 @@ export class Tokenizer {
     if (!jsxElement) return undefined
 
     if (!jsxElement.record.isUnaryTag) {
-      const children = this.matchJSXChildren(jsxElement.tagName, text, jsxElement.next, end)
+      const children = this.rawTextTags.includes(jsxElement.tagName)
+        ? this.matchRawJSXChildren(jsxElement.tagName, text, jsxElement.next, end)
+        : this.matchJSXChildren(jsxElement.tagName, text, jsxElement.next, end)
       if (children && children.length) {
         jsxElement.record.children = children as P.JSXElementToken[]
         jsxElement.record.raw = text.slice(start, children[children.length - 1].next)
@@ -492,6 +502,30 @@ export class Tokenizer {
       this.logger.warn(`matchJSXChildren(${text.slice(start, nextStart + 10)}: didn't match end child!`)
     }
 
+    return children
+  }
+
+  /**
+   * Children of raw-text tag `<endTagName>` at `start` of `text`:  ONE `JSXTextToken` of everything up to
+   * `</endTagName>`, then that end tag -- see `rawTextTags`.
+   * - No end tag:  the text runs to `end`, and there's no end tag token.
+   */
+  matchRawJSXChildren(endTagName: string, text: string, start: number, end?: number) {
+    if (typeof end !== "number" || end > text.length) end = text.length
+    if (start >= end) return undefined
+    const endTag = `</${endTagName}>`
+    const found = text.indexOf(endTag, start)
+    const textEnd = found === -1 || found + endTag.length > end ? end : found
+    const children: P.Token[] = []
+    if (textEnd > start) {
+      const value = text.slice(start, textEnd)
+      children.push(new P.JSXTextToken({ value, raw: value, start }))
+    }
+    if (textEnd < end) {
+      children.push(new P.JSXEndTagToken({ raw: endTag, tagName: endTagName, start: textEnd }))
+    } else {
+      this.logger.warn(`matchRawJSXChildren(${text.slice(start, start + 20)}): no ${endTag}`)
+    }
     return children
   }
 
@@ -960,4 +994,6 @@ type TokenizerProps = {
   whitespacePolicy?: P.WhitespacePolicy
   /** See `Tokenizer.quoteSymbols`. */
   quoteSymbols?: string[]
+  /** See `Tokenizer.rawTextTags`. */
+  rawTextTags?: string[]
 }

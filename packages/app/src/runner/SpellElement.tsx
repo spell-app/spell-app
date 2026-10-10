@@ -9,6 +9,7 @@ import { spellElementVocabulary } from "./SpellElement.en"
  * The component behind a drawable thing's own element, e.g. `<solitaire-card>` for `a card is a drawable thing`.
  *
  * - A Spell UI component like any `ui-*` one:  its own shadow root, with the page's theme and base styles.
+ *   Then its type's own `<css>`, its class's `static css`, after its super-types' (`cssOf()`).
  * - It draws its `thing`, through the program's runtime:  `spellCore.drawThing()`, in the thing's error net.
  * - ONE tag per drawable type, defined the first time a program defines its elements (`defineFor()`).
  *   What the tag draws with is looked up when it draws (`SPELL_ELEMENTS`), so a program run again takes it over.
@@ -17,7 +18,7 @@ import { spellElementVocabulary } from "./SpellElement.en"
  ****************/
 export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
   @E.proto static vocabulary = spellElementVocabulary
-  @E.protoMerged static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = { delegatesFocus: false }
 
   render(): JSX.Element {
     return <>{this.drawing}</>
@@ -42,10 +43,24 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
     if (customElements.get(tag)) return
     // our names under its tag:  typed as ours, whose tag is a literal
     const vocabulary = { ...spellElementVocabulary, tag, noun: Class.name } as unknown as typeof spellElementVocabulary
+    const css = SpellElement.cssOf(Class)
     const Component = class extends SpellElement {
       @E.proto static vocabulary = vocabulary
+      @E.protoMerged static elementSetup: Partial<E.ElementSetup> = { styleSheets: css ? { [tag]: css } : {} }
     }
     Component.define()
+  }
+
+  /**
+   * The CSS of drawable class `Class`:  each class's own `static css` (its type's `<css>`), its super-types' first --
+   * `""` if none has any.
+   */
+  static cssOf(Class: Function): string {
+    const sheets: string[] = []
+    for (let at: unknown = Class; typeof at === "function"; at = Object.getPrototypeOf(at)) {
+      if (Object.hasOwn(at, "css")) sheets.unshift(String((at as unknown as { css: unknown }).css))
+    }
+    return sheets.join("\n")
   }
 }
 

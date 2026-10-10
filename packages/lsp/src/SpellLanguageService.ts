@@ -134,8 +134,6 @@ export class SpellLanguageService {
 
     const text = file.parseText
     const errors = (SP.Block.getParseErrors(file.match) ?? []).flatMap((error): Diagnostic[] => {
-      // TODO: drop once spell's grammar has a rule for the `<css>` block (P4 of epic `drawable-thing`)
-      if (error.start !== undefined && this.css.isInBlock(text, error.start)) return []
       const range = this.rangeOf(file, error)
       if (!range) return []
       const message = error.message || `Don't understand "${text.slice(error.start, error.end)}"`

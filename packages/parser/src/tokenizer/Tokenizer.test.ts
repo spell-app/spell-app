@@ -1213,3 +1213,19 @@ describe("tokenize() line / ch", () => {
     expect(find(tokens, "b")).toMatchObject({ line: 2, ch: 0 })
   })
 })
+
+describe("raw-text JSX tags (`rawTextTags`)", () => {
+  const raw = new Tokenizer({ rawTextTags: ["css"] })
+
+  test("a raw-text tag's contents are ONE text token, `{` and `<` included", () => {
+    const [element] = raw.tokenize("<css>\n  .red { color: red } a < b\n</css>") as [JSXElementToken]
+    expect(element.tagName).toBe("css")
+    expect(element.children?.map((child) => child.constructor.name)).toEqual(["JSXTextToken", "JSXEndTagToken"])
+    expect(element.children?.[0]!.value).toBe("\n  .red { color: red } a < b\n")
+  })
+
+  test("any other tag's contents are JSX, as before", () => {
+    const [element] = raw.tokenize("<div>{x}</div>") as [JSXElementToken]
+    expect(element.children?.[0]).toBeInstanceOf(JSXExpressionToken)
+  })
+})

@@ -45,6 +45,7 @@ describe("priority and precedence", () => {
         "create_drawable_list_type:  Priority.declaration",
         "create_list_type:  Priority.declaration",
         "create_type:  Priority.declaration",
+        "css_block:  Priority.declaration",
         "define_property_has:  Priority.declaration",
         "divided_by:  Precedence.product",
         "does_not_include:  Precedence.comparison",

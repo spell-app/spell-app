@@ -806,10 +806,10 @@ describe("SpellLanguageService", () => {
     // a block in the card type's outline, its CSS with a typo:  `colr`
     const withBlock = cardText.replace(
       "a card is a thing\n",
-      "a card is a thing\n\t<css>\n\t\t.red { colr: red }\n\t</css>\n"
+      "a card is a drawable thing:\n\t<css>\n\t\t.red { colr: red }\n\t</css>\n"
     )
 
-    test("errors:  CSS mistakes, and none of spell's own in the block", async () => {
+    test("errors:  CSS mistakes, and none of spell's own:  it's spell's `css_block`", async () => {
       await withCardText(withBlock, () => {
         expect(service.diagnostics(card).map(({ source, message, range }) => ({ source, message, range }))).toEqual([
           {
