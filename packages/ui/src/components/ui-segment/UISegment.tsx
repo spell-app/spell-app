@@ -24,11 +24,11 @@ import segmentCSS from "./UISegment.css?inline"
  * - `loading`:  `aria-busy` (through `internals`) and a visually hidden `role=status` "Loading…".
  * - `disabled`:  `aria-disabled`.
  ****************/
-@E.cssStates("piled", "inverted")
 export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   @E.proto static vocabulary = segmentVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { segment: segmentCSS },
+    cssStates: ["piled", "inverted"],
     // `disabled`:  only a look, with `aria-disabled`
     disabled: "its own",
     // `loading`:  Fomantic's veil
@@ -41,7 +41,7 @@ export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
 
   /** Loading (`loading`):  `:state(loading)` and `aria-busy`. */
   @E.cssState("loading")
-  @E.aria("ariaBusy")
+  @E.aria("busy")
   get isLoading(): boolean {
     return !!this.loading
   }
@@ -51,7 +51,7 @@ export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
    * - Only a look (`elementSetup.disabled` is `"its own"`),
    *   so the element still takes clicks (its content's links).
    */
-  @E.aria("ariaDisabled")
+  @E.aria("disabled")
   get looksDisabled(): boolean {
     return this.isMarkedDisabled
   }

@@ -13,7 +13,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `decorators.ts` -- `@proto`, the standard-decorator for class defaults;
     `@protoMerged`, for a settings object whose keys merge down the class chain;
     `@lazy` (a getter made on first read, then kept) and `@once` (a method run once, its result kept,
-    e.g. a loader's promise), with `forget(object, "name")` for a `reset()`
+    e.g. a loader's promise), with `forget(object, "name")` to drop what they kept;
+    `@resets("name") accessor x`, whose every write drops it (`@E.resets("load") static accessor url`)
   - `class.ts` -- `hasOwnProp` ...
   - `string.ts` -- case conversion, `numberToWord`, `suggest`
   - `dom.ts` -- shadow-aware traversal, `NodeType`, `byDocumentOrder`, `isBrowser`, `nextFrame`

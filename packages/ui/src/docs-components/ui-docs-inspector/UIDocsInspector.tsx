@@ -54,7 +54,7 @@ export class UIDocsInspector extends E.UIComponent<typeof docsInspectorVocabular
    * The inspector's accessible name:  "Live view of <ui-button id="save">".
    * - `undefined` until `isReady`:  the texts come from the runtime (`UI.i18n`), which throws before it has loaded.
    */
-  @E.aria("ariaLabel")
+  @E.aria("label")
   get label(): string | undefined {
     if (!this.isReady) return undefined
     return this.translationForKey("label", { target: this.title ?? `#${this.for ?? ""}` })

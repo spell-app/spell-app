@@ -43,7 +43,7 @@ import accordionCSS from "./UIAccordion.css?inline"
  *     so it opens on the body.
  *   - The DOM element (`DOMLoadableBodyElement`) has `load()` / `reload()`;  states `loading`, `loaded`, `error`.
  * - SIDE EFFECTS:
- *   - watches its own child list (`@fromContent`), to pair the titles and contents again
+ *   - watches its own child list (`@watches`), to pair the titles and contents again
  *   - with `source`:  may add a `<ui-content>` child, and replaces its children with the file's body.
  ****************/
 export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
@@ -88,7 +88,7 @@ export class UIAccordion extends E.UIComponent<typeof accordionVocabulary> {
   readonly group = isServer ? UI.ids.next(DETAILS_GROUP) : DETAILS_GROUP
 
   /** A child was added, removed or moved:  pair the panels again. */
-  @E.fromContent({ childList: true })
+  @E.watches({ childList: true })
   protected onChildrenChanged() {
     this.panels = AccordionPanels.read(this.domElement, UIAccordion.isTitle, this.panels)
   }

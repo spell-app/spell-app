@@ -29,7 +29,7 @@ import { Validator } from "./Validator"
  *   - `formName`:  `name`
  *   - `validationRules`:  `required` => Fomantic's `notEmpty`
  *   - a click aimed at the DOM element itself (its `<label for>`, its `click()`) calls `activateControl()`
- * - Every form vocabulary has `disabled` and `name`:  their getters are typed here once (`FormAttributes`).
+ * - Every form vocabulary has `disabled`, `name` and `required`:  their getters are typed here once (`FormAttributes`).
  *
  * - Part of the `forms` entry:  reaches the element core through the `$/ui/core` ENTRY (`E`), never its leaves,
  *   or the build splits what `core` and `forms` share into a third chunk.
@@ -110,7 +110,8 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
 
   /**
    * Hook:  validation rules;  default:  `required` => Fomantic's `notEmpty`, else none.
-   * - `required` only where the vocabulary has it (not a slider's, nor brand's controls').
+   * - `notEmpty` checks `validationValue`:  a control with a default it shows before anyone chose
+   *   (a slider's `min`, a colour picker's colour) leaves it empty until a value is set.
    * - Not `rules`:  the attribute of `<ui-input>`, `<ui-textarea>` and `<ui-form>`,
    *   whose getter a base member of that name would hide (`UIComponent`'s doc).
    */
@@ -299,7 +300,7 @@ export abstract class FormComponent<V extends E.ComponentVocabulary = E.Componen
  */
 export interface FormComponent<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends FormAttributes {}
 
-/** Getters of the attributes every form vocabulary declares (`required` only most). */
+/** Getters of the attributes every form vocabulary declares. */
 type FormAttributes = {
   /** the `disabled` attribute (a disabled fieldset is `formIsDisabled`) */
   disabled: boolean
@@ -307,8 +308,7 @@ type FormAttributes = {
   name: string | undefined
   /**
    * a value is needed
-   * - NOTE: `undefined` at run time where the vocabulary has no `required` (a slider, brand's controls):  never needed.
-   * - Typed `boolean` all the same:  a subclass's vocabulary getter must have the very same type.
+   * - A slider or colour picker set up with no value fails it, though it shows a default (`validationValue`).
    */
   required: boolean
 }
