@@ -13,11 +13,10 @@
  *     - `StickyWatch` (`<ui-sticky>` and `<ui-section sticky>`)
  *   - from `$/ui/elements`, the Solid layer:
  *     - `Reactive`, the decorators:
- *       `state`, `controlled`, `derived`, `cssState`, `cssStates`, `aria`, `onChange`, `whileConnected`,
- *       `fromContent`, `on`, `untracked`
+ *       `state`, `controlled`, `derived`, `cssState`, `aria`, `onChange`, `whileConnected`,
+ *       `watches`, `on`, `untracked`
  *     - `Cell`, `ElementDefinition`, `DOMElement`, `UIComponent`, `SlotContent`, `IconGlyph`
  *     - `PartContext` + `PartComponent` (owner context)
- *     - `Controlled` (compatibility, for `brand`)
  *     - `RootSettings`:  what each `<ui-root>` sets for its subtree (icon packs, emoji)
  *     - the elements that show a text file:
  *       `DOMLoadableElement` + `LoadableComponent`, `SourceMarkup`,
@@ -62,7 +61,6 @@ export * from "$/ui/elements/Cell"
 export * from "$/ui/elements/ElementDefinition"
 export * from "$/ui/elements/DOMElement"
 export * from "$/ui/elements/PartContext"
-export * from "$/ui/elements/Controlled"
 export * from "$/ui/elements/UIComponent"
 export * from "$/ui/elements/PartComponent"
 export * from "$/ui/elements/SlotContent"

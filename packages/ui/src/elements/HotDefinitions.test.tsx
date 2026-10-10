@@ -17,7 +17,7 @@ import { HotDefinitions } from "$/ui/elements/HotDefinitions"
  *   vitest's browser mode runs each test file in its own iframe, with its own module graph.
  * - Vitest serves the source through Vite's dev server, so `import.meta.hot` exists here:
  *   every DOM element made calls the hooks `HotDefinitions` installs (`DOMElement.hotReloadHooks`), as in `yarn dev`.
- *   No test tracks one by hand.
+ *   - No test tracks one by hand.
  */
 
 ////////////////
@@ -34,7 +34,7 @@ type HotElement = DOMElement & Record<string, any> & { shadowRoot: ShadowRoot }
 const LABEL = { name: "label", kind: "string", description: "A label." } as const
 
 /** What every element starts with for the shared attributes (`SharedVocabulary`), never written in these tests. */
-const SHARED_STARTING_VALUES = { disabled: false, loading: false, visible: true } as const
+const SHARED_STARTING_VALUES = { disabled: false, loading: false, visible: true, animation: undefined } as const
 
 /** The Spanish names of a test tag:  `<x-hot-1-es etiqueta="...">`. */
 const SPANISH = { lang: "es", attributes: { label: "etiqueta" } } as const satisfies Dictionary
@@ -63,8 +63,8 @@ function vocabularyFor(tag: string, attributes: readonly object[] = [LABEL]): Co
 
 /**
  * One version of a test component:  renders `<b part="text">` with `text`, then each attribute's value.
- * - EVERY call makes a new class named `XHot`, as re-running its module would:  defined for a known tag, it's a
- *   new version of the class there.
+ * - EVERY call makes a new class named `XHot`, as re-running its module would:
+ *   defined for a known tag, it's a new version of the class there.
  * - `render`:  replaces the default render (a throwing one, say).
  * - `elementSetup`:  what this version states (`UIComponent.elementSetup`).
  */
@@ -87,10 +87,10 @@ function makeVersion(
     }
   }
   Object.defineProperty(XHot.prototype, "vocabulary", { value: vocabulary })
-  // merged over the base's, as `@protoMerged static elementSetup` would
+  // chained to the base's, as `@protoMerged static elementSetup` does
   if (elementSetup) {
     Object.defineProperty(XHot.prototype, "elementSetup", {
-      value: { ...UIComponent.prototype.elementSetup, ...elementSetup }
+      value: Object.setPrototypeOf({ ...elementSetup }, UIComponent.prototype.elementSetup)
     })
   }
   return XHot as unknown as HotClass

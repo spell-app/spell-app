@@ -1,7 +1,7 @@
 /*
- * The style sheet of `<ui-section>` and `<ui-sections>`:  ours, after Fomantic's header (`dividing`, `block`),
- * segment (the box, `padded`, `attached`, `scrolling`, `loading`) and styled accordion (`styled`).
- * No Fomantic `.less` of its own.
+ * The style sheet of `<ui-section>` and `<ui-sections>`:  ours, with no Fomantic `.less` of its own.
+ * It follows Fomantic's header (`dividing`, `block`), segment (the box, `padded`, `attached`, `scrolling`, `loading`)
+ * and styled accordion (`styled`).
  * - It styles the component's shadow DOM, in Fomantic's class names on semantic elements:
  *
  *     <section class="ui [size] [color] [keyOnly ...] [valueAndKey ...] [text-align] section [scrolling]"
@@ -32,19 +32,22 @@
  *     </section>
  *
  * - The DOM element is `display: block`, NOT `contents`:  its `id` is an anchor target, and pages scroll to its box.
- * - Static markup (the examples) gets every look;  the element adds behaviour:  folding, find-in-page,
- *   the sticky stack, `:state(stuck)`.  Folded is `hidden="until-found"` on `.content`;  the fold icon turns by the
- *   toggle's `aria-expanded="false"`.
- * - `size` scales the CONTENT only (`--ui-scale` from `sizes.css`, read by `.content`);  each level keeps its title
- *   size (`--ui-section-h1` ... `-h6`, relative to `--ui-font-size`, as `<ui-header level>`'s).
- * - `color` (the `--ui-color*` remap) tints the title, the dividing rule and a box's top edge;
- *   every `<slot>` resets the remap and `--ui-scale`, so slotted content (nested sections included) isn't tinted or
- *   rescaled.
- * - Sticky:  `.title` is `position: sticky` inside the section box, at `--_ui-section-top` (inline:
- *   the top-level `offset`, or the bottom of the enclosing stuck titles) and `z-index` `--ui-section-z-index` minus the
- *   nesting depth (`--_ui-section-depth`, inline;  never below 1), so a nested title slides UNDER its parent's.  It
- *   needs an opaque background (`--ui-section-sticky-background`);  the content is isolated (its own stacking
- *   context), so nothing in it paints over the title.
+ * - Static markup (the examples) gets every look;
+ *   the element adds behaviour:  folding, find-in-page, the sticky stack, `:state(stuck)`.
+ *   - Folded is `hidden="until-found"` on `.content`.
+ *   - The fold icon turns by the toggle's `aria-expanded="false"`.
+ * - `size` scales the CONTENT only (`--ui-scale` from `sizes.css`, read by `.content`).
+ *   Each level keeps its title size (`--ui-section-h1` ... `-h6`),
+ *   relative to `--ui-font-size`, as `<ui-header level>`'s.
+ * - `color` (the `--ui-color*` remap) tints the title, the dividing rule and a box's top edge.
+ *   Every `<slot>` resets the remap and `--ui-scale`,
+ *   so slotted content (nested sections included) isn't tinted or rescaled.
+ * - Sticky:  `.title` is `position: sticky` inside the section box.
+ *   - Its top is `--_ui-section-top` (inline):  the top-level `offset`, or the bottom of the enclosing stuck titles.
+ *   - Its `z-index` is `--ui-section-z-index` minus the nesting depth (`--_ui-section-depth`, inline;  never below 1),
+ *     so a nested title slides UNDER its parent's.
+ *   - It needs an opaque background (`--ui-section-sticky-background`).
+ *   - The content is isolated (its own stacking context), so nothing in it paints over the title.
  * - Animated folds (`:state(animated)`:  `interpolate-size`), dropped under `prefers-reduced-motion`.
  * - `<ui-sections>` shares this sheet:
  *
@@ -54,14 +57,16 @@
  *   which then stacks ("Stacked");  a plain group resets it.
  * - End chevron (`fold-icon="end"`):  the fold icon sits after the badge and actions, at the far end of the bar;
  *   it turns as the start one does, by the toggle's `aria-expanded` (`:has()`).
- * - Info tip (`info`):  under the title bar at its start edge, shown while the pointer is on the heading or the end
- *   chevron, or the toggle has keyboard focus;  the title is its positioned box.
+ * - Info tip (`info`):  under the title bar at its start edge;  the title is its positioned box.
+ *   It shows while the pointer is on the heading or the end chevron, or the toggle has keyboard focus.
  *
  * ## Tokens
- * Public tokens (`--ui-section-*`, the theming surface) are NEVER declared here:  the root reads each through a
- * private alias (`--_ui-section-radius: var(--ui-section-radius, var(--ui-radius))`) and the rules read only those,
- * so a value set on `:root`, an ancestor, the DOM element, `::part(section)` or in the app stylesheet reaches the box
- * (`docs/theming.md` "Component tokens").  Variations write private `--_section-*` switches, never the aliases.
+ * Public tokens (`--ui-section-*`, the theming surface) are NEVER declared here:
+ * the root reads each through a private alias, and the rules read only those:
+ * `--_ui-section-radius: var(--ui-section-radius, var(--ui-radius))`.
+ * - So a value set on `:root`, an ancestor, the DOM element, `::part(section)` or in the app stylesheet
+ *   reaches the box (`docs/theming.md` "Component tokens").
+ * - Variations write private `--_section-*` switches, never the aliases.
  *
  * | Token                                                 | What                                          |
  * | ----------------------------------------------------- | --------------------------------------------- |
@@ -113,9 +118,6 @@
 @layer ui.components.section.types {
   :host {
     display: block;
-  }
-  :host([hidden]) {
-    display: none;
   }
 
   /* Tokens:  each the private alias of its public token. */
@@ -171,8 +173,8 @@
     --_ui-section-loader-track: var(--ui-section-loader-track, oklch(from var(--ui-ink) l c h / 0.1));
     --_ui-section-loader-dimmer: var(--ui-section-loader-dimmer, oklch(from var(--ui-surface) l c h / 0.8));
     --_ui-section-disabled-opacity: var(--ui-section-disabled-opacity, var(--ui-disabled-opacity));
-    /* Cap of a `scrolling` section's content;  its default grows with the viewport (below), a value set from
-       outside wins at every width. */
+    /* Cap of a `scrolling` section's content;  its default grows with the viewport (below):
+       a value set from outside wins at every width. */
     --_ui-section-scrolling-height: var(--ui-section-scrolling-height, var(--_section-scrolling-default, 15em));
   }
 
@@ -244,9 +246,10 @@
 
 @layer ui.components.section.types {
   /*
-   * `<ui-sections>`:  a block spaced as one section would be (its first section's top margin and its last one's
-   * bottom margin are 0).  Plain, it resets the stacking switch, so a plain group inside a collapsing one turns
-   * stacking off again for the sections in it.
+   * `<ui-sections>`:  a block spaced as one section would be
+   * (its first section's top margin and its last one's bottom margin are 0).
+   * Plain, it resets the stacking switch,
+   * so a plain group inside a collapsing one turns stacking off again for the sections in it.
    */
   .ui.sections {
     --_ui-section-margin: var(--ui-section-margin, 1.5em);
@@ -360,8 +363,9 @@
     fill: currentColor;
   }
 
-  /* Fold chevron:  points down while open, turns toward the text while folded (by default:  the two
-     `--ui-section-fold-icon-*rotate` tokens;  right to left, each turn is negated, so it mirrors). */
+  /* Fold chevron:  points down while open, turns toward the text while folded.
+     By default the two `--ui-section-fold-icon-*rotate` tokens turn it;
+     right to left, each turn is negated, so it mirrors. */
   .ui.section > .title > .heading > .toggle > .fold.icon {
     width: var(--_ui-section-fold-icon-size);
     height: var(--_ui-section-fold-icon-size);
@@ -549,8 +553,8 @@
   }
 
   /*
-   * ## Collapsing group (`<ui-sections collapsing>`):  the stacking switch every section below reads, at any depth
-   * (it inherits through slots):  the margin between stacked sections.
+   * ## Collapsing group (`<ui-sections collapsing>`):  the stacking switch every section below reads,
+   * at any depth (it inherits through slots):  the margin between stacked sections.
    */
   .ui.collapsing.sections {
     --_ui-sections-stack: 0px;
@@ -617,12 +621,13 @@
   }
 
   /*
-   * ## Stacked:  in `<ui-sections collapsing>` (its inherited `--_ui-sections-stack`;  unset elsewhere, so none of
-   * this applies), a FOLDABLE section starts flush under the one above, and a FOLDED one keeps no space below:
-   * a run of folded titles reads as one accordion.  An open one keeps its usual space below its content,
-   * never above its title, so a title never moves when it's clicked.  Boxes (`bordered`,
-   * `styled`) overlap their edges by the border width, so two never draw a doubled line;  not `attached` ones,
-   * which join already.
+   * ## Stacked:  in `<ui-sections collapsing>`, a run of folded titles reads as one accordion.
+   * - Its inherited `--_ui-sections-stack` turns this on;  unset elsewhere, so none of this applies.
+   * - A FOLDABLE section starts flush under the one above, and a FOLDED one keeps no space below.
+   * - An open one keeps its usual space below its content, never above its title,
+   *   so a title never moves when it's clicked.
+   * - Boxes (`bordered`, `styled`) overlap their edges by the border width, so two never draw a doubled line;
+   *   not `attached` ones, which join already.
    */
   .ui.section:has(> .title > .heading > button.toggle) {
     --_section-stack-top: var(--_ui-sections-stack);
@@ -702,10 +707,12 @@
   /*
    * ## Sticky:  the title bar sticks within the section box, at the stack top (inline `--_ui-section-top`);
    * deeper titles stack lower (inline `--_ui-section-depth`), so they slide under their parents'.
-   * - The content is its own stacking context, so nothing in it (a step's arrow, a table's stuck header, a nested
-   *   section's title) can climb over the stuck title, whatever its `z-index`:  the title only has to beat 0, so it
-   *   never goes below 1, however low a page sets `--ui-section-z-index` (the docs:  4) or however deep it nests.
-   *   Popups and dialogs inside still show above it:  they open in the top layer.
+   * - The content is its own stacking context,
+   *   so nothing in it (a step's arrow, a table's stuck header, a nested section's title)
+   *   can climb over the stuck title, whatever its `z-index`.
+   * - So the title only has to beat 0:  it never goes below 1,
+   *   however low a page sets `--ui-section-z-index` (the docs:  4) or however deep it nests.
+   * - Popups and dialogs inside still show above it:  they open in the top layer.
    */
   .ui.sticky.section > .title {
     position: sticky;

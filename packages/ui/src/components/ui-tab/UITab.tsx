@@ -20,6 +20,8 @@ import tabCSS from "./UITab.css?inline"
  *     so keyboard users reach content with no control in it.
  * - Alone (no `<ui-tabs>`):  shown while its own `selected` (or `active`) is set.
  * - Hidden panes are DOM elements with `display: none`:  out of the layout and the accessibility tree.
+ * - `disabled`:  its tab can't be selected;  the pane itself is unusable, the base class's way
+ *   (`elementSetup.disabled`:  its content inert and dimmed, `aria-disabled`).
  * - `lazy`:  its `<template>` children are stamped into it (light DOM, after them) the first time it shows;
  *   `ui-show` (`{ value, first }`) fires every time it becomes the shown pane.
  * - Its looks come from `UISegment.css` (the pane IS a segment) and `UITab.css`, adopted in that order.
@@ -30,8 +32,6 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
     styleSheets: { segment: segmentCSS, tab: tabCSS },
     // the DOM element is the tabpanel and its focus stop;  nothing inside to delegate to
     delegatesFocus: false,
-    // `disabled`:  Fomantic's look
-    disabled: "its own",
     // `loading`:  Fomantic's veil
     loading: "its own"
   } satisfies Partial<E.ElementSetup>
@@ -65,7 +65,7 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
   }
 
   /** Owned:  the DOM element is named by its `label`, else its `value`;  alone, unnamed. */
-  @E.aria("ariaLabel")
+  @E.aria("label")
   protected get accessibleName(): string | undefined {
     return this.owner ? (this.label ?? this.value) : undefined
   }
@@ -126,9 +126,14 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
     return super.classValue(name)
   }
 
-  /** Fomantic's pane is a segment:  `ui ... tab segment`. */
-  protected get extraClass(): string | undefined {
+  /** Fomantic's pane is a SEGMENT, `tab` the word before it:  `ui bottom attached tab segment`. */
+  protected get classNoun(): string {
     return SEGMENT
+  }
+
+  /** `tab` before the noun, as Fomantic writes it (`ui ... tab segment`). */
+  protected get extraClass(): string {
+    return this.vocabulary.noun
   }
 
   ////////////////
@@ -181,7 +186,7 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface UITab extends E.AttributeValues<typeof tabVocabulary> {}
 
-/** The class after a pane's noun:  the pane is a segment (`ui … tab segment`). */
+/** A pane's class noun:  the pane is a segment (`ui … tab segment`). */
 const SEGMENT = "segment"
 
 /** A lazy pane's templates:  direct children only. */

@@ -13,6 +13,7 @@ import { INPUT, PROMPT, type Vocabulary } from "./UISearch.types"
  * - The input is a native search field (`type="search"`):  typing narrows the browser's own suggestion list.
  * - Its text is the DOM element's form value (with `required` validity), and `domElement.value` follows it;
  *   the native `change` sends `ui-change`.
+ * - `readonly`:  the input's own `readonly`, as the component's;  its text can't be changed.
  * - Its accessible name is the DOM element's `aria-label`, else `placeholder`.
  ****************/
 export class SearchFallback extends E.NativeFallback<Vocabulary> {
@@ -38,6 +39,7 @@ export class SearchFallback extends E.NativeFallback<Vocabulary> {
       placeholder,
       required: this.flag("required"),
       disabled: this.flag("disabled"),
+      readonly: this.flag("readonly"),
       autocomplete: "off",
       list: listId
     })

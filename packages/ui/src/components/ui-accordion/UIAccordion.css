@@ -66,9 +66,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  private aliases;  the root resolves every variation into these (see the header). */
   .ui.accordion {

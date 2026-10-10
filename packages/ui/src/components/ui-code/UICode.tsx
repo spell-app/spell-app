@@ -1,4 +1,4 @@
-import { Show, onSettled, untrack } from "solid-js"
+import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
@@ -21,8 +21,9 @@ export class DOMCodeElement extends E.DOMLoadableElement<UICode> {
    * `undefined` otherwise, or before the colours arrive (`ui-highlight` says when).
    * - Untracked:  it's for scripts.
    */
+  @E.untracked
   get detectedLanguage(): string | undefined {
-    return untrack(() => this.component?.detectedLanguage)
+    return this.component?.detectedLanguage
   }
 }
 
@@ -97,16 +98,10 @@ export class UICode extends E.LoadableComponent<typeof codeVocabulary> {
     return highlighted?.detected ? highlighted.language : undefined
   }
 
-  /** Counts `UI.code`'s new languages (`languageCount`), then renders. */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      onSettled(() => {
-        const bump = () => (this.languageCount += 1)
-        document.addEventListener(E.CODE_LANGUAGES_EVENT, bump)
-        return () => document.removeEventListener(E.CODE_LANGUAGES_EVENT, bump)
-      })
-    }
-    return super.onMount()
+  /** Counts `UI.code`'s new languages (`languageCount`), for the element's whole life (`this.on()` on the document). */
+  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
+    super(...args)
+    if (!isServer) this.on(E.CODE_LANGUAGES_EVENT, () => (this.languageCount += 1), { target: document })
   }
 
   /** Highlight whenever the text, `language` or `UI.code`'s languages change, once the text has loaded. */

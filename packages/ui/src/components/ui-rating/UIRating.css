@@ -10,21 +10,22 @@
  *       </label>
  *     </fieldset>
  *
- *   - static markup may use Fomantic's `<div class="ui rating"><i class="active icon"><svg>` for a display-only
- *     rating:  every rule keys on `.ui.rating .icon`, whatever the elements
+ *   - static markup may use Fomantic's `<div class="ui rating"><i class="active icon"><svg>`
+ *     for a display-only rating:  every rule keys on `.ui.rating .icon`, whatever the elements
  * - The DOM element:  `inline-block`, as Fomantic's root.
  *   `:state(disabled)` / `:state(invalid)` are for PAGE styling only.
- * - Glyphs are SVG (`currentColor`), so a colour is `color` and a partial icon is the glyph twice,
- *   the filled copy clipped (`clip-path`) -- Fomantic clipped a gradient to the icon font's text
- *   (`background-clip: text`).
+ * - Glyphs are SVG (`currentColor`), so a colour is `color`,
+ *   and a partial icon is the glyph twice, the filled copy clipped (`clip-path`).
+ *   Fomantic clipped a gradient to the icon font's text (`background-clip: text`).
  * - Colours by remap:  filled icons take `--ui-color` (hover previews `--ui-color-hover`);
- *   uncoloured ones are Fomantic's dark grey.  Fomantic's text-shadow outline of coloured icons is left out (an
- *   icon-font trick).
+ *   uncoloured ones are Fomantic's dark grey.
+ *   Fomantic's text-shadow outline of coloured icons is left out (an icon-font trick).
  * - Focus:  keyboard focus rings the focused icon (`:focus-visible` on its radio), for WCAG 2.4.7.
  * - Sizes:  `--ui-scale` (from `sizes.css`) scales the whole group.
- * - Public tokens (`--ui-rating-*`, the theming surface) are NEVER declared here:  the token block reads each
- *   through a private alias, `--_ui-rating-icon-width: var(--ui-rating-icon-width, 1.25em)`, and every rule reads
- *   the alias.  So a value set on `:root`, an ancestor, the DOM element, `::part(rating)` or in the app stylesheet
+ * - Public tokens (`--ui-rating-*`, the theming surface) are NEVER declared here:
+ *   the token block reads each through a private alias, and every rule reads the alias:
+ *   `--_ui-rating-icon-width: var(--ui-rating-icon-width, 1.25em)`.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(rating)` or in the app stylesheet
  *   reaches the box (`docs/theming.md` "Component tokens").
  */
 
@@ -39,17 +40,14 @@
     display: inline-block;
     vertical-align: baseline;
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* `delegatesFocus`:  the icon draws the focus ring, never the DOM element. */
   :host(:focus-visible) {
     outline: none;
   }
 
   /*
-   * Tokens:  one per `rating.variables` entry that still matters, from the global tokens -- each the private alias
-   * of its public token (never declare the public one:  it would block inherited values).
+   * Tokens:  one per `rating.variables` entry that still matters, from the global tokens --
+   * each the private alias of its public token (never declare the public one:  it would block inherited values).
    */
   .ui.rating {
     --_ui-rating-margin: var(--ui-rating-margin, 0 0.14285em);

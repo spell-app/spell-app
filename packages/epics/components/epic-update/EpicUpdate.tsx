@@ -5,28 +5,29 @@ import { E } from "$/ui/core"
 
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
 import { FOLDS, Fold } from "$/epics/components/epic-item/Fold"
-import { FoldButton } from "$/epics/components/epic-item/FoldButton"
 
 import { epicUpdateVocabulary } from "./EpicUpdate.en"
 
 import updateCSS from "./EpicUpdate.css?inline"
-import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
+import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 
 /****************
  * ### `EpicUpdate`
  * The component behind `<epic-update>`:
  * an UPDATE marker, while a phase is active (`phase <N> done` removes its phase's):
  * - empty:  an orange `UPDATE` label, inline (on a new or changed item's line, in prose)
- * - with children:  a NOTE -- a warning-tinted box headed by the fold chevron and the label, its children inside --
- *   just before the prose it's about (`:state(note)`).
- *   It folds by its heading (Owen, 2026-10-08:  everything in a section box folds):
- *   open to start with;  page state;  folded, `hidden="until-found"`
+ * - with children:  a NOTE (`:state(note)`), just before the prose it's about
+ *   - a warning-tinted box headed by the fold chevron and the label, its children inside
+ *   - it folds by its heading (Owen, 2026-10-08:  everything in a section box folds):
+ *     open to start with;  page state;  folded, `hidden="until-found"`
  * - Its tooltip names the phase:  `Changed during P3`.
  ****************/
 export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
   @E.proto static vocabulary = epicUpdateVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold-button": foldCSS, "epic-update": updateCSS }
+    styleSheets: { "epic-fold-button": foldCSS, "epic-update": updateCSS },
+    // a container:  a click on its text must not jump to the fold button
+    delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
   /** A note's open or folded state:  open to start with. */
@@ -40,7 +41,7 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
 
   /** Has it children:  a note, not a bare label?  Follows its children;  never on a server. */
   @E.cssState("note")
-  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  @E.watches({ childList: true, characterData: true, subtree: true })
   get isNote(): boolean {
     return !isServer && EpicUpdate.hasContent(this.domElement)
   }
@@ -50,7 +51,7 @@ export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {
       <span class={this.rootClass} part={this.partForName("base")}>
         <span ref={this.fold.heading} class={[HEAD, { [FOLDS]: this.isNote }]}>
           <Show when={this.isNote}>
-            <FoldButton fold={this.fold} controls={BODY_ID} labelledBy={LABEL_ID} part={this.partForName("toggle")} />
+            {this.fold.button({ controls: BODY_ID, labelledBy: LABEL_ID, part: this.partForName("toggle") })}
           </Show>
           <span
             id={LABEL_ID}

@@ -1,14 +1,14 @@
 /**
  * Every name `<epic-summary>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the review controls' parts and texts (`REVIEW_*`) from `epic-item`'s types file,
- *   data too:  the summary takes review notes (epic `airplane` P2).
+ * - Pure data:  `import type`, plus data from `epic-review`'s types file.
+ *   - the review controls' parts (`REVIEW_PARTS`):  the summary takes review notes (epic `airplane` P2)
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
 // the review controls the summary draws, as `<epic-item>` does
-import { REVIEW_PARTS, REVIEW_TEXTS } from "$/epics/components/epic-item/EpicItem.types"
+import { REVIEW_PARTS } from "$/epics/components/epic-review/EpicReview.types"
 
 /****************
  * ### `<epic-summary>`
@@ -50,8 +50,7 @@ export const epicSummaryVocabulary = {
       key: "summaryLabel",
       text: "the summary",
       description: "Its name in the review controls' words (`Review the summary`, `the summary:  your note`)."
-    },
-    ...REVIEW_TEXTS
+    }
   ],
   children: [
     { tag: "flow", description: "The summary." },

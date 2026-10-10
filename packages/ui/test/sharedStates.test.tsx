@@ -3,14 +3,20 @@ import { describe, expect, test, vi } from "vite-plus/test"
 import { A11y } from "$/ui/test/A11y"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { UI } from "$/ui/core"
-import type { DOMElement } from "$/ui/elements"
+import type { DOMElement, UIComponent } from "$/ui/elements"
 import type { UISearch } from "$/ui/components/ui-search/UISearch"
 
 import "$/ui/index"
 
 /**
- * The shared states every element takes, though its vocabulary may not name them (`UIComponent`, "Shared states";
- * `SharedVocabulary`):  `disabled`, `loading`, `visible`, and the platform's `hidden` and `inert`.
+ * The shared states every element takes, though its vocabulary may not name them
+ * (`UIComponent`, "Shared states";  `SharedVocabulary`):
+ * - `disabled`
+ * - `loading`
+ * - `visible` (the platform's `hidden` turned round)
+ * - `animation`
+ * - the platform's `inert`
+ *
  * - A family with no `disabled` of its own (`<ui-menu>`) is unusable the base class's way;
  *   one with its own keeps it (`elementSetup.disabled`).
  */
@@ -100,6 +106,23 @@ describe("disabled, the base class's way (`elementSetup.disabled` = unusable)", 
     expect(focused()).toBeUndefined()
   })
 
+  test("every family whose disabled was only Fomantic's look is unusable too (P11, T9):  a disabled segment's link", async () => {
+    const segment = await render(`<ui-segment disabled><a href="#x">Go</a></ui-segment>`)
+    expect({
+      ariaDisabled: segment.internals.ariaDisabled,
+      inert: boxesOf(segment).every((box) => box.inert),
+      swallowsClicks: segment.component!.isDisabled
+    }).toEqual({ ariaDisabled: "true", inert: true, swallowsClicks: true })
+    const tags = [
+      ...["ui-form", "ui-fields", "ui-field", "ui-tab", "ui-items", "ui-comments", "ui-comment", "ui-feed"],
+      ...["ui-event", "ui-segments", "ui-segment", "ui-section", "ui-panel", "ui-labels", "ui-label"],
+      ...["ui-images", "ui-image"]
+    ]
+    const meanings: [string, unknown][] = []
+    for (const tag of tags) meanings.push([tag, (await render(`<${tag}></${tag}>`)).component!.elementSetup.disabled])
+    expect(meanings).toEqual(tags.map((tag) => [tag, "unusable"]))
+  })
+
   test("is accessible:  disabled, and loading", async () => {
     await A11y.check(await render(MENU.replace("<ui-menu>", "<ui-menu disabled>")))
     await A11y.check(await render(MENU.replace("<ui-menu>", "<ui-menu loading>")))
@@ -138,6 +161,18 @@ describe("disabled, a family's own (`elementSetup.disabled` = its own)", () => {
 ////////////////
 
 describe("loading", () => {
+  test("a family's own inert stays:  <ui-form disabled loading> losing `disabled` keeps its veil inert (I10)", async () => {
+    const form = await render(`<ui-form disabled loading><button>Send</button></ui-form>`)
+    const inertBoxes = () => boxesOf(form).filter((box) => box.inert).length
+    expect(inertBoxes()).toBeGreaterThan(0)
+    form.disabled = false
+    await ElementFixture.settle(form)
+    expect(inertBoxes()).toBeGreaterThan(0)
+    form.loading = false
+    await ElementFixture.settle(form)
+    expect(inertBoxes()).toBe(0)
+  })
+
   test("the base class's loader:  :state(loading) and :state(busy), aria-busy, its content inert", async () => {
     const menu = await render(`<ui-menu loading><ui-item>A</ui-item></ui-menu>`)
     expect(menu.matches(":state(loading)")).toBe(true)
@@ -204,38 +239,202 @@ describe("readonly (form controls)", () => {
 })
 
 ////////////////
-// ## visible, hidden, inert
+// ## visible, hidden, animation, inert
 ////////////////
 
-describe("visible", () => {
-  test('visible="false" from the start:  hidden at once, no animation', async () => {
-    const message = await render(`<ui-message visible="false">Saved</ui-message>`)
-    expect(message.visible).toBe(false)
-    expect(message.matches(":state(hidden)")).toBe(true)
-    expect(getComputedStyle(message).display).toBe("none")
+/** `host`'s component, for its shared members (`animationToRun`, `isHiding`). */
+function componentOf(host: Element): UIComponent {
+  return (host as DOMElement).component as UIComponent
+}
+
+/** `host`'s `hidden` and `visible` attributes as written:  `"hidden"`, `visible="false"` ... joined in that order. */
+function writtenOf(host: Element): string {
+  const hidden = host.getAttribute("hidden")
+  const visible = host.getAttribute("visible")
+  const words = [
+    hidden === null ? undefined : hidden === "" ? "hidden" : `hidden="${hidden}"`,
+    visible === null ? undefined : visible === "" ? "visible" : `visible="${visible}"`
+  ]
+  return words.filter(Boolean).join(" ")
+}
+
+/** Does `host` take up room on screen? */
+function shows(host: Element): boolean {
+  return getComputedStyle(host).display !== "none"
+}
+
+describe("visible and hidden:  one fact, two names", () => {
+  // J57's first table:  markup as written, what the element makes of it, what shows
+  test.each([
+    ["<ui-message>Saved</ui-message>", "", true],
+    ["<ui-message hidden>Saved</ui-message>", "hidden", false],
+    ['<ui-message visible="false">Saved</ui-message>', 'hidden visible="false"', false],
+    ["<ui-message hidden visible>Saved</ui-message>", 'hidden visible="false"', false],
+    ["<ui-message visible hidden>Saved</ui-message>", 'hidden visible="false"', false],
+    // a family that starts hidden (`elementSetup.visible`)
+    ["<ui-transition>Saved</ui-transition>", "hidden", false],
+    ["<ui-transition visible>Saved</ui-transition>", "visible", true]
+  ])("markup %s:  after it draws %j;  shows:  %s", async (html, written, isShown) => {
+    const host = await render(html)
+    expect(writtenOf(host)).toBe(written)
+    expect(host.visible).toBe(isShown)
+    expect(host.hidden).toBe(!isShown)
+    expect(shows(host)).toBe(isShown)
   })
 
-  test("visible = false animates out, then hides;  visible = true animates back in", async () => {
+  // J57's second table:  what a script sees on a <ui-message> that's showing
+  test("el.hidden = true animates out;  el.visible reads false;  no `visible` attribute appears", async () => {
+    const message = await render(`<ui-message>Saved</ui-message>`)
+    const animate = vi.spyOn(UI.transitions, "animate")
+    message.hidden = true
+    expect(message.visible).toBe(false)
+    expect(writtenOf(message)).toBe("hidden")
+    await vi.waitFor(() => expect(animate).toHaveBeenCalledWith(expect.objectContaining({ direction: "out" })))
+    await vi.waitFor(() => expect(shows(message)).toBe(false))
+    animate.mockRestore()
+  })
+
+  test("el.visible = false animates out;  el.hidden reads true", async () => {
     const message = await render(`<ui-message>Saved</ui-message>`)
     const animate = vi.spyOn(UI.transitions, "animate")
     message.visible = false
-    expect(message.getAttribute("visible")).toBe("false")
+    expect(message.hidden).toBe(true)
+    expect(writtenOf(message)).toBe("hidden")
+    await vi.waitFor(() =>
+      expect(animate).toHaveBeenCalledWith(expect.objectContaining({ name: "fade", direction: "out" }))
+    )
     await vi.waitFor(() => expect(message.matches(":state(hidden)")).toBe(true))
-    expect(animate).toHaveBeenCalledWith(expect.objectContaining({ name: "fade", direction: "out" }))
-    expect(getComputedStyle(message).display).toBe("none")
+    expect(shows(message)).toBe(false)
+    animate.mockRestore()
+  })
 
-    message.visible = true
+  test('setAttribute("visible", "false") animates out and writes `hidden`;  removing `hidden` animates in', async () => {
+    const message = await render(`<ui-message>Saved</ui-message>`)
+    const animate = vi.spyOn(UI.transitions, "animate")
+    message.setAttribute("visible", "false")
+    expect(writtenOf(message)).toBe('hidden visible="false"')
+    expect(message.hidden).toBe(true)
+    await vi.waitFor(() => expect(shows(message)).toBe(false))
+
+    message.removeAttribute("hidden")
+    expect(writtenOf(message)).toBe("visible")
+    expect(message.visible).toBe(true)
     await ElementFixture.settle(message)
-    expect(message.matches(":state(hidden)")).toBe(false)
     expect(animate).toHaveBeenLastCalledWith(expect.objectContaining({ name: "fade", direction: "in" }))
+    expect(shows(message)).toBe(true)
     await vi.waitFor(() => expect(boxesOf(message)[0]!.hidden).toBe(false))
     animate.mockRestore()
   })
 
-  test("a family with a visible of its own keeps it:  <ui-sidebar> starts hidden its own way", async () => {
-    const sidebar = await render(`<ui-sidebar>Menu</ui-sidebar>`)
-    expect(sidebar.visible).toBe(false)
-    expect(sidebar.matches(":state(hidden)")).toBe(false)
+  test("while a hide animates, the element stays on screen (:state(hiding)), then hides", async () => {
+    const message = await render(`<ui-message animation="scale">Saved</ui-message>`)
+    message.visible = false
+    await vi.waitFor(() => expect(message.matches(":state(hiding)")).toBe(true))
+    expect(shows(message)).toBe(true)
+    await vi.waitFor(() => expect(message.matches(":state(hiding)")).toBe(false))
+    expect(message.matches(":state(hidden)")).toBe(true)
+    expect(shows(message)).toBe(false)
+  })
+
+  test('a page\'s own `visible` text is kept while it agrees (`visible="yes"`)', async () => {
+    const message = await render(`<ui-message visible="yes">Saved</ui-message>`)
+    expect(writtenOf(message)).toBe('visible="yes"')
+    message.hidden = true
+    expect(writtenOf(message)).toBe('hidden visible="false"')
+  })
+
+  test("removing `visible` hands it back to the family:  a transition hides, a message stays shown", async () => {
+    const transition = await render(`<ui-transition visible>x</ui-transition>`)
+    transition.removeAttribute("visible")
+    expect(transition.hidden).toBe(true)
+    const message = await render(`<ui-message visible>x</ui-message>`)
+    message.removeAttribute("visible")
+    expect(message.hidden).toBe(false)
+  })
+
+  test('hidden="until-found" counts as hidden, stays the browser\'s, and never animates', async () => {
+    const message = await render(`<ui-message>Saved</ui-message>`)
+    const animate = vi.spyOn(UI.transitions, "animate")
+    message.setAttribute("hidden", "until-found")
+    expect(message.visible).toBe(false)
+    expect(writtenOf(message)).toBe('hidden="until-found"')
+    await ElementFixture.settle(message)
+    expect(shows(message)).toBe(true)
+    animate.mockRestore()
+  })
+
+  test("before it first draws:  at once, with no animation", async () => {
+    const animate = vi.spyOn(UI.transitions, "animate")
+    const message = await render(`<ui-message visible="false">Saved</ui-message>`)
+    expect(message.matches(":state(hidden)")).toBe(true)
+    expect(animate).not.toHaveBeenCalled()
+    animate.mockRestore()
+  })
+})
+
+describe("animation:  the first one that applies", () => {
+  test('1. motion off:  the element\'s own `animation="none"` -- it hides at once', async () => {
+    const message = await render(`<ui-message animation="none">Saved</ui-message>`)
+    const animate = vi.spyOn(UI.transitions, "animate")
+    expect(componentOf(message).animationToRun).toBe("none")
+    message.visible = false
+    await ElementFixture.settle(message)
+    expect(message.matches(":state(hiding)")).toBe(false)
+    expect(shows(message)).toBe(false)
+    expect(animate).not.toHaveBeenCalled()
+    animate.mockRestore()
+  })
+
+  test.each([
+    ['<ui-root animation="none">', "</ui-root>"],
+    ['<ui-segment animation="none">', "</ui-segment>"],
+    ['<div style="--ui-motion: none">', "</div>"]
+  ])("1. motion off:  `none` from around it (%s) beats its own `animation`", async (open, close) => {
+    const outer = await render(`${open}<ui-message animation="scale">Saved</ui-message>${close}`)
+    const message = outer.querySelector("ui-message")!
+    await ElementFixture.settle(outer)
+    expect(componentOf(message).animationToRun).toBe("none")
+  })
+
+  test("1. motion off:  the person's reduced-motion setting", async () => {
+    const message = await render(`<ui-message animation="scale">Saved</ui-message>`)
+    const reduced = vi.spyOn(UI.browser, "isReducedMotion", "get").mockReturnValue(true)
+    expect(componentOf(message).animationToRun).toBe("none")
+    reduced.mockRestore()
+  })
+
+  test("2. the element's own `animation` (attribute or property) beats its family's", async () => {
+    const message = await render(`<ui-message animation="fly down">Saved</ui-message>`)
+    const component = componentOf(message)
+    Object.defineProperty(component, "elementSetup", { value: { ...component.elementSetup, animation: "scale" } })
+    expect(component.animationToRun).toBe("fly down")
+    message.animation = "slide up"
+    expect(component.animationToRun).toBe("slide up")
+    const animate = vi.spyOn(UI.transitions, "animate")
+    message.visible = false
+    await vi.waitFor(() => expect(animate).toHaveBeenCalledWith(expect.objectContaining({ name: "slide-up" })))
+    animate.mockRestore()
+  })
+
+  test("3. its family's default, `elementSetup.animation`", async () => {
+    const message = await render(`<ui-message>Saved</ui-message>`)
+    const component = componentOf(message)
+    Object.defineProperty(component, "elementSetup", { value: { ...component.elementSetup, animation: "scale" } })
+    expect(component.animationToRun).toBe("scale")
+  })
+
+  test("4. `fade`, where neither says", async () => {
+    const message = await render(`<ui-message>Saved</ui-message>`)
+    expect(componentOf(message).animationToRun).toBe("fade")
+  })
+
+  test("`--ui-motion: none` stills a family's own CSS motion too (a sidebar's slide)", async () => {
+    const outer = await render(
+      `<div style="--ui-motion: none"><ui-pushable><ui-sidebar>Menu</ui-sidebar><ui-pusher>Page</ui-pusher></ui-pushable></div>`
+    )
+    await ElementFixture.settle(outer)
+    const panel = outer.querySelector("ui-sidebar")!.shadowRoot!.querySelector<HTMLElement>("[part~=sidebar]")!
+    expect(Number.parseFloat(getComputedStyle(panel).transitionDuration)).toBeLessThan(0.001)
   })
 })
 
@@ -246,9 +445,10 @@ describe("hidden and inert, the platform's", () => {
     expect(boxesOf(segment)[0]!.checkVisibility()).toBe(false)
   })
 
-  test("<ui-divider hidden> keeps Fomantic's meaning:  the spacing without the line", async () => {
-    const divider = await render(`<ui-divider hidden></ui-divider>`)
+  test("<ui-divider spacer> is Fomantic's hidden divider:  the spacing without the line", async () => {
+    const divider = await render(`<ui-divider spacer></ui-divider>`)
     expect(getComputedStyle(divider).display).toBe("contents")
+    expect(boxesOf(divider)[0]!.className).toBe("ui hidden divider")
   })
 
   test("inert is the platform's, unstyled:  overlays set it on what they cover, which has a look of its own", async () => {

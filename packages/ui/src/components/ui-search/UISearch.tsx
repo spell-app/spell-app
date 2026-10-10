@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -42,11 +42,11 @@ import searchCSS from "./UISearch.css?inline"
  * - A form control (decided 2026-09-30):  Fomantic's search wraps a REAL `<input class="prompt">`,
  *   which submits its text under its `name`;  so does this one, with `required` => `valueMissing`.
  ****************/
-@E.cssStates("fluid")
 export class UISearch extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = searchVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { input: inputCSS, search: searchCSS },
+    cssStates: ["fluid"],
     Fallback: SearchFallback,
     // `loading`:  a spinner in its input
     loading: "its own"
@@ -78,7 +78,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   @E.state accessor inputRevision = 0
 
   /** The value to restore on a form reset:  the page's `value` (its attribute), `undefined` when it has none. */
-  private readonly initialValue = untrack(() => (this.isControlledByPage("value") ? this.value : undefined))
+  private readonly initialValue = this.isControlledByPage("value") ? this.value : undefined
 
   /** The value when the input took focus, to tell whether leaving it is an edit. */
   private valueAtFocus?: string
@@ -401,6 +401,12 @@ export class UISearch extends F.FormComponent<Vocabulary> {
   /** The text input. */
   private input?: HTMLInputElement
 
+  /** The text the input is drawn with (a server render's too);  untracked:  `onQueryChanged()` keeps it in step. */
+  @E.untracked
+  private get startingQuery(): string {
+    return this.query
+  }
+
   /** The results popover. */
   private resultsBox?: HTMLElement
 
@@ -425,7 +431,7 @@ export class UISearch extends F.FormComponent<Vocabulary> {
             autocomplete="off"
             spellcheck={false}
             enterkeyhint="search"
-            value={untrack(() => this.query)}
+            value={this.startingQuery}
             placeholder={this.placeholder}
             disabled={this.isDisabled}
             readonly={this.isReadOnly}

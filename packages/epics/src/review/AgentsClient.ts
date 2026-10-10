@@ -3,20 +3,25 @@ import { ServerLink } from "./ServerLink"
 
 /****************
  * ### `AgentsClient`
- * A plan doc's RUNNING AGENTS, as the page sees them (epic `skillz` P3):  the epic's list, read from and written to
- * the page server's agents routes (`packages/docs/tools/agentRoutes.ts`), one client per page (`forPage()`).
- * `<epic-page>` draws its "Agents running" panel from it (`AgentsPanel.tsx`).
- * - listed ONLY when the page is a plan doc served with a token and the list answers (`listed`):  never from
- *   `file://`, nor from a server without the route
+ * A plan doc's RUNNING AGENTS, as the page sees them (epic `skillz` P3):  the epic's list.
+ * - read from and written to the page server's agents routes (`packages/docs/tools/agentRoutes.ts`)
+ * - one client per page (`forPage()`)
+ * - `<epic-page>` draws its "Agents running" panel from it (`<epic-agents>`)
+ *
+ * - LISTED only when the page is a plan doc served with a token, and the list answers (`listed`):
+ *   never from `file://`, nor from a server without the route
  * - every reply is the whole list:  a redirect's answer replaces what's shown
- * - a redirect:  Owen's note to one agent (`POST redirect { page, name, note }`), written through its `ServerLink`
+ * - a REDIRECT:  Owen's note to one agent (`POST redirect { page, name, note }`), written through its `ServerLink`
  *   (the token, and its one refresh when the page server restarted)
- * - re-reads the list every `REVIEW_POLL_MS` while the page is visible, when it becomes visible, and when the page
- *   server says the list's file changed (`agents.json`, beside the plan doc):  `watch()`, as the review inbox does
- * - Node-safe at import, and without `watch()`:  no `window` / `document` touched;  `fetch` comes in through
- *   `ServerLinkOptions`, so tests stub it
- * - Position in the import graph:  its peers (types, `ServerLink`) only.  NEVER imports Solid, Spell UI or the
- *   `$/epics` barrel:  the panel bridges its changes (`subscribe()`) into its own signal.
+ * - it re-reads the list (`watch()`, as the review inbox does):
+ *   - every `REVIEW_POLL_MS` while the page is visible
+ *   - when the page becomes visible
+ *   - when the page server says the list's file changed (`agents.json`, beside the plan doc)
+ * - Node-safe at import, and without `watch()`:  no `window` / `document` touched;
+ *   `fetch` comes in through `ServerLinkOptions`, so tests stub it
+ * - Position in the import graph:  its peers (types, `ServerLink`) only.
+ *   NEVER imports Solid, Spell UI or the `$/epics` barrel:  the panel bridges its changes (`subscribe()`)
+ *   into its own signal.
  ****************/
 export class AgentsClient {
   /** The running agents as last read or written, oldest first. */
@@ -76,7 +81,9 @@ export class AgentsClient {
   ////////////////
 
   /**
-   * Read the list;  if it answers, the page is listed.  True when listed.  Once per client.
+   * Read the list;  if it answers, the page is listed.
+   * - true when listed
+   * - once per client
    * - only a plan doc served with a token (`ServerLink.servesPlanDoc`):  else it never asks
    * - NEVER throws
    */
@@ -125,8 +132,9 @@ export class AgentsClient {
   ////////////////
 
   /**
-   * Send Owen's `note` to running agent `name` (`POST redirect`):  it waits in the list, untold, until a session
-   * passes it on.  The reply, the list after, is shown.
+   * Send Owen's `note` to running agent `name` (`POST redirect`).
+   * - it waits in the list, untold, until a session passes it on
+   * - the reply, the list after, is shown
    * - throws a `ServerWriteError` saying why, for people:  an empty or long note, an agent gone, no server
    */
   async redirect(name: string, note: string): Promise<void> {

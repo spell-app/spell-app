@@ -33,6 +33,21 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `index.ts` (defines its tags:  SIDE EFFECT)
   - No native fallback:  only form controls have one.
   - A new one:  `spell dev pack element epics <tag>`, the tag starting `epic-`.
+  - Every component is a family, as in Spell UI (P10 of epic `spell-element`).
+    - No exported function components.
+    - The lint rules hold them to it (`yarn lint`).
+      They flag a hand-written effect, observer, listener, `untrack()` or timer,
+      and an exported function component.
+    - Those rules:  [ui's AGENTS.md](../ui/AGENTS.md), "Solid authoring", "The lint guard".
+  - A piece several families draw is a family of its own.
+    - It's drawn in their shadow roots, and never written in a doc.
+    - Those pieces:  `<epic-review>`, `<epic-new-item>`, `<epic-agents>`.
+    - Each family that draws one imports its barrel first,
+      so it's defined wherever they are.
+    - Unless it can't be a tag.
+      The fold button and chevron every fold draws are methods of `Fold`:  `fold.button()`, `Fold.chevron()`.
+      - The button is named by ids in the card's own shadow root.
+      - The chevron shows in the first frame.
 - `src/` (`$/epics`, `EP`) -- code the elements and the node tools share.
   Also `pack.test.ts`, which runs `spell dev pack check epics`.
   - `definitions/` -- the ONE description of every element:
@@ -45,17 +60,18 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - NOT the log's (`<epic-event>`).
     - A time alone (`saved 14:42`):  `PlanDates.clock()`.
   - `review/` -- `ReviewClient`, one per page:  the review inbox's reads and writes (`/api/review/*`).
-    - Also token refresh, polling, and note-draft backups (the old runtime's localStorage keys).
+    - Also token refresh, polling, and note-draft backups (the old page runtime's localStorage keys).
     - It touches no browser global until `forPage()` / `watch()`.
     - Used by:
-      - the `ReviewControls` of `<epic-item>`, `<epic-section>` (Overview parts), `<epic-phase>` and `<epic-summary>`
-      - the new-item controls (`NewItems.tsx`):  `<epic-page>`'s toolbar button, the Todos and Questions sections
+      - `<epic-review>`:  the review controls `<epic-item>`, `<epic-section>` (Overview parts),
+        `<epic-phase>` and `<epic-summary>` draw
+      - `<epic-new-item>`:  `<epic-page>`'s toolbar button, and the Todos and Questions sections' New todo / question
       - `<epic-option>`'s Choose pill
       - The controls show while `<epic-page reviewing>` is set.
     - `AgentsClient`, one per page:  the epic's running agents, and Owen's redirects.
       - Served at `/api/agents`, by [agentRoutes.ts](../docs/tools/agentRoutes.ts) in the docs tools.
       - `<epic-page>` draws them as its "Agents running" panel:
-        `AgentsPanel.tsx`, in its shadow root, before its blocks (not a section).
+        `<epic-agents>`, in its shadow root, before its blocks (not a section).
       - Both clients POST and watch through the same code, a `ServerLink` each:
         the token, its one refresh on a 403, the poll and `spell-server:file`.
   - `convert/` -- the converter, old markup => `<epic-*>` (`Converter`, `ConvertRun`).

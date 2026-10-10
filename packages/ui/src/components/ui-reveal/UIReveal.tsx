@@ -7,7 +7,7 @@ import revealCSS from "./UIReveal.css?inline"
 
 /**
  * Attributes that change what's focusable.
- * - Above the class:  `@fromContent` reads it while the class is defined.
+ * - Above the class:  `@watches` reads it while the class is defined.
  */
 const WATCHED = ["href", "disabled", "tabindex", "contenteditable", "type"]
 
@@ -29,11 +29,11 @@ const WATCHED = ["href", "disabled", "tabindex", "contenteditable", "type"]
  *   so assistive tech reads both, in order, at any time.
  * - `prefers-reduced-motion`:  the swap is instant (`UIReveal.css`).
  ****************/
-@E.cssStates("active")
 export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
   @E.proto static vocabulary = revealVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { reveal: revealCSS },
+    cssStates: ["active"],
     // `disabled`:  it never reveals
     disabled: "its own"
   } satisfies Partial<E.ElementSetup>
@@ -43,7 +43,7 @@ export class UIReveal extends E.UIComponent<typeof revealVocabulary> {
   ////////////////
 
   /** The content (light DOM) has a natively focusable element of its own;  follows it.  Never on a server. */
-  @E.fromContent({ childList: true, subtree: true, attributeFilter: WATCHED })
+  @E.watches({ childList: true, subtree: true, attributeFilter: WATCHED })
   get contentHasFocusable(): boolean {
     return !isServer && !!this.domElement.querySelector(FOCUSABLE)
   }

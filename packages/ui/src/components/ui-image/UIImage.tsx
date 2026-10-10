@@ -22,23 +22,16 @@ import imageCSS from "./UIImage.css?inline"
  *   - a linked image's `alt` names the link
  * - `width` / `height` are the native intrinsic size (they reserve space before it loads);
  *   `size` sets the drawn width.
- * - `disabled`:  a link loses its `href` and gets `aria-disabled`;  `:state(disabled)` is for the page's styles.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, the image (or its link) inert, `aria-disabled`;  a link also loses its `href`.
  ****************/
 export class UIImage extends E.UIComponent<typeof imageVocabulary> {
   @E.proto static vocabulary = imageVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { image: imageCSS },
-    // `disabled`:  only a look
-    disabled: "its own",
     // `loading`:  Fomantic's placeholder look
     loading: "its own"
   } satisfies Partial<E.ElementSetup>
-
-  /** Disabled by its attribute;  `:state(disabled)`. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled
-  }
 
   render(): JSX.Element {
     return (

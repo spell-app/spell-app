@@ -21,13 +21,13 @@ import inspectorCSS from "./UIDocsInspector.css?inline"
  *   - a row that changes draws again, and flashes once (none under `prefers-reduced-motion`)
  * - What it reads, through `ElementSnapshot`:
  *   attributes as written, a Spell UI element's vocabulary properties, its custom states.
- *   `all` shows unset properties too.
+ *   - `all` shows unset properties too.
  * - How it stays live:  while connected, it reads the element again every `REFRESH_SECONDS`.
  *   - Why a timer:  custom states have no change event, and a property can change without any attribute.
  *   - A read that finds nothing new writes nothing:  the view only redraws for a real change.
  * - Finds the element in its own document (or shadow root), by id, at every read:
  *   an element added later, or a new `for`, is picked up at the next one.
- *   `:state(missing)` while there's none.
+ *   - `:state(missing)` while there's none.
  ****************/
 export class UIDocsInspector extends E.UIComponent<typeof docsInspectorVocabulary> {
   @E.proto static vocabulary = docsInspectorVocabulary
@@ -54,7 +54,7 @@ export class UIDocsInspector extends E.UIComponent<typeof docsInspectorVocabular
    * The inspector's accessible name:  "Live view of <ui-button id="save">".
    * - `undefined` until `isReady`:  the texts come from the runtime (`UI.i18n`), which throws before it has loaded.
    */
-  @E.aria("ariaLabel")
+  @E.aria("label")
   get label(): string | undefined {
     if (!this.isReady) return undefined
     return this.translationForKey("label", { target: this.title ?? `#${this.for ?? ""}` })

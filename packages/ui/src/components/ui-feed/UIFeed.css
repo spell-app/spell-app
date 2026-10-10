@@ -48,9 +48,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  one private alias per `feed.variables` entry that still matters, from the global tokens.
      Declared on the feed root AND on a LONE event (outside a feed), which has no list to inherit them from;

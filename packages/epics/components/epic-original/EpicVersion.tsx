@@ -1,5 +1,5 @@
-import { Show, onSettled } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { Show } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
@@ -34,18 +34,19 @@ export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
     return this.versionCount > 1 ? this.translationForKey("firstWritten") : undefined
   }
 
-  onMount(): JSX.Element {
-    if (!isServer) {
-      onSettled(() => {
-        const parent = this.domElement.parentElement
-        if (!parent) return undefined
-        const observer = new MutationObserver(() => (this.versionCount = this.countVersions()))
-        observer.observe(parent, { childList: true })
-        this.versionCount = this.countVersions()
-        return () => observer.disconnect()
-      })
-    }
-    return super.onMount()
+  /**
+   * While connected:  count the versions beside it, again as its parent's children change.  Returns the undo.
+   * - Its own `MutationObserver`, not `@watches`:  it watches its PARENT, not its own light DOM.
+   */
+  @E.whileConnected
+  protected watchVersions() {
+    const parent = this.domElement.parentElement
+    if (!parent) return undefined
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- watches its PARENT, another element (above)
+    const observer = new MutationObserver(() => (this.versionCount = this.countVersions()))
+    observer.observe(parent, { childList: true })
+    this.versionCount = this.countVersions()
+    return () => observer.disconnect()
   }
 
   render(): JSX.Element {

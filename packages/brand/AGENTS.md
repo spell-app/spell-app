@@ -73,6 +73,7 @@ when working with code in this package, `@spell-app/brand`.
 - `components/` (`$/brand/components`):  the `<ui-brand-*>` elements, one folder per family.
   - Written exactly like a Spell UI family ([ui's AGENTS.md](../ui/AGENTS.md), "Solid authoring").
   - They import shared code from `$/ui/core` / `$/ui/forms`.
+  - `yarn lint` holds them to it:  the `spell-ui/*` rules (ui's "Solid authoring", "The lint guard").
   - Generic ones move into Spell UI later (epic decision D2).
   - The specimen page:  [components.spell.html](../../brand/components/components.spell.html) (shared).
 - `scripts/`:
@@ -170,8 +171,10 @@ when working with code in this package, `@spell-app/brand`.
 
 As the root's, plus these reaches into `ui` past its barrel, each because the barrel can't give it
 (until the elements move into Spell UI, epic todo T2):
-- `$/ui/core`:  the element authoring API, as a `ui` family imports it
-  - e.g. `UIComponent`, `proto`, `protoMerged`, `Cell` ...
+- `$/ui/core` (and `$/ui/forms`):  the element authoring API.
+  - Imported as a `ui` family imports it, through its namespaces:
+    `import { E, UI, UIT } from "$/ui/core"` (+ `import { F } from "$/ui/forms"`)
+  - then `E.UIComponent`, `@E.state`, `@E.controlled("value")`, `F.FormComponent`
 - the bundle entries (`src/`), as Spell UI's site entry does:
   - `$/ui/runtime`, `$/ui/icons`, `$/ui/styles`, `$/ui/styles/ui.css`
 - `$/ui/docs-components/...`:  the docs widgets and `SiteData` ([brand-docs.ts](src/brand-docs.ts)).

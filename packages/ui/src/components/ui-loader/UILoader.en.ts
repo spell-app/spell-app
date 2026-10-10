@@ -4,11 +4,14 @@
  *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only.
  * - The attributes become Fomantic's class words, in Fomantic's order (`ClassBuilder`):
- *   `<ui-loader size="large" color="red" speed="slow" active inline>` => `ui large red slow active inline loader`.
+ *   `<ui-loader size="large" color="red" speed="slow" visible inline>` => `ui large red slow inline active loader`.
+ * - `active` is Fomantic's shown-loader class:
+ *   no attribute here, but the class the box has while the element shows (the shared `visible` / `hidden`).
  * - `speed` is `kind: "valueOnly"` because it writes its value alone (`slow` / `fast`), like dropdown's `state`.
- * - Accessibility:  the element is `role="status"` + `aria-live="polite"` (through `internals`);
- *   with no slotted text, its accessible name is the `loading` text.  The spinner is decorative.
- *   See `UILoader.css`.
+ * - Accessibility (see `UILoader.css`):
+ *   - the element is `role="status"` + `aria-live="polite"` (through `internals`)
+ *   - with no slotted text, its accessible name is the `loading` text
+ *   - the spinner is decorative
  */
 
 import type { E } from "$/ui/core"
@@ -36,12 +39,7 @@ export const loaderVocabulary = {
       values: ["slow", "fast"],
       description: "Spin `slow` or `fast`;  absent is normal."
     },
-    {
-      name: "active",
-      kind: "keyOnly",
-      description: "Shown.  A loader is hidden unless `active` (Fomantic's rule), or inside an active dimmer."
-    },
-    { name: "disabled", kind: "keyOnly", description: "Hidden, even when `active`." },
+    { name: "disabled", kind: "keyOnly", description: "Hidden, even when `visible`." },
     { name: "text", kind: "keyOnly", description: "Shows the slotted text below the spinner." },
     {
       name: "inline",
@@ -57,10 +55,7 @@ export const loaderVocabulary = {
   events: [],
   slots: [{ name: "", description: "Text shown below the spinner, with `text`;  also the accessible name." }],
   parts: [{ name: "loader", description: "The loader box;  its `::before` is the track, `::after` the arc." }],
-  states: [
-    { name: "active", description: "Shown." },
-    { name: "disabled", description: "Hidden." }
-  ],
+  states: [{ name: "disabled", description: "Hidden." }],
   texts: [
     { key: "loading", text: "Loading…", description: "Accessible name of the `status` host when nothing is slotted." }
   ]

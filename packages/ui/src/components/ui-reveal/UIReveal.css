@@ -1,21 +1,23 @@
 /*
  * `<ui-reveal>`:  port of Fomantic's `reveal.less` + `reveal.variables`.
  * - Shadow markup contract (class grammar on semantic elements):
- *   `<div class="ui [size] [keyOnly ...] [move / rotate / slide] reveal" part="reveal" [tabindex=0]>` holding
- *   `<div class="visible content" part="visible">` (`slot=visible`, then the default slot)
+ *   `<div class="ui [size] [keyOnly ...] [move / rotate / slide] reveal" part="reveal" [tabindex=0]>`,
+ *   holding `<div class="visible content" part="visible">` (`slot=visible`, then the default slot)
  *   and `<div class="hidden content" part="hidden">` (`slot=hidden`)
  * - The DOM element is `display: contents`;  the root is an inline block as big as the HIDDEN content,
  *   the visible content laid over it.
  *   Fomantic's `display: inherit` would inherit `contents` from the DOM element here.
- * - REVEALED ~== `.active` or `:hover`, as in Fomantic, PLUS `:focus-within`:  people on a keyboard reveal it by
- *   focusing it.  The element makes the root a tab stop (`tabindex=0`) unless its content has a focusable element
- *   of its own, which reveals it the same way.
+ * - REVEALED ~== `.active` or `:hover`, as in Fomantic, PLUS `:focus-within`:
+ *   people on a keyboard reveal it by focusing it.
+ *   The element makes the root a tab stop (`tabindex=0`),
+ *   unless its content has a focusable element of its own, which reveals it the same way.
  * - Reduced motion:  under `prefers-reduced-motion: reduce` the swap is instant (no duration, no delay);
  *   the end state is the same, so nothing is lost.
- * - Public tokens (`--ui-reveal-*`, the theming surface) are NEVER declared here:  the token block reads each through
- *   a private alias, `--_ui-reveal-duration: var(--ui-reveal-duration, 0.5s)`, and every rule reads the alias.
- *   So a value set on `:root`, an ancestor, the DOM element,
- *   `::part(reveal)` or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens").
+ * - Public tokens (`--ui-reveal-*`, the theming surface) are NEVER declared here:
+ *   the token block reads each through a private alias, and every rule reads the alias:
+ *   `--_ui-reveal-duration: var(--ui-reveal-duration, 0.5s)`.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(reveal)` or in the app stylesheet
+ *   reaches the box (`docs/theming.md` "Component tokens").
  * - NOTE: left out, on purpose:
  *   - Fomantic's `!important`s:  the specific type rules outrank the base ones, and states sit in a later sublayer
  *   - `ui reveal image` / `circular` couplings with `image.less`:  put a `<ui-image circular>` in each content
@@ -32,9 +34,6 @@
   /* DOM element:  no box of its own;  the root is the reveal. */
   :host {
     display: contents;
-  }
-  :host([hidden]) {
-    display: none;
   }
 
   /* Tokens:  one per `reveal.variables` entry that still matters, each the private alias of its public token. */

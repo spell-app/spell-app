@@ -1,18 +1,21 @@
 /*
  * `<ui-tabs>` and `<ui-tab>`:  port of Fomantic's `tab.less` + `tab.variables`, plus the layout of a tab set
  * (Fomantic left it to the page:  a menu above, or a grid column beside, its `.ui.tab.segment`s).
- * - ONE sheet for both elements.  `<ui-tabs>` adopts `UIMenu.css` BEFORE it (the tab list is a menu,
- *   styled by the menu's static class-grammar rules);  `<ui-tab>` adopts `UISegment.css` before it (a pane is a
- *   segment).
+ * - ONE sheet for both elements.
+ *   - `<ui-tabs>` adopts `UIMenu.css` BEFORE it:
+ *     the tab list is a menu, styled by the menu's static class-grammar rules.
+ *   - `<ui-tab>` adopts `UISegment.css` before it:  a pane is a segment.
  * - Shadow markup contract (class grammar on semantic elements):
- *   - `<ui-tabs>`:  `<div class="ui [size] [color] [keyOnly ...] [top | bottom attached] tabs" part="tabs">` holding
- *     `<div class="ui ... menu" part="menu" role="tablist">` of `<button class="[active] [disabled] item" part="tab"
- *     role="tab">` (an `<i class="icon" part="icon">` glyph first, when the pane has an `icon`) and the panes'
- *     `<slot>` -- the menu after the slot when `attached="bottom"`
+ *   - `<ui-tabs>`:  `<div class="ui [size] [color] [keyOnly ...] [top | bottom attached] tabs" part="tabs">`,
+ *     holding:
+ *     - `<div class="ui ... menu" part="menu" role="tablist">`
+ *       of `<button class="[active] [disabled] item" part="tab" role="tab">`
+ *       (an `<i class="icon" part="icon">` glyph first, when the pane has an `icon`)
+ *     - the panes' `<slot>`;  the menu comes after the slot when `attached="bottom"`
  *   - `<ui-tab>`:  `<div class="ui [active] [basic] [inverted] [loading] [bottom | top attached] tab segment"
- *     part="tab">` around `<slot>`, in a BLOCK DOM element (the tabpanel and its Tab stop);
- *     the DOM element ALWAYS carries `:state(pane)` (it shares this sheet's `:host` rules with `<ui-tabs>`),
- *     and `:state(selected)` while shown
+ *     part="tab">` around `<slot>`, in a BLOCK DOM element (the tabpanel and its Tab stop)
+ *     - the DOM element ALWAYS carries `:state(pane)` (it shares this sheet's `:host` rules with `<ui-tabs>`),
+ *       and `:state(selected)` while shown
  * - Static markup:  Fomantic's own -- a `.ui.menu` of `.item`s (buttons with `role=tab`) and `.ui.tab.segment`
  *   panes, the `.active` one shown.  Nothing switches without the elements.
  *
@@ -24,14 +27,15 @@
  * | `--ui-tabs-menu-margin`    | the tab list's block margin (public, `0`:  the pane margin spaces the set) | -- |
  * | `--_ui-tabs-pane-flex`     | the shown pane's `flex` (switch)        | vertical             |
  *
- * - The tab list is a menu:  every `--ui-menu-*` token reaches it, from the tab set or above (its height
- *   `--ui-menu-min-height`, its labels' `--ui-menu-font-family`, `--ui-menu-item-transform` / `-letter-spacing`).
+ * - The tab list is a menu:  every `--ui-menu-*` token reaches it, from the tab set or above:
+ *   its height `--ui-menu-min-height`, its labels' `--ui-menu-font-family`,
+ *   `--ui-menu-item-transform` / `-letter-spacing`.
  *
- * - Public tokens (`--ui-tabs-*`, the theming surface) are NEVER declared here:  the `.ui.tabs` root reads each
- *   through a private alias, `--_ui-tabs-pane-margin: var(--ui-tabs-pane-margin, 1em 0 0)`,
- *   which variations write and panes inherit.  So a value set on `:root`, an ancestor, the DOM element,
- *   `::part(tabs)` or in the app stylesheet reaches the panes (`docs/theming.md` "Component tokens");
- *   set it on the tab set, not on a pane.
+ * - Public tokens (`--ui-tabs-*`, the theming surface) are NEVER declared here:
+ *   the `.ui.tabs` root reads each through a private alias, which variations write and panes inherit:
+ *   `--_ui-tabs-pane-margin: var(--ui-tabs-pane-margin, 1em 0 0)`.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(tabs)` or in the app stylesheet
+ *   reaches the panes (`docs/theming.md` "Component tokens");  set it on the tab set, not on a pane.
  * - `--_ui-tabs-pane-flex` is a private SWITCH:  the layout (`vertical`) decides it, so the page never sets it.
  * - NOTE: left out, on purpose:
  *   - `.ui.tab.open` is kept for static markup only;  the elements use `active`
@@ -72,9 +76,6 @@
   :host {
     display: block;
   }
-  :host([hidden]) {
-    display: none;
-  }
   .ui.tabs {
     --_ui-tabs-pane-margin: var(--ui-tabs-pane-margin, 1em 0 0);
     --_ui-tabs-menu-margin: var(--ui-tabs-menu-margin, 0);
@@ -111,8 +112,8 @@
 
   /*
    * ## `<ui-tab>` (`:state(pane)`):  a block, hidden unless it's the shown pane.
-   * NOT `display: contents` (as a segment's DOM element is):  an owned pane's DOM element is its tabpanel Tab stop,
-   * and a box-less element can't take focus.
+   * NOT `display: contents` (as a segment's DOM element is):
+   * an owned pane's DOM element is its tabpanel Tab stop, and a box-less element can't take focus.
    */
   :host(:state(pane)) {
     display: block;

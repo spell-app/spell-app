@@ -538,7 +538,7 @@ Counted by `LocCount`:  non-blank, non-comment lines as "code".
   - `json` kinds (`options`) observe their attribute, but never reflect.
 - **Reserved names:**  the fork THROWS at definition when a prop's property would shadow an element member
   (`hidden`, `title`, `style`, its own `dispose` ...).
-  - Unless it's renamed with the vocabulary's `property` (`dividerHidden`).
+  - Unless it's renamed with the vocabulary's `property`.
 - **Pre-upgrade properties:**  the fork's upgrade step (captured in the constructor, re-applied through the setters).
 - **Platform options instead of plumbing:**  `UIComponent.define()` passes:
   - `BaseElement` (`DOMElement` / `DOMFormControl`)

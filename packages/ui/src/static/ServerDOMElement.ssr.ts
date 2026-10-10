@@ -30,9 +30,14 @@ export class ServerDOMElement {
 
   /**
    * Make `element` a stand-in DOM element for `definition`;  returns it typed as one.
+   * - `startsVisible`:  its family's `elementSetup.visible`, for `visible` / `hidden` as the markup says.
    * - SIDE EFFECT:  defines the DOM element API on `element` itself.  Idempotent.
    */
-  static attach(element: Element, definition: E.ElementDefinition): E.DOMElement {
+  static attach(
+    element: Element,
+    definition: E.ElementDefinition,
+    startsVisible: E.StartsVisible = "shown"
+  ): E.DOMElement {
     const domElement = element as unknown as E.DOMElement
     if (ServerDOMElement.states.has(element)) return domElement
     const releaseCallbacks: (() => void)[] = []
@@ -48,7 +53,7 @@ export class ServerDOMElement {
       }
     })
     const api: Record<string, unknown> = {
-      attributeValues: ServerDOMElement.attributeValuesOf(element, definition),
+      attributeValues: ServerDOMElement.attributeValuesOf(element, definition, startsVisible),
       addReleaseCallback: (callback: () => void) => void releaseCallbacks.push(callback),
       // nothing writes a property on a server
       addPropertyChangedCallback: () => undefined,
@@ -71,12 +76,20 @@ export class ServerDOMElement {
   /**
    * `element`'s attribute values as the browser element would hold them on first connect:
    * each attribute's text converted, else its starting value.
+   * - `visible`:  what the markup says, `hidden` included (`ElementDefinition.visibleInMarkup()`).
    */
-  static attributeValuesOf(element: Element, definition: E.ElementDefinition): Record<string, unknown> {
+  static attributeValuesOf(
+    element: Element,
+    definition: E.ElementDefinition,
+    startsVisible: E.StartsVisible = "shown"
+  ): Record<string, unknown> {
     const values: Record<string, unknown> = {}
     for (const attribute of definition.attributes) {
       const text = element.getAttribute(attribute.attribute)
       values[attribute.key] = text === null ? definition.startingValue(attribute) : definition.convert(attribute, text)
+    }
+    if (definition.takesShared("visible")) {
+      values.visible = definition.visibleInMarkup((name) => element.getAttribute(name), startsVisible)
     }
     return values
   }

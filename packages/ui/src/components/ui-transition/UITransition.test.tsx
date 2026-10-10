@@ -85,7 +85,8 @@ describe("<ui-transition> classes and first paint", () => {
     expect(UI.focus.focusables(wrapper)).toHaveLength(0)
     expect(b!.hidden).toBe(false)
     expect(b!.hasAttribute("data-ui-animation")).toBe(false)
-    expect((wrapper.querySelector("#b") as DOMElement).matches(":state(visible)")).toBe(true)
+    expect((wrapper.querySelector("#a") as DOMElement).hidden).toBe(true)
+    expect((wrapper.querySelector("#b") as DOMElement).matches(":state(hidden)")).toBe(false)
   })
 })
 
@@ -116,13 +117,14 @@ describe("<ui-transition> show / hide", () => {
     expect(host.matches(":state(animating)")).toBe(false)
   })
 
-  it("show() / hide() / toggle() resolve once animated, and reflect `visible`", async () => {
+  it("show() / hide() / toggle() resolve once animated, and write `hidden` (the page wrote no `visible`)", async () => {
     const { host, box } = await transition(`<ui-transition animation="scale" duration="30">x</ui-transition>`)
     expect(await host.show()).toBe(true)
-    expect(host.hasAttribute("visible")).toBe(true)
+    expect(host.hidden).toBe(false)
+    expect(host.hasAttribute("visible")).toBe(false)
     expect(box.hidden).toBe(false)
     expect(await host.toggle()).toBe(true)
-    expect(host.hasAttribute("visible")).toBe(false)
+    expect(host.hidden).toBe(true)
     expect(box.hidden).toBe(true)
     expect(await host.hide()).toBe(true)
   })

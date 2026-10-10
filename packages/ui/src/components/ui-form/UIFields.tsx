@@ -14,15 +14,15 @@ import formCSS from "./UIForm.css?inline"
  * - The DOM element is `display: contents`;  the root is the flex row,
  *   and hands each `<ui-field>` its share of the width (`widths`), the gutter and its state
  *   as inherited tokens (`UIForm.css`).
- * - `disabled` makes the root `inert`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   the root `inert`, `aria-disabled`.
+ *   - The root also says `inert` itself, for the static render:  the base class's reaches only a browser.
  ****************/
 export class UIFields extends E.UIComponent<typeof fieldsVocabulary> {
   @E.proto static vocabulary = fieldsVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { form: formCSS },
-    delegatesFocus: false,
-    // `disabled`:  its content inert, a look;  the element still takes clicks
-    disabled: "its own"
+    delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
   /** `:state(error)`:  `state="error"`. */

@@ -426,10 +426,10 @@
 
   /** Show / hide a `<ui-modal>`. */
   function show(modal) {
-    modal.setAttribute("open", "")
+    modal.visible = true
   }
   function hide(modal) {
-    modal.removeAttribute("open")
+    modal.visible = false
   }
 
   /** A toast, through `UI.toast()`;  the console if toasts aren't there. */

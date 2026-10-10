@@ -5,14 +5,14 @@
  *   and what the pieces of `UIComponent` hand each other
  * - Runtime-light:  types, plus a few constants
  *   (`WHITESPACE`, `ERROR_EVENT`, `ERRORED_STATE`, `StickyWatchEdges` and `StickyWatch`'s thresholds,
- *   the source URL attributes).
+ *   the source URL attributes, `AriaNames`).
  * - The BOTTOM of the folder's import graph:  `import type` only (the core's types as `E`, erased),
  *   so it NEVER loads a class module of its folder, the DOM or Solid.
  *   - `core.ts` re-exports it,
  *     and a static initializer that reads one of its constants imports it directly (`LoadableComponent`).
  */
 
-import type { E } from "$/ui/core"
+import type { E, UIT } from "$/ui/core"
 
 ////////////////
 // ## Class builder
@@ -29,6 +29,8 @@ export type ClassInput = Readonly<Record<string, unknown>>
 export type ClassBuildOptions = {
   /** Classes put just before the noun, e.g. a state (`active`) or a caller's own class:  `ui primary icon button`. */
   extra?: string
+  /** The last class word;  default the vocabulary's `noun`.  `<ui-tab>`'s pane says `segment`:  `ui tab segment`. */
+  noun?: string
 }
 
 /** Fomantic's connective words, see `ClassBuilder.grammar`. */
@@ -139,8 +141,9 @@ export type RuleFunction = (this: RuleValidator, value: string, ruleValue: RuleV
 
 /**
  * What a `RuleFunction` may use from its `Validator`.
- * - OURS, not Fomantic's:  its rules reach each other through `$.fn.form.settings.rules`, and its `range()` is a
- *   rule taking `(value, range, regExp, testLength)`.  Here the shared steps are `Validator` methods.
+ * - OURS, not Fomantic's:  here the shared steps are `Validator` methods.
+ *   - Fomantic's rules reach each other through `$.fn.form.settings.rules`,
+ *     and its `range()` is a rule taking `(value, range, regExp, testLength)`.
  */
 export type RuleValidator = {
   /** the patterns, `Validator.regExp` */
@@ -345,8 +348,9 @@ export type MenuSearchField = (typeof MenuSearchFields)[number]
  * Which elements own generic content parts.
  * - `Set` of tags -- noun is the tag after its prefix (`ui-card` => `card`)
  * - `Map` of tag => noun -- for translated tags (`ie-tarjeta` => `card`)
- * - function of the tag (and the element) -- return the noun, `true` (derive it from the tag) or a falsy value (not
- *   an owner);  the element lets an owner decide per instance (`ConditionalOwner`)
+ * - function of the tag (and the element) --
+ *   return the noun, `true` (derive it from the tag) or a falsy value (not an owner);
+ *   the element lets an owner decide per instance (`ConditionalOwner`)
  */
 export type OwnerLookup =
   | ReadonlySet<string>
@@ -570,7 +574,8 @@ export type FallbackClass = {
 /**
  * How a class's custom element is set up:  `UIComponent.elementSetup`, merged down the class chain (`@protoMerged`).
  * - Read once, when the tag is defined,
- *   except `styleSheets`, `isAFormControl`, `canRenderUnstyled` and `aria`, which each element reads as it's built.
+ *   except `styleSheets`, `cssStates`, `isAFormControl`, `canRenderUnstyled` and `aria`,
+ *   which each element reads as it's built.
  */
 export type ElementSetup = {
   /**
@@ -579,16 +584,31 @@ export type ElementSetup = {
    * - Every element of the class uses the same sheets:
    *   registered with the runtime (`UI.styles`) once per class,
    *   then adopted into each element's shadow root, after the shared foundation sheets.
-   * - A subclass's REPLACE its base's whole (keys merge one level deep only);
+   * - A subclass's REPLACE its base's whole (only the top level of `elementSetup` is inherited key by key);
    *   spread the base's to add to them:
    *   `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
    * - Which of them apply right now:  `UIComponent.styleSheetNames`.
    * - NOTE: a name is PAGE-WIDE:  one sheet per name, and the first class to register it wins,
    *   so a second class with the same name and other CSS silently draws with the first one's.
-   *   A component pack's sheets carry its prefix (`{ "epic-item": itemCSS }`),
-   *   never a bare noun one of ours may have (`item`).
+   *   - A component pack's sheets carry its prefix (`{ "epic-item": itemCSS }`),
+   *     never a bare noun one of ours may have (`item`).
    */
   styleSheets: Readonly<Record<string, string>>
+
+  /**
+   * The `:state()`s that only mirror an attribute of the same name:  `["active", "fluid"]`.
+   * - `<ui-label active>` gets `:state(active)`, read through the component's member `active`
+   *   (camelCase:  `"read-only"` reads `readOnly`), the attribute's getter unless the class has its own.
+   * - Default none.
+   * - A subclass that ADDS states spreads its base's, as for `styleSheets`:
+   *   `cssStates: [...TextControl.prototype.elementSetup.cssStates, "inline"]`.
+   * - A state with logic, or one whose member something else reads (`isDisabled`), is a getter with `@cssState`;
+   *   for a state both name, the `@cssState` member wins.
+   * - `define()` throws on a name the tag has no attribute or member for (a typo).
+   * - NOT the `cssStates()` hook, which works out a set of states in code.
+   * - `disabled`, `loading` and the other shared states need no entry:  `UIComponent` sets them for every element.
+   */
+  cssStates: readonly string[]
 
   /**
    * Does this element act as a control in an HTML `<form>`?
@@ -641,7 +661,7 @@ export type ElementSetup = {
    * - A family with a script API of its own names its `DOM<Name>Element` here (`DOMNagElement`).
    * - Read once, when the tag is defined.
    */
-  DOMElement: E.DOMElementBaseClass
+  DOMElement: E.AnyDOMElementClass
 
   /**
    * The plain-DOM stand-in this element shows when it breaks (`UI<Name>.fallback.ts`).
@@ -660,14 +680,24 @@ export type ElementSetup = {
   canRenderUnstyled: boolean
 
   /**
+   * Is this element a ROOT:  the top of a page or app, which the elements inside look up to?
+   * - Default `false`.
+   * - `true` for `UIRoot`, and so for every subclass of it, whatever its tag (`<spell-app>`).
+   * - What looks for a root by it:  `UIComponent.appContext` (the nearest root's `appContext`).
+   * - Read once, when the tag is defined.
+   */
+  root: boolean
+
+  /**
    * ARIA the DOM element ALWAYS has, set once on its `internals` when the component is built:
-   * `{ role: "listitem" }`, `{ role: "status", ariaLive: "polite" }`.
+   * `{ role: "listitem" }`, `{ role: "status", live: "polite" }`.
+   * - Keys are short names (`AriaNames`), as `@aria` takes them.
    * - Default none.
    * - For a value that never changes;  one that follows state is an `@aria` getter, which wins once its effect runs
    *   (`<ui-card>`'s role follows its group).
    * - A server render (`$/ui/static`) gets it too:  a `listitem` becomes an `<li>`.
    */
-  aria: Readonly<Partial<Record<AriaProperty, string>>>
+  aria: Readonly<Partial<Record<AriaName, string>>>
 
   /**
    * What `disabled` means for this family (every element takes it:  `SharedVocabulary`).
@@ -676,10 +706,10 @@ export type ElementSetup = {
    *   - everything inside is inert (its shadow content, and the children slotted into it):
    *     nothing there can be clicked, focused or typed in, and it's dimmed
    *   - `aria-disabled="true"`;  if focus was inside, it moves on to the next focusable element
-   *   - e.g. `<ui-card disabled>`:  its buttons can't be used either
+   *   - e.g. `<ui-card disabled>`, `<ui-segment disabled>`:  their buttons can't be used either
    * - `"its own"`:  the base class only sets `:state(disabled)`;  the family's code and sheet say what it means:
    *   - unusable its own way:  a form control disables its native control (`FormComponent`), a button its `<button>`
-   *   - only a look:  `<ui-icon>`, `<ui-segment>` dim, and clicks still go through
+   *   - only a look, so text stays findable:  `<ui-icon>`, `<ui-text>` dim, and clicks still go through
    *   - something else:  `<ui-transition>` pauses, `<ui-dimmer>` never shows
    */
   disabled: DisabledMeaning
@@ -695,14 +725,28 @@ export type ElementSetup = {
   loading: LoadingMeaning
 
   /**
-   * The `<ui-transition>` animation `visible="false"` hides the element with, and `visible` shows it again:
-   * a name from `animations.css` (`"fade"`, `"scale"`, `"fade-down"` ...:  `AnimationNames`).
-   * - Default `"fade"`.
-   * - Not read where the family's vocabulary has a `visible` of its own (`<ui-sidebar>`, `<ui-transition>`,
-   *   `<ui-reveal>`):  `SharedVocabulary`.
+   * What the element shows when the page writes neither `visible` nor `hidden`.
+   * - Every element takes both (`SharedVocabulary`):  one fact, two names (`DOMElement`, "Shown or hidden").
+   * - `"shown"` (the default):  a message, a segment, a menu ...
+   * - `"hidden"`:  a modal, flyout, popup, sidebar, dimmer, loader, transition:
+   *   the element writes `hidden` on itself when it first connects.
+   * - Read once, when the tag is defined.
    */
-  visibleAnimation: E.AnimationName
+  visible: StartsVisible
+
+  /**
+   * How the element shows and hides when its own `animation` attribute names none:
+   * Fomantic's name (`"fade"`, `"scale"`, `"fly down"` ...:  `UIT.Animations`), or `"none"`.
+   * - Default `"fade"`.
+   * - The element's own `animation` wins over it.
+   * - `none` from around it, or reduced motion, wins over both (`UIComponent.animationToRun`).
+   * - Run by the `onVisibleChange()` hook:  by default on the boxes at the top of the shadow root.
+   */
+  animation: UIT.Animation
 }
+
+/** `elementSetup.visible`:  what an element shows when the page writes neither `visible` nor `hidden`. */
+export type StartsVisible = "shown" | "hidden"
 
 /** `elementSetup.disabled`:  what `disabled` means for a family. */
 export type DisabledMeaning = "unusable" | "its own"
@@ -718,6 +762,30 @@ export type AriaProperty = {
   [K in keyof ARIAMixin]-?: ARIAMixin[K] extends string | null ? K : never
 }[keyof ARIAMixin]
 
+/**
+ * ARIA by short name => the `ElementInternals` property `@aria` and `elementSetup.aria` write.
+ * - Each is the attribute in its comment, set on the element's hidden ARIA (never a visible attribute).
+ * - Only the names in use:  a name not here fails TypeScript, so add it here (one line).
+ * - Keys follow the attribute, camelCased after `aria-`:  `aria-valuemin` is `valueMin`.
+ */
+export const AriaNames = {
+  role: "role", // role
+  busy: "ariaBusy", // aria-busy
+  checked: "ariaChecked", // aria-checked
+  current: "ariaCurrent", // aria-current
+  disabled: "ariaDisabled", // aria-disabled
+  hidden: "ariaHidden", // aria-hidden
+  label: "ariaLabel", // aria-label
+  level: "ariaLevel", // aria-level
+  live: "ariaLive", // aria-live
+  roleDescription: "ariaRoleDescription", // aria-roledescription
+  selected: "ariaSelected", // aria-selected
+  valueMin: "ariaValueMin" // aria-valuemin
+} as const satisfies Record<string, AriaProperty>
+
+/** A short ARIA name, a key of `AriaNames`:  `"busy"`, `"label"`, `"role"` ... */
+export type AriaName = keyof typeof AriaNames
+
 ////////////////
 // ## Element definition
 ////////////////
@@ -730,7 +798,7 @@ export type ResolvedAttribute = {
   attribute: string
   /** camelCase CANONICAL name:  the key in `AttributeValues` and `DOMElement.attributeValues` (`allowAdditions`) */
   key: string
-  /** element property, e.g. `allowAdditions`, `permitirAdiciones`, or a vocabulary rename (`dividerHidden`) */
+  /** element property, e.g. `allowAdditions`, `permitirAdiciones`, or a vocabulary rename (`inputMode`) */
   property: string
   /**
    * write a property change back to the attribute;
@@ -849,7 +917,7 @@ export const SOURCE_BODY_HOLD_MS = 300
 export type LoadableBodyOwner = {
   /** the DOM element:  its `source` / `select` attributes, its events */
   domElement: HTMLElement
-  /** `source`, as written;  `undefined` when absent or empty */
+  /** `source`, as written;  `undefined` when absent or empty.  Read untracked (`LoadableBody.load()`). */
   source(): string | undefined
   /** `select`, as written;  `undefined` when absent or empty */
   select(): string | undefined
@@ -944,8 +1012,9 @@ export type StickyWatchState = {
 export const STICKY_SCROLLING: ReadonlySet<string> = new Set(["auto", "scroll", "overlay", "hidden"])
 
 /**
- * A stuck box taller than this share of the visible area, or narrower than this share of its width, reserves no
- * scroll padding:  it's a sticky column (a sidebar), and reserving its height would make Page Down barely move.
+ * A stuck box taller than this share of the visible area, or narrower than this share of its width,
+ * reserves no scroll padding:  it's a sticky column (a sidebar),
+ * and reserving its height would make Page Down barely move.
  */
 export const STICKY_MAX_RESERVE = 0.5
 

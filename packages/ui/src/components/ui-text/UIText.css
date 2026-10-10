@@ -19,10 +19,11 @@
  *     so text in a large red button is neither scaled twice nor painted red on red.
  *
  * - The public tokens (`--ui-text-line-height`, `--ui-text-size-*`, `--ui-text-disabled-opacity`)
- *   are NEVER declared here.  The token block gives each a private alias,
- *   `--_ui-text-line-height: var(--ui-text-line-height, 1)`, and every rule reads the alias.
- *   So a value set on `:root`, an ancestor, the element, `::part(text)` or in the app's style sheet
- *   reaches the box (`docs/theming.md`, "Component tokens").
+ *   are NEVER declared here.
+ *   - The token block gives each a private alias, and every rule reads the alias:
+ *     `--_ui-text-line-height: var(--ui-text-line-height, 1)`.
+ *   - So a value set on `:root`, an ancestor, the element, `::part(text)` or in the app's style sheet
+ *     reaches the box (`docs/theming.md`, "Component tokens").
  *   - The component's tokens share the `--ui-text-` prefix with the GLOBAL neutral text colours
  *     (`--ui-text-color`, `--ui-text-muted`, `--ui-text-disabled`, `--ui-text-inverted-*` …).
  *     This sheet NEVER aliases (or declares) one of those;  its own names don't collide.
@@ -49,9 +50,6 @@
     --ui-color: initial;
     --ui-color-text: initial;
     --ui-color-inverted: initial;
-  }
-  :host([hidden]) {
-    display: none;
   }
 
   /* Tokens:  one per `text.variables` entry that still matters, each the private alias of its public token. */

@@ -1,16 +1,20 @@
 /*
  * `<ui-nag>`:  port of Fomantic's `nag.less` + `nag.variables`.
  * - Shadow markup contract (class grammar;  a nag has no better element than `<div>`):
- *   `<div class="ui [size] [color] [bottom] [fixed] [inverted] [overlay] nag" part="nag">` holding the default
- *   `<slot>` and, when `closable`, `<button type="button" class="close icon" part="close" aria-label="...">svg`.
- * - The DOM element is `display: contents`:  the root IS the bar, so `fixed` / `overlay` position it against the
- *   viewport / the nearest positioned ancestor exactly as Fomantic's markup;  `hidden` on the DOM element hides it.
- * - Public tokens (`--ui-nag-*`, the theming surface) are NEVER declared here:  the token block reads each through
- *   a private alias, `--_ui-nag-radius: var(--ui-nag-radius, var(--ui-radius))`, and every rule reads the alias.
- *   So a value set on `:root`, an ancestor, the DOM element,
- *   `::part(nag)` or in the app stylesheet reaches the bar (`docs/theming.md` "Component tokens").
- * - Colours by remap (`colors.css`):  a hue fills the bar (`--ui-color`, text `--ui-color-on`);
- *   `inverted` is light, a coloured inverted one takes the hue's tint (`--ui-color-background`, `--ui-color-text`).
+ *   `<div class="ui [size] [color] [bottom] [fixed] [inverted] [overlay] nag" part="nag">`,
+ *   holding the default `<slot>` and, when `closable`,
+ *   `<button type="button" class="close icon" part="close" aria-label="...">svg`.
+ * - The DOM element is `display: contents`:  the root IS the bar,
+ *   so `fixed` / `overlay` position it against the viewport / the nearest positioned ancestor,
+ *   exactly as Fomantic's markup.
+ *   `hidden` on the DOM element hides it.
+ * - Public tokens (`--ui-nag-*`, the theming surface) are NEVER declared here:
+ *   the token block reads each through a private alias, and every rule reads the alias:
+ *   `--_ui-nag-radius: var(--ui-nag-radius, var(--ui-radius))`.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(nag)` or in the app stylesheet
+ *   reaches the bar (`docs/theming.md` "Component tokens").
+ * - Colours by remap (`colors.css`):  a hue fills the bar (`--ui-color`, text `--ui-color-on`).
+ *   `inverted` is light;  a coloured inverted one takes the hue's tint (`--ui-color-background`, `--ui-color-text`).
  * - Sizes by `--ui-scale` (`sizes.css`);  `huge` and `massive` tighten the line height, as Fomantic's.
  * - NOTE:  deviations, for contrast (WCAG 1.4.3 / 1.4.11):
  *   - Fomantic's `#909090` bar with dark text and a WHITE title (3.2:1) is a dark grey bar with light text here
@@ -27,9 +31,6 @@
 @layer ui.components.nag.types {
   :host {
     display: contents;
-  }
-  :host([hidden]) {
-    display: none;
   }
 
   /* Tokens:  one private alias per `nag.variables` entry that still matters, from the global tokens. */

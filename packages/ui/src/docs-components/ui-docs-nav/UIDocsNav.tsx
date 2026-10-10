@@ -1,4 +1,4 @@
-import { For, Match, Show, Switch, createMemo, untrack } from "solid-js"
+import { For, Match, Show, Switch, createMemo } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -104,12 +104,14 @@ export class DOMDocsNavElement extends E.DOMElement<UIDocsNav> {
  *   - the card covers the list while it shows:  Enter jumps through the card, never the list.
  * - Remembered per viewer (`NavPreferences`, wrapped `localStorage`):
  *   favourites, the view, the open topics, the folded groups.
- *   On load, Topics opens the current page's first topic if no open topic holds it (not remembered).
+ *   - On load, Topics opens the current page's first topic if no open topic holds it (not remembered).
  * - The current page (`current`, by default the page's file name) is `aria-current="page"`,
  *   and scrolled into view inside the panel once the list has rendered (`revealCurrent()`).
- * - Events:  `ui-navigate` (a plain click on a link, cancelable;  the search field fires its own),
- *   `ui-change` (`{ view }`), `ui-favorite`.
- *   `/` and Cmd / Ctrl+K focus the search field:  `<ui-docs-search>`'s shortcuts.
+ * - Events:
+ *   - `ui-navigate`:  a plain click on a link, cancelable (the search field fires its own)
+ *   - `ui-change` (`{ view }`)
+ *   - `ui-favorite`
+ * - `/` and Cmd / Ctrl+K focus the search field:  `<ui-docs-search>`'s shortcuts.
  * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of other families' widgets,
  *   which its barrel imports.
  ****************/
@@ -297,11 +299,10 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
   }
 
   /** The starred tags, A-Z.  Untracked:  script API (`DOMDocsNavElement.favorites`). */
+  @E.untracked
   get favoriteTags(): string[] {
-    return untrack(() => {
-      const favorites = this.favorites
-      return (this.navIndex?.rows ?? []).filter((row) => favorites.has(row.tag)).map((row) => row.tag)
-    })
+    const favorites = this.favorites
+    return (this.navIndex?.rows ?? []).filter((row) => favorites.has(row.tag)).map((row) => row.tag)
   }
 
   /**
@@ -430,7 +431,8 @@ export class UIDocsNav extends E.UIComponent<DocsNavVocabulary> {
 
   /**
    * `topic` was just shut:  if its fold isn't easing shut two frames on, it never will
-   * (shut mid-way through easing open, from the same height):  no `transitionend` comes, so end its closing now.
+   * (shut mid-way through easing open, from the same height).
+   * No `transitionend` comes, so end its closing now.
    */
   private closeSoon(topic: string) {
     E.beforeNextPaint(() => E.beforeNextPaint(() => this.closeIfStill(topic)))

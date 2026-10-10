@@ -1,7 +1,7 @@
 ---
 name: epic
-description: Run a planning session against a live plan doc, `epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").  `/epic resume [<name>]`:  pick an epic back up in a new session, in the right worktree and window, where its plan doc says it stopped ("resume the seo epic", "carry on with windows-and-review").  `/epic future <name> [idea]`:  write an idea down as a FUTURE epic, not planned yet:  a stub plan doc and an analysis page of its high-level open questions, answered in the Review tab;  no worktree ("save this as a future epic", "an epic for later").  `/epic phase [ids] [name]`:  add a phase to this session's epic, from its items (`/epic phase J1 J5, t3`) or from scratch;  `/epic start <P1 | ids>`:  work a phase, or a block of its items, now.
-argument-hint: <name> [what to plan] | review [<name>] | resume [<name>] | future <name> [idea] | phase [ids] [name] | start <P1 | ids> | color <look>
+description: Run a planning session against a live plan doc, `epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").  `/epic resume [<name>]`:  pick an epic back up in a new session, in the right worktree and window, where its plan doc says it stopped ("resume the seo epic", "carry on with windows-and-review").  `/epic future <name> [idea]`:  write an idea down as a FUTURE epic, not planned yet:  a stub plan doc and an analysis page of its high-level open questions, answered in the Review tab;  no worktree ("save this as a future epic", "an epic for later").  `/epic phase [ids] [name]`:  add a phase to this session's epic, from its items (`/epic phase J1 J5, t3`) or from scratch;  `/epic start <P1 | ids>`:  work a phase, or a block of its items, now.  `/epic done`:  the same as `/isolate done`.
+argument-hint: <name> [what to plan] | done | review [<name>] | resume [<name>] | future <name> [idea] | phase [ids] [name] | start <P1 | ids> | color <look>
 ---
 
 # /epic
@@ -84,6 +84,9 @@ Plan, then build, in worktree `<name>`, keeping the PLAN DOC current the whole t
   - `start`:  `/epic start <P1 | ids>` works a phase, or a block of items in it.
     Go to "11. Start".
   - `phase` and `start`:  epic `skillz` P4.
+  - `done`:  `/epic done` is `/isolate done`, word for word.
+    Follow [the isolate skill](.claude/skills/isolate/SKILL.md)'s "Finish", and skip everything else here.
+    - The same steps "6. Doc Review" ends with.
 - `<name>` is the first word of `$ARGUMENTS`, or a quoted phrase (`"Docs Index"`).
   - Lower-kebab-cased:  `Docs Index` -> `docs-index`.
   - The rest, if any, is the plan:  the prompt that kicks it off.
@@ -311,8 +314,18 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
    - A choice:  `add ... decision` (a question born answered).
    - A choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement`.
      - Ids `J1` ...;  see `/bedtime`.
-     - One that simply follows WWOD gets `--calm` (last):  yellow (open), rather than red.
-       Owen flips it from its id chip while reviewing.
+     - CALM by default:  `--calm` (last), yellow (open) rather than red.  The same for an issue.
+       - Owen:  "if what you picked was reasonable, and I didn't explicitly state otherwise, [it] should be yellow"
+         (2026-10-10, "the principle of least surprise").
+       - RED (no `--calm`) only when it would surprise him:
+         - it goes against something he said
+         - it drops, narrows or changes what he asked for
+         - a real fork he'd plausibly have picked differently, AND that matters to him
+           (cost, behaviour he'll notice, something hard to undo)
+         - it needs his answer before work can go on
+       - Following WWOD is one case of calm, not the only one.
+       - Never ask:  decide, and record it.
+       - Owen flips it from its id chip while reviewing;  `plan-doc calm <name> <id>... [--loud]` from the CLI.
    - Items added while the phase is active carry it.
      - The phase's "To review" line lists the ones Owen hasn't reviewed;  the script writes it on every edit.
      - Never hand-write a "Judgement calls:" line.
@@ -414,6 +427,8 @@ Owen reviews ON THE PAGE:  the plan doc in the side bar's Review tab, where he m
   then Do Now apart, the wand, for Add Details or a revisit now.
 - A TODO's instead:  the plane, "do it in the next phase" (`next`);  Revisit;  the x, "drop it" (`drop`).
   `inbox apply` applies both.
+- Every other note box:  Revisit Later;  the x, "skip this" (`skip`:  nothing to do).
+  `inbox apply` applies it as reviewed:  the note kept, the status left as it was.
 - Choose, on option cards.
 - Their colours and fills:  `plan-doc.md`, "Colours".
 - He sends them with the page header's paper plane,
@@ -486,6 +501,7 @@ spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or
    "Mark items in the Review tab:  each item's buttons;
    Do Now (an item's wand) starts at once (click again to call one off);
    a todo's plane queues it for the next phase, its x drops it;
+   a note box's x skips it (nothing to do);
    the header's paper plane sends the rest.  I'm listening."
    - Then the doc's link pair.
 
@@ -810,6 +826,7 @@ updated <name> <N> "<p>what changed</p>"            a change to phase N's plan: 
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
 add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"] [--calm]   prints the id (C3)
+calm <name> <id>... [--loud]                        calls / issues not urgent (yellow);  --loud:  red again
 decide <name> <Q id> "answer" [--details html]     answer a question, INTO it:  prints its id (Q3)
 commit <name> <sha> --phase N | --item <id> "..."   list a commit under a phase or an item
 commits <name> --backfill                           every phase / item commit (`P3:`, `<name> I3:`), once

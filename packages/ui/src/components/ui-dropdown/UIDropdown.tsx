@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -39,7 +39,6 @@ import dropdownCSS from "./UIDropdown.css?inline"
  *   - the value goes in hidden inputs, so a static form submits it
  *   - choosing needs script
  ****************/
-@E.cssStates("loading", "fluid")
 export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   /**
    * Rows PageUp / PageDown move.
@@ -56,6 +55,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   @E.proto static vocabulary = dropdownVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { button: buttonCSS, dropdown: dropdownCSS },
+    cssStates: ["fluid"],
     Fallback: DropdownFallback,
     // `loading`:  a spinner in place of its dropdown icon
     loading: "its own"
@@ -110,7 +110,7 @@ export class UIDropdown extends F.FormComponent<typeof dropdownVocabulary> {
   accessor value = this.selectedItemValues()
 
   /** The page's value to restore on a form reset (`undefined`:  back to the `selected` items). */
-  private readonly initialValue = this.isControlledByPage("value") ? untrack(() => this.value) : undefined
+  private readonly initialValue = this.isControlledByPage("value") ? this.value : undefined
 
   /** Chosen values, always as an array;  the same list while equal. */
   @E.derived({ equals: E.isSameList })

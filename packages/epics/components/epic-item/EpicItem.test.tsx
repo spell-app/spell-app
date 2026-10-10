@@ -161,6 +161,27 @@ describe("<epic-item>", () => {
     expect(host.open).toBe(false)
   })
 
+  test("its details fold by height, not at once (Owen, 2026-10-10:  the auto-fold after an action jumped shut)", async () => {
+    const { host, line, details } = await item(
+      `<epic-item id="c9" title="A caveat" status="open"><p>Why</p><p>Because</p></epic-item>`
+    )
+    // its running transitions:  `block-size` shows as `height`
+    const resizing = () => details.getAnimations().map((animation) => (animation as CSSTransition).transitionProperty)
+    line.click()
+    await ElementFixture.tick()
+    // unfolds by height too, as a `<ui-section>` does
+    expect(resizing()).toContain("height")
+    await vi.waitFor(() => expect(resizing()).toEqual([]), { timeout: 2000 })
+    expect(details.getBoundingClientRect().height).toBeGreaterThan(20)
+    // the fold an action chosen runs:  the same as a click on the line
+    ;(host.component as unknown as { foldAfterAction(): void }).foldAfterAction()
+    await ElementFixture.tick()
+    expect(host.open).toBe(false)
+    expect(resizing()).toContain("height")
+    expect(details.getBoundingClientRect().height).toBeGreaterThan(0)
+    await vi.waitFor(() => expect(details.getBoundingClientRect().height).toBe(0), { timeout: 2000 })
+  })
+
   test("a click on a link in its line (the chip) doesn't fold;  a cancelled `ui-open` keeps it folded", async () => {
     const { host, chip, line } = await item(`<epic-item id="c2" title="A caveat" status="open"><p>Why</p></epic-item>`)
     chip.addEventListener("click", (event) => event.preventDefault())

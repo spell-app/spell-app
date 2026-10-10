@@ -53,10 +53,11 @@ import { CommentList, type Comment } from "./CommentList"
  *       `liveListener()` is `null`, and the routes answer `listening: null` (`forPage()`)
  *   - `handedOver`:  the `sent` time a waiting session last took (`takeWork()`), else `null`:
  *     so a second `plan-doc inbox wait` doesn't hand the same send over again
- *   - `comments`:  `{ [cm1 ...]: comment }`, Owen's comments on the page's blocks and on selected text (epic
- *     `airplane` P11), in the shape a guide's inbox holds them (`CommentList`):  waiting until Claude answers them
- *     like a revisit's note (`/epic review`, `/airplane land`), then `answered` (`plan-doc inbox done cm3`);
- *     never sent:  a saved comment is waiting
+ *   - `comments`:  `{ [cm1 ...]: comment }`, Owen's comments on the page's blocks and on selected text
+ *     (epic `airplane` P11), in the shape a guide's inbox holds them (`CommentList`)
+ *     - waiting until Claude answers them like a revisit's note (`/epic review`, `/airplane land`),
+ *       then `answered` (`plan-doc inbox done cm3`)
+ *     - never sent:  a saved comment is waiting
  * - Node only (`node:fs`, `$/server`'s lock):  NOT in the `$/epics` barrel, imported by path.
  *   Imports no other file of the tool but `CommentList` (its comments).
  * - From `packages/docs/tools/inbox.js` (epic `epic-components`, P7), which now forwards here.
@@ -190,9 +191,9 @@ export class ReviewInbox {
   ////////////////
 
   /**
-   * Item `id`'s note box text, as Owen types it (epic `windows-and-review` P1):  kept here, on the server, so a
-   * reload from ANY address finds it (the page's `localStorage` is per address, and lost notes that way);
-   * `note` empty or `null` drops it.
+   * Item `id`'s note box text, as Owen types it (epic `windows-and-review` P1);  `note` empty or `null` drops it.
+   * - kept here, on the server, so a reload from ANY address finds it
+   *   (the page's `localStorage` is per address, and lost notes that way)
    * - not a mark:  never sent, never counted, never wakes a waiting session;
    *   the mark that uses it drops it (`setMark()`, `requestNow()`)
    * - `note` kept as typed (not trimmed:  the box shows it back as it was)
@@ -215,10 +216,11 @@ export class ReviewInbox {
   ////////////////
 
   /**
-   * Owen's urgency for item `id` (its id chip clicked while the page is reviewed):  `calm` true, not urgent (blue);
-   * false, urgent (red);  `null` drops it (clicked back to what the doc says).
-   * - not a mark:  an item may hold both (approve it AND say it's not urgent);  sent with the marks, as they are
-   *   (`sentUrgency`), and written into the doc by `plan-doc inbox apply` (`PlanDoc.setCalm()`)
+   * Owen's urgency for item `id` (its id chip clicked while the page is reviewed).
+   * - `calm` true:  not urgent (blue);  false:  urgent (red);  `null` drops it (clicked back to what the doc says)
+   * - not a mark:  an item may hold both (approve it AND say it's not urgent)
+   * - sent with the marks, as they are (`sentUrgency`),
+   *   and written into the doc by `plan-doc inbox apply` (`PlanDoc.setCalm()`)
    * - only an open judgement call or issue is ever red for want of a review (`PlanReader.itemState()`):
    *   only their ids (`CALM_ID`);  an `InboxError` for any other
    * - returns the entry set, or `null`
@@ -256,8 +258,8 @@ export class ReviewInbox {
   }
 
   /**
-   * Remove the urgency Claude applied, `[{ id, at }]`, but only while each is still the one applied (as
-   * `clearApplied()`);  returns the ids cleared.
+   * Remove the urgency Claude applied, `[{ id, at }]`,
+   * but only while each is still the one applied (as `clearApplied()`);  returns the ids cleared.
    */
   clearUrgency(entries: { id: string; at: string }[]): string[] {
     const cleared: string[] = []
@@ -295,10 +297,12 @@ export class ReviewInbox {
   }
 
   /**
-   * A NEW item Owen asks for from the page (epic `airplane` P2):  `entry` (`{ kind, title, note?, near? }`, checked:
-   * `toMark()`) under key `id`, or (none) the next free key, `new1`, `new2` ...;  `entry` `null` removes it.
-   * - a mark like any other, `{ action: "new", ... }`:  sent with the rest (`unsentMarks`), made into an item by
-   *   `plan-doc inbox apply` (`PlanDoc.applyMark()`), editable or removable until then
+   * A NEW item Owen asks for from the page (epic `airplane` P2).
+   * - `entry` (`{ kind, title, note?, near? }`, checked:  `toMark()`):
+   *   under key `id`, or (none) the next free key, `new1`, `new2` ...
+   * - `entry` `null` removes it
+   * - a mark like any other, `{ action: "new", ... }`:  sent with the rest (`unsentMarks`),
+   *   made into an item by `plan-doc inbox apply` (`PlanDoc.applyMark()`), editable or removable until then
    * - the key is chosen here, under the inbox's lock:  two pages adding at once never take the same one
    * - returns the key, or `null` once removed
    * - throws an `InboxError` for a bad entry, a key that isn't a new item's, or a removal without a key
@@ -355,12 +359,12 @@ export class ReviewInbox {
   }
 
   /**
-   * "Nevermind" (epic `windows-and-review` P2):  Owen calls off item `id`'s immediate request (Add Details, revisit
-   * now), queued or already being worked on.
+   * "Nevermind" (epic `windows-and-review` P2):  Owen calls off item `id`'s immediate request
+   * (Add Details, revisit now), queued or already being worked on.
    * - its `now` entry, its `working` and its immediate mark go;  a mark waiting for a send isn't one, and stays
-   * - recorded in `canceled` (`{ action, at, told }`):  a waiting session is woken to stop the item's agent
-   *   (`takeWork()`, `told`), and `plan-doc details` refuses that agent's late write (`isCanceled()`), until
-   *   `inbox done | clear` or a new request for the item
+   * - recorded in `canceled` (`{ action, at, told }`), until `inbox done | clear` or a new request for the item:
+   *   - a waiting session is woken to stop the item's agent (`takeWork()`, `told`)
+   *   - `plan-doc details` refuses that agent's late write (`isCanceled()`)
    * - returns the entry recorded, or `null` when nothing was asked or running
    */
   cancelNow(id: unknown, at = isoTime()): InboxCancel | null {
@@ -390,11 +394,11 @@ export class ReviewInbox {
   }
 
   /**
-   * "Review Now" (epic `windows-and-review` P4, Q2):  send every mark AND have the listening session work through
-   * the batch at once;  returns the ids it asked now.
-   * - each revisit waiting for a send, or sent and still being talked over, becomes an immediate request
-   *   (`requestNow()`, its note and its pick kept):  a background agent answers it INTO its item (Q3), the page's
-   *   spinner on it meanwhile
+   * "Review Now" (epic `windows-and-review` P4, Q2):
+   * send every mark AND have the listening session work through the batch at once;  returns the ids it asked now.
+   * - each revisit waiting for a send, or sent and still being talked over,
+   *   becomes an immediate request (`requestNow()`, its note and its pick kept):
+   *   a background agent answers it INTO its item (Q3), the page's spinner on it meanwhile
    * - approvals, picks and todos go with the send (`markSent()`), as "send to Claude" sends them
    */
   reviewNow(at = isoTime()): string[] {
@@ -451,7 +455,7 @@ export class ReviewInbox {
 
   /**
    * Claude's agent finished items `ids` (`plan-doc inbox done`):  their IMMEDIATE marks go (`clearMarks()`).
-   * Returns `{ had, kept }`:  the ids whose mark went, and those whose mark stayed.
+   * - returns `{ had, kept }`:  the ids whose mark went, and those whose mark stayed
    * - a mark Owen changed meanwhile to one waiting for a send stays, for the next send:
    *   e.g. he asked "revisit now", then chose card B while the agent worked
    *   (now a revisit `soon` with the note and the `pick`)
@@ -491,8 +495,8 @@ export class ReviewInbox {
   /**
    * Claude session `session` started (or, `null`, stopped) waiting on this inbox.
    * - `seen`:  its first heartbeat (`touchListening()`)
-   * - the page says "No Claude session is reviewing this doc" while it's `null`, or stale (`liveListener()`;
-   *   decision D6)
+   * - the page says "No Claude session is reviewing this doc" while it's `null`, or stale
+   *   (`liveListener()`;  decision D6)
    */
   setListening(session: string | null, at = isoTime()): InboxListener | null {
     this.listening = session === null ? null : { session, since: at, seen: at }
@@ -510,8 +514,8 @@ export class ReviewInbox {
   }
 
   /**
-   * The session listening:  `null` when nobody is, or its heartbeat stopped (`seen`, an old file's `since`, older
-   * than `LISTEN_STALE_MS` at `now`, in ms).
+   * The session listening:  `null` when nobody is, or its heartbeat stopped
+   * (`seen`, an old file's `since`, older than `LISTEN_STALE_MS` at `now`, in ms).
    * - why:  a session killed without `unlisten` leaves `listening` set;  the page must not claim it's there
    */
   liveListener(now = Date.now()): InboxListener | null {
@@ -522,8 +526,8 @@ export class ReviewInbox {
   }
 
   /**
-   * The inbox as the page reads it (every route's answer):  the whole inbox, but `listening` `null` once stale
-   * (`liveListener()`), so the page keeps no clock rule of its own.
+   * The inbox as the page reads it (every route's answer):
+   * the whole inbox, but `listening` `null` once stale (`liveListener()`), so the page keeps no clock rule of its own.
    * - a plain copy:  this inbox is untouched
    */
   forPage(now = Date.now()): InboxRecord {
@@ -555,12 +559,14 @@ export class ReviewInbox {
 
   /**
    * TAKE the work waiting for a session:  `{ now, sent, canceled }`, or `null` when there's none.
-   * - `now`:  the queued immediate requests (`takeNow()`), each item marked `working` (the page's spinner) until
-   *   Claude's agent is done (`plan-doc inbox done`);  their marks stay till then
-   * - `sent`:  `{ at, marks, urgency }` for a send not handed over yet (`hasNewSend`), else `null`:
-   *   every sent mark (`sentMarks`), each `again: true` when an earlier send already handed it over
-   *   (a revisit still being talked over), and the sent urgency (`sentUrgency`);
-   *   `handedOver` becomes `sent`, so a send is taken once
+   * - `now`:  the queued immediate requests (`takeNow()`)
+   *   - each item marked `working` (the page's spinner) until Claude's agent is done (`plan-doc inbox done`)
+   *   - their marks stay till then
+   * - `sent`:  `{ at, marks, urgency }` for a send not handed over yet (`hasNewSend`), else `null`
+   *   - every sent mark (`sentMarks`), each `again: true` when an earlier send already handed it over
+   *     (a revisit still being talked over)
+   *   - and the sent urgency (`sentUrgency`)
+   *   - `handedOver` becomes `sent`, so a send is taken once
    *   - a send with nothing left (all applied) is taken quietly:  nothing to wake for
    * - `canceled`:  "nevermind"s for work a session took:  stop those agents (`cancelNow()`)
    * - call it under the lock (`update()`)
@@ -584,8 +590,9 @@ export class ReviewInbox {
   }
 
   /**
-   * Remove the marks Claude applied, `[{ id, at }]`, but only while each is still the one applied:
-   * a mark Owen changed meanwhile (a newer `at`) stays, for the next round.  Returns the ids cleared.
+   * Remove the marks Claude applied, `[{ id, at }]`, but only while each is still the one applied;
+   * returns the ids cleared.
+   * - a mark Owen changed meanwhile (a newer `at`) stays, for the next round
    */
   clearApplied(marks: { id: string; at: string }[]): string[] {
     const cleared: string[] = []
@@ -605,15 +612,18 @@ export class ReviewInbox {
   /**
    * `mark` from a request, checked:  only its own fields, in a fixed order.
    * - `action`:  one of `ACTIONS`
-   * - `revisit`:  `when` `soon` (default) or `now`;  `note` trimmed, `""` when none;  `pick` too, when given (a
-   *   letter):  "pick B, but ...", a pick with a remark, talked over rather than applied
+   * - `revisit`:  `when` `soon` (default) or `now`;  `note` trimmed, `""` when none
+   *   - `pick` too, when given (a letter):  "pick B, but ...", a pick with a remark, talked over rather than applied
    * - `pick`:  `pick` an option card's letter, `A`-`Z`
-   * - with a pick:  `choices` too, when given:  which of the item's option card sets it's from, by position (`0`,
-   *   `1` ...:  I8);  none, the item's own
-   * - `todo`, `next`, `drop`:  `note` trimmed, kept only when there is one
-   * - `new` (a new item, `setNew()`):  `kind` one of `NEW_KINDS`;  `title` trimmed, never empty, at most
-   *   `MAX_TITLE` characters;  `note` trimmed, kept only when there is one;  `near` an id (`toItemId()`, lower-case),
-   *   kept only when given.  Whether the doc HAS that id is the route's to check (it reads the doc)
+   * - with a pick:  `choices` too, when given:
+   *   which of the item's option card sets it's from, by position (`0`, `1` ...:  I8);  none, the item's own
+   * - `todo`, `next`, `drop`, `skip`:  `note` trimmed, kept only when there is one
+   * - `new` (a new item, `setNew()`):
+   *   - `kind`:  one of `NEW_KINDS`
+   *   - `title`:  trimmed, never empty, at most `MAX_TITLE` characters
+   *   - `note`:  trimmed, kept only when there is one
+   *   - `near`:  an id (`toItemId()`, lower-case), kept only when given;
+   *     whether the doc HAS that id is the route's to check (it reads the doc)
    * - throws an `InboxError` for anything else;  `at` is never taken from it (the writer stamps it)
    * - STATIC, as every check here:  pure, on a request before any inbox is read
    */
@@ -630,9 +640,9 @@ export class ReviewInbox {
       return { action, when: when as RevisitWhen, note: note.trim(), pick: toLetter(pick), ...toChoices(choices) }
     }
     if (action === "pick") return { action, pick: toLetter(pick), ...toChoices(choices) }
-    // Make Todo's note box (epic `windows-and-review` P2):  why it's worth following up;
-    // a todo's plane and x take the note box's words too (Owen, 2026-10-09)
-    if (action === "todo" || action === "next" || action === "drop") {
+    // Make Todo's note (epic `windows-and-review` P2:  its note box's button, until 2026-10-09):  why follow it up;
+    // a todo's plane and x, and every note box's x (skip this), take the note box's words too (Owen, 2026-10-09)
+    if (action === "todo" || action === "next" || action === "drop" || action === "skip") {
       if (typeof note !== "string") throw new InboxError(`a ${action} mark's note is text`)
       return note.trim() ? { action, note: note.trim() } : { action }
     }
@@ -672,8 +682,8 @@ export class ReviewInbox {
    * The ids a review mark may name in plan doc `html` (a skeleton:  every item's line is in it):
    * - every `<epic-item id>`, and every Overview sub-section, `<epic-section kind="overview-part" id>`
    *   (Q14:  they take review notes too)
-   * - every phase, `<epic-phase id>`, and the summary, `summary` while the doc has an `<epic-summary>` (epic
-   *   `airplane` P2:  notes on them too)
+   * - every phase, `<epic-phase id>`, and the summary, `summary` while the doc has an `<epic-summary>`
+   *   (epic `airplane` P2:  notes on them too)
    * - text, not a DOM:  cheap enough to run on every request;  attributes in any order, across lines
    */
   static itemIds(html: string): Set<string> {
@@ -721,22 +731,26 @@ export type InboxMark = CheckedMark & { at: string }
 
 /**
  * A mark as `ReviewInbox.toMark()` checks it, before it's stamped.
- * - `when`, `note`:  a revisit's (`note` a todo's and a new item's too);  `pick`:  a pick's letter, or a revisit's
- *   "pick B, but ..."
+ * - `when`, `note`:  a revisit's (`note` a todo's and a new item's too)
+ * - `pick`:  a pick's letter, or a revisit's "pick B, but ..."
  * - `choices`:  with a pick, which of the item's option card sets it's from, by position (I8);  none:  its own
  * - `kind`, `title`, `near`:  a new item's (`action: "new"`, epic `airplane` P2)
  */
 export type CheckedMark = { action: MarkAction; when?: RevisitWhen; note?: string } & PickFields & NewItemFields
 
 /**
- * A new item's fields (`action: "new"`, `ReviewInbox.setNew()`):  `kind` `todo` or `question`, `title`, and `near`,
- * the id of what it's about (an item, a phase, an Overview sub-section, `summary`).
+ * A new item's fields (`action: "new"`, `ReviewInbox.setNew()`):
+ * - `kind`:  `todo` or `question`
+ * - `title`
+ * - `near`:  the id of what it's about (an item, a phase, an Overview sub-section, `summary`)
  */
 export type NewItemFields = { kind?: NewKind; title?: string; near?: string }
 
 /**
- * A pick's fields, on a mark or a `now` request:  `pick`, the option's letter;  `choices`, which of the item's
- * `<epic-choices>` it's from, by position (`PlanItem.choiceSets()`), none for the item's own (`choicesOf()`).
+ * A pick's fields, on a mark or a `now` request:
+ * - `pick`:  the option's letter
+ * - `choices`:  which of the item's `<epic-choices>` it's from, by position (`PlanItem.choiceSets()`);
+ *   none for the item's own (`choicesOf()`)
  */
 export type PickFields = { pick?: string; choices?: number }
 
@@ -785,12 +799,13 @@ export const INBOX_VERSION = 1
  * - `next`:  a todo's plane (Owen, 2026-10-09):  do it in the next phase,
  *   queued into the first phase still to do (`PlanDoc.applyAction()`)
  * - `drop`:  a todo's x:  drop it, canceled
+ * - `skip`:  every other note box's x (Owen, 2026-10-09):  skip this, nothing to do;  marked reviewed, a note kept
  * - `details`:  write more details into it (an immediate request:  `requestNow()`)
  * - `revisit`:  talk it through again;  `when` `soon` (with the next batch) or `now` (immediate), `note` Owen's text
  * - `pick`:  an option card, by letter (`pick: "B"`), on any item (I8):  `choices` says which card set
  * - `new`:  a new todo or question Owen asks for from the page (`setNew()`, epic `airplane` P2), under its own key
  */
-export const ACTIONS = ["approve", "todo", "next", "drop", "details", "revisit", "pick", "new"] as const
+export const ACTIONS = ["approve", "todo", "next", "drop", "skip", "details", "revisit", "pick", "new"] as const
 /** One of `ACTIONS`. */
 export type MarkAction = (typeof ACTIONS)[number]
 
@@ -821,8 +836,8 @@ export type RevisitWhen = (typeof REVISIT_WHEN)[number]
 export const LISTEN_HEARTBEAT_MS = 30_000
 
 /**
- * A `listening` whose heartbeat (`seen`) is older than this is a session that died without `unlisten` (closed
- * tab, crash):  three missed heartbeats.
+ * A `listening` whose heartbeat (`seen`) is older than this is a session that died without `unlisten`
+ * (closed tab, crash):  three missed heartbeats.
  */
 export const LISTEN_STALE_MS = 90_000
 
@@ -843,8 +858,9 @@ const NEW_ID = /^new\d+$/
 const MAX_TITLE = 300
 
 /**
- * The items Owen may call urgent or not (`setUrgency()`):  judgement calls and issues, the kinds red while open and
- * not reviewed (`PlanReader.itemState()`, the same rule:  `CALM_ID` in `planDoc.types.ts`).
+ * The items Owen may call urgent or not (`setUrgency()`):
+ * judgement calls and issues, the kinds red while open and not reviewed.
+ * - `PlanReader.itemState()`, the same rule:  `CALM_ID` in `planDoc.types.ts`
  */
 const CALM_ID = /^[ij]\d+$/
 
@@ -895,8 +911,8 @@ function toNewItem({ kind, title, note = "", near }: Record<string, unknown>): C
 }
 
 /**
- * `choices`, a pick's card set by position, as a mark's field:  `{ choices }`, or `{}` when not given;
- * an `InboxError` when it isn't a whole number from 0 to `MAX_CHOICES`.
+ * `choices`, a pick's card set by position, as a mark's field:  `{ choices }`, or `{}` when not given.
+ * - an `InboxError` when it isn't a whole number from 0 to `MAX_CHOICES`
  */
 function toChoices(choices: unknown): { choices?: number } {
   if (choices === undefined || choices === null) return {}
@@ -908,8 +924,8 @@ function toChoices(choices: unknown): { choices?: number } {
 /**
  * `date` as ISO local time with its offset, to the MILLISECOND:  `2026-10-04T15:02:11.042-04:00`.
  * - as `PlanDoc`'s `isoTime()`, plus milliseconds
- * - why milliseconds:  `unsentMarks` compares a mark's `at` with `sent`;  to the second, a mark made in the same
- *   second as a send would pass for sent
+ * - why milliseconds:  `unsentMarks` compares a mark's `at` with `sent`;
+ *   to the second, a mark made in the same second as a send would pass for sent
  */
 export function isoTime(date = new Date()): string {
   const minutes = -date.getTimezoneOffset()

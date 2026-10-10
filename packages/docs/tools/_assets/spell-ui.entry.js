@@ -37,10 +37,12 @@
 import "spell-ui:icons"
 import "spell-ui:emoji"
 import { UI } from "@spell-app/ui"
+import * as solidH from "@solidjs/h"
 import * as solidWeb from "@solidjs/web"
 import * as solid from "solid-js"
 import * as uiCore from "@spell-app/ui/core"
 import * as uiForms from "@spell-app/ui/forms"
+import * as uiRoot from "@spell-app/ui/ui-root"
 import "spell-ui:lazy"
 import "./spell-ui-sources.js"
 import "./spell-doc-runtime.js"
@@ -49,12 +51,20 @@ import { defineSite } from "$/server/site"
 export { UI }
 export { registerPack } from "@spell-app/ui"
 
-/** What a component pack imports, by the specifier its build leaves external => the page's copy of that module. */
+/**
+ * What a component pack imports, by the specifier its build leaves external => the page's copy of that module.
+ * - `$/ui/components/ui-root` is for `<spell-app>` / `<spell-editor>`'s scripts (`spell-solid-shared.js`, `packages/app`
+ *   `vite.solid.config.ts`), not for packs:  `<spell-app>` is a root, a subclass of `UIRoot`.
+ * - `@solidjs/h` likewise:  what compiled spell draws with (`spell-runtime.js`, through `spell-solid-shared.js`),
+ *   so a program on a docs page draws with the page's one Solid.
+ */
 export const packModules = Object.freeze({
   "solid-js": solid,
   "@solidjs/web": solidWeb,
+  "@solidjs/h": solidH,
   "$/ui/core": uiCore,
-  "$/ui/forms": uiForms
+  "$/ui/forms": uiForms,
+  "$/ui/components/ui-root": uiRoot
 })
 
 void UI.load()

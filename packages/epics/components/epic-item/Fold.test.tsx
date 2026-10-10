@@ -10,8 +10,9 @@ import "$/epics/components/epic-update"
 import "$/epics/components/epic-phase"
 
 /**
- * Every card with a heading band folds from it, the chevron first (Owen, 2026-10-08:  "EVERYTHING IN A SECTION BOX
- * SHOULD BE COLLAPSIBLE"):  each one's markup, and the words its fold button is named by.
+ * Every card with a heading band folds from it, the chevron first
+ * (Owen, 2026-10-08:  "EVERYTHING IN A SECTION BOX SHOULD BE COLLAPSIBLE"):
+ * each one's tag and markup.
  */
 const CARDS = [
   { tag: "epic-reply", html: `<epic-reply from="Claude" at="2026-10-07 10:50" re="why"><p>Text</p></epic-reply>` },
@@ -39,7 +40,7 @@ async function card(html: string) {
   return host
 }
 
-describe("every card folds from its heading (<FoldButton>)", () => {
+describe("every card folds from its heading (fold.button())", () => {
   test.each(CARDS)(
     "$tag:  the chevron FIRST in its heading, open to start;  a click folds it until-found, and back",
     async ({ html }) => {

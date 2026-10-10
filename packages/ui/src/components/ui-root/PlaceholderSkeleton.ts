@@ -1,3 +1,4 @@
+// oxlint-disable-next-line spell-ui/no-solid-effect -- a static helper drawing plain DOM:  no members to decorate
 import { createRenderEffect, type Accessor } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
@@ -11,13 +12,16 @@ import type { RootSkeleton } from "./UIRoot.types"
 
 /****************
  * ### `PlaceholderSkeleton`
- * What `<ui-root display="skeleton">` draws while its components load:  one `<ui-placeholder>` per described element
- * (`E.ComponentVocabulary.skeleton`), in page order, stacked (inline ones side by side).  `UIRoot.Skeleton`,
- * so an app swaps the look with one assignment or a subclass (`UIRoot.Skeleton = MySkeleton`).
- * - The `ui-placeholder` family is imported STATICALLY, by the root's barrel (`index.ts`;  with `ui-loader`,
- *   the only families a root never loads on demand).  Here, its vocabularies only:  pure data.
- * - Built with the DOM, not JSX:  Solid's JSX has no types for our tags.  Sizes go through the placeholder's public
- *   tokens (`--ui-placeholder-max-width`, `--ui-placeholder-image-height`), so its own sheet draws them.
+ * What `<ui-root display="skeleton">` draws while its components load:
+ * one `<ui-placeholder>` per described element (`E.ComponentVocabulary.skeleton`),
+ * in page order, stacked (inline ones side by side).
+ * `UIRoot.Skeleton`, so an app swaps the look with one assignment or a subclass (`UIRoot.Skeleton = MySkeleton`).
+ * - The `ui-placeholder` family is imported STATICALLY, by the root's barrel (`index.ts`):
+ *   with `ui-loader`, the only families a root never loads on demand.
+ *   Here, its vocabularies only:  pure data.
+ * - Built with the DOM, not JSX:  Solid's JSX has no types for our tags.
+ * - Sizes go through the placeholder's public tokens, so its own sheet draws them:
+ *   `--ui-placeholder-max-width`, `--ui-placeholder-image-height`.
  * - The element's `size` scales its skeleton (`--ui-scale`), and `fluid` fills the width.
  * - Static:  an app swaps the CLASS (`UIRoot.Skeleton`), and it keeps no state of its own.
  ****************/

@@ -3,14 +3,16 @@
  * (`server/files/stylesheets/docs.css` of Fomantic-UI-Docs, "Examples" and "Code Button"),
  * built of `<ui-*>` widgets:  this sheet only LAYS THEM OUT.
  * - It styles the component's shadow DOM:
- *   `<section class="ui [bare] [variation] example" part="example">` holding `<div class="heading">` (the
- *   `<ui-header part="header">` and the `<ui-button part="toggle">`),
- *   then `<div class="description" part="description">` around the `description` slot (only when there is one),
- *   the `<ui-segment part="demo">` around the default slot, and, while open,
- *   the `<ui-segment part="code">` holding the `<ui-code part="source">`.
- * - The frame and the code are the widgets' own look:  closed, the demo segment is `basic` and unpadded (Fomantic
- *   shows the live markup bare);  open, it's `attached="top"` and the code pane `attached="bottom"` (Fomantic's
- *   `.html.segment` + `.instructive.bottom.attached.segment`).  `bare`:  never framed.
+ *   `<section class="ui [bare] [variation] example" part="example">`, holding:
+ *   - `<div class="heading">`:  the `<ui-header part="header">` and the `<ui-button part="toggle">`
+ *   - `<div class="description" part="description">` around the `description` slot (only when there is one)
+ *   - the `<ui-segment part="demo">` around the default slot
+ *   - while open, the `<ui-segment part="code">` holding the `<ui-code part="source">`
+ * - The frame and the code are the widgets' own look:
+ *   - closed, the demo segment is `basic` and unpadded (Fomantic shows the live markup bare)
+ *   - open, it's `attached="top"` and the code pane `attached="bottom"`
+ *     (Fomantic's `.html.segment` + `.instructive.bottom.attached.segment`)
+ *   - `bare`:  never framed
  * - Public tokens (`--ui-docs-example-*`) are never declared:  each is read through a private alias
  *   (`docs/theming.md` "Component tokens").
  */
@@ -23,9 +25,6 @@
 @layer ui.components.docs-example.types {
   :host {
     display: block;
-  }
-  :host([hidden]) {
-    display: none;
   }
 
   /* Tokens:  Fomantic's docs measures. */
@@ -76,8 +75,8 @@
   }
   /*
    * No header, but a description (Fomantic's `.another.example`, or an example under a `<ui-section>`'s title):
-   * the code button sits at the top right BESIDE the description, not on a row of its own.  Without a description it
-   * keeps its row:  it would cover the example.
+   * the code button sits at the top right BESIDE the description, not on a row of its own.
+   * Without a description it keeps its row:  it would cover the example.
    */
   .heading:not(:has(> [part~="header"])):has(+ .description) {
     position: absolute;
@@ -115,8 +114,8 @@
   }
   /*
    * Closed (or bare), the demo is unframed and unpadded:  the live markup sits on the page as written.
-   * On the segment's own box, NOT through `--ui-segment-padding`:  that token would inherit into every segment the
-   * example shows.
+   * On the segment's own box, NOT through `--ui-segment-padding`:
+   * that token would inherit into every segment the example shows.
    */
   :host(:not(:state(open))) [part~="demo"]::part(segment),
   .ui.bare.example [part~="demo"]::part(segment) {

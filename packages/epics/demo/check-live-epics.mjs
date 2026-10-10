@@ -1,22 +1,27 @@
 /**
- * Check that a live edit updates a plan doc in `<epic-*>` markup IN PLACE (P10 of epic `epic-components`), in a real
- * browser:  the `<epic-*>` elements are patched, never replaced, and the reader's state stays.
+ * Check that a live edit updates a plan doc in `<epic-*>` markup IN PLACE (P10 of epic `epic-components`),
+ * in a real browser:  the `<epic-*>` elements are patched, never replaced, and the reader's state stays.
  * Usage:  node demo/check-live-epics.mjs [epic name] [--item <id>] [--bundle <spell-ui.js>]   (from `packages/epics`)
  * - works on a COPY of a preview doc (`preview-epics/<name>/`, the converter's, git-ignored):
  *   `preview-epics/check-live/epics/<name>/` (a plan doc's own path:  the page asks the review routes only there),
  *   served by this checkout's page server;  deleted afterwards
  * - the page is REVIEWED:  the review routes (`/api/review/...`) are answered here, an empty inbox with a session
  *   listening (the real routes refuse a page outside `epics/`), so the items draw their review controls
- * - the reader's state:  item `--item` (default `q2`:  one with a part, not approved) opened by a link to it (its
- *   part loads), a half-typed note in its note box (`<epic-item>`'s, in its shadow root) with the focus, the page
- *   scrolled to put the item a third of the way down
- * - three edits, each announced as the page server's watcher would (`announce()`), waited for on the page, then
- *   checked:  the page did NOT reload (a `window` marker survives), the item, the page and the Overview are the SAME
- *   elements (a marker on each), the item is still open, `<epic-page reviewing>` stays, the note's text and focus
- *   are kept, the scroll is where it was (2px)
- * - and NO BLINK (I6):  from the reader's state on, the item's details box (in its shadow root) is never hidden, and
- *   its note box never leaves the page or loses the focus, not even for a moment:  watched by a MutationObserver
- *   (every change, however brief) and sampled on every animation frame (what the reader could have seen)
+ * - the reader's state:
+ *   - item `--item` (default `q2`:  one with a part, not approved) opened by a link to it (its part loads)
+ *   - a half-typed note in its note box (`<epic-item>`'s, in its shadow root) with the focus
+ *   - the page scrolled to put the item a third of the way down
+ * - three edits, each announced as the page server's watcher would (`announce()`), waited for on the page,
+ *   then checked:
+ *   - the page did NOT reload (a `window` marker survives)
+ *   - the item, the page and the Overview are the SAME elements (a marker on each)
+ *   - the item is still open, and `<epic-page reviewing>` stays
+ *   - the note's text and focus are kept, and the scroll is where it was (2px)
+ * - and NO BLINK (I6):  from the reader's state on,
+ *   the item's details box (in its shadow root) is never hidden,
+ *   and its note box never leaves the page or loses the focus, not even for a moment
+ *   - watched by a MutationObserver (every change, however brief)
+ *   - and sampled on every animation frame (what the reader could have seen)
  *   1. the doc:  the item's `title` changes (an attribute patched in place)
  *   2. the item's PART (`parts/<id>.html`):  a paragraph added (the part re-fetched in place:  `wireSourceBodies()`)
  *   3. the doc:  the Overview's summary text changes (a child of an `<epic-*>` element replaced, not the element)
@@ -98,7 +103,7 @@ try {
     await note.waitFor({ timeout: EDIT_TIMEOUT_MS })
     await note.fill(NOTE)
   } catch {
-    problems.push(`#${itemId} drew no note box (is the page reviewed?  is P9's ReviewControls in the pack?)`)
+    problems.push(`#${itemId} drew no note box (is the page reviewed?  is epic-review in the pack?)`)
   }
   await page.waitForTimeout(400)
   await page.evaluate(readerState, itemId)
@@ -129,8 +134,9 @@ try {
   if (errors.length) problems.push(`page errors:  ${errors.join(" | ")}`)
 
   /**
-   * Make one edit to `file` (`"doc"`, or the item's `"part"`:  `change()` writes it, returns a page predicate for
-   * "it's in"), announce it, wait for it on the page, then check the reader's state against `before`.
+   * Make one edit to `file`, announce it, wait for it on the page, then check the reader's state against `before`.
+   * - `file`:  `"doc"`, or the item's `"part"`
+   * - `change()` writes it, and returns a page predicate for "it's in"
    */
   async function edit(label, file, change) {
     const shown = change()
@@ -183,19 +189,23 @@ function readerState(id) {
 }
 
 /**
- * In the page:  note every moment item `id`'s details box is hidden, or its note box gone or unfocused (I6), in
- * `window.__checkLiveBlinks`:  each change as it happens (a MutationObserver on its shadow root), and each animation
- * frame (what a reader could have seen).
+ * In the page:  note every moment item `id`'s details box is hidden, or its note box gone or unfocused (I6),
+ * in `window.__checkLiveBlinks`:
+ * - each change as it happens (a MutationObserver on its shadow root)
+ * - and each animation frame (what a reader could have seen)
  */
 function watchBlinks(id) {
   const blinks = (window.__checkLiveBlinks = new Set())
   const root = document.getElementById(id).shadowRoot
-  const note = root.querySelector("textarea")
+  // the note box is an `<epic-review>` in the item's shadow root, its textarea in its own
+  const box = root.querySelector("[part~='note-box']")
+  const note = box?.shadowRoot?.querySelector("textarea")
   const look = (when) => {
     const details = root.getElementById("details")
     if (!details || details.hasAttribute("hidden")) blinks.add(`details hidden (${when})`)
     if (!note?.isConnected) blinks.add(`note box gone (${when})`)
-    else if (root.activeElement !== note) blinks.add(`note box unfocused (${when})`)
+    else if (root.activeElement !== box || box.shadowRoot.activeElement !== note)
+      blinks.add(`note box unfocused (${when})`)
   }
   new MutationObserver(() => look("on a change")).observe(root, { attributes: true, childList: true, subtree: true })
   const frame = () => {
@@ -213,9 +223,11 @@ function takeBlinks() {
 }
 
 /**
- * In the page:  tell its live client `file` changed (`"doc"`:  the page's own file;  `"part"`:  item `id`'s part),
- * as the page server's watcher would (`window.__spellLiveChange`, `packages/server/src/liveClient.ts`).  The page
- * server doesn't watch `preview-epics/` (`package.json` `pageServer.watch`);  everything after this is the real path.
+ * In the page:  tell its live client `file` changed,
+ * as the page server's watcher would (`window.__spellLiveChange`, `packages/server/src/liveClient.ts`).
+ * - `file`:  `"doc"`, the page's own file;  `"part"`, item `id`'s part
+ * - the page server doesn't watch `preview-epics/` (`package.json` `pageServer.watch`)
+ * - everything after this is the real path
  */
 function announce({ file, id }) {
   const path =
@@ -228,7 +240,8 @@ function announce({ file, id }) {
 /** In the page:  where things stand. */
 function stateNow(id) {
   const item = document.getElementById(id)
-  const note = item?.shadowRoot?.querySelector("textarea")
+  const box = item?.shadowRoot?.querySelector("[part~='note-box']")
+  const note = box?.shadowRoot?.querySelector("textarea")
   return {
     marker: window.__checkLive === true,
     same: {
@@ -239,7 +252,11 @@ function stateNow(id) {
     open: !!item?.hasAttribute("open"),
     reviewing: !!document.querySelector("epic-page")?.hasAttribute("reviewing"),
     note: note?.value ?? null,
-    focused: !!note && document.activeElement === item && item.shadowRoot.activeElement === note,
+    focused:
+      !!note &&
+      document.activeElement === item &&
+      item.shadowRoot.activeElement === box &&
+      box.shadowRoot.activeElement === note,
     y: scrollY
   }
 }

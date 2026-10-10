@@ -1,4 +1,4 @@
-import { For, Repeat, Show, createEffect } from "solid-js"
+import { For, Repeat, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -42,10 +42,12 @@ import sliderCSS from "./UISlider.css?inline"
  *   - the component writes ratios:
  *     `--_slider-at` per thumb and label, `--_slider-from` / `--_slider-to` on the inner box
  *   - `UISlider.css` places everything, `reversed` / `vertical` included
- * - A form control:  it submits `value`;
- *   a `range` submits TWO entries under `name` (`FormData.getAll(name)` ~== `[value, end]`),
- *   per `FormComponent`'s multi-value convention.
- *   It restores a saved state (back / forward cache, autofill).
+ * - A form control:  it submits `value`.
+ *   - A `range` submits TWO entries under `name` (`FormData.getAll(name)` ~== `[value, end]`),
+ *     per `FormComponent`'s multi-value convention.
+ *   - It restores a saved state (back / forward cache, autofill).
+ *   - `required`:  met once something sets a value (the page, a person, a restored state);
+ *     until then the thumb rests at `min`, but the slider counts as empty.
  ****************/
 export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   @E.proto static vocabulary = sliderVocabulary
@@ -155,6 +157,15 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
     return this.range ? [String(this.snappedValue), String(this.snappedEnd)] : String(this.snappedValue)
   }
 
+  /**
+   * Empty while no value was ever set (`value`, nor a range's `end`):  `required` then fails.
+   * - The thumb resting at `min` is a default, not a choice;  `formValue` still submits it.
+   */
+  protected get validationValue(): E.FieldValue {
+    const isUnset = this.value === undefined && (!this.range || this.end === undefined)
+    return isUnset ? undefined : this.formValue
+  }
+
   /** Back to the `value` / `end` ATTRIBUTES. */
   onFormReset() {
     this.value = E.Converters.number(this.attributes.value)
@@ -176,18 +187,13 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   /** The length of the track in px, for label spacing;  `0` until measured. */
   @E.state accessor trackLength = 0
 
-  /** Adds the track measurement (label spacing) while `labeled`. */
-  onMount(): JSX.Element {
-    createEffect(
-      () => !!this.labeled,
-      (labeled) => {
-        if (!labeled) return
-        const observer = new ResizeObserver(() => this.measure())
-        observer.observe(this.domElement)
-        return () => observer.disconnect()
-      }
-    )
-    return super.onMount()
+  /** While `labeled`:  measure the track (label spacing) whenever the element resizes;  returns its stop. */
+  @E.onChange("labeled")
+  protected onLabeledChanged(labeled: boolean | undefined) {
+    if (!labeled) return undefined
+    const observer = new ResizeObserver(() => this.measure())
+    observer.observe(this.domElement)
+    return () => observer.disconnect()
   }
 
   /**

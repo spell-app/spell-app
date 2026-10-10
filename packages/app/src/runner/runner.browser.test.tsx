@@ -11,8 +11,8 @@ import { RunnerSplit } from "./RunnerSplit"
 import type { DOMSpellAppElement } from "$/app/components/spell-app"
 
 /**
- * The Solid runners, in the browser:  `<SpellAppRunner>` running compiled spell into its app root, live, and the
- * `<spell-app>` element around it.
+ * The Solid runners, in the browser:
+ * `<SpellAppRunner>` running compiled spell into its app root, live, and the `<spell-app>` element around it.
  * - The runtime:  `spellRuntime.ts` as vite serves it, imported by its URL --
  *   ALSO the program's `@spell/core`, so the program and the runner share its `spellCore`,
  *   as with a real `spell-runtime.js` copy.
@@ -400,12 +400,13 @@ describe("<spell-app>", () => {
     )
   })
 
-  test("runs code pushed to it, in its shadow root, inside a `<ui-root icons=fomantic>`", async () => {
+  test("runs code pushed to it, in its shadow root;  a root itself, with Fomantic's icon names", async () => {
     const app = await mountApp(`<spell-app toolbar></spell-app>`)
     app.run(compiled(COUNTER))
     const root = app.shadowRoot!
     await waitFor(() => root.querySelector("button.count"))
-    expect(root.querySelector("ui-root")!.getAttribute("icons")).toBe("fomantic")
+    expect(root.querySelector("ui-root")).toBeNull()
+    expect(app.icons).toBe("fomantic")
     expect(root.querySelector(".SpellAppToolbar ui-item[type=header]")!.textContent).toBe("Test")
   })
 

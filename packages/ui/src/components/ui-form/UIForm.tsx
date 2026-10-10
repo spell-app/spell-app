@@ -1,4 +1,4 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -47,8 +47,9 @@ export class DOMFormElement extends E.DOMElement<UIForm> {
   }
 
   /** The `<form>` it works with, if any. */
+  @E.untracked
   get nativeForm(): HTMLFormElement | undefined {
-    return untrack(() => this.component?.nativeForm)
+    return this.component?.nativeForm
   }
 }
 
@@ -106,8 +107,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     styleSheets: { form: formCSS },
     DOMElement: DOMFormElement,
     delegatesFocus: false,
-    // `disabled`:  its content inert, a look;  the element still takes clicks
-    disabled: "its own",
+    // `disabled`:  unusable, the default;  the root also says `inert` itself, for the static render
     // `loading`:  Fomantic's veil, its content inert
     loading: "its own"
   } satisfies Partial<E.ElementSetup>
@@ -240,32 +240,29 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
 
   /**
    * While connected:  find the native form (and again as the subtree changes),
-   * and the DOM element's own listeners;  returns their undo.
-   * - Its own `MutationObserver`, not `@fromContent`:  it watches only while connected.
+   * and listen for the page leaving;  returns their undo.
+   * - Its own `MutationObserver`, not `@watches`:  it watches only while connected.
    */
   @E.whileConnected
   protected watchForm() {
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while connected:  `@E.watches` lasts the element's whole life
     const observer = new MutationObserver(() => this.onContentChanged())
     observer.observe(this.domElement, { childList: true, subtree: true })
     this.findForm()
-    const { domElement } = this
-    for (const type of CHANGE_EVENTS) domElement.addEventListener(type, this.onChange)
-    domElement.addEventListener("focusout", this.onFocusOut)
     window.addEventListener("beforeunload", this.onBeforeUnload)
     E.afterSolidUpdate(() => this.saveValues())
     return () => {
       this.nativeForm = undefined
       observer.disconnect()
-      for (const type of CHANGE_EVENTS) domElement.removeEventListener(type, this.onChange)
-      domElement.removeEventListener("focusout", this.onFocusOut)
       window.removeEventListener("beforeunload", this.onBeforeUnload)
     }
   }
 
   /** Controls came or went:  find the native form again, bind what's new, redraw `debug`. */
+  @E.untracked
   private onContentChanged() {
     this.findForm()
-    if (untrack(() => this.isBound)) this.binding.update()
+    if (this.isBound) this.binding.update()
     this.changeCount++
   }
 
@@ -359,7 +356,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     if (form) form.reset()
     else {
       for (const control of this.fields.controls()) UIForm.resetControl(control)
-      queueMicrotask(() => this.binding.writeAll())
+      E.afterSolidUpdate(() => this.binding.writeAll())
     }
     this.clearErrors()
   }
@@ -368,7 +365,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   clear() {
     for (const control of this.fields.controls()) UIForm.clearControl(control)
     this.clearErrors()
-    queueMicrotask(() => this.binding.writeAll())
+    E.afterSolidUpdate(() => this.binding.writeAll())
   }
 
   /** Every field's value, by name;  read from the DOM, untracked. */
@@ -494,21 +491,24 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   }
 
   /**
-   * A control changed:  write it back to `value` and redraw `debug` (both a microtask later),
+   * A control changed (a light-DOM control's native `change` / `input`, an element's `ui-change`):
+   * write it back to `value` and redraw `debug` (both a microtask later),
    * and validate it for `validate-on="change"`, or while it shows an error.
    */
-  @E.untracked
-  private readonly onChange = (event: Event) => {
+  @E.on("change")
+  @E.on("input")
+  @E.on("ui-change")
+  protected onControlChanged(event: Event) {
     this.binding.onChange(event)
-    queueMicrotask(() => this.changeCount++)
+    E.afterSolidUpdate(() => this.changeCount++)
     const identifier = this.identifierFor(event)
     if (!identifier) return
     if (this.fieldsShowingErrors.has(identifier) || this.validateOn === "change") this.checkFieldSoon(identifier)
   }
 
   /** A control lost focus:  validate it for `validate-on="blur"`. */
-  @E.untracked
-  private readonly onFocusOut = (event: FocusEvent) => {
+  @E.on("focusout")
+  protected onFocusOut(event: FocusEvent) {
     if (this.validateOn !== "blur") return
     const identifier = this.identifierFor(event)
     if (identifier) this.checkFieldSoon(identifier)
@@ -610,6 +610,3 @@ type ShownField = {
   /** Every field's value, for the events' `detail`. */
   values: UIT.FormValues
 }
-
-/** Events that mean "a control changed":  native ones from light-DOM controls, `ui-*` ones from elements. */
-const CHANGE_EVENTS = ["change", "input", "ui-change"] as const

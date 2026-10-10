@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -25,8 +25,9 @@ export class DOMFieldElement extends E.DOMElement<UIField> {
   }
 
   /** Prompts shown now. */
+  @E.untracked
   get errors(): readonly string[] {
-    return untrack(() => this.component?.errors) ?? []
+    return this.component?.errors ?? []
   }
 }
 
@@ -43,7 +44,9 @@ export class DOMFieldElement extends E.DOMElement<UIField> {
  *   which hands it its width and gutter as inherited tokens.
  * - It hands its controls inherited owner tokens (`InputOwnerTokens`):  full width, and its state's colours.
  *
- * - `disabled` makes the root `inert`, so the slotted controls can't be used.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   the root `inert`, so the slotted controls can't be used, and `aria-disabled`.
+ *   - The root also says `inert` itself, for the static render:  the base class's reaches only a browser.
  * - Always carries `:state(field)`, which is how `<ui-form>` finds a control's field.
  ****************/
 export class UIField extends E.UIComponent<typeof fieldVocabulary> {
@@ -51,9 +54,7 @@ export class UIField extends E.UIComponent<typeof fieldVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { label: labelCSS, form: formCSS },
     DOMElement: DOMFieldElement,
-    delegatesFocus: false,
-    // `disabled`:  its content inert, a look;  the element still takes clicks
-    disabled: "its own"
+    delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
   ////////////////

@@ -1,52 +1,66 @@
 /**
- * Builds @spell-app/ui from its CURRENT working tree (`../ui`), then bundles `_assets/spell-ui.entry.js` into
- * `_assets/spell-ui.js`:  ONE minified classic script (IIFE), because docs open from `file://`, where
- * browsers refuse ES modules.
+ * Builds @spell-app/ui from its CURRENT working tree (`../ui`),
+ * then bundles `_assets/spell-ui.entry.js` into `_assets/spell-ui.js`:  ONE minified classic script (IIFE),
+ * because docs open from `file://`, where browsers refuse ES modules.
  *
  *   node scripts/bundle-spell-ui.js [--skip-ui-build]
  *
- * - `--skip-ui-build`:  reuse `../ui/dist` as is.  `SPELL_UI_DIR` overrides where UI lives.
+ * - `--skip-ui-build`:  reuse `../ui/dist` as is.
+ * - `SPELL_UI_DIR` overrides where UI lives.
  * - UI build:  `yarn build` (`tsc && vite build`).
  *   If `tsc` fails on in-progress work, falls back to `vite build` alone, and says so.
  * - Exactly ONE Solid:  every `solid-js` / `@solidjs/*` import resolves from UI's root,
- *   so a linked package can't pick up its own `node_modules` copy.  Checked against the metafile.
- * - No `import()` / `import.meta` may survive:  string-literal `import()`s (the runtime chunk, emoji data,
- *   Temporal polyfill) are inlined, and `supported: { "dynamic-import": false }` turns any computed `import()`
- *   (an icon pack's `pack.js`) into a rejected promise.
- * - Icons:  a classic script on `file://` can't load UI's icon packs, so the SVGs in `ICONS` are read from UI's
- *   `fa7-free` pack at build time and `UI.icons.register()`ed by the virtual `spell-ui:icons` module, which also
- *   `reset()`s the packs so the default one is never requested.  Any other icon name draws nothing.
- * - Emoji names stay LAZY:  UI's emoji data chunks (`dist/emoji/<set>/<letter>-<hash>.js`,
- *   both name sets) are NOT inlined;  each is written as a classic script, `_assets/emoji/<set>/<letter>.js`,
- *   which a `<script>` tag loads on first use of a name in that chunk (`spell-ui:emoji` sets `EmojiData.chunkLoader`).
- *   A page with no `<ui-emoji>` loads none.
- * - The source elements' ENGINES stay lazy the same way (`LAZY`):  `<ui-code>`'s highlight.js (with all its languages),
- *   `<ui-markdown>`'s marked (and DOMPurify, only for `sanitized`), and spell's pre-compiled highlighter are each built
- *   from UI's SOURCE into a classic script, `_assets/lazy/<name>.js`;  their `dist/` chunks are stubbed out of the
- *   bundle, and `spell-ui:lazy` points UI's loader hooks (`CodeHighlighter.engineLoader` ...) at the scripts.
- *   A page that shows no code loads none.
+ *   so a linked package can't pick up its own `node_modules` copy.
+ *   Checked against the metafile.
+ * - No `import()` / `import.meta` may survive:
+ *   - string-literal `import()`s (the runtime chunk, emoji data, Temporal polyfill) are inlined
+ *   - `supported: { "dynamic-import": false }` turns any computed `import()` (an icon pack's `pack.js`)
+ *     into a rejected promise
+ * - Icons:  a classic script on `file://` can't load UI's icon packs.
+ *   - So the SVGs in `ICONS` are read from UI's `fa7-free` pack at build time,
+ *     and `UI.icons.register()`ed by the virtual `spell-ui:icons` module.
+ *   - That module also `reset()`s the packs, so the default one is never requested.
+ *   - Any other icon name draws nothing.
+ * - Emoji names stay LAZY:
+ *   UI's emoji data chunks (`dist/emoji/<set>/<letter>-<hash>.js`, both name sets) are NOT inlined.
+ *   - Each is written as a classic script, `_assets/emoji/<set>/<letter>.js`,
+ *     which a `<script>` tag loads on first use of a name in that chunk
+ *     (`spell-ui:emoji` sets `EmojiData.chunkLoader`).
+ *   - A page with no `<ui-emoji>` loads none.
+ * - The source elements' ENGINES stay lazy the same way (`LAZY`):
+ *   - `<ui-code>`'s highlight.js (with all its languages)
+ *   - `<ui-markdown>`'s marked (and DOMPurify, only for `sanitized`)
+ *   - spell's pre-compiled highlighter
+ *
+ *   - Each is built from UI's SOURCE into a classic script, `_assets/lazy/<name>.js`.
+ *   - Their `dist/` chunks are stubbed out of the bundle,
+ *     and `spell-ui:lazy` points UI's loader hooks (`CodeHighlighter.engineLoader` ...) at the scripts.
+ *   - A page that shows no code loads none.
  *
  * The DESIGN target (epic `claude-design`, P8):  a claude.ai Design System's `components/bundle.js`.
  *
  *   node tools/bundle-spell-ui.js --design [--out <dir>] [--skip-ui-build]     (yarn design:bundle)
  *
- * - Entry `_assets/spell-ui.design.entry.js`, written to `<dir>/bundle.js`;  `--out` is relative to the working
- *   folder, default `DESIGN_OUT`:  `project/components/` in what `spell dev design build` writes (UI's
- *   `build/design-system/`, ignored by git), which that command leaves in place.
+ * - Entry `_assets/spell-ui.design.entry.js`, written to `<dir>/bundle.js`.
+ *   - `--out` is relative to the working folder.
+ *   - Default `DESIGN_OUT`:  `project/components/` in what `spell dev design build` writes
+ *     (UI's `build/design-system/`, ignored by git), which that command leaves in place.
  * - Same esbuild config and resolver as the docs bundle (`bundle()`), but:
  *   - the engines are INLINED, not lazy (Claude Design refuses a relative `<script src>`):
- *     their `dist/` chunks aren't stubbed, so esbuild inlines them like every other string-literal `import()`;
- *     no `_assets/lazy/` or `_assets/emoji/` is written, and emoji chunks stay empty stand-ins (emoji names draw
- *     nothing)
+ *     their `dist/` chunks aren't stubbed, so esbuild inlines them like every other string-literal `import()`
+ *   - no `_assets/lazy/` or `_assets/emoji/` is written,
+ *     and emoji chunks stay empty stand-ins (emoji names draw nothing)
  *   - `spell-ui:icons` registers EVERY Font Awesome Free icon (`designIconsModule()`)
- * - Readers INLINE the file, so `escapeForInlining()` rewrites each `<!--` / `</script` as `\x3C...`, and the build
- *   FAILS if one survives, if any `import()` / `import.meta` does, or if it's over `DESIGN_MAX_BYTES`.
+ * - Readers INLINE the file, so `escapeForInlining()` rewrites each `<!--` / `</script` as `\x3C...`.
+ *   The build FAILS if one survives, if any `import()` / `import.meta` does, or if it's over `DESIGN_MAX_BYTES`.
  * - No `bundle.css`:  every element adopts its own sheets and the theme its page sheet;
  *   page typography is UI's opt-in `class="ui-typography"` on `<body>`.
- * - The brand's `<ui-brand-*>` elements too (P11):  `@spell-app/brand/design` is the brand's own build of them,
- *   `packages/brand/dist/brand-design.js` (`vite.design.config.ts`:  Solid JSX needs the Solid compiler, which esbuild
- *   isn't), run first unless `--skip-ui-build`.  Its `$/ui/core` / `$/ui/forms` imports resolve to UI's `dist/`, the
- *   modules UI's own elements use, so there's one `UIComponent` and one `ValueSets`.
+ * - The brand's `<ui-brand-*>` elements too (P11):
+ *   `@spell-app/brand/design` is the brand's own build of them, `packages/brand/dist/brand-design.js`.
+ *   - Built by `vite.design.config.ts`, run first unless `--skip-ui-build`
+ *     (Solid JSX needs the Solid compiler, which esbuild isn't).
+ *   - Its `$/ui/core` / `$/ui/forms` imports resolve to UI's `dist/`, the modules UI's own elements use,
+ *     so there's one `UIComponent` and one `ValueSets`.
  */
 
 import { build } from "esbuild"
@@ -193,7 +207,7 @@ const ICONS = {
   "solid/right-to-bracket": ["right to bracket", "sign in"],
   "solid/download": ["download"],
   "solid/paper-plane": ["paper plane"], // the header's Send;  a todo's "do it in the next phase" (epics)
-  // new items from a plan doc's page (epics `NewItems.tsx`):  the header's `+`, a waiting card's Edit and Remove
+  // new items from a plan doc's page (epics `<epic-new-item>`):  the `+`;  a waiting card's Edit and Remove
   "solid/plus": ["plus"],
   "solid/pen": ["pen"],
   "solid/trash-can": ["trash can"],
@@ -203,8 +217,8 @@ const ICONS = {
   // an Epics card's star (`$/server/site/EpicCards`):  a favourite, or not;  the Favorites group's heading
   "solid/star": ["star"],
   "regular/star": ["star outline"],
-  // plan docs' review (epic `review-review`):  section icons, the item action menu and filter, the page header's
-  // send / files / git buttons
+  // plan docs' review (epic `review-review`):
+  // section icons, the item action menu and filter, the page header's send / files / git buttons
   "solid/file-circle-question": ["file circle question"],
   "solid/filter": ["filter"],
   "solid/ellipsis": ["ellipsis", "ellipsis horizontal"],
@@ -354,8 +368,8 @@ async function bundle() {
 
 /**
  * esbuild plugin wiring the entry to UI:
- * - `@spell-app/ui` ~== `dist/index.js`, `@spell-app/ui/<entry>` ~== `dist/<entry>.js` (mirrors UI's `package.json`
- *   `exports`)
+ * - `@spell-app/ui` ~== `dist/index.js`, `@spell-app/ui/<entry>` ~== `dist/<entry>.js`
+ *   (mirrors UI's `package.json` `exports`)
  * - Solid imports resolve from UI's root (`SOLID`), whoever imports them
  * - `spell-ui:icons`:  the generated icon registrations (`iconsModule()`)
  * - the page runtime:  an empty module until its file exists
@@ -422,10 +436,10 @@ function uiDistPath(specifier) {
 
 /**
  * Source of `spell-ui:icons`:  each of `ICONS`' SVG text, `UI.icons.register()`ed under each of its names.
- * - Imports `UI` from `@spell-app/ui/core` -- the same module `index.js` uses -- so this runs BEFORE any family
- *   defines (and so upgrades) its elements.
- * - Registers in the FIRST `UI.load()` callback:  every element `await`s that same promise before drawing an icon,
- *   so the names are in place first.
+ * - Imports `UI` from `@spell-app/ui/core` -- the same module `index.js` uses --
+ *   so this runs BEFORE any family defines (and so upgrades) its elements.
+ * - Registers in the FIRST `UI.load()` callback:
+ *   every element `await`s that same promise before drawing an icon, so the names are in place first.
  * - `reset()`:  drop every pack, so the default pack's index is never requested (it can't load from `file://`).
  */
 function iconsModule() {
@@ -445,17 +459,18 @@ function iconsModule() {
 }
 
 /**
- * Source of `spell-ui:icons` for the DESIGN bundle:  every icon of `DESIGN_PACKS`, so any Font Awesome Free name
- * draws, with no pack to load.
+ * Source of `spell-ui:icons` for the DESIGN bundle:
+ * every icon of `DESIGN_PACKS`, so any Font Awesome Free name draws, with no pack to load.
  * - Names as UI's packs give them (`IconName.claim()` on each index:  file name, `… outline`, FA's aliases);
  *   across packs the FIRST to give a name keeps it;
  *   then `ICONS`' names on top, so widgets' own names (`close`, `search`) mean what they mean in the docs bundle.
- * - The SVGs travel as ONE string, an `<svg>` holding each icon's `<svg>` in order, parsed once (one `DOMParser`
- *   call, not ~2,200);  `NAMES[i]` are the names of its `i`th child.  Each is `register()`ed under each name in
- *   the first `UI.load()` callback, after `reset()`, like `iconsModule()`.
+ * - The SVGs travel as ONE string, an `<svg>` holding each icon's `<svg>` in order,
+ *   parsed once (one `DOMParser` call, not ~2,200).
+ *   - `NAMES[i]` are the names of its `i`th child.
+ *   - Each is `register()`ed under each name in the first `UI.load()` callback, after `reset()`, like `iconsModule()`.
  * - Each file's licence comment is stripped (they're all one text, and `<!--` can't be in the bundle anyway):
- *   the text goes ONCE into a `/*!` legal comment, which esbuild keeps at the end.  Their `xmlns` too:
- *   the outer `<svg>` gives it.
+ *   the text goes ONCE into a `/*!` legal comment, which esbuild keeps at the end.
+ * - Their `xmlns` too:  the outer `<svg>` gives it.
  * - NOTE:  `register()`ed icons answer plain names only:  `fa7-free:bell` (a `prefix:` name) draws nothing here.
  */
 async function designIconsModule() {
@@ -498,11 +513,12 @@ async function designIconsModule() {
 }
 
 /**
- * Source of `bundleUrl(dir)`, shared by `spell-ui:emoji` and `spell-ui:lazy`:  the folder `dir` next to the bundle,
- * or `null` where there's no URL to resolve against.
- * - NEVER throws while the bundle loads:  an INLINED copy (a claude.ai design system's preview inlines it) has
- *   `document.currentScript.src === ""`, so `??` wouldn't fall back, and its frame's `location.href` is
- *   `about:srcdoc`, which no relative URL resolves against.  Epic `claude-design`, P1.
+ * Source of `bundleUrl(dir)`, shared by `spell-ui:emoji` and `spell-ui:lazy`:
+ * the folder `dir` next to the bundle, or `null` where there's no URL to resolve against.
+ * - NEVER throws while the bundle loads (epic `claude-design`, P1).
+ *   An INLINED copy (a claude.ai design system's preview inlines it):
+ *   - has `document.currentScript.src === ""`, so `??` wouldn't fall back
+ *   - and its frame's `location.href` is `about:srcdoc`, which no relative URL resolves against
  * - `null`:  `new URL(x, null)` throws inside the loaders' promise executors, so a lazy script rejects instead
  * - a function, not a `const`:  the build runs from the top of this file, before a `const` down here is set
  */
@@ -519,8 +535,9 @@ function baseUrlSource() {
 }
 
 /**
- * Source of `spell-ui:emoji`:  `EmojiData.chunkLoader` loads a name chunk as the classic script
- * `emoji/<set>/<letter>.js` next to the bundle, which hands its names to `__spellEmojiChunk()`.
+ * Source of `spell-ui:emoji`:
+ * `EmojiData.chunkLoader` loads a name chunk as the classic script `emoji/<set>/<letter>.js` next to the bundle,
+ * which hands its names to `__spellEmojiChunk()`.
  * - The bundle's own URL (`document.currentScript`, read while it runs) locates the scripts, at any page depth.
  */
 function emojiModule() {
@@ -600,11 +617,11 @@ function checkClassicScript(file = OUTFILE) {
 }
 
 /**
- * Rewrites every `<!--` and `</script` in the design bundle as `\x3C!--` / `\x3C/script`:
- * readers INLINE a design system's `bundle.js` into a `<script>`, where either would end it or change how it parses
- * (caveat C5).
- * - Same meaning wherever minified code has them:  in a string, a template or a regex `\x3C` IS `<`;
- *   in a comment it's just text.  An odd run of backslashes before the `<` already escaped it (`\<`):  one is dropped.
+ * Rewrites every `<!--` and `</script` in the design bundle as `\x3C!--` / `\x3C/script` (caveat C5):
+ * readers INLINE a design system's `bundle.js` into a `<script>`, where either would end it or change how it parses.
+ * - Same meaning wherever minified code has them:
+ *   in a string, a template or a regex `\x3C` IS `<`;  in a comment it's just text.
+ * - An odd run of backslashes before the `<` already escaped it (`\<`):  one is dropped.
  * - SIDE EFFECT:  rewrites `OUTFILE`;  `checkDesignBundle()` then proves none survive and it still parses.
  */
 function escapeForInlining() {
@@ -618,8 +635,8 @@ function escapeForInlining() {
 }
 
 /**
- * Fails unless the design bundle is fit for a claude.ai design system:  no `<!--` or `</script` left, still a
- * script that parses, at most `DESIGN_MAX_BYTES`.
+ * Fails unless the design bundle is fit for a claude.ai design system:
+ * no `<!--` or `</script` left, still a script that parses, at most `DESIGN_MAX_BYTES`.
  */
 function checkDesignBundle() {
   const code = readFileSync(OUTFILE, "utf8")
@@ -638,8 +655,8 @@ function checkDesignBundle() {
 ////////////////
 
 /**
- * Builds each of `LAZY` from UI's source into `_assets/lazy/<name>.js`:  a classic script (IIFE) defining its
- * `global` as the module's exports, every `import()` inside it inlined.
+ * Builds each of `LAZY` from UI's source into `_assets/lazy/<name>.js`:
+ * a classic script (IIFE) defining its `global` as the module's exports, every `import()` inside it inlined.
  * - Sizes are printed;  each is checked like the bundle (no `import()` / `import.meta` may survive).
  */
 async function writeLazyScripts() {
@@ -672,8 +689,8 @@ async function writeLazyScripts() {
 }
 
 /**
- * Source of `spell-ui:lazy`:  points UI's engine loaders at `lazy/<name>.js`, loaded once as a classic script next to
- * the bundle, resolving with the global it defines.
+ * Source of `spell-ui:lazy`:  points UI's engine loaders at `lazy/<name>.js`,
+ * loaded once as a classic script next to the bundle, resolving with the global it defines.
  * - The bundle's own URL (`document.currentScript`, read while it runs) locates the scripts, at any page depth.
  */
 function lazyModule() {

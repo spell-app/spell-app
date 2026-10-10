@@ -1760,17 +1760,18 @@ function wireFolds(main, outline) {
   /**
    * Let the page take its natural height again once that no longer pulls the reader back:  at once if it fits where
    * he's scrolled to, else as soon as he scrolls up far enough.
+   * - the held height only ever shrinks to the window's bottom (`scrollY + clientHeight`), never below:
+   *   the page is then exactly as tall as it must be to stay where it's scrolled;
+   *   if it's still taller than that, the content is, and the hold can go
+   * - NEVER measures the natural height by taking the hold off for a moment:  that layout alone makes the browser
+   *   clamp the scroll to the shorter page, and the reader dropped by however much shorter it was (I7 of `airplane`:
+   *   the line of an item a link had landed near the page's end fell 20-80px when the hold ended)
    */
   function releaseHeight(root) {
-    const kept = root.style.minHeight
-    const natural = () => {
-      root.style.minHeight = ""
-      const height = root.scrollHeight
-      root.style.minHeight = kept
-      return height
-    }
     const release = () => {
-      if (scrollY + innerHeight > natural() + 1) return false
+      const bottom = scrollY + root.clientHeight
+      if (bottom < parseFloat(root.style.minHeight)) root.style.minHeight = `${bottom}px`
+      if (root.scrollHeight <= bottom + 1) return false
       root.style.minHeight = ""
       removeEventListener("scroll", release)
       return true
@@ -2214,7 +2215,7 @@ function wireJumpKey(go, canGo) {
   document.addEventListener("keydown", (event) => {
     if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.defaultPrevented) return
     if (event.key.toLowerCase() !== "k" || event.isComposing) return
-    if (document.querySelector("dialog[open], ui-modal[open]") || typingIn(event)) return
+    if (document.querySelector("dialog[open], ui-modal:not([hidden])") || typingIn(event)) return
     event.preventDefault()
     openJumpPrompt(go, canGo)
   })
@@ -2277,7 +2278,7 @@ function openJumpPrompt(go, canGo) {
     { once: true }
   )
   document.body.append(modal)
-  modal.open = true
+  modal.visible = true
   // the input once the dialog has drawn:  `autofocus` alone loses to the dialog's own focus on some opens
   void nextFrames(2).then(() => input.focus())
 }
@@ -2717,9 +2718,6 @@ const HEADLINE_CHARS = 40
 /** How long after the page's content changes (a plan doc's part loading) the comments draw again, ms. */
 const REDRAW_MS = 150
 
-/** Block kinds whose text starts at their top:  their bullhorn floats right, beside it, instead of over it. */
-const TEXT_KINDS = new Set(["field", "prose", "summary", "list", "item"])
-
 /** What a block kind is called in the bullhorn's tooltip and the comment box. */
 const KIND_NAMES = {
   section: "section",
@@ -2747,13 +2745,19 @@ const KIND_NAMES = {
  *     the page header (the whole page):  shown while the block is hovered, always once it has comments, with a count
  *   - SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn that floats beside the selection:  the box opens for that block,
  *     its header the text's first words;  the comment keeps the quote, highlighted on the page while it exists
- *   - the box opens right under the block (a section's:  under its title):  ivory, a header and a textarea that
- *     grows, no buttons (Owen, 2026-10-10);  it saves itself as Owen types, a floppy in its header says so;
- *     × or Escape closes it;  what's typed is also kept in this browser until saved (`COMMENT_DRAFT_KEY_PREFIX`)
+ *   - the box is a small PANE, fixed on the screen, just under the selection (or the button clicked):  the page
+ *     never scrolls, and Owen drags it by its header (Owen, 2026-10-10:  "a little floating pane below the selected
+ *     text that I can move around -- don't scroll the page and lose context!")
+ *   - in it:  a header (the first words, a floppy, a trash once saved, ×) and a textarea that grows, with no
+ *     placeholder;  ivory, no buttons below (Owen, 2026-10-10);  it saves itself as Owen types, the floppy says so;
+ *     × or Escape closes it;  what's typed and not saved yet is kept in this browser (`COMMENT_DRAFT_KEY_PREFIX`)
+ *   - NEVER an empty comment:  nothing typed saves nothing;  emptied, it's deleted at once
+ *   - a click on a highlighted quote opens its comment in the pane again:  to edit while it waits, else to read
+ *     with Claude's answers, and delete
  *   - each comment:  a card under its block, Owen's, "Owen · 10/10 14:02";  its state by the fill rule
  *     (`templates/epics/plan-doc.md`, "Colours"):  saved, "Saved 14:02 · waiting for Claude":  outlined;
- *     "Taken by Claude" (a guide's, into epic `guide-changes`) or "Answered":  solid.  Edit while it waits (closed
- *     empty, it's deleted);  Claude's answers under it, violet
+ *     "Taken by Claude" (a guide's, into epic `guide-changes`) or "Answered":  solid.  Edit while it waits;
+ *     a trash on every card (two clicks:  `delete` while it waits, else `clear`);  Claude's answers under it, violet
  * - drawn again after a live patch (`spell-doc:updated`), when the page's content changes (a plan doc's part
  *   loading), when the inbox file changes (`spell-server:file`:  another window, Claude), and when the page comes
  *   back into view
@@ -2771,16 +2775,18 @@ async function wireComments(main) {
     if (comments.inboxPaths.includes(decodeURIComponent(event.detail?.path ?? ""))) reload()
   })
   document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && reload())
+  // leaving (a reload, another page):  what's typed in the pane and not saved yet goes now
+  addEventListener("pagehide", () => comments.open?.flush?.())
   comments.watchContent()
   comments.wireSelection()
 }
 
 /****************
  * ### `PageComments`
- * One page's comments:  what the server holds, drawn under their blocks;  the one comment box open;  the floating
+ * One page's comments:  what the server holds, drawn under their blocks;  the one comment pane open;  the floating
  * bullhorn of a text selection.
  * - `list`:  the comments as the server last answered;  every write answers the whole list, which is drawn again
- * - NEVER throws:  a failed save says so in a toast, the text kept in the box
+ * - NEVER throws:  a failed save says so (the floppy turns red), the text kept in the pane
  ****************/
 class PageComments {
   /** - `main`:  the page's `main`, where the blocks are */
@@ -2789,10 +2795,16 @@ class PageComments {
     this.main = main
     /** the comments, as the server last answered (`CommentList` `all`) */
     this.list = []
-    /** the box open, if any:  `{ key, place, id?, text? }` (`place`:  `{ anchor, kind, label, excerpt, quote? ... }`) */
+    /**
+     * the pane open, if any:  `{ key, place, id?, text?, view?, finish? }` (`place`:  `{ anchor, kind, label, excerpt,
+     * quote? ... }`;  `view`:  a comment Claude has, shown, not edited;  `finish()`:  saves what's typed, then forgets
+     * its draft)
+     */
     this.open = null
-    /** the open box's element, kept across redraws while the same comment is open (`placeBox()`) */
-    this.box = null
+    /** the open pane's element (`showPane()`), in `main` but fixed on the screen:  a redraw never touches it */
+    this.pane = null
+    /** each quote's range on the page, by comment id (`highlightQuotes()`):  a click on one opens its comment */
+    this.quotes = []
     /** each card's fold, by comment id, as the reader left it;  else waiting ones open, the rest folded */
     this.folds = new Map()
     const page = decodeURIComponent(location.pathname)
@@ -2818,17 +2830,12 @@ class PageComments {
   }
 
   /**
-   * Draw it all again:  every bullhorn, every block's comments, the quotes' highlight, the open box (its text from
-   * the drafts).
+   * Draw it all again:  every bullhorn, every block's comments, the quotes' highlight.
    * - a comment whose block can't be found any more goes under the page header, saying so
-   * - `focus`:  the cursor into the open box, and the box into view
+   * - the open pane stays as it is, where Owen put it, the cursor in it
    */
-  draw({ focus = false } = {}) {
+  draw() {
     const { main } = this
-    // typing when a save, a patch or another window redraws:  the box comes back with the cursor where it was
-    const field = this.box?.querySelector("textarea")
-    const caret = field && field === document.activeElement ? [field.selectionStart, field.selectionEnd] : null
-    this.box?.remove()
     for (const old of main.querySelectorAll(".spell-comment-mark, .spell-comments")) old.remove()
     const blocks = blocksIn(main)
     const head = pageHeadIn(main)
@@ -2841,12 +2848,11 @@ class PageComments {
       if (!onBlock.has(at)) onBlock.set(at, [])
       onBlock.get(at).push({ comment, exact: exact && Boolean(block) })
       const quoted = block && comment.quote && quoteIn(block, comment.quote, comment.offset)
-      if (quoted) quotes.push(quoted)
+      if (quoted) quotes.push({ ...quoted, id: comment.id })
     }
     for (const block of head ? [head, ...blocks] : blocks) this.addBullhorn(block, onBlock.get(block)?.length ?? 0)
     for (const [block, found] of onBlock) this.boxFor(block).append(...found.map((each) => this.card(each)))
-    highlightQuotes(quotes)
-    if (this.open) this.placeBox({ focus, caret, scroll: focus })
+    this.quotes = highlightQuotes(quotes)
   }
 
   /**
@@ -2884,8 +2890,6 @@ class PageComments {
     const inline = place.kind === "section" || place.kind === "page"
     const mark = document.createElement(inline ? "span" : "div")
     mark.className = `spell-comment-mark at-${inline ? place.kind : "block"}`
-    // text starts at a text block's top right:  the bullhorn floats there, the text wrapping round it
-    if (TEXT_KINDS.has(place.kind)) mark.classList.add("at-text")
     mark.dataset.spellAdded = ""
     if (count) mark.dataset.count = String(count)
     mark.innerHTML =
@@ -2893,7 +2897,7 @@ class PageComments {
       `${count || ""}</ui-button>`
     mark.querySelector("ui-button").addEventListener("click", (event) => {
       event.stopPropagation()
-      this.openBox({ key: place.anchor, place })
+      this.openBox({ key: place.anchor, place }, event.currentTarget.getBoundingClientRect())
     })
     if (place.kind === "section") {
       mark.slot = "actions"
@@ -2943,6 +2947,8 @@ class PageComments {
    * Comment on selected text:  ⌘ / Ctrl I, or the bullhorn floating beside the selection (`floatingBullhorn()`).
    * - only a selection inside one of the page's blocks;  never in a comment box or a field
    * - leaves the selection alone:  copy, ⌘ A ... work as before
+   * - a click on a comment's highlighted quote opens that comment in the pane again (`quoteAt()`);  the pointer
+   *   says so over one
    */
   wireSelection() {
     let timer = 0
@@ -2950,6 +2956,25 @@ class PageComments {
       clearTimeout(timer)
       timer = setTimeout(() => this.showFloating(), 120)
     })
+    document.addEventListener("click", (event) => {
+      if (!getSelection()?.isCollapsed) return
+      if (event.target.closest?.("a, button, ui-button, input, textarea, [data-spell-added]")) return
+      const hit = this.quoteAt(event.clientX, event.clientY)
+      if (hit) this.openComment(hit.id, hit.rect)
+    })
+    let pending = false
+    document.addEventListener(
+      "pointermove",
+      (event) => {
+        if (pending || !this.quotes.length) return
+        pending = true
+        requestAnimationFrame(() => {
+          pending = false
+          document.documentElement.classList.toggle("spell-over-quote", !!this.quoteAt(event.clientX, event.clientY))
+        })
+      },
+      { passive: true }
+    )
     addEventListener("scroll", () => this.floating?.setAttribute("hidden", ""), { passive: true })
     document.addEventListener("keydown", (event) => {
       if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== "i") return
@@ -2975,11 +3000,38 @@ class PageComments {
     return { block, quote, offset: offsetIn(block, start, range.startOffset), range }
   }
 
-  /** Open the comment box on the selection's block, its text quoted. */
-  commentOn({ block, quote, offset }) {
+  /** Open the comment pane on the selection's block, its text quoted, just under the selection. */
+  commentOn({ block, quote, offset, range }) {
     this.floating?.setAttribute("hidden", "")
+    const rects = range.getClientRects()
+    const near = rects[rects.length - 1] ?? range.getBoundingClientRect()
     const place = { ...this.placeOf(block), quote: quote.slice(0, 2000), offset }
-    this.openBox({ key: `${place.anchor}~${offset}`, place })
+    this.openBox({ key: `${place.anchor}~${offset}`, place }, near)
+  }
+
+  /** The quote under the point (`x`, `y`):  `{ id, rect }`, the comment's id and the line hit;  else `null`. */
+  quoteAt(x, y) {
+    for (const { id, range } of this.quotes) {
+      const rect = Array.from(range.getClientRects()).find(
+        (each) => x >= each.left && x <= each.right && y >= each.top && y <= each.bottom
+      )
+      if (rect) return { id, rect }
+    }
+    return null
+  }
+
+  /**
+   * Open comment `id` in the pane, under `near`:  to edit while it waits for Claude, else (`view`) to read with its
+   * answers, and delete.  Already open:  the cursor goes back into it, where it is.
+   */
+  openComment(id, near) {
+    if (this.open?.id === id && this.pane) return this.focusPane()
+    const comment = this.list.find((each) => each.id === id)
+    if (!comment) return
+    const { anchor, kind, label, excerpt, quote, offset } = comment
+    const place = { anchor, kind, label, excerpt, quote, offset }
+    const view = commentState(comment) !== "saved"
+    this.openBox({ key: id, id, place, text: comment.text, view }, near)
   }
 
   /** Show the floating bullhorn beside a selection in a block;  hide it otherwise. */
@@ -3020,8 +3072,10 @@ class PageComments {
   ////////////////
 
   /**
-   * A comment's card:  its band ("Owen", its state, the date, Edit while it waits), then the quote it's on, its
-   * text, and Claude's answers.  Folds by its band;  folded, the band shows the comment's first line.
+   * A comment's card, drawn as the pane is (Owen, 2026-10-10:  "bullhorn popup looks good.  These are ugly"):  its
+   * header ("Owen", its state, the date, then the trash and, while it waits, Edit at the far right), then a box of
+   * the quote it's on, its text, and Claude's answers.  Folds by its header;  folded, the header shows the
+   * comment's first line.
    * - `exact` false:  its block changed or moved since, so the card says what it was on
    */
   card({ comment, exact }) {
@@ -3033,15 +3087,19 @@ class PageComments {
     const open = this.folds.get(comment.id) ?? state === "saved"
     if (!open) card.dataset.folded = ""
     const editing = this.open?.id === comment.id
+    // waiting:  the date says when it was saved, so the state doesn't say it again
+    const said = state === "saved" ? "Waiting for Claude" : stateLabel(comment, state)
     card.innerHTML =
-      `<div class="spell-comment-band">` +
+      `<div class="spell-comment-head"><div class="spell-comment-line">` +
       `<button type="button" class="spell-comment-fold" aria-expanded="${open}" title="${open ? "Fold" : "Unfold"} this comment">` +
       `<ui-icon name="bullhorn"></ui-icon><b>Owen</b><span class="spell-comment-preview">${text(comment.text.split("\n")[0])}</span></button>` +
-      `<span class="spell-comment-state">${stateLabel(comment, state)}</span>` +
-      `<span class="spell-comment-date">${text(shortStamp(localStamp(comment.at)))}</span>` +
+      `<span class="spell-comment-state">${said}</span>` +
+      `<span class="spell-comment-date">${text(shortStamp(localStamp(comment.at)))}</span></div>` +
+      deleteButton(state) +
       (state === "saved" && !editing
-        ? `<ui-button class="spell-comment-edit" circular basic size="mini" icon="pen to square" ` +
-          `title="Edit or delete this comment:  until Claude takes it" aria-label="Edit this comment"></ui-button>`
+        ? `<button type="button" class="spell-comment-tool spell-comment-edit" ` +
+          `title="Edit this comment, until Claude takes it:  emptied, it's deleted" aria-label="Edit this comment">` +
+          `<ui-icon name="pen to square"></ui-icon></button>`
         : "") +
       `</div><div class="spell-comment-body">` +
       (exact ? "" : `<p class="spell-comment-moved">The block changed since:  it was “${text(comment.excerpt)}”.</p>`) +
@@ -3064,106 +3122,190 @@ class PageComments {
       fold.title = `${opening ? "Fold" : "Unfold"} this comment`
       this.folds.set(comment.id, opening)
     })
-    card.querySelector(".spell-comment-edit")?.addEventListener("click", () => {
-      const { anchor, kind, label, excerpt, quote, offset } = comment
-      const place = { anchor, kind, label, excerpt, quote, offset }
-      this.openBox({ key: comment.id, id: comment.id, place, text: comment.text })
+    card.querySelector(".spell-comment-edit")?.addEventListener("click", (event) => {
+      this.openComment(comment.id, event.currentTarget.getBoundingClientRect())
     })
+    wireDelete(card.querySelector(".spell-comment-delete"), () => this.remove(comment.id))
     return card
   }
 
+  /**
+   * Delete comment `id`, whatever its state:  gone from the inbox, its card and highlight with it.  NEVER throws.
+   * - while it waits for Claude:  `delete`;  once Claude has it:  `clear` (a taken one stays in its epic)
+   * - its pane, if open, closes;  any draft of it is forgotten
+   */
+  async remove(id) {
+    const action = this.waiting(id) ? "delete" : "clear"
+    try {
+      const answer = await postJSON(COMMENTS_API, { page: location.pathname, action, id })
+      this.list = answer.comments ?? this.list
+      this.forget(id)
+      if (this.open?.id === id) this.closePane()
+      else this.draw()
+      noteToast("Comment deleted", "success")
+    } catch (error) {
+      noteToast(`Couldn't delete the comment:  ${error.message}`, "error")
+    }
+  }
+
   ////////////////
-  // ## The comment box
+  // ## The comment pane
   ////////////////
 
   /**
-   * Open the comment box for `open` (`{ key, place, id?, text? }`):  a new comment on `place`'s block (`quote`:  on
-   * that text), or (`id`) editing that one (its card hidden meanwhile).
-   * - only one is open:  opening another closes this one (it saved itself as it was typed)
+   * Open the comment pane for `open` (`{ key, place, id?, text?, view? }`), just under `near` (a `DOMRect`:  the
+   * selection's last line, the button clicked):  a new comment on `place`'s block (`quote`:  on that text), editing
+   * comment `id` (its card hidden meanwhile), or (`view`) showing one Claude has.
+   * - only one is open:  opening another saves what's typed in this one, then closes it
+   * - the same one again:  the cursor goes back into it, where Owen put it
+   * - the page never scrolls (Owen, 2026-10-10:  "don't scroll the page and lose context!")
    */
-  openBox(open) {
+  openBox(open, near) {
+    if (this.pane && this.open?.key === open.key) return this.focusPane()
+    void this.open?.finish?.()
+    this.pane?.remove()
     this.open = open
-    this.draw({ focus: true })
+    this.draw()
+    this.showPane(near)
+  }
+
+  /** Close the pane, and draw the comments again (the card it hid comes back). */
+  closePane() {
+    this.pane?.remove()
+    this.pane = null
+    this.open = null
+    this.draw()
   }
 
   /**
-   * Put the open box under its block, after its comments;  whatever folds it away unfolds.
-   * - the same box element while the same comment is open (`this.box`):  a redraw (a save, another window) moves it,
-   *   never makes it again, so what's typed and the cursor stay
-   * - `focus`:  the cursor in it, at the end;  `caret`:  the cursor put back where it was;  `scroll`:  into view
+   * Put the pane on the screen under `near`, else above it when there's no room below, never past the window's
+   * edges;  the cursor in its field.
+   * - fixed on the screen, in `main` (where the comments' styles reach):  the page scrolls under it
    */
-  placeBox({ focus, caret, scroll }) {
-    const { block } = findBlock(this.main, this.open.place)
-    const at = block ?? pageHeadIn(this.main)
-    if (!at) return
-    reveal(at)
-    if (this.box?.dataset.key !== this.open.key) this.box = this.form(this.open)
-    const form = this.box
-    this.boxFor(at).append(form)
-    const field = form.querySelector("textarea")
-    requestAnimationFrame(() => {
-      growField(field)
-      if (caret) {
-        field.focus()
-        field.setSelectionRange(...caret)
-      } else if (focus) {
-        field.focus()
-        field.setSelectionRange(field.value.length, field.value.length)
-      }
-      if (scroll) form.scrollIntoView({ block: "nearest" })
-    })
+  showPane(near) {
+    const pane = (this.pane = this.paneFor(this.open))
+    this.main.append(pane)
+    const field = pane.querySelector("textarea")
+    if (field) growField(field)
+    const { width, height } = pane.getBoundingClientRect()
+    const left = near?.left ?? (innerWidth - width) / 2
+    let top = near ? near.bottom + 8 : 80
+    if (near && top + height > innerHeight - 8) top = near.top - height - 8
+    movePane(pane, left, top)
+    this.focusPane()
+  }
+
+  /** The cursor into the open pane's field, at the end (or into the pane, when it has none);  no scrolling. */
+  focusPane() {
+    const field = this.pane?.querySelector("textarea")
+    if (!field) return this.pane?.focus({ preventScroll: true })
+    field.focus({ preventScroll: true })
+    field.setSelectionRange(field.value.length, field.value.length)
   }
 
   /**
-   * The comment box's markup and wiring, for `open` (`openBox()`'s):  a header, then the text;  no buttons.
-   * - the header:  a few words of what it's on (the selected text, else the block:  `headline()`), the floppy, ×;
-   *   its tooltip names the block in full (`aboutTip()`)
+   * The pane's markup and wiring, for `open` (`openBox()`'s):  a header, then the text;  no buttons below it.
+   * - the header:  a few words of what it's on (the selected text, else the block:  `headline()`), the floppy, the
+   *   trash, ×;  its tooltip names the block in full (`aboutTip()`);  Owen drags the pane by it
+   * - the field has no placeholder (Owen, 2026-10-10:  "remove the 'Anything:  a correction...' placeholder")
+   * - the trash deletes the comment (two clicks:  `wireDelete()`);  shown once it's saved
+   * - `view`:  the comment and Claude's answers instead of the field;  no floppy
+   * - × or Escape closes it (⌘ / Ctrl Enter too, in the field), saving what's typed first
+   */
+  paneFor(open) {
+    const pane = document.createElement("div")
+    pane.className = "spell-comment-pane"
+    pane.dataset.spellAdded = ""
+    pane.tabIndex = -1
+    pane.setAttribute("role", "dialog")
+    pane.setAttribute("aria-label", `Comment on ${headline(open.place)}`)
+    const comment = open.view ? this.list.find((each) => each.id === open.id) : null
+    pane.innerHTML =
+      `<div class="spell-comment-about" title="${attr(`${aboutTip(open)}\n(Drag to move)`)}">` +
+      `<ui-icon name="bullhorn"></ui-icon><span class="spell-comment-on">${text(headline(open.place))}</span>` +
+      (open.view
+        ? ""
+        : `<span class="spell-comment-saved" hidden><ui-icon name="floppy disk outline"></ui-icon></span>`) +
+      deleteButton(comment ? commentState(comment) : "saved", !open.id) +
+      `<button type="button" class="spell-comment-tool spell-comment-close" title="${open.view ? "Close" : CLOSE_TIP}" ` +
+      `aria-label="Close the comment box"><ui-icon name="xmark"></ui-icon></button></div>` +
+      (open.view
+        ? `<div class="spell-comment-view">${comment ? viewHTML(comment) : ""}</div>`
+        : `<textarea class="spell-comment-field" rows="3" aria-label="Your comment"></textarea>`)
+    wireDrag(pane, pane.querySelector(".spell-comment-about"))
+    const close = open.view ? async () => this.open === open && this.closePane() : this.wireField(pane, open)
+    pane.querySelector(".spell-comment-close").addEventListener("click", () => void close())
+    pane.addEventListener("keydown", (event) => {
+      const closing = event.key === "Escape" || (event.key === "Enter" && (event.metaKey || event.ctrlKey))
+      if (!closing) return
+      event.preventDefault()
+      event.stopPropagation()
+      void close()
+    })
+    wireDelete(pane.querySelector(".spell-comment-delete"), () =>
+      open.discard ? open.discard() : this.remove(open.id)
+    )
+    return pane
+  }
+
+  /**
+   * Wire the pane's field for `open`;  returns what closes it.
    * - saves itself as Owen types, `COMMENT_SAVE_MS` after he stops (Owen, 2026-10-10:  "Save should just happen as I
    *   type"):  the first save adds the comment, the next ones edit it;  the floppy says how the last one went
-   * - never an empty comment:  emptied, its comment is deleted at once;  × or Escape (or ⌘ / Ctrl Enter) closes it,
-   *   saving what's typed first
-   * - what's typed is also kept in this browser (`COMMENT_DRAFT_KEY_PREFIX`) until it closes saved
+   * - NEVER an empty comment (Owen, 2026-10-10:  "don't save an empty bullhorn comment"):  nothing typed (or only
+   *   spaces) saves nothing;  emptied, a saved one goes at once (`delete`, else `clear`);  the trash deletes it
+   * - a DRAFT is kept in this browser (`COMMENT_DRAFT_KEY_PREFIX`) only while what's typed differs from what the
+   *   server holds:  under the comment's id once it has one, else under the pane's `key`.
+   *   - So a reload never brings back, as a NEW comment, text already saved.
+   *     Before 2026-10-10 it did, and closing the pane at once saved that text a second time.
+   *   - A new comment's draft that copies a comment already on its block is dropped (`draftOf()`).
+   * - leaving the page (`pagehide`):  what's typed and not saved yet goes at once (`flush()`)
    */
-  form(open) {
+  wireField(pane, open) {
     const { key, place } = open
-    const form = document.createElement("div")
-    form.className = "spell-comment-form"
-    form.dataset.spellAdded = ""
-    form.dataset.key = key
-    form.innerHTML =
-      `<div class="spell-comment-about" title="${attr(aboutTip(open))}"><ui-icon name="bullhorn"></ui-icon>` +
-      `<span class="spell-comment-on">${text(headline(place))}</span>` +
-      `<span class="spell-comment-saved" hidden><ui-icon name="floppy disk outline"></ui-icon></span>` +
-      `<button type="button" class="spell-comment-close" title="Close:  it's saved as you type;  closed empty, ` +
-      `the comment goes" aria-label="Close the comment box"><ui-icon name="xmark"></ui-icon></button></div>` +
-      `<textarea class="spell-comment-field" rows="3" aria-label="Your comment" ` +
-      `placeholder="Anything:  a correction, a question, what's missing.  It's saved as you type, for Claude."></textarea>`
-    const field = form.querySelector("textarea")
-    const floppy = form.querySelector(".spell-comment-saved")
-    const drafts = readJSON(this.draftKey)
-    field.value = typeof drafts[key] === "string" ? drafts[key] : (open.text ?? "")
+    const field = pane.querySelector("textarea")
+    const floppy = pane.querySelector(".spell-comment-saved")
+    const trash = pane.querySelector(".spell-comment-delete")
     // what the server holds;  one save at a time, in order, so a quick typist never adds the comment twice
     let saved = (open.text ?? "").trim()
     let saving = Promise.resolve(true)
     let timer = 0
-    // never an empty comment (Owen, 2026-10-10):  nothing typed saves nothing;  emptied, a saved one goes at once
-    const save = async () => {
+    // deleted with the trash:  nothing more is saved
+    let gone = false
+    // where its draft is kept
+    const slot = () => open.id ?? key
+    field.value = this.draftOf(open) ?? open.text ?? ""
+    // keep what's typed as the draft while it differs from what's saved;  else none (`before`:  its old slot)
+    const keep = (before = slot()) => {
+      const drafts = readJSON(this.draftKey)
+      delete drafts[before]
       const words = field.value.trim()
-      if (words === saved) return true
+      if (words && words !== saved) drafts[slot()] = field.value
+      else delete drafts[slot()]
+      writeJSON(this.draftKey, drafts)
+    }
+    const save = async ({ keepalive = false } = {}) => {
+      const words = field.value.trim()
+      if (gone || words === saved) return true
       if (!words && !open.id) return true
       const change = !words
-        ? { action: "delete", id: open.id }
+        ? { action: this.waiting(open.id) ? "delete" : "clear", id: open.id }
         : open.id
           ? { action: "edit", id: open.id, text: words }
           : { action: "add", ...place, text: words }
       try {
-        const answer = await postJSON(COMMENTS_API, { page: location.pathname, ...change })
+        const answer = await postJSON(COMMENTS_API, { page: location.pathname, ...change }, { keepalive })
+        const before = slot()
         open.id = words ? (open.id ?? answer.id) : undefined
         saved = words
         this.list = answer.comments ?? this.list
+        keep(before)
         floppy.hidden = !words
         floppy.removeAttribute("data-failed")
         floppy.title = `Saved ${localStamp(new Date().toISOString()).slice(11)} · waiting for Claude`
+        trash.hidden = !open.id
+        // its highlight on the page, at once;  its card stays hidden while the pane is open
+        if (this.open === open) this.draw()
         return true
       } catch (error) {
         floppy.hidden = false
@@ -3174,35 +3316,65 @@ class PageComments {
     }
     const saveNow = () => {
       clearTimeout(timer)
-      return (saving = saving.then(save))
+      return (saving = saving.then(() => save()))
     }
-    const close = async () => {
-      if (!(await saveNow())) return noteToast(floppy.title, "error")
+    open.finish = async () => {
+      if (!(await saveNow())) return false
+      this.forget(slot())
       this.forget(key)
-      if (this.open === open) {
-        this.open = null
-        this.box = null
-      }
-      this.draw()
+      return true
+    }
+    // the page is going:  a request that outlives it
+    open.flush = () => {
+      clearTimeout(timer)
+      saving = saving.then(() => save({ keepalive: true }))
+    }
+    open.discard = async () => {
+      clearTimeout(timer)
+      // a save on its way first:  it may bring the comment's id
+      await saving
+      gone = true
+      this.forget(slot())
+      this.forget(key)
+      if (open.id) return this.remove(open.id)
+      if (this.open === open) this.closePane()
     }
     field.addEventListener("input", () => {
       growField(field)
-      const kept = readJSON(this.draftKey)
-      kept[key] = field.value
-      writeJSON(this.draftKey, kept)
+      keep()
       clearTimeout(timer)
       timer = setTimeout(saveNow, COMMENT_SAVE_MS)
     })
     field.addEventListener("blur", () => void saveNow())
-    field.addEventListener("keydown", (event) => {
-      if (event.key === "Escape" || (event.key === "Enter" && (event.metaKey || event.ctrlKey))) {
-        event.preventDefault()
-        event.stopPropagation()
-        void close()
-      }
-    })
-    form.querySelector(".spell-comment-close").addEventListener("click", () => void close())
-    return form
+    return async () => {
+      if (!(await open.finish())) return noteToast(floppy.title, "error")
+      if (this.open === open) this.closePane()
+    }
+  }
+
+  /**
+   * The draft kept for `open`'s pane (`wireField()`), or `undefined`:  none, blank, or (a new comment's) a copy of a
+   * comment already on its block, which is dropped.
+   */
+  draftOf(open) {
+    const slot = open.id ?? open.key
+    const draft = readJSON(this.draftKey)[slot]
+    if (typeof draft !== "string" || !draft.trim()) return undefined
+    const { anchor, quote } = open.place
+    const copy =
+      !open.id &&
+      this.list.some(
+        (each) => each.anchor === anchor && (each.quote ?? "") === (quote ?? "") && each.text === draft.trim()
+      )
+    if (!copy) return draft
+    this.forget(slot)
+    return undefined
+  }
+
+  /** Whether comment `id` still waits for Claude, as the server last answered. */
+  waiting(id) {
+    const comment = this.list.find((each) => each.id === id)
+    return !comment || commentState(comment) === "saved"
   }
 
   /** Drop the draft under `key`. */
@@ -3242,7 +3414,10 @@ function commentState(comment) {
   return comment.status === "taken" ? "taken" : "saved"
 }
 
-/** What a comment's band says of its state:  "Saved 14:02 · waiting for Claude", "Taken by Claude · P3" ... */
+/**
+ * What a comment says of its state, in the pane (and, once Claude has it, on its card):
+ * "Saved 14:02 · waiting for Claude", "Taken by Claude · P3" ...
+ */
 function stateLabel(comment, state) {
   if (state === "saved") return `Saved ${text(localStamp(comment.at).slice(11))} · waiting for Claude`
   const taken = comment.taken
@@ -3252,32 +3427,115 @@ function stateLabel(comment, state) {
   return state === "taken" ? `Taken by Claude${where}` : `Answered${where}`
 }
 
-/** Highlight each quote's text on the page, softly (`QUOTE_HIGHLIGHT`);  none where the browser can't. */
+/** A comment Claude has, as the pane shows it to read:  its state, its text, Claude's answers;  no quote. */
+function viewHTML(comment) {
+  return (
+    `<p class="spell-comment-status">${stateLabel(comment, commentState(comment))}</p>` +
+    commentHTML(comment.text) +
+    (comment.replies ?? [])
+      .map(
+        (reply) =>
+          `<div class="spell-comment-reply"><div class="spell-comment-who">${text(reply.by)} · ` +
+          `${text(shortStamp(localStamp(reply.at)))}</div>${reply.html}</div>`
+      )
+      .join("")
+  )
+}
+
+/**
+ * Highlight each quote's text on the page, softly (`QUOTE_HIGHLIGHT`);  returns each one's range, by comment id
+ * (`[{ id, range }]`), for a click to find.  Not highlighted where the browser can't, but still found.
+ */
 function highlightQuotes(quotes) {
-  if (!globalThis.Highlight || !globalThis.CSS?.highlights) return
-  const ranges = quotes.flatMap(({ start, end }) => {
+  const found = quotes.flatMap(({ id, start, end }) => {
     try {
       const range = document.createRange()
       range.setStart(...start)
       range.setEnd(...end)
-      return [range]
+      return [{ id, range }]
     } catch {
       return []
     }
   })
-  CSS.highlights.set(QUOTE_HIGHLIGHT, new Highlight(...ranges))
+  if (globalThis.Highlight && globalThis.CSS?.highlights)
+    CSS.highlights.set(QUOTE_HIGHLIGHT, new Highlight(...found.map(({ range }) => range)))
+  return found
+}
+
+/** What the pane's × says, in its tooltip. */
+const CLOSE_TIP = "Close (Escape):  it's saved as you type;  emptied, the comment is deleted"
+
+/** How long a trash waits for its second click, ms. */
+const DELETE_ARMED_MS = 3000
+
+/** What a trash says, in its tooltip:  a comment still waiting for Claude, and one Claude has. */
+const DELETE_TIPS = {
+  saved: "Delete this comment (two clicks)",
+  had: "Delete this comment (two clicks):  gone from the page, whatever Claude did with it"
 }
 
 /**
- * Unfold whatever hides `element`:  a docs section it's in (or is), a plan doc's folded item, phase or part
- * (their `open`).
+ * A comment's trash (Owen, 2026-10-10:  "allow me to delete bullhorn comments"):  on its card's header, and in the
+ * pane's;  icon only, plain as the pane's × (Owen, 2026-10-10:  "no round border like everything else").
+ * `state`:  the comment's (`commentState()`);  `hidden`:  not saved yet (a new comment's pane).
  */
-function reveal(element) {
-  for (let at = element; at && at !== document.body; at = at.parentElement) {
-    if (at.localName === "ui-section" && at.collapsed) at.collapsed = false
-    else if (/^epic-(item|phase|section|overview)$/.test(at.localName) && !at.hasAttribute("open"))
-      at.setAttribute("open", "")
-  }
+function deleteButton(state, hidden = false) {
+  const tip = DELETE_TIPS[state === "saved" ? "saved" : "had"]
+  return (
+    `<button type="button" class="spell-comment-tool spell-comment-delete" title="${attr(tip)}" ` +
+    `aria-label="Delete this comment"${hidden ? " hidden" : ""}><ui-icon name="trash can"></ui-icon></button>`
+  )
+}
+
+/**
+ * Wire trash `button` (`deleteButton()`) to `act`, on a second click:  no browser dialog.  The first click turns it
+ * red, "Click again to delete", for `DELETE_ARMED_MS`.
+ */
+function wireDelete(button, act) {
+  if (!button) return
+  const tip = button.title
+  let timer = 0
+  button.addEventListener("click", (event) => {
+    event.stopPropagation()
+    if (button.hasAttribute("data-armed")) {
+      clearTimeout(timer)
+      return void act()
+    }
+    button.setAttribute("data-armed", "")
+    button.title = "Click again to delete"
+    timer = setTimeout(() => {
+      button.removeAttribute("data-armed")
+      button.title = tip
+    }, DELETE_ARMED_MS)
+  })
+}
+
+/** Put the pane at (`left`, `top`) on the screen, inside the window's edges, 8px in. */
+function movePane(pane, left, top) {
+  const { width, height } = pane.getBoundingClientRect()
+  pane.style.left = `${Math.max(8, Math.min(left, innerWidth - width - 8))}px`
+  pane.style.top = `${Math.max(8, Math.min(top, innerHeight - height - 8))}px`
+}
+
+/** Let `handle` drag `pane` around the screen (not from a button on it). */
+function wireDrag(pane, handle) {
+  handle.addEventListener("pointerdown", (event) => {
+    if (event.button !== 0 || event.target.closest("ui-button, button")) return
+    event.preventDefault()
+    const start = pane.getBoundingClientRect()
+    const dx = event.clientX - start.left
+    const dy = event.clientY - start.top
+    handle.setPointerCapture(event.pointerId)
+    const move = (each) => movePane(pane, each.clientX - dx, each.clientY - dy)
+    const stop = () => {
+      handle.removeEventListener("pointermove", move)
+      handle.removeEventListener("pointerup", stop)
+      handle.removeEventListener("pointercancel", stop)
+    }
+    handle.addEventListener("pointermove", move)
+    handle.addEventListener("pointerup", stop)
+    handle.addEventListener("pointercancel", stop)
+  })
 }
 
 /** A docs section's first child in its body (not its slotted icon, header or actions);  `null` for none. */
@@ -3320,14 +3578,16 @@ function planLink({ epic, phase }) {
  * POST `body` as JSON to page-server route `url`, with the page server's token;  returns its answer.
  * - a 403 on the token (the server restarted since the page loaded):  takes the new token from the page as served
  *   now, and tries once more
+ * - `keepalive`:  the request outlives the page (sent as it goes:  a small body only, under 64 KB)
  * - throws an `Error` saying why (the route's `error`)
  */
-async function postJSON(url, body, retried = false) {
+async function postJSON(url, body, { keepalive = false, retried = false } = {}) {
   const server = window.SPELL_SERVER
   const response = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json", "x-server-token": server.token },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
+    keepalive
   })
   const answer = await response.json().catch(() => ({}))
   if (response.ok) return answer
@@ -3336,7 +3596,7 @@ async function postJSON(url, body, retried = false) {
     const fresh = /window\.SPELL_SERVER = (\{.*?\})<\/script>/.exec(html)
     if (fresh) {
       server.token = JSON.parse(fresh[1]).token
-      return postJSON(url, body, true)
+      return postJSON(url, body, { keepalive, retried: true })
     }
   }
   throw new Error(answer.error ?? `${response.status} ${response.statusText}`)
@@ -3508,7 +3768,7 @@ function openNewEpicBox() {
   const [title, prompt] = box.querySelectorAll("input, textarea")
   title.value = typeof draft.title === "string" ? draft.title : ""
   prompt.value = typeof draft.prompt === "string" ? draft.prompt : ""
-  box.setAttribute("open", "")
+  box.visible = true
   requestAnimationFrame(() => {
     growField(prompt)
     ;(title.value ? prompt : title).focus()
@@ -3536,7 +3796,7 @@ function newEpicBox() {
   box = template.content.firstElementChild
   const [title, prompt] = box.querySelectorAll("input, textarea")
   const save = box.querySelector(".spell-note-save")
-  const close = () => box.removeAttribute("open")
+  const close = () => (box.visible = false)
   const keep = () => writeJSON(NEW_EPIC_DRAFT_KEY, { title: title.value, prompt: prompt.value })
   const submit = async () => {
     if (!title.value.trim()) return title.focus()

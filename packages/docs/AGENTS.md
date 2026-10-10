@@ -585,15 +585,41 @@ In `tools/`:
       Always shown, with a count, once the block has comments.
   - Or on SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn floating beside the selection.
     - The comment keeps the quote, highlighted softly on the page while the comment exists.
-  - The box opens under the block (Owen, 2026-10-10):  ivory, with no buttons.
+  - The box is a small floating PANE (Owen, 2026-10-10), fixed on the screen:
+    - just under the selection (or the bullhorn clicked);  above it when there's no room below
+    - the page never scrolls for it;  Owen drags it by its header
+    - ivory, 8px inside on every side, with no buttons below the text
     - Its header:  the first words of the selected text (else of the block;  its tooltip names the block),
-      a floppy and ×.
+      a floppy, a trash (once the comment is saved) and ×.
+    - Its field has no placeholder, only an `aria-label` (Owen, 2026-10-10).
     - It saves itself as Owen types:  the floppy shows saved (its tooltip the time), or turns red.
-    - Never an empty comment:  emptied, its comment is deleted at once.  × or Escape closes it.
-  - Each comment shows under its block as a card, its state by the fill rule:
-    - outlined:  "Saved 14:02 · waiting for Claude"
-    - solid:  "Taken by Claude" / "Answered"
-    - Claude's answers go under it.
+    - × or Escape (or ⌘ Enter) closes it.  Opening another saves this one first.
+  - NEVER an empty comment (Owen, 2026-10-10):
+    - nothing typed, or only spaces, saves nothing
+    - emptied, it goes at once (`delete` while it waits for Claude, else `clear`)
+    - the server refuses an `add` or `edit` with no text (white space or zero-width characters only):  400
+  - DRAFTS:  what's typed and NOT saved yet is kept in this browser (`localStorage`), to survive a reload.
+    - Only while it differs from what the server holds:  under the comment's id once it has one.
+    - Leaving the page (`pagehide`) sends what's unsaved at once, as a request that outlives the page.
+    - Before 2026-10-10 a saved comment's text stayed as a draft under its BLOCK:  after a reload, that block's
+      bullhorn opened with it, and closing the pane saved it again, as a new comment.
+      A new comment's draft that copies a comment already on its block is dropped.
+  - DELETE:  a trash on every comment's card, and in the pane's header (Owen, 2026-10-10).
+    - Icon only, its tooltip says what it does;  two clicks, no dialog:
+      the first turns it red, "Click again to delete", for 3s.
+    - `delete` while the comment waits for Claude;  `clear` once Claude has it (a taken one stays in its epic).
+  - A click on a highlighted quote opens its comment in the pane again:
+    - still waiting for Claude:  to edit
+    - taken or answered:  to read, with Claude's answers, and the trash
+  - Each comment shows under its block as a card, drawn as the pane is (Owen, 2026-10-10:  "bullhorn popup looks
+    good.  These are ugly"):
+    - one ivory panel, the pane's outline, corners and 8px inside;  no shadow
+    - its header the pane's:  the bullhorn, "Owen" (folded:  the comment's first line), its state, the date,
+      then the trash, and the pen (Edit) at the far right
+    - its text in a box as the pane's field;  Claude's answers in it, violet
+    - The state, quiet:  "Waiting for Claude" / "Taken by Claude" / "Answered", after a dot by the fill rule
+      (a ring while it waits, solid once Claude has it).
+    - Its icon buttons, and the pane's (×, the trash), are plain:  no ring, a tint under the pointer.
   - Built for reading offline, with no Claude:  only the page server writes them.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
   - a docs page's:  its INBOX FILE, `<page>.inbox.json` beside it ([GuideInbox.ts](tools/GuideInbox.ts))
@@ -606,8 +632,9 @@ In `tools/`:
   - a text comment also has its `quote` and `offset`
 - The routes:  [commentsRoutes.ts](tools/commentsRoutes.ts)
   - `GET /api/comments?page=` (`takesComments`, every comment)
-  - `POST /api/comments { page, action: add | edit | delete, ... }`
-    - edit and delete only while `new`
+  - `POST /api/comments { page, action: add | edit | delete | clear, ... }`
+    - edit and delete only while `new`;  clear whatever its state
+    - add and edit need text:  blank is a 400
   - pages under `guides/`, `pages/`, `epics/` (plan docs too)
   - NOT:
     - a plan doc's `parts/`
@@ -825,9 +852,15 @@ In this order, from `packages/docs`:
     - They must keep the open item, a half-typed note and its focus, and the scroll.
     - Run it after touching `liveClient.ts`, or the runtime's "Live update".
   - `node packages/epics/demo/check-header-epics.mjs [--doc <name>]... [outDir]`, from the root:
-    - the page header, the review line, every section's `open/all` badge,
+    - the page header, the review line, the Phases section's `open/all` badge (item sections show only their state chips),
       the state filter and the Plan changes box
     - at 280 / 900px, light and dark
+  - `node packages/epics/demo/check-fold-epics.mjs [--doc <name>] [--item <id>] [--guide <path>] [outDir]`, from the root:
+    - A fold never moves what was clicked:  the line or title stays put, within 1px, for 1.5s after the click.
+    - Items a link landed on (at once, mid window, near the page's end), one opened by a click,
+      a phase, a guide's section, and the next item's line clicked after a reply.
+    - At 1200 and 390px.
+    - Run it after touching the folds, the landing, or `holdWhileFolding()`.
 - `tools/to-ui-section.js <page>...`:  converts old `section.s2|s3` pages to `<ui-section>`, ids kept.
   - Idempotent;  it refuses goals pages.
 - [doc-links.js](tools/doc-links.js):  see "Links".

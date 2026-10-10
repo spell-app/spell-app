@@ -1,3 +1,4 @@
+import { epicAgentsVocabulary } from "$/epics/components/epic-agents/EpicAgents.en"
 import { epicAnswerVocabulary } from "$/epics/components/epic-answer/EpicAnswer.en"
 import { epicMoreVocabulary } from "$/epics/components/epic-answer/EpicMore.en"
 import { epicReplyVocabulary } from "$/epics/components/epic-answer/EpicReply.en"
@@ -9,6 +10,7 @@ import { epicCommitVocabulary } from "$/epics/components/epic-commit/EpicCommit.
 import { epicEventVocabulary } from "$/epics/components/epic-event/EpicEvent.en"
 import { epicItemVocabulary } from "$/epics/components/epic-item/EpicItem.en"
 import { epicNetEffectVocabulary } from "$/epics/components/epic-net-effect/EpicNetEffect.en"
+import { epicNewItemVocabulary } from "$/epics/components/epic-new-item/EpicNewItem.en"
 import { epicNoteVocabulary } from "$/epics/components/epic-note/EpicNote.en"
 import { epicOriginalVocabulary } from "$/epics/components/epic-original/EpicOriginal.en"
 import { epicVersionVocabulary } from "$/epics/components/epic-original/EpicVersion.en"
@@ -19,6 +21,7 @@ import { epicPhaseVocabulary } from "$/epics/components/epic-phase/EpicPhase.en"
 import { epicUpdatedVocabulary } from "$/epics/components/epic-phase/EpicUpdated.en"
 import { epicPromptVocabulary } from "$/epics/components/epic-prompt/EpicPrompt.en"
 import { epicQuestionVocabulary } from "$/epics/components/epic-question/EpicQuestion.en"
+import { epicReviewVocabulary } from "$/epics/components/epic-review/EpicReview.en"
 import { epicSectionVocabulary } from "$/epics/components/epic-section/EpicSection.en"
 import { epicStatusVocabulary } from "$/epics/components/epic-status/EpicStatus.en"
 import { epicSummaryVocabulary } from "$/epics/components/epic-summary/EpicSummary.en"
@@ -32,7 +35,7 @@ import { Formats, type EpicAttributeSpec, type EpicTag, type EpicVocabulary } fr
  * - Imports each `<Name>.en.ts` straight from its family folder:  PURE DATA, never the family's barrel,
  *   so loading this defines no element and touches no DOM -- node-safe (the tool, the converter, the tests).
  * - STATIC:  one registry, nothing per instance.
- * - A new tag:  `spell dev pack element epics <tag>` (or a sub-tag's files by hand), then its line in `all`;
+ * - A new tag:  `spell dev pack element epics <tag>` (or a sub-tag's files by hand), then its line in `all`.
  *   `Definitions.test.ts` fails on a vocabulary file it doesn't list.
  ****************/
 export class Definitions {
@@ -62,7 +65,11 @@ export class Definitions {
     "epic-net-effect": epicNetEffectVocabulary,
     "epic-note": epicNoteVocabulary,
     "epic-aside": epicAsideVocabulary,
-    "epic-code": epicCodeVocabulary
+    "epic-code": epicCodeVocabulary,
+    // drawn only inside other elements' shadow roots, never written in a doc
+    "epic-review": epicReviewVocabulary,
+    "epic-new-item": epicNewItemVocabulary,
+    "epic-agents": epicAgentsVocabulary
   } as const
 
   /** Every tag, in `all`'s order. */
@@ -86,11 +93,12 @@ export class Definitions {
   }
 
   /**
-   * `spec`'s key in `EpicData`:  its name in camelCase (`review-as` => `reviewAs`), as its component's attribute getter (`this.reviewAs`).
-   * - NOT `spec.property`, the DOM element's JS property:  `id` and `title` take `epicId` / `epicTitle` there, so they
-   *   don't shadow the platform's own (`DOMElement` refuses that), but data says `id` and `title`.
-   * - NOTE: a private copy of `$/util`'s `camelCase()`:  that barrel drags spell's utilities into the pack, and
-   *   `$/ui/util` isn't node-safe through `$/ui/core`.
+   * `spec`'s key in `EpicData`:  its name in camelCase (`review-as` => `reviewAs`),
+   * as its component's attribute getter (`this.reviewAs`).
+   * - NOT `spec.property`, the DOM element's JS property:  `id` and `title` take `epicId` / `epicTitle` there,
+   *   so they don't shadow the platform's own (`DOMElement` refuses that), but data says `id` and `title`.
+   * - NOTE: a private copy of `$/util`'s `camelCase()`:  that barrel drags spell's utilities into the pack,
+   *   and `$/ui/util` isn't node-safe through `$/ui/core`.
    */
   static keyOf(spec: EpicAttributeSpec): string {
     return spec.name.replace(/-([a-z0-9])/g, (_, letter: string) => letter.toUpperCase())
@@ -129,8 +137,8 @@ export class Definitions {
   /**
    * Typed value `value` as `spec`'s attribute text:  `true` => `""`, a number => its digits.
    * - `undefined` / `false` => `undefined`:  no attribute.
-   * - throws `TypeError` when `value`'s type isn't `spec`'s kind (`"yes"` for a boolean), or its text has a
-   *   `valueProblem()`
+   * - throws `TypeError` when `value`'s type isn't `spec`'s kind (`"yes"` for a boolean),
+   *   or its text has a `valueProblem()`
    */
   static text(spec: EpicAttributeSpec, value: unknown): string | undefined {
     if (value === undefined || value === false) return undefined

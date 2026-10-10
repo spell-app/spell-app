@@ -97,6 +97,7 @@ export type PageEditResult = { ok: boolean; status: number; etag?: string; error
  *   - runs `history.go()` when the parent posts `{ spell: "history", go: -1 | 1 }`
  *   - runs an edit key when the parent posts `{ spell: "edit", command, text? }` (`edit()`)
  *   - hands VS Code its keys (`forwardKey()`):  Cmd + Shift + P, Cmd + P, Cmd + B ... work from inside the page
+ *   - hands VS Code its right-clicks (`forwardMenu()`):  the view's menu shows (Copy, Paste, Back, Reload, Inspect ...)
  *   - routes link clicks (`followInFrame()`):  a frame can't open the tabs docs links ask for
  *   - `{ spell: "go", hash }` from the parent is the docs runtime's (`spell-doc-runtime.js` `wireAnchors()`)
  *   - why here:  the view's frame is cross-origin, so the view can't read or move its history itself
@@ -155,7 +156,10 @@ export function liveClient(): void {
     })
     addEventListener("keydown", editKey, true)
     // a same-origin frame of a live page (the brand index's thumbnails) has no VS Code above it
-    if (!liveParent()) addEventListener("keydown", forwardKey)
+    if (!liveParent()) {
+      addEventListener("keydown", forwardKey)
+      addEventListener("contextmenu", forwardMenu)
+    }
     addEventListener("click", followInFrame, true)
   }
   holder.__spellLiveChange = onChange
@@ -471,11 +475,32 @@ export function liveClient(): void {
   }
 
   /**
-   * What kind of field a key went to:  `"rich"` (contenteditable), `"text"` (a text input, a textarea, a select),
-   * `undefined` (none:  the page itself, a button, a checkbox ...).
+   * A right-click in the page while it's in VS Code's side-bar view:  sent to the view's wrapper,
+   * `{ spell: "menu", x, y, field, selection }`, which right-clicks again at the same place, where VS Code listens
+   * (`DocView.ts` `html()`), so VS Code shows the view's menu:  Cut, Copy, Paste, Select All, Back, Forward, Reload,
+   * Open in Browser, Inspect
+   * - why:  VS Code hears right-clicks on the view's own page only (`pre/index.html`, its `contextmenu` listener),
+   *   and this page is a frame inside it, from another origin:  right-click showed nothing (epic `airplane`,
+   *   2026-10-10)
+   * - `field`:  in a text field (the menu offers Cut and Paste);  `selection`:  something is selected (Cut, Copy)
+   * - sent once every handler has had the click:  one the page took (`preventDefault()`:  its own menu) stays the
+   *   page's
+   */
+  function forwardMenu(event: MouseEvent) {
+    const { clientX: x, clientY: y } = event
+    const field = !!fieldKind(event)
+    setTimeout(() => {
+      if (event.defaultPrevented) return
+      window.parent.postMessage({ spell: "menu", x, y, field, selection: !!selectedText() }, "*")
+    })
+  }
+
+  /**
+   * What kind of field a key or click went to:  `"rich"` (contenteditable), `"text"` (a text input, a textarea, a
+   * select), `undefined` (none:  the page itself, a button, a checkbox ...).
    * - through shadow roots:  `ui-textarea`'s own textarea
    */
-  function fieldKind(event: KeyboardEvent): KeyPlace["field"] {
+  function fieldKind(event: Event): KeyPlace["field"] {
     const target = event.composedPath()[0]
     if (!(target instanceof HTMLElement)) return undefined
     if (target.isContentEditable) return "rich"

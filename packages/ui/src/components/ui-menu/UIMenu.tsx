@@ -1,4 +1,4 @@
-import { Match, Switch, onSettled, untrack } from "solid-js"
+import { Match, Switch, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -51,21 +51,21 @@ function isSameContext(a: UIT.ItemContext, b: UIT.ItemContext): boolean {
  *   - A menu never moves `selected` itself, EXCEPT a `segmented` one (a single-choice control):
  *     it selects the activated item and unselects the rest, unless a listener cancels the `ui-select`.
  ****************/
-@E.cssStates("vertical")
 export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.ItemOwner {
   @E.proto static vocabulary = menuVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { menu: menuCSS },
+    cssStates: ["vertical"],
     // a sub-menu is a part of its menu:  an item's header looks past it to the menu
     isAPart: true,
     // nothing to delegate to:  the items are the focus targets
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
-  /** Re-applies the roving tabindexes once settled. */
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    onSettled(() => this.queueRefresh())
+  /** Once it has drawn (`isReady`):  re-apply the roving tabindexes, over the items it drew. */
+  @E.onChange("isReady")
+  protected onReadyToRove(isReady: boolean) {
+    if (isReady) this.queueRefresh()
   }
 
   ////////////////
@@ -118,6 +118,9 @@ export class UIMenu extends E.UIComponent<typeof menuVocabulary> implements UIT.
    *   and re-applies the roving tabindexes once the item has (re-)rendered its box.
    */
   itemContext(item: Element): UIT.ItemContext {
+    // half-tracked on purpose:  the item follows the top menu's context, never which menu is on top;
+    // `@E.untracked` would untrack the whole method
+    // oxlint-disable-next-line spell-ui/no-untrack -- half-tracked on purpose (above)
     const top = untrack(() => this.topMenu)
     top.itemsThatAsked.add(item)
     top.queueRefresh()

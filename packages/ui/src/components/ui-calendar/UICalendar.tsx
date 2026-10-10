@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -59,11 +59,11 @@ import calendarCSS from "./UICalendar.css?inline"
  *   The partner is read through its component, so its changes are live.
  * - A form control:  it submits the ISO value;  `required`, reset, a disabled fieldset;  restores a saved state.
  ****************/
-@E.cssStates("fluid", "inline")
 export class UICalendar extends F.FormComponent<Vocabulary> {
   @E.proto static vocabulary = calendarVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { input: inputCSS, calendar: calendarCSS },
+    cssStates: ["fluid", "inline"],
     Fallback: CalendarFallback
   } satisfies Partial<E.ElementSetup>
 
@@ -94,7 +94,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   constructor(...args: ConstructorParameters<typeof F.FormComponent>) {
     super(...args)
     // SSR renders the field only:  no runtime, no Temporal
-    if (!isServer && !untrack(() => this.temporal)) {
+    if (!isServer && !this.temporal) {
       void UI.load()
         .then(() => UI.i18n.loadTemporal())
         .then((temporal) => {
@@ -505,7 +505,7 @@ export class UICalendar extends F.FormComponent<Vocabulary> {
   ////////////////
 
   /** Starting value, for form reset:  the `value` ATTRIBUTE. */
-  private readonly initialValue = untrack(() => this.attributes.value) ?? undefined
+  private readonly initialValue = this.attributes.value ?? undefined
 
   get formValue(): E.FieldValue {
     // `null`:  `setFormValue()`'s "no value"

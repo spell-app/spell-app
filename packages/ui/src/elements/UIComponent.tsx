@@ -15,9 +15,11 @@ import { insert, isServer, type JSX } from "@solidjs/web"
 // Import directly to avoid circular import
 import { protoMerged } from "$/ui/util"
 import { E, UI, UIT } from "$/ui/core"
+// Import directly to avoid circular import:  `elementSetup`'s initializer reads it
+import { DEFAULT_ANIMATION } from "$/ui/components/components.types"
 // Import directly to avoid circular import
 import { DOMElement, type TagSetup } from "./DOMElement"
-import { cssState, on, onChange, state, untracked } from "./Reactive"
+import { controlled, cssState, on, onChange, state, untracked } from "./Reactive"
 // a leaf of its own (Solid only, no `ui` imports), not part of `E`
 import { ShadowEvents } from "./ShadowEvents"
 
@@ -56,8 +58,8 @@ import { ShadowEvents } from "./ShadowEvents"
  *   @state accessor isOpen = false     // this.isOpen = true;  if (this.isOpen) ...
  *   ```
  *   A read is always up to date, even right after a write;  JSX will update the view as the value changes.
- *   The decorators (`@state`, `@controlled`, `@derived`, `@cssState`, `@cssStates`, `@aria`, `@onChange`,
- *   `@whileConnected`, `@fromContent`, `@on`, `@untracked`) are in `Reactive.ts`.
+ *   The decorators (`@state`, `@controlled`, `@derived`, `@cssState`, `@aria`, `@onChange`,
+ *   `@whileConnected`, `@watches`, `@on`, `@untracked`) are in `Reactive.ts`.
  *
  * - **Attributes**:  every DOM element attribute has a getter/setter on the component,
  *   under its name in camelCase:  `this.size`, `this.closeIcon`.
@@ -159,8 +161,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     this.appContext = isServer ? null : UIComponent.appContextFor(domElement)
     this.internalState = { classInput: definition.classInput((name) => this.classValue(name as E.AttributeName<V>)) }
     this.isConnected = isServer || domElement.isConnected
-    // the class's constant ARIA, on the server too
-    Object.assign(domElement.internals, this.elementSetup.aria)
+    // the class's constant ARIA, on the server too:  short names (`live`) to `internals` properties (`ariaLive`)
+    for (const [name, text] of Object.entries(this.elementSetup.aria) as [E.AriaName, string][])
+      domElement.internals[E.AriaNames[name]] = text
     // on the server there are no style sheets to wait for:  draw at once
     this.isReady = isServer || (E.RUNTIME_KEY in globalThis && !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY])
     if (isServer) return
@@ -192,10 +195,10 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Called once, by `mount()`, right after the constructor.
    * - SIDE EFFECTS:
    *   - adopts the class's style sheets into the shadow root (if the runtime has loaded)
-   *   - keeps the element's `:state()`s in step with its `@cssState` members, its `@cssStates` attributes
+   *   - keeps the element's `:state()`s in step with its `@cssState` members, `elementSetup.cssStates`
    *     and `cssStates()`;  for a state two classes of the chain name, the subclass's member wins
    *   - starts the `@onChange` and `@whileConnected` methods, the `@aria` members' effect,
-   *     and the `@fromContent` methods' watch
+   *     and the `@watches` methods' watch
    *   - re-adopts the style sheets when `styleSheetNames` changes
    * - Not in the constructor, because a subclass's fields don't exist yet while the base constructor runs.
    * - Hook:  an override starts its own effects, then returns `super.onMount()`.
@@ -203,7 +206,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   onMount(): JSX.Element {
     if (!isServer && untrack(() => this.isReady)) this.adoptStyleSheets()
     // a RENDER effect, so a getter that throws shows the element's fallback (a plain effect would only log it)
-    const decorated = E.Reactive.cssStatesOf(this)
+    const decorated = E.Reactive.cssStatesOf(this, this.elementSetup.cssStates)
     createRenderEffect(
       () => {
         const states: Record<string, boolean | undefined> = { ...this.cssStates() }
@@ -227,8 +230,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
       { defer: true }
     )
     const { canRenderUnstyled } = this.elementSetup
-    // `untrack`:  `<Show>` evaluates its children in a TRACKED computation, so a reactive read in `render()`'s body
-    // (outside its JSX) would run it again and rebuild the whole view;  it runs ONCE
+    // `untrack`:  `<Show>` evaluates its children in a TRACKED computation,
+    // so a reactive read in `render()`'s body (outside its JSX) would run it again and rebuild the whole view;
+    // it runs ONCE
     return <Show when={canRenderUnstyled || this.isReady}>{untrack(() => this.render())}</Show>
   }
 
@@ -285,16 +289,18 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * Class setting:  how the class's custom element is set up, as ONE object (`ElementSetup` documents each key):
-   * its style sheets, form control, focus, slots, part, DOM element class, fallback, unstyled first paint, ARIA,
-   * and what the shared `disabled`, `loading` and `visible` do for it.
+   * its style sheets, the `:state()`s that mirror an attribute, form control, focus, slots, part, DOM element class,
+   * fallback, unstyled first paint, whether it's a root, ARIA,
+   * and what the shared `disabled`, `loading`, `visible` and `animation` do for it.
    * - A subclass states only the keys it changes:
    *   `@E.protoMerged static elementSetup = { delegatesFocus: false } satisfies Partial<E.ElementSetup>`
    *   (`satisfies`, so a misspelt key fails TypeScript).
-   * - The keys merge down the class chain, base class first (`@protoMerged`):
-   *   `CheckControl`'s `{ DOMElement: DOMCheckElement }` keeps the `{ isAFormControl: true }` of `FormComponent`.
-   * - So `this.elementSetup` (and `Class.prototype.elementSetup`) is the MERGED result;
-   *   the static `Class.elementSetup` is only what that one class stated.
-   * - Merged key by key:  a key a subclass states replaces its base's whole,
+   * - Each class's object is chained to its base class's (`@protoMerged`):
+   *   a key it doesn't state is read from the base's,
+   *   so `CheckControl`'s `{ DOMElement: DOMCheckElement }` keeps the `{ isAFormControl: true }` of `FormComponent`.
+   * - Read keys by name (`this.elementSetup.styleSheets`, `Class.prototype.elementSetup` outside an instance):
+   *   a spread or `Object.keys()` of the whole object sees only its own class's keys.
+   * - Key by key:  a key a subclass states replaces its base's whole,
    *   so a subclass's `styleSheets` replace its base's;  spread the base's to add to them
    *   (`styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`).
    * - `vocabulary` stays a setting of its own.
@@ -302,6 +308,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   declare elementSetup: E.ElementSetup
   @protoMerged static elementSetup: Partial<E.ElementSetup> = {
     styleSheets: {},
+    cssStates: [],
     isAFormControl: false,
     delegatesFocus: true,
     slotAssignment: "named",
@@ -309,10 +316,12 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     DOMElement: DOMElement,
     Fallback: undefined,
     canRenderUnstyled: false,
+    root: false,
     aria: {},
     disabled: "unusable",
     loading: "loader",
-    visibleAnimation: "fade"
+    visible: "shown",
+    animation: DEFAULT_ANIMATION
   }
 
   ////////////////
@@ -321,7 +330,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * The value an app handed its `ui-*` elements;  `null` when none:
-   * the `appContext` property of the nearest `<ui-root>` around this element (crossing shadow roots).
+   * the `appContext` property of the nearest root around this element (crossing shadow roots):
+   * a `<ui-root>`, or any other root (`elementSetup.root`:  `<spell-app>`).
    * - `<ui-root prop:appContext={value}>` in a Solid app, `root.appContext = value` anywhere else.
    * - Read once, when this object is built.
    * - Why not a Solid context:  each element draws in a Solid root of its own, with no parent,
@@ -330,7 +340,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    */
   readonly appContext: unknown
 
-  /** The `appContext` of the nearest `<ui-root>` around `domElement` (a translated tag too), else `null`. */
+  /** The `appContext` of the nearest root around `domElement` (a translated tag too), else `null`. */
   private static appContextFor(domElement: DOMElement): unknown {
     let node: Node | null = domElement.parentNode
     while (node) {
@@ -342,10 +352,17 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     return null
   }
 
-  /** Is `localName` `<ui-root>`, or a translated alias of it? */
+  /**
+   * Is `localName` a root's tag?
+   * - One whose class says `elementSetup.root` (`<ui-root>`, a translation of it, `<spell-app>`)
+   * - or `<ui-root>` before its family has loaded:  an app may set its `appContext` that early
+   */
   private static isRootTag(localName: string): boolean {
-    return localName === ROOT_TAG || UIComponent.registry.definitions.get(localName)?.vocabulary.tag === ROOT_TAG
+    return localName === ROOT_TAG || UIComponent.rootTags.has(localName)
   }
+
+  /** Every defined tag whose class says `elementSetup.root`:  `register()` adds them.  Page-wide. */
+  private static readonly rootTags = new Set<string>()
 
   ////////////////
   // ## Attributes
@@ -377,8 +394,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   /**
    * One ACCESSOR per member, under the same name:  `this.$.isOpen` is a function that returns `this.isOpen`.
    * - An accessor is how Solid hands around "a value that may change":
-   *   a function you call to read it.  Calling it inside JSX or an effect subscribes to it,
-   *   so they update when it changes.
+   *   a function you call to read it.
+   *   Calling it inside JSX or an effect subscribes to it, so they update when it changes.
    * - Everyday code just reads `this.isOpen`, which is already reactive.
    * - Use `$` only for a Solid API that wants the function itself:
    *   `createMemo(this.$.isOpen)`, `<Show when={this.$.isOpen}>`.
@@ -393,8 +410,8 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * Hook:  what the element shows:  the content of its shadow DOM, as JSX.
-   * - Runs ONCE.  Later changes happen inside the JSX, as the members it reads change;
-   *   `render()` itself never runs again.
+   * - Runs ONCE.
+   *   Later changes happen inside the JSX, as the members it reads change;  `render()` itself never runs again.
    * - It runs while Solid is drawing, so it must NEVER change state:  no `this.isOpen = ...` here.
    */
   abstract render(): JSX.Element
@@ -442,7 +459,10 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     return Object.keys(this.elementSetup.styleSheets)
   }
 
-  /** Register this class's sheets with the runtime (the ones it doesn't have yet), then adopt them into the shadow root. */
+  /**
+   * Register this class's sheets with the runtime (the ones it doesn't have yet),
+   * then adopt them into the shadow root.
+   */
   @untracked
   private adoptStyleSheets() {
     UI.styles.registerOnce(this.elementSetup.styleSheets)
@@ -450,15 +470,15 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 
   ////////////////
-  // ## Shared states:  disabled, loading, visible
+  // ## Shared states:  disabled, loading
   //
-  // Every element takes `disabled`, `loading` and `visible`, though its vocabulary may not name them
-  // (`SharedVocabulary`), and the platform's own `hidden` and `inert`:
+  // Every element takes `disabled` and `loading`, though its vocabulary may not name them
+  // (`SharedVocabulary`), and the platform's own `inert`:
   // - `disabled`:  `:state(disabled)` always;  the rest per family (`elementSetup.disabled`):
   //   by default unusable, with everything inside inert
   // - `loading`:  `:state(loading)` always;  by default a loader over it (`elementSetup.loading`)
-  // - `visible="false"`:  hides it with an animation (`elementSetup.visibleAnimation`), then `:state(hidden)`
-  // - `hidden` hides at once (`reset.css`, which every shadow root adopts);  `inert` is the platform's, unstyled
+  // - `inert` is the platform's, unstyled
+  // - `visible`, `hidden` and `animation`:  "Shown or hidden", below
   ////////////////
 
   /**
@@ -526,75 +546,182 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * A shared state changed (ONE effect for all of them, as every element has it):
-   * - disabled or loading:  ARIA on the DOM element, its content inert or not,
+   * - ARIA on the DOM element, its content inert or not,
    *   and focus inside moves on to the next focusable element.
-   *   - ARIA only where the base class owns that state:
-   *     a family with a disabled or loading of its own sets its own.
-   * - `visible`:  animate the element out (then `:state(hidden)`) or back in.
-   *   At once, with no animation, before the element first draws:  `<ui-message visible="false">` starts hidden.
+   * - ARIA only where the base class owns that state:
+   *   a family with a disabled or loading of its own sets its own.
+   * - Inert from ALL of them at once (`hasInertContent`:  disabled the base class's way, or its loader);
+   *   and it clears only the boxes IT made inert,
+   *   so a family's own (`<ui-form loading>`'s veil) stays (epic `spell-element`, I10).
    * - On a server:  the ARIA only, once.
    */
-  @onChange("hasInertContent", "isDisabled", "showsLoader", "wantsVisible", "isReady", { writesDOMElement: true })
+  @onChange("hasInertContent", "isDisabled", "showsLoader", "isReady", { writesDOMElement: true })
   protected onSharedStatesChanged(
     hasInertContent: boolean,
     isDisabled: boolean,
     showsLoader: boolean,
-    wantsVisible: boolean,
     isReady: boolean
   ) {
     const { domElement, elementSetup, internalState } = this
     if (elementSetup.disabled === "unusable") domElement.internals.ariaDisabled = isDisabled ? "true" : null
     if (elementSetup.loading === "loader") domElement.internals.ariaBusy = showsLoader ? "true" : null
-    if (isServer) return
-    const wasVisible = internalState.wasVisible
-    internalState.wasVisible = wantsVisible
-    if (!isReady) return
-    if (wasVisible !== undefined && wasVisible !== wantsVisible) void this.animateVisible(wantsVisible)
-    // never touch the content of an element that was never inert:  most never are
-    if (!hasInertContent && !internalState.hadInertContent) return
-    internalState.hadInertContent = hasInertContent
-    if (hasInertContent) UI.focus.moveOutOf(domElement)
-    for (const child of domElement.renderRoot.children) (child as HTMLElement).inert = hasInertContent
+    if (isServer || !isReady) return
+    if (!hasInertContent) {
+      // never touch the content of an element that was never inert:  most never are
+      for (const box of internalState.madeInert ?? []) box.inert = false
+      internalState.madeInert = undefined
+      return
+    }
+    UI.focus.moveOutOf(domElement)
+    const madeInert = (internalState.madeInert ??= [])
+    for (const child of domElement.renderRoot.children) {
+      const box = child as HTMLElement
+      if (box.inert) continue
+      box.inert = true
+      madeInert.push(box)
+    }
   }
 
+  ////////////////
+  // ## Shown or hidden:  visible, hidden, animation
+  //
+  // `visible` and the platform's `hidden` are ONE fact, opposites;
+  // the DOM element keeps the two names in step (`DOMElement`, "Shown or hidden"), and this class runs each change:
+  // - `isVisible` is the fact, controlled;  `elementSetup.visible` what it is when the page writes neither name
+  // - a change runs `onVisibleChange()` with `animationToRun`:  by default on the shadow root's top-level boxes;
+  //   a family overrides it to show and hide its own way (a dialog's `showModal()` / `close()`)
+  // - while a hide runs, `:state(hiding)` keeps the element on screen (`reset.css`);  `:state(hidden)` once it ends
+  // - at once before the element first draws, and wherever motion is off (`animation="none"`, reduced motion)
+  ////////////////
+
   /**
-   * Is `visible` asking for the element to show?
-   * - `visible="false"` says no;  absent, bare or `"true"` say yes.
-   * - Always yes where the family's vocabulary has a `visible` of its own (`<ui-sidebar>` starts hidden):
-   *   it handles that itself.
+   * Is the element shown?  `el.visible`, which is always `!el.hidden`.
+   * - Controlled:  `this.isVisible = false` hides it, as `el.visible = false` or `el.hidden = true` do.
+   * - A person's action asks first, with an event the page may cancel:
+   *   `this.requestChange("isVisible", false, () => this.send("ui-close", { visible: false }))`.
+   * - What it is when the page writes neither name:  `elementSetup.visible`.
    */
-  get wantsVisible(): boolean {
-    return !this.elementDefinition.takesShared("visible") || E.Reactive.attributeValue(this, "visible") !== false
-  }
+  @controlled("visible")
+  accessor isVisible = true
 
   /**
-   * Hidden by `visible="false"`, once its animation has run.
-   * - `:state(hidden)`, which `reset.css` hides (`display: none`, as the platform's `hidden`).
+   * Hidden, once its animation has run:  `:state(hidden)`.
+   * - What hides it is the `hidden` attribute (`reset.css`):  this state is for a family's own CSS
+   *   (`:host(:not(:state(hidden)))`, "shown or on its way out").
    */
   @cssState("hidden")
-  get isHiddenByVisible(): boolean {
-    return !this.wantsVisible && !this.isHiding
+  get isHidden(): boolean {
+    return !this.isVisible && !this.isHiding
   }
 
-  /** Is `visible="false"`'s animation running right now?  The element stays in the page until it ends. */
-  @state private accessor isHiding = false
+  /**
+   * Is a hide running right now?  `:state(hiding)`:
+   * the `hidden` attribute is already set, and `reset.css` keeps the element on screen until it ends.
+   */
+  @cssState("hiding")
+  @state
+  accessor isHiding = false
 
   /**
-   * Run `elementSetup.visibleAnimation` in or out (`UI.transitions`), on the boxes in the shadow root.
-   * - Why not the element:  most `ui-*` DOM elements are `display: contents`, with no box of their own to animate.
-   * - `isHiding` while it runs out;  a later run (back in, or out again) takes over.
-   * - NEVER throws:  an animation that can't run just ends.
+   * The animation `visible` / `hidden` run right now:  the first of these that applies.
+   * 1. `"none"` when motion is off:
+   *    - the element's own `animation="none"`
+   *    - `none` from around it, so an element inside can't turn motion back on:
+   *      `--ui-motion: none`, which `<ui-root animation="none">`, any element's `animation="none"` or a page's CSS sets
+   *    - or the person's reduced-motion setting
+   * 2. the element's own `animation` (`<ui-modal animation="fly down">`, `el.animation = "scale"`)
+   * 3. its family's default, `elementSetup.animation`, which is `"fade"` unless the family says otherwise
+   * - Untracked:  read as a change runs, never followed.
    */
-  private async animateVisible(show: boolean) {
+  @untracked
+  get animationToRun(): UIT.Animation {
+    const own = E.Reactive.attributeValue(this, "animation") as UIT.Animation | undefined
+    if (own === UIT.NO_ANIMATION || this.isMotionOff) return UIT.NO_ANIMATION
+    return own ?? this.elementSetup.animation
+  }
+
+  /**
+   * Is the element's own `animation` `none`?  `:state(still)`:
+   * `reset.css` sets `--ui-motion: none` on it, which everything inside inherits (a translated tag's too).
+   */
+  @cssState("still")
+  get isStill(): boolean {
+    return E.Reactive.attributeValue(this, "animation") === UIT.NO_ANIMATION
+  }
+
+  /**
+   * Is motion off around the element:  `--ui-motion: none` reaching it, or the person's reduced-motion setting?
+   * - Read from the element's computed style:
+   *   custom properties pass into shadow roots, so every element below sees it.
+   */
+  private get isMotionOff(): boolean {
+    if (UI.browser.isReducedMotion) return true
+    const { domElement } = this
+    if (!domElement.isConnected) return false
+    return getComputedStyle(domElement).getPropertyValue(UIT.MOTION_PROPERTY).trim() === UIT.NO_ANIMATION
+  }
+
+  /**
+   * Hook:  show or hide what the element draws, as `visible` changes;  resolves once it's done.
+   * - `animation`:  the one to run (Fomantic's name, `"fade up"`), or `"none"`:  at once.
+   *   - `"none"` when the element first draws, so nothing animates in as a page loads;
+   *     and wherever motion is off (`animationToRun`).
+   *   - An attention animation (`shake`) shows and hides at once too.
+   * - While a hide runs, the element stays on screen (`:state(hiding)`);  it's hidden once the promise settles.
+   * - Default:  `animation` in or out on the boxes at the top of the shadow root, through `UI.transitions`.
+   *   - Why not the element:  most `ui-*` DOM elements are `display: contents`, with no box of their own.
+   *   - An element whose shadow root is only a `<slot>` shows and hides at once.
+   * - Override it to show and hide your own way (a dialog's `showModal()` / `close()`).
+   *   - Called once the element first draws, then on each change.
+   *   - A later change may start before this one ends:  check `isVisible` before acting late.
+   * - MUST NOT throw:  a throw is logged, and the change just ends.
+   */
+  protected async onVisibleChange(visible: boolean, animation: UIT.Animation): Promise<void> {
+    const { internalState } = this
+    // a box the family hides itself (`hidden` on it) is left alone;  one an earlier hide animated out comes back
+    const animatedOut = internalState.animatedOut ?? []
+    const boxes = [...this.domElement.renderRoot.children].filter(
+      (child): child is HTMLElement =>
+        child.localName !== "slot" && (!(child as HTMLElement).hidden || animatedOut.includes(child as HTMLElement))
+    )
+    internalState.animatedOut = undefined
+    if (animation === UIT.NO_ANIMATION || UIT.AnimationLookup.isAttention(animation)) {
+      if (visible) for (const box of boxes) UI.transitions.reveal(box)
+      return
+    }
+    if (!visible) internalState.animatedOut = boxes
+    const name = UIT.AnimationLookup.runtimeNameFor(animation)
+    const direction = visible ? UIT.IN : UIT.OUT
+    await Promise.all(boxes.map((element) => UI.transitions.animate({ element, name, direction })))
+  }
+
+  /**
+   * `visible` changed, or the element first drew:  run `onVisibleChange()`.
+   * - The first time (once `isReady`) with `"none"`;  then with `animationToRun`.
+   */
+  @onChange("isVisible", "isReady")
+  protected onVisibleOrReadyChanged(isVisible: boolean, isReady: boolean) {
+    if (!isReady) return
+    const { internalState } = this
+    const isFirst = internalState.wasVisible === undefined
+    if (!isFirst && internalState.wasVisible === isVisible) return
+    internalState.wasVisible = isVisible
+    void this.runVisibleChange(isVisible, isFirst ? UIT.NO_ANIMATION : this.animationToRun)
+  }
+
+  /**
+   * Run `onVisibleChange()`, with `:state(hiding)` on while a hide animates;  a later run takes over.
+   * - NEVER throws:  a hook that throws is logged, and the change ends.
+   */
+  private async runVisibleChange(visible: boolean, animation: UIT.Animation) {
     const { internalState } = this
     const run = (internalState.visibleRun = (internalState.visibleRun ?? 0) + 1)
-    const boxes = [...this.domElement.renderRoot.children].filter((child) => child.localName !== "slot")
-    this.isHiding = !show
-    const name = this.elementSetup.visibleAnimation
-    const direction = show ? UIT.IN : UIT.OUT
-    await Promise.all(
-      boxes.map((element) => UI.transitions.animate({ element: element as HTMLElement, name, direction }))
-    ).catch(() => undefined)
+    this.isHiding = !visible && animation !== UIT.NO_ANIMATION
+    try {
+      await this.onVisibleChange(visible, animation)
+    } catch (error) {
+      E.Warnings.warn(`<${this.domElement.localName}>.onVisibleChange()`, "failed;  the change ends here", error)
+    }
     if (internalState.visibleRun === run) this.isHiding = false
   }
 
@@ -604,10 +731,11 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
 
   /**
    * The `class` of the top box in the element's shadow DOM, in Fomantic's class names:  `ui small primary button`.
-   * - Built from the attributes (through `classValue()`), then `extraClass`, then the noun.
+   * - Built from the attributes (through `classValue()`), then `extraClass`, then the noun (`classNoun`).
    */
   get rootClass(): string {
-    return this.elementDefinition.builder.build(this.internalState.classInput, { extra: this.extraClass })
+    const { extraClass: extra, classNoun: noun } = this
+    return this.elementDefinition.builder.build(this.internalState.classInput, { extra, noun })
   }
 
   /**
@@ -623,6 +751,16 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *   a class that follows an attribute comes from the vocabulary (`classValue()`).
    */
   protected get extraClass(): string | undefined {
+    return undefined
+  }
+
+  /**
+   * Hook:  the last class word;  default the vocabulary's `noun`.
+   * - For an element Fomantic draws as ANOTHER noun:
+   *   `<ui-tab>`'s pane is a segment (`ui bottom attached tab segment`),
+   *   so `UITab` says `segment` here, and `tab` in `extraClass`.
+   */
+  protected get classNoun(): string | undefined {
     return undefined
   }
 
@@ -644,7 +782,10 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     return this.elementDefinition.builder.build(values, { extra })
   }
 
-  /** What only this class uses inside:  ONE field, so it adds one name to the component, not many (`InternalState`). */
+  /**
+   * What only this class uses inside (`InternalState`):
+   * ONE field, so it adds one name to the component, not many.
+   */
   private readonly internalState: InternalState
 
   ////////////////
@@ -656,6 +797,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Default none.
    * - Keys are the vocabulary's state names.
    * - Prefer `@cssState("open")` on the member the state follows.
+   * - Not `elementSetup.cssStates`, the list of states that only mirror an attribute:  same name, another thing.
    * - If it throws, the element shows its fallback, as when `render()` throws.
    */
   protected cssStates(): Partial<Record<E.StateName<V>, boolean>> {
@@ -698,26 +840,6 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     return E.Reactive.isControlledByPage(this, memberName)
   }
 
-  /**
-   * DEPRECATED:  write `@controlled("open") accessor isOpen = false` instead.
-   * - The old way to declare a controlled attribute;  only `brand`'s components still use it.
-   * - MUST be called from a field initializer or the constructor.
-   */
-  protected controlled<N extends E.AttributeName<V>>(
-    name: N,
-    initial: E.AttributeValues<V>[E.CamelCase<N> & keyof E.AttributeValues<V>]
-  ): E.Controlled<E.AttributeValues<V>[E.CamelCase<N> & keyof E.AttributeValues<V>]> {
-    const { key, property } = this.elementDefinition.attribute(name)
-    type Value = E.AttributeValues<V>[E.CamelCase<N> & keyof E.AttributeValues<V>]
-    return new E.Controlled<Value>({
-      domElement: this.domElement,
-      key,
-      property,
-      value: () => E.Reactive.attributeValue(this, key) as Value | undefined,
-      initial
-    })
-  }
-
   ////////////////
   // ## Events
   ////////////////
@@ -728,7 +850,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *   NOT when it's moved or disconnected:  the element keeps working after a move.
    * - A method listening from the start is `@E.on("command") onCommand(event)` instead:
    *   the constructor adds it through `on()`, and it runs untracked.
-   *   Call `on()` itself for a listener added later, or under a condition.
+   *   - Call `on()` itself for a listener added later, or under a condition.
    * - For a listener that should stop sooner, use your own `AbortController`;  for one call only, `{ once: true }`.
    */
   protected on<K extends keyof HTMLElementEventMap>(
@@ -797,7 +919,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * Build `Class`'s component for `domElement` and draw it into its shadow root:
    * what the DOM element's first connect does (`TagSetup.mountComponent`).
    * - In a Solid root of its OWN, with no parent:  it lives until `domElement.dispose()`, whatever happens around it.
-   *   So a Solid app's context doesn't reach inside (`appContext` does that).
+   *   - So a Solid app's context doesn't reach inside (`appContext` does that).
    * - Inside an error net (Solid's `<Errored>`), always:  see "Errors and fallback".
    * - Released with the DOM element:  the root is disposed, the shadow root emptied.
    */
@@ -907,6 +1029,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *   its translated attribute, property and event names all reach the same component.
    * - Does nothing for a tag already defined.
    * - Returns the element class.
+   * - throws a `TypeError` on a name in `elementSetup.cssStates` the tag has no attribute or member for (a typo)
    */
   static define(this: E.UIComponentClass, tag?: string, dictionary?: E.Dictionary): CustomElementConstructor {
     const definition = new E.ElementDefinition(this.prototype.vocabulary, { tag, dictionary })
@@ -914,6 +1037,14 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     if (existing) return existing
     // record it, make the tag's own DOM element class on `elementSetup.DOMElement`, and define it (DOM API)
     UIComponent.register.call(this, definition)
+    // after `register()`, which puts each attribute's getter on the prototype
+    const strays = this.prototype.elementSetup.cssStates.filter((state) => !(E.camelCase(state) in this.prototype))
+    if (strays.length) {
+      throw new TypeError(
+        `UIComponent.define():  <${definition.tag}>'s elementSetup.cssStates names ${strays.join(", ")}, ` +
+          "which it has no attribute or member for;  fix the name, or give the class that member"
+      )
+    }
     const Class = DOMElement.subclassForTag(
       this.prototype.elementSetup.DOMElement,
       UIComponent.tagSetupFor(this, definition)
@@ -927,11 +1058,12 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * its definition, shadow root options, whether it's a form control, and how to build its component.
    */
   static tagSetupFor(Class: E.UIComponentClass, definition: E.ElementDefinition): TagSetup {
-    const { delegatesFocus, slotAssignment, isAFormControl, Fallback } = Class.prototype.elementSetup
+    const { delegatesFocus, slotAssignment, isAFormControl, Fallback, visible } = Class.prototype.elementSetup
     return {
       elementDefinition: definition,
       shadowRootInit: { mode: "open", delegatesFocus, slotAssignment },
       isAFormControl,
+      visible,
       mountComponent: (domElement) => UIComponent.mount(Class, definition, domElement, Fallback)
     }
   }
@@ -946,6 +1078,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   static register(this: E.UIComponentClass, definition: E.ElementDefinition) {
     const { vocabulary } = this.prototype
     UIComponent.registry.definitions.set(definition.tag, definition)
+    if (this.prototype.elementSetup.root) UIComponent.rootTags.add(definition.tag)
     E.PartContext.define({
       vocabulary,
       tag: definition.tag,
@@ -1000,22 +1133,27 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   }
 }
 
-/** An element holding an app's value for the `ui-*` elements inside it:  `<ui-root>` (`UIComponent.appContext`). */
+/** An element holding an app's value for the `ui-*` elements inside it:  a root (`UIComponent.appContext`). */
 type AppContextHolder = Element & { appContext?: unknown }
 
-/** The tag whose `appContext` property components read (`UIComponent.appContext`). */
+/** `<ui-root>`'s tag:  a root even before its family loads (`UIComponent.isRootTag()`). */
 const ROOT_TAG = "ui-root"
 
 /** `UIComponent.internalState`:  what only the base class uses inside. */
 type InternalState = {
-  /** what `rootClass` builds from:  one getter per attribute, each calling `classValue()` (`ElementDefinition.classInput()`) */
+  /**
+   * what `rootClass` builds from:
+   * one getter per attribute, each calling `classValue()` (`ElementDefinition.classInput()`)
+   */
   readonly classInput: E.ClassInput
   /** aborted when the element is disposed, removing every listener `on()` added;  made by the first `on()` */
   listeners?: AbortController
-  /** its content has been inert (disabled or loading) since it drew:  only then is it touched again */
-  hadInertContent?: boolean
-  /** `wantsVisible` as the shared states' effect last saw it;  `undefined` before its first run */
+  /** the boxes the shared states made inert (disabled or loading), the only ones they clear again */
+  madeInert?: HTMLElement[]
+  /** `isVisible` as `onVisibleChange()` last ran with it;  `undefined` before the element first drew */
   wasVisible?: boolean
-  /** counts `animateVisible()` runs, so only the latest ends the hiding */
+  /** counts `onVisibleChange()` runs, so only the latest ends the hiding */
   visibleRun?: number
+  /** the boxes the default `onVisibleChange()` last animated out (which `UI.transitions` left `hidden`) */
+  animatedOut?: HTMLElement[]
 }

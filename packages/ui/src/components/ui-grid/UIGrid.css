@@ -107,9 +107,6 @@
     display: var(--_grid-child-host, block);
     container: var(--_grid-host-container, ui-grid / inline-size);
   }
-  :host([hidden]) {
-    display: none;
-  }
   /* Static markup:  the grid's parent is the container. */
   :has(> .ui.grid) {
     container: ui-grid / inline-size;

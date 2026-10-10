@@ -1,12 +1,14 @@
 /*
  * `<epic-field>` (EpicField.tsx) and `<epic-updated>` (EpicUpdated.tsx):  a phase's lines.
- * - One shape for both:  an icon column, the icon centred on the FIRST line (`1lh` tall), then the label and the
- *   prose wrapping beside it.  A field's prose starting with a `<p>` runs on after its label;  lists drop below.
- * - Files and Verify hide until the Phases title's toggles show them:  `--epic-files-display` /
- *   `--epic-verify-display`, inherited from the Phases section (`block`), else `none`.
- * - `<epic-updated>`:  fenced, a dashed orange box (Owen, 2026-10-06:  never an "Updated" word buried in the text);
- *   a fold column before the icon (`<FoldButton>`, Owen, 2026-10-08), and what changed BELOW its heading, folded
- *   `until-found`.
+ * - One shape for both:
+ *   - an icon column, the icon centred on the FIRST line (`1lh` tall)
+ *   - then the label and the prose wrapping beside it
+ *   - a field's prose starting with a `<p>` runs on after its label;  lists drop below
+ * - Files and Verify hide until the Phases title's toggles show them:
+ *   `--epic-files-display` / `--epic-verify-display`, inherited from the Phases section (`block`), else `none`.
+ * - `<epic-updated>`:  fenced, a dashed orange box (Owen, 2026-10-06:  never an "Updated" word buried in the text)
+ *   - a fold column before the icon (`fold.button()`, Owen, 2026-10-08)
+ *   - what changed BELOW its heading, folded `until-found`
  * - Public tokens (`--epic-field-*`) are never declared here:  read through private aliases.
  */
 
@@ -88,8 +90,8 @@
     padding: 0 6px;
     border-radius: var(--epic-chip-radius, 999px);
     background: var(--_epic-chip-background, var(--epic-accent-soft, var(--ui-primary-background)));
-    /* `!important`:  the page's link rules (`.spell-doc-main a`) are the outer tree, which beats `::slotted()`;  an
-       important declaration of the inner tree wins back */
+    /* `!important`:  the page's link rules (`.spell-doc-main a`) are the outer tree, which beats `::slotted()`;
+       an important declaration of the inner tree wins back */
     color: var(--_epic-chip-color, var(--epic-accent, var(--ui-link))) !important;
     font: 600 var(--epic-chip-font-size, 0.8em)/1 var(--epic-mono, var(--ui-font-family-mono));
     text-decoration: none !important;

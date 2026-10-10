@@ -1,15 +1,18 @@
 /*
- * `<epic-answer>` (EpicAnswer.tsx), `<epic-reply>` (EpicReply.tsx), `<epic-more>` (EpicMore.tsx):  an item's answer,
- * reply and More Details cards -- ONE card shape (a heading band, then the slotted body), three fills:
+ * `<epic-answer>` (EpicAnswer.tsx), `<epic-reply>` (EpicReply.tsx), `<epic-more>` (EpicMore.tsx):
+ * an item's answer, reply and More Details cards.
+ * ONE card shape (a heading band, then the slotted body), three fills:
  * - answer:  warm (the brand's ivory, as the rail:  `--ui-brown-*`):  Owen's voice
- * - reply:  violet (Claude's), or ivory (Owen's, `.owen`:  his voice, as the answer);  its band a flex row, the date
- *   at its right (`.dated`)
+ * - reply:  violet (Claude's), or ivory (Owen's, `.owen`:  his voice, as the answer)
+ *   - its band a flex row, the date at its right (`.dated`)
  * - More Details:  plain, its heading a small muted eyebrow that folds it
- * - every card folds:  the answer, a reply and a status card by their band, the chevron first (`<FoldButton>`,
- *   `FoldButton.css`;  Owen, 2026-10-08), More Details by its eyebrow;  the folded box `hidden="until-found"`
+ * - every card folds, the folded box `hidden="until-found"`:
+ *   - the answer, a reply and a status card by their band, the chevron first
+ *     (`fold.button()`, `Fold.css`;  Owen, 2026-10-08)
+ *   - More Details by its eyebrow
  * - also `<epic-status>`'s card (`.status`, P13), which adopts this sheet:  its fills in `EpicStatus.css`
- * - Shared look from `<epic-page>`'s `:host`, each with a private fallback:  `--epic-part-gap` (between an item's
- *   parts), `--epic-rule`.
+ * - Shared look from `<epic-page>`'s `:host`, each with a private fallback:
+ *   `--epic-part-gap` (between an item's parts), `--epic-rule`.
  * - Public tokens (`--epic-answer-*`) are never declared here:  read through private aliases.
  */
 
@@ -50,8 +53,8 @@
     line-height: 1.4;
     overflow-wrap: anywhere;
   }
-  /* a band with a date (`<epic-reply>`):  who and what about on the left, free to wrap within it;  the date pinned
-     right on the TOP line (first baselines), never wrapping under them, at any width */
+  /* a band with a date (`<epic-reply>`):  who and what about on the left, free to wrap within it;
+     the date pinned right on the TOP line (first baselines), never wrapping under them, at any width */
   .header.dated {
     display: flex;
     align-items: baseline;
@@ -77,7 +80,7 @@
   .body {
     padding: 6px 10px 8px;
   }
-  /* folded by its band (`<FoldButton>`, `FoldButton.css`):  `until-found` keeps it findable, so drawn as nothing */
+  /* folded by its band (`fold.button()`, `Fold.css`):  `until-found` keeps it findable, so drawn as nothing */
   [hidden="until-found"] {
     display: block;
     content-visibility: hidden;

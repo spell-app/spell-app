@@ -53,7 +53,7 @@ export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
    * anew when the settings change.
    * - Returns the undo, run before the next watch.
    */
-  @E.onChange("isReady", "isConnected", "once", "continuous", "offset", "type", "transition", "duration")
+  @E.onChange("isReady", "isConnected", "once", "continuous", "offset", "type", "animation", "duration")
   protected onWatchSettingsChanged(
     isReady: boolean,
     isConnected: boolean,
@@ -61,7 +61,8 @@ export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
     continuous: UIVisibility["continuous"],
     offset: UIVisibility["offset"],
     type: UIVisibility["type"],
-    transition: UIVisibility["transition"],
+    // followed so a change re-watches;  `animationToRun` below adds motion off around it
+    _animation: unknown,
     duration: UIVisibility["duration"]
   ): E.Disposer | undefined {
     if (!isReady || !isConnected) return undefined
@@ -70,7 +71,7 @@ export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
       continuous: !!continuous,
       offset: offset ?? 0,
       images: type === UIT.IMAGE,
-      transition,
+      animation: this.animationToRun,
       duration: duration ?? DEFAULT_DURATION
     })
   }
@@ -101,10 +102,11 @@ export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
   }
 
   /** Lazy-load every `<img data-src>` inside, now and as content changes;  returns the undo. */
-  private watchImages({ transition, duration, offset }: VisibilityConfig): E.Disposer {
+  private watchImages({ animation, duration, offset }: VisibilityConfig): E.Disposer {
     const stops = new Map<HTMLImageElement, E.Disposer>()
-    const options: E.LazyImageOptions = { transition: UIVisibility.animationFor(transition), duration, offset }
+    const options: E.LazyImageOptions = { transition: UIVisibility.animationFor(animation), duration, offset }
     this.lazyLoad(stops, options)
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while `images` is on and the element connected
     const observer = new MutationObserver(() => this.lazyLoad(stops, options))
     observer.observe(this.domElement, { childList: true, subtree: true, attributeFilter: [DATA_SRC] })
     return () => {
@@ -145,12 +147,12 @@ export class UIVisibility extends E.UIComponent<VisibilityVocabulary> {
   }
 
   /**
-   * `transition` as a `UI.transitions` name, `false` for `none` or an unknown name.
+   * The shared `animation` (Fomantic's name) as a `UI.transitions` name;  `false` for `none` or an attention one.
    * - STATIC:  pure.
    */
-  private static animationFor(transition: string | undefined): E.AnimationName | false {
-    const name = transition ?? FADE
-    return (E.AnimationNames as readonly string[]).includes(name) ? (name as E.AnimationName) : false
+  private static animationFor(animation: UIT.Animation): E.AnimationName | false {
+    if (animation === UIT.NO_ANIMATION || UIT.AnimationLookup.isAttention(animation)) return false
+    return UIT.AnimationLookup.runtimeNameFor(animation)
   }
 }
 
@@ -167,14 +169,11 @@ type VisibilityConfig = {
   offset: number
   /** `type="image"`:  lazy-load the images inside */
   images: boolean
-  /** a lazy image's fade, a `UI.transitions` name;  default `fade` */
-  transition: string | undefined
+  /** a lazy image's animation:  the element's `animationToRun` (`none` when motion is off) */
+  animation: UIT.Animation
   /** its ms */
   duration: number
 }
-
-/** Default lazy-image transition (Fomantic's `fade in`). */
-const FADE = "fade"
 
 /** Its default ms (Fomantic's 1000). */
 const DEFAULT_DURATION = 1000

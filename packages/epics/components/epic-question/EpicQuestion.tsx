@@ -12,13 +12,17 @@ import questionCSS from "./EpicQuestion.css?inline"
  * - The label looks like `<epic-item>`'s `Original question` eyebrow (small, grey, upper case):
  *   an item whose text starts with an `<epic-question>` draws no label of its own over it
  *   (`EpicItem.scanChildren()` counts it as one of its parts, not prose).
- * - The text is its light children, through the default slot:  find-in-page, `#id` links and the live update see
- *   them (Q12).  The tool finds a question's text by this tag, not by its place.
+ * - The text is its light children, through the default slot:
+ *   find-in-page, `#id` links and the live update see them (Q12).
+ * - The tool finds a question's text by this tag, not by its place.
  ****************/
 export class EpicQuestion extends E.UIComponent<typeof epicQuestionVocabulary> {
   @E.proto static vocabulary = epicQuestionVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-question": questionCSS }
+    styleSheets: { "epic-question": questionCSS },
+    // `disabled`:  only a look (the sheet dims it), so the text stays findable;  `loading`:  the shared spinner
+    disabled: "its own",
+    loading: "loader"
   } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {

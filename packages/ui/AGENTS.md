@@ -47,8 +47,8 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
 
 - [`../util/`](../util/):  `@spell-app/util` (`$/util`), shared with `spell`.
   - Its generic helpers:
-    - the decorators `@proto` / `@protoMerged` / `@lazy` / `@once` (`decorators.ts`);
-      component files say `@E.lazy`, `@E.once`, `E.forget()`
+    - the decorators `@proto` / `@protoMerged` / `@lazy` / `@once` / `@resets` (`decorators.ts`);
+      component files say `@E.lazy`, `@E.once`, `@E.resets`, `E.forget()`
     - `class.ts`, `string.ts` (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`
   - [`$/ui/util`](src/util/index.ts) re-exports it, so source keeps saying `from "$/ui/util"`.
     Its declarations ship in `dist/_util/`.
@@ -62,7 +62,7 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
   - the vocabulary schema, value sets
   - `Vocabulary`:  the registry, translated names, `replace()` for hot reload
   - `Converters`
-  - `SharedVocabulary`:  the attributes and states every component takes (`disabled`, `loading`, `visible`)
+  - `SharedVocabulary`:  the attributes and states every component takes (`disabled`, `loading`, `visible`, `animation`)
   - `SkeletonText` (skeleton text <=> `SkeletonSpec`) too, but reached by path, NOT through the barrel.
     - Why:  `core` re-exports the barrel, and no page parses skeleton text.
     - Node tools do:  [the root catalog](tools/RootCatalog.ts).
@@ -88,7 +88,7 @@ Two words for the two objects behind every tag (epic `wwod-spell-ui`, P15):
     - `Reactive`:  the reactive members' decorators, `@state`, `@controlled`, `@derived`, `@cssState`, `@onChange`
     - `FormComponent` + `DOMFormControl` (form controls), `Cell`, `SlotContent`
     - `PartContext` + `PartComponent`:  the generic content parts, styled by their owner
-    - `Controlled` (compatibility:  brand's components still use it), `IconGlyph`
+    - `IconGlyph`
     - `LoadableComponent` + `DOMLoadableElement`:  the base of the elements that show a text file
       (`source`, inline text, loading / error look, `save()`)
     - `LoadableBody` + `DOMLoadableBodyElement`:  a section's body, loaded from `source` the first time it opens
@@ -538,12 +538,14 @@ As WWOD §18, plus:
 ### Shared states
 
 SHARED STATES:  states every element takes, though its vocabulary never names them.
-- Ours:  `disabled`, `loading` and `visible`.  The platform's:  `hidden` and `inert`.
-- Documented on `UIComponent`, "Shared states" (epic `spell-element` P8).
+- Ours:  `disabled`, `loading`, `visible` and `animation`.
+- The platform's:  `hidden` and `inert`.
+  - `hidden` is just `visible` turned round.
+- Documented on `UIComponent`, "Shared states" and "Shown or hidden" (epic `spell-element` P8, P12).
 - `SharedVocabulary` adds them to its `ElementDefinition`, its docs data and its manifests.
 - NEVER declare them in a vocabulary just to get them.
-  - A vocabulary that declares one keeps its own spec and meaning:
-    `<ui-sidebar visible>` starts hidden, `<ui-reveal visible>` stops clipping.
+  - A vocabulary that declares one keeps its own spec and meaning.
+  - NONE may declare its own `visible` or `animation`:  shown and hidden would split into two facts.
 - `disabled`:  `:state(disabled)` always (`isMarkedDisabled`:  the attribute, or a disabled fieldset).
   The rest is `elementSetup.disabled`:
   - `"unusable"`, the default:  `isDisabled`, so:
@@ -551,23 +553,46 @@ SHARED STATES:  states every element takes, though its vocabulary never names th
     - everything inside is inert and dimmed
     - focus inside moves on (`UI.focus.moveOutOf()`)
   - or `"its own"`:  the family's code says what it means.
+    - For where it means more than a look, or where inert would hide text (P11, T9).
     - A form control, `<ui-button>`, `<ui-step>`:  disable their own control, and override `isDisabled`.
-    - `<ui-icon>`, `<ui-segment>`:  only dim.
+    - `<ui-icon>`, `<ui-text>`:  only dim, so their text stays findable.
     - `<ui-transition>`:  pauses.
+  - A family that is only a Fomantic look stays unusable, the default.
+    - E.g. `<ui-segment>`, `<ui-label>`, `<ui-section>` ...
 - `loading`:  `:state(loading)` always (`isMarkedLoading`, `true` only).
   The rest is `elementSetup.loading`:
   - `"loader"`, the default:  `aria-busy`, everything inside inert and dimmed, a spinner over it, `:state(busy)`
   - or `"its own"`:  `<ui-button>`'s spinner, `<ui-segment>`'s veil, `<ui-root>`'s message
-- `visible="false"`:  animates the element out, then `:state(hidden)`.
-  - The animation:  `elementSetup.visibleAnimation`, by default `"fade"`.
-    It runs through `UI.transitions`, on the shadow root's boxes.
-  - `visible` / `="true"` animates it back.
+- ONE shared inert covers `disabled` and `loading` at once (`hasInertContent`).
+  - It clears only the boxes IT made inert:  a family's own (`<ui-form loading>`'s veil) stays (I10).
+- `visible` and `hidden`:  ONE fact, two names.
+  - Documented on `DOMElement`, "Shown or hidden".
+  - `el.visible === !el.hidden`.
+    Writing either one, as an attribute or a property, sets it.
+  - The `hidden` attribute holds it.
+    `visible` is written back only where the page wrote one.
+  - Neither written:  `elementSetup.visible` says.
+    It's shown by default;  `"hidden"` hides it on the first connect.
+  - Both written in markup, and they disagree:  `hidden` wins.
+    After that, the latest write wins.
+  - The component's `isVisible` follows it (controlled, `visible`).
+  - Each change runs the hook `onVisibleChange(visible, animation)`:
+    - by default, the animation, on the shadow root's top-level boxes
+      (a box the family hides itself is left alone)
+    - a family overrides it to show and hide its own way
+  - While a hide runs, `:state(hiding)` keeps it on screen (`reset.css`).
+  - Once the hide is done:  `:state(hidden)`.
   - At once, before it first draws.
-  - `el.visible = false` reflects as `visible="false"` (a `true` default).
-- `hidden`:  instant, before scripts and in the static render.
-  - `reset.css` makes it beat a family's own `:host { display }` (unlayered).
-    Both set:  `hidden` wins.
-  - `<ui-divider hidden>` keeps Fomantic's meaning.
+  - `hidden="until-found"` stays the browser's.
+  - Renamed, since their old meaning clashed:  `<ui-divider spacer>`, `<ui-reveal unclipped>`.
+- `animation`:  Fomantic's names, or `none`.
+  - `animationToRun` is the first that applies:
+    - motion off:  its own `none`, `--ui-motion: none` from around it, or reduced motion
+    - its own value
+    - `elementSetup.animation`, by default `"fade"`
+  - `none` turns motion off for it and everything inside it.
+    - It sets `--ui-motion: none`, and `:state(still)`.
+    - That also stills the families' CSS motion (a style query).
 - `inert`:  the platform's, left UNSTYLED.
   - Families set it on boxes with a look of their own (`<ui-form loading>`'s veil),
     and overlays on what they cover (`<ui-pushable>` on its pusher).
@@ -575,7 +600,8 @@ SHARED STATES:  states every element takes, though its vocabulary never names th
 - The base class's look is in `reset.css`, which every shadow root adopts:
   - the dim keys on `:state(dimmed)`:  `disabled` or `loading` the base class's way, on the shadow root's top-level boxes
   - the spinner on `:state(busy)`
-  - the hiding on `[hidden]` / `:state(hidden)`
+  - the hiding on `[hidden]`:  unlayered, so it beats a family's own display rule
+    - No family sheet writes its own `:host([hidden])`.
   - The static render maps them through `data-state` and ARIA (`StaticStylesheet`'s unlayered `HIDDEN`).
 
 ### Reactive members
@@ -590,11 +616,15 @@ decorators over ONE record per instance.
 - `@E.state accessor isOpen = false`:  the element's own state.
   - `{ equals }`, `{ ownedWrite }` when needed.
   - Replaces a `Cell` field and its `.get()` / `.set()`.
+  - A value that CHANGES after it's made is `@E.state`, even where nothing reactive reads it yet.
+    The decorator says the intent (`ThemePreference`'s in-memory look, `RootSettings.generation`).
+  - A value made once and kept:  `@E.lazy get x()`, or `@E.once` on a method (a loader's promise).
+  - Handles to things the class started (a timer, an observer, an abort controller) stay plain fields:
+    nobody should watch them (`UIDocsToc.queuedUpdate`, `ControlLabels.labelObserver`).
 - `@E.controlled("open") accessor isOpen = false`:  the DOM element's property when set, else the starting value.
   - A write goes to the DOM element's property.
   - A user change:  `this.requestChange("isOpen", next, () => this.send(...))`.
     And `isControlledByPage("isOpen")`.
-  - Replaces `this.controlled()` and `Controlled.request()`.
 - Attributes:  a getter per vocabulary attribute, `this.size` (converted, fresh), made by `register()`.
   - The class declares them for TypeScript, below the class:
     `export interface UIButton extends E.AttributeValues<typeof buttonVocabulary> {}`.
@@ -603,7 +633,7 @@ decorators over ONE record per instance.
   - A member with an attribute's name wins over its getter (and TypeScript flags a type clash).
     - So name members for what they are:  `isOpen`, not `open`.
     - A BASE class never takes a name any vocabulary uses
-      (`elementDefinition`, `validationRules`:  `UIComponent`'s doc, "Member names").
+      (`elementDefinition`, `validationRules`:  `UIComponent`'s doc, "Base classes").
   - Attributes outside the vocabulary, or a vocabulary attribute's raw text:
     `this.attributes["aria-label"]`, `this.attributes.value`.
     - The DOM string or `null`, by CANONICAL name (a translated tag reads its own).
@@ -627,29 +657,37 @@ decorators over ONE record per instance.
 - `@E.cssState("open")` on a getter or accessor:  `:state(open)` follows it.
   - `cssStates()` only for a computed set.
   - Replaces the old `hostStates()`.
-  - A state that only mirrors its attribute, under the same name:  `@E.cssStates("loading", "fluid")` on the CLASS, no getter.
-    TypeScript flags a name the class has no member for.
+  - A state that only mirrors its attribute, under the same name:
+    its name in `elementSetup.cssStates` (`cssStates: ["active", "fluid"]`), no getter.
+    - A subclass that adds states spreads its base's list:
+      `cssStates: [...TextControl.prototype.elementSetup.cssStates, "inline"]`.
+    - `define()` throws on a name the tag has no attribute or member for (a typo).
+    - Not the `cssStates()` hook, despite the name:  the hook works out a set in code.
   - Keep a getter (with `@E.cssState`) when something else reads it.
     - `isDisabled`, a base class's hook (`CheckControl.isIndeterminate`), an effect
   - For a state two classes of the chain name, the subclass's member wins.
-- `@E.aria("ariaBusy")` on a getter or accessor:  the DOM element's `internals.ariaBusy` follows it.
+    For one that a member and `elementSetup.cssStates` both name, the member wins.
+- `@E.aria("busy")` on a getter or accessor:  the DOM element's `internals.ariaBusy` follows it.
   - `true` => `"true"`;  `false` / `undefined` => removed;  text as is.
-  - `@E.aria("role")`, `@E.aria("ariaLabel")` ...
+  - `@E.aria("role")`, `@E.aria("label")` ...
+  - Short names, one spelling wherever ARIA is written.
+    - `E.AriaNames` lists the ones in use (`busy: "ariaBusy"`, for `aria-busy`).
+    - A name not there fails TypeScript, so add it there (one line).
   - It stacks with `@E.cssState`, a decorator a line:
 
     ```ts
     @E.cssState("loading")
-    @E.aria("ariaBusy")
+    @E.aria("busy")
     get isLoading() { ... }
     ```
 
   - One effect per element writes them all;  a server render applies it once.
   - The subclass's member wins here too.
   - ARIA that never changes:  `elementSetup.aria`, set once as the component is built, no effect.
-    - `{ role: "listitem" }`, `{ role: "status", ariaLive: "polite" }`
+    - `{ role: "listitem" }`, `{ role: "status", live: "polite" }`:  the same short names
     - An `@E.aria` member for the same property wins, once it runs.
 
-#### Effects:  `@E.onChange`, `@E.whileConnected`, `@E.fromContent`
+#### Effects:  `@E.onChange`, `@E.whileConnected`, `@E.watches`
 
 - `@E.onChange("a", "b") onXChanged(a, b)`:  an effect reading the members, calling the method with their values.
   - A function it returns is the cleanup.
@@ -658,19 +696,27 @@ decorators over ONE record per instance.
   - Created in `onMount()`, after every field exists.
   - The method runs untracked:  only the members it names re-run it,
     so its other reads need no `untrack()`.
+    - To re-run on another member, name it:  there is no tracked mode.
   - Runs only when a member's VALUE changed (`===`, member by member).
     - Why:  a getter member tracks the sources under it,
       and Solid 2 applies an effect on every re-run of its compute.
     - So `startEffects()` puts a memo with `equals` in between.
   - An effect that used to live in `render()` names `isReady` too, and returns early until it's true,
-    keeping that timing (`UIShape`, `UISidebar`).
+    keeping that timing (`UIShape`, `UISidebar`, `UISection`).
+  - `{ defer: true }`:  the method isn't called at the start, only on a change.
+    - E.g. `<ui-progress>`'s `ui-change`.
+  - A page-wide value, or one an attribute alias holds:  a getter member over it, named in the list.
+    - E.g. `UIEmoji.rootSettingsGeneration`, `CheckControl.checkedAttribute`.
+    - `protected`, as `@E.on` methods are.
+  - A method may read the members itself, instead of taking their values (`UIMarkdown.onMarkdownChanged()`).
   - Conditional, per-item or object-building effects stay explicit `createEffect`s in `onMount()`.
+    - Each with its disable comment ("The lint guard", below).
 - `@E.whileConnected watchX()`:  runs each time the element connects.
   - A function it returns is the cleanup, run when it disconnects.
   - Sugar over `@E.onChange("isConnected")`, for a listener or observer
     on `window`, the document or the light DOM that must stop while the element is out of the page.
   - Never on a server.
-- `@E.fromContent({ childList: true, subtree: true }) get slotted()`:
+- `@E.watches({ childList: true, subtree: true }) get slotted()`:
   a member read from the DOM element's light DOM, recomputed when what the options name changes.
   - The options:  `MutationObserver`'s `childList`, `subtree`, `characterData`, `attributes`, `attributeFilter`;
     and `equals`, as `@E.derived`'s.
@@ -706,15 +752,24 @@ decorators over ONE record per instance.
   - It reads `this.x` plainly, where it used to read `untrack(() => this.x)`.
   - Also on an arrow-function field handed to JSX:
     `@E.untracked private readonly onKeyDown = (event: KeyboardEvent) => { ... }`.
+  - Also on a getter read to act on, never to follow:  `@E.untracked private get cssDuration()`.
+  - And on a DOM element's script API over its component:
+    `@E.untracked get errors() { return this.component?.errors ?? [] }`.
   - NEVER on a method a computation calls to follow its reads:  a getter's helper, JSX, an effect's first function.
     E.g. `UIMenu.itemContext()` stays half-tracked on purpose.
   - `@E.on` and `@E.onChange` methods need none.
+  - Nor do the constructor, field initializers and `render()`'s body:
+    - every component is BUILT inside `untrack()` (`UIComponent.mount()`, the static render)
+    - and `render()` runs once, untracked (`UIComponent.onMount()`)
 
 #### And
 
-- A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `elementSetup.disabled = "its own"`.
-  - `:state(disabled)` comes from `UIComponent` ("Shared states" above), so no `@E.cssStates("disabled")`.
-  - ARIA of its own, if any, on a getter:  `<ui-segment>`'s `@E.aria("ariaDisabled") get looksDisabled()`.
+- A `disabled` that is only a LOOK:  the default, `"unusable"`.
+  - Unless inert would hide text a reader needs:
+    then `elementSetup.disabled = "its own"`, and the sheet dims it.
+    - E.g. `<ui-icon>`, `<ui-text>`, `<epic-note>` ...
+  - `:state(disabled)` comes from `UIComponent` ("Shared states" above), so no `"disabled"` in `elementSetup.cssStates`.
+  - ARIA of its own, if any, on a getter:  `@E.aria("disabled") get looksDisabled()`.
   - Never an `isDisabled` override:  the DOM element swallows clicks while `isDisabled`.
 - Element-core files import the decorators directly (`import { state } from "./Reactive"`):
   their class definitions read them.
@@ -841,6 +896,33 @@ Components, DOM element classes AND `UI<Name>.fallback.ts` import:
     - `@E.onChange(..., { writesDOMElement: true })` (states, `tabindex` ...)
     - Why:  the server build never runs an apply, so a plain `createEffect` leaves the static output without it.
   - Constant ARIA:  `elementSetup.aria`.
+
+### The lint guard
+
+THE LINT GUARD (epic `spell-element` P10):  `yarn lint` holds component files to the rules above.
+- Its rules are named `spell-ui/*`.
+- Where:  the component folders, as `PATTERN_FOLDERS` in [the root lint settings](../../vite.lint.ts) lists them.
+  - `ui`:  `src/components/`, `src/docs-components/`
+  - `epics`:  `components/`
+  - `brand`:  `components/`
+  - NOT `app` (WWOD §17's function components), NOT the element core (`src/elements/`), NOT tests.
+- What it flags ([the rules](../../vite.lint.patterns.ts)).
+  Each message names the decorator or helper to use instead.
+  - `no-solid-effect`:  `createEffect`, `createRenderEffect`, `onSettled`, `onMount` imported from `solid-js`
+  - `no-mutation-observer`:  `new MutationObserver(...)`
+  - `no-dom-element-listener`:  `addEventListener` on `this.domElement`, or on a `domElement` local
+  - `no-untrack`:  `untrack(...)`
+  - `no-raw-timer`:  `setTimeout`, `setInterval`, `queueMicrotask`, `requestAnimationFrame`
+  - `no-function-component`:  an exported PascalCase function drawing JSX
+- A use that has to stay says why, on the line above.
+  The same rule for every package:
+
+  ```ts
+  // oxlint-disable-next-line spell-ui/no-mutation-observer -- watches its PARENT, another element
+  ```
+
+  - It also goes on the allow-list in [the lint patterns test](tools/LintPatterns.test.ts), with the same reason.
+  - The test fails on a disable comment the list doesn't name, so every exception is seen in review.
 
 ## Component packs
 
@@ -1014,24 +1096,29 @@ As WWOD §12, plus:
     superseding "`@proto static` defaults at the TOP".
   - A subclass that only SETS settings (`@proto static vocabulary = ...`) still lists them first, before its members.
 - Per-class settings of the custom element itself are keys of ONE setting, `elementSetup` (type `ElementSetup`).
-  - MERGED down the class chain, base class first, by `@protoMerged` (`$/util`, as `E.protoMerged`).
-  - Its keys:  style sheets, form control, focus, slots, part, DOM element class, fallback, unstyled first paint,
-    constant ARIA, and what the shared `disabled`, `loading` and `visible` do for it.
+  - Inherited key by key down the class chain, by `@protoMerged` (`$/util`, as `E.protoMerged`).
+  - Its keys:
+    - style sheets, the `:state()`s that mirror an attribute
+    - form control, focus, slots, part, DOM element class, fallback, unstyled first paint, constant ARIA
+    - what each shared state does for it ("Shared states", above)
   - A subclass states only the keys it changes:
 
     ```ts
     @E.protoMerged static elementSetup = { styleSheets: { nag: nagCSS }, DOMElement: DOMNagElement } satisfies Partial<E.ElementSetup>
     ```
 
-  - `this.elementSetup` (`Class.prototype.elementSetup` from outside) is the merged result.
-    The static `Class.elementSetup` is only what that class stated.
+  - Each class's object is chained to its base class's (its prototype):  a key it doesn't state is read from there.
+    - ONE object per class, so `Class.elementSetup` and `Class.prototype.elementSetup` are the same.
+    - Read keys by name (`this.elementSetup.styleSheets`).
+      A spread or `Object.keys()` of the whole object sees only its own class's keys.
   - A base class that others extend types its own as `Partial<E.ElementSetup>`:
     otherwise a subclass stating other keys fails TypeScript's check of the class's static side.
-  - Every other class ends its literal with `satisfies Partial<E.ElementSetup>` (brand:  `Partial<ElementSetup>`).
+  - Every other class ends its literal with `satisfies Partial<E.ElementSetup>`.
     A misspelt key fails TypeScript, where an untyped literal would take it silently.
-  - Keys merge one level deep:  a subclass's `styleSheets` REPLACE its base's whole.
+  - Only the top level is chained:  a subclass's `styleSheets` REPLACE its base's whole.
     Spread the base's to add to them:
     `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
+    - The same goes for `cssStates` and `aria`.
 - `vocabulary` stays a setting of its own.
 - Developer / debug switches (ALL-CAPS statics:  `UIComponent.ISOLATE_ERRORS`) stay at the top.
 - Other statics go after the main methods.  Constants go below the class (next bullet).

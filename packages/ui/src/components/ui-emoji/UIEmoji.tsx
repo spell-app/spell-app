@@ -1,4 +1,3 @@
-import { createEffect, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -36,29 +35,26 @@ export class UIEmoji extends E.UIComponent<typeof emojiVocabulary> {
   } satisfies Partial<E.ElementSetup>
 
   /** The glyph, `undefined` while loading or for an unknown name. */
-  @E.state accessor emoji: string | undefined = untrack(() =>
-    EmojiData.peek(this.name, EmojiData.setFor(this.domElement))
-  )
+  @E.state accessor emoji: string | undefined = EmojiData.peek(this.name, EmojiData.setFor(this.domElement))
 
   /** Request counter, so a slower earlier load can't win. */
   private latestRequest = 0
 
   /**
-   * Loads the emoji again when connected (it may have moved under another root) and when any root's settings change.
-   * - An explicit effect, not `@E.onChange`:  it also follows a page-wide signal (`RootSettings.generation`).
+   * Loads the emoji for `name`, and again when connected (it may have moved under another root)
+   * and when any root's settings change (`rootSettingsGeneration`).
    */
-  constructor(...args: ConstructorParameters<typeof E.UIComponent>) {
-    super(...args)
-    createEffect(
-      () => ({
-        name: this.name,
-        connected: this.isConnected,
-        generation: E.RootSettings.generation
-      }),
-      ({ name, connected }) => {
-        if (connected || !this.latestRequest) void this.load(name)
-      }
-    )
+  @E.onChange("name", "isConnected", "rootSettingsGeneration")
+  protected onNameChanged(name: string | undefined, isConnected: boolean) {
+    if (isConnected || !this.latestRequest) void this.load(name)
+  }
+
+  /**
+   * Bumped whenever any `<ui-root>`'s settings change (page-wide):  a member, so `@E.onChange` can follow it.
+   * - `protected`, not `private`:  only `@E.onChange` reads it, by name, and TypeScript calls a private one unused.
+   */
+  protected get rootSettingsGeneration(): number {
+    return E.RootSettings.generation
   }
 
   /**

@@ -21,16 +21,15 @@ import commentCSS from "./UIComment.css?inline"
  *
  * - In a `<ui-comments>` (`PartContext`, noun `comment`):  `:state(in-comments)`.
  *
- * - `disabled`:  `aria-disabled` on the article, which assistive tech (and axe) apply to what's inside.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, the article inert, `aria-disabled`.
  ****************/
-@E.cssStates("collapsed")
 export class UIComment extends E.UIComponent<typeof commentVocabulary> {
   @E.proto static vocabulary = commentVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { comment: commentCSS },
-    delegatesFocus: false,
-    // `disabled`:  `aria-disabled` on its box, and a look
-    disabled: "its own"
+    cssStates: ["collapsed"],
+    delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
   /** Its comment list, if any. */
@@ -39,19 +38,9 @@ export class UIComment extends E.UIComponent<typeof commentVocabulary> {
   /** Light-DOM slot occupancy. */
   readonly slots = new E.SlotContent(this.domElement)
 
-  /** Faded and inert:  its `disabled` attribute. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled
-  }
-
   render(): JSX.Element {
     return (
-      <article
-        class={this.rootClass}
-        part={this.partForName("comment")}
-        aria-disabled={this.disabled ? "true" : undefined}
-      >
+      <article class={this.rootClass} part={this.partForName("comment")}>
         <slot />
         <Show when={this.slots.hasContent(this.slotForName("reply"))}>
           <div class={REPLY} part={this.partForName("reply")}>

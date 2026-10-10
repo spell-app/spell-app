@@ -15,7 +15,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `@protoMerged`:  for a settings object whose keys merge down the class chain
     - `@lazy`:  a getter made on first read, then kept
     - `@once`:  a method run once, its result kept (e.g. a loader's promise)
-    - `forget(object, "name")`, for a `reset()`
+    - `forget(object, "name")`:  drops what either of those two kept, for a `reset()`
+    - `@resets("name")`, on an accessor:  each write to it drops that kept value too
+      - e.g. `@E.resets("load") static accessor url`
   - `class.ts` -- `hasOwnProp` ...
   - `string.ts` -- case conversion, `numberToWord`, `suggest`
   - `dom.ts` -- shadow-aware traversal, `NodeType`, `byDocumentOrder`, `isBrowser`, `nextFrame`
@@ -45,7 +47,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - `Observable` / `Derivative` / `Loadable`, `Task` / `TaskList`
   - `$fetch`, `Logger`, prefs, `assert` / `die`
   - DOM helpers
-  - The bottom of the spell chain:  every spell-family package may import it, and it imports nothing above it.
+- The bottom of the spell chain:  every spell-family package may import it, and it imports nothing above it.
   - Formerly the package `spell-util`.
   - A sub-folder, not loose files:
     - `string.ts` / `DOM.ts` would clash with the generic `string.ts` / `dom.ts` (macOS is case-insensitive)
@@ -54,7 +56,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - `ui` bundles none of them:  `yarn measure` and `yarn smoke` (declarations) prove it.
 - Files in `src/spell/` import the generic helpers by deep path (`$/util/class`).
   - NEVER the `$/util` barrel:  it re-exports this folder, so that's a cycle.
-- NOTE: [ResponseErrors.ts](src/spell/ResponseErrors.ts) is deliberately NOT in [the folder's barrel](src/spell/index.ts) -- see its header.
+- NOTE: [ResponseErrors.ts](src/spell/ResponseErrors.ts) is deliberately NOT in [the folder's barrel](src/spell/index.ts)
+  -- see its header.
 - Spell's layer of reactivity:  `Observable`, and [spellDecorators.ts](src/spell/spellDecorators.ts) (`@thing`).
   - The engine under it is `src/reactive/` (below).
 - Tests:

@@ -469,6 +469,23 @@ describe("<ui-brand-color-picker> form and states", () => {
     expect(new FormData(form).get("base")).toBe("#8E96B5")
   })
 
+  it("`required`:  fails while no `value` was set, though it shows the default;  met once a colour is picked", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(
+      `<form><ui-brand-color-picker name="base" required></ui-brand-color-picker></form>`
+    )
+    const host = form.querySelector<PickerHost>("ui-brand-color-picker")!
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(false)
+    // the default is still what a submit would send
+    expect(new FormData(form).get("base")).toBe("#8E96B5")
+    type(part<HTMLInputElement>(host, "rgb"), "#14A39A")
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(true)
+    form.reset()
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(false)
+  })
+
   it("slots:  `header` and `actions` in the head row;  the default slot under the rows", async () => {
     const host = await picker(`<ui-brand-color-picker>
       <b slot="header">Choose a colour</b><button slot="actions" aria-label="Done">x</button><p>families</p>
@@ -491,6 +508,27 @@ describe("<ui-brand-color-picker> form and states", () => {
     await ElementFixture.tick()
     expect(host.value).toBe("#8E96B5")
     expect(fired).toEqual([])
+  })
+
+  it("readonly:  `:state(readonly)`;  the square, keys, hue slider and fields change nothing;  copying works", async () => {
+    const host = await picker(`<ui-brand-color-picker value="#8E96B5" readonly></ui-brand-color-picker>`)
+    const fired = record(host)
+    const hue = part<HTMLInputElement>(host, "hue")
+    const hueBefore = hue.value
+    pointer(host, "pointerdown", 0.1, 0.9)
+    key(axes(host)[0], "ArrowRight")
+    hue.value = "10"
+    hue.dispatchEvent(new Event("input", { bubbles: true }))
+    await ElementFixture.tick()
+    expect({
+      state: host.matches(":state(readonly)"),
+      fields: hslField(host, 0).readOnly,
+      hueAria: hue.getAttribute("aria-readonly"),
+      hue: hue.value,
+      value: host.value,
+      fired
+    }).toEqual({ state: true, fields: true, hueAria: "true", hue: hueBefore, value: "#8E96B5", fired: [] })
+    expect(copyButton(host, 1).disabled).toBe(false)
   })
 
   it("falls back to the browser's colour input when its render breaks, still a form control", async () => {

@@ -58,13 +58,18 @@ when working with code in this package, `@spell-app/app`.
     - `yarn build:element`:  `dist-element/`, `<spell-app>` and `<spell-editor>`, and their pack, `spell.pack.js`
   - ONE Solid per page, across those bundles.
     - `vite.solid.config.ts` builds FIRST, into each folder:
-      - `spell-solid.js`:  Solid + `ui`'s element core, `$/ui/core`, + `@solidjs/h`, which compiled spell draws with
+      - `spell-solid.js`:  Solid, `ui`'s element core (`$/ui/core`) and its root family,
+        and `@solidjs/h`, which compiled spell draws with
+        - icon packs beside it
       - `spell-ui.js`:  `$/ui`, lazy
-        - its chunks in `ui/`, icon packs beside it
+        - its chunks in `ui/`
         - it also puts `registerPack` on `globalThis.SpellUI`
     - The element / editor / runner builds import them through `sharedSolid()` (`vite.shared.ts`),
       never bundling their own.
-    - `spell-runtime.js` imports `spell-solid.js` (compiled spell draws with it), never `spell-ui.js`.
+    - They take Solid and the core through `spell-solid-shared.js`:
+      - the page's own, when it has them (a docs page's `SpellUI.packModules`)
+      - else `spell-solid.js`
+    - `spell-runtime.js` takes Solid and `h` through it too (compiled spell draws with Solid), never `spell-ui.js`.
     - Pinned by `element.build.test.ts`.
   - `spell dev vscode` is NOT here:  it's the repo root's.
   - `yarn start:lsp` and `yarn scopes` are in `../lsp`.
@@ -97,8 +102,8 @@ when working with code in this package, `@spell-app/app`.
   - Solid (P7), on `@spell-app/ui`.
     - The runners import the Solid panes' FILES, never the `$/app/solid` barrel (it pulls in the editor).
       - e.g. `$/app/solid/ThingExplorer`, `.../ConsoleLines`, `.../loadUI`
-    - `<spell-app>` wraps its shadow root in `<ui-root icons="fomantic">`;
-      VS Code's webview HTML wraps its `#runner-root`.
+    - `<spell-app>` is a root itself (`icons` default to `fomantic`).
+    - VS Code's webview HTML wraps its `#runner-root` in `<ui-root icons="fomantic">`.
   - The PROGRAM draws with the page's Solid too:  `App.start()` mounts its own root (`spellCore.mountApp()`).
     - A runner hands it `appRoot`, a `<div>` drawn once and never touched again.
     - Semantic UI's CSS stays wherever programs draw.
@@ -122,18 +127,28 @@ when working with code in this package, `@spell-app/app`.
   - `components/<tag>/` holds:
     - `<Name>.en.ts`:  the vocabulary
     - `<Name>.tsx`:  the DOM element class with its script API (`DOMSpellAppElement`),
-      then the component, on `E.UIComponent`
+      then the component, on `E.UIComponent` (or `UIRoot`, for `<spell-app>`)
     - `index.ts`:  defines the tag;  also the bundle's entry
   - `$/app/components/<tag>` imports one.
+  - `<spell-app>` is a ROOT (`SpellApp extends UIRoot`, J37):  a page needs nothing around it.
+    - It loads each Spell UI family the runner draws, the first time one appears (in its shadow root too).
+    - It never loads all of `$/ui`:  `loadUI.ts` is the editor app's and VS Code's, not its.
+    - A spell tag inside it loads from beside its script (`spell-editor` => `spell-editor.js`).
+      So a page with only `<spell-app>`s never downloads the editor.
+    - It takes a root's attributes, like its timeout, theme and size.
+    - By default its icons are Fomantic's, and its `display` is `immediately`.
+    - Inside another root (a docs page, the editor demo), it's a nested root.
   - A page loads them either way:
     - by itself:  `<script type="module" src="/element/spell-app.js">` (or `spell-editor.js`)
     - under a `<ui-root>` (`spell-ui.js` loaded):  `<ui-components source="/element/spell.pack.js">`
+      - e.g. the editor demo:  its editors sit beside the apps, outside any `<spell-app>`
   - The pack is NOT `spell dev pack build`'s one classic script.
     - `vite.element.config.ts` (`componentPack()`) writes a classic `spell.pack.js`.
     - Its `define()` imports the two ES modules beside it.
     - They need lazy chunks (Monaco, the parser), and `spell-runtime.js` per app.
-    - So it works only where Solid and Spell UI are `dist-element/`'s own.
-      Never on a docs page:  its bundle brings another Solid.
+  - On a docs page (with Spell UI of its own), both take Solid and Spell UI's core from the page.
+    - That's `SpellUI.packModules`, through `spell-solid-shared.js`.
+    - Never a second copy (T3).
   - Leaving the page releases each (`domElement.dispose()`) a microtask later.
     A move in one go keeps it.
 - `src/spellEditor/` is `<spell-editor>`'s pane:  the app's Monaco editor, as a web component.

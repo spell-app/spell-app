@@ -64,9 +64,6 @@
   :host {
     display: contents;
   }
-  :host([hidden]) {
-    display: none;
-  }
 
   /* Tokens:  a private alias per `breadcrumb.variables` entry that still matters;  sections inherit them. */
   .ui.breadcrumb {

@@ -109,8 +109,8 @@ export function Spring(props: UIElementAttributes) {
 /****************
  * ### `<MoreMenu>`
  * A "..." dropdown of actions:  a `<ui-dropdown>` whose trigger is just `icon`, holding `<Action>` items.
- * - Choosing an item CLICKS it, so an `<Action>`'s `onClick` runs whether it's in a menu or here;  the dropdown
- *   keeps no value (`ui-change` resets it), so the trigger stays the icon.
+ * - Choosing an item CLICKS it, so an `<Action>`'s `onClick` runs whether it's in a menu or here.
+ * - The dropdown keeps no value (`ui-change` resets it), so the trigger stays the icon.
  * - Items are found by `value`, else text:  give same-titled items distinct `value`s.
  * - `stub`:  a disabled placeholder item with the icon instead, e.g. while the real menu isn't built yet.
  * - `item` (default `true`):  wrapped in a `<ui-item>`, to sit in a menu.
@@ -157,8 +157,8 @@ export type MoreMenuProps = UIElementAttributes & {
 
 /**
  * A `<MoreMenu>`'s `ui-change`:  click the item chosen, and clear the value.
- * - SIDE EFFECT:  sets the dropdown's `value` DURING the event, so the dropdown keeps ours (`""`):  the host decides
- *   (`Controlled`, `packages/ui/src/elements/Controlled.ts`).
+ * - SIDE EFFECT:  sets the dropdown's `value` DURING the event, so the dropdown keeps ours (`""`):
+ *   the host decides (`requestChange()` on a `@controlled` member, `packages/ui/src/elements/Reactive.ts`).
  */
 function choose(event: CustomEvent<{ value: string }>) {
   const dropdown = event.currentTarget as HTMLElement & { value?: unknown }

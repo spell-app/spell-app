@@ -1,3 +1,4 @@
+// oxlint-disable-next-line spell-ui/no-solid-effect -- the class mirror's RENDER effect:  a throw must reach the error net
 import { For, Show, createRenderEffect } from "solid-js"
 import { Portal, isServer, type JSX } from "@solidjs/web"
 
@@ -143,7 +144,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   ////////////////
 
   /** First author `<table>` child (never the generated one);  follows the DOM element's children. */
-  @E.fromContent({ childList: true })
+  @E.watches({ childList: true })
   get authorTable(): HTMLTableElement | undefined {
     return this.scanAuthorTable()
   }
@@ -180,6 +181,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
   @E.onChange("managedTable")
   protected onManagedTableChanged(table: HTMLTableElement | undefined): (() => void) | undefined {
     if (!table) return undefined
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- watches the managed TABLE, swapped with it
     const observer = new MutationObserver(() => this.tableRevision++)
     observer.observe(table, { childList: true, subtree: true, characterData: true })
     return () => observer.disconnect()

@@ -174,6 +174,7 @@ export class UIDocsToc extends E.UIComponent<DocsTocVocabulary> {
   protected watch(): () => void {
     const document = this.domElement.ownerDocument
     const view = document.defaultView!
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- watches the FOLLOWED content, another element
     const observer = new MutationObserver(() => this.schedule("rescan"))
     // components drawing (or a pane switching) move the headings without a scroll
     const resized = new ResizeObserver(() => this.schedule("follow"))

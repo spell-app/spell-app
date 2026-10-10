@@ -1,5 +1,5 @@
-import { Show, createEffect } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { Show } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
@@ -14,12 +14,12 @@ import fieldCSS from "./EpicField.css?inline"
 
 /****************
  * ### `EpicField`
- * The component behind `<epic-field>`:  one named field of a phase (Symptom, Changes, Goal ...) --
- * its icon in a column, centred on the first line, then its bold label (`Symptom:`) and its prose,
- * wrapping beside the icon.
+ * The component behind `<epic-field>`:  one named field of a phase (Symptom, Changes, Goal ...).
+ * - its icon in a column, centred on the first line
+ * - then its bold label (`Symptom:`) and its prose, wrapping beside the icon
  * - A labelled block in prose (`label`, no `name`:  `Where:`, P14):  the bold label and its prose, no icon column.
- * - Files and Verify are hidden until the Phases title's toggles show them (`--epic-files-display` /
- *   `--epic-verify-display`, inherited from the Phases section).
+ * - Files and Verify are hidden until the Phases title's toggles show them
+ *   (`--epic-files-display` / `--epic-verify-display`, inherited from the Phases section).
  * - To review:  each `#link` shows as a chip in its item's state colour.
  *   SIDE EFFECT:  writes `data-spell-state` on those links (light DOM), as today's runtime did,
  *   again whenever the page's layout changes.
@@ -41,21 +41,16 @@ export class EpicField extends E.UIComponent<typeof epicFieldVocabulary> {
     return this.isConnected ? this.domElement.closest(EpicPage.TAG) : null
   }
 
-  /** To review:  colour its links by their items' states, again as the page changes. */
-  onMount(): JSX.Element {
-    if (isServer) return super.onMount()
-    createEffect(
-      () => {
-        // the layout count, so every change re-runs the apply;  -1:  nothing to colour
-        const page = this.page
-        const layout = page ? EpicPage.signalsOf(page).layout.get() : 0
-        return this.name === TO_REVIEW && this.isConnected ? layout : -1
-      },
-      (layout) => {
-        if (layout >= 0) this.colourLinks()
-      }
-    )
-    return super.onMount()
+  /** The page's layout counter:  bumped when sections come or go, or a phase changes (`EpicPage`). */
+  get layout(): number {
+    const page = this.page
+    return page ? EpicPage.signalsOf(page).layout.get() : 0
+  }
+
+  /** To review:  colour its links by their items' states, again as the page changes (`layout`). */
+  @E.onChange("name", "isConnected", "layout")
+  protected onLayoutChanged(name: string | undefined, connected: boolean) {
+    if (name === TO_REVIEW && connected) this.colourLinks()
   }
 
   /** A labelled block in prose (`label`, no `name`):  its label alone, no icon (P14). */

@@ -16,18 +16,20 @@
  *   - `vertical attached` actions wrap the toast and their box in `<div class="vertical attached [compact]">`
  *   - `attached` (bottom) actions, then `progress="bottom"`
  * - Colours:  `type` (`info success warning error`) and `color` (hues) are remaps (`colors.css`);
- *   one rule fills the toast with `--ui-color` and its contrast-picked `--ui-color-on`.  `neutral` (the default) is the
- *   page surface.  `inverted`:  a plain toast turns dark, a coloured one takes the hue's inverted variant.
- * - Slotted actions:  `<ui-button>`s (or a `<ui-buttons>` group for `attached` layouts, whose own sheet joins
- *   them);  this sheet only places them.
- * - Public tokens (`--ui-toast-*`, the theming surface) are NEVER declared here:  the box's token block reads each
- *   through a private alias, `--_ui-toast-radius: var(--ui-toast-radius, var(--ui-radius))`, and every rule reads
- *   the alias.  So a value set on `:root`, an ancestor, the DOM element, `::part(box)` or in the app stylesheet reaches
- *   the toast (`docs/theming.md` "Component tokens").
+ *   one rule fills the toast with `--ui-color` and its contrast-picked `--ui-color-on`.
+ *   - `neutral` (the default) is the page surface.
+ *   - `inverted`:  a plain toast turns dark, a coloured one takes the hue's inverted variant.
+ * - Slotted actions:  `<ui-button>`s (or a `<ui-buttons>` group for `attached` layouts, whose own sheet joins them);
+ *   this sheet only places them.
+ * - Public tokens (`--ui-toast-*`, the theming surface) are NEVER declared here:
+ *   the box's token block reads each through a private alias, and every rule reads the alias:
+ *   `--_ui-toast-radius: var(--ui-toast-radius, var(--ui-radius))`.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(box)` or in the app stylesheet
+ *   reaches the toast (`docs/theming.md` "Component tokens").
  *   The container's `--ui-toast-container-distance` likewise (`UIToast.container.css`).
- * - Countdown:  the progress bar's `progressing` animation runs while `:state(paused)` is off;
- *   it is `data-ui-motion="essential"` (it IS the remaining time), so reduced motion keeps it (`reset.css`).
- *   The entry / exit animations are `UI.transitions`' `scale`, timed by `--ui-toast-duration`.
+ * - Countdown:  the progress bar's `progressing` animation runs while `:state(paused)` is off.
+ *   - It is `data-ui-motion="essential"` (it IS the remaining time), so reduced motion keeps it (`reset.css`).
+ *   - The entry / exit animations are `UI.transitions`' `scale`, timed by `--ui-toast-duration`.
  * - NOTE: left out, on purpose:
  *   - `.ui.message` / `.ui.card` toasts (Fomantic's `$('.ui.message').toast()`):  a toast is a `<ui-toast>`;
  *     slot a message's content instead
@@ -45,9 +47,6 @@
 @layer ui.components.toast.types {
   :host {
     display: block;
-  }
-  :host([hidden]) {
-    display: none;
   }
 
   /* Tokens:  one private alias per `toast.variables` entry that still matters, from the global tokens. */

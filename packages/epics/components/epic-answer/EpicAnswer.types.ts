@@ -1,6 +1,6 @@
 /**
- * Constants several components of the `epic-answer` family share (`EpicAnswer`, `EpicReply`, `EpicMore`), and
- * `EpicStatus`, whose card is theirs (`epic-status`).
+ * Constants several components of the `epic-answer` family share (`EpicAnswer`, `EpicReply`, `EpicMore`),
+ * and `EpicStatus`, whose card is theirs (`epic-status`).
  * - Data only:  nothing here runs.
  * - A constant only one of them uses lives below that component's class.
  */
@@ -27,7 +27,7 @@ export const WHO = "who"
 export const DATE = "date"
 
 ////////////////
-// ## Ids inside the shadow roots:  what a card's fold button names and controls (`<FoldButton>`)
+// ## Ids inside the shadow roots:  what a card's fold button names and controls (`fold.button()`)
 ////////////////
 
 /** The box a card folds:  its body (the status card's reading and summary together). */

@@ -14,8 +14,10 @@ const TOKEN = "token-1"
 const ITEMS = new Set(["q1", "j2", "o1"])
 
 /**
- * The page server's review routes over a REAL `ReviewInbox`, as `fetch`:  each reply is `forPage()`, as the routes
- * answer.  `token` is the server's;  `hold` keeps the next POST to a route waiting until released.
+ * The page server's review routes over a REAL `ReviewInbox`, as `fetch`:
+ * each reply is `forPage()`, as the routes answer.
+ * - `token`:  the server's
+ * - `hold`:  keeps the next POST to a route waiting until released
  */
 class FakeServer {
   inbox = new ReviewInbox()
@@ -198,6 +200,19 @@ describe("ReviewClient.press()", () => {
     expect([client.isBoxOpen("t2"), client.typedOf("t2"), client.busyButtonOf("t2")]).toEqual([false, "", null])
   })
 
+  test("the note box's x (`skip`, Owen, 2026-10-09):  a mark, its note only when typed;  it replaces a pick", async () => {
+    const { client, server } = await started()
+    await client.choose("q1", "B")
+    client.openBox("q1")
+    await client.useNote("q1", "skip", "")
+    expect(server.inbox.marks.q1).toMatchObject({ action: "skip" })
+    expect(server.inbox.marks.q1).not.toHaveProperty("note")
+    expect(server.inbox.marks.q1).not.toHaveProperty("pick")
+    expect(client.isBoxOpen("q1")).toBe(false)
+    await client.useNote("j2", "skip", "covered by P3")
+    expect(server.inbox.marks.j2).toMatchObject({ action: "skip", note: "covered by P3" })
+  })
+
   test("Do Now with a note in the box asks a revisit NOW with it (the box closes, emptied);  without, details", async () => {
     const { client, server } = await started()
     client.openBox("j2")
@@ -279,8 +294,8 @@ describe("ReviewClient writes", () => {
     expect(client.readBackups()).toEqual({})
     expect(server.inbox.drafts.q1?.note).toBe("half a thought")
     client.type("q1", "a whole thought")
-    await client.useNote("q1", "todo", "a whole thought")
-    expect(server.inbox.marks.q1).toMatchObject({ action: "todo", note: "a whole thought" })
+    await client.useNote("q1", "skip", "a whole thought")
+    expect(server.inbox.marks.q1).toMatchObject({ action: "skip", note: "a whole thought" })
     expect(server.inbox.drafts.q1).toBeUndefined()
     expect([client.typedOf("q1"), client.readBackups()]).toEqual(["", {}])
   })

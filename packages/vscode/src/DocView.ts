@@ -43,6 +43,17 @@
  *     and keys in a frame from another origin never reach it
  *   - a key pressed by a script still counts:  VS Code passes them on for every extension's webview
  *     (`forwardUntrustedKeypressEvents: true` in `mainThreadWebviews.ts`, "for when a webview embeds an iframe")
+ * - Right-click in the page shows the view's menu (`MENU`, `package.json` `webview/context`):  Cut and Paste in a field,
+ *   Copy with a selection, Select All;  Back, Forward, Reload;  Open in Browser;  Inspect
+ *   - the live client sends the click up (`{ spell: "menu", x, y, field, selection }`), and the view's script clicks
+ *     again on its own page, at the same place, as for keys:  the host's `contextmenu` listener (`pre/index.html`)
+ *     checks no `isTrusted`, and tells the workbench (`did-context-menu`), which shows `webview/context` there
+ *   - the context keys ride on the frame's `data-vscode-context`:  `spellField`, `spellSelection`
+ *   - VS Code's own Cut / Copy / Paste are hidden (`preventDefaultContextMenuItems`, on the body):  they act only on a
+ *     FOCUSED webview, or an editor's (`overrideCommandForWebview()` in `webview.contribution.ts`), and a menu takes
+ *     focus from a side-bar view;  ours go to the view the menu was opened in, by its id (`menuItem()`)
+ *   - NOT the browser's own menu (Back, Reload, Inspect Element ...):  VS Code is Electron, which has none
+ *     ("Electron doesn't have a built-in context menu"), and an extension can't reach Electron to make one
  * - NOTE:  the FIRST show in a window opens the side bar with focus on the view:
  *   VS Code has no way to open a view without focusing it.  Later shows keep focus where it is.
  */
@@ -76,6 +87,12 @@ const SPELL = "node packages/cli/bin/spell.mjs"
 
 /** Each view's title-bar commands, `<view id>.<name>`:  each listed in `package.json` for both views. */
 const COMMANDS = ["back", "forward", "reload", "restartServer", "openExternal"] as const
+
+/**
+ * The right-click menu's items, `spell.docMenu.<name>`:  one command each for both views, listed in `package.json`
+ * (`webview/context`);  VS Code passes each the menu's context, whose `webview` says which view (`menuItem()`).
+ */
+const MENU = ["cut", "copy", "paste", "selectAll", "back", "forward", "reload", "openExternal", "inspect"] as const
 
 /** How many times `remembered()` asks a page server that doesn't answer, `REMEMBER_WAIT_MS` apart:  ~10s in all. */
 const REMEMBER_TRIES = 10
@@ -140,7 +157,12 @@ export class DocView implements vscode.WebviewViewProvider {
       vscode.commands.registerCommand("spell.reviewView.home", () => DocView.goHome("review")),
       vscode.commands.registerCommand("spell.reviewView.openEpic", () => DocView.pickEpic()),
       vscode.commands.registerCommand("spell.docView.inspect", () => DocView.toggleDevTools()),
-      vscode.commands.registerCommand("spell.docView.showConsole", () => DocView.toggleDevTools())
+      vscode.commands.registerCommand("spell.docView.showConsole", () => DocView.toggleDevTools()),
+      ...MENU.map((item) =>
+        vscode.commands.registerCommand(`spell.docMenu.${item}`, (context?: MenuContext) =>
+          DocView.withId(context?.webview)?.menuItem(item)
+        )
+      )
     )
   }
 
@@ -203,6 +225,24 @@ export class DocView implements vscode.WebviewViewProvider {
     if (!this.view) return
     const text = command === "paste" ? await vscode.env.clipboard.readText() : undefined
     void this.view.webview.postMessage({ spell: "edit", command, ...(text !== undefined && { text }) })
+  }
+
+  /**
+   * Run right-click menu item `item` (`MENU`) on this view.
+   * - the edits:  in the page, as VS Code's own edit commands are (`edit()`)
+   * - Inspect:  the window's developer tools (`toggleDevTools()`)
+   * - the rest:  as the title-bar buttons do (`runCommand()`)
+   */
+  async menuItem(item: (typeof MENU)[number]): Promise<void> {
+    if (item === "inspect") return DocView.toggleDevTools()
+    if (item === "back" || item === "forward" || item === "reload" || item === "openExternal")
+      return this.runCommand(item)
+    return this.edit({ spell: "edit", command: item })
+  }
+
+  /** The doc view whose view id is `id` (`spell.docView`, `spell.reviewView`);  `undefined` for anything else. */
+  static withId(id: string | undefined): DocView | undefined {
+    return [...DocView.all.values()].find((docView) => docView.id === id)
   }
 
   /** The doc view called `name`;  `docs` for anything else. */
@@ -390,7 +430,9 @@ export class DocView implements vscode.WebviewViewProvider {
    * - `navigate` points the iframe at a new URL, making it first if the view was empty
    * - VS Code's edit commands (`document.execCommand()`, called on THIS document) go to the extension as `edit`
    *   (`edit()`), while there's a page to send them to
-   * - the page's `key`s, from a loopback origin only, are pressed again here (`press()`), for VS Code's keybindings
+   * - the page's `key`s, from a loopback origin only, are pressed again here (`press()`), for VS Code's keybindings;
+   *   its `menu`s (right-clicks) likewise clicked again here (`rightClick()`), for VS Code's menu
+   * - `preventDefaultContextMenuItems` on the body:  VS Code's own Cut / Copy / Paste stay out of the menu (`MENU`)
    * - background:  the side bar's theme colour, on the body AND the iframe, so a page loading shows no white
    */
   html(url: string | undefined): string {
@@ -411,10 +453,10 @@ export class DocView implements vscode.WebviewViewProvider {
       p { padding: 0 1em; }
     </style>
   </head>
-  <body>${body}
+  <body data-vscode-context='{"preventDefaultContextMenuItems":true}'>${body}
     <script nonce="${nonce}">
       const vscode = acquireVsCodeApi()
-      // the page server's origins, as the CSP's frame-src:  keys from anywhere else aren't pressed
+      // the page server's origins, as the CSP's frame-src:  keys and clicks from anywhere else aren't passed on
       const LOOPBACK = /^http:\\/\\/(127\\.0\\.0\\.1|localhost)(:\\d+)?$/
       let frame = document.querySelector("iframe")
       const EDITS = ["copy", "cut", "paste", "selectAll", "undo", "redo"]
@@ -426,8 +468,10 @@ export class DocView implements vscode.WebviewViewProvider {
       }
       addEventListener("message", (event) => {
         if (frame && event.source === frame.contentWindow) {
-          if (event.data?.spell !== "key") return vscode.postMessage(event.data)
-          return void (LOOPBACK.test(event.origin) && press(event.data))
+          const kind = event.data?.spell
+          if (kind !== "key" && kind !== "menu") return vscode.postMessage(event.data)
+          if (!LOOPBACK.test(event.origin)) return
+          return void (kind === "key" ? press(event.data) : rightClick(event.data))
         }
         const data = event.data
         if (data?.spell === "navigate") return navigate(data.url)
@@ -458,6 +502,20 @@ export class DocView implements vscode.WebviewViewProvider {
         const keydown = new KeyboardEvent("keydown", init)
         Object.defineProperty(keydown, "keyCode", { value: Number(key.keyCode) || 0 })
         dispatchEvent(keydown)
+      }
+
+      /**
+       * A right-click the page sent:  clicked again on the frame, at the same place, so VS Code's webview host hears it
+       * and shows the view's menu.  The menu's context keys go on the frame's data-vscode-context, which the host
+       * reads:  spellField (Cut, Paste) and spellSelection (Cut, Copy).
+       */
+      function rightClick(click) {
+        const box = frame.getBoundingClientRect()
+        frame.dataset.vscodeContext = JSON.stringify({ spellField: !!click.field, spellSelection: !!click.selection })
+        const x = box.left + (Number(click.x) || 0)
+        const y = box.top + (Number(click.y) || 0)
+        const init = { bubbles: true, cancelable: true, button: 2, buttons: 2, clientX: x, clientY: y }
+        frame.dispatchEvent(new MouseEvent("contextmenu", init))
       }
     </script>
   </body>
@@ -589,6 +647,12 @@ type EditCommand = { spell: "edit"; command: "copy" | "cut" | "paste" | "selectA
 
 /** The page's selection, for the clipboard (an `edit` copy or cut):  `{ spell: "clipboard", text }`. */
 type Clipboard = { spell: "clipboard"; text?: string }
+
+/**
+ * What VS Code passes a right-click menu item:  the frame's `data-vscode-context` (`rightClick()` in `html()`), and the
+ * view's id, `webview`.
+ */
+type MenuContext = { webview?: string; spellField?: boolean; spellSelection?: boolean }
 
 /** `text` safe inside a double-quoted html attribute. */
 function escapeAttribute(text: string): string {

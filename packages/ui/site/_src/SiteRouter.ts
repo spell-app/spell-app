@@ -77,10 +77,12 @@ export class SiteRouter {
   }
 
   /**
-   * Point the layout's "On this page" toc at the page shown:  `for` its tabs (`#site-tabs`;  none:  its `main`),
-   * `header` its main's `data-toc-header`.
-   * - Before `<ui-root>` loads the toc (first load):  its attributes, in place.  After:  a NEW toc, since one follows
-   *   the element it found when it connected.
+   * Point the layout's "On this page" toc at the page shown:
+   * - `for`:  its tabs (`#site-tabs`;  none:  its `main`)
+   * - `header`:  its main's `data-toc-header`
+   *
+   * - Before `<ui-root>` loads the toc (first load):  its attributes, in place.
+   * - After:  a NEW toc, since one follows the element it found when it connected.
    */
   followPage(): void {
     const main = this.main()
@@ -243,7 +245,8 @@ export class SiteRouter {
     if (main) SiteRouter.runScripts(main)
     this.followPage()
     // the nav flyout (narrow screens) closes, as a full load would have closed it
-    document.querySelector("ui-flyout#site-nav-flyout[open]")?.removeAttribute("open")
+    const flyout = document.querySelector<HTMLElement>("ui-flyout#site-nav-flyout")
+    if (flyout && !flyout.hidden) flyout.hidden = true
     // `<spell-site-header>` re-draws:  its title and "open in VS Code" link
     document.dispatchEvent(new Event(PAGE_EVENT))
   }

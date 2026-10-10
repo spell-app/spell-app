@@ -271,6 +271,17 @@ describe("<ui-brand-composer> casting", () => {
     expect(host.cast()).toBe(false)
     expect(fired).toEqual([])
   })
+
+  it("`readonly`:  `:state(readonly)`, the box read-only;  it still casts", async () => {
+    const host = await composer(`<ui-brand-composer value="Habits" readonly></ui-brand-composer>`)
+    const fired = record(host)
+    expect({ state: host.matches(":state(readonly)"), readOnly: box(host).readOnly }).toEqual({
+      state: true,
+      readOnly: true
+    })
+    expect(host.cast()).toBe(true)
+    expect(fired).toEqual([{ type: "ui-cast", value: "Habits" }])
+  })
 })
 
 ////////////////
@@ -311,6 +322,21 @@ describe("<ui-brand-composer> form", () => {
     expect(host.value).toBe("Habits")
     expect(box(host).value).toBe("Habits")
     expect(new FormData(form).get("spell")).toBe("Habits")
+  })
+
+  it("`required`:  fails while nothing (or only blank) is written", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(
+      `<form><ui-brand-composer name="spell" required></ui-brand-composer></form>`
+    )
+    const host = form.querySelector<ComposerDOMElement>("ui-brand-composer")!
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(false)
+    type(host, "   ")
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(false)
+    type(host, "Book club")
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(true)
   })
 
   it("takes its name from a `<label for>`", async () => {

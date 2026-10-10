@@ -185,7 +185,7 @@ describe("<ui-visibility type=image>", () => {
 
   it("loads each <img data-src> once on screen, then fires ui-load", async () => {
     const host = await below(
-      `type="image" transition="none"`,
+      `type="image" animation="none"`,
       `<img alt="A" width="10" height="10" data-src="${PIXEL}"><img alt="B" width="10" height="10" data-src="${PIXEL}">`
     )
     const loaded: HTMLImageElement[] = []
@@ -199,7 +199,7 @@ describe("<ui-visibility type=image>", () => {
   })
 
   it("picks up images added later", async () => {
-    const host = await below(`type="image" transition="none"`, `<p style="height: 20px; margin: 0">x</p>`)
+    const host = await below(`type="image" animation="none"`, `<p style="height: 20px; margin: 0">x</p>`)
     await scrollHostTo(host, 100)
     const image = document.createElement("img")
     image.alt = "Later"

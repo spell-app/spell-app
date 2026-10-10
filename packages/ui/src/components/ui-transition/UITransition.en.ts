@@ -4,12 +4,13 @@
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-transition color="red" pulsating looping>` => `ui red looping pulsating transition`;
  *   the element adds its state before the noun (`visible`, `animating`), the words Fomantic's script added.
- * - `animation` values are Fomantic's names, spaces and all (`fade up`, `horizontal flip`);
- *   the element maps them onto the runtime's kebab-cased catalogue (`TransitionAnimations`).
+ * - `visible` / `hidden` and `animation` are every element's (`SharedVocabulary`).
+ *   - A transition starts hidden (`elementSetup.visible`).
+ *   - `animation` takes Fomantic's names, spaces and all (`fade up`, `horizontal flip`),
+ *     attention ones (`shake`) included.
  */
 
 import type { E } from "$/ui/core"
-import { DEFAULT_ANIMATION, TransitionAnimations } from "./UITransition.types"
 
 /****************
  * ### `<ui-transition>`
@@ -24,25 +25,9 @@ export const transitionVocabulary = {
   description: "A transition is an animation used to show or hide content, or to draw attention to it.",
   attributes: [
     {
-      name: "animation",
-      kind: "enum",
-      values: TransitionAnimations,
-      default: DEFAULT_ANIMATION,
-      description:
-        "Animation for showing / hiding (Fomantic's names:  `fade up`, `scale`, `horizontal flip` ...);  an " +
-        "attention one (`shake`, `pulse` ...) shows / hides at once, and runs through `transition()`."
-    },
-    {
       name: "duration",
       kind: "string",
       description: "Length of each animation:  ms (`300`) or a CSS time (`0.3s`);  default the animation's own."
-    },
-    {
-      name: "visible",
-      kind: "boolean",
-      description:
-        "Shown.  Changing it animates in / out;  absent => hidden (its content is out of the page and the " +
-        "accessibility tree)."
     },
     {
       name: "interrupt",
@@ -80,9 +65,6 @@ export const transitionVocabulary = {
   ],
   slots: [{ name: "", description: "The content to animate." }],
   parts: [{ name: "transition", description: "The animated box around the content." }],
-  states: [
-    { name: "visible", description: "Shown, or animating in." },
-    { name: "animating", description: "An animation is running." }
-  ],
+  states: [{ name: "animating", description: "An animation is running." }],
   texts: []
 } as const satisfies E.ComponentVocabulary

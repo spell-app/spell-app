@@ -1,12 +1,15 @@
 /*
- * `<epic-item>` (EpicItem.tsx):  a plan doc's item -- its line (chevron, id chip, title, review label, actions) and
- * its details, the light-DOM prose and parts through the default slot.
- * - Shared look from `<epic-page>`'s `:host` (custom properties inherit through shadow roots);  each read with a
- *   private fallback, so an item draws right on its own:  `--epic-state-<state>` / `--epic-state-<state>-on` (the id
- *   chip's colours), `--epic-chip-font-size`, `--epic-chip-height`, `--epic-band-row` (the line's band),
- *   `--epic-stack` (how far below the window's top an open item's line sticks:  the stuck section titles).
- * - Every box on the line sits in a `.cell` one line tall, centred in it:  so the chevron, chip and label centre on
- *   the title's FIRST line, however many lines it wraps to.
+ * `<epic-item>` (EpicItem.tsx):  a plan doc's item.
+ * - its line:  chevron, id chip, title, review label, actions
+ * - its details:  the light-DOM prose and parts, through the default slot
+ * - Shared look from `<epic-page>`'s `:host` (custom properties inherit through shadow roots).
+ *   Each is read with a private fallback, so an item draws right on its own:
+ *   - `--epic-state-<state>` / `--epic-state-<state>-on`:  the id chip's colours
+ *   - `--epic-chip-font-size`, `--epic-chip-height`
+ *   - `--epic-band-row`:  the line's band
+ *   - `--epic-stack`:  how far below the window's top an open item's line sticks (the stuck section titles)
+ * - Every box on the line sits in a `.cell` one line tall, centred in it:
+ *   so the chevron, chip and label centre on the title's FIRST line, however many lines it wraps to.
  * - Public tokens (`--epic-item-*`) are never declared here:  read through private aliases.
  */
 
@@ -248,8 +251,8 @@
     display: none;
   }
   /*
-   * an item without details:  its marked note and note box under the line, where details would start (under the id
-   * chip), not at the item's left edge (Owen, 2026-10-09)
+   * an item without details:  its marked note and note box under the line,
+   * where details would start (under the id chip), not at the item's left edge (Owen, 2026-10-09)
    */
   .under-line {
     padding: 0 6px 0 var(--_epic-item-indent);
@@ -257,10 +260,35 @@
   .under-line:has(> *) {
     padding-block-end: 8px;
   }
+  /* folded:  no height, its words still findable;  its inline padding stays, so nothing shifts sideways as it folds */
   .details[hidden="until-found"] {
     display: block;
     content-visibility: hidden;
-    padding: 0;
+    block-size: 0;
+    padding-block: 0;
+  }
+  /*
+   * The fold ANIMATES (Owen, 2026-10-10:  "when I click a response and you auto-close the section, make it animate"):
+   * - its height to 0 and back, in Spell UI's section timing (`--ui-section-duration`, 300ms, `--ui-ease-out`),
+   *   so an item folds in step with the sections around it
+   * - every fold of an item, whatever folded it:  its line, its chevron, an action chosen (`foldAfterAction()`)
+   * - the words stay drawn until the height reaches 0 (`content-visibility` waits:  `allow-discrete`),
+   *   clipped to the shrinking box, top to bottom only (`overflow-y`):  a wide table still overflows sideways
+   * - the docs runtime keeps the line where it is on screen while it folds (`holdWhileFolding()`)
+   * - only where the browser grows a box to `auto`;  elsewhere, and with reduced motion, it folds at once
+   */
+  @supports (interpolate-size: allow-keywords) {
+    @media (prefers-reduced-motion: no-preference) {
+      .details {
+        --_epic-item-fold: var(--ui-section-duration, var(--ui-duration-slow, 300ms));
+        interpolate-size: allow-keywords;
+        overflow-y: clip;
+        transition:
+          block-size var(--_epic-item-fold) var(--ui-ease-out, ease-out),
+          padding-block var(--_epic-item-fold) var(--ui-ease-out, ease-out),
+          content-visibility var(--_epic-item-fold) allow-discrete;
+      }
+    }
   }
   ::slotted(:is(p, ul, ol)) {
     margin-block: 0.35em;
@@ -286,13 +314,17 @@
     text-transform: uppercase;
   }
   /*
-   * The note box, last in the details (Owen, 2026-10-07):  sticks to the window's bottom while the item is open and
-   * taller than the window;  a ring of paper hides the text scrolling past its rounded corners
+   * The note box, last in the details (Owen, 2026-10-07):
+   * sticks to the window's bottom while the item is open and taller than the window;
+   * a ring of paper hides the text scrolling past its rounded corners
    */
-  .details > .note-box {
+  .details > [part~="note-box"] {
     position: sticky;
     z-index: 1;
     bottom: 4px;
+  }
+  /* the ring on the box itself (`<epic-review>`'s), so it follows its rounded corners */
+  .details > [part~="note-box"]::part(base) {
     box-shadow: 0 0 0 4px var(--ui-background, Canvas);
   }
   .note {
@@ -305,11 +337,13 @@
 
 @layer ui.components.epic-item.states {
   /*
-   * Where it stands, as its chip's colour (decision Q20, Owen, 2026-10-08):  red needs Owen, blue Claude is working on
-   * it, yellow open and still undecided (dark text), green decided or done (however long ago:  Owen, 2026-10-08),
-   * grey no longer relevant (canceled) -- a quiet tint.  Red keeps its light hue in dark mode:  dark's lighter red
-   * reads as orange.
-   * Orange (dark text):  Claude answered with options, Owen's turn to pick (`replied`, Owen, 2026-10-09).
+   * Where it stands, as its chip's colour (decision Q20, Owen, 2026-10-08):
+   * - red:  needs Owen;  it keeps its light hue in dark mode, where the lighter red reads as orange
+   * - orange (dark text):  Claude answered with options, Owen's turn to pick (`replied`, Owen, 2026-10-09)
+   * - blue:  Claude is working on it
+   * - yellow (dark text):  open and still undecided
+   * - green:  decided or done (however long ago:  Owen, 2026-10-08)
+   * - grey:  no longer relevant (canceled), a quiet tint
    */
   .item.attention {
     --_epic-state: var(--epic-state-attention, light-dark(var(--ui-red), var(--ui-red-on-light)));
@@ -332,8 +366,9 @@
     --_epic-state-on: var(--epic-state-old-on, var(--ui-grey-text));
   }
   /*
-   * Owen's mark (`chipMark`):  the chip MATCHES the chosen review button (Owen, 2026-10-08) -- its colour, and its
-   * fill (Q20):  dashed until sent, outlined once sent;  the letters in the colour's readable ink, over the line's band
+   * Owen's mark (`chipMark`):  the chip MATCHES the chosen review button (Owen, 2026-10-08).
+   * - its colour, and its fill (Q20):  dashed until sent, outlined once sent
+   * - the letters in the colour's readable ink, over the line's band
    */
   .chip[data-color="green"] {
     --_epic-mark: var(--ui-green, #00853a);
