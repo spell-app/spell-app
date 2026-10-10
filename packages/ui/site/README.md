@@ -1,8 +1,9 @@
 # `@spell-app/ui` docs site -- the built half
 
-The site's PAGES left this folder on 2026-10-05 (epic `claude-design` P6):  they're shared content now, `ui/` at the
-checkout's root (a link into `../spell-app-dev/ui/`), where their README says how the site works and how pages are
-made.  What stays here is what each branch builds from its own code:
+What stays here is what each branch builds from its own code.
+- The site's PAGES left this folder on 2026-10-05 (epic `claude-design` P6).
+- They're shared content now:  `ui/` at the checkout's root, a link into `../spell-app-dev/ui/`.
+- [Their README](../../../ui/README.md) says how the site works and how pages are made.
 
 | Path | What |
 | --- | --- |
@@ -12,5 +13,7 @@ made.  What stays here is what each branch builds from its own code:
 | *(the pages, `_parts/`, `examples/`, `images/`)* | *the shared `ui/`* |
 | *(`_data/search.json`)* | *the shared `ui/_data/search.json`:  built from the shared pages, so it lives beside them* |
 
-The page server serves both halves at `/ui/`:  the shared pages, with `_assets/` and `_data/` laid over them from
-here (`packages/server`, `UI_SITE`).
+The page server serves both halves at `/ui/`:
+- the shared pages
+- with this folder's `_assets/` and `_data/` laid over them
+- That's `UI_SITE`, in the [page server](../../server/).
