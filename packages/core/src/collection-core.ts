@@ -95,7 +95,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
 
   /**
    * Is `collection` empty?
-   * - Compiles from `thing is empty` / `thing is not empty` -- see `expressions.ts`.
+   * - Compiles from `thing is empty` / `thing is not empty` -- see `rules/expressions/IsEmpty.ts`.
    * TODO: `null` or `undefined`???
    */
   isEmpty(collection?: unknown): boolean {
@@ -135,7 +135,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
 
   /**
    * Position of the first `thing` in `collection` -- see `positionOf()`, below, which it is.
-   * - Compiles from `position of thing in my-list` -- see `lists.ts`.
+   * - Compiles from `position of thing in my-list` -- see `rules/lists/ListPosition.ts`.
    */
   positionOf,
 
@@ -143,7 +143,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * The item at `position` of `collection`.
    * - For array: `position` counts from 1.
    * - For object: `position` is its string key.
-   * - Compiles from `item 1 of my-list` / `the first item of my-list` -- see `lists.ts`.
+   * - Compiles from `item 1 of my-list` / `the first item of my-list` -- see `rules/lists/`.
    * - Typed by `collection`:  a `List<Card>`'s is a `Card`, if it has one -- see `CollectionOf`.
    */
   getItemAt<T = unknown>(collection?: CollectionOf<T>, position?: string | number): T | undefined {
@@ -172,7 +172,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
   /**
    * Add `things` in the middle of the `collection` starting with 1-based position `start`,
    * moving things after `start` down.  Array only.
-   * - Compiles from `add thing to my-list at position of other-thing (+ 1)` -- see `lists.ts`.
+   * - Compiles from `add thing to my-list at position of other-thing (+ 1)` -- see `rules/lists/`.
    */
   addAtPosition(collection?: unknown, start?: number, ...things: unknown[]): void {
     if (!assert.isArrayLike(collection, "spellCore.addAtPosition(collection)")) return
@@ -190,7 +190,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
    * Remove the item at `position` of `collection`.
    * - For array: `position` counts from 1;  the items after it slide back into place.
    * - For object: `position` is its string key, which is deleted.
-   * - Compiles from `remove last card of deck` / `remove item 4 of my-list` -- see `lists.ts`.
+   * - Compiles from `remove last card of deck` / `remove item 4 of my-list` -- see `rules/lists/`.
    */
   removeItemAt(collection?: unknown, position?: string | number): void {
     if (!assert.isDefined(collection, "spellCore.removeItemAt(collection)")) return
@@ -205,7 +205,7 @@ export const collectionCoreMethods = defineSpellCoreModule({
 
   /**
    * Remove all things from the `collection`, in-place.
-   * - Compiles from `empty my-list` / `clear the cards of the deck` -- see `lists.ts`.
+   * - Compiles from `empty my-list` / `clear the cards of the deck` -- see `rules/lists/ListEmpty.ts`.
    */
   clear(collection?: unknown): void {
     if (!assert.isDefined(collection, "spellCore.clear(collection)")) return

@@ -120,7 +120,6 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - A rule registers itself as its file loads:  `events.addRule(Trigger, { syntax, tests })`.
   - So the order of the folder's `index.ts` is the order rules are registered:  the TIE-BREAK order.
     - When a `Choice` ties on `priority` and length, the EARLIEST registered rule wins (`getBestMatch()`).
-  - Modules not yet split are still one file each:  `lists.ts`, `methods.ts` ...
 - A rule's NAME is what `syntax` (`{list_add_relative}`), `parser.rules`, declarations and errors call it:  snake_case.
   - Worked out from its PascalCase class:  `ListAddRelative` => `list_add_relative`, `If` => `if`
     (`P.Rule.ruleNameFor()`, called by `Rule.instantiate()`).
@@ -134,7 +133,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 
 ## Expressions
 
-- `expression` is ONE rule, [`CompoundExpression`](src/rules/expressions.ts):
+- `expression` is ONE rule, [`CompoundExpression`](src/rules/expressions/CompoundExpression.ts):
   `{lhs:operand} {rhsChain:expression_suffix}*`
   - an `operand`, then each `expression_suffix` binding tighter than its `bound` (0:  all)
   - no suffix:  the operand's own match, as is, so `match.is(KnownVariable)` still works
@@ -280,7 +279,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 
 ## Members:  `the short rank of the card`
 
-- A member's NAME is `member_words` (`properties.ts`):  1..N words, up to the first structural one.
+- A member's NAME is [`member_words`](src/rules/properties/MemberWords.ts):  1..N words, up to the first structural one.
   - `MEMBER_STOP_WORDS`:
     `of the a an is has have in to and or if where as with whose for from then else otherwise not ...`
   - It's NOT the identifier blacklist, so `short` is fine.
@@ -310,7 +309,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
       - it re-parses with fewer tokens to find it (`declaredPrefix()`, in `rules.types.ts`)
       - e.g. `its short rank + its short suit`
     - `its_property`, the loose word, at `Priority.normal`, so `its last card` stays `its_ordinal`'s
-- A type's class members:  ONE static rule, `class_member` (`classes.ts`).
+- A type's class members:  ONE static rule, [`class_member`](src/rules/classes/ClassMember.ts).
   - its syntax:  `{type:known_type} {member:member_words}`
   - it takes the longest run that's a class variable of the type, e.g. `card suits includes x` => `Card.Suits`
   - it was a rule per enumeration (`EnumerationRule`)
@@ -365,7 +364,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 
 ## Membership:  `a card belongs to one pile`
 
-- `belongs_to_one` (`classes.ts`):  `a card belongs to one pile`.
+- [`belongs_to_one`](src/rules/classes/BelongsToOne.ts):  `a card belongs to one pile`.
   - A card is in at most ONE list of the pile FAMILY at a time.
   - The family:  `Pile` and its sub-types (`a tableau is a pile`).
   - `a deck is a list of cards` is outside it (plan doc D7):  a card can be in the deck AND one pile.
@@ -400,7 +399,8 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 
 ## Guards:  `a tableau can take a card if: ...`
 
-- `list_guard` (`classes.ts`):  what a list type takes, or gives up, when something MOVES (plan doc Q23 - Q25).
+- [`list_guard`](src/rules/classes/ListGuard.ts):
+  what a list type takes, or gives up, when something MOVES (plan doc Q23 - Q25).
   - `a tableau can (add|take) a card if: ...`
   - `a stock-pile can (release|remove|give up|let go of) a card if: ...`
   - `a foundation can never (release|remove|give up|let go of) a card`:  always no
@@ -411,7 +411,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - It's hoisted into the class like any member.
   - A sub-type inherits it.
   - No scope record and no declaration:  it's the class's own method, which an importer gets with it.
-- `list_move` (`lists.ts`):  `move the card to the tableau` => `spellCore.move(card, tableau)`.
+- [`list_move`](src/rules/lists/ListMove.ts):  `move the card to the tableau` => `spellCore.move(card, tableau)`.
   - It's a statement, or a yes / no (`operandInExpressions`):  `if move the card to the tableau then ...`.
   - It asks the list of the card's family holding it to give it up, then the target to take it.
   - Refused:  nothing changes.
@@ -523,7 +523,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 
   - It compiles EXACTLY as the same lines in the sentence style do (`a card has a name as text` ...).
   - [outline.test.ts](src/parserTests/outline.test.ts) pins it.
-- `create_type` / `create_list_type` share `TypeDeclaration` (`classes.ts`).
+- `create_type` / `create_list_type` share [`TypeDeclaration`](src/rules/classes/TypeDeclaration.ts).
   - A syntax ending `{with_nested_statements}?` (`where:`, `with:` or `:`) takes the body.
   - Without it, the same syntax declares the type alone.
   - The body's scope is a [`P.SubjectScope`](../parser/src/scope/SubjectScope.ts):
@@ -567,7 +567,8 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 
 ## Value kinds:  `"suits" as one of clubs, diamonds, hearts or spades`
 
-- In a type's outline body, `value_kind` (`classes.ts`) makes a list of values a KIND of thing, `Suit`.
+- In a type's outline body, [`value_kind`](src/rules/classes/ValueKind.ts)
+  makes a list of values a KIND of thing, `Suit`.
   - The body's type keeps its list:  the class variable `Deck.Suits`, and its instance twin.
   - Each value is a constant.
   - The kind gets a `P.TypeScope` with `valueKind`:  `{ values, listOn, listName }`.
@@ -588,7 +589,8 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 - A value-per-line body (`if/ValueIf.ts`, at `Priority.overridable`):
   - `value_if`:  `red if it is diamonds or hearts` => `if (...) { return 'red' }`
   - `value_otherwise`:  `black otherwise` => `return 'black'`
-- `it is diamonds or hearts` / `is jack, queen or king`:  `is_in` with `value_choices` (`lists.ts`).
+- `it is diamonds or hearts` / `is jack, queen or king`:
+  `is_in` with [`value_choices`](src/rules/lists/ValueChoices.ts).
   - two or more KNOWN constants or numbers joined by `or` => `spellCore.includes([...], it)`
   - It was `(it == 'diamonds') || 'hearts'`.
 - Ranges in a list of values:  `2 ... 10` (`number_range`, spread by `identifier_list`).
@@ -630,7 +632,8 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - Postfix phrases only.
 - A user's phrase checks WHOSE it is.
   - `CompoundExpression` tells the first suffix after an operand what that operand is.
-    - That's `SuffixLeft` (`expressions.ts`):  a side channel, set while that suffix parses, restored after.
+    - That's [`SuffixLeft`](src/rules/expressions/expressions.shared.ts):
+      a side channel, set while that suffix parses, restored after.
   - These refuse an operand KNOWN not to be their owner (`scope.couldBeA()`):
     - `MethodPostfixRule`, `MethodInfixRule` and `QuotedPropertyRule`
     - each `specialize()`d with its owner `of`, as `thisType`
@@ -639,7 +642,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - A suffix after `and` / `or` is told the operand after it:
     `the game` in `... and the game is red` (plan doc I7).
   - After anything else, it isn't:  what it follows is the chain so far, e.g. a sum.
-- `draw_side` (`classes.ts`):  `- to "draw its front":` + one line of markup => `get front() {...}`.
+- [`draw_side`](src/rules/classes/DrawSide.ts):  `- to "draw its front":` + one line of markup => `get front() {...}`.
   - Front AND back also give the type `draw()`, by its direction (plan doc Q14).
 - A one-line indented body (`{nested_expression}`, e.g. `return` + markup, `draw_side`'s)
   parses in the statement's `nestedScope`.
@@ -701,7 +704,8 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - numbered from the visible `it`'s `output`, skipping names in use
     - so callbacks keep the `it` they captured
   - each new variable holds its value's `datatype`:  see "Datatypes"
-  - types:  `create_type`, `create_list_type` (`classes.ts`)
+  - types:  [`create_type`](src/rules/classes/CreateType.ts),
+    [`create_list_type`](src/rules/classes/CreateListType.ts)
     - `create_list_type` sets `itemType` too
     - `belongs_to_one` gives the item type its owner member:  see "Membership"
     - a type mentioned before its own line is a `stub`,
@@ -750,16 +754,18 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     else on the rule class.
   - `SpellLanguageService` refines it from `match.data`, e.g. an argument's `variable` becomes `parameter`.
   - quoted aliases (`a card "is face up" if ...`):
-    `quoted_type_expression` (`methods.ts`) adds an `expression_suffix` rule, a `MethodPostfixRule` / `MethodInfixRule`
+    [`quoted_type_expression`](src/rules/methods/QuotedTypeExpression.ts) adds an `expression_suffix` rule,
+    a `MethodPostfixRule` / `MethodInfixRule`
   - a quoted formula (`a card "is the (rank) of (suits)" for its ranks and its suits`):
-    `quoted_property_formula` (`classes.ts`), a `QuotedPropertyRule`
+    [`quoted_property_formula`](src/rules/classes/QuotedPropertyFormula.ts), a `QuotedPropertyRule`
   - methods (`to turn a card over` ~== `to turn (a card) over`):
     - a signature's `a|an <KNOWN type>` is a typed parameter (`bare_type_arg`), as `(a card)` is
     - a word that isn't a type, or anything after `the`, stays words (`to make a mess`, `to reset the stock pile`)
     - its compiled NAME drops the receiver's type (`turn_over`), unless that leaves a little word dangling (Q44)
       - then it keeps the type's name:  `to update the total of (a calculator)` => `update_the_total_of_calculator`
       - `MethodDefinition.processSignature()`, `DANGLING_WORDS`
-    - `MethodDefinition` adds a rule (`methods.ts`) for its call site, AND a `P.ScopeMethod` record (`addMethod()`)
+    - [`MethodDefinition`](src/rules/methods/MethodDefinition.ts) adds a rule for its call site,
+      AND a `P.ScopeMethod` record (`addMethod()`)
       - the record goes in its type's `methods`, if this project declares the type
       - else in the project's, with `of`:  a free function, or a method of a built-in or imported type,
         whose lists every project shares
@@ -771,8 +777,10 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - `mergeRule()` is copy-on-write:  existing `Group`s are cloned, never mutated.
   - There is NO `removeRule`, but `parser.journal` can undo an `addRule()`:  see "Incremental parsing".
   - Generated rules are NAMED classes, `specialize()`d with plain-data statics, never closures.
-    - The classes:  `QuotedPropertyRule` in `classes.ts`;
-      `DynamicMethodRule`, `MethodPostfixRule` and `MethodInfixRule` in `methods.ts`.
+    - The classes:  [`QuotedPropertyRule`](src/rules/classes/QuotedPropertyRule.ts),
+      [`DynamicMethodRule`](src/rules/methods/DynamicMethodRule.ts),
+      [`MethodPostfixRule`](src/rules/methods/MethodPostfixRule.ts)
+      and [`MethodInfixRule`](src/rules/methods/MethodInfixRule.ts).
     - Why:  so `SP.SpellDeclarations` can write a project's rules out as data, and another project can rebuild them.
     - Each base class says `@proto static importableAs = "<id>"`.
       That registers it for `P.Rule.importableRule(name)` (`Rule.protoDefined()`).
@@ -960,11 +968,11 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - comment, blank line or top-level statement, anywhere:  ~1-2ms
   - declaration edit near the END:  ~1ms
   - declaration edit near the START of the first file:  ~110ms (~= a full parse)
-- [IncrementalProject.test.ts](../parser/src/IncrementalProject.test.ts) edits lines of every Solitaire file,
+- [IncrementalProject.test.ts](src/parserTests/IncrementalProject.test.ts) edits lines of every Solitaire file,
   on ONE project.
   - every line, with `INCREMENTAL_FULL=1`
   - After each edit, and after undoing it, it checks output, errors and token positions against a full parse.
-- [ParseJournal.test.ts](../parser/src/ParseJournal.test.ts) checks a whole project's rewind / replay.
+- [ParseJournal.test.ts](src/parserTests/ParseJournal.test.ts) checks a whole project's rewind / replay.
 
 ## Compile
 

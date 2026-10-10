@@ -20,7 +20,7 @@ export const stringMethods = defineSpellCoreModule({
 
   /**
    * Stringify and convert to UPPERCASE.
-   * - Compiles from spell `{expression} as upper case` / `as uppercase` (see `expressions.ts`).
+   * - Compiles from spell `{expression} as upper case` / `as uppercase` (see `rules/expressions/AsUppercase.ts`).
    */
   upperCase(string: unknown): string {
     if (string == null) return ""
@@ -28,7 +28,7 @@ export const stringMethods = defineSpellCoreModule({
   },
   /**
    * Stringify and convert to lowercase.
-   * - Compiles from spell `{expression} as lower case` / `as lowercase` (see `expressions.ts`).
+   * - Compiles from spell `{expression} as lower case` / `as lowercase` (see `rules/expressions/AsLowercase.ts`).
    */
   lowerCase(string: unknown): string {
     if (string == null) return ""

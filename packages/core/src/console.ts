@@ -53,7 +53,7 @@ export class SpellConsoleGroup extends Observable<
  *   `console`, so a UI can render the log reactively (e.g. a debug panel) while it still shows up
  *   in devtools.
  * - Compiles from spell `print` / `print warning` / `print error` / `print group` /
- *   `print collapsed group` / `end print group` (see `UI.ts`).
+ *   `print collapsed group` / `end print group` (see `rules/UI/`).
  */
 export class SpellConsole extends Observable<Record<string, unknown>, { lines: ConsoleLine[] }> {
   constructor(props: Partial<{ lines: ConsoleLine[] }> = {}) {

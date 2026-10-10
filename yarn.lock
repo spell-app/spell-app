@@ -1650,6 +1650,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@spell-app/docs@workspace:packages/docs"
   dependencies:
+    "@solidjs/h": "npm:2.0.0-rc.13"
     "@spell-app/assembler": "workspace:*"
     "@spell-app/server": "workspace:*"
     "@spell-app/spell": "workspace:*"

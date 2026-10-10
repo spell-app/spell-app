@@ -230,7 +230,8 @@ export const BODY_KEYWORDS: Record<string, Omit<StatementBodySpec, "syntaxRule">
   nested_statements: { nestedAs: "block" },
   /**
    * `where:`, `with:` or `:` ending the line, then an indented block, e.g. a type's outline body.
-   * - A registered rule matching those words (`classes.ts`), so it stays in `rules` -- see `leadIn`.
+   * - A registered rule matching those words (`rules/classes/WithNestedStatements.ts`),
+   *   so it stays in `rules` -- see `leadIn`.
    */
   with_nested_statements: { nestedAs: "block", leadIn: true },
 

@@ -104,7 +104,7 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
     // This dynamically-generated rule's syntax repeats the `expression` group name (once per
     // `$var` in the quoted alias), and each of those groups matches a plain keyword literal with
     // no `getAST()` -- so the shunting-yard algorithm's `compile()` helper (`CompoundExpression`
-    // in expressions.ts) leaves `rhs` as the raw `P.Match[]` rather than resolving it to an
+    // in expressions/CompoundExpression.ts) leaves `rhs` as the raw `P.Match[]` rather than resolving it to an
     // `Expression`. Neither shape is representable in `OperatorOperands`, which assumes a single
     // already-resolved `Expression`.
     const rhsMatches = (Array.isArray(rhs) ? rhs : [rhs]) as P.Match[]

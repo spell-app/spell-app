@@ -175,7 +175,7 @@ export const coreMethods = defineSpellCoreModule({
 
   /**
    * Is `thing` an instance of string `type`, or of a sub-type of it -- as per `spellCore.typesOf()`?
-   * - Compiles from `thing is a Bee` => `spellCore.isOfType(thing, 'Bee')` -- see `expressions.ts`.
+   * - Compiles from `thing is a Bee` => `spellCore.isOfType(thing, 'Bee')` -- see `rules/expressions/IsA.ts`.
    * - e.g. a joker is a card, if `a joker is a card`.
    */
   isOfType(thing: unknown, type: string): boolean {
@@ -186,7 +186,7 @@ export const coreMethods = defineSpellCoreModule({
 
   /**
    * Is `thing` of `otherThing`'s type -- the same type, or a sub-type of it?
-   * - Compiles from `thing is the same type as other` -- see `expressions.ts`.
+   * - Compiles from `thing is the same type as other` -- see `rules/expressions/IsSameTypeAs.ts`.
    * - NOT symmetrical:  a joker is the same type as a card, but a card isn't the same type as a joker.
    */
   matchesType(thing: unknown, otherThing: unknown): boolean {
@@ -223,7 +223,7 @@ export const coreMethods = defineSpellCoreModule({
 
   /**
    * Return `true` if `value` is defined (e.g. not `undefined`).
-   * - Compiles from `thing is defined` / `thing exists` / `there is a thing` -- see `expressions.ts`.
+   * - Compiles from `thing is defined` / `thing exists` / `there is a thing` -- see `rules/expressions/`.
    * TESTME
    */
   isDefined(value: unknown): boolean {
@@ -301,7 +301,8 @@ export const coreMethods = defineSpellCoreModule({
   /**
    * Call `callback()` `count` times, ignoring its return value.
    * TODO: `repeat {number} times` currently compiles to `spellCore.map(spellCore.getRange(...), ...)`
-   * instead (see `lists.ts`) -- no rule currently calls this method; confirm whether it's still needed.
+   * instead (see `rules/lists/RepeatNTimes.ts`) --
+   * no rule currently calls this method; confirm whether it's still needed.
    */
   repeat(count: number, callback: () => void): void {
     for (let i = 0; i < count; i++) callback()

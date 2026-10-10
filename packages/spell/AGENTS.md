@@ -133,7 +133,7 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - Its `static declarationProps(declared, syntax)` says what goes in the declaration:  tune output there.
   - A class or rule name is NOT a stable identifier (WWOD §3 › "Names aren't identifiers").
     - Here, the explicit property is e.g. `@proto static importableAs = "quoted_property"`.
-  - A word with negated forms is a `Negatable` rule (`expressions.ts`).
+  - A word with negated forms is a [`Negatable`](src/rules/expressions/Negatable.ts) rule.
     - `{operator:is}` matches `is`, `is not`, `isn't` and `isnt`.
     - `Negatable.isNegated(operator)` says which.
     - Plain `is` matches just the word.
@@ -168,14 +168,15 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - `Keyword` => `"keyword"`
 - Rule module layout:  a module is a FOLDER, one rule class per file (epic `output-targets` P18).
   - The model:  [events/](src/rules/events/).
-    Modules not converted yet are still one file (`lists.ts`):  each moves to this layout as it's next worked on.
+    Every module has this layout now.
   - `rules/<module>/<module>.parser.ts`:  the module's parser, and nothing else.
     - `export const <module> = new SpellParser({ module: "<module>" })`
     - A file of its own, so each rule file can import it without importing its siblings.
   - `rules/<module>/<RuleClass>.ts`:  ONE rule class, the file named for it, e.g. `events/Trigger.ts`.
     - Top to bottom:
       - imports:  `./<module>.parser`, peer files (a base class), `$/spell/rules/<other module>` for another's
-      - constants the registration reads (`VARIABLE_SYNTAX`):  a `const` isn't hoisted
+      - constants the class or its registration reads (`LOWER_INITIAL_WORD`, in `properties/Property.ts`):
+        a `const` isn't hoisted
       - docstring + `export class Trigger extends ... {}`, its `@proto static` props FIRST in the body
       - `<module>.addRule(Trigger, { syntax, tests })`, right after the class, once per syntax
       - THEN the types and helpers only this rule uses (`type VariableMatchData`, `setupAssignmentStatement()`)
@@ -187,6 +188,7 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - `rules/<module>/<module>.shared.ts`:  types, constants and helper functions SHARED by several of its rule files.
     - Only if there are any.
       What one rule alone uses stays in that rule's file.
+    - e.g. `VARIABLE_SYNTAX`, in `variables/variables.shared.ts`:  two rule files read it.
     - `.shared`, not `.types`:  rule helpers build AST nodes (`new P.AST...`), values a `.types.ts` mustn't import.
   - `rules/<module>/index.ts`:  `export * from` each file, in TIE-BREAK order.
     - When two rules tie on `priority` and length, the one registered FIRST wins (`Choice.getBestMatch()`).
@@ -268,13 +270,12 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - NEVER add ad hoc fields to a `Match`:  use `match.data`.
 - Other modules reach a rule by NAME, through `syntax` / `parser.rules`;  by its CLASS only to subclass it,
   or to narrow a match with `match.is()`.
-  - A module not yet in the folder layout still holds many rule classes in one file, exporting only those.
 - A base rule class for a category of spell things is `Spell<Thing>`, paired with the lowercase rule it fathers.
   - `SpellConstant` / `constant`
   - `SpellType` / `type`
   - `SpellIdentifier` / `identifier`
 - Name rules for what they MATCH, not just what they mean.
-  - In `variables.ts`, `identifier` / `singular_identifier` / `plural_identifier` match a bare word.
+  - In [variables/](src/rules/variables/), `identifier` / `singular_identifier` / `plural_identifier` match a bare word.
   - `variable` / `known_variable` also allow a leading `the`.
   - A family sharing a prefix should share its shape.
 
