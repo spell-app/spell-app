@@ -31,24 +31,31 @@ import { ServerLink } from "./ServerLink"
  * A page's REVIEW INBOX, as the page sees it:  the marks Owen leaves on its items and Overview sections,
  * read from and written to the page server's review routes (`$/epics/tool/reviewRoutes.ts`),
  * one client per page (`forPage()`).
- * - the review controls (`<epic-review>`, drawn by `<epic-item>`, `<epic-section>` ...) draw from it;
- *   P10's Send, Review Now and Choose pills call it too (`send()`, `choose()`), and an item's id chip (`toggleCalm()`)
- * - reviewing ONLY when the page is served with a token (`window.SPELL_SERVER`) and its inbox answers:
+ * - Who uses it:
+ *   - the review controls (`<epic-review>`, drawn by `<epic-item>`, `<epic-section>` ...) draw from it
+ *   - P10's Send, Review Now and Choose pills call it (`send()`, `choose()`), and an item's id chip (`toggleCalm()`)
+ * - REVIEWING only when the page is served with a token (`window.SPELL_SERVER`) and its inbox answers:
  *   never from `file://`, nor from a server without the routes (`reviewing` stays false, and nothing is drawn)
- * - every route's reply is the whole inbox:  a write's answer replaces what's shown;  a failed write re-reads it,
- *   undoing what was shown early
- * - writes through its `ServerLink`:  a 403 on the token (the page server restarted since the page loaded) takes
- *   the server's new token from the page as it's served now, and tries once more
- * - re-reads the inbox every `REVIEW_POLL_MS` while the page is visible, when it becomes visible, and when the page
- *   server says the inbox file changed (the page's live client's `spell-server:file`):  `watch()`, the link's
- * - note drafts:  saved to the inbox (`POST draft`), backed up in localStorage under the old runtime's key
- *   (`REVISIT_KEY_PREFIX`), so a half-typed note survives the switch;  a backup the inbox lacks is handed to it on
- *   start (`adoptBackups()`).  What's being typed also stays in memory (`typed`), for an element drawn anew
+ * - every route's reply is the whole inbox:  a write's answer replaces what's shown;
+ *   a failed write re-reads it, undoing what was shown early
+ * - writes through its `ServerLink`:  a 403 on the token (the page server restarted since the page loaded)
+ *   takes the server's new token from the page as it's served now, and tries once more
+ * - it re-reads the inbox (`watch()`, the link's):
+ *   - every `REVIEW_POLL_MS` while the page is visible
+ *   - when the page becomes visible
+ *   - when the page server says the inbox file changed (the page's live client's `spell-server:file`)
+ * - note drafts:
+ *   - saved to the inbox (`POST draft`)
+ *   - backed up in localStorage under the old page runtime's key (`REVISIT_KEY_PREFIX`),
+ *     so a half-typed note survives the switch
+ *   - a backup the inbox lacks is handed to it on start (`adoptBackups()`)
+ *   - what's being typed also stays in memory (`typed`), for an element drawn anew
  * - who listens:  `inbox.listening` (`null` once a session's heartbeat stopped:  the routes say so)
- * - Node-safe at import, and without `watch()`:  no `window` / `document` touched;  the browser's services come in
- *   through `ReviewClientOptions`, so tests stub `fetch` and storage
- * - Position in the import graph:  its peers (types, `ServerLink`) only;  the inbox's types from `$/epics/tool/ReviewInbox`
- *   (erased).  NEVER imports Solid, Spell UI or the `$/epics` barrel:  elements bridge its changes (`subscribe()`)
+ * - Node-safe at import, and without `watch()`:  no `window` / `document` touched;
+ *   the browser's services come in through `ReviewClientOptions`, so tests stub `fetch` and storage
+ * - Position in the import graph:  its peers (types, `ServerLink`) only;
+ *   the inbox's types from `$/epics/tool/ReviewInbox` (erased).
+ *   NEVER imports Solid, Spell UI or the `$/epics` barrel:  elements bridge its changes (`subscribe()`)
  *   into their own signals.
  ****************/
 export class ReviewClient {
@@ -86,10 +93,12 @@ export class ReviewClient {
   private readonly typed = new Map<string, string>()
 
   /**
-   * Picks Claude TOOK:  id -> the pick of a sent mark that left the inbox without Owen (`inbox apply`, `done`,
-   * `clear`), kept until the page reloads or Owen marks the item again (`takenPickOf()`).
-   * - why:  the inbox forgets the mark before the page has the doc's `chosen` (its live update can lag, or wait
-   *   while the view is hidden), and the Choose pill dropped back to "Choose" meanwhile (Owen, 2026-10-10)
+   * Picks Claude TOOK:
+   * id -> the pick of a sent mark that left the inbox without Owen (`inbox apply`, `done`, `clear`).
+   * - kept until the page reloads or Owen marks the item again (`takenPickOf()`)
+   * - why:  the inbox forgets the mark before the page has the doc's `chosen`
+   *   (its live update can lag, or wait while the view is hidden),
+   *   and the Choose pill dropped back to "Choose" meanwhile (Owen, 2026-10-10)
    */
   private readonly taken = new Map<string, PickFields>()
 
@@ -178,9 +187,11 @@ export class ReviewClient {
   }
 
   /**
-   * Keep the inbox fresh on `window`'s page:  a poll every `REVIEW_POLL_MS` while visible, a read when it becomes
-   * visible, and one when the page server says the inbox file changed (`spell-server:file`, the page's live client:
-   * never a connection of our own, each holds one of Chrome's 6 per host).  Returns the undo.
+   * Keep the inbox fresh on `window`'s page;  returns the undo.
+   * - a poll every `REVIEW_POLL_MS` while visible
+   * - a read when it becomes visible
+   * - one when the page server says the inbox file changed (`spell-server:file`, the page's live client:
+   *   never a connection of our own, each holds one of Chrome's 6 per host)
    */
   watch(window: Window): () => void {
     const inboxFile = this.link.file.replace(/(?:\.plan)?\.html$/, ".inbox.json")
@@ -288,8 +299,9 @@ export class ReviewClient {
   }
 
   /**
-   * The new items Owen asked for from the page, waiting in the inbox (`{ action: "new" }` marks, epic `airplane` P2),
-   * in the order he added them;  `kind`:  only those.
+   * The new items Owen asked for from the page, waiting in the inbox, in the order he added them;
+   * `kind`:  only those.
+   * - `{ action: "new" }` marks (epic `airplane` P2)
    */
   newItems(kind?: NewKind): NewItem[] {
     return Object.entries(this.inbox.marks)
@@ -308,15 +320,22 @@ export class ReviewClient {
   ////////////////
 
   /**
-   * The reader clicked `id`'s `action` button.  `"open-box"` when Revisit should take them to the note box (the
-   * caller opens it);  `"chosen"` when the click chose an action for it (the caller folds the item:  Owen,
-   * 2026-10-10, "so he moves on to the next");  else `undefined`, the click handled (cleared, or called off).
+   * The reader clicked `id`'s `action` button.  Answers:
+   * - `"open-box"`:  Revisit should take them to the note box (the caller opens it)
+   * - `"chosen"`:  the click chose an action for it
+   *   (the caller folds the item:  Owen, 2026-10-10, "so he moves on to the next")
+   * - else `undefined`:  the click handled (cleared, or called off)
+   *
+   * What a click does:
    * - running (it spins):  "nevermind", called off (`cancel()`)
    * - chosen already:  cleared, back to no action;
    *   a revisit carrying a pick keeps the pick ("pick B, but ..." without the "but")
-   * - else:  Approve and Make Todo mark it;  Revisit opens the note box;  Do Now (`details`, decision Q20) asks at
-   *   once:  with a note in the box, Claude answers it now (a revisit now, as the note box's Do Now was);
-   *   without, Claude adds details
+   * - else:
+   *   - Approve and Make Todo mark it
+   *   - Revisit opens the note box
+   *   - Do Now (`details`, decision Q20) asks at once:
+   *     with a note in the box, Claude answers it now (a revisit now, as the note box's Do Now was);
+   *     without, Claude adds details
    * - a todo's plane (`next`:  do it in the next phase) and x (`drop`), Owen, 2026-10-09:  mark it, as Approve does;
    *   with a note in the box, the note goes along (why now, why not)
    */
@@ -348,8 +367,9 @@ export class ReviewClient {
    * Pick option `letter` of card set `choices` on `id` (`null`:  drop the pick):  a "Choose" pill (P10).
    * - `choices`:  which of the item's `<epic-choices>` the option is in, by position
    *   (I8:  its text's, a reply's ...);  none, its own
-   * - a revisit keeps its note:  "pick B, but ...";  one asked NOW turns `soon`, so the pick waits for the send with
-   *   it (an immediate mark counts as sent:  Claude would never see the new pick)
+   * - a revisit keeps its note:  "pick B, but ..."
+   *   - one asked NOW turns `soon`, so the pick waits for the send with it
+   *     (an immediate mark counts as sent:  Claude would never see the new pick)
    * - anything else becomes a plain pick, or none
    */
   choose(id: string, letter: string | null, choices?: number): Promise<boolean> {
@@ -360,8 +380,9 @@ export class ReviewClient {
   }
 
   /**
-   * Item `id`'s id chip clicked:  urgent becomes not urgent, and back (`docCalm`:  what the doc says, `calm`), shown
-   * at once, then saved;  back to what the doc says, the inbox forgets it.
+   * Item `id`'s id chip clicked:  urgent becomes not urgent, and back (`docCalm`:  what the doc says, `calm`).
+   * - shown at once, then saved
+   * - back to what the doc says:  the inbox forgets it
    */
   toggleCalm(id: string, docCalm: boolean): Promise<boolean> {
     const calm = !(this.calmOf(id) ?? docCalm)
@@ -395,9 +416,9 @@ export class ReviewClient {
   }
 
   /**
-   * Make `id`'s note a mark:  `how` is the note box button pressed (`soon`:  Later, `skip`:  the x, `now`:  Do Now;
-   * a todo's `next` and `drop`, Owen, 2026-10-09);
-   * what was typed is dropped from memory and the backup (the mark carries it).
+   * Make `id`'s note a mark;  what was typed is dropped from memory and the backup (the mark carries it).
+   * - `how`:  the note box button pressed
+   *   (`soon`:  Later, `skip`:  the x, `now`:  Do Now;  a todo's `next` and `drop`, Owen, 2026-10-09)
    * - Later keeps the item's pick:  "pick B, but ..."
    * - the x (`skip`:  nothing to do) replaces any other mark, a pick too;  its note may be empty
    */
@@ -431,8 +452,8 @@ export class ReviewClient {
   }
 
   /**
-   * Ask for a new todo or question (`entry`) from the page, or (`id`, `new1`) change one still waiting (epic
-   * `airplane` P2):  saved to the inbox (`POST new`), which keys it;  true when saved.
+   * Ask for a new todo or question (`entry`) from the page, or (`id`, `new1`) change one still waiting
+   * (epic `airplane` P2):  saved to the inbox (`POST new`), which keys it;  true when saved.
    * - waits for the server's answer before it shows:  the key is the server's to choose
    * - says it's saved, and that it waits for Send (and for a review, with nobody listening)
    */
@@ -479,8 +500,10 @@ export class ReviewClient {
   }
 
   /**
-   * "Nevermind":  call off item `id`'s immediate request (Add Details Now, revisit now), queued or being worked on
-   * (`POST cancel`);  shown at once.  A revisit's note comes back as a draft, its box open, so nothing typed is lost.
+   * "Nevermind":  call off item `id`'s immediate request (Add Details Now, revisit now),
+   * queued or being worked on (`POST cancel`).
+   * - shown at once
+   * - a revisit's note comes back as a draft, its box open, so nothing typed is lost
    * - a request still on its way waits to land first:  a cancel that reached the server before it would find
    *   nothing to call off, and the request would be queued after it
    */
@@ -508,7 +531,7 @@ export class ReviewClient {
 
   /**
    * "Send to Claude" (`now`:  Review Now, every revisit waiting asked now too);
-   * says what went, or why nothing did (P10's header buttons).
+   * says what went, or why nothing did (P10's Send and Review Now, in the page's send bar).
    */
   async send({ now = false }: { now?: boolean } = {}): Promise<boolean> {
     const marks = Object.values(this.inbox.marks)
@@ -554,8 +577,8 @@ export class ReviewClient {
   ////////////////
 
   /**
-   * Hand the inbox every note backup it lacks (an older page's drafts, or a save that failed), then drop the backups
-   * it took:  nothing typed before this page is lost in the switch.
+   * Hand the inbox every note backup it lacks (an older page's drafts, or a save that failed),
+   * then drop the backups it took:  nothing typed before this page is lost in the switch.
    * - an item gone from the page, or already holding the note:  its backup goes, quietly
    */
   async adoptBackups() {
@@ -667,8 +690,10 @@ export class ReviewClient {
   }
 
   /**
-   * POST `body` (plus `page`) to `route`;  the reply is the new inbox.  True when written;  else says why (a notice,
-   * unless `quiet`:  the caller says it, from `lastWriteError`) and re-reads the inbox, undoing what was shown early.
+   * POST `body` (plus `page`) to `route`;  the reply is the new inbox.
+   * - true when written
+   * - else says why (a notice, unless `quiet`:  the caller says it, from `lastWriteError`),
+   *   and re-reads the inbox, undoing what was shown early
    * - a 403 on the token:  the link takes the server's new token and tries once more (`ServerLink.post()`)
    */
   private async write(route: string, body: object, { quiet = false, keepalive = false }: WriteOptions = {}) {

@@ -6,7 +6,8 @@ import { definePlugin, defineRule, type ESTree, type Rule } from "vite-plus/lint
  * - Each rule flags something a component does BY HAND that a decorator or a helper already does,
  *   and its message names that decorator or helper.
  * - Turned on only for the component folders `PATTERN_FOLDERS` names (`vite.lint.ts`):
- *   Spell UI's own, the plan docs' (`epics`) and the brand pages'.  Not the app, not the element core, not tests.
+ *   Spell UI's own, the plan docs' (`epics`) and the brand pages'.
+ *   Not the app, not the element core, not tests.
  * - A use that has to stay says why, on the line above:
  *   `// oxlint-disable-next-line spell-ui/no-untrack -- a starting value, read once as the component is built`.
  *   `--report-unused-disable-directives` (every package's `yarn lint`) reports one left behind.

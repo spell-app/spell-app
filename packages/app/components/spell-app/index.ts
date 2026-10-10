@@ -2,8 +2,9 @@
  * The `spell-app` family:  defines `<spell-app>` and exports its component, `SpellApp`,
  * and its DOM element, `DOMSpellAppElement`.
  * - SIDE EFFECT:  importing it defines the tag (nothing, if something already has).
- * - Also the entry of `spell-app.js` (`yarn build:element`, `vite.element.config.ts`), which a page loads to run
- *   spell, with nothing around it (`<spell-app>` is a root), or through the component pack, `spell.pack.js`:
+ * - Also the entry of `spell-app.js` (`yarn build:element`, `vite.element.config.ts`),
+ *   which a page loads to run spell, with nothing around it (`<spell-app>` is a root),
+ *   or through the component pack, `spell.pack.js`:
  *
  *       <script type="module" src="/element/spell-app.js"></script>
  *       <spell-app project="@examples/Solitaire" toolbar></spell-app>

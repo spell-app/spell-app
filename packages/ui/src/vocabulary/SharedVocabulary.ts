@@ -15,12 +15,13 @@ import type { AttributeSpec, ComponentVocabulary, SharedDictionary, StateSpec } 
  * - A vocabulary that declares one of them itself keeps its own spec, and its own meaning:
  *   `<ui-button disabled>` has Fomantic's look.
  *   - The shared spec is added only where the vocabulary has none of that name.
- *   - NOTE: none declares its own `visible` or `animation` any more (P12):  keep it that way,
- *     or that element loses `visible` / `hidden` as one fact.
+ *   - NOTE: no vocabulary declares its own `visible` or `animation` (since P12), and none may:
+ *     that element would lose `visible` / `hidden` as one fact.
  * - The platform's own `hidden` and `inert` need nothing here:  every element has them already.
  * - A translated tag names them in its own language (`<ie-boton desactivado>`):
- *   each language has a small file of them, `SharedVocabulary.<lang>.ts` (`translated()`),
- *   which `Vocabulary.resolve()` reads for every dictionary of that `lang`;  the dictionary's own names win.
+ *   - each language has a small file of them, `SharedVocabulary.<lang>.ts` (`translated()`)
+ *   - `Vocabulary.resolve()` reads it for every dictionary of that `lang`
+ *   - the dictionary's own names win
  * - Pure data and lookups, no DOM, no element layer:
  *   node reads it with the vocabularies (`yarn site:data` lists them on every tag).
  ****************/

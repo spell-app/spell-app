@@ -10,11 +10,13 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 ## Overview
 
 - `@spell-app/util` (`$/util`) holds the small GENERIC helpers more than one package uses:
-  - `decorators.ts` -- `@proto`, the standard-decorator for class defaults;
-    `@protoMerged`, for a settings object whose keys merge down the class chain;
-    `@lazy` (a getter made on first read, then kept) and `@once` (a method run once, its result kept,
-    e.g. a loader's promise), with `forget(object, "name")` to drop what they kept;
-    `@resets("name") accessor x`, whose every write drops it (`@E.resets("load") static accessor url`)
+  - `decorators.ts` -- the standard decorators:
+    - `@proto`, for class defaults
+    - `@protoMerged`, for a settings object whose keys merge down the class chain
+    - `@lazy`:  a getter made on first read, then kept
+    - `@once`:  a method run once, its result kept, e.g. a loader's promise
+    - `forget(object, "name")`, to drop what `@lazy` / `@once` kept
+    - `@resets("name") accessor x`, whose every write drops it (`@E.resets("load") static accessor url`)
   - `class.ts` -- `hasOwnProp` ...
   - `string.ts` -- case conversion, `numberToWord`, `suggest`
   - `dom.ts` -- shadow-aware traversal, `NodeType`, `byDocumentOrder`, `isBrowser`, `nextFrame`
@@ -27,33 +29,39 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - anything needing a dependency `ui` doesn't already have (`pluralize`, CommonJS `lodash` ...):
     it goes in `src/spell/`, never beside the generic files
   - anything only ONE package uses:
-    `ui`'s `core.ts` re-exports its `$/ui/util` wholesale, which imports every GENERIC file here,
+    `ui`'s core re-exports its `$/ui/util` wholesale, which imports every GENERIC file here,
     so each lands in `ui`'s `core` bundle (`yarn measure`), used or not
   - when in doubt, leave it in the package
 - Commands:  `yarn review`, `yarn ts`, `yarn lint`, `yarn format`, `yarn test`
   (a real browser, chromium, for the generic files;  node for `src/spell/`).
 - Barrel only, as WWOD §4 › "Package aliases, never `../`" says, with ONE exception here:
-  `ui`'s `src/util/index.ts` imports the generic files one by one (`$/util/class` ...).
+  `ui`'s [util barrel](../ui/src/util/index.ts) imports the generic files one by one (`$/util/class` ...).
   - Why:  so spell's utilities never reach `ui`'s bundles or published declarations.
   - `ui` keeps its own `util` barrel (`$/ui/util`) for package-specific helpers.
 
 ## Spell's utilities (`src/spell/`)
 
 - Spell's own utilities, flattened into the `$/util` barrel LAST:
-  lodash and string helpers, `Observable` / `Derivative` / `Loadable`, `Task` / `TaskList`, `$fetch`, `Logger`,
-  prefs, `assert` / `die`, DOM helpers.
-  The bottom of the spell chain:  every spell-family package may import it, and it imports nothing above it.
+  - lodash and string helpers
+  - `Observable` / `Derivative` / `Loadable`
+  - `Task` / `TaskList`
+  - `$fetch`, `Logger`, prefs, `assert` / `die`, DOM helpers
+- The bottom of the spell chain:  every spell-family package may import it, and it imports nothing above it.
   - Formerly the package `spell-util`.
-    A sub-folder, not loose files:  `string.ts` / `DOM.ts` would clash with the generic `string.ts` / `dom.ts`
-    (macOS is case-insensitive), and nothing in `ui` may import it.
+  - A sub-folder, not loose files:
+    its `string.ts` / `DOM.ts` would clash with the generic `string.ts` / `dom.ts` (macOS is case-insensitive),
+    and nothing in `ui` may import it.
   - Its dependencies (lodash, `chalk`, `pluralize`, `react` ...) are `util`'s `dependencies`.
     `ui` bundles none of them:  `yarn measure` and `yarn smoke` (declarations) prove it.
 - Files in `src/spell/` import the generic helpers by deep path (`$/util/class`),
   NEVER the `$/util` barrel (it re-exports this folder:  a cycle).
-- NOTE: `ResponseErrors.ts` is deliberately NOT in `src/spell/index.ts` -- see its header.
+- NOTE: [`ResponseErrors.ts`](src/spell/ResponseErrors.ts) is deliberately NOT in spell's barrel
+  ([`index.ts`](src/spell/index.ts)) -- see its header.
 - Reactivity here is spell CELLS (P11).  It's Solid work:  READ the root's Solid 2 pointer first.
-  - `cells.ts` (the page-wide context, tracking, `flushCells()`), `Cell`, `Derived`, `Reaction`,
-    `Schema` (per-class prop types), `extend.ts` (records + `getProp` / `setProp` / `getState`...), `Observable`
+  - `cells.ts`:  the page-wide context, tracking, `flushCells()`
+  - `Cell`, `Derived`, `Reaction`, `Observable`
+  - `Schema`:  per-class prop types
+  - `extend.ts`:  records + `getProp` / `setProp` / `getState`...
   - `spellDecorators.ts` (`@prop` / `@derived` / `@thing`)
   - `bridges.ts`:  `bridgeSolid()`, which the HOST calls (this package never imports Solid), and `observe()`
   - `view.ts`:  the React bridge

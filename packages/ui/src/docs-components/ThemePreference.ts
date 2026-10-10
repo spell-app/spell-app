@@ -32,7 +32,7 @@ import {
  *     a theme can turn transitions off under it.
  * - `system` follows the OS:  `shownScheme()` resolves it through `prefers-color-scheme`,
  *   and `subscribe()`d listeners hear when the OS switches (the icon showing the scheme stays right).
- *   Other tabs' switches arrive through `storage` events.
+ *   - Other tabs' switches arrive through `storage` events.
  * - Before first paint:  a module script runs too late,
  *   so pages inline `HEAD_SCRIPT` in `<head>` (the page template, `templates/spell-ui-docs.html`).
  *   - It re-applies the SCHEME synchronously.

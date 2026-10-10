@@ -1,7 +1,8 @@
 /*
- * `<epic-agents>` (`EpicAgents.tsx`), drawn by `<epic-page>`:  "Agents running" above the page's blocks,
- * a quiet panel, not a section -- a row per agent (name, status, age, task), its redirects so far, and a note box
- * with Send.  From `plan-doc.css`'s "Running agents" (the old runtime's), the same look.
+ * `<epic-agents>` (`EpicAgents.tsx`), drawn by `<epic-page>`:  "Agents running" above the page's blocks.
+ * - a quiet panel, not a section
+ * - a row per agent (name, status, age, task), its redirects so far, and a note box with Send
+ * - the same look as the old page runtime's "Running agents" (`plan-doc.css`)
  * - colours:  the pack's tokens (`EpicPage.css`) and Spell UI's, each with a fallback:  light and dark alike
  * - Units:  px and em, never rem (WWOD §18).
  */

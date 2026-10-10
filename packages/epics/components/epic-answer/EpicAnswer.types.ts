@@ -1,6 +1,6 @@
 /**
- * Constants several components of the `epic-answer` family share (`EpicAnswer`, `EpicReply`, `EpicMore`), and
- * `EpicStatus`, whose card is theirs (`epic-status`).
+ * Constants several components of the `epic-answer` family share (`EpicAnswer`, `EpicReply`, `EpicMore`),
+ * and `EpicStatus`, whose card is theirs (`epic-status`).
  * - Data only:  nothing here runs.
  * - A constant only one of them uses lives below that component's class.
  */

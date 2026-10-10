@@ -30,7 +30,7 @@ import selectCSS from "./UISelect.css?inline"
  *   a handler that sets `el.value` again wins, and the select shows that value.
  * - A single select shows an empty first option (the `placeholder`) while nothing is chosen,
  *   so the browser never silently chooses the first option.
- *   `required` disables it (it can't be chosen back).
+ *   - `required` disables it (it can't be chosen back).
  * - An option's `flag` draws through `UIT.Flags`, the rule `<ui-flag>` draws with;
  *   a flag that isn't a code shows as its text.
  * - Keyboard, picker, type-ahead and screen-reader behaviour are the browser's.

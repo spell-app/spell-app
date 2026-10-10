@@ -1,20 +1,21 @@
 # Plan docs in `<epic-*>` markup
 
-What `spell dev plan-doc` writes, and what's still DATA,
+What the plan-doc tool (`spell dev plan-doc`) writes, and what's still DATA,
 once a plan doc is in the `<epic-*>` markup (epic `epic-components`, P8).
 The elements -- tags, attributes, which children go where --
-are described ONCE, in `packages/epics/src/definitions/` (each `components/<family>/<Name>.en.ts`);
+are described ONCE, in [the definitions](../definitions/) (each family's vocabulary, `<Name>.en.ts`);
 this file holds the rest.
 
 - Since the switch (P12, 2026-10-08) every real doc is in this markup.
-  A doc still in the OLD `ui-*` markup is READ (`summary`, `summaries`, `list`, `items`, `check`, `open`,
-  the inbox's listings) and never edited:  "convert it first (spell dev plan-doc convert)".
-- The template `new` copies:  `templates/plan.html` beside this file.
-  The shared `templates/epics/plan.html` retired at the switch.
-- How to WRITE a doc stays in `templates/epics/plan-doc.md`:
-  "Rules" (write for Owen cold, Net effect, never delete an item, never drop its text), "Ids",
-  what phases and items say, "Prose", "Explaining a question or issue", "Review inbox" (the loop),
-  the commands' table.  It points here for the markup.
+  A doc still in the OLD `ui-*` markup is READ, and never edited:  "convert it first (spell dev plan-doc convert)".
+  - read by:  `summary`, `summaries`, `list`, `items`, `check`, `open`, the inbox's listings
+- The template `new` copies:  [`plan.html`](templates/plan.html), in the templates folder beside this file.
+  The shared one (`plan.html` in the shared epics templates) retired at the switch.
+- How to WRITE a doc stays in [`plan-doc.md`](../../../../templates/epics/plan-doc.md), the shared epics template's:
+  - "Rules" (write for Owen cold, Net effect, never delete an item, never drop its text)
+  - "Ids", what phases and items say, "Prose", "Explaining a question or issue"
+  - "Review inbox" (the loop), the commands' table
+  - It points here for the markup.
 
 ## The page
 
@@ -180,26 +181,33 @@ As `plan-doc.md`, "Ids":
     - `review-as` is the record (the log, `review` outcomes, the state above), never drawn on the buttons:
       once Claude has handled a mark they clear, and the chip shows the result
 - A TODO's review buttons (Owen, 2026-10-09):  the plane, Revisit, the x, one group;  no Approve, Make Todo or Do Now.
-  - the plane (`next`, green):  "Do it in the next phase".  `inbox apply` queues it into the first phase whose
-    status is `todo` (`queued`, `work` `P10 · <name>`;  none:  `the next phase`, and its line says so), with a Noted
-    status card `Queued for P10 · <name>`;  reviewed.  Its chip stays OUTLINED green while queued:  the work is due
+  - the plane (`next`, green):  "Do it in the next phase".
+    - `inbox apply` queues it into the first phase whose status is `todo`, and marks it reviewed
+      (`queued`, `work` `P10 · <name>`;  none:  `the next phase`, and its line says so)
+    - with a Noted status card, `Queued for P10 · <name>`
+    - its chip stays OUTLINED green while queued:  the work is due
   - Revisit (blue):  "Revisit:  I'm adding a note for you";  answered as any revisit
-  - the x (`drop`, grey):  "Drop it".  `inbox apply` cancels it (struck through, grey;  the log
-    `T3 canceled:  dropped by Owen in review`);  reviewed
-  - its note box matches:  the plane, Revisit Later, the x.  The plane or the x takes the note in the box along;
-    `inbox apply` keeps it first, as Owen's `<epic-reply re="next phase">` (or `re="drop"`)
+  - the x (`drop`, grey):  "Drop it".
+    `inbox apply` cancels it (struck through, grey), and marks it reviewed;
+    the log says `T3 canceled:  dropped by Owen in review`
+  - its note box matches:  the plane, Revisit Later, the x.
+    - the plane or the x takes the note in the box along
+    - `inbox apply` keeps it first, as Owen's `<epic-reply re="next phase">` (or `re="drop"`)
   - every other kind keeps Approve, Revisit, Make Todo and Do Now (the wand)
 - EVERY other note box (an item's, an Overview sub-section's, a phase's, the summary's):  Revisit Later, then the x
   (`skip`, grey, "Skip this";  Owen, 2026-10-09:  in place of Make Todo, which stays on the line).
-  - the x:  nothing to do here.  It takes the note in the box along, or none;  it replaces any other mark, a pick
-    too.  No line button wears it:  the id chip alone does, grey (dashed, then outlined once sent)
-  - `inbox apply`, on an item:  reviewed, and nothing else -- its status as it was (an open question stays open,
-    `skip` settles nothing), no status card;  a note kept first, as Owen's `<epic-reply re="skip">`;  the log
-    `J9 skipped:  nothing to do, reviewed`
-  - on a todo, skipping it IS dropping it (its own box's x is `drop`;  a `skip` from a page drawn before is applied
-    as `drop`)
-  - on an Overview sub-section, a phase, the summary:  logged (`P3 skipped:  nothing to do`), a note kept as for
-    any mark of theirs
+  - the x:  nothing to do here.
+    - it takes the note in the box along, or none
+    - it replaces any other mark, a pick too
+    - no line button wears it:  the id chip alone does, grey (dashed, then outlined once sent)
+  - `inbox apply`, on an item:  reviewed, and nothing else
+    - its status as it was (an open question stays open:  `skip` settles nothing), no status card
+    - a note kept first, as Owen's `<epic-reply re="skip">`
+    - the log:  `J9 skipped:  nothing to do, reviewed`
+  - on a todo, skipping it IS dropping it:
+    its own box's x is `drop`, and a `skip` from a page drawn before is applied as `drop`
+  - on an Overview sub-section, a phase, the summary:
+    logged (`P3 skipped:  nothing to do`), a note kept as for any mark of theirs
 - Options:  `<epic-choices>` of `<epic-option letter title recommended>`, the same open or answered.
   - `chosen` once answered (`decide --option B`, a pick);  mark ONE `recommended`
   - on ANY item kind (P14):  a question's own after its text,
@@ -212,9 +220,10 @@ As `plan-doc.md`, "Ids":
     any other item is APPROVED with it (an open judgement call closed, accepted;  reviewed)
   - either way a Noted card `Chose B · <title>:  <what was recorded>;  <what happens next>`
     (`recorded as the answer;  waiting for the next phase, P9 · <name>`), and the option in the log line
-  - a pick riding on a revisit ("pick B, but ..."):  left for the talk;  when Claude finishes the mark
-    (`inbox done | clear`) without a `decide --option`, the pick is still written as that set's `chosen`, with a
-    Noted card (`keepPick()`):  once Owen picked, the card says Chosen (Owen, 2026-10-10)
+  - a pick riding on a revisit ("pick B, but ..."):  left for the talk.
+    When Claude finishes the mark (`inbox done | clear`) without choosing in that set (`decide --option`),
+    the pick is still written as the set's `chosen`, with a Noted card (`keepPick()`):
+    once Owen picked, the card says Chosen (Owen, 2026-10-10).
 - The way in (`IncomingHtml`):  agents may still write the OLD shapes.
   Every command taking HTML (`add --details`, `decide --details`, `details --file`, `updated`, a phase's fields)
   turns them into elements on the way in, so a doc never holds them:
@@ -223,12 +232,18 @@ As `plan-doc.md`, "Ids":
   - a `Net effect` paragraph and its list, a `ui-accordion.spell-code` / `.spell-aside`, a `ui-message.plan-update`,
     a labelled block (`<b>Where:</b>`) -> the prose elements below
     (`ProseRewrite`, by the converter's own rules, `ProseShapes`)
-  - a name and its file's path -> the name, its path its tooltip (`PathTooltips`;  epic `airplane`, WWOD §6 ›
-    "Plain text, plain paths"):  `<code>buildTsx()</code>, <code>packages/spell/src/node/buildTsx.ts:40</code>`
-    becomes `<code title="packages/spell/src/node/buildTsx.ts:40">buildTsx()</code>`, which the linker links to the
-    file
-    - read:  a path alone in brackets after a name;  a path after a comma, when the name is the file's or its
-      folder's;  either as plain text, or linked (the link moves onto the name)
+  - a name and its file's path -> the name, its path its tooltip
+    (`PathTooltips`;  epic `airplane`, WWOD §6 › "Plain text, plain paths");  the linker links the name to the file:
+
+    ```html
+    <code>buildTsx()</code>, <code>packages/spell/src/node/buildTsx.ts:40</code>
+    <!-- becomes -->
+    <code title="packages/spell/src/node/buildTsx.ts:40">buildTsx()</code>
+    ```
+
+    - read:  a path alone in brackets after a name;
+      a path after a comma, when the name is the file's or its folder's;
+      either as plain text, or linked (the link moves onto the name)
     - left:  a folder, a file with no folder or line, a list of names, any other wording ("in")
   - never inside code or an Original Discussion
   - a shape those rules can't read for sure stays prose:  a Net effect worded otherwise,
@@ -253,16 +268,18 @@ As `plan-doc.md`, "Ids":
   - the summary, keyed `summary` in the inbox (it has no id):
     todo makes `Follow up:  the summary` linking `#overview`, a Noted status card under the lede;
     a kept note is `<epic-reply slot="notes">` in `<epic-summary>`
-- NEW items from the page (epic `airplane` P2):
-  a `+` in the page header, and a New todo / New question button at the end of the Todos and Questions sections,
-  ask for one with a small form (todo or question, title, note, what it's about).
-  - It waits in the inbox as a mark under a key of its own, `new1`, `new2` ...:
+- NEW items from the page (epic `airplane` P2):  Owen asks for one with a small form
+  (todo or question, title, note, what it's about).
+  - the form opens from the page toolbar's new-item button (comment dots, since epic `airplane` P8),
+    or from the New todo / New question button at the end of the Todos and Questions sections
+  - it waits in the inbox as a mark under a key of its own (`new1`, `new2` ...):
     `{ action: "new", kind, title, note?, near? }`
   - drawn at the end of its section (dashed until sent, then outlined),
     editable and removable until Claude makes it
-  - `inbox apply` makes each sent one as `add` does:  the note its details (a question's lead),
-    `About <a href="#p3">P3</a>.` for `near`,
-    a Noted status card `Made from the page:  Owen's new todo, written <time>.`, one log line
+  - `inbox apply` makes each sent one as `add` does, with one log line:
+    - the note:  its details (a question's lead)
+    - `near`:  `About <a href="#p3">P3</a>.`
+    - a Noted status card:  `Made from the page:  Owen's new todo, written <time>.`
   - `inbox clear new1` drops one;  its note is never kept as a reply
 
 ## Prose elements
@@ -312,9 +329,11 @@ Two kinds of finished card, so a card that only RECORDS Owen's choice never read
 </epic-status>
 ```
 
-- Drawn:  `Claude • Underway` (blue fill) / `Claude • Done` (green fill) / `Claude • Noted` (no fill, a green
-  outline:  the fill rule's "recorded") on the left of the band, the date at its right
-  (`done-at` once finished, else `at`);  then the reading;  then the summary, if any.
+- Drawn:
+  - on the left of the band:  `Claude • Underway` (blue fill), `Claude • Done` (green fill),
+    or `Claude • Noted` (no fill, a green outline:  the fill rule's "recorded")
+  - the date at its right (`done-at` once finished, else `at`)
+  - then the reading;  then the summary, if any
 - An underway card makes its item `progress` (blue:  Claude is working on it) until it's done.
 - `slot="status"`:  never ordered (written last in the item, or the section);  drawn last in the details, UNDER Owen's
   marked note and above the note box ("under my input", Owen, 2026-10-08).  A part file never holds them:
@@ -326,16 +345,19 @@ Two kinds of finished card, so a card that only RECORDS Owen's choice never read
   - `status <name> <id> underway "<reading>"`:  a new underway card, stamped now;  the page's spinner on
   - `status <name> <id> done ["<summary>"]`:  WORK was done:  the LATEST underway card turns done (`done-at`), the
     reading kept;  spinner off;  refused with no underway card
-  - `status <name> <id> noted "<what>"`:  Claude only RECORDED Owen's choice:  the latest underway card turns
-    noted, `what` its summary;  none, a card born noted (`at` alone);  spinner off.
-    `done --filed "<what>"`, the older spelling, writes the same Noted card
-  - `inbox apply`:  a card born NOTED for each pick (`Chose B · <option>:  recorded ...;  waiting for ...`) and todo
-    (`Made todo T23 to follow this up.`) it files (Q19), each todo it queues (`Queued for P10 · <name>`), and each
-    new item it makes (`Made from the page:  Owen's new todo, ...`);  none for an approval
-  - `inbox done | clear` of a mark carrying a pick:  a Noted card with the pick kept (`Chose B · ...:  recorded
-    after the talk;  ...`), unless a `decide --option` already chose in that set
-  - the reading and summary are HTML, as `updated` takes:  inline runs go in a `<p>`, blocks stay;
-    plain text works as it is (`&lt;` for a `<`)
+  - `status <name> <id> noted "<what>"`:  Claude only RECORDED Owen's choice.
+    - the latest underway card turns noted, `what` its summary;  none, a card born noted (`at` alone)
+    - spinner off
+    - `done --filed "<what>"`, the older spelling, writes the same Noted card
+  - `inbox apply`:  a card born NOTED for each of these;  none for an approval
+    - each pick:  `Chose B · <option>:  recorded ...;  waiting for ...`
+    - each todo it files (Q19):  `Made todo T23 to follow this up.`
+    - each todo it queues:  `Queued for P10 · <name>`
+    - each new item it makes:  `Made from the page:  Owen's new todo, ...`
+  - `inbox done | clear` of a mark carrying a pick:  a Noted card with the pick kept,
+    `Chose B · ...:  recorded after the talk;  ...`, unless a `decide --option` already chose in that set
+  - the reading and summary are HTML, as `updated` takes:
+    inline runs go in a `<p>`, blocks stay;  plain text works as it is (`&lt;` for a `<`)
 - A rewrite of the item's text (`details --file`) leaves its cards where they are;
   they never reach its Original Discussion.
 
@@ -387,17 +409,21 @@ So at a glance:  a dashed or outlined chip is ANSWERED (don't answer again);  so
 | a new todo or question from the page   | its section's new row | not sent | sent                              | the new item's own chip (a question red, a todo yellow) |
 | urgent / not urgent (the id chip itself) | red / yellow | a dashed ring | --                                    | solid red / yellow              |
 
-- The chip of an item waiting on Owen is never outlined:  `attention` (red) and `replied` (orange) stay solid,
-  and the toolbar counts them (`state`, as the script writes it, unchanged).
-- Outlined is drawn from the item's own marks, never written:  Owen's live mark (the inbox), a pick Claude took
-  (`ReviewClient.takenPickOf()`), `queued` on an open item, `progress`.
+- The chip of an item waiting on Owen is never outlined:
+  `attention` (red) and `replied` (orange) stay solid, and the toolbar counts them
+  (`state`, as the script writes it, unchanged).
+- Outlined is drawn from the item's own marks, never written:
+  - Owen's live mark (the inbox)
+  - a pick Claude took (`ReviewClient.takenPickOf()`)
+  - `queued` on an open item
+  - `progress`
 
 ## Folding
 
-EVERYTHING boxed in a section folds (Owen, 2026-10-08):  every card with a heading band folds from it, the chevron
-first -- a reply (Owen's and Claude's), the answer, a status card, an `<epic-note>`, an `<epic-update>` note, an
-`<epic-updated>` fence, an open question's option card -- as More Details, Choices, an aside, a code block, Original
-Discussion, Plan changes and Agents running already did.
+EVERYTHING boxed in a section folds (Owen, 2026-10-08):  every card with a heading band folds from it, the chevron first.
+- the cards:  a reply (Owen's and Claude's), the answer, a status card, an `<epic-note>`,
+  an `<epic-update>` note, an `<epic-updated>` fence, an open question's option card
+- as More Details, Choices, an aside, a code block, Original Discussion, Plan changes and Agents running already did
 - Open to start with (the text being read;  an item and an aside start folded);  page state, never written
 - folded content is `hidden="until-found"`, so find-in-page reveals it
 - a click anywhere on the band folds, but on a link or a control in it (`Fold.heading`, `fold.button()`)

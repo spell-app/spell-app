@@ -29,9 +29,9 @@ import anchoredCSS from "./UIPopup.anchored.css?raw"
  * - Invoker commands (`<button commandfor="id" command="--toggle">`, `UIT.ToggleCommands`)
  *   are a person's actions too:  the popup opens at ITS target, whichever button sent the command.
  *
- * - Shown by the shared `visible` / `hidden` (`UIComponent`, "Shown or hidden"), starting hidden;
- *   controlled:  a person's cancelable `ui-open` / `ui-close` come first.
- *   Escape and outside clicks come from `UI.overlays` (kind `popover`;  the target counts as inside).
+ * - Shown by the shared `visible` / `hidden` (`UIComponent`, "Shown or hidden"), starting hidden.
+ *   - Controlled:  a person's cancelable `ui-open` / `ui-close` come first.
+ *   - Escape and outside clicks come from `UI.overlays` (kind `popover`;  the target counts as inside).
  *
  * - Its popover mode:  `hint` for hover / focus popups when `UI.browser.supports.popoverHint`
  *   (they don't close an open dropdown's menu), else `manual`.
@@ -43,8 +43,8 @@ import anchoredCSS from "./UIPopup.anchored.css?raw"
  *   - `hover` / `focus` / `manual`:  the DOM element is `role=tooltip`;  the target is `aria-describedby` it
  *   - `click`:  the DOM element is `role=dialog` (non-modal, named by `header` or its `aria-label`);
  *     the target gets `aria-haspopup=dialog`, `aria-expanded`, `aria-controls`
- *   - the ARIA goes on the element that takes focus:  a `delegatesFocus` target's (`<ui-button>`'s) first
- *     focusable, through element reflection (`ariaDescribedByElements`) when that is in another tree.
+ *   - the ARIA goes on the element that takes focus:  a `delegatesFocus` target's (`<ui-button>`'s) first focusable,
+ *     through element reflection (`ariaDescribedByElements`) when that is in another tree.
  *
  * - SIDE EFFECTS on light DOM the popup doesn't own, undone when it unbinds:
  *   - the target's inline `anchor-name` (a per-instance name ADDED to its list) and its ARIA attributes
@@ -98,9 +98,10 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
    * `visible` changed (`UIComponent`'s hook):  show or hide the popover;  resolves once its transition has ended.
    * - Showing waits for a `ui-*` target to be ready:
    *   it renders async, so its box (or `display: contents`) is only known then.
-   * - `animation`:  the family's own (`elementSetup.animation`) is the sheet's transition (`UIPopup.css`);
-   *   another one (the element's own `animation`) runs on the popup box through `UI.transitions`;
-   *   `none`:  at once.
+   * - `animation`:
+   *   - the family's own (`elementSetup.animation`):  the sheet's transition (`UIPopup.css`)
+   *   - another one (the element's own `animation`):  run on the popup box through `UI.transitions`
+   *   - `none`:  at once
    */
   protected async onVisibleChange(visible: boolean, animation: UIT.Animation): Promise<void> {
     const box = this.box
@@ -386,8 +387,8 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   /**
    * `popover` of the ROOT in a server render (`$/ui/static`), where the root replaces the DOM element:
    * hidden until opened, in the HTML.
-   * - `auto` for a click popup:  light dismiss and Escape without JS, once something opens it (`popovertarget`);
-   *   `manual` for the rest (`hint` isn't everywhere, and an unknown value means `manual`).
+   * - `auto` for a click popup:  light dismiss and Escape without JS, once something opens it (`popovertarget`).
+   * - `manual` for the rest (`hint` isn't everywhere, and an unknown value means `manual`).
    */
   private get serverPopover(): PopoverMode {
     return this.isInteractive ? "auto" : "manual"

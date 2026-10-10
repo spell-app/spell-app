@@ -1,7 +1,7 @@
 /*
  * `<epic-new-item>` (`EpicNewItem.tsx`, epic `airplane` P2):  the `+` button and the form for a new todo or question.
- * - Owen's own words:  his ivory, as the review controls' note box (`EpicReview.css`, whose private tokens it shares
- *   by value)
+ * - Owen's own words:  his ivory, as the review controls' note box
+ *   (`EpicReview.css`, whose private tokens it shares by value)
  * - the page header's is the form alone (`open`):  the page's sheet gives it a row of its own
  * - Public tokens (`--epic-new-item-*`) are never declared here:  read through private aliases.
  */

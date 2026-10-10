@@ -14,16 +14,17 @@ import agentsCSS from "./EpicAgents.css?inline"
 
 /****************
  * ### `EpicAgents`
- * The component behind `<epic-agents>`:  the epic's RUNNING AGENTS (epic `skillz` P3), drawn by `<epic-page>` right
- * before its blocks:  "Agents running" (a robot, the count when more than one), a row per agent, each with a note box
- * that REDIRECTS it.
+ * The component behind `<epic-agents>`:  the epic's RUNNING AGENTS (epic `skillz` P3),
+ * drawn by `<epic-page>` right before its blocks.
+ * - its title:  "Agents running", a robot, and the count when more than one
+ * - then a row per agent, each with a note box that REDIRECTS it
  * - it FOLDS from its title, like every titled box (Owen, 2026-10-08);  open to start with:  it's live news
- * - shown ONLY while the page's `AgentsClient` is `listed` (a plan doc served with a token, the list answering) and
- *   an agent runs
+ * - shown ONLY while an agent runs and the page's `AgentsClient` is `listed`
+ *   (a plan doc served with a token, the list answering)
  * - in the page's shadow root, NOT a section:
  *   the contents, the rail and the counts never see it (they read the light DOM)
- * - one row per agent, KEYED by name (`row()`):  a poll updates it in place, never touching what's typed in its
- *   box, nor its focus
+ * - one row per agent, KEYED by name (`row()`):
+ *   a poll updates it in place, never touching what's typed in its box, nor its focus
  * - keeps the reader's place:  read below it, the page scrolls by what it grew or shrank as it comes,
  *   changes or goes (`follow()`)
  * - SIDE EFFECT:  follows the page's agents client while connected (kept alive:  a page that's gone stops listening)
@@ -129,10 +130,14 @@ export class EpicAgents extends E.UIComponent<typeof epicAgentsVocabulary> {
   }
 
   /**
-   * One running agent:  its name, status (`active` blue, `blocked on <name>` orange, else grey) and age (its start
-   * time in the tooltip), its task, the redirects so far ("You · 10:42 · told 10:43", or "waiting for the session"),
-   * then a note box that grows as it's typed in, with Send (`Redirect`).
-   * - the box is the DOM's own (never set from the agent):  a poll redraws everything around it, never it
+   * One running agent's row, top to bottom:
+   * - its name, status (`active` blue, `blocked on <name>` orange, else grey)
+   *   and age (its start time in the tooltip)
+   * - its task
+   * - the redirects so far ("You · 10:42 · told 10:43", or "waiting for the session")
+   * - a note box that grows as it's typed in, with Send (`Redirect`)
+   *
+   * The box is the DOM's own (never set from the agent):  a poll redraws everything around it, never it.
    */
   private row(agent: () => RunningAgent, redirect: Redirect): JSX.Element {
     const name = redirect.name
@@ -222,8 +227,9 @@ export interface EpicAgents extends E.AttributeValues<typeof epicAgentsVocabular
 /****************
  * ### `Redirect`
  * One agent's note box, as its row draws it:  what can be sent, a send on its way, and why the last one failed.
- * - Send, or Cmd / Ctrl + Enter:  `POST redirect`;  the box empties once sent (unless typed on meanwhile), else the
- *   error shows under it, as a sentence
+ * - Send, or Cmd / Ctrl + Enter:  `POST redirect`
+ *   - sent:  the box empties (unless typed on meanwhile)
+ *   - failed:  the error shows under it, as a sentence
  * - MUST be created under the row's owner:  its members are signals
  ****************/
 class Redirect {
@@ -266,8 +272,10 @@ class Redirect {
   }
 
   /**
-   * Send the box's note to the agent:  the box empties once it's in the list (unless typed on meanwhile), else the
-   * error shows under it.  Nothing for an empty box, or while one is on its way.
+   * Send the box's note to the agent.
+   * - in the list:  the box empties (unless typed on meanwhile)
+   * - failed:  the error shows under it
+   * - does nothing for an empty box, or while one is on its way
    */
   private async send() {
     const note = this.note!

@@ -22,8 +22,8 @@ import segmentCSS from "./UISegment.css?inline"
  * - `:state(piled)`:  the element becomes the stacking context the rotated sheets sit behind.
  * - `scrolling`:  the box is a keyboard stop (`tabindex=0`), as every scrollable region must be.
  * - `loading`:  `aria-busy` (through `internals`) and a visually hidden `role=status` "Loading…".
- * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, its content inert,
- *   `aria-disabled`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, its content inert, `aria-disabled`.
  ****************/
 export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   @E.proto static vocabulary = segmentVocabulary

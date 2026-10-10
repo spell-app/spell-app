@@ -16,29 +16,37 @@ import { Terminal } from "./Terminal.ts"
 
 /****************
  * ### `SiteCheck`
- * Checks the plain-HTML Spell UI docs pages (`ui/*.html`, `ui/components/ui-<name>.html`:  the shared pages,
- * `SITE_PAGES`) in headless chromium, served by this checkout's page server at `/ui/`.
- * - Run:  `yarn site:check <page...>` (in `packages/ui`), or `yarn site:check --all`;  `--out <dir>` for the
- *   screenshots (default `tools/results/site-check/`, git-ignored).  `scripts/site-check.ts` is the command, which
- *   hands its arguments to `SiteCheck.main()`:  a class file runs nothing when imported.
- * - A page is a path (absolute, from the cwd, or from `ui/`), a tag (`ui-button` =>
- *   `ui/components/ui-button.html`) or a name (`index` => `ui/index.html`):  `resolvePage()`.
+ * Checks the plain-HTML Spell UI docs pages in headless chromium, served by this checkout's page server at `/ui/`.
+ * - The pages:  `ui/*.html`, `ui/components/ui-<name>.html` (the shared pages, `SITE_PAGES`).
+ * - Run:  `yarn site:check <page...>` (in `packages/ui`), or `yarn site:check --all`.
+ *   - `--out <dir>` for the screenshots (default `tools/results/site-check/`, git-ignored).
+ *   - `scripts/site-check.ts` is the command, which hands its arguments to `SiteCheck.main()`:
+ *     a class file runs nothing when imported.
+ * - A page is one of (`resolvePage()`):
+ *   - a path:  absolute, from the cwd, or from `ui/`
+ *   - a tag:  `ui-button` => `ui/components/ui-button.html`
+ *   - a name:  `index` => `ui/index.html`
  * - Problems (`PageReport.problems`;  exit 1):
  *   - console errors, page errors, failed requests and responses >= 400 (the favicon too:  the page server has one)
  *   - `ui-*` / `spell-*` elements still undefined once settled;  defined `ui-*` with no shadow root
- *   - component pages (`components/ui-*.html`, not the index):  not exactly one `ui-tabs.site-tabs` with panes
- *     `examples`, `usage`, `api`, `theming` (`theming` optional);  a pane that isn't the shown one when loaded with
- *     its `#hash`, or shows under 50px
+ *   - component pages (`components/ui-*.html`, not the index):
+ *     - not exactly one `ui-tabs.site-tabs` with panes `examples`, `usage`, `api`, `theming` (`theming` optional)
+ *     - a pane that isn't the shown one when loaded with its `#hash`, or shows under 50px
  *   - `ui-docs-toc`:  hidden or empty on desktop, visible on phone
- *   - sections (`yarn site:sections`):  an id that doesn't follow its nesting, a flat level 2 header left, a deep link
- *     to the first nested section that doesn't land (pane shown, unfolded, its title on its line below the stuck ones)
- *   - horizontal scroll at phone width, listing the elements past the edge, outermost and deepest:  what a fixer
- *     needs;  a nav button (`ui-button.site-menu-button`) whose flyout doesn't open
- * - Every page is checked, whatever failed before it.  Problems go to stderr, with each page's URL, counts and
- *   screenshots;  a JSON summary is the last thing on stdout.
+ *   - sections (`yarn site:sections`):
+ *     - an id that doesn't follow its nesting
+ *     - a flat level 2 header left
+ *     - a deep link to the first nested section that doesn't land
+ *       (pane shown, unfolded, its title on its line below the stuck ones)
+ *   - horizontal scroll at phone width, listing the elements past the edge, outermost and deepest:
+ *     what a fixer needs
+ *   - a nav button (`ui-button.site-menu-button`) whose flyout doesn't open
+ * - Every page is checked, whatever failed before it.
+ * - Problems go to stderr, with each page's URL, counts and screenshots;  a JSON summary is the last thing on stdout.
  * - Look at the screenshots too:  the checks can't see overlap, clipping or ugly wrapping.
  * - Throws `SiteCheckError` when it can't start:  no such page, or no page server serving the site (exit 2).
- * - Replaces the Astro site's `check` script.  Model:  the docs' checker, `packages/docs/tools/check-spell.js`.
+ * - Replaces the Astro site's `check` script.
+ *   Model:  the docs' checker, `packages/docs/tools/check-spell.js`.
  * - Node only;  reads the site's `FOLDS_KEY` (`site/_src/site.types.ts`, pure data) and `TocIndex.slug()`.
  ****************/
 export class SiteCheck {
@@ -176,8 +184,8 @@ export class SiteCheck {
 
   /**
    * The page server's origin, once it serves the site bundle.
-   * - `spell dev server ensure` prints `{ base, port, ... }` as JSON, maybe after other lines:  parsed from the first
-   *   `{`
+   * - `spell dev server ensure` prints `{ base, port, ... }` as JSON, maybe after other lines:
+   *   parsed from the first `{`
    * - throws `SiteCheckError` when there's no server, or it doesn't serve `/ui/_assets/site.js`
    */
   async ensureServer(): Promise<string> {
@@ -315,15 +323,18 @@ export class SiteCheck {
   }
 
   /**
-   * Sections (`yarn site:sections`):  ids that follow their nesting, no flat level 2 header left, and a deep link that
-   * lands.
-   * - every page section's id is its parent section's id (at the top:  its pane's value;  a page without tabs:
-   *   nothing) + `-` + the slug of its header (`TocIndex.slug()`), maybe + `-<n>` (made unique)
+   * Sections (`yarn site:sections`):
+   * ids that follow their nesting, no flat level 2 header left, and a deep link that lands.
+   * - every page section's id is its parent section's id + `-` + the slug of its header (`TocIndex.slug()`),
+   *   maybe + `-<n>` (made unique)
+   *   - the parent at the top:  its pane's value;  a page without tabs:  nothing
    * - no `<ui-header level="2">` in a tab pane (outside examples), nor straight inside a page's article
-   * - a deep link to the first NESTED section (else the first), with its top-level section saved folded:  lands with
-   *   that pane shown, every section around it unfolded, its title on its line below the stuck ones (or below it, on
-   *   a page too short to scroll it that far:  scrolled to the bottom);  screenshot
-   *   `<page>-desk-deep.png`
+   * - a deep link to the first NESTED section (else the first), with its top-level section saved folded, lands with:
+   *   - that pane shown
+   *   - every section around it unfolded
+   *   - its title on its line below the stuck ones
+   *     (or below it, on a page too short to scroll it that far:  scrolled to the bottom)
+   * - screenshot `<page>-desk-deep.png`
    */
   private async checkSections(check: CheckContext): Promise<void> {
     const { report, problem, name } = check
@@ -368,8 +379,8 @@ export class SiteCheck {
   }
 
   /**
-   * Phone:  horizontal scroll (with its widest leaf offenders), the contents list hidden, the nav flyout opening;
-   * screenshots top, middle, full page and nav.
+   * Phone:  horizontal scroll (with its widest leaf offenders), the contents list hidden, the nav flyout opening.
+   * Screenshots top, middle, full page and nav.
    */
   private async checkPhone(check: CheckContext): Promise<void> {
     const { report, problem, name } = check
@@ -436,16 +447,17 @@ export class SiteCheck {
 
   /**
    * A page in a fresh context, its errors and failed requests reported as `check`'s problems, labelled `label`.
-   * - ignores console "Failed to load resource" lines (the response / request listeners report those, with their
-   *   URL)
-   * - NOTE:  a favicon 404 is a problem too, since 2026-10-04:  the page server answers `/favicon.ico` and injects
-   *   its own icon links (`$/server`'s `WebServer`)
+   * - ignores console "Failed to load resource" lines
+   *   (the response / request listeners report those, with their URL)
+   * - NOTE:  a favicon 404 is a problem too, since 2026-10-04:
+   *   the page server answers `/favicon.ico` and injects its own icon links (`$/server`'s `WebServer`)
    * - `net::ERR_ABORTED` is a note:  a navigation (the next tab's fresh load) cancels what's still in flight
    */
   private async open(check: CheckContext, options: BrowserContextOptions, label: string): Promise<Page> {
     const context = await this.browser!.newContext(options)
-    // HACK:  tsx compiles this file with esbuild `keepNames`, which wraps the in-page probes' inner functions in
-    // `__name(...)`, a helper the page doesn't have (as `hmr.e2e.ts`)
+    // HACK:  tsx compiles this file with esbuild `keepNames`,
+    // which wraps the in-page probes' inner functions in `__name(...)`,
+    // a helper the page doesn't have (as `hmr.e2e.ts`)
     await context.addInitScript("globalThis.__name = (fn) => fn")
     const page = await context.newPage()
     page.setDefaultTimeout(STEP_MS)
@@ -467,8 +479,9 @@ export class SiteCheck {
   }
 
   /**
-   * Go to `url` and let it settle:  every `ui-*` / `spell-*` element defined (at most `SETTLE_MS`), the network idle,
-   * then `RUNTIME_SETTLE_MS` for the runtime.
+   * Go to `url` and let it settle:
+   * every `ui-*` / `spell-*` element defined (at most `SETTLE_MS`), the network idle, then `RUNTIME_SETTLE_MS` for
+   * the runtime.
    * - a page that doesn't settle is NOT a problem here:  `inspectElements` reports what stayed undefined
    * - SIDE EFFECT:  sets `check.isUnsettled` when it doesn't, so later loads wait only `RESETTLE_MS`
    */
@@ -549,8 +562,8 @@ export type SiteCheckProps = {
 
 /**
  * One page's result, as printed and in the JSON summary.
- * - `ok` is the page's VERDICT, reported data, not an error union (WWOD §5):  a check that can't START throws
- *   `SiteCheckError` instead.
+ * - `ok` is the page's VERDICT, reported data, not an error union (WWOD §5):
+ *   a check that can't START throws `SiteCheckError` instead.
  */
 export type PageReport = {
   /** path under `ui/`, e.g. `components/ui-button.html` */
@@ -721,15 +734,17 @@ const RESETTLE_MS = 3000
 
 /**
  * How long a deep link may take to land after the page settles.
- * - A SLEEP, deliberately:  the landing scrolls after its own 400ms settle timer (`SiteSections`), and nothing on
- *   the page says it's done;  900ms covers that and the scroll.
+ * - A SLEEP, deliberately:  the landing scrolls after its own 400ms settle timer (`SiteSections`),
+ *   and nothing on the page says it's done.
+ *   900ms covers that and the scroll.
  */
 const LAND_MS = 900
 
 /**
- * After a load settles, for the runtime:  late work after the elements are defined (a reveal, a lazy family, the
- * section folds restored).
- * - A SLEEP:  no one event says the page is done;  `document.getAnimations()` doesn't see the shadow roots' motion
+ * After a load settles, for the runtime:
+ * late work after the elements are defined (a reveal, a lazy family, the section folds restored).
+ * - A SLEEP:  no one event says the page is done.
+ *   `document.getAnimations()` doesn't see the shadow roots' motion
  *   (tried, 2026-10-06:  the nav flyout's slide went unseen).
  */
 const RUNTIME_SETTLE_MS = 500
@@ -780,10 +795,10 @@ function allDefined() {
 }
 
 /**
- * Elements of ours across the light DOM and every open shadow root:  totals per tag, the undefined
- * (`ui-*` / `spell-*`), the defined `ui-*` with no shadow root.
- * - every `@spell-app/ui` element renders into an open shadow root (the docs' `check-spell.js` rule):  no light-DOM
- *   exceptions
+ * Elements of ours across the light DOM and every open shadow root:
+ * totals per tag, the undefined (`ui-*` / `spell-*`), the defined `ui-*` with no shadow root.
+ * - every `@spell-app/ui` element renders into an open shadow root (the docs' `check-spell.js` rule):
+ *   no light-DOM exceptions
  */
 function inspectElements() {
   const tags: Record<string, number> = {}
@@ -826,8 +841,8 @@ function tabsState() {
 }
 
 /**
- * The page's sections (every `ui-section` in `main` but the demos inside examples), and the level 2 headers left
- * flat:  any in a site tab pane outside an example, or straight inside a page's article.
+ * The page's sections (every `ui-section` in `main` but the demos inside examples),
+ * and the level 2 headers left flat:  any in a site tab pane outside an example, or straight inside a page's article.
  */
 function sectionsState(): { sections: SectionState[]; flat: string[] } {
   const main = document.querySelector("main#main")
@@ -858,9 +873,11 @@ function sectionsState(): { sections: SectionState[]; flat: string[] } {
 }
 
 /**
- * Where the section `id` landed:  its title's top (its sentinel's:  where it is unstuck), the line it should be on
- * (its top-level section's `offset` + the titles of the sections around it), folded (it or one around it), its
- * pane shown;  `undefined` if there's no such element.
+ * Where the section `id` landed;  `undefined` if there's no such element.
+ * - its title's top (its sentinel's:  where it is unstuck)
+ * - the line it should be on (its top-level section's `offset` + the titles of the sections around it)
+ * - folded (it or one around it)
+ * - its pane shown
  */
 function landedState(id: string): LandedState | undefined {
   const target = document.getElementById(id)
@@ -904,11 +921,14 @@ function tocState() {
 }
 
 /**
- * Horizontal scroll, and the elements past the right edge:  the deepest (holding no other offender:  what to fix) and
- * the outermost (which region of the page), widest first, as `tag.class#id (right px)`.
+ * Horizontal scroll, and the elements past the right edge, widest first, as `tag.class#id (right px)`:
+ * - the deepest (holding no other offender):  what to fix
+ * - the outermost:  which region of the page
+ *
  * - looks inside open shadow roots too (`host >> inner`);  an `<svg>`'s own shapes count as the `<svg>`
- * - NOTE:  measured against `documentElement.clientWidth`, NEVER `innerWidth`:  with `isMobile`, chromium widens the
- *   layout viewport to fit wide content, so `innerWidth` grows to `scrollWidth` and the overflow reads 0
+ * - NOTE:  measured against `documentElement.clientWidth`, NEVER `innerWidth`:
+ *   with `isMobile`, chromium widens the layout viewport to fit wide content,
+ *   so `innerWidth` grows to `scrollWidth` and the overflow reads 0
  */
 function overflowState() {
   const width = document.documentElement.clientWidth
@@ -972,8 +992,8 @@ function overflowState() {
 }
 
 /**
- * Whether a `ui-flyout` / `ui-sidebar` is shown:  not `hidden`
- * (the shared `visible` / `hidden`, one fact, kept in the `hidden` attribute).
+ * Whether a `ui-flyout` / `ui-sidebar` is shown, by its `hidden`:
+ * the shared `visible` / `hidden`, one fact, kept in the `hidden` attribute.
  */
 function navState() {
   return [...document.querySelectorAll<HTMLElement>("ui-flyout, ui-sidebar")].some((el) => !el.hidden)

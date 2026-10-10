@@ -18,7 +18,7 @@ import { DIVIDER, PLACEHOLDER, type Vocabulary } from "./UISelect.types"
  *   as the component does.
  * - On `change`:  the form value follows (`FormData` for `multiple`), `domElement.value` is set,
  *   and a composed `ui-change` is sent.
- *   The form value is also set on the first render, so the form submits without a change.
+ * - The form value is also set on the first render, so the form submits without a change.
  * - `readonly`:  `aria-readonly`, and a change is undone (nothing sent), as the component does.
  * - Its accessible name is the DOM element's `aria-label`, else `placeholder`.
  ****************/

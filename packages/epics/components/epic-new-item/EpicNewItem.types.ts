@@ -14,8 +14,12 @@ export type EpicNewItemVocabulary = typeof epicNewItemVocabulary
 export const NEW_ITEM_KINDS = ["todo", "question"] as const satisfies readonly NewKind[]
 
 /**
- * Each kind of new item Owen may ask for from the page:  its icon, its words' keys (`label`:  its name, on the form's
- * kind button and on its waiting card;  `add` on its section's button), and the section it lands in.
+ * Each kind of new item Owen may ask for from the page:
+ * - `icon`
+ * - its words' keys:
+ *   - `label`:  its name, on the form's kind button and on its waiting card
+ *   - `add`:  on its section's button
+ * - `section`:  the section it lands in
  */
 export const NEW_KIND_LOOKS = {
   todo: { icon: "list check", label: "newTodo", add: "addTodo", section: "todos" },
@@ -38,8 +42,8 @@ export const NEW_INPUT = "new-input"
 export const NEW_ACTIONS = "new-actions"
 
 /**
- * The event an `<epic-new-item>` sends as its form closes, saved or cancelled:  `<epic-page>`, which opened it from its
- * toolbar, lets go of it.
+ * The event an `<epic-new-item>` sends as its form closes, saved or cancelled:
+ * `<epic-page>`, which opened it from its toolbar, lets go of it.
  */
 export const NEW_CLOSED = "epic-new-closed"
 

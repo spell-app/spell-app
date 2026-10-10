@@ -238,7 +238,8 @@ export class UISidebar extends E.UIComponent<SidebarVocabulary> {
 
   /**
    * What the pusher does beside this sidebar (Fomantic's `sidebar.less` "Animations"):
-   * - `overlay`:  stays;  `scale down`:  shrinks to 0.75 towards the far side
+   * - `overlay`:  stays
+   * - `scale down`:  shrinks to 0.75 towards the far side
    * - `push`, `uncover`, `slide along`, `slide out`:
    *   moves by the panel's measured width (height at the top / bottom), as Fomantic's script measured it
    * - A method, not a getter:  it MEASURES the panel.

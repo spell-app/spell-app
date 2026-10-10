@@ -1,7 +1,9 @@
 /**
  * Every name `<epic-section>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from its types file, which is data too, and the
- *   parts of the `<epic-review>`s an Overview sub-section draws (Q14) and the new-item texts of Todos and Questions.
+ * - Pure data:  `import type`, plus other data:
+ *   - the fold pieces (`FOLD_*`), from its types file
+ *   - the parts of the `<epic-review>`s an Overview sub-section draws (Q14)
+ *   - the new-item texts of Todos and Questions
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  * - `kind`'s values are `overview-part`, `SectionIds`' keys, then `report`:  `Definitions.test.ts` checks they agree.
  */

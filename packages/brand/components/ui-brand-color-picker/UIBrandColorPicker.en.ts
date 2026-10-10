@@ -1,17 +1,22 @@
 /**
- * Every name `<ui-brand-color-picker>` uses:  tag, attributes, events, slots, parts, states, texts.  Schema:
- * `E.ComponentVocabulary`.
+ * Every name `<ui-brand-color-picker>` uses:  tag, attributes, events, slots, parts, states, texts.
+ * Schema:  `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
- * - Class words:  `disabled` emits its name.  The component adds `brand color` before the noun (`brand color picker`).
+ * - Class words:  `disabled` emits its name.
+ *   The component adds `brand color` before the noun (`brand color picker`).
  */
 
 import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-brand-color-picker>`
- * An inline colour picker, the brand's (Color Set Chooser's "Choose a colour"):  a head row (chip + hex),
- * a hue slider, an HSL SQUARE for that hue (saturation across, lightness up), then HSL, RGB and OKLCH rows,
- * each with a copy button.  Not a popover itself:  a page puts it in a `<ui-popup>` or `<dialog>`.
+ * An inline colour picker, the brand's (Color Set Chooser's "Choose a colour"):
+ * - a head row (chip + hex)
+ * - a hue slider
+ * - an HSL SQUARE for that hue (saturation across, lightness up)
+ * - then HSL, RGB and OKLCH rows, each with a copy button
+ *
+ * Not a popover itself:  a page puts it in a `<ui-popup>` or `<dialog>`.
  ****************/
 export const brandColorPickerVocabulary = {
   tag: "ui-brand-color-picker",

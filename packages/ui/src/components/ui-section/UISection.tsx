@@ -60,8 +60,8 @@ import sectionCSS from "./UISection.css?inline"
  *   - The DOM element (`DOMLoadableBodyElement`) has `load()` / `reload()`;  states `loaded` and `error`.
  *   - In the class, not the vocabulary:  a subclass (`<ui-panel>`) gets it with the vocabulary it reuses.
  *
- * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, everything in it inert
- *   (its fold button too), `aria-disabled`;  `toggle()` does nothing.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, everything in it inert (its fold button too), `aria-disabled`;  `toggle()` does nothing.
  *
  * - SIDE EFFECTS:
  *   - with `sticky`:  a `ResizeObserver` keeps the title's height (`titleHeight`) for the stack,

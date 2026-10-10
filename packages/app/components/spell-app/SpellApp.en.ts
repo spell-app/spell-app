@@ -1,8 +1,9 @@
 /**
- * Every name `<spell-app>` adds to a root's:  tag, attributes, events, texts.  Schema:  `E.ComponentVocabulary`
- * (`$/ui/core`).
- * - `<spell-app>` is a root (`UIRoot`):  its whole vocabulary is `<ui-root>`'s names, then these
- *   (`SpellApp.vocabulary`, `SpellApp.tsx`).  Where both name an attribute, this one wins:
+ * Every name `<spell-app>` adds to a root's:  tag, attributes, events, texts.
+ * Schema:  `E.ComponentVocabulary` (`$/ui/core`).
+ * - `<spell-app>` is a root (`UIRoot`):
+ *   its whole vocabulary is `<ui-root>`'s names, then these (`SpellApp.vocabulary`, `SpellApp.tsx`).
+ * - Where both name an attribute, this one wins:
  *   `display` and `icons` (other defaults), `width`, `height` and `assets` (other meanings).
  * - Pure data:  `import type` only, so node can read it (the component pack's catalog, `vite.element.config.ts`).
  */
@@ -11,7 +12,8 @@ import type { E } from "$/ui/core"
 
 /****************
  * ### `<spell-app>`
- * Runs a compiled spell project in any page, in its own shadow root:  no editor.  A root, as `<ui-root>` is.
+ * Runs a compiled spell project in any page, in its own shadow root:  no editor.
+ * A root, as `<ui-root>` is.
  ****************/
 export const spellAppVocabulary = {
   tag: "spell-app",

@@ -9,8 +9,9 @@ import fieldCSS from "./UIBrandField.css?inline"
 
 /****************
  * ### `DOMBrandFieldElement`
- * The DOM element of `<ui-brand-field>`:  it adds `showErrors()`, which `<ui-form>` calls on the field it finds
- * through `:state(field)`, as on a `<ui-field>` (whose DOM element, `DOMFieldElement`, has the same two members).
+ * The DOM element of `<ui-brand-field>`:
+ * it adds `showErrors()`, which `<ui-form>` calls on the field it finds through `:state(field)`,
+ * as on a `<ui-field>` (whose DOM element, `DOMFieldElement`, has the same two members).
  *
  * - `errors`:  the messages `<ui-form>` asked to show.
  * - `DOMElement` checks its members against the attributes' property names;  neither of these is one.
@@ -42,17 +43,19 @@ export class DOMBrandFieldElement extends E.DOMElement<UIBrandField> {
  *   gets `aria-label` = `label` (a `<label for>` can't reach across the shadow boundary).
  *   A click on the label focuses it.
  *
- * - Errors:  `error`, or what `<ui-form>` asked for through the DOM element's `showErrors()`, which wins;
- *   either shows the `error` state.  `<ui-form>` finds the field by `:state(field)`, as a `<ui-field>`.
+ * - Errors:  `error`, or what `<ui-form>` asked for through the DOM element's `showErrors()`, which wins.
+ *   - Either shows the `error` state.
+ *   - `<ui-form>` finds the field by `:state(field)`, as a `<ui-field>`.
  *
- * - The info tip:  a CSS tooltip under the icon, shown on hover and keyboard focus;  the icon is described by it.
+ * - The info tip:  a CSS tooltip under the icon, shown on hover and keyboard focus;
+ *   the icon is described by it.
  *   `info` is the short form, `slot="info"` the rich one (bold words, line breaks).
  *
  * - Actions keep the label row's height:  a pill taller than the row overhangs it,
  *   so showing a Reset button never moves the control.
  *
- * - `disabled`:  unusable, as a `<ui-field>` (`elementSetup.disabled`):  the box `inert`, `aria-disabled`;
- *   the box says `inert` itself too, for the static render (the base class's reaches only a browser).
+ * - `disabled`:  unusable, as a `<ui-field>` (`elementSetup.disabled`):  the box `inert`, `aria-disabled`.
+ *   The box says `inert` itself too, for the static render (the base class's reaches only a browser).
  * - SIDE EFFECT:  writes `aria-label` on slotted controls (only ones that had no name).
  ****************/
 export class UIBrandField extends E.UIComponent<typeof brandFieldVocabulary> {

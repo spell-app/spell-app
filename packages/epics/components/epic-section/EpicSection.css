@@ -1,8 +1,8 @@
 /*
  * `<epic-section>` (EpicSection.tsx):  a plan doc's section, on top of the fold (`EpicFold.css`).
  * - The page's sections:  titles on the section band, a roomy gap below an open one.
- * - An Overview sub-section (`kind="overview-part"`):  a nested title on the row band, reaching past its parent's
- *   inset, edge to edge;  a smaller gap below.
+ * - An Overview sub-section (`kind="overview-part"`):  a nested title on the row band,
+ *   reaching past its parent's inset, edge to edge;  a smaller gap below.
  * - Public tokens (`--epic-section-*`) are never declared here:  read through private aliases.
  */
 
@@ -77,8 +77,8 @@
   }
 
   /*
-   * ## The title's end:  the count badge, then its tools (toggles, the state filter) ending in collapse-all, then the
-   * chevron:  collapse-all beside the chevron (Owen, 2026-10-10)
+   * ## The title's end:  the count badge, then its tools (toggles, the state filter) ending in collapse-all,
+   * then the chevron:  collapse-all beside the chevron (Owen, 2026-10-10)
    */
   ui-section::part(badge) {
     order: 1;
@@ -90,9 +90,10 @@
     order: 3;
   }
   /*
-   * Narrow (VS Code's side bar, a phone):  a section with tools (Phases, the item sections) puts its title on a row
-   * of its own, and the tools, badge and chevron together on the next, at the right:  squeezed onto one row, the
-   * title broke inside its words ("Questio / ns"), and wrapping item by item split the badge from the tools
+   * Narrow (VS Code's side bar, a phone):  a section with tools (Phases, the item sections)
+   * puts its title on a row of its own, and the tools, badge and chevron together on the next, at the right.
+   * - why:  squeezed onto one row, the title broke inside its words ("Questio / ns"),
+   *   and wrapping item by item split the badge from the tools
    */
   @container epic-page (max-width: 480px) {
     :host(:state(tools)) ui-section::part(title) {
@@ -132,8 +133,9 @@
   }
 
   /*
-   * ## The Plan changes box (T14):  above the phases, each change to a phase still to do as its own fence (the
-   * copies draw themselves), on a faint orange ground, as the old box's warning message
+   * ## The Plan changes box (T14):  above the phases,
+   * each change to a phase still to do as its own fence (the copies draw themselves),
+   * on a faint orange ground, as the old box's warning message
    */
   .changes {
     display: grid;
@@ -207,8 +209,9 @@
 
   /*
    * ## New items waiting to be made (a Todos or Questions section, epic `airplane` P2;  `newItemList()`):
-   * Owen's own words, on his ivory (as `<epic-new-item>`'s form), each card wearing the fill (dashed until sent,
-   * outlined once sent), green:  a decision, filed when Claude next reviews
+   * - Owen's own words, on his ivory (as `<epic-new-item>`'s form)
+   * - each card wearing the fill (dashed until sent, outlined once sent), green:
+   *   a decision, filed when Claude next reviews
    */
   .new-list {
     --_epic-act-ink: var(--ui-text-color, CanvasText);

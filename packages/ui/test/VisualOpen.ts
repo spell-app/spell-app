@@ -5,8 +5,8 @@
  */
 export class VisualOpen {
   /**
-   * Set `property` to `value` on the element `selector` finds under `root`:  the element's own API, e.g.
-   * `open` on a dropdown, `visible` on a modal.
+   * Set `property` to `value` on the element `selector` finds under `root`:
+   * the element's own API, e.g. `open` on a dropdown, `visible` on a modal.
    * - Throws when nothing matches, so an edited example fails its state loudly instead of capturing nothing.
    */
   static set(root: HTMLElement, selector: string, property = "open", value: unknown = true) {

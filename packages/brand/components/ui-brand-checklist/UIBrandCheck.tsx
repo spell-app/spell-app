@@ -21,9 +21,11 @@ import checkCSS from "./UIBrandCheck.css?inline"
 /****************
  * ### `DOMBrandCheckElement`
  * The DOM element of `<ui-brand-check>`:  it adds `checked` as another name for `selected`,
- * as Spell UI's `DOMCheckElement` does for `<ui-checkbox>` (`selected` is canonical, `checked` accepted on checkboxes).
+ * as Spell UI's `DOMCheckElement` does for `<ui-checkbox>`
+ * (`selected` is canonical, `checked` accepted on checkboxes).
  *
- * - `checked` is a property here, not a vocabulary attribute:  `el.checked = true` sets `el.selected` (which reflects).
+ * - `checked` is a property here, not a vocabulary attribute:
+ *   `el.checked = true` sets `el.selected` (which reflects).
  *   The `checked` ATTRIBUTE in markup is read by the component, as a native checkbox reads its own.
  * - `DOMElement` refuses a member named like an attribute's property:  `checked` is no prop.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
@@ -61,8 +63,8 @@ export class DOMBrandCheckElement extends E.DOMElement<UIBrandCheck> {
  *   Alone, its own attributes decide.
  * - Text:  `font` (sans 14px / serif 15px), else the checklist's (`checkState()`), as the class word `serif`;
  *   sizes from the `--ui-brand-checklist-*` tokens.
- * - The mark sits beside the text's middle;  `--ui-brand-checklist-align: start` puts it beside the FIRST line
- *   (a title over a description line).
+ * - The mark sits beside the text's middle;
+ *   `--ui-brand-checklist-align: start` puts it beside the FIRST line (a title over a description line).
  * - Motion:  the pulse runs only with `prefers-reduced-motion: no-preference` (`UIBrandCheck.css`).
  ****************/
 export class UIBrandCheck extends E.UIComponent<BrandCheckVocabulary> {

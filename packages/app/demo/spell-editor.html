@@ -1,15 +1,19 @@
 <!doctype html>
 <!--
-  Trying out `<spell-editor>` with `<spell-app>` -- served by the dev server at `/demo/spell-editor.html`, after
-  `yarn build:element`.
-  - Each editor compiles as it opens, 2 seconds after typing stops, and on Cmd+Enter -- and hands what it compiled to
-    the apps it's linked to, from either side:  the editor's `app="<selector>"`, or an app's `editor="<selector>"`.
+  Trying out `<spell-editor>` with `<spell-app>` --
+  served by the dev server at `/demo/spell-editor.html`, after `yarn build:element`.
+  - Each editor compiles as it opens, 2 seconds after typing stops, and on Cmd+Enter.
+  - It hands what it compiled to the apps it's linked to, from either side:
+    the editor's `app="<selector>"`, or an app's `editor="<selector>"`.
   - NOTE: edits SAVE to the example projects on disk, as the web app's editor does.
   - Three editors of three projects on one page, each with its own files.
-  - Loaded as a Spell UI component pack:  `spell-ui.js` gives the page `<ui-root>`, whose `<ui-components>` loads
-    `spell.pack.js`, which defines `<spell-editor>` and `<spell-app>` (`vite.element.config.ts`, `componentPack()`).
-    The `<ui-root>` is needed here, unlike on the `<spell-app>` demo:  the editors sit BESIDE the apps, outside any
-    `<spell-app>` (a root, which loads the spell tags inside it).  Each `<spell-app>` is a root nested in it.
+  - Loaded as a Spell UI component pack (`vite.element.config.ts`, `componentPack()`):
+    - `spell-ui.js` gives the page `<ui-root>`
+    - its `<ui-components>` loads `spell.pack.js`
+    - which defines `<spell-editor>` and `<spell-app>`
+  - The `<ui-root>` is needed here, unlike on the `<spell-app>` demo:
+    the editors sit BESIDE the apps, outside any `<spell-app>` (a root, which loads the spell tags inside it).
+    Each `<spell-app>` is a root nested in it.
 -->
 <html lang="en">
   <head>

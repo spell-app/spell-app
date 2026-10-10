@@ -4,10 +4,10 @@ import { fileURLToPath } from "node:url"
 
 /**
  * Lint (oxlint) and format (oxfmt) settings every package shares, as `lint` / `fmt` blocks of `vite.config.ts`.
- * - Was `.oxlintrc.json`, `.oxlintrc.react.json` and `.oxfmtrc.json` at the repo root, before Vite+ (`vp lint`,
- *   `vp fmt`, `vp check`) folded them into `vite.config.ts`.
- * - Plain objects, spread by the root's `vite.config.ts` and each package's:  `lint.extends` only takes FILE paths,
- *   and the files are gone.
+ * - Was `.oxlintrc.json`, `.oxlintrc.react.json` and `.oxfmtrc.json` at the repo root,
+ *   before Vite+ (`vp lint`, `vp fmt`, `vp check`) folded them into `vite.config.ts`.
+ * - Plain objects, spread by the root's `vite.config.ts` and each package's:
+ *   `lint.extends` only takes FILE paths, and the files are gone.
  * - NOTE: a package's `lint` block does NOT inherit the root's:
  *   oxlint reads the nearest config only, so each package spreads `packageLint()`.
  *   `vp check` reads the ROOT block only.
@@ -18,7 +18,8 @@ import { fileURLToPath } from "node:url"
 ////////////////
 
 /**
- * Shared rules:  every package.  `packageLint({ react: true })` adds React's (`reactLint`).
+ * Shared rules:  every package.
+ * - `packageLint({ react: true })` adds React's (`reactLint`).
  */
 export const lintBase = {
   // MUST be listed:  without it, oxlint adds its DEFAULT plugins (e.g. `unicorn`)
@@ -35,7 +36,8 @@ export const lintBase = {
 
   // `vite-plus/prefer-vite-plus-imports`:  `vite-plus/test`, not `vitest` (and so on),
   // so every package gets its tools at the one version `vite-plus` pins.
-  // `spell-ui/*`:  Spell UI's patterns in component files (`patternLint()`);  loaded everywhere, on in `PATTERN_FOLDERS`.
+  // `spell-ui/*`:  Spell UI's patterns in component files (`patternLint()`);
+  // loaded everywhere, on in `PATTERN_FOLDERS`.
   jsPlugins: [
     { name: "vite-plus", specifier: "vite-plus/oxlint-plugin" },
     { name: "spell-ui", specifier: fileURLToPath(new URL("./vite.lint.patterns.ts", import.meta.url)) }
@@ -66,10 +68,12 @@ export const lintBase = {
 
     // Passing a method reference is idiomatic throughout this codebase --
     // `store`/`spellCore` are singletons whose methods reach them by name rather than via `this`,
-    // and React components are handed prototype methods on purpose (see `ErrorHandler`).  ~37 hits, all intentional.
+    // and React components are handed prototype methods on purpose (see `ErrorHandler`).
+    // ~37 hits, all intentional.
     "typescript/unbound-method": "off",
     // spellCore stringifies arbitrary values on purpose (`upperCase(thing)` etc),
-    // so this rule fires ~36 times on intended behaviour.  Individual risky spots are suppressed inline.
+    // so this rule fires ~36 times on intended behaviour.
+    // Individual risky spots are suppressed inline.
     "typescript/restrict-template-expressions": "off",
 
     ////////////////
@@ -82,7 +86,8 @@ export const lintBase = {
 
 /**
  * React's rules, for packages with React code:
- * `spell` (the app), `cli` (Ink screens) and the ones split from `spell`.  Merged AFTER `lintBase`.
+ * `spell` (the app), `cli` (Ink screens) and the ones split from `spell`.
+ * Merged AFTER `lintBase`.
  * - NEVER for `ui`:  it's Solid, where React's rules misfire (e.g. `jsx-key`).
  */
 export const reactLint = {
@@ -149,8 +154,8 @@ export const rootLintIgnore = [
 /**
  * Rules tests turn off, as an `overrides` entry for the root block and every package's.
  * - `typescript/no-misused-spread`:  WWOD §20 compares a whole instance with `toEqual({ ...instance })`,
- *   which the rule calls a mistake (a spread drops the prototype:  that's the point there).
- *   Epic `wwod-spell-ui`, I22.
+ *   which the rule calls a mistake (a spread drops the prototype:  that's the point there;
+ *   epic `wwod-spell-ui`, I22).
  */
 export const testLint = {
   files: ["**/*.test.ts", "**/*.test.tsx"],
@@ -160,8 +165,10 @@ export const testLint = {
 /**
  * The folders of COMPONENT files, by package (its folder under `packages/`):
  * `patternLint()` turns the `spell-ui/*` rules on there.
- * - NOT `app` (WWOD §17's function components;  Owen:  "other than app components"),
- *   NOT `ui`'s element core (`src/elements/`:  the decorators and helpers themselves), NOT tests (`testLint`).
+ * - Not:
+ *   - `app`:  WWOD §17's function components (Owen:  "other than app components")
+ *   - `ui`'s element core (`src/elements/`):  the decorators and helpers themselves
+ *   - tests (`testLint`)
  */
 export const PATTERN_FOLDERS: Record<string, string[]> = {
   ui: ["src/components", "src/docs-components"],
@@ -175,8 +182,9 @@ export const PATTERN_FOLDERS: Record<string, string[]> = {
  * (`packages/ui/AGENTS.md`, "Solid authoring").
  * - Each message names the decorator or helper to use instead.
  * - A use that stays says why:  `// oxlint-disable-next-line spell-ui/no-untrack -- <why>`.
- * - `prefix`:  where the packages are, seen from the config's folder:  `"packages/"` for the root's block;
- *   `""` for a package's own (`packageLint({ name })`), which lists only its own folders (`names`).
+ * - `prefix`:  where the packages are, seen from the config's folder:
+ *   - `"packages/"` for the root's block
+ *   - `""` for a package's own (`packageLint({ name })`), which lists only its own folders (`names`)
  */
 export function patternLint(prefix: string, names = Object.keys(PATTERN_FOLDERS)) {
   const folders = names.flatMap((name) =>
@@ -226,7 +234,7 @@ export function rootLint() {
 
 /**
  * A package's `lint` block:  `lintBase`, plus `reactLint` when `react`.
- * - `ignorePatterns`:  the package's own, relative to its folder.  NOT inherited from the root's.
+ * - `ignorePatterns`:  the package's own, relative to its folder;  NOT inherited from the root's.
  * - `name`:  its folder under `packages/`, for the `spell-ui/*` rules in its `PATTERN_FOLDERS`.
  */
 export function packageLint({

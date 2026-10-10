@@ -38,7 +38,8 @@
  *   `::part(image)` or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
  *
  * - `:state(disabled)`, set by the component, is for the PAGE's styles only;  this sheet keys on classes.
- * - `hidden` is the element's global attribute (`:host([hidden])`);  `.ui.hidden.image` stays for static markup.
+ * - `hidden` is the element's global attribute, hidden by `reset.css` as on every element;
+ *   `.ui.hidden.image` stays for static markup.
  *
  * - Left out, on purpose:
  *   - images decorated with labels (`.ui.image > .label`, corner and ribbon labels):  `UILabel.css` owns those looks

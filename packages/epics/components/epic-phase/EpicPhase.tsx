@@ -22,16 +22,23 @@ import phaseCSS from "./EpicPhase.css?inline"
  * ### `EpicPhase`
  * The component behind `<epic-phase>`:  one phase of the plan, in the Phases section --
  * a fold (`EpicFold`) titled `P3 · <title>`.
- * - Its title line:  the status icon in its colour (grey to do, blue under way, green done), `P3 · <title>`
- *   (`title`, or `slot="title"`), the estimate as a badge;  a done phase's title reads quieter.
- * - Its children, in order:  `<epic-field>`s (Symptom, Changes, Goal, Done, Files, Verify, To review),
- *   `<epic-updated>` lines under Changes, Owen's kept notes (`<epic-reply>`), `<epic-commit>`s.
- *   Files and Verify show only while the Phases title's toggles say so;  commits while the page's git toggle does.
+ * - Its title line:
+ *   - the status icon in its colour (grey to do, blue under way, green done)
+ *   - `P3 · <title>` (`title`, or `slot="title"`);  a done phase's title reads quieter
+ *   - the estimate as a badge
+ * - Its children, in order:
+ *   - `<epic-field>`s (Symptom, Changes, Goal, Done, Files, Verify, To review)
+ *   - `<epic-updated>` lines under Changes
+ *   - Owen's kept notes (`<epic-reply>`)
+ *   - `<epic-commit>`s
+ *   - Files and Verify show only while the Phases title's toggles say so;  commits while the page's git toggle does
  * - Its body is usually a part (`source="parts/p3.html"`), loaded the first time it opens.
- * - REVIEWED as an Overview sub-section is (epic `airplane` P2;  `<epic-review buttons="part">`):  Revisit, Make Todo,
- *   Do Now at its title's end (no Approve:  notes on the plan, not sign-off), a marked note at the top of its body,
- *   its note box at the end, Claude's status cards (`slot="status"`) just above it;  only while the page is reviewed.
- *   Revisit and Edit unfold it (`epic-show-note`).
+ * - REVIEWED as an Overview sub-section is, only while the page is reviewed
+ *   (epic `airplane` P2;  `<epic-review buttons="part">`):
+ *   - Revisit, Make Todo, Do Now at its title's end (no Approve:  notes on the plan, not sign-off)
+ *   - a marked note at the top of its body
+ *   - its note box at the end, Claude's status cards (`slot="status"`) just above it
+ *   - Revisit and Edit unfold it (`epic-show-note`)
  * - SIDE EFFECT:  follows the review inbox while connected.
  ****************/
 export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {

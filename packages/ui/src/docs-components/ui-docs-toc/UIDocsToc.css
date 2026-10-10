@@ -5,9 +5,8 @@
  * - It styles the component's shadow DOM:
  *   `<div class="ui [size] toc" part="toc">` holding an optional `<ui-header part="header">`
  *   and `<ui-menu vertical text fluid part="menu">` of `<ui-item class="section" part="section">` links.
- *   - Under the open section,
- *     an `<ui-item class="entries" fitted="vertically">` holding `<ui-menu part="entries">` of `<ui-item part="entry">`
- *     links.
+ *   - Under the open section, an `<ui-item class="entries" fitted="vertically">`,
+ *     holding `<ui-menu part="entries">` of `<ui-item part="entry">` links.
  *   - An open entry with entries of its own (nested `<ui-section>`s) is followed by the same pair again,
  *     one indent further.
  * - Public tokens (`--ui-docs-toc-*`) are never declared:  each is read through a private alias

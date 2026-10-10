@@ -42,10 +42,10 @@ import sliderCSS from "./UISlider.css?inline"
  *   - the component writes ratios:
  *     `--_slider-at` per thumb and label, `--_slider-from` / `--_slider-to` on the inner box
  *   - `UISlider.css` places everything, `reversed` / `vertical` included
- * - A form control:  it submits `value`;
- *   a `range` submits TWO entries under `name` (`FormData.getAll(name)` ~== `[value, end]`),
- *   per `FormComponent`'s multi-value convention.
- *   It restores a saved state (back / forward cache, autofill).
+ * - A form control:  it submits `value`.
+ *   - A `range` submits TWO entries under `name` (`FormData.getAll(name)` ~== `[value, end]`),
+ *     per `FormComponent`'s multi-value convention.
+ *   - It restores a saved state (back / forward cache, autofill).
  *   - `required`:  met once something sets a value (the page, a person, a restored state);
  *     until then the thumb rests at `min`, but the slider counts as empty.
  ****************/

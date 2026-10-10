@@ -25,7 +25,8 @@ import composerCSS from "./UIBrandComposer.css?inline"
 /****************
  * ### `DOMBrandComposerElement`
  * The DOM element of `<ui-brand-composer>`:  a form control's DOM element (`DOMFormControl`), plus `cast()`,
- * so a page can cast what it just put in `value` (the marketing hero's idea chips fill the box and cast at once).
+ * so a page can cast what it just put in `value`
+ * (the marketing hero's idea chips fill the box and cast at once).
  *
  * - `DOMElement` refuses a member named like an attribute's property:  `cast` is no attribute (`casting` is).
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
@@ -49,9 +50,10 @@ export class DOMBrandComposerElement extends F.DOMFormControl<UIBrandComposer> {
  *   a borderless serif `<textarea part="textarea">`, then the bar:
  *   the `tools` slot (chips), the hint, the round Cast button.
  *
- * - `value` is controlled (`@E.controlled`, as `text`), as `<ui-textarea>`'s:  typing sends `ui-input` first,
- *   and a handler that sets `el.value` again wins.  The ATTRIBUTE is the starting value, which a form reset restores;
- *   no reflection.  Leaving the box edited sends `ui-change`.
+ * - `value` is controlled (`@E.controlled`, as `text`), as `<ui-textarea>`'s:
+ *   - typing sends `ui-input` first, and a handler that sets `el.value` again wins
+ *   - the ATTRIBUTE is the starting value, which a form reset restores;  no reflection
+ *   - leaving the box edited sends `ui-change`
  *
  * - Cast:  the button, Cmd / Ctrl+Enter in the box (either key, on any platform), or the DOM element's `cast()`.
  *   - Plain Enter types a new line.
@@ -61,12 +63,15 @@ export class DOMBrandComposerElement extends F.DOMFormControl<UIBrandComposer> {
  *     so `name` / `value` reach the form's `submit` handler.
  * - `readonly`:  as `<ui-textarea>`'s, the text box's own `readonly`:  it can't be typed in,
  *   yet casts and submits its text (`:state(readonly)`, `FormComponent.isReadOnly`).
- * - `casting`:  the PAGE sets it while it builds and clears it;  the button spins (still, with reduced motion),
- *   the card is `aria-busy`, and "Casting your spell…" is announced.  The text stays editable.
+ * - `casting`:  the PAGE sets it while it builds and clears it.
+ *   - The button spins (still, with reduced motion), the card is `aria-busy`,
+ *     and "Casting your spell…" is announced.
+ *   - The text stays editable.
  * - Grows with its text (`field-sizing: content`, where the browser has it) from `rows` lines,
  *   up to `--ui-brand-composer-max-height`;  elsewhere it stays `rows` tall and scrolls.
  * - The box's name:  `label`, else what names the DOM element (`aria-label`, `<label for>`), else `eyebrow`,
- *   else "Your spell".  The hint is its description (`aria-describedby`), the shortcut its `aria-keyshortcuts`.
+ *   else "Your spell".
+ *   The hint is its description (`aria-describedby`), the shortcut its `aria-keyshortcuts`.
  * - A form control:  it submits `value` under `name`.
  ****************/
 export class UIBrandComposer extends F.FormComponent<BrandComposerVocabulary> {

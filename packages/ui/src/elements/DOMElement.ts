@@ -11,7 +11,8 @@ const HTMLElementOrShim = (globalThis.HTMLElement ?? class {}) as typeof HTMLEle
 /****************
  * ### `DOMElement`
  * The base class of every Spell UI DOM element:  the `<ui-button>` in the page, with its attributes,
- * properties and events.  As the platform's `<a>` is an `HTMLAnchorElement`, a `<ui-button>` is a `DOMElement`.
+ * properties and events.
+ * As the platform's `<a>` is an `HTMLAnchorElement`, a `<ui-button>` is a `DOMElement`.
  *
  * - Its COMPONENT (a `UIComponent` subclass, `UIButton`) holds the state and draws the shadow DOM:
  *   `domElement.component` points at it, `component.domElement` back here.
@@ -100,8 +101,10 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
 
   /**
    * DOM API:  the element was added to a page.
-   * - First time (or after `dispose()`):  re-apply properties set before the upgrade (a real write, so it
-   *   reflects), then build and render the component, then hand it what the browser reported before it existed.
+   * - First time (or after `dispose()`):
+   *   - re-apply properties set before the upgrade (a real write, so it reflects)
+   *   - build and render the component
+   *   - hand it what the browser reported before it existed
    * - Every time:  the component's `onConnect()`.
    * - NEVER writes default values to attributes:  a bare element grows no attributes, as a native one doesn't.
    */
@@ -302,8 +305,9 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
   ////////////////
   // ## The upgrade step
   //
-  // A page (or a framework) may set `el.options = [...]` before the tag is defined:  the value lands as an OWN
-  // property of the plain element, which would hide the class's getter / setter forever.
+  // A page (or a framework) may set `el.options = [...]` before the tag is defined:
+  // the value lands as an OWN property of the plain element,
+  // which would hide the class's getter / setter forever.
   ////////////////
 
   /** Constructor step:  take own properties set before the upgrade, and store their values at once. */
@@ -454,8 +458,8 @@ export class DOMElement<C extends E.UIComponent<any> = E.UIComponent<any>> exten
   }
 
   /**
-   * The attributes a tag of `definition` observes:  each of its attributes,
-   * and the platform's `hidden` where it's `visible` turned round ("Shown or hidden").
+   * The attributes a tag of `definition` observes:
+   * each of its attributes, and the platform's `hidden` where it's `visible` turned round ("Shown or hidden").
    */
   static observedAttributesFor(definition: E.ElementDefinition): string[] {
     const names = definition.attributes.map(({ attribute }) => attribute)
@@ -557,10 +561,11 @@ export type DOMElementClass = AnyDOMElementClass & { new (): DOMElement }
 /**
  * `DOMElement`, or a family's subclass of it (`DOMNagElement`):
  * the class a tag's own DOM element class is made from (`elementSetup.DOMElement`, `subclassForTag()`'s `Base`).
- * - Why not plain `typeof DOMElement`:
- *   `DOMElement<C>` names its component class, and `typeof DOMElement` means "a class that works for ANY `C`".
- *   `DOMNagElement` works only for `UINag`, so TypeScript refuses it there.
- *   This type says "for SOME component class", which every family's subclass fits.
+ * - Why not plain `typeof DOMElement`:  every family's subclass fits this type, and not that one.
+ *   - `DOMElement<C>` names its component class.
+ *   - `typeof DOMElement` means "a class that works for ANY `C`":
+ *     `DOMNagElement` works only for `UINag`, so TypeScript refuses it there.
+ *   - This type says "for SOME component class".
  */
 export type AnyDOMElementClass = typeof DOMElement<E.UIComponent<any>>
 

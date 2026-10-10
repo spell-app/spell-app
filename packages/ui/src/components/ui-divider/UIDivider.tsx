@@ -19,8 +19,8 @@ import dividerCSS from "./UIDivider.css?inline"
  *   - `aria-orientation="vertical"` for a `vertical` divider.
  *   - A `spacer` divider is `role="none"`:  it keeps the spacing, without the line.
  *
- * - `spacer` is Fomantic's `hidden` divider, renamed (epic `spell-element`, P12):
- *   `hidden` hides every element, as the platform's does.  Its class word is still `hidden`.
+ * - `spacer` is Fomantic's `hidden` divider:  its class word is still `hidden`.
+ *   - Renamed because `hidden` hides every element, as the platform's does (epic `spell-element`, P12).
  ****************/
 export class UIDivider extends E.UIComponent<typeof dividerVocabulary> {
   @E.proto static vocabulary = dividerVocabulary

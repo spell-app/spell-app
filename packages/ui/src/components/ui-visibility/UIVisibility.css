@@ -4,8 +4,9 @@
  *   `ui visibility image` with `type="image"` (a hook for page CSS, no look here).
  * - The DOM element is a BLOCK:  it is the box `UI.observeVisibility()` measures
  *   (a `display: contents` DOM element has none).
- * - Lazy images (`type="image"`) are the page's own `<img data-src>`s:  give them a `width` / `height` (or an
- *   `aspect-ratio`) so they take their space before loading, as with any lazy image.
+ * - Lazy images (`type="image"`) are the page's own `<img data-src>`s:
+ *   give them a `width` / `height` (or an `aspect-ratio`), so they take their space before loading,
+ *   as with any lazy image.
  */
 
 @layer ui.components.visibility.types, ui.components.visibility.content, ui.components.visibility.variations, ui.components.visibility.states;

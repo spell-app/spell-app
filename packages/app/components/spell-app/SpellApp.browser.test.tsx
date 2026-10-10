@@ -6,8 +6,9 @@ import type { SpellCompiled } from "$/app/runner/runner.types"
 import type { DOMSpellAppElement } from "$/app/components/spell-app"
 
 /**
- * `<spell-app>` as a root (`UIRoot`), on a page with nothing else of Spell UI:  NO `loadUI.ts` here,
- * so every `<ui-*>` the runner draws is defined by the element itself, the first time it appears.
+ * `<spell-app>` as a root (`UIRoot`), on a page with nothing else of Spell UI.
+ * - NO `loadUI.ts` here:
+ *   every `<ui-*>` the runner draws is defined by the element itself, the first time it appears.
  * - The runtime and the shadow styles are stubbed, as in `runner.browser.test.tsx`.
  */
 vi.mock("$/app/runner/loadRuntime", async (importOriginal) => {

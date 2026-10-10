@@ -42,8 +42,9 @@ import pickerCSS from "./UIBrandColorPicker.css?inline"
  *   every point is a real sRGB colour.  Drawn by CSS (`UIBrandColorPicker.css`):
  *   two gradients over the hue, exact, since HSL is linear in sRGB along both axes;
  *   a hue change repaints, nothing is computed per pixel.
- * - The colour being edited (`working`) is HSL, apart from `value` (`#RRGGBB`), so a grey keeps its hue (and black
- *   or white their saturation too):  the square and the hue slider don't jump when the colour passes through them.
+ * - The colour being edited (`working`) is HSL, apart from `value` (`#RRGGBB`),
+ *   so a grey keeps its hue (and black or white their saturation too):
+ *   the square and the hue slider don't jump when the colour passes through them.
  * - Keyboard (see the docs page):  the square is two visually hidden native range inputs,
  *   Saturation and Lightness (one tab stop:  the Lightness one is `tabindex=-1`);
  *   on either, Left / Right move S and Up / Down move L by 1% (10% with Shift),
@@ -58,8 +59,10 @@ import pickerCSS from "./UIBrandColorPicker.css?inline"
  *   - An OKLCH colour a screen can't show is mapped in (`Palette.oklchToHex()`:  same L and H, less C).
  *   - A valid keystroke is `ui-input`;  unreadable text shows the field's `error` look and changes nothing.
  *   - Enter or leaving the field commits (`ui-change`) and shows the value again;  Escape drops the draft.
- * - Copy buttons:  `hsl(250 54% 55%)` (the HSL row as shown), `#RRGGBB`, `oklch(52.0% 0.181 286)` to the clipboard,
- *   then `ui-copy`, a check for `COPIED_MS`, and "Copied ..." announced.  A refused clipboard write does nothing.
+ * - Copy buttons:  the row's colour to the clipboard,
+ *   then `ui-copy`, a check for `COPIED_MS`, and "Copied ..." announced.
+ *   - What each copies:  `hsl(250 54% 55%)` (the HSL row as shown), `#RRGGBB`, `oklch(52.0% 0.181 286)`.
+ *   - A refused clipboard write does nothing.
  * - `readonly`:  as ui's form controls (`FormComponent.isReadOnly`, `:state(readonly)`), the colour can't be changed:
  *   the square ignores the pointer and keys, the sliders spring back, the fields are read-only;
  *   copying still works, and the form still gets `value`.

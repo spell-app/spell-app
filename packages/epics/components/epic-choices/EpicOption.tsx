@@ -16,27 +16,33 @@ import choicesCSS from "./EpicChoices.css?inline"
 
 /****************
  * ### `EpicOption`
- * The component behind `<epic-option>`:  one option of a question -- its header (`A · A named palette`, a violet
- * thumbs-up after the recommended one's title, no word:  Owen, 2026-10-08), then its pros and cons (its light
- * children, through the default slot).
- * - Open question:  a CARD, its header a band at the top, a button that folds its pros and cons (Owen, 2026-10-08:
- *   everything in a section box folds);  open to start with.
- * - Answered (`EpicChoices.isAnswered()`):  a PANEL in the Choices box, folded to its header, which is a button;
- *   the chosen one (`<epic-choices chosen>`) marked with a green check and green text, and open to start with.
+ * The component behind `<epic-option>`:  one option of a question.
+ * - its header:  `A · A named palette`
+ *   - a violet thumbs-up after the recommended one's title, no word (Owen, 2026-10-08)
+ * - then its pros and cons:  its light children, through the default slot
+ *
+ * - Open question:  a CARD, its header a band at the top, open to start with.
+ *   - the header is a button that folds its pros and cons (Owen, 2026-10-08:  everything in a section box folds)
+ * - Answered (`EpicChoices.isAnswered()`):  a PANEL in the Choices box, folded to its header, which is a button.
+ *   - the chosen one (`<epic-choices chosen>`):  marked with a green check and green text, and open to start with
  * - Either way the fold is page state;  folded, the pros and cons are `hidden="until-found"`.
- * - Reviewed (the page's `ReviewClient` is `reviewing`:  served by the page server, its inbox answering):
- *   a "Choose" pill at the header's end (`pill()`) marks its letter as the item's pick through the client
- *   (`ReviewClient.choose()`);  again, un-picks it.
- *   A pick is an action chosen:  the item folds (`EpicItem.foldAfterAction()`, Owen, 2026-10-10);  an un-pick doesn't.
- *   A pick is a decision, so green, wearing the fill rule (decision Q20):  the pill a grey outline, available;
- *   picked, `Chosen · not sent`, the pill and the card's frame DASHED green (an answered panel:  its title green);
- *   once sent, `Chosen · sent`, outlined green;  applied (its set's `chosen`), `Chosen`, the pill SOLID green:
- *   a question answered with it, any other item approved with it (`plan-doc inbox apply`)
- *   - from the pick on, the card says Chosen (Owen, 2026-10-10):  a sent pick Claude took off the inbox stays
- *     `Chosen · sent` until the doc's `chosen` reaches the page (`ReviewClient.takenPickOf()`)
- *   - WHEREVER its cards are (I8):  an item's text, a reply, More Details;  the pick names its card set by position
- *     (`EpicChoices.setOf()`), as an item may hold several
- *   - on an OPEN item's cards;  on a CLOSED one's (an answered question, an accepted call), but the chosen one,
+ * - REVIEWED (the page's `ReviewClient` is `reviewing`:  served by the page server, its inbox answering):
+ *   a "Choose" pill at the header's end (`pill()`).
+ *   - a click marks its letter as the item's pick through the client (`ReviewClient.choose()`);  again, un-picks it
+ *   - a pick is an action chosen:  the item folds (`EpicItem.foldAfterAction()`, Owen, 2026-10-10);
+ *     an un-pick doesn't
+ *   - a pick is a decision, so green, wearing the fill rule (decision Q20):
+ *     - available:  the pill a grey outline
+ *     - picked:  `Chosen · not sent`, the pill and the card's frame DASHED green (an answered panel:  its title green)
+ *     - once sent:  `Chosen · sent`, outlined green
+ *     - applied (its set's `chosen`):  `Chosen`, the pill SOLID green;
+ *       a question answered with it, any other item approved with it (`plan-doc inbox apply`)
+ *   - from the pick on, the card says Chosen (Owen, 2026-10-10):  a sent pick Claude took off the inbox
+ *     stays `Chosen · sent` until the doc's `chosen` reaches the page (`ReviewClient.takenPickOf()`)
+ *   - WHEREVER its cards are (I8):  an item's text, a reply, More Details;
+ *     the pick names its card set by position (`EpicChoices.setOf()`), as an item may hold several
+ *   - on an OPEN item's cards
+ *   - on a CLOSED one's (an answered question, an accepted call), but the chosen one,
  *     only while it's revisited (its note box open, a draft, a revisit or a pick):  "pick B instead, because ..."
  *   - never in an Original Discussion (`<epic-original>`):  history, not a choice
  * - SIDE EFFECT:  the first one connected makes the page's `ReviewClient` (`forPage()`), which reads the inbox
@@ -83,8 +89,8 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   ////////////////
 
   /**
-   * Open or folded, until the reader says otherwise:  a card (open question) open;  an answered panel open while it's
-   * the chosen one.
+   * Open or folded, until the reader says otherwise:
+   * a card (open question) open;  an answered panel open while it's the chosen one.
    */
   readonly fold = new Fold(() => !this.questionIsAnswered || this.isChosen)
 
@@ -235,10 +241,12 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   }
 
   /**
-   * The Choose pill, at the header's end:  `Choose`, a grey outline;  picked, `Chosen · not sent`, dashed green;
-   * sent, `Chosen · sent`, outlined green;  applied (its set's `chosen`), `Chosen`, solid green,
-   * and a click does nothing (`pillLabel()`).
-   * Its tooltip says what a click does, and whether the pick has gone to Claude.
+   * The Choose pill, at the header's end;  its words from `pillLabel()`:
+   * - `Choose`:  a grey outline
+   * - picked:  `Chosen · not sent`, dashed green
+   * - sent:  `Chosen · sent`, outlined green
+   * - applied (its set's `chosen`):  `Chosen`, solid green, and a click does nothing
+   * - its tooltip says what a click does, and whether the pick has gone to Claude
    * - `pill`:  `<Show>`'s accessor, read in each binding:
    *   the callback's body runs once, so a value read there would never change
    */
@@ -283,8 +291,10 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   }
 
   /**
-   * A click on its Choose pill:  pick its letter in its card set (by the set's position:  I8), and fold the item;
-   * or un-pick it when it's the pick;  applied already (its set's `chosen`), nothing.
+   * A click on its Choose pill:
+   * - pick its letter in its card set (by the set's position:  I8), and fold the item
+   * - or un-pick it when it's the pick
+   * - applied already (its set's `chosen`):  nothing
    */
   private readonly onChoose = (event: MouseEvent) => {
     // a panel's header folds on a click;  the item's line would too
@@ -306,8 +316,9 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   }
 
   /**
-   * While connected, follow the page's review inbox:  the client made (or found), the item's id read,
-   * `inboxVersion` bumped on each of its changes.  Returns the undo.
+   * While connected, follow the page's review inbox;  returns the undo.
+   * - the client made (or found), the item's id read
+   * - `inboxVersion` bumped on each of its changes
    */
   @E.whileConnected
   protected followReview(): () => void {

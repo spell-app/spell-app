@@ -1,7 +1,8 @@
 /**
  * Every name `<epic-item>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the review controls' parts and button names (`REVIEW_*`) from `epic-review`'s
- *   types file, data too:  it draws `<epic-review>`, and its id chip's tooltip names the chosen button.
+ * - Pure data:  `import type`, plus data from `epic-review`'s types file.
+ *   - the review controls' parts and button names (`REVIEW_*`):
+ *     it draws `<epic-review>`, and its id chip's tooltip names the chosen button
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 

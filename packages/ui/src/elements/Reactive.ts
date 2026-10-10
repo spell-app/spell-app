@@ -46,7 +46,8 @@ import { AriaNames } from "./elements.types"
  *   - Created by `Reactive.startEffects()`, after every field exists.
  *   - The method runs only when a member's value changed.
  * - `@whileConnected watchX()`:  runs each time the element connects;
- *   a function it returns is the cleanup, run when it disconnects.  Sugar over `@onChange("isConnected")`.
+ *   a function it returns is the cleanup, run when it disconnects.
+ *   - Sugar over `@onChange("isConnected")`.
  * - `@watches({ childList: true, subtree: true }) get slotted()`:
  *   a member read from the DOM element's light DOM, recomputed when that changes
  *   (ONE `MutationObserver` per instance, from the member's first read in a browser).
@@ -55,7 +56,7 @@ import { AriaNames } from "./elements.types"
  *   added by `UIComponent`'s constructor (`Reactive.listenersOf()`);  the method runs untracked.
  * - `@untracked select(option)`:  the method's body runs inside `untrack()`,
  *   so an action or a handler reads members without `untrack(() => this.x)` around each read.
- *   On a getter too (`@untracked get cssDuration()`).
+ *   - On a getter too (`@untracked get cssDuration()`).
  * - `Reactive.accessorsOf(instance)` (a component's `$`):
  *   `$.isOpen` is an `Accessor` of `this.isOpen`, for Solid APIs that take one.
  * - Vocabulary getters (`installAttributeGetters()`;  their setters write the DOM element's property)
@@ -173,7 +174,8 @@ export class Reactive {
    * - MUST run under the instance's owner, once every field exists:
    *   `UIComponent.onMount()`, or a helper class's constructor (`PartContext`).
    * - Server:  an effect marked `writesDOMElement`, and the `@aria` one, apply once, now
-   *   (the server build never runs an effect's apply);  the rest aren't created, and nothing watches the light DOM.
+   *   (the server build never runs an effect's apply);
+   *   the rest aren't created, and nothing watches the light DOM.
    * - The method runs untracked (inside `untrack()`):
    *   it reacts to the members it names, never to what else it reads.
    * - The method runs only when a member's VALUE changed (`===`, member by member):
@@ -411,7 +413,10 @@ export function controlled(attribute: string) {
   }
 }
 
-/** Count the DOM element's property writes, by key, for `requestChange()`;  once per record.  Returns the counts. */
+/**
+ * Count the DOM element's property writes, by key, for `requestChange()`;  returns the counts.
+ * - Starts once per record.
+ */
 function watchPropertyWrites(record: ReactiveRecord, component: ComponentShape): Record<string, number> {
   if (record.propertyWrites) return record.propertyWrites
   const writes: Record<string, number> = (record.propertyWrites = {})
@@ -506,10 +511,10 @@ function ariaText(value: AriaValue): string | null {
  * calling the method with their values on start and on every change.
  * - A function it returns is the cleanup, run before the next call and on disposal.
  * - The method runs untracked:  only the named members re-run it, so other reads need no `untrack()`.
- *   To re-run on another member, name it;  there is no tracked mode.
+ *   - To re-run on another member, name it;  there is no tracked mode.
  * - A trailing `{ writesDOMElement: true }`:  the method writes the DOM element (`:state()`, `tabindex`, ARIA),
  *   so a server render applies it once, now (the server never runs an effect).
- *   ARIA alone is `@aria`.
+ *   - ARIA alone is `@aria`.
  * - A trailing `{ defer: true }`:  NOT called at the start, only on a change
  *   (an event the first draw mustn't send:  `<ui-progress>`'s `ui-change`).
  * - Created by `Reactive.startEffects()` (`UIComponent.onMount()`), after every subclass field exists.
@@ -533,7 +538,8 @@ export function onChange(...members: (string | OnChangeOptions)[]) {
  * - For a listener or an observer on something outside the element (`window`, the document)
  *   that must stop while the element is out of the page.
  * - Sugar over `@onChange("isConnected")`, without the `if (!isConnected) return` line:
- *   created by `Reactive.startEffects()` in the same list, so it keeps its place among a class's `@onChange` methods.
+ *   created by `Reactive.startEffects()` in the same list,
+ *   so it keeps its place among a class's `@onChange` methods.
  * - Never on a server:  nothing connects there.
  */
 export function whileConnected<This extends object>(
@@ -563,7 +569,7 @@ export function whileConnected<This extends object>(
  *     on a server it's computed once.
  * - A method:  called with the `MutationRecord`s on each change it watches (not at the start),
  *   from `Reactive.startEffects()` (`UIComponent.onMount()`) on.
- *   For a change that writes other members.
+ *   - For a change that writes other members.
  * - ONE `MutationObserver` per instance for all of them, on `this.domElement`,
  *   disconnected when the DOM element is released (NOT on disconnect:  a moved element keeps up to date).
  * - Needs `this.domElement` (`ContentShape`):  components, not helper classes with their own element.
@@ -609,13 +615,14 @@ export function watches(options: WatchesOptions) {
  * - A plain method, not an arrow-function field:  the listener calls it on its instance.
  * - `protected`, not `private`:  TypeScript can't see the listener call it, and reports a `private` one unused.
  * - `@on("slotchange", { target: "renderRoot" })`:  listen on the shadow root instead.
- *   The other options are `addEventListener()`'s:  `{ capture, passive, once }`.
+ *   - The other options are `addEventListener()`'s:  `{ capture, passive, once }`.
  * - Added by `UIComponent`'s constructor (`Reactive.listenersOf()`), in a browser only:
  *   a server render sends no events.
  * - Removed when the DOM element is released, NOT when it's moved or disconnected.
  * - A subclass overriding the method keeps the listener (it calls the override);
  *   decorating the override too adds no second one.
- * - A listener that starts later or stops sooner (an effect's) stays a `this.on()` call with its own `AbortController`.
+ * - A listener that starts later or stops sooner (an effect's)
+ *   stays a `this.on()` call with its own `AbortController`.
  */
 export function on<K extends keyof HTMLElementEventMap>(
   type: K,
@@ -635,8 +642,8 @@ export function on(type: string, options: ListenerOptions = {}) {
 }
 
 /**
- * `@untracked` on a method:  its body runs inside `untrack()`, so what it reads is never followed by the Solid
- * computation that called it.
+ * `@untracked` on a method:  its body runs inside `untrack()`,
+ * so what it reads is never followed by the Solid computation that called it.
  * - For actions and handlers, which read members to decide what to do:
  *   `@E.untracked select(option) { if (!this.hasRoomForMore) return ... }`,
  *   with no `untrack(() => this.hasRoomForMore)` around each read.
@@ -645,16 +652,16 @@ export function on(type: string, options: ListenerOptions = {}) {
  * - On a getter, for a value read to ACT on, never to follow:
  *   - a setting an animation reads as it starts (`@E.untracked private get cssDuration()`)
  *   - a DOM element's script API over its component (`@E.untracked get errors() { return this.component?.errors ?? [] }`),
- *     so a page's Solid effect reading it doesn't re-run each time it changes.
- *     The whole getter is untracked, a subclass's override of what it calls included.
+ *     so a page's Solid effect reading it doesn't re-run each time it changes
+ *     - the whole getter is untracked, a subclass's override of what it calls included
  * - Writes are the same either way:  `untrack()` changes reads only.
  * - NEVER on a method a computation calls so it updates
  *   (a helper of a getter, of JSX or of an effect's first function):
  *   the computation would stop following those reads.
  * - An `@on` method needs none:  its listener already runs it untracked.
  * - An override in a subclass is untracked only when it's decorated too.
- * - NOT needed in a component's constructor or field initializers:  every component is built inside `untrack()`
- *   (`UIComponent.mount()`, and the static render's `StaticRender`).
+ * - NOT needed in a component's constructor or field initializers:
+ *   every component is built inside `untrack()` (`UIComponent.mount()`, and the static render's `StaticRender`).
  */
 export function untracked<This, Args extends unknown[], Result>(
   method: (this: This, ...args: Args) => Result,
@@ -997,7 +1004,10 @@ function rawAttributeSource(record: ReactiveRecord, domElement: AttributeElement
   return source
 }
 
-/** Watch `domElement`'s attributes for `record`'s raw sources, once, until the DOM element is released.  Browser only. */
+/**
+ * Watch `domElement`'s attributes for `record`'s raw sources, once, until the DOM element is released.
+ * - Browser only.
+ */
 function watchAttributes(record: ReactiveRecord, domElement: AttributeElement) {
   if (isServer || record.attributeObserver) return
   const observer = (record.attributeObserver = new MutationObserver((mutations) => {
@@ -1023,7 +1033,8 @@ function watchAttributeValues(record: ReactiveRecord, component: ComponentShape)
 }
 
 /**
- * Call `changed` on each change to `owner.domElement`'s light DOM that `options` watches (`@watches`).  Browser only.
+ * Call `changed` on each change to `owner.domElement`'s light DOM that `options` watches (`@watches`).
+ * - Browser only.
  * - ONE `MutationObserver` per owner:
  *   each new watch widens what it observes to the union of every watch's options,
  *   and each mutation batch goes to the watches it matches.
@@ -1238,7 +1249,7 @@ export type ReactiveRecord = {
   attributes?: Readonly<Record<string, string | null>>
   /** the DOM element's attribute observer, for `attributes` */
   attributeObserver?: MutationObserver
-  /** the DOM element's change callback for the attribute sources is in (`watchAttributeValues()`) */
+  /** the attribute sources' change callback is on the DOM element already (`watchAttributeValues()`) */
   isWatchingValues?: boolean
   /** the light DOM's observer and its watches, for `@watches` (`watchContent()`) */
   content?: { readonly observer: MutationObserver; readonly watches: ContentWatch[] }

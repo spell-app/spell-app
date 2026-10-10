@@ -7,20 +7,23 @@ import { runInNewContext } from "node:vm"
 import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
 
 /**
- * Production builds of the runners:  `<spell-app>` and `<spell-editor>` (`yarn build:element` => `dist-element/`) and
- * the VS Code runner (`yarn build:runner` => `dist-runner/`).  Each folder is built as its script builds it, into a
- * temp folder:  `vite.solid.config.ts` first, then the rest beside it.
+ * Production builds of the runners:
+ * - `<spell-app>` and `<spell-editor>` (`yarn build:element` => `dist-element/`)
+ * - the VS Code runner (`yarn build:runner` => `dist-runner/`)
+ *
+ * Each folder is built as its script builds it, into a temp folder:  `vite.solid.config.ts` first, then the rest
+ * beside it.
  * - ONE Solid per page:  two copies fail SILENTLY (`solid-2.md`).
  *   So Solid (`solid-js`, `@solidjs/web`, `@solidjs/signals`) is in `spell-solid.js` ALONE,
  *   with `@spell-app/ui`'s element core (which `<spell-app>` and `<spell-editor>` are defined on),
  *   and the rest of `@spell-app/ui` in `spell-ui.js` and its lazy chunks (`ui/`) alone;
  *   `spell-app.js`, `spell-editor.js` and `runner.js` import them.  See `sharedSolid()` in `vite.shared.ts`.
- *   - Through `spell-solid-shared.js`, which takes them from the PAGE instead when it has them (a docs page's
- *     `SpellUI.packModules`):  `sharedPage()` in `vite.solid.config.ts`.
- * - `<spell-app>` is a root:  Spell UI's root family in `spell-solid.js` too;  the rest of Spell UI loads tag by tag,
- *   never through `spell-ui.js`.
- * - The component pack, `spell.pack.js`:  a classic script registering both tags, whose `define()` imports their
- *   modules;  `spell-ui.js` gives it `SpellUI.registerPack`.
+ *   - Through `spell-solid-shared.js`, which takes them from the PAGE instead when it has them
+ *     (a docs page's `SpellUI.packModules`):  `sharedPage()` in `vite.solid.config.ts`.
+ * - `<spell-app>` is a root:  Spell UI's root family in `spell-solid.js` too.
+ *   The rest of Spell UI loads tag by tag, never through `spell-ui.js`.
+ * - The component pack, `spell.pack.js`:  a classic script registering both tags,
+ *   whose `define()` imports their modules;  `spell-ui.js` gives it `SpellUI.registerPack`.
  * - `spellCore` MUST be in `spell-runtime.js` ALONE:
  *   each runner loads its own copy of that file, for a `spellCore` of its own.
  *   - In a shared chunk, every app on a page would share one -- one runtime, one console --
@@ -291,8 +294,9 @@ function staticImports(dir: string, entry: string): string[] {
 }
 
 /**
- * Fail unless every javascript module in `files` parses -- by V8, in ONE `node` process (`vm.SourceTextModule`
- * compiles without running):  a `node --check` per file would take seconds for `ui/`'s ~80 chunks.
+ * Fail unless every javascript module in `files` parses --
+ * by V8, in ONE `node` process (`vm.SourceTextModule` compiles without running).
+ * - A `node --check` per file would take seconds for `ui/`'s ~80 chunks.
  */
 function expectParses(dir: string, files: string[]) {
   const script = `

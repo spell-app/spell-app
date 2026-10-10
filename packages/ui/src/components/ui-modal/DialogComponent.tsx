@@ -429,9 +429,10 @@ export abstract class DialogComponent<
 
   /**
    * `part` value of one of the parts every dialog vocabulary names (see the class docs).
-   * - A method, not a cast in the JSX:  Solid's SSR compile (`hoistProps`) hoists a `<Show>`'s children into a
-   *   module-level constructor and passes it every free identifier they use -- the type parameter `V` of a
-   *   `PartName<V>` cast too, as a VALUE ("V is not defined").
+   * - A method, not a cast in the JSX:
+   *   Solid's SSR compile (`hoistProps`) hoists a `<Show>`'s children into a module-level constructor,
+   *   and passes it every free identifier they use.
+   *   That includes the type parameter `V` of a `PartName<V>` cast, as a VALUE ("V is not defined").
    */
   private dialogPart(name: string): string {
     return this.partForName(name as E.PartName<V>)

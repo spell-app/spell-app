@@ -23,15 +23,14 @@ import dimmablePageCSS from "./UIDimmer.page.css?inline"
  *   - Registered with `UI.overlays` (kind `dimmer`:  scroll lock, keyboard scope, Escape).
  *   - Named by the DOM element's `aria-label`, else "Dimmed page".
  *
- * - Shown by the shared `visible` / `hidden` (`UIComponent`, "Shown or hidden"), starting hidden;
- *   Fomantic's `active` is the box's class while it shows.
- *   Controlled (`isVisible`):  the cancelable `ui-open` / `ui-close` come first for a person's actions:
- *   - `show-on`:  `hover` (the pointer over the parent, or focus inside it) or `click` (a click on the parent)
- *   - a click on the dimmer itself (not its content;  `closedby="any"`)
- *   - Escape (a page dimmer), invoker commands (`UIT.ToggleCommands`).
- *
- *   `ui-show` / `ui-hide` follow once the CSS transition has ended.
- *   Writing `visible` (or `hidden`) fires no `ui-open` / `ui-close`.
+ * - Shown or hidden by the shared `visible` / `hidden` (`UIComponent`, "Shown or hidden"), starting hidden.
+ *   - While it shows, its box has Fomantic's `active` class.
+ *   - Controlled (`isVisible`):  for a person's actions, the cancelable `ui-open` / `ui-close` come first:
+ *     - `show-on`:  `hover` (the pointer over the parent, or focus inside it) or `click` (a click on the parent)
+ *     - a click on the dimmer itself (not its content;  `closedby="any"`)
+ *     - Escape (a page dimmer), invoker commands (`UIT.ToggleCommands`)
+ *   - `ui-show` / `ui-hide` follow once its transition has ended.
+ *   - Writing `visible` (or `hidden`) fires no `ui-open` / `ui-close`.
  *
  * - A hidden `hover` dimmer stays laid out but transparent (and ignores the pointer),
  *   so a keyboard user can Tab into its content, which shows it (`UIDimmer.css`).
@@ -170,10 +169,12 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
   private shown?: { kind: DimmerKind; box?: HTMLDialogElement }
 
   /**
-   * `visible` changed (`UIComponent`'s hook):  show or take down;
-   * resolves once the box's transition has ended, with `ui-show` / `ui-hide`.
-   * - `animation`:  the family's own (`fade`) is the sheet's transition (`UIDimmer.css`);
-   *   another one (the element's own `animation`) runs on the box through `UI.transitions`;  `none`:  at once.
+   * `visible` changed (`UIComponent`'s hook):  show the dimmer, or take it down.
+   * - Resolves once the box's transition has ended, sending `ui-show` / `ui-hide`.
+   * - How it moves, by `animation`:
+   *   - the family's own (`fade`), or an attention one (`shake`):  the sheet's transition (`UIDimmer.css`)
+   *   - any other:  on the box, through `UI.transitions`
+   *   - `none`:  at once
    * - A disabled dimmer never shows, and fires nothing.
    */
   protected async onVisibleChange(visible: boolean, animation: UIT.Animation): Promise<void> {
@@ -206,7 +207,7 @@ export class UIDimmer extends E.UIComponent<typeof dimmerVocabulary> {
    * - A page dimmer:  `showModal()` and `UI.overlays`;  taken down, `close()` THEN leave `UI.overlays`
    *   (focus restore needs the page no longer `inert`).
    * - The `<dialog>` it showed is kept:  `page` may switch the box before it's taken down.
-   * - A box other keyframes animated out (`hidden` on it) shows again.
+   * - A box that `UI.transitions` animated out (left `hidden`) shows again.
    */
   @E.untracked
   private place() {

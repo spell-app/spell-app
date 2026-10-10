@@ -413,8 +413,9 @@ describe("DOMElement.defineProperties()", () => {
 ////////////////
 // ## Lifecycle
 //
-// From solid-element's fix 6 (`lifecycle.test.tsx`):  ui's elements always keep their component across
-// disconnects (solid-element's `keepAlive`);  the hooks are the component's methods now.
+// From solid-element's fix 6 (`lifecycle.test.tsx`):
+// ui's elements always keep their component across disconnects (solid-element's `keepAlive`);
+// the hooks are the component's methods now.
 ////////////////
 
 /** A counter whose count lives in the component:  a click on its button adds one. */
@@ -734,8 +735,8 @@ describe("DOMElement under Solid 2", () => {
     expect(shown(host)).toBe("string:b")
   })
 
-  // found porting this test (epic `spell-element` P2):  `<Show>` evaluates its children in a TRACKED computation, so
-  // `UIComponent.onMount()` untracks its `render()` call
+  // found porting this test (epic `spell-element` P2):
+  // `<Show>` evaluates its children in a TRACKED computation, so `UIComponent.onMount()` untracks its `render()` call
   test("render() runs ONCE, untracked, even when its body reads reactive values", async () => {
     const [outside, setOutside] = createSignal(0)
     const runs = { label: 0, signal: 0 }

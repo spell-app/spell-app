@@ -426,17 +426,18 @@ As WWOD §18, plus:
   every element takes `disabled`, `loading`, `visible` and `animation`, though its vocabulary never names them
   (`SharedVocabulary` adds them to its `ElementDefinition`, its docs data and its manifests),
   and the platform's `hidden` (`visible` turned round) and `inert`.
-  NEVER declare them in a vocabulary just to get them;  a vocabulary that declares one keeps its own spec and meaning,
-  and NONE may declare its own `visible` or `animation` (it would lose `visible` / `hidden` as one fact).
+  - NEVER declare them in a vocabulary just to get them;
+    a vocabulary that declares one keeps its own spec and meaning.
+  - NONE may declare its own `visible` or `animation`:  it would lose `visible` / `hidden` as one fact.
   - `disabled`:  `:state(disabled)` always (`isMarkedDisabled`:  the attribute, or a disabled fieldset);
     the rest is `elementSetup.disabled`:
     - `"unusable"`, the default:  `isDisabled`, so clicks are swallowed, `aria-disabled`,
       everything inside inert and dimmed, focus inside moves on (`UI.focus.moveOutOf()`)
-    - or `"its own"`:  the family's code says what it means.
-      A form control, `<ui-button>`, `<ui-step>` disable their own control and override `isDisabled`;
-      `<ui-icon>`, `<ui-text>` only dim (text stays findable);  `<ui-transition>` pauses.
-      Only where it means more than a look, or inert would hide text (P11, T9):
-      a Fomantic look alone (`<ui-segment>`, `<ui-label>`, `<ui-section>` ...) is unusable
+    - or `"its own"`, where it means more than a look, or inert would hide text (P11, T9):
+      the family's code says what it means.
+      - A form control, `<ui-button>`, `<ui-step>` disable their own control and override `isDisabled`.
+      - `<ui-icon>`, `<ui-text>` only dim (text stays findable);  `<ui-transition>` pauses.
+      - A Fomantic look alone (`<ui-segment>`, `<ui-label>`, `<ui-section>` ...) is unusable, the default.
   - `loading`:  `:state(loading)` always (`isMarkedLoading`, `true` only);  the rest is `elementSetup.loading`:
     - `"loader"`, the default:  `aria-busy`, everything inside inert and dimmed, a spinner over it, `:state(busy)`
     - or `"its own"`:  `<ui-button>`'s spinner, `<ui-segment>`'s veil, `<ui-root>`'s message
@@ -447,16 +448,18 @@ As WWOD §18, plus:
       the `hidden` attribute holds it, and `visible` is written back only where the page wrote one
     - neither written:  `elementSetup.visible` (`"shown"`;  `"hidden"` writes `hidden` on the first connect);
       both written in markup and disagreeing:  `hidden` wins;  after that the latest write wins
-    - the component's `isVisible` (controlled, `visible`);  each change runs the hook
-      `onVisibleChange(visible, animation)`:  by default the animation on the shadow root's top-level boxes
-      (leaving a box the family hides itself alone);  a family overrides it to show and hide its own way
+    - the component's `isVisible` (controlled, `visible`);
+      each change runs the hook `onVisibleChange(visible, animation)`:
+      - by default, the animation on the shadow root's top-level boxes (leaving a box the family hides itself alone)
+      - a family overrides it to show and hide its own way
     - `:state(hiding)` keeps it on screen while a hide runs (`reset.css`), `:state(hidden)` once it's done;
       at once before it first draws;  `hidden="until-found"` stays the browser's
     - renamed, as their old meaning clashed:  `<ui-divider spacer>`, `<ui-reveal unclipped>`
-  - `animation`:  Fomantic's names or `none`;  `animationToRun` is the first that applies:
-    motion off (its own `none`, `--ui-motion: none` from around it, reduced motion), its own value,
-    `elementSetup.animation` (default `"fade"`).
-    `none` sets `--ui-motion: none` (`:state(still)`), which also stills the families' CSS motion (a style query)
+  - `animation`:  Fomantic's names or `none`.
+    - `animationToRun` is the first that applies:
+      motion off (its own `none`, `--ui-motion: none` from around it, reduced motion), its own value,
+      `elementSetup.animation` (default `"fade"`).
+    - `none` sets `--ui-motion: none` (`:state(still)`), which also stills the families' CSS motion (a style query)
   - `inert`:  the platform's, left UNSTYLED:  families set it on boxes with a look of their own
     (`<ui-form loading>`'s veil), and overlays on what they cover (`<ui-pushable>` on its pusher),
     so a generic dim would double up
@@ -464,7 +467,6 @@ As WWOD §18, plus:
     the dim keys on `:state(dimmed)` (`disabled` or `loading` the base class's way;  the shadow root's top-level boxes),
     the spinner on `:state(busy)`, the hiding on `[hidden]` (unlayered:  it beats a family's `:host { display }`;
     so no family sheet writes its own `:host([hidden])`);
-    the static render maps them through `data-state` and ARIA (`StaticStylesheet`'s unlayered `HIDDEN`)
     the static render maps them through `data-state` and ARIA (`StaticStylesheet`'s unlayered `HIDDEN`)
 - **Reactive members** (`src/elements/Reactive.ts`;  WWOD §12 › "Reactive members"):
   decorators over ONE record per instance, so `this.x` reads fresh right after `this.x = v` (no flush),
@@ -519,8 +521,9 @@ As WWOD §18, plus:
     - `@E.aria("role")`, `@E.aria("label")` ...;
       stacks with `@E.cssState`, a decorator a line
       (`@E.cssState("loading")`, `@E.aria("busy")`, `get isLoading()`).
-    - Short names, one spelling wherever ARIA is written:  `E.AriaNames` (`busy: "ariaBusy"`, `aria-busy`)
-      lists the ones in use;  a name not there fails TypeScript, so add it there (one line).
+    - Short names, one spelling wherever ARIA is written:
+      `E.AriaNames` (`busy: "ariaBusy"`, `aria-busy`) lists the ones in use.
+      A name not there fails TypeScript, so add it there (one line).
     - One effect per element writes them all;  a server render applies it once.
     - The subclass's member wins here too.
     - ARIA that never changes:
@@ -698,9 +701,11 @@ As WWOD §18, plus:
     the server build never runs an apply, so a plain `createEffect` leaves the static output without it.
     Constant ARIA:  `elementSetup.aria`.
 - **The lint guard** (`spell-ui/*`, epic `spell-element` P10):  `yarn lint` holds component files to the above.
-  - Where:  the component folders of `ui` (`src/components/`, `src/docs-components/`), `epics` (`components/`) and
-    `brand` (`components/`), as the root `vite.lint.ts`'s `PATTERN_FOLDERS` lists them.
-    NOT `app` (WWOD §17's function components), NOT the element core (`src/elements/`), NOT tests.
+  - Where:  the component folders, as the root `vite.lint.ts`'s `PATTERN_FOLDERS` lists them:
+    - `ui`:  `src/components/`, `src/docs-components/`
+    - `epics`:  `components/`
+    - `brand`:  `components/`
+    - NOT `app` (WWOD §17's function components), NOT the element core (`src/elements/`), NOT tests.
   - What it flags, each message naming the decorator or helper to use instead
     (the rules:  `vite.lint.patterns.ts` at the repo root):
     - `no-solid-effect`:  `createEffect`, `createRenderEffect`, `onSettled`, `onMount` imported from `solid-js`
@@ -873,15 +878,17 @@ As WWOD §12, plus:
   - Per-class settings of the custom element itself are keys of ONE setting, `elementSetup` (type `ElementSetup`),
     inherited key by key down the class chain by `@protoMerged` (`$/util`, as `E.protoMerged`):
     style sheets, the `:state()`s that mirror an attribute, form control, focus, slots, part, DOM element class,
-    fallback, unstyled first paint, constant ARIA, and what the shared `disabled`, `loading`, `visible` and `animation` do for it.
+    fallback, unstyled first paint, constant ARIA,
+    and what the shared `disabled`, `loading`, `visible` and `animation` do for it.
     A subclass states only the keys it changes:
     ```ts
     @E.protoMerged static elementSetup = { styleSheets: { nag: nagCSS }, DOMElement: DOMNagElement } satisfies Partial<E.ElementSetup>
     ```
-    - Each class's object is chained to its base class's (its prototype):  a key it doesn't state is read from there.
-      ONE object per class, so `Class.elementSetup` and `Class.prototype.elementSetup` are the same.
-      Read keys by name (`this.elementSetup.styleSheets`):
-      a spread or `Object.keys()` of the whole object sees only its own class's keys.
+    - Each class's object is chained to its base class's (its prototype):
+      a key it doesn't state is read from there.
+      - ONE object per class, so `Class.elementSetup` and `Class.prototype.elementSetup` are the same.
+      - Read keys by name (`this.elementSetup.styleSheets`):
+        a spread or `Object.keys()` of the whole object sees only its own class's keys.
     - A base class that others extend types its own as `Partial<E.ElementSetup>`:
       otherwise a subclass stating other keys fails TypeScript's check of the class's static side.
     - Every other class ends its literal with `satisfies Partial<E.ElementSetup>`:

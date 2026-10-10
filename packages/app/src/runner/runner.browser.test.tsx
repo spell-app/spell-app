@@ -10,8 +10,8 @@ import { RunnerSplit } from "./RunnerSplit"
 import type { DOMSpellAppElement } from "$/app/components/spell-app"
 
 /**
- * The Solid runners, in the browser:  `<SpellAppRunner>` running compiled spell into its app root, live, and the
- * `<spell-app>` element around it.
+ * The Solid runners, in the browser:
+ * `<SpellAppRunner>` running compiled spell into its app root, live, and the `<spell-app>` element around it.
  * - The runtime:  `spellRuntime.ts` as vite serves it, imported by its URL --
  *   ALSO the program's `@spell/core`, so the program and the runner share its `spellCore`,
  *   as with a real `spell-runtime.js` copy.

@@ -3,19 +3,23 @@
  * in the Spell brand's look (`brand/spell-design-system/`):  the docs header's search pill
  * (`Spell Docs.dc.html`:  36px, the canvas fill, the default hairline, a magnifying glass),
  * and a results card under it (a soft floating card, mono eyebrows, the nav's lavender current row).
- * - It styles the component's shadow DOM:  `<div class="ui [size] finder" part="search">` holding
- *   - `<div class="field" part="field">` (the pill, the card's anchor):  `<span class="glyph">` around its icon,
- *     `<input part="input">`, while there's text a `<button class="clear">`,
- *     and `<span class="keys" part="keys">` of `<kbd>`s (shown while empty and not focused)
+ * - It styles the component's shadow DOM:  `<div class="ui [size] finder" part="search">`, holding
+ *   - `<div class="field" part="field">` (the pill, the card's anchor):
+ *     - `<span class="glyph">` around its icon
+ *     - `<input part="input">`
+ *     - while there's text, a `<button class="clear">`
+ *     - `<span class="keys" part="keys">` of `<kbd>`s (shown while empty and not focused)
  *   - `<div class="results" part="results" popover>` (top layer, anchored under the pill):
- *     `<div class="list" role=listbox>` of `<div class="group" part="group">`s,
- *     each `<div class="label" part="label">` over `<a class="option [kind] [active]" part="option">`s (`.glyph`,
- *     `.text` > `.title` (`.name` with `<mark>`s, a `<code>` tag) + `.context`, `.enter`);
- *     `<p class="note">`;  `<div class="hints" part="hints">` of `<kbd>`s
- * - The card:  as wide as `--ui-docs-search-results-width` (or the pill, if wider), never past the viewport;
- *   on a phone it spans the screen less a gutter.  Scrolls inside, under a max height.
- * - Colours come from the THEME's tokens (`--ui-background`, `--ui-border-color`, `--ui-surface`, `--ui-primary-*`,
- *   `--ui-text-*`, `--ui-shadow-floating`), so it reads in every theme, light and dark.
+ *     - `<div class="list" role=listbox>` of `<div class="group" part="group">`s,
+ *       each `<div class="label" part="label">` over `<a class="option [kind] [active]" part="option">`s
+ *       (`.glyph`, `.text` > `.title` (`.name` with `<mark>`s, a `<code>` tag) + `.context`, `.enter`)
+ *     - `<p class="note">`
+ *     - `<div class="hints" part="hints">` of `<kbd>`s
+ * - The card:  as wide as `--ui-docs-search-results-width` (or the pill, if wider), never past the viewport.
+ *   - On a phone it spans the screen less a gutter.
+ *   - It scrolls inside, under a max height.
+ * - Colours come from the THEME's tokens, so it reads in every theme, light and dark:
+ *   `--ui-background`, `--ui-border-color`, `--ui-surface`, `--ui-primary-*`, `--ui-text-*`, `--ui-shadow-floating`.
  * - Public tokens (`--ui-docs-search-*`) are never declared:  each is read through a private alias
  *   (`docs/theming.md` "Component tokens").
  */

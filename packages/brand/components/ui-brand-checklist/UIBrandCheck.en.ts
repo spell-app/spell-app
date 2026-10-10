@@ -3,9 +3,11 @@
  * Schema:  `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
  * - No class words from attributes:  the component adds its state (`check done`, `check active checkable`).
- * - Chosen state:  `selected` is canonical (Spell UI's rule);  `checked` is another name for it, as on `<ui-checkbox>`:
- *   the DOM element's `checked` PROPERTY reads and writes `selected`, and a `checked` ATTRIBUTE in markup ticks it.
- *   The DOM element's class, `DOMBrandCheckElement`, owns that name:  it is no vocabulary attribute.
+ * - Chosen state:  `selected` is canonical (Spell UI's rule);
+ *   `checked` is another name for it, as on `<ui-checkbox>`:
+ *   - the DOM element's `checked` PROPERTY reads and writes `selected`
+ *   - a `checked` ATTRIBUTE in markup ticks it
+ *   - the DOM element's class, `DOMBrandCheckElement`, owns that name:  it is no vocabulary attribute
  */
 
 import type { E } from "$/ui/core"

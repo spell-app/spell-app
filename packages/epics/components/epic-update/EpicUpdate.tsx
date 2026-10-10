@@ -16,10 +16,10 @@ import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
  * The component behind `<epic-update>`:
  * an UPDATE marker, while a phase is active (`phase <N> done` removes its phase's):
  * - empty:  an orange `UPDATE` label, inline (on a new or changed item's line, in prose)
- * - with children:  a NOTE -- a warning-tinted box headed by the fold chevron and the label, its children inside --
- *   just before the prose it's about (`:state(note)`).
- *   It folds by its heading (Owen, 2026-10-08:  everything in a section box folds):
- *   open to start with;  page state;  folded, `hidden="until-found"`
+ * - with children:  a NOTE (`:state(note)`), just before the prose it's about
+ *   - a warning-tinted box headed by the fold chevron and the label, its children inside
+ *   - it folds by its heading (Owen, 2026-10-08:  everything in a section box folds):
+ *     open to start with;  page state;  folded, `hidden="until-found"`
  * - Its tooltip names the phase:  `Changed during P3`.
  ****************/
 export class EpicUpdate extends E.UIComponent<typeof epicUpdateVocabulary> {

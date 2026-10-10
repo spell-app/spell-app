@@ -14,8 +14,10 @@ const TOKEN = "token-1"
 const ITEMS = new Set(["q1", "j2", "o1"])
 
 /**
- * The page server's review routes over a REAL `ReviewInbox`, as `fetch`:  each reply is `forPage()`, as the routes
- * answer.  `token` is the server's;  `hold` keeps the next POST to a route waiting until released.
+ * The page server's review routes over a REAL `ReviewInbox`, as `fetch`:
+ * each reply is `forPage()`, as the routes answer.
+ * - `token`:  the server's
+ * - `hold`:  keeps the next POST to a route waiting until released
  */
 class FakeServer {
   inbox = new ReviewInbox()

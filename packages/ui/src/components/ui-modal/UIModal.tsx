@@ -12,9 +12,9 @@ import modalCSS from "./UIModal.css?inline"
  *
  * - The browser gives it the focus trap, the `inert` page, the top layer and the `::backdrop`:
  *   the dimmer, themed by the shared `--ui-dimmer-*` tokens.  No `<ui-dimmer>` element.
- * - All of its behaviour is `DialogComponent`'s,
- *   which `<ui-flyout>` shares (`visible` / `hidden`, `closedby`, approve / deny, the close icon, invoker commands, its name):
+ * - All of its behaviour is `DialogComponent`'s, which `<ui-flyout>` shares:
  *   this class only names and styles it.
+ *   - shared:  `visible` / `hidden`, `closedby`, approve / deny, the close icon, invoker commands, its name
  * - `UI.modals.confirm()` / `alert()` / `prompt()` draw one of these (`ModalDialogs`, registered by the barrel).
  ****************/
 export class UIModal extends DialogComponent<Vocabulary> {

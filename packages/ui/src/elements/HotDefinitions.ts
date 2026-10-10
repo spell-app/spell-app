@@ -8,13 +8,15 @@ import { E, UI } from "$/ui/core"
  * keeping the element objects, their attributes and their property values.
  * - Dev-only;  NEVER in a build.
  * - Loaded by the Vite plugin (`tools/HotElements.ts`) into every component barrel, before its `define()` calls run.
- *   SIDE EFFECT:  `install()` wraps `UIComponent.define`, and hooks into every DOM element made (`DOMElement.hotReloadHooks`).
+ * - SIDE EFFECT:
+ *   `install()` wraps `UIComponent.define`, and hooks into every DOM element made (`DOMElement.hotReloadHooks`).
  * - Why:  `define()` is idempotent per tag, so a barrel re-run by HMR would return the OLD element class.
  *   - The wrapper records every tag's class and dictionary.
  *   - When a DIFFERENT class of the SAME name defines a known tag (its module was re-evaluated),
  *     that class takes over EVERY tag the old one had, the translated aliases (`ie-boton`) included.
  * - The platform can't define a tag twice, so each tag's DOM element class STAYS,
- *   and what it reads is swapped in place (`redefine()`):  its definition, its properties, how it builds its component.
+ *   and what it reads is swapped in place (`redefine()`):
+ *   its definition, its properties, how it builds its component.
  *   - Only when nothing the platform read once at definition changed
  *     (observed attributes, DOM API `formAssociated`, the base class, shadow root options);
  *     else `update()` reloads the page.

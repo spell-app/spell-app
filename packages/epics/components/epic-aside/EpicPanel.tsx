@@ -7,8 +7,8 @@ import { Fold } from "$/epics/components/epic-item/Fold"
 
 /****************
  * ### `EpicPanel`
- * Base of the plan doc's folded PANELS in prose -- `<epic-aside>`, `<epic-code>`:  a heading that folds a body,
- * nothing else (no sticky line, no contents entry:  that's `EpicFold`'s, for sections and phases).
+ * Base of the plan doc's folded PANELS in prose -- `<epic-aside>`, `<epic-code>`:  a heading that folds a body.
+ * - nothing else:  no sticky line, no contents entry (that's `EpicFold`'s, for sections and phases)
  * - The heading is a `<button>`:  the fold chevron, then `heading()`.
  *   The body (`body()`:  the element's children by default) is hidden `until-found` while folded,
  *   so find-in-page reaches it and unfolds it (`Fold`).

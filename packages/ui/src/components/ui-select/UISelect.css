@@ -16,26 +16,27 @@
  *     </select>
  *
  * - TWO layers of support, one look:
- *   - EVERY browser:  `appearance: none` on the select, Fomantic's box, and a caret drawn as two gradients in
- *     `currentColor` (a `<select>` takes no pseudo-elements in a plain browser).  A browser without the
- *     customizable select (Safari before 27, Firefox) opens its OWN picker, with each option's TEXT:
- *     the flag emoji, the text and the description all stay, icons and images drop out.
- *   - `@supports (appearance: base-select)`:  the same box, now the customizable select;
- *     `::picker(select)` is the dropdown's menu (anchored below, flipping), options are its items with their icon /
- *     image / flag, the chosen one bold (Fomantic's `active`), and `::picker-icon` / `::checkmark` are hidden (our
- *     caret stays).
+ *   - EVERY browser:  `appearance: none` on the select, Fomantic's box,
+ *     and a caret drawn as two gradients in `currentColor` (a `<select>` takes no pseudo-elements in a plain browser).
+ *     - A browser without the customizable select (Safari before 27, Firefox) opens its OWN picker,
+ *       with each option's TEXT:  the flag emoji, the text and the description all stay, icons and images drop out.
+ *   - `@supports (appearance: base-select)`:  the same box, now the customizable select:
+ *     - `::picker(select)` is the dropdown's menu (anchored below, flipping)
+ *     - options are its items with their icon / image / flag, the chosen one bold (Fomantic's `active`)
+ *     - `::picker-icon` / `::checkmark` are hidden (our caret stays)
  * - `multiple` is a native LIST BOX in every browser (the customizable picker is single-select):
  *   a bordered box of rows, the chosen ones highlighted.
- * - The `:state()`s the component sets:  `:state(fluid)` (a block-level DOM element), plus `disabled` / `invalid` /
- *   `customizable` for PAGE styling only -- this sheet keys on the select's classes.
- * - Public tokens (`--ui-select-*`, the theming surface) are NEVER declared here:  the token block reads each
- *   through a private alias, `--_ui-select-radius: var(--ui-select-radius, var(--ui-radius))`,
- *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the DOM element,
- *   `::part(select)` or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens").
+ * - The `:state()`s the component sets:  `:state(fluid)` (a block-level DOM element),
+ *   plus `disabled` / `invalid` / `customizable` for PAGE styling only -- this sheet keys on the select's classes.
+ * - Public tokens (`--ui-select-*`, the theming surface) are NEVER declared here:
+ *   the token block reads each through a private alias, and every rule reads the alias:
+ *   `--_ui-select-radius: var(--ui-select-radius, var(--ui-radius))`.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(select)` or in the app stylesheet
+ *   reaches the box (`docs/theming.md` "Component tokens").
  *   Form states and `inverted` write the aliases of the colours they swap.
  * - NOTE: left out, on purpose:
- *   - the dropdown's other types (`search`, `inline`, `button`, `labeled`, `pointing` ...):  a native select is
- *     one closed box;  use `<ui-dropdown>` for those
+ *   - the dropdown's other types (`search`, `inline`, `button`, `labeled`, `pointing` ...):
+ *     a native select is one closed box;  use `<ui-dropdown>` for those
  *   - menu height variations (`short`, `long` ...):  the picker is capped at `--ui-select-picker-max-height`
  *   - `loading`:  a native select has nothing to wait for
  */

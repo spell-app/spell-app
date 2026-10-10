@@ -738,24 +738,27 @@ export class PlanDoc extends PlanReader {
    *     none recommended:  left, "needs talk"
    *   - an open judgement call:  closed (accepted);  an open test:  closed (it passed);  both reviewed
    *   - anything else (an open caveat, issue or todo;  a closed or answered item):  reviewed
-   * - `pick`, from any of the item's card sets (`choices`, by position;  none, its own:  I8):  that set's option
-   *   chosen;  a question answered with it (its title the answer), any other item APPROVED with it (as approve);
-   *   reviewed, a Noted card `Chose B · <title>:  recorded ...;  waiting for the next phase, P9 · <name>`
-   *   (`pickOption()`)
+   * - `pick`, from any of the item's card sets (`choices`, by position;  none, its own:  I8) (`pickOption()`):
+   *   - that set's option chosen
+   *   - a question answered with it (its title the answer), any other item APPROVED with it (as approve)
+   *   - reviewed, a Noted card `Chose B · <title>:  recorded ...;  waiting for the next phase, P9 · <name>`
    * - `todo`:  a new todo, "Follow up:  <title>", linking back;  the item reviewed;  a Noted card `Made todo T23 ...`
    * - `next`, a todo's plane (Owen, 2026-10-09):  queued into the NEXT phase, the first still to do
    *   (`queue()`, its work `P10 · <name>`;  none:  "the next phase"), a Noted card `Queued for P10 · <name>`
-   * - every card `apply` writes is NOTED, never Done (Owen, 2026-10-10):  it records Owen's choice;  nothing is
-   *   built yet
+   * - every card `apply` writes is NOTED, never Done (Owen, 2026-10-10):
+   *   it records Owen's choice;  nothing is built yet
    * - `drop`, a todo's x:  canceled (struck through, grey), "dropped by Owen in review" in the log;  reviewed
-   * - `skip`, every other note box's x (Owen, 2026-10-09):  nothing to do;  reviewed, no status card, its state as
-   *   it was (an open question stays open);  on a todo it's `drop`
+   * - `skip`, every other note box's x (Owen, 2026-10-09):  nothing to do
+   *   - reviewed, no status card, its state as it was (an open question stays open)
+   *   - on a todo it's `drop`
    * - `next`, `drop`, `skip` with a note:  the note kept first, as Owen's reply (`keepNote()`)
    * - `revisit` soon:  left, for Claude to talk over in the chat;  `details`, revisit `now`:  left, an agent's
    *   - a revisit carrying a `pick` ("pick B, but ..."):  left too, NOT answered:  the note may change the pick
-   * - an Overview sub-section (`o3`, Q14), a phase (`p3`), the summary (`summary`, epic `airplane` P2):
-   *   approve and skip are noted (a skip's note kept), todo makes a todo;  the rest as for an item
-   *   (`applyToPart()`)
+   * - an Overview sub-section (`o3`, Q14), a phase (`p3`), the summary (`summary`, epic `airplane` P2)
+   *   (`applyToPart()`):
+   *   - approve and skip are noted (a skip's note kept)
+   *   - todo makes a todo
+   *   - the rest as for an item
    * - `new`, a new todo or question Owen asked for from the page (epic `airplane` P2):
    *   made, as `plan-doc add` makes one (`addFromPage()`)
    * - an applied mark adds ONE log line (`J9 approved:  closed (accepted)`);  the methods it calls stamp the item
@@ -782,11 +785,11 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * Record on `item` how Owen's review mark was handled (`review-as`:  `approve`, `todo`, `revisit`, `now`, a
-   * todo's `next` and `drop`, `skip`), once
-   * Claude applied it, talked it over or did it:  the inbox forgets the mark, the doc keeps it, and the page keeps that
-   * review button SOLID after a reload (done:  epic `windows-and-review` P2, Q8;  the fill rule, Q20).
-   * A pick counts as approve;  `now`:  an immediate request (Do Now) done.
+   * Record on `item` how Owen's review mark was handled, once Claude applied it, talked it over or did it.
+   * - `review-as`:  `approve`, `todo`, `revisit`, `now`, a todo's `next` and `drop`, `skip`
+   * - the inbox forgets the mark, the doc keeps it (epic `windows-and-review` P2, Q8):
+   *   the record, never drawn on the buttons, which clear;  the id chip shows the result (the fill rule, Q20)
+   * - a pick counts as approve;  `now`:  an immediate request (Do Now) done
    * - any other action:  nothing to record
    */
   reviewedAs(item: Element, action: string): void {
@@ -1697,8 +1700,8 @@ function filedTodo(todo: string): string {
 }
 
 /**
- * A Noted card's line for Owen's pick:  `Chose B · Bananas:  <what>`, e.g.
- * `Chose B · Bananas:  recorded as the answer;  waiting for the next phase, P9 · Build`.
+ * A Noted card's line for Owen's pick:  `Chose B · Bananas:  <what>`.
+ * - e.g. `Chose B · Bananas:  recorded as the answer;  waiting for the next phase, P9 · Build`
  */
 function pickedWords(option: OptionCard, what: string): string {
   return PlanMarkup.text(`Chose ${option.letter} · ${option.title}:  ${what}`)

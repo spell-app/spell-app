@@ -2,14 +2,16 @@
  * Every name `<ui-brand-color>` uses:  tag, attributes, events, parts, states, texts.  Schema:  `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
  * - Class words:  `contrast`, `selected`, `details` their names;  `copy` as `copy` or `<format> copy`;
- *   `size` its value.  The element adds `brand` before the noun (`brand color`).
+ *   `size` its value.
+ *   The element adds `brand` before the noun (`brand color`).
  */
 
 import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-brand-color>`
- * One square colour CHIP:  the colour, optionally a small label inside (hex, OKLCH, token or step), an AA mark,
+ * One square colour CHIP:
+ * the colour, optionally a small label inside (hex, OKLCH, token or step), an AA mark,
  * a selected ring and a details tip;  click to copy it.
  ****************/
 export const brandColorVocabulary = {

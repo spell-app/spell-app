@@ -20,7 +20,7 @@ import type { Browser } from "./Browser"
  *   - `out` hides when done:  `hidden`, plus inline `display: none` when the element's CSS overrides `[hidden]`
  *     (a `:host { display: block }` beats the UA `[hidden]` rule)
  * - Resolves `true` when the animation ends, `false` when interrupted by another `animate()` on the same element.
- *   Starting an animation cancels the running one -- e.g. `in` while an `out` is mid-way.
+ *   - Starting an animation cancels the running one -- e.g. `in` while an `out` is mid-way.
  * - Never hangs:
  *   - resolves straight away when no animation applies (reduced motion, `animations.css` not loaded)
  *   - resolves after a fail-safe timeout if `animationend` never comes:

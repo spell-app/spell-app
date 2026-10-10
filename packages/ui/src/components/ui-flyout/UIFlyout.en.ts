@@ -4,7 +4,8 @@
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-flyout position="right" inverted width="4" visible>` => `ui right inverted four wide visible flyout`;
  *   a word width (`thin`, `very wide`) is added before the noun by the element (`ui left very wide flyout`).
- * - `visible`, Fomantic's shown-flyout class, is the element's own while it shows (the shared `visible` / `hidden`).
+ * - `visible` is also Fomantic's shown-flyout class:
+ *   the box has it while the element shows (the shared `visible` / `hidden`, not declared here).
  * - The SAME dialog vocabulary as `<ui-modal>`, since both run on `DialogComponent`:
  *   `closable`, `closedby`, `header`, `content`, the six events, the `close` text.
  * - A flyout OWNS the `header`, `content`, `description` and `actions` parts:

@@ -23,8 +23,8 @@ export class UIFlyout extends DialogComponent<Vocabulary> {
   @E.proto static vocabulary = flyoutVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { flyout: flyoutCSS },
-    // the sheet's own transition slides it in from `position`'s edge:
-    // Fomantic's name for a flyout from the left (the default), the nearest it has
+    // what the sheet's own transition is called (it slides in from `position`'s edge):
+    // Fomantic's nearest name, for a flyout from the left (the default)
     animation: "fly right"
   } satisfies Partial<E.ElementSetup>
   @E.proto static rootPart = "flyout"

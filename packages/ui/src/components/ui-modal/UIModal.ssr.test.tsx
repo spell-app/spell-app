@@ -11,8 +11,10 @@ import { UIHeader } from "$/ui/components/ui-parts/UIHeader"
 import { UIModal } from "$/ui/components/ui-modal/UIModal"
 
 /**
- * `<ui-modal>` rendered statically (`$/ui/static`):  a CLOSED `<dialog>` (its initial state:  opening needs JS,
- * or P4's invoker commands), its content in the HTML, named by its heading through an id.
+ * `<ui-modal>` rendered statically (`$/ui/static`):
+ * - a CLOSED `<dialog>`:  its initial state, since opening needs JS (or an invoker command)
+ * - its content in the HTML
+ * - named by its heading, through an id
  */
 describe("<ui-modal> static render", () => {
   beforeAll(() => {

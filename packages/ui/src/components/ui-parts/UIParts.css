@@ -1,56 +1,67 @@
 /*
- * The generic content parts -- `<ui-content>`, `<ui-header>`, `<ui-description>`, `<ui-meta>`, `<ui-extra>`,
- * `<ui-actions>`, `<ui-title>`, `<ui-summary>`, `<ui-date>`, `<ui-author>`, `<ui-avatar>`, `<ui-detail>`,
- * `<ui-value>` -- plus the standalone page / content header:  port of Fomantic's `header.less` +
- * `header.variables`, and of the PART rules in the owners' definitions (card, item, feed, comment, modal,
- * message, list, menu, statistic, step, accordion, popup, toast, search, label).  The owners' own boxes land later,
- * in their own folders.
+ * The generic content parts, plus the standalone page / content header:
+ * - the parts:  `<ui-content>`, `<ui-header>`, `<ui-description>`, `<ui-meta>`, `<ui-extra>`, `<ui-actions>`,
+ *   `<ui-title>`, `<ui-summary>`, `<ui-date>`, `<ui-author>`, `<ui-avatar>`, `<ui-detail>`, `<ui-value>`
+ * - a port of Fomantic's `header.less` + `header.variables`,
+ *   and of the PART rules in the owners' definitions (card, item, feed, comment, modal,
+ *   message, list, menu, statistic, step, accordion, popup, toast, search, label)
+ * - The owners' own boxes land later, in their own folders.
  * - ONE sheet, adopted by every part's component after the foundation.
  * - Shadow markup contract:  `<div class="<noun> [keyOnly ...]" part="<noun>"><slot></slot></div>`, except
- *   - `<ui-header>` STANDALONE:  `<div class="ui [size] [color] [keyOnly ...] header">`, or `<h1>` ...
- *     `<h6>` with `level` (a page header);  OWNED (inside a card, modal, another header ...):  `<div class="header">`,
- *     never `ui` -- Fomantic's `.ui.card > .content > .header` is a plain `.header`
- *   - `href` renders `<a>` (header, author, title, detail);  `<ui-date datetime>` renders `<time>`;
- *     `<ui-avatar src>` renders `<span class="avatar"><img alt=""></span>`;
- *     `<ui-detail>` / `<ui-date>` / `<ui-author>` are `<span>`s,
+ *   - `<ui-header>` STANDALONE:  `<div class="ui [size] [color] [keyOnly ...] header">`,
+ *     or `<h1>` ... `<h6>` with `level` (a page header)
+ *   - `<ui-header>` OWNED (inside a card, modal, another header ...):  `<div class="header">`, never `ui` --
+ *     Fomantic's `.ui.card > .content > .header` is a plain `.header`
+ *   - `href` renders `<a>` (header, author, title, detail)
+ *   - `<ui-date datetime>` renders `<time>`
+ *   - `<ui-avatar src>` renders `<span class="avatar"><img alt=""></span>`
+ *   - `<ui-detail>` / `<ui-date>` / `<ui-author>` are `<span>`s,
  *     or `<a class="detail" href>` / `<a class="author" href>` for `<ui-detail href>` / `<ui-author href>`
- *   - a `<ui-label>` inside a `<ui-statistic>` is that statistic's `.label` part:  it adopts this sheet after
- *     `UILabel.css` and renders `<div class="label" part="label">`, no `ui`
- * - DOM elements are `display: contents`:  the root IS the part, so Fomantic's flex / table / float layouts of the
- *   owner apply to it directly.  Owners never style part DOM elements through `::slotted()` boxes -- they set tokens.
+ *   - a `<ui-label>` inside a `<ui-statistic>` is that statistic's `.label` part:
+ *     it adopts this sheet after `UILabel.css` and renders `<div class="label" part="label">`, no `ui`
+ * - DOM elements are `display: contents`:  the root IS the part,
+ *   so Fomantic's flex / table / float layouts of the owner apply to it directly.
+ *   Owners never style part DOM elements through `::slotted()` boxes -- they set tokens.
  *
  * ## Owner context
- * Parts style themselves by OWNER:  `PartComponent` finds the nearest owner (`OwnerContext.find()`,
- * the owners' `ownsParts`) and sets `:state(in-<owner>)` (`OwnerContext.stateName()`).  Every context rule has two
- * selectors sharing one body:
+ * Parts style themselves by OWNER:
+ * `PartComponent` finds the nearest owner (`OwnerContext.find()`, the owners' `ownsParts`)
+ * and sets `:state(in-<owner>)` (`OwnerContext.stateName()`).
+ * Every context rule has two selectors sharing one body:
  *
  *     :host(:state(in-card)) > .header,       <- an element:  the DOM element carries the state
  *     .in-card.header { ... }                 <- static markup:  the part carries an `in-card` CLASS
  *
- * - Elements set the STATE only, never the class, so the static selectors can never match inside a shadow
- *   root (where every root would be a `:first-child`):  they cost a selector each, nothing at match time.
- * - Static markup (examples, SSR without scripts) writes the owner in plain class grammar and adds the class to
- *   each part:  `<div class="ui card"><div class="content in-card"><div class="header in-card">`.
+ * - Elements set the STATE only, never the class,
+ *   so the static selectors can never match inside a shadow root (where every root would be a `:first-child`):
+ *   they cost a selector each, nothing at match time.
+ * - Static markup (examples, SSR without scripts) writes the owner in plain class grammar,
+ *   and adds the class to each part:  `<div class="ui card"><div class="content in-card"><div class="header in-card">`.
  * - Structural pseudo-classes read the DOM element's position (`:host(:state(in-card):not(:first-child))`),
  *   so Fomantic's `.header + .description` becomes "a description that isn't first".
  * - Parts SHOULD climb with a `barrier` at any non-part component, so a header inside a segment inside a card
  *   stays a standalone header, as Fomantic's child combinators have it.
- * - Fomantic class => part:  comment `.metadata` => `meta`, comment `.text` => `description`,
- *   feed `.user` => `author`, search `.price` => `value`, statistic `.label` => `<ui-label>`, modal / toast / popup
- *   `.content` => `content`.
+ * - Fomantic class => part:
+ *   - comment `.metadata` => `meta`, comment `.text` => `description`
+ *   - feed `.user` => `author`
+ *   - search `.price` => `value`
+ *   - statistic `.label` => `<ui-label>`
+ *   - modal / toast / popup `.content` => `content`
  *
  * ## Owner tokens
- * Where Fomantic's part rule depends on an owner VARIATION or STATE, the owner sets an inherited token on its
- * root and the part style-queries it (`@container style(...)`).  Owners MUST declare their tokens on EVERY
- * root, default value included, so a nested owner never inherits an outer owner's layout.
+ * Where Fomantic's part rule depends on an owner VARIATION or STATE,
+ * the owner sets an inherited token on its root, and the part style-queries it (`@container style(...)`).
+ * - Owners MUST declare their tokens on EVERY root, default value included,
+ *   so a nested owner never inherits an outer owner's layout.
+ *
  * Three kinds (`docs/theming.md` "Owner tokens"):
  * - SWITCHES (the `--_ui-*` rows but the two `-size` aliases):  private, the owner's attributes decide them;
  *   never a theming surface.
- * - LOOK tokens the owner VARIES (`--ui-modal-header-size` ...):  public, the owner declares the private alias
- *   (`--_ui-modal-header-size: var(--ui-modal-header-size, 1.42857em)`) on every root,
- *   and its variations write it.  Parts read the alias ONLY, `var(--_ui-x, <default>)`:  the default covers a part
- *   outside its owner.  So the page sets these on the owner, above it, or `::part()` of the owner's box,
- *   NOT on the part.
+ * - LOOK tokens the owner VARIES (`--ui-modal-header-size` ...):  public.
+ *   - The owner declares the private alias on every root, and its variations write it:
+ *     `--_ui-modal-header-size: var(--ui-modal-header-size, 1.42857em)`.
+ *   - Parts read the alias ONLY, `var(--_ui-x, <default>)`:  the default covers a part outside its owner.
+ *   - So the page sets these on the owner, above it, or `::part()` of the owner's box, NOT on the part.
  * - LOOK tokens nobody varies (`--ui-card-header-font-size` ...):  public, declared NOWHERE,
  *   read here as `var(--ui-x, <default>)`, so they're set on the owner, above it, or on the part itself.
  *
@@ -89,10 +100,11 @@
  * | `--_ui-part`                 | the part noun                    | every part root (this sheet)       | a part inside another part, e.g. a date in a      |
  * |                              |                                  |                                    | feed summary                                      |
  *
- * - The standalone header's own tokens (`--ui-header-*`) are public and NEVER declared:  its root declares the
- *   private aliases (`--_ui-header-color: var(--ui-header-color, var(--ui-text-dark))`) and rules read those,
- *   as in every component sheet;  its sub header (`in-header`) reads the owner's `--_ui-header-sub-*` aliases
- *   (`-color`, `-font-size`, `-margin`), else the public tokens:  an OWNED header (a card's) declares no aliases.
+ * - The standalone header's own tokens (`--ui-header-*`) are public and NEVER declared:
+ *   its root declares the private aliases, and rules read those, as in every component sheet:
+ *   `--_ui-header-color: var(--ui-header-color, var(--ui-text-dark))`.
+ *   - Its sub header (`in-header`) reads the owner's `--_ui-header-sub-*` aliases (`-color`, `-font-size`, `-margin`),
+ *     else the public tokens:  an OWNED header (a card's) declares no aliases.
  * - NOTE: left out, on purpose:
  *   - rules for other components' markup inside parts (card star / like icons, `.ui.card .dimmer`,
  *     modal `.image` columns, feed / summary images, list sub-lists, statistic images):  those owners port them
@@ -370,9 +382,9 @@
     vertical-align: middle;
   }
   /*
-   * The aliases come from a STANDALONE header's root;  a header an owner styles (a card's,
-   * `.in-card.header`) declares none, so each falls back to its public token:  a card's lede is themed like any sub
-   * header.
+   * The aliases come from a STANDALONE header's root.
+   * A header an owner styles (a card's, `.in-card.header`) declares none, so each falls back to its public token:
+   * a card's lede is themed like any sub header.
    */
   :host(:state(in-header)) > .header,
   .in-header.header {
@@ -897,8 +909,9 @@
   }
 
   /*
-   * ## in-flyout:  `.ui.flyout > .header / .content / .actions`.  The flyout is a column:  its content grows, so
-   * the actions sit at the bottom;  look tokens (`--ui-flyout-*`) and `--ui-inverted` come from `UIFlyout.css`.
+   * ## in-flyout:  `.ui.flyout > .header / .content / .actions`.
+   * - The flyout is a column:  its content grows, so the actions sit at the bottom.
+   * - Look tokens (`--ui-flyout-*`) and `--ui-inverted` come from `UIFlyout.css`.
    */
   :host(:state(in-flyout)) > .header,
   .in-flyout.header {
@@ -990,8 +1003,8 @@
     color: var(--_ui-list-description-color, oklch(from var(--ui-ink) l c h / 0.7));
   }
 
-  /* ## in-menu:  an item's sub header, `.ui.vertical.menu .item > .header:not(.ui)` (menu header ITEMS are
-     `<ui-item type="header">`). */
+  /* ## in-menu:  an item's sub header, `.ui.vertical.menu .item > .header:not(.ui)`
+     (menu header ITEMS are `<ui-item type="header">`). */
   :host(:state(in-menu)) > .header,
   .in-menu.header {
     display: block;
@@ -1030,8 +1043,9 @@
     text-align: center;
     text-transform: uppercase;
   }
-  /* Image and icon values (`statistic.less` "Types"):  an image no taller than 3 lines of text;  an icon at
-     full opacity with no margin of its own (`<ui-icon>` reads the owner tokens). */
+  /* Image and icon values (`statistic.less` "Types"):
+     an image no taller than 3 lines of text;
+     an icon at full opacity with no margin of its own (`<ui-icon>` reads the owner tokens). */
   :host(:state(in-statistic)) > .value ::slotted(img),
   .in-statistic.value img {
     max-height: calc(var(--ui-font-size) * 3);
@@ -1380,17 +1394,18 @@
     }
   }
 
-  /* A feed event showing a label (slotted, or `<ui-event icon / image / label>`):  the content beside it, as after a
-     slotted label. */
+  /* A feed event showing a label (slotted, or `<ui-event icon / image / label>`):
+     the content beside it, as after a slotted label. */
   @container style(--_ui-event-label: 1) {
     :host(:state(in-feed)) > .content {
       margin: 0.5em 0 0.35714em 1.14285em;
     }
   }
 
-  /* Floated and aligned content (`right floated content`, `center aligned content`):  Fomantic's
-     `.ui.card [class*="right floated"]`, `.ui.list .item > [class*="middle aligned"].content`, and the Items view's
-     `.image + [class*="middle aligned"].content`. */
+  /* Floated and aligned content (`right floated content`, `center aligned content`).  Fomantic's:
+     - `.ui.card [class*="right floated"]`
+     - `.ui.list .item > [class*="middle aligned"].content`
+     - the Items view's `.image + [class*="middle aligned"].content` */
   .content[class*="left floated"] {
     float: left;
   }
@@ -1434,8 +1449,8 @@
     vertical-align: bottom;
   }
 
-  /* List item showing an icon / image box of its own (`<ui-item icon>`, `UIItem.css`):  the content is the table
-     cell beside it, as after a slotted icon. */
+  /* List item showing an icon / image box of its own (`<ui-item icon>`, `UIItem.css`):
+     the content is the table cell beside it, as after a slotted icon. */
   @container style(--_ui-item-media: 1) {
     :host(:state(in-list)) > .content {
       display: table-cell;

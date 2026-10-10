@@ -3,13 +3,15 @@
  * - ONE sheet, used twice:
  *   - adopted into the element's shadow root as usual;  only its `:host` and `.scroller` rules match there
  *   - registered as a PAGE sheet (`UI.styles.register("table", css, { page: true })`),
- *     where its class-grammar rules style the LIGHT-DOM `<table>`:  a slotted table's `td` is out of reach of shadow
- *     CSS (`::slotted()` reaches the top level only)
+ *     where its class-grammar rules style the LIGHT-DOM `<table>`:
+ *     a slotted table's `td` is out of reach of shadow CSS (`::slotted()` reaches the top level only)
  * - Shadow markup contract:  `<div class="[resizable] [attached ...] [scrolling ...] [overflowing ...] scroller"
- *   part="scroller"><slot></slot></div>`;  while scrolling / overflowing the scroller is a focusable, named
- *   region (`tabindex="0" role="region" aria-label`).
- * - Light-DOM contract:  the element MIRRORS its class string (`ui small celled striped red table`) onto the
- *   slotted `<table>`'s `class`, adding and removing only the words it owns (author classes stay).  Why:
+ *   part="scroller"><slot></slot></div>`.
+ *   While scrolling / overflowing, the scroller is a focusable, named region
+ *   (`tabindex="0" role="region" aria-label`).
+ * - Light-DOM contract:  the element MIRRORS its class string (`ui small celled striped red table`)
+ *   onto the slotted `<table>`'s `class`, adding and removing only the words it owns (author classes stay).
+ *   Why:
  *   - one mechanical port serves element markup AND static class-grammar markup:  examples,
  *     and SSR output that writes `class="ui celled table"` itself, which paints styled before any JS
  *   - translated attribute names / values, `yes` / `no` booleans and `medium` all resolve through the
@@ -20,40 +22,46 @@
  * - Row / cell states and variations are CLASSES on native `tr` / `th` / `td`,
  *   exactly Fomantic's (`positive`, `red marked left`, `collapsing`, `four wide`, `single line`, `selectable` ...):
  *   no JS.
- * - Base look:  `:where(ui-table) > table` gets the same base rules as `.ui.table` (it used to live in
- *   `native.css`), so an un-upgraded `<ui-table><table>` is styled as soon as this sheet is on the page.
+ * - Base look:  `:where(ui-table) > table` gets the same base rules as `.ui.table` (it used to live in `native.css`),
+ *   so an un-upgraded `<ui-table><table>` is styled as soon as this sheet is on the page.
  *   NOTE: canonical tag only;  a translated tag's table is bare until its element upgrades.
- * - `--_table-hosted: 1`, set on `:host` and inherited down the flat tree, tells light-DOM rules (through
- *   `@container style()`) that a table sits in an element.  Cells reset it, so a table nested in a cell
- *   answers for itself.  It picks between:
- *   - stackable:  by the viewport (`@media`), as in Fomantic, hosted or static;  a hosted table opts in to stacking
- *     by the DOM element's width with `stack-by="container"` or `--ui-table-stack-by: container` (`@container`,
- *     the DOM element's `container-type: inline-size`, unnamed -- container names are tree-scoped)
+ * - `--_table-hosted: 1`, set on `:host` and inherited down the flat tree,
+ *   tells light-DOM rules (through `@container style()`) that a table sits in an element.
+ *   Cells reset it, so a table nested in a cell answers for itself.
+ *   It picks between:
+ *   - stackable:  by the viewport (`@media`), as in Fomantic, hosted or static.
+ *     A hosted table opts in to stacking by the DOM element's width,
+ *     with `stack-by="container"` or `--ui-table-stack-by: container`
+ *     (`@container`, the DOM element's `container-type: inline-size`, unnamed -- container names are tree-scoped)
  *   - scrolling / overflowing:  hosted tables scroll in the shadow `.scroller`, the head (and foot) stuck;
  *     static tables keep Fomantic's `display: block` `tbody` (scrolling) and `table` (overflowing) scrollers
  * - Colours:
  *   - the TABLE's colour is the generic remap (`.ui.red` => `--ui-color`, `colors.css`):  a coloured top edge,
  *     or a coloured fill when `inverted`
- *   - Fomantic's row / cell classes carry no `ui`, which the generic remap needs, so this sheet maps each hue
- *     and state class to private tokens (`--_table-tint`, `-ink`, `-fill`, `-fill-on`, `-mark`) and ONE rule
- *     set paints them.  NOTE: a hue added with `ValueSets.add("hues")` needs a line in "Row and cell colours"
+ *   - Fomantic's row / cell classes carry no `ui`, which the generic remap needs:
+ *     this sheet maps each hue and state class to private tokens, and ONE rule set paints them
+ *     (`--_table-tint`, `-ink`, `-fill`, `-fill-on`, `-mark`).
+ *     NOTE: a hue added with `ValueSets.add("hues")` needs a line in "Row and cell colours"
  *   - cells reset the generic colour and size tokens, so a button in a red table's cell isn't red
- *   - `inverted` sets `color-scheme: dark` (+ `--ui-inverted: 1`, `--ui-scheme: dark`):  surfaces,
- *     text and the state tokens re-resolve to their dark branches;  only a coloured inverted fill needs rules
- * - Sortable:  headers are sorted through `aria-sort` (the element's) or Fomantic's `sorted ascending` /
- *   `sorted descending` classes (static markup);  a `<button>` inside a header is reset to look like text.
- *   `th[data-sortable="false"]` and Fomantic's `th.disabled` opt a header out.
- * - Layering:  row / cell colours and states, hover, sorting and STACKED layout are in the `states` sublayer
- *   -- a later layer beats the `.ui.ui.ui.ui` specificity and `!important`s Fomantic needs to override widths,
- *   stripes and cell backgrounds.
- * - Public tokens (`--ui-table-*`, the theming surface) are NEVER declared here:  the token block reads each
- *   through a private alias, `--_ui-table-radius: var(--ui-table-radius, var(--ui-radius))`, and every rule reads
- *   the alias.  So a value set on `:root`, an ancestor, the DOM element,
- *   the table itself or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens").
+ *   - `inverted` sets `color-scheme: dark` (+ `--ui-inverted: 1`, `--ui-scheme: dark`):
+ *     surfaces, text and the state tokens re-resolve to their dark branches;  only a coloured inverted fill needs rules
+ * - Sortable:  headers are sorted through `aria-sort` (the element's)
+ *   or Fomantic's `sorted ascending` / `sorted descending` classes (static markup).
+ *   - A `<button>` inside a header is reset to look like text.
+ *   - `th[data-sortable="false"]` and Fomantic's `th.disabled` opt a header out.
+ * - Layering:  row / cell colours and states, hover, sorting and STACKED layout are in the `states` sublayer.
+ *   A later layer beats the `.ui.ui.ui.ui` specificity and `!important`s Fomantic needs
+ *   to override widths, stripes and cell backgrounds.
+ * - Public tokens (`--ui-table-*`, the theming surface) are NEVER declared here:
+ *   the token block reads each through a private alias, and every rule reads the alias:
+ *   `--_ui-table-radius: var(--ui-table-radius, var(--ui-radius))`.
+ *   So a value set on `:root`, an ancestor, the DOM element, the table itself or in the app stylesheet
+ *   reaches the box (`docs/theming.md` "Component tokens").
  *   The table is light DOM, so page CSS reaches it directly;  set a token on the table, `<ui-table>` or any ancestor.
  * - NOTE: left out, on purpose:
- *   - `.ui.table.segment` / `.stacked` coupling and `.ui.attached + .ui.attached.table` (a middle table after
- *     another attached block):  the neighbour relation isn't visible from a table inside an element
+ *   - `.ui.table.segment` / `.stacked` coupling, and `.ui.attached + .ui.attached.table`
+ *     (a middle table after another attached block):
+ *     the neighbour relation isn't visible from a table inside an element
  *   - Fomantic's icon-font sort arrows:  a masked SVG caret instead;  custom scrollbar colours
  *   - `-moz-transform` hacks
  */
@@ -88,9 +96,9 @@
     container-type: inline-size;
   }
   /*
-   * The table's outer margin sits on the DOM ELEMENT:  a size container is its own formatting context, so a margin on
-   * the scroller inside it never collapses with the heading above, as class grammar's does.  Attached:
-   * see "Attached" (variations).
+   * The table's outer margin sits on the DOM ELEMENT:  a size container is its own formatting context,
+   * so a margin on the scroller inside it never collapses with the heading above, as class grammar's does.
+   * Attached:  see "Attached" (variations).
    */
   :host {
     margin-block: 1em;
@@ -104,8 +112,8 @@
 
   /*
    * Scroller:  around the slot;  spaced by the DOM element's position, since the table is always an only child.
-   * - In the shadow root the DOM element carries that spacing (above), so the scroller has none:  `:not([data-ui])`,
-   *   a static server render's scroller (`$/ui/static`) REPLACES the DOM element and keeps it.
+   * - In the shadow root the DOM element carries that spacing (above), so the scroller has none.
+   *   `:not([data-ui])`:  a static server render's scroller (`$/ui/static`) REPLACES the DOM element, and keeps it.
    * - `--_ui-table-row-height` here too:  the scroller's scrolling heights read it (the table's alias is below it).
    */
   .scroller {
@@ -127,8 +135,8 @@
   }
 
   /*
-   * Tokens:  one per `table.variables` entry that still matters, from the global tokens -- each the private alias
-   * of its public token (never declare the public one:  it would block inherited values).
+   * Tokens:  one per `table.variables` entry that still matters, from the global tokens --
+   * each the private alias of its public token (never declare the public one:  it would block inherited values).
    */
   .ui.table,
   :where(ui-table) > table {
@@ -1058,22 +1066,24 @@
   }
 
   /*
-   * Stackable:  below 768px (`tablet stackable`:  992px) rows become blocks.  This only FLAGS the table
-   * (`--_table-stack: 1`);  the stacked layout is in the `states` sublayer.
+   * Stackable:  below 768px (`tablet stackable`:  992px) rows become blocks.
+   * This only FLAGS the table (`--_table-stack: 1`);  the stacked layout is in the `states` sublayer.
    * - By the VIEWPORT (`@media`), as in Fomantic, for static markup and elements alike.
    * - By the HOST's width (`@container`) only when an element opts in:  `stack-by="container"`,
    *   or `--ui-table-stack-by: container` on the DOM element, an ancestor or the page
    *   (a table in a narrow sidebar of a wide screen);  the attribute wins.
-   * - Without either, the page-wide `--ui-stack-with` (`<ui-root stack-with>`, the token every stacking element
-   *   follows) decides:  `container` stacks by the DOM element's width, `page` by the viewport.
+   * - Without either, the page-wide `--ui-stack-with` decides:
+   *   `container` stacks by the DOM element's width, `page` by the viewport.
+   *   (`<ui-root stack-with>` sets it:  the token every stacking element follows.)
    */
   /*
    * Order matters below (same layer, equal specificity:  the later rule wins):
    *   1. the token's way:  by the DOM element's width when `--ui-table-stack-by: container`, else by the viewport
    *   2. `stack-by` (the element's attribute:  a private class on the table,
    *      `stack-by-container` / `stack-by-viewport`, from the canonical value) undoes 1, then stacks its own way
-   * - A class in SELECTORS, not a state of the DOM element:  a state that set `--_table-stack-by` left WebKit
-   *   evaluating a later table's style queries wrongly, and `:state()` rules its viewport media queries.
+   * - A class in SELECTORS, not a state of the DOM element:
+   *   a state that set `--_table-stack-by` left WebKit evaluating a later table's style queries wrongly,
+   *   and `:state()` rules its viewport media queries.
    */
   @container (width < 768px) {
     @container style(--_table-stack-by: container) {
@@ -1426,8 +1436,8 @@
   }
 
   /*
-   * Selectable:  hovered rows / cells get a translucent overlay over whatever paints them (plain, striped,
-   * coloured, state), so one rule serves every colour.
+   * Selectable:  hovered rows / cells get a translucent overlay over whatever paints them
+   * (plain, striped, coloured, state), so one rule serves every colour.
    */
   .ui.selectable.table > tbody > tr:hover,
   .ui.selectable.table > tr:hover,

@@ -23,12 +23,13 @@ import choicesCSS from "./EpicChoices.css?inline"
  * ### `EpicChoices`
  * The component behind `<epic-choices>`:  a question's options, `<epic-option>`s, drawn as the question stands.
  * - Open question:  the option cards side by side (as many as fit, at least 14em each;  one column when narrow).
- * - Answered (`chosen`, or `answered` on its `<epic-item>`):  folded away under a `Choices` aside, its options
- *   panels in one box, the chosen one marked and open.  Find-in-page unfolds it.
- *   - the folded heading names the chosen one, green with a check (`Choices  ✓ Chosen:  B · Bananas`), so the
- *     pick stays in sight while folded (Owen, 2026-10-10)
+ * - Answered (`chosen`, or `answered` on its `<epic-item>`):  folded away under a `Choices` aside.
+ *   - its options panels in one box, the chosen one marked and open
+ *   - find-in-page unfolds it
+ *   - the folded heading names the chosen one, green with a check (`Choices  ✓ Chosen:  B · Bananas`),
+ *     so the pick stays in sight while folded (Owen, 2026-10-10)
  * - Reads its item's `answered` and its own `chosen` as they change (`EpicChoices.watch()`);
- *   `<epic-option>` reads the same, through the same two statics.
+ *   `<epic-option>` reads the same, through the same statics.
  ****************/
 export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   @E.proto static vocabulary = epicChoicesVocabulary
@@ -141,9 +142,10 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   }
 
   /**
-   * WHICH card set of its item the `<epic-choices>` `element` is (or sits in):  `index`, its position among the
-   * item's sets in page order, never counting one in its Original Discussion;  `own`, it's the item's own (its first
-   * child set, else its first), what a pick from before I8 meant.  `undefined` outside an item, or in an Original.
+   * WHICH card set of its item the `<epic-choices>` `element` is (or sits in):
+   * - `index`:  its position among the item's sets in page order, never counting one in its Original Discussion
+   * - `own`:  it's the item's own (its first child set, else its first), what a pick from before I8 meant
+   * - `undefined` outside an item, or in an Original
    * - the plan-doc tool counts the same way (`PlanItem.choiceSets()` / `choiceSet()`):  a pick's `choices`
    */
   static setOf(element: Element): CardSet | undefined {

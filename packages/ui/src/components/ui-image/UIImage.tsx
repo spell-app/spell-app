@@ -22,8 +22,8 @@ import imageCSS from "./UIImage.css?inline"
  *   - a linked image's `alt` names the link
  * - `width` / `height` are the native intrinsic size (they reserve space before it loads);
  *   `size` sets the drawn width.
- * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, the image (or its link) inert,
- *   `aria-disabled`;  a link also loses its `href`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, the image (or its link) inert, `aria-disabled`;  a link also loses its `href`.
  ****************/
 export class UIImage extends E.UIComponent<typeof imageVocabulary> {
   @E.proto static vocabulary = imageVocabulary

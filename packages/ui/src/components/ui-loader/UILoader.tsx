@@ -20,8 +20,8 @@ import loaderCSS from "./UILoader.css?inline"
  *     slotted text names it otherwise (a status takes its name from its content).
  *
  * - It shows only while `visible` (the shared `visible` / `hidden`), starting hidden:  Fomantic's rule.
- *   The box carries Fomantic's `active` while it shows, or fades out (`UILoader.css` keys on it);
- *   `:state(hidden)` and `:state(disabled)` are for the page's styles.
+ *   - While it shows, or fades out, its box carries Fomantic's `active`, which `UILoader.css` keys on.
+ *   - `:state(hidden)` and `:state(disabled)` are for the page's styles.
  ****************/
 export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   @E.proto static vocabulary = loaderVocabulary
@@ -30,7 +30,7 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
     visible: "hidden",
     delegatesFocus: false,
     aria: { role: "status", live: "polite" },
-    // `disabled`:  hidden, even when `active` (Fomantic's), so nothing inside to make unusable
+    // `disabled`:  hidden even while `visible` (Fomantic's rule), so nothing inside to make unusable
     disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 

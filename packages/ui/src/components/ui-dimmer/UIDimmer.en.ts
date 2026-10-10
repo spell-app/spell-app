@@ -3,8 +3,8 @@
  * Schema:  `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-dimmer shade="light" inverted vertical-align="top" visible>` => `ui light inverted top aligned active dimmer`.
- * - `active`, Fomantic's word for a shown dimmer (its class, and `.dimmer('show')`),
- *   is the element's own class while it shows (the shared `visible` / `hidden`).
+ * - `active` is Fomantic's word for a shown dimmer (its class, and `.dimmer('show')`):
+ *   no attribute here, but the class the box has while the element shows (the shared `visible` / `hidden`).
  * - `page` makes it a PAGE dimmer:  a modal `<dialog>` over the whole viewport;  else it dims its parent element.
  * - `closedby` mirrors `<dialog closedby>`, as on `<ui-modal>`.
  */

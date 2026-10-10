@@ -11,8 +11,10 @@ import textCSS from "./UIText.css?inline"
 import textRaw from "./UIText.css?raw"
 
 /**
- * `UIText.css` on its own, before any element exists:  the sheet's source rules, the computed styles of the
- * light-DOM examples (the same class grammar the shadow root will use), and what the element keeps out.
+ * `UIText.css` on its own, before any element exists:
+ * - the sheet's source rules
+ * - the computed styles of the light-DOM examples (the same class grammar the shadow root will use)
+ * - what the element keeps out
  * - Sheets are adopted into the document per test and removed again.
  */
 

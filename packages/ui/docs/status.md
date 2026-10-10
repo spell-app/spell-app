@@ -1,48 +1,58 @@
 # Status
 
 Checklist of every component in [`docs/plan.md`](plan.md), with what's done, in progress, deferred.
-Kept up to date as work lands ([AGENTS.md](../AGENTS.md));  last updated 2026-10-09.
+Kept up to date as work lands ([AGENTS.md](../AGENTS.md));  last updated 2026-10-10.
 
 ## Working on now
 
 - **Shared states** (2026-10-09, epic `spell-element` P8):
-  every element takes `disabled`, `loading` and `visible` (`SharedVocabulary`), and the platform's `hidden` and `inert`,
-  though its vocabulary never names them;  the docs data lists them on every tag (`shared: true`).
-  - What `disabled` / `loading` mean per family:  `elementSetup` (`"unusable"` / `"loader"` by default;
-    `"its own"` where a component had its own:  29 of them, and every form control);
-    `visible="false"` fades out, then `:state(hidden)`;  `hidden` now beats a family's own `display`;
-    `readonly` on every form control (`<ui-select>`, `<ui-search>` new).
-  - P11 (T9):  every family whose `disabled` was its own LOOK moved to `"unusable"` (form, fields, field, tab,
-    items, comments, comment, feed, event, segments, segment, section and panel, labels, label, images, image;
-    brand's field);  `"its own"` kept where it means more, or where inert would hide text:
-    native controls (form controls, `<ui-button>`, `<ui-step>`, `<ui-item>`'s options), hidden or paused
-    (`<ui-loader>`, `<ui-dimmer>`, `<ui-transition>`, `<ui-reveal>`), and text-like looks
-    (`<ui-header>`, `<ui-text>`, `<ui-icon(s)>`, `<ui-emoji>`, `<ui-progress>`).
-  - P11 (T10):  a translated tag names the shared attributes in its language (`SharedVocabulary.<lang>.ts`:
-    `<ie-boton desactivado>`);  P11 (T8):  brand's composer and colour picker take `readonly`, as do
-    `<ui-select>` / `<ui-search>`'s native fallbacks.
+  every element takes them, though its vocabulary never names them.
+  - The attributes:  `disabled`, `loading`, `visible` and `animation` (`SharedVocabulary`),
+    and the platform's `hidden` and `inert`.
+  - The docs data lists them on every tag (`shared: true`).
+  - What `disabled` / `loading` mean per family:  its `elementSetup`.
+    - By default:  `"unusable"` / `"loader"`.
+    - `"its own"` where a component had its own:  29 of them, and every form control.
+  - `readonly` on every form control (`<ui-select>`, `<ui-search>` new).
+  - P11 (T9):  every family whose `disabled` was its own LOOK moved to `"unusable"`:
+    form, fields, field, tab, items, comments, comment, feed, event, segments, segment, section and panel,
+    labels, label, images, image;  brand's field.
+    - `"its own"` kept where it means more, or where inert would hide text:
+      - native controls:  form controls, `<ui-button>`, `<ui-step>`, `<ui-item>`'s options
+      - hidden or paused:  `<ui-loader>`, `<ui-dimmer>`, `<ui-transition>`, `<ui-reveal>`
+      - text-like looks:  `<ui-header>`, `<ui-text>`, `<ui-icon(s)>`, `<ui-emoji>`, `<ui-progress>`
+  - P11 (T10):  a translated tag names the shared attributes in its language
+    (`SharedVocabulary.<lang>.ts`:  `<ie-boton desactivado>`).
+  - P11 (T8):  brand's composer and colour picker take `readonly`,
+    as do `<ui-select>` / `<ui-search>`'s native fallbacks.
+  - P12:  `visible` and `hidden` are ONE fact, two names, opposites (`el.visible === !el.hidden`).
+    - The `hidden` attribute holds it;  writing either hides or shows the element with its `animation`.
+    - `hidden` beats a family's own `display` (`reset.css`).
+    - `animation`:  Fomantic's names (`fade up` ...) or `none`;  default `fade`.
+    - The whole story:  [`grammar.md`](grammar.md), "Shared attributes".
   - [`AGENTS.md`](../AGENTS.md) "Solid authoring", "Shared states".
   - Built:  base class, `reset.css`, static render (`data-state`, ARIA), tests (`test/sharedStates.test.tsx`).
-  - Deferred:  brand's two form controls (`<ui-brand-composer>`, `<ui-brand-color-picker>`) take no `readonly` yet;
-    the native fallbacks ignore `readonly` on `<ui-select>` / `<ui-search>`;
-    translated tags keep the shared attributes' English names.
 
-- **Component names** (2026-10-08, epic `wwod-spell-ui` P15):  the class behind a tag is its COMPONENT (`UIComponent`,
-  `FormComponent`, `LoadableComponent`, `PartComponent`), the tag in the page its DOM ELEMENT (`DOMElement`,
-  `DOMFormControl`, `DOMLoadableElement`, a family's `DOM<Name>Element`, in its component's file);
-  every family file named for its component (`UIDivider.css`);  native fallbacks for form controls only.
+- **Component names** (2026-10-08, epic `wwod-spell-ui` P15):
+  - the class behind a tag is its COMPONENT:  `UIComponent`, `FormComponent`, `LoadableComponent`, `PartComponent`
+  - the tag in the page is its DOM ELEMENT:  `DOMElement`, `DOMFormControl`, `DOMLoadableElement`,
+    a family's `DOM<Name>Element` (in its component's file)
+  - every family file is named for its component (`UIDivider.css`)
+  - native fallbacks for form controls only
   - The API says "DOM element" too:  `@onChange(..., { writesDOMElement: true })`, `isControlledByPage()`.
   - Built, every family (steps 1-3).
-- **Resumed 2026-10-01** in the monorepo (`packages/ui`), branch `worktree-ui-component-creation`;
-  plan doc [`epics/ui-component-creation/`](../../../epics/ui-component-creation/ui-component-creation.plan.html):
-  icon follow-ups, `agents/SUSPECTED-BUGS.md` sweep, Owen's decisions ("To review (Owen)" below), Phase D chores.
+- **Resumed 2026-10-01** in the monorepo (`packages/ui`), branch `worktree-ui-component-creation`
+  ([its plan doc](../../../epics/ui-component-creation/ui-component-creation.plan.html)):
+  icon follow-ups, a [`SUSPECTED-BUGS.md`](../../../agents/SUSPECTED-BUGS.md) sweep,
+  Owen's decisions ("To review (Owen)" below), Phase D chores.
 - **`<ui-root>`** (P17-P20, 2026-10-01):  built;  P21 (D48-D50:  table `stack-by`, WebKit fixes) built;  P22 doc review done.
 - **`stack-with="container | page"`** (2026-10-03, epic `spell-ui-pages` P10, D40):
-  grid, cards, steps, form, items, statistics stack by their own width (default) or the screen's;
-  `<ui-root stack-with>` sets the inherited `--ui-stack-with` for a page (tables' `stack-by` follows it too);
-  the docs site uses `page`.
-  [`docs/theming.md`](theming.md) "Stacking".
-- Every check passes after the move;  `yarn test:hmr` and `yarn site:build` needed a fix each (`agents/PAPERCUTS.md`).
+  grid, cards, steps, form, items, statistics stack by their own width (default) or the screen's.
+  - `<ui-root stack-with>` sets the inherited `--ui-stack-with` for a page (tables' `stack-by` follows it too).
+  - The docs site uses `page`.
+  - [Theming](theming.md), "Stacking".
+- Every check passes after the move;
+  `yarn test:hmr` and `yarn site:build` needed a fix each ([`PAPERCUTS.md`](../../../agents/PAPERCUTS.md)).
 - Visual:  Mac baselines for chromium / firefox / webkit;  Linux baselines wait on a working Docker Desktop.
 
 ## Legend
@@ -51,20 +61,22 @@ Kept up to date as work lands ([AGENTS.md](../AGENTS.md));  last updated 2026-10
 
 - **Phase** = the plan's build order:  **A** foundation components, **B** views and remaining static
   components, **C** behaviour components.  Phase D (site, hardening, release) is its own table below.
-- **Tests** = passing browser tests in the family folder (elements, CSS, a form control's fallback);  every family's element test runs
-  axe on each `examples/elements/*.html`.
-- **Size** = the family's OWN code, min + gzip kB (components + CSS + vocabulary + a form control's fallback), from `yarn measure`;
-  shared `core` (16.2 kB), `forms` (7.5 kB) and the base library are counted once per page, not here.
+- **Tests** = passing browser tests in the family folder (elements, CSS, a form control's fallback).
+  Every family's element test runs axe on each of its element examples (`examples/elements/*.html`).
+- **Size** = the family's OWN code, min + gzip kB, from `yarn measure`:
+  components + CSS + vocabulary + a form control's fallback.
+  Shared `core` (16.2 kB), `forms` (7.5 kB) and the base library are counted once per page, not here.
 - **Keys** = keyboard walkthrough tests (the plan's "keyboard per APG");  "native" = the shadow markup is a native
   control (`<button>`, `<a>`) whose keyboard behaviour is the browser's.
 - **Docs** = page on the docs site (`ui/components/ui-<name>.html`, shared);  ✅ links to the page.
-- **Visual** = screenshot tests of every element example, light + dark ([`docs/visual-testing.md`](visual-testing.md)):
-  ✅ = baselines for chromium, firefox and webkit on BOTH `linux` and `local-darwin`;  🚧 local = all three browsers
-  on `local-darwin` only, `linux` missing (Docker Desktop crashes at launch on this Mac, 2026-09-30).
+- **Visual** = screenshot tests of every element example, light + dark ([Visual testing](visual-testing.md)):
+  - ✅ = baselines for chromium, firefox and webkit on BOTH `linux` and `local-darwin`
+  - 🚧 local = all three browsers on `local-darwin` only, `linux` missing
+    (Docker Desktop crashes at launch on this Mac, 2026-09-30)
 
 NOTE:  links are relative, so they work on GitHub and in VS Code.
-In VS Code's Markdown preview, `.html` / source links open in an editor tab;
-`.md` links do too because `.vscode/settings.json` sets `markdown.preview.openMarkdownLinks` to `inEditor`.
+- In VS Code's Markdown preview, `.html` / source links open in an editor tab.
+- `.md` links do too, because the repo's VS Code settings set `markdown.preview.openMarkdownLinks` to `inEditor`.
 
 ## Components
 

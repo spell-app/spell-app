@@ -1,7 +1,7 @@
 /**
  * Every name `<epic-summary>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the review controls' parts (`REVIEW_PARTS`) from `epic-review`'s types file,
- *   data too:  the summary takes review notes (epic `airplane` P2).
+ * - Pure data:  `import type`, plus data from `epic-review`'s types file.
+ *   - the review controls' parts (`REVIEW_PARTS`):  the summary takes review notes (epic `airplane` P2)
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 

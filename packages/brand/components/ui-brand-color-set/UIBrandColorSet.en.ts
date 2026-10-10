@@ -1,7 +1,8 @@
 /**
  * Every name `<ui-brand-color-set>` uses:  tag, attributes, events, slots, parts.  Schema:  `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
- * - Class words:  `selectable` its name.  The component adds `color brand` before the noun (`color brand set`).
+ * - Class words:  `selectable` its name.
+ *   The component adds `color brand` before the noun (`color brand set`).
  */
 
 import type { E } from "$/ui/core"

@@ -17,12 +17,16 @@ import overviewCSS from "./EpicOverview.css?inline"
  * ### `EpicOverview`
  * The component behind `<epic-overview>`:  a plan doc's Overview --
  * `1. Overview`, a fold (`EpicFold`), its lightbulb icon.
- * - Inside, in order:  the summary (`<epic-summary>`, a lede), the Kickoff prompt (`<epic-prompt>`, folded), the
- *   estimate line (`estimate`), then its sub-sections (`<epic-section kind="overview-part">`).
- * - Summary and prompt are its light children, in the default slot with the sub-sections, so the estimate drawn
- *   between them is put in its place by flex `order` (`EpicOverview.css`), not by a slot of its own.
- * - Older docs (until P14's second conversion pass):  `<p slot="summary">` and `<blockquote slot="prompt">`, drawn in
- *   the same places;  the prompt folded in a `<details>` of its own here.
+ * - Inside, in order:
+ *   - the summary (`<epic-summary>`, a lede)
+ *   - the Kickoff prompt (`<epic-prompt>`, folded)
+ *   - the estimate line (`estimate`)
+ *   - then its sub-sections (`<epic-section kind="overview-part">`)
+ * - Summary and prompt are its light children, in the default slot with the sub-sections:
+ *   so the estimate drawn between them is put in its place by flex `order` (`EpicOverview.css`),
+ *   not by a slot of its own.
+ * - Older docs (until P14's second conversion pass) hold `<p slot="summary">` and `<blockquote slot="prompt">`:
+ *   drawn in the same places;  the prompt folded in a `<details>` of its own here.
  *   TODO:  drop the two slots once every doc is migrated (`epic-components` P14, wave 2).
  ****************/
 export class EpicOverview extends EpicFold<typeof epicOverviewVocabulary> {

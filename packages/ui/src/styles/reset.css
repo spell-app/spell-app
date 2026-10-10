@@ -1,13 +1,13 @@
 /*
  * Minimal modern reset for SHADOW ROOTS, in `@layer ui.reset`.
- * - Every selector starts with `:host`, which only matches inside a shadow tree:  adopted into the document
- *   (as part of the foundation) this sheet changes NOTHING on the host page.
+ * - Every selector starts with `:host`, which only matches inside a shadow tree:
+ *   adopted into the document (as part of the foundation), this sheet changes NOTHING on the host page.
  * - Resets only the semantic elements components render (`<button>`, `<dialog>`, `<ul>`, `<table>` ...);
  *   component CSS then styles them from a clean slate.
  * - From Fomantic's `reset.less`:
  *   - kept:  border-box sizing (set directly, not via `inherit` from `html` -- a shadow root has no `html`)
- *   - dropped:  `appearance: none` on text inputs for iPad inset shadows -- components set their own border
- *     and background, which already switches native input appearance off
+ *   - dropped:  `appearance: none` on text inputs for iPad inset shadows --
+ *     components set their own border and background, which already switches native input appearance off
  */
 
 @layer ui.reset {
@@ -77,8 +77,9 @@
    * - `0.01ms` rather than `0s`, so `animationend` / `transitionend` still fire for code waiting on them.
    */
   @media (prefers-reduced-motion: reduce) {
-    /* Essential motion is exempt (WCAG 2.3.3):  loaders and `.loading` states convey progress, so their spin
-       stays;  anything else can opt in with `data-ui-motion="essential"`. */
+    /* Essential motion is exempt (WCAG 2.3.3):
+       loaders and `.loading` states convey progress, so their spin stays;
+       anything else can opt in with `data-ui-motion="essential"`. */
     :host,
     :host :not(.loader, .loading, [data-ui-motion="essential"]),
     :host :not(.loader, .loading, [data-ui-motion="essential"])::before,
@@ -91,9 +92,10 @@
   }
 
   /*
-   * A hide animating out (`:state(hiding)`):  `hidden` is already written, so the browser's own
-   * `[hidden] { display: none }` would take the element away at once.  Shown as a custom element is by default;
-   * a family's own `:host { display }` (a later layer) wins.  The hiding itself is below, unlayered.
+   * A hide animating out (`:state(hiding)`):  keeps the element on screen until it ends.
+   * - `hidden` is already written, so the browser's own `[hidden] { display: none }` would take it away at once.
+   * - Shown as a custom element is by default;  a family's own `:host { display }` (a later layer) wins.
+   * - The hiding itself is below, unlayered.
    */
   :host([hidden]:state(hiding)) {
     display: inline;
@@ -108,7 +110,7 @@
    *   - families set it on boxes with a look of their own (`<ui-form loading>`'s veil)
    *   - overlays set it on what they cover (`<ui-pushable>` on its pusher, which has its own dimmer)
    * - NOTE: a top-level `<slot>` has no box either, so an element whose shadow root is only a slot isn't dimmed.
-   *   A `::slotted()` rule for it would dim every component's root in the static render (`StaticSelectors`).
+   *   - A `::slotted()` rule for it would dim every component's root in the static render (`StaticSelectors`).
    */
   :host(:state(dimmed)) > :not(slot) {
     opacity: var(--ui-disabled-opacity, 0.45);
@@ -174,8 +176,8 @@
 /*
  * `--ui-motion: none` from around an element also stills its own CSS motion (an overlay's transition ...),
  * as reduced motion does (`@layer ui.reset`, above), with the same exemption:  loaders keep spinning.
- * - A style query:  where a browser has none, the element's own CSS motion runs, and showing and hiding
- *   (`UIComponent`) still honour the switch.
+ * - A style query:  where a browser has none, the element's own CSS motion runs,
+ *   and showing and hiding (`UIComponent`) still honour the switch.
  */
 @container style(--ui-motion: none) {
   :host :not(.loader, .loading, [data-ui-motion="essential"]),

@@ -21,14 +21,16 @@ import checklistCSS from "./UIBrandChecklist.css?inline"
  *
  * - Its shadow DOM, a `<div class="checklist" part="list" role="list"><slot>`
  *   then a visually hidden live region (`part="status"`).
- * - `step` (progress, the build card):  checks before index `step` are done, the one at `step` active,
- *   the rest pending;  at or past the end, all done.  Each check asks `checkState()` (it finds this list through
- *   `PartContext`:  `ownsParts:  check`), so a page moves the whole list with one attribute.
+ * - `step` (progress, the build card):
+ *   checks before index `step` are done, the one at `step` active, the rest pending;  at or past the end, all done.
+ *   - Each check asks `checkState()` (it finds this list through `PartContext`:  `ownsParts:  check`),
+ *     so a page moves the whole list with one attribute.
  * - Announces progress politely:  "<text> done" as `step` moves past a check, "All done" at the end.
  *   Never on first render, nor when `step` goes back.
  * - `checkable` (the phone's habits):  every check is a checkbox;  their `ui-change`s bubble through the list.
- * - `font` (`sans` / `serif`):  each check without its own asks it through `checkState()` and draws the face's
- *   defaults (`check serif`);  the `--ui-brand-checklist-*` tokens set on the list reach the checks by inheritance.
+ * - `font` (`sans` / `serif`):
+ *   each check without its own asks it through `checkState()` and draws the face's defaults (`check serif`).
+ *   The `--ui-brand-checklist-*` tokens set on the list reach the checks by inheritance.
  * - The DOM element's `aria-label` names the list.
  ****************/
 export class UIBrandChecklist extends E.UIComponent<BrandChecklistVocabulary> implements ChecklistOwner {

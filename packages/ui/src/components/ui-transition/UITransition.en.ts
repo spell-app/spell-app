@@ -4,9 +4,10 @@
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-transition color="red" pulsating looping>` => `ui red looping pulsating transition`;
  *   the element adds its state before the noun (`visible`, `animating`), the words Fomantic's script added.
- * - `visible` / `hidden` and `animation` are every element's (`SharedVocabulary`);  a transition starts hidden
- *   (`elementSetup.visible`), and `animation` takes Fomantic's names, spaces and all (`fade up`, `horizontal flip`),
- *   attention ones (`shake`) included.
+ * - `visible` / `hidden` and `animation` are every element's (`SharedVocabulary`).
+ *   - A transition starts hidden (`elementSetup.visible`).
+ *   - `animation` takes Fomantic's names, spaces and all (`fade up`, `horizontal flip`),
+ *     attention ones (`shake`) included.
  */
 
 import type { E } from "$/ui/core"

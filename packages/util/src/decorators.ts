@@ -4,7 +4,8 @@
  * - `@lazy` / `@once` -- a getter / method whose result is made once and kept, with `forget()` to drop it
  * - `@resets` -- an `accessor` whose every write forgets what `@lazy` / `@once` members kept
  * - NOTE: lowered by esbuild via `vite.decorators.ts` -- vite 8's own transformer doesn't do it yet.
- * - Decorator MUST be first thing on its line (`@proto static x = 1` is fine), or that plugin won't notice the file.
+ * - Decorator MUST be first thing on its line (`@proto static x = 1` is fine),
+ *   or that plugin won't notice the file.
  */
 
 import type { AbstractClass } from "./util.types"
@@ -21,8 +22,9 @@ import type { AbstractClass } from "./util.types"
  * - NOTE: static keeps its value too, harmless.
  * - Field name MUST be something instances already declare, e.g. `declare alias: ...` on `Rule` --
  *   so a typo like `@proto static alais` is a compile error rather than a silently-ignored static.
- * - SIDE EFFECT: then calls the class's `static protoDefined(name, value)`, if it has one, so a base class can
- *   react as each subclass is defined, e.g. `P.Rule` registering `@proto static importableAs = "quoted_property"`.
+ * - SIDE EFFECT: then calls the class's `static protoDefined(name, value)`, if it has one,
+ *   so a base class can react as each subclass is defined,
+ *   e.g. `P.Rule` registering `@proto static importableAs = "quoted_property"`.
  */
 export function proto<This extends AbstractClass<object>, Value>(
   _target: undefined,
@@ -50,8 +52,9 @@ export function proto<This extends AbstractClass<object>, Value>(
  * - A key this class states replaces the parent's value for that key, whole.
  *   To add to an object or a list, spread the parent's:
  *   `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
- *   - Why nested values aren't chained too:  code walks over their keys (`Object.keys()`, `Object.assign()`),
- *     which would miss the parent's;  and a spread lets each class choose the order.
+ *   - Why nested values aren't chained too:
+ *     code walks over their keys (`Object.keys()`, `Object.assign()`), which would miss the parent's;
+ *     and a spread lets each class choose the order.
  * - A class that doesn't state one inherits its parent's object, through the prototype chain.
  * - NOTE: read keys by name (`setup.styleSheets`, a destructure):
  *   a spread, `Object.keys()`, `Object.assign()` or `JSON.stringify()` of the whole object
@@ -83,10 +86,12 @@ export function protoMerged<This extends AbstractClass<object>, Value extends ob
  * `@lazy get supports() { return this.detect() }`.
  * - Kept per object it's read on:  each instance its own;  a `static` one, per class it's read on (`X.supports`).
  * - Replaces a backing field plus `return (this.field ??= make())`.
- * - A getter that throws keeps nothing:  the next read tries again.  `undefined` IS kept.
+ * - A getter that throws keeps nothing:  the next read tries again.
+ * - `undefined` IS kept.
  * - `forget(object, "name")` drops the kept value:  the next read makes it anew.
  *   Writing a member marked `@resets("name")` does it too.
- * - NOT reactive:  the value is made once, whatever it read.  A reactive cached value is `@derived` (`ui`).
+ * - NOT reactive:  the value is made once, whatever it read.
+ *   A reactive cached value is `@derived` (`ui`).
  * - throws a `TypeError` on anything but a getter
  */
 export function lazy<This extends object, Value>(
@@ -105,7 +110,8 @@ export function lazy<This extends object, Value>(
  * A method that runs ONCE, then returns the same result to every later call, e.g. a loader's promise:
  * `@once static load() { return import("./Engine").then(...) }`.
  * - Takes no arguments:  one result per object would ignore them.
- * - Kept per object it's called on, as `@lazy`'s value is:  each instance, or for a `static`, the class it's called on.
+ * - Kept per object it's called on, as `@lazy`'s value is:
+ *   each instance, or for a `static`, the class it's called on.
  *   Call it on its object (`X.load()`), never detached (`const load = X.load`).
  * - A rejected promise is kept too:  every later call gets the same rejection,
  *   until `forget(object, "name")` or a write to a `@resets("name")` member.
@@ -129,9 +135,11 @@ export function once<This extends object, Value>(
  * so the next read or call makes it anew:
  * `@resets("load") static accessor url: string | undefined`, then `SiteData.url = other` fetches again.
  * - Needs `accessor`:  a plain field's decorator only sets its starting value, it never sees a later write.
- * - Every write resets, even of the same value:  `X.url = X.url` starts over (tests do that after a failed fetch).
+ * - Every write resets, even of the same value:
+ *   `X.url = X.url` starts over (tests do that after a failed fetch).
  * - Forgets on the object written to:  an instance, or for a `static`, the class it's set on.
- * - `names` are checked:  `keyof` the instance, or for a `static`, the class, so a typo is a compile error.
+ * - `names` are checked:  `keyof` the instance, or for a `static`, the class,
+ *   so a typo is a compile error.
  */
 export function resets<This extends object, Value>(...names: (keyof This)[]) {
   return function (
@@ -150,7 +158,8 @@ export function resets<This extends object, Value>(...names: (keyof This)[]) {
 /**
  * Drop what `@lazy` getter or `@once` method `name` kept for `owner`:  the next read or call makes it anew.
  * - `owner` is the object it was kept for:  an instance, or the class for a `static` one.
- * - e.g. `forget(counted, "parts")` in a test;  a member whose writes should reset says `@resets("parts")`.
+ * - e.g. `forget(counted, "parts")` in a test;
+ *   a member whose writes should reset says `@resets("parts")`.
  * - Nothing kept:  does nothing.
  */
 export function forget<Owner extends object>(owner: Owner, name: keyof Owner): void {
@@ -169,7 +178,8 @@ function remembered<Value>(owner: object, name: PropertyKey, make: () => Value):
 
 /**
  * What `@lazy` / `@once` kept:  object => member name => value.
- * - A `WeakMap`, so an object's values go with it;  outside the object, so a frozen object can have them too.
+ * - A `WeakMap`, so an object's values go with it;
+ *   outside the object, so a frozen object can have them too.
  */
 const REMEMBERED = new WeakMap<object, Map<PropertyKey, unknown>>()
 
