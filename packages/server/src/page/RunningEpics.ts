@@ -230,27 +230,82 @@ export class RunningEpics {
    */
   runningNames(): Set<string> {
     const names = new Set<string>()
+    for (const session of this.liveSessions()) {
+      if (session.cwd.startsWith(this.worktrees + sep))
+        names.add(session.cwd.slice(this.worktrees.length + 1).split(sep)[0]!)
+      const title = bareTitle(session.title)
+      if (title) names.add(title)
+    }
+    return names
+  }
+
+  /**
+   * Every live Claude session (`sessions/<pid>.json`, its process alive):  its pid, id, title, status and folder.
+   * - NEVER throws:  an unreadable record is skipped
+   */
+  liveSessions(): LiveSession[] {
+    const sessions: LiveSession[] = []
     const folder = join(this.claudeHome, "sessions")
-    if (!existsSync(folder)) return names
+    if (!existsSync(folder)) return sessions
     for (const file of readdirSync(folder)) {
       if (!file.endsWith(".json")) continue
       try {
         const record = JSON.parse(readFileSync(join(folder, file), "utf8")) as SessionRecord
         if (typeof record.pid !== "number" || !isAlive(record.pid)) continue
-        if (record.cwd?.startsWith(this.worktrees + sep))
-          names.add(record.cwd.slice(this.worktrees.length + 1).split(sep)[0]!)
-        const title = record.name?.replace(/^[^\p{L}\p{N}]+/u, "").trim()
-        if (title) names.add(title)
+        sessions.push({
+          pid: record.pid,
+          sessionId: record.sessionId ?? "",
+          title: record.name ?? "",
+          status: record.status ?? "",
+          cwd: record.cwd ?? ""
+        })
       } catch {
         // a record being written, or not JSON:  not a running session we can read
       }
     }
-    return names
+    return sessions
   }
 }
 
-/** The fields `RunningEpics.runningNames()` reads of a session's record, `~/.claude/sessions/<pid>.json`. */
-type SessionRecord = { pid?: number; cwd?: string; name?: string }
+/** A live Claude session, as `RunningEpics.liveSessions()` reads its record. */
+export type LiveSession = {
+  pid: number
+  /** Claude Code's session id (a uuid) */
+  sessionId: string
+  /** its title, icon and all (`🚧 airplane`);  `""` when untitled */
+  title: string
+  /** `idle`, `busy` ...;  `""` when the record has none */
+  status: string
+  cwd: string
+}
+
+/** `title` without its leading icon:  `🚧 airplane` -> `airplane`. */
+export function bareTitle(title: string): string {
+  return title.replace(/^[^\p{L}\p{N}]+/u, "").trim()
+}
+
+/**
+ * The sessions titled for epic `epic` (epic `airplane` P12), by `titleNames()`.
+ */
+export function sessionsTitledFor(epic: string, sessions: LiveSession[]): LiveSession[] {
+  return sessions.filter((session) => titleNames(session.title, epic))
+}
+
+/**
+ * Whether session title `title` names epic `epic`:  its title without its icon IS the name (`🚧 airplane`),
+ * or holds it as a whole word (`airplane review`;  never `airplane-mode`).
+ */
+export function titleNames(title: string, epic: string): boolean {
+  const bare = bareTitle(title).toLowerCase()
+  const name = epic.toLowerCase()
+  if (!name || !bare) return false
+  if (bare === name) return true
+  const escaped = name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+  return new RegExp(`(^|[^a-z0-9_-])${escaped}($|[^a-z0-9_-])`, "u").test(bare)
+}
+
+/** The fields `RunningEpics.liveSessions()` reads of a session's record, `~/.claude/sessions/<pid>.json`. */
+type SessionRecord = { pid?: number; sessionId?: string; cwd?: string; name?: string; status?: string }
 
 /** An epic's card on the Epics page:  its whole markup, `$1` its name. */
 const CARD = /<ui-card\b[^>]*\bdata-epic="([^"]*)"[\s\S]*?<\/ui-card\s*>/g
