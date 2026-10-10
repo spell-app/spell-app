@@ -470,7 +470,7 @@ In `tools/`:
     ```text
     setMark()  requestNow()  cancelNow()  markSent()  unsentMarks  sentMarks  takeNow()  takeWork()
     setWorking()  setListening()  touchListening()  liveListener()  clearMarks()  finishMarks()
-    clearApplied()  setDraft()  reviewNow()
+    clearApplied()  setDraft()  reviewNow()  unsentComments  sentComments
     ```
 
   - EVERY write goes through `ReviewInbox.update()` / `updateAsync()`:
@@ -489,7 +489,11 @@ In `tools/`:
     - `setNew()`:  `{ action: "new", kind, title, note?, near? }`
     - `plan-doc inbox apply` makes the item.
   - `comments`:  Owen's comments on the doc's blocks, and on selected text (P11, see "Comments"):  `cm1` ...
-    - Written through the comments route, never sent.
+    - Written through the comments route.
+    - Sent with Send, as marks are (Owen, 2026-10-10:  he keeps Send as the way comments reach Claude).
+      - Unsent (`unsentComments`):  waiting for Claude, and Owen's last words on the thread newer than `sent`.
+      - A new comment, or his reply on a thread, turns Send blue;  its tooltip counts both ("2 marks, 1 comment").
+      - `wait` hands each over once (`takeWork()`'s `sent.comments`), until Owen speaks on its thread again.
     - Waiting until answered (`plan-doc inbox done cm3`).
   - `listening.seen`:  the session's heartbeat (`LISTEN_HEARTBEAT_MS`, 30s, from `wait`).
     - Older than `LISTEN_STALE_MS` (90s), the session is gone:  `liveListener()` returns `null`.
@@ -512,9 +516,12 @@ In `tools/`:
     - only `<name>.plan.html` (else 403)
     - only ids of its items (else 400)
   - Each answer is the whole inbox, but with `listening` `null` once stale (`ReviewInbox.forPage()`).
+    - Plus `unsentComments`:  the ids of the comments Send would hand over.
+      The page counts them for Send, and keeps no rule of its own for a thread.
   - Writes need the server's token and origin (`SRV.Guard`).
 - Unsent:  marks newer than `sent` (the last "send to Claude").
   - Never an immediate one (`details`, revisit `now`).
+  - And waiting comments whose last words from Owen are newer than `sent` (`unsentComments`).
 - `spell dev plan-doc inbox <name> [--json]` prints it:
   - marks by action, with their items' titles, sent or not
   - the `now` queue, agents at work, the session listening
@@ -523,6 +530,7 @@ In `tools/`:
   - `listen` / `unlisten`:  a session waits on it, or stopped
   - `wait`:  run in the background;  it stamps the heartbeat while it waits
     - exits 0 with work, which wakes the session:  requests for now, taken;  a send not yet handed over (`handedOver`)
+      - a send with only comments too:  it prints them, each with Owen's latest reply
     - exits 2 on timeout
   - `apply [ids]`:  the sent approve / pick / todo marks, into the doc (`PlanDoc.applyMark()`), then cleared
     - A revisit with a pick is left, "to talk over".
@@ -746,6 +754,8 @@ In `tools/`:
     - each comment then `taken`
     - `/airplane land` runs it.
 - Claude's side, for plan docs:  `spell dev plan-doc inbox <name>` lists them, and Owen's replies under them.
+  - They reach Claude with the page's SEND, as marks do (see "Review inbox"):
+    a send with only comments wakes `wait`, which prints them.
   - `plan-doc inbox <name> working cm3 on | off`:  the thinking stub, as `comments working` (an item's id:  its
     spinner, as before).
   - Answered like a revisit's note, then `plan-doc inbox <name> done cm3 [--file <html>] [--commit <sha>]`

@@ -26,7 +26,16 @@ const PAGE = "/epics/sample/sample.plan.html"
  * - `posts`:  every POST's route and body
  */
 class FakeRoutes {
-  inbox: Inbox = { marks: {}, drafts: {}, urgency: {}, sent: null, now: [], working: {}, listening: null }
+  inbox: Inbox = {
+    marks: {},
+    drafts: {},
+    urgency: {},
+    sent: null,
+    now: [],
+    working: {},
+    listening: null,
+    unsentComments: []
+  }
   posts: [string, Record<string, unknown>][] = []
 
   readonly fetch = vi.fn(async (input: string, init?: RequestInit): Promise<Response> => {

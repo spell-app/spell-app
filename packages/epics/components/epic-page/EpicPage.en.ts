@@ -143,8 +143,8 @@ export const epicPageVocabulary = {
     {
       name: "send",
       description:
-        "In the header while the page is reviewed, the paper plane:  every unsent mark to Claude.  A grey outline " +
-        "with nothing to send, dashed blue with unsent marks, outlined blue once sent."
+        "In the header while the page is reviewed, the paper plane:  every unsent mark and comment to Claude.  A " +
+        "grey outline with nothing to send, dashed blue with unsent marks or comments, outlined blue once sent."
     },
     {
       name: "review-now",
@@ -241,23 +241,30 @@ export const epicPageVocabulary = {
     },
     { key: "analysisPage", text: "Open its analysis page", description: "The notice's link." },
     { key: "futurePlan", text: "plans it.", description: "The notice's last line, after `/epic <name>`." },
-    { key: "sendOne", text: "Send 1 mark to Claude", description: "Send, one mark unsent." },
-    { key: "sendMany", text: "Send {count} marks to Claude", description: "Send, marks unsent." },
-    { key: "sent", text: "Sent:  waiting for Claude", description: "Send, every mark sent." },
+    {
+      key: "send",
+      text: "Send {what} to Claude",
+      description: "Send, marks or comments unsent;  `what` counts them (`marksOne` ..., `2 marks, 1 comment`)."
+    },
+    { key: "sent", text: "Sent:  waiting for Claude", description: "Send, every mark and comment sent." },
     {
       key: "sendIdle",
-      text: "Nothing to send:  mark an item first (its buttons)",
-      description: "Send, no marks."
+      text: "Nothing to send:  mark an item (its buttons) or leave a comment (its bullhorn)",
+      description: "Send, no marks or comments."
     },
+    { key: "marksOne", text: "1 mark", description: "Send's and Review Now's count:  one mark." },
+    { key: "marksMany", text: "{count} marks", description: "Send's and Review Now's count:  marks." },
+    { key: "commentsOne", text: "1 comment", description: "Send's and Review Now's count:  one comment." },
+    { key: "commentsMany", text: "{count} comments", description: "Send's and Review Now's count:  comments." },
     {
       key: "reviewNowOne",
-      text: "Review Now:  Claude works through 1 mark at once, answers in its item",
-      description: "Review Now, one mark to work through."
+      text: "Review Now:  Claude works through {what} at once, answers in its item",
+      description: "Review Now, one mark or comment to work through;  `what` counts it."
     },
     {
       key: "reviewNowMany",
-      text: "Review Now:  Claude works through {count} marks at once, answers in their items",
-      description: "Review Now, marks to work through."
+      text: "Review Now:  Claude works through {what} at once, answers in their items",
+      description: "Review Now, marks or comments to work through;  `what` counts them."
     },
     {
       key: "reviewNowIdle",

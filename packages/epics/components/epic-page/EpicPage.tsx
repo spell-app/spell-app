@@ -107,11 +107,13 @@ import crumbsCSS from "./Crumbs.css?inline"
  *     to the left of P11" (epic `airplane` P8 had put them in a bar stuck to the window's bottom)
  *   - Send (paper plane):
  *     a grey outline with nothing to send, dashed blue with marks not sent, outlined blue once sent
+ *     - Owen's comments too (Owen, 2026-10-10, he keeps Send as the way they reach Claude):
+ *       a new comment, or his reply on a thread, makes it blue;  its tooltip counts both ("2 marks, 1 comment")
  *   - Review Now (wand):  every mark sent and each revisit asked now;
  *     outlined blue while there's anything to work through
  *   - nobody listening:  their tooltips say so (`NOBODY_LISTENING`)
  *   - what a click did goes to the notice line at the window's bottom (`ReviewState`'s)
- * - THE PILL, under the review line, while marks wait and nobody can take them:
+ * - THE PILL, under the review line, while marks or comments wait and nobody can take them:
  *   no session listening (solid orange, a warning), or airplane mode;  a click copies the review line's command
  * - NEW TODO OR QUESTION (epic `airplane` P2), while reviewed:
  *   - the toolbar's comment-dots button opens the form (an `<epic-new-item open>`) on a row of its own
@@ -331,10 +333,12 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     // tracks the client's changes:  every read below follows them
     if (!this.review.reviewing() || !client) return undefined
     const all = Object.values(client.inbox.marks)
-    const unsent = client.unsentCount
+    const unsent = client.unsentMarkCount
+    const comments = client.unsentCommentCount
     return {
-      send: unsent ? "unsent" : all.length ? "sent" : "idle",
+      send: unsent || comments ? "unsent" : all.length ? "sent" : "idle",
       unsent,
+      comments,
       waiting: all.filter((mark) => !isImmediate(mark)).length,
       listening: client.listening
     }
@@ -343,7 +347,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   /** Does the pill show?  Reviewed, something waits to be sent or asked now, and nobody can take it. */
   readonly hasPill = createMemo((): boolean => {
     const marks = this.marks()
-    return !!marks && !!(marks.unsent || marks.waiting) && (isAirplane() || !marks.listening)
+    return !!marks && !!(marks.unsent || marks.comments || marks.waiting) && (isAirplane() || !marks.listening)
   })
 
   /**
@@ -711,9 +715,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
           type="button"
           class={REVIEW_NOW}
           part={this.partForName("review-now")}
-          data-state={marks().waiting ? "ready" : "idle"}
+          data-state={marks().waiting || marks().comments ? "ready" : "idle"}
           aria-label={this.reviewNowWords(marks())}
-          title={this.withNobody(this.reviewNowWords(marks()), marks(), !!marks().waiting)}
+          title={this.withNobody(this.reviewNowWords(marks()), marks(), !!(marks().waiting || marks().comments))}
           onClick={() => void this.review.client?.send({ now: true })}
         >
           {this.icon(this.icons.reviewNow)}
@@ -741,22 +745,28 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     )
   }
 
-  /** Send's words:  what a click sends, or why it sends nothing. */
+  /** Send's words:  what a click sends (`2 marks, 1 comment`), or why it sends nothing. */
   private sendWords(marks: HeaderMarks): string {
-    if (marks.send === "unsent") {
-      return marks.unsent === 1
-        ? this.translationForKey("sendOne")
-        : this.translationForKey("sendMany", { count: marks.unsent })
-    }
+    if (marks.send === "unsent")
+      return this.translationForKey("send", { what: this.countWords(marks.unsent, marks.comments) })
     return this.translationForKey(marks.send === "sent" ? "sent" : "sendIdle")
   }
 
   /** Review Now's words:  what Claude would work through. */
   private reviewNowWords(marks: HeaderMarks): string {
-    if (!marks.waiting) return this.translationForKey("reviewNowIdle")
-    return marks.waiting === 1
-      ? this.translationForKey("reviewNowOne")
-      : this.translationForKey("reviewNowMany", { count: marks.waiting })
+    const total = marks.waiting + marks.comments
+    if (!total) return this.translationForKey("reviewNowIdle")
+    const what = this.countWords(marks.waiting, marks.comments)
+    return this.translationForKey(total === 1 ? "reviewNowOne" : "reviewNowMany", { what })
+  }
+
+  /** `marks` marks and `comments` comments, in words:  `2 marks, 1 comment`;  either left out at 0. */
+  private countWords(marks: number, comments: number): string {
+    const counted = [
+      marks ? this.translationForKey(marks === 1 ? "marksOne" : "marksMany", { count: marks }) : "",
+      comments ? this.translationForKey(comments === 1 ? "commentsOne" : "commentsMany", { count: comments }) : ""
+    ]
+    return counted.filter(Boolean).join(", ")
   }
 
   /** A button's tooltip:  `words`, then that nobody is reviewing when nobody listens and there's something waiting. */

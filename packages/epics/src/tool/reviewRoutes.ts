@@ -10,7 +10,8 @@
  *   ONLY a plan doc:  anything else is a 403
  * - every answer is the whole inbox, as `ReviewInbox` keeps it (an empty one when there's no file),
  *   except a `listening` whose heartbeat stopped:
- *   `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing
+ *   `null` (`ReviewInbox.forPage()`), so the page warns nobody is reviewing;
+ *   plus `unsentComments`, the comments Send would hand over (their thread's rules are `CommentList`'s)
  * - `GET /api/review/inbox?page=<path>` -- the inbox;  the page polls it
  * - `POST /api/review/mark` `{ page, id, mark }` -- set item `id`'s mark, or remove it (`mark: null`)
  *   - the mark:  `{ action, when?, note?, pick?, choices? }`, `at` stamped here;
@@ -30,7 +31,7 @@
  *   (`revisit` or `todo`;  empty or `null` drops it):  kept until the mark that uses it (`ReviewInbox.setDraft()`)
  * - `POST /api/review/urgency` `{ page, id, calm }` -- Owen clicked an open judgement call's or issue's id chip:
  *   `calm` true, not urgent;  false, urgent;  `null` drops it (`ReviewInbox.setUrgency()`)
- * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now;
+ * - `POST /api/review/send` `{ page, now? }` -- "send to Claude":  `sent` is now, for marks and comments alike;
  *   `now: true` is "Review Now" (epic `windows-and-review` P4):
  *   every revisit waiting becomes an immediate request too (`ReviewInbox.reviewNow()`)
  * - writes:  under the inbox's lock, atomic (`ReviewInbox.updateAsync()`);
@@ -44,7 +45,7 @@ import { readFileSync } from "node:fs"
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
 
-import { InboxError, ReviewInbox, type InboxRecord } from "./ReviewInbox"
+import { InboxError, ReviewInbox, type PageInbox } from "./ReviewInbox"
 
 /** Where the routes live. */
 const API = "/api/review"
@@ -146,7 +147,7 @@ function itemOf(file: string, id: unknown): string {
  * the inbox after, as the page reads it (`ReviewInbox.forPage()`).
  * - an `InboxError` (a bad mark, a bad action) is a 400
  */
-async function update(file: string, change: (inbox: ReviewInbox) => unknown): Promise<InboxRecord> {
+async function update(file: string, change: (inbox: ReviewInbox) => unknown): Promise<PageInbox> {
   const inbox = await ReviewInbox.updateAsync(ReviewInbox.pathFor(file), (each) => asHttp(() => change(each)))
   return inbox.forPage()
 }
