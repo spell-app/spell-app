@@ -2747,16 +2747,16 @@ const KIND_NAMES = {
  *   - the box is a small PANE, fixed on the screen, just under the selection (or the button clicked):  the page
  *     never scrolls, and Owen drags it by its header (Owen, 2026-10-10:  "a little floating pane below the selected
  *     text that I can move around -- don't scroll the page and lose context!")
- *   - in it:  a header (the first words, a floppy, ×) and a textarea that grows;  ivory, no buttons (Owen,
- *     2026-10-10);  it saves itself as Owen types, the floppy says so;  × or Escape closes it;  what's typed is
- *     also kept in this browser until saved (`COMMENT_DRAFT_KEY_PREFIX`)
- *   - NEVER an empty comment:  emptied, it's cleared at once
+ *   - in it:  a header (the first words, a floppy, a trash once saved, ×) and a textarea that grows, with no
+ *     placeholder;  ivory, no buttons below (Owen, 2026-10-10);  it saves itself as Owen types, the floppy says so;
+ *     × or Escape closes it;  what's typed and not saved yet is kept in this browser (`COMMENT_DRAFT_KEY_PREFIX`)
+ *   - NEVER an empty comment:  nothing typed saves nothing;  emptied, it's deleted at once
  *   - a click on a highlighted quote opens its comment in the pane again:  to edit while it waits, else to read
- *     with Claude's answers, and clear
+ *     with Claude's answers, and delete
  *   - each comment:  a card under its block, Owen's, "Owen · 10/10 14:02";  its state by the fill rule
  *     (`templates/epics/plan-doc.md`, "Colours"):  saved, "Saved 14:02 · waiting for Claude":  outlined;
  *     "Taken by Claude" (a guide's, into epic `guide-changes`) or "Answered":  solid.  Edit while it waits;
- *     Clear (its ×, twice) once Claude has it;  Claude's answers under it, violet
+ *     a trash on every card (two clicks:  `delete` while it waits, else `clear`);  Claude's answers under it, violet
  * - drawn again after a live patch (`spell-doc:updated`), when the page's content changes (a plan doc's part
  *   loading), when the inbox file changes (`spell-server:file`:  another window, Claude), and when the page comes
  *   back into view
@@ -2774,6 +2774,8 @@ async function wireComments(main) {
     if (comments.inboxPaths.includes(decodeURIComponent(event.detail?.path ?? ""))) reload()
   })
   document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && reload())
+  // leaving (a reload, another page):  what's typed in the pane and not saved yet goes now
+  addEventListener("pagehide", () => comments.open?.flush?.())
   comments.watchContent()
   comments.wireSelection()
 }
@@ -3019,7 +3021,7 @@ class PageComments {
 
   /**
    * Open comment `id` in the pane, under `near`:  to edit while it waits for Claude, else (`view`) to read with its
-   * answers, and clear.  Already open:  the cursor goes back into it, where it is.
+   * answers, and delete.  Already open:  the cursor goes back into it, where it is.
    */
   openComment(id, near) {
     if (this.open?.id === id && this.pane) return this.focusPane()
@@ -3069,7 +3071,7 @@ class PageComments {
   ////////////////
 
   /**
-   * A comment's card:  its band ("Owen", its state, the date, Edit while it waits), then the quote it's on, its
+   * A comment's card:  its band ("Owen", its state, the date, Edit while it waits, the trash), then the quote it's on, its
    * text, and Claude's answers.  Folds by its band;  folded, the band shows the comment's first line.
    * - `exact` false:  its block changed or moved since, so the card says what it was on
    */
@@ -3090,13 +3092,10 @@ class PageComments {
       `<span class="spell-comment-date">${text(shortStamp(localStamp(comment.at)))}</span>` +
       (state === "saved" && !editing
         ? `<ui-button class="spell-comment-edit" circular basic size="mini" icon="pen to square" ` +
-          `title="Edit this comment, until Claude takes it:  emptied, it's cleared" aria-label="Edit this comment">` +
+          `title="Edit this comment, until Claude takes it:  emptied, it's deleted" aria-label="Edit this comment">` +
           `</ui-button>`
         : "") +
-      (state !== "saved"
-        ? `<ui-button class="spell-comment-clear" circular basic size="mini" icon="xmark" ` +
-          `title="${CLEAR_TIP}" aria-label="Clear this comment"></ui-button>`
-        : "") +
+      deleteButton(state) +
       `</div><div class="spell-comment-body">` +
       (exact ? "" : `<p class="spell-comment-moved">The block changed since:  it was “${text(comment.excerpt)}”.</p>`) +
       (comment.quote ? `<blockquote class="spell-comment-quote">${text(comment.quote)}</blockquote>` : "") +
@@ -3121,25 +3120,26 @@ class PageComments {
     card.querySelector(".spell-comment-edit")?.addEventListener("click", (event) => {
       this.openComment(comment.id, event.currentTarget.getBoundingClientRect())
     })
-    const clear = card.querySelector(".spell-comment-clear")
-    clear?.addEventListener("click", () => {
-      // two clicks, no browser dialog:  the first asks, the second clears
-      if (!clear.hasAttribute("data-armed")) return armClear(clear)
-      void this.clear(comment.id)
-    })
+    wireDelete(card.querySelector(".spell-comment-delete"), () => this.remove(comment.id))
     return card
   }
 
-  /** Clear comment `id`, whatever its state:  gone from the inbox, its card and highlight with it.  NEVER throws. */
-  async clear(id) {
+  /**
+   * Delete comment `id`, whatever its state:  gone from the inbox, its card and highlight with it.  NEVER throws.
+   * - while it waits for Claude:  `delete`;  once Claude has it:  `clear` (a taken one stays in its epic)
+   * - its pane, if open, closes;  any draft of it is forgotten
+   */
+  async remove(id) {
+    const action = this.waiting(id) ? "delete" : "clear"
     try {
-      const answer = await postJSON(COMMENTS_API, { page: location.pathname, action: "clear", id })
+      const answer = await postJSON(COMMENTS_API, { page: location.pathname, action, id })
       this.list = answer.comments ?? this.list
+      this.forget(id)
       if (this.open?.id === id) this.closePane()
       else this.draw()
-      noteToast("Comment cleared", "success")
+      noteToast("Comment deleted", "success")
     } catch (error) {
-      noteToast(`Couldn't clear the comment:  ${error.message}`, "error")
+      noteToast(`Couldn't delete the comment:  ${error.message}`, "error")
     }
   }
 
@@ -3200,9 +3200,11 @@ class PageComments {
 
   /**
    * The pane's markup and wiring, for `open` (`openBox()`'s):  a header, then the text;  no buttons below it.
-   * - the header:  a few words of what it's on (the selected text, else the block:  `headline()`), the floppy, ×;
-   *   its tooltip names the block in full (`aboutTip()`);  Owen drags the pane by it
-   * - `view`:  the comment and Claude's answers instead of the field, an eraser (Clear) instead of the floppy
+   * - the header:  a few words of what it's on (the selected text, else the block:  `headline()`), the floppy, the
+   *   trash, ×;  its tooltip names the block in full (`aboutTip()`);  Owen drags the pane by it
+   * - the field has no placeholder (Owen, 2026-10-10:  "remove the 'Anything:  a correction...' placeholder")
+   * - the trash deletes the comment (two clicks:  `wireDelete()`);  shown once it's saved
+   * - `view`:  the comment and Claude's answers instead of the field;  no floppy
    * - × or Escape closes it (⌘ / Ctrl Enter too, in the field), saving what's typed first
    */
   paneFor(open) {
@@ -3217,16 +3219,14 @@ class PageComments {
       `<div class="spell-comment-about" title="${attr(`${aboutTip(open)}\n(Drag to move)`)}">` +
       `<ui-icon name="bullhorn"></ui-icon><span class="spell-comment-on">${text(headline(open.place))}</span>` +
       (open.view
-        ? `<ui-button class="spell-comment-clear" circular basic size="mini" icon="eraser" title="${CLEAR_TIP}" ` +
-          `aria-label="Clear this comment"></ui-button>`
+        ? ""
         : `<span class="spell-comment-saved" hidden><ui-icon name="floppy disk outline"></ui-icon></span>`) +
+      deleteButton(comment ? commentState(comment) : "saved", !open.id) +
       `<button type="button" class="spell-comment-close" title="${open.view ? "Close" : CLOSE_TIP}" ` +
       `aria-label="Close the comment box"><ui-icon name="xmark"></ui-icon></button></div>` +
       (open.view
         ? `<div class="spell-comment-view">${comment ? viewHTML(comment) : ""}</div>`
-        : `<textarea class="spell-comment-field" rows="3" aria-label="Your comment" ` +
-          `placeholder="Anything:  a correction, a question, what's missing.  It's saved as you type, for Claude.">` +
-          `</textarea>`)
+        : `<textarea class="spell-comment-field" rows="3" aria-label="Your comment"></textarea>`)
     wireDrag(pane, pane.querySelector(".spell-comment-about"))
     const close = open.view ? async () => this.open === open && this.closePane() : this.wireField(pane, open)
     pane.querySelector(".spell-comment-close").addEventListener("click", () => void close())
@@ -3237,11 +3237,9 @@ class PageComments {
       event.stopPropagation()
       void close()
     })
-    const clear = pane.querySelector(".spell-comment-clear")
-    clear?.addEventListener("click", () => {
-      if (!clear.hasAttribute("data-armed")) return armClear(clear)
-      void this.clear(open.id)
-    })
+    wireDelete(pane.querySelector(".spell-comment-delete"), () =>
+      open.discard ? open.discard() : this.remove(open.id)
+    )
     return pane
   }
 
@@ -3249,23 +3247,41 @@ class PageComments {
    * Wire the pane's field for `open`;  returns what closes it.
    * - saves itself as Owen types, `COMMENT_SAVE_MS` after he stops (Owen, 2026-10-10:  "Save should just happen as I
    *   type"):  the first save adds the comment, the next ones edit it;  the floppy says how the last one went
-   * - NEVER an empty comment:  nothing typed saves nothing;  emptied, a saved one goes at once:  `delete` while it
-   *   waits for Claude (as far as this page knows), else `clear`
-   * - what's typed is also kept in this browser (`COMMENT_DRAFT_KEY_PREFIX`) until it closes saved
+   * - NEVER an empty comment (Owen, 2026-10-10:  "don't save an empty bullhorn comment"):  nothing typed (or only
+   *   spaces) saves nothing;  emptied, a saved one goes at once (`delete`, else `clear`);  the trash deletes it
+   * - a DRAFT is kept in this browser (`COMMENT_DRAFT_KEY_PREFIX`) only while what's typed differs from what the
+   *   server holds:  under the comment's id once it has one, else under the pane's `key`.
+   *   - So a reload never brings back, as a NEW comment, text already saved.
+   *     Before 2026-10-10 it did, and closing the pane at once saved that text a second time.
+   *   - A new comment's draft that copies a comment already on its block is dropped (`draftOf()`).
+   * - leaving the page (`pagehide`):  what's typed and not saved yet goes at once (`flush()`)
    */
   wireField(pane, open) {
     const { key, place } = open
     const field = pane.querySelector("textarea")
     const floppy = pane.querySelector(".spell-comment-saved")
-    const drafts = readJSON(this.draftKey)
-    field.value = typeof drafts[key] === "string" ? drafts[key] : (open.text ?? "")
+    const trash = pane.querySelector(".spell-comment-delete")
     // what the server holds;  one save at a time, in order, so a quick typist never adds the comment twice
     let saved = (open.text ?? "").trim()
     let saving = Promise.resolve(true)
     let timer = 0
-    const save = async () => {
+    // deleted with the trash:  nothing more is saved
+    let gone = false
+    // where its draft is kept
+    const slot = () => open.id ?? key
+    field.value = this.draftOf(open) ?? open.text ?? ""
+    // keep what's typed as the draft while it differs from what's saved;  else none (`before`:  its old slot)
+    const keep = (before = slot()) => {
+      const drafts = readJSON(this.draftKey)
+      delete drafts[before]
       const words = field.value.trim()
-      if (words === saved) return true
+      if (words && words !== saved) drafts[slot()] = field.value
+      else delete drafts[slot()]
+      writeJSON(this.draftKey, drafts)
+    }
+    const save = async ({ keepalive = false } = {}) => {
+      const words = field.value.trim()
+      if (gone || words === saved) return true
       if (!words && !open.id) return true
       const change = !words
         ? { action: this.waiting(open.id) ? "delete" : "clear", id: open.id }
@@ -3273,13 +3289,16 @@ class PageComments {
           ? { action: "edit", id: open.id, text: words }
           : { action: "add", ...place, text: words }
       try {
-        const answer = await postJSON(COMMENTS_API, { page: location.pathname, ...change })
+        const answer = await postJSON(COMMENTS_API, { page: location.pathname, ...change }, { keepalive })
+        const before = slot()
         open.id = words ? (open.id ?? answer.id) : undefined
         saved = words
         this.list = answer.comments ?? this.list
+        keep(before)
         floppy.hidden = !words
         floppy.removeAttribute("data-failed")
         floppy.title = `Saved ${localStamp(new Date().toISOString()).slice(11)} · waiting for Claude`
+        trash.hidden = !open.id
         // its highlight on the page, at once;  its card stays hidden while the pane is open
         if (this.open === open) this.draw()
         return true
@@ -3292,18 +3311,32 @@ class PageComments {
     }
     const saveNow = () => {
       clearTimeout(timer)
-      return (saving = saving.then(save))
+      return (saving = saving.then(() => save()))
     }
     open.finish = async () => {
       if (!(await saveNow())) return false
+      this.forget(slot())
       this.forget(key)
       return true
     }
+    // the page is going:  a request that outlives it
+    open.flush = () => {
+      clearTimeout(timer)
+      saving = saving.then(() => save({ keepalive: true }))
+    }
+    open.discard = async () => {
+      clearTimeout(timer)
+      // a save on its way first:  it may bring the comment's id
+      await saving
+      gone = true
+      this.forget(slot())
+      this.forget(key)
+      if (open.id) return this.remove(open.id)
+      if (this.open === open) this.closePane()
+    }
     field.addEventListener("input", () => {
       growField(field)
-      const kept = readJSON(this.draftKey)
-      kept[key] = field.value
-      writeJSON(this.draftKey, kept)
+      keep()
       clearTimeout(timer)
       timer = setTimeout(saveNow, COMMENT_SAVE_MS)
     })
@@ -3312,6 +3345,25 @@ class PageComments {
       if (!(await open.finish())) return noteToast(floppy.title, "error")
       if (this.open === open) this.closePane()
     }
+  }
+
+  /**
+   * The draft kept for `open`'s pane (`wireField()`), or `undefined`:  none, blank, or (a new comment's) a copy of a
+   * comment already on its block, which is dropped.
+   */
+  draftOf(open) {
+    const slot = open.id ?? open.key
+    const draft = readJSON(this.draftKey)[slot]
+    if (typeof draft !== "string" || !draft.trim()) return undefined
+    const { anchor, quote } = open.place
+    const copy =
+      !open.id &&
+      this.list.some(
+        (each) => each.anchor === anchor && (each.quote ?? "") === (quote ?? "") && each.text === draft.trim()
+      )
+    if (!copy) return draft
+    this.forget(slot)
+    return undefined
   }
 
   /** Whether comment `id` still waits for Claude, as the server last answered. */
@@ -3403,22 +3455,51 @@ function highlightQuotes(quotes) {
 }
 
 /** What the pane's × says, in its tooltip. */
-const CLOSE_TIP = "Close (Escape):  it's saved as you type;  emptied, the comment is cleared"
+const CLOSE_TIP = "Close (Escape):  it's saved as you type;  emptied, the comment is deleted"
 
-/** How long a Clear waits for its second click, ms. */
-const CLEAR_ARMED_MS = 3000
+/** How long a trash waits for its second click, ms. */
+const DELETE_ARMED_MS = 3000
 
-/** What a Clear button says, in its tooltip. */
-const CLEAR_TIP = "Clear this comment:  gone from the page, whatever Claude did with it"
+/** What a trash says, in its tooltip:  a comment still waiting for Claude, and one Claude has. */
+const DELETE_TIPS = {
+  saved: "Delete this comment (two clicks)",
+  had: "Delete this comment (two clicks):  gone from the page, whatever Claude did with it"
+}
 
-/** A Clear, first clicked:  it asks for a second click (`data-armed`), for a while (`CLEAR_ARMED_MS`). */
-function armClear(button) {
-  button.setAttribute("data-armed", "")
-  button.title = "Click again to clear"
-  setTimeout(() => {
-    button.removeAttribute("data-armed")
-    button.title = CLEAR_TIP
-  }, CLEAR_ARMED_MS)
+/**
+ * A comment's trash (Owen, 2026-10-10:  "allow me to delete bullhorn comments"):  on its card's band, and in the
+ * pane's header;  icon only.  `state`:  the comment's (`commentState()`);  `hidden`:  not saved yet (a new
+ * comment's pane).
+ */
+function deleteButton(state, hidden = false) {
+  const tip = DELETE_TIPS[state === "saved" ? "saved" : "had"]
+  return (
+    `<ui-button class="spell-comment-delete" circular basic size="mini" icon="trash can" title="${attr(tip)}" ` +
+    `aria-label="Delete this comment"${hidden ? " hidden" : ""}></ui-button>`
+  )
+}
+
+/**
+ * Wire trash `button` (`deleteButton()`) to `act`, on a second click:  no browser dialog.  The first click turns it
+ * red, "Click again to delete", for `DELETE_ARMED_MS`.
+ */
+function wireDelete(button, act) {
+  if (!button) return
+  const tip = button.title
+  let timer = 0
+  button.addEventListener("click", (event) => {
+    event.stopPropagation()
+    if (button.hasAttribute("data-armed")) {
+      clearTimeout(timer)
+      return void act()
+    }
+    button.setAttribute("data-armed", "")
+    button.title = "Click again to delete"
+    timer = setTimeout(() => {
+      button.removeAttribute("data-armed")
+      button.title = tip
+    }, DELETE_ARMED_MS)
+  })
 }
 
 /** Put the pane at (`left`, `top`) on the screen, inside the window's edges, 8px in. */
@@ -3489,14 +3570,16 @@ function planLink({ epic, phase }) {
  * POST `body` as JSON to page-server route `url`, with the page server's token;  returns its answer.
  * - a 403 on the token (the server restarted since the page loaded):  takes the new token from the page as served
  *   now, and tries once more
+ * - `keepalive`:  the request outlives the page (sent as it goes:  a small body only, under 64 KB)
  * - throws an `Error` saying why (the route's `error`)
  */
-async function postJSON(url, body, retried = false) {
+async function postJSON(url, body, { keepalive = false, retried = false } = {}) {
   const server = window.SPELL_SERVER
   const response = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json", "x-server-token": server.token },
-    body: JSON.stringify(body)
+    body: JSON.stringify(body),
+    keepalive
   })
   const answer = await response.json().catch(() => ({}))
   if (response.ok) return answer
@@ -3505,7 +3588,7 @@ async function postJSON(url, body, retried = false) {
     const fresh = /window\.SPELL_SERVER = (\{.*?\})<\/script>/.exec(html)
     if (fresh) {
       server.token = JSON.parse(fresh[1]).token
-      return postJSON(url, body, true)
+      return postJSON(url, body, { keepalive, retried: true })
     }
   }
   throw new Error(answer.error ?? `${response.status} ${response.statusText}`)
