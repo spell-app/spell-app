@@ -410,6 +410,12 @@ done.  Leave work you queued `queued` until it's built, so his chip stays outlin
    - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do
      `inbox apply`, `done`, `clear`, `working` and `status`;  a long talk without them shows "nobody is reviewing" until `wait`
      runs again
+3b. COMMENTS (epic `airplane` P11):  Owen's comments on the doc's blocks or on text he selected (the bullhorns),
+   `cm1` ...:  `spell dev plan-doc inbox <name>` lists the ones waiting, under "comments", with the block's anchor
+   (`p3#field-2`, an item's id) and the quoted text.  They never wake `wait` by themselves:  the next wake (Send,
+   Review Now, any request) hands them over, so check on every wake.  Answer each like a revisit's note:  INTO the
+   item it's on (`details --append`, his comment quoted), or, on a phase field or Overview prose, into that phase
+   or part;  then `spell dev plan-doc inbox <name> done cm3` (his card turns solid, "Answered").
 4. Arm `wait` again (always, unless he said stop), then reply:  what landed (bullets, items in words, ids after),
    what's being worked on in the background, what needs him;  the doc's link pair last.
 - A background agent's own completion notice wakes the session too:  nothing to do but check `inbox` shows the item

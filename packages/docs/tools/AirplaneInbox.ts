@@ -1,10 +1,14 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs"
 import { join, relative } from "node:path"
 
+import { CommentList, type Comment, type IdentifiedComment } from "$/epics/tool/CommentList"
+import { FROM_PAGE } from "$/epics/tool/epicRoutes"
+
 import { readAnswer, listPages } from "./details.js"
 import { GoalsPage } from "./goals/page.js"
+import { GuideChanges } from "./GuideChanges"
+import { GuideInbox } from "./GuideInbox"
 import { notesIn, type PageNote } from "./notesOnDisk"
-import { FROM_PAGE } from "$/epics/tool/epicRoutes"
 
 /** Where page notes can be (`notesRoutes.ts` takes them on pages there), from the checkout's root. */
 const NOTE_FOLDERS = ["pages", "guides", "epics"]
@@ -17,6 +21,9 @@ const NOTE_FOLDERS = ["pages", "guides", "epics"]
  *   - marks SENT OR NOT (Owen's decision Q3 of `airplane`:  on the plane, nobody was there to send them to)
  *   - drafts (typed, never submitted:  asked about, never acted on)
  *   - the requests for now (Do Now, revisit now)
+ *   - comments on the doc's blocks still waiting (`comments`, P11)
+ * - guide comments still waiting:  each docs page's inbox file (`<page>.inbox.json`, `GuideInbox`, P11);
+ *   `spell dev comments gather` takes them into epic `guide-changes`
  * - new epics from the Epics page's New epic button, not started yet (future, their log says so:  `epicRoutes.ts`)
  * - page notes not yet answered (`<spell-note status="new">` in guides and other pages:  `notesOnDisk.ts`)
  * - details pages answered since the flight began (`<slug>.answer.json`, newer than `since`)
@@ -39,6 +46,7 @@ export class AirplaneInbox {
         NOTE_FOLDERS.map((folder) => join(root, folder)),
         root
       ),
+      comments: guideCommentsWaiting(root),
       details: since ? detailsAnswered(root, Date.parse(since)) : [],
       thoughts: thoughtsWaiting(root)
     })
@@ -46,6 +54,9 @@ export class AirplaneInbox {
 
   /** the page notes not yet answered (`status="new"`) */
   notes: PageNote[] = []
+
+  /** the comments on docs pages still waiting, each with its page:  `spell dev comments gather` takes them */
+  comments: GuideCommentWaiting[] = []
 
   /** epics made from the Epics page's New epic button, still future (not started) */
   newEpics: NewEpic[] = []
@@ -65,7 +76,12 @@ export class AirplaneInbox {
   /** Nothing waiting anywhere. */
   get isEmpty(): boolean {
     return (
-      !this.epics.length && !this.newEpics.length && !this.notes.length && !this.details.length && !this.thoughts.length
+      !this.epics.length &&
+      !this.newEpics.length &&
+      !this.notes.length &&
+      !this.comments.length &&
+      !this.details.length &&
+      !this.thoughts.length
     )
   }
 
@@ -82,12 +98,17 @@ export class AirplaneInbox {
           marks.length && `${count(marks.length, "mark")}${unsent ? ` (${unsent} not sent)` : ""}`,
           created && count(created, "new item"),
           epic.drafts.length && count(epic.drafts.length, "draft"),
-          epic.now.length && `${epic.now.length} for now`
+          epic.now.length && `${epic.now.length} for now`,
+          epic.comments.length && count(epic.comments.length, "comment")
         ].filter(Boolean)
         return `epic ${epic.name}:  ${parts.join(", ")}`
       }),
       ...this.newEpics.map((epic) => `new epic ${epic.name}:  ${epic.title}`),
       ...this.notes.map((note) => `note ${note.page} ${note.id} (${note.label}):  ${note.text.slice(0, 80)}`),
+      ...this.comments.map(
+        (comment) =>
+          `guide comment ${comment.page} ${comment.id} (${comment.label || comment.anchor}):  ${comment.text.slice(0, 80)}`
+      ),
       ...this.details.map((page) => `details ${page.page}:  answered ${page.answered}`),
       ...this.thoughts.map((thought) => `goals ${thought.page} ${thought.id}:  ${thought.text.slice(0, 80)}`)
     ]
@@ -126,6 +147,19 @@ export type EpicWaiting = {
   drafts: (Record<string, unknown> & { id: string; note: string })[]
   /** requests for now:  Do Now, revisit now */
   now: Record<string, unknown>[]
+  /** comments on the doc's blocks still waiting (P11):  answered like a revisit's note */
+  comments: IdentifiedComment[]
+}
+
+/** A comment on a docs page still waiting, with its page (from the checkout's root). */
+export type GuideCommentWaiting = IdentifiedComment & { page: string }
+
+/** The comments still waiting on every docs page, page by page. */
+function guideCommentsWaiting(root: string): GuideCommentWaiting[] {
+  return new GuideChanges({ root }).inboxFiles().flatMap((file) => {
+    const page = relative(root, file).replace(/\.inbox\.json$/, ".html")
+    return GuideInbox.read(file).commentList.waiting.map((comment) => ({ page, ...comment }))
+  })
 }
 
 /** A details page answered while Owen was away. */
@@ -152,8 +186,9 @@ function epicsWaiting(root: string): EpicWaiting[] {
       }))
       const drafts = Object.entries(inbox.drafts ?? {}).map(([id, draft]) => ({ id, ...draft }))
       const now = inbox.now ?? []
-      if (!marks.length && !drafts.length && !now.length) return []
-      return [{ name, doc: `epics/${name}/${name}.plan.html`, marks, drafts, now }]
+      const comments = new CommentList(inbox.comments ?? {}).waiting
+      if (!marks.length && !drafts.length && !now.length && !comments.length) return []
+      return [{ name, doc: `epics/${name}/${name}.plan.html`, marks, drafts, now, comments }]
     })
 }
 
@@ -163,6 +198,7 @@ type InboxFile = {
   drafts?: Record<string, { note: string } & Record<string, unknown>>
   now?: Record<string, unknown>[]
   sent?: string | null
+  comments?: Record<string, Comment>
 }
 
 /** Details pages whose answer was saved after `since` (ms). */
