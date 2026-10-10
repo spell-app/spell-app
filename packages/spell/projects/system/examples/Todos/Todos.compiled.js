@@ -54,12 +54,9 @@ export class Task extends Thing {
     ] })
   }
 }
-export class Task_List extends List {
-  static instanceType = Task
-}
 
 export class Todos_App extends App {
-  static { this.declareProp('tasks', { init: () => new Task_List() }) }
+  static { this.declareProp('tasks', { init: () => new List({ instanceType: "Task" }) }) }
   get tasks() { return this.getProp('tasks') }
   set tasks(value) { this.setProp('tasks', value) }
 

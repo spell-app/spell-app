@@ -1,4 +1,4 @@
-import { pluralize, proto, singularize, upperFirst } from "$/util"
+import { pluralize, proto, upperFirst } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { Priority } from "$/spell/rules/rules.types"
@@ -53,11 +53,8 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
    * Ask for a type it doesn't say (epic `output-targets`, Q24):  a warning, the property compiles as it is.
    * - none at all, e.g. `a calculator has an input` => `Say what "input" is, e.g. "a calculator has an input as text"`
    * - a list of nothing said, e.g. `a todos-app has tasks as a new list` =>
-   *   `Say what "tasks" holds, e.g. declare "a task-list is a list of tasks", then "a todos-app has tasks as a new
-   *   task-list"`
-   *   - a list TYPE, as only that says today:  `as a new list of tasks` doesn't parse here (`type_specifier_instance`
-   *     takes a `new_thing`, not a `new_list`;  epic `output-targets`, an issue)
-   * - NOT an enumeration (`as one of ...`), a type, or a new thing:  they say.
+   *   `Say what "tasks" holds, e.g. "a todos-app has tasks as a new list of tasks"`
+   * - NOT an enumeration (`as one of ...`), a type, a new thing, or a list of something:  they say.
    */
   private static warnUntyped(match: P.MatchFor<DefinePropertyHas>): void {
     const { property, specifier } = match.groups
@@ -68,10 +65,8 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
       SP.SpellWarnings.note(match, `Say what "${words}" is, e.g. "${example}"`)
     } else if (specifier.datatype === "list") {
       const items = SP.SpellWarnings.exampleItemType(match.scope, words)
-      const listType = `${singularize(items)}-list`
-      const declared = `${said.slice(0, said.length - specifier.inputText.trim().length)}as a new ${listType}`
-      const example = `declare "a ${listType} is a list of ${items}", then "${declared}"`
-      SP.SpellWarnings.note(match, `Say what "${words}" holds, e.g. ${example}`)
+      const example = `${said.slice(0, said.length - specifier.inputText.trim().length)}as a new list of ${items}`
+      SP.SpellWarnings.note(match, `Say what "${words}" holds, e.g. "${example}"`)
     }
   }
 

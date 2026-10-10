@@ -23,7 +23,7 @@ exports[`testing spell module classes > rule group specs > match snapshot -- if 
   "the_property_of_a_thing": "property|type",
   "type_specifier_datatype": "datatype",
   "type_specifier_enum": "enumeration",
-  "type_specifier_instance": "new_thing",
+  "type_specifier_instance": "new_list?|new_thing?",
   "value_kind": "values|specifier",
 }
 `;

@@ -91,11 +91,10 @@ describe("testing spell module classes", () => {
       ])
     })
 
-    test("a list of nothing said:  `as a new list` -- a list type says", () => {
+    test("a list of nothing said:  `as a new list` -- `as a new list of ...` says", () => {
       const lines = ["a todos-app is an app", "a task is a thing", "a todos-app has a property tasks as a new list"]
       expect(warningsIn(lines, "untyped-list-property")).toEqual([
-        '3:0 Say what "tasks" holds, e.g. declare "a task-list is a list of tasks", ' +
-          'then "a todos-app has a property tasks as a new task-list"'
+        '3:0 Say what "tasks" holds, e.g. "a todos-app has a property tasks as a new list of tasks"'
       ])
     })
 
@@ -109,6 +108,7 @@ describe("testing spell module classes", () => {
         "a card has a back as a new thing",
         "a hand is a list of cards",
         "a card has others as a new hand",
+        "a card has friends as a new list of cards",
         "the color of a card is red if its suit is diamonds otherwise it is black",
         "a deck is a thing where:",
         "\t- its size is a number"
