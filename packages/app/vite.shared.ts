@@ -1,7 +1,5 @@
-import { readdirSync, readFileSync } from "node:fs"
 import path from "node:path"
 import { fileURLToPath } from "node:url"
-import react from "@vitejs/plugin-react"
 import solid from "@solidjs/vite-plugin"
 import type { Plugin, PluginOption, UserConfig } from "vite"
 
@@ -10,23 +8,10 @@ import { packageVersion } from "../../vite.packageVersion.ts"
 import { CSS_TARGETS, SOLID_DEDUPE, emitIconPacks } from "../ui/vite.config.ts"
 
 /**
- * Config every `vite*.config.ts` and `vitest.config.ts` here shares, for React and Solid side by side.
- * - Solid is the DEFAULT JSX:  `@spell-app/ui`'s source (`$/ui`) and new app files are Solid.  A React file says so
- *   on its first line, `/** @jsxImportSource react *\/`:  `tsconfig.json` type-checks it as React from that, and
- *   `reactFiles()` hands it to the React plugin instead of Solid's.  ONE marker, read by both.
- * - The app's own UI is all Solid (P6-P9):  only what compiled spell draws with keeps the marker (`core`'s classes,
- *   spell's forms `F`).  See `agents/CODE-DEBT.md` "app:  React for spell programs, beside the app's Solid".
- * - NOTE: the file list is read when the config loads:  restart `vite` after adding or removing a marker.
+ * Config every `vite*.config.ts` and `vitest.config.ts` here shares.
+ * - Every `.tsx` is Solid:  the app, `@spell-app/ui`'s source (`$/ui`), and what compiled spell draws with
+ *   (`core`'s `drawing.ts`, epic `output-targets` P10).  React left with P11.
  */
-
-/** Packages whose `src/` may hold React `.tsx`:  `app`'s own, and what it compiles from source. */
-const REACT_DIRS = ["app/src", "core/src"]
-
-/** First-line marker of a React file, as TypeScript reads it. */
-const REACT_MARKER = "@jsxImportSource react"
-
-/** `packages/`, absolute. */
-const PACKAGES = fileURLToPath(new URL("..", import.meta.url))
 
 /**
  * `node_modules`, which the Solid plugin leaves alone -- except packages shipping Solid JSX SOURCE (their `solid`
@@ -49,13 +34,7 @@ const SOLID_ELEMENT = fileURLToPath(new URL("../solid-element/src/index.ts", imp
  *   subtrees (see `packages/ui/vite.config.ts`).
  */
 export function appConfig({ iconPacks }: { iconPacks?: boolean } = {}) {
-  const reactOnly = reactFiles()
-  const plugins: PluginOption[] = [
-    standardDecorators(),
-    packageVersion(),
-    solid({ exclude: [...reactOnly, NOT_SOLID_SOURCE] }),
-    react({ include: reactOnly })
-  ]
+  const plugins: PluginOption[] = [standardDecorators(), packageVersion(), solid({ exclude: [NOT_SOLID_SOURCE] })]
   if (iconPacks) plugins.push(iconPacksBesideBuiltIns())
   return {
     plugins,
@@ -79,28 +58,6 @@ export function appConfig({ iconPacks }: { iconPacks?: boolean } = {}) {
       }
     }
   } satisfies UserConfig
-}
-
-/**
- * Every `.tsx` under `REACT_DIRS` whose source carries `REACT_MARKER`, as exact-path patterns.
- * - Read once per config load.
- */
-export function reactFiles(): RegExp[] {
-  const files: RegExp[] = []
-  for (const dir of REACT_DIRS) {
-    const root = path.join(PACKAGES, dir)
-    for (const entry of readdirSync(root, { recursive: true, withFileTypes: true })) {
-      if (!entry.isFile() || !entry.name.endsWith(".tsx")) continue
-      const file = path.join(entry.parentPath, entry.name)
-      if (readFileSync(file, "utf8").slice(0, 200).includes(REACT_MARKER)) files.push(exactPath(file))
-    }
-  }
-  return files
-}
-
-/** A pattern matching `file` exactly, with or without a `?query`. */
-function exactPath(file: string): RegExp {
-  return new RegExp(`^${file.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}(\\?.*)?$`)
 }
 
 ////////////////

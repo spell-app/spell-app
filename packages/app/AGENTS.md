@@ -11,22 +11,18 @@ house style every package shares.  Only what's local is below;  a section named 
 - The top of the chain (below `cli`):  the web app, its server, and the embeddable web components.  Everything
   else is a package it imports:  `$/spell`, `$/lsp`, `$/parser`, `$/util`, `@spell-app/ui` ...
 - The app is Solid 2 (READ the root's Solid 2 pointer for Solid work), and so is what compiled spell draws
-  (`core`'s `drawing.ts`, epic `output-targets` P10).  React is ONLY the old kits spell programs could name
-  (`src/ui/forms/`, `SUIPassThroughs`, `semantic-ui-react`), still registered by `spell-runtime.js` until P11 rewrites
-  the last example using them -- `build.test.ts` pins that the app's own chunks hold none:
-  - Solid is the DEFAULT JSX:  a new `.tsx` is Solid.  A React file's FIRST line is `/** @jsxImportSource react */`
-    -- `tsc` reads it, and so does `vite.shared.ts` (`reactFiles()`), which every `vite*.config.ts` /
-    `vitest.config.ts` here builds on.  Restart `vite` after adding or dropping one.  `agents/CODE-DEBT.md` "app".
+  (`core`'s `drawing.ts`, on the page's Spell UI:  epic `output-targets` P10-P11).  No React:  every `.tsx` is Solid,
+  and `build.test.ts` pins that no chunk holds React.
   - Two test projects (`vitest.config.ts`):  `node` for most tests, where `solid-js` is its SERVER build
     (`renderToString`;  writes NOT staged, see `src/solid.test.tsx`), and `browser` (chromium) for
     `*.browser.test.ts(x)`:  Solid's client build, as in the app.
   - `$/app/solid` is the app's UI, all Solid (P8):  the pages' shell (`SpellPage`, `SplitPanel`, `AppRoot`), menus,
     panes, dialogs, and the plumbing:  `cellsBridge.ts` makes every Solid computation follow spell cells (spell
     Things, `SP.*`, the editor -- P11);  each entry imports it before rendering.  `tracked()` is a memo over such a
-    read.  Spell's React kit (`F`) follows them through `$/util`'s `view()`.
+    read.
 - `src/` is the app:
-  `solid/` (the UI), `pages/` (the pages and the router), `ui/` (`UI`, `F` for `ui/forms`:  spell PROGRAMS' React
-  kit), `runner/`, `spellEditor/`, `editor.ts`, `index.tsx` (Solid `render()` into `#app-root`).
+  `solid/` (the UI), `pages/` (the pages and the router), `ui/` (`UI`:  shared UI types, and Monaco's plumbing),
+  `runner/`, `spellEditor/`, `editor.ts`, `index.tsx` (Solid `render()` into `#app-root`).
   `src/server/` is its API server (`api.ts`, `index.ts`) on `$/server`'s Express-shaped `SRV.Router` /
   `SRV.WebServer` (it was Express):  `api.test.ts` pins its behaviour over HTTP.  The file / project helpers it
   calls are NOT here, they're node-only code in `$/spell/node/...` (`project-utils`, `file-utils`, `disk-fetch` ...).
@@ -108,7 +104,6 @@ As WWOD §12, plus:
 
 ## Types / Exports
 
-As WWOD §8, plus our self-namespaces:
+As WWOD §8, plus our self-namespace:
 
 - `UI` ~== `$/app/ui`
-- `F` ~== `$/app/ui/forms`

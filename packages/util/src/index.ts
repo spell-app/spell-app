@@ -5,7 +5,7 @@
  *   bundles what it imports from here.
  * - REACTIVE (`./reactive`):  the reactive engine every reactive class shares -- spell cells, the records, the schema,
  *   `@prop` / `@state` / `@derived`.  Generic too:  no lodash, no Solid.
- * - SPELL'S (`./spell`, flattened in LAST):  lodash, `chalk`, `pluralize`, the React-era state libraries, fetch,
+ * - SPELL'S (`./spell`, flattened in LAST):  lodash, `chalk`, `pluralize`, fetch,
  *   tasks, prefs.  NEVER import them from `ui`:  `ui`'s `src/util/index.ts` imports the generic files one by one
  *   (`$/util/class` ...) and never this barrel, so none of it lands in `ui`'s bundles or published declarations.
  * - NOTE: no namespace here (unlike `UI` / `E`):  utilities are imported by name,

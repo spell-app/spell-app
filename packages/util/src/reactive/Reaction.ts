@@ -12,7 +12,7 @@ import {
 
 /**
  * A reader OUTSIDE spell state that re-runs when what it read changes:  a Solid computation (the host's bridge,
- * `bridgeSolid()`), a React view (`view()`), an `observe()`.
+ * `bridgeSolid()`), an `observe()`.
  * - `run(fn)` runs `fn` collecting what it reads;  `trigger()` is how its owner re-runs it.
  * - A cell it read changed:  `trigger()` at once.  Only a derived value it read MAY have:  checked on a microtask
  *   first (`scheduleCellCheck()`), triggered only if it really changed -- the equality cutoff.
@@ -25,7 +25,7 @@ export class Reaction implements CheckableReader {
   /** Is `run()` running? */
   private running = false
 
-  /** - `trigger` is how its owner re-runs it, e.g. Solid's, or a React `forceUpdate()`. */
+  /** - `trigger` is how its owner re-runs it, e.g. Solid's, or `observe()`'s re-run. */
   constructor(private trigger: () => void) {}
 
   /** Run `fn`, collecting what it reads -- forgetting what it read last time first. */

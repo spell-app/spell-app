@@ -27,37 +27,41 @@ create a new task with title = "Teach it to draw"
 create a new task with title = "Test app"
 
 to draw (a todos-app)
-	return 
-		<SUI.Container>
-			<SUI.Segment>
-				<SUI.Menu inverted color="violet" borderless>
-					<SUI.Menu.Item header content="To Do:" />
-					<SUI.Menu.Menu position="right">
-						<SUI.Menu.Item content="Show:"/>
-						<SUI.Menu.Item content="All" onClick={set the filter of the app to "all"} active={the filter of the app is "all"} />
-						<SUI.Menu.Item content="Active" onClick={set the filter of the app to "active"} active={the filter of the app is "active"} />
-						<SUI.Menu.Item content="Completed" onClick={set the filter of the app to "completed"} active={the filter of the app is "completed"} />
-					</SUI.Menu.Menu>
-				</SUI.Menu>
-				<UI.Form debug value={the app}>
-					<UI.FormRepeat name="tasks">
-						<UI.Checkbox name="completed" width={1}/>
-						<UI.Input name="title" width={10}/>
-					</UI.FormRepeat>
-					<UI.Input name="newTaskName" placeholder="New task name" label="New task:" width={11}/>
-					<UI.Button disabled={the newTaskName of the app is ""} onClick={create a new task} content="Add Task"/>
-				</UI.Form>
+	return
+		<ui-container>
+			<ui-segment>
+				<ui-menu inverted color="violet" borderless>
+					<ui-item type="header">To Do:</ui-item>
+					<ui-menu position="right">
+						<ui-item>Show:</ui-item>
+						<ui-item onClick={set the filter of the app to "all"} selected={the filter of the app is "all"}>All</ui-item>
+						<ui-item onClick={set the filter of the app to "active"} selected={the filter of the app is "active"}>Active</ui-item>
+						<ui-item onClick={set the filter of the app to "completed"} selected={the filter of the app is "completed"}>Completed</ui-item>
+					</ui-menu>
+				</ui-menu>
+				<ui-form debug value={the app}>
+					<ui-repeat name="tasks">
+						<ui-fields>
+							<ui-field width="1"><ui-checkbox name="completed" aria-label="Done"/></ui-field>
+							<ui-field width="10"><ui-input name="title" aria-label="Task"/></ui-field>
+						</ui-fields>
+					</ui-repeat>
+					<ui-fields>
+						<ui-field width="11"><ui-input name="newTaskName" placeholder="New task name" label="New task:"/></ui-field>
+						<ui-field><ui-button disabled={the newTaskName of the app is ""} onClick={create a new task}>Add Task</ui-button></ui-field>
+					</ui-fields>
+				</ui-form>
 				<br/>
 				<br/>
-				<SUI.Menu inverted color="grey">
-					<SUI.Menu.Item header content="Test:" />
-					<SUI.Menu.Item onClick={create a new task with title = "Moar"} content="Add Item" />
-					<SUI.Menu.Item onClick={remove the first item of the tasks of the app} content="Remove Item" />
-					<SUI.Menu.Item onClick={set the title of the first item of the tasks of the app to "New title"} content="Change name" />
-					<SUI.Menu.Item onClick={remove items in (the tasks of the app) where it is complete} content="Remove Completed" />
-				</SUI.Menu>
-			</SUI.Segment>
-		</SUI.Container>
+				<ui-menu inverted color="grey">
+					<ui-item type="header">Test:</ui-item>
+					<ui-item onClick={create a new task with title = "Moar"}>Add Item</ui-item>
+					<ui-item onClick={remove the first item of the tasks of the app}>Remove Item</ui-item>
+					<ui-item onClick={set the title of the first item of the tasks of the app to "New title"}>Change name</ui-item>
+					<ui-item onClick={remove items in (the tasks of the app) where it is complete}>Remove Completed</ui-item>
+				</ui-menu>
+			</ui-segment>
+		</ui-container>
 
 start the app
 print the app

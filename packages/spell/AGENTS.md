@@ -211,4 +211,4 @@ As WWOD §8, plus our self-namespace:
 - `SP` ~== `$/spell`
 
 The other namespaces live in their own packages:  `P` (`../parser`), `SC` (`../core`), `LSP` (`../lsp`),
-`UI` / `F` (`../app`).
+`UI` (`../app`).

@@ -9,7 +9,7 @@
  * - The bridges (`bridges.ts`):  `bridgeSolid()`, which the HOST calls with its Solid, and `observe()`.
  * - GENERIC:  no lodash, no Solid, nothing spell-specific, so any package may import it, Spell UI included (file by
  *   file, as `ui`'s `src/util/index.ts` imports util's other generic files).  Spell's own layer on top
- *   (`Observable`, `@thing`, the React bridge `view()`) is in `$/util/spell`.
+ *   (`Observable`, `@thing`) is in `$/util/spell`.
  * - NOTE: its files import each other as peers, never through `$/util`, which re-exports this folder:  a cycle.
  */
 

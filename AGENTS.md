@@ -37,7 +37,7 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - `packages/spell/` (`@spell-app/spell`, `$/spell`, `SP`) -- the spell LANGUAGE on the parser, every spell project
     (`projects/`), `PARSING.md` and `readme.md`.  See `packages/spell/AGENTS.md`.
   - `packages/lsp/` (`@spell-app/lsp`, `$/lsp`, `LSP`) -- spell's language server (browser-safe).  See its `AGENTS.md`.
-  - `packages/app/` (`@spell-app/app`, `$/app`, `UI` / `F`) -- the web app, its server, the runner,
+  - `packages/app/` (`@spell-app/app`, `$/app`, `UI`) -- the web app, its server, the runner,
     and the `<spell-app>` / `<spell-editor>` web components.  `yarn start` / `build*` live here.
     See its `AGENTS.md`.
   - `packages/vscode/` -- the VS Code extension.  Its own yarn project (own `package.json` + `yarn.lock`), NOT a
@@ -79,8 +79,8 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
   - The direction is by convention, not enforced:  every alias works from every package.
 - ONE alias table, `tsconfig.base.json` at the repo root, read its header comment.  Every package's `tsconfig.json`
   extends it, so `$/parser` means the same file wherever it's compiled from.
-- Global ambient types (`Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`, the `React*`
-  aliases) are in the root `types/` folder, which every spell-family `tsconfig.json` includes:  used bare, no import
+- Global ambient types (`Prettify`, `Class`, `AbstractClass`, `SplitString`, `__PACKAGE_VERSION__`)
+  are in the root `types/` folder, which every spell-family `tsconfig.json` includes:  used bare, no import
   (WWOD §9 › "Ambient globals used bare").  `vite.decorators.ts` and `vite.packageVersion.ts` are at the repo root.
 - No `~/` or `#name` alias exists any more.  `$` means `packages/`, so `ui` is `$/ui` like the rest;  that can't
   collide with an npm package name (`@spell-app/...`, `solid-js`) the way a bare `name/...` could.
@@ -247,7 +247,8 @@ IN FULL FIRST.**  Solid 2 is neither React nor Solid 1, and guessing from either
 ## Solid 2
 
 - `spell`'s editor app, runners and web components are Solid 2 (`2.0.0-rc.13`, every package, one copy at the root)
-  on `@spell-app/ui`;  compiled spell still draws with React, for now (`agents/CODE-DEBT.md`, "app").
+  on `@spell-app/ui`, and so is what compiled spell draws (epic `output-targets` P10-P11):  React is left only in the
+  `spell` CLI's terminal screens (Ink).
 - The rules:  `guides/solid/solid-2.md` (see the top of this file).  NOT `@`-imported on purpose:
   it loads only when the task needs it.  Claude also has the `solid-2` skill (`.claude/skills/solid-2/`), which
   triggers on Solid work.

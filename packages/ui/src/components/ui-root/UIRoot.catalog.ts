@@ -159,6 +159,7 @@ export const ROOT_CATALOG: Readonly<Record<string, RootCatalogEntry>> = {
   "ui-radio": { folder: "ui-checkbox", skeleton: { display: "inline", width: "6em", height: "1.25em" } },
   "ui-rail": { folder: "ui-rail" },
   "ui-rating": { folder: "ui-rating", skeleton: { display: "inline", width: "5.5em", height: "1.1em" } },
+  "ui-repeat": { folder: "ui-form" },
   "ui-reveal": { folder: "ui-reveal" },
   "ui-root": { folder: "ui-root" },
   "ui-row": { folder: "ui-grid" },

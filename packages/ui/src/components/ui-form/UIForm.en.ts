@@ -4,7 +4,7 @@
  *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only,
  *   `UIT` by value straight from `components.types`.
- * - The notes below are the whole family's:  `<ui-field>` and `<ui-fields>` too.
+ * - The notes below are the whole family's:  `<ui-field>`, `<ui-fields>` and `<ui-repeat>` too.
  * - Class words come out through `ClassBuilder`, in Fomantic's grammar:
  *   `<ui-form size="large" state="error">` => `ui large error form`;
  *   `<ui-field width="4" required>` => `required four wide field`;
@@ -12,6 +12,8 @@
  *   Fields have no `ui` (Fomantic styles them inside `.ui.form`).
  * - `state` is `kind: "valueOnly"`:  it emits its value alone (`error field`), a remap in `colors.css`.
  * - Validation lives on `<ui-form>`:  `rules` is a PROPERTY (`json`) in Fomantic's `fields` shape.
+ * - Binding too:  `value` is a PROPERTY (`json`), the object its named controls show and edit;
+ *   `<ui-repeat name>` repeats its fields per item of one of its lists.
  */
 
 import type { E } from "$/ui/core"
@@ -84,6 +86,20 @@ export const formVocabulary = {
       name: "prevent-leaving",
       kind: "boolean",
       description: "Ask before leaving the page while fields differ from their starting values."
+    },
+    {
+      name: "value",
+      kind: "json",
+      reflect: false,
+      description:
+        "The object the form is BOUND to:  each control with a `name` shows that property and writes it back as " +
+        "it changes, live both ways (Solid signals, reactive members, spell objects);  a control in a " +
+        "`<ui-repeat>` row binds to the row's item.  Unset:  nothing is bound."
+    },
+    {
+      name: "debug",
+      kind: "boolean",
+      description: "Show the bound `value` (else `values`) as JSON below the form, live."
     }
   ],
   events: [
@@ -111,7 +127,10 @@ export const formVocabulary = {
     }
   ],
   slots: [{ name: "", description: "The native `<form>` (or its content, when the `<ui-form>` sits inside one)." }],
-  parts: [{ name: "form", description: "The form box." }],
+  parts: [
+    { name: "form", description: "The form box." },
+    { name: "debug", description: "The JSON `debug` shows, a `<pre>` below the content." }
+  ],
   states: [
     ...STATE_STATES,
     { name: "loading", description: "Busy." },
