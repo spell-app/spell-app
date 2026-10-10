@@ -4,7 +4,7 @@ import { ListItemExpression } from "./ListItemExpression"
 import { lists } from "./lists.parser"
 
 /**
- * `ordinal_position_expression` rule:  ordinal-word index expression,
+ * `ordinal_position_expression` rule:  ordinal-word index expression:
  * e.g. `the first item of my-list`, `the tenth card of deck`.
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Shares same `getItemAt` compile target as `position_expression`, with `{ordinal}` resolved to a number.
@@ -31,7 +31,7 @@ lists.addRule(OrdinalPositionExpression, {
         scope.variables?.add("words")
       },
       tests: [
-        ["the first item of my-list", "spellCore.getItemAt(my_list, 1)", "spellCore.getItemAt(myList, 1)"],
+        ["the first item of my-list", "spellCore.getItemAt(myList, 1)"],
         ["the tenth card of deck", "spellCore.getItemAt(deck, 10)"],
         ["the penultimate word in words", "spellCore.getItemAt(words, -2)"]
       ]

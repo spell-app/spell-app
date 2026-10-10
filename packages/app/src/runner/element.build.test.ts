@@ -11,13 +11,13 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  * - `<spell-app>` and `<spell-editor>` (`yarn build:element` => `dist-element/`)
  * - the VS Code runner (`yarn build:runner` => `dist-runner/`)
  *
- * Each folder is built as its script builds it, into a temp folder:  `vite.solid.config.ts` first, then the rest
- * beside it.
+ * Each folder is built as its script builds it, into a temp folder:
+ * `vite.solid.config.ts` first, then the rest beside it.
  * - ONE Solid per page:  two copies fail SILENTLY (`solid-2.md`).
- *   So Solid (`solid-js`, `@solidjs/web`, `@solidjs/signals`) is in `spell-solid.js` ALONE,
- *   with `@spell-app/ui`'s element core (which `<spell-app>` and `<spell-editor>` are defined on),
- *   and the rest of `@spell-app/ui` in `spell-ui.js` and its lazy chunks (`ui/`) alone;
- *   `spell-app.js`, `spell-editor.js` and `runner.js` import them.  See `sharedSolid()` in `vite.shared.ts`.
+ *   - Solid (`solid-js`, `@solidjs/web`, `@solidjs/signals`, `@solidjs/h`) is in `spell-solid.js` ALONE,
+ *     with `@spell-app/ui`'s element core (which `<spell-app>` and `<spell-editor>` are defined on).
+ *   - The rest of `@spell-app/ui` is in `spell-ui.js` and its lazy chunks (`ui/`) alone.
+ *   - `spell-app.js`, `spell-editor.js` and `runner.js` import them.  See `sharedSolid()` in `vite.shared.ts`.
  *   - Through `spell-solid-shared.js`, which takes them from the PAGE instead when it has them
  *     (a docs page's `SpellUI.packModules`):  `sharedPage()` in `vite.solid.config.ts`.
  * - `<spell-app>` is a root:  Spell UI's root family in `spell-solid.js` too.
@@ -31,7 +31,7 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  *   - So nothing a runner itself imports may import `spellCore`.
  * - And `spell-runtime.js` draws with the page's one Solid:
  *   it imports Solid and `h` through `spell-solid-shared.js`, bundles none of its own, and never loads `ui`
- *   (epic `output-targets` P10).
+ *   (epic `output-targets` P10).  It exports that same `h`:  what compiled javascript draws with (P20).
  * - Monaco only in `<spell-editor>`'s lazy chunks:  the parser compiles, and apps run, before it loads.
  * - Icon packs beside the chunk holding `BuiltInPacks`, where it looks -- complete enough for every Fomantic name.
  * - Every bundle MUST parse:  a build can succeed and still write javascript no browser runs --
@@ -95,6 +95,8 @@ describe("runner builds", () => {
         expect(holds(dir, file, "solid") || holds(dir, file, "ui"), `${dir} ${file}`).toBe(false)
         expect(readFileSync(join(dir, file), "utf8"), `${dir} ${file}`).not.toMatch(/spell-(solid|ui)\.js/)
       }
+      // and hands that `h` on, for compiled spell's `import { h } from "@spell/core"` (epic `output-targets` P20)
+      expect(passesOnShared(dir, "spell-runtime.js", "h"), dir).toBe(true)
     }
   })
 
@@ -252,6 +254,21 @@ const SHARED_SPECIFIERS = /^const specifiers = (.+)$/m
 
 /** `ui`'s `BuiltInPacks`, which looks for the packs beside its own chunk. */
 const BUILT_IN_PACKS = /\/packages\/ui\/src\/icons\/BuiltInPacks\.ts$/
+
+/**
+ * Does chunk `file` export `name` just as it imports it from `spell-solid-shared.js`:  the page's copy, passed on?
+ * - Reads the minified output:  `import{...h as T...}from"./spell-solid-shared.js"`, then `export{...T as h...}`.
+ */
+function passesOnShared(dir: string, file: string, name: string): boolean {
+  const text = readFileSync(join(dir, file), "utf8")
+  const entries = (list = "") => list.split(",").map((entry) => entry.trim().split(/\s+as\s+/))
+  const exported = entries([...text.matchAll(/export\{([^}]*)\}/g)].at(-1)?.[1])
+  const local = exported.find((entry) => (entry[1] ?? entry[0]) === name)?.[0]
+  const imported = [...text.matchAll(/import\{([^}]*)\}from"\.\/spell-solid-shared\.js"/g)].flatMap(([, list]) =>
+    entries(list)
+  )
+  return !!local && imported.some((entry) => entry[0] === name && (entry[1] ?? entry[0]) === local)
+}
 
 /** Build `configs` into `outDir`, in order, as the `package.json` script does;  the first empties it. */
 function build(outDir: string, ...configs: string[]) {

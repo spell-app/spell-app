@@ -7,8 +7,11 @@ import { type MethodBody } from "./lists.shared"
 
 /**
  * `list_range_iteration` rule:  number range-specific iteration, e.g. `for each number from 1 to 10:`.
- * - Compiles to `spellCore.map(spellCore.getRange(start, end), (item) => { ... })`, or `await
- *   spellCore.forEachSequential(...)` if body contains an `await`.
+ * - Builds `spellCore.map(spellCore.getRange(start, end), (item) => { ... })`,
+ *   or `await spellCore.forEachSequential(...)` if its body contains an `await`.
+ * - How javascript writes it (`JSWriter`):
+ *   - as a list's own method, `spellCore.getRange(1, 10).forEach((number) => {...})`
+ *   - as a `for...of` loop, when its body waits
  * TODO: this only works if you `from 1 to 10`, a more general solution which also supports `in {list}` is needed.
  * TODO: `down` is not accounted for in the output
  */
@@ -55,17 +58,17 @@ lists.addRule(ListRangeIteration, {
       tests: [
         [
           "for each number from 1 to 10:",
-          "spellCore.map(spellCore.getRange(1, 10), (number) => {})",
+          "spellCore.getRange(1, 10).forEach((number) => {})",
           "spellCore.getRange(1, 10).forEach(() => {})"
         ],
         [
           "for each number from 1 to 10: print the number",
-          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "  return spellCore.console.log(number)", "})"],
+          ["spellCore.getRange(1, 10).forEach((number) => {", "  return spellCore.console.log(number)", "})"],
           "spellCore.getRange(1, 10).forEach((number) => spellCore.console.log(number))"
         ],
         [
           "for each number from 1 to 10:\n\tprint the number",
-          ["spellCore.map(spellCore.getRange(1, 10), (number) => {", "  spellCore.console.log(number)", "})"],
+          ["spellCore.getRange(1, 10).forEach((number) => {", "  spellCore.console.log(number)", "})"],
           "spellCore.getRange(1, 10).forEach((number) => spellCore.console.log(number))"
         ]
       ]

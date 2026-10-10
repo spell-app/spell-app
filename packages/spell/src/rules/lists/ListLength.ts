@@ -7,7 +7,7 @@ import { lists } from "./lists.parser"
 import { getWhereScope, getWhereMethod } from "./lists.shared"
 
 /**
- * `list_length` rule:  return length of a list, e.g. `number of items in my-list` => `spellCore.itemCountOf(my_list)`.
+ * `list_length` rule:  return length of a list, e.g. `number of items in my-list` => `spellCore.itemCountOf(myList)`.
  * - `{arg}` (e.g. `items`) captured for readability only, unless there's a `where`.
  * - With `where`, counts the items which pass, as `list_filter` does,
  *   e.g. `the number of cards in the deck where its color is red`
@@ -46,7 +46,7 @@ lists.addRule(ListLength, {
         scope.variables?.add("bar")
       },
       tests: [
-        ["number of items in my-list", "spellCore.itemCountOf(my_list)", "spellCore.itemCountOf(myList)"],
+        ["number of items in my-list", "spellCore.itemCountOf(myList)"],
         ["the number of foos in the foo of the bar", "spellCore.itemCountOf(bar.foo)"],
         ["the number of items in [1,2,3]", "spellCore.itemCountOf([1, 2, 3])"]
       ]
@@ -65,7 +65,7 @@ lists.addRule(ListLength, {
       tests: [
         [
           "the number of items in my-list where its id > 1",
-          [`spellCore.itemCountOf(spellCore.filter(my_list, (item) => {`, `  return (item.id > 1)`, `}))`],
+          ["spellCore.itemCountOf(spellCore.filter(myList, (item) => {", "  return (item.id > 1)", "}))"],
           "spellCore.itemCountOf(spellCore.filter(myList, (item) => item.id > 1))"
         ]
       ]

@@ -5,8 +5,8 @@ import { Precedence, type OperatorOperands } from "./expressions.shared"
 import { expressions } from "./expressions.parser"
 
 /**
- * `as_lowercase` rule:  `as lower case`/`lowercase` postfix, e.g. `"foo" as lower case`
- *   -- compiles to `spellCore.lowerCase(lhs)`.
+ * `as_lowercase` rule:  `as lower case`/`lowercase` postfix, e.g. `"foo" as lower case`.
+ * - Compiles to `spellCore.lowerCase(lhs)`.
  */
 export class AsLowercase extends PostfixOperatorSuffix {
   @proto static precedence = Precedence.comparison
@@ -25,7 +25,7 @@ expressions.addRule(AsLowercase, {
     {
       compileAs: "expression",
       tests: [
-        [`"foo" as lower case`, `spellCore.lowerCase("foo")`, '"foo".toLocaleLowerCase()'],
+        [`"foo" as lower case`, '"foo".toLocaleLowerCase()'],
         [`1 as lowercase`, `spellCore.lowerCase(1)`]
       ]
     }

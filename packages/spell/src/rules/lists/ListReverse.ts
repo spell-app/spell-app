@@ -4,7 +4,7 @@ import { P } from "$/parser"
 import { SpellStatement } from "$/spell/rules/Statement"
 import { lists } from "./lists.parser"
 
-/** `list_reverse` rule:  reverse list in-place, e.g. `reverse my-list` => `spellCore.reverse(my_list)`. */
+/** `list_reverse` rule:  reverse list in-place, e.g. `reverse my-list` => `spellCore.reverse(myList)`. */
 export class ListReverse extends SpellStatement<"arg?|list"> {
   @proto static alias = "statement"
 
@@ -27,7 +27,7 @@ lists.addRule(ListReverse, {
       },
       tests: [
         ["reverse the cards of the deck", "spellCore.reverse(deck)"],
-        ["reverse my-list", "spellCore.reverse(my_list)", "spellCore.reverse(myList)"]
+        ["reverse my-list", "spellCore.reverse(myList)"]
       ]
     }
   ]

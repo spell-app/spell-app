@@ -41,7 +41,7 @@ export function parseSpellProject(
 
   const parsedFiles = parsed.map(({ path, contents, scope, match, parseMsec }) => {
     const start = performance.now()
-    const compiled = (match?.compile() as string | undefined) ?? ""
+    const compiled = (P.JSWriter.instance.writeMatch(match) as string | undefined) ?? ""
     const compileMsec = performance.now() - start
     const errors = describeParseErrors(match)
     return { path, contents, scope, match, compiled, errors, warnings: describeWarnings(match), parseMsec, compileMsec }
@@ -51,11 +51,12 @@ export function parseSpellProject(
 }
 
 /**
- * Frozen projects tests run against -- `projects/test/<Project>/`, e.g. `Solitaire`:  the `@test:fixtures` root.
- * - Why:  tests assert exact lines, docstrings and compiled output, and the live examples get edited.  Tests read
- *   ONLY here -- editing or deleting anything in `projects/system/` or `projects/user/` can't break one.
- * - NEVER update a fixture to follow its example:  it's frozen so tests don't move.  Change a test's input in the
- *   test, or add another fixture -- copy a project in, then `yarn test:fixtures:bless`.  See `compiledFixture()`.
+ * Frozen projects tests run against:  `projects/test/<Project>/`, e.g. `Solitaire`, the `@test:fixtures` root.
+ * - Why:  tests assert exact lines, docstrings and compiled output, and the live examples get edited.
+ * - Tests read ONLY here:  editing or deleting anything in `projects/system/` or `projects/user/` can't break one.
+ * - NEVER update a fixture to follow its example:  it's frozen so tests don't move.
+ *   - Change a test's input in the test, or add another fixture:
+ *     copy a project in, then `yarn test:fixtures:bless`.  See `compiledFixture()`.
  */
 export const FIXTURES_DIR = environment.testFilesRoot
 
@@ -81,12 +82,13 @@ export function fixtureProjectNames(): string[] {
 }
 
 /**
- * Fixture `projectName` compiled as `SpellProject` would write its `<Project>.compiled.js` -- parsed headlessly,
- * with `parseSpellProject()`:  `import`s, then each file's code in `project.json` order.
+ * Fixture `projectName` compiled as `SpellProject` would write its `<Project>.compiled.js`.
+ * - Parsed headlessly, with `parseSpellProject()`:  `import`s, then each file's code in `project.json` order.
  * - Its declarations, as its `<Project>.declarations.json`:  `fixtureDeclarations()`.
- * - `target`:  compiled for that target, e.g. `ts/solid` -- see `SP.TARGETS`.
+ * - `target`:  compiled for that target, e.g. `ts/solid` (see `SP.TARGETS`);
+ *   or a writer itself, e.g. a test's own.
  */
-export function compiledFixture(projectName: string, target = SP.RUNNING_TARGET): string {
+export function compiledFixture(projectName: string, target: string | P.Writer = SP.RUNNING_TARGET): string {
   return compileFixture(projectName, target).code
 }
 
@@ -104,11 +106,11 @@ export function fixtureDeclarations(projectName: string): string {
  * - Against the fixtures it imports, e.g. `@test:fixtures:Cards`:  their declarations, as a compiled import's --
  *   see `fixtureImportScope()`.  NOT their code:  that's theirs.
  * - `version` / `exports` from its `project.json`, as a compile would.
- * - `target`'s writer writes it, `js/solid`'s by default.
+ * - `target`'s writer writes it, `js/solid`'s by default -- or `target` itself, a writer.
  */
 function compileFixture(
   projectName: string,
-  target = SP.RUNNING_TARGET
+  target: string | P.Writer = SP.RUNNING_TARGET
 ): { code: string; declarations: SP.SpellDeclarationsData } {
   const projectDir = fixturePath(projectName)
   const { version, exports, imports } = readProjectFile(projectDir)
@@ -123,8 +125,8 @@ function compileFixture(
       return file.match?.AST instanceof P.ASTStatementGroup ? file.match.AST : file.compiled
     })
   const importLines = SP.SpellProject.importHeaderFor(scope)
-  const marked =
-    errors.join("") + SP.SpellProject.combineCompiled(parts, SP.targetFor(target).writer, importLines, scope) + "\n"
+  const writer = typeof target === "string" ? SP.targetFor(target).writer : target
+  const marked = errors.join("") + SP.SpellProject.combineCompiled(parts, writer, importLines, scope) + "\n"
   return SP.SpellDeclarations.split(marked, scope, { version, exports })
 }
 

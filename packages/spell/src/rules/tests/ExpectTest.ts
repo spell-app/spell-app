@@ -44,7 +44,6 @@ tests.addRule(ExpectTest, {
         ["expect the is-face-up of it", "spellCore.expect(it.is_face_up, `the is-face-up of it`)"],
         [
           "expect the number of items in my-list to be 0",
-          "spellCore.expect(spellCore.itemCountOf(my_list), `the number of items in my-list`, 0, `0`)",
           "spellCore.expect(spellCore.itemCountOf(myList), `the number of items in my-list`, 0, `0`)"
         ],
         [

@@ -3,8 +3,8 @@
  * - Each `Thing` registers itself as it's constructed, and so does each instance of a `List` sub-class,
  *   e.g. a `Deck` -- NOT a plain `new List()`, which would bury the explorer in scratch lists.
  * - NOT while a test runs, e.g. in `to test card setup`:  a test's things are its own, not the program's.
- * - Plus the program's top-level things, by name -- see `setTopLevel()` -- so a plain list the program keeps,
- *   e.g. `all_piles`, shows too.
+ * - Plus the program's top-level things, by name (see `setTopLevel()`):
+ *   so a plain list the program keeps, e.g. `allPiles`, shows too.
  * - And the heading each was made under, as the program ran -- see `heading()`.
  * - And the program's classes, by name, e.g. for `spellCore.fromJSON()` -- see `classNamed()`.
  */
@@ -21,13 +21,13 @@ import { DrawableList } from "./classes/DrawableList"
 
 /**
  * Registry of the things one run of a program made -- `spellCore.things`, cleared by `resetRuntime()`.
- * - Holds each thing WEAKLY, so it shows only while the program still holds it:  a thing thrown away drops out
- *   once it's garbage-collected -- which may be a while.
+ * - Holds each thing WEAKLY, so it shows only while the program still holds it:
+ *   a thing thrown away drops out once it's garbage-collected -- which may be a while.
  * - `version` is a spell cell, so a reader of the registry (the Thing Explorer) re-runs as things come and go.
  *   Their properties are cells already.
- * - NOTE: `version` changes in a microtask, NOT as a thing registers -- a thing made while a reader reads, e.g. in a
- *   `to draw`, would otherwise change what the explorer reads mid-read.  It also makes one change of a loop making
- *   52 cards.
+ * - NOTE: `version` changes in a microtask, NOT as a thing registers.
+ *   - Else a thing made while a reader reads, e.g. in a `to draw`, would change what the explorer reads mid-read.
+ *   - It also makes one change of a loop making 52 cards.
  */
 export class ThingRegistry {
   /** Changes as the registry does -- see `version`. */
@@ -78,10 +78,10 @@ export class ThingRegistry {
   /**
    * Register `thing`, as it's constructed -- see `Thing` and `List`'s constructors.
    * - A `List` counts only if it's a sub-class's, e.g. a `Deck` -- see `ThingRegistry`.
-   * - Nothing made while a test runs counts -- see `spellCore.ACTIVE_TEST`.  It gets no creation number either,
-   *   so the program's things keep theirs whatever its tests make.
-   * - NOTE: a `start test` with no `end test` runs till the next test starts, or the program ends -- so
-   *   nothing made after it shows.
+   * - Nothing made while a test runs counts:  see `spellCore.ACTIVE_TEST`.
+   *   It gets no creation number either, so the program's things keep theirs whatever its tests make.
+   * - NOTE: a `start test` with no `end test` runs till the next test starts, or the program ends:
+   *   so nothing made after it shows.
    * - Nor does anything made `quietly()`, e.g. while the explorer reads a value, or a collection helper's result.
    * - Its CLASS always counts, though:  see `addClass()`.
    */
@@ -136,10 +136,11 @@ export class ThingRegistry {
   /**
    * Remember `Class`, and each class it extends, by name -- for `classNamed()`.
    * - Down to, NOT including, spell's own:  `Thing`, `List`, `App` are always known.
-   * - Called for each thing made (`add()`), so a class shows once one of its things is made;  and for each class
-   *   the program and the projects it imports export (`addClasses()`), so one shows before that.
-   * - A later class of the same name wins, e.g. the next run's `Card`.  `@thing`'s wrapper keeps the name of the class
-   *   it wraps:  the wrapper wins, as it's what the program makes.
+   * - Called for each thing made (`add()`), so a class shows once one of its things is made.
+   * - And for each class the program and the projects it imports export (`addClasses()`),
+   *   so one shows before that.
+   * - A later class of the same name wins, e.g. the next run's `Card`.
+   *   `@thing`'s wrapper keeps the name of the class it wraps:  the wrapper wins, as it's what the program makes.
    * - Not a `Thing` or `List` class, e.g. a plain one:  ignored.
    */
   addClass(Class: ThingClass): void {
@@ -172,8 +173,8 @@ export class ThingRegistry {
   }
 
   /**
-   * Things still alive, grouped by `type`, e.g. `Card` -- types in order of their first thing, each type's
-   * things in the order they were made.
+   * Things still alive, grouped by `type`, e.g. `Card`:
+   * types in order of their first thing, each type's things in the order they were made.
    * - Reads `version`, so a reader calling it re-runs as things come and go.
    * - Groups by each thing's `type` NOW, which an instance may override.
    */
@@ -192,8 +193,9 @@ export class ThingRegistry {
   }
 
   /**
-   * Things still alive, under each type they are -- their own, and each it extends -- e.g. a foundation under
-   * `Foundation` AND `Pile`.  Types alphabetical, each type's things in the order they were made.
+   * Things still alive, under each type they are:  their own, and each it extends.
+   * - e.g. a foundation under `Foundation` AND `Pile`
+   * - Types alphabetical, each type's things in the order they were made.
    * - NOT the built-in types, e.g. `Thing`, which every thing would be under.
    * - Reads `version`, as `byType()`.
    */
@@ -219,7 +221,7 @@ export class ThingRegistry {
 
   /**
    * The program's top-level things, by name, in the order it declares them -- `Thing`s and `List`s only.
-   * - Includes plain lists, e.g. `all_piles`, which `byType()` leaves out.
+   * - Includes plain lists, e.g. `allPiles`, which `byType()` leaves out.
    */
   topLevel(): NamedThing[] {
     void this.version
@@ -229,11 +231,12 @@ export class ThingRegistry {
   }
 
   /**
-   * The program's running the code under heading `text` now, e.g. `set up all piles` for `## set up all piles` --
+   * The program's running the code under heading `text` now, e.g. `set up all piles` for `## set up all piles`:
    * what it makes from here on was made under it.
-   * - Compiled spell calls it, as `spellCore.heading("set up all piles")`, at each heading at a file's top level
-   *   -- see `Block.getAST()`.  So it's the heading of the TOP-LEVEL code running:  cards a `new Deck()` deals
-   *   are under the heading above that line, not one in `Deck.spell`.
+   * - Compiled spell calls it, as `spellCore.heading("set up all piles")`, at each heading at a file's top level:
+   *   see `Block.getAST()`.
+   * - So it's the heading of the TOP-LEVEL code running:
+   *   cards a `new Deck()` deals are under the heading above that line, not one in `Deck.spell`.
    * - Until the next, or the program's top level finishes -- see `setTopLevel()`.
    */
   heading(text: string): void {
@@ -252,8 +255,8 @@ export class ThingRegistry {
   }
 
   /**
-   * Order `thing` was made in, this run:  1 for the first thing made, and so on -- `undefined` if it wasn't
-   * registered, e.g. a plain list.
+   * Order `thing` was made in, this run:  1 for the first thing made, and so on.
+   * - `undefined` if it wasn't registered, e.g. a plain list.
    */
   numberOf(thing: ThingLike): number | undefined {
     return this.numbers.get(thing)
@@ -275,8 +278,8 @@ export class ThingRegistry {
   }
 
   /**
-   * What to show `thing` as:  its type, then its top-level name, e.g. `Deck deck`, else its `name`, e.g.
-   * `Foundation clubs` or `Card queen-of-spades` -- else just its type.
+   * What to show `thing` as:  its type, then its top-level name, e.g. `Deck deck`;
+   * else its `name`, e.g. `Foundation clubs` or `Card queen-of-spades`;  else just its type.
    * - Reads `name` even when it's computed, e.g. a card's.  One which throws is skipped.
    */
   labelOf(thing: ThingLike): string {
@@ -290,8 +293,8 @@ export class ThingRegistry {
 
   /**
    * Property `name` of `thing`, as the explorer shows it -- its `value`, or the `error` reading it threw.
-   * - Read `quietly()`:  a computed property may make things, e.g. a pile's `state` makes a new `Pile` in
-   *   `spellCore.map()`.
+   * - Read `quietly()`:  a computed property may make things,
+   *   e.g. a pile's `state` makes a new `Pile` in `spellCore.map()`.
    */
   read(thing: ThingLike, name: string): { value: unknown } | { error: string } {
     try {
@@ -303,10 +306,11 @@ export class ThingRegistry {
 
   /**
    * Do `work()` with nothing it makes registering -- it's scratch, NOT one of the program's things:
-   * - the explorer reading a value.  Registering what that makes would also redraw the explorer, which would
-   *   read the value again, and make another -- forever.
-   * - a collection helper's result, e.g. the new `Pile` `spellCore.map()` makes -- see `spellCore.newThingLike()`
-   *   and `agents/CODE-DEBT.md`.
+   * - the explorer reading a value.
+   *   Registering what that makes would also redraw the explorer,
+   *   which would read the value again, and make another -- forever.
+   * - a collection helper's result, e.g. the new `Pile` `spellCore.map()` makes:
+   *   see `spellCore.newThingLike()` and `agents/CODE-DEBT.md`.
    */
   quietly<T>(work: () => T): T {
     this.quiet++
@@ -318,8 +322,8 @@ export class ThingRegistry {
   }
 
   /**
-   * `thing`'s type, then each type it extends, down to the built-in type it comes from -- e.g.
-   * `["Joker", "Card", "Thing"]`, or `["Game", "App", "Thing"]`.
+   * `thing`'s type, then each type it extends, down to the built-in type it comes from:
+   * e.g. `["Joker", "Card", "Thing"]`, or `["Game", "App", "Thing"]`.
    * - Starts with its `type`, which an instance may override.
    */
   typeChainOf(thing: ThingLike): string[] {
@@ -334,11 +338,12 @@ export class ThingRegistry {
 
   /**
    * Properties of `thing`, as its program declares them -- each type's own first, then those it inherits.
-   * - Each getter of its classes, down to -- NOT including -- the built-in type it comes from:  so a property
-   *   never set, e.g. a game's `score` before it's set, shows too.  Spell compiles every property to one.
+   * - Each getter of its classes, down to -- NOT including -- the built-in type it comes from.
+   *   - Spell compiles every property to one,
+   *     so a property never set, e.g. a game's `score` before it's set, shows too.
    * - Getter only, e.g. a card's `name`, is `computed`:  reading it runs code, so the explorer asks first.
-   * - Then any other property it holds, e.g. one passed to its constructor but never declared -- a plain
-   *   field, NOT observable:  it shows its value as of the last redraw.
+   * - Then any other property it holds, e.g. one passed to its constructor but never declared.
+   *   It's a plain field, NOT observable:  it shows its value as of the last redraw.
    */
   propertiesOf(thing: ThingLike): ThingProperty[] {
     const target = thing
@@ -359,10 +364,10 @@ export class ThingRegistry {
   }
 
   /**
-   * Actions of `thing`, as its program declares them -- each type's own first, then those it inherits, each
-   * once:  a sub-type's overrides its super-type's.
-   * - Each method of its classes, down to -- NOT including -- the built-in type it comes from.  Spell compiles
-   *   an action on a type to one, e.g. `to turn (a card) over` => `turn_over()`.
+   * Actions of `thing`, as its program declares them:  each type's own first, then those it inherits.
+   * - Each once:  a sub-type's overrides its super-type's.
+   * - Each method of its classes, down to -- NOT including -- the built-in type it comes from.
+   *   Spell compiles an action on a type to one, e.g. `to turn (a card) over` => `turnOver()`.
    * - NOTE: named from the METHOD's name -- see `actionLabel()` -- as its spell wording is only in a comment.
    * - An action spell compiles to a getter, e.g. `(a card) is face up`, is a computed property instead.
    */
@@ -385,7 +390,7 @@ export class ThingRegistry {
   }
 
   /**
-   * Do action `name` to `thing`, e.g. `turn_over` -- one which takes no arguments.
+   * Do action `name` to `thing`, e.g. `turnOver` -- one which takes no arguments.
    * - An error, thrown or from a promise it returns, goes to `spellCore.console`, as the program's would.
    */
   perform(thing: ThingLike, name: string): void {
@@ -426,14 +431,13 @@ function isProgramClass(value: unknown): value is ThingClass {
 }
 
 /**
- * Name to show action method `name` by:  its words, and `(name)` for each argument, e.g.
- * `move_to_$pile` => `move to (pile)`, `turn_over` => `turn over`.
+ * Name to show action method `name` by:  its words, e.g. `moveToPile` => `move to pile`, `turnOver` => `turn over`.
+ * - Compiled javascript names a method in camelCase (epic `output-targets`, P19).
+ * - So the name no longer marks where an argument goes (spell's `$`, `move_to_$pile`),
+ *   and the label can't show it as `(pile)`, as it once did.
  */
 function actionLabel(name: string): string {
-  return name
-    .split("_")
-    .map((word) => (word.startsWith("$") ? `(${word.slice(1)})` : word))
-    .join(" ")
+  return name.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase()
 }
 
 /** Is `name` a member of a built-in type, e.g. `type`, `items`, `Component` -- NOT one of a thing's properties? */
@@ -465,9 +469,9 @@ export type ThingProperty = {
 
 /** An action of a thing, as `ThingRegistry.actionsOf()` answers it. */
 export type ThingAction = {
-  /** Its method's name, e.g. `move_to_$pile`. */
+  /** Its method's name, e.g. `moveToPile`. */
   name: string
-  /** Name to show it by, e.g. `move to (pile)`. */
+  /** Name to show it by, e.g. `move to pile`. */
   label: string
   /** How many arguments it takes:  `0` for one that can be done as is, e.g. `turn over`. */
   arguments: number

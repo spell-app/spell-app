@@ -13,10 +13,11 @@ import {
 } from "$/spell/test"
 
 /**
- * `P.IncrementalProject` MUST give exactly what a full parse gives:  same compiled output, errors and warnings, for every file,
- * and every token where a fresh tokenize puts it.
- * - Edits every `STEP`th line of each Solitaire file -- one kind of edit per line, in rotation -- then puts it back,
- *   all on ONE project, so state has to stay right across many updates.  `INCREMENTAL_FULL=1` edits every line.
+ * `P.IncrementalProject` MUST give exactly what a full parse gives:
+ * same compiled output, errors and warnings, for every file, and every token where a fresh tokenize puts it.
+ * - Edits every `STEP`th line of each Solitaire file (one kind of edit per line, in rotation), then puts it back.
+ * - All on ONE project, so state has to stay right across many updates.
+ * - `INCREMENTAL_FULL=1` edits every line.
  */
 const STEP = process.env.INCREMENTAL_FULL ? 1 : 7
 
@@ -282,15 +283,16 @@ function newProject(files: SpellSourceFile[], keepLastGood = false) {
 function summarizeIncremental(project: P.IncrementalProject): SpellProjectSummary {
   return project.files.map(({ path, parse }) => ({
     path,
-    compiled: (parse.match?.compile() as string | undefined) ?? "",
+    compiled: (P.JSWriter.instance.writeMatch(parse.match) as string | undefined) ?? "",
     errors: describeParseErrors(parse.match),
     warnings: describeWarnings(parse.match)
   }))
 }
 
 /**
- * Every file's tokens MUST be where a fresh tokenize of its text puts them, and every token -- the ones parsed
- * later out of JSX `{...}` included -- MUST sit over its own text in the file, `line` / `ch` agreeing with `start`.
+ * Every file's tokens MUST be where a fresh tokenize of its text puts them.
+ * - And every token MUST sit over its own text in the file, `line` / `ch` agreeing with `start`:
+ *   the ones parsed later out of JSX `{...}` included.
  */
 function expectPositions(project: P.IncrementalProject, where: string) {
   for (const { path, parse } of project.files) {

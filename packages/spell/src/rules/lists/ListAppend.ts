@@ -4,7 +4,7 @@ import { P } from "$/parser"
 import { SpellStatement } from "$/spell/rules/Statement"
 import { lists } from "./lists.parser"
 
-/** `list_append` rule:  append to list, e.g. `append thing to my-list` => `spellCore.append(my_list, thing)`. */
+/** `list_append` rule:  append to list, e.g. `append thing to my-list` => `spellCore.append(myList, thing)`. */
 export class ListAppend extends SpellStatement<"thing|list"> {
   @proto static alias = "statement"
 
@@ -25,7 +25,7 @@ lists.addRule(ListAppend, {
         scope.variables?.add("my-list")
         scope.variables?.add("thing")
       },
-      tests: [["append thing to my-list", "spellCore.append(my_list, thing)", "spellCore.append(myList, thing)"]]
+      tests: [["append thing to my-list", "spellCore.append(myList, thing)"]]
     }
   ]
 })

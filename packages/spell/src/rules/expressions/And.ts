@@ -5,8 +5,8 @@ import { Precedence } from "./expressions.shared"
 import { expressions } from "./expressions.parser"
 
 /**
- * `and` rule:  `{lhs} and {rhs}`, e.g. `thing and other`
- *   -- `Precedence.and`:  below `is` / `includes` etc, above `or`.
+ * `and` rule:  `{lhs} and {rhs}`, e.g. `thing and other`.
+ * - `Precedence.and`:  below `is` / `includes` etc, above `or`.
  */
 export class And extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.and
@@ -28,7 +28,7 @@ expressions.addRule(And, {
       },
       tests: [
         ["thing and other", "(thing && other)"],
-        ["thing and other and yet-another", "((thing && other) && yet_another)", "(thing && other && yetAnother)"],
+        ["thing and other and yet-another", "((thing && other) && yetAnother)", "(thing && other && yetAnother)"],
         ["thing is 1 and other is 2", "((thing == 1) && (other == 2))", "(thing == 1 && other == 2)"]
       ]
     }

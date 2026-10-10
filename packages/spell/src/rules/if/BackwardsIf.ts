@@ -4,8 +4,8 @@ import { InfixOperatorSuffix, Precedence } from "$/spell/rules/expressions"
 import { _if_ } from "./if.parser"
 
 /**
- * `backwards_if` rule:  postfix ternary: `{expr} if {condition} (else|otherwise) {expr}` -- English word order
- * ("do X if Y else Z") rather than `condition ? then : else`.
+ * `backwards_if` rule:  postfix ternary, `{expr} if {condition} (else|otherwise) {expr}`.
+ * - English word order ("do X if Y else Z"), rather than `condition ? then : else`.
  * - e.g. `1 if bar else 2`
  * - `expression_suffix`: `lhs` (the value before `if`) is supplied by `CompoundExpression`'s
  *   shunting-yard; this rule's own `syntax` only spells out `operator` (actually the *condition*
@@ -54,7 +54,7 @@ _if_.addRule(BackwardsIf, {
         },
         {
           input: "get the foo of the bar if bar is defined otherwise the bar of the foo",
-          js: "let it = (spellCore.isDefined(bar) ? bar.foo : foo.bar)",
+          js: "let it = (bar !== undefined ? bar.foo : foo.bar)",
           ts: "const it = bar !== undefined ? bar.foo : foo.bar"
         },
         {

@@ -14,8 +14,9 @@ import { events } from "./events.parser"
  *   as its first arg plus one arg per `with`-listed prop (see `with_props_arg` in methods).
  * - When `props` are given, the handler body destructures them off `event` at its top,
  *   e.g. `with a card` => `let { card } = event`.
- * - Compiles to `spellCore.on(name, handler?)` (a `P.ASTCoreMethodInvocation`);
+ * - Builds a call to core's `on(name, handler?)` (a `P.ASTCoreMethodInvocation`);
  *   `handler` omitted entirely when there's no body.
+ *   - Javascript calls `on()` by name, imported from `@spell/core`:  `on('card-click', (event) => {...})`.
  */
 export class On extends SpellStatement<"eventName|props?|body?"> {
   @proto static alias = "statement"
@@ -29,8 +30,7 @@ export class On extends SpellStatement<"eventName|props?|body?"> {
     const { eventName, props } = match.groups
     const args: P.ScopeVariableProps[] = [{ name: "event" }]
     // `WithPropsArg`'s own `parse()` (in methods) stashes its prop `P.ASTVariableExpression`s
-    // directly on `match.data.props` -- narrow via `is()` to read them typed, rather than the generic
-    // `props` group.
+    // directly on `match.data.props`:  narrow via `is()` to read them typed, not the generic `props` group
     if (props?.is(WithPropsArg)) {
       for (const { name, datatype } of props.data.props ?? []) {
         args.push({ name, datatype: typeof datatype === "string" ? datatype : undefined })
@@ -87,29 +87,24 @@ events.addRule(On, {
       },
       tests: [
         //
-        { title: "No statements", input: `on card-click`, js: "spellCore.on('card-click')", ts: 'on("card-click")' },
+        { title: "No statements", input: `on card-click`, js: "on('card-click')", ts: 'on("card-click")' },
         {
           title: "Inline statement",
           input: `on event card-click: print 1`,
-          js: ["spellCore.on('card-click', (event) => {", "  return spellCore.console.log(1)", "})"],
+          js: ["on('card-click', (event) => {", "  return spellCore.console.log(1)", "})"],
           ts: 'on("card-click", () => spellCore.console.log(1))'
         },
         {
           title: "Nested block",
           input: [`on event card-click with a card:`, `\tprint the name of the card`],
-          js: [
-            "spellCore.on('card-click', (event) => {",
-            "  let { card } = event",
-            "  spellCore.console.log(card.name)",
-            "})"
-          ],
+          js: ["on('card-click', (event) => {", "  let { card } = event", "  spellCore.console.log(card.name)", "})"],
           ts: 'on<{ card: Card }>("card-click", ({ card }) => spellCore.console.log(card.name))'
         },
         {
           title: "Show error if nested block and inline statement",
           input: [`on event card-click with a card: print 1`, `\tprint the name of the card`],
           js: [
-            "spellCore.on('card-click', (event) => {",
+            "on('card-click', (event) => {",
             "  let { card } = event",
             "  spellCore.console.log(card.name)",
             "})",

@@ -25,11 +25,11 @@ class Card extends Thing {
     return `${this.rank}-of-${this.suit}`
   }
   /** `to turn (a card) over`. */
-  turn_over() {
+  turnOver() {
     this.rank = "turned"
   }
   /** `to move (a card) to (a pile)`. */
-  move_to_$pile(pile: unknown) {
+  moveToPile(pile: unknown) {
     return pile
   }
 }
@@ -37,7 +37,7 @@ class Card extends Thing {
 /** A sub-type of it:  `a joker is a card`. */
 class Joker extends Card {
   /** Overrides `Card`'s. */
-  turn_over() {}
+  turnOver() {}
   get color(): string {
     return (this as any).getProp("color")
   }
@@ -242,15 +242,15 @@ describe("spellCore.things", () => {
 
     test("`actionsOf()`:  its own, then inherited -- an override once, as its own", () => {
       expect(spellCore.things.actionsOf(new Joker({}))).toEqual([
-        { name: "turn_over", label: "turn over", arguments: 0 },
-        { name: "move_to_$pile", label: "move to (pile)", arguments: 1, inheritedFrom: "Card" }
+        { name: "turnOver", label: "turn over", arguments: 0 },
+        { name: "moveToPile", label: "move to pile", arguments: 1, inheritedFrom: "Card" }
       ])
       expect(spellCore.things.actionsOf(new Deck({}))).toEqual([])
     })
 
     test("`perform()`:  does it -- an error goes to the program's console", async () => {
       const card = new Card({ rank: "ace" })
-      spellCore.things.perform(card, "turn_over")
+      spellCore.things.perform(card, "turnOver")
       expect(card.rank).toBe("turned")
       const failing = new (class Broken extends Card {
         async fail() {
