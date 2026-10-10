@@ -113,7 +113,7 @@ export const epicPageVocabulary = {
     {
       name: "header",
       description:
-        "The sticky page header:  the h1, then at its right the step label, the state mark and the git toggle."
+        "The sticky page header:  the h1, then at its right the step label (the state in it) and the git toggle."
     },
     { name: "heading", description: "The h1, `/epic <name>`:  a click copies it." },
     { name: "subhead", description: "Under the header:  the epic's title, NOT sticky:  it scrolls away." },
@@ -153,14 +153,14 @@ export const epicPageVocabulary = {
     { name: "git", description: "The git toggle:  shows or hides every commit (only when the doc has some)." },
     {
       name: "status",
-      description: "The state mark (in progress, errors or paused), then the bedtime and step labels."
+      description: "The header's right side:  the bedtime label, the step label, the git toggle."
     },
     {
       name: "state",
       description:
-        "The epic's state, an icon in its colour (`$/server/site/EpicState`):  in progress (blue), errors (red:  " +
-        "every phase done, items need you), paused (grey:  phases left, untouched for days);  why on hover.  " +
-        "None for a future epic or a done one:  the step label says so."
+        "The step label while the epic has a state, its icon and colour the state's (`$/server/site/EpicState`):  " +
+        "in progress (blue half circle), errors (red:  every phase done, items need you), paused (grey:  phases " +
+        "left, untouched for days);  why on hover.  None for a future epic or a done one:  FUTURE or DONE says so."
     },
     {
       name: "review-line",

@@ -161,7 +161,7 @@
   }
   /*
    * at the row's far right, in this order (Owen, 2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle
-   * is) (git icon, but bigger)"):  the bedtime label (when set), the step label, the state mark, the git toggle;
+   * is) (git icon, but bigger)"):  the bedtime label (when set), the step label (the state in it), the git toggle;
    * on a row of their own when the h1 leaves no room
    */
   .status {
@@ -328,21 +328,9 @@
     outline-offset: 1px;
   }
 
-  /* ## The state mark:  an icon in its state's colour, as tall as the labels beside it, on their middle */
-  .state {
-    display: inline-grid;
-    flex: none;
-    place-items: center;
-    height: var(--epic-control-size);
-    margin: 0;
-    font-size: 18px;
-    line-height: 1;
-    cursor: help;
-  }
-
   /*
-   * the git toggle:  icon only, the accent while pressed;  its mark as big as the state mark beside it looks (Owen,
-   * 2026-10-10:  "git icon, but bigger"):  the git diamond fills less of its em than the state's circle
+   * the git toggle:  icon only, the accent while pressed;  its mark as big as the step label's icon looks (Owen,
+   * 2026-10-10:  "git icon, but bigger"):  the git diamond fills less of its em than a circle
    */
   .git {
     display: inline-grid;
