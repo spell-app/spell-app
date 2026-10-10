@@ -42,6 +42,10 @@
  *     - the pick approves its call (closed, the reply's set `chosen`, a Noted card `Chose C · ...:  recorded ...`),
  *       its pill SOLID
  *   - Review Now:  the revisit waiting asked now
+ *   - a COMMENT only (Owen, 2026-10-10:  "send button at top of page doesn't appear to be hooked up"):
+ *     written into the copy's inbox as the bullhorn would (the comments route takes only the shared folders' pages);
+ *     Send turns blue, a click sends it (the inbox's `sent` moves, `unsentComments` empties),
+ *     and `inbox wait` wakes with it, printing the comment
  * - fails (exit 1) unless each shows on the page AND lands in the inbox (read back through `GET /api/review/inbox`)
  * - and at 280px and 900px, light and dark, unless:
  *   - no review control runs past the window, and none sits over its line's title
@@ -79,6 +83,7 @@ const { chromium } = await import("playwright")
 const { PageServer } = await import("../../server/src/page/PageServer.ts")
 const { PlanDocCommands } = await import("../src/tool/PlanDocCommands.ts")
 const { PlanDocFiles } = await import("../src/tool/PlanDocFiles.ts")
+const { ReviewInbox } = await import("../src/tool/ReviewInbox.ts")
 
 ////////////////
 // ## Settings
@@ -94,6 +99,7 @@ const NOBODY = /No Claude session/
 const NOTE = "check-review-epics:  why not reuse the details route?"
 const SKIP_NOTE = "check-review-epics:  nothing to do, the routes settle it"
 const SECTION_NOTE = "check-review-epics:  is the Overview part clear?"
+const COMMENT = "check-review-epics:  is Send hooked up?"
 const SESSION = "check-review-epics"
 const HOLD_MS = 900
 const problems = []
@@ -535,6 +541,26 @@ async function run() {
     (inbox) => inbox.now.some((each) => each.id === bare),
     `Review Now:  ${bare}'s revisit asked now`
   )
+
+  // a COMMENT only:  Claude takes what Review Now asked first, so only the comment waits for Send
+  await tool.run(["inbox", docName, "wait", "--timeout", "5", "--json"])
+  // as the bullhorn writes it:  the comments route takes only the shared folders' pages, never this copy
+  ReviewInbox.update(inboxFile, (box) => void box.commentList.add({ anchor: question, kind: "item" }, COMMENT))
+  await waitHeader(page, (state) => state.send === "unsent", "Send, with only a comment waiting:  blue (unsent)")
+  const unsent = await readInbox(page)
+  expect("the inbox:  the comment unsent", unsent.unsentComments, ["cm1"])
+  await page.locator("epic-page button.send").click()
+  await waitInbox(
+    page,
+    (inbox) => inbox.sent !== unsent.sent && inbox.unsentComments.length === 0,
+    "Send, with only a comment:  sent"
+  )
+  await waitHeader(page, (state) => state.send !== "unsent", "Send, the comment sent:  no longer unsent")
+  const heard = said.length
+  const code = await tool.run(["inbox", docName, "wait", "--timeout", "5"])
+  const woke = said.slice(heard).join("\n")
+  expect("inbox wait:  woken by a send with only a comment", code ?? 0, 0)
+  expect("inbox wait:  prints the comment", woke.includes(COMMENT) && /1 comment\)/.test(woke), true)
   await tool.run(["inbox", docName, "unlisten"])
 
   await layouts(context)
@@ -849,6 +875,15 @@ async function waitInbox(page, test, what) {
     await page.waitForTimeout(100)
   }
   problems.push(`${what}:  not in the inbox`)
+}
+
+/** Wait (8s at most:  the page re-reads its inbox every 4s) for the header's buttons to pass `test`. */
+async function waitHeader(page, test, what) {
+  for (let tries = 0; tries < 80; tries++) {
+    if (test(await headerState(page))) return
+    await page.waitForTimeout(100)
+  }
+  problems.push(`${what}:  ${JSON.stringify(await headerState(page))}`)
 }
 
 /** Wait for `id`'s mark to be `mark` (`undefined`:  none). */

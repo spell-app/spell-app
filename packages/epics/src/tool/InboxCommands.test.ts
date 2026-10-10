@@ -265,6 +265,43 @@ test("done cm1 --file:  the answer goes on the comment's thread;  Owen's reply l
   expect(printed.join("\n")).toMatch(/CM1 {2}on j1 \(item\)[^\n]*\n {4}Owen replied:  "Say more"/)
 })
 
+// Owen, 2026-10-10:  "send button at top of page doesn't appear to be hooked up" -- he keeps Send as the way comments
+// reach Claude, so a send with only comments must wake the waiting session
+test("wait:  a send with ONLY comments wakes it, and prints each comment and Owen's latest reply;  once", async () => {
+  ReviewInbox.update(inboxFile, (inbox) => {
+    const id = inbox.commentList.add({ anchor: "j1", kind: "item", quote: "a real choice" }, "Why?", new Date(T1))
+    inbox.commentList.answer(id, "<p>Because.</p>", new Date(T1))
+    inbox.commentList.reply(id, "Say more", new Date(T2))
+    inbox.commentList.add({ anchor: "p1#field-1", kind: "field" }, "Is this hooked up?", new Date(T2))
+  })
+  await commands().inbox.run("x", file, [], {})
+  expect(printed.join("\n")).toMatch(/sent:  never;  2 unsent/)
+  printed = []
+  ReviewInbox.update(inboxFile, (inbox) => inbox.markSent(T3))
+  expect(await commands().inbox.run("x", file, ["wait"], { timeout: "5" })).toBeUndefined()
+  const said = printed.join("\n")
+  expect(said).toMatch(/^sent [^\n]* \(0 marks, 2 comments\):/)
+  expect(said).toMatch(
+    /CM1 {2}on j1 \(item\) {2}quoting "a real choice" {2}"Why\?"[^\n]*\n {6}Owen replied:  "Say more"/
+  )
+  expect(said).toMatch(/CM2 {2}on p1#field-1 \(field\) {2}"Is this hooked up\?"/)
+  expect(said).toMatch(/inbox x working <cm id> on/)
+  // nothing to apply:  no line saying so
+  expect(said).not.toMatch(/inbox x apply/)
+  // handed over:  the next wait has nothing until Owen speaks again
+  expect(ReviewInbox.read(inboxFile).hasWork).toBe(false)
+})
+
+test("wait --json:  the send's comments, as the inbox holds them", async () => {
+  ReviewInbox.update(inboxFile, (inbox) => {
+    inbox.commentList.add({ anchor: "j1", kind: "item" }, "Why?", new Date(T1))
+    inbox.markSent(T2)
+  })
+  await commands().inbox.run("x", file, ["wait"], { timeout: "5", json: true })
+  const work = JSON.parse(printed.join("\n")) as { sent: { comments: { id: string; text: string }[] } }
+  expect(work.sent.comments).toMatchObject([{ id: "cm1", text: "Why?" }])
+})
+
 test("working cm1 on | off:  the thread's thinking stub, not an item's spinner;  done cm1 turns it off", async () => {
   const id = "cm1"
   ReviewInbox.update(inboxFile, (inbox) => void inbox.commentList.add({ anchor: "j1", kind: "item" }, "Why?"))

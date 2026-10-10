@@ -313,6 +313,44 @@ describe("ReviewClient writes", () => {
     expect(notices).toEqual([`Saved.  ${NOBODY_LISTENING}`, "Sent already:  waiting for Claude"])
   })
 
+  // Owen, 2026-10-10:  "send button at top of page doesn't appear to be hooked up" -- comments only, Send said
+  // "Nothing to send".  Send is how comments reach Claude.
+  test("send() hands over Owen's comments and replies too:  counted while unsent, and said in the notice", async () => {
+    const { client, server } = await started()
+    server.inbox.setListening("s1")
+    const notices: string[] = []
+    client.onNotice((message) => notices.push(message))
+    const id = server.inbox.commentList.add({ anchor: "q1", kind: "item" }, "is this hooked up?")
+    await client.refresh()
+    expect([client.unsentMarkCount, client.unsentCommentCount, client.unsentCount]).toEqual([0, 1, 1])
+    await client.save("q1", { action: "approve" })
+    expect(client.unsentCount).toBe(2)
+    expect(await client.send()).toBe(true)
+    expect(server.posts.at(-1)).toEqual(["send", { page: PAGE }])
+    expect(server.inbox.sentComments.map((comment) => comment.id)).toEqual([id])
+    expect(client.unsentCount).toBe(0)
+    // his reply on the thread, once Claude answered:  waiting for the next Send
+    server.inbox.commentList.answer(id, "<p>yes</p>")
+    server.inbox.commentList.reply(id, "it isn't", new Date(Date.now() + 1000))
+    await client.refresh()
+    expect(client.unsentCommentCount).toBe(1)
+    expect(await client.send()).toBe(true)
+    expect(notices).toEqual(["Sent 1 mark, 1 comment to Claude", "Sent 1 comment to Claude"])
+  })
+
+  test("send() with ONLY comments sends;  Review Now too", async () => {
+    const { client, server } = await started()
+    server.inbox.commentList.add({ anchor: "q1", kind: "item" }, "is this hooked up?")
+    await client.refresh()
+    expect(await client.send({ now: true })).toBe(true)
+    expect(server.posts.at(-1)).toEqual(["send", { page: PAGE, now: true }])
+    expect(client.unsentCount).toBe(0)
+    const notices: string[] = []
+    client.onNotice((message) => notices.push(message))
+    expect(await client.send()).toBe(false)
+    expect(notices).toEqual(["Nothing to send:  mark an item or leave a comment first"])
+  })
+
   test("a SENT pick Claude takes off the inbox is remembered (`takenPickOf()`) until Owen marks the item again", async () => {
     const { client, server } = await started()
     await client.choose("q1", "B", 1)
