@@ -15,8 +15,8 @@ house style every package shares.  Only what's local is below;  a section named 
   from spell's `BUILT_IN_TYPE_TABLE` (`../spell/src/builtinTypes.ts`), by `yarn scopes --builtins` in `../lsp`.
   - NEVER edit it by hand:  edit the table, run that.
 - Depends only on `$/util`.  NEVER import `$/spell` / `$/parser` or anything above.
-- Rendering code here (`ui.ts`, `element()`, `draw`, `Thing` / `List` / `App` components) is Solid work:  READ the
-  root's Solid 2 pointer first.
+- Drawing code here (`drawing.ts`:  `element()`, `drawThing()`, `drawItems()`, `@drawn`, `mountApp()`) is Solid
+  work:  READ the root's Solid 2 pointer first.
 
 ## Who may value-import it
 

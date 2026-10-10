@@ -93,8 +93,9 @@ export class DOMFormElement extends E.DOMElement {
  *   - live both ways, for anything Solid follows (signals, reactive members, spell's objects)
  *   - after a reset or a clear, the object takes the controls' values
  *   - without it, nothing is bound:  the form works as it always has
- * - `debug`:  below the content, a `<pre part="debug">` showing the bound `value` as JSON
+ * - `debug`:  below the content, a captioned box whose `<pre part="debug">` shows the bound `value` as JSON
  *   (its `toJSON()` counts), else `values`;  redrawn as they change.
+ *   - Why the box and caption:  bare JSON under a form reads as page text, and gets missed.
  *
  * - Static server render (`$/ui/static`):  a `<form>` slotted inside it MERGES into the root,
  *   which becomes `<form class="ui … form">` with the author's attributes (`mergedForm`).
@@ -209,7 +210,10 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
       >
         <slot />
         <Show when={this.debug}>
-          <pre part={this.partForName("debug")}>{this.debugText}</pre>
+          <figure class="debug">
+            <figcaption>{this.debugCaption}</figcaption>
+            <pre part={this.partForName("debug")}>{this.debugText}</pre>
+          </figure>
         </Show>
       </div>
     )
@@ -316,6 +320,11 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
 
   /** Bumped a microtask after every change, and as controls come and go:  `debug` redraws. */
   @E.state private accessor changeCount = 0
+
+  /** `debug`'s caption:  what the JSON is, the bound object or the form's `values`. */
+  private get debugCaption(): string {
+    return this.translationForKey(this.isBound ? "formDebugBound" : "formDebugValues")
+  }
 
   /**
    * What `debug` shows:  the bound `value` as JSON (an object's own `toJSON()` counts), else `values`.

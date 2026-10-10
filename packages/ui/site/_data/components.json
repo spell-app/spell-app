@@ -5199,7 +5199,7 @@
         },
         {
           "name": "debug",
-          "description": "The JSON `debug` shows, a `<pre>` below the content."
+          "description": "The JSON `debug` shows, a `<pre>` in a captioned box below the content."
         }
       ],
       "states": [
@@ -5232,7 +5232,18 @@
           "description": "Always on:  the form's own host (its sheet also styles `<ui-fields>` / `<ui-field>` hosts), a block and the size container its rows stack by."
         }
       ],
-      "texts": [],
+      "texts": [
+        {
+          "key": "formDebugBound",
+          "text": "Bound object",
+          "description": "Caption of `debug`'s JSON while the form is bound."
+        },
+        {
+          "key": "formDebugValues",
+          "text": "Values",
+          "description": "Caption of `debug`'s JSON while it isn't:  the form's `values`."
+        }
+      ],
       "mainTag": "ui-form",
       "main": true,
       "page": true,

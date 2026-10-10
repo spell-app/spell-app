@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, test, vi } from "vite-plus/test"
+import { userEvent } from "vite-plus/test/browser"
 import { flush } from "solid-js"
 import { render } from "@solidjs/web"
 
@@ -269,13 +270,7 @@ describe("compiled spell draws with Solid", () => {
   })
 
   test("the `Todos - Form Based` example:  a form bound to the app, a row per task, Add Task adds one", async () => {
-    // its compiled javascript, as text:  Vite serves any file by its path, `?raw` as a string
-    const file = new URL(
-      "../../../spell/projects/system/examples/Todos - Form Based/Todos - Form Based.compiled.js",
-      import.meta.url
-    ).pathname
-    const { default: compiled } = (await import(/* @vite-ignore */ `${file}?raw`)) as { default: string }
-    const host = await mount(source(compiled, "Todos"))
+    const host = await mount(source(await todosExample(), "Todos"))
     const titles = () =>
       [...host.querySelectorAll<HTMLElement & { value: string }>("ui-repeat ui-input[name=title]")].map(
         (input) => input.value
@@ -296,6 +291,40 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => !add.disabled)
     add.click()
     await waitFor(() => titles()[3] === "Ship it")
+  })
+
+  test("`Todos - Form Based`:  ticking a task shows in the debug JSON;  Active / Completed show only those tasks", async () => {
+    const host = await mount(source(await todosExample(), "Todos"))
+    const titles = () =>
+      [...host.querySelectorAll<HTMLElement & { value: string }>("ui-repeat ui-input[name=title]")].map(
+        (input) => input.value
+      )
+    const debugJSON = () => JSON.parse(host.querySelector("ui-form")!.shadowRoot!.querySelector("pre")!.textContent!)
+    const menuItem = (text: string) =>
+      [...host.querySelectorAll<HTMLElement>("ui-item")].find((item) => item.textContent === text)!
+    await waitFor(() => titles().length === 3)
+    // a list shows as its items (it was `"tasks": {}`)
+    expect(debugJSON().tasks).toEqual([
+      { title: "Create todos app", completed: true },
+      { title: "Teach it to draw", completed: false },
+      { title: "Test app", completed: false }
+    ])
+
+    // a real click, on the checkbox as the person sees it
+    await userEvent.click(host.querySelectorAll("ui-repeat ui-checkbox")[1]!)
+    await waitFor(() => debugJSON().tasks[1].completed === true)
+
+    menuItem("Active").click()
+    // a row coming back is a new one:  its controls are bound as it joins the form
+    await waitFor(() => titles().join() === "Test app")
+    menuItem("Completed").click()
+    await waitFor(() => titles().join() === "Create todos app,Teach it to draw")
+
+    // a change from outside the form shows in the JSON too
+    menuItem("Change name").click()
+    await waitFor(() => debugJSON().tasks[0].title === "New title")
+    menuItem("All").click()
+    await waitFor(() => titles().length === 3)
   })
 
   test("React's spellings become the page's:  `className` => `class`, `colSpan` => `colspan`", async () => {
@@ -414,6 +443,16 @@ async function testRuntime() {
   const url = new URL("/src/runner/spellRuntime.ts", location.href).href
   const runtime = (await import(/* @vite-ignore */ url)) as typeof import("./spellRuntime")
   return { runtime, coreUrl: url, release: () => {} }
+}
+
+/** The `Todos - Form Based` example's committed compiled javascript, as text:  Vite serves a file by its path. */
+async function todosExample(): Promise<string> {
+  const file = new URL(
+    "../../../spell/projects/system/examples/Todos - Form Based/Todos - Form Based.compiled.js",
+    import.meta.url
+  ).pathname
+  const { default: compiled } = (await import(/* @vite-ignore */ `${file}?raw`)) as { default: string }
+  return compiled
 }
 
 /** What to run:  `program`, in memory. */

@@ -802,7 +802,9 @@ describe("<ui-form> debug", () => {
       <ui-input name="title" value="Plain" aria-label="Title"></ui-input>
     </form></ui-form>`)
     const shown = () => JSON.parse(host.shadowRoot!.querySelector("[part~=debug]")!.textContent!)
+    const caption = () => host.shadowRoot!.querySelector("figcaption")!.textContent
     expect(shown()).toEqual({ title: "Plain" })
+    expect(caption()).toBe("Values")
     await userEvent.type(inner(native.querySelector("[name=title]")!), "!")
     await settle()
     expect(shown()).toEqual({ title: "Plain!" })
@@ -810,12 +812,14 @@ describe("<ui-form> debug", () => {
     host.value = todo
     await settle()
     expect(shown()).toEqual({ title: "Milk", completed: false, count: 2 })
+    expect(caption()).toBe("Bound object")
     todo.count = 3
     await settle()
     expect(shown().count).toBe(3)
     host.debug = false
     await settle()
     expect(host.shadowRoot!.querySelector("[part~=debug]")).toBeNull()
+    expect(host.shadowRoot!.querySelector("figcaption")).toBeNull()
   })
 })
 

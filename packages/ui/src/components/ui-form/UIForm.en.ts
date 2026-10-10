@@ -129,7 +129,7 @@ export const formVocabulary = {
   slots: [{ name: "", description: "The native `<form>` (or its content, when the `<ui-form>` sits inside one)." }],
   parts: [
     { name: "form", description: "The form box." },
-    { name: "debug", description: "The JSON `debug` shows, a `<pre>` below the content." }
+    { name: "debug", description: "The JSON `debug` shows, a `<pre>` in a captioned box below the content." }
   ],
   states: [
     ...STATE_STATES,
@@ -141,5 +141,12 @@ export const formVocabulary = {
         "Always on:  the form's own host (its sheet also styles `<ui-fields>` / `<ui-field>` hosts), a block and the size container its rows stack by."
     }
   ],
-  texts: []
+  texts: [
+    { key: "formDebugBound", text: "Bound object", description: "Caption of `debug`'s JSON while the form is bound." },
+    {
+      key: "formDebugValues",
+      text: "Values",
+      description: "Caption of `debug`'s JSON while it isn't:  the form's `values`."
+    }
+  ]
 } as const satisfies E.ComponentVocabulary

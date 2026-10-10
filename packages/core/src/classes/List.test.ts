@@ -81,6 +81,37 @@ function cards(count: number): Card[] {
   return Array.from({ length: count }, () => new Card({}))
 }
 
+/** `a ranked-card is a card` + `a ranked-card has a rank as text`:  `rank` is a reactive prop, as compiled. */
+class RankedCard extends Card {
+  get rank(): string {
+    return this.getProp("rank")
+  }
+  set rank(value: string) {
+    this.setProp("rank", value)
+  }
+}
+
+/** `a table is a thing` + `a table has a name as text` + `a table has a deck`. */
+class Table extends Thing {
+  get name(): string {
+    return this.getProp("name")
+  }
+  set name(value: string) {
+    this.setProp("name", value)
+  }
+  get deck(): Deck {
+    return this.getProp("deck")
+  }
+  set deck(value: Deck) {
+    this.setProp("deck", value)
+  }
+}
+
+/** A card ranked `rank`. */
+function ranked(rank: string): RankedCard {
+  return new RankedCard({ rank })
+}
+
 /** What `list` holds, as an array. */
 function itemsOf(list: List): unknown[] {
   return list.getValues()
@@ -315,5 +346,27 @@ describe("guards:  only a move asks them", () => {
     expect(spellCore.canGiveUp(foundation, a)).toBe(false)
     expect(spellCore.canTake(new Pile({}), a)).toBe(true)
     expect(spellCore.canGiveUp([a], a)).toBe(true)
+  })
+})
+
+describe("JSON", () => {
+  test("a list is its items:  a thing holding one shows each item by its own JSON (output-targets V14)", () => {
+    const deck = new Deck({})
+    deck.add(ranked("A"), ranked("K"))
+    const table = new Table({ name: "table", deck })
+    expect(JSON.parse(JSON.stringify(table))).toEqual({ name: "table", deck: [{ rank: "A" }, { rank: "K" }] })
+  })
+
+  test("tracked:  a reader of the JSON re-runs when an item comes or goes", () => {
+    const deck = new Deck({})
+    deck.add(ranked("A"))
+    const seen: string[] = []
+    const stop = observe(() => {
+      seen.push(JSON.stringify(deck))
+    })
+    deck.add(ranked("K"))
+    deck.removeItem(1)
+    stop()
+    expect(seen).toEqual(['[{"rank":"A"}]', '[{"rank":"A"},{"rank":"K"}]', '[{"rank":"K"}]'])
   })
 })

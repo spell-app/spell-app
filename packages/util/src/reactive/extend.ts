@@ -180,12 +180,16 @@ export function keysOf(target: any): string[] {
 
 /**
  * `target`'s props as a plain object -- e.g. its `toJSON()`.
- * - Tracks the key SET, as `keysOf()`;  NOT each value.
+ * - Tracked:  a reader re-runs when a key comes or goes (as `keysOf()`), AND when a value changes,
+ *   e.g. a `<ui-form debug>` showing a spell object as JSON redraws as a task is ticked.
  * - NOTE: a plain object hoists integer-like keys (`"2"`, `"10"`) to the front:  `keysOf()` is the order.
  */
 export function getProps(target: any): Record<string, any> {
   const extended = extendedFor(target)
-  if (isTrackingCells()) (extended[KEYS] ??= new Cell()).read()
+  if (isTrackingCells()) {
+    ;(extended[KEYS] ??= new Cell()).read()
+    for (const property of extended[PROPS].keys()) cellOf(extended, PROP_CELLS, property).read()
+  }
   return Object.fromEntries(extended[PROPS])
 }
 
