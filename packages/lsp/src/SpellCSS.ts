@@ -26,8 +26,8 @@ import {
  *   with everything outside the block blanked to spaces:
  *   so a line and character in the file is the same line and character in the CSS.
  * - Works from the TEXT, line by line, not the parse:
- *   - so the spell editor's instant colouring can use the same lines (`SpellCSS.OPEN_LINE` ...)
- *   - spell's grammar rule for the block comes later in P4 of epic `drawable-thing`
+ *   so the spell editor's instant colouring, which never parses, uses the same lines (`SpellCSS.OPEN_LINE` ...).
+ * - Spell's own rule for the block is `css_block`:  it compiles the CSS to the type's class.
  * - Browser-safe, like the rest of `$/lsp`.
  */
 export class SpellCSS {

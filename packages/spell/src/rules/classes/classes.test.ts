@@ -165,4 +165,44 @@ describe("testing spell module classes", () => {
       expect(taken("a savings account aka card is a thing")).toEqual(['"card" already names a type:  card'])
     })
   })
+
+  describe("a drawable type's own <css> (epic `drawable-thing`, P4)", () => {
+    /** `lines` as one block:  its compiled lines, and its parse errors' messages. */
+    function compiled(name: string, lines: string[]) {
+      const block = spellParser.getScope(name).parse(lines.join("\n"), "block")!
+      const errors = SP.Block.getParseErrors(block)?.map((error) => error.message) ?? []
+      return { code: `${block.compile()}`, errors }
+    }
+
+    test("in its outline, beside its properties:  the CSS as written, braces and all", () => {
+      const { code, errors } = compiled("css-block", [
+        "a card is a drawable thing:",
+        "\t- it has a rank as a number",
+        "\t<css>",
+        "\t\t:host { display: inline-block }",
+        "\t\t.red {",
+        "\t\t\tcolor: crimson",
+        "\t\t}",
+        "\t</css>"
+      ])
+      expect(errors).toEqual([])
+      // the class's body indents its lines:  only whitespace, which CSS ignores
+      const css = /static css = `([^`]*)`/.exec(code)?.[1]?.replace(/\s+/g, " ")
+      expect(css).toBe(":host { display: inline-block } .red { color: crimson }")
+    })
+
+    test("anywhere else, an error that says where it goes", () => {
+      const notDrawable = compiled("css-not-drawable", [
+        "a note is a thing:",
+        "\t<css>",
+        "\t\tp { margin: 0 }",
+        "\t</css>"
+      ])
+      expect(notDrawable.errors).toEqual([
+        'Only a drawable type has its own <css>:  "Note" isn\'t drawable:  say "a ... is a drawable thing"'
+      ])
+      const loose = compiled("css-loose", ["<css>", "\tp { margin: 0 }", "</css>"])
+      expect(loose.errors).toEqual(["Only a drawable type has its own <css>:  put it in a type's outline"])
+    })
+  })
 })

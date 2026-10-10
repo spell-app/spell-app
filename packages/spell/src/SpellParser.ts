@@ -43,7 +43,9 @@ export class SpellParser extends P.Parser {
           // TODO: backtick as alternative quote, for embedding double quotes?
           quoteSymbols: [`"`],
           // Remove "normal" whitespace (leaving newlines and indents) when parsing
-          whitespacePolicy: P.WhitespacePolicy.LEADING_ONLY
+          whitespacePolicy: P.WhitespacePolicy.LEADING_ONLY,
+          // a drawable type's own styles:  CSS, never read as spell -- see `css_block`
+          rawTextTags: ["css"]
         })
     )
   }

@@ -1103,8 +1103,10 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - completion, hover and errors inside one come from VS Code's own CSS service, `vscode-css-languageservice`
     - each block is checked as a CSS document of the whole file, everything else blanked to spaces,
       so lines and characters match
-  - spell's own colouring skips the block, and so do its parse errors,
-    until spell's grammar has a rule for it (P4 of epic `drawable-thing`)
+  - spell's rule for it is `css_block` (in `rules/classes/`):  only in a drawable type's outline,
+    compiled to the class's `static css`;  the tokenizer reads a `<css>` element's contents as raw text
+    (`P.Tokenizer.rawTextTags`), so the CSS is never read as spell
+  - spell's own colouring skips the block
   - editors colour it as CSS themselves:
     VS Code through the grammar's embedded CSS, the app's Monaco through its own (`SpellTokensProvider`)
 - Formatting is `P.TokenFormatter` ([the tokenizer folder](../parser/src/tokenizer/)):

@@ -48,6 +48,25 @@ describe("SpellElement", () => {
     expect(element.shadowRoot!.querySelector(".rank")?.textContent).toBe("king")
   })
 
+  test("its type's own <css> is adopted after the page's, its super-types' first", async () => {
+    class Note extends Drawable {
+      static css = ".note { color: rgb(1, 2, 3) }"
+      draw(): ReturnType<Drawable["draw"]> {
+        return (h("p", { class: "note" }, "hi") as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    class Memo extends Note {
+      static css = ".note { background-color: rgb(4, 5, 6) }"
+    }
+    spellCore.defineElements("Notes", { Memo })
+    const element = await ElementFixture.render<HTMLElement & { thing?: Memo }>("<note-memo></note-memo>")
+    element.thing = new Memo()
+    flush()
+    const note = element.shadowRoot!.querySelector(".note")!
+    expect(getComputedStyle(note).color).toBe("rgb(1, 2, 3)")
+    expect(getComputedStyle(note).backgroundColor).toBe("rgb(4, 5, 6)")
+  })
+
   test("defining it again, as a program run again does, keeps the tag", () => {
     const defined = customElements.get("solitaire-card")
     spellCore.defineElements("Solitaire", { Card })
