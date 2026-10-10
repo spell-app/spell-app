@@ -114,6 +114,12 @@ export function liveClient(): void {
   let savedScroll: number | undefined
   // updates of the page's file, one at a time and in order
   let updating = Promise.resolve()
+  // the last edit key the page handled itself (`editKey()`), and when:  VS Code's same command right after is a repeat
+  let lastKey = { command: "", at: 0 }
+  // the page asked the extension for the clipboard (Cmd / Ctrl + V), and its answer hasn't come yet
+  let pastePending = false
+  // how soon after the page's own edit key VS Code's same command counts as that key again, in ms
+  const EDIT_REPEAT_MS = 300
 
   restoreScroll()
   config.takeScroll = () => {
@@ -132,8 +138,10 @@ export function liveClient(): void {
       const data = event.data as { spell?: string; go?: number; command?: string; text?: string } | null
       if (event.source !== window.parent) return
       if (data?.spell === "history" && (data.go === -1 || data.go === 1)) history.go(data.go)
-      if (data?.spell === "edit" && typeof data.command === "string") edit(data.command, data.text)
+      if (data?.spell === "edit" && typeof data.command === "string" && !isRepeat(data.command))
+        edit(data.command, data.text)
     })
+    addEventListener("keydown", editKey, true)
     addEventListener("click", followInFrame, true)
   }
   holder.__spellLiveChange = onChange
@@ -370,6 +378,68 @@ export function liveClient(): void {
       return
     }
     if (["selectAll", "undo", "redo"].includes(command)) document.execCommand(command)
+  }
+
+  /**
+   * The edit keys, handled by the page itself while it's framed (VS Code's side-bar views):  Cmd / Ctrl + A, C, X, V,
+   * Z (Shift + Z, or Ctrl + Y:  redo).
+   * - why:  `edit()` alone hangs on VS Code turning its Edit commands into `document.execCommand()` on the view's
+   *   wrapper (`DocView.ts`), which is VS Code's own behaviour, not a promise:  it stopped reaching the page more than
+   *   once (epic `windows-and-review` I2, then epic `airplane`, 2026-10-10).  The page sees its keys FIRST, so it acts
+   *   on them, and `preventDefault()` keeps VS Code from doing it again (`edit()` drops a repeat anyway)
+   * - select all, undo, redo:  here, as `edit()` does them
+   * - copy, cut:  the selection to the view (`{ spell: "clipboard" }`), which the extension puts on the clipboard
+   * - paste:  asks the extension for the clipboard (`{ spell: "edit", command: "paste" }`, which the view passes
+   *   on);  it answers with `edit("paste", text)`
+   * - nothing selected to copy or cut:  left alone
+   */
+  function editKey(event: KeyboardEvent) {
+    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.defaultPrevented) return
+    const key = event.key.toLowerCase()
+    const command =
+      key === "a"
+        ? "selectAll"
+        : key === "c"
+          ? "copy"
+          : key === "x"
+            ? "cut"
+            : key === "v"
+              ? "paste"
+              : key === "z"
+                ? event.shiftKey
+                  ? "redo"
+                  : "undo"
+                : key === "y" && event.ctrlKey
+                  ? "redo"
+                  : undefined
+    if (!command) return
+    if ((command === "copy" || command === "cut") && !selectedText()) return
+    event.preventDefault()
+    if (command === "paste") {
+      // it comes back as the extension's `edit` message:  that one is the page's own, never a repeat
+      pastePending = true
+      window.parent.postMessage({ spell: "edit", command: "paste" }, "*")
+      return
+    }
+    lastKey = { command, at: Date.now() }
+    edit(command)
+  }
+
+  /**
+   * Is VS Code's `edit` message for `command` the page's own key again (`editKey()` just did it)?  Then it's
+   * dropped:  once is what was meant.
+   * - a paste:  the first one after the page asked is its answer;  another one right after it is the repeat
+   */
+  function isRepeat(command: string): boolean {
+    const now = Date.now()
+    if (command === "paste") {
+      if (pastePending) {
+        pastePending = false
+        lastKey = { command, at: now }
+        return false
+      }
+    }
+    return command === lastKey.command && now - lastKey.at < EDIT_REPEAT_MS
   }
 
   /** What's selected:  in the focused field (through shadow roots:  `ui-textarea`'s own), else on the page. */
