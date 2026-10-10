@@ -187,6 +187,19 @@ h1 {
   margin: 0;
   font-size: 2rem;
 }
+/*
+ * the header's actions (the page's bullhorn) never wrap onto a row of their own:  they stay at the h1's row's right,
+ * over its end when it's long (Owen, 2026-10-10:  "They should stay in place and overlap the header instead")
+ */
+.spell-page-head {
+  position: relative;
+}
+.spell-doc-main .spell-page-head > .spell-comment-mark.at-page {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 4px;
+  height: calc(2rem * 1.1);
+}
 /* the stuck headings' background reaches a few px past the column, over the cards' outer 1px borders */
 :is(ui-sticky.spell-h2 > h2, ui-sticky.spell-h3 > h3, .spell-filter, .spell-page-head) {
   margin-inline: -4px;
@@ -362,11 +375,18 @@ ui-button.spell-fold {
 .spell-doc-main ui-section:state(collapsed)::part(fold-icon) {
   rotate: 0deg;
 }
-/* a narrow title wraps its actions and count under its text rather than squeezing the text to a word a line */
+/*
+ * a narrow title keeps its count, actions and fold arrow in place, on its row:  its text runs on under them, fading
+ * out, rather than wrapping them onto a row of their own (Owen, 2026-10-10:  "stay in place and overlap")
+ */
 @media (max-width: 560px) {
-  .spell-doc-main ui-section::part(title) {
-    flex-wrap: wrap;
-    row-gap: 4px;
+  .spell-doc-main ui-section::part(heading) {
+    min-width: 0;
+  }
+  .spell-doc-main ui-section::part(header) {
+    overflow: hidden;
+    white-space: nowrap;
+    mask-image: linear-gradient(to left, transparent, black 20px);
   }
 }
 /* the `open/all` count:  big enough to read at a glance beside a title */
@@ -795,7 +815,8 @@ pre code {
  *   always once the block has comments (`data-count`)
  * - the comments under a block (`.spell-comments`):  each an ivory card (Owen's voice, as a plan doc's Owen reply),
  *   a band ("Owen", its status, the date at the right) that folds it, then the text;  Claude's answers violet
- * - the comment box (`.spell-comment-form`):  a textarea that grows with its text (`growField()`)
+ * - the comment pane (`.spell-comment-pane`):  floating, fixed on the screen;  its header, then a textarea that grows
+ *   with its text (`growField()`)
  */
 .spell-doc-main .spell-comment-mark {
   display: inline-flex;
@@ -809,19 +830,16 @@ pre code {
   z-index: 2;
   height: 0;
 }
+/*
+ * over the block's top right corner, a text block's too:  its text keeps its full width, the bullhorn on the page's
+ * ground over the end of its first line (Owen, 2026-10-10:  overlap, not wrap)
+ */
 .spell-doc-main .spell-comment-mark.at-block > ui-button {
   position: absolute;
   top: 2px;
   right: 2px;
-}
-/* a text block's (a plan doc's field, prose, a list):  floated right, its text wrapping round it, never under it */
-.spell-doc-main .spell-comment-mark.at-block.at-text {
-  float: right;
-  height: auto;
-  margin: 0 0 2px 6px;
-}
-.spell-doc-main .spell-comment-mark.at-text > ui-button {
-  position: static;
+  border-radius: 999px;
+  background: var(--spell-bg);
 }
 .spell-doc-main
   :is(
@@ -974,17 +992,25 @@ pre code {
   letter-spacing: var(--spell-eyebrow-tracking);
 }
 /*
- * the box:  ivory, as the toolbar (Owen's voice), lifted off the page by a shadow (Owen, 2026-10-10:  "make the
- * modal bg beige so it stands out");  it saves as it's typed, so no buttons and no dashed "not saved" border
+ * the PANE (`.spell-comment-pane`, in `main`, fixed on the screen):  small, just under the selection (or the button
+ * clicked), dragged by its header;  the page never scrolls for it (Owen, 2026-10-10:  "a little floating pane ...
+ * don't scroll the page and lose context!").  Ivory, as the toolbar (Owen's voice), lifted off the page by a shadow
+ * (Owen, 2026-10-10:  "make the modal bg beige so it stands out");  it saves as it's typed, so no buttons and no
+ * dashed "not saved" border
  */
-.spell-doc-main .spell-comment-form {
+.spell-doc-main .spell-comment-pane {
+  position: fixed;
+  z-index: 1000;
+  box-sizing: border-box;
+  width: min(380px, calc(100vw - 16px));
   padding: 4px 8px 8px 10px;
   border: 1px solid var(--spell-rail-rule);
   border-radius: 10px;
   background: var(--spell-rail-bg);
-  box-shadow: 0 4px 14px rgb(0 0 0 / 14%);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 22%);
+  outline: none;
 }
-/* its header:  the bullhorn, a few words of what it's on (its tooltip the whole), the floppy, × */
+/* its header:  the bullhorn, a few words of what it's on (its tooltip the whole), the floppy, ×;  drags the pane */
 .spell-doc-main .spell-comment-about {
   display: flex;
   align-items: center;
@@ -992,6 +1018,9 @@ pre code {
   margin: 0 0 4px;
   color: var(--spell-rail-ink);
   font-size: 0.9rem;
+  cursor: move;
+  user-select: none;
+  touch-action: none;
 }
 .spell-doc-main .spell-comment-on {
   flex: 1 1 auto;
@@ -1000,6 +1029,25 @@ pre code {
   font-style: italic;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+/* a comment Claude has, to read:  its state, its text, Claude's answers */
+.spell-doc-main .spell-comment-view {
+  max-height: 50vh;
+  overflow-y: auto;
+}
+.spell-doc-main .spell-comment-status {
+  margin: 0 0 4px;
+  color: var(--spell-muted);
+  font-size: 0.85rem;
+}
+/* a Clear, clicked once:  red until the second click (or 3s) */
+.spell-doc-main .spell-comment-clear[data-armed] {
+  --ui-button-color: var(--ui-red, #db2828);
+  color: var(--ui-red, #db2828);
+}
+/* a comment's quote on the page, under the pointer:  a click opens it */
+.spell-over-quote .spell-doc-main {
+  cursor: pointer;
 }
 /* the floppy:  saved (its tooltip the time), red when the last save failed */
 .spell-doc-main .spell-comment-saved {
