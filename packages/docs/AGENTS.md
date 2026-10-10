@@ -585,14 +585,21 @@ In `tools/`:
       Always shown, with a count, once the block has comments.
   - Or on SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn floating beside the selection.
     - The comment keeps the quote, highlighted softly on the page while the comment exists.
-  - The box opens under the block (Owen, 2026-10-10):  ivory, with no buttons.
+  - The box is a small floating PANE (Owen, 2026-10-10), fixed on the screen:
+    - just under the selection (or the bullhorn clicked);  above it when there's no room below
+    - the page never scrolls for it;  Owen drags it by its header
+    - ivory, with no buttons below the text
     - Its header:  the first words of the selected text (else of the block;  its tooltip names the block),
       a floppy and ×.
     - It saves itself as Owen types:  the floppy shows saved (its tooltip the time), or turns red.
-    - × or Escape closes it.  Closed empty, its comment is deleted.
+    - × or Escape (or ⌘ Enter) closes it.  Opening another saves this one first.
+  - NEVER an empty comment:  emptied, it goes at once (`delete` while it waits for Claude, else `clear`).
+  - A click on a highlighted quote opens its comment in the pane again:
+    - still waiting for Claude:  to edit
+    - taken or answered:  to read, with Claude's answers, and an eraser that clears it (two clicks)
   - Each comment shows under its block as a card, its state by the fill rule:
-    - outlined:  "Saved 14:02 · waiting for Claude"
-    - solid:  "Taken by Claude" / "Answered"
+    - outlined:  "Saved 14:02 · waiting for Claude", with Edit
+    - solid:  "Taken by Claude" / "Answered", with Clear (its ×, two clicks)
     - Claude's answers go under it.
   - Built for reading offline, with no Claude:  only the page server writes them.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
@@ -606,8 +613,8 @@ In `tools/`:
   - a text comment also has its `quote` and `offset`
 - The routes:  [commentsRoutes.ts](tools/commentsRoutes.ts)
   - `GET /api/comments?page=` (`takesComments`, every comment)
-  - `POST /api/comments { page, action: add | edit | delete, ... }`
-    - edit and delete only while `new`
+  - `POST /api/comments { page, action: add | edit | delete | clear, ... }`
+    - edit and delete only while `new`;  clear whatever its state
   - pages under `guides/`, `pages/`, `epics/` (plan docs too)
   - NOT:
     - a plan doc's `parts/`
