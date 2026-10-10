@@ -48,7 +48,6 @@ import {
   REVIEW_LINE,
   REVIEW_NOW,
   SEND,
-  SEND_BAR,
   STACK_PROPERTY,
   STATUS,
   SUBHEAD,
@@ -76,15 +75,15 @@ import crumbsCSS from "./Crumbs.css?inline"
  *     none while the doc still holds its old `.spell-crumbs` before the page;  none narrow, 720px or less, where the
  *     side bar is too narrow for them:  `Crumbs.css`)
  *   - the sticky page header:  the h1 `/epic <name>`, copied on click;
- *     at its right the bedtime label, the step label (the state's icon in it) and the git toggle (Owen,
- *     2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle is) (git icon, but bigger)";  then the
- *     state went into the step label:  "Into the pill")
+ *     at its right, while reviewed, Send and Review Now;  then the bedtime label, the step label (the state's icon in
+ *     it) and the git toggle (Owen, 2026-10-10:  "Right items:  (=>P14) (whatever the half-filled circle is) (git
+ *     icon, but bigger)";  then the state went into the step label:  "Into the pill")
  *   - the epic's title, NOT sticky:  it scrolls away under the header (Owen, 2026-10-10:  "Page sub header ("Output
  *     Targets") should not be sticky")
  *   - the toolbar's bar, sticky again, right below the header (`--epic-head-h`):  the new item form, the toolbar
- *   - the review line, the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`)
+ *   - the review line, and the pill under it while it shows
+ *   - the meta lines (branch, worktree, dates, the durable doc's link from `slot="durable"`)
  *   - a future epic's notice, then its children
- *   - the send bar, stuck to the window's bottom while anything waits to be sent
  * - The step label follows the phases, in the colours of decision Q20:
  *   - the active one (outlined blue:  Claude is on it;  links to it)
  *   - else DONE (solid green) once every phase is done;  else the next one (grey)
@@ -99,18 +98,21 @@ import crumbsCSS from "./Crumbs.css?inline"
  *     a session listening to the review counts as running
  * - The review line under the header:  "To review this doc, type `/epic review <name>`", copied on click (it flashes)
  *   - on every plan doc, as today:  it's how a review starts;  airplane mode:  `/airplane land`
- * - THE SEND BAR (P10;  at the window's bottom since epic `airplane` P8, Owen 2026-10-10):
+ * - SEND AND REVIEW NOW (P10), at the header's right, before its labels:
  *   blue, and wearing the fill rule (Q20).
- *   - only while the page is reviewed (served with a token, its inbox answering:
- *     `ReviewClient`, through a `ReviewState` of its own), and something waits to be sent or asked now
- *   - first, a pill when nobody can take the marks:
- *     no session listening (solid orange, a warning), or airplane mode;  a click copies the review line's command
+ *   - there whenever the page is reviewed (served with a token, its inbox answering:
+ *     `ReviewClient`, through a `ReviewState` of its own), so they're always in the same place;
+ *     grey with nothing to send
+ *   - Owen, 2026-10-10:  "The send + do now icons in bottom-right is too hidden.  Move back to the page header,
+ *     to the left of P11" (epic `airplane` P8 had put them in a bar stuck to the window's bottom)
  *   - Send (paper plane):
  *     a grey outline with nothing to send, dashed blue with marks not sent, outlined blue once sent
  *   - Review Now (wand):  every mark sent and each revisit asked now;
  *     outlined blue while there's anything to work through
  *   - nobody listening:  their tooltips say so (`NOBODY_LISTENING`)
  *   - what a click did goes to the notice line at the window's bottom (`ReviewState`'s)
+ * - THE PILL, under the review line, while marks wait and nobody can take them:
+ *   no session listening (solid orange, a warning), or airplane mode;  a click copies the review line's command
  * - NEW TODO OR QUESTION (epic `airplane` P2), while reviewed:
  *   - the toolbar's comment-dots button opens the form (an `<epic-new-item open>`) on a row of its own
  *     in the toolbar's sticky bar;  saved or cancelled, it closes (`epic-new-closed`)
@@ -323,7 +325,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     }
   })
 
-  /** Where the page's marks stand, for the send bar's buttons;  `undefined` while the page isn't reviewed. */
+  /** Where the page's marks stand, for Send and Review Now;  `undefined` while the page isn't reviewed. */
   readonly marks = createMemo((): HeaderMarks | undefined => {
     const client = this.review.client
     // tracks the client's changes:  every read below follows them
@@ -338,10 +340,10 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     }
   })
 
-  /** What the send bar shows;  `undefined` (no bar) unless reviewed with anything to send or ask now. */
-  readonly sendBarMarks = createMemo((): HeaderMarks | undefined => {
+  /** Does the pill show?  Reviewed, something waits to be sent or asked now, and nobody can take it. */
+  readonly hasPill = createMemo((): boolean => {
     const marks = this.marks()
-    return marks && (marks.unsent || marks.waiting) ? marks : undefined
+    return !!marks && !!(marks.unsent || marks.waiting) && (isAirplane() || !marks.listening)
   })
 
   /**
@@ -467,6 +469,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
             </span>
           </h1>
           <span class={STATUS} part={this.partForName("status")}>
+            <Show when={this.marks()}>{(marks) => this.sendButtons(marks)}</Show>
             <Show when={this.bedtime}>
               {(phases) => (
                 <ui-label
@@ -510,12 +513,12 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
           {this.toolbar()}
         </div>
         {this.reviewLine()}
+        <Show when={this.hasPill()}>{this.pill()}</Show>
         {this.metaLines()}
         <Show when={this.future}>{this.futureNotice()}</Show>
         <Show when={this.planning()}>{this.hungNotice()}</Show>
         <epic-agents part={this.partForName("agents")} />
         <slot />
-        <Show when={this.sendBarMarks()}>{(marks) => this.sendBar(marks)}</Show>
       </div>
     )
   }
@@ -686,31 +689,13 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   }
 
   /**
-   * The SEND BAR:  stuck to the window's bottom while there's anything to send or to ask now (`sendBarMarks()`)
-   * (Owen, 2026-10-10:  "a sticky toolbar at the bottom of the page, which shows up when there are things that are unsent")
-   * - Send (paper plane) and Review Now (wand), blue and wearing the fill rule (Q20), as they were in the header
-   * - first, a pill when nobody can take them:  no Claude session listening (orange), or airplane mode;
-   *   a click copies the review line's command (`/epic review <name>`, `/airplane land`)
+   * Send (paper plane) and Review Now (wand), at the header's right, before its labels.
+   * - blue and wearing the fill rule (Q20);  grey with nothing to send or to work through
+   * - a click on a grey one says so on the notice line (`ReviewClient.send()`)
    */
-  private sendBar(marks: () => HeaderMarks): JSX.Element {
+  private sendButtons(marks: () => HeaderMarks): JSX.Element {
     return (
-      <div
-        class={SEND_BAR}
-        part={this.partForName("send-bar")}
-        role="region"
-        aria-label={this.translationForKey("sendBar")}
-      >
-        <Show when={isAirplane() || !marks().listening}>
-          <button
-            type="button"
-            class={[PILL, { airplane: isAirplane(), flash: this.isCopied }]}
-            part={this.partForName("pill")}
-            title={this.translationForKey("copyCommand")}
-            onClick={() => void this.copyCommand()}
-          >
-            {this.translationForKey(isAirplane() ? "airplanePill" : "nobodyPill")} <code>{this.command()}</code>
-          </button>
-        </Show>
+      <>
         <button
           type="button"
           class={SEND}
@@ -733,7 +718,26 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
         >
           {this.icon(this.icons.reviewNow)}
         </button>
-      </div>
+      </>
+    )
+  }
+
+  /**
+   * The pill under the review line, while marks wait and nobody can take them (`hasPill()`):
+   * no Claude session listening (orange), or airplane mode.
+   * - a click copies the review line's command (`/epic review <name>`, `/airplane land`)
+   */
+  private pill(): JSX.Element {
+    return (
+      <button
+        type="button"
+        class={[PILL, { airplane: isAirplane(), flash: this.isCopied }]}
+        part={this.partForName("pill")}
+        title={this.translationForKey("copyCommand")}
+        onClick={() => void this.copyCommand()}
+      >
+        {this.translationForKey(isAirplane() ? "airplanePill" : "nobodyPill")} <code>{this.command()}</code>
+      </button>
     )
   }
 
@@ -763,7 +767,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   /**
    * The review line:  `To review this doc, type /epic review <name>` (in airplane mode `/airplane land`).
    * - a click copies the command
-   * - nobody listening:  the send bar's pill says so (`sendBar()`), and copies it too
+   * - nobody listening:  the pill under it says so (`pill()`), and copies it too
    */
   private reviewLine(): JSX.Element {
     return (

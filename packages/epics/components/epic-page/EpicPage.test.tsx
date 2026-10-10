@@ -369,7 +369,7 @@ async function adoptClient(routes: FakeRoutes, { served = true } = {}) {
   return client
 }
 
-/** `host`'s Send and Review Now buttons, in its send bar:  `[state, tooltip]` each;  `null` when not drawn. */
+/** `host`'s Send and Review Now buttons, in its header:  `[state, tooltip]` each;  `null` when not drawn. */
 function headerButtons(host: Element) {
   const read = (part: string) => {
     const button = host.shadowRoot!.querySelector<HTMLButtonElement>(`[part~="${part}"]`)
@@ -393,16 +393,21 @@ describe("<epic-page> Send and Review Now", () => {
     expect(host.shadowRoot!.querySelector('[part~="new-button"]')).toBeNull()
   })
 
-  test("in a bar STUCK to the window's bottom while marks wait:  dashed blue unsent, a click sends, then outlined;  nobody listening:  the pill and the tooltips say so", async () => {
+  // Owen, 2026-10-10:  "The send + do now icons in bottom-right is too hidden.  Move back to the page header, to the
+  // left of P11"
+  test("in the header, left of the step label:  dashed blue unsent, a click sends, then outlined;  nobody listening:  the pill under the review line and the tooltips say so", async () => {
     const routes = new FakeRoutes()
     const at = new Date().toISOString()
     routes.inbox.marks = { q1: { action: "approve", at }, q2: { action: "revisit", when: "soon", note: "hm", at } }
     const client = await adoptClient(routes)
     const host = await render(page("", ["todo"]))
     await vi.waitFor(() => expect(headerButtons(host).send).not.toBeNull())
-    const bar = host.shadowRoot!.querySelector<HTMLElement>('[part~="send-bar"]')!
-    expect(getComputedStyle(bar).position).toBe("sticky")
-    expect(host.shadowRoot!.querySelector('header [part~="send"]')).toBeNull()
+    expect(host.shadowRoot!.querySelector('[part~="send-bar"]')).toBeNull()
+    expect(
+      Array.from(host.shadowRoot!.querySelector('header [part~="status"]')!.children, (child) =>
+        child.localName === "ui-label" ? "step" : child.getAttribute("part")
+      )
+    ).toEqual(["send", "review-now", "step"])
     expect(headerButtons(host)).toEqual({
       send: ["unsent", `Send 2 marks to Claude${NOBODY}`],
       now: ["ready", `Review Now:  Claude works through 2 marks at once, answers in their items${NOBODY}`]
@@ -410,13 +415,14 @@ describe("<epic-page> Send and Review Now", () => {
     const send = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="send"]')!
     // the fill rule (Q20):  pressed marks not sent, dashed;  sent, outlined
     expect(getComputedStyle(send).borderTopStyle).toBe("dashed")
-    const pill = bar.querySelector<HTMLElement>('[part~="pill"]')!
+    const pill = host.shadowRoot!.querySelector<HTMLElement>('[part~="pill"]')!
     expect(pill.textContent!.replace(/\s+/g, " ")).toContain(
       "No Claude session is reviewing: start one with /epic review demo"
     )
     expect(getComputedStyle(pill).backgroundColor).not.toMatch(/^rgba\(0, 0, 0, 0\)$|^transparent$/)
-    // the review line says nothing of it any more
+    // right under the review line, which says nothing of it itself
     const line = host.shadowRoot!.querySelector<HTMLElement>('[part~="review-line"]')!
+    expect(line.nextElementSibling).toBe(pill)
     expect(line.textContent).not.toContain("No Claude session")
     send.click()
     await vi.waitFor(() => expect(routes.posts.map(([route]) => route)).toEqual(["send"]))
@@ -447,7 +453,7 @@ describe("<epic-page> Send and Review Now", () => {
   })
 
   // epic `airplane` P2;  in the toolbar since P8
-  test("the toolbar's comment-dots button opens the new item form in the toolbar's bar;  Add saves a todo, and the send bar shows it", async () => {
+  test("the toolbar's comment-dots button opens the new item form in the toolbar's bar;  Add saves a todo, and Send shows it", async () => {
     const routes = new FakeRoutes()
     // listening:  the orange pill has a contrast issue of its own (axe), not this test's
     const at = new Date().toISOString()
@@ -459,8 +465,12 @@ describe("<epic-page> Send and Review Now", () => {
     expect(button.title).toBe("New todo or question")
     expect(button.closest('[part~="toolbar"]')).not.toBeNull()
     expect(button.querySelector("ui-icon")!.getAttribute("name")).toBe("comment dots")
-    // nothing waiting:  no send bar
-    expect(headerButtons(host)).toEqual({ send: null, now: null })
+    // nothing waiting:  both there, grey (so they're always in the same place), and no pill
+    expect(headerButtons(host)).toEqual({
+      send: ["idle", "Nothing to send:  mark an item first (its buttons)"],
+      now: ["idle", "Review Now:  nothing to work through yet"]
+    })
+    expect(host.shadowRoot!.querySelector('[part~="pill"]')).toBeNull()
     button.click()
     await ElementFixture.tick()
     expect(button.getAttribute("aria-expanded")).toBe("true")
