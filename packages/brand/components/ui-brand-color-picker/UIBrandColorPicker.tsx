@@ -1,20 +1,8 @@
-import { For, Show, createEffect, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  after,
-  Cell,
-  IconGlyph,
-  proto,
-  protoMerged,
-  SlotContent,
-  untracked,
-  type CancelablePromise,
-  type FieldValue,
-  type ElementSetup,
-  type AttributeValues
-} from "$/ui/core"
-import { FormComponent } from "$/ui/forms"
+import { E } from "$/ui/core"
+import { F } from "$/ui/forms"
 import { Palette, type Hsl, type Oklch } from "$/brand"
 
 import { brandColorPickerVocabulary } from "./UIBrandColorPicker.en"
@@ -72,126 +60,100 @@ import pickerCSS from "./UIBrandColorPicker.css?inline"
  *   - Enter or leaving the field commits (`ui-change`) and shows the value again;  Escape drops the draft.
  * - Copy buttons:  `hsl(250 54% 55%)` (the HSL row as shown), `#RRGGBB`, `oklch(52.0% 0.181 286)` to the clipboard,
  *   then `ui-copy`, a check for `COPIED_MS`, and "Copied ..." announced.  A refused clipboard write does nothing.
- * - `value` is controlled (`Controlled`) and reflects;  a `ui-input` handler that sets it again wins.
+ * - `value` is controlled (`@E.controlled`) and reflects;  a `ui-input` handler that sets it again wins.
  *   - Its FIRST attribute value is the form's reset value.
  *   - Changes from outside redraw without events.
  * - A form control:  it submits `value` under `name`.
  ****************/
-export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary> {
-  @proto static vocabulary = brandColorPickerVocabulary
-  @protoMerged static elementSetup = {
+export class UIBrandColorPicker extends F.FormComponent<BrandColorPickerVocabulary> {
+  @E.proto static vocabulary = brandColorPickerVocabulary
+  @E.protoMerged static elementSetup = {
     styleSheets: { picker: pickerCSS },
     Fallback: BrandColorPickerFallback
-  } satisfies Partial<ElementSetup>
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
-  // ## State
+  // ## The colour
   ////////////////
 
-  /** `value`:  set by the page, or picked;  `DEFAULT_VALUE` until either. */
-  readonly valueState = this.controlled("value", undefined)
+  /** `value`:  set by the page, or picked;  none until either (`hex` is then `DEFAULT_VALUE`). */
+  @E.controlled("value") accessor value: string | undefined = undefined
 
-  /** The colour being edited, HSL (see the class doc). */
-  readonly working = new Cell<Hsl>(untrack(() => Palette.hexToHsl(this.hex())))
-
-  /** Text typed in the fields and not committed yet. */
-  readonly drafts = new Cell<Drafts>({})
-
-  /** The square's marker is being dragged. */
-  readonly dragging = new Cell(false)
-
-  /** What was just copied (its row and text), `undefined` once the check has gone. */
-  readonly copied = new Cell<{ format: CopyFormat; value: string } | undefined>(undefined)
-
-  /** Light-DOM slot occupancy:  header, actions, the default slot. */
-  readonly slots = new SlotContent(this.domElement)
-
-  /** Each row's copy icon and check, loaded up front so the check shows at once. */
-  readonly glyphs = {
-    hsl: this.copyGlyphs(),
-    hex: this.copyGlyphs(),
-    oklch: this.copyGlyphs()
+  /** The colour, `#RRGGBB`:  `value` read as `Palette.parse()` reads it, else `DEFAULT_VALUE`. */
+  get hex(): string {
+    const value = this.value
+    return (typeof value === "string" ? Palette.parse(value) : undefined) ?? DEFAULT_VALUE
   }
 
-  /** `value` when the element was created:  the form's reset value. */
-  private readonly initialValue = untrack(() => this.value)
+  /** The colour being edited, HSL (see the class doc). */
+  @E.state accessor working: Hsl = Palette.hexToHsl(this.hex)
 
-  // NOTE:  plain mirrors of the cells, for handlers:  a cell's write lands on a microtask, and two events can arrive
-  // before it (a test, a fast drag)
-
-  /** `working`, now. */
-  private latest: Hsl = untrack(() => this.working.get())
-
-  /** `value`, now. */
-  private latestHex = untrack(() => this.hex())
+  /**
+   * `value` as the picker last knew it:  its own edits, and the outside sets it followed.
+   * - A new `hex` that isn't this one came from outside (`onHexChanged()`).
+   */
+  private latestHex = this.hex
 
   /** `value` at the last `ui-change` (or outside set):  a commit fires only when it differs. */
   private committedHex = this.latestHex
 
-  /** `drafts`, now. */
-  private latestDrafts: Drafts = {}
-
-  /** The square:  pointer target, and what pointer positions are measured against. */
-  private plane?: HTMLElement
-
-  /** The square's Saturation slider:  its tab stop, focused on a press. */
-  private saturationInput?: HTMLInputElement
-
-  /** Pointer dragging the marker, if any. */
-  private dragPointer?: number
-
-  /** Timer clearing `copied`. */
-  private copiedTimer: CancelablePromise<unknown> | undefined
-
-  ////////////////
-  // ## Values
-  ////////////////
-
-  /** The colour, `#RRGGBB`:  `value` read as `Palette.parse()` reads it, else `DEFAULT_VALUE`;  tracked. */
-  hex(): string {
-    const value = this.valueState.get()
-    return (typeof value === "string" ? Palette.parse(value) : undefined) ?? DEFAULT_VALUE
+  /**
+   * Edit the colour to `next` as the user:  send `ui-input` when `value` changes, then set the DOM element's
+   * property, unless a handler set it first (then the edit is undone).
+   */
+  @E.untracked
+  private move(next: Hsl, originalEvent: Event) {
+    const previous = this.working
+    this.working = next
+    const hex = Palette.hslToHex(next)
+    if (hex === this.latestHex) return
+    const applied = this.requestChange("value", hex, () => this.send("ui-input", { value: hex, originalEvent }))
+    if (applied) this.latestHex = hex
+    else this.working = previous
   }
 
-  protected get extraClass(): string | undefined {
-    return BRAND_COLOR
+  /** Commit:  `ui-change` if `value` differs from the last commit. */
+  private commit(originalEvent: Event) {
+    if (this.latestHex === this.committedHex) return
+    this.committedHex = this.latestHex
+    this.send("ui-change", { value: this.latestHex, originalEvent })
   }
 
-  protected cssStates() {
-    return { dragging: this.dragging.get(), copied: !!this.copied.get() }
+  /** `value` changed:  from outside (not one of our own edits), follow it without events. */
+  @E.onChange("hex")
+  protected onHexChanged(hex: string) {
+    if (hex === this.latestHex) return
+    this.latestHex = hex
+    this.committedHex = hex
+    if (hex !== Palette.hslToHex(this.working)) this.working = UIBrandColorPicker.fromHex(hex, this.working)
   }
 
   ////////////////
   // ## Form
   ////////////////
 
-  get formValue(): FieldValue {
-    return this.hex()
+  /** `value` when the element was created:  the form's reset value. */
+  private readonly initialValue = this.value
+
+  get formValue(): E.FieldValue {
+    return this.hex
   }
 
   /** Back to the first `value`. */
   onFormReset() {
-    this.valueState.set(this.initialValue)
-  }
-
-  ////////////////
-  // ## Wiring
-  ////////////////
-
-  /** Adds following outside `value` changes. */
-  onMount(): JSX.Element {
-    createEffect(
-      () => this.hex(),
-      (hex) => {
-        this.adopt(hex)
-      }
-    )
-    return super.onMount()
+    this.value = this.initialValue
   }
 
   ////////////////
   // ## Rendering
   ////////////////
+
+  /** Light-DOM slot occupancy:  header, actions, the default slot. */
+  readonly slots = new E.SlotContent(this.domElement)
+
+  protected get extraClass(): string | undefined {
+    return BRAND_COLOR
+  }
 
   render(): JSX.Element {
     return (
@@ -202,15 +164,15 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
         aria-label={this.groupName()}
         style={this.colorStyle()}
       >
-        {this.renderHead()}
+        {this.head()}
         {/* the hue first:  it picks the square's colour (Owen, 2026-10-04) */}
-        {this.renderHue()}
-        {this.renderPlane()}
+        {this.hueSlider()}
+        {this.square()}
         <div class={CLASSES.rows}>
-          <For each={ROWS}>{(row) => this.renderRow(row)}</For>
+          <For each={ROWS}>{(row) => this.formatRow(row)}</For>
         </div>
         <span class={CLASSES.status} role="status">
-          {this.copied.get() ? this.translationForKey("copied", { value: this.copied.get()!.value }) : ""}
+          {this.copied ? this.translationForKey("copied", { value: this.copied.value }) : ""}
         </span>
         <Show when={this.slots.hasContent("")}>
           <div class={CLASSES.families} part={this.partForName("families")}>
@@ -222,14 +184,14 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   }
 
   /** The head row:  chip, the `header` slot over the hex, the `actions` slot at the far end. */
-  private renderHead(): JSX.Element {
+  private head(): JSX.Element {
     return (
       <div class={CLASSES.head} part={this.partForName("head")}>
         <span class={CLASSES.chip} part={this.partForName("chip")} aria-hidden="true" />
         <span class={CLASSES.readout}>
           <slot name={this.slotForName("header")} />
           <span class={CLASSES.hex} part={this.partForName("hex")}>
-            {this.hex()}
+            {this.hex}
           </span>
         </span>
         <Show when={this.slots.hasContent(this.slotForName("actions"))}>
@@ -241,16 +203,58 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     )
   }
 
+  /**
+   * The root's inline tokens:  the marker's place (ratios), the hue, the current colour.
+   * - A method, not an inline object:  Solid's server compile drops the `;` between COMPUTED keys.
+   */
+  private colorStyle(): Record<string, string> {
+    const { h, s, l } = this.working
+    return {
+      [VARS.x]: String(s),
+      [VARS.y]: String(1 - l),
+      [VARS.hue]: String(h),
+      [VARS.color]: this.hex
+    }
+  }
+
+  /** The group's name:  `label`, else what names the DOM element, else "Colour". */
+  private groupName(): string {
+    return this.label ?? this.labels.accessibleName ?? this.translationForKey("group")
+  }
+
+  /** `amount` (0-1) as a whole percentage. */
+  private percent(amount: number): number {
+    return Math.round(amount * 100)
+  }
+
+  ////////////////
+  // ## The square
+  ////////////////
+
+  /** The square's marker is being dragged. */
+  @E.cssState("dragging")
+  @E.state
+  accessor isDragging = false
+
+  /** The square:  pointer target, and what pointer positions are measured against. */
+  private plane?: HTMLElement
+
+  /** The square's Saturation slider:  its tab stop, focused on a press. */
+  private saturationInput?: HTMLInputElement
+
+  /** Pointer dragging the marker, if any. */
+  private dragPointer?: number
+
   /** The square:  heading + readout, the gradients, the marker, its two hidden sliders. */
-  private renderPlane(): JSX.Element {
+  private square(): JSX.Element {
     return (
       <div class={CLASSES.section}>
         <span class={CLASSES.label}>
           <span id="plane-label">{this.translationForKey("plane")}</span>
           <span class={CLASSES.value} aria-hidden="true">
             {this.translationForKey("planeValue", {
-              s: this.percent(this.working.get().s),
-              l: this.percent(this.working.get().l)
+              s: this.percent(this.working.s),
+              l: this.percent(this.working.l)
             })}
           </span>
         </span>
@@ -266,16 +270,16 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
           onPointerCancel={this.onPointerUp}
         >
           <span class={CLASSES.marker} part={this.partForName("marker")} aria-hidden="true" />
-          {this.renderAxis("s")}
-          {this.renderAxis("l")}
+          {this.axisSlider("s")}
+          {this.axisSlider("l")}
         </div>
       </div>
     )
   }
 
   /** One of the square's hidden sliders:  Saturation (the tab stop) or Lightness. */
-  private renderAxis(axis: "s" | "l"): JSX.Element {
-    const amount = () => this.percent(this.working.get()[axis])
+  private axisSlider(axis: "s" | "l"): JSX.Element {
+    const amount = () => this.percent(this.working[axis])
     return (
       <input
         ref={axis === "s" ? (element: HTMLInputElement) => (this.saturationInput = element) : undefined}
@@ -297,233 +301,8 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     )
   }
 
-  /** The hue slider, a native range on the HSL rainbow (the sheet's). */
-  private renderHue(): JSX.Element {
-    const hue = () => Math.round(this.working.get().h)
-    return (
-      <div class={CLASSES.section}>
-        <span class={CLASSES.label} aria-hidden="true">
-          <span>{this.translationForKey("hue")}</span>
-          <span class={CLASSES.value}>{this.translationForKey("hueValue", { h: hue() % 360 })}</span>
-        </span>
-        <input
-          class={CLASSES.hue}
-          part={this.partForName("hue")}
-          type="range"
-          min="0"
-          max="360"
-          step="1"
-          value={String(hue())}
-          aria-label={this.translationForKey("hue")}
-          aria-valuetext={this.translationForKey("hueValue", { h: hue() % 360 })}
-          disabled={this.isDisabled}
-          onInput={this.onHueInput}
-          onChange={this.onCommit}
-        />
-      </div>
-    )
-  }
-
-  /** A format row:  its label, its inputs joined in one box, its copy button. */
-  private renderRow(row: Row): JSX.Element {
-    const labelId = `${row.format}-label`
-    const glyphs = this.glyphs[row.format]
-    const justCopied = () => this.copied.get()?.format === row.format
-    return (
-      <div class={CLASSES.row} part={this.partForName("row")} role="group" aria-labelledby={labelId}>
-        <span id={labelId} class={CLASSES.rowLabel}>
-          {this.translationForKey(row.label)}
-        </span>
-        <span
-          class={[
-            CLASSES.field,
-            row.format,
-            { [CLASSES.error]: row.fields.some((field) => this.isInvalid(field.key)) }
-          ]}
-        >
-          <For each={row.fields}>{(field) => this.renderField(row, field)}</For>
-        </span>
-        <button
-          type="button"
-          class={[CLASSES.copy, { [CLASSES.copied]: justCopied() }]}
-          part={this.partForName("copy")}
-          aria-label={this.translationForKey("copy", { format: this.translationForKey(row.label) })}
-          disabled={this.isDisabled}
-          onClick={(event) => void this.copy(row.format, event)}
-        >
-          <Show when={justCopied()} fallback={glyphs.copy.svg}>
-            {glyphs.check.svg}
-          </Show>
-        </button>
-      </div>
-    )
-  }
-
-  /** One input of a row, and its unit. */
-  private renderField(row: Row, field: RowField): JSX.Element {
-    const key = field.key
-    return (
-      <span class={[CLASSES.segment, key, { [CLASSES.error]: this.isInvalid(key) }]}>
-        <input
-          class={CLASSES.input}
-          part={this.partForName(row.format === "hex" ? "rgb" : row.format)}
-          type="text"
-          inputmode={key === "rgb" ? undefined : "decimal"}
-          spellcheck="false"
-          autocomplete="off"
-          placeholder={key === "rgb" ? this.translationForKey("rgbPlaceholder") : undefined}
-          aria-label={this.translationForKey(key === "rgb" ? "rgb" : key)}
-          title={key === "rgb" ? undefined : this.translationForKey(key)}
-          value={this.drafts.get()[key] ?? this.fieldText(key)}
-          aria-invalid={this.isInvalid(key) ? "true" : undefined}
-          disabled={this.isDisabled}
-          onInput={(event) => this.onTextInput(key, event)}
-          onKeyDown={(event) => this.onTextKeyDown(key, event)}
-          onFocusOut={(event) => this.commitText(key, event)}
-        />
-        <Show when={field.suffix}>
-          <span class={CLASSES.suffix} aria-hidden="true">
-            {field.suffix}
-          </span>
-        </Show>
-      </span>
-    )
-  }
-
-  /**
-   * The root's inline tokens:  the marker's place (ratios), the hue, the current colour.
-   * - A method, not an inline object:  Solid's server compile drops the `;` between COMPUTED keys.
-   */
-  private colorStyle(): Record<string, string> {
-    const { h, s, l } = this.working.get()
-    return {
-      [VARS.x]: String(s),
-      [VARS.y]: String(1 - l),
-      [VARS.hue]: String(h),
-      [VARS.color]: this.hex()
-    }
-  }
-
-  /** The group's name:  `label`, else what names the DOM element, else "Colour". */
-  private groupName(): string {
-    return this.label ?? this.labels.accessibleName ?? this.translationForKey("group")
-  }
-
-  /** What field `key` shows while not typed in:  HSL from `working`, the hex and OKLCH from `value`;  tracked. */
-  private fieldText(key: FieldKey): string {
-    const { h, s, l } = this.working.get()
-    if (key === "hslH") return String(Math.round(h) % 360)
-    if (key === "hslS") return String(this.percent(s))
-    if (key === "hslL") return String(this.percent(l))
-    const hex = this.hex()
-    if (key === "rgb") return hex
-    const oklch = Palette.hexToOklch(hex)
-    if (key === "oklchL") return (oklch.l * 100).toFixed(1)
-    // a grey's chroma is a rounding error away from 0:  never `-0.000`
-    if (key === "oklchC") return (oklch.c < 0.0005 ? 0 : oklch.c).toFixed(3)
-    return Math.round(oklch.h).toFixed(0)
-  }
-
-  /** Is field `key`'s draft unreadable?  Tracked. */
-  private isInvalid(key: FieldKey): boolean {
-    const draft = this.drafts.get()[key]
-    if (draft === undefined) return false
-    return key === "rgb" ? !Palette.parse(draft) : !Number.isFinite(UIBrandColorPicker.number(draft))
-  }
-
-  /** `amount` (0-1) as a whole percentage. */
-  private percent(amount: number): number {
-    return Math.round(amount * 100)
-  }
-
-  /** A copy icon and a check, for one row's button. */
-  private copyGlyphs(): { copy: IconGlyph; check: IconGlyph } {
-    return {
-      copy: new IconGlyph({ owner: this, name: () => COPY_ICON }),
-      check: new IconGlyph({ owner: this, name: () => COPIED_ICON })
-    }
-  }
-
-  ////////////////
-  // ## Changes
-  ////////////////
-
-  /**
-   * Edit the colour to `next` as the user:  send `ui-input` when `value` changes, then set the DOM element's
-   * property, unless a handler set it first (then the edit is undone).
-   */
-  private move(next: Hsl, originalEvent: Event) {
-    const previous = this.latest
-    this.setWorking(next)
-    const hex = Palette.hslToHex(next)
-    if (hex === this.latestHex) return
-    const applied = this.valueState.request(hex, () => this.send("ui-input", { value: hex, originalEvent }))
-    if (applied) this.latestHex = hex
-    else this.setWorking(previous)
-  }
-
-  /** Commit:  `ui-change` if `value` differs from the last commit. */
-  private commit(originalEvent: Event) {
-    if (this.latestHex === this.committedHex) return
-    this.committedHex = this.latestHex
-    this.send("ui-change", { value: this.latestHex, originalEvent })
-  }
-
-  /** `value` changed:  from outside (not one of our own edits), follow it without events. */
-  private adopt(hex: string) {
-    if (hex === this.latestHex) return
-    this.latestHex = hex
-    this.committedHex = hex
-    if (hex !== Palette.hslToHex(this.latest)) this.setWorking(UIBrandColorPicker.fromHex(hex, this.latest))
-  }
-
-  /** Write `working` and its mirror. */
-  private setWorking(color: Hsl) {
-    this.latest = color
-    this.working.set(color)
-  }
-
-  /** Write `drafts` and its mirror. */
-  private setDrafts(drafts: Drafts) {
-    this.latestDrafts = drafts
-    this.drafts.set(drafts)
-  }
-
-  ////////////////
-  // ## Copying
-  ////////////////
-
-  /** What row `format`'s button copies:  the HSL row as shown, the hex, or `Palette.format()`'s OKLCH. */
-  private copyText(format: CopyFormat): string {
-    if (format === "hsl") return Palette.formatHsl(this.latest)
-    return Palette.format(this.latestHex, format)
-  }
-
-  /**
-   * A copy button:  write the clipboard, then `ui-copy`, the check and the announcement.
-   * - SIDE EFFECT:  writes the clipboard;  a refused write (no permission) does nothing.
-   */
-  @untracked
-  private async copy(format: CopyFormat, originalEvent: MouseEvent) {
-    if (this.isDisabled) return
-    const value = this.copyText(format)
-    try {
-      await navigator.clipboard.writeText(value)
-    } catch {
-      return
-    }
-    this.copied.set({ format, value })
-    this.send("ui-copy", { value, format, originalEvent })
-    this.copiedTimer?.cancel()
-    this.copiedTimer = after(COPIED_MS / 1000, () => this.copied.set(undefined))
-  }
-
-  ////////////////
-  // ## Handlers
-  ////////////////
-
   /** Press on the square:  the marker jumps there and is dragged;  the square takes focus. */
-  @untracked
+  @E.untracked
   private readonly onPointerDown = (event: PointerEvent) => {
     if (event.button !== 0 || this.isDisabled || !this.plane) return
     event.preventDefault()
@@ -533,7 +312,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     } catch {
       // not an active pointer (a synthetic event):  moves arrive only while over the square
     }
-    this.dragging.set(true)
+    this.isDragging = true
     this.saturationInput?.focus({ preventScroll: true })
     this.pick(event)
   }
@@ -548,7 +327,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     if (this.dragPointer !== event.pointerId) return
     this.dragPointer = undefined
     if (this.plane?.hasPointerCapture(event.pointerId)) this.plane.releasePointerCapture(event.pointerId)
-    this.dragging.set(false)
+    this.isDragging = false
     this.commit(event)
   }
 
@@ -557,11 +336,11 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     const box = this.plane!.getBoundingClientRect()
     const x = Math.min(1, Math.max(0, (event.clientX - box.left) / box.width))
     const y = Math.min(1, Math.max(0, (event.clientY - box.top) / box.height))
-    this.move({ h: this.latest.h, s: x, l: 1 - y }, event)
+    this.move({ h: this.working.h, s: x, l: 1 - y }, event)
   }
 
   /** A key on the square's sliders (see the class doc):  `ui-input`, then `ui-change`. */
-  @untracked
+  @E.untracked
   private readonly onPlaneKeyDown = (event: KeyboardEvent) => {
     const next = this.keyMove(event)
     if (!next) return
@@ -573,7 +352,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
 
   /** Where key `event` moves the colour, or `undefined` for other keys. */
   private keyMove(event: KeyboardEvent): Hsl | undefined {
-    const { h, s, l } = this.latest
+    const { h, s, l } = this.working
     const step = event.shiftKey ? STEPS.big : STEPS.small
     const at = UIBrandColorPicker.onPlane
     switch (event.key) {
@@ -601,13 +380,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   /** A square slider's own `input` (an assistive technology's increment):  its axis to its value. */
   private onAxisInput(axis: "s" | "l", event: Event) {
     const value = (event.currentTarget as HTMLInputElement).valueAsNumber
-    if (Number.isFinite(value)) this.move({ ...this.latest, [axis]: value / 100 }, event)
-  }
-
-  /** The hue slider moved;  `360` stays `360` (not `0`), so the thumb stays at the end it was dragged to. */
-  private readonly onHueInput = (event: Event) => {
-    const hue = (event.currentTarget as HTMLInputElement).valueAsNumber
-    if (Number.isFinite(hue)) this.move({ ...this.latest, h: hue }, event)
+    if (Number.isFinite(value)) this.move({ ...this.working, [axis]: value / 100 }, event)
   }
 
   /** A native `change` (the hue slider released, a square slider's increment):  commit. */
@@ -615,10 +388,142 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     this.commit(event)
   }
 
+  ////////////////
+  // ## The hue slider
+  ////////////////
+
+  /** The hue slider, a native range on the HSL rainbow (the sheet's). */
+  private hueSlider(): JSX.Element {
+    const hue = () => Math.round(this.working.h)
+    return (
+      <div class={CLASSES.section}>
+        <span class={CLASSES.label} aria-hidden="true">
+          <span>{this.translationForKey("hue")}</span>
+          <span class={CLASSES.value}>{this.translationForKey("hueValue", { h: hue() % 360 })}</span>
+        </span>
+        <input
+          class={CLASSES.hue}
+          part={this.partForName("hue")}
+          type="range"
+          min="0"
+          max="360"
+          step="1"
+          value={String(hue())}
+          aria-label={this.translationForKey("hue")}
+          aria-valuetext={this.translationForKey("hueValue", { h: hue() % 360 })}
+          disabled={this.isDisabled}
+          onInput={this.onHueInput}
+          onChange={this.onCommit}
+        />
+      </div>
+    )
+  }
+
+  /** The hue slider moved;  `360` stays `360` (not `0`), so the thumb stays at the end it was dragged to. */
+  private readonly onHueInput = (event: Event) => {
+    const hue = (event.currentTarget as HTMLInputElement).valueAsNumber
+    if (Number.isFinite(hue)) this.move({ ...this.working, h: hue }, event)
+  }
+
+  ////////////////
+  // ## The rows
+  ////////////////
+
+  /** Text typed in the fields and not committed yet. */
+  @E.state accessor drafts: Drafts = {}
+
+  /** A format row:  its label, its inputs joined in one box, its copy button. */
+  private formatRow(row: Row): JSX.Element {
+    const labelId = `${row.format}-label`
+    const glyphs = this.glyphs[row.format]
+    const justCopied = () => this.copied?.format === row.format
+    return (
+      <div class={CLASSES.row} part={this.partForName("row")} role="group" aria-labelledby={labelId}>
+        <span id={labelId} class={CLASSES.rowLabel}>
+          {this.translationForKey(row.label)}
+        </span>
+        <span
+          class={[
+            CLASSES.field,
+            row.format,
+            { [CLASSES.error]: row.fields.some((field) => this.isInvalid(field.key)) }
+          ]}
+        >
+          <For each={row.fields}>{(field) => this.fieldInput(row, field)}</For>
+        </span>
+        <button
+          type="button"
+          class={[CLASSES.copy, { [CLASSES.copied]: justCopied() }]}
+          part={this.partForName("copy")}
+          aria-label={this.translationForKey("copy", { format: this.translationForKey(row.label) })}
+          disabled={this.isDisabled}
+          onClick={(event) => void this.copy(row.format, event)}
+        >
+          <Show when={justCopied()} fallback={glyphs.copy.svg}>
+            {glyphs.check.svg}
+          </Show>
+        </button>
+      </div>
+    )
+  }
+
+  /** One input of a row, and its unit. */
+  private fieldInput(row: Row, field: RowField): JSX.Element {
+    const key = field.key
+    return (
+      <span class={[CLASSES.segment, key, { [CLASSES.error]: this.isInvalid(key) }]}>
+        <input
+          class={CLASSES.input}
+          part={this.partForName(row.format === "hex" ? "rgb" : row.format)}
+          type="text"
+          inputmode={key === "rgb" ? undefined : "decimal"}
+          spellcheck="false"
+          autocomplete="off"
+          placeholder={key === "rgb" ? this.translationForKey("rgbPlaceholder") : undefined}
+          aria-label={this.translationForKey(key === "rgb" ? "rgb" : key)}
+          title={key === "rgb" ? undefined : this.translationForKey(key)}
+          value={this.drafts[key] ?? this.fieldText(key)}
+          aria-invalid={this.isInvalid(key) ? "true" : undefined}
+          disabled={this.isDisabled}
+          onInput={(event) => this.onTextInput(key, event)}
+          onKeyDown={(event) => this.onTextKeyDown(key, event)}
+          onFocusOut={(event) => this.commitText(key, event)}
+        />
+        <Show when={field.suffix}>
+          <span class={CLASSES.suffix} aria-hidden="true">
+            {field.suffix}
+          </span>
+        </Show>
+      </span>
+    )
+  }
+
+  /** What field `key` shows while not typed in:  HSL from `working`, the hex and OKLCH from `value`;  tracked. */
+  private fieldText(key: FieldKey): string {
+    const { h, s, l } = this.working
+    if (key === "hslH") return String(Math.round(h) % 360)
+    if (key === "hslS") return String(this.percent(s))
+    if (key === "hslL") return String(this.percent(l))
+    const hex = this.hex
+    if (key === "rgb") return hex
+    const oklch = Palette.hexToOklch(hex)
+    if (key === "oklchL") return (oklch.l * 100).toFixed(1)
+    // a grey's chroma is a rounding error away from 0:  never `-0.000`
+    if (key === "oklchC") return (oklch.c < 0.0005 ? 0 : oklch.c).toFixed(3)
+    return Math.round(oklch.h).toFixed(0)
+  }
+
+  /** Is field `key`'s draft unreadable?  Tracked. */
+  private isInvalid(key: FieldKey): boolean {
+    const draft = this.drafts[key]
+    if (draft === undefined) return false
+    return key === "rgb" ? !Palette.parse(draft) : !Number.isFinite(UIBrandColorPicker.number(draft))
+  }
+
   /** A keystroke in field `key`:  keep the draft;  if it reads as a colour, edit to it. */
   private onTextInput(key: FieldKey, event: Event) {
     const text = (event.currentTarget as HTMLInputElement).value
-    this.setDrafts({ ...this.latestDrafts, [key]: text })
+    this.drafts = { ...this.drafts, [key]: text }
     const next = this.readDraft(key, text)
     if (next) this.move(next, event)
   }
@@ -628,7 +533,7 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     if (event.key === KEYS.enter) {
       event.preventDefault()
       this.commitText(key, event)
-    } else if (event.key === KEYS.escape && this.latestDrafts[key] !== undefined) {
+    } else if (event.key === KEYS.escape && this.drafts[key] !== undefined) {
       event.preventDefault()
       this.dropDraft(key)
     }
@@ -636,26 +541,26 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
 
   /** Commit field `key` (Enter, leaving it):  drop its draft (an unreadable one reverts), then commit. */
   private commitText(key: FieldKey, event: Event) {
-    if (this.latestDrafts[key] === undefined) return
+    if (this.drafts[key] === undefined) return
     this.dropDraft(key)
     this.commit(event)
   }
 
   /** Forget field `key`'s draft:  it shows the value again. */
   private dropDraft(key: FieldKey) {
-    const { [key]: _dropped, ...rest } = this.latestDrafts
-    this.setDrafts(rest)
+    const { [key]: _dropped, ...rest } = this.drafts
+    this.drafts = rest
   }
 
   /** The colour field `key`'s `text` asks for, or `undefined` if it can't be read. */
   private readDraft(key: FieldKey, text: string): Hsl | undefined {
     if (key === "rgb") {
       const hex = Palette.parse(text)
-      return hex ? UIBrandColorPicker.fromHex(hex, this.latest) : undefined
+      return hex ? UIBrandColorPicker.fromHex(hex, this.working) : undefined
     }
     const number = UIBrandColorPicker.number(text)
     if (!Number.isFinite(number)) return undefined
-    const { h, s, l } = this.latest
+    const { h, s, l } = this.working
     const at = UIBrandColorPicker.onPlane
     if (key === "hslH") return at(number, s, l)
     if (key === "hslS") return at(h, number / 100, l)
@@ -664,7 +569,63 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
     if (key === "oklchL") oklch.l = Math.min(100, Math.max(0, number)) / 100
     else if (key === "oklchC") oklch.c = Math.max(0, number)
     else oklch.h = ((number % 360) + 360) % 360
-    return UIBrandColorPicker.fromHex(Palette.oklchToHex(oklch), this.latest)
+    return UIBrandColorPicker.fromHex(Palette.oklchToHex(oklch), this.working)
+  }
+
+  ////////////////
+  // ## Copying
+  ////////////////
+
+  /** What was just copied (its row and text), `undefined` once the check has gone. */
+  @E.state accessor copied: { format: CopyFormat; value: string } | undefined = undefined
+
+  /** A copy button shows its check. */
+  @E.cssState("copied")
+  get wasJustCopied(): boolean {
+    return !!this.copied
+  }
+
+  /** Each row's copy icon and check, loaded up front so the check shows at once. */
+  readonly glyphs = {
+    hsl: this.copyGlyphs(),
+    hex: this.copyGlyphs(),
+    oklch: this.copyGlyphs()
+  }
+
+  /** Timer clearing `copied`. */
+  private copiedTimer: E.CancelablePromise<unknown> | undefined
+
+  /** A copy icon and a check, for one row's button. */
+  private copyGlyphs(): { copy: E.IconGlyph; check: E.IconGlyph } {
+    return {
+      copy: new E.IconGlyph({ owner: this, name: () => COPY_ICON }),
+      check: new E.IconGlyph({ owner: this, name: () => COPIED_ICON })
+    }
+  }
+
+  /** What row `format`'s button copies:  the HSL row as shown, the hex, or `Palette.format()`'s OKLCH. */
+  private copyText(format: CopyFormat): string {
+    if (format === "hsl") return Palette.formatHsl(this.working)
+    return Palette.format(this.latestHex, format)
+  }
+
+  /**
+   * A copy button:  write the clipboard, then `ui-copy`, the check and the announcement.
+   * - SIDE EFFECT:  writes the clipboard;  a refused write (no permission) does nothing.
+   */
+  @E.untracked
+  private async copy(format: CopyFormat, originalEvent: MouseEvent) {
+    if (this.isDisabled) return
+    const value = this.copyText(format)
+    try {
+      await navigator.clipboard.writeText(value)
+    } catch {
+      return
+    }
+    this.copied = { format, value }
+    this.send("ui-copy", { value, format, originalEvent })
+    this.copiedTimer?.cancel()
+    this.copiedTimer = E.after(COPIED_MS / 1000, () => (this.copied = undefined))
   }
 
   ////////////////
@@ -698,4 +659,4 @@ export class UIBrandColorPicker extends FormComponent<BrandColorPickerVocabulary
   }
 }
 
-export interface UIBrandColorPicker extends AttributeValues<BrandColorPickerVocabulary> {}
+export interface UIBrandColorPicker extends E.AttributeValues<BrandColorPickerVocabulary> {}
