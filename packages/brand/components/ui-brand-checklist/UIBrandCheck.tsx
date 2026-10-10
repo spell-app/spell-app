@@ -1,19 +1,7 @@
-import { Show, createEffect, createMemo, untrack } from "solid-js"
+import { Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  afterSolidUpdate,
-  aria,
-  DOMElement,
-  PartContext,
-  proto,
-  protoMerged,
-  UIComponent,
-  UIT,
-  untracked,
-  type ElementSetup,
-  type AttributeValues
-} from "$/ui/core"
+import { E, UIT } from "$/ui/core"
 
 import { brandCheckVocabulary } from "./UIBrandCheck.en"
 import {
@@ -40,7 +28,7 @@ import checkCSS from "./UIBrandCheck.css?inline"
  * - `DOMElement` refuses a member named like an attribute's property:  `checked` is no prop.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMBrandCheckElement extends DOMElement<UIBrandCheck> {
+export class DOMBrandCheckElement extends E.DOMElement<UIBrandCheck> {
   /** Another name for `selected`. */
   get checked(): boolean {
     return !!(this as unknown as { selected?: boolean }).selected
@@ -77,103 +65,123 @@ export class DOMBrandCheckElement extends DOMElement<UIBrandCheck> {
  *   (a title over a description line).
  * - Motion:  the pulse runs only with `prefers-reduced-motion: no-preference` (`UIBrandCheck.css`).
  ****************/
-export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
-  @proto static vocabulary = brandCheckVocabulary
-  @protoMerged static elementSetup = {
+export class UIBrandCheck extends E.UIComponent<BrandCheckVocabulary> {
+  @E.proto static vocabulary = brandCheckVocabulary
+  @E.protoMerged static elementSetup = {
     styleSheets: { brandCheck: checkCSS },
     DOMElement: DOMBrandCheckElement
-  } satisfies Partial<ElementSetup>
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
-  // ## State
+  // ## Ticked
   ////////////////
 
-  /** `selected`:  the DOM element's property (a boolean is always controlled, see `Controlled`). */
-  readonly selectedState = this.controlled("selected", false)
+  /** Ticked:  the DOM element's `selected` property (a boolean is always the DOM element's);  a write goes to it. */
+  @E.controlled("selected") accessor isSelected = false
 
   /** The DOM element's `checked` attribute, another name for `selected`. */
   get checkedAttribute(): string | undefined {
     return this.attributes["checked"] ?? undefined
   }
 
-  /** The checklist that owns it. */
-  readonly context = new PartContext({ domElement: this.domElement, noun: CHECK_NOUN })
+  /** `onCheckedChanged()` has seen the `checked` attribute once:  only the first look is markup's. */
+  private hasSeenChecked = false
+
+  /**
+   * The `checked` attribute:  in markup it ticks the check, as a native checkbox's does;
+   * set or removed later, it ticks or unticks it.
+   */
+  @E.onChange("checkedAttribute")
+  protected onCheckedChanged(checked: string | undefined) {
+    const isFirst = !this.hasSeenChecked
+    this.hasSeenChecked = true
+    // at the start, only `checked` in markup counts:  without it, `selected` stands as the page set it
+    if (isFirst && (checked === undefined || this.isSelected)) return
+    this.isSelected = checked !== undefined
+  }
+
+  /**
+   * A click (or Space / Enter on the button):  send `ui-change`, then set `selected`, unless a handler set it first.
+   */
+  @E.untracked
+  private readonly onToggle = (event: MouseEvent) => {
+    const selected = !this.isSelected
+    const detail: BrandCheckChangeDetail = { selected, checked: selected, originalEvent: event }
+    this.requestChange("isSelected", selected, () => this.send("ui-change", detail))
+  }
 
   ////////////////
-  // ## Derived state
+  // ## The checklist
   ////////////////
+
+  /** The checklist that owns it. */
+  readonly context = new E.PartContext({ domElement: this.domElement, noun: CHECK_NOUN })
 
   /** The owning checklist's component, if it answers `checkState()`. */
-  readonly owner = createMemo((): ChecklistOwner | undefined => {
+  get owner(): ChecklistOwner | undefined {
     const owner = this.context.ownerComponent<Partial<ChecklistOwner>>()
     return owner?.checkState ? (owner as ChecklistOwner) : undefined
-  })
+  }
 
   /** The owner's say, or `undefined` alone. */
-  readonly ownerState = createMemo(() => this.owner()?.checkState(this.domElement))
+  get ownerState() {
+    return this.owner?.checkState(this.domElement)
+  }
+
+  /** Owned, the DOM element is one item of the list. */
+  @E.aria("role")
+  protected get ariaRole(): string | undefined {
+    return this.owner ? "listitem" : undefined
+  }
+
+  ////////////////
+  // ## How it shows
+  ////////////////
 
   /** The text face:  its own `font`, else its list's, else `sans`. */
-  readonly shownFont = createMemo((): CheckFont | undefined => this.font ?? this.ownerState()?.font)
+  get shownFont(): CheckFont | undefined {
+    return this.font ?? this.ownerState?.font
+  }
 
   /** A checkbox the user ticks:  its own `checkable`, or its list's. */
-  readonly isCheckable = createMemo(() => !!this.checkable || !!this.ownerState()?.checkable)
+  get isCheckable(): boolean {
+    return !!this.checkable || !!this.ownerState?.checkable
+  }
 
   /**
    * How it shows:
    * - `checkable`:  done while `selected`, else pending
    * - else the list's `step`;  else done while `selected`;  else its own `state`
    */
-  readonly shownState = createMemo((): CheckState => {
-    const selected = !!this.selectedState.get()
-    if (this.isCheckable()) return selected ? DONE : PENDING
-    const owned = this.ownerState()?.state
+  get shownState(): CheckState {
+    const selected = this.isSelected
+    if (this.isCheckable) return selected ? DONE : PENDING
+    const owned = this.ownerState?.state
     if (owned) return owned
     if (selected) return DONE
     return this.state ?? PENDING
-  })
-
-  constructor(...args: ConstructorParameters<typeof UIComponent>) {
-    super(...args)
-    // a `checked` attribute in markup ticks it, as a native checkbox's does
-    if (this.domElement.hasAttribute("checked") && !untrack(() => this.selected)) {
-      afterSolidUpdate(() => this.selectedState.set(true))
-    }
-  }
-
-  ////////////////
-  // ## ARIA
-  ////////////////
-
-  /** Owned, the DOM element is one item of the list. */
-  @aria("role")
-  protected get ariaRole(): string | undefined {
-    return this.owner() ? "listitem" : undefined
   }
 
   /** The active step is the current one. */
-  @aria("ariaCurrent")
+  @E.aria("ariaCurrent")
   protected get currentText(): string | undefined {
-    return this.shownState() === ACTIVE && !this.isCheckable() ? "step" : undefined
+    return this.shownState === ACTIVE && !this.isCheckable ? "step" : undefined
   }
-
-  ////////////////
-  // ## Classes and states
-  ////////////////
 
   /** The state word, `checkable` and `serif`:  `check done checkable serif`. */
   protected get extraClass(): string | undefined {
-    return [this.shownState(), this.isCheckable() ? CHECKABLE : "", this.shownFont() === SERIF ? SERIF : ""]
+    return [this.shownState, this.isCheckable ? CHECKABLE : "", this.shownFont === SERIF ? SERIF : ""]
       .filter(Boolean)
       .join(" ")
   }
 
   protected cssStates() {
-    const state = this.shownState()
+    const state = this.shownState
     return {
       done: state === DONE,
       active: state === ACTIVE,
       pending: state === PENDING,
-      checkable: this.isCheckable()
+      checkable: this.isCheckable
     }
   }
 
@@ -181,38 +189,26 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
   // ## Rendering
   ////////////////
 
-  /** Adds the `checked` attribute:  setting or removing it later ticks or unticks. */
-  onMount(): JSX.Element {
-    createEffect(
-      () => this.checkedAttribute,
-      (checked) => {
-        this.selectedState.set(checked !== undefined)
-      },
-      { defer: true }
-    )
-    return super.onMount()
-  }
-
   render(): JSX.Element {
     return (
-      <Show when={this.isCheckable()} fallback={this.renderLine()}>
-        {this.renderCheckbox()}
+      <Show when={this.isCheckable} fallback={this.line()}>
+        {this.checkbox()}
       </Show>
     )
   }
 
   /** A progress line:  the mark, the text and, done or active, what the mark means. */
-  private renderLine(): JSX.Element {
+  private line(): JSX.Element {
     return (
       <div class={this.rootClass} part={this.partForName("check")}>
-        {this.renderMarker()}
+        {this.marker()}
         <span class="label" part={this.partForName("label")}>
           <slot />
         </span>
-        <Show when={this.shownState() !== PENDING}>
+        <Show when={this.shownState !== PENDING}>
           <span class={UIT.VISUALLY_HIDDEN}>
             {" "}
-            {this.translationForKey(this.shownState() === DONE ? "done" : "active")}
+            {this.translationForKey(this.shownState === DONE ? "done" : "active")}
           </span>
         </Show>
       </div>
@@ -220,17 +216,17 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
   }
 
   /** A line the user ticks:  a `<button role="checkbox">`, so Space and Enter both tick it. */
-  private renderCheckbox(): JSX.Element {
+  private checkbox(): JSX.Element {
     return (
       <button
         type="button"
         role="checkbox"
         class={this.rootClass}
         part={this.partForName("check")}
-        aria-checked={this.shownState() === DONE ? "true" : "false"}
+        aria-checked={this.shownState === DONE ? "true" : "false"}
         onClick={this.onToggle}
       >
-        {this.renderMarker()}
+        {this.marker()}
         <span class="label" part={this.partForName("label")}>
           <slot />
         </span>
@@ -239,7 +235,7 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
   }
 
   /** The round mark:  a check, shown once done (`UIBrandCheck.css`). */
-  private renderMarker(): JSX.Element {
+  private marker(): JSX.Element {
     return (
       <span class="marker" part={this.partForName("marker")} aria-hidden="true">
         <svg viewBox={CHECK_VIEW_BOX}>
@@ -248,23 +244,9 @@ export class UIBrandCheck extends UIComponent<BrandCheckVocabulary> {
       </span>
     )
   }
-
-  ////////////////
-  // ## Handlers
-  ////////////////
-
-  /**
-   * A click (or Space / Enter on the button):  send `ui-change`, then set `selected`, unless a handler set it first.
-   */
-  @untracked
-  private readonly onToggle = (event: MouseEvent) => {
-    const selected = !this.selectedState.get()
-    const detail: BrandCheckChangeDetail = { selected, checked: selected, originalEvent: event }
-    this.selectedState.request(selected, () => this.send("ui-change", detail))
-  }
 }
 
-export interface UIBrandCheck extends AttributeValues<BrandCheckVocabulary> {}
+export interface UIBrandCheck extends E.AttributeValues<BrandCheckVocabulary> {}
 
 /** The class word of a check the user ticks. */
 const CHECKABLE = "checkable"

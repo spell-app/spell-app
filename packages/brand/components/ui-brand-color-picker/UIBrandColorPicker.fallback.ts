@@ -1,4 +1,4 @@
-import { NativeFallback, proto } from "$/ui/core"
+import { E } from "$/ui/core"
 import { Palette } from "$/brand"
 
 import { brandColorPickerVocabulary } from "./UIBrandColorPicker.en"
@@ -18,10 +18,10 @@ import { BRAND_COLOR, DEFAULT_VALUE } from "./UIBrandColorPicker.types"
  *   else `#8E96B5`.
  * - Named by `label` (else "Colour"), and the DOM element's `aria-*`.
  ****************/
-export class BrandColorPickerFallback extends NativeFallback<typeof brandColorPickerVocabulary> {
-  @proto static vocabulary = brandColorPickerVocabulary
+export class BrandColorPickerFallback extends E.NativeFallback<typeof brandColorPickerVocabulary> {
+  @E.proto static vocabulary = brandColorPickerVocabulary
 
-  @proto static degraded = [
+  @E.proto static degraded = [
     "the HSL square and the hue slider (the browser's colour input instead)",
     "the HSL, RGB and OKLCH rows and their copy buttons, the head row, the slots",
     "vetoing by re-setting `value`, form reset"
