@@ -365,7 +365,7 @@ describe("ReviewInbox, Claude's side", () => {
     inbox.setMark("j1", { action: "approve" }, T1)
     inbox.setListening("abc", T1)
     const late = inbox.forPage(Date.parse(T1) + LISTEN_STALE_MS + 1)
-    expect(late).toEqual({ ...inbox.toRecord(), listening: null })
+    expect(late).toEqual({ ...inbox.toRecord(), listening: null, unsentComments: [] })
     expect(inbox.listening!.session).toBe("abc")
     expect(inbox.forPage(Date.parse(T1)).listening!.session).toBe("abc")
   })
@@ -475,11 +475,80 @@ describe("ReviewInbox urgency (an id chip clicked)", () => {
     inbox.setUrgency("j2", true, T3)
     expect(inbox.sentUrgency.map((entry) => entry.id)).toEqual(["j1"])
     expect(inbox.unsentUrgency.map((entry) => entry.id)).toEqual(["j2"])
-    expect(inbox.takeWork()!.sent).toEqual({ at: T2, marks: [], urgency: [{ id: "j1", calm: true, at: T1 }] })
+    expect(inbox.takeWork()!.sent).toEqual({
+      at: T2,
+      marks: [],
+      urgency: [{ id: "j1", calm: true, at: T1 }],
+      comments: []
+    })
     const applied = inbox.sentUrgency
     inbox.setUrgency("j1", false, T3)
     expect(inbox.clearUrgency(applied)).toEqual([])
     expect(inbox.clearUrgency([{ id: "j2", at: T3 }])).toEqual(["j2"])
+  })
+})
+
+// Owen, 2026-10-10:  "send button at top of page doesn't appear to be hooked up" -- with only comments waiting,
+// Send had nothing to send.  He keeps Send as the way comments reach Claude.
+describe("ReviewInbox comments and Send", () => {
+  const T4 = "2026-10-04T15:03:00-04:00"
+  const PLACE = { anchor: "p1#field-1", kind: "field", label: "P1", excerpt: "Goal" }
+
+  test("a waiting comment is unsent until Send;  the page hears which (`forPage().unsentComments`)", () => {
+    const inbox = new ReviewInbox()
+    const id = inbox.commentList.add(PLACE, "is this hooked up?", new Date(T1))
+    expect(inbox.unsentComments.map((comment) => comment.id)).toEqual([id])
+    expect(inbox.forPage().unsentComments).toEqual([id])
+    expect(inbox.sentComments).toEqual([])
+    inbox.markSent(T2)
+    expect(inbox.unsentComments).toEqual([])
+    expect(inbox.sentComments.map((comment) => comment.id)).toEqual([id])
+    expect(inbox.forPage().unsentComments).toEqual([])
+  })
+
+  test("a send with ONLY comments wakes a waiting session, and hands them over once", () => {
+    const inbox = new ReviewInbox()
+    const id = inbox.commentList.add(PLACE, "is this hooked up?", new Date(T1))
+    expect(inbox.hasWork).toBe(false)
+    inbox.markSent(T2)
+    expect(inbox.hasWork).toBe(true)
+    const work = inbox.takeWork(T2)!
+    expect(work.sent).toMatchObject({ at: T2, marks: [], urgency: [], comments: [{ id, text: "is this hooked up?" }] })
+    // the next send, with nothing new from Owen on the thread:  not handed over again
+    inbox.setMark("j1", { action: "approve" }, T3)
+    inbox.markSent(T4)
+    expect(inbox.takeWork(T4)!.sent!.comments).toEqual([])
+  })
+
+  test("Owen's reply on an answered thread is unsent again, and goes with the next send", () => {
+    const inbox = new ReviewInbox()
+    const id = inbox.commentList.add(PLACE, "why?", new Date(T1))
+    inbox.markSent(T2)
+    inbox.takeWork(T2)
+    inbox.commentList.answer(id, "<p>because</p>", new Date(T2))
+    expect(inbox.unsentComments).toEqual([])
+    inbox.commentList.reply(id, "but then?", new Date(T3))
+    expect(inbox.unsentComments.map((comment) => comment.id)).toEqual([id])
+    inbox.markSent(T4)
+    expect(inbox.takeWork(T4)!.sent!.comments.map((comment) => comment.id)).toEqual([id])
+  })
+
+  test("a comment Claude is working on, answered, or closed is never unsent", () => {
+    const inbox = new ReviewInbox()
+    const working = inbox.commentList.add(PLACE, "one", new Date(T1))
+    const answered = inbox.commentList.add(PLACE, "two", new Date(T1))
+    const closed = inbox.commentList.add(PLACE, "three", new Date(T1))
+    inbox.commentList.setWorking(working, true, new Date(T2))
+    inbox.commentList.answer(answered, "", new Date(T2))
+    inbox.commentList.resolve(closed, "skip", new Date(T2))
+    expect(inbox.unsentComments).toEqual([])
+  })
+
+  test("Review Now sends them too", () => {
+    const inbox = new ReviewInbox()
+    const id = inbox.commentList.add(PLACE, "now please", new Date(T1))
+    inbox.reviewNow(T2)
+    expect(inbox.takeWork(T2)!.sent!.comments.map((comment) => comment.id)).toEqual([id])
   })
 })
 
