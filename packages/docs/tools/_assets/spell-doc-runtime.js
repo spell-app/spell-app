@@ -93,6 +93,9 @@ const UNFOLD_FRAMES = 2
  */
 const SETTLE_MS = 450
 
+/** How long a closing fold's header is held in place (`holdWhileFolding()`):  its transition (300ms) and a margin. */
+const FOLD_HOLD_MS = 600
+
 /**
  * A plan doc's folding blocks (`packages/epics`):  its sections, in the outline, the folds and the landing.
  * Each host has `open` (page state) and `contentsEntry` (`EpicFoldHost`).
@@ -1653,6 +1656,68 @@ function wireFolds(main, outline) {
       else if (startFolded) setCollapsed(section, true)
     main.addEventListener("ui-open", onToggle, { signal })
     main.addEventListener("ui-close", onToggle, { signal })
+    main.addEventListener("ui-close", holdWhileFolding, { signal })
+  }
+
+  /**
+   * Any fold closing (a section, a plan doc's Overview part, phase or item):  its header stays where it is on screen
+   * while the content folds away under it.
+   * - why:  the browser's scroll anchoring kept something BELOW the fold in place instead, so the clicked header slid
+   *   down hundreds of pixels as its body shrank, then wobbled (Owen, 2026-10-10:  "the 1.1 sections bounce when
+   *   closed";  measured:  the header moved 336 -> 692px)
+   * - anchoring is off for the page while it folds;  each frame, the header is put back where it was
+   * - starts after the toggle's own handlers (a microtask):  `keepTitlePut()` / an item's `keepLinePut()` may first
+   *   scroll a STUCK title into place, and that's the place kept
+   * - near the end of a short page (everything else folded), the page would get shorter than where it's scrolled to,
+   *   and the browser pulls it back:  the header jumps down.  So the page keeps its height (`min-height`) until the
+   *   reader scrolls back far enough for the shorter page to hold him
+   * - stops after `FOLD_HOLD_MS`, or at once when the reader scrolls
+   */
+  function holdWhileFolding(event) {
+    if (event.defaultPrevented || !event.cancelable || !(event.target instanceof Element)) return
+    const element = event.target
+    queueMicrotask(() => {
+      const root = document.documentElement
+      const before = element.getBoundingClientRect().top
+      const until = performance.now() + FOLD_HOLD_MS
+      let stopped = false
+      const stop = () => (stopped = true)
+      addEventListener("wheel", stop, { once: true, passive: true })
+      addEventListener("touchmove", stop, { once: true, passive: true })
+      root.style.overflowAnchor = "none"
+      root.style.minHeight = `${root.scrollHeight}px`
+      const hold = () => {
+        const off = element.getBoundingClientRect().top - before
+        if (!stopped && Math.abs(off) >= 1) scrollTo({ top: scrollY + off, behavior: "instant" })
+        if (!stopped && performance.now() < until) return requestAnimationFrame(hold)
+        root.style.overflowAnchor = ""
+        removeEventListener("wheel", stop)
+        removeEventListener("touchmove", stop)
+        releaseHeight(root)
+      }
+      requestAnimationFrame(hold)
+    })
+  }
+
+  /**
+   * Let the page take its natural height again once that no longer pulls the reader back:  at once if it fits where
+   * he's scrolled to, else as soon as he scrolls up far enough.
+   */
+  function releaseHeight(root) {
+    const kept = root.style.minHeight
+    const natural = () => {
+      root.style.minHeight = ""
+      const height = root.scrollHeight
+      root.style.minHeight = kept
+      return height
+    }
+    const release = () => {
+      if (scrollY + innerHeight > natural() + 1) return false
+      root.style.minHeight = ""
+      removeEventListener("scroll", release)
+      return true
+    }
+    if (!release()) addEventListener("scroll", release, { passive: true })
   }
 
   /**
