@@ -58,6 +58,10 @@ export const FOLD_PARTS = [
     description: "The `<ui-section>` drawing the title bar and fold:  its own parts through `::part()` from inside."
   },
   { name: "body", description: "Around its children:  sets `--epic-stack` for them." },
+  {
+    name: "collapse-all",
+    description: "While open, the double chevron before the fold chevron:  folds everything inside it, not itself."
+  },
   { name: "note", description: "The `Loads from parts/x.html ...` line, when its part can't load." }
 ] as const
 
@@ -75,7 +79,12 @@ export const FOLD_TEXTS = [
     text: "Loads from {source} when opened (needs the page server).",
     description: "Its part can't load:  the page was opened from disk."
   },
-  { key: "partError", text: "Couldn't load {source}.", description: "Its part couldn't be loaded." }
+  { key: "partError", text: "Couldn't load {source}.", description: "Its part couldn't be loaded." },
+  {
+    key: "collapseAll",
+    text: "Fold everything in {name}",
+    description: "The collapse-all button's name and tooltip;  `name` its title (`3. Questions`)."
+  }
 ] as const
 
 ////////////////
@@ -126,6 +135,21 @@ export type ContentsEntry = {
   color?: string
   /** a section's count of its items or phases;  none for a kind that isn't counted, or with nothing in it */
   count?: SectionCount
+}
+
+/**
+ * An item section's state filter as the page's toolbar reads it (`DOMEpicSectionElement.stateFilter`):
+ * one entry per state its items are in, in the filter's order.
+ */
+export type StateFilterEntry = {
+  /** the state:  `attention` ... */
+  state: ItemStateName
+  /** its chip's colour:  `red` ... */
+  color: FilterState["color"]
+  /** how many of its items are in it */
+  count: number
+  /** its items show */
+  on: boolean
 }
 
 /** What a folding element's code reads of its attributes, whatever its vocabulary. */
@@ -218,6 +242,40 @@ export const FILTER_STATES = [
   { state: "recent", color: "green", words: "stateRecent" },
   { state: "old", color: "grey", words: "stateOld" }
 ] as const
+
+/**
+ * The state filter's texts, in every vocabulary that draws its chips:  `<epic-section>`'s, and `<epic-page>`'s
+ * (its toolbar filters every section at once).
+ */
+export const FILTER_TEXTS = [
+  { key: "filterLabel", text: "Show items by state", description: "The state filter's group, for a screen reader." },
+  {
+    key: "chipWords",
+    text: "{count} {words}:  {does}",
+    description: "A state chip's name and tooltip:  how many, its state, what a click does (`showAll`, `chipOnly` ...)."
+  },
+  { key: "showAll", text: "show everything", description: "A state chip's click:  every state shows again." },
+  { key: "chipOnly", text: "show only these", description: "A state chip's click:  only its state shows." },
+  { key: "chipAlso", text: "show these too", description: "A state chip's click, hidden:  its state shows too." },
+  { key: "chipHide", text: "hide these", description: "A state chip's click, showing:  its state hides." },
+  {
+    key: "stateProgress",
+    text: "Claude is working on it",
+    description: "A state chip's words:  `progress` (blue)."
+  },
+  { key: "stateAttention", text: "needs attention", description: "A state chip's words:  `attention` (red)." },
+  {
+    key: "stateReplied",
+    text: "Claude answered:  your turn to pick",
+    description: "A state chip's words:  `replied` (orange)."
+  },
+  { key: "stateOpen", text: "open, still undecided", description: "A state chip's words:  `open` (yellow)." },
+  { key: "stateRecent", text: "decided or done", description: "A state chip's words:  `recent` (green)." },
+  { key: "stateOld", text: "no longer relevant", description: "A state chip's words:  `old` (grey)." }
+] as const
+
+/** Each chip click (`StateFilter.clickDoes()`) => its words' text key. */
+export const CHIP_CLICK_KEYS = { all: "showAll", only: "chipOnly", also: "chipAlso", hide: "chipHide" } as const
 
 /** One of `FILTER_STATES`. */
 export type FilterState = (typeof FILTER_STATES)[number]

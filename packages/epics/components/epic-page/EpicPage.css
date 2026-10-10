@@ -32,6 +32,9 @@
     --epic-card: var(--spell-card, var(--ui-surface));
     --epic-warm: var(--spell-warm, var(--ui-accent-background));
     --epic-code-bg: var(--spell-code-bg, var(--ui-code-background));
+    /* the toolbar's band:  the docs' rail ivory (`spell-doc.css`) */
+    --epic-toolbar-fill: var(--spell-rail-fill, var(--epic-warm));
+    --epic-toolbar-rule: var(--spell-rail-rule, var(--epic-rule));
 
     /* ## Type */
     --epic-sans: var(--spell-sans, var(--ui-font-family));
@@ -154,9 +157,6 @@
     font: 400 18px/1.3 var(--epic-sans);
     text-wrap: balance;
   }
-  .actions:empty {
-    display: none;
-  }
   /* the step label and its kin, at the row's far right, after every button (Owen, 2026-10-08) -- on the narrow row
      the buttons wrap to, too */
   .status {
@@ -180,16 +180,33 @@
   }
 
   /*
-   * ## Send and Review Now (while reviewed):  round, icon only, as tall as the git toggle beside them;  blue, an ask
-   * of Claude, wearing the fill (decision Q20).  Send:  a grey outline with nothing to send, DASHED blue with marks
-   * not sent, outlined blue once sent (recorded, not done).  Review Now:  outlined blue while there's anything for
-   * Claude to work through, solid when pointed at
+   * ## The toolbar (epic `airplane` P8):  the header's last row, on the rail's ivory band, edge to edge under the
+   * header's rows (its inset and bottom padding undone), a rule above it.  The docs runtime's section buttons
+   * (`nav.spell-toolbar`, slotted) take the room and scroll sideways if they must;  at the right, the page's state
+   * chips, collapse-all, a gap, then the new item button (Owen, 2026-10-10)
    */
-  .actions {
+  .toolbar {
+    display: flex;
+    flex: 1 0 100%;
+    align-items: center;
+    min-width: 0;
+    margin: 0 calc(-1 * var(--epic-inset)) -10px;
+    border-top: 1px solid var(--epic-toolbar-rule);
+    background: var(--epic-toolbar-fill);
+  }
+  .toolbar-tools {
     display: inline-flex;
     flex: none;
     align-items: center;
-    gap: 6px;
+    gap: 4px;
+    margin-inline-start: auto;
+    padding: 4px var(--epic-inset) 4px 8px;
+  }
+  .toolbar-tools .new-button {
+    margin-inline-start: 12px;
+  }
+  .toolbar-tools:empty {
+    display: none;
   }
   /* the `+`'s form (epic `airplane` P2):  a row of its own across the sticky header, so it shows wherever Owen is */
   .head > .new-form {
@@ -197,6 +214,64 @@
     max-height: 60vh;
     margin: 0;
     overflow: auto;
+  }
+  /*
+   * ## The send bar (Owen, 2026-10-10):  stuck to the window's bottom while there's anything to send or ask now;
+   * the pill (nobody can take the marks) at the left, Send and Review Now at the right
+   */
+  .send-bar {
+    position: sticky;
+    z-index: 5;
+    bottom: 0;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 8px var(--epic-inset);
+    border-top: 1px solid var(--epic-rule);
+    background: var(--epic-bg);
+    box-shadow: 0 -4px 12px rgb(0 0 0 / 0.06);
+  }
+  /*
+   * the pill:  no session reviewing, white on a deep orange (a warning;  the review line's look before, Owen, the
+   * colour page's example E);  airplane mode, quieter;  a click copies the command, flashing as the review line does
+   */
+  .pill {
+    --_nobody: oklch(from var(--ui-orange-on-light, #f2711c) calc(l - 0.12) c h);
+    flex: 0 1 auto;
+    min-width: 0;
+    margin-inline-end: auto;
+    padding: 4px 12px;
+    border: none;
+    border-radius: 999px;
+    background: var(--_nobody);
+    color: var(--ui-ink-on-dark, #fff);
+    font: 600 13px/1.4 var(--epic-sans);
+    text-align: start;
+    overflow-wrap: anywhere;
+    cursor: copy;
+  }
+  .pill code {
+    background: color-mix(in oklab, var(--ui-ink-on-dark, #fff) 18%, transparent);
+    color: inherit;
+  }
+  .pill:hover {
+    background: oklch(from var(--_nobody) calc(l - 0.05) c h);
+  }
+  .pill.airplane {
+    background: var(--epic-accent-soft);
+    color: var(--epic-ink);
+  }
+  .pill.airplane code {
+    background: none;
+  }
+  .pill.flash {
+    animation: epic-review-line-flash 0.9s ease-out;
+  }
+  .pill:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
   }
   .send,
   .review-now {
@@ -287,8 +362,7 @@
 
   /*
    * ## The review line, under the header:  a quiet line of text, the icon centred on its first row;  a click copies
-   * the command and flashes it yellow (`.flash`, `FLASH_MS`).  Nobody reviewing:  it says so, a warning in solid
-   * orange, its ink reversed, so it stands out (Owen, 2026-10-08, the colour page's example E)
+   * the command and flashes it yellow (`.flash`, `FLASH_MS`).  Nobody reviewing:  the send bar's pill says so
    */
   .review-line {
     display: grid;
@@ -314,26 +388,6 @@
   .review-line:focus-visible {
     outline: 2px solid var(--ui-focus-color, var(--epic-accent));
     outline-offset: 1px;
-  }
-  /*
-   * inverse, white on orange (Owen):  light mode's orange a step deeper in BOTH schemes (the raw per-scheme base on
-   * purpose, as the red chips:  dark's lighter orange can't carry white), and the words bold, so white reads on it
-   */
-  .review-line.nobody {
-    --_nobody: oklch(from var(--ui-orange-on-light, #f2711c) calc(l - 0.12) c h);
-    background: var(--_nobody);
-    color: var(--ui-ink-on-dark, #fff);
-    font-weight: 600;
-  }
-  .review-line.nobody :is(.icon, code) {
-    color: inherit;
-  }
-  .review-line.nobody code {
-    background: color-mix(in oklab, var(--ui-ink-on-dark, #fff) 18%, transparent);
-  }
-  .review-line.nobody:hover {
-    background: oklch(from var(--_nobody) calc(l - 0.05) c h);
-    color: var(--ui-ink-on-dark, #fff);
   }
   .review-line .done {
     color: var(--epic-ink);

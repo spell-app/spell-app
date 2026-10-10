@@ -17,8 +17,9 @@ import type { ReviewState } from "./ReviewState"
 
 /*
  * NEW ITEMS from the page (epic `airplane` P2):  Owen asks for a new todo or question while he reads, with no Claude
- * session needed.  `<epic-page>` draws the `+` in its header and the form under it;  a Todos or Questions section
- * draws its waiting items, its button and the form at its end.
+ * session needed.
+ * - `<epic-page>` draws its button (comment dots) in its toolbar, and the form in its header;
+ *   a Todos or Questions section draws its waiting items, its button and the form at its end.
  * - Plain Solid components, no element of their own, as the review controls (`ReviewControls.tsx`):
  *   each takes its element's `ReviewState` and `text()`;  their look is `ReviewControls.css`'s.
  * - What's asked for is a mark in the review inbox, `{ action: "new", kind, title, note?, near? }` under a key of its
@@ -28,8 +29,8 @@ import type { ReviewState } from "./ReviewState"
 
 /****************
  * ### `<NewItemButton>`
- * The button that opens the form:  a round `+` (the page header's:  `label` its tooltip), or the `+` and the words
- * (`words`:  a section's "New todo").
+ * The button that opens the form:  a round icon (the page toolbar's comment dots:  `label` its tooltip),
+ * or the `+` and the words (`words`:  a section's "New todo").
  ****************/
 export function NewItemButton(props: NewItemButtonProps) {
   return (
@@ -43,7 +44,7 @@ export function NewItemButton(props: NewItemButtonProps) {
       title={props.label}
       onClick={() => props.onClick()}
     >
-      <ui-icon name="plus" />
+      <ui-icon name={props.icon ?? "plus"} />
       <Show when={props.words}>{(words) => <span>{words()}</span>}</Show>
     </button>
   )
@@ -53,6 +54,8 @@ export function NewItemButton(props: NewItemButtonProps) {
 export type NewItemButtonProps = {
   /** its name:  the tooltip, and a screen reader's when it has no words */
   label: string
+  /** its icon.  Default:  `plus` (the page toolbar's:  `comment dots`) */
+  icon?: string
   /** words beside the `+`;  none:  a round icon button */
   words?: string
   /** the form it opens is open */

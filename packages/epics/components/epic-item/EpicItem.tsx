@@ -7,7 +7,8 @@ import { PlanDates } from "$/epics/dates"
 
 import { epicItemVocabulary } from "./EpicItem.en"
 import { Chevron } from "./Chevron"
-import { CONTROLS } from "./Fold"
+import { CollapseAllButton } from "./CollapseAllButton"
+import { CONTROLS, FOLDING_CARDS, foldAllUnder } from "./Fold"
 import { NoteBox, ReviewButtons, SaidNote, takeToNote } from "./ReviewControls"
 import { ReviewState } from "./ReviewState"
 import {
@@ -54,6 +55,7 @@ import {
   type ReviewTextKey
 } from "./EpicItem.types"
 
+import collapseAllCSS from "./CollapseAllButton.css?inline"
 import itemCSS from "./EpicItem.css?inline"
 import reviewCSS from "./ReviewControls.css?inline"
 
@@ -95,6 +97,8 @@ import reviewCSS from "./ReviewControls.css?inline"
  *   - Folding while its line is stuck keeps the line where it is on screen (`keepLinePut()`).
  *   - It folds by itself once Owen chooses an action for it (`foldAfterAction()`):  a review button, a note box
  *     button, a Choose pill (Owen, 2026-10-10:  "collapse the item", so he moves on to the next).
+ *   - Collapse-all (epic `airplane` P8):  open, with cards or panels inside, a double chevron at its line's end
+ *     folds them all (`collapseAll()`);  the page's collapse-all folds the item itself too (`collapse()`).
  * - Source:  `source="parts/q7.html"` is fetched the first time it opens (`LoadableBody`,
  *   as `<ui-section source>`), into its LIGHT children, replacing the placeholder;  `ui-load` then.
  *   From `file://` it can't load:  the `Loads from ... (needs the page server)` note, as today.
@@ -106,7 +110,7 @@ import reviewCSS from "./ReviewControls.css?inline"
 export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   @E.proto static vocabulary = epicItemVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-item": itemCSS, "epic-review": reviewCSS },
+    styleSheets: { "epic-item": itemCSS, "epic-collapse-all": collapseAllCSS, "epic-review": reviewCSS },
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false
@@ -247,6 +251,15 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   /** Shows as unfolded:  its details, or its note box under the line. */
   readonly showsOpen = createMemo(() => this.isOpen() || this.boxUnderLine())
 
+  /** Holds a card or panel that folds (`FOLDING_CARDS`:  a reply, the answer, an aside ...). */
+  @E.fromContent({ childList: true, subtree: true })
+  get holdsFolds(): boolean {
+    return !isServer && !!this.domElement.querySelector(FOLDING_CARDS)
+  }
+
+  /** Shows its collapse-all button, at its line's end:  open, with something inside that folds. */
+  readonly canCollapseAll = createMemo(() => this.isOpen() && this.holdsFolds)
+
   /** Details box held closed while the `source` part is on its way. */
   readonly veiled = createMemo(() => !isServer && !!this.source && this.body.isVeiled)
 
@@ -285,7 +298,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
 
   /** Anything at the end of the line:  the bed and git icons, a review label, or the review buttons. */
   readonly hasExtras = createMemo(
-    () => !!this.overnight || this.hasCommits() || !!this.review() || this.reviewState.reviewing()
+    () =>
+      !!this.overnight || this.hasCommits() || !!this.review() || this.reviewState.reviewing() || this.canCollapseAll()
   )
 
   /**
@@ -526,6 +540,13 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
               onChosen={() => this.foldAfterAction()}
             />
           </Show>
+          <Show when={this.canCollapseAll()}>
+            <CollapseAllButton
+              label={this.translationForKey("collapseAll", { id: this.label() })}
+              part={this.partForName("collapse-all")}
+              onCollapse={() => this.collapseAll()}
+            />
+          </Show>
         </span>
       </div>
     )
@@ -643,6 +664,22 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
       if (applied && !opening) this.keepLinePut()
       return applied
     })
+  }
+
+  /** Fold it, if open, as a click on its line would (`toggle()`);  true when it folded.  Collapse-all's. */
+  @E.untracked
+  collapse(): boolean {
+    return this.isOpen() ? this.toggle() : false
+  }
+
+  /**
+   * Collapse-all, the double chevron at its line's end:  fold every card and panel inside it (`foldAllUnder()`),
+   * the item itself staying open;  its line kept where it is on screen.  Returns how many it folded.
+   */
+  @E.untracked
+  collapseAll(): number {
+    this.keepLinePut()
+    return foldAllUnder(this.domElement)
   }
 
   /**

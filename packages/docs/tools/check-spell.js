@@ -7,18 +7,17 @@
  *   - console / page errors
  *   - a `ui-*` or `epic-*` element (the `epics` pack's, a plan doc's) that isn't defined, or never rendered (no
  *     shadow root)
- *   - a rail (`nav.spell-rail`) that doesn't list every top-level section (the goals pages':  the h2s heading a
- *     sticky section), or an entry that points nowhere;  a PLAN DOC's toolbar (`nav.spell-toolbar`, epic `airplane`
- *     P8) the same, for its `<epic-*>` blocks;  and a plan doc that still draws a rail
+ *   - a toolbar (`nav.spell-toolbar`, epic `airplane` P8) that doesn't list every top-level section (the goals
+ *     pages':  the h2s heading a sticky section;  a plan doc's:  its `<epic-*>` blocks), or an entry that points
+ *     nowhere;  and a page that still draws the old floating rail (`nav.spell-rail`)
  *   - horizontal scroll at phone width
  *   - a content column squeezed at phone width (a wide-screen grid rule leaking into the narrow layout)
  *   - a top-level section's title (`<ui-section>` pages, a plan doc's `<epic-*>` blocks) or h2 (`section.s2` pages)
  *     that doesn't stick when scrolled into its section, or sticks under the fixed site header.  A plan doc's start
  *     folded:  its largest item section is opened first (`openBiggestSection()`)
- *   - no rail (toolbar) entry marked current after scrolling
+ *   - no toolbar entry marked current after scrolling
  *   - a `ui-accordion.spell-code` without a `<pre>`
- *   - a rail not shown at phone width (it floats there too:  no contents drawer since 2026-10-08);  a plan doc's
- *     toolbar not stuck at the top there, or wider than the window
+ *   - a toolbar not stuck at the top at phone width, or wider than the window
  *   - a plan doc's open item (`<epic-item>`, epic `windows-and-review` Q6) whose line doesn't stick right under its
  *     section's stuck title while its details are read;  at desktop and phone width (`checkItemLine()`)
  * - loads the page from `file://`, or from the page server when its `<body>` says `data-spell-needs-server`
@@ -41,8 +40,8 @@ import { ensurePageServer, pageFile, serverUrl } from "./pages.js"
  */
 const PACK_TAG = /^(ui|epic)-/
 
-/** The page's navigation:  the rail, or a plan doc's toolbar (`spell-doc-runtime.js` `buildNavigation()`). */
-const NAV = "nav.spell-rail, nav.spell-toolbar"
+/** The page's navigation:  its toolbar, a plan doc's or any other page's (`spell-doc-runtime.js` `buildNavigation()`). */
+const NAV = "nav.spell-toolbar"
 
 const [docArg, outArg] = process.argv.slice(2)
 if (!docArg) {
@@ -64,9 +63,9 @@ const desktop = await desk.evaluate(inspectPage, NAV)
 if (desktop.undefinedTags.length) problem(`undefined elements:  ${desktop.undefinedTags.join(", ")}`)
 for (const [tag, count] of Object.entries(desktop.unrendered)) problem(`${count} <${tag}> without a shadow root`)
 if (desktop.missingFromRail.length)
-  problem(`top-level sections missing from the rail:  ${desktop.missingFromRail.join(", ")}`)
-if (desktop.planDocRail) problem("a plan doc drew the rail, not its toolbar")
-if (desktop.danglingRail.length) problem(`rail entries pointing nowhere:  ${desktop.danglingRail.join(", ")}`)
+  problem(`top-level sections missing from the toolbar:  ${desktop.missingFromRail.join(", ")}`)
+if (desktop.oldRail) problem("the page drew the old floating rail, not a toolbar")
+if (desktop.danglingRail.length) problem(`toolbar entries pointing nowhere:  ${desktop.danglingRail.join(", ")}`)
 if (desktop.codeWithoutPre) problem(`${desktop.codeWithoutPre} ui-accordion.spell-code without a <pre>`)
 if (desktop.icons.blankCount) console.error(`NOTE: ${desktop.icons.blankCount} icon(s) with no <svg> drawn`)
 
@@ -80,7 +79,7 @@ if (middle.id && !stuck.stuck)
   problem(
     `${middle.tag} #${middle.id} not stuck at the top (its title's top at ${stuck.top}px, ${stuck.covering ?? "nothing"} showing at its middle)`
   )
-if (desktop.topLevel && !stuck.active) problem("no rail (toolbar) entry marked current after scrolling")
+if (desktop.topLevel && !stuck.active) problem("no toolbar entry marked current after scrolling")
 
 const fold = await checkFold(desk)
 if (fold.problem) problem(`fold:  ${fold.problem}`)
@@ -97,7 +96,7 @@ await phone.evaluate(() => window.scrollTo(0, document.body.scrollHeight / 2))
 const mainWidth = await phone.evaluate(() => Math.round(document.querySelector("main").getBoundingClientRect().width))
 if (mainWidth < 390 - 40) problem(`content column only ${mainWidth}px wide at phone width (390px)`)
 const rail = await phone.evaluate(navOnScreen, NAV)
-if (desktop.topLevel && !rail.shown) problem(`the ${rail.toolbar ? "toolbar" : "rail"} isn't shown at phone width`)
+if (desktop.topLevel && !rail.shown) problem("the toolbar isn't shown at the top at phone width")
 
 await browser.close()
 const problems = [...seen].map(([text, count]) => (count > 1 ? `${text}  (x${count})` : text))
@@ -403,7 +402,7 @@ function inspectPage(nav) {
       unrendered[el.localName] = (unrendered[el.localName] ?? 0) + 1
   }
   const undefinedTags = Object.keys(elements).filter((tag) => !customElements.get(tag))
-  // the rail's entries:  the top-level sections (a plan doc's top-level blocks), or the h2s heading a sticky section
+  // the toolbar's entries:  the top-level sections (a plan doc's top-level blocks), or the h2s heading a sticky section
   const top = "main > ui-section[id], main epic-page > :is(epic-overview, epic-section, epic-phase)[id]"
   const sections = [...document.querySelectorAll(top)]
   const topLevel = (
@@ -420,7 +419,7 @@ function inspectPage(nav) {
     undefinedTags,
     topLevel: topLevel.length,
     railEntries: railIds.length,
-    planDocRail: document.body.classList.contains("plan-doc") && !!document.querySelector("nav.spell-rail"),
+    oldRail: !!document.querySelector("nav.spell-rail"),
     danglingRail: railIds.filter((id) => !document.getElementById(id)),
     missingFromRail: topLevel.filter((id) => !railIds.includes(id)),
     codeBlocks: document.querySelectorAll("ui-accordion.spell-code").length,
@@ -526,27 +525,26 @@ function stuckAndActive({ id, nav }) {
     stuck: section ? stuckState && atTop && ownTitle : bound || (atTop && ownTitle),
     top: rect && Math.round(rect.top),
     covering: covering && `${covering.localName}#${covering.id}`,
-    active: (active?.querySelector(".spell-rail-label, .spell-toolbar-label") ?? active)?.textContent.trim()
+    active: (
+      active?.querySelector(".spell-rail-label")?.textContent ??
+      active?.getAttribute("title") ??
+      active?.textContent
+    )?.trim()
   }
 }
 
 /**
- * Whether the page's navigation is shown inside the phone viewport:  where it is, how big.
- * - the rail:  at the window's right edge
- * - a plan doc's toolbar:  stuck in the top half of the window (the page is scrolled mid-way), no wider than it
+ * Whether the page's toolbar is shown inside the phone viewport:  stuck in the top half of the window (the page is
+ * scrolled mid-way), no wider than it;  where it is, how big.
  */
 function navOnScreen(nav) {
   const element = document.querySelector(nav)
   if (!element) return { shown: false }
-  const toolbar = element.matches("nav.spell-toolbar")
   const rect = element.getBoundingClientRect()
   const visible = getComputedStyle(element).display !== "none" && rect.width > 0 && rect.height > 0
-  const placed = toolbar
-    ? rect.left >= -1 && rect.right <= innerWidth + 1 && rect.top >= 0 && rect.bottom <= innerHeight / 2
-    : rect.right <= innerWidth + 1 && rect.right >= innerWidth - 2
+  const placed = rect.left >= -1 && rect.right <= innerWidth + 1 && rect.top >= 0 && rect.bottom <= innerHeight / 2
   return {
     shown: visible && placed,
-    toolbar,
     left: Math.round(rect.left),
     top: Math.round(rect.top),
     width: Math.round(rect.width)
