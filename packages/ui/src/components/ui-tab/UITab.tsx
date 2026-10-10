@@ -65,7 +65,7 @@ export class UITab extends E.UIComponent<typeof tabVocabulary> {
   }
 
   /** Owned:  the DOM element is named by its `label`, else its `value`;  alone, unnamed. */
-  @E.aria("ariaLabel")
+  @E.aria("label")
   protected get accessibleName(): string | undefined {
     return this.owner ? (this.label ?? this.value) : undefined
   }

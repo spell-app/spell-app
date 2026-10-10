@@ -5,7 +5,7 @@
  *   and what the pieces of `UIComponent` hand each other
  * - Runtime-light:  types, plus a few constants
  *   (`WHITESPACE`, `ERROR_EVENT`, `ERRORED_STATE`, `StickyWatchEdges` and `StickyWatch`'s thresholds,
- *   the source URL attributes).
+ *   the source URL attributes, `AriaNames`).
  * - The BOTTOM of the folder's import graph:  `import type` only (the core's types as `E`, erased),
  *   so it NEVER loads a class module of its folder, the DOM or Solid.
  *   - `core.ts` re-exports it,
@@ -661,13 +661,14 @@ export type ElementSetup = {
 
   /**
    * ARIA the DOM element ALWAYS has, set once on its `internals` when the component is built:
-   * `{ role: "listitem" }`, `{ role: "status", ariaLive: "polite" }`.
+   * `{ role: "listitem" }`, `{ role: "status", live: "polite" }`.
+   * - Keys are short names (`AriaNames`), as `@aria` takes them.
    * - Default none.
    * - For a value that never changes;  one that follows state is an `@aria` getter, which wins once its effect runs
    *   (`<ui-card>`'s role follows its group).
    * - A server render (`$/ui/static`) gets it too:  a `listitem` becomes an `<li>`.
    */
-  aria: Readonly<Partial<Record<AriaProperty, string>>>
+  aria: Readonly<Partial<Record<AriaName, string>>>
 
   /**
    * What `disabled` means for this family (every element takes it:  `SharedVocabulary`).
@@ -717,6 +718,30 @@ export type LoadingMeaning = "loader" | "its own"
 export type AriaProperty = {
   [K in keyof ARIAMixin]-?: ARIAMixin[K] extends string | null ? K : never
 }[keyof ARIAMixin]
+
+/**
+ * ARIA by short name => the `ElementInternals` property `@aria` and `elementSetup.aria` write.
+ * - Each is the attribute in its comment, set on the element's hidden ARIA (never a visible attribute).
+ * - Only the names in use:  a name not here fails TypeScript, so add it here (one line).
+ * - Keys follow the attribute, camelCased after `aria-`:  `aria-valuemin` is `valueMin`.
+ */
+export const AriaNames = {
+  role: "role", // role
+  busy: "ariaBusy", // aria-busy
+  checked: "ariaChecked", // aria-checked
+  current: "ariaCurrent", // aria-current
+  disabled: "ariaDisabled", // aria-disabled
+  hidden: "ariaHidden", // aria-hidden
+  label: "ariaLabel", // aria-label
+  level: "ariaLevel", // aria-level
+  live: "ariaLive", // aria-live
+  roleDescription: "ariaRoleDescription", // aria-roledescription
+  selected: "ariaSelected", // aria-selected
+  valueMin: "ariaValueMin" // aria-valuemin
+} as const satisfies Record<string, AriaProperty>
+
+/** A short ARIA name, a key of `AriaNames`:  `"busy"`, `"label"`, `"role"` ... */
+export type AriaName = keyof typeof AriaNames
 
 ////////////////
 // ## Element definition
