@@ -182,7 +182,7 @@ over 32 of 255, and a pair counts as different over 1% differing pixels (size ch
 ## Static parity
 
 `yarn test:visual --static [--grep <family>] [--browsers chrome]` compares the STATIC server render of each element
-example (`$/ui/static`:  `StaticRender` + `StaticStylesheet`, plan `packages/docs/content/plans/seo/seo.html`) with the live
+example (`$/ui/static`:  `StaticRender` + `StaticStylesheet`, plan `epics/seo/seo.plan.html`) with the live
 elements, light and dark, using Parity's comparison and tolerances.  Report:  `tools/results/visual/static-parity.md`,
 most different first, with diff images, the `ui-*` tags the static page left unrendered, and any page that failed to
 render or to be captured (with its error;  Firefox can't capture a page over 32767px tall).
@@ -195,11 +195,12 @@ render or to be captured (with its error;  Firefox can't capture a page over 327
   `fixture.html`'s chrome (body class, `#example` box, viewport) around the rendered example, linking
   `/static/ui.css`, with NO script, so no `ui-*` element is ever defined.  Open one while a run is going, or start the
   same server with `StaticPages` to look at it.
-- Rendering runs in node through a second, SSR-only Vite server in vitest's `ssr` posture (`mode: "test"`,
-  `test.environment: "node"`):  only then does the Solid plugin compile JSX for the server.  `StaticFixture.verify()`
-  fails a page with a `<slot>` left, no `data-ui` root, or a defined tag left unrendered.
-- Expect differences that aren't bugs of the render:  icons draw no glyph yet (P3), families not in `StaticFamilies`
-  stay bare `ui-*` tags, and an example's own `::part()` CSS matches nothing without shadow roots (plan C3).
+- Rendering runs in node through a second, SSR-only Vite server, `tools/StaticRenderer.ts` (`spell static` uses it
+  too), in vitest's `ssr` posture (`mode: "test"`, `test.environment: "node"`):
+  only then does the Solid plugin compile JSX for the server.
+  `StaticFixture.verify()` fails a page with a `<slot>` left, no `data-ui` root, or a defined tag left unrendered.
+- Expect differences that aren't bugs of the render:  families not in `StaticFamilies` stay bare `ui-*` tags, and
+  the known drift the plan lists (its caveats C10, C13, C17).
 
 ## Troubleshooting
 
