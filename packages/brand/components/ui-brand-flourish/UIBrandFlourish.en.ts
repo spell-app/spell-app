@@ -1,10 +1,10 @@
 /**
  * The English vocabulary of `<ui-brand-flourish>`:  every name the tag uses.
- * - The shape is `ComponentVocabulary`.
+ * - The shape is `E.ComponentVocabulary`.
  * - Pure data:  `import type` only;  `variant`'s values are written out (the types file's `VARIANTS`).
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `brandFlourishVocabulary`
@@ -44,4 +44,4 @@ export const brandFlourishVocabulary = {
   parts: [{ name: "art", description: "The `<svg>`." }],
   states: [],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

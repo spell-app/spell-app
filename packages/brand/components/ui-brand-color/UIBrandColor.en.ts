@@ -1,11 +1,11 @@
 /**
- * Every name `<ui-brand-color>` uses:  tag, attributes, events, parts, states, texts.  Schema:  `ComponentVocabulary`.
+ * Every name `<ui-brand-color>` uses:  tag, attributes, events, parts, states, texts.  Schema:  `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
  * - Class words:  `contrast`, `selected`, `details` their names;  `copy` as `copy` or `<format> copy`;
  *   `size` its value.  The element adds `brand` before the noun (`brand color`).
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-brand-color>`
@@ -109,4 +109,4 @@ export const brandColorVocabulary = {
     { key: "white", text: "white", description: "`{ink}` in `goodText`, for white text." },
     { key: "dark", text: "dark", description: "`{ink}` in `goodText`, for ink text." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

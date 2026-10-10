@@ -1,7 +1,7 @@
-import { For, Show, createEffect, createMemo } from "solid-js"
+import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import { DOMElement, proto, protoMerged, UIComponent, type ElementSetup, type AttributeValues } from "$/ui/core"
+import { E } from "$/ui/core"
 import { STEPS, type Scale, type Step } from "$/brand"
 
 import { brandColorRangeVocabulary } from "./UIBrandColorRange.en"
@@ -17,12 +17,11 @@ import rangeCSS from "./UIBrandColorRange.css?inline"
  * The DOM element of `<ui-brand-color-range>`:  it adds the ladder as read-only properties, and `css()`.
  *
  * - Worked out from the DOM element's CURRENT properties (`value`, `anchor`, `vibrancy`, `hueShift`, `name`),
- *   not the component's memo, so a read straight after a write sees the new ladder
- *   (Solid applies writes a microtask late).
+ *   not the component's `ladder`, so it answers before the element first connects too (no component yet).
  * - `DOMElement` refuses a member named like an attribute's property:  none of these is one.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
-export class DOMBrandColorRangeElement extends DOMElement<UIBrandColorRange> {
+export class DOMBrandColorRangeElement extends E.DOMElement<UIBrandColorRange> {
   /** Step => `#RRGGBB` (a copy), or `undefined` without a base colour. */
   get scale(): Scale | undefined {
     const ladder = this.ladder()
@@ -64,75 +63,69 @@ export class DOMBrandColorRangeElement extends DOMElement<UIBrandColorRange> {
  *   a new `name` alone renames the chips and changes `css()`, without one.
  * - The DOM element (`DOMBrandColorRangeElement`) has `scale`, `anchorStep` and `css(format)`.
  ****************/
-export class UIBrandColorRange extends UIComponent<BrandColorRangeVocabulary> {
-  @proto static vocabulary = brandColorRangeVocabulary
-  @protoMerged static elementSetup = {
+export class UIBrandColorRange extends E.UIComponent<BrandColorRangeVocabulary> {
+  @E.proto static vocabulary = brandColorRangeVocabulary
+  @E.protoMerged static elementSetup = {
     styleSheets: { range: rangeCSS },
     DOMElement: DOMBrandColorRangeElement,
     delegatesFocus: false
-  } satisfies Partial<ElementSetup>
-
-  /** The ladder last announced (`null` before the first render's), for `ui-change`. */
-  private announced: ColorLadder | undefined | null = null
+  } satisfies Partial<E.ElementSetup>
 
   ////////////////
-  // ## Derived state
+  // ## The ladder
   ////////////////
 
   /** The ladder the attributes make, or `undefined`;  changes only when it does. */
-  readonly ladder = createMemo(
-    () =>
-      ColorLadder.from({
-        value: this.value,
-        anchor: this.anchor,
-        vibrancy: this.vibrancy,
-        hueShift: this.hueShift,
-        name: this.name
-      }),
-    { equals: ColorLadder.same }
-  )
+  @E.derived({ equals: ColorLadder.same })
+  get ladder(): ColorLadder | undefined {
+    return ColorLadder.from({
+      value: this.value,
+      anchor: this.anchor,
+      vibrancy: this.vibrancy,
+      hueShift: this.hueShift,
+      name: this.name
+    })
+  }
 
-  /** `copy`, as the chips' attribute text:  `""` (bare), a format, or `undefined` (absent). */
-  readonly chipCopy = createMemo(() => {
-    const copy = this.copy
-    return copy === true ? "" : copy || undefined
-  })
+  /** The ladder last announced (`null` before the first one), for `ui-change`. */
+  private announced: ColorLadder | undefined | null = null
 
-  ////////////////
-  // ## Classes
-  ////////////////
-
-  protected get extraClass(): string | undefined {
-    return BRAND_COLOR
+  /** A new ladder:  `ui-change`, unless it's the first one or only its prefix changed. */
+  @E.onChange("ladder")
+  protected onLadderChanged(ladder: ColorLadder | undefined) {
+    const first = this.announced === null
+    const previous = this.announced
+    this.announced = ladder
+    if (first || !ladder || ladder.sameColors(previous ?? undefined)) return
+    this.send("ui-change", { value: ladder.seed, scale: { ...ladder.scale }, anchor: ladder.anchor })
   }
 
   ////////////////
   // ## Rendering
   ////////////////
 
-  /** Adds `ui-change`, when the colours change after the first render. */
-  onMount(): JSX.Element {
-    createEffect(
-      () => this.ladder(),
-      (ladder) => {
-        this.announce(ladder)
-      }
-    )
-    return super.onMount()
+  /** `copy`, as the chips' attribute text:  `""` (bare), a format, or `undefined` (absent). */
+  get chipCopy(): string | undefined {
+    const copy = this.copy
+    return copy === true ? "" : copy || undefined
+  }
+
+  protected get extraClass(): string | undefined {
+    return BRAND_COLOR
   }
 
   render(): JSX.Element {
     return (
-      <Show when={this.ladder()}>
-        <Show when={this.strip} fallback={this.renderLadder()}>
-          {this.renderStrip()}
+      <Show when={this.ladder}>
+        <Show when={this.strip} fallback={this.chips()}>
+          {this.dots()}
         </Show>
       </Show>
     )
   }
 
   /** The ladder:  17 chips, the number under each. */
-  private renderLadder(): JSX.Element {
+  private chips(): JSX.Element {
     return (
       <ol class={this.rootClass} part={this.partForName("range")} aria-label={this.ladderName()}>
         <For each={STEPS}>
@@ -140,13 +133,13 @@ export class UIBrandColorRange extends UIComponent<BrandColorRangeVocabulary> {
             <li class={CLASSES.step} part={this.partForName("step")}>
               <ui-brand-color
                 part={this.partForName("chip")}
-                value={this.ladder()?.scale[step]}
-                name={this.ladder()?.name(step)}
+                value={this.ladder?.scale[step]}
+                name={this.ladder?.name(step)}
                 label={this.label}
                 contrast={UIBrandColorRange.flag(this.contrast)}
-                copy={this.chipCopy()}
+                copy={this.chipCopy}
                 details={UIBrandColorRange.flag(this.details)}
-                selected={UIBrandColorRange.flag(this.ladder()?.anchor === step)}
+                selected={UIBrandColorRange.flag(this.ladder?.anchor === step)}
               />
               <Show when={this.numbers !== NO_NUMBERS}>
                 <span class={CLASSES.number} part={this.partForName("number")} aria-hidden="true">
@@ -161,7 +154,7 @@ export class UIBrandColorRange extends UIComponent<BrandColorRangeVocabulary> {
   }
 
   /** The strip:  17 dots, one image. */
-  private renderStrip(): JSX.Element {
+  private dots(): JSX.Element {
     return (
       <span class={this.rootClass} part={this.partForName("range")} role="img" aria-label={this.ladderName()}>
         <For each={STEPS}>
@@ -173,27 +166,14 @@ export class UIBrandColorRange extends UIComponent<BrandColorRangeVocabulary> {
 
   /** The ladder's name:  "brand:  17 shades of #8E96B5". */
   private ladderName(): string {
-    const ladder = this.ladder()
+    const ladder = this.ladder
     return ladder ? this.translationForKey("ladder", { name: ladder.prefix, seed: ladder.seed }) : ""
   }
 
   /** A strip dot's colour. */
   private dotStyle(step: Step): JSX.CSSProperties | undefined {
-    const color = this.ladder()?.scale[step]
+    const color = this.ladder?.scale[step]
     return color ? { "background-color": color } : undefined
-  }
-
-  ////////////////
-  // ## Events
-  ////////////////
-
-  /** A new ladder:  `ui-change`, unless it's the first render's or only its prefix changed. */
-  private announce(ladder: ColorLadder | undefined) {
-    const first = this.announced === null
-    const previous = this.announced
-    this.announced = ladder
-    if (first || !ladder || ladder.sameColors(previous ?? undefined)) return
-    this.send("ui-change", { value: ladder.seed, scale: { ...ladder.scale }, anchor: ladder.anchor })
   }
 
   /** A boolean as a chip's attribute:  `""` (on) or absent. */
@@ -202,7 +182,7 @@ export class UIBrandColorRange extends UIComponent<BrandColorRangeVocabulary> {
   }
 }
 
-export interface UIBrandColorRange extends AttributeValues<BrandColorRangeVocabulary> {}
+export interface UIBrandColorRange extends E.AttributeValues<BrandColorRangeVocabulary> {}
 
 /** The class words the component adds before the noun:  `color brand range`. */
 const BRAND_COLOR = "color brand"
