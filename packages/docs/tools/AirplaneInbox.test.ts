@@ -7,6 +7,16 @@ import { FROM_PAGE } from "$/epics/tool/epicRoutes"
 
 import { AirplaneInbox } from "./AirplaneInbox.ts"
 
+/** A comment on a block, waiting (`CommentList`'s shape). */
+const COMMENT = {
+  anchor: "intro#table-1",
+  kind: "table",
+  label: "1. Intro",
+  excerpt: "Name",
+  at: "2026-10-10T11:00:00.000Z",
+  status: "new"
+}
+
 describe("AirplaneInbox.gather()", () => {
   const root = mkdtempSync(join(tmpdir(), "airplane-inbox-"))
   const flight = "2026-10-10T08:00:00.000Z"
@@ -23,7 +33,11 @@ describe("AirplaneInbox.gather()", () => {
       },
       drafts: { t3: { action: "todo", note: "half a tho", at: "2026-10-10T11:30:00.000Z" } },
       now: [{ id: "q4", action: "details", at: "2026-10-10T10:00:00.000Z" }],
-      sent: "2026-10-10T10:30:00.000Z"
+      sent: "2026-10-10T10:30:00.000Z",
+      comments: {
+        cm1: { ...COMMENT, text: "Answered already", status: "answered" },
+        cm2: { ...COMMENT, anchor: "p3#field-2", kind: "field", text: "Which file?" }
+      }
     })
   )
   // an empty inbox:  nothing to say about that epic
@@ -44,6 +58,15 @@ describe("AirplaneInbox.gather()", () => {
   writeFileSync(
     join(root, "guides", "guide.html"),
     `<main><spell-notes for="page"><spell-note id="n1" status="new" at="2026-10-10 10:00"><p>Is this still true?</p></spell-note></spell-notes></main>\n`
+  )
+
+  // a comment waiting in the guide's inbox file, one taken already
+  writeFileSync(
+    join(root, "guides", "guide.inbox.json"),
+    JSON.stringify({
+      version: 1,
+      comments: { cm1: { ...COMMENT, text: "Too long?" }, cm2: { ...COMMENT, status: "taken", text: "Old" } }
+    })
   )
 
   // two future epics:  one made from the Epics page (its log says so), one by `/epic future`
@@ -92,11 +115,18 @@ describe("AirplaneInbox.gather()", () => {
     expect(AirplaneInbox.gather(root).details).toEqual([])
   })
 
+  it("takes the comments still waiting:  a guide's, from its inbox file;  a plan doc's, from the review inbox", () => {
+    const inbox = AirplaneInbox.gather(root)
+    expect(inbox.comments).toMatchObject([{ page: "guides/guide.html", id: "cm1", text: "Too long?" }])
+    expect(inbox.epics[0]!.comments).toMatchObject([{ id: "cm2", text: "Which file?" }])
+  })
+
   it("says it in a line per place", () => {
     expect(AirplaneInbox.gather(root, { since: flight }).lines).toEqual([
-      "epic demo:  2 marks (1 not sent), 1 new item, 1 draft, 1 for now",
+      "epic demo:  2 marks (1 not sent), 1 new item, 1 draft, 1 for now, 1 comment",
       "new epic idea:  idea title",
       expect.stringMatching(/^note guides\/guide\.html n1 \(.*\):  Is this still true\?$/),
+      "guide comment guides/guide.html cm1 (1. Intro):  Too long?",
       expect.stringMatching(/^details epics\/demo\/details\/onboard\.html:  answered /)
     ])
   })

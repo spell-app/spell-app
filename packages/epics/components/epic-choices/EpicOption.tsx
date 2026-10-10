@@ -5,6 +5,7 @@ import { E } from "$/ui/core"
 
 import { NOBODY_LISTENING, ReviewClient, picks } from "$/epics/review"
 import { Fold } from "$/epics/components/epic-item/Fold"
+import type { EpicItem } from "$/epics/components/epic-item/EpicItem"
 import { CLOSED_STATUSES } from "$/epics/components/epic-item/EpicItem.types"
 
 import { epicOptionVocabulary } from "./EpicOption.en"
@@ -26,10 +27,13 @@ import choicesCSS from "./EpicChoices.css?inline"
  * - Reviewed (the page's `ReviewClient` is `reviewing`:  served by the page server, its inbox answering):
  *   a "Choose" pill at the header's end (`pill()`) marks its letter as the item's pick through the client
  *   (`ReviewClient.choose()`);  again, un-picks it.
+ *   A pick is an action chosen:  the item folds (`EpicItem.foldAfterAction()`, Owen, 2026-10-10);  an un-pick doesn't.
  *   A pick is a decision, so green, wearing the fill rule (decision Q20):  the pill a grey outline, available;
- *   picked, `Chosen`, the pill and the card's frame DASHED green (an answered panel:  its title green);
- *   once sent, outlined green;  applied (its set's `chosen`), the pill SOLID green:
+ *   picked, `Chosen · not sent`, the pill and the card's frame DASHED green (an answered panel:  its title green);
+ *   once sent, `Chosen · sent`, outlined green;  applied (its set's `chosen`), `Chosen`, the pill SOLID green:
  *   a question answered with it, any other item approved with it (`plan-doc inbox apply`)
+ *   - from the pick on, the card says Chosen (Owen, 2026-10-10):  a sent pick Claude took off the inbox stays
+ *     `Chosen · sent` until the doc's `chosen` reaches the page (`ReviewClient.takenPickOf()`)
  *   - WHEREVER its cards are (I8):  an item's text, a reply, More Details;  the pick names its card set by position
  *     (`EpicChoices.setOf()`), as an item may hold several
  *   - on an OPEN item's cards;  on a CLOSED one's (an answered question, an accepted call), but the chosen one,
@@ -123,9 +127,13 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
     // applied:  its set's `chosen`, solid (the fill rule's done)
     if (this.isChosen) return { picked: true, sent: true, applied: true, listening }
     const mark = client.markOf(id)
+    // Claude took the pick off the inbox, and the doc's `chosen` isn't on the page yet:  still Chosen, sent
+    const taken = !mark && !this.chosenLetter && picks(client.takenPickOf(id), letter, set.index, set.own)
     const closed = (CLOSED_STATUSES as readonly string[]).includes(this.itemStatus ?? "")
-    const revisiting = client.isBoxOpen(id) || !!client.draftOf(id) || mark?.action === "revisit" || !!mark?.pick
+    const revisiting =
+      client.isBoxOpen(id) || !!client.draftOf(id) || mark?.action === "revisit" || !!mark?.pick || taken
     if (closed && !revisiting) return undefined
+    if (taken) return { picked: true, sent: true, applied: false, listening }
     const picked = picks(mark, letter, set.index, set.own)
     return { picked, sent: picked && !!mark && client.isSent(mark), applied: false, listening }
   }
@@ -227,8 +235,9 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   }
 
   /**
-   * The Choose pill, at the header's end:  `Choose`, a grey outline;  picked, `Chosen`, dashed green;
-   * sent, outlined green;  applied (its set's `chosen`), solid green, and a click does nothing.
+   * The Choose pill, at the header's end:  `Choose`, a grey outline;  picked, `Chosen · not sent`, dashed green;
+   * sent, `Chosen · sent`, outlined green;  applied (its set's `chosen`), `Chosen`, solid green,
+   * and a click does nothing (`pillLabel()`).
    * Its tooltip says what a click does, and whether the pick has gone to Claude.
    * - `pill`:  `<Show>`'s accessor, read in each binding:
    *   the callback's body runs once, so a value read there would never change
@@ -245,7 +254,7 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
           title={this.pillTip(pill())}
           onClick={this.onChoose}
         >
-          {this.translationForKey(pill().picked ? "chosen" : "choose")}
+          {this.translationForKey(pillLabel(pill()))}
         </button>
       </span>
     )
@@ -274,8 +283,8 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   }
 
   /**
-   * A click on its Choose pill:  pick its letter in its card set (by the set's position:  I8), or un-pick it when
-   * it's the pick;  applied already (its set's `chosen`), nothing.
+   * A click on its Choose pill:  pick its letter in its card set (by the set's position:  I8), and fold the item;
+   * or un-pick it when it's the pick;  applied already (its set's `chosen`), nothing.
    */
   private readonly onChoose = (event: MouseEvent) => {
     // a panel's header folds on a click;  the item's line would too
@@ -287,6 +296,13 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
     if (!this.review || !id || !letter || !set || pill?.applied) return
     // a failed write is the client's own notice, and re-reads the inbox:  nothing to do here
     void this.review.choose(id, pill?.picked ? null : letter, set.index).catch((error: unknown) => console.error(error))
+    if (!pill?.picked) this.itemComponent()?.foldAfterAction()
+  }
+
+  /** The `<epic-item>` it belongs to, drawn;  else `undefined`. */
+  private itemComponent(): EpicItem | undefined {
+    const item = this.domElement.closest(ITEM_TAG) as E.DOMElement | null
+    return item?.component as EpicItem | undefined
   }
 
   /**
@@ -317,6 +333,16 @@ export type PillState = {
   applied: boolean
   /** a Claude session waits on the inbox */
   listening: boolean
+}
+
+/**
+ * The pill's words, which say where the pick stands (Owen, 2026-10-10:  "losing the Chosen marker"):
+ * `Choose`;  picked, `Chosen · not sent`, then `Chosen · sent`;  applied, `Chosen`.
+ */
+function pillLabel(pill: PillState): "choose" | "chosenNotSent" | "chosenSent" | "chosen" {
+  if (!pill.picked) return "choose"
+  if (pill.applied) return "chosen"
+  return pill.sent ? "chosenSent" : "chosenNotSent"
 }
 
 /** Class names inside the shadow root. */

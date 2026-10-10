@@ -2,7 +2,7 @@
  * Tests of `PlanDocCommands` (`spell dev plan-doc ...`) on a scratch checkout:  the command line itself, its flags,
  * output and log lines, on a doc written as a real one is (linked, formatted, split).
  */
-import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
+import { mkdirSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
@@ -84,5 +84,18 @@ describe("PlanDocCommands add-phase --before", () => {
       "plan-doc:  --before 1:  P1 has started;  only to-do phases move down"
     ])
     expect(readFileSync(file, "utf8")).toBe(skeleton)
+  })
+})
+
+describe("PlanDocCommands add --details:  a name and its path", () => {
+  test("written as the name, its path its tooltip, linked to the file (epic `airplane`)", async () => {
+    mkdirSync(join(root, "packages", "x", "src"), { recursive: true })
+    writeFileSync(join(root, "packages", "x", "src", "buildTsx.ts"), "export {}\n")
+    const details = "<p>Built:  <code>buildTsx()</code>, <code>packages/x/src/buildTsx.ts:4</code></p>"
+    expect(await commands().run(["add", "x", "judgement", "Built it", "--details", details])).toBe(0)
+    const part = readdirSync(parts).find((name) => /^j\d+\.html$/.test(name))!
+    expect(readFileSync(join(parts, part), "utf8")).toMatch(
+      /<a href="(?:\.\.\/){3}packages\/x\/src\/buildTsx\.ts" target="src-packages-x-src-buildtsx-ts"\s*>\s*<code title="packages\/x\/src\/buildTsx\.ts:4">buildTsx\(\)<\/code\s*>\s*<\/a\s*>/
+    )
   })
 })

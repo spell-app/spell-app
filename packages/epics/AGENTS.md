@@ -51,8 +51,9 @@ house style every package shares.  Only what's local is below;  a section named 
     token refresh, polling, note-draft backups (the old runtime's localStorage keys)
     - touches no browser global until `forPage()` / `watch()`
     - used by `<epic-review>` (the review controls `<epic-item>`, `<epic-section>` (Overview parts), `<epic-phase>`
-      and `<epic-summary>` draw), `<epic-new-item>` (`<epic-page>`'s `+`, the Todos and Questions sections' New
-      todo / question) and `<epic-option>`'s Choose pill;  the controls show while `<epic-page reviewing>` is set
+      and `<epic-summary>` draw), `<epic-new-item>` (`<epic-page>`'s toolbar button, the Todos and Questions
+      sections' New todo / question) and `<epic-option>`'s Choose pill;  the controls show while
+      `<epic-page reviewing>` is set
     - `AgentsClient`, one per page:
       the epic's running agents (`/api/agents`, `packages/docs/tools/agentRoutes.ts`) and Owen's redirects
       - `<epic-page>` draws them as its "Agents running" panel

@@ -20,14 +20,15 @@ export const epicNewItemVocabulary = {
   noun: "new item",
   ui: false,
   description:
-    "A new todo or question Owen asks for while he reads (epic `airplane` P2), drawn by `<epic-page>` (its header's " +
-    "`+`) and a Todos or Questions `<epic-section>` (at its end), never written in a doc:  a button, and while " +
+    "A new todo or question Owen asks for while he reads (epic `airplane` P2), drawn by `<epic-page>` (the form " +
+    "its toolbar button opens) and a Todos or Questions `<epic-section>` (at its end), never written in a doc:  a button, and while " +
     "`open`, the form.  What's asked for is a mark in the review inbox, made into an item by `plan-doc inbox apply`.",
   attributes: [
     {
       name: "open",
       kind: "boolean",
-      description: "The form shows.  Its button sets it;  saving or cancelling the form clears it."
+      description:
+        "The form shows.  Its button sets it, or the page (the form alone);  saving or cancelling the form clears it."
     },
     {
       name: "adds",
@@ -42,21 +43,20 @@ export const epicNewItemVocabulary = {
       name: "editing",
       kind: "string",
       description: "The key of a waiting new item (`new1`):  the form changes it (Save) instead of adding one."
-    },
-    {
-      name: "compact",
-      kind: "boolean",
-      description:
-        "The page header's:  a round `+` named by its tooltip, which stays while the form is open, and the element " +
-        "is `display: contents`, so the page places the button and the form (`::part(form)`) in its own row.  " +
-        "Without it:  the `+` and its words, which the form takes the place of while open."
     }
   ],
-  events: [],
+  events: [
+    {
+      name: "epic-new-closed",
+      detail: "{ saved: boolean }",
+      description:
+        "The form closed:  saved (`saved`), or cancelled.  `<epic-page>`, which opens it from its toolbar, lets go of it."
+    }
+  ],
   slots: [],
   parts: [
     { name: "base", description: "Its button and form." },
-    { name: "button", description: "The button that opens the form:  a round `+`, or the `+` and its words." },
+    { name: "button", description: "The button that opens the form:  the `+` and its words." },
     { name: "form", description: "The form:  todo or question, its title, a note, what it's about, Add and Cancel." }
   ],
   states: [{ name: "open", description: "The form shows." }],

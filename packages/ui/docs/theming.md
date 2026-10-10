@@ -389,8 +389,8 @@ Dark mode by default follows the OS (`color-scheme: light dark` on `:root`, in `
 ### Our own theme:  `spell`
 
 `themes/spell.css` is the Spell brand (`brand/spell-design-system/`) as a theme, and the DEFAULT look of
-every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks another) and `packages/docs` pages
-(`spell-ui.entry.js`).
+the Spell UI docs (`ThemePreference`, until the viewer picks another);  `packages/docs` pages wore it too
+(`spell-ui.entry.js`) until epic `design-system` moved them to `spell-brand` (below).
 
 - Listed in `UI.themes.own`, not `names`:  it's no Fomantic port.  Applied exactly like one, on top of `classic`,
   so it restates every classic token the brand replaces (type, the size ladder, radii, ink, borders, shadows, the
@@ -424,10 +424,11 @@ every doc site:  the Spell UI docs (`ThemePreference`, until the viewer picks an
 ### Our own theme:  `spell-brand`
 
 `themes/spell-brand.css` is `spell` as Claude Design's brand pages draw it, converging on them (epic
-`design-system`, `packages/docs/content/epics/design-system/design-system.plan.html`).
+`design-system`, `epics/design-system/design-system.plan.html`).
 
 - Started 2026-10-04 as a FULL COPY of `spell.css`, so the two may drift;  whether it replaces `spell` is a later
-  call.  Also in `UI.themes.own`, and in the docs' theme picker as "Spell brand".
+  call.  Also in `UI.themes.own`, and in the docs' theme picker as "Spell Brand", second.
+- The docs pages wear it:  `packages/docs`'s bundle applies it (epic `design-system`, P9).
 - Adds the brand's own semantic roles that no `--ui-*` token covers, as `--spell-*` `light-dark()` pairs:
   surfaces (`--spell-surface-tint`, `-warm`, `-selected`, `-code`, `-inverse`), text, accent (`--spell-accent`,
   `-soft`, `-ring`), borders, status, art (`--spell-blob`, `--spell-line-flourish`), shadows (`--spell-shadow-xs`

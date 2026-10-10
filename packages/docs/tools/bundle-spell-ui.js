@@ -140,6 +140,8 @@ const ICONS = {
   // the pony (`brand/pony.html`, epic `claude-design`)
   "solid/horse": ["horse"],
   "solid/comment": ["comment"],
+  // a guide comment (`spell-doc-runtime.js`, "Guide comments"):  beside each block, on each comment
+  "solid/bullhorn": ["bullhorn"],
   // trade-offs (durable template)
   "solid/thumbs-up": ["thumbs up"],
   "solid/thumbs-down": ["thumbs down"],
@@ -197,7 +199,10 @@ const ICONS = {
   "solid/trash-can": ["trash can"],
   "solid/plug": ["plug"],
   "solid/circle-play": ["circle play"],
-  "solid/circle-pause": ["circle pause"], // the docs index:  a stalled epic
+  "solid/circle-pause": ["circle pause"], // an epic's state:  paused (`$/server/site/EpicState`)
+  // an Epics card's star (`$/server/site/EpicCards`):  a favourite, or not;  the Favorites group's heading
+  "solid/star": ["star"],
+  "regular/star": ["star outline"],
   // plan docs' review (epic `review-review`):  section icons, the item action menu and filter, the page header's
   // send / files / git buttons
   "solid/file-circle-question": ["file circle question"],

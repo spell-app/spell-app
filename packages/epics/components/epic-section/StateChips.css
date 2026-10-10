@@ -1,0 +1,69 @@
+/*
+ * The state filter's chips (`StateFilter.ts`):  an item section's, at its title's end (`<epic-section>`), and the
+ * page's, in its toolbar (`<epic-page>`).  Each adopts this sheet as `epic-state-chips`.
+ */
+
+@layer ui.components.epic-state-chips;
+
+@layer ui.components.epic-state-chips {
+  /*
+   * ## The state filter:  a pill per state its items are in, in the state's colour, with how many;
+   * SOLID while its items show, OUTLINED while hidden (Owen, 2026-10-10).  Each centred on the title's row
+   */
+  .filter {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+  }
+  .chip {
+    --_chip: var(--ui-grey, #767676);
+    --_chip-on: var(--ui-grey-on, #fff);
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    box-sizing: border-box;
+    min-width: 22px;
+    height: 18px;
+    padding: 0 5px;
+    border: 1.5px solid var(--_chip);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--epic-ink, var(--ui-text-color));
+    font: 700 11px/1 var(--epic-sans, var(--ui-font-family));
+    font-variant-numeric: tabular-nums;
+    cursor: pointer;
+  }
+  /* the item states' colours (decision Q20):  blue Claude is on it, red needs Owen, yellow open, green done lately */
+  .chip[data-color="blue"] {
+    --_chip: var(--epic-state-progress, var(--ui-blue));
+    --_chip-on: var(--epic-state-progress-on, var(--ui-blue-on));
+  }
+  .chip[data-color="red"] {
+    --_chip: var(--epic-state-attention, var(--ui-red));
+    --_chip-on: var(--epic-state-attention-on, var(--ui-red-on));
+  }
+  /* Claude answered with options, Owen's turn to pick (`replied`, Owen, 2026-10-09) */
+  .chip[data-color="orange"] {
+    --_chip: var(--epic-state-replied, var(--ui-orange));
+    --_chip-on: var(--epic-state-replied-on, var(--ui-orange-on));
+  }
+  .chip[data-color="yellow"] {
+    --_chip: var(--epic-state-open, var(--ui-yellow));
+    --_chip-on: var(--epic-state-open-on, var(--ui-yellow-on));
+  }
+  .chip[data-color="green"] {
+    --_chip: var(--epic-state-recent, var(--ui-green));
+    --_chip-on: var(--epic-state-recent-on, var(--ui-green-on));
+  }
+  .chip[aria-pressed="true"] {
+    background: var(--_chip);
+    color: var(--_chip-on);
+  }
+  .chip:hover {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--_chip) 25%, transparent);
+  }
+  .chip:focus-visible {
+    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
+    outline-offset: 1px;
+  }
+}

@@ -21,6 +21,7 @@ import "$/epics/components/epic-phase"
 import "$/epics/components/epic-commit"
 import "$/epics/components/epic-item"
 import "$/epics/components/epic-answer"
+import "$/epics/components/epic-aside"
 
 /** A page with phases in `statuses`, and `attributes` on the page. */
 function page(attributes: string, statuses: string[], extra = ""): string {
@@ -199,22 +200,51 @@ describe("<epic-page>", () => {
     expect(getComputedStyle(plain.querySelector("epic-page")!).marginLeft).toBe("0px")
   })
 
-  test("sleeping:  phases, none under way, open follow-ups:  😴 saying what's open;  gone once under way", async () => {
+  // epic `airplane` P8 (Owen, 2026-10-10):  in progress, errors, done, paused;  no sleeping mark any more
+  test("the state mark:  in progress between phases, paused once untouched, errors while items need Owen", async () => {
+    const now = new Date()
+    const today = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+      .map((n) => String(n).padStart(2, "0"))
+      .join("-")
     const items =
       `<epic-section id="decisions" kind="questions">` +
-      `<epic-item id="q1" title="One" status="open"></epic-item><epic-item id="q2" title="Two" status="open"></epic-item>` +
-      `</epic-section><epic-section id="caveats" kind="caveats"><epic-item id="c1" title="Kept" status="open"></epic-item>` +
-      `</epic-section><epic-section id="todos" kind="todos"><epic-item id="t1" title="Later" status="open"></epic-item></epic-section>`
-    const host = await render(page("", ["done", "todo"], items))
-    const sleeping = () => host.shadowRoot!.querySelector<HTMLElement>('[part~="sleeping"]')
-    expect(sleeping()?.title).toBe("Sleeping:  nothing under way, 2 questions, 1 todo to follow up")
-    host.querySelector("#p2")!.setAttribute("status", "active")
+      `<epic-item id="q1" title="One" status="open" state="attention"></epic-item>` +
+      `<epic-item id="q2" title="Two" status="decided" state="recent"></epic-item></epic-section>` +
+      `<epic-section id="todos" kind="todos"><epic-item id="t1" title="Later" status="open" state="open"></epic-item></epic-section>`
+    const mark = (host: Element) => host.shadowRoot!.querySelector<HTMLElement>('[part~="state"]')
+    // between phases, items open, touched today:  in progress (it used to sleep)
+    const busy = await render(page(`updated="${today}"`, ["done", "todo"], items))
+    expect([mark(busy)?.dataset.state, mark(busy)?.getAttribute("color"), mark(busy)?.title]).toEqual([
+      "progress",
+      "blue",
+      `in progress:  1/2 phases done, updated ${today}`
+    ])
+    busy.remove()
+    // a phase active, but nobody on it for days:  paused
+    const idle = await render(page(`updated="2026-01-01"`, ["done", "active"], items))
+    expect([mark(idle)?.dataset.state, mark(idle)?.getAttribute("color"), mark(idle)?.getAttribute("name")]).toEqual([
+      "paused",
+      "grey",
+      "circle pause"
+    ])
+    idle.remove()
+    // every phase done, a question open:  errors;  answered, it's done, and the DONE label says so alone
+    const loud = await render(page(`updated="2026-01-01"`, ["done", "done"], items))
+    expect([mark(loud)?.dataset.state, mark(loud)?.getAttribute("color"), mark(loud)?.title]).toEqual([
+      "errors",
+      "red",
+      "errors:  every phase done, but 1 question need you"
+    ])
+    loud.querySelector("#q1")!.setAttribute("state", "recent")
     await ElementFixture.tick()
     await ElementFixture.tick()
-    expect(sleeping()).toBeNull()
-    host.remove()
-    const planning = await render(page("", [], items))
-    expect(planning.shadowRoot!.querySelector('[part~="sleeping"]')).toBeNull()
+    expect(mark(loud)).toBeNull()
+    expect(step(loud)?.words).toBe("DONE")
+    expect(loud.shadowRoot!.innerHTML).not.toMatch(/sleeping|😴/)
+    loud.remove()
+    // a future epic:  its FUTURE label, no mark
+    const future = await render(page("future", []))
+    expect(mark(future)).toBeNull()
   })
 
   test("the review line:  `/epic review <name>`, copied on click, and it flashes", async () => {
@@ -239,7 +269,7 @@ describe("<epic-page>", () => {
       expect(line.textContent!.replace(/\s+/g, " ")).toContain(
         "Airplane mode: what you mark here waits for /airplane land"
       )
-      expect(line.classList.contains("nobody")).toBe(false)
+      expect(getComputedStyle(line).backgroundColor).toMatch(/^rgba\(0, 0, 0, 0\)$|^transparent$/)
     } finally {
       server.SPELL_SERVER = before
     }
@@ -313,7 +343,7 @@ async function adoptClient(routes: FakeRoutes, { served = true } = {}) {
   return client
 }
 
-/** `host`'s Send and Review Now buttons, as drawn:  `[state, tooltip]` each;  `null` when not drawn. */
+/** `host`'s Send and Review Now buttons, in its send bar:  `[state, tooltip]` each;  `null` when not drawn. */
 function headerButtons(host: Element) {
   const read = (part: string) => {
     const button = host.shadowRoot!.querySelector<HTMLButtonElement>(`[part~="${part}"]`)
@@ -334,15 +364,19 @@ describe("<epic-page> Send and Review Now", () => {
     await adoptClient(new FakeRoutes(), { served: false })
     const host = await render(page("", ["todo"]))
     expect(headerButtons(host)).toEqual({ send: null, now: null })
+    expect(host.shadowRoot!.querySelector('[part~="new-button"]')).toBeNull()
   })
 
-  test("dashed blue with unsent marks;  a click sends them, then outlined;  nobody listening:  the tooltips say so, the review line in orange", async () => {
+  test("in a bar STUCK to the window's bottom while marks wait:  dashed blue unsent, a click sends, then outlined;  nobody listening:  the pill and the tooltips say so", async () => {
     const routes = new FakeRoutes()
     const at = new Date().toISOString()
     routes.inbox.marks = { q1: { action: "approve", at }, q2: { action: "revisit", when: "soon", note: "hm", at } }
     const client = await adoptClient(routes)
     const host = await render(page("", ["todo"]))
     await vi.waitFor(() => expect(headerButtons(host).send).not.toBeNull())
+    const bar = host.shadowRoot!.querySelector<HTMLElement>('[part~="send-bar"]')!
+    expect(getComputedStyle(bar).position).toBe("sticky")
+    expect(host.shadowRoot!.querySelector('header [part~="send"]')).toBeNull()
     expect(headerButtons(host)).toEqual({
       send: ["unsent", `Send 2 marks to Claude${NOBODY}`],
       now: ["ready", `Review Now:  Claude works through 2 marks at once, answers in their items${NOBODY}`]
@@ -350,9 +384,14 @@ describe("<epic-page> Send and Review Now", () => {
     const send = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="send"]')!
     // the fill rule (Q20):  pressed marks not sent, dashed;  sent, outlined
     expect(getComputedStyle(send).borderTopStyle).toBe("dashed")
+    const pill = bar.querySelector<HTMLElement>('[part~="pill"]')!
+    expect(pill.textContent!.replace(/\s+/g, " ")).toContain(
+      "No Claude session is reviewing: start one with /epic review demo"
+    )
+    expect(getComputedStyle(pill).backgroundColor).not.toMatch(/^rgba\(0, 0, 0, 0\)$|^transparent$/)
+    // the review line says nothing of it any more
     const line = host.shadowRoot!.querySelector<HTMLElement>('[part~="review-line"]')!
-    expect(line.textContent).toContain("No Claude session")
-    expect(getComputedStyle(line).backgroundColor).not.toMatch(/^rgba\(0, 0, 0, 0\)$|^transparent$/)
+    expect(line.textContent).not.toContain("No Claude session")
     send.click()
     await vi.waitFor(() => expect(routes.posts.map(([route]) => route)).toEqual(["send"]))
     await vi.waitFor(() => expect(headerButtons(host).send?.[0]).toBe("sent"))
@@ -361,6 +400,7 @@ describe("<epic-page> Send and Review Now", () => {
     await client.refresh()
     await ElementFixture.tick()
     expect(headerButtons(host).send).toEqual(["sent", "Sent:  waiting for Claude"])
+    expect(host.shadowRoot!.querySelector('[part~="pill"]')).toBeNull()
     host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="review-now"]')!.click()
     await vi.waitFor(() =>
       expect(routes.posts.at(-1)).toEqual(["send", { page: "/epics/demo/demo.plan.html", now: true }])
@@ -368,26 +408,41 @@ describe("<epic-page> Send and Review Now", () => {
     await expectAccessible(host)
   })
 
-  // epic `airplane` P2
-  test("the `+` before Send opens the new item form in the header;  Add saves a todo, counted for Send", async () => {
+  test("the pill copies the review line's command", async () => {
+    const writeText = vi.spyOn(navigator.clipboard, "writeText").mockResolvedValue()
     const routes = new FakeRoutes()
-    // listening:  the orange nobody-listening line has a contrast issue of its own (axe), not this test's
+    routes.inbox.marks = { q1: { action: "approve", at: new Date().toISOString() } }
+    await adoptClient(routes)
+    const host = await render(page("", ["todo"]))
+    await vi.waitFor(() => expect(host.shadowRoot!.querySelector('[part~="pill"]')).not.toBeNull())
+    host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="pill"]')!.click()
+    await vi.waitFor(() => expect(writeText).toHaveBeenCalledWith("/epic review demo"))
+    writeText.mockRestore()
+  })
+
+  // epic `airplane` P2;  in the toolbar since P8
+  test("the toolbar's comment-dots button opens the new item form in the header;  Add saves a todo, and the send bar shows it", async () => {
+    const routes = new FakeRoutes()
+    // listening:  the orange pill has a contrast issue of its own (axe), not this test's
     const at = new Date().toISOString()
     routes.inbox.listening = { session: "s1", since: at, seen: at }
     await adoptClient(routes)
     const host = await render(page("", ["todo"]))
-    await vi.waitFor(() => expect(headerButtons(host).send).not.toBeNull())
-    const newItem = host.shadowRoot!.querySelector<HTMLElement>('header [part~="new-item"]')!
-    const plus = newItem.shadowRoot!.querySelector<HTMLButtonElement>('[part~="button"]')!
-    const send = newItem.nextElementSibling!.firstElementChild!
-    // right before Send, 6px from it, as when it sat in Send's box
-    expect([plus.title, send.getAttribute("part")]).toEqual(["New todo or question", "send"])
-    expect(Math.round(send.getBoundingClientRect().left - plus.getBoundingClientRect().right)).toBe(6)
-    plus.click()
+    await vi.waitFor(() => expect(host.shadowRoot!.querySelector('[part~="new-button"]')).not.toBeNull())
+    const button = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="new-button"]')!
+    expect(button.title).toBe("New todo or question")
+    expect(button.closest('[part~="toolbar"]')).not.toBeNull()
+    expect(button.querySelector("ui-icon")!.getAttribute("name")).toBe("comment dots")
+    // nothing waiting:  no send bar
+    expect(headerButtons(host)).toEqual({ send: null, now: null })
+    button.click()
     await ElementFixture.tick()
-    const form = newItem.shadowRoot!.querySelector<HTMLFormElement>('[part~="form"]')!
-    // a row of its own across the header, under its buttons
-    expect(form.getBoundingClientRect().top).toBeGreaterThan(send.getBoundingClientRect().bottom)
+    expect(button.getAttribute("aria-expanded")).toBe("true")
+    const newItem = host.shadowRoot!.querySelector<HTMLElement>('header > [part~="new-form"]')!
+    const form = await vi.waitFor(() => newItem.shadowRoot!.querySelector<HTMLFormElement>('[part~="form"]')!)
+    // a row of its own across the header, above the toolbar
+    const toolbar = host.shadowRoot!.querySelector('[part~="toolbar"]')!
+    expect(form.getBoundingClientRect().bottom).toBeLessThanOrEqual(toolbar.getBoundingClientRect().top + 1)
     expect(Math.round(form.getBoundingClientRect().width)).toBeGreaterThan(300)
     form.querySelector<HTMLInputElement>('[data-field="title"]')!.value = "check the wifi"
     form.requestSubmit()
@@ -398,20 +453,139 @@ describe("<epic-page> Send and Review Now", () => {
       ])
     )
     await vi.waitFor(() => expect(headerButtons(host).send?.[0]).toBe("unsent"))
-    expect(newItem.shadowRoot!.querySelector('[part~="form"]')).toBeNull()
+    // saved:  the form gone, the button no longer pressed
+    expect(host.shadowRoot!.querySelector('[part~="new-form"]')).toBeNull()
+    expect(button.getAttribute("aria-expanded")).toBe("false")
     await expectAccessible(host)
   })
+})
 
-  test("no marks:  both grey, saying there's nothing to send or work through", async () => {
-    await adoptClient(new FakeRoutes())
-    const host = await render(page("", ["todo"]))
-    await vi.waitFor(() => expect(headerButtons(host).send).not.toBeNull())
-    expect(headerButtons(host)).toEqual({
-      send: ["idle", "Nothing to send:  mark an item first (its buttons)"],
-      now: ["idle", "Review Now:  nothing to work through yet"]
-    })
+////////////////
+// ## The toolbar's state filter and collapse-all (epic `airplane` P8)
+////////////////
+
+/** A page with a Questions and a Todos section, items in `states` each. */
+function filterPage(questions: string[], todos: string[]): string {
+  const items = (letter: string, states: string[]) =>
+    states
+      .map(
+        (state, at) =>
+          `<epic-item id="${letter}${at + 1}" title="${letter} ${at + 1}" status="open" state="${state}"></epic-item>`
+      )
+      .join("")
+  return (
+    `<epic-page epic="demo" title="Demo"><epic-overview id="overview"><p slot="summary">Two.</p></epic-overview>` +
+    `<epic-section id="decisions" kind="questions">${items("q", questions)}</epic-section>` +
+    `<epic-section id="todos" kind="todos">${items("t", todos)}</epic-section></epic-page>`
+  )
+}
+
+/** The toolbar's chips, as drawn:  `state+` while it shows, `state-` while hidden, and the count. */
+function pageChips(host: Element): string[] {
+  return Array.from(
+    host.shadowRoot!.querySelectorAll<HTMLButtonElement>('[part~="filter"] button'),
+    (chip) => `${chip.dataset.state}${chip.getAttribute("aria-pressed") === "true" ? "+" : "-"}${chip.textContent}`
+  )
+}
+
+/** Click the toolbar's `state` chip, and let the sections and the toolbar follow. */
+async function pickPageState(host: Element, state: string) {
+  host.shadowRoot!.querySelector<HTMLButtonElement>(`[part~="filter"] button[data-state="${state}"]`)!.click()
+  await ElementFixture.tick()
+  await ElementFixture.tick()
+}
+
+/** The items shown, by id, across the page. */
+function shownItems(host: Element): string[] {
+  return Array.from(host.querySelectorAll("epic-item"))
+    .filter((item) => getComputedStyle(item).display !== "none")
+    .map((item) => item.id)
+}
+
+describe("<epic-page> toolbar", () => {
+  afterEach(() => {
+    localStorage.clear()
+  })
+
+  test("a chip per state on the page, the sections' counts added up;  a click filters EVERY section, by the sections' rule", async () => {
+    const host = await render(filterPage(["attention", "open", "recent"], ["open", "recent", "recent"]))
+    await vi.waitFor(() => expect(pageChips(host)).toEqual(["attention+1", "open+2", "recent+3"]))
+    // everything showing:  only that state
+    await pickPageState(host, "attention")
+    expect(pageChips(host)).toEqual(["attention+1", "open-2", "recent-3"])
+    expect(shownItems(host)).toEqual(["q1"])
+    // a hidden one:  shows too
+    await pickPageState(host, "open")
+    expect(pageChips(host)).toEqual(["attention+1", "open+2", "recent-3"])
+    expect(shownItems(host)).toEqual(["q1", "q2", "t1"])
+    // a shown one, others too:  hides
+    await pickPageState(host, "attention")
+    expect(shownItems(host)).toEqual(["q2", "t1"])
+    // the only one showing:  everything again
+    await pickPageState(host, "open")
+    expect(pageChips(host)).toEqual(["attention+1", "open+2", "recent+3"])
+    expect(shownItems(host)).toHaveLength(6)
+  })
+
+  test("a section's own chip changes the toolbar's:  a state is on only while every section having it shows it", async () => {
+    const host = await render(filterPage(["open", "recent"], ["open"]))
+    await vi.waitFor(() => expect(pageChips(host)).toEqual(["open+2", "recent+1"]))
+    const questions = host.querySelector("#decisions")!
+    questions.shadowRoot!.querySelector<HTMLButtonElement>('[part~="filter"] button[data-state="open"]')!.click()
+    await ElementFixture.tick()
+    await ElementFixture.tick()
+    // Questions shows only open;  Todos still everything
+    expect(pageChips(host)).toEqual(["open+2", "recent-1"])
+  })
+
+  test("collapse-all folds every block, item and card on the page;  a section's folds only what's inside it, and stays open", async () => {
+    const host = await render(
+      `<epic-page epic="demo" title="Demo"><epic-overview id="overview"><p slot="summary">Two.</p></epic-overview>` +
+        `<epic-section id="phases" kind="phases" open><epic-phase id="p1" title="One" status="todo" open><p>Do.</p></epic-phase></epic-section>` +
+        `<epic-section id="decisions" kind="questions" open>` +
+        `<epic-item id="q1" title="Which?" status="open" open><p>Which?</p><epic-aside title="Why"><p>Because.</p></epic-aside></epic-item>` +
+        `</epic-section></epic-page>`
+    )
+    await ElementFixture.settle(host)
+    const aside = host.querySelector("epic-aside") as E.DOMElement & {
+      component?: { fold: { toggle(): void; isOpen(): boolean } }
+    }
+    aside.component!.fold.toggle()
+    await ElementFixture.tick()
+    const questions = host.querySelector<E.DOMElement>("#decisions")!
+    const item = host.querySelector<E.DOMElement>("#q1")!
+    // the item's own:  its aside folds, the item stays open
+    const itemButton = item.shadowRoot!.querySelector<HTMLButtonElement>('[part~="collapse-all"]')!
+    expect(itemButton.title).toBe("Fold everything in Q1")
+    itemButton.click()
+    await ElementFixture.tick()
+    expect([aside.component!.fold.isOpen(), item.hasAttribute("open")]).toEqual([false, true])
+    // the section's:  its items fold, it stays open
+    aside.component!.fold.toggle()
+    const sectionButton = questions.shadowRoot!.querySelector<HTMLButtonElement>('[part~="collapse-all"]')!
+    expect(sectionButton.title).toBe("Fold everything in 3. Questions")
+    sectionButton.click()
+    await ElementFixture.tick()
+    expect([
+      aside.component!.fold.isOpen(),
+      isOpen(item),
+      isOpen(questions),
+      isOpen(host.querySelector("#phases")!)
+    ]).toEqual([false, false, true, true])
+    // the page's:  everything, each block through its cancelable `ui-close`, as a click (the runtime saves those)
+    const closed: string[] = []
+    host.addEventListener("ui-close", (event) => closed.push((event.target as Element).id))
+    host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="toolbar"] [part~="collapse-all"]')!.click()
+    await ElementFixture.tick()
+    expect(Array.from(host.querySelectorAll("epic-section, epic-phase"), isOpen)).toEqual([false, false, false])
+    expect(closed).toEqual(["phases", "p1", "decisions"])
   })
 })
+
+/** Is `host` (a fold or an item) open, as drawn? */
+function isOpen(host: Element): boolean {
+  return host.matches(":state(open)")
+}
 
 ////////////////
 // ## Agents running (epic `skillz` P3)

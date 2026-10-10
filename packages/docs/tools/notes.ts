@@ -1,6 +1,7 @@
 /**
  * `spell dev notes <verb> ...`:  the page notes Owen leaves on docs pages, for Claude (epic `airplane`, P3).
- * - Owen writes them from a page's bubbles (`notesRoutes.ts`), INTO the page;  this is Claude's side:
+ * - Owen wrote them from a page's bubbles, INTO the page, until P11 (guide comments) replaced the bubbles:
+ *   the notes already written still show, and this is still how Claude answers them:
  *
  *     spell dev notes list
  *     guides/solid/solid-2.html  n3  1. The model  2026-10-10 14:02
@@ -15,14 +16,14 @@
  *   (the file's markup, as is:  a `<p>` or more), and the note `answered`
  * - `done <page> <id>`:  the note `done`:  nothing more to do for it
  * - `<page>`:  from the checkout's root (`guides/x.html`), or from an area (`pages.js` `pageFile()`)
- * - Every write as the page's bubbles write:  under the page's lock, atomic, formatted (`editNotes()`).
+ * - Every write under the page's lock, atomic, formatted (`notesOnDisk.ts` `editNotes()`).
+ * - New ones:  `spell dev comments gather` takes them into epic `guide-changes` too, with the page's comments.
  * - Exit codes:  0;  1 a note or page that isn't there, or can't change (the message says why);  2 usage.
  */
 import { readFileSync } from "node:fs"
 import { relative, resolve } from "node:path"
 
-import { editNotes } from "./notesRoutes"
-import { notesIn } from "./notesOnDisk"
+import { editNotes, notesIn } from "./notesOnDisk"
 import { NotesError } from "./PageNotes.js"
 import { AREAS, ROOT, pageFile, parseArgs } from "./pages.js"
 

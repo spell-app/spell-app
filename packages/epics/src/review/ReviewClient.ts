@@ -18,6 +18,7 @@ import {
   type NewItemInput,
   type NewKind,
   type NowAction,
+  type PickFields,
   type ReviewAction,
   type ReviewClientOptions,
   type Running,
@@ -83,6 +84,14 @@ export class ReviewClient {
 
   /** What's typed in each note box right now:  kept for an element drawn anew (the live update). */
   private readonly typed = new Map<string, string>()
+
+  /**
+   * Picks Claude TOOK:  id -> the pick of a sent mark that left the inbox without Owen (`inbox apply`, `done`,
+   * `clear`), kept until the page reloads or Owen marks the item again (`takenPickOf()`).
+   * - why:  the inbox forgets the mark before the page has the doc's `chosen` (its live update can lag, or wait
+   *   while the view is hidden), and the Choose pill dropped back to "Choose" meanwhile (Owen, 2026-10-10)
+   */
+  private readonly taken = new Map<string, PickFields>()
 
   /** Writes in flight:  a poll's answer can't overwrite what they're about to. */
   private writing = 0
@@ -218,6 +227,14 @@ export class ReviewClient {
     return isSent(mark, this.inbox.sent)
   }
 
+  /**
+   * Item `id`'s pick that Claude took off the inbox since the page loaded (`{ pick, choices? }`), if any:
+   * a Choose pill keeps showing it as sent until the doc's `chosen` arrives.
+   */
+  takenPickOf(id: string): PickFields | undefined {
+    return this.taken.get(id)
+  }
+
   /** Is a Claude session waiting on the inbox? */
   get listening(): boolean {
     return !!this.inbox.listening
@@ -292,7 +309,8 @@ export class ReviewClient {
 
   /**
    * The reader clicked `id`'s `action` button.  `"open-box"` when Revisit should take them to the note box (the
-   * caller opens it);  else `undefined`, the click handled.
+   * caller opens it);  `"chosen"` when the click chose an action for it (the caller folds the item:  Owen,
+   * 2026-10-10, "so he moves on to the next");  else `undefined`, the click handled (cleared, or called off).
    * - running (it spins):  "nevermind", called off (`cancel()`)
    * - chosen already:  cleared, back to no action;
    *   a revisit carrying a pick keeps the pick ("pick B, but ..." without the "but")
@@ -302,12 +320,13 @@ export class ReviewClient {
    * - a todo's plane (`next`:  do it in the next phase) and x (`drop`), Owen, 2026-10-09:  mark it, as Approve does;
    *   with a note in the box, the note goes along (why now, why not)
    */
-  press(id: string, action: ReviewAction): "open-box" | undefined {
+  press(id: string, action: ReviewAction): "open-box" | "chosen" | undefined {
     const mark = this.inbox.marks[id]
     if (this.busyButtonOf(id) === action) return void this.cancel(id)
     if (action === "details") {
       const note = this.typedOf(id).trim()
-      return void (note ? this.useNote(id, "now", note) : this.askNow(id, "details"))
+      void (note ? this.useNote(id, "now", note) : this.askNow(id, "details"))
+      return "chosen"
     }
     if (mark?.action === action && !isImmediate(mark)) {
       const pick = action === "revisit" ? pickOf(mark) : {}
@@ -316,10 +335,13 @@ export class ReviewClient {
     if (action === "revisit") return "open-box"
     if (action === "next" || action === "drop") {
       const note = this.typedOf(id).trim()
-      if (note) return void this.useNote(id, action, note)
+      if (note) {
+        void this.useNote(id, action, note)
+        return "chosen"
+      }
     }
     void this.save(id, { action })
-    return undefined
+    return "chosen"
   }
 
   /**
@@ -400,6 +422,8 @@ export class ReviewClient {
 
   /** Mark item `id` (`mark`, or `null` to clear), shown at once, then saved. */
   async save(id: string, mark: MarkInput | null): Promise<boolean> {
+    // Owen marked it again:  what Claude took before is no longer his latest word
+    this.taken.delete(id)
     if (mark) this.inbox.marks[id] = { ...mark, at: new Date().toISOString() }
     else delete this.inbox.marks[id]
     this.changed()
@@ -616,6 +640,18 @@ export class ReviewClient {
     this.changed()
   }
 
+  /**
+   * Show inbox `next` from now on, remembering each pick Claude took on the way (`taken`):
+   * a SENT mark carrying a pick that `next` no longer has.
+   * - a mark `next` has again (Owen's, or a pick taken back into a revisit) drops what was remembered for it
+   */
+  private replaceInbox(next: Inbox) {
+    for (const [id, mark] of Object.entries(this.inbox.marks))
+      if (mark.pick && !next.marks[id] && this.isSent(mark)) this.taken.set(id, pickOf(mark))
+    for (const id of Object.keys(next.marks)) this.taken.delete(id)
+    this.inbox = next
+  }
+
   /** Read the inbox;  true when it answered (a write in flight wins:  its answer is newer). */
   private async load(): Promise<boolean> {
     try {
@@ -623,7 +659,7 @@ export class ReviewClient {
       const response = await this.options.fetch(url, { cache: "no-store" })
       if (!response.ok) return false
       const read = inboxOf(await response.json())
-      if (!this.writing) this.inbox = read
+      if (!this.writing) this.replaceInbox(read)
       return true
     } catch {
       return false
@@ -640,7 +676,7 @@ export class ReviewClient {
     let error = ""
     try {
       const reply = await this.link.post(`${REVIEW_API}/${route}`, { page: this.options.page, ...body }, { keepalive })
-      this.inbox = inboxOf(reply)
+      this.replaceInbox(inboxOf(reply))
       this.changed()
       return true
     } catch (failure) {

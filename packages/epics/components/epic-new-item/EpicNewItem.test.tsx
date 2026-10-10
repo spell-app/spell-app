@@ -53,24 +53,16 @@ describe("<epic-new-item>", () => {
     expect(find(host, "[part~='button']")).not.toBeNull()
   })
 
-  test("the page's (`compact`):  a round `+`, named by its tooltip, which stays while the form shows;  `near` starts About", async () => {
-    const host = await ElementFixture.render(`<epic-new-item compact near="p3"></epic-new-item>`)
-    expect(getComputedStyle(host).display).toBe("contents")
-    const button = find<HTMLButtonElement>(host, "[part~='button']")!
-    expect([button.textContent, button.getAttribute("aria-label"), button.title]).toEqual([
-      "",
-      "New todo or question",
-      "New todo or question"
-    ])
-    button.click()
-    await ElementFixture.tick()
-    expect(button.getAttribute("aria-expanded")).toBe("true")
+  test("the page's (`open`):  the form alone, on a todo;  `near` starts About;  Escape cancels, `epic-new-closed`", async () => {
+    const host = await ElementFixture.render(`<epic-new-item open near="p3"></epic-new-item>`)
+    const closed: unknown[] = []
+    host.addEventListener("epic-new-closed", (event) => closed.push((event as CustomEvent).detail))
+    expect(find(host, "[part~='button']")).toBeNull()
     const form = find<HTMLFormElement>(host, "[part~='form']")!
     expect(form.querySelector("[aria-pressed='true']")!.textContent).toBe("Todo")
     expect(form.querySelector<HTMLInputElement>("[data-field='near']")!.value).toBe("P3")
-    // Escape cancels
     form.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, composed: true }))
     await ElementFixture.tick()
-    expect(find(host, "[part~='form']")).toBeNull()
+    expect([find(host, "[part~='form']"), closed]).toEqual([null, [{ saved: false }]])
   })
 })

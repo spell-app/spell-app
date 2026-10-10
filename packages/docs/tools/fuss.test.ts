@@ -173,6 +173,81 @@ describe("jargon", () => {
   })
 })
 
+/** Owen's "Built / Checked" lines (epic `airplane`, 2026-10-10), as a plan doc held them:  a path, and four facts' settings. */
+const BUILT_BEFORE = [
+  "<p>Built:  <code>buildTsx()</code>, <code>packages/spell/src/node/buildTsx.ts:40</code></p>",
+  "<p>Checked:  <code>tsc</code> with <code>jsx: preserve</code>, <code>jsxImportSource</code>, paths from tsconfig.base.json.</p>"
+]
+
+/** The rewrite he approved:  the path a tooltip, a plain lead line, one fact per bullet. */
+const BUILT_AFTER = [
+  '<p>Built:  <code title="packages/spell/src/node/buildTsx.ts">buildTsx()</code></p>',
+  "<p>Checked:  the type check now understands Spell UI pages.</p>",
+  "<ul>",
+  "  <li>It reads JSX the way app and ui do.</li>",
+  "  <li>It adds app's types for <code>&lt;ui-*&gt;</code> tags, because <code>@spell-app/ui</code> doesn't ship any.</li>",
+  "</ul>"
+]
+
+describe("path-in-prose", () => {
+  test("Owen's BEFORE:  the path after the name;  AFTER, the path a tooltip, is clean", () => {
+    expect(Fuss.check("a.html", BUILT_BEFORE.join("\n"))).toMatchObject([
+      { line: 1, kind: "path-in-prose", why: expect.stringContaining('"packages/spell/src/node/buildTsx.ts:40"') },
+      { line: 2, kind: "code-dense" }
+    ])
+    expect(found("a.html", BUILT_AFTER.join("\n"))).toEqual([])
+  })
+
+  test("a path in the text, or a code span that is a whole path;  in Markdown too, where the fix is a link", () => {
+    expect(
+      found("a.html", "<p>See packages/docs/tools/fuss.ts for it.</p>\n<p>At <code>fuss.ts:12</code>.</p>")
+    ).toEqual([
+      [1, "path-in-prose"],
+      [2, "path-in-prose"]
+    ])
+    const misses = Fuss.check("a.md", "Run it from `packages/docs/tools`.\n")
+    expect(misses).toMatchObject([{ line: 1, kind: "path-in-prose", why: expect.stringContaining("[`name`](path)") }])
+  })
+
+  test("NOT where a path belongs:  an href, a title, a Markdown link's target, a code block", () => {
+    const page = [
+      '<p>See <a href="../../packages/docs/tools/fuss.ts">the checker</a>.</p>',
+      '<p>Built:  <code title="packages/docs/tools/fuss.ts">Fuss</code>.</p>',
+      "<pre>packages/docs/tools/fuss.ts</pre>"
+    ].join("\n")
+    expect(found("a.html", page)).toEqual([])
+    expect(
+      found("a.md", "See [`Fuss`](packages/docs/tools/fuss.ts).\n\n```\npackages/docs/tools/fuss.ts\n```\n")
+    ).toEqual([])
+  })
+
+  test("NOT a name:  a folder, a package, an alias, a file alone, a route, a URL, a date, a command naming a file", () => {
+    const text = [
+      "In `packages/docs/`, `@spell-app/ui`, `$/epics/tool/PlanParts`, `fuss.ts`, `/api/review/inbox`,",
+      "https://example.com/a/b/c.html, 10/9/26, read/write/check, `yarn tsx tools/doc-links.js page`."
+    ].join("\n")
+    expect(found("a.md", text).filter(([, kind]) => kind === "path-in-prose")).toEqual([])
+  })
+
+  test("NOT in code comments:  a docstring cites the file it means", () => {
+    expect(found("a.ts", docstring(["From `packages/docs/tools/fuss.ts`."]))).toEqual([])
+  })
+})
+
+describe("code-dense", () => {
+  test("3+ code spans in one sentence, at the line it starts on;  2 a sentence pass", () => {
+    const lines = ["Two:  `a` and `b`.", "Three:  `a`, `b` and `c`.", "", "- `x` then `y`.  And `z`."]
+    expect(Fuss.check("a.md", lines.join("\n"))).toMatchObject([
+      { line: 2, kind: "code-dense", why: expect.stringContaining("3 code spans in one sentence") }
+    ])
+  })
+
+  test("in a page, `<code>` counts;  not in code comments", () => {
+    expect(found("a.html", "<li><code>a</code>, <code>b</code>, <code>c</code></li>")).toEqual([[1, "code-dense"]])
+    expect(found("a.ts", docstring(["Calls `a()`, `b()` and `c()`."]))).toEqual([])
+  })
+})
+
 ////////////////
 // ## What it skips
 ////////////////
@@ -259,7 +334,7 @@ describe("run()", () => {
       expect(JSON.parse(log.mock.calls[0][0])).toEqual({
         files: 1,
         misses: [],
-        counts: { "phrase-split": 0, dense: 0, jargon: 0 }
+        counts: { "phrase-split": 0, dense: 0, jargon: 0, "path-in-prose": 0, "code-dense": 0 }
       })
       expect(run([], { cwd: root })).toBe(2)
       expect(run(["a.ts", "--branch"], { cwd: root })).toBe(2)

@@ -2,6 +2,7 @@ import { Markup } from "$/epics/markup"
 
 import { ProseBlocks } from "./planDoc.types"
 
+import { PathTooltips } from "./PathTooltips"
 import { PlanMarkup } from "./PlanMarkup"
 import { ProseRewrite } from "./ProseRewrite"
 
@@ -16,6 +17,8 @@ import { ProseRewrite } from "./ProseRewrite"
  *   (`ui-grid.spell-pros-cons`, lettered cards) -> `<epic-choices>`;  a `Net effect` paragraph and its list ->
  *   `<epic-net-effect>`;  `ui-accordion.spell-code` -> `<epic-code>`;  `ui-accordion.spell-aside` -> `<epic-aside>`;
  *   `ui-message.plan-update` -> `<epic-note>`;  a labelled block (`<b>Where:</b>`) -> `<epic-field label>`
+ * - a name and its file's path (`<code>buildTsx()</code>, <code>packages/.../buildTsx.ts</code>`) -> the name with
+ *   its path as its tooltip, `<code title="path">name</code>` (`PathTooltips`, which says exactly which forms)
  * - anything else:  prose, as it is (a pros / cons grid without letters stays a grid, a `<ui-code>` in a code
  *   accordion stays one)
  * - never inside code (`<pre>`, `<code>`, `<epic-code>`) or an Original Discussion:  history stays as it was
@@ -31,6 +34,7 @@ export class IncomingHtml {
       if (child.matches(ProseBlocks.reply)) child.replaceWith(rewrite.reply(child))
     }
     rewrite.rewrite(box, { history: false })
+    PathTooltips.rewrite(box)
     PlanMarkup.trimWhitespace(box)
     return Array.from(box.childNodes)
   }
