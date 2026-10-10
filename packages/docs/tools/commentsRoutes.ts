@@ -13,10 +13,18 @@
  * - `GET /api/comments?page=<path>` -- the page's comments, every status:  `{ page, takesComments, comments }`
  *   - the runtime asks as the page loads, and draws the bullhorns only when `takesComments`:
  *     a server without this module, `file://`, or a page that takes none shows none
+ *   - each comment with its thread (`replies`, `done`) and whose `turn` it is (`CommentList.turnOf()`)
  * - `POST /api/comments` `{ page, action, ... }` -- change one comment;  answers `{ ok, id, comments }`
  *   - `add` `{ anchor, kind, label, excerpt, quote?, offset?, text }`:  a new comment;  answers its `id`
  *   - `edit` `{ id, text }`, `delete` `{ id }`:  only while the comment is `new` (else 409)
  *   - `clear` `{ id }`:  gone, whatever its status (`CommentList.clear()`)
+ *   - `restore` `{ id, comment }`:  a comment deleted or cleared a moment ago, back as the GET gave it (the page's
+ *     Undo:  `CommentList.restore()`);  answers its `id`, the same unless a new comment took it meanwhile
+ *   - the THREAD (Owen, 2026-10-10):
+ *     - `reply` `{ id, text }`:  Owen's reply, saved as he types (`CommentList.reply()`);  blank empties his pending
+ *       one
+ *     - `resolve` `{ id, how: "good" | "skip" }`:  "that's good" or "skip it" closes the thread
+ *     - `reopen` `{ id }`:  open again (Undo, Reopen)
  * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too).
  *   Which pages take comments (`commentsPage()`):
  *   - any `.html` under `guides/`, `pages/` (the docs home, details pages) and `epics/` (plan docs, an epic's own
@@ -35,7 +43,14 @@ import { existsSync, readFileSync } from "node:fs"
 
 import { SRV } from "$/server"
 import type { RouteModule } from "$/server/page"
-import { CommentsError, type CommentList, type CommentPlace } from "$/epics/tool/CommentList"
+import {
+  CommentList,
+  CommentsError,
+  type Comment,
+  type CommentPlace,
+  type IdentifiedComment,
+  type Turn
+} from "$/epics/tool/CommentList"
 import { ReviewInbox } from "$/epics/tool/ReviewInbox"
 
 import { GuideInbox } from "./GuideInbox"
@@ -72,7 +87,7 @@ const commentsRoutes: RouteModule = {
         if (!(error instanceof SRV.HttpError) || error.status !== 403) throw error
         return reply.set("Cache-Control", "no-store").json({ page, takesComments: false, comments: [] })
       }
-      reply.set("Cache-Control", "no-store").json({ page, takesComments: true, comments: commentsOf(file).all })
+      reply.set("Cache-Control", "no-store").json({ page, takesComments: true, comments: shown(commentsOf(file)) })
     })
     router.post(API, guard.writeCheck, SRV.parseBodies({ limit: MAX_BODY }), async (request, reply) => {
       const change = toChange(request.body)
@@ -80,12 +95,17 @@ const commentsRoutes: RouteModule = {
       const id = await changeComments(file, (comments) => changeComment(comments, change)).catch((error: unknown) => {
         throw error instanceof CommentsError ? new SRV.HttpError(error.status, error.message) : error
       })
-      reply.json({ ok: true, id, comments: commentsOf(file).all })
+      reply.json({ ok: true, id, comments: shown(commentsOf(file)) })
     })
   }
 }
 
 export default commentsRoutes
+
+/** `comments` as the page gets them:  each with whose `turn` it is on its thread. */
+function shown(comments: CommentList): (IdentifiedComment & { turn: Turn })[] {
+  return comments.all.map((comment) => ({ ...comment, turn: CommentList.turnOf(comment) }))
+}
 
 /**
  * The file of page `page` (a URL path) through the server's mounts, when it takes comments.
@@ -126,19 +146,26 @@ export async function changeComments<T>(file: string, change: (comments: Comment
 /** Make `change` in `comments`;  returns the comment's id. */
 function changeComment(comments: CommentList, change: CommentChange): string {
   if (change.action === "add") return comments.add(change.place, change.text)
+  if (change.action === "restore") return comments.restore(change.id, change.comment)
   if (change.action === "edit") comments.edit(change.id, change.text)
+  else if (change.action === "reply") comments.reply(change.id, change.text)
+  else if (change.action === "resolve") comments.resolve(change.id, change.how)
+  else if (change.action === "reopen") comments.reopen(change.id)
   else if (change.action === "clear") comments.clear(change.id)
   else comments.remove(change.id)
   return change.id
 }
 
+/** The actions on one comment, by its `id`. */
+const ON_ONE = ["edit", "delete", "clear", "restore", "reply", "resolve", "reopen"]
+
 /**
  * A POST's body, checked.
- * - 400:  an unknown `action`, or what it needs missing (`anchor` and `kind` to add, `id` to edit, delete or clear);
- *   the rest is checked by `CommentList`
+ * - 400:  an unknown `action`, or what it needs missing (`anchor` and `kind` to add, `id` for the rest, the
+ *   `comment` to restore);  the rest is checked by `CommentList`
  */
 function toChange(body: unknown): CommentChange {
-  const { page, action, id, text, anchor, kind, label, excerpt, quote, offset } = (body ?? {}) as Record<
+  const { page, action, id, text, anchor, kind, label, excerpt, quote, offset, comment, how } = (body ?? {}) as Record<
     string,
     unknown
   >
@@ -155,10 +182,16 @@ function toChange(body: unknown): CommentChange {
     if (typeof quote === "string") Object.assign(place, { quote, offset: Number(offset) })
     return { page, action, place, text: words }
   }
-  if (action !== "edit" && action !== "delete" && action !== "clear")
-    throw new SRV.HttpError(400, `action is add, edit, delete or clear, not "${String(action)}"`)
+  if (typeof action !== "string" || !ON_ONE.includes(action))
+    throw new SRV.HttpError(400, `action is add or ${ON_ONE.join(", ")}, not "${String(action)}"`)
   if (typeof id !== "string") throw new SRV.HttpError(400, `${action}:  which comment?`)
-  return action === "edit" ? { page, action, id, text: words } : { page, action, id }
+  if (action === "restore") {
+    if (!comment || typeof comment !== "object") throw new SRV.HttpError(400, "restore:  which comment, as it was?")
+    return { page, action, id, comment: comment as Comment }
+  }
+  if (action === "edit" || action === "reply") return { page, action, id, text: words }
+  if (action === "resolve") return { page, action, id, how: typeof how === "string" ? how : "" }
+  return { page, action: action as "delete" | "clear" | "reopen", id }
 }
 
 /** `<slug>.rows.json` beside page `<slug>.html`:  a syntax-choices page's rows (`choicesRoutes.ts`). */
@@ -177,5 +210,7 @@ function one(value: string | string[] | undefined): string | undefined {
  */
 type CommentChange =
   | { page: unknown; action: "add"; place: CommentPlace; text: string }
-  | { page: unknown; action: "edit"; id: string; text: string }
-  | { page: unknown; action: "delete" | "clear"; id: string }
+  | { page: unknown; action: "edit" | "reply"; id: string; text: string }
+  | { page: unknown; action: "resolve"; id: string; how: string }
+  | { page: unknown; action: "delete" | "clear" | "reopen"; id: string }
+  | { page: unknown; action: "restore"; id: string; comment: Comment }

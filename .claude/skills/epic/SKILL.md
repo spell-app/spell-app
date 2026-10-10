@@ -601,13 +601,20 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
 
 3b. COMMENTS (epic `airplane` P11):  Owen's comments on the doc's blocks, or on text he selected (the bullhorns).
    - Ids `cm1` ...
+   - Each is a THREAD on the page:  his comment, your answers, his replies, until he closes it
+     ("that's good" / "skip it").
    - `spell dev plan-doc inbox <name>` lists the ones waiting, under "comments".
      Each with the block's anchor (`p3#field-2`, an item's id) and the quoted text.
+     - A REPLY of his on a thread is waiting work too, as a new comment is:  listed under its comment,
+       "Owen replied:  ...".  Answer his latest words, the thread above for context.
    - They never wake `wait` by themselves:  the next wake (Send, Review Now, any request) hands them over.
      So check on every wake.
    - Answer each like a revisit's note:  INTO the item it's on (`details --append`, his comment quoted).
      On a phase field or Overview prose:  into that phase or part.
-   - Then `spell dev plan-doc inbox <name> done cm3`:  his card turns solid, "Answered".
+   - Then `spell dev plan-doc inbox <name> done cm3 --file <answer.html> [--commit <sha>]`.
+     - The answer goes on his thread too (a line or two;  the full one is in the doc):  his turn, the thread opens.
+     - `--commit`:  the commit it was built in;  his Done line shows it.
+     - No `--file`:  the thread says "Answered in the plan doc".
 4. Arm `wait` again (always, unless he said stop), then reply:
    - what landed:  bullets, items in words, ids after
    - what's being worked on in the background

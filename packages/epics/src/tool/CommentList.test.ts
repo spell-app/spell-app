@@ -52,6 +52,126 @@ describe("CommentList", () => {
     expect([comments.comment(other).status, comments.waiting]).toEqual(["answered", []])
   })
 
+  test("Undo:  a deleted or cleared comment comes back as it was, under its id unless a new one took it", () => {
+    const comments = new CommentList({})
+    const id = comments.add({ ...ON_FIELD, quote: "the inbox file", offset: 14 }, "Which one?", NOW)
+    comments.take(id, { epic: "guide-changes", phase: 4 }, NOW)
+    comments.answer(id, "<p>That one.</p>", NOW)
+    const before = comments.all[0]
+    comments.clear(id)
+    expect(comments.restore(id, before)).toBe(id)
+    expect(comments.all).toEqual([before])
+    // deleted, then a new comment took its id:  back under the next one
+    comments.clear(id)
+    expect(comments.add(ON_FIELD, "newer", NOW)).toBe(id)
+    expect(comments.restore(id, before)).toBe("cm2")
+    const { id: _id, ...kept } = before
+    expect(comments.comment("cm2")).toEqual(kept)
+    expect(comments.all.map(({ id: each, text }) => [each, text])).toEqual([
+      ["cm1", "newer"],
+      ["cm2", "Which one?"]
+    ])
+    expect(() => comments.restore("cm9", { ...before, text: "  " })).toThrow(/needs some text/)
+    expect(() => comments.restore("cm9", { ...before, status: "gone" as "new" })).toThrow(/isn't a comment's status/)
+    expect(() => comments.restore("cm9", { ...before, anchor: "two words" })).toThrow(/isn't an anchor/)
+  })
+
+  test("a THREAD:  Claude answers, Owen replies (saved as typed, one pending reply), Claude answers again", () => {
+    const comments = new CommentList({})
+    const id = comments.add(ON_FIELD, "Why here?", NOW)
+    expect([CommentList.turnOf(comments.comment(id)), comments.waiting.length]).toEqual(["claude", 1])
+    comments.answer(id, "<p>Because.</p>", NOW)
+    expect([CommentList.turnOf(comments.comment(id)), comments.waiting]).toEqual(["owen", []])
+    // typed in two goes:  the second save replaces the first
+    const later = new Date("2026-10-10T14:05:00.000Z")
+    comments.reply(id, "Not good enough", later)
+    comments.reply(id, "  Not good enough:  say more.  ", later)
+    expect(comments.comment(id).replies).toEqual([
+      { by: "Claude", at: NOW.toISOString(), html: "<p>Because.</p>" },
+      { by: "Owen", at: later.toISOString(), text: "Not good enough:  say more.", edited: later.toISOString() }
+    ])
+    // a reply is new work, as a new comment is
+    expect([CommentList.turnOf(comments.comment(id)), comments.waiting.map((each) => each.id)]).toEqual([
+      "claude",
+      [id]
+    ])
+    comments.answer(id, "<p>More.</p>", later, "8c7e1d3")
+    expect(comments.comment(id).replies?.at(-1)).toMatchObject({
+      by: "Claude",
+      html: "<p>More.</p>",
+      commit: "8c7e1d3"
+    })
+    expect(() => comments.answer(id, "<p>x</p>", later, "not a sha")).toThrow(/isn't a commit/)
+    // his next reply is a new entry, not an edit of the last one
+    comments.reply(id, "Thanks", later)
+    expect(comments.comment(id).replies).toHaveLength(4)
+  })
+
+  test("Owen's pending reply emptied goes;  none pending, a blank reply is refused", () => {
+    const comments = new CommentList({})
+    const id = comments.add(ON_FIELD, "Why?", NOW)
+    comments.answer(id, "<p>Because.</p>", NOW)
+    expect(() => comments.reply(id, "  ")).toThrow(expect.objectContaining({ status: 400 }))
+    comments.reply(id, "Hm", NOW)
+    comments.reply(id, " ", NOW)
+    expect([comments.comment(id).replies?.length, CommentList.turnOf(comments.comment(id))]).toEqual([1, "owen"])
+    expect(() => comments.reply("cm9", "x")).toThrow(expect.objectContaining({ status: 404 }))
+  })
+
+  test("that's good / skip it close a thread;  reopen, or a reply, opens it again", () => {
+    const comments = new CommentList({})
+    const id = comments.add(ON_FIELD, "Why?", NOW)
+    comments.answer(id, "<p>Because.</p>", NOW)
+    comments.resolve(id, "good", NOW)
+    expect([comments.comment(id).done, CommentList.turnOf(comments.comment(id)), comments.waiting]).toEqual([
+      { how: "good", at: NOW.toISOString() },
+      "done",
+      []
+    ])
+    comments.reopen(id)
+    expect(CommentList.turnOf(comments.comment(id))).toBe("owen")
+    comments.resolve(id, "skip", NOW)
+    expect(comments.comment(id).done?.how).toBe("skip")
+    comments.reply(id, "One more thing", NOW)
+    expect([comments.comment(id).done, CommentList.turnOf(comments.comment(id))]).toEqual([undefined, "claude"])
+    expect(() => comments.resolve(id, "maybe")).toThrow(expect.objectContaining({ status: 400 }))
+  })
+
+  test("a reply on a TAKEN comment waits until it's taken again;  a plan doc's answered in the doc is Owen's turn", () => {
+    const comments = new CommentList({})
+    const id = comments.add(ON_FIELD, "Fix it", NOW)
+    comments.take(id, { epic: "guide-changes", phase: 4 }, NOW)
+    expect([CommentList.turnOf(comments.comment(id)), comments.waiting]).toEqual(["claude", []])
+    const later = new Date("2026-10-10T15:00:00.000Z")
+    comments.reply(id, "And the table too", later)
+    expect(comments.waiting.map((each) => each.id)).toEqual([id])
+    comments.take(id, { epic: "guide-changes", phase: 4 }, later)
+    expect(comments.waiting).toEqual([])
+    // answered in the plan doc:  no words here, but Owen's turn;  a second answer adds nothing
+    const doc = comments.add(ON_FIELD, "Plan doc", NOW)
+    comments.answer(doc)
+    comments.answer(doc)
+    expect([comments.comment(doc).replies, CommentList.turnOf(comments.comment(doc))]).toEqual([
+      [{ by: "Claude", at: expect.any(String), html: "" }],
+      "owen"
+    ])
+    // before threads:  answered, no replies at all, is Owen's turn too
+    expect(CommentList.turnOf({ ...comments.comment(doc), replies: undefined })).toBe("owen")
+  })
+
+  test("Undo keeps the whole thread:  Owen's replies, Claude's commits, done", () => {
+    const comments = new CommentList({})
+    const id = comments.add(ON_FIELD, "Why?", NOW)
+    comments.answer(id, "<p>Because.</p>", NOW, "abc1234")
+    comments.reply(id, "Fine", NOW)
+    comments.answer(id, "<p>Good.</p>", NOW)
+    comments.resolve(id, "good", NOW)
+    const before = comments.all[0]
+    comments.clear(id)
+    comments.restore(id, before)
+    expect(comments.all).toEqual([before])
+  })
+
   test("refuses a bad anchor or kind, blank text, a comment that isn't there", () => {
     const comments = new CommentList({})
     expect(() => comments.add({ ...ON_FIELD, anchor: "two words" }, "x")).toThrow(/isn't an anchor/)
