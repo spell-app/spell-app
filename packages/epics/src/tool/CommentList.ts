@@ -38,6 +38,7 @@ CommentsError.prototype.name = "CommentsError"
  * - each comment:  where it is (`anchor`, `kind`, `label`, `excerpt`, and for a comment on selected text its
  *   `quote` and `offset`:  `packages/docs/tools/BlockAnchors.js`), Owen's text, when, and its status:
  *   - `new`:  saved, waiting for Claude;  Owen may edit or delete it
+ *   - any status:  Owen may CLEAR it (`clear()`):  gone from the inbox, its highlight with it
  *   - `taken`:  Claude took it:  a guide's into epic `guide-changes` (`taken`:  which phase)
  *   - `answered`:  Claude answered it (a plan doc's:  in the doc;  `replies` may hold the answer)
  * - pure:  no files;  the owner reads and writes them under its lock
@@ -114,6 +115,15 @@ export class CommentList {
   /** Delete comment `id`;  only while it's `new`. */
   remove(id: string): void {
     this.unseen(id)
+    delete this.comments[id]
+  }
+
+  /**
+   * Clear comment `id`, whatever its status:  Owen's done with it (Owen, 2026-10-10:  "I should be able to clear a
+   * comment").  A taken one stays in the epic it went into;  an answered one's answer goes with it.
+   */
+  clear(id: string): void {
+    this.comment(id)
     delete this.comments[id]
   }
 

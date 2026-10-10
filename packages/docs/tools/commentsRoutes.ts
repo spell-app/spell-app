@@ -16,6 +16,7 @@
  * - `POST /api/comments` `{ page, action, ... }` -- change one comment;  answers `{ ok, id, comments }`
  *   - `add` `{ anchor, kind, label, excerpt, quote?, offset?, text }`:  a new comment;  answers its `id`
  *   - `edit` `{ id, text }`, `delete` `{ id }`:  only while the comment is `new` (else 409)
+ *   - `clear` `{ id }`:  gone, whatever its status (`CommentList.clear()`)
  * - `page`:  the page's URL path, as served (a worktree's `/worktrees/<w>/...` too).
  *   Which pages take comments (`commentsPage()`):
  *   - any `.html` under `guides/`, `pages/` (the docs home, details pages) and `epics/` (plan docs, an epic's own
@@ -126,13 +127,14 @@ export async function changeComments<T>(file: string, change: (comments: Comment
 function changeComment(comments: CommentList, change: CommentChange): string {
   if (change.action === "add") return comments.add(change.place, change.text)
   if (change.action === "edit") comments.edit(change.id, change.text)
+  else if (change.action === "clear") comments.clear(change.id)
   else comments.remove(change.id)
   return change.id
 }
 
 /**
  * A POST's body, checked.
- * - 400:  an unknown `action`, or what it needs missing (`anchor` and `kind` to add, `id` to edit or delete);
+ * - 400:  an unknown `action`, or what it needs missing (`anchor` and `kind` to add, `id` to edit, delete or clear);
  *   the rest is checked by `CommentList`
  */
 function toChange(body: unknown): CommentChange {
@@ -153,8 +155,8 @@ function toChange(body: unknown): CommentChange {
     if (typeof quote === "string") Object.assign(place, { quote, offset: Number(offset) })
     return { page, action, place, text: words }
   }
-  if (action !== "edit" && action !== "delete")
-    throw new SRV.HttpError(400, `action is add, edit or delete, not "${String(action)}"`)
+  if (action !== "edit" && action !== "delete" && action !== "clear")
+    throw new SRV.HttpError(400, `action is add, edit, delete or clear, not "${String(action)}"`)
   if (typeof id !== "string") throw new SRV.HttpError(400, `${action}:  which comment?`)
   return action === "edit" ? { page, action, id, text: words } : { page, action, id }
 }
@@ -176,4 +178,4 @@ function one(value: string | string[] | undefined): string | undefined {
 type CommentChange =
   | { page: unknown; action: "add"; place: CommentPlace; text: string }
   | { page: unknown; action: "edit"; id: string; text: string }
-  | { page: unknown; action: "delete"; id: string }
+  | { page: unknown; action: "delete" | "clear"; id: string }
