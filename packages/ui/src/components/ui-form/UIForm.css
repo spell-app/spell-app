@@ -5,7 +5,7 @@
  *   `<ui-repeat>` adopts it too, for its `display: contents` host alone (its shadow is a bare `<slot>`).
  * - Shadow markup contract (class grammar;  a form's box has no better element than `<div>`):
  *   - `<ui-form>`:  `<div class="ui [size state] [equal width inverted loading disabled unstackable] form"
- *     part="form" [inert]><slot></slot>[<pre part="debug">]</div>` -- the NATIVE `<form>` is light DOM, slotted inside it (or around
+ *     part="form" [inert]><slot></slot>[<figure class="debug"><figcaption>…</figcaption><pre part="debug">…</pre></figure>]</div>` -- the NATIVE `<form>` is light DOM, slotted inside it (or around
  *     the `<ui-form>`):  a form-associated control belongs to the nearest `<form>` ancestor in its own tree,
  *     so a `<form>` in this shadow root would own nothing (see `UIForm`, `docs/grammar.md`)
  *   - `<ui-field>`:  `<div class="[state] [inline required disabled] [N wide] field" part="field" [inert]>
@@ -217,9 +217,23 @@
     font-weight: var(--_ui-form-label-font-weight, var(--ui-form-label-font-weight, var(--ui-font-weight-bold)));
     text-transform: none;
   }
-  /* `debug` (ours, not Fomantic's):  the bound object as JSON, below the content, in the form's text colour. */
-  .ui.form > pre {
+  /* `debug` (ours, not Fomantic's):  the bound object as JSON, below the content, in a captioned box,
+     so it reads as the form's output, not as page text. */
+  .ui.form > .debug {
     margin: 1em 0 0;
+    padding: 0.5em 0.75em;
+    border: var(--ui-border);
+    border-radius: var(--ui-radius);
+    background-color: var(--ui-surface-strong);
+  }
+  .ui.form > .debug > figcaption {
+    margin: 0 0 0.25em;
+    color: var(--ui-text-muted);
+    font-size: 0.85714em;
+    font-weight: var(--ui-font-weight-bold);
+  }
+  .ui.form > .debug > pre {
+    margin: 0;
     font-family: var(--ui-font-family-mono);
     font-size: 0.85714em;
     white-space: pre-wrap;

@@ -100,6 +100,18 @@ describe("read-after-write", () => {
     // `nickname` has no accessor:  read through `toJSON()`, which tracks the key set
     expect(seen).toEqual([undefined, "Ace"])
   })
+
+  test("`toJSON()` tracks each value too:  a reader re-runs when one changes (output-targets V14, `<ui-form debug>`)", () => {
+    const card = new Card({ rank: 7 })
+    const seen: string[] = []
+    const stop = observe(() => {
+      seen.push(JSON.stringify(card))
+    })
+    card.rank = 8
+    card.rank = 8
+    stop()
+    expect(seen).toEqual(['{"rank":7}', '{"rank":8}'])
+  })
 })
 
 describe("keys in creation order", () => {

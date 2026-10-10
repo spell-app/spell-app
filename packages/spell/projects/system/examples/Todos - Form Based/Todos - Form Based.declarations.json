@@ -79,6 +79,12 @@
       "defined": "/todo.spell:350-409"
     },
     {
+      "property": "shownTasks",
+      "of": "Todos_App",
+      "datatype": "Task_List",
+      "defined": "/todo.spell:411-611"
+    },
+    {
       "syntax": "draw {thisArg:expression}",
       "output": "draw",
       "rule": "method_call",
@@ -89,7 +95,7 @@
       ],
       "kind": "method",
       "name": "draw (a todos-app)",
-      "defined": "/todo.spell:998-2761"
+      "defined": "/todo.spell:1200-2968"
     },
     {
       "syntax": "create a new task (with {props:object_literal_properties})?",
@@ -107,7 +113,7 @@
         }
       ],
       "returns": "nothing",
-      "defined": "/todo.spell:511-836"
+      "defined": "/todo.spell:713-1038"
     }
   ],
   "codeLines": [
@@ -122,6 +128,7 @@
     30,
     34,
     39,
-    196
+    49,
+    206
   ]
 }

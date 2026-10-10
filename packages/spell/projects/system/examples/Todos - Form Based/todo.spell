@@ -11,6 +11,11 @@ a todos-app has a property tasks as a new task-list
 a todos-app has a property newTaskName as text
 a todos-app has a filter as one of all, active or completed
 
+the shownTasks of a todos-app is:
+	if its filter is "active" return tasks in its tasks where it is active
+	if its filter is "completed" return tasks in its tasks where it is complete
+	return its tasks
+
 set app to a new todos-app
 set the filter of the app to "all"
 set the newTaskName of the app to ""
@@ -41,7 +46,7 @@ to draw (a todos-app)
 					</ui-menu>
 				</ui-menu>
 				<ui-form debug value={the app}>
-					<ui-repeat name="tasks">
+					<ui-repeat name="shownTasks">
 						<ui-fields>
 							<ui-field width="1"><ui-checkbox name="completed" aria-label="Done"/></ui-field>
 							<ui-field width="10"><ui-input name="title" aria-label="Task"/></ui-field>

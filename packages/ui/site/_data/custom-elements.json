@@ -6284,7 +6284,7 @@
             },
             {
               "name": "debug",
-              "description": "The JSON `debug` shows, a `<pre>` below the content."
+              "description": "The JSON `debug` shows, a `<pre>` in a captioned box below the content."
             }
           ],
           "cssStates": [

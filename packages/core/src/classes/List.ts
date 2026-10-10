@@ -307,6 +307,15 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
+   * Our items, as JSON shows a list:  `JSON.stringify(todosApp)` shows its tasks, each by its own `toJSON()`.
+   * - Props a list sub-class declares for itself aren't in it:  a list IS its items here, as an array is.
+   * - Tracked:  a reader re-runs when the items change (and, through each item's `toJSON()`, when they do).
+   */
+  toJSON(): T[] {
+    return this.items
+  }
+
+  /**
    * If we're asked for an iterator, use a copy of our `items`,
    * freezing the iteration to the initial state of `items`.
    */

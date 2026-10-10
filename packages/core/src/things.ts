@@ -299,7 +299,7 @@ export class ThingRegistry {
         if (descriptor.get && !properties.has(name)) properties.set(name, { name, computed: !descriptor.set })
       }
     }
-    for (const name of [...Object.keys(target.toJSON() as object), ...Object.keys(target)]) {
+    for (const name of [...target.keys(), ...Object.keys(target)]) {
       if (!properties.has(name) && !isBuiltIn(name)) properties.set(name, { name, computed: false })
     }
     return [...properties.values()]
