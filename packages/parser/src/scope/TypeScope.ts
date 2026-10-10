@@ -19,6 +19,12 @@ export class TypeScope extends BlockScope {
   declare name: string
   /** Name of superclass, which should be singular.  Will be normalized to Type_Case. */
   declare superType?: string
+  /**
+   * Short name the type goes by too, e.g. `Account` for `a bank account aka account is a thing`.
+   * - `scope.types` finds the type by it, singular or plural -- after every type's own name.
+   * - Normalized to Type_Case, like `name`.
+   */
+  declare aka?: string
   /** If true, the type was created as a stub. */
   declare stub?: boolean
   /**
@@ -64,6 +70,7 @@ export class TypeScope extends BlockScope {
     // Make sure type `name` and `superType` are in `Type_Case`
     this.name = typeCase(this.name)
     if (this.superType) this.superType = typeCase(this.superType)
+    if (this.aka) this.aka = typeCase(this.aka)
   }
 
   ////////////////
@@ -83,21 +90,29 @@ export class TypeScope extends BlockScope {
   /**
    * `declaredBy` really declares us, with `superType`:  we were stubbed by an earlier mention (see `getOrStub()`),
    * or left by an earlier parse of the same statement (see `sameStatement()`).
-   * - Clears `stub`, takes `declaredBy`, `superType` and -- for a list type -- `itemType`.
+   * - Clears `stub`, takes `declaredBy`, `superType`, its short name (`aka`) and -- for a list type -- `itemType`.
    *   Journaled, so incremental parsing can take that back.
    * - Changes THIS object, NOT `types.replace()`:  matches parsed so far point at it (`data.scopeType`),
    *   and it may already hold property `classVariables`.
    * - `superType` MUST be right:  a project's declarations read it -- see `SP.SpellDeclarations`.
    */
-  claim(declaredBy: P.Match, superType?: string, { itemType, valueKind }: ClaimListOptions = {}): void {
+  claim(declaredBy: P.Match, superType?: string, { itemType, valueKind, aka }: ClaimListOptions = {}): void {
     const previous = {
       stub: this.stub,
       declaredBy: this.declaredBy,
       superType: this.superType,
       itemType: this.itemType,
-      valueKind: this.valueKind
+      valueKind: this.valueKind,
+      aka: this.aka
     }
-    const next = { stub: false, declaredBy, superType: superType && typeCase(superType), itemType, valueKind }
+    const next = {
+      stub: false,
+      declaredBy,
+      superType: superType && typeCase(superType),
+      itemType,
+      valueKind,
+      aka: aka && typeCase(aka)
+    }
     Object.assign(this, next)
     // now IT declares us -- see `ScopeList.noteDeclared()`
     P.ScopeList.noteDeclared(this)
@@ -300,8 +315,10 @@ export class TypeScope extends BlockScope {
   }
 }
 
-/** What `TypeScope.claim()` takes for a list type or a value kind -- see `TypeScope.itemType`, `valueKind`. */
+/** What else `TypeScope.claim()` takes:  for a list type, a value kind, a short name -- each optional. */
 export type ClaimListOptions = {
+  /** See `TypeScope.aka`. */
+  aka?: string
   /** What it holds, e.g. `Card`. */
   itemType?: P.Datatype
   /** Its values, if it's a value kind. */
@@ -338,6 +355,8 @@ export type TypeScopeProps = {
   name: string
   /** Name of superclass, which should be singular.  Will be normalized to Type_Case. */
   superType?: string
+  /** See `TypeScope.aka`. */
+  aka?: string
   /** If true, the type was created as a stub. */
   stub?: boolean
   /** See `TypeScope.valueKind`. */

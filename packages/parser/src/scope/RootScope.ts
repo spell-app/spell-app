@@ -10,7 +10,8 @@ import { BlockScope } from "./BlockScope"
 export class RootScope extends BlockScope {
   /**
    * Named `TypeScope`s known in this scope, keyed by (Type_Case-normalized) name.
-   * New entries get wrapped in `TypeScope` and parented here.
+   * - A type's short name finds it too:  `account` for `a bank account aka account` -- see `TypeScope.aka`.
+   * - New entries get wrapped in `TypeScope` and parented here.
    */
   get types(): P.ScopeList<P.TypeScope, string | P.TypeScope | P.TypeScopeProps> {
     return this.derived(
@@ -21,6 +22,7 @@ export class RootScope extends BlockScope {
           keyProp: "name",
           parentProp: "parentScope.types",
           normalizeKey: typeCase,
+          aliasProp: "aka",
           transformer(item) {
             if (!(item instanceof P.TypeScope)) item = new P.TypeScope(item)
             item.parentScope = this.target

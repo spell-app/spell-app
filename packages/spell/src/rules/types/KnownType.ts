@@ -6,6 +6,7 @@ import { SpellType } from "./SpellType"
 /**
  * `known_type` rule:  known type identifier, NOT including built-in types like `Object`.
  * - e.g. `thing`, if `Thing` is a known type
+ * - e.g. `bank account` or its short name `account`, after `a bank account aka account is a thing`
  * - `match.data.scopeType` will be the existing `TypeScope`.
  */
 export class KnownType extends SpellType {
@@ -26,7 +27,7 @@ types.addRule(KnownType, {
         // plain `TypeScopeProps` too -- see report.
         const { types } = scope as P.RootScope
         types.add({ name: "Thing" })
-        types.add({ name: "Bank-Account" })
+        types.add({ name: "Bank-Account", aka: "account" })
       },
       tests: [
         { title: "singular, known type, lower case", input: "thing", js: "Thing" },
@@ -39,6 +40,11 @@ types.addRule(KnownType, {
         { title: "plural, known, multi-word, lower case", input: "bank-accounts", js: "Bank_Account" },
         { title: "plural, known, multi-word, mixed case", input: "Bank-accounts", js: "Bank_Account" },
         { title: "plural, known, multi-word, upper case", input: "Bank-Accounts", js: "Bank_Account" },
+        { title: "multi-word, declared", input: "bank account", js: "Bank_Account" },
+        { title: "multi-word, declared, plural", input: "bank accounts", js: "Bank_Account" },
+        { title: "short name", input: "account", js: "Bank_Account" },
+        { title: "short name, plural", input: "Accounts", js: "Bank_Account" },
+        { title: "words nobody declared", input: "savings account", js: undefined },
         { title: "unknown", input: "widget", js: undefined },
         { title: "unknown. multi-word", input: "other-thing", js: undefined }
       ]
