@@ -618,7 +618,7 @@ export class SpellDeclarations {
   ////////////////
 
   /**
-   * Type_Case name of the type `statement` declares something ON, e.g. `Card` for `cards have a suit as ...`
+   * PascalCase name of the type `statement` declares something ON, e.g. `Card` for `cards have a suit as ...`
    * -- from its `getDeclaration().of`.  `undefined` if it isn't on a type.
    */
   private static ownerOf(statement: P.Match): string | undefined {

@@ -460,10 +460,10 @@ describe("SpellDeclarations, a type's short name", () => {
     const { declarations } = compiledProject([
       { path: "/Bank.spell", contents: "a bank account aka account is a thing" }
     ])
-    expect(declarations.statements.find((it) => it.type === "Bank_Account")?.aka).toBe("Account")
+    expect(declarations.statements.find((it) => it.type === "BankAccount")?.aka).toBe("Account")
     const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [
       { from: "@library/bank", declarations }
     ])
-    expect(imports.types.get("accounts")?.name).toBe("Bank_Account")
+    expect(imports.types.get("accounts")?.name).toBe("BankAccount")
   })
 })

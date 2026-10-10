@@ -25,8 +25,8 @@ types.addRule(SingularType, {
       tests: [
         { title: "singular, lower case", input: "thing", js: "Thing" },
         { title: "singular, upper case", input: "Thing", js: "Thing" },
-        { title: "singular, multi-word, lower case", input: "bank-account", js: "Bank_Account" },
-        { title: "singular, multi-word, mixed case", input: "Bank-account", js: "Bank_Account" },
+        { title: "singular, multi-word, lower case", input: "bank-account", js: "BankAccount" },
+        { title: "singular, multi-word, mixed case", input: "Bank-account", js: "BankAccount" },
 
         { title: "plural, lower case", input: "things", js: undefined },
         { title: "plural, upper case", input: "Things", js: undefined },

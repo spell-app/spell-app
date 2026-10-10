@@ -90,9 +90,9 @@ describe("typeName()", () => {
     expect(P.typeName("array of Card")).toBe("Array of Card")
   })
 
-  test("anything else is a user's type, Type_Case and singular", () => {
+  test("anything else is a user's type, PascalCase and singular", () => {
     expect(SP.typeName("cards")).toBe("Card")
-    expect(SP.typeName("playing_cards")).toBe("Playing_Card")
+    expect(SP.typeName("playing_cards")).toBe("PlayingCard")
   })
 })
 

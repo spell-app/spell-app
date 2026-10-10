@@ -50,7 +50,7 @@ export const BUILT_IN_TYPES: Record<Datatype, Datatype | undefined> = {
 /**
  * Built-in types which are classes at runtime, by datatype:  the name compiled code gives each, e.g. `extends List`.
  * - Every other built-in is a plain javascript value, named in spell's words, e.g. `isOfType(x, 'text')`.
- * - A name of two words is one class, NOT Type_Case:  `drawable list` => `DrawableList` -- see `classCase()`.
+ * - A name of two words is one class, NOT one word per part:  `drawable list` => `DrawableList` -- see `classCase()`.
  */
 export const BUILT_IN_CLASS_NAMES: Record<Datatype, string> = {
   list: "List",
@@ -69,7 +69,7 @@ const BUILT_IN_CLASS_NAME_SET = new Set(Object.values(BUILT_IN_CLASS_NAMES))
 /**
  * Name of the class for type `name`, as compiled code and `scope.types` name it.
  * - a built-in class by its datatype, e.g. `drawable list` => `DrawableList`;  its class name stays as it is
- * - anything else in Type_Case (`typeCase()`), e.g. `bank-accounts` => `Bank_Account`
+ * - anything else in PascalCase (`typeCase()`), e.g. `bank-accounts` => `BankAccount`
  */
 export function classCase(name: string): string {
   return BUILT_IN_CLASS_NAMES[`${name}`.toLowerCase()] ?? (BUILT_IN_CLASS_NAME_SET.has(name) ? name : typeCase(name))
@@ -83,7 +83,7 @@ export function classCase(name: string): string {
  * - Plurals are singularized before lookup, e.g. `numbers` => `number`.
  * - A list of something:  `list of cards` / `array of Card` => `list of cards`,
  *   when its first word names a `list` -- see `listOf()`.
- * - Anything else is a user's type, Type_Case and singular, as its `TypeScope` is named:  `cards` => `Card`.
+ * - Anything else is a user's type, PascalCase and singular, as its `TypeScope` is named:  `cards` => `Card`.
  * - NOTE: a language wraps this with its vocabulary, e.g. `SP.typeName()`:  the parser knows no language's words.
  */
 export function typeName(written: string, typeWords: TypeWords = {}): Datatype {

@@ -208,7 +208,7 @@ export type ImportedRuleDeclared = {
   owner: string
   /**
    * What its statement declared, as its rule's `getDeclaration()` said -- bar `nameMatch`:  there's no match.
-   * - `of` is Type_Case, e.g. `Card`, where `getDeclaration()` gives source text, e.g. `cards`.
+   * - `of` is PascalCase, e.g. `Card`, where `getDeclaration()` gives source text, e.g. `cards`.
    */
   declaration?: Omit<Declaration, "nameMatch">
   /** Where its statement was, if written down. */

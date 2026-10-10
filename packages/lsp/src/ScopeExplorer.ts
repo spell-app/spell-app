@@ -600,7 +600,7 @@ export class ScopeExplorer {
     return !type.declaredBy && type.parentScope instanceof P.ImportScope
   }
 
-  /** Type_Case name of the type a declaration is `of`, as written, e.g. `cards` => `Card`. */
+  /** PascalCase name of the type a declaration is `of`, as written, e.g. `cards` => `Card`. */
   private static typeNameOf(of: string): string {
     return typeCase(singularize(of))
   }
@@ -624,7 +624,7 @@ export class ScopeExplorer {
     return items.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: "base" }))
   }
 
-  /** Type_Case name of the type statement `declaredBy` declares something on, e.g. `Card`, if any. */
+  /** PascalCase name of the type statement `declaredBy` declares something on, e.g. `Card`, if any. */
   private ownerOf(declaredBy: P.Match | undefined): string | undefined {
     const of = declaredBy?.rule.getDeclaration(declaredBy)?.of
     return of ? ScopeExplorer.typeNameOf(of) : undefined

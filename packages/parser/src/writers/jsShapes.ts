@@ -92,7 +92,7 @@ export function kindOfType(datatype: P.Datatype | RegExpConstructor | undefined)
   return /^[A-Z]\w*$/.test(datatype) ? datatype : undefined
 }
 
-/** Is `datatype` one spell knows:  built in, a list, or a type in Type_Case?  See `kindOfType()`. */
+/** Is `datatype` one spell knows:  built in, a list, or a type in PascalCase?  See `kindOfType()`. */
 export function isKnownType(datatype: P.Datatype | RegExpConstructor | undefined): boolean {
   if (typeof datatype !== "string" || !datatype) return false
   return datatype.startsWith("list") || Object.hasOwn(BUILT_IN_KINDS, datatype) || /^[A-Z][\w$]*$/.test(datatype)

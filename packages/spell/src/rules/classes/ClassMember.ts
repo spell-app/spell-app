@@ -8,7 +8,7 @@ import { classes } from "./classes.parser"
 /**
  * `class_member` rule:  `{type} {member words}` -- a class variable of a known type, e.g.:
  * - `card suits` / `Card Suits` ~== `Card.Suits`
- * - `bank-account account-types` ~== `Bank_Account.Account_types`
+ * - `bank-account account-types` ~== `BankAccount.Account_types`
  * - ONE rule for every type:  the member resolves through `type`'s `classVariables`,
  *   e.g. `Suits` as `cards have a suit as one of ...` declares it -- see `define_property_has`.
  *   Was a rule per enumeration.
@@ -61,7 +61,7 @@ classes.addRule(ClassMember, {
       tests: [
         ["card suits", "Card.Suits"],
         ["Card Suits", "Card.Suits"],
-        ["bank-account account-types", "Bank_Account.Account_types"],
+        ["bank-account account-types", "BankAccount.Account_types"],
         { title: "not a class variable", input: "card ranks", js: undefined }
       ]
     }

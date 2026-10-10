@@ -108,7 +108,7 @@ Object.assign(spellCore, elementsMethods)
 /**
  * Tag of the element for class `className` in project `project`:
  * the project's name made singular, then the class's, kebab-cased.
- * - e.g. `Solitaire`, `Card` => `solitaire-card`;  `games`, `Bank_Account` => `game-bank-account`
+ * - e.g. `Solitaire`, `Card` => `solitaire-card`;  `games`, `BankAccount` => `game-bank-account`
  * - Only letters, digits and dashes, starting with a letter:  always a valid custom element name, as it has a dash.
  */
 export function elementTagFor(project: string, className: string): string {

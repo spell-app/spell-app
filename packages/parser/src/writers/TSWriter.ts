@@ -124,7 +124,7 @@ export class TSWriter extends JSWriter {
   /**
    * TypeScript for spell's `datatype`, e.g. `string` for `text`, `Card` for `Card`;
    * `undefined` if spell doesn't know it, or it has no TypeScript.
-   * - A type spell's project declares is in Type_Case, e.g. `Card`:  as is.
+   * - A type spell's project declares is in PascalCase, e.g. `Card`:  as is.
    * - `list of cards`:  as `list`.
    */
   typeFor(datatype: P.Datatype | RegExpConstructor | undefined): string | undefined {
@@ -828,7 +828,7 @@ export class TSWriter extends JSWriter {
       return `(typeof ${this.write(listNamedBy(property.value))})[number]`
     }
     const initializer = node.initializer && unwrapped(node.initializer)
-    // made when first read, `as a new task-list`:  the class it makes, e.g. `Task_List`
+    // made when first read, `as a new task-list`:  the class it makes, e.g. `TaskList`
     if (initializer instanceof P.ASTNewInstanceExpression && initializer.type.name !== "List") {
       return initializer.type.name
     }

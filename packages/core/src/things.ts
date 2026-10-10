@@ -484,7 +484,7 @@ export type ThingAction = {
   label: string
   /** How many arguments it takes:  `0` for one that can be done as is, e.g. `turn over`. */
   arguments: number
-  /** Type_Case name of the super-type it came from, if not the thing's own type's. */
+  /** PascalCase name of the super-type it came from, if not the thing's own type's. */
   inheritedFrom?: string
 }
 

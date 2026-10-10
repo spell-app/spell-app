@@ -247,7 +247,7 @@ export class SpellLanguageService {
   /**
    * Symbol for `statement` on `line`, if it declares something -- asks its rule (`getDeclaration()`).
    * - `range` covers the whole line and any body;  `selectionRange` just the name.
-   * - Type names show in Type_Case, as the compiled classes are named.
+   * - Type names show in PascalCase, as the compiled classes are named.
    */
   private symbolFor(file: SP.SpellFile, line: P.Match, statement: P.Match): LSP.SpellSymbol | undefined {
     const declaration = statement.rule.getDeclaration(statement)

@@ -11,9 +11,9 @@ types.addRule(Type, {
       tests: [
         { title: "lower case", input: "thing", js: "Thing" },
         { title: "upper case", input: "Thing", js: "Thing" },
-        { title: "multi-word, lower case", input: "bank-account", js: "Bank_Account" },
-        { title: "multi-word, mixed case", input: "Bank-account", js: "Bank_Account" },
-        { title: "multi-word, upper case", input: "Bank-Account", js: "Bank_Account" },
+        { title: "multi-word, lower case", input: "bank-account", js: "BankAccount" },
+        { title: "multi-word, mixed case", input: "Bank-account", js: "BankAccount" },
+        { title: "multi-word, upper case", input: "Bank-Account", js: "BankAccount" },
         { title: "blacklisted word", input: "if", js: undefined }
       ]
     }
