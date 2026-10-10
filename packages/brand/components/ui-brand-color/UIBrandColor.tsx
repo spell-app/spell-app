@@ -160,13 +160,13 @@ export class UIBrandColor extends E.UIComponent<BrandColorVocabulary> {
   }
 
   /** `"true"` / `"false"` while a choice:  a radio's "not checked" is spoken. */
-  @E.aria("ariaChecked")
+  @E.aria("checked")
   protected get checkedText(): string | undefined {
     return this.isChoice ? String(this.selected) : undefined
   }
 
   /** The chip's name, while a choice. */
-  @E.aria("ariaLabel")
+  @E.aria("label")
   protected get choiceName(): string | undefined {
     return this.isChoice ? this.accessibleName : undefined
   }

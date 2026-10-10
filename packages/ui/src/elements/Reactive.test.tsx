@@ -652,32 +652,34 @@ const ARIA_VOCABULARY = {
   texts: []
 } as const satisfies ComponentVocabulary
 
-/** A component on `@cssStates`, `@aria` and `elementSetup.aria`. */
-@E.cssStates("loading", "read-only")
+/** A component on `elementSetup.cssStates`, `@aria` and `elementSetup.aria`. */
 class AriaTest extends E.UIComponent<typeof ARIA_VOCABULARY> {
-  @E.protoMerged static elementSetup = { aria: { role: "group", ariaRoleDescription: "test" } }
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
+    cssStates: ["loading", "read-only"],
+    aria: { role: "group", roleDescription: "test" }
+  }
 
   /** `loading` as `aria-busy`. */
-  @E.aria("ariaBusy")
+  @E.aria("busy")
   get isLoading(): boolean {
     return !!this.loading
   }
 
   /** `label` as the name. */
-  @E.aria("ariaLabel")
+  @E.aria("label")
   get accessibleName(): string | undefined {
     return this.label
   }
 
   /** `level`, a number, as text. */
-  @E.aria("ariaLevel")
+  @E.aria("level")
   get ariaLevelNumber(): number | undefined {
     return this.level
   }
 
   /** Own state, on an accessor:  `:state(picked)` and `aria-selected`, stacked. */
   @E.cssState("picked")
-  @E.aria("ariaSelected")
+  @E.aria("selected")
   @E.state
   accessor isPicked = false
 
@@ -692,7 +694,7 @@ Object.defineProperty(AriaTest.prototype, "vocabulary", { value: ARIA_VOCABULARY
 /** A subclass naming the same state and ARIA property:  its own wins. */
 class AriaSubclassTest extends AriaTest {
   /** Never busy, whatever `loading` says. */
-  @E.aria("ariaBusy")
+  @E.aria("busy")
   get isNeverBusy(): boolean {
     return false
   }
@@ -711,8 +713,8 @@ async function ariaTest(html: string) {
   return { host, component: host.component as unknown as AriaTest }
 }
 
-describe("Reactive:  @cssStates, @aria and elementSetup.aria", () => {
-  it("@cssStates:  `:state(x)` follows attribute `x` (a kebab-case name reads its camelCase member)", async () => {
+describe("Reactive:  elementSetup.cssStates, @aria and elementSetup.aria", () => {
+  it("elementSetup.cssStates:  `:state(x)` follows attribute `x` (a kebab-case name reads its camelCase member)", async () => {
     const { host } = await ariaTest(`<x-aria loading></x-aria>`)
     expect(host.matches(":state(loading)")).toBe(true)
     expect(host.matches(":state(read-only)")).toBe(false)
@@ -760,11 +762,12 @@ describe("Reactive:  @cssStates, @aria and elementSetup.aria", () => {
     expect(host.matches(":state(loading)")).toBe(true)
   })
 
-  it("@cssStates:  TypeScript flags a name that isn't a member", () => {
-    // @ts-expect-error -- `nope` is no member of `AriaTest`
-    @E.cssStates("nope")
-    class Misspelt extends AriaTest {}
-    expect(Misspelt).toBeDefined()
+  it("elementSetup.cssStates:  define() throws on a name the tag has no attribute or member for", () => {
+    class Misspelt extends AriaTest {
+      @E.protoMerged static elementSetup = { cssStates: ["loading", "nope"] } satisfies Partial<E.ElementSetup>
+    }
+    const define = () => (Misspelt as unknown as UIComponentClass & typeof E.UIComponent).define("x-aria-misspelt")
+    expect(define).toThrow(/<x-aria-misspelt>'s elementSetup.cssStates names nope,/)
   })
 })
 
@@ -805,7 +808,7 @@ describe("Reactive:  vocabulary getters vs base members", () => {
   }
 })
 
-/** The `@fromContent` / `@whileConnected` stand-in's vocabulary:  nothing of its own. */
+/** The `@watches` / `@whileConnected` stand-in's vocabulary:  nothing of its own. */
 const CONTENT_VOCABULARY = {
   tag: "x-content",
   noun: "content",
@@ -817,20 +820,20 @@ const CONTENT_VOCABULARY = {
   texts: []
 } as const satisfies ComponentVocabulary
 
-/** A component reading its light DOM (`@fromContent`), and following its connection (`@whileConnected`). */
+/** A component reading its light DOM (`@watches`), and following its connection (`@whileConnected`). */
 class ContentTest extends E.UIComponent<typeof CONTENT_VOCABULARY> {
   /** How many times `childCount` computed. */
   computes = 0
 
   /** Its children, counted. */
-  @E.fromContent({ childList: true })
+  @E.watches({ childList: true })
   get childCount(): number {
     this.computes++
     return this.domElement.children.length
   }
 
   /** Ids of the elements marked `data-mark`, anywhere inside;  the same list while their number is. */
-  @E.fromContent({
+  @E.watches({
     subtree: true,
     attributeFilter: ["data-mark"],
     equals: (a: string[], b: string[]) => a.length === b.length
@@ -842,7 +845,7 @@ class ContentTest extends E.UIComponent<typeof CONTENT_VOCABULARY> {
   /** How many mutations each `onTitleChanged()` call had. */
   readonly titleChanges: number[] = []
 
-  @E.fromContent({ attributeFilter: ["title"] })
+  @E.watches({ attributeFilter: ["title"] })
   protected onTitleChanged(mutations: MutationRecord[]) {
     this.titleChanges.push(mutations.length)
   }
@@ -873,7 +876,7 @@ async function content(inner = "") {
   return { host, component, box }
 }
 
-describe("Reactive:  @fromContent", () => {
+describe("Reactive:  @watches", () => {
   it("a getter follows the light DOM, and the view with it", async () => {
     const { host, component, box } = await content(`<b></b>`)
     expect(component.childCount).toBe(1)

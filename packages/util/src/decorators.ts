@@ -2,6 +2,7 @@
  * Standard (TC39 2023-11) decorators:
  * - `@proto` / `@protoMerged` -- class defaults on the prototype
  * - `@lazy` / `@once` -- a getter / method whose result is made once and kept, with `forget()` to drop it
+ * - `@resets` -- an `accessor` whose every write forgets what `@lazy` / `@once` members kept
  * - NOTE: lowered by esbuild via `vite.decorators.ts` -- vite 8's own transformer doesn't do it yet.
  * - Decorator MUST be first thing on its line (`@proto static x = 1` is fine), or that plugin won't notice the file.
  */
@@ -40,15 +41,24 @@ export function proto<This extends AbstractClass<object>, Value>(
 /**
  * Like `@proto`, for a static OBJECT whose keys add up down the class chain:
  * `@protoMerged static elementSetup = { delegatesFocus: false }`.
- * - Puts `{ ...the parent class's value, ...this class's }` on the PROTOTYPE, once, when the class is defined:
- *   so `instance.elementSetup` (and `Class.prototype.elementSetup`) is already the merged result.
- * - Merges SHALLOWLY:  a key this class states replaces the parent's value for that key, whole.
- *   To add to an object-valued key, spread the parent's:
+ * - Puts this class's object on the PROTOTYPE, when the class is defined,
+ *   and makes the parent class's object ITS prototype:
+ *   a key this class doesn't state is read from the parent's, and so on up the chain.
+ *   - Nothing is copied:  ONE object per class, so `Class.elementSetup === Class.prototype.elementSetup`.
+ *   - In the browser's console, its own keys are what this class changed;
+ *     the rest show under `[[Prototype]]`, the parent's.
+ * - A key this class states replaces the parent's value for that key, whole.
+ *   To add to an object or a list, spread the parent's:
  *   `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
- * - A class that doesn't state one inherits its parent's merged value, through the prototype chain.
- * - NOTE: the static keeps only what THIS class stated;  read the merged result from the prototype.
+ *   - Why nested values aren't chained too:  code walks over their keys (`Object.keys()`, `Object.assign()`),
+ *     which would miss the parent's;  and a spread lets each class choose the order.
+ * - A class that doesn't state one inherits its parent's object, through the prototype chain.
+ * - NOTE: read keys by name (`setup.styleSheets`, a destructure):
+ *   a spread, `Object.keys()`, `Object.assign()` or `JSON.stringify()` of the whole object
+ *   sees only the keys its own class stated.
  * - Field name MUST be something instances already declare, as for `@proto`.
- * - SIDE EFFECT: then calls the class's `static protoDefined(name, mergedValue)`, if it has one, as `@proto` does.
+ * - SIDE EFFECT: sets the prototype of the object the class states.
+ * - SIDE EFFECT: then calls the class's `static protoDefined(name, value)`, if it has one, as `@proto` does.
  */
 export function protoMerged<This extends AbstractClass<object>, Value extends object>(
   _target: undefined,
@@ -59,9 +69,11 @@ export function protoMerged<This extends AbstractClass<object>, Value extends ob
   }
   return function (this: This, value: Value): Value {
     const parentPrototype = Object.getPrototypeOf(this.prototype) as Record<PropertyKey, unknown> | null
-    const merged = { ...(parentPrototype?.[context.name] as object | undefined), ...value }
-    Object.defineProperty(this.prototype, context.name, { value: merged, writable: true, configurable: true })
-    ;(this as ProtoAware).protoDefined?.(context.name, merged)
+    const parentValue = parentPrototype?.[context.name] as object | undefined
+    // a key this class doesn't state is looked up on the parent's object
+    if (parentValue) Object.setPrototypeOf(value, parentValue)
+    Object.defineProperty(this.prototype, context.name, { value, writable: true, configurable: true })
+    ;(this as ProtoAware).protoDefined?.(context.name, value)
     return value
   }
 }
@@ -72,7 +84,8 @@ export function protoMerged<This extends AbstractClass<object>, Value extends ob
  * - Kept per object it's read on:  each instance its own;  a `static` one, per class it's read on (`X.supports`).
  * - Replaces a backing field plus `return (this.field ??= make())`.
  * - A getter that throws keeps nothing:  the next read tries again.  `undefined` IS kept.
- * - `forget(object, "name")` drops the kept value, e.g. in a `static reset()` for tests:  the next read makes it anew.
+ * - `forget(object, "name")` drops the kept value:  the next read makes it anew.
+ *   Writing a member marked `@resets("name")` does it too.
  * - NOT reactive:  the value is made once, whatever it read.  A reactive cached value is `@derived` (`ui`).
  * - throws a `TypeError` on anything but a getter
  */
@@ -94,7 +107,8 @@ export function lazy<This extends object, Value>(
  * - Takes no arguments:  one result per object would ignore them.
  * - Kept per object it's called on, as `@lazy`'s value is:  each instance, or for a `static`, the class it's called on.
  *   Call it on its object (`X.load()`), never detached (`const load = X.load`).
- * - A rejected promise is kept too:  every later call gets the same rejection, until `forget(object, "name")`.
+ * - A rejected promise is kept too:  every later call gets the same rejection,
+ *   until `forget(object, "name")` or a write to a `@resets("name")` member.
  *   A method that THROWS keeps nothing:  the next call runs it again.
  * - throws a `TypeError` on anything but a method
  */
@@ -111,9 +125,32 @@ export function once<This extends object, Value>(
 }
 
 /**
+ * An `accessor` whose every write forgets what the `@lazy` / `@once` members `names` kept,
+ * so the next read or call makes it anew:
+ * `@resets("load") static accessor url: string | undefined`, then `SiteData.url = other` fetches again.
+ * - Needs `accessor`:  a plain field's decorator only sets its starting value, it never sees a later write.
+ * - Every write resets, even of the same value:  `X.url = X.url` starts over (tests do that after a failed fetch).
+ * - Forgets on the object written to:  an instance, or for a `static`, the class it's set on.
+ * - `names` are checked:  `keyof` the instance, or for a `static`, the class, so a typo is a compile error.
+ */
+export function resets<This extends object, Value>(...names: (keyof This)[]) {
+  return function (
+    target: ClassAccessorDecoratorTarget<This, Value>,
+    _context: ClassAccessorDecoratorContext<This, Value>
+  ): ClassAccessorDecoratorResult<This, Value> {
+    return {
+      set(this: This, value: Value) {
+        for (const name of names) forget(this, name)
+        target.set.call(this, value)
+      }
+    }
+  }
+}
+
+/**
  * Drop what `@lazy` getter or `@once` method `name` kept for `owner`:  the next read or call makes it anew.
  * - `owner` is the object it was kept for:  an instance, or the class for a `static` one.
- * - e.g. `static reset() { forget(SiteData, "load") }`
+ * - e.g. `forget(counted, "parts")` in a test;  a member whose writes should reset says `@resets("parts")`.
  * - Nothing kept:  does nothing.
  */
 export function forget<Owner extends object>(owner: Owner, name: keyof Owner): void {

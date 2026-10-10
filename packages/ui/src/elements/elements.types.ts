@@ -5,7 +5,7 @@
  *   and what the pieces of `UIComponent` hand each other
  * - Runtime-light:  types, plus a few constants
  *   (`WHITESPACE`, `ERROR_EVENT`, `ERRORED_STATE`, `StickyWatchEdges` and `StickyWatch`'s thresholds,
- *   the source URL attributes).
+ *   the source URL attributes, `AriaNames`).
  * - The BOTTOM of the folder's import graph:  `import type` only (the core's types as `E`, erased),
  *   so it NEVER loads a class module of its folder, the DOM or Solid.
  *   - `core.ts` re-exports it,
@@ -29,6 +29,8 @@ export type ClassInput = Readonly<Record<string, unknown>>
 export type ClassBuildOptions = {
   /** Classes put just before the noun, e.g. a state (`active`) or a caller's own class:  `ui primary icon button`. */
   extra?: string
+  /** The last class word;  default the vocabulary's `noun`.  `<ui-tab>`'s pane says `segment`:  `ui tab segment`. */
+  noun?: string
 }
 
 /** Fomantic's connective words, see `ClassBuilder.grammar`. */
@@ -570,7 +572,8 @@ export type FallbackClass = {
 /**
  * How a class's custom element is set up:  `UIComponent.elementSetup`, merged down the class chain (`@protoMerged`).
  * - Read once, when the tag is defined,
- *   except `styleSheets`, `isAFormControl`, `canRenderUnstyled` and `aria`, which each element reads as it's built.
+ *   except `styleSheets`, `cssStates`, `isAFormControl`, `canRenderUnstyled` and `aria`,
+ *   which each element reads as it's built.
  */
 export type ElementSetup = {
   /**
@@ -579,7 +582,7 @@ export type ElementSetup = {
    * - Every element of the class uses the same sheets:
    *   registered with the runtime (`UI.styles`) once per class,
    *   then adopted into each element's shadow root, after the shared foundation sheets.
-   * - A subclass's REPLACE its base's whole (keys merge one level deep only);
+   * - A subclass's REPLACE its base's whole (only the top level of `elementSetup` is inherited key by key);
    *   spread the base's to add to them:
    *   `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
    * - Which of them apply right now:  `UIComponent.styleSheetNames`.
@@ -589,6 +592,21 @@ export type ElementSetup = {
    *   never a bare noun one of ours may have (`item`).
    */
   styleSheets: Readonly<Record<string, string>>
+
+  /**
+   * The `:state()`s that only mirror an attribute of the same name:  `["active", "fluid"]`.
+   * - `<ui-label active>` gets `:state(active)`, read through the component's member `active`
+   *   (camelCase:  `"read-only"` reads `readOnly`), the attribute's getter unless the class has its own.
+   * - Default none.
+   * - A subclass that ADDS states spreads its base's, as for `styleSheets`:
+   *   `cssStates: [...TextControl.prototype.elementSetup.cssStates, "inline"]`.
+   * - A state with logic, or one whose member something else reads (`isDisabled`), is a getter with `@cssState`;
+   *   for a state both name, the `@cssState` member wins.
+   * - `define()` throws on a name the tag has no attribute or member for (a typo).
+   * - NOT the `cssStates()` hook, which works out a set of states in code.
+   * - `disabled`, `loading` and the other shared states need no entry:  `UIComponent` sets them for every element.
+   */
+  cssStates: readonly string[]
 
   /**
    * Does this element act as a control in an HTML `<form>`?
@@ -641,7 +659,7 @@ export type ElementSetup = {
    * - A family with a script API of its own names its `DOM<Name>Element` here (`DOMNagElement`).
    * - Read once, when the tag is defined.
    */
-  DOMElement: E.DOMElementBaseClass
+  DOMElement: E.AnyDOMElementClass
 
   /**
    * The plain-DOM stand-in this element shows when it breaks (`UI<Name>.fallback.ts`).
@@ -670,13 +688,14 @@ export type ElementSetup = {
 
   /**
    * ARIA the DOM element ALWAYS has, set once on its `internals` when the component is built:
-   * `{ role: "listitem" }`, `{ role: "status", ariaLive: "polite" }`.
+   * `{ role: "listitem" }`, `{ role: "status", live: "polite" }`.
+   * - Keys are short names (`AriaNames`), as `@aria` takes them.
    * - Default none.
    * - For a value that never changes;  one that follows state is an `@aria` getter, which wins once its effect runs
    *   (`<ui-card>`'s role follows its group).
    * - A server render (`$/ui/static`) gets it too:  a `listitem` becomes an `<li>`.
    */
-  aria: Readonly<Partial<Record<AriaProperty, string>>>
+  aria: Readonly<Partial<Record<AriaName, string>>>
 
   /**
    * What `disabled` means for this family (every element takes it:  `SharedVocabulary`).
@@ -726,6 +745,30 @@ export type LoadingMeaning = "loader" | "its own"
 export type AriaProperty = {
   [K in keyof ARIAMixin]-?: ARIAMixin[K] extends string | null ? K : never
 }[keyof ARIAMixin]
+
+/**
+ * ARIA by short name => the `ElementInternals` property `@aria` and `elementSetup.aria` write.
+ * - Each is the attribute in its comment, set on the element's hidden ARIA (never a visible attribute).
+ * - Only the names in use:  a name not here fails TypeScript, so add it here (one line).
+ * - Keys follow the attribute, camelCased after `aria-`:  `aria-valuemin` is `valueMin`.
+ */
+export const AriaNames = {
+  role: "role", // role
+  busy: "ariaBusy", // aria-busy
+  checked: "ariaChecked", // aria-checked
+  current: "ariaCurrent", // aria-current
+  disabled: "ariaDisabled", // aria-disabled
+  hidden: "ariaHidden", // aria-hidden
+  label: "ariaLabel", // aria-label
+  level: "ariaLevel", // aria-level
+  live: "ariaLive", // aria-live
+  roleDescription: "ariaRoleDescription", // aria-roledescription
+  selected: "ariaSelected", // aria-selected
+  valueMin: "ariaValueMin" // aria-valuemin
+} as const satisfies Record<string, AriaProperty>
+
+/** A short ARIA name, a key of `AriaNames`:  `"busy"`, `"label"`, `"role"` ... */
+export type AriaName = keyof typeof AriaNames
 
 ////////////////
 // ## Element definition

@@ -91,12 +91,11 @@ beforeEach(() => {
   localStorage.clear()
   // most cases read the A-Z list;  the default (Topics) has its own case
   localStorage.setItem(STORAGE_KEYS.view, "az")
-  SiteData.reset(serve(DATA))
+  SiteData.url = serve(DATA)
 })
 
 afterEach(() => {
   localStorage.clear()
-  SiteData.reset()
   SiteData.url = undefined
 })
 
@@ -237,13 +236,11 @@ describe("<ui-docs-nav> lists", () => {
       href: "components/ui-radio.html"
     })
     const pages = { "ui-radio": { title: "Radio", summary: "", status: "planned" as const } }
-    SiteData.reset(
-      serve({
-        ...DATA,
-        components: [...DATA.components, radio],
-        families: { ...DATA.families, "ui-checkbox": { ...family("ui-checkbox"), pages } }
-      })
-    )
+    SiteData.url = serve({
+      ...DATA,
+      components: [...DATA.components, radio],
+      families: { ...DATA.families, "ui-checkbox": { ...family("ui-checkbox"), pages } }
+    })
     const nav = await render(`current="ui-radio"`)
     const row = find(nav, '[data-nav-link="ui-radio"]')
     expect(row.getAttribute("href")).toBe("#/components/ui-radio.html")
@@ -259,7 +256,7 @@ describe("<ui-docs-nav> lists", () => {
     const nav = await render(`current="getting-started"`)
     expect(find(nav, '[data-nav-link="getting-started"]').getAttribute("aria-current")).toBe("page")
 
-    SiteData.reset("/no-such-folder/_data/components.json")
+    SiteData.url = "/no-such-folder/_data/components.json"
     const broken = await render()
     expect(find(broken, "ui-message").getAttribute("header")).toBe("The component list didn't load")
     expect(broken.matches(":state(listed)")).toBe(true)

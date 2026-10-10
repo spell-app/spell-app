@@ -469,6 +469,23 @@ describe("<ui-brand-color-picker> form and states", () => {
     expect(new FormData(form).get("base")).toBe("#8E96B5")
   })
 
+  it("`required`:  fails while no `value` was set, though it shows the default;  met once a colour is picked", async () => {
+    const form = await ElementFixture.render<HTMLFormElement>(
+      `<form><ui-brand-color-picker name="base" required></ui-brand-color-picker></form>`
+    )
+    const host = form.querySelector<PickerHost>("ui-brand-color-picker")!
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(false)
+    // the default is still what a submit would send
+    expect(new FormData(form).get("base")).toBe("#8E96B5")
+    type(part<HTMLInputElement>(host, "rgb"), "#14A39A")
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(true)
+    form.reset()
+    await ElementFixture.tick()
+    expect(form.checkValidity()).toBe(false)
+  })
+
   it("slots:  `header` and `actions` in the head row;  the default slot under the rows", async () => {
     const host = await picker(`<ui-brand-color-picker>
       <b slot="header">Choose a colour</b><button slot="actions" aria-label="Done">x</button><p>families</p>

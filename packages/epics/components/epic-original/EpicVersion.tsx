@@ -36,7 +36,7 @@ export class EpicVersion extends E.UIComponent<typeof epicVersionVocabulary> {
 
   /**
    * While connected:  count the versions beside it, again as its parent's children change.  Returns the undo.
-   * - Its own `MutationObserver`, not `@fromContent`:  it watches its PARENT, not its own light DOM.
+   * - Its own `MutationObserver`, not `@watches`:  it watches its PARENT, not its own light DOM.
    */
   @E.whileConnected
   protected watchVersions() {
