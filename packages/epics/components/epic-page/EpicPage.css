@@ -242,13 +242,14 @@
     outline-offset: 1px;
   }
 
-  /* ## The sleeping mark:  an emoji, its box as tall as the labels beside it, the glyph on their middle */
-  .sleeping {
+  /* ## The state mark:  an icon in its state's colour, as tall as the labels beside it, on their middle */
+  .state {
     display: inline-grid;
     flex: none;
     place-items: center;
     height: var(--epic-control-size);
-    font-size: 20px;
+    margin: 0;
+    font-size: 18px;
     line-height: 1;
     cursor: help;
   }

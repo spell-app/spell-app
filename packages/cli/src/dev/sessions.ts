@@ -282,14 +282,18 @@ export function ancestorPids(): Set<number> {
 /**
  * The icon a session's title starts with, saying where its work stands (Owen, 2026-10-07):  🚧 under way
  * (`/isolate`, `/epic <name>`, `/unpark`, `/epic resume`:  the prompt hook, `.claude/hooks/prompt-gate.mjs`, which
- * keeps its own copy), 📅 a future epic written down (`/epic future`), ✅ merged (`spell dev session done`), 😴
- * sleeping:  nothing under way, but follow-ups open (`spell dev session icons`;  `worktrees.ts` `planFollowUps()`).
+ * keeps its own copy), 📅 a future epic written down (`/epic future`), ✅ merged (`spell dev session done`);
+ * and from its epic's state (`spell dev session icons`;  `$/server/site/EpicState`):  🚨 errors (every phase done,
+ * items need Owen), ⏸️ paused (phases left, untouched for days).
  */
-export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅", sleeping: "😴" } as const
+export const TITLE_ICONS = { active: "🚧", future: "📅", done: "✅", errors: "🚨", paused: "⏸️" } as const
 
-/** `title` without its leading icon (`TITLE_ICONS`):  `🚧 seo` -> `seo`;  the name its work goes by. */
+/** Icons titles may still start with from before:  😴, sleeping (gone 2026-10-10:  epic `airplane` P8). */
+const OLD_TITLE_ICONS = ["😴"]
+
+/** `title` without its leading icon (`TITLE_ICONS`, or an old one):  `🚧 seo` -> `seo`;  the name its work goes by. */
 export function bareTitle(title: string): string {
-  const icons = Object.values(TITLE_ICONS).join("|")
+  const icons = [...Object.values(TITLE_ICONS), ...OLD_TITLE_ICONS].join("|")
   return title.replace(new RegExp(`^(?:${icons})\\s*`, "u"), "")
 }
 

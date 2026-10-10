@@ -199,22 +199,51 @@ describe("<epic-page>", () => {
     expect(getComputedStyle(plain.querySelector("epic-page")!).marginLeft).toBe("0px")
   })
 
-  test("sleeping:  phases, none under way, open follow-ups:  😴 saying what's open;  gone once under way", async () => {
+  // epic `airplane` P8 (Owen, 2026-10-10):  in progress, errors, done, paused;  no sleeping mark any more
+  test("the state mark:  in progress between phases, paused once untouched, errors while items need Owen", async () => {
+    const now = new Date()
+    const today = [now.getFullYear(), now.getMonth() + 1, now.getDate()]
+      .map((n) => String(n).padStart(2, "0"))
+      .join("-")
     const items =
       `<epic-section id="decisions" kind="questions">` +
-      `<epic-item id="q1" title="One" status="open"></epic-item><epic-item id="q2" title="Two" status="open"></epic-item>` +
-      `</epic-section><epic-section id="caveats" kind="caveats"><epic-item id="c1" title="Kept" status="open"></epic-item>` +
-      `</epic-section><epic-section id="todos" kind="todos"><epic-item id="t1" title="Later" status="open"></epic-item></epic-section>`
-    const host = await render(page("", ["done", "todo"], items))
-    const sleeping = () => host.shadowRoot!.querySelector<HTMLElement>('[part~="sleeping"]')
-    expect(sleeping()?.title).toBe("Sleeping:  nothing under way, 2 questions, 1 todo to follow up")
-    host.querySelector("#p2")!.setAttribute("status", "active")
+      `<epic-item id="q1" title="One" status="open" state="attention"></epic-item>` +
+      `<epic-item id="q2" title="Two" status="decided" state="recent"></epic-item></epic-section>` +
+      `<epic-section id="todos" kind="todos"><epic-item id="t1" title="Later" status="open" state="open"></epic-item></epic-section>`
+    const mark = (host: Element) => host.shadowRoot!.querySelector<HTMLElement>('[part~="state"]')
+    // between phases, items open, touched today:  in progress (it used to sleep)
+    const busy = await render(page(`updated="${today}"`, ["done", "todo"], items))
+    expect([mark(busy)?.dataset.state, mark(busy)?.getAttribute("color"), mark(busy)?.title]).toEqual([
+      "progress",
+      "blue",
+      `in progress:  1/2 phases done, updated ${today}`
+    ])
+    busy.remove()
+    // a phase active, but nobody on it for days:  paused
+    const idle = await render(page(`updated="2026-01-01"`, ["done", "active"], items))
+    expect([mark(idle)?.dataset.state, mark(idle)?.getAttribute("color"), mark(idle)?.getAttribute("name")]).toEqual([
+      "paused",
+      "grey",
+      "circle pause"
+    ])
+    idle.remove()
+    // every phase done, a question open:  errors;  answered, it's done, and the DONE label says so alone
+    const loud = await render(page(`updated="2026-01-01"`, ["done", "done"], items))
+    expect([mark(loud)?.dataset.state, mark(loud)?.getAttribute("color"), mark(loud)?.title]).toEqual([
+      "errors",
+      "red",
+      "errors:  every phase done, but 1 question need you"
+    ])
+    loud.querySelector("#q1")!.setAttribute("state", "recent")
     await ElementFixture.tick()
     await ElementFixture.tick()
-    expect(sleeping()).toBeNull()
-    host.remove()
-    const planning = await render(page("", [], items))
-    expect(planning.shadowRoot!.querySelector('[part~="sleeping"]')).toBeNull()
+    expect(mark(loud)).toBeNull()
+    expect(step(loud)?.words).toBe("DONE")
+    expect(loud.shadowRoot!.innerHTML).not.toMatch(/sleeping|😴/)
+    loud.remove()
+    // a future epic:  its FUTURE label, no mark
+    const future = await render(page("future", []))
+    expect(mark(future)).toBeNull()
   })
 
   test("the review line:  `/epic review <name>`, copied on click, and it flashes", async () => {

@@ -3,6 +3,8 @@ import { existsSync, readFileSync } from "fs"
 import { basename, dirname, join, relative, resolve } from "path"
 import { pathToFileURL } from "url"
 
+// Import directly:  the `$/server/site` barrel is browser code (the site header)
+import { URGENT_STATES } from "$/server/site/EpicState"
 import { CLI } from "$/cli"
 
 ////////////////
@@ -76,23 +78,32 @@ export function nameStatus(name: string, ids?: string[], main = CLI.mainRoot()):
 }
 
 /**
- * Plan doc `file`'s state from its skeleton's markup, with no parsing library:  `{ future, active, phases,
- * followUps }`, `followUps` its OPEN questions, judgement calls, issues, todos and tests (caveats are limits
- * accepted, open for good).  The same as `packages/docs/tools/index.js` `followUpsIn()` and the page runtime's
- * `wireFollowUps()`:  a SLEEPING epic has follow-ups and no phase under way.
- * - `<epic-phase status>`, `<epic-item status>`, `<epic-page future>`;  a doc still in the old markup (one restored
- *   from an old backup) reads as empty:  the plan-doc tool refuses it until it's converted (epic `epic-components` P15)
+ * What plan doc `file`'s state is read from (`$/server/site/EpicState` `EpicFacts`), from its skeleton's markup,
+ * with no parsing library:  `{ phases, updated, future, urgent }`.
+ * - `phases`:  each `<epic-phase status>`;  `updated`, `future`:  `<epic-page updated future>`
+ * - `urgent`:  the ids of the items that need Owen (`<epic-item state>`, `URGENT_STATES`:  red and orange chips)
+ * - a doc still in the old markup (one restored from an old backup) reads as empty:
+ *   the plan-doc tool refuses it until it's converted (epic `epic-components` P15)
  */
-export function planFollowUps(file: string): { future: boolean; active: boolean; phases: number; followUps: number } {
+export function planFacts(file: string): {
+  phases: string[]
+  updated: string | null
+  future: boolean
+  urgent: string[]
+} {
   const html = readFileSync(file, "utf8")
   const tags = (name: string) => [...html.matchAll(new RegExp(`<${name}\\b[^>]*>`, "g"))].map((match) => match[0])
-  const phases = tags("epic-phase")
-  const followUps = tags("epic-item").filter((tag) => /\sid="[qjitv]\d+"/.test(tag) && /\sstatus="open"/.test(tag))
+  const attribute = (tag: string, name: string) => new RegExp(`\\s${name}="([^"]*)"`).exec(tag)?.[1]
+  const page = tags("epic-page")[0] ?? ""
+  const urgent = tags("epic-item")
+    .filter((tag) => (URGENT_STATES as readonly string[]).includes(attribute(tag, "state") ?? ""))
+    .map((tag) => attribute(tag, "id") ?? "")
+    .filter(Boolean)
   return {
-    future: tags("epic-page").some((tag) => /\sfuture\b/.test(tag)),
-    active: phases.some((tag) => /\sstatus="active"/.test(tag)),
-    phases: phases.length,
-    followUps: followUps.length
+    phases: tags("epic-phase").map((tag) => attribute(tag, "status") ?? "todo"),
+    updated: attribute(page, "updated") ?? null,
+    future: /\sfuture\b/.test(page),
+    urgent
   }
 }
 
