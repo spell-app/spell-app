@@ -123,9 +123,12 @@ export class ReviewState {
   // ## Acts (untracked:  from handlers)
   ////////////////
 
-  /** Its `action` button clicked:  `"open-box"` when the caller should take the reader to the note box. */
+  /**
+   * Its `action` button clicked:  `"open-box"` when the caller should take the reader to the note box, `"chosen"`
+   * when an action was chosen for it (the caller folds it), else `undefined` (`ReviewClient.press()`).
+   */
   @E.untracked
-  press(action: ReviewAction): "open-box" | undefined {
+  press(action: ReviewAction): "open-box" | "chosen" | undefined {
     return this.client?.press(this.id(), action)
   }
 

@@ -91,6 +91,9 @@ import reviewCSS from "./ReviewControls.css?inline"
  * - Folding:  `open` (page state, never in the file);  a click on the line (not on a link or control in it) or
  *   Enter / Space on the chevron go through the cancelable `ui-open` / `ui-close`.  A link to the item, to an id
  *   in `part-ids`, or to an element inside it opens it, as does find-in-page.
+ *   - Folding while its line is stuck keeps the line where it is on screen (`keepLinePut()`).
+ *   - It folds by itself once Owen chooses an action for it (`foldAfterAction()`):  a review button, a note box
+ *     button, a Choose pill (Owen, 2026-10-10:  "collapse the item", so he moves on to the next).
  * - Source:  `source="parts/q7.html"` is fetched the first time it opens (`LoadableBody`,
  *   as `<ui-section source>`), into its LIGHT children, replacing the placeholder;  `ui-load` then.
  *   From `file://` it can't load:  the `Loads from ... (needs the page server)` note, as today.
@@ -132,6 +135,9 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
 
   /** The note box's `<textarea>`, once drawn:  Revisit and Edit focus it. */
   private noteInput: HTMLTextAreaElement | undefined
+
+  /** Its line, once drawn:  folding keeps it where it is on screen (`keepLinePut()`). */
+  private lineBox: HTMLElement | undefined
 
   /** Its own commits show (its git icon pressed). */
   @E.state accessor showCommits = false
@@ -420,7 +426,12 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   /** The line:  chevron, id chip, title, review label, actions. */
   private renderLine(): JSX.Element {
     return (
-      <div class={LINE} part={this.partForName("line")} onClick={this.onLineClick}>
+      <div
+        ref={(element) => (this.lineBox = element)}
+        class={LINE}
+        part={this.partForName("line")}
+        onClick={this.onLineClick}
+      >
         <span class={[CELL, FOLD]}>
           <Show when={this.foldable()}>
             <button
@@ -499,6 +510,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
               reviewTip={this.reviewTip()}
               part={this.partForName("review-buttons")}
               onOpenBox={() => this.takeToNote()}
+              onChosen={() => this.foldAfterAction()}
             />
           </Show>
         </span>
@@ -547,7 +559,10 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
         buttons={TODO_ID.test(this.id ?? "") ? TODO_NOTE_BUTTONS : NOTE_BUTTONS}
         ref={(note) => (this.noteInput = note)}
         onEscape={() => this.leaveNote()}
-        onUsed={() => this.leaveNote()}
+        onUsed={() => {
+          this.foldAfterAction()
+          this.leaveNote()
+        }}
       />
     )
   }
@@ -610,7 +625,36 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
     }
     const opening = !this.isOpen()
     const detail = { open: opening, item: this.domElement, originalEvent }
-    return this.requestChange("isMarkedOpen", opening, () => this.send(opening ? "ui-open" : "ui-close", detail))
+    return this.requestChange("isMarkedOpen", opening, () => {
+      const applied = this.send(opening ? "ui-open" : "ui-close", detail)
+      if (applied && !opening) this.keepLinePut()
+      return applied
+    })
+  }
+
+  /**
+   * Owen chose an action for it (a review button, a note box button, a Choose pill):  fold it, so he moves on to the
+   * next (Owen, 2026-10-10), its line kept where it is on screen.  Folded already, or nothing to fold:  nothing.
+   */
+  @E.untracked
+  foldAfterAction() {
+    if (this.showsOpen()) this.toggle()
+  }
+
+  /**
+   * About to fold while its line is STUCK (its top scrolled past):  scroll at once so the line stays where it is on
+   * screen, and the details fold away below it (the runtime's `keepTitlePut()`, for an item).
+   * - why:  else the page keeps its scroll while the details vanish above it, and the reader lands as far down the
+   *   page as he'd read into the item (Owen, 2026-10-10:  "loses the scroll of the page entirely")
+   */
+  private keepLinePut() {
+    const line = this.lineBox
+    const base = line?.parentElement
+    if (!line || !base) return
+    const stuckAt = line.getBoundingClientRect().top
+    const top = base.getBoundingClientRect().top
+    if (top >= stuckAt - 1) return
+    window.scrollTo({ top: window.scrollY + top - stuckAt, behavior: "instant" })
   }
 
   /** Unfold for a link or find-in-page:  `ui-open` after the fact (not cancelable). */

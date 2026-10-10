@@ -6,6 +6,7 @@ import { E } from "$/ui/core"
 import { NOBODY_LISTENING, ReviewClient, picks } from "$/epics/review"
 import { Chevron } from "$/epics/components/epic-item/Chevron"
 import { Fold } from "$/epics/components/epic-item/Fold"
+import type { EpicItem } from "$/epics/components/epic-item/EpicItem"
 import { CLOSED_STATUSES } from "$/epics/components/epic-item/EpicItem.types"
 
 import { epicOptionVocabulary } from "./EpicOption.en"
@@ -27,6 +28,7 @@ import choicesCSS from "./EpicChoices.css?inline"
  * - Reviewed (the page's `ReviewClient` is `reviewing`:  served by the page server, its inbox answering):
  *   a "Choose" pill at the header's end (`pill()`) marks its letter as the item's pick through the client
  *   (`ReviewClient.choose()`);  again, un-picks it.
+ *   A pick is an action chosen:  the item folds (`EpicItem.foldAfterAction()`, Owen, 2026-10-10);  an un-pick doesn't.
  *   A pick is a decision, so green, wearing the fill rule (decision Q20):  the pill a grey outline, available;
  *   picked, `Chosen`, the pill and the card's frame DASHED green (an answered panel:  its title green);
  *   once sent, outlined green;  applied (its set's `chosen`), the pill SOLID green:
@@ -277,8 +279,8 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   }
 
   /**
-   * A click on its Choose pill:  pick its letter in its card set (by the set's position:  I8), or un-pick it when
-   * it's the pick;  applied already (its set's `chosen`), nothing.
+   * A click on its Choose pill:  pick its letter in its card set (by the set's position:  I8), and fold the item;
+   * or un-pick it when it's the pick;  applied already (its set's `chosen`), nothing.
    */
   private readonly onChoose = (event: MouseEvent) => {
     // a panel's header folds on a click;  the item's line would too
@@ -290,6 +292,13 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
     if (!this.review || !id || !letter || !set || pill?.applied) return
     // a failed write is the client's own notice, and re-reads the inbox:  nothing to do here
     void this.review.choose(id, pill?.picked ? null : letter, set.index).catch((error: unknown) => console.error(error))
+    if (!pill?.picked) this.itemComponent()?.foldAfterAction()
+  }
+
+  /** The `<epic-item>` it belongs to, drawn;  else `undefined`. */
+  private itemComponent(): EpicItem | undefined {
+    const item = this.domElement.closest(ITEM_TAG) as E.DOMElement | null
+    return item?.component as EpicItem | undefined
   }
 
   /**

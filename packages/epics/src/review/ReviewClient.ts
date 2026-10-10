@@ -292,7 +292,8 @@ export class ReviewClient {
 
   /**
    * The reader clicked `id`'s `action` button.  `"open-box"` when Revisit should take them to the note box (the
-   * caller opens it);  else `undefined`, the click handled.
+   * caller opens it);  `"chosen"` when the click chose an action for it (the caller folds the item:  Owen,
+   * 2026-10-10, "so he moves on to the next");  else `undefined`, the click handled (cleared, or called off).
    * - running (it spins):  "nevermind", called off (`cancel()`)
    * - chosen already:  cleared, back to no action;
    *   a revisit carrying a pick keeps the pick ("pick B, but ..." without the "but")
@@ -302,12 +303,13 @@ export class ReviewClient {
    * - a todo's plane (`next`:  do it in the next phase) and x (`drop`), Owen, 2026-10-09:  mark it, as Approve does;
    *   with a note in the box, the note goes along (why now, why not)
    */
-  press(id: string, action: ReviewAction): "open-box" | undefined {
+  press(id: string, action: ReviewAction): "open-box" | "chosen" | undefined {
     const mark = this.inbox.marks[id]
     if (this.busyButtonOf(id) === action) return void this.cancel(id)
     if (action === "details") {
       const note = this.typedOf(id).trim()
-      return void (note ? this.useNote(id, "now", note) : this.askNow(id, "details"))
+      void (note ? this.useNote(id, "now", note) : this.askNow(id, "details"))
+      return "chosen"
     }
     if (mark?.action === action && !isImmediate(mark)) {
       const pick = action === "revisit" ? pickOf(mark) : {}
@@ -316,10 +318,13 @@ export class ReviewClient {
     if (action === "revisit") return "open-box"
     if (action === "next" || action === "drop") {
       const note = this.typedOf(id).trim()
-      if (note) return void this.useNote(id, action, note)
+      if (note) {
+        void this.useNote(id, action, note)
+        return "chosen"
+      }
     }
     void this.save(id, { action })
-    return undefined
+    return "chosen"
   }
 
   /**
