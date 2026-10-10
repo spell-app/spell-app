@@ -37,8 +37,10 @@
  *   hides it
  * - the CHEATSHEET card filters
  * - highlight.js, when the page loaded it
- * - PAGE NOTES (`wireNotes()`):  each `<spell-note>` as a folded card;  served by the page server, a note bubble on
- *   every section's title and a Note pill in the page header, which write notes into the page
+ * - COMMENTS (`wireComments()`):  served by the page server, a bullhorn beside every major block (and in the page
+ *   header), and ⌘ I or a floating bullhorn on selected text, which open a comment box under the block;  the
+ *   comments wait in an inbox file (a docs page's own, a plan doc's review inbox), drawn under their blocks.
+ *   PAGE NOTES (`wireNotes()`), written into docs pages before them:  each `<spell-note>` a folded card
  * - FAVORITE EPICS (`wireFavorites()`):  on the Epics page, a card's star moves it into Favorites and back, at once
  * LANDING -- where a jump puts its target, ONE model for every kind of jump:
  * - the line:  just below the lowest title that will be stuck over the target:  site header + `--spell-top` (page
@@ -63,6 +65,21 @@
  * NOTE: panels open and close through the accordion's `open` PROPERTY (panel indexes as text):
  * that's `<ui-accordion>`'s controlled state, and writing it announces nothing (`ui-open` / `ui-close` mean the user).
  */
+
+import {
+  PAGE_ANCHOR,
+  anchorOf,
+  blockAround,
+  blocksIn,
+  excerptOf,
+  findBlock,
+  kindOf,
+  offsetIn,
+  pageHeadIn,
+  quoteIn,
+  sectionOf,
+  sectionTitle
+} from "../BlockAnchors.js"
 
 /** Custom elements this runtime drives:  wait for their definitions before wiring. */
 const TAGS = [
@@ -180,7 +197,8 @@ async function start() {
   sticky.measure()
   land(landing, jump, follow)
   live.ready({ main, rail, sticky, follow, entries: railKey(outline, counts) })
-  void wireNotes(main)
+  wireNotes(main)
+  void wireComments(main)
   wireNewEpic(main)
   wireFavorites(main)
   // the docs index rewrites this page after a new epic:  its header comes back without the pill, a starred card
@@ -2631,57 +2649,24 @@ function readSaved(key) {
 // ## Page notes
 ////////////////
 
-/** The page server's notes routes (`packages/docs/tools/notesRoutes.ts`). */
-const NOTES_API = "/api/notes"
-
-/** `localStorage` key prefix of a page's unsaved notes (`{ [section id | "page" | note id]: text }`), per page. */
-const NOTE_DRAFT_KEY_PREFIX = "spell-note-draft:"
-
 /**
- * PAGE NOTES (epic `airplane`, P3):  notes Owen leaves on a page for Claude, written INTO the page by the page
- * server (`notesRoutes.ts`;  the markup and its rules:  `packages/docs/tools/PageNotes.js`).
- * - every page, `file://` too:  each `<spell-note>` is a folded card (`drawNoteCards()`):  a head line ("Owen ·
- *   10/10 14:02", the first line of the note while folded, its status, how many replies) that unfolds it, then the
- *   text and Claude's replies under it
- * - served by the page server with a token, on a page that takes notes (the `GET` says `takesNotes`):  WRITABLE,
- *   so also
- *   - a note bubble in every section's title (`addNoteBubbles()`):  shown while the reader is in that section, and
- *     always, with a count, once the section has notes
- *   - a Note pill in the page header, with "N new" linking to the first new note (`addNotePill()`)
- *   - Edit on a new note's card;  every one of them opens the note box (`openNoteBox()`)
- * - a write changes the page's file:  the page server's live update patches it in place (scroll and folds kept),
- *   and this draws again on `spell-doc:updated`.  What it adds in `main` carries `data-spell-added`.
- * - NEVER throws:  a page with no server, or a server without the routes, keeps the cards
+ * PAGE NOTES (epic `airplane`, P3):  notes written INTO a page (`<spell-notes>` / `<spell-note>`;  the markup and its
+ * rules:  `packages/docs/tools/PageNotes.js`), each drawn as a folded card (`drawNoteCards()`).
+ * - READ ONLY since P11:  comments (below) replaced the bubbles and the Note pill that wrote them;
+ *   the notes already written still show, and `spell dev notes` still answers them
+ * - every page, `file://` too;  drawn again on `spell-doc:updated` (an answer changes the page)
  */
-async function wireNotes(main) {
-  let writable = false
-  drawNotes(main, writable)
-  addEventListener("spell-doc:updated", () => drawNotes(main, writable))
-  const server = window.SPELL_SERVER
-  if (!server?.token || location.protocol === "file:") return
-  try {
-    const response = await fetch(`${NOTES_API}?page=${encodeURIComponent(location.pathname)}`, { cache: "no-store" })
-    writable = response.ok && (await response.json()).takesNotes === true
-  } catch {
-    // no routes, no bubbles
-  }
-  if (writable) drawNotes(main, true)
-}
-
-/** Draw the page's notes:  the cards;  `writable`, the bubbles, the pill and the cards' Edit too. */
-function drawNotes(main, writable) {
-  drawNoteCards(main, writable)
-  if (!writable) return
-  addNoteBubbles(main)
-  addNotePill(main)
+function wireNotes(main) {
+  drawNoteCards(main)
+  addEventListener("spell-doc:updated", () => drawNoteCards(main))
 }
 
 /**
- * Give each `<spell-note>` its head line, again after every update (the status or replies may have changed).
+ * Give each `<spell-note>` its head line, again after every update (the status or replies may have changed):
+ * "Owen · 10/10 14:02", the first line of the note while folded, its status, how many replies.
  * - the head is a button that folds and unfolds the card (the note's `open`, which a live patch keeps)
- * - `writable` and the note `new`:  an Edit circle after it
  */
-function drawNoteCards(main, writable) {
+function drawNoteCards(main) {
   for (const note of main.querySelectorAll("spell-note")) {
     note.querySelector(":scope > .spell-note-head")?.remove()
     const status = note.getAttribute("status") || "new"
@@ -2694,155 +2679,589 @@ function drawNoteCards(main, writable) {
       `<ui-icon name="comment"></ui-icon><b>Owen</b> · ${text(shortStamp(note.getAttribute("at")))}` +
       `<span class="spell-note-preview">${text(noteText(note).split("\n")[0])}</span>` +
       `<span class="spell-note-status" data-note-status="${attr(status)}">${text(status)}` +
-      `${replies ? ` · ${replies} ${replies === 1 ? "reply" : "replies"}` : ""}</span></button>` +
-      (writable && status === "new"
-        ? `<ui-button class="spell-note-edit" circular basic size="mini" icon="pen to square" aria-label="Edit this note"></ui-button>` +
-          `<ui-popup inverted size="mini" content="Edit or delete this note:  until Claude has seen it"></ui-popup>`
-        : "")
+      `${replies ? ` · ${replies} ${replies === 1 ? "reply" : "replies"}` : ""}</span></button>`
     head.querySelector(".spell-note-fold").addEventListener("click", () => {
       note.toggleAttribute("open")
       head.querySelector(".spell-note-fold").setAttribute("aria-expanded", String(note.hasAttribute("open")))
     })
-    head
-      .querySelector(".spell-note-edit")
-      ?.addEventListener("click", () => openNoteBox({ id: note.id, label: noteLabel(note), text: noteText(note) }))
     note.prepend(head)
   }
 }
 
-/**
- * A note bubble in the title of every `<ui-section id>` (its `actions` slot):
- * a round button, or a pill with the count once the section has notes
- * (`data-count`:  always shown;  CSS shows the others while the reader is in the section).
- */
-function addNoteBubbles(main) {
-  for (const section of main.querySelectorAll("ui-section[id]")) {
-    section.querySelector(":scope > .spell-note-bubble")?.remove()
-    const count = section.querySelectorAll(`:scope > spell-notes[for="${CSS.escape(section.id)}"] > spell-note`).length
-    const label = sectionLabel(section) || section.id
-    const bubble = document.createElement("span")
-    bubble.className = "spell-note-bubble"
-    bubble.slot = "actions"
-    bubble.dataset.spellAdded = ""
-    if (count) bubble.dataset.count = String(count)
-    bubble.innerHTML =
-      `<ui-button circular basic size="mini" icon="comment" aria-label="Add a note on ${attr(label)}">${count || ""}</ui-button>` +
-      `<ui-popup inverted size="mini" content="${attr(`Add a note on ${label}, for Claude`)}"></ui-popup>`
-    bubble.addEventListener("click", (event) => {
-      event.stopPropagation()
-      if (event.target.closest("ui-button")) openNoteBox({ anchor: section.id, label })
-    })
-    section.append(bubble)
-  }
-}
+////////////////
+// ## Comments
+////////////////
 
-/** The page header's Note pill, for a note on the whole page, and "N new" linking to the first new note. */
-function addNotePill(main) {
-  const head = main.querySelector(".spell-page-head")
-  if (!head) return
-  head.querySelector(":scope > .spell-page-notes")?.remove()
-  const fresh = main.querySelectorAll('spell-note[status="new"]')
-  const pill = document.createElement("span")
-  pill.className = "spell-page-notes"
-  pill.dataset.spellAdded = ""
-  pill.innerHTML =
-    (fresh.length ? `<a class="spell-notes-count" href="#${attr(fresh[0].id)}">${fresh.length} new</a>` : "") +
-    `<ui-button circular basic size="tiny" icon="comment" title="A note on this page, for Claude">Note</ui-button>`
-  pill.querySelector("ui-button").addEventListener("click", () => openNoteBox({ anchor: "page", label: "this page" }))
-  beforeToolbar(head, pill)
+/** The page server's comments routes (`packages/docs/tools/commentsRoutes.ts`). */
+const COMMENTS_API = "/api/comments"
+
+/** `localStorage` key prefix of a page's unsaved comments (`{ [anchor | comment id]: text }`), per page. */
+const COMMENT_DRAFT_KEY_PREFIX = "spell-comment-draft:"
+
+/** The CSS highlight the quoted text of every comment is drawn with (`::highlight()` in `spell-doc.css`). */
+const QUOTE_HIGHLIGHT = "spell-comment-quote"
+
+/** How long after the page's content changes (a plan doc's part loading) the comments draw again, ms. */
+const REDRAW_MS = 150
+
+/** Block kinds whose text starts at their top:  their bullhorn floats right, beside it, instead of over it. */
+const TEXT_KINDS = new Set(["field", "prose", "summary", "list", "item"])
+
+/** What a block kind is called in the bullhorn's tooltip and the comment box. */
+const KIND_NAMES = {
+  section: "section",
+  item: "item",
+  field: "field",
+  summary: "summary",
+  prose: "paragraph",
+  table: "table",
+  aside: "aside",
+  code: "code block",
+  message: "message",
+  cards: "cards",
+  steps: "steps",
+  list: "list",
+  page: "page"
 }
 
 /**
- * The note box:  a `<ui-modal>` with a textarea that grows with its text;  ⌘ / Ctrl Enter saves.
- * - `{ anchor, label }`:  a new note on that section (`page`:  the whole page)
- * - `{ id, label, text }`:  editing a new note, with Delete
- * - what's typed and not saved is kept per page and note (`NOTE_DRAFT_KEY_PREFIX`) until it's saved
+ * COMMENTS (epic `airplane`, P11):  Owen's comments for Claude, on a page's blocks or on text he selected, kept by
+ * the page server (`commentsRoutes.ts`):  a docs page's in its inbox file (`<page>.inbox.json`), a plan doc's in the
+ * epic's review inbox.  No Claude, no network:  only the page server, so it works on a plane.
+ * - served by the page server with a token, on a page that takes comments (the `GET` says `takesComments`):
+ *   - a BULLHORN beside every major block (`BlockAnchors.js` `blocksIn()`:  sections, tables, asides, code,
+ *     messages, cards, steps, top-level lists;  a plan doc's items, phase fields, summary and Overview prose) and in
+ *     the page header (the whole page):  shown while the block is hovered, always once it has comments, with a count
+ *   - SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn that floats beside the selection:  the box opens for that block,
+ *     the text quoted at its top;  the comment keeps the quote, highlighted on the page while the comment exists
+ *   - the box opens right under the block (a section's:  under its title), a textarea that grows;
+ *     ⌘ / Ctrl Enter saves, Escape cancels;  what's typed is kept per page until saved (`COMMENT_DRAFT_KEY_PREFIX`)
+ *   - each comment:  a card under its block, Owen's, "Owen · 10/10 14:02";  its state by the fill rule
+ *     (`templates/epics/plan-doc.md`, "Colours"):  the box while typed, not saved:  dashed;
+ *     saved, "Saved 14:02 · waiting for Claude":  outlined;  "Taken by Claude" (a guide's, into epic
+ *     `guide-changes`) or "Answered":  solid.  Edit (and Delete) while it waits;  Claude's answers under it, violet
+ *   - a toast on every save
+ * - drawn again after a live patch (`spell-doc:updated`), when the page's content changes (a plan doc's part
+ *   loading), when the inbox file changes (`spell-server:file`:  another window, Claude), and when the page comes
+ *   back into view
+ * - what it adds in `main` carries `data-spell-added`:  a patch steps around it, the anchors never count it
+ * - NEVER throws:  a page with no server, or a server without the routes, shows no bullhorns
  */
-function openNoteBox({ anchor, id, label, text: current = "" }) {
-  const box = noteBox()
-  const key = id ?? anchor
-  const drafts = readJSON(`${NOTE_DRAFT_KEY_PREFIX}${location.pathname}`)
-  box.dataset.anchor = anchor ?? ""
-  box.dataset.id = id ?? ""
-  box.querySelector(".spell-note-about").innerHTML = `${id ? `Note ${text(id)}, on` : "On"} <b>${text(label)}</b>`
-  box.querySelector(".spell-note-delete").hidden = !id
-  const field = box.querySelector("textarea")
-  field.value = typeof drafts[key] === "string" ? drafts[key] : current
-  box.setAttribute("open", "")
-  requestAnimationFrame(() => {
-    growField(field)
-    field.focus()
+async function wireComments(main) {
+  if (!window.SPELL_SERVER?.token || location.protocol === "file:") return
+  const comments = new PageComments(main)
+  if (!(await comments.load())) return
+  comments.draw()
+  const reload = () => void comments.load().then((takes) => takes && comments.draw())
+  addEventListener("spell-doc:updated", () => comments.draw())
+  addEventListener("spell-server:file", (event) => {
+    if (comments.inboxPaths.includes(decodeURIComponent(event.detail?.path ?? ""))) reload()
   })
+  document.addEventListener("visibilitychange", () => document.visibilityState === "visible" && reload())
+  comments.watchContent()
+  comments.wireSelection()
 }
 
-/** The note box, made once (outside `main`:  a live patch never sees it). */
-function noteBox() {
-  let box = document.getElementById("spell-note-box")
-  if (box) return box
-  const template = document.createElement("template")
-  template.innerHTML = `<ui-modal id="spell-note-box" class="spell-note-box" size="small" closable>
-  <ui-header><ui-icon name="comment"></ui-icon> A note for Claude</ui-header>
-  <ui-content>
-    <p class="spell-note-about"></p>
-    <textarea class="spell-note-field" rows="3" aria-label="Your note"
-      placeholder="Anything:  a question, a correction, an idea.  Claude picks these up with spell dev notes."></textarea>
-    <p class="spell-note-hint">⌘ Enter saves.  It's written into the page, marked new, until Claude answers it.</p>
-  </ui-content>
-  <ui-actions>
-    <ui-button class="spell-note-delete" circular basic icon="xmark">Delete</ui-button>
-    <ui-button class="spell-note-cancel" circular basic>Cancel</ui-button>
-    <ui-button class="spell-note-save" circular primary icon="paper plane">Save note</ui-button>
-  </ui-actions>
-</ui-modal>`
-  box = template.content.firstElementChild
-  const field = box.querySelector("textarea")
-  const save = box.querySelector(".spell-note-save")
-  const draftKey = `${NOTE_DRAFT_KEY_PREFIX}${location.pathname}`
-  const keyOf = () => box.dataset.id || box.dataset.anchor
-  const close = () => box.removeAttribute("open")
-  /** Send `change` (`add`, `edit` or `delete`);  close and forget the draft once it's written. */
-  const send = async (change, saying) => {
-    save.setAttribute("loading", "")
+/****************
+ * ### `PageComments`
+ * One page's comments:  what the server holds, drawn under their blocks;  the one comment box open;  the floating
+ * bullhorn of a text selection.
+ * - `list`:  the comments as the server last answered;  every write answers the whole list, which is drawn again
+ * - NEVER throws:  a failed save says so in a toast, the text kept in the box
+ ****************/
+class PageComments {
+  /** - `main`:  the page's `main`, where the blocks are */
+  constructor(main) {
+    /** the page's `main` */
+    this.main = main
+    /** the comments, as the server last answered (`CommentList` `all`) */
+    this.list = []
+    /** the box open, if any:  `{ key, place, id?, text? }` (`place`:  `{ anchor, kind, label, excerpt, quote? ... }`) */
+    this.open = null
+    /** each card's fold, by comment id, as the reader left it;  else waiting ones open, the rest folded */
+    this.folds = new Map()
+    const page = decodeURIComponent(location.pathname)
+    /** the URL paths of the inbox files the comments may be in, as the page server announces their changes */
+    this.inboxPaths = [page.replace(/(\.plan)?\.html$/, ".inbox.json")]
+    /** the `localStorage` key of this page's drafts */
+    this.draftKey = `${COMMENT_DRAFT_KEY_PREFIX}${location.pathname}`
+  }
+
+  /** Fetch the page's comments;  resolves to whether the page takes comments.  NEVER throws. */
+  async load() {
     try {
-      await postNote({ page: location.pathname, ...change })
-      const drafts = readJSON(draftKey)
-      delete drafts[keyOf()]
-      writeJSON(draftKey, drafts)
-      close()
-      noteToast(saying, "success")
-    } catch (error) {
-      noteToast(`Couldn't save the note:  ${error.message}`, "error")
-    } finally {
-      save.removeAttribute("loading")
+      const response = await fetch(`${COMMENTS_API}?page=${encodeURIComponent(location.pathname)}`, {
+        cache: "no-store"
+      })
+      const answer = response.ok ? await response.json() : {}
+      if (answer.takesComments !== true) return false
+      this.list = answer.comments ?? []
+      return true
+    } catch {
+      return false
     }
   }
-  const submit = () => {
-    const words = field.value.trim()
-    if (!words) return field.focus()
-    const { id, anchor } = box.dataset
-    void send(id ? { action: "edit", id, text: words } : { action: "add", for: anchor, text: words }, "Note saved")
+
+  /**
+   * Draw it all again:  every bullhorn, every block's comments, the quotes' highlight, the open box (its text from
+   * the drafts).
+   * - a comment whose block can't be found any more goes under the page header, saying so
+   * - `focus`:  the cursor into the open box, and the box into view
+   */
+  draw({ focus = false } = {}) {
+    const { main } = this
+    // typing when a patch or another window redraws:  the box comes back with the cursor in it
+    const typing = main.querySelector(".spell-comment-form")?.contains(document.activeElement) ?? false
+    for (const old of main.querySelectorAll(".spell-comment-mark, .spell-comments")) old.remove()
+    const blocks = blocksIn(main)
+    const head = pageHeadIn(main)
+    const onBlock = new Map()
+    const quotes = []
+    for (const comment of this.list) {
+      const { block, exact } = findBlock(main, comment, blocks)
+      const at = block ?? head
+      if (!at) continue
+      if (!onBlock.has(at)) onBlock.set(at, [])
+      onBlock.get(at).push({ comment, exact: exact && Boolean(block) })
+      const quoted = block && comment.quote && quoteIn(block, comment.quote, comment.offset)
+      if (quoted) quotes.push(quoted)
+    }
+    for (const block of head ? [head, ...blocks] : blocks) this.addBullhorn(block, onBlock.get(block)?.length ?? 0)
+    for (const [block, found] of onBlock) this.boxFor(block).append(...found.map((each) => this.card(each)))
+    highlightQuotes(quotes)
+    if (this.open) this.placeBox({ focus: focus || typing, scroll: focus })
   }
-  field.addEventListener("input", () => {
-    growField(field)
-    const drafts = readJSON(draftKey)
-    drafts[keyOf()] = field.value
-    writeJSON(draftKey, drafts)
-  })
-  field.addEventListener("keydown", (event) => {
-    if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) submit()
-  })
-  save.addEventListener("click", submit)
-  box.querySelector(".spell-note-cancel").addEventListener("click", close)
-  box
-    .querySelector(".spell-note-delete")
-    .addEventListener("click", () => void send({ action: "delete", id: box.dataset.id }, "Note deleted"))
-  document.body.append(box)
-  return box
+
+  /**
+   * Draw again when the page's own content changes:  a plan doc's part loads its blocks when it opens.
+   * - changes inside what this adds (`data-spell-added`) don't count:  drawing would wake it again
+   */
+  watchContent() {
+    let timer = 0
+    const ours = (node) =>
+      node.nodeType === 1 && (node.matches("[data-spell-added]") || node.closest("[data-spell-added]"))
+    new MutationObserver((records) => {
+      const theirs = records.some(
+        (record) =>
+          !ours(record.target) &&
+          [...record.addedNodes, ...record.removedNodes].some((node) => node.nodeType === 1 && !ours(node))
+      )
+      if (!theirs) return
+      clearTimeout(timer)
+      timer = setTimeout(() => this.draw(), REDRAW_MS)
+    }).observe(this.main, { childList: true, subtree: true })
+  }
+
+  ////////////////
+  // ## Bullhorns
+  ////////////////
+
+  /**
+   * The bullhorn of `block`:  in a docs section's title (its `actions` slot), in the page header,
+   * else just before the block, over its top right corner.
+   */
+  addBullhorn(block, count) {
+    const place = this.placeOf(block)
+    const what = place.kind === "page" ? "this page" : `this ${KIND_NAMES[place.kind] ?? place.kind}`
+    const tip = count ? `${count} ${count === 1 ? "comment" : "comments"} on ${what};  add one` : `Comment on ${what}`
+    const inline = place.kind === "section" || place.kind === "page"
+    const mark = document.createElement(inline ? "span" : "div")
+    mark.className = `spell-comment-mark at-${inline ? place.kind : "block"}`
+    // text starts at a text block's top right:  the bullhorn floats there, the text wrapping round it
+    if (TEXT_KINDS.has(place.kind)) mark.classList.add("at-text")
+    mark.dataset.spellAdded = ""
+    if (count) mark.dataset.count = String(count)
+    mark.innerHTML =
+      `<ui-button circular basic size="mini" icon="bullhorn" title="${attr(tip)}" aria-label="${attr(tip)}">` +
+      `${count || ""}</ui-button>`
+    mark.querySelector("ui-button").addEventListener("click", (event) => {
+      event.stopPropagation()
+      this.openBox({ key: place.anchor, place })
+    })
+    if (place.kind === "section") {
+      mark.slot = "actions"
+      block.append(mark)
+    } else if (place.kind === "page") {
+      // in the page header, before its toolbar:  the toolbar stays its last row
+      const head = block.querySelector(".spell-page-head")
+      if (head) beforeToolbar(head, mark)
+      else block.append(mark)
+    } else block.before(mark)
+  }
+
+  /** Where `block` is, as a comment on it is saved:  `{ anchor, kind, label, excerpt }` (`BlockAnchors.js`). */
+  placeOf(block) {
+    if (block === pageHeadIn(this.main)) return { anchor: PAGE_ANCHOR, kind: "page", label: "", excerpt: "" }
+    const kind = kindOf(block)
+    const section = kind === "section" || kind === "item" ? block : sectionOf(block, this.main)
+    return {
+      anchor: anchorOf(block, this.main),
+      kind,
+      label: section ? sectionTitle(section) : "",
+      excerpt: excerptOf(block)
+    }
+  }
+
+  /**
+   * The box of comments under `block`, made on first use:  a docs section's first in its body (under its title),
+   * the page's right under the page header, any other block's right after it.
+   */
+  boxFor(block) {
+    const next = block.localName === "ui-section" ? firstContentChild(block) : block.nextElementSibling
+    if (next?.classList.contains("spell-comments")) return next
+    const box = document.createElement("div")
+    box.className = "spell-comments"
+    box.dataset.spellAdded = ""
+    if (block.localName !== "ui-section") block.after(box)
+    else if (next) next.before(box)
+    else block.append(box)
+    return box
+  }
+
+  ////////////////
+  // ## Selected text
+  ////////////////
+
+  /**
+   * Comment on selected text:  ⌘ / Ctrl I, or the bullhorn floating beside the selection (`floatingBullhorn()`).
+   * - only a selection inside one of the page's blocks;  never in a comment box or a field
+   * - leaves the selection alone:  copy, ⌘ A ... work as before
+   */
+  wireSelection() {
+    let timer = 0
+    document.addEventListener("selectionchange", () => {
+      clearTimeout(timer)
+      timer = setTimeout(() => this.showFloating(), 120)
+    })
+    addEventListener("scroll", () => this.floating?.setAttribute("hidden", ""), { passive: true })
+    document.addEventListener("keydown", (event) => {
+      if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== "i") return
+      const selected = this.selected()
+      if (!selected) return
+      event.preventDefault()
+      this.commentOn(selected)
+    })
+  }
+
+  /** The selection, when it's text in one of the page's blocks:  `{ block, quote, offset, range }`;  else `null`. */
+  selected() {
+    const selection = getSelection()
+    if (!selection || selection.isCollapsed || !selection.rangeCount) return null
+    const range = selection.getRangeAt(0)
+    const start = range.startContainer
+    if (!this.main.contains(start)) return null
+    const element = start.nodeType === 1 ? start : start.parentElement
+    if (element?.closest("[data-spell-added], textarea, input")) return null
+    const block = blockAround(start, blocksIn(this.main))
+    const quote = selection.toString().trim()
+    if (!block || !quote) return null
+    return { block, quote, offset: offsetIn(block, start, range.startOffset), range }
+  }
+
+  /** Open the comment box on the selection's block, its text quoted. */
+  commentOn({ block, quote, offset }) {
+    this.floating?.setAttribute("hidden", "")
+    const place = { ...this.placeOf(block), quote: quote.slice(0, 2000), offset }
+    this.openBox({ key: `${place.anchor}~${offset}`, place })
+  }
+
+  /** Show the floating bullhorn beside a selection in a block;  hide it otherwise. */
+  showFloating() {
+    const selected = this.selected()
+    const button = this.floatingBullhorn()
+    if (!selected) return button.setAttribute("hidden", "")
+    const rects = selected.range.getClientRects()
+    const last = rects[rects.length - 1] ?? selected.range.getBoundingClientRect()
+    button.style.left = `${Math.min(innerWidth - 36, last.right + 6)}px`
+    button.style.top = `${Math.max(4, last.top - 4)}px`
+    button.removeAttribute("hidden")
+  }
+
+  /** The floating bullhorn, made once (in `body`, outside `main`):  a click comments on the selection. */
+  floatingBullhorn() {
+    if (this.floating) return this.floating
+    const button = document.createElement("button")
+    button.type = "button"
+    button.className = "spell-comment-float"
+    button.hidden = true
+    const tip = `Comment on this text (${/Mac|iPhone|iPad/.test(navigator.platform) ? "⌘" : "Ctrl "}I)`
+    button.title = tip
+    button.setAttribute("aria-label", tip)
+    button.innerHTML = `<ui-icon name="bullhorn"></ui-icon>`
+    // keep the selection:  a press would otherwise clear it before the click
+    button.addEventListener("pointerdown", (event) => event.preventDefault())
+    button.addEventListener("click", () => {
+      const selected = this.selected()
+      if (selected) this.commentOn(selected)
+    })
+    document.body.append(button)
+    return (this.floating = button)
+  }
+
+  ////////////////
+  // ## Cards
+  ////////////////
+
+  /**
+   * A comment's card:  its band ("Owen", its state, the date, Edit while it waits), then the quote it's on, its
+   * text, and Claude's answers.  Folds by its band;  folded, the band shows the comment's first line.
+   * - `exact` false:  its block changed or moved since, so the card says what it was on
+   */
+  card({ comment, exact }) {
+    const card = document.createElement("div")
+    card.className = "spell-comment"
+    card.id = `comment-${comment.id}`
+    const state = commentState(comment)
+    card.dataset.state = state
+    const open = this.folds.get(comment.id) ?? state === "saved"
+    if (!open) card.dataset.folded = ""
+    const editing = this.open?.id === comment.id
+    card.innerHTML =
+      `<div class="spell-comment-band">` +
+      `<button type="button" class="spell-comment-fold" aria-expanded="${open}" title="${open ? "Fold" : "Unfold"} this comment">` +
+      `<ui-icon name="bullhorn"></ui-icon><b>Owen</b><span class="spell-comment-preview">${text(comment.text.split("\n")[0])}</span></button>` +
+      `<span class="spell-comment-state">${stateLabel(comment, state)}</span>` +
+      `<span class="spell-comment-date">${text(shortStamp(localStamp(comment.at)))}</span>` +
+      (state === "saved" && !editing
+        ? `<ui-button class="spell-comment-edit" circular basic size="mini" icon="pen to square" ` +
+          `title="Edit or delete this comment:  until Claude takes it" aria-label="Edit this comment"></ui-button>`
+        : "") +
+      `</div><div class="spell-comment-body">` +
+      (exact ? "" : `<p class="spell-comment-moved">The block changed since:  it was “${text(comment.excerpt)}”.</p>`) +
+      (comment.quote ? `<blockquote class="spell-comment-quote">${text(comment.quote)}</blockquote>` : "") +
+      commentHTML(comment.text) +
+      (comment.replies ?? [])
+        .map(
+          (reply) =>
+            `<div class="spell-comment-reply"><div class="spell-comment-who">${text(reply.by)} · ` +
+            `${text(shortStamp(localStamp(reply.at)))}</div>${reply.html}</div>`
+        )
+        .join("") +
+      `</div>`
+    if (editing) card.hidden = true
+    const fold = card.querySelector(".spell-comment-fold")
+    fold.addEventListener("click", () => {
+      const opening = card.hasAttribute("data-folded")
+      card.toggleAttribute("data-folded", !opening)
+      fold.setAttribute("aria-expanded", String(opening))
+      fold.title = `${opening ? "Fold" : "Unfold"} this comment`
+      this.folds.set(comment.id, opening)
+    })
+    card.querySelector(".spell-comment-edit")?.addEventListener("click", () => {
+      const { anchor, kind, label, excerpt, quote, offset } = comment
+      const place = { anchor, kind, label, excerpt, quote, offset }
+      this.openBox({ key: comment.id, id: comment.id, place, text: comment.text })
+    })
+    return card
+  }
+
+  ////////////////
+  // ## The comment box
+  ////////////////
+
+  /**
+   * Open the comment box for `open` (`{ key, place, id?, text? }`):  a new comment on `place`'s block (`quote`:  on
+   * that text), or (`id`) editing that one (its card hidden meanwhile), with Delete.
+   * - only one is open:  opening another closes this one (its text kept as a draft)
+   */
+  openBox(open) {
+    this.open = open
+    this.draw({ focus: true })
+  }
+
+  /**
+   * Put the open box under its block, after its comments;  whatever folds it away unfolds.
+   * - `focus`:  the cursor in it, at the end;  `scroll`:  brought into view
+   */
+  placeBox({ focus, scroll }) {
+    const { block } = findBlock(this.main, this.open.place)
+    const at = block ?? pageHeadIn(this.main)
+    if (!at) return
+    reveal(at)
+    const form = this.form(this.open)
+    this.boxFor(at).append(form)
+    const field = form.querySelector("textarea")
+    requestAnimationFrame(() => {
+      growField(field)
+      if (focus) {
+        field.focus()
+        field.setSelectionRange(field.value.length, field.value.length)
+      }
+      if (scroll) form.scrollIntoView({ block: "nearest" })
+    })
+  }
+
+  /**
+   * The comment box's markup and wiring, for `open` (`openBox()`'s).
+   * - dashed while it holds text not saved (`data-state="typed"`), as the fill rule says
+   */
+  form({ key, id, place, text: current = "" }) {
+    const form = document.createElement("div")
+    form.className = "spell-comment-form"
+    form.dataset.spellAdded = ""
+    const what = place.kind === "page" ? "the page" : (KIND_NAMES[place.kind] ?? place.kind)
+    const named = place.kind === "section" || place.kind === "item"
+    const where = place.kind === "page" || named || !place.label ? "" : ` in ${place.label}`
+    form.innerHTML =
+      `<p class="spell-comment-about"><ui-icon name="bullhorn"></ui-icon> ${id ? `Comment ${text(id)}, on` : "On"} ` +
+      `<b>${text(named ? place.label || `this ${what}` : what)}</b>${text(where)}` +
+      `<span class="spell-comment-unsaved">Not saved yet</span></p>` +
+      (place.quote ? `<blockquote class="spell-comment-quote">${text(place.quote)}</blockquote>` : "") +
+      `<textarea class="spell-comment-field" rows="3" aria-label="Your comment" ` +
+      `placeholder="Anything:  a correction, a question, what's missing.  It waits here for Claude."></textarea>` +
+      `<div class="spell-comment-actions"><span class="spell-comment-hint">⌘ Enter saves, Escape cancels</span>` +
+      (id
+        ? `<ui-button class="spell-comment-delete" circular basic size="small" icon="xmark">Delete</ui-button>`
+        : "") +
+      `<ui-button class="spell-comment-cancel" circular basic size="small">Cancel</ui-button>` +
+      `<ui-button class="spell-comment-save" circular primary size="small" icon="bullhorn">Save</ui-button></div>`
+    const field = form.querySelector("textarea")
+    const drafts = readJSON(this.draftKey)
+    field.value = typeof drafts[key] === "string" ? drafts[key] : current
+    const typed = () =>
+      form.toggleAttribute("data-typed", field.value.trim() !== current.trim() && !!field.value.trim())
+    typed()
+    const close = () => {
+      this.forget(key)
+      this.open = null
+      this.draw()
+    }
+    const submit = () => {
+      const words = field.value.trim()
+      if (!words) return field.focus()
+      const change = id ? { action: "edit", id, text: words } : { action: "add", ...place, text: words }
+      void this.send(change, key, form, id ? "Comment saved" : "Comment saved:  waiting for Claude")
+    }
+    field.addEventListener("input", () => {
+      growField(field)
+      typed()
+      const kept = readJSON(this.draftKey)
+      kept[key] = field.value
+      writeJSON(this.draftKey, kept)
+    })
+    field.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+        event.preventDefault()
+        submit()
+      } else if (event.key === "Escape") {
+        event.stopPropagation()
+        close()
+      }
+    })
+    form.querySelector(".spell-comment-save").addEventListener("click", submit)
+    form.querySelector(".spell-comment-cancel").addEventListener("click", close)
+    form
+      .querySelector(".spell-comment-delete")
+      ?.addEventListener("click", () => void this.send({ action: "delete", id }, key, form, "Comment deleted"))
+    return form
+  }
+
+  /** Send `change` to the comments route;  done:  close the box, forget its draft, draw the new list.  NEVER throws. */
+  async send(change, key, form, saying) {
+    const save = form.querySelector(".spell-comment-save")
+    save.setAttribute("loading", "")
+    try {
+      const answer = await postJSON(COMMENTS_API, { page: location.pathname, ...change })
+      this.list = answer.comments ?? this.list
+      this.forget(key)
+      this.open = null
+      this.draw()
+      noteToast(saying, "success")
+    } catch (error) {
+      save.removeAttribute("loading")
+      noteToast(`Couldn't save the comment:  ${error.message}`, "error")
+    }
+  }
+
+  /** Drop the draft under `key`. */
+  forget(key) {
+    const drafts = readJSON(this.draftKey)
+    delete drafts[key]
+    writeJSON(this.draftKey, drafts)
+  }
 }
 
-/** POST `change` to the notes route (`postJSON()`);  returns its answer. */
-function postNote(change) {
-  return postJSON(NOTES_API, change)
+/**
+ * A comment's state, by the fill rule:  `saved` (waiting for Claude:  outlined), `taken` (a guide's, into an epic's
+ * phase) or `answered` (both solid).
+ */
+function commentState(comment) {
+  if (comment.status === "answered" || comment.replies?.length) return "answered"
+  return comment.status === "taken" ? "taken" : "saved"
+}
+
+/** What a comment's band says of its state:  "Saved 14:02 · waiting for Claude", "Taken by Claude · P3" ... */
+function stateLabel(comment, state) {
+  if (state === "saved") return `Saved ${text(localStamp(comment.at).slice(11))} · waiting for Claude`
+  const taken = comment.taken
+  const where = taken
+    ? ` · <a href="${attr(planLink(taken))}">${text(taken.epic)} P${text(String(taken.phase))}</a>`
+    : ""
+  return state === "taken" ? `Taken by Claude${where}` : `Answered${where}`
+}
+
+/** Highlight each quote's text on the page, softly (`QUOTE_HIGHLIGHT`);  none where the browser can't. */
+function highlightQuotes(quotes) {
+  if (!globalThis.Highlight || !globalThis.CSS?.highlights) return
+  const ranges = quotes.flatMap(({ start, end }) => {
+    try {
+      const range = document.createRange()
+      range.setStart(...start)
+      range.setEnd(...end)
+      return [range]
+    } catch {
+      return []
+    }
+  })
+  CSS.highlights.set(QUOTE_HIGHLIGHT, new Highlight(...ranges))
+}
+
+/**
+ * Unfold whatever hides `element`:  a docs section it's in (or is), a plan doc's folded item, phase or part
+ * (their `open`).
+ */
+function reveal(element) {
+  for (let at = element; at && at !== document.body; at = at.parentElement) {
+    if (at.localName === "ui-section" && at.collapsed) at.collapsed = false
+    else if (/^epic-(item|phase|section|overview)$/.test(at.localName) && !at.hasAttribute("open"))
+      at.setAttribute("open", "")
+  }
+}
+
+/** A docs section's first child in its body (not its slotted icon, header or actions);  `null` for none. */
+function firstContentChild(section) {
+  return Array.from(section.children).find((child) => !child.hasAttribute("slot")) ?? null
+}
+
+/**
+ * A comment's text as markup:  a `<p>` per block (split at blank lines), a single newline a `<br>`,
+ * `backticked` runs `<code>`.  `PageNotes.js` `htmlOf()` does the same on the server.
+ */
+function commentHTML(words) {
+  return words
+    .trim()
+    .split(/\n[ \t]*\n\s*/)
+    .map(
+      (block) =>
+        `<p>${text(block.trim())
+          .replace(/`([^`]+)`/g, "<code>$1</code>")
+          .replace(/\n/g, "<br />")}</p>`
+    )
+    .join("")
+}
+
+/** An ISO time as local `YYYY-MM-DD HH:MM` (`shortStamp()` takes it from there). */
+function localStamp(iso) {
+  const date = new Date(iso)
+  if (Number.isNaN(date.getTime())) return iso ?? ""
+  const two = (value) => String(value).padStart(2, "0")
+  return `${date.getFullYear()}-${two(date.getMonth() + 1)}-${two(date.getDate())} ${two(date.getHours())}:${two(date.getMinutes())}`
+}
+
+/** The URL of the phase a comment was taken into, from this checkout's root (a worktree's `/worktrees/<w>/` too). */
+function planLink({ epic, phase }) {
+  const root = /^\/worktrees\/[^/]+\//.exec(location.pathname)?.[0] ?? "/"
+  return `${root}epics/${encodeURIComponent(epic)}/${encodeURIComponent(epic)}.plan.html#p${phase}`
 }
 
 /**
@@ -3134,14 +3553,7 @@ function noteText(note) {
   }
 }
 
-/** What a note is about, for the note box:  its section's title, or "this page". */
-function noteLabel(note) {
-  const anchor = note.closest("spell-notes")?.getAttribute("for")
-  const section = anchor && anchor !== "page" ? document.getElementById(anchor) : null
-  return section ? sectionLabel(section) || anchor : "this page"
-}
-
-/** A note's `at` (`2026-10-10 14:02`) as its card shows it:  `10/10 14:02`. */
+/** A note's or comment's `at` (`2026-10-10 14:02`) as its card shows it:  `10/10 14:02`. */
 function shortStamp(at) {
   const parts = /^\d{4}-(\d\d)-(\d\d)[ T](\d\d:\d\d)/.exec(at ?? "")
   return parts ? `${Number(parts[1])}/${Number(parts[2])} ${parts[3]}` : (at ?? "")

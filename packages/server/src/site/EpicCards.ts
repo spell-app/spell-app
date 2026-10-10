@@ -122,7 +122,9 @@ export function epicCardHtml(card: EpicCard, now: Date = new Date()): PlacedCard
  */
 export function epicGroupsHtml(cards: readonly PlacedCard[]): string {
   return EPIC_GROUPS.map((group) => {
-    const mine = cards.filter((card) => card.group === group).toSorted((a, b) => byTitle(a.title, b.title))
+    // `filter()` makes a new array, so sorting it in place leaves `cards` alone (no `toSorted()`:  every package that
+    // type-checks this file must know it, and `cli`'s target doesn't)
+    const mine = cards.filter((card) => card.group === group).sort((a, b) => byTitle(a.title, b.title))
     const { title, icon } = GROUP_LOOKS[group]
     return (
       `<div class="spell-epic-group" data-group="${group}"${mine.length ? "" : " hidden"}>\n` +
