@@ -28,14 +28,15 @@ import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
  *   and sets `:state(in-statistic)`.
  *
  * - The element's `aria-label` moves to the inner box, so an icon-only or corner label has a name.
+ *
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, its link and delete button inert,
+ *   `aria-disabled`;  a link label also loses its `href`.
  ****************/
 @E.cssStates("active")
 export class UILabel extends E.UIComponent<typeof labelVocabulary> {
   @E.proto static vocabulary = labelVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { label: labelCSS, parts: partsCSS },
-    // `disabled`:  only a look
-    disabled: "its own"
+    styleSheets: { label: labelCSS, parts: partsCSS }
   } satisfies Partial<E.ElementSetup>
 
   /** The owner, when it's a statistic's label. */
@@ -77,11 +78,6 @@ export class UILabel extends E.UIComponent<typeof labelVocabulary> {
   ////////////////
   // ## States and classes
   ////////////////
-
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return this.disabled
-  }
 
   /** `image` for an image label, `icon` for an icon without text:  words `ClassBuilder` can't emit. */
   protected get extraClass(): string | undefined {

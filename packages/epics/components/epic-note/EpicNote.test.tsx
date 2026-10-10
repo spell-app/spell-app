@@ -1,5 +1,6 @@
 import { describe, expect, test } from "vite-plus/test"
 
+import type { DOMElement } from "$/ui/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { expectAccessible } from "$/ui/test/A11y"
 
@@ -52,5 +53,18 @@ describe("<epic-note>", () => {
     const [bare, long] = Array.from(wrap.querySelectorAll("epic-note"))
     expect(part(bare, "header").textContent).toBe("UPDATE")
     expect([long.getBoundingClientRect().width <= 320, wrap.scrollWidth <= 320]).toEqual([true, true])
+  })
+
+  test("`disabled` is only a look (its own):  dimmed, yet nothing inert, so find-in-page still finds its text", async () => {
+    const host = await ElementFixture.render<DOMElement>(
+      `<epic-note state="update" title="t" disabled><p>Findable.</p></epic-note>`
+    )
+    expect({
+      disabled: host.matches(":state(disabled)"),
+      sharedDim: host.matches(":state(dimmed)"),
+      inert: part(host, "base").inert,
+      ariaDisabled: host.internals.ariaDisabled,
+      faded: Number(getComputedStyle(part(host, "base")).opacity) < 1
+    }).toEqual({ disabled: true, sharedDim: false, inert: false, ariaDisabled: null, faded: true })
   })
 })

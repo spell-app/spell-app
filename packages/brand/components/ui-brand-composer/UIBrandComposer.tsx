@@ -59,6 +59,8 @@ export class DOMBrandComposerElement extends F.DOMFormControl<UIBrandComposer> {
  *     the button stays focusable then, `aria-disabled`.
  *   - `ui-cast` is CANCELABLE:  unless cancelled, a composer inside a `<form>` submits it (`requestSubmit()`),
  *     so `name` / `value` reach the form's `submit` handler.
+ * - `readonly`:  as `<ui-textarea>`'s, the text box's own `readonly`:  it can't be typed in,
+ *   yet casts and submits its text (`:state(readonly)`, `FormComponent.isReadOnly`).
  * - `casting`:  the PAGE sets it while it builds and clears it;  the button spins (still, with reduced motion),
  *   the card is `aria-busy`, and "Casting your spell…" is announced.  The text stays editable.
  * - Grows with its text (`field-sizing: content`, where the browser has it) from `rows` lines,
@@ -207,6 +209,7 @@ export class UIBrandComposer extends F.FormComponent<BrandComposerVocabulary> {
           aria-describedby={this.shownHint ? IDS.hint : undefined}
           aria-keyshortcuts={this.shortcut()}
           disabled={this.isDisabled}
+          readonly={this.isReadOnly}
           onInput={this.onInput}
           onChange={this.onChange}
           onKeyDown={this.onKeyDown}

@@ -21,7 +21,10 @@ import { Fold } from "$/epics/components/epic-item/Fold"
 export abstract class EpicPanel<V extends E.ComponentVocabulary> extends E.UIComponent<V> {
   @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     // a container:  a click on its text must not jump to the fold button
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  unusable, its fold button too;  `loading`:  the shared spinner
+    disabled: "unusable",
+    loading: "loader"
   }
 
   /** Open or folded:  as `startsOpen()` says, until the reader toggles it. */

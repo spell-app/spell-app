@@ -409,6 +409,13 @@
           }
         },
         {
+          "name": "readonly",
+          "description": {
+            "kind": "markdown",
+            "value": "Shows the colour but can't change it;  copying still works, and it's still submitted.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
           "name": "loading",
           "description": {
             "kind": "markdown",
@@ -760,6 +767,13 @@
           "description": {
             "kind": "markdown",
             "value": "Faded;  can't be typed in or cast, left out of the form.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "readonly",
+          "description": {
+            "kind": "markdown",
+            "value": "Shows its text but can't be typed in;  still cast and submitted (unlike `disabled`).\n\nTakes:  flag (present / absent)"
           }
         },
         {

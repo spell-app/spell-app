@@ -18,7 +18,10 @@ import questionCSS from "./EpicQuestion.css?inline"
 export class EpicQuestion extends E.UIComponent<typeof epicQuestionVocabulary> {
   @E.proto static vocabulary = epicQuestionVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-question": questionCSS }
+    styleSheets: { "epic-question": questionCSS },
+    // `disabled`:  only a look (the sheet dims it), so the text stays findable;  `loading`:  the shared spinner
+    disabled: "its own",
+    loading: "loader"
   } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {

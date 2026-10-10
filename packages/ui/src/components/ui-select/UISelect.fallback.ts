@@ -19,6 +19,7 @@ import { DIVIDER, PLACEHOLDER, type Vocabulary } from "./UISelect.types"
  * - On `change`:  the form value follows (`FormData` for `multiple`), `domElement.value` is set,
  *   and a composed `ui-change` is sent.
  *   The form value is also set on the first render, so the form submits without a change.
+ * - `readonly`:  `aria-readonly`, and a change is undone (nothing sent), as the component does.
  * - Its accessible name is the DOM element's `aria-label`, else `placeholder`.
  ****************/
 export class SelectFallback extends E.NativeFallback<Vocabulary> {
@@ -42,7 +43,8 @@ export class SelectFallback extends E.NativeFallback<Vocabulary> {
       class: this.classes(),
       multiple: isMultiple,
       required: isRequired,
-      disabled: this.flag("disabled")
+      disabled: this.flag("disabled"),
+      "aria-readonly": this.flag("readonly") ? "true" : undefined
     })
     this.decorate(select, "select")
     if (!select.hasAttribute("aria-label") && placeholder) select.setAttribute("aria-label", placeholder)
@@ -82,7 +84,14 @@ export class SelectFallback extends E.NativeFallback<Vocabulary> {
       }
     }
 
+    // `readonly`:  a change is undone, as the component does (a native `<select>` has no `readonly` of its own)
+    let shown = [...select.options].map((option) => option.selected)
     this.listen(select, "change", (event) => {
+      if (this.flag("readonly")) {
+        for (const [index, option] of [...select.options].entries()) option.selected = shown[index]!
+        return
+      }
+      shown = [...select.options].map((option) => option.selected)
       const value = this.sync(select)
       domElement.value = value
       domElement.dispatchEvent(

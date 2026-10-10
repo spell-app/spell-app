@@ -739,6 +739,14 @@
               "fieldName": "disabled"
             },
             {
+              "name": "readonly",
+              "description": "Shows the colour but can't change it;  copying still works, and it's still submitted.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "readOnly"
+            },
+            {
               "name": "loading",
               "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).",
               "type": {
@@ -852,6 +860,10 @@
             {
               "name": "disabled",
               "description": "Can't be used."
+            },
+            {
+              "name": "readonly",
+              "description": "`readonly`:  the colour can't be changed."
             },
             {
               "name": "dragging",
@@ -1386,6 +1398,14 @@
               "fieldName": "disabled"
             },
             {
+              "name": "readonly",
+              "description": "Shows its text but can't be typed in;  still cast and submitted (unlike `disabled`).",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "readOnly"
+            },
+            {
               "name": "loading",
               "description": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).",
               "type": {
@@ -1479,6 +1499,10 @@
             {
               "name": "disabled",
               "description": "Can't be used."
+            },
+            {
+              "name": "readonly",
+              "description": "`readonly`:  can't be typed in."
             },
             {
               "name": "loading",

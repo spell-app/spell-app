@@ -373,4 +373,9 @@
     cursor: default;
     pointer-events: none;
   }
+
+  /* Read-only:  the square and the hue slider don't move;  the copy buttons still work */
+  :host(:state(readonly)) :is(.plane, .hue) {
+    cursor: default;
+  }
 }

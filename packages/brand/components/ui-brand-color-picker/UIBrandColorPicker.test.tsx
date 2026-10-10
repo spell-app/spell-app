@@ -493,6 +493,27 @@ describe("<ui-brand-color-picker> form and states", () => {
     expect(fired).toEqual([])
   })
 
+  it("readonly:  `:state(readonly)`;  the square, keys, hue slider and fields change nothing;  copying works", async () => {
+    const host = await picker(`<ui-brand-color-picker value="#8E96B5" readonly></ui-brand-color-picker>`)
+    const fired = record(host)
+    const hue = part<HTMLInputElement>(host, "hue")
+    const hueBefore = hue.value
+    pointer(host, "pointerdown", 0.1, 0.9)
+    key(axes(host)[0], "ArrowRight")
+    hue.value = "10"
+    hue.dispatchEvent(new Event("input", { bubbles: true }))
+    await ElementFixture.tick()
+    expect({
+      state: host.matches(":state(readonly)"),
+      fields: hslField(host, 0).readOnly,
+      hueAria: hue.getAttribute("aria-readonly"),
+      hue: hue.value,
+      value: host.value,
+      fired
+    }).toEqual({ state: true, fields: true, hueAria: "true", hue: hueBefore, value: "#8E96B5", fired: [] })
+    expect(copyButton(host, 1).disabled).toBe(false)
+  })
+
   it("falls back to the browser's colour input when its render breaks, still a form control", async () => {
     const form = await ElementFixture.render<HTMLFormElement>(
       `<form><ui-brand-color-picker name="base" value="#6550CA"></ui-brand-color-picker></form>`

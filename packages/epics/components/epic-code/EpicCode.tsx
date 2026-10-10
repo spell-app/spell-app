@@ -25,7 +25,10 @@ import codeCSS from "./EpicCode.css?inline"
 export class EpicCode extends EpicPanel<typeof epicCodeVocabulary> {
   @E.proto static vocabulary = epicCodeVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-panel": panelCSS, "epic-code": codeCSS }
+    styleSheets: { "epic-panel": panelCSS, "epic-code": codeCSS },
+    // `disabled`:  unusable, its fold and copy buttons too;  `loading`:  the shared spinner
+    disabled: "unusable",
+    loading: "loader"
   } satisfies Partial<E.ElementSetup>
 
   /** The code, as the doc holds it:  its children's text, followed as they change;  none on a server. */

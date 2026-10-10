@@ -15,9 +15,7 @@ import labelCSS from "./UILabel.css?inline"
 export class UILabels extends E.UIComponent<typeof labelsVocabulary> {
   @E.proto static vocabulary = labelsVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { label: labelCSS },
-    // `disabled`:  only a look
-    disabled: "its own"
+    styleSheets: { label: labelCSS }
   } satisfies Partial<E.ElementSetup>
 
   render(): JSX.Element {

@@ -21,16 +21,15 @@ import commentCSS from "./UIComment.css?inline"
  *
  * - No role:  each comment is an `<article>`, which is the structure a reader moves through.
  *
- * - `disabled`:  `aria-disabled` on the root, which assistive tech (and axe) apply to what's inside.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, what's inside inert,
+ *   `aria-disabled`.
  ****************/
 @E.cssStates("collapsed")
 export class UIComments extends E.UIComponent<typeof commentsVocabulary> {
   @E.proto static vocabulary = commentsVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { comment: commentCSS },
-    delegatesFocus: false,
-    // `disabled`:  `aria-disabled` on its box, and a look
-    disabled: "its own"
+    delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
   /** The comment this is the thread of, if any. */
@@ -46,11 +45,7 @@ export class UIComments extends E.UIComponent<typeof commentsVocabulary> {
 
   render(): JSX.Element {
     return (
-      <div
-        class={this.isThread ? this.threadClasses : this.rootClass}
-        part={this.partForName("comments")}
-        aria-disabled={this.disabled ? "true" : undefined}
-      >
+      <div class={this.isThread ? this.threadClasses : this.rootClass} part={this.partForName("comments")}>
         <slot />
         <Show when={this.slots.hasContent(this.slotForName("reply"))}>
           <div class={REPLY} part={this.partForName("reply")}>

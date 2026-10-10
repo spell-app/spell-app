@@ -1,4 +1,5 @@
-import type { AttributeSpec, ComponentVocabulary, StateSpec } from "./vocabulary.types"
+import { sharedEs } from "./SharedVocabulary.es"
+import type { AttributeSpec, ComponentVocabulary, SharedDictionary, StateSpec } from "./vocabulary.types"
 
 /****************
  * ### `SharedVocabulary`
@@ -12,6 +13,9 @@ import type { AttributeSpec, ComponentVocabulary, StateSpec } from "./vocabulary
  *   `<ui-sidebar visible>` starts hidden, `<ui-button disabled>` has Fomantic's look.
  *   - The shared spec is added only where the vocabulary has none of that name.
  * - The platform's own `hidden` and `inert` need nothing here:  every element has them already.
+ * - A translated tag names them in its own language (`<ie-boton desactivado>`):
+ *   each language has a small file of them, `SharedVocabulary.<lang>.ts` (`translated()`),
+ *   which `Vocabulary.resolve()` reads for every dictionary of that `lang`;  the dictionary's own names win.
  * - Pure data and lookups, no DOM, no element layer:
  *   node reads it with the vocabularies (`yarn site:data` lists them on every tag).
  ****************/
@@ -37,6 +41,15 @@ export class SharedVocabulary {
    */
   static takesShared(vocabulary: ComponentVocabulary, name: string): boolean {
     return SharedVocabulary.withShared(vocabulary).shared.has(name)
+  }
+
+  /**
+   * The name language `lang` gives the shared attribute `name`, from its `SharedVocabulary.<lang>.ts`:
+   * `translated("es", "disabled")` => `"desactivado"`.
+   * - `undefined` when the language has no such file, or `name` isn't a shared attribute.
+   */
+  static translated(lang: string, name: string): string | undefined {
+    return SHARED_DICTIONARIES.get(lang)?.attributes[name as keyof SharedDictionary["attributes"]]
   }
 
   /** Is `name` one of the shared attributes? */
@@ -109,6 +122,9 @@ const SHARED_ATTRIBUTES: readonly AttributeSpec[] = [
       "Shared by every element.  The platform's `hidden` hides at once, and wins when both are set."
   }
 ]
+
+/** Each language's names for the shared attributes, by `lang`:  one `SharedVocabulary.<lang>.ts` each. */
+const SHARED_DICTIONARIES: ReadonlyMap<string, SharedDictionary> = new Map([[sharedEs.lang, sharedEs]])
 
 /** The states `UIComponent` sets on every element, for the shared attributes. */
 const SHARED_STATES: readonly StateSpec[] = [

@@ -60,6 +60,9 @@ import sectionCSS from "./UISection.css?inline"
  *   - The DOM element (`DOMLoadableBodyElement`) has `load()` / `reload()`;  states `loaded` and `error`.
  *   - In the class, not the vocabulary:  a subclass (`<ui-panel>`) gets it with the vocabulary it reuses.
  *
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, everything in it inert
+ *   (its fold button too), `aria-disabled`;  `toggle()` does nothing.
+ *
  * - SIDE EFFECTS:
  *   - with `sticky`:  a `ResizeObserver` keeps the title's height (`titleHeight`) for the stack,
  *     and `StickyWatch` writes the scroll container's inline `scroll-padding-top` while stuck
@@ -73,8 +76,6 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
     DOMElement: E.DOMLoadableBodyElement,
     // a container:  a click on its text must not jump to the fold button or a link inside
     delegatesFocus: false,
-    // `disabled`:  Fomantic's look
-    disabled: "its own",
     // `loading`:  Fomantic's veil
     loading: "its own"
   }
@@ -392,12 +393,6 @@ export class UISection extends E.UIComponent<SectionVocabulary> {
   @E.cssState("animated")
   get isAnimated(): boolean {
     return this.isReady && UI.browser.supports.interpolateSize
-  }
-
-  /** Disabled by its attribute. */
-  @E.cssState("disabled")
-  get isDisabled(): boolean {
-    return !!this.disabled
   }
 
   /**
