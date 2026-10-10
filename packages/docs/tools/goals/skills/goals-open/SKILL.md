@@ -6,10 +6,11 @@ argument-hint: "[set/][topic][/item-or-section]"
 
 # /goals-open
 
-1. `G open $ARGUMENTS`, where `G` is `scripts/goals.sh` in the `goals` skill's base directory
-   (`../goals/scripts/goals.sh` from this skill's base directory, e.g. `.claude/skills/goals/scripts/goals.sh`).
-   - It starts the page server (`spell dev server`) if it isn't running, then opens the page in a NEW window of the browser named in
-     `goals.preferences.json5` (`browser`).
+1. `G open $ARGUMENTS`, where `G` is `scripts/goals.sh` in the `goals` skill's base directory.
+   - That's `../goals/scripts/goals.sh` from this skill's base directory,
+     e.g. `.claude/skills/goals/scripts/goals.sh`.
+   - It starts the page server (`spell dev server`) if it isn't running.
+   - Then it opens the page in a NEW window of the browser named in `goals.preferences.json5` (`browser`).
    - Nothing given:  the active set's contents page.
 2. "which goal set?" or "no topic":  AskUserQuestion with the printed `maybe:` choices, then run it again.
 3. Reply in one line:  what opened, and where.
