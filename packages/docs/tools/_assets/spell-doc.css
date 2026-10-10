@@ -76,6 +76,11 @@
   --spell-state-recent-on: var(--ui-green-on, #fff);
   --spell-state-old: var(--ui-grey-background, light-dark(#eeeeee, #34343b));
   --spell-state-old-on: var(--ui-grey-text, GrayText);
+  /*
+   * an Epics card's star while it's a favourite:  Owen's pick, so Owen's voice, the brand's gold-brown (ivory's ink;
+   * "Colours":  ivory).  NOT yellow:  yellow means "open, still undecided"
+   */
+  --spell-favorite: var(--ui-brown, #a5673f);
 }
 
 * {
@@ -586,6 +591,80 @@ pre code {
 .spell-doc-main .spell-epic-state {
   margin-right: 4px;
   vertical-align: 0.1em;
+}
+/*
+ * ## Epics groups (epic `airplane` P8, `$/server/site/EpicCards`):  Favorites, Active, Planning, Urgent, Done, each a
+ * small heading with its count over its own card grid;  an empty one is `hidden`.
+ * - each card:  a star at its top right (a button:  the runtime's `wireFavorites()` toggles it), the day it was last
+ *   worked on at its bottom right;  both absolute, in the card's box (`::part(card)`:  the host is
+ *   `display: contents`), so the title and meta line keep room for them
+ */
+.spell-doc-main .spell-epic-group {
+  margin-top: 4px;
+
+  /* space only after a group that shows */
+  &:not([hidden]) ~ .spell-epic-group {
+    margin-top: 18px;
+  }
+  &[hidden] {
+    display: none;
+  }
+}
+.spell-doc-main .spell-epic-group-title {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0 0 8px;
+  font: var(--spell-eyebrow-font);
+  letter-spacing: var(--spell-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--spell-muted);
+
+  .spell-epic-group-count {
+    font-variant-numeric: tabular-nums;
+  }
+}
+.spell-doc-main ui-cards.spell-epics {
+  ui-card::part(card) {
+    position: relative;
+  }
+  ui-header,
+  ui-meta {
+    padding-right: 22px;
+  }
+  .spell-epic-star {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    display: inline-flex;
+    padding: 3px;
+    border: 0;
+    border-radius: 4px;
+    background: none;
+    color: var(--spell-muted);
+    cursor: pointer;
+    line-height: 1;
+
+    &:hover,
+    &:focus-visible {
+      color: var(--spell-favorite);
+    }
+    &[aria-pressed="true"] {
+      color: var(--spell-favorite);
+    }
+    &:disabled {
+      cursor: default;
+      opacity: 0.6;
+    }
+  }
+  .spell-epic-worked {
+    position: absolute;
+    right: 6px;
+    bottom: 3px;
+    font-size: 0.75em;
+    font-variant-numeric: tabular-nums;
+    color: var(--spell-muted);
+  }
 }
 
 /*

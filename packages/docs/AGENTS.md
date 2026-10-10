@@ -30,6 +30,20 @@ The shared folders (constants in `tools/pages.js`:  `PAGES`, `GUIDES`, `EPICS`, 
 - `epics/index.html`, `guides/index.html`, `templates/index.html`, `brand/index.html` -- each area's LIST PAGE, its
   top-bar tab's home:  a card per page (epics open first), written by `spell dev docs index` between
   `<!-- index:start -->` / `<!-- index:end -->`;  a missing one is made from `tools/index.js` `skeleton()`.
+  - The Epics page (epic `airplane` P8, Owen 2026-10-10):  its cards in five GROUPS, each a small heading with its
+    count, alphabetical by title within each;  an empty one hidden (`$/server/site/EpicCards`, which the docs index
+    and the page server's `RunningEpics` both draw with):
+    - Favorites (starred, whatever their state:  a starred epic shows only here), Active (phases left:  in progress,
+      and paused, its mark grey), Planning (future, or no phases yet), Urgent (every phase done, items waiting on
+      Owen:  the `errors` state), Done
+    - each card's STAR, top right:  a click stars or unstars it at once (the runtime's `wireFavorites()` moves the
+      card), then `POST /api/epics/favorite` (`packages/epics/src/tool/epicRoutes.ts`) writes the ONE shared file,
+      `epics/favorites.json` (a JSON list of names);  the page server regroups by it as it serves the page.  From
+      `file://` the stars show, disabled
+    - the day it was last worked on, bottom right, no year (`10/9`;  its `title` the full date and time):  the latest
+      of the plan doc's `updated`, its last log line (`parts/log.html`) and its branch's last commit (one
+      `git for-each-ref`);  a running epic's card keeps the docs index's date when it's later than its doc's
+    - the docs home's Epics count by the same groups (`2 favorites · 5 active · 2 planning · 17 urgent · 7 done`)
   The Templates page also holds the "Writing docs" notes, the Brand page its folder's files.
 - `guides/` -- every other page:
   - `guides/changelog.html` -- what the repo shipped, newest first;

@@ -4,6 +4,7 @@ import { dirname, join } from "node:path"
 import { afterAll, beforeAll, describe, expect, it } from "vite-plus/test"
 
 import { MARKER, PageServer, RunningEpics, type RunningEpic } from "$/server/page"
+import { EPIC_CARDS_END, EPIC_CARDS_START } from "$/server/site/EpicCards"
 import { ask } from "$/server/test/serve"
 
 /**
@@ -123,7 +124,9 @@ describe("RunningEpics", () => {
     )
     expect(index).toContain("<ui-meta>P2 · Site Map · .claude/worktrees/seo</ui-meta>")
     // no phases yet:  in progress too, saying it's planning;  open, so Open | All keeps it
-    expect(index).toMatch(/data-epic="vite" data-status="open">.*color="blue" basic title="in progress:  planning/)
+    expect(index).toMatch(
+      /data-epic="vite" data-title="Vite" data-group="planning" data-status="open"[^>]*>[\s\S]*?color="blue" basic title="in progress:  planning/
+    )
     expect(index).toContain("SEO &amp; co")
   })
 
@@ -222,11 +225,11 @@ describe("RunningEpics", () => {
       const html = epics.render(MARKER)
       expect(html).toContain('name="seedling" color="grey" title="future:  not planned yet"')
       expect(html).toContain(
-        'data-epic="calm" data-status="done"><ui-content><ui-header><ui-icon class="spell-epic-state" ' +
+        'data-group="done" data-status="done" data-phases="done done"><ui-content>\n<ui-header><ui-icon class="spell-epic-state" ' +
           'name="circle check" color="green" title="done:  every phase done, nothing needs you">'
       )
       expect(html).toContain(
-        'data-epic="loud" data-status="open"><ui-content><ui-header><ui-icon class="spell-epic-state" ' +
+        'data-group="urgent" data-status="open" data-phases="done done" data-urgent="i2 q1"><ui-content>\n<ui-header><ui-icon class="spell-epic-state" ' +
           'name="circle exclamation" color="red" title="errors:  every phase done, but 1 question, 1 issue need you">'
       )
       expect(html).not.toMatch(/sleeping|😴/)
@@ -256,6 +259,49 @@ describe("RunningEpics", () => {
     expect(fresh).toContain('basic title="in progress:  1/2 phases done, updated 2026-10-08">1/2</ui-label> <a')
     // an index written before the facts:  as it was
     expect(new RunningEpics(root).render(`${MARKER}${card("")}`, now)).toContain("😴")
+  })
+
+  // epic `airplane` P8 (Owen, 2026-10-10):  favourites first, then the groups;  alphabetical in each
+  it("regroups every card between the markers by the favourites as they are now;  running cards join their group", () => {
+    const grouped = mkdtempSync(join(tmpdir(), "srv-epics-groups-"))
+    try {
+      put(
+        grouped,
+        ".claude/worktrees/seo/epics/seo/seo.plan.html",
+        planDoc("SEO", [["active", "P1 · Go"]], "2026-10-01")
+      )
+      put(
+        grouped,
+        ".claude/worktrees/seo/epics/seo/parts/log.html",
+        `<epic-event at="2026-10-08T09:15-04:00">P1 active</epic-event>\n`
+      )
+      put(grouped, "epics/favorites.json", JSON.stringify(["zed"]))
+      const index = (name: string, title: string, group: string, extra = "") =>
+        `<ui-card id="epic-${name}" data-epic="${name}" data-title="${title}" data-group="${group}" data-status="open" ` +
+        `data-phases="done todo"${extra}><ui-content><ui-header><a>${title}</a></ui-header></ui-content>` +
+        `<button type="button" class="spell-epic-star" aria-pressed="true" aria-label="Unstar ${name}" title="x"><ui-icon name="star"></ui-icon></button\n  ></ui-card\n>`
+      const page =
+        `<main>${EPIC_CARDS_START}\n<div class="spell-epic-group" data-group="favorites"><ui-cards>` +
+        `${index("alpha", "Alpha", "active")}</ui-cards></div>` +
+        `<div class="spell-epic-group" data-group="active" hidden><ui-cards>` +
+        `${index("zed", "Zed", "active")}${index("seo", "SEO", "active", ' data-worked="2026-10-09T20:00-04:00"')}` +
+        `</ui-cards></div>\n${EPIC_CARDS_END}</main>`
+      const html = new RunningEpics(grouped).render(page, new Date(2026, 9, 9))
+      const groups = html.split('<div class="spell-epic-group" ').slice(1)
+      const names = (group: string | undefined) => Array.from(group!.matchAll(/data-epic="(\w+)"/g), (m) => m[1])
+      // `zed` starred now, `alpha` not any more;  running `seo` in Active, its index card gone
+      expect(names(groups[0])).toEqual(["zed"])
+      expect(names(groups[1])).toEqual(["alpha", "seo"])
+      expect(groups.slice(2).every((group) => group.includes(" hidden>"))).toBe(true)
+      expect(html).toContain('aria-pressed="false" aria-label="Star alpha"')
+      expect(html.match(/data-epic="seo"/g)).toHaveLength(1)
+      // last worked:  the merged card's (its branch's commit, as the docs index read it) beat the doc's log line
+      expect(html).toMatch(/data-epic="seo"[^>]*data-worked="2026-10-09T20:00/)
+      expect(new RunningEpics(grouped).list()[0]?.worked).toBe(new Date("2026-10-08T09:15-04:00").toISOString())
+      expect(html.indexOf(EPIC_CARDS_START)).toBeLessThan(html.indexOf(EPIC_CARDS_END))
+    } finally {
+      rmSync(grouped, { recursive: true, force: true })
+    }
   })
 
   it("renders nothing with no running epic, or no marker", () => {

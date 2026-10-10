@@ -198,6 +198,9 @@ const ICONS = {
   "solid/plug": ["plug"],
   "solid/circle-play": ["circle play"],
   "solid/circle-pause": ["circle pause"], // an epic's state:  paused (`$/server/site/EpicState`)
+  // an Epics card's star (`$/server/site/EpicCards`):  a favourite, or not;  the Favorites group's heading
+  "solid/star": ["star"],
+  "regular/star": ["star outline"],
   // plan docs' review (epic `review-review`):  section icons, the item action menu and filter, the page header's
   // send / files / git buttons
   "solid/file-circle-question": ["file circle question"],
