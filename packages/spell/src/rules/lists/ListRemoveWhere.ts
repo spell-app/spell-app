@@ -39,31 +39,17 @@ lists.addRule(ListRemoveWhere, {
         scope.constants?.add("clubs")
       },
       tests: [
-        [
-          "remove items from my-list where",
-          "spellCore.removeWhere(myList, (item) => {})",
-          "spellCore.removeWhere(myList, () => {})"
-        ],
-        [
-          `remove items from my-list where item is not "ace"`,
-          ["spellCore.removeWhere(myList, (item) => {", '  return (item != "ace")', "})"],
-          'spellCore.removeWhere(myList, (item) => item != "ace")'
-        ],
+        ["remove items from my-list where", "spellCore.removeWhere(myList, () => {})"],
+        [`remove items from my-list where item is not "ace"`, 'spellCore.removeWhere(myList, (item) => item != "ace")'],
         [
           "remove cards in deck where the suit of the card is clubs",
-          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"],
           'spellCore.removeWhere(deck, (card) => card.suit == "clubs")'
         ],
         [
           "remove cards in deck where the suit of it is clubs",
-          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"],
           'spellCore.removeWhere(deck, (card) => card.suit == "clubs")'
         ],
-        [
-          "remove cards in deck where its suit is clubs",
-          ["spellCore.removeWhere(deck, (card) => {", "  return (card.suit == 'clubs')", "})"],
-          'spellCore.removeWhere(deck, (card) => card.suit == "clubs")'
-        ]
+        ["remove cards in deck where its suit is clubs", 'spellCore.removeWhere(deck, (card) => card.suit == "clubs")']
       ]
     }
   ]

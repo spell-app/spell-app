@@ -61,7 +61,7 @@ classes.addRule(ClassMember, {
       tests: [
         ["card suits", "Card.Suits"],
         ["Card Suits", "Card.Suits"],
-        ["bank-account account-types", "BankAccount.Account_types"],
+        ["bank-account account-types", "BankAccount.AccountTypes"],
         { title: "not a class variable", input: "card ranks", js: undefined }
       ]
     }

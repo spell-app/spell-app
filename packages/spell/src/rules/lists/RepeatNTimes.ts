@@ -57,31 +57,22 @@ lists.addRule(RepeatNTimes, {
         {
           title: "No statements",
           input: "repeat 1 time:",
-          js: "spellCore.map(spellCore.countTo(1), (number) => {})",
-          ts: "spellCore.map(spellCore.countTo(1), () => {})"
+          js: "spellCore.map(spellCore.countTo(1), () => {})"
         },
         {
           title: "Inline statement",
           input: "repeat 3 times: print the number",
-          js: ["spellCore.map(spellCore.countTo(3), (number) => {", "  return spellCore.console.log(number)", "})"],
-          ts: "spellCore.map(spellCore.countTo(3), (number) => spellCore.console.log(number))"
+          js: "spellCore.map(spellCore.countTo(3), (number) => spellCore.console.log(number))"
         },
         {
           title: "Nested block statement",
           input: ["repeat 3 times:", "\tprint it"],
-          js: ["spellCore.map(spellCore.countTo(3), (number) => {", "  spellCore.console.log(number)", "})"],
-          ts: "spellCore.map(spellCore.countTo(3), (number) => spellCore.console.log(number))"
+          js: "spellCore.map(spellCore.countTo(3), (number) => spellCore.console.log(number))"
         },
         {
           title: "Error if nested block and inline statement",
           input: ["repeat 3 times: print 1", "\tprint it"],
           js: [
-            "spellCore.map(spellCore.countTo(3), (number) => {",
-            "  spellCore.console.log(number)",
-            "})",
-            "/* PARSE ERROR: Got both inline statement and nested block */"
-          ],
-          ts: [
             "spellCore.map(spellCore.countTo(3), (number) => spellCore.console.log(number))",
             "/* PARSE ERROR: Got both inline statement and nested block */"
           ]

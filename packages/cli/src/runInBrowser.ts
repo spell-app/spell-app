@@ -4,7 +4,8 @@
  *   looks for (see `SpellAppElement`):
  *   - `app/<Name>.compiled.js`:  as compiled for this run, from memory -- nothing is written into the project
  *   - `app/<Name>.scopes.js`:  its scope pack, for the Type Explorer -- see `LSP.ScopePack`
- *   - `app/<Import>.compiled.js`:  each project it imports, from disk
+ *   - `app/<Name>.en.js`:  its words, for the Thing Explorer -- see `SP.SpellWords`
+ *   - `app/<Import>.compiled.js`:  each project it imports, from disk -- and its `.en.js`, if it has one
  *   - `element/...`:  `app`'s `dist-element/` bundle -- built first if it isn't there, see `ensureElementBuilt()`
  * - Serves until `Ctrl-C` -- see `serve.ts`.
  */
@@ -34,15 +35,22 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
   const compiled = project.outputFile.contents ?? ""
   // where the Type Explorer finds each declaration's code -- see `SP.SpellDeclarations`
   const declarations = project.declarationsFile.contents ?? ""
+  // what the Thing Explorer labels members by -- see `SP.SpellWords`
+  const words = project.wordsFile.contents ?? ""
   // the explorer shows each imported project's own parse
   await session.workspace.track(project)
   for (const imported of LSP.ScopeExplorer.importedProjects(project)) await session.workspace.track(imported)
   const scopes = LSP.scopePackScript(session.explorer.exportPack(project))
   const imports = new Map(
-    Object.entries(CLI.importedOutputs(project)).map(([id, url]) => [
-      `/app/${id.slice(id.lastIndexOf(":") + 1)}${SP.COMPILED_JS_SUFFIX}`,
-      fileURLToPath(url)
-    ])
+    Object.entries(CLI.importedOutputs(project)).flatMap(([id, url]) => {
+      const name = id.slice(id.lastIndexOf(":") + 1)
+      const compiledPath = fileURLToPath(url)
+      const wordsPath = compiledPath.slice(0, -SP.COMPILED_JS_SUFFIX.length) + SP.WORDS_JS_SUFFIX
+      return [
+        [`/app/${name}${SP.COMPILED_JS_SUFFIX}`, compiledPath],
+        [`/app/${name}${SP.WORDS_JS_SUFFIX}`, wordsPath]
+      ]
+    })
   )
 
   const element = CLI.folderRoute("/element/", ELEMENT_DIR)
@@ -51,6 +59,7 @@ export async function runInBrowser(session: CLI.CliSession, project: SP.SpellPro
     if (path === `/app/${name}${SP.COMPILED_JS_SUFFIX}`) return { text: compiled, type: "text/javascript" }
     if (path === `/app/${name}${SP.SCOPES_JS_SUFFIX}`) return { text: scopes, type: "text/javascript" }
     if (path === `/app/${name}${SP.DECLARATIONS_JSON_SUFFIX}`) return { text: declarations, type: "application/json" }
+    if (path === `/app/${name}${SP.WORDS_JS_SUFFIX}`) return { text: words, type: "text/javascript" }
     const imported = imports.get(path)
     if (imported) return { file: imported }
     return element(path)

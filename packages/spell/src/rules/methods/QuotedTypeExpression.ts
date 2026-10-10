@@ -178,11 +178,11 @@ methods.addRule(QuotedTypeExpression, {
           title: "no body",
           input: [`a thing "nerds out" if`, `if a new thing nerds out`],
           js: [
-            "Object.defineProperty(Thing.prototype, 'nerdsOut', {",
+            'Object.defineProperty(Thing.prototype, "nerdsOut", {',
             "  get() {},",
             "  configurable: true",
             "})",
-            "if (new Thing().nerdsOut) {}"
+            "if ((new Thing()).nerdsOut) {}"
           ],
           ts: [
             "export interface Thing { readonly nerdsOut: any /* spell: type unknown */ }",
@@ -197,16 +197,16 @@ methods.addRule(QuotedTypeExpression, {
           title: "no if",
           input: [`a thing "nerds out": never`, `if a new thing nerds out`],
           js: [
-            "Object.defineProperty(Thing.prototype, 'nerdsOut', {",
+            'Object.defineProperty(Thing.prototype, "nerdsOut", {',
             "  get() {",
             "    return false",
             "  },",
             "  configurable: true",
             "})",
-            "if (new Thing().nerdsOut) {}"
+            "if ((new Thing()).nerdsOut) {}"
           ],
           ts: [
-            "export interface Thing { readonly nerdsOut: any /* spell: type unknown */ }",
+            "export interface Thing { readonly nerdsOut: boolean }",
             'Object.defineProperty(Thing.prototype, "nerdsOut", {',
             "  get(this: Thing) {",
             "    return false",
@@ -220,16 +220,16 @@ methods.addRule(QuotedTypeExpression, {
           title: "inline expression",
           input: [`a thing "nerds out" if yes`, `if a new thing nerds out`],
           js: [
-            "Object.defineProperty(Thing.prototype, 'nerdsOut', {",
+            'Object.defineProperty(Thing.prototype, "nerdsOut", {',
             "  get() {",
             "    return true",
             "  },",
             "  configurable: true",
             "})",
-            "if (new Thing().nerdsOut) {}"
+            "if ((new Thing()).nerdsOut) {}"
           ],
           ts: [
-            "export interface Thing { readonly nerdsOut: any /* spell: type unknown */ }",
+            "export interface Thing { readonly nerdsOut: boolean }",
             'Object.defineProperty(Thing.prototype, "nerdsOut", {',
             "  get(this: Thing) {",
             "    return true",
@@ -243,16 +243,16 @@ methods.addRule(QuotedTypeExpression, {
           title: "indented method body",
           input: [`a thing "nerds out" if`, `\treturn yes`, `if a new thing nerds out`],
           js: [
-            "Object.defineProperty(Thing.prototype, 'nerdsOut', {",
+            'Object.defineProperty(Thing.prototype, "nerdsOut", {',
             "  get() {",
             "    return true",
             "  },",
             "  configurable: true",
             "})",
-            "if (new Thing().nerdsOut) {}"
+            "if ((new Thing()).nerdsOut) {}"
           ],
           ts: [
-            "export interface Thing { readonly nerdsOut: any /* spell: type unknown */ }",
+            "export interface Thing { readonly nerdsOut: boolean }",
             'Object.defineProperty(Thing.prototype, "nerdsOut", {',
             "  get(this: Thing) {",
             "    return true",
@@ -273,7 +273,7 @@ methods.addRule(QuotedTypeExpression, {
           input: [`a thing "nerds out with (another as a thing)" if`, `if a new thing nerds out with a new thing`],
           js: [
             "Thing.prototype.nerdsOutWithAnother = function (another) {}",
-            "if (new Thing().nerdsOutWithAnother(new Thing())) {}"
+            "if ((new Thing()).nerdsOutWithAnother(new Thing())) {}"
           ],
           ts: [
             "export interface Thing { nerdsOutWithAnother(another: Thing): any /* spell: type unknown */ }",
@@ -288,10 +288,10 @@ methods.addRule(QuotedTypeExpression, {
             "Thing.prototype.nerdsOutWithAnother = function (another) {",
             "  return true",
             "}",
-            "if (new Thing().nerdsOutWithAnother(new Thing())) {}"
+            "if ((new Thing()).nerdsOutWithAnother(new Thing())) {}"
           ],
           ts: [
-            "export interface Thing { nerdsOutWithAnother(another: Thing): any /* spell: type unknown */ }",
+            "export interface Thing { nerdsOutWithAnother(another: Thing): boolean }",
             "Thing.prototype.nerdsOutWithAnother = function (this: Thing, another: Thing) {",
             "  return true",
             "}",
@@ -309,10 +309,10 @@ methods.addRule(QuotedTypeExpression, {
             "Thing.prototype.nerdsOutWithAnother = function (another) {",
             "  return true",
             "}",
-            "if (new Thing().nerdsOutWithAnother(new Thing())) {}"
+            "if ((new Thing()).nerdsOutWithAnother(new Thing())) {}"
           ],
           ts: [
-            "export interface Thing { nerdsOutWithAnother(another: Thing): any /* spell: type unknown */ }",
+            "export interface Thing { nerdsOutWithAnother(another: Thing): boolean }",
             "Thing.prototype.nerdsOutWithAnother = function (this: Thing, another: Thing) {",
             "  return true",
             "}",
@@ -335,14 +335,14 @@ methods.addRule(QuotedTypeExpression, {
             `if a new thing isn't a bug`
           ],
           js: [
-            "Object.defineProperty(Thing.prototype, 'isABug', {",
+            'Object.defineProperty(Thing.prototype, "isABug", {',
             "  get() {},",
             "  configurable: true",
             "})",
-            "if (new Thing().isABug) {}",
-            "if (!new Thing().isABug) {}",
-            "if (!new Thing().isABug) {}",
-            "if (!new Thing().isABug) {}"
+            "if ((new Thing()).isABug) {}",
+            "if (!(new Thing()).isABug) {}",
+            "if (!(new Thing()).isABug) {}",
+            "if (!(new Thing()).isABug) {}"
           ],
           ts: [
             "export interface Thing { readonly isABug: any /* spell: type unknown */ }",
@@ -367,15 +367,15 @@ methods.addRule(QuotedTypeExpression, {
             `if a new thing can't play`
           ],
           js: [
-            "Object.defineProperty(Thing.prototype, 'canPlay', {",
+            'Object.defineProperty(Thing.prototype, "canPlay", {',
             "  get() {},",
             "  configurable: true",
             "})",
-            "if (new Thing().canPlay) {}",
-            "if (!new Thing().canPlay) {}",
-            "if (!new Thing().canPlay) {}",
-            "if (!new Thing().canPlay) {}",
-            "if (!new Thing().canPlay) {}"
+            "if ((new Thing()).canPlay) {}",
+            "if (!(new Thing()).canPlay) {}",
+            "if (!(new Thing()).canPlay) {}",
+            "if (!(new Thing()).canPlay) {}",
+            "if (!(new Thing()).canPlay) {}"
           ],
           ts: [
             "export interface Thing { readonly canPlay: any /* spell: type unknown */ }",
@@ -400,14 +400,14 @@ methods.addRule(QuotedTypeExpression, {
             `if a new thing won't blow up`
           ],
           js: [
-            "Object.defineProperty(Thing.prototype, 'willBlowUp', {",
+            'Object.defineProperty(Thing.prototype, "willBlowUp", {',
             "  get() {},",
             "  configurable: true",
             "})",
-            "if (new Thing().willBlowUp) {}",
-            "if (!new Thing().willBlowUp) {}",
-            "if (!new Thing().willBlowUp) {}",
-            "if (!new Thing().willBlowUp) {}"
+            "if ((new Thing()).willBlowUp) {}",
+            "if (!(new Thing()).willBlowUp) {}",
+            "if (!(new Thing()).willBlowUp) {}",
+            "if (!(new Thing()).willBlowUp) {}"
           ],
           ts: [
             "export interface Thing { readonly willBlowUp: any /* spell: type unknown */ }",
@@ -431,14 +431,14 @@ methods.addRule(QuotedTypeExpression, {
             `if a new thing doesn't have a friend`
           ],
           js: [
-            "Object.defineProperty(Thing.prototype, 'hasAFriend', {",
+            'Object.defineProperty(Thing.prototype, "hasAFriend", {',
             "  get() {},",
             "  configurable: true",
             "})",
-            "if (new Thing().hasAFriend) {}",
-            "if (!new Thing().hasAFriend) {}",
-            "if (!new Thing().hasAFriend) {}",
-            "if (!new Thing().hasAFriend) {}"
+            "if ((new Thing()).hasAFriend) {}",
+            "if (!(new Thing()).hasAFriend) {}",
+            "if (!(new Thing()).hasAFriend) {}",
+            "if (!(new Thing()).hasAFriend) {}"
           ],
           ts: [
             "export interface Thing { readonly hasAFriend: any /* spell: type unknown */ }",

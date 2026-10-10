@@ -234,8 +234,8 @@ expressions.addRule(CompoundExpression, {
       title: "complex math expressions",
       compileAs: "expression",
       tests: [
-        ["1 + 2 + 3", "((1 + 2) + 3)", "(1 + 2 + 3)"],
-        ["1 + 2 * 3", "(1 + (2 * 3))", "(1 + 2 * 3)"],
+        ["1 + 2 + 3", "(1 + 2 + 3)"],
+        ["1 + 2 * 3", "(1 + 2 * 3)"],
         ["(1+1) * (2+2)", "((1 + 1) * (2 + 2))"],
         ["((1+1) * (2+2))", "((1 + 1) * (2 + 2))"]
       ]
@@ -257,7 +257,7 @@ expressions.addRule(CompoundExpression, {
       },
       tests: [
         ["x + y is empty", "spellCore.isEmpty(x + y)"],
-        ["x is 1 and y is empty", "((x == 1) && spellCore.isEmpty(y))", "(x == 1 && spellCore.isEmpty(y))"]
+        ["x is 1 and y is empty", "(x == 1 && spellCore.isEmpty(y))"]
       ]
     }
   ]

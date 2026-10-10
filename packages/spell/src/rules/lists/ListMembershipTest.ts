@@ -47,42 +47,14 @@ lists.addRule(ListMembershipTest, {
         scope.variables?.add("bar")
       },
       tests: [
-        ["my-list has items where", "spellCore.any(myList, (item) => {})", "spellCore.any(myList, () => {})"],
-        [
-          "my-list has items where the item is 1",
-          ["spellCore.any(myList, (item) => {", "  return (item == 1)", "})"],
-          "spellCore.any(myList, (item) => item == 1)"
-        ],
-        [
-          "my-list has items where it is 1",
-          ["spellCore.any(myList, (item) => {", "  return (item == 1)", "})"],
-          "spellCore.any(myList, (item) => item == 1)"
-        ],
-        [
-          "my-list has items where its foo is 1",
-          ["spellCore.any(myList, (item) => {", "  return (item.foo == 1)", "})"],
-          "spellCore.any(myList, (item) => item.foo == 1)"
-        ],
-        [
-          "my-list has no items where item is 1",
-          ["!spellCore.any(myList, (item) => {", "  return (item == 1)", "})"],
-          "!spellCore.any(myList, (item) => item == 1)"
-        ],
-        [
-          "my-list has no items where it is 1",
-          ["!spellCore.any(myList, (item) => {", "  return (item == 1)", "})"],
-          "!spellCore.any(myList, (item) => item == 1)"
-        ],
-        [
-          "my-list doesnt have items where item is 1",
-          ["!spellCore.any(myList, (item) => {", "  return (item == 1)", "})"],
-          "!spellCore.any(myList, (item) => item == 1)"
-        ],
-        [
-          "the foo of the bar does not have items where item is 1",
-          ["!spellCore.any(bar.foo, (item) => {", "  return (item == 1)", "})"],
-          "!spellCore.any(bar.foo, (item) => item == 1)"
-        ]
+        ["my-list has items where", "spellCore.any(myList, () => {})"],
+        ["my-list has items where the item is 1", "spellCore.any(myList, (item) => item == 1)"],
+        ["my-list has items where it is 1", "spellCore.any(myList, (item) => item == 1)"],
+        ["my-list has items where its foo is 1", "spellCore.any(myList, (item) => item.foo == 1)"],
+        ["my-list has no items where item is 1", "!spellCore.any(myList, (item) => item == 1)"],
+        ["my-list has no items where it is 1", "!spellCore.any(myList, (item) => item == 1)"],
+        ["my-list doesnt have items where item is 1", "!spellCore.any(myList, (item) => item == 1)"],
+        ["the foo of the bar does not have items where item is 1", "!spellCore.any(bar.foo, (item) => item == 1)"]
       ]
     }
   ]

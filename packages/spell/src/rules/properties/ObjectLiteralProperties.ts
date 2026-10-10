@@ -29,7 +29,7 @@ properties.addRule(ObjectLiteralProperties, {
         [`length is 1, rank of "queen"`, `{ length: 1, rank: "queen" }`],
 
         // TODO: `{property}` converts to `foo_bar` before we get here
-        [`foo-bar = 1`, `{ foo_bar: 1 }`]
+        [`foo-bar = 1`, "{ fooBar: 1 }"]
       ]
     }
   ]

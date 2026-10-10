@@ -22,7 +22,7 @@ expressions.addRule(ArithmeticExpression, {
         scope.variables?.add("x")
       },
       tests: [
-        ["x + 1 * 2", "(x + (1 * 2))", "(x + 1 * 2)"],
+        ["x + 1 * 2", "(x + 1 * 2)"],
         ["x", "x"]
       ]
     }

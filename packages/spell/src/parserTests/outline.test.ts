@@ -59,7 +59,7 @@ describe("outline style", () => {
 
   test("`it` inside a getter's body is the instance, not the type", () => {
     const outline = ["a card is a thing where:", "\t- it has a rank as a number", '\t- its "double" is: its rank * 2']
-    expect(compile(outline)).toContain("return (this.rank * 2)")
+    expect(compile(outline)).toContain("return this.rank * 2")
   })
 
   test("`it` / `its` as a subject only work in a type's body", () => {
@@ -87,7 +87,7 @@ describe("outline style", () => {
       "\t- its color is red if its rank is 1 otherwise it is black"
     ]
     expect(compile(bare)).toBe(compile(quoted))
-    expect(compile(quoted)).toContain("this.declareProp('name', { type: 'text' })")
+    expect(compile(quoted)).toContain('this.declareProp("name", { type: "text" })')
   })
 
   test("without its article, only a TYPE makes a declaration:  `its x is total` is a getter (issue I2)", () => {
@@ -132,7 +132,7 @@ describe("outline style", () => {
 
   describe('value kinds (P2):  `"suits" as one of ...` in a deck\'s body', () => {
     /** A card's suit is one of the deck's suits, read when set:  the deck's class may be defined after the card's. */
-    const LAZY_SUITS = /static \{ this\.declareProp\('suit', \{ oneOf: \(\) => \{\s+return Deck\.Suits\s+\} \}\) \}/
+    const LAZY_SUITS = /static \{ this\.declareProp\("suit", \{ oneOf: \(\) => Deck\.Suits \}\) \}/
     const DECK = [
       "a deck is a list of cards with:",
       '\t- "suits" as one of clubs, diamonds, hearts or spades',
@@ -148,10 +148,10 @@ describe("outline style", () => {
 
     test("compiles:  the list on the deck, the kind's class, its property as a static method", () => {
       const js = compile(DECK)
-      expect(js).toContain("Deck.Suits = ['clubs', 'diamonds', 'hearts', 'spades']")
-      expect(js).toContain("Deck.Ranks = ['ace', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king']")
+      expect(js).toContain('static Suits = ["clubs", "diamonds", "hearts", "spades"]')
+      expect(js).toContain('static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]')
       expect(js).toMatch(/export class Suit \{\s+static color\(suit\) \{/)
-      expect(js).toContain("if (spellCore.includes(['diamonds', 'hearts'], suit)) { return 'red' }")
+      expect(js).toContain('if (spellCore.includes(["diamonds", "hearts"], suit)) return "red"')
       expect(js).toMatch(LAZY_SUITS)
       expect(js).toContain("return Suit.color(this.suit)")
     })
@@ -163,12 +163,12 @@ describe("outline style", () => {
         '\t- its "direction" is up or down'
       ])
       expect(said).toMatch(LAZY_SUITS)
-      expect(said).toContain("static Directions = ['up', 'down']")
+      expect(said).toContain('static Directions = ["up", "down"]')
     })
 
     test("`is jack, queen or king`:  one of those values", () => {
       const js = compile([...DECK, '\t- it "is a face card" if its rank is jack, queen or king'])
-      expect(js).toContain("spellCore.includes(['jack', 'queen', 'king'], this.rank)")
+      expect(js).toContain('spellCore.includes(["jack", "queen", "king"], this.rank)')
     })
 
     test("a property of a type nobody declared is an error, not a class that doesn't exist", () => {
@@ -223,13 +223,13 @@ describe("outline style", () => {
     test("the deck first:  the values are known", () => {
       const js = compile([...DECK, ...CARD, ...USES])
       expect(js).toContain("isASuit(suit) {")
-      expect(js).toContain("let spade = queen.isASuit('spades')")
+      expect(js).toContain('const spade = queen.isASuit("spades")')
       expect(runSpell([...DECK, ...CARD, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
     })
 
     test("the card first:  checked where it's used (issue I3's order)", () => {
       const js = compile([...CARD, ...DECK, ...USES])
-      expect(js).toContain("let spade = queen.isASuit('spades')")
+      expect(js).toContain('const spade = queen.isASuit("spades")')
       expect(runSpell([...CARD, ...DECK, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
     })
 
@@ -244,8 +244,8 @@ describe("outline style", () => {
       ]
       const js = compile(lines)
       expect(js).toMatch(/export class Rank \{\s+static isAFaceCard\(rank\) \{/)
-      expect(js).toContain("spellCore.includes(['jack', 'queen', 'king'], rank)")
-      expect(js).toContain("let face = Rank.isAFaceCard(queen.rank)")
+      expect(js).toContain('spellCore.includes(["jack", "queen", "king"], rank)')
+      expect(js).toContain("const face = Rank.isAFaceCard(queen.rank)")
       expect(runSpell(lines)("face, low")).toEqual({ face: true, low: false })
     })
 
@@ -255,7 +255,7 @@ describe("outline style", () => {
           .replace('"is a (suit)"', '"is a (suit)" for its suits')
           .replace('"is the (rank) of (suits)"', '"is the (rank) of (suits)" for its ranks and its suits')
       )
-      expect(compile([...DECK, ...card, ...USES])).toContain("let spade = queen.isASuit('spades')")
+      expect(compile([...DECK, ...card, ...USES])).toContain('const spade = queen.isASuit("spades")')
       expect(runSpell([...DECK, ...card, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
       expect(runSpell([...card, ...DECK, ...USES])("spade, heart, queen_of_spades, two_of_spades")).toEqual(EXPECTED)
     })
@@ -322,13 +322,13 @@ describe("outline style", () => {
 
     test("`... and the game is red` is the game's phrase, not the card's (declared first)", () => {
       const lines = [...TYPES, "set both to the card is face up and the game is red"]
-      expect(compile(lines)).toContain("let both = (card.isFaceUp && game.isTeam('red'))")
+      expect(compile(lines)).toContain('const both = card.isFaceUp && game.isTeam("red")')
       expect(runSpell(lines)("both")).toEqual({ both: false })
     })
 
     test("`... or the game is red` too", () => {
       const lines = [...TYPES, "set either to the card is black or the game is red"]
-      expect(compile(lines)).toContain("let either = (card.isColor('black') || game.isTeam('red'))")
+      expect(compile(lines)).toContain('const either = card.isColor("black") || game.isTeam("red")')
       expect(runSpell(lines)("either")).toEqual({ either: false })
     })
 
@@ -350,7 +350,7 @@ describe("outline style", () => {
     const js = compile(lines)
     expect(js).toMatch(/get front\(\) \{\s+return h\("ui-image"/)
     expect(js).toContain("draw() {")
-    expect(js).toContain("return (this.direction === 'down' ? this.back : this.front)")
+    expect(js).toContain('return this.direction === "down" ? this.back : this.front')
   })
 
   test("`[rank]` fills in, in text and markup:  inside a card, a bare property is its own (P4)", () => {

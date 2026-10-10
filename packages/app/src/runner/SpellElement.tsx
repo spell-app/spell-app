@@ -11,7 +11,7 @@ import { spellElementVocabulary } from "./SpellElement.en"
  *
  * - A Spell UI component like any `ui-*` one:  its own shadow root, with the page's theme and base styles.
  *   Then its type's own `<css>`, its class's `static css`, after its super-types' (`cssOf()`).
- * - It draws its `thing`, through the program's runtime:  `spellCore.drawOwn()`, in the thing's error net.
+ * - It draws its `thing`, through the program's runtime:  `spellCore.drawOwn()`, in the thing's error boundary.
  * - Its outside is its type's (epic `drawable-thing` P8), named as Spell UI names its own elements' API:
  *   - each property its type declares is an attribute and a property:  `<game-card rank="1">`, `card.rank = 12`,
  *     which the element writes to its thing

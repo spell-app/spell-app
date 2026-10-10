@@ -1,6 +1,7 @@
 import { Match, Show, Switch, createSignal, onCleanup, onSettled } from "solid-js"
 
 import type { LSP } from "$/lsp"
+import type { SP } from "$/spell"
 import type { FromRunnerMessage, ProjectSettings, RunnerPaneId, ToRunnerMessage } from "$/app/runner"
 // Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor
 import { TypeExplorer } from "$/app/solid/TypeExplorer"
@@ -9,6 +10,7 @@ import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
 import { RunnerConsole } from "./RunnerConsole"
+import { wordsIn } from "./words"
 
 import "$/app/solid/AppContainer.css"
 import "./VSCodeRunner.css"
@@ -24,6 +26,8 @@ import "./VSCodeRunner.css"
  * - One that starts its app AFTER the run finished, e.g. from a timer, shows it once it draws.
  * - Runs whatever the extension sends in a `run` message, afresh each time, on its OWN copy of the spell runtime
  *   -- see `loadRuntime()`.  One sent before that's loaded runs once it is.
+ * - Its Thing Explorer shows things' members in spell's words, from the `words` message after each run:
+ *   the project's `<Project>.en.js` (`SP.SpellWords`).
  * - The program draws with the page's Solid (`App.start()` makes its own root) into `appRoot`, a `<div>` drawn once.
  * - NEVER imports `$/core`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.
  * - Says `ready` once listening, so the extension knows to compile.  Messages sent before then are lost.
@@ -43,6 +47,9 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
   // Does the program draw an app?  Assume so until a run says -- see `appIsMounted()`.
   const [hasApp, setHasApp] = createSignal(true)
   const [tree, setTree] = createSignal<LSP.ScopeNode>()
+  const [words, setWords] = createSignal<SP.SpellWordsData>()
+  // how many `words` messages came:  a slow load of an older one mustn't win
+  let wordsSent = 0
   // who's waiting for which details -- see `loadDetails()`
   const detailsWaiting = new Map<string, Array<(details: LSP.ScopeDetails | null) => void>>()
   // what the last `run` message sent, if it came before the runtime -- run once that's loaded
@@ -121,12 +128,17 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
     </div>
   )
 
-  /** Keep what a `run` message carries, to run -- or a `scopes` message's tree, or our settings ... */
+  /** Keep what a `run` message carries, to run -- or a `scopes` message's tree, a `words` message's words ... */
   function onMessage({ data }: MessageEvent<ToRunnerMessage>) {
     if (data?.type === "run") {
       const copy = loaded()
       if (copy) run(copy, data.compiled)
       else toRun = data.compiled
+    } else if (data?.type === "words") {
+      const sent = ++wordsSent
+      void (data.words === undefined ? Promise.resolve(undefined) : wordsIn(data.words)).then((loaded) => {
+        if (sent === wordsSent) setWords(loaded)
+      })
     } else if (data?.type === "scopes") setTree(data.tree)
     else if (data?.type === "settings") setSettings(data.settings)
     else if (data?.type === "details") {
@@ -166,6 +178,7 @@ export function VSCodeRunner(props: VSCodeRunnerProps) {
         {(copy) => (
           <ThingExplorer
             things={copy.runtime.spellCore.things}
+            words={words()}
             state={settings().thingExplorer}
             onStateChange={(thingExplorer) => save({ thingExplorer })}
           />

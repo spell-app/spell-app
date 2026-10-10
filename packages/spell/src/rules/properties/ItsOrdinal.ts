@@ -51,7 +51,7 @@ properties.addRule(ItsOrdinal, {
       tests: [
         [
           ["get a new thing", "print its last item"],
-          ["let it = new Thing()", "spellCore.console.log(spellCore.getItemAt(it, -1))"],
+          ["const it = new Thing()", "spellCore.console.log(spellCore.getItemAt(it, -1))"],
           ["const it = new Thing()", "spellCore.console.log(spellCore.getItemAt(it, -1)!)"]
         ]
       ]

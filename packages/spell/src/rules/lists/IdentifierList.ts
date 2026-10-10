@@ -27,24 +27,12 @@ lists.addRule(IdentifierList, {
   tests: [
     {
       tests: [
-        ["up or down", "['up', 'down']", '["up", "down"]'],
-        ["red and black", "['red', 'black']", '["red", "black"]'],
-        ["back nor forth", "['back', 'forth']", '["back", "forth"]'],
-        [
-          "clubs, diamonds, hearts, spades",
-          "['clubs', 'diamonds', 'hearts', 'spades']",
-          '["clubs", "diamonds", "hearts", "spades"]'
-        ],
-        [
-          "ace, 2, 3, 4, jack, queen or king",
-          "['ace', 2, 3, 4, 'jack', 'queen', 'king']",
-          '["ace", 2, 3, 4, "jack", "queen", "king"]'
-        ],
-        [
-          "ace, 2 ... 5, jack, queen or king",
-          "['ace', 2, 3, 4, 5, 'jack', 'queen', 'king']",
-          '["ace", 2, 3, 4, 5, "jack", "queen", "king"]'
-        ]
+        ["up or down", '["up", "down"]'],
+        ["red and black", '["red", "black"]'],
+        ["back nor forth", '["back", "forth"]'],
+        ["clubs, diamonds, hearts, spades", '["clubs", "diamonds", "hearts", "spades"]'],
+        ["ace, 2, 3, 4, jack, queen or king", '["ace", 2, 3, 4, "jack", "queen", "king"]'],
+        ["ace, 2 ... 5, jack, queen or king", '["ace", 2, 3, 4, 5, "jack", "queen", "king"]']
       ]
     }
   ]

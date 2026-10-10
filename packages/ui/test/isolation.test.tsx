@@ -120,9 +120,9 @@ describe("UIComponent.define() error boundary", () => {
     error.mockRestore()
   })
 
-  // Owen asked (epic `spell-element`, P2):  does a container's net catch it instead?  No:  each element draws in a
-  // Solid root with no parent, so only its OWN net can, and the container goes on as if nothing happened
-  it("catches the throw in the element's own net, never its container's", async () => {
+  // Owen asked (epic `spell-element`, P2):  does a container's boundary catch it instead?  No:  each element draws in a
+  // Solid root with no parent, so only its OWN boundary can, and the container goes on as if nothing happened
+  it("catches the throw in the element's own boundary, never its container's", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {})
     const root = await ElementFixture.render(`<ui-segment><x-bomb></x-bomb><ui-label>Sibling</ui-label></ui-segment>`)
     const bomb = root.querySelector<DOMElement>("x-bomb")!

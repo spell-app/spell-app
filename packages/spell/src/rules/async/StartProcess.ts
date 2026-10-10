@@ -27,21 +27,12 @@ _async.addRule(StartProcess, {
     {
       compileAs: "statement",
       tests: [
-        [`start process dealing`, `spellCore.startProcess('dealing')`, 'spellCore.startProcess("dealing")'],
-        [`start animation dealing`, `spellCore.startProcess('dealing')`, 'spellCore.startProcess("dealing")'],
-        [
-          `start non-exclusive animation dealing`,
-          `spellCore.startProcess('dealing')`,
-          'spellCore.startProcess("dealing")'
-        ],
-        [
-          `start nonexclusive process dealing`,
-          `spellCore.startProcess('dealing')`,
-          'spellCore.startProcess("dealing")'
-        ],
+        [`start process dealing`, 'spellCore.startProcess("dealing")'],
+        [`start animation dealing`, 'spellCore.startProcess("dealing")'],
+        [`start non-exclusive animation dealing`, 'spellCore.startProcess("dealing")'],
+        [`start nonexclusive process dealing`, 'spellCore.startProcess("dealing")'],
         [
           `start exclusive process dealing`,
-          [`if (spellCore.processIsRunning('dealing')) { return }`, `spellCore.startProcess('dealing', 'EXCLUSIVE')`],
           ['if (spellCore.processIsRunning("dealing")) return', 'spellCore.startProcess("dealing", "EXCLUSIVE")']
         ]
       ]

@@ -31,5 +31,5 @@ export class ValueOtherwise extends SpellStatement<"value"> {
 }
 _if_.addRule(ValueOtherwise, {
   syntax: "(value:{expression}|{constant}) (otherwise|else)",
-  tests: [{ compileAs: "statement", tests: [["black otherwise", "return 'black'", 'return "black"']] }]
+  tests: [{ compileAs: "statement", tests: [["black otherwise", 'return "black"']] }]
 })

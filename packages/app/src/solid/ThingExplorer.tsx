@@ -1,6 +1,7 @@
 import { For, Match, Show, Switch, createEffect, createMemo, createSignal, untrack } from "solid-js"
 
 import type { ThingAction, ThingLike, ThingRegistry } from "$/core/things"
+import type { SP } from "$/spell"
 import type { ThingExplorerState, ThingOrder } from "$/app/ui/ui.types"
 import { tracked } from "./tracked"
 import { SCOPE_ICONS, SectionMarker, sectionStartsAt } from "./ScopeDetailsPane"
@@ -18,6 +19,8 @@ import "./ThingExplorer.css"
  *   the runner's bundle.  A different registry starts the tree afresh (state kept).
  * - Lists all of them in the order they were made, or under each type they are -- the buttons in its header
  *   switch.  See `UI.ThingOrder`.
+ * - Shows each property and action in spell's words, e.g. `move (a card) to (a pile)`, when `words` has them:
+ *   the program's `<Project>.en.js` (`SP.SpellWords`).  Else by its name, e.g. `move to pile` for `moveToPile`.
  * - Keeps what's selected and open as a `UI.ThingExplorerState` through `state` + `onStateChange` -- else just
  *   while it's showing.  `state` is read ONCE, as it mounts:  echoing `onStateChange` back into it is fine.
  * - LIVE, and narrowly:  each piece reads the program's things (spell cells) through its OWN accessor, so a
@@ -36,7 +39,7 @@ export function ThingExplorer(props: ThingExplorerProps) {
   const [state, setState] = createSignal<ThingExplorerState>(untrack(() => props.state) ?? {})
   return (
     <Show when={props.things} keyed>
-      {(things) => <ThingExplorerView things={things} state={state()} onChange={update} />}
+      {(things) => <ThingExplorerView things={things} words={props.words} state={state()} onChange={update} />}
     </Show>
   )
 
@@ -52,6 +55,8 @@ export function ThingExplorer(props: ThingExplorerProps) {
 export type ThingExplorerProps = {
   /** Registry of the things to show -- the running program's `spellCore.things`. */
   things: ThingRegistry
+  /** Spell's words for the members of the program's types, and those it imports -- see `SP.SpellWords`. */
+  words?: SP.SpellWordsData
   /** What to start with, as last remembered -- read once, as it mounts. */
   state?: ThingExplorerState
   /** Something changed:  remember `state`. */
@@ -183,7 +188,7 @@ function ThingExplorerView(props: ThingExplorerViewProps) {
               keyed
               fallback={<div class="ScopeDetails empty">Select a thing to see its properties.</div>}
             >
-              {(thing) => <ThingDetails things={props.things} thing={thing} onSelect={select} />}
+              {(thing) => <ThingDetails things={props.things} words={props.words} thing={thing} onSelect={select} />}
             </Show>
           </div>
         </div>
@@ -214,6 +219,8 @@ function ThingExplorerView(props: ThingExplorerViewProps) {
 type ThingExplorerViewProps = {
   /** Registry the things are in -- the same for the view's life. */
   things: ThingRegistry
+  /** Spell's words for the things' members. */
+  words?: SP.SpellWordsData
   /** What's selected and open, and the order. */
   state: ThingExplorerState
   /** Change `changed` in the state. */
@@ -320,10 +327,12 @@ function ThingIcon(props: { isList: boolean }) {
  * - The property LIST re-reads as the registry changes, or a prop is first set:  an undeclared property is a plain
  *   field, NOT observable.
  * - An action which takes no arguments, e.g. `turn over`, has a ▶ to do it -- see `ThingRegistry.perform()`.
+ * - Each property and action in spell's words, if `words` has them:  see `memberWords()`.
  ****************/
 function ThingDetails(props: ThingDetailsProps) {
   const label = tracked(() => props.things.labelOf(props.thing))
-  const typeChain = tracked(() => props.things.typeChainOf(props.thing).join(" → "))
+  const types = tracked(() => props.things.typeChainOf(props.thing))
+  const typeChain = () => types().join(" → ")
   const properties = tracked(() => {
     void props.things.version
     return props.things.propertiesOf(props.thing)
@@ -377,7 +386,7 @@ function ThingDetails(props: ThingDetailsProps) {
       <tr>
         <th title={computed().has(name) ? "computed" : undefined}>
           <ui-icon name={SCOPE_ICONS.property} />
-          {name}
+          {memberWords(props.words, types(), name) ?? name}
         </th>
         <td>
           <ThingValue value={value()} onSelect={props.onSelect} />
@@ -392,7 +401,7 @@ function ThingDetails(props: ThingDetailsProps) {
       <tr>
         <th>
           <ui-icon name={SCOPE_ICONS.method} />
-          {action.label}
+          {memberWords(props.words, types(), action.name) ?? action.label}
           <Show when={action.inheritedFrom}>
             <span class="inherited">from {action.inheritedFrom}</span>
           </Show>
@@ -419,6 +428,8 @@ function ThingDetails(props: ThingDetailsProps) {
 type ThingDetailsProps = {
   /** Registry the thing is in -- to do its actions. */
   things: ThingRegistry
+  /** Spell's words for its members. */
+  words?: SP.SpellWordsData
   /** Thing to show -- the same for its life:  a new selection remounts it. */
   thing: ThingLike
   /** Select `thing`, e.g. a link clicked. */
@@ -558,6 +569,23 @@ function textOf(value: ShownValue): string {
 ////////////////
 // ## Helpers
 ////////////////
+
+/**
+ * Spell's words for member `name` of a thing of `types` -- its own type, then each it extends, e.g.
+ * `["Foundation", "Pile", "List"]` -- from `words`:  `move (a card) to (a pile)` for `moveToPile`.
+ * - The first of `types` whose words have it:  a sub-type's own action is in its own type's words,
+ *   one it inherits in the type it comes from.
+ * - `undefined` if they don't say, e.g. the program has no words file, or `name` is a built-in's.
+ */
+export function memberWords(words: SP.SpellWordsData | undefined, types: string[], name: string): string | undefined {
+  if (!words) return undefined
+  // own keys only:  NOT `toString`, say, which every object has
+  for (const type of types) {
+    const members = Object.hasOwn(words.types, type) ? words.types[type] : undefined
+    if (members && Object.hasOwn(members, name)) return members[name]
+  }
+  return undefined
+}
 
 /** Key of the "Top level" tree row. */
 const TOP_LEVEL = "top"

@@ -24,7 +24,7 @@ export class Naming {
     type: "PascalCase",
     method: "camelCase",
     variable: "camelCase",
-    property: "as written",
+    property: "camelCase",
     constant: "as written"
   }
 

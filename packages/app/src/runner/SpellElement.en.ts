@@ -19,7 +19,7 @@ export const spellElementVocabulary = {
   noun: "drawable thing",
   ui: false,
   description:
-    "A spell thing drawn in its own element, with its own shadow root, styles and error net:  `a card is a " +
+    "A spell thing drawn in its own element, with its own shadow root, styles and error boundary:  `a card is a " +
     "drawable thing` in a solitaire app is drawn as `<solitaire-card>`.",
   attributes: [
     {
