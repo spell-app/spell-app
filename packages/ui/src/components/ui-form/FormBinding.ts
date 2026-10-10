@@ -1,4 +1,5 @@
-import { createEffect, createRoot, untrack } from "solid-js"
+// oxlint-disable-next-line spell-ui/no-solid-effect -- a helper class, not a component:  one effect per bound control, in a root of its own
+import { createEffect, createRoot } from "solid-js"
 
 import { E } from "$/ui/core"
 import { FormFields } from "./FormFields"
@@ -131,7 +132,7 @@ export class FormBinding {
     const control = this.controlFor(event)
     if (!control || this.changed.has(control)) return
     this.changed.add(control)
-    queueMicrotask(() => {
+    E.afterSolidUpdate(() => {
       if (!this.changed.delete(control)) return
       this.writeBack(control)
     })
@@ -145,13 +146,15 @@ export class FormBinding {
   /**
    * `scope[name] = ` what the control holds now, unless that's what it holds already.
    * - NEVER throws:  a property that can't be set (a getter alone) warns.
+   * - Untracked:  it reads the scope and the property to write them, never to follow them.
    */
+  @E.untracked
   private writeBack(control: Element) {
     const binding = this.bindings.get(control)
     if (!binding) return
-    const target = untrack(binding.scope)
+    const target = binding.scope()
     if (!FormBinding.isObject(target)) return
-    const current = untrack(() => target[binding.name])
+    const current = target[binding.name]
     const next = FormBinding.valueFor(control, current)
     if (next === UNBOUND || next === current) return
     try {
