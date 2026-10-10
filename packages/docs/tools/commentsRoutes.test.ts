@@ -133,6 +133,17 @@ test("a taken comment can't change:  409", async () => {
   expect((await post({ page, action: "delete", id })).status).toBe(409)
 })
 
+test("any comment clears, taken or not;  an unknown one is a 404", async () => {
+  const page = "/epics/big/notes.html"
+  const { id } = (await post({ page, action: "add", ...ON_TABLE, text: "x" })).answer
+  GuideInbox.update(join(root, "epics/big/notes.inbox.json"), (comments) =>
+    comments.take(id, { epic: "guide-changes", phase: 1 })
+  )
+  const cleared = await post({ page, action: "clear", id })
+  expect(cleared.answer.comments.some((comment: { id: string }) => comment.id === id)).toBe(false)
+  expect((await post({ page, action: "clear", id })).status).toBe(404)
+})
+
 test("the page reads its comments back, every status", async () => {
   const got = await ask(port, "GET", "/api/comments?page=%2Fguides%2Fsolid%2Fsolid-2.html")
   expect(got.status).toBe(200)
