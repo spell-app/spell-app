@@ -167,6 +167,39 @@ test("Undo:  `restore` brings back a deleted comment, or a cleared one Claude ha
   await post({ page, action: "clear", id })
 })
 
+test("a THREAD:  `reply` (saved as typed), `resolve` (that's good / skip it), `reopen`;  each with its `turn`", async () => {
+  const page = "/epics/big/notes.html"
+  const inbox = join(root, "epics/big/notes.inbox.json")
+  const { id, comments } = (await post({ page, action: "add", ...ON_TABLE, text: "Why?" })).answer
+  expect(comments.find((each: { id: string }) => each.id === id).turn).toBe("claude")
+  GuideInbox.update(inbox, (list) => list.answer(id, "<p>Because.</p>"))
+  const read = JSON.parse((await ask(port, "GET", `/api/comments?page=${encodeURIComponent(page)}`)).text)
+  expect(read.comments.find((each: { id: string }) => each.id === id).turn).toBe("owen")
+  // typed in two goes:  one reply, the second save's words
+  await post({ page, action: "reply", id, text: "Say" })
+  const replied = await post({ page, action: "reply", id, text: "Say more" })
+  expect(replied.answer.comments.find((each: { id: string }) => each.id === id)).toMatchObject({
+    turn: "claude",
+    replies: [{ by: "Claude" }, { by: "Owen", text: "Say more" }]
+  })
+  // new work for Claude, as a new comment is
+  expect(GuideInbox.read(inbox).commentList.waiting.map((each) => each.id)).toContain(id)
+  GuideInbox.update(inbox, (list) => list.answer(id, "<p>More.</p>"))
+  const good = await post({ page, action: "resolve", id, how: "good" })
+  expect(good.answer.comments.find((each: { id: string }) => each.id === id)).toMatchObject({
+    turn: "done",
+    done: { how: "good" }
+  })
+  const reopened = await post({ page, action: "reopen", id })
+  expect(reopened.answer.comments.find((each: { id: string }) => each.id === id).turn).toBe("owen")
+  expect((await post({ page, action: "resolve", id, how: "skip" })).status).toBe(200)
+  expect(GuideInbox.read(inbox).commentList.comment(id).done?.how).toBe("skip")
+  expect((await post({ page, action: "resolve", id, how: "maybe" })).status).toBe(400)
+  expect((await post({ page, action: "reply", id: "cm99", text: "x" })).status).toBe(404)
+  expect((await post({ page, action: "reply", id })).status).toBe(400)
+  await post({ page, action: "clear", id })
+})
+
 test("the page reads its comments back, every status", async () => {
   const got = await ask(port, "GET", "/api/comments?page=%2Fguides%2Fsolid%2Fsolid-2.html")
   expect(got.status).toBe(200)

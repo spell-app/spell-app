@@ -148,7 +148,10 @@ export class GuideChanges {
     return `../../${page}${hash ? `#${hash}` : ""}`
   }
 
-  /** A comment, as its line in the phase's goal:  where (linked), what it quotes, Owen's words, its id. */
+  /**
+   * A comment, as its line in the phase's goal:  where (linked), what it quotes, Owen's words, its id;  then his
+   * latest reply on its thread, when he has one.
+   */
   private commentItem(page: string, comment: IdentifiedComment): string {
     const where =
       comment.kind === "page"
@@ -162,7 +165,10 @@ export class GuideChanges {
         ? ` (<q>${escape(comment.excerpt)}</q>)`
         : ""
     const words = htmlOf(comment.text).join("")
-    return `<li><a href="${this.hrefTo(page, targetOf(comment.anchor))}">${escape(where || comment.anchor)}</a>${about}, <code>${comment.id}</code>:  ${words}</li>`
+    // a reply on its thread since Claude answered:  his latest words are the work now
+    const reply = comment.replies?.findLast((each) => each.by === "Owen" && each.text)
+    const replied = reply ? `<p>Owen replied on the thread:</p>${htmlOf(reply.text!).join("")}` : ""
+    return `<li><a href="${this.hrefTo(page, targetOf(comment.anchor))}">${escape(where || comment.anchor)}</a>${about}, <code>${comment.id}</code>:  ${words}${replied}</li>`
   }
 
   /** A page note (before P11), as its line in the phase's goal. */

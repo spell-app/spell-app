@@ -584,12 +584,13 @@ In `tools/`:
     - Quiet until hovered.
       Always shown, with a count ("📢 2"), once the block has comments.
     - Its look gives their state, by the fill rule:  outlined while they all wait for Claude, solid once he has one.
-      An orange dot while one has news Owen hasn't read.
-    - A click with comments there:  a short list of them (first words, state), then New comment (`openPicker()`).
-      That's how a waiting comment, which has no card, is reached;  or a click on its highlighted quote.
+      An orange dot while one is Owen's turn (Claude spoke last).
+    - A click with comments there:  a short list of them (first words, whose turn), then New comment
+      (`openPicker()`).  A line opens that comment's thread;  so does a click on its highlighted quote.
   - Or on SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn floating beside the selection.
     - The comment keeps the quote, highlighted softly on the page while the comment exists.
-  - The box is a small floating PANE (Owen, 2026-10-10), fixed on the screen:
+  - The box is a small floating PANE (Owen, 2026-10-10), fixed on the screen, for writing a NEW comment.
+    Once saved and closed, the comment is a THREAD (below).
     - just under the selection (or the bullhorn clicked);  above it when there's no room below
     - the page never scrolls for it;  Owen drags it by its header
     - ivory, 8px inside on every side, with no buttons below the text
@@ -608,35 +609,59 @@ In `tools/`:
     - Before 2026-10-10 a saved comment's text stayed as a draft under its BLOCK:  after a reload, that block's
       bullhorn opened with it, and closing the pane saved it again, as a new comment.
       A new comment's draft that copies a comment already on its block is dropped.
-  - DELETE:  a trash on every comment's card, and in the pane's header (Owen, 2026-10-10).
+  - DELETE:  a trash on every comment's thread, and in the pane's header (Owen, 2026-10-10).
     - Icon only, its tooltip says what it does;  ONE click deletes at once, no dialog.
     - A toast says "Comment deleted", with Undo for 6s (`UNDO_MS`).
       - Undo puts it back as it was:  same block, quote and highlight, text, dates, state, Claude's answers.
       - Its id stays, unless a new comment took it meanwhile (`restore`, below).
       - Before 2026-10-10 the trash took two clicks, the first turning it red:  Owen clicked once, and thought it broken.
     - `delete` while the comment waits for Claude;  `clear` once Claude has it (a taken one stays in its epic).
-  - A click on a highlighted quote opens its comment in the pane again:
-    - still waiting for Claude:  to edit
-    - taken or answered:  to read, with Claude's answers, and the trash
-  - CARDS ONLY FOR NEWS (Owen, 2026-10-10:  "cards only when news"):
-    - A comment waiting for Claude has no card.
-    - One Claude has taken (a guide's, into `guide-changes`) or answered shows a card, folded, until Owen reads it.
-    - Read:  he unfolded the card (it stays until he leaves the page), or opened the comment in the pane (it goes).
-    - Kept per page in this browser, `spell-comment-read:<path>` in `localStorage`:  each comment's latest news stamp
-      (its last answer, else when it was taken).  A newer answer brings the card back.
-  - Where a card goes (Owen, 2026-10-10:  "show them under the paragraph where they were defined"):
-    - a text comment's:  right after the smallest paragraph, list item, cell ... holding its quote (`holderOf()`);
-      inside a list item or cell, at its end
-    - else under its block, as before;  a docs section's first in its body
-  - A card is drawn as the pane is (Owen, 2026-10-10:  "bullhorn popup looks good.  These are ugly"):
-    - one ivory panel, the pane's outline, corners and 8px inside;  no shadow
-    - its header the pane's summary (`headline()`:  the quote's first words, else the block's), not "Owen"
-      - its tooltip the full place;  then its state, the date, the trash
-    - NO quote in it (Owen, 2026-10-10:  "I still don't care about the fully selected text")
-    - its text in a box as the pane's field;  Claude's answers in it, violet
-    - The state, quiet:  "Taken by Claude" / "Answered" (the bullhorn's list:  "Waiting for Claude" too),
-      after a dot by the fill rule (a ring while it waits, solid once Claude has it).
-    - Its icon buttons, and the pane's (×, the trash), are plain:  no ring, a tint under the pointer.
+  - THREADS (Owen, 2026-10-10:  "the entire comment thread should be in one collapsable/accordion pane").
+    EVERY comment shows as one, the runtime's `thread()`:
+    - A thread is the comment, then its `replies` in order (Claude's answers, Owen's replies), then maybe `done`.
+    - WHOSE TURN (`CommentList.turnOf()`, sent by the GET as each comment's `turn`):
+      - `owen`:  Claude spoke last.  Also a plan doc's comment answered in the doc, with no words on the thread.
+      - `claude`:  Owen spoke last, his comment or his reply.  Claude may have taken it, not answered yet.
+      - `done`:  Owen closed it.
+    - Where:  right after the smallest paragraph, list item, cell ... holding its quote (`holderOf()`;  inside a
+      list item or cell, at its end);  else under its block, a docs section's first in its body.
+      Owen, 2026-10-10:  "show them under the paragraph where they were defined".
+    - Folded to its header, except while it's Owen's turn, or he opened it on this visit.
+      Before threads, a comment had a card only while it had news Owen hadn't read.
+  - A thread's LOOK (the mockup, `pages/details/comment-thread-mock.html`, and Owen's notes on it):
+    - ALL ivory, whoever spoke last:  the pane's `--spell-rail-bg`, outline and corners;  no shadow
+      ("Make the entire thing ivory").
+    - Its header:  a chevron, the bullhorn (a green check circle once done), the pane's summary (`headline()`:  the
+      quote's first words, else the block's;  its tooltip the full place).  No date:  each message has its time.
+    - Then OWEN'S ANSWER, while it's his turn:  a plan doc item's review pills (`<epic-review>` in `packages/epics`),
+      drawn with the same markup and look, since a guide doesn't load that pack ("same semantics/look as pills
+      in item header").
+      - ONE grouped pill of 24px square icon buttons, grey outlined, on the page's ground;  its colour under the
+        pointer.  Tooltips:  just the name, as the item's.
+      - Approve's check (green):  "that's good".  The thread is done:  it folds, a check circle in its header.
+      - Revisit's history (blue):  reply.  A box opens under the messages.
+      - The note box's x (grey):  "skip it".  Done, nothing more to do.
+      - A toast says it's done, with Undo (`reopen`).  A closed thread shows Reopen in their place.
+    - The pen, while his last words wait and Claude hasn't taken them:  they come back in the box to change.
+    - The trash, always.
+    - The MESSAGES, no "You" or "Claude" ("lose the 'claude' 'You' bit"):  the colour says who.
+      - Owen's:  plain on the ivory, no box, but the same padding as a boxed one ("my text doesn't get bordered").
+      - Claude's:  a light violet box (`--ui-violet` mixed light), a thin violet outline, no side bar.
+        Also "Taken into <epic> P<n>", and "Answered in the plan doc" for an answer with no words here.
+      - A green Done line once closed:  a check, "That's good." or "Skipped", the commit Claude named.
+      - Each one's time in its top right corner, `position: absolute`.
+        The first's carries the day (`10/10 09:12`), the rest only the time, unless the day changed.
+        The full date and time is its tooltip.
+        A hidden copy floats there, so the first line's text stops short of it.
+  - The REPLY BOX (`startReply()`):  the pane's field, under the messages, its floppy in the corner.
+    - It saves itself as he types (`reply`):  his PENDING reply (the last entry, his, not taken since) changes,
+      rather than adding another.  Emptied, it goes.
+    - The pen's box edits his first words while the comment is `new` (`edit`).
+      Emptied, the comment goes only as the box closes, with Undo:  clearing it to type afresh never loses it.
+    - Escape or ⌘ Enter closes it.  Kept across redraws, the cursor with it.
+    - A draft is kept in this browser while it differs from what's saved.
+  - Owen's icon buttons outside the pill (the pen, the trash, the pane's ×) are plain:  no ring, a tint under the
+    pointer.
   - Built for reading offline, with no Claude:  only the page server writes them.
 - Where they're kept (git-ignored in the shared repo:  waiting work, per machine):
   - a docs page's:  its INBOX FILE, `<page>.inbox.json` beside it ([GuideInbox.ts](tools/GuideInbox.ts))
@@ -649,10 +674,16 @@ In `tools/`:
   - a text comment also has its `quote` and `offset`
 - The routes:  [commentsRoutes.ts](tools/commentsRoutes.ts)
   - `GET /api/comments?page=` (`takesComments`, every comment)
-  - `POST /api/comments { page, action: add | edit | delete | clear | restore, ... }`
+  - `POST /api/comments { page, action: add | edit | delete | clear | restore | reply | resolve | reopen, ... }`
     - edit and delete only while `new`;  clear whatever its state
     - add and edit need text:  blank is a 400
     - `restore { id, comment }`:  the trash's Undo, the comment as the GET gave it (`CommentList.restore()`)
+    - the thread:
+      - `reply { id, text }`:  Owen's reply, as he types (blank empties his pending one;  none pending, a 400)
+      - `resolve { id, how: good | skip }`:  "that's good" / "skip it" close it
+      - `reopen { id }`
+  - The GET adds each comment's `turn`.
+    The runtime works it out itself from a server started before threads (`withTurns()`).
   - pages under `guides/`, `pages/`, `epics/` (plan docs too)
   - NOT:
     - a plan doc's `parts/`
@@ -662,16 +693,22 @@ In `tools/`:
 
   ```sh
   spell dev comments list [--all] [--json]
-  spell dev comments answer <page> <id> --file <html>
+  spell dev comments answer <page> <id> --file <html> [--commit <sha>]
   spell dev comments gather [<page>... | --all] [--epic <name>] [--json]
   ```
 
+  - WAITING (`CommentList.waiting`):  Claude's turn, not taken since Owen last spoke.
+    So Owen's reply on a thread is new work, as a new comment is:  `list` shows it under the comment.
+  - `answer` puts Claude's answer on the thread:  Owen's turn.  `--commit`:  the Done line shows it.
   - `gather` takes every waiting comment (and page note still `new`) into ONE epic, `guide-changes`.
     - one phase per page;  an Updated block in the page's phase while it's open
+    - a reply rides along under its comment ("Owen replied on the thread")
     - each comment then `taken`
     - `/airplane land` runs it.
-- Claude's side, for plan docs:  `spell dev plan-doc inbox <name>` lists them.
-  - Answered like a revisit's note, then `plan-doc inbox <name> done cm3` (or `clear cm3`).
+- Claude's side, for plan docs:  `spell dev plan-doc inbox <name>` lists them, and Owen's replies under them.
+  - Answered like a revisit's note, then `plan-doc inbox <name> done cm3 [--file <html>] [--commit <sha>]`
+    (or `clear cm3`).
+  - `--file`:  the answer on the thread too.  Without it, "Answered in the plan doc".
 
 ## Page notes
 

@@ -1,5 +1,5 @@
-import { existsSync } from "node:fs"
-import { relative } from "node:path"
+import { existsSync, readFileSync } from "node:fs"
+import { relative, resolve } from "node:path"
 import { setTimeout as sleep } from "node:timers/promises"
 
 import { PlanDocError, type ItemDescription, type KeptNote, type MarkResult, type OptionCard } from "./planDoc.types"
@@ -75,7 +75,7 @@ export class InboxCommands {
       }
       case "done":
       case "clear":
-        return this.finish(file, what, args)
+        return this.finish(file, what, args, flags)
       default:
         throw new PlanDocError(`inbox what?  listen | unlisten | wait | apply | working | done | clear (not '${what}')`)
     }
@@ -167,11 +167,15 @@ export class InboxCommands {
       lines.push(`  - ${id.toUpperCase()}  ${action}  "${note.trim()}"  (${at})`)
     const comments = inbox.commentList.waiting
     if (comments.length) lines.push(`comments, waiting for an answer (${comments.length}):`)
-    for (const comment of comments)
+    for (const comment of comments) {
       lines.push(
         `  - ${comment.id.toUpperCase()}  on ${comment.anchor} (${comment.kind})` +
           `${comment.quote ? `  quoting "${comment.quote.slice(0, 60)}"` : ""}  "${comment.text.slice(0, 120)}"  (${comment.at})`
       )
+      // his reply on the thread since Claude answered:  the work now
+      const reply = comment.replies?.findLast((each) => each.by === "Owen")
+      if (reply) lines.push(`    Owen replied:  "${reply.text!.slice(0, 160)}"  (${reply.at})`)
+    }
     this.owner.print(lines.join("\n"))
 
     /** A mark's own fields after its title:  the pick, a revisit's when and note, unsent. */
@@ -405,10 +409,10 @@ export class InboxCommands {
    *   - unless the set has a `chosen` already (a `decide --option` after the talk)
    *   - once Owen picked, the card shows Chosen (Owen, 2026-10-10, epic `airplane` P8)
    */
-  private async finish(file: string, what: "done" | "clear", given: string[]): Promise<void> {
+  private async finish(file: string, what: "done" | "clear", given: string[], flags: Flags = {}): Promise<void> {
     if (!given.length) throw new PlanDocError(`${what} which items?  ids`)
     const comments = given.map(ReviewInbox.toItemId).filter(CommentList.isCommentId)
-    if (comments.length) this.finishComments(file, what, comments)
+    if (comments.length) this.finishComments(file, what, comments, flags)
     const ids = given.filter((id) => !CommentList.isCommentId(ReviewInbox.toItemId(id)))
     if (!ids.length) return
     // before the inbox changes:  a note it drops must land in the doc, which an old-markup doc refuses
@@ -465,16 +469,20 @@ export class InboxCommands {
 
   /**
    * `done` / `clear` comments `ids` (`cm3`, epic `airplane` P11).
-   * - `done`:  answered (Claude answered it in the doc;  the page's card turns solid, "Answered")
+   * - `done`:  answered;  Owen's turn on the page's thread
+   *   - `--file <html>`:  the answer, on the thread (its markup, as is);  none:  answered in the doc
+   *   - `--commit <sha>`:  the commit it was built in (the thread's Done line shows it)
    * - `clear`:  gone from the inbox
-   * - throws when one isn't there
+   * - throws when one isn't there, or the file can't be read
    * - SIDE EFFECT:  writes the inbox, under its lock
    */
-  private finishComments(file: string, what: "done" | "clear", ids: string[]): void {
+  private finishComments(file: string, what: "done" | "clear", ids: string[], flags: Flags): void {
+    const html = typeof flags.file === "string" ? readFileSync(resolve(flags.file), "utf8") : ""
+    const commit = typeof flags.commit === "string" ? flags.commit : undefined
     ReviewInbox.update(ReviewInbox.pathFor(file), (box) => {
       for (const id of ids) {
         box.commentList.comment(id)
-        if (what === "done") box.commentList.answer(id)
+        if (what === "done") box.commentList.answer(id, html, new Date(), commit)
         else delete box.comments[id]
       }
       box.touchListening()
