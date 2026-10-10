@@ -162,7 +162,7 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
 
   /**
    * While connected:  follow its question -- answered, the chosen letter, its item's status.  Returns the undo.
-   * - `EpicChoices.watch()`'s own `MutationObserver`, not `@fromContent`:
+   * - `EpicChoices.watch()`'s own `MutationObserver`, not `@watches`:
    *   it watches its `<epic-choices>` and `<epic-item>`, ANCESTORS.
    */
   @E.whileConnected
