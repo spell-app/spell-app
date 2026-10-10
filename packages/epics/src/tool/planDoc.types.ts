@@ -230,7 +230,7 @@ export type AddItemOptions = {
   details?: string
   /** `title` is HTML, not text:  with markup, it's a `slot="title"` child */
   titleHTML?: boolean
-  /** not urgent (`calm`):  a judgement call or issue that simply follows WWOD;  `--calm` */
+  /** not urgent (`calm`):  a judgement call or issue that wouldn't surprise Owen;  `--calm` */
   calm?: boolean
 }
 

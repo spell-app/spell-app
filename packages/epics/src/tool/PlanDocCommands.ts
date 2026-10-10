@@ -10,6 +10,7 @@ import { InboxCommands } from "./InboxCommands"
 import { ItemPicker } from "./ItemPicker"
 import { PlanDoc } from "./PlanDoc"
 import { EPIC_STATUSES, PlanDocFiles, type EpicListing } from "./PlanDocFiles"
+import { PlanItem } from "./PlanItem"
 import { PlanMarkup } from "./PlanMarkup"
 import { PART_EXT, PART_FILE, PARTS_DIR } from "./PlanParts"
 import type { PlanReader } from "./PlanReader"
@@ -23,7 +24,7 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
  * edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
  * Used by the `/epic` skill and its agents.
  * - what's data:  `PLAN-DOC.md` beside this;  the elements:  `$/epics/definitions`
- * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `decide`, `close`, `cancel`, `reopen`, `commit`,
+ * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `calm`, `decide`, `close`, `cancel`, `reopen`, `commit`,
  *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `docs`, `decisions`, `check`, `open`, `convert`,
  *   `split`, `join`, `inbox`, `details`, `status`, `original`
  *   (`spell dev plan-doc` with no command lists them:  `USAGE`).
@@ -143,6 +144,11 @@ export class PlanDocCommands {
           plan.addItem(need(rest[0], "a kind"), need(rest[1], "a title"), flags)
         )
         return this.print(id.toUpperCase())
+      }
+      case "calm": {
+        if (!rest.length) need(undefined, "an item id")
+        const lines = await this.edit(file, (plan) => rest.map((id) => calmItem(plan, id, !flags.loud)))
+        return this.print(lines.join("\n"))
       }
       case "decide": {
         const question = need(rest[0], "a question id")
@@ -788,8 +794,10 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    brings the doc forward in VS Code (it updates itself)
   add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details html] [--calm]
                                                    prints the new id (a decision:  a question born answered,
-                                                   Q7);  --calm (last):  a judgement call or issue that simply
-                                                   follows WWOD, blue (not urgent) rather than red
+                                                   Q7);  --calm (last):  a judgement call or issue that
+                                                   wouldn't surprise Owen, yellow (open) rather than red
+  calm <name> <id>... [--loud]                     calls / issues not urgent (yellow, open), as the page's
+                                                   id chip does;  --loud (last):  urgent (red) again
   decide <name> <Q id> "answer" [--details html] [--option A]
                                                    answer a question:  the answer goes INTO it (an ivory card);
                                                    --option marks the chosen option card;  prints its id
@@ -937,6 +945,18 @@ export function parseArgs(argv: string[]): { positional: string[]; flags: Flags 
     else flags[camel(match[1])] = true
   }
   return { positional, flags }
+}
+
+/**
+ * Item `id` not urgent (`calm`) or urgent again, as the page's id chip does (`PlanDoc.setCalm()`), logged;
+ * returns the line to print:  `J11 not urgent:  <title>`, or `J11 not urgent already:  <title>` (not logged).
+ */
+function calmItem(plan: PlanDoc, id: string, calm: boolean): string {
+  const did = plan.setCalm(id, calm)
+  const state = did ?? `${calm ? "not urgent" : "urgent"} already`
+  const line = `${id.toUpperCase()} ${state}:  ${PlanItem.titleOf(plan.item(id))}`
+  if (did) plan.log(line)
+  return line
 }
 
 /** `no-browser` -> `noBrowser`. */

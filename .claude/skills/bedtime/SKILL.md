@@ -137,7 +137,15 @@ Everything else stands:
        an `<epic-choices>` of `<epic-option letter title [recommended]>`
      - the outcome:  an `<epic-net-effect>`
      - code:  an `<epic-code>`
-   - A call that simply follows WWOD:  add `--calm` (last), so it shows yellow (open) rather than red.
+   - CALM by default:  add `--calm` (last), so it shows yellow (open) rather than red.  An issue too.
+     - Owen:  "if what you picked was reasonable, and I didn't explicitly state otherwise, [it] should be yellow"
+       (2026-10-10, "the principle of least surprise").
+     - RED (no `--calm`) only when it would surprise him:  it goes against something he said;
+       it drops, narrows or changes what he asked for;  a real fork he'd plausibly have picked differently
+       AND that matters to him (cost, behaviour he'll notice, something hard to undo);
+       or it needs his answer before work can go on.
+     - Following WWOD is one case of calm, not the only one.
+     - The rule in full:  [the epic skill](../epic/SKILL.md), "5. Each phase", step 2.
    - The phase's "To review" line lists it by itself:  the tool writes it on every edit.
      Never hand-write a "Judgement calls:" line.
    - Agents you start record theirs the same way:  put the command in their prompt.
@@ -179,7 +187,7 @@ Everything else stands:
 ```
 bedtime <name> start "P3-P6"            bedtime mode on;  logs "Bedtime started"
 phase <name> <N> active|done            each phase;  done --done "<ul>...</ul>" writes its Done list
-add <name> judgement|issue|todo ...     every call, problem, loose end:  an item (calls and issues red)
+add <name> judgement|issue|todo ...     every call, problem, loose end:  an item (--calm unless it'd surprise Owen)
 commit <name> <sha> --phase <N> "..."   the phase's commit, under its Commits
 log <name> "P<n> done|WIP|skipped ..."  what happened, timestamped
 bedtime <name> done "summary"           bedtime mode off;  logs "Bedtime done"

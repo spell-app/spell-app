@@ -439,7 +439,7 @@ export class PlanDoc extends PlanReader {
    *   everything else at the end
    * - while a phase is active:  `phase` (its "To review" line lists it) and an UPDATE marker
    * - in bedtime mode (a `/bedtime` run):  `overnight`, for good (the bed icon on its line)
-   * - `calm`:  not urgent (blue, not red, until reviewed):  a judgement call or issue that simply follows WWOD
+   * - `calm`:  not urgent (yellow, not red, until reviewed):  a judgement call or issue that wouldn't surprise Owen
    * - stamped (`stamp()`)
    * - throws on a kind not in `KINDS`;  `calm` on a kind that's never urgent
    */
