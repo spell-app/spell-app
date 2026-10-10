@@ -49,7 +49,7 @@ export const drawingMethods = defineSpellCoreModule({
 
   /**
    * An element, drawn with Solid (`@solidjs/h`) -- compiled from spell's JSX, e.g. `<div foo=1>{expr}</div>` =>
-   * `spellCore.element({ tag: "div", props: { foo: 1 }, children: [() => expr] })` (see `JSX.ts`).
+   * `spellCore.element({ tag: "div", props: { foo: 1 }, children: [() => expr] })` (see `rules/JSX/`).
    * - Props and children that are functions are LIVE:  called while drawing, and again when what they read changes.
    *   Handlers (`onClick`) are the exception:  called on the event.
    * - React's spellings, as spell programs write them, become the page's:  `className` => `class`, `htmlFor` =>
@@ -73,7 +73,8 @@ export const drawingMethods = defineSpellCoreModule({
 
   /**
    * `drawable`'s drawing, in its own error net -- `null` if it can't draw (no `draw()`).
-   * - Compiles from `draw the card` -- see `draw.ts`.  Takes ANYTHING, as it checks:  compiled spell draws what
+   * - Compiles from `draw the card` -- see `rules/draw/DrawThing.ts`.
+   *   Takes ANYTHING, as it checks:  compiled spell draws what
    *   TypeScript can't type, e.g. the last card of a pile.
    * - Its `draw()` re-runs when something it read OUTSIDE its live values changes, e.g. the `is face down` an
    *   `if` chose by:  the card's node is drawn again, nothing else.  Its live values update on their own.
@@ -89,7 +90,7 @@ export const drawingMethods = defineSpellCoreModule({
 
   /**
    * Each item of `list`, drawn in its own error net -- `null` if `list` has no items to draw.
-   * - Compiles from `draw each card in the deck` / `draw cards of the deck` -- see `draw.ts`.
+   * - Compiles from `draw each card in the deck` / `draw cards of the deck` -- see `rules/draw/DrawItems.ts`.
    * - Kept by IDENTITY (`<For>`):  an item added, removed or moved changes only its own node.
    */
   drawItems(list: unknown): Drawing | null {

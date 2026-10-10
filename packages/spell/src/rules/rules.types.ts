@@ -14,7 +14,7 @@ import type { P } from "$/parser"
 /**
  * Which of several rules matching the SAME words wins a `Choice`, higher first --
  * e.g. `@proto static priority = Priority.declaration`.
- * - Only a tie-break:  NOT how tightly an operator binds, which is `Precedence` (`expressions.ts`).
+ * - Only a tie-break:  NOT how tightly an operator binds, which is `Precedence` (`expressions/expressions.shared.ts`).
  * - Then the longest match wins, then the earliest rule -- see `P.Choice.getBestMatch()`.
  * - A new level is a new name here, with a why.  `expressions.test.ts` pins every rule's.
  */

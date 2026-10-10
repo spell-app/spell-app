@@ -15,6 +15,6 @@ import { SpellParser } from "$/spell/SpellParser"
  *   several words, blacklisted ones too, e.g. `the short rank of the card`.
  * - Or it's LOOSE:  ONE word nothing declared, as every read was before types
  *   (`property_expression` too, `its_property`).  Plan doc D5.
- * - A type's class members, e.g. `card suits`, are `class_member` in `classes.ts`.
+ * - A type's class members, e.g. `card suits`, are `class_member`, in `classes/ClassMember.ts`.
  */
 export const properties = new SpellParser({ module: "properties" })

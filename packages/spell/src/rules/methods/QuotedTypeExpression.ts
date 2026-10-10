@@ -13,7 +13,7 @@ import type { MethodSignatureData } from "./methods.shared"
 /**
  * `quoted_type_expression` rule:  defines an ad-hoc expression on a type from a QUOTED signature,
  * e.g. `a thing "nerds out" if`, `a thing "is a bug" if`, `a thing "nerds out with (another as a thing)" if`.
- * - `Priority.belowDeclaration`:  defers to more specific method-definition rules in `classes.ts`
+ * - `Priority.belowDeclaration`:  defers to more specific method-definition rules in `classes/`
  *   (e.g. `define_property_has`) when both could match the same tokens.
  * - Quoting the signature (`quoted_method_signature`) lets it start with plain english words (`is`,
  *   `has`, `can`, `will`, ...) that would otherwise collide with other statement/expression rules.

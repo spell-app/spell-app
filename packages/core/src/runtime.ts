@@ -157,7 +157,7 @@ export const runtimeMethods = defineSpellCoreModule({
 
   /**
    * Start a conceptual process by `name`.
-   * - Compiles from spell `start process X` / `start animation X` (see `async.ts`).
+   * - Compiles from spell `start process X` / `start animation X` (see `rules/async/StartProcess.ts`).
    * - `exclusively`: pass `'EXCLUSIVE'` to flag it exclusive -- this unconditionally (re)flags the
    *   process, so exclusive callers MUST check `processIsRunning()` first if they want re-entry guarded
    *   (compiled `start exclusive process X` does this for you).
@@ -176,7 +176,7 @@ export const runtimeMethods = defineSpellCoreModule({
 
   /**
    * Is a given process running?
-   * - Compiles from spell `X is running` / `X isn't running` (see `check_process` in `async.ts`);
+   * - Compiles from spell `X is running` / `X isn't running` (see `check_process`, `rules/async/CheckProcess.ts`);
    *   the `isn't` form wraps this in a `NotExpression` rather than negating here.
    * TODO: second `exclusively` parameter so we can tell if it's running exclusively?
    */
@@ -189,7 +189,7 @@ export const runtimeMethods = defineSpellCoreModule({
 
   /**
    * Stop a given process.
-   * - Compiles from spell `stop`/`end`/`finish`/`cancel` `process`/`animation` `X` (see `async.ts`).
+   * - Compiles from spell `stop`/`end`/`finish`/`cancel` `process`/`animation` `X` (see `rules/async/StopProcess.ts`).
    * - If process was not started exclusively, this decrements its counter instead of clearing it.
    * - Returns `true` if process is still running (non-exclusive counter still `> 0`).
    */

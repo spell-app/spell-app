@@ -61,7 +61,8 @@ import { P } from "$/parser"
  *   a `P.Group` under the rule's name.
  * - A `Sequence` tests its own words / symbols before parsing any subrule, e.g. `remove {thing} from {list}`
  *   needs `remove`, then `from` somewhere later -- see `Sequence.test()`.  Override `test()` to do better.
- * - `syntax`, `tests` and `ruleName` are NOT inherited -- share syntax with a `const` (see `variables.ts`).
+ * - `syntax`, `tests` and `ruleName` are NOT inherited -- share syntax with a `const`,
+ *   e.g. spell's `VARIABLE_SYNTAX` (`rules/variables/variables.shared.ts`).
  * - What EVERY rule of a base class has in common can go in that base's CONSTRUCTOR, as defaults:
  *   `constructor(props?: Partial<P.PatternProps>) { super({ pattern, blacklist, ...props }) }`.
  * - A definition MAY still carry any prop, winning over the class -- `P.Parser.addRule()` accepts them all.

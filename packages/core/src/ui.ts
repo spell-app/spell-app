@@ -4,7 +4,7 @@ import { defineSpellCoreModule } from "./spellCore.types"
 /**
  * Assembled `spellCore` UI-interaction methods:
  * - time (`pauseFor`)
- * - talking to the person running the program:  `notify`, `alert`, `confirm`, `prompt` (spell's `UI.ts` rules), on
+ * - talking to the person running the program:  `notify`, `alert`, `confirm`, `prompt` (spell's `rules/UI/`), on
  *   Spell UI's toasts and dialogs
  * - stylesheet installation (`installStyles`)
  * - Drawing (`element()`, `drawThing()` ...) is `drawing.ts`.
@@ -31,7 +31,7 @@ export const uiMethods = defineSpellCoreModule({
   /**
    * Return promise which resolves after `number` `units` have elapsed.
    * - `units` looked up in `TIME_UNITS_MAP`; unrecognized `units` fall back to seconds.
-   * - Compiles from spell `pause for {number} {units}` (see `async.ts`); caller `await`s it.
+   * - Compiles from spell `pause for {number} {units}` (see `rules/async/Pause.ts`); caller `await`s it.
    */
   pauseFor(number: number, units = "seconds"): Promise<void> {
     const multiplier = spellCore.TIME_UNITS_MAP[units] || 1000
@@ -97,7 +97,7 @@ export const uiMethods = defineSpellCoreModule({
    * Create/initialize a `name`d stylesheet with specified `css` text.
    * - If you call this a second time with same `name`, it'll replace the element with that `name`.
    * - Compiles from a bare (unquoted) CSS text literal, e.g. a spell `.css` file's contents; newlines
-   *   in `css` arrive escaped as `¬` (see `css` rule in `UI.ts`), since they survived being embedded
+   *   in `css` arrive escaped as `¬` (see the `css` rule, `rules/UI/CSSStyles.ts`), since they survived being embedded
    *   in a backtick template literal -- unmunged back to `\n` here before use.
    * - Goes in `spellCore.domRoot()`:  the app's shadow root if it's in one, so its styles stay inside it --
    *   else `document`'s `<head>`.

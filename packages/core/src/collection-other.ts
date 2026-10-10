@@ -52,7 +52,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * Does `collection` include ALL of the specified `values`?
    * - If more than one value specified, all must be included.
    * - Compiles from `theList includes thing` / `thing is in theList` / `thing is either red or green`
-   *   -- see `expressions.ts`.
+   *   -- see `rules/expressions/`.
    */
   includes(collection?: unknown, ...values: unknown[]): boolean {
     if (!assert.isDefined(collection, "spellCore.includes(collection)")) return false
@@ -75,7 +75,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
 
   /**
    * Return a duplicate of the list.
-   * - Compiles from `a copy of the piles` / `a duplicate of list the piles as a list` -- see `lists.ts`.
+   * - Compiles from `a copy of the piles` / `a duplicate of list the piles as a list` -- see `rules/lists/CopyList.ts`.
    * - Typed as what it makes:  a `Pile` copied is a `Pile`;  copied `as` a class, that class.
    */
   duplicateList<C, K = C>(collection?: C, constructor?: new () => K): K {
@@ -96,7 +96,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
 
   /**
    * Given a list of lists, merge into a new one of the same type as the first in the list.
-   * - Compiles from `merge the piles` / `merge the piles as a list` -- see `lists.ts`.
+   * - Compiles from `merge the piles` / `merge the piles as a list` -- see `rules/lists/MergeLists.ts`.
    * - Typed as what it makes:  piles merged are a `Pile`;  merged `as` a class, that class.
    */
   mergeLists<T = unknown, K = T>(collections?: CollectionOf<T>, constructor?: new () => K): K | undefined {
@@ -120,7 +120,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
 
   /**
    * Is `thing` the first thing in `collection`?  Array only.
-   * - Compiles from `my-list starts with thing` -- see `lists.ts`.
+   * - Compiles from `my-list starts with thing` -- see `rules/lists/StartsWith.ts`.
    */
   startsWith(collection?: unknown, thing?: unknown): boolean {
     if (!assert.isArrayLike(collection, "spellCore.startsWith(collection)")) return false
@@ -130,7 +130,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
 
   /**
    * Is `thing` the last thing in `collection`?  Array only.
-   * - Compiles from `my-list ends with thing` -- see `lists.ts`.
+   * - Compiles from `my-list ends with thing` -- see `rules/lists/EndsWith.ts`.
    */
   endsWith(collection?: unknown, thing?: unknown): boolean {
     if (!assert.isArrayLike(collection, "spellCore.endsWith(collection)")) return false
@@ -151,7 +151,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Add `things` just before `item` in `collection`, pushing `item` and what follows down.  Array only.
    * - `item` isn't in `collection`:  added at the START.
-   * - Compiles from `add thing to my-list before other-thing` -- see `lists.ts`.  `List.addBefore()` calls it.
+   * - Compiles from `add thing to my-list before other-thing` -- see `rules/lists/ListAddRelative.ts`.
+   *   `List.addBefore()` calls it.
    */
   addBefore(collection?: unknown, item?: unknown, ...things: unknown[]): void {
     if (!assert.isArrayLike(collection, "spellCore.addBefore(collection)")) return
@@ -162,7 +163,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Add `things` just after `item` in `collection`, pushing what follows it down.  Array only.
    * - `item` isn't in `collection`:  added at the END.
-   * - Compiles from `add thing to my-list after other-thing` -- see `lists.ts`.  `List.addAfter()` calls it.
+   * - Compiles from `add thing to my-list after other-thing` -- see `rules/lists/ListAddRelative.ts`.
+   *   `List.addAfter()` calls it.
    */
   addAfter(collection?: unknown, item?: unknown, ...things: unknown[]): void {
     if (!assert.isArrayLike(collection, "spellCore.addAfter(collection)")) return
@@ -214,7 +216,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * Return subset of list from `start` to `end` as 1-based positions, inclusive.  Array only.
    * NOTE: this is positive numbers only, `rangeStartingAt()` deals with negatives. (???)
    * - Nothing in range:  an empty one of its kind -- see `emptyRangeOf()`.
-   * - Compiles from `item 1 to 2 of my-list` -- see `lists.ts`.
+   * - Compiles from `item 1 to 2 of my-list` -- see `rules/lists/RangeBetweenExpression.ts`.
    */
   rangeBetween(collection?: unknown, start?: number | null, end?: number | null): unknown {
     if (!assert.isArrayLike(collection, "spellCore.rangeBetween(collection)")) return []
@@ -232,7 +234,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * NOTE: this is positive numbers only. (???)
    * - Slides other items into the gaps.
    * - A `List` removes each through its own `removeItem()`, last first, so it keeps its owners -- see `List`.
-   * - Compiles from `remove items 2 to 4 of my-list` -- see `lists.ts`.
+   * - Compiles from `remove items 2 to 4 of my-list` -- see `rules/lists/ListRemoveRange.ts`.
    */
   removeRangeBetween(collection?: unknown, start?: number | null, end?: number | null): void {
     if (!assert.isArrayLike(collection, "spellCore.removeRangeBetween(collection)")) return
@@ -269,7 +271,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * Return `count` items from list starting with `start` as 1-based position.  Array only.
    * - Negative `start` takes from the end of the list (but returns in list order).
    * - Compiles from `top 2 items of my-list` / `first 2 words in "..."` / `last two cards from deck`
-   *   -- see `lists.ts`.
+   *   -- see `rules/lists/RangeCountExpression.ts`.
    * - Typed as its collection:  a range of a `Pile` is a `Pile`.
    */
   rangeStartingAt<C>(collection?: C, start?: number | null, count?: number | null): C {
@@ -317,7 +319,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Execute `method` for each item in `collection`, returning results in same type as `collection`.
    * - Compiles from `for each number from 1 to 10: ...` / `repeat 3 times: ...` as
-   *   `spellCore.map(spellCore.getRange(...), (number) => { ... })` -- see `lists.ts`.
+   *   `spellCore.map(spellCore.getRange(...), (number) => { ... })` -- see `rules/lists/`.
    * TODO: rename???
    */
   map<T = unknown>(collection?: CollectionOf<T>, method?: CollectionIterationCallback<NoInfer<T>>): unknown {
@@ -334,7 +336,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * Return new `collection` of only things which match `condition` filter.
    * - For array: returns a compacted collection of same type.
    * - For object: returns new type of collection with just specified keys.
-   * - Compiles from `words in "a word list" where ...` -- see `lists.ts`.
+   * - Compiles from `words in "a word list" where ...` -- see `rules/lists/ListFilter.ts`.
    * - Typed as its collection:  the piles filtered are a `List<Pile>`, a `Pile` filtered is a `Pile`.
    */
   filter<T = unknown, C extends CollectionOf<T> = CollectionOf<T>>(
@@ -378,7 +380,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Return `true` if at least one item in collection matches `condition`, called as
    * `condition(value, position, collection)`.
-   * - Compiles from `my-list has items where ...` -- see `lists.ts`.
+   * - Compiles from `my-list has items where ...` -- see `rules/lists/ListMembershipTest.ts`.
    */
   any<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): boolean {
     if (!assert.isDefined(collection, "spellCore.any(collection)")) return false
@@ -410,7 +412,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Remove all occurance of `things` from collection, in-place.
    * - For object: removes `values`.
-   * - Compiles from `remove thing from my-list` -- see `lists.ts`.
+   * - Compiles from `remove thing from my-list` -- see `rules/lists/ListRemove.ts`.
    */
   remove(collection?: unknown, ...things: unknown[]): void {
     if (!assert.isDefined(collection, "spellCore.remove(collection)")) return
@@ -425,7 +427,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
 
   /**
    * Remove items from `collection` which match `condition`, called as `condition(value, position, collection)`.
-   * - Compiles from `remove items from my-list where ...` -- see `lists.ts`.
+   * - Compiles from `remove items from my-list where ...` -- see `rules/lists/ListRemoveWhere.ts`.
    */
   removeWhere<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): void {
     if (!assert.isDefined(collection, "spellCore.removeWhere(collection)")) return
@@ -443,7 +445,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * and `collection` takes it.
    * - Returns whether it moved.  Refused:  nothing changes.  See `List.moveHere()`.
    * - A plain list has no guards:  `thing` is just added.
-   * - Compiles from `move thing to my-list`, a statement or a yes / no -- see `lists.ts`.
+   * - Compiles from `move thing to my-list`, a statement or a yes / no -- see `rules/lists/ListMove.ts`.
    */
   move(thing?: unknown, collection?: unknown): boolean {
     if (!assert.isArrayLike(collection, "spellCore.move(thing, collection)")) return false
@@ -455,7 +457,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
 
   /**
    * Would `collection` take `thing`, moved there?  See `List.canTake()`.  A plain list takes anything.
-   * - Compiles from `the tableau can take the card` -- see `lists.ts`.
+   * - Compiles from `the tableau can take the card` -- see `rules/lists/CanTake.ts`.
    */
   canTake(collection?: unknown, thing?: unknown): boolean {
     if (!assert.isArrayLike(collection, "spellCore.canTake(collection)")) return false
@@ -465,7 +467,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
 
   /**
    * Would `collection` give up `thing`, moved elsewhere?  See `List.canGiveUp()`.  A plain list gives up anything.
-   * - Compiles from `the pile can give up the card` -- see `lists.ts`.
+   * - Compiles from `the pile can give up the card` -- see `rules/lists/CanGiveUp.ts`.
    */
   canGiveUp(collection?: unknown, thing?: unknown): boolean {
     if (!assert.isArrayLike(collection, "spellCore.canGiveUp(collection)")) return false
@@ -488,7 +490,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
 
   /**
    * Return a single item from `collection`, picked randomly.
-   * - Compiles from `a random item of my-list` / `a random card from the deck` -- see `lists.ts`.
+   * - Compiles from `a random item of my-list` / `a random card from the deck`
+   *   -- see `rules/lists/RandomItemExpression.ts`.
    * - Typed by `collection`, as `getItemAt()`.
    */
   randomItemOf<T = unknown>(collection?: CollectionOf<T>): T | undefined {
@@ -501,7 +504,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Return list of up to `count` items from `collection`, picked randomly, where each item can be
    * returned only once.  Returns same type as was passed in.
-   * - Compiles from `2 random items of my-list` / `3 random cards from deck` -- see `lists.ts`.
+   * - Compiles from `2 random items of my-list` / `3 random cards from deck`
+   *   -- see `rules/lists/RandomItemsExpression.ts`.
    */
   randomItemsOf(collection?: unknown, count?: number): unknown {
     if (!assert.isDefined(collection, "spellCore.randomItemsOf(collection)")) return undefined
@@ -525,7 +529,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Randomize `collection` in-place.
    * - No-op for a plain-object collection -- only array-like collections are reordered.
-   * - Compiles from `shuffle my-list` / `randomize my-list` -- see `lists.ts`.
+   * - Compiles from `shuffle my-list` / `randomize my-list` -- see `rules/lists/ListShuffle.ts`.
    */
   randomize(collection?: unknown): void {
     if (!assert.isDefined(collection, "spellCore.randomize(collection)")) return
@@ -536,7 +540,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
 
   /**
    * Return smallest item of `collection` according to `<` comparison.
-   * - Compiles from `smallest of prices` / `smallest value in prices` -- see `math.ts`.
+   * - Compiles from `smallest of prices` / `smallest value in prices` -- see `rules/math/Min.ts`.
    */
   smallestOf(collection?: unknown): unknown {
     if (!assert.isDefined(collection, "spellCore.smallestOf(collection)")) return undefined
@@ -547,7 +551,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
 
   /**
    * Return largest item of `collection` according to `>` comparison.
-   * - Compiles from `largest of the prices` / `biggest in prices` -- see `math.ts`.
+   * - Compiles from `largest of the prices` / `biggest in prices` -- see `rules/math/Max.ts`.
    */
   largestOf(collection?: unknown): unknown {
     if (!assert.isDefined(collection, "spellCore.largestOf(collection)")) return undefined

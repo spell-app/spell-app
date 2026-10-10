@@ -3,7 +3,7 @@
  * - Not a plain re-export barrel: this folder is a list of independent rule modules, each exporting
  *   its rule classes plus a `SpellParser` which registers them -- this file combines those parsers
  *   via `spellParser.import(...)`.
- * - A module is a folder, one rule per file (`events/`), or still one file (`lists.ts`):
+ * - A module is a folder, one rule per file, e.g. `events/`:
  *   see "Parser rules" in spell's `AGENTS.md`.
  * - NOTE: import order matters in a few places -- see the comment above the `ParseError` import.
  *   Structural rules (`blank_line` / `block` / `line` / `parse_error`) are added directly, below.
@@ -70,7 +70,10 @@ export { SpellStatement }
 /** Export so `SpellParser`'s incremental parsing hooks can narrow to them. */
 export { Block, BlockLine }
 
-/** `JSX.ts`'s `match.data` shape for `jsxElement`/`jsxAttribute`/`jsxExpression` matches -- e.g. for UI code that reads them. */
+/**
+ * The JSX module's `match.data` shape for `jsxElement`/`jsxAttribute`/`jsxExpression` matches
+ * -- e.g. for UI code that reads them.
+ */
 export type { JSXMatchData }
 
 // Structural rules.  `SpellBlankLine` and `BlockLine` set `static ruleName`:  their class names don't give them.

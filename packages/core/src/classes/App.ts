@@ -12,7 +12,7 @@ export class App extends Thing {
   /**
    * Mount this app's drawing into `spellCore.appElement()` (`spellCore.mountApp()`), creating a
    * `spellCore.REACT_APP_ROOT_ID` container `div` if there's none.
-   * - Compiles from `start the game` -- see `draw.ts` (a method call on the app instance, not a global).
+   * - Compiles from `start the game` -- see `rules/draw/StartApp.ts` (a method call on the app instance, not a global).
    * - Starting again replaces the app drawn there.
    * - SIDE EFFECT: appends a `div` to `document.body` the first time it's called, if the host set no `appRoot`.
    */

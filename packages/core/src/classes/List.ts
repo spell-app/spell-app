@@ -120,7 +120,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   /**
    * Its items, each drawn in its own error net, kept by identity -- see `spellCore.drawItems()`.
    * - Compiles from `draw each card in the deck` / `draw cards of the deck` => `spellCore.drawItems(deck)`
-   *   -- see `draw.ts`.
+   *   -- see `rules/draw/DrawItems.ts`.
    */
   drawItems(): Drawing {
     return spellCore.drawItems(this)

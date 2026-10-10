@@ -210,7 +210,7 @@ export function unitTestModuleRules(parser: P.Parser, moduleName: string, initia
 /**
  * Write each test's `ts` into the source files the test file at `testPath` tests:  see `P.RuleTestSource`.
  * - A module in a folder of its own, `rules/events/events.test.ts`:  every source file in that folder.
- * - Else the file beside it, `rules/lists.test.ts` => `rules/lists.ts`.
+ * - Else the file beside it, `rules/Block.test.ts` => `rules/Block.ts`.
  * - Returns what it couldn't bless:  see `P.RuleTestSource.bless()`.
  */
 async function blessSources(testPath: string, blessed: BlessedTest[]): Promise<string[]> {
