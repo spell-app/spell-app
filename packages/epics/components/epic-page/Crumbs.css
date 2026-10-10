@@ -4,6 +4,8 @@
  * `.spell-crumbs`, which can't reach into the shadow root.
  * - Spell UI's `<ui-breadcrumb>`, through its public tokens and `::part(breadcrumb)`.
  * - The eyebrow's type from the docs (`--spell-eyebrow-font`, `--spell-eyebrow-tracking`), each with a fallback.
+ * - Its narrow breakpoint is a bare px media query, the site header's own (whose crumbs stand in for these):  this
+ *   sheet isn't built with Spell UI's `@custom-media` ranges, and `--ui-mobile` (768px) isn't the header's width.
  */
 
 @layer ui.components.epic-page.content {
@@ -21,5 +23,14 @@
   }
   .crumbs::part(breadcrumb) {
     font: var(--spell-eyebrow-font, 500 11px/1.2 var(--epic-mono));
+  }
+  /*
+   * narrow (VS Code's side bar, a phone):  none -- the site header shows the same crumbs in place of its tabs there
+   * (`$/server/site` `SiteHeader.ts`, its narrow breakpoint:  720px;  Owen, 2026-10-10), as the docs' eyebrow hides
+   */
+  @media (max-width: 720px) {
+    .crumbs {
+      display: none;
+    }
   }
 }
