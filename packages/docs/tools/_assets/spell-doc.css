@@ -819,14 +819,13 @@ pre code {
  * (`tools/GuideInbox.ts`), drawn by the runtime's "Guide comments" (`PageComments`).
  * - the BULLHORN (`.spell-comment-mark`):  in a section's title (`.at-section`, its `actions` slot), in the page
  *   header (`.at-page`), else (`.at-block`) a line of no height just before the block, its button over the block's
- *   top right corner;  shown while the block is hovered (a section:  its innermost hovered one), when focused, and
- *   always once the block has comments (`data-count`), with the count;  outlined while they all wait for Claude,
- *   solid once he has one (`data-state`), an orange dot while one has a reply he hasn't seen (`data-news`)
+ *   top right corner;  shown only while the block is hovered (a section:  its innermost hovered one) or focused.
+ *   It starts a new comment;  no count:  the block's threads are right there (Owen, 2026-10-10:  "Bullhorn to the
+ *   far right is unnecessary")
  * - every comment's THREAD (`.spell-thread`, in a `.spell-comments` box), under the paragraph holding the quote, else
  *   the block:  one ivory pane that folds;  its header (chevron, bullhorn, the pane's summary, Owen's answer as a
  *   plan doc item's review pills, the trash), then the messages:  his plain on the ivory, Claude's light violet, a
  *   green Done line, "Claude: thinking…";  each one's time in its top right corner;  then his reply box
- * - the bullhorn's list of a block's comments (`.spell-comment-pick`):  a pane of lines, then New comment
  * - the comment pane (`.spell-comment-pane`):  floating, fixed on the screen;  its header, then a textarea that grows
  *   with its text (`growField()`)
  */
@@ -856,30 +855,12 @@ pre code {
 .spell-doc-main .spell-comment-mark:not(.at-block) {
   position: relative;
 }
-/* news Owen hasn't read:  an orange dot on the bullhorn's top right (orange:  changed since you looked) */
-.spell-doc-main .spell-comment-news {
-  position: absolute;
-  top: -2px;
-  right: -2px;
-  z-index: 1;
-  width: 9px;
-  height: 9px;
-  border: 1.5px solid var(--spell-bg);
-  border-radius: 50%;
-  background: var(--ui-orange, #f2711c);
-  pointer-events: none;
-}
-.spell-doc-main .spell-comment-mark.at-block > .spell-comment-news {
-  top: 0;
-  right: 0;
-}
 .spell-doc-main
   :is(
     ui-section:hover:not(:has(ui-section:hover)) > .spell-comment-mark,
     .spell-page-head:hover > .spell-comment-mark,
     .spell-comment-mark:has(+ :hover),
     .spell-comment-mark:hover,
-    .spell-comment-mark[data-count],
     .spell-comment-mark:focus-within
   ) {
   opacity: 1;
@@ -928,22 +909,26 @@ pre code {
   color: var(--spell-ink);
 }
 /*
- * a reply from Claude Owen hasn't SEEN (`unseen()`;  Owen, 2026-10-10:  "Make the boxes orange when there's a reply
- * I haven't seen"):  orange, our colour for "changed since you looked" -- the outline, and the header tinted;  the
- * rest as ever.  Seen:  he unfolds it, or it's open on screen a moment
+ * a reply from Claude Owen hasn't SEEN (`unseen()`;  Owen, 2026-10-10:  "make the background of the entire bullhorn
+ * thread + the last claude reply orange"):  orange, our colour for "changed since you looked" -- the whole thread's
+ * ground a light orange, that reply's box a stronger one;  outline and header as ever.  Seen:  he unfolds it, or
+ * it's open on screen a moment, and it's ivory again.
+ * - before 2026-10-10 only its outline and header were orange
  */
 .spell-doc-main .spell-thread[data-unseen] {
-  border-color: var(--ui-orange, #f2711c);
+  --spell-thread-orange: var(--ui-orange, #f2711c);
+  /* more orange in the dark:  13% of it on the dark ground reads as brown */
+  background: light-dark(
+    color-mix(in srgb, var(--spell-thread-orange) 13%, var(--spell-rail-bg)),
+    color-mix(in srgb, var(--spell-thread-orange) 22%, var(--spell-rail-bg))
+  );
 }
-.spell-doc-main .spell-thread[data-unseen] > .spell-thread-head {
-  border-radius: 9px;
-  background: color-mix(in srgb, var(--ui-orange, #f2711c) 16%, var(--spell-rail-bg));
-}
-.spell-doc-main .spell-thread[data-unseen][data-open] > .spell-thread-head {
-  border-radius: 9px 9px 0 0;
-}
-.spell-doc-main .spell-thread[data-unseen] .spell-thread-mark {
-  color: var(--ui-orange-text, var(--ui-orange, #f2711c));
+.spell-doc-main .spell-thread[data-unseen] .spell-thread-msg[data-latest] {
+  background: light-dark(
+    color-mix(in srgb, var(--spell-thread-orange) 30%, var(--spell-rail-bg)),
+    color-mix(in srgb, var(--spell-thread-orange) 40%, var(--spell-rail-bg))
+  );
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--spell-thread-orange) 45%, transparent);
 }
 .spell-doc-main .spell-thread-head {
   display: flex;
@@ -1196,68 +1181,16 @@ pre code {
   display: none;
 }
 /*
- * a comment's state in the bullhorn's list, quiet:  the fill rule as a dot before the words, a ring while it waits
- * for Claude ("outlined"), solid once he answered (Owen's turn) or it's done
+ * TOOLTIPS that show (Owen, 2026-10-10:  "The buttons don't have browser tooltips -- unclear what they do"):  in VS
+ * Code's side bar (Electron 38 and up, on macOS) a `title`'s tooltip mostly shows only while the pointer is on the
+ * titled element ITSELF, not on its icon inside (electron/electron#49843).  So the icons inside a comment's buttons
+ * take no pointer:  it lands on the button, which carries the `title` (a `<ui-button>`'s, its inner button:
+ * `titleInside()`).  A plain browser shows them either way.
  */
-.spell-doc-main .spell-comment-state {
-  display: inline-flex;
-  flex: none;
-  align-items: center;
-  gap: 5px;
-  color: var(--spell-muted);
-  font-size: 0.85rem;
-}
-.spell-doc-main .spell-comment-state::before {
-  content: "";
-  flex: none;
-  box-sizing: border-box;
-  width: 8px;
-  height: 8px;
-  border: 1.5px solid var(--spell-rail-ink);
-  border-radius: 50%;
-}
-.spell-doc-main .spell-comment-choice:is([data-turn="owen"], [data-turn="done"]) .spell-comment-state::before {
-  background: var(--spell-rail-ink);
-}
-/* the bullhorn's list (`openPicker()`):  one line per comment (its first words, its state), then New comment */
-.spell-doc-main .spell-comment-pane.spell-comment-pick {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 2px;
-  width: min(320px, calc(100vw - 16px));
-  padding: 4px;
-}
-.spell-doc-main button.spell-comment-choice {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-  min-height: 28px;
-  padding: 2px 8px;
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  color: var(--spell-rail-ink);
-  font: inherit;
-  font-size: 0.9rem;
-  text-align: left;
-  cursor: pointer;
-}
-.spell-doc-main button.spell-comment-choice:is(:hover, :focus-visible) {
-  background: var(--spell-rail-hover);
-  outline: none;
-}
-.spell-doc-main button.spell-comment-choice[data-news]::after {
-  content: "";
-  flex: none;
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--ui-orange, #f2711c);
-}
-.spell-doc-main button.spell-comment-choice.spell-comment-new {
-  border-top: 1px solid var(--spell-rail-rule);
+.spell-doc-main :is(.spell-comment-tool, button.spell-thread-fold, .spell-comment-saved) > *,
+.spell-doc-main :is(.spell-thread-answer, .spell-comment-mark) ui-button::part(icon),
+.spell-comment-float > * {
+  pointer-events: none;
 }
 /* a comment's quoted text, on the page:  soft, under the text (`highlightQuotes()`) */
 ::highlight(spell-comment-quote) {
