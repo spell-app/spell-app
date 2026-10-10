@@ -1760,17 +1760,18 @@ function wireFolds(main, outline) {
   /**
    * Let the page take its natural height again once that no longer pulls the reader back:  at once if it fits where
    * he's scrolled to, else as soon as he scrolls up far enough.
+   * - the held height only ever shrinks to the window's bottom (`scrollY + clientHeight`), never below:
+   *   the page is then exactly as tall as it must be to stay where it's scrolled;
+   *   if it's still taller than that, the content is, and the hold can go
+   * - NEVER measures the natural height by taking the hold off for a moment:  that layout alone makes the browser
+   *   clamp the scroll to the shorter page, and the reader dropped by however much shorter it was (I7 of `airplane`:
+   *   the line of an item a link had landed near the page's end fell 20-80px when the hold ended)
    */
   function releaseHeight(root) {
-    const kept = root.style.minHeight
-    const natural = () => {
-      root.style.minHeight = ""
-      const height = root.scrollHeight
-      root.style.minHeight = kept
-      return height
-    }
     const release = () => {
-      if (scrollY + innerHeight > natural() + 1) return false
+      const bottom = scrollY + root.clientHeight
+      if (bottom < parseFloat(root.style.minHeight)) root.style.minHeight = `${bottom}px`
+      if (root.scrollHeight <= bottom + 1) return false
       root.style.minHeight = ""
       removeEventListener("scroll", release)
       return true
