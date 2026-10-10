@@ -112,6 +112,15 @@ export class ThingRegistry {
     this.changed()
   }
 
+  /**
+   * The program's module's exports, as `setTopLevel()` was handed them:  its top-level things AND its functions,
+   * e.g. `{ game, deck, autoPlay, ... }` -- what a page's layout reads (epic `drawable-thing` P9).
+   * - Live bindings, as the module's own.
+   */
+  get exported(): Readonly<Record<string, unknown>> {
+    return this.exports
+  }
+
   /** Forget everything, e.g. as a new run starts -- see `resetRuntime()`. */
   clear(): void {
     this.entries.forEach((ref, number) => {

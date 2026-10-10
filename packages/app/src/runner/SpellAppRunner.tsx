@@ -11,7 +11,7 @@ import { loadScopePack, scopesFromPacks, type CompiledDeclarations, type ScopesS
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
 import { RunnerConsole } from "./RunnerConsole"
-import type { SpellCompiled } from "./runner.types"
+import { layoutHasSpell, type SpellCompiled } from "./runner.types"
 
 import "./SpellAppRunner.css"
 
@@ -50,6 +50,9 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
   // compiled javascript of each project the last run loaded, by id -- for the Type Explorer's "Compiled Output"
   const compiledRef: CompiledRef = { current: new Map() }
 
+  // what takes back the last run's layout spell -- see `bindLayout()`.  Up here:  a run may start before the end
+  let unbindLayout: (() => void) | undefined
+
   // NOTE: ALWAYS here, just hidden without an app -- so its mount point is never redrawn
   const appRoot = (<div class="App" />) as HTMLDivElement
   // a layout in markup is the app's drawing:  shown through a slot, its `to draw` not drawn (epic `drawable-thing` P9)
@@ -74,6 +77,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
       )
       return () => {
         gone = true
+        unbindLayout?.()
         ;(appRoot as AppElement).spellRoot?.unmount()
         copy?.release()
       }
@@ -169,10 +173,19 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
 
   /** Run `source` afresh in `copy` -- see `runProgram()` -- and show how it went. */
   async function run(copy: LoadedRuntime, source: SpellAppSource) {
+    unbindLayout?.()
+    unbindLayout = undefined
     const ran = await runProgram(copy, source, appRoot, !!props.layout)
     compiledRef.current = ran.compiled
     setError(ran.error)
     setHasApp(ran.hasApp)
+    const layout = props.layout
+    if (layout && !ran.error && layoutHasSpell(layout)) {
+      bindLayout(copy, source, layout).then(
+        (unbind) => (unbindLayout = unbind),
+        (problem: unknown) => setError(messageOf(problem))
+      )
+    }
   }
 
   /** The Type Explorer, read-only, if there's a scope pack. */
@@ -228,10 +241,11 @@ export type SpellAppRunnerProps = {
   /** Show the toolbar? */
   toolbar: boolean
   /**
-   * Is the app laid out in markup, inside its `<spell-app>`?  Then that markup shows, through a slot,
-   * and the app's `to draw` isn't drawn -- see `spellCore.appLayout`.
+   * The element whose markup lays the app out, inside its `<spell-app>`:  the `<spell-app>` itself, if it has some.
+   * - That markup shows, through a slot, and the app's `to draw` isn't drawn -- see `spellCore.appLayout`.
+   * - Its spell (holes, actions, `<spell>` blocks) is compiled in the page, after each run -- see `LayoutSpell`.
    */
-  layout?: boolean
+  layout?: Element
   /** Open the debug pane to start, on this tab -- else it starts closed. */
   debug?: DebugPane
   /** As tall as it needs to be, NOT a fixed height -- see `<RunnerSplit unit>`. */
@@ -364,6 +378,20 @@ async function runProgram(
   } catch (problem) {
     return { error: messageOf(problem), hasApp: false, compiled }
   }
+}
+
+/**
+ * Compile and run the spell in `root`'s layout, against `source`'s program as it ran in `copy` -- see `LayoutSpell`.
+ * - Loads `LayoutSpell`, and so spell's parser, only now:  a layout with spell in it is the only thing that needs it.
+ * - Answers what takes it back.
+ */
+async function bindLayout(copy: LoadedRuntime, source: SpellAppSource, root: Element): Promise<() => void> {
+  const [{ LayoutSpell }, declarations] = await Promise.all([
+    import("./LayoutSpell"),
+    source.declarations ?? fetchJSON(source.declarationsUrl)
+  ])
+  const { spellCore } = copy.runtime
+  return new LayoutSpell({ root, projectId: source.name, declarations, spellCore }).bind()
 }
 
 /** How a run went -- see `runProgram()`. */

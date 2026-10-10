@@ -300,7 +300,7 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
             <SpellAppRunner
               source={source()}
               toolbar={this.toolbar}
-              layout={this.hasLayout}
+              layout={this.hasLayout ? this.domElement : undefined}
               debug={this.debug}
               fluid={!cssSize(this.height)}
               runtimeUrl={new URL("spell-runtime.js", BUNDLE).href}
