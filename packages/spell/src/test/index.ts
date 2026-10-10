@@ -5,6 +5,7 @@
 
 export { unitTestModuleRules } from "$/parser/test"
 export { tsxBinary } from "./tsxBinary"
+export { solidSample } from "./samples"
 export {
   parseSpellProject,
   loadFixtureProject,

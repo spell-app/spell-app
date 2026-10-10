@@ -8,7 +8,7 @@ import { CLI } from "$/cli"
 /**
  * `spell compile <project...>`:  compile each project (or lone spell file), showing progress and errors on stderr.
  * - A project:  writes `<Project>.compiled.js` and `<Project>.declarations.json`, as the app does, plus each other
- *   target's output, e.g. `<Project>.compiled.ts` -- see `SP.TARGETS` -- or, with `--stdout`, prints one and
+ *   target's output, e.g. `<Project>.compiled.tsx` -- see `SP.TARGETS` -- or, with `--stdout`, prints one and
  *   writes nothing.  `--target <name>`:  that target, this run, instead of `project.json`'s.
  *   A target checked by `tsc` (`ts/solid`) is checked once written:  its errors are listed, but don't fail the
  *   compile -- see `typecheckTargets()`.
@@ -86,7 +86,7 @@ async function compileProject(
 
 /**
  * `tsc` on each of `project`'s targets checked by it (`ts/solid`), as just written:  its errors, as lines under the
- * project, e.g. `Solitaire.compiled.ts:135:18  TS18048 ...`.
+ * project, e.g. `Solitaire.compiled.tsx:135:18  TS18048 ...`.
  * - Shown, NOT counted as the project's errors:  most come from `@spell/core`'s loose types, not the spell (epic
  *   `output-targets`, C5) -- the exit code stays the spell's.
  */

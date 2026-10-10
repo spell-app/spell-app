@@ -1438,7 +1438,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@solidjs/compiler@npm:^2.0.0-rc.13":
+"@solidjs/compiler@npm:2.0.0-rc.13, @solidjs/compiler@npm:^2.0.0-rc.13":
   version: 2.0.0-rc.13
   resolution: "@solidjs/compiler@npm:2.0.0-rc.13"
   dependencies:
@@ -1650,6 +1650,7 @@ __metadata:
     "@types/node": "npm:^22.20.4"
     "@typescript/typescript6": "npm:^6.0.2"
     esbuild: "npm:^0.28.2"
+    linkedom: "npm:^0.18.13"
     lodash: "npm:^4.17.21"
     solid-js: "npm:2.0.0-rc.13"
     typescript: "npm:^7.0.2"
@@ -1789,6 +1790,7 @@ __metadata:
   version: 0.0.0-use.local
   resolution: "@spell-app/spell@workspace:packages/spell"
   dependencies:
+    "@solidjs/compiler": "npm:2.0.0-rc.13"
     "@spell-app/core": "workspace:*"
     "@spell-app/parser": "workspace:*"
     "@spell-app/server": "workspace:*"

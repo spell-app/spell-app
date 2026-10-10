@@ -234,7 +234,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     return [...new Set([SP.RUNNING_TARGET, ...names])].map(SP.targetFor)
   }
 
-  /** File for our compiled output for `target`:  `outputFile` for `js/solid`, else e.g. `Solitaire.compiled.ts`. */
+  /** File for our compiled output for `target`:  `outputFile` for `js/solid`, else e.g. `Solitaire.compiled.tsx`. */
   outputFileFor(target: SP.Target): SP.SpellJSFile {
     if (target.name === SP.RUNNING_TARGET) return this.outputFile
     return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.suffix}`)!.path)
@@ -356,7 +356,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                     params: { target: target.name }
                   })
                 }
-                const marked = this.importHeader() + SpellProject.combineCompiled(parts, target.writer)
+                const marked = SpellProject.combineCompiled(parts, target.writer, this.importHeader())
                 // each declaring statement's marker comes out, into our declarations -- see `SP.SpellDeclarations`
                 const { code, declarations } = SP.SpellDeclarations.split(marked, this.scope!, { version, exports })
                 this.outputFileFor(target).contents = code
@@ -391,19 +391,24 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
    * - Each class gets its members from EVERY file, e.g. `Card.move_to_$pile` from `Pile.spell` goes in
    *   `Card.spell`'s `class Card` -- see `SP.hoistClassMembers()`.  Each file's own were moved in by `SP.Block`.
    * - Also how a fixture compiles -- see `compiledFixture()` in `$/spell/test`.
-   * - `writer`:  the target's, default javascript's -- see `SP.TARGETS`.
+   * - `writer`:  the target's, default javascript's -- see `SP.TARGETS`.  It sees the whole project first
+   *   (`P.Writer.forProject()`), and finishes the module last (`P.Writer.module()`).
+   * - `header`:  what the module starts with, e.g. `importHeaderFor()`'s imports.
    */
   static combineCompiled(
     parts: Array<P.ASTStatementGroup | string | undefined>,
-    writer: P.Writer = P.JSWriter.instance
+    writer: P.Writer = P.JSWriter.instance,
+    header = ""
   ): string {
     const hoisted = SP.hoistClassMembers(parts.map((part) => (typeof part === "object" ? (part.statements ?? []) : [])))
-    return parts
+    const projectWriter = writer.forProject(hoisted)
+    const code = parts
       .map((part, index) => {
         if (typeof part !== "object") return part ?? ""
-        return String(writer.write(new P.ASTStatementGroup(part.match, { statements: hoisted[index] })))
+        return String(projectWriter.write(new P.ASTStatementGroup(part.match, { statements: hoisted[index] })))
       })
       .join(SpellProject.FILE_SEPARATOR)
+    return projectWriter.module(header + code)
   }
 
   /**

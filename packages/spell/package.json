@@ -33,6 +33,7 @@
     "semver": "^7.8.5"
   },
   "devDependencies": {
+    "@solidjs/compiler": "2.0.0-rc.13",
     "@types/fs-extra": "^11.0.4",
     "@types/node": "^22",
     "@types/semver": "^7.8.0",

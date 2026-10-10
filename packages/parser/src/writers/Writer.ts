@@ -40,6 +40,30 @@ export abstract class Writer<Output = string> {
     return this.methodFor(member, "AsMember").call(this, member)
   }
 
+  ////////////////
+  // ## Whole projects
+  ////////////////
+
+  /**
+   * A writer for ONE project, whose files' statements are `files`:  this one, unless the target needs to see the
+   * whole project before writing any of it, e.g. `TSWriter` (which names a getter by what the project declares).
+   * - Called once per compile by `SP.SpellProject.combineCompiled()`, with each file's statements, members already
+   *   moved into their classes.
+   * - NEVER changes this writer:  a writer that keeps something per project returns a NEW one.
+   */
+  forProject(files: P.ASTNode[][]): this {
+    return this
+  }
+
+  /**
+   * The whole module's `code`, finished:  as is, unless the target changes it once every part is written, e.g.
+   * `TSWriter`'s imports, which name what its code uses.
+   * - `code` starts with `SP.SpellProject.importHeaderFor()`'s import lines.
+   */
+  module(code: string): string {
+    return code
+  }
+
   /**
    * Our method for `node`'s class plus `suffix`, else for the nearest class it extends;  remembered per class.
    * - throws if none
