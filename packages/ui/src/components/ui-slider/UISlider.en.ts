@@ -84,7 +84,14 @@ export const sliderVocabulary = {
       kind: "json",
       description: 'Label per step, from `min` (e.g. `["XS", "S", "M"]`), also the spoken value;  default the numbers.'
     },
-    { name: "name", kind: "string", description: "Form field name." }
+    { name: "name", kind: "string", description: "Form field name." },
+    {
+      name: "required",
+      kind: "boolean",
+      description:
+        "Form validation:  a value must be chosen, by the page (`value`, a range's `end`) or by moving a thumb.  " +
+        "Unset, the thumb rests at `min` but counts as no value (`valueMissing`)."
+    }
   ],
   events: [
     {
@@ -109,7 +116,8 @@ export const sliderVocabulary = {
   ],
   states: [
     { name: "disabled", description: "Can't be used." },
-    { name: "dragging", description: "A thumb is being dragged." }
+    { name: "dragging", description: "A thumb is being dragged." },
+    { name: "invalid", description: "Fails validation (`required`), once a person has interacted." }
   ],
   texts: [
     { key: "sliderMinimum", text: "Minimum", description: "Name of a range's first thumb." },

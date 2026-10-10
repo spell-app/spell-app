@@ -103,7 +103,7 @@ export class HotDefinitions {
       return
     }
     // dry run on a stand-in with the same chain:  a clash throws BEFORE anything changed
-    const Base = Object.getPrototypeOf(TagClass) as E.DOMElementBaseClass
+    const Base = Object.getPrototypeOf(TagClass) as E.AnyDOMElementClass
     const Probe = class extends Base {} as unknown as E.DOMElementClass
     Probe.tagSetup = next
     E.DOMElement.defineProperties(Probe)
@@ -122,7 +122,7 @@ export class HotDefinitions {
    * - All of these are read ONCE,
    *   by DOM API `customElements.define()` or by the constructor of elements that already exist.
    */
-  static changeOf(TagClass: E.DOMElementClass, Base: E.DOMElementBaseClass, next: E.TagSetup): string | undefined {
+  static changeOf(TagClass: E.DOMElementClass, Base: E.AnyDOMElementClass, next: E.TagSetup): string | undefined {
     const before = TagClass.observedAttributes
     const after = E.DOMElement.observedAttributesFor(next.elementDefinition)
     const added = after.filter((name) => !before.includes(name))

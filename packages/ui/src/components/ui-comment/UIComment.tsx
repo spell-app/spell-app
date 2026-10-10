@@ -23,11 +23,11 @@ import commentCSS from "./UIComment.css?inline"
  *
  * - `disabled`:  `aria-disabled` on the article, which assistive tech (and axe) apply to what's inside.
  ****************/
-@E.cssStates("collapsed")
 export class UIComment extends E.UIComponent<typeof commentVocabulary> {
   @E.proto static vocabulary = commentVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { comment: commentCSS },
+    cssStates: ["collapsed"],
     delegatesFocus: false,
     // `disabled`:  `aria-disabled` on its box, and a look
     disabled: "its own"
