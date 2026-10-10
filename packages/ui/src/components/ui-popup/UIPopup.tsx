@@ -323,7 +323,7 @@ export class UIPopup extends E.UIComponent<Vocabulary> {
   }
 
   /** A click popup's dialog is named by `header`. */
-  @E.aria("ariaLabel")
+  @E.aria("label")
   protected get accessibleName(): string | undefined {
     return this.isInteractive ? this.header : undefined
   }
