@@ -338,3 +338,14 @@ export function sentence(message: string): string {
 function isObject(value: unknown): boolean {
   return !!value && typeof value === "object" && !Array.isArray(value)
 }
+
+/**
+ * The page server's answer to "start a review" (`POST /api/review/start`, epic `airplane` P12):  its `StartResult`.
+ * - `sent`:  typed into the one session titled for the epic;  `none` / `several` / `no-window`:  nothing sent
+ */
+export type StartAnswer = {
+  state: "sent" | "none" | "several" | "no-window"
+  command: string
+  sessions: string[]
+  message: string
+}

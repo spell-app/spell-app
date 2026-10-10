@@ -26,6 +26,8 @@ class FakeServer {
   posts: [string, Record<string, unknown>][] = []
   /** the next reply's status for a route, once */
   failures = new Map<string, { status: number; error: string }>()
+  /** what "start a review" answers (`POST /api/review/start`) */
+  started = { state: "sent", command: "/epic review sample", sessions: ["🚧 sample"], message: "Typed it." }
   /** a POST to this route waits for `release()` */
   private held: { route: string; release?: () => void } | undefined
 
@@ -44,6 +46,7 @@ class FakeServer {
       this.failures.delete(route)
       return json({ error: failure.error }, failure.status)
     }
+    if (route === "start") return json(this.started)
     const id = body.id as string
     if (route === "mark") this.inbox.setMark(id, body.mark)
     if (route === "now") this.inbox.requestNow(id, body.action, (body.note ?? "") as string)
@@ -427,5 +430,19 @@ describe("ReviewClient.toggleCalm() (an id chip, Owen 2026-10-07)", () => {
     expect(client.calmOf("j2")).toBe(false)
     expect(await client.send()).toBe(true)
     expect(client.unsentCount).toBe(0)
+  })
+})
+
+// epic `airplane` P12:  "start a review" from the pill
+describe("ReviewClient.startReview()", () => {
+  test("asks the server, and says what came of it;  a refusal is a notice too", async () => {
+    const { client, server } = await started()
+    const notices: string[] = []
+    client.onNotice((message) => notices.push(message))
+    expect(await client.startReview()).toEqual(server.started)
+    expect(server.posts.at(-1)).toEqual(["start", { page: PAGE }])
+    server.failures.set("start", { status: 400, error: "no page" })
+    expect(await client.startReview()).toBeUndefined()
+    expect(notices).toEqual(["Typed it.", "No page."])
   })
 })

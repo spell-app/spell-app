@@ -294,6 +294,11 @@ export const epicPageVocabulary = {
       description: "The review line in airplane mode (no Claude), before `/airplane land`."
     },
     { key: "copyCommand", text: "Copy the command", description: "The review line's tooltip." },
+    {
+      key: "startReview",
+      text: "Start the review in this epic's Claude session (and copy the command)",
+      description: "The nobody-listening pill's tooltip:  a click types the command into the epic's session."
+    },
     { key: "copied", text: "copied", description: "The review line, just copied." },
     { key: "hung", text: "Plan hung?", description: "The planning aside's title." },
     { key: "hungBefore", text: "Close its Claude tab, then run", description: "The aside, before `/epic <name>`." },
