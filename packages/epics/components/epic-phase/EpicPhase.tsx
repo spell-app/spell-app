@@ -14,6 +14,7 @@ import type { ContentsEntry } from "$/epics/components/epic-section/EpicSection.
 import { epicPhaseVocabulary } from "./EpicPhase.en"
 import { ICON } from "./EpicPhase.types"
 
+import collapseAllCSS from "$/epics/components/epic-item/CollapseAll.css?inline"
 import foldCSS from "$/epics/components/epic-section/EpicFold.css?inline"
 import phaseCSS from "./EpicPhase.css?inline"
 
@@ -36,7 +37,7 @@ import phaseCSS from "./EpicPhase.css?inline"
 export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
   @E.proto static vocabulary = epicPhaseVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold": foldCSS, "epic-phase": phaseCSS }
+    styleSheets: { "epic-fold": foldCSS, "epic-collapse-all": collapseAllCSS, "epic-phase": phaseCSS }
   } satisfies Partial<E.ElementSetup>
 
   /** Its status, as drawn:  `todo` for anything unknown. */

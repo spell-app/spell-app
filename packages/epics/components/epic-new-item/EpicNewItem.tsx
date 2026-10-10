@@ -11,6 +11,7 @@ import { epicNewItemVocabulary } from "./EpicNewItem.en"
 import {
   NEW_ACTIONS,
   NEW_BUTTON,
+  NEW_CLOSED,
   NEW_FORM,
   NEW_INPUT,
   NEW_KIND_LOOKS,
@@ -24,7 +25,8 @@ import newItemCSS from "./EpicNewItem.css?inline"
  * ### `EpicNewItem`
  * The component behind `<epic-new-item>`:  NEW ITEMS from the page (epic `airplane` P2) -- Owen asks for a new todo or
  * question while he reads, with no Claude session needed.
- * - `<epic-page>` draws one in its header (`compact`:  a round `+`, the form a row of its own);
+ * - `<epic-page>` draws one in its header while its toolbar button is pressed (`open`:  the form alone, on a row of
+ *   its own), and lets go of it once it closes (`epic-new-closed`);
  *   a Todos or Questions `<epic-section>` at its end (`adds`:  the `+` and its words, the form in its place), after
  *   the waiting items it lists itself.
  * - What's asked for is a mark in the review inbox, `{ action: "new", kind, title, note?, near? }` under a key of its
@@ -57,7 +59,7 @@ export class EpicNewItem extends E.UIComponent<EpicNewItemVocabulary> {
   render(): JSX.Element {
     return (
       <span class="base" part={this.partForName("base")}>
-        <Show when={this.compact || !this.isOpen}>{this.button()}</Show>
+        <Show when={!this.isOpen}>{this.button()}</Show>
         {/* a new object each time it opens, or opens on another item:  the form is drawn anew */}
         <Show when={this.isOpen ? { item: this.waitingItem(this.editing) } : undefined} keyed>
           {(form) => this.form(form.item)}
@@ -70,27 +72,21 @@ export class EpicNewItem extends E.UIComponent<EpicNewItemVocabulary> {
   // ## The button
   ////////////////
 
-  /**
-   * The button that opens the form:  a round `+` (`compact`, the page header's:  its name the tooltip), or the `+` and
-   * the words (a section's "New todo").
-   */
+  /** The button that opens the form:  the `+` and its words (a section's "New todo"). */
   private button(): JSX.Element {
-    const words = () =>
-      this.compact ? undefined : this.translationForKey(this.adds ? NEW_KIND_LOOKS[this.adds].add : "newButton")
-    const name = () => words() ?? this.translationForKey("newButton")
+    const words = () => this.translationForKey(this.adds ? NEW_KIND_LOOKS[this.adds].add : "newButton")
     return (
       <button
         type="button"
         class={NEW_BUTTON}
         part={this.partForName("button")}
-        data-words={words() ? "" : undefined}
+        data-words=""
         aria-expanded={this.isOpen ? "true" : "false"}
-        aria-label={words() ? undefined : name()}
-        title={name()}
+        title={words()}
         onClick={() => (this.isOpen = !this.isOpen)}
       >
         <ui-icon name="plus" />
-        <Show when={words()}>{(text) => <span>{text()}</span>}</Show>
+        <span>{words()}</span>
       </button>
     )
   }
@@ -250,14 +246,15 @@ export class EpicNewItem extends E.UIComponent<EpicNewItemVocabulary> {
       item?.id
     )
     this.isSaving = false
-    if (saved) this.close()
+    if (saved) this.close({ saved: true })
   }
 
-  /** Saved, or cancelled:  the form closes, no longer on a waiting item. */
+  /** Saved, or cancelled:  the form closes, no longer on a waiting item;  `epic-new-closed` says so. */
   @E.untracked
-  private close() {
+  private close({ saved = false } = {}) {
     this.isOpen = false
     if (this.editing) this.editing = undefined
+    this.send(NEW_CLOSED, { saved })
   }
 }
 

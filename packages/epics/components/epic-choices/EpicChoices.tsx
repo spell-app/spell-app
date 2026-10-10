@@ -25,6 +25,8 @@ import choicesCSS from "./EpicChoices.css?inline"
  * - Open question:  the option cards side by side (as many as fit, at least 14em each;  one column when narrow).
  * - Answered (`chosen`, or `answered` on its `<epic-item>`):  folded away under a `Choices` aside, its options
  *   panels in one box, the chosen one marked and open.  Find-in-page unfolds it.
+ *   - the folded heading names the chosen one, green with a check (`Choices  ✓ Chosen:  B · Bananas`), so the
+ *     pick stays in sight while folded (Owen, 2026-10-10)
  * - Reads its item's `answered` and its own `chosen` as they change (`EpicChoices.watch()`);
  *   `<epic-option>` reads the same, through the same two statics.
  ****************/
@@ -40,8 +42,26 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   @E.state
   accessor questionIsAnswered = EpicChoices.isAnswered(this.domElement)
 
+  /** Its `chosen` letter, followed as it changes;  `undefined` while none is. */
+  @E.state accessor chosenLetter = EpicChoices.chosenFor(this.domElement)
+
   /** Its options' box:  folded until the reader opens it. */
   readonly fold = new Fold(() => false)
+
+  /**
+   * The chosen option, as the folded heading names it (`B · Bananas`);  `undefined` while none is.
+   * - so Owen's pick stays in sight with the box folded (Owen, 2026-10-10:  "losing the Chosen marker")
+   * - its title read plainly:  an option's title doesn't change under a set already chosen
+   */
+  get chosenName(): string | undefined {
+    const letter = this.chosenLetter
+    if (!letter) return undefined
+    const option = Array.from(this.domElement.children).find(
+      (child) => child.localName === OPTION_TAG && child.getAttribute("letter") === letter
+    )
+    const title = option?.getAttribute("title") ?? option?.querySelector(":scope > [slot=title]")?.textContent ?? ""
+    return title.trim() ? `${letter}${LETTER_SEPARATOR}${title.trim()}` : letter
+  }
 
   /** Answered and unfolded. */
   @E.cssState("open")
@@ -54,12 +74,15 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
   }
 
   /**
-   * While connected:  follow whether its question is answered.  Returns the undo.
+   * While connected:  follow whether its question is answered, and its `chosen` letter.  Returns the undo.
    * - `watch()`'s own `MutationObserver`, not `@watches`:  it watches its `<epic-item>`, an ANCESTOR.
    */
   @E.whileConnected
   protected watchQuestion() {
-    return EpicChoices.watch(this.domElement, () => (this.questionIsAnswered = EpicChoices.isAnswered(this.domElement)))
+    return EpicChoices.watch(this.domElement, () => {
+      this.questionIsAnswered = EpicChoices.isAnswered(this.domElement)
+      this.chosenLetter = EpicChoices.chosenFor(this.domElement)
+    })
   }
 
   render(): JSX.Element {
@@ -76,6 +99,16 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
           >
             {Fold.chevron()}
             {this.translationForKey("choices")}
+            <Show when={this.chosenName}>
+              {(name) => (
+                <span class={CHOSEN_MARK} part={this.partForName("chosen")}>
+                  <svg class={CHECK} viewBox="0 0 16 16" aria-hidden="true">
+                    <path d="M2.5 8.5l3.5 3.5 7.5-8" />
+                  </svg>
+                  {this.translationForKey("chosen", { name: name() })}
+                </span>
+              )}
+            </Show>
           </button>
           <div
             ref={this.fold.watch}
@@ -153,3 +186,11 @@ const PANELS = "panels"
 
 /** `id` of that box, for its toggle's `aria-controls`. */
 const PANELS_ID = "panels"
+
+/** Class of the folded heading's chosen option (`Chosen:  B · Bananas`), and of its check. */
+const CHOSEN_MARK = "chosen-mark"
+const CHECK = "check"
+
+/** Its options' tag, and what joins a letter and a title (`B · Bananas`), as `<epic-option>` draws it. */
+const OPTION_TAG = "epic-option"
+const LETTER_SEPARATOR = " · "

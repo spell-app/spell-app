@@ -2,6 +2,8 @@ import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "nod
 
 import { SRV } from "$/server"
 
+import { CommentList, type Comment } from "./CommentList"
+
 /****************
  * ### `ReviewInbox`
  * A plan doc's REVIEW INBOX:  the marks Owen leaves on its items from the page, waiting for Claude.
@@ -51,8 +53,12 @@ import { SRV } from "$/server"
  *       `liveListener()` is `null`, and the routes answer `listening: null` (`forPage()`)
  *   - `handedOver`:  the `sent` time a waiting session last took (`takeWork()`), else `null`:
  *     so a second `plan-doc inbox wait` doesn't hand the same send over again
+ *   - `comments`:  `{ [cm1 ...]: comment }`, Owen's comments on the page's blocks and on selected text (epic
+ *     `airplane` P11), in the shape a guide's inbox holds them (`CommentList`):  waiting until Claude answers them
+ *     like a revisit's note (`/epic review`, `/airplane land`), then `answered` (`plan-doc inbox done cm3`);
+ *     never sent:  a saved comment is waiting
  * - Node only (`node:fs`, `$/server`'s lock):  NOT in the `$/epics` barrel, imported by path.
- *   Imports no other file of the tool.
+ *   Imports no other file of the tool but `CommentList` (its comments).
  * - From `packages/docs/tools/inbox.js` (epic `epic-components`, P7), which now forwards here.
  ****************/
 export class ReviewInbox {
@@ -76,6 +82,8 @@ export class ReviewInbox {
   listening: InboxListener | null = null
   /** the `sent` time a waiting session last took, else `null` */
   handedOver: string | null = null
+  /** Owen's comments on the page's blocks, by id (`cm1` ...):  `CommentList` */
+  comments: Record<string, Comment> = {}
 
   /**
    * An inbox:  empty, or the fields of `record` (a file's JSON) over an empty one's.
@@ -83,6 +91,11 @@ export class ReviewInbox {
    */
   constructor(record: Partial<InboxRecord> & Record<string, unknown> = {}) {
     Object.assign(this, record)
+  }
+
+  /** The comments, to read or change (in place). */
+  get commentList(): CommentList {
+    return new CommentList(this.comments)
   }
 
   ////////////////
@@ -167,6 +180,7 @@ export class ReviewInbox {
       !this.now.length &&
       !Object.keys(this.working).length &&
       !Object.keys(this.canceled).length &&
+      !Object.keys(this.comments).length &&
       !this.listening
     )
   }
@@ -699,6 +713,7 @@ export type InboxRecord = {
   canceled: Record<string, InboxCancel>
   listening: InboxListener | null
   handedOver: string | null
+  comments: Record<string, Comment>
 }
 
 /** One item's mark, as stored:  checked (`ReviewInbox.toMark()`) and stamped. */

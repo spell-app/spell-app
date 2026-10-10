@@ -118,6 +118,16 @@ export function liveClient(): void {
   let lastKey = { command: "", at: 0 }
   // the page asked the extension for the clipboard (Cmd / Ctrl + V), and its answer hasn't come yet
   let pastePending = false
+  // the find bar (Cmd / Ctrl + F), once opened (`openFind()`)
+  let findBar: HTMLDivElement | undefined
+  // the find bar's last search:  its text, the matches, and which one is shown (`findNext()`)
+  let findState: { text: string; matches: { node: Text; offset: number }[]; at: number } = {
+    text: "",
+    matches: [],
+    at: -1
+  }
+  // how long the docs runtime takes to unfold and land on an id before a hidden match is selected, in ms
+  const FIND_REVEAL_MS = 400
   // how soon after the page's own edit key VS Code's same command counts as that key again, in ms
   const EDIT_REPEAT_MS = 300
 
@@ -396,6 +406,13 @@ export function liveClient(): void {
   function editKey(event: KeyboardEvent) {
     if (!(event.metaKey || event.ctrlKey) || event.altKey || event.defaultPrevented) return
     const key = event.key.toLowerCase()
+    // find:  VS Code's side-bar views have no find bar of their own, so the page brings one (`openFind()`)
+    if (key === "f" || key === "g") {
+      event.preventDefault()
+      if (key === "f" || !findBar) openFind()
+      else findNext(event.shiftKey)
+      return
+    }
     const command =
       key === "a"
         ? "selectAll"
@@ -423,6 +440,140 @@ export function liveClient(): void {
     }
     lastKey = { command, at: Date.now() }
     edit(command)
+  }
+
+  /**
+   * The page's FIND BAR, while framed (Cmd / Ctrl + F):  VS Code's side-bar views have none (Owen, 2026-10-10:
+   * "Find with command-F doesn't work in the sidebar").
+   * - a small box at the top right, with "3 of 12";  each keystroke finds from the top, Enter or Cmd-G the next,
+   *   Shift the one before (wrapping), Escape closes it;  not found:  the box turns red
+   * - its own search (`findMatches()`), not `window.find()`:  that one also matched the box's own text, and never
+   *   looked inside the elements' shadow roots, where a plan doc draws its titles
+   * - a match inside something folded (most of a plan doc starts folded):  revealed through its nearest id, as a link
+   *   to it would be (`location.hash`:  the docs runtime unfolds what hides it and lands there), then selected
+   * - text not loaded yet (a split plan doc's body, until it's opened) isn't found
+   * - outside `main`'s patching:  a live update never touches it (`data-spell-added`)
+   */
+  function openFind() {
+    if (!findBar) {
+      findBar = document.createElement("div")
+      findBar.dataset.spellAdded = ""
+      findBar.setAttribute("role", "search")
+      findBar.style.cssText =
+        "position:fixed;top:8px;right:12px;z-index:2147483647;display:flex;gap:6px;align-items:center;" +
+        "padding:6px 8px;border-radius:8px;background:Canvas;color:CanvasText;box-shadow:0 2px 10px rgb(0 0 0 / 25%);" +
+        "font:13px system-ui,sans-serif"
+      const input = document.createElement("input")
+      input.type = "search"
+      input.placeholder = "Find in page"
+      input.setAttribute("aria-label", "Find in page")
+      input.style.cssText = "width:16em;padding:3px 6px;border:1px solid GrayText;border-radius:5px;font:inherit"
+      input.addEventListener("input", () => findNext(false, true))
+      input.addEventListener("keydown", (event) => {
+        if (event.key === "Enter") {
+          event.preventDefault()
+          findNext(event.shiftKey)
+        }
+        if (event.key === "Escape") closeFind()
+      })
+      const count = document.createElement("span")
+      count.style.cssText = "min-width:5em;color:GrayText;font-variant-numeric:tabular-nums"
+      findBar.append(input, count)
+      document.body.append(findBar)
+    }
+    findBar.hidden = false
+    const input = findBar.querySelector("input")!
+    input.focus()
+    input.select()
+  }
+
+  /**
+   * Find the find bar's text again:  the next match, or the one before (`back`);  `fresh`, from the top of the page
+   * (the text just changed).
+   * - the selection moves to the match, so focus goes back to the box for the next keystroke
+   */
+  function findNext(back = false, fresh = false) {
+    const input = findBar?.querySelector("input")
+    const count = findBar?.querySelector("span")
+    if (!input || !count) return
+    const text = input.value.trim().toLowerCase()
+    if (fresh || text !== findState.text) findState = { text, matches: findMatches(text), at: -1 }
+    const { matches } = findState
+    if (matches.length) {
+      findState.at = (findState.at + (back ? -1 : 1) + matches.length) % matches.length
+      if (fresh) findState.at = 0
+      showMatch(matches[findState.at]!, text.length)
+    }
+    const missed = !!text && !matches.length
+    input.style.borderColor = missed ? "#c62828" : "GrayText"
+    input.style.background = missed ? "#ffebee" : ""
+    count.textContent = !text ? "" : matches.length ? `${findState.at + 1} of ${matches.length}` : "none"
+    input.focus()
+  }
+
+  /**
+   * Where `text` (lower case) is on the page:  each text node and offset, in page order, through open shadow roots;
+   * never inside the find bar, a script or a style.
+   */
+  function findMatches(text: string): { node: Text; offset: number }[] {
+    const matches: { node: Text; offset: number }[] = []
+    if (!text) return matches
+    // REJECT skips an element's whole subtree:  the find bar, scripts, styles
+    const filter = (node: Node) =>
+      node instanceof Element && (node === findBar || node.matches("script, style, template"))
+        ? NodeFilter.FILTER_REJECT
+        : NodeFilter.FILTER_ACCEPT
+    const walk = (root: Node) => {
+      const walker = document.createTreeWalker(root, NodeFilter.SHOW_ELEMENT | NodeFilter.SHOW_TEXT, filter)
+      for (let node = walker.nextNode(); node; node = walker.nextNode()) {
+        if (node instanceof Element) {
+          if (node.shadowRoot) walk(node.shadowRoot)
+          continue
+        }
+        const data = (node as Text).data.toLowerCase()
+        for (let at = data.indexOf(text); at >= 0; at = data.indexOf(text, at + text.length))
+          matches.push({ node: node as Text, offset: at })
+      }
+    }
+    walk(document.body)
+    return matches
+  }
+
+  /**
+   * Select a match and bring it into view;  first, when it's hidden (folded), land on its nearest id, as a link to
+   * that id would, so the docs runtime unfolds what hides it.
+   */
+  function showMatch(match: { node: Text; offset: number }, length: number) {
+    const select = () => {
+      const range = document.createRange()
+      range.setStart(match.node, match.offset)
+      range.setEnd(match.node, match.offset + length)
+      const selection = getSelection()
+      selection?.removeAllRanges()
+      selection?.addRange(range)
+      match.node.parentElement?.scrollIntoView({ block: "center" })
+    }
+    const element = match.node.parentElement
+    if (!element || element.checkVisibility({ visibilityProperty: true })) return select()
+    const anchor = idAround(element)
+    if (anchor && location.hash !== `#${anchor}`) location.hash = anchor
+    // the runtime unfolds and lands over a few frames:  select once it has
+    setTimeout(select, FIND_REVEAL_MS)
+  }
+
+  /** The id of `element` or its nearest ancestor that has one, through shadow roots to their hosts. */
+  function idAround(element: Element): string | undefined {
+    for (let node: Node | null = element; node;) {
+      if (node instanceof Element && node.id && node !== findBar) return node.id
+      node = node.parentNode ?? (node instanceof ShadowRoot ? node.host : null)
+      if (node instanceof ShadowRoot) node = node.host
+    }
+    return undefined
+  }
+
+  /** Close the find bar, leaving the last match selected. */
+  function closeFind() {
+    if (findBar) findBar.hidden = true
   }
 
   /**

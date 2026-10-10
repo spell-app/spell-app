@@ -2,8 +2,7 @@
  * `<epic-new-item>` (`EpicNewItem.tsx`, epic `airplane` P2):  the `+` button and the form for a new todo or question.
  * - Owen's own words:  his ivory, as the review controls' note box (`EpicReview.css`, whose private tokens it shares
  *   by value)
- * - `compact` (the page header's):  `display: contents`, so the page's header row places the button and the form;
- *   the page's sheet gives the form a row of its own (`::part(form)`)
+ * - the page header's is the form alone (`open`):  the page's sheet gives it a row of its own
  * - Public tokens (`--epic-new-item-*`) are never declared here:  read through private aliases.
  */
 
@@ -23,9 +22,6 @@
     --_epic-act-ivory-ink: var(--ui-brown-text, light-dark(#534323, #eaddc4));
     --_epic-act-focus: var(--ui-focus-color, Highlight);
     display: block;
-  }
-  :host([compact]) {
-    display: contents;
   }
   :host([hidden]) {
     display: none;

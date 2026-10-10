@@ -37,6 +37,12 @@ export const NEW_KINDS_GROUP = "new-kinds"
 export const NEW_INPUT = "new-input"
 export const NEW_ACTIONS = "new-actions"
 
+/**
+ * The event an `<epic-new-item>` sends as its form closes, saved or cancelled:  `<epic-page>`, which opened it from its
+ * toolbar, lets go of it.
+ */
+export const NEW_CLOSED = "epic-new-closed"
+
 ////////////////
 // ## In the vocabularies
 ////////////////
@@ -49,7 +55,7 @@ export const NEW_KIND_TEXTS = [
 
 /** The rest of `<epic-new-item>`'s texts. */
 export const NEW_ITEM_TEXTS = [
-  { key: "newButton", text: "New todo or question", description: "The page header's `+`:  its name." },
+  { key: "newButton", text: "New todo or question", description: "The button's words without `adds`." },
   { key: "addTodo", text: "New todo", description: "The Todos section's button, at its end." },
   { key: "addQuestion", text: "New question", description: "The Questions section's button, at its end." },
   { key: "newForm", text: "A new todo or question, for Claude to add", description: "The form, for a screen reader." },

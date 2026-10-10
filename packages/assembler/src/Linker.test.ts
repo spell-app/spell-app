@@ -42,6 +42,20 @@ describe("Linker.link()", () => {
     )
   })
 
+  test("links a name with its path as its tooltip to that path, keeping the tooltip;  idempotent", () => {
+    const span = '<code title="packages/docs/tools/pages.js:12">ROOT</code>'
+    const result = link(`<p>From ${span}.</p>`)
+    expect(/<body>([\s\S]*)<\/body>/.exec(result.text)?.[1]).toBe(
+      `<p>From <a href="../../packages/docs/tools/pages.js" target="src-packages-docs-tools-pages-js">${span}</a>.</p>`
+    )
+    expect(LINKER.link(result.text, PAGE_DIR).text).toBe(result.text)
+    // the title is the path:  a name that's no file, under a title that's missing, is reported by its title
+    expect(link('<code title="zz/missing.ts">pages.js</code>')).toMatchObject({
+      linked: 0,
+      unresolved: ["zz/missing.ts"]
+    })
+  })
+
   test("links a folder with a trailing slash", () => {
     expect(linked("<code>packages/docs/tools</code>")).toBe(
       '<a href="../../packages/docs/tools/" target="src-packages-docs-tools"><code>packages/docs/tools</code></a>'

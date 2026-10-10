@@ -78,6 +78,13 @@ export const epicReviewVocabulary = {
       description:
         "Revisit or Edit pressed:  the reader is taken to the note box, which then takes the focus.  The family that " +
         "draws it unfolds to show the box."
+    },
+    {
+      name: "epic-chosen",
+      detail: "{ of: string }",
+      description:
+        "Owen chose an action with it:  a review button that chose one (not one clearing a mark or calling a request " +
+        "off), or a note box button.  An `<epic-item>` folds, so he moves on to the next."
     }
   ],
   slots: [],

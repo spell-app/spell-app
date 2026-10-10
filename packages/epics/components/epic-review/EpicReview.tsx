@@ -9,6 +9,7 @@ import { epicReviewVocabulary } from "./EpicReview.en"
 import { ReviewState } from "./ReviewState"
 import {
   BUTTONS_OF,
+  CHOSEN,
   NOTE_ACTIONS,
   NOTE_BOX,
   NOTE_BUTTONS_OF,
@@ -48,6 +49,8 @@ import reviewCSS from "./EpicReview.css?inline"
  *   connected.
  * - Revisit and Edit take the reader to the note box (`takeToNote()`):  `epic-show-note`, so the family unfolds,
  *   then the box beside it (the `<epic-review shows="note">` of the same shadow root) takes the focus.
+ * - A button that chose an action (a review button, a note box button) sends `epic-chosen`:  `<epic-item>` folds,
+ *   so Owen moves on to the next (Owen, 2026-10-10).
  * - SIDE EFFECT:  the note box listens for `pagehide` while connected, to save a draft as the page goes.
  ****************/
 export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
@@ -165,13 +168,19 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
     )
   }
 
-  /** A review button clicked:  its mark (`ReviewClient.press()`);  Revisit takes the reader to the note box. */
+  /**
+   * A review button clicked:  its mark (`ReviewClient.press()`);  Revisit takes the reader to the note box;
+   * a click that CHOSE an action (not one that cleared a mark or called a request off) says so (`epic-chosen`):
+   * an item folds, so Owen moves on to the next (Owen, 2026-10-10).
+   */
   @E.untracked
   private press(event: MouseEvent, spec: ReviewButtonSpec) {
     // the line's own click would fold it
     event.preventDefault()
     event.stopPropagation()
-    if (this.review.press(spec.action) === "open-box") this.takeToNote()
+    const pressed = this.review.press(spec.action)
+    if (pressed === "open-box") this.takeToNote()
+    else if (pressed === "chosen") this.send(CHOSEN, { of: this.review.id() })
   }
 
   /** How far `spec`'s mark has got:  its fill (`ReviewState.fillOf()`, which the id chip reads too). */
@@ -351,7 +360,7 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
     this.leaveNote()
   }
 
-  /** A note box button:  the note becomes a mark;  the box empties. */
+  /** A note box button:  the note becomes a mark (an action chosen:  `epic-chosen`);  the box empties. */
   @E.untracked
   private use(how: NoteHow) {
     this.saveTimer?.cancel()
@@ -361,6 +370,8 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
     note.value = ""
     this.saved = undefined
     void this.review.client?.useNote(this.review.id(), how, text)
+    // an action chosen:  an item folds
+    this.send(CHOSEN, { of: this.review.id() })
     this.leaveNote()
   }
 

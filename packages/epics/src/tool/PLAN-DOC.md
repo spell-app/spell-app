@@ -181,8 +181,8 @@ As `plan-doc.md`, "Ids":
       once Claude has handled a mark they clear, and the chip shows the result
 - A TODO's review buttons (Owen, 2026-10-09):  the plane, Revisit, the x, one group;  no Approve, Make Todo or Do Now.
   - the plane (`next`, green):  "Do it in the next phase".  `inbox apply` queues it into the first phase whose
-    status is `todo` (`queued`, `work` `P10 · <name>`;  none:  `the next phase`, and its line says so), with a Done
-    status card `Queued for P10 · <name>`;  reviewed
+    status is `todo` (`queued`, `work` `P10 · <name>`;  none:  `the next phase`, and its line says so), with a Noted
+    status card `Queued for P10 · <name>`;  reviewed.  Its chip stays OUTLINED green while queued:  the work is due
   - Revisit (blue):  "Revisit:  I'm adding a note for you";  answered as any revisit
   - the x (`drop`, grey):  "Drop it".  `inbox apply` cancels it (struck through, grey;  the log
     `T3 canceled:  dropped by Owen in review`);  reviewed
@@ -210,7 +210,11 @@ As `plan-doc.md`, "Ids":
   - `inbox apply` sets THAT set's `chosen`
   - a question is answered with the option (no other set stays chosen);
     any other item is APPROVED with it (an open judgement call closed, accepted;  reviewed)
-  - either way a Done card `Chose B · <title>`, and the option in the log line
+  - either way a Noted card `Chose B · <title>:  <what was recorded>;  <what happens next>`
+    (`recorded as the answer;  waiting for the next phase, P9 · <name>`), and the option in the log line
+  - a pick riding on a revisit ("pick B, but ..."):  left for the talk;  when Claude finishes the mark
+    (`inbox done | clear`) without a `decide --option`, the pick is still written as that set's `chosen`, with a
+    Noted card (`keepPick()`):  once Owen picked, the card says Chosen (Owen, 2026-10-10)
 - The way in (`IncomingHtml`):  agents may still write the OLD shapes.
   Every command taking HTML (`add --details`, `decide --details`, `details --file`, `updated`, a phase's fields)
   turns them into elements on the way in, so a doc never holds them:
@@ -219,6 +223,13 @@ As `plan-doc.md`, "Ids":
   - a `Net effect` paragraph and its list, a `ui-accordion.spell-code` / `.spell-aside`, a `ui-message.plan-update`,
     a labelled block (`<b>Where:</b>`) -> the prose elements below
     (`ProseRewrite`, by the converter's own rules, `ProseShapes`)
+  - a name and its file's path -> the name, its path its tooltip (`PathTooltips`;  epic `airplane`, WWOD §6 ›
+    "Plain text, plain paths"):  `<code>buildTsx()</code>, <code>packages/spell/src/node/buildTsx.ts:40</code>`
+    becomes `<code title="packages/spell/src/node/buildTsx.ts:40">buildTsx()</code>`, which the linker links to the
+    file
+    - read:  a path alone in brackets after a name;  a path after a comma, when the name is the file's or its
+      folder's;  either as plain text, or linked (the link moves onto the name)
+    - left:  a folder, a file with no folder or line, a list of names, any other wording ("in")
   - never inside code or an Original Discussion
   - a shape those rules can't read for sure stays prose:  a Net effect worded otherwise,
     a code accordion holding a `<ui-code>` or two blocks, a note headed `DEFERRED`
@@ -237,10 +248,10 @@ As `plan-doc.md`, "Ids":
 - An Overview sub-section takes review marks too (Q14):
   approve and skip are logged, todo makes a todo linking `#o3`, a kept note is a paragraph at its end.
 - So do a phase and the summary (epic `airplane` P2:  Revisit, Make Todo, Do Now on the page;  no Approve):
-  - a phase (`p3`):  todo makes `Follow up:  P3 · <title>` linking `#p3`, a Done status card on the phase;
+  - a phase (`p3`):  todo makes `Follow up:  P3 · <title>` linking `#p3`, a Noted status card on the phase;
     a kept note is Owen's `<epic-reply>` in the phase, under its `<epic-updated>` lines
   - the summary, keyed `summary` in the inbox (it has no id):
-    todo makes `Follow up:  the summary` linking `#overview`, a Done status card under the lede;
+    todo makes `Follow up:  the summary` linking `#overview`, a Noted status card under the lede;
     a kept note is `<epic-reply slot="notes">` in `<epic-summary>`
 - NEW items from the page (epic `airplane` P2):
   a `+` in the page header, and a New todo / New question button at the end of the Todos and Questions sections,
@@ -251,7 +262,7 @@ As `plan-doc.md`, "Ids":
     editable and removable until Claude makes it
   - `inbox apply` makes each sent one as `add` does:  the note its details (a question's lead),
     `About <a href="#p3">P3</a>.` for `near`,
-    a Done status card `Made from the page:  Owen's new todo, written <time>.`, one log line
+    a Noted status card `Made from the page:  Owen's new todo, written <time>.`, one log line
   - `inbox clear new1` drops one;  its note is never kept as a reply
 
 ## Prose elements
@@ -277,8 +288,16 @@ it goes wherever prose goes (an item's text, a reply, an option card, a phase fi
 
 ## Status cards
 
-What Claude took each of Owen's review marks to mean, and that it's done (P13):  a card per mark, on the item (the
-Overview sub-section, the phase, the summary) it's on.
+What Claude took each of Owen's review marks to mean, and that it's done or noted (P13):  a card per mark, on the
+item (the Overview sub-section, the phase, the summary) it's on.
+
+Two kinds of finished card, so a card that only RECORDS Owen's choice never reads as work done (Owen, 2026-10-10:
+"Claude Done entries are confusing ... you haven't apparently done anything"):
+
+| card             | when                                                                  | says, in one line                                   |
+| ---------------- | --------------------------------------------------------------------- | --------------------------------------------------- |
+| `Claude • Noted` | Claude RECORDED what Owen chose, nothing built yet:  a pick, a todo made or queued, a new item made, a choice talked over | what was recorded, and what happens next:  `Chose B · Bananas:  recorded as the answer;  waiting for the next phase, P9 · Build` |
+| `Claude • Done`  | WORK was done:  an answer or reply written, code changed, a phase built | the reading kept, a summary when worth saying     |
 
 ```html
 <epic-status slot="status" state="underway" at="2026-10-08 14:20">
@@ -288,11 +307,14 @@ Overview sub-section, the phase, the summary) it's on.
   <p>Weigh one JSON file for the pack templates against a file each, and answer here.</p>
   <p slot="summary">Recommended a file each:  JSON would need every template escaped.</p>
 </epic-status>
-<epic-status slot="status" state="done" at="2026-10-08 15:02"><p>Chose B · Keep one file per template</p></epic-status>
+<epic-status slot="status" state="noted" at="2026-10-08 15:02">
+  <p>Chose B · Keep one file per template:  recorded as the answer;  waiting for the next phase, P9 · Build</p>
+</epic-status>
 ```
 
-- Drawn:  `Claude • Underway` (blue) / `Claude • Done` (green) on the left of the band, the date at its right
-  (`done-at` once done, else `at`);  then the reading;  then the summary, if any.
+- Drawn:  `Claude • Underway` (blue fill) / `Claude • Done` (green fill) / `Claude • Noted` (no fill, a green
+  outline:  the fill rule's "recorded") on the left of the band, the date at its right
+  (`done-at` once finished, else `at`);  then the reading;  then the summary, if any.
 - An underway card makes its item `progress` (blue:  Claude is working on it) until it's done.
 - `slot="status"`:  never ordered (written last in the item, or the section);  drawn last in the details, UNDER Owen's
   marked note and above the note box ("under my input", Owen, 2026-10-08).  A part file never holds them:
@@ -302,12 +324,16 @@ Overview sub-section, the phase, the summary) it's on.
 - A later mark on the same item:  a new card after the old ones, which stay, as the record.
 - Written by the tool only:
   - `status <name> <id> underway "<reading>"`:  a new underway card, stamped now;  the page's spinner on
-  - `status <name> <id> done ["<summary>"]`:  the LATEST underway card turns done (`done-at`), the reading kept;
-    spinner off;  refused with no underway card
-  - `status <name> <id> done --filed "<what>"`:  a card born done (`at` alone)
-  - `inbox apply`:  a card born done for each pick (`Chose B · <option>`) and todo (`Made todo T23 to follow this
-    up.`) it files (Q19), and each new item it makes (`Made from the page:  Owen's new todo, ...`);
-    none for an approval
+  - `status <name> <id> done ["<summary>"]`:  WORK was done:  the LATEST underway card turns done (`done-at`), the
+    reading kept;  spinner off;  refused with no underway card
+  - `status <name> <id> noted "<what>"`:  Claude only RECORDED Owen's choice:  the latest underway card turns
+    noted, `what` its summary;  none, a card born noted (`at` alone);  spinner off.
+    `done --filed "<what>"`, the older spelling, writes the same Noted card
+  - `inbox apply`:  a card born NOTED for each pick (`Chose B · <option>:  recorded ...;  waiting for ...`) and todo
+    (`Made todo T23 to follow this up.`) it files (Q19), each todo it queues (`Queued for P10 · <name>`), and each
+    new item it makes (`Made from the page:  Owen's new todo, ...`);  none for an approval
+  - `inbox done | clear` of a mark carrying a pick:  a Noted card with the pick kept (`Chose B · ...:  recorded
+    after the talk;  ...`), unless a `decide --option` already chose in that set
   - the reading and summary are HTML, as `updated` takes:  inline runs go in a `<p>`, blocks stay;
     plain text works as it is (`&lt;` for a `<`)
 - A rewrite of the item's text (`details --file`) leaves its cards where they are;
@@ -321,8 +347,8 @@ Drawn, never written:  one meaning per colour on every element (decision Q20, Ow
 | ------ | ---------------------------------------- | ---------------------------------------------------------------------- |
 | red    | needs Owen                               | `attention` chips;  the rail's count (only what needs him)             |
 | yellow | open, still undecided (DARK text on it)  | `open` chips;  a `to do` review label                                  |
-| blue   | do it now, or Claude is working on it    | `progress` chips;  Revisit, Do Now and Review Now (both the wand), Send;  Underway cards;  the active phase |
-| green  | decided or done (however long ago)       | `recent` chips;  Approve, Make Todo, a todo's plane (next phase), a pick, the chosen option;  Done cards;  DONE |
+| blue   | do it now, or Claude is working on it    | `progress` chips (outlined);  Revisit, Do Now and Review Now (both the wand), Send;  Underway cards;  the active phase |
+| green  | decided or done (however long ago)       | `recent` chips;  Approve, Make Todo, a todo's plane (next phase), a pick, the chosen option;  Done cards (filled), Noted cards (outlined);  DONE |
 | orange | changed since Owen looked, or a warning;  an item Claude answered with options, waiting for Owen's pick (Owen, 2026-10-09) | UPDATE, the Updated fence, Plan changes;  "nobody is listening";  a blocked agent;  `replied` chips (DARK text on them), counted on the rail as needing Owen |
 | violet | Claude's voice                           | his reply cards;  the bedtime label                                    |
 | ivory  | Owen's voice                             | his note box, marked note, reply cards, the answer card                |
@@ -339,11 +365,32 @@ Choose pill and its card, Send).  The review buttons are Owen's INPUT (Owen, 202
 - SOLID only on chips (an item's state), the step label's DONE, and a Choose pill on its set's `chosen` option
   (applied, wherever the cards are)
 
-An item's id chip MATCHES the chosen review button while Owen's mark is live (Owen, 2026-10-08):
-that button's colour and fill (an Approve pressed, not sent:  a dashed green chip;  a revisit sent:
-an outlined blue one;  a pick:  green;  the note box's x, which has no line button:  grey).
-No mark, or one Claude handled:  its state's colour, solid -- the result
-(an approved J9 green, a revisited J10 still open, yellow).
+An item's id chip says WHERE OWEN'S ANSWER STANDS, by its fill (Owen, 2026-10-10:  "it's not clear when an answer
+is queued and being addressed, so I keep filling in answers over and over"):
+DASHED, his answer given, not sent;  OUTLINED, sent:  Claude has it, is on it, or the work it asked for is still due;
+SOLID, done:  Claude did it, or noted it and nothing more is due from anyone.
+So at a glance:  a dashed or outlined chip is ANSWERED (don't answer again);  solid red or orange WAITS ON OWEN.
+
+| Owen's answer                          | colour | dashed:  not sent | outlined:  sent, Claude has it, or still due | solid:  done (the item's state) |
+| -------------------------------------- | ------ | ----------------- | -------------------------------------------- | ------------------------------- |
+| Approve                                | green  | pressed           | sent, until `inbox apply`                    | green:  a call accepted, a test passed;  an issue / caveat settled |
+| a pick (the Choose pill)               | green  | picked            | sent;  still outlined once `apply` takes it, until the doc's `chosen` reaches the page | green:  a question answered, a call accepted (a Noted card) |
+| an open question answered (Approve:  its recommended option;  or a pick) | green | as above | as above                  | green `decided` |
+| Make Todo                              | green  | pressed           | sent                                         | green:  settled;  the new todo is its own item (yellow until queued) |
+| a todo's plane:  "do it in the next phase" | green | pressed        | sent;  then QUEUED (`queued`):  outlined until the todo is closed | green, once done |
+| a review's "do it" (`queue <id> "work"`) | green | --              | queued:  outlined until started and done     | green, once done                |
+| a todo's x:  "drop it"                 | grey   | pressed           | sent                                         | grey `old` (canceled)           |
+| the note box's x:  "skip this" (no line button wears it:  the chip alone does) | grey | pressed | sent              | its status as it was (`skip` settles nothing) |
+| Revisit, with a note                   | blue   | pressed           | sent:  Claude talking it over                | yellow (talked over, still open);  orange if Claude answered with options (Owen's turn);  green if it got decided |
+| Do Now (the wand):  Add Details, a revisit now | blue | waiting to be taken | Claude's agent on it (`working`)     | the state's colour              |
+| any work Claude took (an underway status card) | blue | --          | `progress`:  outlined until the card is Done or Noted | the state's colour      |
+| a new todo or question from the page   | its section's new row | not sent | sent                              | the new item's own chip (a question red, a todo yellow) |
+| urgent / not urgent (the id chip itself) | red / yellow | a dashed ring | --                                    | solid red / yellow              |
+
+- The chip of an item waiting on Owen is never outlined:  `attention` (red) and `replied` (orange) stay solid,
+  and the toolbar counts them (`state`, as the script writes it, unchanged).
+- Outlined is drawn from the item's own marks, never written:  Owen's live mark (the inbox), a pick Claude took
+  (`ReviewClient.takenPickOf()`), `queued` on an open item, `progress`.
 
 ## Folding
 

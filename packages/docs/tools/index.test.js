@@ -1,7 +1,7 @@
 import { parseHTML } from "linkedom"
 import { describe, expect, it } from "vite-plus/test"
 
-import { END, LISTS, START, areaCards, epicOrder, listSection, planOf, replaceBetween, skeleton } from "./index.js"
+import { END, LISTS, START, areaCards, listSection, planOf, replaceBetween, skeleton } from "./index.js"
 
 /** A described epic page (`describe()`'s shape) with `phases`, each a status. */
 function epic(name, statuses, updated = new Date().toISOString().slice(0, 10)) {
@@ -10,30 +10,35 @@ function epic(name, statuses, updated = new Date().toISOString().slice(0, 10)) {
     title: name,
     description: "",
     phases: statuses.map((status, i) => ({ status, label: `P${i + 1} · Phase` })),
-    updated
+    updated,
+    future: false,
+    urgent: []
   }
 }
 
 /** A described page at `path`. */
 function page(path) {
-  return { path, title: path, description: "", phases: [], updated: null }
+  return { path, title: path, description: "", phases: [], updated: null, future: false, urgent: [] }
 }
 
 describe("the docs home's cards", () => {
   it("come in the top bar's order (claude-design Q6), counted from the pages", () => {
-    const cards = areaCards([
-      epic("a", ["done", "done"]),
-      epic("b", ["done", "active"]),
-      epic("c", []),
-      page("guides/x.html"),
-      page("guides/y/y.html"),
-      page("templates/durable.html"),
-      page("brand/pony.html"),
-      page("brand/compare.html"),
-      page("brand/spell-design-system/Logo.spell.html"),
-      page("brand/spell-design-system/Logo.dc.html"),
-      page("brand/components/ui-brand-logo.html")
-    ])
+    const cards = areaCards(
+      [
+        epic("a", ["done", "done"]),
+        epic("b", ["done", "active"]),
+        epic("c", []),
+        page("guides/x.html"),
+        page("guides/y/y.html"),
+        page("templates/durable.html"),
+        page("brand/pony.html"),
+        page("brand/compare.html"),
+        page("brand/spell-design-system/Logo.spell.html"),
+        page("brand/spell-design-system/Logo.dc.html"),
+        page("brand/components/ui-brand-logo.html")
+      ],
+      new Set()
+    )
     expect(cards.map((card) => card.title)).toEqual([
       "Epics",
       "Guides",
@@ -44,7 +49,10 @@ describe("the docs home's cards", () => {
       "App"
     ])
     const count = Object.fromEntries(cards.map((card) => [card.id, card.count]))
-    expect(count.epics).toBe("2 running · 1 done")
+    // by the Epics page's groups (epic `airplane` P8):  `c` has no phases yet, so it's planning
+    expect(count.epics).toBe("1 active · 1 planning · 1 done")
+    const starred = areaCards([epic("a", ["done", "done"]), epic("b", ["done", "active"])], new Set(["a"]))
+    expect(starred[0].count).toBe("1 favorites · 1 active")
     expect(count.guides).toBe("2 guides")
     expect(count.brand).toBe("1 copy · 1 element · 1 page")
     expect(count.templates).toBe("1 template")
@@ -57,14 +65,52 @@ describe("the list pages", () => {
   const epics = LISTS.find((list) => list.id === "epics")
   const guides = LISTS.find((list) => list.id === "guides")
 
-  it("list open epics before done ones, the running epics' slot first, links from the list's folder", () => {
-    const pages = [epic("a", ["done"]), epic("b", ["active", "todo"]), epic("c", [])]
-    expect(epicOrder(pages).map((each) => each.title)).toEqual(["b", "c", "a"])
-    const html = listSection(epics, pages)
-    expect(html).toMatch(
-      /<ui-cards class="spell-grid spell-epics" stackable>\n<!-- running-epics -->\n<ui-card data-epic="b"/
+  // epic `airplane` P8 (Owen, 2026-10-10):  favorites, active, planning, urgent, done;  alphabetical in each
+  it("list epics in groups:  Favorites, Active (paused too), Planning, Urgent, Done;  alphabetical in each", () => {
+    const loud = { ...epic("e", ["done"]), urgent: ["q1"] }
+    const pages = [
+      epic("a", ["done"]),
+      epic("z", ["active", "todo"]),
+      epic("b", ["active", "todo"]),
+      epic("c", []),
+      { ...epic("f", []), future: true },
+      epic("p", ["todo"], "2026-01-01"),
+      { ...epic("s", ["done"]), worked: new Date(2026, 9, 9, 14, 34) },
+      loud
+    ]
+    const html = listSection(epics, pages, new Set(["z", "s"]))
+    const groups = Array.from(
+      html.matchAll(/<div class="spell-epic-group" data-group="(\w+)"( hidden)?>/g),
+      (m) => m[1]
     )
+    expect(groups).toEqual(["favorites", "active", "planning", "urgent", "done"])
+    const order = Array.from(html.matchAll(/data-epic="(\w+)"/g), (m) => m[1])
+    // a starred epic ONLY under Favorites;  paused `p` is Active, marked grey
+    expect(order).toEqual(["s", "z", "b", "p", "c", "f", "e", "a"])
+    expect(html).toMatch(/<\/ui-icon>\n<!-- running-epics -->\n<div class="spell-epic-group" data-group="favorites">/)
+    expect(html).toMatch(/<!-- running-epics:end -->\n<\/ui-section>$/)
+    expect(html).toContain(`Favorites <span class="spell-epic-group-count">2</span>`)
     expect(html).toContain(`<a href="b/b.plan.html">b</a>`)
+    // the facts the page server marks each card again from (`RunningEpics.render()`)
+    expect(html).toContain(
+      `<ui-card id="epic-p" data-epic="p" data-title="p" data-group="active" data-status="open" data-phases="todo" data-updated="2026-01-01">`
+    )
+    expect(html).toContain(
+      `<ui-icon class="spell-epic-state" name="circle pause" color="grey" title="paused:  no update since 2026-01-01, 0/1 phases done"></ui-icon> <a href="p/p.plan.html">`
+    )
+    expect(html).toMatch(
+      /data-epic="e" data-title="e" data-group="urgent" data-status="open" data-phases="done" data-updated="[\d-]+" data-urgent="q1">/
+    )
+    // the star, top right;  the day last worked on, bottom right, no year
+    expect(html).toContain(`aria-pressed="true" aria-label="Unstar s"`)
+    expect(html).toContain(`aria-pressed="false" aria-label="Star a"`)
+    expect(html).toMatch(
+      /<time class="spell-epic-worked" datetime="2026-10-09T14:34[+-]\d\d:\d\d" title="Last worked on 10\/9\/26 14:34">10\/9<\/time><\/ui-card>/
+    )
+    expect(html).toContain(
+      `name="circle exclamation" color="red" title="errors:  every phase done, but 1 question need you"`
+    )
+    expect(html).not.toMatch(/sleeping|😴/)
   })
 
   it("leave the Brand index's own pages to it, in a section of their own (claude-design P11)", () => {
@@ -118,17 +164,18 @@ describe("planOf():  a plan doc's card data (epic-components P8)", () => {
     ],
     updated: "2026-10-06",
     future: false,
-    followUps: ["question", "issue"]
+    urgent: ["q1", "i1"]
   }
 
-  it("reads the <epic-*> markup:  phases, the page's updated and future, open items' kinds", () => {
+  it("reads the <epic-*> markup:  phases, the page's updated and future, the items that need Owen", () => {
     const { document } = parseHTML(`<html><body><epic-page epic="x" title="X" updated="2026-10-06">
 <epic-section id="phases" kind="phases"><epic-phase id="p1" title="First Go" status="done"></epic-phase>
 <epic-phase id="p2" status="active"><span slot="title">Second</span></epic-phase></epic-section>
-<epic-section id="decisions" kind="questions"><epic-item id="q1" title="a" status="open"></epic-item>
-<epic-item id="q2" title="b" status="decided"></epic-item></epic-section>
-<epic-section id="caveats" kind="caveats"><epic-item id="c1" title="c" status="open"></epic-item></epic-section>
-<epic-section id="issues" kind="issues"><epic-item id="i1" title="d" status="open"></epic-item></epic-section>
+<epic-section id="decisions" kind="questions"><epic-item id="q1" title="a" status="open" state="attention"></epic-item>
+<epic-item id="q2" title="b" status="decided" state="recent"></epic-item></epic-section>
+<epic-section id="caveats" kind="caveats"><epic-item id="c1" title="c" status="open" state="open"></epic-item></epic-section>
+<epic-section id="issues" kind="issues"><epic-item id="i1" title="d" status="open" state="replied"></epic-item>
+<epic-item id="i2" title="e" status="open" state="open"></epic-item></epic-section>
 </epic-page></body></html>`)
     expect(planOf(document)).toEqual(expected)
   })
@@ -137,6 +184,6 @@ describe("planOf():  a plan doc's card data (epic-components P8)", () => {
     const { document } = parseHTML(`<html><body><time id="plan-updated">2026-10-06</time>
 <ui-section id="phases"><ui-section data-phase="1" data-status="done" header="P1 · First Go"></ui-section></ui-section>
 <ui-list class="plan-items"><ui-item id="q1" data-status="open"></ui-item></ui-list></body></html>`)
-    expect(planOf(document)).toEqual({ phases: [], updated: null, future: false, followUps: [] })
+    expect(planOf(document)).toEqual({ phases: [], updated: null, future: false, urgent: [] })
   })
 })

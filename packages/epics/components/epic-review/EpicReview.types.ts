@@ -199,6 +199,13 @@ export const REVIEWING = "reviewing"
  */
 export const SHOW_NOTE = "epic-show-note"
 
+/**
+ * The event an `<epic-review>` sends once Owen chose an action with it:  a review button that chose one (not one that
+ * cleared a mark or called a request off:  `ReviewClient.press()` answering `"chosen"`), or a note box button.
+ * `<epic-item>` folds, so Owen moves on to the next (Owen, 2026-10-10).
+ */
+export const CHOSEN = "epic-chosen"
+
 ////////////////
 // ## In the vocabularies
 ////////////////

@@ -11,6 +11,7 @@ import {
   type InboxMark,
   type NewItem,
   type NewKind,
+  type PickFields,
   type ReviewAction,
   type Running
 } from "$/epics/review"
@@ -79,6 +80,9 @@ export class ReviewState {
   /** Has Claude taken its request (an agent at work on it), rather than it waiting to be taken? */
   readonly workedOn = (): boolean => this.read((client, id) => client.isWorkedOn(id)) ?? false
 
+  /** Its pick Claude took off the inbox since the page loaded (`ReviewClient.takenPickOf()`), if any. */
+  readonly takenPick = (): PickFields | undefined => this.read((client, id) => client.takenPickOf(id))
+
   /** Has its mark gone to Claude? */
   readonly isSent = (): boolean =>
     this.read((client, id) => !!client.markOf(id) && client.isSent(client.markOf(id)!)) ?? false
@@ -133,9 +137,12 @@ export class ReviewState {
   // ## Acts (untracked:  from handlers)
   ////////////////
 
-  /** Its `action` button clicked:  `"open-box"` when the caller should take the reader to the note box. */
+  /**
+   * Its `action` button clicked:  `"open-box"` when the caller should take the reader to the note box, `"chosen"`
+   * when an action was chosen for it (the caller folds it), else `undefined` (`ReviewClient.press()`).
+   */
   @E.untracked
-  press(action: ReviewAction): "open-box" | undefined {
+  press(action: ReviewAction): "open-box" | "chosen" | undefined {
     return this.client?.press(this.id(), action)
   }
 

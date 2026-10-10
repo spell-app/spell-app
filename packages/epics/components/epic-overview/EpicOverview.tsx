@@ -9,6 +9,7 @@ import type { ContentsEntry } from "$/epics/components/epic-section/EpicSection.
 
 import { epicOverviewVocabulary } from "./EpicOverview.en"
 
+import collapseAllCSS from "$/epics/components/epic-item/CollapseAll.css?inline"
 import foldCSS from "$/epics/components/epic-section/EpicFold.css?inline"
 import overviewCSS from "./EpicOverview.css?inline"
 
@@ -27,7 +28,7 @@ import overviewCSS from "./EpicOverview.css?inline"
 export class EpicOverview extends EpicFold<typeof epicOverviewVocabulary> {
   @E.proto static vocabulary = epicOverviewVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold": foldCSS, "epic-overview": overviewCSS }
+    styleSheets: { "epic-fold": foldCSS, "epic-collapse-all": collapseAllCSS, "epic-overview": overviewCSS }
   } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  is there a kickoff prompt? */
