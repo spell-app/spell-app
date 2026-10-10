@@ -1,5 +1,4 @@
-import { createEffect } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 import { repeatVocabulary } from "./UIRepeat.en"
@@ -55,19 +54,17 @@ export class UIRepeat extends E.UIComponent<typeof repeatVocabulary> {
   /** Bumped each time the template is taken:  the rows are made afresh from it. */
   @E.state private accessor templateVersion = 0
 
-  /** Takes the template while connected, and watches for children added later. */
-  onMount() {
-    createEffect(
-      () => this.isConnected,
-      (connected) => {
-        if (!connected || isServer) return undefined
-        this.takeTemplate()
-        const observer = new MutationObserver(() => this.takeTemplate())
-        observer.observe(this.domElement, { childList: true })
-        return () => observer.disconnect()
-      }
-    )
-    return super.onMount()
+  /**
+   * While connected:  take the template, and again as children are added later;  returns the watch's undo.
+   * - Its own `MutationObserver`, not `@watches`:  it watches only while connected.
+   */
+  @E.whileConnected
+  protected watchTemplate() {
+    this.takeTemplate()
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while connected:  `@E.watches` lasts the element's whole life
+    const observer = new MutationObserver(() => this.takeTemplate())
+    observer.observe(this.domElement, { childList: true })
+    return () => observer.disconnect()
   }
 
   /**

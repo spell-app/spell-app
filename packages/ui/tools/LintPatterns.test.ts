@@ -108,7 +108,17 @@ const ALLOWED: readonly Allowed[] = [
     reason: "a helper class:  `@E.watches` is for components"
   },
   {
+    file: "packages/ui/src/components/ui-form/FormBinding.ts",
+    rule: "no-solid-effect",
+    reason: "a helper class, not a component:  one effect per bound control, in a root of its own"
+  },
+  {
     file: "packages/ui/src/components/ui-form/UIForm.tsx",
+    rule: "no-mutation-observer",
+    reason: "only while connected:  `@E.watches` lasts the element's whole life"
+  },
+  {
+    file: "packages/ui/src/components/ui-form/UIRepeat.tsx",
     rule: "no-mutation-observer",
     reason: "only while connected:  `@E.watches` lasts the element's whole life"
   },
