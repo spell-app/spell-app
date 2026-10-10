@@ -32,11 +32,12 @@ export type TargetAbilities = {
 /** Every target, by name. */
 export const TARGETS: Record<string, Target> = {
   "js/solid": { name: "js/solid", writer: P.JSWriter.instance, suffix: ".compiled.js", can: { draw: "dom" } },
-  // the same code and runtime, typed:  checked by `tsc`, never run
+  // Solid TypeScript, as a person writes it:  JSX, decorators (`@prop`, `@drawn`), on the same runtime.  Checked by
+  // `tsc`;  never run as is -- it needs a build first (`buildTsx()` in `$/spell/node/buildTsx`)
   "ts/solid": {
     name: "ts/solid",
     writer: P.TSWriter.instance,
-    suffix: ".compiled.ts",
+    suffix: ".compiled.tsx",
     can: { draw: "dom" },
     checkedBy: "tsc"
   }

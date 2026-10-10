@@ -5,12 +5,16 @@ import { resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
 import environment from "$/spell/node/environment"
+import { buildTsx } from "$/spell/node/buildTsx"
 import { SP } from "$/spell"
 import { LSP } from "$/lsp"
 import { CLI } from "$/cli"
 
 /** Our own `src/` folder -- NOT `environment.srcDir`, which is the parser's. */
 const CLI_SRC_DIR = resolve(fileURLToPath(import.meta.url), "..", "..")
+
+/** Extension of Solid TypeScript (`ts/solid`), which `runCode()` builds before running. */
+const TSX = ".tsx"
 
 /**
  * `spell run [project]`:  compile one project and run it under node -- its `print`s show as they happen.
@@ -97,7 +101,8 @@ export async function runCompiled(
 
 /**
  * Run `code`, project `name` compiled for any target, in `runProject.ts` -- see `runCompiled()`.
- * - `extension`:  of the temp file it runs from, `.mjs`;  `.mts` for TypeScript (`ts/solid`), which `tsx` strips.
+ * - `extension`:  of the temp file it runs from, `.mjs`.  A `.tsx` (the `ts/solid` target's Solid TypeScript) is
+ *   built first, to a `.mjs`:  its decorators lowered and its JSX compiled by Solid's compiler -- see `buildTsx()`.
  * - `projects`:  what it imports, by id -- see `importedOutputs()`.
  * - `dom`:  in a fake page, printing what it draws -- see `CLI.RunSpec`.
  * - Used by the core contract test, `contract.test.ts`, to run each target's code the same way.
@@ -116,6 +121,10 @@ export async function runCode(
 ): Promise<ChildResult> {
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
+    if (extension === TSX) {
+      code = await buildTsx(code, { filename: `${name}.compiled${TSX}` })
+      extension = ".mjs"
+    }
     const entry = resolve(folder, `${name}.compiled${extension}`)
     writeFileSync(entry, code)
     const spec: CLI.RunSpec = {

@@ -121,7 +121,7 @@ function compileFixture(
     })
   const importLines = SP.SpellProject.importHeaderFor(scope)
   const marked =
-    errors.join("") + importLines + SP.SpellProject.combineCompiled(parts, SP.targetFor(target).writer) + "\n"
+    errors.join("") + SP.SpellProject.combineCompiled(parts, SP.targetFor(target).writer, importLines) + "\n"
   return SP.SpellDeclarations.split(marked, scope, { version, exports })
 }
 

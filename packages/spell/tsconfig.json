@@ -19,5 +19,7 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src", "../../types"],
+  // hand-written `ts/solid` output:  checked by `typecheck()`, with `@spell/core` and Solid's JSX (`typescript.test.ts`)
+  "exclude": ["src/test/*.sample.tsx"],
   "references": [{ "path": "./tsconfig.node.json" }]
 }

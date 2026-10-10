@@ -28,7 +28,7 @@ export class Task extends Thing {
           tag: "input",
           props: {
             type: "checkbox",
-            checked: this.is_complete,
+            checked: () => this.is_complete,
             onChange: (event) => {
               this.completed = (this.is_active ? true : false)
             }
@@ -36,7 +36,7 @@ export class Task extends Thing {
         })
       ] }),
       spellCore.element({ tag: "td", props: { width: "82%" }, children: [
-        this.title
+        () => this.title
       ] }),
       spellCore.element({ tag: "td", props: { width: "10%" }, children: [
         spellCore.element({
@@ -84,7 +84,7 @@ export class Todos_App extends App {
       spellCore.element({ tag: "br" }),
       spellCore.element({ tag: "table", props: { width: "50%" }, children: [
         spellCore.element({ tag: "tbody", children: [
-          spellCore.drawItems(app.tasks)
+          () => spellCore.drawItems(app.tasks)
         ] })
       ] }),
       spellCore.element({ tag: "br" }),

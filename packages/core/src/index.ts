@@ -31,5 +31,9 @@ import "./ui"
 import "./drawing"
 
 export { spellCore, assert, SpellEvent, Eventful }
+// The decorators compiled TypeScript (`ts/solid`) writes, e.g. `@prop({ oneOf: RANKS }) accessor rank!: Rank`:
+// `$/util`'s shared reactive ones, spell's `@thing`, and `@drawn` (`drawing.ts`).  Compiled JavaScript has none.
+export { prop, state, derived, thing } from "$/util"
+export { drawn } from "./drawing"
 export { SPELL_CORE_MODULE, SPELL_CORE_NAMES, type SpellCore, type PropCheck } from "./spellCore.types"
 export * from "./classes"

@@ -6,7 +6,7 @@ import { compiledFixture, fixtureDeclarations, fixturePath, fixtureProjectNames 
 /**
  * Every fixture project in `projects/test/` compiled, against its snapshot beside it:
  * `projects/test/<Project>/<Project>.snapshot.js`, and its declarations against `<Project>.snapshot.declarations.json`;
- * as TypeScript (the `ts/solid` target), against `<Project>.snapshot.ts`.
+ * as TypeScript (the `ts/solid` target), against `<Project>.snapshot.tsx`.
  * - Why beside it:  a change shows up as a diff of a real `.js` file, in VS Code's Source Control.
  * - New fixture:  copy a project into `projects/test/`, then `yarn test:fixtures:bless` writes its snapshot.
  * - Changed on purpose:  `yarn test:fixtures:bless`, then read the diff before committing it.
@@ -27,7 +27,7 @@ describe("fixture projects compile to their snapshots", () => {
 
     // the `ts/solid` target's, `tsc`-checked by `typescript.test.ts`
     test(`${name} as TypeScript`, async () => {
-      await expect(compiledFixture(name, "ts/solid")).toMatchFileSnapshot(fixturePath(name, `${name}.snapshot.ts`))
+      await expect(compiledFixture(name, "ts/solid")).toMatchFileSnapshot(fixturePath(name, `${name}.snapshot.tsx`))
     })
   }
 })

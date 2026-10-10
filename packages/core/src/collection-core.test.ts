@@ -405,4 +405,13 @@ describe("typed collections:  a helper's result and callbacks follow its collect
     expectTypeOf(spellCore.itemOf(["a"], "a")).toEqualTypeOf<number | undefined>()
     expectTypeOf(spellCore.itemOf({ a: 1 }, 1)).toEqualTypeOf<string | number | undefined>()
   })
+
+  test("a read-only `as const` list, as compiled TypeScript writes one, is a collection like any other", () => {
+    const RANKS = ["ace", 2, "king"] as const
+    expectTypeOf(spellCore.itemOf(RANKS, "king")).toEqualTypeOf<number | undefined>()
+    expectTypeOf(spellCore.getItemOf(RANKS, 1)).toEqualTypeOf<"ace" | 2 | "king" | undefined>()
+    expectTypeOf(spellCore.includes(RANKS, "ace")).toEqualTypeOf<boolean>()
+    spellCore.forEach(RANKS, (rank) => expectTypeOf(rank).toEqualTypeOf<"ace" | 2 | "king">())
+    expect(spellCore.itemOf(RANKS, "king")).toBe(3)
+  })
 })

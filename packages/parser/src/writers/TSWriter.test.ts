@@ -3,8 +3,8 @@ import { describe, expect, test } from "vite-plus/test"
 import { P } from "$/parser"
 
 /**
- * `TSWriter`:  javascript plus the types spell knows.  Whole projects, checked by `tsc`:  spell's
- * `src/test/typescript.test.ts`.
+ * `TSWriter`:  TypeScript on Solid, as a person writes it.  Whole projects, checked by `tsc`:  spell's
+ * `src/test/typescript.test.ts`;  run on both targets:  the core contract, `contract.test.ts` in `$/cli`.
  */
 
 /** A match for hand-made AST:  no tokens, so no datatype comes from it. */
@@ -50,7 +50,7 @@ describe("TSWriter", () => {
     expect(writer.params(method([]), "Card")).toBe("(this: Card)")
   })
 
-  test("a reactive property is typed from its check, and merged into its class from outside", () => {
+  test("a reactive property is a decorated accessor in its class, typed from its check;  merged in from outside", () => {
     const check = new P.ASTObjectLiteral(match, {
       properties: [
         new P.ASTObjectLiteralProperty(match, {
@@ -60,19 +60,25 @@ describe("TSWriter", () => {
       ]
     })
     const score = new P.ASTReactiveProperty(match, { type: "Game", property: "score", check })
-    expect(writer.writeAsMember(score)).toContain("get score(): number { return this.getProp('score') as number }")
-    expect(writer.writeAsMember(score)).toContain("set score(value: number)")
+    expect(writer.writeAsMember(score)).toBe(`@prop({ type: "number" }) accessor score!: number`)
     expect(writer.write(score)).toMatch(/^export interface Game \{ score: number \}\n/)
     expect(writer.write(score)).toContain("set(this: Game, value: number)")
   })
 
-  test("a new variable spell knows the type of is typed;  one TypeScript can type is left to it", () => {
-    const count = new P.ASTAssignmentStatement(match, {
+  test("a new variable spell knows the type of is typed;  `const` unless the project sets it again", () => {
+    const count = () =>
+      new P.ASTAssignmentStatement(match, {
+        thing: new P.ASTVariableExpression(match, { name: "count" }),
+        value: new P.ASTNumericLiteral(match, 0),
+        isNewVariable: true
+      })
+    expect(writer.write(count())).toBe("const count: number = 0")
+    const again = new P.ASTAssignmentStatement(match, {
       thing: new P.ASTVariableExpression(match, { name: "count" }),
-      value: new P.ASTNumericLiteral(match, 0),
-      isNewVariable: true
+      value: new P.ASTNumericLiteral(match, 1)
     })
-    expect(writer.write(count)).toBe("let count: number = 0")
+    const project = writer.forProject([[count(), again]])
+    expect(project.write(count())).toBe("let count: number = 0")
   })
 
   test("a new variable set from spellCore, which returns `unknown`, is cast or marked", () => {
@@ -82,13 +88,13 @@ describe("TSWriter", () => {
       value: pick(),
       isNewVariable: true
     })
-    expect(writer.write(card)).toBe("let card = spellCore.randomItemOf() as Card")
+    expect(writer.write(card)).toBe("const card = spellCore.randomItemOf() as Card")
     const thing = new P.ASTAssignmentStatement(match, {
       thing: new P.ASTVariableExpression(match, { name: "thing" }),
       value: new P.ASTCoreMethodInvocation(match, { methodName: "randomItemOf" }),
       isNewVariable: true
     })
-    expect(writer.write(thing)).toBe(`let thing: ${UNKNOWN} = spellCore.randomItemOf()`)
+    expect(writer.write(thing)).toBe(`const thing: ${UNKNOWN} = spellCore.randomItemOf()`)
   })
 
   test("a list says what it holds:  its class, and a new one", () => {
@@ -123,6 +129,111 @@ describe("TSWriter", () => {
     const flip = new P.ASTScopedMethodInvocation(match, { thing: top(), methodName: "flip" })
     expect(writer.write(flip)).toBe("spellCore.getItemOf(deck)!.flip()")
     expect(P.JSWriter.instance.write(name)).toBe("spellCore.getItemOf(deck).name")
+  })
+
+  test("TypeScript's names:  methods, functions and variables;  a getter where it's read, not a property", () => {
+    const isASuit = new P.ASTScopedMethodInvocation(match, {
+      thing: new P.ASTVariableExpression(match, { name: "the_card" }),
+      methodName: "is_a_$suit"
+    })
+    expect(writer.write(isASuit)).toBe("theCard.isASuit()")
+    expect(writer.write(new P.ASTMethodInvocation(match, { methodName: "play_from_the_stock_pile" }))).toBe(
+      "playFromTheStockPile()"
+    )
+    expect(P.camelCaseOf("is_the_$rank_of_$suits")).toBe("isTheRankOfSuits")
+    expect(P.camelCaseOf("it_2")).toBe("it2")
+
+    const card = new P.ASTTypeExpression(match, { name: "Card" })
+    const getter = new P.ASTPropertyDefinition(match, { type: card, property: "short_suit", get: method([]) })
+    const property = new P.ASTReactiveProperty(match, { type: card, property: "is_set_up" })
+    const read = (name: string) =>
+      new P.ASTPropertyExpression(match, { object: new P.ASTSelfLiteral(match), property: name })
+    const project = writer.forProject([[new P.ASTClassDeclaration(match, { type: card, members: [getter, property] })]])
+    expect(project.write(read("short_suit"))).toBe("this.shortSuit")
+    expect(project.write(read("is_set_up"))).toBe("this.is_set_up")
+    expect(project.writeAsMember(getter)).toMatch(/^get shortSuit\(\) \{/)
+  })
+
+  test("tidy:  template text, no extra parentheses, no braces around one statement", () => {
+    const text = (value: string) => new P.ASTStringLiteral(match, { value, quote: '"' })
+    const rank = new P.ASTPropertyExpression(match, { object: new P.ASTSelfLiteral(match), property: "rank" })
+    const plus = (lhs: P.ASTExpression, rhs: P.ASTExpression) =>
+      new P.ASTParenthesizedExpression(match, {
+        expression: new P.ASTInfixExpression(match, { lhs, operator: "plus", rhs })
+      })
+    expect(writer.bare(plus(plus(rank, text("-of-")), rank))).toBe("`${this.rank}-of-${this.rank}`")
+    // text only after two values:  they're added first, so it stays `+`
+    const one = new P.ASTNumericLiteral(match, 1)
+    expect(writer.bare(plus(plus(one, one), text("!")))).toBe('1 + 1 + "!"')
+
+    const isUp = new P.ASTInfixExpression(match, { lhs: rank, operator: "equals", rhs: text("up") })
+    const both = new P.ASTInfixExpression(match, {
+      lhs: new P.ASTParenthesizedExpression(match, { expression: isUp }),
+      operator: "and",
+      rhs: new P.ASTParenthesizedExpression(match, { expression: isUp })
+    })
+    expect(writer.bare(both)).toBe('this.rank == "up" && this.rank == "up"')
+
+    const ifUp = new P.ASTIfStatement(match, {
+      condition: isUp,
+      statements: new P.ASTReturnStatement(match, { value: text("+") })
+    })
+    expect(writer.write(ifUp)).toBe('if (this.rank == "up") return "+"')
+  })
+
+  test("a list a property's values come from is a typed constant above its class", () => {
+    const card = new P.ASTTypeExpression(match, { name: "Card" })
+    const suits = new P.ASTStaticDefinition(match, {
+      type: card,
+      name: "Suits",
+      value: new P.ASTArrayLiteral(match, {
+        items: [new P.ASTStringLiteral(match, { value: "clubs", quote: "'" })]
+      })
+    })
+    const check = new P.ASTObjectLiteral(match)
+    check.addProp("oneOf", new P.ASTPropertyExpression(match, { object: card, property: "Suits" }))
+    const suit = new P.ASTReactiveProperty(match, { type: card, property: "suit", check })
+    const superType = new P.ASTTypeExpression(match, { name: "Thing" })
+    const declaration = new P.ASTClassDeclaration(match, { type: card, superType, members: [suits, suit] })
+    const project = writer.forProject([[declaration]])
+    expect(project.write(new P.ASTStatementGroup(match, { statements: [declaration] }))).toBe(
+      [
+        `const SUITS = ["clubs"] as const`,
+        ``,
+        `export type Suit = (typeof SUITS)[number]`,
+        ``,
+        `export class Card extends Thing {`,
+        `  static Suits = SUITS`,
+        `  @prop({ oneOf: SUITS }) accessor suit!: Suit`,
+        `}`
+      ].join("\n")
+    )
+  })
+
+  test("JSX is real JSX, by the page's names;  drawing a thing calls its `draw()`", () => {
+    const element = new P.ASTJSXElement(match, {
+      tagName: "th",
+      attrs: [
+        new P.ASTJSXAttribute(match, {
+          name: "colSpan",
+          value: new P.ASTStringLiteral(match, { value: "2", quote: '"' })
+        }),
+        new P.ASTJSXAttribute(match, {
+          name: "className",
+          value: new P.ASTStringLiteral(match, { value: "left", quote: '"' })
+        })
+      ],
+      children: [
+        new P.ASTJSXExpression(match, {
+          expression: new P.ASTCoreMethodInvocation(match, {
+            methodName: "drawThing",
+            args: [new P.ASTVariableExpression(match, { name: "the_stock" })]
+          })
+        })
+      ]
+    })
+    // `class` first, as javascript's `spellCore.element()` sets it
+    expect(writer.write(element)).toBe(`<th class="left" colspan="2">{theStock.draw()}</th>`)
   })
 
   test("javascript is unchanged by the type hooks", () => {

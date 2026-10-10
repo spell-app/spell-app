@@ -3,7 +3,9 @@
  * the browser's import map, so compiled spell runs under node.
  * - `@spell/core` => spell's runtime, `core`'s `src/index.ts` -- run through `tsx`, which loads first.
  * - `@spell/project/<id>` => that project's compiled javascript, for a project which imports another.
- * - Solid's packages => their browser builds, which the runtime draws with (`SOLID`).
+ * - Solid's packages => their browser builds, which the runtime draws with (`SOLID`).  Found from `@spell/core`'s
+ *   folder, whoever imports them:  so a program built from Solid TypeScript (`ts/solid`, see `buildTsx()`), in a
+ *   temp folder outside the repo, gets the SAME Solid its runtime draws with -- one Solid, as on a page.
  * - Where each is comes from env var `SPELL_RUN` -- see `CLI.RunSpec`.
  * - SIDE EFFECT:  registers itself, so `node --import <this file>` is all it takes.
  * - NOTE: plain javascript:  node loads it with `--import`, before anything is compiled.
@@ -21,7 +23,9 @@ const SOLID = /^(solid-js|@solidjs\/(web|signals|h))(\/|$)/
 
 /** Resolve the two kinds of spell import, and Solid's packages;  leave everything else to node. */
 export async function resolve(specifier, context, next) {
-  if (SOLID.test(specifier)) return next(specifier, { ...context, conditions: ["browser", ...context.conditions] })
+  if (SOLID.test(specifier)) {
+    return next(specifier, { ...context, parentURL: spec.spellCore, conditions: ["browser", ...context.conditions] })
+  }
   if (specifier === "@spell/core") return next(spec.spellCore, context)
   const project = specifier.startsWith("@spell/project/") && spec.projects?.[decodeURI(specifier.slice(15))]
   return project ? { url: project, shortCircuit: true } : next(specifier, context)

@@ -27,6 +27,7 @@
     "@types/node": "^22.20.4",
     "@typescript/typescript6": "^6.0.2",
     "esbuild": "^0.28.2",
+    "linkedom": "^0.18.13",
     "typescript": "^7.0.2",
     "vite": "catalog:",
     "vite-plus": "catalog:"
