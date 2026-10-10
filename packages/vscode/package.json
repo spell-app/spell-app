@@ -215,7 +215,10 @@
       {
         "language": "spell",
         "scopeName": "source.spell",
-        "path": "./syntaxes/spell.tmLanguage.json"
+        "path": "./syntaxes/spell.tmLanguage.json",
+        "embeddedLanguages": {
+          "meta.embedded.block.css": "css"
+        }
       }
     ],
     "languages": [

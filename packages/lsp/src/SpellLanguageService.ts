@@ -36,7 +36,7 @@ import { instanceCase, typeCase } from "$/util"
 import { P } from "$/parser"
 import { MD, type InlineNode } from "$/markdown"
 import { SP } from "$/spell"
-import type { LSP } from "$/lsp"
+import { LSP } from "$/lsp"
 
 /**
  * Answers editor questions about parsed spell files, in Language Server Protocol shapes -- one method per request.
@@ -54,6 +54,8 @@ export class SpellLanguageService {
   #tokenBuilders = new WeakMap<SP.SpellFile, SemanticTokensBuilder>()
   /** Docstrings of each file's declarations, by statement -- keyed by the file's `match`, so one per parse. */
   #docsCache = new WeakMap<P.Match, Map<P.Match, SP.DocComment>>()
+  /** The `<css>` blocks in each file, answered as CSS -- see `LSP.SpellCSS`. */
+  css = new LSP.SpellCSS()
 
   constructor(addresses: LSP.FileAddresses) {
     this.addresses = addresses
@@ -113,6 +115,7 @@ export class SpellLanguageService {
   /**
    * Problems to show in `file`:  its parse errors, each under the text it couldn't make sense of.
    * - A file its project doesn't parse, or a project whose parse crashed, gets ONE diagnostic saying so, at the top.
+   * - Then the CSS mistakes in its `<css>` blocks -- see `LSP.SpellCSS`.
    */
   diagnostics(file: SP.SpellFile): Diagnostic[] {
     const top: Range = { start: { line: 0, character: 0 }, end: { line: 0, character: 0 } }
@@ -127,13 +130,16 @@ export class SpellLanguageService {
     }
     if (!file.match) return []
 
-    return (SP.Block.getParseErrors(file.match) ?? []).flatMap((error) => {
+    const text = file.parseText
+    const parseErrors = (SP.Block.getParseErrors(file.match) ?? []).flatMap((error): Diagnostic[] => {
+      // TODO: drop once spell's grammar has a rule for the `<css>` block (P4 of epic `drawable-thing`)
+      if (error.start !== undefined && this.css.isInBlock(text, error.start)) return []
       const range = this.rangeOf(file, error)
       if (!range) return []
-      const text = file.parseText.slice(error.start, error.end)
-      const message = error.message || `Don't understand "${text}"`
+      const message = error.message || `Don't understand "${text.slice(error.start, error.end)}"`
       return [{ range, severity: DiagnosticSeverity.Error, source: "spell", message }]
     })
+    return [...parseErrors, ...this.css.diagnostics(text)]
   }
 
   ////////////////
@@ -162,6 +168,7 @@ export class SpellLanguageService {
     })
     for (const [startLine, endLine] of this.runsOf(commentLines))
       ranges.push({ startLine, endLine, kind: FoldingRangeKind.Comment })
+    for (const region of this.css.regionsIn(file.parseText)) this.addFold(file, ranges, region.start, region.end)
     return ranges
   }
 
@@ -376,6 +383,7 @@ export class SpellLanguageService {
    *   - something built in, e.g. the `thing` type, is `defaultLibrary`
    *   - a name where it's declared, e.g. `card` in `a card is a thing`, is a `declaration`
    * - JSX tag names are `type`s, attribute names `property`s.
+   * - Nothing in a `<css>` block:  editors colour it as CSS themselves.
    */
   highlightSpans(file: SP.SpellFile): LSP.HighlightSpan[] {
     if (!file.match) return []
@@ -413,7 +421,10 @@ export class SpellLanguageService {
       }
     })
     spans.sort((a, b) => a.start - b.start)
-    return spans.filter((span, index) => index === 0 || span.start >= spans[index - 1]!.end)
+    return spans.filter(
+      (span, index) =>
+        (index === 0 || span.start >= spans[index - 1]!.end) && !this.css.isInBlock(file.parseText, span.start)
+    )
   }
 
   /**
@@ -543,6 +554,7 @@ export class SpellLanguageService {
 
   /**
    * What to show when hovering over `position`:
+   * - in a `<css>` block:  the CSS service's hover, e.g. a property's docs -- see `LSP.SpellCSS`
    * - the rule that matched there, its syntax and an example from its tests
    * - what the word refers to and where that was declared, e.g. a variable's kind and output name
    * - the javascript its statement compiles to
@@ -552,8 +564,10 @@ export class SpellLanguageService {
    *   Or show a rule's `description` (none set yet) instead of its raw syntax.
    */
   hover(file: SP.SpellFile, position: Position): Hover | null {
-    const stack = this.matchesAt(file, position)
     const offset = this.offsetAt(file, position)
+    const cssHover = this.css.hover(file.parseText, offset, position)
+    if (cssHover !== undefined) return cssHover
+    const stack = this.matchesAt(file, position)
     const described = [...stack]
       .reverse()
       .find((match) => match.rule.name && match.start !== undefined && match.start <= offset && offset <= match.end!)
@@ -1211,6 +1225,7 @@ export class SpellLanguageService {
 
   /**
    * What could be typed at `position`:
+   * - in a `<css>` block:  CSS, e.g. `color` for `col` -- see `LSP.SpellCSS`
    * - mid-statement:  what can come NEXT, if the parser can say -- see `expectedNext()`
    * - otherwise, names visible there:  variables declared before it, types, constants
    * - at the start of a statement:  the first words of every kind of statement (`to`, `if`, `set`...),
@@ -1218,9 +1233,11 @@ export class SpellLanguageService {
    * - mid-statement, if `expectedNext()` has nothing:  calls to methods usable as expressions
    */
   completion(file: SP.SpellFile, position: Position): CompletionItem[] {
-    if (!file.match) return []
     const offset = this.offsetAt(file, position)
     const text = file.parseText
+    const cssItems = this.css.completion(text, offset, position)?.items
+    if (cssItems) return cssItems
+    if (!file.match) return []
     const lineText = text.slice(text.lastIndexOf("\n", offset - 1) + 1, offset)
     const atStatementStart = /^\s*[\w-]*$/.test(lineText)
     if (!atStatementStart) {
