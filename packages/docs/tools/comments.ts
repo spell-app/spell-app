@@ -20,6 +20,8 @@
  *   - `--json`:  `[{ page, epic, phase, as: "phase" | "update", comments, notes }]`
  * - `answer <page> <id> --file <html> [--commit <sha>]`:  Claude's answer on the comment's thread (the file's
  *   markup, as is);  `--commit`, the commit it was built in (the thread's Done line shows it)
+ * - `working <page> <id> on | off`:  Claude is thinking about the comment (on), or stopped:  its thread shows a
+ *   "Claude: thinking…" stub meanwhile;  `answer` turns it off
  * - a THREAD:  Owen answers Claude's answer on the page (that's good, reply, skip it:  `CommentList`);  his reply is
  *   waiting work, as a new comment is:  `list` shows it under the comment, `gather` takes it again
  * - `<page>`:  from the checkout's root (`guides/x.html`), or from an area (`pages.js` `pageFile()`)
@@ -28,6 +30,7 @@
  */
 import { readFileSync } from "node:fs"
 import { relative, resolve } from "node:path"
+import { fileURLToPath } from "node:url"
 
 import { CommentList, CommentsError } from "$/epics/tool/CommentList"
 
@@ -35,14 +38,17 @@ import { GUIDE_CHANGES, GuideChanges } from "./GuideChanges"
 import { GuideInbox } from "./GuideInbox"
 import { ROOT, pageFile, parseArgs } from "./pages.js"
 
-const { positional, flags } = parseArgs(process.argv.slice(2))
-process.exitCode = await run(positional, flags)
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  const { positional, flags } = parseArgs(process.argv.slice(2))
+  process.exitCode = await run(positional, flags)
+}
 
 /** Run verb `positional[0]` with its arguments;  returns the exit code. */
-async function run([verb = "list", ...rest]: string[], flags: Record<string, string | true>): Promise<number> {
+export async function run([verb = "list", ...rest]: string[], flags: Record<string, string | true>): Promise<number> {
   try {
     if (verb === "list") return list(flags)
     if (verb === "gather") return await gather(rest, flags)
+    if (verb === "working") return working(rest)
     if (verb !== "answer") return usage()
     const [page, id] = rest
     if (!page || !id || typeof flags.file !== "string") return usage()
@@ -56,6 +62,17 @@ async function run([verb = "list", ...rest]: string[], flags: Record<string, str
     console.error((error as Error).message)
     return 1
   }
+}
+
+/**
+ * `working <page> <id> on | off`:  Claude is thinking about comment `id` on `page`, or stopped;  the thread shows a
+ * "Claude: thinking…" stub meanwhile (`CommentList.setWorking()`).  `answer` turns it off.
+ */
+function working([page, id, on]: string[]): number {
+  if (!page || !id || (on !== "on" && on !== "off")) return usage()
+  GuideInbox.update(GuideInbox.fileFor(pageFile(page)), (comments) => comments.setWorking(id, on === "on"))
+  console.log(`${relative(ROOT, pageFile(page))}  ${id}  working:  ${on}`)
+  return 0
 }
 
 /** Print the comments:  waiting ones unless `--all`;  as JSON with `--json`. */
@@ -111,7 +128,8 @@ function usage(): number {
   console.error(
     "usage:  spell dev comments list [--all] [--json]\n" +
       "        spell dev comments gather [<page>... | --all] [--epic <name>] [--json]\n" +
-      "        spell dev comments answer <page> <id> --file <reply.html> [--commit <sha>]"
+      "        spell dev comments answer <page> <id> --file <reply.html> [--commit <sha>]\n" +
+      "        spell dev comments working <page> <id> on | off"
   )
   return 2
 }

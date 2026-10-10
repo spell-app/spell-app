@@ -817,7 +817,7 @@ pre code {
  * - every comment's THREAD (`.spell-thread`, in a `.spell-comments` box), under the paragraph holding the quote, else
  *   the block:  one ivory pane that folds;  its header (chevron, bullhorn, the pane's summary, Owen's answer as a
  *   plan doc item's review pills, the trash), then the messages:  his plain on the ivory, Claude's light violet, a
- *   green Done line;  each one's time in its top right corner
+ *   green Done line, "Claude: thinking…";  each one's time in its top right corner;  then his reply box
  * - the bullhorn's list of a block's comments (`.spell-comment-pick`):  a pane of lines, then New comment
  * - the comment pane (`.spell-comment-pane`):  floating, fixed on the screen;  its header, then a textarea that grows
  *   with its text (`growField()`)
@@ -882,6 +882,24 @@ pre code {
   margin: 8px 0 12px;
 }
 /*
+ * under a plan doc's ITEM:  in from its edges as far as its note box is ("Your note:  a question ..."), so the thread
+ * lines up with it (Owen, 2026-10-10:  "same indent as comment box"):  the item's details' padding, `EpicItem.css`
+ * (`--epic-item-indent` on the left, 6px on the right)
+ * - anywhere else the thread's edges are the block's it's under:  a guide's paragraph or table, an item's paragraph
+ *   (inside its details already), a phase's field (its note box spans the phase's text)
+ */
+.spell-doc-main epic-item + .spell-comments {
+  padding-inline: var(--epic-item-indent, 26px) 6px;
+}
+/* under a guide's paragraph:  its measure too, so both edges are the paragraph's (a list item's is inside it) */
+.spell-doc-main p + .spell-comments {
+  max-width: 72ch;
+}
+/* in a plan doc item's details, its note box's edges, as above */
+.spell-doc-main epic-item p + .spell-comments {
+  max-width: none;
+}
+/*
  * a THREAD (`thread()`;  Owen, 2026-10-10:  "the entire comment thread should be in one collapsable/accordion pane";
  * "Make the entire thing ivory"):  ONE ivory pane, the comment pane's outline and corners, whoever spoke last;  no
  * shadow:  it sits in the page, it doesn't float over it
@@ -893,6 +911,9 @@ pre code {
   --spell-thread-green: var(--ui-green-text, var(--ui-green, #21ba45));
   /* never wider than the column:  a folded thread's header is one line, its summary cut short */
   min-width: 0;
+  /* the edges of what it's under:  a plan doc item's note box (`.spell-comments` above), else the block's (Owen,
+     2026-10-10:  "same indent as comment box";  32px in on each side before) */
+  margin-inline: 0;
   border: 1px solid var(--spell-rail-rule);
   border-radius: 10px;
   background: var(--spell-rail-bg);
@@ -903,7 +924,7 @@ pre code {
   align-items: center;
   gap: 6px;
   min-height: 24px;
-  padding: 4px 6px 4px 8px;
+  padding: 2px 4px 2px 6px;
   color: var(--spell-rail-ink);
   font-size: 0.9rem;
   cursor: pointer;
@@ -1003,8 +1024,8 @@ pre code {
 }
 .spell-doc-main .spell-thread-body {
   display: none;
-  gap: 6px;
-  padding: 0 8px 8px;
+  gap: 2px;
+  padding: 0 6px 4px;
 }
 .spell-doc-main .spell-thread[data-open] > .spell-thread-body {
   display: grid;
@@ -1020,14 +1041,44 @@ pre code {
  */
 .spell-doc-main .spell-thread-msg {
   position: relative;
-  padding: 6px 10px;
+  /* tight (Owen, 2026-10-10:  "Tighten up padding a lot") */
+  padding: 2px 6px;
   border: 1px solid transparent;
-  border-radius: 8px;
-  line-height: 1.4;
+  border-radius: 6px;
+  line-height: 1.35;
 }
-.spell-doc-main .spell-thread-msg[data-by="claude"] {
+.spell-doc-main .spell-thread-msg:is([data-by="claude"], [data-by="thinking"]) {
   border-color: color-mix(in srgb, var(--spell-thread-violet) 30%, transparent);
   background: color-mix(in srgb, var(--spell-thread-violet) 9%, var(--spell-bg));
+}
+/*
+ * Claude THINKING about it (`working`;  Owen, 2026-10-10:  "What does it look like when you're thinking?  You could
+ * put in a stub and replace that when you've thought"):  Claude's box, its words violet and quiet, a turning notch
+ */
+.spell-doc-main .spell-thread-msg[data-by="thinking"] .spell-thread-text {
+  color: var(--spell-thread-violet);
+  font-style: italic;
+}
+.spell-doc-main .spell-thread-msg[data-by="thinking"] .spell-thread-who {
+  font-style: normal;
+}
+.spell-doc-main .spell-thread-spin {
+  display: inline-grid;
+  place-items: center;
+  margin-right: 5px;
+  font-size: 0.8em;
+  vertical-align: -0.05em;
+  animation: spell-thread-spin 0.9s linear infinite;
+}
+@keyframes spell-thread-spin {
+  to {
+    rotate: 1turn;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .spell-doc-main .spell-thread-spin {
+    animation-duration: 3s;
+  }
 }
 .spell-doc-main .spell-thread-msg[data-by="done"] {
   border-color: color-mix(in srgb, var(--spell-thread-green) 40%, transparent);
@@ -1041,8 +1092,8 @@ pre code {
 }
 .spell-doc-main .spell-thread-when {
   position: absolute;
-  top: 6px;
-  right: 10px;
+  top: 2px;
+  right: 6px;
   color: var(--spell-muted);
 }
 .spell-doc-main .spell-thread-room {
@@ -1057,7 +1108,10 @@ pre code {
   margin-bottom: 0;
 }
 .spell-doc-main .spell-thread-text > :is(p, ul, ol) {
-  margin-block: 0 6px;
+  margin-block: 0 3px;
+}
+.spell-doc-main .spell-thread-who {
+  font-weight: 700;
 }
 .spell-doc-main .spell-thread-text > :is(ul, ol) {
   padding-left: 20px;
@@ -1077,13 +1131,19 @@ pre code {
 .spell-doc-main .spell-thread-edit {
   font-size: 0.8rem;
 }
-/* the reply box (`startReply()`):  the pane's field, its floppy in the lower right corner */
+/*
+ * the REPLY BOX (`replyBoxFor()`), last in every open thread (Owen, 2026-10-10:  "Probably should have a comment box
+ * at the bottom for me"):  the pane's field, its floppy in the lower right corner;  a line or two empty, growing
+ * with its words (`growField()`)
+ */
 .spell-doc-main .spell-thread-reply {
   position: relative;
+  margin-top: 2px;
 }
 .spell-doc-main .spell-thread-reply > textarea.spell-comment-field {
-  min-height: 3lh;
-  padding-right: 26px;
+  min-height: 2lh;
+  padding: 4px 26px 4px 6px;
+  resize: none;
 }
 .spell-doc-main .spell-thread-reply > .spell-comment-saved {
   position: absolute;
