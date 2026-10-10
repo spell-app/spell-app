@@ -146,7 +146,7 @@ export class StaticRender {
   private static build(element: Element): { domElement: E.DOMElement; family: SSR.StaticFamily } {
     const family = StaticRender.families.get(element.localName)!
     const { Class, definition } = family
-    const domElement = SSR.ServerDOMElement.attach(element, definition)
+    const domElement = SSR.ServerDOMElement.attach(element, definition, Class.prototype.elementSetup.visible)
 
     untrack(() => new Class(domElement, definition))
     return { domElement, family }

@@ -255,7 +255,7 @@ describe("DOMElement property values", () => {
     const tag = `x-dom-traducido-${tagCount}`
     const Class = define(tag, { lang: "es", attributes: { label: "etiqueta" } })
     // then the shared attributes (`SharedVocabulary`), under their English names
-    expect(Class.observedAttributes).toEqual(["etiqueta", "disabled", "loading", "visible"])
+    expect(Class.observedAttributes).toEqual(["etiqueta", "disabled", "loading", "visible", "animation", "hidden"])
     const host = await renderTag(tag, `etiqueta="A"`)
     expect(host.etiqueta).toBe("A")
     expect("label" in host).toBe(false)

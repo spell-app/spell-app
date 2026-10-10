@@ -895,6 +895,100 @@ export type EmbedActivateDetail = {
 }
 
 ////////////////
+// ## Animation
+//
+// The shared `animation` attribute every element takes (`SharedVocabulary`),
+// and `elementSetup.animation`, a family's default:  Fomantic's names, as `<ui-transition>` always took them.
+////////////////
+
+/** Fomantic's appear / disappear animations:  run `in` or `out`, as `visible` / `hidden` change. */
+export const VisibilityAnimations = [
+  "fade",
+  "fade up",
+  "fade down",
+  "fade left",
+  "fade right",
+  "scale",
+  "zoom",
+  "drop",
+  "browse",
+  "browse right",
+  "fly",
+  "fly up",
+  "fly down",
+  "fly left",
+  "fly right",
+  "slide",
+  "slide up",
+  "slide down",
+  "slide left",
+  "slide right",
+  "swing",
+  "swing up",
+  "swing down",
+  "swing left",
+  "swing right",
+  "horizontal flip",
+  "vertical flip"
+] as const
+
+/**
+ * Fomantic's attention animations:  run in place, visibility unchanged (`<ui-transition>`'s `transition()`).
+ * - As an element's `animation`, showing and hiding happen at once.
+ */
+export const AttentionAnimations = ["flash", "shake", "bounce", "tada", "pulse", "jiggle", "glow"] as const
+
+/** `animation="none"`:  no motion, for the element and everything inside it (`--ui-motion: none`). */
+export const NO_ANIMATION = "none"
+
+/** Every value `animation` takes:  Fomantic's names, then `none`. */
+export const Animations = [...VisibilityAnimations, ...AttentionAnimations, NO_ANIMATION] as const
+
+/** One of `Animations`, Fomantic's spelling (`fade up`), or `"none"`. */
+export type Animation = (typeof Animations)[number]
+
+/** The animation used when neither the element nor its family names one. */
+export const DEFAULT_ANIMATION = "fade" satisfies Animation
+
+/**
+ * The custom property `animation="none"` sets, which every element inside inherits:  `--ui-motion: none`.
+ * - A page turns all motion off with `<ui-root animation="none">`, or `:root { --ui-motion: none }`.
+ */
+export const MOTION_PROPERTY = "--ui-motion"
+
+/**
+ * Lookups between Fomantic's animation names (`fade up`) and the runtime's catalogue (`fade-up`, `E.AnimationNames`).
+ * - Static:  pure lookups over the tables above.
+ */
+export class AnimationLookup {
+  /** Fomantic's name for `animation` (either spelling), or `undefined` when it isn't one. */
+  static fomanticNameFor(animation: string): Animation | undefined {
+    const text = animation.trim().replace(/\s+/g, " ")
+    if ((Animations as readonly string[]).includes(text)) return text as Animation
+    return Animations.find((name) => AnimationLookup.runtimeNameFor(name) === text)
+  }
+
+  /** The runtime catalogue's name for Fomantic's:  `fade up` => `fade-up`, `horizontal flip` => `flip-horizontal`. */
+  static runtimeNameFor(animation: string): E.AnimationName {
+    const special = RUNTIME_ANIMATION_NAMES[animation]
+    return (special ?? animation.replace(/ /g, "-")) as E.AnimationName
+  }
+
+  /** An attention animation (runs in place, `shake`)? */
+  static isAttention(animation: string): boolean {
+    return (AttentionAnimations as readonly string[]).includes(animation)
+  }
+}
+
+/** Fomantic names whose runtime name isn't the kebab-cased one. */
+const RUNTIME_ANIMATION_NAMES: Readonly<Record<string, string>> = {
+  "horizontal flip": "flip-horizontal",
+  "vertical flip": "flip-vertical",
+  slide: "slide-down",
+  swing: "swing-down"
+}
+
+////////////////
 // ## Transition
 ////////////////
 

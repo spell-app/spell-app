@@ -206,6 +206,23 @@ export class ElementDefinition {
     return value
   }
 
+  /**
+   * Is an element of this tag shown, by its markup alone?
+   * (`visible` and the platform's `hidden`, one fact:  `DOMElement`, "Shown or hidden")
+   * 1. `hidden` written, any value (`until-found` too):  no, whatever `visible` says
+   * 2. else `visible` written:  its value (`"false"` => no)
+   * 3. else the family's `startsVisible` (`elementSetup.visible`)
+   * - `attributeText(name)`:  an attribute's text, `null` when absent (DOM API `getAttribute()`).
+   * - Shared by the DOM element (before its first connect) and the static render.
+   */
+  visibleInMarkup(attributeText: (name: string) => string | null, startsVisible: E.StartsVisible): boolean {
+    if (attributeText("hidden") !== null) return false
+    const visible = this.byName.get(VISIBLE)
+    const text = visible && attributeText(visible.attribute)
+    if (visible && text !== null && text !== undefined) return this.convert(visible, text) === true
+    return startsVisible === "shown"
+  }
+
   /** Localized value => canonical (`rojo` => `red`, `movil tableta` => `mobile tablet`);  others unchanged. */
   private canonicalValue(attribute: E.ResolvedAttribute, value: unknown): unknown {
     if (typeof value !== "string" || !this.localized.values.has(attribute.spec.name)) return value
@@ -250,6 +267,9 @@ export class ElementDefinition {
     return JSON.stringify(value)
   }
 }
+
+/** The shared `visible` attribute's canonical name (`SharedVocabulary`). */
+const VISIBLE = "visible"
 
 /** Constructor props for `ElementDefinition`. */
 export type ElementDefinitionProps = {
