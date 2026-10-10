@@ -61,6 +61,9 @@ The shared folders:
       - Urgent:  every phase done, items waiting on Owen (the `errors` state)
       - Done
     - Each card's STAR, top right:
+      - Yellow when starred (the page's yellow, `--spell-favorite`), else its outline, grey.
+        - Owen, 2026-10-10 (`airplane` J22):  "make it yellow".  The brand's gold-brown before.
+        - The one yellow that doesn't mean "open".
       - A click stars or unstars it at once:  the runtime's `wireFavorites()` moves the card.
       - Then `POST /api/epics/favorite` ([epicRoutes.ts](../epics/src/tool/epicRoutes.ts)) writes the ONE shared file,
         `favorites.json` in `epics/`:  a JSON list of names.
@@ -230,6 +233,9 @@ In `tools/`:
     - Its `<epic-*>` blocks start folded by themselves.
       - The runtime reopens the ones the reader left open, before they first draw (`restoreEpicFolds()`).
       - It saves their toggles as a section's.
+    - Below the last line, a window's worth of empty ground (`--spell-doc-pad-end`, on `.spell-doc-main`):
+      so folding near the page's end never leaves the page shorter than where it's scrolled to,
+      and what was clicked stays put (Owen, 2026-10-10, `airplane` J10).
   - Counts, on a top-level section holding `[data-status]` items
     (the Epics index's epic cards, the goals pages' items):
     - `open/all` on its title, its `badge`
