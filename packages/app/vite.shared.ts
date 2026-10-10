@@ -106,13 +106,16 @@ function exactPath(file: string): RegExp {
  * Files of the shared Solid build, `vite.solid.config.ts`:  every other bundle of ours imports Solid and
  * `@spell-app/ui` from these, beside it, so a page with `<spell-app>`s AND a `<spell-editor>` loads ONE copy of each.
  * - `solid`:  `solid-js`, `@solidjs/web` (`@solidjs/signals` under them),
- *   and `@spell-app/ui`'s element core, `$/ui/core`, each whole:
- *   `<spell-app>` and `<spell-editor>` are Spell UI components (`UIComponent`), defined as their scripts run
+ *   `@spell-app/ui`'s element core, `$/ui/core`, and its root family, `$/ui/components/ui-root`, each whole:
+ *   `<spell-app>` and `<spell-editor>` are Spell UI components (`UIComponent`), defined as their scripts run,
+ *   and `<spell-app>` is a root (`UIRoot`)
+ * - `shared`:  what the other bundles import instead of `solid`:  the same names, taken from the PAGE when it has
+ *   them (a docs page's `SpellUI.packModules`), else from `solid`.  Written by `vite.solid.config.ts`
  * - `ui`:  `@spell-app/ui`'s barrel, `$/ui`, which the app imports LAZILY (`loadUI.ts`);  its own lazy chunks are in `ui/`
  * - Why:  two Solids (or two `UIComponent`s) on one page fail SILENTLY (`solid-2.md`, "One Solid per page").
  *   Pinned by `element.build.test.ts`.
  */
-export const SHARED_SOLID = { solid: "spell-solid.js", ui: "spell-ui.js" } as const
+export const SHARED_SOLID = { solid: "spell-solid.js", shared: "spell-solid-shared.js", ui: "spell-ui.js" } as const
 
 /** Prefix of the external ids `sharedSolid()` gives `SHARED_SOLID`'s files, until `output.paths` writes them out. */
 const SHARED_ID = "spell-shared-solid:"
@@ -121,15 +124,25 @@ const SHARED_ID = "spell-shared-solid:"
  * Specifiers another bundle takes from `SHARED_SOLID`'s files.
  * - Only those our code imports:
  *   `solid-js/internal` (from `@solidjs/web`) and `@solidjs/signals` (from `solid-js`) stay INSIDE `spell-solid.js`.
- * - `$/ui/core` is in `spell-solid.js`, not `spell-ui.js`:
- *   `<spell-app>` and `<spell-editor>` define themselves on it as their scripts run, before the rest of `ui` loads.
+ * - `$/ui/core` and `$/ui/components/ui-root` are in `spell-solid.js`, not `spell-ui.js`:
+ *   `<spell-app>` and `<spell-editor>` define themselves on them as their scripts run, before the rest of `ui` loads.
+ * - Each through `spell-solid-shared.js`:  the page's copy when it has one (`SHARED_SPECIFIERS`).
  */
 const FROM_SHARED_SOLID = new Map<string, string>([
-  ["solid-js", SHARED_SOLID.solid],
-  ["@solidjs/web", SHARED_SOLID.solid],
-  ["$/ui/core", SHARED_SOLID.solid],
+  ["solid-js", SHARED_SOLID.shared],
+  ["@solidjs/web", SHARED_SOLID.shared],
+  ["$/ui/core", SHARED_SOLID.shared],
+  ["$/ui/components/ui-root", SHARED_SOLID.shared],
   ["$/ui", SHARED_SOLID.ui]
 ])
+
+/**
+ * The specifiers `spell-solid-shared.js` takes from the page when the page has them all:
+ * keys of `globalThis.SpellUI.packModules`, the docs bundle's (`packages/docs/tools/_assets/spell-ui.entry.js`).
+ */
+export const SHARED_SPECIFIERS = [...FROM_SHARED_SOLID]
+  .filter(([, file]) => file === SHARED_SOLID.shared)
+  .map(([id]) => id)
 
 /** Any other import from Solid's or `ui`'s packages:  `sharedSolid()` refuses it, as the shared files may lack it. */
 const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/ui)(\/|$)|^\$\/ui\//
@@ -137,8 +150,8 @@ const SOLID_FAMILY = /^(solid-js|@solidjs\/[^/]+|@spell-app\/ui)(\/|$)|^\$\/ui\/
 /**
  * For a build that takes Solid and `@spell-app/ui` from `SHARED_SOLID`'s files beside it, instead of bundling its own:
  * `vite.element.config.ts`, `vite.editor.config.ts`, `vite.runner.config.ts`.
- * - Such an import resolves to an EXTERNAL id, which `output.paths` writes as `./spell-solid.js` / `./spell-ui.js`:
- *   relative, so every chunk that imports one MUST sit at the output folder's top level
+ * - Such an import resolves to an EXTERNAL id, which `output.paths` writes as `./spell-solid-shared.js` /
+ *   `./spell-ui.js`:  relative, so every chunk that imports one MUST sit at the output folder's top level
  *   (ours do:  fixed names, no folders).
  * - Static and dynamic imports alike:  `import("$/ui")` becomes `import("./spell-ui.js")`, still on demand.
  * - Any other Solid / `ui` specifier (`solid-js/store`, `$/ui/runtime`) is a build ERROR:

@@ -49,11 +49,16 @@ export class RootLoader {
     return Object.hasOwn(ROOT_CATALOG, tag) ? ROOT_CATALOG[tag] : ComponentPacks.entryOf(tag)
   }
 
-  /** The distinct undefined tags under `root` that a root loads:  every `ui-*` one, and a registered pack's. */
-  static undefinedTags(root: ParentNode): Set<string> {
+  /**
+   * The distinct undefined tags under `root` that a root loads:  every `ui-*` one, a registered pack's, and those
+   * `alsoLoads` says yes to (a root's own:  `UIRoot.ownTagLoader()`).
+   */
+  static undefinedTags(root: ParentNode, alsoLoads?: (tag: string) => boolean): Set<string> {
     const tags = new Set<string>()
     for (const { localName } of root.querySelectorAll(":not(:defined)")) {
-      if (localName.startsWith(TAG_PREFIX) || ComponentPacks.owns(localName)) tags.add(localName)
+      if (localName.startsWith(TAG_PREFIX) || ComponentPacks.owns(localName) || alsoLoads?.(localName)) {
+        tags.add(localName)
+      }
     }
     return tags
   }
