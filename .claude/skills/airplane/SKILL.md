@@ -39,7 +39,9 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
      - mark items as usual;  Send isn't needed:  every mark is taken at landing, sent or not
      - "+" on a plan doc's header (or its Todos / Questions):  a new todo or question;
        the bubble on a phase or the summary:  a note
-     - any other page:  the bubble on a section's title, or the header's Note pill
+     - any page, plan docs too:  the bullhorn beside a block (a section, table, aside, code, an item, a phase's
+       field ...), or select text and press ⌘ I (or the bullhorn floating beside it):  a comment, saved at once,
+       "Saved 14:02 · waiting for Claude" on its card
      - a new epic:  the Epics page's New epic pill (its seedling):  a title and what it's for;  it's written down
        as a future epic at once, and the landing asks whether to start it
      - Do Now still works:  it waits, dashed, for landing
@@ -54,18 +56,25 @@ Owen is back online.  Gather everything, work through it in the background, then
 1. `spell dev airplane inbox --json`:  everything waiting, by place:
    - each epic's marks, sent or not, its drafts, Do Now requests, and new items from the page's `+`
    - new epics made from the Epics page, not started (`newEpics`)
-   - page notes;  details answers since the flight;  goals thoughts
+   - each epic's comments (`comments`:  on its plan doc's blocks)
+   - comments on docs pages (`comments`);  page notes;  details answers since the flight;  goals thoughts
    - Run it FIRST, while the switch is on:  its `since` is when the flight began, which picks the details answers.
 2. `spell dev airplane off`.  Nothing waiting:  say so in one line, and stop.
 3. Reply at once, short:  the counts by place, and that the work runs in the background now.
 4. Per epic, in the session itself (quick):  `spell dev plan-doc inbox <name> apply --all`:
    approvals, picks, todos, a todo's plane (queued into the next phase) and x (dropped:  canceled), and new items
    land in the doc, sent or not (Owen's decision Q3 of `airplane`).
+4b. Docs pages' comments, in the session itself (quick):  `spell dev comments gather --json`:  every waiting comment
+   (and page note still new) goes into epic `guide-changes`, one phase per page (made the first time;  a page whose
+   phase is still open gets an Updated block in it), each marked taken on its page.  Say which pages, and that
+   `/epic guide-changes` works them;  nothing else to do for them now.
 5. The rest goes to background agents, named and listed (root `CLAUDE.md`, "Delegated work"), up to 5 at once:
    - each Do Now, revisit and phase note:  as `/epic review` answers one ("7.3", step 2):
      the status card first, the answer INTO the item, `status ... done`, `inbox done | clear`
-   - each page note:  read the page and the note, answer under it (`spell dev notes answer <page> <id> --file`);
-     a note asking for work in an epic:  `plan-doc add <epic> todo` too, linked from the answer
+   - each comment on a plan doc (`epics[].comments`):  as `/epic review` answers one ("7.3", step 3b):  into the
+     item or phase it's on, then `plan-doc inbox <name> done cm3`
+   - page notes were gathered in 4b with the comments;  one written into a page since:  read the page and the
+     note, answer under it (`spell dev notes answer <page> <id> --file`)
    - details answers and goals thoughts:  as `/details` and `/goals-update` take them
    - nothing is decided for Owen:  an answer that needs him ends in option cards, and the item stays red
 5b. New epics (`newEpics`, made with the Epics page's New epic):  ask which to start, with CHECKBOXES (Owen,

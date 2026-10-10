@@ -4,6 +4,7 @@ import { setTimeout as sleep } from "node:timers/promises"
 
 import { PlanDocError, type ItemDescription, type KeptNote, type MarkResult, type OptionCard } from "./planDoc.types"
 
+import { CommentList } from "./CommentList"
 import type { PlanDoc } from "./PlanDoc"
 import type { PlanReader } from "./PlanReader"
 import type { Flags, PlanDocCommands } from "./PlanDocCommands"
@@ -121,6 +122,7 @@ export class InboxCommands {
       now: inbox.now,
       working: inbox.working,
       drafts: inbox.drafts,
+      comments: inbox.commentList.waiting,
       urgency: inbox.urgencyList.map((entry) => ({ ...entry, sent: !unsentUrgency.has(entry.id) })),
       // `live:  false`:  its heartbeat stopped (`liveListener()`):  the session is gone, the page says nobody
       listening: inbox.listening && { ...inbox.listening, live: !!inbox.liveListener() }
@@ -163,6 +165,13 @@ export class InboxCommands {
     if (drafts.length) lines.push(`drafts, still being written (${drafts.length}):`)
     for (const [id, { action, note, at }] of drafts)
       lines.push(`  - ${id.toUpperCase()}  ${action}  "${note.trim()}"  (${at})`)
+    const comments = inbox.commentList.waiting
+    if (comments.length) lines.push(`comments, waiting for an answer (${comments.length}):`)
+    for (const comment of comments)
+      lines.push(
+        `  - ${comment.id.toUpperCase()}  on ${comment.anchor} (${comment.kind})` +
+          `${comment.quote ? `  quoting "${comment.quote.slice(0, 60)}"` : ""}  "${comment.text.slice(0, 120)}"  (${comment.at})`
+      )
     this.owner.print(lines.join("\n"))
 
     /** A mark's own fields after its title:  the pick, a revisit's when and note, unsent. */
@@ -386,8 +395,12 @@ export class InboxCommands {
    *   shows the result):  an immediate one (Do Now:  Add Details, revisit now) as `now`, a revisit talked over as
    *   `revisit`
    */
-  private async finish(file: string, what: "done" | "clear", ids: string[]): Promise<void> {
-    if (!ids.length) throw new PlanDocError(`${what} which items?  ids`)
+  private async finish(file: string, what: "done" | "clear", given: string[]): Promise<void> {
+    if (!given.length) throw new PlanDocError(`${what} which items?  ids`)
+    const comments = given.map(ReviewInbox.toItemId).filter(CommentList.isCommentId)
+    if (comments.length) this.finishComments(file, what, comments)
+    const ids = given.filter((id) => !CommentList.isCommentId(ReviewInbox.toItemId(id)))
+    if (!ids.length) return
     // before the inbox changes:  a note it drops must land in the doc, which an old-markup doc refuses
     this.owner.files.requireNewMarkup(file)
     const path = ReviewInbox.pathFor(file)
@@ -428,6 +441,24 @@ export class InboxCommands {
       notes.length ? `Owen's note kept in the doc:  ${upper(notes.map(({ id }) => id))}` : ""
     ].filter(Boolean)
     this.owner.print(`${label}:  ${upper(keys)}${extras.length ? `  (${extras.join(";  ")})` : ""}`)
+  }
+
+  /**
+   * `done` / `clear` comments `ids` (`cm3`, epic `airplane` P11):  `done`, answered (Claude answered it in the doc;
+   * the page's card turns solid, "Answered");  `clear`, gone from the inbox.
+   * - throws when one isn't there
+   * - SIDE EFFECT:  writes the inbox, under its lock
+   */
+  private finishComments(file: string, what: "done" | "clear", ids: string[]): void {
+    ReviewInbox.update(ReviewInbox.pathFor(file), (box) => {
+      for (const id of ids) {
+        box.commentList.comment(id)
+        if (what === "done") box.commentList.answer(id)
+        else delete box.comments[id]
+      }
+      box.touchListening()
+    })
+    this.owner.print(`comments ${what === "done" ? "answered" : "cleared"}:  ${upper(ids)}`)
   }
 }
 
