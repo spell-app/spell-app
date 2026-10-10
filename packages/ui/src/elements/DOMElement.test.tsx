@@ -69,9 +69,11 @@ function testTag(name: string, attributes: readonly AttributeSpec[], { Component
     texts: []
   }
   Object.defineProperty(Class.prototype, "vocabulary", { value: vocabulary })
-  // merged over the base's, as `@protoMerged static elementSetup` would
-  if (setup)
-    Object.defineProperty(Class.prototype, "elementSetup", { value: { ...Component.prototype.elementSetup, ...setup } })
+  // chained to the base's, as `@protoMerged static elementSetup` does
+  if (setup) {
+    const value = Object.setPrototypeOf({ ...setup }, Component.prototype.elementSetup)
+    Object.defineProperty(Class.prototype, "elementSetup", { value })
+  }
   const define = (translatedTag?: string, dictionary?: Dictionary) =>
     UIComponent.define.call(Class as never, translatedTag, dictionary) as DOMElementClass
   return { tag, define }
@@ -164,6 +166,28 @@ describe("DOMElement attributes", () => {
     expect(sources).toEqual(["property"])
     await ElementFixture.tick()
     expect(shown(host)).toBe("object:a,b")
+  })
+
+  test("an object written to a string attribute's property reflects as JSON, never `[object Object]`", async () => {
+    const { tag } = definedTag("object-text", [attribute("label", "string")])
+    const host = await renderTag(tag)
+    host.label = { a: 1 }
+    expect(host.getAttribute("label")).toBe('{"a":1}')
+    // a string attribute holds text:  the property reads back the JSON, not the object
+    expect(host.label).toBe('{"a":1}')
+    host.label = 7
+    expect(host.getAttribute("label")).toBe("7")
+    await ElementFixture.tick()
+    expect(shown(host)).toBe("string:7")
+  })
+
+  test("an array of objects reflects as JSON too:  the array itself is kept", async () => {
+    const { tag } = definedTag("object-array", [attribute("items", "string")])
+    const host = await renderTag(tag)
+    const items = [{ a: 1 }, { b: 2 }]
+    host.items = items
+    expect(host.getAttribute("items")).toBe('[{"a":1},{"b":2}]')
+    expect(host.items).toBe(items)
   })
 
   test("attributes are read before the element connects", () => {

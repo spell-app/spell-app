@@ -28,10 +28,10 @@ import { type CommonAttributes } from "./UIInput.types"
  *   `ControlLabels` hands the DOM element's `<label for>` / `aria-label` to the control as its `aria-label`.
  * - The DOM element's `aria-invalid` (a `<ui-form>` marks failing fields) is passed on to the control.
  ****************/
-@E.cssStates("fluid", "loading")
 export abstract class TextControl<V extends E.ComponentVocabulary = E.ComponentVocabulary> extends F.FormComponent<V> {
   /** Shows `:state(invalid)` only after interaction (see the class doc). */
   @E.proto static invalidShows: E.InvalidTiming = "once touched"
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = { cssStates: ["fluid"] }
 
   /** The native control. */
   protected control?: HTMLInputElement | HTMLTextAreaElement

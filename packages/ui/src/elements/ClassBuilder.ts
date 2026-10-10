@@ -13,7 +13,7 @@ import { E } from "$/ui/core"
  *   `useVerticalAlignProp`.
  * - Fixed order, as Fomantic writes it (`ui primary icon button`;  see `docs/grammar.md`):
  *   `ui`, size, color, keyOnly (alphabetical), valueAndKey / keyOrValueAndKey (vocabulary order),
- *   multiple, width, textAlign, verticalAlign, `extra`, noun.
+ *   multiple, width, textAlign, verticalAlign, `extra`, noun (the vocabulary's, or `options.noun`).
  * - The constructor sorts the vocabulary ONCE;  `build()` only walks that list and fills one array.
  * - Reads attribute names and CSS keys from the vocabulary, never literals.
  *   The grammar's own connective words (`aligned`, `wide` ...) are `@proto static grammar`.
@@ -117,7 +117,7 @@ export class ClassBuilder {
       }
     }
     if (options.extra) classes.push(options.extra)
-    classes.push(this.vocabulary.noun)
+    classes.push(options.noun ?? this.vocabulary.noun)
     return classes.join(" ")
   }
 

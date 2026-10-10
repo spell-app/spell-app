@@ -56,7 +56,7 @@ import sectionCSS from "./EpicSection.css?inline"
  * - Its COUNT (P10), on the title's badge:  `open/all` of its items (or phases),
  *   open being any status but `done`, `decided` or `canceled`;  none without any.
  *   Counted again whenever a child comes, goes, or changes its `status` or `state`
- *   (`@fromContent`:  the live update, a part loading).
+ *   (`@watches`:  the live update, a part loading).
  * - An item section's STATE FILTER (P10), at the title's end:
  *   - a grey filter chip, then one round chip per state its items are in, in the state's colour:
  *     filled while that state's items show
@@ -81,7 +81,7 @@ import sectionCSS from "./EpicSection.css?inline"
  *   the Todos and Questions sections end with the new items of their kind Owen asked for
  *   and Claude hasn't made yet (Edit, Remove:  `newItemList()`),
  *   then a New todo / New question button, which opens the form there (`<epic-new-item>`).
- * - SIDE EFFECT:  observes its own children, from the first count on (`@fromContent`);
+ * - SIDE EFFECT:  observes its own children, from the first count on (`@watches`);
  *   follows the review inbox while connected (an Overview sub-section, Todos, Questions).
  ****************/
 export class EpicSection extends EpicFold<EpicSectionVocabulary> {
@@ -154,7 +154,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
    * the count and filter follow.
    * - A NEW list on every change, so the count reads the children's `status` again.
    */
-  @E.fromContent({ childList: true, subtree: true, attributeFilter: COUNT_ATTRIBUTES })
+  @E.watches({ childList: true, subtree: true, attributeFilter: COUNT_ATTRIBUTES })
   get counted(): readonly Element[] {
     void this.slots.filledSlots
     if (!this.counts() || isServer) return NOTHING_COUNTED

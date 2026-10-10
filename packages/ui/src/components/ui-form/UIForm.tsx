@@ -214,11 +214,11 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
   /**
    * While connected:  find the native form (and again as the subtree changes),
    * and listen for the page leaving;  returns their undo.
-   * - Its own `MutationObserver`, not `@fromContent`:  it watches only while connected.
+   * - Its own `MutationObserver`, not `@watches`:  it watches only while connected.
    */
   @E.whileConnected
   protected watchForm() {
-    // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while connected:  `@E.fromContent` watches for life
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while connected:  `@E.watches` lasts the element's whole life
     const observer = new MutationObserver(() => this.findForm())
     observer.observe(this.domElement, { childList: true, subtree: true })
     this.findForm()

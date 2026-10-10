@@ -34,6 +34,13 @@ export const brandColorPickerVocabulary = {
     },
     { name: "name", kind: "string", description: "Form field name:  the form gets `value`." },
     {
+      name: "required",
+      kind: "boolean",
+      description:
+        "Form validation:  a colour must be chosen, by the page (`value`) or by picking one.  " +
+        "Unset, it shows `#8E96B5` but counts as no value (`valueMissing`)."
+    },
+    {
       name: "label",
       kind: "string",
       description: "Name of the picker for screen readers (its group);  default:  what names it, else `Colour`."
@@ -91,7 +98,8 @@ export const brandColorPickerVocabulary = {
     { name: "disabled", description: "Can't be used." },
     { name: "readonly", description: "`readonly`:  the colour can't be changed." },
     { name: "dragging", description: "The square's marker is being dragged." },
-    { name: "copied", description: "Just copied:  for about 1.4 seconds after a copy button." }
+    { name: "copied", description: "Just copied:  for about 1.4 seconds after a copy button." },
+    { name: "invalid", description: "Fails validation (`required`), once a person has interacted." }
   ],
   texts: [
     { key: "group", text: "Colour", description: "The picker's name, when nothing else names it." },

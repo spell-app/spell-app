@@ -114,7 +114,7 @@ async function clean() {
 beforeEach(async () => {
   os = "light"
   vi.spyOn(ThemePreference, "osScheme").mockImplementation(() => os)
-  SiteData.reset(REAL_DATA)
+  SiteData.url = REAL_DATA
   await UI.load()
   // Escape through a keyboard binding rather than `CloseWatcher`, so the test can press it
   UI.overlays.useCloseWatcher = false

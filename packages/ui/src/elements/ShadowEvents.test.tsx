@@ -126,6 +126,34 @@ describe("ShadowEvents page listeners", () => {
     expect(seen).toEqual({ target: "host", currentTarget: "host", path0: "button" })
   })
 
+  test("listeners for `input`, `keydown`, `focusin` see the host too, not only `click`", async () => {
+    const log: string[] = []
+    // its own element, not `defineField()`:  other tests compare that one's `log` whole
+    const tag = defineElement("typing", () => (
+      <input
+        onInput={() => log.push("input")}
+        onKeyDown={() => log.push("keydown")}
+        onFocusIn={() => log.push("focusin")}
+      />
+    ))
+    const host = await mount(tag)
+    const types = ["focusin", "keydown", "input"]
+    const seen: Record<string, Seen[]> = {}
+    for (const type of types) {
+      const record = (event: Event) => (seen[type] ??= []).push(see(event))
+      host.addEventListener(type, record)
+      document.addEventListener(type, record)
+      onTestFinished(() => document.removeEventListener(type, record))
+    }
+    await userEvent.type(inside(host, "input"), "a")
+    // Solid's walk really ran for all three:  the component's own handlers fired
+    expect(log).toEqual(types)
+    for (const type of types) {
+      expect(seen[type]![0]).toEqual({ target: "host", currentTarget: "host", path0: "input" })
+      expect(seen[type]![1]).toEqual({ target: "host", currentTarget: "#document", path0: "input" })
+    }
+  })
+
   test("`stopPropagation()` in the component stops there:  no app handler, no page listener", () => {
     const log: string[] = []
     const tag = defineElement("stopper", () => <button onClick={(event) => event.stopPropagation()}>stop</button>)

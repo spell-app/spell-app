@@ -99,7 +99,7 @@ const DATA_URL = `data:application/json,${encodeURIComponent(JSON.stringify(DATA
 
 /** Render `html` with `url` as the data, and wait for the tables (and every widget in them) to draw. */
 async function render(html: string, url = DATA_URL) {
-  SiteData.reset(url)
+  SiteData.url = url
   const root = await ElementFixture.render<HTMLElement>(html)
   const host = (root.localName === "ui-docs-tokens" ? root : root.querySelector("ui-docs-tokens")!) as DOMElement
   await drawn(host)
@@ -148,7 +148,7 @@ async function type(input: Element, value: string) {
   )
 }
 
-afterAll(() => SiteData.reset())
+afterAll(() => (SiteData.url = undefined))
 
 ////////////////
 // ## Tables
@@ -385,7 +385,7 @@ describe("<ui-docs-tokens playground>", () => {
 
 describe("<ui-docs-tokens> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
-    SiteData.reset(REAL_DATA)
+    SiteData.url = REAL_DATA
     const root = await ElementFixture.render<HTMLElement>(EXAMPLES[path]!)
     for (const host of root.localName === "ui-docs-tokens" ? [root] : [...root.querySelectorAll("ui-docs-tokens")])
       await drawn(host as DOMElement)

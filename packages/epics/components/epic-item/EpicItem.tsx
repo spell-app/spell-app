@@ -122,7 +122,7 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
    * What its light children start with, and whether a More Details card is among them:  for its label.
    * - Follows them as they change.
    */
-  @E.fromContent({ childList: true, characterData: true, subtree: true })
+  @E.watches({ childList: true, characterData: true, subtree: true })
   get childScan(): ChildScan {
     return this.scanChildren()
   }
