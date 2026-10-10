@@ -2,7 +2,7 @@ import { P } from "$/parser"
 // Import directly to avoid circular import
 import { JSWriter } from "./JSWriter"
 import * as jsText from "./jsText"
-import { TSProject, camelCaseOf, forEachNode, listNamedBy, type TSUndeclared } from "./TSProject"
+import { TSProject, camelCaseOf, forEachNode, listNamedBy, type TSUndeclared, type TSWhere } from "./TSProject"
 
 /****************
  * ### `TSWriter`
@@ -21,6 +21,8 @@ import { TSProject, camelCaseOf, forEachNode, listNamedBy, type TSUndeclared } f
  * - Types where spell knows them:  parameters, properties, lists `as const`.  A type spell DOESN'T know is written
  *   `UNKNOWN`, `any /* spell: type unknown *\/`, never a bare `any`:  so every gap shows, and can be counted (epic
  *   `output-targets`, Q16).
+ * - Where the program never says a type, what it does says it (Q54):  a property's type from the values it's given
+ *   (`givenKind()`), a method only sub-classes define from what they return (`definitionsKind()`).
  * - Spell's own built-ins stay `spellCore` calls:  `getItemAt(rank, 1)` counts from 1, so both targets print the same
  *   (the core contract, `contract.test.ts` in `$/cli`).
  * - Sees the whole project first (`forProject()`, a `TSProject`):  `TSWriter.instance` alone knows nothing of it,
@@ -78,6 +80,10 @@ export class TSWriter extends JSWriter {
   private returnContinues = false
   /** While writing a callback a list's own method takes:  its item is typed by the list -- see `listCall()`. */
   private untypedItems = false
+  /** What the program gives each member, worked out once, by `<Class>.<member>` -- see `givenKind()`. */
+  private givenKinds = new Map<string, string | undefined>()
+  /** The members `givenKind()` is working out, by `<Class>.<member>`:  one asked for again can't be told. */
+  private workingOut = new Set<string>()
 
   constructor(project = new TSProject()) {
     super()
@@ -109,7 +115,7 @@ export class TSWriter extends JSWriter {
     // what this project gives a class it imports, for TypeScript only (Q25):  declared in that project's module
     for (const [type, undeclared] of this.project.undeclared) {
       if (!this.project.importedMembers.has(type)) continue
-      const members = undeclared.map((it) => this.undeclaredMember(it))
+      const members = undeclared.map((it) => this.undeclaredMember(type, it))
       code = `${code.replace(/\n*$/, "")}\nexport interface ${type} {\n${indented(members.join("\n"))}\n}\n`
     }
     // each class imported from another project, by its name here => [its module, its name there]
@@ -146,6 +152,14 @@ export class TSWriter extends JSWriter {
     if (Object.hasOwn(TSWriter.TYPES, datatype)) return TSWriter.TYPES[datatype]
     if (/^[A-Z][A-Za-z0-9_$]*$/.test(datatype)) return datatype
     return undefined
+  }
+
+  /**
+   * TypeScript for what `kindOf()` says a value is, e.g. `string` for `"text"`, `Pile` for `"Pile"` -- `undefined`
+   * for a list (it doesn't say what it holds), or for nothing known.
+   */
+  typeForKind(kind: string | undefined): string | undefined {
+    return kind === "list" ? undefined : this.typeFor(kind)
   }
 
   ////////////////
@@ -282,7 +296,7 @@ export class TSWriter extends JSWriter {
       const property = this.project.propertyOf(owner, name)
       const kind = property
         ? kindFromTypeScript(this.propertyType(property))
-        : (this.undeclaredKind(owner, name, depth) ?? this.getterKind(owner, name, depth))
+        : (this.undeclaredKind(owner, name) ?? this.getterKind(owner, name, depth))
       if (kind) return kind
     }
     if (inner instanceof P.ASTScopedMethodInvocation) {
@@ -296,12 +310,104 @@ export class TSWriter extends JSWriter {
   }
 
   /** What a value class `owner` gets for TypeScript only is (`TSProject.undeclared`), e.g. `droppable`:  a choice. */
-  private undeclaredKind(owner: string | undefined, name: string, depth: number): string | undefined {
+  private undeclaredKind(owner: string | undefined, name: string): string | undefined {
     for (let type = owner; type; type = this.project.superTypes.get(type)) {
-      const found = this.project.undeclared.get(type)?.find((it) => it.name === name && it.value)
-      if (found) return this.kindOf(found.value!, depth + 1)
+      const found = this.project.undeclared.get(type)?.some((it) => it.name === name && it.isValue)
+      if (found) return this.givenKind(type, name)
     }
     return undefined
+  }
+
+  /**
+   * What the program gives member `name` of class `typeName` (or of a class below it), when every value given is
+   * alike, e.g. `"text"` for a pile's `name`, given `"stock"`, `"discards"` ... (Q54)
+   * - `undefined` when they differ, when any can't be told, or when nothing is given.
+   * - Given when one is made, `a new stock-pile with name = "stock"`, or set on one, `set the name of the pile to ...`
+   *   -- see `TSProject.givenValues`.  Set on something the writer can't tell is one:  it doesn't count.
+   * - And `initial`, a property's initial value, if it has one.
+   * - A value read off the same member, `set the name of a to the name of b`, says nothing new:  it doesn't count.
+   */
+  givenKind(typeName: string, name: string, initial?: P.ASTExpression): string | undefined {
+    const key = `${typeName}.${name}`
+    if (this.givenKinds.has(key)) return this.givenKinds.get(key)
+    // asked again while working it out:  a value read off it can't be told
+    if (this.workingOut.has(key)) return undefined
+    this.workingOut.add(key)
+    const kinds = new Set<string | undefined>()
+    try {
+      if (initial) kinds.add(this.inPlace({ typeName, methods: [] }, () => this.kindOf(initial)))
+      for (const given of this.project.givenValues.get(name) ?? []) {
+        if (readsMember(given.value, name)) continue
+        this.inPlace(given.where, () => {
+          const owner = given.made ?? this.kindOf(given.object!)
+          if (this.project.isSubclassOf(owner, typeName)) kinds.add(this.kindOf(given.value))
+        })
+      }
+    } finally {
+      this.workingOut.delete(key)
+    }
+    const kind = alike(kinds)
+    // worked out while another was:  it may have read that one as unknown, so it's not kept
+    if (!this.workingOut.size) this.givenKinds.set(key, kind)
+    return kind
+  }
+
+  /**
+   * What every class's definition of a method returns, when all alike, e.g. `"choice"` for each pile's
+   * `can_play_$card` (Q54) -- `undefined` when they differ, or any can't be told.
+   * - Spell's own datatype for a definition, if it knows it;  else what its `return`s give, `returnedKind()`.
+   */
+  definitionsKind(definitions: Array<{ type: string; method: P.ASTMethodDefinition }>): string | undefined {
+    const kinds = definitions.map(
+      ({ type, method }) =>
+        kindFromDatatype(method.datatype) ??
+        this.inPlace({ typeName: type, methods: [method] }, () => this.returnedKind(method))
+    )
+    return alike(new Set(kinds))
+  }
+
+  /**
+   * What `method` returns, when every `return` in it gives a value, and all alike:  `return card === this.lastItem` and
+   * `return false` are choices -- `undefined` otherwise.
+   * - Not one that waits (it returns a promise), nor one that may end without a `return`:  its last statement isn't
+   *   one.
+   * - Its new variables are known by what they're set to;  a `return` in a function inside it isn't its own.
+   */
+  private returnedKind(method: P.ASTMethodDefinition): string | undefined {
+    const statements = (method.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
+    if (method.isAsync || !(statements.at(-1) instanceof P.ASTReturnStatement)) return undefined
+    const returns: P.ASTReturnStatement[] = []
+    const visit = (node: unknown) => {
+      if (Array.isArray(node)) return node.forEach(visit)
+      if (!(node instanceof P.ASTNode) || node instanceof P.ASTMethodDefinition) return
+      if (node instanceof P.ASTReturnStatement) returns.push(node)
+      if (node instanceof P.ASTAssignmentStatement) this.noteLocal(node)
+      for (const [key, value] of Object.entries(node)) if (key !== "match") visit(value)
+    }
+    return this.inBlock(() => {
+      visit(method.body.statements)
+      return alike(new Set(returns.map((it) => it.value && this.kindOf(it.value))))
+    })
+  }
+
+  /**
+   * `work()`, as if writing what's at `where`:  `this` is its class, and the parameters of the methods it's inside are
+   * known.  Nothing else written so far is.
+   */
+  private inPlace<T>(where: TSWhere, work: () => T): T {
+    const { currentClass, locals } = this
+    this.currentClass = where.typeName
+    this.locals = [new Map()]
+    try {
+      for (const method of where.methods) {
+        this.locals.push(new Map())
+        this.noteParams(method)
+      }
+      return work()
+    } finally {
+      this.currentClass = currentClass
+      this.locals = locals
+    }
   }
 
   /**
@@ -1178,11 +1284,11 @@ export class TSWriter extends JSWriter {
       const undeclared = this.project.undeclared.get(type.name) ?? []
       // a value given when one is made:  declared in the class, for TypeScript only
       const declares = undeclared
-        .filter((it) => it.value)
-        .map((it) => `${jsText.INDENT}declare ${this.undeclaredMember(it)}`)
+        .filter((it) => it.isValue)
+        .map((it) => `${jsText.INDENT}declare ${this.undeclaredMember(type.name, it)}`)
       if (declares.length) body = body.replace(/\}$/, `\n${declares.join("\n")}\n}`).replace("{}\n", "{\n")
       // a method the classes below it define:  merged in after it, one block, a member a line
-      const methods = undeclared.filter((it) => it.method).map((it) => this.undeclaredMember(it))
+      const methods = undeclared.filter((it) => it.method).map((it) => this.undeclaredMember(type.name, it))
       if (methods.length) body = `${body}\nexport interface ${type.name} {\n${indented(methods.join("\n"))}\n}`
       return hasCreate(declaration) ? `@thing\n${body}` : body
     } finally {
@@ -1216,13 +1322,15 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * A member a class gets for TypeScript only (`TSProject.undeclared`), as an interface or a `declare` writes it:
-   * `droppable: boolean`, `canPickUpCard(card: Card): boolean`.
+   * A member class `typeName` gets for TypeScript only (`TSProject.undeclared`), as an interface or a `declare` writes
+   * it:  `droppable: boolean`, `canPickUpCard(card: Card): boolean`.
+   * - A value:  typed by every value the program gives it -- see `givenKind()`.
+   * - A method:  typed by what every class's definition of it returns -- see `definitionsKind()`.
    */
-  undeclaredMember({ name, value, method }: TSUndeclared): string {
-    if (!method) return `${name}: ${this.typeFor(value?.datatype) ?? TSWriter.UNKNOWN}`
-    const returns = this.typeFor(method.datatype) ?? TSWriter.UNKNOWN
-    return `${camelCaseOf(name)}${this.signatureParams(method)}: ${returns}`
+  undeclaredMember(typeName: string, { name, method, definitions }: TSUndeclared): string {
+    if (!method) return `${name}: ${this.typeForKind(this.givenKind(typeName, name)) ?? TSWriter.UNKNOWN}`
+    const returns = this.typeForKind(this.definitionsKind(definitions ?? [{ type: typeName, method }]))
+    return `${camelCaseOf(name)}${this.signatureParams(method)}: ${returns ?? TSWriter.UNKNOWN}`
   }
 
   /** `node` with the members the project wrote for it elsewhere -- see `TSProject.movedMembers`. */
@@ -1316,7 +1424,10 @@ export class TSWriter extends JSWriter {
     if (initializer instanceof P.ASTNewInstanceExpression && initializer.type.name !== "List") {
       return initializer.type.name
     }
-    return this.typeFor(node.initializer?.datatype)
+    const initialType = this.typeFor(node.initializer?.datatype)
+    if (initialType) return initialType
+    // the program never says:  what it gives it (Q54)
+    return this.typeForKind(this.givenKind(node.typeName, node.property.value, node.initializer))
   }
 
   /** `getProp()` returns `unknown`:  `as` its type, when known. */
@@ -1698,6 +1809,18 @@ function kindFromTypeScript(type: string | undefined): string | undefined {
   if (type === "number") return "number"
   if (type === "boolean") return "choice"
   return type && /^[A-Z]\w*$/.test(type) ? type : undefined
+}
+
+/** The one kind in `kinds`, e.g. `"text"` -- `undefined` if there's more than one, or one can't be told. */
+function alike(kinds: Set<string | undefined>): string | undefined {
+  const [kind] = kinds
+  return kinds.size === 1 ? kind : undefined
+}
+
+/** Is `value` member `name` read off something, e.g. `the name of the pile` for `name`? */
+function readsMember(value: P.ASTExpression, name: string): boolean {
+  const inner = unwrapped(value)
+  return inner instanceof P.ASTPropertyExpression && inner.property.value === name
 }
 
 /** Is `node` the number `value` written out, e.g. `-1`? */

@@ -3,7 +3,8 @@ import { P } from "$/parser"
 /****************
  * ### `TSProject`
  * What `P.TSWriter` must know about a whole project BEFORE it writes any of it:  how to name a member it reads,
- * which variables are set again, which members move into their classes, which lists become typed constants.
+ * which variables are set again, which members move into their classes, which lists become typed constants, what
+ * values it gives each member.
  * - Made once per compile, from every file's statements:  `TSProject.of(files)`, through `TSWriter.forProject()`.
  * - Plain facts, worked out from the tree alone:  no scope lookups, nothing written.
  * - An empty one (`new TSProject()`) knows nothing, e.g. for `TSWriter.instance` writing one node in a test:  then
@@ -68,6 +69,13 @@ export class TSProject {
    * `Cards`:  the end of a class chain, for `undeclared`.
    */
   readonly importedMembers = new Map<string, Set<string>>()
+  /**
+   * Every value the program gives a member, by the member's name, e.g. `name` => `"stock"`, `"discards"` ...
+   * - What types a property whose type the program never says (Q54):  see `TSWriter.givenKind()`.
+   * - Given when one is made:  `a new stock-pile with name = "stock"`.
+   * - Set on one:  `set the name of the pile to ...`.
+   */
+  readonly givenValues = new Map<string, TSGivenValue[]>()
 
   /** What `files`' statements say, and the import layer above `scope`, if any -- see the class docs. */
   static of(files: P.ASTNode[][], scope?: P.Scope): TSProject {
@@ -107,7 +115,8 @@ export class TSProject {
     for (const name of properties) project.getters.delete(name)
     for (const statements of files) project.moveMembers(statements, classes)
     for (const declaration of classes.values()) project.noteClass(declaration, classes)
-    project.noteUndeclared(files, classes)
+    project.noteGivenValues(files, { methods: [] })
+    project.noteUndeclared(classes)
     for (const statements of files) project.noteModuleValues(statements)
     return project
   }
@@ -253,7 +262,7 @@ export class TSProject {
   }
 
   /** SIDE EFFECT:  notes in `undeclared` what each class gets for TypeScript only -- see there. */
-  private noteUndeclared(files: P.ASTNode[][], classes: Map<string, P.ASTClassDeclaration>) {
+  private noteUndeclared(classes: Map<string, P.ASTClassDeclaration>) {
     // what each class declares itself, by name:  its properties, getters and methods
     const declared = this.members
     // each method name, and the classes defining it
@@ -286,29 +295,50 @@ export class TSProject {
     }
 
     // values given when one is made:  `new Foundation({ symbol: "♣️" })`
-    const givenTo = new Map<string, { types: Set<string>; value: P.ASTExpression }>()
-    for (const statements of files) {
-      forEachNode(statements, (node) => {
-        if (!(node instanceof P.ASTNewInstanceExpression) || !classes.has(node.type.name)) return
-        for (const property of node.props?.properties ?? []) {
-          if (!(property instanceof P.ASTObjectLiteralProperty) || !property.value) continue
-          const given = givenTo.get(property.property.value) ?? { types: new Set(), value: property.value }
-          given.types.add(node.type.name)
-          givenTo.set(property.property.value, given)
-        }
-      })
-    }
-    for (const [name, { types, value }] of givenTo) {
-      const type = shared([...types])
-      if (type && !isDeclaredAbove(type, name)) add(type, { name, value })
+    for (const [name, given] of this.givenValues) {
+      const made = new Set(given.flatMap((it) => (it.made && classes.has(it.made) ? [it.made] : [])))
+      const type = made.size ? shared([...made]) : undefined
+      if (type && !isDeclaredAbove(type, name)) add(type, { name, isValue: true })
     }
 
     // a method two or more classes define, which the class they share doesn't
     for (const [name, defining] of definedBy) {
       if (defining.length < 2) continue
       const type = shared(defining.map((it) => it.type))
-      if (type && !isDeclaredAbove(type, name)) add(type, { name, method: defining[0]!.method })
+      if (type && !isDeclaredAbove(type, name)) add(type, { name, method: defining[0]!.method, definitions: defining })
     }
+  }
+
+  /**
+   * SIDE EFFECT:  notes in `givenValues` each value `node`, and everything under it, gives a member -- with `where`
+   * it's given:  in which class, inside which methods.
+   */
+  private noteGivenValues(node: unknown, where: TSWhere) {
+    if (Array.isArray(node)) {
+      for (const item of node) this.noteGivenValues(item, where)
+      return
+    }
+    if (!(node instanceof P.ASTNode)) return
+    if (node instanceof P.ASTClassDeclaration) where = { ...where, typeName: node.type.name }
+    else if (node instanceof P.ASTClassMember) where = { ...where, typeName: node.typeName }
+    else if (node instanceof P.ASTMethodDefinition) where = { ...where, methods: [...where.methods, node] }
+    else if (node instanceof P.ASTNewInstanceExpression) {
+      for (const property of node.props?.properties ?? []) {
+        if (!(property instanceof P.ASTObjectLiteralProperty) || !property.value) continue
+        this.noteGiven(property.property.value, { value: property.value, made: node.type.name, where })
+      }
+    } else if (node instanceof P.ASTAssignmentStatement && node.thing instanceof P.ASTPropertyExpression) {
+      const { object, property } = node.thing
+      this.noteGiven(property.value, { value: node.value, object, where })
+    }
+    for (const [key, value] of Object.entries(node)) {
+      if (key !== "match") this.noteGivenValues(value, where)
+    }
+  }
+
+  /** SIDE EFFECT:  notes `given`, a value the program gives member `name`, in `givenValues`. */
+  private noteGiven(name: string, given: TSGivenValue) {
+    this.givenValues.set(name, [...(this.givenValues.get(name) ?? []), given])
   }
 
   /**
@@ -365,10 +395,36 @@ export type TSList = {
 export type TSUndeclared = {
   /** Its name, spell's. */
   name: string
-  /** For a value given when one is made:  the first value given, typing it. */
-  value?: P.ASTExpression
-  /** For a method:  one class's definition of it, typing it. */
+  /** A value given when one is made:  typed by every value the program gives it -- see `TSProject.givenValues`. */
+  isValue?: boolean
+  /** For a method:  one class's definition of it, typing its parameters. */
   method?: P.ASTMethodDefinition
+  /** For a method:  each class defining it, with its definition there.  What they all return types it (Q54). */
+  definitions?: Array<{ type: string; method: P.ASTMethodDefinition }>
+}
+
+/**
+ * A value the program gives a member -- see `TSProject.givenValues`.
+ * - Given when one is made:  `a new stock-pile with name = "stock"`.
+ * - Set on one:  `set the name of the pile to ...`.
+ */
+export type TSGivenValue = {
+  /** The value given, e.g. `"stock"`. */
+  value: P.ASTExpression
+  /** Given when one is made:  the class made, e.g. `Stock_Pile`. */
+  made?: string
+  /** Set on one:  what it's set on, e.g. `the pile`. */
+  object?: P.ASTExpression
+  /** Where it's given:  so the writer can tell what `object` and `value` are. */
+  where: TSWhere
+}
+
+/** Where in a program something is:  in which class's members, if any, and inside which methods. */
+export type TSWhere = {
+  /** The class whose member it's in, e.g. `Tableau`:  what `this` is there. */
+  typeName?: string
+  /** The methods it's inside, outermost first:  their parameters are known there. */
+  methods: P.ASTMethodDefinition[]
 }
 
 ////////////////

@@ -317,7 +317,7 @@ export class Pile extends List<Card> {
 
   static exclusive = true
 
-  @prop() accessor name!: any /* spell: type unknown */
+  @prop() accessor name!: string
 
   declare droppable: boolean
 }
@@ -458,7 +458,7 @@ export class Foundation extends Pile {
 
   @drawn
   draw() {
-    const color = () => this.name == "diamonds" || this.name == "hearts" ? "red" : "black"
+    const color = () => this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
     return (
       <div class="Pile Foundation stacked">
         <div class={`Placeholder ui button basic compact fluid ${color()} ${this.name}`}>

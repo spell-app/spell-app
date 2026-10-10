@@ -316,13 +316,13 @@ export class Pile extends List<Card> {
     return state
   }
 
-  @prop() accessor name!: any /* spell: type unknown */
+  @prop() accessor name!: string
 
   declare droppable: boolean
 }
 export interface Pile {
-  canPickUpCard(card: Card): any /* spell: type unknown */
-  canPlayCard(card: Card): any /* spell: type unknown */
+  canPickUpCard(card: Card): boolean
+  canPlayCard(card: Card): boolean
 }
 // -----------
 spellCore.heading("Klondike Solitaire Card Game")
@@ -454,7 +454,7 @@ export class Foundation extends Pile {
 
   @drawn
   draw() {
-    const color = () => this.name == "diamonds" || this.name == "hearts" ? "red" : "black"
+    const color = () => this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
     return (
       <div class="Pile Foundation stacked">
         <div class={`Placeholder ui button basic compact fluid ${color()} ${this.name}`}>
