@@ -59,6 +59,15 @@ describe("CommentList", () => {
     expect(() => comments.add(ON_FIELD, "   ")).toThrow(/needs some text/)
     expect(() => comments.remove("cm9")).toThrow(expect.objectContaining({ status: 404 }))
   })
+
+  test("NEVER an empty comment:  white space, or characters that draw nothing, are refused on add and edit", () => {
+    const comments = new CommentList({})
+    for (const blank of ["", " \n\t ", " ", "​‍", " ⁠ ", undefined])
+      expect(() => comments.add(ON_FIELD, blank as string)).toThrow(/needs some text/)
+    const id = comments.add(ON_FIELD, "  kept  ", NOW)
+    expect(() => comments.edit(id, " \n ")).toThrow(expect.objectContaining({ status: 400 }))
+    expect(comments.comment(id).text).toBe("kept")
+  })
 })
 
 describe("ReviewInbox.commentList", () => {

@@ -13,6 +13,9 @@ const MAX_QUOTE = 2_000
 /** Longest label or excerpt kept, in characters. */
 const MAX_LABEL = 200
 
+/** Characters that draw nothing and that `trim()` keeps:  zero-width spaces, joiners, the word joiner. */
+const INVISIBLE = /[​-‍⁠]/g
+
 /****************
  * ### `CommentsError`
  * A problem the person should see as a message, not a stack trace:  a bad anchor, a missing comment, one that can't
@@ -201,10 +204,13 @@ function numberOf(id: string): number {
   return Number(/^cm(\d+)$/.exec(id)?.[1] ?? 0)
 }
 
-/** `text` trimmed;  throws when blank or too long. */
+/**
+ * `text` trimmed;  throws when blank (white space only, or characters that draw nothing:  zero-width spaces and
+ * joiners) or too long:  NEVER an empty comment (Owen, 2026-10-10).
+ */
 function checkedText(text: unknown): string {
   const words = typeof text === "string" ? text.trim() : ""
-  if (!words) throw new CommentsError("a comment needs some text")
+  if (!words.replace(INVISIBLE, "").trim()) throw new CommentsError("a comment needs some text")
   if (words.length > MAX_TEXT) throw new CommentsError(`a comment holds at most ${MAX_TEXT} characters`)
   return words
 }
