@@ -20,7 +20,7 @@ export class SpellJSXExpression extends SpellJSXContent {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
     // trim and remove newlines from expression (???)
-    // See note above re: `JSXExpression.contents` being typed `string | Token`.
+    // `JSXExpression.contents` is typed `string | Token`:  see the note in `SpellJSXAttribute.parse()`.
     const jsxToken = match.matched[0] as P.JSXExpressionToken
     const input = (jsxToken.contents as string).trim().replace(/\n/g, " ")
     // only match expression if we used all of the input

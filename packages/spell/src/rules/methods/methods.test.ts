@@ -26,7 +26,7 @@ describe("testing spell module methods", () => {
       const scope = spellParser.getScope("typed-before-receiver")
       const lines = ["a calculator is an app", "to append (digit as text) to (a calculator): print its input + digit"]
       const compiled = `${scope.compile(lines.join("\n"), "block")}`
-      expect(compiled).toContain("append_$digit_to_calculator(digit) {")
+      expect(compiled).toContain("appendDigitToCalculator(digit) {")
       expect(compiled).not.toContain("export function")
     })
   })
@@ -71,7 +71,7 @@ describe("testing spell module methods", () => {
         "c is a new calculator"
       ]
       scope.parse(lines.join("\n"), "block")
-      expect(`${scope.compile("update the total of c", "statement")}`).toBe("c.update_the_total_of_calculator()")
+      expect(`${scope.compile("update the total of c", "statement")}`).toBe("c.updateTheTotalOfCalculator()")
     })
   })
 

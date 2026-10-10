@@ -5,8 +5,8 @@ import { Precedence, type OperatorOperands } from "./expressions.shared"
 import { expressions } from "./expressions.parser"
 
 /**
- * `as_uppercase` rule:  `as upper case`/`uppercase` postfix, e.g. `"foo" as upper case`
- *   -- compiles to `spellCore.upperCase(lhs)`.
+ * `as_uppercase` rule:  `as upper case`/`uppercase` postfix, e.g. `"foo" as upper case`.
+ * - Compiles to `spellCore.upperCase(lhs)`.
  */
 export class AsUppercase extends PostfixOperatorSuffix {
   @proto static precedence = Precedence.comparison
@@ -25,8 +25,8 @@ expressions.addRule(AsUppercase, {
     {
       compileAs: "expression",
       tests: [
-        [`"foo" as upper case`, `spellCore.upperCase("foo")`, '"foo".toLocaleUpperCase()'],
-        [`1 as uppercase`, `spellCore.upperCase(1)`, '`${1 ?? ""}`.toLocaleUpperCase()']
+        [`"foo" as upper case`, '"foo".toLocaleUpperCase()'],
+        [`1 as uppercase`, "`${1 ?? ''}`.toLocaleUpperCase()", '`${1 ?? ""}`.toLocaleUpperCase()']
       ]
     }
   ]

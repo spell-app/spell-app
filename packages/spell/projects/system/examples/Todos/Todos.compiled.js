@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App } from "@spell/core"
+import { spellCore, Thing, List, App, h } from "@spell/core"
 
 spellCore.heading("Todo app example")
 /** Todo app example */
@@ -11,47 +11,36 @@ export class Task extends Thing {
   get completed() { return this.getProp('completed') }
   set completed(value) { this.setProp('completed', value) }
 
-  get is_complete() {
-    return (this.completed == true)
+  get isComplete() {
+    return (this.completed)
   }
 
-  get is_active() {
-    return (this.completed == false)
+  get isActive() {
+    return (!this.completed)
   }
 
   draw() {
-    if (this.is_complete && (app.filter == "active")) { return false }
-    if (this.is_active && (app.filter == "completed")) { return false }
-    return spellCore.element({ tag: "tr", children: [
-      spellCore.element({ tag: "td", props: { width: "8%" }, children: [
-        spellCore.element({
-          tag: "input",
-          props: {
-            type: "checkbox",
-            checked: () => this.is_complete,
-            onChange: (event) => {
-              this.completed = (this.is_active ? true : false)
-            }
+    if (this.isComplete && (app.filter == "active")) { return false }
+    if (this.isActive && (app.filter == "completed")) { return false }
+    return h("tr",
+      h("td", { width: "8%" },
+        h("input", {
+          type: "checkbox",
+          checked: () => this.isComplete,
+          onChange: (event) => {
+            this.completed = (this.isActive ? true : false)
           }
         })
-      ] }),
-      spellCore.element({ tag: "td", props: { width: "82%" }, children: [
-        () => this.title
-      ] }),
-      spellCore.element({ tag: "td", props: { width: "10%" }, children: [
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              return spellCore.remove(app.tasks, this)
-            }
-          },
-          children: [
-            "x"
-          ]
-        })
-      ] })
-    ] })
+      ),
+      h("td", { width: "82%" }, () => this.title),
+      h("td", { width: "10%" },
+        h("button", {
+          onClick: (event) => {
+            return spellCore.remove(app.tasks, this)
+          }
+        }, "x")
+      )
+    )
   }
 }
 
@@ -66,129 +55,78 @@ export class Todos_App extends App {
   set filter(value) { this.setProp('filter', value) }
 
   draw() {
-    return spellCore.element({ tag: "div", children: [
-      spellCore.element({ tag: "h2", children: [
-        "To Do:"
-      ] }),
-      spellCore.element({ tag: "div", children: [
-        spellCore.element({
-          tag: "input",
-          props: {
-            type: "text",
-            onBlur: (event) => {
-              return create_a_new_task({ title: event.target.value })
-            }
+    return h("div",
+      h("h2", "To Do:"),
+      h("div",
+        h("input", {
+          type: "text",
+          onBlur: (event) => {
+            return createANewTask({ title: event.target.value })
           }
         })
-      ] }),
-      spellCore.element({ tag: "br" }),
-      spellCore.element({ tag: "table", props: { style: "width: 50%" }, children: [
-        spellCore.element({ tag: "tbody", children: [
-          () => spellCore.drawItems(app.tasks)
-        ] })
-      ] }),
-      spellCore.element({ tag: "br" }),
-      spellCore.element({ tag: "div", children: [
+      ),
+      h("br"),
+      h("table", { style: "width: 50%" }, h("tbody", () => spellCore.drawItems(app.tasks))),
+      h("br"),
+      h("div",
         "Show:",
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              app.filter = 'all'
-            }
-          },
-          children: [
-            "All"
-          ]
-        }),
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              app.filter = "active"
-            }
-          },
-          children: [
-            "Active"
-          ]
-        }),
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              app.filter = "completed"
-            }
-          },
-          children: [
-            "Completed"
-          ]
-        })
-      ] }),
-      spellCore.element({ tag: "br" }),
-      spellCore.element({ tag: "div", children: [
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              return create_a_new_task({ title: "Moar" })
-            }
-          },
-          children: [
-            "+ Add"
-          ]
-        }),
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              return spellCore.removeItemAt(app.tasks, 1)
-            }
-          },
-          children: [
-            "- Remove"
-          ]
-        }),
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              spellCore.getItemAt(app.tasks, 1).title = "New title"
-            }
-          },
-          children: [
-            "Change name"
-          ]
-        }),
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              return spellCore.removeWhere(app.tasks, (item) => {
-                return item.is_complete
-              })
-            }
-          },
-          children: [
-            "Remove Completed"
-          ]
-        })
-      ] })
-    ] })
+        h("button", {
+          onClick: (event) => {
+            app.filter = 'all'
+          }
+        }, "All"),
+        h("button", {
+          onClick: (event) => {
+            app.filter = "active"
+          }
+        }, "Active"),
+        h("button", {
+          onClick: (event) => {
+            app.filter = "completed"
+          }
+        }, "Completed")
+      ),
+      h("br"),
+      h("div",
+        h("button", {
+          onClick: (event) => {
+            return createANewTask({ title: "Moar" })
+          }
+        }, "+ Add"),
+        h("button", {
+          onClick: (event) => {
+            return spellCore.removeItemAt(app.tasks, 1)
+          }
+        }, "- Remove"),
+        h("button", {
+          onClick: (event) => {
+            spellCore.getItemAt(app.tasks, 1).title = "New title"
+          }
+        }, "Change name"),
+        h("button", {
+          onClick: (event) => {
+            return spellCore.removeWhere(app.tasks, (item) => {
+              return item.isComplete
+            })
+          }
+        }, "Remove Completed")
+      )
+    )
   }
 }
 
 export let app = new Todos_App()
 app.filter = "all"
 
-export function create_a_new_task(props = {}) {
+export function createANewTask(props = {}) {
   let { title } = props
   let it = new Task({ title: title, completed: false })
   spellCore.append(app.tasks, it)
 }
 
-create_a_new_task({ title: "Create todos app" })
-create_a_new_task({ title: "Teach it to draw" })
-create_a_new_task({ title: "Test app" })
+createANewTask({ title: "Create todos app" })
+createANewTask({ title: "Teach it to draw" })
+createANewTask({ title: "Test app" })
 
 app.start()
 spellCore.console.log(app)

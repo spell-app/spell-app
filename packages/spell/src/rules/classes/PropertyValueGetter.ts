@@ -152,7 +152,7 @@ classes.addRule(PropertyValueGetter, {
         {
           input: ["the short-name of a card is:", "\treturn the first word of the name of the card"],
           js: [
-            "Object.defineProperty(Card.prototype, 'short_name', {",
+            "Object.defineProperty(Card.prototype, 'shortName', {",
             "  get() {",
             "    return spellCore.getItemAt(this.name, 1)",
             "  },",
@@ -173,7 +173,7 @@ classes.addRule(PropertyValueGetter, {
           title: "Show error if both nestedBlock and inlineStatement",
           input: ["the short-name of a card is its name", "\treturn the first word of the name of the card"],
           js: [
-            "Object.defineProperty(Card.prototype, 'short_name', {",
+            "Object.defineProperty(Card.prototype, 'shortName', {",
             "  get() {",
             "    return spellCore.getItemAt(this.name, 1)",
             "  },",

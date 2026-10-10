@@ -5,9 +5,9 @@ import { Priority } from "$/spell/rules/rules.types"
 import type { MethodOperatorRuleProps, MethodRuleDeclared, OperatorOperands } from "./methods.shared"
 
 /**
- * `card is face up` -- reads a quoted method defined as a postfix expression, e.g. `card.is_face_up`.
- * - Never registered as is:  `MethodDefinition.getRule()` makes one per such method, with
- *   `MethodPostfixRule.specialize({ output })`.
+ * `card is face up` -- reads a quoted method defined as a postfix expression, e.g. `card.isFaceUp`.
+ * - Never registered as is:
+ *   `MethodDefinition.getRule()` makes one per such method, with `MethodPostfixRule.specialize({ output })`.
  * - `isn't face up` negates through the base class -- see `Negatable`.
  * - Reads ONLY its statics, so a project's declarations can rebuild it elsewhere -- see `P.Rule.specialize()`.
  */
@@ -17,7 +17,7 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
   @proto static priority = Priority.userDeclared
   @proto static precedence = Precedence.comparison
 
-  /** Generated method to read, e.g. `is_face_up`. */
+  /** Generated method to read, by spell's name, e.g. `is_face_up`:  javascript writes it `isFaceUp`. */
   declare methodName: string
   /** A value kind's phrase:  the kind whose static method it calls, e.g. `Rank` -- see `MethodRuleDeclared`. */
   declare staticOf: string | undefined
@@ -50,7 +50,7 @@ export class MethodPostfixRule extends PostfixOperatorSuffix {
   }
 
   compileASTExpression(match: P.Match, { lhs }: OperatorOperands): P.ASTExpression {
-    // a value kind's phrase:  `Rank.is_a_face_card(card.rank)`
+    // a value kind's phrase:  `Rank.isAFaceCard(card.rank)`
     if (this.staticOf) {
       const thing = new P.ASTTypeExpression(match, { name: this.staticOf })
       return new P.ASTScopedMethodInvocation(match, { thing, methodName: this.methodName, args: [lhs!] })

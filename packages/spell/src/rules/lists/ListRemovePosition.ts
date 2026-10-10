@@ -8,7 +8,7 @@ import { lists } from "./lists.parser"
  * `list_remove_position` rule:  remove one item from list by numeric position.
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Compiles to `spellCore.removeItemAt(list, number)`, e.g. `remove item 4 of my-list` =>
- *   `spellCore.removeItemAt(my_list, 4)`.
+ *   `spellCore.removeItemAt(myList, 4)`.
  */
 export class ListRemovePosition extends SpellStatement<"arg|number|list"> {
   @proto static alias = "statement"
@@ -29,7 +29,7 @@ lists.addRule(ListRemovePosition, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add("my-list")
       },
-      tests: [["remove item 4 of my-list", "spellCore.removeItemAt(my_list, 4)", "spellCore.removeItemAt(myList, 4)"]]
+      tests: [["remove item 4 of my-list", "spellCore.removeItemAt(myList, 4)"]]
     }
   ]
 })

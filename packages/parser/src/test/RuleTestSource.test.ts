@@ -41,10 +41,10 @@ describe("RuleTestSource", () => {
   test("`bless()` adds, replaces and removes `ts`:  left out where it's the same as `js`", () => {
     const source = new RuleTestSource("rules.ts", SOURCE)
     const warnings = source.bless([
-      { input: "a", js: "spellCore.a()", ts: "a()" },
-      { input: "b", js: "b", ts: "b" },
-      { input: "c", js: "spellCore.c()", ts: "c()" },
-      { input: "d\ne", js: "d(\n)", ts: "d(\n  e\n)" }
+      { input: "a", js: "spellCore.a()", writtenJs: "spellCore.a()", ts: "a()" },
+      { input: "b", js: "b", writtenJs: "b", ts: "b" },
+      { input: "c", js: "spellCore.c()", writtenJs: "spellCore.c()", ts: "c()" },
+      { input: "d\ne", js: "d(\n)", writtenJs: "d(\n)", ts: "d(\n  e\n)" }
     ])
     expect(warnings).toEqual([])
     const { edited } = source
@@ -54,12 +54,26 @@ describe("RuleTestSource", () => {
     expect(edited).toContain(`output: ["d(", ")"], ts: ["d(", "  e", ")"] }`)
   })
 
+  test("`bless()` sets a changed `js`, its `ts` then kept or left out against the new `js`", () => {
+    const source = new RuleTestSource("rules.ts", SOURCE)
+    const warnings = source.bless([
+      { input: "a", js: "spellCore.a()", writtenJs: "a()", ts: "a()" },
+      { input: "c", js: "spellCore.c()", writtenJs: "c(1)", ts: "c()" },
+      { input: "d\ne", js: "d(\n)", writtenJs: "d(\n  e\n)", ts: "d(\n  e\n)" }
+    ])
+    expect(warnings).toEqual([])
+    const { edited } = source
+    expect(edited).toContain(`["a", "a()"],`)
+    expect(edited).toContain(`["c", "c(1)", 'c()'],`)
+    expect(edited).toContain(`output: ["d(", "  e", ")"] }`)
+  })
+
   test("`bless()` leaves a test alone, with a warning, when it can't say one `ts`", () => {
     const source = new RuleTestSource("rules.ts", SOURCE)
     const warnings = source.bless([
-      { input: "a", js: "spellCore.a()", ts: "a()" },
-      { input: "a", js: "spellCore.a()", ts: "other()" },
-      { input: "c", js: "spellCore.c()", ts: new Error("no") }
+      { input: "a", js: "spellCore.a()", writtenJs: "spellCore.a()", ts: "a()" },
+      { input: "a", js: "spellCore.a()", writtenJs: "spellCore.a()", ts: "other()" },
+      { input: "c", js: "spellCore.c()", writtenJs: "spellCore.c()", ts: new Error("no") }
     ])
     expect(warnings).toHaveLength(2)
     expect(source.edited).toBe(SOURCE)

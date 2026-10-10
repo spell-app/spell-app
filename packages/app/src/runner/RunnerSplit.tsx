@@ -10,11 +10,11 @@ import "./RunnerSplit.css"
  *   - `"%"`, for a split of a fixed height:  `split` is the TOP pane's share of it, in %
  *   - `"px"`, for one as tall as it needs to be, e.g. a fluid `<spell-app>`:  the top pane is as tall as its
  *     content, and `split` is the BOTTOM pane's height, in px
- * - Dragging shows as it goes, and says `onSplit()` only when let go -- so e.g. the VS Code extension writes
- *   `settings.json5` once.
+ * - Dragging shows as it goes, and says `onSplit()` only when let go:
+ *   so e.g. the VS Code extension writes `settings.json5` once.
  * - Without `showBottom`, the top pane fills it all.
- * - `children` are read ONCE:  the top pane is never redrawn, so an app's mount point in it stays put.  `bottom`
- *   is read each time it's shown.
+ * - `children` are read ONCE:  the top pane is never redrawn, so an app's mount point in it stays put.
+ *   `bottom` is read each time it's shown.
  ****************/
 export function RunnerSplit(props: RunnerSplitProps) {
   let element!: HTMLDivElement

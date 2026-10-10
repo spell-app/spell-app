@@ -46,12 +46,12 @@ assignment.addRule(ReturnStatement, {
         // simple expression
         ["return\n\t1 + 2", "return (1 + 2)", "return 1 + 2"],
         // inline JSX
-        ["return\n\t<div/>", 'return spellCore.element({ tag: "div" })', "return <div />"],
-        ["return\n\t1 + <div/>", 'return (1 + spellCore.element({ tag: "div" }))', "return 1 + (<div />)"],
+        ["return\n\t<div/>", 'return h("div")', "return <div />"],
+        ["return\n\t1 + <div/>", 'return (1 + h("div"))', "return 1 + (<div />)"],
         // multi-line JSX
         [
           ["return", "\t<div>", "\t\t<span/>", "\t</div>"],
-          ['return spellCore.element({ tag: "div", children: [', '  spellCore.element({ tag: "span" })', "] })"],
+          'return h("div", h("span"))',
           ["return (", "  <div>", "    <span />", "  </div>", ")"]
         ],
         // fails for more than one indented line

@@ -1,10 +1,10 @@
 /**
  * Running compiled spell javascript -- in every runner:  the app, the VS Code runner's webview, and `<spell-app>`.
  * - Compiled spell `import`s `@spell/core`, and any projects it imports as `@spell/project/<projectId>`.
- *   We rewrite them onto URLs -- the runtime's own, and a `blob:` URL per project -- see `linkModule()`.  NO
- *   import map:  a page has one, but each runner needs its own `@spell/core`.
- * - Part of `spell-runtime.js`, NOT the runners themselves:  it runs on the `spellCore` of the runtime copy it's
- *   in -- see `spellRuntime.ts`'s `runApp()`.
+ *   - We rewrite them onto URLs -- the runtime's own, and a `blob:` URL per project -- see `linkModule()`.
+ *   - NO import map:  a page has one, but each runner needs its own `@spell/core`.
+ * - Part of `spell-runtime.js`, NOT the runners themselves:
+ *   it runs on the `spellCore` of the runtime copy it's in -- see `spellRuntime.ts`'s `runApp()`.
  */
 
 import { spellCore, SPELL_CORE_MODULE } from "$/core"
@@ -14,10 +14,12 @@ import { spellCore, SPELL_CORE_MODULE } from "$/core"
  * unless `keepConsole`.
  * - Imports it as a module from a NEW `blob:` URL each time -- the browser caches modules by URL,
  *   so re-importing one would hand back the old module without running anything.
- * - Each project it imports comes from `options.loadImport()`, linked onto its own `blob:` URL -- once per run,
- *   however many import it, deepest first.  Without `loadImport`, a project which imports another won't run.
- * - SIDE EFFECT:  hands its top-level things to `spellCore.things`, for the Thing Explorer -- NOT those of
- *   the projects it imports.  Its classes AND theirs too, so `spellCore.fromJSON()` finds them by name.
+ * - Each project it imports comes from `options.loadImport()`, linked onto its own `blob:` URL:
+ *   once per run, however many import it, deepest first.
+ *   Without `loadImport`, a project which imports another won't run.
+ * - SIDE EFFECT:  hands its top-level things to `spellCore.things`, for the Thing Explorer --
+ *   NOT those of the projects it imports.
+ *   Its classes AND theirs too, so `spellCore.fromJSON()` finds them by name.
  * - Answers the error message if it threw, else `undefined`.
  */
 export async function runCompiled(compiled: string, options: RunCompiledOptions): Promise<string | undefined> {
@@ -38,8 +40,8 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
     // `await` in its argument would end up in a function that isn't `async` -- a syntax error in the bundle
     const url = await link(compiled, [])
     const program = (await import(/* @vite-ignore */ url)) as Record<string, unknown>
-    // the classes of each project it imports, e.g. Solitaire's `Card`, for `spellCore.fromJSON()`:  the program
-    // imported them already, so this runs nothing again
+    // the classes of each project it imports, e.g. Solitaire's `Card`, for `spellCore.fromJSON()`:
+    // the program imported them already, so this runs nothing again
     for (const projectUrl of linked.values()) {
       const project = await projectUrl
       spellCore.things.addClasses((await import(/* @vite-ignore */ project)) as Record<string, unknown>)
@@ -101,8 +103,8 @@ export function appIsMounted(): boolean {
 }
 
 /**
- * `source` with its imports pointed at URLs:  `@spell/core` at `coreUrl`, and each `@spell/project/<projectId>`
- * at `imports[projectId]`.
+ * `source` with its imports pointed at URLs:
+ * `@spell/core` at `coreUrl`, and each `@spell/project/<projectId>` at `imports[projectId]`.
  * - Pure.  A project not in `imports` is left as it was.
  */
 export function linkModule(source: string, coreUrl: string, imports: Record<string, string> = {}): string {

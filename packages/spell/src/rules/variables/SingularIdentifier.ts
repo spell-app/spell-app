@@ -25,7 +25,7 @@ variables.addRule(SingularIdentifier, {
     {
       tests: [
         { title: "singular, single word", input: "thing", js: "thing" },
-        { title: "singular, multi-word", input: "bank-account", js: "bank_account", ts: "bankAccount" },
+        { title: "singular, multi-word", input: "bank-account", js: "bankAccount" },
         { title: "uncountable, matches as singular too", input: "sheep", js: "sheep" },
         { title: "plural, single word", input: "things", js: undefined },
         { title: "plural, multi-word", input: "bank-accounts", js: undefined }

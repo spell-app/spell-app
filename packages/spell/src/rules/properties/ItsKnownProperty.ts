@@ -48,13 +48,13 @@ properties.addRule(ItsKnownProperty, {
       tests: [
         [
           ["get a new card", "print its short rank"],
-          ["let it = new Card()", "spellCore.console.log(it.short_rank)"],
-          ["const it = new Card()", "spellCore.console.log(it.short_rank)"]
+          ["let it = new Card()", "spellCore.console.log(it.shortRank)"],
+          ["const it = new Card()", "spellCore.console.log(it.shortRank)"]
         ],
         [
           ["get a new card", "print its short rank + 1"],
-          ["let it = new Card()", "spellCore.console.log(it.short_rank + 1)"],
-          ["const it = new Card()", "spellCore.console.log(it.short_rank + 1)"]
+          ["let it = new Card()", "spellCore.console.log(it.shortRank + 1)"],
+          ["const it = new Card()", "spellCore.console.log(it.shortRank + 1)"]
         ]
       ]
     }

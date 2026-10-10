@@ -4,6 +4,7 @@ import { tmpdir } from "os"
 import { basename, resolve } from "path"
 
 import environment from "$/spell/node/environment"
+import { P } from "$/parser"
 import { SP } from "$/spell"
 import { loadFixtureProject, parseSpellProject, describeParseErrors, fixturePath, fixtureProjectId } from "$/spell/test"
 import { installDiskFetch, locationForDiskPath } from "./disk-fetch"
@@ -32,7 +33,7 @@ describe("diskFetch", () => {
     spellFiles.forEach((file, index) => {
       expect(file.match, file.path).toBeDefined()
       expect(describeParseErrors(file.match)).toEqual(reference.files[index]!.errors)
-      expect(file.match!.compile()).toEqual(reference.files[index]!.compiled)
+      expect(P.JSWriter.instance.writeMatch(file.match)).toEqual(reference.files[index]!.compiled)
     })
   })
 

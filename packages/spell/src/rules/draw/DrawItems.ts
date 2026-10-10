@@ -6,11 +6,13 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { draw } from "./draw.parser"
 
 /**
- * `draw_items` rule:  draw each/all of a collection of items, e.g. `draw each card in the deck` or
- * `draw all cards of the deck`.
- * - The `each {variable}`/`(the|all)? {plural_identifier}` part is purely for readability -- it's matched
- *   but never read in `getAST()`, only the trailing `{expression}` (the container) is compiled, e.g.
- *   `draw each card in the deck` => `spellCore.drawItems(deck)`.
+ * `draw_items` rule:  draw each / all of a collection of items.
+ * - e.g. `draw each card in the deck`, `draw all cards of the deck`
+ * - Only the trailing `{expression}` (the container) is compiled:
+ *   - javascript:  `draw each card in the deck` => `spellCore.drawItems(deck)`
+ *   - TypeScript:  `<For each={deck.items}>{(item) => item.draw()}</For>`, each item in its own error net
+ * - The `each {variable}` / `(the|all)? {plural_identifier}` part is purely for readability:
+ *   it's matched, but never read in `getAST()`.
  */
 export class DrawItems extends SpellStatement<"variable?|plural_identifier?|expression"> {
   /** An expression (JSX `{draw …}`) AND a statement:  as a statement, a project's own `draw` method would win. */

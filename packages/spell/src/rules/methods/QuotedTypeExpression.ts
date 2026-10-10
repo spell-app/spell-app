@@ -15,29 +15,29 @@ import type { MethodSignatureData } from "./methods.shared"
  * e.g. `a thing "nerds out" if`, `a thing "is a bug" if`, `a thing "nerds out with (another as a thing)" if`.
  * - `Priority.belowDeclaration`:  defers to more specific method-definition rules in `classes/`
  *   (e.g. `define_property_has`) when both could match the same tokens.
- * - Quoting the signature (`quoted_method_signature`) lets it start with plain english words (`is`,
- *   `has`, `can`, `will`, ...) that would otherwise collide with other statement/expression rules.
- * - Trailing `if`/`is` is a no-op keyword purely for readability (`a thing "is a bug" if` vs. plain
- *   `a thing "is a bug"`); neither is captured into `match.groups`.
- * - `{expression_body}?` -- the inline body (`a thing "nerds out" if yes`) parses as an
- *   `expression`, not a `statement` like other `MethodDefinition` subclasses, since the result compiles
- *   to a getter/method returning a value.
- * - `parse()` rejects signatures that don't start with a keyword, or that captured more than one
- *   argument -- only zero- or one-arg expressions are supported.
- * - `processSignature()` decides postfix (`asPostfixExpression`, zero args, e.g. `card.is_a_bug`) vs.
- *   infix (`asInfixExpression`, one arg, e.g. `card.nerds_out_with_$another(thing)`) form, and rewrites
- *   `is`/`can`/`will`/`has` into a negatable `{operator}` group so both the positive and negative
- *   phrasing (`is`/`is not`/`isn't`/`isnt`) compile to the same rule with `shouldNegateOutput()` flipping
- *   the output.
+ * - Quoting the signature (`quoted_method_signature`) lets it start with plain english words
+ *   (`is`, `has`, `can`, `will`, ...) that would otherwise collide with other statement/expression rules.
+ * - Trailing `if` / `is` is a no-op keyword purely for readability:
+ *   `a thing "is a bug" if` vs. plain `a thing "is a bug"`.  Neither is captured into `match.groups`.
+ * - `{expression_body}?`:  the inline body (`a thing "nerds out" if yes`) parses as an `expression`,
+ *   not a `statement` like other `MethodDefinition` subclasses,
+ *   since the result compiles to a getter/method returning a value.
+ * - `parse()` rejects signatures that don't start with a keyword, or that captured more than one argument:
+ *   only zero- or one-arg expressions are supported.
+ * - `processSignature()` decides the form:
+ *   - postfix (`asPostfixExpression`, zero args), e.g. `card.isABug`
+ *   - or infix (`asInfixExpression`, one arg), e.g. `card.nerdsOutWithAnother(thing)`
+ *   - It rewrites `is` / `can` / `will` / `has` into a negatable `{operator}` group,
+ *     so the positive and negative phrasings (`is` / `is not` / `isn't` / `isnt`) compile to the same rule,
+ *     with `shouldNegateOutput()` flipping the output.
  */
 export class QuotedTypeExpression extends MethodDefinition<"type|signature|body?"> {
   @proto static priority = Priority.belowDeclaration
   @proto static alias = "statement"
 
   /**
-   * Reject the match if its (quoted) signature doesn't start with a keyword, or captured more than one
-   * arg -- `quoted_type_expression` only supports plain (`nerds out`) or single-arg (`nerds out with
-   * (x as y)`) forms.
+   * Reject the match if its (quoted) signature doesn't start with a keyword, or captured more than one arg.
+   * - `quoted_type_expression` only supports plain (`nerds out`) or single-arg (`nerds out with (x as y)`) forms.
    */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
@@ -71,9 +71,9 @@ export class QuotedTypeExpression extends MethodDefinition<"type|signature|body?
   }
 
   /**
-   * Is `match` the quoted phrase and NOTHING more:  no `if` / `is` / `:`, no body, e.g. `- it "can move"` (plan doc
-   * `outline-spell` I6)?
-   * - Refused, saying so:  it'd compile to an empty method, `get can_move() {}`, always `undefined`.
+   * Is `match` the quoted phrase and NOTHING more:  no `if` / `is` / `:`, no body?
+   * - e.g. `- it "can move"` (plan doc `outline-spell` I6)
+   * - Refused, saying so:  it'd compile to an empty method, `get canMove() {}`, always `undefined`.
    * - A dangling `if` is fine:  its body may be the indented lines below.
    */
   private static isBodiless(match: P.MatchFor<QuotedTypeExpression>, tokens: P.Token[]): boolean {
@@ -86,8 +86,8 @@ export class QuotedTypeExpression extends MethodDefinition<"type|signature|body?
    * Is `tokens` a property written with `it` for `its` in an outline body, e.g. `- it "rank" is a number`
    * (plan doc `outline-spell`, todo T3)?
    * - `it`, a quoted member name (no verb, so not a phrase like `"is face up"`), then `is`.
-   * - Refused, saying so:  read as a phrase, it'd make an empty `get rank() {}`, and say only
-   *   "Don't understand `a number`".
+   * - Refused, saying so:
+   *   read as a phrase, it'd make an empty `get rank() {}`, and say only "Don't understand `a number`".
    */
   private static isPropertySlip(scope: P.Scope, tokens: P.Token[]): boolean {
     const [subject, name, is] = tokens
@@ -178,11 +178,11 @@ methods.addRule(QuotedTypeExpression, {
           title: "no body",
           input: [`a thing "nerds out" if`, `if a new thing nerds out`],
           js: [
-            `Object.defineProperty(Thing.prototype, 'nerds_out', {`,
-            `  get() {},`,
-            `  configurable: true`,
-            `})`,
-            `if (new Thing().nerds_out) {}`
+            "Object.defineProperty(Thing.prototype, 'nerdsOut', {",
+            "  get() {},",
+            "  configurable: true",
+            "})",
+            "if (new Thing().nerdsOut) {}"
           ],
           ts: [
             "export interface Thing { readonly nerdsOut: any /* spell: type unknown */ }",
@@ -197,13 +197,13 @@ methods.addRule(QuotedTypeExpression, {
           title: "no if",
           input: [`a thing "nerds out": never`, `if a new thing nerds out`],
           js: [
-            `Object.defineProperty(Thing.prototype, 'nerds_out', {`,
-            `  get() {`,
-            `    return false`,
-            `  },`,
-            `  configurable: true`,
-            `})`,
-            `if (new Thing().nerds_out) {}`
+            "Object.defineProperty(Thing.prototype, 'nerdsOut', {",
+            "  get() {",
+            "    return false",
+            "  },",
+            "  configurable: true",
+            "})",
+            "if (new Thing().nerdsOut) {}"
           ],
           ts: [
             "export interface Thing { readonly nerdsOut: any /* spell: type unknown */ }",
@@ -220,13 +220,13 @@ methods.addRule(QuotedTypeExpression, {
           title: "inline expression",
           input: [`a thing "nerds out" if yes`, `if a new thing nerds out`],
           js: [
-            `Object.defineProperty(Thing.prototype, 'nerds_out', {`,
-            `  get() {`,
-            `    return true`,
-            `  },`,
-            `  configurable: true`,
-            `})`,
-            `if (new Thing().nerds_out) {}`
+            "Object.defineProperty(Thing.prototype, 'nerdsOut', {",
+            "  get() {",
+            "    return true",
+            "  },",
+            "  configurable: true",
+            "})",
+            "if (new Thing().nerdsOut) {}"
           ],
           ts: [
             "export interface Thing { readonly nerdsOut: any /* spell: type unknown */ }",
@@ -243,13 +243,13 @@ methods.addRule(QuotedTypeExpression, {
           title: "indented method body",
           input: [`a thing "nerds out" if`, `\treturn yes`, `if a new thing nerds out`],
           js: [
-            `Object.defineProperty(Thing.prototype, 'nerds_out', {`,
-            `  get() {`,
-            `    return true`,
-            `  },`,
-            `  configurable: true`,
-            `})`,
-            `if (new Thing().nerds_out) {}`
+            "Object.defineProperty(Thing.prototype, 'nerdsOut', {",
+            "  get() {",
+            "    return true",
+            "  },",
+            "  configurable: true",
+            "})",
+            "if (new Thing().nerdsOut) {}"
           ],
           ts: [
             "export interface Thing { readonly nerdsOut: any /* spell: type unknown */ }",
@@ -272,8 +272,8 @@ methods.addRule(QuotedTypeExpression, {
           title: "no body",
           input: [`a thing "nerds out with (another as a thing)" if`, `if a new thing nerds out with a new thing`],
           js: [
-            `Thing.prototype.nerds_out_with_$another = function (another) {}`,
-            `if (new Thing().nerds_out_with_$another(new Thing())) {}`
+            "Thing.prototype.nerdsOutWithAnother = function (another) {}",
+            "if (new Thing().nerdsOutWithAnother(new Thing())) {}"
           ],
           ts: [
             "export interface Thing { nerdsOutWithAnother(another: Thing): any /* spell: type unknown */ }",
@@ -285,10 +285,10 @@ methods.addRule(QuotedTypeExpression, {
           title: "inline expression",
           input: [`a thing "nerds out with (another as a thing)" if yes`, `if a new thing nerds out with a new thing`],
           js: [
-            `Thing.prototype.nerds_out_with_$another = function (another) {`,
-            `  return true`,
-            `}`,
-            `if (new Thing().nerds_out_with_$another(new Thing())) {}`
+            "Thing.prototype.nerdsOutWithAnother = function (another) {",
+            "  return true",
+            "}",
+            "if (new Thing().nerdsOutWithAnother(new Thing())) {}"
           ],
           ts: [
             "export interface Thing { nerdsOutWithAnother(another: Thing): any /* spell: type unknown */ }",
@@ -306,10 +306,10 @@ methods.addRule(QuotedTypeExpression, {
             `if a new thing nerds out with a new thing`
           ],
           js: [
-            `Thing.prototype.nerds_out_with_$another = function (another) {`,
-            `  return true`,
-            `}`,
-            `if (new Thing().nerds_out_with_$another(new Thing())) {}`
+            "Thing.prototype.nerdsOutWithAnother = function (another) {",
+            "  return true",
+            "}",
+            "if (new Thing().nerdsOutWithAnother(new Thing())) {}"
           ],
           ts: [
             "export interface Thing { nerdsOutWithAnother(another: Thing): any /* spell: type unknown */ }",
@@ -335,14 +335,14 @@ methods.addRule(QuotedTypeExpression, {
             `if a new thing isn't a bug`
           ],
           js: [
-            `Object.defineProperty(Thing.prototype, 'is_a_bug', {`,
-            `  get() {},`,
-            `  configurable: true`,
-            `})`,
-            `if (new Thing().is_a_bug) {}`,
-            `if (!new Thing().is_a_bug) {}`,
-            `if (!new Thing().is_a_bug) {}`,
-            `if (!new Thing().is_a_bug) {}`
+            "Object.defineProperty(Thing.prototype, 'isABug', {",
+            "  get() {},",
+            "  configurable: true",
+            "})",
+            "if (new Thing().isABug) {}",
+            "if (!new Thing().isABug) {}",
+            "if (!new Thing().isABug) {}",
+            "if (!new Thing().isABug) {}"
           ],
           ts: [
             "export interface Thing { readonly isABug: any /* spell: type unknown */ }",
@@ -367,15 +367,15 @@ methods.addRule(QuotedTypeExpression, {
             `if a new thing can't play`
           ],
           js: [
-            `Object.defineProperty(Thing.prototype, 'can_play', {`,
-            `  get() {},`,
-            `  configurable: true`,
-            `})`,
-            `if (new Thing().can_play) {}`,
-            `if (!new Thing().can_play) {}`,
-            `if (!new Thing().can_play) {}`,
-            `if (!new Thing().can_play) {}`,
-            `if (!new Thing().can_play) {}`
+            "Object.defineProperty(Thing.prototype, 'canPlay', {",
+            "  get() {},",
+            "  configurable: true",
+            "})",
+            "if (new Thing().canPlay) {}",
+            "if (!new Thing().canPlay) {}",
+            "if (!new Thing().canPlay) {}",
+            "if (!new Thing().canPlay) {}",
+            "if (!new Thing().canPlay) {}"
           ],
           ts: [
             "export interface Thing { readonly canPlay: any /* spell: type unknown */ }",
@@ -400,14 +400,14 @@ methods.addRule(QuotedTypeExpression, {
             `if a new thing won't blow up`
           ],
           js: [
-            `Object.defineProperty(Thing.prototype, 'will_blow_up', {`,
-            `  get() {},`,
-            `  configurable: true`,
-            `})`,
-            `if (new Thing().will_blow_up) {}`,
-            `if (!new Thing().will_blow_up) {}`,
-            `if (!new Thing().will_blow_up) {}`,
-            `if (!new Thing().will_blow_up) {}`
+            "Object.defineProperty(Thing.prototype, 'willBlowUp', {",
+            "  get() {},",
+            "  configurable: true",
+            "})",
+            "if (new Thing().willBlowUp) {}",
+            "if (!new Thing().willBlowUp) {}",
+            "if (!new Thing().willBlowUp) {}",
+            "if (!new Thing().willBlowUp) {}"
           ],
           ts: [
             "export interface Thing { readonly willBlowUp: any /* spell: type unknown */ }",
@@ -431,14 +431,14 @@ methods.addRule(QuotedTypeExpression, {
             `if a new thing doesn't have a friend`
           ],
           js: [
-            `Object.defineProperty(Thing.prototype, 'has_a_friend', {`,
-            `  get() {},`,
-            `  configurable: true`,
-            `})`,
-            `if (new Thing().has_a_friend) {}`,
-            `if (!new Thing().has_a_friend) {}`,
-            `if (!new Thing().has_a_friend) {}`,
-            `if (!new Thing().has_a_friend) {}`
+            "Object.defineProperty(Thing.prototype, 'hasAFriend', {",
+            "  get() {},",
+            "  configurable: true",
+            "})",
+            "if (new Thing().hasAFriend) {}",
+            "if (!new Thing().hasAFriend) {}",
+            "if (!new Thing().hasAFriend) {}",
+            "if (!new Thing().hasAFriend) {}"
           ],
           ts: [
             "export interface Thing { readonly hasAFriend: any /* spell: type unknown */ }",
