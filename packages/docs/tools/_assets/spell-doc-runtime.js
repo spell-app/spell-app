@@ -3071,8 +3071,10 @@ class PageComments {
   ////////////////
 
   /**
-   * A comment's card:  its band ("Owen", its state, the date, Edit while it waits, the trash), then the quote it's on, its
-   * text, and Claude's answers.  Folds by its band;  folded, the band shows the comment's first line.
+   * A comment's card, drawn as the pane is (Owen, 2026-10-10:  "bullhorn popup looks good.  These are ugly"):  its
+   * header ("Owen", its state, the date, then the trash and, while it waits, Edit at the far right), then a box of
+   * the quote it's on, its text, and Claude's answers.  Folds by its header;  folded, the header shows the
+   * comment's first line.
    * - `exact` false:  its block changed or moved since, so the card says what it was on
    */
   card({ comment, exact }) {
@@ -3084,18 +3086,20 @@ class PageComments {
     const open = this.folds.get(comment.id) ?? state === "saved"
     if (!open) card.dataset.folded = ""
     const editing = this.open?.id === comment.id
+    // waiting:  the date says when it was saved, so the state doesn't say it again
+    const said = state === "saved" ? "Waiting for Claude" : stateLabel(comment, state)
     card.innerHTML =
-      `<div class="spell-comment-band">` +
+      `<div class="spell-comment-head"><div class="spell-comment-line">` +
       `<button type="button" class="spell-comment-fold" aria-expanded="${open}" title="${open ? "Fold" : "Unfold"} this comment">` +
       `<ui-icon name="bullhorn"></ui-icon><b>Owen</b><span class="spell-comment-preview">${text(comment.text.split("\n")[0])}</span></button>` +
-      `<span class="spell-comment-state">${stateLabel(comment, state)}</span>` +
-      `<span class="spell-comment-date">${text(shortStamp(localStamp(comment.at)))}</span>` +
-      (state === "saved" && !editing
-        ? `<ui-button class="spell-comment-edit" circular basic size="mini" icon="pen to square" ` +
-          `title="Edit this comment, until Claude takes it:  emptied, it's deleted" aria-label="Edit this comment">` +
-          `</ui-button>`
-        : "") +
+      `<span class="spell-comment-state">${said}</span>` +
+      `<span class="spell-comment-date">${text(shortStamp(localStamp(comment.at)))}</span></div>` +
       deleteButton(state) +
+      (state === "saved" && !editing
+        ? `<button type="button" class="spell-comment-tool spell-comment-edit" ` +
+          `title="Edit this comment, until Claude takes it:  emptied, it's deleted" aria-label="Edit this comment">` +
+          `<ui-icon name="pen to square"></ui-icon></button>`
+        : "") +
       `</div><div class="spell-comment-body">` +
       (exact ? "" : `<p class="spell-comment-moved">The block changed since:  it was “${text(comment.excerpt)}”.</p>`) +
       (comment.quote ? `<blockquote class="spell-comment-quote">${text(comment.quote)}</blockquote>` : "") +
@@ -3222,7 +3226,7 @@ class PageComments {
         ? ""
         : `<span class="spell-comment-saved" hidden><ui-icon name="floppy disk outline"></ui-icon></span>`) +
       deleteButton(comment ? commentState(comment) : "saved", !open.id) +
-      `<button type="button" class="spell-comment-close" title="${open.view ? "Close" : CLOSE_TIP}" ` +
+      `<button type="button" class="spell-comment-tool spell-comment-close" title="${open.view ? "Close" : CLOSE_TIP}" ` +
       `aria-label="Close the comment box"><ui-icon name="xmark"></ui-icon></button></div>` +
       (open.view
         ? `<div class="spell-comment-view">${comment ? viewHTML(comment) : ""}</div>`
@@ -3409,7 +3413,10 @@ function commentState(comment) {
   return comment.status === "taken" ? "taken" : "saved"
 }
 
-/** What a comment's band says of its state:  "Saved 14:02 · waiting for Claude", "Taken by Claude · P3" ... */
+/**
+ * What a comment says of its state, in the pane (and, once Claude has it, on its card):
+ * "Saved 14:02 · waiting for Claude", "Taken by Claude · P3" ...
+ */
 function stateLabel(comment, state) {
   if (state === "saved") return `Saved ${text(localStamp(comment.at).slice(11))} · waiting for Claude`
   const taken = comment.taken
@@ -3467,15 +3474,15 @@ const DELETE_TIPS = {
 }
 
 /**
- * A comment's trash (Owen, 2026-10-10:  "allow me to delete bullhorn comments"):  on its card's band, and in the
- * pane's header;  icon only.  `state`:  the comment's (`commentState()`);  `hidden`:  not saved yet (a new
- * comment's pane).
+ * A comment's trash (Owen, 2026-10-10:  "allow me to delete bullhorn comments"):  on its card's header, and in the
+ * pane's;  icon only, plain as the pane's × (Owen, 2026-10-10:  "no round border like everything else").
+ * `state`:  the comment's (`commentState()`);  `hidden`:  not saved yet (a new comment's pane).
  */
 function deleteButton(state, hidden = false) {
   const tip = DELETE_TIPS[state === "saved" ? "saved" : "had"]
   return (
-    `<ui-button class="spell-comment-delete" circular basic size="mini" icon="trash can" title="${attr(tip)}" ` +
-    `aria-label="Delete this comment"${hidden ? " hidden" : ""}></ui-button>`
+    `<button type="button" class="spell-comment-tool spell-comment-delete" title="${attr(tip)}" ` +
+    `aria-label="Delete this comment"${hidden ? " hidden" : ""}><ui-icon name="trash can"></ui-icon></button>`
   )
 }
 
