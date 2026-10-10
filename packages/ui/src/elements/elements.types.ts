@@ -821,7 +821,7 @@ export const ERROR_EVENT = "ui-error"
 
 /**
  * Custom state of a failed element (`:state(errored)`),
- * set by the error net (`UIComponent.onError()`) and by the fallback.
+ * set by the error boundary (`UIComponent.onError()`) and by the fallback.
  */
 export const ERRORED_STATE = "errored"
 

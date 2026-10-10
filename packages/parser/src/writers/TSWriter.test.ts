@@ -133,7 +133,7 @@ describe("TSWriter", () => {
     expect(P.JSWriter.instance.write(name)).toBe("spellCore.getItemAt(deck)?.name")
   })
 
-  test("TypeScript's names:  methods, functions and variables;  a getter where it's read, not a property", () => {
+  test("TypeScript's names:  every member camelCase, stored properties too;  functions and variables", () => {
     const isASuit = new P.ASTScopedMethodInvocation(match, {
       thing: new P.ASTVariableExpression(match, { name: "the_card" }),
       methodName: "is_a_$suit"
@@ -152,8 +152,11 @@ describe("TSWriter", () => {
       new P.ASTPropertyExpression(match, { object: new P.ASTSelfLiteral(match), property: name })
     const project = writer.forProject([[new P.ASTClassDeclaration(match, { type: card, members: [getter, property] })]])
     expect(project.write(read("short_suit"))).toBe("this.shortSuit")
-    expect(project.write(read("is_set_up"))).toBe("this.is_set_up")
+    expect(project.write(read("is_set_up"))).toBe("this.isSetUp")
     expect(project.writeAsMember(getter)).toMatch(/^get shortSuit\(\) \{/)
+    expect(project.writeAsMember(property)).toMatch(/accessor isSetUp!/)
+    // with no project to say which it is, the same:  one rule for every member
+    expect(writer.write(read("is_set_up"))).toBe("this.isSetUp")
   })
 
   test("tidy:  template text, no extra parentheses, no braces around one statement", () => {

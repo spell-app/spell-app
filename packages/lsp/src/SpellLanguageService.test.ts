@@ -245,7 +245,7 @@ describe("SpellLanguageService", () => {
       const markdown = (service.hover(card, at(card, 70, "turn"))!.contents as { value: string }).value
       expect(markdown).toContain("method **turn (a card) face down**")
       expect(markdown).toContain("compiles to `turnFaceDown()`")
-      expect(markdown).toContain("```js\nif (this.direction == 'up') { this.turnFaceDown() }\n```")
+      expect(markdown).toContain('```js\nif (this.direction == "up") this.turnFaceDown()\n```')
     })
 
     test("a declaration's docstring, just under its name", () => {

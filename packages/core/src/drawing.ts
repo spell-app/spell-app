@@ -6,14 +6,14 @@
  *   - Every value that can change is written as a function.
  *     Solid calls it, and again when what it read changes, updating only that node:  nothing redraws a whole board.
  *   - Since epic `output-targets` P20.
- *     Before it, compiled spell called `spellCore.element()`, now in `deprecated.ts`.
- * - Each drawn thing sits in its own error net (`drawInNet()`):
+ *     Before it, compiled spell called `spellCore.element()`:  gone since P22, with every example recompiled.
+ * - Each drawn thing sits in its own error boundary (`drawInBoundary()`, on Solid's `<Errored>`):
  *   when its `draw()` throws, it shows a small stand-in, and the rest keeps drawing.
- *   ONE net, for both targets:
- *   - compiled JavaScript draws a thing with `spellCore.drawThing(card)`, which puts its `draw()` in the net
+ *   ONE boundary, for both targets:
+ *   - compiled JavaScript draws a thing with `spellCore.drawThing(card)`, which puts its `draw()` in the boundary
  *   - compiled TypeScript (and hand-written code) writes `@drawn draw() { ... }`, which puts it there itself,
  *     so a parent draws a child with a plain call, `{card.draw()}`
- *   - `h()` returns a THUNK, a function that makes the element:  the net makes it, once (`madeOnce()`)
+ *   - `h()` returns a THUNK, a function that makes the element:  the boundary makes it, once (`madeOnce()`)
  * - Solid comes from the PAGE, never a copy of its own:
  *   `spell-runtime.js` imports `solid-js`, `@solidjs/web` and `@solidjs/h` from the page's one shared Solid,
  *   `spell-solid.js`.
@@ -30,7 +30,7 @@ import { defineSpellCoreModule } from "./spellCore.types"
 
 /**
  * Solid's own `h()`, what compiled JavaScript draws with:  `import { h } from "@spell/core"`.
- * - The SAME copy core draws with, so the net knows its thunks (`isElementThunk()`).
+ * - The SAME copy core draws with, so the boundary knows its thunks (`isElementThunk()`).
  * - Epic `output-targets` P20, Q57.
  */
 export { h }
@@ -51,26 +51,26 @@ export const drawingMethods = defineSpellCoreModule({
   ////////////////
 
   /**
-   * `drawable`'s drawing, in its own error net -- `null` if it can't draw (no `draw()`).
+   * `drawable`'s drawing, in its own error boundary -- `null` if it can't draw (no `draw()`).
    * - Compiles from `draw the card` -- see `rules/draw/DrawThing.ts`.
    *   Takes ANYTHING, as it checks:
    *   compiled spell draws what TypeScript can't type, e.g. the last card of a pile.
    * - Its `draw()` re-runs when something it read OUTSIDE its live values changes,
    *   e.g. the `is face down` an `if` chose by:  the card's node is drawn again, nothing else.
    *   Its live values update on their own.
-   * - The error net is `drawInNet()`'s.
+   * - The error boundary is `drawInBoundary()`'s.
    *   A thing whose `draw()` is `@drawn` brings its own:  it's called straight.
    */
   drawThing(drawable?: unknown): Drawing | null {
     const thing = drawable as Partial<Drawable> | undefined
     if (typeof thing?.draw !== "function") return null
-    // a second net around `@drawn`'s own would catch nothing more
+    // a second boundary around `@drawn`'s own would catch nothing more
     if (isDrawn(thing.draw)) return thing.draw()
-    return drawInNet(thing, () => (thing as Drawable).draw())
+    return drawInBoundary(thing, () => (thing as Drawable).draw())
   },
 
   /**
-   * Each item of `list`, drawn in its own error net -- `null` if `list` has no items to draw.
+   * Each item of `list`, drawn in its own error boundary -- `null` if `list` has no items to draw.
    * - Compiles from `draw each card in the deck` / `draw cards of the deck` -- see `rules/draw/DrawItems.ts`.
    * - Kept by IDENTITY (`<For>`):  an item added, removed or moved changes only its own node.
    */
@@ -117,16 +117,16 @@ Object.assign(spellCore, drawingMethods)
 ////////////////
 
 /**
- * `@drawn draw() { ... }`:  the drawing in its own error net, the same net `spellCore.drawThing()` gives.
+ * `@drawn draw() { ... }`:  the drawing in its own error boundary, the same boundary `spellCore.drawThing()` gives.
  * - So a parent draws a child with a plain call, `{card.draw()}`:
  *   it neither re-runs when the card's reads change, nor dies with the card's errors.
- *   The card's drawing re-runs by itself, inside its net.
+ *   The card's drawing re-runs by itself, inside its boundary.
  * - What compiled TypeScript (`ts/solid`) and hand-written classes write.
  *   - Compiled JavaScript has no decorators:
- *     it draws a thing with `spellCore.drawThing(card)`, which puts a `draw()` in the same net.
- *   - ONE net, `drawInNet()`, for both targets.
+ *     it draws a thing with `spellCore.drawThing(card)`, which puts a `draw()` in the same boundary.
+ *   - ONE boundary, `drawInBoundary()`, for both targets.
  * - SIDE EFFECT:  marks the method it returns (`isDrawn()`), so `drawThing()` calls it straight:
- *   no second net around it.
+ *   no second boundary around it.
  * - A standard (TC39) method decorator, `@spell/core`'s like `@prop`.
  *   NOTE: lowered by esbuild (`vite.decorators.ts`), so it MUST start its line.
  */
@@ -134,27 +134,27 @@ export function drawn<This extends object, Draw extends (this: This) => Drawing>
   draw: Draw,
   _context: ClassMethodDecoratorContext<This, Draw>
 ): Draw {
-  const drawInItsNet = function (this: This): Drawing {
-    return drawInNet(this, () => draw.call(this))
+  const drawInItsBoundary = function (this: This): Drawing {
+    return drawInBoundary(this, () => draw.call(this))
   }
-  Object.defineProperty(drawInItsNet, DRAWN, { value: true })
-  return drawInItsNet as Draw
+  Object.defineProperty(drawInItsBoundary, DRAWN, { value: true })
+  return drawInItsBoundary as Draw
 }
 
 /**
- * `draw()`'s drawing, for `thing`, in its own error net:
- * `drawThing()`'s and `@drawn`'s, the ONE net both targets draw in.
+ * `draw()`'s drawing, for `thing`, in its own error boundary:
+ * `drawThing()`'s and `@drawn`'s, the ONE boundary both targets draw in.
  * - Through `createComponent()`, as Solid's JSX does:  untracked, so what `draw()` reads is its own, not the caller's.
- * - `draw()` runs in a memo, inside the net:
- *   again only for what IT read, never because the net re-reads its children
+ * - `draw()` runs in a memo, inside the boundary:
+ *   again only for what IT read, never because the boundary re-reads its children
  *   (it does, whenever anything under it changes:  a list grows, a card flips).
  * - When `draw()` (or a live value in it) throws:
  *   - one line on the program's console
  *   - a cancelable `ui-error` from the app's element (`{ error, thing }`)
  *   - a small stand-in, unless that event was cancelled
- *   - The rest of the drawing keeps working;  the net heals when the thing draws again.
+ *   - The rest of the drawing keeps working;  the boundary heals when the thing draws again.
  */
-function drawInNet(thing: object, draw: () => Drawing): Drawing {
+function drawInBoundary(thing: object, draw: () => Drawing): Drawing {
   return createComponent(Errored, {
     fallback: (error: () => unknown) => drawingFailed(thing, error()),
     get children() {
@@ -163,7 +163,7 @@ function drawInNet(thing: object, draw: () => Drawing): Drawing {
   })
 }
 
-/** Is `draw` a method `@drawn` made, which draws in its own net? */
+/** Is `draw` a method `@drawn` made, which draws in its own boundary? */
 function isDrawn(draw: Function): boolean {
   return (draw as { [DRAWN]?: boolean })[DRAWN] === true
 }
@@ -187,7 +187,7 @@ const ERROR_EVENT = "ui-error"
 const DRAWN = Symbol("drawn")
 
 /**
- * `draw()`, or `thing`'s stand-in if that throws -- `drawInNet()`'s, for a `draw()` that fails.
+ * `draw()`, or `thing`'s stand-in if that throws -- `drawInBoundary()`'s, for a `draw()` that fails.
  * - Caught HERE, not by `<Errored>`:
  *   - `<Errored>` makes its fallback again each time the drawing around it changes
  *     (measured, rc.13:  a card added to a pile made a new stand-in for the pile's broken card)
@@ -205,10 +205,10 @@ function drawOrStandIn(thing: object, draw: () => Drawing): Drawing | null {
 
 /**
  * `drawing` MADE, if it's `h()`'s thunk (a function that makes the element) -- else `drawing` as it is.
- * - Compiled JavaScript's `draw()` returns `h("div", ...)`, a thunk.  Made here, inside the net's memo:
- *   - ONCE:  left a thunk, Solid would make the element again each time the net re-reads its children, which it
+ * - Compiled JavaScript's `draw()` returns `h("div", ...)`, a thunk.  Made here, inside the boundary's memo:
+ *   - ONCE:  left a thunk, Solid would make the element again each time the boundary re-reads its children, which it
  *     does whenever anything under it changes (a card added to a pile)
- *   - inside the net's `try`:  a tag or child that throws while it's made shows the stand-in
+ *   - inside the boundary's `try`:  a tag or child that throws while it's made shows the stand-in
  *   - elements INSIDE it need nothing:  `h()` makes them as it makes their parent
  * - ONLY `h()`'s thunks:  any other function is a live value, which Solid calls itself, again when it changes.
  *   `h()` marks its thunks with a symbol it keeps to itself, so it's read off a thunk of our own, `H_THUNK`.

@@ -30,13 +30,7 @@ classes.addRule(OutlineSpecifierEnum, {
   syntax: "(either|one of) {enumeration:identifier_list}",
   tests: [
     {
-      tests: [
-        [
-          "one of clubs, diamonds, hearts, spades",
-          "['clubs', 'diamonds', 'hearts', 'spades']",
-          '["clubs", "diamonds", "hearts", "spades"]'
-        ]
-      ]
+      tests: [["one of clubs, diamonds, hearts, spades", '["clubs", "diamonds", "hearts", "spades"]']]
     }
   ]
 })
@@ -45,7 +39,7 @@ classes.addRule(OutlineSpecifierEnum, {
   tests: [
     {
       tests: [
-        ["up or down", "['up', 'down']", '["up", "down"]'],
+        ["up or down", '["up", "down"]'],
         ["up", undefined],
         ["up, down", undefined]
       ]

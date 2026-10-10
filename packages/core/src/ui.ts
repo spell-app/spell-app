@@ -7,7 +7,7 @@ import { defineSpellCoreModule } from "./spellCore.types"
  * - talking to the person running the program:  `notify`, `alert`, `confirm`, `prompt` (spell's `rules/UI/`), on
  *   Spell UI's toasts and dialogs
  * - stylesheet installation (`installStyles`)
- * - Drawing (`element()`, `drawThing()` ...) is `drawing.ts`.
+ * - Drawing (`h()`, `drawThing()` ...) is `drawing.ts`.
  */
 export const uiMethods = defineSpellCoreModule({
   ////////////////

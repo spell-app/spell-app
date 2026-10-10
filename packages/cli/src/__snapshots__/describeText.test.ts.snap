@@ -24,10 +24,10 @@ Spell
   the color of a card is red if its suit is either diamonds or hearts otherwise it is black
 
 Compiled
-  Object.defineProperty(Card.prototype, 'color', {
+  Object.defineProperty(Card.prototype, "color", {
     get() {
-      if (spellCore.includes(['diamonds', 'hearts'], this.suit)) { return 'red' }
-      return 'black'
+      if (spellCore.includes(["diamonds", "hearts"], this.suit)) return "red"
+      return "black"
     },
     configurable: true
   })"

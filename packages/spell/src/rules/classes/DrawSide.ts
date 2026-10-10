@@ -51,7 +51,7 @@ export class DrawSide extends SpellStatement<"alias|body?", { side?: string; dra
     const side = match.data.side!
     const other = side === "front" ? "back" : side === "back" ? "front" : undefined
     if (other && type.variables.get(other, "LOCAL_ONLY")) match.data.drawsBoth = true
-    type.declareProperty(side, match, { isGetter: true })
+    type.declareProperty(side, match)
   }
 
   /** The body's scope:  `it` / `its` are the thing, as in a getter. */

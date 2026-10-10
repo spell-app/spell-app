@@ -154,6 +154,18 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     })
   }
 
+  /**
+   * File for this project's words, beside `outputFile`, e.g. `Solitaire.en.js`:  spell's wording of each member of
+   * its types, by the name its compiled code uses -- see `SP.SpellWords`.  For a runner's Thing Explorer.
+   */
+  /*@memoize*/
+  get wordsFile(): SP.SpellJSFile {
+    return this.derived("wordsFile", () => {
+      const location = this.getFileLocation(`${this.projectName}${SP.WORDS_JS_SUFFIX}`)!
+      return new SP.SpellJSFile(location.path)
+    })
+  }
+
   /** Reset our compiled state. */
   resetCompiled(): void {
     this.resetState("scope", "compiled")
@@ -363,6 +375,11 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                 if (target.name !== SP.RUNNING_TARGET) continue
                 this.setState("compiled", code)
                 this.declarationsFile.contents = JSON.stringify(declarations, null, 2)
+                // spell's wording of each member, by the names this code uses -- see `SP.SpellWords`
+                this.wordsFile.contents = SP.SpellWords.script(
+                  SP.SpellWords.of(declarations),
+                  this.projectName ?? this.projectId
+                )
               }
               return this.compiled
             }
@@ -370,9 +387,11 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
           new Task({
             name: "Saving compiled output",
             run: async () => {
-              // our declarations go beside our code, so another project can import us WITHOUT our sources
+              // our declarations go beside our code, so another project can import us WITHOUT our sources;
+              // our words too, for a runner's Thing Explorer
               if (!this.saveCompiled) return this.outputFile.contents
               await this.declarationsFile.save(undefined)
+              await this.wordsFile.save(undefined)
               for (const target of this.targets.slice(1)) await this.outputFileFor(target).save(undefined)
               return await this.outputFile.save(undefined)
             }

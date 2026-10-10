@@ -110,14 +110,7 @@ JSX.addRule(SpellJSX, {
         ],
         [
           ["<ui-button ", "\thidden={1} ", "\tonPress={print 2}", "\t/>"],
-          [
-            'h("ui-button", {',
-            "  hidden: 1,",
-            "  onPress: (event) => {",
-            "    return spellCore.console.log(2)",
-            "  }",
-            "})"
-          ],
+          'h("ui-button", { hidden: 1, onPress: () => spellCore.console.log(2) })',
           "<ui-button hidden={1} onPress={() => spellCore.console.log(2)} />"
         ],
         [
@@ -128,10 +121,8 @@ JSX.addRule(SpellJSX, {
             '  text: "text",',
             "  number: 1,",
             "  boolean: true,",
-            "  expression: () => (1 + 1),",
-            "  onClick: (event) => {",
-            "    return spellCore.console.log(event.target.value)",
-            "  }",
+            "  expression: () => 1 + 1,",
+            "  onClick: (event) => spellCore.console.log(event.target.value)",
             "})"
           ],
           '<input attronly={true} text="text" number={1} boolean={true} expression={1 + 1} onClick={(event) => spellCore.console.log(event.target.value)} />'
@@ -148,7 +139,7 @@ JSX.addRule(SpellJSX, {
         [`<div foo/>`, 'h("div", { foo: true })', "<div foo={true} />"],
         [
           `<div rank={the rank of the card} value={1 + 2 + 3}/>`,
-          'h("div", { rank: () => card.rank, value: () => ((1 + 2) + 3) })',
+          'h("div", { rank: () => card.rank, value: () => 1 + 2 + 3 })',
           "<div rank={card.rank} value={1 + 2 + 3} />"
         ],
         [
@@ -164,7 +155,7 @@ JSX.addRule(SpellJSX, {
         // DO parse a statement as an attribute expression
         [
           `<div on-click={print 1024}/>`,
-          ['h("div", {', '  "on-click": (event) => {', "    return spellCore.console.log(1024)", "  }", "})"],
+          'h("div", { "on-click": () => spellCore.console.log(1024) })',
           "<div on-click={() => spellCore.console.log(1024)} />"
         ],
         // don't match attribute expressions that don't eat the entire text
@@ -177,7 +168,7 @@ JSX.addRule(SpellJSX, {
         // NOTE: this was once a comma expression `(a, b)`, not a `[a, b]` tuple,
         // which JS silently evaluated to a single-element array (the comma operator discards `a`).
         // `RuleTest`'s tuple typing caught it;  fixed to the evidently-intended 2-tuple.
-        ["<div foo={\n1 + \n\t2\n\t}/>", 'h("div", { foo: () => (1 + 2) })', "<div foo={1 + 2} />"]
+        ["<div foo={\n1 + \n\t2\n\t}/>", 'h("div", { foo: () => 1 + 2 })', "<div foo={1 + 2} />"]
       ]
     },
     {
@@ -220,9 +211,9 @@ JSX.addRule(SpellJSX, {
           ["<div foo={<a>", "  <b>", "    <c>{1}</c>", "  </b>", "</a>} />"]
         ],
         // compound expression
-        [`<div>{1 + 2 + 3}</div>`, 'h("div", () => ((1 + 2) + 3))', "<div>{1 + 2 + 3}</div>"],
+        [`<div>{1 + 2 + 3}</div>`, 'h("div", () => 1 + 2 + 3)', "<div>{1 + 2 + 3}</div>"],
         // multi-line expression is fine
-        ["<div>{\n\t1 + \n2 + 3\t\n}</div>", 'h("div", () => ((1 + 2) + 3))', "<div>{1 + 2 + 3}</div>"],
+        ["<div>{\n\t1 + \n2 + 3\t\n}</div>", 'h("div", () => 1 + 2 + 3)', "<div>{1 + 2 + 3}</div>"],
         //
         [`<div>{the rank of the card}</div>`, 'h("div", () => card.rank)', "<div>{card.rank}</div>"],
         // fail if we don't eat entire expression

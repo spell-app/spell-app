@@ -4,7 +4,6 @@ import { P } from "$/parser"
  * ### `WriterProject`
  * What a javascript writer (`P.JSWriter`, `P.TSWriter`) must know about a whole project
  * BEFORE it writes any of it:
- * - how to name a member it reads
  * - what each value is
  * - which variables are set again
  * - which members move into their classes
@@ -13,24 +12,13 @@ import { P } from "$/parser"
  *
  * - Made once per compile, from every file's statements:
  *   `WriterProject.of(files)`, through `JSWriter.forProject()`.
- * - Both writers read what it knows of names and values;
- *   what moves, and the typed constants, are TypeScript's alone.
+ * - Both writers read what it knows of values, and move members into their classes;
+ *   the typed constants are TypeScript's alone.
  * - Plain facts, worked out from the tree alone:  no scope lookups, nothing written.
  * - An empty one (`new WriterProject()`) knows nothing, e.g. for `JSWriter.instance` writing one node.
- *   Then no getter is renamed where it's read, every new variable is `let`, and nothing moves.
+ *   Then every new variable is `const`, and nothing moves.
  ****************/
 export class WriterProject {
-  /**
-   * Getters the project declares, by spell's name, e.g. `is_face_up`.
-   * - A read of one is written by its member name, `isFaceUp`:  see `JSWriter.memberName()`.
-   * - Also the methods of the types it imports, e.g. `is_face_up` from `card "is face up" if ...`:
-   *   one read as a property is a getter there.
-   * - Also their getters declared as properties (`the short name of a card is ...`):
-   *   their declarations say `"getter": true` (`P.ScopeVariable.isGetter`).
-   * - NOT a name some class also has as a property (`ASTReactiveProperty`):
-   *   a property is named as a property, and a read can't tell which of the two it is.
-   */
-  readonly getters = new Set<string>()
   /** Variables set AFTER they're declared, by spell's name, e.g. `state`:  `let`;  any other new variable is `const`. */
   readonly reassigned = new Set<string>()
   /**
@@ -69,6 +57,12 @@ export class WriterProject {
    */
   readonly lists = new Map<string, TSList>()
   /**
+   * Each value kind's class, by name, and the hoisted list its values come from, e.g. `Suit` => `Deck.Suits`'s.
+   * - A value kind (`"suits" as one of ...` in a deck's body) is a class with the name its values' type would have:
+   *   so that type is `(typeof SUITS)[number]` -- see `TSWriter.valueKindType()`.
+   */
+  readonly valueKinds = new Map<string, TSList>()
+  /**
    * Members a class gets for TypeScript only, by the class's name (Q25):
    * ones its program uses on it, or on a class below it, but never declares there.  See `TSUndeclared`.
    * - A value given when one is made, `a new foundation with symbol = "♣️"`:
@@ -94,8 +88,7 @@ export class WriterProject {
    * What `files`' statements say, and the import layer above `scope`, if any -- see the class docs.
    * - And what `scope`'s project says of its types, from their records.
    *   - For ONE file written alone (the editor's view of a file, `JSWriter.writeMatch()`):
-   *     a type another of its files declares is known as an imported one is,
-   *     and its getters are read by their member names.
+   *     a type another of its files declares is known as an imported one is.
    */
   static of(files: P.ASTNode[][], scope?: P.Scope): WriterProject {
     const project = new WriterProject()
@@ -105,13 +98,10 @@ export class WriterProject {
       else if (layer instanceof P.ProjectScope || layer instanceof P.FileScope) projectLayers.push(layer)
     }
     const classes = new Map<string, P.ASTClassDeclaration>()
-    const properties = new Set<string>()
     for (const statements of files) {
       for (const statement of statements) {
         forEachNode(statement, (node) => {
           if (node instanceof P.ASTClassDeclaration) classes.set(node.type.name, node)
-          else if (node instanceof P.ASTReactiveProperty) properties.add(node.property.value)
-          else if (node instanceof P.ASTPropertyDefinition && node.get) project.getters.add(node.property.value)
           else if (node instanceof P.ASTAssignmentStatement && !node.isNewVariable) {
             if (node.thing instanceof P.ASTVariableExpression) project.reassigned.add(node.thing.name)
           } else if (node instanceof P.ASTDestructuredAssignment && !node.isNewVariable) {
@@ -121,7 +111,6 @@ export class WriterProject {
       }
     }
     for (const layer of projectLayers) project.noteTypes(layer, classes)
-    for (const name of properties) project.getters.delete(name)
     for (const statements of files) project.moveMembers(statements, classes)
     for (const declaration of classes.values()) project.noteClass(declaration, classes)
     project.noteGivenValues(files, { methods: [] })
@@ -211,22 +200,14 @@ export class WriterProject {
 
   /**
    * SIDE EFFECT:  notes what the types `layer` declares say they have.
-   * - Their getters, in `getters`:  their methods (one read as a property is a getter),
-   *   and their derived properties (`P.ScopeVariable.isGetter`).
    * - Each type NOT in `written` (the classes the files declare), and not noted already, is noted as imported:
    *   its members in `importedMembers`, its super-type in `superTypes`.
    */
   private noteTypes(layer: P.Scope, written = new Map<string, P.ASTClassDeclaration>()) {
     for (const type of layer.types?.get() ?? []) {
       const members = new Set<string>()
-      for (const method of type.methods?.get() ?? []) {
-        this.getters.add(method.name)
-        members.add(method.name)
-      }
-      for (const variable of type.variables?.get() ?? []) {
-        members.add(variable.name)
-        if (variable.isGetter) this.getters.add(variable.name)
-      }
+      for (const method of type.methods?.get() ?? []) members.add(method.name)
+      for (const variable of type.variables?.get() ?? []) members.add(variable.name)
       if (written.has(type.name) || this.importedMembers.has(type.name)) continue
       this.importedMembers.set(type.name, members)
       if (type.superType) this.superTypes.set(type.name, type.superType)
@@ -400,7 +381,9 @@ export class WriterProject {
     let constant = constantCaseOf(definition.name)
     if (taken.has(constant)) constant = `${constantCaseOf(owner)}_${constant}`
     const type = typeCaseOf(property.property.value)
-    this.lists.set(key, { definition, constant, type: taken.has(type) ? undefined : type })
+    const hoisted = { definition, constant, type: taken.has(type) ? undefined : type }
+    this.lists.set(key, hoisted)
+    if (classes.has(type)) this.valueKinds.set(type, hoisted)
   }
 }
 
@@ -513,7 +496,7 @@ export function typeCaseOf(name: string): string {
 }
 
 /**
- * Spell's `name` in camelCase, as javascript and TypeScript write a member's name (`JSWriter.nameOf()`):
+ * Spell's `name` in camelCase, as javascript and TypeScript write every name (`JSWriter.nameOf()`):
  * `is_a_$suit` => `isASuit`, `turn_face_up` => `turnFaceUp`, `it_2` => `it2`.
  * - `$` marks where a value goes in a spell name:  dropped, as `_` is.
  * - A name with neither is as is, e.g. `play`, `Card`.

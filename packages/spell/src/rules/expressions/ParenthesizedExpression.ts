@@ -38,9 +38,9 @@ expressions.addRule(ParenthesizedExpression, {
       title: "correctly matches multiple parenthesis",
       compileAs: "expression",
       tests: [
-        ["(1) and (yes)", "((1) && (true))", "(1 && true)"],
-        ["((1) and (yes))", "((1) && (true))", "(1 && true)"],
-        ["((1) and ((yes)))", "((1) && (true))", "(1 && true)"]
+        ["(1) and (yes)", "(1 && true)"],
+        ["((1) and (yes))", "(1 && true)"],
+        ["((1) and ((yes)))", "(1 && true)"]
       ]
     },
     {

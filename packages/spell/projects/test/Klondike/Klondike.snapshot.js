@@ -10,17 +10,15 @@ spellCore.heading("Klondike Solitaire Card Game")
 spellCore.heading("Game bits")
 /** Game bits */
 export class Game extends App {
-  static { this.declareProp('score', { type: 'number' }) }
-  get score() { return this.getProp('score') }
-  set score(value) { this.setProp('score', value) }
+  static { this.declareProp("score", { type: "number" }) }
+  get score() { return this.getProp("score") }
+  set score(value) { this.setProp("score", value) }
 
   //## actions
 
   get state() {
-    let state = []
-    allPiles.forEach((pile) => {
-      spellCore.append(state, pile.state)
-    })
+    const state = []
+    allPiles.forEach((pile) => spellCore.append(state, pile.state))
     return state
   }
 
@@ -32,38 +30,10 @@ export class Game extends App {
             h("tr",
               h("th", { class: "left aligned", colspan: "2" }, "Klondike Solitaire"),
               h("th", { class: "right aligned" }, () => `Score: ${this.score}`),
-              h("th",
-                h("div", {
-                  class: "tiny fluid ui button compact",
-                  onClick: (event) => {
-                    return autoPlay()
-                  }
-                }, "AutoPlay")
-              ),
-              h("th",
-                h("div", {
-                  class: "tiny fluid ui button compact",
-                  onClick: (event) => {
-                    return cheat()
-                  }
-                }, "Cheat")
-              ),
-              h("th",
-                h("div", {
-                  class: "tiny fluid ui button compact",
-                  onClick: (event) => {
-                    return debugTheGame()
-                  }
-                }, "Debug")
-              ),
-              h("th",
-                h("div", {
-                  class: "tiny fluid ui button compact",
-                  onClick: (event) => {
-                    return resetTheGame()
-                  }
-                }, "Restart")
-              )
+              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => autoPlay() }, "AutoPlay")),
+              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => cheat() }, "Cheat")),
+              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => debugTheGame() }, "Debug")),
+              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => resetTheGame() }, "Restart"))
             )
           ),
           h("tbody",
@@ -89,50 +59,44 @@ export class Game extends App {
         )
       )
     )
-    
   }
 }
-export let game = new Game()
+export const game = new Game()
 spellCore.console.log(game)
 
 spellCore.heading("set up all piles")
 /** set up all piles */
-export let allPiles = new List({ instanceType: "Pile" })
-export let foundations = new List({ instanceType: "Pile" })
-export let tableaus = new List({ instanceType: "Pile" })
+export const allPiles = new List({ instanceType: "Pile" })
+export const foundations = new List({ instanceType: "Pile" })
+export const tableaus = new List({ instanceType: "Pile" })
 
 /** set up stock pile: unplayed cards */
 export class Stock_Pile extends Pile {
   canGiveUp(card) {
-    return (card === this.lastItem)
+    return card === this.lastItem
   }
 
   draw() {
     return h("div", { class: "Pile Stock stacked" },
-      h("div", {
-        class: "Placeholder ui button basic compact fluid",
-        onClick: (event) => {
-          return playFromTheStockPile()
-        }
-      }),
+      h("div", { class: "Placeholder ui button basic compact fluid", onClick: () => playFromTheStockPile() }),
       () => spellCore.drawThing(this.lastItem)
     )
   }
 }
-export let stock = new Stock_Pile({ name: "stock", droppable: false })
+export const stock = new Stock_Pile({ name: "stock", droppable: false })
 allPiles.append(stock)
 
 /** set up discards: where played cards go when turning over stock */
 export class Discard_Pile extends Pile {
   canGiveUp(card) {
-    return (card === this.lastItem)
+    return card === this.lastItem
   }
 
   draw() {
     return h("div", { class: "Pile Discards stacked" }, () => spellCore.drawThing(this.lastItem))
   }
 }
-export let discards = new Discard_Pile({ name: "discards", droppable: false })
+export const discards = new Discard_Pile({ name: "discards", droppable: false })
 allPiles.append(discards)
 
 /** set up foundation piles: where we build up from ace => king */
@@ -143,8 +107,8 @@ export class Foundation extends Pile {
 
   /** one card at a time:  the last of its pile */
   canTake(card) {
-    if (card !== card.pile.lastItem) { return false }
-    return ((this.name == card.suit) && ((this.value + 1) === card.value))
+    if (card !== card.pile.lastItem) return false
+    return this.name == card.suit && this.value + 1 === card.value
   }
 
   //##############
@@ -153,7 +117,7 @@ export class Foundation extends Pile {
   // note: tableaus just draw as a (vertical) list of cards
 
   draw() {
-    let color = (((this.name === 'diamonds') || (this.name === 'hearts')) ? "red" : "black")
+    const color = this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
     return h("div", { class: "Pile Foundation stacked" },
       h("div", { class: () => `Placeholder ui button basic compact fluid ${color} ${this.name}` },
         h("div", { class: () => `suit ${this.name}` }, () => this.symbol)
@@ -162,33 +126,31 @@ export class Foundation extends Pile {
     )
   }
 }
-let it = new Foundation({
-  name: 'clubs',
+const it = new Foundation({
+  name: "clubs",
   symbol: "♣️",
   droppable: true
 })
 foundations.append(it)
-let it2 = new Foundation({
-  name: 'diamonds',
+const it2 = new Foundation({
+  name: "diamonds",
   symbol: "♦️",
   droppable: true
 })
 foundations.append(it2)
-let it3 = new Foundation({
-  name: 'hearts',
+const it3 = new Foundation({
+  name: "hearts",
   symbol: "♥️",
   droppable: true
 })
 foundations.append(it3)
-let it4 = new Foundation({
-  name: 'spades',
+const it4 = new Foundation({
+  name: "spades",
   symbol: "♠️",
   droppable: true
 })
 foundations.append(it4)
-foundations.forEach((pile) => {
-  allPiles.append(pile)
-})
+foundations.forEach((pile) => allPiles.append(pile))
 
 /** set up tableau piles: vertical piles where we arrange from king to ace */
 export class Tableau extends Pile {
@@ -197,8 +159,8 @@ export class Tableau extends Pile {
   }
 
   canTake(card) {
-    if (this.isEmpty) { return card.isARank('king') }
-    return ((this.color != card.color) && (this.value === (card.value + 1)))
+    if (this.isEmpty) return card.isARank("king")
+    return this.color != card.color && this.value === card.value + 1
   }
 
   draw() {
@@ -206,28 +168,24 @@ export class Tableau extends Pile {
   }
 }
 spellCore.getRange(1, 7).forEach((number) => {
-  let it5 = new Tableau({ name: `T${number}`, droppable: true })
+  const it5 = new Tableau({ name: `T${number}`, droppable: true })
   tableaus.append(it5)
   allPiles.append(it5)
 })
 
 /** set up deck of cards */
-export let deck = new Deck()
+export const deck = new Deck()
 deck.setUp()
 // start with cards in the stock pile
-deck.forEach((card) => {
-  stock.append(card)
-})
+deck.forEach((card) => stock.append(card))
 
 spellCore.heading("actions")
 export function debugTheGame() {
-  spellCore.map(game.state, (line) => {
-    spellCore.console.log(line)
-  })
+  spellCore.map(game.state, (line) => spellCore.console.log(line))
 }
 
 export function resetTheStockPile() {
-  let cards = discards.clone()
+  const cards = discards.clone()
   cards.reverse()
   cards.forEach((card) => {
     stock.append(card)
@@ -236,133 +194,125 @@ export function resetTheStockPile() {
 }
 
 export async function playFromTheStockPile() {
-  if (spellCore.processIsRunning('play_from_the_stock_pile')) { return }
-  spellCore.startProcess('play_from_the_stock_pile', 'EXCLUSIVE')
+  if (spellCore.processIsRunning("play_from_the_stock_pile")) return
+  spellCore.startProcess("play_from_the_stock_pile", "EXCLUSIVE")
   try {
-    if (stock.isEmpty) { await resetTheStockPile() }
-    
-    let it5 = stock.lastItem
+    if (stock.isEmpty) await resetTheStockPile()
+
+    const it5 = stock.lastItem
     it5?.turnFaceUp()
     // pause for 150 msec
     spellCore.move(it5, discards)
   }
   finally {
-    spellCore.stopProcess('play_from_the_stock_pile')
+    spellCore.stopProcess("play_from_the_stock_pile")
   }
 }
 
 export async function dealTheCards() {
-  if (spellCore.processIsRunning('deal_the_cards')) { return }
-  spellCore.startProcess('deal_the_cards', 'EXCLUSIVE')
+  if (spellCore.processIsRunning("deal_the_cards")) return
+  spellCore.startProcess("deal_the_cards", "EXCLUSIVE")
   try {
     /** pull all cards into stock with a nice animation */
-    let cards = allPiles.merged(Pile)
+    const cards = allPiles.merged(Pile)
     cards.reverse()
     for (const card of cards) {
-      let startPile = card.pile
+      const startPile = card.pile
       card.turnFaceDown()
       if (startPile !== stock) {
         stock.append(card)
-        await spellCore.pauseFor(50, 'msec')
+        await spellCore.pauseFor(50, "msec")
       }
     }
     stock.randomize()
-    
+
     // deal cards into tableaus
     for (const row of spellCore.getRange(1, 7)) {
       stock.lastItem?.turnFaceUp()
       for (const column of spellCore.getRange(row, 7)) {
         tableaus.getItem(column)?.append(stock.lastItem)
-        await spellCore.pauseFor(50, 'msec')
+        await spellCore.pauseFor(50, "msec")
       }
     }
-    
+
     await playFromTheStockPile()
   }
   finally {
-    spellCore.stopProcess('deal_the_cards')
+    spellCore.stopProcess("deal_the_cards")
   }
 }
 
 Card.prototype.play = async function () {
-  let startPile = this.pile
-  if (!spellCore.canGiveUp(startPile, this)) { return false }
-  
+  const startPile = this.pile
+  if (!spellCore.canGiveUp(startPile, this)) return false
+
   if (startPile === stock) {
     playFromTheStockPile()
     return
   }
-  
-  let endPile = allPiles.filter((pile) => {
-    return ((pile.droppable) && spellCore.canTake(pile, this))
-  }).firstItem
-  if (endPile === undefined) { return false }
-  
-  let cardsToMove = startPile.startingWith(this)
+
+  const endPile = allPiles.filter((pile) => pile.droppable && spellCore.canTake(pile, this)).firstItem
+  if (endPile === undefined) return false
+
+  const cardsToMove = startPile.startingWith(this)
   cardsToMove.name = startPile.name
   spellCore.console.log(`moving (${cardsToMove.state}) to (${endPile.state})`)
-  
-  cardsToMove.forEach((card) => {
-    spellCore.move(card, endPile)
-  })
-  
+
+  cardsToMove.forEach((card) => spellCore.move(card, endPile))
+
   if (startPile instanceof Tableau && !startPile.isEmpty) {
-    await spellCore.pauseFor(200, 'msec')
-    let it = startPile.lastItem
+    await spellCore.pauseFor(200, "msec")
+    const it = startPile.lastItem
     spellCore.console.log(`turning over (${startPile.name}: ${it?.state})`)
     it?.turnFaceUp()
   }
-  
-  if (endPile instanceof Foundation) { game.score = (game.score + 10) }
-  else if (startPile === discards) { game.score = (game.score + 5) }
+
+  if (endPile instanceof Foundation) game.score = game.score + 10
+  else if (startPile === discards) game.score = game.score + 5
   return true
 }
 
-on('card-click', (event) => {
-  let { card } = event
+on("card-click", (event) => {
+  const { card } = event
   card.play()
 })
 
 export async function autoPlay() {
   let anythingChanged = false
   if (!discards.isEmpty) {
-    let testCard = discards.lastItem
+    const testCard = discards.lastItem
     if (await testCard?.play()) {
       anythingChanged = true
-      await spellCore.pauseFor(500, 'msec')
+      await spellCore.pauseFor(500, "msec")
     }
   }
-  
+
   // attempt to move bottom card of tableaus to foundations
   for (const pile of tableaus) {
-    if (pile.isEmpty) { continue }
-    let testCard = pile.lastItem
-    let foundation = foundations.filter((pile) => {
-      return (pile.name == testCard?.suit)
-    }).firstItem
+    if (pile.isEmpty) continue
+    const testCard = pile.lastItem
+    const foundation = foundations.filter((pile) => pile.name == testCard?.suit).firstItem
     if (spellCore.canTake(foundation, testCard)) {
       anythingChanged = true
       await testCard?.play()
-      await spellCore.pauseFor(100, 'msec')
+      await spellCore.pauseFor(100, "msec")
     }
   }
-  
+
   // attempt to move the entire pile of face-up cards
   for (const pile of tableaus) {
-    let faceUpCards = pile.filter((card) => {
-      return card.isFaceUp
-    })
-    if (faceUpCards.isEmpty) { continue }
-    let testCard = faceUpCards.firstItem
-    if (testCard?.isARank('king') && (testCard === pile.firstItem)) { continue }
+    const faceUpCards = pile.filter((card) => card.isFaceUp)
+    if (faceUpCards.isEmpty) continue
+    const testCard = faceUpCards.firstItem
+    if (testCard?.isARank("king") && testCard === pile.firstItem) continue
     if (await testCard?.play()) {
       anythingChanged = true
-      await spellCore.pauseFor(500, 'msec')
+      await spellCore.pauseFor(500, "msec")
     }
   }
-  
+
   // call auto-play again if anything actually changed
-  if (anythingChanged) { await autoPlay() }
+  if (anythingChanged) await autoPlay()
 }
 
 export function resetTheGame() {
@@ -371,17 +321,13 @@ export function resetTheGame() {
 }
 
 export async function cheat() {
-  let remainingPiles = tableaus.filter((pile) => {
-    return (!pile.isEmpty && pile.firstItem?.isFaceDown)
-  })
-  if (remainingPiles.isEmpty) { return }
-  let pile = remainingPiles.randomItem()
-  let unplaidCards = pile?.filter((card) => {
-    return card.isFaceDown
-  })
-  let card = unplaidCards?.randomItem()
+  const remainingPiles = tableaus.filter((pile) => !pile.isEmpty && pile.firstItem?.isFaceDown)
+  if (remainingPiles.isEmpty) return
+  const pile = remainingPiles.randomItem()
+  const unplaidCards = pile?.filter((card) => card.isFaceDown)
+  const card = unplaidCards?.randomItem()
   card?.turnFaceUp()
-  await spellCore.pauseFor(30, 'ticks')
+  await spellCore.pauseFor(30, "ticks")
   spellCore.move(card, discards)
 }
 

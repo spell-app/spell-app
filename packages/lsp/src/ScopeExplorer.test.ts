@@ -85,7 +85,7 @@ describe("ScopeExplorer", () => {
     const suit = details("suit")
     expect(suit.description).toBe("card suits")
     expect(suit.spell).toBe("cards have a suit as one of clubs, diamonds, hearts or spades")
-    expect(suit.compiled).toContain("Object.defineProperty(Card.prototype, 'suit'")
+    expect(suit.compiled).toContain('Object.defineProperty(Card.prototype, "suit"')
     expect(suit.line).toBe(9)
   })
 

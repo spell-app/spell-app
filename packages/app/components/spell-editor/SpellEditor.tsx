@@ -195,6 +195,8 @@ export class SpellEditor extends E.UIComponent<typeof spellEditorVocabulary> {
     const detail: SpellCompiled = { projectId: project.projectId, compiled }
     const declarations = SP.SpellDeclarations.read(project.declarationsFile.contents ?? "")
     if (declarations) detail.declarations = declarations
+    const words = SP.SpellWords.read(project.wordsFile.contents ?? "")
+    if (words) detail.words = words
     const scopes = await this.scopesOf(project).catch((error: unknown) => {
       console.warn("<spell-editor> couldn't make its scope pack -- apps show the server's:", error)
       return undefined

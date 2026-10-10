@@ -1,4 +1,4 @@
-// oxlint-disable-next-line spell-ui/no-solid-effect -- the class mirror's RENDER effect:  a throw must reach the error net
+// oxlint-disable-next-line spell-ui/no-solid-effect -- the class mirror's RENDER effect:  a throw must reach the error boundary
 import { For, Show, createRenderEffect } from "solid-js"
 import { Portal, isServer, type JSX } from "@solidjs/web"
 
@@ -87,7 +87,7 @@ export class UITable extends E.UIComponent<typeof tableVocabulary> {
     }
     this.domElement.addReleaseCallback(() => this.classMirror.detach())
     // stays explicit, a RENDER effect:  the class mirror is the element's main DOM binding,
-    // and a throw in its compute (the classes) must reach the element's error net --
+    // and a throw in its compute (the classes) must reach the element's error boundary --
     // a plain effect's error is only logged
     createRenderEffect(
       () => [this.managedTable, this.rootClass] as const,

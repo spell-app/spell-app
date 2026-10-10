@@ -108,7 +108,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * `list.draw()` draws its items, each in its own error net.
+   * `list.draw()` draws its items, each in its own error boundary.
    * - Override in a subclass to draw a wrapper element, etc.,
    *   and use `draw items of {list}` or `draw each of {list}` to draw the items inside it.
    * - `draw the deck` calls it through `spellCore.drawThing()` (`drawing.ts`).
@@ -118,7 +118,7 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * Its items, each drawn in its own error net, kept by identity -- see `spellCore.drawItems()`.
+   * Its items, each drawn in its own error boundary, kept by identity -- see `spellCore.drawItems()`.
    * - Compiles from `draw each card in the deck` / `draw cards of the deck` => `spellCore.drawItems(deck)`
    *   -- see `rules/draw/DrawItems.ts`.
    */

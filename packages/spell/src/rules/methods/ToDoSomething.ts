@@ -253,7 +253,7 @@ methods.addRule(ToDoSomething, {
           js: [
             "Card.prototype.show = function () {",
             "  spellCore.console.log(this)",
-            "  let it = this.name",
+            "  const it = this.name",
             "  spellCore.console.log(it)",
             "}"
           ],
@@ -349,7 +349,7 @@ methods.addRule(ToDoSomething, {
             "Card.prototype.showOnPile = function (pile) {",
             "  return spellCore.console.log(1)",
             "}",
-            "new Joker().showOnPile(new Pile())",
+            "(new Joker()).showOnPile(new Pile())",
             '/* PARSE ERROR: Don\'t understand "show a new card on a new card" */'
           ],
           ts: [
@@ -365,7 +365,12 @@ methods.addRule(ToDoSomething, {
         {
           title: "type arg in signature",
           input: ["to show (a card): print the card", "show a new card"],
-          js: [`Card.prototype.show = function () {`, `  return spellCore.console.log(this)`, `}`, "new Card().show()"],
+          js: [
+            "Card.prototype.show = function () {",
+            "  return spellCore.console.log(this)",
+            "}",
+            "(new Card()).show()"
+          ],
           ts: [
             "export interface Card { show(): any /* spell: type unknown */ }",
             "Card.prototype.show = function (this: Card) {",
@@ -381,7 +386,7 @@ methods.addRule(ToDoSomething, {
             "Card.prototype.playOnPile = function (pile) {",
             "  this.pile = pile",
             "}",
-            "new Card().playOnPile(new Pile())"
+            "(new Card()).playOnPile(new Pile())"
           ],
           ts: [
             "export interface Card { playOnPile(pile: Pile): any /* spell: type unknown */ }",
@@ -398,7 +403,7 @@ methods.addRule(ToDoSomething, {
             "Card.prototype.playOnPile = function (pile) {",
             "  this.pile = pile",
             "}",
-            "new Card().playOnPile(new Pile())"
+            "(new Card()).playOnPile(new Pile())"
           ],
           ts: [
             "export interface Card { playOnPile(pile: Pile): any /* spell: type unknown */ }",
@@ -428,7 +433,7 @@ methods.addRule(ToDoSomething, {
           input: ["to notify (with message):", "\tprint the message", "notify"],
           js: [
             "export function notify(props = {}) {",
-            "  let { message } = props",
+            "  const { message } = props",
             "  spellCore.console.log(message)",
             "}",
             "notify()"
@@ -447,7 +452,7 @@ methods.addRule(ToDoSomething, {
           input: ["to notify (with message):", "\tprint the message", 'notify with message = "It worked!"'],
           js: [
             "export function notify(props = {}) {",
-            "  let { message } = props",
+            "  const { message } = props",
             "  spellCore.console.log(message)",
             "}",
             'notify({ message: "It worked!" })'
@@ -470,7 +475,7 @@ methods.addRule(ToDoSomething, {
           ],
           js: [
             "export function play(props = {}) {",
-            "  let { card } = props",
+            "  const { card } = props",
             "  spellCore.console.log(card)",
             "}",
             "play({ card: new Card() })",
@@ -490,7 +495,7 @@ methods.addRule(ToDoSomething, {
           input: ['to notify (with message = "nope"):', "\tprint the message", 'notify with message = "Ship it!!"'],
           js: [
             "export function notify(props = {}) {",
-            '  let { message = "nope" } = props',
+            '  const { message = "nope" } = props',
             "  spellCore.console.log(message)",
             "}",
             'notify({ message: "Ship it!!" })'
@@ -513,7 +518,7 @@ methods.addRule(ToDoSomething, {
           ],
           js: [
             "export function notify(props = {}) {",
-            '  let { message = "nope", reply = "yep" } = props',
+            '  const { message = "nope", reply = "yep" } = props',
             "  spellCore.console.log(message + reply)",
             "}",
             'notify({ message: "How many?" })',
@@ -537,8 +542,8 @@ methods.addRule(ToDoSomething, {
           ],
           js: [
             "export function notify(props = {}) {",
-            '  let { name, message, reply = "yep" } = props',
-            "  spellCore.console.log((name + message) + reply)",
+            '  const { name, message, reply = "yep" } = props',
+            "  spellCore.console.log(name + message + reply)",
             "}",
             "notify({",
             '  name: "Bob",',
@@ -568,7 +573,7 @@ methods.addRule(ToDoSomething, {
           ],
           js: [
             "export function notifyMessage(message, props = {}) {",
-            '  let { reply = "yep" } = props',
+            '  const { reply = "yep" } = props',
             "  spellCore.console.log(message)",
             "  spellCore.console.log(reply)",
             "}",
@@ -592,10 +597,10 @@ methods.addRule(ToDoSomething, {
           ],
           js: [
             "export function notify(props = {}) {",
-            "  let { message } = props",
+            "  const { message } = props",
             "  spellCore.console.log(message)",
             "}",
-            `notify({ message: "It worked!", reply: "No it didn't" })`
+            'notify({ message: "It worked!", reply: "No it didn\'t" })'
           ],
           ts: [
             "export function notify(props: Object = {}) {",

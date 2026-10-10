@@ -224,7 +224,7 @@ assignment.addRule(AssignmentStatement, {
         {
           title: "non-existing var",
           input: "unknown-var = yes",
-          js: "export let unknownVar = true",
+          js: "export const unknownVar = true",
           ts: "export const unknownVar: boolean = true"
         },
         { title: "existing var", input: "thing = yes", js: "thing = true" }
@@ -261,15 +261,14 @@ assignment.addRule(AssignmentStatement, {
         {
           title: "non-existing var",
           input: "set unknown-var to yes",
-          js: "export let unknownVar = true",
+          js: "export const unknownVar = true",
           ts: "export const unknownVar: boolean = true"
         },
         { title: "existing var", input: "set thing to yes", js: "thing = true" },
         {
           title: "alias var reassign works",
           input: "set it to the name of it",
-          js: "let it = this.name",
-          ts: "const it = this.name"
+          js: "const it = this.name"
         },
         {
           title: "assignment to alias property doesn't redefine alias",
@@ -289,8 +288,7 @@ assignment.addRule(AssignmentStatement, {
         {
           title: "non-existing var",
           input: `bob is a new person whose name is "bob"`,
-          js: `export let bob = new Person({ name: "bob" })`,
-          ts: 'export const bob = new Person({ name: "bob" })'
+          js: 'export const bob = new Person({ name: "bob" })'
         },
         { title: "existing var", input: "thing is a new person", js: "thing = new Person()" }
       ]

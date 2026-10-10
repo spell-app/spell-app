@@ -179,19 +179,19 @@ classes.addRule(DefinePropertyHas, {
         [
           "a player has a name as text",
           [
-            "Player.declareProp('name', { type: 'text' })",
-            "Object.defineProperty(Player.prototype, 'name', {",
-            "  get() { return this.getProp('name') },",
-            "  set(value) { this.setProp('name', value) },",
+            'Player.declareProp("name", { type: "text" })',
+            'Object.defineProperty(Player.prototype, "name", {',
+            '  get() { return this.getProp("name") },',
+            '  set(value) { this.setProp("name", value) },',
             "  configurable: true",
             "})"
           ],
           [
             "export interface Player { name: string }",
-            "Player.declareProp('name', { type: \"text\" })",
-            "Object.defineProperty(Player.prototype, 'name', {",
-            "  get(this: Player): string { return this.getProp('name') as string },",
-            "  set(this: Player, value: string) { this.setProp('name', value) },",
+            'Player.declareProp("name", { type: "text" })',
+            'Object.defineProperty(Player.prototype, "name", {',
+            '  get(this: Player): string { return this.getProp("name") as string },',
+            '  set(this: Player, value: string) { this.setProp("name", value) },',
             "  configurable: true",
             "})"
           ]
@@ -242,10 +242,9 @@ classes.addRule(DefinePropertyHas, {
       tests: [
         [
           ["get a new card", "print its suits"],
-          ["let it = new Card()", "spellCore.console.log(Card.Suits)"],
           ["const it = new Card()", "spellCore.console.log(Card.Suits)"]
         ],
-        ["print bank-account account-types", "spellCore.console.log(Bank_Account.Account_types)"]
+        ["print bank-account account-types", "spellCore.console.log(Bank_Account.AccountTypes)"]
       ]
     },
     {
@@ -258,19 +257,19 @@ classes.addRule(DefinePropertyHas, {
         [
           "a card has short rank as text",
           [
-            "Card.declareProp('short_rank', { type: 'text' })",
-            "Object.defineProperty(Card.prototype, 'short_rank', {",
-            "  get() { return this.getProp('short_rank') },",
-            "  set(value) { this.setProp('short_rank', value) },",
+            'Card.declareProp("shortRank", { type: "text" })',
+            'Object.defineProperty(Card.prototype, "shortRank", {',
+            '  get() { return this.getProp("shortRank") },',
+            '  set(value) { this.setProp("shortRank", value) },',
             "  configurable: true",
             "})"
           ],
           [
-            "export interface Card { short_rank: string }",
-            "Card.declareProp('short_rank', { type: \"text\" })",
-            "Object.defineProperty(Card.prototype, 'short_rank', {",
-            "  get(this: Card): string { return this.getProp('short_rank') as string },",
-            "  set(this: Card, value: string) { this.setProp('short_rank', value) },",
+            "export interface Card { shortRank: string }",
+            'Card.declareProp("shortRank", { type: "text" })',
+            'Object.defineProperty(Card.prototype, "shortRank", {',
+            '  get(this: Card): string { return this.getProp("shortRank") as string },',
+            '  set(this: Card, value: string) { this.setProp("shortRank", value) },',
             "  configurable: true",
             "})"
           ]
@@ -288,21 +287,21 @@ classes.addRule(DefinePropertyHas, {
         [
           "cards have a direction as either up or down",
           [
-            "Card.Directions = ['up', 'down']",
-            "Card.declareProp('direction', { oneOf: Card.Directions })",
-            "Object.defineProperty(Card.prototype, 'direction', {",
-            "  get() { return this.getProp('direction') },",
-            "  set(value) { this.setProp('direction', value) },",
+            'Card.Directions = ["up", "down"]',
+            'Card.declareProp("direction", { oneOf: Card.Directions })',
+            'Object.defineProperty(Card.prototype, "direction", {',
+            '  get() { return this.getProp("direction") },',
+            '  set(value) { this.setProp("direction", value) },',
             "  configurable: true",
             "})"
           ],
           [
             'Card.Directions = ["up", "down"]',
             "export interface Card { direction: (typeof Card.Directions)[number] }",
-            "Card.declareProp('direction', { oneOf: Card.Directions })",
-            "Object.defineProperty(Card.prototype, 'direction', {",
-            "  get(this: Card): (typeof Card.Directions)[number] { return this.getProp('direction') as (typeof Card.Directions)[number] },",
-            "  set(this: Card, value: (typeof Card.Directions)[number]) { this.setProp('direction', value) },",
+            'Card.declareProp("direction", { oneOf: Card.Directions })',
+            'Object.defineProperty(Card.prototype, "direction", {',
+            '  get(this: Card): (typeof Card.Directions)[number] { return this.getProp("direction") as (typeof Card.Directions)[number] },',
+            '  set(this: Card, value: (typeof Card.Directions)[number]) { this.setProp("direction", value) },',
             "  configurable: true",
             "})"
           ]
@@ -310,19 +309,19 @@ classes.addRule(DefinePropertyHas, {
         [
           "todos have a title as text",
           [
-            "Todo.declareProp('title', { type: 'text' })",
-            "Object.defineProperty(Todo.prototype, 'title', {",
-            "  get() { return this.getProp('title') },",
-            "  set(value) { this.setProp('title', value) },",
+            'Todo.declareProp("title", { type: "text" })',
+            'Object.defineProperty(Todo.prototype, "title", {',
+            '  get() { return this.getProp("title") },',
+            '  set(value) { this.setProp("title", value) },',
             "  configurable: true",
             "})"
           ],
           [
             "export interface Todo { title: string }",
-            "Todo.declareProp('title', { type: \"text\" })",
-            "Object.defineProperty(Todo.prototype, 'title', {",
-            "  get(this: Todo): string { return this.getProp('title') as string },",
-            "  set(this: Todo, value: string) { this.setProp('title', value) },",
+            'Todo.declareProp("title", { type: "text" })',
+            'Object.defineProperty(Todo.prototype, "title", {',
+            '  get(this: Todo): string { return this.getProp("title") as string },',
+            '  set(this: Todo, value: string) { this.setProp("title", value) },',
             "  configurable: true",
             "})"
           ]
@@ -330,19 +329,19 @@ classes.addRule(DefinePropertyHas, {
         [
           "todos have a property completed as yes or no",
           [
-            "Todo.declareProp('completed', { type: 'choice' })",
-            "Object.defineProperty(Todo.prototype, 'completed', {",
-            "  get() { return this.getProp('completed') },",
-            "  set(value) { this.setProp('completed', value) },",
+            'Todo.declareProp("completed", { type: "choice" })',
+            'Object.defineProperty(Todo.prototype, "completed", {',
+            '  get() { return this.getProp("completed") },',
+            '  set(value) { this.setProp("completed", value) },',
             "  configurable: true",
             "})"
           ],
           [
             "export interface Todo { completed: boolean }",
-            "Todo.declareProp('completed', { type: \"choice\" })",
-            "Object.defineProperty(Todo.prototype, 'completed', {",
-            "  get(this: Todo): boolean { return this.getProp('completed') as boolean },",
-            "  set(this: Todo, value: boolean) { this.setProp('completed', value) },",
+            'Todo.declareProp("completed", { type: "choice" })',
+            'Object.defineProperty(Todo.prototype, "completed", {',
+            '  get(this: Todo): boolean { return this.getProp("completed") as boolean },',
+            '  set(this: Todo, value: boolean) { this.setProp("completed", value) },',
             "  configurable: true",
             "})"
           ]
@@ -350,19 +349,19 @@ classes.addRule(DefinePropertyHas, {
         [
           "todos have a property tags as a new list",
           [
-            "Todo.declareProp('tags', { init: () => new List() })",
-            "Object.defineProperty(Todo.prototype, 'tags', {",
-            "  get() { return this.getProp('tags') },",
-            "  set(value) { this.setProp('tags', value) },",
+            'Todo.declareProp("tags", { init: () => new List() })',
+            'Object.defineProperty(Todo.prototype, "tags", {',
+            '  get() { return this.getProp("tags") },',
+            '  set(value) { this.setProp("tags", value) },',
             "  configurable: true",
             "})"
           ],
           [
             "export interface Todo { tags: any /* spell: type unknown */ }",
-            "Todo.declareProp('tags', { init: () => new List() })",
-            "Object.defineProperty(Todo.prototype, 'tags', {",
-            "  get(this: Todo): any /* spell: type unknown */ { return this.getProp('tags') },",
-            "  set(this: Todo, value: any /* spell: type unknown */) { this.setProp('tags', value) },",
+            'Todo.declareProp("tags", { init: () => new List() })',
+            'Object.defineProperty(Todo.prototype, "tags", {',
+            '  get(this: Todo): any /* spell: type unknown */ { return this.getProp("tags") },',
+            '  set(this: Todo, value: any /* spell: type unknown */) { this.setProp("tags", value) },',
             "  configurable: true",
             "})"
           ]

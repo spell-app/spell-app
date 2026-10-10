@@ -366,7 +366,8 @@ export class ThingRegistry {
    * - Each once:  a sub-type's overrides its super-type's.
    * - Each method of its classes, down to -- NOT including -- the built-in type it comes from.
    *   Spell compiles an action on a type to one, e.g. `to turn (a card) over` => `turnOver()`.
-   * - NOTE: named from the METHOD's name -- see `actionLabel()` -- as its spell wording is only in a comment.
+   * - NOTE: named from the METHOD's name -- see `actionLabel()`.  The Thing Explorer shows spell's own wording
+   *   instead, from the project's words file, when it has one (`SP.SpellWords`).
    * - An action spell compiles to a getter, e.g. `(a card) is face up`, is a computed property instead.
    */
   actionsOf(thing: ThingLike): ThingAction[] {
@@ -431,8 +432,9 @@ function isProgramClass(value: unknown): value is ThingClass {
 /**
  * Name to show action method `name` by:  its words, e.g. `moveToPile` => `move to pile`, `turnOver` => `turn over`.
  * - Compiled javascript names a method in camelCase (epic `output-targets`, P19).
- * - So the name no longer marks where an argument goes (spell's `$`, `move_to_$pile`),
- *   and the label can't show it as `(pile)`, as it once did.
+ * - So the name no longer marks where an argument goes (spell's `$`, `move_to_$pile`):  this label can't show it.
+ * - The Thing Explorer's fallback:  it shows spell's wording, `move (a card) to (a pile)`, from the project's
+ *   words file (`SP.SpellWords`) when it has one.
  */
 function actionLabel(name: string): string {
   return name.replace(/([a-z0-9])([A-Z])/g, "$1 $2").toLowerCase()

@@ -88,8 +88,8 @@ export class Thing extends Eventful(Observable) {
 
   /**
    * Subclasses (or a spell-compiled `to draw` method) implement this to draw themselves.
-   * - `draw the card` calls it through `spellCore.drawThing()`, in the card's own error net (`drawing.ts`).
-   * - throws:  a thing with no `to draw` can't be drawn.  Its net shows a stand-in.
+   * - `draw the card` calls it through `spellCore.drawThing()`, in the card's own error boundary (`drawing.ts`).
+   * - throws:  a thing with no `to draw` can't be drawn.  Its boundary shows a stand-in.
    */
   draw(): Drawing {
     throw new Error(`${this.type} does not implement draw()`)

@@ -56,6 +56,14 @@ export const SNAPSHOT_JS_SUFFIX = ".snapshot.js"
 export const SCOPES_JS_SUFFIX = ".scopes.js"
 
 /**
+ * End of a project's words file's name, in English, e.g. `Solitaire.en.js`:  spell's wording of each member of its
+ * types, by the name its compiled code uses -- see `SpellProject.wordsFile`, `SP.SpellWords`.
+ * - NEVER one of a project's own files:  the server leaves any language's out of the manifest
+ *   (`SP.SpellWords.isWordsFile()`).
+ */
+export const WORDS_JS_SUFFIX = ".en.js"
+
+/**
  * Start of the ES module specifier for another project's compiled JS, e.g. `@spell/project/@system:library:cards`.
  * - A runner fetches that project's compiled JS from the server's `/api/projects/compiled/<projectId>`, and points
  *   the specifier at it -- see `runCompiled()` in `src/app/runner/`.
@@ -391,6 +399,19 @@ export type SpellDeclarationsData = {
 }
 
 /**
+ * A project's words in one language:  spell's wording of each member of its types, by the name its compiled code
+ * uses -- what `<Project>.en.js` exports as `words`.  See `SpellWords`.
+ * - e.g. `{ lang: "en", types: { Card: { moveToPile: "move (a card) to (a pile)", isSetUp: "is-set-up" } } }`
+ * - Another language is another file of the same shape, e.g. `Solitaire.es.js`.
+ */
+export type SpellWordsData = {
+  /** Its language, e.g. `en`. */
+  lang: string
+  /** Each type's members' words, by the type's class name, then each member's compiled name. */
+  types: Record<string, Record<string, string>>
+}
+
+/**
  * What ONE statement declared, flat -- a `/*! SPELL: DECLARES {...} *\/` comment, e.g.
  * `{ property: "suit", classVariable: "Suits", of: "Card", enumeration: [...] }`.
  * - Only what can't be worked out from the rest, e.g. `constants` are left out when they're just
@@ -434,12 +455,6 @@ export type SpellDeclaration = {
    * - See `P.ScopeVariable.autoDeclared`.
    */
   autoDeclared?: boolean
-  /**
-   * `property` is DERIVED:  a getter works it out, e.g. `the short rank of a card is: ...`.
-   * - Loads as `P.ScopeVariable.isGetter`, so the TypeScript writer reads it by TypeScript's name (`shortRank`).
-   * - Left out for an `exclusive` member, which is always one:  loading works it out.
-   */
-  getter?: boolean
   /** A method's parameters, with their datatypes where known -- see `P.ScopeMethod.params`. */
   params?: P.ScopeParam[]
   /** What a method returns, if known -- see `P.ScopeMethod.returns`. */

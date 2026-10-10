@@ -331,16 +331,8 @@ classes.addRule(QuotedPropertyFormula, {
       },
       compileAs: "statement",
       tests: [
-        [
-          "print card is a club",
-          "spellCore.console.log(card.isASuit('clubs'))",
-          'spellCore.console.log(card.isASuit("clubs"))'
-        ],
-        [
-          "print card is the 2 of hearts",
-          "spellCore.console.log(card.isTheRankOfSuits(2, 'hearts'))",
-          'spellCore.console.log(card.isTheRankOfSuits(2, "hearts"))'
-        ]
+        ["print card is a club", 'spellCore.console.log(card.isASuit("clubs"))'],
+        ["print card is the 2 of hearts", 'spellCore.console.log(card.isTheRankOfSuits(2, "hearts"))']
       ]
     }
   ]

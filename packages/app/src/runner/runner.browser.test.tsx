@@ -18,8 +18,7 @@ import type { DOMSpellAppElement } from "$/app/components/spell-app"
  *   as with a real `spell-runtime.js` copy.
  *   `loadRuntime()`'s `blob:` copy can't load in dev:
  *   vite's imports are root-relative, which a `blob:` URL can't resolve.
- * - The program draws with Solid, into the runner's app root:  `h()` from `@spell/core` (`CARDS`), or the
- *   deprecated `spellCore.element()` of programs compiled before (`COUNTER`, `LATE`, `OLD_TABLE`).
+ * - The program draws with Solid, into the runner's app root:  `h()` from `@spell/core`.
  *   As compiled spell writes it, a value that can change is a function (`() => this.count`).
  * - `adoptShadowStyles()` is stubbed:  the test server doesn't serve `static/` (Semantic UI, Lato).
  */
@@ -34,16 +33,12 @@ vi.mock("./shadowStyles", async (importOriginal) => {
 
 /** A program with an app:  a counter, drawn as a button that counts its clicks.  It logs as it starts. */
 const COUNTER = `
-import { spellCore, Thing, App } from "@spell/core"
+import { spellCore, Thing, App, h } from "@spell/core"
 export class Counter extends App {
   get count() { return this.getProp('count') }
   set count(value) { this.setProp('count', value) }
   draw() {
-    return spellCore.element({
-      tag: "button",
-      props: { className: "count", onClick: (event) => { this.count = this.count + 1 } },
-      children: ["Count: ", () => this.count]
-    })
+    return h("button", { class: "count", onClick: (event) => { this.count = this.count + 1 } }, "Count: ", () => this.count)
   }
 }
 export let counter = new Counter()
@@ -60,9 +55,9 @@ spellCore.console.log("hello from a program")
 
 /** A program that starts its app LATER, from a timer -- after the run has finished. */
 const LATE = `
-import { spellCore, App } from "@spell/core"
+import { spellCore, App, h } from "@spell/core"
 export class Late extends App {
-  draw() { return spellCore.element({ tag: "p", props: { className: "late" }, children: ["late!"] }) }
+  draw() { return h("p", { class: "late" }, "late!") }
 }
 export let late = new Late()
 setTimeout(() => late.start(), 50)
@@ -72,17 +67,17 @@ setTimeout(() => late.start(), 50)
  * A card game, as compiled spell draws it:  a card's `draw()` chooses its face by an `if` (read OUTSIDE its live
  * values), its rank is a live value, the pile draws its cards with `drawItems()`, and one card can't draw.
  * - Solid's own `h()`, from `@spell/core`, in the page's spellings (`class`, `colspan`), as the javascript writer
- *   writes them (epic `output-targets` P20).  `draw()` returns `h()`'s thunk:  the error net makes it.
+ *   writes them (epic `output-targets` P20).  `draw()` returns `h()`'s thunk:  the error boundary makes it.
  */
 const CARDS = `
 import { spellCore, Thing, List, App, h } from "@spell/core"
 export class Card extends Thing {
   get rank() { return this.getProp('rank') }
   set rank(value) { this.setProp('rank', value) }
-  get is_face_down() { return this.getProp('is_face_down') }
-  set is_face_down(value) { this.setProp('is_face_down', value) }
+  get isFaceDown() { return this.getProp('isFaceDown') }
+  set isFaceDown(value) { this.setProp('isFaceDown', value) }
   draw() {
-    if (this.is_face_down) return h("div", { class: "card back" })
+    if (this.isFaceDown) return h("div", { class: "card back" })
     return h("div", { class: () => "card " + this.rank }, () => this.rank)
   }
 }
@@ -100,7 +95,7 @@ export class Game extends App {
   }
 }
 export let ace = new Card({ rank: "A" })
-export let king = new Card({ rank: "K", is_face_down: true })
+export let king = new Card({ rank: "K", isFaceDown: true })
 export let joker = new Joker({ rank: "J" })
 export let game = new Game()
 game.pile = new Pile()
@@ -109,29 +104,10 @@ game.start()
 globalThis.cardGame = { ace, king, game, Card }
 `
 
-/**
- * A table as javascript compiled before epic `output-targets` P20 draws it:
- * through the deprecated `spellCore.element()`, in React's spellings (`className`, `colSpan`), as spell programs
- * write them.
- */
-const OLD_TABLE = `
-import { spellCore, App } from "@spell/core"
-export class OldTable extends App {
-  draw() {
-    return spellCore.element({ tag: "table", children: [
-      spellCore.element({ tag: "tr", children: [
-        spellCore.element({ tag: "td", props: { colSpan: "2", className: "pile" }, children: ["old"] })
-      ] })
-    ] })
-  }
-}
-new OldTable().start()
-`
-
 /** What `CARDS` leaves on `globalThis`, for a test to play with. */
 type CardGame = {
-  ace: { rank: string; is_face_down: boolean }
-  king: { rank: string; is_face_down: boolean }
+  ace: { rank: string; isFaceDown: boolean }
+  king: { rank: string; isFaceDown: boolean }
   game: { pile: { add(...cards: unknown[]): void; removeItem(oneIndex: number): void } }
   Card: new (props: Record<string, unknown>) => { rank: string }
 }
@@ -163,6 +139,15 @@ describe("<SpellAppRunner>", () => {
     button.click()
     await waitFor(() => valueOf(host, "count") === "2")
     expect(button.textContent).toBe("Count: 2")
+  })
+
+  test("the Thing Explorer shows a thing's members in spell's words, from the program's words file", async () => {
+    const words = `export const words = { lang: "en", types: { Counter: { count: "the count" } } }`
+    const wordsUrl = `data:text/javascript,${encodeURIComponent(words)}`
+    const host = await mount({ ...source(COUNTER), wordsUrl }, { debug: "things" })
+    ;(await waitFor(() => host.querySelector<HTMLElement>(".ThingTreeNode .body"))).click()
+    flush()
+    expect(await waitFor(() => valueOf(host, "the count"))).toBe("1")
   })
 
   test("the debug pane:  toggled by Debug, its tabs switch, the console shows what was printed", async () => {
@@ -244,7 +229,7 @@ describe("compiled spell draws with Solid", () => {
     expect(cardsIn(host)[0]).toBe(aceNode)
     expect(aceNode!.className).toBe("card 2")
 
-    king.is_face_down = false
+    king.isFaceDown = false
     await waitFor(() => cardsIn(host)[1]!.textContent === "K")
     expect(cardsIn(host)[0]).toBe(aceNode)
     expect(cardsIn(host)[1]).not.toBe(kingNode)
@@ -352,14 +337,6 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => debugJSON().tasks["@items"][0].title === "New title")
     menuItem("All").click()
     await waitFor(() => titles().length === 3)
-  })
-
-  test("a program compiled before P20 still runs:  `spellCore.element()` turns React's spellings into the page's", async () => {
-    const host = await mount(source(OLD_TABLE, "OldTable"))
-    const cell = await waitFor(() => host.querySelector<HTMLTableCellElement>("td.pile"))
-    expect(cell.getAttribute("colspan")).toBe("2")
-    expect(cell.hasAttribute("classname")).toBe(false)
-    expect(cell.textContent).toBe("old")
   })
 })
 
