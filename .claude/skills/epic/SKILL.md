@@ -607,8 +607,11 @@ The item's id chip follows too (PLAN-DOC.md "Colours"):
      Each with the block's anchor (`p3#field-2`, an item's id) and the quoted text.
      - A REPLY of his on a thread is waiting work too, as a new comment is:  listed under its comment,
        "Owen replied:  ...".  Answer his latest words, the thread above for context.
-   - They never wake `wait` by themselves:  the next wake (Send, Review Now, any request) hands them over.
-     So check on every wake.
+   - Owen's SEND hands them over, as it does marks (Owen, 2026-10-10:  Send stays the way comments reach you).
+     - A new comment, or his reply on a thread, turns Send blue on the page;  pressing it (or Review Now) wakes `wait`.
+     - `wait` prints them under the send:  "comments, to answer on their threads", with his latest reply.
+     - Each goes over once, until he speaks on its thread again.
+     - A comment never wakes `wait` by itself, unsent.  Still check `inbox` on every wake:  one may wait unsent.
    - FIRST, as you start on one:  `spell dev plan-doc inbox <name> working cm3 on`.
      - His thread shows "Claude: thinking…" at its end (a turning notch) until your answer lands:
        `done cm3` turns it off.  Dropped without an answer:  `working cm3 off`.

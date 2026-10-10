@@ -2,7 +2,7 @@ import { existsSync, readFileSync, renameSync, rmSync, writeFileSync } from "nod
 
 import { SRV } from "$/server"
 
-import { CommentList, type Comment } from "./CommentList"
+import { CommentList, type Comment, type IdentifiedComment } from "./CommentList"
 
 /****************
  * ### `ReviewInbox`
@@ -57,7 +57,9 @@ import { CommentList, type Comment } from "./CommentList"
  *     (epic `airplane` P11), in the shape a guide's inbox holds them (`CommentList`)
  *     - waiting until Claude answers them like a revisit's note (`/epic review`, `/airplane land`),
  *       then `answered` (`plan-doc inbox done cm3`)
- *     - never sent:  a saved comment is waiting
+ *     - Send hands them over, as it does marks (Owen, 2026-10-10:  he keeps Send as the way comments reach Claude):
+ *       a waiting comment whose last words are newer than `sent` is unsent (`unsentComments`);
+ *       a waiting session takes it with the send (`takeWork()`), once, until Owen speaks on its thread again
  * - Node only (`node:fs`, `$/server`'s lock):  NOT in the `$/epics` barrel, imported by path.
  *   Imports no other file of the tool but `CommentList` (its comments).
  * - From `packages/docs/tools/inbox.js` (epic `epic-components`, P7), which now forwards here.
@@ -387,7 +389,7 @@ export class ReviewInbox {
     return ReviewInbox.toItemId(id) in this.canceled
   }
 
-  /** Owen pressed "send to Claude":  every mark so far is sent. */
+  /** Owen pressed "send to Claude":  every mark so far is sent, and every waiting comment (`unsentComments`). */
   markSent(at = isoTime()): this {
     this.sent = at
     return this
@@ -428,6 +430,26 @@ export class ReviewInbox {
     if (!this.sent) return []
     const sent = Date.parse(this.sent)
     return this.markList.filter((mark) => !ReviewInbox.isImmediate(mark) && Date.parse(mark.at) <= sent)
+  }
+
+  /**
+   * Comments waiting for Owen's "send to Claude":  Claude's turn on the thread, not taken
+   * (`CommentList.waiting`), and Owen's last words newer than `sent` (all of them before the first send).
+   * - a new comment, or his reply on a thread, waits for the send as a mark does
+   */
+  get unsentComments(): IdentifiedComment[] {
+    const sent = this.sent ? Date.parse(this.sent) : -Infinity
+    return this.commentList.waiting.filter((comment) => Date.parse(CommentList.lastWordsAt(comment)) > sent)
+  }
+
+  /**
+   * Comments a "send to Claude" handed over and Claude hasn't taken up yet:
+   * waiting (`CommentList.waiting`), with Owen's last words at or before `sent`;  none before the first send.
+   */
+  get sentComments(): IdentifiedComment[] {
+    if (!this.sent) return []
+    const sent = Date.parse(this.sent)
+    return this.commentList.waiting.filter((comment) => Date.parse(CommentList.lastWordsAt(comment)) <= sent)
   }
 
   /** Every mark as `[{ id, ...mark }]`, oldest first. */
@@ -528,10 +550,16 @@ export class ReviewInbox {
   /**
    * The inbox as the page reads it (every route's answer):
    * the whole inbox, but `listening` `null` once stale (`liveListener()`), so the page keeps no clock rule of its own.
+   * - plus `unsentComments`, the ids of the comments Send would hand over (`unsentComments`):
+   *   the threads' rules stay here, in `CommentList`
    * - a plain copy:  this inbox is untouched
    */
-  forPage(now = Date.now()): InboxRecord {
-    return { ...this.toRecord(), listening: this.liveListener(now) }
+  forPage(now = Date.now()): PageInbox {
+    return {
+      ...this.toRecord(),
+      listening: this.liveListener(now),
+      unsentComments: this.unsentComments.map((comment) => comment.id)
+    }
   }
 
   /**
@@ -562,10 +590,12 @@ export class ReviewInbox {
    * - `now`:  the queued immediate requests (`takeNow()`)
    *   - each item marked `working` (the page's spinner) until Claude's agent is done (`plan-doc inbox done`)
    *   - their marks stay till then
-   * - `sent`:  `{ at, marks, urgency }` for a send not handed over yet (`hasNewSend`), else `null`
+   * - `sent`:  `{ at, marks, urgency, comments }` for a send not handed over yet (`hasNewSend`), else `null`
    *   - every sent mark (`sentMarks`), each `again: true` when an earlier send already handed it over
    *     (a revisit still being talked over)
    *   - and the sent urgency (`sentUrgency`)
+   *   - and the comments this send handed over (`sentComments`):  only those Owen spoke on since the last send
+   *     a session took, so a comment goes over once, until he replies again
    *   - `handedOver` becomes `sent`, so a send is taken once
    *   - a send with nothing left (all applied) is taken quietly:  nothing to wake for
    * - `canceled`:  "nevermind"s for work a session took:  stop those agents (`cancelNow()`)
@@ -579,8 +609,9 @@ export class ReviewInbox {
       const before = this.handedOver ? Date.parse(this.handedOver) : -Infinity
       const marks = this.sentMarks.map((mark) => ({ ...mark, again: Date.parse(mark.at) <= before }))
       const urgency = this.sentUrgency
+      const comments = this.sentComments.filter((comment) => Date.parse(CommentList.lastWordsAt(comment)) > before)
       this.handedOver = this.sent
-      if (marks.length || urgency.length) sent = { at: this.sent!, marks, urgency }
+      if (marks.length || urgency.length || comments.length) sent = { at: this.sent!, marks, urgency, comments }
     }
     const canceled = Object.entries(this.canceled)
       .filter(([, each]) => !each.told)
@@ -726,6 +757,12 @@ export type InboxRecord = {
   comments: Record<string, Comment>
 }
 
+/**
+ * The inbox as the routes answer (`ReviewInbox.forPage()`):  the file's JSON, plus
+ * `unsentComments`, the ids of the comments the page's Send would hand over.
+ */
+export type PageInbox = InboxRecord & { unsentComments: string[] }
+
 /** One item's mark, as stored:  checked (`ReviewInbox.toMark()`) and stamped. */
 export type InboxMark = CheckedMark & { at: string }
 
@@ -781,7 +818,12 @@ export type InboxListener = { session: string; since: string; seen?: string }
 /** What `ReviewInbox.takeWork()` hands a waiting session. */
 export type TakenWork = {
   now: NowRequest[]
-  sent: { at: string; marks: (ListedMark & { again: boolean })[]; urgency: ListedUrgency[] } | null
+  sent: {
+    at: string
+    marks: (ListedMark & { again: boolean })[]
+    urgency: ListedUrgency[]
+    comments: IdentifiedComment[]
+  } | null
   canceled: { id: string; action: NowAction; at: string }[]
 }
 

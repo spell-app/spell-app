@@ -4,7 +4,7 @@ import { setTimeout as sleep } from "node:timers/promises"
 
 import { PlanDocError, type ItemDescription, type KeptNote, type MarkResult, type OptionCard } from "./planDoc.types"
 
-import { CommentList } from "./CommentList"
+import { CommentList, type IdentifiedComment } from "./CommentList"
 import type { PlanDoc } from "./PlanDoc"
 import type { PlanReader } from "./PlanReader"
 import type { Flags, PlanDocCommands } from "./PlanDocCommands"
@@ -121,6 +121,7 @@ export class InboxCommands {
       file: path,
       sent: inbox.sent,
       unsent: unsent.size,
+      unsentComments: inbox.unsentComments.map((comment) => comment.id),
       marks,
       now: inbox.now,
       working: inbox.working,
@@ -140,7 +141,8 @@ export class InboxCommands {
           ? `listening:  session ${listening.session}, since ${listening.since}`
           : `listening:  nobody (session ${listening.session} last seen ${listening.seen ?? listening.since}, over ${LISTEN_STALE_MS / 1000}s ago:  gone without \`unlisten\`)`
     )
-    lines.push(`sent:  ${inbox.sent ?? "never"};  ${unsent.size + unsentUrgency.size} unsent`)
+    const unsentCount = unsent.size + unsentUrgency.size + inbox.unsentComments.length
+    lines.push(`sent:  ${inbox.sent ?? "never"};  ${unsentCount} unsent`)
     for (const action of ACTIONS) {
       if (!marks[action].length) continue
       lines.push(`${action} (${marks[action].length}):`)
@@ -169,16 +171,9 @@ export class InboxCommands {
     for (const [id, { action, note, at }] of drafts)
       lines.push(`  - ${id.toUpperCase()}  ${action}  "${note.trim()}"  (${at})`)
     const comments = inbox.commentList.waiting
+    const unsentComments = new Set(inbox.unsentComments.map((comment) => comment.id))
     if (comments.length) lines.push(`comments, waiting for an answer (${comments.length}):`)
-    for (const comment of comments) {
-      lines.push(
-        `  - ${comment.id.toUpperCase()}  on ${comment.anchor} (${comment.kind})` +
-          `${comment.quote ? `  quoting "${comment.quote.slice(0, 60)}"` : ""}  "${comment.text.slice(0, 120)}"  (${comment.at})`
-      )
-      // his reply on the thread since Claude answered:  the work now
-      const reply = comment.replies?.findLast((each) => each.by === "Owen")
-      if (reply) lines.push(`    Owen replied:  "${reply.text!.slice(0, 160)}"  (${reply.at})`)
-    }
+    for (const comment of comments) lines.push(...commentLines(comment, "  ", unsentComments.has(comment.id)))
     this.owner.print(lines.join("\n"))
 
     /** A mark's own fields after its title:  the pick, a revisit's when and note, unsent. */
@@ -255,15 +250,17 @@ export class InboxCommands {
   /**
    * Print the work `wait` took (`takeWork()`'s `{ now, sent, canceled }`), each mark with its item (`describeItem()`):
    * id, kind, status, title, the mark, the note, a pick's option card.
+   * - a send's comments too (Send hands them over, Owen 2026-10-10):  where each is, its words, his latest reply
    * - plain lines for Claude to read, then what to run next
-   * - `json`:  `{ now, sent, canceled }` with `item` (and `option`) on each
+   * - `json`:  `{ now, sent, canceled }` with `item` (and `option`) on each mark;  `sent.comments` as the inbox has them
    */
   private printWork(name: string, plan: PlanReader, work: TakenWork, json: boolean): void {
     const now = work.now.map((each) => withItem(each))
     const sent = work.sent && {
       at: work.sent.at,
       marks: work.sent.marks.map((mark) => withItem(mark)),
-      urgency: (work.sent.urgency ?? []).map((entry) => withItem(entry))
+      urgency: (work.sent.urgency ?? []).map((entry) => withItem(entry)),
+      comments: work.sent.comments ?? []
     }
     const canceled = (work.canceled ?? []).map((each) => withItem(each))
     if (json) return this.owner.print(JSON.stringify({ now, sent, canceled }, null, 2))
@@ -289,7 +286,8 @@ export class InboxCommands {
     }
     if (sent) {
       const urgency = sent.urgency.length ? `, ${sent.urgency.length} urgency` : ""
-      lines.push(`sent ${sent.at} (${sent.marks.length} mark${sent.marks.length === 1 ? "" : "s"}${urgency}):`)
+      const comments = sent.comments.length ? `, ${plural(sent.comments.length, "comment")}` : ""
+      lines.push(`sent ${sent.at} (${plural(sent.marks.length, "mark")}${urgency}${comments}):`)
       for (const action of ACTIONS) {
         const marks = sent.marks.filter((mark) => mark.action === action)
         if (!marks.length) continue
@@ -308,14 +306,22 @@ export class InboxCommands {
       }
       if (sent.urgency.length) lines.push(`  urgency, from the id chips (${sent.urgency.length}):`)
       for (const entry of sent.urgency) lines.push(`    - ${line(entry)}  · ${calmWords(entry.calm)}`)
+      if (sent.comments.length) lines.push(`  comments, to answer on their threads (${sent.comments.length}):`)
+      for (const comment of sent.comments) lines.push(...commentLines(comment, "    "))
       const talk = sent.marks.filter((mark) => mark.action === "revisit")
-      lines.push(
-        `next:  \`yarn plan-doc inbox ${name} apply\` (approve, pick, todo, a todo's next phase or drop, skip, new, ` +
-          `urgency)`
-      )
+      if (sent.marks.length || sent.urgency.length)
+        lines.push(
+          `next:  \`yarn plan-doc inbox ${name} apply\` (approve, pick, todo, a todo's next phase or drop, skip, new, ` +
+            `urgency)`
+        )
       if (talk.length)
         lines.push(
           `then talk over ${talk.map((mark) => mark.id).join(", ")} in the chat;  \`yarn plan-doc inbox ${name} clear <id>\` after each`
+        )
+      if (sent.comments.length)
+        lines.push(
+          `then each comment:  \`yarn plan-doc inbox ${name} working <cm id> on\`, answer it in the doc, ` +
+            `then \`yarn plan-doc inbox ${name} done <cm id> --file <answer.html>\``
         )
     }
     this.owner.print(lines.join("\n"))
@@ -546,6 +552,27 @@ function calmWords(calm: boolean): string {
 /** What an agent works on for a mark:  a revisit's answer, else details. */
 function workOf(mark: { action: string } | undefined): "revisit" | "details" {
   return mark?.action === "revisit" ? "revisit" : "details"
+}
+
+/**
+ * Comment `comment`'s lines, as `inbox` and `wait` print it, each starting `indent`:
+ * its id, where it is, the quote, Owen's words and when;  then his latest reply on the thread, the work now.
+ * - `unsent`:  says so, waiting for Send
+ */
+function commentLines(comment: IdentifiedComment, indent: string, unsent = false): string[] {
+  const quote = comment.quote ? `  quoting "${comment.quote.slice(0, 60)}"` : ""
+  const lines = [
+    `${indent}- ${comment.id.toUpperCase()}  on ${comment.anchor} (${comment.kind})${quote}  ` +
+      `"${comment.text.slice(0, 120)}"  (${comment.at})${unsent ? "  · unsent" : ""}`
+  ]
+  const reply = comment.replies?.findLast((each) => each.by === "Owen")
+  if (reply) lines.push(`${indent}  Owen replied:  "${reply.text!.slice(0, 160)}"  (${reply.at})`)
+  return lines
+}
+
+/** `count` `noun`s:  `1 mark`, `2 marks`. */
+function plural(count: number, noun: string): string {
+  return `${count} ${noun}${count === 1 ? "" : "s"}`
 }
 
 /** `["q7", "i2"]` -> `Q7, I2` */

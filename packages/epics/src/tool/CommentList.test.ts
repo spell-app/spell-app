@@ -216,6 +216,21 @@ describe("CommentList", () => {
     expect(comments.comment(id).working).toBeUndefined()
     expect(() => comments.setWorking("cm9", true)).toThrow(expect.objectContaining({ status: 404 }))
   })
+
+  test("lastWordsAt:  when Owen last changed his words on the thread -- his comment, his replies, their edits", () => {
+    const later = (minutes: number) => new Date(NOW.getTime() + minutes * 60_000)
+    const comments = new CommentList({})
+    const id = comments.add(ON_FIELD, "one", NOW)
+    expect(CommentList.lastWordsAt(comments.comment(id))).toBe(NOW.toISOString())
+    comments.edit(id, "one, better", later(1))
+    expect(CommentList.lastWordsAt(comments.comment(id))).toBe(later(1).toISOString())
+    comments.answer(id, "<p>Because.</p>", later(2))
+    // Claude's words never count
+    expect(CommentList.lastWordsAt(comments.comment(id))).toBe(later(1).toISOString())
+    comments.reply(id, "Say more", later(3))
+    comments.reply(id, "Say more, please", later(4))
+    expect(CommentList.lastWordsAt(comments.comment(id))).toBe(later(4).toISOString())
+  })
 })
 
 describe("ReviewInbox.commentList", () => {
