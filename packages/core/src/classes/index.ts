@@ -1,7 +1,7 @@
 /**
  * Master import file for the classes `spellCore` exposes to compiled spell code.
- * - Re-exported from `$/core`'s own barrel (`export * from "./classes"`) so `Thing`/`List`/`App`
- *   are available alongside the rest of `spellCore`.
+ * - Re-exported from `$/core`'s own barrel (`export * from "./classes"`) so `Thing`/`List`/`App`/`Drawable`/
+ *   `DrawableList` are available alongside the rest of `spellCore`.
  *
  * NOTE: imports reach into `$/core/core` and `$/core/SpellCore` directly rather than
  * the `$/core` barrel -- this file helps BUILD that barrel, so going through it would
@@ -13,6 +13,8 @@ import { defineSpellCoreModule, SPELL_BASE_TYPES } from "$/core/spellCore.types"
 import { Thing } from "./Thing"
 import { App } from "./App"
 import { List } from "./List"
+import { Drawable } from "./Drawable"
+import { DrawableList } from "./DrawableList"
 
 /** Base-type registry, and where an app mounts.  Drawing is `../drawing.ts`. */
 export const classesMethods = defineSpellCoreModule({
@@ -45,6 +47,6 @@ export const classesMethods = defineSpellCoreModule({
 })
 Object.assign(spellCore, classesMethods)
 
-// Compiled spell imports these -- `import { spellCore, Thing, List, App } from "@spell/core"`.  No globals.
-export { Thing, List, App }
+// Compiled spell imports these -- `import { spellCore, Thing, List, App, ... } from "@spell/core"`.  No globals.
+export { Thing, List, App, Drawable, DrawableList }
 export type { ListCallback } from "./List"

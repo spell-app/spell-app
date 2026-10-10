@@ -291,6 +291,11 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - else one word, as ever
   - So only DECLARED names take several words:  `a big card` stays a card, unless someone declared a `big card`.
   - A type has to be declared before a mention of several words can find it:  no stubs for those.
+- Spell's own two-word types are built in:  `drawable thing` and `drawable list` (epic `drawable-thing`, P2).
+  - Their datatypes are `drawable` and `drawable list`;  `SP.TYPE_WORDS` maps the ways to write them.
+  - Their classes are ONE word each, `Drawable` and `DrawableList` (`P.BUILT_IN_CLASS_NAMES`), not Type_Case:
+    `P.classCase()` names every class, and keys `scope.types`.
+  - `a pile is a drawable list of cards` is `create_drawable_list_type`, `create_list_type` extending `DrawableList`.
 - The short name is `TypeScope.aka`.
   - `scope.types` finds a type by it too (the list's `aliasProp`), after every type's own name in that scope.
   - A mention by the short name compiles as the type's own name:  `account` => `Bank_Account`.

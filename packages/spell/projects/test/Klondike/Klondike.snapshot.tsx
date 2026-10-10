@@ -1,5 +1,5 @@
 import { For } from "solid-js"
-import { spellCore, Thing, List, App, prop, derived, drawn, on } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, prop, derived, drawn, on } from "@spell/core"
 import { Card, Deck, Pile } from "@spell/project/@test:fixtures:Cards"
 
 spellCore.heading("Klondike Solitaire Card Game")

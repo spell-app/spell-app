@@ -16,6 +16,8 @@ import { defineSpellCoreModule } from "./spellCore.types"
 import { Thing } from "./classes/Thing"
 import { List } from "./classes/List"
 import { App } from "./classes/App"
+import { Drawable } from "./classes/Drawable"
+import { DrawableList } from "./classes/DrawableList"
 
 /**
  * Registry of the things one run of a program made -- `spellCore.things`, cleared by `resetRuntime()`.
@@ -407,11 +409,11 @@ export class ThingRegistry {
   }
 }
 
-/** Prototypes of the built-in types a program's types extend -- where `propertiesOf()` stops. */
-const BASE_PROTOTYPES: object[] = [Thing.prototype, List.prototype, App.prototype]
-
 /** The built-in classes a program's classes extend -- see `classNamed()`. */
-const BUILT_IN_CLASSES: ThingClass[] = [Thing, List, App]
+const BUILT_IN_CLASSES: ThingClass[] = [Thing, List, App, Drawable, DrawableList]
+
+/** Prototypes of the built-in types a program's types extend -- where `propertiesOf()` stops. */
+const BASE_PROTOTYPES: object[] = BUILT_IN_CLASSES.map((Class) => Class.prototype)
 
 /** Names of the built-in types a program's types extend, e.g. `Thing` -- see `bySuperType()`. */
 const BUILT_IN_TYPES = BUILT_IN_CLASSES.map((Class) => Class.name)

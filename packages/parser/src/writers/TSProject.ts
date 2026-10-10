@@ -140,8 +140,11 @@ export class TSProject {
 
   /** Is class `typeName` a spell `List`, or one of its sub-classes, e.g. `Pile`, `Tableau`? */
   isListClass(typeName: string | undefined): boolean {
-    return this.isSubclassOf(typeName, "List")
+    return TSProject.LIST_CLASSES.some((list) => this.isSubclassOf(typeName, list))
   }
+
+  /** Spell's built-in list classes:  `List`, and `DrawableList`, a list drawn as its own element. */
+  static LIST_CLASSES = ["List", "DrawableList"]
 
   /** Is class `typeName` class `ancestor`, or below it, e.g. a `Discard_Pile` a `Pile`? */
   isSubclassOf(typeName: string | undefined, ancestor: string): boolean {

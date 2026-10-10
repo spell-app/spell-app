@@ -1,4 +1,4 @@
-import { proto, typeCase } from "$/util"
+import { proto } from "$/util"
 import { P } from "$/parser"
 import { Priority } from "$/spell/rules/rules.types"
 // Import directly to avoid circular import
@@ -40,7 +40,7 @@ export class TypeDeclaration<
    */
   refuseTakenNames(match: P.Match): P.Match {
     const { groups, scope } = TypeDeclaration.named(match)
-    const name = typeCase(`${groups.type.value}`)
+    const name = P.classCase(`${groups.type.value}`)
     const named = scope.types?.get(name)
     if (named && SpellType.isShortName(named, name)) {
       return SpellStatement.refuse(match, `"${groups.type.raw}" is already the short name of ${wordsOf(named.name)}`)

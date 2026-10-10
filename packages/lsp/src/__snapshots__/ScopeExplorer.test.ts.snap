@@ -93,6 +93,8 @@ exports[`ScopeExplorer > root holds the built-in types, then the project:  its f
     method shuffle (a list)
   type App (is a Thing)
     method start (an app)
+  type Drawable (is a Thing)
+  type DrawableList (is a List)
   type Text
     property length (number)
     property characters (list of characters)
@@ -165,6 +167,8 @@ exports[`ScopeExplorer of a project importing another, compiled > the imported p
     method shuffle (a list)
   type App (is a Thing)
     method start (an app)
+  type Drawable (is a Thing)
+  type DrawableList (is a List)
   type Text
     property length (number)
     property characters (list of characters)

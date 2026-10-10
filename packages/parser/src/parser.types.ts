@@ -27,8 +27,8 @@ export type Datatype = string
  * - The root scope has a `TypeScope` for each -- see `SpellParser.rootScope`.
  * - Their members, e.g. `the length of the name`, are spell's:  in its `BUILT_IN_TYPE_TABLE`,
  *   loaded into these `TypeScope`s.  The parser only knows their names.
- * - NOTE: `list`, `thing` and `app` are runtime classes too (`List`, `Thing`, `App`),
- *   which compiled code names in Type_Case.  The rest are plain javascript values.
+ * - NOTE: `list`, `thing`, `app`, `drawable` and `drawable list` are runtime classes too (`List`, `Thing` ...),
+ *   which compiled code names by `BUILT_IN_CLASS_NAMES`.  The rest are plain javascript values.
  */
 export const BUILT_IN_TYPES: Record<Datatype, Datatype | undefined> = {
   text: undefined,
@@ -41,14 +41,39 @@ export const BUILT_IN_TYPES: Record<Datatype, Datatype | undefined> = {
   list: undefined,
   thing: undefined,
   app: "thing",
+  // a thing drawn as its own custom element -- `a card is a drawable thing` (epic `drawable-thing`)
+  drawable: "thing",
+  "drawable list": "list",
   nothing: undefined
 }
 
 /**
- * Built-in types which are classes at runtime, so compiled code names them in Type_Case, e.g. `extends List`.
+ * Built-in types which are classes at runtime, by datatype:  the name compiled code gives each, e.g. `extends List`.
  * - Every other built-in is a plain javascript value, named in spell's words, e.g. `isOfType(x, 'text')`.
+ * - A name of two words is one class, NOT Type_Case:  `drawable list` => `DrawableList` -- see `classCase()`.
  */
-export const BUILT_IN_CLASSES: Datatype[] = ["list", "thing", "app"]
+export const BUILT_IN_CLASS_NAMES: Record<Datatype, string> = {
+  list: "List",
+  thing: "Thing",
+  app: "App",
+  drawable: "Drawable",
+  "drawable list": "DrawableList"
+}
+
+/** Built-in types which are classes at runtime -- see `BUILT_IN_CLASS_NAMES`. */
+export const BUILT_IN_CLASSES: Datatype[] = Object.keys(BUILT_IN_CLASS_NAMES)
+
+/** The class names in `BUILT_IN_CLASS_NAMES`, e.g. `DrawableList`. */
+const BUILT_IN_CLASS_NAME_SET = new Set(Object.values(BUILT_IN_CLASS_NAMES))
+
+/**
+ * Name of the class for type `name`, as compiled code and `scope.types` name it.
+ * - a built-in class by its datatype, e.g. `drawable list` => `DrawableList`;  its class name stays as it is
+ * - anything else in Type_Case (`typeCase()`), e.g. `bank-accounts` => `Bank_Account`
+ */
+export function classCase(name: string): string {
+  return BUILT_IN_CLASS_NAMES[`${name}`.toLowerCase()] ?? (BUILT_IN_CLASS_NAME_SET.has(name) ? name : typeCase(name))
+}
 
 /**
  * Datatype for a type name as a user WROTE it -- THE one normaliser.

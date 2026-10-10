@@ -3,17 +3,17 @@
  * (`yarn build:element`), the VS Code runner's (`yarn build:runner`) and the web app's (`yarn build`).
  * - A runner loads it to run programs on -- `<spell-app>` loads its OWN copy per element, see `loadRuntime()`,
  *   so each has its own `spellCore`:  its own `RUNTIME`, console, event listeners and mount point.
- * - It IS a program's `@spell/core`:  it exports `spellCore`, `Thing`, `List` and `App`, and compiled spell's
+ * - It IS a program's `@spell/core`:  it exports `spellCore` and spell's classes (`Thing`, `List` ...), and compiled spell's
  *   `import ... from "@spell/core"` is pointed at this module's URL -- see `runApp()`.
  * - Programs draw with Solid, on the page's Spell UI:  `<ui-form>`, `<ui-button>` ... by their own tags.
  * - MUST be the only module in a bundle that imports `spellCore`'s code, so it's all HERE, not in a shared
  *   chunk -- see `element.build.test.ts`, `parser/build.test.ts`.
  */
-import { spellCore, Thing, List, App } from "$/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList } from "$/core"
 import { runCompiled, appIsMounted, unmountApp, type RunCompiledOptions } from "./runCompiled"
 
-// Compiled spell imports these -- `import { spellCore, Thing, List, App } from "@spell/core"`.
-export { spellCore, Thing, List, App, appIsMounted, unmountApp }
+// Compiled spell imports these -- `import { spellCore, Thing, List, App, Drawable, DrawableList } from "@spell/core"`.
+export { spellCore, Thing, List, App, Drawable, DrawableList, appIsMounted, unmountApp }
 
 /**
  * Run `compiled` spell javascript afresh in this copy, drawing any app into `appRoot` -- see `runCompiled()`.

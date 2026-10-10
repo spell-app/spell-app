@@ -1,4 +1,4 @@
-import { getDerived, singularize, typeCase } from "$/util"
+import { getDerived, singularize } from "$/util"
 import { P } from "$/parser"
 // Import directly, NOT through the `$/core` barrel:  the parser MUST NOT load `spellCore` itself -- each
 // runner runs its own copy.  See `spellRuntime.ts`.
@@ -168,7 +168,7 @@ export class SpellParser extends P.Parser {
       for (const [name, superType] of Object.entries(P.BUILT_IN_TYPES)) {
         const existing = scope.types.get(name, "LOCAL_ONLY")
         if (!existing) scope.types.add({ name, superType })
-        else if (superType) existing.superType = typeCase(superType)
+        else if (superType) existing.superType = P.classCase(superType)
       }
       // their members, docs and item types -- see `BUILT_IN_TYPE_TABLE`
       SP.loadBuiltInTypes(scope)

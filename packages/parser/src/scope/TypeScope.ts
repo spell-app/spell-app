@@ -1,4 +1,4 @@
-import { typeCase, instanceCase, snakeCase } from "$/util"
+import { instanceCase, snakeCase } from "$/util"
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { BlockScope } from "./BlockScope"
@@ -68,9 +68,9 @@ export class TypeScope extends BlockScope {
     if (!this.name) throw new TypeError("Types must be created with a 'name'")
 
     // Make sure type `name` and `superType` are in `Type_Case`
-    this.name = typeCase(this.name)
-    if (this.superType) this.superType = typeCase(this.superType)
-    if (this.aka) this.aka = typeCase(this.aka)
+    this.name = P.classCase(this.name)
+    if (this.superType) this.superType = P.classCase(this.superType)
+    if (this.aka) this.aka = P.classCase(this.aka)
   }
 
   ////////////////
@@ -108,10 +108,10 @@ export class TypeScope extends BlockScope {
     const next = {
       stub: false,
       declaredBy,
-      superType: superType && typeCase(superType),
+      superType: superType && P.classCase(superType),
       itemType,
       valueKind,
-      aka: aka && typeCase(aka)
+      aka: aka && P.classCase(aka)
     }
     Object.assign(this, next)
     // now IT declares us -- see `ScopeList.noteDeclared()`
@@ -235,7 +235,7 @@ export class TypeScope extends BlockScope {
 
   /** Are we `ancestor`, or a sub-type of it?  By record, or by name, e.g. `"thing"`. */
   isA(ancestor: TypeScope | string): boolean {
-    const name = typeof ancestor === "string" ? typeCase(ancestor) : undefined
+    const name = typeof ancestor === "string" ? P.classCase(ancestor) : undefined
     return this.chain().some((type) => (name ? type.name === name : type === ancestor))
   }
 
