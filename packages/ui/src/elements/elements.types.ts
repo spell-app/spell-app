@@ -29,6 +29,8 @@ export type ClassInput = Readonly<Record<string, unknown>>
 export type ClassBuildOptions = {
   /** Classes put just before the noun, e.g. a state (`active`) or a caller's own class:  `ui primary icon button`. */
   extra?: string
+  /** The last class word;  default the vocabulary's `noun`.  `<ui-tab>`'s pane says `segment`:  `ui tab segment`. */
+  noun?: string
 }
 
 /** Fomantic's connective words, see `ClassBuilder.grammar`. */
