@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-brand-composer>` uses:  tag, attributes, events, slots, parts, states, texts.  Schema:
- * `ComponentVocabulary`.
+ * `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
  * - Class words:  `casting` and `disabled` emit their names.  The element adds `brand` before the noun,
  *   and `large` for `size="large"` (`brand large composer`).
@@ -8,7 +8,7 @@
  *   the PROPERTY the live one.
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-brand-composer>`
@@ -128,4 +128,4 @@ export const brandComposerVocabulary = {
     { key: "cast", text: "Cast spell", description: "The Cast button's name." },
     { key: "casting", text: "Casting your spell…", description: "Announced when `casting` turns on." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

@@ -1,11 +1,11 @@
 /**
  * The English vocabulary of `<ui-brand-blob>`:  every name the tag uses.
- * - The shape is `ComponentVocabulary`.
+ * - The shape is `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
  * - `corner`, `shape` and `tone` are not class words:  the component places and colours its one shape.
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `brandBlobVocabulary`
@@ -51,4 +51,4 @@ export const brandBlobVocabulary = {
   parts: [{ name: "blob", description: "The shape." }],
   states: [],
   texts: []
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary
