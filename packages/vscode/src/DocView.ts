@@ -139,22 +139,24 @@ export class DocView implements vscode.WebviewViewProvider {
       vscode.commands.registerCommand("spell.docView.home", () => DocView.goHome()),
       vscode.commands.registerCommand("spell.reviewView.home", () => DocView.goHome("review")),
       vscode.commands.registerCommand("spell.reviewView.openEpic", () => DocView.pickEpic()),
-      vscode.commands.registerCommand("spell.docView.inspect", () => DocView.openDevTools()),
-      vscode.commands.registerCommand("spell.docView.showConsole", () => DocView.openDevTools())
+      vscode.commands.registerCommand("spell.docView.inspect", () => DocView.toggleDevTools()),
+      vscode.commands.registerCommand("spell.docView.showConsole", () => DocView.toggleDevTools())
     )
   }
 
   /**
    * The Inspect and Show Console buttons, on both views' title bars:  open the developer tools that hold the page,
-   * VS Code's own "Developer:  Open Webview Developer Tools" (`workbench.action.webview.openDeveloperTools`).
-   * - both open the SAME tools, on the tab last used:  VS Code's command takes no tab or mode, it only opens the
-   *   window's tools when a webview is there (`webviewCommands.ts`, `nativeHostService.openDevTools()`)
+   * and close them on the next click (Owen, 2026-10-10:  "can't close the browser console pane, no (x)").
+   * - VS Code's "Developer:  Toggle Developer Tools" (`workbench.action.toggleDevTools`):  the window's tools, the
+   *   same ones "Open Webview Developer Tools" opens in desktop VS Code (`webviewCommands.ts` calls
+   *   `nativeHostService.openDevTools()`), but it closes them too
+   * - both open the SAME tools, on the tab last used:  neither command takes a tab or mode
    *   - so each button's tooltip says what to pick next:  the element picker (Cmd + Shift + C), or the Console tab
    *     and the page's frame (`127.0.0.1`) in its context menu
    * - only in desktop VS Code:  elsewhere the command isn't there, and a warning says so
    */
-  static async openDevTools(): Promise<void> {
-    await vscode.commands.executeCommand("workbench.action.webview.openDeveloperTools").then(
+  static async toggleDevTools(): Promise<void> {
+    await vscode.commands.executeCommand("workbench.action.toggleDevTools").then(
       () => undefined,
       () => vscode.window.showWarningMessage("Spell:  this VS Code has no webview developer tools.")
     )
