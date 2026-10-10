@@ -69,6 +69,16 @@ describe("compiled-style getter / setter properties", () => {
   })
 })
 
+describe("Thing.isOfType()", () => {
+  test("its own type and each it extends, as `spellCore.isOfType()`", () => {
+    class UrgentTask extends Task {}
+    const task = new UrgentTask({})
+    expect(["urgenttask", "Task", "thing"].map((type) => task.isOfType(type))).toEqual([true, true, true])
+    expect(task.isOfType("list")).toBe(false)
+    expect(task.isOfType("task")).toBe(spellCore.isOfType(task, "task"))
+  })
+})
+
 describe("`setProp()` check", () => {
   test("a value of the right type doesn't warn", () => {
     const warn = vi.spyOn(spellCore.console, "warn").mockImplementation(() => {})

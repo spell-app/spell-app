@@ -370,3 +370,218 @@ describe("JSON", () => {
     expect(seen).toEqual(['[{"rank":"A"}]', '[{"rank":"A"},{"rank":"K"}]', '[{"rank":"K"}]'])
   })
 })
+
+////////////////
+// ## List methods (epic `output-targets`, Q33, Q35, Q36)
+////////////////
+
+/** A plain list of `items`, typed:  `List<number>`. */
+function numbers(...items: number[]): List<number> {
+  return new List<number>().append(...items)
+}
+
+/**
+ * Each method beside its `spellCore` twin, run on two lists alike:  `[name, method, twin]`.
+ * - Compared by `outcome()`.
+ */
+const TWINS: Array<[string, (list: List<number>) => unknown, (list: List<number>) => unknown]> = [
+  ["firstItem", (list) => list.firstItem, (list) => spellCore.getItemOf(list, 1)],
+  ["lastItem", (list) => list.lastItem, (list) => spellCore.getItemOf(list, -1)],
+  ["isEmpty", (list) => list.isEmpty, (list) => spellCore.isEmpty(list)],
+  ["max", (list) => list.max, (list) => spellCore.largestOf(list)],
+  ["min", (list) => list.min, (list) => spellCore.smallestOf(list)],
+  ["values", (list) => list.values, (list) => spellCore.valuesOf(list)],
+  [
+    "includes",
+    (list) => [list.includes(2, 3), list.includes(2, 9)],
+    (list) => [spellCore.includes(list, 2, 3), spellCore.includes(list, 2, 9)]
+  ],
+  ["includesAny", (list) => list.includesAny(9, 3), (list) => spellCore.includesAny(list, 9, 3)],
+  ["all", (list) => list.all((it) => it > 0), (list) => spellCore.all(list, (it) => it > 0)],
+  ["any", (list) => list.any((it) => it > 3), (list) => spellCore.any(list, (it) => it > 3)],
+  [
+    "map",
+    (list) => list.map((it, position) => it * position),
+    (list) => spellCore.map(list, (it, position) => it * Number(position))
+  ],
+  ["filter", (list) => list.filter((it) => it % 2 === 1), (list) => spellCore.filter(list, (it) => it % 2 === 1)],
+  ["append", (list) => list.append(7, 8), (list) => spellCore.append(list, 7, 8)],
+  ["prepend", (list) => list.prepend(7, 8), (list) => spellCore.prepend(list, 7, 8)],
+  ["addAt", (list) => list.addAt(2, 7), (list) => spellCore.addAtPosition(list, 2, 7)],
+  ["addBefore", (list) => list.addBefore(3, 7), (list) => spellCore.addBefore(list, 3, 7)],
+  ["addAfter", (list) => list.addAfter(3, 7), (list) => spellCore.addAfter(list, 3, 7)],
+  ["remove", (list) => list.remove(2, 4), (list) => spellCore.remove(list, 2, 4)],
+  ["removeWhere", (list) => list.removeWhere((it) => it > 2), (list) => spellCore.removeWhere(list, (it) => it > 2)],
+  ["removeBetween", (list) => list.removeBetween(2, 3), (list) => spellCore.removeRangeBetween(list, 2, 3)],
+  ["setItems", (list) => list.setItems(2, 7, 8), (list) => spellCore.setItemsOf(list, 2, 7, 8)],
+  ["reverse", (list) => list.reverse(), (list) => spellCore.reverse(list)],
+  ["startingFrom", (list) => list.startingFrom(-2), (list) => spellCore.rangeStartingAt(list, -2)],
+  [
+    "startingWith",
+    (list) => list.startingWith(3),
+    (list) => spellCore.rangeStartingAt(list, spellCore.itemOf(list, 3))
+  ],
+  ["between", (list) => list.between(2, 3), (list) => spellCore.rangeBetween(list, 2, 3)],
+  [
+    "startsWith",
+    (list) => [list.startsWith(1), list.startsWith(2)],
+    (list) => [spellCore.startsWith(list, 1), spellCore.startsWith(list, 2)]
+  ],
+  [
+    "endsWith",
+    (list) => [list.endsWith(4), list.endsWith(3)],
+    (list) => [spellCore.endsWith(list, 4), spellCore.endsWith(list, 3)]
+  ],
+  ["clone", (list) => list.clone(), (list) => spellCore.duplicateCollection(list)],
+  [
+    "appendAll",
+    (list) => list.appendAll([7], numbers(8)),
+    (list) => spellCore.mergeCollectionsInto(list, [7], numbers(8))
+  ]
+]
+
+/**
+ * What to compare of `result`, from a method on `list`:  a list result as its class and items, then `list`'s items.
+ * - A change returns its list and its twin nothing, or the list:  both are `"changed"`, and the items after say how.
+ */
+function outcome(result: unknown, list: List): unknown {
+  const answer = result === list || result === undefined ? "changed" : result
+  return {
+    answer: answer instanceof List ? { class: answer.constructor, items: answer.getValues() } : answer,
+    after: list.getValues()
+  }
+}
+
+describe("List methods", () => {
+  test.each(TWINS)("`%s` does what its `spellCore` twin does", (_name, method, twin) => {
+    const mine = numbers(1, 2, 3, 4)
+    const theirs = numbers(1, 2, 3, 4)
+    expect(outcome(method(mine), mine)).toEqual(outcome(twin(theirs), theirs))
+  })
+
+  test("on an empty list:  `undefined` items, empty, and empty results of its class", () => {
+    const empty = new Deck({})
+    expect([empty.firstItem, empty.lastItem, empty.max, empty.min, empty.randomItem()]).toEqual(
+      Array(5).fill(undefined)
+    )
+    expect(empty.isEmpty).toBe(true)
+    expect(empty.all()).toBe(false)
+    for (const result of [empty.between(1, 2), empty.startingFrom(1), empty.filter(), empty.randomItems(2)]) {
+      expect(result).toBeInstanceOf(Deck)
+      expect(result.getValues()).toEqual([])
+    }
+  })
+
+  test("callbacks get `(value, position, list)`, position counting from 1", () => {
+    const deck = new Deck({}).append("a", "b", "c")
+    const seen: unknown[] = []
+    deck.forEach((value, position, list) => seen.push([value, position, list === deck]))
+    expect(seen).toEqual([
+      ["a", 1, true],
+      ["b", 2, true],
+      ["c", 3, true]
+    ])
+  })
+
+  test("a change returns the list, so calls chain", () => {
+    expect(numbers(1, 2, 3).append(4).reverse().remove(1).prepend(0).getValues()).toEqual([0, 4, 3, 2])
+  })
+
+  test("add before / after an item that isn't there:  at the START / the END", () => {
+    expect(numbers(1, 2).addBefore(9, 7).getValues()).toEqual([7, 1, 2])
+    expect(numbers(1, 2).addAfter(9, 7).getValues()).toEqual([1, 2, 7])
+    expect(numbers(1, 2).addBefore(2, 7).addAfter(1, 8).getValues()).toEqual([1, 8, 7, 2])
+  })
+
+  test("starting with an item that isn't there:  ALL of them, as compiled spell does", () => {
+    expect(numbers(1, 2, 3).startingWith(9).getValues()).toEqual([1, 2, 3])
+    expect(numbers(1, 2, 3).startingWith(2).getValues()).toEqual([2, 3])
+  })
+
+  test("random ones:  items it holds, each once, in a scratch list of its class", () => {
+    const deck = new Deck({}).append(...cards(5))
+    expect(deck.includes(deck.randomItem())).toBe(true)
+    const picked = deck.randomItems(3)
+    expect(picked).toBeInstanceOf(Deck)
+    expect(new Set(picked.getValues()).size).toBe(3)
+    expect(picked.all((card) => deck.includes(card))).toBe(true)
+    const before = new Set(deck.getValues())
+    expect(new Set(deck.randomize().getValues())).toEqual(before)
+  })
+
+  test("copies:  `clone()` keeps the class, `cloneAs()` takes one, `merged()` makes one of a list of lists", () => {
+    const tableau = new Tableau({}).append(...cards(2))
+    expect(tableau.clone()).toBeInstanceOf(Tableau)
+    expect(tableau.clone().getValues()).toEqual(tableau.getValues())
+    expect(tableau.cloneAs(Deck)).toBeInstanceOf(Deck)
+    const lists = new List<List>().append(numbers(1, 2), numbers(3))
+    expect(lists.merged()!.getValues()).toEqual([1, 2, 3])
+    expect(lists.merged(Deck)).toBeInstanceOf(Deck)
+    expect(new List<List>().merged()).toBe(undefined)
+  })
+
+  test("SCRATCH:  filtering, mapping, copying or taking a range of a pile never takes a card out of it", () => {
+    const [a, b, c] = cards(3)
+    const pile = new Pile({}).append(a, b)
+    const tableau = new Tableau({}).append(c)
+    const allPiles = new List<Pile>().append(pile, tableau)
+    const results = [
+      pile.filter(() => true),
+      pile.map((card) => card),
+      pile.between(1, 2),
+      pile.startingFrom(1),
+      pile.startingWith(b),
+      pile.randomItems(),
+      pile.clone(),
+      pile.cloneAs(Tableau),
+      allPiles.merged(),
+      allPiles.merged(Pile)
+    ]
+    for (const result of results) expect(result).toBeInstanceOf(Pile)
+    expect(itemsOf(pile)).toEqual([a, b])
+    expect(itemsOf(tableau)).toEqual([c])
+    expect([a, b, c].map((card) => card!.pile)).toEqual([pile, pile, tableau])
+    // a list of piles isn't exclusive:  filtering it keeps the piles themselves
+    expect(allPiles.filter((it) => it === tableau).getValues()).toEqual([tableau])
+  })
+
+  test("changes through the methods keep the owners:  add before moves a card, remove between frees it", () => {
+    const [a, b, c] = cards(3)
+    const pile = new Pile({}).append(a, b)
+    const tableau = new Tableau({}).append(c)
+    tableau.addBefore(c, b)
+    expect(itemsOf(pile)).toEqual([a])
+    expect(itemsOf(tableau)).toEqual([b, c])
+    expect(b!.pile).toBe(tableau)
+    tableau.removeBetween(1, 2)
+    expect([b!.pile, c!.pile]).toEqual([undefined, undefined])
+  })
+
+  test("iterable:  `for ... of` and spread, over the items as they were when it started", () => {
+    const deal = cards(3)
+    const pile = new Pile({}).append(...deal)
+    const seen: unknown[] = []
+    for (const card of pile) {
+      seen.push(card)
+      pile.remove(card)
+    }
+    expect(seen).toEqual(deal)
+    expect(itemsOf(pile)).toEqual([])
+    expect([...numbers(1, 2)]).toEqual([1, 2])
+  })
+
+  test("typed by its items:  a `List<number>`'s first item is a `number | undefined`", () => {
+    const list = numbers(3, 1, 2)
+    const first: number | undefined = list.firstItem
+    const doubled: List<number> = list.map((it) => it * 2)
+    const odd: List<number> = list.filter((it) => it % 2 === 1)
+    expect([first, doubled.getValues(), odd.getValues()]).toEqual([3, [6, 2, 4], [3, 1]])
+  })
+
+  test("`isOfType()`:  its class, each it extends, and `list` -- as `spellCore.isOfType()`", () => {
+    const tableau = new Tableau({})
+    expect(["tableau", "pile", "list", "Pile"].map((type) => tableau.isOfType(type))).toEqual([true, true, true, true])
+    expect(tableau.isOfType("foundation")).toBe(false)
+    expect(tableau.isOfType("pile")).toBe(spellCore.isOfType(tableau, "pile"))
+  })
+})

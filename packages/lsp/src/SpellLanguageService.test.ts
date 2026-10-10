@@ -46,7 +46,7 @@ describe("SpellLanguageService", () => {
     expect(changed.map((file) => file.file)).toEqual(["Card.spell", "Deck.spell", "Pile.spell", "Solitaire.spell"])
   })
 
-  test("opening a file parses its whole project, cleanly -- bar warnings of types it never says", () => {
+  test("opening a file parses its whole project, cleanly -- bar warnings of what it never says", () => {
     const warnings: string[] = []
     for (const file of card.project.spellFiles) {
       expect(file.match, file.path).toBeDefined()
@@ -58,7 +58,10 @@ describe("SpellLanguageService", () => {
     expect(warnings).toEqual([
       'Deck.spell:  Say what "card-names" holds, e.g. "set card-names to a new list of text"',
       'Solitaire.spell:  Say what "state" holds, e.g. "set state to a new list of text"',
-      'Solitaire.spell:  Say what "name" is:  declare it, e.g. "a pile has a name as text"'
+      // members only `new ... with droppable = no` gives:  nothing declares them (epic `output-targets`, Q45)
+      'Solitaire.spell:  A pile never says it has a droppable:  declare it, e.g. "a pile has a droppable as text"',
+      'Solitaire.spell:  Say what "name" is:  declare it, e.g. "a pile has a name as text"',
+      'Solitaire.spell:  A foundation never says it has a symbol:  declare it, e.g. "a foundation has a symbol as text"'
     ])
   })
 

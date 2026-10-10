@@ -132,7 +132,7 @@ export class Card extends Thing {
       tag: "div",
       props: {
         onClick: (event) => {
-          return spellCore.RUNTIME.trigger('card-click', { card: this })
+          return spellCore.trigger('card-click', { card: this })
         },
         className: () => className
       },
@@ -144,7 +144,7 @@ export class Card extends Thing {
       tag: "div",
       props: {
         onClick: (event) => {
-          return spellCore.RUNTIME.trigger('card-click', { card: this })
+          return spellCore.trigger('card-click', { card: this })
         },
         className: () => (className + this.color)
       },
@@ -253,13 +253,13 @@ export function test_deck_creation() {
       return (card.rank == "queen")
     })
     spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
-    spellCore.expect(spellCore.getItemOf(deck, -1).name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    spellCore.expect(spellCore.getItemOf(deck, 1).short_name, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
+    spellCore.expect(spellCore.getItemOf(deck, -1)?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    spellCore.expect(spellCore.getItemOf(deck, 1)?.short_name, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
     
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
     deck.display()
-    spellCore.expect(spellCore.getItemOf(deck, 1).is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
+    spellCore.expect(spellCore.getItemOf(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
 test_deck_creation()
@@ -271,12 +271,12 @@ export class Pile extends List {
 
   get color() {
     if (spellCore.isEmpty(this)) { return "none" }
-    return spellCore.getItemOf(this, -1).color
+    return spellCore.getItemOf(this, -1)?.color
   }
 
   get value() {
     if (spellCore.isEmpty(this)) { return 0 }
-    return spellCore.getItemOf(this, -1).value
+    return spellCore.getItemOf(this, -1)?.value
   }
 
   get state() {

@@ -144,18 +144,22 @@ describe("SpellDeclarations.importScope()", () => {
   test("the app compiles the same against the library's declarations as against its sources", () => {
     const fromSources = summarize(parseSpellProject(all)).filter(({ path }) => path === "/Solitaire.spell")
     const fromDeclarations = summarize(parseSpellProject(app, { parentScope: importLibrary() }))
-    // bar ONE thing:  `set the name of cards-to-move to ...` declares a pile's `name`
+    // bar two things.  `set the name of cards-to-move to ...` declares a pile's `name`
     // only on a type the project declares itself -- see `assignment_statement.declareProperty()`
     // -- and so only there asks what it is
     const autoDeclared =
       /\/\*! SPELL: DECLARES \{\n {2}property: "name", of: "Pile", autoDeclared: true,\n.*\n\} \*\/\n(.*\n){5}/
     const asksWhatItIs = /Say what "name" is/
+    // And a member read its type never declares warns only where the type is the project's own, never an import's:
+    // the importer may give it anything -- see `MemberReadExpression.warnIfUndeclared()`
+    const neverSays = /A pile never says it has a droppable/
     expect(fromSources[0]!.compiled).toMatch(autoDeclared)
     expect(fromSources[0]!.warnings).toContainEqual(expect.stringMatching(asksWhatItIs))
+    expect(fromSources[0]!.warnings).toContainEqual(expect.stringMatching(neverSays))
     const withoutIt = fromSources.map((it) => ({
       ...it,
       compiled: it.compiled?.replace(autoDeclared, ""),
-      warnings: it.warnings.filter((warning) => !asksWhatItIs.test(warning))
+      warnings: it.warnings.filter((warning) => !asksWhatItIs.test(warning) && !/never says it has/.test(warning))
     }))
     expect(fromDeclarations).toEqual(withoutIt)
   })
@@ -369,7 +373,8 @@ describe("SpellDeclarations of `a card belongs to one pile`", () => {
   test("loads it again:  `the pile of a card` is a `Pile`, read-only, declared on its own line", () => {
     const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from, declarations }])
     const member = imports.types.get("Card", "LOCAL_ONLY")?.variables.get("pile", "LOCAL_ONLY")
-    expect(member).toMatchObject({ name: "pile", datatype: "Pile", exclusive: true })
+    // a getter, which its declaration leaves unsaid -- see `SP.SpellDeclaration.getter`
+    expect(member).toMatchObject({ name: "pile", datatype: "Pile", exclusive: true, isGetter: true })
     expect(member?.declaredAt).toMatchObject({ path: `${from}/Pile.spell`, start: 26, end: 52 })
     const contents = ["set card to a new card", "print the pile of the card", "set the pile of the card to 1"]
     const { files } = parseSpellProject([{ path: "/A.spell", contents: contents.join("\n") }], {
@@ -408,5 +413,40 @@ describe("SpellDeclarations of a multi-word member", () => {
     const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from: "@library/c", declarations }])
     const member = imports.types.get("Card", "LOCAL_ONLY")?.variables.get("short_rank", "LOCAL_ONLY")
     expect(member?.asWritten).toBe("short rank")
+  })
+})
+
+/**
+ * A DERIVED property -- a getter works it out -- says so, so an importer's TypeScript reads it by TypeScript's name,
+ * `card.shortName`, not spell's (epic `output-targets`, J20 / I5).
+ */
+describe("SpellDeclarations of a derived property", () => {
+  const library = [
+    {
+      path: "/Card.spell",
+      contents: [
+        "a card is a thing",
+        "a card has a rank as number",
+        "a card has a suit as text",
+        "the short rank of a card is: its rank",
+        'the color of a card is "red" if its suit is "hearts" otherwise "black"'
+      ].join("\n")
+    }
+  ]
+  const declarations = compiledProject(library).declarations
+  const property = (name: string) => declarations.statements.find((it) => it.property === name)
+
+  test("says `getter` for a getter's property -- not for a stored one", () => {
+    expect(property("short_rank")?.getter).toBe(true)
+    expect(property("color")?.getter).toBe(true)
+    expect(property("rank")?.getter).toBeUndefined()
+  })
+
+  test("loads it as the record's `isGetter`", () => {
+    const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from: "@library/c", declarations }])
+    const card = imports.types.get("Card", "LOCAL_ONLY")!
+    expect(card.variables.get("short_rank", "LOCAL_ONLY")?.isGetter).toBe(true)
+    expect(card.variables.get("color", "LOCAL_ONLY")?.isGetter).toBe(true)
+    expect(card.variables.get("rank", "LOCAL_ONLY")?.isGetter).toBeUndefined()
   })
 })

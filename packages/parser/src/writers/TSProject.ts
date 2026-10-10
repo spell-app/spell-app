@@ -13,8 +13,8 @@ export class TSProject {
   /**
    * Getters the project declares, by spell's name, e.g. `is_face_up`:  read as TypeScript's, `isFaceUp`.
    * - And the methods of the types it imports, e.g. `is_face_up` from `card "is face up" if ...`:  one read as a
-   *   property is a getter there.  NOT an imported getter declared as a property (`the short name of a card is
-   *   ...`):  its declarations don't say it's a getter -- see the epic's issues.
+   *   property is a getter there.  And their getters declared as properties (`the short name of a card is ...`):
+   *   their declarations say `"getter": true` (`P.ScopeVariable.isGetter`).
    * - NOT a name some class also has as a property (`ASTReactiveProperty`):  a property keeps spell's name, and a
    *   read can't tell which of the two it is.
    */
@@ -38,6 +38,15 @@ export class TSProject {
    * one's (`importedMembers`), and what it gets for TypeScript only (`undeclared`).  See `isInherited()`.
    */
   readonly members = new Map<string, Set<string>>()
+  /**
+   * What each variable the files set at their top level is set to, by spell's name, e.g. `all_piles` => `new
+   * List<Pile>(...)`:  so the writer knows it's a list, even where it's read before it's set (in a class above it).
+   */
+  readonly moduleValues = new Map<string, P.ASTExpression>()
+  /** Each class's lists of values written out, as `<Class>.<Static>`, e.g. `Deck.Suits`:  plain arrays. */
+  readonly staticLists = new Set<string>()
+  /** Each class's own getters, by spell's name:  see `getterOf()`. */
+  readonly getterMethods = new Map<string, Map<string, P.ASTMethodDefinition>>()
   /** Each class's own properties, by name:  see `propertyOf()`. */
   readonly properties = new Map<string, Map<string, P.ASTReactiveProperty>>()
   /**
@@ -71,8 +80,12 @@ export class TSProject {
           project.getters.add(method.name)
           members.add(method.name)
         }
-        for (const variable of type.variables?.get() ?? []) members.add(variable.name)
+        for (const variable of type.variables?.get() ?? []) {
+          members.add(variable.name)
+          if (variable.isGetter) project.getters.add(variable.name)
+        }
         project.importedMembers.set(type.name, members)
+        if (type.superType) project.superTypes.set(type.name, type.superType)
       }
     }
     const classes = new Map<string, P.ASTClassDeclaration>()
@@ -95,6 +108,7 @@ export class TSProject {
     for (const statements of files) project.moveMembers(statements, classes)
     for (const declaration of classes.values()) project.noteClass(declaration, classes)
     project.noteUndeclared(files, classes)
+    for (const statements of files) project.noteModuleValues(statements)
     return project
   }
 
@@ -113,6 +127,45 @@ export class TSProject {
       if (property) return property
     }
     return undefined
+  }
+
+  /** Is class `typeName` a spell `List`, or one of its sub-classes, e.g. `Pile`, `Tableau`? */
+  isListClass(typeName: string | undefined): boolean {
+    return this.isSubclassOf(typeName, "List")
+  }
+
+  /** Is class `typeName` class `ancestor`, or below it, e.g. a `Discard_Pile` a `Pile`? */
+  isSubclassOf(typeName: string | undefined, ancestor: string): boolean {
+    for (let type = typeName; type; type = this.superTypes.get(type)) {
+      if (type === ancestor) return true
+    }
+    return false
+  }
+
+  /** Class `typeName`'s getter `name`, its own or a super-type's -- `undefined` if it has none. */
+  getterOf(typeName: string | undefined, name: string): P.ASTMethodDefinition | undefined {
+    for (let type = typeName; type; type = this.superTypes.get(type)) {
+      const getter = this.getterMethods.get(type)?.get(name)
+      if (getter) return getter
+    }
+    return undefined
+  }
+
+  /** Is `typeName` a class the project declares or imports, e.g. `Tableau`? */
+  isClass(typeName: string): boolean {
+    return this.members.has(typeName) || this.importedMembers.has(typeName)
+  }
+
+  /** SIDE EFFECT:  notes each variable `statements` set at the top of a file, in `moduleValues`.  Looks inside groups. */
+  private noteModuleValues(statements: P.ASTNode[]) {
+    for (const statement of statements) {
+      if (statement instanceof P.ASTStatementGroup && !(statement instanceof P.ASTTryCatchBlock)) {
+        this.noteModuleValues(statement.statements ?? [])
+      } else if (statement instanceof P.ASTAssignmentStatement && statement.isNewVariable) {
+        if (statement.thing instanceof P.ASTVariableExpression)
+          this.moduleValues.set(statement.thing.name, statement.value)
+      }
+    }
   }
 
   /** Class `typeName`'s item type, its own or a super-type's, e.g. `Card` for a `Tableau`, which is a `Pile`. */
@@ -173,6 +226,9 @@ export class TSProject {
     if (declaration.superType) this.superTypes.set(declaration.type.name, declaration.superType.name)
     const members = [...(declaration.members ?? []), ...(this.movedMembers.get(declaration.type.name) ?? [])]
     for (const member of members) {
+      if (member instanceof P.ASTStaticDefinition && isListLiteral(member.value)) {
+        this.staticLists.add(`${declaration.type.name}.${member.name}`)
+      }
       if (member instanceof P.ASTStaticDefinition && member.name === "instanceType") {
         if (member.value instanceof P.ASTTypeExpression) this.itemTypes.set(declaration.type.name, member.value.name)
       }
@@ -180,6 +236,10 @@ export class TSProject {
       if (member instanceof P.ASTStaticMethod && member.getter && member.name === "instanceType") {
         const returned = listNamedBy(member.method)
         if (returned instanceof P.ASTTypeExpression) this.itemTypes.set(declaration.type.name, returned.name)
+      }
+      if (member instanceof P.ASTPropertyDefinition && member.get) {
+        const getters = this.getterMethods.get(declaration.type.name) ?? new Map()
+        this.getterMethods.set(declaration.type.name, getters.set(member.property.value, member.get))
       }
       if (!(member instanceof P.ASTReactiveProperty)) continue
       const own = this.properties.get(declaration.type.name) ?? new Map()

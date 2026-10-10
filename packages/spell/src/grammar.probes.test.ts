@@ -31,7 +31,7 @@ describe("grammar probes", () => {
 
   test("P1a  trailing operand takes the operator", () => {
     expect(probe("print the first card of the deck is face up")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.getItemOf(deck, 1).is_face_up)"`
+      `"spellCore.console.log(spellCore.getItemOf(deck, 1)?.is_face_up)"`
     )
   })
 
@@ -49,7 +49,7 @@ describe("grammar probes", () => {
 
   test("P1d  property of a position", () => {
     expect(probe("print the suit of the first card of the deck is hearts")).toMatchInlineSnapshot(
-      `"spellCore.console.log(spellCore.getItemOf(deck, 1).suit == 'hearts')"`
+      `"spellCore.console.log(spellCore.getItemOf(deck, 1)?.suit == 'hearts')"`
     )
   })
 
@@ -193,13 +193,13 @@ describe("grammar probes", () => {
 
   test("P8a  Deck.spell:40-41 as one line", () => {
     expect(probe("expect the first card of the deck is the ace of clubs to be yes")).toMatchInlineSnapshot(
-      `"spellCore.expect(spellCore.getItemOf(deck, 1).is_the_$rank_of_$suits('ace', 'clubs'), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
+      `"spellCore.expect(spellCore.getItemOf(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
     )
   })
 
   test("P8b  Solitaire:105 without its parens", () => {
     expect(probe("turn the bottom card of the deck face up")).toMatchInlineSnapshot(
-      `"spellCore.getItemOf(deck, -1).turn_face_up()"`
+      `"spellCore.getItemOf(deck, -1)?.turn_face_up()"`
     )
   })
 

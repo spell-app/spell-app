@@ -2,6 +2,7 @@
   "spellVersion": "0.8.0",
   "provides": [
     "Task",
+    "Task_List",
     "Todos_App",
     "create_a_new_task"
   ],
@@ -54,18 +55,24 @@
       ],
       "kind": "method",
       "name": "draw (a task)",
-      "defined": "/Todo.spell:667-1120"
+      "defined": "/Todo.spell:703-1156"
+    },
+    {
+      "type": "Task_List",
+      "superType": "List",
+      "itemType": "Task",
+      "defined": "/Todo.spell:197-227"
     },
     {
       "type": "Todos_App",
       "superType": "App",
-      "defined": "/Todo.spell:198-219"
+      "defined": "/Todo.spell:229-250"
     },
     {
       "property": "tasks",
       "of": "Todos_App",
-      "datatype": "list",
-      "defined": "/Todo.spell:220-266"
+      "datatype": "Task_List",
+      "defined": "/Todo.spell:251-302"
     },
     {
       "property": "filter",
@@ -76,7 +83,7 @@
         "'active'",
         "'completed'"
       ],
-      "defined": "/Todo.spell:267-326"
+      "defined": "/Todo.spell:303-362"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -89,7 +96,7 @@
       ],
       "kind": "method",
       "name": "draw (a todos-app)",
-      "defined": "/Todo.spell:1122-2088"
+      "defined": "/Todo.spell:1158-2131"
     },
     {
       "syntax": "create a new task (with {props:object_literal_properties})?",
@@ -106,7 +113,7 @@
           "name": "props"
         }
       ],
-      "defined": "/Todo.spell:391-522"
+      "defined": "/Todo.spell:427-558"
     }
   ],
   "codeLines": [
@@ -116,10 +123,11 @@
     13,
     17,
     21,
-    57,
-    58,
-    62,
-    67,
-    182
+    56,
+    60,
+    61,
+    65,
+    70,
+    185
   ]
 }

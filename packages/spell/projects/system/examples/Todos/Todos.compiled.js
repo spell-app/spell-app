@@ -54,9 +54,12 @@ export class Task extends Thing {
     ] })
   }
 }
+export class Task_List extends List {
+  static instanceType = Task
+}
 
 export class Todos_App extends App {
-  static { this.declareProp('tasks', { init: () => new List() }) }
+  static { this.declareProp('tasks', { init: () => new Task_List() }) }
   get tasks() { return this.getProp('tasks') }
   set tasks(value) { this.setProp('tasks', value) }
 
@@ -82,7 +85,7 @@ export class Todos_App extends App {
         })
       ] }),
       spellCore.element({ tag: "br" }),
-      spellCore.element({ tag: "table", props: { width: "50%" }, children: [
+      spellCore.element({ tag: "table", props: { style: "width: 50%" }, children: [
         spellCore.element({ tag: "tbody", children: [
           () => spellCore.drawItems(app.tasks)
         ] })

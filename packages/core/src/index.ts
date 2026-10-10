@@ -25,12 +25,17 @@ import "./string"
 import { SpellEvent, Eventful } from "./SpellEvent"
 import "./tests"
 import "./console"
-import "./runtime"
+import { on, off, once, trigger } from "./runtime"
 import "./things"
 import "./ui"
 import "./drawing"
 
 export { spellCore, assert, SpellEvent, Eventful }
+// Events, as hand-written TypeScript says them:  `trigger("card-click", { card: this })`.  Compiled JavaScript says
+// `spellCore.trigger(...)`:  the same functions.
+export { on, off, once, trigger }
+// Helpers hand-written TypeScript imports by name, e.g. `itemOf(Card.Ranks, this.rank)`.
+export { itemOf } from "./collection-core"
 // The decorators compiled TypeScript (`ts/solid`) writes, e.g. `@prop({ oneOf: RANKS }) accessor rank!: Rank`:
 // `$/util`'s shared reactive ones, spell's `@thing`, and `@drawn` (`drawing.ts`).  Compiled JavaScript has none.
 export { prop, state, derived, thing } from "$/util"

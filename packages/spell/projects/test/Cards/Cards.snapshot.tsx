@@ -1,16 +1,17 @@
 import { Show } from "solid-js"
-import { spellCore, Thing, List, App, prop, derived, drawn } from "@spell/core"
+import { spellCore, Thing, List, App, prop, derived, drawn, itemOf, trigger } from "@spell/core"
 
 spellCore.heading("definition of a Card with nice english aliases for working with it")
 /** card ranks */
 const RANKS = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
+export type Rank = (typeof RANKS)[number]
+
 /** card suits */
 const SUITS = ["clubs", "diamonds", "hearts", "spades"] as const
+export type Suit = (typeof SUITS)[number]
+
 /** card direction:  up or down */
 const DIRECTIONS = ["up", "down"] as const
-
-export type Rank = (typeof RANKS)[number]
-export type Suit = (typeof SUITS)[number]
 export type Direction = (typeof DIRECTIONS)[number]
 
 /** definition of a Card with nice english aliases for working with it */
@@ -32,7 +33,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   get value() {
-    return spellCore.itemOf(Card.Ranks, this.rank)!
+    return itemOf(Card.Ranks, this.rank)
   }
 
   static Directions = DIRECTIONS
@@ -84,9 +85,9 @@ export class Card extends Thing {
   }
 
   get shortRank() {
-    if (this.rank == undefined) return "?"
-    if (spellCore.isOfType(this.rank, "number")) return `${this.rank}`
-    return spellCore.upperCase(spellCore.getItemOf(this.rank, 1)!)
+    if (this.rank === undefined) return "?"
+    if (typeof this.rank === "number") return `${this.rank}`
+    return `${spellCore.getItemOf(this.rank, 1) ?? ""}`.toLocaleUpperCase() ?? "?"
   }
 
   get shortDirection() {
@@ -131,7 +132,7 @@ export class Card extends Thing {
   @drawn
   draw() {
     const className = () => `Card face-${this.direction} ${this.rank} ${this.suit} ui button compact fluid `
-    const click = () => spellCore.RUNTIME.trigger("card-click", { card: this })
+    const click = () => trigger("card-click", { card: this })
     return (
       <Show
         when={this.isFaceDown}
@@ -210,20 +211,16 @@ export class Deck extends List<Card> {
 
   setUp() {
     if (this.is_set_up) return
-    spellCore.map(Card.Ranks, (rank) => {
-      spellCore.map(Card.Suits, (suit) => {
-        const it = new Card({ rank: rank, suit: suit })
-        spellCore.append(this, it)
-      })
-    })
+    Card.Ranks.forEach((rank) => Card.Suits.forEach((suit) => {
+      const it = new Card({ rank: rank, suit: suit })
+      this.append(it)
+    }))
     this.is_set_up = true
   }
 
   display() {
     const cardNames = new List()
-    spellCore.map(this, (card: Card) => {
-      spellCore.append(cardNames, card.shortName)
-    })
+    this.forEach((card) => cardNames.append(card.shortName))
     spellCore.echo(`deck: ${cardNames}`)
   }
 
@@ -236,20 +233,20 @@ export function testDeckCreation() {
     const deck = new Deck()
     spellCore.echoTestAction(`set up the deck`)
     deck.setUp()
-    spellCore.expect(spellCore.itemCountOf(deck), `the number of cards in the deck`, 52, `52`)
+    spellCore.expect(deck.length, `the number of cards in the deck`, 52, `52`)
     spellCore.echoTestAction(`set up the deck`)
     deck.setUp()
-    spellCore.expect(spellCore.itemCountOf(deck), `the number of cards in the deck`, 52, `52`)
+    spellCore.expect(deck.length, `the number of cards in the deck`, 52, `52`)
     spellCore.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
-    const queens = spellCore.filter(deck, (card: Card) => card.rank == "queen") as Deck
-    spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
-    spellCore.expect(spellCore.getItemOf(deck, -1)!.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    spellCore.expect(spellCore.getItemOf(deck, 1)!.shortName, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
+    const queens = deck.filter((card) => card.rank == "queen")
+    spellCore.expect(queens.length, `the number of cards in the queens`, 4, `4`)
+    spellCore.expect(deck.lastItem?.name!, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    spellCore.expect(deck.firstItem?.shortName!, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
 
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
     deck.display()
-    spellCore.expect(spellCore.getItemOf(deck, 1)!.isTheRankOfSuits("ace", "clubs"), `the first card of the deck is the ace of clubs`, true, `yes`)
+    spellCore.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs")!, `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
 testDeckCreation()
@@ -260,21 +257,19 @@ export class Pile extends List<Card> {
   static instanceType = Card
 
   get color() {
-    if (spellCore.isEmpty(this)) return "none"
-    return spellCore.getItemOf(this, -1)!.color
+    if (this.isEmpty) return "none"
+    return this.lastItem?.color ?? "none"
   }
 
   get value() {
-    if (spellCore.isEmpty(this)) return 0
-    return spellCore.getItemOf(this, -1)!.value
+    if (this.isEmpty) return 0
+    return this.lastItem?.value ?? 0
   }
 
   @derived
   get state() {
     let state = `${this.name || "pile"}:`
-    spellCore.map(this, (card: Card) => {
-      state = `${state} ${card.state}`
-    })
+    this.forEach((card) => (state = `${state} ${card.state}`))
     return state
   }
 

@@ -1,5 +1,5 @@
 import { describe, test, expect, expectTypeOf, beforeEach, vi } from "vite-plus/test"
-import { spellCore, assert, List, Thing } from "$/core"
+import { spellCore, assert, itemOf, List, Thing } from "$/core"
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {
@@ -118,6 +118,24 @@ describe("spellCore.valuesOf()", () => {
   })
   test("returns correct values for a non-empty object", () => {
     expect(spellCore.valuesOf({ a: 1, b: true })).toEqual([1, true])
+  })
+})
+
+describe("itemOf(), imported by name", () => {
+  test("does what `spellCore.itemOf()` does, counting from 1;  a list's or an array's is a number", () => {
+    const deck = new List<string>().append("a", "b")
+    expect([itemOf(deck, "b"), itemOf(["x", "y"], "x"), itemOf(deck, "zzz")]).toEqual([2, 1, undefined])
+    expect(itemOf({ one: 1 }, 1)).toBe(spellCore.itemOf({ one: 1 }, 1))
+    expectTypeOf(itemOf(deck, "b")).toEqualTypeOf<number | undefined>()
+  })
+
+  test("typed `number` for a value of an array's OWN item type:  an enumeration's value is always in it", () => {
+    const RANKS = ["A", 2, 3] as const
+    const rank: (typeof RANKS)[number] = 2
+    expect(itemOf(RANKS, rank)).toBe(2)
+    expectTypeOf(itemOf(RANKS, rank)).toEqualTypeOf<number>()
+    expectTypeOf(spellCore.itemOf(RANKS, rank)).toEqualTypeOf<number>()
+    expectTypeOf(itemOf(RANKS, "Q" as unknown)).toEqualTypeOf<number | undefined>()
   })
 })
 
@@ -402,13 +420,15 @@ describe("typed collections:  a helper's result and callbacks follow its collect
 
   test("`itemOf()` a list or an array is a position;  of anything else, a key or a position", () => {
     expectTypeOf(spellCore.itemOf(new Pile(), 1)).toEqualTypeOf<number | undefined>()
-    expectTypeOf(spellCore.itemOf(["a"], "a")).toEqualTypeOf<number | undefined>()
+    // an array's own item type:  typed as always there -- see `itemOf()`
+    expectTypeOf(spellCore.itemOf(["a"], "a")).toEqualTypeOf<number>()
+    expectTypeOf(spellCore.itemOf(["a"], 1 as unknown)).toEqualTypeOf<number | undefined>()
     expectTypeOf(spellCore.itemOf({ a: 1 }, 1)).toEqualTypeOf<string | number | undefined>()
   })
 
   test("a read-only `as const` list, as compiled TypeScript writes one, is a collection like any other", () => {
     const RANKS = ["ace", 2, "king"] as const
-    expectTypeOf(spellCore.itemOf(RANKS, "king")).toEqualTypeOf<number | undefined>()
+    expectTypeOf(spellCore.itemOf(RANKS, "king")).toEqualTypeOf<number>()
     expectTypeOf(spellCore.getItemOf(RANKS, 1)).toEqualTypeOf<"ace" | 2 | "king" | undefined>()
     expectTypeOf(spellCore.includes(RANKS, "ace")).toEqualTypeOf<boolean>()
     spellCore.forEach(RANKS, (rank) => expectTypeOf(rank).toEqualTypeOf<"ace" | 2 | "king">())

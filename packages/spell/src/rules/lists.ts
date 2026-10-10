@@ -1202,8 +1202,9 @@ lists.addRule(list_append, {
 
 /**
  * Add to list before/after some other item, e.g. `add thing to my-list before other-thing`.
- * - Compiles to `spellCore.addAtPosition(list, position, thing)`, where `position` is `other-thing`'s
- *   index (via `itemOf`), `+ 1` for `after`.
+ * - Compiles to `spellCore.addBefore(list, item, thing)` / `spellCore.addAfter(list, item, thing)`.
+ * - `item` not in the list:  `before` adds at the START, `after` at the END (epic `output-targets`, P14) --
+ *   the same rule as `List`'s own `addBefore()` / `addAfter()`.
  * TODO: `relative_position_expression` rule?
  */
 class list_add_relative extends SpellStatement<"thing|list|operator|item"> {
@@ -1211,20 +1212,9 @@ class list_add_relative extends SpellStatement<"thing|list|operator|item"> {
 
   getAST(match: P.MatchFor<this>): P.ASTCoreMethodInvocation {
     const { thing, list, operator, item } = match.groups
-    let position: P.ASTExpression = new P.ASTCoreMethodInvocation(match, {
-      methodName: "itemOf",
-      args: [P.matchAST(list), P.matchAST(item)]
-    })
-    if (operator.value === "after") {
-      position = new P.ASTInfixExpression(match, {
-        lhs: position,
-        operator: "plus",
-        rhs: new P.ASTNumericLiteral(match, { value: 1 })
-      })
-    }
     return new P.ASTCoreMethodInvocation(match, {
-      methodName: "addAtPosition",
-      args: [P.matchAST(list), position, P.matchAST(thing)]
+      methodName: operator.value === "after" ? "addAfter" : "addBefore",
+      args: [P.matchAST(list), P.matchAST(item), P.matchAST(thing)]
     })
   }
 }
@@ -1239,14 +1229,8 @@ lists.addRule(list_add_relative, {
         scope.variables?.add("other-thing")
       },
       tests: [
-        [
-          "add thing to my-list before other-thing",
-          "spellCore.addAtPosition(my_list, spellCore.itemOf(my_list, other_thing), thing)"
-        ],
-        [
-          "add thing to my-list after other-thing",
-          "spellCore.addAtPosition(my_list, spellCore.itemOf(my_list, other_thing) + 1, thing)"
-        ]
+        ["add thing to my-list before other-thing", "spellCore.addBefore(my_list, other_thing, thing)"],
+        ["add thing to my-list after other-thing", "spellCore.addAfter(my_list, other_thing, thing)"]
       ]
     }
   ]

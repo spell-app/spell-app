@@ -1,6 +1,9 @@
 import _ from "lodash"
 import { describe, test, expect, beforeEach, afterEach, vi } from "vite-plus/test"
-import { spellCore, assert } from "$/core"
+import { spellCore, assert, List } from "$/core"
+
+/** `a pile is a list`. */
+class Pile extends List {}
 
 // Wrap `assert.failed` for each test
 beforeEach(() => {
@@ -177,6 +180,45 @@ describe("spellCore.append()", () => {
   })
 })
 
+describe("spellCore.addBefore()", () => {
+  test("assertion fails for object", () => {
+    spellCore.addBefore({}, "a", "b")
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("adds things just before the item, pushing it down", () => {
+    const collection = ["a", "b", "c"]
+    spellCore.addBefore(collection, "b", "x", "y")
+    expect(collection).toEqual(["a", "x", "y", "b", "c"])
+  })
+  test("item not there:  adds at the START", () => {
+    const collection = ["a", "b"]
+    spellCore.addBefore(collection, "zzz", "x")
+    expect(collection).toEqual(["x", "a", "b"])
+  })
+})
+
+describe("spellCore.addAfter()", () => {
+  test("assertion fails for object", () => {
+    spellCore.addAfter({}, "a", "b")
+    expect(assert.failed).toHaveBeenCalled()
+  })
+  test("adds things just after the item", () => {
+    const collection = ["a", "b", "c"]
+    spellCore.addAfter(collection, "b", "x", "y")
+    expect(collection).toEqual(["a", "b", "x", "y", "c"])
+  })
+  test("after the last item:  at the end", () => {
+    const collection = ["a", "b"]
+    spellCore.addAfter(collection, "b", "x")
+    expect(collection).toEqual(["a", "b", "x"])
+  })
+  test("item not there:  adds at the END", () => {
+    const collection = ["a", "b"]
+    spellCore.addAfter(collection, "zzz", "x")
+    expect(collection).toEqual(["a", "b", "x"])
+  })
+})
+
 describe("spellCore.setItemsOf()", () => {
   test("assertion fails if not defined", () => {
     spellCore.setItemsOf()
@@ -301,6 +343,14 @@ describe("spellCore.rangeBetween()", () => {
   test("subsets properly with internal range", () => {
     expect(spellCore.rangeBetween([1, 2, 3, 4, 5], 2, 4)).toEqual([2, 3, 4])
   })
+  test("a `List` out of range:  an EMPTY list of its class, not `[]`", () => {
+    const list = new Pile()
+    list.add(1, 2)
+    for (const range of [spellCore.rangeBetween(list, 5), spellCore.rangeStartingAt(list, 5)]) {
+      expect(range).toBeInstanceOf(Pile)
+      expect((range as Pile).getValues()).toEqual([])
+    }
+  })
 })
 
 describe("spellCore.removeRangeBetween()", () => {
@@ -341,6 +391,12 @@ describe("spellCore.removeRangeBetween()", () => {
     const collection = [1, 2, 3]
     spellCore.removeRangeBetween(collection, 2, 2)
     expect(collection).toEqual([1, 3])
+  })
+  test("a `List` too:  through its own `removeItem()` (it used to throw)", () => {
+    const list = new Pile()
+    list.add(1, 2, 3, 4)
+    spellCore.removeRangeBetween(list, 2, 3)
+    expect(list.getValues()).toEqual([1, 4])
   })
 })
 

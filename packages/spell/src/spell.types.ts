@@ -433,6 +433,12 @@ export type SpellDeclaration = {
    * - See `P.ScopeVariable.autoDeclared`.
    */
   autoDeclared?: boolean
+  /**
+   * `property` is DERIVED:  a getter works it out, e.g. `the short rank of a card is: ...`.
+   * - Loads as `P.ScopeVariable.isGetter`, so the TypeScript writer reads it by TypeScript's name (`shortRank`).
+   * - Left out for an `exclusive` member, which is always one:  loading works it out.
+   */
+  getter?: boolean
   /** A method's parameters, with their datatypes where known -- see `P.ScopeMethod.params`. */
   params?: P.ScopeParam[]
   /** What a method returns, if known -- see `P.ScopeMethod.returns`. */

@@ -6,7 +6,6 @@
  */
 
 import _remove from "lodash/remove"
-import { spellCore } from "./core"
 
 /**
  * Callback registered via `on`/`off`/`once`/`trigger`.
@@ -32,7 +31,7 @@ export type EventfulMethods = {
 
 /**
  * Target with an optional `eventParent` to delegate events to.
- * - Walked recursively, e.g. `SpellRuntime.eventParent` ~== `spellCore`.
+ * - Walked recursively:  a parent hears its child's events too, and its own parent after it.
  */
 type EventfulTarget = { eventParent?: object }
 
@@ -44,7 +43,7 @@ type EventfulTarget = { eventParent?: object }
 export class SpellEvent {
   /** Event's `type` name -- always present, constructor throws if missing. */
   declare type: string;
-  /** Whatever else it was made or triggered with, e.g. `card` for `spellCore.RUNTIME.trigger('card-click', { card })`. */
+  /** Whatever else it was made or triggered with, e.g. `card` for `trigger("card-click", { card })`. */
   [key: string]: unknown
 
   /** Accepts a bare `type` string, or full `SpellEventProps` (which MUST include `type`). */
@@ -182,7 +181,7 @@ export class SpellEvent {
     },
     trigger: {
       value(this: object, event: SpellEvent | string, props?: object) {
-        SpellEvent.trigger(this, event, props)
+        return SpellEvent.trigger(this, event, props)
       }
     }
   }
@@ -201,8 +200,6 @@ export class SpellEvent {
 
 /** Extra properties that can be passed when constructing/triggering a `SpellEvent`. */
 export type SpellEventProps = Record<string, unknown> & { type?: string }
-// Make spellCore itself eventful.
-SpellEvent.makeEventful(spellCore)
 
 /**
  * Higher-order "mixin" class to allow instances of a class to work with SpellEvents.

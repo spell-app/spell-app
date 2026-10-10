@@ -17,7 +17,7 @@ export class Game extends App {
   //## actions
 
   get state() {
-    let state = []
+    let state = new List({ instanceType: "text" })
     spellCore.map(all_piles, (pile) => {
       spellCore.append(state, pile.state)
     })
@@ -34,7 +34,7 @@ export class Game extends App {
                 "Klondike Solitaire"
               ] }),
               spellCore.element({ tag: "th", props: { className: "right aligned" }, children: [
-                ("Score: " + this.score)
+                () => ("Score: " + this.score)
               ] }),
               spellCore.element({ tag: "th", children: [
                 spellCore.element({
@@ -97,46 +97,46 @@ export class Game extends App {
           spellCore.element({ tag: "tbody", children: [
             spellCore.element({ tag: "tr", children: [
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(stock)
+                () => spellCore.drawThing(stock)
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(discards)
+                () => spellCore.drawThing(discards)
               ] }),
               spellCore.element({ tag: "td" }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(foundations, 1))
+                () => spellCore.drawThing(spellCore.getItemOf(foundations, 1))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(foundations, 2))
+                () => spellCore.drawThing(spellCore.getItemOf(foundations, 2))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(foundations, 3))
+                () => spellCore.drawThing(spellCore.getItemOf(foundations, 3))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(foundations, 4))
+                () => spellCore.drawThing(spellCore.getItemOf(foundations, 4))
               ] })
             ] }),
             spellCore.element({ tag: "tr", children: [
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 1))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 1))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 2))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 2))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 3))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 3))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 4))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 4))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 5))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 5))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 6))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 6))
               ] }),
               spellCore.element({ tag: "td", children: [
-                spellCore.drawThing(spellCore.getItemOf(tableaus, 7))
+                () => spellCore.drawThing(spellCore.getItemOf(tableaus, 7))
               ] })
             ] })
           ] })
@@ -172,7 +172,7 @@ export class Stock_Pile extends Pile {
           }
         }
       }),
-      spellCore.drawThing(spellCore.getItemOf(this, -1))
+      () => spellCore.drawThing(spellCore.getItemOf(this, -1))
     ] })
   }
 }
@@ -187,7 +187,7 @@ export class Discard_Pile extends Pile {
 
   draw() {
     return spellCore.element({ tag: "div", props: { className: "Pile Discards stacked" }, children: [
-      spellCore.drawThing(spellCore.getItemOf(this, -1))
+      () => spellCore.drawThing(spellCore.getItemOf(this, -1))
     ] })
   }
 }
@@ -214,12 +214,12 @@ export class Foundation extends Pile {
   draw() {
     let color = (((this.name == 'diamonds') || (this.name == 'hearts')) ? "red" : "black")
     return spellCore.element({ tag: "div", props: { className: "Pile Foundation stacked" }, children: [
-      spellCore.element({ tag: "div", props: { className: ((("Placeholder ui button basic compact fluid " + color) + " ") + this.name) }, children: [
-        spellCore.element({ tag: "div", props: { className: ("suit " + this.name) }, children: [
-          this.symbol
+      spellCore.element({ tag: "div", props: { className: () => ((("Placeholder ui button basic compact fluid " + color) + " ") + this.name) }, children: [
+        spellCore.element({ tag: "div", props: { className: () => ("suit " + this.name) }, children: [
+          () => this.symbol
         ] })
       ] }),
-      spellCore.drawThing(spellCore.getItemOf(this, -1))
+      () => spellCore.drawThing(spellCore.getItemOf(this, -1))
     ] })
   }
 }
@@ -264,7 +264,7 @@ export class Tableau extends Pile {
 
   draw() {
     return spellCore.element({ tag: "div", props: { className: "Pile Tableau staggered" }, children: [
-      spellCore.drawItems(this)
+      () => spellCore.drawItems(this)
     ] })
   }
 }
@@ -305,7 +305,7 @@ export async function play_from_the_stock_pile() {
     if (spellCore.isEmpty(stock)) { await reset_the_stock_pile() }
     
     let it_5 = spellCore.getItemOf(stock, -1)
-    it_5.turn_face_up()
+    it_5?.turn_face_up()
     // pause for 150 msec
     spellCore.move(it_5, discards)
   }
@@ -333,7 +333,7 @@ export async function deal_the_cards() {
     
     // deal cards into tableaus
     await spellCore.forEachSequential(spellCore.getRange(1, 7), async (row) => {
-      spellCore.getItemOf(stock, -1).turn_face_up()
+      spellCore.getItemOf(stock, -1)?.turn_face_up()
       await spellCore.forEachSequential(spellCore.getRange(row, 7), async (column) => {
         spellCore.append(spellCore.getItemOf(tableaus, column), spellCore.getItemOf(stock, -1))
         await spellCore.pauseFor(50, 'msec')
@@ -372,8 +372,8 @@ Card.prototype.play = async function () {
   if (spellCore.isOfType(start_pile, 'Tableau') && !spellCore.isEmpty(start_pile)) {
     await spellCore.pauseFor(200, 'msec')
     let it = spellCore.getItemOf(start_pile, -1)
-    spellCore.console.log(((("turning over (" + start_pile.name) + ": ") + it.state) + ")")
-    it.turn_face_up()
+    spellCore.console.log(((("turning over (" + start_pile.name) + ": ") + it?.state) + ")")
+    it?.turn_face_up()
   }
   
   if (spellCore.isOfType(end_pile, 'Foundation')) { game.score = (game.score + 10) }
@@ -381,7 +381,7 @@ Card.prototype.play = async function () {
   return true
 }
 
-spellCore.RUNTIME.on('card-click', (event) => {
+spellCore.on('card-click', (event) => {
   let { card } = event
   card.play()
 })
@@ -390,7 +390,7 @@ export async function auto_play() {
   let anything_changed = false
   if (!spellCore.isEmpty(discards)) {
     let test_card = spellCore.getItemOf(discards, -1)
-    if (await test_card.play()) {
+    if (await test_card?.play()) {
       anything_changed = true
       await spellCore.pauseFor(500, 'msec')
     }
@@ -401,11 +401,11 @@ export async function auto_play() {
     if (spellCore.isEmpty(pile)) { return }
     let test_card = spellCore.getItemOf(pile, -1)
     let foundation = spellCore.getItemOf(spellCore.filter(foundations, (pile) => {
-      return (pile.name == test_card.suit)
+      return (pile.name == test_card?.suit)
     }), 1)
     if (spellCore.canTake(foundation, test_card)) {
       anything_changed = true
-      await test_card.play()
+      await test_card?.play()
       await spellCore.pauseFor(100, 'msec')
     }
   })
@@ -417,8 +417,8 @@ export async function auto_play() {
     })
     if (spellCore.isEmpty(face_up_cards)) { return }
     let test_card = spellCore.getItemOf(face_up_cards, 1)
-    if (test_card.is_a_$rank('king') && (test_card == spellCore.getItemOf(pile, 1))) { return }
-    if (await test_card.play()) {
+    if (test_card?.is_a_$rank('king') && (test_card == spellCore.getItemOf(pile, 1))) { return }
+    if (await test_card?.play()) {
       anything_changed = true
       await spellCore.pauseFor(500, 'msec')
     }
@@ -435,7 +435,7 @@ export function reset_the_game() {
 
 export async function cheat() {
   let remaining_piles = spellCore.filter(tableaus, (pile) => {
-    return (!spellCore.isEmpty(pile) && spellCore.getItemOf(pile, 1).is_face_down)
+    return (!spellCore.isEmpty(pile) && spellCore.getItemOf(pile, 1)?.is_face_down)
   })
   if (spellCore.isEmpty(remaining_piles)) { return }
   let pile = spellCore.randomItemOf(remaining_piles)
@@ -443,7 +443,7 @@ export async function cheat() {
     return card.is_face_down
   })
   let card = spellCore.randomItemOf(unplaid_cards)
-  card.turn_face_up()
+  card?.turn_face_up()
   await spellCore.pauseFor(30, 'ticks')
   spellCore.move(card, discards)
 }

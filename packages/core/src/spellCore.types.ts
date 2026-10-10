@@ -37,7 +37,6 @@ export const SPELL_CORE_NAMES = ["spellCore", ...SPELL_CLASSES]
  *   bundle entry -- see `spellRuntime.ts`.
  */
 export const SPELL_BASE_TYPES = ["Object", ...SPELL_CLASSES]
-import type { EventfulMethods } from "./SpellEvent"
 
 /**
  * Assembled type of the `spellCore` singleton -- built by accretion: each module below does
@@ -57,8 +56,7 @@ export type SpellCore = typeof coreMethods &
   typeof consoleMethods &
   typeof runtimeMethods &
   typeof thingsMethods &
-  typeof classesMethods &
-  EventfulMethods
+  typeof classesMethods
 
 // ## Properties
 

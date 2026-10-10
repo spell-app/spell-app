@@ -26,9 +26,25 @@ export class SpellWarnings {
    *   e.g. a `mutateScope()` run twice.
    */
   static note(match: P.Match, message: string, at: P.Match = match): void {
+    SpellWarnings.add(match, { message, at })
+  }
+
+  /**
+   * Note `message` on `match`, as `note()` does, but `in()` reports it only while `stillHolds()` says so.
+   * - For what a LATER line, or a later file, can settle,
+   *   e.g. a property read here (`the name of the pile`) which `a pile has a name` further down declares.
+   * - `stillHolds()` is asked when the warnings are gathered:  with what the whole project declares by then.
+   *   So it may read scope records found while parsing (a `P.TypeScope`), but NEVER look them up afresh.
+   */
+  static noteIf(match: P.Match, message: string, stillHolds: () => boolean, at: P.Match = match): void {
+    SpellWarnings.add(match, { message, at, stillHolds })
+  }
+
+  /** Add `warning` to `match.data.warnings` -- once:  the same message about the same match again is ignored. */
+  private static add(match: P.Match, warning: NotedWarning): void {
     const data = match.data as WarningsData
-    if (data.warnings?.some((warning) => warning.at === at && warning.message === message)) return
-    ;(data.warnings ??= []).push({ message, at })
+    if (data.warnings?.some(({ at, message }) => at === warning.at && message === warning.message)) return
+    ;(data.warnings ??= []).push(warning)
   }
 
   /**
@@ -39,11 +55,12 @@ export class SpellWarnings {
    * - Only those about `match`'s own TOKENS:  a rule's `data` may point at a match in another file,
    *   or at one parsed from a string, e.g. the signature in `a card "is the (color) joker" if ...`,
    *   whose positions are in that string.  Such a rule notes its warnings again, about its own text.
+   * - Only those which still hold, for one noted with `noteIf()`.
    */
   static in(match: P.Match): SP.SpellWarning[] {
     const tokens = new Set<P.Token>()
     P.Tokenizer.forEachToken(match.tokens, (token) => tokens.add(token))
-    const found = new Set<SP.SpellWarning>()
+    const found = new Set<NotedWarning>()
     const seen = new Set<P.Match>()
     const visit = (each: P.Match) => {
       if (seen.has(each)) return
@@ -57,8 +74,9 @@ export class SpellWarnings {
     }
     visit(match)
     return [...found]
-      .filter(({ at }) => tokens.has(at.tokens[0]!))
+      .filter(({ at, stillHolds }) => tokens.has(at.tokens[0]!) && (stillHolds?.() ?? true))
       .sort((one, other) => (one.at.start ?? 0) - (other.at.start ?? 0))
+      .map(({ message, at }) => ({ message, at }))
   }
 
   /**
@@ -85,5 +103,8 @@ export class SpellWarnings {
 /** What a match holding warnings has in its `data` -- see `SpellWarnings.note()`. */
 type WarningsData = {
   /** Warnings noted on it, in the order noted. */
-  warnings?: SP.SpellWarning[]
+  warnings?: NotedWarning[]
 }
+
+/** A warning as noted on a match:  `in()` reports it while `stillHolds()`, if given -- see `SpellWarnings.noteIf()`. */
+type NotedWarning = SP.SpellWarning & { stillHolds?: () => boolean }

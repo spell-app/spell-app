@@ -3,7 +3,7 @@
 // TODO: constructor
 // TODO: mixins / traits / composed classes / annotations
 
-import { NONE, proto } from "$/util"
+import { NONE, proto, upperFirst } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 // Import directly to avoid circular import
@@ -326,6 +326,42 @@ export class MemberReadExpression<
   }
 
   /**
+   * Warn on a LOOSE read of a member its type never declares (epic `output-targets`, Q45), e.g. `the name of the pile`:
+   * `A pile never says it has a name:  declare it, e.g. "a pile has a name as text"`.
+   * - Only for a type this project declares (or will:  a stub), never a built-in or an imported one,
+   *   nor one whose super-types include an imported one:  spell knows all of its members only then.
+   *   e.g. a program importing `a pile` from another project may give piles a `name` it never declares.
+   * - Checked when the warnings are gathered, not now (`SP.SpellWarnings.noteIf()`):  a later line or file may
+   *   declare it, e.g. `a pile has a name` in a file further down, or `set the name of the pile to ...` --
+   *   which reads it loose first, itself.
+   * - SIDE EFFECT:  notes it on `match`, under its `property`.  Call it WHILE PARSING, with the type it found.
+   */
+  static warnIfUndeclared(match: P.Match, ownerType: P.TypeScope | undefined, property: P.Match): void {
+    if (!ownerType || !(ownerType.stub || ownerType.declaredBy)) return
+    const aWord = (words: string) => `${/^[aeiou]/i.test(words) ? "an" : "a"} ${words}`
+    const words = property.raw ?? `${property.value}`
+    const aType = aWord(ownerType.name.toLowerCase().replace(/_/g, "-"))
+    const declaration = `${aType} has ${aWord(words)} as ${SP.SpellWarnings.exampleType(match.scope, words)}`
+    const message = `${upperFirst(aType)} never says it has ${aWord(words)}:  declare it, e.g. "${declaration}"`
+    const stillHolds = () =>
+      MemberReadExpression.knowsAllMembersOf(ownerType) && !ownerType.getMember(`${property.value}`)
+    SP.SpellWarnings.noteIf(match, message, stillHolds, property)
+  }
+
+  /**
+   * Does spell know every member `type` has?  Only when the project declares it (no `stub` left),
+   * and each of its super-types is the project's too, or spell's own (`Thing`, `List` ...), never an import.
+   * - Reads the records as they are now:  a stub may be claimed after a read of it.
+   */
+  private static knowsAllMembersOf(type: P.TypeScope): boolean {
+    if (type.stub || !type.declaredBy) return false
+    const chain = type.chain()
+    // a super-type it can't find:  unknown, so it might have anything
+    if (chain.at(-1)!.superType) return false
+    return chain.every((each) => !each.stub && !(each.parentScope instanceof P.ImportScope))
+  }
+
+  /**
    * What `match` reads, if it's a member read -- `the X of Y`, `its X`, loose or resolved -- else `undefined`.
    * - `type`:  the type it reads from, if known -- for a resolved read, the one declaring what it found
    * - `property`:  its `property` match, the member's words
@@ -420,6 +456,7 @@ class property_expression extends MemberReadExpression<"property|expression"> {
     if (this.resolveMember(match, ownerType, `${property.raw}`)) return match
     if (!property_expression.isLooseProperty(scope, property)) return undefined
     match.data.member = ownerType?.getMember(`${property.value}`)
+    if (!match.data.member) MemberReadExpression.warnIfUndeclared(match, ownerType, property)
     return match
   }
   getAST(match: P.MatchFor<this>) {
@@ -577,6 +614,7 @@ class its_property extends MemberReadExpression<"property", ItsMatchData> {
     if (itVar !== NONE) {
       const ownerType = (match.data.ownerType = scope.getType(itVar.datatype))
       match.data.member = ownerType?.getMember(`${match.groups.property.value}`)
+      if (!match.data.member) MemberReadExpression.warnIfUndeclared(match, ownerType, match.groups.property)
     }
     return match
   }
