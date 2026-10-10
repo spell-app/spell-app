@@ -3,37 +3,46 @@
 This file provides guidance to AI coding agents (Claude Code, Codex, and others)
 when working with code in this package, `@spell-app/core`.
 
-**READ the repo root's `AGENTS.md` and WWOD (`agents/wwod/WWOD.md`) FIRST:**  the repo's layout, and the
-house style every package shares.  Only what's local is below;  a section named like a WWOD rule extends it.
+**READ the repo root's [AGENTS.md](../../AGENTS.md) and [WWOD](../../agents/wwod/WWOD.md) FIRST:**
+the repo's layout, and the house style every package shares.
+Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## Overview
 
-- The runtime compiled spell runs on, `$/core` (`SC`):  the core classes, collections, `Thing` registry,
-  console, assertions, `spellCore.scopes.js`.  Compiled programs link against a bundled copy of it,
-  `spell-runtime.js`, NOT this source directly.
-- `src/spellCore.scopes.js` is GENERATED -- the built-in types' docs, for pages with no parser --
-  from spell's `BUILT_IN_TYPE_TABLE` (`../spell/src/builtinTypes.ts`), by `yarn scopes --builtins` in `../lsp`.
+- The runtime compiled spell runs on, `$/core` (`SC`):
+  - the core classes, collections, `Thing` registry
+  - console, assertions
+  - `spellCore.scopes.js`
+  - Compiled programs link against a bundled copy of it, `spell-runtime.js`, NOT this source directly.
+- [spellCore.scopes.js](src/spellCore.scopes.js) is GENERATED:  the built-in types' docs, for pages with no parser.
+  - Built from spell's `BUILT_IN_TYPE_TABLE` ([builtinTypes.ts](../spell/src/builtinTypes.ts)),
+    by `yarn scopes --builtins` in `../lsp`.
   - NEVER edit it by hand:  edit the table, run that.
-- Depends only on `$/util`.  NEVER import `$/spell` / `$/parser` or anything above.
-- Rendering code here (`ui.ts`, `element()`, `draw`, `Thing` / `List` / `App` components) is Solid work:  READ the
-  root's Solid 2 pointer first.
+- Depends only on `$/util`.
+  NEVER import `$/spell` / `$/parser`, or anything above.
+- Rendering code here is Solid work:  READ the root's Solid 2 pointer first.
+  - That's `ui.ts`, `element()`, `draw`, and the `Thing` / `List` / `App` components.
 
 ## Who may value-import it
 
-- ONLY `../app/src/runner/spellRuntime.ts` may value-import `$/core`, in every bundle:  anything
-  else -- the app, the parser, the language, the forms -- puts it in a shared chunk, or loads a second copy.
+- ONLY the app's runner entry, [spellRuntime.ts](../app/src/runner/spellRuntime.ts), may value-import `$/core`,
+  in every bundle.
+  - Anything else -- the app, the parser, the language, the forms --
+    puts it in a shared chunk, or loads a second copy.
   - Programs run on `spell-runtime.js` (built from `spellRuntime.ts`), NEVER the page's own `core`.
     Each runner loads its own copy, so apps on a page don't share one.
-  - Everyone else reads `$/core/spellCore.types` (runtime-light, `import type`), or the runtime's own
-    API, e.g. `runtimeConsole()`.
-  - Pinned by `../app/src/runner/element.build.test.ts` and `../app/src/build.test.ts`.
-- It runs in a shadow root:  `spellCore.appRoot` is where an app mounts, and `spellCore.domRoot()` where to look
-  elements up and add styles -- NEVER `document`.
+  - Everyone else reads `$/core/spellCore.types` (runtime-light, `import type`),
+    or the runtime's own API, e.g. `runtimeConsole()`.
+  - Pinned by two of app's tests:
+    [element.build.test.ts](../app/src/runner/element.build.test.ts) and [build.test.ts](../app/src/build.test.ts).
+- It runs in a shadow root, so NEVER `document`:
+  - `spellCore.appRoot` is where an app mounts
+  - `spellCore.domRoot()` is where to look elements up, and add styles
 
 ## Membership and guards
 
-- A `List` class with `exclusive = true` (compiled from `a card belongs to one pile` as `Pile.exclusive = true`)
-  roots a FAMILY:  it and its sub-classes, e.g. `Pile`, `Tableau`.
+- A `List` class with `exclusive = true` roots a FAMILY:  it and its sub-classes, e.g. `Pile`, `Tableau`.
+  - Compiled from `a card belongs to one pile`, as `Pile.exclusive = true`.
 - An item is in at most ONE list of a family (plan doc D7, D8 of precedence-and-types):
   - adding it takes it out of the list that held it, and adding one a list holds moves it
   - removing it leaves it with no owner
@@ -44,17 +53,22 @@ house style every package shares.  Only what's local is below;  a section named 
 - EVERY change to a list's `items` MUST go through `List.writeItems()`:
   - `add`, `addAtPosition`, `setItem`, `removeItem`, `clear` and the `items` setter all do
   - a new mutator that writes `setState("items", ...)` itself bypasses the owners
-- Collection helpers' results are SCRATCH and own nothing (`List.asScratch()`, `spellCore.newScratch()`),
-  or filtering a pile would steal its cards:
+- Collection helpers' results are SCRATCH, and own nothing:  or filtering a pile would steal its cards.
+  - Made by `List.asScratch()`, `spellCore.newScratch()`.
   - `map()`, `filter()`, ranges, `a copy of`, `merge ... into a new pile`
   - build a new helper's result with `newThingLike()` / `newScratch()`, never `new constructor()`
-- Guards (plan doc Q23 - Q25):  `canTake(item)` / `canGiveUp(item)`, yes by default --
-  compiled spell overrides them, e.g. `a tableau can take a card if: ...` => `canTake(card) {...}` in `Tableau`.
-  - ONLY a move asks:  `spellCore.move(item, list)` => `list.moveHere(item)`:  the list of its family holding it
-    gives it up, then `list` takes it, else nothing changes.  Returns whether it moved.
+- Guards (plan doc Q23 - Q25):  `canTake(item)` / `canGiveUp(item)`, yes by default.
+  - Compiled spell overrides them:
+    `a tableau can take a card if: ...` => `canTake(card) {...}` in `Tableau`.
+  - ONLY a move asks:  `spellCore.move(item, list)` => `list.moveHere(item)`.
+    - The list of its family holding it gives it up, then `list` takes it;  else nothing changes.
+    - Returns whether it moved.
   - `add`, `remove`, `clear` never ask:  dealing, gathering cards back.
-  - `spellCore.canTake()` / `canGiveUp()` ask without moving;  a plain array has no guards.
-- Tests:  `src/classes/List.test.ts`;  end to end, spell's `src/parserTests/membership.test.ts`.
+  - `spellCore.canTake()` / `canGiveUp()` ask without moving.
+  - A plain array has no guards.
+- Tests:
+  - [List.test.ts](src/classes/List.test.ts)
+  - end to end, spell's [membership.test.ts](../spell/src/parserTests/membership.test.ts)
 
 ## Decorators
 
