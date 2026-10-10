@@ -103,6 +103,8 @@ import itemCSS from "./EpicItem.css?inline"
  *     go through the cancelable `ui-open` / `ui-close`
  *   - it opens for a link to the item, to an id in `part-ids`, or to an element inside it, and for find-in-page
  *   - folding while its line is stuck keeps the line where it is on screen (`keepLinePut()`)
+ *   - its details fold and unfold by height, in Spell UI's section timing (`EpicItem.css`), however it folds:
+ *     the auto-fold after an action jumped shut (Owen, 2026-10-10:  "make it animate.  It's jarring right now")
  *   - it folds by itself once Owen chooses an action for it (`foldAfterAction()`):
  *     a review button, a note box button, a Choose pill (Owen, 2026-10-10:  "collapse the item", so he moves on)
  *   - collapse-all (epic `airplane` P8):  open, with cards or panels inside, a double chevron at its line's end
