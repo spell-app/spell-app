@@ -140,8 +140,9 @@ describe("<epic-item> review controls", () => {
         (it) => (it as HTMLElement).dataset.action
       )
     ).toEqual(["approve", "revisit", "todo"])
+    // the wand, as the page header's Review Now (Owen, 2026-10-09:  the plane is a todo's "next phase" now)
     expect([button(host, "details").getAttribute("icon"), button(host, "details").dataset.color]).toEqual([
-      "paper plane",
+      "wand magic sparkles",
       "blue"
     ])
     expect(actions(host).map((action) => button(host, action).dataset.fill)).toEqual(["none", "none", "none", "none"])
@@ -149,6 +150,81 @@ describe("<epic-item> review controls", () => {
     await settle()
     expect(routes.inbox.marks.q1?.action).toBe("approve")
     expect([button(host, "approve").dataset.fill, button(host, "approve").dataset.color]).toEqual(["dashed", "green"])
+  })
+
+  test("a todo:  the plane (next phase), Revisit, the x (drop), one group;  no Approve, Make Todo or Do Now", async () => {
+    await adoptClient()
+    const host = await render(`<epic-item id="t4" title="A todo" status="open"><p>Text</p></epic-item>`)
+    expect(actions(host)).toEqual(["next", "revisit", "drop"])
+    expect(
+      Array.from(host.shadowRoot!.querySelectorAll<HTMLElement>("ui-buttons > ui-button"), (it) => it.dataset.action)
+    ).toEqual(["next", "revisit", "drop"])
+    expect(
+      actions(host).map((action) => [
+        button(host, action).getAttribute("icon"),
+        button(host, action).dataset.color,
+        button(host, action).title
+      ])
+    ).toEqual([
+      ["paper plane", "green", "Do it in the next phase"],
+      ["history", "blue", "Revisit:  I'm adding a note for you"],
+      ["xmark", "grey", "Drop it"]
+    ])
+    // the plane marks it, dashed green, and so does its chip;  again, cleared
+    button(host, "next").click()
+    await settle()
+    expect(routes.inbox.marks.t4?.action).toBe("next")
+    const chip = host.shadowRoot!.querySelector<HTMLElement>("[part~='id']")!
+    expect([button(host, "next").dataset.fill, chip.dataset.color, chip.dataset.fill]).toEqual([
+      "dashed",
+      "green",
+      "dashed"
+    ])
+    // the x:  the latest mark wins, grey
+    button(host, "drop").click()
+    await settle()
+    expect(routes.inbox.marks.t4?.action).toBe("drop")
+    expect([button(host, "next").dataset.fill, button(host, "drop").dataset.fill, chip.dataset.color]).toEqual([
+      "none",
+      "dashed",
+      "grey"
+    ])
+    button(host, "drop").click()
+    await settle()
+    expect(routes.inbox.marks.t4).toBeUndefined()
+    // other kinds keep theirs
+    const call = await render(`<epic-item id="j4" title="A call" status="open"></epic-item>`)
+    expect(actions(call)).toEqual(["approve", "revisit", "todo", "details"])
+  })
+
+  test("a todo's note box:  the plane, Revisit Later, the x;  the plane takes the note along, as does the line's x", async () => {
+    await adoptClient()
+    const host = await render(`<epic-item id="t5" title="A todo" status="open" open><p>Text</p></epic-item>`)
+    const how = () =>
+      Array.from(host.shadowRoot!.querySelectorAll<HTMLElement>("[part~='note-box'] button"), (it) => [
+        it.dataset.how,
+        it.dataset.color
+      ])
+    expect(how()).toEqual([
+      ["next", "green"],
+      ["soon", "blue"],
+      ["drop", "grey"]
+    ])
+    const note = host.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~='details'] textarea")!
+    note.value = "after the merge"
+    note.dispatchEvent(new InputEvent("input", { bubbles: true }))
+    host.shadowRoot!.querySelector<HTMLButtonElement>('button[data-how="next"]')!.click()
+    await settle()
+    expect(routes.inbox.marks.t5).toMatchObject({ action: "next", note: "after the merge" })
+    expect(host.shadowRoot!.querySelector("[part~='said']")!.textContent).toContain("next phase · not sent yet")
+    // the line's x, with words in the box:  they go along
+    const other = await render(`<epic-item id="t6" title="Another" status="open" open><p>Text</p></epic-item>`)
+    const box = other.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~='details'] textarea")!
+    box.value = "moot since P3"
+    box.dispatchEvent(new InputEvent("input", { bubbles: true }))
+    button(other, "drop").click()
+    await settle()
+    expect(routes.inbox.marks.t6).toMatchObject({ action: "drop", note: "moot since P3" })
   })
 
   test("the fill:  a mark dashed until sent, then outlined;  Claude on it, its icon turns;  handled, they CLEAR", async () => {
@@ -259,6 +335,28 @@ describe("<epic-item> review controls", () => {
     expect(said.textContent).toContain("revisit soon · not sent yet")
     expect(said.textContent).toContain("why not reuse it?")
     expect(host.shadowRoot!.querySelector(".under-line textarea")).toBeNull()
+  })
+
+  test("an item without details:  its box lines up where details start;  its chevron shows, and folds the box away", async () => {
+    await adoptClient()
+    const host =
+      await render(`<div style="width: 360px"><epic-item id="t7" title="A bare todo" status="open"></epic-item>
+      <epic-item id="t8" title="With text" status="open" open><p>Text</p></epic-item></div>`)
+    const [bare, full] = Array.from(host.querySelectorAll("epic-item"))
+    const toggle = () => bare!.shadowRoot!.querySelector<HTMLButtonElement>("[part~='toggle']")
+    expect(toggle()).toBeNull()
+    button(bare!, "revisit").click()
+    await settle()
+    const box = bare!.shadowRoot!.querySelector<HTMLElement>(".under-line [part~='note-box']")!
+    const docked = full!.shadowRoot!.querySelector<HTMLElement>("[part~='details'] [part~='note-box']")!
+    // the same left edge as an item's details:  under the id chip, not the item's edge
+    expect(Math.round(box.getBoundingClientRect().left)).toBe(Math.round(docked.getBoundingClientRect().left))
+    expect(box.getBoundingClientRect().left - bare!.getBoundingClientRect().left).toBeGreaterThan(20)
+    expect(toggle()?.getAttribute("aria-expanded")).toBe("true")
+    toggle()!.click()
+    await settle()
+    expect(bare!.shadowRoot!.querySelector(".under-line [part~='note-box']")).toBeNull()
+    expect(toggle()).toBeNull()
   })
 
   test("a note box LAST in its details, saved as a draft when it loses focus;  still there once approved", async () => {

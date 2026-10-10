@@ -7,8 +7,8 @@
  * - every round or square control is a grid with its glyph `place-items: center`, and `ui-icon`'s own box (a width
  *   and a right margin, for an icon before text) is undone through `::part(icon)`
  * - the controls box is one line tall and centres its children, so it sits on the title's first line
- * - colours (decision Q20):  green decided or done (Approve, Make Todo, a pick), blue an ask of Claude (Revisit, Do
- *   Now);  Owen's own words (the note box, a marked note, the note bubble) on the brand's ivory (`--ui-brown-*`)
+ * - colours (decision Q20):  green decided or done (Approve, Make Todo, a pick, a todo's plane), blue an ask of
+ *   Claude (Revisit, Do Now), grey no longer relevant (a todo's x, Owen, 2026-10-09);  Owen's own words (the note box, a marked note, the note bubble) on the brand's ivory (`--ui-brown-*`)
  * - THE FILL (`data-fill`, Q20):  a grey outline available;  dashed in its colour pressed, not sent;  outlined in it
  *   sent, or Claude is on it;  then CLEARED, a grey outline again, once Claude has handled it (Owen's input, taken:
  *   the id chip carries the result, 2026-10-08).  Never solid.  The note box's buttons and the pick's letter follow
@@ -27,6 +27,8 @@
     --_epic-act-rule: var(--epic-rule, var(--ui-border-color, GrayText));
     --_epic-act-green: var(--ui-green, #00853a);
     --_epic-act-blue: var(--ui-blue, #1a67e0);
+    /* a todo's x (drop it):  no longer relevant, as a canceled item's chip;  darker than a button at rest */
+    --_epic-act-grey: var(--ui-grey, light-dark(#767676, #a0a0a0));
     /* Owen's voice:  the ivory of his answer card (`EpicAnswer.css`), its accent the brown ink */
     --_epic-act-ivory: var(--ui-brown-background, light-dark(#f7efe2, #2e261c));
     --_epic-act-ivory-ink: var(--ui-brown-text, light-dark(#534323, #eaddc4));
@@ -77,6 +79,9 @@
   }
   [data-color="blue"] {
     --_act: var(--_epic-act-blue);
+  }
+  [data-color="grey"] {
+    --_act: var(--_epic-act-grey);
   }
   /* pressed, not sent:  dashed in its colour */
   ui-button[data-fill="dashed"]::part(button) {
@@ -226,11 +231,15 @@
   }
   .note-actions > button:is(:hover, :focus-visible, :active),
   .note-box[data-sent][data-mark="todo"] > .note-actions > button[data-how="todo"],
+  .note-box[data-sent][data-mark="next"] > .note-actions > button[data-how="next"],
+  .note-box[data-sent][data-mark="drop"] > .note-actions > button[data-how="drop"],
   .note-box[data-sent][data-mark="soon"] > .note-actions > button[data-how="soon"] {
     box-shadow: inset 0 0 0 1.5px var(--_act);
     color: var(--_act);
   }
   .note-box:not([data-sent])[data-mark="todo"] > .note-actions > button[data-how="todo"],
+  .note-box:not([data-sent])[data-mark="next"] > .note-actions > button[data-how="next"],
+  .note-box:not([data-sent])[data-mark="drop"] > .note-actions > button[data-how="drop"],
   .note-box:not([data-sent])[data-mark="soon"] > .note-actions > button[data-how="soon"] {
     box-shadow: none;
     outline: 1.5px dashed var(--_act);

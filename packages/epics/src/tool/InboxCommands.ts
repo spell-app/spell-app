@@ -276,7 +276,7 @@ export class InboxCommands {
       for (const action of ACTIONS) {
         const marks = sent.marks.filter((mark) => mark.action === action)
         if (!marks.length) continue
-        lines.push(`  ${action === "revisit" ? "revisit, to talk over" : action} (${marks.length}):`)
+        lines.push(`  ${SENT_HEADINGS[action] ?? action} (${marks.length}):`)
         for (const mark of marks) {
           lines.push(`    - ${line(mark)}${mark.again ? "  (sent before)" : ""}`)
           // a revisit with a pick:  "pick B, but ...", one line
@@ -292,7 +292,9 @@ export class InboxCommands {
       if (sent.urgency.length) lines.push(`  urgency, from the id chips (${sent.urgency.length}):`)
       for (const entry of sent.urgency) lines.push(`    - ${line(entry)}  · ${calmWords(entry.calm)}`)
       const talk = sent.marks.filter((mark) => mark.action === "revisit")
-      lines.push(`next:  \`yarn plan-doc inbox ${name} apply\` (approve, pick, todo, new, urgency)`)
+      lines.push(
+        `next:  \`yarn plan-doc inbox ${name} apply\` (approve, pick, todo, a todo's next phase or drop, new, urgency)`
+      )
       if (talk.length)
         lines.push(
           `then talk over ${talk.map((mark) => mark.id).join(", ")} in the chat;  \`yarn plan-doc inbox ${name} clear <id>\` after each`
@@ -328,7 +330,8 @@ export class InboxCommands {
   /**
    * `inbox <name> apply [ids...]`:  apply the SENT mechanical marks, all or those of `ids`, then clear them;
    * prints a line per item, and what it left.
-   * - the marks:  approve, pick, todo, new (`PlanDoc.applyMark()`),
+   * - the marks:  approve, pick, todo, a todo's `next` (queued into the next phase) and `drop` (canceled), new
+   *   (`PlanDoc.applyMark()`),
    *   and the sent urgency (an id chip clicked:  `PlanDoc.setCalm()`)
    * - a dry run on a parsed copy first:  the doc is written (`edit()`, its lock) only when something applies
    * - marks cleared under the inbox's lock, only while still the ones applied (`clearApplied()`, `clearUrgency()`);
@@ -426,6 +429,13 @@ export class InboxCommands {
     ].filter(Boolean)
     this.owner.print(`${label}:  ${upper(keys)}${extras.length ? `  (${extras.join(";  ")})` : ""}`)
   }
+}
+
+/** A sent mark's heading in `wait`'s print, where its action alone doesn't say it. */
+const SENT_HEADINGS: Partial<Record<string, string>> = {
+  revisit: "revisit, to talk over",
+  next: "next, a todo for the next phase",
+  drop: "drop, a todo dropped"
 }
 
 /** A mark as `inbox` prints it:  with its item's title (`null` when the item's gone), and whether it's sent. */

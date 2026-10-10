@@ -740,6 +740,10 @@ export class PlanDoc extends PlanReader {
    *   chosen;  a question answered with it (its title the answer), any other item APPROVED with it (as approve);
    *   reviewed, a Done card `Chose B · <title>` (`pickOption()`)
    * - `todo`:  a new todo, "Follow up:  <title>", linking back;  the item reviewed
+   * - `next`, a todo's plane (Owen, 2026-10-09):  queued into the NEXT phase, the first still to do
+   *   (`queue()`, its work `P10 · <name>`;  none:  "the next phase"), a Done card `Queued for P10 · <name>`
+   * - `drop`, a todo's x:  canceled (struck through, grey), "dropped by Owen in review" in the log;  reviewed
+   * - `next`, `drop` with a note:  the note kept first, as Owen's reply (`keepNote()`)
    * - `revisit` soon:  left, for Claude to talk over in the chat;  `details`, revisit `now`:  left, an agent's
    *   - a revisit carrying a `pick` ("pick B, but ..."):  left too, NOT answered:  the note may change the pick
    * - an Overview sub-section (`o3`, Q14), a phase (`p3`), the summary (`summary`, epic `airplane` P2):
@@ -778,7 +782,7 @@ export class PlanDoc extends PlanReader {
   }
 
   /** `applyMark()`'s work on `item`, the log line aside. */
-  applyAction(item: Element, { action, pick, choices, when, note }: PlanMark): MarkResult {
+  applyAction(item: Element, { action, pick, choices, when, note, at }: PlanMark): MarkResult {
     const kind = PlanItem.kindOf(item.id)
     const open = item.getAttribute("status") === "open"
     switch (action) {
@@ -799,6 +803,21 @@ export class PlanDoc extends PlanReader {
         this.review(item.id)
         this.addStatus(item.id, filedTodo(todo), { done: true })
         return { applied: true, did: `to todo ${todo.toUpperCase()}` }
+      }
+      case "next": {
+        const phase = this.phases.find((each) => each.status === "todo")
+        const where = phase ? `P${phase.n} · ${phase.name}` : "the next phase"
+        if (note) this.keepNote(item.id, { note, action: "next phase", at })
+        this.queue(item.id, where)
+        const card = phase ? `Queued for ${where}` : `Queued for the next phase:  there's no phase to do yet`
+        this.addStatus(item.id, PlanMarkup.text(card), { done: true })
+        return { applied: true, did: `queued for ${where}${phase ? "" : " (no phase to do yet)"}` }
+      }
+      case "drop": {
+        if (note) this.keepNote(item.id, { note, action: "drop", at })
+        this.setItem(item.id, "canceled")
+        this.review(item.id)
+        return { applied: true, did: "canceled:  dropped by Owen in review" }
       }
       default:
         return this.leftForClaude({ action, pick, when, note }, () =>

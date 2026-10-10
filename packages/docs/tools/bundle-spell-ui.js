@@ -190,7 +190,11 @@ const ICONS = {
   "solid/up-right-from-square": ["up right from square", "external alternate"],
   "solid/right-to-bracket": ["right to bracket", "sign in"],
   "solid/download": ["download"],
-  "solid/paper-plane": ["paper plane"],
+  "solid/paper-plane": ["paper plane"], // the header's Send;  a todo's "do it in the next phase" (epics)
+  // new items from a plan doc's page (epics `NewItems.tsx`):  the header's `+`, a waiting card's Edit and Remove
+  "solid/plus": ["plus"],
+  "solid/pen": ["pen"],
+  "solid/trash-can": ["trash can"],
   "solid/plug": ["plug"],
   "solid/circle-play": ["circle play"],
   "solid/circle-pause": ["circle pause"], // the docs index:  a stalled epic

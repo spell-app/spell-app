@@ -185,6 +185,20 @@ describe("ReviewClient.press()", () => {
     expect(server.inbox.marks.j2).not.toHaveProperty("choices")
   })
 
+  test("a todo's plane (`next`) and x (`drop`) mark it as Approve does;  a note in the box goes along", async () => {
+    const { client, server } = await started()
+    client.press("t1", "next")
+    await vi.waitFor(() => expect(server.inbox.marks.t1).toMatchObject({ action: "next" }))
+    expect(server.inbox.marks.t1).not.toHaveProperty("note")
+    client.press("t1", "next")
+    await vi.waitFor(() => expect(server.inbox.marks.t1).toBeUndefined())
+    client.openBox("t2")
+    client.type("t2", "moot since P3")
+    client.press("t2", "drop")
+    await vi.waitFor(() => expect(server.inbox.marks.t2).toMatchObject({ action: "drop", note: "moot since P3" }))
+    expect([client.isBoxOpen("t2"), client.typedOf("t2"), client.busyButtonOf("t2")]).toEqual([false, "", null])
+  })
+
   test("Do Now with a note in the box asks a revisit NOW with it (the box closes, emptied);  without, details", async () => {
     const { client, server } = await started()
     client.openBox("j2")

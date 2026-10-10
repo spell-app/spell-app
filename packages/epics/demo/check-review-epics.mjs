@@ -13,7 +13,7 @@
  * - the server:  a page server of its OWN on this checkout (`PageServer`, no pid file, a free port), so the routes are
  *   this branch's code as it is now;  stopped at the end
  * - Owen's side, clicked:
- *   - every item's buttons:  ONE group, Approve, Revisit, Make Todo, then Do Now apart (the paper plane);  an
+ *   - every item's buttons:  ONE group, Approve, Revisit, Make Todo, then Do Now apart (the wand);  an
  *     Overview sub-section's without Approve;  the note box's:  Later, Make Todo (no "now":  Do Now is the line's)
  *   - the fill:  Approve pressed dashed green, again none;  Make Todo the same
  *   - Revisit on an item with details:  it opens, its box focused;  ten lines grow it;  the box's Make Todo saves
@@ -175,8 +175,14 @@ async function run() {
       }),
       id
     )
-    const group = /^o\d+$/.test(id) ? ["revisit", "todo"] : ["approve", "revisit", "todo"]
-    expect(`${id}'s buttons`, layout, { group, apart: ["details"] })
+    // a todo's:  the plane (next phase), Revisit, the x (drop), no Do Now (Owen, 2026-10-09)
+    const todo = /^t\d+$/.test(id)
+    const group = todo
+      ? ["next", "revisit", "drop"]
+      : /^o\d+$/.test(id)
+        ? ["revisit", "todo"]
+        : ["approve", "revisit", "todo"]
+    expect(`${id}'s buttons`, layout, { group, apart: todo ? [] : ["details"] })
   }
   expect(
     "<epic-page reviewing>",
@@ -220,6 +226,23 @@ async function run() {
   // an Approve to see through:  sent, then applied (cleared, the chip green)
   await press(page, approved, "approve")
   await expectMark(page, approved, { action: "approve" }, `Approve on ${approved}`)
+
+  // a todo's plane and x (Owen, 2026-10-09):  marked dashed, green and grey;  applied below
+  const todos = items.filter((id) => /^t\d+$/.test(id))
+  if (todos.length >= 2) {
+    await press(page, todos[0], "next")
+    await expectMark(page, todos[0], { action: "next" }, `the plane on ${todos[0]}`)
+    expect(`${todos[0]}'s plane:  dashed green`, await buttonState(page, todos[0], "next"), {
+      fill: "dashed",
+      color: "green"
+    })
+    await press(page, todos[1], "drop")
+    await expectMark(page, todos[1], { action: "drop" }, `the x on ${todos[1]}`)
+    expect(`${todos[1]}'s x:  dashed grey`, await buttonState(page, todos[1], "drop"), {
+      fill: "dashed",
+      color: "grey"
+    })
+  }
 
   // Revisit on an item with details:  opens, docked box focused, grows, the box's Make Todo with the note
   await press(page, withDetails, "revisit")
@@ -391,6 +414,14 @@ async function run() {
     state: "recent"
   })
   expect(`${withDetails}:  the todo filed, a Done card`, (await statusOf(page, withDetails)).cards.at(-1), "done")
+  // a todo's plane:  queued for the next phase, a Done card, the buttons cleared;  its x:  canceled, grey
+  if (todos.length >= 2) {
+    expect(`${todos[0]}'s review-as`, await attribute(page, todos[0], "review-as"), "next")
+    expect(`${todos[0]}:  queued, a Done card`, (await statusOf(page, todos[0])).cards.at(-1), "done")
+    expect(`${todos[0]}'s plane, applied:  cleared`, (await buttonState(page, todos[0], "next")).fill, "none")
+    expect(`${todos[1]}:  canceled`, await attribute(page, todos[1], "status"), "canceled")
+    expect(`${todos[1]}'s chip:  grey`, await chipState(page, todos[1]), { fill: null, state: "old" })
+  }
   // the pick:  the call approved with the reply's C (closed), that set chosen, a Done card, the pill solid
   expect(
     `${pickCall}, picked C from its reply`,
@@ -597,9 +628,10 @@ function pickItems(items) {
     (item) => item.open && item.details && item.id.startsWith("j"),
     (item) => item.details
   )
+  // not a todo:  a todo has no Approve (Owen, 2026-10-09)
   const approved = take(
-    (item) => item.open && !item.id.startsWith("q"),
-    (item) => item.open
+    (item) => item.open && !item.id.startsWith("q") && !item.id.startsWith("t"),
+    (item) => item.open && !item.id.startsWith("t")
   )
   return { question, approved, withDetails, bare }
 }

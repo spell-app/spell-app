@@ -299,6 +299,8 @@ export class ReviewClient {
    * - else:  Approve and Make Todo mark it;  Revisit opens the note box;  Do Now (`details`, decision Q20) asks at
    *   once:  with a note in the box, Claude answers it now (a revisit now, as the note box's Do Now was);
    *   without, Claude adds details
+   * - a todo's plane (`next`:  do it in the next phase) and x (`drop`), Owen, 2026-10-09:  mark it, as Approve does;
+   *   with a note in the box, the note goes along (why now, why not)
    */
   press(id: string, action: ReviewAction): "open-box" | undefined {
     const mark = this.inbox.marks[id]
@@ -312,6 +314,10 @@ export class ReviewClient {
       return void this.save(id, pick.pick ? { action: "pick", ...pick } : null)
     }
     if (action === "revisit") return "open-box"
+    if (action === "next" || action === "drop") {
+      const note = this.typedOf(id).trim()
+      if (note) return void this.useNote(id, action, note)
+    }
     void this.save(id, { action })
     return undefined
   }
@@ -367,15 +373,16 @@ export class ReviewClient {
   }
 
   /**
-   * Make `id`'s note a mark:  `how` is the note box button pressed (`todo`, `soon`:  Later, `now`:  Do Now);
+   * Make `id`'s note a mark:  `how` is the note box button pressed (`todo`, `soon`:  Later, `now`:  Do Now;
+   * a todo's `next` and `drop`, Owen, 2026-10-09);
    * what was typed is dropped from memory and the backup (the mark carries it).
    * - Later keeps the item's pick:  "pick B, but ..."
    */
-  useNote(id: string, how: "todo" | "soon" | "now", note: string): Promise<boolean> {
+  useNote(id: string, how: "todo" | "next" | "drop" | "soon" | "now", note: string): Promise<boolean> {
     this.forgetTyped(id)
     this.boxes.delete(id)
     if (how === "now") return this.askNow(id, "revisit", note)
-    if (how === "todo") return this.save(id, { action: "todo", note })
+    if (how !== "soon") return this.save(id, { action: how, note })
     return this.save(id, { action: "revisit", when: "soon", note, ...pickOf(this.inbox.marks[id]) })
   }
 

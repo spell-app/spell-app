@@ -596,7 +596,7 @@ export class ReviewInbox {
    * - `pick`:  `pick` an option card's letter, `A`-`Z`
    * - with a pick:  `choices` too, when given:  which of the item's option card sets it's from, by position (`0`,
    *   `1` ...:  I8);  none, the item's own
-   * - `todo`:  `note` trimmed, kept only when there is one
+   * - `todo`, `next`, `drop`:  `note` trimmed, kept only when there is one
    * - `new` (a new item, `setNew()`):  `kind` one of `NEW_KINDS`;  `title` trimmed, never empty, at most
    *   `MAX_TITLE` characters;  `note` trimmed, kept only when there is one;  `near` an id (`toItemId()`, lower-case),
    *   kept only when given.  Whether the doc HAS that id is the route's to check (it reads the doc)
@@ -616,9 +616,10 @@ export class ReviewInbox {
       return { action, when: when as RevisitWhen, note: note.trim(), pick: toLetter(pick), ...toChoices(choices) }
     }
     if (action === "pick") return { action, pick: toLetter(pick), ...toChoices(choices) }
-    // Make Todo's note box (epic `windows-and-review` P2):  why it's worth following up
-    if (action === "todo") {
-      if (typeof note !== "string") throw new InboxError("a todo's note is text")
+    // Make Todo's note box (epic `windows-and-review` P2):  why it's worth following up;
+    // a todo's plane and x take the note box's words too (Owen, 2026-10-09)
+    if (action === "todo" || action === "next" || action === "drop") {
+      if (typeof note !== "string") throw new InboxError(`a ${action} mark's note is text`)
       return note.trim() ? { action, note: note.trim() } : { action }
     }
     return { action }
@@ -766,12 +767,15 @@ export const INBOX_VERSION = 1
  * What a mark asks of Claude, in the order `plan-doc inbox` prints them.
  * - `approve`:  accept the item as it stands (a judgement call, an answer)
  * - `todo`:  file it as a todo
+ * - `next`:  a todo's plane (Owen, 2026-10-09):  do it in the next phase,
+ *   queued into the first phase still to do (`PlanDoc.applyAction()`)
+ * - `drop`:  a todo's x:  drop it, canceled
  * - `details`:  write more details into it (an immediate request:  `requestNow()`)
  * - `revisit`:  talk it through again;  `when` `soon` (with the next batch) or `now` (immediate), `note` Owen's text
  * - `pick`:  an option card, by letter (`pick: "B"`), on any item (I8):  `choices` says which card set
  * - `new`:  a new todo or question Owen asks for from the page (`setNew()`, epic `airplane` P2), under its own key
  */
-export const ACTIONS = ["approve", "todo", "details", "revisit", "pick", "new"] as const
+export const ACTIONS = ["approve", "todo", "next", "drop", "details", "revisit", "pick", "new"] as const
 /** One of `ACTIONS`. */
 export type MarkAction = (typeof ACTIONS)[number]
 

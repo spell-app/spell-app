@@ -59,7 +59,8 @@ Owen is back online.  Gather everything, work through it in the background, then
 2. `spell dev airplane off`.  Nothing waiting:  say so in one line, and stop.
 3. Reply at once, short:  the counts by place, and that the work runs in the background now.
 4. Per epic, in the session itself (quick):  `spell dev plan-doc inbox <name> apply --all`:
-   approvals, picks, todos and new items land in the doc, sent or not (Owen's decision Q3 of `airplane`).
+   approvals, picks, todos, a todo's plane (queued into the next phase) and x (dropped:  canceled), and new items
+   land in the doc, sent or not (Owen's decision Q3 of `airplane`).
 5. The rest goes to background agents, named and listed (root `CLAUDE.md`, "Delegated work"), up to 5 at once:
    - each Do Now, revisit and phase note:  as `/epic review` answers one ("7.3", step 2):
      the status card first, the answer INTO the item, `status ... done`, `inbox done | clear`
