@@ -314,8 +314,18 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
    - A choice:  `add ... decision` (a question born answered).
    - A choice made WITHOUT Owen (he is away, or an agent decided):  `add ... judgement`.
      - Ids `J1` ...;  see `/bedtime`.
-     - One that simply follows WWOD gets `--calm` (last):  yellow (open), rather than red.
-       Owen flips it from its id chip while reviewing.
+     - CALM by default:  `--calm` (last), yellow (open) rather than red.  The same for an issue.
+       - Owen:  "if what you picked was reasonable, and I didn't explicitly state otherwise, [it] should be yellow"
+         (2026-10-10, "the principle of least surprise").
+       - RED (no `--calm`) only when it would surprise him:
+         - it goes against something he said
+         - it drops, narrows or changes what he asked for
+         - a real fork he'd plausibly have picked differently, AND that matters to him
+           (cost, behaviour he'll notice, something hard to undo)
+         - it needs his answer before work can go on
+       - Following WWOD is one case of calm, not the only one.
+       - Never ask:  decide, and record it.
+       - Owen flips it from its id chip while reviewing;  `plan-doc calm <name> <id>... [--loud]` from the CLI.
    - Items added while the phase is active carry it.
      - The phase's "To review" line lists the ones Owen hasn't reviewed;  the script writes it on every edit.
      - Never hand-write a "Judgement calls:" line.
@@ -816,6 +826,7 @@ updated <name> <N> "<p>what changed</p>"            a change to phase N's plan: 
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
 add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"] [--calm]   prints the id (C3)
+calm <name> <id>... [--loud]                        calls / issues not urgent (yellow);  --loud:  red again
 decide <name> <Q id> "answer" [--details html]     answer a question, INTO it:  prints its id (Q3)
 commit <name> <sha> --phase N | --item <id> "..."   list a commit under a phase or an item
 commits <name> --backfill                           every phase / item commit (`P3:`, `<name> I3:`), once
