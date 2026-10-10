@@ -80,11 +80,16 @@ export const GIT = "git"
 export const NOTICE = "notice"
 export const HUNG = "hung"
 
-export const ACTIONS = "actions"
 export const SEND = "send"
 export const REVIEW_NOW = "review-now"
 export const STATE = "state"
 export const REVIEW_LINE = "review-line"
+
+/** Classes of the toolbar row, its tools at the right, the send bar and its pill (epic `airplane` P8). */
+export const TOOLBAR = "toolbar"
+export const TOOLBAR_TOOLS = "toolbar-tools"
+export const SEND_BAR = "send-bar"
+export const PILL = "pill"
 
 /** The crumbs' class. */
 export const CRUMBS = "crumbs"

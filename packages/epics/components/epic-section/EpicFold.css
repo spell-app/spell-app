@@ -105,6 +105,13 @@
     line-height: 1.6;
   }
 
+  /* the title's end:  its tools (a section's toggles or filter, a phase's review buttons), then collapse-all */
+  .tools {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+  }
+
   /* the title's icon:  a slotted glyph, centred on the title's row */
   .icon {
     display: inline-flex;

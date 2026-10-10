@@ -5,6 +5,9 @@ import { E } from "$/ui/core"
 
 // Import directly:  the page's signals, not its family's barrel (which would define `<epic-page>` here)
 import { EpicPage } from "$/epics/components/epic-page/EpicPage"
+// the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel
+import { CollapseAllButton } from "$/epics/components/epic-item/CollapseAllButton"
+import { foldAllUnder } from "$/epics/components/epic-item/Fold"
 
 import {
   BODY,
@@ -44,6 +47,9 @@ export class DOMEpicFoldElement extends E.DOMLoadableBodyElement<EpicFold<any>> 
  *   - The inner section's own `ui-open` / `ui-close` are CANCELLED and stopped there:
  *     the DOM element announces its own (cancelable), then `open` changes and the inner section follows.
  *   - Find-in-page (`beforematch`, not cancelable) is adopted.
+ * - Collapse-all (epic `airplane` P8):  while open, a double chevron beside the fold chevron folds everything inside
+ *   it, not itself (`collapseAll()`;  each subclass adopts `CollapseAllButton.css`);
+ *   `<epic-page>`'s toolbar folds the whole page, every block through its `collapse()`.
  * - Sticky line:  a top-level fold sticks below the page header (`EpicPage.signalsOf(page).top`);
  *   a nested one below its parent's title (the inner sections stack themselves).
  *   Its children get `--epic-stack`, the bottom of the stuck titles above them (px from the viewport top),
@@ -102,6 +108,39 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
       this.isOpen = true
     }
     return this.foldAttrs.source ? this.body.load().catch(() => undefined) : Promise.resolve()
+  }
+
+  /** Fold it, if open, as a click on its title would (`toggle()`);  true when it folded. */
+  @E.untracked
+  collapse(): boolean {
+    return this.isOpen ? this.toggle() : false
+  }
+
+  /**
+   * Collapse-all, the double chevron on its title:  fold everything inside it -- nested blocks, items, cards,
+   * asides, code (`foldAllUnder()`) and its own boxes (`foldOwnBoxes()`) -- itself staying open.
+   * - Its title stuck (the reader is inside it):  the page scrolls first,
+   *   so the title stays where it is and what folds goes away below it (the runtime's `keepTitlePut()`).
+   * - Returns how many it folded.
+   */
+  @E.untracked
+  collapseAll(): number {
+    this.keepTitlePut()
+    return foldAllUnder(this.domElement) + this.foldOwnBoxes()
+  }
+
+  /** Fold the boxes it draws itself (in its shadow root), for `collapseAll()`;  how many it folded.  None by default. */
+  protected foldOwnBoxes(): number {
+    return 0
+  }
+
+  /** Its top scrolled past where its title sticks:  scroll at once so its top is there, the title not moving. */
+  private keepTitlePut() {
+    const stickTop = this.inner?.stickTop
+    if (stickTop === undefined) return
+    const top = this.domElement.getBoundingClientRect().top
+    if (top >= stickTop - 1) return
+    window.scrollTo({ top: window.scrollY + top - stickTop, behavior: "instant" })
   }
 
   /** The inner section, as it's drawn:  take over its folding, and read its stack once it's ready. */
@@ -265,9 +304,17 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
           <span slot="header" class="header">
             {pieces.title()}
           </span>
-          <Show when={pieces.tools}>
+          <Show when={pieces.tools || this.isOpen}>
             <span slot="actions" class="tools" part={this.partForName("tools" as never)}>
-              {pieces.tools!()}
+              {pieces.tools?.()}
+              {/* last, so it sits beside the fold chevron */}
+              <Show when={this.isOpen}>
+                <CollapseAllButton
+                  label={this.translationForKey("collapseAll" as never, { name: this.contentsEntry().label })}
+                  part={this.partForName("collapse-all" as never)}
+                  onCollapse={() => this.collapseAll()}
+                />
+              </Show>
             </span>
           </Show>
           <div class={BODY} part={this.partForName("body" as never)} style={{ [STACK_PROPERTY]: `${this.stack}px` }}>

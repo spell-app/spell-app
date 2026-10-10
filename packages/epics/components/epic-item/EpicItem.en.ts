@@ -182,6 +182,10 @@ export const epicItemVocabulary = {
     { name: "line", description: "Its line:  fold button, id chip, title, review label, actions;  sticky while open." },
     { name: "toggle", description: "The fold `<button>` (the chevron), on an item with details." },
     {
+      name: "collapse-all",
+      description: "Open, holding cards or panels that fold:  the double chevron at its line's end, folding them all."
+    },
+    {
       name: "id",
       description:
         "The id chip (`Q7`), a link to the item, in its state's colour.  While the page is reviewed, an open " +
@@ -219,6 +223,11 @@ export const epicItemVocabulary = {
   texts: [
     { key: "fold", text: "Fold {id}", description: "Accessible name of the fold button while open." },
     { key: "unfold", text: "Unfold {id}", description: "Accessible name of the fold button while folded." },
+    {
+      key: "collapseAll",
+      text: "Fold everything in {id}",
+      description: "The collapse-all button's name and tooltip:  folds every card and panel in the item."
+    },
     {
       key: "showCommits",
       text: "Show this item's commits",
