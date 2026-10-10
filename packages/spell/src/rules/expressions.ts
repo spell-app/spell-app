@@ -351,9 +351,9 @@ expressions.addRule(parenthesized_expression, {
       title: "correctly matches multiple parenthesis",
       compileAs: "expression",
       tests: [
-        ["(1) and (yes)", "((1) && (true))"],
-        ["((1) and (yes))", "((1) && (true))"],
-        ["((1) and ((yes)))", "((1) && (true))"]
+        ["(1) and (yes)", "((1) && (true))", "(1 && true)"],
+        ["((1) and (yes))", "((1) && (true))", "(1 && true)"],
+        ["((1) and ((yes)))", "((1) && (true))", "(1 && true)"]
       ]
     },
     {
@@ -603,8 +603,8 @@ expressions.addRule(compound_expression, {
       title: "complex math expressions",
       compileAs: "expression",
       tests: [
-        ["1 + 2 + 3", "((1 + 2) + 3)"],
-        ["1 + 2 * 3", "(1 + (2 * 3))"],
+        ["1 + 2 + 3", "((1 + 2) + 3)", "(1 + 2 + 3)"],
+        ["1 + 2 * 3", "(1 + (2 * 3))", "(1 + 2 * 3)"],
         ["(1+1) * (2+2)", "((1 + 1) * (2 + 2))"],
         ["((1+1) * (2+2))", "((1 + 1) * (2 + 2))"]
       ]
@@ -626,7 +626,7 @@ expressions.addRule(compound_expression, {
       },
       tests: [
         ["x + y is empty", "spellCore.isEmpty(x + y)"],
-        ["x is 1 and y is empty", "((x == 1) && spellCore.isEmpty(y))"]
+        ["x is 1 and y is empty", "((x == 1) && spellCore.isEmpty(y))", "(x == 1 && spellCore.isEmpty(y))"]
       ]
     }
   ]
@@ -655,7 +655,7 @@ expressions.addRule(arithmetic_expression, {
         scope.variables?.add("x")
       },
       tests: [
-        ["x + 1 * 2", "(x + (1 * 2))"],
+        ["x + 1 * 2", "(x + (1 * 2))", "(x + 1 * 2)"],
         ["x", "x"]
       ]
     }
@@ -688,8 +688,8 @@ expressions.addRule(and, {
       },
       tests: [
         ["thing and other", "(thing && other)"],
-        ["thing and other and yet-another", "((thing && other) && yet_another)"],
-        ["thing is 1 and other is 2", "((thing == 1) && (other == 2))"]
+        ["thing and other and yet-another", "((thing && other) && yet_another)", "(thing && other && yetAnother)"],
+        ["thing is 1 and other is 2", "((thing == 1) && (other == 2))", "(thing == 1 && other == 2)"]
       ]
     }
   ]
@@ -828,13 +828,13 @@ expressions.addRule(is_a, {
         scope.types?.add("Animal")
       },
       tests: [
-        ["thing is a Bee", "spellCore.isOfType(thing, 'Bee')"],
-        ["thing is an Animal", "spellCore.isOfType(thing, 'Animal')"],
-        ["thing is not a Bee", "!spellCore.isOfType(thing, 'Bee')"],
-        ["thing is not an Animal", "!spellCore.isOfType(thing, 'Animal')"],
-        ["thing is a number", "spellCore.isOfType(thing, 'number')"],
-        ["thing is a boolean", "spellCore.isOfType(thing, 'choice')"],
-        ["thing is a list", "spellCore.isOfType(thing, 'List')"],
+        ["thing is a Bee", "spellCore.isOfType(thing, 'Bee')", 'spellCore.isOfType(thing, "Bee")'],
+        ["thing is an Animal", "spellCore.isOfType(thing, 'Animal')", 'spellCore.isOfType(thing, "Animal")'],
+        ["thing is not a Bee", "!spellCore.isOfType(thing, 'Bee')", '!spellCore.isOfType(thing, "Bee")'],
+        ["thing is not an Animal", "!spellCore.isOfType(thing, 'Animal')", '!spellCore.isOfType(thing, "Animal")'],
+        ["thing is a number", "spellCore.isOfType(thing, 'number')", 'typeof thing === "number"'],
+        ["thing is a boolean", "spellCore.isOfType(thing, 'choice')", 'spellCore.isOfType(thing, "choice")'],
+        ["thing is a list", "spellCore.isOfType(thing, 'List')", 'spellCore.isOfType(thing, "List")'],
         // an unknown type is no type:  `is a crad` doesn't parse
         ["thing is a crad", "thing"]
       ]
@@ -925,10 +925,26 @@ expressions.addRule(is_in, {
         ["thing is one of theList", "spellCore.includes(theList, thing)"],
         ["thing is not in theList", "!spellCore.includes(theList, thing)"],
         ["thing is not one of theList", "!spellCore.includes(theList, thing)"],
-        ["thing is either red or green", "spellCore.includes([red, 'green'], thing)"],
-        ["thing is not either red or green", "!spellCore.includes([red, 'green'], thing)"],
-        ["thing is not either of red or green", "!spellCore.includes([red, 'green'], thing)"],
-        ["thing is neither red nor green", "!spellCore.includes([red, 'green'], thing)"]
+        [
+          "thing is either red or green",
+          "spellCore.includes([red, 'green'], thing)",
+          'spellCore.includes([red, "green"], thing)'
+        ],
+        [
+          "thing is not either red or green",
+          "!spellCore.includes([red, 'green'], thing)",
+          '!spellCore.includes([red, "green"], thing)'
+        ],
+        [
+          "thing is not either of red or green",
+          "!spellCore.includes([red, 'green'], thing)",
+          '!spellCore.includes([red, "green"], thing)'
+        ],
+        [
+          "thing is neither red nor green",
+          "!spellCore.includes([red, 'green'], thing)",
+          '!spellCore.includes([red, "green"], thing)'
+        ]
       ]
     }
   ]
@@ -945,9 +961,21 @@ expressions.addRule(is_in, {
         scope.constants?.add("blue")
       },
       tests: [
-        ["thing is green or blue", "spellCore.includes(['green', 'blue'], thing)"],
-        ["thing is not green or blue", "!spellCore.includes(['green', 'blue'], thing)"],
-        ["thing is green or thing is blue", "((thing == 'green') || (thing == 'blue'))"]
+        [
+          "thing is green or blue",
+          "spellCore.includes(['green', 'blue'], thing)",
+          'spellCore.includes(["green", "blue"], thing)'
+        ],
+        [
+          "thing is not green or blue",
+          "!spellCore.includes(['green', 'blue'], thing)",
+          '!spellCore.includes(["green", "blue"], thing)'
+        ],
+        [
+          "thing is green or thing is blue",
+          "((thing == 'green') || (thing == 'blue'))",
+          '(thing == "green" || thing == "blue")'
+        ]
       ]
     }
   ]
@@ -1062,9 +1090,9 @@ expressions.addRule(is_defined, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["thing is defined", "spellCore.isDefined(thing)"],
-        ["thing is undefined", "!spellCore.isDefined(thing)"],
-        ["thing is not defined", "!spellCore.isDefined(thing)"]
+        ["thing is defined", "spellCore.isDefined(thing)", "thing !== undefined"],
+        ["thing is undefined", "!spellCore.isDefined(thing)", "thing === undefined"],
+        ["thing is not defined", "!spellCore.isDefined(thing)", "thing === undefined"]
       ]
     }
   ]
@@ -1101,8 +1129,8 @@ expressions.addRule(exists, {
         scope.variables?.add("thing")
       },
       tests: [
-        ["thing exists", "spellCore.isDefined(thing)"],
-        ["thing does not exist", "!spellCore.isDefined(thing)"]
+        ["thing exists", "spellCore.isDefined(thing)", "thing !== undefined"],
+        ["thing does not exist", "!spellCore.isDefined(thing)", "thing === undefined"]
       ]
     }
   ]
@@ -1147,12 +1175,16 @@ expressions.addRule(there_is_a, {
         scope.variables?.add("animal")
       },
       tests: [
-        { input: "there is a thing", output: "spellCore.isDefined(thing)" },
-        { input: "there is an animal", output: "spellCore.isDefined(animal)" },
-        { input: "there is not a thing", output: "!spellCore.isDefined(thing)" },
-        { input: "there is no such animal", output: "!spellCore.isDefined(animal)" },
+        { input: "there is a thing", js: "spellCore.isDefined(thing)", ts: "thing !== undefined" },
+        { input: "there is an animal", js: "spellCore.isDefined(animal)", ts: "animal !== undefined" },
+        { input: "there is not a thing", js: "!spellCore.isDefined(thing)", ts: "thing === undefined" },
+        { input: "there is no such animal", js: "!spellCore.isDefined(animal)", ts: "animal === undefined" },
         // an operand:  `and` is the expression's, not the thing's (D23)
-        { input: "there is a thing and animal", output: "(spellCore.isDefined(thing) && animal)" }
+        {
+          input: "there is a thing and animal",
+          js: "(spellCore.isDefined(thing) && animal)",
+          ts: "(thing !== undefined && animal)"
+        }
       ]
     }
   ]
@@ -1223,8 +1255,8 @@ expressions.addRule(as_uppercase, {
     {
       compileAs: "expression",
       tests: [
-        [`"foo" as upper case`, `spellCore.upperCase("foo")`],
-        [`1 as uppercase`, `spellCore.upperCase(1)`]
+        [`"foo" as upper case`, `spellCore.upperCase("foo")`, '"foo".toLocaleUpperCase()'],
+        [`1 as uppercase`, `spellCore.upperCase(1)`, '`${1 ?? ""}`.toLocaleUpperCase()']
       ]
     }
   ]
@@ -1253,7 +1285,7 @@ expressions.addRule(as_lowercase, {
     {
       compileAs: "expression",
       tests: [
-        [`"foo" as lower case`, `spellCore.lowerCase("foo")`],
+        [`"foo" as lower case`, `spellCore.lowerCase("foo")`, '"foo".toLocaleLowerCase()'],
         [`1 as lowercase`, `spellCore.lowerCase(1)`]
       ]
     }

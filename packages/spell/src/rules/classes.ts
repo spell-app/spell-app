@@ -163,7 +163,8 @@ classes.addRule(create_type, {
             "  get rank() { return this.getProp('rank') }",
             "  set rank(value) { this.setProp('rank', value) }",
             "}"
-          ]
+          ],
+          ["export class Card extends Thing {", '  @prop({ type: "number" }) accessor rank!: number', "}"]
         ]
       ]
     }
@@ -258,7 +259,8 @@ classes.addRule(create_list_type, {
       tests: [
         [
           "create a type named hand as a list of cards",
-          ["export class Hand extends List {", "  static instanceType = Card", "}"]
+          ["export class Hand extends List {", "  static instanceType = Card", "}"],
+          ["export class Hand extends List<Card> {", "  static instanceType = Card", "}"]
         ]
       ]
     }
@@ -270,12 +272,22 @@ classes.addRule(create_list_type, {
   tests: [
     {
       compileAs: "statement",
-      tests: [["a deck is a list of cards", ["export class Deck extends List {", "  static instanceType = Card", "}"]]]
+      tests: [
+        [
+          "a deck is a list of cards",
+          ["export class Deck extends List {", "  static instanceType = Card", "}"],
+          ["export class Deck extends List<Card> {", "  static instanceType = Card", "}"]
+        ]
+      ]
     },
     {
       compileAs: "block",
       tests: [
-        ["a deck is a list of cards with:", ["export class Deck extends List {", "  static instanceType = Card", "}"]]
+        [
+          "a deck is a list of cards with:",
+          ["export class Deck extends List {", "  static instanceType = Card", "}"],
+          ["export class Deck extends List<Card> {", "  static instanceType = Card", "}"]
+        ]
       ]
     }
   ]
@@ -286,13 +298,21 @@ classes.addRule(create_list_type, {
     {
       compileAs: "statement",
       tests: [
-        ['a "deck" is a list of cards', ["export class Deck extends List {", "  static instanceType = Card", "}"]]
+        [
+          'a "deck" is a list of cards',
+          ["export class Deck extends List {", "  static instanceType = Card", "}"],
+          ["export class Deck extends List<Card> {", "  static instanceType = Card", "}"]
+        ]
       ]
     },
     {
       compileAs: "block",
       tests: [
-        ['a "deck" is a list of cards with:', ["export class Deck extends List {", "  static instanceType = Card", "}"]]
+        [
+          'a "deck" is a list of cards with:',
+          ["export class Deck extends List {", "  static instanceType = Card", "}"],
+          ["export class Deck extends List<Card> {", "  static instanceType = Card", "}"]
+        ]
       ]
     }
   ]
@@ -429,22 +449,32 @@ classes.addRule(belongs_to_one, {
             "  },",
             "  configurable: true",
             "})"
+          ],
+          [
+            "Pile.exclusive = true",
+            "export interface Card { readonly pile: any /* spell: type unknown */ }",
+            'Object.defineProperty(Card.prototype, "pile", {',
+            "  get(this: Card) {",
+            "    return Pile.ownerOf(this)!",
+            "  },",
+            "  configurable: true",
+            "})"
           ]
         ],
         {
           title: "a built-in item type:  no member, it'd go on a type every project shares",
           input: "a thing belongs to one bag",
-          output: "Bag.exclusive = true"
+          js: "Bag.exclusive = true"
         },
         {
           title: "both types MUST be declared above",
           input: "a card belongs to one hand",
-          output: `/* PARSE ERROR: Can't say "a card belongs to one hand" yet:  declare "a hand is a list of cards" above it */`
+          js: `/* PARSE ERROR: Can't say "a card belongs to one hand" yet:  declare "a hand is a list of cards" above it */`
         },
         {
           title: "the list type MUST be a list of the project's",
           input: ["a card belongs to one list", "a card belongs to one card"],
-          output: [
+          js: [
             `/* PARSE ERROR: Can't say "a card belongs to one list":  every list would hold a card once */`,
             `/* PARSE ERROR: Can't say "a card belongs to one card":  a card isn't a list */`
           ]
@@ -564,7 +594,13 @@ classes.addRule(list_guard, {
       tests: [
         [
           "a pile can take a card if: it is empty",
-          ["Pile.prototype.canTake = function (card) {", "  return spellCore.isEmpty(this)", "}"]
+          ["Pile.prototype.canTake = function (card) {", "  return spellCore.isEmpty(this)", "}"],
+          [
+            "export interface Pile { canTake(card: Card): boolean }",
+            "Pile.prototype.canTake = function (this: Pile, card: Card) {",
+            "  return spellCore.isEmpty(this)",
+            "}"
+          ]
         ],
         {
           title: "an indented body, `the pile` and `the card`",
@@ -573,10 +609,17 @@ classes.addRule(list_guard, {
             "\tif the pile is empty return yes",
             "\treturn the card is not the last card of the pile"
           ],
-          output: [
+          js: [
             "Pile.prototype.canTake = function (card) {",
             "  if (spellCore.isEmpty(this)) { return true }",
             "  return (card != spellCore.getItemAt(this, -1))",
+            "}"
+          ],
+          ts: [
+            "export interface Pile { canTake(card: Card): boolean }",
+            "Pile.prototype.canTake = function (this: Pile, card: Card) {",
+            "  if (spellCore.isEmpty(this)) return true",
+            "  return card !== spellCore.getItemAt(this, -1)",
             "}"
           ]
         }
@@ -596,9 +639,24 @@ classes.addRule(list_guard, {
       tests: [
         [
           "a pile can give up a card if: the card is its last card",
-          ["Pile.prototype.canGiveUp = function (card) {", "  return (card == spellCore.getItemAt(this, -1))", "}"]
+          ["Pile.prototype.canGiveUp = function (card) {", "  return (card == spellCore.getItemAt(this, -1))", "}"],
+          [
+            "export interface Pile { canGiveUp(card: Card): boolean }",
+            "Pile.prototype.canGiveUp = function (this: Pile, card: Card) {",
+            "  return card === spellCore.getItemAt(this, -1)",
+            "}"
+          ]
         ],
-        ["a pile can let go of a card if: yes", ["Pile.prototype.canGiveUp = function (card) {", "  return true", "}"]]
+        [
+          "a pile can let go of a card if: yes",
+          ["Pile.prototype.canGiveUp = function (card) {", "  return true", "}"],
+          [
+            "export interface Pile { canGiveUp(card: Card): boolean }",
+            "Pile.prototype.canGiveUp = function (this: Pile, card: Card) {",
+            "  return true",
+            "}"
+          ]
+        ]
       ]
     }
   ]
@@ -612,7 +670,16 @@ classes.addRule(list_guard, {
         scope.parse(["a card is a thing", "a pile is a list of cards"].join("\n"), "block")
       },
       tests: [
-        ["a pile can never let go of a card", ["Pile.prototype.canGiveUp = function (card) {", "  return false", "}"]]
+        [
+          "a pile can never let go of a card",
+          ["Pile.prototype.canGiveUp = function (card) {", "  return false", "}"],
+          [
+            "export interface Pile { canGiveUp(card: Card): boolean }",
+            "Pile.prototype.canGiveUp = function (this: Pile, card: Card) {",
+            "  return false",
+            "}"
+          ]
+        ]
       ]
     }
   ]
@@ -709,9 +776,17 @@ classes.addRule(new_list, {
       tests: [
         [`a new list`, `new List()`],
         [`a new List`, `new List()`],
-        [`a new list of objects`, `new List({ instanceType: "Object" })`],
-        [`a new list of numbers`, `new List({ instanceType: "number" })`],
-        [`a new list of Todos`, `new List({ instanceType: "Todo" })`]
+        [
+          `a new list of objects`,
+          `new List({ instanceType: "Object" })`,
+          'new List<Object>({ instanceType: "Object" })'
+        ],
+        [
+          `a new list of numbers`,
+          `new List({ instanceType: "number" })`,
+          'new List<number>({ instanceType: "number" })'
+        ],
+        [`a new list of Todos`, `new List({ instanceType: "Todo" })`, 'new List<Todo>({ instanceType: "Todo" })']
       ]
     }
   ]
@@ -815,8 +890,12 @@ classes.addRule(type_specifier_enum, {
   tests: [
     {
       tests: [
-        ["as either red or black", "['red', 'black']"],
-        ["as one of clubs, diamonds, hearts, spades", "['clubs', 'diamonds', 'hearts', 'spades']"]
+        ["as either red or black", "['red', 'black']", '["red", "black"]'],
+        [
+          "as one of clubs, diamonds, hearts, spades",
+          "['clubs', 'diamonds', 'hearts', 'spades']",
+          '["clubs", "diamonds", "hearts", "spades"]'
+        ]
       ]
     }
   ]
@@ -973,7 +1052,7 @@ classes.addRule(class_member, {
         ["card suits", "Card.Suits"],
         ["Card Suits", "Card.Suits"],
         ["bank-account account-types", "Bank_Account.Account_types"],
-        { title: "not a class variable", input: "card ranks", output: undefined }
+        { title: "not a class variable", input: "card ranks", js: undefined }
       ]
     }
   ]
@@ -1170,6 +1249,15 @@ classes.addRule(define_property_has, {
             "  set(value) { this.setProp('name', value) },",
             "  configurable: true",
             "})"
+          ],
+          [
+            "export interface Player { name: string }",
+            "Player.declareProp('name', { type: \"text\" })",
+            "Object.defineProperty(Player.prototype, 'name', {",
+            "  get(this: Player): string { return this.getProp('name') as string },",
+            "  set(this: Player, value: string) { this.setProp('name', value) },",
+            "  configurable: true",
+            "})"
           ]
         ]
       ]
@@ -1218,7 +1306,8 @@ classes.addRule(define_property_has, {
       tests: [
         [
           ["get a new card", "print its suits"],
-          ["let it = new Card()", "spellCore.console.log(Card.Suits)"]
+          ["let it = new Card()", "spellCore.console.log(Card.Suits)"],
+          ["const it = new Card()", "spellCore.console.log(Card.Suits)"]
         ],
         ["print bank-account account-types", "spellCore.console.log(Bank_Account.Account_types)"]
       ]
@@ -1237,6 +1326,15 @@ classes.addRule(define_property_has, {
             "Object.defineProperty(Card.prototype, 'short_rank', {",
             "  get() { return this.getProp('short_rank') },",
             "  set(value) { this.setProp('short_rank', value) },",
+            "  configurable: true",
+            "})"
+          ],
+          [
+            "export interface Card { short_rank: string }",
+            "Card.declareProp('short_rank', { type: \"text\" })",
+            "Object.defineProperty(Card.prototype, 'short_rank', {",
+            "  get(this: Card): string { return this.getProp('short_rank') as string },",
+            "  set(this: Card, value: string) { this.setProp('short_rank', value) },",
             "  configurable: true",
             "})"
           ]
@@ -1261,6 +1359,16 @@ classes.addRule(define_property_has, {
             "  set(value) { this.setProp('direction', value) },",
             "  configurable: true",
             "})"
+          ],
+          [
+            'Card.Directions = ["up", "down"]',
+            "export interface Card { direction: (typeof Card.Directions)[number] }",
+            "Card.declareProp('direction', { oneOf: Card.Directions })",
+            "Object.defineProperty(Card.prototype, 'direction', {",
+            "  get(this: Card): (typeof Card.Directions)[number] { return this.getProp('direction') as (typeof Card.Directions)[number] },",
+            "  set(this: Card, value: (typeof Card.Directions)[number]) { this.setProp('direction', value) },",
+            "  configurable: true",
+            "})"
           ]
         ],
         [
@@ -1270,6 +1378,15 @@ classes.addRule(define_property_has, {
             "Object.defineProperty(Todo.prototype, 'title', {",
             "  get() { return this.getProp('title') },",
             "  set(value) { this.setProp('title', value) },",
+            "  configurable: true",
+            "})"
+          ],
+          [
+            "export interface Todo { title: string }",
+            "Todo.declareProp('title', { type: \"text\" })",
+            "Object.defineProperty(Todo.prototype, 'title', {",
+            "  get(this: Todo): string { return this.getProp('title') as string },",
+            "  set(this: Todo, value: string) { this.setProp('title', value) },",
             "  configurable: true",
             "})"
           ]
@@ -1283,6 +1400,15 @@ classes.addRule(define_property_has, {
             "  set(value) { this.setProp('completed', value) },",
             "  configurable: true",
             "})"
+          ],
+          [
+            "export interface Todo { completed: boolean }",
+            "Todo.declareProp('completed', { type: \"choice\" })",
+            "Object.defineProperty(Todo.prototype, 'completed', {",
+            "  get(this: Todo): boolean { return this.getProp('completed') as boolean },",
+            "  set(this: Todo, value: boolean) { this.setProp('completed', value) },",
+            "  configurable: true",
+            "})"
           ]
         ],
         [
@@ -1292,6 +1418,15 @@ classes.addRule(define_property_has, {
             "Object.defineProperty(Todo.prototype, 'tags', {",
             "  get() { return this.getProp('tags') },",
             "  set(value) { this.setProp('tags', value) },",
+            "  configurable: true",
+            "})"
+          ],
+          [
+            "export interface Todo { tags: any /* spell: type unknown */ }",
+            "Todo.declareProp('tags', { init: () => new List() })",
+            "Object.defineProperty(Todo.prototype, 'tags', {",
+            "  get(this: Todo): any /* spell: type unknown */ { return this.getProp('tags') },",
+            "  set(this: Todo, value: any /* spell: type unknown */) { this.setProp('tags', value) },",
             "  configurable: true",
             "})"
           ]
@@ -1351,14 +1486,24 @@ class outline_specifier_enum extends type_specifier_enum {
 }
 classes.addRule(outline_specifier_enum, {
   syntax: "(either|one of) {enumeration:identifier_list}",
-  tests: [{ tests: [["one of clubs, diamonds, hearts, spades", "['clubs', 'diamonds', 'hearts', 'spades']"]] }]
+  tests: [
+    {
+      tests: [
+        [
+          "one of clubs, diamonds, hearts, spades",
+          "['clubs', 'diamonds', 'hearts', 'spades']",
+          '["clubs", "diamonds", "hearts", "spades"]'
+        ]
+      ]
+    }
+  ]
 })
 classes.addRule(outline_specifier_enum, {
   syntax: "{enumeration:identifier_list}",
   tests: [
     {
       tests: [
-        ["up or down", "['up', 'down']"],
+        ["up or down", "['up', 'down']", '["up", "down"]'],
         ["up", undefined],
         ["up, down", undefined]
       ]
@@ -1632,6 +1777,15 @@ classes.addRule(property_value_either, {
             "  },",
             "  configurable: true",
             "})"
+          ],
+          [
+            "export interface Card { readonly color: any /* spell: type unknown */ }",
+            'Object.defineProperty(Card.prototype, "color", {',
+            "  get(this: Card) {",
+            '    if (spellCore.includes(["diamonds", "hearts"], this.suit)) return "red"',
+            "  },",
+            "  configurable: true",
+            "})"
           ]
         ],
         [
@@ -1641,6 +1795,16 @@ classes.addRule(property_value_either, {
             "  get() {",
             "    if (spellCore.includes(['clubs', 'spades'], this.suit)) { return 'black' }",
             "    return 'red'",
+            "  },",
+            "  configurable: true",
+            "})"
+          ],
+          [
+            "export interface Card { readonly color: any /* spell: type unknown */ }",
+            'Object.defineProperty(Card.prototype, "color", {',
+            "  get(this: Card) {",
+            '    if (spellCore.includes(["clubs", "spades"], this.suit)) return "black"',
+            '    return "red"',
             "  },",
             "  configurable: true",
             "})"
@@ -1776,13 +1940,29 @@ classes.addRule(property_value_getter, {
       tests: [
         {
           input: "the value of a card is:",
-          output: ["Object.defineProperty(Card.prototype, 'value', {", "  get() {},", "  configurable: true", "})"]
+          js: ["Object.defineProperty(Card.prototype, 'value', {", "  get() {},", "  configurable: true", "})"],
+          ts: [
+            "export interface Card { readonly value: any /* spell: type unknown */ }",
+            'Object.defineProperty(Card.prototype, "value", {',
+            "  get(this: Card) {},",
+            "  configurable: true",
+            "})"
+          ]
         },
         {
           input: "the value of a card is its name",
-          output: [
+          js: [
             "Object.defineProperty(Card.prototype, 'value', {",
             "  get() {",
+            "    return this.name",
+            "  },",
+            "  configurable: true",
+            "})"
+          ],
+          ts: [
+            "export interface Card { readonly value: any /* spell: type unknown */ }",
+            'Object.defineProperty(Card.prototype, "value", {',
+            "  get(this: Card) {",
             "    return this.name",
             "  },",
             "  configurable: true",
@@ -1791,9 +1971,18 @@ classes.addRule(property_value_getter, {
         },
         {
           input: ["the short-name of a card is:", "\treturn the first word of the name of the card"],
-          output: [
+          js: [
             "Object.defineProperty(Card.prototype, 'short_name', {",
             "  get() {",
+            "    return spellCore.getItemAt(this.name, 1)",
+            "  },",
+            "  configurable: true",
+            "})"
+          ],
+          ts: [
+            "export interface Card { readonly shortName: any /* spell: type unknown */ }",
+            'Object.defineProperty(Card.prototype, "shortName", {',
+            "  get(this: Card) {",
             "    return spellCore.getItemAt(this.name, 1)",
             "  },",
             "  configurable: true",
@@ -1803,9 +1992,19 @@ classes.addRule(property_value_getter, {
         {
           title: "Show error if both nestedBlock and inlineStatement",
           input: ["the short-name of a card is its name", "\treturn the first word of the name of the card"],
-          output: [
+          js: [
             "Object.defineProperty(Card.prototype, 'short_name', {",
             "  get() {",
+            "    return spellCore.getItemAt(this.name, 1)",
+            "  },",
+            "  configurable: true",
+            "})",
+            "/* PARSE ERROR: Got both inline statement and nested block */"
+          ],
+          ts: [
+            "export interface Card { readonly shortName: any /* spell: type unknown */ }",
+            'Object.defineProperty(Card.prototype, "shortName", {',
+            "  get(this: Card) {",
             "    return spellCore.getItemAt(this.name, 1)",
             "  },",
             "  configurable: true",
@@ -2396,12 +2595,24 @@ classes.addRule(quoted_property_formula, {
       tests: [
         [
           'a card "is a (rank)" for its ranks',
-          ["Card.prototype.is_a_$rank = function (rank) {", "  return this.rank === rank", "}"]
+          ["Card.prototype.is_a_$rank = function (rank) {", "  return this.rank === rank", "}"],
+          [
+            "export interface Card { isARank(rank: any /* spell: type unknown */): boolean }",
+            "Card.prototype.isARank = function (this: Card, rank: any /* spell: type unknown */) {",
+            "  return this.rank === rank",
+            "}"
+          ]
         ],
         [
           'a card "is the (rank) of (suits)" for its ranks and its suits',
           [
             "Card.prototype.is_the_$rank_of_$suits = function (rank, suit) {",
+            "  return this.rank === rank && this.suit === suit",
+            "}"
+          ],
+          [
+            "export interface Card { isTheRankOfSuits(rank: any /* spell: type unknown */, suit: any /* spell: type unknown */): boolean }",
+            "Card.prototype.isTheRankOfSuits = function (this: Card, rank: any /* spell: type unknown */, suit: any /* spell: type unknown */) {",
             "  return this.rank === rank && this.suit === suit",
             "}"
           ]
@@ -2424,8 +2635,16 @@ classes.addRule(quoted_property_formula, {
       },
       compileAs: "statement",
       tests: [
-        ["print card is a club", "spellCore.console.log(card.is_a_$suit('clubs'))"],
-        ["print card is the 2 of hearts", "spellCore.console.log(card.is_the_$rank_of_$suits(2, 'hearts'))"]
+        [
+          "print card is a club",
+          "spellCore.console.log(card.is_a_$suit('clubs'))",
+          'spellCore.console.log(card.isASuit("clubs"))'
+        ],
+        [
+          "print card is the 2 of hearts",
+          "spellCore.console.log(card.is_the_$rank_of_$suits(2, 'hearts'))",
+          'spellCore.console.log(card.isTheRankOfSuits(2, "hearts"))'
+        ]
       ]
     }
   ]

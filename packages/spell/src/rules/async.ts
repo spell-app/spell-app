@@ -53,9 +53,13 @@ _async.addRule(_await, {
       tests: [
         ["await", "await undefined"],
         ["wait for 1", "await 1"],
-        ["set the result to wait for 1", "export let result = await 1"],
-        ["wait for 2 is 1", "await (2 == 1)"],
-        ["if wait for 2 is 1 then print 1", "if (await 2 == 1) { spellCore.console.log(1) }"]
+        ["set the result to wait for 1", "export let result = await 1", "export const result = await 1"],
+        ["wait for 2 is 1", "await (2 == 1)", "await (2 === 1)"],
+        [
+          "if wait for 2 is 1 then print 1",
+          "if (await 2 == 1) { spellCore.console.log(1) }",
+          "if (await 2 == 1) spellCore.console.log(1)"
+        ]
       ]
     },
     {
@@ -63,11 +67,13 @@ _async.addRule(_await, {
       tests: [
         {
           input: ["to do something", "\twait for 1"],
-          output: ["export async function do_something() {", "  await 1", "}"]
+          js: ["export async function do_something() {", "  await 1", "}"],
+          ts: ["export async function doSomething() {", "  await 1", "}"]
         },
         {
           input: ["to do something", "\tif (1) wait for 1"],
-          output: ["export async function do_something() {", "  if (1) { await 1 }", "}"]
+          js: ["export async function do_something() {", "  if (1) { await 1 }", "}"],
+          ts: ["export async function doSomething() {", "  if (1) await 1", "}"]
         }
       ]
     }
@@ -103,10 +109,14 @@ _async.addRule(pause, {
     {
       compileAs: "statement",
       tests: [
-        [`pause for 2 seconds"`, `await spellCore.pauseFor(2, 'seconds')`],
-        [`pause for 500 msec"`, `await spellCore.pauseFor(500, 'msec')`],
-        [`pause for 10 ticks"`, `await spellCore.pauseFor(10, 'ticks')`],
-        [`pause for (10 + 10) sec`, `await spellCore.pauseFor(10 + 10, 'sec')`]
+        [`pause for 2 seconds"`, `await spellCore.pauseFor(2, 'seconds')`, 'await spellCore.pauseFor(2, "seconds")'],
+        [`pause for 500 msec"`, `await spellCore.pauseFor(500, 'msec')`, 'await spellCore.pauseFor(500, "msec")'],
+        [`pause for 10 ticks"`, `await spellCore.pauseFor(10, 'ticks')`, 'await spellCore.pauseFor(10, "ticks")'],
+        [
+          `pause for (10 + 10) sec`,
+          `await spellCore.pauseFor(10 + 10, 'sec')`,
+          'await spellCore.pauseFor(10 + 10, "sec")'
+        ]
       ]
     }
   ]
@@ -140,13 +150,22 @@ _async.addRule(start_process, {
     {
       compileAs: "statement",
       tests: [
-        [`start process dealing`, `spellCore.startProcess('dealing')`],
-        [`start animation dealing`, `spellCore.startProcess('dealing')`],
-        [`start non-exclusive animation dealing`, `spellCore.startProcess('dealing')`],
-        [`start nonexclusive process dealing`, `spellCore.startProcess('dealing')`],
+        [`start process dealing`, `spellCore.startProcess('dealing')`, 'spellCore.startProcess("dealing")'],
+        [`start animation dealing`, `spellCore.startProcess('dealing')`, 'spellCore.startProcess("dealing")'],
+        [
+          `start non-exclusive animation dealing`,
+          `spellCore.startProcess('dealing')`,
+          'spellCore.startProcess("dealing")'
+        ],
+        [
+          `start nonexclusive process dealing`,
+          `spellCore.startProcess('dealing')`,
+          'spellCore.startProcess("dealing")'
+        ],
         [
           `start exclusive process dealing`,
-          [`if (spellCore.processIsRunning('dealing')) { return }`, `spellCore.startProcess('dealing', 'EXCLUSIVE')`]
+          [`if (spellCore.processIsRunning('dealing')) { return }`, `spellCore.startProcess('dealing', 'EXCLUSIVE')`],
+          ['if (spellCore.processIsRunning("dealing")) return', 'spellCore.startProcess("dealing", "EXCLUSIVE")']
         ]
       ]
     }
@@ -177,11 +196,11 @@ _async.addRule(stop_process, {
     {
       compileAs: "statement",
       tests: [
-        [`stop animation dealing`, `spellCore.stopProcess('dealing')`],
-        [`stop process dealing`, `spellCore.stopProcess('dealing')`],
-        [`end process dealing`, `spellCore.stopProcess('dealing')`],
-        [`finish process dealing`, `spellCore.stopProcess('dealing')`],
-        [`cancel process dealing`, `spellCore.stopProcess('dealing')`]
+        [`stop animation dealing`, `spellCore.stopProcess('dealing')`, 'spellCore.stopProcess("dealing")'],
+        [`stop process dealing`, `spellCore.stopProcess('dealing')`, 'spellCore.stopProcess("dealing")'],
+        [`end process dealing`, `spellCore.stopProcess('dealing')`, 'spellCore.stopProcess("dealing")'],
+        [`finish process dealing`, `spellCore.stopProcess('dealing')`, 'spellCore.stopProcess("dealing")'],
+        [`cancel process dealing`, `spellCore.stopProcess('dealing')`, 'spellCore.stopProcess("dealing")']
       ]
     }
   ]
@@ -214,9 +233,21 @@ _async.addRule(check_process, {
     {
       compileAs: "expression",
       tests: [
-        [`animation dealing is running`, `spellCore.processIsRunning('dealing')`],
-        [`animation dealing isn't running`, `!spellCore.processIsRunning('dealing')`],
-        [`process dealing is not active`, `!spellCore.processIsRunning('dealing')`]
+        [
+          `animation dealing is running`,
+          `spellCore.processIsRunning('dealing')`,
+          'spellCore.processIsRunning("dealing")'
+        ],
+        [
+          `animation dealing isn't running`,
+          `!spellCore.processIsRunning('dealing')`,
+          '!spellCore.processIsRunning("dealing")'
+        ],
+        [
+          `process dealing is not active`,
+          `!spellCore.processIsRunning('dealing')`,
+          '!spellCore.processIsRunning("dealing")'
+        ]
       ]
     }
   ]

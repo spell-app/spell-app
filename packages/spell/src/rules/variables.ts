@@ -121,11 +121,11 @@ variables.addRule(singular_identifier, {
   tests: [
     {
       tests: [
-        { title: "singular, single word", input: "thing", output: "thing" },
-        { title: "singular, multi-word", input: "bank-account", output: "bank_account" },
-        { title: "uncountable, matches as singular too", input: "sheep", output: "sheep" },
-        { title: "plural, single word", input: "things", output: undefined },
-        { title: "plural, multi-word", input: "bank-accounts", output: undefined }
+        { title: "singular, single word", input: "thing", js: "thing" },
+        { title: "singular, multi-word", input: "bank-account", js: "bank_account", ts: "bankAccount" },
+        { title: "uncountable, matches as singular too", input: "sheep", js: "sheep" },
+        { title: "plural, single word", input: "things", js: undefined },
+        { title: "plural, multi-word", input: "bank-accounts", js: undefined }
       ]
     }
   ]
@@ -154,11 +154,11 @@ variables.addRule(plural_identifier, {
   tests: [
     {
       tests: [
-        { title: "uncountable, matches as plural too", input: "sheep", output: "sheep" },
-        { title: "plural, single word", input: "things", output: "things" },
-        { title: "plural, multi-word", input: "bank-accounts", output: "bank_accounts" },
-        { title: "singular, single word", input: "thing", output: undefined },
-        { title: "singular, multi-word", input: "bank-account", output: undefined }
+        { title: "uncountable, matches as plural too", input: "sheep", js: "sheep" },
+        { title: "plural, single word", input: "things", js: "things" },
+        { title: "plural, multi-word", input: "bank-accounts", js: "bank_accounts", ts: "bankAccounts" },
+        { title: "singular, single word", input: "thing", js: undefined },
+        { title: "singular, multi-word", input: "bank-account", js: undefined }
       ]
     }
   ]
@@ -211,11 +211,11 @@ variables.addRule(variable, {
   tests: [
     {
       tests: [
-        { title: "single word", input: "thing", output: "thing" },
-        { title: "single word with the", input: "the thing", output: "thing" },
-        { title: "multi-word", input: "bank-account", output: "bank_account" },
-        { title: "multi-word with the", input: "the bank-account", output: "bank_account" },
-        { title: "blacklisted word", input: "if", output: undefined }
+        { title: "single word", input: "thing", js: "thing" },
+        { title: "single word with the", input: "the thing", js: "thing" },
+        { title: "multi-word", input: "bank-account", js: "bank_account", ts: "bankAccount" },
+        { title: "multi-word with the", input: "the bank-account", js: "bank_account", ts: "bankAccount" },
+        { title: "blacklisted word", input: "if", js: undefined }
       ]
     }
   ]
@@ -257,9 +257,9 @@ variables.addRule(known_variable, {
         variables.add("bank-account")
       },
       tests: [
-        { title: "single word", input: "thing", output: "thing" },
-        { title: "multi-word", input: "bank-account", output: "bank_account" },
-        { title: "not defined", input: "nothing", output: undefined }
+        { title: "single word", input: "thing", js: "thing" },
+        { title: "multi-word", input: "bank-account", js: "bank_account", ts: "bankAccount" },
+        { title: "not defined", input: "nothing", js: undefined }
       ]
     }
   ]

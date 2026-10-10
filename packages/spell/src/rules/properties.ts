@@ -167,13 +167,13 @@ properties.addRule(member_words, {
   tests: [
     {
       tests: [
-        { title: "one word", input: "rank", output: "rank" },
-        { title: "several words", input: "short rank", output: "short_rank" },
-        { title: "a blacklisted word", input: "short", output: "short" },
-        { title: "dashed", input: "short-rank", output: "short_rank" },
-        { title: "a structural word", input: "of", output: undefined },
-        { title: "a leading preposition", input: "with jokers", output: "with_jokers" },
-        { title: "a preposition after the first word ends it", input: "jokers with", output: "jokers" }
+        { title: "one word", input: "rank", js: "rank" },
+        { title: "several words", input: "short rank", js: "short_rank" },
+        { title: "a blacklisted word", input: "short", js: "short" },
+        { title: "dashed", input: "short-rank", js: "short_rank" },
+        { title: "a structural word", input: "of", js: undefined },
+        { title: "a leading preposition", input: "with jokers", js: "with_jokers" },
+        { title: "a preposition after the first word ends it", input: "jokers with", js: "jokers" }
       ]
     }
   ]
@@ -242,11 +242,11 @@ properties.addRule(quoted_member, {
   tests: [
     {
       tests: [
-        { title: "one word", input: '"rank"', output: "rank" },
-        { title: "several words", input: '"short rank"', output: "short_rank" },
-        { title: "dashed", input: '"short-rank"', output: "short_rank" },
-        { title: "a leading preposition", input: '"with jokers"', output: "with_jokers" },
-        { title: "a structural word", input: '"rank of"', output: undefined }
+        { title: "one word", input: '"rank"', js: "rank" },
+        { title: "several words", input: '"short rank"', js: "short_rank" },
+        { title: "dashed", input: '"short-rank"', js: "short_rank" },
+        { title: "a leading preposition", input: '"with jokers"', js: "with_jokers" },
+        { title: "a structural word", input: '"rank of"', js: undefined }
       ]
     }
   ]
@@ -513,7 +513,7 @@ properties.addRule(property_expression, {
         ["the length of the name", "name.length"],
         ["the length of the deck", "spellCore.itemCountOf(deck)"],
         ["the year of the due", "due.getFullYear()"],
-        { title: "unknown type:  a loose read, as before", input: "the length of bar", output: "bar.length" }
+        { title: "unknown type:  a loose read, as before", input: "the length of bar", js: "bar.length" }
       ]
     },
     {
@@ -528,8 +528,8 @@ properties.addRule(property_expression, {
         ["the foo of the bar", "bar.foo"],
         ["the foo of the bar of the baz", "baz.bar.foo"],
         ["the foo-bar of the baz", "baz.foo_bar"],
-        { title: "several undeclared words:  not a property read", input: "the foo bar of the baz", output: undefined },
-        { title: "a blacklisted word:  not a loose read", input: "the short of the baz", output: undefined }
+        { title: "several undeclared words:  not a property read", input: "the foo bar of the baz", js: undefined },
+        { title: "a blacklisted word:  not a loose read", input: "the short of the baz", js: undefined }
       ]
     }
   ]
@@ -583,11 +583,13 @@ properties.addRule(its_known_property, {
       tests: [
         [
           ["get a new card", "print its short rank"],
-          ["let it = new Card()", "spellCore.console.log(it.short_rank)"]
+          ["let it = new Card()", "spellCore.console.log(it.short_rank)"],
+          ["const it = new Card()", "spellCore.console.log(it.short_rank)"]
         ],
         [
           ["get a new card", "print its short rank + 1"],
-          ["let it = new Card()", "spellCore.console.log(it.short_rank + 1)"]
+          ["let it = new Card()", "spellCore.console.log(it.short_rank + 1)"],
+          ["const it = new Card()", "spellCore.console.log(it.short_rank + 1)"]
         ]
       ]
     }
@@ -643,7 +645,8 @@ properties.addRule(its_property, {
       tests: [
         [
           ["get a new thing", "print its foo"],
-          ["let it = new Thing()", "spellCore.console.log(it.foo)"]
+          ["let it = new Thing()", "spellCore.console.log(it.foo)"],
+          ["const it = new Thing()", "spellCore.console.log(it.foo)"]
         ]
       ]
     },
@@ -721,7 +724,8 @@ properties.addRule(its_ordinal, {
       tests: [
         [
           ["get a new thing", "print its last item"],
-          ["let it = new Thing()", "spellCore.console.log(spellCore.getItemAt(it, -1))"]
+          ["let it = new Thing()", "spellCore.console.log(spellCore.getItemAt(it, -1))"],
+          ["const it = new Thing()", "spellCore.console.log(spellCore.getItemAt(it, -1)!)"]
         ]
       ]
     },

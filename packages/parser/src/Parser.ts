@@ -523,7 +523,8 @@ export class Parser extends Derivative {
           if (debug && compileAs !== ruleName) console.group(`testing as ${compileAs}`)
 
           tests.forEach((test) => {
-            const { input, output, skip } = P.normalizeRuleTest(test)
+            // javascript only:  the speed test times the parser, so what it does mustn't grow with each writer
+            const { input, js: output, skip } = P.normalizeRuleTest(test)
             if (skip || input === "") return
 
             // Create a new scope for the run, so we don't muck with the main parser.
@@ -550,7 +551,7 @@ export class Parser extends Derivative {
                   "FAIL:  ",
                   showWhitespace(input),
                   "\n  EXPECTED: ",
-                  showWhitespace(input),
+                  typeof output === "string" ? showWhitespace(output) : output,
                   "\n       GOT: ",
                   typeof result === "string" ? showWhitespace(result) : result
                 )

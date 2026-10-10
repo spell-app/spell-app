@@ -289,10 +289,17 @@ export type SpeedTestResults = Omit<TestResults, "time"> & {
   max: number
 }
 
-/** A single rule test: `[input, expectedOutput]` tuple or an object with the same. */
+/**
+ * A single rule test:  an `[input, js, ts?]` tuple, or an object with the same, `{ input, js, ts }`.
+ * - `input`:  what's parsed, as the block's `compileAs` rule;  an array is its lines.
+ * - `js`:  what the javascript writer writes for it, `P.JSWriter`;  `undefined` if it mustn't parse.
+ * - `ts`:  what the TypeScript writer writes, `P.TSWriter` -- left out where it's the same as `js`.
+ *   `BLESS_RULE_TESTS=1` writes it in:  see `unitTestModuleRules()`.
+ * - `js` / `ts` as an array:  its lines.
+ */
 export type RuleTest =
-  | [input: string | string[], output: unknown]
-  | { title?: string; input: string | string[]; output: unknown; skip?: boolean }
+  | [input: string | string[], js: unknown, ts?: unknown]
+  | { title?: string; input: string | string[]; js: unknown; ts?: unknown; skip?: boolean }
 
 /** Block of rule tests, optionally compiled as a different rule (`compileAs`). */
 export type RuleTestBlock = {
@@ -313,18 +320,24 @@ export type RuleTestBlock = {
 /** Array of `RuleTestBlock`s, e.g. `rule.tests`. */
 export type RuleTests = RuleTestBlock[]
 
-/** Normalize a `RuleTest` tuple or object to a consistent object, joining array `input`/`output` with newlines. */
+/**
+ * Normalize a `RuleTest` tuple or object to a consistent object, joining array `input` / `js` / `ts` with newlines.
+ * - `ts` left out:  the same as `js`.
+ */
 export function normalizeRuleTest(test: RuleTest) {
   const {
     input,
-    output,
+    js,
+    ts = js,
     skip = false,
     title
-  } = Array.isArray(test) ? { input: test[0], output: test[1], skip: false, title: undefined } : test
-  return {
-    input: Array.isArray(input) ? input.join("\n") : input,
-    output: Array.isArray(output) ? output.join("\n") : output,
-    skip,
-    title
-  }
+  } = Array.isArray(test) ? { input: test[0], js: test[1], ts: test[2], skip: false, title: undefined } : test
+  return { input: joinLines(input), js: joinLines(js), ts: joinLines(ts), skip, title }
+}
+
+/** `value`'s lines joined with newlines, if it's an array;  else as is. */
+function joinLines(value: string | string[]): string
+function joinLines(value: unknown): unknown
+function joinLines(value: unknown): unknown {
+  return Array.isArray(value) ? value.join("\n") : value
 }

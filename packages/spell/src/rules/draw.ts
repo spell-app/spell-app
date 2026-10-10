@@ -80,10 +80,26 @@ draw.addRule(draw_items, {
         scope.variables?.add("deck")
       },
       tests: [
-        { input: "draw each card in the deck", output: "spellCore.drawItems(deck)" },
-        { input: "draw cards of the deck", output: "spellCore.drawItems(deck)" },
-        { input: "draw the cards of the deck", output: "spellCore.drawItems(deck)" },
-        { input: "draw all cards of the deck", output: "spellCore.drawItems(deck)" }
+        {
+          input: "draw each card in the deck",
+          js: "spellCore.drawItems(deck)",
+          ts: "<For each={deck.items}>{(item) => item.draw()}</For>"
+        },
+        {
+          input: "draw cards of the deck",
+          js: "spellCore.drawItems(deck)",
+          ts: "<For each={deck.items}>{(item) => item.draw()}</For>"
+        },
+        {
+          input: "draw the cards of the deck",
+          js: "spellCore.drawItems(deck)",
+          ts: "<For each={deck.items}>{(item) => item.draw()}</For>"
+        },
+        {
+          input: "draw all cards of the deck",
+          js: "spellCore.drawItems(deck)",
+          ts: "<For each={deck.items}>{(item) => item.draw()}</For>"
+        }
       ]
     }
   ]

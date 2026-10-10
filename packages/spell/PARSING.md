@@ -110,6 +110,28 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - `Subrule` parses are memoized for the one call (`Expectations.memoized()`), or it's ~40x slower.
   - Normal parsing pays ~1%:  one static read per hook.
 
+## Rule modules and rule names
+
+- Spell's rules are in modules:  `events`, `lists`, `methods` ...
+  - A module's parser (`new SpellParser({ module })`) holds its rules;  [rules/index.ts](src/rules/index.ts)
+    combines them all into `spellParser`.
+  - How a module's files are laid out:  "Parser rules" in [AGENTS.md](AGENTS.md).
+- A module is a FOLDER, one rule class per file (epic `output-targets` P18), e.g. [events/](src/rules/events/).
+  - A rule registers itself as its file loads:  `events.addRule(Trigger, { syntax, tests })`.
+  - So the order of the folder's `index.ts` is the order rules are registered:  the TIE-BREAK order.
+    - When a `Choice` ties on `priority` and length, the EARLIEST registered rule wins (`getBestMatch()`).
+  - Modules not yet split are still one file each:  `lists.ts`, `methods.ts` ...
+- A rule's NAME is what `syntax` (`{list_add_relative}`), `parser.rules`, declarations and errors call it:  snake_case.
+  - Worked out from its PascalCase class:  `ListAddRelative` => `list_add_relative`, `If` => `if`
+    (`P.Rule.ruleNameFor()`, called by `Rule.instantiate()`).
+  - A class whose name doesn't give its rule name sets `static ruleName`, e.g. `BlockLine` => `line`.
+  - [ruleNames.test.ts](src/rules/ruleNames.test.ts) pins every rule's name, module and order.
+- A rule's tests, `{ input, js, ts }`, parse the input once and write it with BOTH writers:
+  - `js`:  `P.JSWriter`;  `ts`:  `P.TSWriter`, left out where it's the same.
+  - Run by [`unitTestModuleRules()`](../parser/src/test/unitTestModuleRules.ts);
+    `yarn test:rules:bless` writes each `ts` into the source.
+  - `Parser.testRules()`, which the speed test times, checks `js` only.
+
 ## Expressions
 
 - `expression` is ONE rule, [`compound_expression`](src/rules/expressions.ts):

@@ -97,9 +97,9 @@ constants.addRule(constant, {
   tests: [
     {
       tests: [
-        { title: "single word", input: "red", output: "'red'" },
-        { title: "multi-word", input: "orangish-red", output: "'orangish-red'" },
-        { title: "blacklisted word", input: "if", output: undefined }
+        { title: "single word", input: "red", js: "'red'", ts: '"red"' },
+        { title: "multi-word", input: "orangish-red", js: "'orangish-red'", ts: '"orangish-red"' },
+        { title: "blacklisted word", input: "if", js: undefined }
       ]
     }
   ]
@@ -138,9 +138,9 @@ constants.addRule(known_constant, {
         constants.add({ name: "green", output: "#00FF00" })
       },
       tests: [
-        { title: "known constant", input: "red", output: "'red'" },
-        { title: "known constant w/specific value", input: "green", output: "#00FF00" },
-        { title: "unknown constant", input: "missing", output: undefined }
+        { title: "known constant", input: "red", js: "'red'", ts: '"red"' },
+        { title: "known constant w/specific value", input: "green", js: "#00FF00" },
+        { title: "unknown constant", input: "missing", js: undefined }
       ]
     }
   ]
