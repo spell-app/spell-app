@@ -174,6 +174,9 @@ async function start() {
   land(landing, jump, follow)
   live.ready({ main, rail, sticky, follow, entries: railKey(outline, counts) })
   void wireNotes(main)
+  wireNewEpic(main)
+  // the docs index rewrites this page after a new epic:  its header comes back without the pill
+  addEventListener("spell-doc:updated", () => wireNewEpic(main))
 }
 
 /**
@@ -2522,18 +2525,23 @@ function noteBox() {
   return box
 }
 
+/** POST `change` to the notes route (`postJSON()`);  returns its answer. */
+function postNote(change) {
+  return postJSON(NOTES_API, change)
+}
+
 /**
- * POST `change` to the notes route, with the page server's token;  returns its answer.
+ * POST `body` as JSON to page-server route `url`, with the page server's token;  returns its answer.
  * - a 403 on the token (the server restarted since the page loaded):  takes the new token from the page as served
  *   now, and tries once more
  * - throws an `Error` saying why (the route's `error`)
  */
-async function postNote(change, retried = false) {
+async function postJSON(url, body, retried = false) {
   const server = window.SPELL_SERVER
-  const response = await fetch(NOTES_API, {
+  const response = await fetch(url, {
     method: "POST",
     headers: { "content-type": "application/json", "x-server-token": server.token },
-    body: JSON.stringify(change)
+    body: JSON.stringify(body)
   })
   const answer = await response.json().catch(() => ({}))
   if (response.ok) return answer
@@ -2542,10 +2550,109 @@ async function postNote(change, retried = false) {
     const fresh = /window\.SPELL_SERVER = (\{.*?\})<\/script>/.exec(html)
     if (fresh) {
       server.token = JSON.parse(fresh[1]).token
-      return postNote(change, true)
+      return postJSON(url, body, true)
     }
   }
   throw new Error(answer.error ?? `${response.status} ${response.statusText}`)
+}
+
+////////////////
+// ## New epic
+////////////////
+
+/** The page server's New epic route (`packages/epics/src/tool/epicRoutes.ts`). */
+const NEW_EPIC_API = "/api/epics/new"
+
+/** `localStorage` key of the New epic box's unsaved text (`{ title, prompt }`), one for every Epics page. */
+const NEW_EPIC_DRAFT_KEY = "spell-new-epic-draft"
+
+/**
+ * NEW EPIC (epic `airplane` P7):  on the Epics page (`epics/index.html`), a New epic pill in the page header.
+ * - its box:  a title and the kickoff prompt (a textarea that grows with its text);  ⌘ / Ctrl Enter saves
+ * - the page server writes a FUTURE epic at once (`epicRoutes.ts`):  no Claude needed, so it works on a plane;
+ *   the docs index is rewritten, so the new card shows here with its seedling;  `/airplane land` offers to start it
+ * - only served by the page server with a token:  from `file://`, no pill
+ * - what's typed and not saved is kept (`NEW_EPIC_DRAFT_KEY`) until it's saved
+ */
+function wireNewEpic(main) {
+  if (!/(^|\/)epics\/(index\.html)?$/.test(location.pathname)) return
+  if (!window.SPELL_SERVER?.token || location.protocol === "file:") return
+  const head = main.querySelector(".spell-page-head")
+  if (!head || head.querySelector(":scope > .spell-new-epic")) return
+  const pill = document.createElement("span")
+  pill.className = "spell-new-epic"
+  pill.dataset.spellAdded = ""
+  pill.innerHTML =
+    `<ui-button circular basic size="tiny" icon="seedling">New epic</ui-button>` +
+    `<ui-popup inverted size="mini" position="bottom center" content="Write an idea down as a future epic"></ui-popup>`
+  pill.querySelector("ui-button").addEventListener("click", openNewEpicBox)
+  head.append(pill)
+}
+
+/** Open the New epic box, with the draft typed so far. */
+function openNewEpicBox() {
+  const box = newEpicBox()
+  const draft = readJSON(NEW_EPIC_DRAFT_KEY)
+  const [title, prompt] = box.querySelectorAll("input, textarea")
+  title.value = typeof draft.title === "string" ? draft.title : ""
+  prompt.value = typeof draft.prompt === "string" ? draft.prompt : ""
+  box.setAttribute("open", "")
+  requestAnimationFrame(() => {
+    growField(prompt)
+    ;(title.value ? prompt : title).focus()
+  })
+}
+
+/** The New epic box, made once (outside `main`:  a live patch never sees it). */
+function newEpicBox() {
+  let box = document.getElementById("spell-new-epic-box")
+  if (box) return box
+  const template = document.createElement("template")
+  template.innerHTML = `<ui-modal id="spell-new-epic-box" class="spell-note-box" size="small" closable>
+  <ui-header><ui-icon name="seedling"></ui-icon> A new epic</ui-header>
+  <ui-content>
+    <input class="spell-note-field spell-new-epic-title" type="text" aria-label="Title" placeholder="Title:  a few words" />
+    <textarea class="spell-note-field" rows="4" aria-label="What it's for"
+      placeholder="What it's for, as you'd type it after /epic <name>:  the kickoff prompt."></textarea>
+    <p class="spell-note-hint">⌘ Enter saves.  It's written down as a future epic, with a seedling on this page;  /airplane land asks whether to start it.</p>
+  </ui-content>
+  <ui-actions>
+    <ui-button class="spell-note-cancel" circular basic>Cancel</ui-button>
+    <ui-button class="spell-note-save" circular primary icon="seedling">Make the epic</ui-button>
+  </ui-actions>
+</ui-modal>`
+  box = template.content.firstElementChild
+  const [title, prompt] = box.querySelectorAll("input, textarea")
+  const save = box.querySelector(".spell-note-save")
+  const close = () => box.removeAttribute("open")
+  const keep = () => writeJSON(NEW_EPIC_DRAFT_KEY, { title: title.value, prompt: prompt.value })
+  const submit = async () => {
+    if (!title.value.trim()) return title.focus()
+    save.setAttribute("loading", "")
+    try {
+      const { name } = await postJSON(NEW_EPIC_API, { title: title.value.trim(), prompt: prompt.value.trim() })
+      writeJSON(NEW_EPIC_DRAFT_KEY, {})
+      close()
+      noteToast(`Future epic ${name} written down`, "success")
+    } catch (error) {
+      noteToast(`Couldn't make the epic:  ${error.message}`, "error")
+    } finally {
+      save.removeAttribute("loading")
+    }
+  }
+  title.addEventListener("input", keep)
+  prompt.addEventListener("input", () => {
+    growField(prompt)
+    keep()
+  })
+  for (const field of [title, prompt])
+    field.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) void submit()
+    })
+  save.addEventListener("click", () => void submit())
+  box.querySelector(".spell-note-cancel").addEventListener("click", close)
+  document.body.append(box)
+  return box
 }
 
 /** `field` as tall as its text (between its CSS `min-height` and `max-height`). */

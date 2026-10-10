@@ -4,6 +4,7 @@ import { join, relative } from "node:path"
 import { readAnswer, listPages } from "./details.js"
 import { GoalsPage } from "./goals/page.js"
 import { notesIn, type PageNote } from "./notesOnDisk"
+import { FROM_PAGE } from "$/epics/tool/epicRoutes"
 
 /** Where page notes can be (`notesRoutes.ts` takes them on pages there), from the checkout's root. */
 const NOTE_FOLDERS = ["pages", "guides", "epics"]
@@ -16,6 +17,7 @@ const NOTE_FOLDERS = ["pages", "guides", "epics"]
  *   - marks SENT OR NOT (Owen's decision Q3 of `airplane`:  on the plane, nobody was there to send them to)
  *   - drafts (typed, never submitted:  asked about, never acted on)
  *   - the requests for now (Do Now, revisit now)
+ * - new epics from the Epics page's New epic button, not started yet (future, their log says so:  `epicRoutes.ts`)
  * - page notes not yet answered (`<spell-note status="new">` in guides and other pages:  `notesOnDisk.ts`)
  * - details pages answered since the flight began (`<slug>.answer.json`, newer than `since`)
  * - goals thoughts not yet digested (`li.goals-thought[data-status="new"]` in the goals pages)
@@ -32,6 +34,7 @@ export class AirplaneInbox {
     return Object.assign(new AirplaneInbox(), {
       since: since ?? null,
       epics: epicsWaiting(root),
+      newEpics: newEpicsWaiting(root),
       notes: notesIn(
         NOTE_FOLDERS.map((folder) => join(root, folder)),
         root
@@ -43,6 +46,9 @@ export class AirplaneInbox {
 
   /** the page notes not yet answered (`status="new"`) */
   notes: PageNote[] = []
+
+  /** epics made from the Epics page's New epic button, still future (not started) */
+  newEpics: NewEpic[] = []
 
   /** when the flight began, else `null` */
   since: string | null = null
@@ -58,7 +64,9 @@ export class AirplaneInbox {
 
   /** Nothing waiting anywhere. */
   get isEmpty(): boolean {
-    return !this.epics.length && !this.notes.length && !this.details.length && !this.thoughts.length
+    return (
+      !this.epics.length && !this.newEpics.length && !this.notes.length && !this.details.length && !this.thoughts.length
+    )
   }
 
   /** One line per place, for a person:  `epic airplane:  3 marks (1 not sent), 1 draft, 2 for now`. */
@@ -78,11 +86,33 @@ export class AirplaneInbox {
         ].filter(Boolean)
         return `epic ${epic.name}:  ${parts.join(", ")}`
       }),
+      ...this.newEpics.map((epic) => `new epic ${epic.name}:  ${epic.title}`),
       ...this.notes.map((note) => `note ${note.page} ${note.id} (${note.label}):  ${note.text.slice(0, 80)}`),
       ...this.details.map((page) => `details ${page.page}:  answered ${page.answered}`),
       ...this.thoughts.map((thought) => `goals ${thought.page} ${thought.id}:  ${thought.text.slice(0, 80)}`)
     ]
   }
+}
+
+/** An epic made from the Epics page (`epicRoutes.ts`), not started:  `/airplane land` asks whether to start it. */
+export type NewEpic = { name: string; title: string; doc: string }
+
+/** Each future epic whose log says the Epics page made it (`FROM_PAGE`), by name. */
+function newEpicsWaiting(root: string): NewEpic[] {
+  const epics = join(root, "epics")
+  if (!existsSync(epics)) return []
+  return readdirSync(epics)
+    .sort()
+    .flatMap((name) => {
+      const doc = join(epics, name, `${name}.plan.html`)
+      const log = join(epics, name, "parts", "log.html")
+      if (!existsSync(doc)) return []
+      const html = readFileSync(doc, "utf8")
+      if (!/<epic-page\b[^>]*\sfuture[\s>=]/.test(html)) return []
+      if (!(existsSync(log) ? readFileSync(log, "utf8") : html).includes(FROM_PAGE)) return []
+      const title = /<title>(?:Epic:\s*)?([^<]*)<\/title>/.exec(html)?.[1]?.trim() || name
+      return [{ name, title, doc: relative(root, doc) }]
+    })
 }
 
 /** An epic's inbox, as `/airplane land` takes it. */
