@@ -30,7 +30,7 @@ describe("spell-ui/no-solid-effect", () => {
     invalid: [
       { code: `import { createEffect } from "solid-js"`, errors: [{ message: /@E\.onChange/ }] },
       { code: `import { createRenderEffect } from "solid-js"`, errors: [{ message: /@E\.onChange/ }] },
-      { code: `import { onSettled } from "solid-js"`, errors: [{ message: /@E\.fromContent/ }] },
+      { code: `import { onSettled } from "solid-js"`, errors: [{ message: /@E\.watches/ }] },
       { code: `import { Show, onMount as mount } from "solid-js"`, errors: [{ message: /onMount\(\)/ }] }
     ]
   })
@@ -39,7 +39,7 @@ describe("spell-ui/no-solid-effect", () => {
 describe("spell-ui/no-mutation-observer", () => {
   tester.run("no-mutation-observer", PATTERN_RULES["no-mutation-observer"], {
     valid: [`new ResizeObserver(() => {})`, { code: `let observer: MutationObserver | undefined`, filename: "a.ts" }],
-    invalid: [{ code: `new MutationObserver(() => {})`, errors: [{ message: /@E\.fromContent/ }] }]
+    invalid: [{ code: `new MutationObserver(() => {})`, errors: [{ message: /@E\.watches/ }] }]
   })
 })
 
@@ -105,12 +105,12 @@ const ALLOWED: readonly Allowed[] = [
   {
     file: "packages/ui/src/components/ui-dropdown/SlottedItems.ts",
     rule: "no-mutation-observer",
-    reason: "a helper class:  `@E.fromContent` is for components"
+    reason: "a helper class:  `@E.watches` is for components"
   },
   {
     file: "packages/ui/src/components/ui-form/UIForm.tsx",
     rule: "no-mutation-observer",
-    reason: "only while connected:  `@E.fromContent` watches for life"
+    reason: "only while connected:  `@E.watches` lasts the element's whole life"
   },
   {
     file: "packages/ui/src/components/ui-item/UIItem.tsx",
@@ -135,7 +135,7 @@ const ALLOWED: readonly Allowed[] = [
   {
     file: "packages/ui/src/components/ui-root/UIRoot.tsx",
     rule: "no-mutation-observer",
-    reason: "only while connected:  `@E.fromContent` watches for life"
+    reason: "only while connected:  `@E.watches` lasts the element's whole life"
   },
   {
     file: "packages/ui/src/components/ui-table/TableClassMirror.ts",

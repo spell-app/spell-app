@@ -57,7 +57,7 @@ import { ShadowEvents } from "./ShadowEvents"
  *   ```
  *   A read is always up to date, even right after a write;  JSX will update the view as the value changes.
  *   The decorators (`@state`, `@controlled`, `@derived`, `@cssState`, `@cssStates`, `@aria`, `@onChange`,
- *   `@whileConnected`, `@fromContent`, `@on`, `@untracked`) are in `Reactive.ts`.
+ *   `@whileConnected`, `@watches`, `@on`, `@untracked`) are in `Reactive.ts`.
  *
  * - **Attributes**:  every DOM element attribute has a getter/setter on the component,
  *   under its name in camelCase:  `this.size`, `this.closeIcon`.
@@ -159,8 +159,9 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     this.appContext = isServer ? null : UIComponent.appContextFor(domElement)
     this.internalState = { classInput: definition.classInput((name) => this.classValue(name as E.AttributeName<V>)) }
     this.isConnected = isServer || domElement.isConnected
-    // the class's constant ARIA, on the server too
-    Object.assign(domElement.internals, this.elementSetup.aria)
+    // the class's constant ARIA, on the server too:  short names (`live`) to `internals` properties (`ariaLive`)
+    for (const [name, text] of Object.entries(this.elementSetup.aria) as [E.AriaName, string][])
+      domElement.internals[E.AriaNames[name]] = text
     // on the server there are no style sheets to wait for:  draw at once
     this.isReady = isServer || (E.RUNTIME_KEY in globalThis && !!(globalThis as E.RuntimeGlobal)[E.RUNTIME_KEY])
     if (isServer) return
@@ -195,7 +196,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    *   - keeps the element's `:state()`s in step with its `@cssState` members, its `@cssStates` attributes
    *     and `cssStates()`;  for a state two classes of the chain name, the subclass's member wins
    *   - starts the `@onChange` and `@whileConnected` methods, the `@aria` members' effect,
-   *     and the `@fromContent` methods' watch
+   *     and the `@watches` methods' watch
    *   - re-adopts the style sheets when `styleSheetNames` changes
    * - Not in the constructor, because a subclass's fields don't exist yet while the base constructor runs.
    * - Hook:  an override starts its own effects, then returns `super.onMount()`.
