@@ -660,6 +660,15 @@ export type ElementSetup = {
   canRenderUnstyled: boolean
 
   /**
+   * Is this element a ROOT:  the top of a page or app, which the elements inside look up to?
+   * - Default `false`.
+   * - `true` for `UIRoot`, and so for every subclass of it, whatever its tag (`<spell-app>`).
+   * - What looks for a root by it:  `UIComponent.appContext` (the nearest root's `appContext`).
+   * - Read once, when the tag is defined.
+   */
+  root: boolean
+
+  /**
    * ARIA the DOM element ALWAYS has, set once on its `internals` when the component is built:
    * `{ role: "listitem" }`, `{ role: "status", ariaLive: "polite" }`.
    * - Default none.

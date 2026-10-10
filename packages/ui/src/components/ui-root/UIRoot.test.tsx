@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vite-plus/test"
+import type { JSX } from "@solidjs/web"
 
 import { expectAccessible } from "$/ui/test/A11y"
 import { Fixture } from "$/ui/test/Fixture"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { Viewport } from "$/ui/test/Viewport"
+import { E } from "$/ui/core"
 import { DOMElement } from "$/ui/elements"
 
 import { UIRoot, type RootFailure } from "$/ui/components/ui-root"
@@ -83,6 +85,58 @@ describe("<ui-root> loading on demand", () => {
     void inner.settled.then(() => order.push("inner"))
     await component.settled.then(() => order.push("outer"))
     expect(order).toEqual(["inner", "outer"])
+  })
+})
+
+////////////////
+// ## A subclass
+////////////////
+
+describe("a subclass of `UIRoot`, under its own tag (as `<spell-app>`)", () => {
+  /** Defines `<x-own-*>` tags as they load:  what `OwnRoot.ownTagLoader()` was asked for. */
+  const ownLoads: string[] = []
+
+  /** A root that draws its own content in its shadow root, and loads `x-own-*` tags itself. */
+  class OwnRoot extends UIRoot {
+    @E.proto static vocabulary = { ...UIRoot.describe(), tag: "x-own-root" }
+
+    protected get contentRoots(): readonly ParentNode[] {
+      return [this.domElement, this.domElement.renderRoot]
+    }
+
+    protected ownTagLoader(tag: string) {
+      if (!tag.startsWith("x-own-")) return undefined
+      return async () => {
+        ownLoads.push(tag)
+        customElements.define(tag, class extends HTMLElement {})
+      }
+    }
+
+    protected content(): JSX.Element {
+      return <div style={this.contentStyle}>{document.createElement("ui-rating")}</div>
+    }
+  }
+  OwnRoot.define()
+
+  it("loads the Spell UI tags it draws in its shadow root, and its own tags, each once", async () => {
+    expect(customElements.get("ui-rating")).toBeUndefined()
+    const { component, host } = await root(
+      `<x-own-root><x-own-thing></x-own-thing><x-own-thing></x-own-thing></x-own-root>`
+    )
+    expect(await component.settled).toEqual([])
+    expect(customElements.get("ui-rating")).toBeDefined()
+    expect(host.shadowRoot!.querySelector("ui-rating")!.matches(":defined")).toBe(true)
+    expect(ownLoads).toEqual(["x-own-thing"])
+  })
+
+  it("is a root:  the elements inside see its `appContext`", async () => {
+    const APP = { theme: "dark" }
+    const { component, host } = await root(`<x-own-root></x-own-root>`)
+    Object.assign(host, { appContext: APP })
+    host.innerHTML = `<ui-segment>Inside</ui-segment>`
+    await component.settled
+    await customElements.whenDefined("ui-segment")
+    expect((host.querySelector("ui-segment") as DOMElement).component!.appContext).toBe(APP)
   })
 })
 
