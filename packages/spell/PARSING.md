@@ -1012,6 +1012,15 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     in hover and completion (see "Built-in types")
     - hovering a built-in rule shows the member it spells
     - the Type Explorer's built-in types come from the table too (`ScopeExplorer.addBuiltIns()`)
+- A type's `<css>` blocks are CSS, not spell ([SpellCSS.ts](../lsp/src/SpellCSS.ts)):
+  - found in the text, line by line:  `<css>` alone on a line opens one, `</css>` closes it
+  - completion, hover and errors inside one come from VS Code's own CSS service, `vscode-css-languageservice`
+    - each block is checked as a CSS document of the whole file, everything else blanked to spaces,
+      so lines and characters match
+  - spell's own colouring skips the block, and so do its parse errors,
+    until spell's grammar has a rule for it (P4 of epic `drawable-thing`)
+  - editors colour it as CSS themselves:
+    VS Code through the grammar's embedded CSS, the app's Monaco through its own (`SpellTokensProvider`)
 - Formatting is `P.TokenFormatter` ([the tokenizer folder](../parser/src/tokenizer/)):
   whitespace only, from the tokens, indenting with TABS always.
   - No pretty-printer:  the AST is a javascript tree.

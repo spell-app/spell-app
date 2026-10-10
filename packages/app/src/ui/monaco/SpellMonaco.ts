@@ -113,6 +113,11 @@ export class SpellMonaco {
     monaco.languages.register({ id: LANGUAGE, extensions: [".spell"], mimetypes: ["text/spell", "text/x-spell"] })
     monaco.languages.setLanguageConfiguration(LANGUAGE, SpellMonaco.CONFIGURATION)
     monaco.languages.setTokensProvider(LANGUAGE, new SpellTokensProvider())
+    // `<css>` blocks colour with Monaco's CSS colouring, which loads lazily:  colour spell again once it has
+    void monaco.editor
+      .colorize("", "css", {})
+      .then(() => monaco.languages.setTokensProvider(LANGUAGE, new SpellTokensProvider()))
+      .catch((error) => console.warn("SpellMonaco.register():  CSS colouring didn't load", error))
 
     const addresses = new AppAddresses()
     const service = new LSP.SpellLanguageService(addresses)

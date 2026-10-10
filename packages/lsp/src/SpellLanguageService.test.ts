@@ -772,6 +772,42 @@ describe("SpellLanguageService", () => {
     expect(service.diagnostics(card)).toEqual([])
   })
 
+  describe("<css> blocks (see LSP.SpellCSS)", () => {
+    // a block in the card type's outline, its CSS with a typo:  `colr`
+    const withBlock = cardText.replace(
+      "a card is a thing\n",
+      "a card is a thing\n\t<css>\n\t\t.red { colr: red }\n\t</css>\n"
+    )
+
+    test("errors:  CSS mistakes, and none of spell's own in the block", async () => {
+      await withCardText(withBlock, () => {
+        expect(service.diagnostics(card).map(({ source, message, range }) => ({ source, message, range }))).toEqual([
+          {
+            source: "css",
+            message: "Unknown property: 'colr'",
+            range: { start: { line: 3, character: 9 }, end: { line: 3, character: 13 } }
+          }
+        ])
+      })
+    })
+
+    test("completion and hover are CSS's inside it", async () => {
+      await withCardText(withBlock, () => {
+        const labels = service.completion(card, { line: 3, character: 12 }).map((item) => item.label)
+        expect(labels).toContain("color")
+        expect(labels).not.toContain("card")
+        expect(service.hover(card, { line: 3, character: 4 })).toBeDefined()
+      })
+    })
+
+    test("no spell colouring in the block;  it folds", async () => {
+      await withCardText(withBlock, () => {
+        expect(describeTokens(card, [3, 4, 5])).toEqual([])
+        expect(service.foldingRanges(card)).toContainEqual({ startLine: 2, endLine: 4 })
+      })
+    })
+  })
+
   describe("membership and guards", () => {
     // the fixture's cards made to belong to one pile, as the live examples are -- plus a guard
     const pileUri = pathToFileURL(resolve(dir, "Solitaire/Pile.spell")).href
