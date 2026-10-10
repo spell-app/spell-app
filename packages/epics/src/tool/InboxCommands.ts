@@ -385,6 +385,9 @@ export class InboxCommands {
    * - a request taken care of is recorded as handled that way (`review-as`;  the page's buttons clear, the chip
    *   shows the result):  an immediate one (Do Now:  Add Details, revisit now) as `now`, a revisit talked over as
    *   `revisit`
+   * - a mark leaving with Owen's PICK on it ("pick B, but ..."):  the pick is kept too, as that card set's `chosen`
+   *   with a Noted card (`PlanDoc.keepPick()`), unless the set has a `chosen` already (a `decide --option` after
+   *   the talk):  once Owen picked, the card shows Chosen (Owen, 2026-10-10, epic `airplane` P8)
    */
   private async finish(file: string, what: "done" | "clear", ids: string[]): Promise<void> {
     if (!ids.length) throw new PlanDocError(`${what} which items?  ids`)
@@ -396,6 +399,7 @@ export class InboxCommands {
     let kept: string[] = []
     let notes: { id: string; mark: KeptNote }[] = []
     let handled: { id: string; as: "now" | "revisit" }[] = []
+    let picks: { id: string; pick: string; choices?: number }[] = []
     ReviewInbox.update(path, (box) => {
       const before = { ...box.marks }
       if (what === "done") ({ had, kept } = box.finishMarks(keys))
@@ -409,15 +413,24 @@ export class InboxCommands {
         if (mark && ReviewInbox.isImmediate(mark)) return [{ id, as: "now" }]
         return mark?.action === "revisit" ? [{ id, as: "revisit" }] : []
       })
+      // a pick riding on the mark ("pick B, but ..."):  Owen chose it, so it stays chosen on the page (P8)
+      picks = had.flatMap((id) => {
+        const pick = before[id]?.pick
+        return pick ? [{ id, pick, ...ReviewInbox.pickOf(before[id]) }] : []
+      })
       for (const id of keys) box.setWorking(id, null)
       box.touchListening()
     })
-    if (notes.length || handled.length)
+    if (notes.length || handled.length || picks.length)
       await this.owner.edit(file, (plan) => {
         for (const { id, mark } of notes) plan.keepNote(id, mark)
         for (const { id, as } of handled) {
           const item = plan.findItem(id)
           if (item) plan.reviewedAs(item, as)
+        }
+        for (const { id, ...pick } of picks) {
+          const did = plan.keepPick(id, pick)
+          if (did) plan.log(`${id.toUpperCase()} ${did}`)
         }
       })
     const none = keys.filter((id) => !had.includes(id) && !kept.includes(id))

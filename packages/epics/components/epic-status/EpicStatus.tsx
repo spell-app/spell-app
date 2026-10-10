@@ -19,10 +19,14 @@ import statusCSS from "./EpicStatus.css?inline"
 /****************
  * ### `EpicStatus`
  * The component behind `<epic-status>`:  Claude's status card on an item (or an Overview sub-section), under Owen's
- * note (P13) -- what Claude took his review mark to mean, then that it's done.
- * - Its band:  the fold chevron, `Claude • Underway` (blue) or `Claude • Done` (green) on the left,
- *   the date at the right of the top line (`.header.dated`, as `EpicReply`'s):  `done-at` once done, else `at`;
- *   once done, the date's tooltip says when it was taken
+ * note (P13) -- what Claude took his review mark to mean, then that it's done, or noted.
+ * - Its band:  the fold chevron, then on the left
+ *   - `Claude • Underway` (blue):  Claude is on it
+ *   - `Claude • Done` (green):  work was done (an answer written, code changed, a phase built)
+ *   - `Claude • Noted` (a calm outline, no fill):  Claude only RECORDED what Owen chose (a pick, a todo made or
+ *     queued), so it never reads as work done (Owen, 2026-10-10)
+ * - the date at the right of the top line (`.header.dated`, as `EpicReply`'s):  `done-at` once finished, else `at`;
+ *   once finished, the date's tooltip says when it was taken
  * - Its body:  the reading (its children), kept as it was when it turns done;
  *   then the summary (`slot="summary"`), only when there is one
  * - Folds by its band, reading and summary together (Owen, 2026-10-08:  everything in a section box folds):
@@ -54,21 +58,32 @@ export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
     return this.slots.hasContent("") || this.slots.hasContent(this.slotForName(SUMMARY_SLOT))
   }
 
-  /** Done (green). */
+  /** Done (green):  work was done. */
   @E.cssState("done")
   get isDone(): boolean {
     return this.state === DONE
   }
 
-  /** Underway (blue):  any `state` but `done`, none too. */
-  @E.cssState("underway")
-  get isUnderway(): boolean {
-    return !this.isDone
+  /** Noted (a calm outline):  Claude recorded what Owen chose, nothing more yet. */
+  @E.cssState("noted")
+  get isNoted(): boolean {
+    return this.state === NOTED
   }
 
-  /** When its band says:  `done-at` once done (a card born done has `at` alone), else `at`. */
+  /** Finished:  done or noted;  its band dated `done-at`. */
+  get isFinished(): boolean {
+    return this.isDone || this.isNoted
+  }
+
+  /** Underway (blue):  any `state` but `done` or `noted`, none too. */
+  @E.cssState("underway")
+  get isUnderway(): boolean {
+    return !this.isFinished
+  }
+
+  /** When its band says:  `done-at` once finished (a card born so has `at` alone), else `at`. */
   get when(): string | undefined {
-    return (this.isDone && this.doneAt) || this.at
+    return (this.isFinished && this.doneAt) || this.at
   }
 
   /** Its band's right:  `when`, as drawn (`10/8/26 14:34`). */
@@ -76,14 +91,16 @@ export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
     return PlanDates.format(this.when)
   }
 
-  /** The date's tooltip once done (`taken 10/8/26 14:20`);  none while underway, or with no `done-at`. */
+  /** The date's tooltip once finished (`taken 10/8/26 14:20`);  none while underway, or with no `done-at`. */
   get dateTip(): string | undefined {
     const { doneAt, at } = this
-    return this.isDone && doneAt && at ? this.translationForKey("started", { date: PlanDates.format(at) }) : undefined
+    return this.isFinished && doneAt && at
+      ? this.translationForKey("started", { date: PlanDates.format(at) })
+      : undefined
   }
 
   protected get extraClass(): string | undefined {
-    return this.isDone ? DONE : UNDERWAY
+    return this.isDone ? DONE : this.isNoted ? NOTED : UNDERWAY
   }
 
   render(): JSX.Element {
@@ -98,7 +115,7 @@ export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
             <FoldButton fold={this.fold} controls={BODY_ID} labelledBy={WHO_ID} part={this.partForName("toggle")} />
           </Show>
           <span id={WHO_ID} class={WHO} part={this.partForName("who")}>
-            {this.translationForKey(this.isDone ? "done" : "underway")}
+            {this.translationForKey(this.isDone ? "done" : this.isNoted ? "noted" : "underway")}
           </span>
           <Show when={this.date}>
             <time class={DATE} part={this.partForName("date")} datetime={this.when} title={this.dateTip}>
@@ -126,8 +143,11 @@ export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface EpicStatus extends E.AttributeValues<typeof epicStatusVocabulary> {}
 
-/** `state` of a finished card, and its class word:  green, its date `done-at`. */
+/** `state` of a card whose work was done, and its class word:  green, its date `done-at`. */
 const DONE = "done"
+
+/** `state` of a card that only RECORDED Owen's choice, and its class word:  a calm outline, its date `done-at`. */
+const NOTED = "noted"
 
 /** Class word of a card Claude is still on:  blue. */
 const UNDERWAY = "underway"

@@ -319,7 +319,8 @@ spell dev plan-doc inbox <name> wait                     Bash run_in_background:
 spell dev plan-doc inbox <name> apply [ids]              approve / pick / todo marks into the doc;  prints what's left
 spell dev plan-doc inbox <name> working <id> on|off      the page's spinner on an item
 spell dev plan-doc status <name> <id> underway "<reading>"   Claude's blue status card on an item, spinner on
-spell dev plan-doc status <name> <id> done ["<summary>"]    that card green (Done), the summary under it;  spinner off
+spell dev plan-doc status <name> <id> done ["<summary>"]    WORK done:  that card green (Done), the summary under it;  spinner off
+spell dev plan-doc status <name> <id> noted "<what>"        only RECORDED Owen's choice:  an outlined Noted card (what;  what's next)
 spell dev plan-doc details <name> <id> --file f --more | --append   a More Details card (Add Details) / a reply appended
 spell dev plan-doc inbox <name> done <id>  /  clear <ids>    an item's request finished  /  marks dropped after a talk
 spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or not
@@ -351,7 +352,16 @@ spell dev plan-doc inbox <name> [--json]                 what's waiting, sent or
 
 ### 7.3 Woken:  the `wait` command finished
 
-Read what it printed.  Then, in this order:
+Read what it printed.  Then, in this order.  Every card you finish says what REALLY happened (Owen, 2026-10-10:
+"Claude Done entries are confusing ... you haven't apparently done anything"):
+- `status ... done` ONLY for work done:  an answer or reply written, details added, code changed, a phase built
+- `status ... noted "<what was recorded;  what happens next>"` when all you did was RECORD his choice ("B it is";
+  a todo made;  "do it next phase"):  e.g. `"Chose B · Bananas:  recorded as the answer;  waiting for the next
+  phase, P9 · Build"`;  an underway card turns noted
+- called off:  `done "Called off on the page:  nothing written."` stays (it says what happened)
+
+The item's id chip follows too (PLAN-DOC.md "Colours"):  dashed not sent, OUTLINED sent / on it / still due, solid
+done.  Leave work you queued `queued` until it's built, so his chip stays outlined.
 1. Exit 2 (timeout, nothing happened):  arm `wait` again, end the turn with one line ("still listening").
 1b. CANCELED (Owen said "nevermind" on a running Do Now, epic `windows-and-review` P2):  stop
    that item's background agent (`TaskStop`), then `spell dev plan-doc status <name> <id> done "Called off on the
@@ -381,11 +391,12 @@ Read what it printed.  Then, in this order:
    Up to 5 agents at once (root rules);  more:  the rest after.
 3. SENT marks:  `spell dev plan-doc inbox <name> apply`:  approvals, picks and todos land in the doc (it prints each);
    a pick works on ANY item's cards, a reply's too (I8 of `epic-components`):  a question answered with it, any other
-   item approved with it;  each pick and todo gets its green Done card from `apply` itself ("Chose B · ...", "Made
-   todo T23 ...":  Q19), an approval none.  Then each "to talk over" (revisit soon), one at a time:  `status ... underway "<reading>"` as you
+   item approved with it;  each pick, todo and queued todo gets its outlined NOTED card from `apply` itself ("Chose
+   B · ...:  recorded ...;  waiting for ...", "Made todo T23 ...", "Queued for P10 · ...":  Q19), an approval none.  Then each "to talk over" (revisit soon), one at a time:  `status ... underway "<reading>"` as you
    take it up, answer his note INTO the item, as a reply
    (`details --append`, the reply markup of "revisit now" above:  his note quoted, the answer with evidence, option
-   cards when he must choose, so he picks ON THE PAGE), then `status ... done ["<summary>"]`, `inbox clear <id>` and
+   cards when he must choose, so he picks ON THE PAGE), then `status ... done ["<summary>"]` (you wrote an answer;
+   only noting what he said, no answer needed:  `status ... noted "<what>"`), `inbox clear <id>` and
    `review <name> <id> "<outcome>"`.  In chat:  one line per item, its link (`spell dev docs link ... --hash <id>`), never the answer
    itself (Q3 of `windows-and-review`:  a long review stays readable).  He answers on the page (Revisit again), or
    says so in chat;  a quick yes / no:  a modal.
@@ -393,7 +404,9 @@ Read what it printed.  Then, in this order:
      `spell dev choices new <slug> --epic <name> --rows <rows.json>` then `show <slug> --wait` in the background
      (`guides/syntax-choices.html`)
    - "picks B · <card>, asks:  <note>" (a pick with a revisit, "B, but ..."):  `apply` leaves it;  `status ...
-     underway`, then answer the note about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself (a question;  any other item:  he confirms with a plain pick), then `status ... done`
+     underway`, then answer the note about B, and once he agrees, `spell dev plan-doc decide <name> <id> "<card title>" --option B` yourself (a question;  any other item:  he confirms with a plain pick), then `status ... done`.
+     `inbox clear` / `done` KEEP his pick as that set's `chosen` (with a Noted card) unless you decided otherwise:
+     once he picked, the card says Chosen
    - the page counts this session as gone once its heartbeat is 90s old:  `wait` stamps it every 30s, and so do
      `inbox apply`, `done`, `clear`, `working` and `status`;  a long talk without them shows "nobody is reviewing" until `wait`
      runs again

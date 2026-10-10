@@ -16,6 +16,7 @@ import {
   CANCELED,
   CELL,
   CHIP,
+  CHOSEN_SET,
   COMMIT_TAG,
   COMMITS_PROPERTY,
   DETAILS,
@@ -188,11 +189,15 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
   })
 
   /**
-   * Owen's live mark, as its id chip wears it:  the chosen review button's colour and fill (dashed until sent, then
-   * outlined), or a pick's (green);  `undefined` without one, so the chip shows its state.
-   * - a mark Claude handled is gone from the inbox:  the buttons clear,
-   *   and the chip shows the RESULT, solid in its state's colour
-   *   (green decided, yellow still open, red needs Owen:  Owen, 2026-10-08;  orange Owen's turn to pick)
+   * Where Owen's answer on it stands, as its id chip wears it (Owen, 2026-10-10:  "leaning into outlines"):
+   * the FILL says how far it got, so he sees at a glance what he already answered.
+   * - his live mark:  the chosen review button's colour (a pick's green), DASHED until sent, then OUTLINED
+   * - a pick Claude took off the inbox, its `chosen` not on the page yet:  green, outlined
+   * - answered, and the work still due:  OUTLINED
+   *   - queued (`queued`:  a review said "do it", a todo's plane):  green
+   *   - Claude working on it (an underway card, an agent at work:  `progress`):  blue
+   * - `undefined` once nothing more is due, so the chip shows its state SOLID:  the RESULT
+   *   (green decided or done, yellow still open, red needs Owen, orange Owen's turn to pick:  Owen, 2026-10-08)
    */
   readonly chipMark = createMemo((): ChipMark | undefined => {
     for (const spec of this.reviewButtons()) {
@@ -200,8 +205,15 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
       if (fill === "dashed" || fill === "outline") return { color: spec.color, fill, label: spec.label }
     }
     const pick = this.reviewState.mark()?.pick
-    if (!pick) return undefined
-    return { color: "green", fill: this.reviewState.isSent() ? "outline" : "dashed", label: { pick } }
+    if (pick) return { color: "green", fill: this.reviewState.isSent() ? "outline" : "dashed", label: { pick } }
+    // read plainly:  the doc's `chosen` lands with the item's own attributes changing (`reviewed`, `state` ...),
+    // which re-run this
+    const taken = this.reviewState.takenPick()?.pick
+    if (taken && !this.domElement.querySelector(CHOSEN_SET))
+      return { color: "green", fill: "outline", label: { pick: taken } }
+    if (this.itemState() === "progress") return { color: "blue", fill: "outline" }
+    if (this.queued && this.status === "open") return { color: "green", fill: "outline" }
+    return undefined
   })
 
   /** Is its id chip a button (urgent <-> not urgent) now?  Only while the page is reviewed. */
@@ -278,7 +290,8 @@ export class EpicItem extends E.UIComponent<EpicItemVocabulary> {
     const { queued, work, reviewed, deferred, status } = this
     const parts = [this.translationForKey(STATE_TIP_KEYS[this.itemState()])]
     const mark = this.chipMark()
-    if (mark) {
+    // a mark with no label (work still due:  queued, Claude on it):  the state's words and `to do` say it
+    if (mark?.label) {
       const { label } = mark
       const chosen =
         typeof label === "string"

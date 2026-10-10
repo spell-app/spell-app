@@ -101,8 +101,9 @@ test("apply:  a sent pick on a judgement call's reply cards (I8) approves it wit
   expect([
     j1.getAttribute("status"),
     j1.getAttribute("review-as"),
-    j1.querySelector("epic-status")!.textContent
-  ]).toEqual(["done", "approve", "Chose C · Option C"])
+    // as written to disk, formatted:  whitespace squeezed
+    j1.querySelector("epic-status")!.textContent!.replace(/\s+/g, " ").trim()
+  ]).toEqual(["done", "approve", `Chose C · Option C: recorded, the call accepted; ${after.nextStepWords()}`])
   expect(after.findItem("q1")!.querySelector("epic-choices")!.getAttribute("chosen")).toBe("B")
   expect(printed.join("\n")).toContain("J1  picked C:  Option C (a reply's options);  approved:  closed (accepted)")
   expect(ReviewInbox.read(inboxFile).isEmpty).toBe(true)
@@ -114,7 +115,7 @@ test("print:  the urgency waiting, by item, sent or not", async () => {
   expect(printed.join("\n")).toMatch(/urgency, from the id chips \(1\):\n {2}- J2 {2}follows WWOD {2}· urgent · unsent/)
 })
 
-test("apply:  a sent todo gets a status card born done, saying what was filed (Q19);  an approval none", async () => {
+test("apply:  a sent todo gets a status card born NOTED, saying what was recorded (Q19);  an approval none", async () => {
   ReviewInbox.update(inboxFile, (inbox) => {
     inbox.setMark("j1", { action: "todo" }, T1)
     inbox.setMark("j2", { action: "approve" }, T1)
@@ -124,13 +125,13 @@ test("apply:  a sent todo gets a status card born done, saying what was filed (Q
   const plan = PlanDoc.parse(readFileSync(file, "utf8"))
   const card = plan.findItem("j1")!.querySelector(':scope > epic-status[slot="status"]')!
   expect([card.getAttribute("state"), card.innerHTML]).toEqual([
-    "done",
+    "noted",
     '<p>Made todo <a href="#t1">T1</a> to follow this up.</p>'
   ])
   expect(plan.findItem("j2")!.querySelector("epic-status")).toBeNull()
 })
 
-test("apply:  a todo's plane queues it into the first phase still to do, with a Done card;  its x cancels it", async () => {
+test("apply:  a todo's plane queues it into the first phase still to do, with a Noted card;  its x cancels it", async () => {
   const plan = PlanDoc.parse(readFileSync(file, "utf8"))
   plan.addPhase("Bring It In")
   plan.addPhase("Fold Into Elements")
@@ -153,7 +154,7 @@ test("apply:  a todo's plane queues it into the first phase still to do, with a 
     "next"
   ])
   const card = t1.querySelector(':scope > epic-status[slot="status"]')!
-  expect([card.getAttribute("state"), card.textContent]).toEqual(["done", "Queued for P2 · Fold Into Elements"])
+  expect([card.getAttribute("state"), card.textContent]).toEqual(["noted", "Queued for P2 · Fold Into Elements"])
   // Owen's note kept, as his reply
   expect(t1.querySelector('epic-reply[from="Owen"]')?.textContent).toBe("after the merge")
   const t2 = after.findItem("t2")!
@@ -230,15 +231,50 @@ test("status:  underway writes the card AND turns the page's spinner on;  done t
   ])
   expect(ReviewInbox.read(inboxFile).working).toEqual({})
   expect(await owner.run(["status", "x", "j1", "done"])).toBe(1)
+  // `done --filed`, the older spelling:  a record, so NOTED (Owen, 2026-10-10)
   expect(await owner.run(["status", "x", "j2", "done", "--filed", "Chose B · Keep one file per template"])).toBe(0)
   const filed = PlanDoc.parse(readFileSync(file, "utf8")).findItem("j2")!.querySelector("epic-status")!
   expect([filed.getAttribute("state"), filed.hasAttribute("done-at"), filed.innerHTML]).toEqual([
-    "done",
+    "noted",
     false,
     "<p>Chose B · Keep one file per template</p>"
   ])
-  expect(printed).toEqual(["J1 underway:  a real choice", "J1 done:  a real choice", "J2 done:  follows WWOD"])
+  expect(printed).toEqual(["J1 underway:  a real choice", "J1 done:  a real choice", "J2 noted:  follows WWOD"])
   expect(await owner.run(["status", "x", "j1", "maybe"])).toBe(1)
+})
+
+test("status noted:  Claude only RECORDED Owen's choice -- an underway card turns noted, the spinner off", async () => {
+  const owner = commands()
+  vi.spyOn(owner, "warn").mockImplementation(() => undefined)
+  expect(await owner.run(["status", "x", "j1", "underway", "Take the pick."])).toBe(0)
+  expect(await owner.run(["status", "x", "j1", "noted", "Chose B:  waiting for the next phase"])).toBe(0)
+  const card = PlanDoc.parse(readFileSync(file, "utf8")).findItem("j1")!.querySelector("epic-status")!
+  expect([card.getAttribute("state"), card.hasAttribute("done-at"), card.innerHTML.replace(/\s+/g, " ")]).toEqual([
+    "noted",
+    true,
+    '<p>Take the pick.</p> <p slot="summary">Chose B: waiting for the next phase</p>'
+  ])
+  expect(ReviewInbox.read(inboxFile).working).toEqual({})
+  expect(await owner.run(["status", "x", "j2", "noted"])).toBe(1)
+  expect(printed).toEqual(["J1 underway:  a real choice", "J1 noted:  a real choice"])
+})
+
+test("clear / done:  a pick riding on the mark (pick B, but ...) stays CHOSEN, with a Noted card;  logged", async () => {
+  const plan = PlanDoc.parse(readFileSync(file, "utf8"))
+  const options = `<epic-choices><epic-option letter="A" title="Option A"></epic-option><epic-option letter="B" title="Option B"></epic-option></epic-choices>`
+  plan.setDetails("j1", `<p>weighed</p>${options}`)
+  writeFileSync(file, plan.toString())
+  ReviewInbox.update(inboxFile, (inbox) => {
+    inbox.setMark("j1", { action: "revisit", when: "soon", note: "B, but cheaper?", pick: "B" }, T1)
+    inbox.markSent(T2)
+  })
+  await commands().inbox.run("x", file, ["clear", "j1"], {})
+  const after = PlanDoc.parse(readFileSync(file, "utf8"))
+  const j1 = after.findItem("j1")!
+  expect(j1.querySelector("epic-choices")!.getAttribute("chosen")).toBe("B")
+  expect(j1.querySelector('epic-status[state="noted"]')!.textContent).toMatch(/^Chose B · Option B:\s+recorded after/)
+  expect(after.toString()).toMatch(/J1 picked B:\s+Option B \(kept from the revisit\)/)
+  expect(ReviewInbox.read(inboxFile).isEmpty).toBe(true)
 })
 
 // epic `airplane` P2:  notes on the phases and the summary, and new items from the page
@@ -265,7 +301,7 @@ test("apply:  sent new items are made, a phase's and the summary's todos filed; 
   )
   const after = PlanDoc.parse(readFileSync(file, "utf8"))
   expect(after.findItem("q1")!.querySelector('a[href="#p1"]')).not.toBeNull()
-  expect(after.findItem("q1")!.querySelector('epic-status[state="done"]')).not.toBeNull()
+  expect(after.findItem("q1")!.querySelector('epic-status[state="noted"]')).not.toBeNull()
   expect(after.findItem("t1")!.getAttribute("title")).toBe("Follow up:  P1 · Offline Pages")
   expect(after.findItem("t2")!.getAttribute("title")).toBe("Follow up:  the summary")
   expect(Object.keys(ReviewInbox.read(inboxFile).marks)).toEqual(["new2"])
