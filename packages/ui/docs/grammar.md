@@ -109,8 +109,9 @@ Every element takes these, though its vocabulary may not name them (`SharedVocab
 - `disabled`:  `:state(disabled)`.
   - By default unusable:  clicks swallowed, `aria-disabled`, everything inside inert and dimmed (`:state(dimmed)`),
     focus inside moves on.
-  - A family with a disabled of its own keeps it (`elementSetup.disabled = "its own"`):
-    a form control disables its native control, `<ui-icon>` only dims, `<ui-transition>` pauses.
+  - A family whose disabled means more keeps it (`elementSetup.disabled = "its own"`):
+    a form control disables its native control, `<ui-icon>` and `<ui-text>` only dim (text stays findable),
+    `<ui-transition>` pauses.
 - `loading`:  `:state(loading)`.  By default a spinner over it, everything inside inert and dimmed, `aria-busy`
   (`:state(busy)`);  a family with its own loader keeps it (`<ui-button>`, `<ui-segment>`).
 - `visible="false"`:  fades out (`elementSetup.visibleAnimation`), then `:state(hidden)`;  `visible` fades it back.

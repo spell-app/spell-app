@@ -15,6 +15,7 @@ import { BRAND, DEFAULT_ROWS, ENTER } from "./UIBrandComposer.types"
  * - Still casts:  the button or Cmd / Ctrl+Enter send a cancelable `ui-cast` (not with blank text),
  *   then submit the form.
  * - Its starting value is the DOM element's `value` PROPERTY, else its attribute.
+ * - `readonly`:  the text box's own, as the component's.
  * - Named by `label`, else `eyebrow`, else "Your spell".
  ****************/
 export class BrandComposerFallback extends E.NativeFallback<typeof brandComposerVocabulary> {
@@ -36,6 +37,7 @@ export class BrandComposerFallback extends E.NativeFallback<typeof brandComposer
       rows: this.attr("rows") ?? String(DEFAULT_ROWS),
       placeholder: this.attr("placeholder") ?? "Describe what you want to build…",
       disabled,
+      readonly: this.flag("readonly"),
       "aria-label": this.attr("label") || this.attr("eyebrow") || "Your spell"
     })
     this.decorate(control, "textarea")

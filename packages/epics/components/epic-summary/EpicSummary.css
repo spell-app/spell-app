@@ -18,6 +18,10 @@
   :host([hidden]) {
     display: none;
   }
+  /* `disabled` (its own, `elementSetup.disabled`):  only dimmed, so the text stays findable and copyable */
+  :host(:state(disabled)) > :not(slot) {
+    opacity: var(--ui-disabled-opacity, 0.45);
+  }
 }
 
 @layer ui.components.epic-summary.content {

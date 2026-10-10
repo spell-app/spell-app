@@ -95,8 +95,7 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     styleSheets: { form: formCSS },
     DOMElement: DOMFormElement,
     delegatesFocus: false,
-    // `disabled`:  its content inert, a look;  the element still takes clicks
-    disabled: "its own",
+    // `disabled`:  unusable, the default;  the root also says `inert` itself, for the static render
     // `loading`:  Fomantic's veil, its content inert
     loading: "its own"
   } satisfies Partial<E.ElementSetup>

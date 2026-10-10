@@ -27,7 +27,10 @@ export class EpicNote extends E.UIComponent<typeof epicNoteVocabulary> {
   @E.proto static vocabulary = epicNoteVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { "epic-fold-button": foldCSS, "epic-note": noteCSS },
-    delegatesFocus: false
+    delegatesFocus: false,
+    // `disabled`:  only a look (the sheet dims it), so the text stays findable;  `loading`:  the shared spinner
+    disabled: "its own",
+    loading: "loader"
   } satisfies Partial<E.ElementSetup>
 
   /** Light-DOM slot occupancy:  has it a body? */

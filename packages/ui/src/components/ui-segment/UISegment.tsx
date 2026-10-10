@@ -22,15 +22,14 @@ import segmentCSS from "./UISegment.css?inline"
  * - `:state(piled)`:  the element becomes the stacking context the rotated sheets sit behind.
  * - `scrolling`:  the box is a keyboard stop (`tabindex=0`), as every scrollable region must be.
  * - `loading`:  `aria-busy` (through `internals`) and a visually hidden `role=status` "Loading…".
- * - `disabled`:  `aria-disabled`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, its content inert,
+ *   `aria-disabled`.
  ****************/
 @E.cssStates("piled", "inverted")
 export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   @E.proto static vocabulary = segmentVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { segment: segmentCSS },
-    // `disabled`:  only a look, with `aria-disabled`
-    disabled: "its own",
     // `loading`:  Fomantic's veil
     loading: "its own"
   } satisfies Partial<E.ElementSetup>
@@ -44,16 +43,6 @@ export class UISegment extends E.UIComponent<typeof segmentVocabulary> {
   @E.aria("ariaBusy")
   get isLoading(): boolean {
     return !!this.loading
-  }
-
-  /**
-   * Marked disabled (`disabled`):  `aria-disabled` (`:state(disabled)` is `UIComponent`'s).
-   * - Only a look (`elementSetup.disabled` is `"its own"`),
-   *   so the element still takes clicks (its content's links).
-   */
-  @E.aria("ariaDisabled")
-  get looksDisabled(): boolean {
-    return this.isMarkedDisabled
   }
 
   ////////////////

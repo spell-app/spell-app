@@ -434,7 +434,9 @@ As WWOD §18, plus:
       everything inside inert and dimmed, focus inside moves on (`UI.focus.moveOutOf()`)
     - or `"its own"`:  the family's code says what it means.
       A form control, `<ui-button>`, `<ui-step>` disable their own control and override `isDisabled`;
-      `<ui-icon>`, `<ui-segment>` only dim;  `<ui-transition>` pauses
+      `<ui-icon>`, `<ui-text>` only dim (text stays findable);  `<ui-transition>` pauses.
+      Only where it means more than a look, or inert would hide text (P11, T9):
+      a Fomantic look alone (`<ui-segment>`, `<ui-label>`, `<ui-section>` ...) is unusable
   - `loading`:  `:state(loading)` always (`isMarkedLoading`, `true` only);  the rest is `elementSetup.loading`:
     - `"loader"`, the default:  `aria-busy`, everything inside inert and dimmed, a spinner over it, `:state(busy)`
     - or `"its own"`:  `<ui-button>`'s spinner, `<ui-segment>`'s veil, `<ui-root>`'s message
@@ -562,9 +564,10 @@ As WWOD §18, plus:
     - Nor do the constructor, field initializers and `render()`'s body:
       every component is BUILT inside `untrack()` (`UIComponent.mount()`, the static render),
       and `render()` runs once, untracked (`UIComponent.onMount()`).
-  - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `elementSetup.disabled = "its own"`;
+  - A `disabled` that is only a LOOK:  the default, `"unusable"`, unless inert would hide text a reader needs
+    (`<ui-icon>`, `<ui-text>`, `<epic-note>` ...:  `elementSetup.disabled = "its own"`, and the sheet dims it);
     `:state(disabled)` comes from `UIComponent` ("Shared states" above), so no `@E.cssStates("disabled")`;
-    ARIA of its own, if any, on a getter (`<ui-segment>`'s `@E.aria("ariaDisabled") get looksDisabled()`).
+    ARIA of its own, if any, on a getter (`@E.aria("ariaDisabled") get looksDisabled()`).
     Never an `isDisabled` override (the DOM element swallows clicks while `isDisabled`).
   - Element-core files import the decorators directly (`import { state } from "./Reactive"`:
     their class definitions read them);  component files use `@E.state` (and `@E.proto`).

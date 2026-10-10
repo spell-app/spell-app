@@ -812,6 +812,12 @@
           "description": "Faded;  nothing in it can be used (copying neither)."
         },
         {
+          "name": "readonly",
+          "kind": "boolean",
+          "property": "readOnly",
+          "description": "Shows the colour but can't change it;  copying still works, and it's still submitted."
+        },
+        {
           "name": "loading",
           "kind": "boolean",
           "shared": true,
@@ -914,6 +920,10 @@
         {
           "name": "disabled",
           "description": "Can't be used."
+        },
+        {
+          "name": "readonly",
+          "description": "`readonly`:  the colour can't be changed."
         },
         {
           "name": "dragging",
@@ -1433,6 +1443,12 @@
           "description": "Faded;  can't be typed in or cast, left out of the form."
         },
         {
+          "name": "readonly",
+          "kind": "boolean",
+          "property": "readOnly",
+          "description": "Shows its text but can't be typed in;  still cast and submitted (unlike `disabled`)."
+        },
+        {
           "name": "loading",
           "kind": "boolean",
           "shared": true,
@@ -1516,6 +1532,10 @@
         {
           "name": "disabled",
           "description": "Can't be used."
+        },
+        {
+          "name": "readonly",
+          "description": "`readonly`:  can't be typed in."
         },
         {
           "name": "loading",

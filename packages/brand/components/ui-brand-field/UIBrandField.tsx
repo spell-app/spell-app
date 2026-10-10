@@ -51,7 +51,8 @@ export class DOMBrandFieldElement extends E.DOMElement<UIBrandField> {
  * - Actions keep the label row's height:  a pill taller than the row overhangs it,
  *   so showing a Reset button never moves the control.
  *
- * - `disabled` makes the box `inert`.
+ * - `disabled`:  unusable, as a `<ui-field>` (`elementSetup.disabled`):  the box `inert`, `aria-disabled`;
+ *   the box says `inert` itself too, for the static render (the base class's reaches only a browser).
  * - SIDE EFFECT:  writes `aria-label` on slotted controls (only ones that had no name).
  ****************/
 export class UIBrandField extends E.UIComponent<typeof brandFieldVocabulary> {
@@ -59,9 +60,7 @@ export class UIBrandField extends E.UIComponent<typeof brandFieldVocabulary> {
   @E.protoMerged static elementSetup = {
     styleSheets: { field: fieldCSS },
     DOMElement: DOMBrandFieldElement,
-    delegatesFocus: false,
-    // `disabled`:  its box is inert, a look;  the element still takes clicks
-    disabled: "its own"
+    delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
   ////////////////
