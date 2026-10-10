@@ -1,7 +1,8 @@
+import { createEffect } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
-import type { SpellCore } from "$/core"
+import type { ElementApi, SpellCore } from "$/core"
 import { spellElementVocabulary } from "./SpellElement.en"
 
 /****************
@@ -11,6 +12,12 @@ import { spellElementVocabulary } from "./SpellElement.en"
  * - A Spell UI component like any `ui-*` one:  its own shadow root, with the page's theme and base styles.
  *   Then its type's own `<css>`, its class's `static css`, after its super-types' (`cssOf()`).
  * - It draws its `thing`, through the program's runtime:  `spellCore.drawOwn()`, in the thing's error net.
+ * - Its outside is its type's (epic `drawable-thing` P8), named as Spell UI names its own elements' API:
+ *   - each property its type declares is an attribute and a property:  `<game-card rank="1">`, `card.rank = 12`,
+ *     which the element writes to its thing
+ *   - each method of its type is a method:  `card.turnOver()` calls its thing's `turn_over()`
+ *   - written by hand, with no `thing` set, it makes its own:  a new thing of its type, once mounted
+ *   - English names only, for now
  * - ONE tag per drawable type, defined the first time a program defines its elements (`defineFor()`).
  *   What the tag draws with is looked up when it draws (`SPELL_ELEMENTS`), so a program run again takes it over.
  * - Part of `spell-runtime.js`:  NEVER value-imports `$/core`.
@@ -20,16 +27,60 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
   @E.proto static vocabulary = spellElementVocabulary
   @E.protoMerged static elementSetup: Partial<E.ElementSetup> = { delegatesFocus: false }
 
+  /** Each property its type declares, as an attribute -- set per tag, see `defineFor()`. */
+  @E.proto static typeProperties: TypeProperty[] = []
+  declare typeProperties: TypeProperty[]
+
+  /** The thing a tag written by hand made for itself, with no `thing` set -- see `onMount()`. */
+  @E.state private accessor ownThing: object | undefined = undefined
+
   render(): JSX.Element {
     return <>{this.drawing}</>
   }
 
-  /** Our thing's drawing -- nothing until a program sets our `thing`, or before our tag's runtime is known. */
+  /** What we draw:  our `thing`, else the one we made. */
+  get currentThing(): object | undefined {
+    return (this.thing as object | undefined) ?? this.ownThing
+  }
+
+  /** Our thing's drawing -- nothing until we have a thing, or before our tag's runtime is known. */
   get drawing(): JSX.Element {
-    const { thing } = this
+    const thing = this.currentThing
     const entry = SPELL_ELEMENTS.get(this.domElement.localName)
     if (!thing || !entry) return null
     return entry.spellCore.drawOwn(thing) as JSX.Element
+  }
+
+  /**
+   * - Written by hand (no `thing` set):  make a thing of our type, once.
+   * - Each of our type's attributes, when it's set, is written to our thing's property:  `rank="1"` => `card.rank = 1`.
+   */
+  onMount() {
+    createEffect(
+      () => this.thing,
+      (thing) => {
+        const entry = SPELL_ELEMENTS.get(this.domElement.localName)
+        if (!thing && !this.ownThing && entry) this.ownThing = new (entry.Class as new () => object)()
+      }
+    )
+    for (const property of this.typeProperties) {
+      createEffect(
+        () => [this.currentThing, (this as unknown as Record<string, unknown>)[property.property]] as const,
+        ([thing, value]) => {
+          if (thing && value !== undefined && value !== null) {
+            ;(thing as Record<string, unknown>)[property.name] = SpellElement.valueFor(property, value)
+          }
+        }
+      )
+    }
+    return super.onMount()
+  }
+
+  /** `value`, as an attribute gave it, as property `property` takes it:  `"2"` => `2`, when 2 is a legal value. */
+  static valueFor(property: TypeProperty, value: unknown): unknown {
+    if (typeof value !== "string" || !property.values) return value
+    const number = Number(value)
+    return !property.values.includes(value) && property.values.includes(number) ? number : value
   }
 
   /**
@@ -46,14 +97,62 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
     // never "":  `UI.styles.register()` takes that as "unregister", and the tag's elements would lose the sheet
     const css = SpellElement.cssOf(Class) || `/* <${tag}>:  no styles of its own */`
     if (customElements.get(tag)) return SpellElement.restyle(tag, css)
-    // our names under its tag:  typed as ours, whose tag is a literal
-    const vocabulary = { ...spellElementVocabulary, tag, noun: Class.name } as unknown as typeof spellElementVocabulary
+    const api = spellCore.elementApiOf(Class)
+    const properties = SpellElement.typePropertiesOf(api)
+    // our names under its tag, then its type's:  typed as ours, whose tag is a literal
+    const vocabulary = {
+      ...spellElementVocabulary,
+      tag,
+      noun: Class.name,
+      attributes: [...spellElementVocabulary.attributes, ...properties.map((property) => property.spec)]
+    } as unknown as typeof spellElementVocabulary
     const Component = class extends SpellElement {
       @E.proto static vocabulary = vocabulary
+      @E.proto static typeProperties = properties
       // the sheet is named for the tag, so `restyle()` can replace it
       @E.protoMerged static elementSetup: Partial<E.ElementSetup> = { styleSheets: { [tag]: css } }
     }
-    Component.define()
+    SpellElement.addMethods(Component.define(), api.methods)
+  }
+
+  /**
+   * The attributes of a type's properties, from its `api`, e.g. `short-rank` for `short_rank`.
+   * - Text, a number or a choice:  an attribute and a property;  anything else, e.g. a card, a property only.
+   * - A name the page or Spell UI already means something by (`id`, `hidden`, `disabled` ...) is left out.
+   */
+  static typePropertiesOf(api: ElementApi): TypeProperty[] {
+    const properties: TypeProperty[] = []
+    for (const { name, type, values } of api.properties) {
+      const attribute = E.kebabCase(name.replace(/_/g, "-"))
+      if (TAKEN_ATTRIBUTES.has(attribute)) continue
+      const kind = ATTRIBUTE_KINDS[type ?? "text"] ?? "json"
+      properties.push({
+        name,
+        property: E.camelCase(attribute),
+        values,
+        spec: { name: attribute, kind, description: `Its ${name.replace(/_/g, " ")}.` }
+      })
+    }
+    return properties
+  }
+
+  /**
+   * Give `TagClass`'s elements a method for each of `methods`, calling its thing's:  `turnOver()` => `turn_over()`.
+   * - A name the element already has (`remove`, `click` ...) is left out.
+   */
+  static addMethods(TagClass: CustomElementConstructor, methods: string[]): void {
+    const { prototype } = TagClass as unknown as { prototype: Record<string, unknown> }
+    for (const method of methods) {
+      const name = E.camelCase(method.replace(/_/g, "-"))
+      if (name in prototype) continue
+      Object.defineProperty(prototype, name, {
+        configurable: true,
+        value(this: { component?: SpellElement }, ...args: unknown[]) {
+          const thing = this.component?.currentThing as Record<string, (...args: unknown[]) => unknown> | undefined
+          return thing?.[method]?.(...args)
+        }
+      })
+    }
   }
 
   /**
@@ -90,6 +189,48 @@ export interface SpellElement extends E.AttributeValues<typeof spellElementVocab
 export function installSpellElements(spellCore: SpellCore): void {
   spellCore.elementDefiner = (tag, Class) => SpellElement.defineFor(tag, Class, spellCore)
 }
+
+/** One of a type's properties, as its element shows it -- see `SpellElement.typePropertiesOf()`. */
+type TypeProperty = {
+  /** Its name, as compiled, e.g. `short_rank`. */
+  name: string
+  /** Its element's property, e.g. `shortRank`. */
+  property: string
+  /** Its legal values, if it has some. */
+  values?: unknown[]
+  /** Its attribute, as a vocabulary declares it. */
+  spec: E.AttributeSpec
+}
+
+/** The kind of attribute for each type a property is declared as;  any other type, e.g. a card:  `json`. */
+const ATTRIBUTE_KINDS: Record<string, E.AttributeKind> = {
+  text: "string",
+  character: "string",
+  date: "string",
+  number: "number",
+  integer: "number",
+  choice: "boolean"
+}
+
+/** Attributes the page or Spell UI already means something by:  never a type's. */
+const TAKEN_ATTRIBUTES = new Set([
+  "thing",
+  "id",
+  "class",
+  "style",
+  "slot",
+  "part",
+  "is",
+  "lang",
+  "dir",
+  "title",
+  "hidden",
+  "inert",
+  "disabled",
+  "loading",
+  "visible",
+  "animation"
+])
 
 /** What a drawable type's tag draws with:  its class, and the runtime of the program that defined it last. */
 type SpellElementEntry = {

@@ -9,7 +9,7 @@
  * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
  */
 
-import { kebabCase, singularize } from "$/util"
+import { kebabCase, schemaOf, singularize, type Schema } from "$/util"
 
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
@@ -54,6 +54,35 @@ export const elementsMethods = defineSpellCoreModule({
     return tag
   },
 
+  /**
+   * What drawable class `Class` shows on the outside of its element (epic `drawable-thing` P8):
+   * - `properties`:  each property it declares (`a card has a rank as a number`), its own and its super-types',
+   *   with its declared type, e.g. `{ name: "rank", type: "number" }`
+   * - `methods`:  each method it has, its own and its super-types', down to `Drawable` / `DrawableList`,
+   *   e.g. `turn_over` -- NOT `draw()`, nor a method of several words with values in them (`is_a_$suit`)
+   * - Names as compiled:  the page names them as it likes, e.g. `turnOver()`.
+   */
+  elementApiOf(Class: Function): ElementApi {
+    const properties: ElementApi["properties"] = []
+    const seen = new Set<string>()
+    for (let schema: Schema | undefined = schemaOf(Class); schema; schema = schema.parent) {
+      for (const [name, info] of schema.declared) {
+        if (seen.has(name)) continue
+        seen.add(name)
+        const values = typeof info.oneOf === "function" ? info.oneOf() : info.oneOf
+        properties.push({ name, type: info.type, ...(values ? { values: [...values] } : {}) })
+      }
+    }
+    const methods: string[] = []
+    for (let proto = Class.prototype; proto && !BASE_PROTOTYPES.includes(proto); proto = Object.getPrototypeOf(proto)) {
+      for (const [name, descriptor] of Object.entries(Object.getOwnPropertyDescriptors(proto))) {
+        if (typeof descriptor.value !== "function" || NOT_METHODS.has(name) || name.includes("$")) continue
+        if (!methods.includes(name)) methods.push(name)
+      }
+    }
+    return { properties, methods }
+  },
+
   /** Tag of `drawable`'s element, e.g. `solitaire-card` -- `undefined` if its class has none. */
   elementTagOf(drawable: unknown): string | undefined {
     if (!drawable || typeof drawable !== "object") return undefined
@@ -81,6 +110,25 @@ function tagWords(name: string): string {
     .replace(/-+/g, "-")
     .replace(/^[^a-z]+|-+$/g, "")
 }
+
+/**
+ * What a drawable class shows on the outside of its element -- see `spellCore.elementApiOf()`.
+ */
+export type ElementApi = {
+  /**
+   * Its declared properties, as compiled, e.g. `short_rank`, with their declared types, e.g. `number`,
+   * and their legal values if they have some, e.g. `[ace, 2, 3 ...]` for a rank.
+   */
+  properties: Array<{ name: string; type?: string; values?: unknown[] }>
+  /** Its methods, as compiled, e.g. `turn_over`. */
+  methods: string[]
+}
+
+/** Where `elementApiOf()` stops looking for methods:  spell's own drawable classes, and what they're built on. */
+const BASE_PROTOTYPES: object[] = [Drawable.prototype, DrawableList.prototype, Object.prototype]
+
+/** Methods that aren't a type's own API:  its drawing, and the class's own. */
+const NOT_METHODS = new Set(["constructor", "draw"])
 
 /** The classes whose element the page's `elementDefiner` has heard of. */
 const DEFINED = new WeakSet<Function>()

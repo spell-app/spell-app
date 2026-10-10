@@ -45,6 +45,6 @@ export { itemOf } from "./deprecated"
 // `$/util`'s shared reactive ones, spell's `@thing`, and `@drawn` (`drawing.ts`).  Compiled JavaScript has none.
 export { prop, state, derived, thing } from "$/util"
 export { drawn } from "./drawing"
-export { elementTagFor, type ElementDefiner } from "./elements"
+export { elementTagFor, type ElementDefiner, type ElementApi } from "./elements"
 export { SPELL_CORE_MODULE, SPELL_CORE_NAMES, type SpellCore, type PropCheck } from "./spellCore.types"
 export * from "./classes"
