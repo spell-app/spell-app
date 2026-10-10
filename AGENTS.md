@@ -184,6 +184,7 @@ READ `guides/dev/commands/commands.md` FIRST,** and suggest where it belongs bef
   - `ui/` -- Spell UI's hand-written docs pages (claude-design P6), served at `/ui/` with each branch's built
     `packages/ui/site/_assets/` (built by the page server, not committed) and `_data/` laid over them
     (`packages/ui/AGENTS.md`, `site/`)
+  - `brand/` -- the Brand tab's pages:  Claude Design's exports and their Spell UI copies (`packages/brand/AGENTS.md`)
   - `goals/` -- the goal sets (their tooling:  `packages/docs/tools/goals/`, tracked)
   - `agents/` -- the three logs (`agents/PAPERCUTS.md`, `agents/SUSPECTED-BUGS.md`, `agents/CODE-DEBT.md`), and
     WWOD, the house style (`agents/wwod/`):  one copy of the rules for every branch
