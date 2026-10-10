@@ -15,8 +15,8 @@ import {
  *   - The site bundle's entry (`site/_src/site.ts`) sets it from its own location
  *     (`_assets/` => `../_data/components.json`), so a page at any depth finds it.
  *   - Unset:  a `<meta name="ui-docs-data" content="...">` in the page, else `_data/components.json` against the page.
- * - Fails loudly:  a missing or broken file rejects `load()` (and stays rejected until `url` is set again);
- *   an element shows its error, it never guesses.
+ * - Fails loudly:  a missing or broken file rejects `load()` (and stays rejected until `url` is set again).
+ *   An element shows its error;  it never guesses.
  * - Plain fetch, no Solid:  elements wrap `load()` in their own async memo.
  * - The site's other files go through `request()` too (`SearchData`, the layout's `SiteShell`):  one way to fail.
  * - Imports `$/ui/core` for `E.SourceError`, `@E.once` and `@E.resets` only:
@@ -59,7 +59,8 @@ export class SiteData {
   /**
    * GET `url` for `method`;  resolves with the response, which answered 2xx.
    * - Throws a `load` `E.SourceError` when it doesn't answer (the network error as `cause.error`)
-   *   or answers anything else (`cause.status`);  the message names `method`, the URL, and `fix`.
+   *   or answers anything else (`cause.status`).
+   *   The message names `method`, the URL, and `fix`.
    * - Not `UI.sources`:  that refuses `data:` URLs (tests point `url` at one), caches the text,
    *   and needs the runtime chunk, which the layout's fetch (`SiteShell`) mustn't wait for.
    */

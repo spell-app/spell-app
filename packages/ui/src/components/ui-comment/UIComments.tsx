@@ -21,8 +21,8 @@ import commentCSS from "./UIComment.css?inline"
  *
  * - No role:  each comment is an `<article>`, which is the structure a reader moves through.
  *
- * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, what's inside inert,
- *   `aria-disabled`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, what's inside inert, `aria-disabled`.
  ****************/
 export class UIComments extends E.UIComponent<typeof commentsVocabulary> {
   @E.proto static vocabulary = commentsVocabulary

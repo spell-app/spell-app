@@ -3,8 +3,9 @@
   Trying out `<spell-app>` -- served by the dev server at `/demo/spell-app.html`, after `yarn build:element`.
   - Several apps at once, each on its own copy of the spell runtime.
   - This page's own `.ui.menu` rule is garish on purpose:  it must NOT reach inside an app's shadow root.
-  - Loaded by its own script, `/element/spell-app.js`, with nothing around it:  each `<spell-app>` is a root (as
-    `<ui-root>` is), which loads the Spell UI widgets it draws as they appear.  The editor is never downloaded here.
+  - Loaded by its own script, `/element/spell-app.js`, with nothing around it:
+    each `<spell-app>` is a root (as `<ui-root>` is), which loads the Spell UI widgets it draws as they appear.
+  - The editor is never downloaded here.
 -->
 <html lang="en">
   <head>

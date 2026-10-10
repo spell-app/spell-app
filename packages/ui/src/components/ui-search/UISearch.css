@@ -30,17 +30,18 @@
  *   - a `.results` WITHOUT `popover` is Fomantic's `top: 100%` box, shown with `visible` (static examples)
  * - The `:state()`s the component sets:  `:state(fluid)` (a block-level DOM element),
  *   plus `open` / `disabled` / `loading` / `invalid` for PAGE styling only -- this sheet keys on the root's classes.
- * - Public tokens (`--ui-search-*`, the theming surface) are NEVER declared here:  the token block reads each
- *   through a private alias, `--_ui-search-results-radius: var(--ui-search-results-radius, var(--ui-radius))`,
- *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the DOM element,
- *   `::part(input)` / `::part(results)` or in the app stylesheet reaches the box (`docs/theming.md` "Component
- *   tokens").  Cross-family, on purpose:  the prompt sets the nested input's PUBLIC `--ui-input-radius` (from
- *   `--ui-search-prompt-radius`), as a page would.
+ * - Public tokens (`--ui-search-*`, the theming surface) are NEVER declared here:
+ *   the token block reads each through a private alias, and every rule reads the alias:
+ *   `--_ui-search-results-radius: var(--ui-search-results-radius, var(--ui-radius))`.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(input)` / `::part(results)`
+ *   or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens").
+ *   - Cross-family, on purpose:  the prompt sets the nested input's PUBLIC `--ui-input-radius`
+ *     (from `--ui-search-prompt-radius`), as a page would.
  * - NOTE: left out, on purpose:
  *   - the "view all results" `.action` link of a remote answer:  a link inside a listbox;  put one near the search
  *   - the `clearable` variation (`.remove.icon`, the webkit cancel button):  Escape clears
- * - Scrolling heights stay Fomantic's per-breakpoint result counts (4 / 6 / 8 / 12),
- *   by viewport `@media` (`--_search-results-rows`), as the DEFAULT of one token `--ui-search-results-max-height`:
+ * - Scrolling heights stay Fomantic's per-breakpoint result counts (4 / 6 / 8 / 12), by viewport `@media`
+ *   (`--_search-results-rows`), as the DEFAULT of one token, `--ui-search-results-max-height`:
  *   a value set from outside wins at every width.
  */
 
@@ -75,10 +76,10 @@
   }
 
   /*
-   * Tokens:  one per `search.variables` entry that still matters, from the global tokens -- each the private alias
-   * of its public token (never declare the public one:  it would block inherited values).
-   * - Declared on the root AND on its two parts (the root has no part name), so a value set through
-   *   `::part(input)` / `::part(results)` reaches the part's own rules.
+   * Tokens:  one per `search.variables` entry that still matters, from the global tokens --
+   * each the private alias of its public token (never declare the public one:  it would block inherited values).
+   * - Declared on the root AND on its two parts (the root has no part name),
+   *   so a value set through `::part(input)` / `::part(results)` reaches the part's own rules.
    */
   .ui.search,
   .ui.search > .ui.input,
@@ -116,8 +117,8 @@
     --_ui-search-category-name-padding: var(--ui-search-category-name-padding, 0.4em 1em);
     --_ui-search-category-divider-color: var(--ui-search-category-divider-color, var(--ui-border-color-internal));
     --_ui-search-category-result-border-color: var(--ui-search-category-result-border-color, var(--ui-border-color));
-    /* Height of the results list;  its default grows with the viewport (the result rows below), a value set from
-       outside wins at every width. */
+    /* Height of the results list;  its default grows with the viewport (the result rows below):
+       a value set from outside wins at every width. */
     --_ui-search-results-max-height: var(
       --ui-search-results-max-height,
       calc(var(--_search-results-rows) * (2 * 0.85714em + 1.33em))

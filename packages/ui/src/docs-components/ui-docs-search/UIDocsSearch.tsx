@@ -83,16 +83,16 @@ export class DOMDocsSearchElement extends E.DOMElement<UIDocsSearch> {
  *   - else a result on the page shown sets the hash,
  *     closing the drawer the field is in (the site's landing scrolls)
  *   - and any other loads its page
- *   The field then empties.
+ *   - then the field empties
  * - Data:  the page shown's sections are read live from its DOM on every focus (`PageOutline`, `page`);
  *   the rest come from the site's data, fetched on the FIRST focus or keystroke
  *   (`SiteData` + `SearchData`, `SearchIndex`).
- *   Until it's in, or if it fails, only the page shown is searched.
+ *   - Until it's in, or if it fails, only the page shown is searched.
  * - Every keystroke fires `ui-input` (`{ value }`):  `<ui-docs-nav>` filters its list by it.
  * - Shortcuts (`shortcuts`, on by default):
- *   `/` (not while typing in a field) and Cmd / Ctrl+K summon the field (`summon()`):
- *   of several, the visible one, else one in a closed drawer, which opens.
- *   One document listener serves every field, while any is connected.
+ *   `/` (not while typing in a field) and Cmd / Ctrl+K summon the field (`summon()`).
+ *   - Of several fields, the visible one, else one in a closed drawer, which opens.
+ *   - One document listener serves every field, while any is connected.
  * - A doc-only element (`src/docs-components/`):  its shadow DOM is built of `<ui-icon>`s, which its barrel imports.
  ****************/
 export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {

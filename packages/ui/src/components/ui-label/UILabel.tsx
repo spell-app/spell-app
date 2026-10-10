@@ -29,8 +29,8 @@ import partsCSS from "$/ui/components/ui-parts/UIParts.css?inline"
  *
  * - The element's `aria-label` moves to the inner box, so an icon-only or corner label has a name.
  *
- * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, its link and delete button inert,
- *   `aria-disabled`;  a link label also loses its `href`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, its link and delete button inert, `aria-disabled`;  a link label also loses its `href`.
  ****************/
 export class UILabel extends E.UIComponent<typeof labelVocabulary> {
   @E.proto static vocabulary = labelVocabulary

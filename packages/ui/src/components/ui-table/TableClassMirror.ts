@@ -4,14 +4,15 @@ import { UIT } from "$/ui/core"
  * ### `TableClassMirror`
  * Writes an element's Fomantic class string (`ui celled striped table`) onto a LIGHT-DOM `<table>`,
  * so `UITable.css`'s class-grammar rules style it.
- * - Owns only its words:  the author's other classes stay, in their order;  the element's phrase follows them
- *   as one run in grammar order, since phrase selectors (`[class*="very basic"]`) need the words adjacent.
+ * - Owns only its words:  the author's other classes stay, in their order.
+ *   The element's phrase follows them as one run in grammar order,
+ *   since phrase selectors (`[class*="very basic"]`) need the words adjacent.
  * - Words the table ALREADY has when first mirrored, and the element emits, count as the element's:
  *   an SSR table carries the element's own words (`class="ui celled table"`), which must go when `celled` does.
  * - Re-applies through a `MutationObserver` on the table's `class`, when a framework rewrites `className`.
  * - Plain DOM, no Solid.
- * - NOTE: letting go of a table (`detach()`) leaves its classes:  it's usually gone from the `<ui-table>` by then,
- *   and an app may have moved it on purpose.
+ * - NOTE: letting go of a table (`detach()`) leaves its classes:
+ *   it's usually gone from the `<ui-table>` by then, and an app may have moved it on purpose.
  ****************/
 export class TableClassMirror {
   /** Table mirrored onto, if any. */
@@ -70,8 +71,8 @@ export class TableClassMirror {
 
   /**
    * `table`'s class text with `classes` mirrored in once:  its author words, then the element's phrase.
-   * - For a static server render (`UITable.decorateStatic()`):  no observer, nothing owned yet;  the same text a
-   *   first `apply()` writes.
+   * - For a static server render (`UITable.decorateStatic()`):  no observer, nothing owned yet;
+   *   the same text a first `apply()` writes.
    * - `text` is `getAttribute()`'s:  `null` when absent (a platform boundary).
    * - Static:  one call, nothing to mirror into later.
    */

@@ -4,12 +4,14 @@
  *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Pure data:  node imports it (`yarn site:data`, `yarn gen:root`), so `$/ui/core` for types only.
  * - The attributes become Fomantic's class words, in Fomantic's order (`ClassBuilder`):
- *   `<ui-loader size="large" color="red" speed="slow" visible inline>` => `ui large red slow inline active loader`;
- *   `active`, Fomantic's shown-loader class, is the element's own while it shows (the shared `visible` / `hidden`).
+ *   `<ui-loader size="large" color="red" speed="slow" visible inline>` => `ui large red slow inline active loader`.
+ * - `active` is Fomantic's shown-loader class:
+ *   no attribute here, but the class the box has while the element shows (the shared `visible` / `hidden`).
  * - `speed` is `kind: "valueOnly"` because it writes its value alone (`slow` / `fast`), like dropdown's `state`.
- * - Accessibility:  the element is `role="status"` + `aria-live="polite"` (through `internals`);
- *   with no slotted text, its accessible name is the `loading` text.  The spinner is decorative.
- *   See `UILoader.css`.
+ * - Accessibility (see `UILoader.css`):
+ *   - the element is `role="status"` + `aria-live="polite"` (through `internals`)
+ *   - with no slotted text, its accessible name is the `loading` text
+ *   - the spinner is decorative
  */
 
 import type { E } from "$/ui/core"

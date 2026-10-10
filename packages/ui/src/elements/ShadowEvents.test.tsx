@@ -11,8 +11,8 @@ import { UIComponent, type DOMElement, type UIComponentClass } from "$/ui/elemen
  * `ShadowEvents`:  Solid's event delegation inside each element's shadow root leaves nothing behind on the event.
  * - Page listeners see the platform's retargeted event:  `target` === the host, `composedPath()[0]` the inner node.
  * - Solid handlers OUTSIDE the element (an app's `<x-el onClick>`, an enclosing element's) still run, once.
- * - Tried on tiny test elements;  `test/events.test.tsx` does the same for real `ui-*` elements, with typing and
- *   focus, and a Solid app elsewhere on the page.
+ * - Tried on tiny test elements;  `test/events.test.tsx` does the same for real `ui-*` elements,
+ *   with typing and focus, and a Solid app elsewhere on the page.
  */
 
 /** What a listener saw:  `target`, `currentTarget`, `composedPath()[0]`, as `name()`s. */
@@ -81,8 +81,9 @@ function container(): HTMLElement {
 }
 
 /**
- * A Solid app rendering `<section onClick><tag onClick /></section>`:  a second delegation root, AROUND the element;
- * returns the element.  Disposed after the test.
+ * A Solid app rendering `<section onClick><tag onClick /></section>`:
+ * a second delegation root, AROUND the element;  returns the element.
+ * - Disposed after the test.
  */
 function solidApp(tag: string, log: string[]): HTMLElement {
   const root = container()

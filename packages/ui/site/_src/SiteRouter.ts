@@ -77,10 +77,12 @@ export class SiteRouter {
   }
 
   /**
-   * Point the layout's "On this page" toc at the page shown:  `for` its tabs (`#site-tabs`;  none:  its `main`),
-   * `header` its main's `data-toc-header`.
-   * - Before `<ui-root>` loads the toc (first load):  its attributes, in place.  After:  a NEW toc, since one follows
-   *   the element it found when it connected.
+   * Point the layout's "On this page" toc at the page shown:
+   * - `for`:  its tabs (`#site-tabs`;  none:  its `main`)
+   * - `header`:  its main's `data-toc-header`
+   *
+   * - Before `<ui-root>` loads the toc (first load):  its attributes, in place.
+   * - After:  a NEW toc, since one follows the element it found when it connected.
    */
   followPage(): void {
     const main = this.main()

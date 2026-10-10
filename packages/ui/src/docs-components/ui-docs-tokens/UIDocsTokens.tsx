@@ -34,7 +34,8 @@ import tokensCSS from "./UIDocsTokens.css?inline"
  * - `playground`:  the children are a live preview, in a `<ui-segment>` with a reset `<ui-button>`,
  *   and each row gets a `<ui-input>` (a native colour picker for colours, `ColorProbe` giving it the current value).
  *   - An input sets its token INLINE on the preview's box (the children inherit it through the slot),
- *     or on `:root` with `target="page"`.  The swatches follow.
+ *     or on `:root` with `target="page"`.
+ *   - The swatches follow.
  *   - An empty input removes the token.
  * - Events:  the inner `<ui-input>`s' `ui-input` / `ui-change` stop here;
  *   the element's own `ui-input` (`{ token, value }`) and `ui-reset` (`{ tokens }`) say what the playground did.

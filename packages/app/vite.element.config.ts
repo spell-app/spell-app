@@ -12,18 +12,19 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  *   - `spell-runtime.js`:  what ONE app runs on, loaded afresh per element -- see `spellRuntime.ts`
  * - What both use goes in shared chunks, e.g. React:  so every app's copy of the runtime shares ONE React.
  *   `spellCore` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
- * - Solid, `ui`'s element core and `@spell-app/ui` are NOT bundled:  they come from `spell-solid.js` /
- *   `spell-ui.js` beside it (`sharedSolid()`, through `spell-solid-shared.js`:  a docs page's own instead),
- *   which `<spell-editor>` imports too -- one Solid per page.
+ * - Solid, `ui`'s element core and `@spell-app/ui` are NOT bundled:
+ *   they come from `spell-solid.js` / `spell-ui.js` beside it, which `<spell-editor>` imports too --
+ *   one Solid per page.
+ *   - How:  `sharedSolid()`, through `spell-solid-shared.js` (on a docs page:  the page's own instead).
  *   - `<spell-app>` imports `spell-ui.js` not at all:  it's a root, loading each Spell UI family it draws from `ui/`.
- *   `spell-runtime.js` never imports them:  compiled spell runs on React.
+ *   - `spell-runtime.js` never imports them:  compiled spell runs on React.
  * - Fixed names, no hashes:  the element finds the runtime, styles and scope packs beside itself.
  * - One `spell-app.css`, which the element puts in each shadow root -- see `shadowStyles.ts`.
  * - `static/` is copied in, so Semantic UI and Lato sit beside the bundle --
  *   and the built-in types' scope pack, `spellCore.scopes.js`, see `builtInsPack()`.
  * - And the component pack of both elements, `spell.pack.js`:  see `componentPack()`.
- * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.  `keepNames` MUST stay on --
- *   see `parser/build.test.ts`.
+ * - Plugins, aliases, dedupe and CSS:  `appConfig()`, as `vite.config.ts`.
+ *   `keepNames` MUST stay on -- see `parser/build.test.ts`.
  */
 const shared = appConfig()
 export default defineConfig({
@@ -85,8 +86,10 @@ const COMPONENTS = fileURLToPath(new URL("components", import.meta.url))
 
 /**
  * Spell UI's `RootCatalog` (`packages/ui/tools/RootCatalog.ts`), which reads a catalog from vocabularies.
- * - Imported as the build runs, by URL:  a static import would have `tsc -p tsconfig.node.json` check `ui`'s source,
- *   whose `$/ui/...` aliases this config doesn't have.  Node runs its `.ts` files as they are (type stripping).
+ * - Imported as the build runs, by URL:
+ *   a static import would have `tsc -p tsconfig.node.json` check `ui`'s source,
+ *   whose `$/ui/...` aliases this config doesn't have.
+ * - Node runs its `.ts` files as they are (type stripping).
  */
 const ROOT_CATALOG = new URL("../ui/tools/RootCatalog.ts", import.meta.url).href
 
@@ -100,8 +103,8 @@ const PACK_FILE = "spell.pack.js"
 const PACK = { name: "spell", prefix: "spell-" }
 
 /**
- * Write `spell.pack.js`:  `<spell-app>` and `<spell-editor>` as a Spell UI COMPONENT PACK, which a page with a
- * `<ui-root>` loads through `<ui-components source>`, as the docs' pages load `epics.pack.js`:
+ * Write `spell.pack.js`:  `<spell-app>` and `<spell-editor>` as a Spell UI COMPONENT PACK,
+ * which a page with a `<ui-root>` loads through `<ui-components source>`, as the docs' pages load `epics.pack.js`:
  *
  *     <script type="module" src="/element/spell-ui.js"></script>
  *     <ui-root>
@@ -110,17 +113,18 @@ const PACK = { name: "spell", prefix: "spell-" }
  *     </ui-root>
  *
  * - A classic script calling `SpellUI.registerPack({ name, prefix, catalog, define })` as it runs:
- *   `spell-ui.js` (`vite.solid.config.ts`) puts `registerPack` there.  Its `catalog` is read from the families'
- *   vocabularies by Spell UI's own `RootCatalog`, as `spell dev pack build` reads a pack's.
+ *   `spell-ui.js` (`vite.solid.config.ts`) puts `registerPack` there.
+ * - Its `catalog` is read from the families' vocabularies by Spell UI's own `RootCatalog`,
+ *   as `spell dev pack build` reads a pack's.
  * - Its `define()` imports each family's ES module beside it (`spell-app.js`, `spell-editor.js`):
  *   NOT one script holding them, as `spell dev pack build` makes,
  *   because the elements need what a classic script can't have --
  *   Monaco and the parser as lazy chunks, `spell-runtime.js` loaded afresh per app, React shared between them.
- * - The modules take Solid and Spell UI's core from the page when it has its own (a docs page's bundle:
- *   `spell-solid-shared.js`, `vite.solid.config.ts`), else from `spell-solid.js` beside them:  one Solid per page
- *   either way (two fail silently).
- * - A page with only `<spell-app>`s needs no pack:  `spell-app.js` by itself (`<spell-app>` is a root, which loads
- *   `spell-editor.js` only when an editor appears inside it).
+ * - The modules take Solid and Spell UI's core from the page when it has its own
+ *   (a docs page's bundle:  `spell-solid-shared.js`, `vite.solid.config.ts`), else from `spell-solid.js` beside them:
+ *   one Solid per page either way (two fail silently).
+ * - A page with only `<spell-app>`s needs no pack:  `spell-app.js` by itself
+ *   (`<spell-app>` is a root, which loads `spell-editor.js` only when an editor appears inside it).
  */
 function componentPack(): Plugin {
   return {

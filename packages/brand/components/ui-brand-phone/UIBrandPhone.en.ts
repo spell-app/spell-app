@@ -9,8 +9,9 @@ import type { E } from "$/ui/core"
 
 /****************
  * ### `brandPhoneVocabulary`
- * The names of `<ui-brand-phone>`, a phone frame around live app content:  a rounded ivory device with a status bar
- * (time, signal, wifi, battery) on top, the app below.  The Spell App's Build screen preview.
+ * The names of `<ui-brand-phone>`, a phone frame around live app content:
+ * a rounded ivory device with a status bar (time, signal, wifi, battery) on top, the app below.
+ * The Spell App's Build screen preview.
  ****************/
 export const brandPhoneVocabulary = {
   tag: "ui-brand-phone",

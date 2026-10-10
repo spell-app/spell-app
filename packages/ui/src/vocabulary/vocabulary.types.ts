@@ -3,14 +3,15 @@ import type { ValueSets } from "./ValueSets"
 /**
  * Shared types for `$/ui/vocabulary` -- the schema every `UI<Name>.en.ts` follows, the shared value sets,
  * and the translation `Dictionary` contract.
- * - Why a schema:  vocabulary files own EVERY name a component uses (tag, attributes, values, events, slots,
- *   parts, states, texts), so templates and `ClassBuilder` never hold string literals, and a translation can
- *   rename all of them in one place.
+ * - Why a schema:  vocabulary files own EVERY name a component uses
+ *   (tag, attributes, values, events, slots, parts, states, texts),
+ *   so templates and `ClassBuilder` never hold string literals,
+ *   and a translation can rename all of them in one place.
  * - Canonical names are English and never change;  CSS, `ClassBuilder` output and `:state()`s always use them.
- *   A `Dictionary` only renames what AUTHORS type:  tags, attribute names, attribute values, events, slots, parts.
- * - The BOTTOM of the folder's import graph:  types only, and `ValueSets` only as a type (`import type`), so it
- *   erases completely.  Node reads it with every vocabulary (`yarn site:data`, `yarn gen:root`):  it MUST NOT reach
- *   the element layer.
+ *   - A `Dictionary` only renames what AUTHORS type:  tags, attribute names, attribute values, events, slots, parts.
+ * - The BOTTOM of the folder's import graph:
+ *   types only, and `ValueSets` only as a type (`import type`), so it erases completely.
+ *   - Node reads it with every vocabulary (`yarn site:data`, `yarn gen:root`):  it MUST NOT reach the element layer.
  */
 
 ////////////////
@@ -18,8 +19,8 @@ import type { ValueSets } from "./ValueSets"
 ////////////////
 
 /**
- * How an attribute turns into Fomantic classes (see `ClassBuilder`, `docs/grammar.md`) or, for the last six,
- * into a plain property with no class.
+ * How an attribute turns into Fomantic classes (see `ClassBuilder`, `docs/grammar.md`)
+ * or, for the last six, into a plain property with no class.
  * - `keyOnly` -- `basic` => `basic`
  * - `valueAndKey` -- `floated="left"` => `left floated`;  bare `floated` => nothing
  * - `keyOrValueAndKey` -- `pointing` => `pointing`;  `pointing="left"` => `left pointing`
@@ -29,14 +30,19 @@ import type { ValueSets } from "./ValueSets"
  * - `verticalAlign` -- `vertical-align="middle"` => `middle aligned`
  * - `size` -- `size="small"` => `small`;  `medium` => nothing
  * - `color` -- `color="red"` => `red`
- * - `valueOnly` -- `position="left"` => `left`:  a value emitted alone, placed as `color` is, that isn't a colour
- *   (states, positions, speeds ...);  always with its own `values`
+ * - `valueOnly` -- `position="left"` => `left`:
+ *   a value emitted alone, placed as `color` is, that isn't a colour (states, positions, speeds ...);
+ *   always with its own `values`
  * - `boolean` / `enum` / `string` / `number` / `json` / `icon` -- no class;  typed property only
- * - `icon` -- an icon name;  bare / `"true"` / `"yes"` => `spec.default`, else `""` ("the element's own icon",
- *   none if it has none);  `"false"` / `"no"` => none (`undefined`), even over a default
- * - NOTE: camelCase, not WWOD §9's English values, on purpose:  PUBLISHED data -- `site/_data/components.json`,
- *   `<ui-docs-api>`'s Kind column (`KIND_LABELS`), `tools/ElementManifests.ts`, `docs/grammar.md` and the site's
- *   `grammar.html` read them (epic `wwod-spell-ui`, P4 judgement).
+ * - `icon` -- an icon name:
+ *   - bare / `"true"` / `"yes"` => `spec.default`, else `""` ("the element's own icon", none if it has none)
+ *   - `"false"` / `"no"` => none (`undefined`), even over a default
+ * - NOTE: camelCase, not WWOD §9's English values, on purpose (epic `wwod-spell-ui`, P4 judgement):
+ *   they're PUBLISHED data, which these read:
+ *   - `site/_data/components.json`
+ *   - `<ui-docs-api>`'s Kind column (`KIND_LABELS`)
+ *   - `tools/ElementManifests.ts`
+ *   - `docs/grammar.md` and the site's `grammar.html`
  */
 export type AttributeKind =
   | "keyOnly"
@@ -95,9 +101,10 @@ export type AttributeSpec = {
   /**
    * Other canonical attribute names accepted for this one, e.g. `checked` for `selected` on checkbox / radio.
    * - NOTE: aliases are English muscle memory;  translations don't rename them.
-   * - NOTE: DECLARATIVE only:  `Vocabulary` keeps them reachable by name (translation, docs), but
-   *   `ElementDefinition` makes no observed attribute or property for an alias -- the family reads it itself
-   *   (`<ui-item active>`, checkbox `checked`, `<ui-tab active>`, read raw through the component's `attributes`).
+   * - NOTE: DECLARATIVE only:  `Vocabulary` keeps them reachable by name (translation, docs),
+   *   but `ElementDefinition` makes no observed attribute or property for an alias.
+   *   - The family reads it itself, raw, through the component's `attributes`
+   *     (`<ui-item active>`, checkbox `checked`, `<ui-tab active>`).
    */
   aliases?: readonly string[]
   /** What it does, for docs and the custom-elements manifest. */
@@ -130,8 +137,8 @@ export type SlotSpec = {
 
 /**
  * A `::part()` exposed for styling.
- * - NOTE: a translated part is ADDED next to the canonical one (`part="header encabezado"`), so a canonical
- *   app stylesheet keeps working under any translation.
+ * - NOTE: a translated part is ADDED next to the canonical one (`part="header encabezado"`),
+ *   so a canonical app stylesheet keeps working under any translation.
  */
 export type PartSpec = {
   /** Canonical part name, e.g. `header`. */
@@ -200,32 +207,36 @@ export type ComponentVocabulary = {
   /** One-line summary for docs. */
   description?: string
   /**
-   * What the tag is filed under, so people find it however they look:  `ValueSets.topics` ids, several per tag
-   * (`ui-button`:  `buttons`, `basic`, `controls`, `forms`, `elements`).  Rolled up in
-   * `src/components/ComponentDefinitions.ts`;  a translation maps them (`Dictionary.values.topics`).
+   * What the tag is filed under, so people find it however they look:
+   * `ValueSets.topics` ids, several per tag (`ui-button`:  `buttons`, `basic`, `controls`, `forms`, `elements`).
+   * - Rolled up in `src/components/ComponentDefinitions.ts`.
+   * - A translation maps them (`Dictionary.values.topics`).
    */
   topics?: readonly ComponentTopic[]
   /**
-   * Other names people search for:  other libraries' and everyday words (`ui-modal`:  `dialog`, `lightbox`;
-   * `ui-label`:  `badge`, `chip`, `tag`).  Searched like the tag's own name;  a translation replaces them
-   * (`ComponentDictionary.aka`).
+   * Other names people search for:  other libraries' and everyday words
+   * (`ui-modal`:  `dialog`, `lightbox`;  `ui-label`:  `badge`, `chip`, `tag`).
+   * - Searched like the tag's own name.
+   * - A translation replaces them (`ComponentDictionary.aka`).
    */
   aka?: readonly string[]
   /**
    * What `<ui-root display="skeleton">` draws in this tag's place while its family loads, as skeleton text
    * (`SkeletonText`):  `"inline 6 x 2.5"`, `"18 wide: square image, header, 3 line paragraph"`.
-   * - Left OUT for none of its own:  a part covered by its owner's skeleton (`ui-column` in a grid, `ui-item` in a
-   *   list), or a tag with nothing to show (`ui-popup`).
-   * - Text, not a `SkeletonSpec`:  one form for Spell UI's vocabularies and a component pack's.  `yarn gen:root`
-   *   (and `spell dev pack build`) parse it into a catalog;  `test/vocabularies.test.ts` parses every one.
+   * - Left OUT for none of its own:
+   *   a part covered by its owner's skeleton (`ui-column` in a grid, `ui-item` in a list),
+   *   or a tag with nothing to show (`ui-popup`).
+   * - Text, not a `SkeletonSpec`:  one form for Spell UI's vocabularies and a component pack's.
+   *   - `yarn gen:root` (and `spell dev pack build`) parse it into a catalog.
+   *   - `test/vocabularies.test.ts` parses every one.
    * - NEVER translated:  drawing data, like `states`.
    */
   skeleton?: string
 }
 
 /**
- * A tag's skeleton:  the `<ui-placeholder>` shapes that stand in for it until it loads (`ComponentVocabulary.skeleton`,
- * written as text and parsed by `SkeletonText`).
+ * A tag's skeleton:  the `<ui-placeholder>` shapes that stand in for it until it loads
+ * (`ComponentVocabulary.skeleton`, written as text and parsed by `SkeletonText`).
  * - Sizes are CSS lengths in `em`, so the element's `size` still scales them;  `fluid` on the element fills the width.
  * - No `parts`:  one block, `width` x `height` (a button, an input).
  */
@@ -288,8 +299,9 @@ export type NameMap = Readonly<Record<string, string>>
  * A translation of the vocabulary, e.g. Spanish, so `<ie-tarjeta color="rojo">` ~== `<ui-card color="red">`.
  * - Keys are ALWAYS canonical English names;  values are the localized names.
  * - Anything missing falls back to canonical, so the English identity dictionary is just `{ lang: "en" }`.
- * - Tags and events are keyed by their full canonical name (`ui-card`, `ui-change`) and map to a localized
- *   STEM (`tarjeta`, `cambio`) -- `Vocabulary.define(prefix, dictionary)` adds the prefix (`ie-tarjeta`).
+ * - Tags and events are keyed by their full canonical name (`ui-card`, `ui-change`)
+ *   and map to a localized STEM (`tarjeta`, `cambio`):
+ *   `Vocabulary.define(prefix, dictionary)` adds the prefix (`ie-tarjeta`).
  * - Attribute, slot and part names map name to name (`header` => `encabezado`).
  * - NOT here:  states (a CSS contract), CSS classes, text strings (owned by `UI.i18n`).
  * - See `docs/translation.md`.
@@ -314,8 +326,8 @@ export type Dictionary = {
 }
 
 /**
- * One language's names for the attributes every element shares (`SharedVocabulary`), in a file of its own:
- * `SharedVocabulary.es.ts`.
+ * One language's names for the attributes every element shares (`SharedVocabulary`),
+ * in a file of its own:  `SharedVocabulary.es.ts`.
  * - A dictionary of the same `lang` reads them for every tag;  its own `attributes` (or `components[tag]`) win.
  */
 export type SharedDictionary = {
@@ -343,8 +355,8 @@ export type ComponentDictionary = {
 
 /**
  * One component's names after `Vocabulary.define(prefix, dictionary)` -- what a translated element class reads.
- * - Forward maps (localized => canonical spec) serve attribute parsing;  `names` holds the inverse
- *   (canonical => localized) for rendering and `Vocabulary.localize()`.
+ * - Forward maps (localized => canonical spec) serve attribute parsing.
+ * - `names` holds the inverse (canonical => localized), for rendering and `Vocabulary.localize()`.
  */
 export type LocalizedVocabulary = {
   /** Language of the dictionary it came from. */

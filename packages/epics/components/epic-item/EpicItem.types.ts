@@ -21,14 +21,16 @@ export const ITEM_STATES = ["attention", "replied", "progress", "open", "recent"
 export type ItemState = (typeof ITEM_STATES)[number]
 
 /**
- * The states that wait on Owen:  `attention` (red), and `replied` (orange:  Claude answered with options, his turn
- * to pick).  What a section's count and its "only what needs you" filter take (`<epic-section>`).
+ * The states that wait on Owen:
+ * `attention` (red), and `replied` (orange:  Claude answered with options, his turn to pick).
+ * - what a section's count and its "only what needs you" filter take (`<epic-section>`)
  */
 export const NEEDS_OWEN: ReadonlySet<string> = new Set(["attention", "replied"] satisfies ItemState[])
 
 /**
- * The items Owen may call urgent or not (`calm`, its id chip):  judgement calls and issues, the kinds red while open
- * and not reviewed (`PlanReader.itemState()`;  the tool's `CALM_ID`, the same rule).
+ * The items Owen may call urgent or not (`calm`, its id chip):
+ * judgement calls and issues, the kinds red while open and not reviewed.
+ * - `PlanReader.itemState()`;  the tool's `CALM_ID`, the same rule
  */
 export const CALM_ID = /^[ij]\d+$/
 
@@ -36,9 +38,11 @@ export const CALM_ID = /^[ij]\d+$/
 export const CLOSED_STATUSES = ["decided", "done", "canceled"] as const
 
 /**
- * An item's state when it has no `state` (the tool writes one on every edit), by its status:  decided or done
- * `recent` (green, however old), canceled `old` (grey:  no longer relevant), anything else `open`
- * (`PlanReader.itemState()`, Owen, 2026-10-08):  `STATUS_STATES[status] ?? "open"`.
+ * An item's state when it has no `state` (the tool writes one on every edit), by its status:
+ * `STATUS_STATES[status] ?? "open"` (`PlanReader.itemState()`, Owen, 2026-10-08).
+ * - decided or done:  `recent` (green, however old)
+ * - canceled:  `old` (grey:  no longer relevant)
+ * - anything else:  `open`
  */
 export const STATUS_STATES: Readonly<Record<string, ItemState>> = { decided: "recent", done: "recent", canceled: "old" }
 
@@ -100,8 +104,8 @@ export const CANCELED = "canceled"
 export const DETAILS_ID = "details"
 
 /**
- * The slot of Claude's status cards (`<epic-status slot="status">`, P13):  drawn under Owen's marked note, above
- * the note box (an Overview sub-section's too).
+ * The slot of Claude's status cards (`<epic-status slot="status">`, P13):
+ * drawn under Owen's marked note, above the note box (an Overview sub-section's too).
  */
 export const STATUS_SLOT = "status"
 
@@ -124,8 +128,9 @@ export const COMMIT_TAG = "epic-commit"
 export const CHOSEN_SET = "epic-choices[chosen]"
 
 /**
- * The custom property `<epic-commit>` shows by (`block`):  the page's git toggle sets it for every commit, an item's
- * git icon for its own (`EpicPage.types.ts` `COMMITS_PROPERTY`, the same name).
+ * The custom property `<epic-commit>` shows by (`block`):
+ * the page's git toggle sets it for every commit, an item's git icon for its own
+ * (`EpicPage.types.ts` `COMMITS_PROPERTY`, the same name).
  */
 export const COMMITS_PROPERTY = "--epic-commits-display"
 
@@ -136,8 +141,8 @@ export const COMMITS_PROPERTY = "--epic-commits-display"
 /**
  * Where Owen's answer on an item stands, as its id chip wears it (`EpicItem.chipMark`):
  * a colour and a fill, dashed or outlined;  none, and the chip is solid in its state's colour.
- * - his live mark (Owen, 2026-10-08:  the chip matches the chosen button):  that button's colour and fill;
- *   the note box's x (`skip`), which no line button wears:  grey
+ * - his live mark (Owen, 2026-10-08:  the chip matches the chosen button):  that button's colour and fill
+ *   - the note box's x (`skip`), which no line button wears:  grey
  * - answered, work still due (Owen, 2026-10-10):  outlined, green queued, blue Claude on it
  */
 export type ChipMark = {

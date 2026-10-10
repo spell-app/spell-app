@@ -7,8 +7,8 @@ import type { ChooserModalProps, ChooserOption, ChooserOptionInput } from "$/app
 
 /****************
  * ### `<Chooser>`
- * Modal which lets the user choose one (or many) values from a list:  a `<ui-modal>` of `<ui-radio>`s (or, with
- * `multiple`, `<ui-checkbox>`es), Cancel and OK.
+ * Modal which lets a person choose one (or many) values from a list:
+ * a `<ui-modal>` of `<ui-radio>`s (or, with `multiple`, `<ui-checkbox>`es), Cancel and OK.
  * - `onChoose()` gets, once the modal has HIDDEN:
  *   - OK:  the chosen option's value, `undefined` if none;  with `multiple`, an array of the chosen values
  *   - Cancel or Escape:  `undefined`
@@ -18,10 +18,11 @@ import type { ChooserModalProps, ChooserOption, ChooserOptionInput } from "$/app
  *   - `size="tiny"`, Cancel first, the same translated button texts
  *   - `closedby="closerequest"`:  Escape cancels, a stray click on the dimmer does nothing
  *     (the React one cancelled on a dimmer click)
- * - The radios / checkboxes keep their own state:  OK reads their `selected` (a radio group settles a few
- *   microtasks after a click, long before a person reaches OK).
- * - NOTE: the React one was a SEARCHABLE dropdown:  this is a plain list, fine for the handful of options callers
- *   pass.  A long list would want `<ui-dropdown search>` instead.
+ * - The radios / checkboxes keep their own state:  OK reads their `selected`
+ *   (a radio group settles a few microtasks after a click, long before a person reaches OK).
+ * - NOTE: the React one was a SEARCHABLE dropdown:
+ *   this is a plain list, fine for the handful of options callers pass.
+ *   A long list would want `<ui-dropdown search>` instead.
  * - Show one with `openChooser()`, which mounts it and cleans up.
  ****************/
 export function Chooser(props: ChooserProps) {

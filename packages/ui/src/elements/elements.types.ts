@@ -141,8 +141,9 @@ export type RuleFunction = (this: RuleValidator, value: string, ruleValue: RuleV
 
 /**
  * What a `RuleFunction` may use from its `Validator`.
- * - OURS, not Fomantic's:  its rules reach each other through `$.fn.form.settings.rules`, and its `range()` is a
- *   rule taking `(value, range, regExp, testLength)`.  Here the shared steps are `Validator` methods.
+ * - OURS, not Fomantic's:  here the shared steps are `Validator` methods.
+ *   - Fomantic's rules reach each other through `$.fn.form.settings.rules`,
+ *     and its `range()` is a rule taking `(value, range, regExp, testLength)`.
  */
 export type RuleValidator = {
   /** the patterns, `Validator.regExp` */
@@ -347,8 +348,9 @@ export type MenuSearchField = (typeof MenuSearchFields)[number]
  * Which elements own generic content parts.
  * - `Set` of tags -- noun is the tag after its prefix (`ui-card` => `card`)
  * - `Map` of tag => noun -- for translated tags (`ie-tarjeta` => `card`)
- * - function of the tag (and the element) -- return the noun, `true` (derive it from the tag) or a falsy value (not
- *   an owner);  the element lets an owner decide per instance (`ConditionalOwner`)
+ * - function of the tag (and the element) --
+ *   return the noun, `true` (derive it from the tag) or a falsy value (not an owner);
+ *   the element lets an owner decide per instance (`ConditionalOwner`)
  */
 export type OwnerLookup =
   | ReadonlySet<string>
@@ -588,8 +590,8 @@ export type ElementSetup = {
    * - Which of them apply right now:  `UIComponent.styleSheetNames`.
    * - NOTE: a name is PAGE-WIDE:  one sheet per name, and the first class to register it wins,
    *   so a second class with the same name and other CSS silently draws with the first one's.
-   *   A component pack's sheets carry its prefix (`{ "epic-item": itemCSS }`),
-   *   never a bare noun one of ours may have (`item`).
+   *   - A component pack's sheets carry its prefix (`{ "epic-item": itemCSS }`),
+   *     never a bare noun one of ours may have (`item`).
    */
   styleSheets: Readonly<Record<string, string>>
 
@@ -723,8 +725,8 @@ export type ElementSetup = {
   loading: LoadingMeaning
 
   /**
-   * What the element shows when the page writes neither `visible` nor `hidden` (every element takes both:
-   * `SharedVocabulary`;  one fact, two names:  `DOMElement`, "Shown or hidden").
+   * What the element shows when the page writes neither `visible` nor `hidden`.
+   * - Every element takes both (`SharedVocabulary`):  one fact, two names (`DOMElement`, "Shown or hidden").
    * - `"shown"` (the default):  a message, a segment, a menu ...
    * - `"hidden"`:  a modal, flyout, popup, sidebar, dimmer, loader, transition:
    *   the element writes `hidden` on itself when it first connects.
@@ -733,11 +735,11 @@ export type ElementSetup = {
   visible: StartsVisible
 
   /**
-   * How the element shows and hides when its own `animation` attribute names none:  Fomantic's name
-   * (`"fade"`, `"scale"`, `"fly down"` ...:  `UIT.Animations`), or `"none"`.
+   * How the element shows and hides when its own `animation` attribute names none:
+   * Fomantic's name (`"fade"`, `"scale"`, `"fly down"` ...:  `UIT.Animations`), or `"none"`.
    * - Default `"fade"`.
-   * - The element's own `animation` wins over it;  `none` from around it, or reduced motion, wins over both
-   *   (`UIComponent.animationToRun`).
+   * - The element's own `animation` wins over it.
+   * - `none` from around it, or reduced motion, wins over both (`UIComponent.animationToRun`).
    * - Run by the `onVisibleChange()` hook:  by default on the boxes at the top of the shadow root.
    */
   animation: UIT.Animation
@@ -1010,8 +1012,9 @@ export type StickyWatchState = {
 export const STICKY_SCROLLING: ReadonlySet<string> = new Set(["auto", "scroll", "overlay", "hidden"])
 
 /**
- * A stuck box taller than this share of the visible area, or narrower than this share of its width, reserves no
- * scroll padding:  it's a sticky column (a sidebar), and reserving its height would make Page Down barely move.
+ * A stuck box taller than this share of the visible area, or narrower than this share of its width,
+ * reserves no scroll padding:  it's a sticky column (a sidebar),
+ * and reserving its height would make Page Down barely move.
  */
 export const STICKY_MAX_RESERVE = 0.5
 

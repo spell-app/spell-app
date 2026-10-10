@@ -9,8 +9,8 @@ import { SITE_SEARCH_PATH, type SiteSearchFile } from "$/ui/docs-components/docs
  * - `SiteData`'s twin, the same surface:  `url` (setting it fetches again), `load()`;
  *   fetched through `SiteData.request()`.
  * - Where it is:  `SearchData.url`, else beside the data file:  `_data/search.json` under `SiteData.root()`.
- * - Fails loudly, like `SiteData`:  `load()` rejects (until `url` is set again);
- *   the search then finds the other pages' TITLES only through their components, never their sections.
+ * - Fails loudly, like `SiteData`:  `load()` rejects (until `url` is set again).
+ *   The search then finds the other pages' TITLES only through their components, never their sections.
  * - Plain fetch, no Solid.
  * - Static only:  the file is one per page.
  ****************/

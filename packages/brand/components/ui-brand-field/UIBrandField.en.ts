@@ -4,7 +4,8 @@
  *   The shape is `E.ComponentVocabulary` (`$/ui/vocabulary`).
  * - Pure data:  `import type` only.
  * - Class words:  `state` emits its value alone (`error`), as `<ui-field>`'s;
- *   `inline`, `required` and `disabled` their names.  The component adds `brand` before the noun (`brand field`).
+ *   `inline`, `required` and `disabled` their names.
+ *   The component adds `brand` before the noun (`brand field`).
  */
 
 import type { E } from "$/ui/core"

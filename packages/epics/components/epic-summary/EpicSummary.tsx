@@ -17,11 +17,12 @@ import summaryCSS from "./EpicSummary.css?inline"
  * The component behind `<epic-summary>`:  the Overview's two-sentence summary, a lede at the top of `1. Overview`.
  * - Draws the lede's look:  the text is its light children, through the default slot (Q12).
  * - `<epic-overview>` draws it where it drew `<p slot="summary">`:  first, above the Kickoff prompt and the estimate.
- * - REVIEWED as an Overview sub-section is (epic `airplane` P2;  `<epic-review>`), keyed `summary` in the inbox
- *   (it has no id of its own):  under the lede, a marked note, then Revisit, Make Todo, Do Now on a line of their own,
- *   then the note box;  only while the page is reviewed.  Owen's kept notes (`slot="notes"`) and Claude's status
- *   cards (`slot="status"`) under the lede, always.
- *   - Revisit and Edit need nothing of it:  its note box is always shown.
+ * - REVIEWED as an Overview sub-section is, keyed `summary` in the inbox (it has no id of its own)
+ *   (epic `airplane` P2;  `<epic-review>`).
+ *   - only while the page is reviewed, under the lede:
+ *     a marked note, then Revisit, Make Todo, Do Now on a line of their own, then the note box
+ *   - always, under the lede:  Owen's kept notes (`slot="notes"`) and Claude's status cards (`slot="status"`)
+ *   - Revisit and Edit need nothing of it:  its note box is always shown
  * - SIDE EFFECT:  follows the review inbox while connected.
  ****************/
 export class EpicSummary extends E.UIComponent<typeof epicSummaryVocabulary> {

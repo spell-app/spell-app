@@ -4,15 +4,18 @@ import type { RootCatalogEntry } from "./UIRoot.types"
 
 /**
  * Every family's barrel, loaded on demand (`import.meta.glob`, lazy):  `../ui-card/index.ts` => `import()` of it.
- * - A LITERAL glob, so each becomes a literal `import()`:  the lib build reuses each family's own entry chunk
- *   (`ui-card.js`), and the docs' single-file bundle (`packages/docs/tools/bundle-spell-ui.js`) inlines them.
- * - Relative on purpose, the one `../` in `ui`'s components:  Vite resolves a glob's literal pattern, not an alias,
+ * - A LITERAL glob, so each becomes a literal `import()`:
+ *   the lib build reuses each family's own entry chunk (`ui-card.js`),
+ *   and the docs' single-file bundle (`packages/docs/tools/bundle-spell-ui.js`) inlines them.
+ * - Relative on purpose, the one `../` in `ui`'s components:
+ *   Vite resolves a glob's literal pattern, not an alias,
  *   and its keys (`../ui-card/index.ts`) are what `load()` looks up.
  * - The root's own folder is left out:  it is loaded already.
- * - ONLY the library's families.  The doc-only `<ui-docs-*>` ones (`src/docs-components/`) are added by the docs
- *   site's bundle (`add()`, `DocsFamilies`).  Why:  a glob of them HERE made each a dynamic entry of the lib build
- *   that imports the core and other families, and Rolldown then moved core's modules out of `core.js` into shared
- *   chunks every page loads (epic `wwod-spell-ui`, I12;  `yarn measure`'s `coreOutsideCore`).
+ * - ONLY the library's families:  the docs site's bundle adds the doc-only `<ui-docs-*>` ones
+ *   (`src/docs-components/`), through `add()` and `DocsFamilies`.
+ *   - Why:  a glob of them HERE made each a dynamic entry of the lib build, importing the core and other families.
+ *     Rolldown then moved core's modules out of `core.js`, into shared chunks every page loads
+ *     (epic `wwod-spell-ui`, I12;  `yarn measure`'s `coreOutsideCore`).
  * - Above the class:  a module-level call, made once as the module loads.
  */
 const FAMILIES = import.meta.glob(["../*/index.ts", "!../ui-root/index.ts"])
@@ -22,10 +25,12 @@ const FAMILIES = import.meta.glob(["../*/index.ts", "!../ui-root/index.ts"])
  * Tag => family => `import()`, once per family for the whole page (every root shares the loads).
  * - Which family defines a tag comes from `ROOT_CATALOG` (generated from the vocabularies, `yarn gen:root`),
  *   never from guessing at the tag's name.
- * - The catalog knows the `<ui-docs-*>` tags too;  they load only on a page whose bundle `add()`ed their families
- *   (the docs site's), and fail like any unknown family elsewhere.
- * - Component packs' tags (`<ui-components source>`) aren't imported here:  a pack defines them all as its script
- *   registers it (`ComponentPacks`);  this only answers for them (`entryOf()`, `undefinedTags()`).
+ * - The catalog knows the `<ui-docs-*>` tags too:
+ *   they load only on a page whose bundle `add()`ed their families (the docs site's),
+ *   and fail like any unknown family elsewhere.
+ * - Component packs' tags (`<ui-components source>`) aren't imported here:
+ *   a pack defines them all as its script registers it (`ComponentPacks`);
+ *   this only answers for them (`entryOf()`, `undefinedTags()`).
  * - Static:  the loads are page-wide, shared by every root (and the docs site's router).
  ****************/
 export class RootLoader {
@@ -50,8 +55,8 @@ export class RootLoader {
   }
 
   /**
-   * The distinct undefined tags under `root` that a root loads:  every `ui-*` one, a registered pack's, and those
-   * `alsoLoads` says yes to (a root's own:  `UIRoot.ownTagLoader()`).
+   * The distinct undefined tags under `root` that a root loads:
+   * every `ui-*` one, a registered pack's, and those `alsoLoads` says yes to (a root's own:  `UIRoot.ownTagLoader()`).
    */
   static undefinedTags(root: ParentNode, alsoLoads?: (tag: string) => boolean): Set<string> {
     const tags = new Set<string>()
@@ -120,7 +125,8 @@ export class RootLoader {
 const BARREL = /([\w-]+)\/index\.ts$/
 
 /**
- * Prefix of the catalog's tags:  any other undefined tag (an app's own element) is not ours, unless a registered
- * pack's prefix starts it (`ComponentPacks.owns()`).
+ * Prefix of the catalog's tags:
+ * any other undefined tag (an app's own element) is not ours,
+ * unless a registered pack's prefix starts it (`ComponentPacks.owns()`).
  */
 const TAG_PREFIX = "ui-"

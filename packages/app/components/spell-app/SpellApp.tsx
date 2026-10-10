@@ -28,9 +28,10 @@ import "$/app/solid/cellsBridge"
 /****************
  * ### `DOMSpellAppElement`
  * The DOM element of `<spell-app>`:  it adds the app's script API, `run(compiled)` and `restart()`.
- * - Its attributes are properties too (`app.project = ...`);  `pushed`, the code pushed to it last, is a property only.
- * - `run()` works before the element joins the page:  it runs the code once it does, and keeps it across leaving
- *   and rejoining the page.
+ * - Its attributes are properties too (`app.project = ...`).
+ *   `pushed`, the code pushed to it last, is a property only.
+ * - `run()` works before the element joins the page:
+ *   it runs the code once it does, and keeps it across leaving and rejoining the page.
  * - Above the component:  its `elementSetup` reads this class while the component is defined.
  ****************/
 export class DOMSpellAppElement extends E.DOMElement {
@@ -43,8 +44,9 @@ export class DOMSpellAppElement extends E.DOMElement {
   /**
    * Run `compiled`, what an editor compiled, instead of what our attributes say, until one of `PUSHED_FOR` changes.
    * - Its imports and sources are its project's, from the spell server, as for `project`.
-   * - Ignores `compiled` if it's what we ran last:  we may hear of one compile twice, from our `editor` AND from an
-   *   editor whose `app` names us.  A `SpellCompiled` is a NEW object per compile.
+   * - Ignores `compiled` if it's what we ran last:
+   *   we may hear of one compile twice, from our `editor` AND from an editor whose `app` names us.
+   *   A `SpellCompiled` is a NEW object per compile.
    */
   run(compiled: SpellCompiled): void {
     if (compiled === this.pushed && this.pushedFor === pushedKey(this)) return
@@ -86,22 +88,25 @@ const vocabulary = {
 
 /****************
  * ### `SpellApp`
- * The component behind `<spell-app>`:  runs a compiled spell project in any page, in its own shadow root, with
- * no editor.  It works out WHAT to run, and draws `<SpellAppRunner>` to run it.
+ * The component behind `<spell-app>`:
+ * runs a compiled spell project in any page, in its own shadow root, with no editor.
+ * It works out WHAT to run, and draws `<SpellAppRunner>` to run it.
  * - What to run, one of (see the vocabulary, `SpellApp.en.ts`):
  *   - `project="@system:examples:Solitaire"` (or `@examples/Solitaire`):  from the spell server's `/api`
  *   - `src="apps/Solitaire.compiled.js"`:  from anywhere, what goes with it beside it
  *   - `editor="#ed"`:  what that `<spell-editor>` compiles (`SPELL_COMPILED_EVENT`), and what it compiled already
  *   - `run(compiled)`:  code pushed to us, e.g. by an editor whose `app` names us
- * - Code pushed (by `run()` or `editor`) wins over `project` / `src`, until `project`, `src`, `scopes`, `name` or
- *   `editor` changes (`pushedKey()`).
- * - Each runs on its own copy of the spell runtime (`spell-runtime.js` beside its script), so many can run on a
- *   page at once.
+ * - Code pushed (by `run()` or `editor`) wins over `project` / `src`,
+ *   until `project`, `src`, `scopes`, `name` or `editor` changes (`pushedKey()`).
+ * - Each runs on its own copy of the spell runtime (`spell-runtime.js` beside its script),
+ *   so many can run on a page at once.
  * - A ROOT (`UIRoot`), as `<ui-root>` is, so a page needs nothing around it:
  *   - the Spell UI widgets the runner draws load the first time each appears (`contentRoots`:  in its shadow root)
- *   - so does a spell tag inside it:  `<spell-editor>` from `spell-editor.js`, beside its own script
- *     (`ownTagLoader()`);  a page with only `<spell-app>`s never downloads the editor
- *   - its `icons` default to `fomantic`:  the runner's icon names are Fomantic's.  The page's own `ui-*` keep theirs
+ *   - so does a spell tag inside it:
+ *     `<spell-editor>` from `spell-editor.js`, beside its own script (`ownTagLoader()`);
+ *     a page with only `<spell-app>`s never downloads the editor
+ *   - its `icons` default to `fomantic`:  the runner's icon names are Fomantic's.
+ *     The page's own `ui-*` keep theirs
  *   - inside another root (a docs page, the editor demo), it's a nested root:  the outer one waits for it
  * - The PROGRAM draws with React;  Semantic UI's CSS is adopted into the shadow root (`adoptShadowStyles()`).
  * - `width` / `height` set our inline style, so page CSS works too.
@@ -213,8 +218,8 @@ export class SpellApp extends UIRoot<typeof vocabulary> {
   ////////////////
 
   /**
-   * Listen for our `editor`'s compiles on our root node (so it's found in a shadow root too), and run what it
-   * compiled already, if anything:  it may have compiled before we joined the page.
+   * Listen for our `editor`'s compiles on our root node (so it's found in a shadow root too),
+   * and run what it compiled already, if anything:  it may have compiled before we joined the page.
    */
   @E.onChange("editor")
   protected onEditorChanged(selector: string | undefined) {

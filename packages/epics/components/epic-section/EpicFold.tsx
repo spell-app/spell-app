@@ -22,8 +22,8 @@ import {
 
 /****************
  * ### `DOMEpicFoldElement`
- * The DOM element of a folding component:  `DOMLoadableBodyElement` (`load()`, `reload()`), plus `contentsEntry`,
- * what the page's rail shows for it.
+ * The DOM element of a folding component:
+ * `DOMLoadableBodyElement` (`load()`, `reload()`), plus `contentsEntry`, what the page's rail shows for it.
  * - Before its first render (no component yet):  `undefined`;  the runtime falls back on its attributes.
  * - Above `EpicFold`:  its `elementSetup` reads it while the class is defined.
  ****************/
@@ -39,28 +39,32 @@ export class DOMEpicFoldElement extends E.DOMLoadableBodyElement<EpicFold<any>> 
  * ### `EpicFold`
  * Base of the plan doc's FOLDING components -- `<epic-overview>`, `<epic-section>`, `<epic-phase>`:
  * a title bar that sticks and folds, over the element's own children.
- * - The chrome is a `<ui-section sticky collapsible fold-icon="end">` in the shadow root (`renderFold()`), its title
- *   bar drawn from the subclass's pieces;  the element's light children show through a `<slot>` inside it, wrapped in
- *   the `body` part.  So Spell UI's section brings the sticky stack (nested titles stack below their parents', across
- *   these shadow roots:  its owner lookup climbs the flat tree), the fold chevron, `hidden="until-found"` (find-in-page
- *   and `#links` unfold it).
+ * - The chrome is a `<ui-section sticky collapsible fold-icon="end">` in the shadow root (`renderFold()`):
+ *   - its title bar drawn from the subclass's pieces
+ *   - the element's light children show through a `<slot>` inside it, wrapped in the `body` part
+ * - So Spell UI's section brings:
+ *   - the sticky stack:  nested titles stack below their parents', across these shadow roots
+ *     (its owner lookup climbs the flat tree)
+ *   - the fold chevron
+ *   - `hidden="until-found"`:  find-in-page and `#links` unfold it
  * - Folding:  `open` (page state, never in a doc:  plan docs open folded), `@controlled`.
  *   - The inner section's own `ui-open` / `ui-close` are CANCELLED and stopped there:
  *     the DOM element announces its own (cancelable), then `open` changes and the inner section follows.
  *   - Find-in-page (`beforematch`, not cancelable) is adopted.
- * - Collapse-all (epic `airplane` P8):  while open, a double chevron beside the fold chevron folds everything inside
- *   it, not itself (`collapseAll()`;  each subclass adopts `CollapseAll.css`);
- *   `<epic-page>`'s toolbar folds the whole page, every block through its `collapse()`.
+ * - Collapse-all (epic `airplane` P8):
+ *   - while open, a double chevron beside the fold chevron folds everything inside it, not itself
+ *     (`collapseAll()`;  each subclass adopts `CollapseAll.css`)
+ *   - `<epic-page>`'s toolbar folds the whole page, every block through its `collapse()`
  * - Sticky line:  a top-level fold sticks below the page header (`EpicPage.signalsOf(page).top`);
  *   a nested one below its parent's title (the inner sections stack themselves).
  *   Its children get `--epic-stack`, the bottom of the stuck titles above them (px from the viewport top),
  *   for their own sticky lines (`<epic-item>`'s).
- * - Source:  `source="parts/p3.html"` is fetched the first time it opens (`LoadableBody`,
- *   as `<ui-section source>`), into the DOM element's LIGHT children, replacing any placeholder;  `ui-load` then.
- *   - The inner section stays folded while the part is on its way (`isVeiled`), so it opens on the body.
- *   - From `file://` it can't load:  the `Loads from parts/x.html when opened (needs the page server)` note, as today.
- * - Links:  the page's `#hash` naming it, an element inside it, or an id in its `part-ids` opens it (loading its part),
- *   then lands there, below the stuck titles --
+ * - Source:  `source="parts/p3.html"` is fetched the first time it opens (`LoadableBody`, as `<ui-section source>`).
+ *   - into the DOM element's LIGHT children, replacing any placeholder;  `ui-load` then
+ *   - the inner section stays folded while the part is on its way (`isVeiled`), so it opens on the body
+ *   - from `file://` it can't load:  the `Loads from parts/x.html when opened (needs the page server)` note, as today
+ * - Links:  the page's `#hash` naming it, an element inside it, or an id in its `part-ids`
+ *   opens it (loading its part), then lands there, below the stuck titles --
  *   unless a deeper folding element holds the target, which lands it itself.
  * - The DOM element's own `title` (a phase's, a sub-section's) would be a browser tooltip over all its content:
  *   the wrapper's EMPTY `title` stops it there (T8).
@@ -88,7 +92,8 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
   accessor isOpen = false
 
   /**
-   * Fold or unfold as the user would:  the cancelable `ui-open` / `ui-close` first, then `open`.  True when applied.
+   * Fold or unfold as the user would:  the cancelable `ui-open` / `ui-close` first, then `open`.
+   * - true when applied
    */
   toggle(originalEvent?: Event): boolean {
     const opening = !this.isOpen
@@ -118,10 +123,12 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
   }
 
   /**
-   * Collapse-all, the double chevron on its title:  fold everything inside it -- nested blocks, items, cards,
-   * asides, code (`foldAllUnder()`) and its own boxes (`foldOwnBoxes()`) -- itself staying open.
-   * - Its title stuck (the reader is inside it):  the page scrolls first,
-   *   so the title stays where it is and what folds goes away below it (the runtime's `keepTitlePut()`).
+   * Collapse-all, the double chevron on its title:  fold everything inside it, itself staying open.
+   * - what folds:  nested blocks, items, cards, asides, code (`foldAllUnder()`),
+   *   and its own boxes (`foldOwnBoxes()`)
+   * - its title stuck (the reader is inside it):
+   *   the page scrolls first, so the title stays where it is and what folds goes away below it
+   *   (as the docs runtime's `keepTitlePut()`, `spell-doc-runtime.js`)
    * - Returns how many it folded.
    */
   @E.untracked
@@ -273,9 +280,11 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
 
   /**
    * The fold:  the inner `<ui-section>` around the subclass's title pieces, the part note and the children.
-   * - `title`:  the header's content (`slot="header"` of the inner section);  `icon` its icon;
-   *   `tools` what goes at the title's end (`slot="actions"`);  `badge` its badge text;
-   *   `before` content above the children (the Overview's summary)
+   * - `title`:  the header's content (`slot="header"` of the inner section)
+   * - `icon`:  its icon
+   * - `tools`:  what goes at the title's end (`slot="actions"`)
+   * - `badge`:  its badge text
+   * - `before`:  content above the children (the Overview's summary)
    */
   protected renderFold(pieces: FoldPieces): JSX.Element {
     return (
@@ -336,8 +345,8 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
   /**
    * What the page's rail shows for it (`DOMEpicFoldElement.contentsEntry`):
    * by default its title, its id when it has none.
-   * Read by the runtime, outside any render, right after a live update patched the page:
-   * so from the page as it is NOW (attributes, children), never a value that hasn't caught up.
+   * - read by the docs runtime (`spell-doc-runtime.js`), outside any render, right after a live update patched the page:
+   *   so from the page as it is NOW (attributes, children), never a value that hasn't caught up
    */
   contentsEntry(): ContentsEntry {
     return { label: EpicFold.titleText(this.domElement) }

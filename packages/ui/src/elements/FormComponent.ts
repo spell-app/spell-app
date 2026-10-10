@@ -13,7 +13,8 @@ import { Validator } from "./Validator"
  * - The browser's form callbacks arrive as methods (`UIComponent`, "Lifecycle"):
  *   a reset as `onFormReset()`, a `<fieldset disabled>` as `formIsDisabled`.
  * - Pushes `formValue` into `ElementInternals.setFormValue()`:
- *   a `string[]` becomes a `FormData` with one entry per value, so `new FormData(form).getAll(name)` returns them all.
+ *   a `string[]` becomes a `FormData` with one entry per value,
+ *   so `new FormData(form).getAll(name)` returns them all.
  * - Pushes `validationRules`, through `Validator`, into `setValidity()`.
  * - `:state(invalid)` follows `isShownInvalid`:  at once, or only once someone has interacted (`invalidShows`).
  *   The anchor for the browser's bubble is `validationAnchor`.

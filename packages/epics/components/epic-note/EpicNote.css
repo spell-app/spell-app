@@ -1,10 +1,12 @@
 /*
- * `<epic-note>` (EpicNote.tsx):  a small UPDATE / DONE note in prose -- a card, its heading in the state's colour
- * (the fold chevron first:  it folds the note), then the note.
- * - One meaning per colour (decision Q20):  `.update` orange (changed since you looked), `.done` green (decided or
- *   done).  ONE card rule, switched by the private `--_epic-note-*` hue tokens.
- * - The heading's text:  the hue's `-text` token, which Spell UI keeps readable on its `-background` (axe, both
- *   schemes).
+ * `<epic-note>` (EpicNote.tsx):  a small UPDATE / DONE note in prose.
+ * - a card:  its heading in the state's colour (the fold chevron first:  it folds the note), then the note
+ * - One meaning per colour (decision Q20):
+ *   - `.update`:  orange, changed since you looked
+ *   - `.done`:  green, decided or done
+ * - ONE card rule, switched by the private `--_epic-note-*` hue tokens.
+ * - The heading's text:  the hue's `-text` token,
+ *   which Spell UI keeps readable on its `-background` (axe, both schemes).
  * - From `<epic-page>`'s `:host`, with a fallback:  `--epic-part-gap`, `--epic-sans`.
  * - Public tokens (`--epic-note-*`) are never declared here:  read through private aliases.
  */

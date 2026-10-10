@@ -40,8 +40,8 @@ function isSameNouns(a: ReadonlySet<string>, b: ReadonlySet<string>): boolean {
  *   and every shared variation the card doesn't set comes from the group (`classValue()`).
  *
  * - `loading`:  `aria-busy` (through `internals`) and a visually hidden `role=status` "Loading…".
- * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  `aria-disabled`, everything inside inert;
- *   and a link card loses its `href`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   `aria-disabled`, everything inside inert;  and a link card loses its `href`.
  ****************/
 export class UICard extends E.UIComponent<typeof cardVocabulary> {
   @E.proto static vocabulary = cardVocabulary

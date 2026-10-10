@@ -5,15 +5,16 @@
  *     `<path class="edge" part="edge">` per parent => child line,
  *     then its `<text class="slot" part="slot-label">` `<g class="node [root]" part="node [root-node]">` per node:
  *     `[<title>]`, `<rect class="box">`, `<text class="label">`, `[<text class="detail">]`
- *   - positions and sizes are the layout's (`TreeLayout`), in user units;  text sizes are `font-size` ATTRIBUTES
- *     (user units the layout sized the boxes for):  NEVER set `font-size` on the texts here
+ *   - positions and sizes are the layout's (`TreeLayout`), in user units
+ *   - text sizes are `font-size` ATTRIBUTES (user units the layout sized the boxes for):
+ *     NEVER set `font-size` on the texts here
  *   - texts are centred on their point (`text-anchor: middle`, `dominant-baseline: central`)
  * - Size:  the `<svg>` is its natural width in em (`--_ui-tree-diagram-natural-width` x 1em,
  *   at `--ui-tree-diagram-font-size`), `max-width: 100%`, `height: auto`:
  *   it shrinks to fit a narrow container, and never grows past its natural size.
  *   Below `--ui-tree-diagram-min-scale` it stops shrinking, and the DOM element scrolls sideways instead.
- * - Public tokens (`--ui-tree-diagram-*`) are NEVER declared here:  each is read through its private alias
- *   (`docs/theming.md` "Component tokens"),
+ * - Public tokens (`--ui-tree-diagram-*`) are NEVER declared here:
+ *   each is read through its private alias (`docs/theming.md` "Component tokens"),
  *   so a value set on `:root`, an ancestor, the DOM element or `::part()` reaches it.
  */
 

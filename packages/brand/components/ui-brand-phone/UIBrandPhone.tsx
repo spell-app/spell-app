@@ -11,8 +11,8 @@ import phoneCSS from "./UIBrandPhone.css?inline"
  * The component behind `<ui-brand-phone>`:  a phone frame around live app content,
  * as the Spell App's Build screen previews the app it builds.
  *
- * - Its shadow DOM is `<section part="phone">`, holding the status bar (`.status`:  clock, signal / wifi / battery)
- *   and the default slot.
+ * - Its shadow DOM is `<section part="phone">`,
+ *   holding the status bar (`.status`:  clock, signal / wifi / battery) and the default slot.
  * - The app is the element's LIGHT children:  the page's own markup and elements, styled and wired by the page.
  * - A region named `label` (default `App preview`);  `label=""`:  a plain frame.
  *   The status bar is decoration:  `aria-hidden`.

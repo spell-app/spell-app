@@ -1,6 +1,6 @@
 /*
- * `<epic-question>` (`EpicQuestion.tsx`):  a question's text under a small grey `QUESTION` eyebrow -- the same look
- * as `<epic-item>`'s `Original question` (`EpicItem.css`, `.label`), neutral (Q20).
+ * `<epic-question>` (`EpicQuestion.tsx`):  a question's text under a small grey `QUESTION` eyebrow.
+ * - the same look as `<epic-item>`'s `Original question` (`EpicItem.css`, `.label`), neutral (Q20)
  * - Its margins are a paragraph's, small:  a parent's `::slotted(:first-child)` rule (the outer tree) still wins.
  */
 

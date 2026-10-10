@@ -4,18 +4,22 @@
  * (the Spell design system's icon buttons, menus and switch).
  * - It styles the component's shadow DOM:  `<div class="ui [size] [inverted] themes" part="controls">`,
  *   holding by `show`:
- *   - `both`:  `<button class="palette button" part="palette">`, then `<ui-popup class="overlay" part="overlay">`
- *     (slotted `.panel`:  `.heading`, `.menu` of `<button class="option [checked]" role="menuitemradio">` rows
- *     (`.check`, `.name`, `.description`) with `.header` / `.divider` rows, a `.divider`,
- *     and `<button class="system" role="switch">` (`.label` > `.name` + `.description`, `.track`)),
+ *   - `both`:  `<button class="palette button" part="palette">`, then `<ui-popup class="overlay" part="overlay">`,
  *     its tooltip `<ui-popup part="tip">`;  then the scheme button
- *   - `scheme`:  `<button class="scheme light|dark button" part="scheme">` holding `.light.glyph` (sun) and
- *     `.dark.glyph` (moon), stacked;  the one matching the button's scheme shows.  Then its tooltip
+ *     - the overlay's slotted `.panel`:
+ *       - `.heading`
+ *       - a `.menu` of `<button class="option [checked]" role="menuitemradio">` rows
+ *         (`.check`, `.name`, `.description`), with `.header` / `.divider` rows
+ *       - a `.divider`
+ *       - `<button class="system" role="switch">` (`.label` > `.name` + `.description`, `.track`)
+ *   - `scheme`:  `<button class="scheme light|dark button" part="scheme">`,
+ *     holding `.light.glyph` (sun) and `.dark.glyph` (moon), stacked;  the one matching the button's scheme shows.
+ *     Then its tooltip
  *   - `theme`:  the theme `<ui-dropdown part="theme">` alone;  its look is the dropdown's own
  * - Colours are foundation tokens (`--ui-surface`, `--ui-primary` ...), so every theme restyles it,
  *   the Spell theme into the brand.
- * - The overlay's box is `<ui-popup>`'s `::part(popup)`, restyled with plain properties (a sheet never declares
- *   another family's tokens).
+ * - The overlay's box is `<ui-popup>`'s `::part(popup)`, restyled with plain properties
+ *   (a sheet never declares another family's tokens).
  * - Public tokens (`--ui-docs-themes-*`) are never declared:  each is read through a private alias
  *   (`docs/theming.md` "Component tokens").
  */
@@ -300,11 +304,13 @@
   }
 
   /*
-   * Motion:  the sun / moon swap (interfaces.dev:  scale 0.25 -> 1, opacity, blur 4px -> 0, the old one reversed),
-   * the switch's knob, the buttons' press.  Named properties only;  none at all under reduced motion.
+   * Motion:  the sun / moon swap, the switch's knob, the buttons' press.
+   * - The swap is interfaces.dev's:  scale 0.25 -> 1, opacity, blur 4px -> 0, the old one reversed.
+   * - Named properties only;  none at all under reduced motion.
    * - The swap's `!important`:  the Spell theme turns EVERY transition off for the frame a scheme switch lands in
-   *   (`html.ui-scheme-switching`, `transition: none !important` in `ui.theme`), which is exactly the frame this
-   *   swap starts in.  An `!important` in an EARLIER layer wins over a later layer's, so this one keeps it;
+   *   (`html.ui-scheme-switching`, `transition: none !important` in `ui.theme`),
+   *   which is exactly the frame this swap starts in.
+   *   An `!important` in an EARLIER layer wins over a later layer's, so this one keeps it;
    *   `reset.css`'s reduced-motion `!important` sits earlier still, and still wins.
    */
   @media (prefers-reduced-motion: no-preference) {

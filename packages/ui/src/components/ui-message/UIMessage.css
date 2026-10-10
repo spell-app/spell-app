@@ -18,11 +18,11 @@
  *     static markup keeps Fomantic's selectors.
  *
  * - The public tokens (`--ui-message-*`) are NEVER declared here.
- *   The token block gives each a private alias, `--_ui-message-radius: var(--ui-message-radius, var(--ui-radius))`,
- *   and every rule reads the alias.  Variations (`attached`, `floating`, `text-align` …)
- *   set private `--_message-*` tokens, read in front of it.
- *   So a value set on `:root`, an ancestor, the element, `::part(message)` or in the app's style sheet
- *   reaches the box (`docs/theming.md`, "Component tokens").
+ *   - The token block gives each a private alias, and every rule reads the alias:
+ *     `--_ui-message-radius: var(--ui-message-radius, var(--ui-radius))`.
+ *   - Variations (`attached`, `floating`, `text-align` …) set private `--_message-*` tokens, read in front of it.
+ *   - So a value set on `:root`, an ancestor, the element, `::part(message)` or in the app's style sheet
+ *     reaches the box (`docs/theming.md`, "Component tokens").
  *
  * - As an OWNER:  a message owns the `header` and `content` parts (`ownsParts`).
  *   A slotted `<ui-header>` or `<ui-content>` styles itself from `UIParts.css` (context `in-message`),
@@ -383,8 +383,9 @@
   }
 
   /*
-   * Inverted:  the dark scheme, on a neutral dark surface;  a coloured one keeps its hue in the text (the
-   * dark-scheme text / header roles).  The OWNER side:  content inside re-resolves its `light-dark()` tokens.
+   * Inverted:  the dark scheme, on a neutral dark surface;
+   * a coloured one keeps its hue in the text (the dark-scheme text / header roles).
+   * The OWNER side:  content inside re-resolves its `light-dark()` tokens.
    */
   .ui.inverted.message {
     --ui-inverted: 1;

@@ -37,20 +37,26 @@ import reviewCSS from "./EpicReview.css?inline"
 
 /****************
  * ### `EpicReview`
- * The component behind `<epic-review>`:  the review controls (P9) of one item, Overview sub-section, phase or the
- * summary, in one of three places (`shows`), each drawn by its family in its own shadow root:
- * - `buttons`:  the controls at the end of a line or title (`controls()`)
- * - `note`:  the note box (`noteBox()`)
- * - `said`:  a marked note, its box closed (`said()`)
- * - Drawn by `<epic-item>` (its line, details, or under its line), an Overview `<epic-section>` and an `<epic-phase>`
- *   (their title and body), `<epic-summary>` (under its lede);  only while the page is reviewed:  the family wraps
- *   it in `<Show when={reviewState.reviewing()}>`.
- * - Each one is a view of the page's review inbox of its own (`ReviewState`, keyed by `of`), following it while
- *   connected.
- * - Revisit and Edit take the reader to the note box (`takeToNote()`):  `epic-show-note`, so the family unfolds,
- *   then the box beside it (the `<epic-review shows="note">` of the same shadow root) takes the focus.
- * - A button that chose an action (a review button, a note box button) sends `epic-chosen`:  `<epic-item>` folds,
- *   so Owen moves on to the next (Owen, 2026-10-10).
+ * The component behind `<epic-review>`:
+ * the review controls (P9) of one item, Overview sub-section, phase or the summary.
+ *
+ * - It shows one of three things (`shows`):
+ *   - `buttons`:  the controls at the end of a line or title (`controls()`)
+ *   - `note`:  the note box (`noteBox()`)
+ *   - `said`:  a marked note, its box closed (`said()`)
+ * - Each family draws it in its own shadow root:
+ *   - `<epic-item>`:  on its line, in its details, or under its line
+ *   - an Overview `<epic-section>` and an `<epic-phase>`:  on their title and in their body
+ *   - `<epic-summary>`:  under its lede
+ * - Drawn only while the page is reviewed:
+ *   the family wraps it in `<Show when={reviewState.reviewing()}>`.
+ * - Each one has its own view of the page's review inbox (`ReviewState`, keyed by `of`),
+ *   following it while connected.
+ * - Revisit and Edit take the reader to the note box (`takeToNote()`):
+ *   - `epic-show-note`, so the family unfolds
+ *   - then the box beside it (the `<epic-review shows="note">` of the same shadow root) takes the focus
+ * - A button that chose an action (a review button, a note box button) sends `epic-chosen`:
+ *   `<epic-item>` folds, so Owen moves on to the next (Owen, 2026-10-10).
  * - SIDE EFFECT:  the note box listens for `pagehide` while connected, to save a draft as the page goes.
  ****************/
 export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
@@ -94,21 +100,33 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
   ////////////////
 
   /**
-   * The controls at the end of a line:  the note bubble (what Owen wrote, its words as the tooltip), a pick's letter,
-   * the group (Approve, Revisit, Make Todo), then Do Now apart (decision Q20, the wand);
-   * a todo's group instead:  the plane (do it in the next phase), Revisit, the x (drop it:  Owen, 2026-10-09).
+   * The controls at the end of a line, in their order:
+   * - the note bubble:  what Owen wrote, its words as the tooltip
+   * - a pick's letter
+   * - the group:  Approve, Revisit, Make Todo
+   *   - a todo's group instead:  the plane (do it in the next phase), Revisit,
+   *     the x (drop it:  Owen, 2026-10-09)
+   * - then Do Now apart (decision Q20, the wand)
+   *
+   * How they look and act:
    * - every button shows at every step, its FILL saying how far its mark has got (`ReviewFill`):
-   *   a grey outline available;  dashed in its colour pressed, not sent;  outlined sent (a Do Now:  taken);
-   *   then CLEARED, a grey outline again, once Claude has handled it (they're Owen's input:  the id chip carries
-   *   the result, Owen, 2026-10-08)
-   * - colours:  green decided (Approve, Make Todo, a todo's plane), blue an ask of Claude (Revisit, Do Now),
-   *   grey no longer relevant (a todo's x)
-   * - work on its way or under way (`ReviewState.busyButton()`):  that button's icon turns while Claude is on it
-   *   (`data-busy`);  queued with nobody listening, it stays dashed.  Clicked then:  "nevermind"
-   * - Revisit takes the reader to the note box (`takeToNote()`);  Do Now takes the note in it along
-   *   (`ReviewClient.press()`)
-   * - tooltips:  the plain browser ones (`title`), just the name (Q8), then the element's review label (`tip`:
-   *   `Approve · reviewed 10/7/26`:  Owen, 2026-10-07, in place of the label beside them);
+   *   - a grey outline:  available
+   *   - dashed in its colour:  pressed, not sent
+   *   - outlined:  sent (a Do Now:  taken)
+   *   - then CLEARED, a grey outline again, once Claude has handled it
+   *     (they're Owen's input:  the id chip carries the result, Owen, 2026-10-08)
+   * - colours:
+   *   - green:  decided (Approve, Make Todo, a todo's plane)
+   *   - blue:  an ask of Claude (Revisit, Do Now)
+   *   - grey:  no longer relevant (a todo's x)
+   * - work on its way or under way (`ReviewState.busyButton()`):
+   *   - that button's icon turns while Claude is on it (`data-busy`)
+   *   - queued with nobody listening, it stays dashed
+   *   - clicked then:  "nevermind"
+   * - Revisit takes the reader to the note box (`takeToNote()`);
+   *   Do Now takes the note in it along (`ReviewClient.press()`)
+   * - tooltips:  the plain browser ones (`title`):  just the name (Q8), then the element's review label
+   *   (`tip`, `Approve · reviewed 10/7/26`:  Owen, 2026-10-07, in place of the label beside them);
    *   a screen reader hears the state too
    */
   private controls(): JSX.Element {
@@ -169,9 +187,10 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
   }
 
   /**
-   * A review button clicked:  its mark (`ReviewClient.press()`);  Revisit takes the reader to the note box;
-   * a click that CHOSE an action (not one that cleared a mark or called a request off) says so (`epic-chosen`):
-   * an item folds, so Owen moves on to the next (Owen, 2026-10-10).
+   * A review button clicked:  its mark (`ReviewClient.press()`).
+   * - Revisit takes the reader to the note box
+   * - a click that CHOSE an action (not one that cleared a mark or called a request off) says so (`epic-chosen`):
+   *   an item folds, so Owen moves on to the next (Owen, 2026-10-10)
    */
   @E.untracked
   private press(event: MouseEvent, spec: ReviewButtonSpec) {
@@ -239,13 +258,15 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
   private saveTimer: E.CancelablePromise<unknown> | undefined
 
   /**
-   * The note box (Owen, 2026-10-06, Q8):  Owen's voice, on ivory --
-   * a note that grows as it's typed in, a small Saved mark in its corner,
-   * and two round buttons stacked at its right:
-   * Revisit Later (blue:  revisit soon, the line's Revisit icon), the x (grey:  skip this, nothing to do;
-   * Owen, 2026-10-09, in place of Make Todo, which stays on the line);
-   * a todo's (`TODO_NOTE_BUTTONS`):  the plane (green), Revisit Later, the x (grey:  drop it), in its line's order.
-   * Do Now is the line's (decision Q20):  it takes the note along.
+   * The note box (Owen, 2026-10-06, Q8):  Owen's voice, on ivory.
+   * - a note that grows as it's typed in, a small Saved mark in its corner
+   * - two round buttons stacked at its right:
+   *   - Revisit Later (blue:  revisit soon, the line's Revisit icon)
+   *   - the x (grey:  skip this, nothing to do;
+   *     Owen, 2026-10-09, in place of Make Todo, which stays on the line)
+   * - a todo's buttons (`TODO_NOTE_BUTTONS`), in its line's order:
+   *   the plane (green), Revisit Later, the x (grey:  drop it)
+   * - Do Now is the line's (decision Q20):  it takes the note along
    * - SAVED as typed:  to the inbox as a draft, `DRAFT_SAVE_MS` after the last key,
    *   and at once when the box loses focus or the page goes away (`watchPageHide()`)
    *   - the floppy says Saved (its tooltip:  when), or turns red with why not
@@ -327,8 +348,8 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
   }
 
   /**
-   * The page going away:  a pending draft saved (`keepalive`);  the box gone (disconnected), saved too
-   * (an item without details, folded by its chevron).  Only the note box.
+   * Only the note box:  save a pending draft when the page goes away (`keepalive`),
+   * and when the box goes (disconnected:  an item without details, folded by its chevron).
    */
   @E.whileConnected
   protected watchPageHide() {
@@ -376,8 +397,9 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
   }
 
   /**
-   * Done with the note box:  under an item's line (`under-line`), it closes;
-   * else it stays, but stops counting as written in once it's empty.  The draft is kept either way.
+   * Done with the note box;  the draft is kept either way.
+   * - under an item's line (`under-line`):  it closes
+   * - else it stays, but stops counting as written in once it's empty
    */
   @E.untracked
   private leaveNote() {
@@ -469,10 +491,11 @@ export class EpicReview extends E.UIComponent<EpicReviewVocabulary> {
   ////////////////
 
   /**
-   * Take the reader to the note box (Revisit;  Edit, with the marked `note`):
-   * the box opens (`ReviewClient.openBox()`), `epic-show-note` asks the family to show it (it unfolds, or opens a
-   * box by itself under its line), then the note takes the focus -- each frame until it can (details just opened may
-   * not be drawn yet, a part may still be loading), for `FOCUS_HOLD_MS` at most.
+   * Take the reader to the note box (Revisit;  Edit, with the marked `note`).
+   * 1. the box opens (`ReviewClient.openBox()`)
+   * 2. `epic-show-note` asks the family to show it:  it unfolds, or opens a box by itself under its line
+   * 3. the note takes the focus, trying each frame until it can, for `FOCUS_HOLD_MS` at most
+   *    (details just opened may not be drawn yet, a part may still be loading)
    * - Edit (`note`):  the marked note goes back in the box, unless something is typed there already
    */
   @E.untracked

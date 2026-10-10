@@ -13,13 +13,15 @@ import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 
 /****************
  * ### `EpicNote`
- * The component behind `<epic-note>`:  a small note in prose, older prose's hand-written UPDATE / DONE message as an
- * element -- a card headed by its label (`UPDATE`, `DONE`), then `title`, its children inside.
- * - Colours by `state`, one meaning each (decision Q20):  `update` orange, changed since you looked;
- *   `done` green, decided or done.
- * - Never removed by the tool:  unlike `<epic-update>`, it isn't tied to a phase.
- * - Folds by its heading, the chevron first (Owen, 2026-10-08:  everything in a section box folds):
- *   open to start with;  page state, never written;  folded, the note is `hidden="until-found"`.
+ * The component behind `<epic-note>`:  a small note in prose.
+ * Older prose's hand-written UPDATE / DONE message, as an element.
+ * - a card headed by its label (`UPDATE`, `DONE`), then `title`, its children inside
+ * - colours by `state`, one meaning each (decision Q20):
+ *   - `update`:  orange, changed since you looked
+ *   - `done`:  green, decided or done
+ * - never removed by the tool:  unlike `<epic-update>`, it isn't tied to a phase
+ * - folds by its heading, the chevron first (Owen, 2026-10-08:  everything in a section box folds):
+ *   open to start with;  page state, never written;  folded, the note is `hidden="until-found"`
  * - The DOM element's own `title` would be a browser tooltip over the whole note:
  *   the card's EMPTY `title` stops it there (T8).
  ****************/

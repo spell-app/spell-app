@@ -20132,7 +20132,7 @@
             {
               "name": "--ui-search-results-max-height",
               "default": "4 results;  6 / 8 / 12 from 768px / 992px / 1920px",
-              "description": "Height of the results list; its default grows with the viewport (the result rows below), a value set from outside wins at every width."
+              "description": "Height of the results list; its default grows with the viewport (the result rows below): a value set from outside wins at every width."
             },
             {
               "name": "--ui-search-disabled-opacity",
@@ -20796,7 +20796,7 @@
             {
               "name": "--ui-section-scrolling-height",
               "default": "var(--_section-scrolling-default, 15em)",
-              "description": "Cap of a `scrolling` section's content; its default grows with the viewport (below), a value set from outside wins at every width."
+              "description": "Cap of a `scrolling` section's content; its default grows with the viewport (below): a value set from outside wins at every width."
             }
           ]
         },
@@ -21360,7 +21360,7 @@
             {
               "name": "--ui-segment-scrolling-height",
               "default": "15em;  18em / 24em / 30em on tablet / computer / widescreen",
-              "description": "Height of a `scrolling` segment; its default grows with the viewport (below), a value set from outside wins at every width."
+              "description": "Height of a `scrolling` segment; its default grows with the viewport (below): a value set from outside wins at every width."
             }
           ]
         },

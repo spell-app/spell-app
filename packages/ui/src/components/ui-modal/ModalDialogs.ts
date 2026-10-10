@@ -16,9 +16,10 @@ import { type Vocabulary } from "./UIModal.types"
  * - Button texts:  `okText` / `cancelText`, else the translated `ok` / `cancel` texts (`UI.i18n`).
  * - Everything is light DOM built with `createElement` / `textContent`:  never `innerHTML` with caller text.
  * - Other families' tags (`<ui-content>`, `<ui-actions>`, `<ui-button>`) are looked up at CALL time,
- *   by class noun, in the vocabulary registry (`UI.vocabulary`):
- *   importing their vocabulary files would reach into other families' files, which `AGENTS.md` keeps behind
- *   `$/ui/core`.  The family barrel imports `parts` and `button`, so both are defined before any dialog opens.
+ *   by class noun, in the vocabulary registry (`UI.vocabulary`).
+ *   - Why:  importing their vocabulary files would reach into other families' files,
+ *     which `AGENTS.md` keeps behind `$/ui/core`.
+ *   - The family barrel imports `parts` and `button`, so both are defined before any dialog opens.
  * - Registered by the family barrel as `UI.modals`' provider;  the runtime never imports it.
  ****************/
 export class ModalDialogs implements E.ModalProvider {

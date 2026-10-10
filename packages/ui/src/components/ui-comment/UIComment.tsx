@@ -21,8 +21,8 @@ import commentCSS from "./UIComment.css?inline"
  *
  * - In a `<ui-comments>` (`PartContext`, noun `comment`):  `:state(in-comments)`.
  *
- * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, the article inert,
- *   `aria-disabled`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, the article inert, `aria-disabled`.
  ****************/
 export class UIComment extends E.UIComponent<typeof commentVocabulary> {
   @E.proto static vocabulary = commentVocabulary

@@ -22,7 +22,8 @@ import { state, untracked } from "./Reactive"
  *   - It turns false when the body arrives, on failure, or after `SOURCE_BODY_HOLD_MS`
  *     (then `isOverdue`:  the owner shows its loading look over the placeholder).
  *   - Only before the FIRST body:  a `reload()` (the live update) keeps the old body shown
- *     until the new one replaces it in place, so an open section doesn't blink, and its controls keep the focus.
+ *     until the new one replaces it in place,
+ *     so an open section doesn't blink, and its controls keep the focus.
  * - The families of `ui-*` tags in the body are NOT loaded here:  light DOM is the page's,
  *   so whatever defines the page's tags (a `<ui-root>`, which watches its subtree, or a bundle) defines these too.
  * - NOTE: a cycle (a body holding a source of its own file) or nesting deeper than `MAX_DEPTH` is a `render` error.
@@ -98,7 +99,10 @@ export class LoadableBody {
     return this.start({ source, select, fresh: false })
   }
 
-  /** Fetch the body again past the cache, and replace the one inserted;  resolves once it's in.  Untracked, as `load()`. */
+  /**
+   * Fetch the body again past the cache, and replace the one inserted;  resolves once it's in.
+   * - Untracked, as `load()`.
+   */
   @untracked
   reload(): Promise<void> {
     const source = this.owner.source()

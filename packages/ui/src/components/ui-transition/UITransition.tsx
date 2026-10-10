@@ -103,7 +103,8 @@ export class UITransition extends E.UIComponent<typeof transitionVocabulary> {
 
   /**
    * `visible` / `hidden` changed (or the element first drew):  queue an `in` / `out`,
-   * unless the API already did (`animateTo()`);  resolves once it has run, so the element stays on screen till then.
+   * unless the API already did (`animateTo()`).
+   * Resolves once it has run, so the element stays on screen till then.
    */
   protected onVisibleChange(visible: boolean, animation: UIT.Animation): Promise<void> {
     const done = visible === this.willBeVisible ? this.lastDone() : this.queueVisibility(visible, animation)

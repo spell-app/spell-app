@@ -7,14 +7,15 @@ import "./FileDropdown.css"
 
 /****************
  * ### `<FileDropdown>`
- * Menu of all available files for the selected project (`editor.project`):  a `<ui-dropdown>` of `<ui-item>`s,
- * showing `editor.file`.  Same props as React's `UI.FileDropdown` had.
+ * Menu of all available files for the selected project (`editor.project`):
+ * a `<ui-dropdown>` of `<ui-item>`s, showing `editor.file`.
+ * Same props as React's `UI.FileDropdown` had.
  * - Choosing a file shows it in `<SpellEditor>`, or `<SpellRunner>` with `useRunner`.
  * - Loading (spinning caret, no items) until the project's loaded and has a file.
- * - The dropdown's value is ALWAYS `editor.file`'s path:  choosing sets it back during the event, and shows the file
- *   chosen, which then becomes `editor.file` (see `choose()`).
- * - `showActions`:  `Actions.FILE_DROPDOWN_ACTIONS` after a divider, as dropdown items;  choosing
- *   one clicks it, as `<MoreMenu>` does.
+ * - The dropdown's value is ALWAYS `editor.file`'s path (see `choose()`):
+ *   choosing sets it back during the event, and shows the file chosen, which then becomes `editor.file`.
+ * - `showActions`:  `Actions.FILE_DROPDOWN_ACTIONS` after a divider, as dropdown items;
+ *   choosing one clicks it, as `<MoreMenu>` does.
  * - Sits in a menu:  wrapped in a `<ui-item class="FileDropdown">`.  Look:  `FileDropdown.css`.
  ****************/
 export function FileDropdown(props: FileDropdownProps) {
@@ -83,7 +84,7 @@ export type FileDropdownProps = {
  * The dropdown's `ui-change`:  click the item chosen -- a file's opens it, an action's runs it.
  * - SIDE EFFECT:  sets the dropdown's `value` back to `editor.file`'s DURING the event, so the dropdown keeps ours:
  *   the host decides (`requestChange()` on a `@controlled` member, `packages/ui/src/elements/Reactive.ts`).
- *   Opening the file then moves it on.
+ * - Opening the file then moves it on.
  */
 function choose(event: CustomEvent<{ value: string }>) {
   const dropdown = event.currentTarget as HTMLElement & { value?: unknown }

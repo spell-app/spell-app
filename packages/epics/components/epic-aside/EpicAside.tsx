@@ -10,9 +10,10 @@ import asideCSS from "./EpicAside.css?inline"
 
 /****************
  * ### `EpicAside`
- * The component behind `<epic-aside>`:  a folded aside in prose (an `EpicPanel`) -- the brand's ivory panel, headed
- * `Aside:  <title>` in the headings' italic serif, its children inside.
- * - Folded to start with:  a digression the main text can skip.  Find-in-page and a click unfold it.
+ * The component behind `<epic-aside>`:  a folded aside in prose (an `EpicPanel`).
+ * - the brand's ivory panel, headed `Aside:  <title>` in the headings' italic serif, its children inside
+ * - folded to start with:  a digression the main text can skip
+ * - find-in-page and a click unfold it
  ****************/
 export class EpicAside extends EpicPanel<typeof epicAsideVocabulary> {
   @E.proto static vocabulary = epicAsideVocabulary

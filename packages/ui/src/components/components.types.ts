@@ -897,8 +897,9 @@ export type EmbedActivateDetail = {
 ////////////////
 // ## Animation
 //
-// The shared `animation` attribute every element takes (`SharedVocabulary`),
-// and `elementSetup.animation`, a family's default:  Fomantic's names, as `<ui-transition>` always took them.
+// Fomantic's animation names, as `<ui-transition>` always took them, for:
+// - the shared `animation` attribute every element takes (`SharedVocabulary`)
+// - `elementSetup.animation`, a family's default
 ////////////////
 
 /** Fomantic's appear / disappear animations:  run `in` or `out`, as `visible` / `hidden` change. */
@@ -980,11 +981,13 @@ export class AnimationLookup {
   }
 
   /**
-   * For a family that animates with its own sheet (a modal's, a popup's transition):
-   * the runtime keyframes to run instead for `animation`, or `undefined` for the sheet's own.
-   * - The sheet's own:  `familyAnimation` (its `elementSetup.animation`, the name its sheet's look goes by),
-   *   `none` (at once:  the sheet's transition is stilled with motion), or an attention animation.
-   * - Any other:  the element's own `animation`, run by `UI.transitions`.
+   * Which runtime keyframes to run for `animation`, in a family whose own sheet animates it
+   * (a modal's or a popup's CSS transition).
+   * - `undefined`:  leave it to the sheet, for
+   *   - `familyAnimation`:  the family's default (its `elementSetup.animation`), the look its sheet draws
+   *   - `none`:  at once, since turning motion off stills the sheet's transition too
+   *   - an attention animation (`shake`)
+   * - Any other:  its runtime name, for `UI.transitions` to run instead of the sheet's.
    */
   static keyframesBeside(animation: Animation, familyAnimation: Animation): E.AnimationName | undefined {
     if (animation === NO_ANIMATION || animation === familyAnimation) return undefined

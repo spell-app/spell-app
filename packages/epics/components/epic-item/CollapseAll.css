@@ -1,6 +1,7 @@
 /*
- * `Fold.collapseAllButton()` (`Fold.tsx`):  the double up-chevron beside an open title's fold chevron, adopted
- * as `epic-collapse-all` by `<epic-overview>`, `<epic-section>`, `<epic-phase>`, `<epic-item>` and `<epic-page>`.
+ * `Fold.collapseAllButton()` (`Fold.tsx`):  the double up-chevron beside an open title's fold chevron.
+ * - Adopted as `epic-collapse-all` by
+ *   `<epic-overview>`, `<epic-section>`, `<epic-phase>`, `<epic-item>` and `<epic-page>`.
  * - Square and muted, as the Phases toggles;  the chevron's stroke, a size up.
  */
 

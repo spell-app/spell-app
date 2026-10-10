@@ -1,6 +1,7 @@
 /*
- * `<epic-summary>` (`EpicSummary.tsx`):  the Overview's summary as a lede -- a paragraph in the body face, the
- * headings' ink, a size up (`spell-doc.css`'s lede inside a section;  as `<p slot="summary">` was drawn).
+ * `<epic-summary>` (`EpicSummary.tsx`):  the Overview's summary as a lede.
+ * - a paragraph in the body face, the headings' ink, a size up
+ *   (`spell-doc.css`'s lede inside a section;  as `<p slot="summary">` was drawn)
  * - On `:host`, so text straight inside it takes the look;  a `<p>` inside loses its own margins.
  */
 

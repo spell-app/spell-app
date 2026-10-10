@@ -21,25 +21,26 @@
  *     are for the PAGE's styles only.
  *
  * - Colours by remap:  the bar paints `--_progress-bar-color` (indicating, states),
- *   else `--ui-color` (`color`, or a bar's own `ui-<hue>` class from `bar-colors`:
- *   Fomantic's `.ui.progress .red.bar`), else the grey default.
- *   Inverted bars read `--ui-color-inverted`, Fomantic's lighter hue.
- * - The bar text is the bar colour's contrast-picked foreground (`--ui-color-on`;  dark on `indicating` hues),
- *   where Fomantic wrote 70% white on anything, which fails WCAG contrast on most hues.
- *   The default bar is a darker grey for the same reason.
+ *   else `--ui-color`, else the grey default.
+ *   - `--ui-color` comes from `color`, or a bar's own `ui-<hue>` class from `bar-colors`
+ *     (Fomantic's `.ui.progress .red.bar`).
+ *   - Inverted bars read `--ui-color-inverted`, Fomantic's lighter hue.
+ * - The bar text is the bar colour's contrast-picked foreground (`--ui-color-on`;  dark on `indicating` hues).
+ *   - Fomantic wrote 70% white on anything, which fails WCAG contrast on most hues.
+ *   - The default bar is a darker grey for the same reason.
  *
  * - The public tokens (`--ui-progress-*`) are NEVER declared here.
- *   The token block gives each a private alias,
- *   `--_ui-progress-radius: var(--ui-progress-radius, var(--ui-radius-s))`, and every rule reads the alias.
- *   So a value set on `:root`, an ancestor, the element, `::part(progress)` or in the app's style sheet
- *   reaches the box (`docs/theming.md`, "Component tokens").
- *   Sizes swap the bar height;  `inverted`, the label colour.
+ *   - The token block gives each a private alias, and every rule reads the alias:
+ *     `--_ui-progress-radius: var(--ui-progress-radius, var(--ui-radius-s))`.
+ *   - So a value set on `:root`, an ancestor, the element, `::part(progress)` or in the app's style sheet
+ *     reaches the box (`docs/theming.md`, "Component tokens").
+ *   - Sizes swap the bar height;  `inverted`, the label colour.
  *
  * - States beat colours and `indicating` by LAYER (`states`), where Fomantic stacked `.ui.ui.` specificity.
  * - Sizes:  `--ui-scale` scales the text;  each size sets the bar height token (Fomantic's per-size bar heights).
- * - Reduced motion:  the `active` pulse stops;  indeterminate bars stand still,
- *   half filled (no motion is needed to read "working").  `reset.css` would only shorten them to one invisible
- *   iteration.
+ * - Reduced motion:  the `active` pulse stops;
+ *   indeterminate bars stand still, half filled (no motion is needed to read "working").
+ *   `reset.css` would only shorten them to one invisible iteration.
  *
  * - Left out, on purpose:
  *   - rules coupling it to an owner (`.ui.segment > .ui.attached.progress`, `.ui.card > …`):

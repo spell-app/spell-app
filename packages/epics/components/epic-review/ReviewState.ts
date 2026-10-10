@@ -20,16 +20,21 @@ import { PAGE_TAG, REVIEWING, type ReviewFill } from "./EpicReview.types"
 
 /****************
  * ### `ReviewState`
- * One element's view of the page's review inbox (`ReviewClient.forPage()`):
- * `<epic-review>`'s (the review controls), and the elements that draw them, for their chips and where they show:
- * `<epic-item>`'s, an Overview `<epic-section>`'s, an `<epic-phase>`'s, `<epic-summary>`'s;
- * the page's own (`<epic-page>`, `<epic-new-item>`, the Todos and Questions sections:  their new items, epic `airplane` P2).
+ * One element's view of the page's review inbox (`ReviewClient.forPage()`).
+ * - Who has one:
+ *   - `<epic-review>` (the review controls)
+ *   - the elements that draw them, for their chips and where they show:
+ *     `<epic-item>`, an Overview `<epic-section>`, an `<epic-phase>`, `<epic-summary>`
+ *   - the page's own elements, for their new items (epic `airplane` P2):
+ *     `<epic-page>`, `<epic-new-item>`, the Todos and Questions sections
  * - its reads are TRACKED:
  *   a counter `Cell` bumped on every change the client reports, so the element's controls redraw
- * - `connect()` while the element is connected (it returns the undo):  the client is plain code, and a kept-alive
- *   element that's gone must stop listening
- * - the page's side, once per page (`watchPage()`):  `<epic-page reviewing>` while reviewed, and the notice line at
- *   the bottom of the window (`ReviewNotice`) for what can't be said on an item (a failed save, nobody listening)
+ * - `connect()` while the element is connected (it returns the undo):
+ *   the client is plain code, and a kept-alive element that's gone must stop listening
+ * - the page's side, once per page (`watchPage()`):
+ *   - `<epic-page reviewing>` while reviewed
+ *   - the notice line at the bottom of the window (`ReviewNotice`),
+ *     for what can't be said on an item (a failed save, nobody listening)
  * - MUST be created under the element's owner (a field initializer):  it creates a signal
  * - Server render:  no client, never reviewing
  ****************/
@@ -114,11 +119,11 @@ export class ReviewState {
 
   /**
    * How far `action`'s mark has got:  its review button's FILL (decision Q20).
-   * The buttons are Owen's INPUT (Owen, 2026-10-08):  once Claude has handled a mark, it's gone from the inbox and
-   * every button CLEARS (`none`);  the id chip shows the result.
-   * The element's `review-as` stays as the record, never drawn here.
    * - Do Now (`details`):  dashed while its request waits to be taken, outlined while Claude is on it
    * - the rest:  their mark dashed until sent, then outlined
+   * - once Claude has handled a mark, it's gone from the inbox, and every button CLEARS (`none`):
+   *   the buttons are Owen's INPUT (Owen, 2026-10-08), and the id chip shows the result
+   * - the element's `review-as` stays as the record, never drawn here
    */
   readonly fillOf = (action: ReviewAction): ReviewFill => {
     if (action === "details") {
@@ -138,8 +143,10 @@ export class ReviewState {
   ////////////////
 
   /**
-   * Its `action` button clicked:  `"open-box"` when the caller should take the reader to the note box, `"chosen"`
-   * when an action was chosen for it (the caller folds it), else `undefined` (`ReviewClient.press()`).
+   * Its `action` button clicked (`ReviewClient.press()`).  Answers:
+   * - `"open-box"`:  the caller should take the reader to the note box
+   * - `"chosen"`:  an action was chosen for it (the caller folds it)
+   * - else `undefined`
    */
   @E.untracked
   press(action: ReviewAction): "open-box" | "chosen" | undefined {
@@ -197,8 +204,10 @@ export class ReviewState {
 
 /****************
  * ### `ReviewNotice`
- * The line at the bottom of the window saying what can't be said on an item:  a failed save, nobody listening, a
- * request called off.  One per page;  drawn in a shadow root of its own, so it needs no page stylesheet.
+ * The line at the bottom of the window saying what can't be said on an item:
+ * a failed save, nobody listening, a request called off.
+ * - one per page
+ * - drawn in a shadow root of its own, so it needs no page stylesheet
  * - `role="status"`:  read out as it changes
  * - SIDE EFFECT:  adds its host to `document.body` on the first `show()`
  ****************/

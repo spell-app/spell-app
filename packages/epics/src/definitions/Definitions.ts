@@ -35,7 +35,7 @@ import { Formats, type EpicAttributeSpec, type EpicTag, type EpicVocabulary } fr
  * - Imports each `<Name>.en.ts` straight from its family folder:  PURE DATA, never the family's barrel,
  *   so loading this defines no element and touches no DOM -- node-safe (the tool, the converter, the tests).
  * - STATIC:  one registry, nothing per instance.
- * - A new tag:  `spell dev pack element epics <tag>` (or a sub-tag's files by hand), then its line in `all`;
+ * - A new tag:  `spell dev pack element epics <tag>` (or a sub-tag's files by hand), then its line in `all`.
  *   `Definitions.test.ts` fails on a vocabulary file it doesn't list.
  ****************/
 export class Definitions {
@@ -93,11 +93,12 @@ export class Definitions {
   }
 
   /**
-   * `spec`'s key in `EpicData`:  its name in camelCase (`review-as` => `reviewAs`), as its component's attribute getter (`this.reviewAs`).
-   * - NOT `spec.property`, the DOM element's JS property:  `id` and `title` take `epicId` / `epicTitle` there, so they
-   *   don't shadow the platform's own (`DOMElement` refuses that), but data says `id` and `title`.
-   * - NOTE: a private copy of `$/util`'s `camelCase()`:  that barrel drags spell's utilities into the pack, and
-   *   `$/ui/util` isn't node-safe through `$/ui/core`.
+   * `spec`'s key in `EpicData`:  its name in camelCase (`review-as` => `reviewAs`),
+   * as its component's attribute getter (`this.reviewAs`).
+   * - NOT `spec.property`, the DOM element's JS property:  `id` and `title` take `epicId` / `epicTitle` there,
+   *   so they don't shadow the platform's own (`DOMElement` refuses that), but data says `id` and `title`.
+   * - NOTE: a private copy of `$/util`'s `camelCase()`:  that barrel drags spell's utilities into the pack,
+   *   and `$/ui/util` isn't node-safe through `$/ui/core`.
    */
   static keyOf(spec: EpicAttributeSpec): string {
     return spec.name.replace(/-([a-z0-9])/g, (_, letter: string) => letter.toUpperCase())
@@ -136,8 +137,8 @@ export class Definitions {
   /**
    * Typed value `value` as `spec`'s attribute text:  `true` => `""`, a number => its digits.
    * - `undefined` / `false` => `undefined`:  no attribute.
-   * - throws `TypeError` when `value`'s type isn't `spec`'s kind (`"yes"` for a boolean), or its text has a
-   *   `valueProblem()`
+   * - throws `TypeError` when `value`'s type isn't `spec`'s kind (`"yes"` for a boolean),
+   *   or its text has a `valueProblem()`
    */
   static text(spec: EpicAttributeSpec, value: unknown): string | undefined {
     if (value === undefined || value === false) return undefined

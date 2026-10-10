@@ -10,8 +10,9 @@ import originalCSS from "./EpicOriginal.css?inline"
 
 /****************
  * ### `EpicOriginal`
- * The component behind `<epic-original>`:  an item's Original Discussion -- the text a rewrite or a second answer
- * replaced, one `<epic-version>` each, in a warm aside folded under its heading (as Choices).  Find-in-page unfolds it.
+ * The component behind `<epic-original>`:  an item's Original Discussion.
+ * - the text a rewrite or a second answer replaced, one `<epic-version>` each
+ * - in a warm aside folded under its heading (as Choices);  find-in-page unfolds it
  ****************/
 export class EpicOriginal extends E.UIComponent<typeof epicOriginalVocabulary> {
   @E.proto static vocabulary = epicOriginalVocabulary

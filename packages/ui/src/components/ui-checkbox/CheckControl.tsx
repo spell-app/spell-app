@@ -162,7 +162,10 @@ export abstract class CheckControl<V extends CheckVocabulary = CheckVocabulary> 
   /** After a transition someone made;  checkbox clears `indeterminate`. */
   protected onChosen(_applied: boolean) {}
 
-  /** The `checked` attribute alias:  a LATER edit of it selects (the first is `wasInitiallySelected`'s). */
+  /**
+   * The `checked` attribute alias:  a LATER edit of it selects, or clears.
+   * - The first is read as the element is built (`wasInitiallySelected`).
+   */
   @E.onChange("checkedAttribute", { defer: true })
   protected onCheckedAttributeChanged(checked: string | null) {
     this.isSelected = checked !== null

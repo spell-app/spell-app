@@ -3,8 +3,8 @@ import { describe, expect, it } from "vite-plus/test"
 import { forget, lazy, once, proto, protoMerged, resets } from "./decorators"
 
 /**
- * Proves standard decorators are lowered (`vite.decorators.ts`) and `@proto` / `@protoMerged` / `@lazy` / `@once`
- * work in the browser.
+ * Proves standard decorators are lowered (`vite.decorators.ts`),
+ * and `@proto` / `@protoMerged` / `@lazy` / `@once` work in the browser.
  * - If lowering breaks, this FILE fails to load with a bare `SyntaxError`, rather than a test failing.
  */
 

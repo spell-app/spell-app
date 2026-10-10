@@ -1,6 +1,6 @@
 /**
- * Tests of `InboxCommands` (`spell dev plan-doc inbox ...`) on a scratch checkout:  a plan doc in `<epic-*>` markup
- * and its inbox file.
+ * Tests of `InboxCommands` (`spell dev plan-doc inbox ...`) on a scratch checkout:
+ * a plan doc in `<epic-*>` markup and its inbox file.
  */
 import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"

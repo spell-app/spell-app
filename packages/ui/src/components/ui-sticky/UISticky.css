@@ -1,6 +1,7 @@
 /*
- * `<ui-sticky>`:  port of Fomantic's `sticky.less` + `sticky.variables` -- its `native` type, `position: sticky`,
- * is the only one:  Fomantic's JS-positioned `fixed` / `bound` classes become states the element REPORTS
+ * `<ui-sticky>`:  port of Fomantic's `sticky.less` + `sticky.variables`.
+ * Its `native` type, `position: sticky`, is the only one:
+ * Fomantic's JS-positioned `fixed` / `bound` classes become states the element REPORTS
  * (`:state(stuck)`, `:state(bound)`).
  * - Shadow markup contract:  `<div class="sentinel" aria-hidden="true">`, then
  *   `<div class="ui [pushing] sticky" part="sticky" style="--_ui-sticky-offset: Npx; --_ui-sticky-bottom-offset: Npx">`
@@ -10,12 +11,13 @@
  * - Sentinels are 1px tall with a -1px margin:
  *   they take no space, but the observer sees where the box's edges would be.
  * - Static markup (the examples) sticks too:  `.ui.sticky` is `position: sticky` with or without the element.
- *   Its offsets are the public `--ui-sticky-offset` / `--ui-sticky-bottom-offset`, on the box or above it;
- *   the element writes the private aliases inline instead, from its `offset` / `bottom-offset` attributes.
- * - Public tokens (`--ui-sticky-*`, the theming surface) are NEVER declared here:  the token block reads each through
- *   a private alias, `--_ui-sticky-z-index: var(--ui-sticky-z-index, var(--ui-z-sticky))`, and every rule reads the
- *   alias.  So a value set on `:root`, an ancestor, the DOM element,
- *   `::part(sticky)` or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens").
+ *   - Its offsets are the public `--ui-sticky-offset` / `--ui-sticky-bottom-offset`, on the box or above it.
+ *   - The element writes the private aliases inline instead, from its `offset` / `bottom-offset` attributes.
+ * - Public tokens (`--ui-sticky-*`, the theming surface) are NEVER declared here:
+ *   the token block reads each through a private alias, and every rule reads the alias:
+ *   `--_ui-sticky-z-index: var(--ui-sticky-z-index, var(--ui-z-sticky))`.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(sticky)` or in the app stylesheet
+ *   reaches the box (`docs/theming.md` "Component tokens").
  */
 
 @layer ui.components.sticky.types, ui.components.sticky.content, ui.components.sticky.variations, ui.components.sticky.states;

@@ -5,19 +5,24 @@ import { E } from "$/ui/core"
 
 /****************
  * ### `Fold`
- * The open / folded state of a box an `<epic-*>` element folds by itself, never written to the file:  Choices, an
- * answered question's option panels, More Details, Original Discussion, and every card with a heading band (a reply,
- * the answer, a status card, a note:  Owen, 2026-10-08, "everything in a section box should be collapsible").
- * (`<epic-item>` folds through its `open` attribute instead:  links and P9 open it from outside.)
- * - Starts as `initial()` says, and follows it until the reader toggles it:  an option panel opens while its option
- *   is the chosen one.
- * - The content box takes `hidden()` and `watch` as its ref:  folded, it's `hidden="until-found"`, so find-in-page
- *   reaches the text and unfolds it (`beforematch`).
+ * The open / folded state of a box an `<epic-*>` element folds by itself, never written to the file.
+ * - The boxes that fold by one:
+ *   - Choices, an answered question's option panels, More Details, Original Discussion,
+ *     an aside or code panel, the Agents running panel
+ *   - every card with a heading band:  a reply, the answer, a status card, a note
+ *     (Owen, 2026-10-08, "everything in a section box should be collapsible")
+ *   - NOT `<epic-item>`:  it folds through its `open` attribute, as links and P9 open it from outside
+ * - Starts as `initial()` says, and follows it until the reader toggles it:
+ *   an option panel opens while its option is the chosen one.
+ * - The content box takes `hidden()`, and `watch` as its ref:
+ *   folded, it's `hidden="until-found"`, so find-in-page reaches the text and unfolds it (`beforematch`).
  * - A card's heading band takes `heading` as its ref, with its fold button (`button()`) first in it:
  *   a click anywhere on the band folds, but on a link or another control in it.
- * - Draws the pieces every fold shares:  its fold button (`fold.button()`), the chevron (`Fold.chevron()`), and the
- *   collapse-all button of an open title (`Fold.collapseAllButton()`, folding all under it:  `foldAllUnder()`).
- *   Methods, not tags of their own (P10):
+ * - Draws the pieces every fold shares:
+ *   - its fold button (`fold.button()`)
+ *   - the chevron (`Fold.chevron()`)
+ *   - the collapse-all button of an open title (`Fold.collapseAllButton()`, folding all under it:  `foldAllUnder()`)
+ * - Those are methods, not tags of their own (P10):
  *   - the button is named by `aria-labelledby`, whose ids must be in the same shadow root as the card's heading:
  *     a tag would put a shadow root between them
  *   - the chevrons must be on screen in the first frame, with no wait for an element to upgrade
@@ -61,10 +66,12 @@ export class Fold {
   ////////////////
 
   /**
-   * The fold button FIRST in a card's heading band -- `<epic-reply>`, `<epic-answer>`, `<epic-status>`, `<epic-note>`,
-   * an `<epic-update>` note, `<epic-updated>` -- so everything boxed in a section folds (Owen, 2026-10-08).
+   * The fold button FIRST in a card's heading band, so everything boxed in a section folds (Owen, 2026-10-08).
+   * - The cards:
+   *   `<epic-reply>`, `<epic-answer>`, `<epic-status>`, `<epic-note>`, an `<epic-update>` note, `<epic-updated>`
    * - A `<button>`, named by the heading's words (`labelledBy`:  ids in the same shadow root),
-   *   `aria-expanded` as the fold stands;  the chevron turns down while open (`Fold.css`, which each card adopts).
+   *   its `aria-expanded` as the fold stands
+   * - The chevron turns down while open (`Fold.css`, which each card adopts).
    * - No click handler of its own:  its band's (`heading`) takes a click on it, Enter and Space too,
    *   and a click on the rest of the band.
    */
@@ -84,10 +91,11 @@ export class Fold {
   }
 
   /**
-   * The fold chevron every `<epic-*>` fold draws (an item's line, Choices, an answered question's option panels,
-   * More Details, Original Discussion, a card's fold button):  a right-pointing stroke, turned down by its sheet while open.
-   * - Drawn here, not from an icon pack:  on screen in the first frame, and its box is exactly its 16-unit view box,
-   *   so it centres where its sheet puts it.
+   * The fold chevron every `<epic-*>` fold draws:  a right-pointing stroke, turned down by its sheet while open.
+   * - Where:  an item's line, Choices, an answered question's option panels, More Details, Original Discussion,
+   *   a card's fold button
+   * - Drawn here, not from an icon pack:  on screen in the first frame,
+   *   and its box is exactly its 16-unit view box, so it centres where its sheet puts it.
    * - Its look (size, stroke, the turn) is each sheet's:  `svg.chevron`.
    */
   static chevron(): JSX.Element {
@@ -99,9 +107,10 @@ export class Fold {
   }
 
   /**
-   * The collapse-all button:  the double up-chevron beside an open title's fold chevron -- a section's, a phase's,
-   * an item's, the page toolbar's -- that folds everything under it, the title itself staying open (Owen, 2026-10-10:
-   * "Add collapse all buttons to the headers ... It should close everything underneath it").
+   * The collapse-all button:  the double up-chevron beside an open title's fold chevron,
+   * which folds everything under it, the title itself staying open
+   * (Owen, 2026-10-10:  "Add collapse all buttons to the headers ... It should close everything underneath it").
+   * - Whose:  a section's, a phase's, an item's, the page toolbar's
    * - What it folds is its owner's `collapseAll()` (`foldAllUnder()`);  this only draws it and calls `onCollapse`.
    * - Drawn here, as the chevron is:  on screen in the first frame, in the chevron's stroke.
    * - Its look:  `CollapseAll.css`, which each owner adopts as `epic-collapse-all`.
@@ -130,8 +139,10 @@ export class Fold {
   }
 
   /**
-   * A click on the heading band:  its fold button (a click, Enter or Space) toggles;  so does any other spot,
-   * unless it's a link or another control in the band, or the end of a drag selecting its words.
+   * A click on the heading band toggles.
+   * - on its fold button:  a click, Enter or Space
+   * - on any other spot, unless it's a link or another control in the band,
+   *   or the end of a drag selecting its words
    */
   private readonly onHeadingClick = (event: MouseEvent) => {
     // nothing to fold (an empty body):  the band draws no button
@@ -147,8 +158,8 @@ export class Fold {
 }
 
 /**
- * Fold everything under `root`:  collapse-all (Owen, 2026-10-10:  "close everything underneath it"),
- * the double chevron on a section's, phase's or item's title, and the page toolbar's.
+ * Fold everything under `root`:  collapse-all (Owen, 2026-10-10:  "close everything underneath it").
+ * - its button:  the double chevron on a section's, phase's or item's title, and the page toolbar's
  * - every `<epic-*>` element inside it that folds, in page order:
  *   - sections, phases and items through their own `collapse()`:  the cancelable `ui-close`, as a click's,
  *     so the page remembers a section's fold as usual
@@ -177,8 +188,8 @@ type Collapsible = {
 }
 
 /**
- * The cards and panels that fold by a `Fold`, as an item's children:  an open item holding one shows its
- * collapse-all button.
+ * The cards and panels that fold by a `Fold`, as an item's children:
+ * an open item holding one shows its collapse-all button.
  */
 export const FOLDING_CARDS =
   "epic-aside, epic-code, epic-answer, epic-more, epic-reply, epic-status, epic-original, epic-choices, epic-update, epic-note"

@@ -50,10 +50,11 @@ export type ReviewKind = (typeof REVIEW_KINDS)[number]
 export type ReviewColor = "green" | "blue" | "grey"
 
 /**
- * How far a review button's mark has got:  its FILL (decision Q20), the review buttons being Owen's INPUT (Owen,
- * 2026-10-08).
- * - `none`:  a grey outline, available;  also once Claude has handled the mark:  the buttons CLEAR, and the id chip
- *   shows the result (green decided, yellow open, red needs Owen)
+ * How far a review button's mark has got:  its FILL (decision Q20).
+ * The review buttons are Owen's INPUT (Owen, 2026-10-08):  the id chip carries the result.
+ * - `none`:  a grey outline, available
+ *   - also once Claude has handled the mark:
+ *     the buttons CLEAR, and the id chip shows the result (green decided, yellow open, red needs Owen)
  * - `dashed`:  dashed in its colour:  Owen pressed it, not committed (not sent;  a Do Now not taken yet)
  * - `outline`:  outlined in its colour:  recorded (sent;  a Do Now taken), not done yet, or in progress
  * - never solid:  solid is the chips' (and the Choose pill's, once applied)
@@ -80,9 +81,9 @@ export type ReviewButtonSpec = {
 /**
  * The line's four review buttons, in their order (decision Q20):
  * - Approve, Revisit, Make Todo (the GROUP:  what Owen makes of it)
- * - then Do Now apart, with the magic wand, as the page header's Review Now (Owen, 2026-10-09:  it was a paper
- *   plane, which a todo's "next phase" button wears now)
- *   (an action, not a state:  it replaces Add Details Now and the note box's Do Now)
+ * - then Do Now apart, with the magic wand, as the page header's Review Now
+ *   - Owen, 2026-10-09:  it was a paper plane, which a todo's "next phase" button wears now
+ *   - an action, not a state:  it replaces Add Details Now and the note box's Do Now
  * - Every one shows at every step:  a mark done can still be followed by another.
  */
 export const REVIEW_BUTTONS: readonly ReviewButtonSpec[] = [
@@ -94,8 +95,8 @@ export const REVIEW_BUTTONS: readonly ReviewButtonSpec[] = [
 
 /**
  * A TODO's review buttons (Owen, 2026-10-09), one group, in this order:
- * - the plane (`next`, green:  decided):  do it in the next phase;  `inbox apply` queues it into the first phase still
- *   to do
+ * - the plane (`next`, green:  decided):  do it in the next phase;
+ *   `inbox apply` queues it into the first phase still to do
  * - Revisit (blue):  Owen is adding a note for Claude, in the box
  * - the x (`drop`, grey:  no longer relevant):  drop it;  `inbox apply` cancels it
  * - no Approve, Make Todo or Do Now:  a todo is already the follow-up
@@ -144,8 +145,8 @@ export const NOTE_BUTTONS: readonly NoteButtonSpec[] = [
 ]
 
 /**
- * A TODO's note box buttons, in its line's order (Owen, 2026-10-09:  "the icons next to the field", the plane and the
- * x, to match the line):
+ * A TODO's note box buttons, in its line's order
+ * (Owen, 2026-10-09:  "the icons next to the field", the plane and the x, to match the line):
  * - the plane:  do it in the next phase, with this note
  * - Revisit Later:  just the note, for Claude (the line's Revisit:  "I'm adding text for you")
  * - the x:  drop it, the note saying why
@@ -200,9 +201,11 @@ export const REVIEWING = "reviewing"
 export const SHOW_NOTE = "epic-show-note"
 
 /**
- * The event an `<epic-review>` sends once Owen chose an action with it:  a review button that chose one (not one that
- * cleared a mark or called a request off:  `ReviewClient.press()` answering `"chosen"`), or a note box button.
+ * The event an `<epic-review>` sends once Owen chose an action with it:
  * `<epic-item>` folds, so Owen moves on to the next (Owen, 2026-10-10).
+ * - sent by a note box button
+ * - and by a review button that chose one (`ReviewClient.press()` answering `"chosen"`),
+ *   not one that cleared a mark or called a request off
  */
 export const CHOSEN = "epic-chosen"
 

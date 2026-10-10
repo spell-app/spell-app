@@ -5,16 +5,17 @@
  * - The DOM element is `display: contents`:  the root is the absolutely positioned box,
  *   and its containing block is the nearest positioned box around the DOM element in the flat tree:
  *   a `<ui-segment>`'s root is `position: relative`, exactly as Fomantic's `.ui.segment` is for `.ui.rail`.
- * - Distances were `rem`s (`4rem` apart, split between padding and margin);  here they are multiples of
- *   `--ui-font-size`, so a page's `html { font-size }` changes nothing.  Close / very close are `em`s,
- *   as in Fomantic, so they follow the rail's size.
+ * - Distances were `rem`s (`4rem` apart, split between padding and margin).
+ *   - Here they are multiples of `--ui-font-size`, so a page's `html { font-size }` changes nothing.
+ *   - Close / very close are `em`s, as in Fomantic, so they follow the rail's size.
  * - A rail is a `<div>`, not an `<aside>`:  its content carries the meaning (a menu, an ad, related links),
- *   and two unnamed `<aside>` landmarks on one page break axe's `landmark-unique`.  Wrap the content in a named
- *   `<aside aria-label>` where it IS complementary.
- * - Public tokens (`--ui-rail-*`, the theming surface) are NEVER declared here:  the token block reads each through a
- *   private alias, `--_ui-rail-width: var(--ui-rail-width, 300px)`, and every rule reads the alias.  So a value set on
- *   `:root`, an ancestor, the DOM element,
- *   `::part(rail)` or in the app stylesheet reaches the box (`docs/theming.md` "Component tokens").
+ *   and two unnamed `<aside>` landmarks on one page break axe's `landmark-unique`.
+ *   Wrap the content in a named `<aside aria-label>` where it IS complementary.
+ * - Public tokens (`--ui-rail-*`, the theming surface) are NEVER declared here:
+ *   the token block reads each through a private alias, and every rule reads the alias:
+ *   `--_ui-rail-width: var(--ui-rail-width, 300px)`.
+ *   So a value set on `:root`, an ancestor, the DOM element, `::part(rail)` or in the app stylesheet
+ *   reaches the box (`docs/theming.md` "Component tokens").
  */
 
 @layer ui.components.rail.types, ui.components.rail.content, ui.components.rail.variations, ui.components.rail.states;

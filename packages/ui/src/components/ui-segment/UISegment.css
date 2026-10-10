@@ -25,8 +25,9 @@
  *     there it goes back to the light scheme instead of inheriting the dark one,
  *     as in Fomantic (which paints a nested plain segment white again).
  *   - `inverted` (and a coloured inverted segment) sets `--ui-inverted: 1`,
- *     `color-scheme: dark` and `--ui-scheme: dark` on the inner box.  Every `light-dark()` token below then resolves
- *     dark, so headers, labels, dividers and parts follow with no inverted rules of their own;
+ *     `color-scheme: dark` and `--ui-scheme: dark` on the inner box.
+ *     Every `light-dark()` token below then resolves dark,
+ *     so headers, labels, dividers and parts follow with no inverted rules of their own;
  *     `UIParts.css` style-queries `--ui-inverted` for the few looks that differ.
  *   - The box's `<slot>` resets the generic colour (`--ui-color*`) and size (`--ui-scale`) tokens,
  *     so a red or large segment doesn't recolour or rescale the components inside it
@@ -35,9 +36,10 @@
  *     and `--_ui-label-owner-radius: 0` where it is attached.
  *
  * - The public tokens (`--ui-segment-*`) are NEVER declared here.
- *   The token block gives each a private alias, `--_ui-segment-radius: var(--ui-segment-radius, var(--ui-radius))`,
- *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the element,
- *   `::part(segment)` or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ *   - The token block gives each a private alias, and every rule reads the alias:
+ *     `--_ui-segment-radius: var(--ui-segment-radius, var(--ui-radius))`.
+ *   - So a value set on `:root`, an ancestor, the element, `::part(segment)` or in the app's style sheet
+ *     reaches the box (`docs/theming.md`, "Component tokens").
  *   - Set on a `<ui-segments>`, they reach its segments.
  *   - The owner side follows the page's values:  `--_ui-label-owner-edge` is the `--ui-segment-border-width` alias.
  *
@@ -50,16 +52,17 @@
  * - A nested GROUP loses its own box the same way:  `.ui.segments > .segments` (static markup)
  *   and `.ui.segments > ::slotted(ui-segments)` set the private `--_segments-*`,
  *   which the nested group's OWN inner box reads.
- *   (A nested `<ui-segments>` is a `display: contents` element, so its box can't be styled directly.)
- *   Fomantic's `.ui.segments > .ui.segments` has no border, shadow or radius of its own:
- *   just a divider line, when it isn't first.
+ *   - Why:  a nested `<ui-segments>` is a `display: contents` element, so its box can't be styled directly.
+ *   - Fomantic's `.ui.segments > .ui.segments` has no border, shadow or radius of its own:
+ *     just a divider line, when it isn't first.
  *
  * - Left out, on purpose:
  *   - rules for other components' markup:  grid, table and tab segments,
- *     the placeholder segment's inner `.button` / `.field` / `.inline` layout, and the padding next to an attached
- *     label (`+ :not(.attached)`)
- *   - `primary` / `secondary` never colour a segment's top edge (Fomantic's rule):  `secondary` is an emphasis,
- *     so `color="red" secondary` loses the red (`colors.css` maps `secondary` after the hues)
+ *     the placeholder segment's inner `.button` / `.field` / `.inline` layout,
+ *     and the padding next to an attached label (`+ :not(.attached)`)
+ *   - `primary` / `secondary` never colour a segment's top edge (Fomantic's rule):
+ *     `secondary` is an emphasis, so `color="red" secondary` loses the red
+ *     (`colors.css` maps `secondary` after the hues)
  *   - STATIC markup only:  a coloured (or `secondary`) segment recolours static segments nested in it:
  *     the colour reset lives on the inner box's `<slot>`, which static markup doesn't have
  *   - `.ui.attached + .ui.attached.segment` (no top border after an attached neighbour) is approximated
@@ -100,12 +103,13 @@
   }
 
   /*
-   * Owner tokens:  a plain segment root ALWAYS resets `--ui-inverted` to `0`, but follows the page's scheme
-   * (`color-scheme` / `--ui-scheme` inherit), so it turns dark under `themes/dark.css` or an OS preference.
+   * Owner tokens:  a plain segment root ALWAYS resets `--ui-inverted` to `0`,
+   * but follows the page's scheme (`color-scheme` / `--ui-scheme` inherit),
+   * so it turns dark under `themes/dark.css` or an OS preference.
    * - Nested in anything inverted (its parent's `--ui-inverted` is `1`), it resets to the light scheme --
    *   Fomantic paints a nested plain segment white again, it doesn't inherit the dark one.
-   * - `.ui.inverted:is(.segment, .segments)` below overrides all of it, in a LATER layer, so it always wins
-   *   regardless of nesting depth.
+   * - `.ui.inverted:is(.segment, .segments)` below overrides all of it, in a LATER layer,
+   *   so it always wins regardless of nesting depth.
    */
   .ui.segment,
   .ui.segments {
@@ -120,8 +124,8 @@
   }
 
   /*
-   * Tokens:  one per `segment.variables` entry that still matters, from the global tokens -- each the private alias
-   * of its public token (never declare the public one:  it would block inherited values).
+   * Tokens:  one per `segment.variables` entry that still matters, from the global tokens --
+   * each the private alias of its public token (never declare the public one:  it would block inherited values).
    */
   .ui.segment,
   .ui.segments {
@@ -170,8 +174,8 @@
     --_ui-segment-loader-track: var(--ui-segment-loader-track, oklch(from var(--ui-ink) l c h / 0.1));
     --_ui-segment-loader-dimmer: var(--ui-segment-loader-dimmer, oklch(from var(--ui-surface) l c h / 0.8));
     --_ui-segment-disabled-opacity: var(--ui-segment-disabled-opacity, var(--ui-disabled-opacity));
-    /* Height of a `scrolling` segment;  its default grows with the viewport (below), a value set from outside
-       wins at every width. */
+    /* Height of a `scrolling` segment;  its default grows with the viewport (below):
+       a value set from outside wins at every width. */
     --_ui-segment-scrolling-height: var(--ui-segment-scrolling-height, var(--_segment-scrolling-default, 15em));
   }
 
@@ -225,8 +229,8 @@
   }
 
   /*
-   * What the segment hands its content:  none of its own or its group's layout tokens (they'd make a nested
-   * segment raised, attached ...), no colour, no scale (see the header).
+   * What the segment hands its content:  none of its own or its group's layout tokens
+   * (they'd make a nested segment raised, attached ...), no colour, no scale (see the header).
    */
   .ui.segment > * {
     --_ui-segments-margin: initial;
@@ -445,8 +449,8 @@
   }
   /*
    * Nested group:  a divider line above it, no box of its own.
-   * - Shadow DOM:  a nested `<ui-segments>` is a `display: contents` element, so its box can't be styled from here
-   *   (`::slotted()` only reaches the top-level slotted node).
+   * - Shadow DOM:  a nested `<ui-segments>` is a `display: contents` element,
+   *   so its box can't be styled from here (`::slotted()` only reaches the top-level slotted node).
    *   So this sets the `--_segments-*` tokens above instead:
    *   they inherit into the nested element's OWN shadow root, where its `.ui.segments` reads them.
    */
@@ -558,8 +562,9 @@
   }
 
   /*
-   * Inverted:  the dark scheme.  The OWNER side:  `--ui-inverted` and `color-scheme` inherit into everything
-   * slotted, so content re-resolves its `light-dark()` tokens.  A coloured one fills with its colour.
+   * Inverted:  the dark scheme.  A coloured one fills with its colour.
+   * The OWNER side:  `--ui-inverted` and `color-scheme` inherit into everything slotted,
+   * so content re-resolves its `light-dark()` tokens.
    */
   .ui.inverted:is(.segment, .segments),
   .ui.inverted.segments > .ui.segment {

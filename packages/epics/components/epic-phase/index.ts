@@ -1,6 +1,6 @@
 /**
- * `epic-phase` family barrel:  defines `<epic-phase>`, `<epic-field>`, `<epic-updated>` (SIDE EFFECT) and exports
- * their classes.
+ * `epic-phase` family barrel:  defines `<epic-phase>`, `<epic-field>`, `<epic-updated>` (SIDE EFFECT),
+ * and exports their classes.
  * - Defines the family `<epic-phase>` draws in its shadow root first:  `<epic-review>`.
  */
 import "$/epics/components/epic-review"

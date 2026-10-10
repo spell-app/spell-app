@@ -1,9 +1,9 @@
 /**
- * Every name `<ui-brand-composer>` uses:  tag, attributes, events, slots, parts, states, texts.  Schema:
- * `E.ComponentVocabulary`.
+ * Every name `<ui-brand-composer>` uses:  tag, attributes, events, slots, parts, states, texts.
+ * Schema:  `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
- * - Class words:  `casting` and `disabled` emit their names.  The element adds `brand` before the noun,
- *   and `large` for `size="large"` (`brand large composer`).
+ * - Class words:  `casting` and `disabled` emit their names.
+ *   The element adds `brand` before the noun, and `large` for `size="large"` (`brand large composer`).
  * - `value` does NOT reflect, as `<ui-textarea>`'s:  the ATTRIBUTE is the starting (and reset) value,
  *   the PROPERTY the live one.
  */
@@ -12,9 +12,9 @@ import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-brand-composer>`
- * The brand's "describe your app" box:  a card holding a serif text box where you write a spell, then a row of
- * tools (chips), a keyboard hint and a round Cast button.  Cast is the button or Cmd / Ctrl+Enter;
- * plain Enter starts a new line.
+ * The brand's "describe your app" box:  a card holding a serif text box where you write a spell,
+ * then a row of tools (chips), a keyboard hint and a round Cast button.
+ * Cast is the button or Cmd / Ctrl+Enter;  plain Enter starts a new line.
  ****************/
 export const brandComposerVocabulary = {
   tag: "ui-brand-composer",

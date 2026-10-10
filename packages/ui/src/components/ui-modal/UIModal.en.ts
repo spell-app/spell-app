@@ -6,11 +6,13 @@
  *   `active`, Fomantic's shown-modal class, is the element's own while it shows (the shared `visible` / `hidden`).
  * - Sizes are WIDTHS here (Fomantic's modal ratios), not text sizes:
  *   `UIModal.css` reads the size class, never `--ui-scale`.
- * - A modal OWNS the `header`, `content`, `description` and `actions` parts:  slotted ones get `:state(in-modal)`
- *   and style themselves from `UIParts.css`, reading `--_ui-modal-basic` / `--_ui-modal-header-size` (`UIModal.css`).
- * - `closedby` mirrors `<dialog closedby>`:  `any` (Fomantic's `closable: true`), `closerequest` (Escape only),
- *   `none`.  `closable` is the close ICON (Fomantic's `closeIcon`), and `closable="false"` also brings back
- *   Fomantic's `closable: false` (dismissal `none`) unless `closedby` is set.
+ * - A modal OWNS the `header`, `content`, `description` and `actions` parts:
+ *   slotted ones get `:state(in-modal)` and style themselves from `UIParts.css`,
+ *   reading `--_ui-modal-basic` / `--_ui-modal-header-size` (`UIModal.css`).
+ * - `closedby` mirrors `<dialog closedby>`:
+ *   `any` (Fomantic's `closable: true`), `closerequest` (Escape only), `none`.
+ * - `closable` is the close ICON (Fomantic's `closeIcon`).
+ *   `closable="false"` also brings back Fomantic's `closable: false` (dismissal `none`), unless `closedby` is set.
  */
 
 import type { E } from "$/ui/core"

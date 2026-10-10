@@ -44,8 +44,8 @@ export class DOMFieldElement extends E.DOMElement<UIField> {
  *   which hands it its width and gutter as inherited tokens.
  * - It hands its controls inherited owner tokens (`InputOwnerTokens`):  full width, and its state's colours.
  *
- * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  the root `inert`,
- *   so the slotted controls can't be used, and `aria-disabled`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   the root `inert`, so the slotted controls can't be used, and `aria-disabled`.
  *   - The root also says `inert` itself, for the static render:  the base class's reaches only a browser.
  * - Always carries `:state(field)`, which is how `<ui-form>` finds a control's field.
  ****************/

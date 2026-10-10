@@ -23,14 +23,17 @@ import newItemCSS from "./EpicNewItem.css?inline"
 
 /****************
  * ### `EpicNewItem`
- * The component behind `<epic-new-item>`:  NEW ITEMS from the page (epic `airplane` P2) -- Owen asks for a new todo or
- * question while he reads, with no Claude session needed.
- * - `<epic-page>` draws one in its header while its toolbar button is pressed (`open`:  the form alone, on a row of
- *   its own), and lets go of it once it closes (`epic-new-closed`);
- *   a Todos or Questions `<epic-section>` at its end (`adds`:  the `+` and its words, the form in its place), after
- *   the waiting items it lists itself.
- * - What's asked for is a mark in the review inbox, `{ action: "new", kind, title, note?, near? }` under a key of its
- *   own (`new1` ...):  sent with the next Send, made into an item by `plan-doc inbox apply`.
+ * The component behind `<epic-new-item>`:  NEW ITEMS from the page (epic `airplane` P2).
+ * Owen asks for a new todo or question while he reads, with no Claude session needed.
+ * - Who draws one:
+ *   - `<epic-page>`, in its header while its toolbar button is pressed
+ *     (`open`:  the form alone, on a row of its own);  it lets go of it once it closes (`epic-new-closed`)
+ *   - a Todos or Questions `<epic-section>`, at its end, after the waiting items it lists itself
+ *     (`adds`:  the `+` and its words, the form in its place)
+ * - What's asked for is a mark in the review inbox, under a key of its own (`new1` ...):
+ *   `{ action: "new", kind, title, note?, near? }`
+ *   - sent with the next Send
+ *   - made into an item by `plan-doc inbox apply`
  * - Shown only while the page is reviewed:  the family that draws it wraps it in `<Show>`.
  * - SIDE EFFECT:  follows the review inbox while connected.
  ****************/
@@ -107,11 +110,17 @@ export class EpicNewItem extends E.UIComponent<EpicNewItemVocabulary> {
   private nearInput: HTMLInputElement | undefined
 
   /**
-   * The form for a new todo or question (`item`:  changing a waiting one):  what it is (Todo | Question), its title,
-   * a note that grows as it's typed in, what it's about (an id, if any), then Add (Save, when changing one) and Cancel.
+   * The form for a new todo or question (`item`:  changing a waiting one), in its order:
+   * - what it is (Todo | Question)
+   * - its title
+   * - a note that grows as it's typed in
+   * - what it's about (an id, if any)
+   * - then Add (Save, when changing one) and Cancel
+   *
+   * How it acts:
    * - Enter in the title, or Ctrl / Cmd + Enter anywhere, adds it;  Escape cancels
-   * - saved to the inbox (`ReviewClient.saveNew()`):  the client says it's saved, and where it waits;
-   *   a refused one (a bad id in About) says why, and the form stays open with what was typed
+   * - saved to the inbox (`ReviewClient.saveNew()`):  the client says it's saved, and where it waits
+   *   - a refused one (a bad id in About) says why, and the form stays open with what was typed
    * - a title is needed:  without one, the title takes the focus and the notice line says so
    * - the title takes the focus as it opens (`onOpened()`)
    * - drawn anew each time it opens, or opens on another item:  its fields start from `item`, `adds` and `near`
@@ -204,8 +213,10 @@ export class EpicNewItem extends E.UIComponent<EpicNewItemVocabulary> {
   }
 
   /**
-   * The form opened (or opened on another item):  its kind is the item's, else the section's own, else a todo;
-   * nothing saving;  its title takes the focus, once it's drawn.
+   * The form opened (or opened on another item):
+   * - its kind is the item's, else the section's own, else a todo
+   * - nothing saving
+   * - its title takes the focus, once it's drawn
    */
   @E.onChange("isOpen", "editing")
   protected onOpened(open: boolean, editing: string | undefined) {

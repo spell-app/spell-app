@@ -1,7 +1,8 @@
 /**
  * Every name `<epic-phase>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from `epic-section`'s types file, data too, and the
- *   review controls' parts (`REVIEW_PARTS`) from `epic-review`'s:  a phase takes review notes (epic `airplane` P2).
+ * - Pure data:  `import type`, plus two types files' data:
+ *   - the fold pieces (`FOLD_*`), from `epic-section`'s
+ *   - the review controls' parts (`REVIEW_PARTS`), from `epic-review`'s:  a phase takes review notes (epic `airplane` P2)
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 

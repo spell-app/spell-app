@@ -27,8 +27,8 @@ import feedCSS from "./UIFeed.css?inline"
  * - Colour:  an event has no `ui`,
  *   so a coloured one adds `ui-<color>` (the utility remap class) for `colors.css`, as `<ui-item>` does.
  *
- * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):  faded, its content inert,
- *   `aria-disabled`.
+ * - `disabled`:  unusable, the base class's way (`elementSetup.disabled`):
+ *   faded, its content inert, `aria-disabled`.
  ****************/
 export class UIFeedEvent extends E.UIComponent<typeof eventVocabulary> {
   @E.proto static vocabulary = eventVocabulary

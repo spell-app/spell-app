@@ -22,8 +22,8 @@ import {
 
 /****************
  * ### `InboxCommands`
- * `spell dev plan-doc inbox <name> [<what> ...]`:  the review inbox of an epic's doc (`ReviewInbox`), from Claude's
- * side;  `<what>` none prints it.
+ * `spell dev plan-doc inbox <name> [<what> ...]`:  the review inbox of an epic's doc (`ReviewInbox`),
+ * from Claude's side;  `<what>` none prints it.
  * - every inbox write goes through `ReviewInbox.update()` (the inbox's lock);
  *   doc edits through `PlanDocCommands.edit()` (the doc's)
  * - the session's commands (`wait`, `apply`, `working`, `done`, `clear`) stamp its heartbeat (`touchListening()`):
@@ -192,8 +192,9 @@ export class InboxCommands {
   ////////////////
 
   /**
-   * `inbox <name> wait`:  poll the inbox every second until there's work (`hasWork`), TAKE it under the lock
-   * (`takeWork()`) and print it (`printWork()`);  none by `timeout` seconds (default 3300, 55 minutes):  exit code 2.
+   * `inbox <name> wait`:  poll the inbox every second until there's work (`hasWork`),
+   * TAKE it under the lock (`takeWork()`) and print it (`printWork()`).
+   * - none by `timeout` seconds (default 3300, 55 minutes):  exit code 2
    * - how a `/epic review` session hears the page:  run in the background, its EXIT wakes the session
    * - the poll reads without the lock (atomic writes:  never half a file);  only taking locks
    * - the session's HEARTBEAT:  stamps `listening.seen` at the start and every `LISTEN_HEARTBEAT_MS`
@@ -231,8 +232,8 @@ export class InboxCommands {
     }
 
     /**
-     * Stamp the listening session's heartbeat;  nobody listening:  no write at all.  A file that can't be read
-     * (hand-edited mid-poll) is skipped:  the next beat tries again.
+     * Stamp the listening session's heartbeat;  nobody listening:  no write at all.
+     * - a file that can't be read (hand-edited mid-poll) is skipped:  the next beat tries again
      */
     function heartbeat() {
       if (!peek(path).listening) return
@@ -245,8 +246,8 @@ export class InboxCommands {
   }
 
   /**
-   * Print the work `wait` took (`takeWork()`'s `{ now, sent, canceled }`), each mark with its item
-   * (`describeItem()`):  id, kind, status, title, the mark, the note, a pick's option card.
+   * Print the work `wait` took (`takeWork()`'s `{ now, sent, canceled }`), each mark with its item (`describeItem()`):
+   * id, kind, status, title, the mark, the note, a pick's option card.
    * - plain lines for Claude to read, then what to run next
    * - `json`:  `{ now, sent, canceled }` with `item` (and `option`) on each
    */
@@ -340,9 +341,12 @@ export class InboxCommands {
   /**
    * `inbox <name> apply [ids...]`:  apply the SENT mechanical marks, all or those of `ids`, then clear them;
    * prints a line per item, and what it left.
-   * - the marks:  approve, pick, todo, a todo's `next` (queued into the next phase) and `drop` (canceled), `skip`
-   *   (the note box's x:  reviewed, nothing to do), new (`PlanDoc.applyMark()`),
-   *   and the sent urgency (an id chip clicked:  `PlanDoc.setCalm()`)
+   * - the marks (`PlanDoc.applyMark()`):
+   *   - approve, pick, todo
+   *   - a todo's `next` (queued into the next phase) and `drop` (canceled)
+   *   - `skip` (the note box's x:  reviewed, nothing to do)
+   *   - new
+   *   - and the sent urgency (an id chip clicked:  `PlanDoc.setCalm()`)
    * - a dry run on a parsed copy first:  the doc is written (`edit()`, its lock) only when something applies
    * - marks cleared under the inbox's lock, only while still the ones applied (`clearApplied()`, `clearUrgency()`);
    *   marks of items gone from the doc are dropped too
@@ -388,16 +392,18 @@ export class InboxCommands {
   }
 
   /**
-   * `done` / `clear` items `ids`:  their marks go (`done` keeps one Owen changed while the agent worked,
-   * `finishMarks()`;  `clear` drops it), and their `working` too.
+   * `done` / `clear` items `ids`:  their marks go, and their `working` too.
+   * - `done` keeps a mark Owen changed while the agent worked (`finishMarks()`);  `clear` drops it
    * - a mark leaving with Owen's note in it:  the note is kept IN the item first, as his own reply card
    *   (`PlanDoc.keepNote()`, epic `windows-and-review` P1):  what he wrote is never lost from the page
-   * - a request taken care of is recorded as handled that way (`review-as`;  the page's buttons clear, the chip
-   *   shows the result):  an immediate one (Do Now:  Add Details, revisit now) as `now`, a revisit talked over as
-   *   `revisit`
-   * - a mark leaving with Owen's PICK on it ("pick B, but ..."):  the pick is kept too, as that card set's `chosen`
-   *   with a Noted card (`PlanDoc.keepPick()`), unless the set has a `chosen` already (a `decide --option` after
-   *   the talk):  once Owen picked, the card shows Chosen (Owen, 2026-10-10, epic `airplane` P8)
+   * - a request taken care of is recorded as handled that way
+   *   (`review-as`;  the page's buttons clear, the chip shows the result):
+   *   - an immediate one (Do Now:  Add Details, revisit now) as `now`
+   *   - a revisit talked over as `revisit`
+   * - a mark leaving with Owen's PICK on it ("pick B, but ..."):
+   *   the pick is kept too, as that card set's `chosen` with a Noted card (`PlanDoc.keepPick()`)
+   *   - unless the set has a `chosen` already (a `decide --option` after the talk)
+   *   - once Owen picked, the card shows Chosen (Owen, 2026-10-10, epic `airplane` P8)
    */
   private async finish(file: string, what: "done" | "clear", given: string[]): Promise<void> {
     if (!given.length) throw new PlanDocError(`${what} which items?  ids`)
@@ -458,8 +464,9 @@ export class InboxCommands {
   }
 
   /**
-   * `done` / `clear` comments `ids` (`cm3`, epic `airplane` P11):  `done`, answered (Claude answered it in the doc;
-   * the page's card turns solid, "Answered");  `clear`, gone from the inbox.
+   * `done` / `clear` comments `ids` (`cm3`, epic `airplane` P11).
+   * - `done`:  answered (Claude answered it in the doc;  the page's card turns solid, "Answered")
+   * - `clear`:  gone from the inbox
    * - throws when one isn't there
    * - SIDE EFFECT:  writes the inbox, under its lock
    */
@@ -494,8 +501,8 @@ type Applied = { mark: ListedMark } & MarkResult
 type UrgencyApplied = { entry: ListedUrgency; did: string; changed: boolean }
 
 /**
- * Apply sent urgency `entry` to `plan` (`PlanDoc.setCalm()`), logged;  an item gone from the doc, or already so,
- * changes nothing (its entry is cleared all the same).
+ * Apply sent urgency `entry` to `plan` (`PlanDoc.setCalm()`), logged.
+ * - an item gone from the doc, or already so, changes nothing (its entry is cleared all the same)
  */
 function urgencyOn(plan: PlanDoc, entry: ListedUrgency): UrgencyApplied {
   if (!plan.findItem(entry.id)) return { entry, did: "no such item:  urgency dropped", changed: false }

@@ -15,9 +15,10 @@
  *
  * - Why tags of their own, when `AGENTS.md` forbids `ui-card-header`-style names:
  *   that rule is about CONTENT parts, which mean the same thing in every owner.
- *   Fomantic's placeholder `.header`, `.paragraph`, `.line` and `.image` hold no content:
- *   they're skeleton SHAPES (a header is a block of two bars), and `<ui-header>` / `<ui-image>` would drag in heading
- *   and image meaning and styles.  So they're `ui: false` components of their own, styled only here.
+ *   - Fomantic's placeholder `.header`, `.paragraph`, `.line` and `.image` hold no content:
+ *     they're skeleton SHAPES (a header is a block of two bars).
+ *   - `<ui-header>` / `<ui-image>` would drag in heading and image meaning and styles.
+ *   - So they're `ui: false` components of their own, styled only here.
  *
  * - The DOM elements are `display: contents` (`:host`):  the inner boxes stack as plain blocks
  *   inside the placeholder's box.
@@ -28,33 +29,34 @@
  *     so they never match inside a shape's shadow root.
  *
  * - Context without `:host-context`:  a line can't see whether it's in a header or a paragraph.
- *   So the placeholder's box declares the paragraph defaults, and a header's box declares them again
- *   as inherited private tokens:  the bar height (`--_placeholder-bar`)
- *   and the outdent of its 1st … 5th line (`--_placeholder-outdent-<n>`), which each line picks by its own position.
+ *   So the placeholder's box declares the paragraph defaults,
+ *   and a header's box declares them again, as inherited private tokens:
+ *   - the bar height (`--_placeholder-bar`)
+ *   - the outdent of its 1st … 5th line (`--_placeholder-outdent-<n>`), which each line picks by its own position
  *   - NEVER set `--_placeholder-*` (or `--_ui-*`) from outside:  theme with `--ui-placeholder-*`.
  *   - The shapes MUST sit inside a `<ui-placeholder>`, whose box declares the line context.
  *
  * - The public tokens (`--ui-placeholder-*`) are NEVER declared here.
- *   The token block gives each a private alias,
- *   `--_ui-placeholder-radius: var(--ui-placeholder-radius, var(--ui-radius-s))`,
- *   declared on the placeholder's box AND every shape's box, and every rule reads the alias.
- *   So a value set on `:root`, an ancestor, the element, `::part(placeholder)` (or a shape's element or `::part()`)
- *   or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ *   - The token block gives each a private alias, and every rule reads the alias:
+ *     `--_ui-placeholder-radius: var(--ui-placeholder-radius, var(--ui-radius-s))`.
+ *   - The aliases are declared on the placeholder's box AND every shape's box.
+ *   - So a value set on `:root`, an ancestor, the element, `::part(placeholder)` (or a shape's element or `::part()`)
+ *     or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
  *
  * - Consecutive placeholders (Fomantic's `.ui.placeholder + .ui.placeholder` gap):
- *   a shadow root can't see its element's previous sibling, so the `:host` rule counts placeholder siblings instead:
- *   `:host(:nth-child(n + 2 of :state(placeholder)))`.
- *   The component MUST set `:state(placeholder)` on every `<ui-placeholder>`, always.
- *   A placeholder after other content keeps its margin, as before.
+ *   a shadow root can't see its element's previous sibling,
+ *   so the `:host` rule counts placeholder siblings instead:  `:host(:nth-child(n + 2 of :state(placeholder)))`.
+ *   - The component MUST set `:state(placeholder)` on every `<ui-placeholder>`, always.
+ *   - A placeholder after other content keeps its margin, as before.
  *
- * - The shimmer, MODERNIZED:  Fomantic paints ONE gradient on `.ui.placeholder`,
- *   and masks the gaps between bars with pseudo-elements in the page colour (`@white` / `@black`),
- *   which shows as white stripes on any other surface.
- *   Here each SHAPE (a line, an image, an image header's square) paints the gradient itself,
- *   on a transparent placeholder, so it works on any surface, in either scheme.
- *   To keep Fomantic's one sweeping band, the gradient is `background-attachment: fixed`,
- *   with a shared size and one keyframe (`ui-placeholder-shimmer`):
- *   every shape shows its slice of the SAME viewport-wide band, lined up across shapes and placeholders.
+ * - The shimmer, MODERNIZED:  each SHAPE paints the gradient itself, so it works on any surface, in either scheme.
+ *   - Fomantic paints ONE gradient on `.ui.placeholder`,
+ *     and masks the gaps between bars with pseudo-elements in the page colour (`@white` / `@black`),
+ *     which shows as white stripes on any other surface.
+ *   - Here each shape (a line, an image, an image header's square) paints it, on a transparent placeholder.
+ *   - To keep Fomantic's one sweeping band, the gradient is `background-attachment: fixed`,
+ *     with a shared size and one keyframe (`ui-placeholder-shimmer`):
+ *     every shape shows its slice of the SAME viewport-wide band, lined up across shapes and placeholders.
  *   - where `fixed` isn't honoured (iOS Safari), each shape shimmers on its own:  still fine
  *   - Fomantic's staggered delays for consecutive placeholders are dropped:  they'd break the alignment
  *   - the colours are ink alphas (`--ui-ink`), so the dark scheme (`inverted`, or any dark surface) flips them
@@ -65,9 +67,9 @@
  *   so the frozen band never shows).
  *
  * - Accessibility (the COMPONENTS' job):  a placeholder is decorative.
- *   The `<ui-placeholder>` element is `aria-hidden` (through `internals`), and the shapes draw no text.
- *   The region that's loading announces it (`aria-busy`, a `<ui-loader>` or a `loading` segment),
- *   once, not once per skeleton.
+ *   - The `<ui-placeholder>` element is `aria-hidden` (through `internals`), and the shapes draw no text.
+ *   - The region that's loading announces it (`aria-busy`, a `<ui-loader>` or a `loading` segment),
+ *     once, not once per skeleton.
  *
  * - Left out, on purpose:
  *   - the `hidden` class:  the element's `hidden` attribute covers it

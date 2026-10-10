@@ -53,9 +53,10 @@ import rootCSS from "./UIRoot.css?inline"
  * - Static server render (`$/ui/static`):  nothing loads and nothing is hidden;
  *   the root is a plain wrapper (`serverWrapper()`).
  *   None of its `@E.onChange` effects runs there (none writes the DOM element).
- * - A subclass is a root too (`elementSetup.root`), under its own tag:  `<spell-app>`, which draws an app instead of
- *   a `<slot>` (`content()`), loads what's inside its shadow root too (`contentRoots`), and loads tags of its own
- *   (`ownTagLoader()`).  Its vocabulary has the root's names, plus its own.
+ * - A subclass is a root too (`elementSetup.root`), under its own tag, e.g. `<spell-app>`:
+ *   - it draws an app instead of a `<slot>` (`content()`)
+ *   - it loads what's inside its shadow root too (`contentRoots`), and tags of its own (`ownTagLoader()`)
+ *   - its vocabulary has the root's names, plus its own
  ****************/
 export class UIRoot<V extends E.ComponentVocabulary = RootVocabulary> extends E.UIComponent<V> {
   @E.proto static vocabulary: E.ComponentVocabulary = rootVocabulary

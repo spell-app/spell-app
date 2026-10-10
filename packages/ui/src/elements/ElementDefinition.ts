@@ -8,7 +8,7 @@ import { E } from "$/ui/core"
  *   - its camelCase CANONICAL key (what the component reads, `this.allowAdditions`)
  *   - its (localized) attribute and property names
  *   - then the shared attributes the vocabulary doesn't declare, under their English names on a translated tag too
- *     (`SharedVocabulary`:  `disabled`, `loading`, `visible`)
+ *     (`SharedVocabulary`:  `disabled`, `loading`, `visible`, `animation`)
  * - The DOM element (`DOMElement`) does the rest:  a property per attribute, the upgrade step, reflection.
  * - ONE conversion per kind of value, each way:
  *   - `convert()`:  attribute text or property value => value
@@ -55,7 +55,7 @@ export class ElementDefinition {
     // no tag and no dictionary is the vocabulary's OWN tag, whatever its prefix (`x-item-owner` in tests)
     this.tag = tag ?? (dictionary ? localized.tag : vocabulary.tag)
     this.builder = new E.ClassBuilder(vocabulary)
-    // the vocabulary's own, then the shared ones it doesn't declare (`disabled`, `loading`, `visible`)
+    // the vocabulary's own, then the shared ones it doesn't declare (`disabled`, `loading`, `visible`, `animation`)
     this.attributes = E.SharedVocabulary.attributesFor(vocabulary).map((spec) => {
       const attribute = localized.names.attributes.get(spec.name) ?? spec.name
       const key = E.camelCase(spec.name)

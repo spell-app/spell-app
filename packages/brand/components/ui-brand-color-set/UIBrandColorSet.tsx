@@ -56,8 +56,8 @@ function isSameChips(a: readonly SetChip[], b: readonly SetChip[]): boolean {
  *   - A choice sends `ui-change`, then sets `value`, unless a handler set it first.
  * - Watches its children and their `name` / `value` / `selected` (`@watches`), so chips added,
  *   removed or recoloured later just work.
- * - SIDE EFFECT:  writes its chips' `selected` (while `value` is set), `choice` and `tabindex` (while
- *   `selectable`);  a chip that leaves the set gets its `choice` and `tabindex` back.
+ * - SIDE EFFECT:  writes its chips' `selected` (while `value` is set), `choice` and `tabindex` (while `selectable`);
+ *   a chip that leaves the set gets its `choice` and `tabindex` back.
  ****************/
 export class UIBrandColorSet extends E.UIComponent<BrandColorSetVocabulary> {
   @E.proto static vocabulary = brandColorSetVocabulary

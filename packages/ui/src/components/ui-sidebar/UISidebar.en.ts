@@ -7,8 +7,9 @@
  *   `ui right thin scale down visible sidebar`.
  *   Without `transition`, the element adds Fomantic's default for its side
  *   (`uncover` left / right, `overlay` top / bottom).
- * - `visible` / `hidden` are every element's (`SharedVocabulary`):  a sidebar starts hidden (`elementSetup.visible`);
- *   the element adds the `visible` class word while it shows.  `ui-open` / `ui-close` can veto a person's changes.
+ * - `visible` / `hidden` are every element's (`SharedVocabulary`):  a sidebar starts hidden (`elementSetup.visible`).
+ *   - The element adds the `visible` class word while it shows.
+ *   - `ui-open` / `ui-close` can veto a person's changes.
  * - `position` and `transition` are `kind: "valueOnly"`:  each emits its value alone.
  * - `width` (`kind: "width"`, as `<ui-flyout>`'s) takes Fomantic's sidebar words (`very thin` ... `very wide`),
  *   which the element adds before the noun (`ui left thin sidebar`),

@@ -9,8 +9,14 @@ import type { UISearch } from "$/ui/components/ui-search/UISearch"
 import "$/ui/index"
 
 /**
- * The shared states every element takes, though its vocabulary may not name them (`UIComponent`, "Shared states";
- * `SharedVocabulary`):  `disabled`, `loading`, `visible` (the platform's `hidden` turned round), `animation`, and the platform's `inert`.
+ * The shared states every element takes, though its vocabulary may not name them
+ * (`UIComponent`, "Shared states";  `SharedVocabulary`):
+ * - `disabled`
+ * - `loading`
+ * - `visible` (the platform's `hidden` turned round)
+ * - `animation`
+ * - the platform's `inert`
+ *
  * - A family with no `disabled` of its own (`<ui-menu>`) is unusable the base class's way;
  *   one with its own keeps it (`elementSetup.disabled`).
  */

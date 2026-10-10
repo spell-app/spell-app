@@ -16,9 +16,9 @@ import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 /****************
  * ### `EpicUpdated`
  * The component behind `<epic-updated>`:
- * one dated change to a phase's plan, FENCED under its Symptom / Changes (a dashed orange box) --
- * the fold chevron, its icon, `Updated` and the time (`at`, to the minute), the phase under way then;
- * under them, what changed (its children).
+ * one dated change to a phase's plan, FENCED under its Symptom / Changes (a dashed orange box).
+ * - its heading:  the fold chevron, its icon, `Updated` and the time (`at`, to the minute), the phase under way then
+ * - under them:  what changed (its children)
  * - Folds by its heading row (Owen, 2026-10-08:  everything in a section box folds):
  *   open to start with;  page state, never written;  folded, what changed is `hidden="until-found"`.
  * - Kept once the phase is done:  the record of how the plan moved.

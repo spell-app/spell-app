@@ -15,13 +15,14 @@ import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 
 /****************
  * ### `EpicReply`
- * The component behind `<epic-reply>`:  a reply on an item, after its answer -- a card, its heading band
- * `<from> · re: <re>` with the date (`at`) at its right, `10/7/26 10:50` (each part only when set), then the reply
- * (its light children).
- * - The band is a flex row (`.header.dated`):  the fold chevron, then who and what about on the left, free to wrap;
- *   the date pinned to the right of the TOP line, never wrapping under them, at any width (Owen, 2026-10-08, P13).
- * - Folds by its band (Owen, 2026-10-08:  "Owen/Claude entries in the text should be collapsible"):  open to start
- *   with, as it's what's being read;  page state, never written;  folded, the reply is `hidden="until-found"`.
+ * The component behind `<epic-reply>`:  a reply on an item, after its answer.
+ * - A card:  its heading band, then the reply (its light children).
+ * - The band:  `<from> · re: <re>`, with the date (`at`) at its right, `10/7/26 10:50`;  each part only when set.
+ *   - a flex row (`.header.dated`):  the fold chevron, then who and what about on the left, free to wrap
+ *   - the date pinned to the right of the TOP line, never wrapping under them, at any width (Owen, 2026-10-08, P13)
+ * - Folds by its band (Owen, 2026-10-08:  "Owen/Claude entries in the text should be collapsible"):
+ *   - open to start with, as it's what's being read;  page state, never written
+ *   - folded, the reply is `hidden="until-found"`
  * - Claude's (or anyone's but Owen's):  violet, the brand's action colour, apart from the warm answer card.
  * - Owen's (`from="Owen"`):  his ivory, as his note box and answer card (decision Q20).
  ****************/

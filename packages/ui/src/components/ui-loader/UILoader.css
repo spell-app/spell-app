@@ -5,7 +5,7 @@
  *   `<div class="ui [size] [color] [speed] [keyOnly ...] loader" part="loader"><slot></slot></div>`
  *   - the default slot is a `text` loader's text;  the spinner is the box's `::before` (track)
  *     and `::after` (arc), both decorative
- *   - `speed` writes its value alone (`slow` / `fast`), so its vocabulary kind is `color`
+ *   - `speed` writes its value alone (`slow` / `fast`), so its vocabulary kind is `valueOnly`
  *     (as the dropdown's `state`);  `ClassBuilder` puts it right after the hue
  *
  * - Accessibility (the COMPONENT's job, noted here because the sheet can't do it):
@@ -17,11 +17,12 @@
  *   So a centred loader is absolutely positioned against the nearest positioned ancestor in the flat tree,
  *   across shadow boundaries, exactly where Fomantic's `<div class="ui loader">` would sit.
  *
- * - Visibility:  Fomantic's rule, kept.  A loader shows only when `active` (or inside an active dimmer);
- *   `disabled` hides it again.  `display` is a private token,
- *   so `inline` / `centered` pick the shown display without fighting the `states` sublayer.
- *   - The element writes `active` on its box while it's `visible` (or fading out):
+ * - Visibility:  Fomantic's rule, kept:  a loader shows only when `active` (or inside an active dimmer).
+ *   - The component puts `active` on its box while the element is `visible` (or fading out):
  *     the shared `visible` / `hidden`, starting hidden.
+ *   - `disabled` hides it again.
+ *   - `display` is a private token,
+ *     so `inline` / `centered` pick the shown display without fighting the `states` sublayer.
  * - `:state(hidden)` and `:state(disabled)`, set by the component, are for the PAGE's styles only;
  *   this sheet keys on the box's classes.
  *
@@ -35,8 +36,9 @@
  *
  * - The public tokens (`--ui-loader-*`) are NEVER declared here.
  *   The token block gives each a private alias, `--_ui-loader-size: var(--ui-loader-size, 2em)`,
- *   and every rule reads the alias.  So a value set on `:root`, an ancestor, the element,
- *   `::part(loader)` or in the app's style sheet reaches the box (`docs/theming.md`, "Component tokens").
+ *   and every rule reads the alias.
+ *   So a value set on `:root`, an ancestor, the element, `::part(loader)` or in the app's style sheet
+ *   reaches the box (`docs/theming.md`, "Component tokens").
  *
  * - The keyframes are this sheet's OWN (`ui-loader-spin`, `ui-loader-elastic`), not the transition catalogue.
  * - Reduced motion:  in static markup the spin slows to a third (`--_loader-motion`) rather than stopping,
@@ -102,7 +104,7 @@
 
 @layer ui.components.loader.types {
   /* The DOM element:  no box of its own;  the inner box is the loader. */
-  /* `hidden` is `reset.css`'s:  it keeps a loader on screen while it fades out. */
+  /* No `:host([hidden])`:  hiding is `reset.css`'s, which keeps a loader on screen while it fades out. */
   :host {
     display: contents;
   }
