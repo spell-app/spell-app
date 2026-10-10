@@ -1,5 +1,5 @@
-import { Show, onSettled } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { Show } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
@@ -54,13 +54,13 @@ export class EpicChoices extends E.UIComponent<typeof epicChoicesVocabulary> {
     return this.questionIsAnswered ? ANSWERED : undefined
   }
 
-  onMount(): JSX.Element {
-    if (!isServer) {
-      onSettled(() =>
-        EpicChoices.watch(this.domElement, () => (this.questionIsAnswered = EpicChoices.isAnswered(this.domElement)))
-      )
-    }
-    return super.onMount()
+  /**
+   * While connected:  follow whether its question is answered.  Returns the undo.
+   * - `watch()`'s own `MutationObserver`, not `@fromContent`:  it watches its `<epic-item>`, an ANCESTOR.
+   */
+  @E.whileConnected
+  protected watchQuestion() {
+    return EpicChoices.watch(this.domElement, () => (this.questionIsAnswered = EpicChoices.isAnswered(this.domElement)))
   }
 
   render(): JSX.Element {

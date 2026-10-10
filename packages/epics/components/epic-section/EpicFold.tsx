@@ -1,4 +1,4 @@
-import { Show, createEffect, onSettled, untrack } from "solid-js"
+import { Show, untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -27,6 +27,8 @@ import {
  ****************/
 export class DOMEpicFoldElement extends E.DOMLoadableBodyElement<EpicFold<any>> {
   get contentsEntry(): ContentsEntry | undefined {
+    // `untrack()` by hand:  a DOM element is no component,
+    // and subclasses override `contentsEntry()`, so `@E.untracked` on the base method wouldn't cover them
     return untrack(() => this.component?.contentsEntry())
   }
 }
@@ -104,22 +106,26 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
     return this.foldAttrs.source ? this.body.load().catch(() => undefined) : Promise.resolve()
   }
 
-  /** The inner section, as it's drawn:  take over its folding, and read its stack once it's ready. */
+  /** The inner section, as it's drawn:  read its stack once it's ready. */
   private readonly watchInner = (element: HTMLElement) => {
-    element.addEventListener("ui-open", this.onInnerToggle)
-    element.addEventListener("ui-close", this.onInnerToggle)
     const section = element as E.DOMElement
     void section.ready.then(() => (this.inner = section.component as unknown as SectionStack))
   }
 
   /**
    * The inner section's own `ui-open` / `ui-close` (the title clicked, or find-in-page):  this element's instead.
-   * - a nested fold's events bubble through here too (its DOM element is slotted inside):  only the inner section's own
-   * - cancelable (a click):  cancelled and stopped, then `toggle()`;  not (find-in-page):  adopted, and stopped
+   * - Heard on the shadow root, which the inner section's events reach on their way out.
+   * - A nested fold's events bubble through here too (its DOM element is slotted inside),
+   *   and so do those of a `<ui-section>` among the light children:
+   *   only the inner section's own, the one sender in this shadow root.
+   * - Cancelable (a click):  cancelled and stopped, then `toggle()`;  not (find-in-page):  adopted, and stopped.
    */
-  private readonly onInnerToggle = (event: Event) => {
+  @E.on("ui-open", { target: "renderRoot" })
+  @E.on("ui-close", { target: "renderRoot" })
+  protected onInnerToggle(event: Event) {
     const detail = (event as CustomEvent<{ section?: Element; originalEvent?: Event }>).detail
-    if (event.target !== event.currentTarget || detail?.section !== event.currentTarget) return
+    const sender = event.target as Node
+    if (sender.getRootNode() !== event.currentTarget || detail?.section !== sender) return
     event.stopPropagation()
     if (!event.cancelable) {
       void this.reveal()
@@ -165,11 +171,23 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
   /** The children from `source`, loaded the first time it opens;  into the DOM element's light DOM. */
   readonly body = new E.LoadableBody({
     domElement: this.domElement,
-    source: () => untrack(() => this.foldAttrs.source) || undefined,
+    source: () => this.partSource(),
     select: () => undefined,
     target: () => this.domElement,
     send: (name, detail) => this.send(name as never, detail)
   })
+
+  /** Its `source`, for `body`:  untracked, so a load never follows it. */
+  @E.untracked
+  private partSource(): string | undefined {
+    return this.foldAttrs.source || undefined
+  }
+
+  /** Load the `source` part whenever it's open and connected (every fold's vocabulary has `source`). */
+  @E.onChange("source", "isOpen", "isConnected")
+  protected onSourceShown(source: string | undefined, open: boolean, connected: boolean) {
+    if (source && open && connected) this.body.load().catch(() => undefined)
+  }
 
   /** Inner section held folded while the `source` part is on its way. */
   get isVeiled(): boolean {
@@ -214,27 +232,6 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
   ////////////////
   // ## Rendering
   ////////////////
-
-  /**
-   * Load the `source` part whenever it's open and connected;  follow links to it.
-   * - In `onMount()`, not `render()`:  effects outside the drawing.
-   */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      createEffect(
-        () => ({ source: this.foldAttrs.source, open: this.isOpen, connected: this.isConnected }),
-        ({ source, open, connected }) => {
-          if (source && open && connected) this.body.load().catch(() => undefined)
-        }
-      )
-      onSettled(() => {
-        window.addEventListener("hashchange", this.followHash)
-        this.followHash()
-        return () => window.removeEventListener("hashchange", this.followHash)
-      })
-    }
-    return super.onMount()
-  }
 
   /**
    * The fold:  the inner `<ui-section>` around the subclass's title pieces, the part note and the children.
@@ -309,6 +306,21 @@ export abstract class EpicFold<V extends E.ComponentVocabulary> extends E.UIComp
   ////////////////
   // ## Links
   ////////////////
+
+  /** The address's own `#hash` was followed:  a fold that moves doesn't land there again as it reconnects. */
+  private hasFollowedHash = false
+
+  /** While connected, follow links (`hashchange`);  the first time, the address's own `#hash` too.  Returns the undo. */
+  @E.whileConnected
+  protected watchHash() {
+    const listeners = new AbortController()
+    window.addEventListener("hashchange", this.followHash, { signal: listeners.signal })
+    if (!this.hasFollowedHash) {
+      this.hasFollowedHash = true
+      this.followHash()
+    }
+    return () => listeners.abort()
+  }
 
   /**
    * The page's `#hash` names this element, an element inside it, or an id in its `part-ids`:
