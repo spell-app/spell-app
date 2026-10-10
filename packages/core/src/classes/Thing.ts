@@ -68,6 +68,15 @@ export class Thing extends Eventful(Observable) {
   }
 
   /**
+   * Are we of type `typeName`, or a sub-type of it?  e.g. `"card"` for a joker, if `a joker is a card`.
+   * - What `spellCore.isOfType(thing, typeName)` does;  hand-written TypeScript says `card instanceof Joker` for a
+   *   class it can name (Q37).
+   */
+  isOfType(typeName: string): boolean {
+    return spellCore.isOfType(this, typeName)
+  }
+
+  /**
    * Subclasses (or a spell-compiled `to draw` method) implement this to draw themselves.
    * - `draw the card` calls it through `spellCore.drawThing()`, in the card's own error net (`drawing.ts`).
    * - throws:  a thing with no `to draw` can't be drawn.  Its net shows a stand-in.

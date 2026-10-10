@@ -185,7 +185,7 @@ export const BUILT_IN_TYPE_TABLE: SP.BuiltInType[] = [
           "Add `thing` to the end -- or wherever you say:",
           "- `add the card to the deck`, or `... to the end of the deck`",
           "- `add the card to the start of the deck`, or `prepend the card to the deck`",
-          "- `add the card to the deck before the ace`"
+          "- `add the card to the deck before the ace` (at the start if the ace isn't in it;  `after`:  at the end)"
         )
       },
       {

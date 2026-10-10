@@ -371,8 +371,12 @@ export class MethodDefinition<
    * - Only converts the FIRST type found that isn't `isSimple` (i.e. a real declared type, not a
    *   primitive like `text`/`number`).
    *   - So a typed parameter before it doesn't stop it:  `to append (digit as text) to (a calculator)` is still
-   *     `Calculator.append_$digit_to(digit)` (epic `output-targets`, Q24:  spell asks for that type).
+   *     `Calculator.append_$digit_to_calculator(digit)` (epic `output-targets`, Q24:  spell asks for that type).
    *     Was the FIRST type, simple or not:  a free function, whose `its` read a `this` it hadn't got.
+   * - The method's NAME drops the type, unless that leaves a little word dangling (epic `output-targets`, Q44):
+   *   then it keeps the type's name, e.g. `to update the total of (a calculator)` => `update_the_total_of_calculator`,
+   *   not `update_the_total_of`.  See `DANGLING_WORDS`.
+   *   - Nothing dangles with the receiver first:  `to move (a card) to (a pile)` => `move_to_$pile`.
    * - SIDE EFFECT: mutates `signature` in place -- removes the type's arg/method/syntax bits and replaces the
    *   syntax bit with `{thisArg:expression}`; also adds an alias variable when the arg's own name differs
    *   from the type name (e.g. `to show (thing as a card)` aliases `thing` to `this`).
@@ -384,7 +388,13 @@ export class MethodDefinition<
       signature.instanceType = initialType.name
       // remove instance bits from args and method signature
       signature.args.splice(initialType.argIndex, 1)
-      signature.methodBits.splice(initialType.methodIndex, 1)
+      const wordBefore = signature.methodBits[initialType.methodIndex - 1]
+      if (wordBefore && DANGLING_WORDS.test(wordBefore)) {
+        // keep the type's name in its place, as a word:  `of_calculator`, not `of_$calculator`
+        signature.methodBits[initialType.methodIndex] = initialType.name.replace(/-/g, "_")
+      } else {
+        signature.methodBits.splice(initialType.methodIndex, 1)
+      }
       // replace in syntax with `thisArg` and add a variable alias for `this`
       signature.syntaxBits[initialType.syntaxIndex] = "{thisArg:expression}"
       if (initialType.varName && initialType.varName !== initialType.name) {
@@ -789,6 +799,17 @@ type OperatorOperands = {
   /** Right-hand expression -- always populated for `InfixOperatorSuffix`, never for a postfix suffix. */
   rhs?: P.ASTExpression
 }
+
+/**
+ * Little words a method's name may not END a phrase with, where its receiver's type was:
+ * `MethodDefinition.processSignature()` keeps the type's name after one (epic `output-targets`, Q44).
+ * - `to update the total of (a calculator)` => `update_the_total_of_calculator`
+ * - `to set the operator of (a calculator) to (op as text)` => `set_the_operator_of_calculator_to_$op`
+ * - Prepositions only:  a verb or noun before the receiver reads fine without it, `turn_face_up`, `move_to_$pile`.
+ *   So do a verb's own little words (`up`, `over`, `out`, `off`, `down`):  `to pick up (a card)` => `pick_up`.
+ */
+const DANGLING_WORDS =
+  /^(of|to|from|in|into|on|onto|at|by|for|with|without|before|after|about|under|through|between|within|upon|against|toward|towards)$/i
 
 ////////////////
 // ## `method_keyword` rule

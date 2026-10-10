@@ -383,9 +383,15 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     `matched`, and matches in `data` -- so an incremental parse needs nothing of its own
     - only those about the file's own tokens:  a match parsed from a string (`quoted_method_signature`) sits at the
       string's offsets, so its rule notes them again about its quoted text
+  - What a LATER line or file may settle:  `SP.SpellWarnings.noteIf(match, message, stillHolds, at?)`, which `in()`
+    reports only while `stillHolds()` -- asked then, with what the whole project declares by then
   - so far:  a property with no type, or a list of nothing said (`define_property_has`);  a parameter with no type
     (`var_method_arg`);  a new variable set to a list of nothing said (`set state to []`), or a property a `set`
-    declares from a value that doesn't say (`assignment`)
+    declares from a value that doesn't say (`assignment`);  a LOOSE member read its type never declares
+    (`property_expression`, `its_property`, Q45):  `the name of the pile` =>
+    `A pile never says it has a name:  declare it, e.g. "a pile has a name as text"`
+    - only on a type the project declares, all of whose super-types are its own or spell's:  an imported type's
+      importer may give it anything (`MemberReadExpression.warnIfUndeclared()`, `noteIf()`)
   - editors show them as `DiagnosticSeverity.Warning` (`SpellLanguageService.diagnostics()`);  `spell compile` lists
     them after its errors, never counting them -- see "Language server"
 
@@ -585,6 +591,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   - methods (`to turn a card over` ~== `to turn (a card) over`):
     - a signature's `a|an <KNOWN type>` is a typed parameter (`bare_type_arg`), as `(a card)` is
     - a word that isn't a type, or anything after `the`, stays words (`to make a mess`, `to reset the stock pile`)
+    - its compiled NAME drops the receiver's type (`turn_over`), unless that leaves a little word dangling (Q44):
+      then it keeps the type's name, `to update the total of (a calculator)` => `update_the_total_of_calculator`
+      (`MethodDefinition.processSignature()`, `DANGLING_WORDS`)
     - `MethodDefinition` adds a rule (`methods.ts`), its call site, AND a `P.ScopeMethod` record (`addMethod()`):
       in its type's `methods` if this project declares the type, else in the project's, with `of`
       (a free function, or a method of a built-in or imported type -- whose lists every project shares)
@@ -658,6 +667,9 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     - a method's `params` (`[{ name: "pile", datatype: "Pile" }]`) and `returns`;
       a list type's `itemType`;  an owner member's `exclusive` -- only what's known
       - loading rebuilds the `P.ScopeMethod` record;  a key an older compiler didn't write loads as unknown
+    - a DERIVED property's `getter: true` (`the short rank of a card is: ...`):  loads as `P.ScopeVariable.isGetter`,
+      so the TypeScript writer reads an import's getter by TypeScript's name (J20).  An `exclusive` member is one
+      too, unsaid.
   - the declarations also hold the project's versions and what it `provides`
   - `read(json)` reads them back, never running anything
   - `importScope(root, imports)` => a `P.ImportScope` holding them -- the project's scope goes UNDER it, with a

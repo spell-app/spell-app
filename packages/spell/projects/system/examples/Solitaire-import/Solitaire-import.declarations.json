@@ -29,8 +29,9 @@
     {
       "property": "state",
       "of": "Game",
-      "datatype": "list",
-      "defined": "/Solitaire.spell:2287-2406"
+      "datatype": "list of texts",
+      "getter": true,
+      "defined": "/Solitaire.spell:2287-2422"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -43,7 +44,7 @@
       ],
       "kind": "method",
       "name": "draw a game",
-      "defined": "/Solitaire.spell:6837-8233"
+      "defined": "/Solitaire.spell:6853-8249"
     },
     {
       "type": "Stock_Pile",
@@ -61,7 +62,7 @@
       ],
       "kind": "method",
       "name": "draw a stock-pile",
-      "defined": "/Solitaire.spell:6532-6729"
+      "defined": "/Solitaire.spell:6548-6745"
     },
     {
       "type": "Discard_Pile",
@@ -79,7 +80,7 @@
       ],
       "kind": "method",
       "name": "draw a discard-pile",
-      "defined": "/Solitaire.spell:6731-6835"
+      "defined": "/Solitaire.spell:6747-6851"
     },
     {
       "type": "Foundation",
@@ -97,7 +98,7 @@
       ],
       "kind": "method",
       "name": "draw a foundation",
-      "defined": "/Solitaire.spell:6087-6432"
+      "defined": "/Solitaire.spell:6103-6448"
     },
     {
       "type": "Tableau",
@@ -115,7 +116,7 @@
       ],
       "kind": "method",
       "name": "draw a tableau",
-      "defined": "/Solitaire.spell:6434-6530"
+      "defined": "/Solitaire.spell:6450-6546"
     },
     {
       "syntax": "debug the game",
@@ -126,7 +127,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2408-2482"
+      "defined": "/Solitaire.spell:2424-2498"
     },
     {
       "syntax": "reset the stock pile",
@@ -137,7 +138,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2484-2650"
+      "defined": "/Solitaire.spell:2500-2666"
     },
     {
       "syntax": "play from the stock pile",
@@ -148,7 +149,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2652-2839"
+      "defined": "/Solitaire.spell:2668-2855"
     },
     {
       "syntax": "deal the cards",
@@ -159,7 +160,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2841-3427"
+      "defined": "/Solitaire.spell:2857-3443"
     },
     {
       "syntax": "play {thisArg:expression}",
@@ -172,7 +173,7 @@
       ],
       "kind": "method",
       "name": "play a card",
-      "defined": "/Solitaire.spell:3429-4421"
+      "defined": "/Solitaire.spell:3445-4437"
     },
     {
       "syntax": "auto-play",
@@ -183,7 +184,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:4465-5543"
+      "defined": "/Solitaire.spell:4481-5559"
     },
     {
       "syntax": "reset the game",
@@ -194,7 +195,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:5545-5610"
+      "defined": "/Solitaire.spell:5561-5626"
     },
     {
       "syntax": "cheat",
@@ -206,7 +207,7 @@
       ],
       "kind": "function",
       "returns": "nothing",
-      "defined": "/Solitaire.spell:5612-5988"
+      "defined": "/Solitaire.spell:5628-6004"
     }
   ],
   "codeLines": [

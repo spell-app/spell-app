@@ -1,6 +1,7 @@
 /**
- * Rules for firing and watching global events on the `spellCore.RUNTIME` singleton -- `trigger`/`fire`/`send`
- * and `on`.
+ * Rules for firing and watching global events -- `trigger`/`fire`/`send` and `on`.
+ * - They compile to core's `spellCore.trigger()` / `spellCore.on()`,
+ *   which find the program's CURRENT runtime when called:  a new one is made each time a program starts.
  */
 import { proto } from "$/util"
 import { P } from "$/parser"
@@ -10,7 +11,7 @@ import { SpellStatement } from "./Statement"
 import { with_props_arg } from "./methods"
 
 /**
- * Rule module for `trigger`/`on` -- events fired/watched on the `spellCore.RUNTIME` singleton.
+ * Rule module for `trigger`/`on` -- events fired / watched through core, `spellCore.trigger()` / `spellCore.on()`.
  */
 export const events = new SpellParser({ module: "events" })
 
@@ -20,10 +21,10 @@ export const events = new SpellParser({ module: "events" })
 ////////////////
 
 /**
- * `trigger card-click` / `fire event card-click with card = 1` -- fires a global event on the
- * `spellCore.RUNTIME` singleton, optionally with a `props` object.
+ * `trigger card-click` / `fire event card-click with card = 1` -- fires a global event,
+ * optionally with a `props` object.
  * - `eventName` is a bare `keyword`, so its `raw` form (with dashes) is used directly as the event name.
- * - Compiles to `spellCore.RUNTIME.trigger(name, props?)`.
+ * - Compiles to `spellCore.trigger(name, props?)` (a `P.ASTCoreMethodInvocation`).
  */
 class trigger extends SpellStatement<"eventName|props?"> {
   @proto static alias = "statement"
@@ -33,7 +34,7 @@ class trigger extends SpellStatement<"eventName|props?"> {
     // Use the `raw` eventName, dashes are ok!
     const args: P.ASTExpression[] = [new P.ASTQuotedExpression(match, eventName.raw!)]
     if (props) args.push(P.asAST<P.ASTExpression>(props.AST))
-    return new P.ASTRuntimeMethodInvocation(match, {
+    return new P.ASTCoreMethodInvocation(match, {
       methodName: "trigger",
       args
     })
@@ -46,10 +47,10 @@ events.addRule(trigger, {
       compileAs: "statement",
       tests: [
         //
-        { input: `trigger card-click`, output: "spellCore.RUNTIME.trigger('card-click')" },
+        { input: `trigger card-click`, output: "spellCore.trigger('card-click')" },
         {
           input: `fire event card-click with card = 1`,
-          output: "spellCore.RUNTIME.trigger('card-click', { card: 1 })"
+          output: "spellCore.trigger('card-click', { card: 1 })"
         }
       ]
     }
@@ -62,15 +63,16 @@ events.addRule(trigger, {
 ////////////////
 
 /**
- * `on event card-click: ...` / `on event card-click with a card: ...` -- watches a global event on the
- * `spellCore.RUNTIME` singleton, with an inline statement or nested block as the handler body.
+ * `on event card-click: ...` / `on event card-click with a card: ...` -- watches a global event,
+ * with an inline statement or nested block as the handler body.
  * - TODO: apply to instances?
  * - `eventName` is a bare `keyword`, so its `raw` form (with dashes) is used directly as the event name.
  * - SIDE EFFECT: `getNestedScopeForMatch()` builds a `MethodScope` named for `eventName`, with `event`
  *   as its first arg plus one arg per `with`-listed prop (see `with_props_arg` in methods.ts).
  * - When `props` are given, the handler body destructures them off `event` at its top, e.g. `with a
  *   card` => `let { card } = event`.
- * - Compiles to `spellCore.RUNTIME.on(name, handler?)`; `handler` omitted entirely when there's no body.
+ * - Compiles to `spellCore.on(name, handler?)` (a `P.ASTCoreMethodInvocation`);
+ *   `handler` omitted entirely when there's no body.
  */
 class on extends SpellStatement<"eventName|props?|body?"> {
   @proto static alias = "statement"
@@ -126,7 +128,7 @@ class on extends SpellStatement<"eventName|props?|body?"> {
       }
       args.push(method)
     }
-    return new P.ASTRuntimeMethodInvocation(match, {
+    return new P.ASTCoreMethodInvocation(match, {
       methodName: "on",
       args
     })
@@ -142,17 +144,17 @@ events.addRule(on, {
       },
       tests: [
         //
-        { title: "No statements", input: `on card-click`, output: "spellCore.RUNTIME.on('card-click')" },
+        { title: "No statements", input: `on card-click`, output: "spellCore.on('card-click')" },
         {
           title: "Inline statement",
           input: `on event card-click: print 1`,
-          output: ["spellCore.RUNTIME.on('card-click', (event) => {", "  return spellCore.console.log(1)", "})"]
+          output: ["spellCore.on('card-click', (event) => {", "  return spellCore.console.log(1)", "})"]
         },
         {
           title: "Nested block",
           input: [`on event card-click with a card:`, `\tprint the name of the card`],
           output: [
-            "spellCore.RUNTIME.on('card-click', (event) => {",
+            "spellCore.on('card-click', (event) => {",
             "  let { card } = event",
             "  spellCore.console.log(card.name)",
             "})"
@@ -162,7 +164,7 @@ events.addRule(on, {
           title: "Show error if nested block and inline statement",
           input: [`on event card-click with a card: print 1`, `\tprint the name of the card`],
           output: [
-            "spellCore.RUNTIME.on('card-click', (event) => {",
+            "spellCore.on('card-click', (event) => {",
             "  let { card } = event",
             "  spellCore.console.log(card.name)",
             "})",

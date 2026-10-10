@@ -26,9 +26,13 @@ describe("SpellWarnings", () => {
   })
 
   test("`in()` leaves out matches parsed from a string:  their rule notes them again, about its own text", () => {
-    const text = ["a card is a thing", 'a card "is the (color) joker" if its color is color']
+    const text = [
+      "a card is a thing",
+      "a card has a color as text",
+      'a card "is the (color) joker" if its color is color'
+    ]
     expect(describeWarnings(parse(text.join("\n"), "warnings-quoted"))).toEqual([
-      '2:7 Say what "color" is, e.g. "(color as text)"'
+      '3:7 Say what "color" is, e.g. "(color as text)"'
     ])
   })
 
@@ -41,5 +45,43 @@ describe("SpellWarnings", () => {
       "\tadd the digit to digits"
     ]
     expect(describeWarnings(parse(text.join("\n"), "warnings-none"))).toEqual([])
+  })
+
+  describe("a member read its type never declares (epic `output-targets`, Q45)", () => {
+    const PILE = ["a card is a thing", "a pile is a list of cards", "the pile is a new pile"]
+
+    test("`the name of the pile`, `its name`:  under the member's word", () => {
+      const text = [...PILE, "print the name of the pile", "the state of a pile is:", "\treturn its name"]
+      expect(describeWarnings(parse(text.join("\n"), "warnings-undeclared"))).toEqual([
+        '4:10 A pile never says it has a name:  declare it, e.g. "a pile has a name as text"',
+        '6:12 A pile never says it has a name:  declare it, e.g. "a pile has a name as text"'
+      ])
+    })
+
+    test("its example names a type its name does", () => {
+      const text = [...PILE, "print the card of the pile"]
+      expect(describeWarnings(parse(text.join("\n"), "warnings-undeclared-type"))).toEqual([
+        '4:10 A pile never says it has a card:  declare it, e.g. "a pile has a card as a card"'
+      ])
+    })
+
+    test("none once a later line declares it:  checked when the warnings are gathered", () => {
+      const declaredLater = [...PILE, "print the name of the pile", "a pile has a name as text"]
+      const setLater = [...PILE, "print the name of the pile", 'set the name of the pile to "stock"']
+      expect(describeWarnings(parse(declaredLater.join("\n"), "warnings-declared-later"))).toEqual([])
+      expect(describeWarnings(parse(setLater.join("\n"), "warnings-set-later"))).toEqual([])
+    })
+
+    test("none where spell can't be sure:  a built-in member, a method, a type it doesn't know", () => {
+      const text = [
+        ...PILE,
+        "to shuffle (a pile): print 1",
+        "print the length of the pile",
+        "print the shuffle of the pile",
+        "print the name of the stranger",
+        "print the length of 'text'"
+      ]
+      expect(describeWarnings(parse(text.join("\n"), "warnings-undeclared-none"))).toEqual([])
+    })
   })
 })

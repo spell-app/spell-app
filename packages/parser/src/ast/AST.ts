@@ -885,31 +885,6 @@ export class ASTCoreMethodInvocation extends ASTScopedMethodInvocation {
   }
 }
 
-/** Create an `ASTExpression` that refers to `spellCore.RUNTIME`. */
-export class ASTRuntimeExpression extends ASTPropertyExpression {
-  constructor(match: P.AnyMatch) {
-    super(match, {
-      object: new ASTSpellCoreExpression(match),
-      property: "RUNTIME"
-    })
-  }
-}
-
-/**
- * RuntimeMethodInvocation:  calls a `spellCore.RUNTIME` `method`.  Used for output language independence.
- *  - `methodName` is spellcore method name.
- *  - `args` (optional) is a possibly empty list of Expressions.
- *  - `datatype` (optional) is return datatype as string, try to set if you can.
- */
-export type ASTRuntimeMethodInvocationProps = ASTMethodInvocationProps
-
-export class ASTRuntimeMethodInvocation extends ASTScopedMethodInvocation {
-  /** Builds `thing` as `spellCore.RUNTIME` -- caller only supplies `methodName`/`args`. */
-  constructor(match: P.AnyMatch, props: ASTRuntimeMethodInvocationProps) {
-    super(match, { ...props, thing: new ASTRuntimeExpression(match) })
-  }
-}
-
 /** ExpectMethodInvocation:  `spellCore.expect(...)` -- used to assert a value in generated test output.
  *  - `expression` is expression AST being tested.
  *  - `expressionString` is string for spell code used to generate `expression`, shown in assertion output.

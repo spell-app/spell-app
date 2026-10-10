@@ -52,6 +52,7 @@
     {
       "property": "color",
       "of": "Card",
+      "getter": true,
       "constants": [
         "red",
         "black"
@@ -62,6 +63,7 @@
       "property": "value",
       "of": "Card",
       "datatype": "number",
+      "getter": true,
       "defined": "/Card.spell:439-500"
     },
     {
@@ -183,6 +185,7 @@
       "property": "name",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1085-1136"
     },
     {
@@ -190,6 +193,7 @@
       "asWritten": "short suit",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1138-1299"
     },
     {
@@ -197,6 +201,7 @@
       "asWritten": "short rank",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1301-1463"
     },
     {
@@ -204,6 +209,7 @@
       "asWritten": "short direction",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1465-1545"
     },
     {
@@ -211,12 +217,14 @@
       "asWritten": "short name",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1548-1608"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1610-1687"
     },
     {
@@ -305,6 +313,7 @@
       "property": "name",
       "of": "Joker",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:2918-2962"
     },
     {
@@ -312,6 +321,7 @@
       "asWritten": "short name",
       "of": "Joker",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:2964-2998"
     },
     {
@@ -396,28 +406,37 @@
       "defined": "/Pile.spell:25-50"
     },
     {
+      "property": "name",
+      "of": "Pile",
+      "datatype": "text",
+      "defined": "/Pile.spell:144-169"
+    },
+    {
       "property": "color",
       "of": "Pile",
-      "defined": "/Pile.spell:165-253"
+      "getter": true,
+      "defined": "/Pile.spell:284-372"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
-      "defined": "/Pile.spell:255-338"
+      "getter": true,
+      "defined": "/Pile.spell:374-457"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
-      "defined": "/Pile.spell:340-504"
+      "getter": true,
+      "defined": "/Pile.spell:459-623"
     },
     {
       "property": "pile",
       "of": "Card",
       "datatype": "Pile",
       "exclusive": true,
-      "defined": "/Pile.spell:137-163"
+      "defined": "/Pile.spell:256-282"
     }
   ],
   "codeLines": [
@@ -457,9 +476,10 @@
     296,
     331,
     351,
-    354,
+    355,
     359,
     364,
-    373
+    369,
+    378
   ]
 }

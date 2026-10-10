@@ -12,32 +12,38 @@
     {
       "property": "input",
       "of": "Calculator",
-      "defined": "/Calculator.spell:214-239"
+      "datatype": "text",
+      "defined": "/Calculator.spell:214-247"
     },
     {
       "property": "output",
       "of": "Calculator",
-      "defined": "/Calculator.spell:240-266"
+      "datatype": "text",
+      "defined": "/Calculator.spell:248-282"
     },
     {
       "property": "left",
       "of": "Calculator",
-      "defined": "/Calculator.spell:267-290"
+      "datatype": "text",
+      "defined": "/Calculator.spell:283-314"
     },
     {
       "property": "right",
       "of": "Calculator",
-      "defined": "/Calculator.spell:291-315"
+      "datatype": "text",
+      "defined": "/Calculator.spell:315-347"
     },
     {
       "property": "total",
       "of": "Calculator",
-      "defined": "/Calculator.spell:316-340"
+      "datatype": "number",
+      "defined": "/Calculator.spell:348-384"
     },
     {
       "property": "operator",
       "of": "Calculator",
-      "defined": "/Calculator.spell:341-369"
+      "datatype": "text",
+      "defined": "/Calculator.spell:385-421"
     },
     {
       "syntax": "clear {thisArg:expression}",
@@ -50,11 +56,11 @@
       ],
       "kind": "method",
       "name": "clear (a calculator)",
-      "defined": "/Calculator.spell:371-524"
+      "defined": "/Calculator.spell:423-575"
     },
     {
       "syntax": "update the total of {thisArg:expression}",
-      "output": "update_the_total_of",
+      "output": "update_the_total_of_calculator",
       "rule": "method_call",
       "of": "Calculator",
       "alias": [
@@ -63,11 +69,11 @@
       ],
       "kind": "method",
       "name": "update the total of (a calculator)",
-      "defined": "/Calculator.spell:526-955"
+      "defined": "/Calculator.spell:577-1006"
     },
     {
       "syntax": "append {callArgs:expression} to {thisArg:expression}",
-      "output": "append_$digit_to",
+      "output": "append_$digit_to_calculator",
       "rule": "method_call",
       "of": "Calculator",
       "alias": [
@@ -75,17 +81,18 @@
         "expression"
       ],
       "kind": "method",
-      "name": "append (digit) to (a calculator)",
+      "name": "append (digit as text) to (a calculator)",
       "params": [
         {
-          "name": "digit"
+          "name": "digit",
+          "datatype": "text"
         }
       ],
-      "defined": "/Calculator.spell:957-1457"
+      "defined": "/Calculator.spell:1008-1491"
     },
     {
       "syntax": "set the operator of {thisArg:expression} to {callArgs:expression}",
-      "output": "set_the_operator_of_to_$op",
+      "output": "set_the_operator_of_calculator_to_$op",
       "rule": "method_call",
       "of": "Calculator",
       "alias": [
@@ -93,13 +100,14 @@
         "expression"
       ],
       "kind": "method",
-      "name": "set the operator of (a calculator) to (op)",
+      "name": "set the operator of (a calculator) to (op as text)",
       "params": [
         {
-          "name": "op"
+          "name": "op",
+          "datatype": "text"
         }
       ],
-      "defined": "/Calculator.spell:1459-1701"
+      "defined": "/Calculator.spell:1493-1750"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -112,21 +120,21 @@
       ],
       "kind": "method",
       "name": "draw (a calculator)",
-      "defined": "/Calculator.spell:1703-3629"
+      "defined": "/Calculator.spell:1752-3698"
     }
   ],
   "codeLines": [
     10,
     11,
-    14,
-    17,
-    20,
+    15,
+    19,
     23,
-    26,
-    29,
-    38,
-    51,
-    64,
-    76
+    27,
+    31,
+    35,
+    44,
+    57,
+    70,
+    82
   ]
 }

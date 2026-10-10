@@ -134,26 +134,10 @@ export const collectionCoreMethods = defineSpellCoreModule({
   },
 
   /**
-   * `item` key of first instance of `thing` in `collection`.
-   * - For array: returns 1-based position or `undefined`.
-   * - For object: returns string key or `undefined`.
+   * `item` key of first instance of `thing` in `collection` -- see `itemOf()`, below, which it is.
    * - Compiles from `position of thing in my-list` -- see `lists.ts`.
-   * - Typed by `collection`:  a number for a `List` or an array -- see `KeyOf`.
-   * TODO: `positionOf` ???
    */
-  itemOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined {
-    if (!assert.isDefined(collection, "spellCore.itemOf(collection)")) return undefined
-    const coll = asCollection(collection)
-    if (typeof coll.itemOf === "function") return coll.itemOf(thing) as KeyOf<C> | undefined
-    const iterator = spellCore.getIteratorFor(collection)
-    let result = iterator.next()
-    while (!result.done) {
-      const [value, item] = result.value
-      if (value === thing) return item as KeyOf<C>
-      result = iterator.next()
-    }
-    return undefined
-  },
+  itemOf,
 
   /**
    * Return `item` from collection.
@@ -284,3 +268,28 @@ export const collectionCoreMethods = defineSpellCoreModule({
   }
 })
 Object.assign(spellCore, collectionCoreMethods)
+
+/**
+ * Position of `thing` in `collection`, from 1 -- `undefined` if it isn't there.  A plain object's:  its key.
+ * - Hand-written TypeScript imports it by name:  `import { itemOf } from "@spell/core"`, then
+ *   `itemOf(Card.Ranks, this.rank)`.  Compiled JavaScript calls it as `spellCore.itemOf(...)`:  the SAME function.
+ * - Typed `number` when `thing` is of an array's own item type, e.g. a `Rank` in `Card.Ranks` (`as const`):  a value
+ *   of an enumeration's type is always in it.  TYPES ONLY:  it's the same call.
+ *   - Else typed by `collection`, see `KeyOf`:  a `List`'s is `number | undefined` either way.
+ * - RENAME:  `positionOf`, in epic `output-targets` P16.
+ */
+export function itemOf<T>(collection: readonly T[], thing: NoInfer<T>): number
+export function itemOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined
+export function itemOf<C>(collection?: C, thing?: unknown): KeyOf<C> | undefined {
+  if (!assert.isDefined(collection, "spellCore.itemOf(collection)")) return undefined
+  const coll = asCollection(collection)
+  if (typeof coll.itemOf === "function") return coll.itemOf(thing) as KeyOf<C> | undefined
+  const iterator = spellCore.getIteratorFor(collection)
+  let result = iterator.next()
+  while (!result.done) {
+    const [value, item] = result.value
+    if (value === thing) return item as KeyOf<C>
+    result = iterator.next()
+  }
+  return undefined
+}

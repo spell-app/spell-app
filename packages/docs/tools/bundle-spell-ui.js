@@ -584,7 +584,8 @@ function checkClassicScript(file = OUTFILE) {
     // a call, not a METHOD called `import` (spell's parser has one:  `x.import(y)`, `import(...rules) {`)
     [/(?<![.\w$])import\s*\((?![^)]*\)\s*\{)/, "a runtime import()"],
     [/\bimport\.meta\b/, "import.meta"],
-    [/^\s*(import|export)\s[\w{*"]/m, "a top-level import / export"]
+    // not `export interface` / `export type`:  TypeScript only, so text the TypeScript writer writes out
+    [/^\s*(import|export)\s(?!interface\b|type\b)[\w{*"]/m, "a top-level import / export"]
   ].filter(([pattern]) => pattern.test(code))
   if (problems.length) fail(`${relative(DOCS, file)} still has ${problems.map(([, what]) => what).join(", ")}`)
 }

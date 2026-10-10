@@ -1,17 +1,55 @@
 import { spellCore } from "./core"
-import { Eventful } from "./SpellEvent"
-import { defineSpellCoreModule, type SpellCore } from "./spellCore.types"
+import { Eventful, type EventCallback, type SpellEvent } from "./SpellEvent"
+import { defineSpellCoreModule } from "./spellCore.types"
 
 /**
  * Class backing `spellCore.RUNTIME` -- a live per-project state bag (see `SpellRuntimeState`) that's
- * also eventful, so compiled `trigger`/`on event` spell statements (see `events.ts`), which emit
- * `spellCore.RUNTIME.trigger(...)`/`spellCore.RUNTIME.on(...)`, work directly on it.
+ * also eventful:  a program's events are ITS runtime's, so they end with it.
+ * - Reach them through `on()` / `trigger()` (below), which find the CURRENT runtime.
+ * - Programs compiled before those still call `spellCore.RUNTIME.on(...)` / `.trigger(...)` -- the same lists.
  */
-export class SpellRuntime extends Eventful() {
-  /** Delegate events to `spellCore`, so a listener registered via `spellCore.on(...)` also fires. */
-  get eventParent(): SpellCore {
-    return spellCore
+export class SpellRuntime extends Eventful() {}
+
+/**
+ * Call `callback` each time the running program triggers `eventType` -- `on card-click with a card: ...`.
+ * - `Payload`:  what the event brings, e.g. `on<{ card: Card }>("card-click", ({ card }) => card.play())`.
+ *   Types only:  nothing checks it.
+ * - `eventType` is case-insensitive.
+ * - On the CURRENT `spellCore.RUNTIME`, found as it's called:  a new one is made each time a program starts, so a
+ *   listener ends with its run.
+ * - throws if no program is running (`resetRuntime()` not called yet).
+ */
+export function on<Payload extends object = object>(eventType: string, callback: EventCallback<Payload>): void {
+  runtimeFor("on").on(eventType, callback)
+}
+
+/** Stop calling `callback` for `eventType` -- see `on()`.  Nothing running:  nothing to stop. */
+export function off<Payload extends object = object>(eventType: string, callback: EventCallback<Payload>): void {
+  spellCore.RUNTIME?.off(eventType, callback)
+}
+
+/** Call `callback` the NEXT time the running program triggers `eventType`, then forget it -- see `on()`. */
+export function once<Payload extends object = object>(eventType: string, callback: EventCallback<Payload>): void {
+  runtimeFor("once").once(eventType, callback)
+}
+
+/**
+ * Trigger `event` in the running program -- `trigger card-click with the card` =>
+ * `trigger("card-click", { card: this })`.
+ * - `props` are copied onto the event, so a listener reads `event.card`.
+ * - Returns what each listener returned, in the order they were added.
+ * - Nothing running:  nobody hears it, `[]`.  NEVER throws:  `spellCore.console` triggers its lines before then.
+ */
+export function trigger(event: SpellEvent | string, props?: object): unknown[] {
+  return spellCore.RUNTIME?.trigger(event, props) ?? []
+}
+
+/** `spellCore.RUNTIME`, for `on()` / `once()` -- throws, naming `method`, if no program is running. */
+function runtimeFor(method: string): SpellRuntimeState {
+  if (!spellCore.RUNTIME) {
+    throw new TypeError(`${method}():  no program is running;  call spellCore.resetRuntime() first`)
   }
+  return spellCore.RUNTIME
 }
 
 /** `spellCore.RUNTIME`: the `SpellRuntime` instance, used as a dynamic keyed state bag. */
@@ -25,6 +63,19 @@ export const runtimeMethods = defineSpellCoreModule({
   DEBUG_RUNTIME: false, // !isNode,
   /** Set to `true` to show debug messages for process start/stop actions. */
   DEBUG_PROCESSES: false, // !isNode,
+
+  ////////////////
+  // ## Events -- the running program's, on `RUNTIME`
+  ////////////////
+
+  /** `spellCore.on(...)`:  compiled JavaScript's spelling of `on()` -- see `on()`. */
+  on,
+  /** `spellCore.off(...)` -- see `off()`. */
+  off,
+  /** `spellCore.once(...)` -- see `once()`. */
+  once,
+  /** `spellCore.trigger(...)` -- see `trigger()`. */
+  trigger,
 
   ////////////////
   // ## Runtime State

@@ -131,11 +131,15 @@ export class JSWriter extends Writer {
     return jsText.InSingleQuotes({ children: node.value })
   }
 
-  /** `object.property` when a legal identifier, else `object['property']`. */
+  /**
+   * `object.property` when a legal identifier, else `object['property']` -- `?.` off what may be nothing (see
+   * `mayBeNothing()`), never when it's being set.
+   */
   ASTPropertyExpression(node: P.ASTPropertyExpression): string {
     const prop = this.write(node.property)
-    if (node.property.isLegalIdentifier) return `${this.write(node.object)}.${prop}`
-    return `${this.write(node.object)}['${prop}']`
+    const dot = !this.isSetting(node) && this.mayBeNothing(node.object) ? "?." : "."
+    if (node.property.isLegalIdentifier) return `${this.write(node.object)}${dot}${prop}`
+    return `${this.write(node.object)}${dot === "?." ? "?." : ""}['${prop}']`
   }
 
   /** `name` alone, or `name = default` when it has a default value. */
@@ -216,8 +220,10 @@ export class JSWriter extends Writer {
     return `${node.methodName}${this.write(node.args)}`
   }
 
+  /** `thing.method(args)` -- `?.` off what may be nothing, see `mayBeNothing()`. */
   ASTScopedMethodInvocation(node: P.ASTScopedMethodInvocation): string {
-    return `${this.write(node.thing)}.${node.methodName}${this.write(node.args)}`
+    const dot = this.mayBeNothing(node.thing) ? "?." : "."
+    return `${this.write(node.thing)}${dot}${node.methodName}${this.write(node.args)}`
   }
 
   ////////////////
@@ -327,8 +333,9 @@ export class JSWriter extends Writer {
     return this.list(node.statements, jsText.NEWLINE)
   }
 
+  /** `{ statements }` -- its new variables noted while it's written, see `inBlock()`. */
   ASTStatementBlock(node: P.ASTStatementBlock): string {
-    return jsText.Block({ wrap: node.wrap, children: this.list(node.statements, jsText.NEWLINE) })
+    return this.inBlock(() => jsText.Block({ wrap: node.wrap, children: this.list(node.statements, jsText.NEWLINE) }))
   }
 
   ASTTryCatchBlock(node: P.ASTTryCatchBlock): string {
@@ -346,7 +353,8 @@ export class JSWriter extends Writer {
   ASTAssignmentStatement(node: P.ASTAssignmentStatement): string {
     const export_ = this.isExported(node) ? "export " : ""
     const declarator = node.isNewVariable ? "let " : ""
-    return `${export_}${declarator}${this.write(node.thing)} = ${this.write(node.value)}`
+    this.noteLocal(node)
+    return `${export_}${declarator}${this.setting(node.thing)} = ${this.write(node.value)}`
   }
 
   /** `true` only for a new variable at `ProjectScope` / `FileScope` whose name isn't in `EXPORT_BLACKLIST`. */
@@ -537,7 +545,9 @@ export class JSWriter extends Writer {
   ////////////////
 
   ASTIfStatement(node: P.ASTIfStatement): string {
-    return `if ${this.write(node.condition)} ${this.write(node.statements)}`
+    const written = `if ${this.write(node.condition)} ${this.write(node.statements)}`
+    this.noteGuard(node)
+    return written
   }
 
   ASTElseIfStatement(node: P.ASTElseIfStatement): string {
@@ -568,6 +578,106 @@ export class JSWriter extends Writer {
   ASTJSXLiveValue(node: P.ASTJSXLiveValue): string {
     const value = this.write(node.expression)
     return node.expression instanceof P.ASTObjectLiteral ? `() => (${value})` : `() => ${value}`
+  }
+
+  ////////////////
+  // ## What may be nothing
+  ////////////////
+
+  /**
+   * What each new variable of the blocks being written is set to, by spell's name:  one map per block, innermost
+   * last.  The first holds a file's own top level.  See `mayBeNothing()`.
+   */
+  protected locals: Array<Map<string, P.ASTExpression>> = [new Map()]
+
+  /** `write()` inside a block of its own:  its new variables are forgotten when it's written. */
+  protected inBlock<T>(write: () => T): T {
+    this.locals.push(new Map())
+    try {
+      return write()
+    } finally {
+      this.locals.pop()
+    }
+  }
+
+  /** SIDE EFFECT:  notes what `node`, a new variable, is set to -- in a block only:  a writer is shared by programs. */
+  protected noteLocal(node: P.ASTAssignmentStatement) {
+    if (!node.isNewVariable || !(node.thing instanceof P.ASTVariableExpression) || this.locals.length < 2) return
+    this.locals.at(-1)!.set(node.thing.name, node.value)
+  }
+
+  /**
+   * SIDE EFFECT:  after a guard, `if (!spellCore.isDefined(endPile)) return false`, the value it checks is THERE for
+   * the rest of the block:  read off it with `.`, not `?.` -- see `mayBeNothing()`.
+   */
+  protected noteGuard(node: P.ASTIfStatement) {
+    const condition = unwrapped(node.condition)
+    const [only] = (node.statements.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
+    if (!(condition instanceof P.ASTNotExpression) || !(only instanceof P.ASTReturnStatement)) return
+    const checked = unwrapped(condition.expression)
+    const isDefined =
+      checked instanceof P.ASTScopedMethodInvocation &&
+      checked.thing instanceof P.ASTSpellCoreExpression &&
+      checked.methodName === "isDefined"
+    const [value] = isDefined ? ((checked as P.ASTScopedMethodInvocation).args.args ?? []) : []
+    const variable = value && unwrapped(value)
+    if (variable instanceof P.ASTVariableExpression) this.locals.at(-1)!.set(variable.name, JSWriter.FOUND)
+  }
+
+  /** What a variable a guard checked is noted as:  there -- see `noteGuard()`. */
+  static FOUND: P.ASTExpression = Object.freeze({}) as P.ASTExpression
+
+  /** What new variable `name` was set to, in the blocks being written -- `undefined` if it wasn't. */
+  localValue(name: string): P.ASTExpression | undefined {
+    for (let index = this.locals.length - 1; index >= 0; index--) {
+      const value = this.locals[index]!.get(name)
+      if (value) return value
+    }
+    return undefined
+  }
+
+  /**
+   * May `node` be nothing?  An item read from a list (`spellCore.getItemOf(pile, -1)`), what's read off one, or a
+   * variable set to one:  reading off it is written `?.`, so spell reads off nothing as nothing and never throws (epic
+   * `output-targets`, Q38).
+   */
+  mayBeNothing(node: P.ASTExpression): boolean {
+    const inner = unwrapped(node)
+    if (inner instanceof P.ASTScopedMethodInvocation && inner.thing instanceof P.ASTSpellCoreExpression) {
+      if (JSWriter.ITEM_READS.has(inner.methodName)) return true
+      // a helper given what may be nothing gives nothing back, e.g. the cards of a random pile
+      const [first] = inner.args.args ?? []
+      return !!first && this.mayBeNothing(first)
+    }
+    // read off what may be nothing:  `?.`, so it may be nothing too
+    if (inner instanceof P.ASTPropertyExpression) return this.mayBeNothing(inner.object)
+    if (inner instanceof P.ASTScopedMethodInvocation) return this.mayBeNothing(inner.thing)
+    if (!(inner instanceof P.ASTVariableExpression) || inner instanceof P.ASTSpellCoreExpression) return false
+    const value = this.localValue(inner.name)
+    if (!value || value === JSWriter.FOUND || value === node) return false
+    return this.mayBeNothing(value)
+  }
+
+  /** The `spellCore` helpers that read ONE item of a list, which may be nothing:  see `mayBeNothing()`. */
+  static ITEM_READS = new Set(["getItemOf", "randomItemOf"])
+
+  /** What's being set, while it's written:  never read off with `?.`, which can't be set. */
+  private settingNow: P.ASTNode | undefined
+
+  /** `thing`, written as what an assignment sets:  `a.b = ...`, never `a?.b = ...`. */
+  protected setting(thing: P.ASTExpression): string {
+    const previous = this.settingNow
+    this.settingNow = thing
+    try {
+      return String(this.write(thing))
+    } finally {
+      this.settingNow = previous
+    }
+  }
+
+  /** Is `node` what an assignment sets, being written now? */
+  protected isSetting(node: P.ASTNode): boolean {
+    return this.settingNow === node
   }
 
   ////////////////
@@ -602,6 +712,12 @@ export class JSWriter extends Writer {
    * `it_2`, `it_3`... -- temporaries, not something another file should use.
    */
   static EXPORT_BLACKLIST = /^it(_\d+)?$/
+}
+
+/** `node` without the parentheses around it. */
+function unwrapped(node: P.ASTExpression): P.ASTExpression {
+  while (node instanceof P.ASTParenthesizedExpression) node = node.expression
+  return node
 }
 
 /** `.name`, or `['name']` if `property` isn't a legal identifier. */

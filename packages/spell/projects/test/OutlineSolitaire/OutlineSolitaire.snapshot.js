@@ -143,7 +143,7 @@ export class Card extends Thing {
       tag: "div",
       props: {
         onClick: (event) => {
-          return spellCore.RUNTIME.trigger('card-click', { card: this })
+          return spellCore.trigger('card-click', { card: this })
         },
         className: () => `Card face-up ${this.rank} ${this.suit} ui button compact fluid ${this.color}`
       },
@@ -161,7 +161,7 @@ export class Card extends Thing {
       tag: "div",
       props: {
         onClick: (event) => {
-          return spellCore.RUNTIME.trigger('card-click', { card: this })
+          return spellCore.trigger('card-click', { card: this })
         },
         className: () => `Card face-down ${this.rank} ${this.suit} ui button compact fluid`
       },
@@ -225,8 +225,8 @@ export class Card extends Thing {
     if (spellCore.isOfType(start_pile, 'Tableau') && !spellCore.isEmpty(start_pile)) {
       await spellCore.pauseFor(200, 'msec')
       let it = spellCore.getItemOf(start_pile, -1)
-      spellCore.console.log(((("turning over (" + start_pile.name) + ": ") + it.state) + ")")
-      it.turn_face_up()
+      spellCore.console.log(((("turning over (" + start_pile.name) + ": ") + it?.state) + ")")
+      it?.turn_face_up()
     }
     
     if (spellCore.isOfType(end_pile, 'Foundation')) { game.score = (game.score + 10) }
@@ -305,13 +305,13 @@ export function test_deck_creation() {
       return (card.rank == "queen")
     })
     spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
-    spellCore.expect(spellCore.getItemOf(deck, -1).name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    spellCore.expect(spellCore.getItemOf(deck, 1).short_name, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
+    spellCore.expect(spellCore.getItemOf(deck, -1)?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    spellCore.expect(spellCore.getItemOf(deck, 1)?.short_name, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
     
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
     deck.display()
-    spellCore.expect(spellCore.getItemOf(deck, 1).is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
+    spellCore.expect(spellCore.getItemOf(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
 test_deck_creation()
@@ -323,12 +323,12 @@ export class Pile extends List {
 
   get color() {
     if (spellCore.isEmpty(this)) { return "none" }
-    return spellCore.getItemOf(this, -1).color
+    return spellCore.getItemOf(this, -1)?.color
   }
 
   get value() {
     if (spellCore.isEmpty(this)) { return 0 }
-    return spellCore.getItemOf(this, -1).value
+    return spellCore.getItemOf(this, -1)?.value
   }
 
   get state() {
@@ -657,7 +657,7 @@ export async function play_from_the_stock_pile() {
     if (spellCore.isEmpty(stock)) { await reset_the_stock_pile() }
     
     let it_5 = spellCore.getItemOf(stock, -1)
-    it_5.turn_face_up()
+    it_5?.turn_face_up()
     // pause for 150 msec
     spellCore.move(it_5, discards)
   }
@@ -685,7 +685,7 @@ export async function deal_the_cards() {
     
     // deal cards into tableaus
     await spellCore.forEachSequential(spellCore.getRange(1, 7), async (row) => {
-      spellCore.getItemOf(stock, -1).turn_face_up()
+      spellCore.getItemOf(stock, -1)?.turn_face_up()
       await spellCore.forEachSequential(spellCore.getRange(row, 7), async (column) => {
         spellCore.append(spellCore.getItemOf(tableaus, column), spellCore.getItemOf(stock, -1))
         await spellCore.pauseFor(50, 'msec')
@@ -699,7 +699,7 @@ export async function deal_the_cards() {
   }
 }
 
-spellCore.RUNTIME.on('card-click', (event) => {
+spellCore.on('card-click', (event) => {
   let { card } = event
   card.play()
 })
@@ -708,7 +708,7 @@ export async function auto_play() {
   let anything_changed = false
   if (!spellCore.isEmpty(discards)) {
     let test_card = spellCore.getItemOf(discards, -1)
-    if (await test_card.play()) {
+    if (await test_card?.play()) {
       anything_changed = true
       await spellCore.pauseFor(500, 'msec')
     }
@@ -719,11 +719,11 @@ export async function auto_play() {
     if (spellCore.isEmpty(pile)) { return }
     let test_card = spellCore.getItemOf(pile, -1)
     let foundation = spellCore.getItemOf(spellCore.filter(foundations, (pile) => {
-      return (pile.name == test_card.suit)
+      return (pile.name == test_card?.suit)
     }), 1)
     if (spellCore.canTake(foundation, test_card)) {
       anything_changed = true
-      await test_card.play()
+      await test_card?.play()
       await spellCore.pauseFor(100, 'msec')
     }
   })
@@ -735,8 +735,8 @@ export async function auto_play() {
     })
     if (spellCore.isEmpty(face_up_cards)) { return }
     let test_card = spellCore.getItemOf(face_up_cards, 1)
-    if (test_card.is_a_$rank('king') && (test_card == spellCore.getItemOf(pile, 1))) { return }
-    if (await test_card.play()) {
+    if (test_card?.is_a_$rank('king') && (test_card == spellCore.getItemOf(pile, 1))) { return }
+    if (await test_card?.play()) {
       anything_changed = true
       await spellCore.pauseFor(500, 'msec')
     }
@@ -753,7 +753,7 @@ export function reset_the_game() {
 
 export async function cheat() {
   let remaining_piles = spellCore.filter(tableaus, (pile) => {
-    return (!spellCore.isEmpty(pile) && spellCore.getItemOf(pile, 1).is_face_down)
+    return (!spellCore.isEmpty(pile) && spellCore.getItemOf(pile, 1)?.is_face_down)
   })
   if (spellCore.isEmpty(remaining_piles)) { return }
   let pile = spellCore.randomItemOf(remaining_piles)
@@ -761,7 +761,7 @@ export async function cheat() {
     return card.is_face_down
   })
   let card = spellCore.randomItemOf(unplaid_cards)
-  card.turn_face_up()
+  card?.turn_face_up()
   await spellCore.pauseFor(30, 'ticks')
   spellCore.move(card, discards)
 }

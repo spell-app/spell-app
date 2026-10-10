@@ -1583,7 +1583,8 @@ class property_value_either extends SpellStatement<PropertyValueEitherGroups> {
     const { type, property } = type_property.groups
     // make sure type is defined
     P.TypeScope.getOrStub(scope, type.value, match).declareProperty(`${property.value}`, match, {
-      asWritten: property.raw
+      asWritten: property.raw,
+      isGetter: true
     })
     // Declare any unknown constant values, and record them on their matches for `SpellConstant.getAST()`.
     for (const constant of [value, otherValue]) SpellConstant.declareValue(match, constant)
@@ -1695,8 +1696,9 @@ class property_value_getter extends SpellStatement<"property|type|body?", { valu
   mutateScope(match: P.MatchFor<this>) {
     const { type, property } = match.groups
     const typeScope = getKnownType(type)
+    // a value kind's is its static method, which `readAs` reads;  anything else's, a getter
     const readAs = match.data.valueKind ? `${typeScope.name}.${property.value}({it})` : undefined
-    typeScope.declareProperty(`${property.value}`, match, { asWritten: property.raw, readAs })
+    typeScope.declareProperty(`${property.value}`, match, { asWritten: property.raw, readAs, isGetter: !readAs })
   }
 
   /**
@@ -1879,7 +1881,7 @@ class draw_side extends SpellStatement<"alias|body?", { side?: string; drawsBoth
     const side = match.data.side!
     const other = side === "front" ? "back" : side === "back" ? "front" : undefined
     if (other && type.variables.get(other, "LOCAL_ONLY")) match.data.drawsBoth = true
-    type.declareProperty(side, match)
+    type.declareProperty(side, match, { isGetter: true })
   }
 
   /** The body's scope:  `it` / `its` are the thing, as in a getter. */

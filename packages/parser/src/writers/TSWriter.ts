@@ -66,6 +66,18 @@ export class TSWriter extends JSWriter {
   private currentClass: string | undefined
   /** Destructurings typed by the parameter they read, e.g. an event's payload:  see `arrow()`. */
   private typedByParam = new WeakSet<P.ASTDestructuredAssignment>()
+  /** `@spell/core`'s helpers the code calls by name, e.g. `on`, `trigger`, `itemOf`:  imported by `module()`. */
+  private coreImports = new Set<string>()
+  /** While writing a getter:  what it returns early for nothing, e.g. `0` -- see `ASTReturnStatement()`. */
+  private getterDefault: P.ASTExpression | undefined
+  /** While writing a call of the program's own:  its arguments are passed as found -- see `argsOf()`. */
+  private passedAsFound = false
+  /** The nodes written as statements, not values:  `spellCore.map()` there is a `forEach()`. */
+  private statements = new WeakSet<P.ASTNode>()
+  /** While writing a loop's body:  a bare `return` in it is `continue` -- see `loop()`. */
+  private returnContinues = false
+  /** While writing a callback a list's own method takes:  its item is typed by the list -- see `listCall()`. */
+  private untypedItems = false
 
   constructor(project = new TSProject()) {
     super()
@@ -85,19 +97,20 @@ export class TSWriter extends JSWriter {
    *   `.tsx` exports them so.  A class keeps its name, e.g. `Stock_Pile`.
    * - a member it adds to a class it imports is declared in that project's module, `declare module "..." { interface
    *   Card {...} }`:  TypeScript refuses an `interface` merged with an import (`TS2440`)
+   * - a helper it calls by name (`on()`, `trigger()`, `itemOf()`) is imported from `@spell/core` too
    */
   module(code: string): string {
     const decorators = DECORATORS.filter((name) => new RegExp(`^\\s*@${name}\\b`, "m").test(code))
     const solid = SOLID_COMPONENTS.filter((name) => new RegExp(`<${name}[\\s>]`).test(code))
     code = code.replace(/^import \{ ([^}]*) \} from "@spell\/core"$/m, (_line, names: string) => {
-      const all = [...names.split(/,\s*/), ...decorators]
+      const all = [...names.split(/,\s*/), ...decorators, ...this.coreImports]
       return `import { ${all.join(", ")} } from "@spell/core"`
     })
     // what this project gives a class it imports, for TypeScript only (Q25):  declared in that project's module
     for (const [type, undeclared] of this.project.undeclared) {
       if (!this.project.importedMembers.has(type)) continue
       const members = undeclared.map((it) => this.undeclaredMember(it))
-      code = `${code.replace(/\n*$/, "")}\nexport interface ${type} { ${members.join("; ")} }\n`
+      code = `${code.replace(/\n*$/, "")}\nexport interface ${type} {\n${indented(members.join("\n"))}\n}\n`
     }
     // each class imported from another project, by its name here => [its module, its name there]
     const imported = new Map<string, [string, string]>()
@@ -110,11 +123,13 @@ export class TSWriter extends JSWriter {
       })
       return `import { ${renamed.join(", ")} } from "${from}"`
     })
-    code = code.replace(/^export interface (\w+) \{ (.*) \}$/gm, (line, name: string, member: string) => {
+    // one line (`mergedInterface()`), or a block
+    const interfaces = /^export interface (\w+) (\{ .* \}|\{\n(?: {2}.*\n)*\})$/gm
+    code = code.replace(interfaces, (line, name: string, members: string) => {
       const found = imported.get(name)
       if (!found) return line
       const [from, there] = found
-      return `declare module "${from}" {\n  interface ${there} { ${member} }\n}`
+      return `declare module "${from}" {\n${indented(`interface ${there} ${members}`)}\n}`
     })
     return solid.length ? `import { ${solid.join(", ")} } from "solid-js"\n${code}` : code
   }
@@ -149,62 +164,460 @@ export class TSWriter extends JSWriter {
     return node.type === "global" ? node.name : camelCaseOf(node.name)
   }
 
-  /** `object.property`:  a getter the project declares by TypeScript's name (`card.isFaceUp`), a property by spell's. */
+  /**
+   * `object.property`:  a getter the project declares by TypeScript's name (`card.isFaceUp`), a property by spell's.
+   * - `?.` off what may be nothing (`mayBeNothing()`):  `startPile.lastItem?.state`.
+   * - Being SET, it can't be `?.`:  `!` instead, `spellCore.getItemOf(app.tasks, 1)!.title = "New title"`.
+   */
   ASTPropertyExpression(node: P.ASTPropertyExpression): string {
     const name = node.property.value
     const property = this.project.getters.has(name) ? camelCaseOf(name) : name
-    const object = this.memberObject(node.object)
-    if (P.jsText.isLegalIdentifier(property)) return `${object}.${property}`
-    return `${object}[${jsText.inQuotes(property, '"')}]`
+    const object = this.tight(node.object)
+    const maybe = this.mayBeNothing(node.object)
+    const dot = !maybe ? "." : this.isSetting(node) ? "!." : "?."
+    if (P.jsText.isLegalIdentifier(property)) return `${object}${dot}${property}`
+    return `${object}${dot === "." ? "" : dot}[${jsText.inQuotes(property, '"')}]`
   }
 
-  /**
-   * What a member is read from, ready to put a `.` after:
-   * - a `spellCore` call's result gets `!`, as spell reads it whatever it is:  `spellCore.getItemOf(deck, -1)!.name`.
-   *   Javascript does the same:  `!` changes no code, only the type
-   * - anything that binds looser than `.` (an operator, a ternary) stays in its parentheses
-   */
+  /** What a member is read from, ready for a `.` or `?.` after it -- see `ASTPropertyExpression()`. */
   memberObject(object: P.ASTExpression): string {
-    const inner = unwrapped(object)
-    const text = this.tight(inner)
-    return isCoreCall(inner) && !text.endsWith("!") ? `${text}!` : text
+    return this.tight(object)
   }
 
   /** `node`, in parentheses unless it binds at least as tightly as `.` -- see `isTight()`. */
   tight(node: P.ASTExpression): string {
     const inner = unwrapped(node)
-    return isTight(inner) ? String(this.write(inner)) : `(${this.write(inner)})`
+    if (!isTight(inner)) return `(${this.write(inner)})`
+    const text = String(this.write(inner))
+    // a `spellCore` helper TypeScript says with an operator:  `x !== undefined`, `x instanceof Tableau`, `!x`
+    return isCoreCall(inner) && LOOSE_CORE_CALL.test(text) ? `(${text})` : text
   }
 
   /** `name(args)`, by TypeScript's name:  `playFromTheStockPile()`. */
   ASTMethodInvocation(node: P.ASTMethodInvocation): string {
-    return `${camelCaseOf(node.methodName)}${this.write(node.args)}`
+    return `${camelCaseOf(node.methodName)}${this.argsOf(node)}`
   }
 
   /**
-   * `thing.name(args)`, by TypeScript's name:  `card.moveToPile(endPile)`.
-   * - Drawing:  `spellCore.drawThing(card)` => `card.draw()` (in its own error net:  `@drawn`), and
-   *   `spellCore.drawItems(pile)` => `<For>` drawing each.
+   * A call's `(args)`, for a method or function of the program's own:  one that may be nothing (an item read from a
+   * list) is passed as found, `moveToPile(tableaus.getItem(column)!)`, as spell passes it:  a typed parameter can't
+   * take it otherwise.  `spellCore`'s helpers take anything:  see `ASTInvocationArgs()`.
+   */
+  argsOf(node: P.ASTMethodInvocation): string {
+    const previous = this.passedAsFound
+    this.passedAsFound = true
+    try {
+      return String(this.write(node.args))
+    } finally {
+      this.passedAsFound = previous
+    }
+  }
+
+  /** `(args)`:  each one that may be nothing passed as found, `!`, where `argsOf()` asks -- see there. */
+  ASTInvocationArgs(node: P.ASTInvocationArgs): string {
+    if (!this.passedAsFound) return super.ASTInvocationArgs(node)
+    this.passedAsFound = false
+    const args = (node.args ?? []).map((arg) => (this.mayBeNothing(arg) ? `${this.tight(arg)}!` : this.bare(arg)))
+    return args.length ? `(${args.join(", ")})` : "()"
+  }
+
+  /**
+   * `thing.name(args)`, by TypeScript's name:  `card.moveToPile(endPile)`;  `?.` off what may be nothing.
+   * - A `spellCore` helper is written as TypeScript says it where it can:  see `coreCall()`.
+   * - The list holding an item, `the pile of a card`, is read as found:  `Pile.ownerOf(this)!`.
    */
   ASTScopedMethodInvocation(node: P.ASTScopedMethodInvocation): string {
     if (node.thing instanceof P.ASTSpellCoreExpression) {
-      const [list] = node.args.args ?? []
-      if (node.methodName === "drawThing") return this.drawThing(list)
-      if (node.methodName === "drawItems" && list) return this.drawItems(list)
+      const written = this.coreCall(node)
+      if (written !== undefined) return written
     }
-    const call = `${this.memberObject(node.thing)}.${camelCaseOf(node.methodName)}${this.write(node.args)}`
-    // an item read by position is read as found, as spell reads it (Q26):  `spellCore.getItemOf(tableaus, column)!`;
-    // so is the list holding an item, `the pile of a card`:  `Pile.ownerOf(this)!`
+    const dot = this.mayBeNothing(node.thing) ? "?." : "."
+    const call = `${this.memberObject(node.thing)}${dot}${camelCaseOf(node.methodName)}${this.argsOf(node)}`
     const isOwnerRead = node.thing instanceof P.ASTTypeExpression && node.methodName === "ownerOf"
-    return isItemRead(node) || isOwnerRead ? `${call}!` : call
+    return isOwnerRead ? `${call}!` : call
+  }
+
+  ////////////////
+  // ## What a value is
+  ////////////////
+
+  /**
+   * What `node` is, as far as TypeScript cares:  `"text"`, `"number"`, `"choice"`, `"array"` (JavaScript's), `"list"`
+   * (spell's `List`), a class's name, e.g. `"Pile"` -- or `undefined` if the writer can't tell.
+   * - From where it came from:  a literal, `new Pile(...)`, `this` in a class, what a variable was set to, a
+   *   property's declared type, a `spellCore` helper's result -- else spell's own datatype for it.
+   * - Spell's `list` datatype is left out:  it's a `List` or a plain array, and only where it came from tells.
+   */
+  kindOf(node: P.ASTExpression, depth = 0): string | undefined {
+    if (depth > 8) return undefined
+    const inner = unwrapped(node)
+    if ((inner instanceof P.ASTStringLiteral && inner.quote) || inner instanceof P.ASTQuotedExpression) return "text"
+    if (inner instanceof P.ASTTemplateString) return "text"
+    if (inner instanceof P.ASTNumericLiteral) return "number"
+    if (inner instanceof P.ASTBooleanLiteral) return "choice"
+    if (
+      inner instanceof P.ASTArrayLiteral ||
+      inner instanceof P.ASTEnumeration ||
+      inner instanceof P.ASTListExpression
+    ) {
+      return "array"
+    }
+    if (inner instanceof P.ASTSelfLiteral) return this.currentClass
+    if (inner instanceof P.ASTNewInstanceExpression) return inner.type.name === "List" ? "list" : inner.type.name
+    if (inner instanceof P.ASTInfixExpression) return this.infixKindOf(inner, depth)
+    if (inner instanceof P.ASTNotExpression) return "choice"
+    if (inner instanceof P.ASTVariableExpression && !(inner instanceof P.ASTSpellCoreExpression)) {
+      if (inner.name === "this") return this.currentClass
+      const value = this.localValue(inner.name) ?? this.project.moduleValues.get(inner.name)
+      // a parameter (noted as itself):  its own datatype
+      const isParameter = value instanceof P.ASTVariableExpression && value.name === inner.name
+      const valueKind = value && !isParameter ? this.kindOf(value, depth + 1) : undefined
+      const declared = isParameter ? value : inner
+      return valueKind ?? kindFromDatatype(declared.datatype ?? declared.variable?.datatype)
+    }
+    if (inner instanceof P.ASTPropertyExpression) {
+      if (inner.object instanceof P.ASTTypeExpression && this.isStaticList(inner)) return "array"
+      const owner = this.kindOf(inner.object, depth + 1)
+      const name = inner.property.value
+      const property = this.project.propertyOf(owner, name)
+      const kind = property
+        ? kindFromTypeScript(this.propertyType(property))
+        : (this.undeclaredKind(owner, name, depth) ?? this.getterKind(owner, name, depth))
+      if (kind) return kind
+    }
+    if (inner instanceof P.ASTScopedMethodInvocation) {
+      if (inner.thing instanceof P.ASTTypeExpression && inner.methodName === "ownerOf") return inner.thing.name
+      if (inner.thing instanceof P.ASTSpellCoreExpression) {
+        const kind = this.coreKindOf(inner, depth)
+        if (kind) return kind
+      }
+    }
+    return kindFromDatatype(inner.datatype ?? inner.match?.datatype)
+  }
+
+  /** What a value class `owner` gets for TypeScript only is (`TSProject.undeclared`), e.g. `droppable`:  a choice. */
+  private undeclaredKind(owner: string | undefined, name: string, depth: number): string | undefined {
+    for (let type = owner; type; type = this.project.superTypes.get(type)) {
+      const found = this.project.undeclared.get(type)?.find((it) => it.name === name && it.value)
+      if (found) return this.kindOf(found.value!, depth + 1)
+    }
+    return undefined
+  }
+
+  /**
+   * What getter `name` of class `owner` gives, from what it returns:  the kind ALL its returns share, e.g. `"text"`
+   * for a card's `color` (`"red"` or `"black"`) -- `undefined` if they differ, or any can't tell.
+   */
+  private getterKind(owner: string | undefined, name: string, depth: number): string | undefined {
+    const getter = this.project.getterOf(owner, name)
+    if (!getter || depth > 4) return undefined
+    const kinds = new Set<string | undefined>()
+    forEachNode(getter.body, (node) => {
+      if (node instanceof P.ASTReturnStatement && node.value) kinds.add(this.kindOf(node.value, depth + 1))
+    })
+    const [kind] = kinds
+    return kinds.size === 1 ? kind : undefined
+  }
+
+  /** What a `spellCore` helper's result is, from what it's given -- see `kindOf()`. */
+  private coreKindOf(node: P.ASTScopedMethodInvocation, depth: number): string | undefined {
+    const [first, second] = node.args.args ?? []
+    switch (node.methodName) {
+      case "getRange":
+        return "array"
+      case "getItemOf":
+      case "randomItemOf": {
+        // one of a list's items:  its class's item type, e.g. a `Card` of a `Pile`
+        const list = first && this.kindOf(first, depth + 1)
+        return this.project.isListClass(list) ? this.project.itemTypeOf(list) : undefined
+      }
+      case "filter":
+      case "rangeStartingAt":
+      case "rangeBetween":
+      case "randomItemsOf":
+        return first && this.kindOf(first, depth + 1)
+      case "duplicateCollection":
+      case "mergeCollections":
+        if (second instanceof P.ASTTypeExpression) return second.name
+        return node.methodName === "duplicateCollection" && first ? this.kindOf(first, depth + 1) : undefined
+      case "upperCase":
+      case "lowerCase":
+        return "text"
+      case "itemCountOf":
+      case "itemOf":
+        return "number"
+      case "isEmpty":
+      case "includes":
+      case "isOfType":
+      case "isDefined":
+        return "choice"
+    }
+    return undefined
+  }
+
+  /** What an operator's result is:  text for `+` with text, a number for sums, a choice for the rest. */
+  private infixKindOf(node: P.ASTInfixExpression, depth: number): string | undefined {
+    if (!["plus", "minus", "times", "divided by"].includes(node.operator)) return "choice"
+    const lhs = this.kindOf(node.lhs, depth + 1)
+    const rhs = this.kindOf(node.rhs, depth + 1)
+    if (node.operator === "plus" && (lhs === "text" || rhs === "text")) return "text"
+    return lhs === "number" && rhs === "number" ? "number" : undefined
+  }
+
+  /** Is `node`, `Card.Ranks`, a class's list of values written out?  A plain array. */
+  private isStaticList(node: P.ASTPropertyExpression): boolean {
+    const owner = (node.object as P.ASTTypeExpression).name
+    return !!this.project.listFor(node) || this.project.staticLists.has(`${owner}.${node.property.value}`)
+  }
+
+  /** Is `node` one of spell's `List`s, so it has its own methods?  See `kindOf()`. */
+  isList(node: P.ASTExpression): boolean {
+    const kind = this.kindOf(node)
+    return kind === "list" || this.project.isListClass(kind)
+  }
+
+  ////////////////
+  // ## `spellCore`'s helpers, as TypeScript says them
+  ////////////////
+
+  /**
+   * A `spellCore` helper as TypeScript says it, where it can -- `undefined` where it can't, for `spellCore.<name>()`:
+   * - drawing:  `card.draw()`, `<For>` -- see `drawThing()`, `drawItems()`
+   * - `is defined`:  `x !== undefined`
+   * - text spell knows is text:  `!this.right`, `this.input.includes(".")`, `x.toLocaleUpperCase()`
+   * - a list written out:  `["diamonds", "hearts"].includes(this.suit)`
+   * - a type test:  `x instanceof Tableau`, `typeof x === "number"`
+   * - one of spell's `List`s:  its own method, see `listCall()`
+   * - a position in a list written out, or another helper used often:  imported by name, `itemOf(Card.Ranks, rank)`
+   * - events:  `trigger()`, `on()`, see `eventCall()`
+   */
+  coreCall(node: P.ASTScopedMethodInvocation): string | undefined {
+    const args = node.args.args ?? []
+    const [first, ...rest] = args
+    const name = node.methodName
+    if (name === "drawThing") return this.drawThing(first)
+    if (name === "drawItems") return first && this.drawItems(first)
+    if (name === "isDefined" && first) return `${this.tight(first)} !== undefined`
+    if (EVENTS.has(name)) return this.eventCall(name, args)
+    if (!first) return undefined
+    const kind = this.kindOf(first)
+    if (kind === "text") {
+      if (name === "isEmpty") return `!${this.tight(first)}`
+      if (name === "includes" && rest.length === 1) return `${this.tight(first)}.includes(${this.bare(rest[0]!)})`
+      if (name === "upperCase") return `${this.tight(first)}.toLocaleUpperCase()`
+      if (name === "lowerCase") return `${this.tight(first)}.toLocaleLowerCase()`
+    }
+    if (name === "upperCase") return `\`\${${this.bare(first)} ?? ""}\`.toLocaleUpperCase()`
+    if (name === "includes" && rest.length === 1 && unwrapped(first) instanceof P.ASTArrayLiteral) {
+      return `${this.write(unwrapped(first))}.includes(${this.bare(rest[0]!)})`
+    }
+    if (name === "isOfType" && rest.length === 1) {
+      const typeTest = this.typeTest(first, rest[0]!)
+      if (typeTest) return typeTest
+    }
+    if (this.isList(first)) {
+      const written = this.listCall(name, first, rest, this.statements.has(node))
+      if (written !== undefined) return written
+    }
+    if (kind === "array" && (name === "map" || name === "forEach") && this.statements.has(node)) {
+      return this.forEachOf(first, rest[0])
+    }
+    if (IMPORTED_HELPERS.has(name)) {
+      this.coreImports.add(name)
+      return `${name}${this.write(node.args)}`
+    }
+    return undefined
+  }
+
+  /**
+   * `spellCore.isOfType(x, "Tableau")`, as TypeScript tests a type -- `undefined` to leave it to `spellCore`:
+   * - a class:  `x instanceof Tableau`
+   * - a number:  `typeof x === "number"`, text:  `typeof x === "string"`
+   * - spell's other kinds, on one of spell's things:  its own `x.isOfType("integer")`
+   */
+  private typeTest(thing: P.ASTExpression, type: P.ASTExpression): string | undefined {
+    const inner = unwrapped(type)
+    const name =
+      inner instanceof P.ASTStringLiteral || inner instanceof P.ASTQuotedExpression ? this.textOf(inner) : undefined
+    if (!name) return undefined
+    const text = this.tight(thing)
+    if (name === "number") return `typeof ${text} === "number"`
+    if (name === "text") return `typeof ${text} === "string"`
+    if (this.project.isClass(name)) return `${text} instanceof ${name}`
+    const kind = this.kindOf(thing)
+    return kind && this.project.isClass(kind) ? `${text}.isOfType("${name}")` : undefined
+  }
+
+  /**
+   * One of spell's `List`s doing it itself, as its own method:  `allPiles.filter((pile) => ...)`,
+   * `droppablePiles.firstItem`, `startPile.startingWith(this)` ... -- `undefined` for a helper it has no method for.
+   * - Every position counts from 1, as spell's.  A callback's item is typed by the list, so it's written bare.
+   * - Epic `output-targets` P14:  Q33, Q35, Q36.
+   */
+  private listCall(
+    name: string,
+    list: P.ASTExpression,
+    rest: P.ASTExpression[],
+    isStatement: boolean
+  ): string | undefined {
+    // `?.` off a list that may be nothing, e.g. `pile?.filter(...)` for `a random pile in ...`
+    const self = `${this.tight(list)}${this.mayBeNothing(list) ? "?" : ""}`
+    const [second, third] = rest
+    const callback = () => this.callback(second)
+    // a typed argument that may be nothing, passed as found:  see `argsOf()`
+    const found = (arg: P.ASTExpression) => (this.mayBeNothing(arg) ? `${this.tight(arg)}!` : this.bare(arg))
+    switch (name) {
+      case "filter":
+      case "all":
+      case "any":
+      case "removeWhere":
+        return second ? `${self}.${name}(${callback()})` : undefined
+      case "map":
+      case "forEach":
+        return second ? `${self}.${isStatement ? "forEach" : name}(${callback()})` : undefined
+      case "forEachSequential":
+        return second ? `${self}.forEachSequential(${callback()})` : undefined
+      case "getItemOf":
+        if (rest.length !== 1) return undefined
+        if (isNumber(second, 1)) return `${self}.firstItem`
+        if (isNumber(second, -1)) return `${self}.lastItem`
+        return `${self}.getItem(${this.bare(second!)})`
+      case "randomItemOf":
+        return `${self}.randomItem()`
+      case "randomItemsOf":
+        return second ? `${self}.randomItems(${this.bare(second)})` : undefined
+      case "isEmpty":
+        return `${self}.isEmpty`
+      case "itemCountOf":
+        return `${self}.length`
+      case "largestOf":
+        return `${self}.max`
+      case "smallestOf":
+        return `${self}.min`
+      case "itemOf":
+      case "remove":
+        return rest.length === 1 ? `${self}.${name}(${found(second!)})` : undefined
+      case "includes":
+      case "includesAny":
+      case "append":
+      case "prepend":
+      case "addBefore":
+      case "addAfter":
+        return `${self}.${name}(${rest.map(found).join(", ")})`
+      case "reverse":
+      case "randomize":
+        return `${self}.${name}()`
+      case "rangeStartingAt":
+        if (rest.length !== 1) return undefined
+        if (
+          isCoreCall(unwrapped(second!)) &&
+          (unwrapped(second!) as P.ASTScopedMethodInvocation).methodName === "itemOf"
+        ) {
+          const [ofList, item] = (unwrapped(second!) as P.ASTScopedMethodInvocation).args.args ?? []
+          if (ofList && item && this.write(ofList) === this.write(list))
+            return `${self}.startingWith(${this.bare(item)})`
+        }
+        return `${self}.startingFrom(${this.bare(second!)})`
+      case "rangeBetween":
+        return rest.length === 2 ? `${self}.between(${this.bare(second!)}, ${this.bare(third!)})` : undefined
+      case "duplicateCollection": {
+        if (!(second instanceof P.ASTTypeExpression)) return `${self}.clone()`
+        // already that class, e.g. a `Discard_Pile` is a `Pile`:  a copy of its own class (Q36)
+        const own = this.kindOf(list)
+        const isAlready = !!own && this.project.isSubclassOf(own, second.name)
+        return isAlready ? `${self}.clone()` : `${self}.cloneAs(${second.name})`
+      }
+      case "mergeCollections":
+        return second instanceof P.ASTTypeExpression ? `${self}.merged(${second.name})` : undefined
+    }
+    return undefined
+  }
+
+  /** `callback`, the function a list's own method takes:  its item typed by the list, so bare -- see `listCall()`. */
+  private callback(callback: P.ASTExpression | undefined): string {
+    if (!callback) return ""
+    const previous = this.untypedItems
+    this.untypedItems = true
+    try {
+      return this.bare(callback)
+    } finally {
+      this.untypedItems = previous
+    }
+  }
+
+  /** `array.forEach((item) => ...)` for a loop over a plain array, when it takes the item only. */
+  private forEachOf(array: P.ASTExpression, callback: P.ASTExpression | undefined): string | undefined {
+    const method = callback && unwrapped(callback)
+    if (!(method instanceof P.ASTMethodDefinition) || (method.args?.length ?? 0) > 1) return undefined
+    return `${this.tight(array)}.forEach(${this.bare(callback!)})`
+  }
+
+  /**
+   * An event, through `@spell/core`'s own `trigger()` / `on()`, imported:
+   * - `trigger("card-click", { card: this })`
+   * - `on<{ card: Card }>("card-click", ({ card }) => card.play())`:  the payload's type as a type argument, taken
+   *   apart in the handler's parameter (Q37)
+   */
+  private eventCall(name: string, args: P.ASTExpression[]): string {
+    this.coreImports.add(name)
+    const [type, handler] = args
+    const method = handler && unwrapped(handler)
+    if (name !== "on" || !(method instanceof P.ASTMethodDefinition)) {
+      return `${name}(${args.map((arg) => this.bare(arg)).join(", ")})`
+    }
+    const statements = (method.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
+    const [first, ...rest] = statements
+    const [event] = method.args ?? []
+    const read = first instanceof P.ASTDestructuredAssignment ? unwrapped(first.thing) : undefined
+    const shape = first instanceof P.ASTDestructuredAssignment ? this.shapeOf(first) : undefined
+    const takesPayload = shape && event && read instanceof P.ASTVariableExpression && read.name === event.name
+    if (!takesPayload) return `on(${this.bare(type!)}, ${this.bare(handler!)})`
+    const names = (first as P.ASTDestructuredAssignment).variables.map((variable) => {
+      const written = this.variableName(variable)
+      return written === variable.name ? written : `${variable.name}: ${written}`
+    })
+    const async = method.isAsync ? "async " : ""
+    const [only] = rest
+    const body =
+      rest.length === 1 && (only instanceof P.ASTScopedMethodInvocation || only instanceof P.ASTMethodInvocation)
+        ? String(this.write(only))
+        : this.write(new P.ASTStatementBlock(method.body.match, { statements: rest, wrap: true }))
+    return `on<${shape}>(${this.bare(type!)}, ${async}({ ${names.join(", ")} }) => ${body})`
+  }
+
+  /**
+   * A loop whose body waits, `await spellCore.forEachSequential(cards, async (card) => {...})`, as a plain loop:
+   * `for (const card of cards) {...}`, so the waits happen in turn -- `undefined` if it isn't one.
+   * - Over a spell `List` (iterable) or a plain array, when the body takes the item only.
+   * - A bare `return` in the body ends that turn only:  `continue`.
+   */
+  loop(node: P.ASTExpression): string | undefined {
+    const call = unwrapped(node)
+    if (!isCoreCall(call) || (call as P.ASTScopedMethodInvocation).methodName !== "forEachSequential") return undefined
+    const [collection, callback] = (call as P.ASTScopedMethodInvocation).args.args ?? []
+    const method = callback && unwrapped(callback)
+    if (!collection || !(method instanceof P.ASTMethodDefinition) || method.args?.length !== 1) return undefined
+    if (!this.isList(collection) && this.kindOf(collection) !== "array") return undefined
+    const [item] = method.args
+    const previous = this.returnContinues
+    this.returnContinues = true
+    try {
+      const body = this.write(method.body)
+      return `for (const ${this.variableName(item!)} of ${this.tight(collection)}) ${body}`
+    } finally {
+      this.returnContinues = previous
+    }
+  }
+
+  /** `await x`, or a loop whose body waits written as a plain loop -- see `loop()`. */
+  ASTAwaitExpression(node: P.ASTAwaitExpression): string {
+    return (this.statements.has(node) && this.loop(node.expression)) || `await ${this.tight(node.expression)}`
   }
 
   /** `thing.draw()` -- `?.draw()` when it may be nothing, e.g. the last card of a pile. */
   drawThing(thing: P.ASTExpression | undefined): string {
     if (!thing) return "undefined"
-    const inner = unwrapped(thing)
-    if (isItemRead(inner)) return `${String(this.write(inner)).replace(/!$/, "")}?.draw()`
-    return `${this.tight(thing)}.draw()`
+    return `${this.tight(thing)}${this.mayBeNothing(thing) ? "?." : "."}draw()`
   }
 
   /**
@@ -234,6 +647,18 @@ export class TSWriter extends JSWriter {
    *   gives up quietly, and the loop's item is `unknown`.
    */
   methodNamed(method: P.ASTMethodDefinition, name: string, thisType?: string): string {
+    if (!name.startsWith("get ")) return this.methodNamedOf(method, name, thisType)
+    const previous = this.getterDefault
+    this.getterDefault = earlyReturnOf(method)
+    try {
+      return this.methodNamedOf(method, name, thisType)
+    } finally {
+      this.getterDefault = previous
+    }
+  }
+
+  /** `methodNamed()`'s work. */
+  private methodNamedOf(method: P.ASTMethodDefinition, name: string, thisType?: string): string {
     const datatype = name.startsWith("get ") ? method.datatype : undefined
     const type = typeof datatype === "string" && !datatype.startsWith("list") ? this.typeFor(datatype) : undefined
     if (!type) return super.methodNamed(method, name, thisType)
@@ -256,6 +681,18 @@ export class TSWriter extends JSWriter {
    * one, and trailing parameters it never uses left out, e.g. a handler's `event`.
    */
   arrow(method: P.ASTMethodDefinition): string {
+    const previous = { returnContinues: this.returnContinues, untypedItems: this.untypedItems }
+    this.returnContinues = false
+    try {
+      return this.arrowOf(method, previous.untypedItems)
+    } finally {
+      Object.assign(this, previous)
+    }
+  }
+
+  /** `arrow()`'s work:  `untypedItems`, whether its item is typed by the list it's given to. */
+  private arrowOf(method: P.ASTMethodDefinition, untypedItems: boolean): string {
+    this.untypedItems = false
     const async = method.isAsync ? "async " : ""
     const statements = (method.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
     const [only] = statements
@@ -266,19 +703,36 @@ export class TSWriter extends JSWriter {
     const read = destructured && unwrapped(destructured.thing)
     const typesFirst = !!payload && read instanceof P.ASTVariableExpression && read.name === first?.name
     if (typesFirst) this.typedByParam.add(destructured!)
-    let body: string
-    if (statements.length === 1 && only instanceof P.ASTReturnStatement && only.value) {
-      const value = unwrapped(only.value)
-      body = value instanceof P.ASTObjectLiteral ? `(${this.write(value)})` : this.bare(only.value)
-    } else {
-      body = this.write(method.body)
-    }
+    // its parameters are the body's own, so what they are is known (`kindOf()`)
+    const body = this.inBlock(() => {
+      this.noteParams(method)
+      if (statements.length === 1 && only instanceof P.ASTReturnStatement && only.value) {
+        const value = unwrapped(only.value)
+        return value instanceof P.ASTObjectLiteral ? `(${this.write(value)})` : this.bare(only.value)
+      }
+      // one that only sets something, on one line:  `() => (this.operator = "+")`
+      if (statements.length === 1 && only instanceof P.ASTAssignmentStatement && !only.isNewVariable) {
+        return `(${this.write(only)})`
+      }
+      // one that only calls something:  `(card) => card.play()`
+      if (statements.length === 1 && only instanceof P.ASTScopedMethodInvocation && !typesFirst) {
+        this.statements.add(only)
+        return String(this.write(only))
+      }
+      return String(this.write(method.body))
+    })
     const args = [...(method.args ?? [])]
     while (args.length && !new RegExp(`\\b${camelCaseOf(args.at(-1)!.name)}\\b`).test(body)) args.pop()
+    this.untypedItems = untypedItems
     const params = args.map((arg, index) =>
       index === 0 && typesFirst ? `${this.variableName(arg)}: ${payload}` : this.arrowParam(arg)
     )
     return `${async}(${params.join(", ")}) => ${body}`
+  }
+
+  /** SIDE EFFECT:  notes `method`'s parameters as the block's own, so what they are is known -- see `kindOf()`. */
+  private noteParams(method: P.ASTMethodDefinition) {
+    for (const arg of method.args ?? []) this.locals.at(-1)!.set(arg.name, arg)
   }
 
   /**
@@ -300,7 +754,9 @@ export class TSWriter extends JSWriter {
    *   handler), unlike a method's own parameter.
    */
   arrowParam(arg: P.ASTVariableExpression): string {
-    const type = this.typeFor(arg.datatype ?? arg.variable?.datatype ?? arg.default?.datatype)
+    const type = this.untypedItems
+      ? undefined
+      : this.typeFor(arg.datatype ?? arg.variable?.datatype ?? arg.default?.datatype)
     const name = this.variableName(arg)
     const declared = type ? `${name}: ${type}` : name
     return arg.default ? `${declared} = ${this.bare(arg.default)}` : declared
@@ -364,8 +820,38 @@ export class TSWriter extends JSWriter {
   ASTInfixExpression(node: P.ASTInfixExpression): string {
     const template = node.operator === "plus" && this.templateText(node)
     if (template) return template
+    const comparison = this.comparison(node)
+    if (comparison) return comparison
     const operator = JSWriter.OPERATORS[node.operator]
     return `${this.operand(node.lhs, node.operator, "lhs")} ${operator} ${this.operand(node.rhs, node.operator, "rhs")}`
+  }
+
+  /**
+   * Spell's `is` / `is not` as a person writes it in TypeScript -- `undefined` to keep JavaScript's forgiving `==`:
+   * - a choice compared to yes or no:  bare, `pile.droppable`, `!pile.droppable` (Q39)
+   * - nothing:  `=== undefined` / `!== undefined`, as spell's nothing is `undefined`
+   * - both sides' types known and alike (text, numbers, choices, one class):  `===` / `!==`, which then means the same
+   *   -- `this.operator === "+"`, `this.value === card.value + 1`.  Where they aren't, `"2"` is `2` in spell:  `==`.
+   */
+  comparison(node: P.ASTInfixExpression): string | undefined {
+    const { operator, lhs, rhs } = node
+    if (operator !== "equals" && operator !== "not equals") return undefined
+    const isNot = operator === "not equals"
+    const [value, boolean] = unwrapped(rhs) instanceof P.ASTBooleanLiteral ? [lhs, rhs] : [rhs, lhs]
+    const yesOrNo = unwrapped(boolean)
+    if (yesOrNo instanceof P.ASTBooleanLiteral && this.kindOf(value) === "choice") {
+      return yesOrNo.value !== isNot ? this.bare(value) : `!${this.tight(value)}`
+    }
+    const strict = isNot ? "!==" : "==="
+    const isNothing = (it: P.ASTExpression) => unwrapped(it) instanceof P.ASTNothingLiteral
+    if (isNothing(lhs) || isNothing(rhs))
+      return `${this.operand(lhs, operator, "lhs")} ${strict} ${this.operand(rhs, operator, "rhs")}`
+    const kind = this.kindOf(lhs)
+    const other = this.kindOf(rhs)
+    // two of the project's things:  `==` and `===` mean the same for objects
+    const areThings = !!kind && !!other && this.project.isClass(kind) && this.project.isClass(other)
+    if (!areThings && (!kind || kind !== other || kind === "list" || kind === "array")) return undefined
+    return `${this.operand(lhs, operator, "lhs")} ${strict} ${this.operand(rhs, operator, "rhs")}`
   }
 
   /**
@@ -377,6 +863,8 @@ export class TSWriter extends JSWriter {
     if (inner instanceof P.ASTTernaryExpression) return `(${this.write(inner)})`
     // `!x` and `await x` bind tighter than any operator
     if (inner instanceof P.ASTNotExpression || inner instanceof P.ASTAwaitExpression) return String(this.write(inner))
+    // a helper written as a comparison (`x instanceof Tableau`) binds tighter than `&&` / `||`
+    if (isCoreCall(inner) && PRECEDENCE[operator] <= PRECEDENCE.and) return String(this.write(inner))
     if (!(inner instanceof P.ASTInfixExpression)) return this.tight(inner)
     const mine = PRECEDENCE[inner.operator]
     const theirs = PRECEDENCE[operator]
@@ -428,7 +916,32 @@ export class TSWriter extends JSWriter {
 
   /** `!x`, or `!(a && b)` when what it negates is an operator. */
   ASTNotExpression(node: P.ASTNotExpression): string {
+    const inner = unwrapped(node.expression)
+    // `is not defined`:  `x === undefined`
+    if (isCoreCall(inner) && (inner as P.ASTScopedMethodInvocation).methodName === "isDefined") {
+      const [value] = (inner as P.ASTScopedMethodInvocation).args.args ?? []
+      if (value) return `${this.tight(value)} === undefined`
+    }
+    // `is not empty` on text:  `!!x`, not `!(!x)`
+    const text = this.nonEmptyText(node)
+    if (text) return `!!${this.tight(text)}`
     return `!${this.tight(node.expression)}`
+  }
+
+  /** The text `node` says isn't empty (`!spellCore.isEmpty(text)`), else `undefined`. */
+  nonEmptyText(node: P.ASTExpression): P.ASTExpression | undefined {
+    const not = unwrapped(node)
+    if (!(not instanceof P.ASTNotExpression)) return undefined
+    const inner = unwrapped(not.expression)
+    if (!isCoreCall(inner) || (inner as P.ASTScopedMethodInvocation).methodName !== "isEmpty") return undefined
+    const [value] = (inner as P.ASTScopedMethodInvocation).args.args ?? []
+    return value && this.kindOf(value) === "text" ? value : undefined
+  }
+
+  /** An `if`'s condition:  text that isn't empty is tested bare, `if (this.right)`. */
+  condition(node: P.ASTExpression): string {
+    const text = this.nonEmptyText(node)
+    return text ? this.bare(text) : this.bare(node)
   }
 
   /** `condition ? yes : no`:  in parentheses only where its reader puts it (an operand -- see `operand()`). */
@@ -473,18 +986,23 @@ export class TSWriter extends JSWriter {
         const prefix = this.classPrefix(statement)
         if (prefix) lines.splice(docStart, 0, prefix)
       }
+      this.statements.add(statement)
       lines.push(String(this.write(statement)))
       docStart = lines.length
     }
-    return lines.join(jsText.NEWLINE)
+    return elseOnItsLine(lines.join(jsText.NEWLINE))
   }
 
-  /** `{ statements }`:  braces around a block, its blank lines left unindented, none at either end. */
+  /**
+   * `{ statements }`:  braces around a block, its blank lines left unindented, none at either end.
+   * - Its new variables are its own, see `inBlock()`.
+   */
   ASTStatementBlock(node: P.ASTStatementBlock): string {
     const statements = [...(node.statements ?? [])]
     while (statements[0] instanceof P.ASTBlankLine) statements.shift()
     while (statements.at(-1) instanceof P.ASTBlankLine) statements.pop()
-    const children = this.list(statements, jsText.NEWLINE)
+    for (const statement of statements) this.statements.add(statement)
+    const children = this.inBlock(() => elseOnItsLine(this.list(statements, jsText.NEWLINE)))
     if (!children) return jsText.EMPTY_BLOCK
     if (!node.wrap) return `{ ${children} }`
     return `{\n${indented(children)}\n}`
@@ -499,19 +1017,25 @@ export class TSWriter extends JSWriter {
    */
   ASTAssignmentStatement(node: P.ASTAssignmentStatement): string {
     const { thing, value } = node
-    if (!node.isNewVariable) return `${this.write(thing)} = ${this.bare(value)}`
+    this.noteLocal(node)
+    if (!node.isNewVariable) return `${this.setting(thing)} = ${this.bare(value)}`
     const export_ = this.isExported(node) ? "export " : ""
     const declarator = thing instanceof P.ASTVariableExpression && this.isReassigned([thing]) ? "let" : "const"
     const declared = `${export_}${declarator} ${this.write(thing)}`
     const inner = unwrapped(value)
     if (isCoreCall(inner)) {
+      const written = this.bare(value)
+      // a list's own method types what it gives by itself, e.g. `startPile.lastItem` is a `Card | undefined`
+      if (!written.startsWith("spellCore.")) return `${declared} = ${written}`
       // what spell read it as, e.g. `Card` for `the last card of discards`:  its match says, while parsing
       const datatype = inner.datatype ?? inner.match?.datatype
       const type = typeof datatype === "string" && !datatype.startsWith("list") ? this.typeFor(datatype) : undefined
-      // `as` says what it is:  no `!` needed before it
-      return type
-        ? `${declared} = ${this.bare(value).replace(/!$/, "")} as ${type}`
-        : `${declared} = ${this.bare(value)}`
+      if (!type) return `${declared} = ${written}`
+      // an item read says its type as a type argument, still maybe nothing:  `spellCore.getItemOf<Card>(...)`
+      if (JSWriter.ITEM_READS.has((inner as P.ASTScopedMethodInvocation).methodName)) {
+        return `${declared} = ${written.replace(/^spellCore\.(\w+)\(/, `spellCore.$1<${type}>(`)}`
+      }
+      return `${declared} = ${written} as ${type}`
     }
     const variable = thing instanceof P.ASTVariableExpression ? thing.variable : undefined
     // `[]`, which TypeScript can't type by itself, is a list
@@ -536,19 +1060,27 @@ export class TSWriter extends JSWriter {
     return !JSWriter.EXPORT_BLACKLIST.test(name)
   }
 
-  /** `return value`, bare -- JSX on several lines in parentheses. */
+  /**
+   * `return value`, bare -- JSX on several lines in parentheses;  in a loop's body, a bare one is `continue`.
+   * - In a getter that says early what nothing means (`if (this.isEmpty) return 0`), a value that may be nothing
+   *   falls back to it:  `return this.lastItem?.value ?? 0`.
+   */
   ASTReturnStatement(node: P.ASTReturnStatement): string {
-    if (!node.value) return "return"
+    if (!node.value) return this.returnContinues ? "continue" : "return"
+    const fallback = this.getterDefault
+    if (fallback && this.mayBeNothing(node.value)) return `return ${this.tight(node.value)} ?? ${this.bare(fallback)}`
     return `return ${this.parenthesized(this.bare(node.value))}`
   }
 
   /** `if (condition) statement` -- braces only around more than one statement. */
   ASTIfStatement(node: P.ASTIfStatement): string {
-    return `if (${this.bare(node.condition)}) ${this.body(node.statements)}`
+    const written = `if (${this.condition(node.condition)}) ${this.body(node.statements)}`
+    this.noteGuard(node)
+    return written
   }
 
   ASTElseIfStatement(node: P.ASTElseIfStatement): string {
-    return `else if (${this.bare(node.condition)}) ${this.body(node.statements)}`
+    return `else if (${this.condition(node.condition)}) ${this.body(node.statements)}`
   }
 
   ASTElseStatement(node: P.ASTElseStatement): string {
@@ -649,11 +1181,9 @@ export class TSWriter extends JSWriter {
         .filter((it) => it.value)
         .map((it) => `${jsText.INDENT}declare ${this.undeclaredMember(it)}`)
       if (declares.length) body = body.replace(/\}$/, `\n${declares.join("\n")}\n}`).replace("{}\n", "{\n")
-      // a method the classes below it define:  merged in after it
-      const methods = undeclared
-        .filter((it) => it.method)
-        .map((it) => `export interface ${type.name} { ${this.undeclaredMember(it)} }`)
-      if (methods.length) body = [body, ...methods].join("\n")
+      // a method the classes below it define:  merged in after it, one block, a member a line
+      const methods = undeclared.filter((it) => it.method).map((it) => this.undeclaredMember(it))
+      if (methods.length) body = `${body}\nexport interface ${type.name} {\n${indented(methods.join("\n"))}\n}`
       return hasCreate(declaration) ? `@thing\n${body}` : body
     } finally {
       this.currentClass = previousClass
@@ -661,8 +1191,13 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * What goes above class `node`:  its lists of values as typed constants, with their comments, and a type for one
-   * value of each, e.g. `const RANKS = [...] as const` and `export type Rank = (typeof RANKS)[number]`.
+   * What goes above class `node`:  each of its lists of values as a typed constant, with its docstring and a type
+   * for one of its values, a group each:
+   * ```
+   * /** card ranks *\/
+   * const RANKS = ["ace", 2, ...] as const
+   * export type Rank = (typeof RANKS)[number]
+   * ```
    * - `""` if it has none.
    */
   classPrefix(node: P.ASTClassDeclaration): string {
@@ -670,15 +1205,14 @@ export class TSWriter extends JSWriter {
     const lists = this.listsOf(declaration)
     if (!lists.length) return ""
     const members = declaration.members ?? []
-    const constants = lists.map((list) => {
+    const groups = lists.map((list) => {
       const docstring = docstringAbove(list.definition, members)
-      const constant = `const ${list.constant} = ${this.write(list.definition.value)} as const`
-      return docstring ? `${this.write(docstring)}\n${constant}` : constant
+      const lines = [`const ${list.constant} = ${this.write(list.definition.value)} as const`]
+      if (docstring) lines.unshift(String(this.write(docstring)))
+      if (list.type) lines.push(`export type ${list.type} = (typeof ${list.constant})[number]`)
+      return lines.join("\n")
     })
-    const types = lists
-      .filter((list) => list.type)
-      .map((list) => `export type ${list.type} = (typeof ${list.constant})[number]`)
-    return [...constants, "", ...(types.length ? [...types, ""] : [])].join("\n")
+    return `${groups.join("\n\n")}\n`
   }
 
   /**
@@ -1036,7 +1570,7 @@ export class TSWriter extends JSWriter {
    *   `colspan`)
    * - on a tag with a dash (`<ui-form>`), a value that can change, or an object, is a PROPERTY:  `prop:value={...}`
    * - a handler as an arrow, `onClick={() => autoPlay()}`;  one the drawing shares by its name, `onClick={click}`
-   * - no value:  `{true}`
+   * - no value:  bare on an HTML tag (`hidden`), `{true}` on a `<ui-*>` tag
    * - `undefined` for an attribute that didn't parse:  its error is in the program's parse errors
    */
   jsxAttribute(tag: string, attribute: P.ASTJSXAttribute): string | undefined {
@@ -1050,7 +1584,8 @@ export class TSWriter extends JSWriter {
       if (isProperty && value && !isFixedValue(value)) key = `prop:${name}`
     } else if (!name.startsWith("on") && /[a-z][A-Z]/.test(name)) key = name.toLowerCase()
 
-    if (!value) return `${key}={true}`
+    // bare, as HTML writes it (`hidden`);  a `<ui-*>` tag's bare attribute would ask for an icon called `true`
+    if (!value) return tag.includes("-") ? `${key}={true}` : key
     if (value instanceof P.ASTMethodDefinition) {
       const handler = this.arrow(value)
       return `${key}={${this.sharedHandlers.get(handler) ?? handler}}`
@@ -1127,6 +1662,50 @@ function drawingShape(statements: P.ASTNode[], project: TSProject): DrawingShape
 // ## Helpers
 ////////////////
 
+/**
+ * What getter `method` returns early, if it starts so:  `if (...) return <literal>` -- e.g. `0` for a pile's `value`
+ * (`if (this.isEmpty) return 0`), what its later `?.` reads fall back to.  `undefined` if it doesn't.
+ */
+function earlyReturnOf(method: P.ASTMethodDefinition): P.ASTExpression | undefined {
+  const [first] = (method.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
+  if (!(first instanceof P.ASTIfStatement)) return undefined
+  const [only] = (first.statements.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
+  if (!(only instanceof P.ASTReturnStatement) || !only.value) return undefined
+  return unwrapped(only.value) instanceof P.ASTLiteral ? only.value : undefined
+}
+
+/** A `spellCore` helper written with an operator, which needs parentheses as an operand:  see `TSWriter.tight()`. */
+const LOOSE_CORE_CALL = /^!|^typeof |\s(?:===|!==|instanceof)\s/
+
+/** Spell's events, through `@spell/core`'s own `on()`, `trigger()` ... -- see `TSWriter.eventCall()`. */
+const EVENTS = new Set(["on", "off", "once", "trigger"])
+
+/** `spellCore` helpers worth importing by name, e.g. `itemOf(Card.Ranks, this.rank)`. */
+const IMPORTED_HELPERS = new Set(["itemOf"])
+
+/** What spell's `datatype` is, as `TSWriter.kindOf()` says it -- `undefined` for a list (a `List` or an array). */
+function kindFromDatatype(datatype: P.Datatype | RegExpConstructor | undefined): string | undefined {
+  if (typeof datatype !== "string" || !datatype || datatype.startsWith("list")) return undefined
+  if (datatype === "text" || datatype === "character") return "text"
+  if (datatype === "number" || datatype === "integer") return "number"
+  if (datatype === "choice") return "choice"
+  return /^[A-Z]/.test(datatype) ? datatype : undefined
+}
+
+/** What a TypeScript type is, as `TSWriter.kindOf()` says it, e.g. `"text"` for `string`, `"Pile"` for `Pile`. */
+function kindFromTypeScript(type: string | undefined): string | undefined {
+  if (type === "string") return "text"
+  if (type === "number") return "number"
+  if (type === "boolean") return "choice"
+  return type && /^[A-Z]\w*$/.test(type) ? type : undefined
+}
+
+/** Is `node` the number `value` written out, e.g. `-1`? */
+function isNumber(node: P.ASTExpression | undefined, value: number): boolean {
+  const inner = node && unwrapped(node)
+  return inner instanceof P.ASTNumericLiteral && Number(inner.value) === value
+}
+
 /** The decorators compiled TypeScript may use, all from `@spell/core`. */
 const DECORATORS = ["prop", "state", "derived", "thing", "drawn"]
 
@@ -1188,23 +1767,6 @@ function isCoreCall(node: P.ASTNode): boolean {
   return node instanceof P.ASTScopedMethodInvocation && node.thing instanceof P.ASTSpellCoreExpression
 }
 
-/**
- * The `spellCore` helpers that read ONE item of a list, or an item's position, which may be nothing:  see
- * `isItemRead()`.
- */
-const ITEM_READS = new Set(["getItemOf", "randomItemOf", "itemOf"])
-
-/**
- * Is `node` a `spellCore` call reading one item of a list, or its position, e.g.
- * `spellCore.getItemOf(tableaus, column)`, `spellCore.itemOf(Card.Ranks, this.rank)`?  Spell reads it as found:
- * TypeScript, with `!`.
- */
-function isItemRead(node: P.ASTNode): node is P.ASTScopedMethodInvocation {
-  return (
-    isCoreCall(node) && ITEM_READS.has((unwrapped(node as P.ASTExpression) as P.ASTScopedMethodInvocation).methodName)
-  )
-}
-
 /** Can't value `node` change?  A literal (not a list, which holds expressions), an element, a function. */
 function isFixedValue(node: P.ASTExpression): boolean {
   const inner = unwrapped(node)
@@ -1253,6 +1815,11 @@ function flattened(group: P.ASTStatementGroup): P.ASTNode[] {
       ? flattened(statement)
       : [statement]
   )
+}
+
+/** `text` with each `else` after a block's `}` on the same line, `} else {`, as a person writes it. */
+function elseOnItsLine(text: string): string {
+  return text.replace(/\}\n[ \t]*else\b/g, "} else")
 }
 
 /** `text` with every non-blank line indented once. */

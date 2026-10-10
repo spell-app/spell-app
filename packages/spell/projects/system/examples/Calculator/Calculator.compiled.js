@@ -9,21 +9,27 @@ import { spellCore, Thing, List, App } from "@spell/core"
 // - tape to show past results
 
 export class Calculator extends App {
+  static { this.declareProp('input', { type: 'text' }) }
   get input() { return this.getProp('input') }
   set input(value) { this.setProp('input', value) }
 
+  static { this.declareProp('output', { type: 'text' }) }
   get output() { return this.getProp('output') }
   set output(value) { this.setProp('output', value) }
 
+  static { this.declareProp('left', { type: 'text' }) }
   get left() { return this.getProp('left') }
   set left(value) { this.setProp('left', value) }
 
+  static { this.declareProp('right', { type: 'text' }) }
   get right() { return this.getProp('right') }
   set right(value) { this.setProp('right', value) }
 
+  static { this.declareProp('total', { type: 'number' }) }
   get total() { return this.getProp('total') }
   set total(value) { this.setProp('total', value) }
 
+  static { this.declareProp('operator', { type: 'text' }) }
   get operator() { return this.getProp('operator') }
   set operator(value) { this.setProp('operator', value) }
 
@@ -33,10 +39,10 @@ export class Calculator extends App {
     this.left = ""
     this.operator = ""
     this.right = ""
-    this.total = ""
+    this.total = 0
   }
 
-  update_the_total_of() {
+  update_the_total_of_calculator() {
     if (spellCore.isEmpty(this.right)) { this.output = "" }
     else {
       let lhs = parseFloat(this.left)
@@ -49,27 +55,27 @@ export class Calculator extends App {
     }
   }
 
-  append_$digit_to(digit) {
+  append_$digit_to_calculator(digit) {
     // TODO: handle digit = "DELETE"
     if (digit == ".") {
       if (spellCore.isEmpty(this.input)) { this.input = "0." }
       else if (!spellCore.includes(this.input, ".")) { this.input = (this.input + ".") }
     }
-    else if (spellCore.isOfType(digit, 'number')) { this.input = (("" + this.input) + digit) }
+    else if (digit != "DELETE") { this.input = (this.input + digit) }
     // add to left or right field as appropriate
-    if (spellCore.isEmpty(this.operator)) { this.left = parseFloat(this.input) }
-    else { this.right = parseFloat(this.input) }
-    this.update_the_total_of()
+    if (spellCore.isEmpty(this.operator)) { this.left = this.input }
+    else { this.right = this.input }
+    this.update_the_total_of_calculator()
   }
 
-  set_the_operator_of_to_$op(op) {
+  set_the_operator_of_calculator_to_$op(op) {
     this.operator = op
     this.input = ""
     if (!spellCore.isEmpty(this.right)) {
       // move total to right
-      this.left = this.total
+      this.left = `${this.total}`
       this.right = ""
-      this.total = ""
+      this.total = 0
       this.output = ""
     }
   }
@@ -81,20 +87,20 @@ export class Calculator extends App {
           spellCore.element({ tag: "td", props: { colSpan: "3" }, children: [
             spellCore.element({ tag: "h2", children: [
               spellCore.element({ tag: "span", children: [
-                this.left
+                () => this.left
               ] }),
               spellCore.element({ tag: "span", props: { id: "operator" }, children: [
                 " ",
-                this.operator,
+                () => this.operator,
                 " "
               ] }),
               spellCore.element({ tag: "span", props: { id: "right" }, children: [
                 " ",
-                this.right,
+                () => this.right,
                 " "
               ] }),
               spellCore.element({ tag: "span", props: { id: "output" }, children: [
-                this.output
+                () => this.output
               ] })
             ] })
           ] }),
@@ -120,7 +126,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to(7)
+                  return this.append_$digit_to_calculator("7")
                 }
               },
               children: [
@@ -134,7 +140,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to(8)
+                  return this.append_$digit_to_calculator("8")
                 }
               },
               children: [
@@ -148,7 +154,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to(9)
+                  return this.append_$digit_to_calculator("9")
                 }
               },
               children: [
@@ -178,7 +184,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to(4)
+                  return this.append_$digit_to_calculator("4")
                 }
               },
               children: [
@@ -192,7 +198,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to(5)
+                  return this.append_$digit_to_calculator("5")
                 }
               },
               children: [
@@ -206,7 +212,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to(6)
+                  return this.append_$digit_to_calculator("6")
                 }
               },
               children: [
@@ -236,7 +242,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to(1)
+                  return this.append_$digit_to_calculator("1")
                 }
               },
               children: [
@@ -250,7 +256,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to(2)
+                  return this.append_$digit_to_calculator("2")
                 }
               },
               children: [
@@ -264,7 +270,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to(3)
+                  return this.append_$digit_to_calculator("3")
                 }
               },
               children: [
@@ -294,7 +300,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to(0)
+                  return this.append_$digit_to_calculator("0")
                 }
               },
               children: [
@@ -308,7 +314,7 @@ export class Calculator extends App {
               props: {
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to(".")
+                  return this.append_$digit_to_calculator(".")
                 }
               },
               children: [
@@ -323,7 +329,7 @@ export class Calculator extends App {
                 hidden: true,
                 className: "ui button fluid",
                 onClick: (event) => {
-                  return this.append_$digit_to("DELETE")
+                  return this.append_$digit_to_calculator("DELETE")
                 }
               },
               children: [

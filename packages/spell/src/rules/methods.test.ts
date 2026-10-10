@@ -26,8 +26,52 @@ describe("testing spell module methods", () => {
       const scope = spellParser.getScope("typed-before-receiver")
       const lines = ["a calculator is an app", "to append (digit as text) to (a calculator): print its input + digit"]
       const compiled = `${scope.compile(lines.join("\n"), "block")}`
-      expect(compiled).toContain("append_$digit_to(digit) {")
+      expect(compiled).toContain("append_$digit_to_calculator(digit) {")
       expect(compiled).not.toContain("export function")
+    })
+  })
+
+  describe("names:  the receiver's type stays where a little word would dangle (epic `output-targets`, Q44)", () => {
+    /** Compiled names of the methods `signatures` define on `typeName`, in a scope with a calculator, card and pile. */
+    const namesOf = (typeName: string, signatures: string[], scopeName: string) => {
+      const scope = spellParser.getScope(scopeName)
+      const lines = ["a calculator is an app", "a card is a thing", "a pile is a list of cards"]
+      scope.parse([...lines, ...signatures.map((it) => `${it}: print 1`)].join("\n"), "block")
+      return scope
+        .types!.get(typeName)!
+        .methods.get()
+        .map((method) => method.name)
+    }
+
+    test("a preposition before the receiver keeps its type's name", () => {
+      const signatures = [
+        "to update the total of (a calculator)",
+        "to append (digit as text) to (a calculator)",
+        "to set the operator of (a calculator) to (op as text)",
+        "to clear everything in a calculator"
+      ]
+      expect(namesOf("Calculator", signatures, "dangling-names")).toEqual([
+        "update_the_total_of_calculator",
+        "append_$digit_to_calculator",
+        "set_the_operator_of_calculator_to_$op",
+        "clear_everything_in_calculator"
+      ])
+    })
+
+    test("nothing dangles:  the name drops it", () => {
+      const signatures = ["to turn (a card) face up", "to move (a card) to (a pile)", "to pick up (a card)"]
+      expect(namesOf("Card", signatures, "no-dangling-names")).toEqual(["turn_face_up", "move_to_$pile", "pick_up"])
+    })
+
+    test("a call compiles to the same name", () => {
+      const scope = spellParser.getScope("dangling-name-call")
+      const lines = [
+        "a calculator is an app",
+        "to update the total of (a calculator): print 1",
+        "c is a new calculator"
+      ]
+      scope.parse(lines.join("\n"), "block")
+      expect(`${scope.compile("update the total of c", "statement")}`).toBe("c.update_the_total_of_calculator()")
     })
   })
 

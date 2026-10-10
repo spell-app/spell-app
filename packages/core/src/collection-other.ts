@@ -8,7 +8,7 @@
  */
 import _ from "lodash"
 import { spellCore } from "./core"
-import { assert } from "$/core"
+import { assert, List } from "$/core"
 import { defineSpellCoreModule } from "./spellCore.types"
 import type { CollectionOf } from "./collection-core"
 
@@ -144,6 +144,29 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   /**
+   * Add `things` just before `item` in `collection`, pushing `item` and what follows down.  Array only.
+   * - `item` isn't in `collection`:  added at the START.
+   * - Compiles from `add thing to my-list before other-thing` -- see `lists.ts`.  `List.addBefore()` calls it.
+   */
+  addBefore(collection?: unknown, item?: unknown, ...things: unknown[]): void {
+    if (!assert.isArrayLike(collection, "spellCore.addBefore(collection)")) return
+    const position = spellCore.itemOf(collection, item) as number | undefined
+    spellCore.addAtPosition(collection, position ?? 1, ...things)
+  },
+
+  /**
+   * Add `things` just after `item` in `collection`, pushing what follows it down.  Array only.
+   * - `item` isn't in `collection`:  added at the END.
+   * - Compiles from `add thing to my-list after other-thing` -- see `lists.ts`.  `List.addAfter()` calls it.
+   */
+  addAfter(collection?: unknown, item?: unknown, ...things: unknown[]): void {
+    if (!assert.isArrayLike(collection, "spellCore.addAfter(collection)")) return
+    const position = spellCore.itemOf(collection, item) as number | undefined
+    if (position === undefined) spellCore.append(collection, ...things)
+    else spellCore.addAtPosition(collection, position + 1, ...things)
+  },
+
+  /**
    * Set values of item starting with `start` as 1-based position.
    * - Replaces existing values.
    */
@@ -185,12 +208,13 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Return subset of list from `start` to `end` as 1-based positions, inclusive.  Array only.
    * NOTE: this is positive numbers only, `rangeStartingAt()` deals with negatives. (???)
+   * - Nothing in range:  an empty one of its kind -- see `emptyRangeOf()`.
    * - Compiles from `item 1 to 2 of my-list` -- see `lists.ts`.
    */
   rangeBetween(collection?: unknown, start?: number | null, end?: number | null): unknown {
     if (!assert.isArrayLike(collection, "spellCore.rangeBetween(collection)")) return []
     const range = spellCore._validateRangeBetween(start, end, spellCore.itemCountOf(collection))
-    if (!range) return []
+    if (!range) return emptyRangeOf(collection)
     const results = spellCore.newThingLike(collection)
     for (let i = range.start; i <= range.end; i++) {
       spellCore.append(results, spellCore.getItemOf(collection, i))
@@ -202,12 +226,17 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * Remove items from `collection` between 1-based positions `start` to `end`, inclusive.  Array only.
    * NOTE: this is positive numbers only. (???)
    * - Slides other items into the gaps.
+   * - A `List` removes each through its own `removeItem()`, last first, so it keeps its owners -- see `List`.
    * - Compiles from `remove items 2 to 4 of my-list` -- see `lists.ts`.
    */
   removeRangeBetween(collection?: unknown, start?: number | null, end?: number | null): void {
     if (!assert.isArrayLike(collection, "spellCore.removeRangeBetween(collection)")) return
     const range = spellCore._validateRangeBetween(start, end, spellCore.itemCountOf(collection))
     if (!range) return
+    if (typeof (collection as { removeItem?: unknown }).removeItem === "function") {
+      for (let position = range.end; position >= range.start; position--) spellCore.removeItemOf(collection, position)
+      return
+    }
     const count = range.end - range.start + 1
     Array.prototype.splice.call(collection, range.start - 1, count)
   },
@@ -241,7 +270,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
   rangeStartingAt<C>(collection?: C, start?: number | null, count?: number | null): C {
     if (!assert.isArrayLike(collection, "spellCore.rangeStartingAt(collection)")) return [] as C
     const range = spellCore._validateRangeStartingAt(start, count, spellCore.itemCountOf(collection))
-    if (!range) return [] as C
+    if (!range) return emptyRangeOf(collection) as C
     return spellCore.rangeBetween(collection, range.start, range.end) as C
   },
 
@@ -523,3 +552,11 @@ export const collectionOtherMethods = defineSpellCoreModule({
   }
 })
 Object.assign(spellCore, collectionOtherMethods)
+
+/**
+ * What a range of `collection` that holds nothing is:  an empty SCRATCH list of its class for a `List`, e.g. an
+ * empty `Pile`, so `List.between()` is always one of its own -- else `[]`, as before lists had methods.
+ */
+function emptyRangeOf(collection: unknown): unknown {
+  return collection instanceof List ? spellCore.newThingLike(collection) : []
+}

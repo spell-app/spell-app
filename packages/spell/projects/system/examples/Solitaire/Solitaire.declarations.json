@@ -61,6 +61,7 @@
     {
       "property": "color",
       "of": "Card",
+      "getter": true,
       "constants": [
         "red",
         "black"
@@ -71,6 +72,7 @@
       "property": "value",
       "of": "Card",
       "datatype": "number",
+      "getter": true,
       "defined": "/Card.spell:440-501"
     },
     {
@@ -192,6 +194,7 @@
       "property": "name",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1086-1137"
     },
     {
@@ -199,6 +202,7 @@
       "asWritten": "short suit",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1139-1300"
     },
     {
@@ -206,6 +210,7 @@
       "asWritten": "short rank",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1302-1464"
     },
     {
@@ -213,6 +218,7 @@
       "asWritten": "short direction",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1466-1546"
     },
     {
@@ -220,12 +226,14 @@
       "asWritten": "short name",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1549-1609"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
+      "getter": true,
       "defined": "/Card.spell:1611-1688"
     },
     {
@@ -291,7 +299,7 @@
       ],
       "kind": "method",
       "name": "play a card",
-      "defined": "/Solitaire.spell:3429-4421"
+      "defined": "/Solitaire.spell:3445-4437"
     },
     {
       "syntax": "test card setup",
@@ -333,7 +341,7 @@
       ],
       "kind": "method",
       "name": "display a deck",
-      "defined": "/Deck.spell:313-462"
+      "defined": "/Deck.spell:313-470"
     },
     {
       "property": "is_set_up",
@@ -350,7 +358,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "deck creation",
-      "defined": "/Deck.spell:464-1024"
+      "defined": "/Deck.spell:472-1032"
     },
     {
       "type": "Pile",
@@ -359,21 +367,30 @@
       "defined": "/Pile.spell:25-50"
     },
     {
+      "property": "name",
+      "of": "Pile",
+      "datatype": "text",
+      "defined": "/Pile.spell:164-189"
+    },
+    {
       "property": "color",
       "of": "Pile",
-      "defined": "/Pile.spell:165-253"
+      "getter": true,
+      "defined": "/Pile.spell:191-279"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
-      "defined": "/Pile.spell:255-338"
+      "getter": true,
+      "defined": "/Pile.spell:281-364"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
-      "defined": "/Pile.spell:340-504"
+      "getter": true,
+      "defined": "/Pile.spell:366-530"
     },
     {
       "property": "pile",
@@ -381,12 +398,6 @@
       "datatype": "Pile",
       "exclusive": true,
       "defined": "/Pile.spell:137-163"
-    },
-    {
-      "property": "name",
-      "of": "Pile",
-      "autoDeclared": true,
-      "defined": "/Solitaire.spell:3813-3872"
     },
     {
       "type": "Game",
@@ -402,8 +413,9 @@
     {
       "property": "state",
       "of": "Game",
-      "datatype": "list",
-      "defined": "/Solitaire.spell:2287-2406"
+      "datatype": "list of texts",
+      "getter": true,
+      "defined": "/Solitaire.spell:2287-2422"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -416,7 +428,7 @@
       ],
       "kind": "method",
       "name": "draw a game",
-      "defined": "/Solitaire.spell:6837-8233"
+      "defined": "/Solitaire.spell:6853-8249"
     },
     {
       "type": "Stock_Pile",
@@ -434,7 +446,7 @@
       ],
       "kind": "method",
       "name": "draw a stock-pile",
-      "defined": "/Solitaire.spell:6532-6729"
+      "defined": "/Solitaire.spell:6548-6745"
     },
     {
       "type": "Discard_Pile",
@@ -452,7 +464,7 @@
       ],
       "kind": "method",
       "name": "draw a discard-pile",
-      "defined": "/Solitaire.spell:6731-6835"
+      "defined": "/Solitaire.spell:6747-6851"
     },
     {
       "type": "Foundation",
@@ -470,7 +482,7 @@
       ],
       "kind": "method",
       "name": "draw a foundation",
-      "defined": "/Solitaire.spell:6087-6432"
+      "defined": "/Solitaire.spell:6103-6448"
     },
     {
       "type": "Tableau",
@@ -488,7 +500,7 @@
       ],
       "kind": "method",
       "name": "draw a tableau",
-      "defined": "/Solitaire.spell:6434-6530"
+      "defined": "/Solitaire.spell:6450-6546"
     },
     {
       "syntax": "debug the game",
@@ -499,7 +511,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2408-2482"
+      "defined": "/Solitaire.spell:2424-2498"
     },
     {
       "syntax": "reset the stock pile",
@@ -510,7 +522,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2484-2650"
+      "defined": "/Solitaire.spell:2500-2666"
     },
     {
       "syntax": "play from the stock pile",
@@ -521,7 +533,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2652-2839"
+      "defined": "/Solitaire.spell:2668-2855"
     },
     {
       "syntax": "deal the cards",
@@ -532,7 +544,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:2841-3427"
+      "defined": "/Solitaire.spell:2857-3443"
     },
     {
       "syntax": "auto-play",
@@ -543,7 +555,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:4465-5543"
+      "defined": "/Solitaire.spell:4481-5559"
     },
     {
       "syntax": "reset the game",
@@ -554,7 +566,7 @@
         "expression"
       ],
       "kind": "function",
-      "defined": "/Solitaire.spell:5545-5610"
+      "defined": "/Solitaire.spell:5561-5626"
     },
     {
       "syntax": "cheat",
@@ -566,7 +578,7 @@
       ],
       "kind": "function",
       "returns": "nothing",
-      "defined": "/Solitaire.spell:5612-5988"
+      "defined": "/Solitaire.spell:5628-6004"
     }
   ],
   "codeLines": [
@@ -601,28 +613,28 @@
     274,
     302,
     305,
-    310,
-    315,
-    324,
-    332,
+    309,
+    314,
+    319,
+    328,
+    344,
     345,
-    346,
-    352,
-    360,
-    492,
-    497,
-    516,
-    521,
-    531,
-    547,
-    588,
-    598,
-    619,
-    625,
-    634,
-    650,
-    688,
-    730,
-    735
+    351,
+    359,
+    491,
+    496,
+    515,
+    520,
+    530,
+    546,
+    587,
+    597,
+    618,
+    624,
+    633,
+    649,
+    687,
+    729,
+    734
   ]
 }

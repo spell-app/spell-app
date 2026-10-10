@@ -47,3 +47,4 @@ Object.assign(spellCore, classesMethods)
 
 // Compiled spell imports these -- `import { spellCore, Thing, List, App } from "@spell/core"`.  No globals.
 export { Thing, List, App }
+export type { ListCallback } from "./List"

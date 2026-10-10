@@ -30,6 +30,7 @@
       "property": "state",
       "of": "Game",
       "datatype": "list",
+      "getter": true,
       "defined": "/Solitaire.spell:2287-2406"
     },
     {

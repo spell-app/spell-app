@@ -102,7 +102,7 @@
     },
     {
       path: "type:List/method:add (a thing) to (a list)",
-      description: "Add `thing` to the end -- or wherever you say:\n- `add the card to the deck`, or `... to the end of the deck`\n- `add the card to the start of the deck`, or `prepend the card to the deck`\n- `add the card to the deck before the ace`",
+      description: "Add `thing` to the end -- or wherever you say:\n- `add the card to the deck`, or `... to the end of the deck`\n- `add the card to the start of the deck`, or `prepend the card to the deck`\n- `add the card to the deck before the ace` (at the start if the ace isn't in it;  `after`:  at the end)",
       rules: [
         { name: "list_add", syntax: "add {thing:expression} to (the (method:start|front|top|end|back|bottom) of)? {list:expression}" },
         { name: "list_prepend", syntax: "prepend {thing:expression} to {list:expression}" },

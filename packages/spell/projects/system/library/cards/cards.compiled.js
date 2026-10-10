@@ -132,9 +132,9 @@ export class Card extends Thing {
       tag: "div",
       props: {
         onClick: (event) => {
-          return spellCore.RUNTIME.trigger('card-click', { card: this })
+          return spellCore.trigger('card-click', { card: this })
         },
-        className: className
+        className: () => className
       },
       children: [
         spellCore.element({ tag: "i", props: { className: "fitted bicycle icon" } })
@@ -144,14 +144,14 @@ export class Card extends Thing {
       tag: "div",
       props: {
         onClick: (event) => {
-          return spellCore.RUNTIME.trigger('card-click', { card: this })
+          return spellCore.trigger('card-click', { card: this })
         },
-        className: (className + this.color)
+        className: () => (className + this.color)
       },
       children: [
-        (this.short_rank + " "),
+        () => (this.short_rank + " "),
         spellCore.element({ tag: "span", props: { className: "suit" }, children: [
-          this.short_suit
+          () => this.short_suit
         ] })
       ]
     })
@@ -309,13 +309,13 @@ export function test_deck_creation() {
       return (card.rank == "queen")
     })
     spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
-    spellCore.expect(spellCore.getItemOf(deck, -1).name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
-    spellCore.expect(spellCore.getItemOf(deck, 1).short_name, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
+    spellCore.expect(spellCore.getItemOf(deck, -1)?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
+    spellCore.expect(spellCore.getItemOf(deck, 1)?.short_name, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
     
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
     deck.display()
-    spellCore.expect(spellCore.getItemOf(deck, 1).is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
+    spellCore.expect(spellCore.getItemOf(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
     
     spellCore.echoTestAction(`shuffle the deck`)
     spellCore.randomize(deck)
@@ -341,8 +341,8 @@ export function test_deck_with_jokers() {
       return spellCore.isOfType(card, 'Joker')
     })
     spellCore.expect(spellCore.itemCountOf(jokers), `the number of cards in the jokers`, 2, `2`)
-    spellCore.expect(spellCore.getItemOf(deck, -1).is_the_$color_joker('black'), `the last card of the deck is the black joker`, true, `yes`)
-    spellCore.expect(spellCore.getItemOf(deck, 1).is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
+    spellCore.expect(spellCore.getItemOf(deck, -1)?.is_the_$color_joker('black'), `the last card of the deck is the black joker`, true, `yes`)
+    spellCore.expect(spellCore.getItemOf(deck, 1)?.is_the_$rank_of_$suits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
 test_deck_with_jokers()
@@ -352,14 +352,19 @@ spellCore.heading("Pile of playing cards")
 export class Pile extends List {
   static instanceType = Card
 
+  /** what a program calls it, e.g. "stock":  the program importing these cards names its piles */
+  static { this.declareProp('name', { type: 'text' }) }
+  get name() { return this.getProp('name') }
+  set name(value) { this.setProp('name', value) }
+
   get color() {
     if (spellCore.isEmpty(this)) { return "none" }
-    return spellCore.getItemOf(this, -1).color
+    return spellCore.getItemOf(this, -1)?.color
   }
 
   get value() {
     if (spellCore.isEmpty(this)) { return 0 }
-    return spellCore.getItemOf(this, -1).value
+    return spellCore.getItemOf(this, -1)?.value
   }
 
   get state() {

@@ -81,21 +81,21 @@ describe("TSWriter", () => {
     expect(project.write(count())).toBe("let count: number = 0")
   })
 
-  test("a new variable set from spellCore is cast when spell knows its type, else TypeScript types it", () => {
+  test("an item read from spellCore says its type as a type argument, when spell knows it", () => {
     const pick = () => new P.ASTCoreMethodInvocation(match, { methodName: "randomItemOf", datatype: "Card" })
     const card = new P.ASTAssignmentStatement(match, {
       thing: new P.ASTVariableExpression(match, { name: "card" }),
       value: pick(),
       isNewVariable: true
     })
-    expect(writer.write(card)).toBe("const card = spellCore.randomItemOf() as Card")
+    expect(writer.write(card)).toBe("const card = spellCore.randomItemOf<Card>()")
     const thing = new P.ASTAssignmentStatement(match, {
       thing: new P.ASTVariableExpression(match, { name: "thing" }),
       value: new P.ASTCoreMethodInvocation(match, { methodName: "randomItemOf" }),
       isNewVariable: true
     })
-    // core types it from the list:  `T | undefined`, read as found
-    expect(writer.write(thing)).toBe("const thing = spellCore.randomItemOf()!")
+    // core types it from the list:  `T | undefined`
+    expect(writer.write(thing)).toBe("const thing = spellCore.randomItemOf()")
   })
 
   test("a list says what it holds:  its class, and a new one", () => {
@@ -116,7 +116,7 @@ describe("TSWriter", () => {
     expect(writer.write(piles)).toBe(`new List<Pile>({ instanceType: "Pile" })`)
   })
 
-  test("a property of, or a method on, a spellCore call's result is read with `!`", () => {
+  test("a property of, or a method on, an item read from a list is read with `?.`:  it may be nothing", () => {
     const top = () =>
       new P.ASTCoreMethodInvocation(match, {
         methodName: "getItemOf",
@@ -126,10 +126,10 @@ describe("TSWriter", () => {
       object: top(),
       property: new P.ASTPropertyLiteral(match, "name")
     })
-    expect(writer.write(name)).toBe("spellCore.getItemOf(deck)!.name")
+    expect(writer.write(name)).toBe("spellCore.getItemOf(deck)?.name")
     const flip = new P.ASTScopedMethodInvocation(match, { thing: top(), methodName: "flip" })
-    expect(writer.write(flip)).toBe("spellCore.getItemOf(deck)!.flip()")
-    expect(P.JSWriter.instance.write(name)).toBe("spellCore.getItemOf(deck).name")
+    expect(writer.write(flip)).toBe("spellCore.getItemOf(deck)?.flip()")
+    expect(P.JSWriter.instance.write(name)).toBe("spellCore.getItemOf(deck)?.name")
   })
 
   test("TypeScript's names:  methods, functions and variables;  a getter where it's read, not a property", () => {
@@ -200,7 +200,6 @@ describe("TSWriter", () => {
     expect(project.write(new P.ASTStatementGroup(match, { statements: [declaration] }))).toBe(
       [
         `const SUITS = ["clubs"] as const`,
-        ``,
         `export type Suit = (typeof SUITS)[number]`,
         ``,
         `export class Card extends Thing {`,
@@ -237,7 +236,7 @@ describe("TSWriter", () => {
     expect(writer.write(element)).toBe(`<th class="left" colspan="2">{theStock.draw()}</th>`)
   })
 
-  test("an arrow's parameter spell can't type is left to TypeScript;  an item read is read as found", () => {
+  test("an arrow's parameter spell can't type is left to TypeScript", () => {
     const each = new P.ASTMethodDefinition(match, {
       inline: true,
       args: [new P.ASTVariableExpression(match, { name: "number" })],
@@ -252,9 +251,8 @@ describe("TSWriter", () => {
       methodName: "getItemOf",
       args: [new P.ASTVariableExpression(match, { name: "deck" }), new P.ASTNumericLiteral(match, -1)]
     })
-    expect(writer.write(last)).toBe("spellCore.getItemOf(deck, -1)!")
     expect(writer.write(new P.ASTPropertyExpression(match, { object: last, property: "name" }))).toBe(
-      "spellCore.getItemOf(deck, -1)!.name"
+      "spellCore.getItemOf(deck, -1)?.name"
     )
   })
 
@@ -294,6 +292,79 @@ describe("TSWriter", () => {
       })
     const project = writer.forProject([[pile, stock, tableau, made("Stock"), made("Tableau")]])
     expect(project.write(pile)).toBe("export class Pile extends List {\n  declare droppable: boolean\n}")
+  })
+
+  test("a spell List does it itself:  filter, first and last item, a loop that waits", () => {
+    const type = (name: string) => new P.ASTTypeExpression(match, { name })
+    const piles = () => new P.ASTVariableExpression(match, { name: "all_piles" })
+    const made = new P.ASTAssignmentStatement(match, {
+      thing: piles(),
+      value: new P.ASTNewInstanceExpression(match, { type: type("List") }),
+      isNewVariable: true
+    })
+    const project = writer.forProject([[made]])
+    const core = (methodName: string, args: P.ASTExpression[]) =>
+      new P.ASTCoreMethodInvocation(match, { methodName, args })
+    const keep = new P.ASTMethodDefinition(match, {
+      inline: true,
+      args: [new P.ASTVariableExpression(match, { name: "pile", datatype: "Pile" })],
+      body: new P.ASTPropertyExpression(match, {
+        object: new P.ASTVariableExpression(match, { name: "pile" }),
+        property: "droppable"
+      })
+    })
+    expect(project.write(core("filter", [piles(), keep]))).toBe("allPiles.filter((pile) => pile.droppable)")
+    expect(project.write(core("getItemOf", [piles(), new P.ASTNumericLiteral(match, -1)]))).toBe("allPiles.lastItem")
+    expect(project.write(core("isEmpty", [piles()]))).toBe("allPiles.isEmpty")
+  })
+
+  test("comparisons:  === where both sides are alike, a choice bare, nothing === undefined", () => {
+    const text = (value: string) => new P.ASTStringLiteral(match, { value, quote: '"' })
+    const is = (lhs: P.ASTExpression, rhs: P.ASTExpression) =>
+      new P.ASTInfixExpression(match, { lhs, operator: "equals", rhs })
+    expect(writer.bare(is(text("a"), text("b")))).toBe('"a" === "b"')
+    const done = new P.ASTVariableExpression(match, { name: "done", datatype: "choice" })
+    expect(writer.bare(is(done, new P.ASTBooleanLiteral(match, true)))).toBe("done")
+    expect(writer.bare(is(done, new P.ASTBooleanLiteral(match, false)))).toBe("!done")
+    const unknown = new P.ASTVariableExpression(match, { name: "x" })
+    expect(writer.bare(is(unknown, new P.ASTNothingLiteral(match)))).toBe("x === undefined")
+    expect(writer.bare(is(unknown, new P.ASTNumericLiteral(match, 2)))).toBe("x == 2")
+  })
+
+  test("text that isn't empty:  `!!x`, and bare in an `if`", () => {
+    const right = new P.ASTVariableExpression(match, { name: "right", datatype: "text" })
+    const isEmpty = new P.ASTCoreMethodInvocation(match, { methodName: "isEmpty", args: [right] })
+    const notEmpty = new P.ASTNotExpression(match, { expression: isEmpty })
+    expect(writer.bare(isEmpty)).toBe("!right")
+    expect(writer.bare(notEmpty)).toBe("!!right")
+    expect(writer.condition(notEmpty)).toBe("right")
+  })
+
+  test("an event:  trigger() and on() from core, the payload's type a type argument", () => {
+    const event = new P.ASTVariableExpression(match, { name: "event" })
+    const card = new P.ASTVariableExpression(match, { name: "card", datatype: "Card" })
+    const handler = new P.ASTMethodDefinition(match, {
+      inline: true,
+      args: [event],
+      body: new P.ASTStatementBlock(match, {
+        statements: [
+          new P.ASTDestructuredAssignment(match, {
+            thing: new P.ASTVariableExpression(match, { name: "event" }),
+            variables: [card],
+            isNewVariable: true
+          }),
+          new P.ASTScopedMethodInvocation(match, {
+            thing: new P.ASTVariableExpression(match, { name: "card" }),
+            methodName: "play"
+          })
+        ]
+      })
+    })
+    const on = new P.ASTCoreMethodInvocation(match, {
+      methodName: "on",
+      args: [new P.ASTQuotedExpression(match, "card-click"), handler]
+    })
+    expect(writer.write(on)).toBe(`on<{ card: Card }>("card-click", ({ card }) => card.play())`)
   })
 
   test("javascript is unchanged by the type hooks", () => {
