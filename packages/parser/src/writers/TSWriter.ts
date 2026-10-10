@@ -1424,6 +1424,9 @@ export class TSWriter extends JSWriter {
     if (initializer instanceof P.ASTNewInstanceExpression && initializer.type.name !== "List") {
       return initializer.type.name
     }
+    // `as a new list of tasks`:  `List<Task>`
+    const itemType = initializer instanceof P.ASTNewInstanceExpression && this.newListItemType(initializer)
+    if (itemType) return `List<${itemType}>`
     const initialType = this.typeFor(node.initializer?.datatype)
     if (initialType) return initialType
     // the program never says:  what it gives it (Q54)
@@ -1525,14 +1528,22 @@ export class TSWriter extends JSWriter {
   /** A new list says what it holds too:  `a new list of piles` => `new List<Pile>({ instanceType: "Pile" })`. */
   ASTNewInstanceExpression(node: P.ASTNewInstanceExpression): string {
     const text = super.ASTNewInstanceExpression(node)
-    if (node.type.name !== "List") return text
+    const itemType = this.newListItemType(node)
+    return itemType ? text.replace(/^new List/, `new List<${itemType}>`) : text
+  }
+
+  /**
+   * What a new list holds, in TypeScript's words:  `string` for `a new list of text`, `Pile` for `a new list of
+   * piles`;  `undefined` for a list that doesn't say, or anything else made.
+   */
+  newListItemType(node: P.ASTNewInstanceExpression): string | undefined {
+    if (node.type.name !== "List") return undefined
     const itemType = node.props?.properties.find(
       (property): property is P.ASTObjectLiteralProperty =>
         property instanceof P.ASTObjectLiteralProperty && property.property.value === "instanceType"
     )?.value
-    if (!(itemType instanceof P.ASTStringLiteral) || !itemType.quote) return text
-    // in TypeScript's words:  `a new list of text` => `new List<string>`
-    return text.replace(/^new List/, `new List<${this.typeFor(itemType.value) ?? itemType.value}>`)
+    if (!(itemType instanceof P.ASTStringLiteral) || !itemType.quote) return undefined
+    return this.typeFor(itemType.value) ?? itemType.value
   }
 
   ////////////////
