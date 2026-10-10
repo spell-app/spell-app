@@ -644,7 +644,9 @@ In `tools/`:
       - A toast says it's done, with Undo (`reopen`).  A closed thread shows Reopen in their place.
     - The pen, while his last words wait and Claude hasn't taken them:  they come back in the box to change.
     - The trash, always.
-    - The MESSAGES, no "You" or "Claude" ("lose the 'claude' 'You' bit"):  the colour says who.
+    - The MESSAGES:  the colour says who, and a bold "You:" / "Claude:" starts each one's first line (Owen, 2026-10-10:
+      "Put You in bold, same line, before me and Claude: before yours";  earlier he'd dropped a separate name line).
+    - Tight:  2px / 6px inside a message, 2px between them;  32px in from the text on each side.
       - Owen's:  plain on the ivory, no box, but the same padding as a boxed one ("my text doesn't get bordered").
       - Claude's:  a light violet box (`--ui-violet` mixed light), a thin violet outline, no side bar.
         Also "Taken into <epic> P<n>", and "Answered in the plan doc" for an answer with no words here.
