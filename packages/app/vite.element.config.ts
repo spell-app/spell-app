@@ -31,6 +31,8 @@ const shared = appConfig()
 export default defineConfig({
   ...shared,
   plugins: [...shared.plugins, sharedSolid(), builtInsPack(), componentPack()],
+  // its lazy chunk (`LayoutSpell.js`, a layout's spell) is preloaded from beside `spell-app.js`, not the page's root
+  base: "./",
   publicDir: "static",
   build: {
     chunkSizeWarningLimit: 2000,

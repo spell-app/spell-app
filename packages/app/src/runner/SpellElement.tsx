@@ -1,5 +1,5 @@
 import { createEffect } from "solid-js"
-import type { JSX } from "@solidjs/web"
+import { insert, type JSX } from "@solidjs/web"
 
 import { E, UI } from "$/ui/core"
 import type { ElementApi, SpellCore } from "$/core"
@@ -82,6 +82,7 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
   /**
    * - Written by hand (no `thing` set):  make a thing of our type, once.
    * - Each of our type's attributes, when it's set, is written to our thing's property:  `rank="1"` => `card.rank = 1`.
+   * - A drawable list the page wrote puts its own items in, as its children:  in a layout, nothing else draws it.
    */
   onMount() {
     createEffect(
@@ -93,6 +94,17 @@ export class SpellElement extends E.UIComponent<typeof spellElementVocabulary> {
           this.ownThing = new (entry.Class as new () => object)()
         }
       }
+    )
+    // a drawable list the PAGE wrote (its thing found in a layout, or made here):  nobody draws it, so it puts its
+    // own items in, as its children -- after any the page gave it.  The program's own draw puts them in itself.
+    insert(
+      this.domElement,
+      () => {
+        const list = this.thing ? undefined : this.currentThing
+        const entry = SPELL_ELEMENTS.get(this.domElement.localName)
+        return list && entry && "items" in list ? (entry.spellCore.drawItems(list) as JSX.Element) : null
+      },
+      null
     )
     for (const property of this.typeProperties) {
       createEffect(
