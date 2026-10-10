@@ -1,5 +1,5 @@
-import { Show, onSettled, type Accessor } from "solid-js"
-import { Dynamic, isServer, type JSX } from "@solidjs/web"
+import { Show, type Accessor } from "solid-js"
+import { Dynamic, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
@@ -161,18 +161,18 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   // ## Rendering
   ////////////////
 
-  onMount(): JSX.Element {
-    if (!isServer) {
-      onSettled(() =>
-        EpicChoices.watch(this.domElement, () => {
-          this.questionIsAnswered = EpicChoices.isAnswered(this.domElement)
-          this.chosenLetter = EpicChoices.chosenFor(this.domElement)
-          this.itemStatus = EpicChoices.itemStatusFor(this.domElement)
-        })
-      )
-      onSettled(() => this.followReview())
-    }
-    return super.onMount()
+  /**
+   * While connected:  follow its question -- answered, the chosen letter, its item's status.  Returns the undo.
+   * - `EpicChoices.watch()`'s own `MutationObserver`, not `@fromContent`:
+   *   it watches its `<epic-choices>` and `<epic-item>`, ANCESTORS.
+   */
+  @E.whileConnected
+  protected watchQuestion() {
+    return EpicChoices.watch(this.domElement, () => {
+      this.questionIsAnswered = EpicChoices.isAnswered(this.domElement)
+      this.chosenLetter = EpicChoices.chosenFor(this.domElement)
+      this.itemStatus = EpicChoices.itemStatusFor(this.domElement)
+    })
   }
 
   render(): JSX.Element {
@@ -293,10 +293,11 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   }
 
   /**
-   * Follow the page's review inbox:  the client made (or found), the item's id read, `inboxVersion` bumped on each of
-   * its changes.  Returns the undo.
+   * While connected, follow the page's review inbox:  the client made (or found), the item's id read,
+   * `inboxVersion` bumped on each of its changes.  Returns the undo.
    */
-  private followReview(): () => void {
+  @E.whileConnected
+  protected followReview(): () => void {
     const client = ReviewClient.forPage()
     this.review = client
     this.itemId = this.domElement.closest(ITEM_TAG)?.id || undefined

@@ -1,5 +1,5 @@
-import { Show, createEffect } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { Show } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
@@ -41,21 +41,16 @@ export class EpicField extends E.UIComponent<typeof epicFieldVocabulary> {
     return this.isConnected ? this.domElement.closest(EpicPage.TAG) : null
   }
 
-  /** To review:  colour its links by their items' states, again as the page changes. */
-  onMount(): JSX.Element {
-    if (isServer) return super.onMount()
-    createEffect(
-      () => {
-        // the layout count, so every change re-runs the apply;  -1:  nothing to colour
-        const page = this.page
-        const layout = page ? EpicPage.signalsOf(page).layout.get() : 0
-        return this.name === TO_REVIEW && this.isConnected ? layout : -1
-      },
-      (layout) => {
-        if (layout >= 0) this.colourLinks()
-      }
-    )
-    return super.onMount()
+  /** The page's layout counter:  bumped when sections come or go, or a phase changes (`EpicPage`). */
+  get layout(): number {
+    const page = this.page
+    return page ? EpicPage.signalsOf(page).layout.get() : 0
+  }
+
+  /** To review:  colour its links by their items' states, again as the page changes (`layout`). */
+  @E.onChange("name", "isConnected", "layout")
+  protected onLayoutChanged(name: string | undefined, connected: boolean) {
+    if (name === TO_REVIEW && connected) this.colourLinks()
   }
 
   /** A labelled block in prose (`label`, no `name`):  its label alone, no icon (P14). */
