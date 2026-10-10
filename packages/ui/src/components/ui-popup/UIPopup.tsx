@@ -49,11 +49,11 @@ import anchoredCSS from "./UIPopup.anchored.css?raw"
  *   - the target's inline `anchor-name` (a per-instance name ADDED to its list) and its ARIA attributes
  *   - the DOM element's `popover`, `id`, and inline `position-anchor` / `position-area`.
  ****************/
-@E.cssStates("fluid")
 export class UIPopup extends E.UIComponent<Vocabulary> {
   @E.proto static vocabulary = popupVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { popup: popupCSS, "popup-anchored": anchoredCSS },
+    cssStates: ["fluid"],
     // nothing inside needs focus delegated:  a click on a tooltip's text must not jump to a link in it
     delegatesFocus: false,
     // `loading`:  Fomantic's loader inside the popup

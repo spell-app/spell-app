@@ -13,7 +13,7 @@
  *     - `StickyWatch` (`<ui-sticky>` and `<ui-section sticky>`)
  *   - from `$/ui/elements`, the Solid layer:
  *     - `Reactive`, the decorators:
- *       `state`, `controlled`, `derived`, `cssState`, `cssStates`, `aria`, `onChange`, `whileConnected`,
+ *       `state`, `controlled`, `derived`, `cssState`, `aria`, `onChange`, `whileConnected`,
  *       `watches`, `on`, `untracked`
  *     - `Cell`, `ElementDefinition`, `DOMElement`, `UIComponent`, `SlotContent`, `IconGlyph`
  *     - `PartContext` + `PartComponent` (owner context)

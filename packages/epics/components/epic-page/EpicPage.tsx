@@ -104,11 +104,11 @@ import crumbsCSS from "./Crumbs.css?inline"
  * - SIDE EFFECT:  observes its subtree and the site header while connected;
  *   follows the page's review and agents clients.
  ****************/
-@E.cssStates("future")
 export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.proto static vocabulary = epicPageVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-page": pageCSS, "epic-crumbs": crumbsCSS }
+    styleSheets: { "epic-page": pageCSS, "epic-crumbs": crumbsCSS },
+    cssStates: ["future"]
   } satisfies Partial<E.ElementSetup>
 
   /** Its tag:  what its blocks look for around them. */

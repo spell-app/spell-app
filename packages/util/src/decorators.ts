@@ -41,15 +41,24 @@ export function proto<This extends AbstractClass<object>, Value>(
 /**
  * Like `@proto`, for a static OBJECT whose keys add up down the class chain:
  * `@protoMerged static elementSetup = { delegatesFocus: false }`.
- * - Puts `{ ...the parent class's value, ...this class's }` on the PROTOTYPE, once, when the class is defined:
- *   so `instance.elementSetup` (and `Class.prototype.elementSetup`) is already the merged result.
- * - Merges SHALLOWLY:  a key this class states replaces the parent's value for that key, whole.
- *   To add to an object-valued key, spread the parent's:
+ * - Puts this class's object on the PROTOTYPE, when the class is defined,
+ *   and makes the parent class's object ITS prototype:
+ *   a key this class doesn't state is read from the parent's, and so on up the chain.
+ *   - Nothing is copied:  ONE object per class, so `Class.elementSetup === Class.prototype.elementSetup`.
+ *   - In the browser's console, its own keys are what this class changed;
+ *     the rest show under `[[Prototype]]`, the parent's.
+ * - A key this class states replaces the parent's value for that key, whole.
+ *   To add to an object or a list, spread the parent's:
  *   `styleSheets: { ...UISection.prototype.elementSetup.styleSheets, panel: panelCSS }`.
- * - A class that doesn't state one inherits its parent's merged value, through the prototype chain.
- * - NOTE: the static keeps only what THIS class stated;  read the merged result from the prototype.
+ *   - Why nested values aren't chained too:  code walks over their keys (`Object.keys()`, `Object.assign()`),
+ *     which would miss the parent's;  and a spread lets each class choose the order.
+ * - A class that doesn't state one inherits its parent's object, through the prototype chain.
+ * - NOTE: read keys by name (`setup.styleSheets`, a destructure):
+ *   a spread, `Object.keys()`, `Object.assign()` or `JSON.stringify()` of the whole object
+ *   sees only the keys its own class stated.
  * - Field name MUST be something instances already declare, as for `@proto`.
- * - SIDE EFFECT: then calls the class's `static protoDefined(name, mergedValue)`, if it has one, as `@proto` does.
+ * - SIDE EFFECT: sets the prototype of the object the class states.
+ * - SIDE EFFECT: then calls the class's `static protoDefined(name, value)`, if it has one, as `@proto` does.
  */
 export function protoMerged<This extends AbstractClass<object>, Value extends object>(
   _target: undefined,
@@ -60,9 +69,11 @@ export function protoMerged<This extends AbstractClass<object>, Value extends ob
   }
   return function (this: This, value: Value): Value {
     const parentPrototype = Object.getPrototypeOf(this.prototype) as Record<PropertyKey, unknown> | null
-    const merged = { ...(parentPrototype?.[context.name] as object | undefined), ...value }
-    Object.defineProperty(this.prototype, context.name, { value: merged, writable: true, configurable: true })
-    ;(this as ProtoAware).protoDefined?.(context.name, merged)
+    const parentValue = parentPrototype?.[context.name] as object | undefined
+    // a key this class doesn't state is looked up on the parent's object
+    if (parentValue) Object.setPrototypeOf(value, parentValue)
+    Object.defineProperty(this.prototype, context.name, { value, writable: true, configurable: true })
+    ;(this as ProtoAware).protoDefined?.(context.name, value)
     return value
   }
 }
