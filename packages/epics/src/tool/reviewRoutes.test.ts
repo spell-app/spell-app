@@ -4,9 +4,11 @@
  * - From `packages/docs/tools/reviewRoutes.test.ts` (epic `epic-components`, P7):  every case.
  */
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
+import { createServer, type Server } from "node:http"
+import type { AddressInfo } from "node:net"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
-import { afterAll, beforeAll, beforeEach, expect, test } from "vite-plus/test"
+import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vite-plus/test"
 
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"
@@ -308,4 +310,98 @@ test("urgency:  an id chip's calm set and dropped;  only a call or an issue of t
   const dropped = await post("urgency", { page, id: "j4", calm: null })
   expect(dropped.body.urgency).toEqual({})
   expect(existsSync(inboxFile(PAGES.epic))).toBe(false)
+})
+
+// epic `airplane` P12:  "start a review" types `/epic review <epic>` into the ONE session titled for the epic
+describe("start", () => {
+  let home: string
+  let bridge: Server
+  let bridgePort: number
+  /** what the fake window bridge was asked:  `[op, body]` */
+  const asked: [string, unknown][] = []
+
+  /** live session records, `[title, pid]` each:  the pids must be alive (this process, its parent) */
+  function sessions(...records: [string, number][]) {
+    rmSync(join(home, "sessions"), { recursive: true, force: true })
+    mkdirSync(join(home, "sessions"), { recursive: true })
+    records.forEach(([name, pid], index) => {
+      const sessionId = `0000000${index}-0000-0000-0000-000000000000`
+      const record = { pid, sessionId, name, status: "idle", cwd: root }
+      writeFileSync(join(home, "sessions", `${index}.json`), JSON.stringify(record))
+    })
+  }
+
+  /** this process's window:  the fake bridge, or none */
+  function window(on: boolean) {
+    const file = join(home, "windows", `${process.pid}.json`)
+    if (on) writeFileSync(file, JSON.stringify({ pid: process.pid, port: bridgePort, token: "t" }))
+    else rmSync(file, { force: true })
+  }
+
+  beforeAll(async () => {
+    home = mkdtempSync(join(tmpdir(), "review-start-"))
+    bridge = createServer((request, response) => {
+      let text = ""
+      request.on("data", (chunk) => (text += chunk))
+      request.on("end", () => {
+        asked.push([request.url!.slice(1), JSON.parse(text)])
+        response.setHeader("content-type", "application/json")
+        response.end(JSON.stringify({ ok: true }))
+      })
+    })
+    await new Promise<void>((done) => bridge.listen(0, "127.0.0.1", done))
+    bridgePort = (bridge.address() as AddressInfo).port
+    mkdirSync(join(home, "windows"))
+    process.env.SPELL_CLAUDE_HOME = home
+    process.env.SPELL_WINDOWS_DIR = join(home, "windows")
+  })
+
+  afterAll(() => {
+    bridge.close()
+    delete process.env.SPELL_CLAUDE_HOME
+    delete process.env.SPELL_WINDOWS_DIR
+    rmSync(home, { recursive: true, force: true })
+  })
+
+  beforeEach(() => {
+    asked.splice(0)
+    window(true)
+  })
+
+  test("one session titled for the epic:  the command typed into its tab, through its window", async () => {
+    sessions(["🚧 big", process.pid], ["🚧 other", process.ppid])
+    const got = await post("start", { page: PLAN_URL })
+    expect(got.status).toBe(200)
+    expect(got.body).toMatchObject({ state: "sent", command: "/epic review big", sessions: ["🚧 big"] })
+    expect(asked).toEqual([
+      ["open-session", { sessionId: "00000000-0000-0000-0000-000000000000", prompt: "/epic review big" }]
+    ])
+  })
+
+  test("none:  nothing sent, and says so", async () => {
+    sessions(["🚧 other", process.pid], ["bigger things", process.ppid])
+    const got = await post("start", { page: PLAN_URL })
+    expect(got.body).toMatchObject({ state: "none", sessions: [] })
+    expect(asked).toEqual([])
+  })
+
+  test("several:  nothing sent, and names them", async () => {
+    sessions(["🚧 big", process.pid], ["big review", process.ppid])
+    const got = await post("start", { page: PLAN_URL })
+    expect(got.body).toMatchObject({ state: "several", sessions: ["🚧 big", "big review"] })
+    expect(asked).toEqual([])
+  })
+
+  test("one, but no window bridge for it:  nothing sent, the command to type there", async () => {
+    sessions(["🚧 big", process.pid])
+    window(false)
+    const got = await post("start", { page: PLAN_URL })
+    expect(got.body).toMatchObject({ state: "no-window", command: "/epic review big" })
+    expect(asked).toEqual([])
+  })
+
+  test("not a plan doc:  403;  a bad token:  403", async () => {
+    expect((await post("start", { page: `/${PAGES.other}` })).status).toBe(403)
+    expect((await post("start", { page: PLAN_URL }, { "x-server-token": "nope" })).status).toBe(403)
+  })
 })

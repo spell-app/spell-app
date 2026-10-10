@@ -444,7 +444,15 @@ This session LISTENS:  it waits on the doc's review inbox, and acts on what arri
 
 - Runs from ANY window, `main` or a worktree.
   - The prompt hook lets `/epic review` through, and never renames the session.
+  - EXCEPT in a session titled for a DIFFERENT epic (`🚧 seo` typing `/epic review airplane`):
+    the hook refuses it, with a one-line reason (epic `airplane` P12, Q10 B).
+    Untitled and main sessions are allowed.
   - No worktree, no plan mode.
+- Started from the PAGE too (epic `airplane` P12):  Owen clicks the "No Claude session is reviewing" pill
+  (or the review line).
+  - The page server finds the ONE running session titled for the epic (`🚧 <name>`, or the name as a word),
+    and types `/epic review <name>` into its tab through its window's bridge:  Owen presses Enter there.
+  - None, or several:  nothing is sent, and the page says which sessions it found.
 - Every `spell dev plan-doc` command edits the epic's ONE shared doc, from any checkout.
 - The page's controls need a PAGE SERVER with the review routes (`spell dev server ensure`).
   From `file://`, or a server without them, the page shows no menus.
