@@ -434,8 +434,8 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
    * - The same hash again re-announces it (`hashchange`), so the page lands once more.
    */
   private jumpHere(hash: string) {
-    const drawer = E.closestAcrossShadow(this.domElement, DRAWERS)
-    if (drawer?.hasAttribute(OPEN)) drawer.removeAttribute(OPEN)
+    const drawer = E.closestAcrossShadow<HTMLElement>(this.domElement, DRAWERS)
+    if (drawer && !drawer.hidden) drawer.hidden = true
     if (location.hash === hash) {
       window.dispatchEvent(new HashChangeEvent("hashchange", { oldURL: location.href, newURL: location.href }))
     } else location.hash = hash
@@ -627,8 +627,9 @@ export class UIDocsSearch extends E.UIComponent<DocsSearchVocabulary> {
     const before = UIDocsSearch.deepActive()
     if (before && !this.domElement.shadowRoot?.contains(before)) this.returnFocus = before
     if (!this.domElement.checkVisibility()) {
-      const drawer = E.closestAcrossShadow(this.domElement, DRAWERS)
-      if (drawer && !drawer.hasAttribute(OPEN)) drawer.setAttribute(OPEN, "")
+      // a drawer's shared `hidden` / `visible` (one fact):  showing it animates it in
+      const drawer = E.closestAcrossShadow<HTMLElement>(this.domElement, DRAWERS)
+      if (drawer?.hidden) drawer.hidden = false
       for (let frame = 0; frame < SUMMON_FRAMES && !this.domElement.checkVisibility(); frame++) await E.nextFrame()
       // the drawer moves focus into itself as it opens:  take it after
       await E.nextFrame()
@@ -746,9 +747,6 @@ const INDEX_ATTRIBUTE = "data-index"
 
 /** The input's `aria-keyshortcuts`, while shortcuts are on. */
 const KEY_SHORTCUTS = "/ Meta+K Control+K"
-
-/** A drawer's `open` attribute:  `summon()` opens one, a jump to the page shown closes it. */
-const OPEN = "open"
 
 /** Class word of an icon's box (the field's, a result's). */
 const GLYPH = "glyph"

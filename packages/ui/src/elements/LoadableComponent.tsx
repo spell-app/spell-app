@@ -474,10 +474,10 @@ export abstract class LoadableComponent<V extends E.ComponentVocabulary = E.Comp
 
 /**
  * Attributes each status element gets, by tag:
- * - the loader:  spinning (`active`), in the text flow (`inline`), centred (`centered`)
+ * - the loader:  shown (`visible`), in the text flow (`inline`), centred (`centered`)
  * - the message:  the error look (`state="error"`)
  */
 const STATUS_ATTRIBUTES = {
-  [SOURCE_LOADER_TAG]: { active: "", inline: "", centered: "" },
+  [SOURCE_LOADER_TAG]: { visible: "", inline: "", centered: "" },
   [SOURCE_MESSAGE_TAG]: { state: "error" }
 } as const

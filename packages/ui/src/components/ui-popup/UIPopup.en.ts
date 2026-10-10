@@ -7,7 +7,8 @@
  *   `<ui-popup size="small" inverted wide="very">` => `ui small inverted very wide popup`.
  *   The element adds the `position` words before the noun (`ui inverted bottom left popup`),
  *   the words Fomantic's script added.
- * - `open` emits `visible`, Fomantic's shown-popup class, so static markup and the element share one sheet.
+ * - `visible`, Fomantic's shown-popup class, is the element's own while it shows (the shared `visible` / `hidden`),
+ *   so static markup and the element share one sheet.
  * - A popup OWNS the `header` and `content` parts:
  *   slotted `<ui-header>` / `<ui-content>` get `:state(in-popup)` and style themselves from `UIParts.css`.
  * - `target` is a PROPERTY (an element);  first paint never needs it --
@@ -41,12 +42,6 @@ export const popupVocabulary = {
     { name: "inverted", kind: "keyOnly", description: "The opposite scheme:  dark on a light page." },
     { name: "loading", kind: "keyOnly", description: "Busy:  a spinner over faded content." },
     {
-      name: "open",
-      kind: "keyOnly",
-      key: "visible",
-      description: "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes."
-    },
-    {
       name: "wide",
       kind: "keyOrValueAndKey",
       values: ["very"],
@@ -69,7 +64,7 @@ export const popupVocabulary = {
       default: UIT.PopupTrigger.hover,
       description:
         "What opens it:  `hover` (also keyboard focus), `focus`, `click` (toggles;  a non-modal dialog), or " +
-        "`manual` (only `open`)."
+        "`manual` (only `visible`)."
     },
     {
       name: "for",
@@ -109,17 +104,17 @@ export const popupVocabulary = {
   events: [
     {
       name: "ui-open",
-      detail: "{ open: true, originalEvent?: Event }",
+      detail: "{ visible: true, originalEvent?: Event }",
       cancelable: true,
       description:
         "About to show for a person's action (the trigger, an invoker command);  `preventDefault()` keeps it hidden."
     },
     {
       name: "ui-close",
-      detail: "{ open: false, originalEvent?: Event }",
+      detail: "{ visible: false, originalEvent?: Event }",
       cancelable: true,
       description:
-        "About to hide;  `preventDefault()` keeps it open.  NOT cancelable in effect when the browser already " +
+        "About to hide;  `preventDefault()` keeps it shown.  NOT cancelable in effect when the browser already " +
         "dismissed a `hint` popover (Escape, a click elsewhere)."
     }
   ],
@@ -129,10 +124,7 @@ export const popupVocabulary = {
     { name: "header", description: "The `header` shorthand." },
     { name: "content", description: "The `content` shorthand." }
   ],
-  states: [
-    { name: "open", description: "Shown." },
-    { name: "fluid", description: "As wide as its target (`fluid`)." }
-  ],
+  states: [{ name: "fluid", description: "As wide as its target (`fluid`)." }],
   texts: [],
   ownsParts: ["header", "content"]
 } as const satisfies E.ComponentVocabulary

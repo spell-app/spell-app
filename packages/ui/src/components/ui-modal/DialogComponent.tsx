@@ -10,19 +10,23 @@ import { type DialogAttributes, type DialogEventName } from "./UIModal.types"
  * everything they do, on a shadow `<dialog class="ui … <noun>" part="<rootPart>">` shown with `showModal()`.
  * The browser gives it the focus trap, the `inert` page, the top layer and the `::backdrop` (the dimmer).
  *
- * - A subclass adds only its names and looks:  `vocabulary`, `elementSetup.styleSheets`, `rootPart`, `overlayKind`.
+ * - A subclass adds only its names and looks:
+ *   `vocabulary`, `elementSetup.styleSheets` (and `animation`), `rootPart`, `overlayKind`, `shownClass`.
  *
  * - In the modal family, not `src/elements/`:  a flyout IS Fomantic's side modal
  *   (the same parts, buttons, events and dismissal), and nothing else shares it yet.
  *   A third, non-modal overlay would move it to `src/elements/` (`agents/CODE-DEBT.md`, `ui`).
  *
  * - Every dialog vocabulary MUST name (each family's tests check it;  types can't):
- *   - attributes `open`, `closable`, `closedby`, `header`, `content`
+ *   - attributes `closable`, `closedby`, `header`, `content`
  *   - events `ui-open`, `ui-show`, `ui-close`, `ui-hide`, `ui-approve`, `ui-deny`
- *   - parts `rootPart`, `header`, `content`, `close`;  state `open`;  text `close`.
+ *   - parts `rootPart`, `header`, `content`, `close`;  text `close`.
  *
- * - `open` is controlled (`isOpen`):  `ui-open` / `ui-close` (with a `reason`) come first and can veto;
- *   `ui-show` / `ui-hide` follow once the CSS transition has finished.
+ * - Shown by the shared `visible` / `hidden` (`UIComponent`, "Shown or hidden"), starting hidden
+ *   (`elementSetup.visible`):  `<ui-modal visible>`, `modal.visible = true`.
+ *   - Controlled (`isVisible`):  a person's `ui-open` / `ui-close` (with a `reason`) come first and can veto;
+ *     `ui-show` / `ui-hide` follow once the transition has finished.
+ *   - The `<dialog>` opens with `showModal()` and closes with `close()` as `visible` changes (`onVisibleChange()`).
  *
  * - Dismissal, by `closedby` (read when it opens;  `closedBy` says what an absent one means):
  *   - Escape:  through `UI.overlays` (kind `overlayKind`:  scroll lock, keyboard scope, focus restore),
@@ -32,12 +36,12 @@ import { type DialogAttributes, type DialogEventName } from "./UIModal.types"
  *     when `UI.browser.supports.dialogClosedBy`, reported as `cancel`;
  *     else `UI.overlays`' outside click, which tells a backdrop click from one on the dialog by where the pointer is.
  *   - A close the browser forces anyway (a repeated Escape it won't let a page veto) is followed:
- *     a `ui-close` that can't veto, then `open` off.
+ *     a `ui-close` that can't veto, then `visible` off.
  *
  * - Opening as a PERSON'S action, so `ui-open` fires:
  *   an invoker command, `<button commandfor="id" command="--show">`
  *   (`ToggleCommands`;  `--close` closes, `--toggle` flips).
- *   Writing `open` is the app's own decision, and fires nothing.
+ *   Writing `visible` (or `hidden`) is the app's own decision, and fires nothing.
  *
  * - Buttons:  a click on an approve / deny element fires the cancelable `ui-approve` / `ui-deny`, then closes.
  *   - Those elements (`ModalActionSelectors`):
@@ -53,6 +57,9 @@ import { type DialogAttributes, type DialogEventName } from "./UIModal.types"
 export abstract class DialogComponent<
   V extends E.ComponentVocabulary = E.ComponentVocabulary
 > extends E.UIComponent<V> {
+  /** Starts hidden, unless the page writes `visible`. */
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = { visible: "hidden" }
+
   /** Part name of the `<dialog>`, e.g. `modal`. */
   declare rootPart: string
 
@@ -93,55 +100,83 @@ export abstract class DialogComponent<
   }
 
   ////////////////
-  // ## Open
+  // ## Shown or hidden
   ////////////////
 
-  /** `open`:  shown.  The DOM element's `open` property when set, else kept here. */
-  @E.cssState("open")
-  @E.controlled("open")
-  accessor isOpen = false
+  /** Fomantic's class word on the `<dialog>` while it shows:  `active` (a modal), `visible` (a flyout). */
+  declare shownClass: string
 
   /** Bumped on every show / hide, so a late `ui-show` / `ui-hide` of an earlier one is dropped. */
   private generation = 0
 
-  protected classValue(name: E.AttributeName<V>): unknown {
-    if (name === OPEN) return this.isOpen
-    return super.classValue(name)
+  /** Fomantic's shown class (`shownClass`), just before the noun while `visible`. */
+  protected get extraClass(): string | undefined {
+    return this.isVisible ? this.shownClass : undefined
   }
 
   /** Show, dispatching the cancelable `ui-open` first;  true when applied. */
   @E.untracked
   requestOpen(originalEvent?: Event): boolean {
-    if (this.isOpen) return false
-    const detail: UIT.ModalOpenDetail = { open: true, originalEvent }
-    return this.requestChange("isOpen", true, () => this.fire("ui-open", detail))
+    if (this.isVisible) return false
+    const detail: UIT.ModalOpenDetail = { visible: true, originalEvent }
+    return this.requestChange("isVisible", true, () => this.fire("ui-open", detail))
   }
 
   /** Hide for `reason`, dispatching the cancelable `ui-close` first;  true when applied. */
   @E.untracked
   requestClose(reason: UIT.ModalCloseReason, originalEvent?: Event): boolean {
-    if (!this.isOpen) return false
+    if (!this.isVisible) return false
     this.isDismissing = true
     E.soon(() => (this.isDismissing = false))
-    const detail: UIT.ModalCloseDetail = { open: false, reason, originalEvent }
-    return this.requestChange("isOpen", false, () => this.fire("ui-close", detail))
+    const detail: UIT.ModalCloseDetail = { visible: false, reason, originalEvent }
+    return this.requestChange("isVisible", false, () => this.fire("ui-close", detail))
   }
 
   /**
-   * Shown while open AND connected, once the runtime is loaded (`isReady`, as the render waits for):
-   * it acts on the rendered `<dialog>`;  hidden by the cleanup.
+   * `visible` changed (`UIComponent`'s hook):  open or close the `<dialog>`;
+   * resolves once its transition has ended, with `ui-show` / `ui-hide`.
+   * - `animation`:
+   *   - the family's own (`elementSetup.animation`):  the sheet's transition (`UIModal.css`, `UIFlyout.css`)
+   *   - another one (the element's own `animation`):  run on the `<dialog>` through `UI.transitions`
+   *   - `none`:  at once (motion off, or the element's first draw)
+   * - `ui-hide` only when it was shown:  a modal that starts hidden fires nothing.
    */
-  @E.onChange("isConnected", "isReady", "isOpen")
-  protected onOpenChanged(isConnected: boolean, isReady: boolean, isOpen: boolean) {
-    if (!(isConnected && isReady && isOpen)) return
-    this.show()
+  protected async onVisibleChange(visible: boolean, animation: UIT.Animation): Promise<void> {
+    const dialog = this.dialog
+    if (!dialog) return
+    const keyframes = UIT.AnimationLookup.keyframesBeside(animation, this.elementSetup.animation)
+    if (visible) {
+      this.show()
+      if (keyframes) await UI.transitions.animate({ element: dialog, name: keyframes, direction: UIT.IN })
+      const detail: UIT.ModalOpenDetail = { visible: true }
+      if ((await this.transitionsEnd()) && this.isVisible) this.fire("ui-show", detail)
+      return
+    }
+    const wasShown = UI.overlays.isOpen(this.overlayEntry)
+    if (keyframes && wasShown) await UI.transitions.animate({ element: dialog, name: keyframes, direction: UIT.OUT })
+    // shown again while the keyframes ran
+    if (this.isVisible) return
+    this.hide()
+    const detail: UIT.ModalOpenDetail = { visible: false }
+    if (!wasShown || !(await this.transitionsEnd())) return
+    if (!this.isVisible && this.domElement.isConnected) this.fire("ui-hide", detail)
+  }
+
+  /**
+   * Shown again when it comes back into the page while `visible`;  closed, quietly, when it leaves.
+   * - Not on the first connect:  the dialog isn't drawn yet, and `onVisibleChange()` runs once it is.
+   */
+  @E.whileConnected
+  protected watchPlacement() {
+    if (this.isVisible && this.isReady) this.show()
     return () => this.hide()
   }
 
   /**
-   * `showModal()`, register with `UI.overlays`, `ui-show` once the entry transition ends.
+   * `showModal()` and register with `UI.overlays`;  nothing when already open.
    * - `closedby` is applied here:
    *   natively when supported (the browser's light dismiss), else by the overlay entry's outside-click handling.
+   * - A `<dialog>` that other keyframes animated out (`hidden` on it) shows again first.
    */
   private show() {
     const dialog = this.dialog
@@ -152,38 +187,27 @@ export abstract class DialogComponent<
     else dialog.removeAttribute("closedby")
     this.overlayEntry.closeOnEscape = closedBy !== "none"
     this.overlayEntry.closeOnOutsideClick = !isNative && closedBy === "any"
+    UI.transitions.reveal(dialog)
     if (!dialog.open) {
       dialog.showModal()
       UI.focus.enter(dialog)
     }
     UI.overlays.open(this.overlayEntry)
-    this.after(() => {
-      const detail: UIT.ModalOpenDetail = { open: true }
-      if (this.isOpen) this.fire("ui-show", detail)
-    })
   }
 
-  /**
-   * `close()` the dialog, THEN leave `UI.overlays` (whose focus restore needs the page no longer `inert`),
-   * `ui-hide` once the exit transition ends.
-   */
+  /** `close()` the dialog, THEN leave `UI.overlays` (whose focus restore needs the page no longer `inert`). */
   private hide() {
     const dialog = this.dialog
     if (dialog?.open) dialog.close()
     UI.overlays.close(this.overlayEntry)
-    this.after(() => {
-      const detail: UIT.ModalOpenDetail = { open: false }
-      if (!this.isOpen && this.domElement.isConnected) this.fire("ui-hide", detail)
-    })
   }
 
-  /** Run `then` once the dialog's own transitions end, unless another show / hide started meanwhile. */
-  private after(then: () => void) {
+  /** Once the dialog's own transitions end:  `true` unless another show / hide started meanwhile. */
+  private async transitionsEnd(): Promise<boolean> {
     const generation = ++this.generation
     const animations = this.dialog?.getAnimations() ?? []
-    void Promise.allSettled(animations.map((animation) => animation.finished)).then(() => {
-      if (generation === this.generation) then()
-    })
+    await Promise.allSettled(animations.map((animation) => animation.finished))
+    return generation === this.generation
   }
 
   /** `send()` one of the events every dialog vocabulary names (see the class docs). */
@@ -194,7 +218,7 @@ export abstract class DialogComponent<
   /** An invoker command aimed at the DOM element (`UIT.ToggleCommands`). */
   @E.on("command")
   protected onCommand(event: Event) {
-    const action = UIT.ToggleCommands.action(event, this.isOpen)
+    const action = UIT.ToggleCommands.action(event, this.isVisible)
     if (action === "show") this.requestOpen(event)
     else if (action === "close") this.requestClose("close", event)
   }
@@ -253,10 +277,10 @@ export abstract class DialogComponent<
    */
   @E.untracked
   private readonly onClose = (event: Event) => {
-    if (this.dialog?.open || !this.domElement.isConnected || !this.isOpen) return
-    const detail: UIT.ModalCloseDetail = { open: false, reason: "escape", originalEvent: event }
+    if (this.dialog?.open || !this.domElement.isConnected || !this.isVisible) return
+    const detail: UIT.ModalCloseDetail = { visible: false, reason: "escape", originalEvent: event }
     this.fire("ui-close", detail)
-    this.isOpen = false
+    this.isVisible = false
   }
 
   ////////////////
@@ -432,9 +456,6 @@ export abstract class DialogComponent<
 
 /** What an activated element inside a dialog does:  `approve` or `deny` it (`UIT.ModalActionSelectors`). */
 type DialogAction = keyof typeof UIT.ModalActionSelectors
-
-/** The controlled attribute:  shown. */
-const OPEN = "open"
 
 /** The attribute of the close icon (and of Fomantic's `closable: false`). */
 const CLOSABLE = "closable"

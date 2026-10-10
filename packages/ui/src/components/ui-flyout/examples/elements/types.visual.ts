@@ -7,9 +7,9 @@ import type { VisualHooks } from "$/ui/test/test.types"
  */
 export default {
   states: {
-    "open-left": { open: (root) => VisualOpen.set(root, "#flyout-types-standard"), capture: "viewport" },
-    "open-right": { open: (root) => VisualOpen.set(root, "#flyout-types-right"), capture: "viewport" },
-    "open-top": { open: (root) => VisualOpen.set(root, "#flyout-types-top"), capture: "viewport" },
-    "open-bottom": { open: (root) => VisualOpen.set(root, "#flyout-types-bottom"), capture: "viewport" }
+    "open-left": { open: (root) => VisualOpen.show(root, "#flyout-types-standard"), capture: "viewport" },
+    "open-right": { open: (root) => VisualOpen.show(root, "#flyout-types-right"), capture: "viewport" },
+    "open-top": { open: (root) => VisualOpen.show(root, "#flyout-types-top"), capture: "viewport" },
+    "open-bottom": { open: (root) => VisualOpen.show(root, "#flyout-types-bottom"), capture: "viewport" }
   }
 } satisfies VisualHooks

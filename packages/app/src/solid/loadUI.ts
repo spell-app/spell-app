@@ -11,10 +11,12 @@ import { isServer } from "@solidjs/web"
  * - Why the whole barrel, not family by family:  from another package, import its barrel only (root `AGENTS.md`,
  *   "Imports").  Per-tag loading is `<ui-root>`'s job;  revisit if the app's first paint gets heavy.
  * - Icon names:  the app speaks Fomantic's (`"ellipsis horizontal"`, `"app store ios"`).  Each surface says so
- *   with a `<ui-root icons="fomantic">` around itself (the editor's `index.html`, `<spell-app>`'s shadow root, the
- *   VS Code webview):  NOT page-wide here, as `<spell-app>` loads this on HOST pages, whose own `<ui-*>` must keep
- *   their icons (27 names mean another icon in Font Awesome, `packages/ui/docs/icons.md` "Clashes";  plan doc
- *   C16).  The editor app also wants it page-wide, for dialogs opened outside its root:  `addAppIconsPageWide()`.
+ *   with a `<ui-root icons="fomantic">` around itself (the editor's `index.html`, the VS Code webview):  NOT
+ *   page-wide here, as a page-wide pack would reach a host page's own `<ui-*>`, which must keep their icons (27 names
+ *   mean another icon in Font Awesome, `packages/ui/docs/icons.md` "Clashes";  plan doc C16).  The editor app also
+ *   wants it page-wide, for dialogs opened outside its root:  `addAppIconsPageWide()`.
+ * - NOT `<spell-app>`'s:  it's a root itself, loading each `<ui-*>` it draws as it appears, with `icons` defaulting
+ *   to `fomantic` (`components/spell-app/SpellApp.tsx`).
  * - Builds:  the packs load from beside `BuiltInPacks`' chunk;  the app's `vite.config.ts` emits them there
  *   (`appConfig({ iconPacks })`).  In dev and tests they're served from `packages/ui/src/icons/icon-packs/`.
  * - NEVER reachable from `spell-runtime.js` (`spellRuntime.ts`):  compiled spell runs without Solid or `$/ui`.

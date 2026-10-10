@@ -236,7 +236,7 @@ describe("<ui-docs-themes> overlay", () => {
     await vi.waitFor(() => expect(focused()).toBe(row(host, SPELL)))
     await ElementFixture.settle()
     expect(host.matches(":state(open)")).toBe(true)
-    expect(host.shadowRoot!.querySelectorAll("[part~=tip]")[0]!.hasAttribute("hidden")).toBe(true)
+    expect(host.shadowRoot!.querySelectorAll("[part~=tip]")[0]!.classList.contains("muted")).toBe(true)
 
     await userEvent.keyboard("{ArrowDown}")
     expect(focused()).toBe(row(host, SPELL_BRAND))

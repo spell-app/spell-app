@@ -613,8 +613,8 @@ export const PopupTriggers = [PopupTrigger.hover, PopupTrigger.focus, PopupTrigg
 
 /** `detail` of the cancelable `ui-open` / `ui-close`, from a `<ui-popup>`. */
 export type PopupOpenDetail = {
-  /** state it's ABOUT to enter */
-  open: boolean
+  /** state it's ABOUT to enter:  shown or hidden (the shared `visible`) */
+  visible: boolean
   /** pointer / focus / click / key event that caused it;  none for a delayed hover or a dismissal request */
   originalEvent?: Event
 }
@@ -634,8 +634,8 @@ export type ModalCloseReason = "escape" | "outside" | "close-all" | "close" | "a
 
 /** `detail` of the cancelable `ui-open`, and of `ui-show` / `ui-hide` (after the transition). */
 export type ModalOpenDetail = {
-  /** state it's entering / entered */
-  open: boolean
+  /** state it's entering / entered:  shown or hidden (the shared `visible`) */
+  visible: boolean
   /** event of the person's action, when there was one */
   originalEvent?: Event
 }
@@ -643,7 +643,7 @@ export type ModalOpenDetail = {
 /** `detail` of the cancelable `ui-close`. */
 export type ModalCloseDetail = {
   /** always `false`:  it's closing */
-  open: false
+  visible: false
   /** why it's closing */
   reason: ModalCloseReason
   /** event of the person's action, when there was one */
@@ -978,6 +978,18 @@ export class AnimationLookup {
   static isAttention(animation: string): boolean {
     return (AttentionAnimations as readonly string[]).includes(animation)
   }
+
+  /**
+   * For a family that animates with its own sheet (a modal's, a popup's transition):
+   * the runtime keyframes to run instead for `animation`, or `undefined` for the sheet's own.
+   * - The sheet's own:  `familyAnimation` (its `elementSetup.animation`, the name its sheet's look goes by),
+   *   `none` (at once:  the sheet's transition is stilled with motion), or an attention animation.
+   * - Any other:  the element's own `animation`, run by `UI.transitions`.
+   */
+  static keyframesBeside(animation: Animation, familyAnimation: Animation): E.AnimationName | undefined {
+    if (animation === NO_ANIMATION || animation === familyAnimation) return undefined
+    return AnimationLookup.isAttention(animation) ? undefined : AnimationLookup.runtimeNameFor(animation)
+  }
 }
 
 /** Fomantic names whose runtime name isn't the kebab-cased one. */
@@ -1026,8 +1038,8 @@ export type DimmerCloseReason = "escape" | "close-all" | "click" | "hover"
 
 /** `detail` of the cancelable `ui-open`, and of `ui-show` / `ui-hide` (after the transition). */
 export type DimmerOpenDetail = {
-  /** state it's entering / entered */
-  active: boolean
+  /** state it's entering / entered:  shown or hidden (the shared `visible`) */
+  visible: boolean
   /** event of the person's action, when there was one */
   originalEvent?: Event
 }
@@ -1035,7 +1047,7 @@ export type DimmerOpenDetail = {
 /** `detail` of the cancelable `ui-close`. */
 export type DimmerCloseDetail = {
   /** always `false`:  it's hiding */
-  active: false
+  visible: false
   /** why it's hiding */
   reason: DimmerCloseReason
   /** event of the person's action, when there was one */

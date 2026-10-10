@@ -22,8 +22,8 @@ import dimmablePageRaw from "./UIDimmer.page.css?raw"
 /** Every example fragment, by path. */
 const EXAMPLES = import.meta.glob<string>("./examples/*.html", { query: "?raw", import: "default", eager: true })
 
-/** `!important`s the sheet is allowed:  none. */
-const ALLOWED_IMPORTANT = 0
+/** `!important`s the sheet is allowed:  a hidden `hover` dimmer stays laid out, over `reset.css`'s unlayered hiding. */
+const ALLOWED_IMPORTANT = 1
 
 /** Adopt the sheets and render example `name`. */
 function example(name: string): HTMLElement {

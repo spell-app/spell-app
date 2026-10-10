@@ -5,7 +5,8 @@
  *   Every other family is imported on demand, by what's inside a root.
  * - NOTE: the three families are imported HERE, not by `LoaderMessage` / `PlaceholderSkeleton` / `UIRoot`:
  *   the static server render (`$/ui/static`) loads `UIRoot` from its own file, and defining an element throws in node.
- * - `RootCatalogEntry` is exported for component packs:  `spell dev pack build` writes a catalog of them.
+ * - `RootCatalogEntry` is exported for component packs:  `spell dev pack build` writes a catalog of them;
+ *   `RootVocabulary` for a subclass's vocabulary (`<spell-app>`'s).
  * - Also the library's `@spell-app/ui/ui-root` entry (its size is in `docs/report.md`).
  */
 
@@ -20,4 +21,4 @@ UIRoot.define()
 export { UIRoot }
 export { LoaderMessage, type RootLoading } from "./LoaderMessage"
 export { RootLoader } from "./RootLoader"
-export type { RootCatalogEntry, RootFailure, RootFailureReason } from "./UIRoot.types"
+export type { RootCatalogEntry, RootFailure, RootFailureReason, RootVocabulary } from "./UIRoot.types"
