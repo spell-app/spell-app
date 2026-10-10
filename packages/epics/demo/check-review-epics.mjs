@@ -29,7 +29,7 @@
  *   - a pick on a judgement call's REPLY cards
  *     (I8:  picks work anywhere;  the call added to the copy, its text and a reply each holding cards):
  *     the mark names that set (`choices: 1`), its pill dashed, the text's untouched
- *   - Send:  the send bar's button unsent -> sent;  the marks outlined
+ *   - Send:  the header's button idle -> unsent -> sent;  the marks outlined
  * - Claude's side, by the plan-doc tool on the copy (`PlanDocCommands`), the page reloaded after each:
  *   - Do Now without a note on an item:
  *     - `inbox listen`, `inbox wait` takes it:  its button outlined, its icon turning (`data-busy`)
@@ -184,6 +184,14 @@ async function run() {
   page.on("pageerror", (error) => logs.push(`pageerror:  ${error.message}`))
   page.on("console", (message) => message.type() === "error" && logs.push(`console:  ${message.text()}`))
   await open(page)
+
+  // Send and Review Now:  in the page header from the start, grey with nothing marked (Owen, 2026-10-10)
+  expect("the header's buttons, nothing marked", await headerState(page), {
+    send: "idle",
+    now: "idle",
+    nobody: false,
+    inHeader: true
+  })
 
   // every item and Overview part:  the group (Approve, Revisit, Make Todo), then Do Now apart
   const ids = await page.evaluate(() =>
@@ -392,12 +400,22 @@ async function run() {
     ["choose", "choose", "dashed"]
   ])
 
-  // the send bar:  Send with unsent marks, its tooltip saying nobody listens;  a click sends;  the marks outlined
-  expect("the header's buttons, marks unsent", await headerState(page), { send: "unsent", now: "ready", nobody: true })
+  // the header's Send:  unsent marks, its tooltip saying nobody listens;  a click sends;  the marks outlined
+  expect("the header's buttons, marks unsent", await headerState(page), {
+    send: "unsent",
+    now: "ready",
+    nobody: true,
+    inHeader: true
+  })
   await page.locator("epic-page button.send").click()
   await waitInbox(page, (inbox) => !!inbox.sent, "Send:  the marks sent")
   await page.waitForTimeout(200)
-  expect("the header's buttons, marks sent", await headerState(page), { send: "sent", now: "ready", nobody: true })
+  expect("the header's buttons, marks sent", await headerState(page), {
+    send: "sent",
+    now: "ready",
+    nobody: true,
+    inHeader: true
+  })
   expect(`${approved}'s Approve, sent:  outlined`, (await buttonState(page, approved, "approve")).fill, "outline")
   expect(`${bare}'s Revisit, sent:  outlined`, (await buttonState(page, bare, "revisit")).fill, "outline")
   expect(`${pickCall}'s pick, sent:  outlined`, (await pickPills(page, pickCall))[1][2], "outline")
@@ -593,7 +611,7 @@ function measure(width) {
         found.push(`${host.id}'s ${button.dataset.action} glyph off centre by ${dx.toFixed(1)}, ${dy.toFixed(1)}`)
     }
   }
-  // the page's round buttons (the send bar's Send and Review Now, the header's git toggle):  in the window, centred
+  // the header's round buttons (Send, Review Now, the git toggle):  in the window, centred
   const head = document.querySelector("epic-page")?.shadowRoot
   for (const button of head?.querySelectorAll("button.send, button.review-now, button.git") ?? []) {
     const outer = button.getBoundingClientRect()
@@ -788,7 +806,10 @@ function attribute(page, id, name) {
   return page.evaluate(({ id, name }) => document.getElementById(id).getAttribute(name), { id, name })
 }
 
-/** The page header's Send and Review Now, as drawn:  their states, and whether Send says nobody listens. */
+/**
+ * The page header's Send and Review Now, as drawn:  their states, whether Send says nobody listens,
+ * and whether both sit in the sticky header.
+ */
 function headerState(page) {
   return page.evaluate((nobody) => {
     const root = document.querySelector("epic-page").shadowRoot
@@ -797,7 +818,8 @@ function headerState(page) {
     return {
       send: send?.dataset.state ?? null,
       now: now?.dataset.state ?? null,
-      nobody: new RegExp(nobody).test(send?.title ?? "")
+      nobody: new RegExp(nobody).test(send?.title ?? ""),
+      inHeader: !!send?.closest("header") && !!now?.closest("header")
     }
   }, NOBODY.source)
 }
