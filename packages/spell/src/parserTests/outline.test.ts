@@ -10,7 +10,7 @@ import { loadFixtureProject, parseSpellProject } from "$/spell/test"
  * body all about cards -- `it` / `its` meaning a card.
  * - Each outline must compile to EXACTLY what today's sentence style does for the same lines (plan doc Q1:
  *   both styles, same meaning).
- * - The rules are `TypeDeclaration` (`classes.ts`), `subject_it` / `subject_its` (`types.ts`), and each member
+ * - The rules are `TypeDeclaration` (`classes.ts`), `subject_it` / `subject_its` (`types/`), and each member
  *   rule's `{type:subject_it}` syntax.
  */
 describe("outline style", () => {

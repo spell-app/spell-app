@@ -1,24 +1,15 @@
-/** Rules for assignment and returning values. */
-
 import { proto } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
+import { MemberReadExpression } from "$/spell/rules/properties"
 // Import directly to avoid circular import
-import { SpellParser } from "$/spell/SpellParser"
-import { SpellStatement } from "./Statement"
-import { MemberReadExpression } from "./properties"
-
-/** Rule module for assignment / return rules (`assignment`, `get`, `return_statement`). */
-export const assignment = new SpellParser({ module: "assignment" })
-
-////////////////
-// ## `assignment` rule
-//    e.g. "unknown-var = yes"
-////////////////
+import { SpellStatement } from "$/spell/rules/Statement"
+import { assignment } from "./assignment.parser"
 
 /**
- * Assignment, via any of 4 equivalent surface forms:  `{thing} = {value}`, `let {thing} = {value}`,
+ * `assignment` rule:  assignment, via any of 4 equivalent surface forms:  `{thing} = {value}`, `let {thing} = {value}`,
  * `set {thing} to {value}`, or `{variable} is {value}`.
+ * - e.g. `unknown-var = yes`
  * - Class named `AssignmentStatement`, for what it is;  `static ruleName` keeps the rule name, `assignment`.
  * - `thing` may be a plain `{variable}` (declares/updates a scope variable) or an arbitrary
  *   `{expression}` (e.g. property assignment `let the name of X = ...`, which only compiles if `X`
@@ -36,7 +27,7 @@ export const assignment = new SpellParser({ module: "assignment" })
  * - So is the pile a card belongs to, e.g. `set the pile of the card to x`:  move the card to the pile instead.
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
  */
-class AssignmentStatement extends SpellStatement<"thing|value", AssignmentMatchData> {
+export class AssignmentStatement extends SpellStatement<"thing|value", AssignmentMatchData> {
   static ruleName = "assignment"
   @proto static alias = "statement"
   @proto static declares: P.DeclaresSpec = { kind: "variable", name: "thing" }
@@ -336,191 +327,3 @@ type AssignmentMatchData = {
   /** When `thing` is a property its type never declared:  what we declared -- see `declareProperty()`. */
   autoDeclared?: SP.AutoDeclaredProperty
 }
-
-////////////////
-// ## `get` rule
-//    e.g. "get thing"
-////////////////
-
-/**
- * `get {value}` -- assign `value` to a NEW `it`.
- * - SIDE EFFECT: `mutateScope()` declares that `it`:  plain `it` the first time, then `it_2`, `it_3`...
- *   so a callback which captured an earlier `it` keeps it -- see `AssignmentStatement.declareIt()`.
- * - Compiles to `let it = value`, `let it_2 = value`, ...
- */
-class Get extends SpellStatement<"value", GetMatchData> {
-  @proto static alias = ["assignment", "statement"]
-  @proto static changesScope: P.ScopeChanges = "internal"
-
-  /** Declare a new `it`, holding what `value` is -- see `AssignmentStatement.declareIt()`. */
-  mutateScope(match: P.MatchFor<this>) {
-    // `match.scope` is typed as `P.Scope`, whose `.variables` getter can be `undefined` -- we know it's a block.
-    const scope = match.scope as P.BlockScope
-    match.data.itVar = AssignmentStatement.declareIt(scope, match, match.groups.value.datatype)
-  }
-  /** Build `P.ASTAssignmentStatement` declaring our new `it` as `value`. */
-  getAST(match: P.MatchFor<this>): P.ASTAssignmentStatement {
-    const { value } = match.groups
-    const { itVar } = match.data
-    return new P.ASTAssignmentStatement(match, {
-      thing: new P.ASTVariableExpression(match, { name: itVar?.output ?? "it" }),
-      value: value.AST as P.ASTExpression,
-      isNewVariable: true
-    })
-  }
-}
-assignment.addRule(Get, {
-  syntax: "get {value:expression}",
-  tests: [
-    {
-      title: "`it` is not already defined",
-      compileAs: "block",
-      beforeEach(scope: P.Scope) {
-        ;(scope as P.BlockScope).variables.add("thing")
-      },
-      tests: [
-        ["get thing", "let it = thing", "const it = thing"],
-        ["get the foo of the thing", "let it = thing.foo", "const it = thing.foo"]
-      ]
-    },
-    {
-      title: "`it` is already defined",
-      compileAs: "block",
-      beforeEach(scope: P.Scope) {
-        const { variables } = scope as P.BlockScope
-        variables.add("it")
-        variables.add("thing")
-      },
-      tests: [
-        ["get thing", "let it_2 = thing", "const it2 = thing"],
-        ["get the foo of the thing", "let it_2 = thing.foo", "const it2 = thing.foo"]
-      ]
-    },
-    {
-      title: "each `get` declares a new `it`, so a callback which captured an earlier one keeps it",
-      compileAs: "block",
-      beforeEach(scope: P.Scope) {
-        ;(scope as P.BlockScope).variables.add("thing")
-      },
-      tests: [
-        {
-          input: ["get thing", "get the foo of the thing", "print it"],
-          js: ["let it = thing", "let it_2 = thing.foo", "spellCore.console.log(it_2)"],
-          ts: ["const it = thing", "const it2 = thing.foo", "spellCore.console.log(it2)"]
-        }
-      ]
-    },
-    {
-      title: "numbered `it`s skip names already in use",
-      compileAs: "block",
-      beforeEach(scope: P.Scope) {
-        const { variables } = scope as P.BlockScope
-        variables.add("thing")
-        variables.add("it-2")
-      },
-      tests: [
-        {
-          input: ["get thing", "get the foo of the thing"],
-          js: ["let it = thing", "let it_3 = thing.foo"],
-          ts: ["const it = thing", "const it3 = thing.foo"]
-        }
-      ]
-    },
-    {
-      title: "`it` gets redefined if defined as an alias",
-      compileAs: "block",
-      beforeEach(scope: P.Scope) {
-        const { variables } = scope as P.BlockScope
-        variables.add({ name: "it", output: "this", isAlias: true })
-        variables.add("thing")
-      },
-      tests: [
-        {
-          input: ["print it", "get the thing", "print it"],
-          js: ["spellCore.console.log(this)", "let it = thing", "spellCore.console.log(it)"],
-          ts: ["spellCore.console.log(this)", "const it = thing", "spellCore.console.log(it)"]
-        },
-        {
-          input: ["print it", "get its name", "print it"],
-          js: ["spellCore.console.log(this)", "let it = this.name", "spellCore.console.log(it)"],
-          ts: ["spellCore.console.log(this)", "const it = this.name", "spellCore.console.log(it)"]
-        }
-      ]
-    }
-  ]
-})
-
-/** What `get` stashes on its match. */
-type GetMatchData = {
-  /** The NEW `it` variable we declared -- see `AssignmentStatement.declareIt()`. */
-  itVar?: P.ScopeVariable
-}
-
-////////////////////////////////////////
-// # Returns
-////////////////////////////////////////
-
-////////////////
-// ## `return_statement` rule
-//    e.g. "return"
-////////////////
-
-/**
- * `(return|exit with?) {expression}? {nested_expression}?` -- return a value.
- * - `(return|exit with?)` accepts `return`, `exit`, or `exit with` as equivalent keywords.
- * - Accepts the returned expression inline (`return thing`) or as ONE line in a nested indented block
- *   (`return\n\t1 + 2`).
- */
-class ReturnStatement extends SpellStatement<"expression?|body?"> {
-  @proto static alias = "statement"
-
-  /** We return what follows `return`, or what's indented under it -- see `SpellStatement.getReturnedDatatype()`. */
-  getReturnValue(match: P.MatchFor<this>): { value: P.Match | undefined } {
-    return { value: match.groups.expression || this.getBody(match) }
-  }
-
-  getAST(match: P.MatchFor<this>): P.ASTReturnStatement {
-    const result = match.groups.expression || this.getBody(match)
-    return new P.ASTReturnStatement(match, { value: result?.AST as P.ASTExpression | undefined })
-  }
-}
-assignment.addRule(ReturnStatement, {
-  syntax: "(return|exit with?) {expression}? {nested_expression}?",
-  tests: [
-    {
-      title: "Simple return with inline expression",
-      compileAs: "statement",
-      beforeEach(scope: P.Scope) {
-        ;(scope as P.BlockScope).variables.add("thing")
-      },
-      tests: [
-        ["return", "return"],
-        ["return thing", "return thing"],
-        ["exit", "return"],
-        ["exit with false", "return false"]
-      ]
-    },
-    {
-      title: "Return with nested block expression",
-      compileAs: "block",
-      tests: [
-        // simple expression
-        ["return\n\t1 + 2", "return (1 + 2)", "return 1 + 2"],
-        // inline JSX
-        ["return\n\t<div/>", 'return spellCore.element({ tag: "div" })', "return <div />"],
-        ["return\n\t1 + <div/>", 'return (1 + spellCore.element({ tag: "div" }))', "return 1 + (<div />)"],
-        // multi-line JSX
-        [
-          ["return", "\t<div>", "\t\t<span/>", "\t</div>"],
-          ['return spellCore.element({ tag: "div", children: [', '  spellCore.element({ tag: "span" })', "] })"],
-          ["return (", "  <div>", "    <span />", "  </div>", ")"]
-        ],
-        // fails for more than one indented line
-        [
-          "return\n\t<div/>\n\t1",
-          ["return", '/* PARSE ERROR: Don\'t understand "<div/>" */', '/* PARSE ERROR: Don\'t understand "1" */']
-        ]
-      ]
-    }
-  ]
-})
