@@ -855,6 +855,12 @@ In this order, from `packages/docs`:
     - the page header, the review line, the Phases section's `open/all` badge (item sections show only their state chips),
       the state filter and the Plan changes box
     - at 280 / 900px, light and dark
+  - `node packages/epics/demo/check-fold-epics.mjs [--doc <name>] [--item <id>] [--guide <path>] [outDir]`, from the root:
+    - A fold never moves what was clicked:  the line or title stays put, within 1px, for 1.5s after the click.
+    - Items a link landed on (at once, mid window, near the page's end), one opened by a click,
+      a phase, a guide's section, and the next item's line clicked after a reply.
+    - At 1200 and 390px.
+    - Run it after touching the folds, the landing, or `holdWhileFolding()`.
 - `tools/to-ui-section.js <page>...`:  converts old `section.s2|s3` pages to `<ui-section>`, ids kept.
   - Idempotent;  it refuses goals pages.
 - [doc-links.js](tools/doc-links.js):  see "Links".
