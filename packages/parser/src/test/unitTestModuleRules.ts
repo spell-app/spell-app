@@ -5,8 +5,9 @@
  * - Call `unitTestModuleRules(parser, <moduleName>)` to test all rules in that module.
  * - Each input is parsed once, then written by BOTH writers:  javascript (`P.JSWriter`) and TypeScript (`P.TSWriter`).
  *   A test without `ts` expects the same TypeScript as javascript.
- * - Blessing:  `BLESS_RULE_TESTS=1` writes what each writer wrote into each test's `js` and `ts`, in the source,
- *   then `vp fmt` tidies it -- e.g. `yarn test:rules:bless` in spell.  Read the diff after.
+ * - Blessing:  `BLESS_RULE_TESTS=1` writes what each writer wrote into each test's `js` and `ts`, in the source.
+ *   - Then `vp fmt` tidies it, e.g. `yarn test:rules:bless` in spell.
+ *   - Read the diff after.
  * - TODO: add `only` to test block to skip everything else in the file.
  */
 

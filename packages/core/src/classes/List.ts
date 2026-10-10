@@ -138,8 +138,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * Given a `oneIndex`, return the appropriate `zeroIndex`.
-   * NOTE: `oneIndex === 0` returns zeroIndex `1` (the SECOND item), not `0` -- looks off by one,
-   * but marked `???` by the original author too rather than treated as a confirmed bug.
+   * - NOTE: `oneIndex === 0` returns zeroIndex `1` (the SECOND item), not `0`.
+   *   It looks off by one, but its first author marked it `???` too, rather than as a confirmed bug.
    */
   _getZeroIndex(oneIndex: number): number {
     if (oneIndex === 0) return 1 // ???
@@ -296,7 +296,10 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
     return spellCore.all<T>(this, condition as Callback<T>)
   }
 
-  /** Does `condition` say yes for any item?  No `condition`:  is any item truthy?  See `spellCore.any()`. */
+  /**
+   * Does `condition` say yes for any item?
+   * - No `condition`:  is any item truthy?  See `spellCore.any()`.
+   */
   any(condition?: ListCallback<T, this>): boolean {
     return spellCore.any<T>(this, condition as Callback<T>)
   }
@@ -420,8 +423,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * The items from `item` to the end, in a scratch list of our class -- `cards of the pile starting with card`.
-   * - NOTE:  `item` isn't here:  ALL of them, as compiled spell does it,
-   *   `rangeStartingAt(list, positionOf(list, item))`.
+   * - NOTE:  `item` isn't here:  ALL of them.
+   *   As compiled spell does it, `rangeStartingAt(list, positionOf(list, item))`.
    */
   startingWith(item: unknown): this {
     return spellCore.rangeStartingAt(this, spellCore.positionOf(this, item))
@@ -569,10 +572,12 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * Our JSON:  our class's name as `"@type"`, our own props, then our items under `"@items"` (`ITEMS_KEY`), each by
-   * its own JSON -- `{ "@type": "Pile", "name": "stock", "@items": [{ "@type": "Card", ... }] }` (epic
-   * `output-targets`, Q49, J53).
-   * - A plain `List`, with no props:  `{ "@type": "List", "@items": [...] }`.  A scratch list too.
+   * Our JSON:  our class's name as `"@type"`, our own props,
+   * then our items under `"@items"` (`ITEMS_KEY`), each by its own JSON (epic `output-targets`, Q49, J53).
+   * ```
+   * { "@type": "Pile", "name": "stock", "@items": [{ "@type": "Card", ... }] }
+   * ```
+   * - A plain `List`, with no props, or a scratch list:  `{ "@type": "List", "@items": [...] }`.
    * - So it reads back as what it was:  `spellCore.fromJSON()` (`json.ts`).
    * - `"@items"` never collides with a prop, as `"@type"` never does:  no prop is named `@...`.
    * - Tracked:  a reader re-runs when a prop or the items change (and, through each item's `toJSON()`, when they do).
@@ -583,8 +588,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * Our items, in order:  `for (const card of pile) { ... }`, `[...pile]`.
-   * - Over a copy of our `items`, frozen as they were when it started:  a loop moving cards out of the pile still
-   *   sees each one.
+   * - Over a copy of our `items`, frozen as they were when it started:
+   *   a loop moving cards out of the pile still sees each one.
    */
   [Symbol.iterator](): Iterator<T> {
     return [...this.items][Symbol.iterator]()

@@ -6,7 +6,7 @@ import { lists } from "./lists.parser"
 
 /**
  * `starts_with` rule:  does list start with some value,
- * e.g. `my-list starts with thing` => `spellCore.startsWith(my_list, thing)`.
+ * e.g. `my-list starts with thing` => `spellCore.startsWith(myList, thing)`.
  * - `Precedence.comparison`, like the other comparisons.
  */
 export class StartsWith extends InfixOperatorSuffix<"operator|expression"> {

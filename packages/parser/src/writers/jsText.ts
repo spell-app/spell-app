@@ -1,8 +1,9 @@
 /**
- * JavaScript's punctuation and wrappers, as plain strings:  what `P.JSWriter` builds its output from.
+ * JavaScript's punctuation and wrappers, as plain strings:
+ * what `P.JSWriter` (and `P.TSWriter`) build their output from.
  * - Text only, no AST:  writing a node is `JSWriter`'s job (`list()`, `args()`, `array()` write each item).
- * - Generic names (`SPACE`, `COMMA`, `InParens`, `Block` ...):  barrel it as a namespace, `P.jsText`, never
- *   flattened.
+ * - Its names are generic (`SPACE`, `COMMA`, `InParens`, `Block` ...):
+ *   so the barrel exports it as a namespace, `P.jsText`, never flattened.
  * - Usage:  `P.jsText.InParens({ children })`, `P.jsText.NEWLINE`.
  */
 
@@ -50,6 +51,14 @@ export const INDENT = "  "
 export const NEWLINE = "\n"
 /** A newline followed by an indent -- delimiter for wrapped / indented lists. */
 export const INDENTED_NEWLINE = `${NEWLINE}${INDENT}`
+
+/** `text` with every non-blank line indented once. */
+export function indented(text: string): string {
+  return text
+    .split(NEWLINE)
+    .map((line) => (line ? `${INDENT}${line}` : line))
+    .join(NEWLINE)
+}
 
 /** A comma, as a list delimiter. */
 export const COMMA = ","
@@ -155,8 +164,8 @@ export const InCurlies = ({
 
 /**
  * A block surrounded by curlies -- thin wrapper over `InCurlies` for statement / object bodies.
- * - `space` defaults to `!wrap`:  a single-line block gets spaced curlies, a wrapped one doesn't need it
- *   since the newlines already separate content from the braces.
+ * - `space` defaults to `!wrap`:  a single-line block gets spaced curlies.
+ *   A wrapped one doesn't need them, since the newlines already separate content from the braces.
  */
 export const Block = ({
   children = "",

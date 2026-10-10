@@ -39,16 +39,20 @@ export type MethodSignatureData = {
   syntax: string | undefined
   /** Type to add an instance method to, set by `processSignature()`. */
   instanceType: string | undefined
-  /** `true` when the definition compiles to a postfix expression (e.g. `card.is_a_bug`) instead of a callable
-   *  method -- set by `MethodDefinition.processSignature()` / `QuotedTypeExpression.processSignature()`. */
+  /**
+   * `true` when the definition compiles to a postfix expression (e.g. `card.isABug`) instead of a callable method.
+   * - Set by `MethodDefinition.processSignature()` / `QuotedTypeExpression.processSignature()`.
+   */
   asPostfixExpression?: boolean
-  /** `true` when it compiles to an infix expression (e.g. `card.nerds_out_with_$another(thing)`) -- set by
-   *  `MethodDefinition.processSignature()` / `QuotedTypeExpression.processSignature()`. */
+  /**
+   * `true` when it compiles to an infix expression, e.g. `card.nerdsOutWithAnother(thing)`.
+   * - Set by `MethodDefinition.processSignature()` / `QuotedTypeExpression.processSignature()`.
+   */
   asInfixExpression?: boolean
   /**
-   * A phrase on a VALUE kind, e.g. `Rank` for `a rank "is a face card" if ...` (plan doc `outline-spell`, P3):
-   * its values are plain text, so the method is the kind's STATIC one, given the value -- `Rank.is_a_face_card(r)`.
-   * Set by `QuotedTypeExpression.processSignature()`;  postfix only.
+   * A phrase on a VALUE kind, e.g. `Rank` for `a rank "is a face card" if ...` (plan doc `outline-spell`, P3).
+   * - Its values are plain text, so the method is the kind's STATIC one, given the value:  `Rank.isAFaceCard(r)`.
+   * - Set by `QuotedTypeExpression.processSignature()`;  postfix only.
    */
   valueKindOf?: string
 }
@@ -68,8 +72,10 @@ export type MethodArgData = {
   variable?: P.Match
   /** Matched type name, set by `type_method_arg` / `typed_method_arg`. */
   type?: P.Match
-  /** Bit contributed to the generated `methodName`, e.g. a raw keyword, or `$varName` -- `undefined` for
-   *  `with_props_arg`, since prop names don't appear in the method name. */
+  /**
+   * Bit contributed to the generated `methodName`, e.g. a raw keyword, or `$varName`.
+   * - `undefined` for `with_props_arg`, since prop names don't appear in the method name.
+   */
   method?: string
   /** Bit contributed to the rule's rulex `syntax`, e.g. a raw keyword or `{callArgs:expression}`. */
   syntax?: string
@@ -91,13 +97,17 @@ export type MethodTypeInfo = {
   /** `true` for a built-in/primitive type (`SpellType.isSimpleType()`) -- these are never promoted to an
    *  instance-method receiver by `MethodDefinition.processSignature()`. */
   isSimple: boolean
-  /** Index into `MethodSignatureData.args` at the moment this type was found -- lets `processSignature()`
-   *  splice the promoted arg back out. */
+  /**
+   * Index into `MethodSignatureData.args` at the moment this type was found:
+   * lets `processSignature()` splice the promoted arg back out.
+   */
   argIndex: number
   /** Index into `MethodSignatureData.methodBits` at the moment this type was found -- same splice purpose. */
   methodIndex: number
-  /** Index into `MethodSignatureData.syntaxBits` at the moment this type was found -- `processSignature()`
-   *  overwrites this slot with `{thisArg:expression}` when promoting. */
+  /**
+   * Index into `MethodSignatureData.syntaxBits` at the moment this type was found:
+   * `processSignature()` overwrites this slot with `{thisArg:expression}` when promoting.
+   */
   syntaxIndex: number
 }
 

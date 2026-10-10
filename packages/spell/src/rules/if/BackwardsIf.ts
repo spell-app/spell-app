@@ -4,8 +4,8 @@ import { InfixOperatorSuffix, Precedence } from "$/spell/rules/expressions"
 import { _if_ } from "./if.parser"
 
 /**
- * `backwards_if` rule:  postfix ternary: `{expr} if {condition} (else|otherwise) {expr}` -- English word order
- * ("do X if Y else Z") rather than `condition ? then : else`.
+ * `backwards_if` rule:  postfix ternary, `{expr} if {condition} (else|otherwise) {expr}`.
+ * - English word order ("do X if Y else Z"), rather than `condition ? then : else`.
  * - e.g. `1 if bar else 2`
  * - `expression_suffix`: `lhs` (the value before `if`) is supplied by `CompoundExpression`'s
  *   shunting-yard; this rule's own `syntax` only spells out `operator` (actually the *condition*

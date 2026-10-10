@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App } from "@spell/core"
+import { spellCore, Thing, List, App, h } from "@spell/core"
 
 spellCore.heading("Todo app example")
 /** Todo app example */
@@ -22,36 +22,25 @@ export class Task extends Thing {
   draw() {
     if (this.isComplete && (app.filter == "active")) { return false }
     if (this.isActive && (app.filter == "completed")) { return false }
-    return spellCore.element({ tag: "tr", children: [
-      spellCore.element({ tag: "td", props: { width: "8%" }, children: [
-        spellCore.element({
-          tag: "input",
-          props: {
-            type: "checkbox",
-            checked: () => this.isComplete,
-            onChange: (event) => {
-              this.completed = (this.isActive ? true : false)
-            }
+    return h("tr",
+      h("td", { width: "8%" },
+        h("input", {
+          type: "checkbox",
+          checked: () => this.isComplete,
+          onChange: (event) => {
+            this.completed = (this.isActive ? true : false)
           }
         })
-      ] }),
-      spellCore.element({ tag: "td", props: { width: "82%" }, children: [
-        () => this.title
-      ] }),
-      spellCore.element({ tag: "td", props: { width: "10%" }, children: [
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              return spellCore.remove(app.tasks, this)
-            }
-          },
-          children: [
-            "x"
-          ]
-        })
-      ] })
-    ] })
+      ),
+      h("td", { width: "82%" }, () => this.title),
+      h("td", { width: "10%" },
+        h("button", {
+          onClick: (event) => {
+            return spellCore.remove(app.tasks, this)
+          }
+        }, "x")
+      )
+    )
   }
 }
 
@@ -66,114 +55,63 @@ export class Todos_App extends App {
   set filter(value) { this.setProp('filter', value) }
 
   draw() {
-    return spellCore.element({ tag: "div", children: [
-      spellCore.element({ tag: "h2", children: [
-        "To Do:"
-      ] }),
-      spellCore.element({ tag: "div", children: [
-        spellCore.element({
-          tag: "input",
-          props: {
-            type: "text",
-            onBlur: (event) => {
-              return createANewTask({ title: event.target.value })
-            }
+    return h("div",
+      h("h2", "To Do:"),
+      h("div",
+        h("input", {
+          type: "text",
+          onBlur: (event) => {
+            return createANewTask({ title: event.target.value })
           }
         })
-      ] }),
-      spellCore.element({ tag: "br" }),
-      spellCore.element({ tag: "table", props: { style: "width: 50%" }, children: [
-        spellCore.element({ tag: "tbody", children: [
-          () => spellCore.drawItems(app.tasks)
-        ] })
-      ] }),
-      spellCore.element({ tag: "br" }),
-      spellCore.element({ tag: "div", children: [
+      ),
+      h("br"),
+      h("table", { style: "width: 50%" }, h("tbody", () => spellCore.drawItems(app.tasks))),
+      h("br"),
+      h("div",
         "Show:",
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              app.filter = 'all'
-            }
-          },
-          children: [
-            "All"
-          ]
-        }),
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              app.filter = "active"
-            }
-          },
-          children: [
-            "Active"
-          ]
-        }),
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              app.filter = "completed"
-            }
-          },
-          children: [
-            "Completed"
-          ]
-        })
-      ] }),
-      spellCore.element({ tag: "br" }),
-      spellCore.element({ tag: "div", children: [
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              return createANewTask({ title: "Moar" })
-            }
-          },
-          children: [
-            "+ Add"
-          ]
-        }),
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              return spellCore.removeItemAt(app.tasks, 1)
-            }
-          },
-          children: [
-            "- Remove"
-          ]
-        }),
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              spellCore.getItemAt(app.tasks, 1).title = "New title"
-            }
-          },
-          children: [
-            "Change name"
-          ]
-        }),
-        spellCore.element({
-          tag: "button",
-          props: {
-            onClick: (event) => {
-              return spellCore.removeWhere(app.tasks, (item) => {
-                return item.isComplete
-              })
-            }
-          },
-          children: [
-            "Remove Completed"
-          ]
-        })
-      ] })
-    ] })
+        h("button", {
+          onClick: (event) => {
+            app.filter = 'all'
+          }
+        }, "All"),
+        h("button", {
+          onClick: (event) => {
+            app.filter = "active"
+          }
+        }, "Active"),
+        h("button", {
+          onClick: (event) => {
+            app.filter = "completed"
+          }
+        }, "Completed")
+      ),
+      h("br"),
+      h("div",
+        h("button", {
+          onClick: (event) => {
+            return createANewTask({ title: "Moar" })
+          }
+        }, "+ Add"),
+        h("button", {
+          onClick: (event) => {
+            return spellCore.removeItemAt(app.tasks, 1)
+          }
+        }, "- Remove"),
+        h("button", {
+          onClick: (event) => {
+            spellCore.getItemAt(app.tasks, 1).title = "New title"
+          }
+        }, "Change name"),
+        h("button", {
+          onClick: (event) => {
+            return spellCore.removeWhere(app.tasks, (item) => {
+              return item.isComplete
+            })
+          }
+        }, "Remove Completed")
+      )
+    )
   }
 }
 

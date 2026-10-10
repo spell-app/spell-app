@@ -8,7 +8,8 @@ import { events } from "./events.parser"
  * `trigger` rule:  fires a global event, optionally with a `props` object.
  * - e.g. `trigger card-click`, `fire event card-click with card = 1`
  * - `eventName` is a bare `keyword`, so its `raw` form (with dashes) is used directly as the event name.
- * - Compiles to `spellCore.trigger(name, props?)` (a `P.ASTCoreMethodInvocation`).
+ * - Builds a call to core's `trigger(name, props?)` (a `P.ASTCoreMethodInvocation`).
+ *   - Javascript calls `trigger()` by name, imported from `@spell/core`:  `trigger('card-click', { card: 1 })`.
  */
 export class Trigger extends SpellStatement<"eventName|props?"> {
   @proto static alias = "statement"

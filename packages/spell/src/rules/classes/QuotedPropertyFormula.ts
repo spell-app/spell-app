@@ -9,18 +9,18 @@ import { placeholderData, type QuotedPropertyFormulaBits } from "./classes.share
 import { QuotedPropertyRule } from "./QuotedPropertyRule"
 
 /**
- * `quoted_property_formula` rule:  `a card "is a (rank) of (suits)" for its ranks and its suits` --
- * defines a templated boolean method from a quoted phrase with `(placeholder)`s, plus a matching quoted-expression
- * rule to call it, e.g. `a card is the queen of spades`.
+ * `quoted_property_formula` rule:  `a card "is a (rank) of (suits)" for its ranks and its suits`.
+ * - Defines a templated boolean method from a quoted phrase with `(placeholder)`s,
+ *   plus a matching quoted-expression rule to call it, e.g. `a card is the queen of spades`.
  * - NOTE: the first word in quotes must be `"is"` !!
  * - `Priority.declaration`, so this wins over plainer statement rules that could otherwise partially match.
- * - SIDE EFFECT: `getBits()` derives (and caches in `match.data.bits`) rulex `syntax`, per-placeholder
- *   `ruleData`, `vars` and the generated `property` name, consumed by `mutateScope()`/`getAST()` below.
+ * - SIDE EFFECT: `getBits()` derives (and caches in `match.data.bits`) what `mutateScope()` / `getAST()` use below:
+ *   rulex `syntax`, per-placeholder `ruleData`, `vars` and the generated `property` name.
  * - SIDE EFFECT: `mutateScope()` registers a `QuotedPropertyRule` for the quoted phrase,
  *   e.g. `is (not)? a queen`, so it can be used like `card is a club`.
- * - Compiles to an instance method testing each placeholder against its property, e.g. `a card "is the
- *   (rank) of (suits)" for its ranks and its suits` => a `value(rank, suit)` method returning
- *   `this.rank === rank && this.suit === suit`.
+ * - Compiles to an instance method testing each placeholder against its property:
+ *   e.g. `a card "is the (rank) of (suits)" for its ranks and its suits`
+ *   => an `isTheRankOfSuits(rank, suit)` method returning `this.rank === rank && this.suit === suit`.
  */
 export class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?", QuotedPropertyFormulaMatchData> {
   @proto static priority = Priority.declaration
@@ -28,10 +28,10 @@ export class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?",
   @proto static declares: P.DeclaresSpec = { kind: "method", name: "alias", of: "type" }
 
   /**
-   * Reject the match unless `alias`'s first quoted word is `"is"` -- see rule NOTE above.
-   * - No `for its ...` (an outline body's `it "is a (suit)"`, plan doc `outline-spell` P3, J9):  INFER what each
-   *   blank reads -- see `inferPlaceholders()`.  Only when the line is the phrase and nothing more, and then
-   *   (J9, option A):
+   * Reject the match unless `alias`'s first quoted word is `"is"`:  see rule NOTE above.
+   * - No `for its ...` (an outline body's `it "is a (suit)"`, plan doc `outline-spell` P3, J9):
+   *   INFER what each blank reads (see `inferPlaceholders()`).
+   * - Only when the line is the phrase and nothing more, and then (J9, option A):
    *   - no blank at all, e.g. `it "is a suit"`:  an error, not an empty method (the parens are required)
    *   - a blank naming no property with a list of values, e.g. `it "is a (color)"`:  an error naming it
    *   - a blank of several words, e.g. `it "is near (another as a card)"`:  not ours, a `quoted_type_expression`
@@ -68,10 +68,10 @@ export class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?",
   }
 
   /**
-   * `match`, its `for its ...` properties found while parsing (into `data.sources`) -- or a parse error naming the
-   * first with no list of values.
-   * - As written, else by its singular:  `for its suits` is a value kind's `suit` (plan doc I5), or the sentence
-   *   style's own `suits` list.
+   * `match`, its `for its ...` properties found while parsing (into `data.sources`);
+   * or a parse error naming the first with no list of values.
+   * - As written, else by its singular:
+   *   `for its suits` is a value kind's `suit` (plan doc I5), or the sentence style's own `suits` list.
    */
   private static resolveSources(match: P.MatchFor<QuotedPropertyFormula>): P.Match {
     const type = getKnownType(match.groups.type)
@@ -93,8 +93,9 @@ export class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?",
   }
 
   /**
-   * The first of `names` which is a property of `type` with a list of values:  its own (`as one of ...`), or a value
-   * kind's (`its "suit" is a suit`), maybe declared further down (a stub, so far).
+   * The first of `names` which is a property of `type` with a list of values:
+   * its own (`as one of ...`), or a value kind's (`its "suit" is a suit`),
+   * maybe declared further down (a stub, so far).
    */
   private static listedProperty(type: P.TypeScope, names: string[]): string | undefined {
     for (const name of names) {
@@ -109,8 +110,8 @@ export class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?",
   }
 
   /**
-   * `it "is a (suit)"` => `a card "is a (suit)" for its suits`:  the sources it inferred, written out -- see
-   * `SpellStatement.getLongForm()`.
+   * `it "is a (suit)"` => `a card "is a (suit)" for its suits`:  the sources it inferred, written out.
+   * See `SpellStatement.getLongForm()`.
    */
   getLongForm(match: P.MatchFor<this>): string | undefined {
     const typeWords = SpellStatement.subjectWords(match)
@@ -121,14 +122,14 @@ export class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?",
   }
 
   /**
-   * `alias`'s blanks -- its words in parens -- and the property each reads, e.g. `is the (rank) of (suits)` on a card
-   * => `["rank", "suit"]`:  what `for its ranks and its suits` would say.
+   * `alias`'s blanks (its words in parens), and the property each reads:
+   * e.g. `is the (rank) of (suits)` on a card => `["rank", "suit"]`, what `for its ranks and its suits` would say.
    * - ONLY a word in parens is a blank;  a bare word is always just a word (plan doc J9, Owen:  "require the parens").
    * - A blank names a property by its singular, e.g. `(suits)` => `suit`, as `for its suits` does.
    * - Only a property with a list of values:  its own (`as one of ...`), or a value kind's (`its "suit" is a suit`).
    * - `{ unlisted }`:  the first blank naming no such property, e.g. `color` for `is a (color)`.
-   * - `undefined` if there's no one-word blank:  then it's a phrase method's argument, e.g.
-   *   `it "nerds out with (another as a thing)"` (`quoted_type_expression`).
+   * - `undefined` if there's no one-word blank.
+   *   Then it's a phrase method's argument, e.g. `it "nerds out with (another as a thing)"` (`quoted_type_expression`).
    */
   private static inferPlaceholders(
     alias: string[],
@@ -147,8 +148,9 @@ export class QuotedPropertyFormula extends SpellStatement<"type|alias|sources?",
   }
 
   /**
-   * Property `name`'s own list of values on `type`, if it has one -- kept on the property, or as its plural class
-   * variable's instance twin, e.g. `Suits` for `suit` (`define_property_has`).
+   * Property `name`'s own list of values on `type`, if it has one:
+   * kept on the property, or as its plural class variable's instance twin,
+   * e.g. `Suits` for `suit` (`define_property_has`).
    */
   private static enumerationOf(type: P.TypeScope, name: string): Array<string | number> | undefined {
     return type.variables.get(name)?.enumeration ?? type.variables.get(pluralize(upperFirst(name)))?.enumeration

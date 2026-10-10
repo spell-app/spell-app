@@ -11,16 +11,19 @@ import { compiledFixture, fixtureImports, fixtureProjectNames } from "$/spell/te
 import { CLI } from "$/cli"
 
 /**
- * The CORE CONTRACT:  every fixture project, compiled for each target, run headless as `spell run` runs it, prints
- * the SAME thing, line for line -- and what it prints is pinned in `__snapshots__/contract/<Project>.out.txt`.
- * - So a target's core is right when it prints what the snapshot says:  `js/solid` and `ts/solid` share `@spell/core`
- *   today;  Python's core (a later epic) must print the same.  What a core must HAVE is `SC.SpellCore`
- *   (`packages/core/src/spellCore.types.ts`).
+ * The CORE CONTRACT:  every fixture project, compiled for each target, run headless as `spell run` runs it,
+ * prints the SAME thing, line for line.
+ * - What it prints is pinned in `__snapshots__/contract/<Project>.out.txt`.
+ * - So a target's core is right when it prints what the snapshot says.
+ *   - `js/solid` and `ts/solid` share `@spell/core` today.
+ *   - Python's core (a later epic) must print the same.
+ *   - What a core must HAVE is `SC.SpellCore` (`packages/core/src/spellCore.types.ts`).
  * - The snapshot catches a broken core method, which both targets would share.
- * - A fixture that imports another (`Klondike` imports `Cards`) runs with that one compiled for the same
- *   target, as its `@spell/project/<id>`.
- * - In a FAKE PAGE (linkedom, `RunSpec.dom`):  `start the game` draws into it, and what it drew is printed last,
- *   so drawing is compared too.  `Math.random()` is seeded, so Solitaire deals the same cards every run.
+ * - A fixture that imports another (`Klondike` imports `Cards`)
+ *   runs with that one compiled for the same target, as its `@spell/project/<id>`.
+ * - Each runs in a FAKE PAGE (linkedom, `RunSpec.dom`) that `start the game` draws into.
+ *   What it drew is printed last, so drawing is compared too.
+ * - `Math.random()` is seeded, so Solitaire deals the same cards every run.
  * - Changed on purpose:  `yarn vp test run src/contract.test.ts -u`, then read the diff.
  */
 const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx" }
@@ -120,5 +123,62 @@ describe("a program compiled before P16, with spellCore's old names", () => {
       expect(before).toContain(`spellCore.${old}(`)
     }
     await expect(printed(name, "js/solid", before)).resolves.toEqual(await printed(name, "js/solid"))
+  }, 60_000)
+})
+
+/**
+ * A card table drawn as javascript compiled since epic `output-targets` P20 draws:
+ * Solid's own `h()`, imported from `@spell/core`, in the page's spellings.
+ * - `{{rank}}` is where each card's rank goes.
+ */
+const DRAWN_WITH_H = `
+import { spellCore, Thing, List, App, h } from "@spell/core"
+export class Card extends Thing {
+  draw() { return h("td", { class: "card", colspan: "2" }, () => this.rank) }
+}
+export class Table extends App {
+  draw() { return h("table", h("tr", () => spellCore.drawItems(this.cards))) }
+}
+const table = new Table()
+table.cards = new List()
+table.cards.add(new Card({ rank: "ace" }), new Card({ rank: "king" }))
+table.start()
+`
+
+/** The same table, as javascript compiled before P20 draws it:  `spellCore.element()`, in React's spellings. */
+const DRAWN_WITH_ELEMENT = `
+import { spellCore, Thing, List, App } from "@spell/core"
+export class Card extends Thing {
+  draw() { return spellCore.element({ tag: "td", props: { className: "card", colSpan: "2" }, children: [() => this.rank] }) }
+}
+export class Table extends App {
+  draw() {
+    return spellCore.element({ tag: "table", children: [
+      spellCore.element({ tag: "tr", children: [() => spellCore.drawItems(this.cards)] })
+    ] })
+  }
+}
+const table = new Table()
+table.cards = new List()
+table.cards.add(new Card({ rank: "ace" }), new Card({ rank: "king" }))
+table.start()
+`
+
+describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
+  /** What `code` prints, run headless in a fake page:  ending with what it drew. */
+  async function drawn(code: string): Promise<string> {
+    const { exitCode, output } = await CLI.runCode("run", "Table", code, { capture: true, dom: true })
+    expect(exitCode, output).toBe(CLI.EXIT.OK)
+    return output.trim()
+  }
+
+  test("draws;  a program compiled before P20, with the deprecated `spellCore.element()`, draws the same", async () => {
+    const [withH, withElement] = await Promise.all([drawn(DRAWN_WITH_H), drawn(DRAWN_WITH_ELEMENT)])
+    expect(withH).toBe(
+      `<div id="spell-app-root"><table><tr>` +
+        `<td class="card" colspan="2">ace</td><td class="card" colspan="2">king</td>` +
+        `</tr></table></div>`
+    )
+    expect(withElement).toBe(withH)
   }, 60_000)
 })

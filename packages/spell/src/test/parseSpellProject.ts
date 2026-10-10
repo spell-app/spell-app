@@ -51,11 +51,12 @@ export function parseSpellProject(
 }
 
 /**
- * Frozen projects tests run against -- `projects/test/<Project>/`, e.g. `Solitaire`:  the `@test:fixtures` root.
- * - Why:  tests assert exact lines, docstrings and compiled output, and the live examples get edited.  Tests read
- *   ONLY here -- editing or deleting anything in `projects/system/` or `projects/user/` can't break one.
- * - NEVER update a fixture to follow its example:  it's frozen so tests don't move.  Change a test's input in the
- *   test, or add another fixture -- copy a project in, then `yarn test:fixtures:bless`.  See `compiledFixture()`.
+ * Frozen projects tests run against:  `projects/test/<Project>/`, e.g. `Solitaire`, the `@test:fixtures` root.
+ * - Why:  tests assert exact lines, docstrings and compiled output, and the live examples get edited.
+ * - Tests read ONLY here:  editing or deleting anything in `projects/system/` or `projects/user/` can't break one.
+ * - NEVER update a fixture to follow its example:  it's frozen so tests don't move.
+ *   - Change a test's input in the test, or add another fixture:
+ *     copy a project in, then `yarn test:fixtures:bless`.  See `compiledFixture()`.
  */
 export const FIXTURES_DIR = environment.testFilesRoot
 
@@ -81,10 +82,11 @@ export function fixtureProjectNames(): string[] {
 }
 
 /**
- * Fixture `projectName` compiled as `SpellProject` would write its `<Project>.compiled.js` -- parsed headlessly,
- * with `parseSpellProject()`:  `import`s, then each file's code in `project.json` order.
+ * Fixture `projectName` compiled as `SpellProject` would write its `<Project>.compiled.js`.
+ * - Parsed headlessly, with `parseSpellProject()`:  `import`s, then each file's code in `project.json` order.
  * - Its declarations, as its `<Project>.declarations.json`:  `fixtureDeclarations()`.
- * - `target`:  compiled for that target, e.g. `ts/solid` -- see `SP.TARGETS`;  or by that writer, e.g. a test's own.
+ * - `target`:  compiled for that target, e.g. `ts/solid` (see `SP.TARGETS`);
+ *   or a writer itself, e.g. a test's own.
  */
 export function compiledFixture(projectName: string, target: string | P.Writer = SP.RUNNING_TARGET): string {
   return compileFixture(projectName, target).code

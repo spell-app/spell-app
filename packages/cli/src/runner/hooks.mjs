@@ -3,9 +3,10 @@
  * the browser's import map, so compiled spell runs under node.
  * - `@spell/core` => spell's runtime, `core`'s `src/index.ts` -- run through `tsx`, which loads first.
  * - `@spell/project/<id>` => that project's compiled javascript, for a project which imports another.
- * - Solid's packages => their browser builds, which the runtime draws with (`SOLID`).  Found from `@spell/core`'s
- *   folder, whoever imports them:  so a program built from Solid TypeScript (`ts/solid`, see `buildTsx()`), in a
- *   temp folder outside the repo, gets the SAME Solid its runtime draws with -- one Solid, as on a page.
+ * - Solid's packages => their browser builds, which the runtime draws with (`SOLID`).
+ *   - Found from `@spell/core`'s folder, whoever imports them.
+ *   - So a program built from Solid TypeScript (`ts/solid`, see `buildTsx()`), in a temp folder outside the repo,
+ *     gets the SAME Solid its runtime draws with:  one Solid, as on a page.
  * - Where each is comes from env var `SPELL_RUN` -- see `CLI.RunSpec`.
  * - SIDE EFFECT:  registers itself, so `node --import <this file>` is all it takes.
  * - NOTE: plain javascript:  node loads it with `--import`, before anything is compiled.
@@ -16,8 +17,9 @@ import { register } from "node:module"
 const spec = JSON.parse(process.env.SPELL_RUN ?? "{}")
 
 /**
- * Solid's packages, which spell's runtime draws with:  resolved to their BROWSER builds, as on a page -- node's own
- * are the server builds, which can't draw.  Only these:  others (`chalk` ...) keep their node builds.
+ * Solid's packages, which spell's runtime draws with:  resolved to their BROWSER builds, as on a page.
+ * - Node's own are the server builds, which can't draw.
+ * - Only these:  others (`chalk` ...) keep their node builds.
  */
 const SOLID = /^(solid-js|@solidjs\/(web|signals|h))(\/|$)/
 

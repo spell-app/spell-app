@@ -18,8 +18,9 @@ import type { DOMSpellAppElement } from "$/app/components/spell-app"
  *   as with a real `spell-runtime.js` copy.
  *   `loadRuntime()`'s `blob:` copy can't load in dev:
  *   vite's imports are root-relative, which a `blob:` URL can't resolve.
- * - The program draws with Solid (`spellCore.element()`), into the runner's app root:
- *   as compiled spell writes it, a value that can change is a function (`() => this.count`).
+ * - The program draws with Solid, into the runner's app root:  `h()` from `@spell/core` (`CARDS`), or the
+ *   deprecated `spellCore.element()` of programs compiled before (`COUNTER`, `LATE`, `OLD_TABLE`).
+ *   As compiled spell writes it, a value that can change is a function (`() => this.count`).
  * - `adoptShadowStyles()` is stubbed:  the test server doesn't serve `static/` (Semantic UI, Lato).
  */
 vi.mock("./loadRuntime", async (importOriginal) => {
@@ -70,18 +71,19 @@ setTimeout(() => late.start(), 50)
 /**
  * A card game, as compiled spell draws it:  a card's `draw()` chooses its face by an `if` (read OUTSIDE its live
  * values), its rank is a live value, the pile draws its cards with `drawItems()`, and one card can't draw.
- * - React spellings (`className`, `colSpan`), as spell programs write them.
+ * - Solid's own `h()`, from `@spell/core`, in the page's spellings (`class`, `colspan`), as the javascript writer
+ *   writes them (epic `output-targets` P20).  `draw()` returns `h()`'s thunk:  the error net makes it.
  */
 const CARDS = `
-import { spellCore, Thing, List, App } from "@spell/core"
+import { spellCore, Thing, List, App, h } from "@spell/core"
 export class Card extends Thing {
   get rank() { return this.getProp('rank') }
   set rank(value) { this.setProp('rank', value) }
   get is_face_down() { return this.getProp('is_face_down') }
   set is_face_down(value) { this.setProp('is_face_down', value) }
   draw() {
-    if (this.is_face_down) return spellCore.element({ tag: "div", props: { className: "card back" } })
-    return spellCore.element({ tag: "div", props: { className: () => "card " + this.rank }, children: [() => this.rank] })
+    if (this.is_face_down) return h("div", { class: "card back" })
+    return h("div", { class: () => "card " + this.rank }, () => this.rank)
   }
 }
 export class Joker extends Card {
@@ -90,11 +92,11 @@ export class Joker extends Card {
 export class Pile extends List {}
 export class Game extends App {
   draw() {
-    return spellCore.element({ tag: "table", children: [
-      spellCore.element({ tag: "tr", children: [
-        spellCore.element({ tag: "td", props: { colSpan: "2", className: "pile" }, children: [() => spellCore.drawThing(this.pile)] })
-      ] })
-    ] })
+    return h("table",
+      h("tr",
+        h("td", { colspan: "2", class: "pile" }, () => spellCore.drawThing(this.pile))
+      )
+    )
   }
 }
 export let ace = new Card({ rank: "A" })
@@ -105,6 +107,25 @@ game.pile = new Pile()
 game.pile.add(ace, king, joker)
 game.start()
 globalThis.cardGame = { ace, king, game, Card }
+`
+
+/**
+ * A table as javascript compiled before epic `output-targets` P20 draws it:
+ * through the deprecated `spellCore.element()`, in React's spellings (`className`, `colSpan`), as spell programs
+ * write them.
+ */
+const OLD_TABLE = `
+import { spellCore, App } from "@spell/core"
+export class OldTable extends App {
+  draw() {
+    return spellCore.element({ tag: "table", children: [
+      spellCore.element({ tag: "tr", children: [
+        spellCore.element({ tag: "td", props: { colSpan: "2", className: "pile" }, children: ["old"] })
+      ] })
+    ] })
+  }
+}
+new OldTable().start()
 `
 
 /** What `CARDS` leaves on `globalThis`, for a test to play with. */
@@ -333,11 +354,12 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => titles().length === 3)
   })
 
-  test("React's spellings become the page's:  `className` => `class`, `colSpan` => `colspan`", async () => {
-    const host = await mount(source(CARDS, "Game"))
+  test("a program compiled before P20 still runs:  `spellCore.element()` turns React's spellings into the page's", async () => {
+    const host = await mount(source(OLD_TABLE, "OldTable"))
     const cell = await waitFor(() => host.querySelector<HTMLTableCellElement>("td.pile"))
     expect(cell.getAttribute("colspan")).toBe("2")
     expect(cell.hasAttribute("classname")).toBe(false)
+    expect(cell.textContent).toBe("old")
   })
 })
 

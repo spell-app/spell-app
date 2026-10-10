@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App } from "@spell/core"
+import { spellCore, Thing, List, App, h } from "@spell/core"
 
 // IDEAS FOR EXTENDING THIS
 // - check for NaN in total
@@ -81,279 +81,165 @@ export class Calculator extends App {
   }
 
   draw() {
-    return spellCore.element({ tag: "div", props: { className: "ui container" }, children: [
-      spellCore.element({ tag: "table", props: { className: "ui table" }, children: [
-        spellCore.element({ tag: "tr", children: [
-          spellCore.element({ tag: "td", props: { colSpan: "3" }, children: [
-            spellCore.element({ tag: "h2", children: [
-              spellCore.element({ tag: "span", children: [
-                () => this.left
-              ] }),
-              spellCore.element({ tag: "span", props: { id: "operator" }, children: [
-                " ",
-                () => this.operator,
-                " "
-              ] }),
-              spellCore.element({ tag: "span", props: { id: "right" }, children: [
-                " ",
-                () => this.right,
-                " "
-              ] }),
-              spellCore.element({ tag: "span", props: { id: "output" }, children: [
-                () => this.output
-              ] })
-            ] })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid red",
-                onClick: (event) => {
-                  return this.clear()
-                }
-              },
-              children: [
-                "C"
-              ]
-            })
-          ] })
-        ] }),
-        spellCore.element({ tag: "tr", children: [
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator("7")
-                }
-              },
-              children: [
-                "7"
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator("8")
-                }
-              },
-              children: [
-                "8"
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator("9")
-                }
-              },
-              children: [
-                "9"
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid orange",
-                onClick: (event) => {
-                  this.operator = "+"
-                }
-              },
-              children: [
-                "+"
-              ]
-            })
-          ] })
-        ] }),
-        spellCore.element({ tag: "tr", children: [
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator("4")
-                }
-              },
-              children: [
-                "4"
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator("5")
-                }
-              },
-              children: [
-                "5"
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator("6")
-                }
-              },
-              children: [
-                "6"
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid orange",
-                onClick: (event) => {
-                  this.operator = "–"
-                }
-              },
-              children: [
-                "–"
-              ]
-            })
-          ] })
-        ] }),
-        spellCore.element({ tag: "tr", children: [
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator("1")
-                }
-              },
-              children: [
-                "1"
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator("2")
-                }
-              },
-              children: [
-                "2"
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator("3")
-                }
-              },
-              children: [
-                "3"
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid orange",
-                onClick: (event) => {
-                  this.operator = "x"
-                }
-              },
-              children: [
-                "x"
-              ]
-            })
-          ] })
-        ] }),
-        spellCore.element({ tag: "tr", children: [
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator("0")
-                }
-              },
-              children: [
-                "0"
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator(".")
-                }
-              },
-              children: [
-                "."
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                hidden: true,
-                className: "ui button fluid",
-                onClick: (event) => {
-                  return this.appendDigitToCalculator("DELETE")
-                }
-              },
-              children: [
-                "DEL"
-              ]
-            })
-          ] }),
-          spellCore.element({ tag: "td", children: [
-            spellCore.element({
-              tag: "button",
-              props: {
-                className: "ui button fluid orange",
-                onClick: (event) => {
-                  this.operator = "÷"
-                }
-              },
-              children: [
-                "÷"
-              ]
-            })
-          ] })
-        ] })
-      ] })
-    ] })
+    return h("div", { class: "ui container" },
+      h("table", { class: "ui table" },
+        h("tr",
+          h("td", { colspan: "3" },
+            h("h2",
+              h("span", () => this.left),
+              h("span", { id: "operator" }, " ", () => this.operator, " "),
+              h("span", { id: "right" }, " ", () => this.right, " "),
+              h("span", { id: "output" }, () => this.output)
+            )
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid red",
+              onClick: (event) => {
+                return this.clear()
+              }
+            }, "C")
+          )
+        ),
+        h("tr",
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              onClick: (event) => {
+                return this.appendDigitToCalculator("7")
+              }
+            }, "7")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              onClick: (event) => {
+                return this.appendDigitToCalculator("8")
+              }
+            }, "8")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              onClick: (event) => {
+                return this.appendDigitToCalculator("9")
+              }
+            }, "9")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid orange",
+              onClick: (event) => {
+                this.operator = "+"
+              }
+            }, "+")
+          )
+        ),
+        h("tr",
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              onClick: (event) => {
+                return this.appendDigitToCalculator("4")
+              }
+            }, "4")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              onClick: (event) => {
+                return this.appendDigitToCalculator("5")
+              }
+            }, "5")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              onClick: (event) => {
+                return this.appendDigitToCalculator("6")
+              }
+            }, "6")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid orange",
+              onClick: (event) => {
+                this.operator = "–"
+              }
+            }, "–")
+          )
+        ),
+        h("tr",
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              onClick: (event) => {
+                return this.appendDigitToCalculator("1")
+              }
+            }, "1")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              onClick: (event) => {
+                return this.appendDigitToCalculator("2")
+              }
+            }, "2")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              onClick: (event) => {
+                return this.appendDigitToCalculator("3")
+              }
+            }, "3")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid orange",
+              onClick: (event) => {
+                this.operator = "x"
+              }
+            }, "x")
+          )
+        ),
+        h("tr",
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              onClick: (event) => {
+                return this.appendDigitToCalculator("0")
+              }
+            }, "0")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              onClick: (event) => {
+                return this.appendDigitToCalculator(".")
+              }
+            }, ".")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid",
+              hidden: true,
+              onClick: (event) => {
+                return this.appendDigitToCalculator("DELETE")
+              }
+            }, "DEL")
+          ),
+          h("td",
+            h("button", {
+              class: "ui button fluid orange",
+              onClick: (event) => {
+                this.operator = "÷"
+              }
+            }, "÷")
+          )
+        )
+      )
+    )
   }
 }
 

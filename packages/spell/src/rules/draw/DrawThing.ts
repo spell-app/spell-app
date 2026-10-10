@@ -6,15 +6,17 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { draw } from "./draw.parser"
 
 /**
- * `draw_thing` rule:  draw a single thing, e.g. `draw the card` => `spellCore.drawThing(card)`.
- * - `drawThing()` draws it as its reactive `Component`, which re-renders when what its `draw()` read changes.
+ * `draw_thing` rule:  draw a single thing, e.g. `draw the card`.
+ * - javascript:  `spellCore.drawThing(card)`, its drawing in its own error net.
+ *   Its `draw()` re-runs when what it read changes:  the card's node is drawn again, nothing else.
+ * - TypeScript:  `card.draw()`, whose `@drawn` decorator gives it the same net.
  */
 export class DrawThing extends SpellStatement<"expression"> {
   /** An expression (JSX `{draw …}`) AND a statement:  as a statement, a project's own `draw` method would win. */
   @proto static alias = ["statement", "expression"]
   /**
    * Beats a call to the project's own `to draw (a card)` (`Priority.normal`):
-   * `card.draw()` would skip the re-rendering.
+   * in javascript, which has no `@drawn`, `card.draw()` would skip the re-rendering.
    */
   @proto static priority = Priority.preferred
 

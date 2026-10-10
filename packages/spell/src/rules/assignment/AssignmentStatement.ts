@@ -7,22 +7,24 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { assignment } from "./assignment.parser"
 
 /**
- * `assignment` rule:  assignment, via any of 4 equivalent surface forms:  `{thing} = {value}`, `let {thing} = {value}`,
- * `set {thing} to {value}`, or `{variable} is {value}`.
+ * `assignment` rule:  assignment, via any of 4 equivalent surface forms:
+ * `{thing} = {value}`, `let {thing} = {value}`, `set {thing} to {value}`, or `{variable} is {value}`.
  * - e.g. `unknown-var = yes`
  * - Class named `AssignmentStatement`, for what it is;  `static ruleName` keeps the rule name, `assignment`.
- * - `thing` may be a plain `{variable}` (declares/updates a scope variable) or an arbitrary
- *   `{expression}` (e.g. property assignment `let the name of X = ...`, which only compiles if `X`
- *   already exists).
- * - SIDE EFFECT: `mutateScope()` declares a new scope variable for `thing` if it's a `{variable}` and
- *   isn't already declared (or is only an alias, e.g. `it`) -- see `match.data.isNewVariable`/`originalVar`.
- *   An alias `thing` is redefined as a real variable.  Safe even if `value` refers to the alias:
- *   identifiers remember what they named when PARSED -- see `SpellIdentifier`.
+ * - `thing` may be a plain `{variable}` (declares/updates a scope variable), or an arbitrary `{expression}`.
+ *   - e.g. property assignment `let the name of X = ...`, which only compiles if `X` already exists
+ * - SIDE EFFECT: `mutateScope()` declares a new scope variable for `thing`,
+ *   if it's a `{variable}` and isn't already declared (or is only an alias, e.g. `it`).
+ *   - See `match.data.isNewVariable` / `originalVar`.
+ *   - An alias `thing` is redefined as a real variable.
+ *   - Safe even if `value` refers to the alias:
+ *     identifiers remember what they named when PARSED (see `SpellIdentifier`).
  * - A new variable holds what `value` is, its `datatype`, e.g. `Card` for `the card is a new card`.
  *   An existing one keeps its own:  the first datatype wins.
  * - SIDE EFFECT: `set the X of Y to V` declares property `X` if `Y`'s type doesn't -- see `declareProperty()`.
- * - Asks for a type its value doesn't say -- a warning, see `SP.SpellWarnings`:  a new variable's list of nothing
- *   said (`set state to []`), or a property it declares from a value which doesn't say what it is.
+ * - Asks for a type its value doesn't say, with a warning (see `SP.SpellWarnings`):
+ *   - a new variable's list of nothing said, `set state to []`
+ *   - a property it declares from a value which doesn't say what it is
  * - A built-in type's member is read-only, e.g. `set the length of the name to 3`:  a parse error -- see `parse()`.
  * - So is the pile a card belongs to, e.g. `set the pile of the card to x`:  move the card to the pile instead.
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
@@ -99,8 +101,8 @@ export class AssignmentStatement extends SpellStatement<"thing|value", Assignmen
   }
 
   /**
-   * Ask what a new variable's list holds, when its value doesn't say (epic `output-targets`, Q24):  a warning,
-   * e.g. `set state to []` => `Say what "state" holds, e.g. "set state to a new list of text"`.
+   * Ask what a new variable's list holds, when its value doesn't say (epic `output-targets`, Q24):
+   * a warning, e.g. `set state to []` => `Say what "state" holds, e.g. "set state to a new list of text"`.
    * - Any list spell can't say the items of, e.g. `[]`, `a new list`, `[1, "a"]`.
    * - NOT a list it can, e.g. `a new list of piles`, `[1, 2]`.
    */
@@ -297,8 +299,8 @@ assignment.addRule(AssignmentStatement, {
 })
 
 /**
- * Test setup shared by each `assignment` syntax:  spread into a test block, e.g.
- * `{ ...setupAssignmentStatement(), tests: [...] }`.
+ * Test setup shared by each `assignment` syntax:
+ * spread into a test block, e.g. `{ ...setupAssignmentStatement(), tests: [...] }`.
  * - `beforeEach` adds variable `thing`, alias `it` (=> `this`) and type `Person`.
  */
 function setupAssignmentStatement(): Pick<P.RuleTestBlock, "compileAs" | "beforeEach"> {

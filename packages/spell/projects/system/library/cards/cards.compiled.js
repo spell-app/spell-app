@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, positionOf, trigger } from "@spell/core"
+import { spellCore, Thing, List, App, h, positionOf, trigger } from "@spell/core"
 
 spellCore.heading("Definition of a Card with nice english aliases for working with it")
 /** Definition of a Card with nice english aliases for working with it */
@@ -128,33 +128,21 @@ export class Card extends Thing {
 
   draw() {
     let className = `Card face-${this.direction} ${this.rank} ${this.suit} ui button compact fluid `
-    if (this.isFaceDown) { return spellCore.element({
-      tag: "div",
-      props: {
-        onClick: (event) => {
-          return trigger('card-click', { card: this })
-        },
-        className: () => className
-      },
-      children: [
-        spellCore.element({ tag: "i", props: { className: "fitted bicycle icon" } })
-      ]
-    }) }
-    return spellCore.element({
-      tag: "div",
-      props: {
-        onClick: (event) => {
-          return trigger('card-click', { card: this })
-        },
-        className: () => (className + this.color)
-      },
-      children: [
-        () => `${this.shortRank} `,
-        spellCore.element({ tag: "span", props: { className: "suit" }, children: [
-          () => this.shortSuit
-        ] })
-      ]
-    })
+    if (this.isFaceDown) { return h("div", {
+      class: () => className,
+      onClick: (event) => {
+        return trigger('card-click', { card: this })
+      }
+    }, h("i", { class: "fitted bicycle icon" })) }
+    return h("div", {
+      class: () => (className + this.color),
+      onClick: (event) => {
+        return trigger('card-click', { card: this })
+      }
+    },
+      () => `${this.shortRank} `,
+      h("span", { class: "suit" }, () => this.shortSuit)
+    )
   }
 
   /** "card is the red joker", "...is the black joker" -- asked of ANY card, which only a joker of that color is */

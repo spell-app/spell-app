@@ -15,8 +15,9 @@ import { type MethodBody } from "./classes.shared"
  * - `a foundation can never (release|remove|give up|let go of) a card` -- always no
  * - Its body answers yes or no:  an inline expression, or an indented block which `return`s.
  *   `the card` is the card moving;  `it`, `its` and `the tableau` are the list.
- * - Compiles to a method of the list type's class, overriding `List`'s yes:  `canTake(card) {...}` or
- *   `canGiveUp(card) {...}`.  A sub-type inherits it, unless it says its own.
+ * - Compiles to a method of the list type's class, overriding `List`'s yes:
+ *   `canTake(card) {...}` or `canGiveUp(card) {...}`.
+ *   A sub-type inherits it, unless it says its own.
  * - Only a move asks, e.g. `move the card to the tableau` -- see `list_move`.
  *   `add`, `remove` and `clear` never do:  dealing, gathering cards back.
  */

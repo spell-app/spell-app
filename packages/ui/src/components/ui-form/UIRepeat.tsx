@@ -98,8 +98,8 @@ export class UIRepeat extends E.UIComponent<typeof repeatVocabulary> {
 
   /**
    * The items shown:  `items`, else `scope[name]`, as a list;  `[]` while it's none, or before the template is taken.
-   * - Tracked:  reading the property, the scope and the list (and iterating it) inside the effect follows their
-   *   changes.
+   * - Tracked:  read inside the effect, it follows changes to the property, the scope and the list
+   *   (and iterating it follows the list's items).
    */
   get shownItems(): readonly unknown[] {
     if (!this.isConnected || !this.templateVersion) return []

@@ -95,8 +95,8 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - A new expression or operator:  `PARSING.md`, "Adding an expression rule".
   - Rule CLASSES are PascalCase;  rule NAMES are snake_case, worked out from the class name.
     - `class ListAddRelative` => `list_add_relative`, `class If` => `if`:  `P.Rule.ruleNameFor()`.
-    - The rule name is what everything else says:  `syntax` (`{list_add_relative}`), `parser.rules`,
-      declarations, error messages, the `__snapshots__`.
+    - The rule name is what everything else says:
+      `syntax` (`{list_add_relative}`), `parser.rules`, declarations, error messages, the `__snapshots__`.
     - Plain `static ruleName = "..."` only where the class name doesn't give it,
       e.g. `class BlockLine` => `"line"`, `class SpellJSXText` => `"jsxText"`.
       - Also where the PascalCase name would hide a javascript or DOM global (`Number`, `Boolean`, `Text`,
@@ -172,10 +172,10 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - `rules/<module>/<module>.parser.ts`:  the module's parser, and nothing else.
     - `export const <module> = new SpellParser({ module: "<module>" })`
     - A file of its own, so each rule file can import it without importing its siblings.
-  - `rules/<module>/<RuleClass>.ts`:  ONE rule class, the file named for it, e.g. `events/Trigger.ts`.
+  - `rules/<module>/<RuleClass>.ts`:  ONE rule class, the file named for it, e.g. [Trigger.ts](src/rules/events/Trigger.ts).
     - Top to bottom:
       - imports:  `./<module>.parser`, peer files (a base class), `$/spell/rules/<other module>` for another's
-      - constants the class or its registration reads (`LOWER_INITIAL_WORD`, in `properties/Property.ts`):
+      - constants the class or its registration reads, e.g. `LOWER_INITIAL_WORD` in [Property.ts](src/rules/properties/Property.ts):
         a `const` isn't hoisted
       - docstring + `export class Trigger extends ... {}`, its `@proto static` props FIRST in the body
       - `<module>.addRule(Trigger, { syntax, tests })`, right after the class, once per syntax
@@ -188,7 +188,7 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - `rules/<module>/<module>.shared.ts`:  types, constants and helper functions SHARED by several of its rule files.
     - Only if there are any.
       What one rule alone uses stays in that rule's file.
-    - e.g. `VARIABLE_SYNTAX`, in `variables/variables.shared.ts`:  two rule files read it.
+    - e.g. `VARIABLE_SYNTAX`, in [variables.shared.ts](src/rules/variables/variables.shared.ts):  two rule files read it.
     - `.shared`, not `.types`:  rule helpers build AST nodes (`new P.AST...`), values a `.types.ts` mustn't import.
   - `rules/<module>/index.ts`:  `export * from` each file, in TIE-BREAK order.
     - When two rules tie on `priority` and length, the one registered FIRST wins (`Choice.getBestMatch()`).
@@ -197,16 +197,17 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - A rule file that imports a peer (its base class) loads it first:
       fine as long as the base came first in the old order too.
     - Other modules and `rules/index.ts` import the folder (`$/spell/rules/<module>`, `./<module>`) as before.
-  - `rules/<module>/<module>.test.ts`:  `unitTestModuleRules(spellParser, "<module>", ...)` (from `$/spell/test`),
-    or its tests never run.
+  - `rules/<module>/<module>.test.ts`:  MUST call `unitTestModuleRules()` (from `$/spell/test`),
+    or its tests never run:  `unitTestModuleRules(spellParser, "<module>", ...)`.
     - Its `__snapshots__` (the group specs) are beside it, in `rules/<module>/__snapshots__/`.
 - A rule's `tests`:  `{ input, js, ts }`, or a tuple `[input, js, ts?]` (`P.RuleTest`).
   - `js`:  what the javascript writer writes;  `ts`:  what the TypeScript writer writes.
     Leave `ts` out where it's the same as `js`.
   - `input` is parsed ONCE, then written by both:  a change to either writer fails the rule's own tests.
-  - A rule alone has no project around it but its test's scope, so its `js` and `ts` show what the writers do
-    without one, e.g. a type they can't know.
-  - `yarn test:rules:bless` writes each test's `js` and `ts` into the source (`BLESS_RULE_TESTS=1`, then `vp fmt`).
+  - A rule alone has no project around it, only its test's scope.
+    So its `js` and `ts` show what the writers do without one, e.g. a type they can't know.
+  - `yarn test:rules:bless` writes each test's `js` and `ts` into the source.
+    - It sets `BLESS_RULE_TESTS=1`, then runs `vp fmt`.
     - Read the diff after:  it's the review.
     - It finds each test by its `input` and old `js`;  one it can't place fails the run, saying why.
   - Test setup shared by a rule's registrations:  `setup<RuleClass>()`, returning `{ compileAs, beforeEach }`.

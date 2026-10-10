@@ -21,8 +21,8 @@ function compiledProject(files: SpellSourceFile[], options: { version?: string; 
 }
 
 /**
- * A project's declarations:  marked inline while compiling, then split out into its declarations file -- what
- * another project imports it by.
+ * A project's declarations:  marked inline while compiling, then split out into its declarations file,
+ * what another project imports it by.
  * - Snapshot pins Solitaire's, so a change to what a project declares shows up in review.
  */
 describe("SpellDeclarations, inline", () => {
@@ -145,8 +145,8 @@ describe("SpellDeclarations.importScope()", () => {
     const fromSources = summarize(parseSpellProject(all)).filter(({ path }) => path === "/Solitaire.spell")
     const fromDeclarations = summarize(parseSpellProject(app, { parentScope: importLibrary() }))
     // bar two things.  `set the name of cards-to-move to ...` declares a pile's `name`
-    // only on a type the project declares itself -- see `AssignmentStatement.declareProperty()`
-    // -- and so only there asks what it is
+    // only on a type the project declares itself (see `AssignmentStatement.declareProperty()`),
+    // and so only there asks what it is
     const autoDeclared =
       /\/\*! SPELL: DECLARES \{\n {2}property: "name", of: "Pile", autoDeclared: true,\n.*\n\} \*\/\n(.*\n){5}/
     const asksWhatItIs = /Say what "name" is/
@@ -156,8 +156,8 @@ describe("SpellDeclarations.importScope()", () => {
     expect(fromSources[0]!.compiled).toMatch(autoDeclared)
     expect(fromSources[0]!.warnings).toContainEqual(expect.stringMatching(asksWhatItIs))
     expect(fromSources[0]!.warnings).toContainEqual(expect.stringMatching(neverSays))
-    // and so, from its sources, a foundation's `name` is the pile's, of no known kind:  `==`.  From the library's
-    // declarations, which don't have it, it's what every foundation is given, text:  `===` (P19)
+    // and so, from its sources, a foundation's `name` is the pile's, of no known kind:  `==`.
+    // From the library's declarations, which don't have it, it's what every foundation is given, text:  `===` (P19)
     const nameKnown = (code: string) => code.replace(/this\.name == ('\w+')/g, "this.name === $1")
     const withoutIt = fromSources.map((it) => ({
       ...it,
@@ -262,8 +262,8 @@ describe("SpellDeclarations.importScope()", () => {
     expect(imports.types.get("Pile", "LOCAL_ONLY")?.itemType).toBeUndefined()
   })
 
-  // NOTE: pins TODAY's partial-import behaviour:  a type brings only the rules it OWNS -- see the plan's open
-  // question 1, whether a rule owned by a type left out could still change how the importer parses.
+  // NOTE: pins TODAY's partial-import behaviour:  a type brings only the rules it OWNS.
+  // See the plan's open question 1:  whether a rule owned by a type left out could still change how the importer parses.
   test("`import` loads just the names picked, with what they own", () => {
     const { scope } = parseSpellProject([], { parentScope: importLibrary({ import: ["Card"] }) })
     expect(scope.types.get("Card")).toBeDefined()

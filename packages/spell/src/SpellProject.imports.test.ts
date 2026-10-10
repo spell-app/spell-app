@@ -192,8 +192,8 @@ describe("SpellProject imports", () => {
   })
 
   /**
-   * The acid test for "no globals":  RUN a compiled app which imports a compiled library, in node -- see
-   * `runLinked()`.
+   * The acid test for "no globals":  RUN a compiled app which imports a compiled library, in node.
+   * See `runLinked()`.
    * - Anything still relying on a global would throw a `ReferenceError`.
    */
   test("compiled projects link through ES imports, with no globals -- and run", async () => {

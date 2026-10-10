@@ -914,8 +914,8 @@ describe("SpellLanguageService", () => {
 })
 
 /**
- * An OUTLINE project (plan doc `outline-spell`):  a temp copy of the OutlineSolitaire fixture, whose deck and card are
- * written as outlines.
+ * An OUTLINE project (plan doc `outline-spell`):  a temp copy of the OutlineSolitaire fixture,
+ * whose deck and card are written as outlines.
  */
 describe("SpellLanguageService, outline style", () => {
   const dir = mkdtempSync(resolve(tmpdir(), "spell-lsp-outline-"))
@@ -969,8 +969,8 @@ function withoutBlankLines(text: string): string {
 }
 
 /**
- * `compiled` without blank lines, nor where each declaring statement is -- its `SPELL: DECLARES` comment's
- * `line` / `defined` line, which formatting moves.
+ * `compiled` without blank lines, nor where each declaring statement is:
+ * its `SPELL: DECLARES` comment's `line` / `defined` line, which formatting moves.
  */
 function withoutPositions(compiled: string): string {
   // `line: 9, defined: "/Card.spell:222-283",` -- or either alone

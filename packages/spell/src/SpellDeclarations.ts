@@ -66,8 +66,8 @@ export class SpellDeclarations {
 
   /**
    * Names parsed project `scope` offers importers:  its own types, then its top-level functions.
-   * - `exports` from its `project.json` limits them, default everything.  Throws if it names something the
-   *   project doesn't declare.
+   * - `exports` from its `project.json` limits them, default everything.
+   * - Throws if it names something the project doesn't declare.
    */
   static provides(scope: P.ProjectScope, exports?: string[]): string[] {
     const types = scope.types
@@ -91,9 +91,9 @@ export class SpellDeclarations {
   }
 
   /**
-   * `/*! SPELL: DECLARES {...} *\/` comment for `statement`, to compile just above its code -- `undefined` if it
-   * declared nothing another project could see.  See `declarationFor()`.
-   * - Props packed a few to a line, then where it is -- `defined` -- last on its own:  3-7 lines all told.
+   * `/*! SPELL: DECLARES {...} *\/` comment for `statement`, to compile just above its code.
+   * - `undefined` if it declared nothing another project could see.  See `declarationFor()`.
+   * - Props packed a few to a line, then where it is (`defined`) last on its own:  3-7 lines all told.
    */
   static commentFor(statement: P.Match): P.ASTPreservedComment | undefined {
     const declaration = SpellDeclarations.declarationFor(statement)
@@ -113,10 +113,11 @@ export class SpellDeclarations {
    * - Its `kind` and `name` are what its rule's `getDeclaration()` says -- unless a key already says, e.g. `type`.
    * - Skips what it no longer declares, e.g. a type it stubbed which a later `a card is a thing` claimed,
    *   and what never leaves its file, e.g. local variables.
-   * - A record is ours if its `declaredBy` holds the SAME `declared` list -- this statement, or a clone of it
-   *   which incremental parsing re-bodied (`BlockLine.reparseBody()`):  `Match.clone()` copies `data` shallowly.
-   * - Throws if a rule it built wasn't `specialize()`d from a class with an `importableAs` -- another project
-   *   couldn't rebuild it.  See `P.Rule.importableAs`.
+   * - A record is ours if its `declaredBy` holds the SAME `declared` list:
+   *   this statement, or a clone of it which incremental parsing re-bodied (`BlockLine.reparseBody()`).
+   *   `Match.clone()` copies `data` shallowly.
+   * - Throws if a rule it built wasn't `specialize()`d from a class with an `importableAs`:
+   *   another project couldn't rebuild it.  See `P.Rule.importableAs`.
    */
   static declarationFor(statement: P.Match): SP.SpellDeclaration | undefined {
     const declared = (statement.data as { declared?: unknown[] }).declared ?? []
@@ -232,15 +233,17 @@ export class SpellDeclarations {
   }
 
   /**
-   * Load one project's `declarations` into import layer `scope` -- just what `import` picks, replaying each
-   * statement's in order.
+   * Load one project's `declarations` into import layer `scope`:
+   * just what `import` picks, replaying each statement's in order.
    * - Each picked name brings its type dependencies (`superType`, property datatypes) and what it owns:
    *   its properties, constants and rules, e.g. `Card` brings `card suits`.
-   * - A type picked as `Card:Playingcard` loads as `Playingcard`, everywhere a loaded record names it -- see
-   *   `renamed()`.  Its `runtimeName` stays `Card`:  its class is still called that when the code runs.
+   * - A type picked as `Card:Playingcard` loads as `Playingcard`, everywhere a loaded record names it:
+   *   see `renamed()`.
+   *   Its `runtimeName` stays `Card`:  its class is still called that when the code runs.
    * - Records where each name came from in `scope.origins`, and what `module` provides in `scope.modules`.
-   * - Each record keeps where it was declared, in `projectId`'s sources, for editors:  `declaredAt` on types,
-   *   variables and constants, and `declared` on rules -- see `P.DeclaredAt`.  It has no `declaredBy`.
+   * - Each record keeps where it was declared, in `projectId`'s sources, for editors:
+   *   `declaredAt` on types, variables and constants, and `declared` on rules (see `P.DeclaredAt`).
+   *   It has no `declaredBy`.
    * - Throws `P.ParserError`, rather than loading something half right, if
    *   - it was written by a compiler of another MAJOR version -- see `SP.SPELL_VERSION`
    *   - its `version` doesn't satisfy the importer's range
@@ -321,8 +324,8 @@ export class SpellDeclarations {
 
   /**
    * `declaration`'s `property` and `classVariable`, if their type `of` was picked.
-   * - A `classVariable` goes on instances too, with its `enumeration` as initializer -- as `define_property_has`
-   *   declares it.
+   * - A `classVariable` goes on instances too, with its `enumeration` as initializer:
+   *   as `define_property_has` declares it.
    * - An `exclusive` property is the member `a card belongs to one pile` gave, e.g. `pile` on `Card`:
    *   read-only, as there -- see `P.TypeScope.declareOwnerMember()`.  And a getter, as there.
    * - A `getter` is a derived property:  its record's `isGetter` -- see `P.ScopeVariable.isGetter`.
@@ -447,8 +450,9 @@ export class SpellDeclarations {
   }
 
   /**
-   * Where a statement `defined` itself -- `<file>:<start>-<end>` -- in project `projectId`, e.g.
-   * `{ path: "@system:library:cards/Card.spell", start: 23, end: 412 }`.  `undefined` if it doesn't say.
+   * Where a statement `defined` itself (`<file>:<start>-<end>`) in project `projectId`:
+   * e.g. `{ path: "@system:library:cards/Card.spell", start: 23, end: 412 }`.
+   * - `undefined` if it doesn't say.
    * - Reverses `definedAt()`.
    */
   private static declaredAt(projectId: string, defined: string | undefined): P.DeclaredAt | undefined {
@@ -623,8 +627,8 @@ export class SpellDeclarations {
   }
 
   /**
-   * `<file>:<start>-<end>` character offsets of `match` in its file, e.g. `/FizzBuzz.spell:23-412` -- if it came
-   * from a file.
+   * `<file>:<start>-<end>` character offsets of `match` in its file, e.g. `/FizzBuzz.spell:23-412`:
+   * if it came from a file.
    * - Project-relative, e.g. `/Card.spell` not `@system:library:cards/Card.spell`:  a library may move.
    */
   private static definedAt(match: P.Match): string | undefined {
@@ -709,8 +713,8 @@ function orderedProps(declaration: SP.SpellDeclaration): SP.SpellDeclaration {
 }
 
 /**
- * `props` as `key: value,` lines, packed a few to a line up to `LINE_WIDTH`, indented 2 -- e.g.
- * `  syntax: "play fizzbuzz", output: "play_fizzbuzz",`
+ * `props` as `key: value,` lines, packed a few to a line up to `LINE_WIDTH`, indented 2:
+ * e.g. `  syntax: "play fizzbuzz", output: "play_fizzbuzz",`
  */
 function packProps(props: Record<string, unknown>): string[] {
   const lines: string[] = []

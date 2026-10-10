@@ -1,18 +1,18 @@
 /**
  * `spellCore` barrel -- core runtime library that compiled `spell` JS calls into (`spellCore.foo(...)`).
- * - Compiled spell modules `import` what they use:  `import { spellCore, Thing } from "@spell/core"` --
- *   see `SPELL_CORE_MODULE`.  No globals.
- * - `spellCore` is a single singleton (constructed in `core.ts`) assembled by ACCRETION: every
- *   sibling module here (`collection-core`, `collection-other`, `deprecated`, `paths`, `string`, `tests`,
- *   `console`, `runtime`, `things`, `json`, `ui`, plus `core` itself) does `Object.assign(spellCore, <module>Methods)`
+ * - Compiled spell modules `import` what they use, e.g. `import { spellCore, Thing, h } from "@spell/core"`:
+ *   no globals.  See `SPELL_CORE_MODULE`.
+ * - `spellCore` is ONE object (constructed in `core.ts`), assembled by ACCRETION:
+ *   each sibling module here does `Object.assign(spellCore, <module>Methods)`
  *   as a top-level side effect when its file first loads -- see `defineSpellCoreModule()` in `spellCore.types.ts`.
- * - NOTE: most of those modules are imported here ONLY for that side effect (bare `import "./x"`, no
- *   named import) -- importing this barrel (or anything that transitively imports `$/core`) is
- *   what triggers the assembly.  `SpellCore` (the assembled TYPE) is exported separately as a
- *   `type`-only export, so it costs nothing at runtime.
+ *   - The modules:  `collection-core`, `collection-other`, `deprecated`, `paths`, `string`, `tests`,
+ *     `console`, `runtime`, `things`, `json`, `ui`, `drawing`, plus `core` itself.
+ * - NOTE: most of those modules are imported here ONLY for that side effect (bare `import "./x"`, no named import):
+ *   importing this barrel (or anything that transitively imports `$/core`) is what triggers the assembly.
+ *   `SpellCore` (the assembled TYPE) is exported separately as a `type`-only export, so it costs nothing at runtime.
  * - NOTE: `SC` ~== `$/core`, this sub-system's self-namespace.
- * - NOTE: `classes/` (`Thing`, `List`, ...) is flattened in via `export * from "./classes"` rather
- *   than getting its own namespace.
+ * - NOTE: `classes/` (`Thing`, `List`, ...) is flattened in via `export * from "./classes"`,
+ *   rather than getting its own namespace.
  */
 export * as SC from "./"
 
@@ -33,16 +33,21 @@ import "./ui"
 import "./drawing"
 
 export { spellCore, assert, SpellEvent, Eventful }
-// Events, as hand-written TypeScript says them:  `trigger("card-click", { card: this })`.  Compiled JavaScript says
-// `spellCore.trigger(...)`:  the same functions.
+// Events, imported by name:  `trigger("card-click", { card: this })`.
+// Compiled JavaScript and TypeScript both say it so, since epic `output-targets` P19;
+// `spellCore.trigger(...)`, which javascript compiled before then says, is the same function.
 export { on, off, once, trigger }
-// Helpers hand-written TypeScript imports by name, e.g. `positionOf(Card.Ranks, this.rank)`.  `itemOf`:  its old name,
-// for TypeScript compiled before epic `output-targets` P16 -- see `deprecated.ts`.
+// Helpers compiled and hand-written code import by name, e.g. `positionOf(Card.Ranks, this.rank)`.
+// `itemOf`:  its old name, for TypeScript compiled before epic `output-targets` P16 -- see `deprecated.ts`.
 export { positionOf } from "./collection-core"
 export { itemOf } from "./deprecated"
 // The decorators compiled TypeScript (`ts/solid`) writes, e.g. `@prop({ oneOf: RANKS }) accessor rank!: Rank`:
 // `$/util`'s shared reactive ones, spell's `@thing`, and `@drawn` (`drawing.ts`).  Compiled JavaScript has none.
 export { prop, state, derived, thing } from "$/util"
 export { drawn } from "./drawing"
+// What compiled JavaScript draws with:  Solid's own `h()`, the copy core draws with (epic `output-targets` P20).
+// `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`;
+// see `drawing.ts`.
+export { h } from "./drawing"
 export { SPELL_CORE_MODULE, SPELL_CORE_NAMES, type SpellCore, type PropCheck } from "./spellCore.types"
 export * from "./classes"

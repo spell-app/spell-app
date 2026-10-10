@@ -9,25 +9,27 @@ import { MethodPostfixRule } from "./MethodPostfixRule"
 import type { MethodSignatureData } from "./methods.shared"
 
 /**
- * Base for method-DEFINITION rules built on `method_signature`: `to_do_something`, `create_animation` and
- * `quoted_type_expression`.  See `to_do_something` below.
- * - Turns a parsed signature into either a loose function, an instance method (when a captured type is
- *   promoted via `inlineInitialType`), or a postfix/infix expression (`quoted_type_expression` only).
- * - Also registers the generated call-site rule (`getRule()`) onto `scope.parser` (`mutateScope()`), so the
- *   new syntax is usable immediately after the definition.
- * - Generic pass-through: each subclass has its own `signature` group typing, e.g. `ToDoSomething extends
- *   MethodDefinition<"asTest?|signature|body?">`.  `MethodDefinitionData` (`signature`,
- *   the processed/cached result of `getSignature()`) is ALWAYS added on top of whatever `MatchData` a
- *   subclass declares.
+ * Base for method-DEFINITION rules built on `method_signature`:
+ * `to_do_something`, `create_animation` and `quoted_type_expression`.  See `to_do_something` below.
+ * - Turns a parsed signature into one of:
+ *   - a loose function
+ *   - an instance method, when a captured type is promoted via `inlineInitialType`
+ *   - a postfix/infix expression (`quoted_type_expression` only)
+ * - Also registers the generated call-site rule (`getRule()`) onto `scope.parser` (`mutateScope()`),
+ *   so the new syntax is usable immediately after the definition.
+ * - Generic pass-through:  each subclass has its own `signature` group typing,
+ *   e.g. `ToDoSomething extends MethodDefinition<"asTest?|signature|body?">`.
+ *   - `MethodDefinitionData` is ALWAYS added on top of whatever `MatchData` a subclass declares:
+ *     its `signature` is the processed, cached result of `getSignature()`.
  */
 export class MethodDefinition<
   Groups extends string | P.AnyGroups = P.AnyGroups,
   MatchData extends P.AnyMatchData = P.AnyMatchData
 > extends SpellStatement<Groups, MatchData & MethodDefinitionData> {
   /**
-   * `true` to promote the signature's FIRST captured type arg (e.g. `(a card)`) into an instance-method
-   * receiver instead of a call argument -- see `processSignature()`.  Defaults `false`; `to_do_something`
-   * and `create_animation` turn it on.
+   * `true` to promote the signature's FIRST captured type arg (e.g. `(a card)`)
+   * into an instance-method receiver instead of a call argument:  see `processSignature()`.
+   * - Defaults `false`;  `to_do_something` and `create_animation` turn it on.
    */
   declare inlineInitialType: boolean
   @proto static inlineInitialType = false
@@ -36,18 +38,21 @@ export class MethodDefinition<
 
   /**
    * Promote a captured type argument to an instance-method receiver (`thisArg`), when `inlineInitialType`.
-   * - Only converts the FIRST type found that isn't `isSimple` (i.e. a real declared type, not a
-   *   primitive like `text`/`number`).
-   *   - So a typed parameter before it doesn't stop it:  `to append (digit as text) to (a calculator)` is still
-   *     `Calculator.append_$digit_to_calculator(digit)` (epic `output-targets`, Q24:  spell asks for that type).
-   *     Was the FIRST type, simple or not:  a free function, whose `its` read a `this` it hadn't got.
-   * - The method's NAME drops the type, unless that leaves a little word dangling (epic `output-targets`, Q44):
-   *   then it keeps the type's name, e.g. `to update the total of (a calculator)` => `update_the_total_of_calculator`,
-   *   not `update_the_total_of`.  See `DANGLING_WORDS`.
+   * - Only converts the FIRST type found that isn't `isSimple`:
+   *   a real declared type, not a primitive like `text` / `number`.
+   *   - So a typed parameter before it doesn't stop it (epic `output-targets`, Q24:  spell asks for that type):
+   *     `to append (digit as text) to (a calculator)` is still `Calculator.append_$digit_to_calculator(digit)`.
+   *   - It used to be the FIRST type, simple or not:  a free function, whose `its` read a `this` it hadn't got.
+   * - The method's NAME drops the type, unless that leaves a little word dangling (epic `output-targets`, Q44).
+   *   - Then it keeps the type's name:
+   *     `to update the total of (a calculator)` => `update_the_total_of_calculator`, not `update_the_total_of`.
+   *     See `DANGLING_WORDS`.
    *   - Nothing dangles with the receiver first:  `to move (a card) to (a pile)` => `move_to_$pile`.
-   * - SIDE EFFECT: mutates `signature` in place -- removes the type's arg/method/syntax bits and replaces the
-   *   syntax bit with `{thisArg:expression}`; also adds an alias variable when the arg's own name differs
-   *   from the type name (e.g. `to show (thing as a card)` aliases `thing` to `this`).
+   *   - These are spell's names:  compiled javascript says them in camelCase, `moveToPile()` (`JSWriter.nameOf()`).
+   * - SIDE EFFECT: mutates `signature` in place:
+   *   - removes the type's arg / method / syntax bits, and replaces the syntax bit with `{thisArg:expression}`
+   *   - adds an alias variable when the arg's own name differs from the type name,
+   *     e.g. `to show (thing as a card)` aliases `thing` to `this`
    * - Also promotes to a `test` method when `asTest`, prefixing `test` onto the method name and syntax.
    */
   processSignature(groups: P.MatchGroups, signature: MethodSignatureData, _scope: P.Scope): MethodSignatureData {
@@ -84,15 +89,16 @@ export class MethodDefinition<
   }
 
   /**
-   * Process the matched `signature` sub-match into a flattened `MethodSignatureData`: runs `processSignature()`
-   * then joins `methodBits`/`syntaxBits` into final `methodName`/`syntax` strings.
-   * - Bails (`undefined`) if `signature` didn't match at all -- e.g. a quoted-signature parse failed upstream.
-   * - `signature` is a REQUIRED group on every `MethodDefinition` subclass (`to_do_something`,
-   *   `create_animation`, `quoted_type_expression`), but `Groups` is generic here so TS can't see that
-   *   structurally -- cast once.
-   * - SIDE EFFECT: mutates (and returns) the `method_signature` match's OWN `data` object in place --
-   *   `processSignature()` splices its `args`/`methodBits`/`syntaxBits` -- so this must run exactly once per
-   *   match.  `getSignature()`'s `??=` caching is what guarantees that.
+   * Process the matched `signature` sub-match into a flattened `MethodSignatureData`:
+   * runs `processSignature()`, then joins `methodBits` / `syntaxBits` into final `methodName` / `syntax` strings.
+   * - Bails (`undefined`) if `signature` didn't match at all, e.g. a quoted-signature parse failed upstream.
+   * - `signature` is a REQUIRED group on every `MethodDefinition` subclass
+   *   (`to_do_something`, `create_animation`, `quoted_type_expression`),
+   *   but `Groups` is generic here, so TS can't see that structurally:  cast once.
+   * - SIDE EFFECT: mutates (and returns) the `method_signature` match's OWN `data` object in place:
+   *   `processSignature()` splices its `args` / `methodBits` / `syntaxBits`.
+   *   - So this must run exactly once per match.
+   *   - `getSignature()`'s `??=` caching is what guarantees that.
    */
   private computeSignature(match: P.MatchFor<this>): MethodSignatureData | undefined {
     const signatureMatch = (match.groups as { signature?: P.Match }).signature
@@ -195,8 +201,8 @@ export class MethodDefinition<
    * - its parameters, with their types
    * - its owner
    * - A method of a type this project declares:  in that type's `methods`.
-   * - Else in the project's `methods`, with `of` saying whose:  a free function,
-   *   or a method of a type from elsewhere, e.g. `Thing` or an import.
+   * - Else in the project's `methods`, with `of` saying whose:
+   *   a free function, or a method of a type from elsewhere, e.g. `Thing` or an import.
    *   - Why:  so the project's journal can take it back.
    *     A built-in or imported type's lists belong to every project using it.
    * - Through `ScopeList.add()`:  journaled, and noted as what `match` declared -- see `SP.SpellDeclarations`.
@@ -255,21 +261,24 @@ export class MethodDefinition<
   }
 
   /**
-   * Register the CALL SITE rule directly onto `match.scope.parser` -- called by `mutateScope()`, this is
-   * what makes `notify 1`, `card.play()`, `card is a bug`, etc. parseable after their
-   * `to`/`animation`/quoted definitions.
-   * - `asPostfixExpression`/`asInfixExpression` (set by `QuotedTypeExpression.processSignature()`) register
-   *   a `MethodPostfixRule`/`MethodInfixRule`.
-   * - Otherwise registers a `DynamicMethodRule`, aliased `"statement"` when
-   *   `asTest` (so it can't be used as an expression), else `["statement", "expression"]`.
-   * - Each is `specialize()`d with the generated method's name as `output`, which it works out the rest from,
-   *   plus `alias`, and the owner `of` and `params` it checks arguments against -- see `getOwnerAndParams()`.
-   *   So the definition is just `{ syntax }`, as for every other spell rule,
-   *   and a project's declarations can rebuild it elsewhere.
-   * - Registers through `scope.addRule(RuleClass, definition)`, which puts the rule on the scope's parser and
-   *   records the class + definition on the scope itself -- these generated rules MUST keep their alias so the
-   *   parser finds them by category (`statement`/`expression`/`expression_suffix`) on the very next line,
-   *   and the recorded pair is what lets a scope export the methods it defined.
+   * Register the CALL SITE rule directly onto `match.scope.parser`, called by `mutateScope()`.
+   * - This is what makes `notify 1`, `card.play()`, `card is a bug`, etc. parseable
+   *   after their `to` / `animation` / quoted definitions.
+   * - `asPostfixExpression` / `asInfixExpression` (set by `QuotedTypeExpression.processSignature()`)
+   *   register a `MethodPostfixRule` / `MethodInfixRule`.
+   * - Otherwise registers a `DynamicMethodRule`:
+   *   aliased `"statement"` when `asTest` (so it can't be used as an expression), else `["statement", "expression"]`.
+   * - Each is `specialize()`d with:
+   *   - the generated method's name as `output`, which it works out the rest from
+   *   - `alias`
+   *   - the owner `of` and `params` it checks arguments against:  see `getOwnerAndParams()`
+   *   - So the definition is just `{ syntax }`, as for every other spell rule,
+   *     and a project's declarations can rebuild it elsewhere.
+   * - Registers through `scope.addRule(RuleClass, definition)`:
+   *   it puts the rule on the scope's parser, and records the class + definition on the scope itself.
+   *   - These generated rules MUST keep their alias,
+   *     so the parser finds them by category (`statement` / `expression` / `expression_suffix`) on the very next line.
+   *   - The recorded pair is what lets a scope export the methods it defined.
    */
   getRule(match: P.MatchFor<this>): void {
     const { asTest } = match.groups as { asTest?: P.Match }
@@ -307,20 +316,21 @@ export class MethodDefinition<
   }
 
   /**
-   * Build the AST for a method DEFINITION: the `P.ASTMethodDefinition` itself, and (depending
-   * on `instanceType`/`asTest`/`asPostfixExpression`) either a `PropertyDefinition` on the type's prototype
-   * or a loose function/`test(...)` wrapper.
-   * - `asTest`: SIDE EFFECT -- rewrites the body to `echoInTests`-wrap every top-level statement/expression
-   *   (via `EchoInvocation`) so test output shows what ran, unless a node opts out with `echoInTests ===
-   *   false`; also wraps the whole thing in a `test(...)` call instead of a bare function when there's no
-   *   `instanceType`.
-   * - `props`: SIDE EFFECT -- unshifts a `DestructuredAssignment` (from `getPropsAssignment()`) onto the
-   *   START of the body so prop variables are in scope before the rest of the method runs.
-   * - `asAnimation`: SIDE EFFECT -- makes the method `async` and wraps its body in `StartProcessInvocation`
-   *   (`exclusive: true`) / `try { ... } finally { StopProcessInvocation }`.
-   * - `instanceType` set: emits a `PropertyDefinition` for `Type` -- a getter when `asPostfixExpression`,
-   *   else a method.  No `instanceType`: emits a loose function, or (when
-   *   `asTest`) a loose function whose body is itself a `test(...)` call.
+   * Build the AST for a method DEFINITION:  the `P.ASTMethodDefinition` itself, and one of
+   * a `PropertyDefinition` on the type's prototype, or a loose function / `test(...)` wrapper.
+   * - Which depends on `instanceType` / `asTest` / `asPostfixExpression`.
+   * - `asTest`:  SIDE EFFECT
+   *   - rewrites the body to `echoInTests`-wrap every top-level statement / expression (via `EchoInvocation`),
+   *     so test output shows what ran, unless a node opts out with `echoInTests === false`
+   *   - wraps the whole thing in a `test(...)` call instead of a bare function, when there's no `instanceType`
+   * - `props`:  SIDE EFFECT -- unshifts a `DestructuredAssignment` (from `getPropsAssignment()`)
+   *   onto the START of the body, so prop variables are in scope before the rest of the method runs.
+   * - `asAnimation`:  SIDE EFFECT -- makes the method `async`, and wraps its body in
+   *   `StartProcessInvocation` (`exclusive: true`) / `try { ... } finally { StopProcessInvocation }`.
+   * - `instanceType` set:  emits a `PropertyDefinition` for `Type`,
+   *   a getter when `asPostfixExpression`, else a method.
+   * - No `instanceType`:  emits a loose function;
+   *   when `asTest`, a loose function whose body is itself a `test(...)` call.
    */
   getAST(match: P.MatchFor<this>): P.ASTStatementGroup {
     const { asTest, asAnimation } = match.groups as {

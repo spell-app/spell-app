@@ -29,7 +29,7 @@ export class SpellJSXAttribute extends SpellJSXContent {
     // pull attribute name up to match
     const attributeToken = match.matched[0] as P.JSXAttributeToken
     match.data.attribute = attributeToken.name
-    // parse `value` if as a number or JSXExpression
+    // parse `value`:  text, a number, or a `{...}` JSX expression
     const { value } = match
     // text with `[name]` fill-ins, e.g. `source="images/[rank].png"` -- as `text`'s (`parseFillIns()`)
     if (value instanceof P.TextToken) {
@@ -40,9 +40,9 @@ export class SpellJSXAttribute extends SpellJSXContent {
     }
     if (value) {
       const inputIsExpression = value instanceof P.JSXExpressionToken
-      // `JSXExpression.contents` is typed `string | Token` (a bare, un-braced attribute value is
-      // tokenized via `matchJSXAttributeValueIdentifier`, which sets `contents` to a `Token`), but this
-      // rule (as in the original JS) only ever handles the braced/string form here.
+      // `JSXExpression.contents` is typed `string | Token`:
+      // a bare, un-braced attribute value is tokenized by `matchJSXAttributeValueIdentifier`, which sets a `Token`.
+      // This rule only ever handles the braced / string form here, as it always has.
       const input = inputIsExpression ? (value.contents as string).trim().replace(/\n/g, " ") : value
       // parse "onXXX" as an inline method with an `event` argument
       if (match.data.attribute.startsWith("on")) {
@@ -87,8 +87,9 @@ export class SpellJSXAttribute extends SpellJSXContent {
     else if (statement) {
       valueAST = new P.ASTMethodDefinition(match, {
         inline: true,
-        // `attribute` is always set by `parse()` before this match can exist -- `!` because `JSXMatchData`
-        // shares the field with `jsxElement`/`jsxExpression` matches, which never set it, so it stays optional.
+        // `attribute` is always set by `parse()` before this match can exist.
+        // `!` because `JSXMatchData` shares the field with `jsxElement` / `jsxExpression` matches,
+        // which never set it, so it stays optional.
         args: attribute!.toLowerCase().startsWith("on")
           ? [new P.ASTVariableExpression(match, { name: "event" })]
           : undefined,

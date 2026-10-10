@@ -348,7 +348,7 @@ describe("outline style", () => {
       '\t- to "draw its back": <ui-image source="images/back.png" />'
     ]
     const js = compile(lines)
-    expect(js).toMatch(/get front\(\) \{\s+return spellCore\.element\(\{ tag: "ui-image"/)
+    expect(js).toMatch(/get front\(\) \{\s+return h\("ui-image"/)
     expect(js).toContain("draw() {")
     expect(js).toContain("return (this.direction === 'down' ? this.back : this.front)")
   })
@@ -364,7 +364,7 @@ describe("outline style", () => {
       '\t- to "draw its back": <span>[rank] of [suit], [[face down]]</span>'
     ]
     const js = compile(lines)
-    expect(js).toContain("props: { source: () => `images/${this.rank}-of-${this.suit}.png` }")
+    expect(js).toContain('{ "prop:source": () => `images/${this.rank}-of-${this.suit}.png` }')
     expect(js).toContain("return `the ${this.rank} of ${this.suit}`")
     expect(js).toContain("`${this.rank} of ${this.suit}, [face down]`")
     expect(runSpell([...lines, 'the card is a new card with rank = 2, suit = "spades"'])("card")).toMatchObject({
@@ -465,8 +465,8 @@ function runSpellFiles(sources: Array<{ path: string; contents: string }>) {
 }
 
 /**
- * Compiled `lines`, as one file of its own project -- without its `SPELL: DECLARES` comments, which say where
- * each declaration is.
+ * Compiled `lines`, as one file of its own project:
+ * without its `SPELL: DECLARES` comments, which say where each declaration is.
  * - Throws on a parse error, naming it.
  */
 function compile(lines: string[]): string {
