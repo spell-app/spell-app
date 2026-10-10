@@ -5,11 +5,12 @@
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join } from "node:path"
-import { afterAll, beforeAll, expect, test } from "vite-plus/test"
+import { afterAll, beforeAll, expect, test, vi } from "vite-plus/test"
 
 import { PageServer } from "$/server/page"
 import { ask } from "$/server/test/serve"
 
+import { run } from "./comments"
 import commentsRoutes from "./commentsRoutes"
 import { GuideInbox } from "./GuideInbox"
 
@@ -197,6 +198,37 @@ test("a THREAD:  `reply` (saved as typed), `resolve` (that's good / skip it), `r
   expect((await post({ page, action: "resolve", id, how: "maybe" })).status).toBe(400)
   expect((await post({ page, action: "reply", id: "cm99", text: "x" })).status).toBe(404)
   expect((await post({ page, action: "reply", id })).status).toBe(400)
+  await post({ page, action: "clear", id })
+})
+
+test("WORKING:  `spell dev comments working` -- the GET carries it (the thread's thinking stub);  `answer` clears it", async () => {
+  const page = "/epics/big/notes.html"
+  const file = join(root, "epics/big/notes.html")
+  const { id } = (await post({ page, action: "add", ...ON_TABLE, text: "Why?" })).answer
+  const shown = async () =>
+    JSON.parse((await ask(port, "GET", `/api/comments?page=${encodeURIComponent(page)}`)).text).comments.find(
+      (each: { id: string }) => each.id === id
+    )
+  const log = vi.spyOn(console, "log").mockImplementation(() => undefined)
+  const error = vi.spyOn(console, "error").mockImplementation(() => undefined)
+  try {
+    expect(await run(["working", file, id, "on"], {})).toBe(0)
+    expect(await shown()).toMatchObject({ turn: "claude", working: expect.any(String) })
+    expect(await run(["working", file, id, "off"], {})).toBe(0)
+    expect((await shown()).working).toBeUndefined()
+    expect(await run(["working", file, id, "on"], {})).toBe(0)
+    const answer = join(root, "answer.html")
+    writeFileSync(answer, "<p>Because.</p>")
+    expect(await run(["answer", file, id], { file: answer })).toBe(0)
+    expect(await shown()).toMatchObject({ turn: "owen" })
+    expect((await shown()).working).toBeUndefined()
+    // a comment that isn't there:  1;  on | off missing:  usage
+    expect(await run(["working", file, "cm99", "on"], {})).toBe(1)
+    expect(await run(["working", file, id, "maybe"], {})).toBe(2)
+  } finally {
+    log.mockRestore()
+    error.mockRestore()
+  }
   await post({ page, action: "clear", id })
 })
 
