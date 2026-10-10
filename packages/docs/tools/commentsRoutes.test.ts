@@ -144,6 +144,62 @@ test("any comment clears, taken or not;  an unknown one is a 404", async () => {
   expect((await post({ page, action: "clear", id })).status).toBe(404)
 })
 
+test("Undo:  `restore` brings back a deleted comment, or a cleared one Claude had, as it was;  same id", async () => {
+  const page = "/epics/big/notes.html"
+  const quoted = { ...ON_TABLE, quote: "Name", offset: 0 }
+  const { id, comments } = (await post({ page, action: "add", ...quoted, text: "back?" })).answer
+  const waiting = comments.find((comment: { id: string }) => comment.id === id)
+  await post({ page, action: "delete", id })
+  const back = await post({ page, action: "restore", id, comment: waiting })
+  expect([back.status, back.answer.id]).toEqual([200, id])
+  expect(back.answer.comments.find((comment: { id: string }) => comment.id === id)).toEqual(waiting)
+  GuideInbox.update(join(root, "epics/big/notes.inbox.json"), (list) => {
+    list.take(id, { epic: "guide-changes", phase: 2 })
+    list.answer(id, "<p>Yes.</p>")
+  })
+  const read = await ask(port, "GET", `/api/comments?page=${encodeURIComponent(page)}`)
+  const had = JSON.parse(read.text).comments.find((comment: { id: string }) => comment.id === id)
+  await post({ page, action: "clear", id })
+  const again = await post({ page, action: "restore", id, comment: had })
+  expect(again.answer.comments.find((comment: { id: string }) => comment.id === id)).toEqual(had)
+  expect((await post({ page, action: "restore", id })).status).toBe(400)
+  expect((await post({ page, action: "restore", id: "cm99", comment: { ...had, text: " " } })).status).toBe(400)
+  await post({ page, action: "clear", id })
+})
+
+test("a THREAD:  `reply` (saved as typed), `resolve` (that's good / skip it), `reopen`;  each with its `turn`", async () => {
+  const page = "/epics/big/notes.html"
+  const inbox = join(root, "epics/big/notes.inbox.json")
+  const { id, comments } = (await post({ page, action: "add", ...ON_TABLE, text: "Why?" })).answer
+  expect(comments.find((each: { id: string }) => each.id === id).turn).toBe("claude")
+  GuideInbox.update(inbox, (list) => list.answer(id, "<p>Because.</p>"))
+  const read = JSON.parse((await ask(port, "GET", `/api/comments?page=${encodeURIComponent(page)}`)).text)
+  expect(read.comments.find((each: { id: string }) => each.id === id).turn).toBe("owen")
+  // typed in two goes:  one reply, the second save's words
+  await post({ page, action: "reply", id, text: "Say" })
+  const replied = await post({ page, action: "reply", id, text: "Say more" })
+  expect(replied.answer.comments.find((each: { id: string }) => each.id === id)).toMatchObject({
+    turn: "claude",
+    replies: [{ by: "Claude" }, { by: "Owen", text: "Say more" }]
+  })
+  // new work for Claude, as a new comment is
+  expect(GuideInbox.read(inbox).commentList.waiting.map((each) => each.id)).toContain(id)
+  GuideInbox.update(inbox, (list) => list.answer(id, "<p>More.</p>"))
+  const good = await post({ page, action: "resolve", id, how: "good" })
+  expect(good.answer.comments.find((each: { id: string }) => each.id === id)).toMatchObject({
+    turn: "done",
+    done: { how: "good" }
+  })
+  const reopened = await post({ page, action: "reopen", id })
+  expect(reopened.answer.comments.find((each: { id: string }) => each.id === id).turn).toBe("owen")
+  expect((await post({ page, action: "resolve", id, how: "skip" })).status).toBe(200)
+  expect(GuideInbox.read(inbox).commentList.comment(id).done?.how).toBe("skip")
+  expect((await post({ page, action: "resolve", id, how: "maybe" })).status).toBe(400)
+  expect((await post({ page, action: "reply", id: "cm99", text: "x" })).status).toBe(404)
+  expect((await post({ page, action: "reply", id })).status).toBe(400)
+  await post({ page, action: "clear", id })
+})
+
 test("the page reads its comments back, every status", async () => {
   const got = await ask(port, "GET", "/api/comments?page=%2Fguides%2Fsolid%2Fsolid-2.html")
   expect(got.status).toBe(200)
