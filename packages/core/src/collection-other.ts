@@ -71,12 +71,13 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Return a duplicate of the collection.
    * - Compiles from `a copy of the piles` / `a duplicate of list the piles as a list` -- see `lists.ts`.
+   * - Typed as what it makes:  a `Pile` copied is a `Pile`;  copied `as` a class, that class.
    */
-  duplicateCollection(collection?: unknown, constructor?: new () => unknown): unknown {
-    if (!assert.isArrayLike(collection, "spellCore.duplicateCollection(collection)")) return false
+  duplicateCollection<C, K = C>(collection?: C, constructor?: new () => K): K {
+    if (!assert.isArrayLike(collection, "spellCore.duplicateCollection(collection)")) return false as K
     // a copy owns nothing -- see `spellCore.newScratch()`
     const result = constructor ? spellCore.newScratch(constructor) : spellCore.newThingLike(collection)
-    return spellCore.mergeCollectionsInto(result, collection)
+    return spellCore.mergeCollectionsInto(result, collection) as K
   },
 
   /** Merge all `source` collection(s) into `destination`, in place. */
@@ -91,8 +92,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
   /**
    * Given a collection of collections, merge into a new one of the same type as the first in the list.
    * - Compiles from `merge the piles` / `merge the piles as a list` -- see `lists.ts`.
+   * - Typed as what it makes:  piles merged are a `Pile`;  merged `as` a class, that class.
    */
-  mergeCollections(collections?: unknown, constructor?: new () => unknown): unknown {
+  mergeCollections<T = unknown, K = T>(collections?: CollectionOf<T>, constructor?: new () => K): K | undefined {
     if (!assert.isArrayLike(collections, "spellCore.mergeCollections(collection)")) return undefined
     let merged: unknown
     // a merge owns nothing -- see `spellCore.newScratch()`
@@ -104,7 +106,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
       merged = spellCore.newThingLike(first)
     }
     spellCore.forEach(collections, (next) => spellCore.mergeCollectionsInto(merged, next))
-    return merged
+    return merged as K
   },
 
   ////////////////
@@ -234,12 +236,13 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - Negative `start` takes from the end of the list (but returns in list order).
    * - Compiles from `top 2 items of my-list` / `first 2 words in "..."` / `last two cards from deck`
    *   -- see `lists.ts`.
+   * - Typed as its collection:  a range of a `Pile` is a `Pile`.
    */
-  rangeStartingAt(collection?: unknown, start?: number | null, count?: number | null): unknown {
-    if (!assert.isArrayLike(collection, "spellCore.rangeStartingAt(collection)")) return []
+  rangeStartingAt<C>(collection?: C, start?: number | null, count?: number | null): C {
+    if (!assert.isArrayLike(collection, "spellCore.rangeStartingAt(collection)")) return [] as C
     const range = spellCore._validateRangeStartingAt(start, count, spellCore.itemCountOf(collection))
-    if (!range) return []
-    return spellCore.rangeBetween(collection, range.start, range.end)
+    if (!range) return [] as C
+    return spellCore.rangeBetween(collection, range.start, range.end) as C
   },
 
   ////////////////
@@ -298,9 +301,13 @@ export const collectionOtherMethods = defineSpellCoreModule({
    * - For array: returns a compacted collection of same type.
    * - For object: returns new type of collection with just specified keys.
    * - Compiles from `words in "a word list" where ...` -- see `lists.ts`.
+   * - Typed as its collection:  the piles filtered are a `List<Pile>`, a `Pile` filtered is a `Pile`.
    */
-  filter<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): unknown {
-    if (!assert.isDefined(collection, "spellCore.filter(collection)")) return undefined
+  filter<T = unknown, C extends CollectionOf<T> = CollectionOf<T>>(
+    collection?: C & CollectionOf<T>,
+    condition?: CollectionIterationCallback<NoInfer<T>>
+  ): C {
+    if (!assert.isDefined(collection, "spellCore.filter(collection)")) return undefined as C
     if (!condition) condition = (it) => it
     const results = spellCore.newThingLike(collection)
     let filter: CollectionIterationCallback<T>
@@ -314,7 +321,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
       }
     }
     spellCore.forEach(collection, filter)
-    return results
+    return results as C
   },
 
   /**

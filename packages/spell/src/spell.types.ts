@@ -263,6 +263,20 @@ export type AutoDeclaredProperty = {
   typeDeclaredBy: P.Match
 }
 
+// ## Warnings
+
+/**
+ * Something a program should say, but which doesn't stop it parsing or running,
+ * e.g. what a property is:  `a calculator has an input` => "Say what "input" is, e.g. ...".
+ * - Noted by the rule which spotted it, on its match, while parsing -- see `SP.SpellWarnings`.
+ */
+export type SpellWarning = {
+  /** What to say, e.g. `Say what "input" is, e.g. "a calculator has an input as text"`. */
+  message: string
+  /** What it's about:  editors show it under this match's text, e.g. `(digit)` in a method's signature. */
+  at: P.Match
+}
+
 // ## Built-in types
 
 /**

@@ -8,17 +8,24 @@
 import _remove from "lodash/remove"
 import { spellCore } from "./core"
 
-/** Callback registered via `on`/`off`/`once`/`trigger`. */
-export type EventCallback = (event: SpellEvent, target: object) => unknown
+/**
+ * Callback registered via `on`/`off`/`once`/`trigger`.
+ * - `Payload`:  what the event brings, as the handler expects it, e.g. `{ card: Card }` for compiled spell's
+ *   `on card-click with a card`.  Types only:  nothing checks it.
+ */
+export type EventCallback<Payload extends object = object> = (event: SpellEvent & Payload, target: object) => unknown
 
 /** Methods added to a target (or its prototype) to make it "eventful". */
 export type EventfulMethods = {
-  /** Register `callback` for `eventType` on this target -- see `SpellEvent.on()`. */
-  on(eventType: string, callback: EventCallback): void
+  /**
+   * Register `callback` for `eventType` on this target -- see `SpellEvent.on()`.
+   * - `Payload` comes from the callback's own type, e.g. `(event: { card: Card }) => ...`.
+   */
+  on<Payload extends object = object>(eventType: string, callback: EventCallback<Payload>): void
   /** Un-register `callback` from `eventType` on this target -- see `SpellEvent.off()`. */
-  off(eventType: string, callback: EventCallback): void
+  off<Payload extends object = object>(eventType: string, callback: EventCallback<Payload>): void
   /** Register `callback` to fire once for `eventType` on this target -- see `SpellEvent.once()`. */
-  once(eventType: string, callback: EventCallback): void
+  once<Payload extends object = object>(eventType: string, callback: EventCallback<Payload>): void
   /** Fire `event` on this target -- see `SpellEvent.trigger()`. */
   trigger(event: SpellEvent | string, props?: object): unknown[]
 }

@@ -47,6 +47,7 @@ export {
 } from "./rules"
 
 export * from "./SpellDeclarations"
+export * from "./SpellWarnings"
 export * from "./hoistClassMembers"
 export * from "./targets"
 export * from "./highlight"

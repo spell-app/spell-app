@@ -8,12 +8,11 @@ spellCore.heading("Deck:  US standard card deck (without jokers) -- in the outli
 const SUITS = ["clubs", "diamonds", "hearts", "spades"] as const
 const RANKS = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] as const
 
-
 /**
  * First in the project:  a card says `its "suit" is a suit of its deck`, so the deck's kinds come before it.
  * What a deck DOES uses the card's names, so it's in `Dealing.spell`, after `Card.spell`.
  */
-export class Deck extends List {
+export class Deck extends List<Card> {
   static get instanceType() {
     return Card
   }
@@ -22,8 +21,8 @@ export class Deck extends List {
 
   setUp() {
     if (this.is_set_up) return
-    spellCore.map(Deck.Ranks, (rank: any /* spell: type unknown */) => {
-      spellCore.map(Deck.Suits, (suit: any /* spell: type unknown */) => {
+    spellCore.map(Deck.Ranks, (rank) => {
+      spellCore.map(Deck.Suits, (suit) => {
         const it = new Card({ rank: rank, suit: suit })
         spellCore.append(this, it)
       })
@@ -33,7 +32,7 @@ export class Deck extends List {
 
   display() {
     const cardNames = new List()
-    spellCore.map(this, (card: any /* spell: type unknown */) => {
+    spellCore.map(this, (card: Card) => {
       spellCore.append(cardNames, card.shortName)
     })
     spellCore.echo(`deck: ${cardNames}`)
@@ -73,19 +72,19 @@ export class Card extends Thing {
   }
 
   /** e.g. "the card is a spade" */
-  isASuit(suit: any /* spell: type unknown */) {
+  isASuit(suit: (typeof SUITS)[number]) {
     return this.suit === suit
   }
 
   @prop({ oneOf: () => RANKS }) accessor rank!: (typeof RANKS)[number]
 
   /** e.g. "the card is a queen" */
-  isARank(rank: any /* spell: type unknown */) {
+  isARank(rank: (typeof RANKS)[number]) {
     return this.rank === rank
   }
 
   /** e.g. "the card is the queen of spades" */
-  isTheRankOfSuits(rank: any /* spell: type unknown */, suit: any /* spell: type unknown */) {
+  isTheRankOfSuits(rank: (typeof RANKS)[number], suit: (typeof SUITS)[number]) {
     return this.rank === rank && this.suit === suit
   }
 
@@ -94,7 +93,7 @@ export class Card extends Thing {
   }
 
   get value() {
-    return spellCore.itemOf(Deck.Ranks, this.rank)
+    return spellCore.itemOf(Deck.Ranks, this.rank)!
   }
 
   static Directions = DIRECTIONS
@@ -124,7 +123,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank == undefined) return "?"
     if (spellCore.isOfType(this.rank, "number")) return `${this.rank}`
-    return spellCore.upperCase(spellCore.getItemOf(this.rank, 1))
+    return spellCore.upperCase(spellCore.getItemOf(this.rank, 1)!)
   }
 
   get shortDirection() {
@@ -199,20 +198,20 @@ export class Card extends Thing {
       return
     }
 
-    const endPile: any /* spell: type unknown */ = spellCore.getItemOf(spellCore.filter(allPiles, (pile: any /* spell: type unknown */) => pile.droppable == true && spellCore.canTake(pile, this)), 1)
+    const endPile = spellCore.getItemOf(spellCore.filter(allPiles, (pile: Pile) => pile.droppable == true && spellCore.canTake(pile, this)), 1) as Pile
     if (!spellCore.isDefined(endPile)) return false
 
-    const cardsToMove: any /* spell: type unknown */ = spellCore.rangeStartingAt(startPile, spellCore.itemOf(startPile, this))
+    const cardsToMove = spellCore.rangeStartingAt(startPile, spellCore.itemOf(startPile, this)!) as Pile
     cardsToMove.name = startPile.name
     spellCore.console.log(`moving (${cardsToMove.state}) to (${endPile.state})`)
 
-    spellCore.map(cardsToMove, (card: any /* spell: type unknown */) => {
+    spellCore.map(cardsToMove, (card: Card) => {
       spellCore.move(card, endPile)
     })
 
     if (spellCore.isOfType(startPile, "Tableau") && !spellCore.isEmpty(startPile)) {
       await spellCore.pauseFor(200, "msec")
-      const it: any /* spell: type unknown */ = spellCore.getItemOf(startPile, -1)
+      const it = spellCore.getItemOf(startPile, -1) as Card
       spellCore.console.log(`turning over (${startPile.name}: ${it.state})`)
       it.turnFaceUp()
     }
@@ -223,7 +222,7 @@ export class Card extends Thing {
   }
 
   get pile() {
-    return Pile.ownerOf(this)
+    return Pile.ownerOf(this)!
   }
 }
 
@@ -287,7 +286,7 @@ export function testDeckCreation() {
     deck.setUp()
     spellCore.expect(spellCore.itemCountOf(deck), `the number of cards in the deck`, 52, `52`)
     spellCore.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
-    const queens: any /* spell: type unknown */ = spellCore.filter(deck, (card: any /* spell: type unknown */) => card.rank == "queen")
+    const queens = spellCore.filter(deck, (card: Card) => card.rank == "queen") as Deck
     spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
     spellCore.expect(spellCore.getItemOf(deck, -1)!.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
     spellCore.expect(spellCore.getItemOf(deck, 1)!.shortName, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
@@ -318,7 +317,7 @@ export class Pile extends List<Card> {
   @derived
   get state() {
     let state = `${this.name || "pile"}:`
-    spellCore.map(this, (card: any /* spell: type unknown */) => {
+    spellCore.map(this, (card: Card) => {
       state = `${state} ${card.state}`
     })
     return state
@@ -327,7 +326,11 @@ export class Pile extends List<Card> {
   static exclusive = true
 
   @prop() accessor name!: any /* spell: type unknown */
+
+  declare droppable: boolean
 }
+export interface Pile { canGiveUp(card: Card): boolean }
+export interface Pile { canTake(card: Card): boolean }
 /** a card is in one pile at a time:  putting it on another pile takes it off this one */
 // -----------
 spellCore.heading("Klondike Solitaire Card Game")
@@ -346,7 +349,7 @@ export class Game extends App {
   @derived
   get state() {
     let state: any /* spell: list */ = []
-    spellCore.map(allPiles, (pile: any /* spell: type unknown */) => {
+    spellCore.map(allPiles, (pile: Pile) => {
       spellCore.append(state, pile.state)
     })
     return state
@@ -413,8 +416,8 @@ export const tableaus = new List<Pile>({ instanceType: "Pile" })
 
 /** set up stock pile: unplayed cards */
 export class Stock_Pile extends Pile {
-  canGiveUp(card: any /* spell: type unknown */) {
-    return card == spellCore.getItemOf(this, -1)
+  canGiveUp(card: Card) {
+    return card == spellCore.getItemOf(this, -1)!
   }
 
   @drawn
@@ -432,8 +435,8 @@ spellCore.append(allPiles, stock)
 
 /** set up discards: where played cards go when turning over stock */
 export class Discard_Pile extends Pile {
-  canGiveUp(card: any /* spell: type unknown */) {
-    return card == spellCore.getItemOf(this, -1)
+  canGiveUp(card: Card) {
+    return card == spellCore.getItemOf(this, -1)!
   }
 
   @drawn
@@ -446,13 +449,13 @@ spellCore.append(allPiles, discards)
 
 /** set up foundation piles: where we build up from ace => king */
 export class Foundation extends Pile {
-  canGiveUp(card: any /* spell: type unknown */) {
+  canGiveUp(card: Card) {
     return false
   }
 
   /** one card at a time:  the last of its pile */
-  canTake(card: any /* spell: type unknown */) {
-    if (card != spellCore.getItemOf(card.pile, -1)) return false
+  canTake(card: Card) {
+    if (card != spellCore.getItemOf(card.pile, -1)!) return false
     return this.name == card.suit && this.value + 1 == card.value
   }
 
@@ -473,6 +476,8 @@ export class Foundation extends Pile {
       </div>
     )
   }
+
+  declare symbol: string
 }
 const it = new Foundation({
   name: "clubs",
@@ -498,17 +503,17 @@ const it4 = new Foundation({
   droppable: true
 })
 spellCore.append(foundations, it4)
-spellCore.map(foundations, (pile: any /* spell: type unknown */) => {
+spellCore.map(foundations, (pile: Pile) => {
   spellCore.append(allPiles, pile)
 })
 
 /** set up tableau piles: vertical piles where we arrange from king to ace */
 export class Tableau extends Pile {
-  canGiveUp(card: any /* spell: type unknown */) {
+  canGiveUp(card: Card) {
     return card.isFaceUp
   }
 
-  canTake(card: any /* spell: type unknown */) {
+  canTake(card: Card) {
     if (spellCore.isEmpty(this)) return card.isARank("king")
     return this.color != card.color && this.value == card.value + 1
   }
@@ -522,7 +527,7 @@ export class Tableau extends Pile {
     )
   }
 }
-spellCore.map(spellCore.getRange(1, 7), (number: any /* spell: type unknown */) => {
+spellCore.map(spellCore.getRange(1, 7), (number) => {
   const it5 = new Tableau({ name: `T${number}`, droppable: true })
   spellCore.append(tableaus, it5)
   spellCore.append(allPiles, it5)
@@ -532,21 +537,21 @@ spellCore.map(spellCore.getRange(1, 7), (number: any /* spell: type unknown */) 
 export const deck = new Deck()
 deck.setUp()
 // start with cards in the stock pile
-spellCore.map(deck, (card: any /* spell: type unknown */) => {
+spellCore.map(deck, (card: Card) => {
   spellCore.append(stock, card)
 })
 
 spellCore.heading("actions")
 export function debugTheGame() {
-  spellCore.map(game.state, (line: any /* spell: type unknown */) => {
+  spellCore.map(game.state, (line) => {
     spellCore.console.log(line)
   })
 }
 
 export function resetTheStockPile() {
-  const cards: any /* spell: type unknown */ = spellCore.duplicateCollection(discards, Pile)
+  const cards = spellCore.duplicateCollection(discards, Pile) as Pile
   spellCore.reverse(cards)
-  spellCore.map(cards, (card: any /* spell: type unknown */) => {
+  spellCore.map(cards, (card: Card) => {
     spellCore.append(stock, card)
     card.turnFaceDown()
   })
@@ -558,7 +563,7 @@ export async function playFromTheStockPile() {
   try {
     if (spellCore.isEmpty(stock)) await resetTheStockPile()
 
-    const it5: any /* spell: type unknown */ = spellCore.getItemOf(stock, -1)
+    const it5 = spellCore.getItemOf(stock, -1) as Card
     it5.turnFaceUp()
     // pause for 150 msec
     spellCore.move(it5, discards)
@@ -573,9 +578,9 @@ export async function dealTheCards() {
   spellCore.startProcess("deal_the_cards", "EXCLUSIVE")
   try {
     /** pull all cards into stock with a nice animation */
-    const cards: any /* spell: type unknown */ = spellCore.mergeCollections(allPiles, Pile)
+    const cards = spellCore.mergeCollections(allPiles, Pile) as Pile
     spellCore.reverse(cards)
-    await spellCore.forEachSequential(cards, async (card: any /* spell: type unknown */) => {
+    await spellCore.forEachSequential(cards, async (card: Card) => {
       const startPile = card.pile
       card.turnFaceDown()
       if (startPile != stock) {
@@ -586,10 +591,10 @@ export async function dealTheCards() {
     spellCore.randomize(stock)
 
     // deal cards into tableaus
-    await spellCore.forEachSequential(spellCore.getRange(1, 7), async (row: any /* spell: type unknown */) => {
+    await spellCore.forEachSequential(spellCore.getRange(1, 7), async (row) => {
       spellCore.getItemOf(stock, -1)!.turnFaceUp()
-      await spellCore.forEachSequential(spellCore.getRange(row, 7), async (column: any /* spell: type unknown */) => {
-        spellCore.append(spellCore.getItemOf(tableaus, column), spellCore.getItemOf(stock, -1))
+      await spellCore.forEachSequential(spellCore.getRange(row, 7), async (column) => {
+        spellCore.append(spellCore.getItemOf(tableaus, column)!, spellCore.getItemOf(stock, -1)!)
         await spellCore.pauseFor(50, "msec")
       })
     })
@@ -601,7 +606,7 @@ export async function dealTheCards() {
   }
 }
 
-spellCore.RUNTIME.on("card-click", (event: any /* spell: type unknown */) => {
+spellCore.RUNTIME.on("card-click", (event: { card: Card }) => {
   const { card } = event
   card.play()
 })
@@ -609,7 +614,7 @@ spellCore.RUNTIME.on("card-click", (event: any /* spell: type unknown */) => {
 export async function autoPlay() {
   let anythingChanged: boolean = false
   if (!spellCore.isEmpty(discards)) {
-    const testCard: any /* spell: type unknown */ = spellCore.getItemOf(discards, -1)
+    const testCard = spellCore.getItemOf(discards, -1) as Card
     if (await testCard.play()) {
       anythingChanged = true
       await spellCore.pauseFor(500, "msec")
@@ -617,10 +622,10 @@ export async function autoPlay() {
   }
 
   // attempt to move bottom card of tableaus to foundations
-  await spellCore.forEachSequential(tableaus, async (pile: any /* spell: type unknown */) => {
+  await spellCore.forEachSequential(tableaus, async (pile: Pile) => {
     if (spellCore.isEmpty(pile)) return
-    const testCard: any /* spell: type unknown */ = spellCore.getItemOf(pile, -1)
-    const foundation: any /* spell: type unknown */ = spellCore.getItemOf(spellCore.filter(foundations, (pile: any /* spell: type unknown */) => pile.name == testCard.suit), 1)
+    const testCard = spellCore.getItemOf(pile, -1) as Card
+    const foundation = spellCore.getItemOf(spellCore.filter(foundations, (pile: Pile) => pile.name == testCard.suit), 1) as Pile
     if (spellCore.canTake(foundation, testCard)) {
       anythingChanged = true
       await testCard.play()
@@ -629,11 +634,11 @@ export async function autoPlay() {
   })
 
   // attempt to move the entire pile of face-up cards
-  await spellCore.forEachSequential(tableaus, async (pile: any /* spell: type unknown */) => {
-    const faceUpCards: any /* spell: type unknown */ = spellCore.filter(pile, (card: any /* spell: type unknown */) => card.isFaceUp)
+  await spellCore.forEachSequential(tableaus, async (pile: Pile) => {
+    const faceUpCards = spellCore.filter(pile, (card: Card) => card.isFaceUp) as Pile
     if (spellCore.isEmpty(faceUpCards)) return
-    const testCard: any /* spell: type unknown */ = spellCore.getItemOf(faceUpCards, 1)
-    if (testCard.isARank("king") && testCard == spellCore.getItemOf(pile, 1)) return
+    const testCard = spellCore.getItemOf(faceUpCards, 1) as Card
+    if (testCard.isARank("king") && testCard == spellCore.getItemOf(pile, 1)!) return
     if (await testCard.play()) {
       anythingChanged = true
       await spellCore.pauseFor(500, "msec")
@@ -650,11 +655,11 @@ export function resetTheGame() {
 }
 
 export async function cheat() {
-  const remainingPiles: any /* spell: type unknown */ = spellCore.filter(tableaus, (pile: any /* spell: type unknown */) => !spellCore.isEmpty(pile) && spellCore.getItemOf(pile, 1)!.isFaceDown)
+  const remainingPiles = spellCore.filter(tableaus, (pile: Pile) => !spellCore.isEmpty(pile) && spellCore.getItemOf(pile, 1)!.isFaceDown)
   if (spellCore.isEmpty(remainingPiles)) return
-  const pile: any /* spell: type unknown */ = spellCore.randomItemOf(remainingPiles)
-  const unplaidCards: any /* spell: type unknown */ = spellCore.filter(pile, (card: any /* spell: type unknown */) => card.isFaceDown)
-  const card: any /* spell: type unknown */ = spellCore.randomItemOf(unplaidCards)
+  const pile = spellCore.randomItemOf(remainingPiles) as Pile
+  const unplaidCards = spellCore.filter(pile, (card: Card) => card.isFaceDown) as Pile
+  const card = spellCore.randomItemOf(unplaidCards) as Card
   card.turnFaceUp()
   await spellCore.pauseFor(30, "ticks")
   spellCore.move(card, discards)

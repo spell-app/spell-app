@@ -41,9 +41,10 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
    * The list of our family holding `item`, if any -- tracked:  a reader re-runs when it changes.
    * - Compiled spell's `the pile of a card`:  `Card.prototype.pile` is `get() { return Pile.ownerOf(this) }`.
    * - `undefined` if we're not exclusive, or `item` can't be owned (not an object).
+   * - Typed as one of us:  `Pile.ownerOf(card)` is a `Pile`, as only a `Pile` (or a sub-class) can hold it.
    */
-  static ownerOf(item: unknown): List | undefined {
-    return ListFamily.of(this)?.ownerOf(item)
+  static ownerOf<L extends List>(this: abstract new (...args: never[]) => L, item: unknown): L | undefined {
+    return ListFamily.of(this as unknown as typeof List)?.ownerOf(item) as L | undefined
   }
 
   /**

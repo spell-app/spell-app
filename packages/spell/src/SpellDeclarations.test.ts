@@ -146,10 +146,17 @@ describe("SpellDeclarations.importScope()", () => {
     const fromDeclarations = summarize(parseSpellProject(app, { parentScope: importLibrary() }))
     // bar ONE thing:  `set the name of cards-to-move to ...` declares a pile's `name`
     // only on a type the project declares itself -- see `assignment_statement.declareProperty()`
+    // -- and so only there asks what it is
     const autoDeclared =
       /\/\*! SPELL: DECLARES \{\n {2}property: "name", of: "Pile", autoDeclared: true,\n.*\n\} \*\/\n(.*\n){5}/
+    const asksWhatItIs = /Say what "name" is/
     expect(fromSources[0]!.compiled).toMatch(autoDeclared)
-    const withoutIt = fromSources.map((it) => ({ ...it, compiled: it.compiled?.replace(autoDeclared, "") }))
+    expect(fromSources[0]!.warnings).toContainEqual(expect.stringMatching(asksWhatItIs))
+    const withoutIt = fromSources.map((it) => ({
+      ...it,
+      compiled: it.compiled?.replace(autoDeclared, ""),
+      warnings: it.warnings.filter((warning) => !asksWhatItIs.test(warning))
+    }))
     expect(fromDeclarations).toEqual(withoutIt)
   })
 

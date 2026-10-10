@@ -1,5 +1,5 @@
 import { describe, test, expect } from "vite-plus/test"
-import { unitTestModuleRules } from "$/spell/test"
+import { describeWarnings, unitTestModuleRules } from "$/spell/test"
 import { spellParser } from "$/spell"
 import { spellCore } from "$/core"
 
@@ -70,6 +70,50 @@ describe("testing spell module classes", () => {
       scope.parse("a card is a thing\na card has a suit as one of clubs, diamonds", "block")
       expect(scope.rules.get()).toEqual([])
       expect(scope.parse("card suits", "expression")?.rule.name).toBe("class_member")
+    })
+  })
+
+  describe("warnings:  a property asks for the type it doesn't say (epic `output-targets`, Q24)", () => {
+    /** Warnings in `lines`, parsed as a block in a fresh scope. */
+    const warningsIn = (lines: string[], scopeName: string) =>
+      describeWarnings(spellParser.getScope(scopeName).parse(lines.join("\n"), "block"))
+
+    test("none at all:  `a calculator has an input`", () => {
+      expect(warningsIn(["a calculator is an app", "a calculator has an input"], "untyped-property")).toEqual([
+        '2:0 Say what "input" is, e.g. "a calculator has an input as text"'
+      ])
+    })
+
+    test("its example names a type its words do", () => {
+      const lines = ["a game is an app", "a deck is a thing", "a game has a deck"]
+      expect(warningsIn(lines, "untyped-property-named")).toEqual([
+        '3:0 Say what "deck" is, e.g. "a game has a deck as a deck"'
+      ])
+    })
+
+    test("a list of nothing said:  `as a new list` -- a list type says", () => {
+      const lines = ["a todos-app is an app", "a task is a thing", "a todos-app has a property tasks as a new list"]
+      expect(warningsIn(lines, "untyped-list-property")).toEqual([
+        '3:0 Say what "tasks" holds, e.g. declare "a task-list is a list of tasks", ' +
+          'then "a todos-app has a property tasks as a new task-list"'
+      ])
+    })
+
+    test("none where it says, or spell works it out", () => {
+      const lines = [
+        "a card is a thing",
+        "a card has a name as text",
+        "a card has a rank as a number",
+        "a card has a suit as one of clubs, diamonds",
+        "a card has a face-up as yes or no",
+        "a card has a back as a new thing",
+        "a hand is a list of cards",
+        "a card has others as a new hand",
+        "the color of a card is red if its suit is diamonds otherwise it is black",
+        "a deck is a thing where:",
+        "\t- its size is a number"
+      ]
+      expect(warningsIn(lines, "typed-properties")).toEqual([])
     })
   })
 })

@@ -4,9 +4,10 @@ a task has a title as text
 a task has a property completed as yes or no
 a task "is complete" if its completed is yes
 a task "is active" if its completed is no
+a task-list is a list of tasks
 
 a todos-app is an app
-a todos-app has a property tasks as a new List
+a todos-app has a property tasks as a new task-list
 a todos-app has a filter as one of all, active or completed
 
 set app to a new todos-app
@@ -42,7 +43,7 @@ to draw (a todos-app)
 				<input type="text" onBlur={create a new task with title = the value of the target of the event}/>
 			</div>
 			<br/>
-			<table width="50%"><tbody>
+			<table style="width: 50%"><tbody>
 				{draw each task in the tasks of the app}
 			</tbody></table>
 			<br/>

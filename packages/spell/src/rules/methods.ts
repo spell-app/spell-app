@@ -368,16 +368,19 @@ export class MethodDefinition<
 
   /**
    * Promote a captured type argument to an instance-method receiver (`thisArg`), when `inlineInitialType`.
-   * - Only converts the FIRST type found, and only if it's not `isSimple` (i.e. a real declared type, not a
+   * - Only converts the FIRST type found that isn't `isSimple` (i.e. a real declared type, not a
    *   primitive like `text`/`number`).
+   *   - So a typed parameter before it doesn't stop it:  `to append (digit as text) to (a calculator)` is still
+   *     `Calculator.append_$digit_to(digit)` (epic `output-targets`, Q24:  spell asks for that type).
+   *     Was the FIRST type, simple or not:  a free function, whose `its` read a `this` it hadn't got.
    * - SIDE EFFECT: mutates `signature` in place -- removes the type's arg/method/syntax bits and replaces the
    *   syntax bit with `{thisArg:expression}`; also adds an alias variable when the arg's own name differs
    *   from the type name (e.g. `to show (thing as a card)` aliases `thing` to `this`).
    * - Also promotes to a `test` method when `asTest`, prefixing `test` onto the method name and syntax.
    */
   processSignature(groups: P.MatchGroups, signature: MethodSignatureData, _scope: P.Scope): MethodSignatureData {
-    const [initialType] = signature.types
-    if (this.inlineInitialType && initialType && !initialType.isSimple) {
+    const initialType = signature.types.find((type) => !type.isSimple)
+    if (this.inlineInitialType && initialType) {
       signature.instanceType = initialType.name
       // remove instance bits from args and method signature
       signature.args.splice(initialType.argIndex, 1)
@@ -829,12 +832,14 @@ methods.addRule(method_keyword)
  *   method name, e.g. `notify_$message`.
  * - `syntax` always contributes `{callArgs:expression}` -- the call-site value is parsed as a plain
  *   expression.
+ * - It says nothing of what it holds, so it asks (epic `output-targets`, Q24):  a warning,
+ *   e.g. `Say what "digit" is, e.g. "(digit as text)"` -- see `typed_method_arg`.
  */
 class var_method_arg extends SpellIdentifier<MethodArgData> {
   @proto static alias = ["method_arg", "simple_method_arg"]
   @proto static highlightAs: P.HighlightKind = "parameter"
 
-  /** Stash this arg's contribution (`method` / `syntax` / `arg`) in `match.data`. */
+  /** Stash this arg's contribution (`method` / `syntax` / `arg`) in `match.data`, and ask for its type. */
   parse(scope: P.Scope, tokens: P.Token[]) {
     const match = super.parse(scope, tokens) as P.MatchFor<this> | undefined
     if (!match) return undefined
@@ -843,6 +848,9 @@ class var_method_arg extends SpellIdentifier<MethodArgData> {
     data.method = `$${match.value}`
     data.syntax = "{callArgs:expression}"
     data.arg = new P.ASTVariableExpression(match, { name: match.value, type: "argument" })
+    const words = match.raw ?? `${match.value}`
+    const example = `(${words} as ${SP.SpellWarnings.exampleType(scope, words)})`
+    SP.SpellWarnings.note(match, `Say what "${words}" is, e.g. "${example}"`)
     return match
   }
 }
@@ -1146,6 +1154,7 @@ methods.addRule(method_signature, {
  *   indistinguishably from a normal `method_signature` match to callers (e.g. `quoted_type_expression`).
  * - SIDE EFFECT: bails (`undefined`) if the recovered signature has no keyword, same rule as plain
  *   `method_signature`.
+ * - Its parameters' warnings are noted again on it, about the quoted text -- see `SP.SpellWarnings.in()`.
  */
 class quoted_method_signature extends P.TokenType {
   @proto static tokenType = P.TextToken
@@ -1162,6 +1171,8 @@ class quoted_method_signature extends P.TokenType {
     const signature =
       match && (scope.parse(JSON.parse(match.value), "method_signature") as P.MatchFor<method_signature> | undefined)
     if (!signature || !signature.data.foundKeyword) return undefined
+    // its warnings are about words in the quotes, whose positions are the string's:  shown under the quotes
+    for (const { message } of SP.SpellWarnings.in(signature)) SP.SpellWarnings.note(signature, message, match)
     // Swizzle tokens & matched to reflect the original match
     signature.tokens = match.tokens
     signature.matched = [match]

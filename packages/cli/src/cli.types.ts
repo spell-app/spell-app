@@ -351,9 +351,11 @@ export type DeclaredAt = {
 
 /**
  * One error in the spell, as `spell check` reports it -- see `CliSession.problems()`.
+ * - Or a warning, which says so in `severity` -- see `CliSession.warnings()`.
  * - `project`:  its project's id
  * - `path`:  absolute path of the file it's in -- none if the whole parse crashed
  * - `line`, `column`:  where, from 1
+ * - `severity`:  `"warning"` for a warning;  none for an error
  */
 export type Problem = {
   project: string
@@ -361,6 +363,7 @@ export type Problem = {
   line?: number
   column?: number
   message: string
+  severity?: "warning"
 }
 
 ////////////////

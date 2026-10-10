@@ -19,12 +19,16 @@ export class Task extends Thing {
     return (this.completed == false)
   }
 }
+export class Task_List extends List {
+  static instanceType = Task
+}
 
 export class Todos_App extends App {
-  static { this.declareProp('tasks', { init: () => new List() }) }
+  static { this.declareProp('tasks', { init: () => new Task_List() }) }
   get tasks() { return this.getProp('tasks') }
   set tasks(value) { this.setProp('tasks', value) }
 
+  static { this.declareProp('newTaskName', { type: 'text' }) }
   get newTaskName() { return this.getProp('newTaskName') }
   set newTaskName(value) { this.setProp('newTaskName', value) }
 

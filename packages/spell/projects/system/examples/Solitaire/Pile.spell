@@ -2,6 +2,7 @@
 a pile is a list of cards
 // a card is in one pile at a time:  putting it on another pile takes it off this one
 a card belongs to one pile
+a pile has a name as text
 
 the color of a pile is:
 	if it is empty return "none"

@@ -111,7 +111,9 @@ export class SpellLanguageService {
   ////////////////
 
   /**
-   * Problems to show in `file`:  its parse errors, each under the text it couldn't make sense of.
+   * Problems to show in `file`:
+   * - its parse errors, each under the text it couldn't make sense of
+   * - then its warnings, each under what it's about, e.g. a property with no type -- see `SP.SpellWarnings`
    * - A file its project doesn't parse, or a project whose parse crashed, gets ONE diagnostic saying so, at the top.
    */
   diagnostics(file: SP.SpellFile): Diagnostic[] {
@@ -127,13 +129,18 @@ export class SpellLanguageService {
     }
     if (!file.match) return []
 
-    return (SP.Block.getParseErrors(file.match) ?? []).flatMap((error) => {
+    const errors = (SP.Block.getParseErrors(file.match) ?? []).flatMap((error): Diagnostic[] => {
       const range = this.rangeOf(file, error)
       if (!range) return []
       const text = file.parseText.slice(error.start, error.end)
       const message = error.message || `Don't understand "${text}"`
       return [{ range, severity: DiagnosticSeverity.Error, source: "spell", message }]
     })
+    const warnings = SP.SpellWarnings.in(file.match).flatMap(({ at, message }): Diagnostic[] => {
+      const range = this.rangeOf(file, at)
+      return range ? [{ range, severity: DiagnosticSeverity.Warning, source: "spell", message }] : []
+    })
+    return [...errors, ...warnings]
   }
 
   ////////////////
@@ -1505,7 +1512,9 @@ export class SpellLanguageService {
       if (this.isUnfinished(words, scope)) continue
       const signature = this.methodSignatureFor(words, scope)
       const at = this.topLevelLineStart(file, start)
-      const diagnostic = this.diagnostics(file).find((it) => this.offsetAt(file, it.range.start) === start)
+      const diagnostic = this.diagnostics(file).find(
+        (it) => it.severity === DiagnosticSeverity.Error && this.offsetAt(file, it.range.start) === start
+      )
       if (!signature || at === undefined) continue
       const newText = `${signature}:\n\t// TODO\n\n`
       const position = this.positionAt(file, at)

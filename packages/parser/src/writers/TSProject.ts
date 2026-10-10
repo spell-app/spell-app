@@ -34,10 +34,31 @@ export class TSProject {
   /** Each class's super-type, by name, e.g. `Pile` for `Tableau`. */
   readonly superTypes = new Map<string, string>()
   /**
+   * What each class declares, by name:  its properties, getters and methods, by spell's names -- ours, an imported
+   * one's (`importedMembers`), and what it gets for TypeScript only (`undeclared`).  See `isInherited()`.
+   */
+  readonly members = new Map<string, Set<string>>()
+  /** Each class's own properties, by name:  see `propertyOf()`. */
+  readonly properties = new Map<string, Map<string, P.ASTReactiveProperty>>()
+  /**
    * Each list a property's values come from, hoisted out of its class as a typed constant, by `<Class>.<Static>`,
    * e.g. `Card.Ranks` => `RANKS`, type `Rank`.  See `TSList`.
    */
   readonly lists = new Map<string, TSList>()
+  /**
+   * Members a class gets for TypeScript only, by its name (Q25):  ones its program uses on it, or on a class below
+   * it, but never declares there.  See `TSUndeclared`.
+   * - A value given when one is made, `a new foundation with symbol = "♣️"`:  on the class shared by every class it's
+   *   given to, e.g. `droppable` on `Pile`, given to each kind of pile.
+   * - A method two or more classes define, that the class they share doesn't:  `can_pick_up_$card` on `Pile`, defined
+   *   by each kind of pile.
+   */
+  readonly undeclared = new Map<string, TSUndeclared[]>()
+  /**
+   * Each class the project imports, by its name here, and the members its own project declares, e.g. `Pile` from
+   * `Cards`:  the end of a class chain, for `undeclared`.
+   */
+  readonly importedMembers = new Map<string, Set<string>>()
 
   /** What `files`' statements say, and the import layer above `scope`, if any -- see the class docs. */
   static of(files: P.ASTNode[][], scope?: P.Scope): TSProject {
@@ -45,7 +66,13 @@ export class TSProject {
     for (let layer = scope; layer; layer = layer.parentScope) {
       if (!(layer instanceof P.ImportScope)) continue
       for (const type of layer.types?.get() ?? []) {
-        for (const method of type.methods?.get() ?? []) project.getters.add(method.name)
+        const members = new Set<string>()
+        for (const method of type.methods?.get() ?? []) {
+          project.getters.add(method.name)
+          members.add(method.name)
+        }
+        for (const variable of type.variables?.get() ?? []) members.add(variable.name)
+        project.importedMembers.set(type.name, members)
       }
     }
     const classes = new Map<string, P.ASTClassDeclaration>()
@@ -67,7 +94,25 @@ export class TSProject {
     for (const name of properties) project.getters.delete(name)
     for (const statements of files) project.moveMembers(statements, classes)
     for (const declaration of classes.values()) project.noteClass(declaration, classes)
+    project.noteUndeclared(files, classes)
     return project
+  }
+
+  /** Does a class ABOVE class `typeName` declare member `name`, e.g. a card's `color` getter, above a joker? */
+  isInherited(typeName: string, name: string): boolean {
+    for (let type = this.superTypes.get(typeName); type; type = this.superTypes.get(type)) {
+      if (this.members.get(type)?.has(name)) return true
+    }
+    return false
+  }
+
+  /** Class `typeName`'s property `name`, its own or a super-type's -- `undefined` if it has none. */
+  propertyOf(typeName: string | undefined, name: string): P.ASTReactiveProperty | undefined {
+    for (let type = typeName; type; type = this.superTypes.get(type)) {
+      const property = this.properties.get(type)?.get(name)
+      if (property) return property
+    }
+    return undefined
   }
 
   /** Class `typeName`'s item type, its own or a super-type's, e.g. `Card` for a `Tableau`, which is a `Pile`. */
@@ -131,12 +176,78 @@ export class TSProject {
       if (member instanceof P.ASTStaticDefinition && member.name === "instanceType") {
         if (member.value instanceof P.ASTTypeExpression) this.itemTypes.set(declaration.type.name, member.value.name)
       }
+      // read when made, for an item class further down:  `static get instanceType() { return Card }`
+      if (member instanceof P.ASTStaticMethod && member.getter && member.name === "instanceType") {
+        const returned = listNamedBy(member.method)
+        if (returned instanceof P.ASTTypeExpression) this.itemTypes.set(declaration.type.name, returned.name)
+      }
       if (!(member instanceof P.ASTReactiveProperty)) continue
+      const own = this.properties.get(declaration.type.name) ?? new Map()
+      this.properties.set(declaration.type.name, own.set(member.property.value, member))
       const oneOf = member.check?.properties?.find(
         (property): property is P.ASTObjectLiteralProperty =>
           property instanceof P.ASTObjectLiteralProperty && property.property.value === "oneOf"
       )?.value
       this.noteList(oneOf, member, classes)
+    }
+  }
+
+  /** SIDE EFFECT:  notes in `undeclared` what each class gets for TypeScript only -- see there. */
+  private noteUndeclared(files: P.ASTNode[][], classes: Map<string, P.ASTClassDeclaration>) {
+    // what each class declares itself, by name:  its properties, getters and methods
+    const declared = this.members
+    // each method name, and the classes defining it
+    const definedBy = new Map<string, Array<{ type: string; method: P.ASTMethodDefinition }>>()
+    for (const [type, declaration] of classes) {
+      const names = new Set<string>()
+      for (const member of [...(declaration.members ?? []), ...(this.movedMembers.get(type) ?? [])]) {
+        if (!(member instanceof P.ASTReactiveProperty || member instanceof P.ASTPropertyDefinition)) continue
+        names.add(member.property.value)
+        if (member instanceof P.ASTPropertyDefinition && member.method) {
+          const defining = definedBy.get(member.property.value) ?? []
+          definedBy.set(member.property.value, [...defining, { type, method: member.method }])
+        }
+      }
+      declared.set(type, names)
+    }
+    for (const [type, members] of this.importedMembers) declared.set(type, new Set(members))
+    // a class's chain:  itself and the classes above it, ours, then an imported one, e.g. `Tableau`, `Pile`
+    const chainOf = (type: string) => {
+      const chain: string[] = []
+      for (let it: string | undefined = type; it && declared.has(it); it = this.superTypes.get(it)) chain.push(it)
+      return chain
+    }
+    const shared = (types: string[]) =>
+      chainOf(types[0]!).find((it) => types.every((type) => chainOf(type).includes(it)))
+    const isDeclaredAbove = (type: string, name: string) => chainOf(type).some((it) => declared.get(it)?.has(name))
+    const add = (type: string, undeclared: TSUndeclared) => {
+      this.undeclared.set(type, [...(this.undeclared.get(type) ?? []), undeclared])
+      declared.get(type)!.add(undeclared.name)
+    }
+
+    // values given when one is made:  `new Foundation({ symbol: "♣️" })`
+    const givenTo = new Map<string, { types: Set<string>; value: P.ASTExpression }>()
+    for (const statements of files) {
+      forEachNode(statements, (node) => {
+        if (!(node instanceof P.ASTNewInstanceExpression) || !classes.has(node.type.name)) return
+        for (const property of node.props?.properties ?? []) {
+          if (!(property instanceof P.ASTObjectLiteralProperty) || !property.value) continue
+          const given = givenTo.get(property.property.value) ?? { types: new Set(), value: property.value }
+          given.types.add(node.type.name)
+          givenTo.set(property.property.value, given)
+        }
+      })
+    }
+    for (const [name, { types, value }] of givenTo) {
+      const type = shared([...types])
+      if (type && !isDeclaredAbove(type, name)) add(type, { name, value })
+    }
+
+    // a method two or more classes define, which the class they share doesn't
+    for (const [name, defining] of definedBy) {
+      if (defining.length < 2) continue
+      const type = shared(defining.map((it) => it.type))
+      if (type && !isDeclaredAbove(type, name)) add(type, { name, method: defining[0]!.method })
     }
   }
 
@@ -183,6 +294,21 @@ export type TSList = {
   constant: string
   /** The type of one of its values, e.g. `Rank`;  none if that name's taken:  `(typeof RANKS)[number]` instead. */
   type: string | undefined
+}
+
+/**
+ * A member a class gets for TypeScript only -- see `TSProject.undeclared`.  The javascript doesn't change.
+ * - A value given when one is made:  `declare symbol: string` in its class.
+ * - A method:  merged in after its class, `export interface Pile { canPickUpCard(card: Card): boolean }` -- a
+ *   `declare` property would clash with the classes below that define it as a method.
+ */
+export type TSUndeclared = {
+  /** Its name, spell's. */
+  name: string
+  /** For a value given when one is made:  the first value given, typing it. */
+  value?: P.ASTExpression
+  /** For a method:  one class's definition of it, typing it. */
+  method?: P.ASTMethodDefinition
 }
 
 ////////////////

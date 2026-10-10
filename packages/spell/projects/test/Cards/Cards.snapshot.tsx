@@ -32,7 +32,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   get value() {
-    return spellCore.itemOf(Card.Ranks, this.rank)
+    return spellCore.itemOf(Card.Ranks, this.rank)!
   }
 
   static Directions = DIRECTIONS
@@ -56,17 +56,17 @@ export class Card extends Thing {
   }
 
   /** "card is a spade", "...is a club" etc */
-  isASuit(suit: any /* spell: type unknown */) {
+  isASuit(suit: Suit) {
     return this.suit === suit
   }
 
   /** "card is a queen", "...is an ace" etc */
-  isARank(rank: any /* spell: type unknown */) {
+  isARank(rank: Rank) {
     return this.rank === rank
   }
 
   /** "card is the queen of spades" etc */
-  isTheRankOfSuits(rank: any /* spell: type unknown */, suit: any /* spell: type unknown */) {
+  isTheRankOfSuits(rank: Rank, suit: Suit) {
     return this.rank === rank && this.suit === suit
   }
 
@@ -86,7 +86,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank == undefined) return "?"
     if (spellCore.isOfType(this.rank, "number")) return `${this.rank}`
-    return spellCore.upperCase(spellCore.getItemOf(this.rank, 1))
+    return spellCore.upperCase(spellCore.getItemOf(this.rank, 1)!)
   }
 
   get shortDirection() {
@@ -150,7 +150,7 @@ export class Card extends Thing {
   }
 
   get pile() {
-    return Pile.ownerOf(this)
+    return Pile.ownerOf(this)!
   }
 }
 
@@ -210,8 +210,8 @@ export class Deck extends List<Card> {
 
   setUp() {
     if (this.is_set_up) return
-    spellCore.map(Card.Ranks, (rank: any /* spell: type unknown */) => {
-      spellCore.map(Card.Suits, (suit: any /* spell: type unknown */) => {
+    spellCore.map(Card.Ranks, (rank) => {
+      spellCore.map(Card.Suits, (suit) => {
         const it = new Card({ rank: rank, suit: suit })
         spellCore.append(this, it)
       })
@@ -221,7 +221,7 @@ export class Deck extends List<Card> {
 
   display() {
     const cardNames = new List()
-    spellCore.map(this, (card: any /* spell: type unknown */) => {
+    spellCore.map(this, (card: Card) => {
       spellCore.append(cardNames, card.shortName)
     })
     spellCore.echo(`deck: ${cardNames}`)
@@ -241,7 +241,7 @@ export function testDeckCreation() {
     deck.setUp()
     spellCore.expect(spellCore.itemCountOf(deck), `the number of cards in the deck`, 52, `52`)
     spellCore.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
-    const queens: any /* spell: type unknown */ = spellCore.filter(deck, (card: any /* spell: type unknown */) => card.rank == "queen")
+    const queens = spellCore.filter(deck, (card: Card) => card.rank == "queen") as Deck
     spellCore.expect(spellCore.itemCountOf(queens), `the number of cards in the queens`, 4, `4`)
     spellCore.expect(spellCore.getItemOf(deck, -1)!.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
     spellCore.expect(spellCore.getItemOf(deck, 1)!.shortName, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
@@ -272,7 +272,7 @@ export class Pile extends List<Card> {
   @derived
   get state() {
     let state = `${this.name || "pile"}:`
-    spellCore.map(this, (card: any /* spell: type unknown */) => {
+    spellCore.map(this, (card: Card) => {
       state = `${state} ${card.state}`
     })
     return state

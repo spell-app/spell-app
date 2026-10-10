@@ -2,7 +2,7 @@ import { P } from "$/parser"
 // Import directly to avoid circular import
 import { JSWriter } from "./JSWriter"
 import * as jsText from "./jsText"
-import { TSProject, camelCaseOf, forEachNode, listNamedBy } from "./TSProject"
+import { TSProject, camelCaseOf, forEachNode, listNamedBy, type TSUndeclared } from "./TSProject"
 
 /****************
  * ### `TSWriter`
@@ -64,6 +64,8 @@ export class TSWriter extends JSWriter {
   private sharedHandlers = new Map<string, string>()
   /** The class we're writing, e.g. `Tableau`:  names `<For>`'s item for `draw cards in it`. */
   private currentClass: string | undefined
+  /** Destructurings typed by the parameter they read, e.g. an event's payload:  see `arrow()`. */
+  private typedByParam = new WeakSet<P.ASTDestructuredAssignment>()
 
   constructor(project = new TSProject()) {
     super()
@@ -91,6 +93,12 @@ export class TSWriter extends JSWriter {
       const all = [...names.split(/,\s*/), ...decorators]
       return `import { ${all.join(", ")} } from "@spell/core"`
     })
+    // what this project gives a class it imports, for TypeScript only (Q25):  declared in that project's module
+    for (const [type, undeclared] of this.project.undeclared) {
+      if (!this.project.importedMembers.has(type)) continue
+      const members = undeclared.map((it) => this.undeclaredMember(it))
+      code = `${code.replace(/\n*$/, "")}\nexport interface ${type} { ${members.join("; ")} }\n`
+    }
     // each class imported from another project, by its name here => [its module, its name there]
     const imported = new Map<string, [string, string]>()
     code = code.replace(/^import \{ ([^}]*) \} from "(@spell\/project\/[^"]*)"$/gm, (_line, names: string, from) => {
@@ -159,7 +167,7 @@ export class TSWriter extends JSWriter {
   memberObject(object: P.ASTExpression): string {
     const inner = unwrapped(object)
     const text = this.tight(inner)
-    return isCoreCall(inner) ? `${text}!` : text
+    return isCoreCall(inner) && !text.endsWith("!") ? `${text}!` : text
   }
 
   /** `node`, in parentheses unless it binds at least as tightly as `.` -- see `isTight()`. */
@@ -184,14 +192,19 @@ export class TSWriter extends JSWriter {
       if (node.methodName === "drawThing") return this.drawThing(list)
       if (node.methodName === "drawItems" && list) return this.drawItems(list)
     }
-    return `${this.memberObject(node.thing)}.${camelCaseOf(node.methodName)}${this.write(node.args)}`
+    const call = `${this.memberObject(node.thing)}.${camelCaseOf(node.methodName)}${this.write(node.args)}`
+    // an item read by position is read as found, as spell reads it (Q26):  `spellCore.getItemOf(tableaus, column)!`;
+    // so is the list holding an item, `the pile of a card`:  `Pile.ownerOf(this)!`
+    const isOwnerRead = node.thing instanceof P.ASTTypeExpression && node.methodName === "ownerOf"
+    return isItemRead(node) || isOwnerRead ? `${call}!` : call
   }
 
   /** `thing.draw()` -- `?.draw()` when it may be nothing, e.g. the last card of a pile. */
   drawThing(thing: P.ASTExpression | undefined): string {
     if (!thing) return "undefined"
-    const text = this.tight(thing)
-    return isCoreCall(unwrapped(thing)) ? `${text}?.draw()` : `${text}.draw()`
+    const inner = unwrapped(thing)
+    if (isItemRead(inner)) return `${String(this.write(inner)).replace(/!$/, "")}?.draw()`
+    return `${this.tight(thing)}.draw()`
   }
 
   /**
@@ -214,6 +227,21 @@ export class TSWriter extends JSWriter {
     return `${this.arrow(node)}${error}`
   }
 
+  /**
+   * As javascript's, plus a getter's type when spell knows it:  `get state(): string {...}`.
+   * - Why:  TypeScript works a getter's type out from its body, and a body that loops over a list of the getter's
+   *   own class (`the state of a pile` reads each card, a card reads its pile) goes round in a circle:  TypeScript
+   *   gives up quietly, and the loop's item is `unknown`.
+   */
+  methodNamed(method: P.ASTMethodDefinition, name: string, thisType?: string): string {
+    const datatype = name.startsWith("get ") ? method.datatype : undefined
+    const type = typeof datatype === "string" && !datatype.startsWith("list") ? this.typeFor(datatype) : undefined
+    if (!type) return super.methodNamed(method, name, thisType)
+    const async = method.isAsync ? "async " : ""
+    const error = method.error ? ` ${this.write(method.error)}` : ""
+    return `${async}${name}${this.params(method, thisType)}: ${type} ${this.write(method.body)}${error}`
+  }
+
   /** TypeScript's name for `method`:  `testCardSetup`. */
   methodNameOf(method: P.ASTMethodDefinition): string {
     const { methodName } = method
@@ -231,6 +259,13 @@ export class TSWriter extends JSWriter {
     const async = method.isAsync ? "async " : ""
     const statements = (method.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
     const [only] = statements
+    // an event's payload, destructured first:  its parameter says what it brings, `(event: { card: Card }) =>`
+    const destructured = only instanceof P.ASTDestructuredAssignment ? only : undefined
+    const payload = destructured && this.shapeOf(destructured)
+    const [first] = method.args ?? []
+    const read = destructured && unwrapped(destructured.thing)
+    const typesFirst = !!payload && read instanceof P.ASTVariableExpression && read.name === first?.name
+    if (typesFirst) this.typedByParam.add(destructured!)
     let body: string
     if (statements.length === 1 && only instanceof P.ASTReturnStatement && only.value) {
       const value = unwrapped(only.value)
@@ -240,7 +275,35 @@ export class TSWriter extends JSWriter {
     }
     const args = [...(method.args ?? [])]
     while (args.length && !new RegExp(`\\b${camelCaseOf(args.at(-1)!.name)}\\b`).test(body)) args.pop()
-    return `${async}(${args.map((arg) => this.param(arg)).join(", ")}) => ${body}`
+    const params = args.map((arg, index) =>
+      index === 0 && typesFirst ? `${this.variableName(arg)}: ${payload}` : this.arrowParam(arg)
+    )
+    return `${async}(${params.join(", ")}) => ${body}`
+  }
+
+  /**
+   * What `node` destructures, as a type, when spell knows what any of it is:  `{ card: Card }` -- else `undefined`.
+   * - A field spell doesn't know is `UNKNOWN`.
+   */
+  shapeOf(node: P.ASTDestructuredAssignment): string | undefined {
+    if (!node.isNewVariable) return undefined
+    const types = node.variables.map((variable) => this.typeFor(variable.datatype ?? variable.variable?.datatype))
+    if (!types.some(Boolean)) return undefined
+    const fields = node.variables.map((variable, index) => `${variable.name}: ${types[index] ?? TSWriter.UNKNOWN}`)
+    return `{ ${fields.join("; ")} }`
+  }
+
+  /**
+   * An arrow's parameter:  typed when spell knows its type (`(card: Card) =>`), else bare, for TypeScript to type
+   * from what it's passed to, e.g. `spellCore.map(spellCore.getRange(1, 7), (number) => ...)`:  a `number`.
+   * - So no `UNKNOWN` marker:  an arrow is always passed somewhere that says what it gets (a `spellCore` helper, a
+   *   handler), unlike a method's own parameter.
+   */
+  arrowParam(arg: P.ASTVariableExpression): string {
+    const type = this.typeFor(arg.datatype ?? arg.variable?.datatype ?? arg.default?.datatype)
+    const name = this.variableName(arg)
+    const declared = type ? `${name}: ${type}` : name
+    return arg.default ? `${declared} = ${this.bare(arg.default)}` : declared
   }
 
   /**
@@ -255,14 +318,19 @@ export class TSWriter extends JSWriter {
     return variable === key ? `${key}${error}` : `${key}: ${variable}${error}`
   }
 
-  /** `const { card } = event`:  a key whose variable TypeScript names differently is renamed, `{ start_pile: startPile }`. */
+  /**
+   * `const { card } = event`:  a key whose variable TypeScript names differently is renamed, `{ start_pile: startPile }`.
+   * - Typed when spell knows what any of them is, e.g. an event's payload, `on card-click with a card`:
+   *   `const { card }: { card: Card } = event`.
+   */
   ASTDestructuredAssignment(node: P.ASTDestructuredAssignment): string {
     const variables = node.variables.map((variable) => {
       const written = this.write(variable)
       return variable.name === this.variableName(variable) ? written : `${variable.name}: ${written}`
     })
     const declarator = !node.isNewVariable ? "" : this.isReassigned(node.variables) ? "let " : "const "
-    return `${declarator}{ ${variables.join(", ")} } = ${this.bare(node.thing)}`
+    const shape = this.typedByParam.has(node) ? undefined : this.shapeOf(node)
+    return `${declarator}{ ${variables.join(", ")} }${shape ? `: ${shape}` : ""} = ${this.bare(node.thing)}`
   }
 
   ////////////////
@@ -432,20 +500,26 @@ export class TSWriter extends JSWriter {
   ASTAssignmentStatement(node: P.ASTAssignmentStatement): string {
     const { thing, value } = node
     if (!node.isNewVariable) return `${this.write(thing)} = ${this.bare(value)}`
+    const export_ = this.isExported(node) ? "export " : ""
+    const declarator = thing instanceof P.ASTVariableExpression && this.isReassigned([thing]) ? "let" : "const"
+    const declared = `${export_}${declarator} ${this.write(thing)}`
+    const inner = unwrapped(value)
+    if (isCoreCall(inner)) {
+      // what spell read it as, e.g. `Card` for `the last card of discards`:  its match says, while parsing
+      const datatype = inner.datatype ?? inner.match?.datatype
+      const type = typeof datatype === "string" && !datatype.startsWith("list") ? this.typeFor(datatype) : undefined
+      // `as` says what it is:  no `!` needed before it
+      return type
+        ? `${declared} = ${this.bare(value).replace(/!$/, "")} as ${type}`
+        : `${declared} = ${this.bare(value)}`
+    }
     const variable = thing instanceof P.ASTVariableExpression ? thing.variable : undefined
     // `[]`, which TypeScript can't type by itself, is a list
     const isList = value instanceof P.ASTArrayLiteral || value instanceof P.ASTListExpression
     const type =
       this.typeFor(thing.datatype ?? variable?.datatype ?? value.datatype) ??
       (isList ? this.typeFor("list") : undefined)
-    const fromCore = isCoreCall(unwrapped(value))
-    const export_ = this.isExported(node) ? "export " : ""
-    const declarator = thing instanceof P.ASTVariableExpression && this.isReassigned([thing]) ? "let" : "const"
-    const declared = `${export_}${declarator} ${this.write(thing)}`
-    if (!type && !fromCore) return `${declared} = ${this.bare(value)}`
-    if (!type) return `${declared}: ${TSWriter.UNKNOWN} = ${this.bare(value)}`
-    if (fromCore) return `${declared} = ${this.bare(value)} as ${type}`
-    return `${declared}: ${type} = ${this.bare(value)}`
+    return type ? `${declared}: ${type} = ${this.bare(value)}` : `${declared} = ${this.bare(value)}`
   }
 
   /** Is any of `variables` set again after it's declared?  Then it's `let`. */
@@ -498,16 +572,50 @@ export class TSWriter extends JSWriter {
 
   /** Each typed:  `(card: Card, message: string = "Really?")`;  `this` first when written outside its class. */
   params(method: P.ASTMethodDefinition, thisType?: string): string {
-    const params = (method.args ?? []).map((arg) => this.param(arg))
+    const destructured = this.destructuredParam(method)
+    const params = (method.args ?? []).map((arg) => {
+      if (destructured?.arg !== arg) return this.param(arg)
+      // named arguments, `to create a new task (with title as text)`:  typed by their fields, each optional
+      const shape = destructured.shape.replace(/(\w+): /g, "$1?: ")
+      return arg.default ? `${this.variableName(arg)}: ${shape} = ${this.bare(arg.default)}` : `${arg.name}: ${shape}`
+    })
     if (thisType) params.unshift(this.thisParam(thisType))
     return `(${params.join(", ")})`
   }
 
+  /**
+   * `method`'s parameter its body destructures first, e.g. a method's named arguments, and what spell knows of
+   * them:  `{ title: string }` -- `undefined` if none, or spell knows nothing of them.
+   * - SIDE EFFECT:  that destructuring is written untyped, as its parameter says -- see `typedByParam`.
+   */
+  destructuredParam(method: P.ASTMethodDefinition): { arg: P.ASTVariableExpression; shape: string } | undefined {
+    const [first] = (method.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
+    if (!(first instanceof P.ASTDestructuredAssignment)) return undefined
+    const read = unwrapped(first.thing)
+    const arg = (method.args ?? []).find((it) => read instanceof P.ASTVariableExpression && read.name === it.name)
+    const shape = arg && this.shapeOf(first)
+    if (!arg || !shape) return undefined
+    this.typedByParam.add(first)
+    return { arg, shape }
+  }
+
   /** `name: type`, or `name: type = default`. */
   param(arg: P.ASTVariableExpression): string {
-    const type = this.typeFor(arg.datatype ?? arg.variable?.datatype ?? arg.default?.datatype) ?? TSWriter.UNKNOWN
+    const type =
+      this.typeFor(arg.datatype ?? arg.variable?.datatype ?? arg.default?.datatype) ??
+      this.slotType(arg) ??
+      TSWriter.UNKNOWN
     const declared = `${this.variableName(arg)}: ${type}`
     return arg.default ? `${declared} = ${this.bare(arg.default)}` : declared
+  }
+
+  /**
+   * A method's parameter named for a property of its class:  that property's type, e.g. `isASuit(suit: Suit)` for
+   * `a card "is a (suit)" for its suits` -- the slot ranges over a card's suits.  `undefined` if there's none.
+   */
+  slotType(arg: P.ASTVariableExpression): string | undefined {
+    const property = this.project.propertyOf(this.currentClass, arg.name)
+    return property && this.propertyType(property)
   }
 
   thisParam(thisType?: string): string {
@@ -534,7 +642,18 @@ export class TSWriter extends JSWriter {
     const previousClass = this.currentClass
     this.currentClass = type.name
     try {
-      const body = super.ASTClassDeclaration(new P.ASTClassDeclaration(match, { type, superType, members }))
+      let body = super.ASTClassDeclaration(new P.ASTClassDeclaration(match, { type, superType, members }))
+      const undeclared = this.project.undeclared.get(type.name) ?? []
+      // a value given when one is made:  declared in the class, for TypeScript only
+      const declares = undeclared
+        .filter((it) => it.value)
+        .map((it) => `${jsText.INDENT}declare ${this.undeclaredMember(it)}`)
+      if (declares.length) body = body.replace(/\}$/, `\n${declares.join("\n")}\n}`).replace("{}\n", "{\n")
+      // a method the classes below it define:  merged in after it
+      const methods = undeclared
+        .filter((it) => it.method)
+        .map((it) => `export interface ${type.name} { ${this.undeclaredMember(it)} }`)
+      if (methods.length) body = [body, ...methods].join("\n")
       return hasCreate(declaration) ? `@thing\n${body}` : body
     } finally {
       this.currentClass = previousClass
@@ -559,7 +678,17 @@ export class TSWriter extends JSWriter {
     const types = lists
       .filter((list) => list.type)
       .map((list) => `export type ${list.type} = (typeof ${list.constant})[number]`)
-    return [...constants, "", ...types, ""].join("\n")
+    return [...constants, "", ...(types.length ? [...types, ""] : [])].join("\n")
+  }
+
+  /**
+   * A member a class gets for TypeScript only (`TSProject.undeclared`), as an interface or a `declare` writes it:
+   * `droppable: boolean`, `canPickUpCard(card: Card): boolean`.
+   */
+  undeclaredMember({ name, value, method }: TSUndeclared): string {
+    if (!method) return `${name}: ${this.typeFor(value?.datatype) ?? TSWriter.UNKNOWN}`
+    const returns = this.typeFor(method.datatype) ?? TSWriter.UNKNOWN
+    return `${camelCaseOf(name)}${this.signatureParams(method)}: ${returns}`
   }
 
   /** `node` with the members the project wrote for it elsewhere -- see `TSProject.movedMembers`. */
@@ -612,6 +741,9 @@ export class TSWriter extends JSWriter {
    * `declareProp()` and accessor pair.  Its name is spell's:  a property is data a program prints.
    */
   ASTReactivePropertyAsMember(node: P.ASTReactiveProperty): string {
+    // one that replaces a member of a class above, e.g. a joker's `color` property for a card's `color` getter:
+    // TypeScript won't let an `accessor` do that, so the pair javascript writes
+    if (this.project.isInherited(node.typeName, node.property.value)) return super.ASTReactivePropertyAsMember(node)
     const info = this.propInfo(node)
     return `@prop(${info ?? ""}) accessor ${this.write(node.property)}!: ${this.propertyType(node) ?? TSWriter.UNKNOWN}`
   }
@@ -644,6 +776,11 @@ export class TSWriter extends JSWriter {
       const list = this.project.listFor(property.value)
       if (list) return list.type ?? `(typeof ${list.constant})[number]`
       return `(typeof ${this.write(listNamedBy(property.value))})[number]`
+    }
+    const initializer = node.initializer && unwrapped(node.initializer)
+    // made when first read, `as a new task-list`:  the class it makes, e.g. `Task_List`
+    if (initializer instanceof P.ASTNewInstanceExpression && initializer.type.name !== "List") {
+      return initializer.type.name
     }
     return this.typeFor(node.initializer?.datatype)
   }
@@ -734,7 +871,10 @@ export class TSWriter extends JSWriter {
       (member): member is P.ASTStaticDefinition =>
         member instanceof P.ASTStaticDefinition && member.name === "instanceType"
     )?.value
-    return itemType instanceof P.ASTTypeExpression ? `List<${itemType.name}>` : name
+    if (itemType instanceof P.ASTTypeExpression) return `List<${itemType.name}>`
+    // read when made, as a static getter, for an item class further down:  `static get instanceType()`
+    const ownItemType = this.project.itemTypes.get(node.type.name)
+    return ownItemType ? `List<${ownItemType}>` : name
   }
 
   /** A new list says what it holds too:  `a new list of piles` => `new List<Pile>({ instanceType: "Pile" })`. */
@@ -746,7 +886,8 @@ export class TSWriter extends JSWriter {
         property instanceof P.ASTObjectLiteralProperty && property.property.value === "instanceType"
     )?.value
     if (!(itemType instanceof P.ASTStringLiteral) || !itemType.quote) return text
-    return text.replace(/^new List/, `new List<${itemType.value}>`)
+    // in TypeScript's words:  `a new list of text` => `new List<string>`
+    return text.replace(/^new List/, `new List<${this.typeFor(itemType.value) ?? itemType.value}>`)
   }
 
   ////////////////
@@ -1045,6 +1186,23 @@ function isTight(node: P.ASTExpression): boolean {
 function isCoreCall(node: P.ASTNode): boolean {
   while (node instanceof P.ASTParenthesizedExpression) node = node.expression
   return node instanceof P.ASTScopedMethodInvocation && node.thing instanceof P.ASTSpellCoreExpression
+}
+
+/**
+ * The `spellCore` helpers that read ONE item of a list, or an item's position, which may be nothing:  see
+ * `isItemRead()`.
+ */
+const ITEM_READS = new Set(["getItemOf", "randomItemOf", "itemOf"])
+
+/**
+ * Is `node` a `spellCore` call reading one item of a list, or its position, e.g.
+ * `spellCore.getItemOf(tableaus, column)`, `spellCore.itemOf(Card.Ranks, this.rank)`?  Spell reads it as found:
+ * TypeScript, with `!`.
+ */
+function isItemRead(node: P.ASTNode): node is P.ASTScopedMethodInvocation {
+  return (
+    isCoreCall(node) && ITEM_READS.has((unwrapped(node as P.ASTExpression) as P.ASTScopedMethodInvocation).methodName)
+  )
 }
 
 /** Can't value `node` change?  A literal (not a list, which holds expressions), an element, a function. */

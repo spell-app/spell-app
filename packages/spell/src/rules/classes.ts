@@ -535,7 +535,9 @@ class list_guard extends SpellStatement<"type|verb|item|body?|never?"> {
 
   getAST(match: P.MatchFor<this>): P.ASTPropertyDefinition {
     const { type, never, item } = match.groups
-    const arg = new P.ASTVariableExpression(match, { name: instanceCase(SP.typeName(`${item.value}`)) })
+    const itemType = SP.typeName(`${item.value}`)
+    // its type, e.g. `Card` for `a card`:  a typed target writes it
+    const arg = new P.ASTVariableExpression(match, { name: instanceCase(itemType), datatype: itemType })
     const body = never
       ? new P.ASTReturnStatement(match, { value: new P.ASTBooleanLiteral(match, false) })
       : P.matchAST<MethodBody>(this.getBody(match))
@@ -998,6 +1000,7 @@ type ClassMemberData = {
  *     through `class_member` -- and its instance twin, so `the suits of the card` finds it
  *   - adds string values to `scope.constants`
  * - Its name is `member_words`, e.g. `a card has short rank as text`;  the article is optional.
+ * - With no type, e.g. `a calculator has an input`, it asks for one:  a warning -- see `warnUntyped()`.
  * - Compiles to a reactive getter / setter pair in its class, its type declared in the class's schema -- see
  *   `P.ASTReactiveProperty` -- e.g. `a player has a name as text` =>
  *   `static { this.declareProp('name', { type: 'text' }) }` + `get name() { return this.getProp('name') }` +
@@ -1022,7 +1025,34 @@ class define_property_has extends SpellStatement<"type|property|specifier?", { v
     const { specifier } = match.groups
     const valueType = specifier?.datatype ? scope.types?.get(specifier.datatype) : undefined
     if (valueType) match.data.valueType = valueType
+    define_property_has.warnUntyped(match)
     return SpellStatement.refuseBuiltInType(match, match.groups.type, match.groups.property)
+  }
+
+  /**
+   * Ask for a type it doesn't say (epic `output-targets`, Q24):  a warning, the property compiles as it is.
+   * - none at all, e.g. `a calculator has an input` => `Say what "input" is, e.g. "a calculator has an input as text"`
+   * - a list of nothing said, e.g. `a todos-app has tasks as a new list` =>
+   *   `Say what "tasks" holds, e.g. declare "a task-list is a list of tasks", then "a todos-app has tasks as a new
+   *   task-list"`
+   *   - a list TYPE, as only that says today:  `as a new list of tasks` doesn't parse here (`type_specifier_instance`
+   *     takes a `new_thing`, not a `new_list`;  epic `output-targets`, an issue)
+   * - NOT an enumeration (`as one of ...`), a type, or a new thing:  they say.
+   */
+  private static warnUntyped(match: P.MatchFor<define_property_has>): void {
+    const { property, specifier } = match.groups
+    const words = property.raw ?? `${property.value}`
+    const said = match.inputText.trim()
+    if (!specifier) {
+      const example = `${said} as ${SP.SpellWarnings.exampleType(match.scope, words)}`
+      SP.SpellWarnings.note(match, `Say what "${words}" is, e.g. "${example}"`)
+    } else if (specifier.datatype === "list") {
+      const items = SP.SpellWarnings.exampleItemType(match.scope, words)
+      const listType = `${singularize(items)}-list`
+      const declared = `${said.slice(0, said.length - specifier.inputText.trim().length)}as a new ${listType}`
+      const example = `declare "a ${listType} is a list of ${items}", then "${declared}"`
+      SP.SpellWarnings.note(match, `Say what "${words}" holds, e.g. ${example}`)
+    }
   }
 
   mutateScope(match: P.MatchFor<this>) {

@@ -9,7 +9,7 @@ to set up a deck
 	set the is-set-up of the deck to yes
 
 to display a deck
-	set card-names to a new list
+	set card-names to a new list of text
 	for each card in the deck
 		add the short name of the card to card-names
 	echo "deck: " + card-names

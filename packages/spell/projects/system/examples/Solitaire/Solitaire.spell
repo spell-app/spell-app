@@ -66,7 +66,7 @@ for each card in the deck
 ## actions
 
 the state of a game is:
-	set state to []
+	set state to a new list of text
 	for each pile in all-piles
 		add the state of the pile to state
 	return state

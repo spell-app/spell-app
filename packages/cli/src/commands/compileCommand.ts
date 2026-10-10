@@ -18,6 +18,8 @@ import { CLI } from "$/cli"
  * - Projects it imports that have never been compiled are compiled first -- see `CliSession.compileImports()`.
  *   `--force`:  ALL of them, even those already compiled.
  * - Returns the exit code:  `EXIT.ERRORS` if anything had errors.
+ *   Warnings, e.g. a property with no type (`SP.SpellWarnings`), are listed under the errors, never counted:
+ *   a project with only warnings compiles clean, its scope pack too.
  * - NOTE: a line which doesn't parse doesn't stop the compile -- it compiles to a `PARSE ERROR` comment.
  */
 export async function compileCommand(

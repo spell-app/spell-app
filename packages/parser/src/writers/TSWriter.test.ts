@@ -81,7 +81,7 @@ describe("TSWriter", () => {
     expect(project.write(count())).toBe("let count: number = 0")
   })
 
-  test("a new variable set from spellCore, which returns `unknown`, is cast or marked", () => {
+  test("a new variable set from spellCore is cast when spell knows its type, else TypeScript types it", () => {
     const pick = () => new P.ASTCoreMethodInvocation(match, { methodName: "randomItemOf", datatype: "Card" })
     const card = new P.ASTAssignmentStatement(match, {
       thing: new P.ASTVariableExpression(match, { name: "card" }),
@@ -94,7 +94,8 @@ describe("TSWriter", () => {
       value: new P.ASTCoreMethodInvocation(match, { methodName: "randomItemOf" }),
       isNewVariable: true
     })
-    expect(writer.write(thing)).toBe(`const thing: ${UNKNOWN} = spellCore.randomItemOf()`)
+    // core types it from the list:  `T | undefined`, read as found
+    expect(writer.write(thing)).toBe("const thing = spellCore.randomItemOf()!")
   })
 
   test("a list says what it holds:  its class, and a new one", () => {
@@ -234,6 +235,65 @@ describe("TSWriter", () => {
     })
     // `class` first, as javascript's `spellCore.element()` sets it
     expect(writer.write(element)).toBe(`<th class="left" colspan="2">{theStock.draw()}</th>`)
+  })
+
+  test("an arrow's parameter spell can't type is left to TypeScript;  an item read is read as found", () => {
+    const each = new P.ASTMethodDefinition(match, {
+      inline: true,
+      args: [new P.ASTVariableExpression(match, { name: "number" })],
+      body: new P.ASTVariableExpression(match, { name: "number" })
+    })
+    expect(writer.write(each)).toBe("(number) => number")
+    const card = new P.ASTVariableExpression(match, { name: "card", datatype: "Card" })
+    expect(writer.write(new P.ASTMethodDefinition(match, { inline: true, args: [card], body: card }))).toBe(
+      "(card: Card) => card"
+    )
+    const last = new P.ASTCoreMethodInvocation(match, {
+      methodName: "getItemOf",
+      args: [new P.ASTVariableExpression(match, { name: "deck" }), new P.ASTNumericLiteral(match, -1)]
+    })
+    expect(writer.write(last)).toBe("spellCore.getItemOf(deck, -1)!")
+    expect(writer.write(new P.ASTPropertyExpression(match, { object: last, property: "name" }))).toBe(
+      "spellCore.getItemOf(deck, -1)!.name"
+    )
+  })
+
+  test("named arguments and an event's payload are typed by what spell says they hold", () => {
+    const props = new P.ASTVariableExpression(match, { name: "props", default: new P.ASTObjectLiteral(match) })
+    const title = new P.ASTVariableExpression(match, { name: "title", datatype: "text" })
+    const create = new P.ASTMethodDefinition(match, {
+      methodName: "create_a_new_task",
+      args: [props],
+      body: new P.ASTDestructuredAssignment(match, {
+        thing: new P.ASTVariableExpression(match, { name: "props" }),
+        variables: [title],
+        isNewVariable: true
+      })
+    })
+    expect(writer.write(create)).toBe(
+      "function createANewTask(props: { title?: string } = {}) {\n  const { title } = props\n}"
+    )
+  })
+
+  test("a value a class is given when made, or a method its sub-classes all define, is declared for TypeScript", () => {
+    const type = (name: string) => new P.ASTTypeExpression(match, { name })
+    const pile = new P.ASTClassDeclaration(match, { type: type("Pile"), superType: type("List") })
+    const stock = new P.ASTClassDeclaration(match, { type: type("Stock"), superType: type("Pile") })
+    const tableau = new P.ASTClassDeclaration(match, { type: type("Tableau"), superType: type("Pile") })
+    const made = (name: string) =>
+      new P.ASTNewInstanceExpression(match, {
+        type: type(name),
+        props: new P.ASTObjectLiteral(match, {
+          properties: [
+            new P.ASTObjectLiteralProperty(match, {
+              property: "droppable",
+              value: new P.ASTBooleanLiteral(match, true)
+            })
+          ]
+        })
+      })
+    const project = writer.forProject([[pile, stock, tableau, made("Stock"), made("Tableau")]])
+    expect(project.write(pile)).toBe("export class Pile extends List {\n  declare droppable: boolean\n}")
   })
 
   test("javascript is unchanged by the type hooks", () => {

@@ -5,7 +5,7 @@ import { loadFixtureProject, parseSpellProject, summarize } from "$/spell/test"
 
 /**
  * Whole-project parse of `examples/Solitaire`.
- * - Snapshot pins compiled output + errors, so parser changes that alter output show up in review.
+ * - Snapshot pins compiled output + errors (and warnings), so parser changes that alter output show up in review.
  * - Benchmark only runs with `BENCH=1`:
  *   `BENCH=1 yarn vitest run src/SpellProject.test.ts --reporter=verbose --silent=false`
  */
