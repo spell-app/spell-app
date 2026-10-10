@@ -16,23 +16,23 @@
  *       remembers their folds, and lands links inside them
  *   - HEADINGS (the goals pages):  `section.s2|s3` > `<ui-sticky class="spell-h2|spell-h3">` > `<h2|h3 id>`;
  *     this runtime adds the fold chevrons and every sticky's `offset`
- * - the RAIL, the page's one navigation:  a strip of the top-level sections' icons FLOATING over the right edge
- *   (`buildRail()`), every width;  no column is kept for it, the page runs to the window's edge.
- *   No contents list:  Owen, 2026-10-08 ("remove the Contents thing entirely ... it is useless")
- *   - a PLAN DOC has a TOOLBAR instead (`buildToolbar()`, epic `airplane` P8):  a row of the blocks' buttons at the
- *     bottom of its sticky page header, each with badges of the items waiting on Owen
+ * - the TOOLBAR, the page's one navigation (epic `airplane` P8;  the floating right-edge rail before):  a row of the
+ *   top-level sections' buttons, the last row of the sticky page header (`buildPageToolbar()`):  mark and title,
+ *   the titles shrinking, then gone on a narrow window.  No contents list:  Owen, 2026-10-08
+ *   - a PLAN DOC's (`buildToolbar()`):  its blocks' icons only, with badges of the items waiting on Owen, in
+ *     `<epic-page>`'s header;  and Cmd / Ctrl + K asks for an item to jump to (`wireJumpKey()`)
  * - sticky headers:  the page header (`ui-sticky.spell-h1`) sticks at the top, each top-level title below it,
  *   nested ones below their parents' (re-measured on resize);
  *   CSS variables on the sections let anchors land below them all
  * - everything that sticks or lands at the top starts BELOW the fixed site header (`<spell-site-header>`,
- *   `siteHeaderHeight()`):  the page header, the titles, the rail
+ *   `siteHeaderHeight()`):  the page header and its toolbar, the titles
  * - folding:  every section folds from a chevron on its title;  folds are remembered per page, and `collapsed`
  *   (`data-fold="closed"` on HEADINGS pages) starts one folded
  * - counts:  a top-level section holding `[data-status]` items (the Epics index's epic cards, the goals pages' items)
  *   shows open / all on its title;
- *   the rail shows, with a red bar and pill, how many NEED OWEN (none:  no pill;  `countItems()`);
- *   an epic card section also gets a round filter button stepping through the items' states (`wireItemFilters()`)
- * - scroll-follow:  the rail's entry of the section being read is highlighted, and the address follows it
+ *   the toolbar shows, with a red badge, how many NEED OWEN (none:  no badge;  `countItems()`);
+ *   an epic card section also gets state chips with counts, filtering its items (`wireItemFilters()`)
+ * - scroll-follow:  the toolbar's button of the section being read is highlighted, and the address follows it
  * - links to any id in `main` (a section, a heading, a plan item) land below the stuck titles, unfolding what
  *   hides it
  * - the CHEATSHEET card filters
@@ -167,8 +167,9 @@ async function start() {
   await Promise.all(used.map((tag) => customElements.whenDefined(tag)))
   const sticky = trackStickyHeights(main, outline)
   const follow = followScroll(main, outline, rail)
-  const jump = wireAnchors(main, outline, sticky, follow, folds)
+  const { jump, go, canGo } = wireAnchors(main, outline, sticky, follow, folds)
   wirePaging(main)
+  if (document.body.classList.contains("plan-doc")) wireJumpKey(go, canGo)
   wireFilter(main)
   // UI renders its shadow content a little after the definitions:  land once it has
   await nextFrames(2)
@@ -897,7 +898,7 @@ function keepAnchor(anchor) {
 /**
  * After a patch, redo what the runtime built from the markup, as `start()` did:
  * - the outline (ids for new entries), counts, item filters
- * - the rail, rebuilt only when its entries, icons or counts changed (`railKey()`)
+ * - the toolbar, rebuilt only when its entries, icons or counts changed (`railKey()`)
  * - sticky lines, re-tracked when new sections came in
  * - code colors in what's new;  scroll-follow re-read
  * - then `spell-doc:updated` on `window`, `detail.changed`
@@ -922,7 +923,7 @@ async function rewire(page, changed) {
   dispatchEvent(new CustomEvent("spell-doc:updated", { detail: { changed } }))
 }
 
-/** What the rail (or toolbar) is built from, as one string:  entries, labels, icons, what needs Owen. */
+/** What the toolbar is built from, as one string:  entries, labels, icons, what needs Owen. */
 function railKey(outline, counts) {
   return JSON.stringify(outline.groups.map(entry))
 
@@ -951,7 +952,7 @@ function highlightIn(elements) {
 ////////////////
 
 /**
- * The page's outline, from either markup (see the header):  what the rail, the counts, scroll-follow
+ * The page's outline, from either markup (see the header):  what the toolbar, the counts, scroll-follow
  * and the anchors work from.
  * - SECTIONS markup (`main > ui-section`, or a plan doc's `<epic-page>`):  top-level sections are the groups
  *   - their entries, at any depth:
@@ -960,12 +961,12 @@ function highlightIn(elements) {
  *   - a plan doc's sections are its folding blocks
  *     (`EPIC_FOLDS`:  the Overview and its parts, the sections, the phases)
  * - HEADINGS markup:  h2s are the groups, h3s their entries, h4s under the h3 before them
- * - a node:  `{ element, id, label, glyph, children }` -- `glyph` the name of its (first) `<ui-icon>`, for the rail
+ * - a node:  `{ element, id, label, glyph, children }` -- `glyph` the name of its (first) `<ui-icon>`, for the toolbar
  * - returns `{ sections, groups, orphans, targets, entryOf, groupOf, folded }`:
  *   - `orphans`:  entries before or outside any group
  *   - `targets`:  selector of every entry's element, for scroll-follow
  *   - `entryOf(element)`:  the entry holding `element`, which a jump to it makes current
- *   - `groupOf(entry)`:  its top-level element, for the rail
+ *   - `groupOf(entry)`:  its top-level element, for the toolbar
  *   - `folded(element)`:  hidden by a folded section around it (SECTIONS;  HEADINGS hide those with `display`)
  * - SIDE EFFECT:  gives an entry with no `id` a slug of its label (`-2`, `-3` ... when taken)
  */
@@ -1173,7 +1174,7 @@ function needYou({ attention }) {
  * Each top-level section's items -- `[data-status]` elements, not counting ones inside another --
  * as `{ open, total, attention }`, by the group's element (the `<ui-section>`, or the h2).
  * - "open":  any status but `CLOSED`'s
- * - "attention":  the items that need Owen (`stateOf()`:  the rail's red bar and pill, Q20 of epic `epic-components`)
+ * - "attention":  the items that need Owen (`stateOf()`:  the toolbar's red badge, Q20 of epic `epic-components`)
  * - sections without items are left out;  nested sections get no count of their own
  * - the Epics index's epic cards, the goals pages' items
  * - a plan doc's sections count themselves (`<epic-section>`, on their titles):  their count is read from their
@@ -1311,15 +1312,16 @@ function markItemStates(main) {
 /**
  * The status filter on every top-level `<ui-section>` with a filterable list
  * (the index's `.spell-epics`, a `.plan-items` list, each holding `[data-status]` children):
- * - ONE round button per state the section has items in, used like checkboxes --
- *   filled in its color while its items show, outlined while hidden
- * - first, a grey filter button that flips between "show all" and "show only what needs you" (red),
- *   rather than a useless "none" (Owen, 2026-10-04)
+ * - ONE chip per state the section has items in, in its colour, with how many (Owen, 2026-10-10:  no filter icon):
+ *   SOLID while its items show, OUTLINED while hidden
+ * - a click, by `nextShown()`:  everything showing, only that state;  else a hidden state shows too and a shown one
+ *   hides;  the only one showing, everything again
  * - in the title's `actions` slot (`span.spell-item-filter`);  `spell-doc.css` puts it left of the count badge
  * - a filtered list shows "3 hidden · show all" under it (`.spell-hidden-note`):  a click there shows all
  * - the choice:  `data-show="<states shown>"` on the section (none for all), `data-spell-hidden` on the items it
  *   hides (CSS hides them);  remembered per page (`localStorage`, `{ [section id]: [states] }`);  all by default
- * - SIDE EFFECT:  marks the items' states (`markItemStates()`), adds the buttons and notes to the page;
+ * - a plan doc's sections filter themselves (`<epic-section>`), by the same rule
+ * - SIDE EFFECT:  marks the items' states (`markItemStates()`), adds the chips and notes to the page;
  *   callable again (it replaces the ones it added)
  */
 function wireItemFilters(main) {
@@ -1332,16 +1334,18 @@ function wireItemFilters(main) {
       list.querySelector(":scope > [data-status]")
     )
     if (!lists.length) continue
-    const has = new Set(lists.flatMap((list) => itemsOf(list).map((item) => item.dataset.spellState)))
-    const present = ITEM_STATES.filter(([state]) => has.has(state))
+    const counts = new Map()
+    for (const item of lists.flatMap(itemsOf))
+      counts.set(item.dataset.spellState, (counts.get(item.dataset.spellState) ?? 0) + 1)
+    const present = ITEM_STATES.filter(([state]) => counts.has(state))
+    const states = present.map(([state]) => state)
     const group = document.createElement("span")
     group.className = "spell-item-filter"
     group.slot = "actions"
     group.dataset.spellAdded = ""
-    const all = stateButton("all", "")
-    all.innerHTML = `<ui-icon name="filter"></ui-icon>`
-    group.append(all)
-    const buttons = present.map(([state, words]) => stateButton(state, words))
+    group.setAttribute("role", "group")
+    group.setAttribute("aria-label", "Show items by state")
+    const buttons = present.map(([state]) => stateButton(state, counts.get(state)))
     group.append(...buttons)
     const notes = lists.map((list) => {
       const note = document.createElement("a")
@@ -1350,27 +1354,17 @@ function wireItemFilters(main) {
       note.dataset.spellAdded = ""
       note.addEventListener("click", (event) => {
         event.preventDefault()
-        choose(present.map(([state]) => state))
+        choose(states)
       })
       list.after(note)
       return note
     })
-    const filter = { section, lists, notes, all, buttons, present }
-    all.addEventListener("click", () => {
-      const showingAll = filterShown(filter).length === present.length
-      const red = present.some(([state]) => state === "attention")
-      choose(showingAll && red ? ["attention"] : present.map(([state]) => state))
-    })
+    const filter = { section, lists, notes, buttons, present, counts }
     for (const button of buttons)
-      button.addEventListener("click", () => {
-        const shown = new Set(filterShown(filter))
-        if (shown.has(button.dataset.state)) shown.delete(button.dataset.state)
-        else shown.add(button.dataset.state)
-        choose([...shown])
-      })
+      button.addEventListener("click", () => choose(nextShown(states, filterShown(filter), button.dataset.state)))
     section.append(group)
-    const remembered = Array.isArray(saved[section.id]) ? saved[section.id].filter((state) => has.has(state)) : []
-    showItems(filter, remembered.length ? remembered : present.map(([state]) => state))
+    const remembered = Array.isArray(saved[section.id]) ? saved[section.id].filter((state) => counts.has(state)) : []
+    showItems(filter, remembered.length ? remembered : states)
 
     /** The reader picked the states `shown`:  apply them and remember. */
     function choose(shown) {
@@ -1380,15 +1374,30 @@ function wireItemFilters(main) {
     }
   }
 
-  /** A round state button:  `state` (`spell-doc.css` colours it by it), its tooltip's `words`. */
-  function stateButton(state, words) {
+  /** A state chip:  `state` (`spell-doc.css` colours it by it), its `count` of items. */
+  function stateButton(state, count) {
     const button = document.createElement("button")
     button.type = "button"
     button.className = "spell-state-toggle"
     button.dataset.state = state
-    if (words) button.title = words
+    button.textContent = String(count)
     return button
   }
+}
+
+/**
+ * What shows after a click on `clicked`'s chip, of the states `present`, `shown` showing now (Owen, 2026-10-10:
+ * "if all states are showing and I click one state, I want you to show just that state"):
+ * - everything showing:  only `clicked`;  `clicked` hidden:  it shows too;
+ *   `clicked` showing with others:  it hides;  `clicked` the only one showing:  everything again
+ * - the plan docs' rule too:  `packages/epics` `StateFilter.nextShown()`, the same lines (the pack can't be imported)
+ */
+function nextShown(present, shown, clicked) {
+  const showing = present.filter((state) => shown.includes(state))
+  if (showing.length === present.length) return [clicked]
+  if (!showing.includes(clicked)) return present.filter((state) => state === clicked || showing.includes(state))
+  if (showing.length === 1) return [...present]
+  return showing.filter((state) => state !== clicked)
 }
 
 /** The states a filter shows now (`{ buttons }`, see `wireItemFilters()`). */
@@ -1399,25 +1408,32 @@ function filterShown({ buttons }) {
 }
 
 /**
- * Show the items of the states `shown` in a filter's section (`{ section, lists, notes, all, buttons, present }`):
- * each state button pressed or not, the grey button's tooltip saying what its click does, an "N hidden" note under
- * each list that hides any.
+ * Show the items of the states `shown` in a filter's section (`{ section, lists, notes, buttons, present, counts }`):
+ * each chip pressed or not, its tooltip saying how many, which state and what its click does;
+ * an "N hidden" note under each list that hides any.
  */
-function showItems({ section, lists, notes, all, buttons, present }, shown) {
+function showItems({ section, lists, notes, buttons, present, counts }, shown) {
   const showing = new Set(shown)
+  const states = present.map(([state]) => state)
   for (const button of buttons) {
-    const on = showing.has(button.dataset.state)
-    button.setAttribute("aria-pressed", String(on))
-    const words = ITEM_STATES.find(([state]) => state === button.dataset.state)?.[1] ?? ""
-    button.title = `${on ? "Showing" : "Hiding"}:  ${words}`
+    const state = button.dataset.state
+    button.setAttribute("aria-pressed", String(showing.has(state)))
+    const words = ITEM_STATES.find(([each]) => each === state)?.[1] ?? ""
+    const next = nextShown(states, [...showing], state)
+    const does =
+      next.length === states.length
+        ? "show everything"
+        : next.length === 1 && next[0] === state
+          ? "show only these"
+          : next.includes(state)
+            ? "show these too"
+            : "hide these"
+    button.title = `${counts.get(state)} ${words}:  ${does}`
+    button.setAttribute("aria-label", button.title)
   }
-  const everything = showing.size >= present.length
+  const everything = states.every((state) => showing.has(state))
   if (everything) delete section.dataset.show
   else section.dataset.show = [...showing].join(" ")
-  const red = present.some(([state]) => state === "attention")
-  all.title = everything && red ? "Show only what needs you" : "Show everything"
-  all.setAttribute("aria-label", all.title)
-  all.setAttribute("aria-pressed", String(everything))
   lists.forEach((list, index) => {
     let hidden = 0
     for (const item of itemsOf(list)) {
@@ -1436,118 +1452,150 @@ function itemsOf(list) {
 }
 
 ////////////////
-// ## Rail
+// ## Toolbar
 ////////////////
 
+/** Below this many px for each title, a page toolbar shows its buttons' icons only (`fitTitles()`). */
+const MIN_TITLE_PX = 50
+
 /**
- * The rail:  a narrow strip FLOATING over the page's right edge, one icon per top-level section that jumps to it --
- * the page's one navigation, at every width (no contents list since 2026-10-08).
- * - a section's mark:  for an item (its label starts with an id, `Q3 · When?`), the id's number in a round badge,
- *   coloured by the section's `data-state` (`spell-doc.css`;  a details page's questions set it, `details.js`);
- *   else its own `<ui-icon>` (or `icon`), else its number (`2.`), else its first letter
- * - how many of the section's items need Owen (`counts`, `attention`):  a red bar on the entry, and a red pill once the
- *   strip widens;  none:  neither
- * - every entry carries its section's label, shown when the rail widens
- *   (hover, keyboard focus:  CSS), so no tooltips
- * - plain elements (`<button>`, `<a>`), not `ui-*`:  the strip is the page's own chrome, every box styled here
- * - CSS places it (`spell-doc.css`, "Rail");  scroll-follow marks the current section's entry `selected`, by
- *   `data-rail`;  the CHEATSHEET filter hides the entries of the sections it hid
- * - none for a page with no top-level sections
- * - callable again (a page updated in place):  replaces the rail it built before
- * - SIDE EFFECT:  appends the `<nav>` to the body;  removes a hand-written `.spell-toc-open` (pages before
- *   2026-10-01 had a "Contents" button at the bottom) and the rail built before
+ * The page's navigation:  a plan doc's toolbar (`buildToolbar()`), else the page toolbar (`buildPageToolbar()`).
+ * - returns the `<nav>`, whose `[data-rail]` entries scroll-follow marks;  none without top-level sections
+ * - `data-rail`:  the name the floating rail gave them (gone since epic `airplane` P8);  kept, as scroll-follow,
+ *   `details.js` and `check-spell.js` read it
  */
-function buildRail(outline, counts) {
-  for (const old of document.querySelectorAll(".spell-toc-open, nav.spell-rail")) old.remove()
-  // HEADINGS:  only the h2s that head a sticky section (an index page's plain h2s get no icon)
+function buildNavigation(main, outline, counts) {
+  const page = document.body.classList.contains("plan-doc") ? main.querySelector("epic-page") : null
+  return page ? buildToolbar(page, outline, counts) : buildPageToolbar(main, outline, counts)
+}
+
+/**
+ * Every other page's navigation (Owen, 2026-10-10:  "Make the floating sidebar in guides a sticky top toolbar like the
+ * plan doc.  Have section titles in this one"):  a row of buttons, one per top-level section, in the sticky page
+ * header, in place of the floating rail.
+ * - each:  the section's mark and its title, a link to it (`wireAnchors()` lands it);  scroll-follow marks the current
+ *   one `selected`, by `data-rail`
+ *   - the mark:  an item's number for an item (`Q3 · When?` shows 3, coloured by the section's `data-state`:  a
+ *     details page's questions, `details.js`);  else its `<ui-icon>`;  else its number (`2.`);  else its first letter
+ *   - a red badge:  how many of its items need Owen (`counts`, `attention`);  none, none
+ * - titles too long for the row end in `...`;  when each would get under `MIN_TITLE_PX`, they go, and the buttons
+ *   show their marks only, the title as their tooltip (`fitTitles()`);  still too wide, the row scrolls sideways
+ * - where:  the last row of the sticky page header (`ui-sticky.spell-h1 > header.spell-page-head`), so it sticks with
+ *   it and the titles stick below it;  a page without one (the goals pages, a cheat sheet):  the last row of its
+ *   filter bar (`.spell-filter`), else a sticky bar of its own before the first section (`.spell-toolbar-alone`,
+ *   measured as the filter bar is:  `trackStickyHeights()`)
+ * - HEADINGS (the goals pages):  only the h2s that head a sticky section
+ * - callable again (a page updated in place):  replaces the toolbar it built before
+ * - SIDE EFFECT:  adds the `<nav>` inside `main`, marked `data-spell-added` so the live patch steps around it;
+ *   removes a hand-written `.spell-toc-open` (pages before 2026-10-01 had a "Contents" button)
+ */
+function buildPageToolbar(main, outline, counts) {
+  for (const old of document.querySelectorAll(".spell-toc-open, nav.spell-toolbar")) old.remove()
   const groups = outline.sections ? outline.groups : outline.groups.filter((group) => headingSection(group.element))
   const entries = groups.map(({ element, id, label, glyph }) => {
     // an item id first in the label (`Q3 · When?`) says more than any icon:  every question's would be the same
     const itemNumber = label.match(/^[A-Z](\d+)\b/)?.[1]
     const mark = itemNumber
-      ? `<b class="spell-rail-number">${text(itemNumber)}</b>`
+      ? `<b class="spell-toolbar-number">${text(itemNumber)}</b>`
       : glyph
         ? `<ui-icon name="${attr(glyph)}"></ui-icon>`
         : `<b>${text((label.match(/^\d+/) ?? [label.charAt(0)])[0])}</b>`
+    const name = itemNumber ? label : shortLabel(label)
     const count = counts.get(element)
     const badge = count?.attention
-      ? `<span class="spell-rail-count" title="${needYou(count)}">${count.attention}</span>`
+      ? `<span class="spell-toolbar-count urgent" title="${needYou(count)}">${count.attention}</span>`
       : ""
     const state = element.dataset.state ? ` data-state="${attr(element.dataset.state)}"` : ""
     return (
-      `<a class="spell-rail-item" href="#${attr(id)}" data-rail="${attr(id)}"${state}>` +
-      `<span class="spell-rail-label">${text(label)}</span><span class="spell-rail-icon">${mark}${badge}</span></a>`
+      `<a class="spell-toolbar-item" href="#${attr(id)}" data-rail="${attr(id)}" title="${attr(label)}"${state}>` +
+      `<span class="spell-toolbar-icon">${mark}</span><span class="spell-toolbar-label">${text(name)}</span>` +
+      `${badge}</a>`
     )
   })
   if (!entries.length) return undefined
-  const rail = document.createElement("nav")
-  rail.className = "spell-rail"
-  rail.setAttribute("aria-label", "Sections")
-  rail.innerHTML = `<div class="spell-rail-items">${entries.join("")}</div>`
-  rail.addEventListener("click", (event) => {
-    if (event.target.closest?.("a.spell-rail-item")) restRail(rail)
-  })
-  document.body.append(rail)
-  return rail
+  const toolbar = document.createElement("nav")
+  toolbar.className = "spell-toolbar spell-toolbar-titled"
+  toolbar.dataset.spellAdded = ""
+  toolbar.setAttribute("aria-label", "Sections")
+  toolbar.innerHTML = `<div class="spell-toolbar-items">${entries.join("")}</div>`
+  const head =
+    main.querySelector(":scope > ui-sticky.spell-h1 > .spell-page-head") ?? main.querySelector(".spell-filter")
+  if (head) head.append(toolbar)
+  else {
+    toolbar.classList.add("spell-toolbar-alone")
+    const first = groups[0].element
+    ;(outline.sections ? first : (headingSection(first) ?? first)).before(toolbar)
+  }
+  // the current button in view, on a row scrolled sideways
+  new MutationObserver((changes) => {
+    for (const { target } of changes) if (target.hasAttribute("selected")) scrollIntoRow(target)
+  }).observe(toolbar, { subtree: true, attributeFilter: ["selected"] })
+  // fitted again as the window changes width, and as the icons draw and the fonts load
+  const fit = new ResizeObserver(() => fitTitles(toolbar))
+  for (const box of [toolbar, ...toolbar.querySelectorAll(".spell-toolbar-icon")]) fit.observe(box)
+  void document.fonts?.ready.then(() => fitTitles(toolbar))
+  return toolbar
 }
 
 /**
- * A section was picked from the widened rail:  it narrows back at once, though the pointer is still over it (Owen,
- * 2026-10-04:  it stayed open until a click in the page).  `spell-rail-resting` holds it narrow until the pointer
- * leaves;  the focus leaves too (`:focus-within` widens it).
+ * The page toolbar's titles:  shown, shrinking with `...` (CSS), while each gets `MIN_TITLE_PX` or more of the row;
+ * else gone (`spell-toolbar-icons`), the marks only (Owen, 2026-10-10:  "remove the titles entirely if they each only
+ * get less than 50px").
+ * - each title's share:  the row's room, less every button's mark, badge and padding, split evenly
  */
-function restRail(rail) {
-  rail.classList.add("spell-rail-resting")
-  rail.addEventListener("pointerleave", () => rail.classList.remove("spell-rail-resting"), { once: true })
-  if (rail.contains(document.activeElement)) document.activeElement.blur()
-}
-
-////////////////
-// ## Toolbar
-////////////////
-
-/** `fitLabels()`'s steps, each tighter than the last (`spell-doc.css`, "Toolbar"). */
-const TOOLBAR_FITS = ["compact", "crowded"]
-
-/**
- * The page's navigation:  a plan doc's toolbar (`buildToolbar()`), else the rail (`buildRail()`).
- * - returns the `<nav>`, whose `[data-rail]` entries scroll-follow marks;  none without top-level sections
- */
-function buildNavigation(main, outline, counts) {
-  const page = document.body.classList.contains("plan-doc") ? main.querySelector("epic-page") : null
-  return page ? buildToolbar(page, outline, counts) : buildRail(outline, counts)
+function fitTitles(toolbar) {
+  const row = toolbar.firstElementChild
+  const items = Array.from(row.children)
+  toolbar.classList.remove("spell-toolbar-icons")
+  if (!items.length) return
+  const style = getComputedStyle(row)
+  const room =
+    row.clientWidth -
+    parseFloat(style.paddingLeft) -
+    parseFloat(style.paddingRight) -
+    (parseFloat(style.columnGap) || 0) * (items.length - 1)
+  const fixed = items.reduce(
+    (sum, item) => sum + item.offsetWidth - (item.querySelector(".spell-toolbar-label")?.offsetWidth ?? 0),
+    0
+  )
+  if ((room - fixed) / items.length < MIN_TITLE_PX) toolbar.classList.add("spell-toolbar-icons")
 }
 
 /**
  * A PLAN DOC's navigation (epic `airplane` P8, Owen 2026-10-10:  "The contents sidebar on the plan doc should be a
  * sticky top toolbar instead"):  a row of buttons across the bottom of `<epic-page>`'s sticky header, one per
- * top-level block (Overview, Phases, Questions ... Log), in place of the rail.
- * - each:  the block's icon and its title without its number (`Questions`), a link to it (`wireAnchors()` lands it);
- *   scroll-follow marks the current one `selected`, by `data-rail` (as the rail's)
+ * top-level block (Overview, Phases, Questions ... Log), in place of the floating rail it had before.
+ * - each:  the block's icon, a link to it (`wireAnchors()` lands it);  its title without its number (`Questions`)
+ *   only as its tooltip and name (Owen, 2026-10-10:  "lose the titles ... when I click on the thing it goes to that
+ *   section anyway");  scroll-follow marks the current one `selected`, by `data-rail` (as the rail's)
  * - BADGES:  how many of the block's items wait on Owen, from `counts` (none:  no badge)
  *   - red:  urgent (`state="attention"`)
  *   - orange:  Claude answered with options, his turn to pick (`state="replied"`)
  *   - both kinds:  both badges, red first
  * - in the header's `toolbar` slot (`<epic-page>`'s):  it sticks with the header, and the header's measured height,
- *   where every title below sticks (`--epic-stack`), takes it in
- * - narrow windows (a phone, VS Code's side bar):  tighter buttons, then only the current one keeps its label
- *   (`fitLabels()`), and the row scrolls sideways if even that doesn't fit (`spell-doc.css`, "Toolbar");  the current
- *   button scrolls into view
- * - callable again (a page updated in place):  replaces the toolbar (and any rail) built before
+ *   where every title below sticks (`--epic-stack`), takes it in;  `<epic-page>` draws the rest of that row at its
+ *   right (the page's state filter, collapse-all, the new item button)
+ * - a window too narrow for every button:  the row scrolls sideways (`spell-doc.css`, "Toolbar"), the current button
+ *   scrolled into view
+ * - callable again (a page updated in place):  replaces the toolbar built before
  * - SIDE EFFECT:  appends the `<nav>` to `page`, marked `data-spell-added` so the live patch steps around it
  */
 function buildToolbar(page, outline, counts) {
-  for (const old of document.querySelectorAll(".spell-toc-open, nav.spell-rail, nav.spell-toolbar")) old.remove()
+  for (const old of document.querySelectorAll(".spell-toc-open, nav.spell-toolbar")) old.remove()
   const entries = outline.groups.map(({ element, id, label, glyph }) => {
     const count = counts.get(element)
     const replied = count?.replied ?? 0
     const urgent = (count?.attention ?? 0) - replied
-    // in a box of its own (the icon's host has none):  `fitLabels()` watches it draw
-    const icon = glyph ? `<span class="spell-toolbar-icon"><ui-icon name="${attr(glyph)}"></ui-icon></span>` : ""
+    const name = shortLabel(label)
+    // spoken:  the name, then what the badges say
+    const spoken = [name, urgent > 0 && `${urgent} urgent`, replied > 0 && `${replied} replied`]
+      .filter(Boolean)
+      .join(", ")
+    // no icon:  the label's first letter stands in
+    const mark = glyph ? `<ui-icon name="${attr(glyph)}"></ui-icon>` : `<b>${text(name.charAt(0))}</b>`
     return (
-      `<a class="spell-toolbar-item" href="#${attr(id)}" data-rail="${attr(id)}" title="${attr(shortLabel(label))}">` +
-      icon +
-      `<span class="spell-toolbar-label">${text(shortLabel(label))}</span>` +
+      `<a class="spell-toolbar-item" href="#${attr(id)}" data-rail="${attr(id)}" title="${attr(name)}" ` +
+      `aria-label="${attr(spoken)}"><span class="spell-toolbar-icon">${mark}</span>` +
       badge("urgent", urgent, `${urgent} urgent`) +
       badge("replied", replied, `${replied} replied:  ${replied === 1 ? "waits" : "wait"} for your pick`) +
       `</a>`
@@ -1564,31 +1612,12 @@ function buildToolbar(page, outline, counts) {
   new MutationObserver((changes) => {
     for (const { target } of changes) if (target.hasAttribute("selected")) scrollIntoRow(target)
   }).observe(toolbar, { subtree: true, attributeFilter: ["selected"] })
-  // fitted again as the window narrows, and as the icons draw and the fonts load (neither changes as labels hide)
-  const fit = new ResizeObserver(() => fitLabels(toolbar))
-  for (const box of [toolbar, ...toolbar.querySelectorAll(".spell-toolbar-icon")]) fit.observe(box)
-  void document.fonts?.ready.then(() => fitLabels(toolbar))
   page.append(toolbar)
   return toolbar
 
   /** A badge of `number` items of `kind`, or nothing for none. */
   function badge(kind, number, tip) {
     return number > 0 ? `<span class="spell-toolbar-count ${kind}" title="${attr(tip)}">${number}</span>` : ""
-  }
-}
-
-/**
- * Every label when the row holds them all;  else `compact` (tighter, smaller), if that holds them;  else `crowded`:
- * only the current button keeps its label, the rest show their icon and badges (the label in a tooltip), and the row
- * scrolls sideways if even that doesn't fit.
- * - measured afresh whenever the toolbar changes width (`buildToolbar()`'s observer)
- */
-function fitLabels(toolbar) {
-  const row = toolbar.firstElementChild
-  toolbar.classList.remove("compact", "crowded")
-  for (const fit of TOOLBAR_FITS) {
-    if (row.scrollWidth <= row.clientWidth + 1) return
-    toolbar.classList.add(fit)
   }
 }
 
@@ -1813,7 +1842,8 @@ let stickyObserver
  */
 function trackStickyHeights(main, outline) {
   const head = main.querySelector(":scope > ui-sticky.spell-h1")
-  const bar = main.querySelector(".spell-filter")
+  // the filter bar, or a page toolbar sticking by itself (`buildPageToolbar()`):  never both
+  const bar = main.querySelector(".spell-filter, nav.spell-toolbar-alone")
   const h2Stickies = outline.sections ? [] : Array.from(main.querySelectorAll("ui-sticky.spell-h2"))
   const h3Stickies = outline.sections ? [] : Array.from(main.querySelectorAll("ui-sticky.spell-h3"))
   const sections = outline.sections ? Array.from(main.querySelectorAll("ui-section")) : []
@@ -1941,12 +1971,12 @@ function h2HeightAbove(sticky) {
 
 /**
  * Same-page links to anything with an id in `main` (a section, a heading, a plan item) jump there ourselves, and
- * the rail follows AT ONCE.
+ * the toolbar follows AT ONCE.
  * - a section lands with its title at its sticky line;  anything else below every stuck title above it (both by
  *   the site header plus their `scroll-margin-top`, "Landing" in the header):  the browser's own jump would add
  *   the stuck titles' scroll padding (they reserve it) on top
  * - HEADINGS:  a STICKY heading's jump goes to its section:  a stuck heading already "is" at the top, so the
- *   browser's own jump to it does nothing -- e.g. the rail's entry of the section you're reading
+ *   browser's own jump to it does nothing -- e.g. the toolbar's entry of the section you're reading
  * - folded sections around the target unfold first, and a target that is a folded item opens (`folds.reveal()`);
  *   an unfolded `<ui-section>` draws on the next frames, so the jump lands once it has, and once more after a fold's
  *   transition (`SETTLE_MS`) unless the reader scrolled meanwhile
@@ -1956,8 +1986,10 @@ function h2HeightAbove(sticky) {
  * - in a frame (VS Code's view), the parent's `{ spell: "go", hash }` too:  the view showing the page it already
  *   shows, at an id (`packages/vscode/src/DocView.ts`);  a history entry, as a click's
  * - a jump that moves the address says so (`spell-doc:place`):  `pushState()` fires no `hashchange`
- * - returns `jump(id, { unfoldTarget })`:  `unfoldTarget: false` unfolds only what's AROUND a folded target
- *   section (`land()`:  a reload lands on the section being read as it was, folded or not)
+ * - returns `{ jump, go, canGo }`:
+ *   - `jump(id, { unfoldTarget })`:  `unfoldTarget: false` unfolds only what's AROUND a folded target section
+ *     (`land()`:  a reload lands on the section being read as it was, folded or not)
+ *   - `go(id)`:  as a click on a link to `#id` (a history entry, then the jump);  `canGo(id)`:  is there one to land on
  */
 function wireAnchors(main, outline, sticky, follow, folds) {
   document.addEventListener("click", (event) => {
@@ -1970,7 +2002,7 @@ function wireAnchors(main, outline, sticky, follow, folds) {
   addEventListener("popstate", () => jump(hashId()))
   addEventListener("hashchange", () => jump(hashId()))
   if (window.parent !== window) addEventListener("message", onMessage)
-  return jump
+  return { jump, go, canGo: (id) => !!(targetIn(id) || hostHolding(main, id)) }
 
   /** Follow a same-page link to `id`:  a history entry (unless the address is there already), then the jump. */
   function go(id) {
@@ -2066,6 +2098,101 @@ function topOf(element) {
   const range = document.createRange()
   range.selectNodeContents(element)
   return range.getBoundingClientRect().top
+}
+
+////////////////
+// ## Jump to an item (Cmd / Ctrl + K)
+////////////////
+
+/**
+ * Cmd-K (Ctrl-K) on a plan doc asks which item to jump to (Owen, 2026-10-10:  "add command-k which brings up
+ * ui-prompt asking what number I want to jump to (e.g. J7)"), and lands there exactly as a link to `#j7` does
+ * (`go()`:  what hides it unfolds, an item opens, it lands below the stuck titles).
+ * - any id on the page, case and a `#` aside:  `J7`, `q3`, `P2`, `o1`, `#decisions`
+ * - an id that isn't there:  the dialog says so and stays open, the text selected for typing over
+ * - never while typing in a field (a note box, the new item form), nor with a dialog already open
+ * - the dialog is a `<ui-modal>` built as `UI.modals.prompt()` builds its own (`ModalDialogs`):
+ *   no `<ui-prompt>` element exists, and `prompt()` closes on any answer, so it couldn't stay open on a miss;
+ *   here its cancelable `ui-approve` is cancelled instead
+ * - K is free:  the live client takes only Cmd / Ctrl + A C X V Z in VS Code's view (`liveClient.ts` `editKey()`)
+ */
+function wireJumpKey(go, canGo) {
+  document.addEventListener("keydown", (event) => {
+    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.defaultPrevented) return
+    if (event.key.toLowerCase() !== "k" || event.isComposing) return
+    if (document.querySelector("dialog[open], ui-modal[open]") || typingIn(event)) return
+    event.preventDefault()
+    openJumpPrompt(go, canGo)
+  })
+}
+
+/** The jump dialog:  an id typed, Go lands there;  Cancel or Escape just closes it. */
+function openJumpPrompt(go, canGo) {
+  const modal = document.createElement("ui-modal")
+  for (const [name, value] of Object.entries({ size: "tiny", closedby: "closerequest", header: "Jump to which item?" }))
+    modal.setAttribute(name, value)
+  modal.dataset.spellAdded = ""
+  const content = document.createElement("ui-content")
+  const label = document.createElement("label")
+  label.className = "ui-native spell-jump"
+  label.append("Its id:  J7, q3, P2 ...")
+  const input = document.createElement("input")
+  input.type = "text"
+  input.autofocus = true
+  input.autocomplete = "off"
+  input.spellcheck = false
+  const miss = document.createElement("p")
+  miss.className = "spell-jump-miss"
+  miss.setAttribute("role", "alert")
+  miss.hidden = true
+  label.append(input)
+  content.append(label, miss)
+  const actions = document.createElement("ui-actions")
+  const cancel = document.createElement("ui-button")
+  cancel.className = "cancel"
+  cancel.textContent = "Cancel"
+  const approve = document.createElement("ui-button")
+  approve.className = "approve"
+  approve.setAttribute("primary", "")
+  approve.textContent = "Go"
+  actions.append(cancel, approve)
+  modal.append(content, actions)
+  let target = ""
+  input.addEventListener("keydown", (event) => {
+    if (event.key === "Enter") approve.click()
+  })
+  input.addEventListener("input", () => (miss.hidden = true))
+  modal.addEventListener("ui-approve", (event) => {
+    const id = input.value.trim().replace(/^#/, "").toLowerCase()
+    if (id && canGo(id)) {
+      target = id
+      return
+    }
+    // stays open:  says what it couldn't find
+    event.preventDefault()
+    miss.textContent = id ? `No ${input.value.trim()} on this page.` : "Type an id first."
+    miss.hidden = false
+    input.select()
+  })
+  modal.addEventListener(
+    "ui-hide",
+    () => {
+      modal.remove()
+      if (target) go(target)
+    },
+    { once: true }
+  )
+  document.body.append(modal)
+  modal.open = true
+  // the input once the dialog has drawn:  `autofocus` alone loses to the dialog's own focus on some opens
+  void nextFrames(2).then(() => input.focus())
+}
+
+/** Is `event`'s key typed into a field (an input, a textarea, a select, editable text)? */
+function typingIn(event) {
+  return event
+    .composedPath()
+    .some((node) => node instanceof Element && (node.isContentEditable || node.matches(`${FIELDS}, textarea, input`)))
 }
 
 ////////////////
@@ -2192,10 +2319,10 @@ function decodeHash(hash) {
 ////////////////
 
 /**
- * Mark the rail's entry of the section being read, and let the address follow it.
+ * Mark the toolbar's entry of the section being read, and let the address follow it.
  * - "Current":  the last entry (section, heading) whose top has reached its landing line (the site header and its
  *   `scroll-margin-top`, plus a little);  entries hidden by the filter or inside a folded section don't count
- * - the rail's entry of the current entry's top-level section is `selected`
+ * - the toolbar's entry of the current entry's top-level section is `selected`
  * - the ADDRESS follows too, once `followAddress()` has been called (`land()`, after the page has landed):
  *   the current entry's `#id` replaces the URL's hash (`history.replaceState()`:  no history entry, no jump);
  *   not while a followed link is pinned (its click set the hash), and no hash above the first entry
@@ -2204,7 +2331,7 @@ function decodeHash(hash) {
  *     VS Code's view (`liveClient.ts` `reportPlace()`)
  * - returns `{ update, pin, followAddress, rescan }`:
  *   - `pin(entry)` makes it current until the page scrolls again (a link was followed)
- *   - `rescan(rail)` reads the entries and the rail again:  the page was updated in place (`rewire()`)
+ *   - `rescan(rail)` reads the entries and the toolbar again:  the page was updated in place (`rewire()`)
  */
 function followScroll(main, outline, rail) {
   let headings = []
@@ -2219,7 +2346,7 @@ function followScroll(main, outline, rail) {
   addEventListener("resize", schedule, { passive: true })
   return { update, pin, followAddress, rescan }
 
-  /** Read the entries and the rail's items;  a rebuilt rail gets its mark again on the next update. */
+  /** Read the entries and the toolbar's items;  a rebuilt toolbar gets its mark again on the next update. */
   function rescan(nextRail) {
     headings = Array.from(main.querySelectorAll(outline.targets))
     const items = Array.from(nextRail?.querySelectorAll("[data-rail]") ?? [])
@@ -2271,7 +2398,7 @@ function followScroll(main, outline, rail) {
     dispatchEvent(new Event("spell-doc:place"))
   }
 
-  /** Mark the rail's entry of `heading`'s top-level section. */
+  /** Mark the toolbar's entry of `heading`'s top-level section. */
   function setActive(heading) {
     if (!heading || heading === active) return
     active = heading
@@ -2326,7 +2453,7 @@ function titlesOf(accordion) {
 /**
  * `ui-input[data-spell-filter]` shows only the cards holding every typed word, and `ui-select[data-spell-filter-badge]`
  * only those with a `ui-label` badge of the chosen text ("" = any);  sections without a visible card hide too, and
- * so do their rail entries.
+ * so do their toolbar buttons.
  * - reads values from the events' `detail`:  during `ui-input` / `ui-change` the element's `value` is still the old one
  * - SIDE EFFECT:  remembers the typed filter (not the badge) in `localStorage` (when the browser allows it), per
  *   page:  under the input's `data-spell-filter` value, or `FILTER_KEY_PREFIX` + the page's path
@@ -2395,7 +2522,7 @@ function wireFilter(main) {
       }
     }
     if (empty) empty.hidden = shown > 0
-    for (const item of document.querySelectorAll("nav.spell-rail [data-rail]")) {
+    for (const item of document.querySelectorAll("nav.spell-toolbar [data-rail]")) {
       item.hidden = !!document.getElementById(item.dataset.rail)?.closest("[hidden]")
     }
   }
@@ -2549,10 +2676,9 @@ function addNotePill(main) {
   pill.dataset.spellAdded = ""
   pill.innerHTML =
     (fresh.length ? `<a class="spell-notes-count" href="#${attr(fresh[0].id)}">${fresh.length} new</a>` : "") +
-    `<ui-button circular basic size="tiny" icon="comment">Note</ui-button>` +
-    `<ui-popup inverted size="mini" position="bottom center" content="A note on this page, for Claude"></ui-popup>`
+    `<ui-button circular basic size="tiny" icon="comment" title="A note on this page, for Claude">Note</ui-button>`
   pill.querySelector("ui-button").addEventListener("click", () => openNoteBox({ anchor: "page", label: "this page" }))
-  head.append(pill)
+  beforeToolbar(head, pill)
 }
 
 /**
@@ -2700,11 +2826,16 @@ function wireNewEpic(main) {
   const pill = document.createElement("span")
   pill.className = "spell-new-epic"
   pill.dataset.spellAdded = ""
-  pill.innerHTML =
-    `<ui-button circular basic size="tiny" icon="seedling">New epic</ui-button>` +
-    `<ui-popup inverted size="mini" position="bottom center" content="Write an idea down as a future epic"></ui-popup>`
+  pill.innerHTML = `<ui-button circular basic size="tiny" icon="seedling" title="Write an idea down as a future epic">New epic</ui-button>`
   pill.querySelector("ui-button").addEventListener("click", openNewEpicBox)
-  head.append(pill)
+  beforeToolbar(head, pill)
+}
+
+/** Add `pill` to the page header `head`, before its toolbar (`buildPageToolbar()`):  the toolbar stays its last row. */
+function beforeToolbar(head, pill) {
+  const toolbar = head.querySelector(":scope > nav.spell-toolbar")
+  if (toolbar) toolbar.before(pill)
+  else head.append(pill)
 }
 
 /** Open the New epic box, with the draft typed so far. */

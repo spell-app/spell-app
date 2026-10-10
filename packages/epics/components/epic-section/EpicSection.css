@@ -38,11 +38,6 @@
   }
 
   /* ## The Phases title's toggles:  bare icons, square, muted;  the accent while pressed */
-  .tools {
-    display: inline-flex;
-    align-items: center;
-    gap: 2px;
-  }
   .toggle {
     display: inline-grid;
     place-items: center;
@@ -81,11 +76,14 @@
     font-style: italic;
   }
 
-  /* ## The title's end:  its tools (toggles, the state filter), then the count badge, then the chevron */
-  ui-section::part(actions) {
+  /*
+   * ## The title's end:  the count badge, then its tools (toggles, the state filter) ending in collapse-all, then the
+   * chevron:  collapse-all beside the chevron (Owen, 2026-10-10)
+   */
+  ui-section::part(badge) {
     order: 1;
   }
-  ui-section::part(badge) {
+  ui-section::part(actions) {
     order: 2;
   }
   ui-section::part(fold-icon) {
@@ -104,73 +102,13 @@
     :host(:state(tools)) ui-section::part(heading) {
       flex-basis: 100%;
     }
-    ui-section::part(actions) {
+    /* the badge leads the wrapped row (badge, tools, chevron) at the right:  a section with tools has a badge */
+    ui-section::part(badge) {
       margin-inline-start: auto;
     }
-  }
-
-  /*
-   * ## The state filter:  round chips in their state's colour, filled while its items show, outlined while hidden;
-   * the grey filter chip first, a size up, filled while everything shows.  Each centred on the title's row
-   */
-  .filter {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-  }
-  .chip {
-    --_chip: var(--ui-grey, #767676);
-    display: inline-grid;
-    flex: none;
-    place-items: center;
-    box-sizing: border-box;
-    width: 16px;
-    height: 16px;
-    padding: 0;
-    border: 2px solid var(--_chip);
-    border-radius: 50%;
-    background: transparent;
-    color: var(--_chip);
-    cursor: pointer;
-  }
-  .chip[data-state="all"] {
-    width: 22px;
-    height: 22px;
-    border-width: 1.5px;
-  }
-  .chip svg {
-    display: block;
-    width: 10px;
-    height: 10px;
-    fill: currentColor;
-  }
-  /* the item states' colours (decision Q20):  blue Claude is on it, red needs Owen, yellow open, green done lately */
-  .chip[data-color="blue"] {
-    --_chip: var(--epic-state-progress, var(--ui-blue));
-  }
-  .chip[data-color="red"] {
-    --_chip: var(--epic-state-attention, var(--ui-red));
-  }
-  /* Claude answered with options, Owen's turn to pick (`replied`, Owen, 2026-10-09) */
-  .chip[data-color="orange"] {
-    --_chip: var(--epic-state-replied, var(--ui-orange));
-  }
-  .chip[data-color="yellow"] {
-    --_chip: var(--epic-state-open, var(--ui-yellow));
-  }
-  .chip[data-color="green"] {
-    --_chip: var(--epic-state-recent, var(--ui-green));
-  }
-  .chip[aria-pressed="true"] {
-    background: var(--_chip);
-    color: var(--epic-bg, var(--ui-background));
-  }
-  .chip:hover {
-    box-shadow: 0 0 0 3px color-mix(in srgb, var(--_chip) 25%, transparent);
-  }
-  .chip:focus-visible {
-    outline: 2px solid var(--ui-focus-color, var(--epic-accent));
-    outline-offset: 1px;
+    ui-section::part(actions) {
+      margin-inline-start: 0;
+    }
   }
 
   /* under a filtered list:  a quiet line, a link to show all */
