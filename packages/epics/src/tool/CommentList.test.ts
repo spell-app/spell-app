@@ -188,6 +188,34 @@ describe("CommentList", () => {
     expect(() => comments.edit(id, " \n ")).toThrow(expect.objectContaining({ status: 400 }))
     expect(comments.comment(id).text).toBe("kept")
   })
+
+  test("WORKING:  Claude thinking about it -- not waiting, his last reply read;  answer() turns it off", () => {
+    const comments = new CommentList({})
+    const id = comments.add(ON_FIELD, "Why?", NOW)
+    const later = (minutes: number) => new Date(NOW.getTime() + minutes * 60_000)
+    comments.answer(id, "<p>Because.</p>", later(1))
+    comments.reply(id, "Say more", later(2))
+    expect(comments.waiting.map((each) => each.id)).toEqual([id])
+    comments.setWorking(id, true, later(3))
+    // set again:  the first time stays
+    comments.setWorking(id, true, later(4))
+    expect(comments.comment(id).working).toBe(later(3).toISOString())
+    expect([comments.waiting, CommentList.turnOf(comments.comment(id))]).toEqual([[], "claude"])
+    // his reply is read:  more words go after it, as a new reply, and wait again
+    comments.reply(id, "And the other one", later(5))
+    expect(comments.comment(id).replies!.map((each) => each.text ?? each.html)).toEqual([
+      "<p>Because.</p>",
+      "Say more",
+      "And the other one"
+    ])
+    expect(comments.waiting.map((each) => each.id)).toEqual([id])
+    comments.answer(id, "<p>Both done.</p>", later(6))
+    expect(comments.comment(id).working).toBeUndefined()
+    comments.setWorking(id, true, later(7))
+    comments.setWorking(id, false)
+    expect(comments.comment(id).working).toBeUndefined()
+    expect(() => comments.setWorking("cm9", true)).toThrow(expect.objectContaining({ status: 404 }))
+  })
 })
 
 describe("ReviewInbox.commentList", () => {

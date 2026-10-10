@@ -599,6 +599,10 @@ In `tools/`:
     - Its field has no placeholder, only an `aria-label` (Owen, 2026-10-10).
     - It saves itself as Owen types:  the floppy shows saved (its tooltip the time), or turns red.
     - × or Escape (or ⌘ Enter) closes it.  Opening another saves this one first.
+    - So does the FOCUS LEAVING it (Owen, 2026-10-10:  "Tabbing out of a bullhorn modal saves it automatically.
+      If it's empty, delete it"):  Tab, a click elsewhere on the page.
+      - What's typed is saved;  nothing typed saves nothing;  emptied, the comment goes, with no Undo.
+      - Another window or tab doesn't count:  the cursor is still in it there.
   - NEVER an empty comment (Owen, 2026-10-10):
     - nothing typed, or only spaces, saves nothing
     - emptied, it goes at once (`delete` while it waits for Claude, else `clear`)
@@ -626,8 +630,14 @@ In `tools/`:
     - Where:  right after the smallest paragraph, list item, cell ... holding its quote (`holderOf()`;  inside a
       list item or cell, at its end);  else under its block, a docs section's first in its body.
       Owen, 2026-10-10:  "show them under the paragraph where they were defined".
-    - Folded to its header, except while it's Owen's turn, or he opened it on this visit.
+    - Folded to its header, except while it's Owen's turn, or Claude is thinking about it, or he opened it on this
+      visit, or he's writing in it.
       Before threads, a comment had a card only while it had news Owen hadn't read.
+    - Its EDGES (Owen, 2026-10-10:  "same indent as comment box"):
+      - under a plan doc's item:  its note box's ("Your note:  a question ..."), the item's details' padding
+        (`--epic-item-indent` left, 6px right);  so is a thread under a paragraph inside the item
+      - else the block's it's under:  a guide's paragraph (its 72ch measure too), table, code ...;  a phase's field
+      - Before 2026-10-10:  32px in from the text on each side.
   - A thread's LOOK (the mockup, `pages/details/comment-thread-mock.html`, and Owen's notes on it):
     - ALL ivory, whoever spoke last:  the pane's `--spell-rail-bg`, outline and corners;  no shadow
       ("Make the entire thing ivory").
@@ -639,28 +649,43 @@ In `tools/`:
       - ONE grouped pill of 24px square icon buttons, grey outlined, on the page's ground;  its colour under the
         pointer.  Tooltips:  just the name, as the item's.
       - Approve's check (green):  "that's good".  The thread is done:  it folds, a check circle in its header.
-      - Revisit's history (blue):  reply.  A box opens under the messages.
+      - Revisit's history (blue):  reply.  The cursor goes into the reply box at the thread's end.
       - The note box's x (grey):  "skip it".  Done, nothing more to do.
       - A toast says it's done, with Undo (`reopen`).  A closed thread shows Reopen in their place.
-    - The pen, while his last words wait and Claude hasn't taken them:  they come back in the box to change.
+    - The pen, while his FIRST words wait and Claude hasn't had them:  they come back in a box to change.
+      His pending reply needs none:  it's in the reply box.
     - The trash, always.
     - The MESSAGES:  the colour says who, and a bold "You:" / "Claude:" starts each one's first line (Owen, 2026-10-10:
       "Put You in bold, same line, before me and Claude: before yours";  earlier he'd dropped a separate name line).
-    - Tight:  2px / 6px inside a message, 2px between them;  32px in from the text on each side.
+    - Tight:  2px / 6px inside a message, 2px between them.
       - Owen's:  plain on the ivory, no box, but the same padding as a boxed one ("my text doesn't get bordered").
       - Claude's:  a light violet box (`--ui-violet` mixed light), a thin violet outline, no side bar.
         Also "Taken into <epic> P<n>", and "Answered in the plan doc" for an answer with no words here.
       - A green Done line once closed:  a check, "That's good." or "Skipped", the commit Claude named.
+      - While Claude THINKS about it (the comment's `working`;  Owen, 2026-10-10:  "What does it look like when
+        you're thinking?  You could put in a stub and replace that when you've thought"):  "Claude: thinking…" last,
+        in Claude's box, its words violet and italic, a turning `circle notch`, its time when he started.
+        His answer takes its place.  The bullhorn's list says "Claude is thinking…".
       - Each one's time in its top right corner, `position: absolute`.
         The first's carries the day (`10/10 09:12`), the rest only the time, unless the day changed.
         The full date and time is its tooltip.
         A hidden copy floats there, so the first line's text stops short of it.
-  - The REPLY BOX (`startReply()`):  the pane's field, under the messages, its floppy in the corner.
+  - The REPLY BOX (`replyBoxFor()`;  Owen, 2026-10-10:  "How do I reply?  Probably should have a comment box at the
+    bottom for me"):  last in EVERY open thread, no Revisit needed;  none once done, until Reopen.
+    - The pane's field (no placeholder, an `aria-label`), its floppy in the corner;  a line or two, growing with
+      its words.
     - It saves itself as he types (`reply`):  his PENDING reply (the last entry, his, not taken since) changes,
-      rather than adding another.  Emptied, it goes.
-    - The pen's box edits his first words while the comment is `new` (`edit`).
-      Emptied, the comment goes only as the box closes, with Undo:  clearing it to type afresh never loses it.
-    - Escape or ⌘ Enter closes it.  Kept across redraws, the cursor with it.
+      rather than adding another.
+    - Claude's turn:  it still shows, holding his pending reply to change or add to.
+      - Once Claude is thinking about it (`working`), his words are read:  the box is empty again, and what he
+        types is a new reply after them.
+    - FOCUS LEAVING it (Tab, a click elsewhere) saves at once;  emptied, his pending reply goes.
+    - Escape or ⌘ Enter saves, and the cursor leaves it.
+    - Kept across redraws while he's in it or it holds words not saved yet, the cursor with it;  else made again
+      from what the server holds.
+    - The pen's box edits his first words while the comment is `new` (`edit`), standing in for the reply box.
+      - Focus leaving it, Escape or ⌘ Enter:  saved and closed.
+      - Emptied, the comment goes only as the box closes, with Undo:  clearing it to type afresh never loses it.
     - A draft is kept in this browser while it differs from what's saved.
   - Owen's icon buttons outside the pill (the pen, the trash, the pane's ×) are plain:  no ring, a tint under the
     pointer.
@@ -686,6 +711,9 @@ In `tools/`:
       - `reopen { id }`
   - The GET adds each comment's `turn`.
     The runtime works it out itself from a server started before threads (`withTurns()`).
+  - It carries the comment's `working` too, as the inbox holds it:  any server shows the thinking stub.
+  - A page served under `/worktrees/<w>/` redraws on its inbox's change too:  the server announces a shared
+    folder's files without that prefix (`inboxPaths`).
   - pages under `guides/`, `pages/`, `epics/` (plan docs too)
   - NOT:
     - a plan doc's `parts/`
@@ -696,9 +724,13 @@ In `tools/`:
   ```sh
   spell dev comments list [--all] [--json]
   spell dev comments answer <page> <id> --file <html> [--commit <sha>]
+  spell dev comments working <page> <id> on | off
   spell dev comments gather [<page>... | --all] [--epic <name>] [--json]
   ```
 
+  - `working ... on` as Claude starts on a comment:  its thread shows "Claude: thinking…" (`CommentList.setWorking()`,
+    the comment's `working`, since when).  `answer` turns it off.
+    - Not WAITING meanwhile, and Owen's words before it count as read.
   - WAITING (`CommentList.waiting`):  Claude's turn, not taken since Owen last spoke.
     So Owen's reply on a thread is new work, as a new comment is:  `list` shows it under the comment.
   - `answer` puts Claude's answer on the thread:  Owen's turn.  `--commit`:  the Done line shows it.
@@ -708,8 +740,10 @@ In `tools/`:
     - each comment then `taken`
     - `/airplane land` runs it.
 - Claude's side, for plan docs:  `spell dev plan-doc inbox <name>` lists them, and Owen's replies under them.
+  - `plan-doc inbox <name> working cm3 on | off`:  the thinking stub, as `comments working` (an item's id:  its
+    spinner, as before).
   - Answered like a revisit's note, then `plan-doc inbox <name> done cm3 [--file <html>] [--commit <sha>]`
-    (or `clear cm3`).
+    (or `clear cm3`);  `done` turns `working` off.
   - `--file`:  the answer on the thread too.  Without it, "Answered in the plan doc".
 
 ## Page notes

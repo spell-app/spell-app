@@ -13,7 +13,8 @@
  * - `GET /api/comments?page=<path>` -- the page's comments, every status:  `{ page, takesComments, comments }`
  *   - the runtime asks as the page loads, and draws the bullhorns only when `takesComments`:
  *     a server without this module, `file://`, or a page that takes none shows none
- *   - each comment with its thread (`replies`, `done`) and whose `turn` it is (`CommentList.turnOf()`)
+ *   - each comment with its thread (`replies`, `done`) and whose `turn` it is (`CommentList.turnOf()`);  `working`
+ *     while Claude thinks about it (`spell dev comments working`):  the thread's "Claude: thinking…" stub
  * - `POST /api/comments` `{ page, action, ... }` -- change one comment;  answers `{ ok, id, comments }`
  *   - `add` `{ anchor, kind, label, excerpt, quote?, offset?, text }`:  a new comment;  answers its `id`
  *   - `edit` `{ id, text }`, `delete` `{ id }`:  only while the comment is `new` (else 409)
