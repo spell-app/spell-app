@@ -19,6 +19,8 @@
  * - the RAIL, the page's one navigation:  a strip of the top-level sections' icons FLOATING over the right edge
  *   (`buildRail()`), every width;  no column is kept for it, the page runs to the window's edge.
  *   No contents list:  Owen, 2026-10-08 ("remove the Contents thing entirely ... it is useless")
+ *   - a PLAN DOC has a TOOLBAR instead (`buildToolbar()`, epic `airplane` P8):  a row of the blocks' buttons at the
+ *     bottom of its sticky page header, each with badges of the items waiting on Owen
  * - sticky headers:  the page header (`ui-sticky.spell-h1`) sticks at the top, each top-level title below it,
  *   nested ones below their parents' (re-measured on resize);
  *   CSS variables on the sections let anchors land below them all
@@ -158,7 +160,7 @@ async function start() {
   // the goals pages (HEADINGS) get no filter, but their id chips are coloured by state too
   if (outline.sections) wireItemFilters(main)
   else markItemStates(main)
-  const rail = buildRail(outline, counts)
+  const rail = buildNavigation(main, outline, counts)
   // before the sections first draw, so a saved fold doesn't animate shut
   const folds = wireFolds(main, outline)
   const used = TAGS.filter((tag) => document.querySelector(tag))
@@ -910,7 +912,7 @@ async function rewire(page, changed) {
   wireItemFilters(main)
   highlightIn(changed)
   const entries = railKey(outline, counts)
-  if (entries !== page.entries) page.rail = buildRail(outline, counts)
+  if (entries !== page.entries) page.rail = buildNavigation(main, outline, counts)
   page.entries = entries
   if (changed.some((node) => withSelf(node, "ui-section").length)) page.sticky = trackStickyHeights(main, outline)
   page.follow.rescan(page.rail)
@@ -920,13 +922,14 @@ async function rewire(page, changed) {
   dispatchEvent(new CustomEvent("spell-doc:updated", { detail: { changed } }))
 }
 
-/** What the rail is built from, as one string:  entries, labels, icons, what needs Owen. */
+/** What the rail (or toolbar) is built from, as one string:  entries, labels, icons, what needs Owen. */
 function railKey(outline, counts) {
   return JSON.stringify(outline.groups.map(entry))
 
-  /** One top-level entry:  its id, label, icon and state, and how many of its items need Owen. */
+  /** One top-level entry:  its id, label, icon and state, and how many of its items need Owen (and how). */
   function entry(node) {
-    return [node.id, node.label, node.glyph, node.element.dataset.state, counts.get(node.element)?.attention ?? 0]
+    const count = counts.get(node.element)
+    return [node.id, node.label, node.glyph, node.element.dataset.state, count?.attention ?? 0, count?.replied ?? 0]
   }
 }
 
@@ -1155,6 +1158,12 @@ const CLOSED = new Set(["done", "decided", "canceled"])
 const EPIC_ATTENTION =
   ':scope > epic-item:is([state="attention"], [state="replied"]), :scope > epic-phase[state="attention"]'
 
+/**
+ * Of those, the ones Claude answered with options, waiting on Owen's pick (`replied`, orange):  the plan-doc toolbar
+ * shows them apart from the urgent ones (red;  `buildToolbar()`).
+ */
+const EPIC_REPLIED = ':scope > :is(epic-item, epic-phase)[state="replied"]'
+
 /** A count pill's tooltip:  "2 need you", "1 needs you". */
 function needYou({ attention }) {
   return `${attention} ${attention === 1 ? "needs" : "need"} you`
@@ -1169,7 +1178,8 @@ function needYou({ attention }) {
  * - the Epics index's epic cards, the goals pages' items
  * - a plan doc's sections count themselves (`<epic-section>`, on their titles):  their count is read from their
  *   hosts' `contentsEntry`, never written;
- *   its `attention` too, else the items' `state="attention"` (`EPIC_ATTENTION`)
+ *   its `attention` too, else the items' `state="attention"` (`EPIC_ATTENTION`);
+ *   and `replied`, how many of those wait on Owen's pick (`EPIC_REPLIED`:  the toolbar's orange badge)
  * - SIDE EFFECT:  writes `open/total` on the section's title:  its `badge` (SECTIONS), or a `ui-label.spell-count`
  *   at the right of the h2 (HEADINGS);  callable again (it replaces both)
  */
@@ -1180,7 +1190,8 @@ function countItems(outline) {
       const count = element.contentsEntry?.count
       if (count) {
         const attention = count.attention ?? element.querySelectorAll(EPIC_ATTENTION).length
-        counts.set(element, { ...count, attention })
+        const replied = Math.min(attention, element.querySelectorAll(EPIC_REPLIED).length)
+        counts.set(element, { ...count, attention, replied })
       }
       continue
     }
@@ -1489,6 +1500,110 @@ function restRail(rail) {
   rail.classList.add("spell-rail-resting")
   rail.addEventListener("pointerleave", () => rail.classList.remove("spell-rail-resting"), { once: true })
   if (rail.contains(document.activeElement)) document.activeElement.blur()
+}
+
+////////////////
+// ## Toolbar
+////////////////
+
+/** `fitLabels()`'s steps, each tighter than the last (`spell-doc.css`, "Toolbar"). */
+const TOOLBAR_FITS = ["compact", "crowded"]
+
+/**
+ * The page's navigation:  a plan doc's toolbar (`buildToolbar()`), else the rail (`buildRail()`).
+ * - returns the `<nav>`, whose `[data-rail]` entries scroll-follow marks;  none without top-level sections
+ */
+function buildNavigation(main, outline, counts) {
+  const page = document.body.classList.contains("plan-doc") ? main.querySelector("epic-page") : null
+  return page ? buildToolbar(page, outline, counts) : buildRail(outline, counts)
+}
+
+/**
+ * A PLAN DOC's navigation (epic `airplane` P8, Owen 2026-10-10:  "The contents sidebar on the plan doc should be a
+ * sticky top toolbar instead"):  a row of buttons across the bottom of `<epic-page>`'s sticky header, one per
+ * top-level block (Overview, Phases, Questions ... Log), in place of the rail.
+ * - each:  the block's icon and its title without its number (`Questions`), a link to it (`wireAnchors()` lands it);
+ *   scroll-follow marks the current one `selected`, by `data-rail` (as the rail's)
+ * - BADGES:  how many of the block's items wait on Owen, from `counts` (none:  no badge)
+ *   - red:  urgent (`state="attention"`)
+ *   - orange:  Claude answered with options, his turn to pick (`state="replied"`)
+ *   - both kinds:  both badges, red first
+ * - in the header's `toolbar` slot (`<epic-page>`'s):  it sticks with the header, and the header's measured height,
+ *   where every title below sticks (`--epic-stack`), takes it in
+ * - narrow windows (a phone, VS Code's side bar):  tighter buttons, then only the current one keeps its label
+ *   (`fitLabels()`), and the row scrolls sideways if even that doesn't fit (`spell-doc.css`, "Toolbar");  the current
+ *   button scrolls into view
+ * - callable again (a page updated in place):  replaces the toolbar (and any rail) built before
+ * - SIDE EFFECT:  appends the `<nav>` to `page`, marked `data-spell-added` so the live patch steps around it
+ */
+function buildToolbar(page, outline, counts) {
+  for (const old of document.querySelectorAll(".spell-toc-open, nav.spell-rail, nav.spell-toolbar")) old.remove()
+  const entries = outline.groups.map(({ element, id, label, glyph }) => {
+    const count = counts.get(element)
+    const replied = count?.replied ?? 0
+    const urgent = (count?.attention ?? 0) - replied
+    // in a box of its own (the icon's host has none):  `fitLabels()` watches it draw
+    const icon = glyph ? `<span class="spell-toolbar-icon"><ui-icon name="${attr(glyph)}"></ui-icon></span>` : ""
+    return (
+      `<a class="spell-toolbar-item" href="#${attr(id)}" data-rail="${attr(id)}" title="${attr(shortLabel(label))}">` +
+      icon +
+      `<span class="spell-toolbar-label">${text(shortLabel(label))}</span>` +
+      badge("urgent", urgent, `${urgent} urgent`) +
+      badge("replied", replied, `${replied} replied:  ${replied === 1 ? "waits" : "wait"} for your pick`) +
+      `</a>`
+    )
+  })
+  if (!entries.length) return undefined
+  const toolbar = document.createElement("nav")
+  toolbar.className = "spell-toolbar"
+  toolbar.slot = "toolbar"
+  toolbar.dataset.spellAdded = ""
+  toolbar.setAttribute("aria-label", "Sections")
+  toolbar.innerHTML = `<div class="spell-toolbar-items">${entries.join("")}</div>`
+  // the current button in view, on a row scrolled sideways
+  new MutationObserver((changes) => {
+    for (const { target } of changes) if (target.hasAttribute("selected")) scrollIntoRow(target)
+  }).observe(toolbar, { subtree: true, attributeFilter: ["selected"] })
+  // fitted again as the window narrows, and as the icons draw and the fonts load (neither changes as labels hide)
+  const fit = new ResizeObserver(() => fitLabels(toolbar))
+  for (const box of [toolbar, ...toolbar.querySelectorAll(".spell-toolbar-icon")]) fit.observe(box)
+  void document.fonts?.ready.then(() => fitLabels(toolbar))
+  page.append(toolbar)
+  return toolbar
+
+  /** A badge of `number` items of `kind`, or nothing for none. */
+  function badge(kind, number, tip) {
+    return number > 0 ? `<span class="spell-toolbar-count ${kind}" title="${attr(tip)}">${number}</span>` : ""
+  }
+}
+
+/**
+ * Every label when the row holds them all;  else `compact` (tighter, smaller), if that holds them;  else `crowded`:
+ * only the current button keeps its label, the rest show their icon and badges (the label in a tooltip), and the row
+ * scrolls sideways if even that doesn't fit.
+ * - measured afresh whenever the toolbar changes width (`buildToolbar()`'s observer)
+ */
+function fitLabels(toolbar) {
+  const row = toolbar.firstElementChild
+  toolbar.classList.remove("compact", "crowded")
+  for (const fit of TOOLBAR_FITS) {
+    if (row.scrollWidth <= row.clientWidth + 1) return
+    toolbar.classList.add(fit)
+  }
+}
+
+/** A block's label without its number:  `3. Questions` is `Questions`. */
+function shortLabel(label) {
+  return label.replace(/^\d+(?:\.\d+)*\.?\s+/, "")
+}
+
+/** Scroll `item`'s row sideways (never the page) until it shows whole, centred if it has to move. */
+function scrollIntoRow(item) {
+  const row = item.parentElement
+  if (!row || row.scrollWidth <= row.clientWidth) return
+  const start = item.getBoundingClientRect().left - row.getBoundingClientRect().left + row.scrollLeft
+  if (start >= row.scrollLeft && start + item.offsetWidth <= row.scrollLeft + row.clientWidth) return
+  row.scrollTo({ left: start - (row.clientWidth - item.offsetWidth) / 2, behavior: "smooth" })
 }
 
 ////////////////
