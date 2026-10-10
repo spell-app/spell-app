@@ -337,7 +337,7 @@ describe("spell compile", () => {
     const { status, stdout, stderr } = spell(["compile", "@test"])
     expect(status).toBe(2)
     expect(stdout).toBe("")
-    expect(stderr).toContain("@test holds several projects -- name one, or pass --all:\n  @test:fixtures:FizzBuzz\n")
+    expect(stderr).toContain("@test holds several projects -- name one, or pass --all:\n  @test:fixtures:Cards\n")
   })
 
   test("an unknown project", () => {
@@ -583,14 +583,16 @@ describe("spell projects", () => {
   test("lists the roots, with the name to type for each", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +3 projects$/m)
+    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +5 projects$/m)
     expect(stdout).toMatch(/^@user +@user:projects /m)
   })
 
   test("one root's projects, as JSON", () => {
     const { stdout } = spell(["projects", "@test", "--json"])
     expect(JSON.parse(stdout)).toEqual([
+      { name: "@test/Cards", id: "@test:fixtures:Cards" },
       { name: "@test/FizzBuzz", id: "@test:fixtures:FizzBuzz" },
+      { name: "@test/Klondike", id: "@test:fixtures:Klondike" },
       { name: "@test/OutlineSolitaire", id: "@test:fixtures:OutlineSolitaire" },
       { name: "@test/Solitaire", id: "@test:fixtures:Solitaire" }
     ])

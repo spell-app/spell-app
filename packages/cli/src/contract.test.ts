@@ -1,8 +1,12 @@
-import { resolve } from "path"
+import { mkdtempSync, rmSync, writeFileSync } from "fs"
+import { tmpdir } from "os"
+import { join, resolve } from "path"
+import { pathToFileURL } from "url"
 import { describe, test, expect } from "vite-plus/test"
 
+import { buildTsx } from "$/spell/node/buildTsx"
 import { SP } from "$/spell"
-import { compiledFixture, fixtureProjectNames } from "$/spell/test"
+import { compiledFixture, fixtureImports, fixtureProjectNames } from "$/spell/test"
 import { CLI } from "$/cli"
 
 /**
@@ -12,6 +16,8 @@ import { CLI } from "$/cli"
  *   today;  Python's core (a later epic) must print the same.  What a core must HAVE is `SC.SpellCore`
  *   (`packages/core/src/spellCore.types.ts`).
  * - The snapshot catches a broken core method, which both targets would share.
+ * - A fixture that imports another (`Klondike` imports `Cards`) runs with that one compiled for the same
+ *   target, as its `@spell/project/<id>`.
  * - In a FAKE PAGE (linkedom, `RunSpec.dom`):  `start the game` draws into it, and what it drew is printed last,
  *   so drawing is compared too.  `Math.random()` is seeded, so Solitaire deals the same cards every run.
  * - Changed on purpose:  `yarn vp test run src/contract.test.ts -u`, then read the diff.
@@ -22,9 +28,38 @@ const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": "
 async function printed(name: string, target: string): Promise<string> {
   const code = compiledFixture(name, target)
   const extension = TARGET_FILES[target]
-  const { exitCode, output } = await CLI.runCode("run", name, code, { extension, capture: true, dom: true })
-  expect(exitCode, `${name} on ${target} exited ${exitCode}:\n${output}`).toBe(CLI.EXIT.OK)
-  return output
+  const folder = mkdtempSync(join(tmpdir(), "spell-contract-"))
+  try {
+    const projects = await importedProjects(name, target, folder)
+    const { exitCode, output } = await CLI.runCode("run", name, code, { extension, projects, capture: true, dom: true })
+    expect(exitCode, `${name} on ${target} exited ${exitCode}:\n${output}`).toBe(CLI.EXIT.OK)
+    return output
+  } finally {
+    rmSync(folder, { recursive: true, force: true })
+  }
+}
+
+/**
+ * Each fixture `name` imports, and what THEY import, compiled for `target` into `folder`:  by project id, its file's
+ * URL, as `CLI.runCode()` takes them.  TypeScript is built first (`buildTsx()`), as `runCode()` builds its own.
+ */
+async function importedProjects(
+  name: string,
+  target: string,
+  folder: string,
+  projects: Record<string, string> = {}
+): Promise<Record<string, string>> {
+  for (const [module, fixture] of Object.entries(fixtureImports(name))) {
+    const projectId = decodeURI(module.slice(SP.SPELL_PROJECT_MODULE.length))
+    if (projects[projectId]) continue
+    let code = compiledFixture(fixture, target)
+    if (TARGET_FILES[target] === ".tsx") code = await buildTsx(code, { filename: `${fixture}.compiled.tsx` })
+    const file = join(folder, `${fixture}.compiled.mjs`)
+    writeFileSync(file, code)
+    projects[projectId] = pathToFileURL(file).href
+    await importedProjects(fixture, target, folder, projects)
+  }
+  return projects
 }
 
 describe("the core contract:  every target prints the same", () => {

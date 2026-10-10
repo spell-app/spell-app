@@ -48,10 +48,10 @@ export abstract class Writer<Output = string> {
    * A writer for ONE project, whose files' statements are `files`:  this one, unless the target needs to see the
    * whole project before writing any of it, e.g. `TSWriter` (which names a getter by what the project declares).
    * - Called once per compile by `SP.SpellProject.combineCompiled()`, with each file's statements, members already
-   *   moved into their classes.
+   *   moved into their classes, and the project's `scope` when there is one:  what it imports is in its import layer.
    * - NEVER changes this writer:  a writer that keeps something per project returns a NEW one.
    */
-  forProject(files: P.ASTNode[][]): this {
+  forProject(files: P.ASTNode[][], scope?: P.Scope): this {
     return this
   }
 

@@ -12,6 +12,9 @@ import { P } from "$/parser"
 export class TSProject {
   /**
    * Getters the project declares, by spell's name, e.g. `is_face_up`:  read as TypeScript's, `isFaceUp`.
+   * - And the methods of the types it imports, e.g. `is_face_up` from `card "is face up" if ...`:  one read as a
+   *   property is a getter there.  NOT an imported getter declared as a property (`the short name of a card is
+   *   ...`):  its declarations don't say it's a getter -- see the epic's issues.
    * - NOT a name some class also has as a property (`ASTReactiveProperty`):  a property keeps spell's name, and a
    *   read can't tell which of the two it is.
    */
@@ -36,9 +39,15 @@ export class TSProject {
    */
   readonly lists = new Map<string, TSList>()
 
-  /** What `files`' statements say -- see the class docs. */
-  static of(files: P.ASTNode[][]): TSProject {
+  /** What `files`' statements say, and the import layer above `scope`, if any -- see the class docs. */
+  static of(files: P.ASTNode[][], scope?: P.Scope): TSProject {
     const project = new TSProject()
+    for (let layer = scope; layer; layer = layer.parentScope) {
+      if (!(layer instanceof P.ImportScope)) continue
+      for (const type of layer.types?.get() ?? []) {
+        for (const method of type.methods?.get() ?? []) project.getters.add(method.name)
+      }
+    }
     const classes = new Map<string, P.ASTClassDeclaration>()
     const properties = new Set<string>()
     for (const statements of files) {
