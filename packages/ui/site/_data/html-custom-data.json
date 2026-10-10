@@ -6289,10 +6289,10 @@
           }
         },
         {
-          "name": "hidden",
+          "name": "spacer",
           "description": {
             "kind": "markdown",
-            "value": "The spacing without the line.  Fomantic's own vocabulary word;  the JS property is `dividerHidden` so it doesn't shadow `HTMLElement.hidden` -- `UIDivider.css` overrides the UA `[hidden] { display: none }` so the host keeps contributing its margin.\n\nTakes:  flag (present / absent)"
+            "value": "The spacing without the line (Fomantic's `hidden` divider:  the class word stays `hidden`).  Renamed because `hidden` hides every element, as the platform's does.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -19072,10 +19072,10 @@
           }
         },
         {
-          "name": "visible",
+          "name": "unclipped",
           "description": {
             "kind": "markdown",
-            "value": "Content overflowing the box stays visible (no clipping).\n\nTakes:  flag (present / absent)"
+            "value": "Content overflowing the box stays visible, not clipped (Fomantic's `visible` reveal:  the class word stays `visible`).  Renamed because `visible` shows or hides every element.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -19097,6 +19097,13 @@
           "description": {
             "kind": "markdown",
             "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -22320,13 +22327,6 @@
           }
         },
         {
-          "name": "visible",
-          "description": {
-            "kind": "markdown",
-            "value": "Shown.  Controlled:  set it to show / hide;  `ui-open` / `ui-close` can veto a person's changes.\n\nTakes:  flag (present / absent)"
-          }
-        },
-        {
           "name": "persistent",
           "description": {
             "kind": "markdown",
@@ -22363,6 +22363,13 @@
           "description": {
             "kind": "markdown",
             "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -26597,128 +26604,10 @@
       },
       "attributes": [
         {
-          "name": "animation",
-          "description": {
-            "kind": "markdown",
-            "value": "Animation for showing / hiding (Fomantic's names:  `fade up`, `scale`, `horizontal flip` ...);  an attention one (`shake`, `pulse` ...) shows / hides at once, and runs through `transition()`.\n\nTakes:  `fade` · `fade up` · `fade down` · `fade left` · `fade right` · `scale` · `zoom` · `drop` · `browse` · `browse right` · `fly` · `fly up` · `fly down` · `fly left` · `fly right` · `slide` · `slide up` · `slide down` · `slide left` · `slide right` · `swing` · `swing up` · `swing down` · `swing left` · `swing right` · `horizontal flip` · `vertical flip` · `flash` · `shake` · `bounce` · `tada` · `pulse` · `jiggle` · `glow`\nDefault:  `fade`"
-          },
-          "values": [
-            {
-              "name": "fade"
-            },
-            {
-              "name": "fade up"
-            },
-            {
-              "name": "fade down"
-            },
-            {
-              "name": "fade left"
-            },
-            {
-              "name": "fade right"
-            },
-            {
-              "name": "scale"
-            },
-            {
-              "name": "zoom"
-            },
-            {
-              "name": "drop"
-            },
-            {
-              "name": "browse"
-            },
-            {
-              "name": "browse right"
-            },
-            {
-              "name": "fly"
-            },
-            {
-              "name": "fly up"
-            },
-            {
-              "name": "fly down"
-            },
-            {
-              "name": "fly left"
-            },
-            {
-              "name": "fly right"
-            },
-            {
-              "name": "slide"
-            },
-            {
-              "name": "slide up"
-            },
-            {
-              "name": "slide down"
-            },
-            {
-              "name": "slide left"
-            },
-            {
-              "name": "slide right"
-            },
-            {
-              "name": "swing"
-            },
-            {
-              "name": "swing up"
-            },
-            {
-              "name": "swing down"
-            },
-            {
-              "name": "swing left"
-            },
-            {
-              "name": "swing right"
-            },
-            {
-              "name": "horizontal flip"
-            },
-            {
-              "name": "vertical flip"
-            },
-            {
-              "name": "flash"
-            },
-            {
-              "name": "shake"
-            },
-            {
-              "name": "bounce"
-            },
-            {
-              "name": "tada"
-            },
-            {
-              "name": "pulse"
-            },
-            {
-              "name": "jiggle"
-            },
-            {
-              "name": "glow"
-            }
-          ]
-        },
-        {
           "name": "duration",
           "description": {
             "kind": "markdown",
             "value": "Length of each animation:  ms (`300`) or a CSS time (`0.3s`);  default the animation's own.\n\nTakes:  text"
-          }
-        },
-        {
-          "name": "visible",
-          "description": {
-            "kind": "markdown",
-            "value": "Shown.  Changing it animates in / out;  absent => hidden (its content is out of the page and the accessibility tree).\n\nTakes:  flag (present / absent)"
           }
         },
         {
@@ -26830,6 +26719,127 @@
             "kind": "markdown",
             "value": "Busy:  dimmed under a loader, and inert;  `aria-busy`.  Shared by every element;  a family may draw its own loader (`elementSetup.loading`).\n\nTakes:  flag (present / absent)"
           }
+        },
+        {
+          "name": "visible",
+          "description": {
+            "kind": "markdown",
+            "value": "Shown:  the platform's `hidden`, turned round (`el.visible === !el.hidden`).  Writing either one shows or hides the element with its `animation`;  `visible=\"false\"` writes `hidden`.  Neither written:  the family decides (a modal starts hidden, a message shown).  Both written in markup and disagreeing:  `hidden` wins.\n\nTakes:  flag (present / absent)"
+          }
+        },
+        {
+          "name": "animation",
+          "description": {
+            "kind": "markdown",
+            "value": "How it shows and hides (Fomantic's names:  `fade up`, `scale`, `fly down` ...);  default its family's, else `fade`.  `none` turns motion off for it and everything inside it, as the person's reduced-motion setting does;  an element inside can't turn it back on.\n\nTakes:  `fade` · `fade up` · `fade down` · `fade left` · `fade right` · `scale` · `zoom` · `drop` · `browse` · `browse right` · `fly` · `fly up` · `fly down` · `fly left` · `fly right` · `slide` · `slide up` · `slide down` · `slide left` · `slide right` · `swing` · `swing up` · `swing down` · `swing left` · `swing right` · `horizontal flip` · `vertical flip` · `flash` · `shake` · `bounce` · `tada` · `pulse` · `jiggle` · `glow` · `none`"
+          },
+          "values": [
+            {
+              "name": "fade"
+            },
+            {
+              "name": "fade up"
+            },
+            {
+              "name": "fade down"
+            },
+            {
+              "name": "fade left"
+            },
+            {
+              "name": "fade right"
+            },
+            {
+              "name": "scale"
+            },
+            {
+              "name": "zoom"
+            },
+            {
+              "name": "drop"
+            },
+            {
+              "name": "browse"
+            },
+            {
+              "name": "browse right"
+            },
+            {
+              "name": "fly"
+            },
+            {
+              "name": "fly up"
+            },
+            {
+              "name": "fly down"
+            },
+            {
+              "name": "fly left"
+            },
+            {
+              "name": "fly right"
+            },
+            {
+              "name": "slide"
+            },
+            {
+              "name": "slide up"
+            },
+            {
+              "name": "slide down"
+            },
+            {
+              "name": "slide left"
+            },
+            {
+              "name": "slide right"
+            },
+            {
+              "name": "swing"
+            },
+            {
+              "name": "swing up"
+            },
+            {
+              "name": "swing down"
+            },
+            {
+              "name": "swing left"
+            },
+            {
+              "name": "swing right"
+            },
+            {
+              "name": "horizontal flip"
+            },
+            {
+              "name": "vertical flip"
+            },
+            {
+              "name": "flash"
+            },
+            {
+              "name": "shake"
+            },
+            {
+              "name": "bounce"
+            },
+            {
+              "name": "tada"
+            },
+            {
+              "name": "pulse"
+            },
+            {
+              "name": "jiggle"
+            },
+            {
+              "name": "glow"
+            },
+            {
+              "name": "none"
+            }
+          ]
         }
       ]
     },
@@ -27167,13 +27177,6 @@
               "name": "image"
             }
           ]
-        },
-        {
-          "name": "transition",
-          "description": {
-            "kind": "markdown",
-            "value": "`type=\"image\"`:  animation once loaded, a `UI.transitions` name;  `none` for none.\n\nTakes:  text\nDefault:  `fade`"
-          }
         },
         {
           "name": "duration",
