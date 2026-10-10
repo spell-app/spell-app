@@ -2706,6 +2706,16 @@ const COMMENTS_API = "/api/comments"
 /** `localStorage` key prefix of a page's unsaved comments (`{ [anchor | comment id]: text }`), per page. */
 const COMMENT_DRAFT_KEY_PREFIX = "spell-comment-draft:"
 
+/**
+ * `localStorage` key prefix of the Claude replies Owen has SEEN on a page (`{ [comment id]: time of the latest
+ * Claude reply seen }`), per page.  The store the news-only cards kept before threads, read the same way:  a time
+ * at or after the latest reply means seen.
+ */
+const COMMENT_READ_KEY_PREFIX = "spell-comment-read:"
+
+/** How long an open thread with an unseen reply must stay on screen to count as seen, ms. */
+const SEEN_MS = 1200
+
 /** The smallest blocks a quote's thread goes under (`holderOf()`):  a paragraph, a list item, a cell ... */
 const TEXT_HOLDERS = "p, li, dt, dd, td, th, blockquote, pre, figcaption, h4, h5, h6"
 
@@ -2777,7 +2787,7 @@ const KIND_NAMES = {
  *   - a click on a highlighted quote opens its thread
  *   - the trash, on a thread or the pane:  one click (`delete` while it waits, else `clear`);  Undo in the toast
  *   - the BULLHORN keeps every comment within reach:  its count, outlined while they all wait for Claude, solid once
- *     he has one, an orange dot while one is Owen's turn;  a click lists them, and New comment (`openPicker()`)
+ *     he has one, an orange dot while one has a reply he hasn't seen;  a click lists them, and New comment (`openPicker()`)
  * - drawn again after a live patch (`spell-doc:updated`), when the page's content changes (a plan doc's part
  *   loading), when the inbox file changes (`spell-server:file`:  another window, Claude), and when the page comes
  *   back into view
@@ -2800,6 +2810,8 @@ async function wireComments(main) {
     comments.open?.flush?.()
     for (const each of comments.fields()) each.flush?.()
   })
+  // the page's layout changing (a width, an item folding) can bring a bullhorn over a thread's header
+  if (typeof ResizeObserver === "function") new ResizeObserver(() => comments.makeRoom()).observe(main)
   comments.watchContent()
   comments.wireSelection()
 }
@@ -2851,8 +2863,119 @@ class PageComments {
     this.inboxPaths = [inbox, inbox.replace(/^\/worktrees\/[^/]+(?=\/)/, "")]
     /** the `localStorage` key of this page's drafts */
     this.draftKey = `${COMMENT_DRAFT_KEY_PREFIX}${location.pathname}`
+    /** the `localStorage` key of the Claude replies Owen has seen on this page (`markSeen()`) */
+    this.readKey = `${COMMENT_READ_KEY_PREFIX}${location.pathname}`
+    /** what's in it, as `draw()` last read it */
+    this.read = {}
+    /** watches the open threads with an unseen reply (`watchSeen()`);  a timer per one on screen, by comment id */
+    this.seenWatch = null
+    this.seenTimers = new Map()
     /** the bullhorn's list of a block's comments, when open (`openPicker()`) */
     this.picker = null
+  }
+
+  /**
+   * Whether `comment` has a reply from Claude Owen hasn't seen (Owen, 2026-10-10:  "Make the boxes orange when
+   * there's a reply I haven't seen"):  its latest Claude reply is newer than the one he last saw here.  Never once
+   * it's done:  closing it was seeing it.
+   */
+  unseen(comment) {
+    const latest = comment.turn === "done" ? "" : latestClaudeAt(comment)
+    // ISO times compare as strings
+    return !!latest && !((this.read[comment.id] ?? "") >= latest)
+  }
+
+  /**
+   * Owen has seen comment `id`'s latest reply from Claude (he opened it, or it was open on screen for `SEEN_MS`):
+   * remembered in this browser, its orange gone;  a newer reply makes it orange again.
+   */
+  markSeen(id) {
+    const comment = this.list.find((each) => each.id === id)
+    if (!comment || !this.unseen(comment)) return
+    const read = readJSON(this.readKey)
+    read[id] = latestClaudeAt(comment)
+    writeJSON(this.readKey, read)
+    this.draw()
+  }
+
+  /**
+   * Watch the open threads with an unseen reply:  one on screen (half of it, or half the screen) for `SEEN_MS` while
+   * the page is in view is seen (`markSeen()`).
+   */
+  watchSeen() {
+    this.seenWatch?.disconnect()
+    const threads = this.main.querySelectorAll(".spell-thread[data-unseen][data-open]")
+    for (const [id, timer] of this.seenTimers)
+      if (![...threads].some((each) => each.id === `comment-${id}`)) {
+        clearTimeout(timer)
+        this.seenTimers.delete(id)
+      }
+    if (!threads.length || typeof IntersectionObserver !== "function") return
+    this.seenWatch = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          const id = entry.target.id.replace(/^comment-/, "")
+          const screen = entry.rootBounds?.height ?? innerHeight
+          const shown =
+            entry.isIntersecting && (entry.intersectionRatio >= 0.5 || entry.intersectionRect.height >= screen / 2)
+          if (!shown) {
+            clearTimeout(this.seenTimers.get(id))
+            this.seenTimers.delete(id)
+          } else if (!this.seenTimers.has(id))
+            this.seenTimers.set(
+              id,
+              setTimeout(() => {
+                this.seenTimers.delete(id)
+                if (document.visibilityState === "visible") this.markSeen(id)
+                else this.watchSeen()
+              }, SEEN_MS)
+            )
+        }
+      },
+      { threshold: [0, 0.25, 0.5, 0.75, 1] }
+    )
+    for (const each of threads) this.seenWatch.observe(each)
+  }
+
+  /**
+   * Keep every block's bullhorn off other buttons (Owen, 2026-10-10:  "Overlap in bullhorn buttons"):  a bullhorn
+   * sits over its block's top right corner, so
+   * - a plan doc item's own review pills and Do Now are there too:  the bullhorn moves left of them
+   * - a thread just under a short block (a folded item, a one-line paragraph) can lie under it:  that thread's
+   *   header leaves room on its right, its buttons moving left
+   */
+  makeRoom() {
+    const overlaps = (a, b) => a.left < b.right && a.right > b.left && a.top < b.bottom && a.bottom > b.top
+    const marks = this.main.querySelectorAll(".spell-comment-mark.at-block")
+    for (const mark of marks) {
+      const horn = mark.querySelector(":scope > ui-button")
+      const controls = mark.nextElementSibling?.shadowRoot?.querySelectorAll('[part~="review-buttons"]') ?? []
+      if (!horn) continue
+      // its orange dot (`.spell-comment-news`) goes with it, 2px further right, as when it's in its corner
+      const dot = mark.querySelector(":scope > .spell-comment-news")
+      horn.style.right = dot ? (dot.style.right = "") : ""
+      const rect = horn.getBoundingClientRect()
+      const under = [...controls].map((each) => each.getBoundingClientRect()).filter((each) => overlaps(rect, each))
+      if (!under.length) continue
+      const right = Math.ceil(mark.getBoundingClientRect().right - Math.min(...under.map((r) => r.left))) + 4
+      horn.style.right = `${right}px`
+      if (dot) dot.style.right = `${right - 2}px`
+    }
+    const horns = [...marks]
+      .map((each) => each.querySelector(":scope > ui-button"))
+      .filter((each) => each?.checkVisibility?.({ contentVisibilityAuto: true }) !== false)
+      .map((each) => each?.getBoundingClientRect())
+      .filter((rect) => rect?.width)
+    for (const head of this.main.querySelectorAll(".spell-thread-head")) {
+      head.style.paddingRight = ""
+      const box = head.getBoundingClientRect()
+      // hidden (a folded part's, `until-found`):  its place means nothing until it shows, and that's a resize
+      if (!box.width || head.checkVisibility?.({ contentVisibilityAuto: true }) === false) continue
+      const over = horns.filter(
+        (rect) => rect.left < box.right && rect.right > box.left && rect.top < box.bottom && rect.bottom > box.top
+      )
+      if (over.length) head.style.paddingRight = `${Math.ceil(box.right - Math.min(...over.map((r) => r.left))) + 4}px`
+    }
   }
 
   /** Fetch the page's comments;  resolves to whether the page takes comments.  NEVER throws. */
@@ -2882,6 +3005,10 @@ class PageComments {
     const field = this.fields().find((each) => document.activeElement === each.field)?.field
     const typing = !!field
     const [start, end] = typing ? [field.selectionStart, field.selectionEnd] : [0, 0]
+    // a thread's fold in focus (Owen opened it, so it was seen:  `markSeen()`) keeps the focus once drawn again
+    const folded = document.activeElement?.closest?.(".spell-thread")?.id
+    const onFold = !!folded && document.activeElement.matches(".spell-thread-fold")
+    this.read = readJSON(this.readKey)
     for (const old of main.querySelectorAll(".spell-comment-mark, .spell-comments")) old.remove()
     const blocks = blocksIn(main)
     const head = pageHeadIn(main)
@@ -2910,6 +3037,9 @@ class PageComments {
     for (const each of main.querySelectorAll(".spell-thread-reply > textarea"))
       if (each.getClientRects().length) growField(each)
     this.quotes = highlightQuotes(quotes)
+    this.makeRoom()
+    this.watchSeen()
+    if (onFold) main.querySelector(`#${CSS.escape(folded)} .spell-thread-fold`)?.focus({ preventScroll: true })
     if (!typing || !field.isConnected) return
     field.focus({ preventScroll: true })
     field.setSelectionRange(start, end)
@@ -2948,18 +3078,20 @@ class PageComments {
    * The bullhorn of `block`:  in a docs section's title (its `actions` slot), in the page header,
    * else just before the block, over its top right corner.
    * - `comments`:  the block's;  with any, it shows their count, always (Owen, 2026-10-10:  "the bullhorn shows the
-   *   count?");  outlined while they all wait for Claude, solid once he has one, an orange dot while one is Owen's
-   *   turn (Claude spoke last)
+   *   count?");  outlined while they all wait for Claude, solid once he has one, an orange dot while one has a
+   *   reply from Claude he hasn't seen (`unseen()`);  its tooltip the count, the block and whose turn
    * - a click:  none yet, the pane for a new comment;  else the list of them, and New comment (`openPicker()`)
    */
   addBullhorn(block, comments) {
     const place = this.placeOf(block)
     const count = comments.length
     const what = place.kind === "page" ? "this page" : `this ${KIND_NAMES[place.kind] ?? place.kind}`
-    const news = comments.filter((comment) => comment.turn === "owen").length
+    // an orange dot while one has a reply from Claude Owen hasn't seen, as its thread is orange (`unseen()`)
+    const news = comments.filter((comment) => this.unseen(comment)).length
     const waiting = comments.every((comment) => comment.turn === "claude")
     const tip = count
-      ? `${count} ${count === 1 ? "comment" : "comments"} on ${what}${news ? `, ${news} your turn` : ""}:  read or add one`
+      ? `${count} ${count === 1 ? "comment" : "comments"} on ${what}:  ${turnsTip(comments)}` +
+        (news ? ` · ${news === 1 ? "a reply" : `${news} replies`} you haven't seen` : "")
       : `Comment on ${what}`
     const inline = place.kind === "section" || place.kind === "page"
     const mark = document.createElement(inline ? "span" : "div")
@@ -2974,6 +3106,7 @@ class PageComments {
       `<ui-button ${count ? "" : "circular "}${waiting ? "basic " : ""}size="mini" icon="bullhorn" ` +
       `title="${attr(tip)}" aria-label="${attr(tip)}">${count || ""}</ui-button>` +
       (news ? `<span class="spell-comment-news" aria-hidden="true"></span>` : "")
+    titleInside(mark.querySelector("ui-button"))
     mark.querySelector("ui-button").addEventListener("click", (event) => {
       event.stopPropagation()
       const near = event.currentTarget.getBoundingClientRect()
@@ -3030,7 +3163,7 @@ class PageComments {
 
   /**
    * The list of `comments` on the block at `place`, from its bullhorn, under `near`:  each a line (its first words,
-   * whose turn, an orange dot while it's Owen's) that opens its thread;  then New comment.
+   * whose turn, an orange dot while it has a reply he hasn't seen) that opens its thread;  then New comment.
    * - closes on a choice, Escape, or a click anywhere else
    */
   openPicker(place, comments, near) {
@@ -3047,7 +3180,7 @@ class PageComments {
           const thinking = comment.working && comment.turn !== "done"
           const taken = comment.turn === "claude" && comment.status === "taken"
           const said = TURN_WORDS[thinking ? "thinking" : taken ? "taken" : comment.turn]
-          const news = comment.turn === "owen"
+          const news = this.unseen(comment)
           return (
             `<button type="button" role="menuitem" class="spell-comment-choice" data-id="${attr(comment.id)}" ` +
             `data-turn="${attr(comment.turn)}"${news ? " data-news" : ""} title="${attr(aboutTip({ id: comment.id, place: comment }))}">` +
@@ -3180,6 +3313,7 @@ class PageComments {
     if (!this.list.some((each) => each.id === id)) return
     this.folds.set(id, true)
     this.draw()
+    this.markSeen(id)
     const fold = this.main.querySelector(`#comment-${CSS.escape(id)} .spell-thread-fold`)
     fold?.scrollIntoView({ block: "nearest" })
     fold?.focus({ preventScroll: true })
@@ -3238,6 +3372,8 @@ class PageComments {
     thread.className = "spell-thread"
     thread.id = `comment-${comment.id}`
     thread.dataset.turn = comment.turn
+    // orange while it has a reply from Claude Owen hasn't seen (`unseen()`)
+    thread.toggleAttribute("data-unseen", this.unseen(comment))
     const editing = this.editing?.id === comment.id ? this.editing : null
     const replying = editing ?? (comment.turn === "done" ? null : this.replyBoxFor(comment))
     const writing = !!replying && (replying.busy() || !!editing)
@@ -3302,8 +3438,11 @@ class PageComments {
       fold.title = fold.title.replace(/\((Fold|Unfold) this thread\)$/, `(${opening ? "Fold" : "Unfold"} this thread)`)
       const field = thread.querySelector(".spell-thread-reply > textarea")
       if (opening && field) growField(field)
+      // unfolded:  seen (`markSeen()`)
+      if (opening) this.markSeen(id)
     })
-    for (const button of thread.querySelectorAll(".spell-thread-answer ui-button"))
+    for (const button of thread.querySelectorAll(".spell-thread-answer ui-button")) {
+      titleInside(button)
       button.addEventListener("click", (event) => {
         event.stopPropagation()
         const { act } = button.dataset
@@ -3311,6 +3450,7 @@ class PageComments {
         else if (act === "reopen") void this.reopen(id)
         else void this.resolve(id, act)
       })
+    }
     thread.querySelector(".spell-thread-edit")?.addEventListener("click", (event) => {
       event.stopPropagation()
       this.startEdit(id)
@@ -3864,22 +4004,46 @@ function threadHead(comment, open, withPen) {
  * - Revisit's history (blue, an ask of Claude):  reply -- the cursor into the reply box under the messages
  *   (`focusReply()`)
  * - the note box's x (grey, no longer relevant):  "skip it" -- done, nothing more to do
- * - tooltips:  just the name, as the item's (Q8 of epic `epic-components`);  a screen reader hears what it does too
+ * - tooltips (`title`;  Owen, 2026-10-10:  "No tooltip on those same buttons"):  the name and, for the two that
+ *   close it, that they do;  also on the button the pointer lands on (`titleInside()`);  a screen reader hears
+ *   what it does
  */
 const THREAD_ANSWERS = [
-  { act: "good", color: "green", icon: "check", label: "That's good", tip: "done:  the thread folds, green" },
+  {
+    act: "good",
+    color: "green",
+    icon: "check",
+    label: "That's good",
+    title: "That's good:  done",
+    tip: "done:  the thread folds, green"
+  },
   {
     act: "reply",
     color: "blue",
     icon: "history",
     label: "Reply",
+    title: "Reply",
     tip: "the cursor into the box under the thread, saved as you type;  Claude takes it up"
   },
-  { act: "skip", color: "grey", icon: "xmark", label: "Skip it", tip: "done, nothing more to do" }
+  {
+    act: "skip",
+    color: "grey",
+    icon: "xmark",
+    label: "Skip it",
+    title: "Skip it:  done, nothing more to do",
+    tip: "done, nothing more to do"
+  }
 ]
 
 /** A closed thread's one button:  open it again (the toast's Undo does the same). */
-const REOPEN = { act: "reopen", color: "blue", icon: "rotate left", label: "Reopen", tip: "your turn on it again" }
+const REOPEN = {
+  act: "reopen",
+  color: "blue",
+  icon: "rotate left",
+  label: "Reopen",
+  title: "Reopen:  your turn on it again",
+  tip: "your turn on it again"
+}
 
 /** The pen's tooltip:  his words, while Claude hasn't taken them. */
 const EDIT_TIP = "Edit your words:  Claude hasn't taken them yet"
@@ -3905,13 +4069,44 @@ function answerButtons(specs) {
     `<span class="spell-thread-answer" role="group" aria-label="Your answer"><ui-buttons basic icon size="mini">` +
     specs
       .map(
-        ({ act, color, icon, label, tip }) =>
-          `<ui-button icon="${icon}" data-act="${act}" data-color="${color}" title="${attr(label)}" ` +
+        ({ act, color, icon, label, title, tip }) =>
+          `<ui-button icon="${icon}" data-act="${act}" data-color="${color}" title="${attr(title)}" ` +
           `aria-label="${attr(`${label}:  ${tip}`)}"></ui-button>`
       )
       .join("") +
     `</ui-buttons></span>`
   )
+}
+
+/**
+ * Put `host`'s `title` (a `<ui-button>`'s) on the button inside it too, once drawn:  the element the pointer lands
+ * on carries the tooltip itself (Owen, 2026-10-10:  "No tooltip on those same buttons"), as a plan doc item's note
+ * buttons do, rather than leaving the browser to find it on the shadow host.
+ */
+function titleInside(host) {
+  const copy = () => {
+    const inner = host.shadowRoot?.querySelector('[part~="button"]')
+    if (inner) inner.title = host.title
+    return !!inner
+  }
+  if (!copy()) void customElements.whenDefined(host.localName).then(() => requestAnimationFrame(copy))
+}
+
+/**
+ * A bullhorn's tooltip, after its count (Owen, 2026-10-10:  "1 comment on this item:  your turn"):  whose turn it
+ * is on its comments -- yours, Claude thinking, waiting for Claude, done.
+ */
+function turnsTip(comments) {
+  const owen = comments.filter((comment) => comment.turn === "owen").length
+  if (owen) return owen === comments.length ? "your turn" : `${owen} your turn`
+  if (comments.every((comment) => comment.turn === "done")) return "done"
+  if (comments.some((comment) => comment.working && comment.turn !== "done")) return "Claude is thinking"
+  return "waiting for Claude"
+}
+
+/** When Claude last replied on `comment`'s thread (an ISO time), else "". */
+function latestClaudeAt(comment) {
+  return comment.replies?.findLast((each) => each.by !== "Owen" && each.at)?.at ?? ""
 }
 
 /**
@@ -4003,7 +4198,7 @@ function messagesHTML(comment, editing) {
   }
   let day = ""
   return messages
-    .map(({ by, at, body }) => {
+    .map(({ by, at, body }, index) => {
       const local = at ? localStamp(at) : ""
       const shown = !local ? "" : local.slice(0, 10) === day ? local.slice(11) : shortStamp(local)
       if (local) day = local.slice(0, 10)
@@ -4016,7 +4211,13 @@ function messagesHTML(comment, editing) {
       // Claude: before yours");  the Done line has its check instead
       const who = WHO[by] ? `<b class="spell-thread-who">${WHO[by]}</b> ` : ""
       const said = who && body.startsWith("<p>") ? `<p>${who}${body.slice(3)}` : who + body
-      return `<div class="spell-thread-msg" data-by="${by}">${when}<div class="spell-thread-text">${said}</div></div>`
+      // all but the last smaller and quieter (Owen, 2026-10-10:  "Make font smaller for "not current" things --
+      // everything other than last message");  the thinking stub or the Done line is the last when there
+      const older = index < messages.length - 1 ? " data-older" : ""
+      return (
+        `<div class="spell-thread-msg" data-by="${by}"${older}>${when}` +
+        `<div class="spell-thread-text">${said}</div></div>`
+      )
     })
     .join("")
 }

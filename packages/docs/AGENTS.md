@@ -598,7 +598,12 @@ In `tools/`:
     - Quiet until hovered.
       Always shown, with a count ("📢 2"), once the block has comments.
     - Its look gives their state, by the fill rule:  outlined while they all wait for Claude, solid once he has one.
-      An orange dot while one is Owen's turn (Claude spoke last).
+      An orange dot while one has a reply from Claude Owen hasn't SEEN (as its thread is orange, below).
+    - Its tooltip (`title`):  the count, the block's kind and whose turn ("1 comment on this item:  your turn"),
+      then " · a reply you haven't seen".
+    - Over a plan doc item's own review pills and Do Now, it moves left of them (`makeRoom()`;  Owen, 2026-10-10:
+      "Overlap in bullhorn buttons"), over the end of the item's title, as a text block's does.
+      A thread right under a short block (a folded item) it would cover leaves room on its header's right.
     - A click with comments there:  a short list of them (first words, whose turn), then New comment
       (`openPicker()`).  A line opens that comment's thread;  so does a click on its highlighted quote.
   - Or on SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn floating beside the selection.
@@ -655,13 +660,24 @@ In `tools/`:
   - A thread's LOOK (the mockup, `pages/details/comment-thread-mock.html`, and Owen's notes on it):
     - ALL ivory, whoever spoke last:  the pane's `--spell-rail-bg`, outline and corners;  no shadow
       ("Make the entire thing ivory").
+    - ORANGE while it has a reply from Claude Owen hasn't seen (`unseen()`;  Owen, 2026-10-10:  "Make the boxes
+      orange when there's a reply I haven't seen"):  its outline `--ui-orange`, its header tinted orange;  the rest
+      as ever.  Orange is our colour for "changed since you looked".
+      - SEEN:  he unfolds it (or opens it from the bullhorn's list or its quote), or it's open with half of it (or
+        half the screen) on screen for 1.2s (`SEEN_MS`) while the page is in view.
+      - Remembered in this browser, per page:  `spell-comment-read:<path>`, `{ [comment id]: time of the latest
+        Claude reply seen }`, the store the news-only cards kept before threads.
+        A NEWER reply makes it orange again;  a closed thread never is.
     - Its header:  a chevron, the bullhorn (a green check circle once done), the pane's summary (`headline()`:  the
       quote's first words, else the block's;  its tooltip the full place).  No date:  each message has its time.
     - Then OWEN'S ANSWER, while it's his turn:  a plan doc item's review pills (`<epic-review>` in `packages/epics`),
       drawn with the same markup and look, since a guide doesn't load that pack ("same semantics/look as pills
       in item header").
       - ONE grouped pill of 24px square icon buttons, grey outlined, on the page's ground;  its colour under the
-        pointer.  Tooltips:  just the name, as the item's.
+        pointer.
+      - Tooltips (Owen, 2026-10-10:  "No tooltip on those same buttons"):  "That's good:  done", "Reply",
+        "Skip it:  done, nothing more to do".  Each `title` is copied onto the button inside the `<ui-button>`
+        (`titleInside()`), where the pointer lands, as the bullhorn's is.
       - Approve's check (green):  "that's good".  The thread is done:  it folds, a check circle in its header.
       - Revisit's history (blue):  reply.  The cursor goes into the reply box at the thread's end.
       - The note box's x (grey):  "skip it".  Done, nothing more to do.
@@ -672,10 +688,18 @@ In `tools/`:
     - The MESSAGES:  the colour says who, and a bold "You:" / "Claude:" starts each one's first line (Owen, 2026-10-10:
       "Put You in bold, same line, before me and Claude: before yours";  earlier he'd dropped a separate name line).
     - Tight:  2px / 6px inside a message, 2px between them.
+    - SMALLER than the page's text (Owen, 2026-10-10:  "Make text in comments smaller"):  the last message 0.9em,
+      as are the reply box and the pane's field.
+      - Every message but the LAST smaller still, 0.8em, and quieter (Owen, 2026-10-10:  "Make font smaller for
+        "not current" things -- everything other than last message").
+        The "thinking…" stub and the Done line count as the last.  The times keep their size.
       - Owen's:  plain on the ivory, no box, but the same padding as a boxed one ("my text doesn't get bordered").
-      - Claude's:  a light violet box (`--ui-violet` mixed light), a thin violet outline, no side bar.
+      - Claude's:  a light violet box (`--ui-violet` mixed light), no side bar.
+        Its outline only a faint violet ring drawn as a shadow, its border clear, so nothing moves (Owen,
+        2026-10-10:  "lighten border around your replies, make it just border-as-shadow").
         Also "Taken into <epic> P<n>", and "Answered in the plan doc" for an answer with no words here.
       - A green Done line once closed:  a check, "That's good." or "Skipped", the commit Claude named.
+        A faint green ring, the same way.
       - While Claude THINKS about it (the comment's `working`;  Owen, 2026-10-10:  "What does it look like when
         you're thinking?  You could put in a stub and replace that when you've thought"):  "Claude: thinking…" last,
         in Claude's box, its words violet and italic, a turning `circle notch`, its time when he started.
