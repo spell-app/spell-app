@@ -49,7 +49,7 @@ describe("grammar probes", () => {
 
   test("P1d  property of a position", () => {
     expect(probe("print the suit of the first card of the deck is hearts")).toMatchInlineSnapshot(
-      `"spellCore.console.log(deck.firstItem?.suit == 'hearts')"`
+      `"spellCore.console.log(deck.firstItem?.suit == "hearts")"`
     )
   })
 
@@ -63,19 +63,15 @@ describe("grammar probes", () => {
   })
 
   test("P1f  count with `where`", () => {
-    expect(probe("print the number of cards in the deck where its color is red")).toMatchInlineSnapshot(`
-      "spellCore.console.log(deck.filter((card) => {
-        return (card.color == 'red')
-      }).length)"
-    `)
+    expect(probe("print the number of cards in the deck where its color is red")).toMatchInlineSnapshot(
+      `"spellCore.console.log(deck.filter((card) => card.color == "red").length)"`
+    )
   })
 
   test("P1g  list with `where`", () => {
-    expect(probe("print the cards in the deck where its color is red")).toMatchInlineSnapshot(`
-      "spellCore.console.log(deck.filter((card) => {
-        return (card.color == 'red')
-      }))"
-    `)
+    expect(probe("print the cards in the deck where its color is red")).toMatchInlineSnapshot(
+      `"spellCore.console.log(deck.filter((card) => card.color == "red"))"`
+    )
   })
 
   ////////////////
@@ -162,7 +158,7 @@ describe("grammar probes", () => {
 
   test("P6a  multi-word getter", () => {
     expect(probe("the short rank of a card is: return 1")).toMatchInlineSnapshot(`
-      "Object.defineProperty(Card.prototype, 'shortRank', {
+      "Object.defineProperty(Card.prototype, "shortRank", {
         get() {},
         configurable: true
       })
@@ -193,7 +189,7 @@ describe("grammar probes", () => {
 
   test("P8a  Deck.spell:40-41 as one line", () => {
     expect(probe("expect the first card of the deck is the ace of clubs to be yes")).toMatchInlineSnapshot(
-      `"spellCore.expect(deck.firstItem?.isTheRankOfSuits('ace', 'clubs'), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
+      `"spellCore.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs"), \`the first card of the deck is the ace of clubs\`, true, \`yes\`)"`
     )
   })
 
@@ -204,7 +200,7 @@ describe("grammar probes", () => {
   test("P8c  Solitaire:166 without its parens", () => {
     // a card, as in Solitaire:  `x` here is a number, and a card's phrase now refuses one (`SuffixLeft`)
     expect(probe("if the card is a king and the card is the first card of the pile return")).toMatchInlineSnapshot(
-      `"if (card.isARank('king') && (card === pile.firstItem)) { return }"`
+      `"if (card.isARank("king") && card === pile.firstItem) return"`
     )
   })
 
@@ -238,8 +234,8 @@ describe("grammar probes", () => {
       .toMatchInlineSnapshot(`
         "spellCore.console.log(card)
         /* PARSE ERROR: Don't understand "is a crad" */
-        spellCore.console.log(card.isOfType('Thing'))
-        spellCore.console.log(typeof x === 'number')
+        spellCore.console.log(card.isOfType("Thing"))
+        spellCore.console.log(typeof x === "number")
         ERROR 8:15 Don't understand "is a crad""
       `)
   })
@@ -247,16 +243,16 @@ describe("grammar probes", () => {
   test("T2  `as choice` declares a `choice`", () => {
     expect(probe("a todo is a thing", "a todo has a done as choice", "todos have a flag as a boolean"))
       .toMatchInlineSnapshot(`
-      "export class Todo extends Thing {
-        static { this.declareProp('done', { type: 'choice' }) }
-        get done() { return this.getProp('done') }
-        set done(value) { this.setProp('done', value) }
+        "export class Todo extends Thing {
+          static { this.declareProp("done", { type: "choice" }) }
+          get done() { return this.getProp("done") }
+          set done(value) { this.setProp("done", value) }
 
-        static { this.declareProp('flag', { type: 'choice' }) }
-        get flag() { return this.getProp('flag') }
-        set flag(value) { this.setProp('flag', value) }
-      }"
-    `)
+          static { this.declareProp("flag", { type: "choice" }) }
+          get flag() { return this.getProp("flag") }
+          set flag(value) { this.setProp("flag", value) }
+        }"
+      `)
   })
 
   ////////////////
@@ -289,9 +285,9 @@ describe("grammar probes", () => {
       )
     ).toMatchInlineSnapshot(`
       "export function doubleN(n) {
-        return (n * 2)
+        return n * 2
       }
-      if (doubleN(x) === 4) { spellCore.console.log(1) }
+      if (doubleN(x) === 4) spellCore.console.log(1)
       export function announceMessage(message) {
         return spellCore.console.log(1)
       }
@@ -305,7 +301,7 @@ describe("grammar probes", () => {
         return await (x === 1)
       }
       export async function checkAgain() {
-        if (await x == 1) { spellCore.console.log(1) }
+        if (await x == 1) spellCore.console.log(1)
       }"
     `)
   })
@@ -323,14 +319,14 @@ describe("grammar probes", () => {
         "print its short colour + 1"
       )
     ).toMatchInlineSnapshot(`
-      "Object.defineProperty(Card.prototype, 'shortColour', {
+      "Object.defineProperty(Card.prototype, "shortColour", {
         get() {
           return this.color
         },
         configurable: true
       })
       spellCore.console.log(card.shortColour)
-      let it = card
+      const it = card
       spellCore.console.log(it.shortColour + 1)"
     `)
   })
@@ -343,7 +339,7 @@ describe("grammar probes", () => {
         "print the last card of the deck"
       )
     ).toMatchInlineSnapshot(`
-      "Object.defineProperty(Pile.prototype, 'lastCard', {
+      "Object.defineProperty(Pile.prototype, "lastCard", {
         get() {
           return this.firstItem
         },
@@ -356,10 +352,10 @@ describe("grammar probes", () => {
 
   test("M3  `a card has short rank as text`:  blacklisted words, no article", () => {
     expect(probe("a card has long rank as text")).toMatchInlineSnapshot(`
-      "Card.declareProp('long_rank', { type: 'text' })
-      Object.defineProperty(Card.prototype, 'long_rank', {
-        get() { return this.getProp('long_rank') },
-        set(value) { this.setProp('long_rank', value) },
+      "Card.declareProp("longRank", { type: "text" })
+      Object.defineProperty(Card.prototype, "longRank", {
+        get() { return this.getProp("longRank") },
+        set(value) { this.setProp("longRank", value) },
         configurable: true
       })"
     `)
@@ -382,10 +378,10 @@ describe("grammar probes", () => {
         "set the owner of the card to x"
       )
     ).toMatchInlineSnapshot(`
-      "Card.declareProp('owner', { type: 'Pile' })
-      Object.defineProperty(Card.prototype, 'owner', {
-        get() { return this.getProp('owner') },
-        set(value) { this.setProp('owner', value) },
+      "Card.declareProp("owner", { type: "Pile" })
+      Object.defineProperty(Card.prototype, "owner", {
+        get() { return this.getProp("owner") },
+        set(value) { this.setProp("owner", value) },
         configurable: true
       })
       ...
@@ -410,11 +406,11 @@ describe("grammar probes", () => {
         "print its length + 1"
       )
     ).toMatchInlineSnapshot(`
-      "export let title = "Solitaire"
+      "export const title = "Solitaire"
       spellCore.console.log(title.length)
       spellCore.console.log(deck.length)
       spellCore.console.log(pile.length)
-      let it = deck
+      const it = deck
       spellCore.console.log(it.length + 1)"
     `)
   })
@@ -422,15 +418,15 @@ describe("grammar probes", () => {
   test("B2  a type's own member beats the built-in one;  an unknown type reads loose", () => {
     expect(probe("the size of a pile is: 52", "print the size of the pile", "print the length of y"))
       .toMatchInlineSnapshot(`
-      "Object.defineProperty(Pile.prototype, 'size', {
-        get() {
-          return 52
-        },
-        configurable: true
-      })
-      spellCore.console.log(pile.size)
-      spellCore.console.log(y.length)"
-    `)
+        "Object.defineProperty(Pile.prototype, "size", {
+          get() {
+            return 52
+          },
+          configurable: true
+        })
+        spellCore.console.log(pile.size)
+        spellCore.console.log(y.length)"
+      `)
   })
 
   test("B3  built-in members are spell's own:  no declaring one, no setting one", () => {
@@ -454,9 +450,10 @@ describe("grammar probes", () => {
     expect(probeMembership([...PILES, "a tableau is a pile"], [])).toMatchInlineSnapshot(`
       "export class Pile extends List {
         static instanceType = Card
+
+        static exclusive = true
       }
-      Pile.exclusive = true
-      Object.defineProperty(Card.prototype, 'pile', {
+      Object.defineProperty(Card.prototype, "pile", {
         get() {
           return Pile.ownerOf(this)
         },
@@ -477,9 +474,10 @@ describe("grammar probes", () => {
     ).toMatchInlineSnapshot(`
       "export class Pile extends List {
         static instanceType = Card
+
+        static exclusive = true
       }
-      Pile.exclusive = true
-      Object.defineProperty(Card.prototype, 'pile', {
+      Object.defineProperty(Card.prototype, "pile", {
         get() {
           return Pile.ownerOf(this)
         },
@@ -502,9 +500,10 @@ describe("grammar probes", () => {
     ).toMatchInlineSnapshot(`
       "export class Pile extends List {
         static instanceType = Card
+
+        static exclusive = true
       }
-      Pile.exclusive = true
-      Object.defineProperty(Card.prototype, 'pile', {
+      Object.defineProperty(Card.prototype, "pile", {
         get() {
           return Pile.ownerOf(this)
         },
@@ -512,7 +511,7 @@ describe("grammar probes", () => {
       })
       export class Tableau extends Pile {}
       ---
-      export let tableau = new Tableau()
+      export const tableau = new Tableau()
       deck.append(card)
       tableau.append(card)"
     `)
@@ -525,20 +524,21 @@ describe("grammar probes", () => {
         ["print the pile of the card"]
       )
     ).toMatchInlineSnapshot(`
-      "Card.declareProp('pile', { type: 'Pile' })
-      Object.defineProperty(Card.prototype, 'pile', {
-        get() { return this.getProp('pile') },
-        set(value) { this.setProp('pile', value) },
+      "Card.declareProp("pile", { type: "Pile" })
+      Object.defineProperty(Card.prototype, "pile", {
+        get() { return this.getProp("pile") },
+        set(value) { this.setProp("pile", value) },
         configurable: true
       })
       export class Pile extends List {
         static instanceType = Card
+
+        static exclusive = true
       }
       Card.prototype.stashInPile = function (pile) {
         this.pile = pile
       }
-      Pile.exclusive = true
-      Object.defineProperty(Card.prototype, 'pile', {
+      Object.defineProperty(Card.prototype, "pile", {
         get() {
           return Pile.ownerOf(this)
         },
@@ -559,7 +559,6 @@ describe("grammar probes", () => {
       "export class Pile extends List {
         static instanceType = Card
       }
-
       ---
       pile.append(card)
       spellCore.console.log(card.pile)"
@@ -596,9 +595,10 @@ describe("grammar probes", () => {
     ).toMatchInlineSnapshot(`
       "export class Pile extends List {
         static instanceType = Card
+
+        static exclusive = true
       }
-      Pile.exclusive = true
-      Object.defineProperty(Card.prototype, 'pile', {
+      Object.defineProperty(Card.prototype, "pile", {
         get() {
           return Pile.ownerOf(this)
         },
@@ -610,12 +610,12 @@ describe("grammar probes", () => {
         }
 
         canGiveUp(card) {
-          return (card === this.lastItem)
+          return card === this.lastItem
         }
       }
       export class Foundation extends Pile {
         canTake(card) {
-          if (this.isEmpty) { return true }
+          if (this.isEmpty) return true
           return false
         }
 
@@ -641,9 +641,10 @@ describe("grammar probes", () => {
     ).toMatchInlineSnapshot(`
       "export class Pile extends List {
         static instanceType = Card
+
+        static exclusive = true
       }
-      Pile.exclusive = true
-      Object.defineProperty(Card.prototype, 'pile', {
+      Object.defineProperty(Card.prototype, "pile", {
         get() {
           return Pile.ownerOf(this)
         },
@@ -651,12 +652,12 @@ describe("grammar probes", () => {
       })
       ---
       spellCore.move(card, pile)
-      export let moved = spellCore.move(card, pile)
-      if (spellCore.move(card, pile)) { spellCore.console.log(1) }
-      if (!spellCore.move(card, pile)) { spellCore.console.log(2) }
-      if (spellCore.canTake(pile, card)) { spellCore.console.log(3) }
-      if (!spellCore.canGiveUp(pile, card)) { spellCore.console.log(4) }
-      if (spellCore.canGiveUp(pile, card)) { spellCore.console.log(5) }"
+      export const moved = spellCore.move(card, pile)
+      if (spellCore.move(card, pile)) spellCore.console.log(1)
+      if (!spellCore.move(card, pile)) spellCore.console.log(2)
+      if (spellCore.canTake(pile, card)) spellCore.console.log(3)
+      if (!spellCore.canGiveUp(pile, card)) spellCore.console.log(4)
+      if (spellCore.canGiveUp(pile, card)) spellCore.console.log(5)"
     `)
   })
 
@@ -673,9 +674,10 @@ describe("grammar probes", () => {
         canGiveUp(card) {
           return false
         }
+
+        static exclusive = true
       }
-      Pile.exclusive = true
-      Object.defineProperty(Card.prototype, 'pile', {
+      Object.defineProperty(Card.prototype, "pile", {
         get() {
           return Pile.ownerOf(this)
         },
@@ -862,11 +864,11 @@ const CARDS = loadFixtureProject("Solitaire").filter((file) => !file.path.endsWi
 const SETUP_TYPES = ["a chip is a thing", "a pot is a list of chips"]
 
 /** What `SETUP`'s first line compiles to -- `probeWithTop()` returns what's above it. */
-const SETUP_START_COMPILED = "export let card = new Card()"
+const SETUP_START_COMPILED = "export const card = new Card()"
 
 /** Last line of `SETUP`, and what it compiles to -- `probe()` returns what follows it. */
 const SETUP_END = "set y to 2"
-const SETUP_END_COMPILED = "export let y = 2"
+const SETUP_END_COMPILED = "export const y = 2"
 
 /**
  * Variables the probes refer to, parsed before each probe's lines.

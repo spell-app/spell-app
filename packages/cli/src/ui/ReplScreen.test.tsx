@@ -38,7 +38,7 @@ describe("<ReplScreen>", () => {
   test("each line shows its tree and javascript -- and later lines know what it declared", async () => {
     const frame = await typeInto("x is 3", ENTER, "print x", ENTER)
     expect(frame).toContain("› x is 3\n")
-    expect(frame).toContain("=> export let x = 3\n")
+    expect(frame).toContain("=> export const x = 3\n")
     expect(frame).toContain("expression: operand › known_variable  x\n")
     expect(frame).toContain("=> spellCore.console.log(x)\n")
   })

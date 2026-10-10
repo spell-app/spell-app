@@ -7,7 +7,8 @@ import { CLI } from "$/cli"
 
 /**
  * `spell compile <project...>`:  compile each project (or lone spell file), showing progress and errors on stderr.
- * - A project:  writes `<Project>.compiled.js` and `<Project>.declarations.json`, as the app does, plus each other
+ * - A project:  writes `<Project>.compiled.js`, `<Project>.declarations.json` and its words, `<Project>.en.js`
+ *   (`SP.SpellWords`), as the app does, plus each other
  *   target's output, e.g. `<Project>.compiled.tsx` -- see `SP.TARGETS` -- or, with `--stdout`, prints one and
  *   writes nothing.  `--target <name>`:  that target, this run, instead of `project.json`'s.
  *   A target checked by `tsc` (`ts/solid`) is checked once written:  its errors are listed, but don't fail the
@@ -71,7 +72,7 @@ async function compileProject(
   // `--stdout`:  the target asked for, else the one that runs
   const printed = targets.find(({ name }) => name === target) ?? targets[0]!
   if (stdout) output.push(project.outputFileFor(printed).contents ?? "")
-  const files = [...targets.map((it) => project.outputFileFor(it)), project.declarationsFile]
+  const files = [...targets.map((it) => project.outputFileFor(it)), project.declarationsFile, project.wordsFile]
   const wrote = stdout ? [] : files.map((file) => file.location.serverPath)
   // a CLEAN compile writes its scope pack too, as the language server does
   if (!stdout && !session.problems(project).length) {

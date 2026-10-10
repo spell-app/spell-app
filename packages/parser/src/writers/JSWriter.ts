@@ -29,7 +29,7 @@ import { WriterProject, camelCaseOf, forEachNode, type ProgramPlace } from "./Wr
  * - ONE method per kind of node, named for its class -- see `P.Writer`.
  *   Write children with `this.write()`.
  * - Writes what a person writing javascript would, where spell's tree says enough (epic `output-targets`, P19):
- *   - names as javascript writes them, `card.turnFaceUp()` -- see `nameOf()`
+ *   - every member's name as javascript writes it, `card.turnFaceUp()`, `deck.isSetUp` -- see `nameOf()`
  *   - a spell `List`'s own methods, `stock.lastItem`, `deck.filter(...)`;  a loop that waits as `for...of`
  *   - `===` where both sides are known and alike, `=== undefined` for nothing, a yes / no tested bare
  *   - `@spell/core`'s `on()`, `trigger()`, `positionOf()` imported by name;  text built with `+` as template text
@@ -38,9 +38,13 @@ import { WriterProject, camelCaseOf, forEachNode, type ProgramPlace } from "./Wr
  *   - Those need to know what a value is:
  *     `kindOf()`, from what the whole project says (`forProject()`, a `WriterProject`).
  *     Shared with the TypeScript writer, so both say the same things the same way.
- * - The rest is as spell's own `compile()` methods wrote it, before they moved here (P2):
- *   its parentheses, `let`, braces and quotes.
- *   TypeScript's tidying is its own:  see `P.TSWriter`.
+ * - Tidy, as a person writes it, and as the TypeScript writer writes it too (P22):
+ *   - `const` unless it's set again
+ *   - parentheses only where javascript needs them, or a reader would want them -- see `operand()`
+ *   - braces only around more than one statement, e.g. `if (this.isEmpty) return 0`
+ *   - an inline function as an arrow, its body an expression when it only returns one, no unused parameters
+ *   - double quotes
+ *   - one class body per type:  members written anywhere in the project go inside their class
  * - `JSWriter.instance` is the one `ASTNode.compile()` uses:  it knows no project.
  ****************/
 export class JSWriter extends Writer {
@@ -129,24 +133,29 @@ export class JSWriter extends Writer {
 
   /**
    * How we write spell's `name`, e.g. `add_card_to_pile`:
-   * each writer says how it writes names (epic `output-targets`, Q51).
-   * - javascript (and TypeScript) write a method, getter, function or variable in camelCase:  `addCardToPile`
-   * - a stored property keeps spell's name, `is_set_up`, when `kind` is `"property"`:
-   *   its name is also what a saved thing's JSON, `getProp()` and the Thing Explorer say
-   * - a later Python writer would keep spell's snake_case for all of them
+   * each writer says how it writes names (epic `output-targets`, Q51, Q56).
+   * - javascript (and TypeScript) write EVERY name in camelCase:  `addCardToPile`, `isSetUp`
+   *   - methods, getters, functions, variables, and stored properties too
+   *   - So a stored property's name is also camelCase where it's saved:
+   *     a thing's JSON, `getProp()`, the Thing Explorer.
+   *   - One rule for every member:  a read, `deck.isSetUp`, needn't know which kind it is.
+   * - a later Python writer would keep spell's snake_case
    */
-  nameOf(name: string, kind: "property" | "member" = "member"): string {
-    return kind === "property" ? name : camelCaseOf(name)
+  nameOf(name: string): string {
+    return camelCaseOf(name)
   }
 
-  /** Member `name` read off something, by our name:  a getter the project declares as a member, else a property. */
-  memberName(name: string): string {
-    return this.nameOf(name, this.project.getters.has(name) ? "member" : "property")
+  /**
+   * Member `property`'s name, by our name (`nameOf()`) -- spell's as is when it isn't a legal identifier,
+   * for whoever writes it to quote:  `["@type"]`.
+   */
+  propertyName(property: P.ASTPropertyLiteral): string {
+    return property.isLegalIdentifier ? this.nameOf(property.value) : property.value
   }
 
-  /** Text in our quotes:  `'name'` -- TypeScript's are double. */
+  /** Text in our quotes:  `"name"`. */
   quoted(text: string): string {
-    return jsText.quoted(text)
+    return jsText.inQuotes(text, '"')
   }
 
   ////////////////
@@ -195,10 +204,13 @@ export class JSWriter extends Writer {
     return node.value as string
   }
 
-  /** A text value in its `quote` (its `raw` spelling, if the spell source gave one), else a fragment, as is. */
+  /**
+   * A text value in its `quote` (its `raw` spelling, if the spell source gave one), else a fragment, as is.
+   * - In double quotes, unless it's single-quoted with a `"` in it.
+   */
   ASTStringLiteral(node: P.ASTStringLiteral): string {
     if (!node.quote) return node.value
-    return node.raw ?? jsText.inQuotes(node.value, node.quote)
+    return doubleQuoted(node.raw ?? jsText.inQuotes(node.value, node.quote))
   }
 
   /** `` `images/${this.rank}-of-${this.suit}.png` ``:  its text as written, with a backtick and `${` escaped. */
@@ -239,8 +251,9 @@ export class JSWriter extends Writer {
   // ## Quoting / templating expressions
   ////////////////
 
+  /** A quoted word, e.g. an enumeration's value:  `"clubs"`. */
   ASTQuotedExpression(node: P.ASTQuotedExpression): string {
-    return jsText.InSingleQuotes({ children: String(this.write(node.expression)) })
+    return doubleQuoted(jsText.InSingleQuotes({ children: String(this.write(node.expression)) }))
   }
 
   ASTBackTickExpression(node: P.ASTBackTickExpression): string {
@@ -259,29 +272,33 @@ export class JSWriter extends Writer {
   // ## Properties & variables
   ////////////////
 
-  /** A property's name (`nameOf()`), bare when a legal identifier, else spell's, in single quotes. */
+  /** A property's name (`propertyName()`), bare when a legal identifier, else spell's, quoted. */
   ASTPropertyLiteral(node: P.ASTPropertyLiteral): string {
-    if (node.isLegalIdentifier) return this.nameOf(node.value, "property")
-    return jsText.InSingleQuotes({ children: node.value })
+    const name = this.propertyName(node)
+    return node.isLegalIdentifier ? name : this.quoted(name)
   }
 
   /**
-   * `object.property` when a legal identifier, else `object['property']`.
-   * - By `memberName()`:  a getter's `card.isFaceUp`, a property's `card.rank`.
-   * - `?.` off what may be nothing (see `mayBeNothing()`), never when it's being set.
+   * `object.property` when a legal identifier, else `object["property"]`, by our name:  `card.isFaceUp`.
+   * - `?.` off what may be nothing (see `mayBeNothing()`), never when it's being set -- see `memberDot()`.
    */
   ASTPropertyExpression(node: P.ASTPropertyExpression): string {
-    const dot = !this.isSetting(node) && this.mayBeNothing(node.object) ? "?." : "."
-    if (!node.property.isLegalIdentifier) {
-      return `${this.write(node.object)}${dot === "?." ? "?." : ""}['${node.property.value}']`
-    }
-    return `${this.write(node.object)}${dot}${this.memberName(node.property.value)}`
+    const object = this.memberObject(node.object)
+    const dot = this.memberDot(node)
+    const name = this.propertyName(node.property)
+    if (node.property.isLegalIdentifier) return `${object}${dot}${name}`
+    return `${object}${dot === "." ? "" : dot}[${this.quoted(name)}]`
+  }
+
+  /** What `node`'s property is read off with:  `?.` off what may be nothing, never when it's being set. */
+  memberDot(node: P.ASTPropertyExpression): string {
+    return !this.isSetting(node) && this.mayBeNothing(node.object) ? "?." : "."
   }
 
   /** `name` alone, by our name (`allPiles`), or `name = default` when it has a default value. */
   ASTVariableExpression(node: P.ASTVariableExpression): string {
     const name = this.variableName(node)
-    if (node.default) return `${name} = ${this.write(node.default)}`
+    if (node.default) return `${name} = ${this.bare(node.default)}`
     return name
   }
 
@@ -292,7 +309,7 @@ export class JSWriter extends Writer {
 
   /** `await x`, or a loop whose body waits written as a plain loop -- see `loop()`. */
   ASTAwaitExpression(node: P.ASTAwaitExpression): string {
-    return (this.statements.has(node) && this.loop(node.expression)) || `await ${this.write(node.expression)}`
+    return (this.statements.has(node) && this.loop(node.expression)) || `await ${this.tight(node.expression)}`
   }
 
   ////////////////
@@ -426,9 +443,31 @@ export class JSWriter extends Writer {
     return `${this.operand(lhs, operator, "lhs")} ${strict} ${this.operand(rhs, operator, "rhs")}`
   }
 
-  /** `operand` of an `operator`, as written:  its parentheses are the tree's -- TypeScript's are its own. */
+  /**
+   * `operand` of an `operator`, in parentheses only where javascript needs them, or where a reader would want them:
+   * `&&` inside `||`, a comparison in a comparison.
+   */
   operand(operand: P.ASTExpression, operator: P.ASTOperator, side: "lhs" | "rhs"): string {
-    return String(this.write(operand))
+    const inner = unwrapped(operand)
+    if (inner instanceof P.ASTTernaryExpression) return `(${this.write(inner)})`
+    // `!x`, `await x` and `new X()` bind tighter than any operator
+    const isUnary =
+      inner instanceof P.ASTNotExpression ||
+      inner instanceof P.ASTAwaitExpression ||
+      inner instanceof P.ASTNewInstanceExpression
+    if (isUnary) return String(this.write(inner))
+    // a helper written as a comparison (`x instanceof Tableau`) binds tighter than `&&` / `||`
+    if (isCoreCall(inner) && PRECEDENCE[operator] <= PRECEDENCE.and) return String(this.write(inner))
+    if (!(inner instanceof P.ASTInfixExpression)) return this.tight(inner)
+    const mine = PRECEDENCE[inner.operator]
+    const theirs = PRECEDENCE[operator]
+    const isLogical = (level: number) => level <= PRECEDENCE.and
+    const needsParens =
+      mine < theirs ||
+      (mine === theirs && side === "rhs") ||
+      (mine === theirs && mine >= PRECEDENCE.equals && mine <= PRECEDENCE["less than"]) ||
+      (isLogical(mine) && isLogical(theirs) && mine !== theirs)
+    return needsParens ? `(${this.write(inner)})` : String(this.write(inner))
   }
 
   /** The text `node` says isn't empty (`!spellCore.isEmpty(text)`), else `undefined`. */
@@ -455,10 +494,15 @@ export class JSWriter extends Writer {
   /** `node`, in parentheses unless it binds at least as tightly as `.` -- e.g. before `.` or after `!`. */
   tight(node: P.ASTExpression): string {
     const inner = unwrapped(node)
-    if (!isTight(inner)) return `(${this.write(inner)})`
+    if (!this.bindsTightly(inner)) return `(${this.write(inner)})`
     const text = String(this.write(inner))
     // a `spellCore` helper said with an operator:  `x !== undefined`, `x instanceof Tableau`, `!x`
     return isCoreCall(inner) && LOOSE_CORE_CALL.test(text) ? `(${text})` : text
+  }
+
+  /** Does `node` bind at least as tightly as `.`?  An element too:  javascript draws it with a call, `h(...)`. */
+  protected bindsTightly(node: P.ASTExpression): boolean {
+    return isTight(node) || node instanceof P.ASTJSXElement
   }
 
   ////////////////
@@ -493,9 +537,9 @@ export class JSWriter extends Writer {
     return `${this.memberObject(node.thing)}${dot}${this.nameOf(node.methodName)}${this.argsOf(node)}`
   }
 
-  /** What a member is read from, ready for a `.` or `?.` after it. */
+  /** What a member is read from, ready for a `.` or `?.` after it:  in parentheses unless it binds as tightly. */
   memberObject(object: P.ASTExpression): string {
-    return String(this.write(object))
+    return this.tight(object)
   }
 
   ////////////////
@@ -861,12 +905,22 @@ export class JSWriter extends Writer {
    * What `method` returns, when every `return` in it gives a value, and all alike -- `undefined` otherwise.
    * - `return card === this.lastItem` and `return false` are choices.
    * - Not one that waits (it returns a promise),
-   *   nor one that may end without a `return`:  its last statement isn't one.
-   * - Its new variables are known by what they're set to;  a `return` in a function inside it isn't its own.
+   *   nor one that may end without a `return`:  see `returnedKinds()`.
    */
   private returnedKind(method: P.ASTMethodDefinition): string | undefined {
+    const kinds = method.isAsync ? undefined : this.returnedKinds(method)
+    return kinds && !kinds.has("nothing") ? alike(kinds) : undefined
+  }
+
+  /**
+   * What each `return` in `method` gives, as `kindOf()` says it:  `"nothing"` for a bare `return`,
+   * `undefined` for one that can't be told.
+   * - `undefined` for a method that may end without a `return`:  its last statement isn't one.
+   * - Its new variables are known by what they're set to;  a `return` in a function inside it isn't its own.
+   */
+  protected returnedKinds(method: P.ASTMethodDefinition): Set<string | undefined> | undefined {
     const statements = (method.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
-    if (method.isAsync || !(statements.at(-1) instanceof P.ASTReturnStatement)) return undefined
+    if (!(statements.at(-1) instanceof P.ASTReturnStatement)) return undefined
     const returns: P.ASTReturnStatement[] = []
     const visit = (node: unknown) => {
       if (Array.isArray(node)) return node.forEach(visit)
@@ -877,7 +931,7 @@ export class JSWriter extends Writer {
     }
     return this.inBlock(() => {
       visit(method.body.statements)
-      return alike(new Set(returns.map((it) => it.value && this.kindOf(it.value))))
+      return new Set(returns.map((it) => (it.value ? this.kindOf(it.value) : "nothing")))
     })
   }
 
@@ -1009,9 +1063,9 @@ export class JSWriter extends Writer {
     return `${this.write(node.type)}.prototype`
   }
 
-  /** Its pre-baked `output`, verbatim -- NOT re-derived from `name`. */
+  /** Its pre-baked `output` -- NOT re-derived from `name` -- a single-quoted word in double quotes. */
   ASTConstantExpression(node: P.ASTConstantExpression): string {
-    return node.output
+    return doubleQuoted(node.output)
   }
 
   ////////////////
@@ -1019,43 +1073,100 @@ export class JSWriter extends Writer {
   ////////////////
 
   /**
-   * `function name(args) {...}`, `(args) => {...}`, or as an object property `name(args) {...}` /
-   * `name: (args) => {...}` -- `async` when it awaits, `export` when `exported`.
-   * - Its parameters are its body's own, so what they are is known (`kindOf()`).
+   * `function name(args) {...}`, or as an object property `name(args) {...}` -- `async` when it awaits, `export`
+   * when `exported`.
+   * - Inline, as an arrow:  `(card) => card.play()`, or `name: (card) => ...` as an object property -- see `arrow()`.
    * - A bare `return` in it is its own, even in a loop's body.
    * - SIDE EFFECT:  `console.warn`s if `asProperty` is set but `methodName` is missing.
    */
   ASTMethodDefinition(node: P.ASTMethodDefinition): string {
+    const error = node.error ? ` ${this.write(node.error)}` : ""
+    if (node.inline)
+      return node.asProperty ? `${this.methodNameOf(node)}: ${this.arrow(node)}${error}` : `${this.arrow(node)}${error}`
     const previous = this.returnContinues
     this.returnContinues = false
     try {
-      return this.inBlock(() => {
-        if (node.inline) this.noteParams(node)
-        return this.methodDefinition(node)
-      })
+      return this.inBlock(() => `${this.methodDefinition(node)}${error}`)
     } finally {
       this.returnContinues = previous
     }
   }
 
-  /** `ASTMethodDefinition()`'s work. */
+  /** `ASTMethodDefinition()`'s work, for one that isn't inline. */
   private methodDefinition(node: P.ASTMethodDefinition): string {
     const async = node.isAsync ? "async " : ""
     const args = this.params(node)
-    const error = node.error ? ` ${this.write(node.error)}` : ""
     const body = this.write(node.body)
-
     const methodName = this.methodNameOf(node)
     if (node.asProperty) {
       if (!methodName) console.warn("MethodDef: property missing methodName", node)
-      if (node.inline) return `${async}${methodName}: ${args} => ${body}${error}`
-      return `${async}${methodName}${args} ${body}${error}`
+      return `${async}${methodName}${args} ${body}`
     }
-
-    // normal method
-    if (node.inline) return `${async}${args} => ${body}${error}`
     const export_ = node.exported ? "export " : ""
-    return `${export_}${async}function ${methodName}${args} ${body}${error}`
+    return `${export_}${async}function ${methodName}${args} ${body}`
+  }
+
+  /**
+   * `method` as an arrow, tidy:  `(pile) => pile.droppable` -- its body an expression when it only returns one,
+   * and trailing parameters it never uses left out, e.g. a handler's `event`.
+   * - Its parameters are its body's own, so what they are is known (`kindOf()`).
+   * - A bare `return` in it is its own, even in a loop's body.
+   */
+  arrow(method: P.ASTMethodDefinition): string {
+    const previous = this.returnContinues
+    this.returnContinues = false
+    try {
+      const statements = (method.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
+      const payload = this.payloadType(method, statements)
+      const body = this.inBlock(() => {
+        this.noteParams(method)
+        return this.arrowBody(method, statements)
+      })
+      const args = [...(method.args ?? [])]
+      while (args.length && !new RegExp(`\\b${this.nameOf(args.at(-1)!.name)}\\b`).test(body)) args.pop()
+      const params = args.map((arg, index) =>
+        index === 0 && payload ? `${this.variableName(arg)}: ${payload}` : this.arrowParam(arg)
+      )
+      return `${method.isAsync ? "async " : ""}(${params.join(", ")}) => ${body}`
+    } finally {
+      this.returnContinues = previous
+    }
+  }
+
+  /**
+   * `arrow()`'s body, `statements` being `method`'s, less blank lines:
+   * - one that only returns something:  that, `(pile) => pile.droppable`;  an object in parens, `() => ({ ... })`
+   * - one that only sets something:  `() => (this.operator = "+")`
+   * - one that only calls something:  `(card) => card.play()`
+   * - anything else:  its block
+   */
+  protected arrowBody(method: P.ASTMethodDefinition, statements: P.ASTNode[]): string {
+    const [only] = statements
+    if (statements.length !== 1) return String(this.write(method.body))
+    if (only instanceof P.ASTReturnStatement && only.value) {
+      const value = unwrapped(only.value)
+      return value instanceof P.ASTObjectLiteral ? `(${this.write(value)})` : this.bare(only.value)
+    }
+    if (only instanceof P.ASTAssignmentStatement && !only.isNewVariable) return `(${this.write(only)})`
+    if (only instanceof P.ASTScopedMethodInvocation) {
+      this.statements.add(only)
+      return String(this.write(only))
+    }
+    return String(this.write(method.body))
+  }
+
+  /**
+   * The type of an arrow's first parameter, when its body takes it apart first, e.g. an event's payload:
+   * javascript has none -- see `TSWriter`.
+   */
+  protected payloadType(method: P.ASTMethodDefinition, statements: P.ASTNode[]): string | undefined {
+    return undefined
+  }
+
+  /** An arrow's parameter, by our name:  `card`, or `pile = stock` with a default. */
+  arrowParam(arg: P.ASTVariableExpression): string {
+    const name = this.variableName(arg)
+    return arg.default ? `${name} = ${this.bare(arg.default)}` : name
   }
 
   /**
@@ -1110,13 +1221,13 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * `prop: value`;  with no `value`, the variable of its name:
-   * shorthand `{ card }` when we name the variable as the key, else `{ start_pile: startPile }`.
+   * `prop: value`, bare;  with no `value`, the variable of its name:
+   * shorthand `{ card }` when we name the variable as the key, as we do unless it isn't a legal identifier.
    */
   ASTObjectLiteralProperty(node: P.ASTObjectLiteralProperty): string {
     const error = node.error ? ` ${this.write(node.error)}` : ""
     const prop = this.write(node.property)
-    if (node.value) return `${prop}: ${this.write(node.value)}${error}`
+    if (node.value) return `${prop}: ${this.bare(node.value)}${error}`
     const variable = this.nameOf(node.property.value)
     return variable === prop ? `${prop}${error}` : `${prop}: ${variable}${error}`
   }
@@ -1125,15 +1236,58 @@ export class JSWriter extends Writer {
   // ## Statements
   ////////////////
 
+  /**
+   * Its statements, and those of the groups in it, in order, less those moved into a class (`WriterProject.moved`).
+   * - One blank line at most between them, none at the start.
+   * - What goes above a class goes above its docstring:  see `classPrefix()`.
+   */
   ASTStatementGroup(node: P.ASTStatementGroup): string {
-    for (const statement of node.statements ?? []) this.statements.add(statement)
-    return this.list(node.statements, jsText.NEWLINE)
+    const lines: string[] = []
+    // where the doc comment right above the next statement starts, in `lines`
+    let docStart = 0
+    for (const statement of flattened(node)) {
+      if (this.project.moved.has(statement)) continue
+      // one blank line at most, none at the start:  where a member moved out, two would meet
+      if (statement instanceof P.ASTBlankLine) {
+        if (lines.length && lines.at(-1) !== "") lines.push("")
+        docStart = lines.length
+        continue
+      }
+      // a docstring, and a declaration's marker below it, go with the statement below them
+      if (statement instanceof P.ASTDocComment || statement instanceof P.ASTPreservedComment) {
+        lines.push(String(this.write(statement)))
+        continue
+      }
+      if (statement instanceof P.ASTClassDeclaration) {
+        const prefix = this.classPrefix(statement)
+        if (prefix) lines.splice(docStart, 0, prefix)
+      }
+      this.statements.add(statement)
+      lines.push(String(this.write(statement)))
+      docStart = lines.length
+    }
+    return elseOnItsLine(lines.join(jsText.NEWLINE))
   }
 
-  /** `{ statements }` -- its new variables noted while it's written, see `inBlock()`. */
+  /** What goes above class `node`, above its docstring:  javascript has nothing -- see `TSWriter`. */
+  classPrefix(node: P.ASTClassDeclaration): string {
+    return ""
+  }
+
+  /**
+   * `{ statements }`:  braces around a block, its blank lines left unindented, none at either end.
+   * - On its line when it's one line and the tree says so (`wrap`), else one statement a line.
+   * - Its new variables are its own, see `inBlock()`.
+   */
   ASTStatementBlock(node: P.ASTStatementBlock): string {
-    for (const statement of node.statements ?? []) this.statements.add(statement)
-    return this.inBlock(() => jsText.Block({ wrap: node.wrap, children: this.list(node.statements, jsText.NEWLINE) }))
+    const statements = [...(node.statements ?? [])]
+    while (statements[0] instanceof P.ASTBlankLine) statements.shift()
+    while (statements.at(-1) instanceof P.ASTBlankLine) statements.pop()
+    for (const statement of statements) this.statements.add(statement)
+    const children = this.inBlock(() => elseOnItsLine(this.list(statements, jsText.NEWLINE)))
+    if (!children) return jsText.EMPTY_BLOCK
+    if (!node.wrap && !children.includes(jsText.NEWLINE)) return `{ ${children} }`
+    return `{\n${jsText.indented(children)}\n}`
   }
 
   ASTTryCatchBlock(node: P.ASTTryCatchBlock): string {
@@ -1148,11 +1302,27 @@ export class JSWriter extends Writer {
   // ## Assignment
   ////////////////
 
+  /** `thing = value`;  a new variable, `const thing = value` -- see `declarator()`. */
   ASTAssignmentStatement(node: P.ASTAssignmentStatement): string {
-    const export_ = this.isExported(node) ? "export " : ""
-    const declarator = node.isNewVariable ? "let " : ""
     this.noteLocal(node)
-    return `${export_}${declarator}${this.setting(node.thing)} = ${this.write(node.value)}`
+    if (!node.isNewVariable) return `${this.setting(node.thing)} = ${this.bare(node.value)}`
+    return `${this.declarator(node)} = ${this.bare(node.value)}`
+  }
+
+  /**
+   * A new variable, as it's declared:  `const thing`, `let` if it's set again (`isReassigned()`);
+   * `export`ed when `isExported()`.
+   */
+  declarator(node: P.ASTAssignmentStatement): string {
+    const export_ = this.isExported(node) ? "export " : ""
+    const { thing } = node
+    const declarator = thing instanceof P.ASTVariableExpression && this.isReassigned([thing]) ? "let" : "const"
+    return `${export_}${declarator} ${this.write(thing)}`
+  }
+
+  /** Is any of `variables` set again after it's declared?  Then it's `let`. */
+  isReassigned(variables: P.ASTVariableExpression[]): boolean {
+    return variables.some((variable) => this.project.reassigned.has(variable.name))
   }
 
   /**
@@ -1167,32 +1337,58 @@ export class JSWriter extends Writer {
     return !JSWriter.EXPORT_BLACKLIST.test(name)
   }
 
-  /** `{ variables } = thing`, or `let { variables } = thing` when `isNewVariable` -- see `destructured()`. */
+  /**
+   * `{ variables } = thing`;  new ones, `const { variables } = thing`, `let` if any is set again
+   * -- see `destructured()`.
+   */
   ASTDestructuredAssignment(node: P.ASTDestructuredAssignment): string {
-    const declarator = node.isNewVariable ? "let " : ""
-    return `${declarator}{ ${this.destructured(node).join(", ")} } = ${this.write(node.thing)}`
+    const declarator = !node.isNewVariable ? "" : this.isReassigned(node.variables) ? "let " : "const "
+    const variables = this.destructured(node).join(", ")
+    return `${declarator}{ ${variables} }${this.destructuredType(node)} = ${this.bare(node.thing)}`
   }
 
-  /** What `node` takes apart, each by its key:  a variable we name differently is renamed, `start_pile: startPile`. */
+  /** What `node` takes apart, each by its key, our name for it:  `{ card, startPile }`. */
   destructured(node: P.ASTDestructuredAssignment): string[] {
     return node.variables.map((variable) => {
       const written = this.write(variable)
-      return variable.name === this.variableName(variable) ? written : `${variable.name}: ${written}`
+      const key = this.nameOf(variable.name)
+      return key === this.variableName(variable) ? written : `${key}: ${written}`
     })
+  }
+
+  /** `: type` after what `node` takes apart:  javascript has none -- see `TSWriter`. */
+  destructuredType(node: P.ASTDestructuredAssignment): string {
+    return ""
   }
 
   /** Bare `return` when it has no `value` (in a loop's body, `continue`), else `return value`. */
   ASTReturnStatement(node: P.ASTReturnStatement): string {
     if (!node.value) return this.returnContinues ? "continue" : "return"
-    return `return ${this.write(node.value)}`
+    return `return ${this.bare(node.value)}`
   }
 
   ////////////////
   // ## Classes & instances
   ////////////////
 
-  /** NOTE: indents its members' non-blank lines only -- `jsText.Block()` would leave a tab on blank ones. */
+  /** `export class Card extends Thing {...}`, with every member the project gives it -- see `withProjectMembers()`. */
   ASTClassDeclaration(node: P.ASTClassDeclaration): string {
+    return this.classDeclaration(this.withProjectMembers(node))
+  }
+
+  /** `node` with the members the project wrote for it elsewhere -- see `WriterProject.movedMembers`. */
+  protected withProjectMembers(node: P.ASTClassDeclaration): P.ASTClassDeclaration {
+    const moved = this.project.movedMembers.get(node.type.name)
+    if (!moved?.length) return node
+    const separator = node.members?.length ? [new P.ASTBlankLine(node.match)] : []
+    return node.withMembers([...separator, ...moved])
+  }
+
+  /**
+   * `export class Card extends Thing {...}`, with `node`'s members as they are.
+   * - NOTE: indents its members' non-blank lines only -- `jsText.Block()` would leave a tab on blank ones.
+   */
+  protected classDeclaration(node: P.ASTClassDeclaration): string {
     const { type, superType, members } = node
     const superDeclarator = superType ? `extends ${this.superTypeOf(node)} ` : ""
     const declaration = `export class ${type.name} ${superDeclarator}`
@@ -1226,10 +1422,10 @@ export class JSWriter extends Writer {
   // ## Class members
   ////////////////
 
-  /** A member's name as its class declares it, by our name (`nameOf()`);  quoted when it isn't a legal identifier. */
-  memberKey(property: P.ASTPropertyLiteral, kind: "property" | "member" = "member"): string {
-    if (!property.isLegalIdentifier) return this.quoted(property.value)
-    return this.nameOf(property.value, kind)
+  /** A member's name as its class declares it, by our name (`propertyName()`);  quoted when it isn't a legal identifier. */
+  memberKey(property: P.ASTPropertyLiteral): string {
+    const name = this.propertyName(property)
+    return property.isLegalIdentifier ? name : this.quoted(name)
   }
 
   /** In its class's body, by our name:  `turnFaceUp(args) {...}` or `get isFaceUp() {...}`. */
@@ -1241,17 +1437,17 @@ export class JSWriter extends Writer {
 
   /**
    * From outside its class, by our name:  `Type.prototype.name = function (args) {...}`, or for a getter
-   * `Object.defineProperty(Type.prototype, 'name', { get() {...}, configurable: true })`.
+   * `Object.defineProperty(Type.prototype, "name", { get() {...}, configurable: true })`.
    */
   ASTPropertyDefinition(node: P.ASTPropertyDefinition): string {
-    const name = this.nameOf(node.property.value)
+    const name = this.propertyName(node.property)
     const prototype = this.write(node.prototypeExpression)
     return this.inClass(node.typeName, () => {
       if (node.get) {
         const descriptor = [`${this.methodNamed(node.get, "get", node.typeName)},`, "configurable: true"].join(
           jsText.NEWLINE
         )
-        return `Object.defineProperty(${prototype}, ${jsText.quoted(name)}, ${jsText.Block({ wrap: true, children: descriptor })})`
+        return `Object.defineProperty(${prototype}, ${this.quoted(name)}, ${jsText.Block({ wrap: true, children: descriptor })})`
       }
       return `${prototype}${propertyAccess(name)} = ${this.anonymousFunction(node.method!, node.typeName)}`
     })
@@ -1259,7 +1455,7 @@ export class JSWriter extends Writer {
 
   /** In its class's body:  `static { this.declareProp(...) }` (if it declares anything), its getter and setter. */
   ASTReactivePropertyAsMember(node: P.ASTReactiveProperty): string {
-    const name = this.memberKey(node.property, "property")
+    const name = this.memberKey(node.property)
     const declare = this.declareCall(node, "this")
     return [
       declare && `static { ${declare} }`,
@@ -1272,7 +1468,7 @@ export class JSWriter extends Writer {
 
   /**
    * From outside its class:  `Type.declareProp(...)` (if it declares anything), then
-   * `Object.defineProperty(Type.prototype, 'name', { get() {...}, set(value) {...}, configurable: true })`.
+   * `Object.defineProperty(Type.prototype, "name", { get() {...}, set(value) {...}, configurable: true })`.
    */
   ASTReactiveProperty(node: P.ASTReactiveProperty): string {
     return this.inClass(node.typeName, () => {
@@ -1288,12 +1484,12 @@ export class JSWriter extends Writer {
     })
   }
 
-  /** Property `node`'s name in quotes, as its getter, setter and class's schema say it:  `'is_set_up'`. */
+  /** Property `node`'s name in quotes, as its getter, setter and class's schema say it:  `"isSetUp"`. */
   propertyKey(node: P.ASTReactiveProperty): string {
-    return jsText.quoted(this.nameOf(node.property.value, "property"))
+    return this.quoted(this.propertyName(node.property))
   }
 
-  /** `{ return this.getProp('name') }`:  its default, if any, is in its class's schema -- see `declaration()`. */
+  /** `{ return this.getProp("name") }`:  its default, if any, is in its class's schema -- see `declaration()`. */
   getterBody(node: P.ASTReactiveProperty): string {
     return `{ return this.getProp(${this.propertyKey(node)}) }`
   }
@@ -1313,23 +1509,23 @@ export class JSWriter extends Writer {
     return ""
   }
 
-  /** `{ this.setProp('name', value) }`:  its `check`, if any, is in its class's schema -- see `declaration()`. */
+  /** `{ this.setProp("name", value) }`:  its `check`, if any, is in its class's schema -- see `declaration()`. */
   setterBody(node: P.ASTReactiveProperty): string {
     return `{ this.setProp(${this.propertyKey(node)}, value) }`
   }
 
   /**
    * What its class's schema declares about `node`:  its `check`'s keys, plus `init` for its `initializer`.
-   * - E.g. `{ type: 'text' }`, `{ init: () => new List() }`.
+   * - E.g. `{ type: "text" }`, `{ init: () => new List() }`.
    * - `undefined` if nothing:  then it's undeclared.
    */
   declaration(node: P.ASTReactiveProperty): string | undefined {
     const parts = (node.check?.properties ?? []).map((property) => this.write(property))
-    if (node.initializer) parts.push(`init: () => ${this.write(node.initializer)}`)
+    if (node.initializer) parts.push(`init: () => ${this.bare(node.initializer)}`)
     return parts.length ? `{ ${parts.join(", ")} }` : undefined
   }
 
-  /** `declareProp('name', {...})` with `declaration()`, called on `owner`, e.g. `this` in its class's body. */
+  /** `declareProp("name", {...})` with `declaration()`, called on `owner`, e.g. `this` in its class's body. */
   declareCall(node: P.ASTReactiveProperty, owner: string): string | undefined {
     const declaration = this.declaration(node)
     return declaration && `${owner}.declareProp(${this.propertyKey(node)}, ${declaration})`
@@ -1343,25 +1539,25 @@ export class JSWriter extends Writer {
 
   /**
    * From outside its class, by our name:  `Type.name = function (args) {...}`, or for a getter
-   * `Object.defineProperty(Type, 'name', { get() {...}, configurable: true })`.
+   * `Object.defineProperty(Type, "name", { get() {...}, configurable: true })`.
    */
   ASTStaticMethod(node: P.ASTStaticMethod): string {
     const type = this.write(node.type)
     const name = this.nameOf(node.name)
     if (node.getter) {
       const descriptor = [`${this.methodNamed(node.method, "get")},`, "configurable: true"].join(jsText.NEWLINE)
-      return `Object.defineProperty(${type}, ${jsText.quoted(name)}, ${jsText.Block({ wrap: true, children: descriptor })})`
+      return `Object.defineProperty(${type}, ${this.quoted(name)}, ${jsText.Block({ wrap: true, children: descriptor })})`
     }
     return `${type}.${name} = ${this.anonymousFunction(node.method)}`
   }
 
-  /** `static Name = value`:  a class's value is named as a property is. */
+  /** `static Name = value`, by our name. */
   ASTStaticDefinitionAsMember(node: P.ASTStaticDefinition): string {
-    return `static ${this.nameOf(node.name, "property")} = ${this.write(node.value)}`
+    return `static ${this.nameOf(node.name)} = ${this.bare(node.value)}`
   }
 
   ASTStaticDefinition(node: P.ASTStaticDefinition): string {
-    return `${this.write(node.type)}.${this.nameOf(node.name, "property")} = ${this.write(node.value)}`
+    return `${this.write(node.type)}.${this.nameOf(node.name)} = ${this.bare(node.value)}`
   }
 
   /** Its `member`, patched onto its class from outside, wherever that class is written. */
@@ -1373,25 +1569,38 @@ export class JSWriter extends Writer {
   // ## Conditionals
   ////////////////
 
+  /** `if (condition) statement` -- braces only around more than one statement. */
   ASTIfStatement(node: P.ASTIfStatement): string {
-    const written = `if (${this.condition(node.condition)}) ${this.write(node.statements)}`
+    const written = `if (${this.condition(node.condition)}) ${this.body(node.statements)}`
     this.noteGuard(node)
     return written
   }
 
   ASTElseIfStatement(node: P.ASTElseIfStatement): string {
-    return `else if (${this.condition(node.condition)}) ${this.write(node.statements)}`
+    return `else if (${this.condition(node.condition)}) ${this.body(node.statements)}`
   }
 
   ASTElseStatement(node: P.ASTElseStatement): string {
-    return `else ${this.write(node.statements)}`
+    return `else ${this.body(node.statements)}`
   }
 
+  /** An `if`'s statements:  bare when it's one simple statement on one line, e.g. `return "?"`;  else a block. */
+  body(block: P.ASTStatementBlock): string {
+    const statements = (block.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
+    const [only] = statements
+    if (statements.length === 1 && isSimpleStatement(only!)) {
+      const text = String(this.write(only!))
+      if (!text.includes(jsText.NEWLINE)) return text
+    }
+    return this.write(block)
+  }
+
+  /** `condition ? yes : no`:  in parentheses only where its reader puts it (an operand -- see `operand()`). */
   ASTTernaryExpression(node: P.ASTTernaryExpression): string {
     const { condition, trueValue, falseValue } = node
-    return jsText.InParens({
-      children: `${this.write(condition)} ? ${this.write(trueValue)} : ${this.write(falseValue)}`
-    })
+    const test = unwrapped(condition)
+    const conditionText = test instanceof P.ASTTernaryExpression ? `(${this.write(test)})` : this.write(test)
+    return `${conditionText} ? ${this.bare(trueValue)} : ${this.bare(falseValue)}`
   }
 
   ////////////////
@@ -1449,8 +1658,8 @@ export class JSWriter extends Writer {
 
   /** A function the drawing calls for the value:  `() => this.shortSuit`;  an object literal in parens. */
   ASTJSXLiveValue(node: P.ASTJSXLiveValue): string {
-    const value = this.write(node.expression)
-    return node.expression instanceof P.ASTObjectLiteral ? `() => (${value})` : `() => ${value}`
+    const value = this.bare(node.expression)
+    return unwrapped(node.expression) instanceof P.ASTObjectLiteral ? `() => (${value})` : `() => ${value}`
   }
 
   ////////////////
@@ -1595,7 +1804,56 @@ export class JSWriter extends Writer {
   static EXPORT_BLACKLIST = /^it(_\d+)?$/
 }
 
-/** `.name`, or `['name']` if `name` isn't a legal identifier. */
+/** `group`'s statements, and those of the groups in it, in order. */
+function flattened(group: P.ASTStatementGroup): P.ASTNode[] {
+  return (group.statements ?? []).flatMap((statement) =>
+    statement instanceof P.ASTStatementGroup && !(statement instanceof P.ASTTryCatchBlock)
+      ? flattened(statement)
+      : [statement]
+  )
+}
+
+/** `text` with each `else` after a block's `}` on the same line, `} else {`, as a person writes it. */
+export function elseOnItsLine(text: string): string {
+  return text.replace(/\}\n[ \t]*else\b/g, "} else")
+}
+
+/**
+ * Is `node` one simple statement an `if` may hold without braces?  A return, a set, a call.
+ * - Not a new variable:  `if (a) const b = 1` isn't javascript.
+ */
+function isSimpleStatement(node: P.ASTNode): boolean {
+  if (node instanceof P.ASTAssignmentStatement) return !node.isNewVariable
+  return node instanceof P.ASTReturnStatement || node instanceof P.ASTExpression
+}
+
+/**
+ * How tightly each operator binds, javascript's levels:  higher binds tighter.
+ * - SEE:  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_precedence
+ */
+const PRECEDENCE: Record<P.ASTOperator, number> = {
+  or: 3,
+  and: 4,
+  equals: 8,
+  "not equals": 8,
+  "exactly equals": 8,
+  "not exactly equals": 8,
+  "less than": 9,
+  "greater than": 9,
+  "at most": 9,
+  "at least": 9,
+  plus: 11,
+  minus: 11,
+  times: 12,
+  "divided by": 12
+}
+
+/** `.name`, or `["name"]` if `name` isn't a legal identifier. */
 function propertyAccess(name: string): string {
-  return jsText.isLegalIdentifier(name) ? `.${name}` : `[${jsText.quoted(name)}]`
+  return jsText.isLegalIdentifier(name) ? `.${name}` : `[${jsText.inQuotes(name, '"')}]`
+}
+
+/** `'text'` as `"text"`, when it has no `"` or `\` in it;  anything else as is. */
+function doubleQuoted(text: string): string {
+  return /^'[^'"\\]*'$/.test(text) ? `"${text.slice(1, -1)}"` : text
 }

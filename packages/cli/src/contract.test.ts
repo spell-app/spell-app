@@ -145,25 +145,6 @@ table.cards.add(new Card({ rank: "ace" }), new Card({ rank: "king" }))
 table.start()
 `
 
-/** The same table, as javascript compiled before P20 draws it:  `spellCore.element()`, in React's spellings. */
-const DRAWN_WITH_ELEMENT = `
-import { spellCore, Thing, List, App } from "@spell/core"
-export class Card extends Thing {
-  draw() { return spellCore.element({ tag: "td", props: { className: "card", colSpan: "2" }, children: [() => this.rank] }) }
-}
-export class Table extends App {
-  draw() {
-    return spellCore.element({ tag: "table", children: [
-      spellCore.element({ tag: "tr", children: [() => spellCore.drawItems(this.cards)] })
-    ] })
-  }
-}
-const table = new Table()
-table.cards = new List()
-table.cards.add(new Card({ rank: "ace" }), new Card({ rank: "king" }))
-table.start()
-`
-
 describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
   /** What `code` prints, run headless in a fake page:  ending with what it drew. */
   async function drawn(code: string): Promise<string> {
@@ -172,13 +153,11 @@ describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
     return output.trim()
   }
 
-  test("draws;  a program compiled before P20, with the deprecated `spellCore.element()`, draws the same", async () => {
-    const [withH, withElement] = await Promise.all([drawn(DRAWN_WITH_H), drawn(DRAWN_WITH_ELEMENT)])
-    expect(withH).toBe(
+  test("draws a card table:  a cell per card, in the page's spellings", async () => {
+    expect(await drawn(DRAWN_WITH_H)).toBe(
       `<div id="spell-app-root"><table><tr>` +
         `<td class="card" colspan="2">ace</td><td class="card" colspan="2">king</td>` +
         `</tr></table></div>`
     )
-    expect(withElement).toBe(withH)
   }, 60_000)
 })

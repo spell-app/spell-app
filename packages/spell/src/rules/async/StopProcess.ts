@@ -26,11 +26,11 @@ _async.addRule(StopProcess, {
     {
       compileAs: "statement",
       tests: [
-        [`stop animation dealing`, `spellCore.stopProcess('dealing')`, 'spellCore.stopProcess("dealing")'],
-        [`stop process dealing`, `spellCore.stopProcess('dealing')`, 'spellCore.stopProcess("dealing")'],
-        [`end process dealing`, `spellCore.stopProcess('dealing')`, 'spellCore.stopProcess("dealing")'],
-        [`finish process dealing`, `spellCore.stopProcess('dealing')`, 'spellCore.stopProcess("dealing")'],
-        [`cancel process dealing`, `spellCore.stopProcess('dealing')`, 'spellCore.stopProcess("dealing")']
+        [`stop animation dealing`, 'spellCore.stopProcess("dealing")'],
+        [`stop process dealing`, 'spellCore.stopProcess("dealing")'],
+        [`end process dealing`, 'spellCore.stopProcess("dealing")'],
+        [`finish process dealing`, 'spellCore.stopProcess("dealing")'],
+        [`cancel process dealing`, 'spellCore.stopProcess("dealing")']
       ]
     }
   ]

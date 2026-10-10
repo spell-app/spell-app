@@ -1,12 +1,14 @@
 import { Match, Show, Switch, createEffect, createSignal, onSettled, untrack } from "solid-js"
 
 import type { LSP } from "$/lsp"
+import type { SP } from "$/spell"
 import type { ThingExplorerState, TypeExplorerState } from "$/app/ui/ui.types"
 // Import directly, NOT through the `$/app/solid` barrel, which pulls in the editor
 import { TypeExplorer } from "$/app/solid/TypeExplorer"
 import { ThingExplorer } from "$/app/solid/ThingExplorer"
 import { loadRuntime, type LoadedRuntime } from "./loadRuntime"
 import { fetchJSON, fetchText } from "./fetchFresh"
+import { mergedWords, wordsAt } from "./words"
 import { loadScopePack, scopesFromPacks, type CompiledDeclarations, type ScopesSource } from "$/lsp/ScopesSource"
 import { RunnerSplit, DEFAULT_SPLIT } from "./RunnerSplit"
 import { RunnerPane, type RunnerTab } from "./RunnerPane"
@@ -29,6 +31,8 @@ import "./SpellAppRunner.css"
  * - A program with NO app shows its console on top instead, and the explorers below.
  *   One that starts its app AFTER the run finished, e.g. from a timer, shows it once it draws.
  * - The Type Explorer is read-only, and shows only if there's a scope pack -- see `ScopesSource`.
+ * - The Thing Explorer shows things' members in spell's words, if the program and what it imports have words
+ *   files -- see `SP.SpellWords`.  Loaded afresh after each run, as its imports are.
  * - `debug` and `fluid` are read once, to start;  `runtimeUrl` once per copy loaded.
  * - Its `<ui-*>` tags are the caller's to define, with Fomantic's icon names:
  *   `<spell-app>` is a root that loads them as they appear;  the VS Code runner imports `$/app/solid/loadUI`.
@@ -44,6 +48,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
   const [pane, setPane] = createSignal<DebugPane>(untrack(() => props.debug) ?? "explorer")
   const [split, setSplit] = createSignal(untrack(() => props.fluid) ? DEFAULT_DEBUG_HEIGHT : DEFAULT_SPLIT)
   const [scopes, setScopes] = createSignal<ScopesSource>()
+  const [words, setWords] = createSignal<SP.SpellWordsData>()
   // the explorers' state, kept here so it outlives switching tabs:  each reads it once, as it mounts
   let explorerState: TypeExplorerState = {}
   let thingsState: ThingExplorerState = {}
@@ -165,6 +170,12 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
     compiledRef.current = ran.compiled
     setError(ran.error)
     setHasApp(ran.hasApp)
+    const loaded = await loadWords(
+      source,
+      [...ran.compiled.keys()].filter((id) => id !== MAIN_PROJECT)
+    )
+    // a newer source's run may have started meanwhile:  its words are its own
+    if (source === untrack(() => props.source)) setWords(loaded)
   }
 
   /** The Type Explorer, read-only, if there's a scope pack. */
@@ -192,6 +203,7 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
         {(copy) => (
           <ThingExplorer
             things={copy.runtime.spellCore.things}
+            words={words()}
             state={thingsState}
             onStateChange={(state) => (thingsState = state)}
           />
@@ -236,7 +248,8 @@ export type SpellAppRunnerProps = {
 /**
  * Where a `<spell-app>`'s program, and what's around it, come from --
  * worked out from its attributes, or from code a `<spell-editor>` pushed to it.  See `pushedSource()`.
- * - NOTE: `compiled` and `scopes` are in memory, the rest are URLs.  An in-memory one wins over its URL.
+ * - NOTE: `compiled`, `scopes`, `declarations` and `words` are in memory, the rest are URLs.
+ *   An in-memory one wins over its URL.
  */
 export type SpellAppSource = {
   /** Name for the toolbar, e.g. `Solitaire`. */
@@ -260,6 +273,12 @@ export type SpellAppSource = {
   importUrl: (projectId: string) => string
   /** URL of the declarations of project `projectId`, which it imports -- if it may have them. */
   importDeclarationsUrl?: (projectId: string) => string
+  /** URL of its words, `<Project>.en.js`, if it may have them:  the Thing Explorer's labels -- see `SP.SpellWords`. */
+  wordsUrl?: string
+  /** Its words, in memory -- used instead of loading `wordsUrl`, e.g. fresh from an editor. */
+  words?: SP.SpellWordsData
+  /** URL of the words of project `projectId`, which it imports -- if it may have them. */
+  importWordsUrl?: (projectId: string) => string
   /** URL of spell file `uri`, e.g. `spell:/@system:examples:Solitaire/Card.spell` -- if its sources can be had. */
   sourceUrl?: (uri: string) => string
 }
@@ -384,6 +403,21 @@ async function loadScopes(
   })
 }
 
+/**
+ * The Thing Explorer's words for `source`:  its own -- `source.words` if set, else loaded from `source.wordsUrl` --
+ * then those of each project it imported, `importIds`, as one.  `undefined` if none of them has any.
+ * - NEVER throws:  words are optional, as a scope pack is.
+ */
+async function loadWords(source: SpellAppSource, importIds: string[]): Promise<SP.SpellWordsData | undefined> {
+  const { importWordsUrl } = source
+  return mergedWords(
+    await Promise.all([
+      source.words ?? wordsAt(source.wordsUrl),
+      ...importIds.map((id) => wordsAt(importWordsUrl?.(id)))
+    ])
+  )
+}
+
 ////////////////
 // ## Fed by an editor
 //  what a `<spell-app editor="<selector>">` decides --
@@ -392,7 +426,7 @@ async function loadScopes(
 
 /**
  * What a `<spell-app>` runs for `pushed`, code an editor compiled:  `base` -- its project's source, for its imports
- * and sources -- with `pushed`'s javascript and scope pack in memory.
+ * and sources -- with `pushed`'s javascript, scope pack, declarations and words in memory.
  * - A NEW object, so `<SpellAppRunner>` re-runs it.
  * - `name`, the app's `name` attribute, wins over `base`'s, if set.
  */
@@ -402,7 +436,8 @@ export function pushedSource(base: SpellAppSource, pushed: SpellCompiled, name?:
     name: name || base.name,
     compiled: pushed.compiled,
     ...(pushed.scopes ? { scopes: pushed.scopes } : {}),
-    ...(pushed.declarations ? { declarations: pushed.declarations } : {})
+    ...(pushed.declarations ? { declarations: pushed.declarations } : {}),
+    ...(pushed.words ? { words: pushed.words } : {})
   }
 }
 

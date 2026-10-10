@@ -7,17 +7,17 @@ import { bridgeSolid } from "$/util"
 import { spellCore, Thing, List, prop, drawn, h } from "$/core"
 import { isElementThunk, type Drawing } from "$/core/drawing"
 
-// counts each error net drawn:  `drawing.ts` makes one with `createComponent(Errored, ...)`
+// counts each error boundary drawn:  `drawing.ts` makes one with `createComponent(Errored, ...)`
 vi.mock("solid-js", async (importOriginal) => {
   const solid = await importOriginal<typeof import("solid-js")>()
   return { ...solid, Errored: vi.fn(solid.Errored) }
 })
 
 /**
- * Each drawn thing in its own error net, ONE net for both targets:
+ * Each drawn thing in its own error boundary, ONE boundary for both targets:
  * - compiled JavaScript:  `spellCore.drawThing(card)` puts a plain `draw()` in it
  * - compiled TypeScript and hand-written classes:  `@drawn draw()` puts itself in it, so a parent draws a child with
- *   a plain `card.draw()`, and `drawThing()` adds no second net
+ *   a plain `card.draw()`, and `drawThing()` adds no second boundary
  * - Solid's CLIENT build (`vitest.config.ts`), drawing into a fake page (linkedom).
  */
 
@@ -59,7 +59,7 @@ const madeNodes: Element[] = []
 
 /**
  * A card as compiled JavaScript writes it:  a plain `draw()` returning `h()`'s thunk, which `drawThing()` puts in a
- * net, and the net makes.
+ * boundary, and the boundary makes.
  */
 class PlainCard extends Card {
   override draw(): Drawing {
@@ -175,21 +175,21 @@ describe("@drawn", () => {
     expect(element.querySelector(".card")!.textContent).toBe("2 clubs")
   })
 
-  test("drawThing() calls a @drawn draw() straight:  ONE net per thing, not two", () => {
+  test("drawThing() calls a @drawn draw() straight:  ONE boundary per thing, not two", () => {
     const card = new Card({ rank: "king" })
     draw(() => spellCore.drawThing(card))
     expect(element.innerHTML).toBe(`<span class="card">king hearts</span>`)
     expect(Errored).toHaveBeenCalledTimes(1)
   })
 
-  test("drawThing() puts a plain draw() in the same net, as compiled JavaScript draws", () => {
+  test("drawThing() puts a plain draw() in the same boundary, as compiled JavaScript draws", () => {
     const card = new PlainCard({ rank: "ace" })
     draw(() => spellCore.drawThing(card))
     expect(element.innerHTML).toBe(`<i>hearts</i>`)
     expect(Errored).toHaveBeenCalledTimes(1)
   })
 
-  test("mountApp() draws a @drawn app in its one net", () => {
+  test("mountApp() draws a @drawn app in its one boundary", () => {
     const card = new Card({ rank: "ace", suit: "clubs" })
     dispose = spellCore.mountApp(card, element).unmount
     spellCore.flush()
@@ -197,7 +197,7 @@ describe("@drawn", () => {
     expect(Errored).toHaveBeenCalledTimes(1)
   })
 
-  test("the net makes h()'s thunk ONCE:  a card added to a pile makes only that card, never the pile again", () => {
+  test("the boundary makes h()'s thunk ONCE:  a card added to a pile makes only that card, never the pile again", () => {
     madeNodes.length = 0
     const pile = new PlainPile()
     const [first, second] = [new PlainCard({ rank: "ace" }), new PlainCard({ rank: 2, suit: "clubs" })]
@@ -216,7 +216,7 @@ describe("@drawn", () => {
     expect([drawCalls.get(pile), drawCalls.get(first)]).toEqual([1, 1])
   })
 
-  test("a throw while h()'s thunk is made lands in the net:  the stand-in, said once", () => {
+  test("a throw while h()'s thunk is made lands in the boundary:  the stand-in, said once", () => {
     const card = new HalfCard({ rank: "king" })
     draw(() => spellCore.drawThing(card))
     expect(element.innerHTML).toBe(
@@ -226,7 +226,7 @@ describe("@drawn", () => {
     expect(Errored).toHaveBeenCalledTimes(1)
   })
 
-  test("mountApp() makes a plain draw()'s h() thunk in its one net", () => {
+  test("mountApp() makes a plain draw()'s h() thunk in its one boundary", () => {
     const card = new PlainCard({ rank: "ace", suit: "clubs" })
     dispose = spellCore.mountApp(card, element).unmount
     spellCore.flush()

@@ -251,12 +251,12 @@ export class Deck extends List<Card> {
   static instanceType = Card
 
   setUp() {
-    if (this.is_set_up) return
+    if (this.isSetUp) return
     Card.Ranks.forEach((rank) => Card.Suits.forEach((suit) => {
       const it = new Card({ rank: rank, suit: suit })
       this.append(it)
     }))
-    this.is_set_up = true
+    this.isSetUp = true
   }
 
   display() {
@@ -265,7 +265,7 @@ export class Deck extends List<Card> {
     spellCore.echo(`deck: ${cardNames}`)
   }
 
-  @prop({ type: "choice" }) accessor is_set_up!: boolean
+  @prop({ type: "choice" }) accessor isSetUp!: boolean
 }
 
 export function testDeckCreation() {

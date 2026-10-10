@@ -39,16 +39,6 @@ methods.addRule(CreateAnimation, {
           input: "animation deal the cards",
           js: [
             "export async function dealTheCards() {",
-            "  if (spellCore.processIsRunning('deal_the_cards')) { return }",
-            "  spellCore.startProcess('deal_the_cards', 'EXCLUSIVE')",
-            "  try {}",
-            "  finally {",
-            "    spellCore.stopProcess('deal_the_cards')",
-            "  }",
-            "}"
-          ],
-          ts: [
-            "export async function dealTheCards() {",
             '  if (spellCore.processIsRunning("deal_the_cards")) return',
             '  spellCore.startProcess("deal_the_cards", "EXCLUSIVE")',
             "  try {}",
@@ -61,18 +51,6 @@ methods.addRule(CreateAnimation, {
         {
           input: ["animation deal the cards", "\tpause for 10 seconds"],
           js: [
-            "export async function dealTheCards() {",
-            "  if (spellCore.processIsRunning('deal_the_cards')) { return }",
-            "  spellCore.startProcess('deal_the_cards', 'EXCLUSIVE')",
-            "  try {",
-            "    await spellCore.pauseFor(10, 'seconds')",
-            "  }",
-            "  finally {",
-            "    spellCore.stopProcess('deal_the_cards')",
-            "  }",
-            "}"
-          ],
-          ts: [
             "export async function dealTheCards() {",
             '  if (spellCore.processIsRunning("deal_the_cards")) return',
             '  spellCore.startProcess("deal_the_cards", "EXCLUSIVE")',

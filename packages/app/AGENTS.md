@@ -107,7 +107,7 @@ when working with code in this package, `@spell-app/app`.
   - The PROGRAM draws with the page's Solid too:  `App.start()` mounts its own root (`spellCore.mountApp()`).
     - A runner hands it `appRoot`, a `<div>` drawn once and never touched again.
     - Semantic UI's CSS stays wherever programs draw.
-    - Each drawn thing has its own error net:  a stand-in, a `ui-error`, and the rest keeps drawing.
+    - Each drawn thing has its own error boundary:  a stand-in, a `ui-error`, and the rest keeps drawing.
   - Programs run on `spell-runtime.js` (`spellRuntime.ts`), NEVER the page's own `core`.
     - The app loads it once (`editor.loadRuntime()`), and so does the VS Code runner.
     - Each `<spell-app>` loads its OWN copy (`loadRuntime()`), so apps on a page don't share a `spellCore`.
@@ -122,6 +122,11 @@ when working with code in this package, `@spell-app/app`.
   - Its Thing Explorer reads the runtime copy's `spellCore.things` (`ThingRegistry`).
     - Each `Thing`, and each instance of a `List` sub-class, registers itself as it's made.
     - The program's exports are its top-level things.
+    - It labels their properties and actions in spell's words, `move (a card) to (a pile)`:
+      the project's words file, `<Project>.en.js` beside its compiled output (`SP.SpellWords`, `runner/words.ts`).
+      - Each runner loads it beside the scope pack:  `<spell-app>` by URL, VS Code's from the extension's `words`
+        message, an editor's in what it pushes.
+      - No words file:  each by its name, `move to pile`.
 - `components/`:  `<spell-app>` and `<spell-editor>` (epic `spell-element`, P4).
   - They're Spell UI components, written as a component pack's families are ([epics' AGENTS.md](../epics/AGENTS.md)).
   - `components/<tag>/` holds:

@@ -23,14 +23,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - Drawing code here is Solid work:  READ the root's Solid 2 pointer first.
   - That's [drawing.ts](src/drawing.ts):
     - drawing a thing or a list's items:  `drawThing()`, `drawItems()`
-    - the `@drawn` decorator, and the error net it shares with `drawThing()`
+    - the `@drawn` decorator, and the error boundary it shares with `drawThing()`
     - mounting an app, `mountApp()`
     - the `h` it exports
   - Compiled javascript draws with Solid's own `h()`, imported from `@spell/core`.
     - Since epic `output-targets` P20.
-    - `h()` returns a thunk:  the error net makes it, once, and a throw while it's made shows the stand-in.
-    - `spellCore.element()`, what it called before, is in [deprecated.ts](src/deprecated.ts):
-      programs compiled before still run.
+    - `h()` returns a thunk:  the error boundary makes it, once, and a throw while it's made shows the stand-in.
+    - `spellCore.element()`, what it called before, is gone (epic `output-targets` P22):
+      every committed example is recompiled, and a program compiled before P20 no longer draws.
 
 ## Who may value-import it
 

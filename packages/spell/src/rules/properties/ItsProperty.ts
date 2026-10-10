@@ -48,7 +48,6 @@ properties.addRule(ItsProperty, {
       tests: [
         [
           ["get a new thing", "print its foo"],
-          ["let it = new Thing()", "spellCore.console.log(it.foo)"],
           ["const it = new Thing()", "spellCore.console.log(it.foo)"]
         ]
       ]

@@ -42,7 +42,7 @@ export class PropertyValueGetter extends SpellStatement<"property|type|body?", {
     const typeScope = getKnownType(type)
     // a value kind's is its static method, which `readAs` reads;  anything else's, a getter
     const readAs = match.data.valueKind ? `${typeScope.name}.${property.value}({it})` : undefined
-    typeScope.declareProperty(`${property.value}`, match, { asWritten: property.raw, readAs, isGetter: !readAs })
+    typeScope.declareProperty(`${property.value}`, match, { asWritten: property.raw, readAs })
   }
 
   /**
@@ -120,7 +120,7 @@ classes.addRule(PropertyValueGetter, {
       tests: [
         {
           input: "the value of a card is:",
-          js: ["Object.defineProperty(Card.prototype, 'value', {", "  get() {},", "  configurable: true", "})"],
+          js: ['Object.defineProperty(Card.prototype, "value", {', "  get() {},", "  configurable: true", "})"],
           ts: [
             "export interface Card { readonly value: any /* spell: type unknown */ }",
             'Object.defineProperty(Card.prototype, "value", {',
@@ -132,7 +132,7 @@ classes.addRule(PropertyValueGetter, {
         {
           input: "the value of a card is its name",
           js: [
-            "Object.defineProperty(Card.prototype, 'value', {",
+            'Object.defineProperty(Card.prototype, "value", {',
             "  get() {",
             "    return this.name",
             "  },",
@@ -152,7 +152,7 @@ classes.addRule(PropertyValueGetter, {
         {
           input: ["the short-name of a card is:", "\treturn the first word of the name of the card"],
           js: [
-            "Object.defineProperty(Card.prototype, 'shortName', {",
+            'Object.defineProperty(Card.prototype, "shortName", {',
             "  get() {",
             "    return spellCore.getItemAt(this.name, 1)",
             "  },",
@@ -173,7 +173,7 @@ classes.addRule(PropertyValueGetter, {
           title: "Show error if both nestedBlock and inlineStatement",
           input: ["the short-name of a card is its name", "\treturn the first word of the name of the card"],
           js: [
-            "Object.defineProperty(Card.prototype, 'shortName', {",
+            'Object.defineProperty(Card.prototype, "shortName", {',
             "  get() {",
             "    return spellCore.getItemAt(this.name, 1)",
             "  },",

@@ -14,6 +14,7 @@ export {
   fixtureProjectNames,
   compiledFixture,
   fixtureDeclarations,
+  fixtureWords,
   fixtureImports,
   FIXTURES_DIR,
   summarize,

@@ -4,6 +4,7 @@
  *   from `src/app/runner/`), with Semantic UI + Lato straight from its `static/`.
  * - Server compiles, NOT us:  `spell/compileProject`, answered by `spell/projectCompiled` with the javascript.
  * - Also re-runs when the project's `<Project>.compiled.js` changes on disk, e.g. compiled by the web app.
+ * - Sends its words, `<Project>.en.js` beside it, after each run:  the Thing Explorer's labels.
  */
 import { existsSync } from "fs"
 import JSON5 from "json5"
@@ -37,6 +38,8 @@ export class RunnerPanel {
   declare uri: string
   /** The project's `settings.json5`, beside its `project.json` -- see `readSettings()`. */
   declare settingsUri: vscode.Uri
+  /** The project's words, `<Project>.en.js`, beside its compiled javascript -- see `sendWords()`. */
+  declare wordsUri: vscode.Uri
   /** Its settings, as last read or saved. */
   #settings: ProjectSettings = {}
   /** Pending write of `#settings` -- see `saveSettings()`. */
@@ -52,6 +55,7 @@ export class RunnerPanel {
     this.uri = uri
     // the compiled file is in the project's folder too
     this.settingsUri = vscode.Uri.joinPath(vscode.Uri.parse(info.compiledUri), "..", SETTINGS_FILE)
+    this.wordsUri = vscode.Uri.parse(info.compiledUri.replace(/\.compiled\.js$/, WORDS_JS))
     const runner = vscode.Uri.file(resolve(repoRoot, "packages/app/dist-runner"))
     const statics = vscode.Uri.file(resolve(repoRoot, "packages/app/static"))
     this.panel = vscode.window.createWebviewPanel(
@@ -170,7 +174,20 @@ export class RunnerPanel {
     if (!force && compiled === this.#lastRun) return
     this.#lastRun = compiled
     this.post({ type: "run", compiled })
+    void this.sendWords()
     void this.sendScopes()
+  }
+
+  /**
+   * Send the webview the project's words, as text:  `<Project>.en.js`, which compiling wrote beside its javascript.
+   * - None, e.g. compiled before words had a file:  sends none, and the Thing Explorer shows names as they are.
+   */
+  async sendWords(): Promise<void> {
+    const words = await vscode.workspace.fs.readFile(this.wordsUri).then(
+      (bytes) => new TextDecoder().decode(bytes),
+      () => undefined
+    )
+    this.post({ type: "words", words })
   }
 
   /** Send the webview the project's live scope tree, from the server's `spell/scopes`, for its Type Explorer. */
@@ -319,6 +336,9 @@ export class RunnerPanel {
 /** Start of what a line which doesn't parse compiles to:  a comment, `PARSE ERROR: Don't understand "foo"`. */
 const PARSE_ERROR_MARKER = "/* PARSE ERROR:"
 
+/** End of a project's words file's name, in place of `.compiled.js`:  `SP.WORDS_JS_SUFFIX`, which we can't import. */
+const WORDS_JS = ".en.js"
+
 ////////////////
 // ## Protocol types
 //  NOTE: restated from `app` (`runner.types.ts`), which this project can't import -- change both together.
@@ -346,6 +366,7 @@ type ProjectCompiled = {
  */
 type ToRunnerMessage =
   | { type: "run"; compiled: string }
+  | { type: "words"; words?: string }
   | { type: "scopes"; tree: unknown }
   | { type: "settings"; settings: ProjectSettings }
   | { type: "details"; path: string; details: unknown }

@@ -98,6 +98,14 @@ export function fixtureDeclarations(projectName: string): string {
 }
 
 /**
+ * Fixture `projectName`'s words, as its `<Project>.en.js` would hold them:  from its declarations, by javascript's
+ * names -- see `SP.SpellWords`.
+ */
+export function fixtureWords(projectName: string): string {
+  return SP.SpellWords.script(SP.SpellWords.of(compileFixture(projectName).declarations), projectName)
+}
+
+/**
  * Fixture `projectName` compiled as `SpellProject` would:  its `code` and its `declarations`.
  * - Files combine through the SAME `SP.SpellProject.combineCompiled()`, so a class gets members from every file,
  *   and split through the same `SP.SpellDeclarations.split()`.

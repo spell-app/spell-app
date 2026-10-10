@@ -15,24 +15,30 @@ export class TypeSpecifierEnum extends P.Sequence<"enumeration"> {
     const enumeration = P.matchAST<P.ASTListExpression>(match.groups.enumeration).items ?? []
     return new P.ASTEnumeration(match, {
       enumeration,
-      // Every item here comes from `identifier_list`, which only ever matches `known_variable`,
-      // `constant` or `number` leaves -- all `Literal` subclasses whose `compile()` returns the
-      // underlying primitive value, but the base `ASTNode.compile()` is typed as `unknown`.
-      values: enumeration.map((literal) => literal.compile() as string | number)
+      values: enumeration.map(valueOf)
     })
   }
+}
+
+/**
+ * An enumeration's value as spell's scopes keep it:  `'clubs'`, `2`.
+ * - Every item here comes from `identifier_list`, which only ever matches `known_variable`, `constant` or `number`
+ *   leaves -- all `Literal` subclasses whose `compile()` returns the underlying primitive value, but the base
+ *   `ASTNode.compile()` is typed as `unknown`.
+ * - In single quotes, whatever quotes the code is written in:  the scopes, the rules they make (`placeholderData()`)
+ *   and every project's declarations read it so.
+ */
+function valueOf(literal: P.ASTExpression): string | number {
+  const value = literal.compile() as string | number
+  return typeof value === "string" ? value.replace(/^"([^"'\\]*)"$/, "'$1'") : value
 }
 classes.addRule(TypeSpecifierEnum, {
   syntax: "as (either|one of) {enumeration:identifier_list}",
   tests: [
     {
       tests: [
-        ["as either red or black", "['red', 'black']", '["red", "black"]'],
-        [
-          "as one of clubs, diamonds, hearts, spades",
-          "['clubs', 'diamonds', 'hearts', 'spades']",
-          '["clubs", "diamonds", "hearts", "spades"]'
-        ]
+        ["as either red or black", '["red", "black"]'],
+        ["as one of clubs, diamonds, hearts, spades", '["clubs", "diamonds", "hearts", "spades"]']
       ]
     }
   ]

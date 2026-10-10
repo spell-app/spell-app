@@ -268,7 +268,7 @@ export async function dealTheCards() {
 }
 
 declare module "@spell/project/@test:fixtures:Cards" {
-  interface Card { play(): any /* spell: type unknown */ }
+  interface Card { play(): Promise<boolean | undefined> }
 }
 Card.prototype.play = async function (this: Card) {
   const startPile = this.pile

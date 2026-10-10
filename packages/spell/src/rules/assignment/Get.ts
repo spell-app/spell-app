@@ -43,8 +43,8 @@ assignment.addRule(Get, {
         ;(scope as P.BlockScope).variables.add("thing")
       },
       tests: [
-        ["get thing", "let it = thing", "const it = thing"],
-        ["get the foo of the thing", "let it = thing.foo", "const it = thing.foo"]
+        ["get thing", "const it = thing"],
+        ["get the foo of the thing", "const it = thing.foo"]
       ]
     },
     {
@@ -56,8 +56,8 @@ assignment.addRule(Get, {
         variables.add("thing")
       },
       tests: [
-        ["get thing", "let it2 = thing", "const it2 = thing"],
-        ["get the foo of the thing", "let it2 = thing.foo", "const it2 = thing.foo"]
+        ["get thing", "const it2 = thing"],
+        ["get the foo of the thing", "const it2 = thing.foo"]
       ]
     },
     {
@@ -69,8 +69,7 @@ assignment.addRule(Get, {
       tests: [
         {
           input: ["get thing", "get the foo of the thing", "print it"],
-          js: ["let it = thing", "let it2 = thing.foo", "spellCore.console.log(it2)"],
-          ts: ["const it = thing", "const it2 = thing.foo", "spellCore.console.log(it2)"]
+          js: ["const it = thing", "const it2 = thing.foo", "spellCore.console.log(it2)"]
         }
       ]
     },
@@ -85,8 +84,7 @@ assignment.addRule(Get, {
       tests: [
         {
           input: ["get thing", "get the foo of the thing"],
-          js: ["let it = thing", "let it3 = thing.foo"],
-          ts: ["const it = thing", "const it3 = thing.foo"]
+          js: ["const it = thing", "const it3 = thing.foo"]
         }
       ]
     },
@@ -101,13 +99,11 @@ assignment.addRule(Get, {
       tests: [
         {
           input: ["print it", "get the thing", "print it"],
-          js: ["spellCore.console.log(this)", "let it = thing", "spellCore.console.log(it)"],
-          ts: ["spellCore.console.log(this)", "const it = thing", "spellCore.console.log(it)"]
+          js: ["spellCore.console.log(this)", "const it = thing", "spellCore.console.log(it)"]
         },
         {
           input: ["print it", "get its name", "print it"],
-          js: ["spellCore.console.log(this)", "let it = this.name", "spellCore.console.log(it)"],
-          ts: ["spellCore.console.log(this)", "const it = this.name", "spellCore.console.log(it)"]
+          js: ["spellCore.console.log(this)", "const it = this.name", "spellCore.console.log(it)"]
         }
       ]
     }

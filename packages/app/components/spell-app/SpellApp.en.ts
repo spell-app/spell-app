@@ -38,7 +38,8 @@ export const spellAppVocabulary = {
       kind: "string",
       description:
         "What to run, from anywhere:  `apps/Solitaire.compiled.js`.  Its scope pack (`Solitaire.scopes.js`), " +
-        "declarations (`Solitaire.declarations.json`) and the projects it imports (`Cards.compiled.js`) are beside it."
+        "declarations (`Solitaire.declarations.json`), words (`Solitaire.en.js`) and the projects it imports " +
+        "(`Cards.compiled.js`) are beside it."
     },
     { name: "scopes", kind: "string", description: "Where its scope pack is, if not where `project` / `src` says." },
     { name: "name", kind: "string", description: "Its name in the toolbar;  default, its project's." },

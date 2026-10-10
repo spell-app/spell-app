@@ -87,54 +87,37 @@ lists.addRule(ListIteration, {
         scope.variables?.add("messages")
       },
       tests: [
-        ["for each card in deck:", "spellCore.map(deck, (card) => {})", "spellCore.map(deck, () => {})"],
-        [
-          "for item, index in my-list:",
-          "spellCore.map(myList, (item, index) => {})",
-          "spellCore.map(myList, () => {})"
-        ],
+        ["for each card in deck:", "spellCore.map(deck, () => {})"],
+        ["for item, index in my-list:", "spellCore.map(myList, () => {})"],
         [
           `for each card in deck: set the direction of the card to "down"`,
-          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`],
           'spellCore.map(deck, (card) => (card.direction = "down"))'
         ],
         [
           `for each card in deck: set the direction of it to "down"`,
-          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`],
           'spellCore.map(deck, (card) => (card.direction = "down"))'
         ],
         [
           "for message, index in messages: add message + index to messages",
-          [
-            `spellCore.map(messages, (message, index) => {`,
-            `  return spellCore.append(messages, message + index)`,
-            `})`
-          ],
+          "spellCore.map(messages, (message, index) => spellCore.append(messages, message + index))",
           "spellCore.map(messages, (message, index: number) => spellCore.append(messages, message + index))"
         ],
         [
           "for message, index in messages: add it + index to messages",
-          [
-            `spellCore.map(messages, (message, index) => {`,
-            `  return spellCore.append(messages, message + index)`,
-            `})`
-          ],
+          "spellCore.map(messages, (message, index) => spellCore.append(messages, message + index))",
           "spellCore.map(messages, (message, index: number) => spellCore.append(messages, message + index))"
         ],
         [
           "for message, index in messages: set its list to messages",
-          [`spellCore.map(messages, (message, index) => {`, `  message.list = messages`, `})`],
           "spellCore.map(messages, (message) => (message.list = messages))"
         ],
 
         [
           `for each card in deck:\n\tset the direction of the card to "down"`,
-          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`],
           'spellCore.map(deck, (card) => (card.direction = "down"))'
         ],
         [
           [`for each card in deck:`, `\tset the direction of it to "down"`],
-          [`spellCore.map(deck, (card) => {`, `  card.direction = "down"`, `})`],
           'spellCore.map(deck, (card) => (card.direction = "down"))'
         ],
         [
@@ -144,9 +127,9 @@ lists.addRule(ListIteration, {
         [
           ["for message and index in messages:", "\tif index is greater than 2 add message to messages"],
           [
-            `spellCore.map(messages, (message, index) => {`,
-            `  if (index > 2) { spellCore.append(messages, message) }`,
-            `})`
+            "spellCore.map(messages, (message, index) => {",
+            "  if (index > 2) spellCore.append(messages, message)",
+            "})"
           ],
           [
             "spellCore.map(messages, (message, index: number) => {",

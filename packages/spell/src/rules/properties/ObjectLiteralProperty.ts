@@ -32,10 +32,10 @@ properties.addRule(ObjectLiteralProperty, {
 
         [`length is 1`, `length: 1`],
         [`rank of "queen"`, `rank: "queen"`],
-        [`short rank is 1`, `short_rank: 1`],
+        [`short rank is 1`, "shortRank: 1"],
 
         // TODO: `{property}` converts to `foo_bar` before we get here
-        [`foo-bar = 1`, `foo_bar: 1`]
+        [`foo-bar = 1`, "fooBar: 1"]
       ]
     }
   ]

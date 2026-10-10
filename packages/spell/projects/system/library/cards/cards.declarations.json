@@ -52,7 +52,6 @@
     {
       "property": "color",
       "of": "Card",
-      "getter": true,
       "constants": [
         "red",
         "black"
@@ -63,7 +62,6 @@
       "property": "value",
       "of": "Card",
       "datatype": "number",
-      "getter": true,
       "defined": "/Card.spell:439-500"
     },
     {
@@ -185,7 +183,6 @@
       "property": "name",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1085-1136"
     },
     {
@@ -193,7 +190,6 @@
       "asWritten": "short suit",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1138-1299"
     },
     {
@@ -201,7 +197,6 @@
       "asWritten": "short rank",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1301-1463"
     },
     {
@@ -209,7 +204,6 @@
       "asWritten": "short direction",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1465-1545"
     },
     {
@@ -217,14 +211,12 @@
       "asWritten": "short name",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1548-1608"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1610-1687"
     },
     {
@@ -313,7 +305,6 @@
       "property": "name",
       "of": "Joker",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:2918-2962"
     },
     {
@@ -321,7 +312,6 @@
       "asWritten": "short name",
       "of": "Joker",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:2964-2998"
     },
     {
@@ -414,21 +404,18 @@
     {
       "property": "color",
       "of": "Pile",
-      "getter": true,
       "defined": "/Pile.spell:284-372"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
-      "getter": true,
       "defined": "/Pile.spell:374-457"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
-      "getter": true,
       "defined": "/Pile.spell:459-623"
     },
     {
@@ -456,30 +443,30 @@
     74,
     82,
     88,
-    94,
-    98,
-    108,
-    113,
-    122,
-    128,
-    148,
-    155,
-    157,
-    163,
-    167,
-    174,
-    244,
-    248,
-    252,
-    269,
-    277,
-    284,
-    319,
+    93,
+    97,
+    107,
+    112,
+    121,
+    127,
+    141,
+    152,
+    154,
+    160,
+    164,
+    171,
+    241,
+    245,
+    249,
+    264,
+    270,
+    275,
+    308,
+    326,
+    330,
+    334,
     339,
-    343,
-    347,
-    352,
-    357,
-    366
+    344,
+    353
   ]
 }

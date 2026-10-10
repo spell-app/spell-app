@@ -155,7 +155,7 @@ const ALLOWED: readonly Allowed[] = [
   {
     file: "packages/ui/src/components/ui-table/UITable.tsx",
     rule: "no-solid-effect",
-    reason: "the class mirror's RENDER effect:  a throw must reach the error net"
+    reason: "the class mirror's RENDER effect:  a throw must reach the error boundary"
   },
   {
     file: "packages/ui/src/components/ui-table/UITable.tsx",

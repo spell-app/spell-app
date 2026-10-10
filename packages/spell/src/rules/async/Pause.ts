@@ -28,14 +28,10 @@ _async.addRule(Pause, {
     {
       compileAs: "statement",
       tests: [
-        [`pause for 2 seconds"`, `await spellCore.pauseFor(2, 'seconds')`, 'await spellCore.pauseFor(2, "seconds")'],
-        [`pause for 500 msec"`, `await spellCore.pauseFor(500, 'msec')`, 'await spellCore.pauseFor(500, "msec")'],
-        [`pause for 10 ticks"`, `await spellCore.pauseFor(10, 'ticks')`, 'await spellCore.pauseFor(10, "ticks")'],
-        [
-          `pause for (10 + 10) sec`,
-          `await spellCore.pauseFor(10 + 10, 'sec')`,
-          'await spellCore.pauseFor(10 + 10, "sec")'
-        ]
+        [`pause for 2 seconds"`, 'await spellCore.pauseFor(2, "seconds")'],
+        [`pause for 500 msec"`, 'await spellCore.pauseFor(500, "msec")'],
+        [`pause for 10 ticks"`, 'await spellCore.pauseFor(10, "ticks")'],
+        [`pause for (10 + 10) sec`, 'await spellCore.pauseFor(10 + 10, "sec")']
       ]
     }
   ]

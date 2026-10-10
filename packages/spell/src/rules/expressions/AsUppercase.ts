@@ -26,7 +26,7 @@ expressions.addRule(AsUppercase, {
       compileAs: "expression",
       tests: [
         [`"foo" as upper case`, '"foo".toLocaleUpperCase()'],
-        [`1 as uppercase`, "`${1 ?? ''}`.toLocaleUpperCase()", '`${1 ?? ""}`.toLocaleUpperCase()']
+        [`1 as uppercase`, '`${1 ?? ""}`.toLocaleUpperCase()']
       ]
     }
   ]

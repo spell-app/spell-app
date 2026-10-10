@@ -50,9 +50,7 @@ _if_.addRule(ValueIf, {
       beforeEach(scope: P.Scope) {
         ;(scope as P.BlockScope).variables.add("suit")
       },
-      tests: [
-        [`red if suit is "hearts"`, `if (suit == "hearts") { return 'red' }`, 'if (suit == "hearts") return "red"']
-      ]
+      tests: [[`red if suit is "hearts"`, 'if (suit == "hearts") return "red"']]
     }
   ]
 })

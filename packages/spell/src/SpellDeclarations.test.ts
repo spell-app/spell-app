@@ -158,7 +158,7 @@ describe("SpellDeclarations.importScope()", () => {
     expect(fromSources[0]!.warnings).toContainEqual(expect.stringMatching(neverSays))
     // and so, from its sources, a foundation's `name` is the pile's, of no known kind:  `==`.
     // From the library's declarations, which don't have it, it's what every foundation is given, text:  `===` (P19)
-    const nameKnown = (code: string) => code.replace(/this\.name == ('\w+')/g, "this.name === $1")
+    const nameKnown = (code: string) => code.replace(/this\.name == ("\w+")/g, "this.name === $1")
     const withoutIt = fromSources.map((it) => ({
       ...it,
       compiled: it.compiled && nameKnown(it.compiled.replace(autoDeclared, "")),
@@ -243,12 +243,12 @@ describe("SpellDeclarations.importScope()", () => {
     ].join("\n")
     const { files } = parseSpellProject([{ path: "/A.spell", contents }], { parentScope: importLibrary() })
     expect([files[0]!.compiled, ...files[0]!.errors].join("\n")).toMatchInlineSnapshot(`
-      "export let card = new Card()
-      export let deck = new Deck()
-      export let pile = new Pile()
+      "export const card = new Card()
+      export const deck = new Deck()
+      export const pile = new Pile()
       card.moveToPile(pile)
       spellCore.move(card, deck)
-      export let moved = card.moveToPile(pile)"
+      export const moved = card.moveToPile(pile)"
     `)
   })
 
@@ -299,9 +299,9 @@ describe("SpellDeclarations.importScope()", () => {
 
     test("a runtime type check uses its class's real name", () => {
       scope.variables.add("thing")
-      expect(scope.parse("thing is a playingcard", "expression")?.compile()).toBe("spellCore.isOfType(thing, 'Card')")
+      expect(scope.parse("thing is a playingcard", "expression")?.compile()).toBe('spellCore.isOfType(thing, "Card")')
       // ...and so does a property's, when it's set
-      expect(scope.parse("a hand has a top as a playingcard", "block")?.compile()).toContain("type: 'Card'")
+      expect(scope.parse("a hand has a top as a playingcard", "block")?.compile()).toContain('type: "Card"')
     })
 
     test("the importer's compiled JS imports it under its new name", () => {
@@ -376,15 +376,14 @@ describe("SpellDeclarations of `a card belongs to one pile`", () => {
   test("loads it again:  `the pile of a card` is a `Pile`, read-only, declared on its own line", () => {
     const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from, declarations }])
     const member = imports.types.get("Card", "LOCAL_ONLY")?.variables.get("pile", "LOCAL_ONLY")
-    // a getter, which its declaration leaves unsaid -- see `SP.SpellDeclaration.getter`
-    expect(member).toMatchObject({ name: "pile", datatype: "Pile", exclusive: true, isGetter: true })
+    expect(member).toMatchObject({ name: "pile", datatype: "Pile", exclusive: true })
     expect(member?.declaredAt).toMatchObject({ path: `${from}/Pile.spell`, start: 26, end: 52 })
     const contents = ["set card to a new card", "print the pile of the card", "set the pile of the card to 1"]
     const { files } = parseSpellProject([{ path: "/A.spell", contents: contents.join("\n") }], {
       parentScope: imports
     })
     expect([files[0]!.compiled, ...files[0]!.errors].join("\n")).toMatchInlineSnapshot(`
-      "export let card = new Card()
+      "export const card = new Card()
       spellCore.console.log(card.pile)
       /* PARSE ERROR: Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead */
       3:0 Can't set the pile of a Card:  it's the Pile holding it -- move it to a Pile instead"
@@ -420,8 +419,8 @@ describe("SpellDeclarations of a multi-word member", () => {
 })
 
 /**
- * A DERIVED property -- a getter works it out -- says so, so an importer's TypeScript reads it by TypeScript's name,
- * `card.shortName`, not spell's (epic `output-targets`, J20 / I5).
+ * A DERIVED property -- a getter works it out -- is declared as a stored one is:  every member is named the same way,
+ * `card.shortRank`, `card.isSetUp`, so an importer needn't know which it is (epic `output-targets`, Q56).
  */
 describe("SpellDeclarations of a derived property", () => {
   const library = [
@@ -439,17 +438,9 @@ describe("SpellDeclarations of a derived property", () => {
   const declarations = compiledProject(library).declarations
   const property = (name: string) => declarations.statements.find((it) => it.property === name)
 
-  test("says `getter` for a getter's property -- not for a stored one", () => {
-    expect(property("short_rank")?.getter).toBe(true)
-    expect(property("color")?.getter).toBe(true)
-    expect(property("rank")?.getter).toBeUndefined()
-  })
-
-  test("loads it as the record's `isGetter`", () => {
-    const imports = SP.SpellDeclarations.importScope(SP.SpellParser.rootScope, [{ from: "@library/c", declarations }])
-    const card = imports.types.get("Card", "LOCAL_ONLY")!
-    expect(card.variables.get("short_rank", "LOCAL_ONLY")?.isGetter).toBe(true)
-    expect(card.variables.get("color", "LOCAL_ONLY")?.isGetter).toBe(true)
-    expect(card.variables.get("rank", "LOCAL_ONLY")?.isGetter).toBeUndefined()
+  test("says nothing a stored property's declaration doesn't", () => {
+    expect(property("short_rank")).toBeDefined()
+    expect(property("short_rank")).not.toHaveProperty("getter")
+    expect(property("color")).not.toHaveProperty("getter")
   })
 })

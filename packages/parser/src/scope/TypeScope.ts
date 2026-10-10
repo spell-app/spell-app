@@ -116,14 +116,13 @@ export class TypeScope extends BlockScope {
    *   a later `the X of Y` reads it (`getMember()`), as do editors.
    * - Compiled output still comes from each statement's own AST.
    * - `autoDeclared`:  its type never declared it, so its first `set` did -- see `P.ScopeVariable.autoDeclared`.
-   * - `isGetter`:  a getter works it out -- see `P.ScopeVariable.isGetter`.
    * - The FIRST declaration of a name wins, as for types:  a later getter for the same property adds nothing.
    * - A getter's `datatype` comes once its body has parsed:  what it returns -- see spell's `property_value_getter`.
    */
   declareProperty(
     name: string,
     declaredBy: P.Match,
-    { asWritten, datatype, autoDeclared, readAs, isGetter }: DeclarePropertyOptions = {}
+    { asWritten, datatype, autoDeclared, readAs }: DeclarePropertyOptions = {}
   ): void {
     const existing = this.variables.get(name, "LOCAL_ONLY")
     if (!existing) {
@@ -132,7 +131,6 @@ export class TypeScope extends BlockScope {
       if (asWritten && asWritten !== name) props.asWritten = asWritten
       if (autoDeclared) props.autoDeclared = true
       if (readAs) props.readAs = readAs
-      if (isGetter) props.isGetter = true
       this.variables.add(props)
     }
     // an earlier parse of THIS statement left it:  it's ours again -- see `sameStatement()`
@@ -173,7 +171,7 @@ export class TypeScope extends BlockScope {
       return
     }
     // only what's there:  a declaration writes out what a record holds
-    const props: P.ScopeVariableProps = { name, datatype: this.name, exclusive: true, isGetter: true, declaredBy }
+    const props: P.ScopeVariableProps = { name, datatype: this.name, exclusive: true, declaredBy }
     if (!existing) {
       itemType.variables.add(props)
       return
@@ -328,8 +326,6 @@ export type DeclarePropertyOptions = {
   autoDeclared?: boolean
   /** How a read compiles, e.g. `Suit.color({it})` for a value kind's property -- see `P.ScopeVariable.readAs`. */
   readAs?: string
-  /** A getter works it out, e.g. `the short rank of a card is: ...` -- see `P.ScopeVariable.isGetter`. */
-  isGetter?: boolean
 }
 
 /** Constructor props for `TypeScope`. */

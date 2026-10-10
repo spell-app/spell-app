@@ -66,6 +66,8 @@ api.get("/projects/compiled/:projectId", projectUtils.request_getCompiled)
 api.get("/projects/scopes/:projectId", projectUtils.request_getScopes)
 // a project's declarations, where its Type Explorer finds each one's code -- see `SP.SpellDeclarations`
 api.get("/projects/declarations/:projectId", projectUtils.request_getDeclarations)
+// a project's words, what its Thing Explorer labels things' members by -- see `SP.SpellWords`
+api.get("/projects/words/:projectId", projectUtils.request_getWords)
 
 // Compile random source file, not tied to a project -- see `projectUtils.request_compileFile`.
 api.post("/compile/file", projectUtils.request_compileFile)

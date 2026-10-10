@@ -75,7 +75,6 @@
       "property": "shownTasks",
       "of": "Todos_App",
       "datatype": "list of tasks",
-      "getter": true,
       "defined": "/todo.spell:384-584"
     },
     {
@@ -121,7 +120,7 @@
     27,
     31,
     36,
-    46,
-    130
+    42,
+    100
   ]
 }

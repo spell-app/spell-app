@@ -411,10 +411,10 @@ describe("DELETE /api/projects/remove/file", () => {
 })
 
 ////////////////
-// ## Compiled and scopes
+// ## Compiled, scopes and words
 ////////////////
 
-describe("compiled and scopes files", () => {
+describe("compiled, scopes and words files", () => {
   it("GET /api/projects/compiled/:projectId => 200 text/javascript, file contents", async () => {
     const reply = await request("GET", `/api/projects/compiled/${PROJECT}`)
     expect(reply.status).toBe(200)
@@ -444,5 +444,23 @@ describe("compiled and scopes files", () => {
     expect(reply.status).toBe(404)
     expect(reply.contentType).toMatch(/^text\/javascript/)
     expect(reply.json().errors[0].message).toMatch(/^File not found: '.*Nope\.scopes\.js'$/)
+  })
+
+  it("GET /api/projects/words/:projectId => 200 text/javascript, its English words", async () => {
+    writeFixture("user/Proj/Proj.en.js", 'export const words = { lang: "en", types: {} }\n')
+    const reply = await request("GET", `/api/projects/words/${PROJECT}`)
+    expect(reply.status).toBe(200)
+    expect(reply.contentType).toMatch(/^text\/javascript/)
+    expect(reply.text).toBe('export const words = { lang: "en", types: {} }\n')
+  })
+
+  it("a project's words, in any language, are NOT one of its files:  its index leaves them out", async () => {
+    writeFixture("user/Proj/Proj.en.js", 'export const words = { lang: "en", types: {} }\n')
+    writeFixture("user/Proj/Proj.es.js", 'export const words = { lang: "es", types: {} }\n')
+    const reply = await request("GET", `/api/projects/index/${PROJECT}`)
+    expect(reply.status).toBe(200)
+    const { manifest, imports } = reply.json() as { manifest: object; imports: Array<{ path: string }> }
+    expect(Object.keys(manifest).filter((path) => /Proj\.(en|es)\.js$/.test(path))).toEqual([])
+    expect(imports.map(({ path }) => path)).not.toContain("/Proj.en.js")
   })
 })

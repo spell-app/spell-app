@@ -41,11 +41,7 @@ lists.addRule(ListMove, {
       },
       tests: [
         ["move card to tableau", "spellCore.move(card, tableau)"],
-        [
-          "if move card to tableau then print 1",
-          "if (spellCore.move(card, tableau)) { spellCore.console.log(1) }",
-          "if (spellCore.move(card, tableau)) spellCore.console.log(1)"
-        ]
+        ["if move card to tableau then print 1", "if (spellCore.move(card, tableau)) spellCore.console.log(1)"]
       ]
     }
   ]

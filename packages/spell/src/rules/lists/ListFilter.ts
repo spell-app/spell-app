@@ -44,31 +44,15 @@ lists.addRule(ListFilter, {
         scope.variables?.add("my-list")
       },
       tests: [
-        [
-          `words in "a word list" where`,
-          `spellCore.filter("a word list", (word) => {})`,
-          'spellCore.filter("a word list", () => {})'
-        ],
+        [`words in "a word list" where`, 'spellCore.filter("a word list", () => {})'],
         [
           `words in "a word list" where word starts with "a"`,
-          [`spellCore.filter("a word list", (word) => {`, `  return spellCore.startsWith(word, "a")`, `})`],
+          'spellCore.filter("a word list", (word) => spellCore.startsWith(word, "a"))',
           'spellCore.filter("a word list", (word: string) => spellCore.startsWith(word, "a"))'
         ],
-        [
-          "the items in my-list where the id of the item > 1",
-          ["spellCore.filter(myList, (item) => {", "  return (item.id > 1)", "})"],
-          "spellCore.filter(myList, (item) => item.id > 1)"
-        ],
-        [
-          "the items in my-list where the id of it > 1",
-          ["spellCore.filter(myList, (item) => {", "  return (item.id > 1)", "})"],
-          "spellCore.filter(myList, (item) => item.id > 1)"
-        ],
-        [
-          "the items in my-list where its id > 1",
-          ["spellCore.filter(myList, (item) => {", "  return (item.id > 1)", "})"],
-          "spellCore.filter(myList, (item) => item.id > 1)"
-        ]
+        ["the items in my-list where the id of the item > 1", "spellCore.filter(myList, (item) => item.id > 1)"],
+        ["the items in my-list where the id of it > 1", "spellCore.filter(myList, (item) => item.id > 1)"],
+        ["the items in my-list where its id > 1", "spellCore.filter(myList, (item) => item.id > 1)"]
       ]
     }
   ]

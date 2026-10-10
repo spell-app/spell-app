@@ -99,8 +99,8 @@ classes.addRule(ListGuard, {
           ],
           js: [
             "Pile.prototype.canTake = function (card) {",
-            "  if (this.isEmpty) { return true }",
-            "  return (card !== this.lastItem)",
+            "  if (this.isEmpty) return true",
+            "  return card !== this.lastItem",
             "}"
           ],
           ts: [
@@ -127,7 +127,7 @@ classes.addRule(ListGuard, {
       tests: [
         [
           "a pile can give up a card if: the card is its last card",
-          ["Pile.prototype.canGiveUp = function (card) {", "  return (card === this.lastItem)", "}"],
+          ["Pile.prototype.canGiveUp = function (card) {", "  return card === this.lastItem", "}"],
           [
             "export interface Pile { canGiveUp(card: Card): boolean }",
             "Pile.prototype.canGiveUp = function (this: Pile, card: Card) {",

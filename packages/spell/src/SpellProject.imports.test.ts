@@ -240,7 +240,7 @@ describe("SpellProject imports", () => {
     const compiled = readFileSync(resolve(workspace, "renamed_app", `renamed_app${SP.COMPILED_JS_SUFFIX}`), "utf8")
     expect(compiled).toMatch(/import \{ Card as Playingcard, Deck, Pile[^}]* \} from "@spell\/project\/[^"]*:lib"/)
     // its class is still `Card` when the code runs
-    expect(compiled).toContain("top.isOfType('Card')")
+    expect(compiled).toContain('top.isOfType("Card")')
 
     const run = runLinked(app, [libId])
     expect(run.stderr).not.toMatch(/Error/)

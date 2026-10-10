@@ -56,6 +56,14 @@
       "defined": "/Dealing.spell:305-454"
     },
     {
+      "property": "is_set_up",
+      "asWritten": "is-set-up",
+      "of": "Deck",
+      "datatype": "choice",
+      "autoDeclared": true,
+      "defined": "/Dealing.spell:267-303"
+    },
+    {
       "type": "Suit",
       "classVariable": "Suits",
       "of": "Deck",
@@ -130,7 +138,6 @@
     {
       "property": "color",
       "of": "Card",
-      "getter": true,
       "defined": "/Card.spell:169-205"
     },
     {
@@ -228,7 +235,6 @@
       "property": "value",
       "of": "Card",
       "datatype": "number",
-      "getter": true,
       "defined": "/Card.spell:520-573"
     },
     {
@@ -265,7 +271,6 @@
       "property": "name",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:722-765"
     },
     {
@@ -273,7 +278,6 @@
       "asWritten": "short suit",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:769-927"
     },
     {
@@ -281,7 +285,6 @@
       "asWritten": "short rank",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:931-1088"
     },
     {
@@ -289,7 +292,6 @@
       "asWritten": "short direction",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1092-1166"
     },
     {
@@ -297,26 +299,22 @@
       "asWritten": "short name",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1170-1222"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1226-1295"
     },
     {
       "property": "front",
       "of": "Card",
-      "getter": true,
       "defined": "/Card.spell:1312-1543"
     },
     {
       "property": "back",
       "of": "Card",
-      "getter": true,
       "defined": "/Card.spell:1547-1728"
     },
     {
@@ -381,14 +379,6 @@
       "defined": "/Card.spell:2298-3416"
     },
     {
-      "property": "is_set_up",
-      "asWritten": "is-set-up",
-      "of": "Deck",
-      "datatype": "choice",
-      "autoDeclared": true,
-      "defined": "/Dealing.spell:267-303"
-    },
-    {
       "syntax": "test deck creation",
       "output": "test_deck_creation",
       "rule": "method_call",
@@ -406,22 +396,25 @@
     {
       "property": "color",
       "of": "Pile",
-      "getter": true,
       "defined": "/Pile.spell:165-253"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
-      "getter": true,
       "defined": "/Pile.spell:255-338"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
-      "getter": true,
       "defined": "/Pile.spell:340-504"
+    },
+    {
+      "property": "name",
+      "of": "Pile",
+      "autoDeclared": true,
+      "defined": "/Solitaire.spell:3813-3872"
     },
     {
       "property": "pile",
@@ -429,12 +422,6 @@
       "datatype": "Pile",
       "exclusive": true,
       "defined": "/Pile.spell:137-163"
-    },
-    {
-      "property": "name",
-      "of": "Pile",
-      "autoDeclared": true,
-      "defined": "/Solitaire.spell:3813-3872"
     },
     {
       "type": "Game",
@@ -451,7 +438,6 @@
       "property": "state",
       "of": "Game",
       "datatype": "list",
-      "getter": true,
       "defined": "/Solitaire.spell:2287-2406"
     },
     {
@@ -621,64 +607,64 @@
   "codeLines": [
     10,
     17,
-    28,
+    26,
     36,
-    38,
-    39,
     40,
+    41,
+    42,
     43,
-    45,
-    52,
+    46,
+    47,
     54,
+    56,
     60,
     65,
     69,
-    76,
-    81,
-    85,
-    89,
-    94,
-    99,
-    103,
-    108,
-    112,
-    120,
-    126,
-    131,
-    135,
-    140,
-    152,
-    170,
-    175,
+    74,
+    79,
+    83,
+    87,
+    92,
+    97,
+    101,
+    106,
+    110,
+    118,
+    124,
+    129,
+    133,
+    138,
+    148,
+    164,
+    169,
+    178,
     184,
-    190,
-    227,
-    273,
-    280,
-    308,
-    311,
-    316,
-    321,
-    330,
-    338,
-    351,
-    352,
-    358,
-    366,
-    444,
-    449,
-    465,
-    470,
-    478,
-    494,
-    533,
-    543,
-    562,
-    568,
-    577,
-    593,
-    631,
-    673,
-    678
+    221,
+    268,
+    294,
+    297,
+    302,
+    307,
+    315,
+    319,
+    328,
+    329,
+    335,
+    341,
+    390,
+    395,
+    406,
+    411,
+    419,
+    435,
+    472,
+    482,
+    499,
+    503,
+    512,
+    528,
+    566,
+    604,
+    609
   ]
 }

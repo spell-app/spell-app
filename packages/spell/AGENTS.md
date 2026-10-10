@@ -54,6 +54,7 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
     - `<Project>.snapshot.js`:  the javascript target
     - `<Project>.snapshot.tsx`:  the TypeScript target, type-checked by `tsc` too
     - `<Project>.snapshot.declarations.json`:  its declarations
+    - `<Project>.en.snapshot.js`:  its words, `SP.SpellWords` (ending as a snapshot does keeps it out of its files)
     - Add a fixture by copying a project in.
     - After a deliberate change, `yarn test:fixtures:bless`, and read the diff.
 - [readme.md](readme.md) is the project's front page.

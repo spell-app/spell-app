@@ -7,21 +7,21 @@ export class Card extends Thing {
   // ## properties of cards
   /////////////////////////
   /** card ranks */
-  static Ranks = ['ace', 2, 3, 4, 5, 6, 7, 8, 9, 10, 'jack', 'queen', 'king']
-  static { this.declareProp('rank', { oneOf: Card.Ranks }) }
-  get rank() { return this.getProp('rank') }
-  set rank(value) { this.setProp('rank', value) }
+  static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
+  static { this.declareProp("rank", { oneOf: Card.Ranks }) }
+  get rank() { return this.getProp("rank") }
+  set rank(value) { this.setProp("rank", value) }
 
   /** card suits */
-  static Suits = ['clubs', 'diamonds', 'hearts', 'spades']
-  static { this.declareProp('suit', { oneOf: Card.Suits }) }
-  get suit() { return this.getProp('suit') }
-  set suit(value) { this.setProp('suit', value) }
+  static Suits = ["clubs", "diamonds", "hearts", "spades"]
+  static { this.declareProp("suit", { oneOf: Card.Suits }) }
+  get suit() { return this.getProp("suit") }
+  set suit(value) { this.setProp("suit", value) }
 
   /** color as derivation of suit */
   get color() {
-    if (spellCore.includes(['diamonds', 'hearts'], this.suit)) { return 'red' }
-    return 'black'
+    if (spellCore.includes(["diamonds", "hearts"], this.suit)) return "red"
+    return "black"
   }
 
   /** value as a derivation of rank */
@@ -30,26 +30,26 @@ export class Card extends Thing {
   }
 
   /** card direction:  up or down */
-  static Directions = ['up', 'down']
-  static { this.declareProp('direction', { oneOf: Card.Directions }) }
-  get direction() { return this.getProp('direction') }
-  set direction(value) { this.setProp('direction', value) }
+  static Directions = ["up", "down"]
+  static { this.declareProp("direction", { oneOf: Card.Directions }) }
+  get direction() { return this.getProp("direction") }
+  set direction(value) { this.setProp("direction", value) }
 
   /////////////
   // ## aliases
   /////////////
   /** "card is face up/down" */
   get isFaceUp() {
-    return (this.direction == 'up')
+    return this.direction == "up"
   }
 
   get isFaceDown() {
-    return (this.direction == 'down')
+    return this.direction == "down"
   }
 
   /** `card is a face card` */
   get isAFaceCard() {
-    return spellCore.includes(['jack', 'queen', 'king'], this.rank)
+    return spellCore.includes(["jack", "queen", "king"], this.rank)
   }
 
   /** "card is a spade", "...is a club" etc */
@@ -73,31 +73,30 @@ export class Card extends Thing {
   }
 
   get shortSuit() {
-    if (this.isASuit('clubs')) { return "♣️" }
-    if (this.isASuit('diamonds')) { return "♦️" }
-    if (this.isASuit('hearts')) { return "♥️" }
-    if (this.isASuit('spades')) { return "♠️" }
+    if (this.isASuit("clubs")) return "♣️"
+    if (this.isASuit("diamonds")) return "♦️"
+    if (this.isASuit("hearts")) return "♥️"
+    if (this.isASuit("spades")) return "♠️"
     return "?"
   }
 
   get shortRank() {
-    if (this.rank === undefined) { return "?" }
-    if (typeof this.rank === 'number') { return `${this.rank}` }
-    return `${spellCore.getItemAt(this.rank, 1) ?? ''}`.toLocaleUpperCase()
+    if (this.rank === undefined) return "?"
+    if (typeof this.rank === "number") return `${this.rank}`
+    return `${spellCore.getItemAt(this.rank, 1) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {
-    if (this.direction == 'up') { return "+" }
+    if (this.direction == "up") return "+"
     return "—"
-    
   }
 
   get shortName() {
-    return (this.shortRank + this.shortSuit)
+    return this.shortRank + this.shortSuit
   }
 
   get state() {
-    return ((this.shortRank + this.shortSuit) + this.shortDirection)
+    return this.shortRank + this.shortSuit + this.shortDirection
   }
 
   //## actions
@@ -107,13 +106,13 @@ export class Card extends Thing {
    * Note that this will animate if you `wait for turn the card face up`
    */
   async turnFaceUp() {
-    this.direction = 'up'
-    await spellCore.pauseFor(50, 'msec')
+    this.direction = "up"
+    await spellCore.pauseFor(50, "msec")
   }
 
   async turnFaceDown() {
-    this.direction = 'down'
-    await spellCore.pauseFor(50, 'msec')
+    this.direction = "down"
+    await spellCore.pauseFor(50, "msec")
   }
 
   /**
@@ -121,106 +120,100 @@ export class Card extends Thing {
    * Note that this will animate if you `wait for turn the card face up`
    */
   async turnOver() {
-    if (this.direction == 'up') { this.turnFaceDown() }
-    else { this.turnFaceUp() }
-    await spellCore.pauseFor(50, 'msec')
+    if (this.direction == "up") this.turnFaceDown()
+    else this.turnFaceUp()
+    await spellCore.pauseFor(50, "msec")
   }
 
   draw() {
-    let className = `Card face-${this.direction} ${this.rank} ${this.suit} ui button compact fluid `
-    if (this.isFaceDown) { return h("div", {
-      class: () => className,
-      onClick: (event) => {
-        return trigger('card-click', { card: this })
-      }
-    }, h("i", { class: "fitted bicycle icon" })) }
-    return h("div", {
-      class: () => (className + this.color),
-      onClick: (event) => {
-        return trigger('card-click', { card: this })
-      }
-    },
+    const className = `Card face-${this.direction} ${this.rank} ${this.suit} ui button compact fluid `
+    if (this.isFaceDown) {
+      return h("div", { class: () => className, onClick: () => trigger("card-click", { card: this }) },
+        h("i", { class: "fitted bicycle icon" })
+      )
+    }
+    return h("div", { class: () => className + this.color, onClick: () => trigger("card-click", { card: this }) },
       () => `${this.shortRank} `,
       h("span", { class: "suit" }, () => this.shortSuit)
     )
   }
 
   async play() {
-    let startPile = this.pile
-    if (!spellCore.canGiveUp(startPile, this)) { return false }
-    
+    const startPile = this.pile
+    if (!spellCore.canGiveUp(startPile, this)) return false
+
     if (startPile === stock) {
       playFromTheStockPile()
       return
     }
-    
-    let endPile = allPiles.filter((pile) => {
-      return ((pile.droppable) && spellCore.canTake(pile, this))
-    }).firstItem
-    if (endPile === undefined) { return false }
-    
-    let cardsToMove = startPile.startingWith(this)
+
+    const endPile = allPiles.filter((pile) => pile.droppable && spellCore.canTake(pile, this)).firstItem
+    if (endPile === undefined) return false
+
+    const cardsToMove = startPile.startingWith(this)
     cardsToMove.name = startPile.name
     spellCore.console.log(`moving (${cardsToMove.state}) to (${endPile.state})`)
-    
-    cardsToMove.forEach((card) => {
-      spellCore.move(card, endPile)
-    })
-    
+
+    cardsToMove.forEach((card) => spellCore.move(card, endPile))
+
     if (startPile instanceof Tableau && !startPile.isEmpty) {
-      await spellCore.pauseFor(200, 'msec')
-      let it = startPile.lastItem
+      await spellCore.pauseFor(200, "msec")
+      const it = startPile.lastItem
       spellCore.console.log(`turning over (${startPile.name}: ${it?.state})`)
       it?.turnFaceUp()
     }
-    
-    if (endPile instanceof Foundation) { game.score = (game.score + 10) }
-    else if (startPile === discards) { game.score = (game.score + 5) }
+
+    if (endPile instanceof Foundation) game.score = game.score + 10
+    else if (startPile === discards) game.score = game.score + 5
     return true
+  }
+
+  get pile() {
+    return Pile.ownerOf(this)
   }
 }
 
 spellCore.heading("create a card instance with default properties")
 /** create a card instance with default properties */
 export function testCardSetup() {
-  return spellCore.test('test card setup', function testCardSetup() {
+  return spellCore.test("test card setup", function testCardSetup() {
     spellCore.echoTestAction(`the card is a new card whose rank is queen, suit is spades and direction is up`)
-    let card = new Card({
-      rank: 'queen',
-      suit: 'spades',
-      direction: 'up'
+    const card = new Card({
+      rank: "queen",
+      suit: "spades",
+      direction: "up"
     })
     spellCore.echo(card)
-    spellCore.expect(card.rank, `the rank of the card`, 'queen', `queen`)
-    spellCore.expect(card.suit, `the suit of the card`, 'spades', `spades`)
+    spellCore.expect(card.rank, `the rank of the card`, "queen", `queen`)
+    spellCore.expect(card.suit, `the suit of the card`, "spades", `spades`)
     spellCore.expect(card.name, `the name of the card`, "queen-of-spades", `"queen-of-spades"`)
-    spellCore.expect(card.color, `the color of the card`, 'black', `black`)
+    spellCore.expect(card.color, `the color of the card`, "black", `black`)
     spellCore.expect(card.value, `the value of the card`, 12, `12`)
     spellCore.expect(card.shortSuit, `the short suit of the card`, "♠️", `"♠️"`)
     spellCore.expect(card.shortRank, `the short rank of the card`, "Q", `"Q"`)
     spellCore.expect(card.shortName, `the short name of the card`, "Q♠️", `"Q♠️"`)
-    
+
     spellCore.expect(card.isFaceUp, `the card is face up`, true, `yes`)
     spellCore.expect(card.isFaceDown, `the card is face down`, false, `no`)
-    
+
     spellCore.expect(card.isAFaceCard, `the card is a face card`, true, `yes`)
     spellCore.expect(!card.isAFaceCard, `the card is not a face card`, false, `false`)
-    
-    spellCore.expect(card.isASuit('spades'), `the card is a spade`, true, `true`)
-    spellCore.expect(card.isASuit('clubs'), `the card is a club`, false, `false`)
-    
-    spellCore.expect(card.isARank('queen'), `the card is a queen`, true, `true`)
-    spellCore.expect(card.isARank('ace'), `the card is an ace`, false, `false`)
+
+    spellCore.expect(card.isASuit("spades"), `the card is a spade`, true, `true`)
+    spellCore.expect(card.isASuit("clubs"), `the card is a club`, false, `false`)
+
+    spellCore.expect(card.isARank("queen"), `the card is a queen`, true, `true`)
+    spellCore.expect(card.isARank("ace"), `the card is an ace`, false, `false`)
     spellCore.expect(card.isARank(2), `the card is a 2`, false, `false`)
-    
-    spellCore.expect(card.isTheRankOfSuits('queen', 'spades'), `the card is the queen of spades`, true, `true`)
-    spellCore.expect(card.isTheRankOfSuits('queen', 'clubs'), `the card is the queen of clubs`, false, `false`)
-    spellCore.expect(!card.isTheRankOfSuits(2, 'diamonds'), `the card is not the 2 of diamonds`, true, `true`)
-    
+
+    spellCore.expect(card.isTheRankOfSuits("queen", "spades"), `the card is the queen of spades`, true, `true`)
+    spellCore.expect(card.isTheRankOfSuits("queen", "clubs"), `the card is the queen of clubs`, false, `false`)
+    spellCore.expect(!card.isTheRankOfSuits(2, "diamonds"), `the card is not the 2 of diamonds`, true, `true`)
+
     spellCore.echoTestAction(`turn the card face down`)
     card.turnFaceDown()
-    spellCore.expect(card.direction, `the direction of the card`, 'down', `down`)
-    
+    spellCore.expect(card.direction, `the direction of the card`, "down", `down`)
+
     spellCore.echoTestAction(`turn the card over`)
     card.turnOver()
     spellCore.expect(card.isFaceUp, `the card is face up`, true, `true`)
@@ -235,35 +228,29 @@ export class Deck extends List {
   static instanceType = Card
 
   setUp() {
-    if (this.is_set_up) { return }
-    Card.Ranks.forEach((rank) => {
-      Card.Suits.forEach((suit) => {
-        let it = new Card({ rank: rank, suit: suit })
-        this.append(it)
-      })
-    })
-    this.is_set_up = true
+    if (this.isSetUp) return
+    Card.Ranks.forEach((rank) => Card.Suits.forEach((suit) => {
+      const it = new Card({ rank: rank, suit: suit })
+      this.append(it)
+    }))
+    this.isSetUp = true
   }
 
   display() {
-    let cardNames = new List({ instanceType: "text" })
-    this.forEach((card) => {
-      cardNames.append(card.shortName)
-    })
+    const cardNames = new List({ instanceType: "text" })
+    this.forEach((card) => cardNames.append(card.shortName))
     spellCore.echo(`deck: ${cardNames}`)
   }
+
+  static { this.declareProp("isSetUp", { type: "choice" }) }
+  get isSetUp() { return this.getProp("isSetUp") }
+  set isSetUp(value) { this.setProp("isSetUp", value) }
 }
-Deck.declareProp('is_set_up', { type: 'choice' })
-Object.defineProperty(Deck.prototype, 'is_set_up', {
-  get() { return this.getProp('is_set_up') },
-  set(value) { this.setProp('is_set_up', value) },
-  configurable: true
-})
 
 export function testDeckCreation() {
-  return spellCore.test('test deck creation', function testDeckCreation() {
+  return spellCore.test("test deck creation", function testDeckCreation() {
     spellCore.echoTestAction(`the deck is a new deck`)
-    let deck = new Deck()
+    const deck = new Deck()
     spellCore.echoTestAction(`set up the deck`)
     deck.setUp()
     spellCore.expect(deck.length, `the number of cards in the deck`, 52, `52`)
@@ -271,17 +258,15 @@ export function testDeckCreation() {
     deck.setUp()
     spellCore.expect(deck.length, `the number of cards in the deck`, 52, `52`)
     spellCore.echoTestAction(`set the queens to the cards in the deck where the rank of the card is "queen"`)
-    let queens = deck.filter((card) => {
-      return (card.rank == "queen")
-    })
+    const queens = deck.filter((card) => card.rank == "queen")
     spellCore.expect(queens.length, `the number of cards in the queens`, 4, `4`)
     spellCore.expect(deck.lastItem?.name, `the name of the bottom card of the deck`, "king-of-spades", `"king-of-spades"`)
     spellCore.expect(deck.firstItem?.shortName, `the short name of the top card of the deck`, "A♣️", `"A♣️"`)
-    
+
     spellCore.echo("the deck before shuffling:")
     spellCore.echoTestAction(`display the deck`)
     deck.display()
-    spellCore.expect(deck.firstItem?.isTheRankOfSuits('ace', 'clubs'), `the first card of the deck is the ace of clubs`, true, `yes`)
+    spellCore.expect(deck.firstItem?.isTheRankOfSuits("ace", "clubs"), `the first card of the deck is the ace of clubs`, true, `yes`)
   })
 }
 testDeckCreation()
@@ -291,36 +276,29 @@ spellCore.heading("Pile of playing cards")
 export class Pile extends List {
   static instanceType = Card
 
-  static { this.declareProp('name', { type: 'text' }) }
-  get name() { return this.getProp('name') }
-  set name(value) { this.setProp('name', value) }
+  static { this.declareProp("name", { type: "text" }) }
+  get name() { return this.getProp("name") }
+  set name(value) { this.setProp("name", value) }
 
   get color() {
-    if (this.isEmpty) { return "none" }
+    if (this.isEmpty) return "none"
     return this.lastItem?.color
   }
 
   get value() {
-    if (this.isEmpty) { return 0 }
+    if (this.isEmpty) return 0
     return this.lastItem?.value
   }
 
   get state() {
     let state = `${this.name || "pile"}:`
-    this.forEach((card) => {
-      state = `${state} ${card.state}`
-    })
+    this.forEach((card) => (state = `${state} ${card.state}`))
     return state
   }
+
+  static exclusive = true
 }
 /** a card is in one pile at a time:  putting it on another pile takes it off this one */
-Pile.exclusive = true
-Object.defineProperty(Card.prototype, 'pile', {
-  get() {
-    return Pile.ownerOf(this)
-  },
-  configurable: true
-})
 // -----------
 spellCore.heading("Klondike Solitaire Card Game")
 //////////////////////////////////
@@ -331,17 +309,15 @@ spellCore.heading("Klondike Solitaire Card Game")
 spellCore.heading("Game bits")
 /** Game bits */
 export class Game extends App {
-  static { this.declareProp('score', { type: 'number' }) }
-  get score() { return this.getProp('score') }
-  set score(value) { this.setProp('score', value) }
+  static { this.declareProp("score", { type: "number" }) }
+  get score() { return this.getProp("score") }
+  set score(value) { this.setProp("score", value) }
 
   //## actions
 
   get state() {
     let state = new List({ instanceType: "text" })
-    allPiles.forEach((pile) => {
-      state.append(pile.state)
-    })
+    allPiles.forEach((pile) => state.append(pile.state))
     return state
   }
 
@@ -353,38 +329,10 @@ export class Game extends App {
             h("tr",
               h("th", { class: "left aligned", colspan: "2" }, "Klondike Solitaire"),
               h("th", { class: "right aligned" }, () => `Score: ${this.score}`),
-              h("th",
-                h("div", {
-                  class: "tiny fluid ui button compact",
-                  onClick: (event) => {
-                    return autoPlay()
-                  }
-                }, "AutoPlay")
-              ),
-              h("th",
-                h("div", {
-                  class: "tiny fluid ui button compact",
-                  onClick: (event) => {
-                    return cheat()
-                  }
-                }, "Cheat")
-              ),
-              h("th",
-                h("div", {
-                  class: "tiny fluid ui button compact",
-                  onClick: (event) => {
-                    return debugTheGame()
-                  }
-                }, "Debug")
-              ),
-              h("th",
-                h("div", {
-                  class: "tiny fluid ui button compact",
-                  onClick: (event) => {
-                    return resetTheGame()
-                  }
-                }, "Restart")
-              )
+              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => autoPlay() }, "AutoPlay")),
+              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => cheat() }, "Cheat")),
+              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => debugTheGame() }, "Debug")),
+              h("th", h("div", { class: "tiny fluid ui button compact", onClick: () => resetTheGame() }, "Restart"))
             )
           ),
           h("tbody",
@@ -410,50 +358,44 @@ export class Game extends App {
         )
       )
     )
-    
   }
 }
-export let game = new Game()
+export const game = new Game()
 spellCore.console.log(game)
 
 spellCore.heading("set up all piles")
 /** set up all piles */
-export let allPiles = new List({ instanceType: "Pile" })
-export let foundations = new List({ instanceType: "Pile" })
-export let tableaus = new List({ instanceType: "Pile" })
+export const allPiles = new List({ instanceType: "Pile" })
+export const foundations = new List({ instanceType: "Pile" })
+export const tableaus = new List({ instanceType: "Pile" })
 
 /** set up stock pile: unplayed cards */
 export class Stock_Pile extends Pile {
   canGiveUp(card) {
-    return (card === this.lastItem)
+    return card === this.lastItem
   }
 
   draw() {
     return h("div", { class: "Pile Stock stacked" },
-      h("div", {
-        class: "Placeholder ui button basic compact fluid",
-        onClick: (event) => {
-          return playFromTheStockPile()
-        }
-      }),
+      h("div", { class: "Placeholder ui button basic compact fluid", onClick: () => playFromTheStockPile() }),
       () => spellCore.drawThing(this.lastItem)
     )
   }
 }
-export let stock = new Stock_Pile({ name: "stock", droppable: false })
+export const stock = new Stock_Pile({ name: "stock", droppable: false })
 allPiles.append(stock)
 
 /** set up discards: where played cards go when turning over stock */
 export class Discard_Pile extends Pile {
   canGiveUp(card) {
-    return (card === this.lastItem)
+    return card === this.lastItem
   }
 
   draw() {
     return h("div", { class: "Pile Discards stacked" }, () => spellCore.drawThing(this.lastItem))
   }
 }
-export let discards = new Discard_Pile({ name: "discards", droppable: false })
+export const discards = new Discard_Pile({ name: "discards", droppable: false })
 allPiles.append(discards)
 
 /** set up foundation piles: where we build up from ace => king */
@@ -464,8 +406,8 @@ export class Foundation extends Pile {
 
   /** one card at a time:  the last of its pile */
   canTake(card) {
-    if (card !== card.pile.lastItem) { return false }
-    return ((this.name == card.suit) && ((this.value + 1) === card.value))
+    if (card !== card.pile.lastItem) return false
+    return this.name == card.suit && this.value + 1 === card.value
   }
 
   //##############
@@ -474,7 +416,7 @@ export class Foundation extends Pile {
   // note: tableaus just draw as a (vertical) list of cards
 
   draw() {
-    let color = (((this.name === 'diamonds') || (this.name === 'hearts')) ? "red" : "black")
+    const color = this.name === "diamonds" || this.name === "hearts" ? "red" : "black"
     return h("div", { class: "Pile Foundation stacked" },
       h("div", { class: () => `Placeholder ui button basic compact fluid ${color} ${this.name}` },
         h("div", { class: () => `suit ${this.name}` }, () => this.symbol)
@@ -483,33 +425,31 @@ export class Foundation extends Pile {
     )
   }
 }
-let it = new Foundation({
-  name: 'clubs',
+const it = new Foundation({
+  name: "clubs",
   symbol: "♣️",
   droppable: true
 })
 foundations.append(it)
-let it2 = new Foundation({
-  name: 'diamonds',
+const it2 = new Foundation({
+  name: "diamonds",
   symbol: "♦️",
   droppable: true
 })
 foundations.append(it2)
-let it3 = new Foundation({
-  name: 'hearts',
+const it3 = new Foundation({
+  name: "hearts",
   symbol: "♥️",
   droppable: true
 })
 foundations.append(it3)
-let it4 = new Foundation({
-  name: 'spades',
+const it4 = new Foundation({
+  name: "spades",
   symbol: "♠️",
   droppable: true
 })
 foundations.append(it4)
-foundations.forEach((pile) => {
-  allPiles.append(pile)
-})
+foundations.forEach((pile) => allPiles.append(pile))
 
 /** set up tableau piles: vertical piles where we arrange from king to ace */
 export class Tableau extends Pile {
@@ -518,8 +458,8 @@ export class Tableau extends Pile {
   }
 
   canTake(card) {
-    if (this.isEmpty) { return card.isARank('king') }
-    return ((this.color !== card.color) && (this.value === (card.value + 1)))
+    if (this.isEmpty) return card.isARank("king")
+    return this.color !== card.color && this.value === card.value + 1
   }
 
   draw() {
@@ -527,28 +467,24 @@ export class Tableau extends Pile {
   }
 }
 spellCore.getRange(1, 7).forEach((number) => {
-  let it5 = new Tableau({ name: `T${number}`, droppable: true })
+  const it5 = new Tableau({ name: `T${number}`, droppable: true })
   tableaus.append(it5)
   allPiles.append(it5)
 })
 
 /** set up deck of cards */
-export let deck = new Deck()
+export const deck = new Deck()
 deck.setUp()
 // start with cards in the stock pile
-deck.forEach((card) => {
-  stock.append(card)
-})
+deck.forEach((card) => stock.append(card))
 
 spellCore.heading("actions")
 export function debugTheGame() {
-  spellCore.map(game.state, (line) => {
-    spellCore.console.log(line)
-  })
+  spellCore.map(game.state, (line) => spellCore.console.log(line))
 }
 
 export function resetTheStockPile() {
-  let cards = discards.clone()
+  const cards = discards.clone()
   cards.reverse()
   cards.forEach((card) => {
     stock.append(card)
@@ -557,99 +493,95 @@ export function resetTheStockPile() {
 }
 
 export async function playFromTheStockPile() {
-  if (spellCore.processIsRunning('play_from_the_stock_pile')) { return }
-  spellCore.startProcess('play_from_the_stock_pile', 'EXCLUSIVE')
+  if (spellCore.processIsRunning("play_from_the_stock_pile")) return
+  spellCore.startProcess("play_from_the_stock_pile", "EXCLUSIVE")
   try {
-    if (stock.isEmpty) { await resetTheStockPile() }
-    
-    let it5 = stock.lastItem
+    if (stock.isEmpty) await resetTheStockPile()
+
+    const it5 = stock.lastItem
     it5?.turnFaceUp()
     // pause for 150 msec
     spellCore.move(it5, discards)
   }
   finally {
-    spellCore.stopProcess('play_from_the_stock_pile')
+    spellCore.stopProcess("play_from_the_stock_pile")
   }
 }
 
 export async function dealTheCards() {
-  if (spellCore.processIsRunning('deal_the_cards')) { return }
-  spellCore.startProcess('deal_the_cards', 'EXCLUSIVE')
+  if (spellCore.processIsRunning("deal_the_cards")) return
+  spellCore.startProcess("deal_the_cards", "EXCLUSIVE")
   try {
     /** pull all cards into stock with a nice animation */
-    let cards = allPiles.merged(Pile)
+    const cards = allPiles.merged(Pile)
     cards.reverse()
     for (const card of cards) {
-      let startPile = card.pile
+      const startPile = card.pile
       card.turnFaceDown()
       if (startPile !== stock) {
         stock.append(card)
-        await spellCore.pauseFor(50, 'msec')
+        await spellCore.pauseFor(50, "msec")
       }
     }
     stock.randomize()
-    
+
     // deal cards into tableaus
     for (const row of spellCore.getRange(1, 7)) {
       stock.lastItem?.turnFaceUp()
       for (const column of spellCore.getRange(row, 7)) {
         tableaus.getItem(column)?.append(stock.lastItem)
-        await spellCore.pauseFor(50, 'msec')
+        await spellCore.pauseFor(50, "msec")
       }
     }
-    
+
     await playFromTheStockPile()
   }
   finally {
-    spellCore.stopProcess('deal_the_cards')
+    spellCore.stopProcess("deal_the_cards")
   }
 }
 
-on('card-click', (event) => {
-  let { card } = event
+on("card-click", (event) => {
+  const { card } = event
   card.play()
 })
 
 export async function autoPlay() {
   let anythingChanged = false
   if (!discards.isEmpty) {
-    let testCard = discards.lastItem
+    const testCard = discards.lastItem
     if (await testCard?.play()) {
       anythingChanged = true
-      await spellCore.pauseFor(500, 'msec')
+      await spellCore.pauseFor(500, "msec")
     }
   }
-  
+
   // attempt to move bottom card of tableaus to foundations
   for (const pile of tableaus) {
-    if (pile.isEmpty) { continue }
-    let testCard = pile.lastItem
-    let foundation = foundations.filter((pile) => {
-      return (pile.name == testCard?.suit)
-    }).firstItem
+    if (pile.isEmpty) continue
+    const testCard = pile.lastItem
+    const foundation = foundations.filter((pile) => pile.name == testCard?.suit).firstItem
     if (spellCore.canTake(foundation, testCard)) {
       anythingChanged = true
       await testCard?.play()
-      await spellCore.pauseFor(100, 'msec')
+      await spellCore.pauseFor(100, "msec")
     }
   }
-  
+
   // attempt to move the entire pile of face-up cards
   for (const pile of tableaus) {
-    let faceUpCards = pile.filter((card) => {
-      return card.isFaceUp
-    })
-    if (faceUpCards.isEmpty) { continue }
-    let testCard = faceUpCards.firstItem
-    if (testCard?.isARank('king') && (testCard === pile.firstItem)) { continue }
+    const faceUpCards = pile.filter((card) => card.isFaceUp)
+    if (faceUpCards.isEmpty) continue
+    const testCard = faceUpCards.firstItem
+    if (testCard?.isARank("king") && testCard === pile.firstItem) continue
     if (await testCard?.play()) {
       anythingChanged = true
-      await spellCore.pauseFor(500, 'msec')
+      await spellCore.pauseFor(500, "msec")
     }
   }
-  
+
   // call auto-play again if anything actually changed
-  if (anythingChanged) { await autoPlay() }
+  if (anythingChanged) await autoPlay()
 }
 
 export function resetTheGame() {
@@ -658,17 +590,13 @@ export function resetTheGame() {
 }
 
 export async function cheat() {
-  let remainingPiles = tableaus.filter((pile) => {
-    return (!pile.isEmpty && pile.firstItem?.isFaceDown)
-  })
-  if (remainingPiles.isEmpty) { return }
-  let pile = remainingPiles.randomItem()
-  let unplaidCards = pile?.filter((card) => {
-    return card.isFaceDown
-  })
-  let card = unplaidCards?.randomItem()
+  const remainingPiles = tableaus.filter((pile) => !pile.isEmpty && pile.firstItem?.isFaceDown)
+  if (remainingPiles.isEmpty) return
+  const pile = remainingPiles.randomItem()
+  const unplaidCards = pile?.filter((card) => card.isFaceDown)
+  const card = unplaidCards?.randomItem()
   card?.turnFaceUp()
-  await spellCore.pauseFor(30, 'ticks')
+  await spellCore.pauseFor(30, "ticks")
   spellCore.move(card, discards)
 }
 

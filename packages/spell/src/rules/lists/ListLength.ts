@@ -65,7 +65,6 @@ lists.addRule(ListLength, {
       tests: [
         [
           "the number of items in my-list where its id > 1",
-          ["spellCore.itemCountOf(spellCore.filter(myList, (item) => {", "  return (item.id > 1)", "}))"],
           "spellCore.itemCountOf(spellCore.filter(myList, (item) => item.id > 1))"
         ]
       ]

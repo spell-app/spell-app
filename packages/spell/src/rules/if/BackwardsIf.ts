@@ -49,18 +49,15 @@ _if_.addRule(BackwardsIf, {
       tests: [
         {
           input: "print 1 if bar else 2",
-          js: "spellCore.console.log((bar ? 1 : 2))",
-          ts: "spellCore.console.log(bar ? 1 : 2)"
+          js: "spellCore.console.log(bar ? 1 : 2)"
         },
         {
           input: "get the foo of the bar if bar is defined otherwise the bar of the foo",
-          js: "let it = (bar !== undefined ? bar.foo : foo.bar)",
-          ts: "const it = bar !== undefined ? bar.foo : foo.bar"
+          js: "const it = bar !== undefined ? bar.foo : foo.bar"
         },
         {
           input: `set color to "red" if 1 + 1 else "black"`,
-          js: `export let color = ((1 + 1) ? "red" : "black")`,
-          ts: 'export const color = 1 + 1 ? "red" : "black"'
+          js: 'export const color = 1 + 1 ? "red" : "black"'
         }
       ]
     }

@@ -862,9 +862,8 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
       - an owner member's `exclusive`
       - Loading rebuilds the `P.ScopeMethod` record.
         A key an older compiler didn't write loads as unknown.
-    - a DERIVED property's `getter: true` (`the short rank of a card is: ...`)
-      - It loads as `P.ScopeVariable.isGetter`, so the TypeScript writer reads an import's getter by TypeScript's name (J20).
-      - An `exclusive` member is one too, unsaid.
+    - NOT whether a property is DERIVED (`the short rank of a card is: ...`) or stored:
+      both writers name every member the same way, camelCase, so an importer needn't know (Q56).
   - The declarations also hold the project's versions, and what it `provides`.
   - `read(json)` reads them back, never running anything.
   - `importScope(root, imports)` => a `P.ImportScope` holding them.

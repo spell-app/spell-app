@@ -11,8 +11,8 @@ constants.addRule(Constant, {
   tests: [
     {
       tests: [
-        { title: "single word", input: "red", js: "'red'", ts: '"red"' },
-        { title: "multi-word", input: "orangish-red", js: "'orangish-red'", ts: '"orangish-red"' },
+        { title: "single word", input: "red", js: '"red"' },
+        { title: "multi-word", input: "orangish-red", js: '"orangish-red"' },
         { title: "blacklisted word", input: "if", js: undefined }
       ]
     }

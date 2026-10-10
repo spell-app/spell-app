@@ -22,9 +22,9 @@ vi.mock("$/app/runner/shadowStyles", async (importOriginal) => {
 
 /** A program with an app:  a button. */
 const PROGRAM = `
-import { spellCore, App } from "@spell/core"
+import { App, h } from "@spell/core"
 export class Shown extends App {
-  draw() { return spellCore.element({ tag: "button", props: { className: "shown" }, children: "Shown" }) }
+  draw() { return h("button", { class: "shown" }, "Shown") }
 }
 export let shown = new Shown()
 shown.start()

@@ -25,8 +25,8 @@ lists.addRule(ValueChoices, {
         for (const name of ["jack", "queen", "king"]) scope.constants?.add(name)
       },
       tests: [
-        ["jack or queen", "['jack', 'queen']", '["jack", "queen"]'],
-        ["jack, queen or king", "['jack', 'queen', 'king']", '["jack", "queen", "king"]'],
+        ["jack or queen", '["jack", "queen"]'],
+        ["jack, queen or king", '["jack", "queen", "king"]'],
         ["2 or 3", "[2, 3]"],
         ["jack, queen", undefined],
         ["jack or red", undefined]

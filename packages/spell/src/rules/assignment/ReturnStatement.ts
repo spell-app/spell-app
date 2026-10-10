@@ -44,10 +44,10 @@ assignment.addRule(ReturnStatement, {
       compileAs: "block",
       tests: [
         // simple expression
-        ["return\n\t1 + 2", "return (1 + 2)", "return 1 + 2"],
+        ["return\n\t1 + 2", "return 1 + 2"],
         // inline JSX
         ["return\n\t<div/>", 'return h("div")', "return <div />"],
-        ["return\n\t1 + <div/>", 'return (1 + h("div"))', "return 1 + (<div />)"],
+        ["return\n\t1 + <div/>", 'return 1 + h("div")', "return 1 + (<div />)"],
         // multi-line JSX
         [
           ["return", "\t<div>", "\t\t<span/>", "\t</div>"],

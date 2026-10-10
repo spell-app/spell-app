@@ -128,7 +128,7 @@ classes.addRule(BelongsToOne, {
           "a card belongs to one pile",
           [
             "Pile.exclusive = true",
-            "Object.defineProperty(Card.prototype, 'pile', {",
+            'Object.defineProperty(Card.prototype, "pile", {',
             "  get() {",
             "    return Pile.ownerOf(this)",
             "  },",
@@ -137,7 +137,7 @@ classes.addRule(BelongsToOne, {
           ],
           [
             "Pile.exclusive = true",
-            "export interface Card { readonly pile: any /* spell: type unknown */ }",
+            "export interface Card { readonly pile: Pile }",
             'Object.defineProperty(Card.prototype, "pile", {',
             "  get(this: Card) {",
             "    return Pile.ownerOf(this)!",

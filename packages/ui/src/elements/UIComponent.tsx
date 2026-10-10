@@ -920,7 +920,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * what the DOM element's first connect does (`TagSetup.mountComponent`).
    * - In a Solid root of its OWN, with no parent:  it lives until `domElement.dispose()`, whatever happens around it.
    *   - So a Solid app's context doesn't reach inside (`appContext` does that).
-   * - Inside an error net (Solid's `<Errored>`), always:  see "Errors and fallback".
+   * - Inside an error boundary (Solid's `<Errored>`), always:  see "Errors and fallback".
    * - Released with the DOM element:  the root is disposed, the shadow root emptied.
    */
   private static mount(
@@ -936,7 +936,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
         root.textContent = ""
         dispose()
       })
-      // `<Errored>` called as a function;  `children` is a GETTER, so the component is built inside the net
+      // `<Errored>` called as a function;  `children` is a GETTER, so the component is built inside the boundary
       const view = Errored({
         get children() {
           return untrack(() => new Class(domElement, definition).onMount())
@@ -957,13 +957,14 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
   // ## Errors and fallback
   //
   // When an element breaks (its constructor, `render()` or an effect throws):
-  // - its error net (`mount()`) catches the error and calls `onError()`, then `renderFallback()`
+  // - its error boundary (`mount()`) catches the error and calls `onError()`, then `renderFallback()`
   // - the element shows a plain-DOM stand-in (a native `<button>`, `<select>` ...):  `elementSetup.Fallback`
   // - the rest of the page keeps working
   //
-  // Every element has its own net, always:
+  // Every element has its own boundary, always:
   // - without one, an error halts Solid for the whole page (`[REACTIVITY_HALTED]`)
-  // - a container's net can't catch it instead:  each element's Solid root has no parent (epic `spell-element`, Q8)
+  // - a container's boundary can't catch it instead:
+  //   each element's Solid root has no parent (epic `spell-element`, Q8)
   ////////////////
 
   /**
@@ -990,7 +991,7 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
    * - Done a microtask LATER:  Solid clears what the broken render had inserted, which would wipe it out;
    *   and some fallbacks (the dropdown's) must already be in place to attach their validity messages.
    * - The fallback is disposed with the element.
-   * - Called by the error net (`mount()`) after this object broke (or was never built).
+   * - Called by the error boundary (`mount()`) after this object broke (or was never built).
    */
   private static renderFallback(
     domElement: DOMElement,

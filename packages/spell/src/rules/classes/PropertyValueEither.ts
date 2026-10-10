@@ -37,8 +37,7 @@ export class PropertyValueEither extends SpellStatement<PropertyValueEitherGroup
     const { type, property } = type_property.groups
     // make sure type is defined
     P.TypeScope.getOrStub(scope, type.value, match).declareProperty(`${property.value}`, match, {
-      asWritten: property.raw,
-      isGetter: true
+      asWritten: property.raw
     })
     // Declare any unknown constant values, and record them on their matches for `SpellConstant.getAST()`.
     for (const constant of [value, otherValue]) SpellConstant.declareValue(match, constant)
@@ -80,9 +79,9 @@ classes.addRule(PropertyValueEither, {
         [
           "the color of a card is red if its suit is either diamonds or hearts",
           [
-            "Object.defineProperty(Card.prototype, 'color', {",
+            'Object.defineProperty(Card.prototype, "color", {',
             "  get() {",
-            "    if (spellCore.includes(['diamonds', 'hearts'], this.suit)) { return 'red' }",
+            '    if (spellCore.includes(["diamonds", "hearts"], this.suit)) return "red"',
             "  },",
             "  configurable: true",
             "})"
@@ -100,16 +99,16 @@ classes.addRule(PropertyValueEither, {
         [
           "a cards color is black if its suit is either clubs or spades otherwise it is red",
           [
-            "Object.defineProperty(Card.prototype, 'color', {",
+            'Object.defineProperty(Card.prototype, "color", {',
             "  get() {",
-            "    if (spellCore.includes(['clubs', 'spades'], this.suit)) { return 'black' }",
-            "    return 'red'",
+            '    if (spellCore.includes(["clubs", "spades"], this.suit)) return "black"',
+            '    return "red"',
             "  },",
             "  configurable: true",
             "})"
           ],
           [
-            "export interface Card { readonly color: any /* spell: type unknown */ }",
+            "export interface Card { readonly color: string }",
             'Object.defineProperty(Card.prototype, "color", {',
             "  get(this: Card) {",
             '    if (spellCore.includes(["clubs", "spades"], this.suit)) return "black"',

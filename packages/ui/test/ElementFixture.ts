@@ -37,7 +37,7 @@ export class ElementFixture {
    *   (a form control's native one, else a bare `<slot>`).
    * - How:  its component's `extraClass` starts throwing, then an attribute (`keyOnly` first, else the next that
    *   changes) is changed and changed back -- `rootClass` reads every class-emitting attribute, so the root's
-   *   `class` binding re-reads it inside the render effect, and the element's error net catches the throw.
+   *   `class` binding re-reads it inside the render effect, and the element's error boundary catches the throw.
    *   The DOM element's attributes end as they were.
    * - The fallback is built a microtask after the error (`UIComponent.renderFallback()`), hence two ticks.
    */

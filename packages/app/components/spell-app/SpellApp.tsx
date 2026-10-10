@@ -332,6 +332,8 @@ function projectSource(project: string): SpellAppSource {
     scopesUrl: `${API}/scopes/${projectId}`,
     importUrl: (id) => `${API}/compiled/${SpellSetup.expandAlias(id)}`,
     importDeclarationsUrl: (id) => `${API}/declarations/${SpellSetup.expandAlias(id)}`,
+    wordsUrl: `${API}/words/${projectId}`,
+    importWordsUrl: (id) => `${API}/words/${SpellSetup.expandAlias(id)}`,
     // `spell:/@system:examples:Solitaire/Card.spell` => its project id, then its file
     sourceUrl: (uri) => `${API}/file/${decodeURI(uri.replace(/^spell:\//, ""))}`
   }
@@ -347,8 +349,11 @@ function srcSource(src: string): SpellAppSource {
     compiledUrl,
     scopesUrl: isCompiled ? compiledUrl.replace(/\.compiled\.js(?=$|[?#])/, SCOPES_JS) : undefined,
     declarationsUrl: isCompiled ? compiledUrl.replace(/\.compiled\.js(?=$|[?#])/, DECLARATIONS_JSON) : undefined,
+    wordsUrl: isCompiled ? compiledUrl.replace(/\.compiled\.js(?=$|[?#])/, WORDS_JS) : undefined,
     importUrl: (id) => new URL(`${id.slice(id.lastIndexOf(":") + 1)}${COMPILED_JS}`, compiledUrl).href,
-    importDeclarationsUrl: (id) => new URL(`${id.slice(id.lastIndexOf(":") + 1)}${DECLARATIONS_JSON}`, compiledUrl).href
+    importDeclarationsUrl: (id) =>
+      new URL(`${id.slice(id.lastIndexOf(":") + 1)}${DECLARATIONS_JSON}`, compiledUrl).href,
+    importWordsUrl: (id) => new URL(`${id.slice(id.lastIndexOf(":") + 1)}${WORDS_JS}`, compiledUrl).href
   }
 }
 
@@ -363,6 +368,9 @@ const SCOPES_JS = ".scopes.js"
 
 /** End of a project's declarations file's name:  `SP.DECLARATIONS_JSON_SUFFIX`. */
 const DECLARATIONS_JSON = ".declarations.json"
+
+/** End of a project's words file's name:  `SP.WORDS_JS_SUFFIX`. */
+const WORDS_JS = ".en.js"
 
 /** `width` / `height` attribute `value` as a CSS size:  `""` for `fluid`, or none. */
 function cssSize(value: string | null | undefined): string {

@@ -24,21 +24,9 @@ _async.addRule(CheckProcess, {
     {
       compileAs: "expression",
       tests: [
-        [
-          `animation dealing is running`,
-          `spellCore.processIsRunning('dealing')`,
-          'spellCore.processIsRunning("dealing")'
-        ],
-        [
-          `animation dealing isn't running`,
-          `!spellCore.processIsRunning('dealing')`,
-          '!spellCore.processIsRunning("dealing")'
-        ],
-        [
-          `process dealing is not active`,
-          `!spellCore.processIsRunning('dealing')`,
-          '!spellCore.processIsRunning("dealing")'
-        ]
+        [`animation dealing is running`, 'spellCore.processIsRunning("dealing")'],
+        [`animation dealing isn't running`, '!spellCore.processIsRunning("dealing")'],
+        [`process dealing is not active`, '!spellCore.processIsRunning("dealing")']
       ]
     }
   ]

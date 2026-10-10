@@ -2,37 +2,40 @@ import { P } from "$/parser"
 // Import directly to avoid circular import
 import { JSWriter } from "./JSWriter"
 import * as jsText from "./jsText"
-import { attributeName, importedClasses, isCoreCall, newListItemName, unwrapped } from "./jsShapes"
-import { forEachNode, listNamedBy, type TSUndeclared, type WriterProject } from "./WriterProject"
+import { attributeName, importedClasses, isCoreCall, isTight, newListItemName, unwrapped } from "./jsShapes"
+import { forEachNode, listNamedBy, typeCaseOf, type TSUndeclared, type WriterProject } from "./WriterProject"
 
 /****************
  * ### `TSWriter`
  * Writes a spell tree as TypeScript on Solid, as a person would write it by hand:
  * the `ts/solid` target's writer, for `<Project>.compiled.tsx`.
  * - It extends `P.JSWriter`, and says everything javascript says the way javascript says it:
- *   - names:  `isASuit()`, `turnFaceUp()`, `allPiles`  (a property keeps spell's name, `is_set_up`)
+ *   - names, every one camelCase:  `isASuit()`, `turnFaceUp()`, `allPiles`, `isSetUp`
  *   - a `List`'s own methods, `===`, loops, template text
+ *   - its tidying:  `const` unless set again, no extra parentheses or braces, no unused parameters
+ *   - one class body per type:  members written anywhere in the project go inside their class
  * - What's here is only TypeScript's own:  types, decorators, JSX, and `!` where `?.` can't go.
  * - Real JSX, which Solid's compiler builds:  `<span class="suit">{this.shortSuit}</span>`.
  * - A drawing in Solid's shapes, where it can be:
  *   - a computed local becomes an accessor, `const className = () => ...`
  *   - an `if ... return` chain becomes a `<Show>` / `<Switch>`
  *   - `draw cards in it` becomes a `<For>`
- *   - Any other `to draw` re-runs whole, in its error net.
+ *   - Any other `to draw` re-runs whole, in its error boundary.
  * - Decorators:
  *   - `@prop({ oneOf: RANKS }) accessor rank!: Rank`
  *   - `@derived get state()`
  *   - `@thing`
- *   - `@drawn` on `draw()`:  each drawn thing in its own error net,
+ *   - `@drawn` on `draw()`:  each drawn thing in its own error boundary,
  *     as `spellCore.drawThing()` does for compiled javascript
- * - One class body per type:  members written anywhere in the project go inside their class.
- * - Tidy:  `const` unless set again, no extra parentheses or braces, no unused parameters.
  * - Types where spell knows them:  parameters, properties, lists `as const`.
  *   - A type spell DOESN'T know is written `UNKNOWN`, `any /* spell: type unknown *\/`, never a bare `any`:
  *     so every gap shows, and can be counted (epic `output-targets`, Q16).
  * - Where the program never says a type, what it does says it (Q54):
  *   - a property's type, from the values it's given (`givenKind()`)
  *   - a method only sub-classes define, from what they return (`definitionsKind()`)
+ *   - a method written outside its class, from what it returns:
+ *     `play(): Promise<boolean | undefined>` (`returnType()`, epic `output-targets`, T24)
+ *   - a value kind's parameter, from its values:  `static color(suit: (typeof SUITS)[number])` (`valueKindType()`)
  * - Spell's own built-ins stay `spellCore` calls, so both targets print the same:
  *   `getItemAt(rank, 1)` counts from 1 (the core contract, `contract.test.ts` in `$/cli`).
  * - Sees the whole project first (`forProject()`, a `P.WriterProject`).
@@ -116,11 +119,6 @@ export class TSWriter extends JSWriter {
     return [...decorators, ...super.coreImportNames(code)]
   }
 
-  /** Text in TypeScript's quotes:  `"name"`. */
-  quoted(text: string): string {
-    return jsText.inQuotes(text, '"')
-  }
-
   /**
    * TypeScript for spell's `datatype`, e.g. `string` for `text`, `Card` for `Card`;
    * `undefined` if spell doesn't know it, or it has no TypeScript.
@@ -155,22 +153,12 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * `object.property`, by `memberName()`:  a getter's `card.isFaceUp`, a property's `card.rank`.
-   * - `?.` off what may be nothing (`mayBeNothing()`):  `startPile.lastItem?.state`.
+   * As javascript's:  `?.` off what may be nothing, `startPile.lastItem?.state`.
    * - Being SET, it can't be `?.`:  `!` instead, `app.tasks.firstItem!.title = "New title"`.
    */
-  ASTPropertyExpression(node: P.ASTPropertyExpression): string {
-    const property = this.memberName(node.property.value)
-    const object = this.tight(node.object)
-    const maybe = this.mayBeNothing(node.object)
-    const dot = !maybe ? "." : this.isSetting(node) ? "!." : "?."
-    if (P.jsText.isLegalIdentifier(property)) return `${object}${dot}${property}`
-    return `${object}${dot === "." ? "" : dot}[${jsText.inQuotes(property, '"')}]`
-  }
-
-  /** What a member is read from, ready for a `.` or `?.` after it -- see `ASTPropertyExpression()`. */
-  memberObject(object: P.ASTExpression): string {
-    return this.tight(object)
+  memberDot(node: P.ASTPropertyExpression): string {
+    if (!this.mayBeNothing(node.object)) return "."
+    return this.isSetting(node) ? "!." : "?."
   }
 
   /**
@@ -205,6 +193,11 @@ export class TSWriter extends JSWriter {
     const call = super.ASTScopedMethodInvocation(node)
     const isOwnerRead = node.thing instanceof P.ASTTypeExpression && node.methodName === "ownerOf"
     return isOwnerRead ? `${call}!` : call
+  }
+
+  /** Does `node` bind at least as tightly as `.`?  Not an element:  JSX, `(<div />)`. */
+  protected bindsTightly(node: P.ASTExpression): boolean {
+    return isTight(node)
   }
 
   ////////////////
@@ -252,10 +245,7 @@ export class TSWriter extends JSWriter {
     const takesPayload = shape && event && read instanceof P.ASTVariableExpression && read.name === event.name
     if (!takesPayload) return super.eventCall(name, args)
     this.coreImports.add(name)
-    const names = (first as P.ASTDestructuredAssignment).variables.map((variable) => {
-      const written = this.variableName(variable)
-      return written === variable.name ? written : `${variable.name}: ${written}`
-    })
+    const names = this.destructured(first as P.ASTDestructuredAssignment)
     const async = method.isAsync ? "async " : ""
     const [only] = rest
     const body =
@@ -265,11 +255,6 @@ export class TSWriter extends JSWriter {
     return `on<${shape}>(${this.bare(type!)}, ${async}({ ${names.join(", ")} }) => ${body})`
   }
 
-  /** `await x`, or a loop whose body waits written as a plain loop -- see `loop()`. */
-  ASTAwaitExpression(node: P.ASTAwaitExpression): string {
-    return (this.statements.has(node) && this.loop(node.expression)) || `await ${this.tight(node.expression)}`
-  }
-
   /** `thing.draw()` -- `?.draw()` when it may be nothing, e.g. the last card of a pile. */
   drawThing(thing: P.ASTExpression | undefined): string {
     if (!thing) return "undefined"
@@ -277,7 +262,7 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * `<For each={pile.items}>{(card) => card.draw()}</For>`:  each item in its own error net, kept by identity.
+   * `<For each={pile.items}>{(card) => card.draw()}</For>`:  each item in its own error boundary, kept by identity.
    * - Its item is named for the list's item type when it's ours, e.g. `card` in a `Tableau`, else `item`.
    */
   drawItems(list: P.ASTExpression): string {
@@ -286,14 +271,6 @@ export class TSWriter extends JSWriter {
     const itemType = isSelf && this.project.itemTypeOf(this.currentClass)
     const item = itemType ? itemType.charAt(0).toLowerCase() + itemType.slice(1) : "item"
     return `<For each={${this.memberObject(list)}.items}>{(${item}) => ${item}.draw()}</For>`
-  }
-
-  /** `name(args) {...}` by our name, as javascript's;  an inline function as an arrow -- see `arrow()`. */
-  ASTMethodDefinition(node: P.ASTMethodDefinition): string {
-    if (!node.inline) return super.ASTMethodDefinition(node)
-    const error = node.error ? ` ${this.write(node.error)}` : ""
-    if (node.asProperty) return `${this.methodNameOf(node)}: ${this.arrow(node)}${error}`
-    return `${this.arrow(node)}${error}`
   }
 
   /**
@@ -324,58 +301,30 @@ export class TSWriter extends JSWriter {
     return `${async}${name}${this.params(method, thisType)}: ${type} ${this.write(method.body)}${error}`
   }
 
-  /**
-   * `method` as an arrow, tidy:  `(pile) => pile.droppable == true` -- its body an expression when it only returns
-   * one, and trailing parameters it never uses left out, e.g. a handler's `event`.
-   */
-  arrow(method: P.ASTMethodDefinition): string {
-    const previous = { returnContinues: this.returnContinues, untypedItems: this.untypedItems }
-    this.returnContinues = false
+  /** As javascript's, its item not typed by a list it's given to:  see `callback()`. */
+  protected arrowBody(method: P.ASTMethodDefinition, statements: P.ASTNode[]): string {
+    const previous = this.untypedItems
+    this.untypedItems = false
     try {
-      return this.arrowOf(method, previous.untypedItems)
+      return super.arrowBody(method, statements)
     } finally {
-      Object.assign(this, previous)
+      this.untypedItems = previous
     }
   }
 
-  /** `arrow()`'s work:  `untypedItems`, whether its item is typed by the list it's given to. */
-  private arrowOf(method: P.ASTMethodDefinition, untypedItems: boolean): string {
-    this.untypedItems = false
-    const async = method.isAsync ? "async " : ""
-    const statements = (method.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
-    const [only] = statements
-    // an event's payload, destructured first:  its parameter says what it brings, `(event: { card: Card }) =>`
-    const destructured = only instanceof P.ASTDestructuredAssignment ? only : undefined
-    const payload = destructured && this.shapeOf(destructured)
-    const [first] = method.args ?? []
-    const read = destructured && unwrapped(destructured.thing)
-    const typesFirst = !!payload && read instanceof P.ASTVariableExpression && read.name === first?.name
-    if (typesFirst) this.typedByParam.add(destructured!)
-    // its parameters are the body's own, so what they are is known (`kindOf()`)
-    const body = this.inBlock(() => {
-      this.noteParams(method)
-      if (statements.length === 1 && only instanceof P.ASTReturnStatement && only.value) {
-        const value = unwrapped(only.value)
-        return value instanceof P.ASTObjectLiteral ? `(${this.write(value)})` : this.bare(only.value)
-      }
-      // one that only sets something, on one line:  `() => (this.operator = "+")`
-      if (statements.length === 1 && only instanceof P.ASTAssignmentStatement && !only.isNewVariable) {
-        return `(${this.write(only)})`
-      }
-      // one that only calls something:  `(card) => card.play()`
-      if (statements.length === 1 && only instanceof P.ASTScopedMethodInvocation && !typesFirst) {
-        this.statements.add(only)
-        return String(this.write(only))
-      }
-      return String(this.write(method.body))
-    })
-    const args = [...(method.args ?? [])]
-    while (args.length && !new RegExp(`\\b${this.nameOf(args.at(-1)!.name)}\\b`).test(body)) args.pop()
-    this.untypedItems = untypedItems
-    const params = args.map((arg, index) =>
-      index === 0 && typesFirst ? `${this.variableName(arg)}: ${payload}` : this.arrowParam(arg)
-    )
-    return `${async}(${params.join(", ")}) => ${body}`
+  /**
+   * An event's payload, destructured first:  its parameter says what it brings, `(event: { card: Card }) =>`.
+   * - SIDE EFFECT:  that destructuring is written untyped -- see `typedByParam`.
+   */
+  protected payloadType(method: P.ASTMethodDefinition, statements: P.ASTNode[]): string | undefined {
+    const [first] = statements
+    if (!(first instanceof P.ASTDestructuredAssignment)) return undefined
+    const payload = this.shapeOf(first)
+    const read = unwrapped(first.thing)
+    const [param] = method.args ?? []
+    if (!payload || !(read instanceof P.ASTVariableExpression) || read.name !== param?.name) return undefined
+    this.typedByParam.add(first)
+    return payload
   }
 
   /**
@@ -386,7 +335,9 @@ export class TSWriter extends JSWriter {
     if (!node.isNewVariable) return undefined
     const types = node.variables.map((variable) => this.typeFor(variable.datatype ?? variable.variable?.datatype))
     if (!types.some(Boolean)) return undefined
-    const fields = node.variables.map((variable, index) => `${variable.name}: ${types[index] ?? TSWriter.UNKNOWN}`)
+    const fields = node.variables.map(
+      (variable, index) => `${this.nameOf(variable.name)}: ${types[index] ?? TSWriter.UNKNOWN}`
+    )
     return `{ ${fields.join("; ")} }`
   }
 
@@ -405,130 +356,18 @@ export class TSWriter extends JSWriter {
     return arg.default ? `${declared} = ${this.bare(arg.default)}` : declared
   }
 
-  /** `key: value`, bare;  with no value, as javascript's:  `{ card }`, `{ start_pile: startPile }`. */
-  ASTObjectLiteralProperty(node: P.ASTObjectLiteralProperty): string {
-    if (!node.value) return super.ASTObjectLiteralProperty(node)
-    const error = node.error ? ` ${this.write(node.error)}` : ""
-    return `${this.write(node.property)}: ${this.bare(node.value)}${error}`
-  }
-
   /**
-   * `const { card } = event`:  a key whose variable TypeScript names differently is renamed, `{ start_pile: startPile }`.
-   * - Typed when spell knows what any of them is, e.g. an event's payload, `on card-click with a card`:
-   *   `const { card }: { card: Card } = event`.
+   * Typed when spell knows what any of them is, e.g. an event's payload, `on card-click with a card`:
+   * `const { card }: { card: Card } = event`.
    */
-  ASTDestructuredAssignment(node: P.ASTDestructuredAssignment): string {
-    const variables = this.destructured(node)
-    const declarator = !node.isNewVariable ? "" : this.isReassigned(node.variables) ? "let " : "const "
+  destructuredType(node: P.ASTDestructuredAssignment): string {
     const shape = this.typedByParam.has(node) ? undefined : this.shapeOf(node)
-    return `${declarator}{ ${variables.join(", ")} }${shape ? `: ${shape}` : ""} = ${this.bare(node.thing)}`
-  }
-
-  ////////////////
-  // ## Literals
-  ////////////////
-
-  /** A text value in double quotes, unless it's single-quoted with a `"` in it. */
-  ASTStringLiteral(node: P.ASTStringLiteral): string {
-    const text = super.ASTStringLiteral(node)
-    return doubleQuoted(text)
-  }
-
-  /** A quoted word, e.g. an enumeration's value:  `"clubs"`. */
-  ASTQuotedExpression(node: P.ASTQuotedExpression): string {
-    return doubleQuoted(super.ASTQuotedExpression(node))
-  }
-
-  /** Its pre-baked `output`, a single-quoted word in double quotes. */
-  ASTConstantExpression(node: P.ASTConstantExpression): string {
-    return doubleQuoted(super.ASTConstantExpression(node))
-  }
-
-  ////////////////
-  // ## Operators
-  ////////////////
-
-  /**
-   * `operand` of an `operator`, in parentheses only where JavaScript needs them, or where a reader would want them:
-   * `&&` inside `||`, a comparison in a comparison.
-   */
-  operand(operand: P.ASTExpression, operator: P.ASTOperator, side: "lhs" | "rhs"): string {
-    const inner = unwrapped(operand)
-    if (inner instanceof P.ASTTernaryExpression) return `(${this.write(inner)})`
-    // `!x` and `await x` bind tighter than any operator
-    if (inner instanceof P.ASTNotExpression || inner instanceof P.ASTAwaitExpression) return String(this.write(inner))
-    // a helper written as a comparison (`x instanceof Tableau`) binds tighter than `&&` / `||`
-    if (isCoreCall(inner) && PRECEDENCE[operator] <= PRECEDENCE.and) return String(this.write(inner))
-    if (!(inner instanceof P.ASTInfixExpression)) return this.tight(inner)
-    const mine = PRECEDENCE[inner.operator]
-    const theirs = PRECEDENCE[operator]
-    const isLogical = (level: number) => level <= PRECEDENCE.and
-    const needsParens =
-      mine < theirs ||
-      (mine === theirs && side === "rhs") ||
-      (mine === theirs && mine >= PRECEDENCE.equals && mine <= PRECEDENCE["less than"]) ||
-      (isLogical(mine) && isLogical(theirs) && mine !== theirs)
-    return needsParens ? `(${this.write(inner)})` : this.write(inner)
-  }
-
-  /** `condition ? yes : no`:  in parentheses only where its reader puts it (an operand -- see `operand()`). */
-  ASTTernaryExpression(node: P.ASTTernaryExpression): string {
-    const { condition, trueValue, falseValue } = node
-    const test = unwrapped(condition)
-    const conditionText = test instanceof P.ASTTernaryExpression ? `(${this.write(test)})` : this.write(test)
-    return `${conditionText} ? ${this.bare(trueValue)} : ${this.bare(falseValue)}`
+    return shape ? `: ${shape}` : ""
   }
 
   ////////////////
   // ## Statements
   ////////////////
-
-  /**
-   * Its statements, and those of the groups in it, in order, less those moved into a class.
-   * - A class's constants and types go above its docstring:  see `classPrefix()`.
-   */
-  ASTStatementGroup(node: P.ASTStatementGroup): string {
-    const lines: string[] = []
-    // where the doc comment right above the next statement starts, in `lines`
-    let docStart = 0
-    for (const statement of flattened(node)) {
-      if (this.project.moved.has(statement)) continue
-      // one blank line at most, none at the start:  where a member moved out, two would meet
-      if (statement instanceof P.ASTBlankLine) {
-        if (lines.length && lines.at(-1) !== "") lines.push("")
-        docStart = lines.length
-        continue
-      }
-      // a docstring, and a declaration's marker below it, go with the statement below them
-      if (statement instanceof P.ASTDocComment || statement instanceof P.ASTPreservedComment) {
-        lines.push(String(this.write(statement)))
-        continue
-      }
-      if (statement instanceof P.ASTClassDeclaration) {
-        const prefix = this.classPrefix(statement)
-        if (prefix) lines.splice(docStart, 0, prefix)
-      }
-      this.statements.add(statement)
-      lines.push(String(this.write(statement)))
-      docStart = lines.length
-    }
-    return elseOnItsLine(lines.join(jsText.NEWLINE))
-  }
-
-  /**
-   * `{ statements }`:  braces around a block, its blank lines left unindented, none at either end.
-   * - Its new variables are its own, see `inBlock()`.
-   */
-  ASTStatementBlock(node: P.ASTStatementBlock): string {
-    const statements = [...(node.statements ?? [])]
-    while (statements[0] instanceof P.ASTBlankLine) statements.shift()
-    while (statements.at(-1) instanceof P.ASTBlankLine) statements.pop()
-    for (const statement of statements) this.statements.add(statement)
-    const children = this.inBlock(() => elseOnItsLine(this.list(statements, jsText.NEWLINE)))
-    if (!children) return jsText.EMPTY_BLOCK
-    if (!node.wrap) return `{ ${children} }`
-    return `{\n${indented(children)}\n}`
-  }
 
   /**
    * A new variable:  `const` unless it's set again (`let`).
@@ -539,11 +378,9 @@ export class TSWriter extends JSWriter {
    */
   ASTAssignmentStatement(node: P.ASTAssignmentStatement): string {
     const { thing, value } = node
+    if (!node.isNewVariable) return super.ASTAssignmentStatement(node)
     this.noteLocal(node)
-    if (!node.isNewVariable) return `${this.setting(thing)} = ${this.bare(value)}`
-    const export_ = this.isExported(node) ? "export " : ""
-    const declarator = thing instanceof P.ASTVariableExpression && this.isReassigned([thing]) ? "let" : "const"
-    const declared = `${export_}${declarator} ${this.write(thing)}`
+    const declared = this.declarator(node)
     const inner = unwrapped(value)
     if (isCoreCall(inner)) {
       const written = this.bare(value)
@@ -568,11 +405,6 @@ export class TSWriter extends JSWriter {
     return type ? `${declared}: ${type} = ${this.bare(value)}` : `${declared} = ${this.bare(value)}`
   }
 
-  /** Is any of `variables` set again after it's declared?  Then it's `let`. */
-  isReassigned(variables: P.ASTVariableExpression[]): boolean {
-    return variables.some((variable) => this.project.reassigned.has(variable.name))
-  }
-
   /**
    * `return value`, bare -- JSX on several lines in parentheses;  in a loop's body, a bare one is `continue`.
    * - In a getter that says early what nothing means (`if (this.isEmpty) return 0`), a value that may be nothing
@@ -583,32 +415,6 @@ export class TSWriter extends JSWriter {
     const fallback = this.getterDefault
     if (fallback && this.mayBeNothing(node.value)) return `return ${this.tight(node.value)} ?? ${this.bare(fallback)}`
     return `return ${this.parenthesized(this.bare(node.value))}`
-  }
-
-  /** `if (condition) statement` -- braces only around more than one statement. */
-  ASTIfStatement(node: P.ASTIfStatement): string {
-    const written = `if (${this.condition(node.condition)}) ${this.body(node.statements)}`
-    this.noteGuard(node)
-    return written
-  }
-
-  ASTElseIfStatement(node: P.ASTElseIfStatement): string {
-    return `else if (${this.condition(node.condition)}) ${this.body(node.statements)}`
-  }
-
-  ASTElseStatement(node: P.ASTElseStatement): string {
-    return `else ${this.body(node.statements)}`
-  }
-
-  /** An `if`'s statements:  bare when it's one simple statement on one line, e.g. `return "?"`;  else a block. */
-  body(block: P.ASTStatementBlock): string {
-    const statements = (block.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
-    const [only] = statements
-    if (statements.length === 1 && isSimpleStatement(only!)) {
-      const text = String(this.write(only!))
-      if (!text.includes(jsText.NEWLINE)) return text
-    }
-    return this.write(block)
   }
 
   ////////////////
@@ -622,7 +428,8 @@ export class TSWriter extends JSWriter {
       if (destructured?.arg !== arg) return this.param(arg)
       // named arguments, `to create a new task (with title as text)`:  typed by their fields, each optional
       const shape = destructured.shape.replace(/(\w+): /g, "$1?: ")
-      return arg.default ? `${this.variableName(arg)}: ${shape} = ${this.bare(arg.default)}` : `${arg.name}: ${shape}`
+      const declared = `${this.variableName(arg)}: ${shape}`
+      return arg.default ? `${declared} = ${this.bare(arg.default)}` : declared
     })
     if (thisType) params.unshift(this.thisParam(thisType))
     return `(${params.join(", ")})`
@@ -649,6 +456,7 @@ export class TSWriter extends JSWriter {
     const type =
       this.typeFor(arg.datatype ?? arg.variable?.datatype ?? arg.default?.datatype) ??
       this.slotType(arg) ??
+      this.valueKindType(arg) ??
       TSWriter.UNKNOWN
     const declared = `${this.variableName(arg)}: ${type}`
     return arg.default ? `${declared} = ${this.bare(arg.default)}` : declared
@@ -661,6 +469,16 @@ export class TSWriter extends JSWriter {
   slotType(arg: P.ASTVariableExpression): string | undefined {
     const property = this.project.propertyOf(this.currentClass, arg.name)
     return property && this.propertyType(property)
+  }
+
+  /**
+   * A value kind's parameter named for it, e.g. `suit` in `static color(suit)` on `Suit`:  one of its values,
+   * `(typeof SUITS)[number]` -- see `WriterProject.valueKinds`.  `undefined` for any other.
+   */
+  valueKindType(arg: P.ASTVariableExpression): string | undefined {
+    const list = this.currentClass ? this.project.valueKinds.get(this.currentClass) : undefined
+    if (!list || typeCaseOf(arg.name) !== this.currentClass) return undefined
+    return `(typeof ${list.constant})[number]`
   }
 
   thisParam(thisType?: string): string {
@@ -687,7 +505,7 @@ export class TSWriter extends JSWriter {
     const previousClass = this.currentClass
     this.currentClass = type.name
     try {
-      let body = super.ASTClassDeclaration(new P.ASTClassDeclaration(match, { type, superType, members }))
+      let body = this.classDeclaration(new P.ASTClassDeclaration(match, { type, superType, members }))
       const undeclared = this.project.undeclared.get(type.name) ?? []
       // a value given when one is made:  declared in the class, for TypeScript only
       const declares = undeclared
@@ -737,18 +555,10 @@ export class TSWriter extends JSWriter {
   undeclaredMember(typeName: string, { name, method, definitions }: TSUndeclared): string {
     if (!method) {
       const type = this.typeForKind(this.givenKind(typeName, name)) ?? TSWriter.UNKNOWN
-      return `${this.nameOf(name, "property")}: ${type}`
+      return `${this.nameOf(name)}: ${type}`
     }
     const returns = this.typeForKind(this.definitionsKind(definitions ?? [{ type: typeName, method }]))
     return `${this.nameOf(name)}${this.signatureParams(method)}: ${returns ?? TSWriter.UNKNOWN}`
-  }
-
-  /** `node` with the members the project wrote for it elsewhere -- see `WriterProject.movedMembers`. */
-  private withProjectMembers(node: P.ASTClassDeclaration): P.ASTClassDeclaration {
-    const moved = this.project.movedMembers.get(node.type.name)
-    if (!moved?.length) return node
-    const separator = node.members?.length ? [new P.ASTBlankLine(node.match)] : []
-    return node.withMembers([...separator, ...moved])
   }
 
   /** The hoisted lists `node` declares, in order -- see `WriterProject.lists`. */
@@ -761,7 +571,7 @@ export class TSWriter extends JSWriter {
   ASTStaticDefinitionAsMember(node: P.ASTStaticDefinition): string {
     const list = [...this.project.lists.values()].find((it) => it.definition === node)
     if (!list) return super.ASTStaticDefinitionAsMember(node)
-    return `static ${this.nameOf(node.name, "property")} = ${list.constant}`
+    return `static ${this.nameOf(node.name)} = ${list.constant}`
   }
 
   ////////////////
@@ -875,8 +685,8 @@ export class TSWriter extends JSWriter {
   ASTPropertyDefinition(node: P.ASTPropertyDefinition): string {
     const name = this.nameOf(node.property.value)
     const member = node.get
-      ? `readonly ${name}: ${this.typeFor(node.get.datatype) ?? TSWriter.UNKNOWN}`
-      : `${name}${this.signatureParams(node.method!)}: ${this.typeFor(node.method!.datatype) ?? TSWriter.UNKNOWN}`
+      ? `readonly ${name}: ${this.returnType(node.typeName, node.get) ?? TSWriter.UNKNOWN}`
+      : `${name}${this.signatureParams(node.method!)}: ${this.returnType(node.typeName, node.method!) ?? TSWriter.UNKNOWN}`
     const prototype = this.write(node.prototypeExpression)
     const patch = this.inClass(node.typeName, () => {
       if (!node.get) return `${prototype}.${name} = ${this.anonymousFunction(node.method!, node.typeName)}`
@@ -884,6 +694,28 @@ export class TSWriter extends JSWriter {
       return `Object.defineProperty(${prototype}, ${this.quoted(name)}, ${jsText.Block({ wrap: true, children: descriptor })})`
     })
     return [this.mergedInterface(node.typeName, member), patch].join(jsText.NEWLINE)
+  }
+
+  /**
+   * What method (or getter) `method` of class `typeName` returns, in TypeScript's words, for its signature --
+   * `undefined` if spell can't tell.
+   * - Spell's datatype for it, if it knows it.
+   * - Else what its `return`s give (`returnedKinds()`), each alike or not:  `boolean | undefined` for
+   *   `return false`, `return` and `return true`.
+   * - One that waits, a promise of it:  `Promise<boolean | undefined>` (epic `output-targets`, T24).
+   */
+  returnType(typeName: string, method: P.ASTMethodDefinition): string | undefined {
+    const returned = this.typeFor(method.datatype) ?? this.returnedType(typeName, method)
+    if (!returned) return undefined
+    return method.isAsync ? `Promise<${returned}>` : returned
+  }
+
+  /** What method `method` of class `typeName` returns, from its `return`s:  see `returnType()`. */
+  private returnedType(typeName: string, method: P.ASTMethodDefinition): string | undefined {
+    const kinds = this.inPlace({ typeName, methods: [method] }, () => this.returnedKinds(method))
+    const types = [...(kinds ?? [])].map((kind) => this.typeForKind(kind))
+    if (!types.length || types.some((type) => !type)) return undefined
+    return [...new Set(types)].join(" | ")
   }
 
   /**
@@ -955,7 +787,7 @@ export class TSWriter extends JSWriter {
    *   </Show>
    * )
    * ```
-   * - Any other shape, as written:  it re-runs whole, in its error net (`@drawn`), when something it read changes.
+   * - Any other shape, as written:  it re-runs whole, in its error boundary (`@drawn`), when something it read changes.
    * - A handler it uses more than once is written once, as a local:  `const click = () => ...`.
    */
   drawMethod(method: P.ASTMethodDefinition): string {
@@ -1194,38 +1026,11 @@ const SOLID_COMPONENTS = ["Show", "For", "Switch", "Match"]
 /** Longest element written on one line, open tag and children. */
 const JSX_LINE = 100
 
-/**
- * How tightly each operator binds, JavaScript's levels:  higher binds tighter.
- * - SEE:  https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_precedence
- */
-const PRECEDENCE: Record<P.ASTOperator, number> = {
-  or: 3,
-  and: 4,
-  equals: 8,
-  "not equals": 8,
-  "exactly equals": 8,
-  "not exactly equals": 8,
-  "less than": 9,
-  "greater than": 9,
-  "at most": 9,
-  "at least": 9,
-  plus: 11,
-  minus: 11,
-  times: 12,
-  "divided by": 12
-}
 /** Is `node`'s value fixed?  A literal (not a list, which holds expressions), an element, a function. */
 function isFixedValue(node: P.ASTExpression): boolean {
   const inner = unwrapped(node)
   if (inner instanceof P.ASTArrayLiteral || inner instanceof P.ASTEnumeration) return false
   return inner instanceof P.ASTLiteral || inner instanceof P.ASTMethodDefinition || inner instanceof P.ASTJSXElement
-}
-
-/** Is `node` one simple statement an `if` may hold without braces?  A return, a set, a call. */
-function isSimpleStatement(node: P.ASTNode): boolean {
-  return (
-    node instanceof P.ASTReturnStatement || node instanceof P.ASTAssignmentStatement || node instanceof P.ASTExpression
-  )
 }
 
 /** Does `declaration` have a `create()`?  Then `@thing` runs it, after its fields. */
@@ -1255,24 +1060,5 @@ function docstringAbove(member: P.ASTNode, members: P.ASTNode[]): P.ASTDocCommen
   return above instanceof P.ASTDocComment ? above : undefined
 }
 
-/** `group`'s statements, and those of the groups in it, in order. */
-function flattened(group: P.ASTStatementGroup): P.ASTNode[] {
-  return (group.statements ?? []).flatMap((statement) =>
-    statement instanceof P.ASTStatementGroup && !(statement instanceof P.ASTTryCatchBlock)
-      ? flattened(statement)
-      : [statement]
-  )
-}
-
-/** `text` with each `else` after a block's `}` on the same line, `} else {`, as a person writes it. */
-function elseOnItsLine(text: string): string {
-  return text.replace(/\}\n[ \t]*else\b/g, "} else")
-}
-
 /** `text` with every non-blank line indented once. */
 const indented = jsText.indented
-
-/** `'text'` as `"text"`, when it has no `"` or `\` in it;  anything else as is. */
-function doubleQuoted(text: string): string {
-  return /^'[^'"\\]*'$/.test(text) ? `"${text.slice(1, -1)}"` : text
-}

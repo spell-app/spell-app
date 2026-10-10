@@ -32,10 +32,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   The AST classes never write output themselves.
   - `P.Writer`:  one method per AST class, found by class name (so `keepNames`, below)
   - `P.JSWriter`:  javascript;  what `ASTNode.compile()` calls
-    - It writes javascript as a person would, with no build step (epic `output-targets`, P19):
-      - camelCase method and getter names (`nameOf()`)
+    - It writes javascript as a person would, with no build step (epic `output-targets`, P19, P22):
+      - every name camelCase, stored properties too (`nameOf()`)
       - a `List`'s own methods
       - `===`, `for...of`, template text
+      - tidy, as the TypeScript writer:  `const`, double quotes, no extra parentheses or braces
     - It reads the whole project first, to know what each value is:
       `P.WriterProject`, through `forProject()`.
   - `P.TSWriter`:  TypeScript on Solid, for `<Project>.compiled.tsx`

@@ -61,7 +61,6 @@
     {
       "property": "color",
       "of": "Card",
-      "getter": true,
       "constants": [
         "red",
         "black"
@@ -72,7 +71,6 @@
       "property": "value",
       "of": "Card",
       "datatype": "number",
-      "getter": true,
       "defined": "/Card.spell:440-501"
     },
     {
@@ -194,7 +192,6 @@
       "property": "name",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1086-1137"
     },
     {
@@ -202,7 +199,6 @@
       "asWritten": "short suit",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1139-1300"
     },
     {
@@ -210,7 +206,6 @@
       "asWritten": "short rank",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1302-1464"
     },
     {
@@ -218,7 +213,6 @@
       "asWritten": "short direction",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1466-1546"
     },
     {
@@ -226,14 +220,12 @@
       "asWritten": "short name",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1549-1609"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1611-1688"
     },
     {
@@ -375,21 +367,18 @@
     {
       "property": "color",
       "of": "Pile",
-      "getter": true,
       "defined": "/Pile.spell:191-279"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
-      "getter": true,
       "defined": "/Pile.spell:281-364"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
-      "getter": true,
       "defined": "/Pile.spell:366-530"
     },
     {
@@ -414,7 +403,6 @@
       "property": "state",
       "of": "Game",
       "datatype": "list of texts",
-      "getter": true,
       "defined": "/Solitaire.spell:2287-2422"
     },
     {
@@ -598,43 +586,43 @@
     74,
     82,
     88,
-    94,
-    98,
-    108,
-    113,
-    122,
-    128,
-    147,
-    184,
-    233,
-    236,
-    247,
-    255,
-    262,
-    290,
-    293,
-    297,
-    302,
-    307,
-    316,
-    332,
-    333,
-    339,
-    347,
-    425,
-    430,
-    446,
-    451,
-    459,
-    475,
-    514,
-    524,
-    543,
-    549,
-    558,
-    574,
-    612,
-    654,
-    659
+    93,
+    97,
+    107,
+    112,
+    121,
+    127,
+    140,
+    177,
+    226,
+    229,
+    238,
+    244,
+    249,
+    275,
+    278,
+    282,
+    287,
+    292,
+    301,
+    310,
+    311,
+    317,
+    323,
+    372,
+    377,
+    388,
+    393,
+    401,
+    417,
+    454,
+    464,
+    481,
+    485,
+    494,
+    510,
+    548,
+    586,
+    591
   ]
 }

@@ -32,6 +32,12 @@ describe("<spell-app> fed by an editor", () => {
       expect(pushedSource(base, pushed, "").name).toBe("Solitaire")
     })
 
+    test("the pushed words in memory too, for the Thing Explorer", () => {
+      const words = { lang: "en", types: { Card: { moveToPile: "move (a card) to (a pile)" } } }
+      expect(pushedSource({ ...base, wordsUrl: "/words" }, { ...pushed, words }).words).toBe(words)
+      expect("words" in pushedSource(base, pushed)).toBe(false)
+    })
+
     test("no pushed scope pack:  its project's, by URL", () => {
       const source = pushedSource(base, { projectId: pushed.projectId, compiled: pushed.compiled })
       expect("scopes" in source).toBe(false)

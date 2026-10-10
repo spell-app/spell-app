@@ -49,7 +49,6 @@
     {
       "property": "color",
       "of": "Card",
-      "getter": true,
       "constants": [
         "red",
         "black"
@@ -60,7 +59,6 @@
       "property": "value",
       "of": "Card",
       "datatype": "number",
-      "getter": true,
       "defined": "/Card.spell:440-501"
     },
     {
@@ -182,7 +180,6 @@
       "property": "name",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1086-1137"
     },
     {
@@ -190,7 +187,6 @@
       "asWritten": "short suit",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1139-1300"
     },
     {
@@ -198,7 +194,6 @@
       "asWritten": "short rank",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1302-1464"
     },
     {
@@ -206,7 +201,6 @@
       "asWritten": "short direction",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1466-1546"
     },
     {
@@ -214,14 +208,12 @@
       "asWritten": "short name",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1549-1609"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
-      "getter": true,
       "defined": "/Card.spell:1611-1688"
     },
     {
@@ -344,21 +336,18 @@
     {
       "property": "color",
       "of": "Pile",
-      "getter": true,
       "defined": "/Pile.spell:165-253"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
-      "getter": true,
       "defined": "/Pile.spell:255-338"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
-      "getter": true,
       "defined": "/Pile.spell:340-504"
     },
     {
@@ -386,22 +375,22 @@
     74,
     82,
     88,
-    94,
-    98,
-    108,
-    113,
-    122,
-    128,
-    150,
+    93,
+    97,
+    107,
+    112,
+    121,
+    127,
+    147,
+    196,
     199,
-    202,
-    213,
-    221,
-    228,
-    256,
-    259,
-    264,
-    269,
-    278
+    208,
+    214,
+    219,
+    245,
+    248,
+    253,
+    258,
+    267
   ]
 }
