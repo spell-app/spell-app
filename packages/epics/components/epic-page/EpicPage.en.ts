@@ -92,6 +92,12 @@ export const epicPageVocabulary = {
       name: "durable",
       description:
         'A link to the durable doc, once Doc Review wrote one:  `<a slot="durable" href="../../guides/x.html">X</a>`.'
+    },
+    {
+      name: "toolbar",
+      description:
+        "The sticky header's last row:  the section toolbar the docs runtime adds to a plan doc " +
+        '(`<nav slot="toolbar" class="spell-toolbar">`, `spell-doc-runtime.js` `buildToolbar()`);  never in a doc.'
     }
   ],
   parts: [

@@ -128,6 +128,13 @@ In `tools/`:
       and what scrolls under the rail shows again a scroll later.
     - Give every top-level section an icon:  without one, the rail shows its number.
     - Hover widens it to show the names;  the current section is a deeper ivory (scroll-follow).
+  - a PLAN DOC (`body.plan-doc`) has a TOOLBAR instead (epic `airplane` P8, Owen 2026-10-10):
+    a row across the bottom of `<epic-page>`'s sticky header (its `toolbar` slot), so the titles stick below it
+    - one button per top-level block:  its icon and its title without the number;  the current one a deeper ivory
+    - badges:  the block's items waiting on Owen, red urgent (`state="attention"`),
+      orange Claude replied with options for him to pick (`state="replied"`);  both kinds, both badges;  none, none
+    - narrow:  tighter first, then only the current button keeps its label;  the row scrolls sideways if it must
+      (`buildToolbar()`, `fitLabels()`)
   - sticky titles:  each top-level section's title sticks below the page header,
     nested ones stack below their parents' (the runtime sets the top-level `offset`s)
   - folding:  folds are remembered per page;  a link's unfold isn't.
@@ -157,7 +164,7 @@ In `tools/`:
     their counts and state filters, commits, item folds,
     and every review control on the page's ONE review client (`packages/epics/src/review`, see "Review inbox").
     How they look and behave:  `packages/epics/AGENTS.md`.
-    - the runtime only lists its folding blocks (`<epic-overview>`, `<epic-section>`, `<epic-phase>`) on the rail,
+    - the runtime only lists its folding blocks (`<epic-overview>`, `<epic-section>`, `<epic-phase>`) on the toolbar,
       from each host's `contentsEntry` (label, icon, count), after waiting for them to draw
       (`EPIC_WAIT_MS`, 5s at most:  a pack that won't load doesn't hold up the page);
       remembers their folds;  and lands links inside them (a link to an `<epic-item>` opens it)
@@ -533,7 +540,8 @@ In this order, from `packages/docs`:
   - fails on:
     - console errors
     - an undefined or unrendered `ui-*` or `epic-*` element (a plan doc's, the `epics` pack)
-    - a rail that doesn't list every top-level section (a plan doc's:  its `<epic-*>` blocks) or that keeps a column
+    - a rail that doesn't list every top-level section or that keeps a column;  a plan doc's toolbar that doesn't list
+      its `<epic-*>` blocks, isn't on screen at the top at phone width, or a plan doc still drawing a rail
     - phone-width overflow, a squeezed content column
     - top-level titles that don't stick (a plan doc's largest item section opened first)
     - a section that won't fold / unfold or forgets its fold on reload
