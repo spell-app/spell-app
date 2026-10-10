@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -83,7 +83,7 @@ export class UISelect extends F.FormComponent<Vocabulary> {
   @E.controlled("value") accessor value: UIT.SelectValue | undefined = this.selectedItemValues()
 
   /** The page's value to restore on a form reset (`undefined`:  back to the `selected` items). */
-  private readonly initialValue = this.isControlledByPage("value") ? untrack(() => this.value) : undefined
+  private readonly initialValue = this.isControlledByPage("value") ? this.value : undefined
 
   /** Chosen values, always as an array;  the same list while equal. */
   @E.derived({ equals: E.isSameList })

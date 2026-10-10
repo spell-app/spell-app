@@ -277,6 +277,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.onChange("isConnected", "isReady")
   protected watchLayout(connected: boolean, ready: boolean) {
     if (!connected || !ready) return undefined
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while connected and drawn;  bumps a page signal
     const mutations = new MutationObserver(this.bumpLayout)
     mutations.observe(this.domElement, {
       subtree: true,

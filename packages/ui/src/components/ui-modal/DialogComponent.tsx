@@ -1,4 +1,4 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -213,11 +213,13 @@ export abstract class DialogComponent<
    * What dismisses it:  an explicit `closedby` wins;
    * else `none` for `closable="false"` (Fomantic's `closable: false`), else `any`.
    * - NOTE: `closedby` has a vocabulary default, so whether it was written is read off the DOM element.
+   * - Untracked.
    */
+  @E.untracked
   private get closedBy(): NonNullable<DialogAttributes["closedby"]> {
-    if (this.domElement.hasAttribute("closedby")) return untrack(() => this.closedby) ?? "any"
+    if (this.domElement.hasAttribute("closedby")) return this.closedby ?? "any"
     // NOTE: an absent boolean also converts to `false`, so `closable` must be present to mean "closable: false"
-    const isOff = this.domElement.hasAttribute(CLOSABLE) && !untrack(() => this.closable)
+    const isOff = this.domElement.hasAttribute(CLOSABLE) && !this.closable
     return isOff ? "none" : "any"
   }
 

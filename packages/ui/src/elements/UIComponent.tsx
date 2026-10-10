@@ -698,26 +698,6 @@ export abstract class UIComponent<V extends E.ComponentVocabulary = E.ComponentV
     return E.Reactive.isControlledByPage(this, memberName)
   }
 
-  /**
-   * DEPRECATED:  write `@controlled("open") accessor isOpen = false` instead.
-   * - The old way to declare a controlled attribute;  only `brand`'s components still use it.
-   * - MUST be called from a field initializer or the constructor.
-   */
-  protected controlled<N extends E.AttributeName<V>>(
-    name: N,
-    initial: E.AttributeValues<V>[E.CamelCase<N> & keyof E.AttributeValues<V>]
-  ): E.Controlled<E.AttributeValues<V>[E.CamelCase<N> & keyof E.AttributeValues<V>]> {
-    const { key, property } = this.elementDefinition.attribute(name)
-    type Value = E.AttributeValues<V>[E.CamelCase<N> & keyof E.AttributeValues<V>]
-    return new E.Controlled<Value>({
-      domElement: this.domElement,
-      key,
-      property,
-      value: () => E.Reactive.attributeValue(this, key) as Value | undefined,
-      initial
-    })
-  }
-
   ////////////////
   // ## Events
   ////////////////

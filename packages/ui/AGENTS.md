@@ -69,7 +69,7 @@ The rules below are its short form.
       - `Reactive` (the reactive members' decorators:  `@state`, `@controlled`, `@derived`, `@cssState`, `@onChange`)
       - `FormComponent` + `DOMFormControl` (form controls), `Cell`, `SlotContent`
       - `PartContext` + `PartComponent` (the generic content parts, styled by their owner)
-      - `Controlled` (compatibility:  nothing uses it since brand moved to `@controlled`), `IconGlyph`
+      - `IconGlyph`
       - `LoadableComponent` + `DOMLoadableElement` (the base of the elements that show a text file:
         `source`, inline text, loading / error look, `save()`)
       - `LoadableBody` + `DOMLoadableBodyElement` (a section's body loaded from `source` the first time it opens)
@@ -461,7 +461,6 @@ As WWOD §18, plus:
   - `@E.controlled("open") accessor isOpen = false` -- the DOM element's property when set, else the starting value;
     a write goes to the DOM element's property.
     - A user change:  `this.requestChange("isOpen", next, () => this.send(...))`;  `isControlledByPage("isOpen")`.
-    - Replaces `this.controlled()` and `Controlled.request()`.
   - attributes:  a getter per vocabulary attribute, `this.size` (converted, fresh), made by `register()`;
     the class declares them for TypeScript, below the class:
     `export interface UIButton extends E.AttributeValues<typeof buttonVocabulary> {}`.
@@ -511,8 +510,13 @@ As WWOD §18, plus:
       a getter member tracks the sources under it, and Solid 2 applies an effect on every re-run of its compute,
       so `startEffects()` puts a memo with `equals` in between.
     - An effect that used to live in `render()` names `isReady` too and returns early until it's true,
-      keeping that timing (`UIShape`, `UISidebar`).
-    - Conditional, per-item or object-building effects stay explicit `createEffect`s in `onMount()`.
+      keeping that timing (`UIShape`, `UISidebar`, `UISection`).
+    - `{ defer: true }`:  not called at the start, only on a change (`<ui-progress>`'s `ui-change`).
+    - A page-wide value, or one an attribute alias holds:  a getter member over it, named in the list
+      (`UIEmoji.rootSettingsGeneration`, `CheckControl.checkedAttribute`);  `protected`, as `@E.on` methods are.
+    - A method may read the members itself instead of taking their values (`UIMarkdown.onMarkdownChanged()`).
+    - Conditional, per-item or object-building effects stay explicit `createEffect`s in `onMount()`,
+      each with its disable comment ("The lint guard").
   - `@E.whileConnected watchX()` -- runs each time the element connects;
     a function it returns is the cleanup, run when it disconnects.
     - Sugar over `@E.onChange("isConnected")` for a listener or observer
@@ -548,10 +552,16 @@ As WWOD §18, plus:
   - `@E.untracked select(option)` -- an action or handler whose body runs inside `untrack()`:
     it reads `this.x` plainly where it used to read `untrack(() => this.x)`.
     - Also on an arrow-function field handed to JSX
-      (`@E.untracked private readonly onKeyDown = (event: KeyboardEvent) => { ... }`).
+      (`@E.untracked private readonly onKeyDown = (event: KeyboardEvent) => { ... }`),
+      and on a getter read to act on, never to follow (`@E.untracked private get cssDuration()`),
+      a DOM element's script API over its component too
+      (`@E.untracked get errors() { return this.component?.errors ?? [] }`).
     - NEVER on a method a computation calls to follow its reads (a getter's helper, JSX, an effect's first function):
       e.g. `UIMenu.itemContext()` stays half-tracked on purpose.
     - `@E.on` and `@E.onChange` methods need none.
+    - Nor do the constructor, field initializers and `render()`'s body:
+      every component is BUILT inside `untrack()` (`UIComponent.mount()`, the static render),
+      and `render()` runs once, untracked (`UIComponent.onMount()`).
   - A `disabled` that is only a LOOK (`<ui-icon>`, `<ui-segment>` ...):  `elementSetup.disabled = "its own"`;
     `:state(disabled)` comes from `UIComponent` ("Shared states" above), so no `@E.cssStates("disabled")`;
     ARIA of its own, if any, on a getter (`<ui-segment>`'s `@E.aria("ariaDisabled") get looksDisabled()`).
@@ -660,6 +670,22 @@ As WWOD §18, plus:
     or `@E.onChange(..., { writesDOMElement: true })` (states, `tabindex` ...):
     the server build never runs an apply, so a plain `createEffect` leaves the static output without it.
     Constant ARIA:  `elementSetup.aria`.
+- **The lint guard** (`spell-ui/*`, epic `spell-element` P10):  `yarn lint` holds component files to the above.
+  - Where:  the component folders of `ui` (`src/components/`, `src/docs-components/`), `epics` (`components/`) and
+    `brand` (`components/`), as the root `vite.lint.ts`'s `PATTERN_FOLDERS` lists them.
+    NOT `app` (WWOD §17's function components), NOT the element core (`src/elements/`), NOT tests.
+  - What it flags, each message naming the decorator or helper to use instead
+    (the rules:  `vite.lint.patterns.ts` at the repo root):
+    - `no-solid-effect`:  `createEffect`, `createRenderEffect`, `onSettled`, `onMount` imported from `solid-js`
+    - `no-mutation-observer`:  `new MutationObserver(...)`
+    - `no-dom-element-listener`:  `addEventListener` on `this.domElement` (or a `domElement` local)
+    - `no-untrack`:  `untrack(...)`
+    - `no-raw-timer`:  `setTimeout`, `setInterval`, `queueMicrotask`, `requestAnimationFrame`
+    - `no-function-component`:  an exported PascalCase function drawing JSX
+  - A use that has to stay says why, on the line above, same rule for every package:
+    `// oxlint-disable-next-line spell-ui/no-mutation-observer -- watches its PARENT, another element`.
+    - And goes on the allow-list in `tools/LintPatterns.test.ts`, with the same reason:
+      the test fails on a disable comment the list doesn't name, so every exception is seen in review.
 
 ## Component packs
 

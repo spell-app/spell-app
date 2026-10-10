@@ -30,6 +30,8 @@ house style every package shares.  Only what's local is below;  a section named 
   - No native fallback:  only form controls have one.
   - A new one:  `spell dev pack element epics <tag>`, the tag starting `epic-`.
   - Every component is a family, as in Spell UI (P10 of epic `spell-element`):  no exported function components.
+  - `yarn lint` holds them to it:  the `spell-ui/*` rules (`packages/ui/AGENTS.md`, "Solid authoring", "The lint
+    guard") flag a hand-written effect, observer, listener, `untrack()` or timer, and an exported function component.
     A piece several families draw is a family of its own, drawn in their shadow roots
     (`<epic-review>`, `<epic-new-item>`, `<epic-agents>`:  never written in a doc), and the barrel of each family
     that draws one imports its barrel first, so it's defined wherever they are.

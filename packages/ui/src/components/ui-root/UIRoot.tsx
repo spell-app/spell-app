@@ -290,6 +290,7 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
    */
   @E.whileConnected
   protected watch(): E.Disposer {
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while connected:  `@E.fromContent` watches for life
     const observer = new MutationObserver(() => void this.loadUndefined())
     observer.observe(this.domElement, { childList: true, subtree: true })
     if (this.hasStarted) void this.loadUndefined()

@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -23,9 +23,9 @@ export class DOMBrandFieldElement extends E.DOMElement<UIBrandField> {
   }
 
   /** Messages `<ui-form>` asked to show;  untracked. */
+  @E.untracked
   get errors(): readonly string[] {
-    // a getter:  `@E.untracked` takes only methods
-    return untrack(() => this.component?.formErrors) ?? []
+    return this.component?.formErrors ?? []
   }
 }
 

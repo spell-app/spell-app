@@ -1,4 +1,4 @@
-import { Show, untrack } from "solid-js"
+import { Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
@@ -26,10 +26,10 @@ import {
  * - Above `EpicFold`:  its `elementSetup` reads it while the class is defined.
  ****************/
 export class DOMEpicFoldElement extends E.DOMLoadableBodyElement<EpicFold<any>> {
+  /** What the rail shows for it;  untracked (the whole call, so a subclass's `contentsEntry()` too). */
+  @E.untracked
   get contentsEntry(): ContentsEntry | undefined {
-    // `untrack()` by hand:  a DOM element is no component,
-    // and subclasses override `contentsEntry()`, so `@E.untracked` on the base method wouldn't cover them
-    return untrack(() => this.component?.contentsEntry())
+    return this.component?.contentsEntry()
   }
 }
 

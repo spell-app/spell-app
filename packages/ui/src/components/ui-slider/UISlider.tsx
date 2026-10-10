@@ -1,4 +1,4 @@
-import { For, Repeat, Show, createEffect } from "solid-js"
+import { For, Repeat, Show } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -176,18 +176,13 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   /** The length of the track in px, for label spacing;  `0` until measured. */
   @E.state accessor trackLength = 0
 
-  /** Adds the track measurement (label spacing) while `labeled`. */
-  onMount(): JSX.Element {
-    createEffect(
-      () => !!this.labeled,
-      (labeled) => {
-        if (!labeled) return
-        const observer = new ResizeObserver(() => this.measure())
-        observer.observe(this.domElement)
-        return () => observer.disconnect()
-      }
-    )
-    return super.onMount()
+  /** While `labeled`:  measure the track (label spacing) whenever the element resizes;  returns its stop. */
+  @E.onChange("labeled")
+  protected onLabeledChanged(labeled: boolean | undefined) {
+    if (!labeled) return undefined
+    const observer = new ResizeObserver(() => this.measure())
+    observer.observe(this.domElement)
+    return () => observer.disconnect()
   }
 
   /**

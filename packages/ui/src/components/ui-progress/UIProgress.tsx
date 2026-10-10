@@ -1,4 +1,4 @@
-import { Repeat, Show, createEffect, untrack } from "solid-js"
+import { Repeat, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -48,13 +48,6 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
     disabled: "its own"
   } satisfies Partial<E.ElementSetup>
 
-  /** Adds the change events. */
-  onMount(): JSX.Element {
-    // stays explicit:  `defer`, no event for the first render
-    createEffect(() => this.numbers, this.onNumbersChanged, { defer: true })
-    return super.onMount()
-  }
-
   ////////////////
   // ## The numbers
   ////////////////
@@ -74,10 +67,11 @@ export class UIProgress extends E.UIComponent<typeof progressVocabulary> {
   }
 
   /** Percentage when the last `ui-change` went out, to tell when it reaches 100. */
-  private lastAnnouncedPercent = untrack(() => this.numbers.percent)
+  private lastAnnouncedPercent = this.numbers.percent
 
-  /** The numbers changed:  `ui-change`, and `ui-complete` when it just reached 100. */
-  private readonly onNumbersChanged = (numbers: ProgressValues) => {
+  /** The numbers changed:  `ui-change`, and `ui-complete` when it just reached 100.  Not for the first draw. */
+  @E.onChange("numbers", { defer: true })
+  protected onNumbersChanged(numbers: ProgressValues) {
     if (numbers.percent === this.lastAnnouncedPercent) return
     const hasReached = numbers.percent >= 100 && this.lastAnnouncedPercent < 100
     this.lastAnnouncedPercent = numbers.percent

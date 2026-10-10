@@ -35,7 +35,7 @@ export default defineConfig(() => {
   const base = baseConfig()
   return {
     fmt: fmtConfig,
-    lint: packageLint({ ignorePatterns: ["_assets/ui", "dist", ".compare", ".vitest"] }),
+    lint: packageLint({ name: "brand", ignorePatterns: ["_assets/ui", "dist", ".compare", ".vitest"] }),
     ...base,
     root: ROOT,
     base: "./",

@@ -45,6 +45,14 @@ class Basket {
     return () => this.calls.push("cleanup")
   }
 
+  /** Every call of `onDiscountChanged()`:  deferred, so never the starting discount. */
+  readonly discountChanges: number[] = []
+
+  @E.onChange("discount", { defer: true })
+  protected onDiscountChanged(discount: number) {
+    this.discountChanges.push(discount)
+  }
+
   /** A plain getter over two members:  its effect tracks both. */
   get isBigOrder(): boolean {
     return this.items.length * (100 - this.discount) >= 200
@@ -92,6 +100,12 @@ class Basket {
   /** `priceNow()` as an arrow-function field, as a handler passed around. */
   @E.untracked
   readonly priceHandler = (price: number): number => price * (1 - this.discount / 100)
+
+  /** The discount as a fraction, read untracked:  a getter. */
+  @E.untracked
+  get discountNow(): number {
+    return this.discount / 100
+  }
 }
 
 describe("Reactive:  @state", () => {
@@ -280,12 +294,26 @@ describe("Reactive:  @onChange", () => {
     expect(basket.calls).toEqual([" @0"])
     dispose()
   })
+
+  it("`{ defer: true }`:  not called at the start, only on a change", () => {
+    const basket = new Basket()
+    const dispose = createRoot((dispose) => {
+      E.Reactive.startEffects(basket)
+      return dispose
+    })
+    flush()
+    expect(basket.discountChanges).toEqual([])
+    basket.discount = 15
+    flush()
+    expect(basket.discountChanges).toEqual([15])
+    dispose()
+  })
 })
 
 describe("Reactive:  @untracked", () => {
   it("a computation calling the method doesn't follow what it reads;  the same method undecorated does", () => {
     const basket = new Basket()
-    const runs = { untracked: 0, field: 0, tracked: 0 }
+    const runs = { untracked: 0, field: 0, getter: 0, tracked: 0 }
     const dispose = createRoot((dispose) => {
       createEffect(
         () => {
@@ -303,6 +331,13 @@ describe("Reactive:  @untracked", () => {
       )
       createEffect(
         () => {
+          runs.getter++
+          return basket.discountNow
+        },
+        () => {}
+      )
+      createEffect(
+        () => {
           runs.tracked++
           return basket.priceTracked(10)
         },
@@ -312,7 +347,7 @@ describe("Reactive:  @untracked", () => {
     })
     basket.discount = 50
     flush()
-    expect(runs).toEqual({ untracked: 1, field: 1, tracked: 2 })
+    expect(runs).toEqual({ untracked: 1, field: 1, getter: 1, tracked: 2 })
     dispose()
   })
 
@@ -322,11 +357,13 @@ describe("Reactive:  @untracked", () => {
     expect(basket.priceNow(50)).toBe(40)
     expect(basket.lastPrice).toBe(40)
     expect(basket.priceHandler(50)).toBe(40)
+    expect(basket.discountNow).toBe(0.2)
   })
 
-  it("on anything but a method (or a function field), throws a TypeError naming the member", () => {
+  it("on anything but a method, a getter or a function field, throws a TypeError naming the member", () => {
+    const setter = { kind: "setter", name: "total", static: false, metadata: {} }
+    expect(() => E.untracked(() => {}, setter as never)).toThrow(/@untracked total/)
     const getter = { kind: "getter", name: "total", static: false, metadata: {} }
-    expect(() => E.untracked(() => 1, getter as never)).toThrow(/@untracked total/)
     expect(() => E.on("ping")(() => {}, getter as never)).toThrow(/@on total/)
     const field = { kind: "field", name: "count", static: false, metadata: {} }
     expect(() => (E.untracked(undefined, field as never) as (value: unknown) => unknown)(0)).toThrow(/@untracked count/)

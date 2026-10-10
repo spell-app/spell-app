@@ -1,4 +1,4 @@
-import { For, Show, flush, untrack, type Accessor } from "solid-js"
+import { For, Show, flush, type Accessor } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -216,14 +216,11 @@ export class UITabs extends E.UIComponent<typeof tabsVocabulary> implements TabO
     transition.ready.catch(() => undefined)
   }
 
-  /** Animate the swap?  See `show()`. */
+  /** Animate the swap?  See `show()`.  Untracked. */
+  @E.untracked
   private get canTransition(): boolean {
     const { domElement } = this
-    if (
-      !untrack(() => this.isReady) ||
-      !domElement.isConnected ||
-      domElement.ownerDocument.visibilityState !== UIT.VISIBLE
-    )
+    if (!this.isReady || !domElement.isConnected || domElement.ownerDocument.visibilityState !== UIT.VISIBLE)
       return false
     return UI.browser.supports.viewTransitions && !UI.browser.isReducedMotion
   }

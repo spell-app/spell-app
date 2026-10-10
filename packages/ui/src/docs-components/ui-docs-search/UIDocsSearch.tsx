@@ -1,4 +1,4 @@
-import { For, Show, untrack } from "solid-js"
+import { For, Show } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
@@ -49,8 +49,9 @@ export class DOMDocsSearchElement extends E.DOMElement<UIDocsSearch> {
    * The text typed;  `""` before the component exists.
    * - Untracked:  a page's Solid effect reading it doesn't re-run on every keystroke.
    */
+  @E.untracked
   get query(): string {
-    return untrack(() => this.component?.query) ?? ""
+    return this.component?.query ?? ""
   }
 }
 

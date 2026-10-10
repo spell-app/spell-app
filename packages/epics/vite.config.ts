@@ -11,5 +11,5 @@ import { fmtConfig, packageLint } from "../../vite.lint.ts"
  */
 export default defineConfig({
   fmt: fmtConfig,
-  lint: packageLint({ ignorePatterns: ["pack", "dist", ".vitest"] })
+  lint: packageLint({ name: "epics", ignorePatterns: ["pack", "dist", ".vitest"] })
 })

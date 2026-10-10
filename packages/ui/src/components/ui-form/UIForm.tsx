@@ -1,4 +1,3 @@
-import { untrack } from "solid-js"
 import { isServer, type JSX } from "@solidjs/web"
 
 import { E, UIT } from "$/ui/core"
@@ -46,8 +45,9 @@ export class DOMFormElement extends E.DOMElement<UIForm> {
   }
 
   /** The `<form>` it works with, if any. */
+  @E.untracked
   get nativeForm(): HTMLFormElement | undefined {
-    return untrack(() => this.component?.nativeForm)
+    return this.component?.nativeForm
   }
 }
 
@@ -214,24 +214,20 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
 
   /**
    * While connected:  find the native form (and again as the subtree changes),
-   * and the DOM element's own listeners;  returns their undo.
+   * and listen for the page leaving;  returns their undo.
    * - Its own `MutationObserver`, not `@fromContent`:  it watches only while connected.
    */
   @E.whileConnected
   protected watchForm() {
+    // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while connected:  `@E.fromContent` watches for life
     const observer = new MutationObserver(() => this.findForm())
     observer.observe(this.domElement, { childList: true, subtree: true })
     this.findForm()
-    const { domElement } = this
-    for (const type of CHANGE_EVENTS) domElement.addEventListener(type, this.onChange)
-    domElement.addEventListener("focusout", this.onFocusOut)
     window.addEventListener("beforeunload", this.onBeforeUnload)
     E.afterSolidUpdate(() => this.saveValues())
     return () => {
       this.nativeForm = undefined
       observer.disconnect()
-      for (const type of CHANGE_EVENTS) domElement.removeEventListener(type, this.onChange)
-      domElement.removeEventListener("focusout", this.onFocusOut)
       window.removeEventListener("beforeunload", this.onBeforeUnload)
     }
   }
@@ -413,17 +409,22 @@ export class UIForm extends E.UIComponent<typeof formVocabulary> {
     E.afterSolidUpdate(() => this.clearErrors())
   }
 
-  /** A control changed:  validate it for `validate-on="change"`, or while it shows an error. */
-  @E.untracked
-  private readonly onChange = (event: Event) => {
+  /**
+   * A control changed (a light-DOM control's native `change` / `input`, an element's `ui-change`):
+   * validate it for `validate-on="change"`, or while it shows an error.
+   */
+  @E.on("change")
+  @E.on("input")
+  @E.on("ui-change")
+  protected onControlChanged(event: Event) {
     const identifier = this.identifierFor(event)
     if (!identifier) return
     if (this.fieldsShowingErrors.has(identifier) || this.validateOn === "change") this.checkFieldSoon(identifier)
   }
 
   /** A control lost focus:  validate it for `validate-on="blur"`. */
-  @E.untracked
-  private readonly onFocusOut = (event: FocusEvent) => {
+  @E.on("focusout")
+  protected onFocusOut(event: FocusEvent) {
     if (this.validateOn !== "blur") return
     const identifier = this.identifierFor(event)
     if (identifier) this.checkFieldSoon(identifier)
@@ -525,6 +526,3 @@ type ShownField = {
   /** Every field's value, for the events' `detail`. */
   values: UIT.FormValues
 }
-
-/** Events that mean "a control changed":  native ones from light-DOM controls, `ui-*` ones from elements. */
-const CHANGE_EVENTS = ["change", "input", "ui-change"] as const

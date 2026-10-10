@@ -58,6 +58,7 @@ Only what DIFFERS is below.
 - `components/` (`$/brand/components`) -- the `<ui-brand-*>` elements, one folder per family,
   written exactly like a Spell UI family (`packages/ui/AGENTS.md`, "Solid authoring"),
   importing shared code from `$/ui/core` / `$/ui/forms`.
+  - `yarn lint` holds them to it:  the `spell-ui/*` rules ("Solid authoring", "The lint guard").
   - Generic ones move into Spell UI later (epic decision D2).
   - The specimen page:  `brand/components/components.spell.html` (shared).
 - `scripts/` -- `build.ts` (the bundle), `compare.ts` (screenshot diffs) and `site-data.ts` (`_data/`).

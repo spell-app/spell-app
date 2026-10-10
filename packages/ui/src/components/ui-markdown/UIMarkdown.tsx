@@ -1,5 +1,5 @@
-import { For, Show, createEffect, untrack } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { For, Show } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E, UI, UIT } from "$/ui/core"
 import type { codeVocabulary } from "$/ui/components/ui-code/UICode.en"
@@ -20,8 +20,9 @@ import markdownCSS from "./UIMarkdown.css?inline"
  ****************/
 export class DOMMarkdownElement extends E.DOMLoadableElement<UIMarkdown> {
   /** Each heading of the last render;  `[]` before the first.  Untracked:  it's for scripts. */
+  @E.untracked
   get headings(): MarkdownHeading[] {
-    return untrack(() => this.component?.headings) ?? []
+    return this.component?.headings ?? []
   }
 
   /**
@@ -91,28 +92,21 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
 
   /**
    * Render whenever the text or a rendering attribute changes;  `editable`, only while the preview shows.
-   * - Stays an explicit effect:  its compute BUILDS the render's input (title stripped, options), not just reads.
+   * - Never on a server:  the server runs no effect.
    */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      createEffect(
-        () => ({
-          text: this.skipTitle ? this.textToShow.replace(LEADING_TITLE, "") : this.textToShow,
-          isLoaded: this.loadStatus === "loaded",
-          isEditable: this.editable,
-          isShown: !this.editable || this.shownTab === PREVIEW,
-          options: {
-            breaks: !!this.breaks,
-            headingOffset: Number(this.headingOffset) || 0,
-            sanitized: !!this.sanitized
-          }
-        }),
-        ({ text, isLoaded, isEditable, isShown, options }) => {
-          if (isLoaded && isShown) void this.renderMarkdown({ text, options, isEditable })
-        }
-      )
-    }
-    return super.onMount()
+  @E.onChange("textToShow", "skipTitle", "loadStatus", "editable", "shownTab", "breaks", "headingOffset", "sanitized")
+  protected onMarkdownChanged() {
+    const isShown = !this.editable || this.shownTab === PREVIEW
+    if (this.loadStatus !== "loaded" || !isShown) return
+    void this.renderMarkdown({
+      text: this.skipTitle ? this.textToShow.replace(LEADING_TITLE, "") : this.textToShow,
+      isEditable: this.editable,
+      options: {
+        breaks: !!this.breaks,
+        headingOffset: Number(this.headingOffset) || 0,
+        sanitized: !!this.sanitized
+      }
+    })
   }
 
   protected renderContent(): JSX.Element {
@@ -200,13 +194,17 @@ export class UIMarkdown extends E.LoadableComponent<typeof markdownVocabulary> {
           part={this.partForName("editor")}
           aria-label={this.translationForKey("editor")}
           onInput={this.onInput}
-          ref={(textBox: HTMLTextAreaElement) => {
-            this.textBox = textBox
-            textBox.value = untrack(() => this.textToShow)
-          }}
+          ref={this.keepTextBox}
         />
       </section>
     )
+  }
+
+  /** `editable`:  keep the text box as it's drawn, and fill it with the text (`onTextChanged()` keeps it in step). */
+  @E.untracked
+  private readonly keepTextBox = (textBox: HTMLTextAreaElement) => {
+    this.textBox = textBox
+    textBox.value = this.textToShow
   }
 
   /** `editable`:  the text box follows the content (`domElement.content = ...`, a reload). */
