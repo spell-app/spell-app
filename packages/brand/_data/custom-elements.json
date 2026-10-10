@@ -723,6 +723,14 @@
               "fieldName": "name"
             },
             {
+              "name": "required",
+              "description": "Form validation:  a colour must be chosen, by the page (`value`) or by picking one.  Unset, it shows `#8E96B5` but counts as no value (`valueMissing`).",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "required"
+            },
+            {
               "name": "label",
               "description": "Name of the picker for screen readers (its group);  default:  what names it, else `Colour`.",
               "type": {
@@ -860,6 +868,10 @@
             {
               "name": "copied",
               "description": "Just copied:  for about 1.4 seconds after a copy button."
+            },
+            {
+              "name": "invalid",
+              "description": "Fails validation (`required`), once a person has interacted."
             },
             {
               "name": "loading",
@@ -1320,6 +1332,14 @@
               "fieldName": "name"
             },
             {
+              "name": "required",
+              "description": "Form validation:  something must be written (`valueMissing`), or the form won't submit.",
+              "type": {
+                "text": "boolean"
+              },
+              "fieldName": "required"
+            },
+            {
               "name": "placeholder",
               "description": "Hint shown while empty;  default `Describe what you want to build…`, `placeholder=\"\"` none.",
               "type": {
@@ -1479,6 +1499,10 @@
             {
               "name": "disabled",
               "description": "Can't be used."
+            },
+            {
+              "name": "invalid",
+              "description": "Fails validation (`required`), once a person has interacted."
             },
             {
               "name": "loading",

@@ -166,6 +166,28 @@ describe("DOMElement attributes", () => {
     expect(shown(host)).toBe("object:a,b")
   })
 
+  test("an object written to a string attribute's property reflects as JSON, never `[object Object]`", async () => {
+    const { tag } = definedTag("object-text", [attribute("label", "string")])
+    const host = await renderTag(tag)
+    host.label = { a: 1 }
+    expect(host.getAttribute("label")).toBe('{"a":1}')
+    // a string attribute holds text:  the property reads back the JSON, not the object
+    expect(host.label).toBe('{"a":1}')
+    host.label = 7
+    expect(host.getAttribute("label")).toBe("7")
+    await ElementFixture.tick()
+    expect(shown(host)).toBe("string:7")
+  })
+
+  test("an array of objects reflects as JSON too:  the array itself is kept", async () => {
+    const { tag } = definedTag("object-array", [attribute("items", "string")])
+    const host = await renderTag(tag)
+    const items = [{ a: 1 }, { b: 2 }]
+    host.items = items
+    expect(host.getAttribute("items")).toBe('[{"a":1},{"b":2}]')
+    expect(host.items).toBe(items)
+  })
+
   test("attributes are read before the element connects", () => {
     const { tag } = definedTag("before-connect", [attribute("count", "number", { default: 0 })])
     const host = document.createElement(tag) as Host

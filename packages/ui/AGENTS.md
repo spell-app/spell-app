@@ -29,8 +29,8 @@ The rules below are its short form.
   MUST be updated in the same change that builds, finishes or defers anything in it.
 - Layout:
   - `../util/` -- `@spell-app/util` (`$/util`), shared with `spell`:
-    `@proto` / `@protoMerged` / `@lazy` / `@once`
-    (`decorators.ts`;  component files say `@E.lazy`, `@E.once`, `E.forget()`),
+    `@proto` / `@protoMerged` / `@lazy` / `@once` / `@resets`
+    (`decorators.ts`;  component files say `@E.lazy`, `@E.once`, `@E.resets`, `E.forget()`),
     `class.ts`, `string.ts` (case, `numberToWord`, `suggest`), `dom.ts` (`closestAcrossShadow` ...), `util.types.ts`.
     - `src/util/index.ts` (`$/ui/util`) re-exports it, so source keeps saying `from "$/ui/util"`;
       its declarations ship in `dist/_util/`.
