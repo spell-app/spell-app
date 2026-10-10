@@ -1,17 +1,14 @@
-import { Show, createMemo, onSettled, untrack } from "solid-js"
-import { isServer, type JSX } from "@solidjs/web"
+import { Show, createMemo } from "solid-js"
+import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
 
 import { PlanDates } from "$/epics/dates"
-import { AgentsClient, NOBODY_LISTENING, isAirplane, isImmediate } from "$/epics/review"
-// the page's view of the review inbox, as an item's:  its file, not `epic-item`'s barrel (which would define it here)
-import { ReviewState } from "$/epics/components/epic-item/ReviewState"
-import { NewItemButton, NewItemForm } from "$/epics/components/epic-item/NewItems"
-import type { NewTextKey } from "$/epics/components/epic-item/EpicItem.types"
+import { NOBODY_LISTENING, isAirplane, isImmediate } from "$/epics/review"
+// the page's view of the review inbox, as the review controls':  its file, not `epic-review`'s barrel
+import { ReviewState } from "$/epics/components/epic-review/ReviewState"
 
 import { epicPageVocabulary } from "./EpicPage.en"
-import { AgentsPanel } from "./AgentsPanel"
 import {
   ACTIONS,
   ACTIVE,
@@ -47,15 +44,12 @@ import {
   type EpicPageVocabulary,
   type HeaderMarks,
   type PageSignals,
-  type PageText,
   type PhaseLine,
   type StepLabel
 } from "./EpicPage.types"
 
-import reviewCSS from "$/epics/components/epic-item/ReviewControls.css?inline"
 import pageCSS from "./EpicPage.css?inline"
 import crumbsCSS from "./Crumbs.css?inline"
-import agentsCSS from "./AgentsPanel.css?inline"
 
 /****************
  * ### `EpicPage`
@@ -91,10 +85,10 @@ import agentsCSS from "./AgentsPanel.css?inline"
  *     outlined blue while there's anything to work through
  *   - nobody listening:  their tooltips say so (`NOBODY_LISTENING`)
  *   - what a click did goes to the notice line at the window's bottom (`ReviewState`'s)
- * - NEW TODO OR QUESTION (epic `airplane` P2;  `NewItems.tsx`), while reviewed:
+ * - NEW TODO OR QUESTION (epic `airplane` P2;  an `<epic-new-item compact>`), while reviewed:
  *   a round `+` before Send opens the form on a row of its own in the sticky header;
  *   what's asked for waits in the inbox, drawn at the end of its section (Todos, Questions) until Claude makes it.
- * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<AgentsPanel>`),
+ * - RUNNING AGENTS (epic `skillz` P3), right before its blocks:  the "Agents running" panel (`<epic-agents>`),
  *   only while the page is served with a token, the epic's list answers (`AgentsClient`) and an agent runs
  *   - each row a note box that redirects that agent
  *   - in the shadow root:  not a section, so the rail and counts never see it
@@ -114,12 +108,7 @@ import agentsCSS from "./AgentsPanel.css?inline"
 export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   @E.proto static vocabulary = epicPageVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: {
-      "epic-page": pageCSS,
-      "epic-crumbs": crumbsCSS,
-      "epic-agents": agentsCSS,
-      "epic-review": reviewCSS
-    }
+    styleSheets: { "epic-page": pageCSS, "epic-crumbs": crumbsCSS }
   } satisfies Partial<E.ElementSetup>
 
   /** Its tag:  what its blocks look for around them. */
@@ -149,17 +138,11 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
    */
   readonly review = new ReviewState(() => this.epic)
 
-  /** The epic's running agents, for the panel;  none in a server render. */
-  readonly agents = isServer ? undefined : AgentsClient.forPage()
-
   /** The review line, just copied:  it flashes and says so. */
   @E.state accessor isCopied = false
 
   /** The heading, just copied:  it says so. */
   @E.state accessor isHeadingCopied = false
-
-  /** The header's new item form is open (its `+` clicked;  epic `airplane` P2). */
-  @E.state accessor isAdding = false
 
   /** The meta lines', the header buttons' and the review line's icons. */
   readonly icons = {
@@ -285,42 +268,47 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
   ////////////////
 
   /**
-   * Watch the subtree (numbers, step label) and the headers' heights (`top`).
-   * - Its own `MutationObserver`, not `@fromContent`:  it bumps `layout`, which the page's blocks read too.
+   * While connected and drawn, watch the subtree (numbers, step label) and the headers' heights (`top`).
+   * - `isReady` too:  the header must be drawn to be measured.
+   * - Its own `MutationObserver`, not `@fromContent`:  it bumps `layout`, a page-wide signal the page's blocks read
+   *   too (`signalsOf()`), not a member of its own.
+   * - Its own `ResizeObserver` (no decorator watches sizes), and the window's `resize`.
    */
-  onMount(): JSX.Element {
-    if (!isServer) {
-      onSettled(() => {
-        let queued = false
-        const bump = () => {
-          if (queued) return
-          queued = true
-          E.afterSolidUpdate(() => {
-            queued = false
-            this.signals.layout.set(untrack(() => this.signals.layout.get()) + 1)
-          })
-        }
-        const mutations = new MutationObserver(bump)
-        mutations.observe(this.domElement, {
-          subtree: true,
-          childList: true,
-          attributes: true,
-          attributeFilter: LAYOUT_ATTRIBUTES
-        })
-        const resizes = new ResizeObserver(() => this.measure())
-        if (this.header) resizes.observe(this.header)
-        const site = document.querySelector("spell-site-header")
-        if (site) resizes.observe(site)
-        window.addEventListener("resize", this.measure)
-        this.measure()
-        return () => {
-          mutations.disconnect()
-          resizes.disconnect()
-          window.removeEventListener("resize", this.measure)
-        }
-      })
+  @E.onChange("isConnected", "isReady")
+  protected watchLayout(connected: boolean, ready: boolean) {
+    if (!connected || !ready) return undefined
+    const mutations = new MutationObserver(this.bumpLayout)
+    mutations.observe(this.domElement, {
+      subtree: true,
+      childList: true,
+      attributes: true,
+      attributeFilter: LAYOUT_ATTRIBUTES
+    })
+    const resizes = new ResizeObserver(() => this.measure())
+    if (this.header) resizes.observe(this.header)
+    const site = document.querySelector("spell-site-header")
+    if (site) resizes.observe(site)
+    const listeners = new AbortController()
+    window.addEventListener("resize", this.measure, { signal: listeners.signal })
+    this.measure()
+    return () => {
+      mutations.disconnect()
+      resizes.disconnect()
+      listeners.abort()
     }
-    return super.onMount()
+  }
+
+  /** A layout bump queued:  one per batch of mutations. */
+  private isLayoutQueued = false
+
+  /** The subtree changed:  `layout` bumped once Solid's current update is done (one bump per batch). */
+  private readonly bumpLayout = () => {
+    if (this.isLayoutQueued) return
+    this.isLayoutQueued = true
+    E.afterSolidUpdate(() => {
+      this.isLayoutQueued = false
+      this.signals.layout.set(this.signals.layout.get() + 1)
+    })
   }
 
   /** Follow the review inbox while connected (kept alive:  a removed page stops). */
@@ -398,25 +386,12 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
               )}
             </Show>
           </span>
-          <Show when={this.isAdding && this.marks()}>
-            <NewItemForm
-              review={this.review}
-              text={this.newText}
-              part={this.partForName("new-form")}
-              onDone={() => (this.isAdding = false)}
-            />
-          </Show>
         </header>
         {this.reviewLine()}
         {this.metaLines()}
         <Show when={this.future}>{this.futureNotice()}</Show>
         <Show when={this.planning()}>{this.hungNotice()}</Show>
-        <AgentsPanel
-          client={this.agents}
-          connected={this.isConnected}
-          top={this.signals.top.get()}
-          text={this.pageText}
-        />
+        <epic-agents part={this.partForName("agents")} />
         <slot />
       </div>
     )
@@ -498,39 +473,40 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     )
   }
 
-  /** New todo or question, Send and Review Now:  round icon buttons;  Send and Review Now coloured by what waits (`marks`). */
+  /**
+   * New todo or question, Send and Review Now:  round icon buttons;  Send and Review Now coloured by what waits
+   * (`marks`).  The `+` is an `<epic-new-item compact>`, beside the buttons, not in their box:  its form takes a row
+   * of its own across the header (`EpicPage.css`).
+   */
   private reviewButtons(marks: () => HeaderMarks): JSX.Element {
     return (
-      <span class={ACTIONS} part={this.partForName("actions")}>
-        <NewItemButton
-          label={this.translationForKey("newButton")}
-          open={this.isAdding}
-          part={this.partForName("new-button")}
-          onClick={() => (this.isAdding = !this.isAdding)}
-        />
-        <button
-          type="button"
-          class={SEND}
-          part={this.partForName("send")}
-          data-state={marks().send}
-          aria-label={this.sendWords(marks())}
-          title={this.withNobody(this.sendWords(marks()), marks(), marks().send !== "idle")}
-          onClick={() => void this.review.client?.send()}
-        >
-          {this.icon(this.icons.send)}
-        </button>
-        <button
-          type="button"
-          class={REVIEW_NOW}
-          part={this.partForName("review-now")}
-          data-state={marks().waiting ? "ready" : "idle"}
-          aria-label={this.reviewNowWords(marks())}
-          title={this.withNobody(this.reviewNowWords(marks()), marks(), !!marks().waiting)}
-          onClick={() => void this.review.client?.send({ now: true })}
-        >
-          {this.icon(this.icons.reviewNow)}
-        </button>
-      </span>
+      <>
+        <epic-new-item compact="" part={this.partForName("new-item")} />
+        <span class={ACTIONS} part={this.partForName("actions")}>
+          <button
+            type="button"
+            class={SEND}
+            part={this.partForName("send")}
+            data-state={marks().send}
+            aria-label={this.sendWords(marks())}
+            title={this.withNobody(this.sendWords(marks()), marks(), marks().send !== "idle")}
+            onClick={() => void this.review.client?.send()}
+          >
+            {this.icon(this.icons.send)}
+          </button>
+          <button
+            type="button"
+            class={REVIEW_NOW}
+            part={this.partForName("review-now")}
+            data-state={marks().waiting ? "ready" : "idle"}
+            aria-label={this.reviewNowWords(marks())}
+            title={this.withNobody(this.reviewNowWords(marks()), marks(), !!marks().waiting)}
+            onClick={() => void this.review.client?.send({ now: true })}
+          >
+            {this.icon(this.icons.reviewNow)}
+          </button>
+        </span>
+      </>
     )
   }
 
@@ -707,13 +683,6 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     this.headingTimer?.cancel()
     this.headingTimer = E.after((FLASH_MS + 600) / 1000, () => (this.isHeadingCopied = false))
   }
-
-  /** `translationForKey()`, as a plain function:  for the pieces drawn as their own components (`<AgentsPanel>`). */
-  private readonly pageText: PageText = (key, params) => this.translationForKey(key, params)
-
-  /** Its texts, as the new-item controls ask for them (`<NewItemForm>`). */
-  private readonly newText = (key: NewTextKey, params?: Record<string, string | number>) =>
-    this.translationForKey(key, params)
 
   /** Measure where top-level titles stick:  the site header's height plus this header's. */
   @E.untracked

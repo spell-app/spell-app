@@ -15,13 +15,14 @@ import {
   type Running
 } from "$/epics/review"
 
-import { PAGE_TAG, REVIEWING, type ReviewFill } from "./EpicItem.types"
+import { PAGE_TAG, REVIEWING, type ReviewFill } from "./EpicReview.types"
 
 /****************
  * ### `ReviewState`
  * One element's view of the page's review inbox (`ReviewClient.forPage()`):
+ * `<epic-review>`'s (the review controls), and the elements that draw them, for their chips and where they show:
  * `<epic-item>`'s, an Overview `<epic-section>`'s, an `<epic-phase>`'s, `<epic-summary>`'s;
- * the page's own (`<epic-page>`, the Todos and Questions sections:  their new items, epic `airplane` P2).
+ * the page's own (`<epic-page>`, `<epic-new-item>`, the Todos and Questions sections:  their new items, epic `airplane` P2).
  * - its reads are TRACKED:
  *   a counter `Cell` bumped on every change the client reports, so the element's controls redraw
  * - `connect()` while the element is connected (it returns the undo):  the client is plain code, and a kept-alive
@@ -87,6 +88,15 @@ export class ReviewState {
 
   /** Its note box open by itself, or being written in. */
   readonly boxOpen = (): boolean => this.read((client, id) => client.isBoxOpen(id)) ?? false
+
+  /**
+   * Its mark, while it shows as a marked note (`<epic-review shows="said">`):
+   * a mark with a note, no draft, the box closed;  else `undefined`.
+   */
+  readonly noted = (): InboxMark | undefined => {
+    const mark = this.mark()
+    return mark?.note && !this.draft() && !this.boxOpen() ? mark : undefined
+  }
 
   /** What's typed in its note box. */
   readonly typed = (): string => this.read((client, id) => client.typedOf(id)) ?? ""

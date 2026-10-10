@@ -8,12 +8,11 @@ import { PlanDates } from "$/epics/dates"
 import { BODY, BODY_ID, DATE, DATED, EMPTY, HEADER, WHO, WHO_ID } from "$/epics/components/epic-answer/EpicAnswer.types"
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
 import { FOLDS, Fold } from "$/epics/components/epic-item/Fold"
-import { FoldButton } from "$/epics/components/epic-item/FoldButton"
 
 import { epicStatusVocabulary } from "./EpicStatus.en"
 
 import answerCSS from "$/epics/components/epic-answer/EpicAnswer.css?inline"
-import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
+import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 import statusCSS from "./EpicStatus.css?inline"
 
 /****************
@@ -95,7 +94,7 @@ export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
           part={this.partForName("header")}
         >
           <Show when={this.hasBody}>
-            <FoldButton fold={this.fold} controls={BODY_ID} labelledBy={WHO_ID} part={this.partForName("toggle")} />
+            {this.fold.button({ controls: BODY_ID, labelledBy: WHO_ID, part: this.partForName("toggle") })}
           </Show>
           <span id={WHO_ID} class={WHO} part={this.partForName("who")}>
             {this.translationForKey(this.isDone ? "done" : "underway")}

@@ -30,7 +30,7 @@ import { ServerLink } from "./ServerLink"
  * A page's REVIEW INBOX, as the page sees it:  the marks Owen leaves on its items and Overview sections,
  * read from and written to the page server's review routes (`$/epics/tool/reviewRoutes.ts`),
  * one client per page (`forPage()`).
- * - `<epic-item>` and `<epic-section>` draw their controls from it (`ReviewControls.tsx`);
+ * - the review controls (`<epic-review>`, drawn by `<epic-item>`, `<epic-section>` ...) draw from it;
  *   P10's Send, Review Now and Choose pills call it too (`send()`, `choose()`), and an item's id chip (`toggleCalm()`)
  * - reviewing ONLY when the page is served with a token (`window.SPELL_SERVER`) and its inbox answers:
  *   never from `file://`, nor from a server without the routes (`reviewing` stays false, and nothing is drawn)

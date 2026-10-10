@@ -353,7 +353,7 @@ first -- a reply (Owen's and Claude's), the answer, a status card, an `<epic-not
 Discussion, Plan changes and Agents running already did.
 - Open to start with (the text being read;  an item and an aside start folded);  page state, never written
 - folded content is `hidden="until-found"`, so find-in-page reveals it
-- a click anywhere on the band folds, but on a link or a control in it (`Fold.heading`, `<FoldButton>`)
+- a click anywhere on the band folds, but on a link or a control in it (`Fold.heading`, `fold.button()`)
 
 The review buttons, at every step:  Approve, Revisit, Make Todo in one group, then Do Now apart
 (the wand:  the inbox's `details` request, or a revisit now when the note box holds a note);

@@ -147,8 +147,29 @@ if (problems.length) {
 
 async function run() {
   const context = await browser.newContext({ viewport: { width: 900, height: 1000 }, deviceScaleFactor: 2 })
-  // on every load, a live reload's too
-  await context.addInitScript(() => (window.rootOf = (id) => document.getElementById(id).shadowRoot))
+  // on every load, a live reload's too:  `rootOf(id)` queries element `id`'s shadow root, then those of the
+  // `<epic-review>`s / `<epic-new-item>`s drawn in it (its review controls, P10)
+  await context.addInitScript(() => {
+    window.rootOf = (id) => {
+      const root = document.getElementById(id).shadowRoot
+      const roots = () => [
+        root,
+        ...Array.from(root.querySelectorAll("epic-review, epic-new-item"), (inner) => inner.shadowRoot).filter(Boolean)
+      ]
+      return {
+        querySelector: (selector) =>
+          roots()
+            .map((it) => it.querySelector(selector))
+            .find(Boolean) ?? null,
+        querySelectorAll: (selector) => roots().flatMap((it) => Array.from(it.querySelectorAll(selector))),
+        // the focused element, inside the review control that holds the focus
+        get activeElement() {
+          const active = root.activeElement
+          return active?.shadowRoot?.activeElement ?? active
+        }
+      }
+    }
+  })
   const page = await context.newPage()
   const logs = []
   page.on("pageerror", (error) => logs.push(`pageerror:  ${error.message}`))
@@ -526,7 +547,7 @@ function measure(width) {
   const found = []
   let measured = 0
   for (const host of document.querySelectorAll("epic-item, epic-section[kind='overview-part']")) {
-    const root = host.shadowRoot
+    const root = rootOf(host.id)
     const controls = root.querySelector(".review-controls")
     if (!controls) continue
     const box = controls.getBoundingClientRect()

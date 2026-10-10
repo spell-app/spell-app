@@ -1,14 +1,14 @@
 /**
  * Every name `<epic-phase>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
  * - Pure data:  `import type`, plus the fold pieces (`FOLD_*`) from `epic-section`'s types file, data too, and the
- *   review controls' parts and texts (`REVIEW_*`) from `epic-item`'s:  a phase takes review notes (epic `airplane` P2).
+ *   review controls' parts (`REVIEW_PARTS`) from `epic-review`'s:  a phase takes review notes (epic `airplane` P2).
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
 
 // the review controls a phase draws, as `<epic-item>` does
-import { REVIEW_PARTS, REVIEW_TEXTS } from "$/epics/components/epic-item/EpicItem.types"
+import { REVIEW_PARTS } from "$/epics/components/epic-review/EpicReview.types"
 // the fold pieces every folding block shares
 import {
   FOLD_EVENTS,
@@ -98,8 +98,7 @@ export const epicPhaseVocabulary = {
     // `status*`:  the review controls' `todo` is Make Todo
     { key: "statusTodo", text: "To do", description: "The status icon's name:  `todo`." },
     { key: "statusActive", text: "Under way", description: "The status icon's name:  `active`." },
-    { key: "statusDone", text: "Done", description: "The status icon's name:  `done`." },
-    ...REVIEW_TEXTS
+    { key: "statusDone", text: "Done", description: "The status icon's name:  `done`." }
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },

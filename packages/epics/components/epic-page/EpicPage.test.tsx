@@ -377,11 +377,18 @@ describe("<epic-page> Send and Review Now", () => {
     await adoptClient(routes)
     const host = await render(page("", ["todo"]))
     await vi.waitFor(() => expect(headerButtons(host).send).not.toBeNull())
-    const plus = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="new-button"]')!
-    expect([plus.title, plus.nextElementSibling!.getAttribute("part")]).toEqual(["New todo or question", "send"])
+    const newItem = host.shadowRoot!.querySelector<HTMLElement>('header [part~="new-item"]')!
+    const plus = newItem.shadowRoot!.querySelector<HTMLButtonElement>('[part~="button"]')!
+    const send = newItem.nextElementSibling!.firstElementChild!
+    // right before Send, 6px from it, as when it sat in Send's box
+    expect([plus.title, send.getAttribute("part")]).toEqual(["New todo or question", "send"])
+    expect(Math.round(send.getBoundingClientRect().left - plus.getBoundingClientRect().right)).toBe(6)
     plus.click()
     await ElementFixture.tick()
-    const form = host.shadowRoot!.querySelector<HTMLFormElement>('header [part~="new-form"]')!
+    const form = newItem.shadowRoot!.querySelector<HTMLFormElement>('[part~="form"]')!
+    // a row of its own across the header, under its buttons
+    expect(form.getBoundingClientRect().top).toBeGreaterThan(send.getBoundingClientRect().bottom)
+    expect(Math.round(form.getBoundingClientRect().width)).toBeGreaterThan(300)
     form.querySelector<HTMLInputElement>('[data-field="title"]')!.value = "check the wifi"
     form.requestSubmit()
     await vi.waitFor(() =>
@@ -391,7 +398,7 @@ describe("<epic-page> Send and Review Now", () => {
       ])
     )
     await vi.waitFor(() => expect(headerButtons(host).send?.[0]).toBe("unsent"))
-    expect(host.shadowRoot!.querySelector('[part~="new-form"]')).toBeNull()
+    expect(newItem.shadowRoot!.querySelector('[part~="form"]')).toBeNull()
     await expectAccessible(host)
   })
 
@@ -464,9 +471,14 @@ async function adoptAgents(routes: FakeAgents, { served = true } = {}) {
   return client
 }
 
+/** The shadow root of `host`'s `<epic-agents>`, where the panel is drawn. */
+function agentsRoot(host: Element): ShadowRoot {
+  return host.shadowRoot!.querySelector("epic-agents")!.shadowRoot!
+}
+
 /** `host`'s agent rows, as drawn:  `[name, status, colour, age, task, redirects]` each. */
 function agentRows(host: Element) {
-  return Array.from(host.shadowRoot!.querySelectorAll<HTMLElement>(".agent"), (row) => [
+  return Array.from(agentsRoot(host).querySelectorAll<HTMLElement>(".agent"), (row) => [
     row.querySelector(".agent-name")!.textContent,
     row.querySelector("ui-label")!.textContent!.trim(),
     row.querySelector("ui-label")!.getAttribute("color"),
@@ -478,7 +490,7 @@ function agentRows(host: Element) {
 
 /** Agent `name`'s row, its note box and its Send button. */
 function noteBox(host: Element, name: string) {
-  const row = host.shadowRoot!.querySelector(`.agent[data-name="${name}"]`)!
+  const row = agentsRoot(host).querySelector(`.agent[data-name="${name}"]`)!
   return { row, note: row.querySelector("textarea")!, send: row.querySelector<HTMLElement>("ui-button")! }
 }
 
@@ -491,7 +503,7 @@ function type(note: HTMLTextAreaElement, text: string) {
 /** Render a page with the panel, once it shows. */
 async function renderWithAgents(): Promise<E.DOMElement> {
   const host = await render(page("", ["active"]))
-  await vi.waitFor(() => expect(host.shadowRoot!.querySelector(".agents")).not.toBeNull())
+  await vi.waitFor(() => expect(agentsRoot(host).querySelector(".agents")).not.toBeNull())
   return host
 }
 
@@ -503,10 +515,10 @@ describe("<epic-page> Agents running", () => {
   test("a row per running agent, right before the blocks:  name, status, age, task, redirects;  passes axe", async () => {
     await adoptAgents(new FakeAgents())
     const host = await renderWithAgents()
-    const panel = host.shadowRoot!.querySelector(".agents")!
+    const panel = agentsRoot(host).querySelector(".agents")!
     expect(panel.getAttribute("aria-label")).toBe("Agents running")
     expect(panel.querySelector(".agents-title")!.textContent).toBe("Agents running2")
-    expect(panel.parentElement!.nextElementSibling!.localName).toBe("slot")
+    expect(host.shadowRoot!.querySelector("epic-agents")!.nextElementSibling!.localName).toBe("slot")
     expect(agentRows(host)).toEqual([
       ["demo-aaa", "active", "blue", "2h 5m", "Port the parser", []],
       [
@@ -542,8 +554,8 @@ describe("<epic-page> Agents running", () => {
     ])
     expect(noteBox(host, "demo-aaa").note).toBe(note)
     expect(note.value).toBe("Half typed")
-    expect(host.shadowRoot!.activeElement).toBe(note)
-    expect(host.shadowRoot!.querySelector(".agents-count")!.textContent).toBe("3")
+    expect(agentsRoot(host).activeElement).toBe(note)
+    expect(agentsRoot(host).querySelector(".agents-count")!.textContent).toBe("3")
   })
 
   test("Send (and Cmd + Enter) redirects the agent:  the note posted, the box emptied, the redirect waiting", async () => {
@@ -587,22 +599,22 @@ describe("<epic-page> Agents running", () => {
     const routes = new FakeAgents()
     const client = await adoptAgents(routes)
     const host = await render(page("", ["active"], `<div id="tall" style="height: 3000px"></div>`))
-    await vi.waitFor(() => expect(host.shadowRoot!.querySelector(".agents")).not.toBeNull())
+    await vi.waitFor(() => expect(agentsRoot(host).querySelector(".agents")).not.toBeNull())
     const tall = host.querySelector("#tall")!
     window.scrollTo({ top: tall.getBoundingClientRect().top + window.scrollY + 400, behavior: "instant" })
     const was = tall.getBoundingClientRect().top
     // within a pixel:  scrolling goes by whole pixels, the panel's height doesn't
     const kept = () => Math.abs(tall.getBoundingClientRect().top - was)
-    const panelHeight = host.shadowRoot!.querySelector(".agents-box")!.getBoundingClientRect().height
+    const panelHeight = agentsRoot(host).querySelector(".agents-box")!.getBoundingClientRect().height
     routes.agents.push({ name: "demo-ccc", task: "One more", status: "active", started: new Date().toISOString() })
     await client.refresh()
     await ElementFixture.tick()
-    expect(host.shadowRoot!.querySelector(".agents-box")!.getBoundingClientRect().height).toBeGreaterThan(panelHeight)
+    expect(agentsRoot(host).querySelector(".agents-box")!.getBoundingClientRect().height).toBeGreaterThan(panelHeight)
     expect(kept()).toBeLessThan(1.5)
     routes.agents = []
     await client.refresh()
     await ElementFixture.tick()
-    expect(host.shadowRoot!.querySelector(".agents")).toBeNull()
+    expect(agentsRoot(host).querySelector(".agents")).toBeNull()
     expect(kept()).toBeLessThan(1.5)
     window.scrollTo({ top: 0, behavior: "instant" })
   })
@@ -612,11 +624,11 @@ describe("<epic-page> Agents running", () => {
     empty.agents = []
     await adoptAgents(empty)
     const none = await render(page("", ["active"]))
-    expect(none.shadowRoot!.querySelector(".agents")).toBeNull()
+    expect(agentsRoot(none).querySelector(".agents")).toBeNull()
     none.remove()
     await adoptAgents(new FakeAgents(), { served: false })
     const unserved = await render(page("", ["active"]))
-    expect(unserved.shadowRoot!.querySelector(".agents")).toBeNull()
+    expect(agentsRoot(unserved).querySelector(".agents")).toBeNull()
     unserved.remove()
     const routes = new FakeAgents()
     const client = await adoptAgents(routes)
@@ -624,6 +636,6 @@ describe("<epic-page> Agents running", () => {
     routes.agents = []
     await client.refresh()
     await ElementFixture.tick()
-    expect(host.shadowRoot!.querySelector(".agents")).toBeNull()
+    expect(agentsRoot(host).querySelector(".agents")).toBeNull()
   })
 })

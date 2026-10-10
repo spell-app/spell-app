@@ -5,13 +5,12 @@ import { E } from "$/ui/core"
 
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
 import { FOLDS, Fold } from "$/epics/components/epic-item/Fold"
-import { FoldButton } from "$/epics/components/epic-item/FoldButton"
 
 import { epicAnswerVocabulary } from "./EpicAnswer.en"
 import { BODY, BODY_ID, EMPTY, HEADER, HEADING_SEPARATOR, LABEL_ID, TITLE_ID } from "./EpicAnswer.types"
 
 import answerCSS from "./EpicAnswer.css?inline"
-import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
+import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 
 /****************
  * ### `EpicAnswer`
@@ -63,12 +62,11 @@ export class EpicAnswer extends E.UIComponent<typeof epicAnswerVocabulary> {
       <div class={this.rootClass} part={this.partForName("base")}>
         <div ref={this.fold.heading} class={[HEADER, { [FOLDS]: this.hasBody }]} part={this.partForName("header")}>
           <Show when={this.hasBody}>
-            <FoldButton
-              fold={this.fold}
-              controls={BODY_ID}
-              labelledBy={this.hasTitle ? `${LABEL_ID} ${TITLE_ID}` : LABEL_ID}
-              part={this.partForName("toggle")}
-            />
+            {this.fold.button({
+              controls: BODY_ID,
+              labelledBy: this.hasTitle ? `${LABEL_ID} ${TITLE_ID}` : LABEL_ID,
+              part: this.partForName("toggle")
+            })}
           </Show>
           <b id={LABEL_ID} class={LABEL} part={this.partForName("label")}>
             {this.label}

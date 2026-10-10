@@ -266,4 +266,97 @@
     height: 13px;
     fill: currentColor;
   }
+
+  /*
+   * ## New items waiting to be made (a Todos or Questions section, epic `airplane` P2;  `newItemList()`):
+   * Owen's own words, on his ivory (as `<epic-new-item>`'s form), each card wearing the fill (dashed until sent,
+   * outlined once sent), green:  a decision, filed when Claude next reviews
+   */
+  .new-list {
+    --_epic-act-ink: var(--ui-text-color, CanvasText);
+    --_epic-act-green: var(--ui-green, #00853a);
+    --_epic-act-ivory: var(--ui-brown-background, light-dark(#f7efe2, #2e261c));
+    --_epic-act-ivory-ink: var(--ui-brown-text, light-dark(#534323, #eaddc4));
+    --_epic-act-focus: var(--ui-focus-color, Highlight);
+  }
+  .new-card ui-icon::part(icon) {
+    width: auto;
+    margin: 0;
+  }
+  /* the waiting cards:  one line (icon, kind, title, Edit and Remove at its right), then the note and the link */
+  .new-list {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin: 8px 0 2px;
+    padding: 0;
+    list-style: none;
+  }
+  .new-card {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px 8px;
+    padding: 4px 4px 4px 10px;
+    border-radius: 8px;
+    background: var(--_epic-act-ivory);
+    font-size: 15px;
+  }
+  .new-card[data-fill="dashed"] {
+    outline: 1.5px dashed var(--_epic-act-green);
+    outline-offset: -2px;
+  }
+  .new-card[data-fill="outline"] {
+    box-shadow: inset 0 0 0 1.5px var(--_epic-act-green);
+  }
+  .new-card > ui-icon,
+  .new-card > .what {
+    flex: none;
+    color: var(--_epic-act-ivory-ink);
+  }
+  .new-card > .what {
+    font-size: 12px;
+  }
+  .new-card > .title {
+    flex: 1 1 10em;
+    min-width: 0;
+    font-weight: 600;
+    overflow-wrap: anywhere;
+  }
+  .new-card > .tools {
+    display: inline-flex;
+    flex: none;
+    margin-inline-start: auto;
+  }
+  .new-card > .tools > button {
+    display: inline-grid;
+    place-items: center;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: 0;
+    border-radius: 999px;
+    background: none;
+    color: var(--_epic-act-ink);
+    font-size: 12px;
+    cursor: pointer;
+  }
+  .new-card > .tools > button:hover {
+    background: color-mix(in oklab, var(--_epic-act-ivory-ink) 14%, transparent);
+  }
+  .new-card > .tools > button:focus-visible {
+    outline: 2px solid var(--_epic-act-focus);
+    outline-offset: 1px;
+  }
+  .new-card > .note {
+    flex: 1 0 100%;
+    margin: 0;
+    line-height: 1.4;
+    white-space: pre-wrap;
+  }
+  .new-card > .about {
+    flex: none;
+    color: var(--ui-link, LinkText);
+    font-size: 12px;
+  }
 }

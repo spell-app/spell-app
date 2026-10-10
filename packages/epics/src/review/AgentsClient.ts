@@ -5,7 +5,7 @@ import { ServerLink } from "./ServerLink"
  * ### `AgentsClient`
  * A plan doc's RUNNING AGENTS, as the page sees them (epic `skillz` P3):  the epic's list, read from and written to
  * the page server's agents routes (`packages/docs/tools/agentRoutes.ts`), one client per page (`forPage()`).
- * `<epic-page>` draws its "Agents running" panel from it (`AgentsPanel.tsx`).
+ * `<epic-page>` draws its "Agents running" panel from it (`<epic-agents>`).
  * - listed ONLY when the page is a plan doc served with a token and the list answers (`listed`):  never from
  *   `file://`, nor from a server without the route
  * - every reply is the whole list:  a redirect's answer replaces what's shown

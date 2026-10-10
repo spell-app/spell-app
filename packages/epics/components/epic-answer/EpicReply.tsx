@@ -6,13 +6,12 @@ import { E } from "$/ui/core"
 import { PlanDates } from "$/epics/dates"
 // the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
 import { FOLDS, Fold } from "$/epics/components/epic-item/Fold"
-import { FoldButton } from "$/epics/components/epic-item/FoldButton"
 
 import { epicReplyVocabulary } from "./EpicReply.en"
 import { BODY, BODY_ID, DATE, DATED, EMPTY, HEADER, HEADING_SEPARATOR, WHO, WHO_ID } from "./EpicAnswer.types"
 
 import answerCSS from "./EpicAnswer.css?inline"
-import foldCSS from "$/epics/components/epic-item/FoldButton.css?inline"
+import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 
 /****************
  * ### `EpicReply`
@@ -75,7 +74,7 @@ export class EpicReply extends E.UIComponent<typeof epicReplyVocabulary> {
           hidden={!this.who && !this.date}
         >
           <Show when={this.hasBody}>
-            <FoldButton fold={this.fold} controls={BODY_ID} labelledBy={WHO_ID} part={this.partForName("toggle")} />
+            {this.fold.button({ controls: BODY_ID, labelledBy: WHO_ID, part: this.partForName("toggle") })}
           </Show>
           <span id={WHO_ID} class={WHO} part={this.partForName("who")}>
             {this.who}

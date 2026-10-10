@@ -40,7 +40,7 @@
   .body {
     padding: 2px 10px 7px;
   }
-  /* folded by its heading (`<FoldButton>`, `FoldButton.css`):  `until-found` keeps it findable, so drawn as nothing */
+  /* folded by its heading (`fold.button()`, `Fold.css`):  `until-found` keeps it findable, so drawn as nothing */
   .body[hidden="until-found"] {
     display: block;
     content-visibility: hidden;

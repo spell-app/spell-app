@@ -27,7 +27,7 @@ export const WHO = "who"
 export const DATE = "date"
 
 ////////////////
-// ## Ids inside the shadow roots:  what a card's fold button names and controls (`<FoldButton>`)
+// ## Ids inside the shadow roots:  what a card's fold button names and controls (`fold.button()`)
 ////////////////
 
 /** The box a card folds:  its body (the status card's reading and summary together). */

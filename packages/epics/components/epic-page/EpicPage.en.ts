@@ -1,14 +1,10 @@
 /**
  * Every name `<epic-page>` uses.  Schema:  `EpicVocabulary` (Spell UI's `ComponentVocabulary` plus its children).
- * - Pure data:  `import type`, plus the new-item controls' parts and texts (`NEW_*`) from `epic-item`'s types file,
- *   data too:  its header's `+` (epic `airplane` P2).
+ * - Pure data:  `import type` only.
  * - Change it, then `spell dev pack build epics`:  the pack's catalog is read from here.
  */
 
 import type { EpicVocabulary } from "$/epics/definitions"
-
-// the new-item controls its header draws, as a Todos section does
-import { NEW_PARTS, NEW_TEXTS } from "$/epics/components/epic-item/EpicItem.types"
 
 /****************
  * ### `<epic-page>`
@@ -132,7 +128,17 @@ export const epicPageVocabulary = {
       description:
         "A doc still planning (no phases, not future):  the folded `Plan hung?` aside, with the prompt to copy."
     },
-    ...NEW_PARTS
+    {
+      name: "new-item",
+      description:
+        "The header's New todo or question (an `<epic-new-item>`, epic `airplane` P2):  a round `+` before Send, its " +
+        "form a row of its own across the header.  Only while the page is reviewed."
+    },
+    {
+      name: "agents",
+      description:
+        "The running agents (an `<epic-agents>`, epic `skillz` P3), right before its blocks:  only while an agent runs."
+    }
   ],
   states: [
     { name: "future", description: "A future epic." },
@@ -216,16 +222,7 @@ export const epicPageVocabulary = {
     },
     { key: "hung", text: "Plan hung?", description: "The planning aside's title." },
     { key: "hungBefore", text: "Close its Claude tab, then run", description: "The aside, before `/epic <name>`." },
-    { key: "hungAfter", text: "and pick \u201cReuse\u201d.", description: "The aside, after `/epic <name>`." },
-    { key: "agents", text: "Agents running", description: "The running-agents panel's title, and its region's name." },
-    { key: "agentStarted", text: "Started {time}", description: "An agent's age, its tooltip:  when it started." },
-    { key: "agentYou", text: "You", description: "Who sent a redirect:  `You \u00b7 10:42 \u00b7 told 10:43`." },
-    { key: "agentTold", text: "told {time}", description: "A redirect a session passed on to the agent." },
-    { key: "agentWaiting", text: "waiting for the session", description: "A redirect no session passed on yet." },
-    { key: "agentNote", text: "Redirect {name} ...", description: "An agent's empty note box." },
-    { key: "agentNoteLabel", text: "Redirect {name}:  your note", description: "An agent's note box, spoken." },
-    { key: "agentSend", text: "Send", description: "An agent's Send button:  the note redirects it." },
-    ...NEW_TEXTS
+    { key: "hungAfter", text: "and pick \u201cReuse\u201d.", description: "The aside, after `/epic <name>`." }
   ],
   children: [
     { tag: "flow", slot: "durable", max: 1, description: "The durable doc's link." },
