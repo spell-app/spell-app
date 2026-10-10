@@ -156,6 +156,7 @@ const ICONS = {
   "solid/comment": ["comment"],
   // a guide comment (`spell-doc-runtime.js`, "Guide comments"):  beside each block, on each comment
   "solid/bullhorn": ["bullhorn"],
+  "solid/circle-notch": ["circle notch", "notched circle"], // a thread's "Claude: thinking…", turning
   // trade-offs (durable template)
   "solid/thumbs-up": ["thumbs up"],
   "solid/thumbs-down": ["thumbs down"],

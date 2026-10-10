@@ -62,6 +62,9 @@ CommentsError.prototype.name = "CommentsError"
  *   - WHOSE TURN (`turnOf()`):  Owen's once Claude spoke last;  Claude's while Owen did;  nobody's once done
  *   - WAITING (`waiting`):  Claude's turn, and he hasn't taken it yet.  So a reply on a thread is new work, as a
  *     new comment is (`/epic review`, `/airplane land`, `spell dev comments gather`)
+ *   - WORKING (`setWorking()`):  Claude is thinking about it now;  the page shows a "Claude: thinking…" stub at the
+ *     thread's end until his answer lands (`answer()` turns it off).  What Owen said before it counts as read:  not
+ *     waiting any more, and his last reply no longer his to change (a new one goes after it)
  * - pure:  no files;  the owner reads and writes them under its lock
  ****************/
 export class CommentList {
@@ -100,12 +103,12 @@ export class CommentList {
     return comment.status === "answered" ? "owen" : "claude"
   }
 
-  /** Is `comment` new work for Claude:  his turn, and not taken since Owen last spoke? */
+  /** Is `comment` new work for Claude:  his turn, and not taken (nor being worked on) since Owen last spoke? */
   static isWaiting(comment: Comment): boolean {
     if (CommentList.turnOf(comment) !== "claude") return false
     const spoke = comment.replies?.findLast((reply) => reply.by === OWEN)?.at ?? comment.at
-    const taken = takenAt(comment)
-    return !taken || taken < spoke
+    const held = heldSince(comment)
+    return !held || held < spoke
   }
 
   /** Comment `id`;  throws a 404 `CommentsError` when there's none. */
@@ -251,12 +254,15 @@ export class CommentList {
     delete this.comment(id).done
   }
 
-  /** Owen's pending reply on `comment`:  the last entry, his, not taken since;  else `undefined`. */
+  /**
+   * Owen's pending reply on `comment`:  the last entry, his, not taken since, nor being worked on;  else
+   * `undefined`.
+   */
   private pendingReply(comment: Comment): CommentReply | undefined {
     const last = comment.replies?.at(-1)
     if (last?.by !== OWEN) return undefined
-    const taken = takenAt(comment)
-    return taken && taken >= last.at ? undefined : last
+    const held = heldSince(comment)
+    return held && held >= last.at ? undefined : last
   }
 
   ////////////////
@@ -271,10 +277,23 @@ export class CommentList {
   }
 
   /**
+   * Claude is thinking about comment `id` (`on`), or stopped (`!on`):  the page shows a "Claude: thinking…" stub at
+   * the end of its thread meanwhile (`spell dev comments working`, `plan-doc inbox <name> working cm3`).
+   * - `working`:  since when;  set again, it keeps the first time
+   * - `answer()` turns it off
+   */
+  setWorking(id: string, on: boolean, now = new Date()): void {
+    const comment = this.comment(id)
+    if (!on) delete comment.working
+    else comment.working ??= now.toISOString()
+  }
+
+  /**
    * Comment `id` answered:  `html` (as is:  a `<p>` or more) on its thread, after any before it.
    * - none:  answered elsewhere (a plan doc's comment, in the doc).  An entry with no words still goes on the
    *   thread, so it's Owen's turn, unless Claude spoke last already.
    * - `commit`:  the commit the answer was built in (the thread's Done line shows it);  throws a 400 when it isn't one
+   * - Claude's done thinking about it:  its `working` goes
    */
   answer(id: string, html = "", now = new Date(), commit?: string): void {
     const comment = this.comment(id)
@@ -285,6 +304,7 @@ export class CommentList {
     if (markup || commit || CommentList.turnOf(comment) === "claude")
       comment.replies = [...(comment.replies ?? []), reply]
     if (comment.status === "new") comment.status = "answered"
+    delete comment.working
   }
 
   /** The id a new comment gets:  one past the highest (`cm3` after `cm2`). */
@@ -336,6 +356,8 @@ export type Comment = Required<Omit<CommentPlace, "quote" | "offset">> &
     replies?: CommentReply[]
     /** Owen closed the thread:  "that's good" (`good`) or "skip it" (`skip`), and when */
     done?: { how: Resolution; at: string }
+    /** Claude is thinking about it (`setWorking()`):  since when, ISO */
+    working?: string
   }
 
 /**
@@ -358,6 +380,15 @@ export type IdentifiedComment = Comment & { id: string }
 /** When Claude last took `comment`, ISO;  `taken` with no record of it:  when written;  never taken:  `undefined`. */
 function takenAt(comment: Comment): string | undefined {
   return comment.taken?.at ?? (comment.status === "taken" ? comment.at : undefined)
+}
+
+/**
+ * Since when Claude has held `comment`, ISO:  the later of when he took it (`takenAt()`) and when he started thinking
+ * about it (`working`);  `undefined` for neither.
+ */
+function heldSince(comment: Comment): string | undefined {
+  const times = [takenAt(comment), comment.working].filter((each): each is string => !!each)
+  return times.sort().at(-1)
 }
 
 /** `reply` as `restore()` keeps it:  one entry;  none when it's neither Claude's answer nor Owen's words. */

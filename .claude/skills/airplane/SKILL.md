@@ -45,8 +45,9 @@ Airplane mode:  Owen works on the pages ALONE, with no internet and no Claude (e
      - any page, plan docs too:  the bullhorn beside a block (a section, table, aside, code, an item, a phase's
        field ...), or select text and press ⌘ I (or the bullhorn floating beside it):  a comment, saved at once;
        closed, it's a thread under its paragraph
-     - a thread Claude answered:  its header's pills -- the check ("that's good"), Revisit (reply:  a box, saved
-       as you type), the x ("skip it");  a reply is taken at landing like a new comment
+     - a thread Claude answered:  its header's pills -- the check ("that's good"), Revisit (reply:  into the box
+       at the thread's end, saved as you type), the x ("skip it");  a reply is taken at landing like a new comment
+     - Tab or a click away saves a comment or reply;  emptied, it's gone
      - a new epic:  the Epics page's New epic pill (its seedling):  a title and what it's for.
        It's written down as a future epic at once, and the landing asks whether to start it.
      - Do Now still works:  it waits, dashed, for landing
@@ -82,8 +83,9 @@ Owen is back online.  Gather everything, work through it in the background, then
      - A page whose phase is still open gets an Updated block in it.
      - A reply on a thread goes too, under its comment ("Owen replied on the thread").
    - Each is marked taken on its page.
-   - `/epic guide-changes` answers each on its thread:  `spell dev comments answer <page> <id> --file <html>
-     [--commit <sha>]`.
+   - `/epic guide-changes` answers each on its thread:  `spell dev comments working <page> <id> on` as it starts
+     (the thread shows "Claude: thinking…"), then `spell dev comments answer <page> <id> --file <html>
+     [--commit <sha>]`, which turns it off.
    - Say which pages, and that `/epic guide-changes` works them;  nothing else to do for them now.
 5. The rest goes to background agents, up to 5 at once.
    They're named and listed (the root `CLAUDE.md`, "Delegated work").
@@ -95,8 +97,9 @@ Owen is back online.  Gather everything, work through it in the background, then
      - Never `done` (Owen, 2026-10-10:  a Done card means work was done).
      - The cards `apply --all` makes for picks, todos and new items are Noted already.
    - Each comment on a plan doc (`epics[].comments`):  as `/epic review` answers one ("7.3", step 3b).
+     - First `plan-doc inbox <name> working cm3 on`:  his thread shows "Claude: thinking…" until the answer lands.
      - Into the item or phase it's on, then `plan-doc inbox <name> done cm3 --file <answer.html>`:  the answer on
-       his thread too, his turn.  A reply of his:  answer his latest words.
+       his thread too, his turn (and the thinking stub gone).  A reply of his:  answer his latest words.
    - Page notes were gathered in 4b with the comments.
      One written into a page since:  read the page and the note, and answer under it
      (`spell dev notes answer <page> <id> --file`).

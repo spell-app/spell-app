@@ -265,6 +265,24 @@ test("done cm1 --file:  the answer goes on the comment's thread;  Owen's reply l
   expect(printed.join("\n")).toMatch(/CM1 {2}on j1 \(item\)[^\n]*\n {4}Owen replied:  "Say more"/)
 })
 
+test("working cm1 on | off:  the thread's thinking stub, not an item's spinner;  done cm1 turns it off", async () => {
+  const id = "cm1"
+  ReviewInbox.update(inboxFile, (inbox) => void inbox.commentList.add({ anchor: "j1", kind: "item" }, "Why?"))
+  const comment = () => ReviewInbox.read(inboxFile).comments[id]
+  await commands().inbox.run("x", file, ["working", "CM1", "on"], {})
+  expect(comment().working).toEqual(expect.any(String))
+  expect(ReviewInbox.read(inboxFile).working).toEqual({})
+  // being thought about:  no longer waiting for Claude
+  expect(ReviewInbox.read(inboxFile).commentList.waiting).toEqual([])
+  await commands().inbox.run("x", file, ["working", "cm1", "off"], {})
+  expect(comment().working).toBeUndefined()
+  await commands().inbox.run("x", file, ["working", "cm1", "on"], {})
+  await commands().inbox.run("x", file, ["done", id], {})
+  expect(comment().working).toBeUndefined()
+  expect(printed).toEqual(["CM1 working:  on", "CM1 working:  off", "CM1 working:  on", "comments answered:  CM1"])
+  await expect(commands().inbox.run("x", file, ["working", "cm9", "on"], {})).rejects.toThrow(/no comment cm9/)
+})
+
 test("status:  underway writes the card AND turns the page's spinner on;  done turns both;  done again is refused", async () => {
   const owner = commands()
   vi.spyOn(owner, "warn").mockImplementation(() => undefined)
