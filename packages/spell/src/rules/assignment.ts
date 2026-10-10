@@ -31,6 +31,8 @@ export const assignment = new SpellParser({ module: "assignment" })
  * - A new variable holds what `value` is, its `datatype`, e.g. `Card` for `the card is a new card`.
  *   An existing one keeps its own:  the first datatype wins.
  * - SIDE EFFECT: `set the X of Y to V` declares property `X` if `Y`'s type doesn't -- see `declareProperty()`.
+ * - Asks for a type its value doesn't say -- a warning, see `SP.SpellWarnings`:  a new variable's list of nothing
+ *   said (`set state to []`), or a property it declares from a value which doesn't say what it is.
  * - A built-in type's member is read-only, e.g. `set the length of the name to 3`:  a parse error -- see `parse()`.
  * - So is the pile a card belongs to, e.g. `set the pile of the card to x`:  move the card to the pile instead.
  * - Compiles to `let thing = value` (new variable) or `thing = value` (existing).
@@ -100,9 +102,22 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
       else if (scopeVar.isAlias) variables.replace({ name: scopeVar.name, datatype, declaredBy: match })
       // Remember the original scopeVar for `getAST()` below
       match.data.originalVar = scopeVar
+      if (match.data.isNewVariable && datatype === "list") assignment_statement.warnListOfNothing(match, identifier)
     } else {
       this.declareProperty(match)
     }
+  }
+
+  /**
+   * Ask what a new variable's list holds, when its value doesn't say (epic `output-targets`, Q24):  a warning,
+   * e.g. `set state to []` => `Say what "state" holds, e.g. "set state to a new list of text"`.
+   * - Any list spell can't say the items of, e.g. `[]`, `a new list`, `[1, "a"]`.
+   * - NOT a list it can, e.g. `a new list of piles`, `[1, 2]`.
+   */
+  private static warnListOfNothing(match: P.MatchFor<assignment_statement>, identifier: P.Match): void {
+    const words = identifier.raw ?? `${identifier.value}`
+    const example = `set ${words} to a new list of ${SP.SpellWarnings.exampleItemType(match.scope, words)}`
+    SP.SpellWarnings.note(match, `Say what "${words}" holds, e.g. "${example}"`, match.groups.value)
   }
 
   /**
@@ -115,6 +130,8 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
    *   under our `SPELL: DECLARES` comment, NOT on our own line.  See `SP.Block.autoDeclarationAST()`.
    * - Later lines read it as declared, e.g. `the pile of the card` is a `Pile`.  Earlier ones read it loose.
    * - A property an earlier parse of this statement declared is ours again -- see `P.TypeScope.sameStatement()`.
+   * - `V` doesn't say what it is, e.g. `nothing`:  a warning asks for a declaration instead
+   *   (epic `output-targets`, Q24), e.g. `Say what "name" is:  declare it, e.g. "a pile has a name as text"`.
    */
   private declareProperty(match: P.MatchFor<this>) {
     const { thing, value } = match.groups
@@ -134,6 +151,14 @@ class assignment_statement extends SpellStatement<"thing|value", AssignmentMatch
       property: name,
       checkType: assignment_statement.checkTypeFor(match.scope, datatype),
       typeDeclaredBy: type.declaredBy
+    }
+    // what it holds, when `V` doesn't say:  ask for its declaration (epic `output-targets`, Q24)
+    if (!datatype) {
+      const words = property.raw ?? name
+      const typeWords = type.name.toLowerCase().replace(/_/g, "-")
+      const has = `${/^[aeiou]/i.test(typeWords) ? "an" : "a"} ${typeWords} has a ${words}`
+      const example = `${has} as ${SP.SpellWarnings.exampleType(match.scope, words)}`
+      SP.SpellWarnings.note(match, `Say what "${words}" is:  declare it, e.g. "${example}"`, thing)
     }
   }
 

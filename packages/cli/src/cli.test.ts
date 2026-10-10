@@ -366,6 +366,18 @@ describe("spell compile", () => {
     expect(spell(["compile", "."], broken).status).toBe(1)
     expect(existsSync(resolve(broken, `BrokenPack${SP.SCOPES_JS_SUFFIX}`))).toBe(false)
   })
+
+  test("a warning is listed, but no error:  exit 0, and its scope pack written", () => {
+    const untyped = tempProject("Untyped", "a calculator is an app\na calculator has an input\n")
+    const { status, stderr } = spell(["compile", "."], untyped)
+    expect(stderr).toContain("✓ @workspace")
+    expect(stderr).toContain("1 warning")
+    expect(stderr).toContain(
+      'Untyped.spell:2:1  warning:  Say what "input" is, e.g. "a calculator has an input as text"'
+    )
+    expect(status).toBe(0)
+    expect(existsSync(resolve(untyped, `Untyped${SP.SCOPES_JS_SUFFIX}`))).toBe(true)
+  })
 })
 
 describe("spell check", () => {

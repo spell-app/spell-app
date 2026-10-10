@@ -17,6 +17,7 @@ export {
   fixtureImports,
   FIXTURES_DIR,
   summarize,
-  describeParseErrors
+  describeParseErrors,
+  describeWarnings
 } from "./parseSpellProject"
 export type { SpellSourceFile, ParsedSpellProject, SpellProjectSummary } from "./parseSpellProject"

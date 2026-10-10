@@ -1838,7 +1838,10 @@ class list_iteration extends SpellStatement<"item|position?|list|body?"> {
   getNestedScopeForMatch(match: P.MatchFor<this>): P.MethodScope {
     const { item, position, list } = match.groups
     const datatype = match.scope.getItemType(list.datatype)
-    const args: P.ScopeVariable[] = [new P.ScopeVariable({ name: item.value, datatype, declaredBy: item })]
+    const variable = new P.ScopeVariable({ name: item.value, datatype, declaredBy: item })
+    // for `getAST()`, which can't look it up
+    ;(match.data as ItemVariableData).itemVariable = variable
+    const args: P.ScopeVariable[] = [variable]
     if (position) args.push(new P.ScopeVariable({ name: position.value, datatype: "number", declaredBy: position }))
     return new P.MethodScope({
       parentScope: match.scope,
@@ -1855,8 +1858,9 @@ class list_iteration extends SpellStatement<"item|position?|list|body?"> {
    */
   getAST(match: P.MatchFor<this>): P.ASTExpression {
     const { list, item, position } = match.groups
-    const args = [new P.ASTVariableExpression(item, { name: item.value })]
-    if (position) args.push(new P.ASTVariableExpression(position))
+    const { itemVariable: variable } = match.data as ItemVariableData
+    const args = [new P.ASTVariableExpression(item, { name: item.value, variable })]
+    if (position) args.push(new P.ASTVariableExpression(position, { datatype: "number" }))
     const method = new P.ASTMethodDefinition(match, {
       inline: true,
       args,
@@ -2038,20 +2042,33 @@ type GuardOperands = { lhs?: P.ASTExpression; rhs?: P.ASTExpression }
 function getWhereScope(match: P.Match, arg: P.Match, list: P.Match | undefined): P.MethodScope {
   const name = singularize(arg.value)
   const datatype = list && match.scope.getItemType(list.datatype)
+  const variable = new P.ScopeVariable({ name, datatype, declaredBy: arg })
+  // for `getWhereMethod()`, which can't look it up:  `getAST()` must be pure
+  ;(match.data as ItemVariableData).itemVariable = variable
   return new P.MethodScope({
     parentScope: match.scope,
-    args: [new P.ScopeVariable({ name, datatype, declaredBy: arg })],
+    args: [variable],
     mapItTo: name,
     itDatatype: datatype,
     declaredBy: arg
   })
 }
 
-/** Inline method for a `where` clause's predicate `body`, e.g. `(word) => word.startsWith("a")`. */
+/**
+ * Inline method for a `where` clause's predicate `body`, e.g. `(word) => word.startsWith("a")`.
+ * - Its argument carries what `getWhereScope()` found it holds, e.g. a `Card`:  a typed target writes it.
+ */
 function getWhereMethod(match: P.Match, arg: P.Match, body: P.Match | undefined): P.ASTMethodDefinition {
+  const { itemVariable: variable } = match.data as ItemVariableData
   return new P.ASTMethodDefinition(body || match, {
     inline: true,
-    args: [new P.ASTVariableExpression(arg, { name: singularize(arg.value) })],
+    args: [new P.ASTVariableExpression(arg, { name: singularize(arg.value), variable })],
     body: P.matchAST(body)
   })
 }
+
+/**
+ * What a loop or a `where` notes while parsing, in its `match.data`:  the variable its body gets, e.g. `card`, a
+ * `Card` -- see `getWhereScope()`, `list_iteration`.
+ */
+type ItemVariableData = { itemVariable?: P.ScopeVariable }

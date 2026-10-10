@@ -375,6 +375,19 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
     see "Built-in types"
   - errors inside JSX `{...}` live in the JSX rules' `match.data`, not `matched`;  `BlockLine` gathers them from
     anywhere in its statement (`SpellJSX.parseErrorsIn()`) into `data.errors` too -- reported, but compiled in place
+- Warnings:  what a program should say, but which doesn't stop it, e.g. a type (epic `output-targets`, Q24):
+  `a calculator has an input` => `Say what "input" is, e.g. "a calculator has an input as text"`.
+  - A rule notes one on its OWN match while parsing, `SP.SpellWarnings.note(match, message, at?)`:  in `parse()`, or
+    `mutateScope()` for what only it knows (`assignment`:  a new variable's `[]`;  a property a `set` declared)
+  - NOT rolled up like errors:  `SP.SpellWarnings.in(file.match)` walks the file's matches as they are now --
+    `matched`, and matches in `data` -- so an incremental parse needs nothing of its own
+    - only those about the file's own tokens:  a match parsed from a string (`quoted_method_signature`) sits at the
+      string's offsets, so its rule notes them again about its quoted text
+  - so far:  a property with no type, or a list of nothing said (`define_property_has`);  a parameter with no type
+    (`var_method_arg`);  a new variable set to a list of nothing said (`set state to []`), or a property a `set`
+    declares from a value that doesn't say (`assignment`)
+  - editors show them as `DiagnosticSeverity.Warning` (`SpellLanguageService.diagnostics()`);  `spell compile` lists
+    them after its errors, never counting them -- see "Language server"
 
 ## Outline bodies:  `a card is a thing where:`
 
@@ -789,6 +802,7 @@ machinery changes -- see `AGENTS.md`.  File refs are `path:line` as of 2026-09-2
   file to its project (nearest `project.json`), parses the project on first sight, and reacts to disk changes.
   Node-only, so it's NOT in the `$/lsp` barrel, which MUST stay browser-safe (`packages/lsp/src/barrel.test.ts`).
 - `SpellLanguageService` answers from each file's current `match`, never re-parsing:
+  - diagnostics:  its parse errors, then its warnings (`SP.SpellWarnings.in()`) as `DiagnosticSeverity.Warning`
   - positions from match / token OFFSETS, never `token.line` / `ch`
   - symbols from `rule.getDeclaration()`, colours from `rule.highlightAs`
   - definition / references from the scope record a word resolved to while parsing (`data.scopeVar` etc.)

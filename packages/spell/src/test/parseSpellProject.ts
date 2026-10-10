@@ -43,7 +43,8 @@ export function parseSpellProject(
     const start = performance.now()
     const compiled = (match?.compile() as string | undefined) ?? ""
     const compileMsec = performance.now() - start
-    return { path, contents, scope, match, compiled, errors: describeParseErrors(match), parseMsec, compileMsec }
+    const errors = describeParseErrors(match)
+    return { path, contents, scope, match, compiled, errors, warnings: describeWarnings(match), parseMsec, compileMsec }
   })
 
   return { scope: projectScope, files: parsedFiles }
@@ -193,11 +194,11 @@ function readProjectFile(projectDir: string): {
 }
 
 /**
- * What must NOT change between a full parse and an incremental one:  compiled output + errors per file.
+ * What must NOT change between a full parse and an incremental one:  compiled output, errors and warnings per file.
  * - Leaves out timings and `Match` objects.
  */
 export function summarize(project: ParsedSpellProject): SpellProjectSummary {
-  return project.files.map(({ path, compiled, errors }) => ({ path, compiled, errors }))
+  return project.files.map(({ path, compiled, errors, warnings }) => ({ path, compiled, errors, warnings }))
 }
 
 /** `"<line>:<ch> <message>"` for each parse error in `match`, 1-based line to match editor. */
@@ -208,6 +209,12 @@ export function describeParseErrors(match: P.Match | undefined): string[] {
     const message = (error.AST as unknown as { value?: string } | undefined)?.value ?? error.inputText
     return `${(error.line ?? 0) + 1}:${error.char ?? 0} ${message}`
   })
+}
+
+/** `"<line>:<ch> <message>"` for each warning in `match` -- see `SP.SpellWarnings` -- 1-based line to match editor. */
+export function describeWarnings(match: P.Match | undefined): string[] {
+  if (!match) return []
+  return SP.SpellWarnings.in(match).map(({ at, message }) => `${(at.line ?? 0) + 1}:${at.char ?? 0} ${message}`)
 }
 
 /** One spell file to parse. */
@@ -230,10 +237,11 @@ export type ParsedSpellProject = {
     match: P.Match | undefined
     compiled: string
     errors: string[]
+    warnings: string[]
     parseMsec: number
     compileMsec: number
   }>
 }
 
 /** Result of `summarize()`. */
-export type SpellProjectSummary = Array<{ path: string; compiled: string; errors: string[] }>
+export type SpellProjectSummary = Array<{ path: string; compiled: string; errors: string[]; warnings: string[] }>
