@@ -33,14 +33,13 @@ function serve(data: unknown): string {
 }
 
 beforeEach(() => {
-  SiteData.reset(serve(DATA))
-  SearchData.reset(serve(SEARCH))
+  SiteData.url = serve(DATA)
+  SearchData.url = serve(SEARCH)
 })
 
 afterEach(() => {
-  SiteData.reset()
   SiteData.url = undefined
-  SearchData.reset()
+  SearchData.url = undefined
 })
 
 ////////////////
@@ -374,8 +373,8 @@ describe("<ui-docs-search> shortcuts", () => {
 
 describe("<ui-docs-search> data", () => {
   it("searches the page shown when the site's data doesn't load", async () => {
-    SiteData.reset("/no-such-folder/_data/components.json")
-    SearchData.reset("/no-such-folder/_data/search.json")
+    SiteData.url = "/no-such-folder/_data/components.json"
+    SearchData.url = "/no-such-folder/_data/search.json"
     const { field } = await render()
     await type(field, "keyboard")
     expect(groups(field)).toEqual([{ label: "On this page", titles: ["Keyboard"] }])

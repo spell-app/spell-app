@@ -123,7 +123,7 @@ const DATA_URL = `data:application/json,${encodeURIComponent(JSON.stringify(DATA
 
 /** Render `html` with `url` as the data, and wait for the tables (and every widget in them) to draw. */
 async function render(html: string, url = DATA_URL) {
-  SiteData.reset(url)
+  SiteData.url = url
   const host = await ElementFixture.render<DOMElement>(html)
   await drawn(host)
   return host
@@ -157,7 +157,7 @@ function rowOf(table: HTMLTableElement, name: string): HTMLTableRowElement {
   return [...table.tBodies[0]!.rows].find((row) => row.cells[0]!.querySelector("code, em")?.textContent === name)!
 }
 
-afterAll(() => SiteData.reset())
+afterAll(() => (SiteData.url = undefined))
 
 ////////////////
 // ## Tables
@@ -288,7 +288,7 @@ describe("<ui-docs-api tag>", () => {
   })
 
   it("fires `ui-render` with the tags drawn", async () => {
-    SiteData.reset(DATA_URL)
+    SiteData.url = DATA_URL
     const tags: string[][] = []
     document.addEventListener("ui-render", record)
     try {
@@ -371,7 +371,7 @@ describe("<ui-docs-api family>", () => {
 ////////////////
 
 describe("<ui-docs-api> messages and states", () => {
-  beforeEach(() => SiteData.reset(DATA_URL))
+  beforeEach(() => (SiteData.url = DATA_URL))
 
   it("says when the data has no such tag", async () => {
     const host = await render(`<ui-docs-api tag="x-nope"></ui-docs-api>`)
@@ -400,7 +400,7 @@ describe("<ui-docs-api> messages and states", () => {
   })
 
   it("is `:state(loading)` until the data is in, then follows `tag`", async () => {
-    SiteData.reset(DATA_URL)
+    SiteData.url = DATA_URL
     const host = await ElementFixture.render<DOMElement>(`<ui-docs-api tag="x-or"></ui-docs-api>`)
     expect(host.matches(":state(loading)")).toBe(true)
     await drawn(host)
@@ -419,7 +419,7 @@ describe("<ui-docs-api> messages and states", () => {
 
 describe("<ui-docs-api> accessibility", () => {
   it.each(Object.keys(EXAMPLES))("axe passes on %s", async (path) => {
-    SiteData.reset(REAL_DATA)
+    SiteData.url = REAL_DATA
     const root = await ElementFixture.render(EXAMPLES[path]!)
     for (const host of root.querySelectorAll<DOMElement>("ui-docs-api")) await drawn(host)
     await expectAccessible(root)

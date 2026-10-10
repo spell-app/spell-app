@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vite-plus/test"
 
-import { forget, lazy, once, proto, protoMerged } from "./decorators"
+import { forget, lazy, once, proto, protoMerged, resets } from "./decorators"
 
 /**
  * Proves standard decorators are lowered (`vite.decorators.ts`) and `@proto` / `@protoMerged` / `@lazy` / `@once`
@@ -264,5 +264,69 @@ describe("@once", () => {
       }
       return new Wrong()
     }).toThrow(/@once value: only works on methods/)
+  })
+})
+
+describe("@resets accessor", () => {
+  class Loader {
+    static loads = 0
+    @resets("load") static accessor url: string | undefined
+    @once static load() {
+      Loader.loads++
+      return `${Loader.url}#${Loader.loads}`
+    }
+  }
+
+  it("forgets what `@once` kept on every write, even of the same value", () => {
+    Loader.url = "a"
+    expect(Loader.load()).toBe("a#1")
+    expect(Loader.load()).toBe("a#1")
+    Loader.url = "b"
+    expect(Loader.load()).toBe("b#2")
+    // oxlint-disable-next-line no-self-assign -- the point:  writing the same value starts over too
+    Loader.url = Loader.url
+    expect(Loader.load()).toBe("b#3")
+    Loader.url = undefined
+    expect(Loader.url).toBeUndefined()
+    expect(Loader.load()).toBe("undefined#4")
+  })
+
+  it("keeps `??=` working:  a write before the first call forgets nothing", () => {
+    class Late {
+      static loads = 0
+      @resets("load") static accessor url: string | undefined
+      @once static load() {
+        return `${Late.url}#${++Late.loads}`
+      }
+    }
+    Late.url ??= "first"
+    Late.url ??= "second"
+    expect(Late.load()).toBe("first#1")
+    expect(Late.loads).toBe(1)
+  })
+
+  it("on an instance, forgets that instance's `@lazy` value only", () => {
+    class Square {
+      @resets("area") accessor side = 1
+      @lazy get area() {
+        return this.side * this.side
+      }
+    }
+    const one = new Square()
+    const two = new Square()
+    expect([one.area, two.area]).toEqual([1, 1])
+    one.side = 3
+    expect([one.area, two.area]).toEqual([9, 1])
+  })
+
+  it("names only members the object has:  a typo is a compile error", () => {
+    class Typo {
+      // @ts-expect-error -- `lod` is no static of `Typo`
+      @resets("lod") static accessor url: string | undefined
+      @once static load() {
+        return 1
+      }
+    }
+    expect(Typo.load()).toBe(1)
   })
 })

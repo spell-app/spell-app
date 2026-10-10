@@ -46,6 +46,8 @@ import sliderCSS from "./UISlider.css?inline"
  *   a `range` submits TWO entries under `name` (`FormData.getAll(name)` ~== `[value, end]`),
  *   per `FormComponent`'s multi-value convention.
  *   It restores a saved state (back / forward cache, autofill).
+ *   - `required`:  met once something sets a value (the page, a person, a restored state);
+ *     until then the thumb rests at `min`, but the slider counts as empty.
  ****************/
 export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
   @E.proto static vocabulary = sliderVocabulary
@@ -153,6 +155,15 @@ export class UISlider extends F.FormComponent<typeof sliderVocabulary> {
 
   get formValue(): E.FieldValue {
     return this.range ? [String(this.snappedValue), String(this.snappedEnd)] : String(this.snappedValue)
+  }
+
+  /**
+   * Empty while no value was ever set (`value`, nor a range's `end`):  `required` then fails.
+   * - The thumb resting at `min` is a default, not a choice;  `formValue` still submits it.
+   */
+  protected get validationValue(): E.FieldValue {
+    const isUnset = this.value === undefined && (!this.range || this.end === undefined)
+    return isUnset ? undefined : this.formValue
   }
 
   /** Back to the `value` / `end` ATTRIBUTES. */

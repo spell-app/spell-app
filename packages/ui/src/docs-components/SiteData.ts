@@ -15,29 +15,26 @@ import {
  *   - The site bundle's entry (`site/_src/site.ts`) sets it from its own location
  *     (`_assets/` => `../_data/components.json`), so a page at any depth finds it.
  *   - Unset:  a `<meta name="ui-docs-data" content="...">` in the page, else `_data/components.json` against the page.
- * - Fails loudly:  a missing or broken file rejects `load()` (and stays rejected until `reset()`);
+ * - Fails loudly:  a missing or broken file rejects `load()` (and stays rejected until `url` is set again);
  *   an element shows its error, it never guesses.
  * - Plain fetch, no Solid:  elements wrap `load()` in their own async memo.
  * - The site's other files go through `request()` too (`SearchData`, the layout's `SiteShell`):  one way to fail.
- * - Imports `$/ui/core` for `E.SourceError` and `@E.once` only:  every bundle that loads this already has the core.
+ * - Imports `$/ui/core` for `E.SourceError`, `@E.once` and `@E.resets` only:
+ *   every bundle that loads this already has the core.
  * - Static only:  the data is one per page.
  ****************/
 export class SiteData {
-  /** URL of `components.json`, absolute or against the page;  see the class. */
-  static url: string | undefined
+  /**
+   * URL of `components.json`, absolute or against the page;  see the class.
+   * - Setting it (to a new URL, the same one, or `undefined`) makes the next `load()` fetch again:
+   *   tests, a rebuilt file.
+   * - `undefined`:  back to the page's own (`<meta>`, else `SITE_DATA_PATH`).
+   */
+  @E.resets("load") static accessor url: string | undefined
 
-  /** The data file, fetched once per page (until `reset()`). */
+  /** The data file, fetched once per page (until `url` is set). */
   @E.once static load(): Promise<SiteDataFile> {
     return SiteData.fetch(SiteData.resolve())
-  }
-
-  /**
-   * Forget the fetch and set `url` (tests, a rebuilt file):  the next `load()` fetches again.
-   * - No `url`:  back to the page's own (`<meta>`, else `SITE_DATA_PATH`), as `SearchData.reset()` is.
-   */
-  static reset(url?: string): void {
-    E.forget(SiteData, "load")
-    SiteData.url = url
   }
 
   /** `tag`'s entry (a component or a docs tag), or `undefined`. */
