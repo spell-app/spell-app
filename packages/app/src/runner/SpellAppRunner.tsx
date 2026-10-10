@@ -28,7 +28,8 @@ import "./SpellAppRunner.css"
  *   AFTER the run finished, e.g. from a timer, shows it once it draws.
  * - The Type Explorer is read-only, and shows only if there's a scope pack -- see `ScopesSource`.
  * - `debug` and `fluid` are read once, to start;  `runtimeUrl` once per copy loaded.
- * - Its `<ui-*>` tags are the caller's to define (`$/app/solid/loadUI`), with Fomantic's icon names.
+ * - Its `<ui-*>` tags are the caller's to define, with Fomantic's icon names:  `<spell-app>` is a root that loads
+ *   them as they appear;  the VS Code runner imports `$/app/solid/loadUI`.
  * - NEVER imports `$/core`:  it'd land in the bundle's shared chunk, so every app would share it.
  *   Everything of spell's comes from this app's copy of the runtime.
  ****************/

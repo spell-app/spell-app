@@ -39,6 +39,14 @@
   :host {
     display: contents;
   }
+  /*
+   * A hidden `hover` dimmer stays laid out (its box transparent and click-through, "States"),
+   * so Tab reaches its content, which shows it.
+   * `!important`:  `reset.css`'s hiding rule is unlayered, so it beats any layered one.
+   */
+  :host([hidden]:state(on-hover)) {
+    display: contents !important;
+  }
 
   /*
    * Static markup:  Fomantic's script made the parent positioned

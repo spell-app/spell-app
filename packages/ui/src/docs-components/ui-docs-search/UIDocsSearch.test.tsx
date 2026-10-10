@@ -361,8 +361,8 @@ describe("<ui-docs-search> shortcuts", () => {
       new KeyboardEvent("keydown", { key: "k", ctrlKey: true, bubbles: true, cancelable: true })
     )
     await expect.poll(() => field.shadowRoot!.activeElement === input(field)).toBe(true)
-    expect(flyout.hasAttribute("open")).toBe(true)
-    flyout.removeAttribute("open")
+    expect(flyout.hidden).toBe(false)
+    flyout.hidden = true
     await settle(field)
   })
 })

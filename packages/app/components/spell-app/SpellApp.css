@@ -1,0 +1,8 @@
+/*
+ * `<spell-app>`'s own:  the box around what it draws (`SpellApp.content()`).
+ * - No box of its own (`display: contents`), so the runner fills the element as before;
+ *   the root's inline style still hides it while loading (`contentStyle`), when `display` asks.
+ */
+.SpellAppContent {
+  display: contents;
+}

@@ -20,7 +20,7 @@ const EXAMPLES = import.meta.glob<string>("/src/components/ui-modal/examples/ele
 })
 
 /** A modal DOM element with its properties. */
-type Modal = DOMElement & { open: boolean; closedBy: string }
+type Modal = DOMElement & { visible: boolean; closedBy: string }
 
 /** Render a modal (with a trigger button before it);  returns the DOM element, its dialog and the trigger. */
 async function modal(html: string) {
@@ -35,9 +35,17 @@ async function modal(html: string) {
 async function open(host: Modal, trigger?: HTMLElement) {
   trigger?.focus()
   const shown = next(host, "ui-show")
-  host.open = true
+  host.visible = true
   await settle()
   await shown
+}
+
+/** Hide `host`, and wait for `ui-hide`. */
+async function close(host: Modal) {
+  const hidden = next(host, "ui-hide")
+  host.visible = false
+  await hidden
+  await settle()
 }
 
 /** Collect `detail`s of `name` events. */
@@ -75,7 +83,7 @@ beforeEach(async () => {
 })
 
 afterEach(() => {
-  for (const dialog of document.querySelectorAll("ui-modal")) (dialog as Modal).open = false
+  for (const dialog of document.querySelectorAll("ui-modal")) (dialog as Modal).visible = false
 })
 
 ////////////////
@@ -97,11 +105,13 @@ describe("<ui-modal> classes", () => {
     expect(dialog.className).toBe(classes)
   })
 
-  it("adds `active` and :state(open) while open", async () => {
+  it("adds `active` while visible, and :state(hidden) once hidden", async () => {
     const { host, dialog } = await modal(`<ui-modal>x</ui-modal>`)
     await open(host)
     expect(dialog.className).toBe("ui active modal")
-    expect(host.matches(":state(open)")).toBe(true)
+    expect(host.matches(":state(hidden)")).toBe(false)
+    await close(host)
+    expect(host.matches(":state(hidden)")).toBe(true)
   })
 })
 
@@ -225,20 +235,20 @@ describe("<ui-modal> open / close", () => {
     expect(dialog.matches(":modal")).toBe(true)
     expect(document.documentElement.classList.contains("ui-scroll-locked")).toBe(true)
     expect(opens).toHaveLength(0)
-    expect(shows).toEqual([{ open: true }])
+    expect(shows).toEqual([{ visible: true }])
     const hidden = next(host, "ui-hide")
-    host.open = false
+    host.visible = false
     await settle()
     expect(dialog.open).toBe(false)
     expect(document.documentElement.classList.contains("ui-scroll-locked")).toBe(false)
-    expect(((await hidden) as CustomEvent).detail).toEqual({ open: false })
+    expect(((await hidden) as CustomEvent).detail).toEqual({ visible: false })
   })
 
   it("waits for the transition before ui-show / ui-hide", async () => {
     speedUp.remove()
     const { host, dialog } = await modal(`<ui-modal>x</ui-modal>`)
     const shows = record(host, "ui-show")
-    host.open = true
+    host.visible = true
     await settle()
     expect(dialog.getAnimations().length).toBeGreaterThan(0)
     expect(shows).toHaveLength(0)
@@ -259,7 +269,7 @@ describe("<ui-modal> open / close", () => {
     wrapper.querySelector<HTMLButtonElement>("#show")!.click()
     await settle()
     expect(dialog.open).toBe(true)
-    expect(host.open).toBe(true)
+    expect(host.visible).toBe(true)
   })
 
   it("Escape closes it (reason `escape`), and focus returns to the trigger", async () => {
@@ -281,7 +291,7 @@ describe("<ui-modal> open / close", () => {
     await userEvent.keyboard("{Escape}")
     await settle()
     expect(dialog.open).toBe(true)
-    expect(host.open).toBe(true)
+    expect(host.visible).toBe(true)
   })
 
   it("with CloseWatcher (the browser's close requests), a vetoed Escape still keeps it open", async () => {
@@ -321,7 +331,7 @@ describe("<ui-modal> open / close", () => {
     await userEvent.click(document.body, { position: { x: 3, y: 3 } })
     await settle()
     expect(dialog.open).toBe(true)
-    host.open = false
+    host.visible = false
     await settle()
     host.closedBy = "none"
     await open(host)
@@ -452,10 +462,10 @@ describe("<ui-modal> open / close", () => {
     await open(b!)
     await userEvent.keyboard("{Escape}")
     await settle()
-    expect([a!.open, b!.open]).toEqual([true, false])
+    expect([a!.visible, b!.visible]).toEqual([true, false])
     await userEvent.keyboard("{Escape}")
     await settle()
-    expect([a!.open, b!.open]).toEqual([false, false])
+    expect([a!.visible, b!.visible]).toEqual([false, false])
   })
 })
 
@@ -557,7 +567,7 @@ describe("<ui-modal> accessibility", () => {
       } else {
         await expectAccessible(host)
       }
-      host.open = false
+      host.visible = false
       await settle()
     }
   })
@@ -570,7 +580,7 @@ describe("<ui-modal> accessibility", () => {
 describe("UI.modals", () => {
   /** The dialog `UI.modals` put in the body. */
   async function current() {
-    await expect.poll(() => document.querySelector<Modal>("body > ui-modal")?.open).toBe(true)
+    await expect.poll(() => document.querySelector<Modal>("body > ui-modal")?.visible).toBe(true)
     const host = document.querySelector<Modal>("body > ui-modal")!
     await ElementFixture.settle(host)
     return host

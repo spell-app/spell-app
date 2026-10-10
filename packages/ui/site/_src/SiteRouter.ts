@@ -243,7 +243,8 @@ export class SiteRouter {
     if (main) SiteRouter.runScripts(main)
     this.followPage()
     // the nav flyout (narrow screens) closes, as a full load would have closed it
-    document.querySelector("ui-flyout#site-nav-flyout[open]")?.removeAttribute("open")
+    const flyout = document.querySelector<HTMLElement>("ui-flyout#site-nav-flyout")
+    if (flyout && !flyout.hidden) flyout.hidden = true
     // `<spell-site-header>` re-draws:  its title and "open in VS Code" link
     document.dispatchEvent(new Event(PAGE_EVENT))
   }

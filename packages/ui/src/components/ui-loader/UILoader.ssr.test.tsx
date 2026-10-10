@@ -12,12 +12,12 @@ describe("<ui-loader> static render", () => {
   })
 
   it("renders a live status, named Loading… without text of its own", () => {
-    const html = StaticRender.fragment(`<ui-loader active></ui-loader><ui-loader active>Saving</ui-loader>`)
+    const html = StaticRender.fragment(`<ui-loader visible></ui-loader><ui-loader visible>Saving</ui-loader>`)
     expect(sorted(html)).toBe(
       sorted(
-        `<div data-ui="loader" aria-label="Loading…" aria-live="polite" role="status" data-state="active" ` +
+        `<div data-ui="loader" aria-label="Loading…" aria-live="polite" role="status" ` +
           `class="ui active loader" part="loader"></div>` +
-          `<div data-ui="loader" aria-live="polite" role="status" data-state="active" class="ui active loader" ` +
+          `<div data-ui="loader" aria-live="polite" role="status" class="ui active loader" ` +
           `part="loader">Saving</div>`
       )
     )

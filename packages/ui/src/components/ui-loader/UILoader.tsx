@@ -1,6 +1,6 @@
 import type { JSX } from "@solidjs/web"
 
-import { E } from "$/ui/core"
+import { E, UIT } from "$/ui/core"
 import { loaderVocabulary } from "./UILoader.en"
 
 import loaderCSS from "./UILoader.css?inline"
@@ -19,14 +19,15 @@ import loaderCSS from "./UILoader.css?inline"
  *   - With no slotted text, it's named by the `loading` text ("Loading…");
  *     slotted text names it otherwise (a status takes its name from its content).
  *
- * - It shows only while `active` (Fomantic's rule, in `UILoader.css`);
- *   `:state(active)` and `:state(disabled)` are for the page's styles.
+ * - It shows only while `visible` (the shared `visible` / `hidden`), starting hidden:  Fomantic's rule.
+ *   The box carries Fomantic's `active` while it shows, or fades out (`UILoader.css` keys on it);
+ *   `:state(hidden)` and `:state(disabled)` are for the page's styles.
  ****************/
 export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   @E.proto static vocabulary = loaderVocabulary
   @E.protoMerged static elementSetup = {
     styleSheets: { loader: loaderCSS },
-    cssStates: ["active"],
+    visible: "hidden",
     delegatesFocus: false,
     aria: { role: "status", live: "polite" },
     // `disabled`:  hidden, even when `active` (Fomantic's), so nothing inside to make unusable
@@ -59,6 +60,11 @@ export class UILoader extends E.UIComponent<typeof loaderVocabulary> {
   ////////////////
   // ## Rendering
   ////////////////
+
+  /** Fomantic's `active`, just before the noun while shown or fading out (the box shows only with it). */
+  protected get extraClass(): string | undefined {
+    return this.isHidden ? undefined : UIT.ACTIVE
+  }
 
   render(): JSX.Element {
     return (

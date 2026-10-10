@@ -333,8 +333,10 @@ A table's semantics stay NATIVE and in the LIGHT DOM;  the element only adds the
   `position-anchor`) when the target has a box;  a `display: contents` target (`<ui-icon>`, `<ui-label>`, most
   `ui-*` elements) has none, and a tree-scoped name can't reach into its shadow root, so the popup then anchors to the
   target's first shadow box IMPLICITLY (`showPopover({ source })`, `position-anchor: auto`).
+- Shown by the shared `visible` / `hidden` (starting hidden), controlled:  the trigger's cancelable `ui-open` /
+  `ui-close` come first, `detail.visible` saying which;  Fomantic's `visible` class is the box's while it shows.
 - `open-on`:  `hover` (+ keyboard focus;  `show-delay` / `hide-delay`, Fomantic's 50 / 70 ms), `focus`,
-  `click`, `manual`.  A hovered popup stays open while the pointer is over it (WCAG 1.4.13),
+  `click`, `manual` (only `visible`).  A hovered popup stays open while the pointer is over it (WCAG 1.4.13),
   where Fomantic defaulted to `hoverable: false`;
   `hoverable="false"` (boolean, default true) gives Fomantic's behaviour back:
   it closes as the pointer leaves the target (after `hide-delay`).
@@ -401,7 +403,9 @@ A table's semantics stay NATIVE and in the LIGHT DOM;  the element only adds the
   `<button commandfor command>` or a `<ui-button commandfor command>`.
 - Events:  `ui-open` (cancelable;  a user action -- the `--show` invoker command), `ui-close` (cancelable, with
   `reason`:  `escape` / `outside` / `close` / `approve` / `deny` / `close-all`), then `ui-show` / `ui-hide` once
-  the CSS transition has ended.  Writing `open` is the app's own decision and fires no `ui-open` / `ui-close`.
+  the CSS transition has ended;  `detail.visible` says which.
+  Writing `visible` (or `hidden`, its other name) is the app's own decision and fires no `ui-open` / `ui-close`.
+  A modal starts hidden (`elementSetup.visible` `"hidden"`).
 - Approve / deny:  Fomantic's `.approve` / `.ok` / `.positive` and `.deny` / `.cancel` / `.negative` classes, or
   `<ui-button positive / negative>`, anywhere inside;  their cancelable `ui-approve` / `ui-deny` come first
   (Fomantic's `onApprove` returning `false`).
@@ -450,7 +454,7 @@ A table's semantics stay NATIVE and in the LIGHT DOM;  the element only adds the
 ```html
 <ui-segment>
   <p>Content</p>
-  <ui-dimmer active blurring><ui-header level="4">Saved</ui-header></ui-dimmer>
+  <ui-dimmer visible blurring><ui-header level="4">Saved</ui-header></ui-dimmer>
 </ui-segment>
 <div class="card-image"><img src="..." alt="" /><ui-dimmer show-on="hover"><ui-button inverted>Add</ui-button></ui-dimmer></div>
 <ui-dimmer id="busy" page aria-label="Loading"><ui-loader>Loading</ui-loader></ui-dimmer>
@@ -464,7 +468,8 @@ A table's semantics stay NATIVE and in the LIGHT DOM;  the element only adds the
     `inert` page, focus inside (the dialog itself when nothing inside is focusable), focus back on hide,
     scroll lock and Escape through `UI.overlays` (kind `dimmer`).
   - Named by the DOM element's `aria-label`, else "Dimmed page".
-- `active` (Fomantic's word and class) is auto-controlled:
+- The shared `visible` / `hidden` show it (starting hidden);  Fomantic's `active` is the box's class while it shows.
+  Auto-controlled:
   cancelable `ui-open` / `ui-close` (`reason`:  `click`, `escape`, `hover`, `close-all`) for user actions,
   then `ui-show` / `ui-hide` after the fade.
 - `show-on="hover"`:  shown while the pointer is over the parent OR focus is inside it;
@@ -492,7 +497,7 @@ A table's semantics stay NATIVE and in the LIGHT DOM;  the element only adds the
 </ui-flyout>
 ```
 
-- `<ui-modal>`'s element in a flyout's clothes:  the same `DialogComponent` base (`open`, `closedby`,
+- `<ui-modal>`'s element in a flyout's clothes:  the same `DialogComponent` base (`visible` / `hidden`, `closedby`,
   `closable`, `header` / `content`, approve / deny, `--show` / `--close`, the six events, naming, `UI.overlays` with
   kind `flyout`), a `<dialog class="ui [position] ... flyout">` sliding in from `position` (`left`, the default,
   `right`, `top`, `bottom`) over a lighter `::backdrop` (0.4).

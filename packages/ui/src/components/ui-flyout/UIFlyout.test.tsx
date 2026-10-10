@@ -20,7 +20,7 @@ const EXAMPLES = import.meta.glob<string>("/src/components/ui-flyout/examples/el
 })
 
 /** A flyout DOM element with its properties. */
-type Flyout = DOMElement & { open: boolean; closedBy: string; position: string }
+type Flyout = DOMElement & { visible: boolean; closedBy: string; position: string }
 
 /** Render a flyout (after a trigger button);  returns the DOM element, its dialog and the trigger. */
 async function flyout(html: string) {
@@ -35,9 +35,17 @@ async function flyout(html: string) {
 async function open(host: Flyout, trigger?: HTMLElement) {
   trigger?.focus()
   const shown = next(host, "ui-show")
-  host.open = true
+  host.visible = true
   await settle()
   await shown
+}
+
+/** Hide `host`, and wait for `ui-hide`. */
+async function close(host: Flyout) {
+  const hidden = next(host, "ui-hide")
+  host.visible = false
+  await hidden
+  await settle()
 }
 
 /** Collect `detail`s of `name` events. */
@@ -66,7 +74,7 @@ beforeEach(async () => {
 })
 
 afterEach(() => {
-  for (const host of document.querySelectorAll<Flyout>("ui-flyout")) host.open = false
+  for (const host of document.querySelectorAll<Flyout>("ui-flyout")) host.visible = false
 })
 
 ////////////////
@@ -151,11 +159,13 @@ describe("<ui-flyout> classes", () => {
     expect(dialog.className).toBe(classes)
   })
 
-  it("adds `visible` and :state(open) while open", async () => {
+  it("adds `visible` while visible, and :state(hidden) once hidden", async () => {
     const { host, dialog } = await flyout(`<ui-flyout>x</ui-flyout>`)
     await open(host)
     expect(dialog.className).toBe("ui left visible flyout")
-    expect(host.matches(":state(open)")).toBe(true)
+    expect(host.matches(":state(hidden)")).toBe(false)
+    await close(host)
+    expect(host.matches(":state(hidden)")).toBe(true)
   })
 
   it("renders the shared dialog contract:  header, content, slot, close icon (last)", async () => {
@@ -202,7 +212,7 @@ describe("<ui-flyout> layout", () => {
   it("starts off-screen and slides (a transform transition)", async () => {
     Fixture.render(`<style>ui-flyout.slow::part(flyout) { --ui-flyout-duration: 300ms }</style>`)
     const { host, dialog } = await flyout(`<ui-flyout class="slow">x</ui-flyout>`)
-    host.open = true
+    host.visible = true
     await settle()
     const transitions = dialog.getAnimations().map((animation) => (animation as CSSTransition).transitionProperty)
     expect(transitions).toContain("transform")
@@ -232,9 +242,9 @@ describe("<ui-flyout> behaviour (DialogComponent)", () => {
     await open(host)
     expect(dialog.matches(":modal")).toBe(true)
     expect(document.documentElement.classList.contains("ui-scroll-locked")).toBe(true)
-    expect(shows).toEqual([{ open: true }])
+    expect(shows).toEqual([{ visible: true }])
     const hidden = next(host, "ui-hide")
-    host.open = false
+    host.visible = false
     await settle()
     await hidden
     expect(dialog.open).toBe(false)
@@ -336,7 +346,7 @@ describe("<ui-flyout> behaviour (DialogComponent)", () => {
     for (const host of root.querySelectorAll<Flyout>("ui-flyout")) {
       await open(host)
       await expectAccessible(host)
-      host.open = false
+      host.visible = false
       await settle()
     }
   })

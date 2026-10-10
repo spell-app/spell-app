@@ -258,7 +258,7 @@ describe("duo.css", () => {
   it("the arc is a primary + secondary ring;  a coloured loader keeps its one-colour arc", async () => {
     await T3.use("duo")
     const root = await ElementFixture.render(
-      `<div><ui-loader active></ui-loader><ui-loader active color="red"></ui-loader></div>`
+      `<div><ui-loader visible></ui-loader><ui-loader visible color="red"></ui-loader></div>`
     )
     const arc = T3.style(root, "ui-loader", ".ui.loader", "::after")
     expect(arc.borderTopColor).toBe(T3.color("--ui-primary"))
@@ -270,7 +270,7 @@ describe("duo.css", () => {
 describe("pulsar.css", () => {
   it("a primary arc on the pulsar animation, 2s a cycle", async () => {
     await T3.use("pulsar")
-    const { box } = await ThemeHarness.inner(`<ui-loader active></ui-loader>`, ".ui.loader")
+    const { box } = await ThemeHarness.inner(`<ui-loader visible></ui-loader>`, ".ui.loader")
     expect(getComputedStyle(box, "::after")).toMatchObject({
       animationName: "ui-theme-pulsar",
       animationDuration: "2s",

@@ -2,6 +2,7 @@ import { Show, untrack } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
 import { E } from "$/ui/core"
+import { UIRoot, type RootVocabulary } from "$/ui/components/ui-root"
 // Import directly, NOT through the `$/spell` barrel, which would pull in the whole parser.
 import { SpellSetup } from "$/spell/SpellSetup"
 // Import directly, NOT through the `$/app/runner` barrel, which would pull in `runCompiled()`, and so `spellCore`.
@@ -19,9 +20,10 @@ import {
 } from "$/app/runner/SpellAppRunner"
 import { spellAppVocabulary } from "./SpellApp.en"
 
-// Every Solid computation follows spell cells;  every `<ui-*>` the runner draws is defined (`loadUI.ts`).
+import "./SpellApp.css"
+
+// Every Solid computation follows spell cells.
 import "$/app/solid/cellsBridge"
-import "$/app/solid/loadUI"
 
 /****************
  * ### `DOMSpellAppElement`
@@ -62,6 +64,27 @@ export interface DOMSpellAppElement extends Omit<E.AttributeValues<typeof spellA
 }
 
 /****************
+ * ### `vocabulary`
+ * `<spell-app>`'s whole vocabulary:  a root's names (`<ui-root>`'s), then its own (`SpellApp.en.ts`).
+ * - Where both name an attribute, its own wins (`display`, `icons`, `width`, `height`, `assets`).
+ * - Its own slots only:  it shows no children, it draws its app.
+ * - Above the component:  its `@E.proto static vocabulary` reads it while the class is built.
+ ****************/
+const ROOT_VOCABULARY: RootVocabulary = UIRoot.describe()
+const OWN_ATTRIBUTES = new Set<string>(spellAppVocabulary.attributes.map(({ name }) => name))
+const vocabulary = {
+  ...spellAppVocabulary,
+  attributes: [
+    ...ROOT_VOCABULARY.attributes.filter(({ name }) => !OWN_ATTRIBUTES.has(name)),
+    ...spellAppVocabulary.attributes
+  ],
+  events: [...ROOT_VOCABULARY.events, ...spellAppVocabulary.events],
+  parts: [...ROOT_VOCABULARY.parts, ...spellAppVocabulary.parts],
+  states: [...ROOT_VOCABULARY.states, ...spellAppVocabulary.states],
+  texts: [...ROOT_VOCABULARY.texts, ...spellAppVocabulary.texts]
+} satisfies E.ComponentVocabulary
+
+/****************
  * ### `SpellApp`
  * The component behind `<spell-app>`:  runs a compiled spell project in any page, in its own shadow root, with
  * no editor.  It works out WHAT to run, and draws `<SpellAppRunner>` to run it.
@@ -74,14 +97,18 @@ export interface DOMSpellAppElement extends Omit<E.AttributeValues<typeof spellA
  *   `editor` changes (`pushedKey()`).
  * - Each runs on its own copy of the spell runtime (`spell-runtime.js` beside its script), so many can run on a
  *   page at once.
- * - Draws the runner's UI on `@spell-app/ui`, inside a `<ui-root icons="fomantic">`:
- *   the runner's icon names are Fomantic's.  The PROGRAM draws with React;
- *   Semantic UI's CSS is adopted into the shadow root (`adoptShadowStyles()`).
+ * - A ROOT (`UIRoot`), as `<ui-root>` is, so a page needs nothing around it:
+ *   - the Spell UI widgets the runner draws load the first time each appears (`contentRoots`:  in its shadow root)
+ *   - so does a spell tag inside it:  `<spell-editor>` from `spell-editor.js`, beside its own script
+ *     (`ownTagLoader()`);  a page with only `<spell-app>`s never downloads the editor
+ *   - its `icons` default to `fomantic`:  the runner's icon names are Fomantic's.  The page's own `ui-*` keep theirs
+ *   - inside another root (a docs page, the editor demo), it's a nested root:  the outer one waits for it
+ * - The PROGRAM draws with React;  Semantic UI's CSS is adopted into the shadow root (`adoptShadowStyles()`).
  * - `width` / `height` set our inline style, so page CSS works too.
  * - Leaving the page stops the app and lets go of its runtime, a microtask later:  a move in one go keeps it.
  ****************/
-export class SpellApp extends E.UIComponent<typeof spellAppVocabulary> {
-  @E.proto static vocabulary = spellAppVocabulary
+export class SpellApp extends UIRoot<typeof vocabulary> {
+  @E.proto static vocabulary = vocabulary
   @E.protoMerged static elementSetup = {
     DOMElement: DOMSpellAppElement,
     // clicking the program's text must not move focus to its first button
@@ -95,6 +122,43 @@ export class SpellApp extends E.UIComponent<typeof spellAppVocabulary> {
     // where `assets` says as we join the page, else beside this script
     const assets = new URL(untrack(() => this.assets) ?? BUNDLE, document.baseURI).href
     void adoptShadowStyles(this.domElement.renderRoot, assets)
+  }
+
+  ////////////////
+  // ## A root
+  ////////////////
+
+  /** What the root loads is in our shadow root too:  the widgets the runner draws. */
+  protected get contentRoots(): readonly ParentNode[] {
+    return [this.domElement, this.domElement.renderRoot]
+  }
+
+  /**
+   * A spell tag inside us (`<spell-editor>`) loads from its own script beside ours (`spell-editor.js`),
+   * the first time one appears.
+   * - Every `spell-*` tag:  `<tag>.js`, as `vite.element.config.ts` names each family's script.
+   */
+  protected ownTagLoader(tag: string): (() => Promise<void>) | undefined {
+    if (!tag.startsWith(SPELL_TAG_PREFIX)) return undefined
+    return () => import(/* @vite-ignore */ new URL(`${tag}.js`, BUNDLE).href).then(() => undefined)
+  }
+
+  /** Never a scrolling box, whatever our size:  the runner lays out and scrolls its own panes. */
+  protected get scrolls(): boolean {
+    return false
+  }
+
+  /**
+   * Where the built-in icon packs are:  `icon-packs/` in `assets`, else beside our script --
+   * ours, even on a page whose Spell UI is its own (a docs page's, which has none to load).
+   * - Built, they're beside our script:  beside `spell-solid.js`, whose chunk holds `BuiltInPacks`
+   *   (`iconPacksBesideBuiltIns()`, `vite.shared.ts`;  pinned by `element.build.test.ts`).
+   * - In dev and tests (vite serving the source):  `undefined`, so Spell UI's source finds its own.
+   */
+  protected get iconAssets(): string | undefined {
+    const { assets } = this
+    if (!assets && !import.meta.env.PROD) return undefined
+    return new URL(assets ?? BUNDLE, document.baseURI).href
   }
 
   ////////////////
@@ -203,9 +267,10 @@ export class SpellApp extends E.UIComponent<typeof spellAppVocabulary> {
     })
   }
 
-  render(): JSX.Element {
+  /** The runner, or why there's nothing to run;  hidden while the root loads, if `display` says so. */
+  protected content(): JSX.Element {
     return (
-      <ui-root icons="fomantic" display="immediately">
+      <div class="SpellAppContent" style={this.contentStyle}>
         <Show
           when={this.source}
           fallback={
@@ -229,7 +294,7 @@ export class SpellApp extends E.UIComponent<typeof spellAppVocabulary> {
             />
           )}
         </Show>
-      </ui-root>
+      </div>
     )
   }
 }
@@ -244,6 +309,9 @@ export interface SpellApp extends Omit<E.AttributeValues<typeof spellAppVocabula
  * - NOTE: NOT `new URL(".", import.meta.url)`:  vite takes that for an asset to bundle, and inlines it.
  */
 const BUNDLE = import.meta.url.slice(0, import.meta.url.lastIndexOf("/") + 1)
+
+/** Prefix of spell's own tags, which a `<spell-app>` loads from beside its script (`ownTagLoader()`). */
+const SPELL_TAG_PREFIX = "spell-"
 
 /** Where the spell server's API is:  the page's own. */
 const API = "/api/projects"
