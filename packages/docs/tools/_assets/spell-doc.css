@@ -187,6 +187,19 @@ h1 {
   margin: 0;
   font-size: 2rem;
 }
+/*
+ * the header's actions (the page's bullhorn) never wrap onto a row of their own:  they stay at the h1's row's right,
+ * over its end when it's long (Owen, 2026-10-10:  "They should stay in place and overlap the header instead")
+ */
+.spell-page-head {
+  position: relative;
+}
+.spell-doc-main .spell-page-head > .spell-comment-mark.at-page {
+  position: absolute;
+  top: 8px;
+  inset-inline-end: 4px;
+  height: calc(2rem * 1.1);
+}
 /* the stuck headings' background reaches a few px past the column, over the cards' outer 1px borders */
 :is(ui-sticky.spell-h2 > h2, ui-sticky.spell-h3 > h3, .spell-filter, .spell-page-head) {
   margin-inline: -4px;
@@ -362,11 +375,18 @@ ui-button.spell-fold {
 .spell-doc-main ui-section:state(collapsed)::part(fold-icon) {
   rotate: 0deg;
 }
-/* a narrow title wraps its actions and count under its text rather than squeezing the text to a word a line */
+/*
+ * a narrow title keeps its count, actions and fold arrow in place, on its row:  its text runs on under them, fading
+ * out, rather than wrapping them onto a row of their own (Owen, 2026-10-10:  "stay in place and overlap")
+ */
 @media (max-width: 560px) {
-  .spell-doc-main ui-section::part(title) {
-    flex-wrap: wrap;
-    row-gap: 4px;
+  .spell-doc-main ui-section::part(heading) {
+    min-width: 0;
+  }
+  .spell-doc-main ui-section::part(header) {
+    overflow: hidden;
+    white-space: nowrap;
+    mask-image: linear-gradient(to left, transparent, black 20px);
   }
 }
 /* the `open/all` count:  big enough to read at a glance beside a title */
@@ -810,19 +830,16 @@ pre code {
   z-index: 2;
   height: 0;
 }
+/*
+ * over the block's top right corner, a text block's too:  its text keeps its full width, the bullhorn on the page's
+ * ground over the end of its first line (Owen, 2026-10-10:  overlap, not wrap)
+ */
 .spell-doc-main .spell-comment-mark.at-block > ui-button {
   position: absolute;
   top: 2px;
   right: 2px;
-}
-/* a text block's (a plan doc's field, prose, a list):  floated right, its text wrapping round it, never under it */
-.spell-doc-main .spell-comment-mark.at-block.at-text {
-  float: right;
-  height: auto;
-  margin: 0 0 2px 6px;
-}
-.spell-doc-main .spell-comment-mark.at-text > ui-button {
-  position: static;
+  border-radius: 999px;
+  background: var(--spell-bg);
 }
 .spell-doc-main
   :is(
@@ -974,29 +991,69 @@ pre code {
   font: var(--spell-eyebrow-font);
   letter-spacing: var(--spell-eyebrow-tracking);
 }
-/* the box:  typed and not saved, dashed (the fill rule), "Not saved yet" */
-.spell-doc-main .spell-comment-form {
-  padding: 8px 10px;
-  border: 1.5px solid var(--spell-rule);
+/*
+ * the PANE (`.spell-comment-pane`, in `main`, fixed on the screen):  small, just under the selection;  dragged by its
+ * band;  the page never scrolls for it (Owen, 2026-10-10)
+ */
+.spell-doc-main .spell-comment-pane {
+  position: fixed;
+  z-index: 1000;
+  box-sizing: border-box;
+  width: min(380px, calc(100vw - 16px));
+  border: 1px solid var(--spell-rule);
   border-radius: 10px;
   background: var(--spell-bg);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.22);
+  outline: none;
+}
+.spell-doc-main .spell-comment-pane-band {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 4px 4px 10px;
+  border-bottom: 1px solid var(--spell-rule);
+  border-radius: 10px 10px 0 0;
+  background: var(--spell-rail-fill);
+  cursor: move;
+  user-select: none;
+  touch-action: none;
+}
+.spell-doc-main .spell-comment-pane-band > ui-button {
+  margin-left: auto;
+}
+/* the box in it:  typed and not saved, dashed (the fill rule), "Not saved yet" */
+.spell-doc-main .spell-comment-form {
+  padding: 8px 10px;
+  border: 1.5px solid transparent;
+  border-radius: 0 0 10px 10px;
 }
 .spell-doc-main .spell-comment-form[data-typed] {
   border-style: dashed;
   border-color: var(--ui-brown-text, #534323);
 }
+.spell-doc-main .spell-comment-view {
+  max-height: 50vh;
+  overflow-y: auto;
+}
 .spell-doc-main .spell-comment-about {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 4px;
-  margin: 0 0 6px;
+  min-width: 0;
+  overflow: hidden;
   color: var(--spell-muted);
   font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+/* a card's Clear, clicked once:  red until the second click (or 3s) */
+.spell-doc-main .spell-comment-clear[data-armed] {
+  --ui-button-color: var(--ui-red, #db2828);
+  color: var(--ui-red, #db2828);
+}
+/* a comment's quote on the page, under the pointer:  a click opens it */
+.spell-over-quote .spell-doc-main {
+  cursor: pointer;
 }
 .spell-doc-main .spell-comment-unsaved {
   display: none;
-  margin-left: auto;
   padding: 0 6px;
   border: 1px dashed currentcolor;
   border-radius: 999px;
