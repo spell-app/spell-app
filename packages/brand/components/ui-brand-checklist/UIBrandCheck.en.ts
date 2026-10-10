@@ -1,6 +1,6 @@
 /**
  * Every name `<ui-brand-check>` uses:  tag, attributes, events, slots, parts, states, texts.
- * Schema:  `ComponentVocabulary`.
+ * Schema:  `E.ComponentVocabulary`.
  * - Pure data:  `import type` only.
  * - No class words from attributes:  the component adds its state (`check done`, `check active checkable`).
  * - Chosen state:  `selected` is canonical (Spell UI's rule);  `checked` is another name for it, as on `<ui-checkbox>`:
@@ -8,7 +8,7 @@
  *   The DOM element's class, `DOMBrandCheckElement`, owns that name:  it is no vocabulary attribute.
  */
 
-import type { ComponentVocabulary } from "$/ui/core"
+import type { E } from "$/ui/core"
 
 /****************
  * ### `<ui-brand-check>`
@@ -79,4 +79,4 @@ export const brandCheckVocabulary = {
     },
     { key: "active", text: "in progress", description: "Visually hidden after the active step's text." }
   ]
-} as const satisfies ComponentVocabulary
+} as const satisfies E.ComponentVocabulary

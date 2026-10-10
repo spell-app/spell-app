@@ -1,15 +1,6 @@
-import { createMemo } from "solid-js"
 import type { JSX } from "@solidjs/web"
 
-import {
-  Cell,
-  proto,
-  protoMerged,
-  UIComponent,
-  whileConnected,
-  type ElementSetup,
-  type AttributeValues
-} from "$/ui/core"
+import { E } from "$/ui/core"
 
 import { brandFlourishVocabulary } from "./UIBrandFlourish.en"
 import { Flourish } from "./Flourish"
@@ -38,19 +29,20 @@ import flourishCSS from "./UIBrandFlourish.css?inline"
  * - Decorative:  `aria-hidden`.
  * - SIDE EFFECT:  watches the element's size while connected.
  ****************/
-export class UIBrandFlourish extends UIComponent<BrandFlourishVocabulary> {
-  @proto static vocabulary = brandFlourishVocabulary
-  @protoMerged static elementSetup = {
+export class UIBrandFlourish extends E.UIComponent<BrandFlourishVocabulary> {
+  @E.proto static vocabulary = brandFlourishVocabulary
+  @E.protoMerged static elementSetup = {
     styleSheets: { flourish: flourishCSS },
     delegatesFocus: false
-  } satisfies Partial<ElementSetup>
+  } satisfies Partial<E.ElementSetup>
 
   /** The element's size, px, as last measured. */
-  readonly size = new Cell<{ width: number; height: number }>(FALLBACK_SIZE)
+  @E.state accessor size: { width: number; height: number } = FALLBACK_SIZE
 
   /** The `<svg>`'s inner markup. */
-  readonly art = createMemo(() => {
-    const { width, height } = this.size.get()
+  @E.derived
+  get art(): string {
+    const { width, height } = this.size
     const colors = {
       stroke: this.stroke || DEFAULT_COLORS.stroke,
       fill: this.fill || DEFAULT_COLORS.fill,
@@ -59,30 +51,30 @@ export class UIBrandFlourish extends UIComponent<BrandFlourishVocabulary> {
     }
     const variant = (this.variant ?? "swoop") as FlourishVariant
     return Flourish.draw(variant, width, height, this.seed ?? DEFAULT_SEED, colors)
-  })
+  }
 
   render(): JSX.Element {
     return (
       <svg
         class="art"
         part={this.partForName("art")}
-        viewBox={`0 0 ${this.size.get().width} ${this.size.get().height}`}
+        viewBox={`0 0 ${this.size.width} ${this.size.height}`}
         aria-hidden="true"
-        innerHTML={this.art()}
+        innerHTML={this.art}
       />
     )
   }
 
-  /** While connected:  measure the element, and again on every resize. */
-  @whileConnected
+  /** While connected:  measure the element, and again on every resize (no decorator watches a size). */
+  @E.whileConnected
   protected measure() {
     const resizes = new ResizeObserver(() => {
       const { width, height } = this.domElement.getBoundingClientRect()
-      if (width && height) this.size.set({ width, height })
+      if (width && height) this.size = { width, height }
     })
     resizes.observe(this.domElement)
     return () => resizes.disconnect()
   }
 }
 
-export interface UIBrandFlourish extends AttributeValues<BrandFlourishVocabulary> {}
+export interface UIBrandFlourish extends E.AttributeValues<BrandFlourishVocabulary> {}
