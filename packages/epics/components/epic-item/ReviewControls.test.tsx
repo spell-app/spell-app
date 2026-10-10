@@ -10,6 +10,7 @@ import "$/ui/components/ui-button"
 import "$/ui/components/ui-icon"
 import "$/ui/components/ui-section"
 import "$/epics/components/epic-item"
+import "$/epics/components/epic-choices"
 import "$/epics/components/epic-section"
 import "$/epics/components/epic-phase"
 import "$/epics/components/epic-summary"
@@ -448,6 +449,74 @@ describe("<epic-item> review controls", () => {
     const question = await render(`<epic-item id="q4" title="Which?" status="open"></epic-item>`)
     const reviewed = await render(`<epic-item id="j7" title="Seen" status="open" reviewed="2026-10-07"></epic-item>`)
     for (const host of [question, reviewed]) expect(host.shadowRoot!.querySelector("[part~='id']")!.localName).toBe("a")
+  })
+
+  test("an action CHOSEN folds the item (Owen, 2026-10-10):  Approve, Do Now, the x, a note box button, a pick", async () => {
+    await adoptClient()
+    const item = (html: string) => render(`<epic-item status="open" open ${html}><p>Text</p></epic-item>`)
+    const approved = await item(`id="q1" title="A question"`)
+    button(approved, "approve").click()
+    const asked = await item(`id="j2" title="A call"`)
+    button(asked, "details").click()
+    const dropped = await item(`id="t1" title="A todo"`)
+    button(dropped, "drop").click()
+    const noted = await item(`id="j3" title="Another call"`)
+    noted.shadowRoot!.querySelector<HTMLButtonElement>('[part~="note-box"] button[data-how="todo"]')!.click()
+    await settle()
+    expect([approved.open, asked.open, dropped.open, noted.open]).toEqual([false, false, false, false])
+    // a pick on its option cards (`<epic-option>`'s Choose pill)
+    const question = await render(`<epic-item id="q2" title="Which?" status="open" open><epic-choices>
+      <epic-option letter="A" title="One"><ul><li>short</li></ul></epic-option>
+      <epic-option letter="B" title="Two"><ul><li>free</li></ul></epic-option></epic-choices></epic-item>`)
+    const option = question.querySelector("epic-option")!
+    option.shadowRoot!.querySelector<HTMLButtonElement>("[part~='choose']")!.click()
+    await settle()
+    expect([routes.inbox.marks.q2?.pick, question.open]).toEqual(["A", false])
+  })
+
+  test("NOT folded by Revisit (the box opens), typing, a mark cleared, or a request called off", async () => {
+    await adoptClient()
+    const host = await render(`<epic-item id="q1" title="A question" status="open" open><p>Text</p></epic-item>`)
+    button(host, "revisit").click()
+    const note = host.shadowRoot!.querySelector<HTMLTextAreaElement>("[part~='details'] textarea")!
+    note.value = "half a thought"
+    note.dispatchEvent(new InputEvent("input", { bubbles: true }))
+    await settle()
+    expect(host.open).toBe(true)
+    // a mark pressed again clears it:  nothing chosen, it stays open
+    button(host, "todo").click()
+    await settle()
+    host.open = true
+    await ElementFixture.tick()
+    button(host, "todo").click()
+    await settle()
+    expect([routes.inbox.marks.q1, host.open]).toEqual([undefined, true])
+    // Do Now pressed again while it runs:  called off
+    button(host, "details").click()
+    await settle()
+    host.open = true
+    await ElementFixture.tick()
+    button(host, "details").click()
+    await settle()
+    expect(host.open).toBe(true)
+  })
+
+  test("folding keeps its STUCK line where it is on screen;  the details fold away below it", async () => {
+    await adoptClient()
+    const host = await render(`<div><epic-item id="j4" title="A long call" status="open" open>
+      <p style="height: 3000px">Long text</p></epic-item><div style="height: 4000px"></div></div>`)
+    const item = host.querySelector("epic-item")!
+    const line = () => item.shadowRoot!.querySelector<HTMLElement>("[part~='line']")!
+    window.scrollTo({ top: item.getBoundingClientRect().top + window.scrollY + 1500, behavior: "instant" })
+    await ElementFixture.tick()
+    const stuckAt = line().getBoundingClientRect().top
+    // stuck:  the item's top is far above the window
+    expect(item.getBoundingClientRect().top).toBeLessThan(stuckAt - 1000)
+    button(item, "approve").click()
+    await settle()
+    expect((item as Element & { open: boolean }).open).toBe(false)
+    expect(Math.abs(line().getBoundingClientRect().top - stuckAt)).toBeLessThan(2)
+    window.scrollTo({ top: 0, behavior: "instant" })
   })
 })
 

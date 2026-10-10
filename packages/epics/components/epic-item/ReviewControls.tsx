@@ -54,6 +54,8 @@ import type { ReviewState } from "./ReviewState"
  *   (`data-busy`);  queued with nobody listening, it stays dashed.  Clicked then:  "nevermind"
  * - Revisit asks the element to take the reader to the note box (`onOpenBox`);
  *   Do Now takes the note in it along (`ReviewClient.press()`)
+ * - a click that CHOSE an action (not one that cleared a mark or called a request off) tells the element
+ *   (`onChosen`):  an item folds, so Owen moves on to the next (Owen, 2026-10-10)
  * - tooltips:  the plain browser ones (`title`), just the name (Q8), then the element's review label
  *   (`Approve · reviewed 10/7/26`:  Owen, 2026-10-07, in place of the label beside them);
  *   a screen reader hears the state too
@@ -110,7 +112,9 @@ export function ReviewButtons(props: ReviewButtonsProps) {
           // the line's own click would fold it
           event.preventDefault()
           event.stopPropagation()
-          if (props.review.press(spec.action) === "open-box") props.onOpenBox()
+          const pressed = props.review.press(spec.action)
+          if (pressed === "open-box") props.onOpenBox()
+          else if (pressed === "chosen") props.onChosen?.()
         }}
       />
     )
@@ -175,6 +179,8 @@ export type ReviewButtonsProps = {
   part: string
   /** Revisit was pressed:  take the reader to the note box */
   onOpenBox: () => void
+  /** a button chose an action for it (Approve, Make Todo, Do Now, a todo's plane or x);  none:  nothing more */
+  onChosen?: () => void
 }
 
 /****************
@@ -340,7 +346,7 @@ export type NoteBoxProps = {
   ref?: (note: HTMLTextAreaElement) => void
   /** Escape pressed in it */
   onEscape?: () => void
-  /** a button made the note a mark */
+  /** a button made the note a mark:  an action chosen */
   onUsed?: () => void
 }
 
