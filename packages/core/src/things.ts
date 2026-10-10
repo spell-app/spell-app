@@ -6,6 +6,7 @@
  * - Plus the program's top-level things, by name -- see `setTopLevel()` -- so a plain list the program keeps,
  *   e.g. `all_piles`, shows too.
  * - And the heading each was made under, as the program ran -- see `heading()`.
+ * - And the program's classes, by name, e.g. for `spellCore.fromJSON()` -- see `classNamed()`.
  */
 import { Cell } from "$/util"
 
@@ -54,6 +55,9 @@ export class ThingRegistry {
   /** Top-level things, by name -- see `setTopLevel()`. */
   private exports: Record<string, unknown> = {}
 
+  /** The program's classes, by name -- see `classNamed()`. */
+  private classes = new Map<string, ThingClass>()
+
   /** Is a `version` bump waiting for its microtask? */
   private changePending = false
 
@@ -77,8 +81,10 @@ export class ThingRegistry {
    * - NOTE: a `start test` with no `end test` runs till the next test starts, or the program ends -- so
    *   nothing made after it shows.
    * - Nor does anything made `quietly()`, e.g. while the explorer reads a value, or a collection helper's result.
+   * - Its CLASS always counts, though:  see `addClass()`.
    */
   add(thing: ThingLike): void {
+    this.addClass(thing.constructor as ThingClass)
     if (this.quiet || spellCore.ACTIVE_TEST || thing.constructor === List || this.numbers.has(thing)) return
     const number = ++this.lastNumber
     this.entries.set(number, new WeakRef(thing))
@@ -98,6 +104,7 @@ export class ThingRegistry {
    */
   setTopLevel(exports: Record<string, unknown>): void {
     this.exports = exports
+    this.addClasses(exports)
     // its top level's done:  what's made from now on, e.g. by a click, is under no heading
     this.currentHeading = undefined
     this.changed()
@@ -115,7 +122,51 @@ export class ThingRegistry {
     this.currentHeading = undefined
     this.lastNumber = 0
     this.exports = {}
+    this.classes.clear()
     this.changed()
+  }
+
+  ////////////////
+  // ## The program's classes
+  //  Found by name, e.g. to read a thing's JSON back as its class:  `spellCore.fromJSON()` (`json.ts`).
+  ////////////////
+
+  /**
+   * Remember `Class`, and each class it extends, by name -- for `classNamed()`.
+   * - Down to, NOT including, spell's own:  `Thing`, `List`, `App` are always known.
+   * - Called for each thing made (`add()`), so a class shows once one of its things is made;  and for each class
+   *   the program and the projects it imports export (`addClasses()`), so one shows before that.
+   * - A later class of the same name wins, e.g. the next run's `Card`.  `@thing`'s wrapper keeps the name of the class
+   *   it wraps:  the wrapper wins, as it's what the program makes.
+   * - Not a `Thing` or `List` class, e.g. a plain one:  ignored.
+   */
+  addClass(Class: ThingClass): void {
+    if (this.classes.get(Class.name) === Class) return
+    const named = new Set<string>()
+    for (let at = Class; isProgramClass(at); at = Object.getPrototypeOf(at) as ThingClass) {
+      if (named.has(at.name)) continue
+      named.add(at.name)
+      this.classes.set(at.name, at)
+    }
+  }
+
+  /**
+   * Remember each `Thing` or `List` class in `namespace`, e.g. a program's module, or a project's it imports.
+   * - What isn't one, e.g. a function, a thing, is ignored.  See `addClass()`.
+   */
+  addClasses(namespace: Record<string, unknown>): void {
+    for (const value of Object.values(namespace)) {
+      if (isProgramClass(value)) this.addClass(value)
+    }
+  }
+
+  /**
+   * The program's class named `name`, e.g. `Card`, else spell's own, e.g. `List` -- `undefined` if none.
+   * - Only the classes `addClass()` has seen:  a program's are, once it's run or made one of their things.
+   * - Exact:  `card` isn't `Card`.
+   */
+  classNamed(name: string): ThingClass | undefined {
+    return this.classes.get(name) ?? BUILT_IN_CLASSES.find((Class) => Class.name === name)
   }
 
   /**
@@ -359,8 +410,18 @@ export class ThingRegistry {
 /** Prototypes of the built-in types a program's types extend -- where `propertiesOf()` stops. */
 const BASE_PROTOTYPES: object[] = [Thing.prototype, List.prototype, App.prototype]
 
+/** The built-in classes a program's classes extend -- see `classNamed()`. */
+const BUILT_IN_CLASSES: ThingClass[] = [Thing, List, App]
+
 /** Names of the built-in types a program's types extend, e.g. `Thing` -- see `bySuperType()`. */
-const BUILT_IN_TYPES = [Thing.name, List.name, App.name]
+const BUILT_IN_TYPES = BUILT_IN_CLASSES.map((Class) => Class.name)
+
+/** Is `value` a class of the program's own:  a named sub-class of `Thing` or `List`, NOT one of those? */
+function isProgramClass(value: unknown): value is ThingClass {
+  if (typeof value !== "function" || !value.name || BUILT_IN_CLASSES.includes(value as ThingClass)) return false
+  const { prototype } = value as { prototype?: unknown }
+  return prototype instanceof Thing || prototype instanceof List
+}
 
 /**
  * Name to show action method `name` by:  its words, and `(name)` for each argument, e.g.
@@ -380,6 +441,9 @@ function isBuiltIn(name: string): boolean {
 
 /** A thing the registry holds:  a `Thing`, or a `List`. */
 export type ThingLike = Thing | List
+
+/** A class of things:  `Thing`, `List`, `App`, or one a program declares, e.g. `Card`. */
+export type ThingClass = new (props?: Record<string, unknown>) => ThingLike
 
 /** Things of one type, as `ThingRegistry.byType()` answers them. */
 export type ThingsOfType = {

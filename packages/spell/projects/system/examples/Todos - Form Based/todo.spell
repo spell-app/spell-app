@@ -46,7 +46,7 @@ to draw (a todos-app)
 					</ui-menu>
 				</ui-menu>
 				<ui-form debug value={the app}>
-					<ui-repeat name="shownTasks">
+					<ui-repeat items={the shownTasks of the app}>
 						<ui-fields>
 							<ui-field width="1"><ui-checkbox name="completed" aria-label="Done"/></ui-field>
 							<ui-field width="10"><ui-input name="title" aria-label="Task"/></ui-field>

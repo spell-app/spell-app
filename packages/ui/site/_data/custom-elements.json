@@ -6394,14 +6394,23 @@
           "attributes": [
             {
               "name": "name",
-              "description": "The list to repeat over:  this property of the scope -- the `<ui-form>`'s `value`, or the item of the `<ui-repeat>` row around it.  Any iterable (an array, a `Set` ...).",
+              "description": "The list to repeat over, by name:  this property of the scope -- the `<ui-form>`'s `value`, or the item of the `<ui-repeat>` row around it.  Any iterable (an array, a `Set` ...).",
               "type": {
                 "text": "string"
               },
               "fieldName": "name"
             }
           ],
-          "members": [],
+          "members": [
+            {
+              "kind": "field",
+              "name": "items",
+              "description": "The list to repeat over, given as a property:  any iterable (an array, a `Set`, spell's `List`), followed as it changes.  Set, it wins over `name`.  A JS property (rich data), not an attribute.",
+              "type": {
+                "text": "unknown"
+              }
+            }
+          ],
           "events": [],
           "slots": [
             {

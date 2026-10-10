@@ -107,6 +107,16 @@ class Table extends Thing {
   }
 }
 
+/** `a named-deck is a deck` + `a named-deck has a name as text`:  a list with a prop of its own. */
+class NamedDeck extends Deck {
+  get name(): string {
+    return this.getProp("name")
+  }
+  set name(value: string) {
+    this.setProp("name", value)
+  }
+}
+
 /** A card ranked `rank`. */
 function ranked(rank: string): RankedCard {
   return new RankedCard({ rank })
@@ -349,25 +359,54 @@ describe("guards:  only a move asks them", () => {
   })
 })
 
-describe("JSON", () => {
-  test("a list is its items:  a thing holding one shows each item by its own JSON (output-targets V14)", () => {
-    const deck = new Deck({})
+describe("JSON (output-targets Q49)", () => {
+  test('a list is its `"@type"`, its own props, then its items:  each item by its own JSON', () => {
+    const deck = new NamedDeck({ name: "spare" })
     deck.add(ranked("A"), ranked("K"))
     const table = new Table({ name: "table", deck })
-    expect(JSON.parse(JSON.stringify(table))).toEqual({ name: "table", deck: [{ rank: "A" }, { rank: "K" }] })
+    expect(JSON.stringify(table)).toBe(
+      '{"@type":"Table","name":"table","deck":{"@type":"NamedDeck","name":"spare","items":[' +
+        '{"@type":"RankedCard","rank":"A"},{"@type":"RankedCard","rank":"K"}]}}'
+    )
   })
 
-  test("tracked:  a reader of the JSON re-runs when an item comes or goes", () => {
-    const deck = new Deck({})
+  test('a plain list, and a scratch one:  `"@type"` and its items', () => {
+    expect(JSON.parse(JSON.stringify(new List().append(1, 2)))).toEqual({ "@type": "List", items: [1, 2] })
+    const pile = new Pile({}).append(ranked("A"), ranked("K"))
+    expect(JSON.parse(JSON.stringify(pile.filter((card) => (card as RankedCard).rank === "K")))).toEqual({
+      "@type": "Pile",
+      items: [{ "@type": "RankedCard", rank: "K" }]
+    })
+  })
+
+  test('neither `"@type"` nor `"items"` is a prop:  `keys()` lists only its own', () => {
+    const deck = new NamedDeck({ name: "spare" }).append(ranked("A"))
+    JSON.stringify(deck)
+    expect(deck.keys()).toEqual(["name"])
+  })
+
+  test("tracked:  a reader of the JSON re-runs when an item comes or goes, or a prop changes", () => {
+    const deck = new NamedDeck({ name: "spare" })
     deck.add(ranked("A"))
     const seen: string[] = []
     const stop = observe(() => {
-      seen.push(JSON.stringify(deck))
+      seen.push(JSON.stringify(deck.toJSON().items))
     })
     deck.add(ranked("K"))
     deck.removeItem(1)
     stop()
-    expect(seen).toEqual(['[{"rank":"A"}]', '[{"rank":"A"},{"rank":"K"}]', '[{"rank":"K"}]'])
+    expect(seen).toEqual([
+      '[{"@type":"RankedCard","rank":"A"}]',
+      '[{"@type":"RankedCard","rank":"A"},{"@type":"RankedCard","rank":"K"}]',
+      '[{"@type":"RankedCard","rank":"K"}]'
+    ])
+    const names: string[] = []
+    const stopNames = observe(() => {
+      names.push(String(deck.toJSON().name))
+    })
+    deck.name = "kept"
+    stopNames()
+    expect(names).toEqual(["spare", "kept"])
   })
 })
 

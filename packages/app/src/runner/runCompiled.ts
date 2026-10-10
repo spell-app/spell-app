@@ -17,7 +17,7 @@ import { spellCore, SPELL_CORE_MODULE } from "$/core"
  * - Each project it imports comes from `options.loadImport()`, linked onto its own `blob:` URL -- once per run,
  *   however many import it, deepest first.  Without `loadImport`, a project which imports another won't run.
  * - SIDE EFFECT:  hands its top-level things to `spellCore.things`, for the Thing Explorer -- NOT those of
- *   the projects it imports.
+ *   the projects it imports.  Its classes AND theirs too, so `spellCore.fromJSON()` finds them by name.
  * - Answers the error message if it threw, else `undefined`.
  */
 export async function runCompiled(compiled: string, options: RunCompiledOptions): Promise<string | undefined> {
@@ -38,6 +38,12 @@ export async function runCompiled(compiled: string, options: RunCompiledOptions)
     // `await` in its argument would end up in a function that isn't `async` -- a syntax error in the bundle
     const url = await link(compiled, [])
     const program = (await import(/* @vite-ignore */ url)) as Record<string, unknown>
+    // the classes of each project it imports, e.g. Solitaire's `Card`, for `spellCore.fromJSON()`:  the program
+    // imported them already, so this runs nothing again
+    for (const projectUrl of linked.values()) {
+      const project = await projectUrl
+      spellCore.things.addClasses((await import(/* @vite-ignore */ project)) as Record<string, unknown>)
+    }
     spellCore.things.setTopLevel(program)
     return undefined
   } catch (error) {

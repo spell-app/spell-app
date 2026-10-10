@@ -9,10 +9,11 @@ import formCSS from "./UIForm.css?inline"
 
 /****************
  * ### `UIRepeat`
- * The component behind `<ui-repeat name>`:  its children once per item of a list,
+ * The component behind `<ui-repeat items>` / `<ui-repeat name>`:  its children once per item of a list,
  * e.g. a row of fields per task in a `<ui-form value>` bound to a to-do list.
  *
- * - The list:  `scope[name]`, where the scope is the item of the `<ui-repeat>` row around it,
+ * - The list:  its `items` property, when set (`<ui-repeat items={the shown tasks of the app}>` in spell);
+ *   else `scope[name]`, where the scope is the item of the `<ui-repeat>` row around it,
  *   else the `<ui-form>`'s `value` (`FormBinding.scopeAround()`).
  *   - any iterable:  an array, a `Set`, an object with `[Symbol.iterator]` (spell's `List`)
  *   - read inside a Solid computation, so the rows follow the list as it changes:
@@ -97,14 +98,21 @@ export class UIRepeat extends E.UIComponent<typeof repeatVocabulary> {
   ////////////////
 
   /**
-   * The items shown:  `scope[name]` as a list;  `[]` while it's none, or before the template is taken.
-   * - Tracked:  reading the scope and the list (and iterating it) inside the effect follows their changes.
+   * The items shown:  `items`, else `scope[name]`, as a list;  `[]` while it's none, or before the template is taken.
+   * - Tracked:  reading the property, the scope and the list (and iterating it) inside the effect follows their
+   *   changes.
    */
-  get items(): readonly unknown[] {
-    if (!this.isConnected || !this.templateVersion || !this.name) return []
-    const scope = FormBinding.scopeAround(this.domElement)
-    const list = FormBinding.isObject(scope) ? scope[this.name] : undefined
+  get shownItems(): readonly unknown[] {
+    if (!this.isConnected || !this.templateVersion) return []
+    const list = this.items ?? this.listByName()
     return UIRepeat.isIterable(list) ? [...list] : []
+  }
+
+  /** `scope[name]`:  the list `name` names, in the scope around the repeat. */
+  private listByName(): unknown {
+    if (!this.name) return undefined
+    const scope = FormBinding.scopeAround(this.domElement)
+    return FormBinding.isObject(scope) ? scope[this.name] : undefined
   }
 
   /** Rows shown, in list order. */
@@ -114,7 +122,7 @@ export class UIRepeat extends E.UIComponent<typeof repeatVocabulary> {
   private readonly rowOf = new WeakMap<Node, Row>()
 
   /** The list changed:  show a row per item, keeping each item's row. */
-  @E.onChange("items")
+  @E.onChange("shownItems")
   protected onItemsChanged(items: readonly unknown[]) {
     const { template } = this
     if (!template) return

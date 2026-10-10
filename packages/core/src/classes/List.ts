@@ -3,7 +3,7 @@
  */
 import _ from "lodash"
 
-import { Cell, isTrackingCells, Observable, runsCreate, type PropInfo } from "$/util"
+import { Cell, isTrackingCells, Observable, runsCreate, typedJSON, type PropInfo } from "$/util"
 import { spellCore } from "$/core/core"
 import type { CollectionIterationCallback } from "$/core/collection-other"
 import type { Drawing } from "$/core/drawing"
@@ -564,12 +564,15 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * Our items, as JSON shows a list:  `JSON.stringify(todosApp)` shows its tasks, each by its own `toJSON()`.
-   * - Props a list sub-class declares for itself aren't in it:  a list IS its items here, as an array is.
-   * - Tracked:  a reader re-runs when the items change (and, through each item's `toJSON()`, when they do).
+   * Our JSON:  our class's name as `"@type"`, our own props, then our items under `"items"`, each by its own JSON --
+   * `{ "@type": "Pile", "name": "stock", "items": [{ "@type": "Card", ... }] }` (epic `output-targets`, Q49).
+   * - A plain `List`, with no props:  `{ "@type": "List", "items": [...] }`.  A scratch list too.
+   * - So it reads back as what it was:  `spellCore.fromJSON()` (`json.ts`).
+   * - `"items"` can't collide with a prop:  it's our own `items` accessor's name.
+   * - Tracked:  a reader re-runs when a prop or the items change (and, through each item's `toJSON()`, when they do).
    */
-  toJSON(): T[] {
-    return this.items
+  toJSON(): Record<string, unknown> {
+    return { ...typedJSON(this), items: this.items }
   }
 
   /**
