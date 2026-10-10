@@ -141,12 +141,38 @@
  * - Unlayered CSS beats every layer,
  *   so a component's own `:host { display: ... }` (in `ui.components`) can't keep a hidden element showing.
  * - A page's own rules still win (the outer tree).
- * - `hidden`:  the platform's;  the browser's `[hidden] { display: none }` loses to any `:host` rule
- * - `:state(hidden)`:  `visible="false"`, once its animation has run (`UIComponent`)
- * - `<ui-divider hidden>` is Fomantic's own word ("the spacing without the line"):  `UIDivider.css` keeps it showing,
- *   with an unlayered rule of its own, adopted after this one
+ * - `hidden`:  the platform's, which `visible="false"` writes too (`DOMElement`, "Shown or hidden");
+ *   the browser's own `[hidden] { display: none }` loses to any `:host` rule
+ * - `:state(hiding)`:  a hide is animating (`UIComponent`):  the element stays on screen until it ends
+ * - `hidden="until-found"` stays the browser's:  find-in-page can still reveal it
  */
-:host([hidden]),
-:host(:state(hidden)) {
+:host([hidden]:not([hidden="until-found"], :state(hiding))) {
   display: none;
+}
+
+/*
+ * Motion off:  `animation="none"` turns it off for the element and everything inside it,
+ * through a custom property every element below inherits (shadow roots included).
+ * - `UIComponent.animationToRun` reads it;  `<ui-root animation="none">` turns off a whole page.
+ * - Unlayered, as the hiding above:  a component's own rules can't turn motion back on.
+ */
+:host([animation="none"]) {
+  --ui-motion: none;
+}
+
+/*
+ * `--ui-motion: none` from around an element also stills its own CSS motion (an overlay's transition ...),
+ * as reduced motion does (`@layer ui.reset`, above), with the same exemption:  loaders keep spinning.
+ * - A style query:  where a browser has none, the element's own CSS motion runs, and showing and hiding
+ *   (`UIComponent`) still honour the switch.
+ */
+@container style(--ui-motion: none) {
+  :host :not(.loader, .loading, [data-ui-motion="essential"]),
+  :host :not(.loader, .loading, [data-ui-motion="essential"])::before,
+  :host :not(.loader, .loading, [data-ui-motion="essential"])::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

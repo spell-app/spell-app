@@ -124,7 +124,7 @@ export class HotDefinitions {
    */
   static changeOf(TagClass: E.DOMElementClass, Base: E.DOMElementBaseClass, next: E.TagSetup): string | undefined {
     const before = TagClass.observedAttributes
-    const after = next.elementDefinition.attributes.map(({ attribute }) => attribute)
+    const after = E.DOMElement.observedAttributesFor(next.elementDefinition)
     const added = after.filter((name) => !before.includes(name))
     const removed = before.filter((name) => !after.includes(name))
     if (added.length || removed.length) {
@@ -230,7 +230,10 @@ export class HotDefinitions {
     for (const attribute of next.attributes) {
       const isKnown = previous.attributes.some(({ key }) => key === attribute.key)
       const source = isKnown ? sources[attribute.key] : undefined
-      if (source === "property") kept[attribute.key] = values[attribute.key]
+      // shown or hidden:  the `hidden` attribute holds it (`DOMElement`, "Shown or hidden")
+      if (attribute.key === "visible" && next.takesShared("visible")) {
+        kept[attribute.key] = !domElement.hasAttribute("hidden")
+      } else if (source === "property") kept[attribute.key] = values[attribute.key]
       else if (source === "attribute") {
         kept[attribute.key] = next.convert(attribute, domElement.getAttribute(attribute.attribute))
       } else kept[attribute.key] = next.startingValue(attribute)

@@ -56,7 +56,7 @@ export class Transitions {
    */
   animate({ element, name, direction, ...options }: AnimateParams): Promise<boolean> {
     this.running.get(element)?.finish(false)
-    if (direction === UIT.IN) this.show(element)
+    if (direction === UIT.IN) this.reveal(element)
     if (this.browser.isReducedMotion) {
       element.removeAttribute(ANIMATION_ATTRIBUTE)
       if (direction === UIT.OUT) this.hide(element)
@@ -115,8 +115,11 @@ export class Transitions {
   // ## Internals
   ////////////////
 
-  /** Undo a previous `out`. */
-  private show(element: HTMLElement) {
+  /**
+   * Undo a previous `out` at once, with no animation:  `element` shows again.
+   * - What an `in` does first;  `UIComponent` calls it to show an element with motion off.
+   */
+  reveal(element: HTMLElement) {
     element.hidden = false
     if (element.hasAttribute(this.forcedDisplayAttribute)) {
       element.style.removeProperty("display")
