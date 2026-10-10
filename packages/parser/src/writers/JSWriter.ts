@@ -9,6 +9,7 @@ import {
   LOOSE_CORE_CALL,
   PROJECT_IMPORT,
   alike,
+  attributeName,
   isCoreCall,
   isKnownType,
   isNumber,
@@ -23,19 +24,23 @@ import { WriterProject, camelCaseOf, forEachNode, type ProgramPlace } from "./Wr
 
 /****************
  * ### `JSWriter`
- * Writes a spell tree as JavaScript:  the `js/solid` target's writer, what `ASTNode.compile()` calls -- and the base
- * of `P.TSWriter`, which writes TypeScript on the same runtime.
- * - ONE method per kind of node, named for its class -- see `P.Writer`.  Write children with `this.write()`.
+ * Writes a spell tree as JavaScript:  the `js/solid` target's writer, what `ASTNode.compile()` calls.
+ * - It's also the base of `P.TSWriter`, which writes TypeScript on the same runtime.
+ * - ONE method per kind of node, named for its class -- see `P.Writer`.
+ *   Write children with `this.write()`.
  * - Writes what a person writing javascript would, where spell's tree says enough (epic `output-targets`, P19):
  *   - names as javascript writes them, `card.turnFaceUp()` -- see `nameOf()`
  *   - a spell `List`'s own methods, `stock.lastItem`, `deck.filter(...)`;  a loop that waits as `for...of`
  *   - `===` where both sides are known and alike, `=== undefined` for nothing, a yes / no tested bare
  *   - `@spell/core`'s `on()`, `trigger()`, `positionOf()` imported by name;  text built with `+` as template text
+ *   - each element drawn with Solid's own `h()` (P20):  `h("span", { class: "suit" }, () => this.shortSuit)`
  *   - Plain javascript only:  it runs as is, no build step -- so no JSX, decorators or types, which are TypeScript's
- *   - Those need to know what a value is:  `kindOf()`, from what the whole project says (`forProject()`, a
- *     `WriterProject`).  Shared with the TypeScript writer, so both say the same things the same way.
- * - The rest is as spell's own `compile()` methods wrote it, before they moved here (P2):  its parentheses, `let`,
- *   braces and quotes.  TypeScript's tidying is its own:  see `P.TSWriter`.
+ *   - Those need to know what a value is:
+ *     `kindOf()`, from what the whole project says (`forProject()`, a `WriterProject`).
+ *     Shared with the TypeScript writer, so both say the same things the same way.
+ * - The rest is as spell's own `compile()` methods wrote it, before they moved here (P2):
+ *   its parentheses, `let`, braces and quotes.
+ *   TypeScript's tidying is its own:  see `P.TSWriter`.
  * - `JSWriter.instance` is the one `ASTNode.compile()` uses:  it knows no project.
  ****************/
 export class JSWriter extends Writer {
@@ -63,7 +68,10 @@ export class JSWriter extends Writer {
     this.project = project
   }
 
-  /** A writer of our class for the project whose files' statements are `files`, parsed in `scope`:  see `WriterProject`. */
+  /**
+   * A writer of our class for the project whose files' statements are `files`, parsed in `scope`:
+   * see `WriterProject`.
+   */
   forProject(files: P.ASTNode[][], scope?: P.Scope): this {
     const Class = this.constructor as new (project: WriterProject) => this
     return new Class(WriterProject.of(files, scope))
@@ -72,8 +80,8 @@ export class JSWriter extends Writer {
   /**
    * `match`'s code, a file's, a statement's or a rule test's, written as if it were the whole project, in its scope
    * (`forProject()`):  so a getter its project declares, or imports, is read by its member name, `card.isFaceUp`.
-   * - For code alone, e.g. the editor's view of one file, a hover, a rule test:  a project's is written whole, by
-   *   `SP.SpellProject.combineCompiled()`.
+   * - For code alone, e.g. the editor's view of one file, a hover, a rule test:
+   *   a project's is written whole, by `SP.SpellProject.combineCompiled()`.
    * - A rule with no tree compiles itself.
    */
   writeMatch(match: P.Match | undefined): unknown {
@@ -84,9 +92,11 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * The finished module:  `@spell/core`'s helpers the code calls by name added to its import (see `coreImportNames()`),
-   * and what it imports from another project by our names, e.g. `playFromTheStockPile`:  that project exports them
-   * so.  A class keeps its name, e.g. `Stock_Pile`.
+   * The finished module:
+   * - `@spell/core`'s helpers the code calls by name, added to its import (see `coreImportNames()`)
+   * - what it imports from another project, by our names, e.g. `playFromTheStockPile`:
+   *   that project exports them so
+   * - a class keeps its name, e.g. `Stock_Pile`
    */
   module(code: string): string {
     const names = this.coreImportNames(code)
@@ -109,7 +119,8 @@ export class JSWriter extends Writer {
 
   /** What `module()` adds to `code`'s `@spell/core` import:  the helpers it calls by name, e.g. `trigger`. */
   coreImportNames(code: string): string[] {
-    return [...this.coreImports]
+    // `h` first, beside the classes:  what draws, then the helpers
+    return [...this.coreImports].sort((a, b) => Number(b === "h") - Number(a === "h"))
   }
 
   ////////////////
@@ -117,11 +128,11 @@ export class JSWriter extends Writer {
   ////////////////
 
   /**
-   * How we write spell's `name`, e.g. `add_card_to_pile` -- each writer says how it writes names (epic
-   * `output-targets`, Q51):
+   * How we write spell's `name`, e.g. `add_card_to_pile`:
+   * each writer says how it writes names (epic `output-targets`, Q51).
    * - javascript (and TypeScript) write a method, getter, function or variable in camelCase:  `addCardToPile`
-   * - a stored property keeps spell's name, `is_set_up`:  `kind` is `"property"` -- its name is also what a saved
-   *   thing's JSON, `getProp()` and the Thing Explorer say
+   * - a stored property keeps spell's name, `is_set_up`, when `kind` is `"property"`:
+   *   its name is also what a saved thing's JSON, `getProp()` and the Thing Explorer say
    * - a later Python writer would keep spell's snake_case for all of them
    */
   nameOf(name: string, kind: "property" | "member" = "member"): string {
@@ -150,8 +161,8 @@ export class JSWriter extends Writer {
 
   /**
    * `(args)`, comma-delimited;  `wrap`:  one per line, default once there are more than 3.
-   * - When wrapped and the args themselves span lines, indents the whole list one more `INDENT` (a wrapped object
-   *   literal arg).
+   * - When wrapped and the args themselves span lines, indents the whole list one more `INDENT`
+   *   (a wrapped object literal arg).
    */
   args(args: Array<P.ASTNode | null | undefined> | undefined, wrap = (args?.length ?? 0) > 3): string {
     if (!args || args.length === 0) return jsText.EMPTY_PARENS
@@ -255,9 +266,9 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * `object.property` when a legal identifier, else `object['property']` -- by `memberName()`, a getter's
-   * `card.isFaceUp`, a property's `card.rank`.  `?.` off what may be nothing (see `mayBeNothing()`), never when it's
-   * being set.
+   * `object.property` when a legal identifier, else `object['property']`.
+   * - By `memberName()`:  a getter's `card.isFaceUp`, a property's `card.rank`.
+   * - `?.` off what may be nothing (see `mayBeNothing()`), never when it's being set.
    */
   ASTPropertyExpression(node: P.ASTPropertyExpression): string {
     const dot = !this.isSetting(node) && this.mayBeNothing(node.object) ? "?." : "."
@@ -365,9 +376,10 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * `node`, a chain of `+` with text in it, as template text:  `"Score: " + this.score` => `` `Score: ${this.score}` ``.
-   * - `undefined` when it isn't:  no text in the chain, or text only after two values (`a + b + "!"` adds `a` and `b`
-   *   first), or text with escapes in it.
+   * `node`, a chain of `+` with text in it, as template text:
+   * `"Score: " + this.score` => `` `Score: ${this.score}` ``.
+   * - `undefined` when it isn't:  no text in the chain,
+   *   or text only after two values (`a + b + "!"` adds `a` and `b` first), or text with escapes in it.
    */
   templateText(node: P.ASTInfixExpression): string | undefined {
     const parts: P.ASTExpression[] = []
@@ -389,8 +401,9 @@ export class JSWriter extends Writer {
    * Spell's `is` / `is not` as a person writes it in javascript -- `undefined` to keep its forgiving `==`:
    * - a choice compared to yes or no:  bare, `pile.droppable`, `!pile.droppable` (Q39)
    * - nothing:  `=== undefined` / `!== undefined`, as spell's nothing is `undefined`
-   * - both sides' kinds known and alike (text, numbers, choices, one class):  `===` / `!==`, which then means the same
-   *   -- `this.operator === "+"`, `this.value === card.value + 1`.  Where they aren't, `"2"` is `2` in spell:  `==`.
+   * - both sides' kinds known and alike (text, numbers, choices, one class):
+   *   `===` / `!==`, which then means the same -- `this.operator === "+"`, `this.value === card.value + 1`
+   * - where they aren't, `"2"` is `2` in spell:  `==`
    */
   comparison(node: P.ASTInfixExpression): string | undefined {
     const { operator, lhs, rhs } = node
@@ -467,8 +480,8 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * `thing.method(args)`, by our name:  `card.moveToPile(endPile)` -- `?.` off what may be nothing, see
-   * `mayBeNothing()`.
+   * `thing.method(args)`, by our name:  `card.moveToPile(endPile)`.
+   * - `?.` off what may be nothing, see `mayBeNothing()`.
    * - A `spellCore` helper is written as javascript says it where it can:  see `coreCall()`.
    */
   ASTScopedMethodInvocation(node: P.ASTScopedMethodInvocation): string {
@@ -490,8 +503,8 @@ export class JSWriter extends Writer {
   ////////////////
 
   /**
-   * A `spellCore` helper as javascript says it, where it can -- `undefined` where it can't, for
-   * `spellCore.<name>()`:
+   * A `spellCore` helper as javascript says it, where it can:
+   * `undefined` where it can't, for `spellCore.<name>()`.
    * - `is defined`:  `x !== undefined`
    * - text spell knows is text:  `!this.right`, `this.input.includes(".")`, `x.toLocaleUpperCase()`
    * - a list written out:  `["diamonds", "hearts"].includes(this.suit)`
@@ -559,8 +572,9 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * One of spell's `List`s doing it itself, as its own method:  `allPiles.filter((pile) => ...)`,
-   * `droppablePiles.firstItem`, `startPile.startingWith(this)` ... -- `undefined` for a helper it has no method for.
+   * One of spell's `List`s doing it itself, as its own method:
+   * `allPiles.filter((pile) => ...)`, `droppablePiles.firstItem`, `startPile.startingWith(this)` ...
+   * - `undefined` for a helper it has no method for.
    * - Every position counts from 1, as spell's.
    * - Epic `output-targets` P14:  Q33, Q35, Q36;  in javascript too since P19.
    */
@@ -655,8 +669,8 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * An event, through `@spell/core`'s own `trigger()` / `on()`, imported:  `trigger("card-click", { card: this })`,
-   * `on("card-click", (event) => {...})`.
+   * An event, through `@spell/core`'s own `trigger()` / `on()`, imported:
+   * `trigger("card-click", { card: this })`, `on("card-click", (event) => {...})`.
    */
   eventCall(name: string, args: P.ASTExpression[]): string {
     this.coreImports.add(name)
@@ -695,10 +709,11 @@ export class JSWriter extends Writer {
   ////////////////
 
   /**
-   * What `node` is, as far as writing it goes:  `"text"`, `"number"`, `"choice"`, `"array"` (JavaScript's), `"list"`
-   * (spell's `List`), a class's name, e.g. `"Pile"` -- or `undefined` if the writer can't tell.
-   * - From where it came from:  a literal, `new Pile(...)`, `this` in a class, what a variable was set to, a
-   *   property's declared type, a `spellCore` helper's result -- else spell's own datatype for it.
+   * What `node` is, as far as writing it goes -- or `undefined` if the writer can't tell:
+   * `"text"`, `"number"`, `"choice"`, `"array"` (JavaScript's), `"list"` (spell's `List`),
+   * or a class's name, e.g. `"Pile"`.
+   * - From where it came from:  a literal, `new Pile(...)`, `this` in a class, what a variable was set to,
+   *   a property's declared type, a `spellCore` helper's result -- else spell's own datatype for it.
    * - Spell's `list` datatype is left out:  it's a `List` or a plain array, and only where it came from tells.
    */
   kindOf(node: P.ASTExpression, depth = 0): string | undefined {
@@ -755,10 +770,12 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * What property `node` holds, as `kindOf()` says it, from its `check`:  `{ type: 'text' }` => `"text"`;  a list of
-   * values hoisted as a typed constant => its type, e.g. `"Rank"` (`WriterProject.lists`).  Else from its
-   * initializer:  the class it makes, its datatype -- else what the program gives it (`givenKind()`).
-   * - `undefined` for a list, or what can't be told.
+   * What property `node` holds, as `kindOf()` says it -- `undefined` for a list, or what can't be told.
+   * - From its `check`:
+   *   - `{ type: 'text' }` => `"text"`
+   *   - a list of values hoisted as a typed constant => its type, e.g. `"Rank"` (`WriterProject.lists`)
+   * - Else from its initializer:  the class it makes, its datatype.
+   * - Else what the program gives it (`givenKind()`).
    */
   propertyKind(node: P.ASTReactiveProperty): string | undefined {
     for (const property of node.check?.properties ?? []) {
@@ -779,7 +796,10 @@ export class JSWriter extends Writer {
     return kindOfType(this.givenKind(node.typeName, node.property.value, node.initializer))
   }
 
-  /** What a value class `owner` gets for TypeScript only is (`WriterProject.undeclared`), e.g. `droppable`:  a choice. */
+  /**
+   * What a value class `owner` gets for TypeScript only is (`WriterProject.undeclared`),
+   * e.g. `droppable`:  a choice.
+   */
   private undeclaredKind(owner: string | undefined, name: string): string | undefined {
     for (let type = owner; type; type = this.project.superTypes.get(type)) {
       const found = this.project.undeclared.get(type)?.some((it) => it.name === name && it.isValue)
@@ -793,7 +813,8 @@ export class JSWriter extends Writer {
    * alike, e.g. `"text"` for a pile's `name`, given `"stock"`, `"discards"` ... (Q54)
    * - `undefined` when they differ, when any can't be told, or when nothing is given.
    * - Given when one is made, `a new stock-pile with name = "stock"`, or set on one, `set the name of the pile to ...`
-   *   -- see `WriterProject.givenValues`.  Set on something the writer can't tell is one:  it doesn't count.
+   *   -- see `WriterProject.givenValues`.
+   *   Set on something the writer can't tell is one:  it doesn't count.
    * - And `initial`, a property's initial value, if it has one.
    * - A value read off the same member, `set the name of a to the name of b`, says nothing new:  it doesn't count.
    */
@@ -823,8 +844,8 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * What every class's definition of a method returns, when all alike, e.g. `"choice"` for each pile's
-   * `can_play_$card` (Q54) -- `undefined` when they differ, or any can't be told.
+   * What every class's definition of a method returns, when all alike,
+   * e.g. `"choice"` for each pile's `can_play_$card` (Q54) -- `undefined` when they differ, or any can't be told.
    * - Spell's own datatype for a definition, if it knows it;  else what its `return`s give, `returnedKind()`.
    */
   definitionsKind(definitions: Array<{ type: string; method: P.ASTMethodDefinition }>): string | undefined {
@@ -837,10 +858,10 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * What `method` returns, when every `return` in it gives a value, and all alike:  `return card === this.lastItem` and
-   * `return false` are choices -- `undefined` otherwise.
-   * - Not one that waits (it returns a promise), nor one that may end without a `return`:  its last statement isn't
-   *   one.
+   * What `method` returns, when every `return` in it gives a value, and all alike -- `undefined` otherwise.
+   * - `return card === this.lastItem` and `return false` are choices.
+   * - Not one that waits (it returns a promise),
+   *   nor one that may end without a `return`:  its last statement isn't one.
    * - Its new variables are known by what they're set to;  a `return` in a function inside it isn't its own.
    */
   private returnedKind(method: P.ASTMethodDefinition): string | undefined {
@@ -861,8 +882,9 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * `work()`, as if writing what's at `where`:  `this` is its class, and the parameters of the methods it's inside are
-   * known.  Nothing else written so far is.
+   * `work()`, as if writing what's at `where`:
+   * `this` is its class, and the parameters of the methods it's inside are known.
+   * Nothing else written so far is.
    */
   protected inPlace<T>(where: ProgramPlace, work: () => T): T {
     const { currentClass, locals } = this
@@ -892,8 +914,8 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * What getter `name` of class `owner` gives, from what it returns:  the kind ALL its returns share, e.g. `"text"`
-   * for a card's `color` (`"red"` or `"black"`) -- `undefined` if they differ, or any can't tell.
+   * What getter `name` of class `owner` gives, from what it returns:  the kind ALL its returns share,
+   * e.g. `"text"` for a card's `color` (`"red"` or `"black"`) -- `undefined` if they differ, or any can't tell.
    */
   private getterKind(owner: string | undefined, name: string, depth: number): string | undefined {
     const getter = this.project.getterOf(owner, name)
@@ -957,8 +979,8 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * `part`'s text, if it's text written out:  escaped for back ticks;  `ESCAPED` if it has escapes of its own, which
-   * would change meaning.
+   * `part`'s text, if it's text written out:  escaped for back ticks.
+   * - `ESCAPED` if it has escapes of its own, which would change meaning.
    */
   textOf(part: P.ASTExpression): string | undefined {
     const inner = unwrapped(part)
@@ -999,8 +1021,8 @@ export class JSWriter extends Writer {
   /**
    * `function name(args) {...}`, `(args) => {...}`, or as an object property `name(args) {...}` /
    * `name: (args) => {...}` -- `async` when it awaits, `export` when `exported`.
-   * - Its parameters are its body's own, so what they are is known (`kindOf()`);  a bare `return` in it is its own,
-   *   even in a loop's body.
+   * - Its parameters are its body's own, so what they are is known (`kindOf()`).
+   * - A bare `return` in it is its own, even in a loop's body.
    * - SIDE EFFECT:  `console.warn`s if `asProperty` is set but `methodName` is missing.
    */
   ASTMethodDefinition(node: P.ASTMethodDefinition): string {
@@ -1055,9 +1077,9 @@ export class JSWriter extends Writer {
 
   /**
    * `method`'s parameters, in parens:  `(card, pile = stock)`.
-   * - `thisType`:  the class `this` is, when it's written outside it, e.g. `Card` for
-   *   `Card.prototype.play = function () {...}`.  Javascript has nothing to say about it;  a typed target does --
-   *   see `TSWriter`.
+   * - `thisType`:  the class `this` is, when it's written outside it,
+   *   e.g. `Card` for `Card.prototype.play = function () {...}`.
+   *   Javascript has nothing to say about it;  a typed target does -- see `TSWriter`.
    */
   params(method: P.ASTMethodDefinition, thisType?: string): string {
     return this.args(method.args)
@@ -1088,8 +1110,8 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * `prop: value`;  with no `value`, the variable of its name:  shorthand `{ card }` when we name the variable as the
-   * key, else `{ start_pile: startPile }`.
+   * `prop: value`;  with no `value`, the variable of its name:
+   * shorthand `{ card }` when we name the variable as the key, else `{ start_pile: startPile }`.
    */
   ASTObjectLiteralProperty(node: P.ASTObjectLiteralProperty): string {
     const error = node.error ? ` ${this.write(node.error)}` : ""
@@ -1134,8 +1156,8 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * `true` only for a new variable at `ProjectScope` / `FileScope` whose name isn't in `EXPORT_BLACKLIST` -- by
-   * spell's own name:  `it_2` is never exported, whatever we call it.
+   * `true` only for a new variable at `ProjectScope` / `FileScope` whose name isn't in `EXPORT_BLACKLIST`.
+   * - By spell's own name:  `it_2` is never exported, whatever we call it.
    */
   isExported(node: P.ASTAssignmentStatement): boolean {
     if (!JSWriter.EXPORT_VARS || !node.isNewVariable) return false
@@ -1297,8 +1319,9 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * What its class's schema declares about `node` -- its `check`'s keys, plus `init` for its `initializer` -- e.g.
-   * `{ type: 'text' }`, `{ init: () => new List() }`.  `undefined` if nothing:  then it's undeclared.
+   * What its class's schema declares about `node`:  its `check`'s keys, plus `init` for its `initializer`.
+   * - E.g. `{ type: 'text' }`, `{ init: () => new List() }`.
+   * - `undefined` if nothing:  then it's undeclared.
    */
   declaration(node: P.ASTReactiveProperty): string | undefined {
     const parts = (node.check?.properties ?? []).map((property) => this.write(property))
@@ -1375,9 +1398,53 @@ export class JSWriter extends Writer {
   // ## JSX
   ////////////////
 
-  /** Its `output`, the `spellCore.element({...})` call it builds. */
+  /**
+   * A call to Solid's own `h()`, as a person drawing without JSX writes it (epic `output-targets`, P20):
+   * `h("span", { class: "suit" }, () => this.shortSuit)`.
+   * - `h` is imported from `@spell/core`, in a module that draws:  see `module()`.
+   * - Its props by the page's names, `class` first;  none, no `{}` -- see `jsxProps()`.
+   * - Its children after them:  on its line when they fit, else one a line.
+   * - A dotted tag, `<UI.Form>`, is a compile error (`P.ASTJSXElement.tagError()`):
+   *   written where the element would be, as a broken `{...}` is.
+   *   Spell's `jsxElement` rule reports it with the program's parse errors.
+   */
   ASTJSXElement(node: P.ASTJSXElement): string {
-    return this.write(node.output)
+    const tag = node.tagName
+    const tagError = P.ASTJSXElement.tagError(tag)
+    if (tagError) return `null ${this.write(new P.ASTParseError(node.match, { value: tagError }))}`
+    this.coreImports.add("h")
+    const props = this.jsxProps(node)
+    const head = `h(${JSON.stringify(tag)}${props ? `, ${props}` : ""}`
+    const children = node.childValues.map((child) => String(this.write(child)))
+    if (!children.length) return `${head})`
+    const inline = children.join(", ")
+    const lastLine = head.slice(head.lastIndexOf("\n") + 1)
+    const fits = !inline.includes("\n") && lastLine.length + inline.length < JSWriter.DRAWING_LINE
+    // more than one child, with an element among them:  one a line, as JSX reads
+    const isFlat = children.length === 1 || !node.childValues.some((child) => child instanceof P.ASTJSXElement)
+    if (fits && isFlat) return `${head}, ${inline})`
+    return `${head},\n${jsText.indented(children.join(",\n"))}\n)`
+  }
+
+  /**
+   * `node`'s props, `{ class: "suit", onClick: (event) => {...} }`, by the page's names (`attributeName()`):
+   * - `class` first, as the TypeScript writer writes it, so both targets draw the same (the core contract)
+   * - on one line when it fits, else one a line
+   * - `""` for none
+   */
+  protected jsxProps(node: P.ASTJSXElement): string {
+    const props = (node.attrs ?? [])
+      .map((attribute) => {
+        const value = attribute.propValue
+        const key = attributeName(node.tagName, attribute.name, value instanceof P.ASTJSXLiveValue)
+        const error = attribute.error ? ` ${this.write(attribute.error)}` : ""
+        return `${jsText.isLegalIdentifier(key) ? key : JSON.stringify(key)}: ${this.write(value)}${error}`
+      })
+      .sort((a, b) => Number(b.startsWith("class:")) - Number(a.startsWith("class:")))
+    if (!props.length) return ""
+    const inline = props.join(", ")
+    if (!inline.includes("\n") && inline.length < JSWriter.DRAWING_LINE) return `{ ${inline} }`
+    return `{\n${jsText.indented(props.join(",\n"))}\n}`
   }
 
   /** A function the drawing calls for the value:  `() => this.shortSuit`;  an object literal in parens. */
@@ -1391,8 +1458,9 @@ export class JSWriter extends Writer {
   ////////////////
 
   /**
-   * What each new variable of the blocks being written is set to, by spell's name:  one map per block, innermost
-   * last.  The first holds a file's own top level.  See `mayBeNothing()`.
+   * What each new variable of the blocks being written is set to, by spell's name -- see `mayBeNothing()`.
+   * - One map per block, innermost last.
+   * - The first holds a file's own top level.
    */
   protected locals: Array<Map<string, P.ASTExpression>> = [new Map()]
 
@@ -1413,8 +1481,9 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * SIDE EFFECT:  after a guard, `if (!spellCore.isDefined(endPile)) return false`, the value it checks is THERE for
-   * the rest of the block:  read off it with `.`, not `?.` -- see `mayBeNothing()`.
+   * SIDE EFFECT:  notes that after a guard, the value it checks is THERE for the rest of the block:
+   * read off it with `.`, not `?.` -- see `mayBeNothing()`.
+   * - A guard:  `if (!spellCore.isDefined(endPile)) return false`.
    */
   protected noteGuard(node: P.ASTIfStatement) {
     const condition = unwrapped(node.condition)
@@ -1443,9 +1512,11 @@ export class JSWriter extends Writer {
   }
 
   /**
-   * May `node` be nothing?  An item read from a list (`spellCore.getItemAt(pile, -1)`), what's read off one, or a
-   * variable set to one:  reading off it is written `?.`, so spell reads off nothing as nothing and never throws (epic
-   * `output-targets`, Q38).
+   * May `node` be nothing?
+   * - Yes for:  an item read from a list (`spellCore.getItemAt(pile, -1)`), what's read off one,
+   *   or a variable set to one.
+   * - Reading off it is written `?.`, so spell reads off nothing as nothing and never throws
+   *   (epic `output-targets`, Q38).
    */
   mayBeNothing(node: P.ASTExpression): boolean {
     const inner = unwrapped(node)
@@ -1492,8 +1563,8 @@ export class JSWriter extends Writer {
 
   /**
    * Javascript for each infix operator's meaning (`P.ASTOperator`).
-   * - `equals` is `==`, not `===`:  spell's `is` is forgiving, `"2"` is `2` -- unless both sides are alike, see
-   *   `comparison()`.
+   * - `equals` is `==`, not `===`:  spell's `is` is forgiving, `"2"` is `2`
+   *   -- unless both sides are alike, see `comparison()`.
    */
   static OPERATORS: Record<P.ASTOperator, string> = {
     and: "&&",
@@ -1511,6 +1582,9 @@ export class JSWriter extends Writer {
     times: "*",
     "divided by": "/"
   }
+
+  /** Longest `h()` call written on one line, its children included:  see `ASTJSXElement()`. */
+  static DRAWING_LINE = 100
 
   /** Should we `export` top-level vars?  Global toggle -- flip to `false` to disable entirely. */
   static EXPORT_VARS = true

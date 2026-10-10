@@ -5,8 +5,8 @@ import { SpellStatement } from "$/spell/rules/Statement"
 import { lists } from "./lists.parser"
 
 /**
- * `list_shuffle` rule:  shuffle (randomize) list in-place,
- * e.g. `shuffle my-list` => `spellCore.randomize(my_list)`.
+ * `list_shuffle` rule:  shuffle (randomize) list in-place:
+ * e.g. `shuffle my-list` => `spellCore.randomize(myList)`.
  */
 export class ListShuffle extends SpellStatement<"arg?|list"> {
   @proto static alias = "statement"

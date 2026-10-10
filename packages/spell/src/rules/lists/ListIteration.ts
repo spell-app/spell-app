@@ -6,13 +6,16 @@ import { lists } from "./lists.parser"
 import { type MethodBody, type ItemVariableData } from "./lists.shared"
 
 /**
- * `list_iteration` rule:  generic `for each` list iteration,
+ * `list_iteration` rule:  generic `for each` list iteration:
  * e.g. `for each card in deck:`, `for item, index in my-list:`.
  * - Optional `{position}` (`for item, index in ...`) adds a numeric index arg alongside `{item}`.
- * - Both a `statement` and an `expression` -- usable inline or as a block.
- * - Body runs as nested block or inline statement; `{item}`'s value is also aliased from `it`.
- * - Compiles to `spellCore.map(list, (item, position?) => { ... })`, or `await
- *   spellCore.forEachSequential(...)` if body contains an `await`.
+ * - Both a `statement` and an `expression`:  usable inline or as a block.
+ * - Body runs as nested block or inline statement;  `{item}`'s value is also aliased from `it`.
+ * - Builds `spellCore.map(list, (item, position?) => { ... })`,
+ *   or `await spellCore.forEachSequential(...)` if its body contains an `await`.
+ * - How javascript writes it (`JSWriter`):
+ *   - as the list's own method, where it knows the value is a list
+ *   - as a `for...of` loop, when its body waits
  * TODO: can work for object enumeration as well (maybe with 'of'?)
  * TODO: return values e.g. array.map() ???
  */

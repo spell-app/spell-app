@@ -4,8 +4,8 @@ import { render } from "@solidjs/web"
 import { describe, test, expect, vi, beforeAll, beforeEach, afterEach } from "vite-plus/test"
 
 import { bridgeSolid } from "$/util"
-import { spellCore, Thing, List, prop, drawn } from "$/core"
-import type { Drawing } from "$/core/drawing"
+import { spellCore, Thing, List, prop, drawn, h } from "$/core"
+import { isElementThunk, type Drawing } from "$/core/drawing"
 
 // counts each error net drawn:  `drawing.ts` makes one with `createComponent(Errored, ...)`
 vi.mock("solid-js", async (importOriginal) => {
@@ -50,14 +50,49 @@ class Card extends Thing {
   draw(): Drawing {
     drawCalls.set(this, (drawCalls.get(this) ?? 0) + 1)
     if (this.isBroken) throw new Error("this card is broken")
-    return spellCore.element({ tag: "span", props: { class: "card" }, children: [() => `${this.rank} ${this.suit}`] })
+    return h("span", { class: "card" }, () => `${this.rank} ${this.suit}`) as Drawing
   }
 }
 
-/** A card as compiled JavaScript writes it:  a plain `draw()`, which `drawThing()` puts in a net. */
+/** Each node a `PlainCard` drew, as it was made. */
+const madeNodes: Element[] = []
+
+/**
+ * A card as compiled JavaScript writes it:  a plain `draw()` returning `h()`'s thunk, which `drawThing()` puts in a
+ * net, and the net makes.
+ */
 class PlainCard extends Card {
   override draw(): Drawing {
-    return spellCore.element({ tag: "i", children: [() => this.suit] })
+    drawCalls.set(this, (drawCalls.get(this) ?? 0) + 1)
+    return h("i", { ref: (node: Element) => madeNodes.push(node) }, () => this.suit) as Drawing
+  }
+}
+
+/** A pile as compiled JavaScript writes it:  `h()`'s thunk around its cards, `drawItems()`. */
+class PlainPile extends List<Card> {
+  override draw(): Drawing {
+    drawCalls.set(this, (drawCalls.get(this) ?? 0) + 1)
+    return h("div", { class: "pile", ref: (node: Element) => madeNodes.push(node) }, () =>
+      spellCore.drawItems(this)
+    ) as Drawing
+  }
+}
+
+/** A card whose drawing throws while `h()` MAKES it, not in `draw()`:  a part of it that can't be drawn. */
+class HalfCard extends Card {
+  override draw(): Drawing {
+    const broken = () => {
+      throw new Error("no face")
+    }
+    return h("div", { class: "half" }, h(broken)) as Drawing
+  }
+}
+
+/** A card whose `draw()` returns a live value, not an element:  any function but `h()`'s stays live. */
+class LiveCard extends Card {
+  override draw(): Drawing {
+    drawCalls.set(this, (drawCalls.get(this) ?? 0) + 1)
+    return (() => this.suit) as unknown as Drawing
   }
 }
 
@@ -65,7 +100,7 @@ class PlainCard extends Card {
 class Pile extends List<Card> {
   @drawn
   override draw(): Drawing {
-    return spellCore.element({ tag: "div", children: this.items.map((card) => () => card.draw()) })
+    return h("div", ...this.items.map((card) => () => card.draw())) as Drawing
   }
 }
 
@@ -160,6 +195,57 @@ describe("@drawn", () => {
     spellCore.flush()
     expect(element.innerHTML).toBe(`<span class="card">ace clubs</span>`)
     expect(Errored).toHaveBeenCalledTimes(1)
+  })
+
+  test("the net makes h()'s thunk ONCE:  a card added to a pile makes only that card, never the pile again", () => {
+    madeNodes.length = 0
+    const pile = new PlainPile()
+    const [first, second] = [new PlainCard({ rank: "ace" }), new PlainCard({ rank: 2, suit: "clubs" })]
+    pile.add(first, second)
+    draw(() => spellCore.drawThing(pile))
+    expect(element.innerHTML).toBe(`<div class="pile"><i>hearts</i><i>clubs</i></div>`)
+    const [pileNode, firstNode] = madeNodes
+
+    pile.add(new PlainCard({ rank: 3, suit: "spades" }))
+    first.suit = "diamonds"
+    spellCore.flush()
+    expect(element.innerHTML).toBe(`<div class="pile"><i>diamonds</i><i>clubs</i><i>spades</i></div>`)
+    expect(madeNodes).toHaveLength(4)
+    expect(element.firstChild).toBe(pileNode)
+    expect(pileNode!.firstChild).toBe(firstNode)
+    expect([drawCalls.get(pile), drawCalls.get(first)]).toEqual([1, 1])
+  })
+
+  test("a throw while h()'s thunk is made lands in the net:  the stand-in, said once", () => {
+    const card = new HalfCard({ rank: "king" })
+    draw(() => spellCore.drawThing(card))
+    expect(element.innerHTML).toBe(
+      `<span class="spell-draw-error" role="alert" title="no face">⚠ HalfCard can't draw</span>`
+    )
+    expect(spellCore.console.error).toHaveBeenCalledTimes(1)
+    expect(Errored).toHaveBeenCalledTimes(1)
+  })
+
+  test("mountApp() makes a plain draw()'s h() thunk in its one net", () => {
+    const card = new PlainCard({ rank: "ace", suit: "clubs" })
+    dispose = spellCore.mountApp(card, element).unmount
+    spellCore.flush()
+    expect(element.innerHTML).toBe(`<i>clubs</i>`)
+    expect(Errored).toHaveBeenCalledTimes(1)
+  })
+
+  test("only h()'s thunks are made:  any other function a draw() returns stays a live value", () => {
+    expect(isElementThunk(h("i"))).toBe(true)
+    expect(isElementThunk(() => "text")).toBe(false)
+    expect(isElementThunk("text")).toBe(false)
+
+    const card = new LiveCard({ rank: "ace" })
+    draw(() => spellCore.drawThing(card))
+    expect(element.innerHTML).toBe(`hearts`)
+    card.suit = "spades"
+    spellCore.flush()
+    expect(element.innerHTML).toBe(`spades`)
+    expect(drawCalls.get(card)).toBe(1)
   })
 
   test("@prop takes a read-only `as const` list", () => {

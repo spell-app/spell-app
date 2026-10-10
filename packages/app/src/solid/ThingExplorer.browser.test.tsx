@@ -10,8 +10,8 @@ import { ThingExplorer } from "./ThingExplorer"
 
 /**
  * The Solid `<ThingExplorer>` LIVE, in the browser:  Solid's client build, so a change shows after `flush()`.
- * - Things are `easy-state`:  the explorer reads them narrowly -- a changed property redraws its own cell, not
- *   the tree.
+ * - Things are `easy-state`:  the explorer reads them narrowly,
+ *   so a changed property redraws its own cell, not the tree.
  * - Both kinds of change land in a microtask, so:  change, `await settle()`, `flush()`, assert.
  *   - a property:  read again by `tracked(..., { deferred: true })` (it runs the program's code:  never mid-write)
  *   - a thing made or dropped:  the registry bumps its `version`

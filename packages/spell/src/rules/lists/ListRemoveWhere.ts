@@ -6,7 +6,7 @@ import { lists } from "./lists.parser"
 import { getWhereScope, getWhereMethod } from "./lists.shared"
 
 /**
- * `list_remove_where` rule:  remove all items from list where condition is true,
+ * `list_remove_where` rule:  remove all items from list where condition is true:
  * e.g. `remove items from my-list where item is not "ace"`.
  * - Trailing `where` expects an inline expression as predicate (`{inline_expression}?`) -- see `getWhereScope()`.
  * - Compiles to `spellCore.removeWhere(list, (item) => { ... })`.

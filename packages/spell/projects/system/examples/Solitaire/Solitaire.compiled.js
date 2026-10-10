@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, positionOf, trigger, on } from "@spell/core"
+import { spellCore, Thing, List, App, h, positionOf, trigger, on } from "@spell/core"
 
 spellCore.heading("definition of a Card with nice english aliases for working with it")
 /** definition of a Card with nice english aliases for working with it */
@@ -128,33 +128,21 @@ export class Card extends Thing {
 
   draw() {
     let className = `Card face-${this.direction} ${this.rank} ${this.suit} ui button compact fluid `
-    if (this.isFaceDown) { return spellCore.element({
-      tag: "div",
-      props: {
-        onClick: (event) => {
-          return trigger('card-click', { card: this })
-        },
-        className: () => className
-      },
-      children: [
-        spellCore.element({ tag: "i", props: { className: "fitted bicycle icon" } })
-      ]
-    }) }
-    return spellCore.element({
-      tag: "div",
-      props: {
-        onClick: (event) => {
-          return trigger('card-click', { card: this })
-        },
-        className: () => (className + this.color)
-      },
-      children: [
-        () => `${this.shortRank} `,
-        spellCore.element({ tag: "span", props: { className: "suit" }, children: [
-          () => this.shortSuit
-        ] })
-      ]
-    })
+    if (this.isFaceDown) { return h("div", {
+      class: () => className,
+      onClick: (event) => {
+        return trigger('card-click', { card: this })
+      }
+    }, h("i", { class: "fitted bicycle icon" })) }
+    return h("div", {
+      class: () => (className + this.color),
+      onClick: (event) => {
+        return trigger('card-click', { card: this })
+      }
+    },
+      () => `${this.shortRank} `,
+      h("span", { class: "suit" }, () => this.shortSuit)
+    )
   }
 
   async play() {
@@ -358,124 +346,70 @@ export class Game extends App {
   }
 
   draw() {
-    return spellCore.element({ tag: "div", props: { className: "ui container" }, children: [
-      spellCore.element({ tag: "div", props: { className: "board" }, children: [
-        spellCore.element({ tag: "table", props: { className: "ui table fixed" }, children: [
-          spellCore.element({ tag: "thead", children: [
-            spellCore.element({ tag: "tr", children: [
-              spellCore.element({ tag: "th", props: { colSpan: "2", className: "left aligned" }, children: [
-                "Klondike Solitaire"
-              ] }),
-              spellCore.element({ tag: "th", props: { className: "right aligned" }, children: [
-                () => `Score: ${this.score}`
-              ] }),
-              spellCore.element({ tag: "th", children: [
-                spellCore.element({
-                  tag: "div",
-                  props: {
-                    className: "tiny fluid ui button compact",
-                    onClick: (event) => {
-                      return autoPlay()
-                    }
-                  },
-                  children: [
-                    "AutoPlay"
-                  ]
-                })
-              ] }),
-              spellCore.element({ tag: "th", children: [
-                spellCore.element({
-                  tag: "div",
-                  props: {
-                    className: "tiny fluid ui button compact",
-                    onClick: (event) => {
-                      return cheat()
-                    }
-                  },
-                  children: [
-                    "Cheat"
-                  ]
-                })
-              ] }),
-              spellCore.element({ tag: "th", children: [
-                spellCore.element({
-                  tag: "div",
-                  props: {
-                    className: "tiny fluid ui button compact",
-                    onClick: (event) => {
-                      return debugTheGame()
-                    }
-                  },
-                  children: [
-                    "Debug"
-                  ]
-                })
-              ] }),
-              spellCore.element({ tag: "th", children: [
-                spellCore.element({
-                  tag: "div",
-                  props: {
-                    className: "tiny fluid ui button compact",
-                    onClick: (event) => {
-                      return resetTheGame()
-                    }
-                  },
-                  children: [
-                    "Restart"
-                  ]
-                })
-              ] })
-            ] })
-          ] }),
-          spellCore.element({ tag: "tbody", children: [
-            spellCore.element({ tag: "tr", children: [
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(stock)
-              ] }),
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(discards)
-              ] }),
-              spellCore.element({ tag: "td" }),
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(foundations.firstItem)
-              ] }),
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(foundations.getItem(2))
-              ] }),
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(foundations.getItem(3))
-              ] }),
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(foundations.getItem(4))
-              ] })
-            ] }),
-            spellCore.element({ tag: "tr", children: [
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(tableaus.firstItem)
-              ] }),
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(tableaus.getItem(2))
-              ] }),
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(tableaus.getItem(3))
-              ] }),
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(tableaus.getItem(4))
-              ] }),
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(tableaus.getItem(5))
-              ] }),
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(tableaus.getItem(6))
-              ] }),
-              spellCore.element({ tag: "td", children: [
-                () => spellCore.drawThing(tableaus.getItem(7))
-              ] })
-            ] })
-          ] })
-        ] })
-      ] })
-    ] })
+    return h("div", { class: "ui container" },
+      h("div", { class: "board" },
+        h("table", { class: "ui table fixed" },
+          h("thead",
+            h("tr",
+              h("th", { class: "left aligned", colspan: "2" }, "Klondike Solitaire"),
+              h("th", { class: "right aligned" }, () => `Score: ${this.score}`),
+              h("th",
+                h("div", {
+                  class: "tiny fluid ui button compact",
+                  onClick: (event) => {
+                    return autoPlay()
+                  }
+                }, "AutoPlay")
+              ),
+              h("th",
+                h("div", {
+                  class: "tiny fluid ui button compact",
+                  onClick: (event) => {
+                    return cheat()
+                  }
+                }, "Cheat")
+              ),
+              h("th",
+                h("div", {
+                  class: "tiny fluid ui button compact",
+                  onClick: (event) => {
+                    return debugTheGame()
+                  }
+                }, "Debug")
+              ),
+              h("th",
+                h("div", {
+                  class: "tiny fluid ui button compact",
+                  onClick: (event) => {
+                    return resetTheGame()
+                  }
+                }, "Restart")
+              )
+            )
+          ),
+          h("tbody",
+            h("tr",
+              h("td", () => spellCore.drawThing(stock)),
+              h("td", () => spellCore.drawThing(discards)),
+              h("td"),
+              h("td", () => spellCore.drawThing(foundations.firstItem)),
+              h("td", () => spellCore.drawThing(foundations.getItem(2))),
+              h("td", () => spellCore.drawThing(foundations.getItem(3))),
+              h("td", () => spellCore.drawThing(foundations.getItem(4)))
+            ),
+            h("tr",
+              h("td", () => spellCore.drawThing(tableaus.firstItem)),
+              h("td", () => spellCore.drawThing(tableaus.getItem(2))),
+              h("td", () => spellCore.drawThing(tableaus.getItem(3))),
+              h("td", () => spellCore.drawThing(tableaus.getItem(4))),
+              h("td", () => spellCore.drawThing(tableaus.getItem(5))),
+              h("td", () => spellCore.drawThing(tableaus.getItem(6))),
+              h("td", () => spellCore.drawThing(tableaus.getItem(7)))
+            )
+          )
+        )
+      )
+    )
     
   }
 }
@@ -495,18 +429,15 @@ export class Stock_Pile extends Pile {
   }
 
   draw() {
-    return spellCore.element({ tag: "div", props: { className: "Pile Stock stacked" }, children: [
-      spellCore.element({
-        tag: "div",
-        props: {
-          className: "Placeholder ui button basic compact fluid",
-          onClick: (event) => {
-            return playFromTheStockPile()
-          }
+    return h("div", { class: "Pile Stock stacked" },
+      h("div", {
+        class: "Placeholder ui button basic compact fluid",
+        onClick: (event) => {
+          return playFromTheStockPile()
         }
       }),
       () => spellCore.drawThing(this.lastItem)
-    ] })
+    )
   }
 }
 export let stock = new Stock_Pile({ name: "stock", droppable: false })
@@ -519,9 +450,7 @@ export class Discard_Pile extends Pile {
   }
 
   draw() {
-    return spellCore.element({ tag: "div", props: { className: "Pile Discards stacked" }, children: [
-      () => spellCore.drawThing(this.lastItem)
-    ] })
+    return h("div", { class: "Pile Discards stacked" }, () => spellCore.drawThing(this.lastItem))
   }
 }
 export let discards = new Discard_Pile({ name: "discards", droppable: false })
@@ -546,14 +475,12 @@ export class Foundation extends Pile {
 
   draw() {
     let color = (((this.name === 'diamonds') || (this.name === 'hearts')) ? "red" : "black")
-    return spellCore.element({ tag: "div", props: { className: "Pile Foundation stacked" }, children: [
-      spellCore.element({ tag: "div", props: { className: () => `Placeholder ui button basic compact fluid ${color} ${this.name}` }, children: [
-        spellCore.element({ tag: "div", props: { className: () => `suit ${this.name}` }, children: [
-          () => this.symbol
-        ] })
-      ] }),
+    return h("div", { class: "Pile Foundation stacked" },
+      h("div", { class: () => `Placeholder ui button basic compact fluid ${color} ${this.name}` },
+        h("div", { class: () => `suit ${this.name}` }, () => this.symbol)
+      ),
       () => spellCore.drawThing(this.lastItem)
-    ] })
+    )
   }
 }
 let it = new Foundation({
@@ -596,9 +523,7 @@ export class Tableau extends Pile {
   }
 
   draw() {
-    return spellCore.element({ tag: "div", props: { className: "Pile Tableau staggered" }, children: [
-      () => spellCore.drawItems(this)
-    ] })
+    return h("div", { class: "Pile Tableau staggered" }, () => spellCore.drawItems(this))
   }
 }
 spellCore.getRange(1, 7).forEach((number) => {

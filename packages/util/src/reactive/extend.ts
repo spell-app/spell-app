@@ -10,16 +10,19 @@ export * as extend from "./extend"
 
 /**
  * Reactive `props` and `state` for any object, on spell cells (`cells.ts`).
- * - Each object keeps its values in its own RECORDS, `Map`s -- the ONLY truth, read and written synchronously:  a
- *   read right after a write sees it.  Cells only say who read what, and tell them when it changes.
- * - `props` are its public properties:  `keys()` / `toJSON()` list them, in the order they were first set.  `state`
- *   is transient, internal, e.g. a `Task`'s `status`, and never listed.
- * - Kept ON the object, under symbols -- `Object.keys()`, JSON and the Thing Explorer's plain-field scan don't see
- *   them.  `Observable` makes them as it's constructed (one shape for every instance);  any other object gets them
- *   on first use.
- * - Values are NOT made reactive themselves:  no proxies, so `===` holds everywhere.  A list or plain object a prop
- *   holds is the same object;  changing it IN PLACE notifies nobody -- set the prop to a new one.  Spell's `List`s
- *   copy on write, so a program's lists are fine.
+ * - Each object keeps its values in its own RECORDS, `Map`s:  the ONLY truth, read and written synchronously.
+ *   - A read right after a write sees it.
+ *   - Cells only say who read what, and tell them when it changes.
+ * - `props` are its public properties:  `keys()` / `toJSON()` list them, in the order they were first set.
+ * - `state` is transient, internal, e.g. a `Task`'s `status`, and never listed.
+ * - The records are kept ON the object, under symbols:
+ *   `Object.keys()`, JSON and the Thing Explorer's plain-field scan don't see them.
+ *   - `Observable` makes them as it's constructed (one shape for every instance).
+ *   - Any other object gets them on first use.
+ * - Values are NOT made reactive themselves:  no proxies, so `===` holds everywhere.
+ *   - A list or plain object a prop holds is the same object.
+ *   - Changing it IN PLACE notifies nobody:  set the prop to a new one.
+ *   - Spell's `List`s copy on write, so a program's lists are fine.
  */
 
 ////////////////
@@ -76,8 +79,9 @@ export function initializeExtended(target: any, ..._what: Array<"derived" | "pro
 
 /**
  * Prop `property` of `target`, tracked:  a reader re-runs when it changes, even if it's unset now.
- * - Unset:  `initializer()`'s value, stored once per object -- else what its class's schema declares:  its `init`,
- *   stored the same way, or its `default`, NOT stored.  See `PropInfo`.
+ * - Unset:  `initializer()`'s value, stored once per object.
+ *   - Else what its class's schema declares (see `PropInfo`):
+ *     its `init`, stored the same way, or its `default`, NOT stored.
  * - An initializer is called with `this` ~== `target`, and its value stored WITHOUT notifying the prop's readers:
  *   nobody can have read another value.  The key set does change, so `keysOf()` readers hear of it.
  */
@@ -140,8 +144,8 @@ export function deleteProp(target: any, property: string): boolean {
 /**
  * A plain object whose own keys are reactive props:  each a getter / setter over `getProp()` / `setProp()`.
  * - SHALLOW:  what a key holds isn't made reactive -- set the key to a new value.
- * - Getters and functions of `init` are copied as they are:  `this` in them is the new object, so they read its
- *   reactive keys.
+ * - Getters and functions of `init` are copied as they are:
+ *   `this` in them is the new object, so they read its reactive keys.
  * - For class-less state with a few keys, e.g. a test's fake.  A class with `@prop`s says more.
  */
 export function reactiveObject<T extends object>(init: T): T {
@@ -298,12 +302,12 @@ export function resetState(target: any, ...properties: string[]) {
 ////////////////
 
 /**
- * Memoized derived value `name` of `target`:  `fn()`, re-computed only when what it read changes -- and its readers
- * re-run only when its value REALLY changes (`===`).  See `Derived`.
+ * Memoized derived value `name` of `target`:  `fn()`, re-computed only when what it read changes.
+ * - Its readers re-run only when its value REALLY changes (`===`).  See `Derived`.
  * - `fn` is called with `this` ~== `target`.  It MUST be pure:  read cells, write nothing.
  * - The `fn` of the FIRST call is kept:  pass the same one every time, e.g. from a getter.
- * - `equals(old, next)` true keeps the OLD value, and its readers don't re-run (default `===`), e.g. a filtered list
- *   with the same items.  Kept from the first call, like `fn`.
+ * - `equals(old, next)` true keeps the OLD value, and its readers don't re-run (default `===`):
+ *   e.g. a filtered list with the same items.  Kept from the first call, like `fn`.
  */
 export function derive<T>(target: any, name: string, fn: (this: any) => T, equals?: (old: T, next: T) => boolean): T {
   const extended = extendedFor(target)

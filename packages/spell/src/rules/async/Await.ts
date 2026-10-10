@@ -6,14 +6,14 @@ import { _async } from "./async.parser"
 
 /**
  * `await` rule:  `await`/`wait for` an expression, with the expression itself optional (bare `await`).
- * - `:?` in `syntax` is an optional literal colon in the source text (e.g. `await:`), matched but
- *   discarded -- NOT the `name:rule` named-group colon.  The `(await|wait for)` keyword itself
- *   stays required.
+ * - `:?` in `syntax` is an optional literal colon in the source text (e.g. `await:`), matched but discarded:
+ *   NOT the `name:rule` named-group colon.
+ *   The `(await|wait for)` keyword itself stays required.
  * - Bare `await` (no expression) compiles to `await undefined`.
  * - As a statement it waits for a whole expression;  inside an expression, an operand.
  *   See `operandInExpressions`.
- * - TODO: add test to make sure parents are made async properly, especially for `await` inside an
- *   if block, etc.
+ * - TODO: add test to make sure parents are made async properly,
+ *   especially for `await` inside an if block, etc.
  */
 export class Await extends SpellStatement<"expression?"> {
   @proto static alias = ["expression", "statement"]

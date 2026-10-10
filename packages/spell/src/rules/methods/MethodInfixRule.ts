@@ -5,10 +5,10 @@ import { Priority } from "$/spell/rules/rules.types"
 import type { MethodOperatorRuleProps, MethodRuleDeclared, OperatorOperands } from "./methods.shared"
 
 /**
- * `card nerds out with thing` -- calls a quoted method defined as an infix expression,
- * e.g. `card.nerds_out_with_$another(thing)`.
- * - Never registered as is:  `MethodDefinition.getRule()` makes one per such method, with
- *   `MethodInfixRule.specialize({ output })`.
+ * `card nerds out with thing`:  calls a quoted method defined as an infix expression:
+ * e.g. `card.nerdsOutWithAnother(thing)`.
+ * - Never registered as is:
+ *   `MethodDefinition.getRule()` makes one per such method, with `MethodInfixRule.specialize({ output })`.
  * - Negates through the base class -- see `Negatable`.
  * - Reads ONLY its statics, so a project's declarations can rebuild it elsewhere -- see `P.Rule.specialize()`.
  */

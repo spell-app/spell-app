@@ -2,8 +2,10 @@ import { P } from "$/parser"
 
 /**
  * What the javascript writers (`P.JSWriter`, `P.TSWriter`) read off a spell tree:  pure helpers, nothing written.
- * - What a node is (`isCoreCall()`, `isTight()` ...), what a datatype is as `JSWriter.kindOf()` says it, and the
- *   `spellCore` helpers both writers say their own way.
+ * - What a node is (`isCoreCall()`, `isTight()` ...)
+ * - What a datatype is, as `JSWriter.kindOf()` says it
+ * - The `spellCore` helpers both writers say their own way
+ * - How an element's attribute is named on the page (`attributeName()`)
  * - Not in the barrel:  the writers' own.
  */
 
@@ -51,8 +53,8 @@ export function alike(kinds: Set<string | undefined>): string | undefined {
 }
 
 /**
- * What a new list says it holds, `a new list of piles` => `new List({ instanceType: "Pile" })`:  `"Pile"` --
- * `undefined` for a list that doesn't say, or anything else made.
+ * What a new list says it holds:  `a new list of piles` => `new List({ instanceType: "Pile" })` => `"Pile"`.
+ * - `undefined` for a list that doesn't say, or anything else made.
  */
 export function newListItemName(node: P.ASTNewInstanceExpression): string | undefined {
   if (node.type.name !== "List") return undefined
@@ -68,8 +70,8 @@ export function newListItemName(node: P.ASTNewInstanceExpression): string | unde
 ////////////////
 
 /**
- * What a value of spell's `datatype` is, as `JSWriter.kindOf()` says it -- `undefined` for a list (a `List` or an
- * array).  E.g. a variable's, a method's.
+ * What a value of spell's `datatype` is, as `JSWriter.kindOf()` says it, e.g. a variable's, a method's.
+ * - `undefined` for a list:  it may be a `List` or an array.
  */
 export function kindFromDatatype(datatype: P.Datatype | RegExpConstructor | undefined): string | undefined {
   if (typeof datatype !== "string" || !datatype || datatype.startsWith("list")) return undefined
@@ -80,8 +82,8 @@ export function kindFromDatatype(datatype: P.Datatype | RegExpConstructor | unde
 }
 
 /**
- * What a PROPERTY declared as spell's `datatype` holds, as `JSWriter.kindOf()` says it:  as `kindFromDatatype()`,
- * plus the class spell's own `thing`, `app` and `date` are (`Thing`, `App`, `Date`).
+ * What a PROPERTY declared as spell's `datatype` holds, as `JSWriter.kindOf()` says it:
+ * as `kindFromDatatype()`, plus the class spell's own `thing`, `app` and `date` are (`Thing`, `App`, `Date`).
  * - `undefined` for nothing, a list, or a name that isn't a class's.
  */
 export function kindOfType(datatype: P.Datatype | RegExpConstructor | undefined): string | undefined {
@@ -124,18 +126,48 @@ export const EVENTS = new Set(["on", "off", "once", "trigger"])
 export const IMPORTED_HELPERS = new Set(["positionOf"])
 
 ////////////////
+// ## Drawing
+////////////////
+
+/**
+ * The page's name for attribute `name` of element `tag`, as both writers write it.
+ * - `changes`:  is its value one that can change, or an object?
+ * - `className` => `class`, `htmlFor` => `for`
+ * - a camelCase attribute of an HTML tag, lowercased:  `colSpan` => `colspan`
+ * - on a tag with a dash (`<ui-form>`), a value that can change, or an object, is a PROPERTY, `prop:value`:
+ *   an attribute holds only text.
+ *   A handler (`onClick`), a dashed name (`aria-label`) and `ATTRIBUTES_ONLY` stay attributes.
+ * - Decided when it compiles.
+ *   Before epic `output-targets` P20, compiled javascript drew with `@spell/core`'s `element()` (now deprecated),
+ *   which decided it as it drew.
+ */
+export function attributeName(tag: string, name: string, changes: boolean): string {
+  if (name === "className") return "class"
+  if (name === "htmlFor") return "for"
+  if (tag.includes("-")) {
+    const isProperty = !name.startsWith("on") && !name.includes("-") && !ATTRIBUTES_ONLY.has(name)
+    return isProperty && changes ? `prop:${name}` : name
+  }
+  if (!name.startsWith("on") && /[a-z][A-Z]/.test(name)) return name.toLowerCase()
+  return name
+}
+
+/** What stays an attribute on a tag with a dash, whatever its value:  see `attributeName()`. */
+export const ATTRIBUTES_ONLY = new Set(["class", "className", "style", "id", "slot", "part"])
+
+////////////////
 // ## Modules
 ////////////////
 
 /** An import from another project:  `import { Card, play_it as play } from "@spell/project/..."`. */
 export const PROJECT_IMPORT = /^import \{ ([^}]*) \} from "(@spell\/project\/[^"]*)"$/gm
 
-/** The import from `@spell/core`:  `import { spellCore, Thing, List, App } from "@spell/core"`. */
+/** The import from `@spell/core`:  `import { spellCore, Thing, List, App, h } from "@spell/core"`. */
 export const CORE_IMPORT = /^import \{ ([^}]*) \} from "@spell\/core"$/m
 
 /**
- * Each class `code` imports from another project, by its name here => [its module, its name there], e.g.
- * `Card` => `["@spell/project/@system:library:cards", "Card"]`.
+ * Each class `code` imports from another project, by its name here => [its module, its name there],
+ * e.g. `Card` => `["@spell/project/@system:library:cards", "Card"]`.
  */
 export function importedClasses(code: string): Map<string, [string, string]> {
   const imported = new Map<string, [string, string]>()

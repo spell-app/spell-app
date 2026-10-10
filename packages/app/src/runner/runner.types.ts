@@ -39,9 +39,9 @@ export type FromRunnerMessage =
   | { type: "refreshScopes" }
 
 /**
- * How a project is shown, remembered in its `settings.json5` -- beside its `project.json`, git-ignored, and NOT one
- * of its files in the editor.  The extension reads and writes it:  NOT the webview's own storage, which may not
- * outlive the panel.
+ * How a project is shown, remembered in its `settings.json5`:
+ * beside its `project.json`, git-ignored, and NOT one of its files in the editor.
+ * - The extension reads and writes it:  NOT the webview's own storage, which may not outlive the panel.
  * - Each top-level section is written whole, so a section's props needn't be merged.
  * - NOTE: more to come;  every prop is optional, so a missing or older file just starts afresh.
  */

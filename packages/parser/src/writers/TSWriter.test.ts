@@ -3,8 +3,9 @@ import { describe, expect, test } from "vite-plus/test"
 import { P } from "$/parser"
 
 /**
- * `TSWriter`:  TypeScript on Solid, as a person writes it.  Whole projects, checked by `tsc`:  spell's
- * `src/test/typescript.test.ts`;  run on both targets:  the core contract, `contract.test.ts` in `$/cli`.
+ * `TSWriter`:  TypeScript on Solid, as a person writes it.
+ * - Whole projects, checked by `tsc`:  spell's `src/test/typescript.test.ts`.
+ * - Run on both targets:  the core contract, `contract.test.ts` in `$/cli`.
  */
 
 /** A match for hand-made AST:  no tokens, so no datatype comes from it. */
@@ -232,7 +233,7 @@ describe("TSWriter", () => {
         })
       ]
     })
-    // `class` first, as javascript's `spellCore.element()` sets it
+    // `class` first, as javascript's `h()` calls give it
     expect(writer.write(element)).toBe(`<th class="left" colspan="2">{theStock.draw()}</th>`)
   })
 

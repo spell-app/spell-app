@@ -284,10 +284,11 @@ export class SpellLanguageService {
   /**
    * Semantic token legend, sent on `initialize`.  Modifier bits:  `declaration` = 1, `defaultLibrary` = 2,
    * then `heading1` = 4 ... `heading4` = 32, then `bold` = 64, `italic` = 128, `link` = 256, `strikethrough` = 512.
-   * - `heading<N>` are ours, for a heading comment with N `#`s -- `##` => `heading2`, and 4 or more => `heading4`.
-   *   A modifier is a flag, not a value, so one per level.  The VS Code extension declares them, and shows them bold.
-   * - `bold` ... `strikethrough` are ours too:  markdown inside a comment (`commentSpans()`), which the extension
-   *   styles to match.
+   * - `heading<N>` are ours, for a heading comment with N `#`s:  `##` => `heading2`, and 4 or more => `heading4`.
+   *   - A modifier is a flag, not a value, so one per level.
+   *   - The VS Code extension declares them, and shows them bold.
+   * - `bold` ... `strikethrough` are ours too:  markdown inside a comment (`commentSpans()`),
+   *   which the extension styles to match.
    */
   static TOKEN_LEGEND: SemanticTokensLegend = {
     tokenTypes: SpellLanguageService.HIGHLIGHT_KINDS,
@@ -553,10 +554,12 @@ export class SpellLanguageService {
    * - the rule that matched there, its syntax and an example from its tests
    * - what the word refers to and where that was declared, e.g. a variable's kind and output name
    * - the javascript its statement compiles to
-   * - TODO: tune for who's reading.  The rule + javascript sections are for parser developers, and for a method
-   *   call the rule's syntax repeats `describeSubject()`'s.  Idea:  a `spell.hover` setting, read like
-   *   `compileOnSave` -- `"simple"` shows only `describeSubject()`, in plain words;  `"full"` is today's.
-   *   Or show a rule's `description` (none set yet) instead of its raw syntax.
+   * - TODO: tune for who's reading.
+   *   - The rule + javascript sections are for parser developers,
+   *     and for a method call the rule's syntax repeats `describeSubject()`'s.
+   *   - Idea:  a `spell.hover` setting, read like `compileOnSave`:
+   *     `"simple"` shows only `describeSubject()`, in plain words;  `"full"` is today's.
+   *   - Or show a rule's `description` (none set yet) instead of its raw syntax.
    */
   hover(file: SP.SpellFile, position: Position): Hover | null {
     const stack = this.matchesAt(file, position)
@@ -677,8 +680,8 @@ export class SpellLanguageService {
   }
 
   /**
-   * Edits making `text` the docstring of what the statement starting on `line` of `file`, from 1, declares -- see
-   * `SP.Block.getDocComments()`.  `null` if no declaring statement starts there.
+   * Edits making `text` the docstring of what the statement starting on `line` of `file`, from 1, declares:
+   * see `SP.Block.getDocComments()`.  `null` if no declaring statement starts there.
    * - `text` is markdown, as `docMarkdown()` gives:  a `#`, `##` ... line becomes that heading comment,
    *   any other line a `// ` comment -- indented like the statement.  Empty `text` removes the docstring.
    * - Replaces the comment lines above it -- a heading directly above included -- or else the comment at the end
@@ -1186,8 +1189,8 @@ export class SpellLanguageService {
   }
 
   /**
-   * `spell/lineTree`:  the spell tree of line `line` (0-based) of `file`, as `<ui-tree-diagram>` draws it -- `null`
-   * if no line parsed there, e.g. a blank line.
+   * `spell/lineTree`:  the spell tree of line `line` (0-based) of `file`, as `<ui-tree-diagram>` draws it.
+   * - `null` if no line parsed there, e.g. a blank line.
    * - From the file as last parsed, so unsaved edits show.
    */
   lineTree(file: SP.SpellFile, line: number): P.TreeNode | null {
@@ -1250,8 +1253,8 @@ export class SpellLanguageService {
   }
 
   /**
-   * What can come NEXT in the statement being typed at `position`, e.g. `to` after `set x` -- `[]` if nothing
-   * is typed yet, or the parser can't say.
+   * What can come NEXT in the statement being typed at `position`, e.g. `to` after `set x`.
+   * - `[]` if nothing is typed yet, or the parser can't say.
    * - Parses the line up to the cursor in expecting mode -- see `P.Parser.expectedAfter()`.
    *   A word the cursor is touching is still being typed:  it's what the editor filters by, NOT input.
    * - Each expectation offers:
@@ -1259,10 +1262,10 @@ export class SpellLanguageService {
    *   - the names that fit it, by the `highlightAs` of the rules it can start with -- see `firstKinds()`:
    *     `{type}` => types, `{expression}` => variables, constants, methods...
    *   - the words it can start with, e.g. `to`, or `the` / `a` / `its`... for an `{expression}`
-   * - What only EXTENDS something complete (`continues`), e.g. an operator after `x`, only if the word being
-   *   typed starts it:  `if x a` => `and`, but `if x ` offers no operators.
-   * - Ranked by `sortText`:  what's needed before what continues, shallower before deeper, then snippet, names,
-   *   words.
+   * - What only EXTENDS something complete (`continues`), e.g. an operator after `x`,
+   *   only if the word being typed starts it:  `if x a` => `and`, but `if x ` offers no operators.
+   * - Ranked by `sortText`:  what's needed before what continues, shallower before deeper,
+   *   then snippet, names, words.
    */
   expectedNext(file: SP.SpellFile, position: Position): CompletionItem[] {
     if (!file.match) return []
@@ -1376,8 +1379,9 @@ export class SpellLanguageService {
    * the argument being typed -- or next -- as `activeParameter`.  `null` if not in one.
    * - Parses the line up to the cursor in expecting mode, as `expectedNext()` does, then takes the INNERMOST
    *   method call rule anything was waiting in:  what comes next in it, or what we're partway `within`.
-   * - Its arguments are the call rule's `{subrules}`, in order:  the signature's arguments,
-   *   `(a card)` or paren-free `a card`, where its `method_signature` found them -- see `argRanges()`.
+   * - Its arguments are the call rule's `{subrules}`, in order:
+   *   the signature's arguments, `(a card)` or paren-free `a card`, where its `method_signature` found them.
+   *   See `argRanges()`.
    */
   signatureHelp(file: SP.SpellFile, position: Position): SignatureHelp | null {
     if (!file.match) return null
@@ -2075,8 +2079,8 @@ export class SpellLanguageService {
 
   /**
    * Kinds of name `rule` can start with, e.g. `{type}` => `type`, `{expression}` => `variable`, `enumMember`...
-   * - By the `highlightAs` of the rules it can start with -- NOT by rule names -- through sequences, choices,
-   *   repeats and subrules, categories too.
+   * - By the `highlightAs` of the rules it can start with -- NOT by rule names --
+   *   through sequences, choices, repeats and subrules, categories too.
    */
   static firstKinds(rule: P.Rule, parser: P.Parser, visited: Set<P.Rule>, kinds = new Set<P.HighlightKind>()) {
     if (visited.has(rule)) return kinds
@@ -2124,8 +2128,8 @@ export class SpellLanguageService {
   }
 
   /**
-   * `match` compiled to javascript, as its project reads names (`P.JSWriter.writeMatch()`), or `undefined` if
-   * that throws, e.g. for a half-typed statement.
+   * `match` compiled to javascript, naming things as its project does (`P.JSWriter.writeMatch()`).
+   * - `undefined` if that throws, e.g. for a half-typed statement.
    */
   static compileQuietly(match: P.Match): string | undefined {
     try {

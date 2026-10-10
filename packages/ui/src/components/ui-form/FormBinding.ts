@@ -27,8 +27,8 @@ import { FormFields } from "./FormFields"
  * - Controls come and go (rows of a repeat, conditional fields):  `update()` binds the new ones
  *   and lets go of those gone.
  *   - a `ui-*` control whose family loads later (`<ui-root>` loads them on demand) is bound once its tag is defined
- * - Plain DOM plus Solid:  knows `<ui-form>` and `<ui-repeat>` only as scope holders, and reads controls the way
- *   `FormFields` does.
+ * - Plain DOM plus Solid:  knows `<ui-form>` and `<ui-repeat>` only as scope holders,
+ *   and reads controls the way `FormFields` does.
  ****************/
 export class FormBinding {
   /**

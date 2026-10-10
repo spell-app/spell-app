@@ -19,12 +19,12 @@ import "./VSCodeRunner.css"
  * the other, split by a bar you drag.
  * - A program with an `app`:  the app on top, then, if the console's shown, a pane switching between
  *   "Type Explorer", "Thing Explorer" and "Program Output".
- * - One with NO `app` has nothing else to show:  "Program Output" on top, the explorers below, and no
- *   "Show Console" button.  See `hasApp`.  One that starts its app AFTER the run finished, e.g. from a timer,
- *   shows it once it draws.
+ * - One with NO `app` has nothing else to show (see `hasApp`):
+ *   "Program Output" on top, the explorers below, and no "Show Console" button.
+ * - One that starts its app AFTER the run finished, e.g. from a timer, shows it once it draws.
  * - Runs whatever the extension sends in a `run` message, afresh each time, on its OWN copy of the spell runtime
  *   -- see `loadRuntime()`.  One sent before that's loaded runs once it is.
- * - The program draws with REACT (`App.start()` makes its own root) into `appRoot`, a `<div>` drawn once.
+ * - The program draws with the page's Solid (`App.start()` makes its own root) into `appRoot`, a `<div>` drawn once.
  * - NEVER imports `$/core`:  it'd be bundled beside this, a second copy -- see `spellRuntime.ts`.
  * - Says `ready` once listening, so the extension knows to compile.  Messages sent before then are lost.
  * - How it's shown -- console, tab, split, the explorers' state -- comes from the extension, which remembers

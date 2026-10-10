@@ -1,21 +1,31 @@
 /**
- * Entry of `spell-runtime.js`:  what spell programs run on, in every runner's bundle -- `<spell-app>`'s
- * (`yarn build:element`), the VS Code runner's (`yarn build:runner`) and the web app's (`yarn build`).
- * - A runner loads it to run programs on -- `<spell-app>` loads its OWN copy per element, see `loadRuntime()`,
+ * Entry of `spell-runtime.js`:  what spell programs run on, in every runner's bundle.
+ * - The bundles:
+ *   - `<spell-app>`'s (`yarn build:element`)
+ *   - the VS Code runner's (`yarn build:runner`)
+ *   - the web app's (`yarn build`)
+ * - A runner loads it to run programs on.
+ *   `<spell-app>` loads its OWN copy per element (see `loadRuntime()`),
  *   so each has its own `spellCore`:  its own `RUNTIME`, console, event listeners and mount point.
- * - It IS a program's `@spell/core`:  it exports `spellCore`, `Thing`, `List`, `App` and the helpers compiled spell
- *   imports by name (`on()`, `trigger()`, `positionOf()` ...), and compiled spell's
- *   `import ... from "@spell/core"` is pointed at this module's URL -- see `runApp()`.
+ * - It IS a program's `@spell/core`:
+ *   compiled spell's `import ... from "@spell/core"` is pointed at this module's URL -- see `runApp()`.
+ *   It exports what compiled spell imports:
+ *   - `spellCore`, `Thing`, `List`, `App`
+ *   - Solid's `h()`, which it draws with
+ *   - the helpers it calls by name:  `on()`, `trigger()`, `positionOf()` ...
  * - Programs draw with Solid, on the page's Spell UI:  `<ui-form>`, `<ui-button>` ... by their own tags.
- * - MUST be the only module in a bundle that imports `spellCore`'s code, so it's all HERE, not in a shared
- *   chunk -- see `element.build.test.ts`, `parser/build.test.ts`.
+ * - MUST be the only module in a bundle that imports `spellCore`'s code,
+ *   so it's all HERE, not in a shared chunk -- see `element.build.test.ts`, `parser/build.test.ts`.
  */
-import { spellCore, Thing, List, App, on, off, once, trigger, positionOf } from "$/core"
+import { spellCore, Thing, List, App, h, on, off, once, trigger, positionOf } from "$/core"
 import { runCompiled, appIsMounted, unmountApp, type RunCompiledOptions } from "./runCompiled"
 
-// Compiled spell imports these -- `import { spellCore, Thing, List, App } from "@spell/core"` -- and the helpers it
-// calls by name, e.g. `trigger("card-click", ...)`, `positionOf(...)` (epic `output-targets`, P19)
-export { spellCore, Thing, List, App, on, off, once, trigger, positionOf, appIsMounted, unmountApp }
+// What compiled spell imports, e.g. `import { spellCore, Thing, List, App, h } from "@spell/core"`.
+// - The helpers it calls by name, e.g. `trigger("card-click", ...)`, `positionOf(...)` (epic `output-targets`, P19).
+// - `h`:  what compiled spell draws with (P20), Solid's own.
+//   The PAGE's one copy, taken through `spell-solid-shared.js` as core's drawing takes it,
+//   never one of its own (`element.build.test.ts`).
+export { spellCore, Thing, List, App, h, on, off, once, trigger, positionOf, appIsMounted, unmountApp }
 
 /**
  * Run `compiled` spell javascript afresh in this copy, drawing any app into `appRoot` -- see `runCompiled()`.

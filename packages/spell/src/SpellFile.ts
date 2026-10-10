@@ -170,8 +170,8 @@ export class SpellFile extends TextFile {
 
   /**
    * Load our content and attempt to parse it -- returns a `Match` (also available as `this.match`).
-   * - NOTE: if `this.match` is already set, we assume that's fine and return it as-is.  Call
-   *   `spellFile.resetCompiled()` first to force a re-parse.
+   * - NOTE: if `this.match` is already set, we assume that's fine and return it as-is.
+   *   Call `spellFile.resetCompiled()` first to force a re-parse.
    * - Pass explicit `parentScope` if this file is, e.g. building on other files.
    */
   async parse(parentScope?: P.Scope): Promise<P.Match | undefined> {
@@ -212,8 +212,8 @@ export class SpellFile extends TextFile {
   /**
    * Where parse errors are logged as files parse -- none by default:  the parser has no console of its own.
    * - The app points it at the console of the runtime its programs run on, so they show in "Program Output".
-   * - NOT `spellCore.console`:  the parser MUST NOT load `spellCore` -- each runner runs its own copy.  See
-   *   `spellRuntime.ts`.
+   * - NOT `spellCore.console`:  the parser MUST NOT load `spellCore`, as each runner runs its own copy.
+   *   See `spellRuntime.ts`.
    */
   static errorConsole?: { error(...args: unknown[]): void }
 

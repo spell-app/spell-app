@@ -6,8 +6,8 @@ import { CLI } from "$/cli"
 /**
  * `runCode()` on Solid TypeScript (the `ts/solid` target's `.tsx`):  built first (`buildTsx()`), then run as any
  * compiled spell, in a fake page.
- * - On `Cards.sample.tsx` (`solidSample()`), the hand-written Solid TypeScript the target writes:  `@prop`, `@drawn`,
- *   `<Show>`, `<For>`, a `<ui-button>`.
+ * - On `Cards.sample.tsx` (`solidSample()`), the hand-written Solid TypeScript the target writes:
+ *   `@prop`, `@drawn`, `<Show>`, `<For>`, a `<ui-button>`.
  */
 
 /**
@@ -35,7 +35,7 @@ describe("runCode()", () => {
     expect(output).toMatchInlineSnapshot(`
       "score: 1 cards: up, up
 
-      <div id="spell-app-root"><div class="Game"><ui-button class="score">Score 1</ui-button><div title="stock" class="Pile"><div class="Card face-up ace spades">A <span class="suit">spades</span></div><div class="Card face-up 2 clubs">2 <span class="suit">clubs</span></div></div><p class="top"><div class="Card face-up 2 clubs">2 <span class="suit">clubs</span></div></p></div></div>
+      <div id="spell-app-root"><div class="Game"><ui-button class="score">Score 1</ui-button><div class="Pile" title="stock"><div class="Card face-up ace spades">A <span class="suit">spades</span></div><div class="Card face-up 2 clubs">2 <span class="suit">clubs</span></div></div><p class="top"><div class="Card face-up 2 clubs">2 <span class="suit">clubs</span></div></p></div></div>
       "
     `)
   }, 30_000)

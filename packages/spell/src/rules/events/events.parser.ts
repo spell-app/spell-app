@@ -7,7 +7,8 @@
 import { SpellParser } from "$/spell/SpellParser"
 
 /**
- * Rule module for `trigger`/`on` -- events fired / watched through core, `spellCore.trigger()` / `spellCore.on()`.
+ * Rule module for `trigger`/`on`:  events fired and watched through core's `trigger()` / `on()`.
+ * - Compiled code imports them from `@spell/core` by name.
  * - They find the program's CURRENT runtime when called:  a new one is made each time a program starts.
  */
 export const events = new SpellParser({ module: "events" })

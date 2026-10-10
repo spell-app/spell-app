@@ -8,6 +8,15 @@ import type { JSXMatchData } from "./JSX.shared"
 describe("testing spell module JSX", () => {
   unitTestModuleRules(spellParser, "JSX", spellCore.resetRuntime)
 
+  test("a dotted tag is reported with the block's parse errors", () => {
+    const scope = spellParser.getScope("jsx-dotted-tag")
+    const block = scope.parse("print <UI.Form/>", "block")!
+    const errors = (block.data as { errors?: P.Match[] }).errors ?? []
+    expect(errors.map((error) => error.message)).toEqual([
+      "<UI.Form> isn't an element:  write Spell UI's own tag, e.g. <ui-form>"
+    ])
+  })
+
   describe("`{...}` contents sit at their file positions", () => {
     test("a parse error inside `{...}` starts where its text is", () => {
       const scope = spellParser.getScope("jsx-error-offset")

@@ -4,12 +4,12 @@ import { SpellExpression } from "$/spell/rules/expressions"
 import { lists } from "./lists.parser"
 
 /**
- * `range_starting_with_expression` rule:  range expression starting at some item in list, inclusive,
+ * `range_starting_with_expression` rule:  range expression starting at some item in list, inclusive:
  * e.g. `items in my-list starting with thing`.
  * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
  * - Returns a new list.
- * - Compiles to `spellCore.rangeStartingAt(list, spellCore.positionOf(list, thing))` -- looks up `thing`'s
- *   position first, then takes range from there to end.
+ * - Compiles to `spellCore.rangeStartingAt(myList, positionOf(myList, thing))`:
+ *   looks up `thing`'s position first, then takes range from there to end.
  * - If item is not found, returns an empty list. (???)
  */
 export class RangeStartingWithExpression extends SpellExpression<"arg|list|thing"> {

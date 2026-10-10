@@ -240,10 +240,3 @@ describe("spellCore.countTo()", () => {
     expect(spellCore.countTo(-2)).toEqual([])
   })
 })
-
-describe("spellCore.createElement()", () => {
-  test("is not yet implemented", () => {
-    const noCreateElement = spellCore as unknown as { createElement: () => void }
-    expect(() => noCreateElement.createElement()).toThrow()
-  })
-})

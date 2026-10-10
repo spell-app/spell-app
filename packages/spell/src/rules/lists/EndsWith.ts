@@ -6,7 +6,7 @@ import { lists } from "./lists.parser"
 
 /**
  * `ends_with` rule:  does list end with some value,
- * e.g. `my-list ends with thing` => `spellCore.endsWith(my_list, thing)`.
+ * e.g. `my-list ends with thing` => `spellCore.endsWith(myList, thing)`.
  */
 export class EndsWith extends InfixOperatorSuffix<"operator|expression"> {
   @proto static precedence = Precedence.comparison

@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App } from "@spell/core"
+import { spellCore, Thing, List, App, h } from "@spell/core"
 
 spellCore.heading("Todo app example")
 /** Todo app example */
@@ -45,155 +45,82 @@ export class Todos_App extends App {
   }
 
   draw() {
-    return spellCore.element({ tag: "ui-container", children: [
-      spellCore.element({ tag: "ui-segment", children: [
-        spellCore.element({
-          tag: "ui-menu",
-          props: {
-            inverted: true,
-            color: "violet",
-            borderless: true
-          },
-          children: [
-            spellCore.element({ tag: "ui-item", props: { type: "header" }, children: [
-              "To Do:"
-            ] }),
-            spellCore.element({ tag: "ui-menu", props: { position: "right" }, children: [
-              spellCore.element({ tag: "ui-item", children: [
-                "Show:"
-              ] }),
-              spellCore.element({
-                tag: "ui-item",
-                props: {
-                  onClick: (event) => {
-                    app.filter = "all"
-                  },
-                  selected: () => (app.filter == "all")
-                },
-                children: [
-                  "All"
-                ]
-              }),
-              spellCore.element({
-                tag: "ui-item",
-                props: {
-                  onClick: (event) => {
-                    app.filter = "active"
-                  },
-                  selected: () => (app.filter == "active")
-                },
-                children: [
-                  "Active"
-                ]
-              }),
-              spellCore.element({
-                tag: "ui-item",
-                props: {
-                  onClick: (event) => {
-                    app.filter = "completed"
-                  },
-                  selected: () => (app.filter == "completed")
-                },
-                children: [
-                  "Completed"
-                ]
-              })
-            ] })
-          ]
-        }),
-        spellCore.element({ tag: "ui-form", props: { debug: true, value: () => app }, children: [
-          spellCore.element({ tag: "ui-repeat", props: { items: () => app.shownTasks }, children: [
-            spellCore.element({ tag: "ui-fields", children: [
-              spellCore.element({ tag: "ui-field", props: { width: "1" }, children: [
-                spellCore.element({ tag: "ui-checkbox", props: { name: "completed", 'aria-label': "Done" } })
-              ] }),
-              spellCore.element({ tag: "ui-field", props: { width: "10" }, children: [
-                spellCore.element({ tag: "ui-input", props: { name: "title", 'aria-label': "Task" } })
-              ] })
-            ] })
-          ] }),
-          spellCore.element({ tag: "ui-fields", children: [
-            spellCore.element({ tag: "ui-field", props: { width: "11" }, children: [
-              spellCore.element({
-                tag: "ui-input",
-                props: {
-                  name: "newTaskName",
-                  placeholder: "New task name",
-                  label: "New task:"
+    return h("ui-container",
+      h("ui-segment",
+        h("ui-menu", { inverted: true, color: "violet", borderless: true },
+          h("ui-item", { type: "header" }, "To Do:"),
+          h("ui-menu", { position: "right" },
+            h("ui-item", "Show:"),
+            h("ui-item", {
+              onClick: (event) => {
+                app.filter = "all"
+              },
+              "prop:selected": () => (app.filter == "all")
+            }, "All"),
+            h("ui-item", {
+              onClick: (event) => {
+                app.filter = "active"
+              },
+              "prop:selected": () => (app.filter == "active")
+            }, "Active"),
+            h("ui-item", {
+              onClick: (event) => {
+                app.filter = "completed"
+              },
+              "prop:selected": () => (app.filter == "completed")
+            }, "Completed")
+          )
+        ),
+        h("ui-form", { debug: true, "prop:value": () => app },
+          h("ui-repeat", { "prop:items": () => app.shownTasks },
+            h("ui-fields",
+              h("ui-field", { width: "1" }, h("ui-checkbox", { name: "completed", "aria-label": "Done" })),
+              h("ui-field", { width: "10" }, h("ui-input", { name: "title", "aria-label": "Task" }))
+            )
+          ),
+          h("ui-fields",
+            h("ui-field", { width: "11" },
+              h("ui-input", { name: "newTaskName", placeholder: "New task name", label: "New task:" })
+            ),
+            h("ui-field",
+              h("ui-button", {
+                "prop:disabled": () => (app.newTaskName === ""),
+                onClick: (event) => {
+                  return createANewTask()
                 }
+              }, "Add Task")
+            )
+          )
+        ),
+        h("br"),
+        h("br"),
+        h("ui-menu", { inverted: true, color: "grey" },
+          h("ui-item", { type: "header" }, "Test:"),
+          h("ui-item", {
+            onClick: (event) => {
+              return createANewTask({ title: "Moar" })
+            }
+          }, "Add Item"),
+          h("ui-item", {
+            onClick: (event) => {
+              return spellCore.removeItemAt(app.tasks, 1)
+            }
+          }, "Remove Item"),
+          h("ui-item", {
+            onClick: (event) => {
+              spellCore.getItemAt(app.tasks, 1).title = "New title"
+            }
+          }, "Change name"),
+          h("ui-item", {
+            onClick: (event) => {
+              return spellCore.removeWhere(app.tasks, (item) => {
+                return item.isComplete
               })
-            ] }),
-            spellCore.element({ tag: "ui-field", children: [
-              spellCore.element({
-                tag: "ui-button",
-                props: {
-                  disabled: () => (app.newTaskName === ""),
-                  onClick: (event) => {
-                    return createANewTask()
-                  }
-                },
-                children: [
-                  "Add Task"
-                ]
-              })
-            ] })
-          ] })
-        ] }),
-        spellCore.element({ tag: "br" }),
-        spellCore.element({ tag: "br" }),
-        spellCore.element({ tag: "ui-menu", props: { inverted: true, color: "grey" }, children: [
-          spellCore.element({ tag: "ui-item", props: { type: "header" }, children: [
-            "Test:"
-          ] }),
-          spellCore.element({
-            tag: "ui-item",
-            props: {
-              onClick: (event) => {
-                return createANewTask({ title: "Moar" })
-              }
-            },
-            children: [
-              "Add Item"
-            ]
-          }),
-          spellCore.element({
-            tag: "ui-item",
-            props: {
-              onClick: (event) => {
-                return spellCore.removeItemAt(app.tasks, 1)
-              }
-            },
-            children: [
-              "Remove Item"
-            ]
-          }),
-          spellCore.element({
-            tag: "ui-item",
-            props: {
-              onClick: (event) => {
-                spellCore.getItemAt(app.tasks, 1).title = "New title"
-              }
-            },
-            children: [
-              "Change name"
-            ]
-          }),
-          spellCore.element({
-            tag: "ui-item",
-            props: {
-              onClick: (event) => {
-                return spellCore.removeWhere(app.tasks, (item) => {
-                  return item.isComplete
-                })
-              }
-            },
-            children: [
-              "Remove Completed"
-            ]
-          })
-        ] })
-      ] })
-    ] })
+            }
+          }, "Remove Completed")
+        )
+      )
+    )
   }
 }
 

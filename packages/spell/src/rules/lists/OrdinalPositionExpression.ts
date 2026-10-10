@@ -4,7 +4,7 @@ import { ListItemExpression } from "./ListItemExpression"
 import { lists } from "./lists.parser"
 
 /**
- * `ordinal_position_expression` rule:  ordinal-word index expression,
+ * `ordinal_position_expression` rule:  ordinal-word index expression:
  * e.g. `the first item of my-list`, `the tenth card of deck`.
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Shares same `getItemAt` compile target as `position_expression`, with `{ordinal}` resolved to a number.

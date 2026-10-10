@@ -11,7 +11,10 @@ export type JSXMatchData = {
   expression?: P.Match
   /** (`jsxAttribute`) Sub-statement match parsed out of an `on*` attribute value, e.g. an inline event handler. */
   statement?: P.Match
-  /** (`jsxAttribute`/`jsxExpression`) `parse_error` match recorded when neither `expression` nor `statement` could be parsed. */
+  /**
+   * `parse_error` match:  (`jsxAttribute`/`jsxExpression`) recorded when neither `expression` nor `statement` could
+   * be parsed;  (`jsxElement`) for a dotted tag, `<UI.Form>`.
+   */
   error?: P.Match
   /** (`jsxElement`) Parsed `jsxAttribute` matches for the element. */
   attributes?: Array<P.Match | undefined>

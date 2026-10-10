@@ -2,31 +2,40 @@ import { P } from "$/parser"
 
 /****************
  * ### `WriterProject`
- * What a javascript writer (`P.JSWriter`, `P.TSWriter`) must know about a whole project BEFORE it writes any of it:
- * how to name a member it reads, what each value is, which variables are set again, which members move into their
- * classes, which lists become typed constants, what values it gives each member.
- * - Made once per compile, from every file's statements:  `WriterProject.of(files)`, through `JSWriter.forProject()`.
- * - Both writers read what it knows of names and values;  what moves, and the typed constants, are TypeScript's.
+ * What a javascript writer (`P.JSWriter`, `P.TSWriter`) must know about a whole project
+ * BEFORE it writes any of it:
+ * - how to name a member it reads
+ * - what each value is
+ * - which variables are set again
+ * - which members move into their classes
+ * - which lists become typed constants
+ * - what values the program gives each member
+ *
+ * - Made once per compile, from every file's statements:
+ *   `WriterProject.of(files)`, through `JSWriter.forProject()`.
+ * - Both writers read what it knows of names and values;
+ *   what moves, and the typed constants, are TypeScript's alone.
  * - Plain facts, worked out from the tree alone:  no scope lookups, nothing written.
- * - An empty one (`new WriterProject()`) knows nothing, e.g. for `JSWriter.instance` writing one node:  then no
- *   getter is renamed where it's read, every new variable is `let`, and nothing moves.
+ * - An empty one (`new WriterProject()`) knows nothing, e.g. for `JSWriter.instance` writing one node.
+ *   Then no getter is renamed where it's read, every new variable is `let`, and nothing moves.
  ****************/
 export class WriterProject {
   /**
-   * Getters the project declares, by spell's name, e.g. `is_face_up`:  read by a member's name, `isFaceUp` -- see
-   * `JSWriter.memberName()`.
-   * - And the methods of the types it imports, e.g. `is_face_up` from `card "is face up" if ...`:  one read as a
-   *   property is a getter there.  And their getters declared as properties (`the short name of a card is ...`):
+   * Getters the project declares, by spell's name, e.g. `is_face_up`.
+   * - A read of one is written by its member name, `isFaceUp`:  see `JSWriter.memberName()`.
+   * - Also the methods of the types it imports, e.g. `is_face_up` from `card "is face up" if ...`:
+   *   one read as a property is a getter there.
+   * - Also their getters declared as properties (`the short name of a card is ...`):
    *   their declarations say `"getter": true` (`P.ScopeVariable.isGetter`).
-   * - NOT a name some class also has as a property (`ASTReactiveProperty`):  a property is named as a property, and
-   *   a read can't tell which of the two it is.
+   * - NOT a name some class also has as a property (`ASTReactiveProperty`):
+   *   a property is named as a property, and a read can't tell which of the two it is.
    */
   readonly getters = new Set<string>()
   /** Variables set AFTER they're declared, by spell's name, e.g. `state`:  `let`;  any other new variable is `const`. */
   readonly reassigned = new Set<string>()
   /**
-   * Members written OUTSIDE a class the project declares, by its name, with the comments above each:  written inside
-   * the class instead -- one class body per type.
+   * Members written OUTSIDE a class the project declares, by the class's name, with the comments above each.
+   * - They're written inside the class instead:  one class body per type.
    * - e.g. `the pile of a card`, set first in `Pile.spell` (an `ASTPatchedMember`, which spell itself never moves).
    */
   readonly movedMembers = new Map<string, Array<P.ASTClassMember | P.ASTComment | P.ASTBlankLine>>()
@@ -37,13 +46,15 @@ export class WriterProject {
   /** Each class's super-type, by name, e.g. `Pile` for `Tableau`. */
   readonly superTypes = new Map<string, string>()
   /**
-   * What each class declares, by name:  its properties, getters and methods, by spell's names -- ours, an imported
-   * one's (`importedMembers`), and what it gets for TypeScript only (`undeclared`).  See `isInherited()`.
+   * What each class declares, by name:  its properties, getters and methods, by spell's names.
+   * - Ours, an imported one's (`importedMembers`), and what it gets for TypeScript only (`undeclared`).
+   * - See `isInherited()`.
    */
   readonly members = new Map<string, Set<string>>()
   /**
-   * What each variable the files set at their top level is set to, by spell's name, e.g. `all_piles` => `new
-   * List<Pile>(...)`:  so the writer knows it's a list, even where it's read before it's set (in a class above it).
+   * What each variable the files set at their top level is set to, by spell's name,
+   * e.g. `all_piles` => `new List<Pile>(...)`.
+   * - So the writer knows it's a list, even where it's read before it's set (in a class above it).
    */
   readonly moduleValues = new Map<string, P.ASTExpression>()
   /** Each class's lists of values written out, as `<Class>.<Static>`, e.g. `Deck.Suits`:  plain arrays. */
@@ -53,22 +64,22 @@ export class WriterProject {
   /** Each class's own properties, by name:  see `propertyOf()`. */
   readonly properties = new Map<string, Map<string, P.ASTReactiveProperty>>()
   /**
-   * Each list a property's values come from, hoisted out of its class as a typed constant, by `<Class>.<Static>`,
+   * Each list a property's values come from, hoisted out of its class as a typed constant, by `<Class>.<Static>`:
    * e.g. `Card.Ranks` => `RANKS`, type `Rank`.  See `TSList`.
    */
   readonly lists = new Map<string, TSList>()
   /**
-   * Members a class gets for TypeScript only, by its name (Q25):  ones its program uses on it, or on a class below
-   * it, but never declares there.  See `TSUndeclared`.
-   * - A value given when one is made, `a new foundation with symbol = "♣️"`:  on the class shared by every class it's
-   *   given to, e.g. `droppable` on `Pile`, given to each kind of pile.
-   * - A method two or more classes define, that the class they share doesn't:  `can_pick_up_$card` on `Pile`, defined
-   *   by each kind of pile.
+   * Members a class gets for TypeScript only, by the class's name (Q25):
+   * ones its program uses on it, or on a class below it, but never declares there.  See `TSUndeclared`.
+   * - A value given when one is made, `a new foundation with symbol = "♣️"`:
+   *   on the class shared by every class it's given to, e.g. `droppable` on `Pile`, given to each kind of pile.
+   * - A method two or more classes define, that the class they share doesn't:
+   *   `can_pick_up_$card` on `Pile`, defined by each kind of pile.
    */
   readonly undeclared = new Map<string, TSUndeclared[]>()
   /**
-   * Each class the project imports, by its name here, and the members its own project declares, e.g. `Pile` from
-   * `Cards`:  the end of a class chain, for `undeclared`.
+   * Each class the project imports, by its name here, and the members its own project declares:
+   * e.g. `Pile` from `Cards`.  The end of a class chain, for `undeclared`.
    */
   readonly importedMembers = new Map<string, Set<string>>()
   /**
@@ -81,9 +92,10 @@ export class WriterProject {
 
   /**
    * What `files`' statements say, and the import layer above `scope`, if any -- see the class docs.
-   * - And what `scope`'s project says of its types, from their records:  for ONE file written alone (the editor's
-   *   view of a file, `JSWriter.writeMatch()`), a type another of its files declares is known as an imported
-   *   one is, and its getters are read by their member names.
+   * - And what `scope`'s project says of its types, from their records.
+   *   - For ONE file written alone (the editor's view of a file, `JSWriter.writeMatch()`):
+   *     a type another of its files declares is known as an imported one is,
+   *     and its getters are read by their member names.
    */
   static of(files: P.ASTNode[][], scope?: P.Scope): WriterProject {
     const project = new WriterProject()
@@ -198,10 +210,11 @@ export class WriterProject {
   ////////////////
 
   /**
-   * SIDE EFFECT:  notes what the types `layer` declares say they have:  their getters, in `getters` -- their methods
-   * (one read as a property is a getter) and their derived properties (`P.ScopeVariable.isGetter`).
-   * - Each type NOT in `written` (the classes the files declare), and not noted already, is noted as imported:  its
-   *   members in `importedMembers`, its super-type in `superTypes`.
+   * SIDE EFFECT:  notes what the types `layer` declares say they have.
+   * - Their getters, in `getters`:  their methods (one read as a property is a getter),
+   *   and their derived properties (`P.ScopeVariable.isGetter`).
+   * - Each type NOT in `written` (the classes the files declare), and not noted already, is noted as imported:
+   *   its members in `importedMembers`, its super-type in `superTypes`.
    */
   private noteTypes(layer: P.Scope, written = new Map<string, P.ASTClassDeclaration>()) {
     for (const type of layer.types?.get() ?? []) {
@@ -221,8 +234,9 @@ export class WriterProject {
   }
 
   /**
-   * SIDE EFFECT:  notes each member in `statements` written outside a class in `classes` (and the comments right
-   * above it), into `movedMembers` and `moved`.  Looks inside groups, never inside a class or a method.
+   * SIDE EFFECT:  notes each member in `statements` written outside a class in `classes`,
+   * and the comments right above it, into `movedMembers` and `moved`.
+   * - Looks inside groups, never inside a class or a method.
    */
   private moveMembers(statements: P.ASTNode[], classes: Map<string, P.ASTClassDeclaration>) {
     let comments: Array<P.ASTComment | P.ASTBlankLine> = []
@@ -330,8 +344,8 @@ export class WriterProject {
   }
 
   /**
-   * SIDE EFFECT:  notes in `givenValues` each value `node`, and everything under it, gives a member -- with `where`
-   * it's given:  in which class, inside which methods.
+   * SIDE EFFECT:  notes in `givenValues` each value `node`, and everything under it, gives a member,
+   * with `where` it's given:  in which class, inside which methods.
    */
   private noteGivenValues(node: unknown, where: ProgramPlace) {
     if (Array.isArray(node)) {
@@ -392,10 +406,13 @@ export class WriterProject {
 
 /**
  * A list a property's values come from, hoisted out of its class as a typed constant:
- * `const RANKS = ["ace", 2, ...] as const`, `export type Rank = (typeof RANKS)[number]`, then
- * `static Ranks = RANKS` in its class.
- * - Why out of the class:  a decorator's arguments run while its class is being made, so `@prop({ oneOf: RANKS })`
- *   can't read `Card.Ranks` yet.
+ * ```
+ * const RANKS = ["ace", 2, ...] as const
+ * export type Rank = (typeof RANKS)[number]
+ * ```
+ * then `static Ranks = RANKS` in its class.
+ * - Why out of the class:  a decorator's arguments run while its class is being made,
+ *   so `@prop({ oneOf: RANKS })` can't read `Card.Ranks` yet.
  */
 export type TSList = {
   /** Its `static` in its class, e.g. `static Ranks = [...]`:  its values. */
@@ -407,10 +424,10 @@ export type TSList = {
 }
 
 /**
- * A member a class gets for TypeScript only -- see `WriterProject.undeclared`.  The javascript doesn't change.
+ * A member a class gets for TypeScript only:  see `WriterProject.undeclared`.  The javascript doesn't change.
  * - A value given when one is made:  `declare symbol: string` in its class.
- * - A method:  merged in after its class, `export interface Pile { canPickUpCard(card: Card): boolean }` -- a
- *   `declare` property would clash with the classes below that define it as a method.
+ * - A method:  merged in after its class, `export interface Pile { canPickUpCard(card: Card): boolean }`.
+ *   A `declare` property would clash with the classes below that define it as a method.
  */
 export type TSUndeclared = {
   /** Its name, spell's. */

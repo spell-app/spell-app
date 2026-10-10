@@ -5,12 +5,13 @@ import { expressions } from "./expressions.parser"
 
 /**
  * `there_is_a` rule:  `there is [not] a`/`an {operand}` or `there is no such {operand}`, e.g. `there is a thing`.
- * - Unlike other rules here this is a plain `expression`, not an `expression_suffix` -- it has no
- *   `lhs` to attach to, it stands on its own at the front of an expression.
+ * - Unlike other rules here this is a plain `expression`, not an `expression_suffix`:
+ *   it has no `lhs` to attach to, it stands on its own at the front of an expression.
  * - Takes an `operand`, like a test,
- *   e.g. `there is a winner and the game is over` => `isDefined(winner) && ...`
+ *   e.g. `there is a winner and the game is over` => `winner !== undefined && ...`
  * - Negates when `operator` contains `no`, covering both `is not a` and `is no such`.
- * - Compiles to `spellCore.isDefined(expression)`, negated as needed.
+ * - Builds `spellCore.isDefined(expression)`, negated as needed.
+ *   Javascript writes it as a test:  `thing !== undefined`, or `thing === undefined` negated.
  */
 export class ThereIsA extends SpellExpression<"operator|expression"> {
   @proto static datatype = "choice"

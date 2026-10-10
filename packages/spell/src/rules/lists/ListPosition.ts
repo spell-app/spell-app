@@ -7,7 +7,7 @@ import { lists } from "./lists.parser"
 
 /**
  * `list_position` rule:  return position of an item in a list,
- * e.g. `position of thing in my-list` => `spellCore.positionOf(my_list, thing)`.
+ * e.g. `position of thing in my-list` => `positionOf(myList, thing)`, imported from `@spell/core`.
  * - NOTE: position returned is **1-based**.
  * - Returns `undefined` if item is not found.
  * - `Priority.mostSpecific` -- preferred over lower-priority expression rules when tokens are ambiguous.

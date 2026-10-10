@@ -12,8 +12,8 @@ import { P } from "$/parser"
  * and `compile()` that into output.
  * - Extends `Derivative` so `rules` can be memoized via `derived()` and invalidated with `clearDerived()`.
  * - `imports` other `Parser`s to combine their `rules` with ours -- see `rules` getter.
- * - Subclass per language, e.g. `SpellParser`; override `tokenizer` / `getScope()` for language-specific
- *   behavior.
+ * - Subclass per language, e.g. `SpellParser`;
+ *   override `tokenizer` / `getScope()` for language-specific behavior.
  */
 export class Parser extends Derivative {
   /** Name of the module this parser (and rules defined in it) belong to. */
@@ -297,10 +297,12 @@ export class Parser extends Derivative {
 
   /**
    * Add a `rule` to our list of rules!
-   * - Rule CLASS is `instantiate()`d into one frozen instance, added under its name + aliases, plus
-   *   `_testable_` if it has tests.  Register a class once per `syntax` if it has several.
-   *   Pass its `definition` -- normally just `syntax` + `tests`, the rest lives on the class as `@proto static` --
-   *   as second argument, type-checked against that class's props:  `parser.addRule(give, { syntax: "give {thing}" })`.
+   * - Rule CLASS is `instantiate()`d into one frozen instance,
+   *   added under its name + aliases, plus `_testable_` if it has tests.
+   *   - Register a class once per `syntax` if it has several.
+   *   - Pass its `definition` as second argument, type-checked against that class's props:
+   *     `parser.addRule(give, { syntax: "give {thing}" })`.
+   *     Normally just `syntax` + `tests`:  the rest lives on the class as `@proto static`.
    * - Rule INSTANCE is added under `ruleName`, defaulting to `rule.name`.
    * - Converts to `P.Group` on re-defining the same rule.
    * - Throws on anything unusable, e.g. bad `syntax` -- better at startup than a mystery parse failure later.
@@ -481,8 +483,8 @@ export class Parser extends Derivative {
 
   /**
    * `compiled` output as a rule's tests expect it -- as is, unless a language says otherwise.
-   * - e.g. `SpellParser` drops the declarations comments a project's compiled JS carries:  a rule's tests are
-   *   about its code.
+   * - e.g. `SpellParser` drops the declarations comments a project's compiled JS carries:
+   *   a rule's tests are about its code.
    * - Used by `testRules()` and the vitest harness, `unitTestModuleRules()`.
    */
   normalizeTestOutput(compiled: unknown): unknown {

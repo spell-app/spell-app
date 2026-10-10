@@ -7,7 +7,7 @@ import { P } from "$/parser"
  * method fails here, not in a project's compile.  Its OUTPUT is pinned by spell's rule tests and fixture snapshots.
  */
 
-/** AST classes `JSWriter` never writes on their own:  bases, and JSX pieces written through their `output`. */
+/** AST classes `JSWriter` never writes on their own:  bases, and JSX pieces their element writes (`h()`). */
 const NEVER_WRITTEN = new Set([
   "ASTNode",
   "ASTExpression",

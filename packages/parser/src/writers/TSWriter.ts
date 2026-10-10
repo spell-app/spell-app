@@ -2,35 +2,42 @@ import { P } from "$/parser"
 // Import directly to avoid circular import
 import { JSWriter } from "./JSWriter"
 import * as jsText from "./jsText"
-import { importedClasses, isCoreCall, newListItemName, unwrapped } from "./jsShapes"
+import { attributeName, importedClasses, isCoreCall, newListItemName, unwrapped } from "./jsShapes"
 import { forEachNode, listNamedBy, type TSUndeclared, type WriterProject } from "./WriterProject"
 
 /****************
  * ### `TSWriter`
- * Writes a spell tree as TypeScript on Solid, as a person would write it by hand:  the `ts/solid` target's writer,
- * for `<Project>.compiled.tsx`.
+ * Writes a spell tree as TypeScript on Solid, as a person would write it by hand:
+ * the `ts/solid` target's writer, for `<Project>.compiled.tsx`.
+ * - It extends `P.JSWriter`, and says everything javascript says the way javascript says it:
+ *   - names:  `isASuit()`, `turnFaceUp()`, `allPiles`  (a property keeps spell's name, `is_set_up`)
+ *   - a `List`'s own methods, `===`, loops, template text
+ * - What's here is only TypeScript's own:  types, decorators, JSX, and `!` where `?.` can't go.
  * - Real JSX, which Solid's compiler builds:  `<span class="suit">{this.shortSuit}</span>`.
- * - A drawing in Solid's shapes, where it can be:  a computed local becomes an accessor
- *   (`const className = () => ...`), an `if ... return` chain a `<Show>` / `<Switch>`, `draw cards in it` a `<For>`.
- *   Any other `to draw` re-runs whole, in its error net.
- * - Decorators:  `@prop({ oneOf: RANKS }) accessor rank!: Rank`, `@derived get state()`, `@thing`, and `@drawn` on
- *   `draw()` (each drawn thing in its own error net, the one `spellCore.drawThing()` gives compiled javascript).
- * - What javascript says as a person would, it says the same way:  names (`isASuit()`, `turnFaceUp()`, `allPiles`;
- *   a property keeps spell's, `is_set_up`), a `List`'s own methods, `===`, loops, template text -- all in
- *   `P.JSWriter`, which this extends.  What's here is TypeScript's own:  types, decorators, JSX, and `!` where `?.`
- *   can't go.
+ * - A drawing in Solid's shapes, where it can be:
+ *   - a computed local becomes an accessor, `const className = () => ...`
+ *   - an `if ... return` chain becomes a `<Show>` / `<Switch>`
+ *   - `draw cards in it` becomes a `<For>`
+ *   - Any other `to draw` re-runs whole, in its error net.
+ * - Decorators:
+ *   - `@prop({ oneOf: RANKS }) accessor rank!: Rank`
+ *   - `@derived get state()`
+ *   - `@thing`
+ *   - `@drawn` on `draw()`:  each drawn thing in its own error net,
+ *     as `spellCore.drawThing()` does for compiled javascript
  * - One class body per type:  members written anywhere in the project go inside their class.
  * - Tidy:  `const` unless set again, no extra parentheses or braces, no unused parameters.
- * - Types where spell knows them:  parameters, properties, lists `as const`.  A type spell DOESN'T know is written
- *   `UNKNOWN`, `any /* spell: type unknown *\/`, never a bare `any`:  so every gap shows, and can be counted (epic
- *   `output-targets`, Q16).
- * - Where the program never says a type, what it does says it (Q54):  a property's type from the values it's given
- *   (`givenKind()`), a method only sub-classes define from what they return (`definitionsKind()`).
- * - Spell's own built-ins stay `spellCore` calls:  `getItemAt(rank, 1)` counts from 1, so both targets print the same
- *   (the core contract, `contract.test.ts` in `$/cli`).
- * - Sees the whole project first (`forProject()`, a `P.WriterProject`):  `TSWriter.instance` alone knows nothing of
- *   it, e.g. writing one node in a test.
- * - Checked by `tsc` against `@spell/core`'s types -- see `typescript.test.ts` in `$/spell`.
+ * - Types where spell knows them:  parameters, properties, lists `as const`.
+ *   - A type spell DOESN'T know is written `UNKNOWN`, `any /* spell: type unknown *\/`, never a bare `any`:
+ *     so every gap shows, and can be counted (epic `output-targets`, Q16).
+ * - Where the program never says a type, what it does says it (Q54):
+ *   - a property's type, from the values it's given (`givenKind()`)
+ *   - a method only sub-classes define, from what they return (`definitionsKind()`)
+ * - Spell's own built-ins stay `spellCore` calls, so both targets print the same:
+ *   `getItemAt(rank, 1)` counts from 1 (the core contract, `contract.test.ts` in `$/cli`).
+ * - Sees the whole project first (`forProject()`, a `P.WriterProject`).
+ *   `TSWriter.instance` alone knows nothing of it, e.g. writing one node in a test.
+ * - Checked by `tsc` against `@spell/core`'s types:  see `typescript.test.ts` in `$/spell`.
  ****************/
 export class TSWriter extends JSWriter {
   /** The one `ts/solid` starts from:  it knows no project -- see `forProject()`. */
@@ -75,10 +82,11 @@ export class TSWriter extends JSWriter {
 
   /**
    * The finished module, as javascript's (`JSWriter.module()`), plus:
-   * - its `@spell/core` import names the decorators `code` uses too, and Solid's control flow (`<Show>`, `<For>` ...)
-   *   is imported from `solid-js` above it
-   * - a member it adds to a class it imports is declared in that project's module, `declare module "..." { interface
-   *   Card {...} }`:  TypeScript refuses an `interface` merged with an import (`TS2440`)
+   * - its `@spell/core` import names the decorators `code` uses too,
+   *   and Solid's control flow (`<Show>`, `<For>` ...) is imported from `solid-js` above it
+   * - a member it adds to a class it imports is declared in that project's module,
+   *   `declare module "..." { interface Card {...} }`:
+   *   TypeScript refuses an `interface` merged with an import (`TS2440`)
    */
   module(code: string): string {
     const solid = SOLID_COMPONENTS.filter((name) => new RegExp(`<${name}[\\s>]`).test(code))
@@ -114,8 +122,8 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * TypeScript for spell's `datatype`, e.g. `string` for `text`, `Card` for `Card`;  `undefined` if spell doesn't
-   * know it, or it has no TypeScript.
+   * TypeScript for spell's `datatype`, e.g. `string` for `text`, `Card` for `Card`;
+   * `undefined` if spell doesn't know it, or it has no TypeScript.
    * - A type spell's project declares is in Type_Case, e.g. `Card`:  as is.
    * - `list of cards`:  as `list`.
    */
@@ -128,8 +136,8 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * TypeScript for what `kindOf()` says a value is, e.g. `string` for `"text"`, `Pile` for `"Pile"` -- `undefined`
-   * for a list (it doesn't say what it holds), or for nothing known.
+   * TypeScript for what `kindOf()` says a value is, e.g. `string` for `"text"`, `Pile` for `"Pile"`.
+   * - `undefined` for a list (it doesn't say what it holds), or for nothing known.
    */
   typeForKind(kind: string | undefined): string | undefined {
     return kind === "list" ? undefined : this.typeFor(kind)
@@ -166,9 +174,10 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * A call's `(args)`, for a method or function of the program's own:  one that may be nothing (an item read from a
-   * list) is passed as found, `moveToPile(tableaus.getItem(column)!)`, as spell passes it:  a typed parameter can't
-   * take it otherwise.  `spellCore`'s helpers take anything:  see `ASTInvocationArgs()`.
+   * A call's `(args)`, for a method or function of the program's own.
+   * - An argument that may be nothing (an item read from a list) is passed as found, as spell passes it:
+   *   `moveToPile(tableaus.getItem(column)!)`.  A typed parameter can't take it otherwise.
+   * - `spellCore`'s helpers take anything:  see `ASTInvocationArgs()`.
    */
   argsOf(node: P.ASTMethodInvocation): string {
     const previous = this.passedAsFound
@@ -227,8 +236,9 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * As javascript's, plus a handler that takes the payload apart:  `on<{ card: Card }>("card-click", ({ card }) =>
-   * card.play())` -- the payload's type as a type argument, taken apart in the handler's parameter (Q37).
+   * As javascript's, plus a handler that takes the payload apart (Q37):
+   * `on<{ card: Card }>("card-click", ({ card }) => card.play())`.
+   * - The payload's type is a type argument, and the handler's parameter takes it apart.
    */
   eventCall(name: string, args: P.ASTExpression[]): string {
     const [type, handler] = args
@@ -288,9 +298,10 @@ export class TSWriter extends JSWriter {
 
   /**
    * As javascript's, plus a getter's type when spell knows it:  `get state(): string {...}`.
-   * - Why:  TypeScript works a getter's type out from its body, and a body that loops over a list of the getter's
-   *   own class (`the state of a pile` reads each card, a card reads its pile) goes round in a circle:  TypeScript
-   *   gives up quietly, and the loop's item is `unknown`.
+   * - Why:  TypeScript works a getter's type out from its body,
+   *   and a body that loops over a list of the getter's own class goes round in a circle
+   *   (`the state of a pile` reads each card, a card reads its pile).
+   *   TypeScript gives up quietly, and the loop's item is `unknown`.
    */
   methodNamed(method: P.ASTMethodDefinition, name: string, thisType?: string): string {
     if (!name.startsWith("get ")) return this.methodNamedOf(method, name, thisType)
@@ -382,8 +393,8 @@ export class TSWriter extends JSWriter {
   /**
    * An arrow's parameter:  typed when spell knows its type (`(card: Card) =>`), else bare, for TypeScript to type
    * from what it's passed to, e.g. `spellCore.map(spellCore.getRange(1, 7), (number) => ...)`:  a `number`.
-   * - So no `UNKNOWN` marker:  an arrow is always passed somewhere that says what it gets (a `spellCore` helper, a
-   *   handler), unlike a method's own parameter.
+   * - So no `UNKNOWN` marker:  unlike a method's own parameter,
+   *   an arrow is always passed somewhere that says what it gets (a `spellCore` helper, a handler).
    */
   arrowParam(arg: P.ASTVariableExpression): string {
     const type = this.untypedItems
@@ -520,10 +531,10 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * A new variable:  `const` unless it's set again (`let`), typed when spell knows its datatype,
-   * e.g. `let count: number = 0`.
-   * - Set from a `spellCore` call, which returns `unknown`:  `const pile = spellCore.randomItemOf(piles) as Pile`, or
-   *   `UNKNOWN` when spell doesn't know either.
+   * A new variable:  `const` unless it's set again (`let`).
+   * - Typed when spell knows its datatype, e.g. `let count: number = 0`.
+   * - Set from a `spellCore` call, which returns `unknown`:
+   *   `const pile = spellCore.randomItemOf(piles) as Pile`, or `UNKNOWN` when spell doesn't know either.
    * - Otherwise unknown:  as javascript, TypeScript works it out, e.g. `const game = new Game()`.
    */
   ASTAssignmentStatement(node: P.ASTAssignmentStatement): string {
@@ -661,10 +672,10 @@ export class TSWriter extends JSWriter {
   ////////////////
 
   /**
-   * `export class Card extends Thing {...}`, with every member the project gives it (see `WriterProject.movedMembers`),
-   * and `@thing` above it when it has a `create()`.
-   * - Its lists of values go above it:  see `classPrefix()`.  The statement group holding it puts them above its
-   *   docstring, too.
+   * `export class Card extends Thing {...}`, with every member the project gives it
+   * (see `WriterProject.movedMembers`), and `@thing` above it when it has a `create()`.
+   * - Its lists of values go above it, and above its docstring:
+   *   see `classPrefix()`, and the statement group holding it.
    */
   ASTClassDeclaration(node: P.ASTClassDeclaration): string {
     const declaration = this.withProjectMembers(node)
@@ -718,8 +729,8 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * A member class `typeName` gets for TypeScript only (`WriterProject.undeclared`), as an interface or a `declare` writes
-   * it:  `droppable: boolean`, `canPickUpCard(card: Card): boolean`.
+   * A member class `typeName` gets for TypeScript only (`WriterProject.undeclared`),
+   * as an interface or a `declare` writes it:  `droppable: boolean`, `canPickUpCard(card: Card): boolean`.
    * - A value:  typed by every value the program gives it -- see `givenKind()`.
    * - A method:  typed by what every class's definition of it returns -- see `definitionsKind()`.
    */
@@ -799,9 +810,12 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * What `node` holds, in TypeScript, from its `check`:  `{ type: 'text' }` => `string`;  a hoisted list's values
-   * => `Rank`;  `{ oneOf: Deck.Suits }` => `(typeof Deck.Suits)[number]`, as for a list read when set,
-   * `{ oneOf: () => Deck.Suits }`.  Else its initializer's datatype.  `undefined` if unknown.
+   * What `node` holds, in TypeScript, from its `check`:
+   * - `{ type: 'text' }` => `string`
+   * - a hoisted list's values => `Rank`
+   * - `{ oneOf: Deck.Suits }` => `(typeof Deck.Suits)[number]`;
+   *   the same for a list read when set, `{ oneOf: () => Deck.Suits }`
+   * - Else its initializer's datatype;  `undefined` if unknown.
    */
   propertyType(node: P.ASTReactiveProperty): string | undefined {
     for (const property of node.check?.properties ?? []) {
@@ -1025,13 +1039,12 @@ export class TSWriter extends JSWriter {
   ////////////////
 
   /**
-   * Real JSX, which Solid's compiler builds:  `<div class="board">...</div>`, one child a line;  short text
-   * inline, `<span class="suit">{this.shortSuit}</span>`.
+   * Real JSX, which Solid's compiler builds:  `<div class="board">...</div>`, one child a line;
+   * short text inline, `<span class="suit">{this.shortSuit}</span>`.
    */
   ASTJSXElement(node: P.ASTJSXElement): string {
     const tag = node.tagName
-    // `class` first:  the order the page gets them in from javascript's `spellCore.element()`, so both targets
-    // draw the same (the core contract)
+    // `class` first, as javascript's `h()` calls give it, so both targets draw the same (the core contract)
     const attributes = (node.attrs ?? [])
       .flatMap((attribute) => this.jsxAttribute(tag, attribute) ?? [])
       .sort((a, b) => Number(b.startsWith("class=")) - Number(a.startsWith("class=")))
@@ -1068,10 +1081,9 @@ export class TSWriter extends JSWriter {
   }
 
   /**
-   * `name="text"` or `name={value}`, by the page's names, as `spellCore.element()` gives compiled javascript:
-   * - `className` => `class`, `htmlFor` => `for`, a camelCase attribute of an HTML tag lowercased (`colSpan` =>
-   *   `colspan`)
-   * - on a tag with a dash (`<ui-form>`), a value that can change, or an object, is a PROPERTY:  `prop:value={...}`
+   * `name="text"` or `name={value}`, by the page's names, as compiled javascript's `h()` calls name them:
+   * - `class`, `for`, `colspan`;  `prop:value={...}` on a `<ui-*>` tag, for a value that can change:
+   *   see `attributeName()`, which both writers share
    * - a handler as an arrow, `onClick={() => autoPlay()}`;  one the drawing shares by its name, `onClick={click}`
    * - no value:  bare on an HTML tag (`hidden`), `{true}` on a `<ui-*>` tag
    * - `undefined` for an attribute that didn't parse:  its error is in the program's parse errors
@@ -1079,13 +1091,7 @@ export class TSWriter extends JSWriter {
   jsxAttribute(tag: string, attribute: P.ASTJSXAttribute): string | undefined {
     const { name, value } = attribute
     if (!value && attribute.error) return undefined
-    let key = name
-    if (name === "className") key = "class"
-    else if (name === "htmlFor") key = "for"
-    else if (tag.includes("-")) {
-      const isProperty = !name.startsWith("on") && !name.includes("-") && !ATTRIBUTES_ONLY.has(name)
-      if (isProperty && value && !isFixedValue(value)) key = `prop:${name}`
-    } else if (!name.startsWith("on") && /[a-z][A-Z]/.test(name)) key = name.toLowerCase()
+    const key = attributeName(tag, name, !!value && !isFixedValue(value))
 
     // bare, as HTML writes it (`hidden`);  a `<ui-*>` tag's bare attribute would ask for an icon called `true`
     if (!value) return tag.includes("-") ? `${key}={true}` : key
@@ -1123,8 +1129,9 @@ type DrawingShape = {
 type DrawingBranch = { condition: P.ASTExpression; value: P.ASTExpression }
 
 /**
- * `statements`, a `to draw`'s body, as a `DrawingShape` -- `undefined` if they're any other shape, e.g. a loop, an
- * `else`, a local set twice, or nothing after the last `return`.
+ * `statements`, a `to draw`'s body, as a `DrawingShape`.
+ * - `undefined` if they're any other shape,
+ *   e.g. a loop, an `else`, a local set twice, or nothing after the last `return`.
  */
 function drawingShape(statements: P.ASTNode[], project: WriterProject): DrawingShape | undefined {
   const shape: Partial<DrawingShape> & Pick<DrawingShape, "comments" | "locals" | "branches"> = {
@@ -1166,8 +1173,9 @@ function drawingShape(statements: P.ASTNode[], project: WriterProject): DrawingS
 ////////////////
 
 /**
- * What getter `method` returns early, if it starts so:  `if (...) return <literal>` -- e.g. `0` for a pile's `value`
- * (`if (this.isEmpty) return 0`), what its later `?.` reads fall back to.  `undefined` if it doesn't.
+ * What getter `method` returns early, if it starts so:  `if (...) return <literal>`.
+ * - E.g. `0` for a pile's `value` (`if (this.isEmpty) return 0`):  what its later `?.` reads fall back to.
+ * - `undefined` if it doesn't.
  */
 function earlyReturnOf(method: P.ASTMethodDefinition): P.ASTExpression | undefined {
   const [first] = (method.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
@@ -1182,9 +1190,6 @@ const DECORATORS = ["prop", "state", "derived", "thing", "drawn"]
 
 /** Solid's control flow a drawing may use, from `solid-js`. */
 const SOLID_COMPONENTS = ["Show", "For", "Switch", "Match"]
-
-/** What stays an attribute on a tag with a dash, whatever its value -- as `spellCore.element()`'s. */
-const ATTRIBUTES_ONLY = new Set(["class", "className", "style", "id", "slot", "part"])
 
 /** Longest element written on one line, open tag and children. */
 const JSX_LINE = 100
@@ -1209,7 +1214,7 @@ const PRECEDENCE: Record<P.ASTOperator, number> = {
   times: 12,
   "divided by": 12
 }
-/** Can't value `node` change?  A literal (not a list, which holds expressions), an element, a function. */
+/** Is `node`'s value fixed?  A literal (not a list, which holds expressions), an element, a function. */
 function isFixedValue(node: P.ASTExpression): boolean {
   const inner = unwrapped(node)
   if (inner instanceof P.ASTArrayLiteral || inner instanceof P.ASTEnumeration) return false
@@ -1240,8 +1245,8 @@ function loopsOverAList(method: P.ASTMethodDefinition): boolean {
 }
 
 /**
- * The docstring right above `member` in `members` -- past a declaration's marker (`/*! SPELL: DECLARES ... *\/`) --
- * if it has one.
+ * The docstring right above `member` in `members`, if it has one:
+ * past a declaration's marker, `/*! SPELL: DECLARES ... *\/`.
  */
 function docstringAbove(member: P.ASTNode, members: P.ASTNode[]): P.ASTDocComment | undefined {
   let index = members.indexOf(member) - 1
@@ -1265,12 +1270,7 @@ function elseOnItsLine(text: string): string {
 }
 
 /** `text` with every non-blank line indented once. */
-function indented(text: string): string {
-  return text
-    .split("\n")
-    .map((line) => (line ? `${jsText.INDENT}${line}` : line))
-    .join("\n")
-}
+const indented = jsText.indented
 
 /** `'text'` as `"text"`, when it has no `"` or `\` in it;  anything else as is. */
 function doubleQuoted(text: string): string {

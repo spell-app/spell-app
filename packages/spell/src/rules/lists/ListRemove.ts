@@ -7,7 +7,7 @@ import { lists } from "./lists.parser"
 /**
  * `list_remove` rule:  remove all instances of something from a list.
  * - Compiles to `spellCore.remove(list, thing)`, e.g. `remove thing from my-list` =>
- *   `spellCore.remove(my_list, thing)`.
+ *   `spellCore.remove(myList, thing)`.
  */
 export class ListRemove extends SpellStatement<"thing|list"> {
   @proto static alias = "statement"

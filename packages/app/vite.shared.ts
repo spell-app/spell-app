@@ -108,7 +108,7 @@ export const SHARED_SPECIFIERS = [...FROM_SHARED_SOLID]
   .filter(([, file]) => file === SHARED_SOLID.shared)
   .map(([id]) => id)
 
-/** Solid's hyperscript, which `core` draws compiled spell with (`spellCore.element()`). */
+/** Solid's hyperscript, `h()`:  what compiled spell draws with, through `core`'s export (epic `output-targets` P20). */
 const H_PACKAGE = "@solidjs/h"
 
 /**

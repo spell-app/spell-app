@@ -14,8 +14,9 @@ import { events } from "./events.parser"
  *   as its first arg plus one arg per `with`-listed prop (see `with_props_arg` in methods).
  * - When `props` are given, the handler body destructures them off `event` at its top,
  *   e.g. `with a card` => `let { card } = event`.
- * - Compiles to `spellCore.on(name, handler?)` (a `P.ASTCoreMethodInvocation`);
+ * - Builds a call to core's `on(name, handler?)` (a `P.ASTCoreMethodInvocation`);
  *   `handler` omitted entirely when there's no body.
+ *   - Javascript calls `on()` by name, imported from `@spell/core`:  `on('card-click', (event) => {...})`.
  */
 export class On extends SpellStatement<"eventName|props?|body?"> {
   @proto static alias = "statement"
@@ -29,8 +30,7 @@ export class On extends SpellStatement<"eventName|props?|body?"> {
     const { eventName, props } = match.groups
     const args: P.ScopeVariableProps[] = [{ name: "event" }]
     // `WithPropsArg`'s own `parse()` (in methods) stashes its prop `P.ASTVariableExpression`s
-    // directly on `match.data.props` -- narrow via `is()` to read them typed, rather than the generic
-    // `props` group.
+    // directly on `match.data.props`:  narrow via `is()` to read them typed, not the generic `props` group
     if (props?.is(WithPropsArg)) {
       for (const { name, datatype } of props.data.props ?? []) {
         args.push({ name, datatype: typeof datatype === "string" ? datatype : undefined })

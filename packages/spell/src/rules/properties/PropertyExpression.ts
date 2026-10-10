@@ -5,8 +5,8 @@ import { MemberReadExpression } from "./MemberReadExpression"
 import { properties } from "./properties.parser"
 
 /**
- * `property_expression` rule:  `the {member words} of {thing}` ~== `thing.member`
- *   -- ONE rule for both kinds of read (plan doc D5):
+ * `property_expression` rule:  `the {member words} of {thing}` ~== `thing.member`.
+ * ONE rule for both kinds of read (plan doc D5):
  * - RESOLVED:  the words name a PROPERTY the type of `thing` declares (or a super-type does),
  *   e.g. `the short rank of the card` -- several words, blacklisted ones too.
  *   - An enumerated property's values, e.g. `the suits of the card` as `cards have a suit as one of ...` declares,
@@ -14,8 +14,8 @@ import { properties } from "./properties.parser"
  * - else LOOSE:  ONE word nothing need declare, not on the identifier blacklist,
  *   e.g. `the is-set-up of it` -- as spell read every property before types.
  *   - We still note a METHOD of that name, for our datatype.
- * - else NOT a property read:  several undeclared words,
- *   e.g. `the first card of the deck` is the ordinal rule's.
+ * - else NOT a property read:
+ *   several undeclared words, e.g. `the first card of the deck` is the ordinal rule's.
  * - `Priority.preferred`:  a declared member beats a built-in rule reading the SAME words,
  *   e.g. a deck's `last card` beats the ordinal `the last card of`.
  *   - NOT `the position of`, `the number of` (`mostSpecific`), nor `the biggest of` (2), which say more:

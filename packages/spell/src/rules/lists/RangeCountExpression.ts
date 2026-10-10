@@ -7,7 +7,7 @@ import { lists } from "./lists.parser"
  * `range_count_expression` rule:  alternative form of range expression.
  * - `{arg}` (e.g. `items`) captured for readability only, unused in output.
  * - Returns a new list.
- * - e.g. `top 2 items of my-list` => `spellCore.rangeStartingAt(my_list, 1, 2)`.
+ * - e.g. `top 2 items of my-list` => `spellCore.rangeStartingAt(myList, 1, 2)`.
  * TODO: restrict ordinals to `first`, `last`, `final`, `top`, etc
  */
 export class RangeCountExpression extends SpellExpression<"ordinal|number|arg|list"> {

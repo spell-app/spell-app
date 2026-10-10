@@ -34,10 +34,11 @@ else await testProject()
 
 /**
  * Load the project, running its top-level statements, then say if it wanted a browser.
- * - Started by `spell run`, with an IPC channel:  tells it what was skipped -- `{ skipped: [...] }` -- so it can
- *   open the project in a browser, and lets the channel go, so this process can end.
- * - Exits 1 if it threw.  Otherwise leaves the process to end on its own, so anything it started, e.g. a `pause`,
- *   gets to finish.
+ * - Started by `spell run`, with an IPC channel:
+ *   - tells it what was skipped (`{ skipped: [...] }`), so it can open the project in a browser
+ *   - lets the channel go, so this process can end
+ * - Exits 1 if it threw.
+ *   Otherwise leaves the process to end on its own, so anything it started, e.g. a `pause`, gets to finish.
  */
 async function runProject() {
   const loaded = await load()
@@ -168,10 +169,12 @@ function headless() {
 }
 
 /**
- * SIDE EFFECT:  a fake page for `spec.dom`, so what needs a browser runs:  linkedom's `document`, and `App.start()`
- * draws into it.  When the program is done, prints the page's `<body>`:  what it drew, to compare.
- * - `Math.random()` is SEEDED, so a shuffle comes out the same every run, on every target:  by `hooks.mjs`, before
- *   lodash loads and keeps its own reference to it.
+ * SIDE EFFECT:  a fake page for `spec.dom`, so what needs a browser runs:
+ * linkedom's `document`, and `App.start()` draws into it.
+ * - When the program is done, prints the page's `<body>`:  what it drew, to compare.
+ *   Each tag's attributes are sorted first (`withSortedAttributes()`).
+ * - `Math.random()` is SEEDED, so a shuffle comes out the same every run, on every target:
+ *   by `hooks.mjs`, before lodash loads and keeps its own reference to it.
  * - Only for the core contract test, `contract.test.ts`:  a real browser is `spell run`'s.
  */
 async function fakeDom() {
@@ -190,10 +193,32 @@ async function fakeDom() {
   bridgeSolid({ enableExternalSource, flush })
   process.once("beforeExit", () => {
     spellCore.flush()
-    const drawn = page.document.body.innerHTML
+    const drawn = withSortedAttributes(page.document.body.innerHTML)
     if (drawn) process.stdout.write(`\n${drawn}\n`)
   })
 }
+
+/**
+ * `html` with each tag's attributes in alphabetical order:  so two targets drawing the same element print it the same.
+ * - Why:  linkedom prints the two ways of setting attributes in different orders.
+ *   - set one by one (`setAttribute()`, as `h()` sets them):  LAST FIRST
+ *   - parsed (Solid's JSX templates):  in their order
+ *   - So `<th class="a" colspan="2">`, drawn either way, prints two ways.
+ *   - A browser prints both in the order they were set.
+ * - Reads linkedom's own output:  every value in double quotes, a `"` in one written `&quot;`.
+ */
+function withSortedAttributes(html: string): string {
+  return html.replace(START_TAG, (_tag, name: string, attributes: string, end: string) => {
+    const sorted = (attributes.match(ATTRIBUTE) ?? []).map((attribute) => attribute.trim()).sort()
+    return `<${name}${sorted.map((attribute) => ` ${attribute}`).join("")}${end}>`
+  })
+}
+
+/** A start tag, as linkedom writes one:  its name, its attributes, and `/` if it closes itself. */
+const START_TAG = /<([a-zA-Z][\w-]*)((?:\s+[^\s"'>/=]+(?:="[^"]*")?)*)\s*(\/?)>/g
+
+/** One attribute in a start tag:  `name="value"`, or a bare `name`. */
+const ATTRIBUTE = /\s+[^\s"'>/=]+(?:="[^"]*")?/g
 
 /** Silence `console.*` -- the project's `print`s -- unless `verbose`.  Returns how to put it back. */
 function quiet(): () => void {

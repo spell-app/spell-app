@@ -7,7 +7,7 @@ import { lists } from "./lists.parser"
 import { getWhereScope, getWhereMethod } from "./lists.shared"
 
 /**
- * `list_length` rule:  return length of a list, e.g. `number of items in my-list` => `spellCore.itemCountOf(my_list)`.
+ * `list_length` rule:  return length of a list, e.g. `number of items in my-list` => `spellCore.itemCountOf(myList)`.
  * - `{arg}` (e.g. `items`) captured for readability only, unless there's a `where`.
  * - With `where`, counts the items which pass, as `list_filter` does,
  *   e.g. `the number of cards in the deck where its color is red`

@@ -4,8 +4,8 @@ import { SpellExpression } from "$/spell/rules/expressions"
 import { lists } from "./lists.parser"
 
 /**
- * `range_between_expression` rule:  range expression,
- * e.g. `item 1 to 2 of my-list` => `spellCore.rangeBetween(my_list, 1, 2)`.
+ * `range_between_expression` rule:  range expression:
+ * e.g. `item 1 to 2 of my-list` => `spellCore.rangeBetween(myList, 1, 2)`.
  * - `{arg}` (e.g. `item`) captured for readability only, unused in output.
  * - Returns a new list.
  * - NOTE: `start` is **1-based**.

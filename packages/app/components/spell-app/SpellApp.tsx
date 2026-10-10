@@ -108,7 +108,7 @@ const vocabulary = {
  *   - its `icons` default to `fomantic`:  the runner's icon names are Fomantic's.
  *     The page's own `ui-*` keep theirs
  *   - inside another root (a docs page, the editor demo), it's a nested root:  the outer one waits for it
- * - The PROGRAM draws with Solid too (`spellCore.element()`), the page's one Solid;
+ * - The PROGRAM draws with Solid too (Solid's own `h()`, from `@spell/core`), the page's one Solid;
  *   Semantic UI's CSS is adopted into the shadow root (`adoptShadowStyles()`).
  * - `width` / `height` set our inline style, so page CSS works too.
  * - Leaving the page stops the app and lets go of its runtime, a microtask later:  a move in one go keeps it.

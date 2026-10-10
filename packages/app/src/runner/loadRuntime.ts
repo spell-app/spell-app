@@ -1,9 +1,10 @@
 /**
  * Loading a FRESH copy of `spell-runtime.js` for each `<spell-app>` -- see `spellRuntime.ts`.
- * - The browser keeps one module per URL, so a copy needs a URL of its own:  we fetch the runtime's text ONCE
- *   per page, then import it from a new `blob:` URL per copy.
- * - Its imports of the bundle's shared chunks -- React, `semantic-ui-react` ... -- are relative, which a `blob:`
- *   URL can't resolve:  so they're made absolute first.  Every copy then shares those chunks.
+ * - The browser keeps one module per URL, so a copy needs a URL of its own:
+ *   we fetch the runtime's text ONCE per page, then import it from a new `blob:` URL per copy.
+ * - Its imports of the bundle's shared chunks, e.g. the page's Solid through `spell-solid-shared.js`, are relative,
+ *   which a `blob:` URL can't resolve:  so they're made absolute first.
+ *   Every copy then shares those chunks.
  */
 import type * as SpellRuntimeModule from "./spellRuntime"
 
@@ -33,8 +34,8 @@ export type LoadedRuntime = {
 export type SpellRuntime = typeof SpellRuntimeModule
 
 /**
- * `source` with its relative imports -- `from "./react.js"`, `import("./x.js")` -- made absolute against `url`,
- * so it runs from a `blob:` URL.
+ * `source` with its relative imports made absolute against `url`, so it runs from a `blob:` URL.
+ * - e.g. `from "./spell-solid-shared.js"`, `import("./x.js")`
  * - Pure.
  */
 export function absoluteImports(source: string, url: string): string {

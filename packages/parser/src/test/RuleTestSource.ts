@@ -11,8 +11,8 @@ import { parseSync } from "vite-plus"
 /****************
  * ### `RuleTestSource`
  * One source file's rule tests:  each `[input, js, ts?]` tuple or `{ input, js, ts }` object in a `tests: [...]`.
- * - `bless()` sets each test's `js` and `ts` to what the writers wrote;  its `ts`
- *   left out where it's the same as its `js`.
+ * - `bless()` sets each test's `js` and `ts` to what the writers wrote;
+ *   its `ts` left out where it's the same as its `js`.
  * - `renameOutputs()` renames the old `output:` key to `js:`.
  * - Edits are text edits at the test's place in the file:  everything else stays as written.
  *   `vp fmt` tidies them after.
@@ -69,8 +69,8 @@ export class RuleTestSource {
   }
 
   /**
-   * Set each test's `js` and `ts` to `blessed`'s, found by its `input` and old `js`:  `ts` left out where it's the
-   * same as `js`.
+   * Set each test's `js` and `ts` to `blessed`'s, found by its `input` and old `js`.
+   * - `ts` is left out where it's the same as `js`.
    * - Returns what it couldn't bless, as warnings:  `blessed` gave two different values for one test,
    *   or one which can't be written as a literal (an error a writer threw).
    * - A test `blessed` doesn't name is left as it is.
