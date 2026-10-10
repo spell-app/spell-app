@@ -974,36 +974,56 @@ pre code {
   font: var(--spell-eyebrow-font);
   letter-spacing: var(--spell-eyebrow-tracking);
 }
-/* the box:  typed and not saved, dashed (the fill rule), "Not saved yet" */
+/*
+ * the box:  ivory, as the toolbar (Owen's voice), lifted off the page by a shadow (Owen, 2026-10-10:  "make the
+ * modal bg beige so it stands out");  it saves as it's typed, so no buttons and no dashed "not saved" border
+ */
 .spell-doc-main .spell-comment-form {
-  padding: 8px 10px;
-  border: 1.5px solid var(--spell-rule);
+  padding: 4px 8px 8px 10px;
+  border: 1px solid var(--spell-rail-rule);
   border-radius: 10px;
-  background: var(--spell-bg);
+  background: var(--spell-rail-bg);
+  box-shadow: 0 4px 14px rgb(0 0 0 / 14%);
 }
-.spell-doc-main .spell-comment-form[data-typed] {
-  border-style: dashed;
-  border-color: var(--ui-brown-text, #534323);
-}
+/* its header:  the bullhorn, a few words of what it's on (its tooltip the whole), the floppy, × */
 .spell-doc-main .spell-comment-about {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 4px;
-  margin: 0 0 6px;
-  color: var(--spell-muted);
+  gap: 6px;
+  margin: 0 0 4px;
+  color: var(--spell-rail-ink);
   font-size: 0.9rem;
 }
-.spell-doc-main .spell-comment-unsaved {
-  display: none;
-  margin-left: auto;
-  padding: 0 6px;
-  border: 1px dashed currentcolor;
-  border-radius: 999px;
-  font-size: 0.75rem;
+.spell-doc-main .spell-comment-on {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  font-style: italic;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
-.spell-doc-main .spell-comment-form[data-typed] .spell-comment-unsaved {
-  display: inline;
+/* the floppy:  saved (its tooltip the time), red when the last save failed */
+.spell-doc-main .spell-comment-saved {
+  color: var(--spell-muted);
+  font-size: 0.8rem;
+}
+.spell-doc-main .spell-comment-saved[data-failed] {
+  color: var(--ui-red, #db2828);
+}
+.spell-doc-main .spell-comment-close {
+  display: inline-grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.spell-doc-main .spell-comment-close:hover {
+  background: var(--spell-rail-hover);
 }
 .spell-doc-main textarea.spell-comment-field {
   box-sizing: border-box;
@@ -1011,26 +1031,13 @@ pre code {
   min-height: 4lh;
   max-height: 50vh;
   padding: 8px 10px;
-  border: 1px solid var(--spell-rule);
+  border: 1px solid var(--spell-rail-rule);
   border-radius: 6px;
   background: var(--spell-bg);
   color: var(--spell-ink);
   font: inherit;
   line-height: 1.4;
   resize: vertical;
-}
-.spell-doc-main .spell-comment-actions {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 6px;
-  margin-top: 6px;
-}
-.spell-doc-main .spell-comment-hint {
-  margin-right: auto;
-  color: var(--spell-muted);
-  font-size: 0.85rem;
 }
 
 /* the New epic box (outside `main`):  a textarea that grows with its text (`growField()`) */
