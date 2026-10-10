@@ -53,16 +53,21 @@ import rootCSS from "./UIRoot.css?inline"
  * - Static server render (`$/ui/static`):  nothing loads and nothing is hidden;
  *   the root is a plain wrapper (`serverWrapper()`).
  *   None of its `@E.onChange` effects runs there (none writes the DOM element).
+ * - A subclass is a root too (`elementSetup.root`), under its own tag:  `<spell-app>`, which draws an app instead of
+ *   a `<slot>` (`content()`), loads what's inside its shadow root too (`contentRoots`), and loads tags of its own
+ *   (`ownTagLoader()`).  Its vocabulary has the root's names, plus its own.
  ****************/
-export class UIRoot extends E.UIComponent<RootVocabulary> {
-  @E.proto static vocabulary = rootVocabulary
-  @E.protoMerged static elementSetup = {
+export class UIRoot<V extends E.ComponentVocabulary = RootVocabulary> extends E.UIComponent<V> {
+  @E.proto static vocabulary: E.ComponentVocabulary = rootVocabulary
+  // typed, not `satisfies`:  a subclass states other keys (`<spell-app>`)
+  @E.protoMerged static elementSetup: Partial<E.ElementSetup> = {
     styleSheets: { root: rootCSS },
     delegatesFocus: false,
     canRenderUnstyled: true,
+    root: true,
     // `loading`:  a message while its components load
     loading: "its own"
-  } satisfies Partial<E.ElementSetup>
+  }
 
   /** What shows with `loading`:  swap it for another look (`UIRoot.Loading = MyLoading`). */
   @E.proto static Loading: RootLoading = LoaderMessage
@@ -129,10 +134,10 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   }
 
   /**
-   * Inline style of the slot:  hidden while loading (unless `immediately`);
+   * Inline style of the content (the slot):  hidden while loading (unless `immediately`);
    * not drawn while the message or skeletons show.
    */
-  private get slotStyle(): string | undefined {
+  protected get contentStyle(): string | undefined {
     if (this.contentIsReady || this.displayMode === DISPLAY.immediately) return undefined
     return this.showsLoadingMessage || this.showsSkeletons ? "display: none" : "visibility: hidden"
   }
@@ -142,8 +147,8 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
    * the root renders at once (`canRenderUnstyled`), before `UI.i18n` exists,
    * and `translationForKey()` throws until then.
    */
-  private runtimeText(key: Parameters<UIRoot["translationForKey"]>[0]): string | undefined {
-    return this.isReady ? this.translationForKey(key) : undefined
+  private runtimeText(key: E.TextKey<RootVocabulary>): string | undefined {
+    return this.isReady ? this.translationForKey(key as never) : undefined
   }
 
   ////////////////
@@ -179,7 +184,7 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
    * a tab stop with a name (as a scrolling `<ui-table>`'s), so people on a keyboard can scroll it --
    * Firefox doesn't make a scroller focusable by itself.
    */
-  private get scrolls(): boolean {
+  protected get scrolls(): boolean {
     return this.isBox || this.isFixed
   }
 
@@ -207,14 +212,24 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
     return (
       <>
         <Show when={this.showsLoadingMessage}>
-          {this.Loading.render(this.partForName("loading"), () => this.loadingMessage)}
+          {this.Loading.render(this.partForName("loading" as never), () => this.loadingMessage)}
         </Show>
-        <Show when={this.showsSkeletons}>{this.Skeleton.render(this.partForName("skeleton"), this.$.skeletons)}</Show>
-        <Show when={this.scrolls} fallback={<slot class={this.rootClass} style={this.slotStyle} />}>
-          {this.scroller(<slot class={this.rootClass} style={this.slotStyle} />)}
+        <Show when={this.showsSkeletons}>
+          {this.Skeleton.render(this.partForName("skeleton" as never), this.$.skeletons)}
+        </Show>
+        <Show when={this.scrolls} fallback={this.content()}>
+          {this.scroller(this.content())}
         </Show>
       </>
     )
+  }
+
+  /**
+   * What the root shows once ready:  a `<slot>` for the page, hidden while loading (`contentStyle`).
+   * - A subclass that draws its own content puts it here, with `contentStyle` on its outside (`<spell-app>`).
+   */
+  protected content(): JSX.Element {
+    return <slot class={this.rootClass} style={this.contentStyle} />
   }
 
   /**
@@ -242,7 +257,7 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   private scroller(slot: JSX.Element): JSX.Element {
     return (
       <div
-        part={this.partForName("scroller")}
+        part={this.partForName("scroller" as never)}
         tabindex="0"
         role="region"
         aria-label={this.attributes["aria-label"] ?? this.runtimeText("label")}
@@ -284,6 +299,23 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   private hasStarted = false
 
   /**
+   * Where the content the root loads is:  the DOM element's children.
+   * - A subclass that draws its content in its shadow root adds that (`<spell-app>`).
+   */
+  protected get contentRoots(): readonly ParentNode[] {
+    return [this.domElement]
+  }
+
+  /**
+   * How to load `tag`, an undefined tag the root loads ITSELF, beyond Spell UI's and the packs';
+   * `undefined` for any other tag.
+   * - None here:  a subclass's own (`<spell-app>`:  `spell-editor` => `spell-editor.js`).
+   */
+  protected ownTagLoader(_tag: string): (() => Promise<void>) | undefined {
+    return undefined
+  }
+
+  /**
    * While connected, load what's inside now (first connect:  and wait for it), and whatever is added later;
    * returns the undo.
    * - Declared before `onSettingsChanged()`:  loading starts before the settings are handed out, as it always has.
@@ -292,7 +324,7 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   protected watch(): E.Disposer {
     // oxlint-disable-next-line spell-ui/no-mutation-observer -- only while connected:  `@E.watches` lasts the element's whole life
     const observer = new MutationObserver(() => void this.loadUndefined())
-    observer.observe(this.domElement, { childList: true, subtree: true })
+    for (const root of this.contentRoots) observer.observe(root, { childList: true, subtree: true })
     if (this.hasStarted) void this.loadUndefined()
     else {
       this.hasStarted = true
@@ -310,7 +342,7 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
     timeout.cancel()
     if (outcome === "timeout") this.timedOut()
     this.contentIsReady = true
-    this.send("ui-ready", { failed: [...this.failures] })
+    this.send("ui-ready" as never, { failed: [...this.failures] })
     this.resolveSettled([...this.failures])
   }
 
@@ -334,7 +366,7 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
    */
   private findSkeletons(): RootSkeleton[] {
     const skeletons: RootSkeleton[] = []
-    for (const element of this.domElement.querySelectorAll("*")) {
+    for (const element of this.elementsInside()) {
       const spec = RootLoader.entryOf(element.localName)?.skeleton
       if (!spec || skeletons.some((outer) => outer.element.contains(element))) continue
       skeletons.push({ element, spec })
@@ -349,8 +381,8 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
    */
   private loadUndefined(): Promise<void> {
     const loads = this.loadPacks()
-    for (const tag of RootLoader.undefinedTags(this.domElement)) {
-      const load = RootLoader.loadTag(tag)
+    for (const tag of this.undefinedTags()) {
+      const load = this.ownTagLoader(tag)?.() ?? RootLoader.loadTag(tag)
       if (load) loads.push(load.catch((error: unknown) => this.fail({ tag, reason: "failed", error })))
       else if (RootLoader.entryOf(tag))
         this.fail({ tag, reason: "failed", error: new Error("its pack didn't define it") })
@@ -366,7 +398,7 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
    */
   private loadPacks(): Promise<void>[] {
     const loads: Promise<void>[] = []
-    for (const element of this.domElement.querySelectorAll(`${componentsVocabulary.tag}[${SOURCE}]`)) {
+    for (const element of this.elementsInside(`${componentsVocabulary.tag}[${SOURCE}]`)) {
       const source = element.getAttribute(SOURCE)
       if (!source || this.packElements.has(element)) continue
       this.packElements.add(element)
@@ -389,7 +421,7 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
 
   /** Defined `ui-*` elements inside, not awaited yet. */
   private pendingElements(): E.DOMElement[] {
-    return [...this.domElement.querySelectorAll("*")].filter(
+    return this.elementsInside().filter(
       (element): element is E.DOMElement => element instanceof E.DOMElement && !this.awaitedElements.has(element)
     )
   }
@@ -403,10 +435,21 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
     this.elementsNotReady.delete(element)
   }
 
+  /** Elements inside (in `contentRoots`) matching `selector`, in page order. */
+  private elementsInside(selector = "*"): Element[] {
+    return this.contentRoots.flatMap((root) => [...root.querySelectorAll(selector)])
+  }
+
+  /** The distinct undefined tags inside that the root loads:  Spell UI's, a registered pack's, its own. */
+  private undefinedTags(): Set<string> {
+    const alsoLoads = (tag: string) => this.ownTagLoader(tag) !== undefined
+    return new Set(this.contentRoots.flatMap((root) => [...RootLoader.undefinedTags(root, alsoLoads)]))
+  }
+
   /** The timeout passed:  report what's still undefined or not ready, and the packs still loading. */
   private timedOut() {
-    for (const tag of RootLoader.undefinedTags(this.domElement)) {
-      if (RootLoader.entryOf(tag)) this.fail({ tag, reason: "timeout" })
+    for (const tag of this.undefinedTags()) {
+      if (RootLoader.entryOf(tag) || this.ownTagLoader(tag)) this.fail({ tag, reason: "timeout" })
     }
     for (const element of this.elementsNotReady) this.fail({ tag: element.localName, reason: "timeout" })
     for (const source of this.packsLoading) this.fail({ tag: componentsVocabulary.tag, reason: "timeout", source })
@@ -423,7 +466,7 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
     if (this.reportedFailures.has(key)) return
     this.reportedFailures.add(key)
     this.failures.push(failure)
-    if (!this.send("ui-error", failure)) return
+    if (!this.send("ui-error" as never, failure)) return
     if (source) E.Warnings.error("<ui-root>", `component pack ${source} didn't load (${reason}):`, error ?? "")
     else E.Warnings.warn("<ui-root>", `<${tag}> didn't load (${reason}):`, error ?? "")
   }
@@ -435,8 +478,16 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   /** Settings requests, so a slower earlier one can't win. */
   private latestSettingsRequest = 0
 
+  /**
+   * Folder the built-in icon packs load from:  `assets`.
+   * - A subclass whose `assets` means something else says where its packs are (`<spell-app>`:  beside its script).
+   */
+  protected get iconAssets(): string | undefined {
+    return this.assets
+  }
+
   /** The settings (or the connection) changed:  hand them to everything inside;  disconnected, forget them. */
-  @E.onChange("isConnected", "icons", "emoji", "assets")
+  @E.onChange("isConnected", "icons", "emoji", "iconAssets")
   protected onSettingsChanged(
     isConnected: boolean,
     icons: string | undefined,
@@ -484,7 +535,7 @@ export class UIRoot extends E.UIComponent<RootVocabulary> {
   }
 }
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
-export interface UIRoot extends E.AttributeValues<RootVocabulary> {}
+export interface UIRoot<V extends E.ComponentVocabulary = RootVocabulary> extends E.AttributeValues<RootVocabulary> {}
 
 /** `display` values. */
 const DISPLAY = { skeleton: "skeleton", whenReady: "when-ready", immediately: "immediately" } as const

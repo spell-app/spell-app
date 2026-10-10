@@ -13,7 +13,9 @@ import { appConfig, sharedSolid } from "./vite.shared.ts"
  * - What both use goes in shared chunks, e.g. React:  so every app's copy of the runtime shares ONE React.
  *   `spellCore` MUST stay in `spell-runtime.js` alone -- pinned by `element.build.test.ts`.
  * - Solid, `ui`'s element core and `@spell-app/ui` are NOT bundled:  they come from `spell-solid.js` /
- *   `spell-ui.js` beside it (`sharedSolid()`), which `<spell-editor>` imports too -- one Solid per page.
+ *   `spell-ui.js` beside it (`sharedSolid()`, through `spell-solid-shared.js`:  a docs page's own instead),
+ *   which `<spell-editor>` imports too -- one Solid per page.
+ *   - `<spell-app>` imports `spell-ui.js` not at all:  it's a root, loading each Spell UI family it draws from `ui/`.
  *   `spell-runtime.js` never imports them:  compiled spell runs on React.
  * - Fixed names, no hashes:  the element finds the runtime, styles and scope packs beside itself.
  * - One `spell-app.css`, which the element puts in each shadow root -- see `shadowStyles.ts`.
@@ -114,8 +116,11 @@ const PACK = { name: "spell", prefix: "spell-" }
  *   NOT one script holding them, as `spell dev pack build` makes,
  *   because the elements need what a classic script can't have --
  *   Monaco and the parser as lazy chunks, `spell-runtime.js` loaded afresh per app, React shared between them.
- * - So it works only where Solid and Spell UI are THIS bundle's (`spell-solid.js`, `spell-ui.js`):  NOT on a docs page,
- *   whose bundle brings its own;  two Solids on a page fail silently.
+ * - The modules take Solid and Spell UI's core from the page when it has its own (a docs page's bundle:
+ *   `spell-solid-shared.js`, `vite.solid.config.ts`), else from `spell-solid.js` beside them:  one Solid per page
+ *   either way (two fail silently).
+ * - A page with only `<spell-app>`s needs no pack:  `spell-app.js` by itself (`<spell-app>` is a root, which loads
+ *   `spell-editor.js` only when an editor appears inside it).
  */
 function componentPack(): Plugin {
   return {

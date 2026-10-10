@@ -215,12 +215,13 @@ describe("<spell-app>", () => {
     )
   })
 
-  test("runs code pushed to it, in its shadow root, inside a `<ui-root icons=fomantic>`", async () => {
+  test("runs code pushed to it, in its shadow root;  a root itself, with Fomantic's icon names", async () => {
     const app = await mountApp(`<spell-app toolbar></spell-app>`)
     app.run(compiled(COUNTER))
     const root = app.shadowRoot!
     await waitFor(() => root.querySelector("button.count"))
-    expect(root.querySelector("ui-root")!.getAttribute("icons")).toBe("fomantic")
+    expect(root.querySelector("ui-root")).toBeNull()
+    expect(app.icons).toBe("fomantic")
     expect(root.querySelector(".SpellAppToolbar ui-item[type=header]")!.textContent).toBe("Test")
   })
 

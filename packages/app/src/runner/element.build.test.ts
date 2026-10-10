@@ -1,7 +1,8 @@
 import { execFileSync } from "node:child_process"
-import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync } from "node:fs"
+import { existsSync, mkdtempSync, readdirSync, readFileSync, rmSync, writeFileSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { dirname, join, posix } from "node:path"
+import { pathToFileURL } from "node:url"
 import { runInNewContext } from "node:vm"
 import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
 
@@ -14,6 +15,10 @@ import { afterAll, beforeAll, describe, test, expect } from "vite-plus/test"
  *   with `@spell-app/ui`'s element core (which `<spell-app>` and `<spell-editor>` are defined on),
  *   and the rest of `@spell-app/ui` in `spell-ui.js` and its lazy chunks (`ui/`) alone;
  *   `spell-app.js`, `spell-editor.js` and `runner.js` import them.  See `sharedSolid()` in `vite.shared.ts`.
+ *   - Through `spell-solid-shared.js`, which takes them from the PAGE instead when it has them (a docs page's
+ *     `SpellUI.packModules`):  `sharedPage()` in `vite.solid.config.ts`.
+ * - `<spell-app>` is a root:  Spell UI's root family in `spell-solid.js` too;  the rest of Spell UI loads tag by tag,
+ *   never through `spell-ui.js`.
  * - The component pack, `spell.pack.js`:  a classic script registering both tags, whose `define()` imports their
  *   modules;  `spell-ui.js` gives it `SpellUI.registerPack`.
  * - `spellCore` MUST be in `spell-runtime.js` ALONE:
@@ -67,12 +72,16 @@ describe("runner builds", () => {
         withUI.filter((file) => !shared.includes(file) && file !== "spell-ui.js" && !file.startsWith("ui/")),
         dir
       ).toEqual([])
-      // imported, NOT bundled:  each element's static imports reach the one `spell-solid.js`
-      for (const entry of entries) expect(staticImports(dir, entry), `${dir} ${entry}`).toContain("spell-solid.js")
+      // imported, NOT bundled:  each element's static imports reach `spell-solid-shared.js`,
+      // which loads the one `spell-solid.js` when the page has no Solid of its own
+      for (const entry of entries) {
+        expect(staticImports(dir, entry), `${dir} ${entry}`).toContain("spell-solid-shared.js")
+      }
+      expect(readFileSync(join(dir, "spell-solid-shared.js"), "utf8")).toContain(`await import("./spell-solid.js")`)
       // compiled spell runs on React:  the runtime never loads Solid or `ui`, statically OR lazily
       for (const file of staticImports(dir, "spell-runtime.js")) {
         expect(holds(dir, file, "solid") || holds(dir, file, "ui"), `${dir} ${file}`).toBe(false)
-        expect(readFileSync(join(dir, file), "utf8"), `${dir} ${file}`).not.toMatch(/spell-(solid|ui)\.js/)
+        expect(readFileSync(join(dir, file), "utf8"), `${dir} ${file}`).not.toMatch(/spell-(solid|solid-shared|ui)\.js/)
       }
     }
   })
@@ -118,6 +127,45 @@ describe("runner builds", () => {
     }
   })
 
+  test("<spell-app> is a root:  `UIRoot` in `spell-solid.js`;  Spell UI's widgets tag by tag, never all of `spell-ui.js`", () => {
+    const shared = staticImports(element, "spell-solid.js")
+    expect(shared.filter((file) => sources(element, file).some((source) => UI_ROOT.test(source)))).toHaveLength(1)
+    // not even lazily:  the root imports each family it meets, from `ui/`
+    expect(readFileSync(join(element, "spell-app.js"), "utf8")).not.toContain("spell-ui.js")
+    // and `<spell-editor>` only when one appears inside, from beside it:  never bundled in, never imported up front
+    for (const file of staticImports(element, "spell-app.js")) {
+      expect(
+        sources(element, file).some((source) => SPELL_EDITOR.test(source)),
+        file
+      ).toBe(false)
+    }
+  })
+
+  test("`spell-solid-shared.js` takes Solid and Spell UI's core from the page when it has them all", async () => {
+    const text = readFileSync(join(element, "spell-solid-shared.js"), "utf8")
+    // every name `spell-solid.js` exports (NOT imported here:  it defines `<ui-root>`, and node has no
+    // `customElements`), and the page's modules it reads them from
+    const names = SHARED_NAMES.exec(text)![1]!.split(", ")
+    expect(names).toEqual(expect.arrayContaining(["createSignal", "render", "E", "UIComponent", "UIRoot"]))
+    const specifiers = JSON.parse(SHARED_SPECIFIERS.exec(text)![1]!) as string[]
+    expect(specifiers).toEqual(["solid-js", "@solidjs/web", "$/ui/core", "$/ui/components/ui-root"])
+    // a page's modules (the docs bundle's `SpellUI.packModules`), each name a stand-in
+    const page = Object.fromEntries(names.map((name) => [name, `page's ${name}`]))
+    const packModules = Object.fromEntries(specifiers.map((specifier) => [specifier, page]))
+    Object.assign(globalThis, { SpellUI: { packModules } })
+    try {
+      // run as a module:  with the page's modules there, it never imports `spell-solid.js`
+      const copy = join(element, "spell-solid-shared.page.mjs")
+      writeFileSync(copy, text)
+      const shared = (await import(pathToFileURL(copy).href)) as Record<string, unknown>
+      expect(Object.keys(shared).sort()).toEqual([...names].sort())
+      expect(shared.createSignal).toBe("page's createSignal")
+      expect(shared.UIRoot).toBe("page's UIRoot")
+    } finally {
+      Reflect.deleteProperty(globalThis, "SpellUI")
+    }
+  })
+
   test("the component pack:  a classic script registering both tags, its `define()` importing their modules", () => {
     const pack = readFileSync(join(element, "spell.pack.js"), "utf8")
     // run as `<ui-components source>` runs it:  a CLASSIC script, `SpellUI.registerPack()` on the page
@@ -156,6 +204,11 @@ describe("runner builds", () => {
       expect(builtIns, dir).toHaveLength(1)
       expectIconPacks(join(dir, dirname(builtIns[0]!), "icon-packs"))
     }
+    // beside `spell-app.js`, where `<spell-app>` points its root's icons (`SpellApp.iconAssets`)
+    const builtIns = chunks(element).filter((file) =>
+      sources(element, file).some((source) => BUILT_IN_PACKS.test(source))
+    )
+    expect(builtIns).toEqual(["spell-solid.js"])
   })
 })
 
@@ -168,6 +221,18 @@ const PACKAGES = {
 
 /** `ui`'s component base class, in its element core. */
 const UI_COMPONENT = /\/packages\/ui\/src\/elements\/UIComponent\.tsx$/
+
+/** `ui`'s root component, which `<spell-app>` extends. */
+const UI_ROOT = /\/packages\/ui\/src\/components\/ui-root\/UIRoot\.tsx$/
+
+/** `<spell-editor>`'s component. */
+const SPELL_EDITOR = /\/components\/spell-editor\/SpellEditor\.tsx$/
+
+/** In `spell-solid-shared.js`:  the names it exports. */
+const SHARED_NAMES = /^export const \{ (.+) \} = from$/m
+
+/** In `spell-solid-shared.js`:  the specifiers it takes from a page (`SpellUI.packModules`' keys), as JSON. */
+const SHARED_SPECIFIERS = /^const specifiers = (.+)$/m
 
 /** `ui`'s `BuiltInPacks`, which looks for the packs beside its own chunk. */
 const BUILT_IN_PACKS = /\/packages\/ui\/src\/icons\/BuiltInPacks\.ts$/

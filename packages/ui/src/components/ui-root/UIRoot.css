@@ -4,7 +4,7 @@
  * - The DOM element has no box (`display: contents`) unless `width` / `height` (`:state(box)`) or `fixed`.
  *   Without a box, `theme` still sets `color-scheme` and the colours every component inside inherits,
  *   but paints no background.
- * - Hiding while loading is an INLINE style on the slot (`UIRoot.slotStyle()`):  the root renders before this sheet
+ * - Hiding while loading is an INLINE style on the slot (`UIRoot.contentStyle`):  the root renders before this sheet
  *   arrives.  Width, height and `--ui-scale` are in each root's own sheet (`RootBox`).
  */
 
