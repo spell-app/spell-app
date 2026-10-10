@@ -323,6 +323,28 @@ describe("compiled spell draws with Solid", () => {
     await waitFor(() => discards() > 0)
   })
 
+  test("`Drawable Solitaire` run again, edited, on the same page:  its tags stay, its cards take the new <css>", async () => {
+    const program = await exampleCompiled("Drawable Solitaire")
+    const first = await mount(source(program, "Solitaire"))
+    await waitFor(() => first.querySelectorAll("drawable-solitaire-card").length === 52)
+    // the card's back, edited:  a new colour in its <css>
+    const edited = program.replace("#3a6, #3a6 4px, #285 4px, #285 8px", "#36a, #36a 4px, #258 4px, #258 8px")
+    expect(edited).not.toBe(program)
+    const second = await mount(source(edited, "Solitaire"))
+    await waitFor(() => second.querySelectorAll("drawable-solitaire-card").length === 52)
+    await ElementFixture.settle(second)
+    expect(second.querySelector(".spell-draw-error")).toBeNull()
+    const backs = [
+      ...first.querySelectorAll("drawable-solitaire-card"),
+      ...second.querySelectorAll("drawable-solitaire-card")
+    ]
+      .map((card) => card.shadowRoot?.querySelector(".card.face-down"))
+      .filter((back): back is Element => !!back)
+    expect(backs.length).toBeGreaterThan(0)
+    // one sheet per tag:  the old program's cards take the edit too
+    for (const back of backs) expect(getComputedStyle(back).backgroundImage).toContain("rgb(51, 102, 170)")
+  })
+
   test("`Todos - Form Based`:  ticking a task shows in the debug JSON;  Active / Completed show only those tasks", async () => {
     const host = await mount(source(await todosExample(), "Todos"))
     const titles = () =>

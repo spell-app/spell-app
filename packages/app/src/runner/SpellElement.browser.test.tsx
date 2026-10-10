@@ -188,4 +188,41 @@ describe("SpellElement", () => {
       root.remove()
     })
   })
+
+  describe("a program run again swaps what's behind its tags (P7)", () => {
+    /** A version of a drawable `Badge` class:  its CSS colours its text `color`, and it draws `text`. */
+    function badgeVersion(color: string, text: string) {
+      return class Badge extends Drawable {
+        static css = `.badge { color: ${color} }`
+        draw(): ReturnType<Drawable["draw"]> {
+          return (h("i", { class: "badge" }, text) as unknown as () => ReturnType<Drawable["draw"]>)()
+        }
+      }
+    }
+
+    test("its CSS changes in the elements already on the page;  its new things draw with its new draw()", async () => {
+      const First = badgeVersion("rgb(1, 2, 3)", "first")
+      spellCore.defineElement(First, "Swaps")
+      await Promise.resolve()
+      const old = await ElementFixture.render<HTMLElement & { thing?: unknown }>("<swap-badge></swap-badge>")
+      old.thing = new First()
+      flush()
+      const oldBadge = old.shadowRoot!.querySelector(".badge")!
+      expect(getComputedStyle(oldBadge).color).toBe("rgb(1, 2, 3)")
+
+      // the edited program, run again:  a new class for the same tag
+      const Second = badgeVersion("rgb(7, 8, 9)", "second")
+      spellCore.defineElement(Second, "Swaps")
+      await Promise.resolve()
+      expect(old.shadowRoot!.querySelector(".badge")).toBe(oldBadge)
+      expect(getComputedStyle(oldBadge).color).toBe("rgb(7, 8, 9)")
+
+      const fresh = document.createElement("swap-badge") as HTMLElement & { thing?: unknown; ready: Promise<void> }
+      fresh.thing = new Second()
+      old.after(fresh)
+      await fresh.ready
+      flush()
+      expect(fresh.shadowRoot!.querySelector(".badge")!.textContent).toBe("second")
+    })
+  })
 })
