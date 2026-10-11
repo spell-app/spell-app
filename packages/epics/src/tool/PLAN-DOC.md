@@ -104,6 +104,9 @@ As `plan-doc.md`, "Ids":
   <epic-field name="symptom">what's wrong today, one line</epic-field>
   <epic-field name="changes">what changes, two or three lines</epic-field>
   <epic-updated at="2026-10-06 14:30" phase="3"><p>what changed in the plan, and why</p></epic-updated>
+  <epic-field name="requests"
+    ><epic-field label="r3 · 🚧 python (83d39e12)"><blockquote><p>Owen's words</p></blockquote> ...</epic-field
+  ></epic-field>
   <epic-field name="goal"><ul><li>a bullet per outcome</li></ul></epic-field>
   <epic-field name="done"><ul><li>what was built</li></ul></epic-field>
   <epic-commit sha="2c71ac57...">one or two sentences</epic-commit>
@@ -129,6 +132,11 @@ As `plan-doc.md`, "Ids":
   - A split doc's parts follow (written under the new ids).
   - Prose naming a phase without a link isn't changed.
   - Refused while a phase from N on has started (done or active):  its commits and log say its number.
+- Requests (epic `epic-workflow`):  what Owen sent the phase from other sessions, one labelled block per request.
+  - Written by `request <name> <N> <rN> --from "..." --file f`, which `spell epic file <epic> <rN> <N>` runs.
+  - The block:  his words quoted, what the sender was looking at, when, a link to `requests/<rN>/request.md`, and
+    each screenshot.
+  - Filing a request again replaces its block.
 - `<epic-updated>`:  one per change, oldest first.
   - Written by `updated <name> <N> "<html>"`.
   - `phase`:  the phase active then.

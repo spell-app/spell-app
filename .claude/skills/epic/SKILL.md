@@ -1,7 +1,7 @@
 ---
 name: epic
-description: Run a planning session against a live plan doc, `epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").  `/epic resume [<name>]`:  pick an epic back up in a new session, in the right worktree and window, where its plan doc says it stopped ("resume the seo epic", "carry on with windows-and-review").  `/epic future <name> [idea]`:  write an idea down as a FUTURE epic, not planned yet:  a stub plan doc and an analysis page of its high-level open questions, answered in the Review tab;  no worktree ("save this as a future epic", "an epic for later").  `/epic phase [ids] [name]`:  add a phase to this session's epic, from its items (`/epic phase J1 J5, t3`) or from scratch;  `/epic start <P1 | ids>`:  work a phase, or a block of its items, now.  `/epic done`:  the same as `/isolate done`.
-argument-hint: <name> [what to plan] | done | review [<name>] | resume [<name>] | future <name> [idea] | phase [ids] [name] | start <P1 | ids> | color <look>
+description: Run a planning session against a live plan doc, `epics/<name>/<name>.plan.html`, in its own worktree. Use for `/epic <name> [what to plan]` (name alone:  the plan comes in the next prompt), or when Owen says "make this a plan doc" / "turn this into a plan doc" about the work in the current session.  `/epic review [<name>]`:  open a plan doc in the side bar's Review tab, where Owen marks items on the page, and listen:  act on his marks (approvals, picks, todos), write details and replies in the background, talk revisits over ("review the seo epic", "go through unified-server's caveats").  `/epic resume [<name>]`:  pick an epic back up in a new session, in the right worktree and window, where its plan doc says it stopped ("resume the seo epic", "carry on with windows-and-review").  `/epic future <name> [idea]`:  write an idea down as a FUTURE epic, not planned yet:  a stub plan doc and an analysis page of its high-level open questions, answered in the Review tab;  no worktree ("save this as a future epic", "an epic for later").  `/epic phase [ids] [name]`:  add a phase to this session's epic, from its items (`/epic phase J1 J5, t3`) or from scratch;  `/epic start <P1 | ids>`:  work a phase, or a block of its items, now.  `/epic request <epic> [<rN>]`:  take up a request Owen sent from another session (`/send`), into a phase.  `/epic done`:  the same as `/isolate done`.
+argument-hint: <name> [what to plan] | done | review [<name>] | resume [<name>] | future <name> [idea] | phase [ids] [name] | start <P1 | ids> | request <epic> [<rN>] | color <look>
 ---
 
 # /epic
@@ -84,6 +84,8 @@ Plan, then build, in worktree `<name>`, keeping the PLAN DOC current the whole t
   - `start`:  `/epic start <P1 | ids>` works a phase, or a block of items in it.
     Go to "11. Start".
   - `phase` and `start`:  epic `skillz` P4.
+  - `request`:  `/epic request <epic> [<rN>...]` takes up a request Owen sent from another session.
+    Go to "12. Request" (epic `epic-workflow`).
   - `done`:  `/epic done` is `/isolate done`, word for word.
     Follow [the isolate skill](.claude/skills/isolate/SKILL.md)'s "Finish", and skip everything else here.
     - The same steps "6. Doc Review" ends with.
@@ -843,6 +845,49 @@ Owen starts work in THIS epic, in one block:  a phase, or a handful of its items
   - Reply as a phase's end does:  what was done per item (in words, ids after), checks with numbers, what's next.
 - Bedtime mode on (`spell dev plan-doc summary <name> --json`, `bedtime`):  no modals, as `/bedtime` says.
 
+## 12. Request:  `/epic request <epic> [<rN>...]`
+
+A REQUEST is something Owen asked for in another session, sent here instead of done there
+(the `/send` skill, [.claude/skills/send/SKILL.md](.claude/skills/send/SKILL.md);  epic `epic-workflow`).
+- It's a folder, `epics/<epic>/requests/r3/`:  `request.md` (his words verbatim, the sender, what it was looking at)
+  and the screenshots he pasted.
+- It reaches this session one of three ways:
+  - a message from the sender:  "New request r3 for epic `<epic>` ...":  the same steps
+  - a NEW session in the epic's window, `/epic request <epic> r3` typed in (the epic's session wasn't running):
+    first `EnterWorktree` with `path: ".claude/worktrees/<epic>"`, as "Launched" does
+  - the sender IS this epic's session:  it follows these steps itself
+- The prompt hook titled the session `🚧 <epic>` (so later requests reach it), and refuses `/epic request` in a session
+  titled for another epic.
+- No `<rN>`:  every request still `new` (`spell epic requests <epic>`).
+
+```
+/epic request epic-workflow r3        take up r3
+/epic request epic-workflow           every new one
+```
+
+1. `spell epic requests <epic> --json`:  the request(s), status `new`.
+   - Read each `request.md`, and look at each screenshot (`Read` on the image).
+2. One line, at once:  "taking r3 (from `🚧 python`):  <his first words>".
+3. The filing goes to a background `<epic>-plan-doc` agent (root `CLAUDE.md`, "Delegated work"), the session free.
+   Its prompt, per request (Q3 of `epic-workflow`:  join a matching phase, else a new one):
+   1. read the request, and every to-do phase (`spell dev plan-doc summary <epic> --json`, each one's part file)
+   2. a phase still TO DO (never active or done) about the SAME thing:  the request JOINS it
+      - its goal gets a bullet, Owen's ask in short, linked:  `<a href="requests/r3/request.md">r3</a>`
+        (`phase-body <epic> N --goal ...`, the old bullets kept)
+      - `updated <epic> N "<p>r3 joined:  ...</p>"`
+   3. else a NEW phase, drafted as "10. Add a phase" drafts one, his words as Owen's input
+      - `--before <Doc Review's number>` while Doc Review is still to do;  else last
+   4. `spell epic file <epic> r3 <N>`:  his words, the context and the screenshots go into phase N's Requests field,
+      and the request is marked filed (`P<N>`)
+   5. `spell dev plan-doc check <epic>`;  report one line per request:  "r3 joined P6 · Comment Threads" or
+      "r3:  new P8 · Retry Logic"
+4. Its report back:
+   - one line per request, with the phase's link pair (`spell dev docs link <doc> --hash p<N> --review`)
+   - then, when no phase is under way and bedtime mode is off:  "5. Each phase", step 5's modal,
+     "Start P<N> · <Name>" first
+   - a phase under way:  no modal;  the new work waits its turn.
+- A request that needs no phase (already done, a duplicate):  `spell epic file <epic> r3 "<why>"`, and say so.
+
 ## Cheat sheet (`spell dev plan-doc ...`, from anywhere in the repo)
 
 ```
@@ -853,6 +898,7 @@ add-phase <name> "Short Name" --symptom .. --changes .. [--goal ..] [--files ..]
           [--before N]                              --before:  inserted as PN;  the to-do phases from N move down
 phase-body <name> <N> [--symptom ..] [--changes ..] [--goal ..] [--files ..] [--verify ..]   set ("" removes) fields
 updated <name> <N> "<p>what changed</p>"            a change to phase N's plan:  fenced, dated, under Symptom / Changes
+request <name> <N> <rN> --from "..." --file f     a request into phase N's Requests field (`spell epic file` runs it)
 estimate <name> <N> "1-2h"                          change a phase's estimate;  the Overview's total follows
 phase <name> <N> todo|active|done [--no-open]       done drops UPDATE markers;  reloads the VS Code tab
 add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details "<p>html</p>"] [--calm]   prints the id (C3)

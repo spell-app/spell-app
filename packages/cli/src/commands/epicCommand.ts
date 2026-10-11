@@ -1,4 +1,6 @@
-import { readFileSync } from "fs"
+import { mkdtempSync, readFileSync, writeFileSync } from "fs"
+import { tmpdir } from "os"
+import { join } from "path"
 
 import { CLI } from "$/cli"
 
@@ -9,7 +11,9 @@ import { CLI } from "$/cli"
  *   the epic's running sessions to tell (`SendMessage`), or the command that opens its window when none runs
  *   - no `<epic>`:  the tooling home's (`home`)
  * - `requests <epic> [--json]`:  every request sent to `<epic>`, and where each went
- * - `file <epic> <id> "<where>"`:  mark a request filed, saying where it went (`"P7 · Comment Threads"`)
+ * - `file <epic> <id> <phase>`:  file a request into phase <phase>:  his words and screenshots in its Requests field
+ *   (`spell dev plan-doc request`), the request marked filed, `P7`
+ *   - `file <epic> <id> "<where>"`, not a number:  only marked filed, saying where it went (`"dropped:  done in P3"`)
  * - `home [<epic>]`:  the tooling home, the epic dev-tooling requests go to;  with `<epic>`, set it
  * - The logic:  `src/epic/requests.ts` and `home.ts`.
  */
@@ -38,8 +42,17 @@ export async function epicCommand(session: CLI.CliSession, args: string[], optio
     }
     case "file": {
       const [id, where] = rest
-      if (!id || !where) throw new CLI.CliError(`file:  usage:  spell epic file ${epic} <id> "<where it went>"`)
-      session.out(requestLine(CLI.fileRequest(root, epic, id, where)))
+      if (!id || !where) throw new CLI.CliError(`file:  usage:  spell epic file ${epic} <id> <phase | "where it went">`)
+      if (/^\d+$/.test(where)) {
+        // into phase `where`'s Requests field, by the plan-doc tool:  then it's filed as `P<n>`
+        const request = CLI.epicRequests(root, epic).find((it) => it.id === id)
+        if (!request) throw new CLI.CliError(`no request '${id}' in epic '${epic}'`)
+        const html = join(mkdtempSync(join(tmpdir(), "epic-request-")), `${id}.html`)
+        writeFileSync(html, CLI.requestHTML(request))
+        const exitCode = await CLI.planDocCommand(["request", epic, where, id, "--from", request.from, "--file", html])
+        if (exitCode !== CLI.EXIT.OK) return exitCode
+      }
+      session.out(requestLine(CLI.fileRequest(root, epic, id, /^\d+$/.test(where) ? `P${where}` : where)))
       return CLI.EXIT.OK
     }
     default:

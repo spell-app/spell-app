@@ -133,6 +133,15 @@ export class PlanDocCommands {
             flags.file ? readFileSync(flags.file as string, "utf8") : need(rest[1], "what changed (html)")
           )
         )
+      case "request":
+        return this.edit(file, (plan) =>
+          plan.addPhaseRequest(
+            Number(need(rest[0], "a phase number")),
+            need(rest[1], "a request id"),
+            need(flags.from as string | undefined, "--from (who sent it)"),
+            readFileSync(need(flags.file as string | undefined, "--file (the request as html)"), "utf8")
+          )
+        )
       case "estimate":
         return this.edit(file, (plan) => {
           const n = Number(need(rest[0], "a phase number"))
@@ -787,6 +796,8 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    set (or "" removes) a phase's body fields
   updated <name> <N> "html" | --file path          a change to phase N's plan, in its fenced Updated block
                                                    (kept;  listed atop the phases while N is to do)
+  request <name> <N> <rN> --from "..." --file path a request sent from another session, into phase N's Requests
+                                                   field (spell epic file writes it;  epic epic-workflow)
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
   phase <name> <N> todo|active|done [--done html] [--no-open]
                                                    set a phase's status;  done drops its UPDATE markers, and

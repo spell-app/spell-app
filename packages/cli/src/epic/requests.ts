@@ -136,6 +136,24 @@ export function fileRequest(root: string, epic: string, id: string, where: strin
   return request
 }
 
+/**
+ * A request as the HTML its phase's Requests field shows (`spell dev plan-doc request`):  his words quoted, the
+ * context, when it came, then each screenshot (a link to it full size).
+ * - URLs are the plan doc page's:  `requests/r3/image-1.png`
+ */
+export function requestHTML(request: CLI.EpicRequest): string {
+  const folder = `requests/${request.id}`
+  const paragraphs = request.text.split(/\n\s*\n/).map((it) => `<p>${escapeHTML(it.trim())}</p>`)
+  const context = request.context ? [`<p>Looking at:  ${escapeHTML(request.context)}</p>`] : []
+  const when = `<p>Sent ${escapeHTML(request.at.replace("T", " "))};  <a href="${folder}/request.md">request.md</a></p>`
+  const images = request.images.map(
+    (name, at) =>
+      `<p><a href="${folder}/${name}"><img src="${folder}/${name}" alt="${request.id}, screenshot ${at + 1}" ` +
+      `style="max-width: 100%" /></a></p>`
+  )
+  return [`<blockquote>${paragraphs.join("")}</blockquote>`, ...context, when, ...images].join("\n")
+}
+
 ////////////////
 // ## request.md
 ////////////////
@@ -209,6 +227,11 @@ const EXTENSIONS: Record<string, string> = {
   "image/jpeg": "jpg",
   "image/gif": "gif",
   "image/webp": "webp"
+}
+
+/** `text` safe inside HTML. */
+function escapeHTML(text: string): string {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;")
 }
 
 /** Session `id`, as a request names its sender:  its title and the start of its id, `🚧 python (83d39e12)`. */
