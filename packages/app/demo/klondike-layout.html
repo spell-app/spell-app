@@ -5,9 +5,12 @@
   - The `<spell-app>`'s markup IS the app's drawing:  the game's own `to draw` isn't drawn.
   - Each drawable tag is the program's thing named by its `id` (`T1` ... the tableaus;  `clubs` ... the foundations),
     or its one thing of that type (the stock, the discards).
-  - The curly-bracket holes and the action are spell, compiled in the page against the program:
+  - The curly-bracket holes and the handlers are spell, compiled in the page against the program:
     the page loads spell's parser for them, and only for them.
-  - An attribute hole with a space in it needs quotes:  `action="{auto-play}"` is fine bare, `"{bump the score}"` isn't.
+  - A handler goes on any element (P12):  an attribute, `on-click="{auto-play}"` or `when-clicked="{...}"`,
+    or a `<spell>` block inside it, `when double clicked` with its statements under it.
+  - Quote an attribute's spell:  unquoted, it's put back together from the words the browser splits it into,
+    but a word used twice is lost (`{the score of the game}` loses its second `the`).
 -->
 <html lang="en">
   <head>
@@ -41,7 +44,7 @@
       <div class="row">
         <div class="title">Klondike Solitaire</div>
         <div class="score">Score {the score of the game}</div>
-        <button action="{auto-play}">AutoPlay</button>
+        <button on-click="{auto-play}">AutoPlay</button>
       </div>
       <div class="row">
         <drawable-solitaire-discard-pile></drawable-solitaire-discard-pile>
@@ -49,7 +52,7 @@
         <!-- prettier-ignore -->
         <drawable-solitaire-stock-pile>
           <spell>
-            when double-clicked
+            when double clicked
               play from the stock pile
           </spell>
         </drawable-solitaire-stock-pile>

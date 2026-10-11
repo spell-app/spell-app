@@ -137,6 +137,50 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
     expect(app.shadowRoot!.querySelector(".own-drawing")).toBeNull()
   })
 
+  test("any element handles events (P12):  a one-line handler, `on`, several words, and on-click= / when-clicked=", async () => {
+    const app = await mountApp(
+      `<spell-app>` +
+        `<p class="score">Score {the score of the game}</p>` +
+        `<button class="one-line"><spell>when clicked: bump the score</spell></button>` +
+        `<div class="on-words"><spell>\n  on double click:\n    bump the score\n</spell></div>` +
+        `<button class="on-click" on-click="{bump the score}">+1</button>` +
+        // no quotes:  the browser splits it at its spaces, and the layout puts it back together (C15)
+        `<button class="bare" when-clicked={bump the score}>+1</button>` +
+        `</spell-app>`
+    )
+    app.run({ projectId: "@test:fixtures:Game", ...(await compiledProject(GAME)) } satisfies SpellCompiled)
+    const score = () => app.querySelector(".score")?.textContent
+    await waitFor(() => score() === "Score 3", 10_000)
+
+    app.querySelector<HTMLElement>(".one-line")!.click()
+    await waitFor(() => score() === "Score 4")
+    app.querySelector(".on-words")!.dispatchEvent(new MouseEvent("dblclick", { bubbles: true }))
+    await waitFor(() => score() === "Score 5")
+    app.querySelector<HTMLElement>(".on-click")!.click()
+    await waitFor(() => score() === "Score 6")
+    app.querySelector<HTMLElement>(".bare")!.click()
+    await waitFor(() => score() === "Score 7")
+    // the handler's attributes are taken off while it listens
+    expect(app.querySelector(".bare")!.getAttributeNames()).toEqual(["class"])
+  })
+
+  test("a <spell> block's handlers:  one line or several, `when` or `on`, an event in several words", async () => {
+    const { LayoutSpell } = await import("$/app/runner/LayoutSpell")
+    expect(LayoutSpell.handlersIn("when clicked: play a song\non drag: play another song")).toEqual([
+      { event: "clicked", body: "play a song" },
+      { event: "drag", body: "play another song" }
+    ])
+    expect(LayoutSpell.handlersIn("when double clicked\n  bump the score")).toEqual([
+      { event: "double-clicked", body: "bump the score" }
+    ])
+    expect(LayoutSpell.domEventFor("double-clicked")).toBe("dblclick")
+    expect(LayoutSpell.domEventFor("dragged")).toBe("drag")
+    expect(LayoutSpell.domEventFor("keydown")).toBe("keydown")
+    expect(LayoutSpell.eventOfAttribute("when-double-clicked")).toBe("double-clicked")
+    expect(LayoutSpell.eventOfAttribute("on-click")).toBe("click")
+    expect(LayoutSpell.eventOfAttribute("one-click")).toBeUndefined()
+  })
+
   test("spell that doesn't read shows ⚠ where it was -- a hole that leaves out `the` too (J26)", async () => {
     const app = await mountApp(
       `<spell-app><p class="bad">{no such thing at all}</p><p class="short">{score of the game}</p></spell-app>`
