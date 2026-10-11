@@ -46,7 +46,8 @@ export { itemOf } from "./deprecated"
 // `$/util`'s shared reactive ones, spell's `@thing`, and `@drawn` (`drawing.ts`).  Compiled JavaScript has none.
 export { prop, state, derived, thing } from "$/util"
 export { drawn } from "./drawing"
-export { elementTagFor, type ElementDefiner, type ElementApi } from "./elements"
+// The tag a drawable type's `<css>` block compiles to:  its style sheet, as text (epic `drawable-thing` P10).
+export { elementTagFor, css, type ElementDefiner, type ElementApi } from "./elements"
 // What compiled JavaScript draws with:  Solid's own `h()`, the copy core draws with (epic `output-targets` P20).
 // `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`;
 // see `drawing.ts`.

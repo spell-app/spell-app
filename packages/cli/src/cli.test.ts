@@ -424,7 +424,7 @@ describe("spell describe", () => {
   test("one thing, by name -- ignoring case, and spaces ~== `_`", () => {
     const { status, stdout } = spell(["describe", ".", "STOCK pile"], fixturePath("Solitaire"))
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^type Stock_Pile is a Pile\nSolitaire\.spell:\d+\n/)
+    expect(stdout).toMatch(/^type StockPile is a Pile\nSolitaire\.spell:\d+\n/)
   })
 
   test("a member of a thing", () => {
@@ -600,7 +600,7 @@ describe("spell projects", () => {
   test("lists the roots, with the name to type for each", () => {
     const { status, stdout } = spell(["projects"])
     expect(status).toBe(0)
-    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +5 projects$/m)
+    expect(stdout).toMatch(/^@test +@test:fixtures +Test fixtures +6 projects$/m)
     expect(stdout).toMatch(/^@user +@user:projects /m)
   })
 
@@ -608,6 +608,7 @@ describe("spell projects", () => {
     const { stdout } = spell(["projects", "@test", "--json"])
     expect(JSON.parse(stdout)).toEqual([
       { name: "@test/Cards", id: "@test:fixtures:Cards" },
+      { name: "@test/DrawableSolitaire", id: "@test:fixtures:DrawableSolitaire" },
       { name: "@test/FizzBuzz", id: "@test:fixtures:FizzBuzz" },
       { name: "@test/Klondike", id: "@test:fixtures:Klondike" },
       { name: "@test/OutlineSolitaire", id: "@test:fixtures:OutlineSolitaire" },

@@ -76,11 +76,12 @@ export type CheckOptions = GlobalOptions & {
 }
 
 /**
- * `name` for comparing as people would:  lower case, with spaces, `-` and `_` all one space --
- * so `stock pile` finds `Stock_Pile`, and `short-suit` finds `short_suit`.
+ * `name` for comparing as people would:  lower case, with spaces, `-`, `_` and a word's capital all one space --
+ * so `stock pile` finds `StockPile`, and `short-suit` finds `short_suit` and `shortSuit`.
  */
 export function normalizedName(name: string): string {
   return name
+    .replace(/(?<=[a-z0-9])(?=[A-Z])/g, " ")
     .toLowerCase()
     .replace(/[\s_-]+/g, " ")
     .trim()

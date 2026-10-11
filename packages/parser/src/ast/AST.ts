@@ -228,6 +228,23 @@ export class ASTTemplateString extends ASTExpression {
   }
 }
 
+/**
+ * TaggedTemplate -- a template handed to a function, its `tag`, e.g. a drawable type's style sheet:
+ * `` css`.red { color: crimson }` `` (epic `drawable-thing`, P10).
+ * - `tag` (required):  the function's name, e.g. `css`.
+ * - `parts`:  as `ASTTemplateString`'s.
+ * - What it is is up to its tag, e.g. `css` hands back text.
+ */
+export type ASTTaggedTemplateProps = Prettify<ASTTemplateStringProps & { tag: string }>
+
+export class ASTTaggedTemplate extends ASTTemplateString {
+  declare tag: string
+  constructor(match: P.AnyMatch, props: ASTTaggedTemplateProps) {
+    super(match, props)
+    this.assertType("tag", "string")
+  }
+}
+
 /** BooleanLiteral type.
  *  - `value` is the boolean.
  *  - `raw` (optional) is original input string.
