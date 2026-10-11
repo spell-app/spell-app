@@ -14,6 +14,7 @@ import { epicStatusVocabulary } from "./EpicStatus.en"
 import answerCSS from "$/epics/components/epic-answer/EpicAnswer.css?inline"
 import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 import statusCSS from "./EpicStatus.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicStatus`
@@ -36,7 +37,12 @@ import statusCSS from "./EpicStatus.css?inline"
 export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
   @E.proto static vocabulary = epicStatusVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold-button": foldCSS, "epic-answer": answerCSS, "epic-status": statusCSS },
+    styleSheets: {
+      "epic-tooltip": tooltipCSS,
+      "epic-fold-button": foldCSS,
+      "epic-answer": answerCSS,
+      "epic-status": statusCSS
+    },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -111,7 +117,12 @@ export class EpicStatus extends E.UIComponent<typeof epicStatusVocabulary> {
           part={this.partForName("header")}
         >
           <Show when={this.hasBody}>
-            {this.fold.button({ controls: BODY_ID, labelledBy: WHO_ID, part: this.partForName("toggle") })}
+            {this.fold.button({
+              controls: BODY_ID,
+              labelledBy: WHO_ID,
+              part: this.partForName("toggle"),
+              tips: { fold: this.translationForKey("foldTip"), unfold: this.translationForKey("unfoldTip") }
+            })}
           </Show>
           <span id={WHO_ID} class={WHO} part={this.partForName("who")}>
             {this.translationForKey(this.isDone ? "done" : this.isNoted ? "noted" : "underway")}

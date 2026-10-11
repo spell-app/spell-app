@@ -13,6 +13,7 @@ import { EpicChoices } from "./EpicChoices"
 import { ITEM_TAG, ORIGINAL_TAG, TOGGLE, type CardSet } from "./EpicChoices.types"
 
 import choicesCSS from "./EpicChoices.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicOption`
@@ -50,7 +51,7 @@ import choicesCSS from "./EpicChoices.css?inline"
 export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
   @E.proto static vocabulary = epicOptionVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-choices": choicesCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-choices": choicesCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -199,6 +200,11 @@ export class EpicOption extends E.UIComponent<typeof epicOptionVocabulary> {
             part={this.partForName("toggle")}
             aria-expanded={this.canFold ? (this.isOpen ? "true" : "false") : undefined}
             aria-controls={this.canFold ? BODY_ID : undefined}
+            title={
+              this.canFold
+                ? this.translationForKey(this.isOpen ? "foldTip" : "unfoldTip", { letter: this.letter ?? "" })
+                : undefined
+            }
             onClick={this.onHeaderClick}
           >
             <Show when={this.canFold}>{Fold.chevron()}</Show>

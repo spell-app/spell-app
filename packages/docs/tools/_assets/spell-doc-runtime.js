@@ -2786,8 +2786,8 @@ const KIND_NAMES = {
  *       the cursor in it;  the pen edits his first words while Claude hasn't had them
  *   - a click on a highlighted quote opens its thread
  *   - the trash, on a thread or the pane:  one click (`delete` while it waits, else `clear`);  Undo in the toast
- *   - the BULLHORN keeps every comment within reach:  its count, outlined while they all wait for Claude, solid once
- *     he has one, an orange dot while one has a reply he hasn't seen;  a click lists them, and New comment (`openPicker()`)
+ *   - the BULLHORN only ever starts a new comment:  no count, since the block's threads are right there (Owen,
+ *     2026-10-10:  "Bullhorn to the far right is unnecessary")
  * - drawn again after a live patch (`spell-doc:updated`), when the page's content changes (a plan doc's part
  *   loading), when the inbox file changes (`spell-server:file`:  another window, Claude), and when the page comes
  *   back into view
@@ -2870,19 +2870,17 @@ class PageComments {
     /** watches the open threads with an unseen reply (`watchSeen()`);  a timer per one on screen, by comment id */
     this.seenWatch = null
     this.seenTimers = new Map()
-    /** the bullhorn's list of a block's comments, when open (`openPicker()`) */
-    this.picker = null
   }
 
   /**
-   * Whether `comment` has a reply from Claude Owen hasn't seen (Owen, 2026-10-10:  "Make the boxes orange when
-   * there's a reply I haven't seen"):  its latest Claude reply is newer than the one he last saw here.  Never once
-   * it's done:  closing it was seeing it.
+   * Whether `comment` is ORANGE:  Claude spoke last and Owen hasn't answered yet (✓, a reply, ×).  Looking at it
+   * doesn't clear it (Owen, 2026-10-10:  "I was expecting this to be orange, not ivory");  `markSeen()` only records
+   * the reply as read.  Never once it's done.
    */
   unseen(comment) {
-    const latest = comment.turn === "done" ? "" : latestClaudeAt(comment)
-    // ISO times compare as strings
-    return !!latest && !((this.read[comment.id] ?? "") >= latest)
+    // orange while it's Owen's turn, seen or not, until he answers (✓, a reply, ×):  Owen, 2026-10-10, on a thread
+    // gone ivory once looked at:  "I was expecting this to be orange, not ivory"
+    return comment.turn === "owen" && !!latestClaudeAt(comment)
   }
 
   /**
@@ -2893,6 +2891,8 @@ class PageComments {
     const comment = this.list.find((each) => each.id === id)
     if (!comment || !this.unseen(comment)) return
     const read = readJSON(this.readKey)
+    // read already:  nothing to change (the thread stays orange until Owen answers, so the watcher fires again)
+    if ((read[id] ?? "") >= latestClaudeAt(comment)) return
     read[id] = latestClaudeAt(comment)
     writeJSON(this.readKey, read)
     this.draw()
@@ -2951,15 +2951,12 @@ class PageComments {
       const horn = mark.querySelector(":scope > ui-button")
       const controls = mark.nextElementSibling?.shadowRoot?.querySelectorAll('[part~="review-buttons"]') ?? []
       if (!horn) continue
-      // its orange dot (`.spell-comment-news`) goes with it, 2px further right, as when it's in its corner
-      const dot = mark.querySelector(":scope > .spell-comment-news")
-      horn.style.right = dot ? (dot.style.right = "") : ""
+      horn.style.right = ""
       const rect = horn.getBoundingClientRect()
       const under = [...controls].map((each) => each.getBoundingClientRect()).filter((each) => overlaps(rect, each))
       if (!under.length) continue
       const right = Math.ceil(mark.getBoundingClientRect().right - Math.min(...under.map((r) => r.left))) + 4
       horn.style.right = `${right}px`
-      if (dot) dot.style.right = `${right - 2}px`
     }
     const horns = [...marks]
       .map((each) => each.querySelector(":scope > ui-button"))
@@ -3012,15 +3009,12 @@ class PageComments {
     for (const old of main.querySelectorAll(".spell-comment-mark, .spell-comments")) old.remove()
     const blocks = blocksIn(main)
     const head = pageHeadIn(main)
-    const onBlock = new Map()
     const threads = new Map()
     const quotes = []
     for (const comment of this.list) {
       const { block, exact } = findBlock(main, comment, blocks)
       const at = block ?? head
       if (!at) continue
-      if (!onBlock.has(at)) onBlock.set(at, [])
-      onBlock.get(at).push(comment)
       const quoted = block && comment.quote && quoteIn(block, comment.quote, comment.offset)
       if (quoted) quotes.push({ ...quoted, id: comment.id })
       if (this.open?.id === comment.id) continue
@@ -3031,7 +3025,7 @@ class PageComments {
     const ids = new Set(this.list.map((each) => each.id))
     if (this.editing && !ids.has(this.editing.id)) this.editing = null
     for (const id of this.replyBoxes.keys()) if (!ids.has(id)) this.replyBoxes.delete(id)
-    for (const block of head ? [head, ...blocks] : blocks) this.addBullhorn(block, onBlock.get(block) ?? [])
+    for (const block of head ? [head, ...blocks] : blocks) this.addBullhorn(block)
     for (const [under, found] of threads) this.boxFor(under).append(...found.map((each) => this.thread(each)))
     // grown to their words once shown:  a folded thread's has no height to measure
     for (const each of main.querySelectorAll(".spell-thread-reply > textarea"))
@@ -3077,41 +3071,26 @@ class PageComments {
   /**
    * The bullhorn of `block`:  in a docs section's title (its `actions` slot), in the page header,
    * else just before the block, over its top right corner.
-   * - `comments`:  the block's;  with any, it shows their count, always (Owen, 2026-10-10:  "the bullhorn shows the
-   *   count?");  outlined while they all wait for Claude, solid once he has one, an orange dot while one has a
-   *   reply from Claude he hasn't seen (`unseen()`);  its tooltip the count, the block and whose turn
-   * - a click:  none yet, the pane for a new comment;  else the list of them, and New comment (`openPicker()`)
+   * - quiet until the block is hovered, always:  a click opens the pane for a NEW comment on it
+   * - no count, and nothing to say about the block's comments (Owen, 2026-10-10:  "Bullhorn to the far right is
+   *   unnecessary"):  each has its thread right there on the page, orange while it has news (`thread()`).
+   *   Before, a block with comments showed "📢 N" always, its click listing them.
    */
-  addBullhorn(block, comments) {
+  addBullhorn(block) {
     const place = this.placeOf(block)
-    const count = comments.length
     const what = place.kind === "page" ? "this page" : `this ${KIND_NAMES[place.kind] ?? place.kind}`
-    // an orange dot while one has a reply from Claude Owen hasn't seen, as its thread is orange (`unseen()`)
-    const news = comments.filter((comment) => this.unseen(comment)).length
-    const waiting = comments.every((comment) => comment.turn === "claude")
-    const tip = count
-      ? `${count} ${count === 1 ? "comment" : "comments"} on ${what}:  ${turnsTip(comments)}` +
-        (news ? ` · ${news === 1 ? "a reply" : `${news} replies`} you haven't seen` : "")
-      : `Comment on ${what}`
+    const tip = `Comment on ${what}`
     const inline = place.kind === "section" || place.kind === "page"
     const mark = document.createElement(inline ? "span" : "div")
     mark.className = `spell-comment-mark at-${inline ? place.kind : "block"}`
     mark.dataset.spellAdded = ""
-    if (count) {
-      mark.dataset.count = String(count)
-      mark.dataset.state = waiting ? "saved" : "had"
-    }
-    if (news) mark.dataset.news = ""
     mark.innerHTML =
-      `<ui-button ${count ? "" : "circular "}${waiting ? "basic " : ""}size="mini" icon="bullhorn" ` +
-      `title="${attr(tip)}" aria-label="${attr(tip)}">${count || ""}</ui-button>` +
-      (news ? `<span class="spell-comment-news" aria-hidden="true"></span>` : "")
+      `<ui-button circular basic size="mini" icon="bullhorn" title="${attr(tip)}" aria-label="${attr(tip)}">` +
+      `</ui-button>`
     titleInside(mark.querySelector("ui-button"))
     mark.querySelector("ui-button").addEventListener("click", (event) => {
       event.stopPropagation()
-      const near = event.currentTarget.getBoundingClientRect()
-      if (count) this.openPicker(place, comments, near)
-      else this.openBox({ key: place.anchor, place }, near)
+      this.openBox({ key: place.anchor, place }, event.currentTarget.getBoundingClientRect())
     })
     if (place.kind === "section") {
       mark.slot = "actions"
@@ -3159,68 +3138,6 @@ class PageComments {
     else if (next) next.before(box)
     else under.append(box)
     return box
-  }
-
-  /**
-   * The list of `comments` on the block at `place`, from its bullhorn, under `near`:  each a line (its first words,
-   * whose turn, an orange dot while it has a reply he hasn't seen) that opens its thread;  then New comment.
-   * - closes on a choice, Escape, or a click anywhere else
-   */
-  openPicker(place, comments, near) {
-    this.closePicker()
-    const pick = document.createElement("div")
-    pick.className = "spell-comment-pane spell-comment-pick"
-    pick.dataset.spellAdded = ""
-    pick.tabIndex = -1
-    pick.setAttribute("role", "menu")
-    pick.setAttribute("aria-label", `Comments on ${headline(place)}`)
-    pick.innerHTML =
-      comments
-        .map((comment) => {
-          const thinking = comment.working && comment.turn !== "done"
-          const taken = comment.turn === "claude" && comment.status === "taken"
-          const said = TURN_WORDS[thinking ? "thinking" : taken ? "taken" : comment.turn]
-          const news = this.unseen(comment)
-          return (
-            `<button type="button" role="menuitem" class="spell-comment-choice" data-id="${attr(comment.id)}" ` +
-            `data-turn="${attr(comment.turn)}"${news ? " data-news" : ""} title="${attr(aboutTip({ id: comment.id, place: comment }))}">` +
-            `<span class="spell-comment-on">${text(comment.text.split("\n")[0])}</span>` +
-            `<span class="spell-comment-state">${said}</span></button>`
-          )
-        })
-        .join("") +
-      `<button type="button" role="menuitem" class="spell-comment-choice spell-comment-new">` +
-      `<ui-icon name="plus"></ui-icon><span class="spell-comment-on">New comment</span></button>`
-    for (const button of pick.querySelectorAll(".spell-comment-choice")) {
-      button.addEventListener("click", (event) => {
-        event.stopPropagation()
-        const at = button.getBoundingClientRect()
-        this.closePicker()
-        if (button.dataset.id) this.openComment(button.dataset.id)
-        else this.openBox({ key: place.anchor, place }, at)
-      })
-    }
-    const away = (event) => !pick.contains(event.target) && this.closePicker()
-    const escape = (event) => event.key === "Escape" && this.closePicker()
-    document.addEventListener("pointerdown", away, true)
-    document.addEventListener("keydown", escape, true)
-    pick.forget = () => {
-      document.removeEventListener("pointerdown", away, true)
-      document.removeEventListener("keydown", escape, true)
-    }
-    this.picker = pick
-    this.main.append(pick)
-    const { height } = pick.getBoundingClientRect()
-    const top = near.bottom + 8 + height > innerHeight - 8 ? near.top - height - 8 : near.bottom + 8
-    movePane(pick, near.left, top)
-    pick.querySelector("button")?.focus({ preventScroll: true })
-  }
-
-  /** Close the bullhorn's list, if open. */
-  closePicker() {
-    this.picker?.forget()
-    this.picker?.remove()
-    this.picker = null
   }
 
   ////////////////
@@ -3305,7 +3222,7 @@ class PageComments {
   }
 
   /**
-   * Open comment `id`'s thread (a click on its quote, a line of the bullhorn's list), and take the focus to its
+   * Open comment `id`'s thread (a click on its quote), and take the focus to its
    * header;  the page scrolls only as far as it must to show it.  Still being written in the pane:  back into it.
    */
   openComment(id) {
@@ -3372,7 +3289,7 @@ class PageComments {
     thread.className = "spell-thread"
     thread.id = `comment-${comment.id}`
     thread.dataset.turn = comment.turn
-    // orange while it has a reply from Claude Owen hasn't seen (`unseen()`)
+    // orange while it has a reply from Claude Owen hasn't seen (`unseen()`):  the whole thread, that reply stronger
     thread.toggleAttribute("data-unseen", this.unseen(comment))
     const editing = this.editing?.id === comment.id ? this.editing : null
     const replying = editing ?? (comment.turn === "done" ? null : this.replyBoxFor(comment))
@@ -3717,7 +3634,6 @@ class PageComments {
    * - the page never scrolls (Owen, 2026-10-10:  "don't scroll the page and lose context!")
    */
   openBox(open, near) {
-    this.closePicker()
     if (this.pane && this.open?.key === open.key) return this.focusPane()
     void this.open?.finish?.()
     this.pane?.remove()
@@ -3988,7 +3904,7 @@ function threadHead(comment, open, withPen) {
     (comment.turn === "owen" ? answerButtons(THREAD_ANSWERS) : done ? answerButtons([REOPEN]) : "") +
     (pending
       ? `<button type="button" class="spell-comment-tool spell-thread-edit" data-how="${pending}" ` +
-        `title="${attr(EDIT_TIP)}" aria-label="Edit your words"><ui-icon name="edit"></ui-icon></button>`
+        `title="${attr(EDIT_TIP)}" aria-label="Edit your last words:  Claude hasn't taken them yet"><ui-icon name="edit"></ui-icon></button>`
       : "") +
     deleteButton(comment.status === "new" ? "saved" : "had") +
     `</div>`
@@ -4046,19 +3962,7 @@ const REOPEN = {
 }
 
 /** The pen's tooltip:  his words, while Claude hasn't taken them. */
-const EDIT_TIP = "Edit your words:  Claude hasn't taken them yet"
-
-/**
- * What the bullhorn's list says of a comment, by whose turn it is (and `taken`:  a guide's, in an epic's phase;
- * `thinking`:  Claude at work on it now).
- */
-const TURN_WORDS = {
-  claude: "Waiting for Claude",
-  taken: "Taken by Claude",
-  thinking: "Claude is thinking…",
-  owen: "Your turn",
-  done: "Done"
-}
+const EDIT_TIP = "Edit your last words"
 
 /** What a thread says for Claude's answer with no words here:  a plan doc's comment, answered in the doc. */
 const ANSWERED_IN_DOC = "<p>Answered in the plan doc.</p>"
@@ -4090,18 +3994,6 @@ function titleInside(host) {
     return !!inner
   }
   if (!copy()) void customElements.whenDefined(host.localName).then(() => requestAnimationFrame(copy))
-}
-
-/**
- * A bullhorn's tooltip, after its count (Owen, 2026-10-10:  "1 comment on this item:  your turn"):  whose turn it
- * is on its comments -- yours, Claude thinking, waiting for Claude, done.
- */
-function turnsTip(comments) {
-  const owen = comments.filter((comment) => comment.turn === "owen").length
-  if (owen) return owen === comments.length ? "your turn" : `${owen} your turn`
-  if (comments.every((comment) => comment.turn === "done")) return "done"
-  if (comments.some((comment) => comment.working && comment.turn !== "done")) return "Claude is thinking"
-  return "waiting for Claude"
 }
 
 /** When Claude last replied on `comment`'s thread (an ISO time), else "". */
@@ -4155,7 +4047,8 @@ function pendingReplyOf(comment) {
  * of each bit position absolute"):  no names, the colour says who.
  * - Owen's words (his comment, his replies):  plain on the ivory, no box (Owen, 2026-10-10:  "my text doesn't get
  *   bordered (but keep spacing the same)")
- * - Claude's:  a light violet box -- an answer;  "taken into <epic> P<n>";  answered in the plan doc
+ * - Claude's:  a light violet box -- an answer;  "taken into <epic> P<n>";  answered in the plan doc.  His latest
+ *   (`data-latest`) is orange while Owen hasn't seen it (`unseen()`), as the whole thread is
  * - a green Done line once closed:  a check, what he said, the commit Claude named
  * - while Claude thinks about it (`working`):  "Claude: thinking…" last, light violet, a spinner;  his answer takes
  *   its place
@@ -4196,6 +4089,8 @@ function messagesHTML(comment, editing) {
     const spin = `<span class="spell-thread-spin" aria-hidden="true"><ui-icon name="circle notch"></ui-icon></span>`
     messages.push({ by: "thinking", at: comment.working, body: `<p>${spin}thinking…</p>` })
   }
+  // Claude's latest reply:  orange while the thread is (`unseen()`), the reply Owen hasn't seen
+  const latest = messages.findLastIndex((each) => each.by === "claude" && each.at)
   let day = ""
   return messages
     .map(({ by, at, body }, index) => {
@@ -4214,8 +4109,9 @@ function messagesHTML(comment, editing) {
       // all but the last smaller and quieter (Owen, 2026-10-10:  "Make font smaller for "not current" things --
       // everything other than last message");  the thinking stub or the Done line is the last when there
       const older = index < messages.length - 1 ? " data-older" : ""
+      const newest = index === latest ? " data-latest" : ""
       return (
-        `<div class="spell-thread-msg" data-by="${by}"${older}>${when}` +
+        `<div class="spell-thread-msg" data-by="${by}"${older}${newest}>${when}` +
         `<div class="spell-thread-text">${said}</div></div>`
       )
     })
@@ -4267,14 +4163,18 @@ function highlightQuotes(quotes) {
   return found
 }
 
-/** What the pane's × says, in its tooltip. */
-const CLOSE_TIP = "Close (Escape):  it's saved as you type;  emptied, the comment is deleted"
+/**
+ * What the pane's × says, in its tooltip:  a few words, as every comment button's (Owen, 2026-10-10:  "The buttons
+ * don't have browser tooltips -- unclear what they do");  the rest is in its `aria-label`.
+ */
+const CLOSE_TIP = "Close"
 
 /** How long the toast saying a comment was deleted offers Undo, ms. */
 const UNDO_MS = 6000
 
-/** What a trash says, in its tooltip:  a comment still waiting for Claude, and one Claude has. */
-const DELETE_TIPS = {
+/** What a trash says:  its tooltip, then (`aria-label`) a comment still waiting for Claude, and one Claude has. */
+const DELETE_TIP = "Delete this comment"
+const DELETE_TELLS = {
   saved: "Delete this comment (Undo in the toast that follows)",
   had: "Delete this comment:  gone from the page, whatever Claude did with it (Undo in the toast that follows)"
 }
@@ -4285,10 +4185,10 @@ const DELETE_TIPS = {
  * `state`:  `saved` while Claude hasn't had it, else `had`;  `hidden`:  not saved yet (a new comment's pane).
  */
 function deleteButton(state, hidden = false) {
-  const tip = DELETE_TIPS[state === "saved" ? "saved" : "had"]
+  const tells = DELETE_TELLS[state === "saved" ? "saved" : "had"]
   return (
-    `<button type="button" class="spell-comment-tool spell-comment-delete" title="${attr(tip)}" ` +
-    `aria-label="Delete this comment"${hidden ? " hidden" : ""}><ui-icon name="trash can"></ui-icon></button>`
+    `<button type="button" class="spell-comment-tool spell-comment-delete" title="${DELETE_TIP}" ` +
+    `aria-label="${attr(tells)}"${hidden ? " hidden" : ""}><ui-icon name="trash can"></ui-icon></button>`
   )
 }
 

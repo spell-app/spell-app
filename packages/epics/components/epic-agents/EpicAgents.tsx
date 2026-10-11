@@ -11,6 +11,7 @@ import { STACK_PROPERTY } from "$/epics/components/epic-page/EpicPage.types"
 import { epicAgentsVocabulary } from "./EpicAgents.en"
 
 import agentsCSS from "./EpicAgents.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicAgents`
@@ -32,7 +33,7 @@ import agentsCSS from "./EpicAgents.css?inline"
 export class EpicAgents extends E.UIComponent<typeof epicAgentsVocabulary> {
   @E.proto static vocabulary = epicAgentsVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-agents": agentsCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-agents": agentsCSS },
     // a panel:  a click on its words must not jump to its first button
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
@@ -106,6 +107,7 @@ export class EpicAgents extends E.UIComponent<typeof epicAgentsVocabulary> {
               class={AGENTS_TITLE}
               aria-expanded={this.fold.isOpen() ? "true" : "false"}
               aria-controls={AGENTS_LIST}
+              title={this.translationForKey(this.fold.isOpen() ? "foldTip" : "unfoldTip")}
               onClick={this.fold.toggle}
             >
               {Fold.chevron()}
@@ -194,6 +196,7 @@ export class EpicAgents extends E.UIComponent<typeof epicAgentsVocabulary> {
             size="mini"
             disabled={redirect.canSend ? undefined : ""}
             loading={redirect.isSending ? "" : undefined}
+            title={this.translationForKey("agentSendTip", { name })}
             onClick={() => redirect.sendNote()}
           >
             {this.translationForKey("agentSend")}

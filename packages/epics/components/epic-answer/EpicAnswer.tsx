@@ -11,6 +11,7 @@ import { BODY, BODY_ID, EMPTY, HEADER, HEADING_SEPARATOR, LABEL_ID, TITLE_ID } f
 
 import answerCSS from "./EpicAnswer.css?inline"
 import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicAnswer`
@@ -27,7 +28,7 @@ import foldCSS from "$/epics/components/epic-item/Fold.css?inline"
 export class EpicAnswer extends E.UIComponent<typeof epicAnswerVocabulary> {
   @E.proto static vocabulary = epicAnswerVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-fold-button": foldCSS, "epic-answer": answerCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-fold-button": foldCSS, "epic-answer": answerCSS },
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>
 
@@ -67,7 +68,8 @@ export class EpicAnswer extends E.UIComponent<typeof epicAnswerVocabulary> {
             {this.fold.button({
               controls: BODY_ID,
               labelledBy: this.hasTitle ? `${LABEL_ID} ${TITLE_ID}` : LABEL_ID,
-              part: this.partForName("toggle")
+              part: this.partForName("toggle"),
+              tips: { fold: this.translationForKey("foldTip"), unfold: this.translationForKey("unfoldTip") }
             })}
           </Show>
           <b id={LABEL_ID} class={LABEL} part={this.partForName("label")}>

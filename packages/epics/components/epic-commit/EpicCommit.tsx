@@ -6,6 +6,7 @@ import { E } from "$/ui/core"
 import { epicCommitVocabulary } from "./EpicCommit.en"
 
 import commitCSS from "./EpicCommit.css?inline"
+import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
 
 /****************
  * ### `EpicCommit`
@@ -20,7 +21,7 @@ import commitCSS from "./EpicCommit.css?inline"
 export class EpicCommit extends E.UIComponent<typeof epicCommitVocabulary> {
   @E.proto static vocabulary = epicCommitVocabulary
   @E.protoMerged static elementSetup = {
-    styleSheets: { "epic-commit": commitCSS },
+    styleSheets: { "epic-tooltip": tooltipCSS, "epic-commit": commitCSS },
     // a container:  a click on its text must not jump to the sha's link
     delegatesFocus: false
   } satisfies Partial<E.ElementSetup>

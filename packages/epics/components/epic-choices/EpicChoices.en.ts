@@ -44,6 +44,9 @@ export const epicChoicesVocabulary = {
     { name: "open", description: "Answered, and its options unfolded." }
   ],
   texts: [
+    { key: "foldTip", text: "Fold the choices", description: "Tooltip of its fold button while open." },
+    { key: "unfoldTip", text: "Unfold the choices", description: "Tooltip of its fold button while folded." },
+
     { key: "choices", text: "Choices", description: "The answered question's options' heading." },
     {
       key: "chosen",

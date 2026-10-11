@@ -47,6 +47,9 @@ export const epicUpdatedVocabulary = {
   ],
   states: [{ name: "open", description: "Unfolded:  it starts so (page state, never written)." }],
   texts: [
+    { key: "foldTip", text: "Fold this plan change", description: "Tooltip of its fold button while open." },
+    { key: "unfoldTip", text: "Unfold this plan change", description: "Tooltip of its fold button while folded." },
+
     { key: "updated", text: "Updated", description: "Its label." },
     { key: "during", text: "during P{phase}", description: "After its time:  the phase under way then." },
     { key: "of", text: "P{phase}", description: "A Plan changes copy:  the phase it changes, a link to it." }
