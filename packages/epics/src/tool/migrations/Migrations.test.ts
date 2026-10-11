@@ -51,11 +51,21 @@ describe("UpdateSummary", () => {
     expect(UpdateSummary.fromText("")).toBe("")
   })
 
-  test("a long one cut at a word, with an ellipsis, within `MAX_LENGTH`", () => {
-    const long = `${"word ".repeat(40)}end.`
-    const summary = UpdateSummary.fromText(long)
-    expect(summary.length).toBeLessThanOrEqual(UpdateSummary.MAX_LENGTH + 1)
-    expect(summary).toMatch(/^word( word)+…$/)
+  test("a long one keeps its first `MAX_WORDS` words, with an ellipsis (Owen:  5-10 words)", () => {
+    const summary = UpdateSummary.fromText(`${"word ".repeat(40)}end.`)
+    expect(summary).toBe(`${Array(UpdateSummary.MAX_WORDS).fill("word").join(" ")}…`)
+  })
+
+  test("a lead saying who or when is dropped:  the text says it, and the update shows its date", () => {
+    expect(
+      UpdateSummary.fromText("From Owen's comment CM3 (2026-10-11): this epic has no Doc Review phase any more.")
+    ).toBe("this epic has no Doc Review phase any more")
+    expect(UpdateSummary.fromText("Owen, 2026-10-11: migrate works for every page kind.")).toBe(
+      "migrate works for every page kind"
+    )
+    expect(UpdateSummary.fromText("Bedtime, 2026-10-11 (Owen): the goal pages stay.")).toBe("the goal pages stay")
+    // a colon that isn't a who-or-when lead stays
+    expect(UpdateSummary.fromText("Split in two: words first.")).toBe("Split in two: words first")
   })
 
   test("of nodes:  their text, a space between blocks", () => {
