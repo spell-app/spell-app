@@ -69,6 +69,11 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     `--state`:  print its state as JSON by id.
 - `PageSession` (`spell_core.page`):  a program's side of a page that draws it.
   - `python -m spell_core.page <program> --seed n` talks to a page over stdin and stdout, a JSON line each.
+- `play_page()` (`spell_core.playing`, P30):  a test plays a program the way its page does, by the page's messages.
+  - `game.trigger("card-click", card=game.ref(card))`, `game.call("deal_the_cards")`:  each answered by its patch.
+  - `game.thing(id)`, `game.named("stock")`:  what the page holds now, by id.
+  - After each, the patches so far must add up to the whole state, else `PatchMismatchError`.
+  - The contract's 300 clicks per game play through it (`tests/patches_in_a_game.py`).
 - Four checks keep it in step with the javascript core (`packages/core`):
   - the core's method list:  every name in [spellCore.declarations.json](../core/spellCore.declarations.json),
     or listed as not ported yet

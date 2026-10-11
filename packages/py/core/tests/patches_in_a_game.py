@@ -7,17 +7,16 @@
 - Each click is a `card-click`, as `onClick` triggers one:
   every other one on the top card of the game's `stock`, if it has one, turning a card over;
   the rest on a card of its `deck`, picked by the seeded random.
-- After each:  a mirror reads the writer's `patch()`, and its state must equal the game's.
+- Played by the page's own messages (`spell_core.playing`):  after each, the patches so far must add up to the
+  game's whole state.
 - Prints how many clicks changed something;  exits 1 at the first that doesn't match.
 """
 
 import argparse
-import runpy
 import sys
-from pathlib import Path
 
-from spell_core import StateMirror, StateWriter, core
-from spell_core.things import SpellObject
+from spell_core import core
+from spell_core.playing import PatchMismatchError, play_page
 
 
 def main() -> None:
@@ -27,25 +26,15 @@ def main() -> None:
     parser.add_argument("--seed", type=int, default=1)
     parser.add_argument("--clicks", type=int, default=300)
     args = parser.parse_args()
-    core.pauses = False
-    core.seed_random(args.seed)
-    program = Path(args.program).resolve()
-    sys.path.insert(0, str(program.parent))
-    names = runpy.run_path(str(program), run_name="__main__")
-    state = {name: value for name, value in names.items() if isinstance(value, SpellObject)}
-    writer = StateWriter()
-    mirror = StateMirror()
-    copy = mirror.read(writer.state_of(state))
-    cards = list(names["deck"])
-    stock = names.get("stock")
+    game = play_page(args.program, seed=args.seed)
+    cards = [card["@id"] for card in game.named("deck")["@items"]]
     changed = 0
     for click in range(args.clicks):
-        on_stock = click % 2 == 0 and stock
-        core.trigger("card-click", card=stock[-1] if on_stock else core.random_item_of(cards))
-        patch = writer.patch()
-        changed += bool(patch)
-        mirror.read(patch)
-        if StateWriter().state_of(copy) != StateWriter().state_of(state):
+        stock = game.state.get("stock") and game.named("stock")["@items"]
+        card = stock[-1] if click % 2 == 0 and stock else {"@id": core.random_item_of(cards)}
+        try:
+            changed += bool(game.trigger("card-click", card=game.ref(card)))
+        except PatchMismatchError:
             print(f"click {click + 1}:  the patched state differs from the whole state", file=sys.stderr)
             sys.exit(1)
     print(f"{changed} of {args.clicks} clicks changed something;  every patch matched")
