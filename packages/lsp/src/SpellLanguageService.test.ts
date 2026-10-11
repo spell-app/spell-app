@@ -401,6 +401,14 @@ describe("SpellLanguageService", () => {
       }
       const labels = (items: CompletionItem[]) => items.map(({ label }) => label)
 
+      test("typing a JSX tag, `<div><chi` => spell's own tags:  `children`, its word for `<slot>`", async () => {
+        await typed("print <div><chi", (items) => {
+          expect(items).toEqual([expect.objectContaining({ label: "children", detail: "spell's word for <slot>" })])
+        })
+        // a comparison isn't a tag
+        await typed("if 1 < 2", (items) => expect(labels(items)).not.toContain("children"))
+      })
+
       test("`set y ` => `to`", async () => {
         await typed("set y ", (items) => expect(labels(items)).toContain("to"))
       })

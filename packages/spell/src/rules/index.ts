@@ -25,7 +25,7 @@ import { assignment } from "./assignment"
 import { expressions, Negatable } from "./expressions"
 import { statements } from "./statements"
 import { _if_ } from "./if"
-import { JSX, type JSXMatchData } from "./JSX"
+import { JSX, SPELL_TAG_NAMES, type JSXMatchData } from "./JSX"
 import { lists } from "./lists"
 import { math } from "./math"
 import { properties } from "./properties"
@@ -75,6 +75,8 @@ export { Block, BlockLine }
  * -- e.g. for UI code that reads them.
  */
 export type { JSXMatchData }
+/** Export so editors can offer spell's own JSX tags, e.g. `<children/>` -- see `SPELL_TAG_NAMES`. */
+export { SPELL_TAG_NAMES }
 
 // Structural rules.  `SpellBlankLine` and `BlockLine` set `static ruleName`:  their class names don't give them.
 spellParser.addRule(SpellBlankLine)

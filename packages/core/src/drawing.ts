@@ -59,7 +59,7 @@ export const drawingMethods = defineSpellCoreModule({
    * - A DRAWABLE thing (`a card is a drawable thing`) is its element, e.g. `<solitaire-card>`, the card set as its
    *   `thing`:  it draws itself in there, with `drawOwn()`.  When the page can define it -- see `elementFor()`.
    *   - A drawable LIST's items are its element's children, e.g. `<game-pile>` holding `<game-card>`s,
-   *     shown in its drawing's `<slot>`.
+   *     shown in its drawing's `<slot>` (spell's `<children/>`).
    * - Anything else:  its own drawing, here -- see `drawOwn()`.
    */
   drawThing(drawable?: unknown): Drawing | null {
