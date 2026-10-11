@@ -956,7 +956,7 @@ In this order, from `packages/docs`:
   - The verbs, and an example:  the header of [agents.ts](tools/agents.ts).
 - `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` ([link.ts](tools/link.ts)):
   the markdown links Claude gives for a page.
-  - side bar first (`--review`:  its "Review" tab), then `(_browser_)`
+  - side bar first (`--review`:  its "Review" tab), then `• 🌐`, the browser link (Owen, 2026-10-11)
   - both through [showRoutes.ts](tools/showRoutes.ts) (`GET /api/docs/show`)
 - `spell dev docs fuss <paths...> | --branch [--json]` ([fuss.ts](tools/fuss.ts)):
   the writing checker under `/fussbudget` (epic `skillz`, P7).

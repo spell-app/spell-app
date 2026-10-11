@@ -9,7 +9,7 @@ In your own words, without jargon, narrate each step in the order it actually ha
 When a question needs a picture to decide, or more than the AskUserQuestion modal holds (4 options per question, 4
 questions), use `/details` (`.claude/skills/details/`):  a page in VS Code's right side bar that Owen answers on.
 Naming any docs page in a reply:  `spell dev docs link <page> --hash <id> --show`, and paste its side bar link +
-`(_browser_)` link.
+`• 🌐` (browser) link:  `Title • 🌐`.
 
 Delegated work (epic `skillz`, Owen, 2026-10-07):  every agent you start is NAMED and LISTED, as `/bg` does it
 (`.claude/skills/bg/SKILL.md`, "Names", "When its notice arrives", "Redirects").
