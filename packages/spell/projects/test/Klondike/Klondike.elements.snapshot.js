@@ -40,18 +40,18 @@ export class Game extends App {
               h("td", () => spellCore.drawThing(discards)),
               h("td"),
               h("td", () => spellCore.drawThing(foundations.firstItem)),
+              h("td", () => spellCore.drawThing(foundations.getItem(1))),
               h("td", () => spellCore.drawThing(foundations.getItem(2))),
-              h("td", () => spellCore.drawThing(foundations.getItem(3))),
-              h("td", () => spellCore.drawThing(foundations.getItem(4)))
+              h("td", () => spellCore.drawThing(foundations.getItem(3)))
             ),
             h("tr",
               h("td", () => spellCore.drawThing(tableaus.firstItem)),
+              h("td", () => spellCore.drawThing(tableaus.getItem(1))),
               h("td", () => spellCore.drawThing(tableaus.getItem(2))),
               h("td", () => spellCore.drawThing(tableaus.getItem(3))),
               h("td", () => spellCore.drawThing(tableaus.getItem(4))),
               h("td", () => spellCore.drawThing(tableaus.getItem(5))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(6))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(7)))
+              h("td", () => spellCore.drawThing(tableaus.getItem(6)))
             )
           )
         )

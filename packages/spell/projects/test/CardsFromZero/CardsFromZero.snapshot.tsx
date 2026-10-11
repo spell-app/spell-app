@@ -33,7 +33,7 @@ export class Card extends Thing {
 
   /** value as a derivation of rank */
   get value() {
-    return positionOf(Card.Ranks, this.rank, 0)
+    return positionOf(Card.Ranks, this.rank)
   }
 
   static Directions = DIRECTIONS
@@ -87,7 +87,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemAt(this.rank, 0, 0) ?? ""}`.toLocaleUpperCase()
+    return `${spellCore.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {
@@ -260,29 +260,29 @@ export function testCountingFromZero() {
     spellCore.echoTestAction(`set up the deck`)
     deck.setUp()
     spellCore.expect(deck.firstItem?.name!, `the name of card 0 of the deck`, "ace-of-clubs", `"ace-of-clubs"`)
-    spellCore.expect(deck.at(1)?.name!, `the name of card 1 of the deck`, "ace-of-diamonds", `"ace-of-diamonds"`)
+    spellCore.expect(deck.getItem(1)?.name!, `the name of card 1 of the deck`, "ace-of-diamonds", `"ace-of-diamonds"`)
     spellCore.expect(deck.lastItem?.name!, `the name of card -1 of the deck`, "king-of-spades", `"king-of-spades"`)
     spellCore.expect(deck.firstItem?.name!, `the name of the first card of the deck`, "ace-of-clubs", `"ace-of-clubs"`)
-    spellCore.expect(deck.at(1)?.name!, `the name of the second card of the deck`, "ace-of-diamonds", `"ace-of-diamonds"`)
+    spellCore.expect(deck.getItem(1)?.name!, `the name of the second card of the deck`, "ace-of-diamonds", `"ace-of-diamonds"`)
     spellCore.expect(deck.lastItem?.name!, `the name of the last card of the deck`, "king-of-spades", `"king-of-spades"`)
     spellCore.echoTestAction(`set the ace to the first card of the deck`)
     const ace = deck.firstItem
-    spellCore.expect(deck.positionOf(ace!, 0), `the position of the ace in the deck`, 0, `0`)
+    spellCore.expect(deck.positionOf(ace!), `the position of the ace in the deck`, 0, `0`)
     spellCore.echoTestAction(`set the aces to cards 0 to 3 of the deck`)
-    const aces = deck.between(0, 3, 0)
+    const aces = deck.slice(0, 4)
     spellCore.expect(aces.length, `the number of cards in the aces`, 4, `4`)
     spellCore.expect(aces.lastItem?.name!, `the name of the last card of the aces`, "ace-of-spades", `"ace-of-spades"`)
     spellCore.echoTestAction(`set the kings to last two cards of the deck`)
-    const kings = spellCore.rangeStartingAt(deck, -2, 2, 0) as Deck
+    const kings = spellCore.rangeStartingAt(deck, -2, 2) as Deck
     spellCore.expect(kings.length, `the number of cards in the kings`, 2, `2`)
     spellCore.expect(kings.firstItem?.name!, `the name of the first card of the kings`, "king-of-hearts", `"king-of-hearts"`)
     spellCore.echoTestAction(`set the positions to a new list of numbers`)
     const positions = new List<number>({ instanceType: "number" })
     spellCore.echoTestAction(`for each card, position in the aces`)
-    aces.forEach((card, position) => positions.append(position), 0)
+    aces.forEach((card, position_) => positions.append(position_))
     spellCore.echo(`positions: ${positions}`)
     spellCore.echoTestAction(`remove card 0 of the deck`)
-    spellCore.removeItemAt(deck, 0, 0)
+    spellCore.removeItemAt(deck, 0)
     spellCore.expect(deck.firstItem?.name!, `the name of the first card of the deck`, "ace-of-diamonds", `"ace-of-diamonds"`)
   })
 }

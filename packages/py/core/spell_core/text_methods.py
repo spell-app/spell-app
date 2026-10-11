@@ -1,7 +1,7 @@
 """Text:  what spell's `as upper case` and `as lower case` compile to, where the value may be nothing.
 
 ```python
-core.upper_case(core.get_item_at(self.rank, 1))   # "Q" for "queen";  "" for no rank
+core.upper_case(core.get_item_at(self.rank, 0))   # "Q" for "queen";  "" for no rank
 ```
 
 - Python's own `.upper()` is the word where the Python writer knows it has text.

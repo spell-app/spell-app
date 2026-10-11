@@ -1,19 +1,20 @@
 """Spell's list words for any collection:  what compiled Python calls when Python has no word of its own.
 
 ```python
-core.get_item_at(rank, 1)                 # "q", the first character of "queen"
-core.position_of(Card.RANKS, card.rank)   # 12 for "queen", None if it isn't there
+core.get_item_at(rank, 0)                 # "q", the first character of "queen"
+core.position_of(Card.RANKS, card.rank)   # 11 for "queen", None if it isn't there
 core.filter(words, lambda word: len(word) > 3)
 ```
 
 - For a plain list, a tuple, text, a dict, or a value nobody knows the kind of:
   where the Python writer knows it has a spell list, it calls the list's own method, or Python's own word.
-- Positions count from 1 inside, as spell does.
-  A project counting from 0 passes `start_at=0` to each method that takes or gives a position.
+- A list's positions are its indexes, counted from 0, as Python counts (plan doc python-target, P23);
+  negative ones count from the end.
+  - Spell code counting from 1 is turned into indexes as it compiles:  see `positions.py`.
 - A dict is a collection too:  its keys are its positions.
 - A result that's a list (`filter()`, `range_between()` ...) is of the collection's kind:
   a spell list's is a SCRATCH list of its class, owning nothing;  a plain list's, a plain list.
-- A callback gets `(value, position, collection)`, or as many of those as it takes:
+- A callback gets `(value, position, collection)`, the position an index, or as many of those as it takes:
   `lambda card: card.rank == "queen"` is called with the card alone.
 - A collection that's `None` warns on `core.console`, and gives nothing, `False` or `0`, as the JavaScript core does.
 - The twins of the JavaScript core's `collection-core.ts` and `collection-other.ts`, in snake_case:
@@ -28,7 +29,7 @@ from typing import TYPE_CHECKING, Any
 from spell_core.js_text import is_plain_number
 from spell_core.kinds import is_a_number, is_js_truthy, is_same
 from spell_core.lists import List
-from spell_core.positions import StartAt, from_start_at, to_start_at, zero_index_of
+from spell_core.positions import zero_index_of
 
 if TYPE_CHECKING:
     from spell_core.console import SpellConsole
@@ -67,13 +68,13 @@ class CollectionMethods:
         return self.item_count_of(collection) == 0
 
     def keys_of(self, collection: object = None) -> list[Key]:
-        """`collection`'s positions, from 1:  `[1, 2, 3]`.  A dict's keys, in order."""
+        """`collection`'s indexes, from 0:  `[0, 1, 2]`.  A dict's keys, in order."""
         if not self._is_defined(collection, "keys_of"):
             return []
         if isinstance(collection, Mapping):
             return list(collection.keys())
         if isinstance(collection, Sequence):
-            return list(range(1, len(collection) + 1))
+            return list(range(len(collection)))
         return []
 
     def values_of(self, collection: object = None) -> list[Any]:
@@ -86,16 +87,15 @@ class CollectionMethods:
             return list(collection)
         return []
 
-    def get_item_at(self, collection: object = None, position: Key = None, start_at: StartAt = 1) -> Any:
+    def get_item_at(self, collection: object = None, position: Key = None) -> Any:
         """The item at `position` of `collection`:  `item 1 of the list`, `the first character of the rank`.
 
-        - A list, a tuple or text:  `position` from 1 (or `start_at`), negative from the end;  no item there:  `None`.
+        - A list, a tuple or text:  `position` is an index, from 0, negative from the end;  no item there:  `None`.
         - A dict:  `position` is its key.
         - A thing:  `position` is a property's name.
         """
         if not self._is_defined(collection, "get_item_at"):
             return None
-        position = from_start_at(position, start_at)
         if isinstance(collection, List):
             return collection.get_item(position)
         if isinstance(collection, Mapping):
@@ -107,12 +107,10 @@ class CollectionMethods:
             return collection[index] if index is not None and index < len(collection) else None
         return getattr(collection, position, None) if isinstance(position, str) else None
 
-    def set_item_at(
-        self, collection: object = None, position: Key = None, value: Any = None, start_at: StartAt = 1
-    ) -> Any:
+    def set_item_at(self, collection: object = None, position: Key = None, value: Any = None) -> Any:
         """SIDE EFFECT:  set the item at `position` of `collection` to `value`.  Returns `value`.
 
-        - A list:  `position` from 1 (or `start_at`), negative from the end.
+        - A list:  `position` is an index, from 0, negative from the end.
           - before the start:  nothing changes
           - past the end:  the list grows, the gap filled with `None`
         - A dict:  `position` is its key.
@@ -120,7 +118,6 @@ class CollectionMethods:
         """
         if not self._is_defined(collection, "set_item_at"):
             return None
-        position = from_start_at(position, start_at)
         if isinstance(collection, List):
             collection.set_item(position, value)
         elif isinstance(collection, MutableMapping):
@@ -135,30 +132,29 @@ class CollectionMethods:
         return value
 
     def add_at_position(self, collection: object = None, start: float | None = None, *things: Any) -> None:
-        """SIDE EFFECT:  add `things` at position `start` (from 1) of a list, pushing what was there down.
+        """SIDE EFFECT:  add `things` at index `start` (from 0) of a list, pushing what was there down, as `insert()`.
 
-        - `0` is the front;  negative counts from the end, as a Python slice does;  past the end is the end.
-        - `add the card to the pile at position 2`.
+        - Negative counts from the end, as a Python slice does;  past the end is the end.
+        - `add the card to the pile at position 2` is `core.add_at_position(pile, 1, card)`.
         """
         if not self._is_array_like(collection, "add_at_position"):
             return
-        at = start or 0
+        at = start if is_a_number(start) else 0
         if isinstance(collection, List):
             collection.add_at(at, *things)
             return
-        index = int(at) - 1 if at > 0 else int(at)
+        index = int(at)  # type: ignore[arg-type]
         collection[index:index] = things  # type: ignore[index]
 
-    def remove_item_at(self, collection: object = None, position: Key = None, start_at: StartAt = 1) -> None:
+    def remove_item_at(self, collection: object = None, position: Key = None) -> None:
         """SIDE EFFECT:  take out the item at `position` of `collection`.  No such item:  nothing changes.
 
-        - A list:  `position` from 1 (or `start_at`), negative from the end;  the items after it move up.
+        - A list:  `position` is an index, from 0, negative from the end;  the items after it move up.
         - A dict:  `position` is the key taken out.
         - `remove the last card of the deck`.
         """
         if not self._is_defined(collection, "remove_item_at"):
             return
-        position = from_start_at(position, start_at)
         if isinstance(collection, List):
             collection.remove_item(position)
         elif isinstance(collection, MutableMapping):
@@ -176,7 +172,7 @@ class CollectionMethods:
             collection.clear()
 
     def get_iterator_for(self, collection: object = None) -> Iterator[tuple[Any, Key, object]]:
-        """`(value, position, collection)` for each item of `collection`, positions from 1:  a dict's are its keys.
+        """`(value, position, collection)` for each item of `collection`, positions from 0:  a dict's are its keys.
 
         - Reads each item as it gets to it, from the count when it started:
           a callback that changes the list sees the change.
@@ -187,11 +183,11 @@ class CollectionMethods:
             for key in list(collection.keys()):
                 yield collection.get(key), key, collection
             return
-        for position in range(1, self.item_count_of(collection) + 1):
+        for position in range(self.item_count_of(collection)):
             yield self.get_item_at(collection, position), position, collection
 
-    def position_of(self, collection: object = None, thing: object = None, start_at: StartAt = 1) -> Key:
-        """Where the first `thing` is in `collection` (`is_same()`), from 1 (or `start_at`):  a dict's, its key.
+    def position_of(self, collection: object = None, thing: object = None) -> Key:
+        """The index of the first `thing` in `collection` (`is_same()`), from 0:  a dict's, its key.
 
         - `None` if it isn't there, never `-1`.
         - `the position of the card in the pile`;  `core.position_of(Card.RANKS, rank)`.
@@ -199,10 +195,10 @@ class CollectionMethods:
         if not self._is_defined(collection, "position_of"):
             return None
         if isinstance(collection, List):
-            return to_start_at(collection.position_of(thing), start_at)
+            return collection.position_of(thing)
         for value, position, _ in self.get_iterator_for(collection):
             if is_same(value, thing):
-                return to_start_at(position, start_at)
+                return position
         return None
 
     ################
@@ -230,13 +226,13 @@ class CollectionMethods:
         """Is `thing` the first item of a list?  `False` for `None`."""
         if not self._is_array_like(collection, "starts_with"):
             return False
-        return thing is not None and is_same(self.get_item_at(collection, 1), thing)
+        return thing is not None and is_same(self.get_item_at(collection, 0), thing)
 
     def ends_with(self, collection: object = None, thing: object = None) -> bool:
         """Is `thing` the last item of a list?  `False` for `None`."""
         if not self._is_array_like(collection, "ends_with"):
             return False
-        return thing is not None and is_same(self.get_item_at(collection, self.item_count_of(collection)), thing)
+        return thing is not None and is_same(self.get_item_at(collection, self.item_count_of(collection) - 1), thing)
 
     def all(self, collection: object = None, condition: Callback | None = None) -> bool:
         """Does `condition` say yes for every item?  No `condition`:  is every item yes (JavaScript's yes)?
@@ -283,21 +279,21 @@ class CollectionMethods:
 
     def prepend(self, collection: object = None, *things: Any) -> None:
         """SIDE EFFECT:  add `things` at the front of a list, pushing the rest down."""
-        self.add_at_position(collection, 1, *things)
+        self.add_at_position(collection, 0, *things)
 
     def append(self, collection: object = None, *things: Any) -> None:
         """SIDE EFFECT:  add `things` at the end of a list.
 
         - Exclusive:  one it holds already moves to the end.
         """
-        self.add_at_position(collection, self.item_count_of(collection) + 1, *things)
+        self.add_at_position(collection, self.item_count_of(collection), *things)
 
     def add_before(self, collection: object = None, item: object = None, *things: Any) -> None:
         """SIDE EFFECT:  add `things` just before `item`, pushing it down.  `item` isn't there:  at the START."""
         if not self._is_array_like(collection, "add_before"):
             return
         position = self.position_of(collection, item)
-        self.add_at_position(collection, 1 if position is None else position, *things)
+        self.add_at_position(collection, 0 if position is None else position, *things)
 
     def add_after(self, collection: object = None, item: object = None, *things: Any) -> None:
         """SIDE EFFECT:  add `things` just after `item`.  `item` isn't there:  at the END."""
@@ -310,7 +306,7 @@ class CollectionMethods:
             self.add_at_position(collection, position + 1, *things)
 
     def set_items_of(self, collection: object = None, start: float | None = None, *values: Any) -> None:
-        """SIDE EFFECT:  set the items from position `start` (from 1) on to `values`, replacing what's there."""
+        """SIDE EFFECT:  set the items from index `start` (from 0) on to `values`, replacing what's there."""
         if not self._is_array_like(collection, "set_items_of"):
             return
         if isinstance(collection, List):
@@ -323,7 +319,7 @@ class CollectionMethods:
         """SIDE EFFECT:  reverse a list's order, in place."""
         if not self._is_array_like(collection, "reverse"):
             return
-        self.set_items_of(collection, 1, *reversed(self.values_of(collection)))
+        self.set_items_of(collection, 0, *reversed(self.values_of(collection)))
 
     def remove(self, collection: object = None, *things: object) -> None:
         """SIDE EFFECT:  take EVERY copy of each of `things` out of `collection`:  `remove the card from the pile`.
@@ -340,7 +336,7 @@ class CollectionMethods:
                 position = self.position_of(collection, thing)
 
     def remove_items_at(self, collection: object = None, *positions: Key) -> None:
-        """SIDE EFFECT:  take out the items at `positions` (from 1;  a dict's keys), last first."""
+        """SIDE EFFECT:  take out the items at `positions` (indexes, from 0;  a dict's keys), last first."""
         if not self._is_defined(collection, "remove_items_at"):
             return
         if self.is_array_like(collection):
@@ -362,58 +358,53 @@ class CollectionMethods:
     # ## Ranges
     ################
 
-    def range_between(
-        self, collection: object = None, start: float | None = None, end: float | None = None, start_at: StartAt = 1
-    ) -> Any:
-        """The items from position `start` to `end`, both included, of the collection's kind:  `items 1 to 2 of it`.
+    def range_between(self, collection: object = None, start: float | None = None, end: float | None = None) -> Any:
+        """The items from index `start` up to, NOT including, `end`, of the collection's kind:  a slice's range.
 
-        - No `start`:  from the first;  no `end`, or past the end:  to the last.
-        - A negative `start` counts from the end.
+        - Negative counts from the end;  no `start`:  from the first;  no `end`:  to the end.
+        - A `start` further back than the first:  nothing.
         - Nothing in range:  an empty one.
+        - `items 2 to 4 of my-list` is `range_between(my_list, 1, 4)`;  a spell list's own is `my_list[1:4]`.
         """
         if not self._is_array_like(collection, "range_between"):
             return []
-        start = from_start_at(start, start_at)
-        end = from_start_at(end, start_at)
         found = _range_between(start, end, self.item_count_of(collection))
         if not found:
             return self._empty_range_of(collection)
         results = self.new_thing_like(collection)
-        for position in range(found[0], found[1] + 1):
-            self.append(results, self.get_item_at(collection, position))
+        for index in range(*found):
+            self.append(results, self.get_item_at(collection, index))
         return results
 
     def remove_range_between(
-        self, collection: object = None, start: float | None = None, end: float | None = None, start_at: StartAt = 1
+        self, collection: object = None, start: float | None = None, end: float | None = None
     ) -> None:
-        """SIDE EFFECT:  take out the items from position `start` to `end`, both included:  `remove items 2 to 4`.
+        """SIDE EFFECT:  take out the items from index `start` up to, not including, `end`, as `range_between()`.
 
+        - `remove items 2 to 4 of my-list` is `remove_range_between(my_list, 1, 4)`.
         - A spell list takes out each, last first, so it keeps its owners.
         """
         if not self._is_array_like(collection, "remove_range_between"):
             return
-        start = from_start_at(start, start_at)
-        end = from_start_at(end, start_at)
         found = _range_between(start, end, self.item_count_of(collection))
         if not found:
             return
         if isinstance(collection, List):
-            for position in range(found[1], found[0] - 1, -1):
-                collection.remove_item(position)
+            for index in range(found[1] - 1, found[0] - 1, -1):
+                collection.remove_item(index)
             return
-        del collection[found[0] - 1 : found[1]]  # type: ignore[attr-defined]
+        del collection[found[0] : found[1]]  # type: ignore[attr-defined]
 
     def range_starting_at(
-        self, collection: object = None, start: float | None = None, count: float | None = None, start_at: StartAt = 1
+        self, collection: object = None, start: float | None = None, count: float | None = None
     ) -> Any:
-        """`count` items from position `start`, of the collection's kind:  `the top 2 cards of the deck`.
+        """`count` items from index `start`, of the collection's kind:  `the top 2 cards of the deck`.
 
         - No `count`:  to the end.
-        - A negative `start` counts from the end, the items still in order.
+        - A negative `start` counts from the end, the items still in order;  further back than the first:  nothing.
         """
         if not self._is_array_like(collection, "range_starting_at"):
             return []
-        start = from_start_at(start, start_at)
         found = _range_starting_at(start, count, self.item_count_of(collection))
         if not found:
             return self._empty_range_of(collection)
@@ -423,15 +414,18 @@ class CollectionMethods:
     # ## Going through each item
     ################
 
-    def for_each(self, collection: object = None, method: Callback | None = None, start_at: StartAt = 1) -> None:
-        """Call `method` for each item:  `(value, position, collection)`, positions from 1 (or `start_at`)."""
+    def for_each(self, collection: object = None, method: Callback | None = None) -> None:
+        """Call `method` for each item:  `(value, position, collection)`, the position an index, from 0.
+
+        - Spell code counting from 1 whose `method` takes the position:  see `with_spell_positions()`.
+        """
         if not self._is_defined(collection, "for_each") or method is None:
             return
         call = _callback(method)
         for value, position, coll in self.get_iterator_for(collection):
-            call(value, to_start_at(position, start_at), coll)
+            call(value, position, coll)
 
-    def map(self, collection: object = None, method: Callback | None = None, start_at: StartAt = 1) -> Any:
+    def map(self, collection: object = None, method: Callback | None = None) -> Any:
         """What `method` answers for each item, in a new collection of the same kind, at the same positions."""
         if not self._is_defined(collection, "map"):
             return None
@@ -440,7 +434,7 @@ class CollectionMethods:
             return results
         call = _callback(method)
         for value, position, coll in self.get_iterator_for(collection):
-            self.set_item_at(results, position, call(value, to_start_at(position, start_at), coll))
+            self.set_item_at(results, position, call(value, position, coll))
         return results
 
     def filter(self, collection: object = None, condition: Callback | None = None) -> Any:
@@ -527,7 +521,7 @@ class CollectionMethods:
         if cls:
             merged = self.new_scratch(cls)
         else:
-            first = self.get_item_at(collections, 1)
+            first = self.get_item_at(collections, 0)
             if not self._is_array_like(first, "merge_lists"):
                 return None
             merged = self.new_thing_like(first)
@@ -604,7 +598,7 @@ class CollectionMethods:
         """
         if not self._is_defined(collection, "randomize") or not self.is_array_like(collection):
             return
-        self.set_items_of(collection, 1, *self.random_items_of(collection))
+        self.set_items_of(collection, 0, *self.random_items_of(collection))
 
     ################
     # ## Checks, as the JavaScript core's `assert`
@@ -679,36 +673,35 @@ def _positional_count(method: Callback) -> int:
 
 
 def _range_between(start: object, end: object, item_count: int) -> tuple[int, int] | None:
-    """`(start, end)` of a range, positions from 1, both included:  `None` when it holds nothing.
+    """`(start, end)` of a range of indexes, as a slice reads them, `end` not included:  `None` when it holds nothing.
 
     - `start`:
-      - none, or `0`:  the first
-      - negative:  from the end
-      - past either end, e.g. 7 or -7 of 6 items:  `None`
-    - No `end`, or past the end:  the last.
+      - none:  the first
+      - negative:  from the end;  further back than the first, e.g. -7 of 6 items:  `None`
+    - `end`:  none, or past the end:  the end;  negative:  from the end.
+    - Not a whole number:  its whole part.
     """
     if item_count == 0:
         return None
-    if not is_a_number(start) or start == 0:
-        start = 1
-    elif abs(start) > item_count:  # type: ignore[arg-type]
+    if is_a_number(start) and start < -item_count:  # type: ignore[operator]
         return None
-    elif start < 0:  # type: ignore[operator]
-        start = max(item_count + start + 1, 1)  # type: ignore[operator]
-    if not is_a_number(end) or end > item_count:  # type: ignore[operator]
-        end = item_count
-    if end < start:  # type: ignore[operator]
-        return None
-    return int(start), int(end)  # type: ignore[call-overload]
+    first = int(_from_end(start, item_count)) if is_a_number(start) else 0
+    last = int(min(max(_from_end(end, item_count), 0), item_count)) if is_a_number(end) else item_count
+    return (first, last) if first < last else None
 
 
 def _range_starting_at(start: object, count: object, item_count: int) -> tuple[int, int] | None:
-    """`(start, end)` of `count` items from `start`, positions from 1:  `None` when it holds nothing."""
-    if is_plain_number(start) and abs(start) > item_count:  # type: ignore[arg-type]
+    """`(start, end)` of `count` items from index `start`, `end` not included:  `None` when it holds nothing.
+
+    - A negative `start` counts from the end;  further back than the first, or past the end:  `None`.
+    """
+    if is_a_number(start) and (start < -item_count or start >= item_count):  # type: ignore[operator]
         return None
-    if not is_a_number(start) or start == 0:
-        start = 1
-    elif start < 0:  # type: ignore[operator]
-        start = max(item_count + start + 1, 1)  # type: ignore[operator]
-    end = start + count - 1 if is_a_number(count) else item_count  # type: ignore[operator]
-    return _range_between(start, end, item_count)
+    first = _from_end(start, item_count) if is_a_number(start) else 0
+    last = first + count if is_a_number(count) else item_count  # type: ignore[operator]
+    return _range_between(first, last, item_count)
+
+
+def _from_end(index: Any, item_count: int) -> Any:
+    """`index` counted from the front:  a negative one counts from the end of `item_count` items, `-1` the last."""
+    return item_count + index if index < 0 else index

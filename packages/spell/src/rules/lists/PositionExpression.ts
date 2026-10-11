@@ -32,9 +32,9 @@ lists.addRule(PositionExpression, {
         scope.variables?.add("n")
       },
       tests: [
-        ["item 1 of my-list", "spellCore.getItemAt(myList, 1)"],
-        ["card 10 of deck", "spellCore.getItemAt(deck, 10)"],
-        ["card n of the cards of the deck", "spellCore.getItemAt(deck.cards, n)"]
+        ["item 1 of my-list", "spellCore.getItemAt(myList, 0)"],
+        ["card 10 of deck", "spellCore.getItemAt(deck, 9)"],
+        ["card n of the cards of the deck", "spellCore.getItemAt(deck.cards, position(n))"]
       ]
     }
   ]

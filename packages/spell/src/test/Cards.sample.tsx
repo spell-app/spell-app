@@ -40,7 +40,7 @@ export class Card extends Thing {
 
   get shortRank() {
     if (spellCore.isOfType(this.rank, "number")) return `${this.rank}`
-    return spellCore.upperCase(spellCore.getItemAt(this.rank, 1))
+    return spellCore.upperCase(spellCore.getItemAt(this.rank, 0))
   }
 
   /** Flip card to opposite direction */

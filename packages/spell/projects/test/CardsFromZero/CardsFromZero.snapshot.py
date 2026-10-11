@@ -29,7 +29,7 @@ class Card(Thing):
     @property
     def value(self) -> float:
         """value as a derivation of rank"""
-        return core.position_of(Card.RANKS, self.rank, 0)
+        return core.position_of(Card.RANKS, self.rank)
 
     # card direction:  up or down
     DIRECTIONS = ("up", "down")
@@ -88,7 +88,7 @@ class Card(Thing):
             return "?"
         if isinstance(self.rank, (int, float)):
             return f"{self.rank}"
-        return core.upper_case(core.get_item_at(self.rank, 0, 0))
+        return core.upper_case(core.get_item_at(self.rank, 0))
 
     @property
     def short_direction(self) -> str:
@@ -327,14 +327,9 @@ def test_counting_from_zero():
         )
         core.echo_test_action("set the ace to the first card of the deck")
         ace = deck.first_item
-        core.expect(
-            deck.position_of(ace, start_at=0),
-            "the position of the ace in the deck",
-            0,
-            "0",
-        )
+        core.expect(deck.position_of(ace), "the position of the ace in the deck", 0, "0")
         core.echo_test_action("set the aces to cards 0 to 3 of the deck")
-        aces = deck.between(0, 3, start_at=0)
+        aces = deck[0:4]
         core.expect(len(aces), "the number of cards in the aces", 4, "4")
         core.expect(
             getattr(aces.last_item, "name", None),
@@ -343,7 +338,7 @@ def test_counting_from_zero():
             "\"ace-of-spades\"",
         )
         core.echo_test_action("set the kings to last two cards of the deck")
-        kings = core.range_starting_at(deck, -2, 2, 0)
+        kings = core.range_starting_at(deck, -2, 2)
         core.expect(len(kings), "the number of cards in the kings", 2, "2")
         core.expect(
             getattr(kings.first_item, "name", None),
@@ -354,11 +349,11 @@ def test_counting_from_zero():
         core.echo_test_action("set the positions to a new list of numbers")
         positions = List(item_type="number")
         core.echo_test_action("for each card, position in the aces")
-        for position, card in enumerate(aces):
-            positions.append(position)
+        for position_, card in enumerate(aces):
+            positions.append(position_)
         core.echo(f"positions: {positions}")
         core.echo_test_action("remove card 0 of the deck")
-        core.remove_item_at(deck, 0, 0)
+        core.remove_item_at(deck, 0)
         core.expect(
             getattr(deck.first_item, "name", None),
             "the name of the first card of the deck",

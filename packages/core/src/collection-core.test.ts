@@ -86,8 +86,8 @@ describe("spellCore.keysOf()", () => {
   test("returns empty array for an empty array", () => {
     expect(spellCore.keysOf([])).toEqual([])
   })
-  test("returns array of numbers number for a non-empty array", () => {
-    expect(spellCore.keysOf(["a", "b"])).toEqual([1, 2])
+  test("returns its indexes, from 0, for a non-empty array", () => {
+    expect(spellCore.keysOf(["a", "b"])).toEqual([0, 1])
   })
   test("returns empty array for an empty object", () => {
     expect(spellCore.keysOf({})).toEqual([])
@@ -122,9 +122,9 @@ describe("spellCore.valuesOf()", () => {
 })
 
 describe("positionOf(), imported by name", () => {
-  test("does what `spellCore.positionOf()` does, counting from 1;  a list's or an array's is a number", () => {
+  test("does what `spellCore.positionOf()` does, an index from 0;  a list's or an array's is a number", () => {
     const deck = new List<string>().append("a", "b")
-    expect([positionOf(deck, "b"), positionOf(["x", "y"], "x"), positionOf(deck, "zzz")]).toEqual([2, 1, undefined])
+    expect([positionOf(deck, "b"), positionOf(["x", "y"], "x"), positionOf(deck, "zzz")]).toEqual([1, 0, undefined])
     expect(positionOf({ one: 1 }, 1)).toBe(spellCore.positionOf({ one: 1 }, 1))
     expectTypeOf(positionOf(deck, "b")).toEqualTypeOf<number | undefined>()
   })
@@ -132,7 +132,7 @@ describe("positionOf(), imported by name", () => {
   test("typed `number` for a value of an array's OWN item type:  an enumeration's value is always in it", () => {
     const RANKS = ["A", 2, 3] as const
     const rank: (typeof RANKS)[number] = 2
-    expect(positionOf(RANKS, rank)).toBe(2)
+    expect(positionOf(RANKS, rank)).toBe(1)
     expectTypeOf(positionOf(RANKS, rank)).toEqualTypeOf<number>()
     expectTypeOf(spellCore.positionOf(RANKS, rank)).toEqualTypeOf<number>()
     expectTypeOf(positionOf(RANKS, "Q" as unknown)).toEqualTypeOf<number | undefined>()
@@ -152,8 +152,8 @@ describe("spellCore.positionOf()", () => {
   test("returns undefined if not found in array", () => {
     expect(spellCore.positionOf([], 1)).toEqual(undefined)
   })
-  test("returns position if found in array", () => {
-    expect(spellCore.positionOf(["a", "b"], "a")).toEqual(1)
+  test("returns its index if found in array", () => {
+    expect(spellCore.positionOf(["a", "b"], "a")).toEqual(0)
   })
   test("returns undefined if not found in object", () => {
     expect(spellCore.positionOf({}, 1)).toEqual(undefined)
@@ -174,10 +174,10 @@ describe("spellCore.getItemAt()", () => {
     expect(custom.getItem).toHaveBeenCalled()
   })
   test("returns undefined for an empty array", () => {
-    expect(spellCore.getItemAt([], 1)).toEqual(undefined)
+    expect(spellCore.getItemAt([], 0)).toEqual(undefined)
   })
   test("returns correct value for a non-empty array", () => {
-    expect(spellCore.getItemAt(["a", "b"], 1)).toEqual("a")
+    expect(spellCore.getItemAt(["a", "b"], 0)).toEqual("a")
   })
   test("returns undefined for an empty object", () => {
     expect(spellCore.getItemAt({}, 1)).toEqual(undefined)
@@ -199,12 +199,12 @@ describe("spellCore.setItemAt()", () => {
   })
   test("updates array properly if not present", () => {
     const collection = ["a"]
-    spellCore.setItemAt(collection, 2, "b")
+    spellCore.setItemAt(collection, 1, "b")
     expect(collection).toEqual(["a", "b"])
   })
   test("updates array properly if present", () => {
     const collection = ["a", "b"]
-    spellCore.setItemAt(collection, 2, "B")
+    spellCore.setItemAt(collection, 1, "B")
     expect(collection).toEqual(["a", "B"])
   })
   test("updates object properly if not present", () => {
@@ -234,24 +234,24 @@ describe("spellCore.addAtPosition()", () => {
     expect(custom.addAtPosition).toHaveBeenCalled()
   })
   describe("with positive start", () => {
-    test("adds correctly to empty list at position 1", () => {
+    test("adds correctly to empty list at index 0", () => {
       const collection: unknown[] = []
-      spellCore.addAtPosition(collection, 1, "a")
+      spellCore.addAtPosition(collection, 0, "a")
       expect(collection).toEqual(["a"])
     })
-    test("adds correctly to non-empty list at position 1", () => {
+    test("adds correctly to non-empty list at index 0", () => {
       const collection = ["a"]
-      spellCore.addAtPosition(collection, 1, "b")
+      spellCore.addAtPosition(collection, 0, "b")
       expect(collection).toEqual(["b", "a"])
     })
     test("will not introduce gap if after end of list", () => {
       const collection = ["a"]
-      spellCore.addAtPosition(collection, 3, "b")
+      spellCore.addAtPosition(collection, 2, "b")
       expect(collection).toEqual(["a", "b"])
     })
     test("adds multiple items if passed", () => {
       const collection = ["a"]
-      spellCore.addAtPosition(collection, 3, "b", "c", "d")
+      spellCore.addAtPosition(collection, 2, "b", "c", "d")
       expect(collection).toEqual(["a", "b", "c", "d"])
     })
   })
@@ -291,12 +291,12 @@ describe("spellCore.removeItemAt()", () => {
   })
   test("updates array properly if not present", () => {
     const collection = ["a"]
-    spellCore.removeItemAt(collection, 2)
+    spellCore.removeItemAt(collection, 1)
     expect(collection).toEqual(["a"])
   })
   test("updates array properly if present", () => {
     const collection = ["a", "b", "c"]
-    spellCore.removeItemAt(collection, 2)
+    spellCore.removeItemAt(collection, 1)
     expect(collection).toEqual(["a", "c"])
   })
   test("updates object properly if not present", () => {
@@ -353,8 +353,8 @@ describe("spellCore.getIteratorFor()", () => {
   test("returns expected values for empty array", () => {
     const collection = ["a", "b"]
     const iterator = spellCore.getIteratorFor(collection)
-    expect(iterator.next()).toEqual({ done: false, value: ["a", 1, collection] })
-    expect(iterator.next()).toEqual({ done: false, value: ["b", 2, collection] })
+    expect(iterator.next()).toEqual({ done: false, value: ["a", 0, collection] })
+    expect(iterator.next()).toEqual({ done: false, value: ["b", 1, collection] })
     expect(iterator.next()).toEqual({ done: true })
   })
   test("returns expected values for empty object", () => {
@@ -432,6 +432,6 @@ describe("typed collections:  a helper's result and callbacks follow its collect
     expectTypeOf(spellCore.getItemAt(RANKS, 1)).toEqualTypeOf<"ace" | 2 | "king" | undefined>()
     expectTypeOf(spellCore.includes(RANKS, "ace")).toEqualTypeOf<boolean>()
     spellCore.forEach(RANKS, (rank) => expectTypeOf(rank).toEqualTypeOf<"ace" | 2 | "king">())
-    expect(spellCore.positionOf(RANKS, "king")).toBe(3)
+    expect(spellCore.positionOf(RANKS, "king")).toBe(2)
   })
 })

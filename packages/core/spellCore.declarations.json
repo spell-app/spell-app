@@ -372,9 +372,6 @@
         },
         {
           "name": "thing"
-        },
-        {
-          "name": "startAt"
         }
       ]
     },
@@ -389,9 +386,6 @@
         },
         {
           "name": "position"
-        },
-        {
-          "name": "startAt"
         }
       ]
     },
@@ -409,9 +403,6 @@
         },
         {
           "name": "value"
-        },
-        {
-          "name": "startAt"
         }
       ]
     },
@@ -443,9 +434,6 @@
         },
         {
           "name": "position"
-        },
-        {
-          "name": "startAt"
         }
       ]
     },
@@ -673,9 +661,6 @@
         },
         {
           "name": "end"
-        },
-        {
-          "name": "startAt"
         }
       ]
     },
@@ -693,9 +678,6 @@
         },
         {
           "name": "end"
-        },
-        {
-          "name": "startAt"
         }
       ]
     },
@@ -713,9 +695,6 @@
         },
         {
           "name": "count"
-        },
-        {
-          "name": "startAt"
         }
       ]
     },
@@ -730,9 +709,6 @@
         },
         {
           "name": "method"
-        },
-        {
-          "name": "startAt"
         }
       ]
     },
@@ -747,9 +723,6 @@
         },
         {
           "name": "method"
-        },
-        {
-          "name": "startAt"
         }
       ]
     },
@@ -764,9 +737,6 @@
         },
         {
           "name": "method"
-        },
-        {
-          "name": "startAt"
         }
       ]
     },
@@ -1586,9 +1556,6 @@
         },
         {
           "name": "thing"
-        },
-        {
-          "name": "startAt"
         }
       ]
     },

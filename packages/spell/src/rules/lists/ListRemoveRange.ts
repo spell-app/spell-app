@@ -29,7 +29,7 @@ lists.addRule(ListRemoveRange, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add("my-list")
       },
-      tests: [["remove items 2 to 4 of my-list", "spellCore.removeRangeBetween(myList, 2, 4)"]]
+      tests: [["remove items 2 to 4 of my-list", "spellCore.removeRangeBetween(myList, 1, 4)"]]
     }
   ]
 })

@@ -52,7 +52,10 @@ export class PyBaseWriter extends P.ProgramWriter {
   }
 
   /** What `spell_core` gives besides spell's runtime names, imported when the code uses them -- see `module()`. */
-  static CORE_EXTRAS = ["prop", "h"]
+  static CORE_EXTRAS = ["prop", "h", "position", "spell_position", "end_position", "with_spell_positions"]
+
+  /** How Python says nothing:  `None`, for a range with no end -- see `P.ProgramWriter.positionArgs()`. */
+  nothing = "None"
 
   /** The Python module a project's compiled code is, from its `@spell/project/<id>`:  its name, snake_case. */
   static projectModule(module: string): string {
@@ -70,7 +73,8 @@ export class PyBaseWriter extends P.ProgramWriter {
       const body = code.slice(code.indexOf("\n"))
       // what the code says that only Python's writer does:  a stored property, an element
       const all = [...names.split(/,\s*/), ...PyBaseWriter.CORE_EXTRAS]
-      const used = all.filter((name) => new RegExp(`\\b${name}\\b`).test(body))
+      // a function by its call, `position(...)`:  a variable may say the word
+      const used = all.filter((name) => new RegExp(`\\b${name}\\b${CALLED.has(name) ? "\\(" : ""}`).test(body))
       return used.length ? `from spell_core import ${used.join(", ")}` : ""
     })
     // a pattern, `re.compile(...)`:  Python's `re`, first, as PEP 8 orders imports (the standard library's first)
@@ -420,12 +424,13 @@ export class PyBaseWriter extends P.ProgramWriter {
     if (node.thing instanceof P.ASTSpellCoreExpression) {
       const written = this.coreCall(node)
       if (written !== undefined) return written
-      const args = (node.args.args ?? []).map((arg) => this.bare(arg))
-      if (this.takesStartAt(node.methodName, node.args.args ?? [])) {
-        while (args.length < P.ProgramWriter.START_AT_ARG[node.methodName]!) args.push("None")
-        args.push("0")
-      }
-      return pyText.call(`core.${this.nameOf(node.methodName)}`, args)
+      const name = node.methodName
+      const takesPositions = name in P.ProgramWriter.POSITION_ARGS || P.ProgramWriter.POSITION_LOOPS.has(name)
+      const args = takesPositions
+        ? this.positionArgs(name, node.args.args ?? [])
+        : (node.args.args ?? []).map((arg) => this.bare(arg))
+      const call = pyText.call(`core.${this.nameOf(name)}`, args)
+      return P.ProgramWriter.POSITION_RESULTS.has(name) ? this.positionOut(call) : call
     }
     return pyText.call(`${this.tight(node.thing)}.${this.nameOf(node.methodName)}`, this.items(node.args.args))
   }
@@ -547,15 +552,14 @@ export class PyBaseWriter extends P.ProgramWriter {
     const self = this.tight(list)
     const [second, third] = rest
     const fn = (arg: P.ASTExpression) => this.functionArg(arg)
-    const startAt = this.listsStartAt === 0 ? ", start_at=0" : ""
     switch (name) {
       case "getItemAt": {
         if (rest.length !== 1) return undefined
-        const position = this.writtenPosition(second)
-        if (position === this.listsStartAt) return `${self}.first_item`
-        if (position === -1) return `${self}.last_item`
-        if (position !== undefined) return `${self}[${position < 0 ? position : position - this.listsStartAt}]`
-        return `${self}.get_item(${this.bare(second!)}${startAt})`
+        const index = this.literalIndex(second)
+        if (index === 0) return `${self}.first_item`
+        if (index === -1) return `${self}.last_item`
+        // Python's own index:  `deck[2]`, `deck[position(column)]` (which reads nothing for spell's item 0)
+        return `${self}[${this.index(second!)}]`
       }
       case "filter":
       case "all":
@@ -564,7 +568,7 @@ export class PyBaseWriter extends P.ProgramWriter {
         return second ? `${self}.${this.nameOf(name)}(${fn(second)})` : undefined
       case "map":
       case "forEach":
-        return second ? `${self}.${this.nameOf(name)}(${fn(second)})` : undefined
+        return second ? `${self}.${this.nameOf(name)}(${this.positionedCallback(second, fn(second))})` : undefined
       case "randomItemOf":
         return `${self}.random_item()`
       case "randomItemsOf":
@@ -574,7 +578,7 @@ export class PyBaseWriter extends P.ProgramWriter {
       case "smallestOf":
         return `${self}.smallest`
       case "positionOf":
-        return rest.length === 1 ? `${self}.position_of(${this.bare(second!)}${startAt})` : undefined
+        return rest.length === 1 ? this.positionOut(`${self}.position_of(${this.bare(second!)})`) : undefined
       case "remove":
       case "includesAny":
       case "append":
@@ -593,10 +597,13 @@ export class PyBaseWriter extends P.ProgramWriter {
           if (ofList && item && this.write(ofList) === this.write(list))
             return `${self}.starting_with(${this.bare(item)})`
         }
-        return `${self}.starting_from(${this.bare(second!)}${startAt})`
+        return `${self}.starting_from(${this.index(second!)})`
       }
-      case "rangeBetween":
-        return rest.length === 2 ? `${self}.between(${this.bare(second!)}, ${this.bare(third!)}${startAt})` : undefined
+      case "rangeBetween": {
+        // Python's own slice (Owen, on J41):  `items 2 to 4` is `deck[1:4]`;  to the last, `deck[1:]`
+        if (rest.length !== 2) return undefined
+        return `${self}[${this.index(second!)}:${this.endIndex(third!) ?? ""}]`
+      }
       case "duplicateList": {
         if (!(second instanceof P.ASTTypeExpression)) return `${self}.clone()`
         const own = this.kindOf(list)
@@ -1418,3 +1425,6 @@ function separateAt(lines: string[], index: number, count: number): void {
 function collapseBlankLines(text: string, topLevel: boolean): string {
   return text.replace(topLevel ? /\n{4,}/g : /\n{3,}/g, topLevel ? "\n\n\n" : "\n\n")
 }
+
+/** `spell_core`'s functions imported only when the code CALLS them:  a variable may be named `position` too. */
+const CALLED = new Set(["position", "spell_position", "end_position", "with_spell_positions"])

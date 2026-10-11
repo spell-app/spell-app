@@ -36,8 +36,8 @@ lists.addRule(RangeCountExpression, {
         scope.variables?.add("deck")
       },
       tests: [
-        ["top 2 items of my-list", "spellCore.rangeStartingAt(myList, 1, 2)"],
-        [`first 2 words in "some other words"`, `spellCore.rangeStartingAt("some other words", 1, 2)`],
+        ["top 2 items of my-list", "spellCore.rangeStartingAt(myList, 0, 2)"],
+        [`first 2 words in "some other words"`, 'spellCore.rangeStartingAt("some other words", 0, 2)'],
         ["last two cards from deck", "spellCore.rangeStartingAt(deck, -2, 2)"],
         ["penultimate two cards from deck", "spellCore.rangeStartingAt(deck, -3, 2)"]
       ]

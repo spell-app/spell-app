@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, positionOf, sendTrigger, sendCall } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, h, positionOf, spellPosition, sendTrigger, sendCall } from "@spell/core"
 
 ///////////////////////////////////////////////////////////////////////////
 // ## Deck:  US standard card deck (without jokers) -- in the outline style
@@ -84,7 +84,7 @@ export class Card extends Thing {
   }
 
   get value() {
-    return positionOf(Deck.Ranks, this.rank)
+    return spellPosition(positionOf(Deck.Ranks, this.rank))
   }
 
   /** direction */
@@ -117,7 +117,7 @@ export class Card extends Thing {
   get shortRank() {
     if (this.rank === undefined) return "?"
     if (typeof this.rank === "number") return `${this.rank}`
-    return `${spellCore.getItemAt(this.rank, 1) ?? ""}`.toLocaleUpperCase()
+    return `${spellCore.getItemAt(this.rank, 0) ?? ""}`.toLocaleUpperCase()
   }
 
   get shortDirection() {
@@ -290,18 +290,18 @@ export class Game extends App {
               h("td", () => spellCore.drawThing(discards)),
               h("td"),
               h("td", () => spellCore.drawThing(foundations.firstItem)),
+              h("td", () => spellCore.drawThing(foundations.getItem(1))),
               h("td", () => spellCore.drawThing(foundations.getItem(2))),
-              h("td", () => spellCore.drawThing(foundations.getItem(3))),
-              h("td", () => spellCore.drawThing(foundations.getItem(4)))
+              h("td", () => spellCore.drawThing(foundations.getItem(3)))
             ),
             h("tr",
               h("td", () => spellCore.drawThing(tableaus.firstItem)),
+              h("td", () => spellCore.drawThing(tableaus.getItem(1))),
               h("td", () => spellCore.drawThing(tableaus.getItem(2))),
               h("td", () => spellCore.drawThing(tableaus.getItem(3))),
               h("td", () => spellCore.drawThing(tableaus.getItem(4))),
               h("td", () => spellCore.drawThing(tableaus.getItem(5))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(6))),
-              h("td", () => spellCore.drawThing(tableaus.getItem(7)))
+              h("td", () => spellCore.drawThing(tableaus.getItem(6)))
             )
           )
         )

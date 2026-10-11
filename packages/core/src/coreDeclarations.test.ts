@@ -39,7 +39,7 @@ describe("the core's method list, spellCore.declarations.json", () => {
       name: "getItemAt",
       of: "spellCore",
       module: "collection-core",
-      params: [{ name: "collection" }, { name: "position" }, { name: "startAt" }]
+      params: [{ name: "collection" }, { name: "position" }]
     })
     expect(statements).toContainEqual({ property: "console", of: "spellCore", module: "console" })
     expect(statements).toContainEqual({ type: "App", superType: "Thing", module: "classes/App" })

@@ -129,7 +129,7 @@ def test_adding_a_card_it_holds_moves_it_never_twice() -> None:
     assert list(pile) == [b, c, a]
     core.prepend(pile, c)
     assert list(pile) == [c, b, a]
-    core.add_at_position(pile, 3, c)
+    core.add_at_position(pile, 2, c)
     assert list(pile) == [b, c, a]
     pile.insert(0, a)
     assert list(pile) == [a, b, c]
@@ -141,7 +141,7 @@ def test_removing_leaves_it_with_no_owner() -> None:
     pile = Pile([a, b, c, d])
     core.remove(pile, a)
     assert a.pile is None
-    core.remove_item_at(pile, 1)
+    core.remove_item_at(pile, 0)
     assert b.pile is None
     del pile[0]
     assert c.pile is None
@@ -153,7 +153,7 @@ def test_removing_leaves_it_with_no_owner() -> None:
 def test_setting_an_item_the_new_one_joins_the_old_one_leaves_reversing_keeps_every_owner() -> None:
     a, b, c, d = cards(4)
     pile, other = Pile([a, b, c]), Pile([d])
-    core.set_item_at(pile, 2, d)
+    core.set_item_at(pile, 1, d)
     assert list(pile) == [a, d, c]
     assert list(other) == []
     assert d.pile is pile
@@ -190,7 +190,7 @@ def test_scratch_results_own_nothing() -> None:
     results = [
         core.filter(pile, lambda _: True),
         core.map(pile, lambda card: card),
-        core.range_starting_at(pile, 1),
+        core.range_starting_at(pile, 0),
         core.duplicate_list(pile),
         core.duplicate_list(pile, Pile),
         core.merge_lists([pile, tableau]),

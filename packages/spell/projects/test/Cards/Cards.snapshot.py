@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from spell_core import core, Thing, List, prop, h
+from spell_core import core, Thing, List, prop, h, spell_position
 
 
 class Card(Thing):
@@ -29,7 +29,7 @@ class Card(Thing):
     @property
     def value(self) -> float:
         """value as a derivation of rank"""
-        return core.position_of(Card.RANKS, self.rank)
+        return spell_position(core.position_of(Card.RANKS, self.rank))
 
     # card direction:  up or down
     DIRECTIONS = ("up", "down")
@@ -88,7 +88,7 @@ class Card(Thing):
             return "?"
         if isinstance(self.rank, (int, float)):
             return f"{self.rank}"
-        return core.upper_case(core.get_item_at(self.rank, 1))
+        return core.upper_case(core.get_item_at(self.rank, 0))
 
     @property
     def short_direction(self) -> str:
