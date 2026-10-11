@@ -124,6 +124,7 @@ export const drawingMethods = defineSpellCoreModule({
     // otherwise own the app's drawing -- and hold or re-run it with the host's
     const dispose = runWithOwner(null, () => render(() => spellCore.drawThing(app), element))
     const mounted: MountedApp = {
+      app,
       unmount() {
         dispose()
         if ((element as AppElement).spellRoot === mounted) delete (element as AppElement).spellRoot
@@ -193,6 +194,8 @@ function isDrawn(draw: Function): boolean {
 
 /** A mounted app, as `mountApp()` returns it and leaves on its element (`spellRoot`). */
 export type MountedApp = {
+  /** The app drawn, e.g. the game:  a recompile that keeps the program's things starts it again (`carryOver()`). */
+  app: Drawable
   /** Take the app's drawing down, emptying its element. */
   unmount(): void
 }
