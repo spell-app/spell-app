@@ -1157,9 +1157,9 @@ export class JSWriter extends Writer {
     return `${this.write(node.type)}.prototype`
   }
 
-  /** Its pre-baked `output` -- NOT re-derived from `name` -- a single-quoted word in double quotes. */
+  /** Its spell `value`, as javascript says it:  text in double quotes, `"up"`, a number as is, `2`. */
   ASTConstantExpression(node: P.ASTConstantExpression): string {
-    return doubleQuoted(node.output)
+    return typeof node.value === "number" ? String(node.value) : this.quoted(node.value)
   }
 
   ////////////////

@@ -88,7 +88,7 @@ export class DefinePropertyHas extends SpellStatement<"type|property|specifier?"
       const varProps: P.ScopeVariableProps & { enumeration: Array<string | number> } = {
         name: groupName,
         enumeration: values,
-        initializer: `[${values.join(", ")}]`,
+        initializer: P.enumerationInitializer(values),
         declaredBy: match
       }
       // Add variables to scope for lookup elsewhere

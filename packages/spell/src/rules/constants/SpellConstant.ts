@@ -36,7 +36,7 @@ export class SpellConstant extends P.Pattern<never, ConstantMatchData> {
     const name: string = scopeConst ? scopeConst.name : match.value
     return new P.ASTConstantExpression(match, {
       name,
-      output: (scopeConst || new P.ScopeConstant(name)).toString(),
+      value: scopeConst ? scopeConst.value : name,
       constant: scopeConst
     })
   }

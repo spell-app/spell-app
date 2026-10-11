@@ -55,10 +55,16 @@ export class SpellIdentifier<MatchData extends P.AnyMatchData = P.AnyMatchData> 
     return scopeVar === NONE ? undefined : scopeVar?.datatype
   }
 
-  getAST(match: P.MatchFor<this>): P.ASTVariableExpression {
+  /**
+   * The variable it named, or -- for a name that means the thing a method runs on (`it` in a card's method, or the
+   * method's own `(a card)`) -- the self literal, which each writer spells its way:  `this`, `self`
+   * (epic `python-target` P3, output-targets' T4).
+   */
+  getAST(match: P.MatchFor<this>): P.ASTVariableExpression | P.ASTSelfLiteral {
     // Scope variable it named when parsed, if any
     const { scopeVar } = match.data
     const variable = scopeVar === NONE ? undefined : scopeVar
+    if (variable?.output === "this") return new P.ASTSelfLiteral(match, { value: "this", raw: match.raw })
     // Allow variable to override name if it wants to (e.g. "it")
     const name = variable && variable.output ? variable.output : match.value
     const plurality = this.getPlurality(match) === "plural" ? "plural" : "singular"

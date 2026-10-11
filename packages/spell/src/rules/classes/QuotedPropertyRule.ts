@@ -114,16 +114,19 @@ export class QuotedPropertyRule extends InfixOperatorSuffix {
         // a value kind's placeholder:  its value, found by `parse()`
         const kindArg = kindArgs?.[index]
         if (typeof kindArg === "number") return new P.ASTNumericLiteral(arg, { value: kindArg })
-        if (kindArg !== undefined) return new P.ASTConstantExpression(arg, { name: `${arg.value}`, output: kindArg })
+        if (kindArg !== undefined) {
+          return new P.ASTConstantExpression(arg, { name: `${arg.value}`, value: P.spellValueOf(kindArg) })
+        }
         if (typeof arg.value === "string") {
           // Handle singular input values mapping to plural internal values
           // `enumeration` will be: "club", "spade", etc
-          // `values` will be: `"clubs"`, `"spades"`, etc
+          // `values` will be: `clubs`, `spades`, etc -- quoted (`'clubs'`) in older declarations
           const { enumeration, values } = this.ruleData[index]!
           const valueIndex = enumeration.indexOf(arg.value)
           return new P.ASTConstantExpression(arg, {
             name: arg.value,
-            output: valueIndex !== -1 ? String(values[valueIndex]) : `'arg.value'`
+            // not one of its values:  the word as said (it was the text `arg.value`, a typo)
+            value: valueIndex !== -1 ? P.spellValueOf(values[valueIndex]!) : arg.value
           })
         }
         if (typeof arg.value === "number") {

@@ -82,7 +82,7 @@ export class DrawSide extends SpellStatement<"alias|body?", { side?: string; dra
       const isDown = new P.ASTInfixExpression(match, {
         lhs: facing("direction"),
         operator: "exactly equals",
-        rhs: new P.ASTConstantExpression(match, { name: "down", output: "'down'" })
+        rhs: new P.ASTConstantExpression(match, { name: "down", value: "down" })
       })
       statements.push(
         new P.ASTPropertyDefinition(match, {

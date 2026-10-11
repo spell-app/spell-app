@@ -30,7 +30,7 @@
       "classVariable": "Ranks",
       "of": "Card",
       "enumeration": [
-        "'ace'",
+        "ace",
         2,
         3,
         4,
@@ -40,9 +40,9 @@
         8,
         9,
         10,
-        "'jack'",
-        "'queen'",
-        "'king'"
+        "jack",
+        "queen",
+        "king"
       ],
       "defined": "/Card.spell:126-206"
     },
@@ -51,10 +51,10 @@
       "classVariable": "Suits",
       "of": "Card",
       "enumeration": [
-        "'clubs'",
-        "'diamonds'",
-        "'hearts'",
-        "'spades'"
+        "clubs",
+        "diamonds",
+        "hearts",
+        "spades"
       ],
       "defined": "/Card.spell:222-283"
     },
@@ -78,8 +78,8 @@
       "classVariable": "Directions",
       "of": "Card",
       "enumeration": [
-        "'up'",
-        "'down'"
+        "up",
+        "down"
       ],
       "defined": "/Card.spell:534-577"
     },
@@ -122,10 +122,10 @@
       "name": "\"is a (suit)\"",
       "values": {
         "suit": [
-          "'clubs'",
-          "'diamonds'",
-          "'hearts'",
-          "'spades'"
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades"
         ]
       },
       "defined": "/Card.spell:838-872"
@@ -139,7 +139,7 @@
       "name": "\"is a (rank)\"",
       "values": {
         "rank": [
-          "'ace'",
+          "ace",
           2,
           3,
           4,
@@ -149,9 +149,9 @@
           8,
           9,
           10,
-          "'jack'",
-          "'queen'",
-          "'king'"
+          "jack",
+          "queen",
+          "king"
         ]
       },
       "defined": "/Card.spell:914-948"
@@ -165,7 +165,7 @@
       "name": "\"is the (rank) of (suits)\"",
       "values": {
         "rank": [
-          "'ace'",
+          "ace",
           2,
           3,
           4,
@@ -175,15 +175,15 @@
           8,
           9,
           10,
-          "'jack'",
-          "'queen'",
-          "'king'"
+          "jack",
+          "queen",
+          "king"
         ],
         "suits": [
-          "'clubs'",
-          "'diamonds'",
-          "'hearts'",
-          "'spades'"
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades"
         ]
       },
       "defined": "/Card.spell:986-1047"

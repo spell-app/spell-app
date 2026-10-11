@@ -47,7 +47,7 @@ export class ValueKind extends SpellStatement<"values|specifier", ValueKindData>
     const varProps: P.ScopeVariableProps & { enumeration: Array<string | number> } = {
       name: listName,
       enumeration: values,
-      initializer: `[${values.join(", ")}]`,
+      initializer: P.enumerationInitializer(values),
       declaredBy: match
     }
     ownerType.classVariables.add({ ...varProps })
