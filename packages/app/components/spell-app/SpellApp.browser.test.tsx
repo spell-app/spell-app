@@ -181,6 +181,27 @@ describe("<spell-app>'s layout:  the spell in its markup (P9, Q11, Q12, Q18)", (
     expect(LayoutSpell.eventOfAttribute("one-click")).toBeUndefined()
   })
 
+  test("a tag written by hand says which named place it goes in with `in=`, as in a drawing (Q21 B, J35)", async () => {
+    const PILES = [
+      "a tile is a drawable thing",
+      "a pile is a drawable list of tiles",
+      "to draw a pile",
+      '\treturn <div className="frame"><children name="header"/><children/></div>',
+      "set the first-pile to a new pile",
+      "a board is an app",
+      "set the board to a new board",
+      "start the board"
+    ].join("\n")
+    const app = await mountApp(
+      `<spell-app><test-project-pile><h3 class="title" in="header">Stock</h3><p class="body">cards</p></test-project-pile></spell-app>`
+    )
+    app.run({ projectId: "@test:fixtures:Piles", ...(await compiledProject(PILES)) } satisfies SpellCompiled)
+    const title = app.querySelector(".title")!
+    await waitFor(() => title.getAttribute("slot") === "header", 10_000)
+    await waitFor(() => title.assignedSlot?.name === "header")
+    expect(app.querySelector(".body")!.assignedSlot?.name).toBe("")
+  })
+
   test("spell that doesn't read shows ⚠ where it was -- a hole that leaves out `the` too (J26)", async () => {
     const app = await mountApp(
       `<spell-app><p class="bad">{no such thing at all}</p><p class="short">{score of the game}</p></spell-app>`
