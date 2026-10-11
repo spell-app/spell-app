@@ -14,21 +14,39 @@ core.expect(len(deck), "the number of cards in the deck", 52, "52")
   Loops, `len()`, `in`, `==` on plain values are Python's own.
 """
 
+from spell_core.collection_methods import CollectionMethods
 from spell_core.console import SpellConsole
 from spell_core.kinds import TypeMethods
 from spell_core.numbers import NumberMethods
+from spell_core.runtime_methods import RuntimeMethods
 from spell_core.seeded_random import DEFAULT_SEED, ParkMiller, RandomMethods
 from spell_core.spell_tests import SpellTestMethods
+from spell_core.text_methods import TextMethods
+from spell_core.thing_methods import ThingMethods
 
 
-class SpellCore(TypeMethods, NumberMethods, RandomMethods, SpellTestMethods):
+class SpellCore(
+    TypeMethods,
+    NumberMethods,
+    RandomMethods,
+    SpellTestMethods,
+    CollectionMethods,
+    ThingMethods,
+    TextMethods,
+    RuntimeMethods,
+):
     """Everything compiled Python calls on `core`, each part in a module of its own:
 
     - types and equality:  `kinds.py`
     - counting:  `numbers.py`
     - random numbers:  `seeded_random.py`
     - spell's tests:  `spell_tests.py`
+    - list words for plain lists, dicts and unknown values:  `collection_methods.py`
+    - checking a thing's properties, the program's classes, spell's JSON:  `thing_methods.py`
+    - text:  `text_methods.py`
+    - the running program's events and processes, and pauses:  `runtime_methods.py`, `events.py`
     - the console, `core.console`:  `console.py`
+    - the classes compiled Python extends, `Thing` and `List`:  `things.py`, `lists.py`
 
     A program uses the one `core`;  a test makes its own, so nothing it does leaks into the next test.
     """
@@ -38,6 +56,7 @@ class SpellCore(TypeMethods, NumberMethods, RandomMethods, SpellTestMethods):
         self.console = console or SpellConsole()
         self.generator = ParkMiller(DEFAULT_SEED)
         self.active_test = None
+        self.reset_runtime()
 
     def heading(self, text: str) -> None:
         """The program is running the code under heading `text` now:  compiled spell calls it at each heading.

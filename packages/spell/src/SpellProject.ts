@@ -427,7 +427,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     const projectWriter = writer.forProject(hoisted, scope, options)
     const code = parts
       .map((part, index) => {
-        if (typeof part !== "object") return part ?? ""
+        if (typeof part !== "object") return projectWriter.codePart(part ?? "")
         return String(projectWriter.write(new P.ASTStatementGroup(part.match, { statements: hoisted[index] })))
       })
       .join(projectWriter.fileSeparator)

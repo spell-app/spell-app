@@ -22,28 +22,17 @@ DECLARATIONS: dict[str, Any] = json.loads(
 
 # What spell_core doesn't have yet, by the JavaScript name.  Take a name out as it's ported.
 NOT_PORTED_YET = {
-    # P10, things and lists:  spell lists as Python sequences, things as classes, spell JSON
-    "Thing", "List",
-    "checkProp", "newThingLike", "newScratch", "isArrayLike", "isTruthy", "isDefined",
-    "itemCountOf", "isEmpty", "keysOf", "valuesOf", "positionOf", "getItemAt", "setItemAt", "addAtPosition",
-    "removeItemAt", "clear", "getIteratorFor",
-    "includes", "includesAny", "duplicateList", "mergeListsInto", "mergeLists", "startsWith", "endsWith",
-    "prepend", "append", "addBefore", "addAfter", "setItemsOf", "reverse", "rangeBetween", "removeRangeBetween",
-    "rangeStartingAt", "forEach", "forEachSequential", "map", "filter", "all", "any", "removeItemsAt", "remove",
-    "removeWhere", "move", "canTake", "canGiveUp", "randomItemsOf", "randomize", "smallestOf", "largestOf",
-    "things", "fromJSON", "BASE_TYPES",
     # P11, pauses and events
-    "on", "off", "once", "trigger", "DEBUG_RUNTIME", "DEBUG_PROCESSES", "RUNTIME", "resetRuntime", "clearRuntime",
-    "getRuntimeState", "clearRuntimeState", "getProcessFlags", "startProcess", "processIsRunning", "stopProcess",
-    "TIME_UNITS_MAP", "pauseFor",
+    "forEachSequential",
+    "DEBUG_RUNTIME", "DEBUG_PROCESSES", "RUNTIME", "clearRuntime", "TIME_UNITS_MAP",
     # P12, drawing:  `h()` builds HTML text
-    "App", "Drawable", "DrawableList", "h",
+    "App", "Drawable", "DrawableList",
     "drawThing", "drawOwn", "drawItems", "mountApp", "installStyles",
     "elementDefiner", "defineElement", "elementFor", "elementApiOf", "thingFor", "elementTagOf",
     "appLayout", "REACT_APP_ROOT_ID", "appRoot", "appElement", "domRoot",
     # not yet decided:  a word of Python's own, a browser's only, or ported when a program needs it
     "doNothing", "flush", "TYPE_NAME_CONVERSIONS", "IS_OF_TYPE_SPECIALS", "get", "set", "absoluteValue", "repeat",
-    "doubleQuote", "upperCase", "lowerCase", "getPath", "setPath", "splitPath",
+    "doubleQuote", "getPath", "setPath", "splitPath",
     "notify", "alert", "confirm", "prompt",
 }  # fmt: skip
 

@@ -15,7 +15,8 @@ A test prints its result first, as a group heading, then what happened inside it
 """
 
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING
 
@@ -57,17 +58,36 @@ class SpellTestMethods:
     # the test running now, if any
     active_test: ActiveTest | None = None
 
-    def test(self, message: object, test_method: Callable[[], object], collapse: bool = True) -> None:
+    def test(
+        self, message: object, test_method: Callable[[], object] | None = None, collapse: bool = True
+    ) -> AbstractContextManager[None] | None:
         """Run `test_method` as a test called `message`, then print its result and its lines.
+
+        - With no `test_method`, the test is the block under a `with`, as compiled spell writes it:
+
+          ```python
+          with core.test("test card setup"):
+              core.expect(card.rank, "the rank of the card", "queen", "queen")
+          ```
 
         - An error inside it ends it there:  the error goes to stderr, and the lines so far print as usual.
         """
+        if test_method is None:
+            return self._testing(message, collapse)
+        with self._testing(message, collapse):
+            test_method()
+        return None
+
+    @contextmanager
+    def _testing(self, message: object, collapse: bool) -> Iterator[None]:
+        """The block under it, as a test called `message` -- see `test()`."""
         self.start_test(message, collapse)
         try:
-            test_method()
+            yield
         except Exception as error:  # a failing test mustn't stop the program
             self.console.error(f"Error in test {js_string(message)}:", repr(error))
-        self.end_test()
+        finally:
+            self.end_test()
 
     def start_test(self, message: object, collapse: bool = True) -> None:
         """Start a test called `message`:  `start test`, or `start quiet test` (`collapse`).

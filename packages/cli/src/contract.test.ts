@@ -50,7 +50,9 @@ async function printed(name: string, target: string, code = compiledFixture(name
       projects,
       capture: true,
       dom: true,
-      seed: CONTRACT_SEED
+      seed: CONTRACT_SEED,
+      // only what's printed matters:  Python needn't wait at a pause (javascript's run as they are)
+      pauses: false
     })
     expect(exitCode, `${name} on ${target} exited ${exitCode}:\n${output}`).toBe(CLI.EXIT.OK)
     return stdout

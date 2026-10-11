@@ -16,7 +16,7 @@ Spell's type names for Python's values:
 
 import inspect
 import math
-from collections.abc import Callable
+from collections.abc import Callable, Sequence
 
 from spell_core.js_text import LARGEST_PLAIN_NUMBER, is_plain_number, js_length
 
@@ -100,6 +100,18 @@ class TypeMethods:
         """
         return is_an_integer(thing)
 
+    def is_truthy(self, value: object) -> bool:
+        """Is `value` anything but `False` or `None`?  Unlike JavaScript's own truthiness, `0` and `""` count."""
+        return value is not False and value is not None
+
+    def is_defined(self, value: object) -> bool:
+        """Is `value` something, not `None`?  Spell's `thing is defined`, `thing exists`."""
+        return value is not None
+
+    def is_array_like(self, thing: object) -> bool:
+        """Can `thing` be read item by item, by position:  a list, a tuple, a spell list, text?  Not a dict."""
+        return isinstance(thing, Sequence)
+
     def equals(self, thing: object, other_thing: object) -> bool:
         """Are `thing` and `other_thing` the same, looking inside lists, dicts and things?  `is` compiles to it.
 
@@ -133,6 +145,38 @@ def deep_equals(thing: object, other: object) -> bool:
     if hasattr(thing, "__dict__"):
         return deep_equals(vars(thing), vars(other))
     return False
+
+
+def is_same(thing: object, other: object) -> bool:
+    """Are `thing` and `other` the SAME, as JavaScript's `===` says?  What a list looks for, e.g. `card in pile`.
+
+    - Text and numbers by value:  `3 == 3.0`.
+    - `True` and `False` only as themselves:  never `1` or `0`, as Python's `==` would have it.
+    - Anything else only as itself (`is`):  two cards are two cards, however alike.
+      Unlike `equals()`, which looks inside.
+    """
+    if thing is other:
+        return True
+    if isinstance(thing, bool) or isinstance(other, bool):
+        return False
+    if is_plain_number(thing) and is_plain_number(other):
+        return thing == other
+    if isinstance(thing, str) and isinstance(other, str):
+        return thing == other
+    return False
+
+
+def is_js_truthy(value: object) -> bool:
+    """Is `value` yes, as JavaScript's `!!value` counts it?  What a list's `filter()` or `all()` reads a condition as.
+
+    - No:  `None`, `False`, `0`, `""` and not-a-number.
+    - Yes:  everything else, an empty list or dict too, where Python's `bool()` says no.
+    """
+    if value is None or value is False or (isinstance(value, str) and not value):
+        return False
+    if is_plain_number(value):
+        return value != 0 and not math.isnan(value)  # type: ignore[arg-type]
+    return True
 
 
 def is_a_number(thing: object) -> bool:

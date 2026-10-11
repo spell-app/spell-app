@@ -41,8 +41,31 @@ export function inQuotes(text: string): string {
 /** `text` as a Python docstring:  `"""text"""` on one line, else its lines between the quotes. */
 export function docstring(lines: string[]): string {
   const text = lines.map((line) => line.replace(/\\/g, "\\\\").replace(/"""/g, '\\"\\"\\"'))
-  if (text.length === 1) return `"""${text[0]}"""`
+  // a `"` against the closing quotes would end them early:  escaped
+  const one = text.length === 1 ? text[0]!.replace(/^"/, '\\"').replace(/"$/, '\\"') : undefined
+  if (one !== undefined) return `"""${one}"""`
   return ['"""', ...text, '"""'].join(NEWLINE)
+}
+
+/** Longest call written on one line, as Black (Python's usual formatter) writes them:  88 characters. */
+export const LINE = 88
+
+/**
+ * `head(items)` -- or `head{items}`, `head[items]` -- on one line when it fits in `LINE`, else as Black breaks it:
+ * one item a line, indented, a comma after each.
+ *
+ * ```python
+ * h(
+ *     "div",
+ *     {"class": "board"},
+ * )
+ * ```
+ */
+export function call(head: string, items: string[], [open, close] = ["(", ")"]): string {
+  const inline = `${head}${open}${items.join(", ")}${close}`
+  if (inline.length <= LINE && !inline.includes(NEWLINE)) return inline
+  if (!items.length) return inline
+  return `${head}${open}${NEWLINE}${indented(items.map((item) => `${item},`).join(NEWLINE))}${NEWLINE}${close}`
 }
 
 /** `text` as `#` comment lines. */

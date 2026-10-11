@@ -28,12 +28,18 @@ const SPELL_CORE_PY_DIR = resolve(environment.spellCoreDir, "..", "py")
  * - `projects`:  what it imports, by id:  each a `.py` module's file URL, e.g. `.../cards.py`.  Their folders go on
  *   the import path, so `from cards import Card` finds it.
  * - `seed`:  its random numbers start from it, as the javascript's do.
+ * - `pauses`:  `false` and a pause doesn't wait, e.g. in the core contract, where only what's printed matters.
  * - It prints straight to stdout and stderr:  no fake page, no `RunReport` (nothing is skipped).
  */
 async function runPython(
   name: string,
   code: string,
-  { projects, capture, seed }: { projects: Record<string, string>; capture: boolean; seed?: number }
+  {
+    projects,
+    capture,
+    seed,
+    pauses = true
+  }: { projects: Record<string, string>; capture: boolean; seed?: number; pauses?: boolean }
 ): Promise<ChildResult> {
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
@@ -42,6 +48,7 @@ async function runPython(
     const imports = Object.values(projects).map((url) => dirname(fileURLToPath(url)))
     const args = ["run", "--quiet", "--project", SPELL_CORE_PY_DIR, "python", "-m", "spell_core.run", entry]
     if (seed !== undefined) args.push("--seed", String(seed))
+    if (!pauses) args.push("--no-pauses")
     const env = { ...process.env, PYTHONPATH: [...new Set(imports)].join(delimiter) }
     const stdio: ("ignore" | "pipe" | "inherit")[] = capture
       ? ["ignore", "pipe", "pipe"]
@@ -157,6 +164,7 @@ export async function runCompiled(
  * - `projects`:  what it imports, by id -- see `importedOutputs()`.
  * - `dom`:  in a fake page, printing what it draws -- see `CLI.RunSpec`.
  * - `seed`:  its random numbers start from it -- see `CLI.RunSpec`.
+ * - `pauses`:  `false`, a pause doesn't wait -- Python only, so far (`runPython()`).
  * - A `.py` (the `py` target's Python) runs under Python instead -- see `runPython()`.
  * - Used by the core contract test, `contract.test.ts`, to run each target's code the same way.
  */
@@ -169,10 +177,17 @@ export async function runCode(
     projects = {},
     capture = false,
     dom,
+    pauses,
     ...options
-  }: CLI.TestOptions & { extension?: string; projects?: Record<string, string>; capture?: boolean; dom?: boolean } = {}
+  }: CLI.TestOptions & {
+    extension?: string
+    projects?: Record<string, string>
+    capture?: boolean
+    dom?: boolean
+    pauses?: boolean
+  } = {}
 ): Promise<ChildResult> {
-  if (extension === PY) return runPython(name, code, { projects, capture, seed: options.seed })
+  if (extension === PY) return runPython(name, code, { projects, capture, seed: options.seed, pauses })
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
     if (extension === TSX) {

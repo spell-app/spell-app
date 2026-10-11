@@ -21,32 +21,11 @@ const NEVER_WRITTEN = new Set([
 ])
 
 /**
- * What `PyWriter` can't write YET, each a later phase's:  things and lists (P10), pauses (P11), drawing (P12).
- * - A phase that writes one takes it off;  the test fails if one is written that's still listed, so the list stays
- *   true.
+ * What `PyWriter` can't write YET:  none since P10 (classes, members, objects, text, drawing).
+ * - A new kind of tree node goes here until its phase writes it;  the test fails if one is written that's still
+ *   listed, so the list stays true.
  */
-const NOT_YET = new Set([
-  "ASTTemplateString",
-  "ASTBackTickExpression",
-  "ASTBacktickSubstitution",
-  "ASTTripleBackTickExpression",
-  "ASTAwaitExpression",
-  "ASTObjectLiteral",
-  "ASTObjectLiteralProperty",
-  "ASTTypeExpression",
-  "ASTPrototypeExpression",
-  "ASTDestructuredAssignment",
-  "ASTClassDeclaration",
-  "ASTPropertyDefinition",
-  "ASTReactiveProperty",
-  "ASTStaticMethod",
-  "ASTStaticDefinition",
-  "ASTPatchedMember",
-  "ASTNewInstanceExpression",
-  "ASTListExpression",
-  "ASTJSXElement",
-  "ASTJSXLiveValue"
-])
+const NOT_YET = new Set<string>([])
 
 /** `PyWriter` with its method lookup open to the test. */
 class ProbeWriter extends P.PyWriter {
@@ -104,14 +83,14 @@ describe("PyWriter", () => {
     expect(P.PyWriter.projectModule("@spell/project/@system:library:card-games")).toBe("card_games")
   })
 
-  test("the imports:  spell_core's `core`, then other projects';  only what the code uses", () => {
+  test("the imports:  spell_core's `core`, then other projects';  only what the code uses;  two blank lines after", () => {
     const header = writer.importsHeader([
       { module: "@spell/core", names: ["spellCore", "Thing", "List"] },
       { module: "@spell/project/@test:fixtures:Cards", names: ["Card", "Deck"] }
     ])
-    expect(header).toBe("from spell_core import core, Thing, List\nfrom cards import Card, Deck\n\n")
+    expect(header).toBe("from spell_core import core, Thing, List\nfrom cards import Card, Deck\n\n\n")
     expect(writer.module(`${header}print(Thing)\n`)).toBe(
-      "from spell_core import Thing\nfrom cards import Card, Deck\n\nprint(Thing)\n"
+      "from spell_core import Thing\nfrom cards import Card, Deck\n\n\nprint(Thing)\n"
     )
   })
 })
