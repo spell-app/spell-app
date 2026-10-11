@@ -15,6 +15,7 @@
     "packages/spell",
     "packages/app",
     "packages/core",
+    "packages/py",
     "packages/server",
     "packages/ui",
     "packages/util",

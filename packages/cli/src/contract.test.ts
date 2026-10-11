@@ -6,6 +6,7 @@ import { pathToFileURL } from "url"
 import { describe, test, expect } from "vite-plus/test"
 
 import { P } from "$/parser"
+import { PY } from "$/py"
 import { buildTsx } from "$/spell/node/buildTsx"
 import { SP } from "$/spell"
 import { PYTHON_FIXTURES, compiledFixture, fixtureImports, fixtureProjectNames } from "$/spell/test"
@@ -17,7 +18,7 @@ import { CLI } from "$/cli"
  * - What it prints is pinned in `__snapshots__/contract/<Project>.out.txt`.
  * - So a target's core is right when it prints what the snapshot says.
  *   - `js/solid` and `ts/solid` share `@spell/core` today.
- *   - Python's core, `spell_core` (`packages/core/py`), prints the same
+ *   - Python's core, `spell_core` (`packages/py/core`), prints the same
  *     for the fixtures its writer writes so far, `PYTHON_FIXTURES` (epic `python-target`).
  *   - What a core must HAVE is `SC.SpellCore` (`packages/core/src/spellCore.types.ts`).
  * - The snapshot catches a broken core method, which both targets would share.
@@ -80,7 +81,7 @@ async function importedProjects(
     if (TARGET_FILES[target] === ".tsx") code = await buildTsx(code, { filename: `${fixture}.compiled.tsx` })
     // Python imports another project as a module of its name, `from cards import Card`
     const isPython = TARGET_FILES[target] === ".py"
-    const file = join(folder, isPython ? `${P.PyWriter.projectModule(module)}.py` : `${fixture}.compiled.mjs`)
+    const file = join(folder, isPython ? `${PY.PyWriter.projectModule(module)}.py` : `${fixture}.compiled.mjs`)
     writeFileSync(file, code)
     projects[projectId] = pathToFileURL(file).href
     await importedProjects(fixture, target, folder, projects)
@@ -192,7 +193,7 @@ describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
 const GAMES = ["Solitaire", "Klondike", "OutlineSolitaire"]
 
 /** `spell_core`'s uv project, where its tests' scripts live. */
-const SPELL_CORE = resolve(import.meta.dirname, "../../core/py")
+const SPELL_CORE = resolve(import.meta.dirname, "../../py/core")
 
 /**
  * Only what changed, sent click by click, gives the same state as sending it whole (epic `python-target` P18):
@@ -228,7 +229,7 @@ describe("the core contract:  a game's patches give its whole state, click by cl
 /**
  * A page draws a Python program as javascript draws it (epic `python-target` P19):
  * each game run on the `py` target, seeded, its state (`--state`) drawn in the fake page by its drawing half,
- * `<Project>.elements.js` (`P.ElementsWriter`), started by `@spell/core`'s `startPage()`.
+ * `<Project>.elements.js` (`PY.ElementsWriter`), started by `@spell/core`'s `startPage()`.
  * - The board it draws is the javascript run's, the last line of its contract snapshot.
  * - A click on a face-up card sends Python the event, the card by its id;  Python's session runs it.
  */
@@ -251,12 +252,12 @@ describe("the core contract:  a page draws a Python game as javascript does", ()
 
           // the page:  its drawing half, and those of the projects it imports, as modules beside it
           const elements = join(folder, `${name}.elements.mjs`)
-          writeFileSync(elements, compiledFixture(name, P.ElementsWriter.instance))
+          writeFileSync(elements, compiledFixture(name, PY.ElementsWriter.instance))
           const projects: Record<string, string> = {}
           const modules = [`import * as program from ${JSON.stringify(pathToFileURL(elements).href)}`]
           for (const [module, fixture] of Object.entries(fixtureImports(name))) {
             const file = join(folder, `${fixture}.elements.mjs`)
-            writeFileSync(file, compiledFixture(fixture, P.ElementsWriter.instance))
+            writeFileSync(file, compiledFixture(fixture, PY.ElementsWriter.instance))
             projects[decodeURI(module.slice(SP.SPELL_PROJECT_MODULE.length))] = pathToFileURL(file).href
             modules.push(`import * as ${fixture.toLowerCase()} from ${JSON.stringify(module)}`)
           }

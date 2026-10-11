@@ -1,5 +1,6 @@
 import { JSON5File, $fetch, CONFIRM, TaskList, Task, getDier, type KnownFormatMimeType } from "$/util"
 import { P } from "$/parser"
+import { PY } from "$/py"
 // Import directly, NOT through the `$/core` barrel:  a project MUST NOT load `spellCore` itself --
 // each runner runs its own copy.  See `spellRuntime.ts`.
 import { SPELL_CORE_MODULE, SPELL_CORE_NAMES } from "$/core/spellCore.types"
@@ -276,7 +277,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
 
   /**
    * SIDE EFFECT:  save `target`'s web app, if it has one written, and the one there is unedited (or there's none):
-   * an app someone has edited is theirs -- see `SP.isUneditedApp()`.
+   * an app someone has edited is theirs -- see `PY.isUneditedApp()`.
    */
   protected async saveAppFor(target: SP.Target): Promise<void> {
     const appFile = this.appFileFor(target)
@@ -289,7 +290,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
     } catch {
       there = undefined
     }
-    if (!SP.isUneditedApp(there)) return
+    if (!PY.isUneditedApp(there)) return
     appFile.contents = text
     await appFile.save(undefined)
   }
@@ -438,7 +439,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                 // a target whose page draws in javascript, e.g. Python's:  the drawing half, `Solitaire.elements.js`
                 const elementsFile = this.elementsFileFor(target)
                 if (elementsFile && SpellProject.draws(parts)) {
-                  const writer = P.ElementsWriter.instance
+                  const writer = PY.ElementsWriter.instance
                   const elements = SpellProject.combineCompiled(parts, writer, this.importHeader(writer), this.scope, {
                     listsStartAt: this.contents?.listsStartAt
                   })
@@ -448,7 +449,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                     const name = this.projectName ?? this.projectId
                     this.appTexts.set(
                       target.name,
-                      SP.quartApp({
+                      PY.quartApp({
                         projectName: name,
                         program: `${name}${target.suffix}`,
                         elements: `${name}${target.elementsSuffix}`

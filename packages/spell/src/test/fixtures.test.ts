@@ -1,6 +1,6 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { P } from "$/parser"
+import { PY } from "$/py"
 import { SP } from "$/spell"
 import {
   PYTHON_FIXTURES,
@@ -62,10 +62,10 @@ describe("fixture projects compile to their snapshots", () => {
       )
     })
 
-    // the Python targets' page, when it draws:  the drawing half in javascript (`P.ElementsWriter`, `.elements.js`);
+    // the Python targets' page, when it draws:  the drawing half in javascript (`PY.ElementsWriter`, `.elements.js`);
     // `.elements.snapshot.js`, ending as a snapshot does, so it isn't one of the fixture's files
     test.runIf(PYTHON_FIXTURES.has(name) && fixtureDraws(name))(`${name}'s page, for Python`, async () => {
-      await expect(compiledFixture(name, P.ElementsWriter.instance)).toMatchFileSnapshot(
+      await expect(compiledFixture(name, PY.ElementsWriter.instance)).toMatchFileSnapshot(
         fixturePath(name, `${name}.elements${SP.SNAPSHOT_JS_SUFFIX}`)
       )
     })

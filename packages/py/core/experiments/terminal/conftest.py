@@ -1,7 +1,7 @@
 """
 The terminal study's tests (epic `python-target`, P15):  run only when asked for, with the `study` group.
 - Not in spell_core's own run:  `pytest` alone collects `tests/` only (`testpaths`, pyproject.toml).
-- Run them from `packages/core/py`:  `uv run --group study pytest experiments/terminal`
+- Run them from `packages/py/core`:  `uv run --group study pytest experiments/terminal`
 - Without Textual and Rich installed, they're skipped rather than failing to import.
 """
 

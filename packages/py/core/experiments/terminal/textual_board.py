@@ -2,7 +2,7 @@
 A drawn element tree as a Textual app:  the board in the terminal, its cards clicked with the mouse.
 
 Epic `python-target`, P15 · Terminal Drawing Study.
-- Run it from `packages/core/py` (`q` quits):
+- Run it from `packages/py/core` (`q` quits):
 
       uv run --group study python experiments/terminal/textual_board.py
 

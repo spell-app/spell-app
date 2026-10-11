@@ -1,8 +1,8 @@
 # spell_core:  the Python twin of `@spell-app/core`, what Python compiled from spell imports.
 # - Run from the repo root:
-#   - its tests:  `uv run --directory packages/core/py pytest`
-#   - the terminal study's (not in the run above):  `uv run --directory packages/core/py --group study pytest experiments/terminal`
-#   - tidy it:  `uv run --directory packages/core/py ruff check --fix` and `... ruff format`
+#   - its tests:  `uv run --directory packages/py/core pytest`
+#   - the terminal study's (not in the run above):  `uv run --directory packages/py/core --group study pytest experiments/terminal`
+#   - tidy it:  `uv run --directory packages/py/core ruff check --fix` and `... ruff format`
 # - Core's own `yarn test` runs the tests too (its package.json), so `yarn review` does.
 
 [project]

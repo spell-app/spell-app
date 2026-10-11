@@ -1,16 +1,16 @@
 import { describe, test, expect } from "vite-plus/test"
 
-import { SP } from "$/spell"
+import { PY } from "$/py"
 
 /**
- * `SP.quartApp()`:  a Python spell program's web app, `<Project>.app.py`, and `SP.isUneditedApp()`, which says
+ * `PY.quartApp()`:  a Python spell program's web app, `<Project>.app.py`, and `PY.isUneditedApp()`, which says
  * whether compiling again may rewrite it.  The app itself is run in cli's `quartApp.test.ts`.
  */
 const SPEC = { projectName: "Solitaire", program: "Solitaire.compiled.asyncio.py", elements: "Solitaire.elements.js" }
 
-describe("SP.quartApp()", () => {
+describe("PY.quartApp()", () => {
   test("serves the program, its drawing half, the page side and the WebSocket", () => {
-    const app = SP.quartApp(SPEC)
+    const app = PY.quartApp(SPEC)
     expect(app).toContain('sessions = SpellSessions(HERE / "Solitaire.compiled.asyncio.py")')
     expect(app).toContain('html = page_html("Solitaire", elements="/Solitaire.elements.js", projects=projects)')
     expect(app).toContain('@app.get("/<name>.elements.js")')
@@ -19,23 +19,23 @@ describe("SP.quartApp()", () => {
   })
 
   test("serves each imported project's drawing half too", () => {
-    const app = SP.quartApp({ ...SPEC, projects: { "@spell/project/@test:fixtures:Cards": "Cards.elements.js" } })
+    const app = PY.quartApp({ ...SPEC, projects: { "@spell/project/@test:fixtures:Cards": "Cards.elements.js" } })
     expect(app).toContain('"@spell/project/@test:fixtures:Cards": "/Cards.elements.js",')
     expect(app).toContain('not in ["Solitaire.elements.js", "Cards.elements.js"]')
   })
 })
 
-describe("SP.isUneditedApp()", () => {
+describe("PY.isUneditedApp()", () => {
   test("an app as written, or none at all:  compiling may write it", () => {
-    expect(SP.isUneditedApp(SP.quartApp(SPEC))).toBe(true)
-    expect(SP.isUneditedApp(undefined)).toBe(true)
-    expect(SP.isUneditedApp("")).toBe(true)
+    expect(PY.isUneditedApp(PY.quartApp(SPEC))).toBe(true)
+    expect(PY.isUneditedApp(undefined)).toBe(true)
+    expect(PY.isUneditedApp("")).toBe(true)
   })
 
   test("an app someone edited, or wrote:  compiling leaves it be", () => {
-    const app = SP.quartApp(SPEC)
-    expect(SP.isUneditedApp(app.replace("# Your own routes go here", "# mine"))).toBe(false)
-    expect(SP.isUneditedApp(app.slice(app.indexOf("\n") + 1))).toBe(false)
-    expect(SP.isUneditedApp("from quart import Quart\n")).toBe(false)
+    const app = PY.quartApp(SPEC)
+    expect(PY.isUneditedApp(app.replace("# Your own routes go here", "# mine"))).toBe(false)
+    expect(PY.isUneditedApp(app.slice(app.indexOf("\n") + 1))).toBe(false)
+    expect(PY.isUneditedApp("from quart import Quart\n")).toBe(false)
   })
 })

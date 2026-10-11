@@ -2,7 +2,7 @@
 A drawn element tree printed with Rich:  a still picture of the board, no clicks.
 
 Epic `python-target`, P15 · Terminal Drawing Study.
-- Run it from `packages/core/py`:
+- Run it from `packages/py/core`:
 
       uv run --group study python experiments/terminal/rich_board.py
 

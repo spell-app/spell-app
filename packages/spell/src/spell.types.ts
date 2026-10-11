@@ -52,7 +52,7 @@ export const SNAPSHOT_JS_SUFFIX = ".snapshot.js"
 
 /**
  * End of a Python program's page file's name, e.g. `Solitaire.elements.js`:  its drawing half in javascript,
- * for a page that mirrors it (epic `python-target` P19, `P.ElementsWriter`) -- see `SP.Target.elementsSuffix`.
+ * for a page that mirrors it (epic `python-target` P19, `PY.ElementsWriter`) -- see `SP.Target.elementsSuffix`.
  * - NEVER one of a project's own files:  the server leaves it out of the manifest, as `COMPILED_JS_SUFFIX`.
  */
 export const ELEMENTS_JS_SUFFIX = ".elements.js"

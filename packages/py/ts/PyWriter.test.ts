@@ -1,6 +1,7 @@
 import { describe, expect, test } from "vite-plus/test"
 
 import { P } from "$/parser"
+import { PY } from "$/py"
 
 /**
  * `PyWriter` (epic `python-target`):  which AST classes it writes so far, and Python's punctuation.
@@ -28,7 +29,7 @@ const NEVER_WRITTEN = new Set([
 const NOT_YET = new Set<string>([])
 
 /** `PyWriter` with its method lookup open to the test. */
-class ProbeWriter extends P.PyWriter {
+class ProbeWriter extends PY.PyWriter {
   find(node: P.ASTNode, suffix: "" | "AsMember" = "") {
     return this.methodFor(node, suffix)
   }
@@ -79,8 +80,8 @@ describe("PyWriter", () => {
   })
 
   test("another project's module, by its name in snake_case", () => {
-    expect(P.PyWriter.projectModule("@spell/project/@test:fixtures:Cards")).toBe("cards")
-    expect(P.PyWriter.projectModule("@spell/project/@system:library:card-games")).toBe("card_games")
+    expect(PY.PyWriter.projectModule("@spell/project/@test:fixtures:Cards")).toBe("cards")
+    expect(PY.PyWriter.projectModule("@spell/project/@system:library:card-games")).toBe("card_games")
   })
 
   test("the imports:  spell_core's `core`, then other projects';  only what the code uses;  two blank lines after", () => {
@@ -97,16 +98,16 @@ describe("PyWriter", () => {
 
 describe("pyText", () => {
   test("a block:  its header's colon, its body indented 4 spaces;  `pass` for none", () => {
-    expect(P.pyText.block("if x", "y = 1\nz = 2")).toBe("if x:\n    y = 1\n    z = 2")
-    expect(P.pyText.block("else", "")).toBe("else:\n    pass")
+    expect(PY.pyText.block("if x", "y = 1\nz = 2")).toBe("if x:\n    y = 1\n    z = 2")
+    expect(PY.pyText.block("else", "")).toBe("else:\n    pass")
   })
 
   test("text in double quotes, escaped", () => {
-    expect(P.pyText.inQuotes('say "hi"\n')).toBe('"say \\"hi\\"\\n"')
+    expect(PY.pyText.inQuotes('say "hi"\n')).toBe('"say \\"hi\\"\\n"')
   })
 
   test("a docstring:  one line, or its lines between the quotes", () => {
-    expect(P.pyText.docstring(["A card."])).toBe('"""A card."""')
-    expect(P.pyText.docstring(["A card.", "- red or black"])).toBe('"""\nA card.\n- red or black\n"""')
+    expect(PY.pyText.docstring(["A card."])).toBe('"""A card."""')
+    expect(PY.pyText.docstring(["A card.", "- red or black"])).toBe('"""\nA card.\n- red or black\n"""')
   })
 })

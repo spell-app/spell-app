@@ -1,7 +1,7 @@
 """
 The terminal study's prototype draws Solitaire's board three ways from one tree, and a click reaches spell's event.
 
-Run from `packages/core/py`:  `uv run --group study pytest experiments/terminal`
+Run from `packages/py/core`:  `uv run --group study pytest experiments/terminal`
 """
 
 import asyncio

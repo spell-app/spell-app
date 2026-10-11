@@ -1,8 +1,6 @@
 import { P } from "$/parser"
-// Import directly to avoid circular import
-import { JSWriter } from "./JSWriter"
-import { Naming } from "./Naming"
-import { unwrapped } from "./jsShapes"
+
+const { unwrapped } = P.jsShapes
 
 /****************
  * ### `ElementsWriter`
@@ -30,12 +28,12 @@ import { unwrapped } from "./jsShapes"
  * - Python's names in what it sends, `Naming.PYTHON`:  the same for the `py` and `py/asyncio` targets.
  * - A thing in a message is sent by its id:  see `sendCall()` in `@spell/core`'s `page.ts`.
  ****************/
-export class ElementsWriter extends JSWriter {
+export class ElementsWriter extends P.JSWriter {
   /** The writer with no project. */
   static readonly instance = new ElementsWriter()
 
   /** Python's names, for what the page sends:  `play_from_the_stock_pile`. */
-  readonly python = new Naming(Naming.PYTHON, Naming.PYTHON_CLASHES)
+  readonly python = new P.Naming(P.Naming.PYTHON, P.Naming.PYTHON_CLASHES)
 
   /** The things the program keeps at its top level, our name and Python's:  bound by `adopt()`. */
   protected bound: Array<{ name: string; python: string }> = []
@@ -171,7 +169,7 @@ export class ElementsWriter extends JSWriter {
   protected handlers = new WeakSet<object>()
 
   /** As `P.Writer`'s, with `inHandler` on while it writes an event handler's value. */
-  write(node: P.ASTNode): ReturnType<JSWriter["write"]> {
+  write(node: P.ASTNode): ReturnType<P.JSWriter["write"]> {
     if (!this.handlers.has(node)) return super.write(node)
     const previous = this.inHandler
     this.inHandler = true
