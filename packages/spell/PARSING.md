@@ -1014,9 +1014,8 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - Each TARGET a project compiles to has its own writer ([targets.ts](src/targets.ts), `SP.TARGETS`):
     - `js/solid`, by `P.JSWriter`:  ALWAYS compiled, as it's what runs
     - `ts/solid`, by `P.TSWriter`:  checked by `tsc`
-    - `py`, by `PY.PyWriter`:  checked by pyright
+    - `py`, by `PY.PyWriter`:  Python on asyncio, checked by pyright
       - with a words file of its own, by Python's names:  `<Project>.py.en.json`
-    - `py/asyncio`, by `PY.PyAsyncWriter`:  the same Python on asyncio, checked by pyright
   - Each writes a file of its own, e.g. `Solitaire.compiled.py`:  see each target's `suffix`.
   - A project lists the others it wants in its `project.json`, e.g. `"targets": ["ts/solid", "py"]`.
   - What every program's writer shares is `P.ProgramWriter`, which the javascript and Python writers extend.

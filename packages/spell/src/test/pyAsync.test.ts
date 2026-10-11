@@ -5,17 +5,17 @@ import { PY } from "$/py"
 import { compiledFixture } from "$/spell/test"
 
 /**
- * The `py/asyncio` target's writer, `PY.PyAsyncWriter` (epic `python-target` P11):  a function that waits is
+ * The `py` target's writer, `PY.PyWriter`, on asyncio (epic `python-target` P11, one target since P22):  a function that waits is
  * `async def`, and everything that calls it awaits it -- javascript calls them without waiting.
- * - Its whole output is pinned by the fixtures' `.snapshot.asyncio.py`, and run by the core contract.
+ * - Its whole output is pinned by the fixtures' `.snapshot.py`, and run by the core contract.
  */
 describe("Python on asyncio", () => {
-  const cards = compiledFixture("Cards", PY.PyAsyncWriter.instance)
+  const cards = compiledFixture("Cards", PY.PyWriter.instance)
   if (process.env.SPELL_DUMP_ASYNC) writeFileSync(process.env.SPELL_DUMP_ASYNC, cards)
 
-  test("a method that pauses waits:  `async def`, `await core.sleep(...)`", () => {
+  test("a method that pauses waits:  `async def`, `await core.pause_for(...)`", () => {
     expect(cards).toContain("    async def turn_face_up(self) -> None:")
-    expect(cards).toContain('        await core.sleep(50, "msec")')
+    expect(cards).toContain('        await core.pause_for(50, "msec")')
   })
 
   test("a method that calls one that waits waits too, and awaits it", () => {

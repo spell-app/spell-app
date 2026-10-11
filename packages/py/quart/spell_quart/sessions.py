@@ -1,7 +1,7 @@
 """A game per visitor, a page per WebSocket:  what a spell app's `/ws` route serves.
 
 ```python
-sessions = SpellSessions(HERE / "Solitaire.compiled.asyncio.py")
+sessions = SpellSessions(HERE / "Solitaire.compiled.py")
 
 @app.websocket("/ws")
 async def ws():
@@ -62,7 +62,7 @@ class Visit:
 
 
 class SpellSessions:
-    """The visitors of a program compiled to `py/asyncio`, each with their own game:  see the module's docs."""
+    """The visitors of a program compiled to `py`, each with their own game:  see the module's docs."""
 
     def __init__(self, program: str | Path, seed: int | None = None, pauses: bool = True) -> None:
         """The visitors of `program`.

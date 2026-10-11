@@ -1,15 +1,14 @@
 """`core`'s side of the running program:  its events, its processes, and pauses (epic python-target, P11).
 
 - The twin of the JavaScript core's `runtime.ts` and `ui.ts`'s `pauseFor()`.
-- A pause sleeps:  compiled Python is plain functions, not `async` (decision Q3).
-  - The `py/asyncio` target waits with `asyncio.sleep()` instead.
+- A pause waits without stopping the program's other work:  `await core.pause_for(50, "msec")`, on asyncio
+  (one Python target since P22).
   - `core.pauses = False` skips them, e.g. in a test run (`python -m spell_core.run --no-pauses`).
 - Processes are names with a flag, "!" (running alone) or a count:  `start exclusive process deal the cards`.
 """
 
 import asyncio
 import inspect
-import time
 from collections.abc import Awaitable, Callable
 from typing import Any, ClassVar
 
@@ -49,11 +48,11 @@ class RuntimeMethods:
         self.RUNTIME = SpellRuntime()
         self.before_pause: list[Callable[[], Awaitable[None] | None]] = []
 
-    async def sleep(self, number: float, units: str = "seconds") -> None:
-        """Wait `number` `units` without stopping the program's other work:  `await core.sleep(50, "msec")`.
+    async def pause_for(self, number: float, units: str = "seconds") -> None:
+        """Wait `number` `units` without stopping the program's other work:  `pause for 50 msec`.
 
-        - The `py/asyncio` target's pause.
-        - As `pause_for()`:  an unknown unit is seconds;  no wait at all when `pauses` is off.
+        - Compiled, `await core.pause_for(50, "msec")`:  only a function that waits pauses, `async def`.
+        - An unknown unit is seconds;  no wait at all when `pauses` is off.
         - Each of `before_pause` is called first, and awaited if it's a coroutine:
           a web page is sent what changed so far, so a game animates (epic python-target P20).
         """
@@ -68,15 +67,6 @@ class RuntimeMethods:
     def _milliseconds(self, number: float, units: str) -> float:
         """`number` `units` in milliseconds, rounded;  0 for not a number, or less than 0."""
         return max(round(number * self.TIME_UNITS_MAP.get(units, 1000)), 0) if number == number else 0
-
-    def pause_for(self, number: float, units: str = "seconds") -> None:
-        """Wait `number` `units`:  `pause for 50 msec`.
-
-        - An unknown unit is seconds;  no wait at all when `pauses` is off.
-        """
-        if not self.pauses:
-            return
-        time.sleep(self._milliseconds(number, units) / 1000)
 
     def on(self, event_type: str, handler: Handler | None = None) -> Any:
         """Call `handler` each time the program triggers `event_type`;  with no handler, a decorator:

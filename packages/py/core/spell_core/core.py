@@ -101,7 +101,7 @@ def using_core(a_core: SpellCore) -> Iterator[SpellCore]:
 
     ```python
     with using_core(session.core):
-        run_program("Solitaire.compiled.asyncio.py")   # its handlers, pauses and things are the session's
+        run_program("Solitaire.compiled.py")   # its handlers, pauses and things are the session's
     ```
 
     - By context (`contextvars`):  an asyncio task started in the block keeps it, e.g. a pause's timer.

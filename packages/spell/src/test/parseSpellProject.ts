@@ -75,7 +75,7 @@ export function fixtureProjectId(projectName: string): string {
 
 /**
  * The fixtures the Python writer writes, so far (epic `python-target`).
- * - Their Python snapshots are checked:  `.snapshot.py`, `.snapshot.asyncio.py`, `.snapshot.pyright.txt`.
+ * - Their Python snapshots are checked:  `.snapshot.py`, `.snapshot.pyright.txt`, and their page's `.elements.snapshot.js`.
  * - The core contract runs them under Python.
  * - Each phase adds the ones it makes write:  things and lists, pauses, drawing.
  */

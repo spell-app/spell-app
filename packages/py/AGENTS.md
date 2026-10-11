@@ -24,16 +24,15 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 
 ## The writers (`ts/`)
 
-- `PY.PyWriter`:  Python, on `P.ProgramWriter`
-  - It writes the `py` target's `<Project>.compiled.py`.
+- `PY.PyWriter`:  Python, on asyncio:  the `py` target's writer, `<Project>.compiled.py`
+  - It builds on `PY.PyBaseWriter` (on `P.ProgramWriter`), which writes all but waiting.
   - It writes Python as a person would:
     - PEP 8's names, e.g. `Card.RANKS`, and `class_` for a keyword
     - Python's own words:  `for number in range(1, 101):`, `x is None`, f-strings
     - type hints where spell knows the kind
   - `spell_core`'s one object, `core`, only where Python has no word for what spell says.
-- `PY.PyAsyncWriter`:  Python on `asyncio`
-  - It writes the `py/asyncio` target's `<Project>.compiled.asyncio.py`.
-  - It extends `PY.PyWriter`:  a function that waits is `async def`, and every call of it awaits it.
+  - A function that waits is `async def`, and every call of it awaits it;  a program that never waits is plain
+    Python (one target since P22).
 - `PY.ElementsWriter`:  a Python program's DRAWING half, in javascript, `<Project>.elements.js` (P19)
   - For a page that draws the program running in Python, from the state Python sends.
   - It extends `P.JSWriter`:  the classes as they are, the program's top-level steps left out,
@@ -76,7 +75,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - seeded random:  both read [seededRandom.expected.json](../core/seededRandom.expected.json)
   - state by id:  both write and read [stateById.expected.json](../core/stateById.expected.json)
   - the core contract (cli's [contract.test.ts](../cli/src/contract.test.ts)):
-    a compiled program prints exactly what javascript prints, on both Python targets
+    a compiled program prints exactly what javascript prints
 - The terminal-drawing study (P15) is in `core/experiments/terminal`.
   - Its tests need their own uv group, `study`, so the runs above leave them out.
 

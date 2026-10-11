@@ -1,5 +1,5 @@
 /**
- * A Python spell program's web app, `<Project>.app.py`:  what compiling to `py/asyncio` writes beside the program
+ * A Python spell program's web app, `<Project>.app.py`:  what compiling to `py` writes beside a program that draws
  * (epic `python-target` P20, Q25 B).
  * - A short Quart app, every route spelled out, for a Python programmer to read and grow:
  *   - `/`:  the page, which loads the javascript core and the program's drawing half, `<Project>.elements.js`
@@ -16,7 +16,7 @@
 export type QuartAppSpec = {
   /** The project's name, e.g. `Solitaire`:  the page's title. */
   projectName: string
-  /** The compiled program's file, beside the app, e.g. `Solitaire.compiled.asyncio.py`. */
+  /** The compiled program's file, beside the app, e.g. `Solitaire.compiled.py`. */
   program: string
   /** The program's drawing half, beside the app, e.g. `Solitaire.elements.js`. */
   elements: string
@@ -38,7 +38,7 @@ export function quartApp({ projectName, program, elements, projects = {} }: Quar
 
 - The program runs here, in Python, a game per visitor:  their clicks come up the WebSocket, \`/ws\`,
   and what each changed goes back down to their page, which draws it.
-- Written by \`spell compile --target py/asyncio\`.  Edit it as you like:  once you do, compiling again leaves it be.
+- Written by \`spell compile --target py\`.  Edit it as you like:  once you do, compiling again leaves it be.
 """
 
 import os

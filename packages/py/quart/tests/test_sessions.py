@@ -27,7 +27,7 @@ room = Room([Lamp(), Lamp()])
 @core.on("lamp-click")
 async def on_lamp_click(event):
     event.lamp.is_on = True
-    await core.sleep(1, "msec")
+    await core.pause_for(1, "msec")
     event.lamp.color = "red"
 """
 
