@@ -24,9 +24,9 @@ import type { Converter } from "./Converter"
  * - A field the vocabulary has no name for (`Judgement calls:`, `Outcome:`) is kept whole, label and all, at the end
  *   of the phase's Done (else its Goal):  `EXTRA_FIELD_HOSTS`.
  * - Dropped, as chrome:  the progress bar, status icons.
- * - The Plan changes box (a copy of the Updated lines of the phases still to do) is written anew from the converted
- *   lines, as the plan-doc tool writes it on every edit (`PlanDoc.writePlanChanges()`, T14):  the same markup both
- *   ways, never the old box's.
+ * - The old Plan changes box (a copy of the Updated lines of the phases still to do) is dropped:  each phase's lines
+ *   go in its `changes` slot, counted in its `changes`, as the plan-doc tool writes them on every edit
+ *   (`PlanDoc.writePlanChanges()`):  the same markup both ways.
  ****************/
 export class PhaseConverter {
   /** The converter it works for:  STATIC for its life. */

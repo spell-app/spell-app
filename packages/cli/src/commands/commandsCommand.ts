@@ -84,7 +84,7 @@ function isYarnName(name: string): boolean {
  * - CLI:  `spell <command>` / `spell dev <command>`, read from `CLI_SOURCES`' `program.command(...)` /
  *   `dev.command(...)` calls.  NOTE: the SOURCE, not this process's commander program:
  *   the checkout checked may not be the one `spell` runs from.
- * - skills:  `/<name>` for each `SKILL.md` in `.claude/skills/*` and `packages/docs/tools/goals/skills/*`, plus
+ * - skills:  `/<name>` for each `SKILL.md` in `.claude/skills/*`, plus
  *   `sources.userSkills` found in `~/.claude/skills`;  minus `sources.ignore`
  */
 export function commandSources(root: string, sources: CommandsData["sources"] = {}, home = homedir()): CommandSource[] {
@@ -106,7 +106,7 @@ export function commandSources(root: string, sources: CommandsData["sources"] = 
       found.push({ surface: "cli", name: owner === "dev" ? `spell dev ${name}` : `spell ${name}` })
     }
   }
-  const skillFolders = [join(root, ".claude", "skills"), join(root, "packages", "docs", "tools", "goals", "skills")]
+  const skillFolders = [join(root, ".claude", "skills")]
   for (const folder of skillFolders) {
     if (!existsSync(folder)) continue
     for (const name of readdirSync(folder)) {

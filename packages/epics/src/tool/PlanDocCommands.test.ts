@@ -134,3 +134,33 @@ describe("PlanDocCommands add --details:  a name and its path", () => {
     )
   })
 })
+
+describe("PlanDocCommands rename:  a phase's or an item's title (epic `epic-workflow`)", () => {
+  test("retitles it, rewrites the links saying the old title, prints and logs what it did", async () => {
+    const owner = commands()
+    await owner.run(["add", "x", "todo", "Linked", "--details", '<p><a href="#p2">P2 · Two</a></p>'])
+    printed = []
+    expect(await owner.run(["rename", "x", "p2", "Second"])).toBe(0)
+    expect(printed).toEqual(['P2 · Second (was "Two";  1 link rewritten)'])
+    expect(readFileSync(file, "utf8")).toMatch(/<epic-phase\s+id="p2"\s+title="Second"/)
+    const plan = FILES.read(file)
+    expect(plan.document.querySelector('a[href="#p2"]')!.textContent).toBe("P2 · Second")
+    const last = Array.from(plan.document.querySelectorAll("#log > epic-event")).at(-1)!
+    expect(last.textContent!.replace(/\s+/g, " ")).toBe('P2 renamed: "Two" -> "Second" (1 link)')
+
+    printed = []
+    expect(await owner.run(["rename", "x", "T1", "<code>Linked</code> todo", "--html"])).toBe(0)
+    expect(printed).toEqual(['T1 · Linked todo (was "Linked")'])
+    expect(FILES.read(file).item("t1").querySelector(':scope > [slot="title"] > code')!.textContent).toBe("Linked")
+  })
+
+  test("refuses no title, or no such phase, writing nothing", async () => {
+    const owner = commands()
+    const skeleton = readFileSync(file, "utf8")
+    expect(await owner.run(["rename", "x", "p2"])).toBe(1)
+    expect(await owner.run(["rename", "x", "p7", "Seven"])).toBe(1)
+    expect(warned[0]).toMatch(/^plan-doc:  missing the new title/)
+    expect(warned[1]).toBe("plan-doc:  no phase 7 in the doc")
+    expect(readFileSync(file, "utf8")).toBe(skeleton)
+  })
+})

@@ -31,7 +31,8 @@ export const epicPhaseVocabulary = {
   ui: false,
   description:
     "One phase of the plan:  its status icon and estimate in its title line;  its fields (Symptom, Changes, Goal, " +
-    "Done, Files, Verify, To review), plan updates, Owen's kept notes and commits as children, in that order.  " +
+    "Done, Files, Verify, To review), plan updates, Owen's kept notes and commits as children, in that order;  its " +
+    "plan updates drawn in a Plan changes box atop its body.  " +
     "While the page is reviewed, it takes review notes as an Overview sub-section does:  Revisit, Make Todo, Do Now.",
   attributes: [
     {
@@ -74,12 +75,25 @@ export const epicPhaseVocabulary = {
       description: "The ids inside its part file:  a link to one loads the body first, then lands."
     },
     { name: "commits", kind: "boolean", description: "Its body lists commits (the page's git buttons)." },
+    {
+      name: "changes",
+      kind: "number",
+      description:
+        "How many plan changes (`<epic-updated>`) it holds, written by the plan-doc tool on every edit:  its title " +
+        "row says so while it isn't done, folded too (its body, a part, loads only when it opens)."
+    },
     FOLD_OPEN_ATTRIBUTE
   ],
   events: [...FOLD_EVENTS],
   slots: [
     { name: "", description: "Its fields, plan updates, Owen's kept notes and commits." },
     { name: "title", description: "A title with markup, in place of `title`." },
+    {
+      name: "changes",
+      description:
+        'Its plan changes (`<epic-updated slot="changes">`), oldest first:  drawn in its Plan changes box, atop its ' +
+        "body (Owen, 2026-10-11:  in their phase, no longer in a box above the phase list)."
+    },
     {
       name: "status",
       description:
@@ -90,6 +104,14 @@ export const epicPhaseVocabulary = {
   parts: [
     ...FOLD_PARTS,
     { name: "status", description: "Its status icon, in its status's colour." },
+    {
+      name: "changed",
+      description: "In its title, while it isn't done:  its plan changed, an orange pen and how many times (`changes`)."
+    },
+    {
+      name: "changes",
+      description: "Its Plan changes box, atop its body:  a heading that folds it, then each change, fenced."
+    },
     { name: "tools", description: "At the title's end:  its review buttons, while the page is reviewed." },
     ...REVIEW_PARTS
   ],
@@ -99,7 +121,19 @@ export const epicPhaseVocabulary = {
     // `status*`:  the review controls' `todo` is Make Todo
     { key: "statusTodo", text: "To do", description: "The status icon's name:  `todo`." },
     { key: "statusActive", text: "Under way", description: "The status icon's name:  `active`." },
-    { key: "statusDone", text: "Done", description: "The status icon's name:  `done`." }
+    { key: "statusDone", text: "Done", description: "The status icon's name:  `done`." },
+    { key: "changesTitle", text: "Plan changes", description: "Its Plan changes box's heading." },
+    { key: "changesFoldTip", text: "Fold the plan changes", description: "The box's heading's tooltip while open." },
+    {
+      key: "changesUnfoldTip",
+      text: "Unfold the plan changes",
+      description: "The box's heading's tooltip while folded."
+    },
+    {
+      key: "changedTip",
+      text: "Its plan changed:  {count} × Updated, in its Plan changes box",
+      description: "The title's pen while it isn't done:  its tooltip and name;  `count` how many changes."
+    }
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
@@ -115,7 +149,17 @@ export const epicPhaseVocabulary = {
       max: 1,
       description: "Changes:  what changes, two or three lines."
     },
-    { tag: "epic-updated", description: "Changes to the phase's plan, one dated line each, oldest first." },
+    {
+      tag: "epic-updated",
+      slot: "changes",
+      description: "Changes to the phase's plan, one dated line each, oldest first:  drawn in its Plan changes box."
+    },
+    {
+      tag: "epic-updated",
+      description:
+        "An OLDER doc's changes to the phase's plan, in no slot (until 2026-10-11):  drawn among its fields;  the " +
+        'plan-doc tool moves them into the `changes` slot (`slot="changes"`) on its next write.'
+    },
     {
       tag: "epic-field",
       where: { attribute: "name", values: ["requests"] },

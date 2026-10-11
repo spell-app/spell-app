@@ -61,7 +61,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - That loads commander and `devProgram.ts` (the `dev` tree), never the `$/cli` barrel,
       which loads spell (~0.5s).
     - A `dev` command that needs the barrel (`session`, `stock` ...) hands over to `main.ts`.
-  - A pass-through is `(args) => Promise<exitCode>`:  `goals`, `docs`, `details`, `server`, `window`, `vscode`.
+  - A pass-through is `(args) => Promise<exitCode>`:  `docs`, `details`, `server`, `window`, `vscode`.
     - It imports what it needs DIRECTLY:  `$/cli/dev/passThrough`, `$/cli/cli.types`, `$/cli/findCheckout`.
     - Importing `$/cli` there would load spell into every `spell dev` call.
     - `TOOLS`, in [passThrough.ts](src/dev/passThrough.ts), says how each tool runs:

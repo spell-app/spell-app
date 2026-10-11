@@ -13,7 +13,7 @@ const DOC = `<!doctype html><html><body><main><epic-page epic="x" title="X">
 <epic-overview id="overview"><p slot="summary">S</p>
   <epic-section id="o1" kind="overview-part" title="One"><p>See <a href="../../guides/a.html">a</a>.</p><h4 id="o1-deep">D</h4></epic-section>
 </epic-overview>
-<epic-section id="phases" kind="phases"><epic-phase id="p1" title="P" status="done"><epic-field name="goal">g</epic-field><epic-commit sha="2c71ac5">c</epic-commit></epic-phase></epic-section>
+<epic-section id="phases" kind="phases"><epic-phase id="p1" title="P" status="done" changes="1"><epic-updated slot="changes" at="2026-10-07 10:00">u</epic-updated><epic-field name="goal">g</epic-field><epic-commit sha="2c71ac5">c</epic-commit></epic-phase></epic-section>
 <epic-section id="decisions" kind="questions">
   <epic-item id="q1" status="open"><span slot="title">The <code>x</code></span><p>body</p></epic-item>
   <epic-item id="q2" title="bare" status="open"></epic-item>
@@ -38,7 +38,10 @@ describe("EpicParts.split() / assemble()", () => {
       source: "parts/o1.html",
       partIds: "o1-deep"
     })
-    expect(Markup.read(doc.getElementById("p1")!)).toMatchObject({ source: "parts/p1.html", commits: true })
+    expect(Markup.read(doc.getElementById("p1")!)).toMatchObject({ source: "parts/p1.html", commits: true, changes: 1 })
+    // a phase's plan changes are body, though slotted:  its count stays in the skeleton
+    expect(doc.querySelector("#p1 > epic-updated")).toBeNull()
+    expect(parts.get("p1")).toContain('<epic-updated slot="changes"')
     expect(doc.querySelector("#q1 > span[slot='title']")).not.toBeNull()
     expect(doc.querySelector("#q1 > p")).toBeNull()
     expect(doc.getElementById("q2")!.hasAttribute("source")).toBe(false)

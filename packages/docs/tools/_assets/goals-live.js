@@ -1,5 +1,8 @@
 /*
  * Live goals pages:  buttons to add thoughts and to start Claude sessions.
+ * - PARKED (epic `epic-workflow` P6, Owen 2026-10-11):  the buttons stay, and each says "TODO:  this will ..." when
+ *   clicked (`parked()`).  The routes, skills and CLI they called are in `packages/goals.zip`;  epic `epic-goals`
+ *   rebuilds them.  What follows describes them as they were.
  * Loaded after `spell-ui.js` by every goals page (`goals/**`, `templates/goals/**`).  Rules:  `goals/AGENTS.md`.
  * - Served by the page server (`spell dev goals open`, `spell dev server`) with goals' route module
  *   (`packages/docs/tools/goals/goalsRoutes.ts`), a page has `window.GOALS_SERVER` (`{ api }`) and the server's own
@@ -72,11 +75,7 @@
     tools.addEventListener("click", (event) => {
       const button = event.target.closest("[data-goals]")
       if (!button) return
-      const action = button.dataset.goals
-      if (action === "vscode") return void openVSCode(BASE)
-      if (action === "talk") return run("goals", BASE)
-      if (action === "thought") return openThought(BASE, NAME)
-      if (action === "update") return run("goals-update", BASE)
+      parked(button.dataset.goals, NAME)
     })
   }
 
@@ -101,8 +100,7 @@
         if (!button) return
         event.preventDefault()
         event.stopPropagation()
-        if (button.dataset.goals === "thought") openThought(target, label)
-        else void run("goals", target)
+        parked(button.dataset.goals, label)
       })
       heading.append(tools)
     }
@@ -123,8 +121,7 @@
       tools.addEventListener("click", (event) => {
         const button = event.target.closest("[data-goals]")
         if (!button) return
-        if (button.dataset.goals === "thought") openThought(target, label)
-        else void run("goals", target)
+        parked(button.dataset.goals, label)
       })
       // after the item's line (title, tag, note), before its thoughts and folded details
       const after = item.querySelector(":scope > ul.goals-thoughts, :scope > ui-accordion")
@@ -430,6 +427,22 @@
   }
   function hide(modal) {
     modal.visible = false
+  }
+
+  /**
+   * What a button WILL do, once goals is rebuilt:  goals is PARKED (epic `epic-workflow` P6;  the plan to rebuild it:
+   * epic `epic-goals`).  Its routes and skills are gone (`packages/goals.zip`), so every button says so, instead.
+   * - `action`:  the button's `data-goals`;  `what`:  the page, heading or item it's on
+   * - `run()`, `openThought()`, `openVSCode()` and their modals below are kept for that rebuild, unused meanwhile
+   */
+  function parked(action, what) {
+    const will = {
+      talk: `start a Claude session that talks ${what} through with you (/goals)`,
+      thought: `save a thought about ${what}, for Claude to digest later (/goals-thought)`,
+      update: `have Claude work the new thoughts into ${what} (/goals-update)`,
+      vscode: `show this page in VS Code's side bar, beside your code`
+    }[action]
+    toast("TODO", `This will ${will ?? "do this"}, once goals is rebuilt (epic epic-goals).`, "info")
   }
 
   /** A toast, through `UI.toast()`;  the console if toasts aren't there. */

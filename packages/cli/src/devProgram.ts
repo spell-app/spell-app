@@ -4,7 +4,7 @@
  * - The plan for them, and every command the repo has:  `guides/dev/commands/commands.html`
  * - Each finds the nearest checkout from the current folder (`findCheckout()`), so it works in a worktree
  * - Two kinds:
- *   - pass-throughs (`plan-doc`, `agents`, `goals`, `docs`, `details`, `choices`, `notes`, `comments`, `design`,
+ *   - pass-throughs (`plan-doc`, `agents`, `docs`, `details`, `choices`, `notes`, `comments`, `design`,
  *     `server`, `window`, `vscode`):  a repo tool run with its arguments verbatim, `(args) => Promise<exitCode>`;
  *     this file imports them directly, so they load no spell
  *   - lean commands of our own (`pack`, `bundles`):
@@ -27,7 +27,6 @@ import { designCommand } from "$/cli/commands/designCommand"
 import { choicesCommand } from "$/cli/commands/choicesCommand"
 import { detailsCommand } from "$/cli/commands/detailsCommand"
 import { docsCommand } from "$/cli/commands/docsCommand"
-import { goalsCommand } from "$/cli/commands/goalsCommand"
 import { notesCommand } from "$/cli/commands/notesCommand"
 import { commentsCommand } from "$/cli/commands/commentsCommand"
 import { PACK_VERBS, packCommand } from "$/cli/commands/packCommand"
@@ -66,14 +65,17 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
     // everything after `plan-doc`, raw:  its `--goal` / `--estimate` ... are the tool's, not ours
     .action(() => runLean(planDocCommand, rawArgs("plan-doc")))
 
+  // goals is PARKED (epic `epic-workflow` P6):  its tool is in `packages/goals.zip`, rebuilt by epic `epic-goals`
   dev
     .command("goals")
-    .description("plans in goals/:  talk, add thoughts, update, open -- `spell dev goals help` lists its commands")
-    .argument("[args...]", "a goals command and its arguments, e.g. update spell/motivation")
+    .description("PARKED:  the goals tools are in packages/goals.zip, until epic epic-goals rebuilds them")
+    .argument("[args...]", "ignored")
     .allowUnknownOption()
     .helpOption(false)
-    // everything after `goals`, raw:  commander would take `--all` as the global option
-    .action(() => runLean(goalsCommand, rawArgs("goals")))
+    .action(() => {
+      process.stderr.write(`${chalk.yellow(GOALS_PARKED)}\n`)
+      process.exit(EXIT.ERRORS)
+    })
 
   dev
     .command("docs")
@@ -315,7 +317,7 @@ export function devProgram(program: Command, runBarrel: RunBarrel): Command {
 /**
  * Run pass-through `command` for `args`, then exit with the code it returns.
  * - A `CliError` prints just its message;  anything else is a crash, and prints its stack.
- * - Used for the deprecated top-level `spell plan-doc` / `spell goals` too (`main.ts`).
+ * - Used for the deprecated top-level `spell plan-doc` too (`main.ts`).
  */
 export async function runLean(command: (args: string[]) => Promise<number>, args: string[]): Promise<never> {
   let exitCode: number
@@ -339,6 +341,11 @@ export function rawArgs(noun: string): string[] {
 }
 
 /** A `$/cli` command `spell dev` runs by name:  each loads the whole barrel, spell included. */
+/** What `spell dev goals` says while goals is parked (epic `epic-workflow` P6, Owen 2026-10-11). */
+const GOALS_PARKED =
+  "goals is parked:  its tools, skills and routes are in packages/goals.zip (guides/goals/goals.html says what it " +
+  "was);  epic epic-goals rebuilds it on the epic tools.  The goals pages still show, read only."
+
 export type BarrelCommand =
   | "commandsCommand"
   | "sessionCommand"

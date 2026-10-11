@@ -3,7 +3,7 @@
  * - `consoleGuard` comes FIRST, and everything else only after it, via dynamic `import()`:
  *   modules log as they load, e.g. `environment.ts`.
  * - Each command is `CLI.<name>Command(session, args, options)`, resolving to the exit code.
- * - `spell dev ...` (and the deprecated `spell plan-doc` / `spell goals`) start in the lean `devMain.ts` instead,
+ * - `spell dev ...` (and the deprecated `spell plan-doc`) start in the lean `devMain.ts` instead,
  *   which loads no spell;  its commands that need spell come back here.
  *   Their tree:  `devProgram.ts`.
  */
@@ -244,14 +244,6 @@ program
     }
     command.outputHelp()
   })
-
-program
-  .command("goals")
-  .description("deprecated:  spell dev goals")
-  .argument("[args...]", "a goals command and its arguments, e.g. update spell/motivation")
-  .allowUnknownOption()
-  .helpOption(false)
-  .action(() => runLean(CLI.goalsCommand, rawArgs("goals")))
 
 program
   .command("plan-doc")

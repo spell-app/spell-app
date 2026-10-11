@@ -72,7 +72,7 @@ once a plan doc is in the `<epic-*>` markup (epic `epic-components`, P8).
     Written by `commit`, and by `commits --backfill`.
 - Sections are fixed:  each `kind` once, in that order, with its id.
   - `questions` keeps the id `#decisions`.
-  - Drawn:  their titles, icons, notes, counts, the progress bar and the Plan changes box.
+  - Drawn:  their titles, icons, notes, counts and the progress bar.
   - A REPORT (`kind="report"`, P14) is the one section that isn't fixed:
     - what a run wrote for Owen to read (an overnight `/bedtime` report)
     - its own `id` and `title`
@@ -100,10 +100,10 @@ As `plan-doc.md`, "Ids":
 ## Phases
 
 ```html
-<epic-phase id="p2" title="Short Name" status="active" estimate="1-2h">
+<epic-phase id="p2" title="Short Name" status="active" estimate="1-2h" changes="1">
   <epic-field name="symptom">what's wrong today, one line</epic-field>
   <epic-field name="changes">what changes, two or three lines</epic-field>
-  <epic-updated at="2026-10-06 14:30" phase="3"><p>what changed in the plan, and why</p></epic-updated>
+  <epic-updated slot="changes" at="2026-10-06 14:30" phase="3"><p>what changed in the plan, and why</p></epic-updated>
   <epic-field name="requests"
     ><epic-field label="r3 · 🚧 python (83d39e12)"><blockquote><p>Owen's words</p></blockquote> ...</epic-field
   ></epic-field>
@@ -120,6 +120,7 @@ As `plan-doc.md`, "Ids":
 - `status`:  `todo`, `active` (one at a time), `done`.
 - Children in that order, always (the vocabulary's `childOrder: "listed"`):
   the tool puts each where it belongs.
+  - A slotted child is never ordered;  the tool writes the plan changes where an unslotted line would go all the same.
 - `add-phase`'s fields:
   - with `--symptom` / `--changes`:  Symptom, Changes, then Goal (optional), Files, Verify
   - without:  Goal, Files, Verify
@@ -132,6 +133,14 @@ As `plan-doc.md`, "Ids":
   - A split doc's parts follow (written under the new ids).
   - Prose naming a phase without a link isn't changed.
   - Refused while a phase from N on has started (done or active):  its commits and log say its number.
+- `rename <name> <P6 | id> "New title"` (epic `epic-workflow`):  a phase's or an item's new title.
+  - Its `title`, or its `slot="title"` child's words (the UPDATE markers in it stay).
+    `--html` (last):  the title has markup, so it's a title slot.
+  - Links to it whose words say the old title follow:  `P6 · Old` -> `P6 · New`, `Old` -> `New`.
+    Any other words stay (`P6`, "the next phase"), and so do links in an Original Discussion (history).
+  - A phase:  each item queued for it (`work="P6 · Old"`) follows too.
+  - An item is stamped and flagged UPDATE, as any change to it.
+  - Logged:  `P6 renamed:  "Old" -> "New" (2 links)`.
 - `<epic-page standing>` (epic `epic-workflow`):  a STANDING epic, open for good;  each phase merges into `main` on its
   own, and every phase done is NOT done (STANDING, not DONE).  `standing <name> [on|off]` sets it.
 - Requests (epic `epic-workflow`):  what Owen sent the phase from other sessions, one labelled block per request.
@@ -139,11 +148,19 @@ As `plan-doc.md`, "Ids":
   - The block:  his words quoted, what the sender was looking at, when, a link to `requests/<rN>/request.md`, and
     each screenshot.
   - Filing a request again replaces its block.
-- `<epic-updated>`:  one per change, oldest first.
+- `<epic-updated slot="changes">`:  one per change to the phase's plan, oldest first.
   - Written by `updated <name> <N> "<html>"`.
   - `phase`:  the phase active then.
   - It stays once the phase is done.
-  - While the phase is to do, the Phases section lists it in its Plan changes box (drawn).
+  - Drawn in the phase's Plan changes box, atop its body (Owen, 2026-10-11:  in their phase, no longer in a box above
+    the phase list).
+    The box folds by its heading:  open to start while the phase isn't done;  a done phase's, folded.
+  - A part's body all the same, though slotted (`EpicParts`):  bulky, and drawn only once the phase is open.
+  - The phase's `changes`:  how many, written by the tool on every edit, in the skeleton.
+    While the phase isn't done, its title shows an orange pen and that count, folded too (its part not loaded).
+  - An older doc (until 2026-10-11) wrote the lines in no slot, and COPIES of the to-do phases' first in the Phases
+    section (`<epic-updated slot="changes" of="N">`).
+    Both still read without a problem;  the tool's next write slots the lines and removes the copies.
 - `estimate`:  wall-clock time for Claude, agents included, Owen's review not.
   - E.g. `30m`, `2h`, `1h30m`, `1-2h`.
   - The Overview's `estimate` is the total, rewritten on every change:
