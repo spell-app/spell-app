@@ -20,7 +20,6 @@ write(ROOT, "packages/cli/src/main.ts", 'program\n  .command("compile")\nprogram
 write(ROOT, "packages/cli/src/devProgram.ts", 'const dev = program\n  .command("dev")\ndev\n  .command("commands")\n')
 write(ROOT, ".claude/skills/isolate/SKILL.md", "---\nname: isolate\n---")
 write(ROOT, ".claude/skills/solid-2/SKILL.md", "---\nname: solid-2\n---")
-write(ROOT, "packages/docs/tools/goals/skills/goals/SKILL.md", "---\nname: goals\n---")
 write(HOME, ".claude/skills/session/SKILL.md", "---\nname: session\n---")
 write(HOME, ".claude/skills/graphify/SKILL.md", "---\nname: graphify\n---")
 
@@ -33,7 +32,6 @@ describe("commandSources()", () => {
       "spell dev",
       "spell dev commands",
       "spell plan-doc",
-      "/goals",
       "/isolate",
       "/session",
       "parser test",

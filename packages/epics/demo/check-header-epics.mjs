@@ -1,10 +1,11 @@
 /**
  * Check P10's page header and section tools on preview copies (`preview-epics/<name>/`), in a real browser:  the
  * review line, the step label (the state in it), the Phases section's `open/all` badge (against the items and phases in
- * the doc), the state filter (a chip hides its items and says how many), and the Phases section's Plan changes box.
+ * the doc), the state filter (a chip hides its items and says how many), and the phases' plan changes:  no box above
+ * the phases (Owen, 2026-10-11), each changed phase's pen while it isn't done, and the first one's own Plan changes box.
  * Usage (from the repo root):
  *   node packages/epics/demo/check-header-epics.mjs [--doc <name>]... [outDir]
- * - the docs:  `review-review` (a Plan changes box) and `epic-components` (items in every state) unless named
+ * - the docs:  `review-review` (plan changes) and `epic-components` (items in every state) unless named
  * - the server:  a page server of its OWN on this checkout (`PageServer`, no pid file, a free port);  stopped at the
  *   end.  Send / Review Now need the review routes on a plan doc's path:  `check-review-epics.mjs` checks those
  * - fails (exit 1) on a page error, a wrong count, a filter that doesn't hide, a missing box, a header control or
@@ -112,17 +113,48 @@ async function check(doc) {
       summary[where] = facts.summary
       for (const problem of facts.problems) problems.push(`${where}:  ${problem}`)
 
-      // the Phases section, open:  its Plan changes box (when the doc has copies)
+      // the Phases section, open:  no Plan changes box above the phases (Owen, 2026-10-11);  each phase's own instead
       await page.evaluate(() => document.querySelector("#phases").setAttribute("open", ""))
       await page.waitForTimeout(600)
-      const box = await page.evaluate(() => {
-        const copies = document.querySelectorAll('#phases > epic-updated[slot="changes"]').length
-        const drawn = document.querySelector("#phases").shadowRoot.querySelector('[part~="changes"]')
-        return { copies, drawn: !!drawn, width: drawn?.getBoundingClientRect().right ?? 0 }
+      const marks = await page.evaluate(() => {
+        const found = []
+        if (document.querySelector("#phases").shadowRoot.querySelector('[part~="changes"]'))
+          found.push("a Plan changes box above the phases")
+        // folded, its title says its plan changed (`changes`), while it isn't done
+        for (const phase of document.querySelectorAll("#phases > epic-phase")) {
+          const count = Number(phase.getAttribute("changes") ?? 0)
+          const want = phase.getAttribute("status") === "done" ? "" : count ? String(count) : ""
+          const mark = phase.shadowRoot.querySelector('[part~="changed"]')?.textContent ?? ""
+          if (mark !== want) found.push(`#${phase.id}'s pen says "${mark}", wanted "${want}"`)
+        }
+        const first = document.querySelector("#phases > epic-phase[changes]:not([status='done'])")
+        return { found, first: first?.id ?? null }
       })
-      if (!!box.copies !== box.drawn) problems.push(`${where}:  ${box.copies} copies, box drawn:  ${box.drawn}`)
-      if (box.width > width + 0.5) problems.push(`${where}:  the Plan changes box runs past the window`)
-      await page.locator("#phases").scrollIntoViewIfNeeded()
+      for (const problem of marks.found) problems.push(`${where}:  ${problem}`)
+      // the first changed phase still to do, open:  its Plan changes box, atop its body, in the window
+      if (marks.first) {
+        await page.evaluate((id) => document.getElementById(id).setAttribute("open", ""), marks.first)
+        await page.waitForFunction(
+          (id) => document.getElementById(id).shadowRoot.querySelector('[part~="changes"]'),
+          marks.first,
+          { timeout: 10_000 }
+        )
+        const box = await page.evaluate((id) => {
+          const phase = document.getElementById(id)
+          const drawn = phase.shadowRoot.querySelector('[part~="changes"]')
+          const lines = phase.querySelectorAll(':scope > epic-updated[slot="changes"]').length
+          return {
+            lines,
+            count: drawn.querySelector(".count")?.textContent ?? "",
+            right: drawn.getBoundingClientRect().right
+          }
+        }, marks.first)
+        if (String(box.lines) !== box.count)
+          problems.push(`${where}:  #${marks.first}'s box counts ${box.count}, holds ${box.lines}`)
+        if (box.right > width + 0.5) problems.push(`${where}:  #${marks.first}'s Plan changes box runs past the window`)
+        await page.locator(`#${marks.first}`).scrollIntoViewIfNeeded()
+      } else await page.locator("#phases").scrollIntoViewIfNeeded()
+      summary[where].changed = marks.first
       await page.screenshot({ path: name("phases") })
       await page.evaluate(() => document.querySelector("#phases").removeAttribute("open"))
 
@@ -201,8 +233,8 @@ function readFacts(width) {
   return {
     problems: found,
     summary: {
-      state: state?.title ?? null,
-      step: step?.textContent.trim() ?? null,
+      // the step label (the state in it, since the state mark went:  `airplane`)
+      step: root.querySelector(".status ui-label:last-of-type")?.textContent.trim() ?? null,
       badges
     }
   }

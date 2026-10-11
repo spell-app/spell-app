@@ -245,6 +245,12 @@ export type DecideOptions = {
 }
 
 /**
+ * What `PlanDoc.renameEntry()` did:  the phase's or item's `id` (`p6`), the title it `was`, its `title` now (the words
+ * drawn), and how many `links` to it it rewrote.
+ */
+export type RenameResult = { id: string; was: string; title: string; links: number }
+
+/**
  * What `PlanDoc.keepOriginal()` (and `restoreOriginal()`) did:
  * `added` a version, found it `unchanged` (one saying the same is there), or found nothing but whitespace (`empty`).
  */

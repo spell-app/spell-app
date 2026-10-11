@@ -44,6 +44,7 @@ import {
   type Phase,
   type PhaseFieldValues,
   type PlanMark,
+  type RenameResult,
   type ReviewAs,
   type StatusState
 } from "./planDoc.types"
@@ -62,7 +63,7 @@ import { SUMMARY_ID } from "./ReviewInbox"
  * to it.  What's data (ids, statuses, review marks, dates):  `PLAN-DOC.md` beside this.
  * - Every edit makes or sets `<epic-*>` elements THROUGH `$/epics` `Markup`:  data in attributes, prose in children,
  *   checked against the definitions.  It never writes layout:  the elements draw their chrome (chips, labels, the
- *   step label, progress, the Plan changes box, the Plan hung? notice ...).
+ *   step label, progress, a phase's Plan changes box, the Plan hung? notice ...).
  * - Children go where their parent's content model lists them (`Markup.place()`):  a phase's Symptom before its Goal, an
  *   item's text before its Choices, answer, replies, Original Discussion and commits.
  * - Pure:  a parsed document in, changes on it;  no files, no git, no clock unless passed one.
@@ -241,6 +242,89 @@ export class PlanDoc extends PlanReader {
     }
   }
 
+  /**
+   * Rename phase `P6` or item `J3` (`target`, any case;  `6` is a phase too) to `title`, plain text (`html`:  `title`
+   * is HTML, a `slot="title"` child when it has markup);  returns what it did:  `{ id, was, title, links }`
+   * (`rename <name> <P6 | id> "New title"`, epic `epic-workflow`).
+   * - its `title`, or its `slot="title"` child's words:  the UPDATE markers riding in the slot stay;
+   *   a slot left plain goes back to a `title`
+   * - links to it (`href="#p6"`) whose words say the old title are rewritten:  `P6 · Old` -> `P6 · New`, `Old` ->
+   *   `New`;  any other words stay (`P6`, "the next phase"), and so does a link in an Original Discussion (history)
+   * - a phase:  also each item's queued `work` that names it (`P6 · Old`, what a todo's `next` writes)
+   * - an item is stamped and flagged UPDATE, as any change to it;  a phase isn't
+   * - SIDE EFFECT:  logs it
+   * - throws for no such phase or item, an empty title, or the title it has already
+   */
+  renameEntry(target: string, title: string, { html = false }: { html?: boolean } = {}): RenameResult {
+    const key = String(target).trim().toLowerCase()
+    const phaseNumber = /^p?(\d+)$/.exec(key)?.[1]
+    const element = phaseNumber !== undefined ? this.phase(Number(phaseNumber)) : this.item(key)
+    const label = element.id.toUpperCase()
+    const was = PlanItem.titleOf(element)
+    const heading = html ? this.titleFromHTML(title) : { title: PlanMarkup.squeeze(title) }
+    const shown = heading.slot ? PlanMarkup.squeeze(heading.slot.textContent ?? "") : heading.title!
+    if (!shown) throw new PlanDocError(`rename ${label}:  the new title is empty`)
+    if (shown === was) throw new PlanDocError(`${label} is titled "${was}" already`)
+    this.retitle(element, heading)
+    const links = this.relinkTitle(element.id, label, was, shown)
+    if (element.localName === "epic-phase") {
+      for (const item of this.allItems.filter((each) => each.getAttribute("work") === `${label} · ${was}`))
+        Markup.set<"epic-item">(item, { work: `${label} · ${shown}` })
+    } else {
+      this.stamp(element)
+      this.markUpdate(element)
+    }
+    this.log(`${label} renamed:  "${was}" -> "${shown}"${links ? ` (${links} link${links === 1 ? "" : "s"})` : ""}`)
+    return { id: element.id, was, title: shown, links }
+  }
+
+  /**
+   * `element`'s title is `heading` now (`titleFromHTML()`'s shape):  plain words in its `title`, or in its title slot
+   * beside the UPDATE markers already riding there;  markup, a title slot holding it (and those markers).
+   */
+  private retitle(element: Element, heading: { title?: string; slot?: Element }): void {
+    const old = element.querySelector(':scope > [slot="title"]')
+    const markers = Array.from(old?.querySelectorAll(":scope > epic-update") ?? [])
+    if (!old && !heading.slot) {
+      Markup.set(element, { title: heading.title })
+      return
+    }
+    const slot = heading.slot ?? this.document.createElement("span")
+    if (!heading.slot) {
+      slot.setAttribute("slot", "title")
+      slot.textContent = heading.title!
+    }
+    for (const marker of markers) slot.append(this.document.createTextNode(" "), marker)
+    if (old) old.replaceWith(slot)
+    else {
+      element.removeAttribute("title")
+      element.prepend(slot)
+    }
+    if (!slot.children.length) this.untitleSlot(slot)
+  }
+
+  /**
+   * Every link to `#id` whose words say `was` (`P6 · Old`, or `Old` alone) says `title` instead;  how many changed.
+   * - a link in an Original Discussion is history:  left
+   * - the words in a link with markup are changed in the text node holding them;  one split across markup stays
+   */
+  private relinkTitle(id: string, label: string, was: string, title: string): number {
+    let changed = 0
+    for (const link of PlanItem.current(this.document.querySelectorAll(`a[href="#${id}"]`))) {
+      const words = PlanMarkup.squeeze(link.textContent ?? "")
+      const labelled = new RegExp(`^${label}\\s*·\\s*`, "i").exec(words)
+      if (words !== was && !(labelled && words.slice(labelled[0].length) === was)) continue
+      const text = textNodes(link)
+        .filter((node) => node.textContent!.includes(was))
+        .at(-1)
+      if (!text) continue
+      const at = text.textContent!.lastIndexOf(was)
+      text.textContent = `${text.textContent!.slice(0, at)}${title}${text.textContent!.slice(at + was.length)}`
+      changed++
+    }
+    return changed
+  }
+
   /** Set phase `n`'s estimate (`2h`, `1-2h`), then the Overview's total. */
   setEstimate(n: number, estimate: string): void {
     Markup.set(this.phase(n), { estimate })
@@ -308,18 +392,22 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * A change to phase `n`'s plan, `html` (what changed, and why), as one dated `<epic-updated>`, under its Symptom /
-   * Changes, after the ones before it.
+   * A change to phase `n`'s plan, `html` (what changed, and why), as one dated `<epic-updated slot="changes">`, after
+   * the ones before it:  the phase draws them in its Plan changes box.
+   * - in the file, under its Symptom / Changes (where the content model lists an unslotted line), though a slotted
+   *   child is never ordered:  the source reads as the page did
    * - `at`:  now, `YYYY-MM-DD HH:MM`;  `phase`:  the phase active when it was written, if any
-   * - it STAYS when a phase is done (unlike the UPDATE markers);  while its phase is to do, the Phases section lists
-   *   it in its Plan changes box (drawn)
+   * - it STAYS when a phase is done (unlike the UPDATE markers);  the phase's `changes` counts it
+   *   (`writePlanChanges()`, every edit)
    * - old prose shapes in `html` (a Net effect paragraph, a code accordion ...) become elements (`IncomingHtml`)
    * - SIDE EFFECT:  logs it
    */
   addPhaseUpdate(n: number, html: string): void {
     const phase = this.phase(n)
     const data = { at: PlanTime.clockTime(this.now), phase: this.activePhase }
-    Markup.place(phase, this.make("epic-updated", data, this.incoming(html)))
+    const line = this.make("epic-updated", data, this.incoming(html))
+    Markup.place(phase, line)
+    line.setAttribute("slot", PLAN_CHANGES_SLOT)
     this.log(`P${n} plan updated`)
   }
 
@@ -347,37 +435,37 @@ export class PlanDoc extends PlanReader {
   }
 
   /**
-   * The Phases section's Plan changes (T14):  a COPY of each `<epic-updated>` of every phase still to do (not
-   * `done`), in phase order, as `<epic-updated slot="changes" of="N">` first in the section;
-   * `<epic-section kind="phases">` draws them as a box above the phases.  Rewritten whole;  changed?
-   * - copies, not links:  a phase's lines are in its part file, which the page loads only when it's opened
-   * - a copy keeps the line's attributes (`at`, `phase`:  the phase under way then), adds `of` (whose plan it
-   *   changes);  ids inside are renamed (`PlanItem.stripIds()`):  a copy is never a link's target
-   * - STATIC:  the converter writes the same copies (`PhaseConverter`);  `section` must hold its phases' lines (an
+   * Each phase's Plan changes (epic `epic-workflow` P6;  Owen, 2026-10-11:  "plan changes should go in their phase
+   * with same presentation, rather than above phase list");  changed?
+   * - its `<epic-updated>` lines in its `changes` slot (`slot="changes"`):  `<epic-phase>` draws them in its Plan
+   *   changes box, atop its body;  an older doc's unslotted lines are slotted where they stand
+   * - how many in its `changes` (none:  no attribute):  in the skeleton, so a folded phase's title says its plan
+   *   changed while its body, a part, isn't loaded (the reason the Phases section listed COPIES, T14)
+   * - an older doc's copies in the Phases section (`<epic-updated slot="changes" of="N">`) go
+   * - STATIC:  the converter writes the same (`PhaseConverter`);  `section` must hold its phases' lines (an
    *   ASSEMBLED doc:  a skeleton alone would read as no changes)
    */
   static writePlanChanges(section: Element): boolean {
-    const copies: Element[] = []
-    for (const phase of section.querySelectorAll(":scope > epic-phase")) {
-      if (phase.getAttribute("status") === "done") continue
-      const of = PlanItem.idNumber(phase.id)
-      for (const line of phase.querySelectorAll(":scope > epic-updated")) {
-        const data = { ...Markup.read<"epic-updated">(line), of }
-        const copy = Markup.element(section.ownerDocument, "epic-updated", data, line.innerHTML)
-        copy.setAttribute("slot", PLAN_CHANGES_SLOT)
-        PlanItem.stripIds(copy)
-        copies.push(copy)
-      }
+    let changed = false
+    for (const copy of section.querySelectorAll(`:scope > epic-updated[slot="${PLAN_CHANGES_SLOT}"]`)) {
+      copy.remove()
+      changed = true
     }
-    const old = Array.from(section.querySelectorAll(`:scope > epic-updated[slot="${PLAN_CHANGES_SLOT}"]`))
-    const markupOf = (elements: Element[]) => PlanMarkup.bare(elements.map((it) => it.outerHTML).join(""))
-    if (markupOf(old) === markupOf(copies)) return false
-    for (const each of old) each.remove()
-    section.prepend(...copies)
-    return true
+    for (const phase of section.querySelectorAll(":scope > epic-phase")) {
+      const lines = Array.from(phase.querySelectorAll(":scope > epic-updated"))
+      for (const line of lines.filter((each) => each.getAttribute("slot") !== PLAN_CHANGES_SLOT)) {
+        line.setAttribute("slot", PLAN_CHANGES_SLOT)
+        changed = true
+      }
+      const count = lines.length ? String(lines.length) : null
+      if (phase.getAttribute("changes") === count) continue
+      Markup.set<"epic-phase">(phase, { changes: lines.length || undefined })
+      changed = true
+    }
+    return changed
   }
 
-  /** The Plan changes of this doc's Phases section (`writePlanChanges()`);  changed? */
+  /** The Plan changes of this doc's phases (`writePlanChanges()`);  changed? */
   updatePlanChanges(): boolean {
     const section = this.findSection("phases")
     return section ? PlanDoc.writePlanChanges(section) : false
@@ -1245,7 +1333,7 @@ export class PlanDoc extends PlanReader {
    * - the page's `recent-since`:  from `recentSince` when it was passed in
    * - each item's `state` (`itemState()`):  what the page colours its id chip by
    * - each phase's "To review" field (`updateToReview()`)
-   * - the Phases section's Plan changes (`updatePlanChanges()`)
+   * - each phase's Plan changes, and their count (`updatePlanChanges()`)
    */
   updateStates(): number {
     let changed = 0
@@ -1697,6 +1785,11 @@ export class PlanDoc extends PlanReader {
   }
 }
 
+/** `node`'s text nodes, at any depth, in document order. */
+function textNodes(node: Node): Node[] {
+  return Array.from(node.childNodes).flatMap((child) => (child.nodeType === 3 ? [child] : textNodes(child)))
+}
+
 /** `PlanItem.asProse()`'s option for text as a reader sees it:  every element's heading, at any depth. */
 const PLAIN = { plain: true }
 
@@ -1755,7 +1848,10 @@ function cardSetWords(choices: number | undefined): string {
   return choices === undefined ? "" : ` in card set ${choices + 1}`
 }
 
-/** The Phases section's slot for its Plan changes copies (`PlanDoc.writePlanChanges()`). */
+/**
+ * A phase's slot for its plan changes (`<epic-updated slot="changes">`, `PlanDoc.writePlanChanges()`);  an older
+ * doc's copies in the Phases section are in a slot of that name too (T14), which the tool removes.
+ */
 const PLAN_CHANGES_SLOT = "changes"
 
 /** The tags whose `phase` names a phase by number:  renumbered with it (`PlanDoc.makeRoomForPhase()`). */

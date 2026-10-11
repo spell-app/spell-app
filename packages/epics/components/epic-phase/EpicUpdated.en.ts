@@ -8,7 +8,7 @@ import type { EpicVocabulary } from "$/epics/definitions"
 
 /****************
  * ### `<epic-updated>`
- * One change to a phase's plan, fenced under its Symptom / Changes.
+ * One change to a phase's plan, fenced, in its phase's Plan changes box.
  ****************/
 export const epicUpdatedVocabulary = {
   tag: "epic-updated",
@@ -17,8 +17,8 @@ export const epicUpdatedVocabulary = {
   noun: "updated",
   ui: false,
   description:
-    "One change to a phase's plan (after Owen's feedback, or found while building):  a dated line under its " +
-    "Symptom / Changes, kept once the phase is done;  listed in the Plan changes box while the phase is to do.",
+    "One change to a phase's plan (after Owen's feedback, or found while building):  a dated line in its " +
+    'phase\'s Plan changes box (`slot="changes"`), kept once the phase is done.',
   attributes: [
     {
       name: "at",
@@ -32,8 +32,8 @@ export const epicUpdatedVocabulary = {
       name: "of",
       kind: "number",
       description:
-        'A COPY in the Phases section\'s Plan changes box (`slot="changes"`):  the phase whose plan it changes (`5`), ' +
-        "drawn as a `P5` link before it.  The plan-doc tool writes the copies;  never on the line in its phase."
+        "An OLDER doc's COPY in the Phases section (T14, until 2026-10-11):  the phase whose plan it changes (`5`).  " +
+        "Never drawn;  the plan-doc tool removes the copies on its next write.  Never on the line in its phase."
     }
   ],
   events: [],
@@ -51,8 +51,7 @@ export const epicUpdatedVocabulary = {
     { key: "unfoldTip", text: "Unfold this plan change", description: "Tooltip of its fold button while folded." },
 
     { key: "updated", text: "Updated", description: "Its label." },
-    { key: "during", text: "during P{phase}", description: "After its time:  the phase under way then." },
-    { key: "of", text: "P{phase}", description: "A Plan changes copy:  the phase it changes, a link to it." }
+    { key: "during", text: "during P{phase}", description: "After its time:  the phase under way then." }
   ],
   children: [{ tag: "flow", description: "What changed in the plan, and why." }]
 } as const satisfies EpicVocabulary

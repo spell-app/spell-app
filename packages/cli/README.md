@@ -75,7 +75,7 @@ Longer notes on some of them follow the table.
 | `spell dev agents <verb> ...` | The running-agents list, of this checkout's epic or of the checkout. |
 | `spell dev wwod [check] [files...]` | Checks the agents' rules:  their WWOD citations and repo paths. |
 | `spell dev plan-doc <command> <name> ...` | Edits a plan doc as the `/epic` skill does, from anywhere. |
-| `spell dev goals <command> ...` | The goals tool of the nearest goals folder:  `help` lists its commands. |
+| `spell dev goals` | PARKED:  says the goals tools are in `packages/goals.zip` (epic `epic-goals` rebuilds them). |
 | `spell dev docs <verb> ...` | The docs tools:  `update`, `index`, `new`, `open`, `link` ... |
 | `spell dev details <command> ...` | The `/details` skill's tool. |
 | `spell dev choices <command> ...` | Syntax-choices pages:  a table of names Claude recommends, one row per use site, which Owen goes through one by one. |
@@ -214,9 +214,8 @@ Longer notes on some of them follow the table.
   - Alone, it lists its commands, e.g. `summary <name>`, `phase <name> 2 done`.
   - Root `yarn plan-doc`.
     `spell plan-doc` still works (deprecated).
-- `dev goals`:  the tool in [`goals/`](../docs/tools/goals/), in the docs tools.
-  - Root `yarn goals`.
-    `spell goals` still works (deprecated).
+- `dev goals`:  PARKED (epic `epic-workflow` P6):  a stub that says so.
+  - The goals tool, its skills and routes are in `packages/goals.zip`;  epic `epic-goals` rebuilds them.
 - `dev docs`:  each verb runs as the root's `yarn docs:<verb>` did, in the docs package.
   - Arguments are passed as they are, e.g. `spell dev docs open solid/solid-2 --vs`.
 - `dev details`:  runs [`details.js`](../docs/tools/details.js).  Root `yarn details`.
@@ -417,7 +416,7 @@ Longer notes on some of them follow the table.
 ### `serve`
 
 - Starts this checkout's PAGE SERVER if it isn't running:  [`packages/server`](../server/), on port 4747, else any free one.
-  - Its route modules serve the app's `/api` (app's `appRoutes.ts`), goals' buttons, docs, epics and Spell UI's docs.
+  - Its route modules serve the app's `/api` (app's `appRoutes.ts`), docs, epics and Spell UI's docs.
 - Runs the app's own `yarn start:dev` (vite), in its own process group, passing `/api` on to the page server.
   - Records it in `.spell-server.editor.json`,
     so the site header's "Editor" (`/editor` on the page server) reaches it.

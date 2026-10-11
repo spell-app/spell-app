@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vite-plus/test"
+import { describe, expect, test, vi } from "vite-plus/test"
 
 import type { E } from "$/ui/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -66,6 +66,64 @@ describe("<epic-phase>", () => {
     const stack = parseFloat(body.style.getPropertyValue("--epic-stack"))
     expect(stack).toBeGreaterThan(0)
     await expectAccessible(host)
+  })
+})
+
+describe("<epic-phase> plan changes (epic `epic-workflow` P6)", () => {
+  /** A phase of `status`, its plan changed twice:  `changes="2"`, and (`lines`) the two lines loaded. */
+  function changed(status: string, { lines = true } = {}) {
+    const body = lines
+      ? `<epic-field name="symptom">Broken.</epic-field>` +
+        `<epic-updated slot="changes" at="2026-10-07 10:00" phase="1"><p>Split it.</p></epic-updated>` +
+        `<epic-updated slot="changes" at="2026-10-08 11:00" phase="1"><p>Joined again.</p></epic-updated>`
+      : ""
+    return `<epic-phase id="p2" title="Two" status="${status}" changes="2" open>${body}</epic-phase>`
+  }
+
+  test("its lines in a Plan changes box atop its body:  open while it isn't done, folding by its heading", async () => {
+    const host = await render(changed("todo"))
+    const box = host.shadowRoot!.querySelector('[part~="changes"]')!
+    expect(box.textContent!.replace(/\s+/g, " ").trim()).toBe("Plan changes2")
+    for (const line of host.querySelectorAll("epic-updated")) expect(line.assignedSlot?.name).toBe("changes")
+    // a pen in the box's heading and in the title's mark:  one glyph node each (a node shows in one place);
+    // the icon pack loads first
+    await vi.waitFor(() =>
+      expect([box.querySelector(".icon svg"), host.shadowRoot!.querySelector('[part~="changed"] svg')]).not.toContain(
+        null
+      )
+    )
+    // atop its body:  before the slot of its fields
+    const body = host.shadowRoot!.querySelector('[part~="body"]')!
+    expect(box.compareDocumentPosition(body.querySelector("slot:not([name])")!)).toBe(Node.DOCUMENT_POSITION_FOLLOWING)
+    const heading = box.querySelector("button")!
+    expect(heading.getAttribute("aria-expanded")).toBe("true")
+    heading.click()
+    await ElementFixture.tick()
+    expect(heading.getAttribute("aria-expanded")).toBe("false")
+    expect(box.querySelector(".changes-body")!.getAttribute("hidden")).toBe("until-found")
+    await expectAccessible(host)
+  })
+
+  test("its title says its plan changed while it isn't done, folded too (`changes`, its lines not loaded)", async () => {
+    const host = await render(changed("active", { lines: false }))
+    const mark = host.shadowRoot!.querySelector('[part~="changed"]')!
+    expect(mark.textContent).toBe("2")
+    await vi.waitFor(() => expect(mark.querySelector("svg")).not.toBeNull())
+    expect(mark.getAttribute("title")).toContain("2 × Updated")
+    expect(host.shadowRoot!.querySelector('[part~="changes"]')).toBeNull()
+    host.setAttribute("status", "done")
+    await ElementFixture.tick()
+    expect(host.shadowRoot!.querySelector('[part~="changed"]')).toBeNull()
+  })
+
+  test("a done phase:  no mark;  its box folded to start (history);  collapse-all folds an open one", async () => {
+    const done = await render(changed("done"))
+    expect(done.shadowRoot!.querySelector('[part~="changed"]')).toBeNull()
+    expect(done.shadowRoot!.querySelector('[part~="changes"] button')!.getAttribute("aria-expanded")).toBe("false")
+    const todo = await render<E.DOMElement & { component: { collapseAll(): number } }>(changed("todo"))
+    todo.component.collapseAll()
+    await ElementFixture.tick()
+    expect(todo.shadowRoot!.querySelector('[part~="changes"] button')!.getAttribute("aria-expanded")).toBe("false")
   })
 })
 

@@ -116,9 +116,13 @@ describe("every card folds from its heading (fold.button())", () => {
     }
   })
 
-  test("a link in the heading doesn't fold (`<epic-updated of>`'s phase link)", async () => {
-    const host = await card(`<epic-updated at="2026-10-06T14:30" of="5"><p>Text</p></epic-updated>`)
-    const link = find(host, "a.of")
+  test("a link in the heading doesn't fold", async () => {
+    // no card draws one since a Plan changes copy's phase link went (epic `epic-workflow` P6):  one put in by hand
+    const host = await card(`<epic-updated at="2026-10-06T14:30" phase="3"><p>Text</p></epic-updated>`)
+    const link = document.createElement("a")
+    link.href = "#p5"
+    link.textContent = "P5"
+    find(host, ".head").append(link)
     link.addEventListener("click", (event) => event.preventDefault())
     link.click()
     await ElementFixture.tick()

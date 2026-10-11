@@ -27,7 +27,6 @@ The pages live in SHARED root folders;  the tooling lives here (epics `shared-co
 - `tools/`:  the tooling, tracked here and versioned per branch.
   - the scripts (see "Scripts")
   - `_assets/`
-  - the goals tooling, `goals/`
   - Run a script from `packages/docs`, or through its `yarn` script:
 
     ```sh
@@ -134,14 +133,14 @@ In `tools/`:
     - It draws their tables from `<slug>.rows.json`, saves what's typed, and sends "Do it".
     - Then it loads `spell-ui.js` itself:  it's loaded INSTEAD of the bundle, as `commands.js` is.
   - `goals.css`, `goals-live.js`:  goals pages (the repo root's `goals/`, and `templates/goals/`).
-    - their look, and their live buttons (thoughts, Claude sessions)
-      when the page server serves them (goals' route module)
+    - their look, and their live buttons:  PARKED since 2026-10-11, each says "TODO:  this will ..." (`parked()`)
     - `goals.css` holds every rule the goals pages took from `plan-doc.css`, which they no longer link.
   - `commands.js`:  command reference pages ([the commands template](../../templates/commands.html)).
     - It draws their tables from the page's JSON, then loads `spell-ui.js` itself.
     - The page loads `commands.js` INSTEAD of the bundle.
 - The scripts, `*.js` and `*.ts`:  see "Scripts".
-- `goals/`:  the goals tooling ([goals' AGENTS.md](../../goals/AGENTS.md), at the repo root).
+- The goals tooling:  PARKED (epic `epic-workflow` P6), in `packages/goals.zip`;  epic `epic-goals` rebuilds it
+  ([goals' AGENTS.md](../../goals/AGENTS.md), at the repo root).
 
 ## Writing a page
 
@@ -406,7 +405,7 @@ In `tools/`:
   - `index.html`:  the home page, every goal set
   - `set/index.html`:  a set's contents page
   - `set/topic/topic.html` and `topic.md`:  a topic's page, and its agent notes
-  - NEVER copy by hand:  `spell dev goals new-set` / `new` fill the `{{placeholders}}` and fix the asset paths.
+  - Parked with goals:  `spell dev goals new-set` / `new` filled them;  a copy is in `packages/goals.zip`.
   - The rules:  [goals' AGENTS.md](../../goals/AGENTS.md), at the repo root.
 - [spell-ui-docs.html](../../templates/spell-ui-docs.html):  a Spell UI docs page, for the shared `ui/`.
   - Fomantic's docs layout in `<ui-*>` widgets:
@@ -1001,7 +1000,7 @@ In this order, from `packages/docs`:
     - Run it after touching `liveClient.ts`, or the runtime's "Live update".
   - `node packages/epics/demo/check-header-epics.mjs [--doc <name>]... [outDir]`, from the root:
     - the page header, the review line, the Phases section's `open/all` badge (item sections show only their state chips),
-      the state filter and the Plan changes box
+      the state filter, and each phase's Plan changes box and title pen
     - at 280 / 900px, light and dark
   - `node packages/epics/demo/check-fold-epics.mjs [--doc <name>] [--item <id>] [--guide <path>] [outDir]`, from the root:
     - A fold never moves what was clicked:  the line or title stays put, within 1px, for 1.5s after the click.

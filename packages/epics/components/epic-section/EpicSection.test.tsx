@@ -335,15 +335,12 @@ describe("<epic-section> counts and state filter", () => {
     expect(host.shadowRoot!.querySelector('[data-state="replied"]')!.getAttribute("data-color")).toBe("orange")
   })
 
-  test("collapse-all, beside the chevron while open:  its items and the Plan changes box fold, it stays open", async () => {
+  test("collapse-all, beside the chevron while open:  its phases fold, it stays open", async () => {
     const host = await render(
       `<epic-section id="phases" kind="phases" open>` +
-        `<epic-updated slot="changes" at="2026-10-07 10:00" phase="1" of="2">Split it.</epic-updated>` +
         `<epic-phase id="p1" title="One" status="active" open><p>Do it.</p></epic-phase></epic-section>`
     )
     await ElementFixture.settle(host)
-    host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="changes"] button')!.click()
-    await ElementFixture.tick()
     const button = host.shadowRoot!.querySelector<HTMLButtonElement>('[part~="tools"] [part~="collapse-all"]')!
     // last in the title's tools:  beside the chevron
     expect(button.parentElement!.lastElementChild).toBe(button)
@@ -351,26 +348,20 @@ describe("<epic-section> counts and state filter", () => {
     await ElementFixture.tick()
     const phase = host.querySelector("epic-phase")!
     expect([host.matches(":state(open)"), phase.matches(":state(open)")]).toEqual([true, false])
-    expect(host.shadowRoot!.querySelector('[part~="changes"] button')!.getAttribute("aria-expanded")).toBe("false")
     // folded:  no collapse-all
     ;(host as FoldHost & { open: boolean }).open = false
     await ElementFixture.tick()
     expect(host.shadowRoot!.querySelector('[part~="collapse-all"]')).toBeNull()
   })
 
-  test("the Phases section draws its Plan changes box from the `changes` slot;  none without", async () => {
+  test("no Plan changes box above the phases (Owen, 2026-10-11):  an older doc's copies show nowhere", async () => {
     const host = await render(
       `<epic-section id="phases" kind="phases" open>` +
         `<epic-updated slot="changes" at="2026-10-07 10:00" phase="1" of="2">Split it.</epic-updated>` +
         `<epic-phase id="p1" title="One" status="active"></epic-phase>` +
         `<epic-phase id="p2" title="Two" status="todo"></epic-phase></epic-section>`
     )
-    const box = host.shadowRoot!.querySelector('[part~="changes"]')!
-    expect(box.textContent).toContain("Plan changes")
-    expect(host.querySelector("epic-updated")!.assignedSlot?.name).toBe("changes")
-    host.querySelector("epic-updated")!.remove()
-    await ElementFixture.tick()
-    await ElementFixture.tick()
     expect(host.shadowRoot!.querySelector('[part~="changes"]')).toBeNull()
+    expect(host.querySelector("epic-updated")!.assignedSlot).toBeNull()
   })
 })

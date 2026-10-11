@@ -7,6 +7,8 @@ import { E } from "$/ui/core"
 import { ReviewState } from "$/epics/components/epic-review/ReviewState"
 import { SHOW_NOTE, type ReviewShows } from "$/epics/components/epic-review/EpicReview.types"
 import { STATUS_SLOT } from "$/epics/components/epic-item/EpicItem.types"
+// the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel (which would define it here)
+import { Fold } from "$/epics/components/epic-item/Fold"
 // Import directly:  the fold base, not the `epic-section` barrel (which defines `<epic-section>`)
 import { EpicFold } from "$/epics/components/epic-section/EpicFold"
 import type { ContentsEntry } from "$/epics/components/epic-section/EpicSection.types"
@@ -26,10 +28,19 @@ import tooltipCSS from "$/epics/components/epic-item/Tooltip.css?inline"
  * - Its title line:
  *   - the status icon in its colour (grey to do, blue under way, green done)
  *   - `P3 · <title>` (`title`, or `slot="title"`);  a done phase's title reads quieter
+ *   - while it isn't done and its plan changed (`changes`, written by the tool):  an orange pen and how many times,
+ *     so a folded phase says so too (its body, a part, isn't loaded until it opens)
  *   - the estimate as a badge
+ * - Its PLAN CHANGES box, atop its body (Owen, 2026-10-11:  "plan changes should go in their phase with same
+ *   presentation, rather than above phase list"):
+ *   - its `<epic-updated slot="changes">` lines, each fenced, under a heading that folds them:
+ *     the chevron, a pen, `Plan changes · 2`
+ *   - the look of the box the Phases section drew above the phases until then (T14):  a faint orange ground
+ *   - open to start while the phase isn't done;  a done phase's changes are history, folded
+ *   - none:  no box
  * - Its children, in order:
  *   - `<epic-field>`s (Symptom, Changes, Goal, Done, Files, Verify, To review)
- *   - `<epic-updated>` lines under Changes
+ *   - `<epic-updated>` lines under Changes:  an older doc's, in no slot, drawn there until the tool slots them
  *   - Owen's kept notes (`<epic-reply>`)
  *   - `<epic-commit>`s
  *   - Files and Verify show only while the Phases title's toggles say so;  commits while the page's git toggle does
@@ -65,6 +76,21 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
   /** Its view of the review inbox, keyed by its id (`p3`):  is the page reviewed?  Has it a marked note? */
   readonly reviewState = new ReviewState(() => this.id)
 
+  /** Light-DOM slot occupancy:  has it plan changes (loaded:  its body may be a part)? */
+  readonly slots = new E.SlotContent(this.domElement)
+
+  /** The pen of its plan changes:  the box's heading's, the title's mark's (one node each:  a node shows once). */
+  readonly changesGlyph = new E.IconGlyph({ owner: this, name: () => "pen to square" })
+  readonly changedGlyph = new E.IconGlyph({ owner: this, name: () => "pen to square" })
+
+  /** Its Plan changes box's fold:  open to start while it isn't done;  a done phase's changes are history. */
+  readonly changesFold = new Fold(() => this.shownStatus !== "done")
+
+  /** How many plan changes its title says it has:  `changes`, while it isn't done;  0 for none. */
+  get changedCount(): number {
+    return this.shownStatus === "done" ? 0 : (this.changes ?? 0)
+  }
+
   /**
    * The contents entry (`EpicFold.contentsEntry()`):  `P3 · <title>`, its status icon in its colour.
    * - From the attributes as they are NOW, read off the DOM element:  the live update reads it right after a patch
@@ -91,6 +117,7 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
             {" · "}
           </span>
           <slot name={this.slotForName("title")}>{this.title}</slot>
+          {this.changedMark()}
         </>
       ),
       icon: () => (
@@ -105,7 +132,12 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
       ),
       badge: () => this.estimate,
       tools: () => this.reviewButtons(),
-      before: () => this.saidNote(),
+      before: () => (
+        <>
+          {this.saidNote()}
+          {this.planChanges()}
+        </>
+      ),
       after: () => (
         <>
           {/* Claude's status cards (P13):  at the end of its body, above the note box */}
@@ -114,6 +146,74 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
         </>
       )
     })
+  }
+
+  ////////////////
+  // ## Plan changes
+  ////////////////
+
+  /**
+   * Its title's mark while it isn't done and its plan changed:  the pen and how many times, in orange;
+   * its name and tooltip say so (`changedTip`).
+   */
+  private changedMark(): JSX.Element {
+    return (
+      <Show when={this.changedCount}>
+        {(count) => (
+          <span
+            class={CHANGED}
+            part={this.partForName("changed")}
+            role="img"
+            aria-label={this.translationForKey("changedTip", { count: count() })}
+            title={this.translationForKey("changedTip", { count: count() })}
+          >
+            {this.changedGlyph.svg}
+            {count()}
+          </span>
+        )}
+      </Show>
+    )
+  }
+
+  /**
+   * Its Plan changes box, atop its body:  its `changes` slot's lines;  nothing without one.
+   * - it FOLDS, like every titled box (Owen, 2026-10-08):
+   *   its heading is a button with the chevron, the pen, `Plan changes` and how many
+   * - folded, the changes are hidden `until-found` (find-in-page still reaches them)
+   */
+  private planChanges(): JSX.Element {
+    const slot = this.slotForName("changes")
+    const count = () =>
+      this.slots.hasContent(slot) ? this.domElement.querySelectorAll(`:scope > [slot="${slot}"]`).length : 0
+    return (
+      <Show when={this.slots.hasContent(slot)}>
+        <div class={CHANGES} part={this.partForName("changes")}>
+          <button
+            type="button"
+            class={CHANGES_HEAD}
+            aria-expanded={this.changesFold.isOpen() ? "true" : "false"}
+            aria-controls={CHANGES_BODY}
+            title={this.translationForKey(this.changesFold.isOpen() ? "changesFoldTip" : "changesUnfoldTip")}
+            onClick={this.changesFold.toggle}
+          >
+            {Fold.chevron()}
+            <span class={ICON} aria-hidden="true">
+              {this.changesGlyph.svg}
+            </span>
+            {this.translationForKey("changesTitle")}
+            <span class="count">{count()}</span>
+          </button>
+          <div ref={this.changesFold.watch} id={CHANGES_BODY} class={CHANGES_BODY} hidden={this.changesFold.hidden()}>
+            <slot name={slot} />
+          </div>
+        </div>
+      </Show>
+    )
+  }
+
+  /** Collapse-all:  its Plan changes box folds too. */
+  protected foldOwnBoxes(): number {
+    return this.changesFold.close() ? 1 : 0
   }
 
   ////////////////
@@ -149,6 +249,12 @@ export class EpicPhase extends EpicFold<typeof epicPhaseVocabulary> {
 
 /** The vocabulary's attribute getters, typed (see "Attributes" in `UIComponent`). */
 export interface EpicPhase extends E.AttributeValues<typeof epicPhaseVocabulary> {}
+
+/** Classes of the shadow markup:  the title's mark, the Plan changes box, its heading, its body (also its `id`). */
+const CHANGED = "changed"
+const CHANGES = "changes"
+const CHANGES_HEAD = "changes-head"
+const CHANGES_BODY = "changes-body"
 
 /** A phase's status => its icon (Spell UI's names, from the docs bundle's set). */
 const STATUS_ICONS = {
