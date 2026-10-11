@@ -68,10 +68,10 @@
       "classVariable": "Suits",
       "of": "Deck",
       "enumeration": [
-        "'clubs'",
-        "'diamonds'",
-        "'hearts'",
-        "'spades'"
+        "clubs",
+        "diamonds",
+        "hearts",
+        "spades"
       ],
       "defined": "/Deck.spell:311-362"
     },
@@ -97,7 +97,7 @@
       "classVariable": "Ranks",
       "of": "Deck",
       "enumeration": [
-        "'ace'",
+        "ace",
         2,
         3,
         4,
@@ -107,9 +107,9 @@
         8,
         9,
         10,
-        "'jack'",
-        "'queen'",
-        "'king'"
+        "jack",
+        "queen",
+        "king"
       ],
       "defined": "/Deck.spell:447-499"
     },
@@ -149,10 +149,10 @@
       "name": "\"is a (suit)\"",
       "values": {
         "suit": [
-          "'clubs'",
-          "'diamonds'",
-          "'hearts'",
-          "'spades'"
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades"
         ]
       },
       "defined": "/Card.spell:209-225"
@@ -172,7 +172,7 @@
       "name": "\"is a (rank)\"",
       "values": {
         "rank": [
-          "'ace'",
+          "ace",
           2,
           3,
           4,
@@ -182,9 +182,9 @@
           8,
           9,
           10,
-          "'jack'",
-          "'queen'",
-          "'king'"
+          "jack",
+          "queen",
+          "king"
         ]
       },
       "defined": "/Card.spell:316-332"
@@ -198,7 +198,7 @@
       "name": "\"is the (rank) of (suits)\"",
       "values": {
         "rank": [
-          "'ace'",
+          "ace",
           2,
           3,
           4,
@@ -208,15 +208,15 @@
           8,
           9,
           10,
-          "'jack'",
-          "'queen'",
-          "'king'"
+          "jack",
+          "queen",
+          "king"
         ],
         "suits": [
-          "'clubs'",
-          "'diamonds'",
-          "'hearts'",
-          "'spades'"
+          "clubs",
+          "diamonds",
+          "hearts",
+          "spades"
         ]
       },
       "defined": "/Card.spell:387-416"
@@ -242,8 +242,8 @@
       "classVariable": "Directions",
       "of": "Card",
       "enumeration": [
-        "'up'",
-        "'down'"
+        "up",
+        "down"
       ],
       "defined": "/Card.spell:592-619"
     },

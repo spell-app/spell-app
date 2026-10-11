@@ -16,7 +16,7 @@ export class Card extends Thing {
   /** card ranks */
   /*! SPELL: DECLARES {
     property: "rank", classVariable: "Ranks", of: "Card",
-    enumeration: ["'ace'", 2, 3, 4, 5, 6, 7, 8, 9, 10, "'jack'", "'queen'", "'king'"],
+    enumeration: ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"],
     defined: "/Card.spell:126-206",
   } */
   static Ranks = ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]
@@ -27,7 +27,7 @@ export class Card extends Thing {
   /** card suits */
   /*! SPELL: DECLARES {
     property: "suit", classVariable: "Suits", of: "Card",
-    enumeration: ["'clubs'", "'diamonds'", "'hearts'", "'spades'"],
+    enumeration: ["clubs", "diamonds", "hearts", "spades"],
     defined: "/Card.spell:222-283",
   } */
   static Suits = ["clubs", "diamonds", "hearts", "spades"]
@@ -56,7 +56,7 @@ export class Card extends Thing {
 
   /** card direction:  up or down */
   /*! SPELL: DECLARES {
-    property: "direction", classVariable: "Directions", of: "Card", enumeration: ["'up'", "'down'"],
+    property: "direction", classVariable: "Directions", of: "Card", enumeration: ["up", "down"],
     defined: "/Card.spell:534-577",
   } */
   static Directions = ["up", "down"]
@@ -100,7 +100,7 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "{operator:is} (a|an) (expression:club|diamond|heart|spade)", output: "is_a_$suit",
     rule: "quoted_property", of: "Card", kind: "method", name: '"is a (suit)"',
-    values: { suit: ["'clubs'", "'diamonds'", "'hearts'", "'spades'"] },
+    values: { suit: ["clubs", "diamonds", "hearts", "spades"] },
     defined: "/Card.spell:838-872",
   } */
   isASuit(suit) {
@@ -111,7 +111,7 @@ export class Card extends Thing {
   /*! SPELL: DECLARES {
     syntax: "{operator:is} (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)",
     output: "is_a_$rank", rule: "quoted_property", of: "Card", kind: "method", name: '"is a (rank)"',
-    values: { rank: ["'ace'", 2, 3, 4, 5, 6, 7, 8, 9, 10, "'jack'", "'queen'", "'king'"] },
+    values: { rank: ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"] },
     defined: "/Card.spell:914-948",
   } */
   isARank(rank) {
@@ -123,7 +123,7 @@ export class Card extends Thing {
     syntax: "{operator:is} the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)",
     output: "is_the_$rank_of_$suits", rule: "quoted_property", of: "Card", kind: "method",
     name: '"is the (rank) of (suits)"',
-    values: { rank: ["'ace'", 2, 3, 4, 5, 6, 7, 8, 9, 10, "'jack'", "'queen'", "'king'"], suits: ["'clubs'", "'diamonds'", "'hearts'", "'spades'"] },
+    values: { rank: ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"], suits: ["clubs", "diamonds", "hearts", "spades"] },
     defined: "/Card.spell:986-1047",
   } */
   isTheRankOfSuits(rank, suit) {

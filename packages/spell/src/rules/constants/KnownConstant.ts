@@ -28,11 +28,12 @@ constants.addRule(KnownConstant, {
         // accepts a plain name string or `ScopeConstantProps` too -- see report.
         const { constants } = scope as P.RootScope
         constants.add("red")
-        constants.add({ name: "green", output: "#00FF00" })
+        constants.add({ name: "green", value: "#00FF00" })
       },
       tests: [
         { title: "known constant", input: "red", js: '"red"' },
-        { title: "known constant w/specific value", input: "green", js: "#00FF00" },
+        // its value is spell's, so each writer quotes it (epic `python-target` P3)
+        { title: "known constant w/specific value", input: "green", js: '"#00FF00"' },
         { title: "unknown constant", input: "missing", js: undefined }
       ]
     }

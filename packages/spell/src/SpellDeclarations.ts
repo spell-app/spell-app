@@ -347,7 +347,7 @@ export class SpellDeclarations {
     if (classVariable) {
       const variable = definedOnly({
         name: classVariable,
-        enumeration,
+        enumeration: spellValues(enumeration),
         initializer: enumerationInitializer(enumeration),
         declaredAt
       })
@@ -753,16 +753,22 @@ function literalKey(key: string): string {
   return /^[A-Za-z_$][\w$]*$/.test(key) ? key : toLiteral(key)
 }
 
-/** Constants enumerated values declare:  their strings, unquoted, e.g. `["'up'", 2]` => `["up"]`. */
+/** Constants enumerated values declare:  their strings, e.g. `["up", 2]` => `["up"]` (older `["'up'"]` too). */
 function enumerationConstants(enumeration: Array<string | number> | undefined): string[] {
-  return (enumeration ?? [])
-    .filter((value): value is string => typeof value === "string")
-    .map((value) => value.replace(/^'(.*)'$/, "$1"))
+  return (enumeration ?? []).filter((value): value is string => typeof value === "string").map(P.spellValueOf)
 }
 
 /** Initializer of a variable holding `enumeration`, e.g. `['up', 'down']` -- as `define_property_has` writes it. */
 function enumerationInitializer(enumeration: Array<string | number> | undefined): string | undefined {
-  return enumeration && `[${enumeration.join(", ")}]`
+  return enumeration && P.enumerationInitializer(enumeration)
+}
+
+/**
+ * `enumeration`'s values as spell's:  `["clubs", 2]`.
+ * - Declarations before epic `python-target` P3 quoted them as javascript, `["'clubs'", 2]`:  read so too.
+ */
+function spellValues(enumeration: Array<string | number> | undefined): Array<string | number> | undefined {
+  return enumeration?.map(P.spellValueOf)
 }
 
 /**
