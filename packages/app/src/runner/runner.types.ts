@@ -110,11 +110,12 @@ export const LAYOUT_HOLE = /\{[^{}]+\}/
 /** An attribute that's all one hole, `{...}`, its spell captured. */
 export const LAYOUT_WHOLE_HOLE = /^\s*\{([\s\S]+)\}\s*$/
 
-/** Does `root`'s layout have spell in it:  a hole, an action or a `<spell>` block?  See `LayoutSpell`. */
+/** Does `root`'s layout have spell in it:  a hole, an action, a handler or a `<spell>` block?  See `LayoutSpell`. */
 export function layoutHasSpell(root: Element): boolean {
   if (root.querySelector(LAYOUT_SPELL_TAG)) return true
   if (LAYOUT_HOLE.test(root.textContent ?? "")) return true
   return [...root.querySelectorAll("*")].some((element) =>
-    [...element.attributes].some((attribute) => LAYOUT_WHOLE_HOLE.test(attribute.value))
+    // a hole written without quotes starts one, `on-click={play a song}`, but ends in a later attribute's name
+    [...element.attributes].some((attribute) => /^\s*\{/.test(attribute.value))
   )
 }
