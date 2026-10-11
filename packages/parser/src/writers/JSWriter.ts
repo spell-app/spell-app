@@ -1758,6 +1758,8 @@ export class JSWriter extends Writer {
    * May `node` be nothing?
    * - Yes for:  an item read from a list (`spellCore.getItemAt(pile, -1)`), what's read off one,
    *   or a variable set to one.
+   * - And for one of the program's things found by name or place, `spellCore.thingNamed(Tableau, "T1")`:
+   *   the program may not have made it (yet).
    * - Reading off it is written `?.`, so spell reads off nothing as nothing and never throws
    *   (epic `output-targets`, Q38).
    */
@@ -1778,8 +1780,12 @@ export class JSWriter extends Writer {
     return this.mayBeNothing(value)
   }
 
-  /** The `spellCore` helpers that read ONE item of a list, which may be nothing:  see `mayBeNothing()`. */
-  static ITEM_READS = new Set(["getItemAt", "randomItemOf"])
+  /**
+   * The `spellCore` helpers that read ONE item, which may be nothing:  see `mayBeNothing()`.
+   * - one item of a list:  `getItemAt()`, `randomItemOf()`
+   * - one of the program's things, by its name or place:  `tableau T1`, `the first tableau` (epic `drawable-thing` P19)
+   */
+  static ITEM_READS = new Set(["getItemAt", "randomItemOf", "thingNamed", "thingAtPlace"])
 
   /** What's being set, while it's written:  never read off with `?.`, which can't be set. */
   private settingNow: P.ASTNode | undefined

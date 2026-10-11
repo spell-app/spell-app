@@ -496,6 +496,27 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 - Runtime:  `core`'s `List` keeps the owners.
   See [core's AGENTS.md](../core/AGENTS.md), "Membership and guards".
 
+## One thing by name or place:  `tableau T1`, `the first tableau`
+
+- Two expression rules name ONE of the program's things (epic `drawable-thing` P19), in [classes/](src/rules/classes/):
+  - [`named_thing`](src/rules/classes/NamedThing.ts):  `tableau T1`, `foundation "clubs"`
+    => `spellCore.thingNamed(Tableau, "T1")`
+    - the name:  one word starting with a capital (`thing_name`), or text in quotes
+    - a sub-type's thing too:  `pile T1` finds a tableau
+  - [`thing_at_place`](src/rules/classes/ThingAtPlace.ts):  `the first tableau`, `the last tableau`
+    => `spellCore.thingAtPlace(Tableau, 1)`, in the order the program made them
+  - Both are core's thing references, `Tableau#T1` and `Tableau#1`:  core's `references.ts`.
+  - The writers read off either with `?.`:  the program may not have made it (`JSWriter.ITEM_READS`).
+- `named_thing` has its own quick `test()`:  a name within `SpellType.MAX_NAME_WORDS` of its start.
+  - Without it, `{type}` is a subrule, so the plain test would pass any line with text in quotes on it.
+- It warns when two things are given the name it reads, in so many words:
+  `set a to a new tableau with name = "T1"` twice.
+  - `assignment` and `get` count each such name, in `mutateScope()`:  `NewThing.noteNameGiven()`.
+    - Kept per type and each super-type the project declares, journaled.
+    - A name worked out as the program runs, `"T" + the number`, isn't counted.
+  - The warning is noted with `SpellWarnings.noteIf()`:  asked again once the whole project has parsed,
+    so a reference written above the things it names warns too.
+
 ## Guards:  `a tableau can take a card if: ...`
 
 - [`list_guard`](src/rules/classes/ListGuard.ts):
@@ -866,6 +887,8 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - numbered from the visible `it`'s `output`, skipping names in use
     - so callbacks keep the `it` they captured
   - each new variable holds its value's `datatype`:  see "Datatypes"
+  - both also count a name a new thing is given in so many words, `set t1 to a new tableau with name = "T1"`:
+    see "One thing by name or place"
   - types:
     - [`create_type`](src/rules/classes/CreateType.ts)
     - [`create_list_type`](src/rules/classes/CreateListType.ts), which sets `itemType` too
