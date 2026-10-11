@@ -58,6 +58,9 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
   // what takes back the last run's layout spell -- see `bindLayout()`.  Up here:  a run may start before the end
   let unbindLayout: (() => void) | undefined
 
+  // what takes back the last run's `in="header"` slots -- see `slotsFromIn()`.  Up here, as above
+  let unslot: (() => void) | undefined
+
   // the source the latest `run()` runs:  an older run's words, arriving late, aren't shown.  Up here, as above
   let running: SpellAppSource | undefined
 
@@ -183,9 +186,12 @@ export function SpellAppRunner(props: SpellAppRunnerProps) {
   async function run(copy: LoadedRuntime, source: SpellAppSource) {
     unbindLayout?.()
     unbindLayout = undefined
+    unslot?.()
+    unslot = undefined
     // read props before waiting:  by then, whoever handed them to us may be gone (`<spell-app>` dropping its source)
     const layout = props.layout
     running = source
+    if (layout) unslot = slotsFromIn(layout)
     const ran = await runProgram(copy, source, appRoot, !!layout)
     compiledRef.current = ran.compiled
     setError(ran.error)
@@ -577,3 +583,17 @@ type AppElement = HTMLElement & { spellRoot?: { unmount(): void } }
 
 /** Compiled javascript the last run loaded, by project id -- a box, so the Type Explorer reads the latest. */
 type CompiledRef = { current: Map<string, string> }
+
+/**
+ * Spell's `in="header"` on a layout's tags, as the web writes it:  `slot="header"` (Q21 B, J35) --
+ * so a child the page writes by hand lands in its frame's `<children name="header"/>`.
+ * - A tag with a `slot` of its own keeps it.
+ * - Returns what takes the slots back.
+ */
+export function slotsFromIn(root: Element): () => void {
+  const slotted = [...root.querySelectorAll("[in]")].filter((element) => !element.hasAttribute("slot"))
+  for (const element of slotted) element.setAttribute("slot", element.getAttribute("in")!)
+  return () => {
+    for (const element of slotted) element.removeAttribute("slot")
+  }
+}
