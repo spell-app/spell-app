@@ -67,20 +67,35 @@ describe("a Python spell app, in a real browser", () => {
     await page.page.locator(".Pile.Stock .Card").last().click()
     await expect.poll(() => page.page.locator(".Pile.Discards").innerHTML()).not.toBe(discards)
 
+    // what the page sent:  the click, naming the card by its id
+    const [click] = page.sent as Array<{ trigger: string; details: { card: { "@id": string } } }>
+    expect(click?.trigger).toBe("card-click")
+    // what came back:  only what the click changed, in two patches, as the program paused between
+    const [state, ...patches] = page.received as [unknown, ...Array<Array<Record<string, any>>>]
+    const cardId = click!.details.card["@id"]
+    // at the pause:  the card, turned up
+    expect(patches[0]).toEqual([expect.objectContaining({ "@type": "Card", "@id": cardId, direction: "up" })])
+    // then its move:  the pile it left, the card, the pile it joined
+    expect(patches[1]!.map((thing) => thing["@type"])).toEqual(["StockPile", "Card", "DiscardPile"])
+    const [, card, joined] = patches[1]!
+    expect(card).toMatchObject({ "@id": cardId, pile: { "@id": joined!["@id"] } })
+    expect(joined!["@items"].at(-1)).toEqual({ "@id": cardId })
+
     // each patch a small part of the whole state
-    const [state, ...patches] = page.sizes
-    expect(patches.length).toBeGreaterThan(0)
-    for (const size of patches) expect(size).toBeLessThan(state! / 4)
-    process.stderr.write(`Solitaire's frames:  the state ${state} characters, then patches of ${patches.join(", ")}\n`)
+    const size = (frame: unknown) => JSON.stringify(frame).length
+    for (const each of patches) expect(size(each)).toBeLessThan(size(state) / 4)
+    process.stderr.write(
+      `Solitaire's frames:  the state ${size(state)} characters, then patches of ${patches.map(size).join(", ")}\n`
+    )
     await page.page.context().close()
   }, 60_000)
 
   test("AutoPlay's pauses reach the page:  a patch at each, so it animates", async () => {
     const page = await opened()
-    const before = page.sizes.length
+    const before = page.received.length
     await page.page.getByText("AutoPlay").click()
     await page.page.waitForTimeout(3000)
-    const frames = page.sizes.slice(before)
+    const frames = page.received.slice(before).map((frame) => JSON.stringify(frame).length)
     process.stderr.write(`AutoPlay's frames:  ${frames.length}, of ${frames.join(", ")} characters\n`)
     expect(frames.length).toBeGreaterThan(1)
     await page.page.context().close()
@@ -109,16 +124,23 @@ describe("a Python spell app, in a real browser", () => {
   }, 60_000)
 })
 
-/** A new visitor's page, open on the app:  its board drawn, and the size of each frame it's sent. */
-async function opened(): Promise<{ page: Page; sizes: number[] }> {
+/**
+ * A new visitor's page, open on the app:  its board drawn, with each message it sent and each frame it received,
+ * read as JSON.
+ * - Received:  the whole state first, then a patch, a list of the things that changed (epic `python-target` P30).
+ */
+async function opened(): Promise<{ page: Page; sent: unknown[]; received: unknown[] }> {
   const page = await (await browser.newContext()).newPage()
-  const sizes: number[] = []
-  page.on("websocket", (socket) =>
-    socket.on("framereceived", ({ payload }) => sizes.push(typeof payload === "string" ? payload.length : 0))
-  )
+  const sent: unknown[] = []
+  const received: unknown[] = []
+  const read = (payload: string | Buffer) => JSON.parse(String(payload)) as unknown
+  page.on("websocket", (socket) => {
+    socket.on("framesent", ({ payload }) => sent.push(read(payload)))
+    socket.on("framereceived", ({ payload }) => received.push(read(payload)))
+  })
   await page.goto(url)
   await page.locator(".Pile.Stock").waitFor({ timeout: 20_000 })
-  return { page, sizes }
+  return { page, sent, received }
 }
 
 /** SIDE EFFECT:  compile the temp Solitaire to `py`. */
