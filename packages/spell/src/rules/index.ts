@@ -25,13 +25,13 @@ import { assignment } from "./assignment"
 import { expressions, Negatable } from "./expressions"
 import { statements } from "./statements"
 import { _if_ } from "./if"
-import { JSX, type JSXMatchData } from "./JSX"
+import { JSX, type JSXMatchData, MarkdownBlock } from "./JSX"
 import { lists } from "./lists"
 import { math } from "./math"
 import { properties } from "./properties"
 import { events } from "./events"
 import { UI } from "./UI"
-import { classes } from "./classes"
+import { classes, MarkdownDescription } from "./classes"
 import { methods } from "./methods"
 import { _async } from "./async"
 import { draw } from "./draw"
@@ -75,6 +75,11 @@ export { Block, BlockLine }
  * -- e.g. for UI code that reads them.
  */
 export type { JSXMatchData }
+
+/** Export so editors can show a type's `<markdown>` description where its docstring shows -- e.g. hover. */
+export { MarkdownDescription }
+/** Export so a `<spell-app>` layout's `<markdown>` splits its holes as a drawing's does -- see `MarkdownBlock.partsOf()`. */
+export { MarkdownBlock }
 
 // Structural rules.  `SpellBlankLine` and `BlockLine` set `static ruleName`:  their class names don't give them.
 spellParser.addRule(SpellBlankLine)

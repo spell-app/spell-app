@@ -7,6 +7,8 @@
  */
 export * from "./JSX.parser"
 export * from "./JSX.shared"
+// `SpellJSX` imports it, so it registers first:  a `<markdown>` is its own rule, not an element
+export * from "./MarkdownBlock"
 export * from "./SpellJSX"
 export * from "./SpellJSXContent"
 export * from "./SpellJSXAttribute"

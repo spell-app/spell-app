@@ -828,19 +828,36 @@ export class SpellLanguageService {
    * Docstring of what `subject` names:  the comments documenting its declaration -- see `SP.Block.getDocComments()`.
    * - Only if that declaration really names it:  an argument's `declaredBy` is its METHOD, whose docs aren't its own.
    * - Properties only when we know which type they're on.
+   * - A type with no comments:  the `<markdown>` block in its outline, if it has one -- see `outlineDescriptionOf()`.
    */
   docsOf(subject: LSP.SpellSubject): string | undefined {
     const builtIn = SpellLanguageService.builtInDoc(subject)
     if (builtIn) return builtIn
-    return subject.record && this.docsOfRecord(subject.record, subject.kind === "method")
+    if (!subject.record) return undefined
+    return this.docsOfRecord(subject.record, subject.kind === "method") ?? this.outlineDescriptionOf(subject.record)
   }
 
-  /** Docstring of what `subject` names, as markdown -- see `docMarkdown()`. */
+  /** Docstring of what `subject` names, as markdown -- see `docMarkdown()`, and `docsOf()` for a type's. */
   docMarkdownOf(subject: LSP.SpellSubject): string | undefined {
     const builtIn = SpellLanguageService.builtInDoc(subject)
     if (builtIn) return builtIn
-    const doc = subject.record && this.docCommentOfRecord(subject.record, subject.kind === "method")
-    return doc && SpellLanguageService.docMarkdown(doc)
+    if (!subject.record) return undefined
+    const doc = this.docCommentOfRecord(subject.record, subject.kind === "method")
+    return doc ? SpellLanguageService.docMarkdown(doc) : this.outlineDescriptionOf(subject.record)
+  }
+
+  /**
+   * The `<markdown>` description in type `record`'s outline, if it has one -- see `SP.MarkdownDescription`.
+   * - `undefined` for anything but a type.
+   */
+  private outlineDescriptionOf(record: { name: string; declaredBy?: P.Match }): string | undefined {
+    if (!(record instanceof P.TypeScope) || !record.declaredBy) return undefined
+    let description: string | undefined
+    this.walk(record.declaredBy, (match) => {
+      if (description === undefined && match.is(SP.MarkdownDescription) && match.data.typeName === record.name)
+        description = SP.MarkdownDescription.descriptionOf(match)
+    })
+    return description
   }
 
   /**

@@ -11,6 +11,8 @@ spellCore.heading("Klondike Solitaire Card Game")
 spellCore.heading("Game bits")
 /** Game bits */
 export class Game extends App {
+  static description = "A game of **Klondike**:  its piles, and its score."
+
   @prop({ type: "number" }) accessor score!: number
 
   //## actions
@@ -67,6 +69,11 @@ export class Game extends App {
               </tr>
             </tbody>
           </table>
+        </div>
+        <div class="rules">
+          <ui-markdown>
+            {`## How to play\nBuild each tableau **down**, alternating colours, and each foundation *up* from its ace.\nScore:  **${this.score}**`}
+          </ui-markdown>
         </div>
       </div>
     )

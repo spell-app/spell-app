@@ -5,7 +5,12 @@ import { P } from "$/parser"
 import { SP } from "$/spell"
 import type { SpellCore } from "$/core"
 import { SpellElement } from "./SpellElement"
-import { LAYOUT_HOLE as HOLE, LAYOUT_SPELL_TAG as SPELL_TAG, LAYOUT_WHOLE_HOLE as WHOLE_HOLE } from "./runner.types"
+import {
+  LAYOUT_HOLE as HOLE,
+  LAYOUT_MARKDOWN_TAG as MARKDOWN_TAG,
+  LAYOUT_SPELL_TAG as SPELL_TAG,
+  LAYOUT_WHOLE_HOLE as WHOLE_HOLE
+} from "./runner.types"
 
 /****************
  * ### `LayoutSpell`
@@ -54,6 +59,9 @@ export class LayoutSpell {
   /** Every name the compiled spell may read but `it`, by its javascript name:  the page's, then the program's. */
   private names = new Map<string, () => unknown>()
 
+  /** The text of each `<markdown>` block drawn:  its holes are bound already -- see `bindMarkdown()`. */
+  private markdownTexts = new WeakSet<Text>()
+
   constructor(options: LayoutSpellOptions) {
     this.options = options
     const { root, declarations, projectId, spellCore } = options
@@ -87,6 +95,8 @@ export class LayoutSpell {
     createRoot((dispose) => {
       this.undoes.push(dispose)
       const { root } = this.options
+      // markdown first:  its holes are its own, not text's
+      for (const block of root.querySelectorAll(MARKDOWN_TAG)) this.bindMarkdown(block)
       for (const block of root.querySelectorAll(SPELL_TAG)) this.bindBlock(block)
       for (const element of root.querySelectorAll("*")) this.bindAttributes(element)
       for (const text of this.holeTexts(root)) this.bindText(text)
@@ -106,7 +116,7 @@ export class LayoutSpell {
     const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
     for (let node = walker.nextNode(); node; node = walker.nextNode()) {
       const text = node as Text
-      if (text.parentElement?.closest(`${SPELL_TAG}, script, style`)) continue
+      if (text.parentElement?.closest(`${SPELL_TAG}, script, style`) || this.markdownTexts.has(text)) continue
       if (HOLE.test(text.data)) texts.push(text)
     }
     return texts
@@ -145,6 +155,32 @@ export class LayoutSpell {
       const read = this.compileOrShow(spell, "expression", element.parentElement)
       if (read) this.live(read, (shown) => LayoutSpell.setAttribute(element, name, shown))
     }
+  }
+
+  ////////////////
+  // ## `<markdown>` blocks
+  ////////////////
+
+  /**
+   * A `<markdown>` block, drawn by Spell UI's `<ui-markdown>` instead:  its holes live, as text's are (P14, Q22, Q23).
+   * - Its holes split as a drawing's `<markdown>` splits them (`SP.MarkdownBlock.partsOf()`):
+   *   code keeps its braces, and `\{` is a brace.
+   * - Its text is the page's:  the browser has read it as HTML, so a `<` in it is `&lt;`.
+   * - The whole markdown is drawn again when a hole's value changes.
+   */
+  private bindMarkdown(block: Element): void {
+    const drawn = document.createElement(UI_MARKDOWN_TAG)
+    const text = document.createTextNode("")
+    drawn.append(text)
+    this.markdownTexts.add(text)
+    const reads = SP.MarkdownBlock.partsOf(block.textContent ?? "").map((part) =>
+      typeof part === "string" ? part : this.compileOrShow(part.hole, "expression", block.parentElement)
+    )
+    block.replaceWith(drawn)
+    this.undoes.push(() => drawn.replaceWith(block))
+    const read = () =>
+      reads.map((part) => (typeof part === "string" ? part : part ? this.textOf(part(undefined)) : "⚠")).join("")
+    this.live(read, (shown) => (text.data = shown as string))
   }
 
   ////////////////
@@ -342,6 +378,9 @@ export type LayoutSpellOptions = {
 
 /** The attribute a click runs. */
 const ACTION = "action"
+
+/** Spell UI's markdown element, which draws a `<markdown>` block. */
+const UI_MARKDOWN_TAG = "ui-markdown"
 
 /** What `it` is called, to spell and in the compiled javascript. */
 const IT = "it"
