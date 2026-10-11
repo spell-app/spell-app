@@ -79,6 +79,29 @@ classes.addRule(CSSBlock, {
             "    .red { color: crimson }",
             "  `",
             "}"
+          ],
+          [
+            "export class Card extends Drawable {",
+            '  static elementTag = spellCore.defineElement(this, "test_classes")',
+            "",
+            "  static css = css`",
+            "    .red { color: crimson }",
+            "  `",
+            "}",
+            "",
+            "/**",
+            " * `<test-class-card>`:  a card, drawn in its own element, e.g. by `draw the card`.",
+            " * - The page defines its tag with this class:  `spellCore.useElement()`, below.",
+            " * - Its attributes are its card's properties;  its methods call its card's.",
+            " * - What every drawable thing's element does, e.g. drawing its card, is `SpellElement`'s.",
+            " */",
+            "export class CardElement extends SpellElement<Card> {",
+            '  @E.proto static vocabulary = SpellElement.vocabularyFor("test-class-card", "card", [])',
+            "  @E.protoMerged static elementSetup = {",
+            '    styleSheets: { "test-class-card": Card.css }',
+            "  } satisfies Partial<E.ElementSetup>",
+            "}",
+            "spellCore.useElement(Card, CardElement)"
           ]
         ]
       ]

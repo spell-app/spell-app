@@ -3,6 +3,8 @@ import { flush } from "solid-js"
 import h from "@solidjs/h"
 
 import { spellCore, App, Drawable, DrawableList } from "$/core"
+import { P } from "$/parser"
+import { E } from "$/ui/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
 import { installSpellElements, SpellElement } from "./SpellElement"
 
@@ -602,6 +604,130 @@ describe("SpellElement", () => {
 
       chip.removeAttribute("home")
       expect(thing.home).toBeUndefined()
+    })
+  })
+
+  describe("an element class compiled TypeScript hands over:  the page builds the tag on it (P10)", () => {
+    /** A tile, labelled, drawn as its label. */
+    class Tile extends Drawable {
+      static elementTag = spellCore.defineElement(this, "Board")
+      static css = ".tile { color: rgb(7, 8, 9) }"
+      get label() {
+        return this.getProp("label")
+      }
+      set label(value) {
+        this.setProp("label", value)
+      }
+      get size() {
+        return this.getProp("size")
+      }
+      set size(value) {
+        this.setProp("size", value)
+      }
+      flip() {
+        return `flipped ${this.label}`
+      }
+      poke() {
+        return "poked"
+      }
+      draw(): ReturnType<Drawable["draw"]> {
+        return (h("span", { class: "tile" }, () => `${this.label}`) as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    Tile.declareProp("label", { type: "text" })
+    Tile.declareProp("size", { type: "number" })
+
+    /** Its element class, as compiled TypeScript writes one:  only what's the tile's own, and a method of its own. */
+    class TileElement extends SpellElement<Tile> {
+      @E.proto static vocabulary = SpellElement.vocabularyFor("board-tile", "tile", [
+        { name: "label", kind: "string", description: "Its label, as written." },
+        { name: "glow", kind: "boolean", description: "None of a tile's properties." }
+      ])
+      @E.protoMerged static elementSetup = {
+        styleSheets: { "board-tile": Tile.css }
+      } satisfies Partial<E.ElementSetup>
+
+      flip() {
+        return `element: ${this.currentThing?.flip()}`
+      }
+    }
+    spellCore.useElement(Tile, TileElement)
+
+    /** A tile with a sheet of its own too, and an element class saying only that. */
+    class Gem extends Tile {
+      static elementTag = spellCore.defineElement(this, "Board")
+      static css = ".tile { background-color: rgb(4, 5, 6) }"
+    }
+    class GemElement extends SpellElement<Gem> {
+      @E.proto static vocabulary = SpellElement.vocabularyFor("board-gem", "gem", [])
+      @E.protoMerged static elementSetup = {
+        styleSheets: { "board-gem": Gem.css }
+      } satisfies Partial<E.ElementSetup>
+    }
+    spellCore.useElement(Gem, GemElement)
+
+    type TileTag = HTMLElement & {
+      label: unknown
+      size: unknown
+      flip(): string
+      poke(): string
+      component?: SpellElement<Tile>
+    }
+
+    test("its tag is built on the class:  its attributes, then the type's it left out;  its sheet", async () => {
+      await Promise.resolve()
+      const element = await ElementFixture.render<TileTag>('<board-tile label="A" glow></board-tile>')
+      await ElementFixture.settle(element)
+      spellCore.flush()
+      flush()
+      expect(element.component).toBeInstanceOf(TileElement)
+      const attributes = element.component!.vocabulary.attributes as readonly E.AttributeSpec[]
+      expect(attributes.map((attribute) => attribute.name)).toEqual(["thing", "label", "size", "glow"])
+      expect(attributes.find((attribute) => attribute.name === "label")!.description).toBe("Its label, as written.")
+      const tile = element.shadowRoot!.querySelector(".tile")!
+      expect(tile.textContent).toBe("A")
+      expect(getComputedStyle(tile).color).toBe("rgb(7, 8, 9)")
+
+      // the element and its thing agree, as for a bare element:  one the class names, and one it left out
+      element.label = "B"
+      element.size = 3
+      spellCore.flush()
+      flush()
+      expect(element.component!.currentThing!.label).toBe("B")
+      expect(element.component!.currentThing!.size).toBe(3)
+    })
+
+    test("a method the class writes is the element's;  the type's others call its thing", async () => {
+      const element = await ElementFixture.render<TileTag>('<board-tile label="C"></board-tile>')
+      await ElementFixture.settle(element)
+      expect(element.flip()).toBe("element: flipped C")
+      expect(element.poke()).toBe("poked")
+    })
+
+    test("its own sheet comes after its super-types', as for javascript", async () => {
+      const element = await ElementFixture.render<TileTag>('<board-gem label="D"></board-gem>')
+      await ElementFixture.settle(element)
+      flush()
+      const tile = element.shadowRoot!.querySelector(".tile")!
+      expect(getComputedStyle(tile).color).toBe("rgb(7, 8, 9)")
+      expect(getComputedStyle(tile).backgroundColor).toBe("rgb(4, 5, 6)")
+    })
+
+    test("the page defines the tag once:  defining it again keeps it", () => {
+      const defined = customElements.get("board-tile")
+      SpellElement.defineFor("board-tile", Tile, spellCore)
+      expect(customElements.get("board-tile")).toBe(defined)
+    })
+
+    test("the TypeScript writer knows every member an element has:  a type's method of that name is left out", async () => {
+      const element = await ElementFixture.render<TileTag>("<board-tile></board-tile>")
+      await ElementFixture.settle(element)
+      const names = new Set(Object.getOwnPropertyNames(element.component))
+      for (let at: object | null = SpellElement.prototype; at && at !== Object.prototype; at = Object.getPrototypeOf(at)) {
+        for (const name of Object.getOwnPropertyNames(at)) names.add(name)
+      }
+      names.delete("constructor")
+      expect([...names].filter((name) => !P.TSWriter.ELEMENT_MEMBERS.has(name)).sort()).toEqual([])
     })
   })
 })

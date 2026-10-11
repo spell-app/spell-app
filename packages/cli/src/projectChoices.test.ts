@@ -30,7 +30,8 @@ describe("projectChoices()", () => {
       "@test/FizzBuzz/",
       "@test/Klondike/",
       "@test/OutlineSolitaire/",
-      "@test/Solitaire/"
+      "@test/Solitaire/",
+      "@test/ThingReferences/"
     ])
     expect(await values("@test/sol")).toEqual(["@test/Solitaire/"])
   })

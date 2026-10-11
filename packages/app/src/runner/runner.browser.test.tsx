@@ -108,6 +108,34 @@ game.start()
 globalThis.cardGame = { ace, king, game, Card }
 `
 
+/**
+ * A drawable tile, with an element class of its own handed to the page, as compiled TypeScript does (epic
+ * `drawable-thing` P10):  `TileElement`, from `@spell/elements`, with a method of its own.
+ * - Plain javascript, so no decorators:  its vocabulary and sheet are the page's, as for a bare element.
+ */
+const HANDED = `
+import { spellCore, App, Drawable, h } from "@spell/core"
+import { SpellElement } from "@spell/elements"
+export class Tile extends Drawable {
+  static elementTag = spellCore.defineElement(this, "Handed")
+  get label() { return this.getProp('label') }
+  set label(value) { this.setProp('label', value) }
+  tap() { return "tapped " + this.label }
+  poke() { return "poked " + this.label }
+  draw() { return h("span", { class: "tile" }, () => this.label) }
+}
+export class TileElement extends SpellElement {
+  tap() { return "tapped by its element:  " + this.currentThing?.label }
+}
+spellCore.useElement(Tile, TileElement)
+export class Board extends App {
+  draw() { return h("div", { class: "board" }, () => spellCore.drawThing(tile)) }
+}
+export let tile = new Tile({ label: "A" })
+export let board = new Board()
+board.start()
+`
+
 /** What `CARDS` leaves on `globalThis`, for a test to play with. */
 type CardGame = {
   ace: { rank: string; isFaceDown: boolean }
@@ -391,6 +419,18 @@ describe("compiled spell draws with Solid", () => {
     expect(header.getAttribute("slot")).toBe("header")
     expect(header.assignedSlot?.name).toBe("header")
     expect(header.assignedSlot?.parentElement?.className).toBe("header")
+  })
+
+  test("an element class the program hands over, from `@spell/elements`:  the page defines its tag on it (P10)", async () => {
+    const host = await mount(source(HANDED, "Board"))
+    type TileElement = HTMLElement & { tap(): string; poke(): string }
+    const tile = await waitFor(() => host.querySelector<TileElement>("handed-tile"))
+    await ElementFixture.settle(host)
+    await waitFor(() => tile.shadowRoot?.querySelector(".tile")?.textContent === "A")
+    expect(host.querySelector(".spell-draw-error")).toBeNull()
+    // its own method, and the tile's other one, through the tile
+    expect(tile.tap()).toBe("tapped by its element:  A")
+    expect(tile.poke()).toBe("poked A")
   })
 
   test("`Drawable Solitaire` run again, edited, on the same page:  its tags stay, its cards take the new <css>", async () => {

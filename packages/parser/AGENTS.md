@@ -43,6 +43,8 @@ Only what's local is below;  a section named like a WWOD rule extends it.
     - It extends `P.JSWriter`, adding only what's TypeScript's own:
       - real JSX, decorators, the types spell knows
       - `!` where `?.` can't go
+      - a drawable type's element class, `class CardElement extends SpellElement<Card>`, from `@spell/elements`
+        (`elementClassFor()`, epic `drawable-thing` P10)
   - [jsShapes.ts](src/writers/jsShapes.ts):  the pure helpers both share (not in the barrel)
   - `P.jsText`:  their punctuation
 - No UI framework, no JSX, no DOM.
