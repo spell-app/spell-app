@@ -36,6 +36,12 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - The page makes the element, through `spellCore.elementDefiner`:
     app's [SpellElement.tsx](../app/src/runner/SpellElement.tsx) fills it in.
   - Core never imports Spell UI.
+- A thing named in text, its REFERENCE:  `Tableau#T1` by its name, `Tableau#1` by its place (epic `drawable-thing` P18).
+  - In [references.ts](src/references.ts):  `thingForReference()`, `thingNamed()`, `thingAtPlace()`, `referenceFor()`.
+  - A name finds a sub-type's thing too:  `Pile#T1` is the tableau T1.
+    A place counts the type's own things, in the order they were made.
+  - A drawable element's attribute holds one (`pile="Tableau#T1"`), and so do spell's words for one thing
+    (`tableau T1`, `the first tableau`).
 
 ## Who may value-import it
 

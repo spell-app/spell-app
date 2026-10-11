@@ -15,6 +15,15 @@ describe("drawable things' elements", () => {
     expect(elementTagFor("", "Card")).toBe("spell-card")
   })
 
+  test("the word drawable is left out of the project's name (P18)", () => {
+    expect(elementTagFor("Drawable Solitaire", "Tableau")).toBe("solitaire-tableau")
+    expect(elementTagFor("DrawableSolitaire", "StockPile")).toBe("solitaire-stock-pile")
+    expect(elementTagFor("My Drawables", "Card")).toBe("my-card")
+    expect(elementTagFor("Drawable", "Card")).toBe("spell-card")
+    // only the project's:  a class's own name keeps it
+    expect(elementTagFor("Games", "DrawableCard")).toBe("game-drawable-card")
+  })
+
   test("defineElement() names a drawable class's tag as it's declared;  the page hears of it once the class is whole", async () => {
     const defined: string[] = []
     spellCore.elementDefiner = (tag, Class) => defined.push(`${tag} ${Class.name}`)
@@ -69,6 +78,27 @@ describe("elementApiOf():  what a drawable class shows on its element", () => {
       ],
       methods: ["wink", "turn_over"]
     })
+  })
+
+  test("a list it makes for itself is a list;  a list it belongs to is a property, the list holding it (P18)", () => {
+    class Chip extends Drawable {}
+    Chip.declareProp("marks", { init: () => [] })
+    class Heap extends DrawableList<Chip> {
+      static instanceType = Chip
+    }
+    Heap.exclusive = true
+    Object.defineProperty(Chip.prototype, "heap", {
+      get(this: Chip) {
+        return Heap.ownerOf(this)
+      },
+      configurable: true
+    })
+    // the program's classes are known once one of their things is made
+    new Heap()
+    expect(spellCore.elementApiOf(Chip).properties).toEqual([
+      { name: "marks", type: "list" },
+      { name: "heap", type: "Heap", owner: true }
+    ])
   })
 })
 

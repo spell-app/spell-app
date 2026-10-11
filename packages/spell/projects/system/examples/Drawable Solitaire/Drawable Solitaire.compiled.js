@@ -4,7 +4,7 @@ spellCore.heading("definition of a Card with nice english aliases for working wi
 ////////////////////////////////////////////////////////////////////////
 // ## definition of a Card with nice english aliases for working with it
 ////////////////////////////////////////////////////////////////////////
-/** a drawable thing:  each card draws in its own element, <drawable-solitaire-card>, with its own styles */
+/** a drawable thing:  each card draws in its own element, <solitaire-card>, with its own styles */
 export class Card extends Drawable {
   static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
 
@@ -310,7 +310,7 @@ spellCore.heading("Pile of playing cards")
 ///////////////////////////
 // ## Pile of playing cards
 ///////////////////////////
-/** a drawable list:  each pile is its own element, <drawable-solitaire-pile>, holding its cards' elements */
+/** a drawable list:  each pile is its own element, <solitaire-pile>, holding its cards' elements */
 export class Pile extends DrawableList {
   static instanceType = Card
   static elementTag = spellCore.defineElement(this, "Drawable Solitaire")

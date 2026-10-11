@@ -5,6 +5,7 @@ import type { stringMethods } from "./string"
 import type { uiMethods } from "./ui"
 import type { drawingMethods } from "./drawing"
 import type { elementsMethods } from "./elements"
+import type { referencesMethods } from "./references"
 import type { pathMethods } from "./paths"
 import type { testMethods } from "./tests"
 import type { consoleMethods } from "./console"
@@ -60,6 +61,7 @@ export type SpellCore = typeof coreMethods &
   typeof uiMethods &
   typeof drawingMethods &
   typeof elementsMethods &
+  typeof referencesMethods &
   typeof pathMethods &
   typeof testMethods &
   typeof consoleMethods &

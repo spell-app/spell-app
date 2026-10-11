@@ -3,8 +3,9 @@
   A spell project's drawable types, used on a plain page by their tags.
   - Served by the dev server at `/demo/drawable-elements.html`, after `yarn build:element` (epic `drawable-thing`, P8).
   - The hidden `<spell-app>` runs `@examples/Drawable Solitaire`, which defines its tags:
-    `<drawable-solitaire-card>`, `<drawable-solitaire-pile>` ...
-  - The tags below are written by hand:  each makes its own card or pile from its attributes.
+    `<solitaire-card>`, `<solitaire-pile>` ...
+  - The tags below are written by hand:  each makes its own card or pile from its attributes,
+    except the tableau, which names the hidden game's first tableau by a reference, `thing="Tableau#1"` (P18).
   - Its buttons call a card's methods and set its properties, as any page's script could.
   - The ace's tag is shown below them, live:  its attributes follow its thing both ways (P13),
     so `ace.turnOver()` changes `direction` on the tag, as the browser's inspector shows too.
@@ -43,16 +44,22 @@
 
     <h2>Cards, written by hand</h2>
     <div class="table">
-      <drawable-solitaire-card id="ace" rank="ace" suit="spades" direction="up"></drawable-solitaire-card>
-      <drawable-solitaire-card rank="queen" suit="hearts" direction="up"></drawable-solitaire-card>
-      <drawable-solitaire-card rank="7" suit="clubs" direction="down"></drawable-solitaire-card>
+      <solitaire-card id="ace" rank="ace" suit="spades" direction="up"></solitaire-card>
+      <solitaire-card rank="queen" suit="hearts" direction="up"></solitaire-card>
+      <solitaire-card rank="7" suit="clubs" direction="down"></solitaire-card>
     </div>
 
     <h2>A pile holding cards</h2>
     <div class="table">
-      <drawable-solitaire-pile>
-        <drawable-solitaire-card rank="king" suit="diamonds" direction="up"></drawable-solitaire-card>
-      </drawable-solitaire-pile>
+      <solitaire-pile>
+        <solitaire-card rank="king" suit="diamonds" direction="up"></solitaire-card>
+      </solitaire-pile>
+    </div>
+
+    <h2>The hidden game's first tableau, named by a reference</h2>
+    <!-- its cards are the game's own:  each shows the pile holding it, pile="Tableau#T1" -->
+    <div class="table">
+      <solitaire-tableau thing="Tableau#1"></solitaire-tableau>
     </div>
 
     <h2>A card's methods and properties, from the page's script</h2>

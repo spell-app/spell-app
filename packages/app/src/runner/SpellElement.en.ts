@@ -25,7 +25,9 @@ export const spellElementVocabulary = {
     {
       name: "thing",
       kind: "json",
-      description: "The thing it draws:  set by the program that draws it, e.g. `draw the card`."
+      description:
+        "The thing it draws:  set by the program that draws it, e.g. `draw the card`.  " +
+        'Or, written in markup, a reference to one of the program\'s things:  `thing="Pile#stock"`.'
     }
   ],
   events: [],
