@@ -39,6 +39,18 @@
 .spell-choices-no-file th:nth-child(2) {
   width: 30%;
 }
+/* stacked (the data's `stacked: true`):  Purpose, then ONE Syntax column, today's text over the box */
+.spell-choices-stacked.spell-choices-no-file th:nth-child(1) {
+  width: 45%;
+}
+.spell-choices-stacked.spell-choices-no-file th:nth-child(2) {
+  width: auto;
+}
+.spell-choice-was {
+  display: inline-block;
+  margin-bottom: 4px;
+  white-space: pre-wrap;
+}
 .spell-choices-table :is(td, th) {
   vertical-align: top;
   overflow-wrap: anywhere;

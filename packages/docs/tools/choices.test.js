@@ -102,6 +102,14 @@ test("new:  fileColumn false is kept beside the rows, so the page drops its File
   expect(() => checkData({ ...DATA, fileColumn: "no" })).toThrow(/fileColumn is true or false/)
 })
 
+test("new:  stacked true is kept beside the rows (one Syntax column);  two columns by default", () => {
+  const file = createPage(docs, "stacked", { epic: "big", data: { ...DATA, fileColumn: false, stacked: true } })
+  expect(readRows(file)).toMatchObject({ fileColumn: false, stacked: true })
+  const plain = createPage(docs, "not-stacked", { epic: "big", data: { ...DATA, stacked: false } })
+  expect("stacked" in readRows(plain)).toBe(false)
+  expect(() => checkData({ ...DATA, stacked: "yes" })).toThrow(/stacked is true or false/)
+})
+
 test("new:  a scratch page, the --title flag beating the data's", () => {
   const file = createPage(docs, "scratch-names", { title: "Other", data: DATA })
   expect(file).toBe(join(docs, "pages/details/scratch-names.html"))

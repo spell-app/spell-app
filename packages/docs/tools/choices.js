@@ -124,8 +124,9 @@ export function createPage(docs, slug, { title, epic, description, data } = {}) 
   fillPage(document, checked)
   mkdirSync(folder, { recursive: true })
   writeFileSync(file, serialize(document))
-  const { sections, rows, fileColumn } = checked
-  const kept = fileColumn === false ? { fileColumn, sections, rows } : { sections, rows }
+  const { sections, rows, fileColumn, stacked } = checked
+  // the layout flags, kept only when they change the default (`syntax-choices.js` reads them)
+  const kept = { ...(fileColumn === false && { fileColumn }), ...(stacked === true && { stacked }), sections, rows }
   writeFileSync(rowsFile(file), `${JSON.stringify(kept, null, 2)}\n`)
   return file
 }
@@ -157,6 +158,8 @@ export function checkData(data) {
   if (!Array.isArray(sections) || !sections.length) throw new Error("rows:  no sections")
   if (data.fileColumn !== undefined && typeof data.fileColumn !== "boolean")
     throw new Error(`rows:  fileColumn is true or false:  ${json(data.fileColumn)}`)
+  if (data.stacked !== undefined && typeof data.stacked !== "boolean")
+    throw new Error(`rows:  stacked is true or false:  ${json(data.stacked)}`)
   for (const section of sections)
     if (!section?.id || !section.title) throw new Error(`rows:  a section needs an id and a title:  ${json(section)}`)
   const known = new Set(sections.map((section) => section.id))
@@ -290,11 +293,13 @@ async function waitAndPrint(file, flags) {
 
 /**
  * What `new --rows` reads:  a whole page as data.  `new` writes `sections` and `rows` (ids filled in), and
- * `fileColumn` when false, beside the page as `<slug>.rows.json`;  the rest goes into the page.
+ * `fileColumn` when false and `stacked` when true, beside the page as `<slug>.rows.json`;  the rest goes into the page.
  * - `title`, `lede`, `askedBy` (`session <code>x</code>, while ...`);  HTML allowed except in `title`
  * - `fileColumn`:  `false` drops the page's File column, for rows whose place in the code doesn't matter to the
  *   reader (a list of commands, epic `epic-workflow` CM4);  the rows still name their `file` and `line`, which
  *   `answer` / `wait` print for Claude.  Default:  shown
+ * - `stacked`:  `true` puts Current and Recommended in one Syntax column, today's text over the box (Owen, 2026-10-11,
+ *   the epic command's review page).  Default:  two columns
  * - `where`:  `{ epic, justNow, decides }`, the "Where we are" box, as a details page's
  * - `sections[]`:  `{ id, title, description? }`, in page order;  `description`:  one line saying which question it
  *   answers and the recommended rule;  `` `code` `` in it is shown as code
