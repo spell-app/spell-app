@@ -552,6 +552,8 @@ export class JSWriter extends ProgramWriter {
     const [first, ...rest] = args
     const name = node.methodName
     if (name === "isDefined" && first) return `${this.tight(first)} !== undefined`
+    // javascript's own rounding (Owen, on Q29):  `Math.round()`, `Math.ceil()`, `Math.floor()`
+    if (first && name in ROUNDING) return `Math.${ROUNDING[name]}(${this.bare(first)})`
     if (EVENTS.has(name)) return this.eventCall(name, args)
     if (!first) return undefined
     const kind = this.kindOf(first)
@@ -1489,3 +1491,6 @@ function propertyAccess(name: string): string {
 function doubleQuoted(text: string): string {
   return /^'[^'"\\]*'$/.test(text) ? `"${text.slice(1, -1)}"` : text
 }
+
+/** spell's rounding, `round price up`, as javascript says it:  `Math.ceil(price)` -- see `coreCall()`. */
+const ROUNDING: Record<string, string> = { round: "round", roundUp: "ceil", roundDown: "floor" }
