@@ -85,7 +85,13 @@ export function gate(input, window) {
   if (!command) return null
   const { skill, name, text } = command
   // a future epic is only written down:  no worktree, so nothing to block;  its own icon
-  if (skill === "epic future") return rename(input, `${TITLE_ICONS.future} ${name}`)
+  // ... but never over another epic's session:  it keeps its title, the address its requests come to
+  // (epic `epic-workflow` I5:  `/epic future output-wasm` retitled `🚧 epic-workflow`)
+  if (skill === "epic future") {
+    const own = epicOfTitle(input.session_title)
+    if (own && own !== name) return null
+    return rename(input, `${TITLE_ICONS.future} ${name}`)
+  }
 
   if (skill === "isolate" || skill === "epic") {
     if (input.permission_mode === "plan") {

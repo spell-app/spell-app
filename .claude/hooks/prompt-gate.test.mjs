@@ -226,6 +226,13 @@ test("gate:  `/epic review <name>` in a session titled for ANOTHER epic is refus
   assert.equal(epicOfTitle("main work"), null)
 })
 
+test("gate:  `/epic future <name>` in a session titled for ANOTHER epic leaves its title alone (epic-workflow I5)", () => {
+  const future = (session_title) => gate({ prompt: "/epic future wasm an idea", cwd: ROOT, session_title }, PACKAGE_WINDOW)
+  assert.equal(future("🚧 epic-workflow"), null)
+  assert.equal(future(undefined).hookSpecificOutput.sessionTitle, "📅 wasm")
+  assert.equal(future("some main work").hookSpecificOutput.sessionTitle, "📅 wasm")
+})
+
 test("gate:  `/epic request <epic> <rN>` renames the session for the epic, never blocks;  refused in another epic's", () => {
   assert.deepEqual(parseCommand("/epic request epic-workflow r3"), {
     skill: "epic request",

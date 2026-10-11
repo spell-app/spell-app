@@ -735,7 +735,8 @@ Write an idea down as a FUTURE epic (epic `epic-future`, 2026-10-07).
 - A stub plan doc and an analysis page;  NO plan, worktree, window or phases.
 - `/epic <name>` plans it later, from what this leaves.
 
-- Runs from ANY window, `main` or a worktree:  the prompt hook lets it through, and titles the session `📅 <name>`.
+- Runs from ANY window, `main` or a worktree:  the prompt hook lets it through, and titles the session `📅 <name>`;
+  not one titled for another epic, which keeps its title (epic-workflow I5).
   - No worktree, no plan mode, no move.
 1. Name, collisions, kickoff prompt:  as "1. Name".
    - The rest of the text is the idea, kept verbatim in `~/.spell/prompts/<name>.md` until the doc holds it.
