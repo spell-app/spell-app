@@ -1,0 +1,2 @@
+47:9 TS2339 Property 'test-project-pile' does not exist on type 'JSX.IntrinsicElements'.
+49:9 TS2339 Property 'test-project-pile' does not exist on type 'JSX.IntrinsicElements'.

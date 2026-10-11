@@ -43,6 +43,7 @@ export {
   BlockLine,
   parseExpression,
   Negatable,
+  SPELL_TAG_NAMES,
   type JSXMatchData
 } from "./rules"
 

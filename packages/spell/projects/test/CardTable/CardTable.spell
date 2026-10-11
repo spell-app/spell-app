@@ -1,0 +1,35 @@
+## A card table:  a drawable list whose frame has a named place, filled by a child that says it goes there
+
+a card is a drawable thing
+a card has a rank as text
+
+to draw a card:
+	return <div className="card">{its rank}</div>
+
+// its frame:  a header place, then where its cards show
+a pile is a drawable list of cards
+a pile has a name as text
+
+to draw a pile:
+	return <div className="pile">
+		<div className="header"><children name="header"/></div>
+		<children/>
+	</div>
+
+a table is an app
+set the table to a new table
+set the pile to a new pile with name = "Pile 1"
+add a new card with rank = "A" to the pile
+add a new card with rank = "K" to the pile
+
+// a pile written by hand, its <h3> in its header place
+// - its tag is its project's and its type's:  this fixture compiles as project "test-project"
+to draw a table:
+	return <div className="table">
+		{draw the pile}
+		<test-project-pile>
+			<h3 in="header">Discards</h3>
+		</test-project-pile>
+	</div>
+
+start the table

@@ -416,7 +416,7 @@
       ],
       "kind": "method",
       "name": "draw a game",
-      "defined": "/Solitaire.spell:6893-8289"
+      "defined": "/Solitaire.spell:6920-8316"
     },
     {
       "type": "StockPile",
@@ -434,7 +434,7 @@
       ],
       "kind": "method",
       "name": "draw a stock-pile",
-      "defined": "/Solitaire.spell:6664-6808"
+      "defined": "/Solitaire.spell:6683-6831"
     },
     {
       "type": "DiscardPile",
@@ -452,7 +452,7 @@
       ],
       "kind": "method",
       "name": "draw a discard-pile",
-      "defined": "/Solitaire.spell:6810-6891"
+      "defined": "/Solitaire.spell:6833-6918"
     },
     {
       "type": "Foundation",
@@ -470,7 +470,7 @@
       ],
       "kind": "method",
       "name": "draw a foundation",
-      "defined": "/Solitaire.spell:6293-6585"
+      "defined": "/Solitaire.spell:6304-6600"
     },
     {
       "type": "Tableau",
@@ -488,7 +488,7 @@
       ],
       "kind": "method",
       "name": "draw a tableau",
-      "defined": "/Solitaire.spell:6587-6662"
+      "defined": "/Solitaire.spell:6602-6681"
     },
     {
       "syntax": "debug the game",
