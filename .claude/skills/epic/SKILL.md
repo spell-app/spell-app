@@ -341,9 +341,12 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
    - An item talked through with Owen (he answered, accepted, or said leave it):
      `review <name> <id> "outcome"`, so the next `/epic review` doesn't bring it up again ("7. Review").
    - Changed a phase's PLAN (Owen's feedback, or something found while building):
-     - `updated <name> <N> "<p>what changed, and why</p>" [--summary "one line"]`:
+     - `updated <name> <N> "<p>what changed, and why</p>" --summary "..."`:
        an `<epic-update>` block at the end of the phase's description, after Goal:  **Update**: <summary>, dated.
        Never an "Updated" word in the text.
+     - ALWAYS pass `--summary`:  5-10 words saying WHAT changed (Owen, 2026-10-11).
+       Never who or when ("From Owen's comment CM2 ...", "Owen, 2026-10-11:"):  the text says who, the block shows when.
+       E.g. `--summary "Tab labelled App/UI, right after App"`.
      - Then `phase-body <name> <N> --changes ...` (or `--goal` ...), to make the fields say the new plan.
    - Changed a prose block:  put
      `<epic-update at="YYYY-MM-DD HH:MM" summary="what changed, one line" phase="N"><p>why</p></epic-update>`
