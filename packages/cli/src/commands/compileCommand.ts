@@ -2,6 +2,7 @@ import { basename } from "path"
 import { fileURLToPath } from "url"
 
 import { describeTypecheckError, typecheck } from "$/spell/node/typecheck"
+import { describePyrightError, pyright } from "$/spell/node/pyright"
 import { SP } from "$/spell"
 import { CLI } from "$/cli"
 
@@ -78,9 +79,11 @@ async function compileProject(
   if (!stdout && !session.problems(project).length) {
     wrote.push(await session.workspace.writeScopes(project, session.explorer))
   }
-  const checked = stdout ? { count: 0, details: [] } : typecheckTargets(session, project, targets)
+  const checked = stdout ? { counts: {}, details: [] } : typecheckTargets(session, project, targets)
   const notes = [
-    checked.count && `${checked.count} tsc error${checked.count === 1 ? "" : "s"}`,
+    ...Object.entries(checked.counts).map(
+      ([checker, count]) => count && `${count} ${checker} error${count === 1 ? "" : "s"}`
+    ),
     wrote.length && `wrote ${wrote.map((path) => session.relative(path)).join(", ")}`
   ]
   const note = notes.filter(Boolean).join(" · ") || undefined
@@ -88,28 +91,37 @@ async function compileProject(
 }
 
 /**
- * `tsc` on each of `project`'s targets checked by it (`ts/solid`), as just written:  its errors, as lines under the
- * project, e.g. `Solitaire.compiled.tsx:135:18  TS18048 ...`.
- * - Shown, NOT counted as the project's errors:  most come from `@spell/core`'s loose types, not the spell (epic
+ * Each of `project`'s targets' checker on it, as just written:  `tsc` on `ts/solid`, `pyright` on `py` (epic
+ * `python-target` P13).  Its errors, as lines under the project, e.g. `Solitaire.compiled.tsx:135:18  TS18048 ...`;
+ * how many, by checker.
+ * - Shown, NOT counted as the project's errors:  most come from the core's loose types, not the spell (epic
  *   `output-targets`, C5) -- the exit code stays the spell's.
  */
 function typecheckTargets(
   session: CLI.CliSession,
   project: SP.SpellProject,
   targets: SP.Target[]
-): { count: number; details: string[] } {
+): { counts: Record<string, number>; details: string[] } {
   const details: string[] = []
+  const counts: Record<string, number> = {}
   const projects = Object.fromEntries(
     Object.entries(CLI.importedOutputs(project)).map(([id, url]) => [id, fileURLToPath(url)])
   )
-  for (const target of targets.filter((it) => it.checkedBy === "tsc")) {
+  for (const target of targets) {
+    const checker = target.checkedBy
+    if (!checker) continue
     const file = project.outputFileFor(target)
     const name = basename(file.location.serverPath)
-    const { errors } = typecheck({ [name]: file.contents ?? "" }, { projects })
     const path = session.relative(file.location.serverPath)
-    details.push(...errors[name]!.map((error) => `${path}:${describeTypecheckError(error)}`))
+    const code = { [name]: file.contents ?? "" }
+    const found =
+      checker === "pyright"
+        ? pyright(code).errors[name]!.map(describePyrightError)
+        : typecheck(code, { projects }).errors[name]!.map(describeTypecheckError)
+    counts[checker] = (counts[checker] ?? 0) + found.length
+    details.push(...found.map((error) => `${path}:${error}`))
   }
-  return { count: details.length, details }
+  return { counts, details }
 }
 
 /**

@@ -523,6 +523,8 @@ export abstract class ProgramWriter extends Writer {
     const inner = unwrapped(node)
     if (inner instanceof P.ASTScopedMethodInvocation && inner.thing instanceof P.ASTSpellCoreExpression) {
       if (ProgramWriter.ITEM_READS.has(inner.methodName)) return true
+      // text written in another case is text, `""` for nothing
+      if (inner.methodName === "upperCase" || inner.methodName === "lowerCase") return false
       // a helper given what may be nothing gives nothing back, e.g. the cards of a random pile
       const [first] = inner.args.args ?? []
       return !!first && this.mayBeNothing(first)

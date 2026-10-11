@@ -18,7 +18,7 @@ import math
 from collections.abc import Callable, Iterator
 from contextlib import AbstractContextManager, contextmanager
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, overload
 
 from spell_core.js_text import js_string
 from spell_core.kinds import deep_equals
@@ -57,6 +57,14 @@ class SpellTestMethods:
     console: "SpellConsole"
     # the test running now, if any
     active_test: ActiveTest | None = None
+
+    @overload
+    def test(
+        self, message: object, test_method: None = None, collapse: bool = True
+    ) -> AbstractContextManager[None]: ...
+
+    @overload
+    def test(self, message: object, test_method: Callable[[], object], collapse: bool = True) -> None: ...
 
     def test(
         self, message: object, test_method: Callable[[], object] | None = None, collapse: bool = True

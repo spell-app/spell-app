@@ -3,7 +3,7 @@ import { P } from "$/parser"
 import { ProgramWriter } from "./ProgramWriter"
 import { Naming } from "./Naming"
 import * as pyText from "./pyText"
-import { attributeName, isCoreCall, unwrapped } from "./jsShapes"
+import { attributeName, isCoreCall, kindFromDatatype, unwrapped } from "./jsShapes"
 
 /****************
  * ### `PyWriter`
@@ -75,8 +75,13 @@ export class PyWriter extends ProgramWriter {
     // a pattern, `re.compile(...)`:  Python's `re`, first, as PEP 8 orders imports (the standard library's first)
     const withRe = /\bre\.compile\(/.test(imported) ? `import re\n${imported}` : imported
     // no import left, or a heading that writes nothing:  no blank lines first
-    return withRe.replace(/^\n+/, "")
+    const written = withRe.replace(/^\n+/, "")
+    // hints:  read when needed, so one may name a class written further down (`-> Pile` in `Card`)
+    return /\) -> |\w: [A-Z]\w*\b/.test(written) ? `${PyWriter.FUTURE}\n${written}` : written
   }
+
+  /** The line a module with type hints starts with:  every hint is read only when asked for (PEP 563). */
+  static FUTURE = "from __future__ import annotations\n"
 
   /**
    * A `.css` file's part, `spellCore.installStyles(undefined, \`...\`)`, as Python:
@@ -699,7 +704,8 @@ export class PyWriter extends ProgramWriter {
       doc = undefined
     }
     for (const statement of statements) {
-      if (this.project.moved.has(statement)) continue
+      // a member written outside its class goes in its class's body (`withProjectMembers()`):  written there, not here
+      if (!this.inClassBody && this.project.moved.has(statement)) continue
       if (statement instanceof P.ASTBlankLine) {
         pushDoc()
         markers = undefined
@@ -955,8 +961,9 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * `def name(args):` and its body, `doc` its docstring.
+   * `def name(args) -> hint:` and its body, `doc` its docstring.
    * - Its parameters are its body's own, so what they are is known (`kindOf()`).
+   * - Type hints where spell knows the kind (P13):  `def is_a_suit(self, suit: str) -> bool:` -- see `hintOf()`.
    */
   methodDefinition(
     node: P.ASTMethodDefinition,
@@ -964,23 +971,79 @@ export class PyWriter extends ProgramWriter {
     { name, first, decorators = [] }: { name?: string; first?: "self" | "cls"; decorators?: string[] } = {}
   ): string {
     const defName = name ?? (node.methodName ? this.nameOf(node.methodName) : "_")
-    const params = [...(first ? [first] : []), ...(node.args ?? []).map((arg) => String(this.write(arg)))].join(", ")
     const { inClassBody, returnContinues } = this
     this.inClassBody = false
     // a bare `return` in it is its own, even in a loop's body
     this.returnContinues = false
     try {
+      const params = [...(first ? [first] : []), ...(node.args ?? []).map((arg) => this.param(arg))]
+      const returns = this.returnHint(node)
       const body = this.inBlock(() => {
         this.noteParams(node)
         return this.blockBody(node.body)
       })
       const docstring = doc ? `${pyText.docstring(doc.lines)}\n` : ""
-      const header = [...decorators.map((decorator) => `@${decorator}`), `def ${defName}(${params})`]
+      const signature = `${pyText.call(`def ${defName}`, params)}${returns ? ` -> ${returns}` : ""}`
+      const header = [...decorators.map((decorator) => `@${decorator}`), signature]
       return pyText.block(header.join(pyText.NEWLINE), `${docstring}${body}`)
     } finally {
       this.inClassBody = inClassBody
       this.returnContinues = returnContinues
     }
+  }
+
+  /** A parameter, by our name, with its hint where spell knows its kind:  `suit: str`, `pile: Pile | None = None`. */
+  param(arg: P.ASTVariableExpression): string {
+    const name = this.variableName(arg)
+    const hint = this.hintOf(kindOfDatatype(arg.datatype ?? arg.variable?.datatype))
+    const defaultValue = arg.default ? this.bare(arg.default) : undefined
+    if (!hint) return defaultValue === undefined ? name : `${name}=${defaultValue}`
+    return defaultValue === undefined ? `${name}: ${hint}` : `${name}: ${hint} = ${defaultValue}`
+  }
+
+  /**
+   * What `method` returns, as a hint:  `None` when it never returns a value;  the kind all its returns share, `str`;
+   * `| None` after it when one may give nothing -- `undefined` when they differ or can't be told.
+   * - Worked out in its class, its parameters known -- see `ProgramWriter.returnedKinds()`.
+   */
+  returnHint(method: P.ASTMethodDefinition): string | undefined {
+    const returns: P.ASTReturnStatement[] = []
+    forEachReturn(method.body, (node) => returns.push(node))
+    if (!returns.some((it) => it.value)) return "None"
+    const kinds = this.inPlace({ typeName: this.currentClass ?? "", methods: [method] }, () =>
+      this.returnedKinds(method)
+    )
+    const values = kinds ? [...kinds] : []
+    // one that may end without a `return`, or `return` alone:  nothing too
+    const mayBeNothing =
+      !kinds || kinds.has("nothing") || returns.some((it) => it.value && this.returnsNothingMaybe(it.value, method))
+    const known = new Set(values.filter((kind) => kind !== "nothing"))
+    if (known.size !== 1) return undefined
+    const hint = this.hintOf([...known][0])
+    return hint && mayBeNothing ? `${hint} | None` : hint
+  }
+
+  /**
+   * May `value`, returned from `method`, be nothing?  As `mayBeNothing()` says, in `method`'s place;  also the list
+   * that owns a thing, `Pile.owner_of(card)`, as a card may be in no pile.
+   */
+  returnsNothingMaybe(value: P.ASTExpression, method: P.ASTMethodDefinition): boolean {
+    const inner = unwrapped(value)
+    if (inner instanceof P.ASTScopedMethodInvocation && inner.methodName === "ownerOf") return true
+    return this.inPlace({ typeName: this.currentClass ?? "", methods: [method] }, () => this.mayBeNothing(value))
+  }
+
+  /**
+   * Python's hint for a value of `kind` (`kindOf()`):  `str`, `float` (an `int` too, as PEP 484 has it), `bool`,
+   * a class, `List` (spell's), `list` -- `undefined` for one it can't tell.
+   */
+  hintOf(kind: string | undefined): string | undefined {
+    if (kind === "text") return "str"
+    if (kind === "number") return "float"
+    if (kind === "choice") return "bool"
+    if (kind === "list") return "List"
+    if (kind === "array") return "list"
+    return kind && this.project.isClass(kind) ? this.typeNameOf(kind) : undefined
   }
 
   /**
@@ -1259,6 +1322,19 @@ const PRECEDENCE: Record<P.ASTOperator, number> = {
 }
 
 /** `group`'s statements, and those of the groups in it, in order. */
+/** SIDE EFFECT:  calls `callback` with each `return` in `body` -- not one in a function inside it, which is its own. */
+function forEachReturn(body: unknown, callback: (node: P.ASTReturnStatement) => void): void {
+  if (Array.isArray(body)) return body.forEach((item) => forEachReturn(item, callback))
+  if (!(body instanceof P.ASTNode) || body instanceof P.ASTMethodDefinition) return
+  if (body instanceof P.ASTReturnStatement) callback(body)
+  for (const [key, value] of Object.entries(body)) if (key !== "match") forEachReturn(value, callback)
+}
+
+/** The kind (`kindOf()`'s word) of a value spell declares as `datatype`:  `text`, `number`, a class's name. */
+function kindOfDatatype(datatype: P.Datatype | RegExpConstructor | undefined): string | undefined {
+  return kindFromDatatype(datatype)
+}
+
 function flattened(group: P.ASTStatementGroup): P.ASTNode[] {
   return (group.statements ?? []).flatMap((statement) =>
     statement instanceof P.ASTStatementGroup && !(statement instanceof P.ASTTryCatchBlock)

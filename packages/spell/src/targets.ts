@@ -19,8 +19,8 @@ export type Target = {
   suffix: string
   /** What its runtime can do. */
   can: TargetAbilities
-  /** What checks its output after `spell compile`, e.g. `tsc` -- see `typecheck()` in `$/spell/node/typecheck`. */
-  checkedBy?: "tsc"
+  /** What checks its output after `spell compile`:  `tsc` (`typecheck()`), `pyright` (`pyright()`), in `$/spell/node`. */
+  checkedBy?: "tsc" | "pyright"
   /**
    * End of the name of its own words file, beside its output, e.g. `.py.en.json`:  spell's wording of each member,
    * keyed by THIS target's names (`move_to_pile`) -- see `SP.SpellWords.json()`.
@@ -54,7 +54,16 @@ export const TARGETS: Record<string, Target> = {
     writer: P.PyWriter.instance,
     suffix: ".compiled.py",
     can: { draw: "html" },
-    wordsSuffix: ".py.en.json"
+    wordsSuffix: ".py.en.json",
+    checkedBy: "pyright"
+  },
+  // The same Python on `asyncio`:  a function that pauses is `async def`, its callers await it (Q3 B, Q18)
+  "py/asyncio": {
+    name: "py/asyncio",
+    writer: P.PyAsyncWriter.instance,
+    suffix: ".compiled.asyncio.py",
+    can: { draw: "html" },
+    checkedBy: "pyright"
   }
 }
 

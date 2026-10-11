@@ -16,6 +16,7 @@ core.expect(len(deck), "the number of cards in the deck", 52, "52")
 
 from spell_core.collection_methods import CollectionMethods
 from spell_core.console import SpellConsole
+from spell_core.drawing_methods import DrawingMethods
 from spell_core.kinds import TypeMethods
 from spell_core.numbers import NumberMethods
 from spell_core.runtime_methods import RuntimeMethods
@@ -36,6 +37,7 @@ class SpellCore(
     TextMethods,
     RuntimeMethods,
     WordMethods,
+    DrawingMethods,
 ):
     """Everything compiled Python calls on `core`, each part in a module of its own:
 
@@ -47,19 +49,24 @@ class SpellCore(
     - checking a thing's properties, the program's classes, spell's JSON:  `thing_methods.py`
     - text:  `text_methods.py`
     - the running program's events and processes, and pauses:  `runtime_methods.py`, `events.py`
+    - drawing things, mounting an app, and the page it's drawn on:  `drawing_methods.py`, `drawing.py`
     - spell's wording of a program's members, for reflection:  `word_methods.py`
     - the console, `core.console`:  `console.py`
-    - the classes compiled Python extends, `Thing` and `List`:  `things.py`, `lists.py`
+    - the classes compiled Python extends, `Thing`, `List` and `App`:  `things.py`, `lists.py`, `apps.py`
 
     A program uses the one `core`;  a test makes its own, so nothing it does leaks into the next test.
     """
 
     def __init__(self, console: SpellConsole | None = None) -> None:
-        """A core printing to `console`, a new one when left out, with its random numbers seeded with 1."""
+        """A core printing to `console`, a new one when left out, with its random numbers seeded with 1.
+
+        - It draws on a page of its own, empty (`core.page`).
+        """
         self.console = console or SpellConsole()
         self.generator = ParkMiller(DEFAULT_SEED)
         self.active_test = None
         self.reset_runtime()
+        self.reset_page()
 
     def heading(self, text: str) -> None:
         """The program is running the code under heading `text` now:  compiled spell calls it at each heading.

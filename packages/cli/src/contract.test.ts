@@ -31,7 +31,7 @@ import { CLI } from "$/cli"
  *   how a thing looks dumped is each target's own business.
  * - Changed on purpose:  `yarn vp test run src/contract.test.ts -u`, then read the diff.
  */
-const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx", py: ".py" }
+const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx", py: ".py", "py/asyncio": ".py" }
 
 /** The seed every contract run starts its random numbers from. */
 const CONTRACT_SEED = 1
@@ -96,7 +96,9 @@ describe("the core contract:  every target prints the same", () => {
       name,
       async () => {
         // Python only where its writer writes the fixture so far -- see `PYTHON_FIXTURES`
-        const targets = Object.keys(SP.TARGETS).filter((target) => target !== "py" || PYTHON_FIXTURES.has(name))
+        const targets = Object.keys(SP.TARGETS).filter(
+          (target) => !target.startsWith("py") || PYTHON_FIXTURES.has(name)
+        )
         const [js, ...others] = await Promise.all(targets.map((target) => printed(name, target)))
         for (const [index, other] of others.entries()) {
           expect(other!.split("\n"), `${name} on ${targets[index + 1]}`).toEqual(js!.split("\n"))

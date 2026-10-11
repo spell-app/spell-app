@@ -24,12 +24,10 @@ DECLARATIONS: dict[str, Any] = json.loads(
 NOT_PORTED_YET = {
     # P11, pauses and events
     "forEachSequential",
-    "DEBUG_RUNTIME", "DEBUG_PROCESSES", "RUNTIME", "clearRuntime", "TIME_UNITS_MAP",
-    # P12, drawing:  `h()` builds HTML text
-    "App", "Drawable", "DrawableList",
-    "drawThing", "drawOwn", "drawItems", "mountApp", "installStyles",
+    "DEBUG_RUNTIME", "DEBUG_PROCESSES", "clearRuntime",
+    # a browser's only:  a drawable thing's own element (`<solitaire-card>`), a page's markup, its shadow root
     "elementDefiner", "defineElement", "elementFor", "elementApiOf", "thingFor", "elementTagOf",
-    "appLayout", "REACT_APP_ROOT_ID", "appRoot", "appElement", "domRoot",
+    "appLayout", "domRoot",
     # not yet decided:  a word of Python's own, a browser's only, or ported when a program needs it
     "doNothing", "flush", "TYPE_NAME_CONVERSIONS", "IS_OF_TYPE_SPECIALS", "get", "set", "absoluteValue", "repeat",
     "doubleQuote", "getPath", "setPath", "splitPath",
@@ -57,12 +55,13 @@ def js_name(statement: dict[str, Any]) -> str:
 def is_ported(statement: dict[str, Any]) -> bool:
     """Does spell_core have what `statement` declares?
 
-    - a member of `spellCore`:  on `core`, snake_cased
+    - a member of `spellCore`:  on `core`, snake_cased;  a constant may keep its capitals (`core.REACT_APP_ROOT_ID`)
     - a class:  on the package, by its own name
     - a function compiled code imports:  on `core` or the package, snake_cased
     """
     if statement.get("of") == "spellCore":
-        return hasattr(core, snake_case(js_name(statement)))
+        name = js_name(statement)
+        return hasattr(core, snake_case(name)) or (name.isupper() and hasattr(core, name))
     if "type" in statement:
         return hasattr(spell_core, statement["type"])
     name = snake_case(statement["name"])

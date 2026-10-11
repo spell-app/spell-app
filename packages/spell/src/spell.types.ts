@@ -463,6 +463,8 @@ export type SpellDeclaration = {
   params?: P.ScopeParam[]
   /** What a method returns, if known -- see `P.ScopeMethod.returns`. */
   returns?: string
+  /** A method that waits, e.g. `pause for 50 msec`:  `true`, else left out -- see `P.ScopeMethod.waits`. */
+  waits?: boolean
   /** `property`'s compiled initial value. */
   initializer?: string
   /** `classVariable`'s values as parsed, e.g. `["'clubs'", "'diamonds'"]`. */

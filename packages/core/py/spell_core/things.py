@@ -18,7 +18,8 @@ card.to_json()  # {"@type": "Card", "rank": "queen"}
 - Setting one checks it against what `prop()` declared, and warns on `core.console` if it isn't:
   the value is set anyway, as in JavaScript.
 - Its values are kept in a plain dict, in the order they were first set:  that's the order `to_json()` writes.
-- Unlike the JavaScript core's things, nothing is reactive:  there's no page to redraw.
+- Unlike the JavaScript core's things, nothing is reactive:  Python's page is drawn only when it's written
+  (`core.page`), so it shows each thing as it is then.
 - The classes are known by name as soon as they're defined, so `core.from_json()` can make them again.
 - The twin of the JavaScript core's `Thing` (`classes/Thing.ts`) and `Observable` (`$/util`).
 - Imports `core` only inside functions:  `core.py` imports this module, to build `core`.
@@ -283,9 +284,8 @@ class Thing(SpellObject, Eventful):
     - A name it doesn't declare reads as `None`, as spell reads a missing property:  see `SpellObject`.
     - Printed (`repr()`), it's its class and its properties, as Python writes a call to make it.
     - It has events of its own:  `card.on("click", ...)`, `card.trigger("click")` -- see `Eventful`.
+    - It draws when its class has a `draw()`, compiled from `to draw (a card)`:  see `core.draw_thing()`.
     """
-
-    # TODO: P12:  `draw()`, for `to draw a card`.
 
     @reprlib.recursive_repr("...")
     def __repr__(self) -> str:

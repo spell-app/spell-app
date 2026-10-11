@@ -47,5 +47,12 @@ describe("fixture projects compile to their snapshots", () => {
     test.runIf(PYTHON_FIXTURES.has(name))(`${name} as Python`, async () => {
       await expect(compiledFixture(name, "py")).toMatchFileSnapshot(fixturePath(name, `${name}.snapshot.py`))
     })
+
+    // the `py/asyncio` target's:  the same Python, a function that pauses `async def` and awaited
+    test.runIf(PYTHON_FIXTURES.has(name))(`${name} as Python on asyncio`, async () => {
+      await expect(compiledFixture(name, "py/asyncio")).toMatchFileSnapshot(
+        fixturePath(name, `${name}.snapshot.asyncio.py`)
+      )
+    })
   }
 })

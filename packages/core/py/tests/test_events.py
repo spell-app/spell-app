@@ -1,5 +1,6 @@
 """spell's events, processes and pauses (epic python-target, P11):  `events.py`, `runtime_methods.py`."""
 
+import asyncio
 import time
 
 import pytest
@@ -94,3 +95,40 @@ def test_a_pause_waits_unless_pauses_are_off(core: SpellCore) -> None:
 
 def test_ticks_are_sixtieths_of_a_second(core: SpellCore) -> None:
     assert core.TIME_UNITS_MAP["ticks"] == pytest.approx(1000 / 60)
+
+
+def test_an_async_pause_waits_unless_pauses_are_off(core: SpellCore) -> None:
+    start = time.perf_counter()
+    asyncio.run(core.sleep(30, "msec"))
+    assert time.perf_counter() - start >= 0.025
+    core.pauses = False
+    start = time.perf_counter()
+    asyncio.run(core.sleep(10, "seconds"))
+    assert time.perf_counter() - start < 0.05
+
+
+def test_an_async_handler_runs_to_its_end_outside_a_loop(core: SpellCore) -> None:
+    heard = []
+
+    @core.on("ping")
+    async def on_ping() -> None:
+        await core.sleep(1, "msec")
+        heard.append("ping")
+
+    core.trigger("ping")
+    assert heard == ["ping"]
+
+
+def test_an_async_handler_is_a_task_inside_the_loop(core: SpellCore) -> None:
+    heard = []
+
+    @core.on("ping")
+    async def on_ping() -> None:
+        heard.append("ping")
+
+    async def program() -> None:
+        core.trigger("ping")
+        await asyncio.sleep(0)
+
+    asyncio.run(program())
+    assert heard == ["ping"]

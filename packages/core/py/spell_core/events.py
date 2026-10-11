@@ -15,7 +15,9 @@ core.trigger("card-click", card=card)
 - A handler that fails doesn't stop the others:  its error is a warning on the program's console.
 """
 
-from collections.abc import Callable
+import asyncio
+import inspect
+from collections.abc import Callable, Coroutine
 from typing import Any
 
 # What a handler is called with:  the event, and what it was triggered on
@@ -106,9 +108,31 @@ class Eventful:
 
 
 def _call(handler: Handler, args: tuple[object, ...]) -> object:
-    """`handler(*args)`, given only as many arguments as it takes:  a handler may take the event alone, or nothing."""
+    """`handler(*args)`, given only as many arguments as it takes:  a handler may take the event alone, or nothing.
+
+    - An `async def` handler (the `py/asyncio` target's) runs too:  as a task when the program's loop is running, so
+      it goes on beside it, as javascript's does;  else to its end, there and then.
+    """
     code = getattr(handler, "__code__", None)
     if code is None or code.co_flags & 0x04:  # not plain Python, or takes `*args`:  everything
-        return handler(*args)
-    takes = code.co_argcount - (1 if hasattr(handler, "__self__") else 0)
-    return handler(*args[:takes])
+        result = handler(*args)
+    else:
+        takes = code.co_argcount - (1 if hasattr(handler, "__self__") else 0)
+        result = handler(*args[:takes])
+    return _run(result) if inspect.iscoroutine(result) else result
+
+
+# the handlers' tasks still running:  kept, so none is let go before it ends
+_tasks: set[asyncio.Task[object]] = set()
+
+
+def _run(coroutine: Coroutine[object, object, object]) -> object:
+    """Run an `async def` handler's `coroutine` -- see `_call()`:  its task, or what it returned."""
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(coroutine)
+    task = loop.create_task(coroutine)
+    _tasks.add(task)
+    task.add_done_callback(_tasks.discard)
+    return task
