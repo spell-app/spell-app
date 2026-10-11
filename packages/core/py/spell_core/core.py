@@ -14,6 +14,11 @@ core.expect(len(deck), "the number of cards in the deck", 52, "52")
   Loops, `len()`, `in`, `==` on plain values are Python's own.
 """
 
+from collections.abc import Iterator
+from contextlib import contextmanager
+from contextvars import ContextVar
+from typing import Any, cast
+
 from spell_core.collection_methods import CollectionMethods
 from spell_core.console import SpellConsole
 from spell_core.drawing_methods import DrawingMethods
@@ -54,7 +59,8 @@ class SpellCore(
     - the console, `core.console`:  `console.py`
     - the classes compiled Python extends, `Thing`, `List` and `App`:  `things.py`, `lists.py`, `apps.py`
 
-    A program uses the one `core`;  a test makes its own, so nothing it does leaks into the next test.
+    A program uses `core`, the one of the program running now:  `default_core`, or its host's (`using_core()`).
+    A test makes its own, so nothing it does leaks into the next test.
     """
 
     def __init__(self, console: SpellConsole | None = None) -> None:
@@ -77,5 +83,56 @@ class SpellCore(
         """
 
 
-# The one core every compiled program shares.
-core = SpellCore()
+# The core a program uses when nothing says otherwise:  a program run on its own, and the tests.
+default_core = SpellCore()
+
+# The core of the program running now, where a host gives each its own:  see `using_core()`.
+_current: ContextVar[SpellCore] = ContextVar("spell_core.current_core")
+
+
+def current_core() -> SpellCore:
+    """The core of the program running now:  the one `using_core()` gave, else `default_core`."""
+    return _current.get(default_core)
+
+
+@contextmanager
+def using_core(a_core: SpellCore) -> Iterator[SpellCore]:
+    """While in this block, `core` is `a_core`:  the program running here, and what it starts, use it.
+
+    ```python
+    with using_core(session.core):
+        run_program("Solitaire.compiled.asyncio.py")   # its handlers, pauses and things are the session's
+    ```
+
+    - By context (`contextvars`):  an asyncio task started in the block keeps it, e.g. a pause's timer.
+    - For a web app, a core per visitor (epic python-target P20, Q24 B).
+    """
+    token = _current.set(a_core)
+    try:
+        yield a_core
+    finally:
+        _current.reset(token)
+
+
+class CoreStandIn:
+    """`core`, as compiled Python imports it:  stands in for the core of the program running now (`current_core()`).
+
+    - Every name is the current core's:  `core.on(...)`, `core.pauses = False`.
+    - So one compiled program can run once per visitor, each with its own events, processes, random numbers and page.
+    """
+
+    def __getattr__(self, name: str) -> Any:
+        """The current core's `name`."""
+        return getattr(current_core(), name)
+
+    def __setattr__(self, name: str, value: object) -> None:
+        """Set the current core's `name`."""
+        setattr(current_core(), name, value)
+
+    def __repr__(self) -> str:
+        """`core`, and whose it is now."""
+        return f"core (now {current_core()!r})"
+
+
+# What compiled Python imports, `from spell_core import core`:  the core of the program running now.
+core: SpellCore = cast(SpellCore, CoreStandIn())

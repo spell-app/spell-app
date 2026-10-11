@@ -177,6 +177,15 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - state by id:  both write and read `stateById.expected.json`
   - the core contract (cli's [contract.test.ts](../cli/src/contract.test.ts)):
     a compiled program prints exactly what javascript prints, on both Python targets, `py` and `py/asyncio`
+- `py-quart/`:  `spell_quart`, a Python spell program served as a web app on Quart (epic `python-target` P20).
+  - A uv project of its own, depending on `spell_core` and Quart:  `spell_core` stays standard library only.
+  - `SpellSessions`:  a game per visitor (a cookie), the program run once for each on a core of its own
+    (`spell_core.core.using_core()`:  compiled Python's `core` stands in for the running program's);
+    a page per WebSocket, the state down when it opens, a patch after each message and at each pause
+    (`core.before_pause`).
+  - `page_html()`:  the page, loading the page side (app's `yarn build:page`, `dist-page/`) and the drawing half.
+  - Compiling to `py/asyncio` writes the app itself, `<Project>.app.py` (spell's `SP.quartApp()`).
+  - Core's yarn scripts run its pytest and ruff too;  cli's `quartApp.test.ts` plays Solitaire in headless Chromium.
 - The terminal-drawing study (P15 of epic `python-target`) is in `py/experiments/terminal`.
   - Its tests need their own uv group, `study`, so the runs above leave them out.
 

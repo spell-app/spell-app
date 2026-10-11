@@ -56,6 +56,9 @@ when working with code in this package, `@spell-app/app`.
   - `yarn build`:  the app.
     - `yarn build:runner`:  `dist-runner/`, VS Code's "Run Project" webview
     - `yarn build:element`:  `dist-element/`, `<spell-app>` and `<spell-editor>`, and their pack, `spell.pack.js`
+    - `yarn build:page`:  `dist-page/`, the page side of a Python spell app (epic `python-target` P20):
+      `spell-page.js` ([spellPage.ts](src/runner/spellPage.ts)), its `@spell/core`, which sets the page up itself;
+      core's `spell-quart` serves it
   - ONE Solid per page, across those bundles.
     - `vite.solid.config.ts` builds FIRST, into each folder:
       - `spell-solid.js`:  Solid, `ui`'s element core (`$/ui/core`) and its root family,

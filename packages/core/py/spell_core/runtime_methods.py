@@ -8,7 +8,9 @@
 """
 
 import asyncio
+import inspect
 import time
+from collections.abc import Awaitable, Callable
 from typing import Any, ClassVar
 
 from spell_core.events import Eventful, Handler, SpellEvent
@@ -43,17 +45,24 @@ class RuntimeMethods:
     RUNTIME: SpellRuntime
 
     def reset_runtime(self) -> None:
-        """Start the program again:  no handlers, no processes."""
+        """Start the program again:  no handlers, no processes, no one told of a pause."""
         self.RUNTIME = SpellRuntime()
+        self.before_pause: list[Callable[[], Awaitable[None] | None]] = []
 
     async def sleep(self, number: float, units: str = "seconds") -> None:
         """Wait `number` `units` without stopping the program's other work:  `await core.sleep(50, "msec")`.
 
         - The `py/asyncio` target's pause.
         - As `pause_for()`:  an unknown unit is seconds;  no wait at all when `pauses` is off.
+        - Each of `before_pause` is called first, and awaited if it's a coroutine:
+          a web page is sent what changed so far, so a game animates (epic python-target P20).
         """
         if not self.pauses:
             return
+        for listener in list(self.before_pause):
+            result = listener()
+            if inspect.isawaitable(result):
+                await result
         await asyncio.sleep(self._milliseconds(number, units) / 1000)
 
     def _milliseconds(self, number: float, units: str) -> float:

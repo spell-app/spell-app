@@ -101,3 +101,20 @@ function byId(value: unknown, mirror: StateMirror): unknown {
   }
   return value
 }
+
+/**
+ * Connect a page to its program over a WebSocket at `url`, e.g. a Quart app's `/ws` (epic `python-target` P20):
+ * the first message is the whole state, which starts the page (`startPage()`);  each after it, a patch.
+ * - What the page sends goes up the same socket, as JSON.
+ * - `modules`:  as `startPage()`'s.
+ */
+export function connectPage({ modules, url }: { modules: PageSpec["modules"]; url: string }): WebSocket {
+  const socket = new WebSocket(url)
+  let page: Page | undefined
+  socket.addEventListener("message", (event: MessageEvent<string>) => {
+    const data = JSON.parse(event.data) as unknown
+    if (page) page.receive(data)
+    else page = startPage({ modules, state: data, send: (message) => socket.send(JSON.stringify(message)) })
+  })
+  return socket
+}

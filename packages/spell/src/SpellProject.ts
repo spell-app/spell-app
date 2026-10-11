@@ -275,6 +275,41 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
   }
 
   /**
+   * SIDE EFFECT:  save `target`'s web app, if it has one written, and the one there is unedited (or there's none):
+   * an app someone has edited is theirs -- see `SP.isUneditedApp()`.
+   */
+  protected async saveAppFor(target: SP.Target): Promise<void> {
+    const appFile = this.appFileFor(target)
+    const text = this.appTexts.get(target.name)
+    if (!appFile || text === undefined) return
+    let there: string | undefined
+    try {
+      // what's on disk NOW, not what we hold:  a query of its own each time gets past the file's cache
+      there = (await appFile.load({ query: { fresh: Date.now() } })) as string | undefined
+    } catch {
+      there = undefined
+    }
+    if (!SP.isUneditedApp(there)) return
+    appFile.contents = text
+    await appFile.save(undefined)
+  }
+
+  /**
+   * Each target's web app as compiling last wrote it, by target name:  saved only over an unedited one
+   * (`saveAppFor()`).  Not in the app file itself, which holds what's on disk.
+   */
+  protected appTexts = new Map<string, string>()
+
+  /**
+   * File for `target`'s web app, beside its output, e.g. `Solitaire.app.py`.
+   * - `undefined` for a target with none (`SP.Target.appSuffix`).
+   */
+  appFileFor(target: SP.Target): SP.SpellJSFile | undefined {
+    if (!target.appSuffix) return undefined
+    return new SP.SpellJSFile(this.getFileLocation(`${this.projectName}${target.appSuffix}`)!.path)
+  }
+
+  /**
    * Return base `ProjectScope` for this project, given `parentScope`.
    * - Clones `parentScope`'s parser scoped to `this.path`, so rules added within project
    *   (e.g. custom types/macros) don't leak out to `parentScope` or sibling projects.
@@ -408,6 +443,18 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                     listsStartAt: this.contents?.listsStartAt
                   })
                   elementsFile.contents = SP.SpellDeclarations.split(elements, this.scope!, { version, exports }).code
+                  // and its web app, `Solitaire.app.py`, for a target with one
+                  if (target.appSuffix) {
+                    const name = this.projectName ?? this.projectId
+                    this.appTexts.set(
+                      target.name,
+                      SP.quartApp({
+                        projectName: name,
+                        program: `${name}${target.suffix}`,
+                        elements: `${name}${target.elementsSuffix}`
+                      })
+                    )
+                  }
                 }
                 if (target.name !== SP.RUNNING_TARGET) continue
                 this.setState("compiled", code)
@@ -434,6 +481,7 @@ export class SpellProject extends JSON5File<SP.ProjectManifestJSON5> {
                 await this.wordsFileFor(target)?.save(undefined)
                 const elementsFile = this.elementsFileFor(target)
                 if (elementsFile?.contents) await elementsFile.save(undefined)
+                await this.saveAppFor(target)
               }
               return await this.outputFile.save(undefined)
             }

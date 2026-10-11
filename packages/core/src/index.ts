@@ -51,7 +51,7 @@ export { elementTagFor, type ElementDefiner, type ElementApi } from "./elements"
 // A program's state as JSON by id, for a page that mirrors it (epic `python-target` P17):  see `state.ts`.
 export { StateWriter, StateMirror, ID_KEY } from "./state"
 // A page drawing a program that runs elsewhere, e.g. in Python (P19):  see `page.ts`.
-export { startPage, sendCall, sendTrigger, type Page, type PageMessage, type PageSpec } from "./page"
+export { startPage, connectPage, sendCall, sendTrigger, type Page, type PageMessage, type PageSpec } from "./page"
 // What compiled JavaScript draws with:  Solid's own `h()`, the copy core draws with (epic `output-targets` P20).
 // - e.g. `import { spellCore, Thing, h } from "@spell/core"`, then `h("span", { class: "suit" }, () => this.shortSuit)`
 // - see `drawing.ts`
