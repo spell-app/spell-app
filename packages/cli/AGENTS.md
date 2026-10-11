@@ -48,6 +48,9 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - the spell LANGUAGE's, bare:  `spell compile`
   - the repo's own tools, `spell dev <noun> <verb>`:  `spell dev commands`.
     Each finds the nearest checkout with `CLI.findCheckout()`.
+  - `spell epic <verb>`:  working with epics from any session (epic `epic-workflow`), e.g. `spell epic send`.
+    - It's `src/commands/epicCommand.ts`, on `src/epic/`;  run through `main.ts` (so it loads spell, ~0.5s).
+    - The epic tools still under `spell dev` (`plan-doc`, `details` ...) move here later (that epic's split phase).
   - A new or renamed command:
     FIRST [the commands guide](../../guides/dev/commands/commands.md) (root `AGENTS.md`, "Commands").
     - Suggest where it belongs.
