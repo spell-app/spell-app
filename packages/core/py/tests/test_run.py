@@ -27,10 +27,16 @@ def test_a_seed_deals_the_same_every_run(tmp_path: Path, capsys: pytest.CaptureF
     assert first == second
 
 
-def test_unseeded_it_starts_somewhere_else() -> None:
-    main_seeds = []
-    for _ in range(3):
+def test_unseeded_it_starts_somewhere_else(tmp_path: Path) -> None:
+    program = tmp_path / "Nothing.compiled.py"
+    program.write_text("")
+    try:
+        firsts = []
+        for _ in range(3):
+            core.seed_random(1)
+            main([str(program)])
+            firsts.append(core.random())
+        assert len(set(firsts)) > 1
+    finally:
+        # the shared core, as every other test expects it:  seeded with 1
         core.seed_random(1)
-        main([__file__.replace("test_run.py", "conftest.py")])
-        main_seeds.append(core.random())
-    assert len(set(main_seeds)) > 1

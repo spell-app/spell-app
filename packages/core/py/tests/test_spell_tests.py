@@ -30,6 +30,28 @@ def test_a_test_prints_its_result_then_its_lines(core: SpellCore, capsys: pytest
     )
 
 
+def test_a_test_is_the_block_under_a_with(core: SpellCore, capsys: pytest.CaptureFixture[str]) -> None:
+    with core.test("test card setup"):
+        core.echo_test_action("turn the card face down")
+        core.expect("down", "the direction of the card", "down", "down")
+    assert capsys.readouterr().out == (
+        "✅ test card setup\n"
+        "  ▶️ Executing   `turn the card face down`\n"
+        "  ✅ As expected `the direction of the card` is `down`\n"
+    )
+
+
+def test_an_error_in_a_with_block_ends_the_test_not_the_program(
+    core: SpellCore, capsys: pytest.CaptureFixture[str]
+) -> None:
+    with core.test("test breaking"):
+        core.expect(True, "it runs", True, "yes")
+        raise ValueError("oops")
+    captured = capsys.readouterr()
+    assert captured.out == "✅ test breaking\n  ✅ As expected `it runs` is `yes`\n"
+    assert "oops" in captured.err
+
+
 def test_one_failure_fails_the_test(core: SpellCore, capsys: pytest.CaptureFixture[str]) -> None:
     def deck_size() -> None:
         core.expect(52, "the number of cards in the deck", 52, "52")

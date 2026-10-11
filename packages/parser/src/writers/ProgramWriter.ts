@@ -37,6 +37,14 @@ export abstract class ProgramWriter extends Writer {
   abstract importsHeader(imports: P.ModuleImport[]): string
 
   /**
+   * A project part that comes as code, not a tree, e.g. a `.css` file's `spellCore.installStyles(...)`, in our
+   * language:  as it is by default -- see `PyWriter`'s.
+   */
+  codePart(code: string): string {
+    return code
+  }
+
+  /**
    * Where the project's lists start counting, 1 or 0 (`project.json`'s `"listsStartAt"`) -- see `forProject()`.
    * - Counting from 0, a position is written as the language says it where it can (javascript's `deck.at(n)`),
    *   else `spellCore`'s helper is told so with a last `0` -- see `takesStartAt()`.
@@ -94,6 +102,14 @@ export abstract class ProgramWriter extends Writer {
    */
   nameOf(name: string, kind: NameKind | "member" = "member"): string {
     return this.naming.nameOf(name, kind === "member" ? "method" : kind)
+  }
+
+  /** `node` with the members the project wrote for it elsewhere -- see `WriterProject.movedMembers`. */
+  protected withProjectMembers(node: P.ASTClassDeclaration): P.ASTClassDeclaration {
+    const moved = this.project.movedMembers.get(node.type.name)
+    if (!moved?.length) return node
+    const separator = node.members?.length ? [new P.ASTBlankLine(node.match)] : []
+    return node.withMembers([...separator, ...moved])
   }
 
   /** spell's type `name`, e.g. `BankAccount`, as we write a type's name -- `naming`'s `type`;  a value type as is. */

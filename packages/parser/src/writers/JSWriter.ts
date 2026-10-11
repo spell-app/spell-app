@@ -1080,14 +1080,6 @@ export class JSWriter extends ProgramWriter {
     return this.classDeclaration(this.withProjectMembers(node))
   }
 
-  /** `node` with the members the project wrote for it elsewhere -- see `WriterProject.movedMembers`. */
-  protected withProjectMembers(node: P.ASTClassDeclaration): P.ASTClassDeclaration {
-    const moved = this.project.movedMembers.get(node.type.name)
-    if (!moved?.length) return node
-    const separator = node.members?.length ? [new P.ASTBlankLine(node.match)] : []
-    return node.withMembers([...separator, ...moved])
-  }
-
   /**
    * `export class Card extends Thing {...}`, with `node`'s members as they are.
    * - NOTE: indents its members' non-blank lines only -- `jsText.Block()` would leave a tab on blank ones.

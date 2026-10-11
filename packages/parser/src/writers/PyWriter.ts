@@ -3,7 +3,7 @@ import { P } from "$/parser"
 import { ProgramWriter } from "./ProgramWriter"
 import { Naming } from "./Naming"
 import * as pyText from "./pyText"
-import { isCoreCall, unwrapped } from "./jsShapes"
+import { attributeName, isCoreCall, unwrapped } from "./jsShapes"
 
 /****************
  * ### `PyWriter`
@@ -25,8 +25,8 @@ export class PyWriter extends ProgramWriter {
   /** PEP 8's names, a keyword stepping aside with a trailing `_` -- see `Naming.PYTHON`. */
   naming = new Naming(Naming.PYTHON, Naming.PYTHON_CLASHES)
 
-  /** Between each source file's code:  a comment line. */
-  readonly fileSeparator = "\n# -----------\n"
+  /** Between each source file's code:  a comment line, two blank lines either side, as PEP 8 spaces top-level code. */
+  readonly fileSeparator = "\n\n\n# -----------\n\n\n"
 
   /** The loop variables of a `for` over a range of whole numbers:  `print()` writes them as Python does. */
   protected wholeNumbers = new Set<string>()
@@ -46,8 +46,12 @@ export class PyWriter extends ProgramWriter {
         const named = names.map((name) => (name === "spellCore" ? "core" : name))
         return `from ${from} import ${named.join(", ")}`
       })
-    return `${lines.join(pyText.NEWLINE)}\n\n`
+    // two blank lines after them, as PEP 8 wants before a top-level `def` or `class`
+    return `${lines.join(pyText.NEWLINE)}\n\n\n`
   }
+
+  /** What `spell_core` gives besides spell's runtime names, imported when the code uses them -- see `module()`. */
+  static CORE_EXTRAS = ["prop", "h"]
 
   /** The Python module a project's compiled code is, from its `@spell/project/<id>`:  its name, snake_case. */
   static projectModule(module: string): string {
@@ -63,13 +67,30 @@ export class PyWriter extends ProgramWriter {
   module(code: string): string {
     const imported = code.replace(/^from spell_core import (.*)$/m, (_line, names: string) => {
       const body = code.slice(code.indexOf("\n"))
-      const used = names.split(/,\s*/).filter((name) => new RegExp(`\\b${name}\\b`).test(body))
+      // what the code says that only Python's writer does:  a stored property, an element
+      const all = [...names.split(/,\s*/), ...PyWriter.CORE_EXTRAS]
+      const used = all.filter((name) => new RegExp(`\\b${name}\\b`).test(body))
       return used.length ? `from spell_core import ${used.join(", ")}` : ""
     })
     // a pattern, `re.compile(...)`:  Python's `re`, first, as PEP 8 orders imports (the standard library's first)
     const withRe = /\bre\.compile\(/.test(imported) ? `import re\n${imported}` : imported
     // no import left, or a heading that writes nothing:  no blank lines first
     return withRe.replace(/^\n+/, "")
+  }
+
+  /**
+   * A `.css` file's part, `spellCore.installStyles(undefined, \`...\`)`, as Python:
+   * `core.install_styles(None, """...""")`, its lines as they were (javascript's has them as `¬`).
+   * - Anything else that comes as javascript code:  a comment saying so, as Python can't run it.
+   */
+  codePart(code: string): string {
+    const styles = /^spellCore\.installStyles\((undefined|"[^"]*"), `([\s\S]*)`\)$/.exec(code.trim())
+    if (styles) {
+      const file = styles[1] === "undefined" ? "None" : styles[1]
+      const css = styles[2]!.replace(/¬/g, "\n").replace(/\\/g, "\\\\").replace(/"""/g, '\\"\\"\\"')
+      return `core.install_styles(${file}, """${css}""")`
+    }
+    return code.trim() ? pyText.comment(`javascript, which Python can't run:\n${code}`) : ""
   }
 
   /** Text in Python's quotes:  `"name"`. */
@@ -138,11 +159,11 @@ export class PyWriter extends ProgramWriter {
   }
 
   ASTArrayLiteral(node: P.ASTArrayLiteral): string {
-    return `[${this.list(node.items)}]`
+    return pyText.call("", this.items(node.items), ["[", "]"])
   }
 
   ASTEnumeration(node: P.ASTEnumeration): string {
-    return `[${this.list(node.enumeration)}]`
+    return pyText.call("", this.items(node.enumeration), ["[", "]"])
   }
 
   /** A quoted word, e.g. an enumeration's value:  `"clubs"`. */
@@ -164,11 +185,33 @@ export class PyWriter extends ProgramWriter {
     return this.nameOf(node.value, "property")
   }
 
-  /** `object.property`, by our name:  `card.is_face_up`;  `getattr(object, "name")` for one that isn't a name. */
+  /**
+   * `object.property`, by our name:  `card.is_face_up`.
+   * - A class's constant, `Card.RANKS`;  bare in that class's own body, `RANKS`, as the class isn't made yet there.
+   * - Off what may be nothing (`mayBeNothing()`):  `getattr(deck.last_item, "name", None)`, as spell reads off
+   *   nothing as nothing.
+   * - `getattr(object, "name")` for one that isn't a name.
+   */
   ASTPropertyExpression(node: P.ASTPropertyExpression): string {
-    const object = this.tight(node.object)
-    if (!node.property.isLegalIdentifier) return `getattr(${object}, ${this.quoted(node.property.value)})`
-    return `${object}.${this.nameOf(node.property.value, "property")}`
+    const object = unwrapped(node.object)
+    if (object instanceof P.ASTTypeExpression) {
+      const name = this.staticName(node.property.value)
+      return this.inClassBody && object.name === this.currentClass ? name : `${this.write(object)}.${name}`
+    }
+    const written = this.tight(node.object)
+    const name = this.nameOf(node.property.value, "property")
+    if (!node.property.isLegalIdentifier) return `getattr(${written}, ${this.quoted(node.property.value)}, None)`
+    if (this.mayBeNothing(node.object) && !this.isSettingNow(node))
+      return `getattr(${written}, ${this.quoted(name)}, None)`
+    return `${written}.${name}`
+  }
+
+  /** What's being set, while it's written:  read off with `.`, as `getattr()` can't be set. */
+  protected settingNow: P.ASTNode | undefined
+
+  /** Is `node` what an assignment sets, being written now? */
+  protected isSettingNow(node: P.ASTNode): boolean {
+    return this.settingNow === node
   }
 
   /** `name`, by our name;  `name=default` for a parameter with a default value. */
@@ -180,6 +223,8 @@ export class PyWriter extends ProgramWriter {
   /** `node`'s name as we write a variable's:  `start_pile`;  `spellCore` is `core`. */
   variableName(node: P.ASTVariableExpression): string {
     if (node instanceof P.ASTSpellCoreExpression || node.name === "spellCore") return "core"
+    // the thing a method runs on, where the tree still names it javascript's way
+    if (node.name === "this") return "self"
     return node.type === "global" ? node.name : this.nameOf(node.name, "variable")
   }
 
@@ -236,15 +281,45 @@ export class PyWriter extends ProgramWriter {
       const [value] = (inner as P.ASTScopedMethodInvocation).args.args ?? []
       if (value) return `${this.operand(value, "equals", "lhs")} is None`
     }
+    // `is not empty`, for a list or text:  itself, as Python tests it -- `if discards:`
+    if (isCoreCall(inner) && (inner as P.ASTScopedMethodInvocation).methodName === "isEmpty") {
+      const [value] = (inner as P.ASTScopedMethodInvocation).args.args ?? []
+      const kind = value && this.kindOf(value)
+      if (value && (this.isList(value) || kind === "array" || kind === "text")) return this.bare(value)
+    }
     return `not ${this.operand(node.expression, "and", "rhs")}`
   }
 
-  /** `lhs op rhs`, `op` Python's for its `operator`'s meaning;  `is` / `is not` as a person writes it. */
+  /**
+   * `lhs op rhs`, `op` Python's for its `operator`'s meaning;  `is` / `is not` as a person writes it.
+   * - `+` building text:  an f-string, `f"{self.rank}-of-{self.suit}"` -- see `textJoin()`.
+   */
   ASTInfixExpression(node: P.ASTInfixExpression): string {
+    const text = node.operator === "plus" && this.textJoin(node)
+    if (text) return text
     const comparison = this.comparison(node)
     if (comparison) return comparison
     const operator = PyWriter.OPERATORS[node.operator]
     return `${this.operand(node.lhs, node.operator, "lhs")} ${operator} ${this.operand(node.rhs, node.operator, "rhs")}`
+  }
+
+  /**
+   * `node`, a chain of `+` with text written out in it, as an f-string:  `"Score: " + score` => `f"Score: {score}"`.
+   * - Python won't add text and a number:  an f-string writes each value as text.
+   * - `undefined` when it isn't:  no text in the chain, or text only after two values (`a + b + "!"` adds `a` and `b`
+   *   first).
+   */
+  textJoin(node: P.ASTInfixExpression): string | undefined {
+    const parts: P.ASTExpression[] = []
+    let rest: P.ASTExpression = node
+    while (rest instanceof P.ASTInfixExpression && rest.operator === "plus") {
+      parts.unshift(rest.rhs)
+      rest = unwrapped(rest.lhs)
+    }
+    parts.unshift(rest)
+    const textAt = parts.findIndex((part) => textLiteral(part) !== undefined)
+    if (textAt < 0 || textAt > 1) return undefined
+    return this.fString(parts.map((part) => textLiteral(part) ?? { value: part }))
   }
 
   /**
@@ -298,6 +373,14 @@ export class PyWriter extends ProgramWriter {
       inner instanceof P.ASTVariableExpression ||
       inner instanceof P.ASTPropertyExpression ||
       inner instanceof P.ASTArrayLiteral ||
+      inner instanceof P.ASTListExpression ||
+      inner instanceof P.ASTEnumeration ||
+      inner instanceof P.ASTTypeExpression ||
+      inner instanceof P.ASTSelfLiteral ||
+      inner instanceof P.ASTObjectLiteral ||
+      inner instanceof P.ASTTemplateString ||
+      inner instanceof P.ASTNewInstanceExpression ||
+      inner instanceof P.ASTJSXElement ||
       inner instanceof P.ASTQuotedExpression ||
       inner instanceof P.ASTConstantExpression ||
       (inner instanceof P.ASTMethodInvocation && !/^not |\bis (not )?None$/.test(text))
@@ -309,12 +392,17 @@ export class PyWriter extends ProgramWriter {
   ////////////////
 
   ASTInvocationArgs(node: P.ASTInvocationArgs): string {
-    return `(${this.list(node.args)})`
+    return pyText.call("", this.items(node.args))
   }
 
-  /** `name(args)`, by our name:  `play_fizzbuzz()`. */
+  /** `items`, each written -- `None` for one left out -- for a call or a literal to put between its brackets. */
+  items(items: Array<P.ASTNode | null | undefined> | undefined): string[] {
+    return (items ?? []).map((item) => (item == null ? "None" : this.bare(item as P.ASTExpression)))
+  }
+
+  /** `name(args)`, by our name:  `play_fizzbuzz()`;  one argument a line when it's long -- see `pyText.call()`. */
   ASTMethodInvocation(node: P.ASTMethodInvocation): string {
-    return `${this.nameOf(node.methodName)}${this.write(node.args)}`
+    return pyText.call(this.nameOf(node.methodName), this.items(node.args.args))
   }
 
   /**
@@ -331,9 +419,9 @@ export class PyWriter extends ProgramWriter {
         while (args.length < ProgramWriter.START_AT_ARG[node.methodName]!) args.push("None")
         args.push("0")
       }
-      return `core.${this.nameOf(node.methodName)}(${args.join(", ")})`
+      return pyText.call(`core.${this.nameOf(node.methodName)}`, args)
     }
-    return `${this.tight(node.thing)}.${this.nameOf(node.methodName)}${this.write(node.args)}`
+    return pyText.call(`${this.tight(node.thing)}.${this.nameOf(node.methodName)}`, this.items(node.args.args))
   }
 
   /**
@@ -345,8 +433,8 @@ export class PyWriter extends ProgramWriter {
     const args = node.args.args ?? []
     const written = args.map((arg) => this.bare(arg))
     const native = node.methodName === "log" && args.every((arg) => this.printsNatively(arg))
-    if (native) return `print(${written.join(", ")})`
-    return `core.console.${this.nameOf(node.methodName)}(${written.join(", ")})`
+    if (native) return pyText.call("print", written)
+    return pyText.call(`core.console.${this.nameOf(node.methodName)}`, written)
   }
 
   /** Does Python's `print()` write `node` as spell does?  Text, and whole numbers. */
@@ -371,18 +459,171 @@ export class PyWriter extends ProgramWriter {
   coreCall(node: P.ASTScopedMethodInvocation): string | undefined {
     const args = node.args.args ?? []
     const [first, second] = args
-    switch (node.methodName) {
+    const name = node.methodName
+    switch (name) {
       case "heading":
         return ""
       case "isDefined":
         return first ? `${this.operand(first, "equals", "lhs")} is not None` : undefined
       case "isOfType":
-        if (first && isText(second, "integer")) return `${this.tight(first)}.is_integer()`
-        return undefined
+        return first && second ? this.typeTest(first, second) : undefined
       case "getRange":
         return this.range(first, second)
+      case "test":
+        // a test called from a value, not a statement:  `core.test(name, fn)`
+        return undefined
+      case "trigger": {
+        // its payload as keywords, as Python passes named values:  `core.trigger("card-click", card=self)`
+        const payload = second && unwrapped(second)
+        if (!first || !(payload instanceof P.ASTObjectLiteral)) return undefined
+        const kwargs = payload.properties.flatMap((property) =>
+          property instanceof P.ASTObjectLiteralProperty
+            ? [
+                `${this.nameOf(property.property.value, "variable")}=${
+                  property.value ? this.bare(property.value) : this.nameOf(property.property.value, "variable")
+                }`
+              ]
+            : []
+        )
+        return pyText.call("core.trigger", [this.bare(first), ...kwargs])
+      }
+    }
+    if (!first) return undefined
+    const kind = this.kindOf(first)
+    const rest = args.slice(1)
+    if (name === "itemCountOf" && (this.isList(first) || kind === "array" || kind === "text")) {
+      return `len(${this.bare(first)})`
+    }
+    if (name === "isEmpty" && (this.isList(first) || kind === "array" || kind === "text")) {
+      return `not ${this.tight(first)}`
+    }
+    // a plain list's own:  `state.append(pile.state)`
+    if (name === "append" && rest.length === 1 && kind === "array") {
+      return `${this.tight(first)}.append(${this.bare(rest[0]!)})`
+    }
+    if (name === "includes" && rest.length === 1 && (kind === "array" || kind === "text" || this.isList(first))) {
+      return `${this.operand(rest[0]!, "equals", "lhs")} in ${this.tight(first)}`
+    }
+    if ((name === "upperCase" || name === "lowerCase") && kind === "text") {
+      return `${this.tight(first)}.${name === "upperCase" ? "upper" : "lower"}()`
+    }
+    if (this.isList(first)) return this.listCall(name, first, rest)
+    return undefined
+  }
+
+  /**
+   * `spellCore.isOfType(thing, type)` as Python tests a type -- `undefined` to leave it to `core`:
+   * - a class:  `isinstance(x, Tableau)`
+   * - a number:  `isinstance(x, (int, float))`;  text:  `isinstance(x, str)`
+   * - a whole number:  `(x).is_integer()`, an `int`'s and a `float`'s own
+   */
+  typeTest(thing: P.ASTExpression, type: P.ASTExpression): string | undefined {
+    const name = textValue(type)
+    if (name === undefined) return undefined
+    if (name === "integer") return `${this.tight(thing)}.is_integer()`
+    if (name === "number") return `isinstance(${this.bare(thing)}, (int, float))`
+    if (name === "text") return `isinstance(${this.bare(thing)}, str)`
+    if (this.project.isClass(name)) return `isinstance(${this.bare(thing)}, ${this.typeNameOf(name)})`
+    return undefined
+  }
+
+  /**
+   * One of spell's `List`s doing it itself, as `spell_core`'s List does it -- `undefined` for a helper it has no
+   * method for:  `deck.first_item`, `deck.filter(lambda card: ...)`, `deck[2]`.
+   * - Positions:  Python's own index, from 0, where it's a number written out (`deck[2]` for spell's `card 3`
+   *   counting from 1);  else the list's own `get_item(n)`, counting as the project does.  A list's index out of
+   *   range is nothing (`None`), as spell reads it.
+   */
+  listCall(name: string, list: P.ASTExpression, rest: P.ASTExpression[]): string | undefined {
+    const self = this.tight(list)
+    const [second, third] = rest
+    const fn = (arg: P.ASTExpression) => this.functionArg(arg)
+    const startAt = this.listsStartAt === 0 ? ", start_at=0" : ""
+    switch (name) {
+      case "getItemAt": {
+        if (rest.length !== 1) return undefined
+        const position = this.writtenPosition(second)
+        if (position === this.listsStartAt) return `${self}.first_item`
+        if (position === -1) return `${self}.last_item`
+        if (position !== undefined) return `${self}[${position < 0 ? position : position - this.listsStartAt}]`
+        return `${self}.get_item(${this.bare(second!)}${startAt})`
+      }
+      case "filter":
+      case "all":
+      case "any":
+      case "removeWhere":
+        return second ? `${self}.${this.nameOf(name)}(${fn(second)})` : undefined
+      case "map":
+      case "forEach":
+        return second ? `${self}.${this.nameOf(name)}(${fn(second)})` : undefined
+      case "randomItemOf":
+        return `${self}.random_item()`
+      case "randomItemsOf":
+        return second ? `${self}.random_items(${this.bare(second)})` : undefined
+      case "largestOf":
+        return `${self}.largest`
+      case "smallestOf":
+        return `${self}.smallest`
+      case "positionOf":
+        return rest.length === 1 ? `${self}.position_of(${this.bare(second!)}${startAt})` : undefined
+      case "remove":
+      case "includesAny":
+      case "append":
+      case "prepend":
+      case "addBefore":
+      case "addAfter":
+        return `${self}.${this.nameOf(name)}(${rest.map((arg) => this.bare(arg)).join(", ")})`
+      case "reverse":
+      case "randomize":
+        return `${self}.${name}()`
+      case "rangeStartingAt": {
+        if (rest.length !== 1) return undefined
+        const inner = unwrapped(second!)
+        if (isCoreCall(inner) && (inner as P.ASTScopedMethodInvocation).methodName === "positionOf") {
+          const [ofList, item] = (inner as P.ASTScopedMethodInvocation).args.args ?? []
+          if (ofList && item && this.write(ofList) === this.write(list))
+            return `${self}.starting_with(${this.bare(item)})`
+        }
+        return `${self}.starting_from(${this.bare(second!)}${startAt})`
+      }
+      case "rangeBetween":
+        return rest.length === 2 ? `${self}.between(${this.bare(second!)}, ${this.bare(third!)}${startAt})` : undefined
+      case "duplicateList": {
+        if (!(second instanceof P.ASTTypeExpression)) return `${self}.clone()`
+        const own = this.kindOf(list)
+        const isAlready = !!own && this.project.isSubclassOf(own, second.name)
+        return isAlready ? `${self}.clone()` : `${self}.clone_as(${this.typeNameOf(second.name)})`
+      }
+      case "mergeLists":
+        return second instanceof P.ASTTypeExpression ? `${self}.merged(${this.typeNameOf(second.name)})` : undefined
     }
     return undefined
+  }
+
+  /** A function given to a list's method:  a `lambda`, or a lifted `def`'s name -- see `inlineFunction()`. */
+  functionArg(arg: P.ASTExpression): string {
+    const inner = unwrapped(arg)
+    return inner instanceof P.ASTMethodDefinition ? this.inlineFunction(inner) : this.bare(arg)
+  }
+
+  /**
+   * A spell test, `spellCore.test(name, function)`, as a block:
+   *
+   * ```python
+   * with core.test("test card setup"):
+   *     core.expect(...)
+   * ```
+   *
+   * - `undefined` for anything else.
+   */
+  testBlock(node: P.ASTExpression | undefined): string | undefined {
+    const call = node && unwrapped(node)
+    if (!call || !isCoreCall(call) || (call as P.ASTScopedMethodInvocation).methodName !== "test") return undefined
+    const [name, method] = (call as P.ASTScopedMethodInvocation).args.args ?? []
+    const body = method && unwrapped(method)
+    if (!name || !(body instanceof P.ASTMethodDefinition)) return undefined
+    const block = this.inBlock(() => this.blockBody(body.body))
+    return pyText.block(`with core.test(${this.bare(name)})`, block)
   }
 
   /** `range(start, end + 1)` for spell's range of whole numbers from `start` to `end`, counting up;  else `undefined`. */
@@ -415,6 +656,8 @@ export class PyWriter extends ProgramWriter {
     const range = isCoreCall(unwrapped(collection)) && this.write(unwrapped(collection))
     const isRange = !!range && /^range\(/.test(String(range))
     const items = this.bare(collection)
+    const previous = this.returnContinues
+    this.returnContinues = true
     const body = this.inBlock(() => {
       this.noteParams(method)
       if (isRange) this.wholeNumbers.add(item.name)
@@ -422,6 +665,7 @@ export class PyWriter extends ProgramWriter {
         return this.blockBody(method.body)
       } finally {
         this.wholeNumbers.delete(item.name)
+        this.returnContinues = previous
       }
     })
     const looped = position
@@ -472,30 +716,67 @@ export class PyWriter extends ProgramWriter {
         lines.push(String(this.write(statement)))
         continue
       }
-      const isDefinition = isDefinitionStatement(statement)
-      const written = isDefinition ? this.definition(statement, doc) : this.statement(statement)
+      const isDefinition = isDefinitionStatement(statement) || isHandlerCall(statement)
+      const written = this.withLifted(() =>
+        isDefinition ? this.definition(statement, doc) : this.statement(statement)
+      )
       if (isDefinition) doc = undefined
       else pushDoc()
       const above = markers ?? lines.length
       markers = undefined
       if (!written) continue
-      if (topLevel && isDefinition) separateAt(lines, above)
+      // PEP 8:  two blank lines around a top-level `def` or `class`, one around a method
+      const gap = topLevel ? 2 : statement instanceof P.ASTClassMember ? 1 : 0
+      if (isDefinition && gap) separateAt(lines, above, gap)
       lines.push(written)
-      if (topLevel && isDefinition) lines.push("", "")
+      if (isDefinition && gap) lines.push(...Array<string>(gap).fill(""))
     }
     pushDoc()
     while (lines.at(-1) === "") lines.pop()
     return collapseBlankLines(lines.join(pyText.NEWLINE), topLevel)
   }
 
-  /** One statement:  a loop as Python says it (`loop()`), else as written. */
-  statement(statement: P.ASTNode): string {
-    return this.loop(statement) ?? String(this.write(statement))
+  /**
+   * `write()`'s statement, the functions it lifted (`inlineFunction()`) written above it, a blank line between:
+   * `def _each_1(card): ...` then `deck.for_each(_each_1)`.
+   */
+  withLifted(write: () => string): string {
+    const outer = this.lifted
+    this.lifted = []
+    try {
+      const written = write()
+      return this.lifted.length ? [...this.lifted, written].join("\n\n") : written
+    } finally {
+      this.lifted = outer
+    }
   }
 
-  /** A `def` or `class`, with `doc` as its docstring, if any. */
+  /** One statement:  a class member in its class's body, a loop as Python says it (`loop()`), else as written. */
+  statement(statement: P.ASTNode): string {
+    if (statement instanceof P.ASTClassMember) return String(this.writeAsMember(statement))
+    const expression = statement instanceof P.ASTExpression ? statement : undefined
+    return (
+      this.loop(statement) ??
+      this.testBlock(expression) ??
+      this.handlerBlock(expression) ??
+      String(this.write(statement))
+    )
+  }
+
+  /** A `def` or `class` -- a method or a getter in a class body too -- with `doc` as its docstring, if any. */
   definition(statement: P.ASTNode, doc: P.ASTDocComment | undefined): string {
     if (statement instanceof P.ASTMethodDefinition) return this.methodDefinition(statement, doc)
+    if (statement instanceof P.ASTClassDeclaration)
+      return this.classDeclaration(this.withProjectMembers(statement), doc)
+    if (statement instanceof P.ASTPropertyDefinition) return this.memberDefinition(statement, doc)
+    if (statement instanceof P.ASTStaticMethod) return this.staticMethod(statement, doc)
+    if (statement instanceof P.ASTExpression) {
+      const handler = this.handlerBlock(statement)
+      // its docstring inside the handler's `def`
+      if (handler && doc)
+        return handler.replace(/^((?:@.*\n)*def .*:\n)/, `$1${pyText.indented(pyText.docstring(doc.lines))}\n`)
+      if (handler) return handler
+    }
     return String(this.write(statement))
   }
 
@@ -544,39 +825,396 @@ export class PyWriter extends ProgramWriter {
     return `${yes} if ${this.bare(node.condition)} else ${no}`
   }
 
-  /** `return value`, or a bare `return`. */
+  /**
+   * `return value`, or a bare `return`.
+   * - A spell test's `return spellCore.test(...)`:  its `with core.test(...):` block -- see `testBlock()`.
+   */
   ASTReturnStatement(node: P.ASTReturnStatement): string {
-    return node.value ? `return ${this.bare(node.value)}` : "return"
+    // in a loop's body, written from a function per item:  ends that turn only
+    if (!node.value) return this.returnContinues ? "continue" : "return"
+    return this.testBlock(node.value) ?? `return ${this.bare(node.value)}`
   }
 
   /** `name = value`:  Python has no `let` or `const`. */
   ASTAssignmentStatement(node: P.ASTAssignmentStatement): string {
     this.noteLocal(node)
-    return `${this.write(node.thing)} = ${this.bare(node.value)}`
+    const previous = this.settingNow
+    this.settingNow = node.thing
+    try {
+      return `${this.write(node.thing)} = ${this.bare(node.value)}`
+    } finally {
+      this.settingNow = previous
+    }
+  }
+
+  /** `card = event.card`, a line each:  Python takes a tuple apart, not an object -- by our names. */
+  ASTDestructuredAssignment(node: P.ASTDestructuredAssignment): string {
+    const thing = this.tight(node.thing)
+    return node.variables
+      .map((variable) => `${this.write(variable)} = ${thing}.${this.nameOf(variable.name, "property")}`)
+      .join(pyText.NEWLINE)
+  }
+
+  /** `await x`:  a plain call, as compiled Python doesn't wait (Q3:  pauses sleep;  `py/asyncio` is P11's). */
+  ASTAwaitExpression(node: P.ASTAwaitExpression): string {
+    return this.loop(node.expression) ?? String(this.write(node.expression))
+  }
+
+  ////////////////
+  // ## Objects & text
+  ////////////////
+
+  /** `{"key": value}`:  a dict. */
+  ASTObjectLiteral(node: P.ASTObjectLiteral): string {
+    const entries = node.properties.map((property) =>
+      property instanceof P.ASTMethodDefinition
+        ? `${this.quoted(this.nameOf(property.methodName ?? ""))}: ${this.inlineFunction(property)}`
+        : String(this.write(property))
+    )
+    return pyText.call("", entries, ["{", "}"])
+  }
+
+  /** `"key": value`;  with no value, the variable of its name. */
+  ASTObjectLiteralProperty(node: P.ASTObjectLiteralProperty): string {
+    const key = this.quoted(this.nameOf(node.property.value, "property"))
+    const value = node.value ? this.bare(node.value) : this.nameOf(node.property.value, "variable")
+    return `${key}: ${value}`
+  }
+
+  /** Text with values in it:  an f-string, `f"{self.rank}-of-{self.suit}"`. */
+  ASTTemplateString(node: P.ASTTemplateString): string {
+    return this.fString(node.parts.map((part) => (typeof part === "string" ? part : { value: part })))
+  }
+
+  /** Spell source quoted in a test's line, e.g. `` `the rank of the card` ``:  plain text, or an f-string. */
+  ASTBackTickExpression(node: P.ASTBackTickExpression): string {
+    return this.fString([{ value: node.expression }])
+  }
+
+  ASTBacktickSubstitution(node: P.ASTBacktickSubstitution): string {
+    return `{${this.bare(node.expression)}}`
+  }
+
+  ASTTripleBackTickExpression(node: P.ASTTripleBackTickExpression): string {
+    return `"""${String(this.write(node.expression)).replace(/"""/g, '\\"\\"\\"')}"""`
+  }
+
+  /**
+   * `parts`, text and values, as Python text:  `"plain"` when all text, else `f"{a}-of-{b}"` -- braces in the text
+   * doubled, as an f-string reads them.
+   */
+  fString(parts: Array<string | { value: P.ASTExpression }>): string {
+    if (parts.every((part) => typeof part === "string")) return this.quoted(parts.join(""))
+    const body = parts
+      .map((part) =>
+        typeof part === "string"
+          ? pyText.inQuotes(part).slice(1, -1).replace(/[{}]/g, "$&$&")
+          : // Python 3.12 lets a value in braces use the f-string's own quotes (PEP 701)
+            `{${this.bare(part.value)}}`
+      )
+      .join("")
+    return `f"${body}"`
+  }
+
+  ////////////////
+  // ## Drawing
+  ////////////////
+
+  /**
+   * An element, as `spell_core`'s `h()` makes it:  `h("span", {"class": "suit"}, self.short_suit)` -- HTML text
+   * (Q2:  Python has no page).
+   * - A value the page would track (`() => value` in javascript) is just the value:  the HTML is made once.
+   * - A handler, `on_click=...`, is kept, for a page that can call back one day;  `h()` leaves it out of the HTML.
+   */
+  ASTJSXElement(node: P.ASTJSXElement): string {
+    const attrs = (node.attrs ?? [])
+      .map((attribute) => {
+        const value = attribute.propValue
+        // by the page's names, `class` first, as javascript draws them:  the core contract compares the HTML
+        const key = attributeName(node.tagName, attribute.name, value instanceof P.ASTJSXLiveValue)
+        return `${this.quoted(key)}: ${value ? this.bare(value) : "True"}`
+      })
+      .sort((a, b) => Number(b.startsWith('"class"')) - Number(a.startsWith('"class"')))
+    const props = attrs.length ? [pyText.call("", attrs, ["{", "}"])] : []
+    const children = node.childValues.map((child) => this.bare(child))
+    return pyText.call("h", [this.quoted(node.tagName), ...props, ...children])
+  }
+
+  /** The value itself:  HTML text is made once -- see `ASTJSXElement()`. */
+  ASTJSXLiveValue(node: P.ASTJSXLiveValue): string {
+    return this.bare(node.expression)
   }
 
   ////////////////
   // ## Functions
   ////////////////
 
-  /** A function of its own:  see `methodDefinition()`. */
+  /** A function of its own (see `methodDefinition()`), or one where a value goes (see `inlineFunction()`). */
   ASTMethodDefinition(node: P.ASTMethodDefinition): string {
-    return this.methodDefinition(node, undefined)
+    return node.inline ? this.inlineFunction(node) : this.methodDefinition(node, undefined)
   }
 
   /**
    * `def name(args):` and its body, `doc` its docstring.
    * - Its parameters are its body's own, so what they are is known (`kindOf()`).
    */
-  methodDefinition(node: P.ASTMethodDefinition, doc: P.ASTDocComment | undefined): string {
-    const name = node.methodName ? this.nameOf(node.methodName) : "_"
-    const params = (node.args ?? []).map((arg) => this.write(arg)).join(", ")
-    const body = this.inBlock(() => {
-      this.noteParams(node)
-      return this.blockBody(node.body)
+  methodDefinition(
+    node: P.ASTMethodDefinition,
+    doc: P.ASTDocComment | undefined,
+    { name, first, decorators = [] }: { name?: string; first?: "self" | "cls"; decorators?: string[] } = {}
+  ): string {
+    const defName = name ?? (node.methodName ? this.nameOf(node.methodName) : "_")
+    const params = [...(first ? [first] : []), ...(node.args ?? []).map((arg) => String(this.write(arg)))].join(", ")
+    const { inClassBody, returnContinues } = this
+    this.inClassBody = false
+    // a bare `return` in it is its own, even in a loop's body
+    this.returnContinues = false
+    try {
+      const body = this.inBlock(() => {
+        this.noteParams(node)
+        return this.blockBody(node.body)
+      })
+      const docstring = doc ? `${pyText.docstring(doc.lines)}\n` : ""
+      const header = [...decorators.map((decorator) => `@${decorator}`), `def ${defName}(${params})`]
+      return pyText.block(header.join(pyText.NEWLINE), `${docstring}${body}`)
+    } finally {
+      this.inClassBody = inClassBody
+      this.returnContinues = returnContinues
+    }
+  }
+
+  /**
+   * A function written where a value goes, e.g. a list's `filter()`'s:  `lambda card: card.rank == "queen"` when it
+   * returns one expression (or only calls or sets one thing it doesn't need to);  else a name, its `def` written
+   * above the statement it's in -- see `lifted`.
+   */
+  inlineFunction(node: P.ASTMethodDefinition): string {
+    const statements = (node.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
+    const [only] = statements
+    const params = (node.args ?? []).map((arg) => this.variableName(arg)).join(", ")
+    const lambda = (body: string) => (params ? `lambda ${params}: ${body}` : `lambda: ${body}`)
+    if (statements.length === 1) {
+      const value =
+        only instanceof P.ASTReturnStatement ? only.value : only instanceof P.ASTExpression ? only : undefined
+      if (value) {
+        return this.inBlock(() => {
+          this.noteParams(node)
+          return lambda(this.bare(value))
+        })
+      }
+    }
+    // more than one statement:  a `def` of its own, above the statement that uses it
+    const name = `_${this.nameOf(node.methodName ?? "each")}_${this.lifted.length + 1}`
+    this.lifted.push(this.methodDefinition(node, undefined, { name }))
+    return name
+  }
+
+  /**
+   * An event's handler, `spellCore.on("card-click", (event) => {...})`, as Python registers one:  a decorator on a
+   * function named for the event --
+   *
+   * ```python
+   * @core.on("card-click")
+   * def on_card_click(event):
+   *     ...
+   * ```
+   *
+   * - `undefined` for anything else, e.g. a handler that's a name already.
+   */
+  handlerBlock(node: P.ASTExpression | undefined): string | undefined {
+    const call = node && unwrapped(node)
+    if (!call || !isCoreCall(call)) return undefined
+    const { methodName, args } = call as P.ASTScopedMethodInvocation
+    if (methodName !== "on" && methodName !== "once") return undefined
+    const [event, handler] = args.args ?? []
+    const method = handler && unwrapped(handler)
+    const eventName = event && textValue(event)
+    if (!eventName || !(method instanceof P.ASTMethodDefinition)) return undefined
+    const name = this.nameOf(`on_${eventName.replace(/[^\w]+/g, "_")}`)
+    return this.methodDefinition(method, undefined, {
+      name,
+      decorators: [`core.${methodName}(${this.bare(event)})`]
     })
-    const docstring = doc ? `${pyText.docstring(doc.lines)}\n` : ""
-    return pyText.block(`def ${name}(${params})`, `${docstring}${body}`)
+  }
+
+  /** The functions of the statement being written that are too long for a `lambda`:  written above it. */
+  protected lifted: string[] = []
+
+  /** Are we writing a class's body, outside its methods?  There, the class's own constants are bare names. */
+  protected inClassBody = false
+
+  /** While writing a loop's body (`loop()`):  a bare `return` in it is `continue`. */
+  protected returnContinues = false
+
+  ////////////////
+  // ## Classes & instances
+  ////////////////
+
+  /** A class, by itself:  see `classDeclaration()`. */
+  ASTClassDeclaration(node: P.ASTClassDeclaration): string {
+    return this.classDeclaration(this.withProjectMembers(node), undefined)
+  }
+
+  /**
+   * `class Card(Thing):`, `doc` its docstring, then its members:  its constants, its properties (`rank =
+   * prop(one_of=RANKS)`), its getters (`@property`) and methods, one blank line between methods (PEP 8).
+   */
+  classDeclaration(node: P.ASTClassDeclaration, doc: P.ASTDocComment | undefined): string {
+    const { type, superType, members } = node
+    const base = superType ? `(${this.typeNameOf(superType.name)})` : ""
+    const docstring = doc ? pyText.docstring(doc.lines) : ""
+    const previous = this.inClassBody
+    this.inClassBody = true
+    try {
+      const body = this.inClass(type.name, () => this.statementLines(members ?? []))
+      return pyText.block(`class ${this.typeNameOf(type.name)}${base}`, [docstring, body].filter(Boolean).join("\n\n"))
+    } finally {
+      this.inClassBody = previous
+    }
+  }
+
+  /** `Card(rank="queen", suit="spades")`:  a new thing, its props as keywords, by our names;  `Card()` for none. */
+  ASTNewInstanceExpression(node: P.ASTNewInstanceExpression): string {
+    const props = (node.props?.properties ?? []).map((property) => {
+      if (property instanceof P.ASTMethodDefinition) return this.inlineFunction(property)
+      const key = this.staticName(property.property.value)
+      const value = property.value ? this.bare(property.value) : this.nameOf(property.property.value, "variable")
+      return `${key}=${value}`
+    })
+    return pyText.call(String(this.write(node.type)), props)
+  }
+
+  /** `[a, b]`. */
+  ASTListExpression(node: P.ASTListExpression): string {
+    return pyText.call("", this.items(node.items), ["[", "]"])
+  }
+
+  /** A type, by our name:  `Card`. */
+  ASTTypeExpression(node: P.ASTTypeExpression): string {
+    return this.typeNameOf(node.name)
+  }
+
+  /** A type's prototype:  in Python, the class itself. */
+  ASTPrototypeExpression(node: P.ASTPrototypeExpression): string {
+    return String(this.write(node.type))
+  }
+
+  ////////////////
+  // ## Class members
+  ////////////////
+
+  /** In its class's body:  a getter, `@property` and its `def`, or a method's `def`, `self` first -- see below. */
+  ASTPropertyDefinitionAsMember(node: P.ASTPropertyDefinition): string {
+    return this.memberDefinition(node, undefined)
+  }
+
+  /** `node`, a getter or method, in its class's body, `doc` its docstring:  `def is_a_suit(self, suit):`. */
+  memberDefinition(node: P.ASTPropertyDefinition, doc: P.ASTDocComment | undefined): string {
+    const name = this.nameOf(node.property.value)
+    if (node.get) return this.methodDefinition(node.get, doc, { name, first: "self", decorators: ["property"] })
+    return this.methodDefinition(node.method!, doc, { name, first: "self" })
+  }
+
+  /** From outside its class:  its function, then set on the class -- `Card.pile = property(_card_pile)`. */
+  ASTPropertyDefinition(node: P.ASTPropertyDefinition): string {
+    const type = this.typeNameOf(node.typeName)
+    const name = this.nameOf(node.property.value)
+    const helper = `_${this.nameOf(node.typeName, "variable")}_${name}`
+    return this.inClass(node.typeName, () => {
+      const method = node.get ?? node.method!
+      const def = this.methodDefinition(method, undefined, { name: helper, first: "self" })
+      const value = node.get ? `property(${helper})` : helper
+      return `${def}\n\n\n${type}.${name} = ${value}`
+    })
+  }
+
+  /**
+   * In its class's body:  `rank = prop(one_of=RANKS)`, a stored property -- `spell_core`'s descriptor, its check's
+   * keys as keywords (`oneOf` => `one_of`), its first value `default=` (a value) or `init=` (made new for each thing).
+   */
+  ASTReactivePropertyAsMember(node: P.ASTReactiveProperty): string {
+    return `${this.nameOf(node.property.value, "property")} = prop(${this.propArguments(node)})`
+  }
+
+  /** From outside its class:  `Deck.declare_prop("is_set_up", type="choice")`. */
+  ASTReactiveProperty(node: P.ASTReactiveProperty): string {
+    const name = this.quoted(this.nameOf(node.property.value, "property"))
+    const args = this.propArguments(node)
+    return `${this.write(node.type)}.declare_prop(${args ? `${name}, ${args}` : name})`
+  }
+
+  /** A stored property's `prop()` keywords:  its check's, then `default=` or `init=` -- see above. */
+  propArguments(node: P.ASTReactiveProperty): string {
+    const args = (node.check?.properties ?? []).flatMap((property) => {
+      if (!(property instanceof P.ASTObjectLiteralProperty) || !property.value) return []
+      const key = this.nameOf(property.property.value, "property")
+      const value = unwrapped(property.value)
+      // a type's name:  as we name types, e.g. `type="Pile"`
+      const isType = key === "type" && value instanceof P.ASTStringLiteral && this.project.isClass(value.value)
+      return [`${key}=${isType ? this.quoted(this.typeNameOf((value as P.ASTStringLiteral).value)) : this.bare(value)}`]
+    })
+    const initial = node.initializer && unwrapped(node.initializer)
+    if (initial) {
+      const isValue = initial instanceof P.ASTLiteral || initial instanceof P.ASTConstantExpression
+      args.push(isValue ? `default=${this.bare(initial)}` : `init=lambda: ${this.bare(initial)}`)
+    }
+    return args.join(", ")
+  }
+
+  /**
+   * In its class's body:  `RANKS = ("ace", 2, ...)`, a constant in capitals;  the item type, `item_type = Card`.
+   * - A list of values written out is a tuple:  it never changes, and a list there would be one list every thing
+   *   shares (ruff's RUF012).
+   */
+  ASTStaticDefinitionAsMember(node: P.ASTStaticDefinition): string {
+    const value = unwrapped(node.value)
+    const items =
+      value instanceof P.ASTEnumeration
+        ? value.enumeration
+        : value instanceof P.ASTArrayLiteral
+          ? value.items
+          : undefined
+    const written = items
+      ? pyText.call("", [...this.items(items), ...(items.length === 1 ? [""] : [])], ["(", ")"])
+      : this.bare(node.value)
+    return `${this.staticName(node.name)} = ${written.replace(/, \)$/, ",)")}`
+  }
+
+  ASTStaticDefinition(node: P.ASTStaticDefinition): string {
+    return `${this.write(node.type)}.${this.staticName(node.name)} = ${this.bare(node.value)}`
+  }
+
+  /**
+   * A class-level name, by our name:  a list of values in capitals, a constant (`Ranks` => `RANKS`);  spell's
+   * `instanceType` is `spell_core`'s `item_type`;  the rest as any member (`exclusive`).
+   */
+  staticName(name: string): string {
+    if (name === "instanceType") return "item_type"
+    return /^[A-Z]/.test(name) ? this.nameOf(name, "constant") : this.nameOf(name, "property")
+  }
+
+  /** In its class's body:  `@staticmethod` and its `def`. */
+  ASTStaticMethodAsMember(node: P.ASTStaticMethod): string {
+    return this.staticMethod(node, undefined)
+  }
+
+  /** `@staticmethod`, `doc` its docstring;  a getter too:  Python has no class-level property. */
+  staticMethod(node: P.ASTStaticMethod, doc: P.ASTDocComment | undefined): string {
+    return this.methodDefinition(node.method, doc, { name: this.nameOf(node.name), decorators: ["staticmethod"] })
+  }
+
+  /** From outside its class:  `Card.name = staticmethod(...)`, its function written first. */
+  ASTStaticMethod(node: P.ASTStaticMethod): string {
+    const type = this.write(node.type)
+    const name = this.nameOf(node.name)
+    const helper = `_${this.nameOf(node.typeName, "variable")}_${name}`
+    const def = this.methodDefinition(node.method, undefined, { name: helper })
+    return `${def}\n\n\n${type}.${name} = staticmethod(${helper})`
+  }
+
+  /** Its `member`, set on its class from outside, wherever that class is written. */
+  ASTPatchedMember(node: P.ASTPatchedMember): string {
+    return String(this.write(node.member))
   }
 
   ////////////////
@@ -629,28 +1267,51 @@ function flattened(group: P.ASTStatementGroup): P.ASTNode[] {
   )
 }
 
-/** Is `node` a `def` or a `class` of its own, which a docstring above goes inside? */
-function isDefinitionStatement(node: P.ASTNode): boolean {
-  return (node instanceof P.ASTMethodDefinition && !node.inline) || node instanceof P.ASTClassDeclaration
+/** Is `node` an event's handler, `spellCore.on("card-click", (event) => {...})`?  Written as a `def` -- see `handlerBlock()`. */
+function isHandlerCall(node: P.ASTNode): boolean {
+  const call = node instanceof P.ASTExpression ? unwrapped(node) : undefined
+  if (!call || !isCoreCall(call)) return false
+  const { methodName, args } = call as P.ASTScopedMethodInvocation
+  const handler = args.args?.[1]
+  return (
+    (methodName === "on" || methodName === "once") && !!handler && unwrapped(handler) instanceof P.ASTMethodDefinition
+  )
 }
 
-/** Is `node` the text `text`, written out:  `"integer"`? */
-function isText(node: P.ASTExpression | undefined, text: string): boolean {
+/** Is `node` a `def` or a `class` of its own -- a method or a getter too -- which a docstring above goes inside? */
+function isDefinitionStatement(node: P.ASTNode): boolean {
+  return (
+    (node instanceof P.ASTMethodDefinition && !node.inline) ||
+    node instanceof P.ASTClassDeclaration ||
+    node instanceof P.ASTPropertyDefinition ||
+    node instanceof P.ASTStaticMethod
+  )
+}
+
+/** The text of `node` if it's quoted text written out, `"-of-"` -- `undefined` for anything else. */
+function textLiteral(node: P.ASTExpression): string | undefined {
+  const inner = unwrapped(node)
+  return inner instanceof P.ASTStringLiteral && inner.quote ? inner.value : undefined
+}
+
+/** The text `node` says, written out (`"integer"`) -- `undefined` if it isn't text written out. */
+function textValue(node: P.ASTExpression | undefined): string | undefined {
   const inner = node && unwrapped(node)
-  if (inner instanceof P.ASTStringLiteral || inner instanceof P.ASTConstantExpression) return inner.value === text
-  if (!(inner instanceof P.ASTQuotedExpression)) return false
+  if (inner instanceof P.ASTStringLiteral) return inner.value
+  if (inner instanceof P.ASTConstantExpression) return String(inner.value)
+  if (!(inner instanceof P.ASTQuotedExpression)) return undefined
   const quoted = inner.expression
-  return quoted instanceof P.ASTLiteral && quoted.value === text
+  return quoted instanceof P.ASTLiteral ? String(quoted.value) : undefined
 }
 
 /**
- * SIDE EFFECT:  two blank lines at `index` of `lines`, as PEP 8 wants before a top-level `def` or `class` -- above
- * the declaration markers that go with it.  None at the very top.
+ * SIDE EFFECT:  `count` blank lines at `index` of `lines`, as PEP 8 wants before a `def` or `class` -- above the
+ * declaration markers that go with it.  None at the very top.
  */
-function separateAt(lines: string[], index: number): void {
+function separateAt(lines: string[], index: number, count: number): void {
   let start = index
   while (start > 0 && lines[start - 1] === "") start--
-  const gap = start === 0 ? [] : ["", ""]
+  const gap = start === 0 ? [] : Array<string>(count).fill("")
   lines.splice(start, index - start, ...gap)
 }
 
