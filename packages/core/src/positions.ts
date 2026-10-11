@@ -1,40 +1,67 @@
 /**
- * Positions, counted from where a project's lists start (epic `python-target` P2).
- * - spell counts from 1 inside;  a project may count from 0 (`project.json`'s `"listsStartAt": 0`).
+ * Positions:  the core counts from 0, as javascript does, and knows nothing of where a spell project counts from
+ * (epic `python-target` P23, Owen's Q28:  "listsStartAt is a *spell language* thing, emitted code is canonical
+ * for platform").
+ * - An index counts from 0;  a negative one from the end, `-1` the last item.
+ * - spell code counting from 1 (the default) is turned into indexes as it COMPILES:
+ *   - a number written out is folded:  "item 4 of the deck" is `deck.getItem(3)`
+ *   - one known only when it runs goes through `position()`:  `deck.getItem(position(column))`
+ *   - a position coming out, e.g. "the position of the ace in the deck", through `spellPosition()`
+ *   - a range's end, which spell includes and `slice()` doesn't, through `endPosition()`
+ *   - a loop handing its function the position, through `withSpellPositions()`
  * - No imports:  `List` and the collection helpers both use it.
  */
 
 /**
- * Where a project's lists start counting:  `1`, spell's own, or `0`, `project.json`'s `"listsStartAt": 0`.
- * - Only numbers count from it:  ordinal words don't change, "the first card" is the first either way.
- * - Negative positions count from the end either way:  `-1` is the last item.
+ * spell's position `n`, counted from 1, as an index, counted from 0:  `position(2)` is `1`.
+ * - Negative counts from the end either way, as it is:  `position(-1)` is `-1`.
+ * - `0` is no position at all:  `NaN`, which reads nothing, as "item 0" reads nothing counting from 1.
+ * - Anything but a number, as it is:  a key, nothing.
  */
-export type StartAt = 0 | 1
-
-/**
- * `position`, counted from `startAt`, as spell's own position, from 1:  `fromStartAt(0, 0)` is `1`.
- * - Negative positions, keys (text) and nothing are returned as they are.
- */
-export function fromStartAt<P>(position: P, startAt: StartAt = 1): P {
-  return (startAt === 0 && typeof position === "number" && position >= 0 ? position + 1 : position) as P
+export function position<P>(n: P): P {
+  if (typeof n !== "number") return n
+  return (n > 0 ? n - 1 : n === 0 ? Number.NaN : n) as P
 }
 
 /**
- * spell's own `position`, from 1, counted from `startAt` instead:  `toStartAt(1, 0)` is `0`.
- * - Nothing stays nothing:  a missing item is never `-1`.
+ * `index`, counted from 0, as spell's position, counted from 1:  `spellPosition(0)` is `1`.
+ * - Nothing stays nothing:  a missing item's position is never `0`.
+ * - Negative counts from the end either way, as it is.
  */
-export function toStartAt<P>(position: P, startAt: StartAt = 1): P {
-  return (startAt === 0 && typeof position === "number" && position > 0 ? position - 1 : position) as P
+export function spellPosition<P>(index: P): P {
+  return (typeof index === "number" && index >= 0 ? index + 1 : index) as P
 }
 
 /**
- * The array index of spell's `position` (from 1) in an array of `count` items:  `undefined` for none.
- * - Negative positions count from the end:  `-1` is the last item.
- * - `0` is no item:  spell counts from 1.
- * - Past the end is the index past the end:  a setter may grow the array there.
+ * spell's END position `n`, from 1 and included in its range ("items 2 to 4"), as the end of a `slice()`,
+ * which isn't:  `endPosition(4)` is `4`, so "items 2 to 4" is `slice(1, 4)`.
+ * - `-1`, the last item:  `undefined`, to the end.  Other negatives:  one more, `-2` is `-1`.
+ * - `0`:  `0`, an empty range.  Anything but a number:  `undefined`.
  */
-export function zeroIndexOf(position: number, count: number): number | undefined {
-  if (position > 0) return position - 1
-  if (position < 0 && -position <= count) return count + position
-  return undefined
+export function endPosition(n: unknown): number | undefined {
+  if (typeof n !== "number") return undefined
+  return n === -1 ? undefined : n < -1 ? n + 1 : n
+}
+
+/**
+ * `callback`, handed spell's positions, from 1, where a loop hands it indexes:
+ * `deck.forEach(withSpellPositions((card, position) => ...))`.
+ * - For a loop in code counting from 1 whose function takes the position.
+ */
+export function withSpellPositions<T, A extends unknown[], R>(
+  callback: (item: T, position: number, ...rest: A) => R
+): (item: T, index: number, ...rest: A) => R {
+  return (item, index, ...rest) => callback(item, spellPosition(index), ...rest)
+}
+
+/**
+ * The index `index` reaches in a collection of `count` items, counted from 0:  `undefined` if it reaches none.
+ * - From 0 on:  as it is, even past the end, where setting one grows an array (`map()` builds its result so).
+ * - Negative counts from the end:  `-1` is the last;  further back than the first, none.
+ * - Not a whole number (`NaN`, `1.5`):  none.
+ */
+export function zeroIndexOf(index: number, count: number): number | undefined {
+  if (!Number.isInteger(index)) return undefined
+  if (index >= 0) return index
+  return -index <= count ? count + index : undefined
 }

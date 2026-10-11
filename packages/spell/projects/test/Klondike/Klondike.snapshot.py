@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from spell_core import core, List, App, prop, h
+from spell_core import core, List, App, prop, h, position
 from cards import Card, Deck, Pile
 
 
@@ -266,7 +266,7 @@ async def deal_the_cards() -> None:
         for row in range(1, 8):
             await stock.last_item.turn_face_up()
             for column in core.get_range(row, 7):
-                tableaus.get_item(column).append(stock.last_item)
+                tableaus[position(column)].append(stock.last_item)
                 await core.pause_for(50, "msec")
 
         await play_from_the_stock_pile()

@@ -28,7 +28,7 @@ lists.addRule(ListRemoveRangeOrdinal, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add("deck")
       },
-      tests: [["remove first to third cards of the deck", "spellCore.removeRangeBetween(deck, 1, 3)"]]
+      tests: [["remove first to third cards of the deck", "spellCore.removeRangeBetween(deck, 0, 3)"]]
     }
   ]
 })

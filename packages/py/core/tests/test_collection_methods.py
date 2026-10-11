@@ -1,7 +1,7 @@
 """`core`'s list words on plain lists, tuples, text and dicts:  what compiled Python calls for an unknown value.
 
-- Positions from 1, or from 0 with `start_at=0`,
-  as the JavaScript core's `collection-core.test.ts` and `collection-other.test.ts` check them.
+- Positions are indexes, from 0, and ranges are a slice's (plan doc python-target, P23),
+  as the JavaScript core's `collection-core.test.ts`, `collection-other.test.ts` and `positions.test.ts` check them.
 - Each test uses its own `core` (`conftest.py`), except where a spell list asks the program's.
 """
 
@@ -34,13 +34,13 @@ def seeded_core() -> Iterator[None]:
 
 
 @pytest.mark.parametrize(
-    ("position", "start_at", "expected"),
-    [(1, 1, "a"), (3, 1, "c"), (0, 1, None), (4, 1, None), (-1, 1, "c"), (-4, 1, None), (0, 0, "a"), (2, 0, "c"),
-     (3, 0, None), (-1, 0, "c")],
+    ("index", "expected"),
+    [(0, "a"), (2, "c"), (3, None), (-1, "c"), (-3, "a"), (-4, None), (2.0, "c"), (1.5, None), (None, None),
+     (float("nan"), None)],
 )  # fmt: skip
-def test_get_item_at_from_1_or_0(core: SpellCore, position: int, start_at: int, expected: object) -> None:
+def test_get_item_at_an_index_from_0(core: SpellCore, index: float | None, expected: object) -> None:
     for collection in (["a", "b", "c"], ("a", "b", "c"), "abc", List("abc")):
-        assert core.get_item_at(collection, position, start_at) == expected  # type: ignore[arg-type]
+        assert core.get_item_at(collection, index) == expected
 
 
 def test_get_item_at_a_dict_or_a_thing_by_key(core: SpellCore) -> None:
@@ -49,38 +49,41 @@ def test_get_item_at_a_dict_or_a_thing_by_key(core: SpellCore) -> None:
     assert core.get_item_at(List(), "anything") is None
 
 
-def test_set_item_at_from_1_or_0_growing_past_the_end(core: SpellCore) -> None:
+def test_set_item_at_an_index_growing_past_the_end(core: SpellCore) -> None:
     items = ["a", "b"]
-    assert core.set_item_at(items, 1, "A") == "A"
-    core.set_item_at(items, 1, "B", 0)
-    core.set_item_at(items, 0, "nothing")
-    core.set_item_at(items, 4, "D")
+    assert core.set_item_at(items, 0, "A") == "A"
+    core.set_item_at(items, -1, "B")
+    core.set_item_at(items, -9, "nothing")
+    core.set_item_at(items, None, "nothing")
+    core.set_item_at(items, 3, "D")
     assert items == ["A", "B", None, "D"]
     record: dict[str, int] = {}
     core.set_item_at(record, "a", 1)
     assert record == {"a": 1}
 
 
-def test_remove_item_at_from_1_or_0(core: SpellCore) -> None:
-    items = ["a", "b", "c", "d"]
-    core.remove_item_at(items, 1)
-    core.remove_item_at(items, 0, 0)
+def test_remove_item_at_an_index(core: SpellCore) -> None:
+    items = ["a", "b", "c", "d", "e"]
+    core.remove_item_at(items, 0)
+    core.remove_item_at(items, -1)
+    core.remove_item_at(items, 0)
     core.remove_item_at(items, 9)
+    core.remove_item_at(items, None)
     assert items == ["c", "d"]
     record = {"a": 1, "b": 2}
     core.remove_item_at(record, "a")
     assert record == {"b": 2}
 
 
-def test_position_of_from_1_or_0_never_minus_1(core: SpellCore) -> None:
+def test_position_of_an_index_from_0_never_minus_1(core: SpellCore) -> None:
     ranks = ["ace", 2, 3, "queen"]
-    assert [core.position_of(ranks, "queen"), core.position_of(ranks, "queen", 0)] == [4, 3]
-    assert [core.position_of(ranks, "king"), core.position_of(ranks, "king", 0)] == [None, None]
-    assert core.position_of(ranks, 2.0) == 2
+    assert core.position_of(ranks, "queen") == 3
+    assert core.position_of(ranks, "king") is None
+    assert core.position_of(ranks, 2.0) == 1
     assert core.position_of([1], True) is None
-    assert core.position_of("queen", "e") == 3
+    assert core.position_of("queen", "e") == 2
     assert core.position_of({"a": 1, "b": 2}, 2) == "b"
-    assert core.position_of(List(["x"]), "x", 0) == 0
+    assert core.position_of(List(["x"]), "x") == 0
 
 
 def test_counting_and_emptiness(core: SpellCore) -> None:
@@ -88,7 +91,7 @@ def test_counting_and_emptiness(core: SpellCore) -> None:
     assert [core.is_empty(it) for it in ([], "", {}, List(), [0], float("nan"), 0)] == [
         True, True, True, True, False, True, False
     ]  # fmt: skip
-    assert core.keys_of(["a", "b"]) == [1, 2]
+    assert core.keys_of(["a", "b"]) == [0, 1]
     assert core.keys_of({"x": 1}) == ["x"]
     assert core.values_of({"x": 1}) == [1]
 
@@ -119,12 +122,14 @@ def test_append_prepend_add_before_after(core: SpellCore) -> None:
     assert items == ["front", 1, 2, "before 3", 3, "after 3", 4, "end"]
 
 
-def test_add_at_position_0_negative_and_past_the_end(core: SpellCore) -> None:
+def test_add_at_position_as_insert_negative_and_past_the_end(core: SpellCore) -> None:
     items = [1, 2]
     core.add_at_position(items, 0, "front")
+    core.add_at_position(items, 2, "at 2")
     core.add_at_position(items, -1, "before last")
     core.add_at_position(items, 99, "end")
-    assert items == ["front", 1, "before last", 2, "end"]
+    core.add_at_position(items, None, "no index:  the front")
+    assert items == ["no index:  the front", "front", 1, "at 2", "before last", 2, "end"]
 
 
 def test_remove_everywhere_and_remove_where(core: SpellCore) -> None:
@@ -138,21 +143,22 @@ def test_remove_everywhere_and_remove_where(core: SpellCore) -> None:
     assert record == {"a": 1}
 
 
-def test_ranges_from_1_or_0(core: SpellCore) -> None:
+def test_ranges_as_a_slice_end_not_included(core: SpellCore) -> None:
     items = ["a", "b", "c", "d"]
-    assert core.range_between(items, 2, 3) == ["b", "c"]
-    assert core.range_between(items, 1, 2, 0) == ["b", "c"]
-    assert core.range_between(items, 3, 9) == ["c", "d"]
-    assert core.range_between(items, 3, 2) == []
+    assert core.range_between(items, 1, 3) == ["b", "c"] == items[1:3]
+    assert core.range_between(items, 2, 9) == ["c", "d"]
+    assert core.range_between(items, 2, 2) == []
     assert core.range_between(items, -2) == ["c", "d"]
-    assert core.range_starting_at(items, 2, 2) == ["b", "c"]
-    assert core.range_starting_at(items, 1, 2, 0) == ["b", "c"]
+    assert core.range_between(items, None, -1) == ["a", "b", "c"]
+    assert core.range_between(items, -9, 2) == []
+    assert core.range_starting_at(items, 1, 2) == ["b", "c"]
     assert core.range_starting_at(items, -3) == ["b", "c", "d"]
-    assert core.range_starting_at(items, 9) == []
+    assert core.range_starting_at(items, -2, 2) == ["c", "d"]
+    assert core.range_starting_at(items, 4) == []
     assert type(core.range_between(List(items), 9, 10)) is List
-    core.remove_range_between(items, 2, 3)
+    core.remove_range_between(items, 1, 3)
     assert items == ["a", "d"]
-    core.remove_range_between(items, 0, 0, 0)
+    core.remove_range_between(items, 0, 1)
     assert items == ["d"]
 
 
@@ -164,7 +170,7 @@ def test_starts_ends_with_reverse_set_items(core: SpellCore) -> None:
     assert core.ends_with(items, 3)
     core.reverse(items)
     assert items == [3, 2, 1]
-    core.set_items_of(items, 2, "b", "c", "d")
+    core.set_items_of(items, 1, "b", "c", "d")
     assert items == [3, "b", "c", "d"]
 
 
@@ -173,13 +179,11 @@ def test_starts_ends_with_reverse_set_items(core: SpellCore) -> None:
 ####################
 
 
-def test_for_each_map_filter_with_positions_from_1_or_0(core: SpellCore) -> None:
+def test_for_each_map_filter_with_indexes_from_0(core: SpellCore) -> None:
     seen: list[object] = []
-    core.for_each(["a", "b"], lambda value, position: seen.append((value, position)))
-    core.for_each(["a", "b"], lambda value, position: seen.append(position), 0)
-    assert seen == [("a", 1), ("b", 2), 0, 1]
-    assert core.map([1, 2, 3], lambda n, position: n * position) == [1, 4, 9]
-    assert core.map([1, 2, 3], lambda n, position: n * position, 0) == [0, 2, 6]
+    core.for_each(["a", "b"], lambda value, index: seen.append((value, index)))
+    assert seen == [("a", 0), ("b", 1)]
+    assert core.map([1, 2, 3], lambda n, index: n * index) == [0, 2, 6]
     assert core.map({"a": 1}, lambda n: n + 1) == {"a": 2}
     assert core.filter([0, 1, "", "x", [], None]) == [1, "x", []]
     assert core.filter({"a": 1, "b": 2}, lambda value, key: key == "b") == {"b": 2}

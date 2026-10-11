@@ -46,7 +46,7 @@ export class JSWriter extends ProgramWriter {
   static readonly instance = new JSWriter()
 
   /** How we write each kind of name, e.g. a type in PascalCase -- see `Naming`. */
-  naming = new Naming(Naming.JAVASCRIPT)
+  naming = new Naming(Naming.JAVASCRIPT, Naming.JAVASCRIPT_CLASHES)
 
   /** `@spell/core`'s helpers the code calls by name, e.g. `on`, `trigger`, `positionOf`:  imported by `module()`. */
   protected coreImports = new Set<string>()
@@ -489,27 +489,41 @@ export class JSWriter extends ProgramWriter {
     if (node.thing instanceof P.ASTSpellCoreExpression) {
       const written = this.coreCall(node)
       if (written !== undefined) return written
-      return `${this.memberObject(node.thing)}.${this.nameOf(node.methodName)}${this.startAtArgs(node, this.argsOf(node))}`
+      return this.positionOut(
+        `${this.memberObject(node.thing)}.${this.nameOf(node.methodName)}${this.helperArgs(node)}`,
+        node
+      )
     }
     const dot = this.mayBeNothing(node.thing) ? "?." : "."
     return `${this.memberObject(node.thing)}${dot}${this.nameOf(node.methodName)}${this.argsOf(node)}`
   }
 
   /**
-   * `args`, a `spellCore` helper's written arguments, e.g. `(deck, n)`, with `0` last when the project counts from 0
-   * and the helper takes a position:  `(deck, n, 0)`.  As they are otherwise.
-   * - Arguments left out before it are written `undefined`:  `rangeStartingAt(deck, n, undefined, 0)`.
+   * A `spellCore` helper's `(args)`, its positions as indexes (`positionArgs()`):  `(deck, 3)` for `item 4 of deck`;
+   * as `argsOf()` writes them when it takes none.
    */
-  startAtArgs(node: P.ASTScopedMethodInvocation, args: string): string {
-    if (!this.takesStartAt(node.methodName, node.args.args ?? [])) return args
-    const at = JSWriter.START_AT_ARG[node.methodName]!
-    const missing = Math.max(0, at - (node.args.args?.length ?? 0))
-    return `${args.slice(0, -1)}${", undefined".repeat(missing)}, 0)`
+  helperArgs(node: P.ASTScopedMethodInvocation): string {
+    const name = node.methodName
+    if (!(name in JSWriter.POSITION_ARGS) && !JSWriter.POSITION_LOOPS.has(name)) return this.argsOf(node)
+    return `(${this.positionArgs(name, node.args.args ?? []).join(", ")})`
   }
 
-  /** `, 0` when `spellCore`'s helper `name` takes a last `startAt` with `args` -- see `takesStartAt()`. */
-  startAtArg(name: string, args: P.ASTExpression[]): string {
-    return this.takesStartAt(name, args) ? ", 0" : ""
+  /** `written`, a helper's call, as spell's position when what it gives is one (`positionOf`);  else as it is. */
+  positionOut(written: string, node?: P.ASTScopedMethodInvocation): string {
+    if (node && !JSWriter.POSITION_RESULTS.has(node.methodName)) return written
+    return super.positionOut(written)
+  }
+
+  /** Does `written`, an arrow, still take the position?  Not when it dropped it, unused:  `(card) => ...`. */
+  protected takesPositionAsWritten(written: string): boolean {
+    const params = /^(?:async )?\(([^)]*)\)/.exec(written)?.[1]
+    return params === undefined || params.split(",").length >= 2
+  }
+
+  /** The core's position helper `name`, imported by name:  `import { position } from "@spell/core"`. */
+  protected positionHelper(name: string): string {
+    this.coreImports.add(name)
+    return name
   }
 
   /** What a member is read from, ready for a `.` or `?.` after it:  in parentheses unless it binds as tightly. */
@@ -566,7 +580,7 @@ export class JSWriter extends ProgramWriter {
     }
     if (IMPORTED_HELPERS.has(name)) {
       this.coreImports.add(name)
-      return `${name}${this.startAtArgs(node, String(this.write(node.args)))}`
+      return this.positionOut(`${name}${this.helperArgs(node)}`, node)
     }
     return undefined
   }
@@ -594,7 +608,7 @@ export class JSWriter extends ProgramWriter {
    * One of spell's `List`s doing it itself, as its own method:
    * `allPiles.filter((pile) => ...)`, `droppablePiles.firstItem`, `startPile.startingWith(this)` ...
    * - `undefined` for a helper it has no method for.
-   * - Every position counts from 1, as spell's.
+   * - Every position an index, from 0:  see `index()`.
    * - Epic `output-targets` P14:  Q33, Q35, Q36;  in javascript too since P19.
    */
   listCall(name: string, list: P.ASTExpression, rest: P.ASTExpression[], isStatement: boolean): string | undefined {
@@ -603,8 +617,6 @@ export class JSWriter extends ProgramWriter {
     const [second, third] = rest
     const callback = () => this.callback(second)
     const found = (arg: P.ASTExpression) => this.foundArg(arg)
-    // a project counting from 0:  the list's method told so, `deck.between(1, 3, 0)` -- see `takesStartAt()`
-    const startAt = () => this.startAtArg(name, [list, ...rest])
     switch (name) {
       case "filter":
       case "all":
@@ -613,16 +625,17 @@ export class JSWriter extends ProgramWriter {
         return second ? `${self}.${name}(${callback()})` : undefined
       case "map":
       case "forEach":
-        return second ? `${self}.${isStatement ? "forEach" : name}(${callback()}${startAt()})` : undefined
+        return second
+          ? `${self}.${isStatement ? "forEach" : name}(${this.positionedCallback(second, callback())})`
+          : undefined
       case "forEachSequential":
-        return second ? `${self}.forEachSequential(${callback()}${startAt()})` : undefined
+        return second ? `${self}.forEachSequential(${this.positionedCallback(second, callback())})` : undefined
       case "getItemAt": {
         if (rest.length !== 1) return undefined
-        const position = this.writtenPosition(second)
-        if (position === this.listsStartAt) return `${self}.firstItem`
-        if (position === -1) return `${self}.lastItem`
-        // counting from 0, as an array does:  `deck.at(n)`
-        return `${self}.${this.listsStartAt === 0 ? "at" : "getItem"}(${this.bare(second!)})`
+        const index = this.literalIndex(second)
+        if (index === 0) return `${self}.firstItem`
+        if (index === -1) return `${self}.lastItem`
+        return `${self}.getItem(${this.index(second!)})`
       }
       case "randomItemOf":
         return `${self}.randomItem()`
@@ -637,8 +650,9 @@ export class JSWriter extends ProgramWriter {
       case "smallestOf":
         return `${self}.min`
       case "positionOf":
+        return rest.length === 1 ? super.positionOut(`${self}.positionOf(${found(second!)})`) : undefined
       case "remove":
-        return rest.length === 1 ? `${self}.${name}(${found(second!)}${startAt()})` : undefined
+        return rest.length === 1 ? `${self}.remove(${found(second!)})` : undefined
       case "includes":
       case "includesAny":
       case "append":
@@ -659,11 +673,13 @@ export class JSWriter extends ProgramWriter {
           if (ofList && item && this.write(ofList) === this.write(list))
             return `${self}.startingWith(${this.bare(item)})`
         }
-        return `${self}.startingFrom(${this.bare(second!)}${startAt()})`
-      case "rangeBetween":
-        return rest.length === 2
-          ? `${self}.between(${this.bare(second!)}, ${this.bare(third!)}${startAt()})`
-          : undefined
+        return `${self}.startingFrom(${this.index(second!)})`
+      case "rangeBetween": {
+        // a slice, as an array's:  `items 2 to 4` is `slice(1, 4)`;  to the last, no end
+        if (rest.length !== 2) return undefined
+        const end = this.endIndex(third!)
+        return `${self}.slice(${this.index(second!)}${end === undefined ? "" : `, ${end}`})`
+      }
       case "duplicateList": {
         if (!(second instanceof P.ASTTypeExpression)) return `${self}.clone()`
         // already that class, e.g. a `DiscardPile` is a `Pile`:  a copy of its own class (Q36)
@@ -821,7 +837,8 @@ export class JSWriter extends ProgramWriter {
         return this.arrowBody(method, statements)
       })
       const args = [...(method.args ?? [])]
-      while (args.length && !new RegExp(`\\b${this.nameOf(args.at(-1)!.name)}\\b`).test(body)) args.pop()
+      // by its written name:  a parameter that steps aside is `position_`
+      while (args.length && !new RegExp(`\\b${this.variableName(args.at(-1)!)}\\b`).test(body)) args.pop()
       const params = args.map((arg, index) =>
         index === 0 && payload ? `${this.variableName(arg)}: ${payload}` : this.arrowParam(arg)
       )

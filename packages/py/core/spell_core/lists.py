@@ -23,7 +23,7 @@ from typing import Any, ClassVar, Self, SupportsIndex, overload
 
 from spell_core.js_text import is_plain_number, js_string
 from spell_core.kinds import is_same
-from spell_core.positions import StartAt, from_start_at, to_start_at, zero_index_of
+from spell_core.positions import zero_index_of
 from spell_core.things import ITEMS_KEY, SpellObject, note_change, program_core, to_json_value
 
 # What a list method calls for each item, e.g. `filter()`'s condition:  `(value, position, list)`.
@@ -53,9 +53,9 @@ class List(SpellObject, MutableSequence[Any]):
     - Equality is identity:  two decks are two decks, however alike.
 
     Spell's own words, the twins of the JavaScript core's `List` methods, in snake_case:
-    - positions count from 1, as in spell, or from `start_at=0` for a project that counts from 0
-      (`get_item()`, `position_of()` ...);  negative ones count from the end
-    - a list result (`filter()`, `between()` ...) is SCRATCH, of our class, and owns nothing
+    - positions are indexes, from 0, as Python's (`get_item()`, `position_of()` ...);  negative ones count from
+      the end.  Spell code counting from 1 is turned into indexes as it compiles:  see `positions.py`.
+    - a list result (`filter()`, `deck[1:3]` ...) is SCRATCH, of our class, and owns nothing
     - a callback gets `(value, position, list)`, or as many of those as it takes
 
     Exclusive lists (`exclusive = True`, from `a card belongs to one pile`):
@@ -143,24 +143,27 @@ class List(SpellObject, MutableSequence[Any]):
         return any(is_same(it, item) for it in self._items)
 
     @overload
-    def __getitem__(self, index: int) -> Any: ...
+    def __getitem__(self, index: int | None) -> Any: ...
     @overload
     def __getitem__(self, index: slice) -> Self: ...
-    def __getitem__(self, index: int | slice) -> Any:
+    def __getitem__(self, index: int | slice | None) -> Any:
         """`deck[0]`:  Python's index, from 0, negatives from the end.
 
         - Out of range:  `None`, never `IndexError`.
-        - `deck[2:5]`:  a scratch list of our class, owning nothing.
+        - `None`, no index at all, e.g. `deck[position(0)]`, "item 0" counting from 1:  `None`.
+        - `deck[2:5]`:  a scratch list of our class, owning nothing:  "items 3 to 5 of the deck".
         - throws `TypeError` for an index that's not a whole number or a slice, as Python's lists do.
         """
         if isinstance(index, slice):
             return self._scratch_of(self._items[index])
-        return self.get_item(_index_number(index, type(self)), start_at=0)
+        if index is None:
+            return None
+        return self.get_item(_index_number(index, type(self)))
 
-    def __setitem__(self, index: int | slice, value: Any) -> None:
+    def __setitem__(self, index: int | slice | None, value: Any) -> None:
         """`deck[0] = card`:  replace the item at Python's index.
 
-        - Before the start:  nothing changes.
+        - Before the start, or `None` (`deck[position(0)]`):  nothing changes.
         - Past the end grows the list, the gap filled with `None`.
         - `deck[1:3] = cards`:  as a Python list's slice, its items kept by their owners' rules.
         """
@@ -169,16 +172,18 @@ class List(SpellObject, MutableSequence[Any]):
             items[index] = list(value)
             self._write_items(items)
             return
-        self.set_item(_index_number(index, type(self)), value, start_at=0)
+        if index is not None:
+            self.set_item(_index_number(index, type(self)), value)
 
-    def __delitem__(self, index: int | slice) -> None:
-        """`del deck[0]`:  take out the item at Python's index.  No such item:  nothing changes."""
+    def __delitem__(self, index: int | slice | None) -> None:
+        """`del deck[0]`:  take out the item at Python's index.  No such item, or `None`:  nothing changes."""
         if isinstance(index, slice):
             items = list(self._items)
             del items[index]
             self._write_items(items)
             return
-        self.remove_item(_index_number(index, type(self)), start_at=0)
+        if index is not None:
+            self.remove_item(_index_number(index, type(self)))
 
     def insert(self, index: int, value: Any) -> None:
         """`deck.insert(0, card)`:  add `value` before Python's index `index`, as a Python list's `insert()`.
@@ -211,7 +216,7 @@ class List(SpellObject, MutableSequence[Any]):
         - `deck.append(card)`, as Python's;  or several at once, `deck.append(card, other)`.
         - Exclusive:  one we hold already MOVES to the end.
         """
-        return self.add_at(len(self._items) + 1, *things)
+        return self.add_at(len(self._items), *things)
 
     def remove(self, *things: Any) -> Self:  # type: ignore[override]
         """SIDE EFFECT:  take out EVERY copy of each of `things`.  Returns us.
@@ -246,77 +251,85 @@ class List(SpellObject, MutableSequence[Any]):
     # ## Positions
     ################
 
-    def get_item(self, position: float, start_at: StartAt = 1) -> Any:
-        """The item at `position`, from 1 (or `start_at`);  negative from the end.  `None` for none.
+    def get_item(self, index: float | None) -> Any:
+        """The item at `index`, from 0;  negative from the end.  `None` for none.
 
-        - `item 2 of the deck`, `the last card of the deck`.
+        - `item 2 of the deck` is `deck.get_item(1)`, `deck[1]` in Python's words;  `the last card of the deck`, `-1`.
+        - Not a whole number, or `None` (`position(0)`):  none.
         """
-        if not is_plain_number(position):
+        if not is_plain_number(index):
             return None
-        index = zero_index_of(from_start_at(position, start_at), len(self._items))
-        if index is None or index >= len(self._items):
+        at = zero_index_of(index, len(self._items))  # type: ignore[arg-type]
+        if at is None or at >= len(self._items):
             return None
-        return self._items[index]
+        return self._items[at]
 
-    def set_item(self, position: float, value: Any, start_at: StartAt = 1) -> None:
-        """SIDE EFFECT:  replace the item at `position`, from 1 (or `start_at`);  negative from the end.
+    def set_item(self, index: float | None, value: Any) -> None:
+        """SIDE EFFECT:  replace the item at `index`, from 0;  negative from the end.
 
-        - No such position (`0`, before the start):  nothing changes.
+        - No such index (before the start, `None`):  nothing changes.
         - Past the end grows the list, the gap filled with `None`.
-        - NOTE:  an exclusive list may hold an item twice for a moment, e.g. while setting each position in turn.
+        - NOTE:  an exclusive list may hold an item twice for a moment, e.g. while setting each index in turn.
         """
-        if not is_plain_number(position):
+        if not is_plain_number(index):
             return
-        index = zero_index_of(from_start_at(position, start_at), len(self._items))
-        if index is None:
+        at = zero_index_of(index, len(self._items))  # type: ignore[arg-type]
+        if at is None:
             return
         items = list(self._items)
-        items.extend([None] * (index + 1 - len(items)))
-        items[index] = value
+        items.extend([None] * (at + 1 - len(items)))
+        items[at] = value
         self._write_items(items)
 
-    def remove_item(self, position: float, start_at: StartAt = 1) -> None:
-        """SIDE EFFECT:  take out the item at `position`, from 1 (or `start_at`).  No such item:  nothing changes."""
-        if not is_plain_number(position):
-            return
-        index = zero_index_of(from_start_at(position, start_at), len(self._items))
-        if index is None or index >= len(self._items):
-            return
-        self._write_items(self._items[:index] + self._items[index + 1 :])
+    def remove_item(self, index: float | None) -> None:
+        """SIDE EFFECT:  take out the item at `index`, from 0;  negative from the end.
 
-    def position_of(self, thing: object, start_at: StartAt = 1) -> int | None:
-        """Where our first `thing` is (`is_same()`), from 1 (or `start_at`).
+        - No such item:  nothing changes.
+        """
+        if not is_plain_number(index):
+            return
+        at = zero_index_of(index, len(self._items))  # type: ignore[arg-type]
+        if at is None or at >= len(self._items):
+            return
+        self._write_items(self._items[:at] + self._items[at + 1 :])
 
-        - `None` if we don't hold it, never `-1`.
+    def position_of(self, thing: object) -> int | None:
+        """The index of our first `thing` (`is_same()`), from 0:  `the position of the card in the pile`.
+
+        - `None` if we don't hold it, never `-1`:  Python's `index()` throws instead.
         """
         for index, item in enumerate(self._items):
             if is_same(item, thing):
-                return to_start_at(index + 1, start_at)
+                return index
         return None
 
-    def add_at(self, position: float, *things: Any) -> Self:
-        """SIDE EFFECT:  add `things` at `position`, from 1, pushing what was there down.  Returns us.
+    def add_at(self, index: float | None, *things: Any) -> Self:
+        """SIDE EFFECT:  add `things` at `index`, from 0, pushing what was there down, as `insert()` does.  Returns us.
 
-        - `add the card to the pile at position 2`.
-        - `0` is the front, as is anything before the start;  past the end is the end.
+        - `add the card to the pile at position 2` is `pile.add_at(1, card)`.
+        - Past the end:  at the end.  Negative counts from the end;  further back than the front, or `None`:  the front.
         - Exclusive:  one we hold already MOVES there -- we hold each item once.
         """
-        at = 0 if position == 0 else zero_index_of(position, len(self._items))
+        count = len(self._items)
+        if is_plain_number(index) and index >= count:  # type: ignore[operator]
+            at: int | None = count
+        else:
+            at = zero_index_of(index, count) if is_plain_number(index) else None  # type: ignore[arg-type]
         self._insert_at_index(at or 0, things)
         return self
 
-    def set_items(self, position: float, *values: Any) -> Self:
-        """SIDE EFFECT:  set the items from `position` on to `values`, replacing what's there.  Returns us.
+    def set_items(self, index: float, *values: Any) -> Self:
+        """SIDE EFFECT:  set the items from `index`, from 0, on to `values`, replacing what's there.  Returns us.
 
         - Each as `set_item()` would, in turn, then written once.
         """
         items = list(self._items)
         for offset, value in enumerate(values):
-            index = zero_index_of(position + offset, len(items))
-            if index is None:
+            at = zero_index_of(index + offset, len(items))
+            if at is None:
                 continue
-            items.extend([None] * (index + 1 - len(items)))
-            items[index] = value
+            items.extend([None] * (at + 1 - len(items)))
+            items[at] = value
         self._write_items(items)
         return self
 
@@ -327,7 +340,7 @@ class List(SpellObject, MutableSequence[Any]):
     @property
     def first_item(self) -> Any:
         """Our first item, `None` if we're empty:  `the first card of the deck`."""
-        return self.get_item(1)
+        return self.get_item(0)
 
     @property
     def last_item(self) -> Any:
@@ -399,25 +412,32 @@ class List(SpellObject, MutableSequence[Any]):
         """
         return program_core().filter(self, condition)  # type: ignore[no-any-return]
 
-    def map(self, callback: ListCallback, start_at: StartAt = 1) -> "List":
+    def map(self, callback: ListCallback) -> "List":
         """What `callback` answers for each item, in a scratch list of our class.
 
-        - `start_at`:  where the position `callback` gets counts from, 1 or 0.
+        - `callback` gets `(value, index, list)`, the index from 0, or as many of those as it takes.
         """
-        return program_core().map(self, callback, start_at)  # type: ignore[no-any-return]
+        return program_core().map(self, callback)  # type: ignore[no-any-return]
 
-    def for_each(self, callback: ListCallback, start_at: StartAt = 1) -> None:
-        """Call `callback` for each item, in order.  `for card in deck:` is Python's own, and better."""
-        program_core().for_each(self, callback, start_at)
+    def for_each(self, callback: ListCallback) -> None:
+        """Call `callback` for each item, in order.  `for card in deck:` is Python's own, and better.
+
+        - `callback` gets `(value, index, list)`, the index from 0, or as many of those as it takes.
+        """
+        program_core().for_each(self, callback)
 
     def remove_where(self, condition: ListCallback) -> Self:
         """SIDE EFFECT:  take out each item `condition` says yes to.  Returns us."""
         program_core().remove_where(self, condition)
         return self
 
-    def remove_between(self, start: float, end: float, start_at: StartAt = 1) -> Self:
-        """SIDE EFFECT:  take out the items from position `start` to `end`, both included.  Returns us."""
-        program_core().remove_range_between(self, start, end, start_at)
+    def remove_between(self, start: float | None, end: float | None = None) -> Self:
+        """SIDE EFFECT:  take out the items from index `start` up to, not including, `end`, as a slice.  Returns us.
+
+        - Negative counts from the end;  no `end`:  to the end.
+        - `remove items 2 to 4 of the deck` is `deck.remove_between(1, 4)`:  see `core.remove_range_between()`.
+        """
+        program_core().remove_range_between(self, start, end)
         return self
 
     def prepend(self, *things: Any) -> Self:
@@ -446,9 +466,9 @@ class List(SpellObject, MutableSequence[Any]):
         program_core().merge_lists_into(self, *lists)
         return self
 
-    def starting_from(self, position: float, start_at: StartAt = 1) -> Self:
-        """The items from `position` to the end, in a scratch list of our class.  `-2`:  the last two."""
-        return program_core().range_starting_at(self, position, None, start_at)  # type: ignore[no-any-return]
+    def starting_from(self, index: float) -> Self:
+        """The items from `index`, from 0, to the end, in a scratch list of our class.  `-2`:  the last two."""
+        return program_core().range_starting_at(self, index, None)  # type: ignore[no-any-return]
 
     def starting_with(self, item: object) -> Self:
         """The items from `item` to the end, in a scratch list of our class.
@@ -457,14 +477,6 @@ class List(SpellObject, MutableSequence[Any]):
         """
         core = program_core()
         return core.range_starting_at(self, core.position_of(self, item))  # type: ignore[no-any-return]
-
-    def between(self, start: float, end: float, start_at: StartAt = 1) -> Self:
-        """The items from position `start` to `end`, both included:  `items 1 to 2 of the deck`.
-
-        - A scratch list of our class.
-        - Out of range:  an empty one.
-        """
-        return program_core().range_between(self, start, end, start_at)  # type: ignore[no-any-return]
 
     def starts_with(self, thing: object) -> bool:
         """Is `thing` our first item?  `False` for `None`."""

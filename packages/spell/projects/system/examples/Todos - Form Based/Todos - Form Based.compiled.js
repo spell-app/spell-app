@@ -81,8 +81,8 @@ export class TodosApp extends App {
         h("ui-menu", { inverted: true, color: "grey" },
           h("ui-item", { type: "header" }, "Test:"),
           h("ui-item", { onClick: () => createANewTask({ title: "Moar" }) }, "Add Item"),
-          h("ui-item", { onClick: () => spellCore.removeItemAt(app.tasks, 1) }, "Remove Item"),
-          h("ui-item", { onClick: () => (spellCore.getItemAt(app.tasks, 1).title = "New title") },
+          h("ui-item", { onClick: () => spellCore.removeItemAt(app.tasks, 0) }, "Remove Item"),
+          h("ui-item", { onClick: () => (spellCore.getItemAt(app.tasks, 0).title = "New title") },
             "Change name"
           ),
           h("ui-item", { onClick: () => spellCore.removeWhere(app.tasks, (item) => item.isComplete) },

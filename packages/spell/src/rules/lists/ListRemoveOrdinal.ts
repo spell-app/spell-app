@@ -30,7 +30,7 @@ lists.addRule(ListRemoveOrdinal, {
       },
       tests: [
         ["remove last card of deck", "spellCore.removeItemAt(deck, -1)"],
-        ["remove the first card of the deck", "spellCore.removeItemAt(deck, 1)"]
+        ["remove the first card of the deck", "spellCore.removeItemAt(deck, 0)"]
       ]
     }
   ]

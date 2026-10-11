@@ -14,7 +14,7 @@ import { type Naming, type NameKind } from "./Naming"
  * - What the whole project says, before writing any of it:  `forProject()`, a `WriterProject`.
  * - What a value is, as far as writing it goes:  `kindOf()` -- text, a number, a choice, a list, a class.
  * - What may be nothing:  `mayBeNothing()`, from what each new variable is set to (`locals`).
- * - Where the project's lists start counting:  `listsStartAt`, and which `spellCore` helpers take a position.
+ * - Where the project's lists start counting, `listsStartAt`:  each position written as an index -- see `index()`.
  * - How it writes spell's names:  `naming`, set by each language's writer.
  ****************/
 export abstract class ProgramWriter extends Writer {
@@ -38,6 +38,9 @@ export abstract class ProgramWriter extends Writer {
    */
   abstract importsHeader(imports: P.ModuleImport[]): string
 
+  /** `node`, a value, written with no parentheses around it -- each language's own, e.g. `JSWriter.bare()`. */
+  abstract bare(node: P.ASTExpression): string
+
   /**
    * A project part that comes as code, not a tree, in our language,
    * e.g. a `.css` file's `spellCore.installStyles(...)`.
@@ -49,8 +52,7 @@ export abstract class ProgramWriter extends Writer {
 
   /**
    * Where the project's lists start counting, 1 or 0 (`project.json`'s `"listsStartAt"`) -- see `forProject()`.
-   * - Counting from 0, a position is written as the language says it where it can (javascript's `deck.at(n)`),
-   *   else `spellCore`'s helper is told so with a last `0` -- see `takesStartAt()`.
+   * - The code counts from 0 either way:  spell's positions are written as indexes -- see `index()`.
    */
   listsStartAt: 0 | 1 = 1
 
@@ -121,53 +123,134 @@ export abstract class ProgramWriter extends Writer {
   }
 
   /**
-   * A position said with an ordinal word, e.g. `the first card`'s `1`, as the project counts it.
-   * - Counting from 0 (`listsStartAt`), one less:  `0`.
-   * - Negative ones count from the end either way:  as they are.
+   * A position said with an ordinal word, e.g. `the first card`'s `1`:  spell's number, as it is.
+   * - As a position, it's written through `index()`, which makes it an index:  `0`.
    */
   ASTOrdinalLiteral(node: P.ASTOrdinalLiteral): number {
-    return this.listsStartAt === 0 && node.value > 0 ? node.value - 1 : node.value
+    return node.value
+  }
+
+  ////////////////
+  // ## Positions:  indexes in the code, from 0, whatever the project counts from (epic `python-target` P23)
+  //  - Owen's Q28:  "listsStartAt is a *spell language* thing, emitted code is canonical for platform".
+  //  - Counting from 1 (spell's own):  a number written out is folded as it compiles, `item 4` is `getItem(3)`;
+  //    one known only when it runs goes through the core's `position()`, `getItem(position(column))`.
+  //  - Counting from 0:  as it is.
+  //  - A position coming out, `the position of the ace in the deck`, goes back through `spellPosition()`.
+  ////////////////
+
+  /**
+   * `spellCore`'s helpers that take positions, by the argument each is:  `index` or a range's included `end`
+   * -- see `index()`, `endIndex()`.
+   */
+  static POSITION_ARGS: Record<string, Array<"index" | "end" | undefined>> = {
+    getItemAt: [undefined, "index"],
+    setItemAt: [undefined, "index"],
+    removeItemAt: [undefined, "index"],
+    addAtPosition: [undefined, "index"],
+    rangeBetween: [undefined, "index", "end"],
+    removeRangeBetween: [undefined, "index", "end"],
+    rangeStartingAt: [undefined, "index"]
+  }
+
+  /** `spellCore`'s helpers that give a position:  what they give is an index -- see `positionOut()`. */
+  static POSITION_RESULTS = new Set(["positionOf"])
+
+  /** `spellCore`'s loops, which hand their function the position too -- see `positionedCallback()`. */
+  static POSITION_LOOPS = new Set(["map", "forEach", "forEachSequential"])
+
+  /** How our language says nothing, for a range with no end:  javascript's `undefined`. */
+  nothing = "undefined"
+
+  /**
+   * The core's position helper `name` (`position`, `spellPosition`, `endPosition`, `withSpellPositions`)
+   * as our language calls it, noting it's used:  javascript imports it by name -- see `JSWriter.coreImports`.
+   */
+  protected positionHelper(name: string): string {
+    return this.nameOf(name, "method")
   }
 
   /**
-   * `spellCore`'s helpers that take or give a position, and where their last `startAt` goes:
-   * the argument a project counting from 0 passes, `0` -- see `startAtArgs()`.
-   * - A loop's only when its callback takes the position too:  `for item, index in my-list`.
+   * Position `node`, spell's, as an index from 0, written:
+   * - a number written out, folded:  `item 4` is `3`, `the first` is `0`, `the last` is `-1`
+   * - counting from 1, one known only when it runs:  `position(column)`
+   * - counting from 0:  as it is, but an ordinal word, which counts from 1 either way
+   * - spell's `item 0`, counting from 1:  `position(0)`, which reads nothing
    */
-  static START_AT_ARG: Record<string, number> = {
-    getItemAt: 2,
-    setItemAt: 3,
-    removeItemAt: 2,
-    positionOf: 2,
-    rangeBetween: 3,
-    removeRangeBetween: 3,
-    rangeStartingAt: 3,
-    map: 2,
-    forEach: 2,
-    forEachSequential: 2
+  index(node: P.ASTExpression): string {
+    const inner = unwrapped(node)
+    if (inner instanceof P.ASTOrdinalLiteral) return String(inner.value > 0 ? inner.value - 1 : inner.value)
+    if (this.listsStartAt === 0) return this.bare(node)
+    if (inner instanceof P.ASTNumericLiteral && Number(inner.value) !== 0) {
+      const n = Number(inner.value)
+      return String(n > 0 ? n - 1 : n)
+    }
+    return `${this.positionHelper("position")}(${this.bare(node)})`
   }
 
   /**
-   * Does `spellCore`'s helper `name`, given `args`, take a last `startAt` in this project?
-   * - Yes when the project counts from 0,
-   *   and it's a position, or a loop that hands its callback the position.
+   * A range's END position `node`, which spell's range includes, as the end of a `slice()`, which doesn't:
+   * `items 2 to 4` ends at `4`;  `undefined` for one that runs to the end, `the last`.
+   * - Known only when it runs:  `endPosition(n)` (counting from 0:  `endPosition(spellPosition(n))`).
    */
-  takesStartAt(name: string, args: P.ASTExpression[]): boolean {
-    if (this.listsStartAt !== 0 || !(name in ProgramWriter.START_AT_ARG)) return false
-    if (name !== "map" && name !== "forEach" && name !== "forEachSequential") return true
-    const callback = args[1] && unwrapped(args[1])
-    return callback instanceof P.ASTMethodDefinition && (callback.args?.length ?? 0) >= 2
+  endIndex(node: P.ASTExpression): string | undefined {
+    const inner = unwrapped(node)
+    const literal =
+      inner instanceof P.ASTOrdinalLiteral
+        ? inner.value
+        : inner instanceof P.ASTNumericLiteral
+          ? Number(inner.value) + (this.listsStartAt === 0 && Number(inner.value) >= 0 ? 1 : 0)
+          : undefined
+    if (literal !== undefined) return literal === -1 ? undefined : String(literal < -1 ? literal + 1 : literal)
+    const n = this.listsStartAt === 0 ? `${this.positionHelper("spellPosition")}(${this.bare(node)})` : this.bare(node)
+    return `${this.positionHelper("endPosition")}(${n})`
+  }
+
+  /** `written`, a helper's index coming out, as spell's position:  `spellPosition(...)` counting from 1. */
+  positionOut(written: string): string {
+    return this.listsStartAt === 0 ? written : `${this.positionHelper("spellPosition")}(${written})`
   }
 
   /**
-   * The position `node` says as a number, as we write it:  an ordinal counted as the project counts
-   * (`first` is `0` counting from 0), a number as is -- `undefined` for anything else.
+   * `callback`, a loop's function, written:  counting from 1, one that takes the position too gets spell's,
+   * `withSpellPositions((card, position) => ...)`.
    */
-  writtenPosition(node: P.ASTExpression | undefined): number | undefined {
-    const inner = node && unwrapped(node)
-    if (inner instanceof P.ASTOrdinalLiteral) return this.ASTOrdinalLiteral(inner)
-    if (inner instanceof P.ASTNumericLiteral) return Number(inner.value)
-    return undefined
+  positionedCallback(callback: P.ASTExpression | undefined, written: string): string {
+    const method = callback && unwrapped(callback)
+    const takesPosition =
+      method instanceof P.ASTMethodDefinition && (method.args?.length ?? 0) >= 2 && this.takesPositionAsWritten(written)
+    return takesPosition && this.listsStartAt !== 0
+      ? `${this.positionHelper("withSpellPositions")}(${written})`
+      : written
+  }
+
+  /** Does `written`, a loop's function as we wrote it, still take the position?  Yes, unless a language drops it. */
+  protected takesPositionAsWritten(written: string): boolean {
+    return true
+  }
+
+  /**
+   * `spellCore` helper `name`'s `args`, written, its positions as indexes -- see `POSITION_ARGS`;
+   * a loop's function as `positionedCallback()` says;  a range's open end as `nothing`.
+   */
+  positionArgs(name: string, args: P.ASTExpression[]): string[] {
+    const kinds = ProgramWriter.POSITION_ARGS[name] ?? []
+    const written = args.map((arg, at) => {
+      if (kinds[at] === "index") return this.index(arg)
+      if (kinds[at] === "end") return this.endIndex(arg) ?? this.nothing
+      if (at === 1 && ProgramWriter.POSITION_LOOPS.has(name)) return this.positionedCallback(arg, this.bare(arg))
+      return this.bare(arg)
+    })
+    // an open end, last:  left out
+    while (written.length && written.at(-1) === this.nothing && kinds[written.length - 1] === "end") written.pop()
+    return written
+  }
+
+  /** The index position `node` folds to, a number written out:  `undefined` for one known only when it runs. */
+  literalIndex(node: P.ASTExpression | undefined): number | undefined {
+    if (!node) return undefined
+    const written = this.index(node)
+    return /^-?\d+$/.test(written) ? Number(written) : undefined
   }
 
   ////////////////

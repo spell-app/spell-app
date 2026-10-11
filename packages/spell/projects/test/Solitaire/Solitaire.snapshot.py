@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from spell_core import core, Thing, List, App, prop, h
+from spell_core import core, Thing, List, App, prop, h, position, spell_position
 
 
 class Card(Thing):
@@ -29,7 +29,7 @@ class Card(Thing):
     @property
     def value(self) -> float:
         """value as a derivation of rank"""
-        return core.position_of(Card.RANKS, self.rank)
+        return spell_position(core.position_of(Card.RANKS, self.rank))
 
     # card direction:  up or down
     DIRECTIONS = ("up", "down")
@@ -88,7 +88,7 @@ class Card(Thing):
             return "?"
         if isinstance(self.rank, (int, float)):
             return f"{self.rank}"
-        return core.upper_case(core.get_item_at(self.rank, 1))
+        return core.upper_case(core.get_item_at(self.rank, 0))
 
     @property
     def short_direction(self) -> str:
@@ -619,7 +619,7 @@ async def deal_the_cards() -> None:
         for row in range(1, 8):
             await stock.last_item.turn_face_up()
             for column in core.get_range(row, 7):
-                await stock.last_item.move_to_pile(tableaus.get_item(column))
+                await stock.last_item.move_to_pile(tableaus[position(column)])
 
         await play_from_the_stock_pile()
     finally:

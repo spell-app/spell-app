@@ -109,6 +109,7 @@ class RandomMethods:
         """
         if not items:
             return None
+        # from 1, then an index:  the same items as ever from the same seed
         position = self.random_number(1, len(items))
         index = int(position) - 1  # type: ignore[arg-type]
         if isinstance(items, Mapping):

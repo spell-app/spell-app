@@ -10,7 +10,7 @@ from typing import Any
 
 import pytest
 
-from spell_core import List, Thing, core, prop
+from spell_core import List, Thing, core, end_position, position, prop, spell_position, with_spell_positions
 
 
 class Deck(List):
@@ -69,6 +69,14 @@ def test_out_of_range_is_none_never_index_error() -> None:
     assert deck[-3] is None
     assert Deck()[0] is None
     assert Deck().pop() is None
+
+
+def test_no_index_reads_none_and_changes_nothing() -> None:
+    deck = Deck(["a", "b"])
+    assert deck[None] is None
+    deck[None] = "nothing changes"
+    del deck[None]
+    assert list(deck) == ["a", "b"]
 
 
 def test_a_bad_index_raises_type_error_as_pythons_lists_do() -> None:
@@ -174,36 +182,83 @@ def test_props_and_items_together() -> None:
 
 
 ####################
-# ## Positions:  from 1, or from 0
+# ## Positions:  indexes, from 0
 ####################
 
 
-def test_positions_count_from_1_or_start_at_0() -> None:
+def test_positions_are_indexes_from_0() -> None:
     deck = Deck(["a", "b", "c"])
-    assert [deck.get_item(1), deck.get_item(0), deck.get_item(-1), deck.get_item(4)] == ["a", None, "c", None]
-    assert [deck.get_item(0, start_at=0), deck.get_item(2, start_at=0), deck.get_item(3, start_at=0)] == [
+    assert [deck.get_item(0), deck.get_item(2), deck.get_item(-1), deck.get_item(3), deck.get_item(None)] == [
         "a",
         "c",
+        "c",
+        None,
         None,
     ]
-    assert [deck.position_of("a"), deck.position_of("a", start_at=0), deck.position_of("z", start_at=0)] == [
-        1,
-        0,
-        None,
-    ]
-    deck.set_item(1, "B", start_at=0)
-    deck.remove_item(0, start_at=0)
-    assert list(deck) == ["B", "c"]
-    deck.set_item(0, "nothing changes")
+    assert [deck.position_of("a"), deck.position_of("c"), deck.position_of("z")] == [0, 2, None]
+    deck.set_item(1, "B")
     deck.remove_item(0)
     assert list(deck) == ["B", "c"]
+    deck.set_item(-9, "nothing changes")
+    deck.set_item(None, "nothing changes")
+    deck.remove_item(-9)
+    deck.remove_item(None)
+    assert list(deck) == ["B", "c"]
 
 
-def test_add_at_a_position_from_1() -> None:
-    assert list(numbers(1, 2).add_at(2, 7)) == [1, 7, 2]
+def test_add_at_an_index_as_insert() -> None:
+    assert list(numbers(1, 2).add_at(1, 7)) == [1, 7, 2]
     assert list(numbers(1, 2).add_at(0, 7)) == [7, 1, 2]
+    assert list(numbers(1, 2).add_at(2, 7)) == [1, 2, 7]
     assert list(numbers(1, 2).add_at(9, 7)) == [1, 2, 7]
     assert list(numbers(1, 2).add_at(-1, 7)) == [1, 7, 2]
+    assert list(numbers(1, 2).add_at(-9, 7)) == [7, 1, 2]
+    assert list(numbers(1, 2).add_at(None, 7)) == [7, 1, 2]
+
+
+####################
+# ## Spell's positions, from 1, for code counting from 1:  `position()` and its kin
+####################
+
+
+def test_position_is_one_less_negatives_as_they_are_0_is_none() -> None:
+    assert [position(n) for n in (1, 3, 2.0, -1, -3, "key", None)] == [0, 2, 1.0, -1, -3, "key", None]
+    assert position(0) is None
+
+
+def test_item_0_counting_from_1_reads_nothing_never_the_last_item() -> None:
+    deck = Deck(["a", "b", "c"])
+    assert deck[position(0)] is None
+    assert deck[position(1)] == "a"
+    assert deck[position(-1)] == "c"
+    assert core.get_item_at(deck, position(0)) is None
+    assert core.get_item_at(["a", "b", "c"], position(0)) is None
+
+
+def test_end_position_is_a_slices_end() -> None:
+    assert [end_position(n) for n in (4, 1, 0, -1, -2, -3, None, "key")] == [4, 1, 0, None, -1, -2, None, None]
+    deck = Deck(["a", "b", "c", "d", "e"])
+    assert list(deck[position(2) : end_position(4)]) == ["b", "c", "d"]
+    assert list(deck[position(2) : end_position(-1)]) == ["b", "c", "d", "e"]
+    assert list(deck[position(1) : end_position(-2)]) == ["a", "b", "c", "d"]
+    assert core.range_between(list(deck), position(2), end_position(4)) == ["b", "c", "d"]
+
+
+def test_spell_position_is_one_more_none_stays_none() -> None:
+    assert [spell_position(index) for index in (0, 2, 2.0, -1, None)] == [1, 3, 3.0, -1, None]
+    assert spell_position(Deck(["a", "b"]).position_of("b")) == 2
+    assert spell_position(Deck(["a"]).position_of("z")) is None
+
+
+def test_with_spell_positions_hands_a_loop_spells_positions() -> None:
+    deck = Deck(["a", "b"])
+    seen: list[object] = []
+    deck.for_each(with_spell_positions(lambda value, n: seen.append((value, n))))
+    core.for_each(["x"], with_spell_positions(lambda value, n, of_list: seen.append((value, n, of_list))))
+    deck.for_each(with_spell_positions(lambda value: seen.append(value)))
+    assert seen == [("a", 1), ("b", 2), ("x", 1, ["x"]), "a", "b"]
+    assert list(deck.map(with_spell_positions(lambda value, n: f"{value}{n}"))) == ["a1", "b2"]
+    assert list(deck.map(with_spell_positions(str.upper))) == ["A", "B"]
 
 
 ####################
@@ -212,7 +267,7 @@ def test_add_at_a_position_from_1() -> None:
 
 # `[name, the list's method, its core twin]`, each run on its own list of 1, 2, 3, 4.
 TWINS: list[tuple[str, Callable[[List], Any], Callable[[List], Any]]] = [
-    ("first_item", lambda it: it.first_item, lambda it: core.get_item_at(it, 1)),
+    ("first_item", lambda it: it.first_item, lambda it: core.get_item_at(it, 0)),
     ("last_item", lambda it: it.last_item, lambda it: core.get_item_at(it, -1)),
     ("is_empty", lambda it: it.is_empty, lambda it: core.is_empty(it)),
     ("largest", lambda it: it.largest, lambda it: core.largest_of(it)),
@@ -225,17 +280,17 @@ TWINS: list[tuple[str, Callable[[List], Any], Callable[[List], Any]]] = [
     ("filter", lambda it: it.filter(lambda n: n % 2), lambda it: core.filter(it, lambda n: n % 2)),
     ("append", lambda it: it.append(7, 8), lambda it: core.append(it, 7, 8)),
     ("prepend", lambda it: it.prepend(7, 8), lambda it: core.prepend(it, 7, 8)),
-    ("add_at", lambda it: it.add_at(2, 7), lambda it: core.add_at_position(it, 2, 7)),
+    ("add_at", lambda it: it.add_at(1, 7), lambda it: core.add_at_position(it, 1, 7)),
     ("add_before", lambda it: it.add_before(3, 7), lambda it: core.add_before(it, 3, 7)),
     ("add_after", lambda it: it.add_after(3, 7), lambda it: core.add_after(it, 3, 7)),
     ("remove", lambda it: it.remove(2, 4), lambda it: core.remove(it, 2, 4)),
     ("remove_where", lambda it: it.remove_where(lambda n: n > 2), lambda it: core.remove_where(it, lambda n: n > 2)),
-    ("remove_between", lambda it: it.remove_between(2, 3), lambda it: core.remove_range_between(it, 2, 3)),
-    ("set_items", lambda it: it.set_items(2, 7, 8), lambda it: core.set_items_of(it, 2, 7, 8)),
+    ("remove_between", lambda it: it.remove_between(1, 3), lambda it: core.remove_range_between(it, 1, 3)),
+    ("set_items", lambda it: it.set_items(1, 7, 8), lambda it: core.set_items_of(it, 1, 7, 8)),
     ("reverse", lambda it: it.reverse(), lambda it: core.reverse(it)),
     ("starting_from", lambda it: it.starting_from(-2), lambda it: core.range_starting_at(it, -2)),
     ("starting_with", lambda it: it.starting_with(3), lambda it: core.range_starting_at(it, core.position_of(it, 3))),
-    ("between", lambda it: it.between(2, 3), lambda it: core.range_between(it, 2, 3)),
+    ("slice", lambda it: it[1:3], lambda it: core.range_between(it, 1, 3)),
     ("starts_with", lambda it: [it.starts_with(1), it.starts_with(2)], lambda it: [core.starts_with(it, 1), False]),
     ("ends_with", lambda it: [it.ends_with(4), it.ends_with(3)], lambda it: [core.ends_with(it, 4), False]),
     ("clone", lambda it: it.clone(), lambda it: core.duplicate_list(it)),
@@ -265,7 +320,7 @@ def test_on_an_empty_list_none_items_and_empty_results_of_its_class() -> None:
     assert [empty.first_item, empty.last_item, empty.largest, empty.smallest, empty.random_item()] == [None] * 5
     assert empty.is_empty
     assert empty.all() is False
-    for result in [empty.between(1, 2), empty.starting_from(1), empty.filter(), empty.random_items(2)]:
+    for result in [empty[0:2], empty.starting_from(0), empty.filter(), empty.random_items(2)]:
         assert type(result) is Deck
         assert list(result) == []
 
@@ -275,8 +330,7 @@ def test_callbacks_get_value_position_list_or_as_many_as_they_take() -> None:
     seen: list[object] = []
     deck.for_each(lambda value, position, of_list: seen.append((value, position, of_list is deck)))
     deck.for_each(lambda value: seen.append(value))
-    deck.for_each(lambda value, position: seen.append(position), start_at=0)
-    assert seen == [("a", 1, True), ("b", 2, True), "a", "b", 0, 1]
+    assert seen == [("a", 0, True), ("b", 1, True), "a", "b"]
     assert list(deck.map(str.upper)) == ["A", "B"]
 
 
@@ -290,11 +344,13 @@ def test_add_before_after_an_item_that_is_not_there() -> None:
     assert list(numbers(1, 2, 3).starting_with(9)) == [1, 2, 3]
 
 
-def test_ranges_from_0() -> None:
+def test_ranges_as_a_slice() -> None:
     deck = Deck(["a", "b", "c", "d"])
-    assert list(deck.between(1, 2, start_at=0)) == ["b", "c"]
-    assert list(deck.starting_from(2, start_at=0)) == ["c", "d"]
-    assert list(deck.remove_between(0, 1, start_at=0)) == ["c", "d"]
+    assert list(deck[1:3]) == ["b", "c"]
+    assert list(deck.starting_from(2)) == ["c", "d"]
+    assert list(deck.starting_from(-3)) == ["b", "c", "d"]
+    assert list(deck.remove_between(0, 2)) == ["c", "d"]
+    assert list(deck.remove_between(-1)) == ["c"]
 
 
 def test_copies_keep_the_class_or_take_one() -> None:

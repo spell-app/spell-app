@@ -1,5 +1,5 @@
 import { spawn, spawnSync, type ChildProcess } from "child_process"
-import { cpSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "fs"
+import { cpSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "fs"
 import { createServer } from "net"
 import { tmpdir } from "os"
 import { join, resolve } from "path"
@@ -11,7 +11,7 @@ import { afterAll, beforeAll, describe, expect, test } from "vite-plus/test"
  * served by the app compiling writes, `Solitaire.app.py`, on Quart, played in headless Chromium.
  * - A temp copy of the fixture:  tests never write into `projects/test/`.
  * - Seeded (`$SPELL_SEED`), so its deal is the javascript run's, the core contract's snapshot.
- * - The page side, `packages/app/dist-page/`, is built first if it isn't there (`yarn build:page`).
+ * - The page side, `packages/app/dist-page/`, is built first (`yarn build:page`, a few seconds):  never a stale one.
  */
 const PACKAGES = resolve(import.meta.dirname, "../..")
 const SPELL = resolve(PACKAGES, "cli/bin/spell.mjs")
@@ -23,10 +23,8 @@ let browser: Browser
 let url: string
 
 beforeAll(async () => {
-  if (!existsSync(resolve(PACKAGES, "app/dist-page/spell-page.js"))) {
-    const built = spawnSync("yarn", ["build:page"], { cwd: resolve(PACKAGES, "app"), encoding: "utf8" })
-    expect(built.status, built.stderr).toBe(0)
-  }
+  const built = spawnSync("yarn", ["build:page"], { cwd: resolve(PACKAGES, "app"), encoding: "utf8" })
+  expect(built.status, built.stderr).toBe(0)
   folder = mkdtempSync(join(tmpdir(), "spell-quart-"))
   cpSync(resolve(PACKAGES, "spell/projects/test/Solitaire"), join(folder, "Solitaire"), {
     recursive: true,

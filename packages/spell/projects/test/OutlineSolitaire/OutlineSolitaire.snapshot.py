@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import asyncio
 
-from spell_core import core, Thing, List, App, prop, h
+from spell_core import core, Thing, List, App, prop, h, position, spell_position
 
 
 ##########################################################################
@@ -91,7 +91,7 @@ class Card(Thing):
 
     @property
     def value(self) -> float:
-        return core.position_of(Deck.RANKS, self.rank)
+        return spell_position(core.position_of(Deck.RANKS, self.rank))
 
     # direction
     DIRECTIONS = ("up", "down")
@@ -128,7 +128,7 @@ class Card(Thing):
             return "?"
         if isinstance(self.rank, (int, float)):
             return f"{self.rank}"
-        return core.upper_case(core.get_item_at(self.rank, 1))
+        return core.upper_case(core.get_item_at(self.rank, 0))
 
     @property
     def short_direction(self) -> str:
@@ -636,7 +636,7 @@ async def deal_the_cards() -> None:
         for row in range(1, 8):
             await stock.last_item.turn_face_up()
             for column in core.get_range(row, 7):
-                tableaus.get_item(column).append(stock.last_item)
+                tableaus[position(column)].append(stock.last_item)
                 await core.pause_for(50, "msec")
 
         await play_from_the_stock_pile()

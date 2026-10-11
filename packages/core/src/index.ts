@@ -41,7 +41,8 @@ export { on, off, once, trigger }
 // Helpers compiled and hand-written code import by name, e.g. `positionOf(Card.Ranks, this.rank)`.
 // `itemOf`:  its old name, for TypeScript compiled before epic `output-targets` P16 -- see `deprecated.ts`.
 export { positionOf } from "./collection-core"
-export type { StartAt } from "./positions"
+// spell code counting from 1, compiled:  its positions turned into indexes as it runs, `deck.getItem(position(n))`
+export { position, spellPosition, endPosition, withSpellPositions } from "./positions"
 export { itemOf } from "./deprecated"
 // The decorators compiled TypeScript (`ts/solid`) writes, e.g. `@prop({ oneOf: RANKS }) accessor rank!: Rank`:
 // `$/util`'s shared reactive ones, spell's `@thing`, and `@drawn` (`drawing.ts`).  Compiled JavaScript has none.

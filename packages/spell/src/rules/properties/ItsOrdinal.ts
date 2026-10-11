@@ -41,7 +41,7 @@ properties.addRule(ItsOrdinal, {
         scope.variables?.add({ name: "it", output: "it" })
       },
       tests: [
-        ["its third foo", "spellCore.getItemAt(it, 3)"],
+        ["its third foo", "spellCore.getItemAt(it, 2)"],
         ["its last card", "spellCore.getItemAt(it, -1)"]
       ]
     },
@@ -62,12 +62,12 @@ properties.addRule(ItsOrdinal, {
       beforeEach(scope: P.Scope) {
         scope.variables?.add({ name: "it", output: "other" })
       },
-      tests: [["its third thing", "spellCore.getItemAt(other, 3)"]]
+      tests: [["its third thing", "spellCore.getItemAt(other, 2)"]]
     },
     {
       title: "maps to `this` when `it` is not defined",
       compileAs: "expression",
-      tests: [["its third thing", "spellCore.getItemAt(this, 3)"]]
+      tests: [["its third thing", "spellCore.getItemAt(this, 2)"]]
     }
   ]
 })

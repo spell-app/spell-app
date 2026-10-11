@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-from spell_core import List, Thing, core, prop
+from spell_core import List, Thing, core, prop, spell_position
 
 # What the JavaScript core prints for the Cards fixture:  its stdout.
 CARDS_OUTPUT = Path(__file__).parents[3] / "cli" / "src" / "__snapshots__" / "contract" / "Cards.out.txt"
@@ -43,7 +43,7 @@ class Card(Thing):
     @property
     def value(self) -> int | None:
         """Value as a derivation of rank."""
-        return core.position_of(Card.RANKS, self.rank)
+        return spell_position(core.position_of(Card.RANKS, self.rank))
 
     @property
     def is_face_up(self) -> bool:
@@ -94,7 +94,7 @@ class Card(Thing):
             return "?"
         if isinstance(self.rank, int):
             return f"{self.rank}"
-        return core.upper_case(core.get_item_at(self.rank, 1))
+        return core.upper_case(core.get_item_at(self.rank, 0))
 
     @property
     def short_direction(self) -> str:
