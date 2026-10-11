@@ -227,6 +227,15 @@ export class JSWriter extends Writer {
     return doubleQuoted(node.raw ?? jsText.inQuotes(node.value, node.quote))
   }
 
+  /**
+   * A type's name as text, e.g. `"Pile"` in `new List({ instanceType: "Pile" })`:
+   * one of the project's own types as we write a type's name (`typeNameOf()`), any other as written, e.g. `"List"`.
+   * - So a language writing types in its own case, e.g. `pile`, says the same name in its class and its text.
+   */
+  ASTTypeNameLiteral(node: P.ASTTypeNameLiteral): string {
+    return this.project.isClass(node.value) ? this.quoted(this.typeNameOf(node.value)) : this.ASTStringLiteral(node)
+  }
+
   /** `` `images/${this.rank}-of-${this.suit}.png` ``:  its text as written, with a backtick and `${` escaped. */
   ASTTemplateString(node: P.ASTTemplateString): string {
     const body = node.parts
@@ -1241,21 +1250,9 @@ export class JSWriter extends Writer {
   ASTObjectLiteralProperty(node: P.ASTObjectLiteralProperty): string {
     const error = node.error ? ` ${this.write(node.error)}` : ""
     const prop = this.write(node.property)
-    if (node.value) return `${prop}: ${this.typeNamed(node) ?? this.bare(node.value)}${error}`
+    if (node.value) return `${prop}: ${this.bare(node.value)}${error}`
     const variable = this.nameOf(node.property.value)
     return variable === prop ? `${prop}${error}` : `${prop}: ${variable}${error}`
-  }
-
-  /**
-   * A type's name in quotes, as we write a type's name (`typeNameOf()`), for a property that names a type:
-   * `type: "Pile"` in a `declareProp()`, `instanceType: "Pile"` in a new list -- `undefined` for any other.
-   * - So a language writing types in its own case, e.g. `pile`, says the same name in both places.
-   */
-  typeNamed(node: P.ASTObjectLiteralProperty): string | undefined {
-    if (!TYPE_NAMING_KEYS.has(node.property.value)) return undefined
-    const value = unwrapped(node.value!)
-    if (!(value instanceof P.ASTStringLiteral) || !this.project.isClass(value.value)) return undefined
-    return this.quoted(this.typeNameOf(value.value))
   }
 
   ////////////////
@@ -1852,9 +1849,6 @@ function isSimpleStatement(node: P.ASTNode): boolean {
   if (node instanceof P.ASTAssignmentStatement) return !node.isNewVariable
   return node instanceof P.ASTReturnStatement || node instanceof P.ASTExpression
 }
-
-/** Keys of an object literal whose text value is a type's name -- see `JSWriter.typeNamed()`. */
-const TYPE_NAMING_KEYS = new Set(["type", "instanceType"])
 
 /**
  * How tightly each operator binds, javascript's levels:  higher binds tighter.
