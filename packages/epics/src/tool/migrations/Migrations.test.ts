@@ -98,4 +98,15 @@ describe("owen-types-to-you-type", () => {
     expect(step.run(doc, context)).toBe(false)
     expect(doc.querySelector("q")!.textContent).toBe("Owen types fast")
   })
+
+  test("an item's or phase's title attribute too", () => {
+    const doc = page(
+      `<epic-item id="t1" title="Every box Owen types in grows"></epic-item><epic-phase id="p1" title="Owen types less"></epic-phase>`
+    )
+    expect(step.run(doc, context)).toBe(true)
+    expect([
+      doc.querySelector("epic-item")!.getAttribute("title"),
+      doc.querySelector("epic-phase")!.getAttribute("title")
+    ]).toEqual(["Every box you type in grows", "You type less"])
+  })
 })

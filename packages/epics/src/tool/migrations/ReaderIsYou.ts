@@ -26,9 +26,22 @@ export class ReaderIsYou implements Migration {
       })
       changed = true
     }
+    // the titles items, phases and sections carry as an attribute (`title="Every text box Owen types in grows"`)
+    for (const element of document.querySelectorAll(TITLED)) {
+      const title = element.getAttribute("title") ?? ""
+      if (!title.includes(PHRASE)) continue
+      element.setAttribute(
+        "title",
+        title.replace(/Owen types/g, (_, offset: number) => (offset === 0 ? "You type" : "you type"))
+      )
+      changed = true
+    }
     return changed
   }
 }
+
+/** What carries its title as an attribute. */
+const TITLED = "epic-item[title], epic-phase[title], epic-section[title]"
 
 /** The phrase it rewrites. */
 const PHRASE = "Owen types"
