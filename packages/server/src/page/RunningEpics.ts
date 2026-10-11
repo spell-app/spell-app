@@ -459,7 +459,10 @@ function folders(dir: string): string[] {
  */
 function read(
   file: string
-): Pick<RunningEpic, "title" | "phases" | "done" | "total" | "active" | "updated" | "future" | "standing" | "urgent" | "worked"> {
+): Pick<
+  RunningEpic,
+  "title" | "phases" | "done" | "total" | "active" | "updated" | "future" | "standing" | "urgent" | "worked"
+> {
   const html = readFileSync(file, "utf8")
   // drop the `Epic: ` plan docs' titles start with (since 2026-10-04):  the card is in the Epics list already
   const title = (/<title>([^<]*)<\/title>/.exec(html)?.[1]?.trim() ?? "").replace(/^Epic:\s*/, "")
