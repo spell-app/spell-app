@@ -8,6 +8,8 @@
  *   the page needs the PAGE SERVER;  from `file://` it shows a notice where the tables go.
  * - Each section:  a `<ui-section>` (folded, like every docs section;  "Expand all" in the toolbar), its rule, then a
  *   table File | Purpose | Current | Recommended, rows by file, then line.
+ *   - The data's `fileColumn: false` drops the File column, for rows whose place in the code doesn't matter to the
+ *     reader (a list of commands):  Purpose | Current | Recommended, rows in the data's order
  *   - File:  `vscode://file/<checkout>/<file>:<line>`, which VS Code opens AT the line.  The checkout is the one the
  *     page server serves (`SPELL_SERVER.root`;  a `/worktrees/<w>/` page:  that worktree).  In VS Code's side bar the
  *     frame can't follow it, so the click goes to the view as `{ spell: "open", kind: "external" }`, which hands it to
@@ -91,7 +93,8 @@
   /** The sections where `[data-choices-sections]` is, then the toolbar at `main`'s end. */
   function draw(data) {
     const holder = document.querySelector("[data-choices-sections]")
-    const html = (data.sections ?? []).map((section) => sectionHTML(section, data.rows ?? [])).join("\n")
+    const hasFile = data.fileColumn !== false
+    const html = (data.sections ?? []).map((section) => sectionHTML(section, data.rows ?? [], hasFile)).join("\n")
     holder.insertAdjacentHTML("beforebegin", html)
     holder.remove()
     for (const row of data.rows ?? []) {
@@ -103,18 +106,22 @@
     count()
   }
 
-  /** One section:  a folded `<ui-section>`, its rule, its table. */
-  function sectionHTML(section, all) {
-    const mine = all
-      .filter((row) => row.section === section.id)
-      .sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)
+  /**
+   * One section:  a folded `<ui-section>`, its rule, its table.
+   * - `hasFile`:  the File column, rows by file, then line;  without it (`fileColumn: false`), rows in the data's order
+   */
+  function sectionHTML(section, all, hasFile) {
+    const mine = all.filter((row) => row.section === section.id)
+    if (hasFile) mine.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)
     const rule = section.description ? `<p class="spell-choices-rule">${text(section.description)}</p>` : ""
+    const fileHead = hasFile ? "<th>File</th>" : ""
+    const tableClass = hasFile ? "spell-choices-table" : "spell-choices-table spell-choices-no-file"
     return `<ui-section id="${attr(section.id)}" header="${attr(section.title)}" badge="${attr(badge(mine, 0))}" sticky collapsible dividing collapsed>
       <ui-icon slot="icon" name="${attr(section.icon ?? SECTION_ICON)}"></ui-icon>${rule}
-      <ui-table class="spell-choices-table" celled compact unstackable>
+      <ui-table class="${tableClass}" celled compact unstackable>
         <table>
-          <thead><tr><th>File</th><th>Purpose</th><th>Current</th><th>Recommended</th></tr></thead>
-          <tbody>${mine.map(rowHTML).join("")}</tbody>
+          <thead><tr>${fileHead}<th>Purpose</th><th>Current</th><th>Recommended</th></tr></thead>
+          <tbody>${mine.map((row) => rowHTML(row, hasFile)).join("")}</tbody>
         </table>
       </ui-table>
     </ui-section>`
@@ -128,21 +135,26 @@
     return counts.join(" · ")
   }
 
-  /** One row:  the file link (and its folder), purpose (and note), current, the box. */
-  function rowHTML(row) {
-    const slash = row.file.lastIndexOf("/")
-    const folder = row.file.slice(0, slash).replace(/^packages\//, "")
-    const name = row.file.slice(slash + 1)
+  /** One row:  the file link (and its folder) when `hasFile`, purpose (and note), current, the box. */
+  function rowHTML(row, hasFile) {
     const stays = row.recommended === row.current
     const tag = stays ? ` <ui-label class="spell-choice-stays" size="mini" basic>stays</ui-label>` : ""
     const note = row.note ? `<div class="spell-choice-note">${text(row.note)}</div>` : ""
     const label = `Recommended for ${row.current}`
     return `<tr id="${attr(`row-${row.id}`)}" data-choice="${attr(row.id)}"${stays ? " data-stays" : ""}>
-      <td class="spell-choice-file"><a class="spell-choice-link" href="${attr(fileUrl(row))}" title="${attr(`Open ${row.file}:${row.line} in VS Code`)}">${escape(name)}<span class="spell-choice-line">:${row.line}</span></a><div class="spell-choice-folder">${escape(folder)}</div></td>
+      ${hasFile ? fileCell(row) : ""}
       <td class="spell-choice-purpose">${escape(row.purpose)}${tag}${note}</td>
       <td class="spell-choice-current"><code>${escape(row.current)}</code></td>
       <td class="spell-choice-pick"><div class="spell-choice-field"><textarea class="spell-choice-input" rows="1" spellcheck="false" autocomplete="off" aria-label="${attr(label)}">${escape(row.recommended)}</textarea><button type="button" class="spell-choice-reset" aria-label="Back to the recommendation" title="${attr(`Back to ${row.recommended}`)}" hidden><ui-icon name="clock rotate left"></ui-icon></button></div></td>
     </tr>`
+  }
+
+  /** A row's File cell:  the file's name and line as a link into VS Code, its folder under it. */
+  function fileCell(row) {
+    const slash = row.file.lastIndexOf("/")
+    const folder = row.file.slice(0, slash).replace(/^packages\//, "")
+    const name = row.file.slice(slash + 1)
+    return `<td class="spell-choice-file"><a class="spell-choice-link" href="${attr(fileUrl(row))}" title="${attr(`Open ${row.file}:${row.line} in VS Code`)}">${escape(name)}<span class="spell-choice-line">:${row.line}</span></a><div class="spell-choice-folder">${escape(folder)}</div></td>`
   }
 
   /**

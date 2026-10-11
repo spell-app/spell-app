@@ -91,6 +91,17 @@ test("new:  the page and its rows beside it, assets fixed for its depth", () => 
   expect(() => createPage(docs, "names", { epic: "big", data: DATA })).toThrow(/already exists/)
 })
 
+test("new:  fileColumn false is kept beside the rows, so the page drops its File column;  shown by default", () => {
+  const file = createPage(docs, "no-file", { epic: "big", data: { ...DATA, fileColumn: false } })
+  const kept = readRows(file)
+  expect(kept.fileColumn).toBe(false)
+  expect(kept.rows[0].file).toBe("packages/ui/src/A.tsx")
+  expect("fileColumn" in readRows(join(docs, "epics/big/details/names.html"))).toBe(false)
+  const shown = createPage(docs, "file-shown", { epic: "big", data: { ...DATA, fileColumn: true } })
+  expect("fileColumn" in readRows(shown)).toBe(false)
+  expect(() => checkData({ ...DATA, fileColumn: "no" })).toThrow(/fileColumn is true or false/)
+})
+
 test("new:  a scratch page, the --title flag beating the data's", () => {
   const file = createPage(docs, "scratch-names", { title: "Other", data: DATA })
   expect(file).toBe(join(docs, "pages/details/scratch-names.html"))
