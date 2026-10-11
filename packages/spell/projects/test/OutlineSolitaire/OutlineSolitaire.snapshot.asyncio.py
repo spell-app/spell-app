@@ -111,7 +111,7 @@ class Card(Thing):
         return f"{self.rank}-of-{self.suit}"
 
     @property
-    def short_suit(self) -> str:
+    def icon(self) -> str:
         if self.is_a_suit("clubs"):
             return "♣️"
         if self.is_a_suit("diamonds"):
@@ -138,11 +138,11 @@ class Card(Thing):
 
     @property
     def short_name(self) -> str:
-        return self.short_rank + self.short_suit
+        return self.short_rank + self.icon
 
     @property
     def state(self) -> str:
-        return self.short_rank + self.short_suit + self.short_direction
+        return self.short_rank + self.icon + self.short_direction
 
     @property
     def front(self):
@@ -154,7 +154,7 @@ class Card(Thing):
                 "onClick": lambda event: core.trigger("card-click", card=self),
             },
             f"{self.short_rank} ",
-            h("span", {"class": "suit"}, self.short_suit),
+            h("span", {"class": "suit"}, self.icon),
         )
 
     @property
@@ -245,7 +245,7 @@ async def test_card_setup():
         core.expect(card.name, "the name of the card", "queen-of-spades", "\"queen-of-spades\"")
         core.expect(card.color, "the color of the card", "black", "black")
         core.expect(card.value, "the value of the card", 12, "12")
-        core.expect(card.short_suit, "the short suit of the card", "♠️", "\"♠️\"")
+        core.expect(card.icon, "the icon of the card", "♠️", "\"♠️\"")
         core.expect(card.short_rank, "the short rank of the card", "Q", "\"Q\"")
         core.expect(card.short_name, "the short name of the card", "Q♠️", "\"Q♠️\"")
 
