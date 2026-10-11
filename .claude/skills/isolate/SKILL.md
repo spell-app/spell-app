@@ -156,6 +156,15 @@ The session MUST stay titled `🚧 <name>` while its work is under way.
   - `spell dev session title` alone shows the current title, and any queued one.
 - `<name>`:  the worktree's (`.claude/worktrees/<name>`), which is the branch's and the plan doc's.
 
+## Merge, keep:  a standing epic
+
+A STANDING epic (`<epic-page standing>`, epic `epic-workflow`) merges each phase into `main` at once, and never
+leaves its worktree:  NOT "Finish" below.
+- The steps:  [the epic skill](.claude/skills/epic/SKILL.md), "5. Each phase", step 4 ("A STANDING epic").
+- In short:  `merge-main` if `main` moved, `ExitWorktree` (keep), `spell epic merge <name>` in the main checkout,
+  `EnterWorktree` back with `path`.
+- `/isolate done` in a standing epic's session:  say it stands, and ask first ("Stop standing, and finish?").
+
 ## Finish:  `/isolate done`
 
 0. Not in a worktree (the session's folder isn't under `.claude/worktrees/`):

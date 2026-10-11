@@ -15,11 +15,19 @@ import { CLI } from "$/cli"
  *   (`spell dev plan-doc request`), the request marked filed, `P7`
  *   - `file <epic> <id> "<where>"`, not a number:  only marked filed, saying where it went (`"dropped:  done in P3"`)
  * - `home [<epic>]`:  the tooling home, the epic dev-tooling requests go to;  with `<epic>`, set it
- * - The logic:  `src/epic/requests.ts` and `home.ts`.
+ * - `merge <epic>`:  a STANDING epic's phase onto `main` at once, fast-forward only;  run in the main checkout
+ * - The logic:  `src/epic/`:  `requests.ts`, `home.ts`, `merge.ts`.
  */
 export async function epicCommand(session: CLI.CliSession, args: string[], options: CLI.EpicOptions): Promise<number> {
   const [verb, named, ...rest] = args
   if (!verb) throw new CLI.CliError(`which verb?  ${VERBS}`)
+  if (verb === "merge") {
+    if (!named) throw new CLI.CliError("merge:  which epic?")
+    const commits = CLI.mergeEpic(named)
+    session.out(commits.length ? `main fast-forwarded to ${named}:` : `nothing to merge:  main already has ${named}`)
+    for (const commit of commits) session.out(`  ${commit}`)
+    return CLI.EXIT.OK
+  }
   const root = CLI.findCheckout(CHECKOUT_MARKER)
   if (verb === "home") {
     if (named) CLI.setEpicHome(root, named)
@@ -102,7 +110,7 @@ function requestLine(request: CLI.EpicRequest): string {
 }
 
 /** The verbs, for errors. */
-const VERBS = "send, requests, file or home"
+const VERBS = "send, requests, file, home or merge"
 
 /** What marks a checkout with epics (`findCheckout()`):  the docs tools, as for `spell dev plan-doc`. */
 const CHECKOUT_MARKER = "packages/docs/tools/plan-doc.js"

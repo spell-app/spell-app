@@ -209,9 +209,10 @@ program
 program
   .command("epic")
   .description(
-    "epics from any session:  send one a request (words, screenshots), list or file its requests, the tooling home"
+    "epics from any session:  send one a request (words, screenshots), list or file its requests, the tooling home, " +
+      "merge a standing epic's phase"
   )
-  .argument("[verb]", "send | requests | file | home")
+  .argument("[verb]", "send | requests | file | home | merge")
   .argument("[args...]", 'the epic, then the verb\'s arguments, e.g. send epic-workflow --text "..." --images 1')
   .option("--text <words>", "send:  Owen's words, verbatim")
   .option("--file <file>", "send:  Owen's words, from a file (quotes and all)")

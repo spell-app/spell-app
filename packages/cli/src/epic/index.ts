@@ -5,3 +5,4 @@
 export * from "./epic.types"
 export * from "./requests"
 export * from "./home"
+export * from "./merge"

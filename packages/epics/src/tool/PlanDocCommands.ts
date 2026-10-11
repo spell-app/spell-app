@@ -133,6 +133,12 @@ export class PlanDocCommands {
             flags.file ? readFileSync(flags.file as string, "utf8") : need(rest[1], "what changed (html)")
           )
         )
+      case "standing":
+        return this.edit(file, (plan) => {
+          const value = rest[0] ?? "on"
+          if (value !== "on" && value !== "off") throw new PlanDocError(`standing:  on or off, not "${value}"`)
+          plan.setStanding(value === "on")
+        })
       case "request":
         return this.edit(file, (plan) =>
           plan.addPhaseRequest(
@@ -796,6 +802,8 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    set (or "" removes) a phase's body fields
   updated <name> <N> "html" | --file path          a change to phase N's plan, in its fenced Updated block
                                                    (kept;  listed atop the phases while N is to do)
+  standing <name> [on|off]                         a standing epic:  open for good, each phase merging on its own,
+                                                   never done (epic epic-workflow)
   request <name> <N> <rN> --from "..." --file path a request sent from another session, into phase N's Requests
                                                    field (spell epic file writes it;  epic epic-workflow)
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows

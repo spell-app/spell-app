@@ -151,7 +151,7 @@ export class PlanDocFiles {
           title: plan.title || name,
           status: plan.future
             ? "future"
-            : phases.length && phases.every((phase) => phase.status === "done")
+            : !plan.standing && phases.length && phases.every((phase) => phase.status === "done")
               ? "done"
               : "in progress",
           checkout: this.epicCheckout(name, main),

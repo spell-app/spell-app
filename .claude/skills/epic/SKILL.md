@@ -366,6 +366,21 @@ The filling goes to a background agent, `<name>-plan-doc`, as if Owen had typed 
    - After the phase's commit:  `spell dev plan-doc commits <name> --backfill`, which finds them by subject.
      - The plan doc is never in that commit:
        it's shared content, committed for you (see "Shared content" at the top).
+   - A STANDING epic (`<epic-page standing>`, `plan-doc summary --json`'s `standing`;  epic `epic-workflow`):
+     the phase goes onto `main` AT ONCE, once its commit is made and its checks pass (Q8 of `epic-workflow`).
+     - Its own short doc pass comes first, in place of one Doc Review at the end:
+       `/fussbudget` on the files the phase changed, and the durable doc brought in line, before the commit.
+     - Then, no asking (the standing epic is the ask):
+       1. `main` moved (`git log --oneline HEAD..main` not empty):  `spell dev worktree merge-main`.
+       2. `ExitWorktree` with `action: "keep"`:  a worktree session can't move `main`.
+       3. `spell epic merge <name>`, in the main checkout:  checks it's on `main` and clean, then fast-forwards.
+          It refuses, saying why (`main` moved again, uncommitted work there):  `add <name> issue`, and go on.
+       4. `EnterWorktree` with `path: ".claude/worktrees/<name>"`:  back, the window and session unchanged.
+       5. The changelog:  the epic's entry, under "3. Merged into main", gets the phase's bullets.
+     - Never `/isolate done`:  the worktree, the window and the session stay, for the next request.
+     - In bedtime mode, nothing merges:  `add <name> todo "merge P<n>"`, as `/bedtime` says.
+     - `spell dev plan-doc standing <name> [on|off]` makes an epic standing, or not;
+       the docs index, `/epics` and its step label then never call it done (STANDING, when every phase is).
 5. Reply:  a short bulleted list (done, issues, caveats, next), and the "complete.  Next is" line (see the top).
    - THEN AskUserQuestion, so the user picks without copying anything.
      Options, most useful first:
@@ -906,6 +921,7 @@ calm <name> <id>... [--loud]                        calls / issues not urgent (y
 decide <name> <Q id> "answer" [--details html]     answer a question, INTO it:  prints its id (Q3)
 commit <name> <sha> --phase N | --item <id> "..."   list a commit under a phase or an item
 commits <name> --backfill                           every phase / item commit (`P3:`, `<name> I3:`), once
+standing <name> [on|off]                            a standing epic:  each phase merges on its own, never done
 close <name> <id>  /  reopen <name> <id>            close (done) / open again, never delete
 cancel <name> <id> ["why"]                          made moot by another decision:  struck;  reopen undoes it
 log <name> "text"                                   timestamped line in the doc's log

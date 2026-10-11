@@ -90,7 +90,7 @@ export function epicGroupFor(state: EpicState): Exclude<EpicGroupName, "favorite
  * - `id="epic-<name>"`:  a live update of the page matches the card by it, wherever it moved
  * - `data-epic`:  its name;  `data-title`:  what the groups sort by;  `data-group`:  its group when not a favourite
  * - `data-status`:  `done` or `open`, so the section counts it and its filter steps through them
- * - `data-phases`, `data-updated`, `data-urgent`, `data-future`:  what its state is read from, so the page server
+ * - `data-phases`, `data-updated`, `data-urgent`, `data-future`, `data-standing`:  what its state is read from, so the page server
  *   marks it again as it serves the page;  `data-worked`:  its last-worked moment
  */
 export function epicCardHtml(card: EpicCard, now: Date = new Date()): PlacedCard {
@@ -104,6 +104,7 @@ export function epicCardHtml(card: EpicCard, now: Date = new Date()): PlacedCard
     (facts.updated ? ` data-updated="${attr(facts.updated)}"` : "") +
     (facts.urgent?.length ? ` data-urgent="${attr(facts.urgent.join(" "))}"` : "") +
     (facts.future ? " data-future" : "") +
+    (facts.standing ? " data-standing" : "") +
     (worked ? ` data-worked="${isoLocal(worked)}"` : "")
   const target = card.target ? ` target="${attr(card.target)}"` : ""
   const html =
