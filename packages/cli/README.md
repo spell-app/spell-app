@@ -135,9 +135,12 @@ Longer notes on some of them follow the table.
   - Rebuilds a watched project when one it imports changes.
 - `run`:  a project that shows a UI then opens in your browser, until `Ctrl-C`.
   `--browser` always, `--no-browser` never.
+  - What it prints goes to stdout;  a dump of a whole thing (`print the card`) to stderr.
+  - `--seed <n>` starts its random numbers from `n` (1 to 2147483646):  the same deal every run.
 - `test`:
   - `--verbose` shows every check.
   - `--name <text>` runs only tests whose names contain it.
+  - `--seed <n>`, as `run`'s.
   - `--watch` is `spell watch --test`.
 - `format`:
   - `--check` writes nothing, lists what would change, and exits 1 if anything would.

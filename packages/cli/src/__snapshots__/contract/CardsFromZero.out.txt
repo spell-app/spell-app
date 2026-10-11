@@ -1,13 +1,5 @@
 ✅ test card setup
   ▶️ Executing   `the card is a new card whose rank is queen, suit is spades and direction is up`
-  Card {
-    Symbol(props): Map(3) { 'rank' => 'queen', 'suit' => 'spades', 'direction' => 'up' },
-    Symbol(state): null,
-    Symbol(propCells): null,
-    Symbol(stateCells): null,
-    Symbol(keys): null,
-    Symbol(derived): null
-  }
   ✅ As expected `the rank of the card` is `queen`
   ✅ As expected `the suit of the card` is `spades`
   ✅ As expected `the name of the card` is `"queen-of-spades"`

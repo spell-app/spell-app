@@ -13,7 +13,9 @@
     "format:check": "vp fmt --check . && uv run --directory py ruff format --check",
     "/////// TESTING": "",
     "test": "echo '>>>>>>>>>>>\n>> RUNNING TESTS' && vp test run && uv run --directory py pytest -q && echo '<< TESTS PASSED\n'",
-    "test:watch": "vp test"
+    "test:watch": "vp test",
+    "/////// GENERATED FILES": "",
+    "gen:declarations": "node --import tsx src/writeCoreDeclarations.ts && vp fmt spellCore.declarations.json"
   },
   "dependencies": {
     "@solidjs/h": "2.0.0-rc.13",

@@ -6,7 +6,6 @@
  *   - For objects: use natural key order for position.
  * - TODO: collections for `words`, `lines`, etc?
  */
-import _ from "lodash"
 import { spellCore } from "./core"
 import { assert, List } from "$/core"
 import { defineSpellCoreModule } from "./spellCore.types"
@@ -504,6 +503,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
   // ## Randomizing / random item selection
   ////////////////
 
+  // Each draws from `spellCore.random()`, so `seedRandom()` makes it repeatable.
+
   /** Return a random key of `collection`. */
   _randomKeyOf(collection?: unknown): string | number | undefined {
     if (!assert.isDefined(collection, "spellCore._randomKeyOf(collection)")) return undefined
@@ -537,8 +538,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
     if (!spellCore.isANumber(count)) count = spellCore.itemCountOf(collection)
     const results = spellCore.newThingLike(collection)
     if (count === 0) return results
-    const keys = spellCore.keysOf(collection)
-    const shuffledKeys = _.shuffle(keys).slice(0, count)
+    const shuffledKeys = spellCore.shuffled(spellCore.keysOf(collection)).slice(0, count)
     if (spellCore.isArrayLike(collection)) {
       shuffledKeys.forEach((key) => {
         spellCore.append(results, spellCore.getItemAt(collection, key))

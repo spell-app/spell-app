@@ -33,6 +33,9 @@ Projects:
 const PROJECT_ARG = "a spell file, project folder, or @root/project -- default the project here, else asks"
 const PROJECTS_ARG = "spell files, project folders, or @roots/projects -- default the project here, else asks"
 
+/** Help for `--seed`, which `spell run` and `spell test` share. */
+const SEED_HELP = "start the random numbers from this whole number (1 to 2147483646):  the same deal every run"
+
 const program = spellProgram().version(globalThis.__PACKAGE_VERSION__).addHelpText("after", PROJECT_HELP)
 
 program
@@ -82,6 +85,7 @@ program
   .argument("[project]", PROJECT_ARG)
   .option("--browser", "open it in a browser even if it shows no UI")
   .option("--no-browser", "never open a browser:  just skip what needs one")
+  .option("--seed <n>", SEED_HELP, Number)
   .action((project: string | undefined, _options, command) =>
     run(CLI.runCommand, project ? [project] : [], command.optsWithGlobals())
   )
@@ -92,6 +96,7 @@ program
   .argument("[projects...]", PROJECTS_ARG)
   .option("--name <text>", 'only tests whose names contain this, e.g. "deck creation"')
   .option("--watch", "run them again whenever a project changes -- spell watch --test")
+  .option("--seed <n>", SEED_HELP, Number)
   .action((projects: string[], _options, command) => run(CLI.testCommand, projects, command.optsWithGlobals()))
 
 program
