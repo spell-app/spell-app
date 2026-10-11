@@ -23,13 +23,20 @@ import { CLI } from "$/cli"
  *   runs with that one compiled for the same target, as its `@spell/project/<id>`.
  * - Each runs in a FAKE PAGE (linkedom, `RunSpec.dom`) that `start the game` draws into.
  *   What it drew is printed last, so drawing is compared too.
- * - `Math.random()` is seeded, so Solitaire deals the same cards every run.
+ * - Its random numbers start from seed 1 (`spellCore.seedRandom()`), so Solitaire deals the same cards every run,
+ *   on every target.
+ * - Only STDOUT is compared:  the program's own output, as data.
+ *   A dump of a thing (`print the card`) goes to stderr, as do warnings (plan doc python-target, Q17):
+ *   how a thing looks dumped is each target's own business.
  * - Changed on purpose:  `yarn vp test run src/contract.test.ts -u`, then read the diff.
  */
 const TARGET_FILES: Record<string, string> = { "js/solid": ".mjs", "ts/solid": ".tsx", py: ".py" }
 
+/** The seed every contract run starts its random numbers from. */
+const CONTRACT_SEED = 1
+
 /**
- * What fixture `name` prints when its `target` code runs, as `spell run` would run it.
+ * What fixture `name` prints to stdout when its `target` code runs, as `spell run --seed 1` would run it.
  * - `code`:  that code, unless given.
  */
 async function printed(name: string, target: string, code = compiledFixture(name, target)): Promise<string> {
@@ -37,9 +44,15 @@ async function printed(name: string, target: string, code = compiledFixture(name
   const folder = mkdtempSync(join(tmpdir(), "spell-contract-"))
   try {
     const projects = await importedProjects(name, target, folder)
-    const { exitCode, output } = await CLI.runCode("run", name, code, { extension, projects, capture: true, dom: true })
+    const { exitCode, output, stdout } = await CLI.runCode("run", name, code, {
+      extension,
+      projects,
+      capture: true,
+      dom: true,
+      seed: CONTRACT_SEED
+    })
     expect(exitCode, `${name} on ${target} exited ${exitCode}:\n${output}`).toBe(CLI.EXIT.OK)
-    return output
+    return stdout
   } finally {
     rmSync(folder, { recursive: true, force: true })
   }
@@ -146,11 +159,11 @@ table.start()
 `
 
 describe("drawing with h() from @spell/core, as `spell run` runs it", () => {
-  /** What `code` prints, run headless in a fake page:  ending with what it drew. */
+  /** What `code` prints to stdout, run headless in a fake page:  ending with what it drew. */
   async function drawn(code: string): Promise<string> {
-    const { exitCode, output } = await CLI.runCode("run", "Table", code, { capture: true, dom: true })
+    const { exitCode, output, stdout } = await CLI.runCode("run", "Table", code, { capture: true, dom: true })
     expect(exitCode, output).toBe(CLI.EXIT.OK)
-    return output.trim()
+    return stdout.trim()
   }
 
   test("draws a card table:  a cell per card, in the page's spellings", async () => {

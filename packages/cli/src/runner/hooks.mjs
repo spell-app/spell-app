@@ -34,10 +34,3 @@ export async function resolve(specifier, context, next) {
 }
 
 register(import.meta.url)
-
-// a fake page (`spec.dom`, the core contract test):  the same "random" numbers every run, so a shuffle is the same
-// on every target -- here, before lodash loads and keeps its own `Math.random`
-if (spec.dom) {
-  let seed = 1
-  Math.random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646
-}

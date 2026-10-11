@@ -1,4 +1,3 @@
-import _ from "lodash"
 import { describe, test, expect, beforeEach, afterEach, vi } from "vite-plus/test"
 import { spellCore, assert, List } from "$/core"
 
@@ -891,11 +890,11 @@ describe("spellCore.randomItemsOf()", () => {
       expect(spellCore.randomItemsOf(["a"])).toEqual(["a"])
     })
     test("returns all values if count not specified", () => {
-      vi.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
+      vi.spyOn(spellCore, "shuffled").mockImplementation(() => [2, 3, 1])
       expect(spellCore.randomItemsOf(["a", "b", "c"])).toEqual(["b", "c", "a"])
     })
     test("returns value in range for multi-item array", () => {
-      vi.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
+      vi.spyOn(spellCore, "shuffled").mockImplementation(() => [2, 3, 1])
       expect(spellCore.randomItemsOf(["a", "b", "c"], 2)).toEqual(["b", "c"])
     })
   })
@@ -910,11 +909,11 @@ describe("spellCore.randomItemsOf()", () => {
       expect(spellCore.randomItemsOf({ a: 1 })).toEqual({ a: 1 })
     })
     test("returns all keys if count not specified", () => {
-      vi.spyOn(_, "shuffle").mockImplementation(() => ["b", "c", "a"])
+      vi.spyOn(spellCore, "shuffled").mockImplementation(() => ["b", "c", "a"])
       expect(spellCore.randomItemsOf({ a: 1, b: 2, c: 3 })).toEqual({ b: 2, c: 3, a: 1 })
     })
     test("returns key in range for multi-item object", () => {
-      vi.spyOn(_, "shuffle").mockImplementation(() => ["b", "c", "a"])
+      vi.spyOn(spellCore, "shuffled").mockImplementation(() => ["b", "c", "a"])
       expect(spellCore.randomItemsOf({ a: 1, b: 2, c: 3 }, 2)).toEqual({ b: 2, c: 3 })
     })
   })
@@ -932,7 +931,7 @@ describe("spellCore.randomize()", () => {
       expect(collection).toEqual([])
     })
     test("returns all values for multi-item array", () => {
-      vi.spyOn(_, "shuffle").mockImplementation(() => [2, 3, 1])
+      vi.spyOn(spellCore, "shuffled").mockImplementation(() => [2, 3, 1])
       const collection = ["a", "b", "c"]
       spellCore.randomize(collection)
       expect(collection).toEqual(["b", "c", "a"])

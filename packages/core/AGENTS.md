@@ -18,6 +18,18 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - Built from spell's table of built-in types, `BUILT_IN_TYPE_TABLE` ([builtinTypes.ts](../spell/src/builtinTypes.ts)).
   - By `yarn scopes --builtins`, in `../lsp`.
   - NEVER edit it by hand:  edit the table, run that.
+- [spellCore.declarations.json](spellCore.declarations.json) is GENERATED too:  the core's method list,
+  what another target's core must have (Python's, in `py/`).
+  - Read from the running core by `coreDeclarations()`, written by `yarn gen:declarations`.
+  - `coreDeclarations.test.ts` fails until you run it, after adding, renaming or removing anything on `spellCore`.
+  - Python's `test_core_declarations.py` checks `spell_core` against it:
+    a new name fails there too, until it's ported or listed as not ported yet.
+- Random numbers come from the core's own generator (`ParkMiller`), NEVER `Math.random()`:
+  - `spellCore.seedRandom(n)` makes everything random after it repeat;  unseeded, each run differs.
+  - `spellCore.shuffled()` is lodash's shuffle, step for step.
+  - Python's core deals the same from the same seed:  both read `seededRandom.expected.json` in their tests.
+- The console sends a DUMP (a thing, a spell list ...) through `spellCore.console.printDump()`:
+  the page's console by default, stderr under `spell run`.
 - Depends only on `$/util`.
   NEVER import `$/spell` / `$/parser`, or anything above.
 - Drawing code here is Solid work:  READ the root's Solid 2 pointer first.

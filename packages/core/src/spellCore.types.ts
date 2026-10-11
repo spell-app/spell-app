@@ -48,6 +48,8 @@ export const SPELL_BASE_TYPES = ["Object", ...SPELL_CLASSES]
  * - It's the CORE CONTRACT too:  what another target's core must have (Python's, later -- epic `output-targets`), and
  *   what it must print is pinned by the `cli`'s `contract.test.ts`.
  *   - Except `deprecatedMethods`:  old names, for programs compiled before they changed.  A new core has none.
+ *   - Listed by name, for another core to check itself against, in `spellCore.declarations.json`:
+ *     see `coreDeclarations()`.  A module added here goes in its `CORE_MODULES` too.
  */
 export type SpellCore = typeof coreMethods &
   typeof collectionCoreMethods &

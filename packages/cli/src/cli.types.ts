@@ -103,19 +103,33 @@ export type WatchOptions = GlobalOptions & {
  * `spell run` flags.
  * - `browser`:  `true` opens the project in a browser even if it shows no UI;  `false` never does.  Left out:  only
  *   if it tried to show one.
+ * - `seed`:  see `SeedOptions`
  */
-export type RunOptions = GlobalOptions & {
-  browser?: boolean
-}
+export type RunOptions = GlobalOptions &
+  SeedOptions & {
+    browser?: boolean
+  }
 
 /**
  * `spell test` flags.
  * - `name`:  only tests whose names contain it, e.g. `deck` -- ignoring case, and spaces ~== `-` ~== `_`
  * - `watch`:  run them again whenever the project changes -- `spell watch --test`
+ * - `seed`:  see `SeedOptions`
  */
-export type TestOptions = GlobalOptions & {
-  name?: string
-  watch?: boolean
+export type TestOptions = GlobalOptions &
+  SeedOptions & {
+    name?: string
+    watch?: boolean
+  }
+
+/**
+ * The flag `spell run` and `spell test` share.
+ * - `seed`:  start the program's random numbers from it, so every run deals the same cards --
+ *   a whole number from 1 to 2147483646, see `spellCore.seedRandom()`.
+ *   Left out:  a different deal each run.
+ */
+export type SeedOptions = {
+  seed?: number
 }
 
 /**
@@ -280,6 +294,8 @@ export type NewOptions = GlobalOptions & {
  * - `verbose`:  `test` shows every check, and anything printed, not just failures
  * - `filter`:  `test` runs only tests whose names contain it -- see `runProject.ts`
  * - `dom`:  run in a fake page, drawing what it draws, and print it -- see `fakeDom()` in `runProject.ts`
+ * - `seed`:  start its random numbers from it, before it loads -- see `spellCore.seedRandom()`.
+ *   Left out:  random, as in a browser.
  */
 export type RunSpec = {
   mode: "run" | "test"
@@ -290,6 +306,7 @@ export type RunSpec = {
   verbose?: boolean
   filter?: string
   dom?: boolean
+  seed?: number
 }
 
 /**

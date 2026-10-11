@@ -8,7 +8,14 @@ const random = () => ((seed = (seed * 16807) % 2147483647) - 1) / 2147483646
 Math.random = random
 const _ = require("lodash").runInContext()
 ```
+
+- `seededRandom.expected.json`, beside `py/`, holds more of them, from several seeds.
+  The JavaScript core's `seededRandom.test.ts` reads the same file, so the two cores can't drift apart.
 """
+
+import json
+from pathlib import Path
+from typing import Any
 
 import pytest
 
@@ -17,6 +24,29 @@ from spell_core.seeded_random import ParkMiller
 
 DECK = [f"{rank}-{suit}" for suit in ["clubs", "diamonds", "hearts", "spades"] for rank in
         ["ace", 2, 3, 4, 5, 6, 7, 8, 9, 10, "jack", "queen", "king"]]  # fmt: skip
+
+# What each seed must give:  shared with the JavaScript core's tests.
+EXPECTED: dict[str, Any] = json.loads(
+    (Path(__file__).parents[2] / "seededRandom.expected.json").read_text(encoding="utf-8")
+)
+SEEDS = [pytest.param(each, id=f"seed {each['seed']}") for each in EXPECTED["seeds"]]
+
+
+@pytest.mark.parametrize("expected", SEEDS)
+def test_each_seed_gives_what_the_javascript_core_gives(core: SpellCore, expected: dict[str, Any]) -> None:
+    seed = expected["seed"]
+    core.seed_random(seed)
+    assert [core.random() for _ in expected["numbers"]] == expected["numbers"]
+    core.seed_random(seed)
+    assert [core.random_number(1, 6) for _ in expected["dice"]] == expected["dice"]
+    core.seed_random(seed)
+    assert core.shuffled(EXPECTED["toShuffle"]) == expected["shuffled"]
+    core.seed_random(seed)
+    assert core.shuffled(EXPECTED["deck"]) == expected["deck"]
+
+
+def test_the_shared_deck_is_ours() -> None:
+    assert EXPECTED["deck"] == DECK
 
 
 def test_the_generator_gives_javascripts_numbers() -> None:
