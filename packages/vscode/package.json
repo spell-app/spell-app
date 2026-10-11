@@ -219,6 +219,19 @@
         "embeddedLanguages": {
           "meta.embedded.block.css": "css"
         }
+      },
+      {
+        "scopeName": "inline.spell.css-template",
+        "path": "./syntaxes/css-template.tmLanguage.json",
+        "injectTo": [
+          "source.js",
+          "source.js.jsx",
+          "source.ts",
+          "source.tsx"
+        ],
+        "embeddedLanguages": {
+          "meta.embedded.block.css": "css"
+        }
       }
     ],
     "languages": [

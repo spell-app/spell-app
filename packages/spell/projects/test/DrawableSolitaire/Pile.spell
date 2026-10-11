@@ -1,0 +1,53 @@
+## Pile of playing cards
+// a drawable list:  each pile is its own element, <drawable-solitaire-pile>, holding its cards' elements
+a pile is a drawable list of cards:
+	<css>
+		:host {
+			display: block;
+			position: relative;
+			min-height: 30px;
+		}
+		.pile {
+			position: relative;
+			min-height: 30px;
+		}
+		/* its cards, stacked:  the last on top */
+		::slotted(*) {
+			position: absolute;
+			left: 0;
+			top: 0;
+			width: 100%;
+		}
+		.placeholder {
+			box-sizing: border-box;
+			height: 30px;
+			border: 1px dashed #b0b0b0;
+			border-radius: 4px;
+			text-align: center;
+			cursor: pointer;
+		}
+		.placeholder.red {
+			color: crimson;
+		}
+		.placeholder .suit {
+			font-size: 1.4rem;
+			line-height: 28px;
+		}
+	</css>
+// a card is in one pile at a time:  putting it on another pile takes it off this one
+a card belongs to one pile
+a pile has a name as text
+
+the color of a pile is:
+	if it is empty return "none"
+	return the color of its last card
+
+the value of a pile is:
+	if it is empty return 0
+	return the value of its last card
+
+the state of a pile is:
+	set state to (the name of the pile or "pile") + ":"
+	for each card in pile
+		set state to state + " " + the state of the card
+	return state

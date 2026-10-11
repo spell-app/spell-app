@@ -18,7 +18,7 @@ import { classes } from "./classes.parser"
  * ```
  *
  * - The CSS is never read as spell:  the tokenizer takes a `<css>` element's contents as raw text (`rawTextTags`).
- * - Compiles to its class's `static css = `...``:  its element adopts it in its shadow root,
+ * - Compiles to its class's `static css = css`...``, `@spell/core`'s tag:  its element adopts it in its shadow root,
  *   after the page's theme -- see app's `SpellElement`.
  * - Only in a DRAWABLE type's outline:  anywhere else, a parse error that says where it goes.
  * - Editors colour it, complete it and check it as CSS:  see lsp's `SpellCSS`.
@@ -46,13 +46,20 @@ export class CSSBlock extends P.TokenType<never, CSSBlockData> {
     return match
   }
 
-  /** `static css = `...`` in the type's class:  its own style sheet. */
+  /**
+   * `static css = css`...`` in the type's class:  its own style sheet, as `@spell/core`'s `css` tag hands it back.
+   * - The sheet starts on a line of its own, indented a step:  the tag takes that indent off again.
+   */
   getAST(match: P.MatchFor<this>) {
     const { typeName = "", css = "" } = match.data
+    const indented = css
+      .split("\n")
+      .map((line) => (line ? `${CSS_INDENT}${line}` : line))
+      .join("\n")
     return new P.ASTStaticDefinition(match, {
       type: new P.ASTTypeExpression(match, { name: typeName }),
       name: "css",
-      value: new P.ASTStringLiteral(match, { value: css, quote: "`" })
+      value: new P.ASTTaggedTemplate(match, { tag: "css", parts: [`\n${indented}\n`] })
     })
   }
 
@@ -80,7 +87,9 @@ classes.addRule(CSSBlock, {
             "export class Card extends Drawable {",
             '  static elementTag = spellCore.defineElement(this, "test_classes")',
             "",
-            "  static css = `.red { color: crimson }`",
+            "  static css = css`",
+            "    .red { color: crimson }",
+            "  `",
             "}"
           ]
         ]
@@ -99,6 +108,9 @@ type CSSBlockData = {
 
 /** The tag of a type's own styles. */
 const CSS_TAG = "css"
+
+/** How far a type's sheet is indented inside its `css` template, under `static css = ...`. */
+const CSS_INDENT = "  "
 
 /** The built-in types whose sub-types have their own styles:  they draw as their own elements. */
 const DRAWABLE_TYPES = ["drawable", "drawable list"]

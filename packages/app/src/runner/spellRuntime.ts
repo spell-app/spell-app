@@ -13,12 +13,13 @@
  *   - `spellCore`, `Thing`, `List`, `App`, `Drawable`, `DrawableList`
  *   - Solid's `h()`, which it draws with
  *   - the helpers it calls by name:  `on()`, `trigger()`, `positionOf()` ...
+ *   - the `css` tag a drawable type's style sheet is written with
  * - Programs draw with Solid, on the page's Spell UI:  `<ui-form>`, `<ui-button>` ... by their own tags.
  * - A drawable thing draws as its own Spell UI element, e.g. `<solitaire-card>`:  see `SpellElement`.
  * - MUST be the only module in a bundle that imports `spellCore`'s code,
  *   so it's all HERE, not in a shared chunk -- see `element.build.test.ts`, `parser/build.test.ts`.
  */
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, on, off, once, trigger, positionOf } from "$/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, h, css, on, off, once, trigger, positionOf } from "$/core"
 import { runCompiled, appIsMounted, unmountApp, type RunCompiledOptions } from "./runCompiled"
 import { installSpellElements } from "./SpellElement"
 
@@ -31,6 +32,7 @@ installSpellElements(spellCore)
 // - `h`:  what compiled spell draws with (P20), Solid's own.
 //   The PAGE's one copy, taken through `spell-solid-shared.js` as core's drawing takes it,
 //   never one of its own (`element.build.test.ts`).
+// - `css`:  the tag a drawable type's `<css>` block compiles to (epic `drawable-thing` P10).
 export {
   spellCore,
   Thing,
@@ -39,6 +41,7 @@ export {
   Drawable,
   DrawableList,
   h,
+  css,
   on,
   off,
   once,

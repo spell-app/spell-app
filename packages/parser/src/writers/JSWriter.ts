@@ -8,6 +8,7 @@ import {
   IMPORTED_HELPERS,
   LOOSE_CORE_CALL,
   PROJECT_IMPORT,
+  TEMPLATE_TAGS,
   alike,
   attributeName,
   isCoreCall,
@@ -244,6 +245,15 @@ export class JSWriter extends Writer {
       )
       .join("")
     return `\`${body}\``
+  }
+
+  /**
+   * `` css`.red { color: crimson }` ``:  its template, handed to its tag.
+   * - A tag of `@spell/core`'s, e.g. `css`, is imported by name.
+   */
+  ASTTaggedTemplate(node: P.ASTTaggedTemplate): string {
+    if (TEMPLATE_TAGS.has(node.tag)) this.coreImports.add(node.tag)
+    return `${node.tag}${this.ASTTemplateString(node)}`
   }
 
   ASTBooleanLiteral(node: P.ASTBooleanLiteral): string {
