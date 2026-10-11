@@ -50,6 +50,17 @@ describe("epicStateFor()", () => {
 })
 
 describe("the rest", () => {
+  it("a standing epic with every phase done is in progress, never done;  urgent items still make it errors", () => {
+    const now = new Date(2026, 9, 10)
+    const standing = epicStateFor({ phases: ["done", "done"], standing: true, updated: "2026-09-01" }, now)
+    expect([standing.name, standing.tip]).toEqual([
+      "progress",
+      "in progress:  standing:  every phase merged, open for requests (2/2)"
+    ])
+    expect(epicStateFor({ phases: ["done"], standing: true, urgent: ["q3"] }, now).name).toBe("errors")
+    expect(epicStateFor({ phases: ["done", "todo"], standing: true, active: "P2 · x" }, now).name).toBe("progress")
+  })
+
   it("draws a card's mark:  the count for in progress, else the icon;  the tooltip escaped", () => {
     const now = new Date(2026, 9, 10)
     expect(epicStateMark(epicStateFor({ phases: ["done", "todo"], active: "P2 · <a> & b" }, now))).toBe(

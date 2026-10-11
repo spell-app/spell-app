@@ -465,15 +465,22 @@ function scrollToMiddleSection() {
   const room = document.documentElement.scrollHeight - innerHeight
   // a section barely taller than its title (an empty "Todos" in a new plan doc) has no middle to stick over:  skip it
   const top = "main > ui-section, main epic-page > :is(epic-overview, epic-section), section.s2"
+  // how far past its top the check scrolls:  the page must have room for all of it, or the title stays where it
+  // is, never stuck (epic `epic-workflow` I1:  a new plan doc's Questions failed so, the page too short to scroll)
+  const into = (s) => Math.min(600, s.offsetHeight / 2)
   const sections = [...document.querySelectorAll(top)].filter(
-    (s) => s.getBoundingClientRect().top + scrollY + 200 < room && s.offsetHeight > 200
+    (s) => s.offsetHeight > 200 && s.getBoundingClientRect().top + scrollY + into(s) + 100 < room
   )
   const middle = sections[Math.floor(sections.length / 2)]
-  middle?.scrollIntoView()
-  window.scrollBy(0, Math.min(600, (middle?.offsetHeight ?? 0) / 2))
-  if (middle?.localName.startsWith("epic-")) return { id: middle.id, tag: middle.localName }
-  const section = middle?.localName === "ui-section"
-  return { id: section ? middle.id : middle?.querySelector("h2")?.id, tag: section ? "ui-section" : "h2" }
+  if (!middle) return { id: undefined }
+  middle.scrollIntoView()
+  const target = scrollY + into(middle)
+  window.scrollBy(0, into(middle))
+  // fell short (the page shorter than it measured, a part still loading):  nothing to judge
+  if (scrollY < target - 2) return { id: undefined }
+  if (middle.localName.startsWith("epic-")) return { id: middle.id, tag: middle.localName }
+  const section = middle.localName === "ui-section"
+  return { id: section ? middle.id : middle.querySelector("h2")?.id, tag: section ? "ui-section" : "h2" }
 }
 
 /**

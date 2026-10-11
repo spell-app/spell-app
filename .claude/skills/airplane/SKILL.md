@@ -82,7 +82,7 @@ Owen is back online.  Gather everything, work through it in the background, then
    - each epic's marks, sent or not, its drafts, Do Now requests, and new items from the page's `+`
    - new epics made from the Epics page, not started (`newEpics`)
    - each epic's comments (`comments`:  on its plan doc's blocks)
-   - comments on docs pages (`comments`);  page notes;  details answers since the flight;  goals thoughts
+   - comments on docs pages (`comments`);  page notes;  details answers since the flight;  (goals thoughts:  parked since 2026-10-11)
    - A comment is listed when it's Claude's turn on its THREAD:  a new one, or one Owen REPLIED on since Claude
      answered (his latest words:  the last of its `replies`, `by: "Owen"`).  Those he closed ("that's good",
      "skip it") aren't.
@@ -128,7 +128,7 @@ Owen is back online.  Gather everything, work through it in the background, then
    - Page notes were gathered in 4b with the comments.
      One written into a page since:  read the page and the note, and answer under it
      (`spell dev notes answer <page> <id> --file`).
-   - Details answers and goals thoughts:  as `/details` and `/goals-update` take them.
+   - Details answers:  as `/details` takes them.  (Goals thoughts:  goals is parked, epic `epic-goals`.)
    - Nothing is decided for Owen:  an answer that needs him ends in option cards, and the item stays red.
 
 5b. New epics (`newEpics`, made with the Epics page's New epic):  ask which to start, with CHECKBOXES

@@ -116,7 +116,7 @@ Any page you name to Owen (a details page, a plan doc, any docs page):
 `spell dev docs link <page> --hash <id> --show`, and paste what it prints.
 - It shows the page in this session's side bar NOW (`--show`), and prints two links:
   - the title opens it in the side bar (again)
-  - `(_browser_)` opens it in Chrome
+  - `🌐`, after a `•`, opens it in Chrome:  `Title • 🌐` (Owen, 2026-10-11)
   - Both go through the page server ([showRoutes.ts](packages/docs/tools/showRoutes.ts)):
     the Claude panel ignores `vscode://` links, and opens `localhost` ones in a VS Code tab.
 - `--hash`:  ALWAYS the id of what you mean (`q2`, `t4`, `p3` ...).

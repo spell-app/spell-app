@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vite-plus/test"
+import { describe, expect, test, vi } from "vite-plus/test"
 
 import type { E } from "$/ui/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
@@ -7,6 +7,7 @@ import { expectAccessible } from "$/ui/test/A11y"
 import "$/ui/components/ui-section"
 import "$/epics/components/epic-section"
 import "$/epics/components/epic-phase"
+import "$/epics/components/epic-update"
 
 /** `host`'s inner `<ui-section>`. */
 function inner(host: Element): E.DOMElement {
@@ -69,6 +70,55 @@ describe("<epic-phase>", () => {
   })
 })
 
+describe("<epic-phase> plan changes (Owen, 2026-10-11:  no Plan changes surround)", () => {
+  /** A phase of `status`, its plan changed twice:  `changes="2"`, and (`lines`) the two updates loaded. */
+  function changed(status: string, { lines = true } = {}) {
+    const body = lines
+      ? `<epic-field name="symptom">Broken.</epic-field><epic-field name="goal">Fixed.</epic-field>` +
+        `<epic-update at="2026-10-07 10:00" summary="Split it" phase="1"><p>Split it.</p></epic-update>` +
+        `<epic-update at="2026-10-08 11:00" summary="Joined again" phase="1"><p>Joined again.</p></epic-update>`
+      : ""
+    return `<epic-phase id="p2" title="Two" status="${status}" changes="2" open>${body}</epic-phase>`
+  }
+
+  test("its updates are plain children, each its own block after Goal:  no box around them", async () => {
+    const host = await render(changed("todo"))
+    expect(host.shadowRoot!.querySelector('[part~="changes"], .changes')).toBeNull()
+    const updates = Array.from(host.querySelectorAll("epic-update"))
+    for (const update of updates) expect(update.assignedSlot?.name).toBe("")
+    await ElementFixture.tick()
+    expect(updates.map((update) => update.shadowRoot!.querySelector('[part~="title"]')!.textContent)).toEqual([
+      "Update: Split it",
+      "Update: Joined again"
+    ])
+    await expectAccessible(host)
+  })
+
+  test("its title says its plan changed while it isn't done, folded too (`changes`, its updates not loaded)", async () => {
+    const host = await render(changed("active", { lines: false }))
+    const mark = host.shadowRoot!.querySelector('[part~="changed"]')!
+    expect(mark.textContent).toBe("2")
+    await vi.waitFor(() => expect(mark.querySelector("svg")).not.toBeNull())
+    expect(mark.getAttribute("title")).toContain("2 × Update")
+    host.setAttribute("status", "done")
+    await ElementFixture.tick()
+    expect(host.shadowRoot!.querySelector('[part~="changed"]')).toBeNull()
+  })
+
+  test('an older doc\'s lines (`slot="changes"`) still show, unboxed, at the end of its body', async () => {
+    const host = await render(
+      `<epic-phase id="p2" title="Two" status="todo" open><epic-field name="goal">Fixed.</epic-field>` +
+        `<epic-updated slot="changes" at="2026-10-07 10:00" phase="1"><p>Split it.</p></epic-updated></epic-phase>`
+    )
+    const line = host.querySelector("epic-updated")!
+    expect(line.assignedSlot?.name).toBe("changes")
+    const body = host.shadowRoot!.querySelector('[part~="body"]')!
+    expect(body.querySelector("slot:not([name])")!.compareDocumentPosition(line.assignedSlot!)).toBe(
+      Node.DOCUMENT_POSITION_FOLLOWING
+    )
+  })
+})
+
 describe("<epic-field>", () => {
   test("its icon and label before its prose;  Files and Verify hidden until the Phases toggles show them", async () => {
     const section = await render<E.DOMElement>(
@@ -109,8 +159,8 @@ describe("<epic-field>", () => {
   })
 })
 
-describe("<epic-updated>", () => {
-  test("fenced:  its icon, `Updated`, its time to the minute (`10/6/26 14:30`) and the phase, then its prose", async () => {
+describe("<epic-updated> (retired:  migrated to <epic-update>)", () => {
+  test("an older doc's, fenced:  its icon, `Updated`, its time to the minute (`10/6/26 14:30`) and the phase, then its prose", async () => {
     const host = await render(`<epic-updated at="2026-10-06T14:30:12" phase="3"><p>Changed.</p></epic-updated>`)
     const label = host.shadowRoot!.querySelector('[part~="label"]')!
     expect(label.textContent!.replace(/\s+/g, " ").trim()).toBe("Updated 10/6/26 14:30during P3")

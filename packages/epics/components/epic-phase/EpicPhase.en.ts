@@ -30,8 +30,9 @@ export const epicPhaseVocabulary = {
   noun: "phase",
   ui: false,
   description:
-    "One phase of the plan:  its status icon and estimate in its title line;  its fields (Symptom, Changes, Goal, " +
-    "Done, Files, Verify, To review), plan updates, Owen's kept notes and commits as children, in that order.  " +
+    "One phase of the plan:  its status icon and estimate in its title line;  its fields (Symptom, Changes, " +
+    "Requests, Goal), Owen's kept notes, its plan changes (`<epic-update>` blocks, at the end of its " +
+    "description), then Done, commits, Files, Verify and To review, as children in that order.  " +
     "While the page is reviewed, it takes review notes as an Overview sub-section does:  Revisit, Make Todo, Do Now.",
   attributes: [
     {
@@ -74,12 +75,25 @@ export const epicPhaseVocabulary = {
       description: "The ids inside its part file:  a link to one loads the body first, then lands."
     },
     { name: "commits", kind: "boolean", description: "Its body lists commits (the page's git buttons)." },
+    {
+      name: "changes",
+      kind: "number",
+      description:
+        "How many plan changes (`<epic-update>` blocks) it holds, written by the plan-doc tool on every edit:  its " +
+        "title row says so while it isn't done, folded too (its body, a part, loads only when it opens)."
+    },
     FOLD_OPEN_ATTRIBUTE
   ],
   events: [...FOLD_EVENTS],
   slots: [
-    { name: "", description: "Its fields, plan updates, Owen's kept notes and commits." },
+    { name: "", description: "Its fields, Owen's kept notes, its plan changes and commits." },
     { name: "title", description: "A title with markup, in place of `title`." },
+    {
+      name: "changes",
+      description:
+        'An OLDER doc\'s plan changes (`<epic-updated slot="changes">`, 2026-10-11, P6):  drawn at the end of its ' +
+        "body, unboxed, until the plan-doc tool migrates them to `<epic-update>` blocks (`updates-as-epic-update`)."
+    },
     {
       name: "status",
       description:
@@ -90,6 +104,10 @@ export const epicPhaseVocabulary = {
   parts: [
     ...FOLD_PARTS,
     { name: "status", description: "Its status icon, in its status's colour." },
+    {
+      name: "changed",
+      description: "In its title, while it isn't done:  its plan changed, an orange pen and how many times (`changes`)."
+    },
     { name: "tools", description: "At the title's end:  its review buttons, while the page is reviewed." },
     ...REVIEW_PARTS
   ],
@@ -99,7 +117,12 @@ export const epicPhaseVocabulary = {
     // `status*`:  the review controls' `todo` is Make Todo
     { key: "statusTodo", text: "To do", description: "The status icon's name:  `todo`." },
     { key: "statusActive", text: "Under way", description: "The status icon's name:  `active`." },
-    { key: "statusDone", text: "Done", description: "The status icon's name:  `done`." }
+    { key: "statusDone", text: "Done", description: "The status icon's name:  `done`." },
+    {
+      key: "changedTip",
+      text: "Its plan changed:  {count} × Update, at the end of its description",
+      description: "The title's pen while it isn't done:  its tooltip and name;  `count` how many changes."
+    }
   ],
   children: [
     { tag: "flow", slot: "title", max: 1, description: "A title with markup." },
@@ -115,7 +138,27 @@ export const epicPhaseVocabulary = {
       max: 1,
       description: "Changes:  what changes, two or three lines."
     },
-    { tag: "epic-updated", description: "Changes to the phase's plan, one dated line each, oldest first." },
+    {
+      tag: "epic-updated",
+      slot: "changes",
+      description:
+        "An OLDER doc's plan changes (2026-10-11, P6):  the plan-doc tool's next write makes each an " +
+        "`<epic-update>` block, after Goal (`updates-as-epic-update`)."
+    },
+    {
+      tag: "epic-updated",
+      description:
+        "An OLDER doc's plan changes, in no slot (until 2026-10-11):  drawn among its fields until the plan-doc " +
+        "tool's next write makes each an `<epic-update>` block, after Goal."
+    },
+    {
+      tag: "epic-field",
+      where: { attribute: "name", values: ["requests"] },
+      max: 1,
+      description:
+        "Requests:  what Owen sent this phase from other sessions (epic `epic-workflow`), one labelled block each:  " +
+        "his words, the sender, his screenshots (`spell epic file`)."
+    },
     {
       tag: "epic-reply",
       description:
@@ -131,6 +174,12 @@ export const epicPhaseVocabulary = {
       where: { attribute: "name", values: ["goal"] },
       max: 1,
       description: "Goal:  a bullet per outcome."
+    },
+    {
+      tag: "epic-update",
+      description:
+        "Its plan changes, oldest first, at the end of its description (Owen, 2026-10-11):  each an " +
+        "`<epic-update at summary>` block, `Update: <summary>` and its date, what changed under it;  kept once done."
     },
     {
       tag: "epic-field",

@@ -151,7 +151,7 @@ export class PlanDocFiles {
           title: plan.title || name,
           status: plan.future
             ? "future"
-            : phases.length && phases.every((phase) => phase.status === "done")
+            : !plan.standing && phases.length && phases.every((phase) => phase.status === "done")
               ? "done"
               : "in progress",
           checkout: this.epicCheckout(name, main),
@@ -203,6 +203,8 @@ export class PlanDocFiles {
   /**
    * Change the doc at `file` with `change(plan)`, under its lock (`SRV.FileLock`:  parallel agents, and the page
    * server's page edits, take turns);  resolves with what `change` returned.
+   * - first the MIGRATIONS (`plan.migrate()`, `Migrations`):  an older doc comes up to today's markup on its first
+   *   edit, logged;  a migration that would break the doc refuses the edit, as any change does
    * - then the whole-doc pass (`updateStates()`), with the page's `recent-since` from the doc's checkout
    *   (`recentSince()`), stamps "updated", and writes it (`writeDoc()`)
    * - REFUSES, writing nothing:  a doc in the old markup (`read()`);  an edit after which `Markup.validate()` finds a
@@ -213,6 +215,7 @@ export class PlanDocFiles {
     return SRV.FileLock.runAsync(file, async () => {
       const plan = this.read(file, { recentSince: this.recentSince(file) })
       const before = new Set(plan.check())
+      plan.migrate()
       const result = change(plan)
       plan.updateStates()
       plan.touch()

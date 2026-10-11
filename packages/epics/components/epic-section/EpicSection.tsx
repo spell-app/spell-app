@@ -9,15 +9,11 @@ import { ReviewState } from "$/epics/components/epic-review/ReviewState"
 import { SHOW_NOTE, type ReviewShows } from "$/epics/components/epic-review/EpicReview.types"
 import { NEW_KIND_LOOKS } from "$/epics/components/epic-new-item/EpicNewItem.types"
 import { NEEDS_OWEN, STATUS_SLOT, STATUS_STATES } from "$/epics/components/epic-item/EpicItem.types"
-// the fold pieces every `<epic-*>` fold shares:  their files, not `epic-item`'s barrel
-import { Fold } from "$/epics/components/epic-item/Fold"
 
 import { epicSectionVocabulary } from "./EpicSection.en"
 import { DOMEpicFoldElement, EpicFold } from "./EpicFold"
 import { StateFilter } from "./StateFilter"
 import {
-  CHANGES,
-  CHANGES_HEAD,
   CHIP,
   CHIP_CLICK_KEYS,
   CLOSED_STATUSES,
@@ -106,8 +102,8 @@ export class DOMEpicSectionElement extends DOMEpicFoldElement {
  *   - each shows or hides that field in every phase,
  *     through `--epic-files-display` / `--epic-verify-display`, which the fields read
  *   - remembered per page
- * - The Phases section's Plan changes box (T14):  the `slot="changes"` copies the tool writes, above the phases;
- *   nothing without one.
+ * - No Plan changes box above the phases any more (Owen, 2026-10-11):  each phase draws its own (`<epic-phase>`).
+ *   An older doc's copies (`<epic-updated slot="changes">`, T14) have no slot to show in;  the tool removes them.
  * - An item section with no items says "None yet".
  * - A REPORT (`kind="report"`, P14):  prose a run wrote for Owen to read (an overnight `/bedtime` report).
  *   - right after the Overview, on the page's section band
@@ -142,7 +138,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   // ## State
   ////////////////
 
-  /** Light-DOM slot occupancy:  has it children (items, phases ...)?  Plan changes? */
+  /** Light-DOM slot occupancy:  has it children (items, phases ...)? */
   readonly slots = new E.SlotContent(this.domElement)
 
   /** The Phases section's toggles:  which fields show. */
@@ -165,12 +161,8 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
   /** The Todos or Questions section's `<epic-new-item>`, as drawn:  Edit on a waiting item opens its form on it. */
   private newItem: (HTMLElement & { open: boolean; editing?: string }) | undefined
 
-  /** The toggles' icons, in `PHASE_TOGGLES`' order;  the Plan changes box's. */
+  /** The toggles' icons, in `PHASE_TOGGLES`' order. */
   readonly toggleGlyphs = PHASE_TOGGLES.map((toggle) => new E.IconGlyph({ owner: this, name: () => toggle.icon }))
-  readonly changesGlyph = new E.IconGlyph({ owner: this, name: () => "pen to square" })
-
-  /** The Plan changes box's fold:  every titled box folds (Owen, 2026-10-08);  folded to start, as every section. */
-  readonly changesFold = new Fold(() => false)
 
   ////////////////
   // ## Derived state
@@ -296,8 +288,7 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
             : this.holdsItems()
               ? () => this.filter()
               : undefined,
-      before:
-        kind === "overview-part" ? () => this.saidNote() : kind === "phases" ? () => this.planChanges() : undefined,
+      before: kind === "overview-part" ? () => this.saidNote() : undefined,
       after: () => (
         <>
           <Show when={this.empty()}>
@@ -454,42 +445,6 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
           )
         }}
       </For>
-    )
-  }
-
-  /**
-   * The Plan changes box (T14):  the tool's copies of each change to a phase still to do;  nothing without one.
-   * - it FOLDS, like every titled box (Owen, 2026-10-08):
-   *   its heading is a button with the chevron and how many changes it holds
-   * - folded, the changes are hidden `until-found` (find-in-page still reaches them)
-   */
-  private planChanges(): JSX.Element {
-    const slot = this.slotForName("changes")
-    const count = () =>
-      this.slots.hasContent(slot) ? this.domElement.querySelectorAll(`:scope > [slot="${slot}"]`).length : 0
-    return (
-      <Show when={this.slots.hasContent(slot)}>
-        <div class={CHANGES} part={this.partForName("changes")}>
-          <button
-            type="button"
-            class={CHANGES_HEAD}
-            aria-expanded={this.changesFold.isOpen() ? "true" : "false"}
-            aria-controls={CHANGES_BODY}
-            title={this.translationForKey(this.changesFold.isOpen() ? "foldTip" : "unfoldTip")}
-            onClick={this.changesFold.toggle}
-          >
-            {Fold.chevron()}
-            <span class="icon" aria-hidden="true">
-              {this.changesGlyph.svg}
-            </span>
-            {this.translationForKey("changesTitle")}
-            <span class="count">{count()}</span>
-          </button>
-          <div ref={this.changesFold.watch} id={CHANGES_BODY} class="changes-body" hidden={this.changesFold.hidden()}>
-            <slot name={slot} />
-          </div>
-        </div>
-      </Show>
     )
   }
 
@@ -696,11 +651,6 @@ export class EpicSection extends EpicFold<EpicSectionVocabulary> {
     }))
   }
 
-  /** Collapse-all:  the Plan changes box folds too. */
-  protected foldOwnBoxes(): number {
-    return this.changesFold.close() ? 1 : 0
-  }
-
   ////////////////
   // ## Helpers
   ////////////////
@@ -797,9 +747,6 @@ export interface EpicSection extends E.AttributeValues<EpicSectionVocabulary> {}
 
 /** No counted children:  a kind that isn't counted, or a server render.  One list, so a recount keeps it. */
 const NOTHING_COUNTED: readonly Element[] = []
-
-/** `id` of the Plan changes box's body, which its heading controls. */
-const CHANGES_BODY = "changes-body"
 
 /** Classes of the waiting new items (`newItemList()`):  the list, a card. */
 const NEW_LIST = "new-list"

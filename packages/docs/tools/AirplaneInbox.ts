@@ -5,7 +5,6 @@ import { CommentList, type Comment, type IdentifiedComment } from "$/epics/tool/
 import { FROM_PAGE } from "$/epics/tool/epicRoutes"
 
 import { readAnswer, listPages } from "./details.js"
-import { GoalsPage } from "./goals/page.js"
 import { GuideChanges } from "./GuideChanges"
 import { GuideInbox } from "./GuideInbox"
 import { notesIn, type PageNote } from "./notesOnDisk"
@@ -210,18 +209,13 @@ function detailsAnswered(root: string, since: number): DetailsAnswered[] {
   })
 }
 
-/** Goals thoughts not yet digested, in every goals page. */
-function thoughtsWaiting(root: string): ThoughtWaiting[] {
-  const goals = join(root, "goals")
-  if (!existsSync(goals)) return []
-  return htmlUnder(goals).flatMap((file) => {
-    const html = readFileSync(file, "utf8")
-    if (!html.includes("goals-thought")) return []
-    const page = relative(root, file)
-    return (GoalsPage.parse(html).thoughts() as { id: string; for: string; text: string; date: string }[]).map(
-      (thought) => ({ page, id: thought.id, for: thought.for, text: thought.text, date: thought.date })
-    )
-  })
+/**
+ * Goals thoughts not yet digested, in every goals page:  NONE while goals is PARKED (epic `epic-workflow` P6).
+ * - The pages' Thought button only says TODO now, and the page reader that found thoughts (`GoalsPage`) is in
+ *   `packages/goals.zip`;  epic `epic-goals` brings thoughts back, and this with them.
+ */
+function thoughtsWaiting(_root: string): ThoughtWaiting[] {
+  return []
 }
 
 /** Every `.html` file under `folder`, following links. */

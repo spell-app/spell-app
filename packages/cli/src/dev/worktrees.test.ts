@@ -154,7 +154,7 @@ describe("planFacts()", () => {
       `<body class="plan-doc" data-future><ui-section id="p1" data-phase="1" data-status="active"></ui-section>
 <ui-item id="q1" data-status="open"></ui-item><ui-item id="t3" data-status="open"></ui-item></body>`
     )
-    expect(CLI.planFacts(file)).toEqual({ phases: [], updated: null, future: false, urgent: [] })
+    expect(CLI.planFacts(file)).toEqual({ phases: [], updated: null, future: false, standing: false, urgent: [] })
   })
 
   test("the <epic-*> markup:  phases, updated, future, the items that need Owen (red and orange chips)", () => {
@@ -172,6 +172,7 @@ describe("planFacts()", () => {
       phases: ["done", "todo"],
       updated: "2026-10-08",
       future: true,
+      standing: false,
       urgent: ["q1", "i1"]
     })
   })

@@ -245,7 +245,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     }))
   })
 
-  /** The step label by the phases alone:  the active one, else the next, DONE or FUTURE;  `undefined` for none. */
+  /** The step label by the phases alone:  the active one, else the next, DONE (STANDING) or FUTURE;  `undefined` for none. */
   private readonly phaseStep = createMemo((): StepLabel | undefined => {
     const phases = this.phases()
     if (!phases.length) {
@@ -254,6 +254,9 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
     const active = phases.find((phase) => phase.status === ACTIVE)
     if (active) return this.phaseLabel(active, "blue", "circle half stroke", "")
     const next = phases.find((phase) => phase.status !== DONE)
+    // a standing epic is never done:  it waits for the next request (epic `epic-workflow`)
+    if (!next && this.standing)
+      return { color: "blue", icon: "arrows rotate", words: this.translationForKey("standing") }
     if (!next) return { color: "green", icon: "check", words: this.translationForKey("done") }
     return this.phaseLabel(next, "grey", "circle right", this.translationForKey("next"))
   })
@@ -306,6 +309,7 @@ export class EpicPage extends E.UIComponent<EpicPageVocabulary> {
       phases: phases.map((phase) => phase.status),
       updated: this.updated,
       future: this.future,
+      standing: this.standing,
       urgent: Array.from(this.domElement.querySelectorAll(URGENT_SELECTOR), (item) => item.id),
       running: this.review.reviewing() && !!client?.listening,
       active: active && `${active.id.toUpperCase()} · ${active.title}`

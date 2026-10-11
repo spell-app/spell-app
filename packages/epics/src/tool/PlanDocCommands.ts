@@ -24,9 +24,9 @@ import { LISTEN_HEARTBEAT_MS, LISTEN_STALE_MS, ReviewInbox } from "./ReviewInbox
  * edit the structured parts of a plan doc, `epics/<name>/<name>.plan.html`.
  * Used by the `/epic` skill and its agents.
  * - what's data:  `PLAN-DOC.md` beside this;  the elements:  `$/epics/definitions`
- * - Commands:  `new`, `add-phase`, `phase`, `estimate`, `add`, `calm`, `decide`, `close`, `cancel`, `reopen`, `commit`,
- *   `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `docs`, `decisions`, `check`, `open`, `convert`,
- *   `split`, `join`, `inbox`, `details`, `status`, `original`
+ * - Commands:  `new`, `add-phase`, `phase`, `rename`, `estimate`, `add`, `calm`, `decide`, `close`, `cancel`,
+ *   `reopen`, `commit`, `commits`, `log`, `bedtime`, `overnight`, `prompt`, `summary`, `docs`, `decisions`, `check`,
+ *   `open`, `convert`, `split`, `join`, `inbox`, `details`, `status`, `original`
  *   (`spell dev plan-doc` with no command lists them:  `USAGE`).
  * - `docs`, `decisions`:  the docs an epic wrote besides its plan doc, and what its plan doc settled
  *   (`EpicDocs`), for `/docs-check`
@@ -130,9 +130,32 @@ export class PlanDocCommands {
         return this.edit(file, (plan) =>
           plan.addPhaseUpdate(
             Number(need(rest[0], "a phase number")),
-            flags.file ? readFileSync(flags.file as string, "utf8") : need(rest[1], "what changed (html)")
+            flags.file ? readFileSync(flags.file as string, "utf8") : need(rest[1], "what changed (html)"),
+            { summary: typeof flags.summary === "string" ? flags.summary : undefined }
           )
         )
+      case "standing":
+        return this.edit(file, (plan) => {
+          const value = rest[0] ?? "on"
+          if (value !== "on" && value !== "off") throw new PlanDocError(`standing:  on or off, not "${value}"`)
+          plan.setStanding(value === "on")
+        })
+      case "request":
+        return this.edit(file, (plan) =>
+          plan.addPhaseRequest(
+            Number(need(rest[0], "a phase number")),
+            need(rest[1], "a request id"),
+            need(flags.from as string | undefined, "--from (who sent it)"),
+            readFileSync(need(flags.file as string | undefined, "--file (the request as html)"), "utf8")
+          )
+        )
+      case "rename": {
+        const target = need(rest[0], "a phase (P6) or an item id")
+        const title = need(rest[1], "the new title")
+        const renamed = await this.edit(file, (plan) => plan.renameEntry(target, title, { html: !!flags.html }))
+        const links = renamed.links ? `;  ${renamed.links} link${renamed.links === 1 ? "" : "s"} rewritten` : ""
+        return this.print(`${renamed.id.toUpperCase()} · ${renamed.title} (was "${renamed.was}"${links})`)
+      }
       case "estimate":
         return this.edit(file, (plan) => {
           const n = Number(need(rest[0], "a phase number"))
@@ -785,11 +808,22 @@ export const USAGE = `usage:  yarn plan-doc <command> <name> ...    (doc:  epics
                                                    PN, the to-do phases from N on (and links to them) move down
   phase-body <name> <N> [--symptom html] [--changes html] [--goal html] [--files html] [--verify html]
                                                    set (or "" removes) a phase's body fields
-  updated <name> <N> "html" | --file path          a change to phase N's plan, in its fenced Updated block
-                                                   (kept;  listed atop the phases while N is to do)
+  updated <name> <N> "html" | --file path [--summary "..."]
+                                                   a change to phase N's plan:  an <epic-update> block at the
+                                                   end of its description, "Update: <summary>" and the date
+                                                   (summary:  the html's first sentence unless given);  kept;
+                                                   while N isn't done, its folded title says it changed
+  rename <name> <P6 | id> "New title" [--html]     retitle a phase or an item;  links to it that say the old
+                                                   title ("P6 · Old", "Old") say the new one;  logged;
+                                                   --html (last):  the title is HTML (<code> ...)
+  standing <name> [on|off]                         a standing epic:  open for good, each phase merging on its own,
+                                                   never done (epic epic-workflow)
+  request <name> <N> <rN> --from "..." --file path a request sent from another session, into phase N's Requests
+                                                   field (spell epic file writes it;  epic epic-workflow)
   estimate <name> <N> "1-2h"                       set a phase's estimate;  the Overview's total follows
   phase <name> <N> todo|active|done [--done html] [--no-open]
-                                                   set a phase's status;  done drops its UPDATE markers, and
+                                                   set a phase's status;  done drops its UPDATE markers
+                                                   (labels, prose updates;  its plan changes stay), and
                                                    --done writes its Done field (a <ul> of what was built);
                                                    brings the doc forward in VS Code (it updates itself)
   add <name> question|judgement|caveat|issue|todo|test|decision "title" [--details html] [--calm]

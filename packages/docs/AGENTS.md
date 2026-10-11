@@ -27,7 +27,6 @@ The pages live in SHARED root folders;  the tooling lives here (epics `shared-co
 - `tools/`:  the tooling, tracked here and versioned per branch.
   - the scripts (see "Scripts")
   - `_assets/`
-  - the goals tooling, `goals/`
   - Run a script from `packages/docs`, or through its `yarn` script:
 
     ```sh
@@ -134,8 +133,7 @@ In `tools/`:
     - It draws their tables from `<slug>.rows.json`, saves what's typed, and sends "Do it".
     - Then it loads `spell-ui.js` itself:  it's loaded INSTEAD of the bundle, as `commands.js` is.
   - `goals.css`, `goals-live.js`:  goals pages (the repo root's `goals/`, and `templates/goals/`).
-    - their look, and their live buttons (thoughts, Claude sessions)
-      when the page server serves them (goals' route module)
+    - their look, and their live buttons:  PARKED since 2026-10-11, each says "TODO:  this will ..." (`parked()`)
     - `goals.css` holds every rule the goals pages took from `plan-doc.css`, which they no longer link.
   - `commands.js`:  command reference pages ([the commands template](../../templates/commands.html)).
     - It draws their tables from the page's JSON, then loads `spell-ui.js` itself.
@@ -145,7 +143,8 @@ In `tools/`:
       read from the checkout serving the page, so each branch shows its own core.
     - Then it loads `spell-ui.js` itself, as `commands.js` does.
 - The scripts, `*.js` and `*.ts`:  see "Scripts".
-- `goals/`:  the goals tooling ([goals' AGENTS.md](../../goals/AGENTS.md), at the repo root).
+- The goals tooling:  PARKED (epic `epic-workflow` P6), in `packages/goals.zip`;  epic `epic-goals` rebuilds it
+  ([goals' AGENTS.md](../../goals/AGENTS.md), at the repo root).
 
 ## Writing a page
 
@@ -411,7 +410,7 @@ In `tools/`:
   - `index.html`:  the home page, every goal set
   - `set/index.html`:  a set's contents page
   - `set/topic/topic.html` and `topic.md`:  a topic's page, and its agent notes
-  - NEVER copy by hand:  `spell dev goals new-set` / `new` fill the `{{placeholders}}` and fix the asset paths.
+  - Parked with goals:  `spell dev goals new-set` / `new` filled them;  a copy is in `packages/goals.zip`.
   - The rules:  [goals' AGENTS.md](../../goals/AGENTS.md), at the repo root.
 - [spell-ui-docs.html](../../templates/spell-ui-docs.html):  a Spell UI docs page, for the shared `ui/`.
   - Fomantic's docs layout in `<ui-*>` widgets:
@@ -577,6 +576,8 @@ In `tools/`:
 
 - A table of names (or any syntax) Claude recommends, one row per use site.
   - the columns:  File (opens VS Code at the line) | Purpose | Current | Recommended (a box, pre-filled)
+    - The rows' `fileColumn: false` drops File, for rows whose place in the code doesn't matter to the reader
+      (a list of commands;  epic `epic-workflow`, CM4).
   - Owen types over the ones he'd write differently, then "Do it".
   - For a call made name by name, after a rule is picked (P13's boolean names).
   - How-to:  [the syntax-choices guide](../../guides/syntax-choices.html).
@@ -599,6 +600,8 @@ In `tools/`:
   - The BULLHORN beside each major block:
     - a section (in its title), table, aside, code block, message, cards, steps, top-level list
     - a plan doc's items, phase fields, summary and Overview prose
+    - a plan doc's updates (`<epic-update>` blocks;  Owen, 2026-10-11:  "Those items are bullhorn-able"),
+      even inside an item or a field:  each has its own bullhorn
     - the page header:  the whole page
     - Quiet until hovered, ALWAYS:  it only starts a new comment ("Comment on this item").
     - No count, whatever the block has (Owen, 2026-10-10:  "Bullhorn to the far right is unnecessary"):  each comment
@@ -608,6 +611,7 @@ In `tools/`:
       - The toolbar's signals stay as they were.
     - Over a plan doc item's own review pills and Do Now, it moves left of them (`makeRoom()`;  Owen, 2026-10-10:
       "Overlap in bullhorn buttons"), over the end of the item's title, as a text block's does.
+      So it does of an update's date (its `time` part, `MAKES_ROOM`).
       A thread right under a short block (a folded item) it would cover leaves room on its header's right.
     - A click on a comment's highlighted quote opens its thread.
   - Or on SELECTED TEXT:  ⌘ / Ctrl I, or the bullhorn floating beside the selection.
@@ -756,7 +760,8 @@ In `tools/`:
   - One shape for both, and every change:  [`CommentList`](../epics/src/tool/CommentList.ts).
   - ids `cm1`, `cm2` ... (`c1` is a caveat's)
 - Where a comment is:  its ANCHOR ([BlockAnchors.js](tools/BlockAnchors.js), shared by the runtime and the tools).
-  - the block's id, else `<nearest section or plan part id>#<kind>-<n>`:  `memory#table-2`, `p3#field-2`
+  - the block's id, else `<nearest section or plan part id>#<kind>-<n>`:  `memory#table-2`, `p3#field-2`,
+    `p3#update-1` (an item counts as a container for the updates inside it:  `q3#update-1`)
   - plus an excerpt, to find it again if the page changed
   - a text comment also has its `quote` and `offset`
 - The routes:  [commentsRoutes.ts](tools/commentsRoutes.ts)
@@ -956,7 +961,7 @@ In this order, from `packages/docs`:
   - The verbs, and an example:  the header of [agents.ts](tools/agents.ts).
 - `spell dev docs link <page> [--hash <id>] [--text "..."] [--review] [--show]` ([link.ts](tools/link.ts)):
   the markdown links Claude gives for a page.
-  - side bar first (`--review`:  its "Review" tab), then `(_browser_)`
+  - side bar first (`--review`:  its "Review" tab), then `• 🌐`, the browser link (Owen, 2026-10-11)
   - both through [showRoutes.ts](tools/showRoutes.ts) (`GET /api/docs/show`)
 - `spell dev docs fuss <paths...> | --branch [--json]` ([fuss.ts](tools/fuss.ts)):
   the writing checker under `/fussbudget` (epic `skillz`, P7).
@@ -1006,7 +1011,7 @@ In this order, from `packages/docs`:
     - Run it after touching `liveClient.ts`, or the runtime's "Live update".
   - `node packages/epics/demo/check-header-epics.mjs [--doc <name>]... [outDir]`, from the root:
     - the page header, the review line, the Phases section's `open/all` badge (item sections show only their state chips),
-      the state filter and the Plan changes box
+      the state filter, and each phase's title pen and plan changes (`<epic-update>` blocks, no box)
     - at 280 / 900px, light and dark
   - `node packages/epics/demo/check-fold-epics.mjs [--doc <name>] [--item <id>] [--guide <path>] [outDir]`, from the root:
     - A fold never moves what was clicked:  the line or title stays put, within 1px, for 1.5s after the click.

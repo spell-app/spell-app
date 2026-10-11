@@ -99,6 +99,7 @@ export interface EpicField extends E.AttributeValues<typeof epicFieldVocabulary>
 const FIELD_LOOKS = {
   symptom: { icon: "circle exclamation", label: "symptom" },
   changes: { icon: "wand magic sparkles", label: "changes" },
+  requests: { icon: "comment dots", label: "requests" },
   goal: { icon: "bullseye", label: "goal" },
   done: { icon: "circle check", label: "done" },
   files: { icon: "folder", label: "files" },

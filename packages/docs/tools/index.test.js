@@ -164,6 +164,7 @@ describe("planOf():  a plan doc's card data (epic-components P8)", () => {
     ],
     updated: "2026-10-06",
     future: false,
+    standing: false,
     urgent: ["q1", "i1"]
   }
 

@@ -141,12 +141,13 @@ export const COMMITS_PROPERTY = "--epic-commits-display"
 /**
  * Where Owen's answer on an item stands, as its id chip wears it (`EpicItem.chipMark`):
  * a colour and a fill, dashed or outlined;  none, and the chip is solid in its state's colour.
- * - his live mark (Owen, 2026-10-08:  the chip matches the chosen button):  that button's colour and fill
- *   - the note box's x (`skip`), which no line button wears:  grey
+ * - his live mark:  NO colour, so the chip keeps its state's (Owen, 2026-10-11, J3 of `epic-workflow`:  the counts must
+ *   match the chips;  2026-10-08 it wore the chosen button's colour), and the mark's fill
  * - answered, work still due (Owen, 2026-10-10):  outlined, green queued, blue Claude on it
  */
 export type ChipMark = {
-  color: ReviewColor
+  /** work Claude still owes:  green queued or a taken pick, blue on it;  none for Owen's own mark (its state's colour) */
+  color?: ReviewColor
   fill: Exclude<ReviewFill, "none">
   /**
    * the chosen button's name (`approve`;  the note box's x, `boxSkip`), or a pick's letter, for the tooltip;

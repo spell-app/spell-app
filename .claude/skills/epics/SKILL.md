@@ -55,11 +55,11 @@ Owen runs several epics at once:  one screen saying where each stands.
    - `unreadable`:  `summaries` gave an `error` (`all` only, unless it's in a worktree)
 4. Links:  each listed epic's plan doc, `spell dev docs link <file> --text "<name>"`.
    - One Bash call for all of them, one line each;  no `--show`.
-   - It gives the side bar link, and the `(_browser_)` link.
+   - It gives the side bar link, and the `🌐` (browser) link after it:  `Title • 🌐`.
 5. Reply:
    - one line:  "<n> open epics" (`all`:  "<n> epics, <m> open")
    - a markdown table, open first, in `list`'s order:
-     - **epic**:  the side bar link, then `(_browser_)`, as `docs:link` printed them
+     - **epic**:  the side bar link, then `• 🌐` (browser), as `docs:link` printed them
      - **state**:  step 3's
      - **phase**:  `P3 · Name` active, or `next P3 · Name`, with `2/5`;  "planning" when there are no phases
      - **where**:  worktree / branch `<name>`, or `main`;  commits not in `main`, uncommitted files

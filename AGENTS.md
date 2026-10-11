@@ -268,8 +268,8 @@ ui -> util
     - More:  [ui's AGENTS.md](packages/ui/AGENTS.md), `site/`.
   - `brand/` -- the Brand tab's pages ([brand's AGENTS.md](packages/brand/AGENTS.md)):
     Claude Design's exports and their Spell UI copies
-  - `goals/` -- the goal sets.
-    Their tooling is tracked, in [docs' goals tools](packages/docs/tools/goals/).
+  - `goals/` -- the goal sets, PARKED since 2026-10-11 (epic `epic-workflow` P6):  read only, buttons saying TODO.
+    Their tooling is in `packages/goals.zip`;  epic `epic-goals` rebuilds it ([the goals guide](guides/goals/goals.html)).
   - `agents/` -- one copy of the rules for every branch:
     - the three logs:
       [PAPERCUTS.md](agents/PAPERCUTS.md), [SUSPECTED-BUGS.md](agents/SUSPECTED-BUGS.md),

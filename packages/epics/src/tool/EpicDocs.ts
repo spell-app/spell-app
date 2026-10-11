@@ -224,7 +224,8 @@ export class EpicDocs {
         name,
         status,
         done: done ? PlanMarkup.squeeze(done.textContent ?? "") : null,
-        updates: Array.from(phase.querySelectorAll(":scope > epic-updated"), (update) => ({
+        // its plan changes:  `<epic-update>` blocks (an older doc's `<epic-updated>` lines, until migrated)
+        updates: Array.from(phase.querySelectorAll(":scope > epic-update[at], :scope > epic-updated"), (update) => ({
           at: update.getAttribute("at") ?? "",
           text: PlanMarkup.squeeze(update.textContent ?? "")
         }))

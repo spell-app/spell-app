@@ -3,7 +3,7 @@
  * - `consoleGuard` comes FIRST, and everything else only after it, via dynamic `import()`:
  *   modules log as they load, e.g. `environment.ts`.
  * - Each command is `CLI.<name>Command(session, args, options)`, resolving to the exit code.
- * - `spell dev ...` (and the deprecated `spell plan-doc` / `spell goals`) start in the lean `devMain.ts` instead,
+ * - `spell dev ...` (and the deprecated `spell plan-doc`) start in the lean `devMain.ts` instead,
  *   which loads no spell;  its commands that need spell come back here.
  *   Their tree:  `devProgram.ts`.
  */
@@ -212,6 +212,24 @@ program
   .argument("[words...]", "what the pony says")
   .action((words: string[], _options, command) => run(CLI.ponyCommand, words, command.optsWithGlobals()))
 
+program
+  .command("epic")
+  .description(
+    "epics from any session:  send one a request (words, screenshots), list or file its requests, the tooling home, " +
+      "merge a standing epic's phase"
+  )
+  .argument("[verb]", "send | requests | file | home | merge")
+  .argument("[args...]", 'the epic, then the verb\'s arguments, e.g. send epic-workflow --text "..." --images 1')
+  .option("--text <words>", "send:  Owen's words, verbatim")
+  .option("--file <file>", "send:  Owen's words, from a file (quotes and all)")
+  .option("--images <count>", "send:  keep the newest <count> screenshots pasted into this session")
+  .option("--context <words>", "send:  what this session was looking at:  a page, a file, an item id")
+  .option("--from <session>", "send:  the sending session's id (default:  this one, CLAUDE_CODE_SESSION_ID)")
+  .option("--json", "print the result as JSON")
+  .action((verb: string | undefined, args: string[], _options, command) =>
+    run(CLI.epicCommand, verb ? [verb, ...args] : [], command.optsWithGlobals())
+  )
+
 // our own `help`, not commander's:  an unknown command is a mistake, not a reason to print the general help
 program.helpCommand(false)
 program
@@ -226,14 +244,6 @@ program
     }
     command.outputHelp()
   })
-
-program
-  .command("goals")
-  .description("deprecated:  spell dev goals")
-  .argument("[args...]", "a goals command and its arguments, e.g. update spell/motivation")
-  .allowUnknownOption()
-  .helpOption(false)
-  .action(() => runLean(CLI.goalsCommand, rawArgs("goals")))
 
 program
   .command("plan-doc")

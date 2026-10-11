@@ -10,8 +10,6 @@ export default defineConfig({
   resolve: { tsconfigPaths: true },
   test: {
     include: ["tools/**/*.test.{js,ts}"],
-    // the goals tools test with `node --test` (`yarn goals:test`), not vitest
-    exclude: ["tools/goals/**"],
     environment: "node"
   }
 })
