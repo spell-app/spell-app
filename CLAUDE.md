@@ -20,6 +20,15 @@ Delegated work (epic `skillz`, Owen, 2026-10-07):  every agent you start is NAME
 - Plan-doc work (filling, updating, marking a phase done) goes to a background agent, as if Owen had typed `/bg
   "plan-doc" ...`:  the panel stays free.
 
+Tooling requests (epic `epic-workflow`, Owen, 2026-10-11):  when Owen asks for a change to how he WORKS, not to what
+this session builds, SEND it, don't do it:  `/send` (`.claude/skills/send/`) writes it into the tooling home's epic
+(`spell epic home`) and wakes that epic's session;  reply one line, "sent to `<home>` as r3", and carry on.
+- How he works:  the plan doc page, its comments and marks, the Review tab, details pages, every skill and hook,
+  windows, worktrees, the page server, `spell dev` / `spell epic`.  "Comment mechanism doesn't look right", a
+  screenshot of the Review tab, "fix this in the plan doc" about how the doc draws.
+- NOT this session's own epic's content ("fix P4's file list"):  that's its job.  Unsure:  ask in the modal.
+- The tooling home's own session (`🚧 <home>`) does tooling work itself.
+
 When a summary closes out the session's work (merged, worktree gone, `/isolate done`, a `/bedtime` night reviewed ...), end it with a line of its own, `*You can close this tab*`, if nothing is left for THIS session:  no uncommitted or unmerged work, no background task or agent still running, no question waiting on Owen.  Open items may remain only if they're recorded elsewhere (plan doc, `agents/CODE-DEBT.md` ...) and need no context from this session.  Otherwise leave the line out, and say what's keeping the tab open.
 - With the closing line, ALSO ask (AskUserQuestion) whether to run `/isolate done` when this session's worktree is
   still there (or the worktrees it made and left:  `/isolate done`'s step 0 cleans those up):  options "Run

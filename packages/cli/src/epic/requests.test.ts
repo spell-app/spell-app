@@ -120,6 +120,15 @@ describe("epicRequests() and fileRequest()", () => {
   })
 })
 
+describe("epicHome() and setEpicHome()", () => {
+  test("none until set;  only an epic with a plan doc", () => {
+    expect(CLI.epicHome(ROOT)).toBeNull()
+    expect(() => CLI.setEpicHome(ROOT, "nope")).toThrow(/no epic 'nope'/)
+    CLI.setEpicHome(ROOT, "tooling")
+    expect(CLI.epicHome(ROOT)).toBe("tooling")
+  })
+})
+
 describe("nextRequestId()", () => {
   test("r1 for a missing folder", () => {
     expect(CLI.nextRequestId(join(ROOT, "missing"))).toBe("r1")
