@@ -32,6 +32,13 @@
 .spell-choices-table th:nth-child(3) {
   width: 27%;
 }
+/* no File column (the data's `fileColumn: false`):  Purpose, a sentence, takes its room */
+.spell-choices-no-file th:nth-child(1) {
+  width: 38%;
+}
+.spell-choices-no-file th:nth-child(2) {
+  width: 30%;
+}
 .spell-choices-table :is(td, th) {
   vertical-align: top;
   overflow-wrap: anywhere;
@@ -50,7 +57,7 @@
   color: var(--spell-muted);
 }
 
-/* Purpose:  1-3 words, the "stays" tag, the note in small print */
+/* Purpose:  a few words or a short sentence, the "stays" tag, the note in small print */
 .spell-choice-note {
   margin-top: 2px;
   font-size: 0.8em;
