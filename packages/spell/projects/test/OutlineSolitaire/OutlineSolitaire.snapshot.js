@@ -108,7 +108,7 @@ export class Card extends Thing {
     return `${this.rank}-of-${this.suit}`
   }
 
-  get shortSuit() {
+  get icon() {
     if (this.isASuit("clubs")) return "♣️"
     if (this.isASuit("diamonds")) return "♦️"
     if (this.isASuit("hearts")) return "♥️"
@@ -128,11 +128,11 @@ export class Card extends Thing {
   }
 
   get shortName() {
-    return this.shortRank + this.shortSuit
+    return this.shortRank + this.icon
   }
 
   get state() {
-    return this.shortRank + this.shortSuit + this.shortDirection
+    return this.shortRank + this.icon + this.shortDirection
   }
 
   /** drawing */
@@ -142,7 +142,7 @@ export class Card extends Thing {
       onClick: () => trigger("card-click", { card: this })
     },
       () => `${this.shortRank} `,
-      h("span", { class: "suit" }, () => this.shortSuit)
+      h("span", { class: "suit" }, () => this.icon)
     )
   }
 
@@ -233,7 +233,7 @@ export function testCardSetup() {
     spellCore.expect(card.name, `the name of the card`, "queen-of-spades", `"queen-of-spades"`)
     spellCore.expect(card.color, `the color of the card`, "black", `black`)
     spellCore.expect(card.value, `the value of the card`, 12, `12`)
-    spellCore.expect(card.shortSuit, `the short suit of the card`, "♠️", `"♠️"`)
+    spellCore.expect(card.icon, `the icon of the card`, "♠️", `"♠️"`)
     spellCore.expect(card.shortRank, `the short rank of the card`, "Q", `"Q"`)
     spellCore.expect(card.shortName, `the short name of the card`, "Q♠️", `"Q♠️"`)
 
