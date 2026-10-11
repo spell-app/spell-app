@@ -2,7 +2,7 @@ import { proto } from "$/util"
 import { P } from "$/parser"
 import { SP } from "$/spell"
 import { JSX } from "./JSX.parser"
-import type { JSXMatchData } from "./JSX.shared"
+import { SPELL_TAG_NAMES, type JSXMatchData } from "./JSX.shared"
 import { SpellJSXContent } from "./SpellJSXContent"
 
 /**
@@ -16,6 +16,10 @@ import { SpellJSXContent } from "./SpellJSXContent"
  *     `className` => `class`, `colSpan` => `colspan`.
  *   - On a `ui-*` tag, a value that can change is a property, `prop:value`.
  * - A dotted tag, `<UI.Form>`, is an error:  `P.ASTJSXElement.tagError()`.
+ * - Spell's own words become the web's as the AST is built, so both writers write the web's:
+ *   - `<children/>` => `h("slot")`, `<children name="header"/>` => `h("slot", { name: "header" })`
+ *   - `<h3 in="header">` => `h("h3", { slot: "header" })`, in `SpellJSXAttribute`
+ *   - see `SPELL_TAG_NAMES`, `SPELL_ATTRIBUTE_NAMES`
  * - NOTE: rule name is `jsxElement`, kept distinct from class name `SpellJSX` (pre-existing convention).
  */
 export class SpellJSX extends P.TokenType<never, JSXMatchData> {
@@ -41,9 +45,13 @@ export class SpellJSX extends P.TokenType<never, JSXMatchData> {
     return match
   }
 
-  /** Build `P.ASTJSXElement`; drops falsy child ASTs (e.g. blank `jsxText`) via `.filter(Boolean)`. */
+  /**
+   * Build `P.ASTJSXElement`; drops falsy child ASTs (e.g. blank `jsxText`) via `.filter(Boolean)`.
+   * - Spell's own tag words as the web's:  `<children/>` => `<slot/>` (`SPELL_TAG_NAMES`).
+   */
   getAST(match: P.MatchFor<this>) {
-    const { tagName } = match.matched[0] as P.JSXElementToken
+    const { tagName: written } = match.matched[0] as P.JSXElementToken
+    const tagName = SPELL_TAG_NAMES.get(written) ?? written
     const attrs = match.data.attributes?.map((attr) => P.asAST<P.ASTJSXAttribute>(attr?.AST))
     const children =
       match.data.children
@@ -195,6 +203,39 @@ JSX.addRule(SpellJSX, {
           `<UI.Form/>`,
           "null /* PARSE ERROR: <UI.Form> isn't an element:  write Spell UI's own tag, e.g. <ui-form> */",
           "<UI.Form />"
+        ]
+      ]
+    },
+    {
+      title: "Spell's words for the web's slots:  <children/> and in=",
+      compileAs: "expression",
+      beforeEach(scope: P.Scope) {
+        scope.variables?.add("card")
+      },
+      tests: [
+        // where a drawable list's items show
+        [`<children/>`, 'h("slot")', "<slot />"],
+        // a named place
+        [`<children name="header"/>`, 'h("slot", { name: "header" })', '<slot name="header" />'],
+        // with what shows while it's empty
+        [
+          `<children name="header">Pile</children>`,
+          'h("slot", { name: "header" }, "Pile")',
+          '<slot name="header">Pile</slot>'
+        ],
+        // the web's own word keeps working
+        [`<slot/>`, 'h("slot")', "<slot />"],
+        [`<slot name="header"/>`, 'h("slot", { name: "header" })', '<slot name="header" />'],
+        // a child says which named place it goes in
+        [`<h3 in="header">Pile 1</h3>`, 'h("h3", { slot: "header" }, "Pile 1")', '<h3 slot="header">Pile 1</h3>'],
+        [`<h3 slot="header">Pile 1</h3>`, 'h("h3", { slot: "header" }, "Pile 1")', '<h3 slot="header">Pile 1</h3>'],
+        // on a custom tag, `slot` stays an attribute, even with a value that can change
+        [`<game-card in={the card}/>`, 'h("game-card", { slot: () => card })', "<game-card slot={card} />"],
+        // a frame with both
+        [
+          `<div className="pile"><children name="header"/><children/></div>`,
+          ['h("div", { class: "pile" },', '  h("slot", { name: "header" }),', '  h("slot")', ")"],
+          ['<div class="pile">', '  <slot name="header" />', "  <slot />", "</div>"]
         ]
       ]
     },
