@@ -126,6 +126,35 @@ function tagWords(name: string): string {
 }
 
 /**
+ * A drawable type's style sheet, as TEXT:  what its `<css>` block compiles to (epic `drawable-thing`, P10, J14).
+ *
+ * ```ts
+ * export class Card extends Drawable {
+ *   static css = css`
+ *     :host { display: inline-block }
+ *     .red { color: crimson }
+ *   `
+ * }
+ * Card.css   // ":host { display: inline-block }\n.red { color: crimson }"
+ * ```
+ *
+ * - Takes off the indent its lines share, and the blank first and last lines:
+ *   so the compiled file can indent the sheet inside its class, and the sheet is still exactly as written.
+ * - Reads the template's RAW text, so CSS's own escapes stay as written, e.g. `content: "\201C"`.
+ * - Text, not a `CSSStyleSheet`:  what reads a type's CSS takes text (app's `SpellElement.cssOf()`),
+ *   and it works with no browser, e.g. in tests.
+ * - Its name lets an editor colour the template as CSS, as Lit's `css` does:  spell's VS Code extension does.
+ */
+export function css(strings: TemplateStringsArray, ...values: unknown[]): string {
+  const lines = String.raw({ raw: strings.raw }, ...values).split("\n")
+  if (lines.length > 1 && !lines[0]!.trim()) lines.shift()
+  if (lines.length > 1 && !lines.at(-1)!.trim()) lines.pop()
+  const indents = lines.filter((line) => line.trim()).map((line) => /^[ \t]*/.exec(line)![0].length)
+  const indent = indents.length ? Math.min(...indents) : 0
+  return lines.map((line) => line.slice(indent)).join("\n")
+}
+
+/**
  * What a drawable class shows on the outside of its element -- see `spellCore.elementApiOf()`.
  */
 export type ElementApi = {

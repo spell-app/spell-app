@@ -1,4 +1,4 @@
-import { spellCore, Thing, List, App, Drawable, DrawableList, h, positionOf, trigger, on } from "@spell/core"
+import { spellCore, Thing, List, App, Drawable, DrawableList, h, css, positionOf, trigger, on } from "@spell/core"
 
 spellCore.heading("definition of a Card with nice english aliases for working with it")
 ////////////////////////////////////////////////////////////////////////
@@ -8,37 +8,39 @@ spellCore.heading("definition of a Card with nice english aliases for working wi
 export class Card extends Drawable {
   static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
 
-  static css = `:host {
-  	display: block;
-  	position: relative;
-  }
-  .card {
-  	box-sizing: border-box;
-  	height: 30px;
-  	padding: 0.2em 0.4em;
-  	border: 1px solid #b0b0b0;
-  	border-radius: 4px;
-  	background: white;
-  	font-weight: bold;
-  	text-align: center;
-  	cursor: pointer;
-  	user-select: none;
-  }
-  .card.red {
-  	color: crimson;
-  }
-  .card.black {
-  	color: #222;
-  }
-  .card.face-down {
-  	background: repeating-linear-gradient(45deg, #3a6, #3a6 4px, #285 4px, #285 8px);
-  }
-  .suit {
-  	position: relative;
-  	font-size: 1.2rem;
-  	vertical-align: top;
-  	top: -0.1rem;
-  }`
+  static css = css`
+    :host {
+    	display: block;
+    	position: relative;
+    }
+    .card {
+    	box-sizing: border-box;
+    	height: 30px;
+    	padding: 0.2em 0.4em;
+    	border: 1px solid #b0b0b0;
+    	border-radius: 4px;
+    	background: white;
+    	font-weight: bold;
+    	text-align: center;
+    	cursor: pointer;
+    	user-select: none;
+    }
+    .card.red {
+    	color: crimson;
+    }
+    .card.black {
+    	color: #222;
+    }
+    .card.face-down {
+    	background: repeating-linear-gradient(45deg, #3a6, #3a6 4px, #285 4px, #285 8px);
+    }
+    .suit {
+    	position: relative;
+    	font-size: 1.2rem;
+    	vertical-align: top;
+    	top: -0.1rem;
+    }
+  `
 
   /////////////////////////
   // ## properties of cards
@@ -313,37 +315,39 @@ export class Pile extends DrawableList {
   static instanceType = Card
   static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
 
-  static css = `:host {
-  	display: block;
-  	position: relative;
-  	min-height: 30px;
-  }
-  .pile {
-  	position: relative;
-  	min-height: 30px;
-  }
-  /* its cards, stacked:  the last on top */
-  ::slotted(*) {
-  	position: absolute;
-  	left: 0;
-  	top: 0;
-  	width: 100%;
-  }
-  .placeholder {
-  	box-sizing: border-box;
-  	height: 30px;
-  	border: 1px dashed #b0b0b0;
-  	border-radius: 4px;
-  	text-align: center;
-  	cursor: pointer;
-  }
-  .placeholder.red {
-  	color: crimson;
-  }
-  .placeholder .suit {
-  	font-size: 1.4rem;
-  	line-height: 28px;
-  }`
+  static css = css`
+    :host {
+    	display: block;
+    	position: relative;
+    	min-height: 30px;
+    }
+    .pile {
+    	position: relative;
+    	min-height: 30px;
+    }
+    /* its cards, stacked:  the last on top */
+    ::slotted(*) {
+    	position: absolute;
+    	left: 0;
+    	top: 0;
+    	width: 100%;
+    }
+    .placeholder {
+    	box-sizing: border-box;
+    	height: 30px;
+    	border: 1px dashed #b0b0b0;
+    	border-radius: 4px;
+    	text-align: center;
+    	cursor: pointer;
+    }
+    .placeholder.red {
+    	color: crimson;
+    }
+    .placeholder .suit {
+    	font-size: 1.4rem;
+    	line-height: 28px;
+    }
+  `
 
   static { this.declareProp("name", { type: "text" }) }
   get name() { return this.getProp("name") }
@@ -530,14 +534,16 @@ foundations.forEach((pile) => allPiles.append(pile))
 export class Tableau extends Pile {
   static elementTag = spellCore.defineElement(this, "Drawable Solitaire")
 
-  static css = `:host {
-  	min-height: 500px;
-  }
-  /* its cards, one below the other */
-  ::slotted(*) {
-  	position: relative;
-  	margin-bottom: 8px;
-  }`
+  static css = css`
+    :host {
+    	min-height: 500px;
+    }
+    /* its cards, one below the other */
+    ::slotted(*) {
+    	position: relative;
+    	margin-bottom: 8px;
+    }
+  `
 
   canGiveUp(card) {
     return card.isFaceUp

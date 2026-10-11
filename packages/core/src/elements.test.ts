@@ -1,6 +1,6 @@
 import { describe, test, expect, afterEach } from "vite-plus/test"
 
-import { spellCore, Thing, Drawable, DrawableList, elementTagFor } from "$/core"
+import { spellCore, Thing, Drawable, DrawableList, css, elementTagFor } from "$/core"
 
 /** A drawable class's element:  its tag, named here, defined by the page's `elementDefiner`. */
 describe("drawable things' elements", () => {
@@ -70,4 +70,44 @@ describe("elementApiOf():  what a drawable class shows on its element", () => {
       methods: ["wink", "turn_over"]
     })
   })
+})
+
+/** The tag a drawable type's `<css>` block compiles to:  `static css = css`...``. */
+describe("css`...`", () => {
+  test("hands back the sheet as text, the indent its lines share taken off", () => {
+    class Card extends Drawable {
+      static css = css`
+        :host {
+          display: inline-block;
+        }
+        .red {
+          color: crimson;
+        }
+      `
+    }
+    expect(Card.css).toBe(":host {\n  display: inline-block;\n}\n.red {\n  color: crimson;\n}")
+  })
+
+  test("keeps CSS's own escapes, and a blank line inside, as written", () => {
+    expect(css`
+      q::before {
+        content: "\201C";
+      }
+
+      q::after {
+        content: "\201D";
+      }
+    `).toBe('q::before {\n  content: "\\201C";\n}\n\nq::after {\n  content: "\\201D";\n}')
+  })
+
+  test("one line, or nothing:  as is", () => {
+    expect(tagged(".red { color: crimson }")).toBe(".red { color: crimson }")
+    expect(tagged("  .red { color: crimson }  ")).toBe(".red { color: crimson }  ")
+    expect(tagged("")).toBe("")
+  })
+
+  /** `css` given `text` as its template, as written:  the formatter lays out a real `css` template's CSS. */
+  function tagged(text: string): string {
+    return css(Object.assign([text], { raw: [text] }))
+  }
 })
