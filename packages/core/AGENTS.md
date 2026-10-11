@@ -23,11 +23,14 @@ Only what's local is below;  a section named like a WWOD rule extends it.
 - [spellCore.declarations.json](spellCore.declarations.json) is GENERATED too:
   the core's method list, what another target's core must have (Python's, in `packages/py/core`).
   - Read from the running core by [`coreDeclarations()`](src/coreDeclarations.ts).
+  - Each name's `section` and `description` come from its docstring's lead, in the module's source:
+    what the core reference page shows (`guides/targets/core-reference.html`, epic `python-target` P29).
+    A name with no docstring fails `coreDeclarations.test.ts`.
   - Written by `yarn gen:declarations` ([writeCoreDeclarations.ts](src/writeCoreDeclarations.ts)).
   - [coreDeclarations.test.ts](src/coreDeclarations.test.ts) fails until you run it,
     after adding, renaming or removing anything on `spellCore`.
   - Python's [test_core_declarations.py](../py/core/tests/test_core_declarations.py) checks `spell_core` against it:
-    a new name fails there too, until it's ported or listed as not ported yet.
+    a new name fails there too, until it's ported or listed in py's `core/not_ported_yet.json`.
 - Random numbers come from the core's own generator, [`ParkMiller`](src/ParkMiller.ts), NEVER `Math.random()`:
   - `spellCore.seedRandom(n)` makes everything random after it repeat;  unseeded, each run differs.
   - `spellCore.shuffled()` is lodash's shuffle, step for step.

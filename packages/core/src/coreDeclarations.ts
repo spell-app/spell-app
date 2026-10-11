@@ -8,12 +8,17 @@
  *   see `SP.SpellDeclarationsData`, with one key more, `module`:  the core's file that has it.
  * - Read from the core itself, as it runs:  each module's methods object, so nothing is listed by hand.
  *   - Parameters by name, from each function's own source:  `getItemAt(collection, position, startAt)`.
+ *   - Its section and description, from the module's source file (`docsIn()`):  what the core reference page shows
+ *     (`guides/targets/core-reference.html`, epic `python-target` P29).
  * - Left out:
  *   - `deprecated.ts`:  old names, for programs compiled before they changed.  A new core has none.
  *   - members starting with `_`, e.g. `_randomKeyOf()`:  the core's own helpers, which compiled code never calls.
  *   - the decorators only compiled TypeScript imports (`prop`, `derived`, `drawn` ...).
  * - Imports the barrel and each module's methods:  NOT in the barrel itself, so no runtime bundle carries it.
  */
+import { readFileSync } from "fs"
+import { resolve } from "path"
+
 import { App, Drawable, DrawableList, h, List, off, on, once, positionOf, spellCore, Thing, trigger } from "$/core"
 import { coreMethods } from "./core"
 import { collectionCoreMethods } from "./collection-core"
@@ -91,7 +96,7 @@ export function coreDeclarations(): CoreDeclarationsData {
   for (const [name, { value, module }] of Object.entries(CORE_EXPORTS)) {
     statements.push(exportDeclaration(name, value, module))
   }
-  return { provides: [SPELL_CORE, ...Object.keys(CORE_EXPORTS)], statements }
+  return { provides: [SPELL_CORE, ...Object.keys(CORE_EXPORTS)], statements: statements.map(withDocs) }
 }
 
 /**
@@ -182,6 +187,82 @@ function paramName(source: string): string {
 /** What a destructured parameter is called, having no name of its own. */
 const DESTRUCTURED_PARAM = "options"
 
+/** `declaration`, with the section and description its module's source gives its name -- when it has them. */
+function withDocs(declaration: CoreDeclaration): CoreDeclaration {
+  const name = declaration.name ?? declaration.property ?? declaration.type ?? ""
+  const docs = docsIn(declaration.module).get(name)
+  return docs ? { ...declaration, ...docs } : declaration
+}
+
+/** Each module's docs, by name, read once. */
+const MODULE_DOCS = new Map<string, Map<string, MemberDocs>>()
+
+/**
+ * The docs of each name `module`'s source declares, from its file under `src/`:
+ * - `description`:  its docstring's lead, up to its first bullet, on one line
+ * - `section`:  the `// ## Heading` it's under, e.g. `Events -- the running program's, on RUNTIME`
+ * - A name declared twice (an overload, an interface's member, a getter and its setter) keeps its first docstring
+ *   under a heading, else its first:  `spellCore.addAtPosition()`'s, not the custom collection interface's above it.
+ * - Its file:  `src/<module>.ts`, or a folder's `src/<module>/index.ts` (`classes`);  none, no docs.
+ */
+export function docsIn(module: string): Map<string, MemberDocs> {
+  let docs = MODULE_DOCS.get(module)
+  if (docs) return docs
+  docs = new Map()
+  MODULE_DOCS.set(module, docs)
+  const source = sourceOf(`${module}.ts`) ?? sourceOf(`${module}/index.ts`)
+  if (source === undefined) return docs
+  // last first, so the first before a name is the one it's under
+  const sections = [...source.matchAll(SECTION_HEADING)]
+    .map((match) => ({ at: match.index ?? 0, title: match[1]!.trim() }))
+    .reverse()
+  for (const match of source.matchAll(DOCUMENTED_NAME)) {
+    const name = match[2]!
+    const section = sections.find(({ at }) => at < (match.index ?? 0))?.title.replaceAll("`", "")
+    const kept = docs.get(name)
+    if (kept && (kept.section || !section)) continue
+    const description = leadOf(match[1]!)
+    docs.set(name, { ...(section && { section }), ...(description && { description }) })
+  }
+  return docs
+}
+
+/** The text of `file`, under `src/`:  `undefined` if there's none. */
+function sourceOf(file: string): string | undefined {
+  try {
+    return readFileSync(resolve(import.meta.dirname, file), "utf8")
+  } catch {
+    return undefined
+  }
+}
+
+/** A docstring's lead:  its lines up to the first bullet, blank line, `@tag` or code fence, joined into one. */
+function leadOf(docstring: string): string {
+  const lines = docstring.split("\n").map((line) => line.replace(/^\s*\*? ?/, "").trimEnd())
+  const lead: string[] = []
+  for (const line of lines) {
+    if (/^\s*(?:-|@|```|$)/.test(line)) {
+      if (lead.length) break
+      continue
+    }
+    lead.push(line.trim())
+  }
+  return lead.join(" ")
+}
+
+/**
+ * A docstring and the name it documents:  a member (`getItemAt(`, `console:`, `get console()`), a function, a class,
+ * a constant or a re-export (`export { h }`), past any decorators.
+ */
+const DOCUMENTED_NAME =
+  /\/\*\*((?:(?!\*\/)[\s\S])*)\*\/\s*(?:@\w+(?:\([^)]*\))?\s*)*(?:export\s+)?(?:\{\s*)?(?:default\s+)?(?:abstract\s+)?(?:async\s+)?(?:static\s+)?(?:get\s+|set\s+)?(?:function\*?\s+|class\s+|const\s+|let\s+)?(\w+)/g
+
+/** A section heading in a module:  `// ## Events`. */
+const SECTION_HEADING = /^\s*\/\/ ## (.+)$/gm
+
+/** What a name's docs add to its declaration. */
+export type MemberDocs = { section?: string; description?: string }
+
 /** Any function or class, whose source we read. */
 type AnyFunction = (...args: never[]) => unknown
 
@@ -220,4 +301,8 @@ export type CoreDeclaration = {
   params?: Array<{ name: string }>
   /** the core's file it's in, under `src/` without `.ts`, e.g. `collection-core` */
   module: string
+  /** the `// ## Heading` it's under in that file, e.g. `Events -- the running program's, on RUNTIME` */
+  section?: string
+  /** its docstring's lead, on one line */
+  description?: string
 }

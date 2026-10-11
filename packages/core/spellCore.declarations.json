@@ -18,13 +18,15 @@
       "kind": "method",
       "name": "doNothing",
       "of": "spellCore",
-      "module": "core"
+      "module": "core",
+      "description": "Do nothing -- use this as a placeholder, e.g. in an `if` branch."
     },
     {
       "kind": "method",
       "name": "flush",
       "of": "spellCore",
-      "module": "core"
+      "module": "core",
+      "description": "Settle everything that follows spell state NOW:  pending derived checks, then the host's Solid."
     },
     {
       "kind": "method",
@@ -41,7 +43,9 @@
         {
           "name": "check"
         }
-      ]
+      ],
+      "section": "Meta-programming",
+      "description": "Warn if `value` fails `check` for `property`."
     },
     {
       "kind": "method",
@@ -52,7 +56,9 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "Meta-programming",
+      "description": "Create an new, \"empty\" instance of `thing.constructor`."
     },
     {
       "kind": "method",
@@ -63,12 +69,16 @@
         {
           "name": "constructor"
         }
-      ]
+      ],
+      "section": "Meta-programming",
+      "description": "New SCRATCH `constructor`, e.g. `map()`'s result, or `a copy of the pile as a pile`:"
     },
     {
       "property": "TYPE_NAME_CONVERSIONS",
       "of": "spellCore",
-      "module": "core"
+      "module": "core",
+      "section": "types",
+      "description": "Maps a JS `typeof`/constructor-name result to the `spell`-facing type name shown to users."
     },
     {
       "kind": "method",
@@ -79,12 +89,16 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "types",
+      "description": "Return string \"type\" of `thing`, as shown to `spell` users:"
     },
     {
       "property": "IS_OF_TYPE_SPECIALS",
       "of": "spellCore",
-      "module": "core"
+      "module": "core",
+      "section": "types",
+      "description": "Special methods for `isOfType()`, for type names `typeOf()` never actually returns (`integer`, `character`, `char`) -- checked instead of a plain `=== typeOf(thing)` comparison."
     },
     {
       "kind": "method",
@@ -95,7 +109,9 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "types",
+      "description": "Types `thing` is, most specific first:  its `typeOf()`, then each super-class's."
     },
     {
       "kind": "method",
@@ -109,7 +125,9 @@
         {
           "name": "type"
         }
-      ]
+      ],
+      "section": "types",
+      "description": "Is `thing` an instance of string `type`, or of a sub-type of it -- as per `spellCore.typesOf()`?"
     },
     {
       "kind": "method",
@@ -123,7 +141,9 @@
         {
           "name": "otherThing"
         }
-      ]
+      ],
+      "section": "types",
+      "description": "Is `thing` of `otherThing`'s type -- the same type, or a sub-type of it?"
     },
     {
       "kind": "method",
@@ -134,7 +154,9 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "types",
+      "description": "Is `thing` a valid number (doesn't include NaN)."
     },
     {
       "kind": "method",
@@ -145,7 +167,9 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "types",
+      "description": "Is `thing` a valid integer (doesn't include NaN). NOTE: treats `0` as an integer as well. ???"
     },
     {
       "kind": "method",
@@ -156,7 +180,9 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "types",
+      "description": "Is `thing` an array-like thing (`Array`, `arguments`, or anything with a numeric `length`)?"
     },
     {
       "kind": "method",
@@ -167,7 +193,9 @@
         {
           "name": "value"
         }
-      ]
+      ],
+      "section": "types",
+      "description": "Assert that `value` is not `false`, `null` or `undefined`. NOTE: explicitly does NOT include `0` -- unlike plain JS truthiness, `0` counts as truthy here."
     },
     {
       "kind": "method",
@@ -178,7 +206,9 @@
         {
           "name": "value"
         }
-      ]
+      ],
+      "section": "types",
+      "description": "Return `true` if `value` is defined (e.g. not `undefined`)."
     },
     {
       "kind": "method",
@@ -192,7 +222,9 @@
         {
           "name": "path"
         }
-      ]
+      ],
+      "section": "get/set access for paths",
+      "description": "Get `path` off `thing`. TODO: unimplemented stub -- always returns `undefined`, no caller wires this up yet."
     },
     {
       "kind": "method",
@@ -209,7 +241,9 @@
         {
           "name": "value"
         }
-      ]
+      ],
+      "section": "get/set access for paths",
+      "description": "Set `path` on `thing` to `value`. TODO: unimplemented stub -- currently a no-op, no caller wires this up yet."
     },
     {
       "kind": "method",
@@ -223,7 +257,9 @@
         {
           "name": "otherThing"
         }
-      ]
+      ],
+      "section": "operators",
+      "description": "Does `thing` conceptually equal `otherThing`?  Uses lodash `isEqual` semantics (deep, structural)."
     },
     {
       "kind": "method",
@@ -234,7 +270,9 @@
         {
           "name": "number"
         }
-      ]
+      ],
+      "section": "math",
+      "description": "`number` without its sign:  `-3` => `3`."
     },
     {
       "kind": "method",
@@ -245,13 +283,17 @@
         {
           "name": "seed"
         }
-      ]
+      ],
+      "section": "random numbers",
+      "description": "Start the random numbers again from `seed`:  everything random after it repeats, run after run."
     },
     {
       "kind": "method",
       "name": "random",
       "of": "spellCore",
-      "module": "core"
+      "module": "core",
+      "section": "random numbers",
+      "description": "The next random number:  at least 0 and less than 1 -- the core's own `Math.random()`."
     },
     {
       "kind": "method",
@@ -265,7 +307,8 @@
         {
           "name": "max"
         }
-      ]
+      ],
+      "description": "Random whole number from `min` to `max`, BOTH included."
     },
     {
       "kind": "method",
@@ -276,7 +319,9 @@
         {
           "name": "items"
         }
-      ]
+      ],
+      "section": "random numbers",
+      "description": "A new array of `items`, in a random order:  `items` itself doesn't change."
     },
     {
       "kind": "method",
@@ -287,7 +332,9 @@
         {
           "name": "count"
         }
-      ]
+      ],
+      "section": "ranges",
+      "description": "`[1, 2, ... count]`:  one number per time round a `repeat {count} times` loop -- `[]` if `count` is under 1."
     },
     {
       "kind": "method",
@@ -301,7 +348,9 @@
         {
           "name": "end"
         }
-      ]
+      ],
+      "section": "ranges",
+      "description": "Return a range of numbers from `start` to `end`, inclusive -- counts down if `start > end`."
     },
     {
       "kind": "method",
@@ -315,7 +364,9 @@
         {
           "name": "callback"
         }
-      ]
+      ],
+      "section": "primitive iteration",
+      "description": "Call `callback()` `count` times, ignoring its return value. TODO: `repeat {number} times` currently compiles to `spellCore.map(spellCore.getRange(...), ...)` instead (see `rules/lists/RepeatNTimes.ts`) -- no rule currently calls this method; confirm whether it's still needed."
     },
     {
       "kind": "method",
@@ -326,7 +377,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Number of items in `collection`."
     },
     {
       "kind": "method",
@@ -337,7 +390,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Is `collection` empty?"
     },
     {
       "kind": "method",
@@ -348,7 +403,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Return proper `Array` of \"keys\" of `collection`."
     },
     {
       "kind": "method",
@@ -359,7 +416,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Return proper `Array` of values of `collection`."
     },
     {
       "kind": "method",
@@ -373,7 +432,9 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Position of the first `thing` in `collection` -- see `positionOf()`, below, which it is."
     },
     {
       "kind": "method",
@@ -387,7 +448,9 @@
         {
           "name": "position"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "The item at `position` of `collection`."
     },
     {
       "kind": "method",
@@ -404,7 +467,9 @@
         {
           "name": "value"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Set the item at `position` of `collection` to `value`."
     },
     {
       "kind": "method",
@@ -421,7 +486,9 @@
         {
           "name": "...things"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Add `things` in the middle of the `collection` at index `start`, from 0, moving things from `start` on down. Array only."
     },
     {
       "kind": "method",
@@ -435,7 +502,9 @@
         {
           "name": "position"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Remove the item at `position` of `collection`."
     },
     {
       "kind": "method",
@@ -446,7 +515,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Remove all things from the `collection`, in-place."
     },
     {
       "kind": "method",
@@ -457,7 +528,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Return an invoked iterator which yields `[value, position, collection]` for each item in the collection."
     },
     {
       "kind": "method",
@@ -471,7 +544,9 @@
         {
           "name": "...values"
         }
-      ]
+      ],
+      "section": "composite accessors",
+      "description": "Does `collection` include ALL of the specified `values`?"
     },
     {
       "kind": "method",
@@ -485,7 +560,9 @@
         {
           "name": "...values"
         }
-      ]
+      ],
+      "section": "composite accessors",
+      "description": "Does `collection` include any of the specified `values`?"
     },
     {
       "kind": "method",
@@ -499,7 +576,9 @@
         {
           "name": "constructor"
         }
-      ]
+      ],
+      "section": "copying and merging -- arrays only",
+      "description": "Return a duplicate of the list."
     },
     {
       "kind": "method",
@@ -513,7 +592,9 @@
         {
           "name": "...sources"
         }
-      ]
+      ],
+      "section": "copying and merging -- arrays only",
+      "description": "Merge all `source` list(s) into `destination`, in place."
     },
     {
       "kind": "method",
@@ -527,7 +608,9 @@
         {
           "name": "constructor"
         }
-      ]
+      ],
+      "section": "copying and merging -- arrays only",
+      "description": "Given a list of lists, merge into a new one of the same type as the first in the list."
     },
     {
       "kind": "method",
@@ -541,7 +624,9 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Is `thing` the first thing in `collection`?  Array only."
     },
     {
       "kind": "method",
@@ -555,7 +640,9 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Is `thing` the last thing in `collection`?  Array only."
     },
     {
       "kind": "method",
@@ -569,7 +656,9 @@
         {
           "name": "...things"
         }
-      ]
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Add `things` to front of `collection`, pushing everything else down.  Array only."
     },
     {
       "kind": "method",
@@ -583,7 +672,9 @@
         {
           "name": "...things"
         }
-      ]
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Add `things` to end of `collection`.  Array only."
     },
     {
       "kind": "method",
@@ -600,7 +691,9 @@
         {
           "name": "...things"
         }
-      ]
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Add `things` just before `item` in `collection`, pushing `item` and what follows down.  Array only."
     },
     {
       "kind": "method",
@@ -617,7 +710,9 @@
         {
           "name": "...things"
         }
-      ]
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Add `things` just after `item` in `collection`, pushing what follows it down.  Array only."
     },
     {
       "kind": "method",
@@ -634,7 +729,9 @@
         {
           "name": "...values"
         }
-      ]
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Set the items from index `start` on to `values`, in turn."
     },
     {
       "kind": "method",
@@ -645,7 +742,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Reverse list in-place.  Array only."
     },
     {
       "kind": "method",
@@ -662,7 +761,9 @@
         {
           "name": "end"
         }
-      ]
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "The items of `collection` from index `start` up to, not including, `end`:  `slice()`'s range."
     },
     {
       "kind": "method",
@@ -679,7 +780,9 @@
         {
           "name": "end"
         }
-      ]
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "Remove the items of `collection` from index `start` up to, not including, `end`, as `rangeBetween()` reads them."
     },
     {
       "kind": "method",
@@ -696,7 +799,9 @@
         {
           "name": "count"
         }
-      ]
+      ],
+      "section": "numeric iteration -- arrays only",
+      "description": "`count` items of `collection` from index `start` on.  Array only."
     },
     {
       "kind": "method",
@@ -710,7 +815,9 @@
         {
           "name": "method"
         }
-      ]
+      ],
+      "section": "iteration",
+      "description": "Execute `method` for each item in `collection`, ignoring results."
     },
     {
       "kind": "method",
@@ -724,7 +831,9 @@
         {
           "name": "method"
         }
-      ]
+      ],
+      "section": "iteration",
+      "description": "Execute `method` for each item of map, `await`ing method's completion."
     },
     {
       "kind": "method",
@@ -738,7 +847,9 @@
         {
           "name": "method"
         }
-      ]
+      ],
+      "section": "iteration",
+      "description": "Execute `method` for each item in `collection`, returning results in same type as `collection`."
     },
     {
       "kind": "method",
@@ -752,7 +863,9 @@
         {
           "name": "condition"
         }
-      ]
+      ],
+      "section": "iteration",
+      "description": "Return new `collection` of only things which match `condition` filter."
     },
     {
       "kind": "method",
@@ -766,7 +879,9 @@
         {
           "name": "condition"
         }
-      ]
+      ],
+      "section": "iteration",
+      "description": "Return `true` if all items in collection match `condition`, called as `condition(value, position, collection)`."
     },
     {
       "kind": "method",
@@ -780,7 +895,9 @@
         {
           "name": "condition"
         }
-      ]
+      ],
+      "section": "iteration",
+      "description": "Return `true` if at least one item in collection matches `condition`, called as `condition(value, position, collection)`."
     },
     {
       "kind": "method",
@@ -794,7 +911,9 @@
         {
           "name": "...positions"
         }
-      ]
+      ],
+      "section": "iteration",
+      "description": "Remove the items at `positions` of `collection`."
     },
     {
       "kind": "method",
@@ -808,7 +927,9 @@
         {
           "name": "...things"
         }
-      ]
+      ],
+      "section": "iteration",
+      "description": "Remove all occurrences of `things` from collection, in-place."
     },
     {
       "kind": "method",
@@ -822,7 +943,9 @@
         {
           "name": "condition"
         }
-      ]
+      ],
+      "section": "iteration",
+      "description": "Remove items from `collection` which match `condition`, called as `condition(value, position, collection)`."
     },
     {
       "kind": "method",
@@ -836,7 +959,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "Moving -- a list's guards",
+      "description": "Move `thing` to `collection` -- `move the card to the tableau`: if the list holding it lets it go, and `collection` takes it."
     },
     {
       "kind": "method",
@@ -850,7 +975,9 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "Moving -- a list's guards",
+      "description": "Would `collection` take `thing`, moved there?"
     },
     {
       "kind": "method",
@@ -864,7 +991,9 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "Moving -- a list's guards",
+      "description": "Would `collection` give up `thing`, moved elsewhere?"
     },
     {
       "kind": "method",
@@ -875,7 +1004,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "Randomizing / random item selection",
+      "description": "Return a single item from `collection`, picked randomly."
     },
     {
       "kind": "method",
@@ -889,7 +1020,9 @@
         {
           "name": "count"
         }
-      ]
+      ],
+      "section": "Randomizing / random item selection",
+      "description": "Return list of up to `count` items from `collection`, picked randomly, each item at most once."
     },
     {
       "kind": "method",
@@ -900,7 +1033,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "Randomizing / random item selection",
+      "description": "Randomize `collection` in-place."
     },
     {
       "kind": "method",
@@ -911,7 +1046,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "Randomizing / random item selection",
+      "description": "Return smallest item of `collection` according to `<` comparison."
     },
     {
       "kind": "method",
@@ -922,7 +1059,9 @@
         {
           "name": "collection"
         }
-      ]
+      ],
+      "section": "Randomizing / random item selection",
+      "description": "Return largest item of `collection` according to `>` comparison."
     },
     {
       "kind": "method",
@@ -933,7 +1072,8 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "description": "Wrap `thing` in double quotes -- no-op if `thing` is already a double-quoted string."
     },
     {
       "kind": "method",
@@ -944,7 +1084,8 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "description": "Wrap `thing` in back-ticks -- no-op if `thing` is already a back-ticked string."
     },
     {
       "kind": "method",
@@ -955,7 +1096,8 @@
         {
           "name": "string"
         }
-      ]
+      ],
+      "description": "Stringify and convert to UPPERCASE."
     },
     {
       "kind": "method",
@@ -966,12 +1108,15 @@
         {
           "name": "string"
         }
-      ]
+      ],
+      "description": "Stringify and convert to lowercase."
     },
     {
       "property": "TIME_UNITS_MAP",
       "of": "spellCore",
-      "module": "ui"
+      "module": "ui",
+      "section": "Time",
+      "description": "Multiplier from a unit name to milliseconds, e.g. `spellCore.TIME_UNITS_MAP.tick`."
     },
     {
       "kind": "method",
@@ -985,7 +1130,9 @@
         {
           "name": "units"
         }
-      ]
+      ],
+      "section": "Time",
+      "description": "Return promise which resolves after `number` `units` have elapsed."
     },
     {
       "kind": "method",
@@ -999,7 +1146,9 @@
         {
           "name": "closeText"
         }
-      ]
+      ],
+      "section": "Talking to the person",
+      "description": "Show `message` for a moment, in a toast -- compiled from `notify \"Saved!\"`."
     },
     {
       "kind": "method",
@@ -1013,7 +1162,9 @@
         {
           "name": "okText"
         }
-      ]
+      ],
+      "section": "Talking to the person",
+      "description": "Show `message` in a dialog, and wait until it's closed -- compiled from `alert \"Yo!\"` (`await`ed)."
     },
     {
       "kind": "method",
@@ -1030,7 +1181,9 @@
         {
           "name": "cancelText"
         }
-      ]
+      ],
+      "section": "Talking to the person",
+      "description": "Ask a yes / no question in a dialog:  `true` for ok -- compiled from `confirm \"Delete?\"` (`await`ed)."
     },
     {
       "kind": "method",
@@ -1044,7 +1197,9 @@
         {
           "name": "value"
         }
-      ]
+      ],
+      "section": "Talking to the person",
+      "description": "Ask for some text in a dialog:  what was typed, or `undefined` if cancelled -- compiled from `prompt \"Name?\" with \"Untitled\"` (`await`ed), `value` its starting text."
     },
     {
       "kind": "method",
@@ -1058,7 +1213,9 @@
         {
           "name": "safeCSS"
         }
-      ]
+      ],
+      "section": "Styles",
+      "description": "Create/initialize a `name`d stylesheet with specified `css` text."
     },
     {
       "kind": "method",
@@ -1069,7 +1226,9 @@
         {
           "name": "drawable"
         }
-      ]
+      ],
+      "section": "Drawing things",
+      "description": "`drawable` drawn -- `null` if it can't draw (no `draw()`)."
     },
     {
       "kind": "method",
@@ -1080,7 +1239,9 @@
         {
           "name": "drawable"
         }
-      ]
+      ],
+      "section": "Drawing things",
+      "description": "`drawable`'s OWN drawing, in its own error boundary, never its element -- `null` if it can't draw (no `draw()`)."
     },
     {
       "kind": "method",
@@ -1091,7 +1252,9 @@
         {
           "name": "list"
         }
-      ]
+      ],
+      "section": "Drawing things",
+      "description": "Each item of `list`, drawn in its own error boundary -- `null` if `list` has no items to draw."
     },
     {
       "kind": "method",
@@ -1105,12 +1268,15 @@
         {
           "name": "element"
         }
-      ]
+      ],
+      "section": "Mounting",
+      "description": "Mount `app`'s drawing into `element` -- replacing what was there -- and return how to take it down again."
     },
     {
       "property": "elementDefiner",
       "of": "spellCore",
-      "module": "elements"
+      "module": "elements",
+      "description": "How the page defines the element for a drawable class -- `undefined` until the page running programs sets it."
     },
     {
       "kind": "method",
@@ -1124,7 +1290,8 @@
         {
           "name": "project"
         }
-      ]
+      ],
+      "description": "Name the element of drawable class `Class`, in project `project`, e.g. `<solitaire-card>` -- its tag."
     },
     {
       "kind": "method",
@@ -1135,7 +1302,8 @@
         {
           "name": "drawable"
         }
-      ]
+      ],
+      "description": "Tag of `drawable`'s element, defined on the page -- `undefined` if its class has none, or the page can't define one (no `elementDefiner`):  then it draws as any thing does."
     },
     {
       "kind": "method",
@@ -1146,7 +1314,8 @@
         {
           "name": "Class"
         }
-      ]
+      ],
+      "description": "What drawable class `Class` shows on the outside of its element (epic `drawable-thing` P8):"
     },
     {
       "kind": "method",
@@ -1160,7 +1329,8 @@
         {
           "name": "name"
         }
-      ]
+      ],
+      "description": "The program's thing of class `Class` named `name`, e.g. the tableau named `T1` -- for a tag in a page's layout, `<solitaire-tableau id=\"T1\">` (epic `drawable-thing` P9, Q9)."
     },
     {
       "kind": "method",
@@ -1171,7 +1341,8 @@
         {
           "name": "drawable"
         }
-      ]
+      ],
+      "description": "Tag of `drawable`'s element, e.g. `solitaire-card` -- `undefined` if its class has none."
     },
     {
       "kind": "method",
@@ -1185,7 +1356,8 @@
         {
           "name": "path"
         }
-      ]
+      ],
+      "description": "Given an `object` and a string `path`, walk it to get the leaf value -- see `getPath()` in `$/util`."
     },
     {
       "kind": "method",
@@ -1202,7 +1374,8 @@
         {
           "name": "value"
         }
-      ]
+      ],
+      "description": "Given an `object`, walk `path` and set leaf step to `value` -- see `setPath()` in `$/util`."
     },
     {
       "kind": "method",
@@ -1213,12 +1386,14 @@
         {
           "name": "path"
         }
-      ]
+      ],
+      "description": "Split `path` into an array of steps, e.g. `[\"a\", \"b\", 0, \"c\"]` -- see `splitPath()` in `$/util`."
     },
     {
       "property": "ACTIVE_TEST",
       "of": "spellCore",
-      "module": "tests"
+      "module": "tests",
+      "description": "Currently-running dynamic test, if any."
     },
     {
       "kind": "method",
@@ -1235,7 +1410,8 @@
         {
           "name": "collapse"
         }
-      ]
+      ],
+      "description": "Dynamic test: prints to console for now..."
     },
     {
       "kind": "method",
@@ -1249,7 +1425,8 @@
         {
           "name": "collapse"
         }
-      ]
+      ],
+      "description": "Begin a named test run, becoming `spellCore.ACTIVE_TEST`."
     },
     {
       "kind": "method",
@@ -1260,7 +1437,8 @@
         {
           "name": "message"
         }
-      ]
+      ],
+      "description": "Print `message`, grouped under current test if one's running."
     },
     {
       "kind": "method",
@@ -1271,13 +1449,15 @@
         {
           "name": "message"
         }
-      ]
+      ],
+      "description": "Print `▶️ Executing` plus back-tick-quoted `message`, grouped under current test if one's running."
     },
     {
       "kind": "method",
       "name": "endTest",
       "of": "spellCore",
-      "module": "tests"
+      "module": "tests",
+      "description": "End currently-running test (if any), logging its icon-prefixed `message` as a console group containing all buffered `output`."
     },
     {
       "kind": "method",
@@ -1297,22 +1477,26 @@
         {
           "name": "otherSource"
         }
-      ]
+      ],
+      "description": "Return message as to whether a runtime assertion is true or false."
     },
     {
       "property": "console",
       "of": "spellCore",
-      "module": "console"
+      "module": "console",
+      "description": "The shared `SpellConsole` instance, exposed as `spellCore.console`."
     },
     {
       "property": "DEBUG_RUNTIME",
       "of": "spellCore",
-      "module": "runtime"
+      "module": "runtime",
+      "description": "Set to `true` to show debug messages for `spellCore.RUNTIME` actions."
     },
     {
       "property": "DEBUG_PROCESSES",
       "of": "spellCore",
-      "module": "runtime"
+      "module": "runtime",
+      "description": "Set to `true` to show debug messages for process start/stop actions."
     },
     {
       "kind": "method",
@@ -1326,7 +1510,9 @@
         {
           "name": "callback"
         }
-      ]
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.on(...)`:  compiled JavaScript's spelling of `on()` -- see `on()`."
     },
     {
       "kind": "method",
@@ -1340,7 +1526,9 @@
         {
           "name": "callback"
         }
-      ]
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.off(...)` -- see `off()`."
     },
     {
       "kind": "method",
@@ -1354,7 +1542,9 @@
         {
           "name": "callback"
         }
-      ]
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.once(...)` -- see `once()`."
     },
     {
       "kind": "method",
@@ -1368,24 +1558,32 @@
         {
           "name": "props"
         }
-      ]
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.trigger(...)` -- see `trigger()`."
     },
     {
       "property": "RUNTIME",
       "of": "spellCore",
-      "module": "runtime"
+      "module": "runtime",
+      "section": "Runtime State",
+      "description": "Global runtime state root."
     },
     {
       "kind": "method",
       "name": "resetRuntime",
       "of": "spellCore",
-      "module": "runtime"
+      "module": "runtime",
+      "section": "Runtime State",
+      "description": "Reset `spellCore.RUNTIME`, e.g. when a project starts or a test is run. Returns the new runtime."
     },
     {
       "kind": "method",
       "name": "clearRuntime",
       "of": "spellCore",
-      "module": "runtime"
+      "module": "runtime",
+      "section": "Runtime State",
+      "description": "Clear `spellCore.RUNTIME`:  unset again, as before the first `resetRuntime()` -- see `RUNTIME`."
     },
     {
       "kind": "method",
@@ -1399,7 +1597,9 @@
         {
           "name": "initializer"
         }
-      ]
+      ],
+      "section": "Runtime State",
+      "description": "Return `name`d section of state in our `RUNTIME` environment:"
     },
     {
       "kind": "method",
@@ -1410,13 +1610,17 @@
         {
           "name": "name"
         }
-      ]
+      ],
+      "section": "Runtime State",
+      "description": "Reset (clear) `name`d state in our `RUNTIME`. Warns if RUNTIME is not set up."
     },
     {
       "kind": "method",
       "name": "getProcessFlags",
       "of": "spellCore",
-      "module": "runtime"
+      "module": "runtime",
+      "section": "Process Management",
+      "description": "Initialize and return process flags for the current `spellCore.RUNTIME`. If `RUNTIME` is not set up, warns and returns a new object each time."
     },
     {
       "kind": "method",
@@ -1430,7 +1634,9 @@
         {
           "name": "exclusively"
         }
-      ]
+      ],
+      "section": "Process Management",
+      "description": "Start a conceptual process by `name`."
     },
     {
       "kind": "method",
@@ -1441,7 +1647,9 @@
         {
           "name": "name"
         }
-      ]
+      ],
+      "section": "Process Management",
+      "description": "Is a given process running?"
     },
     {
       "kind": "method",
@@ -1452,12 +1660,16 @@
         {
           "name": "name"
         }
-      ]
+      ],
+      "section": "Process Management",
+      "description": "Stop a given process."
     },
     {
       "property": "things",
       "of": "spellCore",
-      "module": "things"
+      "module": "things",
+      "section": "Inspecting things",
+      "description": "Each still alive, in the order they were made."
     },
     {
       "kind": "method",
@@ -1468,7 +1680,9 @@
         {
           "name": "text"
         }
-      ]
+      ],
+      "section": "The program's classes",
+      "description": "The program's running the code under heading `text` now, e.g. `set up all piles` for `## set up all piles`: what it makes from here on was made under it."
     },
     {
       "kind": "method",
@@ -1479,62 +1693,74 @@
         {
           "name": "json"
         }
-      ]
+      ],
+      "description": "`json` read back as what it was:  each object with a `\"@type\"` rebuilt as the program's class of that name, each of its props rebuilt the same way, and so on down."
     },
     {
       "property": "BASE_TYPES",
       "of": "spellCore",
-      "module": "classes"
+      "module": "classes",
+      "description": "Base types known to the `spell` language/parser -- see `SPELL_BASE_TYPES`."
     },
     {
       "property": "appLayout",
       "of": "spellCore",
-      "module": "classes"
+      "module": "classes",
+      "description": "Is the app's page laid out in markup, around the program?  Then `App.start()` draws nothing: the markup is the app's drawing, and its tags find their things (epic `drawable-thing` P9)."
     },
     {
       "property": "REACT_APP_ROOT_ID",
       "of": "spellCore",
-      "module": "classes"
+      "module": "classes",
+      "description": "DOM `id` of the element an `App` mounts into when the host set no `appRoot`."
     },
     {
       "property": "appRoot",
       "of": "spellCore",
-      "module": "classes"
+      "module": "classes",
+      "description": "Element `App.start()` mounts into, if the host says -- e.g. `<spell-app>`'s, inside its shadow root."
     },
     {
       "kind": "method",
       "name": "appElement",
       "of": "spellCore",
-      "module": "classes"
+      "module": "classes",
+      "description": "Element the app mounts into:  `appRoot`, else `#spell-app-root` in `document` -- `null` if neither."
     },
     {
       "kind": "method",
       "name": "domRoot",
       "of": "spellCore",
-      "module": "classes"
+      "module": "classes",
+      "description": "Document or shadow root the app lives in:  `appRoot`'s shadow root, if it's in one, else `document`."
     },
     {
       "type": "Thing",
-      "module": "classes/Thing"
+      "module": "classes/Thing",
+      "description": "`Thing`: base for all object-like things in spell -- what `a task is a thing` extends. All things can be drawn, with Solid (`drawing.ts`), e.g.:"
     },
     {
       "type": "List",
-      "module": "classes/List"
+      "module": "classes/List",
+      "description": "`List`: our array concept -- what `a deck is a list` extends."
     },
     {
       "type": "App",
       "superType": "Thing",
-      "module": "classes/App"
+      "module": "classes/App",
+      "description": "`App`: a `Thing` that draws a whole application -- what `a game is an app` extends."
     },
     {
       "type": "Drawable",
       "superType": "Thing",
-      "module": "classes/Drawable"
+      "module": "classes/Drawable",
+      "description": "`Drawable`:  a `Thing` drawn as its own custom element -- what `a card is a drawable thing` extends."
     },
     {
       "type": "DrawableList",
       "superType": "List",
-      "module": "classes/DrawableList"
+      "module": "classes/DrawableList",
+      "description": "`DrawableList`:  a `List` drawn as its own custom element, its items inside it -- what `a pile is a drawable list of cards` extends."
     },
     {
       "kind": "function",
@@ -1544,7 +1770,8 @@
         {
           "name": "...rawArgs"
         }
-      ]
+      ],
+      "description": "Solid's own `h()`, what compiled JavaScript draws with:  `import { h } from \"@spell/core\"`."
     },
     {
       "kind": "function",
@@ -1557,7 +1784,9 @@
         {
           "name": "thing"
         }
-      ]
+      ],
+      "section": "primitive accessors/setters",
+      "description": "Position of the first `thing` in `collection` -- see `positionOf()`, below, which it is."
     },
     {
       "kind": "function",
@@ -1570,7 +1799,9 @@
         {
           "name": "callback"
         }
-      ]
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.on(...)`:  compiled JavaScript's spelling of `on()` -- see `on()`."
     },
     {
       "kind": "function",
@@ -1583,7 +1814,9 @@
         {
           "name": "callback"
         }
-      ]
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.off(...)` -- see `off()`."
     },
     {
       "kind": "function",
@@ -1596,7 +1829,9 @@
         {
           "name": "callback"
         }
-      ]
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.once(...)` -- see `once()`."
     },
     {
       "kind": "function",
@@ -1609,7 +1844,9 @@
         {
           "name": "props"
         }
-      ]
+      ],
+      "section": "Events -- the running program's, on RUNTIME",
+      "description": "`spellCore.trigger(...)` -- see `trigger()`."
     }
   ]
 }
