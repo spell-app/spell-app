@@ -1,4 +1,0 @@
-212 reportOptionalMemberAccess "starting_with" is not a known attribute of "None"
-213 reportOptionalMemberAccess "name" is not a known attribute of "None"
-527 reportOptionalMemberAccess "last_item" is not a known attribute of "None"
-529 reportOptionalOperand Operator "+" not supported for "None"

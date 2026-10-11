@@ -78,13 +78,14 @@ export class PyBaseWriter extends P.ProgramWriter {
       return used.length ? `from spell_core import ${used.join(", ")}` : ""
     })
     // the standard library's modules it uses, first, in order, as PEP 8 orders imports:
-    // rounding, `math.floor(...)`;  a pattern, `re.compile(...)`
-    const standard = [/\bmath\.\w+\(/.test(imported) && "math", /\bre\.compile\(/.test(imported) && "re"].filter(
-      Boolean
-    )
-    const withStandard = standard.length
-      ? `${standard.map((name) => `import ${name}`).join("\n")}\n${imported}`
-      : imported
+    // rounding, `math.floor(...)`;  a pattern, `re.compile(...)`;  a hint spell couldn't tell, `Any`
+    const standard = [
+      /\bmath\.\w+\(/.test(imported) && "import math",
+      /\bre\.compile\(/.test(imported) && "import re",
+      /(?:: |-> |\[)Any\b/.test(imported) && "from typing import Any"
+    ].filter(Boolean)
+    // then a blank line, then the rest:  PEP 8's groups
+    const withStandard = standard.length ? `${standard.join("\n")}\n\n${imported.replace(/^\n+/, "")}` : imported
     // no import left, or a heading that writes nothing:  no blank lines first
     const written = withStandard.replace(/^\n+/, "")
     // hints:  read when needed, so one may name a class written further down (`-> Pile` in `Card`)
@@ -219,6 +220,7 @@ export class PyBaseWriter extends P.ProgramWriter {
     if (!node.property.isLegalIdentifier) return `getattr(${written}, ${this.quoted(node.property.value)}, None)`
     if (this.mayBeNothing(node.object) && !this.isSettingNow(node))
       return `getattr(${written}, ${this.quoted(name)}, None)`
+    this.assertThere(node.object, written)
     return `${written}.${name}`
   }
 
@@ -438,7 +440,9 @@ export class PyBaseWriter extends P.ProgramWriter {
       const call = pyText.call(`core.${this.nameOf(name)}`, args)
       return P.ProgramWriter.POSITION_RESULTS.has(name) ? this.positionOut(call) : call
     }
-    return pyText.call(`${this.tight(node.thing)}.${this.nameOf(node.methodName)}`, this.items(node.args.args))
+    const thing = this.tight(node.thing)
+    this.assertThere(node.thing, thing)
+    return pyText.call(`${thing}.${this.nameOf(node.methodName)}`, this.items(node.args.args))
   }
 
   /**
@@ -564,6 +568,7 @@ export class PyBaseWriter extends P.ProgramWriter {
    */
   listCall(name: string, list: P.ASTExpression, rest: P.ASTExpression[]): string | undefined {
     const self = this.tight(list)
+    this.assertThere(list, self)
     const [second, third] = rest
     const fn = (arg: P.ASTExpression) => this.functionArg(arg)
     switch (name) {
@@ -787,12 +792,59 @@ export class PyBaseWriter extends P.ProgramWriter {
   statement(statement: P.ASTNode): string {
     if (statement instanceof P.ASTClassMember) return String(this.writeAsMember(statement))
     const expression = statement instanceof P.ASTExpression ? statement : undefined
-    return (
-      this.loop(statement) ??
-      this.testBlock(expression) ??
-      this.handlerBlock(expression) ??
-      String(this.write(statement))
-    )
+    const previous = this.asserts
+    this.asserts = []
+    try {
+      const written =
+        this.loop(statement) ??
+        this.testBlock(expression) ??
+        this.handlerBlock(expression) ??
+        String(this.write(statement))
+      // what it reads off a value hinted `X | None`, checked first -- see `assertThere()`
+      return this.asserts.length ? `${this.asserts.join(pyText.NEWLINE)}${pyText.NEWLINE}${written}` : written
+    } finally {
+      this.asserts = previous
+    }
+  }
+
+  /** The `assert`s the statement being written needs, before it -- see `assertThere()`. */
+  protected asserts: string[] | undefined
+
+  /**
+   * SIDE EFFECT:  `object`, written `written`, is read off:  if its hint says it may be nothing (`X | None`, e.g.
+   * a card's `pile`), the statement says first that it isn't, `assert card.pile is not None`, so pyright knows
+   * (epic python-target P25, Owen's Q31 D:  "spell's knowledge, else assert").
+   * - Once a block:  after it, pyright knows.
+   * - Only for a name or a path of names, `start_pile`, `card.pile`.
+   */
+  protected assertThere(object: P.ASTExpression, written: string): void {
+    if (!this.asserts || !/^[\w.]+$/.test(written) || !this.hintedMaybeNothing(object)) return
+    const key = `\0asserted:${written}`
+    if (this.localValue(key)) return
+    this.locals.at(-1)!.set(key, P.ProgramWriter.FOUND)
+    this.asserts.push(`assert ${written} is not None`)
+  }
+
+  /**
+   * Does `node`'s hint say it may be nothing, `X | None`?
+   * - A getter so hinted (`returnHint()`), e.g. a card's `pile`, `Pile | None`;  a variable set to one, unchecked.
+   */
+  protected hintedMaybeNothing(node: P.ASTExpression, depth = 0): boolean {
+    if (depth > 8) return false
+    const inner = unwrapped(node)
+    if (inner instanceof P.ASTPropertyExpression && !(unwrapped(inner.object) instanceof P.ASTTypeExpression)) {
+      const owner = this.kindOf(inner.object)
+      // an imported class's `a card belongs to one pile`:  its pile may be none
+      if (this.project.owners.has(`${owner}.${inner.property.value}`)) return true
+      const getter = this.project.getterOf(owner, inner.property.value)
+      return !!getter && /\| None$/.test(this.returnHint(getter) ?? "")
+    }
+    if (inner instanceof P.ASTVariableExpression && !(inner instanceof P.ASTSpellCoreExpression)) {
+      const value = this.localValue(inner.name)
+      if (!value || value === P.ProgramWriter.FOUND || value === node) return false
+      return this.hintedMaybeNothing(value, depth + 1)
+    }
+    return false
   }
 
   /** A `def` or `class` -- a method or a getter in a class body too -- with `doc` as its docstring, if any. */
@@ -867,6 +919,7 @@ export class PyBaseWriter extends P.ProgramWriter {
   ASTReturnStatement(node: P.ASTReturnStatement): string {
     // in a loop's body, written from a function per item:  ends that turn only
     if (!node.value) return this.returnContinues ? "continue" : "return"
+    this.returnsInPlace.set(node, this.mayBeNothing(node.value))
     return this.testBlock(node.value) ?? `return ${this.bare(node.value)}`
   }
 
@@ -1006,13 +1059,15 @@ export class PyBaseWriter extends P.ProgramWriter {
     this.returnContinues = false
     try {
       const params = [...(first ? [first] : []), ...(node.args ?? []).map((arg) => this.param(arg))]
-      const returns = this.returnHint(node)
       const body = this.inBlock(() => {
         this.noteParams(node)
         return this.blockBody(node.body)
       })
+      // after its body:  what each `return` gives was noted in its place, after any guard -- see `returnsInPlace`
+      const returns = this.returnHint(node)
       const docstring = doc ? `${pyText.docstring(doc.lines)}\n` : ""
-      const signature = `${pyText.call(`def ${defName}`, params)}${returns ? ` -> ${returns}` : ""}`
+      // spell can't tell what it gives:  `Any`, said out loud (Owen, Q30)
+      const signature = `${pyText.call(`def ${defName}`, params)} -> ${returns ?? "Any"}`
       const header = [...decorators.map((decorator) => `@${decorator}`), signature]
       return pyText.block(header.join(pyText.NEWLINE), `${docstring}${body}`)
     } finally {
@@ -1024,9 +1079,9 @@ export class PyBaseWriter extends P.ProgramWriter {
   /** A parameter, by our name, with its hint where spell knows its kind:  `suit: str`, `pile: Pile | None = None`. */
   param(arg: P.ASTVariableExpression): string {
     const name = this.variableName(arg)
-    const hint = this.hintOf(kindOfDatatype(arg.datatype ?? arg.variable?.datatype))
+    // spell can't tell what it is:  `Any`, said out loud (Owen, Q30)
+    const hint = this.hintOf(kindOfDatatype(arg.datatype ?? arg.variable?.datatype)) ?? "Any"
     const defaultValue = arg.default ? this.bare(arg.default) : undefined
-    if (!hint) return defaultValue === undefined ? name : `${name}=${defaultValue}`
     return defaultValue === undefined ? `${name}: ${hint}` : `${name}: ${hint} = ${defaultValue}`
   }
 
@@ -1047,7 +1102,7 @@ export class PyBaseWriter extends P.ProgramWriter {
     const values = kinds ? [...kinds] : []
     // one that may end without a `return`, or `return` alone:  nothing too
     const mayBeNothing =
-      !kinds || kinds.has("nothing") || returns.some((it) => it.value && this.returnsNothingMaybe(it.value, method))
+      !kinds || kinds.has("nothing") || returns.some((it) => it.value && this.returnsNothingMaybe(it.value, method, it))
     const known = new Set(values.filter((kind) => kind !== "nothing"))
     if (known.size !== 1) return undefined
     const hint = this.hintOf([...known][0])
@@ -1058,11 +1113,17 @@ export class PyBaseWriter extends P.ProgramWriter {
    * May `value`, returned from `method`, be nothing?  As `mayBeNothing()` says, in `method`'s place.
    * - Also the list that owns a thing, `Pile.owner_of(card)`, as a card may be in no pile.
    */
-  returnsNothingMaybe(value: P.ASTExpression, method: P.ASTMethodDefinition): boolean {
+  returnsNothingMaybe(value: P.ASTExpression, method: P.ASTMethodDefinition, node?: P.ASTReturnStatement): boolean {
     const inner = unwrapped(value)
     if (inner instanceof P.ASTScopedMethodInvocation && inner.methodName === "ownerOf") return true
+    // as it was written, in its place:  after `if the pile is empty return 0`, its last item is there
+    const inPlace = node && this.returnsInPlace.get(node)
+    if (inPlace !== undefined) return inPlace
     return this.inPlace({ typeName: this.currentClass ?? "", methods: [method] }, () => this.mayBeNothing(value))
   }
+
+  /** May each `return` written give nothing, as `mayBeNothing()` said in its place -- see `returnsNothingMaybe()`. */
+  protected returnsInPlace = new WeakMap<P.ASTReturnStatement, boolean>()
 
   /**
    * Python's hint for a value of `kind` (`kindOf()`) -- `undefined` for one it can't tell:
@@ -1215,7 +1276,8 @@ export class PyBaseWriter extends P.ProgramWriter {
   }
 
   /**
-   * From outside its class:  its function, then set on the class -- `Card.pile = property(_card_pile)`.
+   * From outside its class:  its function, set on the class by `spell_core`'s decorator --
+   *   `@Card.add_method("play")` above `def _card_play(self)`, `@Card.add_property("pile")` for a getter.
    * - For a class of another project:  a class of this one has it in its body (`withProjectMembers()`).
    * - `doc`:  its docstring, if any.
    */
@@ -1225,9 +1287,9 @@ export class PyBaseWriter extends P.ProgramWriter {
     const helper = `_${this.nameOf(node.typeName, "variable")}_${name}`
     return this.inClass(node.typeName, () => {
       const method = node.get ?? node.method!
-      const def = this.methodDefinition(method, doc, { name: helper, first: "self" })
-      const value = node.get ? `property(${helper})` : helper
-      return `${def}\n\n\n${type}.${name} = ${value}`
+      // set on its class by `spell_core`'s decorator:  pyright refuses `Card.play = _card_play` (epic python-target P25)
+      const decorator = `${type}.${node.get ? "add_property" : "add_method"}(${this.quoted(name)})`
+      return this.methodDefinition(method, doc, { name: helper, first: "self", decorators: [decorator] })
     })
   }
 

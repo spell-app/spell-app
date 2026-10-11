@@ -1,7 +1,16 @@
 import { P } from "$/parser"
 // Import directly to avoid circular import
 import { Writer } from "./Writer"
-import { alike, isKnownType, kindFromDatatype, kindOfType, newListItemName, readsMember, unwrapped } from "./jsShapes"
+import {
+  alike,
+  isCoreCall,
+  isKnownType,
+  kindFromDatatype,
+  kindOfType,
+  newListItemName,
+  readsMember,
+  unwrapped
+} from "./jsShapes"
 import { WriterProject, forEachNode, type ProgramPlace } from "./WriterProject"
 import { type Naming, type NameKind } from "./Naming"
 
@@ -577,7 +586,14 @@ export abstract class ProgramWriter extends Writer {
   protected noteGuard(node: P.ASTIfStatement) {
     const condition = unwrapped(node.condition)
     const [only] = (node.statements.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
-    if (!(condition instanceof P.ASTNotExpression) || !(only instanceof P.ASTReturnStatement)) return
+    if (!(only instanceof P.ASTReturnStatement)) return
+    // `if the pile is empty return 0`:  after it, the pile has items, its first and last there (epic `python-target` P25)
+    if (isCoreCall(condition) && (condition as P.ASTScopedMethodInvocation).methodName === "isEmpty") {
+      const [list] = (condition as P.ASTScopedMethodInvocation).args.args ?? []
+      if (list) this.locals.at(-1)!.set(ProgramWriter.nonEmptyKey(this.bare(list)), ProgramWriter.FOUND)
+      return
+    }
+    if (!(condition instanceof P.ASTNotExpression)) return
     const checked = unwrapped(condition.expression)
     const isDefined =
       checked instanceof P.ASTScopedMethodInvocation &&
@@ -586,6 +602,16 @@ export abstract class ProgramWriter extends Writer {
     const [value] = isDefined ? ((checked as P.ASTScopedMethodInvocation).args.args ?? []) : []
     const variable = value && unwrapped(value)
     if (variable instanceof P.ASTVariableExpression) this.locals.at(-1)!.set(variable.name, ProgramWriter.FOUND)
+  }
+
+  /** The key `locals` notes a list a guard found has items under:  by how we write it, `self` -- see `noteGuard()`. */
+  static nonEmptyKey(written: string): string {
+    return `\0has items:${written}`
+  }
+
+  /** Has a guard found that `list` has items, in the blocks being written?  See `noteGuard()`. */
+  hasItems(list: P.ASTExpression): boolean {
+    return this.localValue(ProgramWriter.nonEmptyKey(this.bare(list))) === ProgramWriter.FOUND
   }
 
   /** What a variable a guard checked is noted as:  there -- see `noteGuard()`. */
@@ -610,7 +636,12 @@ export abstract class ProgramWriter extends Writer {
   mayBeNothing(node: P.ASTExpression): boolean {
     const inner = unwrapped(node)
     if (inner instanceof P.ASTScopedMethodInvocation && inner.thing instanceof P.ASTSpellCoreExpression) {
-      if (ProgramWriter.ITEM_READS.has(inner.methodName)) return true
+      if (ProgramWriter.ITEM_READS.has(inner.methodName)) {
+        // the first or last item of a list a guard found has items:  there
+        const [list, position] = inner.args.args ?? []
+        const index = inner.methodName === "getItemAt" && position ? this.literalIndex(position) : undefined
+        return !(list && (index === 0 || index === -1) && this.hasItems(list))
+      }
       // text written in another case is text, `""` for nothing
       if (inner.methodName === "upperCase" || inner.methodName === "lowerCase") return false
       // a helper given what may be nothing gives nothing back, e.g. the cards of a random pile

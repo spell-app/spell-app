@@ -258,12 +258,12 @@ export class Pile extends List<Card> {
 
   get color() {
     if (this.isEmpty) return "none"
-    return this.lastItem?.color ?? "none"
+    return this.lastItem.color
   }
 
   get value() {
     if (this.isEmpty) return 0
-    return this.lastItem?.value ?? 0
+    return this.lastItem.value
   }
 
   @derived

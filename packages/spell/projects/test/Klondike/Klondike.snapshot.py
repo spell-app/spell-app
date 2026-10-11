@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+from typing import Any
 
 from spell_core import core, List, App, prop, h, position
 from cards import Card, Deck, Pile
@@ -26,14 +27,14 @@ class Game(App):
             state.append(pile.state)
         return state
 
-    def draw(self):
-        async def _each_1(event):
+    def draw(self) -> Any:
+        async def _each_1(event: Any) -> Any:
             return await auto_play()
 
-        async def _each_2(event):
+        async def _each_2(event: Any) -> Any:
             return await cheat()
 
-        async def _each_3(event):
+        async def _each_3(event: Any) -> Any:
             return await reset_the_game()
 
         return h(
@@ -116,8 +117,8 @@ class StockPile(Pile):
     def can_give_up(self, card: Card) -> bool:
         return card == self.last_item
 
-    def draw(self):
-        async def _each_1(event):
+    def draw(self) -> Any:
+        async def _each_1(event: Any) -> Any:
             return await play_from_the_stock_pile()
 
         return h(
@@ -138,7 +139,7 @@ class DiscardPile(Pile):
     def can_give_up(self, card: Card) -> bool:
         return card == self.last_item
 
-    def draw(self):
+    def draw(self) -> Any:
         return h("div", {"class": "Pile Discards stacked"}, core.draw_thing(self.last_item))
 
 
@@ -154,6 +155,7 @@ class Foundation(Pile):
 
     def can_take(self, card: Card) -> bool:
         """one card at a time:  the last of its pile"""
+        assert card.pile is not None
         if card != card.pile.last_item:
             return False
         return self.name == card.suit and self.value + 1 == card.value
@@ -163,7 +165,7 @@ class Foundation(Pile):
 
     # note: tableaus just draw as a (vertical) list of cards
 
-    def draw(self):
+    def draw(self) -> Any:
         color = "red" if self.name == "diamonds" or self.name == "hearts" else "black"
         return h(
             "div",
@@ -200,7 +202,7 @@ class Tableau(Pile):
             return card.is_a_rank("king")
         return self.color != card.color and self.value == card.value + 1
 
-    def draw(self):
+    def draw(self) -> Any:
         return h("div", {"class": "Pile Tableau staggered"}, core.draw_items(self))
 
 
@@ -274,8 +276,10 @@ async def deal_the_cards() -> None:
         core.stop_process("deal_the_cards")
 
 
+@Card.add_method("play")
 async def _card_play(self) -> bool | None:
     start_pile = self.pile
+    assert start_pile is not None
     if not core.can_give_up(start_pile, self):
         return False
 
@@ -306,11 +310,8 @@ async def _card_play(self) -> bool | None:
     return True
 
 
-Card.play = _card_play
-
-
 @core.on("card-click")
-async def on_card_click(event) -> None:
+async def on_card_click(event: Any) -> None:
     card = event.card
     await card.play()
 
@@ -328,7 +329,7 @@ async def auto_play() -> None:
         if not pile:
             continue
         test_card = pile.last_item
-        foundation = foundations.filter(lambda pile: pile.name == getattr(test_card, "suit", None)).first_item
+        foundation = foundations.filter(lambda pile: pile.name == test_card.suit).first_item
         if core.can_take(foundation, test_card):
             anything_changed = True
             await test_card.play()
