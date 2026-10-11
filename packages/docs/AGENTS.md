@@ -140,6 +140,10 @@ In `tools/`:
   - `commands.js`:  command reference pages ([the commands template](../../templates/commands.html)).
     - It draws their tables from the page's JSON, then loads `spell-ui.js` itself.
     - The page loads `commands.js` INSTEAD of the bundle.
+  - `core-reference.js`:  the core reference page (`guides/targets/core-reference.html`, epic `python-target` P29).
+    - It draws one table per core file from core's `spellCore.declarations.json` and py's `not_ported_yet.json`,
+      read from the checkout serving the page, so each branch shows its own core.
+    - Then it loads `spell-ui.js` itself, as `commands.js` does.
 - The scripts, `*.js` and `*.ts`:  see "Scripts".
 - `goals/`:  the goals tooling ([goals' AGENTS.md](../../goals/AGENTS.md), at the repo root).
 
@@ -164,8 +168,9 @@ In `tools/`:
   - But the openers (`docs open`, `plan-doc open`) show them from this checkout's PAGE SERVER
     (`spell dev server`, see [server's AGENTS.md](../server/AGENTS.md)).
     - It adds live reload, edit mode, and the server-only properties (Spell UI, Editor).
-  - The ONE exception:  a `commands` page fetches its JSON, so it draws its tables only from the page server.
-    - From `file://` it says so, where they'd go.
+  - The exceptions:  a `commands` page, and the core reference page, fetch their JSON,
+    so they draw their tables only from the page server.
+    - From `file://` each says so, where they'd go.
     - Its `<body data-spell-needs-server>` makes `check-spell.js` load it from the server.
     - Why:  Owen chose a plain JSON file over a JS data file, or tables rendered into the HTML (epic `commands`, D4).
 - Sections are `<ui-section>` elements.

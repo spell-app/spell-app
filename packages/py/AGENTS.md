@@ -76,7 +76,7 @@ Only what's local is below;  a section named like a WWOD rule extends it.
   - The contract's 300 clicks per game play through it (`tests/patches_in_a_game.py`).
 - Four checks keep it in step with the javascript core (`packages/core`):
   - the core's method list:  every name in [spellCore.declarations.json](../core/spellCore.declarations.json),
-    or listed as not ported yet
+    or listed, with why, in [not_ported_yet.json](core/not_ported_yet.json)
   - seeded random:  both read [seededRandom.expected.json](../core/seededRandom.expected.json)
   - state by id:  both write and read [stateById.expected.json](../core/stateById.expected.json)
   - the core contract (cli's [contract.test.ts](../cli/src/contract.test.ts)):
