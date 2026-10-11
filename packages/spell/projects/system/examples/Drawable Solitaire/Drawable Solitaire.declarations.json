@@ -23,7 +23,7 @@
     {
       "type": "Card",
       "superType": "Drawable",
-      "defined": "/Card.spell:175-800"
+      "defined": "/Card.spell:166-791"
     },
     {
       "property": "rank",
@@ -44,7 +44,7 @@
         "'queen'",
         "'king'"
       ],
-      "defined": "/Card.spell:839-919"
+      "defined": "/Card.spell:830-910"
     },
     {
       "property": "suit",
@@ -56,7 +56,7 @@
         "'hearts'",
         "'spades'"
       ],
-      "defined": "/Card.spell:935-996"
+      "defined": "/Card.spell:926-987"
     },
     {
       "property": "color",
@@ -65,13 +65,13 @@
         "red",
         "black"
       ],
-      "defined": "/Card.spell:1029-1118"
+      "defined": "/Card.spell:1020-1109"
     },
     {
       "property": "value",
       "of": "Card",
       "datatype": "number",
-      "defined": "/Card.spell:1153-1214"
+      "defined": "/Card.spell:1144-1205"
     },
     {
       "property": "direction",
@@ -81,7 +81,7 @@
         "'up'",
         "'down'"
       ],
-      "defined": "/Card.spell:1247-1290"
+      "defined": "/Card.spell:1238-1281"
     },
     {
       "syntax": "{operator:is} face up",
@@ -91,7 +91,7 @@
       "kind": "method",
       "name": "\"is face up\"",
       "returns": "choice",
-      "defined": "/Card.spell:1329-1371"
+      "defined": "/Card.spell:1320-1362"
     },
     {
       "syntax": "{operator:is} face down",
@@ -101,7 +101,7 @@
       "kind": "method",
       "name": "\"is face down\"",
       "returns": "choice",
-      "defined": "/Card.spell:1372-1418"
+      "defined": "/Card.spell:1363-1409"
     },
     {
       "syntax": "{operator:is} a face card",
@@ -111,7 +111,7 @@
       "kind": "method",
       "name": "\"is a face card\"",
       "returns": "choice",
-      "defined": "/Card.spell:1444-1509"
+      "defined": "/Card.spell:1435-1500"
     },
     {
       "syntax": "{operator:is} (a|an) (expression:club|diamond|heart|spade)",
@@ -128,7 +128,7 @@
           "'spades'"
         ]
       },
-      "defined": "/Card.spell:1551-1585"
+      "defined": "/Card.spell:1542-1576"
     },
     {
       "syntax": "{operator:is} (a|an) (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king)",
@@ -154,7 +154,7 @@
           "'king'"
         ]
       },
-      "defined": "/Card.spell:1627-1661"
+      "defined": "/Card.spell:1618-1652"
     },
     {
       "syntax": "{operator:is} the (expression:ace|2|3|4|5|6|7|8|9|10|jack|queen|king) of (expression:clubs|diamonds|hearts|spades)",
@@ -186,47 +186,47 @@
           "'spades'"
         ]
       },
-      "defined": "/Card.spell:1699-1760"
+      "defined": "/Card.spell:1690-1751"
     },
     {
       "property": "name",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1799-1850"
+      "defined": "/Card.spell:1790-1841"
     },
     {
       "property": "short_suit",
       "asWritten": "short suit",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:1852-2013"
+      "defined": "/Card.spell:1843-2004"
     },
     {
       "property": "short_rank",
       "asWritten": "short rank",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:2015-2177"
+      "defined": "/Card.spell:2006-2168"
     },
     {
       "property": "short_direction",
       "asWritten": "short direction",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:2179-2259"
+      "defined": "/Card.spell:2170-2250"
     },
     {
       "property": "short_name",
       "asWritten": "short name",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:2262-2322"
+      "defined": "/Card.spell:2253-2313"
     },
     {
       "property": "state",
       "of": "Card",
       "datatype": "text",
-      "defined": "/Card.spell:2324-2401"
+      "defined": "/Card.spell:2315-2392"
     },
     {
       "syntax": "turn {thisArg:expression} face up",
@@ -239,7 +239,7 @@
       ],
       "kind": "method",
       "name": "turn a card face up",
-      "defined": "/Card.spell:2520-2588"
+      "defined": "/Card.spell:2511-2579"
     },
     {
       "syntax": "turn {thisArg:expression} face down",
@@ -252,7 +252,7 @@
       ],
       "kind": "method",
       "name": "turn a card face down",
-      "defined": "/Card.spell:2589-2661"
+      "defined": "/Card.spell:2580-2652"
     },
     {
       "syntax": "turn {thisArg:expression} over",
@@ -265,7 +265,7 @@
       ],
       "kind": "method",
       "name": "turn a card over",
-      "defined": "/Card.spell:2769-2879"
+      "defined": "/Card.spell:2760-2870"
     },
     {
       "syntax": "draw {thisArg:expression}",
@@ -278,7 +278,7 @@
       ],
       "kind": "method",
       "name": "draw a card",
-      "defined": "/Card.spell:2881-3295"
+      "defined": "/Card.spell:2872-3286"
     },
     {
       "syntax": "play {thisArg:expression}",
@@ -300,7 +300,7 @@
       "alias": "statement",
       "kind": "function",
       "name": "card setup",
-      "defined": "/Card.spell:3347-4465"
+      "defined": "/Card.spell:3338-4456"
     },
     {
       "type": "Deck",
@@ -356,37 +356,37 @@
       "type": "Pile",
       "superType": "DrawableList",
       "itemType": "Card",
-      "defined": "/Pile.spell:131-721"
+      "defined": "/Pile.spell:122-712"
     },
     {
       "property": "name",
       "of": "Pile",
       "datatype": "text",
-      "defined": "/Pile.spell:835-860"
+      "defined": "/Pile.spell:826-851"
     },
     {
       "property": "color",
       "of": "Pile",
-      "defined": "/Pile.spell:862-950"
+      "defined": "/Pile.spell:853-941"
     },
     {
       "property": "value",
       "of": "Pile",
       "datatype": "number",
-      "defined": "/Pile.spell:952-1035"
+      "defined": "/Pile.spell:943-1026"
     },
     {
       "property": "state",
       "of": "Pile",
       "datatype": "text",
-      "defined": "/Pile.spell:1037-1201"
+      "defined": "/Pile.spell:1028-1192"
     },
     {
       "property": "pile",
       "of": "Card",
       "datatype": "Pile",
       "exclusive": true,
-      "defined": "/Pile.spell:808-834"
+      "defined": "/Pile.spell:799-825"
     },
     {
       "type": "Game",

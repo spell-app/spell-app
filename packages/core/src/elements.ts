@@ -10,12 +10,13 @@
  * - Part of `spellCore`:  imported by `$/core`'s barrel for its side effect.
  */
 
-import { kebabCase, schemaOf, singularize, type Schema } from "$/util"
+import { instanceCase, kebabCase, schemaOf, singularize, type Schema } from "$/util"
 
 import { spellCore } from "./core"
 import { defineSpellCoreModule } from "./spellCore.types"
 import { Drawable } from "./classes/Drawable"
 import { DrawableList } from "./classes/DrawableList"
+import { List } from "./classes/List"
 
 /** `spellCore`'s methods for drawable things' elements. */
 export const elementsMethods = defineSpellCoreModule({
@@ -62,6 +63,9 @@ export const elementsMethods = defineSpellCoreModule({
    * What drawable class `Class` shows on the outside of its element (epic `drawable-thing` P8):
    * - `properties`:  each property it declares (`a card has a rank as a number`), its own and its super-types',
    *   with its declared type, e.g. `{ name: "rank", type: "number" }`
+   *   - a list it makes for itself, e.g. `a hand has cards as a list of cards`, is `type: "list"`
+   *   - then each list it belongs to (`a card belongs to one pile`):  `{ name: "pile", type: "Pile", owner: true }`,
+   *     the list holding it (P18) -- see `ownerPropertiesOf()`
    * - `methods`:  each method it has, its own and its super-types', down to `Drawable` / `DrawableList`,
    *   e.g. `turn_over` -- NOT `draw()`, nor a method of several words with values in them (`is_a_$suit`)
    * - Names as compiled:  the page names them as it likes, e.g. `turnOver()`.
@@ -74,8 +78,12 @@ export const elementsMethods = defineSpellCoreModule({
         if (seen.has(name)) continue
         seen.add(name)
         const values = typeof info.oneOf === "function" ? info.oneOf() : info.oneOf
-        properties.push({ name, type: info.type, ...(values ? { values: [...values] } : {}) })
+        const type = info.type ?? (info.init ? "list" : undefined)
+        properties.push({ name, ...(type ? { type } : {}), ...(values ? { values: [...values] } : {}) })
       }
+    }
+    for (const owner of ownerPropertiesOf(Class)) {
+      if (!seen.has(owner.name)) properties.push(owner)
     }
     const methods: string[] = []
     for (let proto = Class.prototype; proto && !BASE_PROTOTYPES.includes(proto); proto = Object.getPrototypeOf(proto)) {
@@ -90,15 +98,16 @@ export const elementsMethods = defineSpellCoreModule({
   /**
    * The program's thing of class `Class` named `name`, e.g. the tableau named `T1` -- for a tag in a page's layout,
    * `<solitaire-tableau id="T1">` (epic `drawable-thing` P9, Q9).
-   * - Of `Class` EXACTLY, not a sub-class:  `<solitaire-pile>` isn't a tableau's tag.
-   * - No `name`:  its one thing of `Class`, if it made exactly one.
+   * - With `name`:  the thing `thingNamed()` finds, so a sub-class's too:
+   *   `<solitaire-pile id="stock">` finds the stock, a `StockPile` (P18).
+   * - No `name`:  its one thing of `Class` EXACTLY, if it made exactly one.
    * - `undefined` if none matches.
    * - Reads the registry's `version`:  a reader re-runs as things are made.
    */
   thingFor(Class: Function, name?: string): object | undefined {
+    if (name !== undefined) return spellCore.thingNamed(Class as abstract new () => object, name)
     const things = spellCore.things.all().filter((thing) => thing.constructor === Class)
-    if (name === undefined) return things.length === 1 ? things[0] : undefined
-    return things.find((thing) => `${(thing as { name?: unknown }).name}` === name)
+    return things.length === 1 ? things[0] : undefined
   },
 
   /** Tag of `drawable`'s element, e.g. `solitaire-card` -- `undefined` if its class has none. */
@@ -113,12 +122,21 @@ Object.assign(spellCore, elementsMethods)
  * Tag of the element for class `className` in project `project`:
  * the project's name made singular, then the class's, kebab-cased.
  * - e.g. `Solitaire`, `Card` => `solitaire-card`;  `games`, `BankAccount` => `game-bank-account`
+ * - The word "drawable" in the project's name is left out, so its tags don't all say it (epic `drawable-thing` P18):
+ *   `Drawable Solitaire`, `Tableau` => `solitaire-tableau`, never `drawable-solitaire-tableau`.
  * - Only letters, digits and dashes, starting with a letter:  always a valid custom element name, as it has a dash.
  */
 export function elementTagFor(project: string, className: string): string {
-  const prefix = singularize(tagWords(project)) || "spell"
+  const projectWords = tagWords(project)
+    .split("-")
+    .filter((word) => !DRAWABLE_WORD.test(word))
+    .join("-")
+  const prefix = singularize(tagWords(projectWords)) || "spell"
   return `${prefix}-${tagWords(className)}`
 }
+
+/** The word left out of a project's name in its tags:  "drawable", or "drawables". */
+const DRAWABLE_WORD = /^drawables?$/
 
 /** `name` as a tag's words:  kebab-case, lowercase, only letters, digits and single dashes. */
 function tagWords(name: string): string {
@@ -165,10 +183,51 @@ export type ElementApi = {
   /**
    * Its declared properties, as compiled, e.g. `short_rank`, with their declared types, e.g. `number`,
    * and their legal values if they have some, e.g. `[ace, 2, 3 ...]` for a rank.
+   * - A type that's a class's name, e.g. `Pile`, holds a thing:  its element shows it as a reference, `Pile#T1`.
    */
-  properties: Array<{ name: string; type?: string; values?: unknown[] }>
+  properties: Array<{
+    name: string
+    type?: string
+    values?: unknown[]
+    /** A list it belongs to, holding it (`a card belongs to one pile`):  read only, worked out by the list. */
+    owner?: true
+  }>
   /** Its methods, as compiled, e.g. `turn_over`. */
   methods: string[]
+}
+
+/**
+ * The lists of `Class`'s things that each hold one at most, as properties of `Class`:
+ * `a card belongs to one pile` is `{ name: "pile", type: "Pile", owner: true }` on `Card`.
+ * - Compiled spell gives the card a getter for it, `the pile of a card` (`Pile.ownerOf(card)`), but declares nothing:
+ *   so it's found here, from the program's classes.
+ *   - an exclusive list class, the root of its family:  `Pile.exclusive = true`
+ *   - whose items are `Class`, or a type it extends:  `Pile.instanceType = Card`
+ *   - and `Class`'s things have the getter, named as spell names it:  `pile`
+ * - Only the list classes the program's registry knows of so far (`spellCore.things.knownClasses()`):
+ *   a class is known once one of its things is made, or the program has run.
+ *   A drawable class's element asks once the program's code has run, so in practice they're all known.
+ */
+function ownerPropertiesOf(Class: Function): ElementApi["properties"] {
+  const owners: ElementApi["properties"] = []
+  for (const ListClass of spellCore.things.knownClasses()) {
+    const { exclusive, instanceType } = ListClass as unknown as { exclusive?: boolean; instanceType?: unknown }
+    if (!(ListClass.prototype instanceof List) || !Object.hasOwn(ListClass, "exclusive") || !exclusive) continue
+    if (typeof instanceType !== "function") continue
+    if (Class !== instanceType && !(Class.prototype instanceof instanceType)) continue
+    const name = instanceCase(ListClass.name)
+    if (hasGetter(Class.prototype as object, name)) owners.push({ name, type: ListClass.name, owner: true })
+  }
+  return owners
+}
+
+/** Does `prototype`, or one up its chain, have a getter `name`? */
+function hasGetter(prototype: object, name: string): boolean {
+  for (let at: object | null = prototype; at; at = Object.getPrototypeOf(at)) {
+    const descriptor = Object.getOwnPropertyDescriptor(at, name)
+    if (descriptor) return !!descriptor.get
+  }
+  return false
 }
 
 /** Where `elementApiOf()` stops looking for methods:  spell's own drawable classes, and what they're built on. */

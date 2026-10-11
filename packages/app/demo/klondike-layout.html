@@ -4,7 +4,11 @@
   - Served by the dev server at `/demo/klondike-layout.html`, after `yarn build:element` (epic `drawable-thing`, P9).
   - The `<spell-app>`'s markup IS the app's drawing:  the game's own `to draw` isn't drawn.
   - Each drawable tag is the program's thing named by its `id` (`T1` ... the tableaus;  `clubs` ... the foundations),
-    or its one thing of that type (the stock, the discards).
+    or its one thing of that type (the stock),
+    or the thing a reference in its `thing` attribute names (P18):  `thing="Pile#discards"` is the discards,
+    a discard-pile, which is a pile.
+  - A tag's name leaves out the project's word "drawable":  `<solitaire-tableau>`, not `<drawable-solitaire-tableau>`.
+  - Each card shows the pile holding it as that pile's reference, e.g. `pile="Tableau#T1"`:  see the inspector.
   - The curly-bracket holes and the handlers are spell, compiled in the page against the program:
     the page loads spell's parser for them, and only for them.
   - A handler goes on any element (P12):  an attribute, `on-click="{auto-play}"` or `when-clicked="{...}"`,
@@ -47,29 +51,29 @@
         <button on-click="{auto-play}">AutoPlay</button>
       </div>
       <div class="row">
-        <drawable-solitaire-discard-pile></drawable-solitaire-discard-pile>
+        <solitaire-pile thing="Pile#discards"></solitaire-pile>
         <!-- a <spell> block's lines and indents are spell's:  the formatter leaves them alone -->
         <!-- prettier-ignore -->
-        <drawable-solitaire-stock-pile>
+        <solitaire-stock-pile>
           <spell>
             when double clicked
               play from the stock pile
           </spell>
-        </drawable-solitaire-stock-pile>
+        </solitaire-stock-pile>
         <div></div>
-        <drawable-solitaire-foundation id="clubs"></drawable-solitaire-foundation>
-        <drawable-solitaire-foundation id="diamonds"></drawable-solitaire-foundation>
-        <drawable-solitaire-foundation id="hearts"></drawable-solitaire-foundation>
-        <drawable-solitaire-foundation id="spades"></drawable-solitaire-foundation>
+        <solitaire-foundation id="clubs"></solitaire-foundation>
+        <solitaire-foundation id="diamonds"></solitaire-foundation>
+        <solitaire-foundation id="hearts"></solitaire-foundation>
+        <solitaire-foundation id="spades"></solitaire-foundation>
       </div>
       <div class="row">
-        <drawable-solitaire-tableau id="T1"></drawable-solitaire-tableau>
-        <drawable-solitaire-tableau id="T2"></drawable-solitaire-tableau>
-        <drawable-solitaire-tableau id="T3"></drawable-solitaire-tableau>
-        <drawable-solitaire-tableau id="T4"></drawable-solitaire-tableau>
-        <drawable-solitaire-tableau id="T5"></drawable-solitaire-tableau>
-        <drawable-solitaire-tableau id="T6"></drawable-solitaire-tableau>
-        <drawable-solitaire-tableau id="T7"></drawable-solitaire-tableau>
+        <solitaire-tableau id="T1"></solitaire-tableau>
+        <solitaire-tableau id="T2"></solitaire-tableau>
+        <solitaire-tableau id="T3"></solitaire-tableau>
+        <solitaire-tableau id="T4"></solitaire-tableau>
+        <solitaire-tableau id="T5"></solitaire-tableau>
+        <solitaire-tableau id="T6"></solitaire-tableau>
+        <solitaire-tableau id="T7"></solitaire-tableau>
       </div>
       <div>{the number of cards in the stock} cards left in the stock</div>
     </spell-app>

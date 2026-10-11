@@ -198,6 +198,15 @@ export class ThingRegistry {
   }
 
   /**
+   * Every class `addClass()` has seen:  the program's own, e.g. `Card`, `Pile`, `Tableau` -- NOT spell's own.
+   * - e.g. for what a drawable class's element shows:  `spellCore.elementApiOf()` looks for the lists
+   *   a card belongs to.
+   */
+  knownClasses(): ThingClass[] {
+    return [...new Set(this.classes.values())]
+  }
+
+  /**
    * Things still alive, grouped by `type`, e.g. `Card`:
    * types in order of their first thing, each type's things in the order they were made.
    * - Reads `version`, so a reader calling it re-runs as things come and go.

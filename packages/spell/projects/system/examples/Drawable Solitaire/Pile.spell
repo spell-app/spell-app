@@ -1,5 +1,5 @@
 ## Pile of playing cards
-// a drawable list:  each pile is its own element, <drawable-solitaire-pile>, holding its cards' elements
+// a drawable list:  each pile is its own element, <solitaire-pile>, holding its cards' elements
 a pile is a drawable list of cards:
 	<css>
 		:host {

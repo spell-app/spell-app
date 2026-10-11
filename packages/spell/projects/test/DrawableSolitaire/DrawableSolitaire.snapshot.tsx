@@ -17,7 +17,7 @@ export type Suit = (typeof SUITS)[number]
 const DIRECTIONS = ["up", "down"] as const
 export type Direction = (typeof DIRECTIONS)[number]
 
-/** a drawable thing:  each card draws in its own element, <drawable-solitaire-card>, with its own styles */
+/** a drawable thing:  each card draws in its own element, <solitaire-card>, with its own styles */
 export class Card extends Drawable {
   static elementTag = spellCore.defineElement(this, "test-project")
 
@@ -322,7 +322,7 @@ spellCore.heading("Pile of playing cards")
 ///////////////////////////
 // ## Pile of playing cards
 ///////////////////////////
-/** a drawable list:  each pile is its own element, <drawable-solitaire-pile>, holding its cards' elements */
+/** a drawable list:  each pile is its own element, <solitaire-pile>, holding its cards' elements */
 export class Pile extends DrawableList<Card> {
   static instanceType = Card
   static elementTag = spellCore.defineElement(this, "test-project")

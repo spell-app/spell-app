@@ -322,12 +322,12 @@ describe("compiled spell draws with Solid", () => {
   test("the `Drawable Solitaire` example:  each pile and card its own element, styled by its <css>;  a click still plays", async () => {
     const host = await mount(source(await exampleCompiled("Drawable Solitaire"), "Solitaire"))
     type Element = HTMLElement & { ready: Promise<void> }
-    const cards = () => [...host.querySelectorAll<Element>("drawable-solitaire-card")]
+    const cards = () => [...host.querySelectorAll<Element>("solitaire-card")]
     await waitFor(() => cards().length === 52)
     await ElementFixture.settle(host)
     expect(host.querySelector(".spell-draw-error")).toBeNull()
     // each pile holds its cards' elements, shown through its frame's <children/>, a <slot> on the page
-    const tableaus = () => [...host.querySelectorAll<Element>("drawable-solitaire-tableau")]
+    const tableaus = () => [...host.querySelectorAll<Element>("solitaire-tableau")]
     // dealt with a pause between cards:  wait for the last
     await waitFor(() => tableaus()[6]?.children.length === 7, 10_000)
     await ElementFixture.settle(host)
@@ -338,7 +338,7 @@ describe("compiled spell draws with Solid", () => {
     const down = faces.find((face) => face!.classList.contains("face-down"))!
     expect(getComputedStyle(down).backgroundImage).toContain("repeating-linear-gradient")
     // the pile's own <css>:  a stacked pile's cards sit on each other
-    const stock = host.querySelector<Element>("drawable-solitaire-stock-pile")!
+    const stock = host.querySelector<Element>("solitaire-stock-pile")!
     expect(getComputedStyle(stock.lastElementChild!).position).toBe("absolute")
 
     // each card shows its thing's rank, suit and direction as attributes, for the inspector (P13)
@@ -357,15 +357,21 @@ describe("compiled spell draws with Solid", () => {
       "T6",
       "T7"
     ])
+    // ... and the pile holding it, as that pile's reference (P18):  each tableau's cards say so
+    expect(tableaus().map((tableau) => [...tableau.children].map((card) => card.getAttribute("pile")))).toEqual(
+      [1, 2, 3, 4, 5, 6, 7].map((count, index) => Array<string>(count).fill(`Tableau#T${index + 1}`))
+    )
+    expect(stock.lastElementChild!.getAttribute("pile")).toBe("StockPile#stock")
 
-    const discards = () => host.querySelector("drawable-solitaire-discard-pile")!.children.length
+    const discards = () => host.querySelector("solitaire-discard-pile")!.children.length
     expect(discards()).toBe(0)
     const played = stock.lastElementChild as HTMLElement
     expect(played.getAttribute("direction")).toBe("down")
     played.shadowRoot!.querySelector<HTMLElement>(".card")!.click()
     await waitFor(() => discards() > 0)
-    // ... and they follow as the game plays:  the card played from the stock is face up
+    // ... and they follow as the game plays:  the card played from the stock is face up, on the discards
     await waitFor(() => played.getAttribute("direction") === "up")
+    await waitFor(() => played.getAttribute("pile") === "DiscardPile#discards")
   })
 
   test('a drawable list\'s frame:  its cards in its <children/>, a child written in="header" in its <children name="header"/>', async () => {
@@ -390,18 +396,15 @@ describe("compiled spell draws with Solid", () => {
   test("`Drawable Solitaire` run again, edited, on the same page:  its tags stay, its cards take the new <css>", async () => {
     const program = await exampleCompiled("Drawable Solitaire")
     const first = await mount(source(program, "Solitaire"))
-    await waitFor(() => first.querySelectorAll("drawable-solitaire-card").length === 52)
+    await waitFor(() => first.querySelectorAll("solitaire-card").length === 52)
     // the card's back, edited:  a new colour in its <css>
     const edited = program.replace("#3a6, #3a6 4px, #285 4px, #285 8px", "#36a, #36a 4px, #258 4px, #258 8px")
     expect(edited).not.toBe(program)
     const second = await mount(source(edited, "Solitaire"))
-    await waitFor(() => second.querySelectorAll("drawable-solitaire-card").length === 52)
+    await waitFor(() => second.querySelectorAll("solitaire-card").length === 52)
     await ElementFixture.settle(second)
     expect(second.querySelector(".spell-draw-error")).toBeNull()
-    const backs = [
-      ...first.querySelectorAll("drawable-solitaire-card"),
-      ...second.querySelectorAll("drawable-solitaire-card")
-    ]
+    const backs = [...first.querySelectorAll("solitaire-card"), ...second.querySelectorAll("solitaire-card")]
       .map((card) => card.shadowRoot?.querySelector(".card.face-down"))
       .filter((back): back is Element => !!back)
     expect(backs.length).toBeGreaterThan(0)
@@ -413,10 +416,10 @@ describe("compiled spell draws with Solid", () => {
     const program = await exampleCompiled("Drawable Solitaire")
     const { host, setSource } = await mountSettable(source(program, "Solitaire"))
     type Element = HTMLElement & { ready: Promise<void> }
-    const tableaus = () => [...host.querySelectorAll<Element>("drawable-solitaire-tableau")]
+    const tableaus = () => [...host.querySelectorAll<Element>("solitaire-tableau")]
     await waitFor(() => tableaus()[6]?.children.length === 7, 10_000)
-    const stock = () => host.querySelector<Element>("drawable-solitaire-stock-pile")!
-    const discards = () => host.querySelector<Element>("drawable-solitaire-discard-pile")!
+    const stock = () => host.querySelector<Element>("solitaire-stock-pile")!
+    const discards = () => host.querySelector<Element>("solitaire-discard-pile")!
     await ElementFixture.settle(host)
     // played:  a card from the stock to the discards, face up
     ;(stock().lastElementChild as HTMLElement).shadowRoot!.querySelector<HTMLElement>(".card")!.click()
@@ -427,7 +430,7 @@ describe("compiled spell draws with Solid", () => {
     const game = () =>
       [
         ...host.querySelectorAll(
-          "drawable-solitaire-stock-pile, drawable-solitaire-discard-pile, drawable-solitaire-foundation, drawable-solitaire-tableau"
+          "solitaire-stock-pile, solitaire-discard-pile, solitaire-foundation, solitaire-tableau"
         )
       ].map((pile) =>
         [...pile.children].map((card) => ["rank", "suit", "direction"].map((name) => card.getAttribute(name)).join(" "))
@@ -440,12 +443,10 @@ describe("compiled spell draws with Solid", () => {
     const said = vi.spyOn(console, "info")
     cleanups.push(() => said.mockRestore())
     setSource(source(edited, "Solitaire"))
-    await waitFor(
-      () => host.querySelector("drawable-solitaire-tableau")?.children.length === 1 && game().flat().length === 52
-    )
+    await waitFor(() => host.querySelector("solitaire-tableau")?.children.length === 1 && game().flat().length === 52)
     await ElementFixture.settle(host)
     expect(game()).toEqual(before)
-    const back = [...host.querySelectorAll("drawable-solitaire-card")]
+    const back = [...host.querySelectorAll("solitaire-card")]
       .map((card) => card.shadowRoot!.querySelector(".card.face-down"))
       .find((face) => !!face)!
     expect(getComputedStyle(back).backgroundImage).toContain("rgb(51, 102, 170)")

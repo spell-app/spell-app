@@ -4,7 +4,7 @@ import h from "@solidjs/h"
 
 import { spellCore, App, Drawable, DrawableList } from "$/core"
 import { ElementFixture } from "$/ui/test/ElementFixture"
-import { installSpellElements } from "./SpellElement"
+import { installSpellElements, SpellElement } from "./SpellElement"
 
 import "$/app/solid/cellsBridge"
 
@@ -460,6 +460,148 @@ describe("SpellElement", () => {
       settle()
       expect(first!.getAttribute("direction")).toBe("up")
       root.remove()
+    })
+  })
+
+  describe("thing references:  Type#name, Type#1, an attribute holding a thing (P18)", () => {
+    /** A chip:  drawn as its label;  its home a stack, declared;  the stack holding it, worked out. */
+    class Chip extends Drawable {
+      static elementTag = spellCore.defineElement(this, "Drawable Board")
+      get label() {
+        return this.getProp("label")
+      }
+      set label(value) {
+        this.setProp("label", value)
+      }
+      get home() {
+        return this.getProp("home")
+      }
+      set home(value) {
+        this.setProp("home", value)
+      }
+      draw(): ReturnType<Drawable["draw"]> {
+        return (h("i", {}, () => `${this.label}`) as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    Chip.declareProp("label", { type: "text" })
+    Chip.declareProp("home", { type: "Stack" })
+    /** A stack of chips, each in one stack at a time:  drawn as its name. */
+    class Stack extends DrawableList<Chip> {
+      static elementTag = spellCore.defineElement(this, "Drawable Board")
+      static instanceType = Chip
+      get name() {
+        return this.getProp("name")
+      }
+      set name(value) {
+        this.setProp("name", value)
+      }
+      draw(): ReturnType<Drawable["draw"]> {
+        return (h("b", {}, () => `${this.name}`) as unknown as () => ReturnType<Drawable["draw"]>)()
+      }
+    }
+    Stack.declareProp("name", { type: "text" })
+    Stack.exclusive = true
+    // `a chip belongs to one stack`, as spell compiles it
+    Object.defineProperty(Chip.prototype, "stack", {
+      get(this: Chip) {
+        return Stack.ownerOf(this)
+      },
+      configurable: true
+    })
+    /** A column is a stack. */
+    class Column extends Stack {
+      static elementTag = spellCore.defineElement(this, "Drawable Board")
+    }
+    /** A stack that takes nothing. */
+    class Locked extends Stack {
+      static elementTag = spellCore.defineElement(this, "Drawable Board")
+      canTake() {
+        return false
+      }
+    }
+    // the program's things, made before its tags are defined, as a program's are;
+    // kept, as a program keeps them:  the registry holds things weakly
+    const c1 = new Column({ name: "C1" })
+    const c2 = new Column({ name: "C2" })
+    const l1 = new Locked({ name: "L1" })
+
+    /** A chip's element, as a page's script sees it. */
+    type ChipElement = HTMLElement & { stack: unknown; home: unknown; component?: { currentThing?: Chip } }
+
+    /** Let the things' and Solid's changes run. */
+    function settle() {
+      spellCore.flush()
+      flush()
+    }
+
+    test("the tag leaves the project's word drawable out:  <board-column>", () => {
+      expect(customElements.get("board-column")).toBeDefined()
+      expect(customElements.get("drawable-board-column")).toBeUndefined()
+    })
+
+    test("thing=Column#C1, Column#1 and Stack#C1 each find the column C1;  one that finds nothing says so", async () => {
+      const root = await ElementFixture.render<HTMLElement>(
+        "<div>" +
+          '<board-column thing="Column#C1"></board-column>' +
+          '<board-column thing="Column#1"></board-column>' +
+          '<board-stack thing="Stack#C1"></board-stack>' +
+          '<board-column thing="Column#2"></board-column>' +
+          '<board-column thing="Column#C9"></board-column>' +
+          "</div>"
+      )
+      await ElementFixture.settle(root)
+      settle()
+      const drawn = [...root.children].map((element) => element.shadowRoot?.textContent)
+      expect(drawn).toEqual(["C1", "C1", "C1", "C2", "⚠ no Column#C9"])
+      const things = [...root.children].map((element) => SpellElement.thingOf(element))
+      expect(things.slice(0, 3)).toEqual([c1, c1, c1])
+    })
+
+    test("a chip's stack shows as that stack's reference and follows it;  setting it moves the chip, if the stack takes it", async () => {
+      const chip = await ElementFixture.render<ChipElement>('<board-chip label="red"></board-chip>')
+      await ElementFixture.settle(chip)
+      settle()
+      const thing = chip.component!.currentThing!
+      expect(chip.hasAttribute("stack")).toBe(false)
+
+      chip.setAttribute("stack", "Column#C1")
+      settle()
+      expect(Stack.ownerOf(thing)).toBe(c1)
+      expect(chip.stack).toBe("Column#C1")
+
+      spellCore.move(thing, c2)
+      settle()
+      expect(chip.getAttribute("stack")).toBe("Column#C2")
+
+      // a stack that won't take it:  it stays, and the attribute says where it is
+      chip.setAttribute("stack", "Locked#L1")
+      settle()
+      expect(Stack.ownerOf(thing)).toBe(c2)
+      expect(l1.items).toEqual([])
+      expect(chip.getAttribute("stack")).toBe("Column#C2")
+
+      // the stack itself, as a page's script might hand it over
+      chip.stack = c1
+      settle()
+      expect(Stack.ownerOf(thing)).toBe(c1)
+      expect(chip.getAttribute("stack")).toBe("Column#C1")
+    })
+
+    test("a property declared as a thing:  its attribute is the thing's reference, both ways", async () => {
+      const chip = await ElementFixture.render<ChipElement>('<board-chip label="blue" home="Stack#C2"></board-chip>')
+      await ElementFixture.settle(chip)
+      settle()
+      const thing = chip.component!.currentThing!
+      // the tag's attribute won:  the thing it made took the column it names
+      expect(thing.home).toBe(c2)
+
+      thing.home = c1
+      settle()
+      expect(chip.getAttribute("home")).toBe("Column#C1")
+      expect(chip.home).toBe("Column#C1")
+
+      chip.removeAttribute("home")
+      expect(thing.home).toBeUndefined()
     })
   })
 })

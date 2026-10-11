@@ -1,5 +1,5 @@
 ## definition of a Card with nice english aliases for working with it
-// a drawable thing:  each card draws in its own element, <drawable-solitaire-card>, with its own styles
+// a drawable thing:  each card draws in its own element, <solitaire-card>, with its own styles
 a card is a drawable thing:
 	<css>
 		:host {
