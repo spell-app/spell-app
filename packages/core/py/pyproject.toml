@@ -1,6 +1,7 @@
 # spell_core:  the Python twin of `@spell-app/core`, what Python compiled from spell imports.
 # - Run from the repo root:
 #   - its tests:  `uv run --directory packages/core/py pytest`
+#   - the terminal study's (not in the run above):  `uv run --directory packages/core/py --group study pytest experiments/terminal`
 #   - tidy it:  `uv run --directory packages/core/py ruff check --fix` and `... ruff format`
 # - Core's own `yarn test` runs the tests too (its package.json), so `yarn review` does.
 
@@ -13,6 +14,8 @@ dependencies = []
 
 [dependency-groups]
 dev = ["pytest==9.1.1", "ruff==0.17.0"]
+# P15's terminal study (experiments/terminal/):  never what spell_core itself needs, which is standard library only
+study = ["rich==15.0.0", "textual==8.2.8"]
 
 [build-system]
 requires = ["uv_build>=0.12.13,<0.13"]
