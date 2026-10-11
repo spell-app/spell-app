@@ -1,7 +1,14 @@
 import { describe, test, expect } from "vite-plus/test"
 
 import { SP } from "$/spell"
-import { compiledFixture, fixtureDeclarations, fixturePath, fixtureProjectNames, fixtureWords } from "$/spell/test"
+import {
+  PYTHON_FIXTURES,
+  compiledFixture,
+  fixtureDeclarations,
+  fixturePath,
+  fixtureProjectNames,
+  fixtureWords
+} from "$/spell/test"
 
 /**
  * Every fixture project in `projects/test/` compiled, against its snapshot beside it:
@@ -42,9 +49,3 @@ describe("fixture projects compile to their snapshots", () => {
     })
   }
 })
-
-/**
- * The fixtures the Python writer writes, so far:  each later phase of epic `python-target` adds the ones it makes
- * write (things and lists, pauses and events, drawing).
- */
-const PYTHON_FIXTURES = new Set(["FizzBuzz"])

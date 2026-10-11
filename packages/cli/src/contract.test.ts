@@ -7,7 +7,7 @@ import { describe, test, expect } from "vite-plus/test"
 import { P } from "$/parser"
 import { buildTsx } from "$/spell/node/buildTsx"
 import { SP } from "$/spell"
-import { compiledFixture, fixtureImports, fixtureProjectNames } from "$/spell/test"
+import { PYTHON_FIXTURES, compiledFixture, fixtureImports, fixtureProjectNames } from "$/spell/test"
 import { CLI } from "$/cli"
 
 /**
@@ -16,7 +16,8 @@ import { CLI } from "$/cli"
  * - What it prints is pinned in `__snapshots__/contract/<Project>.out.txt`.
  * - So a target's core is right when it prints what the snapshot says.
  *   - `js/solid` and `ts/solid` share `@spell/core` today.
- *   - Python's core (a later epic) must print the same.
+ *   - Python's core, `spell_core` (`packages/core/py`), prints the same:  the fixtures its writer writes so far,
+ *     `PYTHON_FIXTURES` (epic `python-target`).
  *   - What a core must HAVE is `SC.SpellCore` (`packages/core/src/spellCore.types.ts`).
  * - The snapshot catches a broken core method, which both targets would share.
  * - A fixture that imports another (`Klondike` imports `Cards`)
@@ -73,7 +74,9 @@ async function importedProjects(
     if (projects[projectId]) continue
     let code = compiledFixture(fixture, target)
     if (TARGET_FILES[target] === ".tsx") code = await buildTsx(code, { filename: `${fixture}.compiled.tsx` })
-    const file = join(folder, `${fixture}.compiled.mjs`)
+    // Python imports another project as a module of its name, `from cards import Card`
+    const isPython = TARGET_FILES[target] === ".py"
+    const file = join(folder, isPython ? `${P.PyWriter.projectModule(module)}.py` : `${fixture}.compiled.mjs`)
     writeFileSync(file, code)
     projects[projectId] = pathToFileURL(file).href
     await importedProjects(fixture, target, folder, projects)
@@ -90,8 +93,12 @@ describe("the core contract:  every target prints the same", () => {
     test(
       name,
       async () => {
-        const [js, ts] = await Promise.all([printed(name, "js/solid"), printed(name, "ts/solid")])
-        expect(ts.split("\n")).toEqual(js.split("\n"))
+        // Python only where its writer writes the fixture so far -- see `PYTHON_FIXTURES`
+        const targets = Object.keys(SP.TARGETS).filter((target) => target !== "py" || PYTHON_FIXTURES.has(name))
+        const [js, ...others] = await Promise.all(targets.map((target) => printed(name, target)))
+        for (const [index, other] of others.entries()) {
+          expect(other!.split("\n"), `${name} on ${targets[index + 1]}`).toEqual(js!.split("\n"))
+        }
         await expect(js).toMatchFileSnapshot(resolve(import.meta.dirname, `__snapshots__/contract/${name}.out.txt`))
       },
       60_000

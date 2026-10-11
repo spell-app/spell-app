@@ -1,7 +1,7 @@
-import { spawn } from "child_process"
+import { spawn, type ChildProcess } from "child_process"
 import { mkdtempSync, rmSync, writeFileSync } from "fs"
 import { tmpdir } from "os"
-import { resolve } from "path"
+import { delimiter, dirname, resolve } from "path"
 import { fileURLToPath, pathToFileURL } from "url"
 
 import environment from "$/spell/node/environment"
@@ -15,6 +15,42 @@ const CLI_SRC_DIR = resolve(fileURLToPath(import.meta.url), "..", "..")
 
 /** Extension of Solid TypeScript (`ts/solid`), which `runCode()` builds before running. */
 const TSX = ".tsx"
+
+/** Extension of Python (`py`), which `runCode()` runs under Python -- see `runPython()`. */
+const PY = ".py"
+
+/** `spell_core`'s folder, the Python core:  a uv project, `packages/core/py`. */
+const SPELL_CORE_PY_DIR = resolve(environment.spellCoreDir, "..", "py")
+
+/**
+ * Run `code`, project `name` compiled to Python, as `python -m spell_core.run` -- through `uv`, in `spell_core`'s
+ * own project, so its Python and `spell_core` are there (epic `python-target` P9).
+ * - `projects`:  what it imports, by id:  each a `.py` module's file URL, e.g. `.../cards.py`.  Their folders go on
+ *   the import path, so `from cards import Card` finds it.
+ * - `seed`:  its random numbers start from it, as the javascript's do.
+ * - It prints straight to stdout and stderr:  no fake page, no `RunReport` (nothing is skipped).
+ */
+async function runPython(
+  name: string,
+  code: string,
+  { projects, capture, seed }: { projects: Record<string, string>; capture: boolean; seed?: number }
+): Promise<ChildResult> {
+  const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
+  try {
+    const entry = resolve(folder, `${name}.compiled${PY}`)
+    writeFileSync(entry, code)
+    const imports = Object.values(projects).map((url) => dirname(fileURLToPath(url)))
+    const args = ["run", "--quiet", "--project", SPELL_CORE_PY_DIR, "python", "-m", "spell_core.run", entry]
+    if (seed !== undefined) args.push("--seed", String(seed))
+    const env = { ...process.env, PYTHONPATH: [...new Set(imports)].join(delimiter) }
+    const stdio: ("ignore" | "pipe" | "inherit")[] = capture
+      ? ["ignore", "pipe", "pipe"]
+      : ["inherit", "inherit", "inherit"]
+    return await collected(spawn("uv", args, { stdio, env }))
+  } finally {
+    rmSync(folder, { recursive: true, force: true })
+  }
+}
 
 /**
  * `spell run [project]`:  compile one project and run it under node -- its `print`s show as they happen.
@@ -121,6 +157,7 @@ export async function runCompiled(
  * - `projects`:  what it imports, by id -- see `importedOutputs()`.
  * - `dom`:  in a fake page, printing what it draws -- see `CLI.RunSpec`.
  * - `seed`:  its random numbers start from it -- see `CLI.RunSpec`.
+ * - A `.py` (the `py` target's Python) runs under Python instead -- see `runPython()`.
  * - Used by the core contract test, `contract.test.ts`, to run each target's code the same way.
  */
 export async function runCode(
@@ -135,6 +172,7 @@ export async function runCode(
     ...options
   }: CLI.TestOptions & { extension?: string; projects?: Record<string, string>; capture?: boolean; dom?: boolean } = {}
 ): Promise<ChildResult> {
+  if (extension === PY) return runPython(name, code, { projects, capture, seed: options.seed })
   const folder = mkdtempSync(resolve(tmpdir(), "spell-run-"))
   try {
     if (extension === TSX) {
@@ -212,8 +250,12 @@ function runChild(spec: CLI.RunSpec, capture: boolean): Promise<ChildResult> {
     ? ["ignore", "pipe", "pipe"]
     : ["inherit", "inherit", "inherit"]
   if (spec.mode === "run") stdio.push("ipc")
+  return collected(spawn(process.execPath, args, { stdio, env }))
+}
+
+/** What `child` writes -- see `ChildResult` -- once it exits;  what it skipped, if it says (`CLI.RunReport`). */
+function collected(child: ChildProcess): Promise<ChildResult> {
   return new Promise((done) => {
-    const child = spawn(process.execPath, args, { stdio, env })
     let output = ""
     let stdout = ""
     let stderr = ""
