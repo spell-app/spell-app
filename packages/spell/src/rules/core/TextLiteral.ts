@@ -128,8 +128,9 @@ export function parseFillIns(scope: P.Scope, inner: string): FillInParts | undef
 /**
  * One fill-in's words, parsed as an expression -- `its <words>` if they're a property of `it`'s type,
  * e.g. `[rank]` in a card's getter.  `undefined` if it doesn't parse, whole.
+ * - Markdown's `{holes}` read the same way:  see `markdown_block`.
  */
-function parseFillIn(scope: P.Scope, words: string): P.Match | undefined {
+export function parseFillIn(scope: P.Scope, words: string): P.Match | undefined {
   if (!words) return undefined
   const itType = scope.getType(scope.variables?.get("it")?.datatype)
   const source = itType?.getMember(words) ? `its ${words}` : words

@@ -25,13 +25,13 @@ import { assignment } from "./assignment"
 import { expressions, Negatable } from "./expressions"
 import { statements } from "./statements"
 import { _if_ } from "./if"
-import { JSX, SPELL_TAG_NAMES, type JSXMatchData } from "./JSX"
+import { JSX, SPELL_TAG_NAMES, type JSXMatchData, MarkdownBlock } from "./JSX"
 import { lists } from "./lists"
 import { math } from "./math"
 import { properties } from "./properties"
 import { events } from "./events"
 import { UI } from "./UI"
-import { classes } from "./classes"
+import { classes, MarkdownDescription } from "./classes"
 import { methods } from "./methods"
 import { _async } from "./async"
 import { draw } from "./draw"
@@ -77,6 +77,11 @@ export { Block, BlockLine }
 export type { JSXMatchData }
 /** Export so editors can offer spell's own JSX tags, e.g. `<children/>` -- see `SPELL_TAG_NAMES`. */
 export { SPELL_TAG_NAMES }
+
+/** Export so editors can show a type's `<markdown>` description where its docstring shows -- e.g. hover. */
+export { MarkdownDescription }
+/** Export so a `<spell-app>` layout's `<markdown>` splits its holes as a drawing's does -- see `MarkdownBlock.partsOf()`. */
+export { MarkdownBlock }
 
 // Structural rules.  `SpellBlankLine` and `BlockLine` set `static ruleName`:  their class names don't give them.
 spellParser.addRule(SpellBlankLine)

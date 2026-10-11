@@ -3,6 +3,7 @@ import { P } from "$/parser"
 import { SP } from "$/spell"
 import { JSX } from "./JSX.parser"
 import { SPELL_TAG_NAMES, type JSXMatchData } from "./JSX.shared"
+import { MarkdownBlock } from "./MarkdownBlock"
 import { SpellJSXContent } from "./SpellJSXContent"
 
 /**
@@ -62,7 +63,7 @@ export class SpellJSX extends P.TokenType<never, JSXMatchData> {
 
   /**
    * Parse errors from JSX anywhere in `statement`:  a `{...}` that didn't parse, e.g. `print <div>{foo bar}</div>`,
-   * or a dotted tag, `<UI.Form>`.
+   * a dotted tag, `<UI.Form>`, or a markdown hole that didn't (`markdown_block`).
    * - JSX rules keep what they parse out of their tokens in `match.data`, not `matched`,
    *   so nothing else finds these.
    * - Looks through the statement's own matches and any inline body.
@@ -87,6 +88,7 @@ export class SpellJSX extends P.TokenType<never, JSXMatchData> {
         if (match.data.error) errors.push(match.data.error)
         below.push(match.data.expression, match.data.statement)
       }
+      if (match.is(MarkdownBlock)) errors.push(...(match.data.errors ?? []))
       below.push(match.data.body as P.Match | undefined)
       for (const item of below) if (item instanceof P.Match) visit(item)
     }
