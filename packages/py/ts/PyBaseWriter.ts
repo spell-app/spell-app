@@ -77,10 +77,16 @@ export class PyBaseWriter extends P.ProgramWriter {
       const used = all.filter((name) => new RegExp(`\\b${name}\\b${CALLED.has(name) ? "\\(" : ""}`).test(body))
       return used.length ? `from spell_core import ${used.join(", ")}` : ""
     })
-    // a pattern, `re.compile(...)`:  Python's `re`, first, as PEP 8 orders imports (the standard library's first)
-    const withRe = /\bre\.compile\(/.test(imported) ? `import re\n${imported}` : imported
+    // the standard library's modules it uses, first, in order, as PEP 8 orders imports:
+    // rounding, `math.floor(...)`;  a pattern, `re.compile(...)`
+    const standard = [/\bmath\.\w+\(/.test(imported) && "math", /\bre\.compile\(/.test(imported) && "re"].filter(
+      Boolean
+    )
+    const withStandard = standard.length
+      ? `${standard.map((name) => `import ${name}`).join("\n")}\n${imported}`
+      : imported
     // no import left, or a heading that writes nothing:  no blank lines first
-    const written = withRe.replace(/^\n+/, "")
+    const written = withStandard.replace(/^\n+/, "")
     // hints:  read when needed, so one may name a class written further down (`-> Pile` in `Card`)
     return /\) -> |\w: [A-Z]\w*\b/.test(written) ? `${PyBaseWriter.FUTURE}\n${written}` : written
   }
@@ -481,6 +487,14 @@ export class PyBaseWriter extends P.ProgramWriter {
         return first && second ? this.typeTest(first, second) : undefined
       case "getRange":
         return this.range(first, second)
+      // Python's own rounding (Owen, on Q29):  `round` as javascript's `Math.round()`, a half up, not Python's
+      // `round()`, which rounds a half to the even number (2.5 is 2)
+      case "round":
+        return first ? `math.floor(${this.operand(first, "plus", "lhs")} + 0.5)` : undefined
+      case "roundUp":
+        return first ? `math.ceil(${this.bare(first)})` : undefined
+      case "roundDown":
+        return first ? `math.floor(${this.bare(first)})` : undefined
       case "test":
         // a test called from a value, not a statement:  `core.test(name, fn)`
         return undefined
