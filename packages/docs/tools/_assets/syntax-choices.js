@@ -10,6 +10,8 @@
  *   table File | Purpose | Current | Recommended, rows by file, then line.
  *   - The data's `fileColumn: false` drops the File column, for rows whose place in the code doesn't matter to the
  *     reader (a list of commands):  Purpose | Current | Recommended, rows in the data's order
+ *   - The data's `stacked: true` puts Current and Recommended in ONE column, Syntax:  today's as text, the box for
+ *     the new one under it (Owen, 2026-10-11, the epic command's review page)
  *   - File:  `vscode://file/<checkout>/<file>:<line>`, which VS Code opens AT the line.  The checkout is the one the
  *     page server serves (`SPELL_SERVER.root`;  a `/worktrees/<w>/` page:  that worktree).  In VS Code's side bar the
  *     frame can't follow it, so the click goes to the view as `{ spell: "open", kind: "external" }`, which hands it to
@@ -94,7 +96,10 @@
   function draw(data) {
     const holder = document.querySelector("[data-choices-sections]")
     const hasFile = data.fileColumn !== false
-    const html = (data.sections ?? []).map((section) => sectionHTML(section, data.rows ?? [], hasFile)).join("\n")
+    const stacked = data.stacked === true
+    const html = (data.sections ?? [])
+      .map((section) => sectionHTML(section, data.rows ?? [], hasFile, stacked))
+      .join("\n")
     holder.insertAdjacentHTML("beforebegin", html)
     holder.remove()
     for (const row of data.rows ?? []) {
@@ -109,19 +114,27 @@
   /**
    * One section:  a folded `<ui-section>`, its rule, its table.
    * - `hasFile`:  the File column, rows by file, then line;  without it (`fileColumn: false`), rows in the data's order
+   * - `stacked`:  one Syntax column, today's text over the box (`stacked: true`)
    */
-  function sectionHTML(section, all, hasFile) {
+  function sectionHTML(section, all, hasFile, stacked) {
     const mine = all.filter((row) => row.section === section.id)
     if (hasFile) mine.sort((a, b) => a.file.localeCompare(b.file) || a.line - b.line)
     const rule = section.description ? `<p class="spell-choices-rule">${text(section.description)}</p>` : ""
     const fileHead = hasFile ? "<th>File</th>" : ""
-    const tableClass = hasFile ? "spell-choices-table" : "spell-choices-table spell-choices-no-file"
+    const tableClass = [
+      "spell-choices-table",
+      hasFile ? "" : "spell-choices-no-file",
+      stacked ? "spell-choices-stacked" : ""
+    ]
+      .filter(Boolean)
+      .join(" ")
+    const syntaxHeads = stacked ? "<th>Syntax:  today, then yours</th>" : "<th>Current</th><th>Recommended</th>"
     return `<ui-section id="${attr(section.id)}" header="${attr(section.title)}" badge="${attr(badge(mine, 0))}" sticky collapsible dividing collapsed>
       <ui-icon slot="icon" name="${attr(section.icon ?? SECTION_ICON)}"></ui-icon>${rule}
       <ui-table class="${tableClass}" celled compact unstackable>
         <table>
-          <thead><tr>${fileHead}<th>Purpose</th><th>Current</th><th>Recommended</th></tr></thead>
-          <tbody>${mine.map((row) => rowHTML(row, hasFile)).join("")}</tbody>
+          <thead><tr>${fileHead}<th>Purpose</th>${syntaxHeads}</tr></thead>
+          <tbody>${mine.map((row) => rowHTML(row, hasFile, stacked)).join("")}</tbody>
         </table>
       </ui-table>
     </ui-section>`
@@ -135,8 +148,8 @@
     return counts.join(" · ")
   }
 
-  /** One row:  the file link (and its folder) when `hasFile`, purpose (and note), current, the box. */
-  function rowHTML(row, hasFile) {
+  /** One row:  the file link (and its folder) when `hasFile`, purpose (and note), current, the box (`stacked`:  one cell). */
+  function rowHTML(row, hasFile, stacked) {
     const stays = row.recommended === row.current
     const tag = stays ? ` <ui-label class="spell-choice-stays" size="mini" basic>stays</ui-label>` : ""
     const note = row.note ? `<div class="spell-choice-note">${text(row.note)}</div>` : ""
@@ -144,8 +157,12 @@
     return `<tr id="${attr(`row-${row.id}`)}" data-choice="${attr(row.id)}"${stays ? " data-stays" : ""}>
       ${hasFile ? fileCell(row) : ""}
       <td class="spell-choice-purpose">${escape(row.purpose)}${tag}${note}</td>
-      <td class="spell-choice-current"><code>${escape(row.current)}</code></td>
-      <td class="spell-choice-pick"><div class="spell-choice-field"><textarea class="spell-choice-input" rows="1" spellcheck="false" autocomplete="off" aria-label="${attr(label)}">${escape(row.recommended)}</textarea><button type="button" class="spell-choice-reset" aria-label="Back to the recommendation" title="${attr(`Back to ${row.recommended}`)}" hidden><ui-icon name="clock rotate left"></ui-icon></button></div></td>
+      ${
+        stacked
+          ? `<td class="spell-choice-syntax spell-choice-pick"><code class="spell-choice-was">${escape(row.current)}</code><br>`
+          : `<td class="spell-choice-current"><code>${escape(row.current)}</code></td>
+      <td class="spell-choice-pick">`
+      }<div class="spell-choice-field"><textarea class="spell-choice-input" rows="1" spellcheck="false" autocomplete="off" aria-label="${attr(label)}">${escape(row.recommended)}</textarea><button type="button" class="spell-choice-reset" aria-label="Back to the recommendation" title="${attr(`Back to ${row.recommended}`)}" hidden><ui-icon name="clock rotate left"></ui-icon></button></div></td>
     </tr>`
   }
 
