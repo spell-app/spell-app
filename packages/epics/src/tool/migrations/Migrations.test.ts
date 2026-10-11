@@ -21,7 +21,7 @@ function olderDoc(): Document {
 
 describe("Migrations", () => {
   test("every step by name, in order;  `named()` finds one", () => {
-    expect(Migrations.all.map((step) => step.name)).toEqual(["updates-as-epic-update"])
+    expect(Migrations.all.map((step) => step.name)).toEqual(["updates-as-epic-update", "owen-types-to-you-type"])
     expect(Migrations.named("updates-as-epic-update")?.description).toMatch(/<epic-update at summary>/)
     expect(Migrations.named("nope")).toBeUndefined()
   })
@@ -71,5 +71,31 @@ describe("UpdateSummary", () => {
   test("of nodes:  their text, a space between blocks", () => {
     const { document } = parseHTML("<div><p>First</p><p>block. Second.</p></div>")
     expect(UpdateSummary.of(document.querySelector("div")!.childNodes)).toBe("First block")
+  })
+})
+
+describe("owen-types-to-you-type", () => {
+  const page = (body: string) =>
+    parseHTML(`<html><body><main><epic-page epic="x" title="X">${body}</epic-page></main></body></html>`)
+      .document as unknown as Document
+  const step = Migrations.named("owen-types-to-you-type")!
+  const context = { now: new Date() }
+
+  test('"Owen types" becomes "You type" at a sentence\'s start, "you type" inside one;  twice:  nothing more', () => {
+    const doc = page(
+      `<ul><li>Owen types <code>epic list</code>.</li><li>Then Owen types it again. Owen types more.</li></ul>`
+    )
+    expect(step.run(doc, context)).toBe(true)
+    expect(doc.querySelector("ul")!.textContent).toBe("You type epic list.Then you type it again. You type more.")
+    expect(step.run(doc, context)).toBe(false)
+  })
+
+  test("records stay as written:  his quoted words, code, the log, the kickoff prompt", () => {
+    const doc = page(
+      `<q>Owen types fast</q><code>Owen types</code><epic-event at="x">Owen types it</epic-event>` +
+        `<epic-aside title="Owen's words"><p>Owen types</p></epic-aside><epic-prompt><p>Owen types</p></epic-prompt>`
+    )
+    expect(step.run(doc, context)).toBe(false)
+    expect(doc.querySelector("q")!.textContent).toBe("Owen types fast")
   })
 })
