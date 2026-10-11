@@ -98,7 +98,7 @@ export class TSWriter extends JSWriter {
     for (const [type, undeclared] of this.project.undeclared) {
       if (!this.project.importedMembers.has(type)) continue
       const members = undeclared.map((it) => this.undeclaredMember(type, it))
-      code = `${code.replace(/\n*$/, "")}\nexport interface ${type} {\n${indented(members.join("\n"))}\n}\n`
+      code = `${code.replace(/\n*$/, "")}\nexport interface ${this.typeNameOf(type)} {\n${indented(members.join("\n"))}\n}\n`
     }
     // each class imported from another project, by its name here => [its module, its name there]
     const imported = importedClasses(code)
@@ -122,14 +122,14 @@ export class TSWriter extends JSWriter {
   /**
    * TypeScript for spell's `datatype`, e.g. `string` for `text`, `Card` for `Card`;
    * `undefined` if spell doesn't know it, or it has no TypeScript.
-   * - A type spell's project declares is in PascalCase, e.g. `Card`:  as is.
+   * - A type spell's project declares is in PascalCase, e.g. `Card`:  as we write a type's name (`typeNameOf()`).
    * - `list of cards`:  as `list`.
    */
   typeFor(datatype: P.Datatype | RegExpConstructor | undefined): string | undefined {
     if (typeof datatype !== "string" || !datatype) return undefined
     if (datatype.startsWith("list")) return TSWriter.TYPES.list
     if (Object.hasOwn(TSWriter.TYPES, datatype)) return TSWriter.TYPES[datatype]
-    if (/^[A-Z][A-Za-z0-9_$]*$/.test(datatype)) return datatype
+    if (/^[A-Z][A-Za-z0-9_$]*$/.test(datatype)) return this.typeNameOf(datatype)
     return undefined
   }
 
@@ -514,7 +514,9 @@ export class TSWriter extends JSWriter {
       if (declares.length) body = body.replace(/\}$/, `\n${declares.join("\n")}\n}`).replace("{}\n", "{\n")
       // a method the classes below it define:  merged in after it, one block, a member a line
       const methods = undeclared.filter((it) => it.method).map((it) => this.undeclaredMember(type.name, it))
-      if (methods.length) body = `${body}\nexport interface ${type.name} {\n${indented(methods.join("\n"))}\n}`
+      if (methods.length) {
+        body = `${body}\nexport interface ${this.typeNameOf(type.name)} {\n${indented(methods.join("\n"))}\n}`
+      }
       return hasCreate(declaration) ? `@thing\n${body}` : body
     } finally {
       this.currentClass = previousClass
@@ -724,7 +726,7 @@ export class TSWriter extends JSWriter {
    *   block in that project's module.
    */
   mergedInterface(typeName: string, member: string): string {
-    return `export interface ${typeName} { ${member} }`
+    return `export interface ${this.typeNameOf(typeName)} { ${member} }`
   }
 
   /** Parameters for a signature, which can't have defaults:  `(card: Card, message?: string)`. */
@@ -752,10 +754,10 @@ export class TSWriter extends JSWriter {
       (member): member is P.ASTStaticDefinition =>
         member instanceof P.ASTStaticDefinition && member.name === "instanceType"
     )?.value
-    if (itemType instanceof P.ASTTypeExpression) return `${name}<${itemType.name}>`
+    if (itemType instanceof P.ASTTypeExpression) return `${name}<${this.typeNameOf(itemType.name)}>`
     // read when made, as a static getter, for an item class further down:  `static get instanceType()`
     const ownItemType = this.project.itemTypes.get(node.type.name)
-    return ownItemType ? `${name}<${ownItemType}>` : name
+    return ownItemType ? `${name}<${this.typeNameOf(ownItemType)}>` : name
   }
 
   /** A new list says what it holds too:  `a new list of piles` => `new List<Pile>({ instanceType: "Pile" })`. */
