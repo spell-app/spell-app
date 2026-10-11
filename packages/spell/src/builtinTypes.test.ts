@@ -6,8 +6,8 @@ import { SP } from "$/spell"
 
 /**
  * `SP.BUILT_IN_TYPE_TABLE` -- spell's built-in types' members, as data.
- * - Pins each member's `readAs` template to something REAL:  a `spellCore` helper,
- *   or a javascript property or method of a sample value of its type.
+ * - Pins each member's `readAs` template to something REAL:
+ *   a `spellCore` helper, or a javascript property or method of a sample value of its type.
  *   - Reads it off that value, to check it's what the member says.
  * - Pins each `rules` name to a live rule, and each type to the root scope's.
  */

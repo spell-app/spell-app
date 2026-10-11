@@ -14,12 +14,13 @@ import { fromStartAt, toStartAt, zeroIndexOf, type StartAt } from "$/core/positi
  * `List`: our array concept (1-based) -- what `a deck is a list` extends.
  * - Backed by reactive `items` state rather than a raw JS array, so mutations (`add`, `setItem`, ...)
  *   trigger re-renders of anything observing this `List`.
- * - Copy on write:  each mutation sets `items` to a NEW array -- a spell cell notifies on a new value, never on a
- *   change made in place.
+ * - Copy on write:  each mutation sets `items` to a NEW array --
+ *   a spell cell notifies on a new value, never on a change made in place.
  * - Delegates JS collection duck-typing (`itemCount`, `getKeys`, `getItem`, ...) to `spellCore`'s
  *   generic collection methods -- see `CollectionLike` in `collection-core.ts`.
  * - Has its own list methods for hand-written TypeScript, e.g. `pile.filter(...)`, `pile.lastItem`:
- *   each calls its `spellCore` twin -- see "List methods" below.  Iterable:  `for (const card of pile)`.
+ *   each calls its `spellCore` twin -- see "List methods" below.
+ * - Iterable:  `for (const card of pile)`.
  * - EXCLUSIVE lists (`exclusive`, from `a card belongs to one pile`):
  *   an item is in at most ONE list of a FAMILY (plan doc D7, D8).
  *   - a family:  the exclusive class and its sub-classes, e.g. every `Pile`, `Tableau`, `Foundation`
@@ -81,8 +82,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * Set reactive `property` to `value` -- see `Thing.setProp()`, which this mirrors:  `check` is how compiled spell
-   * said it before the class schema, still honoured.
+   * Set reactive `property` to `value` -- see `Thing.setProp()`, which this mirrors.
+   * - `check`:  how compiled spell said it before the class schema, still honoured.
    */
   protected setProp<T>(property: string, value: T, check?: PropCheck) {
     if (check) spellCore.checkProp(property, value, check)
@@ -240,11 +241,12 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   ////////////////
   // ## List methods
-  //  What hand-written TypeScript calls, e.g. `allPiles.filter((pile) => pile.droppable)` (epic `output-targets`,
-  //  Q33, Q35):  each does EXACTLY what its `spellCore` twin does, by calling it -- one copy of the logic.
+  //  What hand-written TypeScript calls, e.g. `allPiles.filter((pile) => pile.droppable)`
+  //  (epic `output-targets`, Q33, Q35).
+  //  Each does EXACTLY what its `spellCore` twin does, by calling it:  one copy of the logic.
   //  - every position counts from 1, as in spell
-  //  - a list result is SCRATCH, of our class, and owns nothing:  filtering the piles never takes a card out of
-  //    its pile -- see `asScratch()`
+  //  - a list result is SCRATCH, of our class, and owns nothing:
+  //    filtering the piles never takes a card out of its pile -- see `asScratch()`
   //  - a callback gets `(value, position, list)`, as `spellCore.forEach()`'s does
   //  - a change returns us, so calls chain:  `pile.append(card).reverse()`
   ////////////////
@@ -276,8 +278,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * Our items, as a new plain array -- see `getValues()`.
-   * - NOTE:  no `keys` getter beside it:  `keys()` is `Observable`'s, a list's PROPS, which the Thing Explorer
-   *   reads.  Our positions are `getKeys()`, `[1, 2, ... length]`.
+   * - NOTE:  no `keys` getter beside it:  `keys()` is `Observable`'s, a list's PROPS, which the Thing Explorer reads.
+   *   Our positions are `getKeys()`, `[1, 2, ... length]`.
    */
   get values(): T[] {
     return this.getValues()
@@ -344,8 +346,9 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * The items `condition` says yes to, in a scratch list of our class:  a `Pile` filtered is a `Pile`, which owns
-   * none of them.  No `condition`:  the truthy ones.
+   * The items `condition` says yes to, in a scratch list of our class:
+   * a `Pile` filtered is a `Pile`, which owns none of them.
+   * - No `condition`:  the truthy ones.
    * - `words in "a word list" where ...`, see `spellCore.filter()`.
    */
   filter(condition?: ListCallback<T, this>): this {
@@ -474,8 +477,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
   }
 
   /**
-   * A scratch copy of us, of our class -- `a copy of discards`, or `a copy of discards as a pile` when a
-   * discard-pile already is a pile (Q36).
+   * A scratch copy of us, of our class:
+   * `a copy of discards`, or `a copy of discards as a pile` when a discard-pile already is a pile (Q36).
    */
   clone(): this {
     return spellCore.duplicateList(this)
@@ -494,7 +497,8 @@ export class List<T = unknown> extends Observable<Record<string, unknown>, { ite
 
   /**
    * We're a list of lists:  their items, all in one scratch list -- `merge the piles`.
-   * - No `Class`:  of our first list's class, `undefined` if we're empty.  `merge the piles as a pile`:  `Class`.
+   * - No `Class`:  of our first list's class, `undefined` if we're empty.
+   * - `merge the piles as a pile`:  of `Class`.
    * - See `spellCore.mergeLists()`.
    */
   merged(): T | undefined

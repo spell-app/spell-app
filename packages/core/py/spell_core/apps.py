@@ -30,7 +30,7 @@ class App(Thing):
 
         - Makes the page's `<div id="spell-app-root">` the first time, when the host set no `core.app_root`.
         - Starting again replaces the app drawn there.
-        - We're drawn when the page is written, not now:  as we are then.
+        - Drawn when the page is written, not now:  the page shows the app as it is then.
         """
         core = program_core()
         element = core.app_element()
@@ -51,8 +51,8 @@ class DrawableList(List):
     """A list drawn as its own element in a browser, its items inside:  `a pile is a drawable list of cards`.
 
     - Python's page defines no elements:  it draws as any thing does, its own `draw()`.
-      That's just a `<slot>` by default, as in the JavaScript run:  its items show inside its element, which only
-      a browser has.
+    - That's just a `<slot>` by default, as in the JavaScript run:
+      its items show inside its element, which only a browser has.
     """
 
     def draw(self) -> Element:

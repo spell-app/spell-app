@@ -129,7 +129,7 @@ class DrawingMethods:
         """SIDE EFFECT:  keep a project's CSS on the page, under `name`:  compiled from its `.css` files.
 
         - `¬` in `safe_css` is a line break, as the compiled text writes one.
-        - Kept, never written:  the core contract compares only what's drawn, as the JavaScript run's page adds
-          no styles either.
+        - Kept, never written:  the core contract compares only what's drawn,
+          as the JavaScript run's page adds no styles either.
         """
         self.page.styles[name or "anonymous-css"] = safe_css.replace("¬", "\n")

@@ -76,8 +76,8 @@ export type CheckOptions = GlobalOptions & {
 }
 
 /**
- * `name` for comparing as people would:  lower case, with spaces, `-`, `_` and a capital inside a word all one space --
- * so `stock pile` finds `StockPile` (a type's name since epic `drawable-thing` P11), and `short-suit` finds `short_suit`.
+ * `name` for comparing as people would:  lower case, with spaces, `-`, `_` and a capital inside a word all one space.
+ * - So `stock pile` finds `StockPile` (a type's name since epic `drawable-thing` P11), and `short-suit` `short_suit`.
  */
 export function normalizedName(name: string): string {
   return name
@@ -101,8 +101,8 @@ export type WatchOptions = GlobalOptions & {
 
 /**
  * `spell run` flags.
- * - `browser`:  `true` opens the project in a browser even if it shows no UI;  `false` never does.  Left out:  only
- *   if it tried to show one.
+ * - `browser`:  `true` opens the project in a browser even if it shows no UI;  `false` never does.
+ *   Left out:  only if it tried to show one.
  * - `seed`:  see `SeedOptions`
  */
 export type RunOptions = GlobalOptions &
@@ -284,8 +284,8 @@ export type NewOptions = GlobalOptions & {
 ////////////////
 
 /**
- * What `runProject.ts` -- the child process `spell run` / `spell test` start -- is to do.  Passed as JSON,
- * in env var `SPELL_RUN`.
+ * What `runProject.ts` -- the child process `spell run` / `spell test` start -- is to do.
+ * Passed as JSON, in env var `SPELL_RUN`.
  * - `mode`:  `run` the project, or run its `test ...` functions and report
  * - `name`:  the project's, for messages
  * - `entry`:  URL of its compiled javascript -- a temp file, never in the project
@@ -318,8 +318,9 @@ export type RunReport = {
 }
 
 /**
- * One shared stylesheet of a `spell static` job:  where it goes, the pages that link it (indices in the job), and
- * what the sheet already there covered (its first line), for the build to keep.
+ * One shared stylesheet of a `spell static` job:
+ * where it goes, the pages that link it (indices in the job),
+ * and what the sheet already there covered (its first line), for the build to keep.
  */
 export type StaticSheetJob = {
   path: string
@@ -330,8 +331,8 @@ export type StaticSheetJob = {
 /**
  * What `spell static` and its child process, `runner/renderStatic.ts`, say to each other over IPC, in order:
  * - `ready`:  child to parent, once its Vite server is up
- * - `job`:  parent to child, once:  each page's HTML and stylesheet options, and the shared stylesheets (`sheets`)
- *   to build afterwards, `minify`d or not
+ * - `job`:  parent to child, once:  each page's HTML and stylesheet options,
+ *   and the shared stylesheets (`sheets`) to build afterwards, `minify`d or not
  * - `page`:  child to parent, one per page in `job` order (`index`):  its `result`, or the `error` that stopped it
  * - `stylesheet`:  child to parent, after the pages, one per `sheets` entry (`path`)
  * - `done`, or `failed` with the error that stopped the whole job

@@ -21,8 +21,8 @@ describe("a writer's naming map", () => {
   }
 
   test("types in snake_case:  no type's PascalCase name is left in the code", () => {
-    // comments and text say what they like (a heading, a class attribute):  only code counts,
-    // and the text the runtime reads as a type's name, `type: "Card"`
+    // only code counts, and the text the runtime reads as a type's name (`type: "Card"`):
+    // comments and other text say what they like (a heading, a class attribute)
     const code = snakeTyped()
       .replace(/\/\*[\s\S]*?\*\//g, "")
       .replace(/\/\/.*$/gm, "")

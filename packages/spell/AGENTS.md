@@ -31,6 +31,10 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
 - `src/node/` (`$/spell/node/...`) is NODE-ONLY.
   - Its files:
     `environment`, `packageVersion.node`, `disk-fetch`, `file-utils`, `project-utils`, `response-utils`, `server.types`
+  - And for the targets beyond javascript:
+    - `typecheck`:  `tsc` on the TypeScript target
+    - `buildTsx`:  the TypeScript target's build
+    - `pyright`:  pyright on the Python target
   - The barrel NEVER exports it.
   - Other packages may import these files by name:  one of the deep-import exceptions
     (WWOD §4 › "Package aliases, never `../`").
@@ -40,6 +44,16 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - It colours a snippet without a project, for `<ui-code language="spell">`.
   - [The browser entry](src/highlight/browser.ts) is what `@spell-app/ui`'s `yarn gen:spell` bundles.
   - After changing the grammar, run it there, so `ui`'s committed bundle follows.
+- [targets.ts](src/targets.ts):  the TARGETS spell compiles to, `SP.TARGETS`.
+  Each is a language, the runtime its code runs on, and the writer that writes it:
+  - `js/solid`:  ALWAYS compiled, as the editor, the runners and `spell run` run it
+  - `ts/solid`:  TypeScript on Solid, checked by `tsc`
+  - `py`:  Python on `spell_core`, checked by pyright
+    - with a words file of its own, by Python's names:  `<Project>.py.en.json`
+  - `py/asyncio`:  the same Python on `asyncio`, checked by pyright
+  - A project lists the others it wants in `project.json`'s `"targets"`.
+    `spell compile --target <name>` picks one for a single run.
+  - The writers are `$/parser`'s:  "Compile" in `PARSING.md`.
 - `src/test/` (`$/spell/test`):  the test helpers, e.g. `loadFixtureProject()`, `fixturePath()`, `fixtureProjectId()`.
 - `projects/` holds every spell project, OUTSIDE `src/`.
   - Its folders are the `@system:examples` etc roots:
@@ -52,9 +66,14 @@ when working with code in this package, `@spell-app/spell` (`$/spell`, `SP`).
   - Each fixture's compiled output is checked against the snapshots beside it
     ([fixtures.test.ts](src/test/fixtures.test.ts)):
     - `<Project>.snapshot.js`:  the javascript target
-    - `<Project>.snapshot.tsx`:  the TypeScript target, type-checked by `tsc` too
     - `<Project>.snapshot.declarations.json`:  its declarations
     - `<Project>.en.snapshot.js`:  its words, `SP.SpellWords` (ending as a snapshot does keeps it out of its files)
+    - `<Project>.snapshot.tsx`:  the TypeScript target
+    - `<Project>.snapshot.tsc.txt`:  what `tsc` says of it ([typescript.test.ts](src/test/typescript.test.ts))
+    - `<Project>.snapshot.py`:  the Python target
+    - `<Project>.snapshot.asyncio.py`:  the Python-on-asyncio target
+    - `<Project>.snapshot.pyright.txt`:  what pyright says of the Python ([python.test.ts](src/test/python.test.ts))
+    - The Python ones only for the fixtures in `PYTHON_FIXTURES` (every fixture, so far).
     - Add a fixture by copying a project in.
     - After a deliberate change, `yarn test:fixtures:bless`, and read the diff.
 - [readme.md](readme.md) is the project's front page.

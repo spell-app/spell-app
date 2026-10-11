@@ -4,8 +4,9 @@
  * - All array iteration is 1-based, inside.
  *   - A project may count from 0 (`project.json`'s `"listsStartAt": 0`, epic `python-target` P2):
  *     each method that takes or gives a position takes a last `startAt` too, which compiled code passes.
- *   - Per call, not one switch for the whole core:  a library counting from 1 and a program counting from 0
- *     share one core.  See `fromStartAt()`, `toStartAt()`.
+ *   - Per call, not one switch for the whole core:
+ *     a library counting from 1 and a program counting from 0 share one core.
+ *     See `fromStartAt()`, `toStartAt()`.
  * - Collection methods work with objects as well as arrays, unless specified.
  *   - For objects: use natural key order for position.
  * - TODO: collections for `words`, `lines`, etc?
@@ -51,11 +52,11 @@ export type CollectionLike = {
 /**
  * ANY collection argument -- its items `T`, when TypeScript can tell:  a `List<T>` or a `T[]`.
  * - Else `T` is `unknown`, e.g. for a `List` with no item type, a plain object, `unknown` or `any`.
- * - `NonNullable<unknown> | null | undefined` is `unknown`, spelled out so `T` is still INFERRED from a list or an
- *   array -- `this` in a `List<Card>` sub-class too, which a conditional type (`C extends List<infer T>`) leaves
- *   unresolved.
- * - A list as its `getItem()` only, NOT all of `List<T>`:  inferring from `this` in a sub-class's `draw()` would
- *   read `draw()` itself, a circular inference (TS7023).
+ * - `NonNullable<unknown> | null | undefined` is `unknown`, spelled out so `T` is still INFERRED
+ *   from a list or an array -- `this` in a `List<Card>` sub-class too,
+ *   which a conditional type (`C extends List<infer T>`) leaves unresolved.
+ * - A list as its `getItem()` only, NOT all of `List<T>`:
+ *   inferring from `this` in a sub-class's `draw()` would read `draw()` itself, a circular inference (TS7023).
  * - Taken by the helpers whose result or callback follows their collection, e.g. `getItemAt()`, `forEach()`.
  */
 export type CollectionOf<T = unknown> =
@@ -206,7 +207,8 @@ export const collectionCoreMethods = defineSpellCoreModule({
   /**
    * Remove the item at `position` of `collection`.
    * - For array: `position` counts from `startAt`, 1 unless the project counts from 0;  negative from the end.
-   *   The items after it slide back into place.  No such position:  nothing changes.
+   *   - The items after it slide back into place.
+   *   - No such position:  nothing changes.
    * - For object: `position` is its string key, which is deleted.
    * - Compiles from `remove last card of deck` / `remove item 4 of my-list` -- see `rules/lists/`.
    */
@@ -291,13 +293,15 @@ export const collectionCoreMethods = defineSpellCoreModule({
 Object.assign(spellCore, collectionCoreMethods)
 
 /**
- * Position of `thing` in `collection`, from `startAt` (1 unless the project counts from 0) -- `undefined` if it
- * isn't there, never `-1`.  A plain object's:  its key.
- * - Hand-written TypeScript imports it by name:  `import { positionOf } from "@spell/core"`, then
- *   `positionOf(Card.Ranks, this.rank)`.  Compiled JavaScript calls it as `spellCore.positionOf(...)`:  the SAME
- *   function.
- * - Typed `number` when `thing` is of an array's own item type, e.g. a `Rank` in `Card.Ranks` (`as const`):  a value
- *   of an enumeration's type is always in it.  TYPES ONLY:  it's the same call.
+ * Position of `thing` in `collection`, from `startAt` (1 unless the project counts from 0):
+ * `undefined` if it isn't there, never `-1`.
+ * - In a plain object:  its key.
+ * - Hand-written TypeScript imports it by name, `import { positionOf } from "@spell/core"`,
+ *   then calls `positionOf(Card.Ranks, this.rank)`.
+ *   Compiled JavaScript calls it as `spellCore.positionOf(...)`:  the SAME function.
+ * - Typed `number` when `thing` is of an array's own item type, e.g. a `Rank` in `Card.Ranks` (`as const`):
+ *   a value of an enumeration's type is always in it.
+ *   TYPES ONLY:  it's the same call.
  *   - Else typed by `collection`, see `KeyOf`:  a `List`'s is `number | undefined` either way.
  * - Was `itemOf()` before epic `output-targets` P16, and still answers to it:  see `deprecated.ts`.
  */

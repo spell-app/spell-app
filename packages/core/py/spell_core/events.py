@@ -10,8 +10,8 @@ core.trigger("card-click", card=card)
 
 - The twin of the JavaScript core's `SpellEvent.ts`:  each target keeps its handlers by event type, case ignored,
   and an event passes on to its target's `event_parent`, if it has one.
-- `core.on()` / `core.trigger()` are the running program's:  see `runtime_methods.py`.  A thing has its own,
-  `card.on("click", ...)`.
+- `core.on()` / `core.trigger()` are the running program's:  see `runtime_methods.py`.
+  A thing has its own, `card.on("click", ...)`.
 - A handler that fails doesn't stop the others:  its error is a warning on the program's console.
 """
 
@@ -88,7 +88,8 @@ class Eventful:
     def trigger(self, event: "SpellEvent | str", **props: object) -> list[object]:
         """Call each handler for `event`, then pass it to `event_parent`, if any:  what each returned, in order.
 
-        - `event`:  a `SpellEvent`, or its type, `"card-click"`.  `props` go on it:  `event.card`.
+        - `event`:  a `SpellEvent`, or its type, `"card-click"`.
+        - `props` go on it:  `event.card`.
         """
         from spell_core import core  # the program's console, for a handler that fails
 
@@ -110,8 +111,9 @@ class Eventful:
 def _call(handler: Handler, args: tuple[object, ...]) -> object:
     """`handler(*args)`, given only as many arguments as it takes:  a handler may take the event alone, or nothing.
 
-    - An `async def` handler (the `py/asyncio` target's) runs too:  as a task when the program's loop is running, so
-      it goes on beside it, as javascript's does;  else to its end, there and then.
+    - An `async def` handler (the `py/asyncio` target's) runs too:
+      - while the program's loop is running, as a task, so it goes on beside it, as javascript's does
+      - else to its end, there and then
     """
     code = getattr(handler, "__code__", None)
     if code is None or code.co_flags & 0x04:  # not plain Python, or takes `*args`:  everything

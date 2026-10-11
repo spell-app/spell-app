@@ -16,9 +16,9 @@ export type ConsoleLine = {
 }
 
 /**
- * A `group`/`groupCollapsed` console line -- besides its own `message`/`collapsed`, it also has its
- * own `lines` (nested log lines recorded while it's the active group), so it can render as a
- * collapsible tree in a UI.
+ * A `group`/`groupCollapsed` console line, which a UI can show as a collapsible tree.
+ * - Besides its own `message`/`collapsed`, it has its own `lines`:
+ *   nested log lines recorded while it's the active group.
  */
 export class SpellConsoleGroup extends Observable<
   { message: unknown[] },
@@ -49,9 +49,8 @@ export class SpellConsoleGroup extends Observable<
 
 /**
  * `spellCore.console` -- structured, observable console log backing spell's `print` statements.
- * - Tracks `lines` (and nested `groups`) as `ConsoleLine`s on top of also forwarding to the native
- *   `console`, so a UI can render the log reactively (e.g. a debug panel) while it still shows up
- *   in devtools.
+ * - Tracks `lines` (and nested `groups`) as `ConsoleLine`s, and also forwards each to the native `console`:
+ *   a UI can render the log reactively (e.g. a debug panel), and it still shows up in devtools.
  * - Compiles from spell `print` / `print warning` / `print error` / `print group` /
  *   `print collapsed group` / `end print group` (see `rules/UI/`).
  * - A line holding a DUMP, e.g. of a thing (`print the card`), goes through `printDump()`:
@@ -85,8 +84,8 @@ export class SpellConsole extends Observable<Record<string, unknown>, { lines: C
   /**
    * Record `line` into whichever `lines` array is active (nested inside current group, if any),
    * stamp it with `logged`, and fire a `console-log` event.
-   * - SIDE EFFECT: pushes `line` onto `this.groups` if it's itself a `group` line, making it the new
-   *   active group for subsequent lines.
+   * - SIDE EFFECT: pushes `line` onto `this.groups` if it's itself a `group` line,
+   *   making it the new active group for subsequent lines.
    */
   _addLogLine(line: ConsoleLine | SpellConsoleGroup): void {
     ;(line as { logged?: number }).logged = Date.now()

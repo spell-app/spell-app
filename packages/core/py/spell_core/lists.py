@@ -41,14 +41,14 @@ class List(SpellObject, MutableSequence[Any]):
     Where it differs from a Python `list`:
     - `deck[n]` past the end, or before the start, is `None`, NOT an `IndexError`:
       spell reads a missing item as nothing (plan doc python-target, Q15).
-      `deck.pop()` on an empty deck is `None` too.
+      - `deck.pop()` on an empty deck is `None` too.
     - `deck[n] = card` past the end grows the list, the gap filled with `None`, as JavaScript's arrays do.
     - `deck[2:5]` is a SCRATCH list of the same class, owning nothing (see "Exclusive lists" below):
       a `Pile` sliced is a `Pile`, and its cards stay in their pile.
     - `deck.remove(card)` takes out EVERY copy of each of the cards it's given,
       and does nothing for one it doesn't hold:  Python's raises `ValueError`.
     - `card in deck`, `deck.index(card)`, `deck.remove(card)` look for the SAME item (`is_same()`):
-      text and numbers by value, anything else only as itself.  `True` is never `1`.
+      text and numbers by value, anything else only as itself;  `True` is never `1`.
     - A change made by spell's words returns the list, so calls chain:  `pile.append(card).reverse()`.
     - Equality is identity:  two decks are two decks, however alike.
 
@@ -147,8 +147,9 @@ class List(SpellObject, MutableSequence[Any]):
     @overload
     def __getitem__(self, index: slice) -> Self: ...
     def __getitem__(self, index: int | slice) -> Any:
-        """`deck[0]`:  Python's index, from 0, negatives from the end.  Out of range:  `None`, never `IndexError`.
+        """`deck[0]`:  Python's index, from 0, negatives from the end.
 
+        - Out of range:  `None`, never `IndexError`.
         - `deck[2:5]`:  a scratch list of our class, owning nothing.
         - throws `TypeError` for an index that's not a whole number or a slice, as Python's lists do.
         """
@@ -157,8 +158,9 @@ class List(SpellObject, MutableSequence[Any]):
         return self.get_item(_index_number(index, type(self)), start_at=0)
 
     def __setitem__(self, index: int | slice, value: Any) -> None:
-        """`deck[0] = card`:  replace the item at Python's index.  Before the start:  nothing changes.
+        """`deck[0] = card`:  replace the item at Python's index.
 
+        - Before the start:  nothing changes.
         - Past the end grows the list, the gap filled with `None`.
         - `deck[1:3] = cards`:  as a Python list's slice, its items kept by their owners' rules.
         """
@@ -283,7 +285,10 @@ class List(SpellObject, MutableSequence[Any]):
         self._write_items(self._items[:index] + self._items[index + 1 :])
 
     def position_of(self, thing: object, start_at: StartAt = 1) -> int | None:
-        """Where our first `thing` is (`is_same()`), from 1 (or `start_at`).  `None` if we don't hold it, never `-1`."""
+        """Where our first `thing` is (`is_same()`), from 1 (or `start_at`).
+
+        - `None` if we don't hold it, never `-1`.
+        """
         for index, item in enumerate(self._items):
             if is_same(item, thing):
                 return to_start_at(index + 1, start_at)
@@ -349,19 +354,26 @@ class List(SpellObject, MutableSequence[Any]):
         return program_core().random_item_of(self)
 
     def random_items(self, count: float | None = None) -> Self:
-        """Up to `count` of our items, picked at random, each at most once:  a scratch list of our class.
+        """Up to `count` of our items, picked at random, each at most once:  `3 random cards from the deck`.
 
-        - No `count`:  all of them, shuffled.  `3 random cards from the deck`.
+        - A scratch list of our class.
+        - No `count`:  all of them, shuffled.
         """
         return program_core().random_items_of(self, count)  # type: ignore[no-any-return]
 
     def randomize(self) -> Self:
-        """SIDE EFFECT:  shuffle our items, in place, from core's seeded numbers.  Returns us.  `shuffle the deck`."""
+        """SIDE EFFECT:  shuffle our items, in place, from core's seeded numbers:  `shuffle the deck`.
+
+        - Returns us.
+        """
         program_core().randomize(self)
         return self
 
     def includes(self, *values: object) -> bool:
-        """Do we hold EVERY one of `values`?  `False` for none.  `the hand includes the queen`."""
+        """Do we hold EVERY one of `values`?  `the hand includes the queen`.
+
+        - `False` for none.
+        """
         return program_core().includes(self, *values)
 
     def includes_any(self, *values: object) -> bool:
@@ -380,8 +392,9 @@ class List(SpellObject, MutableSequence[Any]):
         return program_core().any(self, condition)
 
     def filter(self, condition: ListCallback | None = None) -> Self:
-        """The items `condition` says yes to, in a scratch list of our class.  No `condition`:  the ones that are yes.
+        """The items `condition` says yes to, in a scratch list of our class.
 
+        - No `condition`:  the ones that are yes.
         - `the cards in the deck where the rank of the card is queen`.
         """
         return program_core().filter(self, condition)  # type: ignore[no-any-return]
@@ -413,12 +426,18 @@ class List(SpellObject, MutableSequence[Any]):
         return self
 
     def add_before(self, item: object, *things: Any) -> Self:
-        """SIDE EFFECT:  add `things` just before `item`.  `item` isn't here:  at the START.  Returns us."""
+        """SIDE EFFECT:  add `things` just before `item`.  Returns us.
+
+        - `item` isn't here:  at the START.
+        """
         program_core().add_before(self, item, *things)
         return self
 
     def add_after(self, item: object, *things: Any) -> Self:
-        """SIDE EFFECT:  add `things` just after `item`.  `item` isn't here:  at the END.  Returns us."""
+        """SIDE EFFECT:  add `things` just after `item`.  Returns us.
+
+        - `item` isn't here:  at the END.
+        """
         program_core().add_after(self, item, *things)
         return self
 
@@ -440,9 +459,10 @@ class List(SpellObject, MutableSequence[Any]):
         return core.range_starting_at(self, core.position_of(self, item))  # type: ignore[no-any-return]
 
     def between(self, start: float, end: float, start_at: StartAt = 1) -> Self:
-        """The items from position `start` to `end`, both included, in a scratch list of our class.
+        """The items from position `start` to `end`, both included:  `items 1 to 2 of the deck`.
 
-        - Out of range:  an empty one.  `items 1 to 2 of the deck`.
+        - A scratch list of our class.
+        - Out of range:  an empty one.
         """
         return program_core().range_between(self, start, end, start_at)  # type: ignore[no-any-return]
 
@@ -463,9 +483,10 @@ class List(SpellObject, MutableSequence[Any]):
         return program_core().duplicate_list(self, cls)  # type: ignore[no-any-return]
 
     def merged(self, cls: "type[List] | None" = None) -> Any:
-        """We're a list of lists:  all their items, in one scratch list.  `merge the piles`.
+        """We're a list of lists:  all their items, in one scratch list, `merge the piles`.
 
-        - No `cls`:  of our first list's class, `None` if we're empty.  `merge the piles as a pile`:  `cls`.
+        - Of class `cls`:  `merge the piles as a pile`.
+        - No `cls`:  of our first list's class;  `None` if we're empty.
         """
         return program_core().merge_lists(self, cls)
 
@@ -534,7 +555,10 @@ class List(SpellObject, MutableSequence[Any]):
         return scratch
 
     def _insert_at_index(self, index: int, things: Iterable[object]) -> None:
-        """SIDE EFFECT:  put `things` before Python's index `index`.  Exclusive:  one we hold already MOVES there."""
+        """SIDE EFFECT:  put `things` before Python's index `index`.
+
+        - Exclusive:  one we hold already MOVES there.
+        """
         things = list(things)
         items = list(self._items)
         if self._family:
@@ -547,8 +571,8 @@ class List(SpellObject, MutableSequence[Any]):
     def _write_items(self, next_items: list[object]) -> None:
         """Make `next_items` our items:  EVERY change to them comes here, so an exclusive list keeps its owners.
 
-        - NEVER changes a list of items in place:  each change writes a new one, so a loop over the old one
-          (`__iter__()`) sees what it started with.
+        - NEVER changes a list of items in place:  each change writes a new one,
+          so a loop over the old one (`__iter__()`) sees what it started with.
         - An item going out, no longer anywhere in `next_items`, has no owner.
         - An item coming in is ours, THEN leaves the list of our family that held it.
         - SIDE EFFECT:  the list it left changes too.
@@ -615,7 +639,10 @@ class ListFamily:
         return entry[1]()
 
     def set_owner(self, item: object, owner: List | None) -> None:
-        """SIDE EFFECT:  `owner` holds `item` now;  `None`:  nothing does.  An item that can't be owned is skipped."""
+        """SIDE EFFECT:  `owner` holds `item` now;  `None`:  nothing does.
+
+        - An item that can't be owned is skipped.
+        """
         if not is_ownable(item):
             return
         key = id(item)

@@ -20,12 +20,15 @@ import * as pyText from "./pyText"
  *           await self.turn_face_down()
  *   ```
  *
- * - Which functions wait, worked out for the whole project first (`forProject()`):  any that pauses, or calls one
- *   that does -- by NAME, so every method of a name waits if one does, and `await` is never put before a plain value.
- *   Javascript calls them without waiting (`this.turnFaceDown()`), where Python's call would do nothing at all.
+ * - Which functions wait is worked out for the whole project first (`forProject()`):
+ *   - any that pauses, or calls one that does
+ *   - by NAME:  every method of a name waits if one does, so `await` is never put before a plain value
+ *   - Why:  javascript calls them without waiting (`this.turnFaceDown()`),
+ *     where Python's call, not awaited, would do nothing at all.
  * - A function given as a value that waits is a lifted `async def`, never a `lambda`.
- * - At the top of the module, where Python can't `await`:  `asyncio.run(...)` -- a call alone, `asyncio.run(main())`;
- *   anything else that waits, in an `async def` of its own, run so.
+ * - At the top of the module, where Python can't `await`:  `asyncio.run(...)`
+ *   - a call alone:  `asyncio.run(main())`
+ *   - anything else that waits:  in an `async def` of its own, run so
  ****************/
 export class PyAsyncWriter extends PyWriter {
   /** The writer with no project. */
@@ -63,8 +66,9 @@ export class PyAsyncWriter extends PyWriter {
   }
 
   /**
-   * SIDE EFFECT:  notes which functions in `files` wait:  any that pauses (`await` in the tree), then, until nothing
-   * changes, any that calls one by name.
+   * SIDE EFFECT:  notes which functions in `files` wait:
+   * - any that pauses (`await` in the tree)
+   * - then, until nothing changes, any that calls one by name
    */
   protected findWaiting(files: P.ASTNode[][]): void {
     const named = new Map<P.ASTMethodDefinition, string | undefined>()
@@ -196,8 +200,8 @@ export class PyAsyncWriter extends PyWriter {
   }
 
   /**
-   * As `PyWriter`'s;  at the top level, a statement that waits runs through `asyncio.run()`, as Python can't
-   * `await` there:
+   * As `PyWriter`'s;  at the top level, a statement that waits runs through `asyncio.run()`,
+   * as Python can't `await` there:
    * - a call alone:  `asyncio.run(reset_the_game())`
    * - set from one:  `card = asyncio.run(deal())`
    * - anything else:  an `async def` of its own, then run -- see `topLevelStep()`

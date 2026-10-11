@@ -125,8 +125,9 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     (`P.Rule.ruleNameFor()`, called by `Rule.instantiate()`).
   - A class whose name doesn't give its rule name sets `static ruleName`, e.g. `BlockLine` => `line`.
   - [ruleNames.test.ts](src/rules/ruleNames.test.ts) pins every rule's name, module and order.
-- A rule's tests, `{ input, js, ts }`, parse the input once and write it with BOTH writers:
+- A rule's tests, `{ input, js, ts }`, parse the input once and write it with the javascript and TypeScript writers:
   - `js`:  `P.JSWriter`;  `ts`:  `P.TSWriter`, left out where it's the same.
+  - The Python writers are tested by their own tests, and by the fixtures' snapshots ("Testing a whole project").
   - Run by [`unitTestModuleRules()`](../parser/src/test/unitTestModuleRules.ts);
     `yarn test:rules:bless` writes each `ts` into the source.
   - `Parser.testRules()`, which the speed test times, checks `js` only.
@@ -842,9 +843,15 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
   - `@examples/Solitaire` ~== `@system:examples:Solitaire`
   - `@guides/<Guide>` ~== `@system:guides:<Guide>`
   - `SpellLocation` expands it first (`SpellSetup.expandAlias()`), so ids are always stored in full.
-- Two outputs are never a project's own files:
-  - a project's `<Project>.compiled.js`, and a fixture's `<Project>.snapshot.js`
-  - The server leaves them out of its index (`isManifestFile()`), which would otherwise add them to `project.json`.
+- Compiled output is never one of a project's own files.
+  - The server's index lists only spell, CSS and javascript files:  see `isManifestFile()`.
+    - `.spell`, `.css`, `.js` and `.jsx`
+    - So no other target's output, e.g. `<Project>.compiled.py`, is ever listed.
+  - Of those, it leaves out:
+    - a project's `<Project>.compiled.js`, and a fixture's `<Project>.snapshot.js`
+    - its scope pack, `<Project>.scopes.js`
+    - its words, `<Project>.en.js`
+  - Else the index would add them to `project.json`.
 - [`SpellProject`](src/SpellProject.ts):  files in `project.json` order, e.g. Card → Deck → Pile → Solitaire.
 - `SpellProject` / `SpellFile` load over HTTP:  `$fetch()` on `/api/projects/...`.
   - They go through `LoadableFile.fetch`,
@@ -887,7 +894,9 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
       - Loading rebuilds the `P.ScopeMethod` record.
         A key an older compiler didn't write loads as unknown.
     - NOT whether a property is DERIVED (`the short rank of a card is: ...`) or stored:
-      both writers name every member the same way, camelCase, so an importer needn't know (Q56).
+      each writer names every member the same way, so an importer needn't know (Q56).
+      - javascript and TypeScript:  camelCase
+      - Python:  snake_case
   - The declarations also hold the project's versions, and what it `provides`.
   - `read(json)` reads them back, never running anything.
   - `importScope(root, imports)` => a `P.ImportScope` holding them.
@@ -1002,11 +1011,22 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 - `Match.compile()` => `match.AST?.compile()`.
   - `Match.AST` is memoized;  `ASTNode.compile()` is not.
 - The AST classes hold what was parsed;  a WRITER writes them out ([the writers](../parser/src/writers/)).
+  - Each TARGET a project compiles to has its own writer ([targets.ts](src/targets.ts), `SP.TARGETS`):
+    - `js/solid`, by `P.JSWriter`:  ALWAYS compiled, as it's what runs
+    - `ts/solid`, by `P.TSWriter`:  checked by `tsc`
+    - `py`, by `P.PyWriter`:  checked by pyright
+      - with a words file of its own, by Python's names:  `<Project>.py.en.json`
+    - `py/asyncio`, by `P.PyAsyncWriter`:  the same Python on asyncio, checked by pyright
+  - Each writes a file of its own, e.g. `Solitaire.compiled.py`:  see each target's `suffix`.
+  - A project lists the others it wants in its `project.json`, e.g. `"targets": ["ts/solid", "py"]`.
+  - What every program's writer shares is `P.ProgramWriter`, which the javascript and Python writers extend.
+    - `forProject()` reads the whole project first, so it knows what each value is.
   - `ASTNode.compile()` is `P.JSWriter.instance.write(node)`.
-  - `JSWriter` has one method per AST class, named for it:  `ASTIfStatement(node)`.
+  - Each writer has one method per AST class, named for it:  `ASTIfStatement(node)`.
   - NEVER write output in an AST class.
 - A block compiles as its statements joined with `\n`.
   - Nesting indents by re-joining with `\n` + 2 spaces (`P.jsText.INDENT`, NEVER a tab).
+    Python's is 4 spaces (`P.pyText.INDENT`).
   - So a statement's output doesn't depend on its depth.
 - A DECLARATION's docstring compiles as one `/** ... */`, in place of its `//` lines (`getDocComments()`, `Block.ts`).
   - The docstring:  the comment-only lines directly above it, else the comment on its own line.
@@ -1028,10 +1048,10 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - patched on from outside (`compile()`), e.g. `Card.prototype.play = function () {...}`
       - when its class isn't compiled with it:  it's from another project, or a rule test compiles the statement alone
   - A property is a getter / setter pair over the instance's reactive props (spell cells, `P.ASTReactiveProperty`).
-    - `this.getProp('title')` / `this.setProp('title', value)`
+    - `this.getProp("title")` / `this.setProp("title", value)`
     - NEVER a class field:  that would shadow the accessor, and nothing would redraw.
     - What it's checked against, and its default, go in the class's SCHEMA, declared once:
-      - in the class:  `static { this.declareProp('title', { type: 'text' }) }`
+      - in the class:  `static { this.declareProp("title", { type: "text" }) }`
       - from outside:  `Todo.declareProp(...)`
       - a default made per instance:  `{ init: () => new List() }`
       - The same runtime shape as a hand-written class's `@prop({ type: 'text' }) accessor title`.
@@ -1047,7 +1067,7 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
     - So does `compiledFixture()`.
     - It NEVER mutates an AST:  a class which gets members is a NEW `P.ASTClassDeclaration` (`withMembers()`).
   - An AUTO-declared property (see "Scope:  who changes it") compiles ONCE, in the file of the `set` that declared it:
-    `Card.declareProp('pile', { type: 'Pile' })` + `Object.defineProperty(Card.prototype, ...)`.
+    `Card.declareProp("pile", { type: "Pile" })` + `Object.defineProperty(Card.prototype, ...)`.
     - at its top, or just after its type's declaration if that's in the same file
       (a class isn't defined above its own line)
     - under that `set`'s `SPELL: DECLARES` comment (`Block.autoDeclarations()`, `autoDeclarationAST()`)
@@ -1149,8 +1169,10 @@ A compact map of the parse pipeline, so agents don't have to work it out again.
 
 ## Testing a whole project
 
-- [`parseSpellProject()`](src/test/parseSpellProject.ts), `loadExampleProject()` and `summarize()`
+- [`parseSpellProject()`](src/test/parseSpellProject.ts), `loadFixtureProject()` and `summarize()`
   parse + compile a project headlessly, exactly as `SpellProject` does.
   - `summarize()` is the "same as a full parse" reference.
 - [SpellProject.test.ts](src/SpellProject.test.ts) snapshots Solitaire's compiled output + errors,
   and benchmarks with `BENCH=1`.
+- Every fixture project compiles to every target it can, against the snapshots beside it:
+  the `projects/` bullet in [AGENTS.md](AGENTS.md) lists them, and how to refresh them.

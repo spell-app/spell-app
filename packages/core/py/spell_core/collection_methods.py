@@ -7,7 +7,7 @@ core.filter(words, lambda word: len(word) > 3)
 ```
 
 - For a plain list, a tuple, text, a dict, or a value nobody knows the kind of:
-  where the writer knows it has a spell list, it calls the list's own method, or Python's own word.
+  where the Python writer knows it has a spell list, it calls the list's own method, or Python's own word.
 - Positions count from 1 inside, as spell does.
   A project counting from 0 passes `start_at=0` to each method that takes or gives a position.
 - A dict is a collection too:  its keys are its positions.
@@ -89,7 +89,7 @@ class CollectionMethods:
     def get_item_at(self, collection: object = None, position: Key = None, start_at: StartAt = 1) -> Any:
         """The item at `position` of `collection`:  `item 1 of the list`, `the first character of the rank`.
 
-        - A list, a tuple or text:  `position` from 1 (or `start_at`), negative from the end.  None there:  `None`.
+        - A list, a tuple or text:  `position` from 1 (or `start_at`), negative from the end;  no item there:  `None`.
         - A dict:  `position` is its key.
         - A thing:  `position` is a property's name.
         """
@@ -113,8 +113,10 @@ class CollectionMethods:
         """SIDE EFFECT:  set the item at `position` of `collection` to `value`.  Returns `value`.
 
         - A list:  `position` from 1 (or `start_at`), negative from the end.
-          Before the start:  nothing changes.  Past the end:  the list grows, the gap filled with `None`.
-        - A dict:  `position` is its key.  A thing:  a property's name.
+          - before the start:  nothing changes
+          - past the end:  the list grows, the gap filled with `None`
+        - A dict:  `position` is its key.
+        - A thing:  `position` is a property's name.
         """
         if not self._is_defined(collection, "set_item_at"):
             return None
@@ -208,7 +210,10 @@ class CollectionMethods:
     ################
 
     def includes(self, collection: object = None, *values: object) -> bool:
-        """Does `collection` hold EVERY one of `values`?  `False` for none.  `the hand includes the queen`."""
+        """Does `collection` hold EVERY one of `values`?  `the hand includes the queen`.
+
+        - `False` for none.
+        """
         if not self._is_defined(collection, "includes"):
             return False
         if not values:
@@ -249,18 +254,27 @@ class CollectionMethods:
         return found
 
     def any(self, collection: object = None, condition: Callback | None = None) -> bool:
-        """Does `condition` say yes for any item?  No `condition`:  is any item yes?  `the deck has cards where ...`."""
+        """Does `condition` say yes for any item?  `the deck has cards where ...`.
+
+        - No `condition`:  is any item yes?
+        """
         if not self._is_defined(collection, "any"):
             return False
         call = _callback(condition)
         return any(is_js_truthy(call(*entry)) for entry in self.get_iterator_for(collection))
 
     def smallest_of(self, collection: object = None) -> Any:
-        """The smallest item, by `<`;  `None` for none.  Two items `<` can't compare:  the first stays."""
+        """The smallest item, by `<`;  `None` for none.
+
+        - Two items `<` can't compare:  the first stays.
+        """
         return self._extreme_of(collection, "smallest_of", lambda next_value, best: next_value < best)
 
     def largest_of(self, collection: object = None) -> Any:
-        """The largest item, by `>`;  `None` for none.  Two items `>` can't compare:  the first stays."""
+        """The largest item, by `>`;  `None` for none.
+
+        - Two items `>` can't compare:  the first stays.
+        """
         return self._extreme_of(collection, "largest_of", lambda next_value, best: next_value > best)
 
     ################
@@ -272,7 +286,10 @@ class CollectionMethods:
         self.add_at_position(collection, 1, *things)
 
     def append(self, collection: object = None, *things: Any) -> None:
-        """SIDE EFFECT:  add `things` at the end of a list.  Exclusive:  one it holds already moves to the end."""
+        """SIDE EFFECT:  add `things` at the end of a list.
+
+        - Exclusive:  one it holds already moves to the end.
+        """
         self.add_at_position(collection, self.item_count_of(collection) + 1, *things)
 
     def add_before(self, collection: object = None, item: object = None, *things: Any) -> None:
@@ -309,9 +326,10 @@ class CollectionMethods:
         self.set_items_of(collection, 1, *reversed(self.values_of(collection)))
 
     def remove(self, collection: object = None, *things: object) -> None:
-        """SIDE EFFECT:  take EVERY copy of each of `things` out of `collection`.  One it doesn't hold:  nothing.
+        """SIDE EFFECT:  take EVERY copy of each of `things` out of `collection`:  `remove the card from the pile`.
 
-        - `remove the card from the pile`.  A dict:  each key whose value it is.
+        - One it doesn't hold:  nothing.
+        - A dict:  each key whose value it is.
         """
         if not self._is_defined(collection, "remove"):
             return
@@ -390,7 +408,8 @@ class CollectionMethods:
     ) -> Any:
         """`count` items from position `start`, of the collection's kind:  `the top 2 cards of the deck`.
 
-        - No `count`:  to the end.  A negative `start` counts from the end, the items still in order.
+        - No `count`:  to the end.
+        - A negative `start` counts from the end, the items still in order.
         """
         if not self._is_array_like(collection, "range_starting_at"):
             return []
@@ -425,9 +444,11 @@ class CollectionMethods:
         return results
 
     def filter(self, collection: object = None, condition: Callback | None = None) -> Any:
-        """The items `condition` says yes to, in a new collection of the same kind.  No `condition`:  the yes ones.
+        """The items `condition` says yes to, in a new collection of the same kind.
 
-        - A spell list's:  a scratch list of its class.  A dict's:  a dict of the keys kept.
+        - No `condition`:  the yes ones.
+        - A spell list's:  a scratch list of its class.
+        - A dict's:  a dict of the keys kept.
         - `the words in the list where ...`.
         """
         if not self._is_defined(collection, "filter"):
@@ -451,7 +472,8 @@ class CollectionMethods:
         """A new, empty collection of `thing`'s kind, for a helper's result:  never one of the program's things.
 
         - A spell list:  a SCRATCH one of its class (`new_scratch()`).
-        - A list, a tuple, text:  a plain list.  A dict:  a dict.
+        - A list, a tuple, text:  a plain list.
+        - A dict:  a dict.
         """
         if not self._is_defined(thing, "new_thing_like"):
             return None
@@ -497,7 +519,8 @@ class CollectionMethods:
     def merge_lists(self, collections: object = None, cls: Callable[[], Any] | None = None) -> Any:
         """All the items of a list of lists, in one new list:  `merge the piles`, `merge the piles as a pile`.
 
-        - No `cls`:  of the first list's kind.  None there:  a warning, and `None`.
+        - No `cls`:  of the first list's kind.
+        - No first list:  a warning, and `None`.
         """
         if not self._is_array_like(collections, "merge_lists"):
             return None
@@ -519,8 +542,9 @@ class CollectionMethods:
     def move(self, thing: object = None, collection: object = None) -> bool:
         """Move `thing` to `collection`, if the list holding it lets it go and `collection` takes it.
 
-        - Returns whether it moved.  Refused:  nothing changes.  See `List.move_here()`.
-        - A plain list has no guards:  `thing` is just added.  `move the card to the tableau`.
+        - `move the card to the tableau`;  see `List.move_here()`.
+        - Returns whether it moved.  Refused:  nothing changes.
+        - A plain list has no guards:  `thing` is just added.
         """
         if not self._is_array_like(collection, "move"):
             return False
@@ -531,7 +555,10 @@ class CollectionMethods:
         return True
 
     def can_take(self, collection: object = None, thing: object = None) -> bool:
-        """Would `collection` take `thing`, moved there?  A plain list takes anything.  `the tableau can take it`."""
+        """Would `collection` take `thing`, moved there?  `the tableau can take it`.
+
+        - A plain list takes anything.
+        """
         if not self._is_array_like(collection, "can_take"):
             return False
         can_take = getattr(collection, "can_take", None)
@@ -551,7 +578,8 @@ class CollectionMethods:
     def random_items_of(self, collection: object = None, count: float | None = None) -> Any:
         """Up to `count` items, picked at random, each at most once, of the collection's kind.
 
-        - No `count`:  all of them, shuffled.  `3 random cards from the deck`.
+        - `3 random cards from the deck`.
+        - No `count`:  all of them, shuffled.
         - Shuffles the POSITIONS, then reads the items:  the same random numbers as the JavaScript core.
         """
         if not self._is_defined(collection, "random_items_of"):
@@ -570,7 +598,10 @@ class CollectionMethods:
         return results
 
     def randomize(self, collection: object = None) -> None:
-        """SIDE EFFECT:  shuffle a list's items, in place.  `shuffle the deck`.  A dict:  nothing."""
+        """SIDE EFFECT:  shuffle a list's items, in place:  `shuffle the deck`.
+
+        - A dict:  nothing.
+        """
         if not self._is_defined(collection, "randomize") or not self.is_array_like(collection):
             return
         self.set_items_of(collection, 1, *self.random_items_of(collection))
@@ -650,7 +681,10 @@ def _positional_count(method: Callback) -> int:
 def _range_between(start: object, end: object, item_count: int) -> tuple[int, int] | None:
     """`(start, end)` of a range, positions from 1, both included:  `None` when it holds nothing.
 
-    - No `start`, or `0`:  the first.  Further back than the start:  none.  Negative:  from the end.
+    - `start`:
+      - none, or `0`:  the first
+      - negative:  from the end
+      - past either end, e.g. 7 or -7 of 6 items:  `None`
     - No `end`, or past the end:  the last.
     """
     if item_count == 0:

@@ -20,7 +20,8 @@ from collections.abc import Callable, Sequence
 
 from spell_core.js_text import LARGEST_PLAIN_NUMBER, is_plain_number, js_length
 
-# Python's names for a type, where spell's differ.
+# Spell's name for a class named as javascript names a type, as the javascript core's table has it:
+# a class called `String` is `text`.
 TYPE_NAME_CONVERSIONS = {"array": "list", "boolean": "choice", "string": "text"}
 
 
@@ -202,7 +203,7 @@ def _is_character(core: TypeMethods, thing: object) -> bool:
     return isinstance(thing, str) and js_length(thing) == 1
 
 
-# Type names `is_of_type()` checks with a test of their own, rather than looking for in `types_of()`.
+# Type names `is_of_type()` checks with a test of their own, rather than looking for it in `types_of()`.
 IS_OF_TYPE_SPECIALS: dict[str, Callable[[TypeMethods, object], bool]] = {
     "integer": _is_an_integer,
     "character": _is_character,

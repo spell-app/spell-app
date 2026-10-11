@@ -1,7 +1,8 @@
 """Drawing as HTML text:  `h()`, written as the JavaScript run's page writes it;  drawing things, apps, `--page`.
 
-- The `LINKEDOM` strings are what the JavaScript run printed for the same drawings, Solid's `h()` on linkedom,
-  attributes sorted (`runProject.ts`, `withSortedAttributes()`):  the core contract compares them line for line.
+- The `LINKEDOM` strings are what the JavaScript run printed for the same drawings:
+  Solid's `h()` on linkedom, attributes sorted (`runProject.ts`, `withSortedAttributes()`).
+  The core contract compares them line for line.
 """
 
 from collections.abc import Iterator

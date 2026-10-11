@@ -1,14 +1,16 @@
 """Run a compiled spell program:  `python -m spell_core.run FizzBuzz.compiled.py --seed 1`.
 
-- What `spell run` does for the `py` target (epic python-target, P9), and what the core contract runs.
+- What the core contract runs for the `py` targets (epic python-target, P9).
+  `spell run` doesn't run Python yet (the plan doc's T4).
 - `--seed`:  the random numbers start from it, so a game deals the same cards every run, as in JavaScript.
   Without it, each run deals differently.
 - `--no-pauses`:  a pause doesn't wait, e.g. in the core contract, where only what's printed matters.
-- `--page`:  when the program ends, print what it drew (`core.page`):  a blank line, then the page's HTML on one line.
-  What the JavaScript run prints from its fake page, for the core contract to compare.
-  Nothing when the program drew nothing, or when it failed.
-- The program's own folder is on the import path first:  another project it imports (`from cards import Card`)
-  sits beside it.
+- `--page`:  when the program ends, print what it drew (`core.page`),
+  for the core contract to compare with what the JavaScript run prints from its fake page.
+  - a blank line, then the page's HTML on one line
+  - nothing when the program drew nothing, or when it failed
+- The program's own folder is first on the import path:
+  another project it imports (`from cards import Card`) sits beside it.
 """
 
 import argparse

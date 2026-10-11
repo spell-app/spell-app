@@ -12,8 +12,8 @@ import { SP } from "$/spell"
  * - Gathered from the AST, in two steps:
  *   - while compiling, `commentFor()` gives each declaring statement a `/*! SPELL: DECLARES {...} *\/` comment
  *     above its code -- a MARKER, never written to disk
- *   - `split()` takes the markers back OUT of the project's compiled text, into the declarations, noting where each
- *     statement's code starts (`codeLines`), so a Type Explorer can still show it
+ *   - `split()` takes the markers back OUT of the project's compiled text, into the declarations,
+ *     noting where each statement's code starts (`codeLines`), so a Type Explorer can still show it
  * - Each marker is a JS object literal, read back with `JSON5`.
  * - `read()` reads a declarations file;  `load()` replays it into another project's import layer.
  * - A project compiled before the file existed has its declarations in its compiled `.js` instead:
@@ -25,8 +25,10 @@ export class SpellDeclarations {
   ////////////////
 
   /**
-   * Project `scope`'s compiled text with markers (see `commentFor()`) as its `code`, markers out, and its
-   * `declarations`:  its versions, what it `provides`, each marker's statement and where its code starts.
+   * Project `scope`'s compiled text, with markers (see `commentFor()`), split in two:
+   * - `code`:  the text, markers out
+   * - `declarations`:  its versions, what it `provides`, each marker's statement and where its code starts
+   *
    * - `version` / `exports` come from its `project.json` -- see `provides()`.
    * - A marker MUST start its line, and end one:  as `ASTPreservedComment` writes it, indented in a class body.
    */
@@ -106,8 +108,9 @@ export class SpellDeclarations {
   }
 
   /**
-   * What `statement` declared, as ONE flat object -- from the scope records it noted while parsing
-   * (`match.data.declared`, see `P.ScopeList.noteDeclared()`).  `undefined` if nothing another project could see.
+   * What `statement` declared, as ONE flat object:  from the scope records it noted while parsing.
+   * - Those are `match.data.declared` -- see `P.ScopeList.noteDeclared()`.
+   * - `undefined` if nothing another project could see.
    * - Records share keys, e.g. a method's `of` is also its rule's owner.  Throws if two disagree.
    * - Leaves out what loading works out again -- see `SP.SpellDeclaration`.
    * - Its `kind` and `name` are what its rule's `getDeclaration()` says -- unless a key already says, e.g. `type`.
@@ -192,7 +195,8 @@ export class SpellDeclarations {
 
   /**
    * Declarations in `compiled`, a project's `<Project>.compiled.js` from before declarations had a file of their own
-   * (epic `output-targets`, P5) -- `undefined` if it has no `/*! SPELL: PROJECT {...} *\/` header.
+   * (epic `output-targets`, P5).
+   * - `undefined` if it has no `/*! SPELL: PROJECT {...} *\/` header.
    * - Reads TEXT:  never runs the compiled code.
    */
   static fromComments(compiled: string): SP.SpellDeclarationsData | undefined {
@@ -205,8 +209,8 @@ export class SpellDeclarations {
   }
 
   /**
-   * `compiled` without its `/*! SPELL: DECLARES` comments -- e.g. for a rule's unit tests, which are about its
-   * code:  declarations have their own tests.
+   * `compiled` without its `/*! SPELL: DECLARES` comments.
+   * - e.g. for a rule's unit tests, which are about its code:  declarations have their own tests.
    */
   static stripComments(compiled: string): string {
     // with its indent, if it's in a class body
@@ -378,7 +382,7 @@ export class SpellDeclarations {
   }
 
   /**
-   * `declaration`'s rule, if its owner was picked:  class `importableAs`, `specialize()`d with `declaration` --
+   * `declaration`'s rule, if its owner was picked:  class `importableAs`, `specialize()`d with `declaration`,
    * which picks out what it needs.
    * - Owner:  type `of`, else itself, for a top-level function.
    * - Its `P.ScopeRule.declared` keeps its owner, what its statement declared and where -- for editors.
@@ -424,11 +428,11 @@ export class SpellDeclarations {
   }
 
   /**
-   * What `declaration`'s statement declared, as its rule's `getDeclaration()` said when it was parsed --
-   * `undefined` if it doesn't say.
+   * What `declaration`'s statement declared, as its rule's `getDeclaration()` said when it was parsed.
+   * - `undefined` if it doesn't say.
    * - `kind` and `name` where `declarationFor()` left them out because a key says, e.g. `property`.
-   * - `name` defaults to `syntax`, e.g. `play fizzbuzz`;  `detail` to `output()` by its javascript name,
-   *   `playFizzbuzz()`, as `MethodDefinition` says.
+   * - `name` defaults to `syntax`, e.g. `play fizzbuzz`.
+   * - `detail` defaults to `output()` by its javascript name, `playFizzbuzz()`, as `MethodDefinition` says.
    */
   private static editorDeclaration(declaration: SP.SpellDeclaration): P.ImportedRuleDeclared["declaration"] {
     const { type, property, classVariable, of, syntax, output } = declaration
@@ -471,11 +475,13 @@ export class SpellDeclarations {
   }
 
   /**
-   * What `picks` load:  each picked name, plus the types it depends on -- its `superType`, and types its
-   * properties hold -- all by their names in `declarations`.  And what to rename, e.g. `Card` => `Playingcard`.
+   * What `picks` load, all by their names in `declarations`:
+   * - each picked name, plus the types it depends on:  its `superType`, and types its properties hold
+   * - what to rename, e.g. `Card` => `Playingcard`
+   *
    * - `"*"` ~== everything `declarations` provides, under its own name -- bar what's renamed.
-   * - `"Card:Playingcard"` picks `Card`, as `Playingcard`.  Throws unless it's a TYPE, and the new name is
-   *   one word (dashes OK) that nothing else loaded is called.
+   * - `"Card:Playingcard"` picks `Card`, as `Playingcard`.
+   *   Throws unless it's a TYPE, and the new name is one word (dashes OK) that nothing else loaded is called.
    */
   private static picked(
     from: string,
@@ -586,8 +592,9 @@ export class SpellDeclarations {
   }
 
   /**
-   * A rule built while parsing, as props:  `rule` names the class it was `specialize()`d from, by its
-   * `importableAs`;  then what that class says to write -- see `P.Rule.declarationProps()`.
+   * A rule built while parsing, as props:  `rule`, then what its class says to write.
+   * - `rule` names the class it was `specialize()`d from, by its `importableAs`.
+   * - What that class writes:  see `P.Rule.declarationProps()`.
    * - Throws if it wasn't `specialize()`d from a class with an `importableAs`.
    */
   private static ruleDeclaration({ name, rule, definition }: P.ScopeRule): SP.SpellDeclaration {
@@ -613,8 +620,9 @@ export class SpellDeclarations {
   ////////////////
 
   /**
-   * PascalCase name of the type `statement` declares something ON, e.g. `Card` for `cards have a suit as ...`
-   * -- from its `getDeclaration().of`.  `undefined` if it isn't on a type.
+   * PascalCase name of the type `statement` declares something ON, from its `getDeclaration().of`.
+   * - e.g. `Card` for `cards have a suit as ...`
+   * - `undefined` if it isn't on a type.
    */
   private static ownerOf(statement: P.Match): string | undefined {
     const of = statement.rule.getDeclaration(statement)?.of
@@ -754,10 +762,9 @@ function literalKey(key: string): string {
   return /^[A-Za-z_$][\w$]*$/.test(key) ? key : toLiteral(key)
 }
 
-/** Constants enumerated values declare:  their strings, e.g. `["up", 2]` => `["up"]` (older `["'up'"]` too). */
 /**
- * Does the method `declaredBy` declares wait, e.g. `pause for 50 msec`?  Its definition's `isAsync`, which says it
- * has an `await` (epic `python-target` P11).
+ * Does the method `declaredBy` declares wait, e.g. `pause for 50 msec`?
+ * - Its definition's `isAsync`, which says it has an `await` (epic `python-target` P11).
  */
 function waits(declaredBy: P.Match | undefined): boolean {
   let found: P.ASTMethodDefinition | undefined
@@ -767,6 +774,7 @@ function waits(declaredBy: P.Match | undefined): boolean {
   return !!found?.isAsync
 }
 
+/** Constants enumerated values declare:  their strings, e.g. `["up", 2]` => `["up"]` (older `["'up'"]` too). */
 function enumerationConstants(enumeration: Array<string | number> | undefined): string[] {
   return (enumeration ?? []).filter((value): value is string => typeof value === "string").map(P.spellValueOf)
 }

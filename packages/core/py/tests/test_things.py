@@ -24,7 +24,7 @@ class ThingCard(Thing):
     suit = prop(one_of=["clubs", "diamonds", "hearts", "spades"])
     direction = prop(one_of=lambda: ThingCard.DIRECTIONS)
     name = prop(type="text", default="")
-    DIRECTIONS = ["up", "down"]  # noqa: RUF012 -- a list, as the writer emits it
+    DIRECTIONS = ("up", "down")
 
     def create(self) -> None:
         """Spell's set-up:  counts the times it runs, and sees the keyword properties already set."""
@@ -88,7 +88,7 @@ def test_setting_none_unsets_it() -> None:
 def test_on_the_class_a_property_is_its_declaration() -> None:
     assert ThingCard.rank.name == "rank"
     assert ThingCard.rank.one_of == RANKS
-    assert ThingCard.direction.one_of == ["up", "down"]
+    assert ThingCard.direction.one_of == ("up", "down")
     assert repr(Player.score) == "prop(type='number', default=0)"
 
 

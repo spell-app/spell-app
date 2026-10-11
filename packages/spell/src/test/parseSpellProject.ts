@@ -74,8 +74,10 @@ export function fixtureProjectId(projectName: string): string {
 }
 
 /**
- * The fixtures the Python writer writes, so far (epic `python-target`):  their `.snapshot.py`, and the core contract
- * runs them under Python.  Each phase adds the ones it makes write -- things and lists, pauses, drawing.
+ * The fixtures the Python writer writes, so far (epic `python-target`).
+ * - Their Python snapshots are checked:  `.snapshot.py`, `.snapshot.asyncio.py`, `.snapshot.pyright.txt`.
+ * - The core contract runs them under Python.
+ * - Each phase adds the ones it makes write:  things and lists, pauses, drawing.
  */
 export const PYTHON_FIXTURES = new Set([
   "Cards",
@@ -111,8 +113,8 @@ export function fixtureDeclarations(projectName: string): string {
 }
 
 /**
- * Fixture `projectName`'s words, as its `<Project>.en.js` would hold them:  from its declarations, by javascript's
- * names -- see `SP.SpellWords`.
+ * Fixture `projectName`'s words, as its `<Project>.en.js` would hold them:
+ * from its declarations, by javascript's names -- see `SP.SpellWords`.
  */
 export function fixtureWords(projectName: string): string {
   return SP.SpellWords.script(SP.SpellWords.of(compileFixture(projectName).declarations), projectName)
@@ -124,8 +126,9 @@ export function fixtureWords(projectName: string): string {
  *   and split through the same `SP.SpellDeclarations.split()`.
  * - Its `.css` files compile as `SpellCSSFile` does:  the whole text through the root scope's `css` rule.
  * - Parse errors lead its code, as comments, so a snapshot of it shows them too.
- * - Against the fixtures it imports, e.g. `@test:fixtures:Cards`:  their declarations, as a compiled import's --
- *   see `fixtureImportScope()`.  NOT their code:  that's theirs.
+ * - Against the fixtures it imports, e.g. `@test:fixtures:Cards`:
+ *   their declarations, as a compiled import's (see `fixtureImportScope()`).
+ *   NOT their code:  that's theirs.
  * - `version` / `exports` / `listsStartAt` from its `project.json`, as a compile would.
  * - `target`'s writer writes it, `js/solid`'s by default -- or `target` itself, a writer.
  */
@@ -172,8 +175,9 @@ export function fixtureImports(projectName: string): Record<string, string> {
 }
 
 /**
- * The import layer fixture `projectName` parses under:  the declarations of each fixture it imports, as
- * `SpellProject.loadImportScope()` loads a compiled import's -- or the root scope, if it imports none.
+ * The import layer fixture `projectName` parses under:  the declarations of each fixture it imports,
+ * as `SpellProject.loadImportScope()` loads a compiled import's.
+ * - Imports none:  the root scope.
  */
 function fixtureImportScope(projectName: string): P.Scope {
   const { imports } = readProjectFile(fixturePath(projectName))

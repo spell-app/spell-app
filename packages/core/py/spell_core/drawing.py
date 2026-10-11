@@ -49,8 +49,9 @@ class Element:
     """One element of a drawing:  its `tag`, its `attributes` as the page holds them, and its `children`.
 
     - Made by `h()`, which works out what the page would hold:  `str()` writes it as HTML, as linkedom does.
-    - `children`:  elements and text, in order.  A function among them is a LIVE drawing:
-      called each time the element is written, for what to show then (an app, see `core.mount_app()`).
+    - `children`:  elements and text, in order.
+      - A function among them is a LIVE drawing:  called each time the element is written,
+        for what to show then (an app, see `core.mount_app()`).
     """
 
     __slots__ = ("attributes", "children", "tag")
@@ -103,8 +104,8 @@ def h(tag: str, props: Mapping[str, object] | object = None, *children: object) 
     ```
 
     - `props`:  a dict, or `None`;  anything else is the first child.  Each prop is an attribute, except:
-      - an event handler (`"onClick"`, any `on...`) or a Solid property (`"prop:thing"`, `"ref"` ...):  left out,
-        as the page shows no handler
+      - an event handler (`"onClick"`, any `on...`) or a Solid property (`"prop:thing"`, `"ref"` ...):
+        left out, as the page shows no handler
       - a function is called for its value:  `{"class": lambda: class_name}`
       - `True` is the attribute with no value (`hidden`);  `False` and `None` leave it out
       - a number is written as JavaScript writes it:  `3.0` is `3`
@@ -236,14 +237,14 @@ class Page:
     def __init__(self) -> None:
         """An empty page:  nothing drawn, no styles."""
         self.body = Element("body")
-        # each project's CSS, by its name:  `core.install_styles()`.  Kept, never written:  the contract compares
-        # only what's drawn
+        # each project's CSS, by its name:  `core.install_styles()`
+        # - kept, never written:  the contract compares only what's drawn
         self.styles: dict[str, str] = {}
 
     def body_html(self) -> str:
         """What's drawn on the page, as one line of HTML:  `<div id="spell-app-root">...</div>`.
 
-        - Drawn NOW:  an app's drawing shows what its things are now, as the JavaScript run's live page shows them
-          when it ends.
+        - Drawn NOW:  an app's drawing shows what its things are now,
+          as the JavaScript run's live page shows them when it ends.
         """
         return self.body.inner_html

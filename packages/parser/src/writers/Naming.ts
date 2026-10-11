@@ -11,10 +11,16 @@ import { camelCaseOf } from "./WriterProject"
  * new Naming(Naming.PYTHON, Naming.PYTHON_CLASHES)       // PEP 8:  snake_case, RANKS, `class_` for a keyword
  * ```
  *
- * - The kinds:  `type`, `method` (methods, getters, functions), `variable`, `property` (a stored property), `constant`.
- *   `all` is the case of any kind not named.  A kind with neither is written as spell names it.
- * - spell's own names are the input:  a type in PascalCase (`BankAccount`), anything else in snake_case
- *   (`turn_face_up`, `is_set_up`).
+ * - The kinds:
+ *   - `type`
+ *   - `method`:  methods, getters, functions
+ *   - `variable`
+ *   - `property`:  a stored property
+ *   - `constant`
+ *   - `all`:  the case of any kind not named
+ *   - A kind with neither is written as spell names it.
+ * - spell's own names are the input:
+ *   a type in PascalCase (`BankAccount`), anything else in snake_case (`turn_face_up`, `is_set_up`).
  * - A built-in class keeps its runtime's name, e.g. `Thing`, `DrawableList`:  the runtime's code names it, not ours.
  * - Each writer has one (`P.Writer.naming`);  a writer reads names through it, never writes a case itself.
  ****************/
@@ -29,8 +35,10 @@ export class Naming {
   }
 
   /**
-   * Python's map, PEP 8's (epic `python-target` P7):  classes `PascalCase`, constants `SCREAMING_SNAKE_CASE`
-   * (`Card.RANKS`), everything else `snake_case` (`turn_face_up`, `is_set_up`).
+   * Python's map, PEP 8's (epic `python-target` P7):
+   * - classes `PascalCase`
+   * - constants `SCREAMING_SNAKE_CASE` (`Card.RANKS`)
+   * - everything else `snake_case` (`turn_face_up`, `is_set_up`)
    */
   static readonly PYTHON: NamingMap = {
     type: "PascalCase",
@@ -40,13 +48,16 @@ export class Naming {
 
   /**
    * Python's names a spell name mustn't be, and how it steps aside:  PEP 8's single trailing underscore,
-   * "used by convention to avoid conflicts with Python keyword", e.g. `class_` (https://peps.python.org/pep-0008/).
-   * - `keywords`:  never a name, of any kind (`class`, `is`, `None`).  Not the soft ones (`match`, `case`, `type`):
+   * "used by convention to avoid conflicts with Python keyword", e.g. `class_`.
+   * - `keywords`:  never a name, of any kind (`class`, `is`, `None`).
+   *   Not the soft ones (`match`, `case`, `type`):
    *   they're names everywhere but at the start of their own statements.
-   * - `builtins`:  only a variable or parameter would hide them (`list`, `max`, `id`) -- a member, `card.type`,
-   *   hides nothing.  And `self` / `cls`, which a method's first parameter already is.
-   * - Never a dunder (`__len__`):  PEP 8's "never invent such names".  `wordsOf()` drops every `_` it splits at,
-   *   so a spell name can't become one.
+   * - `builtins`:  only a variable or parameter would hide them (`list`, `max`, `id`).
+   *   - A member, `card.type`, hides nothing.
+   *   - And `self` / `cls`, which a method's first parameter already is.
+   * - Never a dunder (`__len__`):  PEP 8's "never invent such names".
+   *   `wordsOf()` drops every `_` it splits at, so a spell name can't become one.
+   * - SEE:  https://peps.python.org/pep-0008/
    */
   static readonly PYTHON_CLASHES: NameClashes = {
     keywords: new Set(

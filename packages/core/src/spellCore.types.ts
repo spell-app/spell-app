@@ -36,17 +36,17 @@ export const SPELL_CORE_NAMES = ["spellCore", ...SPELL_CLASSES]
  * Types built into spell, which every project starts with -- `spellCore.BASE_TYPES`.
  * - Spell's classes, plus javascript's own `Object`, so spell can say `create an object` and `a list of objects`.
  *   NOT a spell class, so a Type Explorer leaves it out.
- * - Here, so the parser can read them WITHOUT importing `spellCore`, whose code must stay in the runtime's own
- *   bundle entry -- see `spellRuntime.ts`.
+ * - Here, so the parser can read them WITHOUT importing `spellCore`,
+ *   whose code must stay in the runtime's own bundle entry -- see `spellRuntime.ts`.
  */
 export const SPELL_BASE_TYPES = ["Object", ...SPELL_CLASSES]
 
 /**
- * Assembled type of the `spellCore` singleton -- built by accretion: each module below does
- * `Object.assign(spellCore, { ...methods })` at runtime (see `index.ts` for the side-effect import
- * order), so this is the intersection of every module's methods.
- * - It's the CORE CONTRACT too:  what another target's core must have (Python's, later -- epic `output-targets`), and
- *   what it must print is pinned by the `cli`'s `contract.test.ts`.
+ * Assembled type of the `spellCore` singleton, built by accretion:
+ * each module below does `Object.assign(spellCore, { ...methods })` at runtime
+ * (see `index.ts` for the side-effect import order), so this is the intersection of every module's methods.
+ * - It's the CORE CONTRACT too:  what another target's core must have (Python's `spell_core`, in `py/`),
+ *   and what it must print is pinned by the `cli`'s `contract.test.ts`.
  *   - Except `deprecatedMethods`:  old names, for programs compiled before they changed.  A new core has none.
  *   - Listed by name, for another core to check itself against, in `spellCore.declarations.json`:
  *     see `coreDeclarations()`.  A module added here goes in its `CORE_MODULES` too.
@@ -78,8 +78,8 @@ export type PropCheck = {
   /** type name, e.g. `text`, `choice`, `Card` -- see `spellCore.isOfType()` */
   type?: string
   /**
-   * legal values, e.g. `Card.Suits` -- or a function returning them, read when a value is set, e.g.
-   * `() => Deck.Suits`:  a value kind's list is on ANOTHER class, which may be defined after ours
+   * legal values, e.g. `Card.Suits` -- or a function returning them, read when a value is set,
+   * e.g. `() => Deck.Suits`:  a value kind's list is on ANOTHER class, which may be defined after ours
    */
   oneOf?: readonly unknown[] | (() => readonly unknown[])
 }
@@ -88,10 +88,10 @@ export type PropCheck = {
 
 /**
  * Identity helper used to wrap each module's methods object.
- * NOTE: this intentionally does NOT try to type `this` as `SpellCore` (e.g. via `ThisType<SpellCore>`):
- * `SpellCore` is itself assembled from `typeof <module>Methods` for every module, so a signature here
- * that mentions `SpellCore` would make every module's methods type circularly depend on itself.
- * Module method bodies call sibling methods via the imported `spellCore` singleton instead of `this`.
+ * - Module method bodies call sibling methods via the imported `spellCore` singleton, NOT `this`.
+ * - NOTE: this intentionally does NOT try to type `this` as `SpellCore` (e.g. via `ThisType<SpellCore>`):
+ *   `SpellCore` is itself assembled from `typeof <module>Methods` for every module,
+ *   so a signature here that mentions `SpellCore` would make every module's methods type circularly depend on itself.
  */
 export function defineSpellCoreModule<T extends object>(methods: T): T {
   return methods

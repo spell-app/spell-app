@@ -10,12 +10,13 @@ import { attributeName, isCoreCall, kindFromDatatype, unwrapped } from "./jsShap
  * Writes a spell tree as Python:  the `py` target's writer (epic `python-target`).
  * - As idiomatic as Python can be (Owen, Q8):  what a Python programmer would write by hand.
  *   - names as PEP 8 says:  `play_fizzbuzz`, `Card`, `Card.RANKS`, a keyword stepping aside as `class_` (`naming`)
- *   - Python's own words where it has them:  `for number in range(1, 101):`, `print(...)`, `x is None`,
- *     `(number / 15).is_integer()`
- *   - `core`, `spell_core`'s one object, only where Python has no word for what spell says:  spell's tests,
- *     a seeded shuffle, spell's forgiving types
+ *   - Python's own words where it has them:
+ *     `for number in range(1, 101):`, `print(...)`, `x is None`, `(number / 15).is_integer()`
+ *   - `core`, `spell_core`'s one object, only where Python has no word for what spell says:
+ *     spell's tests, a seeded shuffle, spell's forgiving types
  * - Knows what each value is as the JS writer does:  `kindOf()`, from `P.ProgramWriter`.
- * - ONE method per kind of node, as every `P.Writer`.  A kind it can't write yet throws, naming it.
+ * - ONE method per kind of node, as every `P.Writer`.
+ *   A kind it can't write yet throws, naming it.
  * - A block is its indent (`pyText`):  a statement's text may span lines, each block indented under its `:`.
  ****************/
 export class PyWriter extends ProgramWriter {
@@ -35,8 +36,8 @@ export class PyWriter extends ProgramWriter {
    * The import lines:  `from spell_core import core, Thing` for spell's runtime -- only what the code uses,
    * as Python's linters ask (see `module()`).
    * - `spellCore` is `core`.
-   * - Another project's names:  from its module, by project id, e.g. `@test:fixtures:Cards` => `cards`
-   *   (see `projectModule()`).
+   * - Another project's names:  from its module, by project id (see `projectModule()`),
+   *   e.g. `@test:fixtures:Cards` => `cards`.
    */
   importsHeader(imports: P.ModuleImport[]): string {
     const lines = imports
@@ -193,8 +194,8 @@ export class PyWriter extends ProgramWriter {
   /**
    * `object.property`, by our name:  `card.is_face_up`.
    * - A class's constant, `Card.RANKS`;  bare in that class's own body, `RANKS`, as the class isn't made yet there.
-   * - Off what may be nothing (`mayBeNothing()`):  `getattr(deck.last_item, "name", None)`, as spell reads off
-   *   nothing as nothing.
+   * - Off what may be nothing (`mayBeNothing()`), as spell reads off nothing as nothing:
+   *   `getattr(deck.last_item, "name", None)`.
    * - `getattr(object, "name")` for one that isn't a name.
    */
   ASTPropertyExpression(node: P.ASTPropertyExpression): string {
@@ -252,8 +253,8 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * A declaration's marker, `/*! SPELL: DECLARES ... *\/`, as every target writes it:  `SP.SpellDeclarations`
-   * takes it out before the code is saved, so it never reaches the Python file.
+   * A declaration's marker, `/*! SPELL: DECLARES ... *\/`, as every target writes it.
+   * - `SP.SpellDeclarations` takes it out before the code is saved, so it never reaches the Python file.
    */
   ASTPreservedComment(node: P.ASTPreservedComment): string {
     return `/*! ${node.lines.join("\n")} */`
@@ -311,8 +312,8 @@ export class PyWriter extends ProgramWriter {
   /**
    * `node`, a chain of `+` with text written out in it, as an f-string:  `"Score: " + score` => `f"Score: {score}"`.
    * - Python won't add text and a number:  an f-string writes each value as text.
-   * - `undefined` when it isn't:  no text in the chain, or text only after two values (`a + b + "!"` adds `a` and `b`
-   *   first).
+   * - `undefined` when it isn't:  no text in the chain,
+   *   or text only after two values (`a + b + "!"` adds `a` and `b` first).
    */
   textJoin(node: P.ASTInfixExpression): string | undefined {
     const parts: P.ASTExpression[] = []
@@ -430,8 +431,9 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * `print the number, "fizz"`:  Python's own `print(number, "fizz")` where every value prints as spell's does --
-   * text, and whole numbers;  else `core.console.log(...)`, which prints yes / no as `true` / `false`, `3.0` as `3`.
+   * `print the number, "fizz"`, as Python prints it.
+   * - Python's own `print(number, "fizz")`, where every value prints as spell's does:  text, and whole numbers.
+   * - Else `core.console.log(...)`, which prints yes / no as `true` / `false`, `3.0` as `3`.
    * - `print warning` / `print error`:  `core.console.warn(...)` / `error(...)`, to stderr.
    */
   consoleCall(node: P.ASTConsoleMethodInvocation): string {
@@ -533,11 +535,13 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * One of spell's `List`s doing it itself, as `spell_core`'s List does it -- `undefined` for a helper it has no
-   * method for:  `deck.first_item`, `deck.filter(lambda card: ...)`, `deck[2]`.
-   * - Positions:  Python's own index, from 0, where it's a number written out (`deck[2]` for spell's `card 3`
-   *   counting from 1);  else the list's own `get_item(n)`, counting as the project does.  A list's index out of
-   *   range is nothing (`None`), as spell reads it.
+   * One of spell's `List`s doing it itself, as `spell_core`'s List does it:
+   * `deck.first_item`, `deck.filter(lambda card: ...)`, `deck[2]`.
+   * - `undefined` for a helper it has no method for.
+   * - Positions:
+   *   - a number written out:  Python's own index, from 0 (`deck[2]` for spell's `card 3`, counting from 1)
+   *   - else the list's own `get_item(n)`, counting as the project does
+   *   - an index out of range is nothing (`None`), as spell reads it
    */
   listCall(name: string, list: P.ASTExpression, rest: P.ASTExpression[]): string | undefined {
     const self = this.tight(list)
@@ -642,10 +646,11 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * A loop as Python says it, `for item in items:` -- for `spellCore.map()` / `forEach()` with a function of its
-   * own, written as a statement.  `undefined` for anything else.
-   * - With the position too, `for item, index in my-list`:  `for index, item in enumerate(items):`, from 1
-   *   unless the project counts from 0.
+   * A loop as Python says it, `for item in items:`.
+   * - For `spellCore.map()` / `forEach()` with a function of its own, written as a statement.
+   * - `undefined` for anything else.
+   * - With the position too, `for item, index in my-list`:
+   *   `for index, item in enumerate(items):`, from 1 unless the project counts from 0.
    * - A bare `return` in the body ends that turn only:  `continue`.
    */
   loop(node: P.ASTNode): string | undefined {
@@ -685,8 +690,8 @@ export class PyWriter extends ProgramWriter {
 
   /**
    * A file's or a block's statements, one a line.
-   * - A docstring right above a `def` or `class` goes inside it, as Python's docstring;  a declaration's marker
-   *   between them stays above.
+   * - A docstring right above a `def` or `class` goes inside it, as Python's docstring.
+   *   A declaration's marker between them stays above.
    * - Two blank lines around a top-level `def` or `class` (PEP 8);  one at most anywhere else.
    */
   ASTStatementGroup(node: P.ASTStatementGroup): string {
@@ -861,7 +866,10 @@ export class PyWriter extends ProgramWriter {
       .join(pyText.NEWLINE)
   }
 
-  /** `await x`:  a plain call, as compiled Python doesn't wait (Q3:  pauses sleep;  `py/asyncio` is P11's). */
+  /**
+   * `await x`:  a plain call, as this target's Python doesn't wait:  a pause sleeps where it is (Q3).
+   * - The `py/asyncio` target's writer awaits it:  `P.PyAsyncWriter`.
+   */
   ASTAwaitExpression(node: P.ASTAwaitExpression): string {
     return this.loop(node.expression) ?? String(this.write(node.expression))
   }
@@ -906,8 +914,8 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * `parts`, text and values, as Python text:  `"plain"` when all text, else `f"{a}-of-{b}"` -- braces in the text
-   * doubled, as an f-string reads them.
+   * `parts`, text and values, as Python text:  `"plain"` when all text, else `f"{a}-of-{b}"`.
+   * - Braces in the text are doubled, as an f-string reads them.
    */
   fString(parts: Array<string | { value: P.ASTExpression }>): string {
     if (parts.every((part) => typeof part === "string")) return this.quoted(parts.join(""))
@@ -927,8 +935,8 @@ export class PyWriter extends ProgramWriter {
   ////////////////
 
   /**
-   * An element, as `spell_core`'s `h()` makes it:  `h("span", {"class": "suit"}, self.short_suit)` -- HTML text
-   * (Q2:  Python has no page).
+   * An element, as `spell_core`'s `h()` makes it:  `h("span", {"class": "suit"}, self.short_suit)`.
+   * - It makes HTML text, as Python has no page (Q2).
    * - A value the page would track (`() => value` in javascript) is just the value:  the HTML is made once.
    * - A handler, `on_click=...`, is kept, for a page that can call back one day;  `h()` leaves it out of the HTML.
    */
@@ -1002,8 +1010,10 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * What `method` returns, as a hint:  `None` when it never returns a value;  the kind all its returns share, `str`;
-   * `| None` after it when one may give nothing -- `undefined` when they differ or can't be told.
+   * What `method` returns, as a hint:
+   * - `None` when it never returns a value
+   * - else the kind all its returns share, `str`, with `| None` after it when one may give nothing
+   * - `undefined` when they differ or can't be told
    * - Worked out in its class, its parameters known -- see `ProgramWriter.returnedKinds()`.
    */
   returnHint(method: P.ASTMethodDefinition): string | undefined {
@@ -1024,8 +1034,8 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * May `value`, returned from `method`, be nothing?  As `mayBeNothing()` says, in `method`'s place;  also the list
-   * that owns a thing, `Pile.owner_of(card)`, as a card may be in no pile.
+   * May `value`, returned from `method`, be nothing?  As `mayBeNothing()` says, in `method`'s place.
+   * - Also the list that owns a thing, `Pile.owner_of(card)`, as a card may be in no pile.
    */
   returnsNothingMaybe(value: P.ASTExpression, method: P.ASTMethodDefinition): boolean {
     const inner = unwrapped(value)
@@ -1034,8 +1044,10 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * Python's hint for a value of `kind` (`kindOf()`):  `str`, `float` (an `int` too, as PEP 484 has it), `bool`,
-   * a class, `List` (spell's), `list` -- `undefined` for one it can't tell.
+   * Python's hint for a value of `kind` (`kindOf()`) -- `undefined` for one it can't tell:
+   * - `str`, `bool`, a class
+   * - `float`, which takes an `int` too, as PEP 484 has it
+   * - `List` (spell's), `list` (Python's)
    */
   hintOf(kind: string | undefined): string | undefined {
     if (kind === "text") return "str"
@@ -1047,9 +1059,10 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * A function written where a value goes, e.g. a list's `filter()`'s:  `lambda card: card.rank == "queen"` when it
-   * returns one expression (or only calls or sets one thing it doesn't need to);  else a name, its `def` written
-   * above the statement it's in -- see `lifted`.
+   * A function written where a value goes, e.g. a list's `filter()`'s:
+   * - `lambda card: card.rank == "queen"` when it returns one expression
+   *   (or only calls or sets one thing it doesn't need to)
+   * - else a name, its `def` written above the statement it's in -- see `lifted`
    */
   inlineFunction(node: P.ASTMethodDefinition): string {
     const statements = (node.body.statements ?? []).filter((it) => !(it instanceof P.ASTBlankLine))
@@ -1073,8 +1086,8 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * An event's handler, `spellCore.on("card-click", (event) => {...})`, as Python registers one:  a decorator on a
-   * function named for the event --
+   * An event's handler, `spellCore.on("card-click", (event) => {...})`, as Python registers one:
+   * a decorator on a function named for the event --
    *
    * ```python
    * @core.on("card-click")
@@ -1119,8 +1132,10 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * `class Card(Thing):`, `doc` its docstring, then its members:  its constants, its properties (`rank =
-   * prop(one_of=RANKS)`), its getters (`@property`) and methods, one blank line between methods (PEP 8).
+   * `class Card(Thing):`, `doc` its docstring, then its members:
+   * - its constants
+   * - its properties, `rank = prop(one_of=RANKS)`
+   * - its getters (`@property`) and methods, one blank line between methods (PEP 8)
    */
   classDeclaration(node: P.ASTClassDeclaration, doc: P.ASTDocComment | undefined): string {
     const { type, superType, members } = node
@@ -1192,8 +1207,9 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * In its class's body:  `rank = prop(one_of=RANKS)`, a stored property -- `spell_core`'s descriptor, its check's
-   * keys as keywords (`oneOf` => `one_of`), its first value `default=` (a value) or `init=` (made new for each thing).
+   * In its class's body:  `rank = prop(one_of=RANKS)`, a stored property, made by `spell_core`'s `prop()` (a descriptor).
+   * - its check's keys as keywords:  `oneOf` => `one_of`
+   * - its first value:  `default=` (a value) or `init=` (made new for each thing)
    */
   ASTReactivePropertyAsMember(node: P.ASTReactiveProperty): string {
     return `${this.nameOf(node.property.value, "property")} = prop(${this.propArguments(node)})`
@@ -1226,8 +1242,8 @@ export class PyWriter extends ProgramWriter {
 
   /**
    * In its class's body:  `RANKS = ("ace", 2, ...)`, a constant in capitals;  the item type, `item_type = Card`.
-   * - A list of values written out is a tuple:  it never changes, and a list there would be one list every thing
-   *   shares (ruff's RUF012).
+   * - A list of values written out is a tuple, as it never changes.
+   *   A list there would be one list every thing shares (ruff's RUF012).
    */
   ASTStaticDefinitionAsMember(node: P.ASTStaticDefinition): string {
     const value = unwrapped(node.value)
@@ -1248,8 +1264,10 @@ export class PyWriter extends ProgramWriter {
   }
 
   /**
-   * A class-level name, by our name:  a list of values in capitals, a constant (`Ranks` => `RANKS`);  spell's
-   * `instanceType` is `spell_core`'s `item_type`;  the rest as any member (`exclusive`).
+   * A class-level name, by our name:
+   * - a list of values in capitals, a constant:  `Ranks` => `RANKS`
+   * - spell's `instanceType` is `spell_core`'s `item_type`
+   * - the rest as any member:  `exclusive`
    */
   staticName(name: string): string {
     if (name === "instanceType") return "item_type"
@@ -1321,7 +1339,6 @@ const PRECEDENCE: Record<P.ASTOperator, number> = {
   "divided by": 12
 }
 
-/** `group`'s statements, and those of the groups in it, in order. */
 /** SIDE EFFECT:  calls `callback` with each `return` in `body` -- not one in a function inside it, which is its own. */
 function forEachReturn(body: unknown, callback: (node: P.ASTReturnStatement) => void): void {
   if (Array.isArray(body)) return body.forEach((item) => forEachReturn(item, callback))
@@ -1335,6 +1352,7 @@ function kindOfDatatype(datatype: P.Datatype | RegExpConstructor | undefined): s
   return kindFromDatatype(datatype)
 }
 
+/** `group`'s statements, and those of the groups in it, in order. */
 function flattened(group: P.ASTStatementGroup): P.ASTNode[] {
   return (group.statements ?? []).flatMap((statement) =>
     statement instanceof P.ASTStatementGroup && !(statement instanceof P.ASTTryCatchBlock)
@@ -1381,8 +1399,9 @@ function textValue(node: P.ASTExpression | undefined): string | undefined {
 }
 
 /**
- * SIDE EFFECT:  `count` blank lines at `index` of `lines`, as PEP 8 wants before a `def` or `class` -- above the
- * declaration markers that go with it.  None at the very top.
+ * SIDE EFFECT:  `count` blank lines at `index` of `lines`, as PEP 8 wants before a `def` or `class`.
+ * - They go above the declaration markers that go with it.
+ * - None at the very top.
  */
 function separateAt(lines: string[], index: number, count: number): void {
   let start = index

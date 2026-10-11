@@ -3,9 +3,11 @@ import { P } from "$/parser"
 /**
  * `ScopeConstant` a constant defined within a `Scope`.
  * - `name` (required) Constant name, quotes will be stripped.
- * - `value` Its value as spell says it, e.g. `up`:  each writer quotes it its own way.  Defaults to `name`.
- * - `output` Literal output string for constant when expressed in javascript,
- *            with quotes as necessary.  Defaults to `'name'`.  Writers read `value`;  kept for older declarations.
+ * - `value` Its value as spell says it, e.g. `up`:  each writer quotes it its own way.
+ *   Defaults to `name`.
+ * - `output` Literal output string for constant when expressed in javascript, with quotes as necessary.
+ *   - Defaults to `'name'`.
+ *   - Writers read `value`:  `output` is kept for older declarations.
  * - `scope` Where constant was defined.
  */
 export class ScopeConstant {

@@ -9,7 +9,8 @@ import { type Naming, type NameKind } from "./Naming"
  * ### `ProgramWriter`
  * What every writer of a PROGRAM shares, whatever language it writes (epic `python-target` P4):
  * what it knows of the project, and so what each value is.
- * - `P.JSWriter` (and `P.TSWriter` on it) and the Python writer extend it:  it writes no code itself.
+ * - `P.JSWriter` (and `P.TSWriter` on it) and `P.PyWriter` (and `P.PyAsyncWriter` on it) extend it.
+ *   It writes no code itself.
  * - What the whole project says, before writing any of it:  `forProject()`, a `WriterProject`.
  * - What a value is, as far as writing it goes:  `kindOf()` -- text, a number, a choice, a list, a class.
  * - What may be nothing:  `mayBeNothing()`, from what each new variable is set to (`locals`).
@@ -30,15 +31,17 @@ export abstract class ProgramWriter extends Writer {
   abstract readonly fileSeparator: string
 
   /**
-   * The lines a module starts with:  what it imports, by module, in order -- spell's runtime first, then other
-   * projects, e.g. `import { spellCore, Thing } from "@spell/core"`.
+   * The lines a module starts with:  what it imports, by module, in order.
+   * - e.g. `import { spellCore, Thing } from "@spell/core"`
+   * - spell's runtime first, then other projects
    * - Ends with a blank line, ready for the code.
    */
   abstract importsHeader(imports: P.ModuleImport[]): string
 
   /**
-   * A project part that comes as code, not a tree, e.g. a `.css` file's `spellCore.installStyles(...)`, in our
-   * language:  as it is by default -- see `PyWriter`'s.
+   * A project part that comes as code, not a tree, in our language,
+   * e.g. a `.css` file's `spellCore.installStyles(...)`.
+   * - As it is by default:  javascript's.  Python writes its own -- see `PyWriter`'s.
    */
   codePart(code: string): string {
     return code
@@ -118,8 +121,9 @@ export abstract class ProgramWriter extends Writer {
   }
 
   /**
-   * A position said with an ordinal word, e.g. `the first card`'s `1`:  as the project counts it, so one less
-   * counting from 0 (`listsStartAt`), `0`.  Negative ones count from the end either way:  as they are.
+   * A position said with an ordinal word, e.g. `the first card`'s `1`, as the project counts it.
+   * - Counting from 0 (`listsStartAt`), one less:  `0`.
+   * - Negative ones count from the end either way:  as they are.
    */
   ASTOrdinalLiteral(node: P.ASTOrdinalLiteral): number {
     return this.listsStartAt === 0 && node.value > 0 ? node.value - 1 : node.value
@@ -144,8 +148,9 @@ export abstract class ProgramWriter extends Writer {
   }
 
   /**
-   * Does `spellCore`'s helper `name`, given `args`, take a last `startAt` in this project:  does the project count
-   * from 0, and is it a position, or a loop that hands its callback the position?
+   * Does `spellCore`'s helper `name`, given `args`, take a last `startAt` in this project?
+   * - Yes when the project counts from 0,
+   *   and it's a position, or a loop that hands its callback the position.
    */
   takesStartAt(name: string, args: P.ASTExpression[]): boolean {
     if (this.listsStartAt !== 0 || !(name in ProgramWriter.START_AT_ARG)) return false
@@ -270,11 +275,11 @@ export abstract class ProgramWriter extends Writer {
   }
 
   /**
-   * What the program gives member `name` of class `typeName` (or of a class below it), when every value given is
-   * alike, e.g. `"text"` for a pile's `name`, given `"stock"`, `"discards"` ... (Q54)
+   * What the program gives member `name` of class `typeName` (or of a class below it),
+   * when every value given is alike, e.g. `"text"` for a pile's `name`, given `"stock"`, `"discards"` ... (Q54)
    * - `undefined` when they differ, when any can't be told, or when nothing is given.
-   * - Given when one is made, `a new stock-pile with name = "stock"`, or set on one, `set the name of the pile to ...`
-   *   -- see `WriterProject.givenValues`.
+   * - Given when one is made, `a new stock-pile with name = "stock"`,
+   *   or set on one, `set the name of the pile to ...` -- see `WriterProject.givenValues`.
    *   Set on something the writer can't tell is one:  it doesn't count.
    * - And `initial`, a property's initial value, if it has one.
    * - A value read off the same member, `set the name of a to the name of b`, says nothing new:  it doesn't count.

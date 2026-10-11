@@ -1,8 +1,10 @@
 /**
  * `spell` base runtime library for use with classes created with spell.
- * - Meta-programming (`checkProp`, `newThingLike`), type checks, get/set-by-path
- *   stubs, `equals`, math, random numbers and primitive iteration all live here -- collection-shaped methods
- *   (`itemCountOf`, `forEach`, etc) live in `collection-core.ts` / `collection-other.ts` instead.
+ * - What lives here:
+ *   - meta-programming (`checkProp`, `newThingLike`), type checks
+ *   - get/set-by-path stubs, `equals`
+ *   - math, random numbers and primitive iteration
+ * - Collection-shaped methods (`itemCountOf`, `forEach`, etc) live in `collection-core.ts` / `collection-other.ts`.
  */
 import _isArrayLike from "lodash/isArrayLike"
 import isEqual from "lodash/isEqual"
@@ -45,10 +47,10 @@ export function randomNumber(min?: number, max?: number): number | undefined {
 
 /**
  * The `spellCore` singleton -- compiled `spell` code calls `spellCore.foo(...)` for every built-in.
- * - Built from an instance of an inline class (rather than a plain object) purely so it prints as
- *   `spellCore {...}` -- not `Object {...}` -- when logged / inspected while debugging.
- * - Cast to `SpellCore` since its real shape is assembled piecemeal by every module's `Object.assign()`
- *   call below (and in `collection-core.ts`, `collection-other.ts`, etc) -- see `spellCore.types.ts`.
+ * - Built from an instance of an inline class (rather than a plain object)
+ *   purely so it prints as `spellCore {...}` -- not `Object {...}` -- when logged / inspected while debugging.
+ * - Cast to `SpellCore` since its real shape is assembled piecemeal by every module's `Object.assign()` call:
+ *   below, and in `collection-core.ts`, `collection-other.ts`, etc -- see `spellCore.types.ts`.
  */
 export const spellCore = new (class spellCore {})() as SpellCore
 
@@ -58,10 +60,10 @@ export const coreMethods = defineSpellCoreModule({
   doNothing(): void {},
 
   /**
-   * Settle everything that follows spell state NOW:  pending derived checks, then the host's Solid -- see
-   * `flushCells()` in `$/util`.
-   * - Spell state itself never needs it:  a read right after a write sees the write.  It's for what DRAWS it:  a
-   *   test asserting on the DOM, imperative code measuring it.
+   * Settle everything that follows spell state NOW:  pending derived checks, then the host's Solid.
+   * - See `flushCells()` in `$/util`.
+   * - Spell state itself never needs it:  a read right after a write sees the write.
+   *   It's for what DRAWS it:  a test asserting on the DOM, imperative code measuring it.
    * - NEVER Solid's `flush()` directly:  a reader of only a derived value hears of a change on a microtask.
    */
   flush(): void {
@@ -94,8 +96,8 @@ export const coreMethods = defineSpellCoreModule({
   /**
    * Create an new, "empty" instance of `thing.constructor`.
    * - What collection helpers build their results in, e.g. `map()`, `filter()`, `duplicateList()`.
-   * - NOT registered for the Thing Explorer -- see `ThingRegistry.quietly()` -- so a copy the program keeps
-   *   doesn't show either.  See `agents/CODE-DEBT.md`.
+   * - NOT registered for the Thing Explorer (see `ThingRegistry.quietly()`),
+   *   so a copy the program keeps doesn't show either.  See `agents/CODE-DEBT.md`.
    * - A SCRATCH list:  an exclusive one, e.g. a `Pile`, owns nothing -- see `spellCore.newScratch()`.
    * - TODO: number? string?  non-constructable thing???
    */
@@ -134,8 +136,9 @@ export const coreMethods = defineSpellCoreModule({
   } as Record<string, string>,
 
   /**
-   * Return string "type" of `thing`, as shown to `spell` users -- e.g. `"text"` for a string,
-   * `"list"` for an array, or the lowercased constructor name for a custom class.
+   * Return string "type" of `thing`, as shown to `spell` users:
+   * - e.g. `"text"` for a string, `"list"` for an array
+   * - the lowercased constructor name for a custom class
    * TODO:  Return type aliases, e.g. ["number", "integer"]
    * TODO:  Return inherited class types ?
    * TODO:  NaN => `unknown` ???
@@ -160,8 +163,8 @@ export const coreMethods = defineSpellCoreModule({
   } as IsOfTypeSpecials,
 
   /**
-   * Types `thing` is, most specific first:  its `typeOf()`, then each super-class's -- e.g. a joker is
-   * `["joker", "card", "thing", ...]`, for `a joker is a card`.
+   * Types `thing` is, most specific first:  its `typeOf()`, then each super-class's.
+   * - e.g. a joker is `["joker", "card", "thing", ...]`, for `a joker is a card`.
    * - Up its prototype chain, stopping before plain `Object`, which every object would be.
    * - By class NAME, lowercased and converted as `typeOf()` does -- skipping any unnamed class, e.g. a mixin's.
    */

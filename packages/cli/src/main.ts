@@ -3,8 +3,9 @@
  * - `consoleGuard` comes FIRST, and everything else only after it, via dynamic `import()`:
  *   modules log as they load, e.g. `environment.ts`.
  * - Each command is `CLI.<name>Command(session, args, options)`, resolving to the exit code.
- * - `spell dev ...` (and the deprecated `spell plan-doc` / `spell goals`) start in the lean `devMain.ts`
- *   instead, which loads no spell;  its commands that need spell come back here.  Their tree:  `devProgram.ts`.
+ * - `spell dev ...` (and the deprecated `spell plan-doc` / `spell goals`) start in the lean `devMain.ts` instead,
+ *   which loads no spell;  its commands that need spell come back here.
+ *   Their tree:  `devProgram.ts`.
  */
 import "./consoleGuard"
 // Defines `__PACKAGE_VERSION__` -- the PARSER's, which `spell --version` prints -- before anything reads it
@@ -242,8 +243,9 @@ program
   .helpOption(false)
   .action(() => runLean(CLI.planDocCommand, rawArgs("plan-doc")))
 
-// `spell dev ...`:  the repo's own tools.  `bin/spell.mjs` runs them through the lean `devMain.ts`;  here for
-// `spell --help` / `spell help dev`, and a command line it didn't route there, e.g. `spell --verbose dev ...`
+// `spell dev ...`:  the repo's own tools.
+// `bin/spell.mjs` runs them through the lean `devMain.ts`;  here they're for `spell --help` / `spell help dev`,
+// and a command line it didn't route there, e.g. `spell --verbose dev ...`
 devProgram(program, (name, args, options) => run(CLI[name] as BarrelCommandFn, args, options))
 
 await program.parseAsync()

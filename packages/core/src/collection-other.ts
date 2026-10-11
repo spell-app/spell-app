@@ -1,6 +1,6 @@
 /**
- * Composite / derived collection methods for `spell` -- built on top of the primitive
- * accessors in `collection-core.ts` (`itemCountOf`, `getItemAt`, `getIteratorFor`, etc).
+ * Composite / derived collection methods for `spell`,
+ * built on the primitive accessors in `collection-core.ts` (`itemCountOf`, `getItemAt`, `getIteratorFor`, etc).
  * - All array iteration is 1-based.
  * - Collection methods work with objects as well as arrays, unless specified.
  *   - For objects: use natural key order for position.
@@ -24,8 +24,8 @@ export type Range = {
  * Iteration callback shared by `forEach`/`map`/`filter`/`all`/`any`/etc: `(value, position, collection) => ...`
  * - `value`:  an item of the collection, `T` -- see `CollectionOf`.
  * - `position`:  where it is, from 1 -- a plain object's:  its key.
- * - Those helpers take it as `CollectionIterationCallback<NoInfer<T>>`:  ONLY the collection says what `T` is, so a
- *   callback taking a `Card` is checked against a `List<Card>`, and refused for a list of who-knows-what.
+ * - Those helpers take it as `CollectionIterationCallback<NoInfer<T>>`:  ONLY the collection says what `T` is,
+ *   so a callback taking a `Card` is checked against a `List<Card>`, and refused for a list of who-knows-what.
  */
 export type CollectionIterationCallback<T = unknown> = (
   value: T,
@@ -70,7 +70,7 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   ////////////////
-  // ## numeric iteration -- arrays only
+  // ## copying and merging -- arrays only
   ////////////////
 
   /**
@@ -192,9 +192,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   /**
-   * Given possible `start` and `end` 1-based position in collection, as well as `itemCount` items
-   * in the collection, return `{ start, end }` for a valid range, or `undefined` if an invalid
-   * range was specified.
+   * The valid `{ start, end }` range of 1-based positions `start` to `end`, in a collection of `itemCount` items:
+   * `undefined` if they make no valid range.
    * - If `start` is negative, we'll take from the end of the list, but in normal list order.
    */
   _validateRangeBetween(
@@ -213,8 +212,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   /**
-   * Return subset of list from `start` to `end` as 1-based positions, inclusive.  Array only.
-   * NOTE: this is positive numbers only, `rangeStartingAt()` deals with negatives. (???)
+   * Return subset of list from `start` to `end` as 1-based positions, inclusive.
+   * - Array only.
+   * - NOTE: this is positive numbers only, `rangeStartingAt()` deals with negatives. (???)
    * - Nothing in range:  an empty one of its kind -- see `emptyRangeOf()`.
    * - Compiles from `item 1 to 2 of my-list` -- see `rules/lists/RangeBetweenExpression.ts`.
    * - `startAt`:  where the project's positions count from, 1 or 0 -- see `fromStartAt()`.
@@ -233,8 +233,9 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   /**
-   * Remove items from `collection` between 1-based positions `start` to `end`, inclusive.  Array only.
-   * NOTE: this is positive numbers only. (???)
+   * Remove items from `collection` between 1-based positions `start` to `end`, inclusive.
+   * - Array only.
+   * - NOTE: this is positive numbers only. (???)
    * - Slides other items into the gaps.
    * - A `List` removes each through its own `removeItem()`, last first, so it keeps its owners -- see `List`.
    * - Compiles from `remove items 2 to 4 of my-list` -- see `rules/lists/ListRemoveRange.ts`.
@@ -255,9 +256,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   /**
-   * Given possible `start` as 1-based position in collection, `count` as number of items
-   * (inclusive) and `itemCount` in collection: return `{ start, end }` for a valid range, or
-   * `undefined` if an invalid range was specified.
+   * The valid `{ start, end }` range of `count` items (inclusive) from 1-based position `start`,
+   * in a collection of `itemCount` items:  `undefined` if they make no valid range.
    * - If `start` is negative, we'll take from the end of the list, but in normal list order.
    */
   _validateRangeStartingAt(
@@ -385,8 +385,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   /**
-   * Return `true` if all items in collection match `condition`, called as
-   * `condition(value, position, collection)`.
+   * Return `true` if all items in collection match `condition`,
+   * called as `condition(value, position, collection)`.
    */
   all<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): boolean {
     if (!assert.isDefined(collection, "spellCore.all(collection)")) return false
@@ -402,8 +402,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   /**
-   * Return `true` if at least one item in collection matches `condition`, called as
-   * `condition(value, position, collection)`.
+   * Return `true` if at least one item in collection matches `condition`,
+   * called as `condition(value, position, collection)`.
    * - Compiles from `my-list has items where ...` -- see `rules/lists/ListMembershipTest.ts`.
    */
   any<T = unknown>(collection?: CollectionOf<T>, condition?: CollectionIterationCallback<NoInfer<T>>): boolean {
@@ -427,14 +427,15 @@ export const collectionOtherMethods = defineSpellCoreModule({
   removeItemsAt(collection?: unknown, ...positions: Array<string | number>): void {
     if (!assert.isDefined(collection, "spellCore.removeItemsAt(collection)")) return
     // Sort numeric positions DESCENDING so we don't have to worry about renumbering as we go.
-    // NOTE: MUST pass a comparator -- bare `.sort()` is lexicographic, so positions 2 and 10
-    // came back in the wrong order and removal renumbered the wrong items.
+    // NOTE: MUST pass a comparator:
+    // bare `.sort()` is lexicographic, so positions 2 and 10 came back in the wrong order,
+    // and removal renumbered the wrong items.
     if (spellCore.isArrayLike(collection)) positions = positions.sort((a, b) => Number(b) - Number(a))
     positions.forEach((position) => spellCore.removeItemAt(collection, position))
   },
 
   /**
-   * Remove all occurance of `things` from collection, in-place.
+   * Remove all occurrences of `things` from collection, in-place.
    * - For object: removes `values`.
    * - Compiles from `remove thing from my-list` -- see `rules/lists/ListRemove.ts`.
    */
@@ -465,9 +466,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
   ////////////////
 
   /**
-   * Move `thing` to `collection` -- `move the card to the tableau`:  if the list holding it lets it go,
-   * and `collection` takes it.
-   * - Returns whether it moved.  Refused:  nothing changes.  See `List.moveHere()`.
+   * Move `thing` to `collection` -- `move the card to the tableau`:
+   * if the list holding it lets it go, and `collection` takes it.
+   * - Returns whether it moved:  refused, nothing changes.
+   *   See `List.moveHere()`.
    * - A plain list has no guards:  `thing` is just added.
    * - Compiles from `move thing to my-list`, a statement or a yes / no -- see `rules/lists/ListMove.ts`.
    */
@@ -480,7 +482,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   /**
-   * Would `collection` take `thing`, moved there?  See `List.canTake()`.  A plain list takes anything.
+   * Would `collection` take `thing`, moved there?
+   * - A plain list takes anything;  a `List` asks its own `List.canTake()`.
    * - Compiles from `the tableau can take the card` -- see `rules/lists/CanTake.ts`.
    */
   canTake(collection?: unknown, thing?: unknown): boolean {
@@ -490,7 +493,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   /**
-   * Would `collection` give up `thing`, moved elsewhere?  See `List.canGiveUp()`.  A plain list gives up anything.
+   * Would `collection` give up `thing`, moved elsewhere?
+   * - A plain list gives up anything;  a `List` asks its own `List.canGiveUp()`.
    * - Compiles from `the pile can give up the card` -- see `rules/lists/CanGiveUp.ts`.
    */
   canGiveUp(collection?: unknown, thing?: unknown): boolean {
@@ -528,8 +532,8 @@ export const collectionOtherMethods = defineSpellCoreModule({
   },
 
   /**
-   * Return list of up to `count` items from `collection`, picked randomly, where each item can be
-   * returned only once.  Returns same type as was passed in.
+   * Return list of up to `count` items from `collection`, picked randomly, each item at most once.
+   * - Returns same type as was passed in.
    * - Compiles from `2 random items of my-list` / `3 random cards from deck`
    *   -- see `rules/lists/RandomItemsExpression.ts`.
    */
@@ -588,8 +592,10 @@ export const collectionOtherMethods = defineSpellCoreModule({
 Object.assign(spellCore, collectionOtherMethods)
 
 /**
- * What a range of `collection` that holds nothing is:  an empty SCRATCH list of its class for a `List`, e.g. an
- * empty `Pile`, so `List.between()` is always one of its own -- else `[]`, as before lists had methods.
+ * What a range of `collection` that holds nothing is:
+ * - for a `List`, an empty SCRATCH list of its class, e.g. an empty `Pile`,
+ *   so `List.between()` is always one of its own
+ * - else `[]`, as before lists had methods
  */
 function emptyRangeOf(collection: unknown): unknown {
   return collection instanceof List ? spellCore.newThingLike(collection) : []
